@@ -386,7 +386,7 @@ services:
   local-minio:
     image: minio/minio
     entrypoint: sh
-    command: -c 'mkdir -p /export/lagoon-files && /usr/bin/minio server /export'
+    command: -c 'mkdir -p /export/lagoon-files && mkdir -p /export/harbor-images && /usr/bin/minio server /export'
     ports:
       - '9000:9000'
     environment:
@@ -514,6 +514,9 @@ services:
     #  - '6061:6061'
     volumes:
       - ${PWD}/services/harborclair/ci-config.yaml:/etc/clair/config.yaml
+    depends_on:
+      - harbor-redis
+      - harbor-database
     environment:
       - CLAIR_DB_PASSWORD=test123
       - HTTP_PROXY=
@@ -535,6 +538,9 @@ services:
       - '8080:8082'
     volumes:
       - ${PWD}/services/harborclair/ci-config.yaml:/etc/clair/config.yaml
+    depends_on:
+      - harbor-database
+      - harbor-redis
     environment:
       - SCANNER_CLAIR_DATABASE_URL=postgres://postgres:test123@harbor-database:5432/postgres?sslmode=disable
       - SCANNER_STORE_REDIS_URL=redis://harbor-redis:6379/4
@@ -552,6 +558,9 @@ services:
       - ${PWD}/services/harbor-core/ci-secret.key:/etc/core/key
       - ${PWD}/services/harbor-core/ci_tls.key:/etc/core/private_key.pem
       - /etc/core/token
+    depends_on:
+      - harbor-database
+      - harbor-redis
     ports:
       - '8081:8080'
     environment:
@@ -625,6 +634,9 @@ services:
     volumes:
       - /var/log/jobs
       - ${PWD}/services/harbor-jobservice/ci-config.yaml:/etc/jobservice/config.yml
+    depends_on:
+      - harbor-database
+      - harbor-redis
     environment:
       - CORE_SECRET=secret123
       - JOBSERVICE_SECRET=secret123
@@ -648,6 +660,11 @@ services:
       - '8084:8080'
     volumes:
       - ${PWD}/services/harbor-nginx/ci.nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - harbor-core
+      - harborregistry
+      - harbor-portal
+      - harbor-jobservice
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor-nginx/harbor-nginx.yml
@@ -678,6 +695,9 @@ services:
     volumes:
       - ${PWD}/services/harborregistry/registry_ci.cfg.yaml:/etc/registry/config.yml
       - ${PWD}/services/harbor-core/ci_tls.crt:/etc/registry/root.crt
+    depends_on:
+      - harbor-database
+      - harbor-redis
     ports:
       - '4999:5000'
       - '5001:5001'

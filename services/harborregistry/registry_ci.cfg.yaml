@@ -8,7 +8,8 @@ storage:
     accesskey: minio
     secretkey: minio123
     region: us-east-1
-    bucket: docker-registry
+    bucket: harbor-images
+    regionendpoint: http://172.17.0.1:9000
     encrypt: false
     secure: false
     v4auth: true
@@ -37,7 +38,8 @@ auth:
   token:
     issuer: harbor-token-issuer
     #realm: "$HARBOR_NGINX_ENDPOINT/service/token"
-    realm: "harbor-nginx:8080/service/token"
+    #realm: "http://harbor-nginx:8080/service/token"
+    realm: "http://172.17.0.1:8084/service/token"
     rootcertbundle: /etc/registry/root.crt
     service: harbor-registry
 validation:

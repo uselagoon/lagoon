@@ -65,7 +65,7 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
     try {
       const res = await harborClient.post(`projects/${harborProjectID}/robots`, {
         body: {
-          name: openshiftProjectName,
+          name: lagoonProjectName,
           access: [
             {
               resource: `/project/${harborProjectID}/repository`,
@@ -74,7 +74,6 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
           ]
         }
       })
-      console.log(res)
       var harborTokenInfo = res.body
       console.log(harborTokenInfo)
       logger.debug(`Robot was created for Harbor project ${lagoonProjectName} !`)

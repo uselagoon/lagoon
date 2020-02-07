@@ -9,9 +9,9 @@ REGISTRY_REPOSITORY=$NAMESPACE
 LAGOON_VERSION=$(cat /lagoon/version)
 
 if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
-  INTERNAL_REGISTRY_URL=$(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "internal_container_registry") | .url')
-  INTERNAL_REGISTRY_USERNAME=$(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "internal_container_registry") | .username')
-  INTERNAL_REGISTRY_PASSWORD=$(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "internal_container_registry") | .password')
+  INTERNAL_REGISTRY_URL=$(echo $(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "internal_container_registry") | select(.name == "INTERNAL_REGISTRY_URL") | .value') | sed -e 's#^http://##' )
+  INTERNAL_REGISTRY_USERNAME=$(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "internal_container_registry") | select(.name == "INTERNAL_REGISTRY_USERNAME") | .value')
+  INTERNAL_REGISTRY_PASSWORD=$(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "internal_container_registry") | select(.name == "INTERNAL_REGISTRY_PASSWORD") | .value')
 fi
 
 if [ "$CI" == "true" ]; then
@@ -44,8 +44,9 @@ fi
 
 set +x
 
-if [ ! -z ${INTERNAL_REGISTRY_URL} && ! -z ${INTERNAL_REGISTRY_USERNAME} && ! -z ${INTERNAL_REGISTRY_PASSWORD} ]; then
-  docker login -u=${INTERNAL_REGISTRY_USERNAME} -p="${INTERNAL_REGISTRY_USERNAME}" ${INTERNAL_REGISTRY_URL}
+if [ ! -z ${INTERNAL_REGISTRY_URL} ] && [ ! -z ${INTERNAL_REGISTRY_USERNAME} ] && [ ! -z ${INTERNAL_REGISTRY_PASSWORD} ] ; then
+  echo "docker login -u '${INTERNAL_REGISTRY_USERNAME}' -p '${INTERNAL_REGISTRY_PASSWORD}' ${INTERNAL_REGISTRY_URL}" | /bin/bash
+  #docker login "-u '{$INTERNAL_REGISTRY_USERNAME}' -p '{$INTERNAL_REGISTRY_PASSWORD}' '{$INTERNAL_REGISTRY_URL}'"
   REGISTRY=$INTERNAL_REGISTRY_URL # This will handle pointing Lagoon at the correct registry for non local builds
   #REGISTRY_REPOSITORY=$NAMESPACE
   # If we go with a different naming scheme, we can inject that here?
