@@ -50,7 +50,7 @@ const messageConsumer = async msg => {
   } = JSON.parse(msg.content.toString())
 
   logger.verbose(`Received builddeploy-kubernetes monitoring task for project: ${projectName}, jobName: ${jobName}, openshiftProject: ${openshiftProject}, branch: ${branchName}, sha: ${sha}`);
-  
+
   const projectResult = await getOpenShiftInfoForProject(projectName);
   const project = projectResult.project
 
@@ -92,7 +92,7 @@ const messageConsumer = async msg => {
       bearer: kubernetesToken
     }
   });
-  
+
   // Check if project exists
   try {
     const namespacesSearch = promisify(kubernetesCore.namespaces.get);
@@ -127,8 +127,8 @@ const messageConsumer = async msg => {
       throw new Error();
     }
   }
-    
-  
+
+
   const jobsLogGet = async () => {
     // First fetch the pod(s) used to run this job
     const podsGet = promisify(kubernetesCore.namespaces(openshiftProject).pods.get);
@@ -168,7 +168,7 @@ ${podLog}`;
     const convertDateFormat = R.init;
     const dateOrNull = R.unless(R.isNil, convertDateFormat);
 
-    // The status needs a mapping from k8s job status (active, succeeded, failed) to api deployment statuses (new, pending, running, cancelled, error, failed, complete) 
+    // The status needs a mapping from k8s job status (active, succeeded, failed) to api deployment statuses (new, pending, running, cancelled, error, failed, complete)
     status = ((status) => {
       switch (status) {
         case 'active':
@@ -244,7 +244,7 @@ ${podLog}`;
             fieldSelector: `metadata.name=lagoon-env`
           }
         });
-      
+
         if (!R.isNil(configMapSearchResult)) {
           configMap = configMapSearchResult
         }
@@ -268,8 +268,8 @@ ${podLog}`;
         const updateEnvironmentResult = await updateEnvironment(
           environment.id,
           `{
-            route: "${route}",
-            routes: "${routes}",
+            route: "${configMap.items[0].data.LAGOON_ROUTE}",
+            routes: "${configMap.items[0].data.LAGOON_ROUTES}",
             monitoringUrls: "${configMap.items[0].data.LAGOON_MONITORING_URLS}",
             project: ${project.id}
           }`
@@ -280,7 +280,7 @@ ${podLog}`;
 
       // Tell api what services are running in this environment
       try {
-      
+
         // TODO: Using Deployments may be better
 
         /*
