@@ -15,7 +15,7 @@ spec:
         service: docker-host
     spec:
       containers:
-      - image: amazeeio/docker-host
+      - image: amazeeiolagoon/docker-host:kubernetes
         imagePullPolicy: Always
         livenessProbe:
           failureThreshold: 3
@@ -29,7 +29,7 @@ spec:
           - name: DOCKER_HOST
             value: localhost
           - name: REGISTRY
-            value: '172.17.0.1:5000'
+            value: 'registry.lagoon.svc:5000'
           - name: REPOSITORY_TO_UPDATE
             value: lagoon
           - name: CRONJOBS

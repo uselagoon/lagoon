@@ -31,7 +31,7 @@ spec:
           imagePullSecrets:
             {{- toYaml . | nindent 12 }}
         {{- end }}
-          priorityClassName: {{ include "solr.lagoonPriority" . }}
+          priorityClassName: {{ include "solr.lagoonPriority" $ }}
           enableServiceLinks: false
           securityContext:
             {{- toYaml $.Values.podSecurityContext | nindent 12 }}

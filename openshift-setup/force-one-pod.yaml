@@ -267,3 +267,59 @@ spec:
     kind: DeploymentConfig
     name: webhooks2tasks
   targetCPUUtilizationPercentage: 80
+
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: kubernetesbuilddeploy
+spec:
+  maxReplicas: 1
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: v1
+    kind: DeploymentConfig
+    name: kubernetesbuilddeploy
+  targetCPUUtilizationPercentage: 80
+
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: kubernetesbuilddeploymonitor
+spec:
+  maxReplicas: 1
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: v1
+    kind: DeploymentConfig
+    name: kubernetesbuilddeploymonitor
+  targetCPUUtilizationPercentage: 80
+
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: kubernetesdeployqueue
+spec:
+  maxReplicas: 1
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: v1
+    kind: DeploymentConfig
+    name: kubernetesdeployqueue
+  targetCPUUtilizationPercentage: 80
+
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: kubernetesremove
+spec:
+  maxReplicas: 1
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: v1
+    kind: DeploymentConfig
+    name: kubernetesremove
+  targetCPUUtilizationPercentage: 80
