@@ -1,6 +1,7 @@
+ARG ALPINE_VERSION
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM alpine:3.8
+FROM alpine:${ALPINE_VERSION}
 
 LABEL maintainer="amazee.io"
 
