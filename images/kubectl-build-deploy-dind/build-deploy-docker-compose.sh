@@ -355,7 +355,7 @@ imagePullSecrets:\n\
 for REGISTRY_SECRET in "${REGISTRY_SECRETS[@]}"
 do
   echo -e "\
-- ${REGISTRY_SECRET}\n\
+- "${REGISTRY_SECRET}"\n\
 " >> /kubectl-build-deploy/values.yaml
 done
 
