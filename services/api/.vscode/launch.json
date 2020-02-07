@@ -2,6 +2,18 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Docker: Attach to Node",
+      "type": "node",
+      "request": "attach",
+      "port": 9229,
+      "address": "localhost",
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"],
+      "localRoot": "${workspaceFolder}",
+      "remoteRoot": "/app/services/api",
+      "sourceMaps": true,
+      "protocol": "inspector"
+    },
+    {
       "type": "node",
       "request": "launch",
       "name": "Jest All",
@@ -25,8 +37,6 @@
         "${fileBasenameNoExtension}",
         "--config",
         "jest.config.js",
-        "-t",
-        "#mutation #updateProject #availability"
       ],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",

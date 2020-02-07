@@ -70,7 +70,7 @@ EOF
   ${OC} rollout status deploymentconfig/pv-migrator --watch
 
   #
-  MIGRATOR=$(${OC} get pods -l run=pv-migrator -o json | jq -r '.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running") | .metadata.name' | head -n 1)
+  MIGRATOR=$(${OC} get pods -l run=pv-migrator -o json | jq -r '[.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running")] | first | .metadata.name')
   #MIGRATOR=$(${OC} get pod -o custom-columns=NAME:.metadata.name --no-headers -l run=pv-migrator)
   if [[ ! $MIGRATOR ]]; then
     echo "No running pod found for migrator"
@@ -99,7 +99,7 @@ EOF
     ${OC} rollout status deploymentconfig/pv-migrator --watch
 
 
-    MIGRATOR=$(${OC} get pods -l run=pv-migrator -o json | jq -r '.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running") | .metadata.name' | head -n 1)
+    MIGRATOR=$(${OC} get pods -l run=pv-migrator -o json | jq -r '[.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running")] | first | .metadata.name')
 
     ${OC} exec $MIGRATOR -- cp -Rpav /migrator/${PVC} /storage/
     ${OC} exec $MIGRATOR -- ls -la  /storage/${PVC}

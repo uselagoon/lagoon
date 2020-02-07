@@ -19,6 +19,7 @@ const CI = process.env.CI || "false"
 const lagoonGitSafeBranch = process.env.LAGOON_GIT_SAFE_BRANCH || "master"
 const lagoonVersion = process.env.LAGOON_VERSION
 const overwriteOcBuildDeployDindImage = process.env.OVERWRITE_OC_BUILD_DEPLOY_DIND_IMAGE
+const NativeCronPodMinimumFrequency = process.env.NATIVE_CRON_POD_MINIMUM_FREQUENCY || "15"
 const lagoonEnvironmentType = process.env.LAGOON_ENVIRONMENT_TYPE || "development"
 const jwtSecret = process.env.JWTSECRET || "super-secret-string"
 
@@ -222,6 +223,10 @@ const messageConsumer = async msg => {
                       {
                           "name": "PROJECT_SECRET",
                           "value": projectSecret
+                      },
+                      {
+                        "name": "NATIVE_CRON_POD_MINIMUM_FREQUENCY",
+                        "value": NativeCronPodMinimumFrequency
                       }
                   ],
                   "forcePull": true,

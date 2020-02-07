@@ -11,14 +11,15 @@ function outputToYaml() {
   set -x
 }
 
-function cronScheduleMoreOftenThan15Minutes() {
-  #takes a unexpanded cron schedule, returns 0 if it's more often that 15 minutes
+function cronScheduleMoreOftenThanXMinutes() {
+  # Takes a unexpanded cron schedule, returns 0 if it's more often than NATIVE_CRON_POD_MINIMUM_FREQUENCY minutes
+  # NATIVE_CRON_POD_MINIMUM_FREQUENCY defaults to 15 minutes
   MINUTE=$(echo $1 | (read -a ARRAY; echo ${ARRAY[0]}) )
   if [[ $MINUTE =~ ^(M|H|\*)\/([0-5]?[0-9])$ ]]; then
     # Match found for M/xx, H/xx or */xx
-    # Check if xx is smaller than 15, which means this cronjob runs more often than every 15 minutes.
+    # Check if xx is smaller than x, which means this cronjob runs more often than every NATIVE_CRON_POD_MINIMUM_FREQUENCY minutes.
     STEP=${BASH_REMATCH[2]}
-    if [ $STEP -lt 15 ]; then
+    if [ $STEP -lt $NATIVE_CRON_POD_MINIMUM_FREQUENCY ]; then
       return 0
     else
       return 1
@@ -27,7 +28,7 @@ function cronScheduleMoreOftenThan15Minutes() {
     # We are running every minute
     return 0
   else
-    # all other cases are more often than 15 minutes
+    # all other cases are more often than NATIVE_CRON_POD_MINIMUM_FREQUENCY minutes
     return 1
   fi
 }
@@ -700,9 +701,8 @@ if [[ $THIS_IS_TUG == "true" ]]; then
     if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get secret tug-registry 2> /dev/null; then
       oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} delete secret tug-registry
     fi
-
-    oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} secrets new-dockercfg tug-registry --docker-server="${TUG_REGISTRY}" --docker-username="${TUG_REGISTRY_USERNAME}" --docker-password="${TUG_REGISTRY_PASSWORD}" --docker-email="${TUG_REGISTRY_USERNAME}"
-    oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} secrets add serviceaccount/default secrets/tug-registry --for=pull
+    oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} create secret docker-registry tug-registry --docker-server="${TUG_REGISTRY}" --docker-username="${TUG_REGISTRY_USERNAME}" --docker-password="${TUG_REGISTRY_PASSWORD}" --docker-email="${TUG_REGISTRY_USERNAME}"
+    oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} secrets link default tug-registry --for=pull
   fi
 
   # Import all remote Images into ImageStreams
@@ -845,7 +845,7 @@ do
       CRONJOB_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "$CRONJOB_SCHEDULE_RAW")
       CRONJOB_COMMAND=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.command)
 
-      if cronScheduleMoreOftenThan15Minutes "$CRONJOB_SCHEDULE_RAW" ; then
+      if cronScheduleMoreOftenThanXMinutes "$CRONJOB_SCHEDULE_RAW" ; then
         # If this cronjob is more often than 15 minutes, we run the cronjob inside the pod itself
         CRONJOBS_ARRAY_INSIDE_POD+=("${CRONJOB_SCHEDULE} ${CRONJOB_COMMAND}")
       else

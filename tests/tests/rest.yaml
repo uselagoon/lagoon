@@ -7,7 +7,7 @@
 - include: rest/pullrequest.yaml
   vars:
     testname: "REST - pullrequest"
-    node_version: 8
+    node_version: 10
     git_repo_name: rest.git
     project: ci-rest
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.pr-1.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
@@ -15,7 +15,7 @@
 - include: rest/branch.yaml
   vars:
     testname: "REST - regular branch"
-    node_version: 8
+    node_version: 10
     git_repo_name: rest.git
     project: ci-rest
     branch: rest/slash/branch
