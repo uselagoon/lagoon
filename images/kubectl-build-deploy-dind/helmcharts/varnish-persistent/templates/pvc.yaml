@@ -10,7 +10,6 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-    # storageClassName: {{ .Values.persistentStorage.class | quote }}
   resources:
     requests:
       storage: {{ .Values.persistentStorage.size | quote }}

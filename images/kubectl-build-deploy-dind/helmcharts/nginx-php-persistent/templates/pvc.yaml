@@ -10,8 +10,8 @@ metadata:
     appuio.ch/backup: "true"
 spec:
   accessModes:
-    - ReadWriteOnce
-    # storageClassName: {{ .Values.persistentStorage.class | quote }}
+    - ReadWriteMany
+  storageClassName: bulk
   resources:
     requests:
       storage: {{ .Values.persistentStorage.size | quote }}
