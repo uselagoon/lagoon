@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "postgres.fullname" . }}
+  labels:
+    {{- include "postgres.labels" . | nindent 4 }}
+  annotations:
+    {{- include "postgres.annotations" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "postgres.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "postgres.labels" . | nindent 8 }}
+      annotations:
+        {{- include "postgres.annotations" . | nindent 8 }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      volumes:
+        - name: {{ .Values.persistentStorage.name }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistentStorage.name }}
+      priorityClassName: {{ include "postgres.lagoonPriority" . }}
+      enableServiceLinks: false
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - image: {{ .Values.image | quote }}
+          name:  {{ .Chart.Name }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          ports:
+            - name: tcp-{{ .Values.service.port }}
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          readinessProbe:
+            tcpSocket:
+              port: {{ .Values.service.port }}
+            initialDelaySeconds: 15
+            timeoutSeconds: 1
+          livenessProbe:
+            tcpSocket:
+              port: {{ .Values.service.port }}
+            initialDelaySeconds: 120
+            periodSeconds: 5
+          env:
+            - name: CRONJOBS
+              value: {{ .Values.cronjobs | quote }}
+          envFrom:
+            - configMapRef:
+                name: lagoon-env
+          volumeMounts:
+            - name: {{ .Values.persistentStorage.name }}
+              mountPath: {{ .Values.persistentStorage.path | quote }}
+          resources:
+            {{- toYaml .Values.resources.nginx | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
