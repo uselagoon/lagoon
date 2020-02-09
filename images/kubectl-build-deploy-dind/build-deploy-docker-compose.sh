@@ -956,6 +956,10 @@ do
 
     echo "nothing to monitor for $SERVICE_TYPE"
 
+  elif [ $SERVICE_TYPE == "postgres" ]; then
+    # TODO: Remove
+    echo "nothing to monitor for $SERVICE_TYPE - for now"
+
   elif [ $SERVICE_TYPE == "mariadb-shared" ]; then
 
     echo "nothing to monitor for $SERVICE_TYPE"

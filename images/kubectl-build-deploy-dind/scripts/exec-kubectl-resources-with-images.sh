@@ -1,10 +1,4 @@
 #!/bin/bash
-if [ -n "$ROUTER_URL" ]; then
-  SERVICE_ROUTER_URL=${SERVICE_NAME}-${ROUTER_URL}
-else
-  SERVICE_ROUTER_URL=""
-fi
-
 
 # First check if we need multiple Images in this Template (check for `_SERVICE_IMAGE` - see underline)
 if [[ $(helm show values /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} | grep "images:") ]]; then

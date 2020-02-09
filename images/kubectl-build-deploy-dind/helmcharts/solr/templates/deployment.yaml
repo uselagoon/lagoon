@@ -30,7 +30,6 @@ spec:
       enableServiceLinks: false
       securityContext:
         fsGroup: 0
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - image: {{ .Values.image | quote }}
           name: {{ .Chart.Name }}

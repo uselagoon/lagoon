@@ -75,7 +75,7 @@ tolerations: []
 
 affinity: {}
 
-cronjobs: {}
+cronjobs: ""
 
 tls_acme: false
 routesAutogenerateInsecure: Allow
