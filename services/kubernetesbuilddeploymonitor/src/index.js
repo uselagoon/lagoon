@@ -358,7 +358,7 @@ const uploadLogToS3 = async (jobName, projectName, branchName, buildLog) => {
     ACL:    'public-read',
     ContentType: 'text/plain',
   };
-  const s3Upload = promisify(s3.upload, { context: s3 })
+  const s3Upload = promisify(s3.upload)
   return s3Upload(params);
 };
 
