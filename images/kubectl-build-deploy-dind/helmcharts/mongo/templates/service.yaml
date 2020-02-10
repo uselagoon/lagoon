@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "mongo.fullname" . }}
+  labels:
+    {{- include "mongo.labels" . | nindent 4 }}
+  annotations:
+    {{- include "mongo.annotations" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: 27017-tcp
+      protocol: TCP
+      name: 27017-tcp
+  selector:
+    {{- include "mongo.selectorLabels" . | nindent 4 }}
