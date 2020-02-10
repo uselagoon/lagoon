@@ -998,7 +998,7 @@ endif
 
 # Symlink the installed helm client if the correct version is already
 # installed, otherwise downloads it.
-local-dev/helm:
+local-dev/helm/helm:
 	@mkdir -p ./local-dev/helm
 ifeq ($(HELM_VERSION), $(shell helm version --short --client 2>/dev/null | sed -E 's/v([0-9.]+).*/\1/'))
 	$(info linking local helm version $(HELM_VERSION))
@@ -1009,7 +1009,7 @@ else
 	chmod a+x local-dev/helm/helm
 endif
 
-k3d: local-dev/k3d local-dev/kubectl build/docker-host
+k3d: local-dev/k3d local-dev/kubectl local-dev/helm/helm build/docker-host
 	$(MAKE) local-registry-up
 	$(info starting k3d with name $(K3D_NAME))
 	$(info Creating Loopback Interface for docker gateway if it does not exist, this might ask for sudo)
