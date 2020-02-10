@@ -51,4 +51,4 @@ tolerations: []
 
 affinity: {}
 
-cronjobs: ""
+inPodCronjobs: ""

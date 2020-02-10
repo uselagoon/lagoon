@@ -562,7 +562,8 @@ build-list:
 	done
 
 # Define list of all tests
-all-k8s-tests-list:=				nginx \
+all-k8s-tests-list:=				features-kubernetes \
+														nginx \
 														drupal
 all-k8s-tests = $(foreach image,$(all-k8s-tests-list),k8s-tests/$(image))
 
@@ -593,7 +594,7 @@ $(push-local-registry-images):
 	fi
 
 # Define list of all tests
-all-openshift-tests-list:=	features \
+all-openshift-tests-list:=	features-openshift \
 														node \
 														drupal \
 														drupal-postgres \
@@ -637,7 +638,7 @@ drupal-test-services = drush-alias
 webhook-tests = github gitlab bitbucket
 
 # All Tests that use API endpoints
-api-tests = node features nginx elasticsearch
+api-tests = node features-openshift features-kubernetes nginx elasticsearch
 
 # All drupal tests
 drupal-tests = drupal postgres galera
@@ -1101,11 +1102,12 @@ k3d/cleanall: k3d/stopall
 .PHONY: kubernetes-lagoon-setup
 kubernetes-lagoon-setup:
 	kubectl create namespace lagoon; \
-	kubectl -n lagoon create -f kubernetes-setup/sa-kubernetesbuilddeploy.yaml; \
-	kubectl -n lagoon create -f kubernetes-setup/priorityclasses.yaml; \
-	kubectl -n lagoon create -f kubernetes-setup/docker-host.yaml; \
-	kubectl -n lagoon create -f kubernetes-setup/sa-lagoon-deployer.yaml; \
-	echo -e "\n\nAll Setup, use this token as described in the Lagoon Install Documentation:"; \
+	local-dev/helm/helm upgrade --install -n lagoon lagoon-remote ./helmcharts/lagoon-remote; \
+	echo -e "\n\nAll Setup, use this token as described in the Lagoon Install Documentation:";
+	$(MAKE) kubernetes-get-kubernetesbuilddeploy-token
+
+.PHONY: kubernetes-get-kubernetesbuilddeploy-token
+kubernetes-get-kubernetesbuilddeploy-token:
 	kubectl -n lagoon describe secret $$(kubectl -n lagoon get secret | grep kubernetesbuilddeploy | awk '{print $$1}') | grep token: | awk '{print $$2}'
 
 .PHONY: push-oc-build-deploy-dind
