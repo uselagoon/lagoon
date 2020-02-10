@@ -337,7 +337,7 @@ const saveBuildLog = async(jobName, projectName, branchName, buildLog, status, r
   const meta = {
     jobName,
     branchName,
-    status,
+    buildPhase: status,
     remoteId
   };
 
