@@ -1,14 +1,9 @@
 const promisify = require('util').promisify;
 const KubernetesClient = require('kubernetes-client');
-const sleep = require('es7-sleep');
 const R = require('ramda');
-const sha1 = require('sha1');
-const crypto = require('crypto');
 const { logger } = require('@lagoon/commons/src/local-logging');
 const {
   getOpenShiftInfoForProject,
-  addOrUpdateEnvironment,
-  getEnvironmentByName,
   updateDeployment
 } = require('@lagoon/commons/src/api');
 
@@ -129,13 +124,13 @@ const messageConsumer = async msg => {
   } catch (err) {
     if (err.code == 404) {
       try {
-      const jobPost = promisify(
-        kubernetesApi.group(jobConfig).ns(openshiftProject).jobs.post
-      );
+        const jobPost = promisify(
+          kubernetesApi.group(jobConfig).ns(openshiftProject).jobs.post
+        );
         console.log(JSON.stringify(jobConfig, null, 4));
 
-      jobInfo = await jobPost({ body: jobConfig });
-      logger.info(`${openshiftProject}: Created build ${buildName}`);
+        jobInfo = await jobPost({ body: jobConfig });
+        logger.info(`${openshiftProject}: Created build ${buildName}`);
       } catch (error) {
         logger.error(
           `${openshiftProject}: Unexpected error creating job ${buildName}: ${err}`
