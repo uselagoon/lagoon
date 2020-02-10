@@ -150,6 +150,10 @@ const typeDefs = gql`
     groups: [GroupInterface]
     members: [GroupMembership]
     projects: [Project]
+    """
+    Environment variables available during build-time and run-time
+    """
+    envVariables: [EnvKeyValue]
   }
 
   type BillingGroup implements GroupInterface {
