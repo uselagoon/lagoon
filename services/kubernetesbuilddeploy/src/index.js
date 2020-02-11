@@ -156,6 +156,18 @@ const messageConsumer = async msg => {
                 }
               }
             ],
+            "tolerations": [
+              {
+                 "key": "lagoon/build",
+                 "effect": "NoSchedule",
+                 "operator": "Exists"
+              },
+              {
+                 "key": "lagoon/build",
+                 "effect": "PreferNoSchedule",
+                 "operator": "Exists"
+              }
+            ],
             "containers": [
               {
                 "name": "lagoon-build",
