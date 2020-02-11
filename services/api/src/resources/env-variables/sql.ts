@@ -22,7 +22,7 @@ const Sql = {
     scope: string,
     project?: number,
     environment?: number,
-    group?: number,
+    group?: string,
   },
   ) =>
     knex('env_vars')
