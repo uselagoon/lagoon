@@ -82,47 +82,47 @@ do
   # "mariadb" is a meta service, which allows lagoon to decide itself which of the services to use:
   # - mariadb-single (a single mariadb pod)
   # - mariadb-shared (use a mariadb shared service broker)
-  # - dbaas-shared (use a dbaas shared operator) # in kubernetes, mariadb-shared is the same as dbaas-shared
+  # - mariadb-dbaas (use the dbaas shared operator) # in kubernetes, mariadb-shared is the same as mariadb-dbaas
   if [ "$SERVICE_TYPE" == "mariadb" ]; then
     # if there is already a service existing with the service_name we assume that for this project there has been a
-    # mariadb-single deployed (probably from the past where there was no mariadb-shared yet, or dbaas-shared) and use that one
+    # mariadb-single deployed (probably from the past where there was no mariadb-shared yet, or mariadb-dbaas) and use that one
     if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get service "$SERVICE_NAME" &> /dev/null; then
       SERVICE_TYPE="mariadb-single"
     # heck if this cluster supports the default one, if not we assume that this cluster is not capable of shared mariadbs and we use a mariadb-single
     # real basic check to see if the mariadbconsumer exists as a kind
     elif kubectl --insecure-skip-tls-verify -n ${NAMESPACE} auth can-i create mariadbconsumer.v1.mariadb.amazee.io > /dev/null; then
-      SERVICE_TYPE="dbaas-shared"
+      SERVICE_TYPE="mariadb-dbaas"
     else
       SERVICE_TYPE="mariadb-single"
     fi
 
   fi
 
-  ## in kubernetes, we want to use dbaas-shared as no service broker exists, but capture anyone that is hardcoding mariadb-shared in their environments
-  if [[ "$SERVICE_TYPE" == "dbaas-shared" || "$SERVICE_TYPE" == "mariadb-shared" ]]; then
-    # Load a possible defined dbaas-shared
-    DBAAS_SHARED_CLASS=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.dbaas-shared\\.class "${MARIADB_SHARED_DEFAULT_CLASS}")
+  ## in kubernetes, we want to use mariadb-dbaas as no service broker exists, but capture anyone that is hardcoding mariadb-shared in their environments
+  if [[ "$SERVICE_TYPE" == "mariadb-dbaas" || "$SERVICE_TYPE" == "mariadb-shared" ]]; then
+    # Load a possible defined mariadb-dbaas
+    DBAAS_SHARED_CLASS=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mariadb-dbaas\\.class "${MARIADB_SHARED_DEFAULT_CLASS}")
 
     # Allow the dbaas shared servicebroker to be overriden by environment in .lagoon.yml
-    ENVIRONMENT_DBAAS_SHARED_CLASS_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.overrides.$SERVICE_NAME.dbaas-shared\\.class false)
+    ENVIRONMENT_DBAAS_SHARED_CLASS_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.overrides.$SERVICE_NAME.mariadb-dbaas\\.class false)
     if [ ! $ENVIRONMENT_DBAAS_SHARED_CLASS_OVERRIDE == "false" ]; then
       DBAAS_SHARED_CLASS=$ENVIRONMENT_DBAAS_SHARED_CLASS_OVERRIDE
     fi
 
     # check if the defined operator class exists
     if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} auth can-i create mariadbconsumer.v1.mariadb.amazee.io > /dev/null; then
-      SERVICE_TYPE="dbaas-shared"
+      SERVICE_TYPE="mariadb-dbaas"
       MAP_SERVICE_NAME_TO_SERVICEBROKER_CLASS["${SERVICE_NAME}"]="${DBAAS_SHARED_CLASS}"
     else
-      echo "defined dbaas-shared operator class '$DBAAS_SHARED_CLASS' for service '$SERVICE_NAME' not found in cluster";
+      echo "defined mariadb-dbaas operator class '$DBAAS_SHARED_CLASS' for service '$SERVICE_NAME' not found in cluster";
       exit 1
     fi
 
     # Default plan is the enviroment type
-    DBAAS_SHARED_PLAN=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.dbaas-shared\\.plan "${ENVIRONMENT_TYPE}")
+    DBAAS_SHARED_PLAN=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mariadb-dbaas\\.plan "${ENVIRONMENT_TYPE}")
 
     # Allow the dbaas shared servicebroker plan to be overriden by environment in .lagoon.yml
-    ENVIRONMENT_DBAAS_SHARED_PLAN_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.overrides.$SERVICE_NAME.dbaas-shared\\.plan false)
+    ENVIRONMENT_DBAAS_SHARED_PLAN_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.overrides.$SERVICE_NAME.mariadb-dbaas\\.plan false)
     if [ ! $DBAAS_SHARED_PLAN_OVERRIDE == "false" ]; then
       DBAAS_SHARED_PLAN=$ENVIRONMENT_DBAAS_SHARED_PLAN_OVERRIDE
     fi
@@ -663,8 +663,8 @@ do
 
   case "$SERVICE_TYPE" in
 
-    dbaas-shared)
-        . /kubectl-build-deploy/scripts/exec-kubectl-dbaas-shared.sh
+    mariadb-dbaas)
+        . /kubectl-build-deploy/scripts/exec-kubectl-mariadb-dbaas.sh
         ;;
 
     *)
@@ -940,7 +940,7 @@ do
     DAEMONSET="${SERVICE_NAME}"
     . /kubectl-build-deploy/scripts/exec-monitor-deamonset.sh
 
-  elif [ $SERVICE_TYPE == "dbaas-shared" ]; then
+  elif [ $SERVICE_TYPE == "mariadb-dbaas" ]; then
 
     echo "nothing to monitor for $SERVICE_TYPE"
 
