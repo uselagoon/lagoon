@@ -70,6 +70,7 @@ MINISHIFT_DISK_SIZE := 30GB
 # Version and Hash of the minikube cli that should be downloaded
 K3S_VERSION := v1.17.0-k3s.1
 KUBECTL_VERSION := v1.17.0
+HELM_VERSION := v3.0.3
 MINIKUBE_VERSION := 1.5.2
 MINIKUBE_PROFILE := $(CI_BUILD_TAG)-minikube
 MINIKUBE_CPUS := 6
@@ -561,7 +562,8 @@ build-list:
 	done
 
 # Define list of all tests
-all-k8s-tests-list:=				nginx \
+all-k8s-tests-list:=				features-kubernetes \
+														nginx \
 														drupal
 all-k8s-tests = $(foreach image,$(all-k8s-tests-list),k8s-tests/$(image))
 
@@ -592,7 +594,7 @@ $(push-local-registry-images):
 	fi
 
 # Define list of all tests
-all-openshift-tests-list:=	features \
+all-openshift-tests-list:=	features-openshift \
 														node \
 														drupal \
 														drupal-postgres \
@@ -636,7 +638,7 @@ drupal-test-services = drush-alias
 webhook-tests = github gitlab bitbucket
 
 # All Tests that use API endpoints
-api-tests = node features nginx elasticsearch
+api-tests = node features-openshift features-kubernetes nginx elasticsearch
 
 # All drupal tests
 drupal-tests = drupal postgres galera
@@ -986,7 +988,7 @@ endif
 # installed, otherwise downloads it.
 local-dev/kubectl:
 ifeq ($(KUBECTL_VERSION), $(shell kubectl version --short --client 2>/dev/null | sed -E 's/Client Version: v([0-9.]+).*/\1/'))
-	$(info linking local kubectl version $(K3D_VERSION))
+	$(info linking local kubectl version $(KUBECTL_VERSION))
 	ln -s $(shell command -v kubectl) ./local-dev/kubectl
 else
 	$(info downloading kubectl version $(KUBECTL_VERSION) for $(ARCH))
@@ -994,7 +996,20 @@ else
 	chmod a+x local-dev/kubectl
 endif
 
-k3d: local-dev/k3d local-dev/kubectl build/docker-host
+# Symlink the installed helm client if the correct version is already
+# installed, otherwise downloads it.
+local-dev/helm/helm:
+	@mkdir -p ./local-dev/helm
+ifeq ($(HELM_VERSION), $(shell helm version --short --client 2>/dev/null | sed -E 's/v([0-9.]+).*/\1/'))
+	$(info linking local helm version $(HELM_VERSION))
+	ln -s $(shell command -v helm) ./local-dev/helm
+else
+	$(info downloading helm version $(HELM_VERSION) for $(ARCH))
+	curl -L https://get.helm.sh/helm-$(HELM_VERSION)-$(ARCH)-amd64.tar.gz | tar xzC local-dev/helm --strip-components=1
+	chmod a+x local-dev/helm/helm
+endif
+
+k3d: local-dev/k3d local-dev/kubectl local-dev/helm/helm build/docker-host
 	$(MAKE) local-registry-up
 	$(info starting k3d with name $(K3D_NAME))
 	$(info Creating Loopback Interface for docker gateway if it does not exist, this might ask for sudo)
@@ -1011,16 +1026,11 @@ endif
 		--volume $$PWD/local-dev/k3d-nginx-ingress.yaml:/var/lib/rancher/k3s/server/manifests/k3d-nginx-ingress.yaml
 	echo "$(K3D_NAME)" > $@
 	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; \
+	local-dev/kubectl apply -f $$PWD/local-dev/k3d-storageclass-bulk.yaml; \
 	docker tag $(CI_BUILD_TAG)/docker-host localhost:5000/lagoon/docker-host; \
 	docker push localhost:5000/lagoon/docker-host; \
 	local-dev/kubectl create namespace lagoon; \
-	local-dev/kubectl -n lagoon create -f kubernetes-setup/sa-kubernetesbuilddeploy.yaml; \
-	local-dev/kubectl -n lagoon create -f kubernetes-setup/priorityclasses.yaml; \
-	local-dev/kubectl -n lagoon create -f kubernetes-setup/k3d-docker-host.yaml; \
-	local-dev/kubectl -n lagoon create -f kubernetes-setup/sa-lagoon-deployer.yaml; \
-	local-dev/kubectl -n lagoon create -f kubernetes-setup/role-mariadb-operator.yaml; \
-	local-dev/kubectl -n dbaas-operator-system create -f kubernetes-setup/dbaas-operator.yaml; \
-	local-dev/kubectl -n lagoon create -f kubernetes-setup/dbaas-providers.yaml; \
+	local-dev/helm/helm upgrade --install -n lagoon lagoon-remote ./charts/lagoon-remote --set dockerHost.image.name=172.17.0.1:5000/lagoon/docker-host --set dockerHost.registry=172.17.0.1:5000; \
 	local-dev/kubectl -n lagoon rollout status deployment docker-host -w;
 ifeq ($(ARCH), darwin)
 	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; \
@@ -1093,11 +1103,12 @@ k3d/cleanall: k3d/stopall
 .PHONY: kubernetes-lagoon-setup
 kubernetes-lagoon-setup:
 	kubectl create namespace lagoon; \
-	kubectl -n lagoon create -f kubernetes-setup/sa-kubernetesbuilddeploy.yaml; \
-	kubectl -n lagoon create -f kubernetes-setup/priorityclasses.yaml; \
-	kubectl -n lagoon create -f kubernetes-setup/docker-host.yaml; \
-	kubectl -n lagoon create -f kubernetes-setup/sa-lagoon-deployer.yaml; \
-	echo -e "\n\nAll Setup, use this token as described in the Lagoon Install Documentation:"; \
+	local-dev/helm/helm upgrade --install -n lagoon lagoon-remote ./charts/lagoon-remote; \
+	echo -e "\n\nAll Setup, use this token as described in the Lagoon Install Documentation:";
+	$(MAKE) kubernetes-get-kubernetesbuilddeploy-token
+
+.PHONY: kubernetes-get-kubernetesbuilddeploy-token
+kubernetes-get-kubernetesbuilddeploy-token:
 	kubectl -n lagoon describe secret $$(kubectl -n lagoon get secret | grep kubernetesbuilddeploy | awk '{print $$1}') | grep token: | awk '{print $$2}'
 
 .PHONY: push-oc-build-deploy-dind

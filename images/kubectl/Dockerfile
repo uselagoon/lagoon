@@ -44,6 +44,8 @@ RUN apk add -U --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing au
     && pip install shyaml yq \
     && curl -Lo /usr/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl \
     && chmod +x /usr/bin/kubectl \
+    && curl -Lo /usr/bin/yq https://github.com/mikefarah/yq/releases/download/3.1.0/yq_linux_amd64 \
+    && chmod +x /usr/bin/yq \
     && curl -Lo /usr/bin/svcat https://download.svcat.sh/cli/latest-v0.2/linux/amd64/svcat \
     && chmod +x /usr/bin/svcat \
     && curl -Lo /tmp/helm.tar.gz https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz \

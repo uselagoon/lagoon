@@ -56,7 +56,7 @@ spec:
                 name: lagoon-env
           env:
             - name: CRONJOBS
-              value: {{ .Values.cronjobs | quote }}
+              value: {{ .Values.inPodCronjobs | quote }}
           volumeMounts:
             - name: {{ .Values.persistentStorage.name }}
               mountPath: {{ .Values.persistentStorage.path | quote }}
