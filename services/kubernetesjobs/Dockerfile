@@ -23,6 +23,4 @@ RUN yarn check --verify-tree
 
 ENV NODE_ENV production
 
-RUN yarn run build
-
 CMD ["yarn", "start"]
