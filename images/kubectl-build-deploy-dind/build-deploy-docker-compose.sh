@@ -881,9 +881,11 @@ done
 
 if [ -f /kubectl-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml ]; then
 
-  # During CI tests of Lagoon itself we only have a single compute node, so we change podAntiAffinity to podAffinity
+
   if [ "$CI" == "true" ]; then
+    # During CI tests of Lagoon itself we only have a single compute node, so we change podAntiAffinity to podAffinity
     sed -i s/podAntiAffinity/podAffinity/g /kubectl-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml
+    # During CI tests of Lagoon itself we only have a single compute node, so we change ReadWriteMany to ReadWriteOnce
     sed -i s/ReadWriteMany/ReadWriteOnce/g /kubectl-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml
   fi
 
