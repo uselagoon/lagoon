@@ -3,7 +3,27 @@ entries:
   lagoon-remote:
   - apiVersion: v2
     appVersion: 1.4.0
-    created: "2020-02-09T20:51:47.547268-06:00"
+    created: "2020-02-11T15:52:51.202086-06:00"
+    description: A Helm chart to run a lagoon-remote
+    digest: 5756a3fbb46a11f2f43fdcadb41d709d90c70208b90fa0257d48dcacc4df3040
+    name: lagoon-remote
+    type: application
+    urls:
+    - lagoon-remote-0.1.2.tgz
+    version: 0.1.2
+  - apiVersion: v2
+    appVersion: 1.4.0
+    created: "2020-02-11T15:52:51.202462-06:00"
+    description: A Helm chart to run a lagoon-remote
+    digest: 15d7e20d6fe611b119beeb9abbd7cccc062101e3eac4149d7f903916f54376cd
+    name: lagoon-remote
+    type: application
+    urls:
+    - lagoon-remote/lagoon-remote-0.1.2.tgz
+    version: 0.1.2
+  - apiVersion: v2
+    appVersion: 1.4.0
+    created: "2020-02-11T15:52:51.201622-06:00"
     description: A Helm chart to run a lagoon-remote
     digest: 0cf4b4b5dd08e7bcb74239ef729ef516384f3b733249d75cfe7ac6246de9ec51
     name: lagoon-remote
@@ -11,4 +31,4 @@ entries:
     urls:
     - lagoon-remote-0.1.1.tgz
     version: 0.1.1
-generated: "2020-02-09T20:51:47.543795-06:00"
+generated: "2020-02-11T15:52:51.198614-06:00"
