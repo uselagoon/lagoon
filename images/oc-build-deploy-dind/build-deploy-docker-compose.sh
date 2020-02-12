@@ -60,6 +60,7 @@ declare -A MAP_SERVICE_TYPE_TO_COMPOSE_SERVICE
 declare -A MAP_SERVICE_NAME_TO_IMAGENAME
 declare -A MAP_SERVICE_NAME_TO_SERVICEBROKER_CLASS
 declare -A MAP_SERVICE_NAME_TO_SERVICEBROKER_PLAN
+declare -A MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT
 declare -A IMAGES_PULL
 declare -A IMAGES_BUILD
 set -x
@@ -91,7 +92,7 @@ do
       SERVICE_TYPE="mariadb-single"
     # check if we can use the dbaas operator
     elif oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} auth can-i create mariadbconsumer.v1.mariadb.amazee.io > /dev/null; then
-      SERVICE_TYPE="dbaas-shared"
+      SERVICE_TYPE="mariadb-dbaas"
     # heck if this cluster supports the default one, if not we assume that this cluster is not capable of shared mariadbs and we use a mariadb-single
     elif svcat --scope cluster get class $MARIADB_SHARED_DEFAULT_CLASS > /dev/null; then
       SERVICE_TYPE="mariadb-shared"
@@ -101,36 +102,18 @@ do
 
   fi
 
-  ## in kubernetes, we want to use dbaas-shared as no service broker exists, but capture anyone that is hardcoding mariadb-shared in their environments
-  if [[ "$SERVICE_TYPE" == "dbaas-shared" ]]; then
-    # Load a possible defined dbaas-shared
-    DBAAS_SHARED_CLASS=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.dbaas-shared\\.class "${MARIADB_SHARED_DEFAULT_CLASS}")
-
-    # Allow the dbaas shared servicebroker to be overriden by environment in .lagoon.yml
-    ENVIRONMENT_DBAAS_SHARED_CLASS_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.overrides.$SERVICE_NAME.dbaas-shared\\.class false)
-    if [ ! $ENVIRONMENT_DBAAS_SHARED_CLASS_OVERRIDE == "false" ]; then
-      DBAAS_SHARED_CLASS=$ENVIRONMENT_DBAAS_SHARED_CLASS_OVERRIDE
-    fi
-
-    # check if the defined operator class exists
-    if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} auth can-i create mariadbconsumer.v1.mariadb.amazee.io > /dev/null; then
-      SERVICE_TYPE="dbaas-shared"
-      MAP_SERVICE_NAME_TO_SERVICEBROKER_CLASS["${SERVICE_NAME}"]="${DBAAS_SHARED_CLASS}"
-    else
-      echo "defined dbaas-shared operator class '$DBAAS_SHARED_CLASS' for service '$SERVICE_NAME' not found in cluster";
-      exit 1
-    fi
-
+  ## check if the .lagoon.yml overwrites the environment to use
+  if [[ "$SERVICE_TYPE" == "mariadb-dbaas" ]]; then
     # Default plan is the enviroment type
-    DBAAS_SHARED_PLAN=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.dbaas-shared\\.plan "${ENVIRONMENT_TYPE}")
+    DBAAS_ENVIRONMENT=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.$SERVICE_TYPE\\.environment "${ENVIRONMENT_TYPE}")
 
     # Allow the dbaas shared servicebroker plan to be overriden by environment in .lagoon.yml
-    ENVIRONMENT_DBAAS_SHARED_PLAN_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.overrides.$SERVICE_NAME.dbaas-shared\\.plan false)
-    if [ ! $DBAAS_SHARED_PLAN_OVERRIDE == "false" ]; then
-      DBAAS_SHARED_PLAN=$ENVIRONMENT_DBAAS_SHARED_PLAN_OVERRIDE
+    ENVIRONMENT_DBAAS_ENVIRONMENT_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.overrides.$SERVICE_NAME.$SERVICE_TYPE\\.environment false)
+    if [ ! $DBAAS_ENVIRONMENT_OVERRIDE == "false" ]; then
+      DBAAS_ENVIRONMENT=$ENVIRONMENT_DBAAS_ENVIRONMENT_OVERRIDE
     fi
 
-    MAP_SERVICE_NAME_TO_SERVICEBROKER_PLAN["${SERVICE_NAME}"]="${DBAAS_SHARED_PLAN}"
+    MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]="$DBAAS_ENVIRONMENT"
   fi
 
   if [ "$SERVICE_TYPE" == "mariadb-shared" ]; then
@@ -469,20 +452,15 @@ do
   OPENSHIFT_SERVICES_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/consumer.yml"
   if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
     OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
-    OPERATOR_PLAN="${MAP_SERVICE_NAME_TO_SERVICEBROKER_PLAN["${SERVICE_NAME}"]}"
+    OPERATOR_ENVIRONMENT="${MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]}"
     TEMPLATE_ADDITIONAL_PARAMETERS=()
-    if [[ $(oc process --local -f ${OPENSHIFT_TEMPLATE} --parameters | grep ENVIRONMENT_TYPE) ]]; then
-      TEMPLATE_ADDITIONAL_PARAMETERS+=(-p "ENVIRONMENT_TYPE=${ENVIRONMENT_TYPE}")
-    fi
     oc process  --local -o yaml --insecure-skip-tls-verify \
       -n ${OPENSHIFT_PROJECT} \
       -f ${OPENSHIFT_TEMPLATE} \
       -p SERVICE_NAME="${SERVICE_NAME}" \
       -p SAFE_BRANCH="${SAFE_BRANCH}" \
       -p SAFE_PROJECT="${SAFE_PROJECT}" \
-      -p ENVIRONMENT="${OPERATOR_PLAN}" \
-      "${TEMPLATE_PARAMETERS[@]}" \
-      "${TEMPLATE_ADDITIONAL_PARAMETERS[@]}" \
+      -p ENVIRONMENT="${OPERATOR_ENVIRONMENT}" \
       | outputToYaml
     SERVICEBROKERS+=("${SERVICE_NAME}:${SERVICE_TYPE}")
   fi
@@ -706,8 +684,8 @@ do
 
   case "$SERVICE_TYPE" in
     # Operator can take some time to return the required information, do it here
-    dbaas-shared)
-        . /oc-build-deploy/scripts/exec-openshift-dbaas-shared.sh
+    mariadb-dbaas)
+        . /oc-build-deploy/scripts/exec-openshift-mariadb-dbaas.sh
         ;;
 
     mariadb-shared)
@@ -1057,7 +1035,7 @@ do
     DAEMONSET="${SERVICE_NAME}"
     . /oc-build-deploy/scripts/exec-monitor-deamonset.sh
 
-  elif [ $SERVICE_TYPE == "dbaas-shared" ]; then
+  elif [ $SERVICE_TYPE == "mariadb-dbaas" ]; then
 
     echo "nothing to monitor for $SERVICE_TYPE"
 

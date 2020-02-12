@@ -2,18 +2,18 @@
 
 # The operator can sometimes take a bit, wait until the details are available
 # We added a timeout of 10 minutes (120 retries) before exit
-SERVICE_BROKER_COUNTER=1
-SERVICE_BROKER_TIMEOUT=180
+OPERATOR_COUNTER=1
+OPERATOR_TIMEOUT=180
 
 # check for the database in the consumer, once it exists it means the operator has done its job
 until oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get mariadbconsumer/${SERVICE_NAME} -o yaml | shyaml get-value spec.consumer.database
 do
-if [ $SERVICE_BROKER_COUNTER -lt $SERVICE_BROKER_TIMEOUT ]; then
-    let SERVICE_BROKER_COUNTER=SERVICE_BROKER_COUNTER+1
+if [ $OPERATOR_COUNTER -lt $OPERATOR_TIMEOUT ]; then
+    let OPERATOR_COUNTER=OPERATOR_COUNTER+1
     echo "Service for ${SERVICE_NAME} not available yet, waiting for 5 secs"
     sleep 5
 else
-    echo "Timeout of $SERVICE_BROKER_TIMEOUT for ${SERVICE_NAME} creation reached"
+    echo "Timeout of $OPERATOR_TIMEOUT for ${SERVICE_NAME} creation reached"
     exit 1
 fi
 done
