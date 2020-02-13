@@ -1,13 +1,16 @@
-# Debugging the API with VSCode
-
+# API Debugging
+How to debug Lagoon in VSCode.
 
 1 . Ensure the `dev` script at `services/api/package.json` looks like the following:
 
-```
+💡 _Tip: Scroll to the right to see the whole script!_
+
+```javascript
 "dev": "NODE_ENV=development nodemon --ignore '*.test.ts' --watch src -e js,json,ts --exec 'tsc --sourceMap && flow-node --inspect=0.0.0.0:9229 -r dotenv-extended/config' -- dist"
 ```
 
-2 . Update `docker-compose.yml` to map the dist folder and expose the `9229` port:
+2 . Update `docker-compose.yml` to map the `dist` folder and expose the `9229` port:
+
 ```
   api:
     image: ${IMAGE_REPO:-lagoon}/api
@@ -24,13 +27,13 @@
       - '9229:9229'
 ```
 
-3 . Add the following `.vscode/launch.json`:
+3 . Add the following to  `.vscode/launch.json`:
 
-```
+```javascript
 {
   // Use IntelliSense to learn about possible attributes.
   // Hover to view descriptions of existing attributes.
-  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387.
   "version": "0.2.0",
   "configurations": [
     {
@@ -47,13 +50,13 @@
     }
   ]
 }
-
 ```
 
 4 . Rebuild/restart the containers:
 
-```
+```bash
 $ rm build/api && make build/api && docker-compose restart api
 ```
 
-5 . Restart vscode.
+5 . Restart VScode.
+

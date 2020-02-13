@@ -19,7 +19,7 @@ pages:
       - Varnish: using_lagoon/drupal/services/varnish.md
       - Redis: using_lagoon/drupal/services/redis.md
   - .lagoon.yml: using_lagoon/lagoon_yml.md
-  - .docker-compose.yml: using_lagoon/docker-compose_yml.md
+  - docker-compose.yml: using_lagoon/docker-compose_yml.md
   - Service Types: using_lagoon/service_types.md
   - Build & Deployment Process: using_lagoon/build_deploy_process.md
   - Environment Types: using_lagoon/environment_types.md
@@ -33,7 +33,7 @@ pages:
   - Remote Shell: using_lagoon/remote_shell.md
   - GraphQL API: using_lagoon/graphql_api.md
   - Node.js:
-    - Gracefull Shutdown: using_lagoon/nodejs/gracefull_shutdown.md
+    - Graceful Shutdown: using_lagoon/nodejs/graceful_shutdown.md
   - Migrations:
     - From amazee.io: using_lagoon/migrations/amazeeio.md
 - Administration:
@@ -41,6 +41,7 @@ pages:
   - OpenShift Requirements: administering_lagoon/openshift_requirements.md
   - GraphQL API: administering_lagoon/graphql_api.md
   - Role Based Access Control: administering_lagoon/rbac.md
+  - SSL Ciphers: administering_lagoon/ssl_ciphers.md
 - Docker Images:
   - Elasticsearch: using_lagoon/docker_images/elasticsearch.md
   - MariaDB Drupal: using_lagoon/docker_images/mariadb-drupal.md
@@ -53,7 +54,7 @@ pages:
   - PHP-FPM: using_lagoon/docker_images/php-fpm.md
   - Postgres: using_lagoon/docker_images/postgres.md
   - RabbitMQ: using_lagoon/docker_images/rabbitmq.md
-  - Redis Permanent: using_lagoon/docker_images/redis-permanent.md
+  - Redis Persistent: using_lagoon/docker_images/redis-persistent.md
   - Redis: using_lagoon/docker_images/redis.md
   - Solr Drupal: using_lagoon/docker_images/solr-drupal.md
   - Solr: using_lagoon/docker_images/solr.md
@@ -64,7 +65,7 @@ pages:
   - Tests: developing_lagoon/tests.md
   - Contributing: developing_lagoon/contributing.md
   - API Debugging: developing_lagoon/api-debugging.md
-- Code Of Conduct: code_of_conduct.md
+  - Code Of Conduct: developing_lagoon/code_of_conduct.md
 theme: readthedocs
 
 markdown_extensions:
@@ -72,3 +73,5 @@ markdown_extensions:
       permalink: true
       baselevel: 1
   - admonition
+
+extra_css: [_static/theme_overrides.css]
