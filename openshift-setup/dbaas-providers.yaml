@@ -4,9 +4,9 @@ metadata:
   name: mariadbprovider-development
 spec:
   environment: development
-  hostname: 172.17.0.1.xip.io
+  hostname: 192.168.42.1.xip.io
   readReplicaHostnames:
-  - 172.17.0.1.xip.io
+  - 192.168.42.1.xip.io
   password: password
   port: '3306'
   user: root
@@ -17,9 +17,9 @@ metadata:
   name: mariadbprovider-production
 spec:
   environment: production
-  hostname: 172.17.0.1.xip.io
+  hostname: 192.168.42.1.xip.io
   readReplicaHostnames:
-  - 172.17.0.1.xip.io
+  - 192.168.42.1.xip.io
   password: password
   port: '3306'
   user: root
