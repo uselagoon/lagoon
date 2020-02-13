@@ -43,7 +43,7 @@ const mocks = {
   ProjectOrderType: () => faker.random.arrayElement(['name', 'created']),
   ProjectAvailability: () => faker.random.arrayElement(['standard', 'high']),
   GroupRole: () => faker.random.arrayElement(['guest', 'reporter', 'developer', 'maintainer', 'owner']),
-  Currency: () => faker.random.arrayElement(['aud', 'eur', 'gbp', 'usd', 'chf', 'zar']),
+  Currency: () => faker.random.arrayElement(['AUD', 'EUR', 'GBP', 'USD', 'CHF', 'ZAR']),
 };
 
 //
@@ -97,7 +97,7 @@ mocks.GroupMembership = (parent, args = {}, context, info) => ({
   role: mocks.GroupRole(),
 });
 
-mocks.GroupInterface = (parent, args = {}, context, info) => {
+mocks.Group = (parent, args = {}, context, info) => {
   const user = args.hasOwnProperty('user')
     ? args.user
     : mocks.User(null, {groups: []});
@@ -119,13 +119,14 @@ mocks.GroupInterface = (parent, args = {}, context, info) => {
   // Add a reference to the group to all of its members.
   user.groups.push(group);
   user2.groups.push(group);
+
   return group;
 };
 
-mocks.Group = mocks.GroupInterface;
+// mocks.Group = mocks.GroupInterface;
 
 mocks.BillingGroup = (parent, args = {}, context, info) => ({
-  ...mocks.GroupInterface(parent, args, context, info),
+  ...mocks.Group(parent, args, context, info),
   currency: mocks.Currency(),
   billingSoftware: faker.random.arrayElement(['Xero', 'Bexio', 'Clay tablets']),
 });

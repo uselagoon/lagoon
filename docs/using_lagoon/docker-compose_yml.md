@@ -14,7 +14,7 @@ Docker-compose \(the tool\) is very strict in validating the content of the YAML
 
 Here a straightforward example of a `docker-compose.yml` file for Drupal:
 
-```yaml
+```
 services:
 
   nginx:
@@ -89,7 +89,7 @@ Some containers need persistent storage. In many cases, Lagoon knows where that 
 
 Kubernetes and OpenShift don't deploy plain containers. Instead, they deploy pods, with each one or more containers. Usually Lagoon creates a single pod with a container inside for each defined `docker-compose` service. For some cases, we need to put two containers inside a single pod, as these containers are so dependent on each other that they should always stay together. An example for such a situation is the PHP and Nginx containers that both contain PHP code of a web application like Drupal.
 
-For these cases, it is possible to tell Lagoon which services should stay together, which is done in the following way \(remember that we are calling containers `services` because of `docker-compose`:
+For these cases, it is possible to tell Lagoon which services should stay together, which is done in the following way \(remember that we are calling containers `services` because of `docker-compose`):
 
 1. Define both services with a `lagoon.type` that expects two services \(in the example this is `nginx-php-persistent` defined on the `nginx` and `php` services\).
 2. Link the second service with the first one, defining the label `lagoon.name` of the second one with the first one. \(in the example this is done with defining `lagoon.name: nginx`\).
@@ -100,7 +100,7 @@ Lagoon still needs to understand which of the two services is the actual individ
 
 An example:
 
-```yaml
+```
 nginx:
     build:
       context: .
@@ -156,7 +156,7 @@ When defining a service as `lagoon.type: custom`, you can tell Lagoon to not use
 
 This also expects the label `lagoon.template` to be defined with the path to the YAML file where you define all the needed Kubernetes objects to be executed. In here you can define your own OpenShift templates like the ones in the [templates folder of `oc-build-deploy-dind`](https://github.com/amazeeio/lagoon/tree/master/images/oc-build-deploy-dind/openshift-templates).
 
-{% hint style="info" %}
-The template is called with `oc process`, so you should define the same parameters as in the default templates.
-{% endhint %}
+!!!hint
+    The template is called with `oc process`, so you should define the same parameters as in the default templates.
+
 

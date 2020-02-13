@@ -58,8 +58,8 @@ Next, Lagoon will configure OpenShift/Kubernetes with all services and routes th
 
 In this step it will expose all defined routes in the `LAGOON_ROUTES` as comma separated URLs. It will also define one route as the "main" route, in this order:
 
-1. If custom routes defined: the first defined custom route in `.lagoon.yml`
-2. The first auto generated one from a service defined in `docker-compose.yml`
+1. If custom routes defined: the first defined custom route in `.lagoon.yml`.
+2. The first auto generated one from a service defined in `docker-compose.yml`.
 3. None
 
 The "main" route is injected via the `LAGOON_ROUTE` environment variable.
@@ -78,7 +78,7 @@ Lagoon will now create persistent storage \(PVC\) for each service that needs an
 
 For each service that requests a cron job \(like MariaDB\), plus for each custom cron job defined in `.lagoon.yml,` Lagoon will now generate the cron job environment variables which are later injected into the DeploymentConfigs.
 
-## 8. DeploymentConfigs, Statefulsets, Deamonsets
+## 8. DeploymentConfigs, Statefulsets, Daemonsets
 
 This is probably the most important step. Based on the defined service type, Lagoon will create the DeploymentConfigs, Statefulset or Daemonsets for the service.
 

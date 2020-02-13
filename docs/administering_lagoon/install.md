@@ -28,13 +28,13 @@ In this example we create the Service Account `lagoon` in the OpenShift Project 
 1. Make sure you have the `oc cli` tools already installed. If not, please see [here](https://docs.openshift.org/latest/cli_reference/get_started_cli.html#cli-reference-get-started-cli).
 2. Log into OpenShift as an admin:
 
-   ```text
+   ```
     oc login <openshift console>
    ```
 
 3. Run the `openshift-lagoon-setup` script
 
-   ```text
+   ```
    make openshift-lagoon-setup
    ```
 
@@ -49,7 +49,7 @@ In order to use a local Lagoon to deploy itself on an OpenShift, we need a subse
    2. `[REPLACE ME WITH OPENSHIFT LAGOON SERVICEACCOUNT TOKEN]` - The token of the lagoon service account that was shown to you during `make openshift-lagoon-setup`.
 2. Build required images and start services:
 
-   ```text
+   ```
     make lagoon-kickstart
    ```
 
@@ -80,5 +80,5 @@ Once Lagoon is install operational, you need to initialize OpendistroSecurity to
 
 ## Configure Installed Lagoon
 
-We have a fully running Lagoon. Now it's time to configure the first project inside of it. Follow the examples in [GraphQL API](https://github.com/AlannaBurke/lagoon/tree/b9add2d0bfd8db43295d7ccdab7729436674f764/administering_lagoon/graphql_api.md)
+We have a fully running Lagoon. Now it's time to configure the first project inside of it. Follow the examples in [GraphQL API](graphql_api.md).
 

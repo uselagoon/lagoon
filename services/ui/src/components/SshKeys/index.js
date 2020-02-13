@@ -134,10 +134,12 @@ const SshKeys = ({me: { id, email, sshKeys: keys }}) => {
               }
               @media ${bp.wideUp} {
                 &.name {
+                  align-self: center;
                   width: 40%;
                 }
 
                 &.type {
+                  align-self: center;
                   width: 20%;
                 }
 

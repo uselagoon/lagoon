@@ -395,10 +395,9 @@ mutation {
 ```
 
 Update the production environment within a project:
+!!!hint
+    This needs a redeploy in order for the changes to be reflected in the containers.
 
-{% hint style="warning" %}
-This needs a redeploy in order for the changes to be reflected in the containers.
-{% endhint %}
 
 ```graphql
  mutation {

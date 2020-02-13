@@ -1,15 +1,12 @@
----
-description: >-
-  It's time! It's time for the first deployment into Lagoon! We hope you are as
-  excited as we are!
----
-
 # First Deployment
+ It's time! It's time for the first deployment into Lagoon!
+
+ We hope you are as excited as we are!
 
 ![excited](https://i.giphy.com/media/7kVRZwYRwF1ok/giphy-downsized.gif)
 
 !!!hint
-    If you are deploying a Drupal Project, skip this and read the [Drupal-specific first deployment documentation](/drupal/first-deployment-of-drupal.md).
+    If you are deploying a Drupal Project, skip this and read the [Drupal-specific first deployment documentation](drupal/first_deployment.md).
 
 
 ## 1. Make sure you are ready
