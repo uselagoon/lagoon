@@ -12,7 +12,7 @@
     php_version: 7.2
     git_repo_name: drupal.git
     project: ci-drupal
-    branch: drupal8-composer-72-mariadb
+    branch: drupal8-composer-72-mariadb-single
 
 - include: drupal/drupal.yaml
   vars:
@@ -22,7 +22,7 @@
     php_version: 7.2
     git_repo_name: drupal.git
     project: ci-drupal
-    branch: drupal8-composer-72-mariadb
+    branch: drupal8-composer-72-mariadb-dbaas
 
 - include: drupal/drupal.yaml
   vars:
@@ -32,7 +32,7 @@
     php_version: 7.3
     git_repo_name: drupal.git
     project: ci-drupal
-    branch: drupal8-composer-73-mariadb
+    branch: drupal8-composer-73-mariadb-dbaas
 
 - include: drupal/drupal.yaml
   vars:
@@ -42,7 +42,7 @@
     php_version: 7.4
     git_repo_name: drupal.git
     project: ci-drupal
-    branch: drupal8-composer-74-mariadb
+    branch: drupal8-composer-74-mariadb-dbaas
 
 - include: drupal/drush.yaml
   vars:
