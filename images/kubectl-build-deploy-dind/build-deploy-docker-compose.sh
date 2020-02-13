@@ -790,7 +790,6 @@ do
   # fi
 
   touch /kubectl-build-deploy/${SERVICE_NAME}-values.yaml
-  yq write -i /kubectl-build-deploy/${SERVICE_NAME}-values.yaml 'nativeCronjobs' ''
 
   CRONJOB_COUNTER=0
   CRONJOBS_ARRAY_INSIDE_POD=()   #crons run inside an existing pod more frequently than every 15 minutes
@@ -817,15 +816,15 @@ do
         # This cronjob runs less ofen than every 30 minutes, we create a kubernetes native cronjob for it.
 
         # Add this cronjob to the native cleanup array, this will remove native cronjobs at the end of this script
-        NATIVE_CRONJOB_CLEANUP_ARRAY+=($(echo "cronjob-${CRONJOB_NAME}" | awk '{print tolower($0)}'))
+        NATIVE_CRONJOB_CLEANUP_ARRAY+=($(echo "cronjob-${SERVICE_NAME}-${CRONJOB_NAME}" | awk '{print tolower($0)}'))
         # kubectl stores this cronjob name lowercased
 
         # if [ ! -f $OPENSHIFT_TEMPLATE ]; then
         #   echo "No cronjob support for service '${SERVICE_NAME}' with type '${SERVICE_TYPE}', please contact the Lagoon maintainers to implement cronjob support"; exit 1;
         # else
 
-        yq write -i /kubectl-build-deploy/${SERVICE_NAME}-values.yaml "nativeCronjobs.${CRONJOB_NAME,,}.schedule" $CRONJOB_SCHEDULE
-        yq write -i /kubectl-build-deploy/${SERVICE_NAME}-values.yaml "nativeCronjobs.${CRONJOB_NAME,,}.command" $CRONJOB_COMMAND
+        yq write -i /kubectl-build-deploy/${SERVICE_NAME}-values.yaml "nativeCronjobs.${CRONJOB_NAME,,}.schedule" "$CRONJOB_SCHEDULE"
+        yq write -i /kubectl-build-deploy/${SERVICE_NAME}-values.yaml "nativeCronjobs.${CRONJOB_NAME,,}.command" "$CRONJOB_COMMAND"
 
         # fi
       fi
