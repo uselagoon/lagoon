@@ -850,6 +850,19 @@ mutation PopulateApi {
     id
   }
 
+  CIFeaturesEnvVars7: addEnvVariableToGroup(
+    input: {
+      group: {
+        name:"ci-group"
+      }
+      scope:RUNTIME
+      name:"LAGOON_GROUP_VARIABLE_RUNTIME"
+      value:"ECE1E07BBD"
+    }
+  ) {
+    id
+  }
+
   CiFeaturesRocketChat: addNotificationToProject(
     input: {
       project: "ci-features"
