@@ -500,7 +500,7 @@ build/broker-single: build/rabbitmq
 build/drush-alias: build/nginx
 build/keycloak: build/commons
 build/harbor-database: build/postgres
-build/harborclair: build/harbor-database services/harbor-redis/Dockerfile services/harborclairadapter/Dockerfile
+build/harborclair build/local-minio: build/harbor-database services/harbor-redis/Dockerfile services/harborclairadapter/Dockerfile
 build/harborregistry: build/harborclair services/harbor-jobservice/Dockerfile
 build/harborregistryctl: build/harborregistry
 build/harbor-nginx: build/harborregistryctl services/harbor-core/Dockerfile services/harbor-portal/Dockerfile
@@ -583,7 +583,10 @@ push-local-registry-images = $(foreach image,$(base-images) $(base-images-with-v
 .PHONY: push-local-registry
 push-local-registry: $(push-local-registry-images)
 # tag and push of each image
-.PHONY: $(push-local-registry-images)
+.PHONY:
+	docker login -u admin -p admin 172.17.0.1:8084
+	$(push-local-registry-images)
+
 $(push-local-registry-images):
 	$(eval image = $(subst [push-local-registry]-,,$@))
 	$(eval image = $(subst __,:,$(image)))
@@ -620,7 +623,7 @@ wait-for-keycloak:
 	grep -m 1 "Config of Keycloak done." <(docker-compose -p $(CI_BUILD_TAG) logs -f keycloak 2>&1)
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
-main-test-services = broker logs2email logs2slack logs2rocketchat logs2microsoftteams api api-db keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher
+main-test-services = broker logs2email logs2slack logs2rocketchat logs2microsoftteams api api-db keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher harbor-core harbor-database harbor-jobservice harbor-portal harbor-nginx harbor-redis harborregistry harborregistryctl harborclair harborclairadapter local-minio
 
 # Define a list of which Lagoon Services are needed for openshift testing
 openshift-test-services = openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor tests-openshift
