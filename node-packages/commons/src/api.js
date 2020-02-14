@@ -1169,6 +1169,7 @@ module.exports = {
   getEmailInfoForProject,
   getActiveSystemForProject,
   getOpenShiftInfoForProject,
+  getOpenShiftInfoForProjectWithGroupEnvVars,
   getEnvironmentByName,
   getProductionEnvironmentForProject,
   getEnvironmentsForProject,
