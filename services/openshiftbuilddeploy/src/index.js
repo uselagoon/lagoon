@@ -258,7 +258,9 @@ const messageConsumer = async msg => {
     }
     if (!R.isEmpty(projectOpenShift.groups)) {
       projectOpenShift.groups.forEach(group => {
-        buildconfig.spec.strategy.customStrategy.env.push({"name": "LAGOON_GROUP_VARIABLES", "value": JSON.stringify(group.envVariables)})
+        if (!R.isEmpty(group.envVariables)){
+          buildconfig.spec.strategy.customStrategy.env.push({"name": "LAGOON_GROUP_VARIABLES", "value": JSON.stringify(group.envVariables)})
+        }
       });
     }
     if (!R.isEmpty(projectOpenShift.envVariables)) {
