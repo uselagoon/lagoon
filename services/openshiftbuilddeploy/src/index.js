@@ -256,6 +256,11 @@ const messageConsumer = async msg => {
       buildconfig.spec.strategy.customStrategy.env.push({"name": "PROMOTION_SOURCE_ENVIRONMENT","value": promoteSourceEnvironment})
       buildconfig.spec.strategy.customStrategy.env.push({"name": "PROMOTION_SOURCE_OPENSHIFT_PROJECT","value": openshiftPromoteSourceProject})
     }
+    if (!R.isEmpty(projectOpenShift.groups)) {
+      projectOpenShift.groups.forEach(group => {
+        buildconfig.spec.strategy.customStrategy.env.push({"name": "LAGOON_GROUP_VARIABLES", "value": JSON.stringify(group.envVariables)})
+      });
+    }
     if (!R.isEmpty(projectOpenShift.envVariables)) {
       buildconfig.spec.strategy.customStrategy.env.push({"name": "LAGOON_PROJECT_VARIABLES", "value": JSON.stringify(projectOpenShift.envVariables)})
     }
