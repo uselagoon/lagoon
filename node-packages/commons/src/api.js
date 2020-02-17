@@ -936,6 +936,11 @@ const getOpenShiftInfoForProjectWithGroupEnvVars = (project: string): Promise<Ob
         subfolder
         openshiftProjectPattern
         productionEnvironment
+        envVariables {
+          name
+          value
+          scope
+        }
         groups {
           id
           name
