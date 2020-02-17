@@ -6,7 +6,7 @@ services:
       - ./services/api-db/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
       - ./services/api-db/rerun_initdb.sh:/rerun_initdb.sh
     ports:
-      - '3306:3306'
+      - '3366:3306'
     labels:
       lagoon.type: mariadb-single
       lagoon.image: amazeeiolagoon/api-db:v1-2-0
@@ -323,6 +323,18 @@ services:
       - ./local-dev/api-data-watcher-pusher:/home
     labels:
       lagoon.type: none
+  local-dbaas-provider:
+    image: ${IMAGE_REPO:-lagoon}/local-dbaas-provider
+    restart: always
+    labels:
+      lagoon.type: none
+    environment:
+      MYSQL_DATABASE: 'db'
+      MYSQL_USER: 'user'
+      MYSQL_PASSWORD: 'password'
+      MYSQL_ROOT_PASSWORD: 'password'
+    ports:
+      - '3306:3306'
   local-minio:
     image: minio/minio
     entrypoint: sh
