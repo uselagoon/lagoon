@@ -1,6 +1,4 @@
-import { promisify } from 'util';
 import * as R from 'ramda';
-
 import Api, { ClientConfiguration } from 'kubernetes-client';
 const Client = Api.Client1_13;
 
@@ -36,125 +34,87 @@ const failTask = async taskId => {
   }
 }
 
-const messageConsumer = async msg => {
-  const { project, task, environment } = JSON.parse(msg.content.toString());
+const jobConfig = (name, spec) => {
+  let config = {
+    apiVersion: 'batch/v1',
+    kind: 'Job',
+    metadata: {
+      name
+    },
+    spec: {
+      parallelism: 1,
+      completions: 1,
+      backoffLimit: 0,
+      template: {
+        metadata: {
+          name: 'pi'
+        },
+        spec: {
+          ...spec,
+          restartPolicy: 'Never'
+        }
+      }
+    }
+  };
 
-  logger.verbose(
-    `Received Kubernetesjobs task for project: ${project.name}, task: ${task.id}`
-  );
+  return config;
+};
 
-  const taskId = typeof task.id === 'string' ? parseInt(task.id, 10) : task.id;
-
-  const projectResult = await getOpenShiftInfoForProject(project.name);
-  const projectOpenShift = projectResult.project;
-
+const getUrlTokenFromProjectInfo = (projectOpenShift, name) => {
   try {
-    var kubernetesConsole = projectOpenShift.openshift.consoleUrl.replace(/\/$/, "");
-    var kubernetesToken = projectOpenShift.openshift.token || ""
+    const url = projectOpenShift.openshift.consoleUrl.replace(/\/$/, "");
+    const token = projectOpenShift.openshift.token || "";
+    return { url, token };
   } catch(error) {
-    logger.warn(`Error while loading information for project ${project.name}: ${error}`)
+    logger.warn(`Error while loading information for project ${name}: ${error}`)
     throw(error)
   }
+}
 
-  const clientConfiguration: ClientConfiguration = {
-    url: kubernetesConsole,
+const getConfig = (url, token) => ({
+    url,
     insecureSkipTlsVerify: true,
     auth: {
-      bearer: kubernetesToken
+      bearer: token
     },
-  };
-  
-  const client = new Client({ config : clientConfiguration});
+});
 
+const ocsafety = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g, '-');
 
-  const ocsafety = string =>
-    string.toLocaleLowerCase().replace(/[^0-9a-z-]/g, '-');
-
+const getNamespaceName = (project, environment, projectInfo ) => {
   try {
-    var safeBranchName = ocsafety(environment.name);
-    var safeProjectName = ocsafety(project.name);
-    // var openshiftConsole = projectOpenShift.openshift.consoleUrl.replace(
-    //   /\/$/,
-    //   ''
-    // );
-    // var openshiftToken = projectOpenShift.openshift.token || '';
-    var openshiftProject = projectOpenShift.openshiftProjectPattern
-      ? projectOpenShift.openshiftProjectPattern
+    const safeBranchName = ocsafety(environment.name);
+    const safeProjectName = ocsafety(project.name);
+    const namespace = projectInfo.openshiftProjectPattern
+      ? projectInfo.openshiftProjectPattern
           .replace('${branch}', safeBranchName)
           .replace('${project}', safeProjectName)
       : `${safeProjectName}-${safeBranchName}`;
-    var jobName = `${openshiftProject}-${task.id}`;
+    return { namespace };
   } catch (error) {
     logger.error(`Error while loading information for project ${project.name}`);
     logger.error(error);
     throw error;
   }
+}
 
-  const jobConfig = (name, spec) => {
-    let config = {
-      apiVersion: 'batch/v1',
-      kind: 'Job',
-      metadata: {
-        name
-      },
-      spec: {
-        parallelism: 1,
-        completions: 1,
-        backoffLimit: 0,
-        template: {
-          metadata: {
-            name: 'pi'
-          },
-          spec: {
-            ...spec,
-            restartPolicy: 'Never'
-          }
-        }
+const checkIfProjectExists = async (client, namespace) => {
+    // Check if project exists
+    try {
+      const namespaces = await client.api.v1.namespaces(namespace).get();
+      if (namespaces.statusCode !== 200 && namespaces.body.metadata.name !== namespace) {
+        logger.error(`Project ${namespace} does not exist, bailing`)
+        return; // we are done here
       }
-    };
-
-    return config;
-  };
-
-  // Check if project exists
-  try {
-    const namespaces = await client.api.v1.namespaces(openshiftProject).get();
-    // An empty list means the namespace does not exist
-    if (namespaces.statusCode !== 200 && namespaces.body.metadata.name !== openshiftProject) {
-      logger.error(`Project ${openshiftProject} does not exist, bailing`)
-      return; // we are done here
+    } catch (err) {
+      logger.error(err);
+      throw new Error();
     }
-  } catch (err) {
-    logger.error(err);
-    throw new Error();
-  }
+}
 
-  // Get pod spec for desired service
-  let taskPodSpec;
+const getPodSpec = async (client, namespace, task, taskId) => {
   try {
-
-    // const podsGet = promisify(kubernetesCore.namespaces(openshiftProject).pods.get)
-    // const pods = await podsGet()
-
-    // const serviceNames = pods.items.reduce(
-    //   (names, pod) => [
-    //     ...names,
-    //     ...pod.spec.containers.reduce(
-    //       (names, container) => [
-    //         ...names,
-    //         container.name
-    //       ],
-    //       []
-    //     )
-    //   ],
-    //   []
-    // );
-
-    const deployment = await client.apis.app.v1.namespaces(openshiftProject).deployments.get()
-
-    // const deploymentConfigsGet = promisify(openshift.ns(openshiftProject).deploymentconfigs.get);
-    // const deploymentConfigs = await deploymentConfigsGet();
-
+    const deployment = await client.apis.app.v1.namespaces(namespace).deployments.get()
     const oneContainerPerSpec = deployment.body.items.reduce(
       (specs, deploymentConfig) => ({
         ...specs,
@@ -171,14 +131,8 @@ const messageConsumer = async msg => {
       }),
       {}
     );
-
-    // task.service is looking for "cli"
-    // TODO: we have "cli-persistent --- what's the difference???"
-    // CHANGED TO cli-persistent for testing in 
-    // src/resources/task/resolvers.js
-
     
-    if (!(oneContainerPerSpec[task.service] || oneContainerPerSpec[`${task.service}-persistent`])) {
+    if (!oneContainerPerSpec[task.service]) {
       logger.error(`No spec for service ${task.service}, bailing`);
       failTask(taskId);
       return;
@@ -216,74 +170,54 @@ const messageConsumer = async msg => {
       task.command,
     ]);
 
-    taskPodSpec = R.pipe(
+    const taskPodSpec = R.pipe(
       R.prop(`${task.service}-persistent`),
       removeCronjobs,
       addTaskEnvVars,
       setContainerCommand,
     )(oneContainerPerSpec);
+
+    return taskPodSpec;
   } catch (err) {
     logger.error(err);
     throw new Error(err);
   }
+}
 
-  // Create a new kubernetes job to run the lagoon task
-  let openshiftJob;
+const createJob = async (client, namespace, jobName, taskPodSpec) => {
   try {
-
-    // TODO: Do we need to check whether or not the job already exists? 
-    openshiftJob = await client.apis.batch.v1.namespaces(openshiftProject).jobs.post({ body: jobConfig(jobName, taskPodSpec)})
-    // const jobConfigPost = promisify(kubernetesBatchApi.namespaces(openshiftProject).jobs.post);
-    // openshiftJob = await jobConfigPost({ body: jobConfig(jobName, taskPodSpec)});
+    return client.apis.batch.v1.namespaces(namespace).jobs.post({ body: jobConfig(jobName, taskPodSpec)})
   } catch (err) {
     logger.error(err);
     throw new Error();
   }
+}
 
-  // Update lagoon task
-  let updatedTask;
+const performUpdateTask = async (taskId, job, task, project) => {
   try {
     const convertDateFormat = R.init;
     const dateOrNull = R.unless(R.isNil, convertDateFormat);
 
-    updatedTask = await updateTask(taskId, {
-      remoteId: openshiftJob.body.metadata.uid,
-      created: convertDateFormat(openshiftJob.body.metadata.creationTimestamp),
-      started: dateOrNull(openshiftJob.body.metadata.creationTimestamp)
+    const updatedTask = await updateTask(taskId, {
+      remoteId: job.body.metadata.uid,
+      created: convertDateFormat(job.body.metadata.creationTimestamp),
+      started: dateOrNull(job.body.metadata.creationTimestamp)
     });
+
+    return updatedTask;
+
   } catch (error) {
     logger.error(
       `Could not update task ${project.name} ${task.name}. Message: ${error}`
     );
   }
-
-  logger.verbose(`${openshiftProject}: Running job: ${task.name}`);
-
-  const monitorPayload = {
-    task: updatedTask.updateTask,
-    project,
-    environment
-  };
-
-  const taskMonitorLogs = await createTaskMonitor(
-    'job-kubernetes',
-    monitorPayload
-  );
-
-  sendToLagoonLogs(
-    'start',
-    project.name,
-    '',
-    'task:job-kubernetes:start',
-    {},
-    `*[${project.name}]* Task \`${task.id}\` *${task.name}* started`
-  );
-};
+}
 
 const deathHandler = async (msg, lastError) => {
   const { project, task } = JSON.parse(msg.content.toString());
 
-  failTask(task.id);
+  const taskId = typeof task.id === 'string' ? parseInt(task.id, 10) : task.id; 
+  failTask(taskId);
 
   sendToLagoonLogs(
     'error',
@@ -317,6 +251,40 @@ ${error.message}
 \`\`\`
 Retrying job in ${retryExpirationSecs} secs`
   );
+};
+
+const messageConsumer = async msg => {
+  const { project, task, environment } = JSON.parse(msg.content.toString());
+
+  logger.verbose(`Received Kubernetesjobs task for project: ${project.name}, task: ${task.id}`);
+
+  const taskId = typeof task.id === 'string' ? parseInt(task.id, 10) : task.id;
+
+  const { project: projectInfo} = await getOpenShiftInfoForProject(project.name);
+
+  const { url, token } = getUrlTokenFromProjectInfo(projectInfo, project.name); 
+  const config: ClientConfiguration = getConfig(url, token);
+  const client = new Client({ config  });
+
+  const { namespace } = getNamespaceName(project, environment, projectInfo);
+
+  checkIfProjectExists(client, namespace);
+
+  // Get pod spec for desired service
+  const taskPodSpec = await getPodSpec(client, namespace, task, taskId);
+  // Create a new kubernetes job to run the lagoon task
+  const jobName = `${namespace}-${task.id}`;
+  const job = await createJob(client, namespace, jobName, taskPodSpec);
+
+  // Update lagoon task
+  const { updateTask } = await performUpdateTask(taskId, job, task, project);
+
+  logger.verbose(`${namespace}: Running job: ${task.name}`);
+
+  const monitorPayload = { task: updateTask, project, environment };
+
+  await createTaskMonitor('job-kubernetes', monitorPayload );
+  sendToLagoonLogs('start', project.name, '', 'task:job-kubernetes:start', {}, `*[${project.name}]* Task \`${task.id}\` *${task.name}* started`);
 };
 
 consumeTasks('job-kubernetes', messageConsumer, retryHandler, deathHandler);
