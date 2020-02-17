@@ -1,6 +1,8 @@
-const promisify = require('util').promisify;
-const kubernetesClient = require('kubernetes-client');
-const R = require('ramda');
+import { promisify } from 'util';
+import * as R from 'ramda';
+
+import Api, { ClientConfiguration } from 'kubernetes-client';
+const Client = Api.Client1_13;
 
 const { logger } = require('@lagoon/commons/src/local-logging');
 const { getOpenShiftInfoForProject, updateTask } = require('@lagoon/commons/src/api');
@@ -42,8 +44,28 @@ const messageConsumer = async msg => {
   );
 
   const taskId = typeof task.id === 'string' ? parseInt(task.id, 10) : task.id;
-  const result = await getOpenShiftInfoForProject(project.name);
-  const projectOpenShift = result.project;
+
+  const projectResult = await getOpenShiftInfoForProject(project.name);
+  const projectOpenShift = projectResult.project;
+
+  try {
+    var kubernetesConsole = projectOpenShift.openshift.consoleUrl.replace(/\/$/, "");
+    var kubernetesToken = projectOpenShift.openshift.token || ""
+  } catch(error) {
+    logger.warn(`Error while loading information for project ${project.name}: ${error}`)
+    throw(error)
+  }
+
+  const clientConfiguration: ClientConfiguration = {
+    url: kubernetesConsole,
+    insecureSkipTlsVerify: true,
+    auth: {
+      bearer: kubernetesToken
+    },
+  };
+  
+  const client = new Client({ config : clientConfiguration});
+
 
   const ocsafety = string =>
     string.toLocaleLowerCase().replace(/[^0-9a-z-]/g, '-');
@@ -51,11 +73,11 @@ const messageConsumer = async msg => {
   try {
     var safeBranchName = ocsafety(environment.name);
     var safeProjectName = ocsafety(project.name);
-    var openshiftConsole = projectOpenShift.openshift.consoleUrl.replace(
-      /\/$/,
-      ''
-    );
-    var openshiftToken = projectOpenShift.openshift.token || '';
+    // var openshiftConsole = projectOpenShift.openshift.consoleUrl.replace(
+    //   /\/$/,
+    //   ''
+    // );
+    // var openshiftToken = projectOpenShift.openshift.token || '';
     var openshiftProject = projectOpenShift.openshiftProjectPattern
       ? projectOpenShift.openshiftProjectPattern
           .replace('${branch}', safeBranchName)
@@ -94,51 +116,11 @@ const messageConsumer = async msg => {
     return config;
   };
 
-  // OpenShift API object
-  // const openshift = new OpenShiftClient.OApi({
-  //   url: openshiftConsole,
-  //   insecureSkipTlsVerify: true,
-  //   auth: {
-  //     bearer: openshiftToken
-  //   }
-  // });
-
-  // const batchApi = new OpenShiftClient.Batch({
-  //   url: openshiftConsole,
-  //   insecureSkipTlsVerify: true,
-  //   auth: {
-  //     bearer: openshiftToken
-  //   }
-  // });
-
-  const kubernetesCore = new kubernetesClient.Core({
-    url: kubernetesConsole,
-    insecureSkipTlsVerify: true,
-    auth: {
-      bearer: kubernetesToken
-    },
-  });
-
-  const kubernetesBatchApi = new kubernetesClient.Batch({
-    url: kubernetesConsole,
-    insecureSkipTlsVerify: true,
-    auth: {
-      bearer: kubernetesToken
-    }
-  });
-
   // Check if project exists
   try {
-    const namespacesSearch = promisify(kubernetesCore.namespaces.get);
-    const namespacesResult = await namespacesSearch({
-      qs: {
-        fieldSelector: `metadata.name=${openshiftProject}`
-      }
-    });
-    const namespaces = R.propOr([], 'items', namespacesResult);
-
+    const namespaces = await client.api.v1.namespaces(openshiftProject).get();
     // An empty list means the namespace does not exist
-    if (R.isEmpty(namespaces)) {
+    if (namespaces.statusCode !== 200 && namespaces.body.metadata.name !== openshiftProject) {
       logger.error(`Project ${openshiftProject} does not exist, bailing`)
       return; // we are done here
     }
@@ -150,10 +132,30 @@ const messageConsumer = async msg => {
   // Get pod spec for desired service
   let taskPodSpec;
   try {
-    const deploymentConfigsGet = promisify(openshift.ns(openshiftProject).deploymentconfigs.get);
-    const deploymentConfigs = await deploymentConfigsGet();
 
-    const oneContainerPerSpec = deploymentConfigs.items.reduce(
+    // const podsGet = promisify(kubernetesCore.namespaces(openshiftProject).pods.get)
+    // const pods = await podsGet()
+
+    // const serviceNames = pods.items.reduce(
+    //   (names, pod) => [
+    //     ...names,
+    //     ...pod.spec.containers.reduce(
+    //       (names, container) => [
+    //         ...names,
+    //         container.name
+    //       ],
+    //       []
+    //     )
+    //   ],
+    //   []
+    // );
+
+    const deployment = await client.apis.app.v1.namespaces(openshiftProject).deployments.get()
+
+    // const deploymentConfigsGet = promisify(openshift.ns(openshiftProject).deploymentconfigs.get);
+    // const deploymentConfigs = await deploymentConfigsGet();
+
+    const oneContainerPerSpec = deployment.body.items.reduce(
       (specs, deploymentConfig) => ({
         ...specs,
         ...deploymentConfig.spec.template.spec.containers.reduce(
@@ -170,7 +172,13 @@ const messageConsumer = async msg => {
       {}
     );
 
-    if (!oneContainerPerSpec[task.service]) {
+    // task.service is looking for "cli"
+    // TODO: we have "cli-persistent --- what's the difference???"
+    // CHANGED TO cli-persistent for testing in 
+    // src/resources/task/resolvers.js
+
+    
+    if (!(oneContainerPerSpec[task.service] || oneContainerPerSpec[`${task.service}-persistent`])) {
       logger.error(`No spec for service ${task.service}, bailing`);
       failTask(taskId);
       return;
@@ -209,7 +217,7 @@ const messageConsumer = async msg => {
     ]);
 
     taskPodSpec = R.pipe(
-      R.prop(task.service),
+      R.prop(`${task.service}-persistent`),
       removeCronjobs,
       addTaskEnvVars,
       setContainerCommand,
@@ -222,8 +230,11 @@ const messageConsumer = async msg => {
   // Create a new kubernetes job to run the lagoon task
   let openshiftJob;
   try {
-    const jobConfigPost = promisify(kubernetesBatchApi.namespaces(openshiftProject).jobs.post);
-    openshiftJob = await jobConfigPost({ body: jobConfig(jobName, taskPodSpec)});
+
+    // TODO: Do we need to check whether or not the job already exists? 
+    openshiftJob = await client.apis.batch.v1.namespaces(openshiftProject).jobs.post({ body: jobConfig(jobName, taskPodSpec)})
+    // const jobConfigPost = promisify(kubernetesBatchApi.namespaces(openshiftProject).jobs.post);
+    // openshiftJob = await jobConfigPost({ body: jobConfig(jobName, taskPodSpec)});
   } catch (err) {
     logger.error(err);
     throw new Error();
@@ -236,9 +247,9 @@ const messageConsumer = async msg => {
     const dateOrNull = R.unless(R.isNil, convertDateFormat);
 
     updatedTask = await updateTask(taskId, {
-      remoteId: openshiftJob.metadata.uid,
-      created: convertDateFormat(openshiftJob.metadata.creationTimestamp),
-      started: dateOrNull(openshiftJob.status.startTime)
+      remoteId: openshiftJob.body.metadata.uid,
+      created: convertDateFormat(openshiftJob.body.metadata.creationTimestamp),
+      started: dateOrNull(openshiftJob.body.metadata.creationTimestamp)
     });
   } catch (error) {
     logger.error(
@@ -272,7 +283,7 @@ const messageConsumer = async msg => {
 const deathHandler = async (msg, lastError) => {
   const { project, task } = JSON.parse(msg.content.toString());
 
-  failTask(taskId);
+  failTask(task.id);
 
   sendToLagoonLogs(
     'error',

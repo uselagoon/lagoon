@@ -4,8 +4,8 @@
   "description": "",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js",
-    "dev": "nodemon --watch . --watch ../../node-packages --exec 'node --inspect=0.0.0.0:9229 src/index.js'"
+    "start": "ts-node index.ts",
+    "dev": "nodemon --watch src/**/* --watch ../../node-packages -e ts,json --exec 'node --inspect=0.0.0.0:9229 -r ts-node/register src/index.ts'"
   },
   "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
   "contributors": [
@@ -15,7 +15,9 @@
   "license": "MIT",
   "dependencies": {
     "@lagoon/commons": "4.0.0",
-    "kubernetes-client": "^4.0.0",
+    "kubernetes-client": "^8.3.6",
+    "ts-node": "^8.6.2",
+    "typescript": "^3.7.5",
     "ramda": "^0.26.1"
   },
   "devDependencies": {
