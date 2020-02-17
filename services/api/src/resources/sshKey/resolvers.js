@@ -93,7 +93,7 @@ const updateSshKey = async (
   const userIds = R.map(R.prop('usid'), perms);
 
   await hasPermission('ssh_key', 'update', {
-    users: userIds.join(','),
+    users: userIds,
   });
 
   if (isPatchEmpty({ patch })) {
@@ -150,7 +150,7 @@ const deleteSshKey = async (
   const userIds = R.map(R.prop('usid'), perms);
 
   await hasPermission('ssh_key', 'delete', {
-    users: userIds.join(','),
+    users: userIds
   });
 
   const prep = prepare(sqlClient, 'CALL DeleteSshKey(:name)');
@@ -168,7 +168,7 @@ const deleteSshKeyById = async (
   const userIds = R.map(R.prop('usid'), perms);
 
   await hasPermission('ssh_key', 'delete', {
-    users: userIds.join(','),
+    users: userIds
   });
 
   const prep = prepare(sqlClient, 'CALL DeleteSshKeyById(:id)');

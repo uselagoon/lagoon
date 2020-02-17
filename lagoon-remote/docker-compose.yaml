@@ -29,12 +29,20 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: docker-host/docker-host.yaml
-  harbor-clair:
-    image: ${IMAGE_REPO:-lagoon}/harbor-clair
+  harborclair:
+    image: ${IMAGE_REPO:-lagoon}/harborclair
     labels:
       lagoon.type: custom
-      lagoon.template: harbor-clair/harbor-clair.yml
-      lagoon.image: amazeeiolagoon/harbor-clair:v1-2-0
+      lagoon.template: harborclair/harborclair.yml
+      lagoon.name: harborclair
+      lagoon.image: amazeeiolagoon/harborclair:v1-2-0
+  harborclairadapter:
+    image: ${IMAGE_REPO:-lagoon}/harborclairadapter
+    labels:
+      lagoon.type: custom
+      lagoon.template: harborclairadapter/harborclair.yml
+      lagoon.name: harborclair
+      lagoon.image: amazeeiolagoon/harborclairadapter:v1-2-0
   harbor-core:
     image: ${IMAGE_REPO:-lagoon}/harbor-core
     labels:

@@ -2,6 +2,7 @@ import React from 'react';
 import { Mutation } from 'react-apollo';
 import gql from 'graphql-tag';
 import ReactSelect from 'react-select';
+import Button from 'components/Button';
 import { bp, color, fontSize } from 'lib/variables';
 
 const taskDrushCron = gql`
@@ -44,48 +45,22 @@ const DrushCron = ({
               name="dest-environment"
               value={{
                 label: pageEnvironment.name,
-                value: pageEnvironment.id,
+                value: pageEnvironment.id
               }}
               options={[
                 {
                   label: pageEnvironment.name,
-                  value: pageEnvironment.id,
+                  value: pageEnvironment.id
                 }
               ]}
               isDisabled
               required
             />
           </div>
-          <button
-            onClick={() =>
-              taskDrushCron({
-                variables: {
-                  environment: pageEnvironment.id
-                }
-              })
-            }
-            disabled={called}
-          >
-            Add task
-          </button>
+          <Button action={taskDrushCron}>Add task</Button>
           <style jsx>{`
             .envSelect {
-              margin-top: 10px;
-            }
-            button {
-              align-self: flex-end;
-              background-color: ${color.lightestGrey};
-              border: none;
-              border-radius: 20px;
-              color: ${color.darkGrey};
-              font-family: 'source-code-pro', sans-serif;
-              ${fontSize(13)};
-              margin-top: 10px;
-              padding: 3px 20px 2px;
-              text-transform: uppercase;
-              @media ${bp.tinyUp} {
-                align-self: auto;
-              }
+              margin: 10px 0;
             }
           `}</style>
         </React.Fragment>

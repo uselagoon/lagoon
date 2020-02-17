@@ -25,6 +25,8 @@ async function bitbucketBranchDeleted(webhook: WebhookRequestData, project: Proj
     const data: removeData = {
       projectName: project.name,
       branch: meta.branch,
+      branchName: meta.branchName,
+      forceDeleteProductionEnvironment: false,
       type: 'branch'
     }
 

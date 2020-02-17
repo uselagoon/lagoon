@@ -2,7 +2,7 @@
 - include: bitbucket/branch.yaml
   vars:
     testname: "BITBUCKET - slash branch"
-    node_version: 8
+    node_version: 10
     git_repo_name: bitbucket.git
     git_repo_url: https://192.168.42.1:2222/git/bitbucket
     git_repo_full_name: git/bitbucket
@@ -13,7 +13,7 @@
 - include: github/skip-deployment.yaml
   vars:
     testname: "BITBUCKET - skip deployment"
-    node_version: 8
+    node_version: 10
     git_repo_name: bitbucket.git
     git_repo_url: https://192.168.42.1:2222/git/bitbucket
     git_repo_full_name: git/bitbucket
@@ -24,7 +24,7 @@
 - include: bitbucket/pullrequest.yaml
   vars:
     testname: "BITBUCKET - PULLREQUEST"
-    node_version: 8
+    node_version: 10
     git_repo_name: bitbucket.git
     project: ci-bitbucket
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.pr-2.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
