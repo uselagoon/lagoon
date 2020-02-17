@@ -8,6 +8,8 @@ metadata:
     {{- include "solr.annotations" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       {{- include "solr.selectorLabels" . | nindent 6 }}

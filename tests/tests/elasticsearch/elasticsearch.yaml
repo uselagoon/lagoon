@@ -42,7 +42,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://nginx-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
     expected_returncode: 5"{{ lookup('env','DELETED_STATUS_CODE') }}"03
   tasks:
   - include: ../../checks/check-url-returncode.yaml

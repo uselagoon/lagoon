@@ -10,6 +10,8 @@ spec:
   selector:
     matchLabels:
       {{- include "lagoon-remote.dockerHost.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:

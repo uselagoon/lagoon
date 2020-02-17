@@ -19,8 +19,8 @@
     project: ci-features-{{ lookup('env','CLUSTER_TYPE') }}
     source_environment: source
     promote_environment: target
-    check_url_source: "https://node-{{ project | regex_replace('_', '-') }}.{{ source_environment | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }}:{{ lookup('env','ROUTE_SUFFIX_HTTPS_PORT') }}"
-    check_url_promote: "https://node-{{ project | regex_replace('_', '-') }}.{{ promote_environment | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }}:{{ lookup('env','ROUTE_SUFFIX_HTTPS_PORT') }}"
+    check_url_source: "https://node.{{ project | regex_replace('_', '-') }}.{{ source_environment | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }}:{{ lookup('env','ROUTE_SUFFIX_HTTPS_PORT') }}"
+    check_url_promote: "https://node.{{ project | regex_replace('_', '-') }}.{{ promote_environment | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }}:{{ lookup('env','ROUTE_SUFFIX_HTTPS_PORT') }}"
 
 - include: features/cronjobs.yaml
   vars:
@@ -28,7 +28,7 @@
     git_repo_name: features.git
     project: ci-features-{{ lookup('env','CLUSTER_TYPE') }}
     branch: branch/cronjob
-    check_url: "http://node-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
 
 - include: features/multiproject.yaml
   vars:
@@ -37,8 +37,8 @@
     project1: ci-multiproject1-{{ lookup('env','CLUSTER_TYPE') }}
     project2: ci-multiproject2-{{ lookup('env','CLUSTER_TYPE') }}
     branch: multiproject
-    check_url1: "https://node-{{ project1 | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }}:{{ lookup('env','ROUTE_SUFFIX_HTTPS_PORT') }}"
-    check_url2: "https://node-{{ project2 | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }}:{{ lookup('env','ROUTE_SUFFIX_HTTPS_PORT') }}"
+    check_url1: "https://node.{{ project1 | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }}:{{ lookup('env','ROUTE_SUFFIX_HTTPS_PORT') }}"
+    check_url2: "https://node.{{ project2 | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }}:{{ lookup('env','ROUTE_SUFFIX_HTTPS_PORT') }}"
     custom_domain1: "multiproject1.com"
     custom_domain2: "multiproject2.com"
 
@@ -59,7 +59,7 @@
     project: ci-features-{{ lookup('env','CLUSTER_TYPE') }}
     branch: environment-type
     environment_type: development
-    check_url: "http://node-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
 
 - include: features/environment-templates.yaml
   vars:
@@ -68,7 +68,7 @@
     project: ci-features-{{ lookup('env','CLUSTER_TYPE') }}
     branch: branch/custom-template
     expected_template_filename: .lagoon.node.yml
-    check_url: "http://node-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
 
 - include: features/environment-templates.yaml
   vars:
@@ -77,7 +77,7 @@
     project: ci-features-{{ lookup('env','CLUSTER_TYPE') }}
     branch: branch/env-specific-template
     expected_template_filename: .lagoon.node-env-specific.yml
-    check_url: "http://node-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
 
 - include: features/environment-type.yaml
   vars:
@@ -86,7 +86,7 @@
     project: ci-features-{{ lookup('env','CLUSTER_TYPE') }}
     branch: master
     environment_type: production
-    check_url: "http://node-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
 
 - include: features/route-env-variables.yaml
   vars:
@@ -94,7 +94,7 @@
     git_repo_name: features.git
     project: ci-features-{{ lookup('env','CLUSTER_TYPE') }}
     branch: branch/routes
-    check_url: "http://node-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
 
 - include: features/autogenerated-routes-disabled.yaml
   vars:
@@ -102,7 +102,7 @@
     git_repo_name: features.git
     project: ci-features-{{ lookup('env','CLUSTER_TYPE') }}
     branch: features-autogenerated-routes-disabled
-    check_url: "http://node-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
 
 - include: features/dot-env.yaml
   vars:
@@ -111,7 +111,7 @@
     project: ci-features-{{ lookup('env','CLUSTER_TYPE') }}
     branch: slash/branch1
     expected_dot_env: slash/branch1
-    check_url: "http://node-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
 
 - include: features/dot-env.yaml
   vars:
@@ -120,7 +120,7 @@
     project: ci-features-{{ lookup('env','CLUSTER_TYPE') }}
     branch: branch1
     expected_dot_env: branch1
-    check_url: "http://node-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
 
 - include: features/subfolder.yaml
   vars:
@@ -128,7 +128,7 @@
     git_repo_name: features-subfolder.git
     project: ci-features-subfolder-{{ lookup('env','CLUSTER_TYPE') }}
     branch: subfolder
-    check_url: "http://node-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
 
 # @TODO: Enable again, see https://github.com/amazeeio/lagoon/issues/1099
 # - include: features/limits.yaml
@@ -136,7 +136,7 @@
 #     testname: "limits"
 #     git_repo_name: node.git
 #     project: ci-env-limit
-#     check_url: "http://node-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+#     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
 
 - include: features/lagoon-api-variables.yaml
   vars:
@@ -144,4 +144,4 @@
     git_repo_name: features.git
     project: ci-features-{{ lookup('env','CLUSTER_TYPE') }}
     branch: lagoon-api-variables
-    check_url: "http://node-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"

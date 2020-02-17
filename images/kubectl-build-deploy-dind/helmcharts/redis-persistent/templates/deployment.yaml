@@ -8,6 +8,8 @@ metadata:
     {{- include "redis-persistent.annotations" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       {{- include "redis-persistent.selectorLabels" . | nindent 6 }}

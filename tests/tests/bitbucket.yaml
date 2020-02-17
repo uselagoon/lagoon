@@ -8,7 +8,7 @@
     git_repo_full_name: git/bitbucket
     project: ci-bitbucket-{{ lookup('env','CLUSTER_TYPE') }}
     branch: bitbucket/slash/branch
-    check_url: "http://node-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
 
 - include: github/skip-deployment.yaml
   vars:
@@ -19,7 +19,7 @@
     git_repo_full_name: git/bitbucket
     project: ci-bitbucket-{{ lookup('env','CLUSTER_TYPE') }}
     branch: skip
-    check_url: "http://node-{{ project | regex_replace('_', '-') }}.skip.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.skip.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
 
 - include: bitbucket/pullrequest.yaml
   vars:
@@ -27,4 +27,4 @@
     node_version: 8
     git_repo_name: bitbucket.git
     project: ci-bitbucket-{{ lookup('env','CLUSTER_TYPE') }}
-    check_url: "http://node-{{ project | regex_replace('_', '-') }}.pr-2.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    ui: "http://node.{{ project | regex_replace('_', '-') }}.pr-2.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
