@@ -45,7 +45,7 @@ DEPLOY_TYPE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.d
 COMPOSE_SERVICES=($(cat $DOCKER_COMPOSE_YAML | shyaml keys services))
 
 # Default shared mariadb service broker
-MARIADB_SHARED_DEFAULT_CLASS="mariadbconsumer"
+MARIADB_SHARED_DEFAULT_CLASS="lagoon-dbaas-mariadb-apb"
 MONGODB_SHARED_DEFAULT_CLASS="lagoon-maas-mongodb-apb"
 
 # Figure out which services should we handle
@@ -58,6 +58,7 @@ declare -A MAP_SERVICE_TYPE_TO_COMPOSE_SERVICE
 declare -A MAP_SERVICE_NAME_TO_IMAGENAME
 declare -A MAP_SERVICE_NAME_TO_SERVICEBROKER_CLASS
 declare -A MAP_SERVICE_NAME_TO_SERVICEBROKER_PLAN
+declare -A MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT
 declare -A IMAGES_PULL
 declare -A IMAGES_BUILD
 declare -A IMAGE_HASHES
@@ -100,34 +101,16 @@ do
 
   ## in kubernetes, we want to use mariadb-dbaas as no service broker exists, but capture anyone that is hardcoding mariadb-shared in their environments
   if [[ "$SERVICE_TYPE" == "mariadb-dbaas" || "$SERVICE_TYPE" == "mariadb-shared" ]]; then
-    # Load a possible defined mariadb-dbaas
-    DBAAS_SHARED_CLASS=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mariadb-dbaas\\.class "${MARIADB_SHARED_DEFAULT_CLASS}")
-
-    # Allow the dbaas shared servicebroker to be overriden by environment in .lagoon.yml
-    ENVIRONMENT_DBAAS_SHARED_CLASS_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.overrides.$SERVICE_NAME.mariadb-dbaas\\.class false)
-    if [ ! $ENVIRONMENT_DBAAS_SHARED_CLASS_OVERRIDE == "false" ]; then
-      DBAAS_SHARED_CLASS=$ENVIRONMENT_DBAAS_SHARED_CLASS_OVERRIDE
-    fi
-
-    # check if the defined operator class exists
-    if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} auth can-i create mariadbconsumer.v1.mariadb.amazee.io > /dev/null; then
-      SERVICE_TYPE="mariadb-dbaas"
-      MAP_SERVICE_NAME_TO_SERVICEBROKER_CLASS["${SERVICE_NAME}"]="${DBAAS_SHARED_CLASS}"
-    else
-      echo "defined mariadb-dbaas operator class '$DBAAS_SHARED_CLASS' for service '$SERVICE_NAME' not found in cluster";
-      exit 1
-    fi
-
     # Default plan is the enviroment type
-    DBAAS_SHARED_PLAN=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mariadb-dbaas\\.plan "${ENVIRONMENT_TYPE}")
+    DBAAS_ENVIRONMENT=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mariadb-dbaas\\.plan "${ENVIRONMENT_TYPE}")
 
     # Allow the dbaas shared servicebroker plan to be overriden by environment in .lagoon.yml
-    ENVIRONMENT_DBAAS_SHARED_PLAN_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.overrides.$SERVICE_NAME.mariadb-dbaas\\.plan false)
-    if [ ! $DBAAS_SHARED_PLAN_OVERRIDE == "false" ]; then
-      DBAAS_SHARED_PLAN=$ENVIRONMENT_DBAAS_SHARED_PLAN_OVERRIDE
+    ENVIRONMENT_DBAAS_ENVIRONMENT_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.overrides.$SERVICE_NAME.mariadb-dbaas\\.plan false)
+    if [ ! $DBAAS_ENVIRONMENT_OVERRIDE == "false" ]; then
+      DBAAS_ENVIRONMENT=$ENVIRONMENT_DBAAS_ENVIRONMENT_OVERRIDE
     fi
 
-    MAP_SERVICE_NAME_TO_SERVICEBROKER_PLAN["${SERVICE_NAME}"]="${DBAAS_SHARED_PLAN}"
+    MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]="${DBAAS_ENVIRONMENT}"
   fi
 
   if [ "$SERVICE_TYPE" == "mongodb-shared" ]; then
@@ -421,9 +404,8 @@ do
   if [ -f /kubectl-build-deploy/helmcharts/${SERVICE_TYPE}/$HELM_CRD_TEMPLATE ]; then
     # cat $KUBERNETES_SERVICES_TEMPLATE
     # Load the requested class and plan for this service
-    SERVICEBROKER_CLASS="${MAP_SERVICE_NAME_TO_SERVICEBROKER_CLASS["${SERVICE_NAME}"]}"
-    SERVICEBROKER_PLAN="${MAP_SERVICE_NAME_TO_SERVICEBROKER_PLAN["${SERVICE_NAME}"]}"
-    yq write -i /kubectl-build-deploy/values.yaml 'mariaDBConsumerEnvironment' $SERVICEBROKER_PLAN
+    OPERATOR_ENVIRONMENT="${MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]}"
+    yq write -i /kubectl-build-deploy/values.yaml 'mariaDBConsumerEnvironment' $OPERATOR_ENVIRONMENT
     helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -s $HELM_CRD_TEMPLATE -f /kubectl-build-deploy/values.yaml | outputToYaml
     SERVICEBROKERS+=("${SERVICE_NAME}:${SERVICE_TYPE}")
   fi
