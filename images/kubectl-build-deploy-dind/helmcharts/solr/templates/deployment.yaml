@@ -52,7 +52,6 @@ spec:
             failureThreshold: 5
           securityContext:
             runAsGroup: 0
-            runAsUser: 8983
           envFrom:
             - configMapRef:
                 name: lagoon-env
