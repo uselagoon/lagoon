@@ -19,6 +19,7 @@
 * [Service Types](using-lagoon-advanced/service-types.md)
 * [Environment Types](using-lagoon-advanced/environment-types.md)
 * [Environment Variables](using-lagoon-advanced/environment-variables.md)
+* [Base Images](using-lagoon-advanced/base-images.md)
 * [Workflows](using-lagoon-advanced/workflows.md)
 * [Backups](using-lagoon-advanced/backups.md)
 * [Remote Shell](using-lagoon-advanced/remote-shell.md)
