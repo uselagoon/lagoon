@@ -266,11 +266,23 @@ if [[ ( "$TYPE" == "pullrequest"  ||  "$TYPE" == "branch" ) && ! $THIS_IS_TUG ==
   # Add environment variables from lagoon API as build args
   if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
     echo "LAGOON_PROJECT_VARIABLES are available from the API"
-    BUILD_ARGS+=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "build" or .scope == "global") | "--build-arg \(.name)=\(.value)"'))
+    # multiline/spaced variables seem to break when being added from the API.
+    # this changes the way it works to create the variable in a similar way to how they are injected below
+    LAGOON_ENV_VARS=$(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "build" or .scope == "global") | "\(.name)"')
+    for LAGOON_ENV_VAR in $LAGOON_ENV_VARS
+    do
+      BUILD_ARGS+=(--build-arg $(echo $LAGOON_ENV_VAR)="$(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "build" or .scope == "global" and .name == "'$LAGOON_ENV_VAR'") | "\(.value)"')")
+    done
   fi
   if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
     echo "LAGOON_ENVIRONMENT_VARIABLES are available from the API"
-    BUILD_ARGS+=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.scope == "build" or .scope == "global") | "--build-arg \(.name)=\(.value)"'))
+    # multiline/spaced variables seem to break when being added from the API.
+    # this changes the way it works to create the variable in a similar way to how they are injected below
+    LAGOON_ENV_VARS=$(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.scope == "build" or .scope == "global") | "\(.name)"')
+    for LAGOON_ENV_VAR in $LAGOON_ENV_VARS
+    do
+      BUILD_ARGS+=(--build-arg $(echo $LAGOON_ENV_VAR)="$(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.scope == "build" or .scope == "global" and .name == "'$LAGOON_ENV_VAR'") | "\(.value)"')")
+    done
   fi
 
   BUILD_ARGS+=(--build-arg IMAGE_REPO="${CI_OVERRIDE_IMAGE_REPO}")
