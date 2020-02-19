@@ -129,18 +129,6 @@ This allows you to define the behavior of the automatic creates routes \(NOT the
 
 Environment names match your deployed branches or pull requests. This allows for each environment to have a different config. In our example it will apply to the `master` and `staging` environment.
 
-!!!hint
-    Note about environment naming conventions: If you are referencing a branch with any special characters (not a letter, number, dash, or underscore), you must wrap the branch name in single quotes. Example:
-
-    ```
-    environments:
-      'feature/long-branch-name-here':
-        ...
-    ```
-
-
-
-
 #### `environments.[name].monitoring_urls`
 
 At the end of a deploy, Lagoon will check this field for any URLs which you have specified to add to the API for the purpose of monitoring. The default value for this field is the first route for a project. It is useful for adding specific paths of a project to the API, for consumption by a monitoring service.
