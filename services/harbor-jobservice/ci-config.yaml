@@ -10,11 +10,11 @@ job_loggers:
   - name: "FILE"
     level: ERROR
     settings: # Customized settings of logger
-      base_dir: "/var/log/jobs"
+      base_dir: "/tmp"
     sweeper:
       duration: 14 #days
       settings: # Customized settings of sweeper
-        work_dir: "/var/log/jobs"
+        work_dir: "/tmp"
 #Loggers for the job service
 loggers:
   - name: "STD_OUTPUT"

@@ -41,7 +41,7 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
         logger.info(`Unable to create the harbor project "${lagoonProjectName}", as it already exists in harbor!`)
       } else {
         console.log(res)
-        logger.error(`Unable to create the harbor project "${lagoonProjectName}" !!`, err)
+        logger.error(`Unable to create the harbor project "${lagoonProjectName}", error: ${err}`)
       }
     }
 
@@ -51,8 +51,6 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
       var harborProjectID = res.body[0].project_id
       logger.debug(`Got the harbor project id for project ${lagoonProjectName} successfully!`)
     } catch (err) {
-      // 409 means project already exists
-      // 201 means project created successfully
       if (err.statusCode == 404) {
         logger.error(`Unable to get the harbor project id of "${lagoonProjectName}", as it does not exist in harbor!`)
       } else {
@@ -100,11 +98,6 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
       );
       logger.debug(`Environment variable INTERNAL_REGISTRY_URL for ${lagoonProjectName} created!`)
 
-    } catch (err) {
-      logger.error("Initial var already set!!")
-    }
-
-    try {
       await query(
         sqlClient,
         Sql.insertEnvVariable({
@@ -127,7 +120,7 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
       );
       logger.debug(`Environment variable INTERNAL_REGISTRY_PASSWORD for ${lagoonProjectName} created!`)
     } catch (err) {
-      logger.error("Something went wrong setting env vars!", err)
+      logger.error(`Error while setting up harbor environment variables for ${lagoonProjectName}, error: ${err}`)
     }
   }
 })

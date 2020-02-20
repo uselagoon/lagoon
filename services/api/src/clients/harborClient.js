@@ -11,8 +11,6 @@ const lagoonHarborRoute = R.compose(
   R.propOr('', 'LAGOON_ROUTES'),
 )(process.env);
 
-// Test to see if we have a local harbor or not
-// curl 172.17.0.1:8084; if 200: use that. if not, use harbor-nginx?
 const harborClient = got.extend({
   baseUrl: `${lagoonHarborRoute || 'http://172.17.0.1:8084'}/api/`,
   json: true,

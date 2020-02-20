@@ -542,9 +542,11 @@ services:
       - harbor-database
       - harbor-redis
     environment:
+      - CORE_URL=http://harbor-core:8080
+      - SCANNER_CLAIR_URL=http://harborclair:6060
       - SCANNER_CLAIR_DATABASE_URL=postgres://postgres:test123@harbor-database:5432/postgres?sslmode=disable
       - SCANNER_STORE_REDIS_URL=redis://harbor-redis:6379/4
-      - SCANNER_LOG_LEVEL=error
+      - SCANNER_LOG_LEVEL=debug
     labels:
       lagoon.type: custom
       lagoon.template: services/harborclairadapter/harborclair.yml
@@ -573,8 +575,8 @@ services:
       - POSTGRESQL_SSLMODE=disable
       - POSTGRESQL_MAX_IDLE_CONNS=50
       - POSTGRESQL_MAX_OPEN_CONNS=100
-      - CORE_URL:http://harbor-core
-      - JOBSERVICE_URL=http://harbor-jobservice
+      - CORE_URL=http://harbor-core:8080
+      - JOBSERVICE_URL=http://harbor-jobservice:8080
       - REGISTRY_URL=http://harborregistry:5000
       - TOKEN_SERVICE_URL=http://harbor-core:8080/service/token
       - WITH_NOTARY=false
@@ -632,17 +634,18 @@ services:
     ports:
       - '8083:8080'
     volumes:
-      - /var/log/jobs
+      - /tmp
       - ${PWD}/services/harbor-jobservice/ci-config.yaml:/etc/jobservice/config.yml
     depends_on:
       - harbor-database
       - harbor-redis
+      - harbor-nginx
     environment:
       - CORE_SECRET=secret123
       - JOBSERVICE_SECRET=secret123
       - CORE_URL=http://harbor-core:8080
       - REGISTRY_CONTROLLER_URL=http://harborregistryctl:8080
-      - LOG_LEVEL=error
+      - LOG_LEVEL=debug
       - HTTP_PROXY=
       - HTTPS_PROXY=
       - NO_PROXY=harbor-core,harbor-jobservice,harbor-database,harborclair,harborclairadapter,harborregistry,harbor-portal,127.0.0.1,localhost,.local,.internal
@@ -664,7 +667,6 @@ services:
       - harbor-core
       - harborregistry
       - harbor-portal
-      - harbor-jobservice
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor-nginx/harbor-nginx.yml
