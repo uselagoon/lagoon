@@ -9,12 +9,13 @@ export const getSqlClient = () => {
     user: 'api',
     password: 'api',
     db: 'infrastructure',
+    charset: 'utf8',
   });
 
   sqlClient.on('error', error => {
     logger.error(error.message);
   });
-  
+
   return sqlClient;
 };
 
