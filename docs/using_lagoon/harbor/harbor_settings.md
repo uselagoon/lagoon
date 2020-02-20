@@ -205,7 +205,7 @@ No specific configuration is needed for Harbor-Redis.
   * The default value is an empty string
 * `CORE_SECRET`
   * This value is a pre-shared key that must match between the various services connecting to Harbor-Core
-  * The default value is set to `secret123` when Harbor is ran locally or during CI testing.
+  * The default value is set to `secret123` when Harbor is ran locally or during CI testing. 
   * This value is retreived from a secret created when Harbor is first setup on a running Lagoon.
 * `JOBSERVICE_SECRET`
   * This value is a pre-shared key that must match between the various services connecting to Harbor-Jobservice
