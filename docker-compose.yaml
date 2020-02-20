@@ -546,7 +546,7 @@ services:
       - SCANNER_CLAIR_URL=http://harborclair:6060
       - SCANNER_CLAIR_DATABASE_URL=postgres://postgres:test123@harbor-database:5432/postgres?sslmode=disable
       - SCANNER_STORE_REDIS_URL=redis://harbor-redis:6379/4
-      - SCANNER_LOG_LEVEL=debug
+      - SCANNER_LOG_LEVEL=error
     labels:
       lagoon.type: custom
       lagoon.template: services/harborclairadapter/harborclair.yml
@@ -592,7 +592,7 @@ services:
       - CLAIR_ADAPTER_URL=http://harborclairadapter:8080
       - REGISTRY_STORAGE_PROVIDER_NAME=s3
       - WITH_CHARTMUSEUM=false
-      - LOG_LEVEL=debug
+      - LOG_LEVEL=error
       - CONFIG_PATH=/etc/core/app.conf
       - SYNC_REGISTRY=false
       - CHART_CACHE_DRIVER=redis
@@ -645,7 +645,7 @@ services:
       - JOBSERVICE_SECRET=secret123
       - CORE_URL=http://harbor-core:8080
       - REGISTRY_CONTROLLER_URL=http://harborregistryctl:8080
-      - LOG_LEVEL=debug
+      - LOG_LEVEL=error
       - HTTP_PROXY=
       - HTTPS_PROXY=
       - NO_PROXY=harbor-core,harbor-jobservice,harbor-database,harborclair,harborclairadapter,harborregistry,harbor-portal,127.0.0.1,localhost,.local,.internal
@@ -704,7 +704,7 @@ services:
       - '4999:5000'
       - '5001:5001'
     environment:
-      - HARBOR_NGINX_ENDPOINT=
+      - HARBOR_NGINX_ENDPOINT=http://harbor-nginx:8080
       - REGISTRY_REDIS_PASSWORD=
       - CORE_SECRET=secret123
       - JOBSERVICE_SECRET=secret123
