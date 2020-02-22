@@ -98,18 +98,13 @@ const getNamespaceName = (project, environment, projectInfo ) => {
   }
 }
 
-const checkIfProjectExists = async (client, namespace) => {
-    // Check if project exists
-    try {
-      const namespaces = await client.api.v1.namespaces(namespace).get();
-      if (namespaces.statusCode !== 200 && namespaces.body.metadata.name !== namespace) {
-        logger.error(`Project ${namespace} does not exist, bailing`)
-        return; // we are done here
-      }
-    } catch (err) {
-      logger.error(err);
-      throw new Error();
-    }
+const projectExists = async (client, namespace) => {
+  const namespaces = await client.api.v1.namespaces(namespace).get();
+  if (namespaces.statusCode !== 200 && namespaces.body.metadata.name !== namespace) {
+    return false;
+  }
+
+  return true;
 }
 
 const getPodSpec = async (client, namespace, task, taskId) => {
@@ -267,8 +262,10 @@ const messageConsumer = async msg => {
   const client = new Client({ config  });
 
   const { namespace } = getNamespaceName(project, environment, projectInfo);
-
-  checkIfProjectExists(client, namespace);
+  if (!await projectExists(client, namespace)) {
+    logger.error(`Project ${namespace} does not exist, bailing`)
+    return;
+  }
 
   // Get pod spec for desired service
   const taskPodSpec = await getPodSpec(client, namespace, task, taskId);
