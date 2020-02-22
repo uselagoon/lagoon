@@ -438,9 +438,6 @@ mutation PopulateApi {
   ) {
     id
   }
-  CiDrupalEnvironmentServices: setEnvironmentServices(input:{environment:1010, services:["lagoon-build", "cli-persistent", "cli", "php", "mariadb", "varnish", "redis", "nginx", "mariadb-single"]}) {
-    id
-  }
   CiDrupalGroup3: addGroupsToProject(
     input: {
       project: {
@@ -992,20 +989,6 @@ mutation PopulateApi {
       deployType: BRANCH
       deployBaseRef: "stage"
       environmentType: DEVELOPMENT
-      openshiftProjectName: "ci-env-limit"
-    }
-  ) {
-    id
-  }
-
-  CILimitEn4: addOrUpdateEnvironment(
-    input: {
-      id: 1010
-      name: "master"
-      project: 1010
-      deployType: BRANCH
-      deployBaseRef: "master"
-      environmentType: PRODUCTION
       openshiftProjectName: "ci-env-limit"
     }
   ) {
