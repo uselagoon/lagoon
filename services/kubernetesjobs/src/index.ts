@@ -3,9 +3,19 @@ import Api, { ClientConfiguration } from 'kubernetes-client';
 const Client = Api.Client1_13;
 
 const { logger } = require('@lagoon/commons/src/local-logging');
-const { getOpenShiftInfoForProject, updateTask } = require('@lagoon/commons/src/api');
-const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/src/logs');
-const { consumeTasks, initSendToLagoonTasks, createTaskMonitor } = require('@lagoon/commons/src/tasks');
+const {
+  getOpenShiftInfoForProject,
+  updateTask
+} = require('@lagoon/commons/src/api');
+const {
+  sendToLagoonLogs,
+  initSendToLagoonLogs
+} = require('@lagoon/commons/src/logs');
+const {
+  consumeTasks,
+  initSendToLagoonTasks,
+  createTaskMonitor
+} = require('@lagoon/commons/src/tasks');
 
 const lagoonApiRoute = R.compose(
   // Default to the gateway IP in virtualbox, so pods running in minishift can
@@ -16,7 +26,11 @@ const lagoonApiRoute = R.compose(
   R.propOr('', 'LAGOON_ROUTES')
 )(process.env);
 
-const lagoonSshHost = R.propOr('ssh.lagoon.svc', 'LAGOON_SSH_HOST', process.env);
+const lagoonSshHost = R.propOr(
+  'ssh.lagoon.svc',
+  'LAGOON_SSH_HOST',
+  process.env
+);
 const lagoonSshPort = R.propOr('2020', 'LAGOON_SSH_PORT', process.env);
 
 initSendToLagoonLogs();
@@ -25,14 +39,12 @@ initSendToLagoonTasks();
 const failTask = async taskId => {
   try {
     await updateTask(taskId, {
-      status: 'FAILED',
+      status: 'FAILED'
     });
   } catch (error) {
-    logger.error(
-      `Could not fail task ${taskId}. Message: ${error}`
-    );
+    logger.error(`Could not fail task ${taskId}. Message: ${error}`);
   }
-}
+};
 
 const jobConfig = (name, spec) => {
   let config = {
@@ -62,26 +74,29 @@ const jobConfig = (name, spec) => {
 
 const getUrlTokenFromProjectInfo = (projectOpenShift, name) => {
   try {
-    const url = projectOpenShift.openshift.consoleUrl.replace(/\/$/, "");
-    const token = projectOpenShift.openshift.token || "";
+    const url = projectOpenShift.openshift.consoleUrl.replace(/\/$/, '');
+    const token = projectOpenShift.openshift.token || '';
     return { url, token };
-  } catch(error) {
-    logger.warn(`Error while loading information for project ${name}: ${error}`)
-    throw(error)
+  } catch (error) {
+    logger.warn(
+      `Error while loading information for project ${name}: ${error}`
+    );
+    throw error;
   }
-}
+};
 
 const getConfig = (url, token) => ({
-    url,
-    insecureSkipTlsVerify: true,
-    auth: {
-      bearer: token
-    },
+  url,
+  insecureSkipTlsVerify: true,
+  auth: {
+    bearer: token
+  }
 });
 
-const ocsafety = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g, '-');
+const ocsafety = string =>
+  string.toLocaleLowerCase().replace(/[^0-9a-z-]/g, '-');
 
-const getNamespaceName = (project, environment, projectInfo ) => {
+const getNamespaceName = (project, environment, projectInfo) => {
   try {
     const safeBranchName = ocsafety(environment.name);
     const safeProjectName = ocsafety(project.name);
@@ -96,20 +111,25 @@ const getNamespaceName = (project, environment, projectInfo ) => {
     logger.error(error);
     throw error;
   }
-}
+};
 
 const projectExists = async (client, namespace) => {
   const namespaces = await client.api.v1.namespaces(namespace).get();
-  if (namespaces.statusCode !== 200 && namespaces.body.metadata.name !== namespace) {
+  if (
+    namespaces.statusCode !== 200 &&
+    namespaces.body.metadata.name !== namespace
+  ) {
     return false;
   }
 
   return true;
-}
+};
 
 const getPodSpec = async (client, namespace, task, taskId) => {
   try {
-    const deployment = await client.apis.app.v1.namespaces(namespace).deployments.get()
+    const deployment = await client.apis.app.v1
+      .namespaces(namespace)
+      .deployments.get();
     const oneContainerPerSpec = deployment.body.items.reduce(
       (specs, deploymentConfig) => ({
         ...specs,
@@ -126,7 +146,7 @@ const getPodSpec = async (client, namespace, task, taskId) => {
       }),
       {}
     );
-    
+
     if (!oneContainerPerSpec[task.service]) {
       logger.error(`No spec for service ${task.service}, bailing`);
       failTask(taskId);
@@ -136,24 +156,27 @@ const getPodSpec = async (client, namespace, task, taskId) => {
     const cronjobEnvVars = env => env.name === 'CRONJOBS';
     const containerEnvLens = R.lensPath(['containers', 0, 'env']);
     const removeCronjobs = R.over(containerEnvLens, R.reject(cronjobEnvVars));
-    const addTaskEnvVars = R.over(containerEnvLens, R.concat([
-      {
-        name: 'TASK_API_HOST',
-        value: lagoonApiRoute,
-      },
-      {
-        name: 'TASK_SSH_HOST',
-        value: lagoonSshHost,
-      },
-      {
-        name: 'TASK_SSH_PORT',
-        value: lagoonSshPort,
-      },
-      {
-        name: 'TASK_DATA_ID',
-        value: `${taskId}`,
-      },
-    ]));
+    const addTaskEnvVars = R.over(
+      containerEnvLens,
+      R.concat([
+        {
+          name: 'TASK_API_HOST',
+          value: lagoonApiRoute
+        },
+        {
+          name: 'TASK_SSH_HOST',
+          value: lagoonSshHost
+        },
+        {
+          name: 'TASK_SSH_PORT',
+          value: lagoonSshPort
+        },
+        {
+          name: 'TASK_DATA_ID',
+          value: `${taskId}`
+        }
+      ])
+    );
 
     const containerCommandLens = R.lensPath(['containers', 0, 'command']);
     const setContainerCommand = R.set(containerCommandLens, [
@@ -162,14 +185,14 @@ const getPodSpec = async (client, namespace, task, taskId) => {
       '/lagoon/entrypoints.sh',
       '/bin/sh',
       '-c',
-      task.command,
+      task.command
     ]);
 
     const taskPodSpec = R.pipe(
       R.prop(task.service),
       removeCronjobs,
       addTaskEnvVars,
-      setContainerCommand,
+      setContainerCommand
     )(oneContainerPerSpec);
 
     return taskPodSpec;
@@ -177,16 +200,18 @@ const getPodSpec = async (client, namespace, task, taskId) => {
     logger.error(err);
     throw new Error(err);
   }
-}
+};
 
 const createJob = async (client, namespace, jobName, taskPodSpec) => {
   try {
-    return client.apis.batch.v1.namespaces(namespace).jobs.post({ body: jobConfig(jobName, taskPodSpec)})
+    return client.apis.batch.v1
+      .namespaces(namespace)
+      .jobs.post({ body: jobConfig(jobName, taskPodSpec) });
   } catch (err) {
     logger.error(err);
     throw new Error();
   }
-}
+};
 
 const performUpdateTask = async (taskId, job, task, project) => {
   try {
@@ -200,18 +225,17 @@ const performUpdateTask = async (taskId, job, task, project) => {
     });
 
     return updatedTask;
-
   } catch (error) {
     logger.error(
       `Could not update task ${project.name} ${task.name}. Message: ${error}`
     );
   }
-}
+};
 
 const deathHandler = async (msg, lastError) => {
   const { project, task } = JSON.parse(msg.content.toString());
 
-  const taskId = typeof task.id === 'string' ? parseInt(task.id, 10) : task.id; 
+  const taskId = typeof task.id === 'string' ? parseInt(task.id, 10) : task.id;
   failTask(taskId);
 
   sendToLagoonLogs(
@@ -251,19 +275,23 @@ Retrying job in ${retryExpirationSecs} secs`
 const messageConsumer = async msg => {
   const { project, task, environment } = JSON.parse(msg.content.toString());
 
-  logger.verbose(`Received Kubernetesjobs task for project: ${project.name}, task: ${task.id}`);
+  logger.verbose(
+    `Received Kubernetesjobs task for project: ${project.name}, task: ${task.id}`
+  );
 
   const taskId = typeof task.id === 'string' ? parseInt(task.id, 10) : task.id;
 
-  const { project: projectInfo} = await getOpenShiftInfoForProject(project.name);
+  const { project: projectInfo } = await getOpenShiftInfoForProject(
+    project.name
+  );
 
-  const { url, token } = getUrlTokenFromProjectInfo(projectInfo, project.name); 
+  const { url, token } = getUrlTokenFromProjectInfo(projectInfo, project.name);
   const config: ClientConfiguration = getConfig(url, token);
-  const client = new Client({ config  });
+  const client = new Client({ config });
 
   const { namespace } = getNamespaceName(project, environment, projectInfo);
-  if (!await projectExists(client, namespace)) {
-    logger.error(`Project ${namespace} does not exist, bailing`)
+  if (!(await projectExists(client, namespace))) {
+    logger.error(`Project ${namespace} does not exist, bailing`);
     return;
   }
 
@@ -280,8 +308,15 @@ const messageConsumer = async msg => {
 
   const monitorPayload = { task: updateTask, project, environment };
 
-  await createTaskMonitor('job-kubernetes', monitorPayload );
-  sendToLagoonLogs('start', project.name, '', 'task:job-kubernetes:start', {}, `*[${project.name}]* Task \`${task.id}\` *${task.name}* started`);
+  await createTaskMonitor('job-kubernetes', monitorPayload);
+  sendToLagoonLogs(
+    'start',
+    project.name,
+    '',
+    'task:job-kubernetes:start',
+    {},
+    `*[${project.name}]* Task \`${task.id}\` *${task.name}* started`
+  );
 };
 
 consumeTasks('job-kubernetes', messageConsumer, retryHandler, deathHandler);
