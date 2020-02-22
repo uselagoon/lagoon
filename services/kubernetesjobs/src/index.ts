@@ -171,7 +171,7 @@ const getPodSpec = async (client, namespace, task, taskId) => {
     ]);
 
     const taskPodSpec = R.pipe(
-      R.prop(`${task.service}-persistent`),
+      R.prop(task.service),
       removeCronjobs,
       addTaskEnvVars,
       setContainerCommand,
