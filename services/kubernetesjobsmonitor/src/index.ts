@@ -38,19 +38,19 @@ const getNamespaceName = (project, environment, projectInfo) => {
 
 const getJobStatus = jobInfo => {
   console.log(jobInfo);
-  if (R.isEmpty(jobInfo.status)) {
+  if (R.isEmpty(jobInfo.body.status)) {
     return 'active';
   }
 
-  if (R.propOr(false, 'active', jobInfo.status)) {
+  if (R.propOr(false, 'active', jobInfo.body.status)) {
     return 'active';
   }
 
-  if (R.propOr(false, 'failed', jobInfo.status)) {
+  if (R.propOr(false, 'failed', jobInfo.body.status)) {
     return 'failed';
   }
 
-  if (R.propOr(false, 'succeeded', jobInfo.status)) {
+  if (R.propOr(false, 'succeeded', jobInfo.body.status)) {
     return 'succeeded';
   }
 
@@ -101,10 +101,10 @@ const projectExists = async (client: Api.ApiRoot, namespace: string) => {
 };
 
 const jobsLogGet = async (client: Api.ApiRoot, namespace: string, jobName: string) => {
-  const pods = client.api.v1.namespaces(namespace).pods.get({ 
+  const pods = await client.api.v1.namespaces(namespace).pods.get({ 
     qs: { labelSelector: `job-name=${jobName}` } 
   });
-  const podNames = pods.items.map(pod => pod.metadata.name);
+  const podNames = pods.body.items.map(pod => pod.metadata.name);
 
   // Combine all logs from all pod(s)
   let finalLog = '';
@@ -161,16 +161,16 @@ const updateLagoonTask = async (jobInfo, jobStatus, taskId, project, jobName) =>
   try {
     const convertDateFormat = R.init;
     const dateOrNull = R.unless(R.isNil, convertDateFormat);
-    let completedDate = dateOrNull(jobInfo.status.completionTime);
+    let completedDate = dateOrNull(jobInfo.body.status.completionTime);
 
     if (jobStatus === 'failed') {
-      completedDate = dateOrNull(jobInfo.status.conditions[0].lastTransitionTime);
+      completedDate = dateOrNull(jobInfo.body.status.conditions[0].lastTransitionTime);
     }
 
     await updateTask(taskId, {
       status: jobStatus.toUpperCase(),
-      created: convertDateFormat(jobInfo.metadata.creationTimestamp),
-      started: dateOrNull(jobInfo.status.startTime),
+      created: convertDateFormat(jobInfo.body.metadata.creationTimestamp),
+      started: dateOrNull(jobInfo.body.status.startTime),
       completed: completedDate
     });
   } catch (error) {
@@ -187,7 +187,7 @@ const saveAndLog = async (client, jobStatus, project, task, namespace, jobName, 
         'info',
         project.name,
         '',
-        `task:job-openshift:${jobStatus}`,
+        `task:job-kubernetes:${jobStatus}`,
         meta,
         `*[${project.name}]* Task \`${task.id}\` *${task.name}* active`
       );
@@ -202,7 +202,7 @@ const saveAndLog = async (client, jobStatus, project, task, namespace, jobName, 
         'error',
         project.name,
         '',
-        `task:job-openshift:${jobStatus}`,
+        `task:job-kubernetes:${jobStatus}`,
         meta,
         `*[${project.name}]* Task \`${task.id}\` *${task.name}* failed.`
       );
@@ -215,7 +215,7 @@ const saveAndLog = async (client, jobStatus, project, task, namespace, jobName, 
         'info',
         project.name,
         '',
-        `task:job-openshift:${jobStatus}`,
+        `task:job-kubernetes:${jobStatus}`,
         meta,
         `*[${project.name}]* Task \`${task.id}\` *${task.name}* succeeded.`
       );
@@ -226,7 +226,7 @@ const saveAndLog = async (client, jobStatus, project, task, namespace, jobName, 
         'info',
         project.name,
         '',
-        `task:job-openshift:${jobStatus}`,
+        `task:job-kubernetes:${jobStatus}`,
         meta,
         `*[${project.name}]* Task \`${task.id}\` *${
           task.name
@@ -259,7 +259,7 @@ const messageConsumer = async msg => {
   }
 
   const jobName = `${namespace}-${task.id}`;
-  const jobInfo = getJobInfo(client, namespace, jobName, taskId);
+  const jobInfo = await getJobInfo(client, namespace, jobName, taskId);
   const jobStatus = getJobStatus(jobInfo);
 
   await updateLagoonTask(jobInfo, jobStatus, taskId, project, jobName);
@@ -304,4 +304,25 @@ ${lastError}
   );
 };
 
-consumeTasks('job-kubernetes', messageConsumer, deathHandler);
+const retryHandler = async (msg, error, retryCount, retryExpirationSecs) => {
+  const { project, task } = JSON.parse(msg.content.toString());
+
+  sendToLagoonLogs(
+    'warn',
+    project.name,
+    '',
+    'task:job-kubernetes:retry',
+    {
+      error: error.message,
+      msg: JSON.parse(msg.content.toString()),
+      retryCount: 1
+    },
+    `*[${project.name}]* Task \`${task.id}\` *${task.name}* ERROR:
+\`\`\`
+${error.message}
+\`\`\`
+Retrying job in ${retryExpirationSecs} secs`
+  );
+};
+
+consumeTasks('job-kubernetes', messageConsumer, retryHandler, deathHandler);
