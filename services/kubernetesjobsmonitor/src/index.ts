@@ -5,7 +5,7 @@ const Client = Api.Client1_13;
 const { logger } = require('@lagoon/commons/src/local-logging');
 const { getOpenShiftInfoForProject, updateTask } = require('@lagoon/commons/src/api');
 const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/src/logs');
-const { consumeTasks, initSendToLagoonTasks, createTaskMonitor } = require('@lagoon/commons/src/tasks');
+const { consumeTaskMonitor, initSendToLagoonTasks } = require('@lagoon/commons/src/tasks');
 
 class JobNotCompletedYet extends Error {
   constructor(message: string) {
@@ -37,7 +37,6 @@ const getNamespaceName = (project, environment, projectInfo) => {
 };
 
 const getJobStatus = jobInfo => {
-  console.log(jobInfo);
   if (R.isEmpty(jobInfo.body.status)) {
     return 'active';
   }
@@ -89,38 +88,46 @@ const getConfig = (url, token) => ({
 });
 
 const projectExists = async (client: Api.ApiRoot, namespace: string) => {
-  const namespaces = await client.api.v1.namespaces(namespace).get();
-  if (
-    namespaces.statusCode !== 200 &&
-    namespaces.body.metadata.name !== namespace
-  ) {
-    return false;
-  }
+  try {
+    const namespaces = await client.api.v1.namespaces(namespace).get();
+    if (
+      namespaces.statusCode !== 200 &&
+      namespaces.body.metadata.name !== namespace
+    ) {
+      return false;
+    }
 
-  return true;
+    return true;
+  }catch(error){
+    console.log(error)
+  }
 };
 
 const jobsLogGet = async (client: Api.ApiRoot, namespace: string, jobName: string) => {
-  const pods = await client.api.v1.namespaces(namespace).pods.get({ 
-    qs: { labelSelector: `job-name=${jobName}` } 
-  });
-  const podNames = pods.body.items.map(pod => pod.metadata.name);
+  try {
+    const pods = await client.api.v1.namespaces(namespace).pods.get({ 
+      qs: { labelSelector: `job-name=${jobName}` } 
+    });
+    const podNames = pods.body.items.map(pod => pod.metadata.name);
 
-  // Combine all logs from all pod(s)
-  let finalLog = '';
-  for (const podName of podNames) {
-    const podLog = client.api.v1.namespaces(namespace).pods(podName).log.get();
+    // Combine all logs from all pod(s)
+    let finalLog = '';
+    for (const podName of podNames) {
+      const podLog = await client.api.v1.namespaces(namespace).pods(podName).log.get();
 
-    finalLog =
-      finalLog +
+      finalLog =
+        finalLog +
       `
 ========================================
 Logs on pod ${podName}
 ========================================
-${podLog}`;
-    }
+${podLog.body}`;
+      }
 
-    return finalLog;
+      return finalLog;
+  }catch(error){
+    console.log(error)
+  }
 }
 
 const deleteJob = async (client: Api.ApiRoot, namespace: string, jobName: string) => {
@@ -128,14 +135,21 @@ const deleteJob = async (client: Api.ApiRoot, namespace: string, jobName: string
     // const jobDelete = promisify(
     //   batchApi.namespaces(openshiftProject).jobs(jobName).delete
     // );
-    const jobDelete = await client.apis.batch.v1.namespaces(namespace).jobs(jobName).get()
-    await jobDelete({
+    const options = {
       body: {
         kind: 'DeleteOptions',
         apiVersion: 'v1',
         propagationPolicy: 'Foreground',
-      },
-    });
+      }
+    };
+    await client.apis.batch.v1.namespaces(namespace).jobs(jobName).delete(options)
+    // await jobDelete({
+    //   body: {
+    //     kind: 'DeleteOptions',
+    //     apiVersion: 'v1',
+    //     propagationPolicy: 'Foreground',
+    //   },
+    // });
   } catch (err) {
     logger.error(`Couldn't delete job ${jobName}. Error: ${err}`);
   }
@@ -180,7 +194,32 @@ const updateLagoonTask = async (jobInfo, jobStatus, taskId, project, jobName) =>
   }
 }
 
-const saveAndLog = async (client, jobStatus, project, task, namespace, jobName, jobInfo, meta) => {
+const messageConsumer = async msg => {
+
+  const { project, task, environment } = JSON.parse(msg.content.toString());
+
+  logger.verbose(`Received JobKubernetes monitoring task for project: ${project.name}, task: ${task.id}`);
+
+  const taskId = typeof task.id === 'string' ? parseInt(task.id, 10) : task.id;
+  const { project: projectInfo } = await getOpenShiftInfoForProject(project.name);
+
+  const { url, token } = getUrlTokenFromProjectInfo(projectInfo, project.name);
+  const config: ClientConfiguration = getConfig(url, token);
+  const client = new Client({ config });
+
+  const { namespace } = getNamespaceName(project, environment, projectInfo);
+  if (!(await projectExists(client, namespace))) {
+    logger.error(`Project ${namespace} does not exist, bailing`);
+    return;
+  }
+
+  const jobName = `${namespace}-${task.id}`;
+  const jobInfo = await getJobInfo(client, namespace, jobName, taskId);
+  const jobStatus = getJobStatus(jobInfo);
+
+  await updateLagoonTask(jobInfo, jobStatus, taskId, project, jobName);
+  const meta = JSON.parse(msg.content.toString());
+
   switch (jobStatus) {
     case 'active':
       sendToLagoonLogs(
@@ -191,13 +230,14 @@ const saveAndLog = async (client, jobStatus, project, task, namespace, jobName, 
         meta,
         `*[${project.name}]* Task \`${task.id}\` *${task.name}* active`
       );
+      
       throw new JobNotCompletedYet(
-        `*[${project.name}]* Task \`${task.id}\` *${task.name}* active`
-      );
+        `*[${project.name}]* Task \`${task.id}\` *${task.name}* phase ${jobStatus}`
+        );
 
     case 'failed':
       await saveTaskLog(jobName, project.name, jobInfo, await jobsLogGet(client, namespace, jobName));
-      await deleteJob(client, name, jobName);
+      await deleteJob(client, namespace, jobName);
       sendToLagoonLogs(
         'error',
         project.name,
@@ -233,42 +273,12 @@ const saveAndLog = async (client, jobStatus, project, task, namespace, jobName, 
         }* phase ${jobStatus}`
       );
       throw new JobNotCompletedYet(
-        `*[${project.name}]* Task \`${task.id}\` *${
-          task.name
-        }* phase ${jobStatus}`
+      `*[${project.name}]* Task \`${task.id}\` *${task.name}* phase ${jobStatus}`
       );
   }
-}
-
-const messageConsumer = async msg => {
-  const { project, task, environment } = JSON.parse(msg.content.toString());
-
-  logger.verbose(`Received JobKubernetes monitoring task for project: ${project.name}, task: ${task.id}`);
-
-  const taskId = typeof task.id === 'string' ? parseInt(task.id, 10) : task.id;
-  const { project: projectInfo } = await getOpenShiftInfoForProject(project.name);
-
-  const { url, token } = getUrlTokenFromProjectInfo(projectInfo, project.name);
-  const config: ClientConfiguration = getConfig(url, token);
-  const client = new Client({ config });
-
-  const { namespace } = getNamespaceName(project, environment, projectInfo);
-  if (!(await projectExists(client, namespace))) {
-    logger.error(`Project ${namespace} does not exist, bailing`);
-    return;
-  }
-
-  const jobName = `${namespace}-${task.id}`;
-  const jobInfo = await getJobInfo(client, namespace, jobName, taskId);
-  const jobStatus = getJobStatus(jobInfo);
-
-  await updateLagoonTask(jobInfo, jobStatus, taskId, project, jobName);
-  const meta = JSON.parse(msg.content.toString());
-
-  saveAndLog(client, jobStatus, project, task, namespace, jobName, jobInfo, meta);
 };
 
-const saveTaskLog = async (jobName, projectName, jobInfo, log) => {
+const saveTaskLog = (jobName, projectName, jobInfo, log) => {
   const meta = {
     jobName,
     jobStatus: getJobStatus(jobInfo),
@@ -285,7 +295,7 @@ const saveTaskLog = async (jobName, projectName, jobInfo, log) => {
   );
 };
 
-const deathHandler = async (msg, lastError) => {
+const deathHandler = (msg, lastError) => {
   const { project, task } = JSON.parse(msg.content.toString());
 
   const taskId = typeof task.id === 'string' ? parseInt(task.id, 10) : task.id;
@@ -304,25 +314,4 @@ ${lastError}
   );
 };
 
-const retryHandler = async (msg, error, retryCount, retryExpirationSecs) => {
-  const { project, task } = JSON.parse(msg.content.toString());
-
-  sendToLagoonLogs(
-    'warn',
-    project.name,
-    '',
-    'task:job-kubernetes:retry',
-    {
-      error: error.message,
-      msg: JSON.parse(msg.content.toString()),
-      retryCount: 1
-    },
-    `*[${project.name}]* Task \`${task.id}\` *${task.name}* ERROR:
-\`\`\`
-${error.message}
-\`\`\`
-Retrying job in ${retryExpirationSecs} secs`
-  );
-};
-
-consumeTasks('job-kubernetes', messageConsumer, retryHandler, deathHandler);
+consumeTaskMonitor('job-kubernetes', messageConsumer, deathHandler);
