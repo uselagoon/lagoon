@@ -117,6 +117,16 @@ services:
       lagoon.type: custom
       lagoon.template: services/openshiftmisc/.lagoon.app.yml
       lagoon.image: amazeeiolagoon/openshiftmisc:kubernetes
+  kubernetesmisc:
+    image: ${IMAGE_REPO:-lagoon}/kubernetesmisc
+    command: yarn run dev
+    volumes:
+      - ./services/kubernetesmisc/src:/app/services/kubernetesmisc/src
+      - ./node-packages:/app/node-packages:delegated
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/kubernetesmisc/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/kubernetesmisc:kubernetes
   kubernetesbuilddeploy:
     image: ${IMAGE_REPO:-lagoon}/kubernetesbuilddeploy
     command: yarn run dev
