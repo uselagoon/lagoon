@@ -266,9 +266,14 @@ const typeDefs = gql`
     activeSystemsRemove: String
     """
     Which internal Lagoon System is responsible for tasks
-    Currently only 'lagoon_openshiftJob' exists
+    'lagoon_openshiftJob' or 'lagoon_kubernetesJob'
     """
     activeSystemsTask: String
+    """
+    Which internal Lagoon System is responsible for miscellaneous tasks
+    'lagoon_openshiftMisc' or 'lagoon_kubernetesMisc'
+    """
+    activeSystemsMisc: String
     """
     Which branches should be deployed, can be one of:
     - \`true\` - all branches are deployed
@@ -611,6 +616,7 @@ const typeDefs = gql`
     activeSystemsPromote: String
     activeSystemsRemove: String
     activeSystemsTask: String
+    activeSystemsMisc: String
     branches: String
     pullrequests: String
     productionEnvironment: String!
@@ -842,6 +848,7 @@ const typeDefs = gql`
     activeSystemsDeploy: String
     activeSystemsRemove: String
     activeSystemsTask: String
+    activeSystemsMisc: String
     branches: String
     productionEnvironment: String
     autoIdle: Int
