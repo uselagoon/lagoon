@@ -47,6 +47,22 @@ const getConfig = (url, token) => ({
   }
 });
 
+const deleteJob = async (client: Api.ApiRoot, namespace: string, jobName: string) => {
+  try {
+    const options = {
+      body: {
+        kind: 'DeleteOptions',
+        apiVersion: 'v1',
+        propagationPolicy: 'Foreground',
+      }
+    };
+    // https://github.com/godaddy/kubernetes-client/blob/master/docs/1.13/Job.md#apisbatchv1namespacesnamespacejobsnamedelete
+    return await client.apis.batch.v1.namespaces(namespace).jobs(jobName).delete(options)
+  } catch (err) {
+    logger.error(`Couldn't delete job ${jobName}. Error: ${err}`);
+  }
+};
+
 const kubernetesBuildCancel = async (data: any) => {
   const { build: { name: buildName }, project, environment } = data;
 
@@ -55,6 +71,9 @@ const kubernetesBuildCancel = async (data: any) => {
   const config: ClientConfiguration = getConfig(url, token);
   const client = new Client({ config });
   const { namespace, safeProjectName } = generateSanitizedNames(project, environment, projectInfo);
+
+  const deleteResult = deleteJob(client, namespace, buildName);
+
   // try {
   //   var safeBranchName = ocsafety(environment.name);
   //   var safeProjectName = ocsafety(project.name);
@@ -75,31 +94,31 @@ const kubernetesBuildCancel = async (data: any) => {
   //   throw error;
   // }
 
-  const openshift = new OpenShiftClient.OApi({
-    url,
-    insecureSkipTlsVerify: true,
-    auth: {
-      bearer: token
-    }
-  });
+  // const openshift = new OpenShiftClient.OApi({
+  //   url,
+  //   insecureSkipTlsVerify: true,
+  //   auth: {
+  //     bearer: token
+  //   }
+  // });
 
-  openshift.ns.addResource('builds');
+  // openshift.ns.addResource('builds');
 
-  try {
-    const cancelBuildPatch = promisify(
-      openshift.ns(namespace).builds(buildName).patch
-    );
-    await cancelBuildPatch({
-      body: {
-        status: {
-          cancelled: true
-        }
-      }
-    });
-  } catch (err) {
-    logger.error(err);
-    throw new Error();
-  }
+  // try {
+  //   const cancelBuildPatch = promisify(
+  //     openshift.ns(namespace).builds(buildName).patch
+  //   );
+  //   await cancelBuildPatch({
+  //     body: {
+  //       status: {
+  //         cancelled: true
+  //       }
+  //     }
+  //   });
+  // } catch (err) {
+  //   logger.error(err);
+  //   throw new Error();
+  // }
 
   logger.verbose(`${namespace}: Cancelling build: ${buildName}`);
 
@@ -107,7 +126,7 @@ const kubernetesBuildCancel = async (data: any) => {
     'info',
     project.name,
     '',
-    'task:misc-openshift:build:cancel',
+    'task:misc-kubernetes:build:cancel',
     data,
     `*[${project.name}]* Cancelling build \`${buildName}\``
   );

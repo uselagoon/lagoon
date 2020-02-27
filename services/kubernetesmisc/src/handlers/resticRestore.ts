@@ -106,7 +106,7 @@ async function resticRestore (data: any) {
     'start',
     project.name,
     '',
-    'task:misc-openshift:start',
+    'task:misc-kubernetes:start',
     data,
     `*[${project.name}]* Restore \`${restore.id}\` *${backup.backupId}* started`
   );
