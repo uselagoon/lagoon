@@ -78,6 +78,7 @@ CREATE TABLE IF NOT EXISTS project (
   active_systems_promote           varchar(300),
   active_systems_remove            varchar(300),
   active_systems_task              varchar(300),
+  active_systems_misc              varchar(300),
   branches                         varchar(300),
   pullrequests                     varchar(300),
   production_environment           varchar(100),
@@ -169,16 +170,16 @@ CREATE TABLE IF NOT EXISTS environment_service (
 );
 
 CREATE TABLE IF NOT EXISTS task (
-       id           int NOT NULL auto_increment PRIMARY KEY,
-       name         varchar(100) NOT NULL,
-       environment  int NOT NULL REFERENCES environment (id),
-       service      varchar(100) NOT NULL,
-       command      varchar(300) NOT NULL,
-       status       ENUM('active', 'succeeded', 'failed') NOT NULL,
-       created      datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-       started      datetime NULL,
-       completed    datetime NULL,
-       remote_id    varchar(50) NULL
+  id           int NOT NULL auto_increment PRIMARY KEY,
+  name         varchar(100) NOT NULL,
+  environment  int NOT NULL REFERENCES environment (id),
+  service      varchar(100) NOT NULL,
+  command      varchar(300) NOT NULL,
+  status       ENUM('active', 'succeeded', 'failed') NOT NULL,
+  created      datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  started      datetime NULL,
+  completed    datetime NULL,
+  remote_id    varchar(50) NULL
 );
 
 CREATE TABLE IF NOT EXISTS s3_file (
