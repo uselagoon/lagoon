@@ -670,7 +670,28 @@ async function createTaskTask(taskData) {
 }
 
 async function createMiscTask(taskData) {
-  return sendToLagoonTasks('misc-openshift', taskData);
+
+  const { key, data: { project } } = taskData;
+
+  const data = await getActiveSystemForProject(project.name, 'misc');
+
+  let updatedKey = key;
+  let taskId = '';
+  switch (data.activeSystemsMisc) {
+    case 'lagoon_openshiftMisc':
+      updatedKey = `openshift:${key}`;
+      taskId = 'misc-openshift';
+      break;
+    case 'lagoon_kubernetesMisc':
+      updatedKey = `kubernetes:${key}`
+      taskId = 'misc-kubernetes';
+      break;
+
+    default:
+      break;
+  }
+
+  return sendToLagoonTasks(taskId, {...taskData, key: updatedKey});
 }
 
 async function consumeTasks(
