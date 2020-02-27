@@ -72,52 +72,6 @@ const kubernetesBuildCancel = async (data: any) => {
 
   const deleteResult = deleteJob(client, namespace, buildName);
 
-  // try {
-  //   var safeBranchName = ocsafety(environment.name);
-  //   var safeProjectName = ocsafety(project.name);
-  //   var openshiftConsole = projectOpenShift.openshift.consoleUrl.replace(
-  //     /\/$/,
-  //     ''
-  //   );
-  //   var openshiftToken = projectOpenShift.openshift.token || '';
-  //   var openshiftProject = projectOpenShift.openshiftProjectPattern
-  //     ? projectOpenShift.openshiftProjectPattern
-  //         .replace('${branch}', safeBranchName)
-  //         .replace('${project}', safeProjectName)
-  //     : `${safeProjectName}-${safeBranchName}`;
-  //   var buildName = build.name;
-  // } catch (error) {
-  //   logger.error(`Error while loading information for project ${project.name}`);
-  //   logger.error(error);
-  //   throw error;
-  // }
-
-  // const openshift = new OpenShiftClient.OApi({
-  //   url,
-  //   insecureSkipTlsVerify: true,
-  //   auth: {
-  //     bearer: token
-  //   }
-  // });
-
-  // openshift.ns.addResource('builds');
-
-  // try {
-  //   const cancelBuildPatch = promisify(
-  //     openshift.ns(namespace).builds(buildName).patch
-  //   );
-  //   await cancelBuildPatch({
-  //     body: {
-  //       status: {
-  //         cancelled: true
-  //       }
-  //     }
-  //   });
-  // } catch (err) {
-  //   logger.error(err);
-  //   throw new Error();
-  // }
-
   logger.verbose(`${namespace}: Cancelling build: ${buildName}`);
 
   sendToLagoonLogs(
