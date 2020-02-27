@@ -13,11 +13,11 @@ const messageConsumer = async msg => {
   const { key, data, data: { project } } = JSON.parse(msg.content.toString());
 
   logger.verbose(
-    `Received MISCOpenshift message for key: ${key}`
+    `Received MiscKubernetes message for key: ${key}`
   );
 
   switch(key) {
-    case 'restic:backup:restore':
+    case 'kubernetes:restic:backup:restore':
       resticRestore(data);
       break;
 
