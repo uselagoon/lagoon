@@ -297,6 +297,20 @@ spec:
   targetCPUUtilizationPercentage: 80
 
 ---
+  apiVersion: autoscaling/v1
+  kind: HorizontalPodAutoscaler
+  metadata:
+    name: kubernetesjobs
+  spec:
+    maxReplicas: 1
+    minReplicas: 1
+    scaleTargetRef:
+      apiVersion: v1
+      kind: DeploymentConfig
+      name: kubernetesjobs
+    targetCPUUtilizationPercentage: 80
+
+---
 apiVersion: autoscaling/v1
 kind: HorizontalPodAutoscaler
 metadata:

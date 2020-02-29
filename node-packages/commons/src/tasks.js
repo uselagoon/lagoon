@@ -657,6 +657,9 @@ async function createTaskTask(taskData) {
     case 'lagoon_openshiftJob':
       return sendToLagoonTasks('job-openshift', taskData);
 
+    case 'lagoon_kubernetesJob':
+      return sendToLagoonTasks('job-kubernetes', taskData)
+
     default:
       throw new UnknownActiveSystem(
         `Unknown active system '${
