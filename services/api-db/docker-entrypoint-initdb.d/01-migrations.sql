@@ -865,6 +865,15 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  update_openshift_varchar_length()
+
+  BEGIN
+    ALTER TABLE openshift
+    MODIFY token varchar(2000);
+  END;
+$$
+
 DELIMITER ;
 
 CALL add_availability_to_project();

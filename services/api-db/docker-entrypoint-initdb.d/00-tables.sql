@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS openshift (
   id              int NOT NULL auto_increment PRIMARY KEY,
   name            varchar(50) UNIQUE,
   console_url     varchar(300),
-  token           varchar(1000),
+  token           varchar(2000),
   router_pattern  varchar(300),
   project_user    varchar(100),
   ssh_host        varchar(300),
