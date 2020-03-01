@@ -132,9 +132,6 @@ ${podLog.body}`;
 
 const deleteJob = async (client: Api.ApiRoot, namespace: string, jobName: string) => {
   try {
-    // const jobDelete = promisify(
-    //   batchApi.namespaces(openshiftProject).jobs(jobName).delete
-    // );
     const options = {
       body: {
         kind: 'DeleteOptions',
@@ -143,13 +140,6 @@ const deleteJob = async (client: Api.ApiRoot, namespace: string, jobName: string
       }
     };
     await client.apis.batch.v1.namespaces(namespace).jobs(jobName).delete(options)
-    // await jobDelete({
-    //   body: {
-    //     kind: 'DeleteOptions',
-    //     apiVersion: 'v1',
-    //     propagationPolicy: 'Foreground',
-    //   },
-    // });
   } catch (err) {
     logger.error(`Couldn't delete job ${jobName}. Error: ${err}`);
   }
@@ -160,9 +150,7 @@ const getJobInfo = async (client: Api.ApiRoot, namespace: string, jobName: strin
     return client.apis.batch.v1.namespaces(namespace).jobs(jobName).get()
   } catch (err) {
     if (err.code == 404) {
-      logger.error(`Job ${jobName} does not exist, bailing`);
-      failTask(taskId);
-      return;
+      return undefined;
     } else {
       logger.error(err);
       throw new Error();
@@ -215,6 +203,11 @@ const messageConsumer = async msg => {
 
   const jobName = `${namespace}-${task.id}`;
   const jobInfo = await getJobInfo(client, namespace, jobName, taskId);
+  if (!jobInfo) {
+    logger.error(`Job ${jobName} does not exist, bailing`);
+    failTask(taskId);
+    return;
+  }
   const jobStatus = getJobStatus(jobInfo);
 
   await updateLagoonTask(jobInfo, jobStatus, taskId, project, jobName);
