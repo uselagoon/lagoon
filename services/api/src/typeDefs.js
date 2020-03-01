@@ -1019,6 +1019,12 @@ const typeDefs = gql`
     destinationEnvironment: String!
   }
 
+  input DeployActiveStandbyInput {
+    sourceEnvironment: EnvironmentInput!
+    project: ProjectInput!
+    destinationEnvironment: String!
+  }
+
   input GroupInput {
     id: String
     name: String
@@ -1261,6 +1267,7 @@ const typeDefs = gql`
     deployEnvironmentBranch(input: DeployEnvironmentBranchInput!): String
     deployEnvironmentPullrequest(input: DeployEnvironmentPullrequestInput!): String
     deployEnvironmentPromote(input: DeployEnvironmentPromoteInput!): String
+    deployActiveStandby(input: DeployActiveStandbyInput!): String
     addGroup(input: AddGroupInput!): GroupInterface
     updateGroup(input: UpdateGroupInput!): GroupInterface
     deleteGroup(input: DeleteGroupInput!): String

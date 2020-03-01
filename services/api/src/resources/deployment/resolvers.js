@@ -758,6 +758,79 @@ const deployEnvironmentPromote = async (
   }
 };
 
+const deployActiveStandby = async (
+  root,
+  {
+    input: {
+      sourceEnvironment: sourceEnvironmentInput,
+      project: projectInput,
+      destinationEnvironment,
+    },
+  },
+  {
+    sqlClient,
+    hasPermission,
+  },
+) => {
+  const destProject = await projectHelpers(sqlClient).getProjectByProjectInput(
+    projectInput,
+  );
+  const envType = destinationEnvironment === destProject.productionEnvironment ? 'production' : 'development';
+  // @TODO: envType and sourceEnvType must be production ?
+  //const sourceEnvType = sourceEnvironmentInput.name === destProject.productionEnvironment ? 'production' : 'development';
+
+  await hasPermission('environment', `deploy:${envType}`, {
+    project: destProject.id,
+  });
+
+  // @TODO: review from here down to `createMiscTask` to make sure everything does what it should be
+  const sourceEnvironments = await environmentHelpers(
+    sqlClient,
+  ).getEnvironmentsByEnvironmentInput(sourceEnvironmentInput);
+  const activeEnvironments = R.filter(
+    R.propEq('deleted', '0000-00-00 00:00:00'),
+    sourceEnvironments,
+  );
+
+  if (activeEnvironments.length < 1 || activeEnvironments.length > 1) {
+    throw new Error('Unauthorized');
+  }
+
+  const sourceEnvironment = R.prop(0, activeEnvironments);
+
+  await hasPermission('environment', 'view', {
+    project: sourceEnvironment.project,
+  });
+
+  const deployData = {
+    type: 'bluegreen',
+    projectName: destProject.name,
+    destinationBranchName: destinationEnvironment,
+    sourceBranchName: sourceEnvironment.name,
+  };
+
+  const meta = {
+    projectName: deployData.projectName,
+    sourceBranchName: deployData.sourceBranchName,
+    destinationBranchName: deployData.destinationBranchName,
+  };
+
+  try {
+    await createMiscTask({ key: 'openshift:route:migrate', meta });
+    return 'success';
+  } catch (error) {
+    sendToLagoonLogs(
+      'error',
+      '',
+      '',
+      'api:deployActiveStandby',
+      meta,
+      `Failed to create active to standby task, reason: ${error}`,
+    );
+    return `Error: ${error.message}`;
+  }
+};
+
 const deploymentSubscriber = createEnvironmentFilteredSubscriber([
   EVENTS.DEPLOYMENT.ADDED,
   EVENTS.DEPLOYMENT.UPDATED,
@@ -774,6 +847,7 @@ const Resolvers /* : ResolversObj */ = {
   deployEnvironmentBranch,
   deployEnvironmentPullrequest,
   deployEnvironmentPromote,
+  deployActiveStandby,
   deploymentSubscriber,
 };
 

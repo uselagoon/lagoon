@@ -12,12 +12,16 @@ const {
   createTaskMonitor
 } = require('@lagoon/commons/src/tasks');
 const resticRestore = require('./handlers/resticRestore');
+const routeMigration = require('./handlers/routeMigration');
 const openshiftBuildCancel = require('./handlers/openshiftBuildCancel');
 
 initSendToLagoonLogs();
 initSendToLagoonTasks();
 
 const messageConsumer = async msg => {
+  logger.verbose(
+    JSON.parse(msg.content.toString())
+  );
   const { key, data, data: { project } } = JSON.parse(msg.content.toString());
 
   logger.verbose(
@@ -27,6 +31,10 @@ const messageConsumer = async msg => {
   switch(key) {
     case 'restic:backup:restore':
       resticRestore(data);
+      break;
+
+    case 'openshift:route:migrate':
+      routeMigration(data);
       break;
 
     case 'openshift:build:cancel':
