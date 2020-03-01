@@ -168,6 +168,20 @@ services:
       lagoon.type: custom
       lagoon.template: services/kubernetesjobs/.lagoon.app.yml
       lagoon.image: amazeeiolagoon/kubernetesjobs:kubernetes
+  kubernetesjobsmonitor:
+    image: ${IMAGE_REPO:-lagoon}/kubernetesjobsmonitor
+    command: yarn run dev
+    volumes:
+      - ./services/kubernetesjobsmonitor/src:/app/services/kubernetesjobsmonitor/src
+      - ./node-packages:/app/node-packages:delegated
+    environment:
+      # Gateway IP in virtualbox, so pods running in minishift can connect to
+      # docker-for-mac containers.
+      - LAGOON_SSH_HOST=10.0.2.2
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/kubernetesjobsmonitor/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/kubernetesjobsmonitor:kubernetes
   kubernetesremove:
     image: ${IMAGE_REPO:-lagoon}/kubernetesremove
     command: yarn run dev

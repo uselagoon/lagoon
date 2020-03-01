@@ -23,6 +23,7 @@ COPY services/kubernetesbuilddeploy/package.json /app/services/kubernetesbuildde
 COPY services/kubernetesdeployqueue/package.json /app/services/kubernetesdeployqueue/
 COPY services/kubernetesbuilddeploymonitor/package.json /app/services/kubernetesbuilddeploymonitor/
 COPY services/kubernetesjobs/package.json /app/services/kubernetesjobs/
+COPY services/kubernetesjobsmonitor/package.json /app/services/kubernetesjobsmonitor/
 COPY services/kubernetesremove/package.json /app/services/kubernetesremove/
 COPY services/webhook-handler/package.json /app/services/webhook-handler/
 COPY services/webhooks2tasks/package.json /app/services/webhooks2tasks/
