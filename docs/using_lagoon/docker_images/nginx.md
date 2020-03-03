@@ -56,6 +56,6 @@ Environment variables are meant to contain common information for the `Nginx` co
 
 | Environment Variable | Default | Description |
 | :--- | :--- | :--- |
-| `BASIC_AUTH` | \(not set\) | Set to `1` to enable basic authentication and to `off` to disable |
+| `BASIC_AUTH` | `restricted` | This will completely disable basic authentication when set to the string `off` |
 | `BASIC_AUTH_USERNAME` | \(not set\) | Username for basic authentication |
 | `BASIC_AUTH_PASSWORD` | \(not set\) | Password for basic authentication \(unencrypted\) |
