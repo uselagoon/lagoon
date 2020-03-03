@@ -25,26 +25,6 @@ const generateSanitizedNames = (project, environment, projectInfo) => {
   }
 };
 
-const getJobStatus = jobInfo => {
-  if (R.isEmpty(jobInfo.body.status)) {
-    return 'active';
-  }
-
-  if (R.propOr(false, 'active', jobInfo.body.status)) {
-    return 'active';
-  }
-
-  if (R.propOr(false, 'failed', jobInfo.body.status)) {
-    return 'failed';
-  }
-
-  if (R.propOr(false, 'succeeded', jobInfo.body.status)) {
-    return 'succeeded';
-  }
-
-  return 'unknown';
-};
-
 const getUrlTokenFromProjectInfo = (projectOpenShift, name) => {
   try {
     const url = projectOpenShift.openshift.consoleUrl.replace(/\/$/, '');
@@ -67,8 +47,9 @@ const getConfig = (url, token) => ({
 });
 
 const getJobInfo = async (client: Api.ApiRoot, namespace: string, jobName: string) => {
+  let result;
   try {
-    return client.apis.batch.v1.namespaces(namespace).jobs(jobName).get()
+    result = await client.apis.batch.v1.namespaces(namespace).jobs(jobName).get()
   } catch (err) {
     if (err.code == 404) {
       return undefined;
@@ -77,6 +58,7 @@ const getJobInfo = async (client: Api.ApiRoot, namespace: string, jobName: strin
       throw new Error();
     }
   }
+  return result;
 }
 
 const updateLagoonTask = async (jobInfo, jobStatus, taskId, project, jobName) => {
@@ -130,16 +112,13 @@ const kubernetesBuildCancel = async (data: any) => {
 
   // Check that job is still active
   const jobInfo = await getJobInfo(client, namespace, buildName);
-  if (!jobInfo) {
+  if (jobInfo) {
     logger.error(`Job ${buildName} does not exist, bailing`);
-    return;
+    await deleteJob(client, namespace, buildName);
   }
-
-
-  await deleteJob(client, namespace, buildName);
   
   // Update lagoon deployment to CANCELLED. 
-  await updateDeployment(id, {status: 'CANCELLED'})
+  await updateDeployment(parseInt(id, 10), {status: 'CANCELLED'})
 
   logger.verbose(`${namespace}: Cancelling build: ${buildName}`);
 
