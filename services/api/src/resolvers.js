@@ -14,7 +14,7 @@ const {
   deployEnvironmentBranch,
   deployEnvironmentPullrequest,
   deployEnvironmentPromote,
-  deployBlueGreenSwitch,
+  deployActiveStandby,
   deploymentSubscriber,
 } = require('./resources/deployment/resolvers');
 
