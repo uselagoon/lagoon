@@ -1,5 +1,5 @@
 import * as R from 'ramda';
-import { getOpenShiftInfoForProject, updateTask } from '@lagoon/commons/src/api';
+import { getOpenShiftInfoForProject, updateTask, updateDeployment } from '@lagoon/commons/src/api';
 import { logger } from "@lagoon/commons/src/local-logging";
 import { sendToLagoonLogs } from '@lagoon/commons/src/logs';
 
@@ -45,16 +45,6 @@ const getJobStatus = jobInfo => {
   return 'unknown';
 };
 
-const failTask = async taskId => {
-  try {
-    await updateTask(taskId, {
-      status: 'FAILED'
-    });
-  } catch (error) {
-    logger.error(`Could not fail task ${taskId}. Message: ${error}`);
-  }
-};
-
 const getUrlTokenFromProjectInfo = (projectOpenShift, name) => {
   try {
     const url = projectOpenShift.openshift.consoleUrl.replace(/\/$/, '');
@@ -76,7 +66,7 @@ const getConfig = (url, token) => ({
   }
 });
 
-const getJobInfo = async (client: Api.ApiRoot, namespace: string, jobName: string, taskId: string) => {
+const getJobInfo = async (client: Api.ApiRoot, namespace: string, jobName: string) => {
   try {
     return client.apis.batch.v1.namespaces(namespace).jobs(jobName).get()
   } catch (err) {
@@ -130,28 +120,26 @@ const deleteJob = async (client: Api.ApiRoot, namespace: string, jobName: string
 };
 
 const kubernetesBuildCancel = async (data: any) => {
-  const { build: { name: buildName }, project, task, environment } = data;
-  // const { project, task, environment } = JSON.parse(msg.content.toString());
+  const { build: { name: buildName, id }, project, environment } = data;
 
-  const taskId = typeof task.id === 'string' ? parseInt(task.id, 10) : task.id;
   const { project: projectInfo } = await getOpenShiftInfoForProject(project.name);
   const { url, token } = getUrlTokenFromProjectInfo(projectInfo, project.name);
   const config: ClientConfiguration = getConfig(url, token);
   const client = new Client({ config });
-  const { namespace, safeProjectName } = generateSanitizedNames(project, environment, projectInfo);
+  const { namespace } = generateSanitizedNames(project, environment, projectInfo);
 
   // Check that job is still active
-  const jobName = `${namespace}-${task.id}`;
-  const jobInfo = await getJobInfo(client, namespace, jobName, taskId);
+  const jobInfo = await getJobInfo(client, namespace, buildName);
   if (!jobInfo) {
-    logger.error(`Job ${jobName} does not exist, bailing`);
-    failTask(taskId);
+    logger.error(`Job ${buildName} does not exist, bailing`);
     return;
   }
-  // const jobStatus = getJobStatus(jobInfo);
-  
+
+
   await deleteJob(client, namespace, buildName);
-  await updateLagoonTask(jobInfo, 'CANCELLED', taskId, project, jobName);
+  
+  // Update lagoon deployment to CANCELLED. 
+  await updateDeployment(id, {status: 'CANCELLED'})
 
   logger.verbose(`${namespace}: Cancelling build: ${buildName}`);
 
