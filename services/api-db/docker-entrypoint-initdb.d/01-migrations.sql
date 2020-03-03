@@ -924,7 +924,6 @@ CALL create_users_for_orphaned_ssh_keys();
 CALL drop_legacy_customer_ssh_key_junction_table();
 CALL drop_legacy_project_ssh_key_junction_table();
 CALL add_active_systems_task_to_project();
-CALL add_active_systems_misc_to_project();
 CALL add_default_value_to_task_status();
 CALL add_scope_to_env_vars();
 CALL add_deleted_to_environment_backup();
@@ -937,6 +936,7 @@ CALL convert_user_ssh_key_usid_to_char();
 CALL add_private_key_to_project();
 CALL add_index_for_environment_backup_environment();
 CALL add_enum_email_microsoftteams_to_type_in_project_notification();
+CALL add_active_systems_misc_to_project();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;
