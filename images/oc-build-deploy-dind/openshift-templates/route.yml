@@ -37,6 +37,9 @@ parameters:
   - name: ROUTE_HSTS
     description: Setting of HTTP Strict Transport Security policy
     required: true
+  - name: ROUTE_MIGRATE
+    description: Setting to determine if this route should be migratable for active/standby purposes
+    required: true
 objects:
 - apiVersion: v1
   kind: Route
@@ -45,6 +48,7 @@ objects:
       haproxy.router.openshift.io/disable_cookies: 'true'
       haproxy.router.openshift.io/hsts_header: '${ROUTE_HSTS}'
       kubernetes.io/tls-acme: '${ROUTE_TLS_ACME}'
+      dioscuri.amazee.io/migrate: '${ROUTE_MIGRATE}'
     creationTimestamp: null
     labels:
       branch: ${SAFE_BRANCH}
