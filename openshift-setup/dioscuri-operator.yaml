@@ -125,7 +125,7 @@ metadata:
   name: dioscuri-manager-role
 rules:
 - apiGroups:
-  - ""
+  - route.openshift.io
   resources:
   - routes
   verbs:
@@ -143,6 +143,7 @@ rules:
   verbs:
   - get
   - list
+  - watch
 - apiGroups:
   - dioscuri.amazee.io
   resources:
