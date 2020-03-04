@@ -76,7 +76,8 @@ async function routeMigration (data: Object) {
   });
 
 
-  // @TODO: this seems a bit silly, might be a better way to do it. but `.patch` on the routemigrates resource fails with
+  // @TODO: this seems a bit silly, might be a better way to do it. but `.patch` on the routemigrates resource fails with,
+  // research says this is because crd is not supported to be patched
   // `message=the body of the request was in an unknown format - accepted media types include: application/json-patch+json`
   try {
     const cancelBuildPatch = promisify(
