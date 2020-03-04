@@ -1,4 +1,4 @@
-# use for lagoon-deployer to be able to create mariadbconsumer kinds
+# use for lagoon-deployer to be able to create routemigrate kinds
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
