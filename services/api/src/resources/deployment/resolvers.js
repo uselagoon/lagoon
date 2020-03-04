@@ -762,9 +762,7 @@ const deployActiveStandby = async (
   root,
   {
     input: {
-      sourceEnvironment: sourceEnvironmentInput,
       project: projectInput,
-      destinationEnvironment,
     },
   },
   {
@@ -775,56 +773,35 @@ const deployActiveStandby = async (
   const destProject = await projectHelpers(sqlClient).getProjectByProjectInput(
     projectInput,
   );
-  const envType = destinationEnvironment === destProject.productionEnvironment ? 'production' : 'development';
-  // @TODO: envType and sourceEnvType must be production ?
-  //const sourceEnvType = sourceEnvironmentInput.name === destProject.productionEnvironment ? 'production' : 'development';
 
-  await hasPermission('environment', `deploy:${envType}`, {
+  // active/standby really only should be between production environments
+  await hasPermission('environment', `deploy:production`, {
     project: destProject.id,
   });
 
-  // @TODO: review from here down to `createMiscTask` to make sure everything does what it should be
-  const sourceEnvironments = await environmentHelpers(
-    sqlClient,
-  ).getEnvironmentsByEnvironmentInput(sourceEnvironmentInput);
-  const activeEnvironments = R.filter(
-    R.propEq('deleted', '0000-00-00 00:00:00'),
-    sourceEnvironments,
-  );
-
-  if (activeEnvironments.length < 1 || activeEnvironments.length > 1) {
-    throw new Error('Unauthorized');
-  }
-
-  const sourceEnvironment = R.prop(0, activeEnvironments);
-
+  // @TODO: if we have permission to deploy production, is this required?
   await hasPermission('environment', 'view', {
-    project: sourceEnvironment.project,
+    project: destProject,
   });
 
-  const deployData = {
-    type: 'bluegreen',
+  // construct the data for the misc task
+  const data = {
     projectName: destProject.name,
-    destinationBranchName: destinationEnvironment,
-    sourceBranchName: sourceEnvironment.name,
+    activeProductionEnvironment: destProject.activeProductionEnvironment,
+    standbyProductionEnvironment: destProject.standbyProductionEnvironment,
   };
 
-  const meta = {
-    projectName: deployData.projectName,
-    sourceBranchName: deployData.sourceBranchName,
-    destinationBranchName: deployData.destinationBranchName,
-  };
-
+  // try it now
   try {
-    await createMiscTask({ key: 'openshift:route:migrate', meta });
-    return 'success';
+    await createMiscTask({ key: 'openshift:route:migrate', data });
+    return 'active standby switch triggered';
   } catch (error) {
     sendToLagoonLogs(
       'error',
       '',
       '',
       'api:deployActiveStandby',
-      meta,
+      data,
       `Failed to create active to standby task, reason: ${error}`,
     );
     return `Error: ${error.message}`;

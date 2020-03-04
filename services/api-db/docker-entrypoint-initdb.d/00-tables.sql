@@ -81,6 +81,8 @@ CREATE TABLE IF NOT EXISTS project (
   branches                         varchar(300),
   pullrequests                     varchar(300),
   production_environment           varchar(100),
+  active_production_environment    varchar(100),
+  standby_production_environment   varchar(100),
   auto_idle                        int(1) NOT NULL default 1,
   storage_calc                     int(1) NOT NULL default 1,
   openshift                        int REFERENCES openshift (id),

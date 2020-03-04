@@ -290,6 +290,16 @@ const typeDefs = gql`
     """
     productionEnvironment: String
     """
+    Which environment(the name) should be marked as the production active environment.
+    *Important:* This is used to determine which environment should be marked as the active production environment
+    """
+    activeProductionEnvironment: String
+    """
+    Which environment(the name) should be marked as the production standby environment.
+    *Important:* This is used to determine which environment should be marked as the standby production environment
+    """
+    standbyProductionEnvironment: String
+    """
     Should this project have auto idling enabled (\`1\` or \`0\`)
     """
     autoIdle: Int
@@ -637,6 +647,8 @@ const typeDefs = gql`
     branches: String
     pullrequests: String
     productionEnvironment: String!
+    activeProductionEnvironment: String
+    standbyProductionEnvironment: String
     availability: ProjectAvailability
     autoIdle: Int
     storageCalc: Int
@@ -867,6 +879,8 @@ const typeDefs = gql`
     activeSystemsTask: String
     branches: String
     productionEnvironment: String
+    activeProductionEnvironment: String
+    standbyProductionEnvironment: String
     autoIdle: Int
     storageCalc: Int
     pullrequests: String
@@ -1020,9 +1034,7 @@ const typeDefs = gql`
   }
 
   input DeployActiveStandbyInput {
-    sourceEnvironment: EnvironmentInput!
     project: ProjectInput!
-    destinationEnvironment: String!
   }
 
   input GroupInput {

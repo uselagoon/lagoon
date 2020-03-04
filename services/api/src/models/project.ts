@@ -12,6 +12,8 @@ export interface Project {
   branches: String; // varchar(300) COLLATE utf8_bin DEFAULT NULL,
   pullrequests: String; // varchar(300) COLLATE utf8_bin DEFAULT NULL,
   production_environment: String; // varchar(100) COLLATE utf8_bin DEFAULT NULL,
+  active_production_environment: String; // varchar(100) COLLATE utf8_bin DEFAULT NULL,
+  standby_production_environment: String; // varchar(100) COLLATE utf8_bin DEFAULT NULL,
   openshift: Number; // int(11) DEFAULT NULL,
   created: String; // timestamp NOT NULL DEFAULT current_timestamp(),
   active_systems_promote: String; // varchar(300) COLLATE utf8_bin DEFAULT NULL,

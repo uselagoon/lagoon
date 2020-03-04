@@ -67,6 +67,8 @@ const messageConsumer = async msg => {
     var openshiftProjectUser = projectOpenShift.openshift.projectUser || ""
     var deployPrivateKey = projectOpenShift.privateKey
     var gitUrl = projectOpenShift.gitUrl
+    var projectActiveEnvironment = projectOpenShift.activeProductionEnvironment
+    var projectStandbyEnvironment = projectOpenShift.standbyProductionEnvironment
     var subfolder = projectOpenShift.subfolder || ""
     var routerPattern = projectOpenShift.openshift.routerPattern ? projectOpenShift.openshift.routerPattern.replace('${branch}',safeBranchName).replace('${project}', safeProjectName) : ""
     var prHeadBranchName = headBranchName || ""
@@ -215,6 +217,14 @@ const messageConsumer = async msg => {
                       {
                           "name": "ENVIRONMENT_TYPE",
                           "value": environmentType
+                      },
+                      {
+                          "name": "ACTIVE_ENVIRONMENT",
+                          "value": projectActiveEnvironment
+                      },
+                      {
+                          "name": "STANDBY_ENVIRONMENT",
+                          "value": projectStandbyEnvironment
                       },
                       {
                           "name": "OPENSHIFT_NAME",
