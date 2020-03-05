@@ -40,15 +40,19 @@ spec:
           description: RouteMigrateSpec defines the desired state of RouteMigrate
           properties:
             destinationNamespace:
-              type: string
-            migrate:
               description: Migrate is an example field of RouteMigrate. Edit RouteMigrate_types.go
                 to remove/update
-              type: boolean
+              type: string
             routes:
-              items:
-                type: string
-              type: array
+              properties:
+                activeRoutes:
+                  type: string
+                standbyRoutes:
+                  type: string
+              required:
+              - activeRoutes
+              - standbyRoutes
+              type: object
           type: object
         status:
           description: RouteMigrateStatus defines the observed state of RouteMigrate
@@ -61,12 +65,15 @@ spec:
                 description: RouteMigrateConditions defines the observed conditions
                   of the migrations
                 properties:
+                  condition:
+                    type: string
                   status:
                     description: LastTransitionTime time.Time `json:"lastTransitionTime"`
                     type: string
                   type:
                     type: string
                 required:
+                - condition
                 - status
                 - type
                 type: object
@@ -125,24 +132,6 @@ metadata:
   name: dioscuri-manager-role
 rules:
 - apiGroups:
-  - route.openshift.io
-  resources:
-  - routes/custom-host
-  verbs:
-  - create
-- apiGroups:
-  - route.openshift.io
-  resources:
-  - routes
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
   - ""
   resources:
   - services
@@ -170,6 +159,24 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - route.openshift.io
+  resources:
+  - routes
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - route.openshift.io
+  resources:
+  - routes/custom-host
+  verbs:
+  - create
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -277,7 +284,7 @@ spec:
         - --enable-leader-election
         command:
         - /manager
-        image: amazeeio/dioscuri:v0.1.0
+        image: amazeeio/dioscuri:v0.1.1
         name: manager
         resources:
           limits:
