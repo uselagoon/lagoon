@@ -295,10 +295,18 @@ const typeDefs = gql`
     """
     activeProductionEnvironment: String
     """
+    Routes that are attached to the active environment
+    """
+    activeRoutes: String
+    """
     Which environment(the name) should be marked as the production standby environment.
     *Important:* This is used to determine which environment should be marked as the standby production environment
     """
     standbyProductionEnvironment: String
+    """
+    Routes that are attached to the standby environment
+    """
+    standbyRoutes: String
     """
     Should this project have auto idling enabled (\`1\` or \`0\`)
     """
@@ -880,7 +888,9 @@ const typeDefs = gql`
     branches: String
     productionEnvironment: String
     activeProductionEnvironment: String
+    activeRoutes: String
     standbyProductionEnvironment: String
+    standbyRoutes: String
     autoIdle: Int
     storageCalc: Int
     pullrequests: String

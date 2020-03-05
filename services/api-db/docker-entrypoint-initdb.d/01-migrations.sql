@@ -23,7 +23,9 @@ CREATE OR REPLACE PROCEDURE
     IN pullrequests                    varchar(300),
     IN production_environment          varchar(100),
     IN active_production_environment   varchar(100),
+    IN active_routes                   text,
     IN standby_production_environment  varchar(100),
+    IN standby_routes                  text,
     IN auto_idle                       int(1),
     IN storage_calc                    int(1),
     IN development_environments_limit  int
@@ -62,7 +64,9 @@ CREATE OR REPLACE PROCEDURE
         branches,
         production_environment,
         active_production_environment,
+        active_routes,
         standby_production_environment,
+        standby_routes,
         auto_idle,
         storage_calc,
         pullrequests,
@@ -84,7 +88,9 @@ CREATE OR REPLACE PROCEDURE
         branches,
         production_environment,
         active_production_environment,
+        active_routes,
         standby_production_environment,
+        standby_routes,
         auto_idle,
         storage_calc,
         pullrequests,
@@ -169,6 +175,24 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
+  add_active_routes_to_project()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'active_routes'
+    ) THEN
+      ALTER TABLE `project`
+      ADD `active_routes` varchar(100);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
   add_standby_production_environment_to_project()
 
   BEGIN
@@ -182,6 +206,24 @@ CREATE OR REPLACE PROCEDURE
     ) THEN
       ALTER TABLE `project`
       ADD `standby_production_environment` varchar(100);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_standby_routes_to_project()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'standby_routes'
+    ) THEN
+      ALTER TABLE `project`
+      ADD `standby_routes` varchar(100);
     END IF;
   END;
 $$
@@ -913,6 +955,8 @@ CALL add_availability_to_project();
 CALL add_production_environment_to_project();
 CALL add_standby_production_environment_to_project();
 CALL add_active_production_environment_to_project();
+CALL add_standby_routes_to_project();
+CALL add_active_routes_to_project();
 CALL add_ssh_to_openshift();
 CALL convert_project_pullrequest_to_varchar();
 CALL add_active_systems_promote_to_project();
