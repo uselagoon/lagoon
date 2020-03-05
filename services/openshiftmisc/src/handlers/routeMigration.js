@@ -59,6 +59,7 @@ async function routeMigration (data: Object) {
       },
       spec: {
         destinationNamespace: destinationOpenshiftProject,
+        activeEnvironment: safeActiveProductionEnvironment,
       },
     };
 
@@ -80,13 +81,13 @@ async function routeMigration (data: Object) {
   // research says this is because crd is not supported to be patched
   // `message=the body of the request was in an unknown format - accepted media types include: application/json-patch+json`
   try {
-    const cancelBuildPatch = promisify(
+    const migrateRoutesDelete = promisify(
       dioscuri.ns(openshiftProject).routemigrates(openshiftProject).delete
     );
-    await cancelBuildPatch({
+    await migrateRoutesDelete({
       body: {}
     });
-    await sleep(2000); // sleep a bit after deleting
+    await new Promise(resolve => setTimeout(resolve, 10000)); // sleep a bit after deleting
     try {
       const migrateRoutesPost = promisify(
           dioscuri.ns(openshiftProject).routemigrates.post
@@ -100,6 +101,7 @@ async function routeMigration (data: Object) {
         throw new Error();
     }
   } catch (err) {
+    await new Promise(resolve => setTimeout(resolve, 1000)); // sleep a bit before creating
     try {
       const migrateRoutesPost = promisify(
           dioscuri.ns(openshiftProject).routemigrates.post
@@ -114,17 +116,52 @@ async function routeMigration (data: Object) {
     }
   }
 
-  // swap the active/standby in lagoon by updating the project
-  try {
-    const response = await updateProject(projectOpenShift.id, {
-      activeProductionEnvironment: projectOpenShift.standbyProductionEnvironment,
-      standbyProductionEnvironment: projectOpenShift.activeProductionEnvironment,
-    });
-  } catch (err) {
-      logger.error(err);
-      throw new Error();
+  // check the route migrate resource for the status conditions, only update lagoon on a completed task
+  var whileCount = 0;
+  var breakLoop = false;
+  while (whileCount < 10 && !breakLoop) {
+    try {
+      const migrateRoutesGet = promisify(
+          dioscuri.ns(openshiftProject).routemigrates(openshiftProject).get
+      );
+      routeMigrateStatus = await migrateRoutesGet();
+      try {
+        for (i = 0; i < routeMigrateStatus.status.conditions.length; i++) {
+          logger.verbose(`${openshiftProject}: active/standby switch status: ${routeMigrateStatus.status.conditions[i].type}`);
+          switch (routeMigrateStatus.status.conditions[i].type ) {
+            case 'started':
+              break;
+            case 'failed':
+              // @TODO do something here maybe, or possibly a new api query on the status of the migration?
+              return breakLoop = true;
+            case 'completed':
+              // swap the active/standby in lagoon by updating the project
+              try {
+                const response = await updateProject(projectOpenShift.id, {
+                  activeProductionEnvironment: safeStandbyProductionEnvironment,
+                  standbyProductionEnvironment: safeActiveProductionEnvironment,
+                  activeRoutes: routeMigrateStatus.spec.routes.activeRoutes,
+                  standbyRoutes: routeMigrateStatus.spec.routes.standbyRoutes,
+                });
+              } catch (err) {
+                  logger.error(err);
+                  throw new Error();
+              }
+              logger.verbose(`${openshiftProject}: active/standby switch updated in lagoon`);
+              return breakLoop = true;
+          }
+        }
+      } catch (err) {
+        logger.verbose(`${openshiftProject}: active/standby switch waiting still`);
+      }
+      await new Promise(resolve => setTimeout(resolve, 5000)); // wait for a bit between getting the resource
+    } catch (err) {
+        logger.error(err);
+        throw new Error();
+    }
   }
-  logger.verbose(`${openshiftProject}: Active/Standby switch updated in lagoon`);
+
+
 
   sendToLagoonLogs(
     'start',
