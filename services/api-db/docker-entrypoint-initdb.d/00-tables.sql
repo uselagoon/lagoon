@@ -160,8 +160,6 @@ CREATE TABLE IF NOT EXISTS env_vars (
   UNIQUE KEY `name_environment` (`name`,`environment`)
 );
 
-ALTER TABLE env_vars MODIFY COLUMN scope ENUM('global', 'build', 'runtime', 'container_registry', 'internal_container_registry') NOT NULL DEFAULT 'global';
-
 CREATE TABLE IF NOT EXISTS environment_service (
   id          int NOT NULL auto_increment PRIMARY KEY,
   environment int NOT NULL REFERENCES environmnet (id),

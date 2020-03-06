@@ -663,7 +663,7 @@ CREATE OR REPLACE PROCEDURE
         AND column_name = 'scope'
     ) THEN
       ALTER TABLE `env_vars`
-      ADD `scope` ENUM('global', 'build', 'runtime', 'container_registry', 'internal_container_registry') NOT NULL DEFAULT 'global';
+      ADD `scope` ENUM('global', 'build', 'runtime') NOT NULL DEFAULT 'global';
       UPDATE env_vars
       SET scope = 'global';
     END IF;
@@ -865,6 +865,45 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  add_container_registry_scope_to_env_vars()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'env_vars'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'scope'
+        AND column_type like '%''container_registry%'
+    ) THEN
+      ALTER TABLE `env_vars`
+      MODIFY scope ENUM('global', 'build', 'runtime', 'container_registry') NOT NULL DEFAULT 'global';
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_internal_container_registry_scope_to_env_vars()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'env_vars'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'scope'
+        AND column_type like '%''internal_container_registry%'
+    ) THEN
+      ALTER TABLE `env_vars`
+      MODIFY scope ENUM('global', 'build', 'runtime', 'container_registry', 'internal_container_registry') NOT NULL DEFAULT 'global';
+    END IF;
+  END;
+$$
+
+
 DELIMITER ;
 
 CALL add_availability_to_project();
@@ -904,6 +943,8 @@ CALL convert_user_ssh_key_usid_to_char();
 CALL add_private_key_to_project();
 CALL add_index_for_environment_backup_environment();
 CALL add_enum_email_microsoftteams_to_type_in_project_notification();
+CALL add_container_registry_scope_to_env_vars();
+CALL add_internal_container_registry_scope_to_env_vars();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;
