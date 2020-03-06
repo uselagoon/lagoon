@@ -57,7 +57,16 @@ const messageConsumer = async msg => {
       safeBranchName = safeBranchName.concat('-' + hash)
     }
 
-    var environmentType = branchName === projectOpenShift.productionEnvironment ? 'production' : 'development';
+    // if we get this far, assume we already passed the point of if the environment can be deployed,
+    // so default to development, and change to production based on the same conditions as in commons/src/tasks.js
+    var environmentType = 'development'
+    if (
+      environments.project.productionEnvironment === branchName
+      || branchName === projectOpenShift.activeProductionEnvironment
+      || branchName === projectOpenShift.standbyProductionEnvironment
+    ) {
+      environmentType = 'production'
+    }
     var gitSha = sha
     var projectId = projectOpenShift.id
     var openshiftConsole = projectOpenShift.openshift.consoleUrl.replace(/\/$/, "");

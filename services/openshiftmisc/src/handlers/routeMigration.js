@@ -77,6 +77,26 @@ async function routeMigration (data: Object) {
   });
 
 
+  // check that the namespaces exist for source and destination before we try and move any routes
+  try {
+    const projectsGet = Promise.promisify(openshift.projects(openshiftProject).get, { context: openshift.projects(openshiftProject) })
+    projectStatus = await projectsGet()
+    logger.info(`${openshiftProject}: Project ${openshiftProject} already exists, continuing`)
+  } catch (err) {
+    // throw error if the namespace doesn't exist
+    logger.error(err)
+    throw new Error
+  }
+  try {
+    const projectsGet = Promise.promisify(openshift.projects(destinationOpenshiftProject).get, { context: openshift.projects(destinationOpenshiftProject) })
+    projectStatus = await projectsGet()
+    logger.info(`${openshiftProject}: Project ${destinationOpenshiftProject} already exists, continuing`)
+  } catch (err) {
+    // throw error if the namespace doesn't exist
+    logger.error(err)
+    throw new Error
+  }
+
   // @TODO: this seems a bit silly, might be a better way to do it. but `.patch` on the routemigrates resource fails with,
   // research says this is because crd is not supported to be patched
   // `message=the body of the request was in an unknown format - accepted media types include: application/json-patch+json`
