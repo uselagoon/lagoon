@@ -61,30 +61,6 @@ const getJobInfo = async (client: Api.ApiRoot, namespace: string, jobName: strin
   return result;
 }
 
-const updateLagoonTask = async (jobInfo, jobStatus, taskId, project, jobName) => {
-  // Update lagoon task
-  try {
-    const convertDateFormat = R.init;
-    const dateOrNull = R.unless(R.isNil, convertDateFormat);
-    let completedDate = dateOrNull(jobInfo.body.status.completionTime);
-
-    if (jobStatus === 'failed') {
-      completedDate = dateOrNull(jobInfo.body.status.conditions[0].lastTransitionTime);
-    }
-
-    await updateTask(taskId, {
-      status: jobStatus.toUpperCase(),
-      created: convertDateFormat(jobInfo.body.metadata.creationTimestamp),
-      started: dateOrNull(jobInfo.body.status.startTime),
-      completed: completedDate
-    });
-  } catch (error) {
-    logger.error(
-      `Could not update task ${project.name} ${jobName}. Message: ${error}`
-    );
-  }
-}
-
 const deleteJob = async (client: Api.ApiRoot, namespace: string, jobName: string) => {
   try {
     const options = {
@@ -111,14 +87,15 @@ const kubernetesBuildCancel = async (data: any) => {
   const { namespace } = generateSanitizedNames(project, environment, projectInfo);
 
   // Check that job is still active
+  // Checking that the job exists at all is the same as checking if it's active
   const jobInfo = await getJobInfo(client, namespace, buildName);
   if (jobInfo) {
     logger.error(`Job ${buildName} does not exist, bailing`);
     await deleteJob(client, namespace, buildName);
+    // Update lagoon deployment to CANCELLED. 
+    await updateDeployment(parseInt(id, 10), {status: 'CANCELLED'})
   }
   
-  // Update lagoon deployment to CANCELLED. 
-  await updateDeployment(parseInt(id, 10), {status: 'CANCELLED'})
 
   logger.verbose(`${namespace}: Cancelling build: ${buildName}`);
 
