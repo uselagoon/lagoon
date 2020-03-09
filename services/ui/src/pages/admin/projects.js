@@ -98,8 +98,7 @@ export const PageProjects = ({ router }) => {
                             )}
                             {projects.map((project, index) => {
                               
-                              const billingGroup = project.groups.find(group => group.type === "billing");
-                              console.log(billingGroup);
+                              // const billingGroup = project.groups.find(group => group.type === "billing");
 
                               return(
                                 <Box className={boxClassName} key={`${project.name}-${index}`} >
@@ -107,7 +106,7 @@ export const PageProjects = ({ router }) => {
                                     <h2> {project.name} </h2>
                                     <div> Created: {project.created} </div>
                                     <div> Availability: {project.availability} </div>
-                                    { billingGroup ? <div> Billing Group: {billingGroup.name} </div> : null }
+                                    {/* { billingGroup ? <div> Billing Group: {billingGroup.name} </div> : null } */}
                                     <div className="environments">
                                       { project.environments.length > 0 ? <h5>Environments</h5> : null }
                                       { project.environments.map((environment, index) => (
