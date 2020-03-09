@@ -21,12 +21,16 @@ import Highlighter from 'react-highlight-words';
 
 import Box from 'components/Box';
 import Breadcrumbs from 'components/Breadcrumbs';
+
+import renderWhile from '../../lib/renderWhile';
+
 import withQueryLoading from 'lib/withQueryLoading';
 import withQueryError from 'lib/withQueryError';
 
 import { AuthContext, adminAuthChecker } from '../../lib/Authenticator';
 
 import { bp, color } from 'lib/variables';
+import { LoadingPageNoHeader } from '../_loading';
 import Button from 'components/Button';
 
 const { className: boxClassName, styles: boxStyles } = css.resolve`
@@ -74,8 +78,14 @@ export const PageProjects = ({ router }) => {
                       )}
                     </DatePicker>
                     <Query query={AllProjectsAfterDateQuery} variables={{ createdAfter: `${moment(date).format('YYYY-MM-DD').toString()}` }} >
-                      {R.compose(withQueryLoading, withQueryError)(
-                        ({ data: { allProjects: projects} }) => {
+
+                      {R.compose(renderWhile(
+                          ({ loading }) => loading,
+                          LoadingPageNoHeader
+                        ), withQueryError)(
+                        ({data: { allProjects: projects}} ) => {
+
+            
                           return(
                             <div className="projects">
 
@@ -86,22 +96,29 @@ export const PageProjects = ({ router }) => {
                                 </div>
                               </Box>
                             )}
-                            {projects.map((project, index) => (
+                            {projects.map((project, index) => {
                               
+                              const billingGroup = project.groups.find(group => group.type === "billing");
+                              console.log(billingGroup);
+
+                              return(
                                 <Box className={boxClassName} key={`${project.name}-${index}`} >
                                   <div className="project">
-                                    <h4> {project.name} </h4>
+                                    <h2> {project.name} </h2>
                                     <div> Created: {project.created} </div>
                                     <div> Availability: {project.availability} </div>
-                                    <div className="route">
-                                      {project.environments.map((environment, index) => (
+                                    { billingGroup ? <div> Billing Group: {billingGroup.name} </div> : null }
+                                    <div className="environments">
+                                      { project.environments.length > 0 ? <h5>Environments</h5> : null }
+                                      { project.environments.map((environment, index) => (
                                         <div key={`${environment.name}-${index}`}>{environment.name}</div>
                                       ))}
                                     </div>
                                   </div>
                                 </Box>
                               
-                            ))}
+                            )}
+                            )}
 
 
 
@@ -124,6 +141,10 @@ export const PageProjects = ({ router }) => {
 
       .projects {
         padding: 20px 0 20px 0;
+      }
+
+      .environments {
+        padding: 20px 0 0 0;
       }
 
       .btnWrapper {

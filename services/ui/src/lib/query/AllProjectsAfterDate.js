@@ -7,6 +7,11 @@ export default gql`
       name
       created
       availability
+      groups {
+        __typename
+        name
+        type
+      }
       environments(includeDeleted: true) {
         id
         name
