@@ -91,6 +91,8 @@ export const PageProjects = ({ router }) => {
                                 <Box className={boxClassName} key={`${project.name}-${index}`} >
                                   <div className="project">
                                     <h4> {project.name} </h4>
+                                    <div> Created: {project.created} </div>
+                                    <div> Availability: {project.availability} </div>
                                     <div className="route">
                                       {project.environments.map((environment, index) => (
                                         <div key={`${environment.name}-${index}`}>{environment.name}</div>
