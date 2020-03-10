@@ -58,7 +58,7 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
       }
     }
 
-    console.log(harborProjectID)
+    logger.debug(`Harbor project id for ${lagoonProjectName}: ${harborProjectId}`)
     // Create robot account for new harbor project
     try {
       const res = await harborClient.post(`projects/${harborProjectID}/robots`, {
@@ -73,7 +73,6 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
         }
       })
       var harborTokenInfo = res.body
-      console.log(harborTokenInfo)
       logger.debug(`Robot was created for Harbor project ${lagoonProjectName} !`)
     } catch (err) {
       // 409 means project already exists

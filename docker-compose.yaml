@@ -122,8 +122,7 @@ services:
     command: yarn run dev
     environment:
       - CI=${CI:-true}
-      #- REGISTRY=harbor-nginx:8080
-      - REGISTRY=172.17.0.1:8084
+      - REGISTRY=172.17.0.1:8084 # Docker network bridge and forwarded port for harbor-nginx
     volumes:
       - ./services/kubernetesbuilddeploy/src:/app/services/kubernetesbuilddeploy/src
       - ./node-packages:/app/node-packages:delegated
@@ -537,9 +536,6 @@ services:
   harborclair:
     image: ${IMAGE_REPO:-lagoon}/harborclair
     hostname: harborclair
-    #ports:
-    #  - '6060:6060'
-    #  - '6061:6061'
     volumes:
       - ${PWD}/services/harborclair/ci-config.yaml:/etc/clair/config.yaml
     depends_on:

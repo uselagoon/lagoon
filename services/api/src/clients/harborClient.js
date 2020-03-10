@@ -12,7 +12,7 @@ const lagoonHarborRoute = R.compose(
 )(process.env);
 
 const harborClient = got.extend({
-  baseUrl: `${lagoonHarborRoute || 'http://172.17.0.1:8084'}/api/`,
+  baseUrl: `${lagoonHarborRoute}/api/`,
   json: true,
   auth: `admin:${HARBOR_ADMIN_PASSWORD || 'admin'}`,
 });

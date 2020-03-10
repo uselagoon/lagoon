@@ -37,8 +37,6 @@ http:
 auth:
   token:
     issuer: harbor-token-issuer
-    #realm: "$HARBOR_NGINX_ENDPOINT/service/token"
-    #realm: "http://harbor-nginx:8080/service/token"
     realm: "http://172.17.0.1:8084/service/token"
     rootcertbundle: /etc/registry/root.crt
     service: harbor-registry
