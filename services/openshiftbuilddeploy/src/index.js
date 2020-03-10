@@ -61,7 +61,7 @@ const messageConsumer = async msg => {
     // so default to development, and change to production based on the same conditions as in commons/src/tasks.js
     var environmentType = 'development'
     if (
-      environments.project.productionEnvironment === branchName
+      projectOpenShift.productionEnvironment === branchName
       || projectOpenShift.standbyProductionEnvironment === branchName
     ) {
       environmentType = 'production'

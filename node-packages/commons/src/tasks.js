@@ -223,7 +223,7 @@ async function createDeployTask(deployData: Object) {
       // we may not even need the active/standby and just go to having `production` and `standbyProduction` only
       if (
         environments.project.productionEnvironment === branchName
-        || allEnvironments.project.standbyProductionEnvironment === branchName
+        || environments.project.standbyProductionEnvironment === branchName
       ) {
         // get a list of production environments
         console.log(environments.project);
