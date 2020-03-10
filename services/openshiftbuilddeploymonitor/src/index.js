@@ -247,7 +247,7 @@ const messageConsumer = async msg => {
 
       //update the active/standby routes in the api
       try {
-        if (project.activeProductionEnvironment == environment.name) {
+        if (project.productionEnvironment == environment.name) {
           const updateProjectResult = await updateProject(project.id, {
             activeRoutes: configMap.data.LAGOON_ACTIVE_ROUTES,
           });

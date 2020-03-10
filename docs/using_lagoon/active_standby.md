@@ -5,8 +5,7 @@ Lagoon supports Active/Standby (also known as blue/green) deployments.
 ## Configuration
 To change an existing project to support active/standby you'll need to configure some project settings in the Lagoon API
 
-`productionEnviromment` needs to be modified to regex that covers the branches that should be production environments. @TODO
-`activeProductionEnvironment` should be set to the branch name of the current environment that is prodcution
+`productionEnviromment` should be set to the branch name of the current environment that is active
 `standbyProductionEnvironment` should be set to the branch name of the current environment that is in standby
 
 ```
@@ -14,12 +13,10 @@ mutation updateProject {
   updateProject(input:{
     id:1234
     patch:{
-      productionEnvironment:"(production-brancha|production-branchb)"
-      activeProductionEnvironment:"production-brancha"
+      productionEnvironment:"production-brancha"
       standbyProductionEnvironment:"production-branchb"
     }
   }){
-    activeProductionEnvironment
     standbyProductionEnvironment
     name
     productionEnvironment

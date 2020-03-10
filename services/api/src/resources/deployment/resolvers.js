@@ -787,7 +787,7 @@ const deployActiveStandby = async (
   // construct the data for the misc task
   const data = {
     projectName: destProject.name,
-    activeProductionEnvironment: destProject.activeProductionEnvironment,
+    productionEnvironment: destProject.productionEnvironment,
     standbyProductionEnvironment: destProject.standbyProductionEnvironment,
   };
 

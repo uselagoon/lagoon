@@ -290,14 +290,9 @@ const typeDefs = gql`
     """
     productionEnvironment: String
     """
-    Which environment(the name) should be marked as the production active environment.
-    *Important:* This is used to determine which environment should be marked as the active production environment
-    """
-    activeProductionEnvironment: String
-    """
     Routes that are attached to the active environment
     """
-    activeRoutes: String
+    productionRoutes: String
     """
     Which environment(the name) should be marked as the production standby environment.
     *Important:* This is used to determine which environment should be marked as the standby production environment
@@ -655,7 +650,6 @@ const typeDefs = gql`
     branches: String
     pullrequests: String
     productionEnvironment: String!
-    activeProductionEnvironment: String
     standbyProductionEnvironment: String
     availability: ProjectAvailability
     autoIdle: Int
@@ -887,8 +881,7 @@ const typeDefs = gql`
     activeSystemsTask: String
     branches: String
     productionEnvironment: String
-    activeProductionEnvironment: String
-    activeRoutes: String
+    productionRoutes: String
     standbyProductionEnvironment: String
     standbyRoutes: String
     autoIdle: Int

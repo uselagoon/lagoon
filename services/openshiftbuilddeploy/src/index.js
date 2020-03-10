@@ -62,8 +62,7 @@ const messageConsumer = async msg => {
     var environmentType = 'development'
     if (
       environments.project.productionEnvironment === branchName
-      || branchName === projectOpenShift.activeProductionEnvironment
-      || branchName === projectOpenShift.standbyProductionEnvironment
+      || projectOpenShift.standbyProductionEnvironment === branchName
     ) {
       environmentType = 'production'
     }
@@ -76,7 +75,7 @@ const messageConsumer = async msg => {
     var openshiftProjectUser = projectOpenShift.openshift.projectUser || ""
     var deployPrivateKey = projectOpenShift.privateKey
     var gitUrl = projectOpenShift.gitUrl
-    var projectActiveEnvironment = projectOpenShift.activeProductionEnvironment
+    var projectProductionEnvironment = projectOpenShift.productionEnvironment
     var projectStandbyEnvironment = projectOpenShift.standbyProductionEnvironment
     var subfolder = projectOpenShift.subfolder || ""
     var routerPattern = projectOpenShift.openshift.routerPattern ? projectOpenShift.openshift.routerPattern.replace('${branch}',safeBranchName).replace('${project}', safeProjectName) : ""
@@ -229,7 +228,7 @@ const messageConsumer = async msg => {
                       },
                       {
                           "name": "ACTIVE_ENVIRONMENT",
-                          "value": projectActiveEnvironment
+                          "value": projectProductionEnvironment
                       },
                       {
                           "name": "STANDBY_ENVIRONMENT",

@@ -223,8 +223,7 @@ async function createDeployTask(deployData: Object) {
       // we may not even need the active/standby and just go to having `production` and `standbyProduction` only
       if (
         environments.project.productionEnvironment === branchName
-        || branchName === allEnvironments.project.activeProductionEnvironment
-        || branchName === allEnvironments.project.standbyProductionEnvironment
+        || allEnvironments.project.standbyProductionEnvironment === branchName
       ) {
         // get a list of production environments
         console.log(environments.project);
@@ -428,7 +427,6 @@ async function createRemoveTask(removeData: Object) {
   // ensure the flag is set to allow this.
   if (
     branch === allEnvironments.project.productionEnvironment
-    || branch === allEnvironments.project.activeProductionEnvironment
     || branch === allEnvironments.project.standbyProductionEnvironment
   ) {
     if (forceDeleteProductionEnvironment !== true) {

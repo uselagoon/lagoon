@@ -12,7 +12,7 @@ const {
 const { RouteMigration } = require('@lagoon/commons/src/openshiftApi');
 
 async function routeMigration (data: Object) {
-  const { projectName, activeProductionEnvironment, standbyProductionEnvironment } = data;
+  const { projectName, productionEnvironment, standbyProductionEnvironment } = data;
 
   const result = await getOpenShiftInfoForProject(projectName);
   const projectOpenShift = result.project;
@@ -21,7 +21,7 @@ async function routeMigration (data: Object) {
     string.toLocaleLowerCase().replace(/[^0-9a-z-]/g, '-');
 
   try {
-    var safeActiveProductionEnvironment = ocsafety(activeProductionEnvironment);
+    var safeActiveProductionEnvironment = ocsafety(productionEnvironment);
     var safeStandbyProductionEnvironment = ocsafety(standbyProductionEnvironment);
     var safeProjectName = ocsafety(projectName);
     var openshiftConsole = projectOpenShift.openshift.consoleUrl.replace(
@@ -158,7 +158,7 @@ async function routeMigration (data: Object) {
               // swap the active/standby in lagoon by updating the project
               try {
                 const response = await updateProject(projectOpenShift.id, {
-                  activeProductionEnvironment: safeStandbyProductionEnvironment,
+                  productionEnvironment: safeStandbyProductionEnvironment,
                   standbyProductionEnvironment: safeActiveProductionEnvironment,
                   activeRoutes: routeMigrateStatus.spec.routes.activeRoutes,
                   standbyRoutes: routeMigrateStatus.spec.routes.standbyRoutes,

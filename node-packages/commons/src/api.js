@@ -910,8 +910,7 @@ const getOpenShiftInfoForProject = (project: string): Promise<Object> =>
         subfolder
         openshiftProjectPattern
         productionEnvironment
-        activeProductionEnvironment
-        activeRoutes
+        productionRoutes
         standbyProductionEnvironment
         standbyRoutes
         envVariables {
