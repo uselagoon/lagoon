@@ -120,7 +120,6 @@ const messageConsumer = async msg => {
   } catch (err) {
     if (err.code == 404) {
       logger.error(`Job ${jobName} does not exist, bailing`);
-      failTask(taskId);
       return;
     } else {
       logger.error(err);
@@ -185,7 +184,7 @@ ${podLog}`;
       status: status.toUpperCase(),
       created: convertDateFormat(jobInfo.metadata.creationTimestamp),
       started: dateOrNull(jobInfo.status.startTime),
-      completed: dateOrNull(jobInfo.metadata.completionTimestamp),
+      completed: dateOrNull(jobInfo.status.completionTime),
     });
   } catch (error) {
     logger.error(`Could not update deployment ${projectName} ${jobName}. Message: ${error}`);

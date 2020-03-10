@@ -267,7 +267,7 @@ CREATE OR REPLACE PROCEDURE
     IN id              int,
     IN name            varchar(50),
     IN console_url     varchar(300),
-    IN token           varchar(1000),
+    IN token           varchar(2000),
     IN router_pattern  varchar(300),
     IN project_user    varchar(100),
     IN ssh_host        varchar(300),
