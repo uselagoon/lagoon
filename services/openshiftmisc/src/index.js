@@ -19,9 +19,6 @@ initSendToLagoonLogs();
 initSendToLagoonTasks();
 
 const messageConsumer = async msg => {
-  logger.verbose(
-    JSON.parse(msg.content.toString())
-  );
   const { key, data, data: { project } } = JSON.parse(msg.content.toString());
 
   logger.verbose(

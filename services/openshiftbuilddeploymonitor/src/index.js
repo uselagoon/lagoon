@@ -249,7 +249,7 @@ const messageConsumer = async msg => {
       try {
         if (project.productionEnvironment == environment.name) {
           const updateProjectResult = await updateProject(project.id, {
-            activeRoutes: configMap.data.LAGOON_ACTIVE_ROUTES,
+            productionRoutes: configMap.data.LAGOON_ACTIVE_ROUTES,
           });
         } else if (project.standbyProductionEnvironment == environment.name){
           const updateProjectResult = await updateProject(project.id, {
