@@ -1252,6 +1252,7 @@ const typeDefs = gql`
       sourceEnvironment: Int!
       destinationEnvironment: Int!
     ): Task
+    taskDrushUserLogin(environment: Int!): Task
     deleteTask(input: DeleteTaskInput!): String
     updateTask(input: UpdateTaskInput): Task
     setEnvironmentServices(input: SetEnvironmentServicesInput!): [EnvironmentService]
