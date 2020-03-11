@@ -67,13 +67,15 @@ spec:
                 properties:
                   condition:
                     type: string
+                  lastTransitionTime:
+                    type: string
                   status:
-                    description: LastTransitionTime time.Time `json:"lastTransitionTime"`
                     type: string
                   type:
                     type: string
                 required:
                 - condition
+                - lastTransitionTime
                 - status
                 - type
                 type: object
@@ -284,7 +286,7 @@ spec:
         - --enable-leader-election
         command:
         - /manager
-        image: amazeeio/dioscuri:v0.1.1
+        image: amazeeio/dioscuri:v0.1.2
         name: manager
         resources:
           limits:
