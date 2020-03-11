@@ -780,9 +780,9 @@ const deployActiveStandby = async (
   });
 
   // @TODO: if we have permission to deploy production, is this required?
-  await hasPermission('environment', 'view', {
-    project: destProject,
-  });
+  // await hasPermission('environment', 'view', {
+  //   project: destProject,
+  // });
 
   // construct the data for the misc task
   const data = {
