@@ -58,7 +58,7 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
       }
     }
 
-    logger.debug(`Harbor project id for ${lagoonProjectName}: ${harborProjectId}`)
+    logger.debug(`Harbor project id for ${lagoonProjectName}: ${harborProjectID}`)
     // Create robot account for new harbor project
     try {
       const res = await harborClient.post(`projects/${harborProjectID}/robots`, {
@@ -78,9 +78,9 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
       // 409 means project already exists
       // 201 means project created successfully
       if (err.statusCode == 409) {
-        logger.error(`Unable to create a robot account for harbor project "${lagoonProjectName}", as a robot account of the same name already exists!`)
+        logger.warn(`Unable to create a robot account for harbor project "${lagoonProjectName}", as a robot account of the same name already exists!`)
       } else {
-        logger.error(`Unable to create a robot account for harbor project "${lagoonProjectName}" !!`)
+        logger.warn(`Unable to create a robot account for harbor project "${lagoonProjectName}" !!`)
       }
     }
 
