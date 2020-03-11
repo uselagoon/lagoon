@@ -530,7 +530,8 @@ all-tests-list:=	features \
 					bitbucket \
 					rest \
 					nginx \
-					elasticsearch
+					elasticsearch \
+					active-standby
 all-tests = $(foreach image,$(all-tests-list),tests/$(image))
 
 # Run all tests
@@ -566,7 +567,7 @@ test-services-webhooks: test-services-main
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d webhook-handler webhooks2tasks
 
 # All Tests that use REST endpoints
-rest-tests = rest node features nginx elasticsearch
+rest-tests = rest node features nginx elasticsearch active-standby
 run-rest-tests = $(foreach image,$(rest-tests),tests/$(image))
 # List of Lagoon Services needed for REST endpoint testing
 deployment-test-services-rest = $(deployment-test-services-main) rest2tasks
