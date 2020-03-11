@@ -866,7 +866,6 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
-<<<<<<< HEAD
   add_container_registry_scope_to_env_vars()
 
   BEGIN
@@ -905,7 +904,7 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 
-=======
+CREATE OR REPLACE PROCEDURE
   update_openshift_varchar_length()
 
   BEGIN
@@ -914,7 +913,6 @@ $$
   END;
 $$
 
->>>>>>> origin/kubernetes
 DELIMITER ;
 
 CALL add_availability_to_project();
