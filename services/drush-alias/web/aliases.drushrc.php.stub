@@ -224,6 +224,8 @@ drush_log("Loading site configuration for '$project_name' from the API.");
 
 $query = sprintf('{
   project:projectByName(name: "%s") {
+    productionEnvironment
+    standbyProductionEnvironment
     environments {
       name
       openshiftProjectName
@@ -286,6 +288,8 @@ if (empty($response->data->project->environments)) {
 }
 
 $environments = $response->data->project->environments;
+$productionEnvironment = $response->data->project->productionEnvironment;
+$standbyProductionEnvironment = $response->data->project->standbyProductionEnvironment;
 // Default server definition, which has no site specific elements
 $defaults = [
   'command-specific' => [
@@ -296,17 +300,34 @@ $defaults = [
   'ssh-options' => "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no",
 ];
 
-$aliases = array_reduce($environments, function ($carry, $environment) use ($defaults, $ssh_host, $ssh_port, $drupal_path) {
+$aliases = array_reduce($environments, function ($carry, $environment) use ($defaults, $ssh_host, $ssh_port, $drupal_path, $productionEnvironment, $standbyProductionEnvironment) {
   $site_name = str_replace('/','-',$environment->name);
   $site_host = 'localhost';
 
   $alias = [];
-
   // Drush 9 needs aliases prefixed with a group name in order to be able to convert them correctly
   if (DRUSH_MAJOR_VERSION == "9") {
     $site_name = 'lagoon.' . $site_name;
   }
-
+  // if we have an active and standby environment configured, then lets provide some quick aliases for them
+  if ($environment->name == $productionEnvironment && $standbyProductionEnvironment != NULL) {
+    $alias['production-active'] = [
+      'remote-host' => "$ssh_host",
+      'remote-user' => "$environment->openshiftProjectName",
+      'root' => "$drupal_path",
+      'backup-dir' => '/tmp',
+      'ssh-options' => "-o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p $ssh_port",
+    ] + $defaults;
+  }
+  if ($environment->name == $standbyProductionEnvironment && $standbyProductionEnvironment != NULL) {
+    $alias['production-standby'] = [
+      'remote-host' => "$ssh_host",
+      'remote-user' => "$environment->openshiftProjectName",
+      'root' => "$drupal_path",
+      'backup-dir' => '/tmp',
+      'ssh-options' => "-o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p $ssh_port",
+    ] + $defaults;
+  }
   $alias[$site_name] = [
     'remote-host' => "$ssh_host",
     'remote-user' => "$environment->openshiftProjectName",
