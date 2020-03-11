@@ -50,6 +50,8 @@ production_routes:
             tls-acme: 'false'
 ```
 
+> Note: Any routes that are under the section `environments.<branch>.routes` will not be moved. Ensure that you remove them from this section and place them under the production_routes section specific to if it should be an `active` or `standby` route.
+
 ## Triggering a switch event
 
 To trigger an event to switch the environments, you can run the following graphQL mutation, this will inform lagoon to begin the process.
@@ -66,4 +68,4 @@ mutation ActiveStandby {
 }
 ```
 
-@TODO: status check
+A task is created in the current active environment `tasks` tab when a switch event is triggered, you can check the status of the switch here.
