@@ -44,7 +44,8 @@ const addOpenshift = async (
         ${input.routerPattern ? ':router_pattern' : 'NULL'},
         ${input.projectUser ? ':project_user' : 'NULL'},
         ${input.sshHost ? ':ssh_host' : 'NULL'},
-        ${input.sshPort ? ':ssh_port' : 'NULL'}
+        ${input.sshPort ? ':ssh_port' : 'NULL'},
+        ${input.monitoringConfig ? ':monitoring_config' : 'NULL'}
       );
     `,
   );
