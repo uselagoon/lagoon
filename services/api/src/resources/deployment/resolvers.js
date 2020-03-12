@@ -24,7 +24,12 @@ const Helpers = require('./helpers');
 const EVENTS = require('./events');
 const environmentHelpers = require('../environment/helpers');
 const projectHelpers = require('../project/helpers');
-
+const {
+  getEnvironmentByOpenshiftProjectName,
+  addTask,
+} = require('@lagoon/commons/src/api');
+const uuid4 = require('uuid4');
+const convertDateFormat = R.init;
 /* ::
 
 import type {ResolversObj} from '../';
@@ -784,17 +789,60 @@ const deployActiveStandby = async (
   //   project: destProject,
   // });
 
+  const ocsafety = string =>
+    string.toLocaleLowerCase().replace(/[^0-9a-z-]/g, '-');
+  var safeProductionEnvironment = ocsafety(destProject.productionEnvironment);
+    var safeProjectName = ocsafety(destProject.name);
+  var openshiftProject = destProject.openshiftProjectPattern
+    ? destProject.openshiftProjectPattern
+        .replace('${branch}', safeProductionEnvironment)
+        .replace('${project}', safeProjectName)
+    : `${safeProjectName}-${safeProductionEnvironment}`;
+  const sourceEnvironment = await getEnvironmentByOpenshiftProjectName(openshiftProject);
+
   // construct the data for the misc task
   const data = {
     projectName: destProject.name,
     productionEnvironment: destProject.productionEnvironment,
     standbyProductionEnvironment: destProject.standbyProductionEnvironment,
+    task: {
+      id: 0,
+      uuid: '',
+    }
   };
 
   // try it now
   try {
+    // add a task into the environment
+    var uuid = uuid4();
+    var date = new Date()
+    var created = convertDateFormat(date.toISOString())
+    const sourceTaskData = await addTask(
+      'Active/Standby Switch',
+      'ACTIVE',
+      created,
+      sourceEnvironment.environmentByOpenshiftProjectName.id,
+      uuid,
+      null,
+      null,
+      null,
+      '',
+      '',
+      false,
+    );
+    data.task.id = sourceTaskData.addTask.id
+    data.task.uuid = uuid
+
+    // then send the task to openshiftmisc to trigger the migration
     await createMiscTask({ key: 'openshift:route:migrate', data });
-    return 'active standby switch triggered';
+
+    // return the task id and remote id
+    var retData = {
+      id: data.task.id,
+      remoteId: data.task.uuid,
+      environment: sourceEnvironment.environmentByOpenshiftProjectName.id,
+    }
+    return retData;
   } catch (error) {
     sendToLagoonLogs(
       'error',

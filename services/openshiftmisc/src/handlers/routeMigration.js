@@ -7,17 +7,14 @@ const { logger } = require('@lagoon/commons/src/local-logging');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const {
   getOpenShiftInfoForProject,
-  getEnvironmentByOpenshiftProjectName,
   updateProject,
-  addTask,
   updateTask,
 } = require('@lagoon/commons/src/api');
 const { RouteMigration } = require('@lagoon/commons/src/openshiftApi');
-const uuid4 = require('uuid4');
 const convertDateFormat = R.init;
 
 async function routeMigration (data: Object) {
-  const { projectName, productionEnvironment, standbyProductionEnvironment } = data;
+  const { projectName, productionEnvironment, standbyProductionEnvironment, task } = data;
 
   const result = await getOpenShiftInfoForProject(projectName);
   const projectOpenShift = result.project;
@@ -49,8 +46,6 @@ async function routeMigration (data: Object) {
     logger.error(error);
     throw error;
   }
-  // get the environmentid for the source environment
-  const sourceEnvironment = await getEnvironmentByOpenshiftProjectName(openshiftProject);
 
   // define the routemigration. the annotation being set to true is what actually triggers the switch
   const migrateRoutes = (openshiftProject, destinationOpenshiftProject) => {
@@ -89,9 +84,6 @@ async function routeMigration (data: Object) {
     }
   });
 
-  // generate a uuid for this event
-  var uuid = uuid4();
-
   // check that the namespaces exist for source and destination before we try and move any routes
   try {
     // check source
@@ -102,31 +94,6 @@ async function routeMigration (data: Object) {
     const projectDestGet = promisify(openshift.projects(destinationOpenshiftProject).get, { context: openshift.projects(destinationOpenshiftProject) })
     projectStatus = await projectDestGet()
     logger.info(`${openshiftProject}: Project ${destinationOpenshiftProject} already exists, continuing`)
-  } catch (err) {
-    // throw error if the namespace doesn't exist
-    logger.error(err)
-    throw new Error
-  }
-
-  var sourceTaskID = null
-  try {
-    // add a task into the environment
-    var date = new Date()
-    var created = convertDateFormat(date.toISOString())
-    const sourceTaskData = await addTask(
-      'Active/Standby Switch',
-      'ACTIVE',
-      created,
-      sourceEnvironment.environmentByOpenshiftProjectName.id,
-      uuid,
-      null,
-      null,
-      null,
-      '',
-      '',
-      false,
-    );
-    sourceTaskID = sourceTaskData.addTask.id
   } catch (err) {
     // throw error if the namespace doesn't exist
     logger.error(err)
@@ -172,11 +139,20 @@ async function routeMigration (data: Object) {
     }
   }
 
+
+  sendToLagoonLogs(
+    'info',
+    projectName,
+    '',
+    'task:misc-openshift:route:migrate',
+    data,
+    `*[${projectName}]* Route Migration between environments *${destinationOpenshiftProject}* started`
+  );
   // check the route migrate resource for the status conditions, only update lagoon on a completed task
   var whileCount = 0;
   var breakLoop = false;
-  while (whileCount < 10 && !breakLoop) {
-    try {
+  try {
+    while (whileCount < 10 && !breakLoop) {
       const migrateRoutesGet = promisify(
           dioscuri.ns(openshiftProject).routemigrates(openshiftProject).get
       );
@@ -189,7 +165,7 @@ async function routeMigration (data: Object) {
                 try {
                   // update the task to started
                   var created = convertDateFormat(routeMigrateStatus.status.conditions[i].lastTransitionTime)
-                  await updateTask(sourceTaskID, {
+                  await updateTask(task.id, {
                     status: 'ACTIVE',
                     created: created,
                   });
@@ -202,7 +178,7 @@ async function routeMigration (data: Object) {
                 try {
                   // update the task to failed
                   var created = convertDateFormat(routeMigrateStatus.status.conditions[i].lastTransitionTime)
-                  await updateTask(sourceTaskID, {
+                  await updateTask(task.id, {
                     status: 'FAILED',
                     completed: created,
                   });
@@ -216,7 +192,7 @@ async function routeMigration (data: Object) {
                     'active-standby-switch',
                     projectOpenShift.name,
                     'failed',
-                    uuid,
+                    task.uuid,
                     conditionStr,
                   );
                 } catch (err) {
@@ -235,7 +211,7 @@ async function routeMigration (data: Object) {
                 });
                 // update the task to completed
                 var created = convertDateFormat(routeMigrateStatus.status.conditions[i].lastTransitionTime)
-                await updateTask(sourceTaskID, {
+                await updateTask(task.id, {
                   status: 'SUCCEEDED',
                   completed: created,
                 });
@@ -249,7 +225,7 @@ async function routeMigration (data: Object) {
                   'active-standby-switch',
                   projectOpenShift.name,
                   'succeeded',
-                  uuid,
+                  task.uuid,
                   conditionStr,
                 );
               } catch (err) {
@@ -262,7 +238,7 @@ async function routeMigration (data: Object) {
         }
       } catch (err) {
         try {
-          await updateTask(sourceTaskID, {
+          await updateTask(task.id, {
             status: 'ACTIVE',
           });
         } catch (err) {
@@ -272,20 +248,11 @@ async function routeMigration (data: Object) {
         logger.verbose(`${openshiftProject}: active/standby switch waiting still`);
       }
       await new Promise(resolve => setTimeout(resolve, 5000)); // wait for a bit between getting the resource
-    } catch (err) {
-        logger.error(err);
-        throw new Error();
     }
+  } catch (err) {
+      logger.error(err);
+      throw new Error();
   }
-
-  sendToLagoonLogs(
-    'info',
-    projectName,
-    '',
-    'task:misc-openshift:route:migrate',
-    data,
-    `*[${projectName}]* Route Migration between environments *${destinationOpenshiftProject}* started`
-  );
 }
 
 const saveTaskLog = async (jobName, projectName, status, uid, log) => {

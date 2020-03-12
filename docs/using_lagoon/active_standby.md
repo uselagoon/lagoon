@@ -64,8 +64,26 @@ mutation ActiveStandby {
         name:"drupal-example"
       }
     }
-  )
+  ){
+    id
+    remoteId
+  }
 }
 ```
 
 A task is created in the current active environment `tasks` tab when a switch event is triggered, you can check the status of the switch here.
+
+Using the `remoteId` from the `deployActiveStandby` mutation, we can also check the status of the task.
+```
+query getTask {
+  taskByRemoteId(id: "<remoteId>") {
+    id
+    name
+    created
+    started
+    completed
+    status
+    logs
+  }
+}
+```
