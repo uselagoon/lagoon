@@ -12,7 +12,7 @@ if [[ $(kubectl -n ${NAMESPACE} get deployment --no-headers=true -o name -l serv
   done
 fi
 
-POD=$(kubectl -n ${NAMESPACE} get pods -l lagoon/service=${SERVICE_NAME} -o json | jq -r '.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running") | .metadata.name' | head -n 1)
+POD=$(kubectl -n ${NAMESPACE} get pods -l lagoon/service=${SERVICE_NAME} -o json | jq -r '[.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running")] | first | .metadata.name // empty')
 
 if [[ ! $POD ]]; then
   echo "No running pod found for ${SERVICE_NAME}"

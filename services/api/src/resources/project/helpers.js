@@ -9,10 +9,7 @@ const { asyncPipe } = require('@lagoon/commons/src/util');
 const { query } = require('../../util/db');
 const logger = require('../../logger');
 
-// const userHelpers = require('../user/helpers');
-
-// const KeycloakOperations = require('../project/keycloak');
-const Sql = require('../project/sql');
+const Sql = require('./sql');
 
 const Helpers = (sqlClient /* : MariaSQL */) => {
   const getProjectById = async (id /* : string */) => {
