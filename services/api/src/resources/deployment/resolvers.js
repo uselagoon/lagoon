@@ -166,6 +166,26 @@ const getDeploymentByRemoteId = async (
   return injectBuildLog(deployment);
 };
 
+const getDeploymentUrl = async (
+  { id, environment },
+  args,
+  { sqlClient, hasPermission },
+) => {
+
+
+  const domain = process.env.LAGOON_UI || 'localhost';
+  const port = process.env.LAGOON_UI_PORT ? `:${process.env.LAGOON_UI_PORT}`: '';
+
+  const { name: project, openshiftProjectName  } = await projectHelpers(sqlClient).getProjectByEnvironmentId(
+    environment,
+  );
+
+  const rows = await query(sqlClient, knex('deployment').where('id', '=', id).toString());
+  const deployment = R.prop(0, rows);
+
+  return `http://${domain}${port}/projects/${project}/${openshiftProjectName}/deployments/${deployment.name}`;
+};
+
 const addDeployment = async (
   root,
   {
@@ -766,6 +786,7 @@ const deploymentSubscriber = createEnvironmentFilteredSubscriber([
 const Resolvers /* : ResolversObj */ = {
   getDeploymentsByEnvironmentId,
   getDeploymentByRemoteId,
+  getDeploymentUrl,
   addDeployment,
   deleteDeployment,
   updateDeployment,
