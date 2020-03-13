@@ -181,7 +181,7 @@ if (isset($cache->data) && time() < $cache->expire && getenv('LAGOON_IGNORE_DRUS
 // can set an env var `LAGOON_OVERRIDE_SSH_TIMEOUT=<val>` or define `ssh_port_timeout: <val>` in `.lagoon.yml` to a time in seconds to fail sooner and let user know why
 // if there is no defined timeout further up, set a value
 if (empty($ssh_port_timeout)) {
-  $ssh_port_timeout = 10; //default timeout
+  $ssh_port_timeout = 30; //default timeout
 }
 $ssh_port_check = @fsockopen($ssh_host, $ssh_port, $errno, $errstr, $ssh_port_timeout);
 if (is_resource($ssh_port_check))
