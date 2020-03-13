@@ -765,6 +765,53 @@ async function getEnvironmentByName(
   return result;
 }
 
+async function getDeploymentByName(
+  projectName,
+  deploymentName,
+) {
+  const result = await graphqlapi.query(`
+    environment: environmentByOpenshiftProjectName(
+      openshiftProjectName: "${projectName}"
+    ) {
+      id
+      name
+      openshiftProjectName
+      project {
+        id
+        name
+      }
+      deployments(name: "${deploymentName}") {
+        id
+        uiLink
+        name
+        status
+        created
+        started
+        completed
+        environment {
+          id
+          openshiftProjectName
+          project {
+            id
+            name
+          }
+        }
+        buildLog
+      }
+    }
+  `);
+
+  if (!result || !result.environment) {
+    throw new EnvironmentNotFound(
+      `Cannot find deployment ${deploymentName} by projectName ${projectName}\n${
+        result.environment
+      }`,
+    );
+  }
+
+  return result;
+}
+
 async function getEnvironmentByOpenshiftProjectName(
   openshiftProjectName,
 ) {
