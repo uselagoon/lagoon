@@ -3,8 +3,8 @@
 const Promise = require("bluebird");
 const OpenShiftClient = require('openshift-client');
 const sleep = require("es7-sleep");
-const AWS = require('aws-sdk');
-const uuidv4 = require('uuid/v4');
+// const AWS = require('aws-sdk');
+// const uuidv4 = require('uuid/v4');
 const R = require('ramda');
 const { logger } = require('@lagoon/commons/src/local-logging');
 const {
@@ -12,6 +12,7 @@ const {
   getEnvironmentByName,
   updateEnvironment,
   getDeploymentByRemoteId,
+  getDeploymentByName,
   updateDeployment,
   setEnvironmentServices,
 } = require('@lagoon/commons/src/api');
@@ -25,19 +26,6 @@ class BuildNotCompletedYet extends Error {
     this.name = 'BuildNotCompletedYet';
   }
 }
-
-const accessKeyId =  process.env.AWS_ACCESS_KEY_ID
-const secretAccessKey =  process.env.AWS_SECRET_ACCESS_KEY
-const bucket = process.env.AWS_BUCKET
-const region = process.env.AWS_REGION || 'us-east-2'
-
-
-if ( !accessKeyId || !secretAccessKey || !bucket) {
-  logger.error('AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY or AWS_BUCKET not set.')
-}
-
-AWS.config.update({accessKeyId: accessKeyId, secretAccessKey: secretAccessKey, region: region});
-const s3 = new AWS.S3();
 
 initSendToLagoonLogs();
 initSendToLagoonTasks();
@@ -57,6 +45,9 @@ const messageConsumer = async msg => {
 
   const environmentResult = await getEnvironmentByName(branchName, project.id)
   const environment = environmentResult.environmentByName
+
+  const deploymentResult = await getDeploymentByName(projectName, jobName);
+  const deployment = deploymentResult.environment.deployments[0];
 
   try {
     var gitSha = sha
@@ -145,7 +136,7 @@ const messageConsumer = async msg => {
   }
 
   const meta = JSON.parse(msg.content.toString())
-  let logLink = ""
+  const logLink = deployment.uiLink;
   let logMessage = ''
   if (sha) {
     meta.shortSha = sha.substring(0, 7)
@@ -171,31 +162,12 @@ const messageConsumer = async msg => {
 
     case "cancelled":
     case "error":
-      try {
-        const buildLog = await buildsLogGet()
-        const s3UploadResult = await saveBuildLog(buildName, projectName, branchName, buildLog, buildstatus)
-        logLink = s3UploadResult.Location
-        meta.logLink = logLink
-      } catch (err) {
-        logger.warn(`${openshiftProject} ${buildName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
-        meta.logLink = ''
-      }
       sendToLagoonLogs('warn', projectName, "", `task:builddeploy-openshift:${buildPhase}`, meta,
         `*[${projectName}]* ${logMessage} Build \`${buildName}\` cancelled. <${logLink}|Logs>`
       )
       break;
 
     case "failed":
-      try {
-        const buildLog = await buildsLogGet()
-        const s3UploadResult = await saveBuildLog(buildName, projectName, branchName, buildLog, buildstatus)
-        logLink = s3UploadResult.Location
-        meta.logLink = logLink
-      } catch (err) {
-        logger.warn(`${openshiftProject} ${buildName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
-        meta.logLink = ''
-      }
-
       sendToLagoonLogs('error', projectName, "", `task:builddeploy-openshift:${buildPhase}`, meta,
         `*[${projectName}]* ${logMessage} Build \`${buildName}\` failed. <${logLink}|Logs>`
       )
@@ -281,36 +253,6 @@ const messageConsumer = async msg => {
   }
 
 }
-
-const saveBuildLog = async(buildName, projectName, branchName, buildLog, buildStatus) => {
-  const meta = {
-    buildName,
-    branchName,
-    buildPhase: buildStatus.status.phase.toLowerCase(),
-    remoteId: buildStatus.metadata.uid
-  };
-
-  sendToLagoonLogs('info', projectName, "", `build-logs:builddeploy-openshift:${buildName}`, meta,
-    buildLog
-  );
-  return await uploadLogToS3(buildName, projectName, branchName, buildLog);
-}
-
-const uploadLogToS3 = async (buildName, projectName, branchName, buildLog) => {
-  const uuid = uuidv4();
-  const path = `${projectName}/${branchName}/${uuid}.txt`
-
-  const params = {
-    Bucket: bucket,
-    Key:    path,
-    Body:   buildLog,
-    ACL:    'public-read',
-    ContentType: 'text/plain',
-  };
-  const s3Upload = Promise.promisify(s3.upload, { context: s3 })
-  return s3Upload(params);
-
-};
 
 
 const deathHandler = async (msg, lastError) => {
