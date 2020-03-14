@@ -349,6 +349,17 @@ yq write -i /kubectl-build-deploy/values.yaml 'lagoonVersion' $LAGOON_VERSION
 
 
 echo -e "\
+imagePullSecrets:\n\
+" >> /kubectl-build-deploy/values.yaml
+
+for REGISTRY_SECRET in "${REGISTRY_SECRETS[@]}"
+do
+  echo -e "\
+  - name: "${REGISTRY_SECRET}"\n\
+" >> /kubectl-build-deploy/values.yaml
+done
+
+echo -e "\
 LAGOON_PROJECT=${PROJECT}\n\
 LAGOON_ENVIRONMENT=${ENVIRONMENT}\n\
 LAGOON_ENVIRONMENT_TYPE=${ENVIRONMENT_TYPE}\n\
@@ -728,7 +739,7 @@ elif [ "$BUILD_TYPE" == "pullrequest" ] || [ "$BUILD_TYPE" == "branch" ]; then
   # load the image hashes for just pushed Images
   for IMAGE_NAME in "${!IMAGES_BUILD[@]}"
   do
-    IMAGE_HASHES[${IMAGE_NAME}]=$(docker inspect ${REGISTRY}/${NAMESPACE}/${IMAGE_NAME}:${IMAGE_TAG:-latest} --format '{{index .RepoDigests 0}}')
+    IMAGE_HASHES[${IMAGE_NAME}]=$(docker inspect ${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG:-latest} --format '{{index .RepoDigests 0}}')
   done
 
 # elif [ "$BUILD_TYPE" == "promote" ]; then
