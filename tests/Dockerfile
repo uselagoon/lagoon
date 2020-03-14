@@ -1,3 +1,4 @@
+# Held at alpine 3.10 because of Python2 dependencies not available in 3.11
 FROM alpine:3.10
 
 RUN apk add --no-cache \

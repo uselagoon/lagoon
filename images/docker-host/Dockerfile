@@ -1,6 +1,6 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM docker:stable-dind
+FROM docker:19.03-dind
 
 LABEL maintainer="amazee.io"
 ENV LAGOON=docker-host

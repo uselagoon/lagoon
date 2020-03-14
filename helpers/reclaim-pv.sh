@@ -70,7 +70,7 @@ EOF
   ${OC} rollout status deploymentconfig/pv-migrator --watch
 
   #
-  MIGRATOR=$(${OC} get pods -l run=pv-migrator -o json | jq -r '.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running") | .metadata.name' | head -n 1)
+  MIGRATOR=$(${OC} get pods -l run=pv-migrator -o json | jq -r '[.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running")] | first | .metadata.name // empty')
   #MIGRATOR=$(${OC} get pod -o custom-columns=NAME:.metadata.name --no-headers -l run=pv-migrator)
   if [[ ! $MIGRATOR ]]; then
     echo "No running pod found for migrator"
@@ -83,7 +83,7 @@ EOF
     ${OC} exec $MIGRATOR -- cp -Rpav /storage/${PVC} /migrator/
 
     TMP=$(mktemp temp.${PVC}.json.XXXX)
-    
+
     echo "dumping pvc ${PVC} to ${TMP}."
     ${OC} get -o json pvc/${PVC} --export=true | jq 'del(.metadata.annotations, .metadata.selfLink, .spec.volumeName, .spec.storageClassName, .status)' > $TMP
 
@@ -99,7 +99,7 @@ EOF
     ${OC} rollout status deploymentconfig/pv-migrator --watch
 
 
-    MIGRATOR=$(${OC} get pods -l run=pv-migrator -o json | jq -r '.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running") | .metadata.name' | head -n 1)
+    MIGRATOR=$(${OC} get pods -l run=pv-migrator -o json | jq -r '[.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running")] | first | .metadata.name // empty')
 
     ${OC} exec $MIGRATOR -- cp -Rpav /migrator/${PVC} /storage/
     ${OC} exec $MIGRATOR -- ls -la  /storage/${PVC}

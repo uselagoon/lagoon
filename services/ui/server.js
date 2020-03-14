@@ -27,6 +27,10 @@ app
       app.render(req, res, '/project', { projectName: req.params.projectSlug });
     });
 
+    server.get('/admin/billingGroup/:billingGroupSlug', (req, res) => {
+      app.render(req, res, '/admin/billingGroup', { billingGroupName: req.params.billingGroupSlug });
+    });
+
     server.get('/projects/:projectSlug/:environmentSlug', (req, res) => {
       app.render(req, res, '/environment', {
         openshiftProjectName: req.params.environmentSlug

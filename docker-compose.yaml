@@ -117,6 +117,16 @@ services:
       lagoon.type: custom
       lagoon.template: services/openshiftmisc/.lagoon.app.yml
       lagoon.image: amazeeiolagoon/openshiftmisc:kubernetes
+  kubernetesmisc:
+    image: ${IMAGE_REPO:-lagoon}/kubernetesmisc
+    command: yarn run dev
+    volumes:
+      - ./services/kubernetesmisc/src:/app/services/kubernetesmisc/src
+      - ./node-packages:/app/node-packages:delegated
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/kubernetesmisc/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/kubernetesmisc:kubernetes
   kubernetesbuilddeploy:
     image: ${IMAGE_REPO:-lagoon}/kubernetesbuilddeploy
     command: yarn run dev
@@ -410,6 +420,18 @@ services:
       - ./local-dev/api-data-watcher-pusher:/home
     labels:
       lagoon.type: none
+  local-dbaas-provider:
+    image: ${IMAGE_REPO:-lagoon}/local-dbaas-provider
+    restart: always
+    labels:
+      lagoon.type: none
+    environment:
+      MYSQL_DATABASE: 'db'
+      MYSQL_USER: 'user'
+      MYSQL_PASSWORD: 'password'
+      MYSQL_ROOT_PASSWORD: 'password'
+    ports:
+      - '3306:3306'
   local-minio:
     image: minio/minio
     entrypoint: sh
@@ -513,6 +535,8 @@ services:
     volumes:
       - './services/auto-idler/idle-services.sh:/idle-services.sh'
       - './services/auto-idler/idle-clis.sh:/idle-clis.sh'
+      - './services/auto-idler/openshift-services.sh:/openshift-services.sh'
+      - './services/auto-idler/openshift-clis.sh:/openshift-clis.sh'
       - './services/auto-idler/create_jwt.sh:/create_jwt.sh'
     labels:
       lagoon.type: custom
@@ -757,4 +781,3 @@ services:
       lagoon.template: services/harborregistryctl/harborregistry.yml
       lagoon.name: harborregistry
       lagoon.image: amazeeiolagoon/harborregistryctl:kubernetes
-

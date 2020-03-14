@@ -11,14 +11,15 @@ function outputToYaml() {
   set -x
 }
 
-function cronScheduleMoreOftenThan15Minutes() {
-  #takes a unexpanded cron schedule, returns 0 if it's more often that 15 minutes
+function cronScheduleMoreOftenThanXMinutes() {
+  # Takes a unexpanded cron schedule, returns 0 if it's more often than NATIVE_CRON_POD_MINIMUM_FREQUENCY minutes
+  # NATIVE_CRON_POD_MINIMUM_FREQUENCY defaults to 15 minutes
   MINUTE=$(echo $1 | (read -a ARRAY; echo ${ARRAY[0]}) )
   if [[ $MINUTE =~ ^(M|H|\*)\/([0-5]?[0-9])$ ]]; then
     # Match found for M/xx, H/xx or */xx
-    # Check if xx is smaller than 15, which means this cronjob runs more often than every 15 minutes.
+    # Check if xx is smaller than x, which means this cronjob runs more often than every NATIVE_CRON_POD_MINIMUM_FREQUENCY minutes.
     STEP=${BASH_REMATCH[2]}
-    if [ $STEP -lt 15 ]; then
+    if [ $STEP -lt $NATIVE_CRON_POD_MINIMUM_FREQUENCY ]; then
       return 0
     else
       return 1
@@ -27,7 +28,7 @@ function cronScheduleMoreOftenThan15Minutes() {
     # We are running every minute
     return 0
   else
-    # all other cases are more often than 15 minutes
+    # all other cases are more often than NATIVE_CRON_POD_MINIMUM_FREQUENCY minutes
     return 1
   fi
 }
@@ -37,6 +38,7 @@ function cronScheduleMoreOftenThan15Minutes() {
 ##############################################
 
 # Load path of docker-compose that should be used
+set +x # reduce noise in build logs
 DOCKER_COMPOSE_YAML=($(cat .lagoon.yml | shyaml get-value docker-compose-yaml))
 
 DEPLOY_TYPE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.deploy-type default)
@@ -58,8 +60,10 @@ declare -A MAP_SERVICE_TYPE_TO_COMPOSE_SERVICE
 declare -A MAP_SERVICE_NAME_TO_IMAGENAME
 declare -A MAP_SERVICE_NAME_TO_SERVICEBROKER_CLASS
 declare -A MAP_SERVICE_NAME_TO_SERVICEBROKER_PLAN
+declare -A MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT
 declare -A IMAGES_PULL
 declare -A IMAGES_BUILD
+set -x
 
 for COMPOSE_SERVICE in "${COMPOSE_SERVICES[@]}"
 do
@@ -86,6 +90,9 @@ do
     # mariadb-single deployed (probably from the past where there was no mariadb-shared yet) and use that one
     if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get service "$SERVICE_NAME" &> /dev/null; then
       SERVICE_TYPE="mariadb-single"
+    # check if we can use the dbaas operator
+    elif oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} auth can-i create mariadbconsumer.v1.mariadb.amazee.io > /dev/null; then
+      SERVICE_TYPE="mariadb-dbaas"
     # heck if this cluster supports the default one, if not we assume that this cluster is not capable of shared mariadbs and we use a mariadb-single
     elif svcat --scope cluster get class $MARIADB_SHARED_DEFAULT_CLASS > /dev/null; then
       SERVICE_TYPE="mariadb-shared"
@@ -93,6 +100,20 @@ do
       SERVICE_TYPE="mariadb-single"
     fi
 
+  fi
+
+  ## check if the .lagoon.yml overwrites the environment to use
+  if [[ "$SERVICE_TYPE" == "mariadb-dbaas" ]]; then
+    # Default plan is the enviroment type
+    DBAAS_ENVIRONMENT=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.$SERVICE_TYPE\\.environment "${ENVIRONMENT_TYPE}")
+
+    # Allow the dbaas shared servicebroker plan to be overriden by environment in .lagoon.yml
+    ENVIRONMENT_DBAAS_ENVIRONMENT_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.overrides.$SERVICE_NAME.$SERVICE_TYPE\\.environment false)
+    if [ ! $DBAAS_ENVIRONMENT_OVERRIDE == "false" ]; then
+      DBAAS_ENVIRONMENT=$ENVIRONMENT_DBAAS_ENVIRONMENT_OVERRIDE
+    fi
+
+    MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]="$DBAAS_ENVIRONMENT"
   fi
 
   if [ "$SERVICE_TYPE" == "mariadb-shared" ]; then
@@ -241,11 +262,14 @@ if [[ ( "$TYPE" == "pullrequest"  ||  "$TYPE" == "branch" ) && ! $THIS_IS_TUG ==
 
   BUILD_ARGS=()
 
+  set +x # reduce noise in build logs
   # Add environment variables from lagoon API as build args
   if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
+    echo "LAGOON_PROJECT_VARIABLES are available from the API"
     BUILD_ARGS+=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "build" or .scope == "global") | "--build-arg \(.name)=\(.value)"'))
   fi
   if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
+    echo "LAGOON_ENVIRONMENT_VARIABLES are available from the API"
     BUILD_ARGS+=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.scope == "build" or .scope == "global") | "--build-arg \(.name)=\(.value)"'))
   fi
 
@@ -256,19 +280,18 @@ if [[ ( "$TYPE" == "pullrequest"  ||  "$TYPE" == "branch" ) && ! $THIS_IS_TUG ==
   BUILD_ARGS+=(--build-arg LAGOON_PROJECT="${PROJECT}")
   BUILD_ARGS+=(--build-arg LAGOON_SAFE_PROJECT="${SAFE_PROJECT}")
   BUILD_ARGS+=(--build-arg LAGOON_BUILD_TYPE="${TYPE}")
-  set +x
   BUILD_ARGS+=(--build-arg LAGOON_SSH_PRIVATE_KEY="${SSH_PRIVATE_KEY}")
-  set -x
   BUILD_ARGS+=(--build-arg LAGOON_GIT_SOURCE_REPOSITORY="${SOURCE_REPOSITORY}")
 
-
   if [ "$TYPE" == "pullrequest" ]; then
+    echo "TYPE is pullrequest"
     BUILD_ARGS+=(--build-arg LAGOON_PR_HEAD_BRANCH="${PR_HEAD_BRANCH}")
     BUILD_ARGS+=(--build-arg LAGOON_PR_HEAD_SHA="${PR_HEAD_SHA}")
     BUILD_ARGS+=(--build-arg LAGOON_PR_BASE_BRANCH="${PR_BASE_BRANCH}")
     BUILD_ARGS+=(--build-arg LAGOON_PR_BASE_SHA="${PR_BASE_SHA}")
     BUILD_ARGS+=(--build-arg LAGOON_PR_TITLE="${PR_TITLE}")
   fi
+  set -x
 
   for IMAGE_NAME in "${IMAGES[@]}"
   do
@@ -422,6 +445,23 @@ do
     SERVICEBROKER_CLASS="${MAP_SERVICE_NAME_TO_SERVICEBROKER_CLASS["${SERVICE_NAME}"]}"
     SERVICEBROKER_PLAN="${MAP_SERVICE_NAME_TO_SERVICEBROKER_PLAN["${SERVICE_NAME}"]}"
     . /oc-build-deploy/scripts/exec-openshift-create-servicebroker.sh
+    SERVICEBROKERS+=("${SERVICE_NAME}:${SERVICE_TYPE}")
+  fi
+
+  # If we have a dbaas consumer, create it
+  OPENSHIFT_SERVICES_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/consumer.yml"
+  if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
+    OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
+    OPERATOR_ENVIRONMENT="${MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]}"
+    TEMPLATE_ADDITIONAL_PARAMETERS=()
+    oc process  --local -o yaml --insecure-skip-tls-verify \
+      -n ${OPENSHIFT_PROJECT} \
+      -f ${OPENSHIFT_TEMPLATE} \
+      -p SERVICE_NAME="${SERVICE_NAME}" \
+      -p SAFE_BRANCH="${SAFE_BRANCH}" \
+      -p SAFE_PROJECT="${SAFE_PROJECT}" \
+      -p ENVIRONMENT="${OPERATOR_ENVIRONMENT}" \
+      | outputToYaml
     SERVICEBROKERS+=("${SERVICE_NAME}:${SERVICE_TYPE}")
   fi
 
@@ -601,6 +641,7 @@ oc process --local --insecure-skip-tls-verify \
   -p AUTOGENERATED_ROUTES="${AUTOGENERATED_ROUTES}" \
   | oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f -
 
+set +x # reduce noise in build logs
 # Add environment variables from lagoon API
 if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
   HAS_PROJECT_RUNTIME_VARS=$(echo $LAGOON_PROJECT_VARIABLES | jq -r 'map( select(.scope == "runtime" or .scope == "global") )')
@@ -622,6 +663,7 @@ if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
       -p "{\"data\":$(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r 'map( select(.scope == "runtime" or .scope == "global") ) | map( { (.name) : .value } ) | add | tostring')}"
   fi
 fi
+set -x
 
 if [ "$TYPE" == "pullrequest" ]; then
   oc patch --insecure-skip-tls-verify \
@@ -641,6 +683,10 @@ do
   SERVICE_NAME_UPPERCASE=$(echo "$SERVICE_NAME" | tr '[:lower:]' '[:upper:]')
 
   case "$SERVICE_TYPE" in
+    # Operator can take some time to return the required information, do it here
+    mariadb-dbaas)
+        . /oc-build-deploy/scripts/exec-openshift-mariadb-dbaas.sh
+        ;;
 
     mariadb-shared)
         # ServiceBrokers take a bit, wait until the credentials secret is available
@@ -700,9 +746,8 @@ if [[ $THIS_IS_TUG == "true" ]]; then
     if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get secret tug-registry 2> /dev/null; then
       oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} delete secret tug-registry
     fi
-
-    oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} secrets new-dockercfg tug-registry --docker-server="${TUG_REGISTRY}" --docker-username="${TUG_REGISTRY_USERNAME}" --docker-password="${TUG_REGISTRY_PASSWORD}" --docker-email="${TUG_REGISTRY_USERNAME}"
-    oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} secrets add serviceaccount/default secrets/tug-registry --for=pull
+    oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} create secret docker-registry tug-registry --docker-server="${TUG_REGISTRY}" --docker-username="${TUG_REGISTRY_USERNAME}" --docker-password="${TUG_REGISTRY_PASSWORD}" --docker-email="${TUG_REGISTRY_USERNAME}"
+    oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} secrets link default tug-registry --for=pull
   fi
 
   # Import all remote Images into ImageStreams
@@ -845,7 +890,7 @@ do
       CRONJOB_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "$CRONJOB_SCHEDULE_RAW")
       CRONJOB_COMMAND=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.command)
 
-      if cronScheduleMoreOftenThan15Minutes "$CRONJOB_SCHEDULE_RAW" ; then
+      if cronScheduleMoreOftenThanXMinutes "$CRONJOB_SCHEDULE_RAW" ; then
         # If this cronjob is more often than 15 minutes, we run the cronjob inside the pod itself
         CRONJOBS_ARRAY_INSIDE_POD+=("${CRONJOB_SCHEDULE} ${CRONJOB_COMMAND}")
       else
@@ -989,6 +1034,10 @@ do
 
     DAEMONSET="${SERVICE_NAME}"
     . /oc-build-deploy/scripts/exec-monitor-deamonset.sh
+
+  elif [ $SERVICE_TYPE == "mariadb-dbaas" ]; then
+
+    echo "nothing to monitor for $SERVICE_TYPE"
 
   elif [ $SERVICE_TYPE == "mariadb-shared" ]; then
 

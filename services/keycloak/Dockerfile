@@ -52,7 +52,6 @@ ENV TMPDIR=/tmp \
     KEYCLOAK_AUTH_SERVER_CLIENT_SECRET=f605b150-7636-4447-abd3-70988786b330 \
     JAVA_OPTS="-server -Xms2048m -Xmx4096m -XX:MetaspaceSize=96M -XX:MaxMetaspaceSize=256m -Djava.net.preferIPv4Stack=true -Djboss.modules.system.pkgs=org.jboss.byteman -Djava.awt.headless=true"
 
-
 VOLUME /opt/jboss/keycloak/standalone/data
 
 COPY start.sh /opt/jboss/tools/start.sh

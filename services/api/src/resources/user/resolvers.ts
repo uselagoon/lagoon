@@ -2,6 +2,11 @@ import * as R from 'ramda';
 import { query, isPatchEmpty } from '../../util/db';
 import Sql from './sql';
 
+export const getMe = async (_root, args, { models, keycloakGrant: grant }) => {
+  const currentUserId: string = grant.access_token.content.sub;
+  return models.UserModel.loadUserById(currentUserId);
+}
+
 export const getUserBySshKey = async (
   _root,
   { sshKey },
