@@ -263,6 +263,11 @@ const addProject = async (
     ? ':active_systems_task'
     : '"lagoon_openshiftJob"'
 },
+        ${
+  input.activeSystemsMisc
+    ? ':active_systems_misc'
+    : '"lagoon_openshiftMisc"'
+},
         ${input.branches ? ':branches' : '"true"'},
         ${input.pullrequests ? ':pullrequests' : '"true"'},
         ${input.productionEnvironment ? ':production_environment' : 'NULL'},
@@ -402,6 +407,7 @@ const updateProject = async (
         activeSystemsDeploy,
         activeSystemsRemove,
         activeSystemsTask,
+        activeSystemsMisc,
         branches,
         productionEnvironment,
         autoIdle,
@@ -484,6 +490,7 @@ const updateProject = async (
         activeSystemsDeploy,
         activeSystemsRemove,
         activeSystemsTask,
+        activeSystemsMisc,
         branches,
         productionEnvironment,
         autoIdle,

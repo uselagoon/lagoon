@@ -1,36 +1,28 @@
-// @flow
+import { logger } from '@lagoon/commons/src/local-logging';
+import { sendToLagoonLogs, initSendToLagoonLogs } from '@lagoon/commons/src/logs';
+import { consumeTasks, initSendToLagoonTasks } from '@lagoon/commons/src/tasks';
 
-const R = require('ramda');
-const { logger } = require('@lagoon/commons/src/local-logging');
-const {
-  sendToLagoonLogs,
-  initSendToLagoonLogs
-} = require('@lagoon/commons/src/logs');
-const {
-  consumeTasks,
-  initSendToLagoonTasks,
-  createTaskMonitor
-} = require('@lagoon/commons/src/tasks');
-const resticRestore = require('./handlers/resticRestore');
-const openshiftBuildCancel = require('./handlers/openshiftBuildCancel');
+import resticRestore from './handlers/resticRestore';
+import kubernetesBuildCancel from "./handlers/kubernetesBuildCancel";
 
 initSendToLagoonLogs();
 initSendToLagoonTasks();
 
 const messageConsumer = async msg => {
+
   const { key, data, data: { project } } = JSON.parse(msg.content.toString());
 
   logger.verbose(
-    `Received MISCOpenshift message for key: ${key}`
+    `Received MiscKubernetes message for key: ${key}`
   );
 
   switch(key) {
-    case 'openshift:restic:backup:restore':
+    case 'kubernetes:restic:backup:restore':
       resticRestore(data);
       break;
 
-    case 'openshift:build:cancel':
-      openshiftBuildCancel(data);
+    case 'kubernetes:build:cancel':
+      kubernetesBuildCancel(data);
       break;
 
     default:
@@ -41,11 +33,12 @@ const messageConsumer = async msg => {
         'info',
         project.name,
         '',
-        'task:misc-openshift;unhandled',
+        'task:misc-kubernetes;unhandled',
         meta,
         `*[${project.name}]* Unhandled MISC task ${key}`
       );
   }
+
 };
 
 const deathHandler = async (msg, lastError) => {
@@ -55,7 +48,7 @@ const deathHandler = async (msg, lastError) => {
     'error',
     project.name,
     '',
-    'task:misc-openshift:error',
+    'task:misc-kubernetes:error',
     {},
     `*[${project.name}]* MISC Task \`${key}\` ERROR:
 \`\`\`
@@ -71,7 +64,7 @@ const retryHandler = async (msg, error, retryCount, retryExpirationSecs) => {
     'warn',
     project,
     '',
-    'task:misc-openshift:retry',
+    'task:misc-kubernetes:retry',
     {
       error: error.message,
       msg: JSON.parse(msg.content.toString()),
@@ -85,4 +78,4 @@ Retrying in ${retryExpirationSecs} secs`
   );
 };
 
-consumeTasks('misc-openshift', messageConsumer, retryHandler, deathHandler);
+consumeTasks('misc-kubernetes', messageConsumer, retryHandler, deathHandler);

@@ -326,7 +326,7 @@ const cancelDeployment = async (
   };
 
   try {
-    await createMiscTask({ key: 'openshift:build:cancel', data });
+    await createMiscTask({ key: 'build:cancel', data });
     return 'success';
   } catch (error) {
     sendToLagoonLogs(
