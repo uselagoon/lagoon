@@ -1142,6 +1142,7 @@ module.exports = {
   getEnvironmentByName,
   getProductionEnvironmentForProject,
   getEnvironmentsForProject,
+  getDeploymentByName,
   addOrUpdateEnvironment,
   updateEnvironment,
   deleteEnvironment,
