@@ -117,23 +117,13 @@ async function resticbackupSnapshotFinished(webhook: WebhookRequestData) {
     // So we need to cater for these additional filenames.
     let source;
     const paths = R.prop('paths', snapshot);
-    const pattern = /^\/data\/([\w-]+)|([\w-]+)\.(?:sql|tar)$/;
+    const pattern = /^\/data\/([\w-]+)|([\w-]+)\.(?:sql|tar)$|([\w]+)-prebackuppod/;
     if (R.isEmpty(paths)) {
       source = 'unknown';
     } else {
       const path = R.head(paths);
       if (!R.test(pattern, path)) {
-        // Cater for the case where the extension was missing, and we can take
-        // a guess for the type of backup it is.
-        const missingExtensionPattern = /([\w]+)-prebackuppod/;
-        if (!R.test(missingExtensionPattern, path)) {
-          source = 'unknown';
-        } else {
-          const matches = R.match(missingExtensionPattern, path);
-          if (R.prop(1, matches)) {
-            source = R.prop(1, matches);
-          }
-        }
+        source = 'unknown';
       } else {
         const matches = R.match(pattern, path);
         if (R.prop(1, matches)) {
