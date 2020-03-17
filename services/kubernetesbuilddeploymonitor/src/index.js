@@ -46,7 +46,7 @@ const messageConsumer = async msg => {
   const environmentResult = await getEnvironmentByName(branchName, project.id)
   const environment = environmentResult.environmentByName
 
-  const deploymentResult = await getDeploymentByName(projectName, jobName);
+  const deploymentResult = await getDeploymentByName(openshiftProject, jobName);
   const deployment = deploymentResult.environment.deployments[0];
 
   try {

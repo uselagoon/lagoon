@@ -766,12 +766,12 @@ async function getEnvironmentByName(
 }
 
 async function getDeploymentByName(
-  projectName,
+  openshiftProjectName,
   deploymentName,
 ) {
   const result = await graphqlapi.query(`
     environment: environmentByOpenshiftProjectName(
-      openshiftProjectName: "${projectName}"
+      openshiftProjectName: "${openshiftProjectName}"
     ) {
       id
       name
