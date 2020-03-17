@@ -770,33 +770,20 @@ async function getDeploymentByName(
   deploymentName,
 ) {
   const result = await graphqlapi.query(`
-    environment: environmentByOpenshiftProjectName(
-      openshiftProjectName: "${openshiftProjectName}"
-    ) {
-      id
-      name
-      openshiftProjectName
-      project {
+    {
+      environment:environmentByOpenshiftProjectName( openshiftProjectName: "${openshiftProjectName}") {
         id
         name
-      }
-      deployments(name: "${deploymentName}") {
-        id
-        uiLink
-        name
-        status
-        created
-        started
-        completed
-        environment {
+        openshiftProjectName
+        project {
           id
-          openshiftProjectName
-          project {
-            id
-            name
-          }
+          name
         }
-        buildLog
+        deployments(name: "${deploymentName}") {
+          id
+          name
+          uiLink
+        }
       }
     }
   `);

@@ -46,8 +46,15 @@ const messageConsumer = async msg => {
   const environmentResult = await getEnvironmentByName(branchName, project.id)
   const environment = environmentResult.environmentByName
 
-  const deploymentResult = await getDeploymentByName(openshiftProject, jobName);
-  const deployment = deploymentResult.environment.deployments[0];
+  let deploymentResult;
+  let deployment;
+  try {
+    deploymentResult = await getDeploymentByName(openshiftProject, jobName);
+    deployment = deploymentResult.environment.deployments[0];
+  }catch(error) {
+    logger.warn(`Error while fetching deployment openshiftproject: ${openshiftProject}: ${error}`)
+    throw(error)
+  }
 
   try {
     var gitSha = sha
