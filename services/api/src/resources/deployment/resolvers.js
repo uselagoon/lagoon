@@ -24,7 +24,12 @@ const Helpers = require('./helpers');
 const EVENTS = require('./events');
 const environmentHelpers = require('../environment/helpers');
 const projectHelpers = require('../project/helpers');
-
+const {
+  getEnvironmentByOpenshiftProjectName,
+  addTask,
+} = require('@lagoon/commons/src/api');
+const uuid4 = require('uuid4');
+const convertDateFormat = R.init;
 /* ::
 
 import type {ResolversObj} from '../';
@@ -758,6 +763,99 @@ const deployEnvironmentPromote = async (
   }
 };
 
+const deployActiveStandby = async (
+  root,
+  {
+    input: {
+      project: projectInput,
+    },
+  },
+  {
+    sqlClient,
+    hasPermission,
+  },
+) => {
+  const destProject = await projectHelpers(sqlClient).getProjectByProjectInput(
+    projectInput,
+  );
+
+  // active/standby really only should be between production environments
+  await hasPermission('environment', `deploy:production`, {
+    project: destProject.id,
+  });
+
+  // @TODO: if we have permission to deploy production, is this required?
+  // await hasPermission('environment', 'view', {
+  //   project: destProject,
+  // });
+
+  const ocsafety = string =>
+    string.toLocaleLowerCase().replace(/[^0-9a-z-]/g, '-');
+  var safeProductionEnvironment = ocsafety(destProject.productionEnvironment);
+    var safeProjectName = ocsafety(destProject.name);
+  var openshiftProject = destProject.openshiftProjectPattern
+    ? destProject.openshiftProjectPattern
+        .replace('${branch}', safeProductionEnvironment)
+        .replace('${project}', safeProjectName)
+    : `${safeProjectName}-${safeProductionEnvironment}`;
+  const sourceEnvironment = await getEnvironmentByOpenshiftProjectName(openshiftProject);
+
+  // construct the data for the misc task
+  const data = {
+    projectName: destProject.name,
+    productionEnvironment: destProject.productionEnvironment,
+    standbyProductionEnvironment: destProject.standbyProductionEnvironment,
+    task: {
+      id: 0,
+      uuid: '',
+    }
+  };
+
+  // try it now
+  try {
+    // add a task into the environment
+    var uuid = uuid4();
+    var date = new Date()
+    var created = convertDateFormat(date.toISOString())
+    const sourceTaskData = await addTask(
+      'Active/Standby Switch',
+      'ACTIVE',
+      created,
+      sourceEnvironment.environmentByOpenshiftProjectName.id,
+      uuid,
+      null,
+      null,
+      null,
+      '',
+      '',
+      false,
+    );
+    data.task.id = sourceTaskData.addTask.id
+    data.task.uuid = uuid
+
+    // then send the task to openshiftmisc to trigger the migration
+    await createMiscTask({ key: 'openshift:route:migrate', data });
+
+    // return the task id and remote id
+    var retData = {
+      id: data.task.id,
+      remoteId: data.task.uuid,
+      environment: sourceEnvironment.environmentByOpenshiftProjectName.id,
+    }
+    return retData;
+  } catch (error) {
+    sendToLagoonLogs(
+      'error',
+      '',
+      '',
+      'api:deployActiveStandby',
+      data,
+      `Failed to create active to standby task, reason: ${error}`,
+    );
+    return `Error: ${error.message}`;
+  }
+};
+
 const deploymentSubscriber = createEnvironmentFilteredSubscriber([
   EVENTS.DEPLOYMENT.ADDED,
   EVENTS.DEPLOYMENT.UPDATED,
@@ -774,6 +872,7 @@ const Resolvers /* : ResolversObj */ = {
   deployEnvironmentBranch,
   deployEnvironmentPullrequest,
   deployEnvironmentPromote,
+  deployActiveStandby,
   deploymentSubscriber,
 };
 

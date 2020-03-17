@@ -513,6 +513,7 @@ mocks.Mutation = () => ({
   deployEnvironmentBranch: () => 'success',
   deployEnvironmentPullrequest: () => 'success',
   deployEnvironmentPromote: () => 'success',
+  deployActiveStandby: () => 'success',
   addGroup: () => mocks.Group(),
   updateGroup: () => mocks.Group(),
   deleteGroup: () => 'success',

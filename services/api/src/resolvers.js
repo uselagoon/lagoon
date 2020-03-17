@@ -14,6 +14,7 @@ const {
   deployEnvironmentBranch,
   deployEnvironmentPullrequest,
   deployEnvironmentPromote,
+  deployActiveStandby,
   deploymentSubscriber,
 } = require('./resources/deployment/resolvers');
 
@@ -347,6 +348,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     deployEnvironmentBranch,
     deployEnvironmentPullrequest,
     deployEnvironmentPromote,
+    deployActiveStandby,
     addGroup,
     addBillingGroup,
     updateBillingGroup,

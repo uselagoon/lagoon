@@ -16,6 +16,10 @@ export default gql`
       project {
         name
         gitUrl
+        productionRoutes
+        standbyRoutes
+        productionEnvironment
+        standbyProductionEnvironment
       }
     }
   }

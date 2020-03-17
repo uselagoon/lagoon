@@ -290,6 +290,19 @@ const typeDefs = gql`
     """
     productionEnvironment: String
     """
+    Routes that are attached to the active environment
+    """
+    productionRoutes: String
+    """
+    Which environment(the name) should be marked as the production standby environment.
+    *Important:* This is used to determine which environment should be marked as the standby production environment
+    """
+    standbyProductionEnvironment: String
+    """
+    Routes that are attached to the standby environment
+    """
+    standbyRoutes: String
+    """
     Should this project have auto idling enabled (\`1\` or \`0\`)
     """
     autoIdle: Int
@@ -637,6 +650,7 @@ const typeDefs = gql`
     branches: String
     pullrequests: String
     productionEnvironment: String!
+    standbyProductionEnvironment: String
     availability: ProjectAvailability
     autoIdle: Int
     storageCalc: Int
@@ -867,6 +881,9 @@ const typeDefs = gql`
     activeSystemsTask: String
     branches: String
     productionEnvironment: String
+    productionRoutes: String
+    standbyProductionEnvironment: String
+    standbyRoutes: String
     autoIdle: Int
     storageCalc: Int
     pullrequests: String
@@ -1017,6 +1034,10 @@ const typeDefs = gql`
     sourceEnvironment: EnvironmentInput!
     project: ProjectInput!
     destinationEnvironment: String!
+  }
+
+  input DeployActiveStandbyInput {
+    project: ProjectInput!
   }
 
   input GroupInput {
@@ -1262,6 +1283,7 @@ const typeDefs = gql`
     deployEnvironmentBranch(input: DeployEnvironmentBranchInput!): String
     deployEnvironmentPullrequest(input: DeployEnvironmentPullrequestInput!): String
     deployEnvironmentPromote(input: DeployEnvironmentPromoteInput!): String
+    deployActiveStandby(input: DeployActiveStandbyInput!): Task
     addGroup(input: AddGroupInput!): GroupInterface
     updateGroup(input: UpdateGroupInput!): GroupInterface
     deleteGroup(input: DeleteGroupInput!): String

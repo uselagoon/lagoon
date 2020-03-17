@@ -13,6 +13,7 @@ const {
   updateEnvironment,
   getDeploymentByRemoteId,
   updateDeployment,
+  updateProject,
   setEnvironmentServices,
 } = require('@lagoon/commons/src/api');
 
@@ -240,9 +241,24 @@ const messageConsumer = async msg => {
             monitoringUrls: "${configMap.data.LAGOON_MONITORING_URLS}",
             project: ${project.id}
           }`)
-        } catch (err) {
-          logger.warn(`${openshiftProject} ${buildName}: Error while updating routes in API, Error: ${err}. Continuing without update`)
+      } catch (err) {
+        logger.warn(`${openshiftProject} ${buildName}: Error while updating routes in API, Error: ${err}. Continuing without update`)
+      }
+
+      //update the active/standby routes in the api
+      try {
+        if (project.productionEnvironment == environment.name) {
+          const updateProjectResult = await updateProject(project.id, {
+            productionRoutes: configMap.data.LAGOON_ACTIVE_ROUTES,
+          });
+        } else if (project.standbyProductionEnvironment == environment.name){
+          const updateProjectResult = await updateProject(project.id, {
+            standbyRoutes: configMap.data.LAGOON_STANDBY_ROUTES,
+          });
         }
+      } catch (err) {
+        logger.warn(`${openshiftProject} ${buildName}: Error while updating active/standby routes in API, Error: ${err}. Continuing without update`)
+      }
 
       // Tell api what services are running in this environment
       try {

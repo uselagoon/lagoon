@@ -211,10 +211,41 @@ async function createDeployTask(deployData: Object) {
 
   switch (project.activeSystemsDeploy) {
     case 'lagoon_openshiftBuildDeploy':
-      if (environments.project.productionEnvironment === branchName) {
+      // if (environments.project.productionEnvironment === branchName) {
+      //   logger.debug(
+      //     `projectName: ${projectName}, branchName: ${branchName}, production environment, no environment limits considered`,
+      //   );
+
+      // we want to limit production environments, without making it configurable currently
+      var productionEnvironmentsLimit = 2
+
+      // we want to make sure we can deploy the `production` env, and also any envs in the active/standby environment
+      // we may not even need the active/standby and just go to having `production` and `standbyProduction` only
+      if (
+        environments.project.productionEnvironment === branchName
+        || environments.project.standbyProductionEnvironment === branchName
+      ) {
+        // get a list of production environments
+        console.log(environments.project);
+        const prod_environments = environments.project.environments
+          .filter(e => e.environmentType === 'production')
+          .map(e => e.name);
         logger.debug(
-          `projectName: ${projectName}, branchName: ${branchName}, production environment, no environment limits considered`,
+          `projectName: ${projectName}, branchName: ${branchName}, existing environments are `,
+          prod_environments,
         );
+
+        if (prod_environments.length >= productionEnvironmentsLimit) {
+          if (prod_environments.find(i => i === branchName)) {
+            logger.debug(
+              `projectName: ${projectName}, branchName: ${branchName}, environment already exists, no environment limits considered`,
+            );
+          } else {
+            throw new EnvironmentLimit(
+              `'${branchName}' would exceed the configured limit of ${productionEnvironmentsLimit} production environments for project ${projectName}`,
+            );
+          }
+        }
       } else {
         // get a list of non-production environments
         console.log(environments.project);
@@ -392,9 +423,12 @@ async function createRemoveTask(removeData: Object) {
     projectName,
   );
 
-  // Check to see if we are deleting the production environment, and if so,
+  // Check to see if we are deleting a production environment, and if so,
   // ensure the flag is set to allow this.
-  if (branch === allEnvironments.project.productionEnvironment) {
+  if (
+    branch === allEnvironments.project.productionEnvironment
+    || branch === allEnvironments.project.standbyProductionEnvironment
+  ) {
     if (forceDeleteProductionEnvironment !== true) {
       throw new CannotDeleteProductionEnvironment(
         `'${branch}' is defined as the production environment for ${projectName}, refusing to remove.`,
