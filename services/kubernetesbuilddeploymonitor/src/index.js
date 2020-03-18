@@ -1,8 +1,6 @@
 const promisify = require('util').promisify;
 const kubernetesClient = require('kubernetes-client');
 const sleep = require("es7-sleep");
-// const AWS = require('aws-sdk');
-// const uuidv4 = require('uuid/v4');
 const R = require('ramda');
 const { logger } = require('@lagoon/commons/src/local-logging');
 

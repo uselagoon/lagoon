@@ -172,9 +172,12 @@ const getDeploymentUrl = async (
   { sqlClient, hasPermission },
 ) => {
 
-
-  const domain = process.env.LAGOON_UI || 'localhost';
-  const port = process.env.LAGOON_UI_PORT ? `:${process.env.LAGOON_UI_PORT}`: '';
+  const lagoonUiRoute = R.compose(
+    R.defaultTo('http://localhost:8888'),
+    R.find(R.test(/ui-/)),
+    R.split(','),
+    R.propOr('', 'LAGOON_ROUTES'),
+  )(process.env);
 
   const { name: project, openshiftProjectName  } = await projectHelpers(sqlClient).getProjectByEnvironmentId(
     environment,
@@ -183,7 +186,7 @@ const getDeploymentUrl = async (
   const rows = await query(sqlClient, knex('deployment').where('id', '=', id).toString());
   const deployment = R.prop(0, rows);
 
-  return `http://${domain}${port}/projects/${project}/${openshiftProjectName}/deployments/${deployment.name}`;
+  return `${lagoonUiRoute}/projects/${project}/${openshiftProjectName}/deployments/${deployment.name}`;
 };
 
 const addDeployment = async (
