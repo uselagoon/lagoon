@@ -226,6 +226,8 @@ $query = sprintf('{
   project:projectByName(name: "%s") {
     productionEnvironment
     standbyProductionEnvironment
+    productionAlias
+    standbyAlias
     environments {
       name
       openshiftProjectName
@@ -290,6 +292,8 @@ if (empty($response->data->project->environments)) {
 $environments = $response->data->project->environments;
 $productionEnvironment = $response->data->project->productionEnvironment;
 $standbyProductionEnvironment = $response->data->project->standbyProductionEnvironment;
+$productionAlias = $response->data->project->productionAlias;
+$standbyAlias = $response->data->project->standbyAlias;
 // Default server definition, which has no site specific elements
 $defaults = [
   'command-specific' => [
@@ -300,7 +304,7 @@ $defaults = [
   'ssh-options' => "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no",
 ];
 
-$aliases = array_reduce($environments, function ($carry, $environment) use ($defaults, $ssh_host, $ssh_port, $drupal_path, $productionEnvironment, $standbyProductionEnvironment) {
+$aliases = array_reduce($environments, function ($carry, $environment) use ($defaults, $ssh_host, $ssh_port, $drupal_path, $productionEnvironment, $standbyProductionEnvironment, $productionAlias, $standbyAlias) {
   $site_name = str_replace('/','-',$environment->name);
   $site_host = 'localhost';
 
@@ -311,7 +315,7 @@ $aliases = array_reduce($environments, function ($carry, $environment) use ($def
   }
   // if we have an active and standby environment configured, then lets provide some quick aliases for them
   if ($environment->name == $productionEnvironment && $standbyProductionEnvironment != NULL) {
-    $alias['production-active'] = [
+    $alias[$productionAlias] = [
       'remote-host' => "$ssh_host",
       'remote-user' => "$environment->openshiftProjectName",
       'root' => "$drupal_path",
@@ -320,7 +324,7 @@ $aliases = array_reduce($environments, function ($carry, $environment) use ($def
     ] + $defaults;
   }
   if ($environment->name == $standbyProductionEnvironment && $standbyProductionEnvironment != NULL) {
-    $alias['production-standby'] = [
+    $alias[$standbyAlias] = [
       'remote-host' => "$ssh_host",
       'remote-user' => "$environment->openshiftProjectName",
       'root' => "$drupal_path",

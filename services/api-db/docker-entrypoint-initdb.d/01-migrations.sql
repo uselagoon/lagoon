@@ -23,8 +23,10 @@ CREATE OR REPLACE PROCEDURE
     IN pullrequests                    varchar(300),
     IN production_environment          varchar(100),
     IN production_routes               text,
+    IN production_alias                varchar(100),
     IN standby_production_environment  varchar(100),
     IN standby_routes                  text,
+    IN standby_alias                   varchar(100),
     IN auto_idle                       int(1),
     IN storage_calc                    int(1),
     IN development_environments_limit  int
@@ -63,8 +65,10 @@ CREATE OR REPLACE PROCEDURE
         branches,
         production_environment,
         production_routes,
+        production_alias,
         standby_production_environment,
         standby_routes,
+        standby_alias,
         auto_idle,
         storage_calc,
         pullrequests,
@@ -86,8 +90,10 @@ CREATE OR REPLACE PROCEDURE
         branches,
         production_environment,
         production_routes,
+        production_alias,
         standby_production_environment,
         standby_routes,
+        standby_alias,
         auto_idle,
         storage_calc,
         pullrequests,
@@ -207,6 +213,43 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+
+CREATE OR REPLACE PROCEDURE
+  add_production_alias_to_project()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'production_alias'
+    ) THEN
+      ALTER TABLE `project`
+      ADD `production_alias` varchar(100) NOT NULL DEFAULT 'lagoon-production';
+    END IF;
+  END;
+$$
+
+
+CREATE OR REPLACE PROCEDURE
+  add_standby_alias_to_project()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'standby_alias'
+    ) THEN
+      ALTER TABLE `project`
+      ADD `standby_alias` varchar(100) NOT NULL DEFAULT 'lagoon-standby';
+    END IF;
+  END;
+$$
 CREATE OR REPLACE PROCEDURE
   add_ssh_to_openshift()
 
@@ -935,6 +978,8 @@ CALL add_production_environment_to_project();
 CALL add_standby_production_environment_to_project();
 CALL add_standby_routes_to_project();
 CALL add_production_routes_to_project();
+CALL add_standby_alias_to_project();
+CALL add_production_alias_to_project();
 CALL add_ssh_to_openshift();
 CALL convert_project_pullrequest_to_varchar();
 CALL add_active_systems_promote_to_project();
