@@ -50,7 +50,7 @@ production_routes:
             tls-acme: 'false'
 ```
 
-> Note: Any routes that are under the section `environments.<branch>.routes` will not be moved. Ensure that you remove them from this section and place them under the production_routes section specific to if it should be an `active` or `standby` route.
+> Note: Any routes that are under the section `environments.<branch>.routes` will not be moved as part of active/standby, these routes will always be attached to the environment as defined. Ensure that if you do need a specific route to be migrated during an active/standby switch, that you remove them from the `environments` section and place them under the `production_routes` section specific to if it should be an `active` or `standby` route.
 
 ## Triggering a switch event
 
@@ -84,6 +84,32 @@ query getTask {
     completed
     status
     logs
+  }
+}
+```
+
+## `drush` aliases
+
+By default, projects will be created with the following aliases that will be available when active standby is enabled on a project.
+* `lagoon-production`
+* `lagoon-standby`
+
+The `lagoon-production` alias will resolve point to whichever site is defined as `productionEnvironment`, where `lagoon-standby` will always resolve to the site that is defined as `standbyProductionEnvironment`
+
+These alias are configurable by updating the project, but be aware that changing them may require you to update any scripts that rely on them.
+
+```
+mutation updateProject {
+  updateProject(input:{
+    id:1234
+    patch:{
+      productionAlias:"custom-lagoon-production-alias"
+      standbyAlias:"custom-lagoon-standby-alias"
+    }
+  }){
+    productionAlias
+    name
+    standbyAlias
   }
 }
 ```
