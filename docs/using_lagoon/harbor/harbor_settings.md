@@ -2,7 +2,10 @@
 Lagoon supports running Harbor locally, and it is automatically used for hosting all kubernetes based builds (any time the project's `activeSystemsDeploy` value is set to `lagoon_kubernetesBuildDeploy`).
 
 # Settings
-Harbor is composed of multiple containers, which all require different specific vairables to be set in order for them to run successfully. The following variables are required to be set in order for Harbor to properly start:
+Harbor is composed of multiple containers, which all require different settings in order for them to run successfully. 
+
+## Environment Variables
+The following environment variables are required to be set in order for Harbor to properly start:
 
 * `HARBOR_REGISTRY_STORAGE_AMAZON_BUCKET`
   * This needs to be set to the name of the AWS bucket which Harbor will save images to
@@ -17,39 +20,110 @@ Harbor is composed of multiple containers, which all require different specific 
   * This needs to be set to the AWS secret key Harbor should use to read and write to the AWS bucket
   * Defaults to an empty string when Lagoon is ran locally or during CI testing, as MinIO does not require authentication
 
+The following environment variables can be set if required:
+* `HARBOR_REGISTRY_STORAGE_AMAZON_ENDPOINT`
+  * If this variable is set, the Harbor registry will use its value as the address of the s3 entrypoint
+  * Defaults to `https://s3.amazonaws.com` when this variable is not set
+
 ## Harbor-Core Settings
-- DATABASE_TYPE=postgresql
-      - POSTGRESQL_HOST=harbor-database
-      - POSTGRESQL_PORT=5432
-      - POSTGRESQL_USERNAME=postgres
-      - POSTGRESQL_PASSWORD=test123
-      - POSTGRESQL_DATABASE=registry
-      - POSTGRESQL_SSLMODE=disable
-      - POSTGRESQL_MAX_IDLE_CONNS=50
-      - POSTGRESQL_MAX_OPEN_CONNS=100
-      - CORE_URL=http://harbor-core:8080
-      - JOBSERVICE_URL=http://harbor-jobservice:8080
-      - REGISTRY_URL=http://harborregistry:5000
-      - TOKEN_SERVICE_URL=http://harbor-core:8080/service/token
-      - WITH_NOTARY=false
-      - CFG_EXPIRATION=5
-      - ADMIRAL_URL=NA
-      - WITH_CLAIR=true
-      - CLAIR_DB_HOST=harbor-database
-      - CLAIR_DB_PORT=5432
-      - CLAIR_DB_USERNAME=postgres
-      - CLAIR_DB=postgres
-      - CLAIR_DB_SSLMODE=disable
-      - CLAIR_URL=http://harborclair:6060
-      - CLAIR_ADAPTER_URL=http://harborclairadapter:8080
-      - REGISTRY_STORAGE_PROVIDER_NAME=s3
-      - WITH_CHARTMUSEUM=false
-      - LOG_LEVEL=error
-      - CONFIG_PATH=/etc/core/app.conf
-      - SYNC_REGISTRY=false
-      - CHART_CACHE_DRIVER=redis
-      - _REDIS_URL=harbor-redis:6379,100,
-      - _REDIS_URL_REG=redis://harbor-redis:6379/2
+Harbor-Core requires a configuration file to start,which is located at `/etc/core/app.conf` within the container. This config file is stored within the `services/harbor-core/harbor-core.yml` file.
+
+* `DATABASE_TYPE`
+  * The database type Harbor should use
+  * The default value is `postgresql`
+* `POSTGRESQL_HOST`
+  * Where Harbor should connect to the postgresql server
+  * The default value is `harbor-database`
+* `POSTGRESQL_PORT`
+  * The port Harbor should use to connect to the postgresql server
+  * The default value is `5432`
+* `POSTGRESQL_USERNAME`
+  * The username Harbor should use to connect to the postgresql server
+  * The default value is `postgres`
+* `POSTGRESQL_PASSWORD`
+  * The password Harbor should use to connect to the postgresql server
+  * The default value is a randomly generated value
+* `POSTGRESQL_DATABASE`
+  * The postgres database Harbor should use when connecting to the postgresql server
+  * The default value is `registry`
+* `POSTGRESQL_SSLMODE`
+  * Whether or not Harbor should use SSL to connect to the postgresql server
+  * The default value is `disable`
+* `POSTGRESQL_MAX_IDLE_CONNS`
+  * The maximum number of idle connections Harbor should leave open to the postgresql server
+  * The default value is `50`
+* `POSTGRESQL_MAX_OPEN_CONNS`
+  * The maximum number of open connections Harbor should have to the postgresql server
+  * The default value is `100`
+* `CORE_URL`
+  * The URL that harbor-core should publish to other Harbor services in order for them to connect to the harbor-core service
+  * The default value is `http://harbor-core:8080`
+* `JOBSERVICE_URL`
+  * The URL that harbor-core should use to connect to the harbor-jobservice service
+  * The default value is `http://harbor-jobservice:8080`
+* `REGISTRY_URL`
+  * The URL that harbor-core should use to connect to the harborregistry service.
+  * The default value is `http://harborregistry:5000`
+* `TOKEN_SERVICE_URL`
+  * The URL that the harbor-core service publishes to other services in order to retrieve a JWT token
+  * The default value is `http://harbor-core:8080/service/token`
+* `WITH_NOTARY`
+  * Tells harbor-core if the notary service is being used. This service is not used with Lagoon's implementation of Harbor.
+  * The default value is `false`
+* `CFG_EXPIRATION`
+  * This value is not used
+  * The default value is `5`
+* `ADMIRAL_URL`
+  * Tells harbor-core where to find the admiral service. This service is not used with Lagoon's implementation of Harbor.
+  * The default value is `NA`
+* `WITH_CLAIR`
+  * Tells harbor-core if the clair service is being used. This service is used with Lagoon's implementation of Harbor.
+  * The default value is `true`
+* `CLAIR_DB_HOST`
+  * Tells harbor-core where to find the harborclair service.
+  * The default value is `harbor-database`
+* `CLAIR_DB_PORT`
+  * The port Harbor should use to connect to the clair server
+  * The default value is `5432`
+* `CLAIR_DB_USERNAME`
+  * The user Harbor should use to connect to the postgresql server
+  * The default value is `postgres`
+* `CLAIR_DB`
+  * The database type clair should use
+  * The default value is `postgres`
+* `CLAIR_DB_SSLMODE`
+  * Whether or not harborclair should use SSL to connect to the postgresql server
+  * The default value is `disable`
+* `CLAIR_URL`
+  * The URL that harbor-core should use to connect to the harborclair service
+  * The default value is `http://harborclair:6060`
+* `CLAIR_ADAPTER_URL`
+  * The URL that harbor-core should use to connect to the harborclairadapter service
+  * The default value is `http://harborclairadapter:8080`
+* `REGISTRY_STORAGE_PROVIDER_NAME`
+  * The storage backend that harborregistry should use
+  * The default value is `s3`
+* `WITH_CHARTMUSEUM`
+  * Tells harbor-core if the chartmuseum service is being used. This service is not used with Lagoon's implementation of Harbor.
+  * The default value is `false`
+* `LOG_LEVEL`
+  * The default log level of the harborcore service
+  * The default value is `error`
+* `CONFIG_PATH`
+  * Where harborcore should look for its config file
+  * The default value is `/etc/core/app.conf`
+* `SYNC_REGISTRY`
+  * This value is not used.
+  * The default value is `false`
+* `CHART_CACHE_DRIVER`
+  * Tells harborcore where to store any uploaded charts
+  * The default value is `redis`
+* `_REDIS_URL`
+  * Tells harborcore and the chartmuseum service connection info for the redis server
+  * The default value is `harbor-redis:6379,100,`
+* `_REDIS_URL_REG`
+  * The url which harborregistry should use to connect to the redis server
+  * The default value is `redis://harbor-redis:6379/2`
 * `PORTAL_URL`
   * This value tells the service where to connect to the Harbor-Portal service.
   * The default value is set to `http://harbor-portal:8080`
