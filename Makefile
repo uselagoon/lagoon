@@ -305,9 +305,11 @@ build/php__7.4-cli-drupal: build/php__7.4-cli
 solrimages := 	solr__5.5 \
 				solr__6.6 \
 				solr__7.5 \
+				solr__7.7 \
 				solr__5.5-drupal \
 				solr__6.6-drupal \
 				solr__7.5-drupal \
+				solr__7.7-drupal \
 				solr__5.5-ckan \
 				solr__6.6-ckan
 
