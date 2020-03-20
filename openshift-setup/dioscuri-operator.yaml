@@ -286,7 +286,7 @@ spec:
         - --enable-leader-election
         command:
         - /manager
-        image: amazeeio/dioscuri:v0.1.3
+        image: amazeeio/dioscuri:v0.1.4
         name: manager
         resources:
           limits:
