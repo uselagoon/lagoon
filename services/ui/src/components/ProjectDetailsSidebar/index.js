@@ -4,7 +4,13 @@ import { CopyToClipboard } from 'react-copy-to-clipboard';
 import moment from 'moment';
 import giturlparse from 'git-url-parse';
 import Environments from 'components/Environments';
+import ActiveStandby from 'components/ActiveStandby';
 import { bp, color, fontSize } from 'lib/variables';
+
+import { Mutation } from 'react-apollo';
+
+import ProjectByNameQuery from 'lib/query/ProjectByName';
+import ActiveStandbyMutation from 'lib/mutation/ActiveStandby';
 
 const Project = ({ project }) => {
   const [copied, setCopied] = useState(false);
@@ -83,6 +89,38 @@ const Project = ({ project }) => {
           <div className="field">
             {developEnvironmentCount} of{' '}
             {R.defaultTo('unlimited', project.developmentEnvironmentsLimit)}
+          </div>
+        </div>
+      </div>
+      <div className="field-wrapper">
+        <div>
+          <label>Switch Standby to Active</label>
+          <div className="field">
+
+            <Mutation 
+              mutation={ActiveStandbyMutation} 
+            >
+              {(activeStandby, { loading, called, error, data }) => {
+
+                const handleActiveStandbyToggle = () => {
+                  const input = {
+                    project:{
+                      name: project.name
+                    }
+                  }
+                  activeStandby({ variables: { input } });
+                }
+
+                if (!error && called && loading) {
+                  return <div>Switching Standby Environment to Active...</div>;
+                }
+
+                return (
+                  <ActiveStandby active="Master" standby="Staging" toggleHandler={handleActiveStandbyToggle} />
+                );
+              }}
+            </Mutation>
+            
           </div>
         </div>
       </div>
