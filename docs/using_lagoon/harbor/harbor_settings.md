@@ -21,12 +21,13 @@ The following environment variables are required to be set in order for Harbor t
   * Defaults to an empty string when Lagoon is ran locally or during CI testing, as MinIO does not require authentication
 
 The following environment variables can be set if required:
+
 * `HARBOR_REGISTRY_STORAGE_AMAZON_ENDPOINT`
   * If this variable is set, the Harbor registry will use its value as the address of the s3 entrypoint
   * Defaults to `https://s3.amazonaws.com` when this variable is not set
 
 ## Harbor-Core Settings
-Harbor-Core requires a configuration file to start,which is located at `/etc/core/app.conf` within the container. This config file is stored within the `services/harbor-core/harbor-core.yml` file.
+Harbor-Core requires a configuration file to start, which is located at `/etc/core/app.conf` within the container. This config file is stored within the `services/harbor-core/harbor-core.yml` file.
 
 * `DATABASE_TYPE`
   * The database type Harbor should use
@@ -168,6 +169,8 @@ Harbor-Core requires a configuration file to start,which is located at `/etc/cor
 
 
 ## Harbor-Database Settings
+Harbor-Database requires specific environment variables to be set in order to start, which are stored within secrets as described in the `services/harbor-database/harbor-core.yml` file.
+
 * `POSTGRES_PASSWORD`
   * The root password for the postgres database.
   * The default value is `test123`
@@ -180,6 +183,8 @@ Harbor-Core requires a configuration file to start,which is located at `/etc/cor
   * The default value is `postgres`
 
 ## Harbor-Jobservice Settings
+Harbor-Jobservice requires a configuration file to start, which is located at `/etc/jobservice/config.yml` within the container. This config file is stored within the `services/harbor-jobservice/harbor-core.yml` file.
+
 * `CORE_URL`
   * This value tells HarborClairAdapter where Harbor-Core can be reached.
   * The default value is `http://harbor-core:8080`
@@ -227,6 +232,8 @@ No specific configuration is needed for Harbor-Portal.
 No specific configuration is needed for Harbor-Redis.
 
 ## HarborClair Settings
+HarborClair requires a configuration file to start, which is located at `/etc/clair/config.yaml` within the container. This config file is stored within the `services/harborclair/harbor-core.yml` file.
+
 * `CLAIR_DB_PASSWORD`
   * The password used to access HarborClair's postgres database.
   * The default value is `test123` when ran locally or during CI testing.
@@ -251,6 +258,8 @@ No specific configuration is needed for Harbor-Redis.
     * This can also be set to `debug` to enable very verbose logging.
 
 ## HarborClairAdapter Settings
+HarborClairAdapter requires specific environment variables to be set in order to start, which are stored within secrets as described in the `services/harborclairadapter/harborclair.yml` file.
+
 * `CORE_URL`
   * This value tells HarborClairAdapter where Harbor-Core can be reached.
   * The default value is `http://harbor-core:8080`
@@ -270,6 +279,8 @@ No specific configuration is needed for Harbor-Redis.
     * This can also be set to `debug` to enable very verbose logging.
 
 ## HarborRegistry Settings
+HarborRegistry requires a configuration file to start, which is located at `/etc/registry/config.yml` within the container. This config file is stored within the `services/harborregistry/harborregistry.yml` file and loaded into the container as `/etc/registry/pre-config.yml`. A custom container entrypoint, `services/harborregistry/entrypoint.sh`, then transposes provided envrionment variables into this config file and saves the results as `/etc/registry/config.yml`.
+
 * `HARBOR_NGINX_ENDPOINT`
   * This environment variable tells HarborRegistry where its nginx ingress controller, Harbor-Nginx, is running in order to construct proper push and pull instructions in the UI, among other things.
   * The default value is set to `http://harbor-nginx:8080` when ran locally or during CI testing.
@@ -291,6 +302,8 @@ No specific configuration is needed for Harbor-Redis.
   * This value is retreived from a secret created when Harbor is first setup on a running Lagoon.
 
 ## HarborRegistryCtl Settings
+HarborRegistryCtl requires a configuration file to start, which is located at `/etc/registryctl/config.yml` within the container. This config file is stored within the `services/harborregistryctl/harborregistry.yml` file.
+
 * `REGISTRY_REDIS_PASSWORD`
   * This environment variable tells HarborRegistryCtl the password that should be used to connect to Redis
   * The default value is an empty string
