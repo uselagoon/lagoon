@@ -64,17 +64,12 @@ const Environments = ({ environments = [] }) => {
               projectSlug={environment.project.name}
             >
               <Box className={`${boxClassName} ${bgClassName}`}>
-                {environment.environmentType == 'production' && (
-                  <div className="productionLabel">
-                    <span>Production</span>
-                  </div>
-                )}
-                {environment.project.productionEnvironment == environment.name && (
+                {environment.project.productionEnvironment === environment.name && (
                   <div className="activeLabel">
                     <span>Active</span>
                   </div>
                 )}
-                {environment.project.standbyProductionEnvironment == environment.name && (
+                {environment.project.standbyProductionEnvironment === environment.name && (
                   <div className="standbyLabel">
                     <span>Standby</span>
                   </div>
@@ -173,7 +168,7 @@ const Environments = ({ environments = [] }) => {
           color: ${color.blue};
           ${fontSize(13)};
           position: absolute;
-          right: 0px;
+          right: -25px;
           text-transform: uppercase;
           top: 50%;
           transform: translateY(-50%) rotate(-90deg);
@@ -200,7 +195,7 @@ const Environments = ({ environments = [] }) => {
           color: ${color.green};
           ${fontSize(13)};
           position: absolute;
-          right: 0px;
+          right: -18px;
           text-transform: uppercase;
           top: 50%;
           transform: translateY(-50%) rotate(-90deg);
