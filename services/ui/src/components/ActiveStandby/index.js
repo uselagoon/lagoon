@@ -1,73 +1,60 @@
-import React from 'react';
+import React, {useState} from 'react';
 import * as R from 'ramda';
 import css from 'styled-jsx/css';
 import { bp, color, fontSize } from 'lib/variables';
+import Button from 'components/Button';
 
 
-const ActiveStandby = ({ active = "", standby = "", toggleHandler}) => {
-  if (active === "" || standby === "") {
+const ActiveStandby = ({ activeEnvironment = "", standbyEnvironment = "", changeHandler}) => {
+  if (activeEnvironment === "" || standbyEnvironment === "") {
     return null;
+  }
+
+  const [values, setValues] = useState();
+  const handleChange = e => {
+    const {name, value} = e.target;
+    setValues({...values, [name]: value});
+
+    if (value !== activeEnvironment){
+      changeHandler()
+    }
   }
 
   return (
     <div className="activeStandby">
-      <label className="switch">
-        <input type="checkbox" onChange={toggleHandler} />
-        <span className="slider"></span>
-      </label>
+      <select
+        id="activeEnvironment"
+        name="activeEnvironment"
+        className="activeEnvironment"
+        onChange={handleChange}
+        aria-labelledby="Active Branch"
+        label='Switch Active Branch'
+      >
+        <option value={activeEnvironment}>{activeEnvironment}</option>
+        <option value={standbyEnvironment}>{standbyEnvironment}</option>
+      </select>
       <style jsx>{`
-          /* The switch - the box around the slider */
-          .switch {
-            position: relative;
-            display: inline-block;
-            width: 60px;
-            height: 34px;
-          }
-
-          /* Hide default HTML checkbox */
-          .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-          }
-
-          /* The slider */
-          .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgb(79, 121,223);
-            -webkit-transition: .4s;
-            transition: .4s;
-          }
-
-          .slider:before {
-            position: absolute;
-            content: "";
-            height: 26px;
-            width: 26px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            -webkit-transition: .4s;
-            transition: .4s;
-          }
-
-          input:checked + .slider {
-            background-color: rgb(126,216,166);
-          }
-
-          input:focus + .slider {
-            box-shadow: 0 0 1px rgb(126,216,166);
-          }
-
-          input:checked + .slider:before {
-            -webkit-transform: translateX(26px);
-            -ms-transform: translateX(26px);
-            transform: translateX(26px);
+          .activeEnvironment {
+            background-size: 14px;
+            border: 1px solid ${color.midGrey};
+            height: 40px;
+            padding: 0 12px 0 34px;
+            transition: border 0.5s ease;
+            @media ${bp.smallOnly} {
+              margin-bottom: 20px;
+              order: -1;
+              width: 100%;
+            }
+            @media ${bp.tabletUp} {
+              width: 100%;
+            }
+            &::placeholder {
+              color: ${color.midGrey};
+            }
+            &:focus {
+              border: 1px solid ${color.brightBlue};
+              outline: none;
+            }
           }
       `}</style>
     </div>
