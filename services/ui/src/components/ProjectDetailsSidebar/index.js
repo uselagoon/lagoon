@@ -2,15 +2,16 @@ import React, { useState } from 'react';
 import * as R from 'ramda';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import moment from 'moment';
+import Router from 'next/router';
 import giturlparse from 'git-url-parse';
 import Environments from 'components/Environments';
-import ActiveStandby from 'components/ActiveStandby';
+import ActiveStandbyConfirm from 'components/ActiveStandbyConfirm';
 import { bp, color, fontSize } from 'lib/variables';
 
 import { Mutation } from 'react-apollo';
 
 import ProjectByNameQuery from 'lib/query/ProjectByName';
-import ActiveStandbyMutation from 'lib/mutation/ActiveStandby';
+import DeployActiveStandbyMutation from 'lib/mutation/DeployActiveStandby';
 
 const Project = ({ project }) => {
   const [copied, setCopied] = useState(false);
@@ -20,6 +21,9 @@ const Project = ({ project }) => {
     project.environments
   );
   const developEnvironmentCount = R.propOr(0, 'development', environmentCount);
+
+  const productionEnvironmentFindFn = ({ name, project: { productionEnvironment }}) => productionEnvironment === name;
+  const productionEnvironment = project.environments.find(productionEnvironmentFindFn);
 
   return (
     <div className="details">
@@ -92,38 +96,49 @@ const Project = ({ project }) => {
           </div>
         </div>
       </div>
-      <div className="field-wrapper">
-        <div>
-          <label>Switch Standby to Active</label>
-          <div className="field">
 
-            <Mutation 
-              mutation={ActiveStandbyMutation} 
-            >
-              {(activeStandby, { loading, called, error, data }) => {
-
-                const handleActiveStandbyToggle = () => {
-                  const input = {
-                    project:{
-                      name: project.name
+      {project.productionEnvironment && project.standbyProductionEnvironment 
+        ? <div className="field-wrapper activeEnvironment">
+            <div className="inner">
+              <label>Active Environment</label>
+              <div className="field">
+                <Mutation 
+                  mutation={DeployActiveStandbyMutation} 
+                  refetchQueries={[
+                    { query: ProjectByNameQuery, variables: { name: project.name } }
+                  ]}
+                >
+                  {(deployActiveStandby, { loading, called, error, data }) => {
+                    const switchActiveBranch = () => {
+                      const input = {
+                        project:{
+                          name: project.name
+                        }
+                      }
+                      
+                      deployActiveStandby({ variables: { input } });
+                      Router.push(`/projects/${productionEnvironment.project.name}/${productionEnvironment.openshiftProjectName}/tasks`)
                     }
-                  }
-                  activeStandby({ variables: { input } });
-                }
 
-                if (!error && called && loading) {
-                  return <div>Switching Standby Environment to Active...</div>;
-                }
+                    if (!error && called && loading) {
+                      return <div>Switching Standby Environment to Active...</div>;
+                    }
 
-                return (
-                  <ActiveStandby active="Master" standby="Staging" toggleHandler={handleActiveStandbyToggle} />
-                );
-              }}
-            </Mutation>
-            
+                    return (
+                      <ActiveStandbyConfirm
+                        activeEnvironment={project.productionEnvironment} 
+                        standbyEnvironment={project.standbyProductionEnvironment}
+                        onProceed={switchActiveBranch}
+                      />
+                    );
+                  }}
+                </Mutation>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        : null
+      }
+
       <style jsx>{`
         .details {
           display: inline-table;
@@ -245,6 +260,12 @@ const Project = ({ project }) => {
             &.envlimit {
               &::before {
                 background-image: url('/static/images/environments-in-use.svg');
+              }
+            }
+            &.activeEnvironment {
+              width: 100%;
+              .inner {
+                width: 100%;
               }
             }
 
