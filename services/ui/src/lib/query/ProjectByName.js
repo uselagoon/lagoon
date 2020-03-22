@@ -5,6 +5,8 @@ export default gql`
     project: projectByName (name: $name){
       id
       name
+      productionEnvironment
+      standbyProductionEnvironment
       branches
       pullrequests
       created
