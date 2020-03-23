@@ -331,10 +331,11 @@ $(build-solrimages): build/commons
 base-images-with-versions += $(solrimages)
 s3-images += $(solrimages)
 
-build/solr__5.5  build/solr__6.6 build/solr__7.5: images/commons
+build/solr__5.5  build/solr__6.6 build/solr__7.5 build/solr__7.7: images/commons
 build/solr__5.5-drupal: build/solr__5.5
 build/solr__6.6-drupal: build/solr__6.6
 build/solr__7.5-drupal: build/solr__7.5
+build/solr__7.7-drupal: build/solr__7.7
 build/solr__5.5-ckan: build/solr__5.5
 build/solr__6.6-ckan: build/solr__6.6
 
