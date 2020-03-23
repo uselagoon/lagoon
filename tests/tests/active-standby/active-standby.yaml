@@ -39,7 +39,7 @@
     expected_branch: "{{ branch }}"
     project: "{{ project }}"
 
-- name: "{{ testname }} - api deployActiveStandby on {{ project }}, which should switch the routes"
+- name: "{{ testname }} - api switchActiveStandby on {{ project }}, which should switch the routes"
   hosts: localhost
   serial: 1
   vars:
