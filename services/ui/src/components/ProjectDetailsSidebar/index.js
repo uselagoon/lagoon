@@ -9,7 +9,7 @@ import { bp, color, fontSize } from 'lib/variables';
 import { Mutation } from 'react-apollo';
 
 import ProjectByNameQuery from 'lib/query/ProjectByName';
-import switchActiveStandbyMutation from 'lib/mutation/switchActiveStandby';
+import SwitchActiveStandbyMutation from 'lib/mutation/SwitchActiveStandby';
 
 const Project = ({ project }) => {
   const [copied, setCopied] = useState(false);
@@ -98,7 +98,7 @@ const Project = ({ project }) => {
               <label>Active Environment</label>
               <div className="field">
                 <Mutation
-                  mutation={switchActiveStandbyMutation}
+                  mutation={SwitchActiveStandbyMutation}
                   refetchQueries={[
                     { query: ProjectByNameQuery, variables: { name: project.name } }
                   ]}
