@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { action } from '@storybook/addon-actions';
-import ActiveStandby, { ActiveStandby as ActiveStandbyBaseComponent } from './index';
+import ActiveStandby, { ActiveStandbyConfirm as ActiveStandbyBaseComponent } from './index';
 
 export default {
   component: ActiveStandbyBaseComponent,
