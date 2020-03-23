@@ -6,7 +6,7 @@ Once logged in, the first screen is a list of all repositories your user has acc
 ![Harbor Projects Overview](projects_overview.png)
 
 
-Within each Harbor repository, you'll see a list of container images from all environments with a single Lagoon project. <flesh this out a bit>
+Within each Harbor repository, you'll see a list of container images from all environments with a single Lagoon project.
 
 ![Harbor Repositories Overview](repositories_overview.png)
 
