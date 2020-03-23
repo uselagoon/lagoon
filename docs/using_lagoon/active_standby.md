@@ -58,7 +58,7 @@ To trigger an event to switch the environments, you can run the following graphQ
 
 ```
 mutation ActiveStandby {
-  deployActiveStandby(
+  switchActiveStandby(
     input:{
       project:{
         name:"drupal-example"
@@ -73,7 +73,7 @@ mutation ActiveStandby {
 
 A task is created in the current active environment `tasks` tab when a switch event is triggered, you can check the status of the switch here.
 
-Using the `remoteId` from the `deployActiveStandby` mutation, we can also check the status of the task.
+Using the `remoteId` from the `switchActiveStandby` mutation, we can also check the status of the task.
 ```
 query getTask {
   taskByRemoteId(id: "<remoteId>") {

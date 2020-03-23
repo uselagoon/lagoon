@@ -763,7 +763,7 @@ const deployEnvironmentPromote = async (
   }
 };
 
-const deployActiveStandby = async (
+const switchActiveStandby = async (
   root,
   {
     input: {
@@ -848,7 +848,7 @@ const deployActiveStandby = async (
       'error',
       '',
       '',
-      'api:deployActiveStandby',
+      'api:switchActiveStandby',
       data,
       `Failed to create active to standby task, reason: ${error}`,
     );
@@ -872,7 +872,7 @@ const Resolvers /* : ResolversObj */ = {
   deployEnvironmentBranch,
   deployEnvironmentPullrequest,
   deployEnvironmentPromote,
-  deployActiveStandby,
+  switchActiveStandby,
   deploymentSubscriber,
 };
 

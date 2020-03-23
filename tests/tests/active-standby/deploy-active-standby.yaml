@@ -1,27 +1,27 @@
-- name: "{{ testname }} - POST api deployActiveStandby with target project {{ project }} (no sha) to {{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+- name: "{{ testname }} - POST api switchActiveStandby with target project {{ project }} (no sha) to {{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
   block:
     - include: ../../tasks/api/refresh-token.yaml
-    - name: "{{ testname }} - POST api deployActiveStandby with target git branch {{ standby_branch }} and project {{ project }} (no sha) to {{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+    - name: "{{ testname }} - POST api switchActiveStandby with target git branch {{ standby_branch }} and project {{ project }} (no sha) to {{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
       uri:
         url: "{{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
         method: POST
         headers:
           Authorization: "Bearer {{ token }}"
         body_format: json
-        body: '{ "query": "mutation($projectName: String!) {deployActiveStandby(input:{project:{name:$projectName}}){id, remoteId}}", "variables": {"projectName":"{{ project }}"}}'
+        body: '{ "query": "mutation($projectName: String!) {switchActiveStandby(input:{project:{name:$projectName}}){id, remoteId}}", "variables": {"projectName":"{{ project }}"}}'
       register: apiresponse
       until:
-    - name: "{{ testname }} - POST api deployActiveStandby with target project {{ project }} (no sha) to {{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+    - name: "{{ testname }} - POST api switchActiveStandby with target project {{ project }} (no sha) to {{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
       debug:
         msg: "api response: {{ apiresponse.json }}"
-    - name: "{{ testname }} - POST api taskByRemoteId with remoteID {{ apiresponse.json.data.deployActiveStandby.remoteId }} for migration status to {{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+    - name: "{{ testname }} - POST api taskByRemoteId with remoteID {{ apiresponse.json.data.switchActiveStandby.remoteId }} for migration status to {{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
       uri:
         url: "{{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
         method: POST
         headers:
           Authorization: "Bearer {{ token }}"
         body_format: json
-        body: '{ "query": "query($remoteId: String!) {taskByRemoteId(id: $remoteId){status}}", "variables": {"remoteId":"{{ apiresponse.json.data.deployActiveStandby.remoteId }}"}}'
+        body: '{ "query": "query($remoteId: String!) {taskByRemoteId(id: $remoteId){status}}", "variables": {"remoteId":"{{ apiresponse.json.data.switchActiveStandby.remoteId }}"}}'
       register: taskresult
       until: taskresult.json.data.taskByRemoteId.status == "succeeded" or taskresult.json.data.taskByRemoteId.status == "failed"
       retries: 10

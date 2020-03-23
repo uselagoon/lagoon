@@ -11,7 +11,7 @@ import { bp, color, fontSize } from 'lib/variables';
 import { Mutation } from 'react-apollo';
 
 import ProjectByNameQuery from 'lib/query/ProjectByName';
-import DeployActiveStandbyMutation from 'lib/mutation/DeployActiveStandby';
+import switchActiveStandbyMutation from 'lib/mutation/switchActiveStandby';
 
 const Project = ({ project }) => {
   const [copied, setCopied] = useState(false);
@@ -103,12 +103,12 @@ const Project = ({ project }) => {
               <label>Active Environment</label>
               <div className="field">
                 <Mutation 
-                  mutation={DeployActiveStandbyMutation} 
+                  mutation={switchActiveStandbyMutation} 
                   refetchQueries={[
                     { query: ProjectByNameQuery, variables: { name: project.name } }
                   ]}
                 >
-                  {(deployActiveStandby, { loading, called, error, data }) => {
+                  {(switchActiveStandby, { loading, called, error, data }) => {
                     const switchActiveBranch = () => {
                       const input = {
                         project:{
@@ -116,7 +116,7 @@ const Project = ({ project }) => {
                         }
                       }
                       
-                      deployActiveStandby({ variables: { input } });
+                      switchActiveStandby({ variables: { input } });
                       Router.push(`/projects/${productionEnvironment.project.name}/${productionEnvironment.openshiftProjectName}/tasks`)
                     }
 

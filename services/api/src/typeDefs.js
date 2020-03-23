@@ -1050,7 +1050,7 @@ const typeDefs = gql`
     destinationEnvironment: String!
   }
 
-  input DeployActiveStandbyInput {
+  input switchActiveStandbyInput {
     project: ProjectInput!
   }
 
@@ -1297,7 +1297,7 @@ const typeDefs = gql`
     deployEnvironmentBranch(input: DeployEnvironmentBranchInput!): String
     deployEnvironmentPullrequest(input: DeployEnvironmentPullrequestInput!): String
     deployEnvironmentPromote(input: DeployEnvironmentPromoteInput!): String
-    deployActiveStandby(input: DeployActiveStandbyInput!): Task
+    switchActiveStandby(input: switchActiveStandbyInput!): Task
     addGroup(input: AddGroupInput!): GroupInterface
     updateGroup(input: UpdateGroupInput!): GroupInterface
     deleteGroup(input: DeleteGroupInput!): String
