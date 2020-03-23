@@ -12,7 +12,6 @@ export const ActiveStandbyConfirm = ({
   activeEnvironment,
   standbyEnvironment,
   onProceed,
-  inputValue,
   open,
   openModal,
   closeModal
@@ -49,14 +48,6 @@ export const ActiveStandbyConfirm = ({
         .form-input {
           display: flex;
           align-items: center;
-        }
-        .environment {
-          font-size: 25px;
-          font-size: 1.5625rem;
-          line-height: 38px;
-          line-height: 2.375rem;
-          font-weight: normal;
-          margin: 4px 0 0;
         }
       `}</style>
     </React.Fragment>
