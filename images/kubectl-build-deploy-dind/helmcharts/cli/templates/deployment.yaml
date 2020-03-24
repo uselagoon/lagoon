@@ -33,7 +33,7 @@ spec:
             secretName: lagoon-sshkey
       containers:
         - image: {{ .Values.image | quote }}
-          name: {{ .Chart.Name }}
+          name: {{ include "cli.fullname" . }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}

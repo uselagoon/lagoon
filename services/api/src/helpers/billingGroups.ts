@@ -13,22 +13,9 @@
 
 import * as R from 'ramda';
 import projectHelpers from '../resources/project/helpers';
-//import { logger } from '@lagoon/commons/src/local-logging';
-import { getSqlClient, USE_SINGLETON } from '../clients/sqlClient';
+import { getSqlClient } from '../clients/sqlClient';
 import { getKeycloakAdminClient } from '../clients/keycloak-admin';
 import { Group, BillingGroup } from '../models/group';
-// import { keycloakAdminClient } from '../clients/keycloakClient';
-
-const keycloakAuth = {
-  username: 'admin',
-  password: R.pathOr(
-    '<password not set>',
-    ['env', 'KEYCLOAK_ADMIN_PASSWORD'],
-    process,
-  ) as string,
-  grantType: 'password',
-  clientId: 'admin-cli',
-};
 
 interface IGroup {
   name: string;
@@ -42,7 +29,7 @@ interface IGroup {
 
 export const getAllProjectsNotInBillingGroup = async () => {
   const keycloakAdminClient = await getKeycloakAdminClient();
-  const sqlClient = getSqlClient(USE_SINGLETON);
+  const sqlClient = getSqlClient();
   const GroupModel = Group({keycloakAdminClient });
 
   // GET ALL GROUPS
@@ -65,6 +52,8 @@ export const getAllProjectsNotInBillingGroup = async () => {
   // SQL QUERY FOR ALL PROJECTS NOT IN ID
   const projects = await projectHelpers(sqlClient).getAllProjectsNotIn(pids);
 
+  sqlClient.destroy()
+  
   return projects.map(project => ({
     id: project.id,
     name: project.name,
