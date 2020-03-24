@@ -13,16 +13,15 @@ tasks:
         command: env
         service: cli
     - run:
-        name: IF no Drupal installed drush si with no email sending
+        name: IF no Drupal installed, install Drupal
         command: |
             cd web
             if tables=$(drush sqlq "show tables like 'node';") && [ -z "$tables" ]; then
-                # no drupal installed, we install drupal from scratch
-                drush -y si standard install_configure_form.enable_update_status_module=NULL install_configure_form.enable_update_status_emails=NULL --site-name="LAGOON_GIT_SHA=$LAGOON_GIT_SHA LAGOON_GIT_BRANCH=$LAGOON_GIT_BRANCH"
-            else
-                # drupal already installed, set the sitename to the current SHA and BRANCH
-                drush -y cset system.site name "LAGOON_GIT_SHA=$LAGOON_GIT_SHA LAGOON_GIT_BRANCH=$LAGOON_GIT_BRANCH"
+                # no drupal installed, we install drupal from an db dump
+                zcat ../drupal.sql.gz | $(drush sql-connect)
             fi
+            # set the sitename to the current SHA and BRANCH
+            drush -y cset system.site name "LAGOON_GIT_SHA=$LAGOON_GIT_SHA LAGOON_GIT_BRANCH=$LAGOON_GIT_BRANCH"
         service: cli
         shell: bash
     - run:
