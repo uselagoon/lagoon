@@ -39,25 +39,50 @@ spec:
         spec:
           description: MariaDBConsumerSpec defines the desired state of MariaDBConsumer
           properties:
+            consumer:
+              description: MariaDBConsumerData defines the provider link for this
+                consumer
+              properties:
+                database:
+                  type: string
+                password:
+                  type: string
+                services:
+                  description: MariaDBConsumerServices defines the provider link for
+                    this consumer
+                  properties:
+                    primary:
+                      type: string
+                    replicas:
+                      items:
+                        type: string
+                      type: array
+                  type: object
+                username:
+                  type: string
+              type: object
             environment:
               description: These are the spec options for consumers
               type: string
-            mariadb_database:
-              type: string
-            mariadb_hostname:
-              type: string
-            mariadb_password:
-              type: string
-            mariadb_port:
-              type: string
-            mariadb_readreplica_hostname:
-              type: string
-            mariadb_user:
-              type: string
-            service_mariadb_hostname:
-              type: string
-            service_mariadb_readreplica_hostname:
-              type: string
+            provider:
+              description: MariaDBConsumerProvider defines the provider link for this
+                consumer
+              properties:
+                hostname:
+                  type: string
+                name:
+                  type: string
+                namespace:
+                  type: string
+                port:
+                  type: string
+                readReplicas:
+                  items:
+                    type: string
+                  type: array
+                type:
+                  type: string
+              type: object
           type: object
         status:
           description: MariaDBConsumerStatus defines the observed state of MariaDBConsumer
@@ -112,15 +137,23 @@ spec:
             environment:
               description: These are the spec options for providers
               type: string
-            mariadb_hostname:
+            hostname:
               type: string
-            mariadb_password:
+            name:
               type: string
-            mariadb_port:
+            namespace:
               type: string
-            mariadb_readreplica_hostname:
+            password:
               type: string
-            mariadb_user:
+            port:
+              type: string
+            readReplicaHostnames:
+              items:
+                type: string
+              type: array
+            type:
+              type: string
+            user:
               type: string
           type: object
         status:
@@ -337,7 +370,7 @@ spec:
         - --enable-leader-election
         command:
         - /manager
-        image: amazeeio/dbaas-operator:testingv1
+        image: amazeeio/dbaas-operator:v0.1.0
         name: manager
         resources:
           limits:
