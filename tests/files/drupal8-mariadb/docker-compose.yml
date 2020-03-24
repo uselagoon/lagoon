@@ -13,8 +13,6 @@ services:
       LAGOON_PROJECT: ci-drupal
     volumes:
       - ./web:/app/web:delegated
-    depends_on:
-      - builder
   varnish-myname:
     networks:
       - amazeeio-network
@@ -26,7 +24,7 @@ services:
       lagoon.type: varnish
       lagoon.name: varnish
     depends_on:
-      - nginx
+      - nginx-myname
   nginx-myname:
     networks:
       - amazeeio-network
@@ -42,7 +40,7 @@ services:
     volumes:
       - ./web:/app/web:delegated
     depends_on:
-      - builder
+      - cli
     expose:
       - "8080"
     environment:
@@ -59,7 +57,7 @@ services:
     volumes:
       - ./web:/app/web:delegated
     depends_on:
-      - builder
+      - cli
   mariadb:
     build:
       context: .

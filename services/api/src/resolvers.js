@@ -29,6 +29,7 @@ const {
   taskDrushCron,
   taskDrushSqlSync,
   taskDrushRsyncFiles,
+  taskDrushUserLogin,
   taskSubscriber,
 } = require('./resources/task/resolvers');
 
@@ -336,6 +337,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     taskDrushCron,
     taskDrushSqlSync,
     taskDrushRsyncFiles,
+    taskDrushUserLogin,
     deleteTask,
     updateTask,
     setEnvironmentServices,
