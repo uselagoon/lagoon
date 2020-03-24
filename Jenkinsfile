@@ -51,7 +51,7 @@ node {
                   try {
                     sh "make k3d/clean K3S_VERSION=${kubernetes_version['k3s']} KUBECTL_VERSION=${kubernetes_version['kubectl']}"
                     sh "make k3d K3S_VERSION=${kubernetes_version['k3s']} KUBECTL_VERSION=${kubernetes_version['kubectl']}"
-                    sh "make k8s-tests"
+                    sh "make -O${SYNC_MAKE_OUTPUT} k8s-tests"
                   } catch (e) {
                     echo "Something went wrong, trying to cleanup"
                     cleanup()
