@@ -399,6 +399,7 @@ services :=       api \
 									rest2tasks \
 									webhook-handler \
 									webhooks2tasks \
+									backup-handler \
 									broker \
 									broker-single \
 									logs-forwarder \
@@ -446,7 +447,7 @@ $(build-services-galera):
 	touch $@
 
 # Dependencies of Service Images
-build/auth-server build/logs2email build/logs2slack build/logs2rocketchat build/logs2microsoftteams build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftjobs build/openshiftjobsmonitor build/openshiftmisc build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/api build/cli build/ui: build/yarn-workspace-builder
+build/auth-server build/logs2email build/logs2slack build/logs2rocketchat build/logs2microsoftteams build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftjobs build/openshiftjobsmonitor build/openshiftmisc build/openshiftremove build/rest2tasks build/webhook-handler build/webhooks2tasks build/backup-handler build/api build/cli build/ui: build/yarn-workspace-builder
 build/logs2logs-db: build/logstash__7
 build/logs-db: build/elasticsearch__7.1
 build/logs-db-ui: build/kibana__7.1
@@ -563,7 +564,7 @@ test-services-drupal: test-services-rest
 
 .PHONY: test-services-webhooks
 test-services-webhooks: test-services-main
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d webhook-handler webhooks2tasks
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d webhook-handler webhooks2tasks backup-handler
 
 # All Tests that use REST endpoints
 rest-tests = rest node features nginx elasticsearch
@@ -583,7 +584,7 @@ tests/drupal tests/drupal-postgres tests/drupal-galera: minishift build/varnish-
 webhook-tests = github gitlab bitbucket
 run-webhook-tests = $(foreach image,$(webhook-tests),tests/$(image))
 # List of Lagoon Services needed for webhook endpoint testing
-deployment-test-services-webhooks = $(deployment-test-services-main) webhook-handler webhooks2tasks
+deployment-test-services-webhooks = $(deployment-test-services-main) webhook-handler webhooks2tasks backup-handler
 .PHONY: $(run-webhook-tests)
 $(run-webhook-tests): openshift build/node__10-builder build/node__12-builder build/oc-build-deploy-dind $(foreach image,$(deployment-test-services-webhooks),build/$(image)) push-minishift
 		$(eval testname = $(subst tests/,,$@))
