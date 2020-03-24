@@ -482,6 +482,10 @@ const typeDefs = gql`
     environment: Environment
     remoteId: String
     buildLog: String
+    """
+    The Lagoon URL
+    """
+    uiLink: String
   }
 
   type EnvKeyValue {
