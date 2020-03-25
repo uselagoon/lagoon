@@ -1,8 +1,6 @@
 import * as R from 'ramda';
 import { Group } from './group';
 import Helpers from '../resources/project/helpers';
-import { getSqlClient, USE_SINGLETON } from '../clients/sqlClient';
-import { getKeycloakAdminClient } from '../clients/keycloak-admin';
 
 export interface Project {
   id: Number; // int(11) NOT NULL AUTO_INCREMENT,
@@ -27,15 +25,20 @@ export interface Project {
   availability: String; // varchar(50) COLLATE utf8_bin DEFAULT NULL,
 }
 
-export const projectsByGroup = async (group: Group) => {
-  const sqlClient = getSqlClient(USE_SINGLETON);
-  const keycloakAdminClient = await getKeycloakAdminClient();
-  const GroupModel = Group({keycloakAdminClient});
-  const projectIds = await GroupModel.getProjectsFromGroupAndSubgroups(group);
-  const projects = await Helpers(sqlClient).getProjectsByIds(projectIds);
-  return projects;
-};
+export const ProjectModel = (clients) => {
 
-export default {
-  projectsByGroup,
-};
+  const { sqlClient, keycloakAdminClient } = clients;
+
+  const projectsByGroup = async (group: Group) => {
+    const GroupModel = Group({keycloakAdminClient});
+    const projectIds = await GroupModel.getProjectsFromGroupAndSubgroups(group);
+    const projects = await Helpers(sqlClient).getProjectsByIds(projectIds);
+    return projects;
+  };
+
+  return {
+    projectsByGroup
+  }
+}
+
+export default ProjectModel
