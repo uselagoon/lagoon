@@ -68,7 +68,7 @@ const ApiConnection = ({ children }) => (
                   `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
                 )
               );
-            if (networkError) console.log(`[Network error]: ${networkError}`);
+            if (networkError) console.log('[Network error]', networkError);
           }),
           // Disable websockets when rendering server side.
           process.browser ? HttpWebsocketLink() : httpLink
