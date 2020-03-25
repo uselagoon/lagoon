@@ -144,16 +144,16 @@ fi
 SECRETS=/tmp/${NAMESPACE}-migration.yaml
 oc -n ${NAMESPACE} get secret mariadb-servicebroker-credentials -o yaml > $SECRETS
 
-DB_NETWORK_SERVICE=$(cat $SECRETS | shyaml get-value data.DB_HOST | base64 -D)
+DB_NETWORK_SERVICE=$(cat $SECRETS | shyaml get-value data.DB_HOST | base64 -d)
 if cat ${SECRETS} | grep DB_READREPLICA_HOSTS > /dev/null ; then
-  DB_READREPLICA_HOSTS=$(cat $SECRETS | shyaml get-value data.DB_READREPLICA_HOSTS | base64 -D)
+  DB_READREPLICA_HOSTS=$(cat $SECRETS | shyaml get-value data.DB_READREPLICA_HOSTS | base64 -d)
 else
   DB_READREPLICA_HOSTS=""
 fi
-DB_USER=$(cat $SECRETS | shyaml get-value data.DB_USER | base64 -D)
-DB_PASSWORD=$(cat $SECRETS | shyaml get-value data.DB_PASSWORD | base64 -D)
-DB_NAME=$(cat $SECRETS | shyaml get-value data.DB_NAME | base64 -D)
-DB_PORT=$(cat $SECRETS | shyaml get-value data.DB_PORT | base64 -D)
+DB_USER=$(cat $SECRETS | shyaml get-value data.DB_USER | base64 -d)
+DB_PASSWORD=$(cat $SECRETS | shyaml get-value data.DB_PASSWORD | base64 -d)
+DB_NAME=$(cat $SECRETS | shyaml get-value data.DB_NAME | base64 -d)
+DB_PORT=$(cat $SECRETS | shyaml get-value data.DB_PORT | base64 -d)
 
 shw_grey "================================================"
 shw_grey " DB_NETWORK_SERVICE=$DB_NETWORK_SERVICE"
@@ -238,7 +238,7 @@ shw_info "> Testing the route https://${ROUTE}/?${TIMESTAMP}"
 shw_info "================================================"
 curl -skLIXGET "https://${ROUTE}/?${TIMESTAMP}" \
   -A "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36" \
-  --cookie "NO_CACHE=1" | grep -E "HTTP|Cache|Location|LAGOON" || TRUE
+  --cookie "NO_CACHE=1" | grep -E "HTTP|Cache|Location|LAGOON" || true
 
 shw_grey "================================================"
 shw_grey ""
