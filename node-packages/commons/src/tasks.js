@@ -211,22 +211,15 @@ async function createDeployTask(deployData: Object) {
 
   switch (project.activeSystemsDeploy) {
     case 'lagoon_openshiftBuildDeploy':
-      // if (environments.project.productionEnvironment === branchName) {
-      //   logger.debug(
-      //     `projectName: ${projectName}, branchName: ${branchName}, production environment, no environment limits considered`,
-      //   );
-
       // we want to limit production environments, without making it configurable currently
       var productionEnvironmentsLimit = 2
 
-      // we want to make sure we can deploy the `production` env, and also any envs in the active/standby environment
-      // we may not even need the active/standby and just go to having `production` and `standbyProduction` only
+      // we want to make sure we can deploy the `production` env, and also the env defined as standby
       if (
         environments.project.productionEnvironment === branchName
         || environments.project.standbyProductionEnvironment === branchName
       ) {
         // get a list of production environments
-        console.log(environments.project);
         const prod_environments = environments.project.environments
           .filter(e => e.environmentType === 'production')
           .map(e => e.name);
@@ -248,7 +241,6 @@ async function createDeployTask(deployData: Object) {
         }
       } else {
         // get a list of non-production environments
-        console.log(environments.project);
         const dev_environments = environments.project.environments
           .filter(e => e.environmentType === 'development')
           .map(e => e.name);
