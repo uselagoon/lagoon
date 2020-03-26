@@ -25,11 +25,11 @@ const EVENTS = require('./events');
 const environmentHelpers = require('../environment/helpers');
 const projectHelpers = require('../project/helpers');
 const {
-  getEnvironmentByOpenshiftProjectName,
   addTask,
 } = require('@lagoon/commons/src/api');
 const uuid4 = require('uuid4');
 const convertDateFormat = R.init;
+const environmentSql = require('../environment/sql');
 /* ::
 
 import type {ResolversObj} from '../';
@@ -784,22 +784,16 @@ const deployActiveStandby = async (
     project: destProject.id,
   });
 
-  // @TODO: if we have permission to deploy production, is this required?
-  // await hasPermission('environment', 'view', {
-  //   project: destProject,
-  // });
+  await hasPermission('task', 'view', {
+    project: destProject,
+  });
 
-  const ocsafety = string =>
-    string.toLocaleLowerCase().replace(/[^0-9a-z-]/g, '-');
-  var safeProductionEnvironment = ocsafety(destProject.productionEnvironment);
-    var safeProjectName = ocsafety(destProject.name);
-  var openshiftProject = destProject.openshiftProjectPattern
-    ? destProject.openshiftProjectPattern
-        .replace('${branch}', safeProductionEnvironment)
-        .replace('${project}', safeProjectName)
-    : `${safeProjectName}-${safeProductionEnvironment}`;
-  const sourceEnvironment = await getEnvironmentByOpenshiftProjectName(openshiftProject);
-
+  const environmentRows = await query(
+    sqlClient,
+    environmentSql.selectEnvironmentByNameAndProject(destProject.productionEnvironment, destProject.id),
+  );
+  const environment = environmentRows[0];
+  var environmentId = parseInt(environment.id);
   // construct the data for the misc task
   const data = {
     projectName: destProject.name,
@@ -821,7 +815,7 @@ const deployActiveStandby = async (
       'Active/Standby Switch',
       'ACTIVE',
       created,
-      sourceEnvironment.environmentByOpenshiftProjectName.id,
+      environmentId,
       uuid,
       null,
       null,
@@ -840,7 +834,7 @@ const deployActiveStandby = async (
     var retData = {
       id: data.task.id,
       remoteId: data.task.uuid,
-      environment: sourceEnvironment.environmentByOpenshiftProjectName.id,
+      environment: environmentId,
     }
     return retData;
   } catch (error) {
