@@ -12,7 +12,7 @@ if [[ $(oc -n ${OPENSHIFT_PROJECT} get deploymentconfigs --no-headers=true -o na
   done
 fi
 
-POD=$(oc -n ${OPENSHIFT_PROJECT} get pods -l service=${SERVICE_NAME} -o json | jq -r '.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running") | .metadata.name' | head -n 1)
+POD=$(oc -n ${OPENSHIFT_PROJECT} get pods -l service=${SERVICE_NAME} -o json | jq -r '[.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running")] | first | .metadata.name')
 
 if [[ ! $POD ]]; then
   echo "No running pod found for ${SERVICE_NAME}, skipping"

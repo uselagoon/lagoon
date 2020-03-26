@@ -5,7 +5,10 @@ node {
   env.MINISHIFT_HOME = "/data/jenkins/.minishift"
 
   withEnv(['AWS_BUCKET=jobs.amazeeio.services', 'AWS_DEFAULT_REGION=us-east-2']) {
-    withCredentials([usernamePassword(credentialsId: 'aws-s3-lagoon', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+    withCredentials([
+      usernamePassword(credentialsId: 'aws-s3-lagoon', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY'),
+      string(credentialsId: 'SKIP_IMAGE_PUBLISH', variable: 'SKIP_IMAGE_PUBLISH')
+    ]) {
       try {
         env.CI_BUILD_TAG = env.BUILD_TAG.replaceAll('%2f','').replaceAll("[^A-Za-z0-9]+", "").toLowerCase()
         env.SAFEBRANCH_NAME = env.BRANCH_NAME.replaceAll('%2f','-').replaceAll("[^A-Za-z0-9]+", "-").toLowerCase()
@@ -28,7 +31,6 @@ node {
         stage ('Checkout') {
           def checkout = checkout scm
           env.GIT_COMMIT = checkout["GIT_COMMIT"]
-          sh "git fetch --tags"
         }
 
         stage ('build images') {
@@ -59,8 +61,12 @@ node {
               'push images to amazeeiolagoon': {
                 stage ('push images to amazeeiolagoon/*') {
                   withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
-                    sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-                    sh "make -O${SYNC_MAKE_OUTPUT} -j4 publish-amazeeiolagoon-baseimages publish-amazeeiolagoon-serviceimages BRANCH_NAME=${SAFEBRANCH_NAME}"
+                    if (env.SKIP_IMAGE_PUBLISH != 'true') {
+                      sh 'docker login -u amazeeiojenkins -p $PASSWORD'
+                      sh "make -O${SYNC_MAKE_OUTPUT} -j4 publish-amazeeiolagoon-baseimages publish-amazeeiolagoon-serviceimages BRANCH_NAME=${SAFEBRANCH_NAME}"
+                    } else {
+                      sh 'echo "skipped because of SKIP_IMAGE_PUBLISH env variable"'
+                    }
                   }
                 }
               }
@@ -94,7 +100,7 @@ node {
           )
         }
 
-        if (env.TAG_NAME) {
+        if (env.TAG_NAME && env.SKIP_IMAGE_PUBLISH != 'true') {
           stage ('publish-amazeeio') {
             withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
               sh 'docker login -u amazeeiojenkins -p $PASSWORD'
@@ -103,7 +109,7 @@ node {
           }
         }
 
-        if (env.BRANCH_NAME == 'master') {
+        if (env.BRANCH_NAME == 'master' && env.SKIP_IMAGE_PUBLISH != 'true') {
           stage ('save-images-s3') {
             sh "make -O${SYNC_MAKE_OUTPUT} -j8 s3-save"
           }
