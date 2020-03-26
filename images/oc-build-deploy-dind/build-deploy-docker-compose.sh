@@ -692,7 +692,8 @@ do
   SERVICE_NAME=${SERVICEBROKER_ENTRY_SPLIT[0]}
   SERVICE_TYPE=${SERVICEBROKER_ENTRY_SPLIT[1]}
 
-  SERVICE_NAME_UPPERCASE=$(echo "$SERVICE_NAME" | tr '[:lower:]' '[:upper:]')
+  # The prefix for the environment variables.
+  SERVICE_NAME_UPPERCASE=$(echo "$SERVICE_NAME" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
 
   case "$SERVICE_TYPE" in
     # Operator can take some time to return the required information, do it here
@@ -821,7 +822,7 @@ do
   SERVICE_NAME=${SERVICE_TYPES_ENTRY_SPLIT[0]}
   SERVICE_TYPE=${SERVICE_TYPES_ENTRY_SPLIT[1]}
 
-  SERVICE_NAME_UPPERCASE=$(echo "$SERVICE_NAME" | tr '[:lower:]' '[:upper:]')
+  SERVICE_NAME_UPPERCASE=$(echo "$SERVICE_NAME" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
 
   COMPOSE_SERVICE=${MAP_SERVICE_TYPE_TO_COMPOSE_SERVICE["${SERVICE_TYPES_ENTRY}"]}
 
