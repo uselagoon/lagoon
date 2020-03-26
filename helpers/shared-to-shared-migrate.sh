@@ -50,9 +50,6 @@
 #
 set -euo pipefail
 
-# Reset in case getopts has been used previously in the shell.
-OPTIND=1
-
 # Initialize our own variables:
 SOURCE_CLUSTER=""
 DESTINATION_CLUSTER=""
@@ -151,13 +148,13 @@ if [ ! -f "$CONF_FILE" ]; then
   exit 2
 fi
 
-if [ ! -z "${DRY_RUN}" ] ; then
+if [ "$DRY_RUN" ] ; then
   shw_warn "Dry run is enabled, so no network service changes will take place."
 fi
 
 # Load the DBaaS credentials for the project
 SECRETS=/tmp/${NAMESPACE}-migration.yaml
-oc -n ${NAMESPACE} get secret mariadb-servicebroker-credentials -o yaml > $SECRETS
+oc -n "$NAMESPACE" get secret mariadb-servicebroker-credentials -o yaml > "$SECRETS"
 
 DB_NETWORK_SERVICE=$(cat $SECRETS | shyaml get-value data.DB_HOST | base64 -d)
 if cat ${SECRETS} | grep DB_READREPLICA_HOSTS > /dev/null ; then
@@ -176,6 +173,7 @@ shw_grey " DB_READREPLICA_HOSTS=$DB_READREPLICA_HOSTS"
 shw_grey " DB_USER=$DB_USER"
 shw_grey " DB_PASSWORD=$DB_PASSWORD"
 shw_grey " DB_NAME=$DB_NAME"
+shw_grey " DB_PORT=$DB_PORT"
 shw_grey "================================================"
 
 # Ensure there is a database in the destination.
@@ -193,41 +191,41 @@ shw_info "================================================"
 mysql --defaults-file="$CONF_FILE" -e "SELECT * FROM mysql.db WHERE Db = '${DB_NAME}'\G;"
 
 # Dump the database inside the CLI pod.
-POD=$(oc -n ${NAMESPACE} get pods -o json --show-all=false -l service=cli | jq -r '.items[].metadata.name')
-shw_info "> Dumping database ${DB_NAME} on pod ${POD} on host ${DB_NETWORK_SERVICE}"
+POD=$(oc -n "$NAMESPACE" get pods -o json --show-all=false -l service=cli | jq -r '.items[].metadata.name')
+shw_info "> Dumping database $DB_NAME on pod $POD on host $DB_NETWORK_SERVICE"
 shw_info "================================================"
-oc -n ${NAMESPACE} exec ${POD} -- bash -c "time mysqldump -h ${DB_NETWORK_SERVICE} -u ${DB_USER} -p${DB_PASSWORD} ${DB_NAME} > /tmp/migration.sql"
-oc -n ${NAMESPACE} exec ${POD} -- ls -lath /tmp/migration.sql || exit 1
-oc -n ${NAMESPACE} exec ${POD} -- head -n 5 /tmp/migration.sql
-oc -n ${NAMESPACE} exec ${POD} -- tail -n 5 /tmp/migration.sql || exit 1
+oc -n "$NAMESPACE" exec "$POD" -- bash -c "time mysqldump -h '$DB_NETWORK_SERVICE' -u '$DB_USER' -p'$DB_PASSWORD' '$DB_NAME' > /tmp/migration.sql"
+oc -n "$NAMESPACE" exec "$POD" -- ls -lath /tmp/migration.sql || exit 1
+oc -n "$NAMESPACE" exec "$POD" -- head -n 5 /tmp/migration.sql
+oc -n "$NAMESPACE" exec "$POD" -- tail -n 5 /tmp/migration.sql || exit 1
 shw_norm "> Dump is done"
 shw_norm "================================================"
 
 # Import to new database.
 shw_info "> Importing the dump into ${DESTINATION_CLUSTER}"
 shw_info "================================================"
-oc -n ${NAMESPACE} exec ${POD} -- bash -c "time mysql -h ${DESTINATION_CLUSTER} -u ${DB_USER} -p${DB_PASSWORD} ${DB_NAME} < /tmp/migration.sql"
-oc -n ${NAMESPACE} exec ${POD} -- bash -c "rm /tmp/migration.sql"
+oc -n "$NAMESPACE" exec "$POD" -- bash -c "time mysql -h '$DESTINATION_CLUSTER' -u '$DB_USER' -p'$DB_PASSWORD' '$DB_NAME' < /tmp/migration.sql"
+oc -n "$NAMESPACE" exec "$POD" -- bash -c "rm /tmp/migration.sql"
 
 shw_norm "> Import is done"
 shw_norm "================================================"
 
 # Alter the network service(s).
-shw_info "> Altering the Network Service ${DB_NETWORK_SERVICE} to point at ${DESTINATION_CLUSTER}"
+shw_info "> Altering the Network Service $DB_NETWORK_SERVICE to point at $DESTINATION_CLUSTER"
 shw_info "================================================"
-oc -n ${NAMESPACE} get svc/${DB_NETWORK_SERVICE} -o yaml > /tmp/${NAMESPACE}-svc.yaml
-if [ -z "${DRY_RUN}" ] ; then
-  oc -n ${NAMESPACE} patch svc/${DB_NETWORK_SERVICE} -p "{\"spec\":{\"externalName\": \"${DESTINATION_CLUSTER}\"}}"
+oc -n "$NAMESPACE" get "svc/$DB_NETWORK_SERVICE" -o yaml > "/tmp/$NAMESPACE-svc.yaml"
+if [ -z "$DRY_RUN" ] ; then
+  oc -n "$NAMESPACE" patch "svc/$DB_NETWORK_SERVICE" -p "{\"spec\":{\"externalName\": \"${DESTINATION_CLUSTER}\"}}"
 else
   echo "**DRY RUN**"
 fi
-if [ ! -z "${DB_READREPLICA_HOSTS}" ]; then
-  shw_info "> Altering the Network Service ${DB_READREPLICA_HOSTS} to point at ${REPLICA_CLUSTER}"
+if [ "$DB_READREPLICA_HOSTS" ]; then
+  shw_info "> Altering the Network Service $DB_READREPLICA_HOSTS to point at $REPLICA_CLUSTER"
   shw_info "================================================"
-  oc -n ${NAMESPACE} get svc/${DB_READREPLICA_HOSTS} -o yaml > /tmp/${NAMESPACE}-svc-replica.yaml
+  oc -n "$NAMESPACE" get "svc/$DB_READREPLICA_HOSTS" -o yaml > "/tmp/$NAMESPACE-svc-replica.yaml"
   ORIGINAL_DB_READREPLICA_HOSTS=$(cat /tmp/${NAMESPACE}-svc-replica.yaml | shyaml get-value spec.externalName)
-  if [ -z "${DRY_RUN}" ] ; then
-    oc -n ${NAMESPACE} patch svc/${DB_READREPLICA_HOSTS} -p "{\"spec\":{\"externalName\": \"${REPLICA_CLUSTER}\"}}"
+  if [ -z "$DRY_RUN" ] ; then
+    oc -n "$NAMESPACE" patch "svc/$DB_READREPLICA_HOSTS" -p '{"spec":{"externalName": "'"$REPLICA_CLUSTER"'"}}'
   else
     echo "**DRY RUN**"
   fi
@@ -240,15 +238,15 @@ sleep 1
 # Verify the correct RDS cluster.
 shw_info "> Output the RDS cluster that Drush is connecting to"
 shw_info "================================================"
-oc -n ${NAMESPACE} exec ${POD} -- bash -c "drush sqlq 'SELECT @@aurora_server_id;'"
+oc -n "$NAMESPACE" exec "$POD" -- bash -c "drush sqlq 'SELECT @@aurora_server_id;'"
 
 # Drush status.
 shw_info "> Drush status"
 shw_info "================================================"
-oc -n ${NAMESPACE} exec ${POD} -- bash -c "drush status"
+oc -n "$NAMESPACE" exec "$POD" -- bash -c "drush status"
 
 # Get routes, and ensure a cache bust works.
-ROUTE=$(oc -n ${NAMESPACE} get routes -o json | jq --raw-output '.items[0].spec.host')
+ROUTE=$(oc -n "$NAMESPACE" get routes -o json | jq --raw-output '.items[0].spec.host')
 shw_info "> Testing the route https://${ROUTE}/?${TIMESTAMP}"
 shw_info "================================================"
 curl -skLIXGET "https://${ROUTE}/?${TIMESTAMP}" \
@@ -260,7 +258,7 @@ shw_grey ""
 shw_grey "In order to rollback this change, edit the Network Service(s) like so:"
 shw_grey ""
 shw_grey "oc -n ${NAMESPACE} patch svc/${DB_NETWORK_SERVICE} -p \"{\\\"spec\\\":{\\\"externalName': \\\"${SOURCE_CLUSTER}\\\"}}\""
-if [ ! -z "${DB_READREPLICA_HOSTS}" ]; then
+if [ "$DB_READREPLICA_HOSTS" ]; then
   shw_grey "oc -n ${NAMESPACE} patch svc/${DB_READREPLICA_HOSTS} -p \"{\\\"spec\\\":{\\\"externalName': \\\"${ORIGINAL_DB_READREPLICA_HOSTS}\\\"}}\""
 fi
 
