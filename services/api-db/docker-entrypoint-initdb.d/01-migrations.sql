@@ -23,8 +23,10 @@ CREATE OR REPLACE PROCEDURE
     IN pullrequests                    varchar(300),
     IN production_environment          varchar(100),
     IN production_routes               text,
+    IN production_alias                varchar(100),
     IN standby_production_environment  varchar(100),
     IN standby_routes                  text,
+    IN standby_alias                   varchar(100),
     IN auto_idle                       int(1),
     IN storage_calc                    int(1),
     IN development_environments_limit  int
@@ -63,8 +65,10 @@ CREATE OR REPLACE PROCEDURE
         branches,
         production_environment,
         production_routes,
+        production_alias,
         standby_production_environment,
         standby_routes,
+        standby_alias,
         auto_idle,
         storage_calc,
         pullrequests,
@@ -86,8 +90,10 @@ CREATE OR REPLACE PROCEDURE
         branches,
         production_environment,
         production_routes,
+        production_alias,
         standby_production_environment,
         standby_routes,
+        standby_alias,
         auto_idle,
         storage_calc,
         pullrequests,
@@ -967,13 +973,9 @@ $$
 
 DELIMITER ;
 
+-- If adding new procedures, add them to the bottom of this list
 CALL add_availability_to_project();
 CALL add_production_environment_to_project();
-CALL add_standby_production_environment_to_project();
-CALL add_standby_routes_to_project();
-CALL add_production_routes_to_project();
-CALL add_standby_alias_to_project();
-CALL add_production_alias_to_project();
 CALL add_ssh_to_openshift();
 CALL convert_project_pullrequest_to_varchar();
 CALL add_active_systems_promote_to_project();
@@ -1009,6 +1011,11 @@ CALL convert_user_ssh_key_usid_to_char();
 CALL add_private_key_to_project();
 CALL add_index_for_environment_backup_environment();
 CALL add_enum_email_microsoftteams_to_type_in_project_notification();
+CALL add_standby_production_environment_to_project();
+CALL add_standby_routes_to_project();
+CALL add_production_routes_to_project();
+CALL add_standby_alias_to_project();
+CALL add_production_alias_to_project();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;
@@ -1016,3 +1023,4 @@ DROP PROCEDURE IF EXISTS DeleteProjectSshKey;
 DROP PROCEDURE IF EXISTS CreateCustomerSshKey;
 DROP PROCEDURE IF EXISTS DeleteCustomerSshKey;
 DROP PROCEDURE IF EXISTS CreateSshKey;
+
