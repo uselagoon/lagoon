@@ -136,12 +136,6 @@ for util in oc jq mysql shyaml; do
 	fi
 done
 
-CONF_FILE=${HOME}/.my.cnf-${SOURCE_CLUSTER}
-if [ ! -f "$CONF_FILE" ]; then
-  shw_err "ERROR: please create $CONF_FILE so I can know how to connect to ${SOURCE_CLUSTER}"
-  exit 2
-fi
-
 CONF_FILE=${HOME}/.my.cnf-${DESTINATION_CLUSTER}
 if [ ! -f "$CONF_FILE" ]; then
   shw_err "ERROR: please create $CONF_FILE so I can know how to connect to ${DESTINATION_CLUSTER}"
