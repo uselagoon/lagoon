@@ -660,8 +660,10 @@ const typeDefs = gql`
     branches: String
     pullrequests: String
     productionEnvironment: String!
+    productionRoutes: String
     productionAlias: String
     standbyProductionEnvironment: String
+    standbyRoutes: String
     standbyAlias: String
     availability: ProjectAvailability
     autoIdle: Int
