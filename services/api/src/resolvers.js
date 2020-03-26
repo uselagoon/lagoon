@@ -29,6 +29,7 @@ const {
   taskDrushCron,
   taskDrushSqlSync,
   taskDrushRsyncFiles,
+  taskDrushUserLogin,
   taskSubscriber,
 } = require('./resources/task/resolvers');
 
@@ -114,6 +115,7 @@ const {
 } = require('./resources/sshKey/resolvers');
 
 const {
+  getMe,
   getUserBySshKey,
   addUser,
   updateUser,
@@ -144,6 +146,15 @@ const {
   addGroupsToProject,
   removeGroupsFromProject,
 } = require('./resources/group/resolvers');
+
+const {
+  addBillingModifier,
+  updateBillingModifier,
+  deleteBillingModifier,
+  deleteAllBillingModifiersByBillingGroup,
+  getBillingModifiers,
+  getAllModifiersByGroupId
+} = require('./resources/billing/resolvers');
 
 const {
   addBackup,
@@ -199,6 +210,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
   },
   BillingGroup: {
     projects: getAllProjectsByGroupId,
+    modifiers: getAllModifiersByGroupId,
   },
   Environment: {
     project: getProjectByEnvironmentId,
@@ -245,6 +257,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     environment: getEnvironmentByBackupId,
   },
   Query: {
+    me: getMe,
     userBySshKey: getUserBySshKey,
     projectByGitUrl: getProjectByGitUrl,
     projectByName: getProjectByName,
@@ -261,6 +274,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     allProjectsInGroup: getAllProjectsInGroup,
     billingGroupCost: getBillingGroupCost,
     allBillingGroupsCost: getAllBillingGroupsCost,
+    allBillingModifiers: getBillingModifiers
   },
   Mutation: {
     addOrUpdateEnvironment,
@@ -323,6 +337,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     taskDrushCron,
     taskDrushSqlSync,
     taskDrushRsyncFiles,
+    taskDrushUserLogin,
     deleteTask,
     updateTask,
     setEnvironmentServices,
@@ -346,6 +361,10 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     removeUserFromGroup,
     addGroupsToProject,
     removeGroupsFromProject,
+    addBillingModifier,
+    updateBillingModifier,
+    deleteBillingModifier,
+    deleteAllBillingModifiersByBillingGroup,
   },
   Subscription: {
     backupChanged: backupSubscriber,

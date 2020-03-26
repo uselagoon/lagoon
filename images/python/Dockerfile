@@ -1,7 +1,8 @@
 ARG PYTHON_VERSION
 ARG IMAGE_REPO
+ARG ALPINE_VERSION
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM python:${PYTHON_VERSION}-alpine
+FROM python:${PYTHON_VERSION}-alpine${ALPINE_VERSION}
 
 LABEL maintainer="amazee.io"
 ENV LAGOON=python
@@ -23,11 +24,20 @@ ENV TMPDIR=/tmp \
     # When Bash is invoked as non-interactive (like `bash -c command`) it sources a file that is given in `BASH_ENV`
     BASH_ENV=/home/.bashrc
 
+
 RUN apk update \
     && apk upgrade \
-    && apk add --no-cache python-dev \
-    py2-pip \
-    py2-virtualenv
+    && case ${PYTHON_VERSION} in \
+      2*) \
+        apk add --no-cache python-dev \
+        py2-pip \
+        py2-virtualenv; \
+        ;; \
+      3*) \
+        apk add --no-cache python3-dev \
+        py3-virtualenv; \
+        ;; \
+      esac
 
 # Make sure shells are not running forever
 COPY 80-shell-timeout.sh /lagoon/entrypoints/

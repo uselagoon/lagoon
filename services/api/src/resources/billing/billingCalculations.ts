@@ -1,4 +1,5 @@
 import { HIT_TIERS, CURRENCY_PRICING, AVAILABILITY } from './pricing';
+import { BillingModifier } from '../../models/billing';
 
 /* IProjectData
  * availability - Standard or High
@@ -25,6 +26,18 @@ export interface IBillingGroup {
   currency: string;
   billingSoftware?: string;
   projects: IProjectData[];
+}
+
+export interface BillingGroupCosts {
+  hitCost?: number;
+  hitCostFormula?: string;
+  storageCost?: number;
+  storageCostFormula?: string;
+  environmentCost?: { prod: number; dev: number; };
+  environmentCostFormula?: { prod: string; dev: string; };
+  total?: number;
+  modifiers?: [BillingModifier];
+  projects?: [any];
 }
 
 export const projectsDataReducer = (projects: any, objKey: string) =>
@@ -75,22 +88,41 @@ export const calculateProjectEnvironmentsTotalsToBill = environments => {
   };
 };
 
-export const getProjectsCosts = (currency, projects) => {
+export const getProjectsCosts = (currency, projects, modifiers: BillingModifier[] = []) => {
   const billingGroup = { projects, currency };
   const hitCost = hitsCost(billingGroup);
   const storage = storageCost(billingGroup);
   const prod = prodCost(billingGroup);
   const dev = devCost(billingGroup);
 
-  const environmentCost = { prod, dev };
-  const total = hitCost + storage + prod + dev;
-  return {
-    hitCost,
-    storageCost: storage,
+  const environmentCost = { prod: prod.cost, dev: dev.cost };
+  const environmentCostFormula = {prod: prod.formula, dev: dev.formula };
+
+  // Apply Modifiers
+  const modifiersSortFn = (a:BillingModifier, b:BillingModifier) => a.weight < b.weight? -1 : 1
+  const reducerFn: (previousValue: number, currentValue: BillingModifier) => number =
+  (total, modifier) => {
+    const { discountFixed, extraFixed, discountPercentage, extraPercentage } = modifier;
+    total = discountFixed ? total - discountFixed : total;
+    total = extraFixed ? total + extraFixed : total;
+    total = discountPercentage ? total - (total * (discountPercentage / 100)) : total;
+    total = extraPercentage ? total + (total * (extraPercentage / 100)) : total;
+    return total;
+  }
+  const subTotal = hitCost.cost + storage.cost + prod.cost + dev.cost;
+  const total = Math.max(0, modifiers.sort(modifiersSortFn).reduce(reducerFn, subTotal));
+
+  return ({
+    hitCost: hitCost.cost,
+    hitCostFormula: hitCost.formula,
+    storageCost: storage.cost,
+    storageCostFormula: storage.formula,
     environmentCost,
+    environmentCostFormula,
     total,
+    modifiers,
     projects,
-  };
+  }) as BillingGroupCosts;
 };
 
 /**
@@ -113,8 +145,14 @@ export const hitsCost = ({ projects, currency }: IBillingGroup) => {
   const hitBaseTiers = calculateHitBaseTiers(hitBase, hitCosts);
 
   return tier > 0
-    ? Number((hitBaseTiers[tier] + hitsInTier * hitCosts[tier]).toFixed(2))
-    : hitBaseTiers[0];
+    ? {
+        cost: Number((hitBaseTiers[tier] + hitsInTier * hitCosts[tier]).toFixed(2)),
+        formula: `(${hitBaseTiers[tier]} + ${hitsInTier}) X ${hitCosts[tier]}  ( (Hit Tier Base + Hits in Tier) X Hit Costs in Tier)`
+      }
+    : {
+      cost: hitBaseTiers[0],
+      formula: `${hitBaseTiers[0]} Base Hit Costs`
+      };
 };
 
 /**
@@ -133,8 +171,14 @@ export const storageCost = ({ projects, currency }: IBillingGroup) => {
   // const averageGBsPerDay = storageDays / days;
 
   return storageDays > freeGBDays
-    ? Number((storageToBill * storagePerDay).toFixed(2))
-    : 0;
+    ? {
+        cost: Number((storageToBill * storagePerDay).toFixed(2)),
+        formula: `${storageToBill}) X ${storagePerDay} (Average Storage Per Day X Storage Cost Per Day)`
+      }
+    : {
+      cost: 0,
+      formula: `No storage costs`
+    };
 };
 
 /**
@@ -156,8 +200,17 @@ export const prodCost = ({ currency, projects }: IBillingGroup) => {
     projectProdCosts.push(prodHours * prodSitePerHour);
   });
 
+  const calculationBreakdown = projects.map(project => {
+    const { prodHours, availability } = project;
+    const { prodSitePerHour } = currencyPricingAvailability[availability];
+    return (`(${prodHours} X ${prodSitePerHour})`);
+  }).join(' + ');
+
   // TODO - HANDLE MORE THAN 1 PROD ENV FOR A PROJECT
-  return Number(projectProdCosts.reduce((acc, obj) => acc + obj, 0).toFixed(2));
+  return {
+    cost: Number(projectProdCosts.reduce((acc, obj) => acc + obj, 0).toFixed(2)),
+    formula: `${calculationBreakdown} (Sum of Project Production Hours X Production Environment Cost Per Hour)`
+  };
 };
 
 /**
@@ -182,7 +235,10 @@ export const devCost = ({ currency, projects }: IBillingGroup) => {
   // const { devSitePerHour } = currencyPricingAvailability[availability];
   const { devSitePerHour } = currencyPricingAvailability[AVAILABILITY.STANDARD];
   const devToBill = Math.max(devHours - freeDevHours, 0);
-  return Number((devToBill * devSitePerHour).toFixed(2));
+  return {
+    cost: Number((devToBill * devSitePerHour).toFixed(2)),
+    formula: `${devToBill} X ${devSitePerHour} ( Max(Total Project Dev Hours - Free Hours Per Month ${freeDevHours}, 0) X Dev Cost Per Hour))`
+  };
 };
 
 // Hit Cost Helpers
