@@ -156,7 +156,6 @@ const addEnvVariableToEnvironment = async (
       value,
       scope,
       environment: typeId,
-      project: environment.project,
     }),
   );
 
