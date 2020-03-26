@@ -130,6 +130,8 @@ async function resticbackupSnapshotFinished(webhook: WebhookRequestData) {
           source = R.prop(1, matches);
         } else if (R.prop(2, matches)) {
           source = R.prop(2, matches);
+        } else if (R.prop(3, matches)) {
+          source = R.prop(3, matches);
         } else {
           source = 'unknown';
         }
