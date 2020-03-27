@@ -1,5 +1,7 @@
 # Harbor-Core Settings
-Harbor-Core requires a configuration file to start, which is located at `/etc/core/app.conf` within the container. This config file is stored within the `services/harbor-core/harbor-core.yml` file.
+Harbor-Core requires a configuration file to start, which is located at `/etc/core/app.conf` within the container. Any changes made to this config file are temporary and will not persist once the pod is restarted.
+
+The configmap from which this config file is generated is stored within Lagoon in the `services/harbor-core/harbor-core.yml` file. Any changes made to this configmap will be persisted across container restarts.
 
 ## Config File Contents
 
