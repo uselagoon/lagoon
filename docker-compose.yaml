@@ -742,8 +742,6 @@ services:
   harbor-redis:
     image: ${IMAGE_REPO:-lagoon}/harbor-redis
     hostname: harbor-redis
-    ports:
-      - '6379:6379'
     volumes:
       - /var/lib/redis
     labels:
