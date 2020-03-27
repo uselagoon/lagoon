@@ -7,6 +7,7 @@ import DrushCacheClear from './components/DrushCacheClear';
 import DrushCron from './components/DrushCron';
 import DrushRsyncFiles from './components/DrushRsyncFiles';
 import DrushSqlSync from './components/DrushSqlSync';
+import DrushUserLogin from './components/DrushUserLogin';
 import Empty from './components/Empty';
 import Completed from './components/Completed';
 import Error from './components/Error';
@@ -31,6 +32,7 @@ const AddTask = ({
     DrushCron,
     DrushRsyncFiles,
     DrushSqlSync,
+    DrushUserLogin,
     Empty,
     Completed,
     Error

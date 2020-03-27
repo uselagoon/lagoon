@@ -132,11 +132,11 @@ if [[ $($OC get deployment -l lagoon/service=${SERVICE}  &> /dev/null) ]]; then
 fi
 
 
-POD=$($OC get pods -l service=${SERVICE} -o json | jq -r '.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running") | .metadata.name' | head -n 1)
+POD=$($OC get pods -l service=${SERVICE} -o json | jq -r '[.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running")] | first | .metadata.name // empty')
 
 # Check for newer Helm chart lagoon labels
 if [[ ! $POD ]]; then
-  POD=$($OC get pods -l lagoon/service=${SERVICE} -o json | jq -r '.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running") | .metadata.name' | head -n 1)
+  POD=$($OC get pods -l lagoon/service=${SERVICE} -o json | jq -r '[.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running")] | first | .metadata.name // empty')
 fi
 
 if [[ ! $POD ]]; then

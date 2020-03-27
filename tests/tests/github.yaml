@@ -2,16 +2,26 @@
 - include: github/branch.yaml
   vars:
     testname: "GITHUB {{ lookup('env','CLUSTER_TYPE')|upper }} - slash branch"
-    node_version: 8
+    node_version: 10
     git_repo_name: github.git
     project: ci-github-{{ lookup('env','CLUSTER_TYPE') }}
     branch: github/slash/branch
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
 
+# This project has a branch regex that does not match `banana`.
+- include: github/branch-picky.yaml
+  vars:
+    testname: "GITHUB {{ lookup('env','CLUSTER_TYPE')|upper }} - picky branch"
+    node_version: 10
+    git_repo_name: github.git
+    project: ci-github-{{ lookup('env','CLUSTER_TYPE') }}
+    branch: github/slash/banana
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+
 - include: github/pullrequest.yaml
   vars:
     testname: "GITHUB {{ lookup('env','CLUSTER_TYPE')|upper }} - PULLREQUEST"
-    node_version: 8
+    node_version: 10
     git_repo_name: github.git
     project: ci-github-{{ lookup('env','CLUSTER_TYPE') }}
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.pr-1.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
@@ -20,7 +30,7 @@
   vars:
     testname: "GITHUB {{ lookup('env','CLUSTER_TYPE')|upper }} - skip deployment"
     branch: skip
-    node_version: 8
+    node_version: 10
     git_repo_name: github.git
     project: ci-github-{{ lookup('env','CLUSTER_TYPE') }}
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.skip.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"

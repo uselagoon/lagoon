@@ -8,6 +8,7 @@ import { onError } from 'apollo-link-error';
 import { ApolloLink } from 'apollo-link';
 import { getMainDefinition } from 'apollo-utilities';
 import { ApolloProvider } from 'react-apollo';
+import { ApolloProvider as ApolloHooksProvider } from '@apollo/react-hooks'
 import { AuthContext } from 'lib/Authenticator';
 import ErrorPage from 'pages/_error.js';
 
@@ -67,7 +68,7 @@ const ApiConnection = ({ children }) => (
                   `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
                 )
               );
-            if (networkError) console.log(`[Network error]: ${networkError}`);
+            if (networkError) console.log('[Network error]', networkError);
           }),
           // Disable websockets when rendering server side.
           process.browser ? HttpWebsocketLink() : httpLink
@@ -75,7 +76,7 @@ const ApiConnection = ({ children }) => (
         cache: new InMemoryCache()
       });
 
-      return <ApolloProvider client={client}>{children}</ApolloProvider>;
+      return <ApolloProvider client={client}><ApolloHooksProvider client={client}>{children}</ApolloHooksProvider></ApolloProvider>;
     }}
   </AuthContext.Consumer>
 );

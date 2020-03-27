@@ -1,0 +1,81 @@
+{
+  "data": {
+    "billingGroupCost": {
+      "id": "asdfa",
+      "name": "abc",
+      "currency": "USD",
+      "availability": "HIGH",
+      "hitCost": 69,
+      "storageCost": 0,
+      "environmentCost": {
+        "prod": 31.02,
+        "dev": 0
+      },
+      "total": 100.02,
+      "modifiers": [],
+      "projects": [
+        {
+          "id": "590",
+          "name": "ipsum",
+          "availability": "STANDARD",
+          "month": "12",
+          "year": "2019",
+          "hits": 2094,
+          "storageDays": 2.303708,
+          "prodHours": 744,
+          "devHours": 1488,
+          "environments": [
+            {
+              "id": "104046",
+              "name": "dev",
+              "type": "development",
+              "hits": {
+                "total": 364
+              },
+              "storage": {
+                "bytesUsed": "779792",
+                "month": "2019-12"
+              },
+              "hours": {
+                "month": "2019-12",
+                "hours": 744
+              }
+            },
+            {
+              "id": "104036",
+              "name": "master",
+              "type": "production",
+              "hits": {
+                "total": 2094
+              },
+              "storage": {
+                "bytesUsed": "821804",
+                "month": "2019-12"
+              },
+              "hours": {
+                "month": "2019-12",
+                "hours": 744
+              }
+            },
+            {
+              "id": "104057",
+              "name": "stage",
+              "type": "development",
+              "hits": {
+                "total": 1239
+              },
+              "storage": {
+                "bytesUsed": "702112",
+                "month": "2019-12"
+              },
+              "hours": {
+                "month": "2019-12",
+                "hours": 744
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
