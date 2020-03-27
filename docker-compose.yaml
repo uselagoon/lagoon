@@ -38,6 +38,17 @@ services:
       lagoon.type: custom
       lagoon.template: services/webhook-handler/.lagoon.app.yml
       lagoon.image: amazeeiolagoon/webhook-handler:kubernetes
+  backup-handler:
+    image: ${IMAGE_REPO:-lagoon}/backup-handler
+    restart: on-failure
+    ports:
+      - '7778:3000'
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/backup-handler/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/backup-handler:kubernetes
+    depends_on:
+      - broker
   broker:
     image: ${IMAGE_REPO:-lagoon}/broker-single
     ports:
