@@ -794,6 +794,19 @@ const switchActiveStandby = async (
   );
   const environment = environmentRows[0];
   var environmentId = parseInt(environment.id);
+
+  if (destProject.standbyProductionEnvironment == null) {
+    sendToLagoonLogs(
+      'error',
+      '',
+      '',
+      'api:switchActiveStandby',
+      '',
+      `Failed to create active to standby task, reason: no standbyProductionEnvironment configured`,
+    );
+    return `Error: no standbyProductionEnvironment configured`;
+  }
+
   // construct the data for the misc task
   const data = {
     projectName: destProject.name,
