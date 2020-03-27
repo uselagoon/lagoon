@@ -24,6 +24,7 @@ pages:
   - Build & Deployment Process: using_lagoon/build_deploy_process.md
   - Environment Types: using_lagoon/environment_types.md
   - Environment Variables: using_lagoon/environment_variables.md
+  - Base Images: using_lagoon/base_images.md
   - Workflows: using_lagoon/workflows.md
   - Backups: using_lagoon/backups.md
   - Going Live: using_lagoon/golive.md

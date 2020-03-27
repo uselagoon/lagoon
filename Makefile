@@ -423,6 +423,7 @@ services :=       api \
 									kubernetesremove \
 									webhook-handler \
 									webhooks2tasks \
+									backup-handler \
 									broker \
 									broker-single \
 									logs-forwarder \
@@ -470,7 +471,7 @@ $(build-services-galera):
 	touch $@
 
 # Dependencies of Service Images
-build/auth-server build/logs2email build/logs2slack build/logs2rocketchat build/logs2microsoftteams build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftjobs build/openshiftjobsmonitor build/openshiftmisc build/openshiftremove build/kubernetesbuilddeploy build/kubernetesdeployqueue build/kubernetesbuilddeploymonitor build/kubernetesjobs build/kubernetesjobsmonitor build/kubernetesmisc build/kubernetesremove build/webhook-handler build/webhooks2tasks build/api build/cli build/ui: build/yarn-workspace-builder
+build/auth-server build/logs2email build/logs2slack build/logs2rocketchat build/logs2microsoftteams build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftjobs build/openshiftjobsmonitor build/openshiftmisc build/openshiftremove build/backup-handler build/kubernetesbuilddeploy build/kubernetesdeployqueue build/kubernetesbuilddeploymonitor build/kubernetesjobs build/kubernetesjobsmonitor build/kubernetesmisc build/kubernetesremove build/webhook-handler build/webhooks2tasks build/api build/cli build/ui: build/yarn-workspace-builder
 build/logs2logs-db: build/logstash__7
 build/logs-db: build/elasticsearch__7.1
 build/logs-db-ui: build/kibana__7.1
@@ -616,7 +617,7 @@ openshift-test-services = openshiftremove openshiftbuilddeploy openshiftbuilddep
 kubernetes-test-services = kubernetesbuilddeploy kubernetesdeployqueue kubernetesbuilddeploymonitor kubernetesjobs kubernetesjobsmonitor kubernetesremove kubernetesmisc tests-kubernetes local-registry local-dbaas-provider drush-alias
 
 # List of Lagoon Services needed for webhook endpoint testing
-webhooks-test-services = webhook-handler webhooks2tasks
+webhooks-test-services = webhook-handler webhooks2tasks backup-handler
 
 # List of Lagoon Services needed for drupal testing
 drupal-test-services = drush-alias

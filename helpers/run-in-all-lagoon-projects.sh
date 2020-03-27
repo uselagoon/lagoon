@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eu -o pipefail
+set -e -o pipefail
 
 oc get configmaps --all-namespaces --no-headers  | grep lagoon-env | awk '{ print $1 }' | while read OPENSHIFT_PROJECT; do
   REGEX=${REGEX:-.*}
