@@ -460,18 +460,6 @@ services:
       - '5000:5000'
     labels:
       lagoon.type: none
-  local-dbaas-provider:
-    image: ${IMAGE_REPO:-lagoon}/local-dbaas-provider
-    restart: always
-    labels:
-      lagoon.type: none
-    environment:
-      MYSQL_DATABASE: 'db'
-      MYSQL_USER: 'user'
-      MYSQL_PASSWORD: 'password'
-      MYSQL_ROOT_PASSWORD: 'password'
-    ports:
-      - '3306:3306'
   drush-alias:
     image: ${IMAGE_REPO:-lagoon}/drush-alias
     volumes:
