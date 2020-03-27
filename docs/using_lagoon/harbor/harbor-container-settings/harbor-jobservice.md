@@ -11,7 +11,7 @@ The configmap from which this config file is generated is stored within Lagoon i
 * `CORE_SECRET`
   * This value is a pre-shared key that must match between the various services connecting to Harbor-Core.
   * The default value is set to `secret123` when Harbor is ran locally or during CI testing.
-  * This value is retreived from a secret created when Harbor is first setup on a running Lagoon.
+  * This value is retrieved from a secret created when Harbor is first setup on a running Lagoon.
 * `HTTP_PROXY`
   * The default value is an empty string.
 * `HTTPS_PROXY`
@@ -19,7 +19,7 @@ The configmap from which this config file is generated is stored within Lagoon i
 * `JOBSERVICE_SECRET`
   * This value is a pre-shared key that must match between the various services connecting to Harbor-Jobservice.
   * The default value is set to `secret123` when Harbor is ran locally or during CI testing.
-  * This value is retreived from a secret created when Harbor is first setup on a running Lagoon.
+  * This value is retrieved from a secret created when Harbor is first setup on a running Lagoon.
 * `LOG_LEVEL`
   * The logging level this service should use.
   * The default value is `error`.
