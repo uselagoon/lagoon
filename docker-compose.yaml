@@ -46,7 +46,7 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/backup-handler/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/backup-handler:v1-3-1
+      lagoon.image: amazeeiolagoon/backup-handler:master
     depends_on:
       - broker
   broker:
