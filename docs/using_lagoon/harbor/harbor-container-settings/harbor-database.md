@@ -9,7 +9,7 @@ Harbor-Database requires specific environment variables to be set in order to st
 * `POSTGRES_PASSWORD`
   * The root password for the postgres database.
   * The default value is `test123`.
-  * This value is retreived from a secret created when Harbor is first setup on a running Lagoon.
+  * This value is retrieved from a secret created when Harbor is first setup on a running Lagoon.
 * `POSTGRES_USER`
   * The default user to be setup when initalizing the postgres service.
   * The default value is `postgres`.
