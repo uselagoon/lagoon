@@ -460,6 +460,29 @@ const taskDrushRsyncFiles = async (
   return taskData;
 };
 
+const taskDrushUserLogin = async (
+  root,
+  { environment: environmentId },
+  { sqlClient, hasPermission },
+) => {
+  await envValidators(sqlClient).environmentExists(environmentId);
+  await envValidators(sqlClient).environmentHasService(environmentId, 'cli');
+  const envPerm = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+  await hasPermission('task', `drushUserLogin:${envPerm.environmentType}`, {
+    project: envPerm.project,
+  });
+
+  const taskData = await Helpers(sqlClient).addTask({
+    name: 'Drush uli',
+    environment: environmentId,
+    service: 'cli',
+    command: `drush uli`,
+    execute: true,
+  });
+
+  return taskData;
+};
+
 const taskSubscriber = createEnvironmentFilteredSubscriber([
   EVENTS.TASK.ADDED,
   EVENTS.TASK.UPDATED,
@@ -477,6 +500,7 @@ const Resolvers /* : ResolversObj */ = {
   taskDrushCron,
   taskDrushSqlSync,
   taskDrushRsyncFiles,
+  taskDrushUserLogin,
   taskSubscriber,
 };
 

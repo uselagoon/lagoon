@@ -1,6 +1,8 @@
 const webpackShared = require('./webpack.shared-config');
 require('dotenv-extended').load();
 
+const withCSS = require('@zeit/next-css')
+
 const lagoonRoutes =
   (process.env.LAGOON_ROUTES && process.env.LAGOON_ROUTES.split(',')) || [];
 
@@ -17,7 +19,7 @@ const taskBlacklist =
     process.env.LAGOON_UI_TASK_BLACKLIST.split(',')) ||
   [];
 
-module.exports = {
+module.exports = withCSS({
   publicRuntimeConfig: {
     GRAPHQL_API: lagoonApiRoute ? `${lagoonApiRoute}/graphql` : envApiRoute,
     GRAPHQL_API_TOKEN: process.env.GRAPHQL_API_TOKEN,
@@ -51,4 +53,4 @@ module.exports = {
 
     return config;
   }
-};
+});

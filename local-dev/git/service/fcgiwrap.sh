@@ -1,2 +1,2 @@
 #!/bin/sh
-exec /usr/bin/spawn-fcgi -n -P /var/run/fcgiwrap.pid -F '1' -s '/var/run/fcgiwrap.socket' -u 'www-data' -U 'www-data' -g 'www-data' -G 'www-data' -- /usr/sbin/fcgiwrap -f
+exec /usr/bin/spawn-fcgi -n -P /run/fcgiwrap.pid -F '1' -s '/run/fcgiwrap.socket' -u 'nginx' -U 'nginx' -g 'nginx' -G 'nginx' -- /usr/bin/fcgiwrap -f
