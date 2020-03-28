@@ -1,30 +1,30 @@
 ---
 - include: bitbucket/branch.yaml
   vars:
-    testname: "BITBUCKET - slash branch"
+    testname: "BITBUCKET {{ lookup('env','CLUSTER_TYPE')|upper }} - slash branch"
     node_version: 10
     git_repo_name: bitbucket.git
-    git_repo_url: https://192.168.42.1:2222/git/bitbucket
+    git_repo_url: https://172.17.0.1:2222/git/bitbucket
     git_repo_full_name: git/bitbucket
-    project: ci-bitbucket
+    project: ci-bitbucket-{{ lookup('env','CLUSTER_TYPE') }}
     branch: bitbucket/slash/branch
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
 
 - include: github/skip-deployment.yaml
   vars:
-    testname: "BITBUCKET - skip deployment"
+    testname: "BITBUCKET {{ lookup('env','CLUSTER_TYPE')|upper }} - skip deployment"
     node_version: 10
     git_repo_name: bitbucket.git
-    git_repo_url: https://192.168.42.1:2222/git/bitbucket
+    git_repo_url: https://172.17.0.1:2222/git/bitbucket
     git_repo_full_name: git/bitbucket
-    project: ci-bitbucket
+    project: ci-bitbucket-{{ lookup('env','CLUSTER_TYPE') }}
     branch: skip
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.skip.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.skip.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
 
 - include: bitbucket/pullrequest.yaml
   vars:
-    testname: "BITBUCKET - PULLREQUEST"
+    testname: "BITBUCKET {{ lookup('env','CLUSTER_TYPE')|upper }} - PULLREQUEST"
     node_version: 10
     git_repo_name: bitbucket.git
-    project: ci-bitbucket
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.pr-2.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    project: ci-bitbucket-{{ lookup('env','CLUSTER_TYPE') }}
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.pr-2.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"

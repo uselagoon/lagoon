@@ -1,8 +1,0 @@
-- name: "{{ testname }} - POST rest2task /pullrequest/deploy with pr number {{ git_pr_number }}, git base branch {{ git_base_branch }}, base commit hash {{ git_base_commit_hash }}, pr branch {{ git_pr_branch }}, pr commit hash {{ git_pr_commit_hash }} to {{ lookup('env','REST2TASKS_PROTOCOL') }}://{{ lookup('env','REST2TASKS_HOST') }}:{{ lookup('env','REST2TASKS_PORT') }}"
-  uri:
-    url: "{{ lookup('env','REST2TASKS_PROTOCOL') }}://{{ lookup('env','REST2TASKS_HOST') }}:{{ lookup('env','REST2TASKS_PORT') }}/pullrequest/deploy"
-    method: POST
-    follow_redirects: yes
-    body_format: json
-    body: '{"projectName": "{{ project }}", "headBranchName": "{{ git_pr_branch }}", "baseBranchName": "{{ git_base_branch }}", "pullrequestTitle": "{{ git_pr_title }}", "pullrequestNumber": "{{ git_pr_number }}", "headSha": "{{ git_pr_commit_hash }}", "baseSha": "{{ git_base_commit_hash }}"}'
-

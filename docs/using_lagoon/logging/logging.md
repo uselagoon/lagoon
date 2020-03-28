@@ -3,29 +3,29 @@
 Lagoon provides access to the following logs via Kibana:
 
 * Logs from the OpenShift Routers, including every single HTTP and HTTPS request with:
-  * Source IP
-  * URL
-  * Path
-  * HTTP verb
-  * Cookies
-  * Headers
-  * User agent
-  * Project
-  * Container name
-  * Response size
-  * Response time
+    * Source IP
+    * URL
+    * Path
+    * HTTP verb
+    * Cookies
+    * Headers
+    * User agent
+    * Project
+    * Container name
+    * Response size
+    * Response time
 * Logs from containers:
-  * `stdout` and `stderr` messages
-  * Container name
-  * Project
+    * `stdout` and `stderr` messages
+    * Container name
+    * Project
 * Lagoon logs:
-  * Webhooks parsing
-  * Build logs
-  * Build errors
-  * Any other Lagoon related logs
+    * Webhooks parsing
+    * Build logs
+    * Build errors
+    * Any other Lagoon related logs
 * Application logs:
-  * Any logs sent by the running application
-  * For Drupal: install the [Lagoon Logs](https://www.drupal.org/project/lagoon_logs) module in order to receive logs from Drupal Watchdog.
+    * Any logs sent by the running application
+    * For Drupal: install the [Lagoon Logs](https://www.drupal.org/project/lagoon_logs) module in order to receive logs from Drupal Watchdog.
 
 To access the logs, please check with your Lagoon administrator to get the URL for the Kibana route \(for amazee.io this is [https://logs-db-ui-lagoon-master.ch.amazee.io/](https://logs-db-ui-lagoon-master.ch.amazee.io/)\).
 
