@@ -4,6 +4,16 @@ const GraphQLDate = require('graphql-iso-date');
 const GraphQLJSON = require('graphql-type-json');
 
 const {
+  getProblemsByEnvironmentId,
+  addProblem,
+  deleteProblem,
+} = require('./resources/problem/resolvers');
+
+const {
+  SeverityScoreType
+} = require('./resources/problem/types')
+
+const {
   getDeploymentsByEnvironmentId,
   getDeploymentByRemoteId,
   addDeployment,
@@ -223,6 +233,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     backups: getBackupsByEnvironmentId,
     envVariables: getEnvVarsByEnvironmentId,
     services: getEnvironmentServicesByEnvironmentId,
+    problems: getProblemsByEnvironmentId,
   },
   Deployment: {
     environment: getEnvironmentByDeploymentId,
@@ -274,9 +285,11 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     allProjectsInGroup: getAllProjectsInGroup,
     billingGroupCost: getBillingGroupCost,
     allBillingGroupsCost: getAllBillingGroupsCost,
-    allBillingModifiers: getBillingModifiers
+    allBillingModifiers: getBillingModifiers,
   },
   Mutation: {
+    addProblem,
+    deleteProblem,
     addOrUpdateEnvironment,
     updateEnvironment,
     deleteEnvironment,
@@ -373,6 +386,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
   },
   Date: GraphQLDate,
   JSON: GraphQLJSON,
+  SeverityScore: SeverityScoreType,
 };
 
 module.exports = resolvers;
