@@ -8,6 +8,8 @@ metadata:
     {{- include "redis-persistent.annotations" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       {{- include "redis-persistent.selectorLabels" . | nindent 6 }}
@@ -56,7 +58,7 @@ spec:
             - name: LAGOON_GIT_SHA
               value: {{ .Values.gitSha | quote }}
             - name: CRONJOBS
-              value: {{ .Values.cronjobs | quote }}
+              value: {{ .Values.inPodCronjobs | quote }}
           envFrom:
             - configMapRef:
                 name: lagoon-env

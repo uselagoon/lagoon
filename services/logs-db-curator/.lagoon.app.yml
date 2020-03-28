@@ -80,6 +80,9 @@ objects:
                 secretKeyRef:
                   key: LOGSDB_ADMIN_PASSWORD
                   name: logs-db-admin-password
+            - name: CRONJOBS
+              value: |
+                01 0 * * * /lagoon/cronjob.sh "/usr/bin/curator --config /curator/curator.yml /curator/actions.yml"
           resources:
             requests:
               cpu: 10m

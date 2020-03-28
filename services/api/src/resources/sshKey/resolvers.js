@@ -43,7 +43,9 @@ const addSshKey = async (
   { sqlClient, hasPermission, models },
 ) => {
   const keyType = sshKeyTypeToString(unformattedKeyType);
-  const keyFormatted = formatSshKey({ keyType, keyValue });
+  // handle key being sent as "ssh-rsa SSHKEY foo@bar.baz" as well as just the SSHKEY
+  const keyValueParts = keyValue.split(' ');
+  const keyFormatted = formatSshKey({ keyType, keyValue: keyValueParts.length > 1 ? keyValueParts[1] : keyValue });
 
   if (!validateSshKey(keyFormatted)) {
     throw new Error('Invalid SSH key format! Please verify keyType + keyValue');
@@ -93,7 +95,7 @@ const updateSshKey = async (
   const userIds = R.map(R.prop('usid'), perms);
 
   await hasPermission('ssh_key', 'update', {
-    users: userIds.join(','),
+    users: userIds,
   });
 
   if (isPatchEmpty({ patch })) {
@@ -150,7 +152,7 @@ const deleteSshKey = async (
   const userIds = R.map(R.prop('usid'), perms);
 
   await hasPermission('ssh_key', 'delete', {
-    users: userIds.join(','),
+    users: userIds
   });
 
   const prep = prepare(sqlClient, 'CALL DeleteSshKey(:name)');
@@ -168,7 +170,7 @@ const deleteSshKeyById = async (
   const userIds = R.map(R.prop('usid'), perms);
 
   await hasPermission('ssh_key', 'delete', {
-    users: userIds.join(','),
+    users: userIds
   });
 
   const prep = prepare(sqlClient, 'CALL DeleteSshKeyById(:id)');

@@ -9,10 +9,7 @@ const { asyncPipe } = require('@lagoon/commons/src/util');
 const { query } = require('../../util/db');
 const logger = require('../../logger');
 
-// const userHelpers = require('../user/helpers');
-
-// const KeycloakOperations = require('../project/keycloak');
-const Sql = require('../project/sql');
+const Sql = require('./sql');
 
 const Helpers = (sqlClient /* : MariaSQL */) => {
   const getProjectById = async (id /* : string */) => {
@@ -24,6 +21,11 @@ const Helpers = (sqlClient /* : MariaSQL */) => {
     const rows = await query(sqlClient, Sql.selectProjectByName(name));
     return R.prop(0, rows);
   };
+
+  const getProjectByEnvironmentId = async (environmentId) => {
+    const rows = await query(sqlClient, Sql.selectProjectByEnvironmentId(environmentId));
+    return R.prop(0, rows);
+  }
 
   const getProjectsByIds = (projectIds /* : Array<number> */) =>
     query(sqlClient, Sql.selectProjectsByIds(projectIds));
@@ -41,6 +43,7 @@ const Helpers = (sqlClient /* : MariaSQL */) => {
     getProjectById,
     getProjectByName,
     getProjectsByIds,
+    getProjectByEnvironmentId,
     getProjectsWithoutDirectUserAccess,
     getProjectIdByName: async (name /* : string */) => {
       const pidResult = await query(sqlClient, Sql.selectProjectIdByName(name));

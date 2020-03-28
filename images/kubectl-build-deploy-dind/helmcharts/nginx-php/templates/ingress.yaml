@@ -33,4 +33,6 @@ spec:
           - backend:
               serviceName: {{ $fullName }}
               servicePort: {{ .Values.service.port }}
+{{- else }}
+# empty
 {{- end }}
