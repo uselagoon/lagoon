@@ -4,7 +4,7 @@
  * Don't change anything here, it's magic!
  */
 
-$aliasUrl = "http://192.168.42.1:8087/aliases.drushrc.php.stub";
+$aliasUrl = "http://172.17.0.1:8087/aliases.drushrc.php.stub";
 $aliasCheckTimeout = 5;
 
 //do a head check against the alias stub file, report on failure
