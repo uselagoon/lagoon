@@ -142,11 +142,11 @@ node {
 
 def cleanup() {
   try {
+    sh "make minishift/cleanall"
+    sh "make k3d/cleanall"
     sh "make down || true"
     sh "make kill"
     sh "make down"
-    sh "make minishift/cleanall"
-    sh "make k3d/cleanall"
     sh "make clean"
   } catch (error) {
     echo "cleanup failed, ignoring this."
