@@ -16,7 +16,7 @@ tasks:
         name: IF no Drupal installed, install Drupal
         command: |
             cd web
-            if tables=$(drush sqlq "show tables like 'node';") && [ -z "$tables" ]; then
+            if tables=$(drush sqlq "show tables like \"node\";") && [ -z "$tables" ]; then
                 # no drupal installed, we install drupal from an db dump
                 zcat ../drupal.sql.gz | $(drush sql-connect)
             fi
