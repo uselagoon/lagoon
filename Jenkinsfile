@@ -71,6 +71,9 @@ node {
                   throw e
                 }
               }
+              stage ('cleanup') {
+                cleanup()
+              }
             },
             '2 start services': {
               stage ('start services') {
