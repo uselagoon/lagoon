@@ -8,6 +8,8 @@ metadata:
     {{- include "redis.annotations" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       {{- include "redis.selectorLabels" . | nindent 6 }}
@@ -32,7 +34,7 @@ spec:
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           env:
             - name: CRONJOBS
-              value: {{ .Values.cronjobs | quote }}
+              value: {{ .Values.inPodCronjobs | quote }}
             - name: LAGOON_GIT_SHA
               value: {{ .Values.gitSha | quote }}
           envFrom:

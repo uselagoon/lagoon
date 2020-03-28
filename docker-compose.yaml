@@ -38,6 +38,17 @@ services:
       lagoon.type: custom
       lagoon.template: services/webhook-handler/.lagoon.app.yml
       lagoon.image: amazeeiolagoon/webhook-handler:kubernetes
+  backup-handler:
+    image: ${IMAGE_REPO:-lagoon}/backup-handler
+    restart: on-failure
+    ports:
+      - '7778:3000'
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/backup-handler/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/backup-handler:kubernetes
+    depends_on:
+      - broker
   broker:
     image: ${IMAGE_REPO:-lagoon}/broker-single
     ports:
@@ -117,12 +128,22 @@ services:
       lagoon.type: custom
       lagoon.template: services/openshiftmisc/.lagoon.app.yml
       lagoon.image: amazeeiolagoon/openshiftmisc:kubernetes
+  kubernetesmisc:
+    image: ${IMAGE_REPO:-lagoon}/kubernetesmisc
+    command: yarn run dev
+    volumes:
+      - ./services/kubernetesmisc/src:/app/services/kubernetesmisc/src
+      - ./node-packages:/app/node-packages:delegated
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/kubernetesmisc/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/kubernetesmisc:kubernetes
   kubernetesbuilddeploy:
     image: ${IMAGE_REPO:-lagoon}/kubernetesbuilddeploy
     command: yarn run dev
     environment:
       - CI=${CI:-true}
-      - REGISTRY=172.17.0.1:5000
+      - REGISTRY=172.17.0.1:8084 # Docker network bridge and forwarded port for harbor-nginx
     volumes:
       - ./services/kubernetesbuilddeploy/src:/app/services/kubernetesbuilddeploy/src
       - ./node-packages:/app/node-packages:delegated
@@ -154,6 +175,34 @@ services:
       lagoon.type: custom
       lagoon.template: services/kubernetesbuilddeploymonitor/.lagoon.app.yml
       lagoon.image: amazeeiolagoon/kubernetesbuilddeploymonitor:kubernetes
+  kubernetesjobs:
+    image: ${IMAGE_REPO:-lagoon}/kubernetesjobs
+    command: yarn run dev
+    volumes:
+      - ./services/kubernetesjobs/src:/app/services/kubernetesjobs/src
+      - ./node-packages:/app/node-packages:delegated
+    environment:
+      # Gateway IP in virtualbox, so pods running in minishift can connect to
+      # docker-for-mac containers.
+      - LAGOON_SSH_HOST=10.0.2.2
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/kubernetesjobs/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/kubernetesjobs:kubernetes
+  kubernetesjobsmonitor:
+    image: ${IMAGE_REPO:-lagoon}/kubernetesjobsmonitor
+    command: yarn run dev
+    volumes:
+      - ./services/kubernetesjobsmonitor/src:/app/services/kubernetesjobsmonitor/src
+      - ./node-packages:/app/node-packages:delegated
+    environment:
+      # Gateway IP in virtualbox, so pods running in minishift can connect to
+      # docker-for-mac containers.
+      - LAGOON_SSH_HOST=10.0.2.2
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/kubernetesjobsmonitor/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/kubernetesjobsmonitor:kubernetes
   kubernetesremove:
     image: ${IMAGE_REPO:-lagoon}/kubernetesremove
     command: yarn run dev
@@ -382,10 +431,22 @@ services:
       - ./local-dev/api-data-watcher-pusher:/home
     labels:
       lagoon.type: none
+  local-dbaas-provider:
+    image: ${IMAGE_REPO:-lagoon}/local-dbaas-provider
+    restart: always
+    labels:
+      lagoon.type: none
+    environment:
+      MYSQL_DATABASE: 'db'
+      MYSQL_USER: 'user'
+      MYSQL_PASSWORD: 'password'
+      MYSQL_ROOT_PASSWORD: 'password'
+    ports:
+      - '3306:3306'
   local-minio:
     image: minio/minio
     entrypoint: sh
-    command: -c 'mkdir -p /export/lagoon-files && /usr/bin/minio server /export'
+    command: -c 'mkdir -p /export/lagoon-files && mkdir -p /export/harbor-images && /usr/bin/minio server /export'
     ports:
       - '9000:9000'
     environment:
@@ -399,18 +460,6 @@ services:
       - '5000:5000'
     labels:
       lagoon.type: none
-  local-dbaas-provider:
-    image: ${IMAGE_REPO:-lagoon}/local-dbaas-provider
-    restart: always
-    labels:
-      lagoon.type: none
-    environment:
-      MYSQL_DATABASE: 'db'
-      MYSQL_USER: 'user'
-      MYSQL_PASSWORD: 'password'
-      MYSQL_ROOT_PASSWORD: 'password'
-    ports:
-      - '3306:3306'
   drush-alias:
     image: ${IMAGE_REPO:-lagoon}/drush-alias
     volumes:
@@ -485,6 +534,8 @@ services:
     volumes:
       - './services/auto-idler/idle-services.sh:/idle-services.sh'
       - './services/auto-idler/idle-clis.sh:/idle-clis.sh'
+      - './services/auto-idler/openshift-services.sh:/openshift-services.sh'
+      - './services/auto-idler/openshift-clis.sh:/openshift-clis.sh'
       - './services/auto-idler/create_jwt.sh:/create_jwt.sh'
     labels:
       lagoon.type: custom
@@ -507,6 +558,21 @@ services:
       lagoon.rollout: daemonset
   harborclair:
     image: ${IMAGE_REPO:-lagoon}/harborclair
+    hostname: harborclair
+    volumes:
+      - ${PWD}/services/harborclair/ci-config.yaml:/etc/clair/config.yaml
+    depends_on:
+      - harbor-redis
+      - harbor-database
+    environment:
+      - CLAIR_DB_PASSWORD=test123
+      - HTTP_PROXY=
+      - HTTPS_PROXY=
+      - NO_PROXY=harbor-core,harbor-jobservice,harbor-database,harborclair,harborclairadapter,harborregistry,harbor-portal,127.0.0.1,localhost,.local,.internal
+      - SCANNER_CLAIR_DATABASE_URL=postgres://postgres:test123@harbor-database:5432/postgres?sslmode=disable
+      - SCANNER_STORE_REDIS_URL=redis://harbor-redis:6379/4
+      - SCANNER_LOG_LEVEL=error
+    restart: on-failure
     labels:
       lagoon.type: custom
       lagoon.template: services/harborclair/harborclair.yml
@@ -514,6 +580,20 @@ services:
       lagoon.image: amazeeiolagoon/harborclair:kubernetes
   harborclairadapter:
     image: ${IMAGE_REPO:-lagoon}/harborclairadapter
+    hostname: harborclairadapter
+    ports:
+      - '8080:8082'
+    volumes:
+      - ${PWD}/services/harborclair/ci-config.yaml:/etc/clair/config.yaml
+    depends_on:
+      - harbor-database
+      - harbor-redis
+    environment:
+      - CORE_URL=http://harbor-core:8080
+      - SCANNER_CLAIR_URL=http://harborclair:6060
+      - SCANNER_CLAIR_DATABASE_URL=postgres://postgres:test123@harbor-database:5432/postgres?sslmode=disable
+      - SCANNER_STORE_REDIS_URL=redis://harbor-redis:6379/4
+      - SCANNER_LOG_LEVEL=error
     labels:
       lagoon.type: custom
       lagoon.template: services/harborclairadapter/harborclair.yml
@@ -521,42 +601,161 @@ services:
       lagoon.image: amazeeiolagoon/harborclairadapter:kubernetes
   harbor-core:
     image: ${IMAGE_REPO:-lagoon}/harbor-core
+    hostname: harbor-core
+    volumes:
+      - ${PWD}/services/harbor-core/harbor-core_ci.conf.yaml:/etc/core/app.conf
+      - ${PWD}/services/harbor-core/ci-secret.key:/etc/core/key
+      - ${PWD}/services/harbor-core/ci_tls.key:/etc/core/private_key.pem
+      - /etc/core/token
+    depends_on:
+      - harbor-database
+      - harbor-redis
+    ports:
+      - '8081:8080'
+    environment:
+      - DATABASE_TYPE=postgresql
+      - POSTGRESQL_HOST=harbor-database
+      - POSTGRESQL_PORT=5432
+      - POSTGRESQL_USERNAME=postgres
+      - POSTGRESQL_PASSWORD=test123
+      - POSTGRESQL_DATABASE=registry
+      - POSTGRESQL_SSLMODE=disable
+      - POSTGRESQL_MAX_IDLE_CONNS=50
+      - POSTGRESQL_MAX_OPEN_CONNS=100
+      - CORE_URL=http://harbor-core:8080
+      - JOBSERVICE_URL=http://harbor-jobservice:8080
+      - REGISTRY_URL=http://harborregistry:5000
+      - TOKEN_SERVICE_URL=http://harbor-core:8080/service/token
+      - WITH_NOTARY=false
+      - CFG_EXPIRATION=5
+      - ADMIRAL_URL=NA
+      - WITH_CLAIR=true
+      - CLAIR_DB_HOST=harbor-database
+      - CLAIR_DB_PORT=5432
+      - CLAIR_DB_USERNAME=postgres
+      - CLAIR_DB=postgres
+      - CLAIR_DB_SSLMODE=disable
+      - CLAIR_URL=http://harborclair:6060
+      - CLAIR_ADAPTER_URL=http://harborclairadapter:8080
+      - REGISTRY_STORAGE_PROVIDER_NAME=s3
+      - WITH_CHARTMUSEUM=false
+      - LOG_LEVEL=error
+      - CONFIG_PATH=/etc/core/app.conf
+      - SYNC_REGISTRY=false
+      - CHART_CACHE_DRIVER=redis
+      - _REDIS_URL=harbor-redis:6379,100,
+      - _REDIS_URL_REG=redis://harbor-redis:6379/2
+      - PORTAL_URL=http://harbor-portal:8080
+      - REGISTRYCTL_URL=http://harborregistryctl:8080
+      - CLAIR_HEALTH_CHECK_SERVER_URL=http://harborclair:6061
+      - HTTP_PROXY=
+      - HTTPS_PROXY=
+      - NO_PROXY=harbor-core,harbor-jobservice,harbor-database,harborclair,harborclairadapter,harborregistry,harbor-portal,127.0.0.1,localhost,.local,.internal
+      - HARBOR_NGINX_ENDPOINT=http://harbor-nginx:8080
+      - ROBOT_TOKEN_DURATION=999
+      - CORE_SECRET=secret123
+      - JOBSERVICE_SECRET=secret123
+      - REGISTRY_HTTP_SECRET=secret123
+      - HARBOR_ADMIN_PASSWORD=admin
+      - CLAIR_DB_PASSWORD=test123
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor-core/harbor-core.yml
       lagoon.image: amazeeiolagoon/harbor-core:kubernetes
   harbor-database:
     image: ${IMAGE_REPO:-lagoon}/harbor-database
+    hostname: harbor-database
+    ports:
+      - '5432:5432'
+    environment:
+      - POSTGRES_PASSWORD=test123
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=postgres
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor-database/harbor-database.yml
       lagoon.image: amazeeiolagoon/harbor-database:kubernetes
   harbor-jobservice:
     image: ${IMAGE_REPO:-lagoon}/harbor-jobservice
+    hostname: harbor-jobservice
+    ports:
+      - '8083:8080'
+    volumes:
+      - /tmp
+      - ${PWD}/services/harbor-jobservice/ci-config.yaml:/etc/jobservice/config.yml
+    depends_on:
+      - harbor-database
+      - harbor-redis
+      - harbor-nginx
+    environment:
+      - CORE_SECRET=secret123
+      - JOBSERVICE_SECRET=secret123
+      - CORE_URL=http://harbor-core:8080
+      - REGISTRY_CONTROLLER_URL=http://harborregistryctl:8080
+      - LOG_LEVEL=error
+      - HTTP_PROXY=
+      - HTTPS_PROXY=
+      - NO_PROXY=harbor-core,harbor-jobservice,harbor-database,harborclair,harborclairadapter,harborregistry,harbor-portal,127.0.0.1,localhost,.local,.internal
+      - SCANNER_CLAIR_DATABASE_URL=postgres://postgres:test123@harbor-database:5432/postgres?sslmode=disable
+      - SCANNER_STORE_REDIS_URL=redis://harbor-redis:6379/4
+      - SCANNER_LOG_LEVEL=error
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor-jobservice/harbor-jobservice.yml
       lagoon.image: amazeeiolagoon/harbor-jobservice:kubernetes
   harbor-nginx:
     image: ${IMAGE_REPO:-lagoon}/harbor-nginx
+    hostname: harbor-nginx
+    ports:
+      - '8084:8080'
+    volumes:
+      - ${PWD}/services/harbor-nginx/ci.nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - harbor-core
+      - harborregistry
+      - harbor-portal
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor-nginx/harbor-nginx.yml
       lagoon.image: amazeeiolagoon/harbor-nginx:kubernetes
   harbor-portal:
     image: ${IMAGE_REPO:-lagoon}/harbor-portal
+    hostname: harbor-portal
+    ports:
+      - '8085:8080'
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor-portal/harbor-portal.yml
       lagoon.image: amazeeiolagoon/harbor-portal:kubernetes
   harbor-redis:
     image: ${IMAGE_REPO:-lagoon}/harbor-redis
+    hostname: harbor-redis
+    volumes:
+      - /var/lib/redis
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor-redis/harbor-redis.yml
       lagoon.image: amazeeiolagoon/harbor-redis:kubernetes
   harborregistry:
     image: ${IMAGE_REPO:-lagoon}/harborregistry
+    hostname: harborregistry
+    volumes:
+      - ${PWD}/services/harborregistry/registry_ci.cfg.yaml:/etc/registry/config.yml
+      - ${PWD}/services/harbor-core/ci_tls.crt:/etc/registry/root.crt
+    depends_on:
+      - harbor-database
+      - harbor-redis
+    ports:
+      - '4999:5000'
+      - '5001:5001'
+    environment:
+      - HARBOR_NGINX_ENDPOINT=http://harbor-nginx:8080
+      - REGISTRY_REDIS_PASSWORD=
+      - CORE_SECRET=secret123
+      - JOBSERVICE_SECRET=secret123
+      - REGISTRY_HTTP_SECRET=secret123
+    restart: always
+    command: ["serve", "/etc/registry/config.yml"]
     labels:
       lagoon.type: custom
       lagoon.template: services/harborregistry/harborregistry.yml
@@ -564,9 +763,18 @@ services:
       lagoon.image: amazeeiolagoon/harborregistry:kubernetes
   harborregistryctl:
     image: ${IMAGE_REPO:-lagoon}/harborregistryctl
+    hostname: harborregistryctl
+    volumes:
+      - ${PWD}/services/harborregistryctl/registryctl_ci.cfg.yaml:/etc/registryctl/config.yml
+    ports:
+      - '8086:8080'
+    environment:
+      - REGISTRY_REDIS_PASSWORD=
+      - CORE_SECRET=secret123
+      - JOBSERVICE_SECRET=secret123
+      - REGISTRY_HTTP_SECRET=secret123
     labels:
       lagoon.type: custom
       lagoon.template: services/harborregistryctl/harborregistry.yml
       lagoon.name: harborregistry
       lagoon.image: amazeeiolagoon/harborregistryctl:kubernetes
-

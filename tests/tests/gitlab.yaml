@@ -2,25 +2,25 @@
 - include: gitlab/skip-deployment.yaml
   vars:
     testname: "GITLAB {{ lookup('env','CLUSTER_TYPE')|upper }} - skip deployment"
-    node_version: 8
+    node_version: 10
     git_repo_name: gitlab.git
     project: ci-gitlab-{{ lookup('env','CLUSTER_TYPE') }}
     branch: skip
-    check_url: "http://node-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
 
 - include: gitlab/branch.yaml
   vars:
     testname: "GITLAB {{ lookup('env','CLUSTER_TYPE')|upper }} - slash branch"
-    node_version: 8
+    node_version: 10
     git_repo_name: gitlab.git
     project: ci-gitlab-{{ lookup('env','CLUSTER_TYPE') }}
     branch: gitlab/slash/branch
-    check_url: "http://node-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
 
 - include: gitlab/pullrequest.yaml
   vars:
     testname: "GITLAB {{ lookup('env','CLUSTER_TYPE')|upper }} - PULLREQUEST"
-    node_version: 8
+    node_version: 10
     git_repo_name: gitlab.git
     project: ci-gitlab-{{ lookup('env','CLUSTER_TYPE') }}
-    check_url: "http://node-{{ project | regex_replace('_', '-') }}.pr-1.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.pr-1.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"

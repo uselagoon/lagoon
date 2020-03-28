@@ -1,4 +1,5 @@
 {{- range $cronjobName, $cronjobConfig := .Values.nativeCronjobs }}
+---
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
@@ -48,7 +49,7 @@ spec:
               imagePullPolicy: {{ $.Values.imagePullPolicy }}
               command:
                 - /lagoon/cronjob.sh
-                - {{ $cronjobConfig.command | quote }}
+                - {{ $cronjobConfig.command }}
               env:
                 - name: LAGOON_GIT_SHA
                   value: {{ $.Values.gitSha | quote }}
@@ -72,9 +73,8 @@ spec:
           affinity:
             {{- toYaml $ | nindent 12 }}
         {{- end }}
+        {{- with $.Values.tolerations }}
           tolerations:
-            - effect: NoSchedule
-              key: lagoon/build
-              operator: Exists
-            {{- toYaml $.Values.tolerations | nindent 12 }}
+            {{- toYaml $ | nindent 12 }}
+        {{- end }}
 {{- end }}

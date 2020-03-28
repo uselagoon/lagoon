@@ -12,6 +12,8 @@ metadata:
     backup.appuio.ch/file-extension: .{{ include "mariadb-single.fullname" . }}.sql
 spec:
   replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       {{- include "mariadb-single.selectorLabels" . | nindent 6 }}
@@ -31,16 +33,16 @@ spec:
           persistentVolumeClaim:
             claimName: {{ include "mariadb-single.fullname" . }}
       securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+        fsGroup: 0
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
+            runAsGroup: 0
           image: "{{ .Values.image }}"
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           env:
             - name: CRONJOBS
-              value: {{ .Values.cronjobs | quote }}
+              value: {{ .Values.inPodCronjobs | quote }}
             - name: LAGOON_GIT_SHA
               value: {{ .Values.gitSha | quote }}
           envFrom:
@@ -51,12 +53,12 @@ spec:
             protocol: TCP
           readinessProbe:
             tcpSocket:
-              port: 3306-tcp
+              port: 3306
             initialDelaySeconds: 1
             timeoutSeconds: 1
           livenessProbe:
             tcpSocket:
-              port: 3306-tcp
+              port: 3306
             initialDelaySeconds: 120
             periodSeconds: 5
           volumeMounts:

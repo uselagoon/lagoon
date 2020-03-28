@@ -1,8 +1,9 @@
 ARG PHP_VERSION
 ARG PHP_IMAGE_VERSION
+ARG ALPINE_VERSION
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM php:${PHP_IMAGE_VERSION}-fpm-alpine
+FROM php:${PHP_IMAGE_VERSION}-fpm-alpine${ALPINE_VERSION}
 
 LABEL maintainer="amazee.io"
 ENV LAGOON=php
@@ -36,10 +37,14 @@ COPY php-fpm.d/www.conf /usr/local/etc/php-fpm.d/www.conf
 COPY ssmtp.conf /etc/ssmtp/ssmtp.conf
 
 # New Relic PHP Agent.
-# Support for PHP 7.4 added in 9.4.
 # @see https://docs.newrelic.com/docs/release-notes/agent-release-notes/php-release-notes/
 # @see https://docs.newrelic.com/docs/agents/php-agent/getting-started/php-agent-compatibility-requirements
-ENV NEWRELIC_VERSION=9.6.0.255
+ENV NEWRELIC_VERSION=9.8.0.259
+
+# Pin curl to Version 7.69.1-r0 as the current shipped one 7.67.0 has a bug, see
+# https://github.com/curl/curl/issues/4624
+# TODO: Remove as soon as Alpine 3.11 is shipped with a version higher than 7.67.0
+RUN apk add --no-cache curl=7.69.1-r0 libcurl=7.69.1-r0 --repository http://dl-cdn.alpinelinux.org/alpine/edge/main/
 
 RUN apk add --no-cache fcgi \
         ssmtp \
@@ -60,28 +65,9 @@ RUN apk add --no-cache fcgi \
         libwebp-dev \
         postgresql-dev \
     && apk add --no-cache --virtual .phpize-deps $PHPIZE_DEPS \
-    && case ${PHP_VERSION} in \
-      7.3*) \
-        yes '' | pecl install -f apcu \
-        && yes '' | pecl install -f xdebug-2.7.0 \
-        && yes '' | pecl install -f redis-4.3.0; \
-        ;; \
-      7.0*) \
-        yes '' | pecl install -f apcu \
-        && yes '' | pecl install -f xdebug-2.6.0 \
-        && yes '' | pecl install -f redis-4.3.0; \
-        ;; \
-      7*) \
-        yes '' | pecl install -f apcu \
-        && yes '' | pecl install -f xdebug \
-        && yes '' | pecl install -f redis-4.3.0; \
-        ;; \
-      5*) \
-        yes '' | pecl install -f apcu-4.0.11 \
-        && yes '' | pecl install -f xdebug-2.5.5 \
-        && yes '' | pecl install -f redis-4.3.0; \
-        ;; \
-      esac \
+    && yes '' | pecl install -f apcu \
+    && yes '' | pecl install -f xdebug \
+    && yes '' | pecl install -f redis-4.3.0 \
     && docker-php-ext-enable apcu redis xdebug \
     && case ${PHP_VERSION} in \
       7.4*) \
@@ -92,16 +78,11 @@ RUN apk add --no-cache fcgi \
         ;; \
       esac \
     && docker-php-ext-install -j4 bcmath gd gettext pdo_mysql mysqli pdo_pgsql pgsql shmop soap sockets opcache xsl zip \
-    && case ${PHP_VERSION} in \
-      7.1*|7.0*|5*) \
-        docker-php-ext-install mcrypt; \
-        ;; \
-      esac \
     && sed -i '1s/^/;Intentionally disabled. Enable via setting env variable XDEBUG_ENABLE to true\n;/' /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
     && rm -rf /var/cache/apk/* /tmp/pear/ \
     && apk del .phpize-deps \
     && if [ ${PHP_VERSION%.*} != "7.4" ]; then \
-    mkdir -p /tmp/newrelic && cd /tmp/newrelic \
+       mkdir -p /tmp/newrelic && cd /tmp/newrelic \
     && wget https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}/newrelic-php5-${NEWRELIC_VERSION}-linux-musl.tar.gz \
     && gzip -dc newrelic-php5-${NEWRELIC_VERSION}-linux-musl.tar.gz | tar --strip-components=1 -xf - \
     && NR_INSTALL_USE_CP_NOT_LN=1 NR_INSTALL_SILENT=1 ./newrelic-install install \

@@ -21,10 +21,6 @@ metadata:
     {{- end }}
     kubernetes.io/tls-acme: "true"
     {{- include "varnish-persistent.annotations" . | nindent 4 }}
-  {{- with .Values.ingress.annotations }}
-  annotations:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
 spec:
   tls:
     - hosts:
@@ -37,4 +33,6 @@ spec:
           - backend:
               serviceName: {{ $fullName }}
               servicePort: {{ .Values.service.port }}
+{{- else }}
+# empty
 {{- end }}

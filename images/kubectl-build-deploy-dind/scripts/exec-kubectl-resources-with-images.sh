@@ -16,11 +16,12 @@ if [[ $(helm show values /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} | grep
     # Add the Image Hash as Parameter of "[SERVICETYPE]_SERVICE_IMAGE"
     HELM_SET_VALUES+=(--set "images.${line}=${DEPLOYMENT_SERVICETYPE_IMAGE_NAME_HASH}")
   done < <(cat /kubectl-build-deploy/helmcharts/${SERVICE_TYPE}/values.yaml | shyaml keys images)
-  helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -f /kubectl-build-deploy/values.yaml --set service_name="${SERVICE_NAME}"  "${HELM_SET_VALUES[@]}" -f /kubectl-build-deploy/${SERVICE_NAME}-native-cronjobs.yaml | outputToYaml
+  helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${SERVICE_NAME}-values.yaml --set service_name="${SERVICE_NAME}" "${HELM_SET_VALUES[@]}" | outputToYaml
 
 # check if we need a single image to inject
 elif [[ $(helm show values /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} | grep image) ]]; then
   SERVICE_NAME_IMAGE="${MAP_SERVICE_NAME_TO_IMAGENAME[${SERVICE_NAME}]}"
   SERVICE_NAME_IMAGE_HASH="${IMAGE_HASHES[${SERVICE_NAME_IMAGE}]}"
-  helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -f /kubectl-build-deploy/values.yaml --set image="${SERVICE_NAME_IMAGE_HASH}" "${HELM_SET_VALUES[@]}" -f /kubectl-build-deploy/${SERVICE_NAME}-native-cronjobs.yaml | outputToYaml
+  cat /kubectl-build-deploy/${SERVICE_NAME}-values.yaml
+  helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${SERVICE_NAME}-values.yaml --set image="${SERVICE_NAME_IMAGE_HASH}" "${HELM_SET_VALUES[@]}" | outputToYaml
 fi

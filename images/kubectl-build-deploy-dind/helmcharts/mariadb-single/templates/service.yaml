@@ -10,7 +10,7 @@ spec:
   type: {{ .Values.service.type }}
   ports:
     - port: {{ .Values.service.port }}
-      targetPort: 3306-tcp
+      targetPort: 3306
       protocol: TCP
       name: 3306-tcp
   selector:

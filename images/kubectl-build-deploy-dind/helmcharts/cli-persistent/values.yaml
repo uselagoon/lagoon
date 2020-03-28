@@ -48,6 +48,6 @@ tolerations: []
 
 affinity: {}
 
-cronjobs: ""
+inPodCronjobs: ""
 
-nativeCronjobs: ""
+nativeinPodCronjobs: ""

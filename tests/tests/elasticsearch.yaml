@@ -10,7 +10,7 @@
     git_repo_name: elasticsearch.git
     project: ci-elasticsearch-{{ lookup('env','CLUSTER_TYPE') }}
     branch: elasticsearch
-    url: "http://nginx-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}/_cluster/health"
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}/_cluster/health"
     node_count: 1
 
 - include: elasticsearch/elasticsearch.yaml
@@ -19,5 +19,5 @@
     git_repo_name: elasticsearch.git
     project: ci-elasticsearch-{{ lookup('env','CLUSTER_TYPE') }}
     branch: elasticsearch-cluster
-    url: "http://nginx-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}/_cluster/health"
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}/_cluster/health"
     node_count: 3
