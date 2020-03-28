@@ -19,6 +19,7 @@ const CI = process.env.CI || "false"
 const lagoonGitSafeBranch = process.env.LAGOON_GIT_SAFE_BRANCH || "master"
 const lagoonVersion = process.env.LAGOON_VERSION
 const overwriteOcBuildDeployDindImage = process.env.OVERWRITE_OC_BUILD_DEPLOY_DIND_IMAGE
+const NativeCronPodMinimumFrequency = process.env.NATIVE_CRON_POD_MINIMUM_FREQUENCY || "15"
 const lagoonEnvironmentType = process.env.LAGOON_ENVIRONMENT_TYPE || "development"
 const jwtSecret = process.env.JWTSECRET || "super-secret-string"
 
@@ -222,6 +223,10 @@ const messageConsumer = async msg => {
                       {
                           "name": "PROJECT_SECRET",
                           "value": projectSecret
+                      },
+                      {
+                        "name": "NATIVE_CRON_POD_MINIMUM_FREQUENCY",
+                        "value": NativeCronPodMinimumFrequency
                       }
                   ],
                   "forcePull": true,
@@ -359,7 +364,8 @@ const messageConsumer = async msg => {
     }
   }
 
-  // Give the ServiceAccount access to the Promotion Source Project, it needs two roles: 'view' and 'system:image-puller'
+  // Give the ServiceAccount access to the Promotion Source Project, it needs two roles: 'view' and 'system:image-puller' and
+  // give the ServiceAccount 'default' access to the Promotion Source Project, it needs role: 'system:image-puller'
   if (type == "promote") {
     try {
       const promotionSourcRolebindingsGet = Promise.promisify(openshift.ns(openshiftPromoteSourceProject).rolebindings(`${openshiftProject}-lagoon-deployer-view`).get, { context: openshift.ns(openshiftProject).rolebindings(`${openshiftProject}-lagoon-deployer-view`) })
@@ -384,6 +390,20 @@ const messageConsumer = async msg => {
         logger.info(`${openshiftProject}: RoleBinding ${openshiftProject}-lagoon-deployer-image-puller in ${openshiftPromoteSourceProject} does not exists, creating`)
         const promotionSourceRolebindingsPost = Promise.promisify(openshift.ns(openshiftPromoteSourceProject).rolebindings.post, { context: openshift.ns(openshiftPromoteSourceProject).rolebindings })
         await promotionSourceRolebindingsPost({ body: {"kind":"RoleBinding","apiVersion":"v1","metadata":{"name":`${openshiftProject}-lagoon-deployer-image-puller`,"namespace":openshiftPromoteSourceProject},"roleRef":{"name":"system:image-puller"},"subjects":[{"name":"lagoon-deployer","kind":"ServiceAccount","namespace":openshiftProject}]}})
+      } else {
+        logger.error(err)
+        throw new Error
+      }
+    }
+    try {
+      const promotionSourceRolebindingsGet = Promise.promisify(openshift.ns(openshiftPromoteSourceProject).rolebindings(`${openshiftProject}-lagoon-default-image-puller`).get, { context: openshift.ns(openshiftProject).rolebindings(`${openshiftProject}-lagoon-default-image-puller`) })
+      await promotionSourceRolebindingsGet()
+      logger.info(`${openshiftProject}: RoleBinding ${openshiftProject}-lagoon-default-image-puller in ${openshiftPromoteSourceProject} does already exist, continuing`)
+    } catch (err) {
+      if (err.code == 404) {
+        logger.info(`${openshiftProject}: RoleBinding ${openshiftProject}-lagoon-default-image-puller in ${openshiftPromoteSourceProject} does not exists, creating`)
+        const promotionSourceRolebindingsPost = Promise.promisify(openshift.ns(openshiftPromoteSourceProject).rolebindings.post, { context: openshift.ns(openshiftPromoteSourceProject).rolebindings })
+        await promotionSourceRolebindingsPost({ body: {"kind":"RoleBinding","apiVersion":"v1","metadata":{"name":`${openshiftProject}-lagoon-default-image-puller`,"namespace":openshiftPromoteSourceProject},"roleRef":{"name":"system:image-puller"},"subjects":[{"name":"default","kind":"ServiceAccount","namespace":openshiftProject}]}})
       } else {
         logger.error(err)
         throw new Error

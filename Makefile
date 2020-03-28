@@ -84,6 +84,7 @@ ARCH := $(shell uname | tr '[:upper:]' '[:lower:]')
 LAGOON_VERSION := $(shell git describe --tags --exact-match 2>/dev/null || echo development)
 # Name of the Branch we are currently in
 BRANCH_NAME :=
+DEFAULT_ALPINE_VERSION := 3.11
 
 #######
 ####### Functions
@@ -91,24 +92,24 @@ BRANCH_NAME :=
 
 # Builds a docker image. Expects as arguments: name of the image, location of Dockerfile, path of
 # Docker Build Context
-docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) -t $(CI_BUILD_TAG)/$(1) -f $(2) $(3)
+docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg ALPINE_VERSION=$(DEFAULT_ALPINE_VERSION) -t $(CI_BUILD_TAG)/$(1) -f $(2) $(3)
 
 # Build a Python docker image. Expects as arguments:
 # 1. Python version
 # 2. Location of Dockerfile
 # 3. Path of Docker Build context
-docker_build_python = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg PYTHON_VERSION=$(1) -t $(CI_BUILD_TAG)/python:$(2) -f $(3) $(4)
+docker_build_python = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg PYTHON_VERSION=$(1) --build-arg ALPINE_VERSION=$(2) -t $(CI_BUILD_TAG)/python:$(3) -f $(4) $(5)
 
 docker_build_elastic = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) -t $(CI_BUILD_TAG)/$(2):$(1) -f $(3) $(4)
 
 # Build a PHP docker image. Expects as arguments:
 # 1. PHP version
-# 2. PHP version and type of image (ie 7.0-fpm, 7.0-cli etc)
+# 2. PHP version and type of image (ie 7.3-fpm, 7.3-cli etc)
 # 3. Location of Dockerfile
 # 4. Path of Docker Build Context
-docker_build_php = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg PHP_VERSION=$(1)  --build-arg PHP_IMAGE_VERSION=$(1) -t $(CI_BUILD_TAG)/php:$(2) -f $(3) $(4)
+docker_build_php = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg PHP_VERSION=$(1)  --build-arg PHP_IMAGE_VERSION=$(1) --build-arg ALPINE_VERSION=$(2) -t $(CI_BUILD_TAG)/php:$(3) -f $(4) $(5)
 
-docker_build_node = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg NODE_VERSION=$(1) -t $(CI_BUILD_TAG)/node:$(2) -f $(3) $(4)
+docker_build_node = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg NODE_VERSION=$(1) --build-arg ALPINE_VERSION=$(2) -t $(CI_BUILD_TAG)/node:$(3) -f $(4) $(5)
 
 docker_build_solr = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg SOLR_MAJ_MIN_VERSION=$(1) -t $(CI_BUILD_TAG)/solr:$(2) -f $(3) $(4)
 
@@ -250,10 +251,11 @@ $(build-pythonimages): build/commons
 	$(eval clean = $(subst build/python__,,$@))
 	$(eval version = $(word 1,$(subst -, ,$(clean))))
 	$(eval type = $(word 2,$(subst -, ,$(clean))))
+	$(eval alpine_version := $(shell case $(version) in (2.7) echo "3.10" ;; (*) echo $(DEFAULT_ALPINE_VERSION) ;; esac ))
 # this fills variables only if $type is existing, if not they are just empty
 	$(eval type_dash = $(if $(type),-$(type)))
 # Call the docker build
-	$(call docker_build_python,$(version),$(version)$(type_dash),images/python$(type_dash)/Dockerfile,images/python$(type_dash))
+	$(call docker_build_python,$(version),$(alpine_version),$(version)$(type_dash),images/python$(type_dash)/Dockerfile,images/python$(type_dash))
 # Touch an empty file which make itself is using to understand when the image has been last build
 	touch $@
 
@@ -270,21 +272,12 @@ build/python__2.7-ckandatapusher: build/python__2.7
 #######
 ####### PHP Images are alpine linux based PHP images.
 
-phpimages := 	php__5.6-fpm \
-				php__7.0-fpm \
-				php__7.1-fpm  \
-				php__7.2-fpm \
+phpimages := 	php__7.2-fpm \
 				php__7.3-fpm \
 				php__7.4-fpm \
-				php__5.6-cli \
-				php__7.0-cli \
-				php__7.1-cli \
 				php__7.2-cli \
 				php__7.3-cli \
 				php__7.4-cli \
-				php__5.6-cli-drupal \
-				php__7.0-cli-drupal \
-				php__7.1-cli-drupal \
 				php__7.2-cli-drupal \
 				php__7.3-cli-drupal \
 				php__7.4-cli-drupal
@@ -298,30 +291,26 @@ $(build-phpimages): build/commons
 	$(eval version = $(word 1,$(subst -, ,$(clean))))
 	$(eval type = $(word 2,$(subst -, ,$(clean))))
 	$(eval subtype = $(word 3,$(subst -, ,$(clean))))
+	$(eval alpine_version := $(shell case $(version) in (5.6) echo "3.8" ;; (7.0) echo "3.7" ;; (7.1) echo "3.10" ;; (*) echo $(DEFAULT_ALPINE_VERSION) ;; esac ))
 # this fills variables only if $type is existing, if not they are just empty
 	$(eval type_dash = $(if $(type),-$(type)))
 	$(eval type_slash = $(if $(type),/$(type)))
 # if there is a subtype, add it. If not, just keep what we already had
 	$(eval type_dash = $(if $(subtype),-$(type)-$(subtype),$(type_dash)))
 	$(eval type_slash = $(if $(subtype),/$(type)-$(subtype),$(type_slash)))
+
 # Call the docker build
-	$(call docker_build_php,$(version),$(version)$(type_dash),images/php$(type_slash)/Dockerfile,images/php$(type_slash))
+	$(call docker_build_php,$(version),$(alpine_version),$(version)$(type_dash),images/php$(type_slash)/Dockerfile,images/php$(type_slash))
 # Touch an empty file which make itself is using to understand when the image has been last build
 	touch $@
 
 base-images-with-versions += $(phpimages)
 s3-images += $(phpimages)
 
-build/php__5.6-fpm build/php__7.0-fpm build/php__7.1-fpm build/php__7.2-fpm build/php__7.3-fpm build/php__7.4-fpm: images/commons
-build/php__5.6-cli: build/php__5.6-fpm
-build/php__7.0-cli: build/php__7.0-fpm
-build/php__7.1-cli: build/php__7.1-fpm
+build/php__7.2-fpm build/php__7.3-fpm build/php__7.4-fpm: images/commons
 build/php__7.2-cli: build/php__7.2-fpm
 build/php__7.3-cli: build/php__7.3-fpm
 build/php__7.4-cli: build/php__7.4-fpm
-build/php__5.6-cli-drupal: build/php__5.6-cli
-build/php__7.0-cli-drupal: build/php__7.0-cli
-build/php__7.1-cli-drupal: build/php__7.1-cli
 build/php__7.2-cli-drupal: build/php__7.2-cli
 build/php__7.3-cli-drupal: build/php__7.3-cli
 build/php__7.4-cli-drupal: build/php__7.4-cli
@@ -332,13 +321,13 @@ build/php__7.4-cli-drupal: build/php__7.4-cli
 ####### Solr Images are alpine linux based Solr images.
 
 solrimages := 	solr__5.5 \
-								solr__6.6 \
-								solr__7.5 \
-								solr__5.5-drupal \
-								solr__6.6-drupal \
-								solr__7.5-drupal \
-								solr__5.5-ckan \
-								solr__6.6-ckan
+				solr__6.6 \
+				solr__7.5 \
+				solr__5.5-drupal \
+				solr__6.6-drupal \
+				solr__7.5-drupal \
+				solr__5.5-ckan \
+				solr__6.6-ckan
 
 
 build-solrimages = $(foreach image,$(solrimages),build/$(image))
@@ -370,16 +359,10 @@ build/solr__6.6-ckan: build/solr__6.6
 #######
 ####### Node Images are alpine linux based Node images.
 
-nodeimages := node__12 \
-						node__10 \
-						node__9 \
-						node__8 \
-						node__6 \
-						node__12-builder \
-						node__10-builder \
-						node__9-builder \
-						node__8-builder \
-						node__6-builder
+nodeimages := 	node__12 \
+				node__10 \
+				node__12-builder \
+				node__10-builder \
 
 build-nodeimages = $(foreach image,$(nodeimages),build/$(image))
 
@@ -388,23 +371,21 @@ $(build-nodeimages): build/commons
 	$(eval clean = $(subst build/node__,,$@))
 	$(eval version = $(word 1,$(subst -, ,$(clean))))
 	$(eval type = $(word 2,$(subst -, ,$(clean))))
+	$(eval alpine_version := $(shell case $(version) in (6) echo "" ;; (9) echo "" ;; (*) echo $(DEFAULT_ALPINE_VERSION) ;; esac ))
 # this fills variables only if $type is existing, if not they are just empty
 	$(eval type_dash = $(if $(type),-$(type)))
 	$(eval type_slash = $(if $(type),/$(type)))
 # Call the docker build
-	$(call docker_build_node,$(version),$(version)$(type_dash),images/node$(type_slash)/Dockerfile,images/node$(type_slash))
+	$(call docker_build_node,$(version),$(alpine_version),$(version)$(type_dash),images/node$(type_slash)/Dockerfile,images/node$(type_slash))
 # Touch an empty file which make itself is using to understand when the image has been last build
 	touch $@
 
 base-images-with-versions += $(nodeimages)
 s3-images += $(nodeimages)
 
-build/node__9 build/node__8 build/node__6: images/commons images/node/Dockerfile
+build/node__10 build/node__12: images/commons images/node/Dockerfile
 build/node__12-builder: build/node__12 images/node/builder/Dockerfile
 build/node__10-builder: build/node__10 images/node/builder/Dockerfile
-build/node__9-builder: build/node__9 images/node/builder/Dockerfile
-build/node__8-builder: build/node__8 images/node/builder/Dockerfile
-build/node__6-builder: build/node__6 images/node/builder/Dockerfile
 
 #######
 ####### Service Images
@@ -438,9 +419,11 @@ services :=       api \
 									kubernetesbuilddeploymonitor \
 									kubernetesjobs \
 									kubernetesjobsmonitor \
+									kubernetesmisc \
 									kubernetesremove \
 									webhook-handler \
 									webhooks2tasks \
+									backup-handler \
 									broker \
 									broker-single \
 									logs-forwarder \
@@ -488,7 +471,7 @@ $(build-services-galera):
 	touch $@
 
 # Dependencies of Service Images
-build/auth-server build/logs2email build/logs2slack build/logs2rocketchat build/logs2microsoftteams build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftjobs build/openshiftjobsmonitor build/openshiftmisc build/openshiftremove build/kubernetesbuilddeploy build/kubernetesdeployqueue build/kubernetesbuilddeploymonitor build/kubernetesjobs build/kubernetesjobsmonitor build/kubernetesremove build/webhook-handler build/webhooks2tasks build/api build/cli build/ui: build/yarn-workspace-builder
+build/auth-server build/logs2email build/logs2slack build/logs2rocketchat build/logs2microsoftteams build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftjobs build/openshiftjobsmonitor build/openshiftmisc build/openshiftremove build/backup-handler build/kubernetesbuilddeploy build/kubernetesdeployqueue build/kubernetesbuilddeploymonitor build/kubernetesjobs build/kubernetesjobsmonitor build/kubernetesmisc build/kubernetesremove build/webhook-handler build/webhooks2tasks build/api build/cli build/ui: build/yarn-workspace-builder
 build/logs2logs-db: build/logstash__7
 build/logs-db: build/elasticsearch__7.1
 build/logs-db-ui: build/kibana__7.1
@@ -502,7 +485,7 @@ build/broker-single: build/rabbitmq
 build/drush-alias: build/nginx
 build/keycloak: build/commons
 build/harbor-database: build/postgres
-build/harborclair: build/harbor-database services/harbor-redis/Dockerfile services/harborclairadapter/Dockerfile
+build/harborclair build/local-minio: build/harbor-database services/harbor-redis/Dockerfile services/harborclairadapter/Dockerfile
 build/harborregistry: build/harborclair services/harbor-jobservice/Dockerfile
 build/harborregistryctl: build/harborregistry
 build/harbor-nginx: build/harborregistryctl services/harbor-core/Dockerfile services/harbor-portal/Dockerfile
@@ -585,7 +568,10 @@ push-local-registry-images = $(foreach image,$(base-images) $(base-images-with-v
 .PHONY: push-local-registry
 push-local-registry: $(push-local-registry-images)
 # tag and push of each image
-.PHONY: $(push-local-registry-images)
+.PHONY:
+	docker login -u admin -p admin 172.17.0.1:8084
+	$(push-local-registry-images)
+
 $(push-local-registry-images):
 	$(eval image = $(subst [push-local-registry]-,,$@))
 	$(eval image = $(subst __,:,$(image)))
@@ -622,16 +608,16 @@ wait-for-keycloak:
 	grep -m 1 "Config of Keycloak done." <(docker-compose -p $(CI_BUILD_TAG) logs -f keycloak 2>&1)
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
-main-test-services = broker logs2email logs2slack logs2rocketchat logs2microsoftteams api api-db keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher
+main-test-services = broker logs2email logs2slack logs2rocketchat logs2microsoftteams api api-db keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher harbor-core harbor-database harbor-jobservice harbor-portal harbor-nginx harbor-redis harborregistry harborregistryctl harborclair harborclairadapter local-minio
 
 # Define a list of which Lagoon Services are needed for openshift testing
 openshift-test-services = openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor tests-openshift
 
 # Define a list of which Lagoon Services are needed for kubernetes testing
-kubernetes-test-services = kubernetesbuilddeploy kubernetesdeployqueue kubernetesbuilddeploymonitor kubernetesjobs kubernetesjobsmonitor kubernetesremove tests-kubernetes local-registry local-dbaas-provider drush-alias
+kubernetes-test-services = kubernetesbuilddeploy kubernetesdeployqueue kubernetesbuilddeploymonitor kubernetesjobs kubernetesjobsmonitor kubernetesremove kubernetesmisc tests-kubernetes local-registry local-dbaas-provider drush-alias
 
 # List of Lagoon Services needed for webhook endpoint testing
-webhooks-test-services = webhook-handler webhooks2tasks
+webhooks-test-services = webhook-handler webhooks2tasks backup-handler
 
 # List of Lagoon Services needed for drupal testing
 drupal-test-services = drush-alias
@@ -643,8 +629,8 @@ webhook-tests = github gitlab bitbucket
 api-tests = node features-openshift features-kubernetes nginx elasticsearch
 
 # All drupal tests
-drupal-tests = drupal postgres galera
-drupal-dependencies = build/varnish-drupal build/solr__5.5-drupal build/nginx-drupal build/redis build/php__5.6-cli-drupal build/php__7.0-cli-drupal build/php__7.1-cli-drupal build/php__7.2-cli-drupal build/php__7.3-cli-drupal build/php__7.4-cli-drupal build/postgres-drupal build/mariadb-drupal
+drupal-tests = drupal drupal-postgres drupal-galera
+drupal-dependencies = build/varnish-drupal build/solr__5.5-drupal build/nginx-drupal build/redis build/php__7.2-cli-drupal build/php__7.3-cli-drupal build/php__7.4-cli-drupal build/postgres-drupal build/mariadb-drupal
 
 # These targets are used as dependencies to bring up containers in the right order.
 .PHONY: main-test-services-up
@@ -674,19 +660,19 @@ local-registry-up: build/local-registry
 
 openshift-run-api-tests = $(foreach image,$(api-tests),openshift-tests/$(image))
 .PHONY: $(openshift-run-api-tests)
-$(openshift-run-api-tests): minishift build/oc-build-deploy-dind test-services-openshift push-minishift
+$(openshift-run-api-tests): minishift build/oc-build-deploy-dind openshift-test-services-up push-minishift
 		$(eval testname = $(subst openshift-tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --rm tests-openshift ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
 openshift-run-drupal-tests = $(foreach image,$(drupal-tests),openshift-tests/$(image))
 .PHONY: $(openshift-run-drupal-tests)
-$(openshift-run-drupal-tests): minishift build/oc-build-deploy-dind $(drupal-dependencies) test-services-openshift test-services-drupal push-minishift
+$(openshift-run-drupal-tests): minishift build/oc-build-deploy-dind $(drupal-dependencies) openshift-test-services-up drupaltest-services-up push-minishift
 		$(eval testname = $(subst openshift-tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --rm tests-openshift ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
 openshift-run-webhook-tests = $(foreach image,$(webhook-tests),openshift-tests/$(image))
 .PHONY: $(openshift-run-webhook-tests)
-$(openshift-run-webhook-tests): minishift build/oc-build-deploy-dind test-services-openshift test-services-webhooks push-minishift
+$(openshift-run-webhook-tests): minishift build/oc-build-deploy-dind openshift-test-services-up webhooks-test-services-up push-minishift
 		$(eval testname = $(subst openshift-tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --rm tests-openshift ansible-playbook /ansible/tests/$(testname).yaml $(testparameter)
 
@@ -868,19 +854,19 @@ openshift:
 minishift: local-dev/minishift/minishift
 	$(info starting minishift $(MINISHIFT_VERSION) with name $(CI_BUILD_TAG))
 ifeq ($(ARCH), darwin)
-	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) start --host-only-cidr "192.168.42.1/24" --cpus $(MINISHIFT_CPUS) --memory $(MINISHIFT_MEMORY) --disk-size $(MINISHIFT_DISK_SIZE) --vm-driver virtualbox --openshift-version="$(OPENSHIFT_VERSION)"
+	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) start --docker-opt "bip=192.168.89.1/24" --host-only-cidr "192.168.42.1/24" --cpus $(MINISHIFT_CPUS) --memory $(MINISHIFT_MEMORY) --disk-size $(MINISHIFT_DISK_SIZE) --vm-driver virtualbox --openshift-version="$(OPENSHIFT_VERSION)"
 else
-	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) start --cpus $(MINISHIFT_CPUS) --memory $(MINISHIFT_MEMORY) --disk-size $(MINISHIFT_DISK_SIZE) --openshift-version="$(OPENSHIFT_VERSION)"
+	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) start --docker-opt "bip=192.168.89.1/24" --cpus $(MINISHIFT_CPUS) --memory $(MINISHIFT_MEMORY) --disk-size $(MINISHIFT_DISK_SIZE) --openshift-version="$(OPENSHIFT_VERSION)"
 endif
 	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) openshift component add service-catalog
 ifeq ($(ARCH), darwin)
 	@OPENSHIFT_MACHINE_IP=$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip); \
 	echo "replacing IP in local-dev/api-data/02-populate-api-data-openshift.gql and docker-compose.yaml with the IP '$$OPENSHIFT_MACHINE_IP'"; \
-	sed -i '' -e "s/192.168\.[0-9]\{1,3\}\.[0-9]\{3\}/$${OPENSHIFT_MACHINE_IP}/g" local-dev/api-data/02-populate-api-data-openshift.gql docker-compose.yaml;
+	sed -i '' -E "s/192.168\.[0-9]{1,3}\.([2-9]|[0-9]{2,3})/$${OPENSHIFT_MACHINE_IP}/g" local-dev/api-data/02-populate-api-data-openshift.gql docker-compose.yaml;
 else
 	@OPENSHIFT_MACHINE_IP=$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ip); \
 	echo "replacing IP in local-dev/api-data/02-populate-api-data-openshift.gql and docker-compose.yaml with the IP '$$OPENSHIFT_MACHINE_IP'"; \
-	sed -i "s/192.168\.[0-9]\{1,3\}\.[0-9]\{3\}/$${OPENSHIFT_MACHINE_IP}/g" local-dev/api-data/02-populate-api-data-openshift.gql docker-compose.yaml;
+	sed -i "s/192.168\.[0-9]\{1,3\}\.\([2-9]\|[0-9]\{2,3\}\)/$${OPENSHIFT_MACHINE_IP}/g" local-dev/api-data/02-populate-api-data-openshift.gql docker-compose.yaml;
 endif
 	./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ssh --  '/bin/sh -c "sudo sysctl -w vm.max_map_count=262144"'
 	eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); \
@@ -928,6 +914,9 @@ openshift-lagoon-setup:
 	oc -n lagoon create -f openshift-setup/clusterrole-daemonset-admin.yaml; \
 	oc -n lagoon adm policy add-cluster-role-to-user daemonset-admin -z lagoon-deployer; \
 	bash -c "oc process -n lagoon -f services/docker-host/docker-host.yaml | oc -n lagoon apply -f -"; \
+	oc -n lagoon create -f openshift-setup/dbaas-roles.yaml; \
+	oc -n dbaas-operator-system create -f openshift-setup/dbaas-operator.yaml; \
+	oc -n lagoon create -f openshift-setup/dbaas-providers.yaml; \
 	echo -e "\n\nAll Setup, use this token as described in the Lagoon Install Documentation:" \
 	oc -n lagoon serviceaccounts get-token openshiftbuilddeploy
 
@@ -966,7 +955,7 @@ minishift/cleanall: minishift/stopall
 # installed, otherwise downloads it.
 local-dev/minishift/minishift:
 	@mkdir -p ./local-dev/minishift
-ifeq ($(MINISHIFT_VERSION), $(shell minishift version | sed -E 's/^minishift v([0-9.]+).*/\1/'))
+ifeq ($(MINISHIFT_VERSION), $(shell minishift version 2>/dev/null | sed -E 's/^minishift v([0-9.]+).*/\1/'))
 	$(info linking local minishift version $(MINISHIFT_VERSION))
 	ln -s $(shell command -v minishift) ./local-dev/minishift/minishift
 else
@@ -1128,5 +1117,5 @@ rebuild-push-oc-build-deploy-dind:
 
 
 .PHONY: ui-development
-ui-development: build/api build/api-db build/local-api-data-watcher-pusher build/ui build/keycloak build/keycloak-db
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d api api-db local-api-data-watcher-pusher ui keycloak keycloak-db
+ui-development: build/api build/api-db build/local-api-data-watcher-pusher build/ui build/keycloak build/keycloak-db build/broker build/broker-single
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d api api-db local-api-data-watcher-pusher ui keycloak keycloak-db broker

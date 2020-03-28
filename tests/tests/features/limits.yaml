@@ -2,7 +2,7 @@
 - include: ../api/push.yaml
   vars:
     testname: "environment limits - allow production"
-    node_version: 8
+    node_version: 10
     git_repo_name: node.git
     project: ci-env-limit
     branch: master
@@ -11,7 +11,7 @@
 - include: ../api/push.yaml
   vars:
     testname: "environment limits - allow deployment of existing branch"
-    node_version: 8
+    node_version: 10
     git_repo_name: node.git
     project: ci-env-limit
     branch: stage
@@ -21,7 +21,7 @@
 - include: ../api/push.yaml
   vars:
     testname: "environment limits - prevent deployment of new branch"
-    node_version: 8
+    node_version: 10
     git_repo_name: node.git
     project: ci-env-limit
     branch: will-not-deploy

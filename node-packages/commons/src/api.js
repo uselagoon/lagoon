@@ -309,7 +309,7 @@ const getUserBySshKey = (sshKey) =>
 
 const addUser = (
   email,
-  firstName,
+  firstName = null,
   lastName = null,
   comment = null,
   gitlabId = null,
@@ -765,6 +765,40 @@ async function getEnvironmentByName(
   return result;
 }
 
+async function getDeploymentByName(
+  openshiftProjectName,
+  deploymentName,
+) {
+  const result = await graphqlapi.query(`
+    {
+      environment:environmentByOpenshiftProjectName( openshiftProjectName: "${openshiftProjectName}") {
+        id
+        name
+        openshiftProjectName
+        project {
+          id
+          name
+        }
+        deployments(name: "${deploymentName}") {
+          id
+          name
+          uiLink
+        }
+      }
+    }
+  `);
+
+  if (!result || !result.environment) {
+    throw new EnvironmentNotFound(
+      `Cannot find deployment ${deploymentName} by projectName ${projectName}\n${
+        result.environment
+      }`,
+    );
+  }
+
+  return result;
+}
+
 async function getEnvironmentByOpenshiftProjectName(
   openshiftProjectName,
 ) {
@@ -1063,6 +1097,38 @@ const updateTask = (id, patch) =>
 const sanitizeGroupName = R.pipe(R.replace(/[^a-zA-Z0-9-]/g, '-'), R.toLower);
 const sanitizeProjectName = R.pipe(R.replace(/[^a-zA-Z0-9-]/g, '-'), R.toLower);
 
+const getProjectsByGroupName = groupName => graphqlapi.query(
+  `query groupByName($name: String!) {
+    groupByName(name: $name) {
+      id
+      name
+      projects {
+        id
+        name
+        gitUrl
+      }
+    }
+  }`,
+  { name: groupName }
+);
+
+const getGroupMembersByGroupName = groupName => graphqlapi.query(
+  `query groupByName($name: String!) {
+    groupByName(name: $name) {
+      id
+      name
+      members {
+        user {
+          id
+          email
+        }
+        role
+      }
+    }
+  }`,
+  { name: groupName }
+);
+
 module.exports = {
   addGroup,
   addGroupWithParent,
@@ -1095,6 +1161,7 @@ module.exports = {
   getEnvironmentByName,
   getProductionEnvironmentForProject,
   getEnvironmentsForProject,
+  getDeploymentByName,
   addOrUpdateEnvironment,
   updateEnvironment,
   deleteEnvironment,
@@ -1108,4 +1175,6 @@ module.exports = {
   removeGroupFromProject,
   sanitizeGroupName,
   sanitizeProjectName,
+  getProjectsByGroupName,
+  getGroupMembersByGroupName,
 };
