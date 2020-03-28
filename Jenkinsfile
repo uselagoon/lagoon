@@ -46,19 +46,19 @@ node {
         try {
           parallel (
             '1 tests': {
-              kubernetes_versions.each { kubernetes_version ->
-                stage ("kubernetes ${kubernetes_version['kubernetes']} tests") {
-                  try {
-                    sh "make k3d/clean K3S_VERSION=${kubernetes_version['k3s']} KUBECTL_VERSION=${kubernetes_version['kubectl']}"
-                    sh "make k3d K3S_VERSION=${kubernetes_version['k3s']} KUBECTL_VERSION=${kubernetes_version['kubectl']}"
-                    sh "make -O${SYNC_MAKE_OUTPUT} k8s-tests"
-                  } catch (e) {
-                    echo "Something went wrong, trying to cleanup"
-                    cleanup()
-                    throw e
-                  }
-                }
-              }
+              // kubernetes_versions.each { kubernetes_version ->
+              //   stage ("kubernetes ${kubernetes_version['kubernetes']} tests") {
+              //     try {
+              //       sh "make k3d/clean K3S_VERSION=${kubernetes_version['k3s']} KUBECTL_VERSION=${kubernetes_version['kubectl']}"
+              //       sh "make k3d K3S_VERSION=${kubernetes_version['k3s']} KUBECTL_VERSION=${kubernetes_version['kubectl']}"
+              //       sh "make -O${SYNC_MAKE_OUTPUT} k8s-tests"
+              //     } catch (e) {
+              //       echo "Something went wrong, trying to cleanup"
+              //       cleanup()
+              //       throw e
+              //     }
+              //   }
+              // }
               stage ('minishift tests') {
                 try {
                   sh 'make minishift/cleanall || echo'
