@@ -523,7 +523,7 @@ else
 fi
 
 # If k8up is supported by this cluster we create the schedule definition
-if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get crd schedules.backup.appuio.ch > /dev/null && kubectl auth --insecure-skip-tls-verify -n ${NAMESPACE} can-i create schedules.backup.appuio.ch -q > /dev/null; then
+if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get schedules.backup.appuio.ch &> /dev/null; then
 
   if ! kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get secret baas-repo-pw &> /dev/null; then
     # Create baas-repo-pw secret based on the project secret

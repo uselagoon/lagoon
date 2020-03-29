@@ -553,7 +553,7 @@ else
 fi
 
 # If restic backups are supported by this cluster we create the schedule definition
-if oc auth --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} can-i create schedules.backup.appuio.ch -q > /dev/null; then
+if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get schedules.backup.appuio.ch &> /dev/null; then
 
   if ! oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get secret baas-repo-pw &> /dev/null; then
     # Create baas-repo-pw secret based on the project secret
@@ -858,7 +858,7 @@ do
   fi
 
   # Generate Backup Definitions are supported and if service type defines one
-  if oc auth --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} can-i create prebackuppod.backup.appuio.ch -q > /dev/null; then
+  if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get prebackuppod.backup.appuio.ch &> /dev/null; then
     OPENSHIFT_SERVICES_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/prebackuppod.yml"
     if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
       OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
