@@ -65,7 +65,7 @@
   serial: 1
   vars:
     url: "{{ check_url_promote }}"
-    expected_returncode: 503
+    expected_returncode: "{{ lookup('env','DELETED_STATUS_CODE') }}"
   tasks:
   - include: ../../checks/check-url-returncode.yaml
 
@@ -74,6 +74,6 @@
   serial: 1
   vars:
     url: "{{ check_url_source }}"
-    expected_returncode: 503
+    expected_returncode: "{{ lookup('env','DELETED_STATUS_CODE') }}"
   tasks:
   - include: ../../checks/check-url-returncode.yaml

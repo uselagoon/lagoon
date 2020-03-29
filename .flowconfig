@@ -12,7 +12,6 @@
 <PROJECT_ROOT>/services/openshiftbuilddeploy/
 <PROJECT_ROOT>/services/openshiftbuilddeploymonitor/
 <PROJECT_ROOT>/services/openshiftremove/
-<PROJECT_ROOT>/services/rest2tasks/
 <PROJECT_ROOT>/services/webhook-handler/
 <PROJECT_ROOT>/services/webhooks2tasks/
 
