@@ -90,8 +90,11 @@ do
     # mariadb-single deployed (probably from the past where there was no mariadb-shared yet) and use that one
     if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get service "$SERVICE_NAME" &> /dev/null; then
       SERVICE_TYPE="mariadb-single"
+    # check if an existing mariadb service instance already exists
+    elif oc -insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get serviceinstance "$SERVICE_NAME" &> /dev/null; then
+      SERVICE_TYPE="mariadb-shared"
     # check if we can use the dbaas operator
-    elif oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} auth can-i create mariadbconsumer.v1.mariadb.amazee.io > /dev/null; then
+    elif oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get mariadbconsumer.v1.mariadb.amazee.io &> /dev/null; then
       SERVICE_TYPE="mariadb-dbaas"
     # heck if this cluster supports the default one, if not we assume that this cluster is not capable of shared mariadbs and we use a mariadb-single
     elif svcat --scope cluster get class $MARIADB_SHARED_DEFAULT_CLASS > /dev/null; then
