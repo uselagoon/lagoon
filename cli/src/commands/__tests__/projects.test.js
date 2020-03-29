@@ -21,14 +21,14 @@ describe('handler', () => {
           allProjects: [
             {
               name: 'credentialstest-project1',
-              gitUrl: 'ssh://git@192.168.42.1:2222/git/project1.git',
+              gitUrl: 'ssh://git@172.17.0.1:2222/git/project1.git',
               branches: 'true',
               pullrequests: null,
               created: '2018-01-15 11:09:35',
             },
             {
               name: 'credentialstest-project2',
-              gitUrl: 'ssh://git@192.168.42.1:2222/git/project2.git',
+              gitUrl: 'ssh://git@172.17.0.1:2222/git/project2.git',
               branches: 'true',
               pullrequests: null,
               created: '2018-01-15 11:09:35',
@@ -66,14 +66,14 @@ describe('handler', () => {
           allProjects: [
             {
               name: 'credentialstest-project1',
-              gitUrl: 'ssh://git@192.168.42.1:2222/git/project1.git',
+              gitUrl: 'ssh://git@172.17.0.1:2222/git/project1.git',
               branches: 'true',
               pullrequests: null,
               created: '2018-01-15 11:09:35',
             },
             {
               name: 'credentialstest-project2',
-              gitUrl: 'ssh://git@192.168.42.1:2222/git/project2.git',
+              gitUrl: 'ssh://git@172.17.0.1:2222/git/project2.git',
               branches: 'true',
               pullrequests: null,
               created: '2018-01-15 11:09:35',
@@ -111,14 +111,14 @@ describe('handler', () => {
           allProjects: [
             {
               name: 'credentialstest-project1',
-              gitUrl: 'ssh://git@192.168.42.1:2222/git/project1.git',
+              gitUrl: 'ssh://git@172.17.0.1:2222/git/project1.git',
               branches: 'true',
               pullrequests: null,
               created: '2018-01-15 11:09:35',
             },
             {
               name: 'credentialstest-project2',
-              gitUrl: 'ssh://git@192.168.42.1:2222/git/project2.git',
+              gitUrl: 'ssh://git@172.17.0.1:2222/git/project2.git',
               branches: 'true',
               pullrequests: null,
               created: '2018-01-15 11:09:35',
@@ -156,14 +156,14 @@ describe('handler', () => {
           allProjects: [
             {
               name: 'credentialstest-project1',
-              gitUrl: 'ssh://git@192.168.42.1:2222/git/project1.git',
+              gitUrl: 'ssh://git@172.17.0.1:2222/git/project1.git',
               branches: 'true',
               pullrequests: null,
               created: '2018-01-15 11:09:35',
             },
             {
               name: 'credentialstest-project2',
-              gitUrl: 'ssh://git@192.168.42.1:2222/git/project2.git',
+              gitUrl: 'ssh://git@172.17.0.1:2222/git/project2.git',
               branches: 'true',
               pullrequests: null,
               created: '2018-01-15 11:09:35',

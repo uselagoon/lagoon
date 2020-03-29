@@ -10,7 +10,7 @@ Please have the following information ready for your Lagoon administrator:
 
 * SSH public keys, email addresses and the names of everybody that will work on this project. Here are instructions for generating and copying SSH keys for [GitHub](https://help.github.com/en/github/authenticating-to-github/connecting-to-github-with-ssh), [GitLab](https://docs.gitlab.com/ee/ssh/), and [Bitbucket](https://confluence.atlassian.com/bitbucket/set-up-an-ssh-key-728138079.html).
 * The URL of the Git repository where your code is hosted \(`git@example.com:test/test.git`\).
-* The name of the Git branch you would like to use for your production environment \(see [Environment Types](../using-lagoon-advanced/environment-types.md) for details about the environments\).
+* The name of the Git branch you would like to use for your production environment \(see [Environment Types](environment_types.md) for details about the environments\).
 * Which branches and pull requests you would like to deploy to your additional environments. With Lagoon, you can filter branches and pull requests by name with regular expressions, and your Lagoon administrator can get this set up for you.
 
 We suggest that you deploy specific important branches \(like `develop` and `master`\) and pull requests. But that's all up to you! \(see [Workflows](workflows.md) for some more information\)

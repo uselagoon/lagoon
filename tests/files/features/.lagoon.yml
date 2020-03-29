@@ -43,13 +43,26 @@ environments:
     templates:
       node: .lagoon.node-env-specific.yml
 
-ci-multiproject1:
+ci-multiproject1-openshift:
   environments:
     multiproject:
       routes:
         - node:
           - multiproject1.com
-ci-multiproject2:
+ci-multiproject2-openshift:
+  environments:
+    multiproject:
+      routes:
+        - node:
+          - multiproject2.com
+
+ci-multiproject1-kubernetes:
+  environments:
+    multiproject:
+      routes:
+        - node:
+          - multiproject1.com
+ci-multiproject-kubernetes:
   environments:
     multiproject:
       routes:

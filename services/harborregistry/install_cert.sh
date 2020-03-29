@@ -5,6 +5,7 @@ set -e
 if [ ! -f /home/harbor/ca-bundle.crt.original ]; then
     cp /etc/pki/tls/certs/ca-bundle.crt /home/harbor/ca-bundle.crt.original
 else
+    echo "Cert bundle copy operation failed. Exiting!!"
     exit 0
 fi
 

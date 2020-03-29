@@ -85,7 +85,7 @@ const apolloServer = new ApolloServer({
           UserModel: User.User({ keycloakAdminClient }),
           GroupModel: Group.Group({ keycloakAdminClient }),
           BillingModel: BillingModel.BillingModel({ keycloakAdminClient, sqlClient }),
-          ProjectModel: ProjectModel.ProjectModel({ keycloakAdmModelinClient, sqlClient }),
+          ProjectModel: ProjectModel.ProjectModel({ keycloakAdminClient, sqlClient }),
           EnvironmentModel: EnvironmentModel.EnvironmentMode({ sqlClient })
         },
       };
