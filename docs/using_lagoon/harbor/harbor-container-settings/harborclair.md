@@ -6,7 +6,7 @@ HarborClair requires a configuration file to start, which is located at `/etc/cl
 * `CLAIR_DB_PASSWORD`
   * The password used to access HarborClair's postgres database.
   * The default value is `test123` when run locally or during CI testing.
-  * This value is retreived from a secret created when Harbor is first setup on a running Lagoon.
+  * This value is retrieved from a secret created when Harbor is first set up on a running Lagoon.
 * `HTTP_PROXY`
   * The default value is an empty string.
 * `HTTPS_PROXY`
