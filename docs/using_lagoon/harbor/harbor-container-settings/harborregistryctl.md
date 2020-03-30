@@ -6,17 +6,17 @@ The configmap from which this config file is generated is stored within Lagoon i
 ## Config File Contents
 
 * `CORE_SECRET`
-  * This value is a pre-shared key that must match between the various services connecting to Harbor-Core.
+  * This value is a pre-shared key that must match between the various services connecting to harbor-core.
   * The default value is set to `secret123` when Harbor is run locally or during CI testing.
   * This value is retrieved from a secret created when Harbor is first set up on a running Lagoon.
 * `JOBSERVICE_SECRET`
-  * This value is a pre-shared key that must match between the various services connecting to Harbor-Jobservice.
+  * This value is a pre-shared key that must match between the various services connecting to harbor-jobservice.
   * The default value is set to `secret123` when Harbor is run locally or during CI testing.
   * This value is retrieved from a secret created when Harbor is first set up on a running Lagoon.
 * `REGISTRY_HTTP_SECRET`
-  * This value is a pre-shared key that must match between the various services connecting to HarborRegistry.
+  * This value is a pre-shared key that must match between the various services connecting to harborregistry.
   * The default value is set to `secret123` when Harbor is run locally or during CI testing.
   * This value is retrieved from a secret created when Harbor is first set up on a running Lagoon.
 * `REGISTRY_REDIS_PASSWORD`
-  * This environment variable tells HarborRegistryCtl the password that should be used to connect to Redis.
+  * This environment variable tells harborregistryctl the password that should be used to connect to Redis.
   * The default value is an empty string.

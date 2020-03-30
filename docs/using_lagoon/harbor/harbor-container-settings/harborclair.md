@@ -4,7 +4,7 @@ HarborClair requires a configuration file to start, which is located at `/etc/cl
 ## Config File Contents
 
 * `CLAIR_DB_PASSWORD`
-  * The password used to access HarborClair's postgres database.
+  * The password used to access harborclair's postgres database.
   * The default value is `test123` when run locally or during CI testing.
   * This value is retrieved from a secret created when Harbor is first set up on a running Lagoon.
 * `HTTP_PROXY`
@@ -15,7 +15,7 @@ HarborClair requires a configuration file to start, which is located at `/etc/cl
   * A list of hosts which should never have their requests proxied.
   * The default is `harbor-core,harbor-jobservice,harbor-database,harborclair,harborclairadapter,harborregistry,harbor-portal,127.0.0.1,localhost,.local,.internal`.
 * `SCANNER_CLAIR_DATABASE_URL`
-  * This value tells HarborClair how to connect to its postgres database.
+  * This value tells harborclair how to connect to its postgres database.
   * The default value is `postgres://postgres:test123@harbor-database:5432/postgres?sslmode=disable` when Harbor is run locally or during CI testing.
   * This value is retrieved from a secret created when Harbor is first setup on a running Lagoon, as the postgres password needs to be injected here.
 * `SCANNER_LOG_LEVEL`
@@ -23,5 +23,5 @@ HarborClair requires a configuration file to start, which is located at `/etc/cl
   * The default value is `error`.
     * This can also be set to `debug` to enable very verbose logging.
 * `SCANNER_STORE_REDIS_URL`
-  * This value tells HarborClair how to connect to its Redis store.
+  * This value tells harborclair how to connect to its Redis store.
   * The default value is `redis://harbor-redis:6379/4`.
