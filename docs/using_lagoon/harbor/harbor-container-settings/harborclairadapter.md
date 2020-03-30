@@ -9,7 +9,7 @@ HarborClairAdapter requires specific environment variables to be set in order to
 * `SCANNER_CLAIR_DATABASE_URL`
   * This value tells harborclairadapter how to connect to harborclair's postgres database.
   * The default value is `postgres://postgres:test123@harbor-database:5432/postgres?sslmode=disable` when Harbor is run locally or during CI testing.
-  * This value is retreived from a secret created when Harbor is first setup on a running Lagoon, as the postgres password needs to be injected here.
+  * This value is retreived from a secret created when Harbor is first set up on a running Lagoon, as the postgres password needs to be injected here.
 * `SCANNER_CLAIR_URL`
   * This value tells harborclairadapter where it can be reached by other containers and/or services.
   * The default value is `http://harborclair:6060`.
