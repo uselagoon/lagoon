@@ -22,6 +22,10 @@ metadata:
     ingress.kubernetes.io/ssl-redirect: "true"
     {{- end }}
     kubernetes.io/tls-acme: "true"
+    monitor.stakater.com/enabled: "true"
+    uptimerobot.monitor.stakater.com/interval: {{ .Values.ingressmonitorcontroller.interval }}
+    uptimerobot.monitor.stakater.com/maintenance-windows: {{ .Values.ingressmonitorcontroller.maintenanceWindows }}
+    uptimerobot.monitor.stakater.com/alert-contacts: {{ .Values.ingressmonitorcontroller.alertContacts }}
     # HSTS Handling
     {{- if .Values.hsts}}
     # haproxy.router.openshift.io/hsts_header: {{ .Values.route_hsts }}
