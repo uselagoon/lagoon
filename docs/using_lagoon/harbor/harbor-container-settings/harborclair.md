@@ -17,7 +17,7 @@ HarborClair requires a configuration file to start, which is located at `/etc/cl
 * `SCANNER_CLAIR_DATABASE_URL`
   * This value tells harborclair how to connect to its postgres database.
   * The default value is `postgres://postgres:test123@harbor-database:5432/postgres?sslmode=disable` when Harbor is run locally or during CI testing.
-  * This value is retrieved from a secret created when Harbor is first setup on a running Lagoon, as the postgres password needs to be injected here.
+  * This value is retrieved from a secret created when Harbor is first set up on a running Lagoon, as the postgres password needs to be injected here.
 * `SCANNER_LOG_LEVEL`
   * The logging level this service should use.
   * The default value is `error`.
