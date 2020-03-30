@@ -55,6 +55,8 @@ const messageConsumer = async msg => {
       environmentName = environmentName.concat('-' + hash)
     }
 
+    const monitoringConfig = projectOpenShift.openshift.monitoringConfig.replace('\\','')
+
     var environmentType = branch === projectOpenShift.productionEnvironment ? 'production' : 'development';
     var gitSha = sha
     var projectId = projectOpenShift.id
