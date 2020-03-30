@@ -6,7 +6,7 @@ The configmap from which this config file is generated is stored within Lagoon i
 ## Config File Contents
 
 * `_REDIS_URL`
-  * Tells harbor-core and the chartmuseum service connection info for the Redis server.
+  * Tells harbor-core and the Chartmuseum service connection info for the Redis server.
   * The default value is `harbor-redis:6379,100,`.
 * `_REDIS_URL_REG`
   * The url which harborregistry should use to connect to the Redis server.
@@ -141,7 +141,7 @@ The configmap from which this config file is generated is stored within Lagoon i
   * This service is **not** used with Lagoon's implementation of Harbor.
   * The default value is `false`.
 * `WITH_CLAIR`
-  * Tells harbor-core if the harbor-clair service is being used. 
+  * Tells harbor-core if the harborclair service is being used. 
   * Lagoon **does** use this service in its implementation of Harbor.
   * The default value is `true`.
 * `WITH_NOTARY`
