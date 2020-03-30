@@ -7,8 +7,8 @@ This config file is stored within the `services/harborregistry/harborregistry.ym
 
 * `CORE_SECRET`
   * This value is a pre-shared key that must match between the various services connecting to harbor-core.
-  * The default value is set to `secret123` when Harbor is ran locally or during CI testing. 
-  * This value is retrieved from a secret created when Harbor is first setup on a running Lagoon.
+  * The default value is set to `secret123` when Harbor is run locally or during CI testing. 
+  * This value is retrieved from a secret created when Harbor is first set up on a running Lagoon.
 * `HARBOR_NGINX_ENDPOINT`
   * This environment variable tells harborregistry where its Nginx ingress controller, harbor-nginx, is running in order to construct proper push and pull instructions in the UI, among other things.
   * The default value is set to `http://harbor-nginx:8080` when run locally or during CI testing.
@@ -16,11 +16,11 @@ This config file is stored within the `services/harborregistry/harborregistry.ym
 * `JOBSERVICE_SECRET`
   * This value is a pre-shared key that must match between the various services connecting to harbor-jobservice.
   * The default value is set to `secret123` when Harbor is run locally or during CI testing.
-  * This value is retrieved from a secret created when Harbor is first setup on a running Lagoon.
+  * This value is retrieved from a secret created when Harbor is first set up on a running Lagoon.
 * `REGISTRY_HTTP_SECRET`
   * This value is a pre-shared key that must match between the various services connecting to harborregistry.
   * The default value is set to `secret123` when Harbor is run locally or during CI testing.
-  * This value is retrieved from a secret created when Harbor is first setup on a running Lagoon.
+  * This value is retrieved from a secret created when Harbor is first set up on a running Lagoon.
 * `REGISTRY_REDIS_PASSWORD`
   * This environment variable tells harborregistryctl the password that should be used to connect to Redis.
   * The default value is an empty string.
