@@ -26,7 +26,7 @@ const messageConsumer = async msg => {
   );
 
   switch(key) {
-    case 'restic:backup:restore':
+    case 'openshift:restic:backup:restore':
       resticRestore(data);
       break;
 

@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS openshift (
   id              int NOT NULL auto_increment PRIMARY KEY,
   name            varchar(50) UNIQUE,
   console_url     varchar(300),
-  token           varchar(1000),
+  token           varchar(2000),
   router_pattern  varchar(300),
   project_user    varchar(100),
   ssh_host        varchar(300),
@@ -78,6 +78,7 @@ CREATE TABLE IF NOT EXISTS project (
   active_systems_promote           varchar(300),
   active_systems_remove            varchar(300),
   active_systems_task              varchar(300),
+  active_systems_misc              varchar(300),
   branches                         varchar(300),
   pullrequests                     varchar(300),
   production_environment           varchar(100),
@@ -172,14 +173,12 @@ CREATE TABLE IF NOT EXISTS env_vars (
   id          int NOT NULL auto_increment PRIMARY KEY,
   name        varchar(300) NOT NULL,
   value       text NOT NULL,
-  scope       ENUM('global', 'build', 'runtime', 'container_registry') NOT NULL DEFAULT 'global',
+  scope       ENUM('global', 'build', 'runtime', 'container_registry', 'internal_container_registry') NOT NULL DEFAULT 'global',
   project     int NULL REFERENCES project (id),
   environment int NULL REFERENCES environent (id),
   UNIQUE KEY `name_project` (`name`,`project`),
   UNIQUE KEY `name_environment` (`name`,`environment`)
 );
-
-ALTER TABLE env_vars MODIFY COLUMN scope ENUM('global', 'build', 'runtime', 'container_registry') NOT NULL DEFAULT 'global';
 
 CREATE TABLE IF NOT EXISTS environment_service (
   id          int NOT NULL auto_increment PRIMARY KEY,

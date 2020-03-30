@@ -181,7 +181,7 @@ if (isset($cache->data) && time() < $cache->expire && getenv('LAGOON_IGNORE_DRUS
 // can set an env var `LAGOON_OVERRIDE_SSH_TIMEOUT=<val>` or define `ssh_port_timeout: <val>` in `.lagoon.yml` to a time in seconds to fail sooner and let user know why
 // if there is no defined timeout further up, set a value
 if (empty($ssh_port_timeout)) {
-  $ssh_port_timeout = 10; //default timeout
+  $ssh_port_timeout = 30; //default timeout
 }
 $ssh_port_check = @fsockopen($ssh_host, $ssh_port, $errno, $errstr, $ssh_port_timeout);
 if (is_resource($ssh_port_check))
@@ -207,7 +207,7 @@ if (getenv('LAGOON_OVERRIDE_JWT_TOKEN')) {
 } else {
   // if ssh takes too long to get a token, timeout with the same ssh port timeout used to check the port status
   // this could be because the API is unavailable
-  exec("timeout $ssh_port_timeout ssh -p $ssh_port -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -t lagoon@$ssh_host token 2>&1", $token_array, $rc);
+  exec("timeout $ssh_port_timeout ssh -p $ssh_port -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no lagoon@$ssh_host token 2>&1", $token_array, $rc);
   if ($rc !== 0) {
     drush_log("Could not load API JWT Token, error was: '" . implode(",", $token_array), 'warning');
     return;

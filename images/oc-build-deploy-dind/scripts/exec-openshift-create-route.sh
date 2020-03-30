@@ -1,6 +1,6 @@
 #!/bin/bash
 
-
+# TODO: find out why we are using the if/else and if it's still needed for kubernetes
 if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get route "$ROUTE_DOMAIN" &> /dev/null; then
   oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} patch route "$ROUTE_DOMAIN" -p "{\"metadata\":{\"labels\":{\"dioscuri.amazee.io/migrate\": \"${ROUTE_MIGRATE}\"},\"annotations\":{\"kubernetes.io/tls-acme\":\"${ROUTE_TLS_ACME}\",\"haproxy.router.openshift.io/hsts_header\":\"${ROUTE_HSTS}\"}},\"spec\":{\"to\":{\"name\":\"${ROUTE_SERVICE}\"},\"tls\":{\"insecureEdgeTerminationPolicy\":\"${ROUTE_INSECURE}\"}}}"
 else

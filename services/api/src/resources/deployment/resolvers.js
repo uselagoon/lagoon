@@ -171,6 +171,29 @@ const getDeploymentByRemoteId = async (
   return injectBuildLog(deployment);
 };
 
+const getDeploymentUrl = async (
+  { id, environment },
+  args,
+  { sqlClient, hasPermission },
+) => {
+
+  const lagoonUiRoute = R.compose(
+    R.defaultTo('http://localhost:8888'),
+    R.find(R.test(/ui-/)),
+    R.split(','),
+    R.propOr('', 'LAGOON_ROUTES'),
+  )(process.env);
+
+  const { name: project, openshiftProjectName  } = await projectHelpers(sqlClient).getProjectByEnvironmentId(
+    environment,
+  );
+
+  const rows = await query(sqlClient, knex('deployment').where('id', '=', id).toString());
+  const deployment = R.prop(0, rows);
+
+  return `${lagoonUiRoute}/projects/${project}/${openshiftProjectName}/deployments/${deployment.name}`;
+};
+
 const addDeployment = async (
   root,
   {
@@ -331,7 +354,7 @@ const cancelDeployment = async (
   };
 
   try {
-    await createMiscTask({ key: 'openshift:build:cancel', data });
+    await createMiscTask({ key: 'build:cancel', data });
     return 'success';
   } catch (error) {
     sendToLagoonLogs(
@@ -871,6 +894,7 @@ const deploymentSubscriber = createEnvironmentFilteredSubscriber([
 const Resolvers /* : ResolversObj */ = {
   getDeploymentsByEnvironmentId,
   getDeploymentByRemoteId,
+  getDeploymentUrl,
   addDeployment,
   deleteDeployment,
   updateDeployment,

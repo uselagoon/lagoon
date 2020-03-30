@@ -90,8 +90,11 @@ do
     # mariadb-single deployed (probably from the past where there was no mariadb-shared yet) and use that one
     if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get service "$SERVICE_NAME" &> /dev/null; then
       SERVICE_TYPE="mariadb-single"
+    # check if an existing mariadb service instance already exists
+    elif oc -insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get serviceinstance "$SERVICE_NAME" &> /dev/null; then
+      SERVICE_TYPE="mariadb-shared"
     # check if we can use the dbaas operator
-    elif oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} auth can-i create mariadbconsumer.v1.mariadb.amazee.io > /dev/null; then
+    elif oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get mariadbconsumer.v1.mariadb.amazee.io &> /dev/null; then
       SERVICE_TYPE="mariadb-dbaas"
     # heck if this cluster supports the default one, if not we assume that this cluster is not capable of shared mariadbs and we use a mariadb-single
     elif svcat --scope cluster get class $MARIADB_SHARED_DEFAULT_CLASS > /dev/null; then
@@ -641,7 +644,7 @@ else
 fi
 
 # If restic backups are supported by this cluster we create the schedule definition
-if oc auth --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} can-i create schedules.backup.appuio.ch -q > /dev/null; then
+if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get schedules.backup.appuio.ch &> /dev/null; then
 
   if ! oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get secret baas-repo-pw &> /dev/null; then
     # Create baas-repo-pw secret based on the project secret
@@ -783,7 +786,8 @@ do
   SERVICE_NAME=${SERVICEBROKER_ENTRY_SPLIT[0]}
   SERVICE_TYPE=${SERVICEBROKER_ENTRY_SPLIT[1]}
 
-  SERVICE_NAME_UPPERCASE=$(echo "$SERVICE_NAME" | tr '[:lower:]' '[:upper:]')
+  # The prefix for the environment variables.
+  SERVICE_NAME_UPPERCASE=$(echo "$SERVICE_NAME" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
 
   case "$SERVICE_TYPE" in
     # Operator can take some time to return the required information, do it here
@@ -912,7 +916,7 @@ do
   SERVICE_NAME=${SERVICE_TYPES_ENTRY_SPLIT[0]}
   SERVICE_TYPE=${SERVICE_TYPES_ENTRY_SPLIT[1]}
 
-  SERVICE_NAME_UPPERCASE=$(echo "$SERVICE_NAME" | tr '[:lower:]' '[:upper:]')
+  SERVICE_NAME_UPPERCASE=$(echo "$SERVICE_NAME" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
 
   COMPOSE_SERVICE=${MAP_SERVICE_TYPE_TO_COMPOSE_SERVICE["${SERVICE_TYPES_ENTRY}"]}
 
@@ -957,7 +961,7 @@ do
   fi
 
   # Generate Backup Definitions are supported and if service type defines one
-  if oc auth --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} can-i create prebackuppod.backup.appuio.ch -q > /dev/null; then
+  if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get prebackuppod.backup.appuio.ch &> /dev/null; then
     OPENSHIFT_SERVICES_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/prebackuppod.yml"
     if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
       OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
