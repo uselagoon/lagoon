@@ -631,6 +631,17 @@ mutation PopulateApi {
     id
   }
 
+  CIFeaturesEnvVars7: addEnvVariable(
+    input: {
+      type: PROJECT
+      typeId: 1012
+      name: "LAGOON_API_VARIABLE_MULTILINE_SPACED"
+      value: "-----BEGIN PUBLIC KEY-----\\\nB10B03D8DB7F\\\n-----END PUBLIC KEY-----"
+    }
+  ) {
+    id
+  }
+
   CiFeaturesRocketChat: addNotificationToProject(
     input: {
       project: "ci-features-kubernetes"
