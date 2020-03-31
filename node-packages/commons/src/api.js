@@ -1052,17 +1052,17 @@ const addDeployment = (
   );
 
   const addTask = (
-    name: string,
-    status: string,
-    created: string,
-    environment: number,
-    remoteId: ?string = null,
-    id: ?number = null,
-    started: ?string = null,
-    completed: ?string = null,
-    service: ?string = null,
-    command: ?string = null,
-    execute: ?boolean = false,
+    name,
+    status,
+    created,
+    environment,
+    remoteId = null,
+    id = null,
+    started = null,
+    completed = null,
+    service = null,
+    command = null,
+    execute = false,
   ): Promise<Object> =>
     graphqlapi.mutate(
       `
