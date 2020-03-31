@@ -449,7 +449,7 @@ async function createRemoveTask(removeData) {
   // ensure the flag is set to allow this.
   if (
     branch === allEnvironments.project.productionEnvironment
-    || branch === allEnvironments.project.standbyProductionEnvironment
+    || (allEnvironments.project.standbyProductionEnvironment && branch === allEnvironments.project.standbyProductionEnvironment)
   ) {
     if (forceDeleteProductionEnvironment !== true) {
       throw new CannotDeleteProductionEnvironment(
