@@ -57,8 +57,8 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
         logger.error(`Unable to get the harbor project id of "${lagoonProjectName}" !!`)
       }
     }
-
     logger.debug(`Harbor project id for ${lagoonProjectName}: ${harborProjectID}`)
+
     // Create robot account for new harbor project
     try {
       const res = await harborClient.post(`projects/${harborProjectID}/robots`, {
@@ -120,6 +120,34 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
       logger.debug(`Environment variable INTERNAL_REGISTRY_PASSWORD for ${lagoonProjectName} created!`)
     } catch (err) {
       logger.error(`Error while setting up harbor environment variables for ${lagoonProjectName}, error: ${err}`)
+    }
+
+    // Set webhooks for Harbor Project
+    if (lagoonHarborRoute === 'http://172.17.0.1:8084'){
+      var webhookAddress = 'http://172.17.0.1:7777'
+    } else {
+      var webhookAddress = "https://hooks.lagoon.amazeeio.cloud/"
+    }
+    try {
+      var res = await harborClient.post(`projects/${harborProjectID}/webhook/policies`, {
+        body: {
+          targets: [
+            {
+              type: "http",
+              skip_cert_verify: true,
+              address: webhookAddress
+            }
+          ],
+          event_types: [
+            "scanningFailed",
+            "scanningCompleted"
+          ],
+          name: "Lagoon Default Webhook",
+          enabled: true
+        }
+      });
+    } catch (err) {
+      logger.error(`Error while creating a webhook in the Harbor project for ${lagoonProjectName}, error: ${err}`)
     }
   }
 })
