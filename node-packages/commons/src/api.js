@@ -1063,7 +1063,7 @@ const addDeployment = (
     service = null,
     command = null,
     execute = false,
-  ): Promise<Object> =>
+  ) =>
     graphqlapi.mutate(
       `
     ($name: String!, $status: TaskStatusType!, $created: String!, $environment: Int!, $id: Int, $remoteId: String, $started: String, $completed: String, $service: String, $command: String, $execute: Boolean) {
