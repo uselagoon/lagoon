@@ -32,7 +32,7 @@
     "isomorphic-unfetch": "^2.1.1",
     "moment": "^2.22.2",
     "moment-duration-format": "^2.2.2",
-    "next": "^8.0.3",
+    "next": "^9.3.2",
     "postcss-nested": "^3.0.0",
     "ramda": "^0.25.0",
     "react": "^16.8.4",
