@@ -627,7 +627,7 @@ drupal-test-services = drush-alias
 webhook-tests = github gitlab bitbucket
 
 # All Tests that use API endpoints
-api-tests = node features-openshift features-kubernetes nginx elasticsearch
+api-tests = node features-openshift features-kubernetes nginx elasticsearch active-standby
 
 # All drupal tests
 drupal-tests = drupal drupal-postgres drupal-galera
