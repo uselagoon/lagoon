@@ -4,6 +4,8 @@ const camelcaseKeys = require('camelcase-keys');
 const R = require('ramda');
 const snakecase = require('./snakeCase');
 const snakecaseKeys = require('snakecase-keys');
+const logger = require('../logger');
+
 const knex = require('knex')({
   client: 'mysql',
   // Simplified version of converting input to snake case and
@@ -114,5 +116,5 @@ module.exports = {
   prepare,
   query,
   whereAnd,
-  isPatchEmpty,
+  isPatchEmpty
 };

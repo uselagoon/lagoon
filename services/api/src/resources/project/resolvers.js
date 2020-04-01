@@ -10,7 +10,7 @@ const {
   prepare,
   query,
   whereAnd,
-  isPatchEmpty,
+  isPatchEmpty
 } = require('../../util/db');
 
 const Helpers = require('./helpers');
@@ -191,6 +191,68 @@ const getProjectByName = async (
   } catch (err) {
     return removePrivateKey(project);
   }
+};
+
+
+const getProjectsByMetadata = async (
+  root,
+  args,
+  {
+    sqlClient,
+    hasPermission,
+  },
+) => {
+
+  let where;
+  try {
+    await hasPermission('project', 'viewAll');
+
+    where = whereAnd([
+      args.createdAfter ? 'created >= :created_after' : '',
+      args.gitUrl ? 'git_url = :git_url' : '',
+    ]);
+  } catch (err) {
+    if (!keycloakGrant) {
+      logger.warn('No grant available for getAllProjects');
+      return [];
+    }
+
+    const userProjectIds = await models.UserModel.getAllProjectsIdsForUser({
+      id: keycloakGrant.access_token.content.sub,
+    });
+
+    where = whereAnd([
+      args.createdAfter ? 'created >= :created_after' : '',
+      args.gitUrl ? 'git_url = :git_url' : '',
+      inClause('id', userProjectIds),
+    ]);
+  }
+
+  for (const meta of args['metadata']) {
+
+    let key = meta['key'];
+    let val = meta['value'];
+
+    var q = `JSON_CONTAINS(metadata, '"`+val+`"', '$.`+key+`')`;
+
+    // Support key-only queries.
+    if (!val) {
+      q = `JSON_CONTAINS_PATH(metadata, 'one', '$.`+key+`')`;
+    }
+
+    if (where === '') {
+      where += ` WHERE ` + q;
+    }
+    else {
+      where += ` AND ` + q;
+    }
+  }
+
+  const order = args.order ? ` ORDER BY ${R.toLower(args.order)} ASC` : '';
+  const prep = prepare(sqlClient, `SELECT * FROM project ${where}${order}`);
+  const rows = await query(sqlClient, prep(args));
+
+  return rows;
 };
 
 const addProject = async (
@@ -587,6 +649,104 @@ const deleteAllProjects = async (
   return 'success';
 };
 
+
+const removeProjectMetadataByKey = async (
+  root,
+  {
+    input: {
+      id,
+      key,
+    },
+  },
+  {
+    sqlClient,
+    hasPermission,
+    models,
+  },
+) => {
+
+  await hasPermission('project', 'update', {
+    project: id,
+  });
+
+  if (!key) {
+    throw new Error('key to remove is required');
+  }
+
+  if (typeof key === 'string') {
+    if (validator.matches(key, /[^0-9a-z-]/)) {
+      throw new Error(
+        'Only lowercase characters, numbers and dashes allowed for key!',
+      );
+    }
+  }
+
+  const oldProject = await Helpers(sqlClient).getProjectById(id);
+
+  const str = `
+      UPDATE project
+      SET metadata = JSON_REMOVE(metadata, '$.`+ key + `')
+      WHERE id = `+ id + `
+    `;
+
+  const prep = prepare(sqlClient, str);
+  await query(sqlClient, prep(oldProject));
+  return Helpers(sqlClient).getProjectById(id);
+};
+
+
+const updateProjectMetadata = async (
+  root,
+  {
+    input: {
+      id,
+      patch,
+      patch: {
+        key,
+        value,
+      },
+    },
+  },
+  {
+    sqlClient,
+    hasPermission,
+    models,
+  },
+) => {
+
+  await hasPermission('project', 'update', {
+    project: id,
+  });
+
+  if (isPatchEmpty({ patch })) {
+    throw new Error('input.patch expects both key and value attributes');
+  }
+
+  if (!key || !value) {
+    throw new Error('input.patch expects both key and value attributes');
+  }
+
+  if (typeof key === 'string') {
+    if (validator.matches(key, /[^0-9a-z-]/)) {
+      throw new Error(
+        'Only lowercase characters, numbers and dashes allowed for key!',
+      );
+    }
+  }
+
+  const oldProject = await Helpers(sqlClient).getProjectById(id);
+
+  const str = `
+      UPDATE project
+      SET metadata = JSON_SET(metadata, '$.`+key+`', '`+value+`')
+      WHERE id = `+id+`
+    `;
+
+  const prep = prepare(sqlClient, str);
+  await query(sqlClient, prep(oldProject));
+  return Helpers(sqlClient).getProjectById(id);
+};
+
 const Resolvers /* : ResolversObj */ = {
   deleteProject,
   addProject,
@@ -594,8 +754,11 @@ const Resolvers /* : ResolversObj */ = {
   getProjectByGitUrl,
   getProjectByEnvironmentId,
   getAllProjects,
+  getProjectsByMetadata,
   updateProject,
   deleteAllProjects,
+  updateProjectMetadata,
+  removeProjectMetadataByKey,
 };
 
 module.exports = Resolvers;

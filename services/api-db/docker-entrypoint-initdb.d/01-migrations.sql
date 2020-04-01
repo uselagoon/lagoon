@@ -936,6 +936,18 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+
+CREATE OR REPLACE PROCEDURE
+  add_metadata_to_project()
+
+  BEGIN
+    ALTER TABLE project
+    ADD metadata JSON DEFAULT '{}' CHECK (JSON_VALID(metadata));
+    UPDATE project
+    SET metadata = '{}';
+  END;
+$$
+
 DELIMITER ;
 
 CALL add_availability_to_project();
@@ -978,6 +990,7 @@ CALL add_enum_email_microsoftteams_to_type_in_project_notification();
 CALL add_active_systems_misc_to_project();
 CALL add_container_registry_scope_to_env_vars();
 CALL add_internal_container_registry_scope_to_env_vars();
+CALL add_metadata_to_project();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;
