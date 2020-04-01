@@ -17,6 +17,13 @@ const lagoonHarborRoute = R.compose(
   R.propOr('', 'LAGOON_ROUTES'),
 )(process.env);
 
+const lagoonWebhookAddress = R.compose(
+  R.defaultTo('http://webhook-handler:3000'),
+  R.find(R.test(/webhook-handler/)),
+  R.split(','),
+  R.propOr('', 'LAGOON_ROUTES'),
+)(process.env);
+
 const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
   addProject: async (lagoonProjectName, projectID) => {
     // Create harbor project
@@ -123,11 +130,6 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
     }
 
     // Set webhooks for Harbor Project
-    if (lagoonHarborRoute === 'http://172.17.0.1:8084'){
-      var webhookAddress = 'http://172.17.0.1:7777'
-    } else {
-      var webhookAddress = "https://hooks.lagoon.amazeeio.cloud/"
-    }
     try {
       var res = await harborClient.post(`projects/${harborProjectID}/webhook/policies`, {
         body: {
@@ -135,7 +137,7 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
             {
               type: "http",
               skip_cert_verify: true,
-              address: webhookAddress
+              address: lagoonWebhookAddress
             }
           ],
           event_types: [
