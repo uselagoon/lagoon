@@ -206,16 +206,24 @@ ${podLog}`;
       break;
 
     case "failed":
-      const buildLog = await jobsLogGet()
-      await saveBuildLog(jobName, projectName, branchName, buildLog, status, jobInfo.metadata.uid)
+      try {
+        const buildLog = await jobsLogGet()
+        await saveBuildLog(jobName, projectName, branchName, buildLog, status, jobInfo.metadata.uid)
+      } catch (err) {
+        logger.warn(`${projectName} ${jobName}: Error while getting and sending to lagoon-logs, Error: ${err}.`)
+      }
       sendToLagoonLogs('error', projectName, "", `task:builddeploy-kubernetes:${status}`, meta,
         `*[${projectName}]* ${logMessage} Build \`${jobName}\` failed. <${logLink}|Logs>`
       )
       break;
 
     case "complete":
-      const buildLog = await jobsLogGet()
-      await saveBuildLog(jobName, projectName, branchName, buildLog, status, jobInfo.metadata.uid)
+      try {
+        const buildLog = await jobsLogGet()
+        await saveBuildLog(jobName, projectName, branchName, buildLog, status, jobInfo.metadata.uid)
+      } catch (err) {
+        logger.warn(`${projectName} ${jobName}: Error while getting and sending to lagoon-logs, Error: ${err}.`)
+      }
       let configMap = {};
       try {
         const configMapSearch = promisify(kubernetesCore.namespaces(openshiftProject).configmaps.get);
