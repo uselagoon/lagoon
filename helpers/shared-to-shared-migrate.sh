@@ -241,9 +241,9 @@ shw_grey "================================================"
 shw_grey ""
 shw_grey "In order to rollback this change, edit the Network Service(s) like so:"
 shw_grey ""
-shw_grey "oc -n ${NAMESPACE} patch svc/${DB_NETWORK_SERVICE} -p \"{\\\"spec\\\":{\\\"externalName': \\\"${ORIGINAL_DB_HOST}\\\"}}\""
+shw_grey "oc -n $NAMESPACE patch svc/$DB_NETWORK_SERVICE -p '{\"spec\":{\"externalName\": \"$ORIGINAL_DB_HOST\"}}'"
 if [ "$DB_READREPLICA_HOSTS" ]; then
-  shw_grey "oc -n ${NAMESPACE} patch svc/${DB_READREPLICA_HOSTS} -p \"{\\\"spec\\\":{\\\"externalName': \\\"${ORIGINAL_DB_READREPLICA_HOSTS}\\\"}}\""
+  shw_grey "oc -n $NAMESPACE patch svc/$DB_READREPLICA_HOSTS -p '{\"spec\":{\"externalName\": \"$ORIGINAL_DB_READREPLICA_HOSTS\"}}'"
 fi
 
 echo ""
