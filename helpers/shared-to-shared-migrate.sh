@@ -230,7 +230,7 @@ shw_info "================================================"
 oc -n "$NAMESPACE" exec "$POD" -- bash -c "drush status"
 
 # Get routes, and ensure a cache bust works.
-ROUTE=$(oc -n "$NAMESPACE" get routes -o json | jq --raw-output '.items[0].spec.host')
+ROUTE=$(oc -n "$NAMESPACE" get routes -o json | jq -er '.items[0].spec.host')
 shw_info "> Testing the route https://${ROUTE}/?${TIMESTAMP}"
 shw_info "================================================"
 curl -skLIXGET "https://${ROUTE}/?${TIMESTAMP}" \
