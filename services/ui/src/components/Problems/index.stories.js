@@ -1,42 +1,39 @@
 import React from 'react';
-import Backups from './index';
+import Problems from './index';
 
 export default {
-  component: Backups,
-  title: 'Components/Backups',
+  component: Problems,
+  title: 'Components/Problems',
 }
 
-const backupsData = [
+const problemsData = [
   {
-    source: 'mariadb',
-    created: '2019-11-18T08:00:00',
-    backupId: '40',
-    restore: {
-      status: 'completed',
-      restoreLocation: 'https://example.com/backup',
-    },
+    "id": 2,
+    "identifier": "321321",
+    "data": "{hello:'world'}",
+    "severity": "HIGH",
+    "source": "Drutiny",
+    "service": "",
+    "created": "2020-04-01 15:29:22",
+    "deleted": "0000-00-00 00:00:00",
+    "severityScore": 0.9
   },
   {
-    source: 'mariadb',
-    created: '2019-11-19T08:00:00',
-    backupId: '41',
-    restore: {
-      status: 'failed',
-    },
-  },
-  {
-    source: 'mariadb',
-    created: '2019-11-19T09:00:00',
-    backupId: '42',
-    restore: {
-      status: 'pending',
-    },
-  },
+    "id": 1,
+    "identifier": "12341234",
+    "data": "{hello:'world'}",
+    "severity": "LOW",
+    "source": "Harbor",
+    "service": "",
+    "created": "2020-04-01 15:27:53",
+    "deleted": "0000-00-00 00:00:00",
+    "severityScore": 0.5
+  }
 ];
 export const Default = () => (
-  <Backups backups={backupsData} />
+  <Problems problems={problemsData} />
 );
 
-export const NoBackups = () => (
-  <Backups backups={[]} />
+export const NoProblems = () => (
+  <Problems problems={[]} />
 );
