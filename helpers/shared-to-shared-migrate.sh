@@ -4,7 +4,7 @@
 # What this script is for
 # =======================
 # This script will migrate a database user, access, database and contents from
-# a source cluster to a destination cluster.
+# an existing cluster to a destination cluster.
 #
 # At the moment, this is geared towards the Ansible Service Broker, but likely
 # can be modified in the future to work with the DBaaS operator.
@@ -18,9 +18,9 @@
 # ============
 # * You are logged into OpenShift CLI and have access to the NAMESPACE you want
 #   to migrate.
-# * You have a `.my.cnf` file for the source and desintation database clusters.
-# * If your database clusters are not directly accessible, then you have
-#   created SSH tunnels to expose them on a local port.
+# * You have a `.my.cnf` file for the desintation database cluster.
+# * If your destination database cluster is not directly accessible, then you
+#   have created SSH tunnels to expose them on a local port.
 #
 # How to get your existing ASB root credentials
 # =============================================
@@ -42,7 +42,6 @@
 # Example commands
 # ================
 # ./helpers/shared-to-shared-migrate.sh \
-# --source shared-cluster.cluster-banana.ap-southeast-2.rds.amazonaws.com \
 # --destination shared-cluster.cluster-apple.ap-southeast-2.rds.amazonaws.com \
 # --replica shared-cluster.cluster-r0-apple.ap-southeast-2.rds.amazonaws.com \
 # --namespace NAMESPACE \
@@ -51,7 +50,6 @@
 set -euo pipefail
 
 # Initialize our own variables:
-SOURCE_CLUSTER=""
 DESTINATION_CLUSTER=""
 REPLICA_CLUSTER=""
 NAMESPACE=""
@@ -95,11 +93,6 @@ while [[ $# -gt 0 ]] ; do
   key="$1"
 
   case $key in
-    -s|--source)
-    SOURCE_CLUSTER="$2"
-    shift # past argument
-    shift # past value
-    ;;
     -d|--destination)
     DESTINATION_CLUSTER="$2"
     shift # past argument
@@ -123,7 +116,6 @@ while [[ $# -gt 0 ]] ; do
 done
 
 shw_grey "================================================"
-shw_grey " SOURCE_CLUSTER=$SOURCE_CLUSTER"
 shw_grey " DESTINATION_CLUSTER=$DESTINATION_CLUSTER"
 shw_grey " REPLICA_CLUSTER=$REPLICA_CLUSTER"
 shw_grey " NAMESPACE=$NAMESPACE"
@@ -206,7 +198,7 @@ shw_norm "================================================"
 # Alter the network service(s).
 shw_info "> Altering the Network Service $DB_NETWORK_SERVICE to point at $DESTINATION_CLUSTER"
 shw_info "================================================"
-oc -n "$NAMESPACE" get "svc/$DB_NETWORK_SERVICE" -o json --export > "/tmp/$NAMESPACE-svc.json"
+ORIGINAL_DB_HOST=$(oc -n "$NAMESPACE" get "svc/$DB_NETWORK_SERVICE" -o json --export | tee "/tmp/$NAMESPACE-svc.json" | jq -er '.spec.externalName')
 if [ "$DRY_RUN" ] ; then
   echo "**DRY RUN**"
 else
@@ -249,7 +241,7 @@ shw_grey "================================================"
 shw_grey ""
 shw_grey "In order to rollback this change, edit the Network Service(s) like so:"
 shw_grey ""
-shw_grey "oc -n ${NAMESPACE} patch svc/${DB_NETWORK_SERVICE} -p \"{\\\"spec\\\":{\\\"externalName': \\\"${SOURCE_CLUSTER}\\\"}}\""
+shw_grey "oc -n ${NAMESPACE} patch svc/${DB_NETWORK_SERVICE} -p \"{\\\"spec\\\":{\\\"externalName': \\\"${ORIGINAL_DB_HOST}\\\"}}\""
 if [ "$DB_READREPLICA_HOSTS" ]; then
   shw_grey "oc -n ${NAMESPACE} patch svc/${DB_READREPLICA_HOSTS} -p \"{\\\"spec\\\":{\\\"externalName': \\\"${ORIGINAL_DB_READREPLICA_HOSTS}\\\"}}\""
 fi
