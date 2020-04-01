@@ -591,7 +591,8 @@ all-openshift-tests-list:=	features-openshift \
 														gitlab \
 														bitbucket \
 														nginx \
-														elasticsearch
+														elasticsearch \
+														active-standby
 all-openshift-tests = $(foreach image,$(all-openshift-tests-list),openshift-tests/$(image))
 
 .PHONY: openshift-tests
@@ -611,7 +612,7 @@ wait-for-keycloak:
 main-test-services = broker logs2email logs2slack logs2rocketchat logs2microsoftteams api api-db keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher harbor-core harbor-database harbor-jobservice harbor-portal harbor-nginx harbor-redis harborregistry harborregistryctl harborclair harborclairadapter local-minio
 
 # Define a list of which Lagoon Services are needed for openshift testing
-openshift-test-services = openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor tests-openshift
+openshift-test-services = openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor openshiftmisc tests-openshift
 
 # Define a list of which Lagoon Services are needed for kubernetes testing
 kubernetes-test-services = kubernetesbuilddeploy kubernetesdeployqueue kubernetesbuilddeploymonitor kubernetesjobs kubernetesjobsmonitor kubernetesremove kubernetesmisc tests-kubernetes local-registry local-dbaas-provider drush-alias
@@ -626,7 +627,7 @@ drupal-test-services = drush-alias
 webhook-tests = github gitlab bitbucket
 
 # All Tests that use API endpoints
-api-tests = node features-openshift features-kubernetes nginx elasticsearch
+api-tests = node features-openshift features-kubernetes nginx elasticsearch active-standby
 
 # All drupal tests
 drupal-tests = drupal drupal-postgres drupal-galera
@@ -917,6 +918,8 @@ openshift-lagoon-setup:
 	oc -n lagoon create -f openshift-setup/dbaas-roles.yaml; \
 	oc -n dbaas-operator-system create -f openshift-setup/dbaas-operator.yaml; \
 	oc -n lagoon create -f openshift-setup/dbaas-providers.yaml; \
+	oc -n lagoon create -f openshift-setup/dioscuri-roles.yaml; \
+	oc -n dioscuri-controller create -f openshift-setup/dioscuri-operator.yaml; \
 	echo -e "\n\nAll Setup, use this token as described in the Lagoon Install Documentation:" \
 	oc -n lagoon serviceaccounts get-token openshiftbuilddeploy
 

@@ -77,7 +77,23 @@ The development of the services can happen directly within Docker. Each containe
 
 ### lagoon-commons
 
-The services not only share many Node.js packages, but also share actual custom code. This code is within `node-packages/lagoon-commons`. It will be automatically symlinked by Yarn workspaces. Additionally,  the [`nodemon`](https://www.npmjs.com/package/nodemon) of the services is set up in a way that it checks for changes in `node-packages` and will restart the node process automatically.
+The services not only share many Node.js packages, but also share actual custom code. This code is within `node-packages/commons`. It will be automatically symlinked by Yarn workspaces. Additionally,  the [`nodemon`](https://www.npmjs.com/package/nodemon) of the services is set up in a way that it checks for changes in `node-packages` and will restart the node process automatically.
+
+Code changes in `node-packages/commones/src/*` should automatically be picked up from within the `services/*` containers. The services containers will automatically see, and reload, via the service `package.json` dev script, which sets nodemon to watch the node-packages/commons folder for changes.
+
+example: `kubernetesbuilddeploymonitor`
+```
+  ...
+  "scripts": {
+    "dev": "nodemon --watch . --watch ../../node-packages --exec 'node --inspect=0.0.0.0:9229 src/index.js'"
+  },
+  ...
+```
+
+Service containers have the node-packages directory mounted via the docker-compose.yaml file
+https://github.com/amazeeio/lagoon/blob/master/docker-compose.yaml#L195
+
+And the `packages/commons` folder gets symlinked into the yarn_workspace generated “global” node_modules folder so changes in `packages/commons/src/*` should be immediately reflected in all the services containers.
 
 ### Hiera
 
