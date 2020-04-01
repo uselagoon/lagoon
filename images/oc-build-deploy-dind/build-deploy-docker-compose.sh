@@ -290,6 +290,8 @@ if [[ ( "$TYPE" == "pullrequest"  ||  "$TYPE" == "branch" ) && ! $THIS_IS_TUG ==
   set -x
 
   BUILD_ARGS+=(--build-arg IMAGE_REPO="${CI_OVERRIDE_IMAGE_REPO}")
+  BUILD_ARGS+=(--build-arg LAGOON_GIT_SHA="${LAGOON_GIT_SHA}")
+  BUILD_ARGS+=(--build-arg LAGOON_GIT_BRANCH="${BRANCH}")
   BUILD_ARGS+=(--build-arg LAGOON_GIT_SAFE_BRANCH="${SAFE_BRANCH}")
   BUILD_ARGS+=(--build-arg LAGOON_PROJECT="${PROJECT}")
   BUILD_ARGS+=(--build-arg LAGOON_SAFE_PROJECT="${SAFE_PROJECT}")
@@ -299,11 +301,6 @@ if [[ ( "$TYPE" == "pullrequest"  ||  "$TYPE" == "branch" ) && ! $THIS_IS_TUG ==
   set +x
   BUILD_ARGS+=(--build-arg LAGOON_SSH_PRIVATE_KEY="${SSH_PRIVATE_KEY}")
   set -x
-
-  if [ "$BUILD_TYPE" == "branch" ]; then
-    BUILD_ARGS+=(--build-arg LAGOON_GIT_SHA="${LAGOON_GIT_SHA}")
-    BUILD_ARGS+=(--build-arg LAGOON_GIT_BRANCH="${BRANCH}")
-  fi
 
   if [ "$TYPE" == "pullrequest" ]; then
     BUILD_ARGS+=(--build-arg LAGOON_PR_HEAD_BRANCH="${PR_HEAD_BRANCH}")
