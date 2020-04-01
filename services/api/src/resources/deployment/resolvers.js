@@ -724,7 +724,7 @@ const deployEnvironmentPromote = async (
   const sourceEnvironment = R.prop(0, activeEnvironments);
 
   await hasPermission('environment', 'view', {
-    project: sourceEnvironment.project.id,
+    project: sourceEnvironment.project
   });
 
   const deployData = {
