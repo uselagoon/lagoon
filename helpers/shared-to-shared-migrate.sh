@@ -129,7 +129,7 @@ shw_grey " REPLICA_CLUSTER=$REPLICA_CLUSTER"
 shw_grey " NAMESPACE=$NAMESPACE"
 shw_grey "================================================"
 
-for util in oc jq mysql shyaml; do
+for util in oc jq mysql; do
 	if ! command -v ${util} > /dev/null; then
 		shw_err "Please install ${util}"
 		exit 1
@@ -147,19 +147,18 @@ if [ "$DRY_RUN" ] ; then
 fi
 
 # Load the DBaaS credentials for the project
-SECRETS=/tmp/${NAMESPACE}-migration.yaml
-oc -n "$NAMESPACE" get secret mariadb-servicebroker-credentials -o yaml > "$SECRETS"
+SECRETS=$(oc -n "$NAMESPACE" get secret mariadb-servicebroker-credentials -o json)
 
-DB_NETWORK_SERVICE=$(cat $SECRETS | shyaml get-value data.DB_HOST | base64 -d)
-if cat ${SECRETS} | grep DB_READREPLICA_HOSTS > /dev/null ; then
-  DB_READREPLICA_HOSTS=$(cat $SECRETS | shyaml get-value data.DB_READREPLICA_HOSTS | base64 -d)
+DB_NETWORK_SERVICE=$(echo "$SECRETS" | jq -er '.data.DB_HOST | @base64d')
+if echo "$SECRETS" | grep -q DB_READREPLICA_HOSTS ; then
+  DB_READREPLICA_HOSTS=$(echo "$SECRETS" | jq -er '.data.DB_READREPLICA_HOSTS | @base64d')
 else
   DB_READREPLICA_HOSTS=""
 fi
-DB_USER=$(cat $SECRETS | shyaml get-value data.DB_USER | base64 -d)
-DB_PASSWORD=$(cat $SECRETS | shyaml get-value data.DB_PASSWORD | base64 -d)
-DB_NAME=$(cat $SECRETS | shyaml get-value data.DB_NAME | base64 -d)
-DB_PORT=$(cat $SECRETS | shyaml get-value data.DB_PORT | base64 -d)
+DB_USER=$(echo "$SECRETS" | jq -er '.data.DB_USER | @base64d')
+DB_PASSWORD=$(echo "$SECRETS" | jq -er '.data.DB_PASSWORD | @base64d')
+DB_NAME=$(echo "$SECRETS" | jq -er '.data.DB_NAME | @base64d')
+DB_PORT=$(echo "$SECRETS" | jq -er '.data.DB_PORT | @base64d')
 
 shw_grey "================================================"
 shw_grey " DB_NETWORK_SERVICE=$DB_NETWORK_SERVICE"
@@ -171,7 +170,7 @@ shw_grey " DB_PORT=$DB_PORT"
 shw_grey "================================================"
 
 # Ensure there is a database in the destination.
-shw_info "> Setting up the MySQL bits"
+shw_info "> Preparing Database, User, and permissions on destination"
 shw_info "================================================"
 CONF_FILE=${HOME}/.my.cnf-${DESTINATION_CLUSTER}
 mysql --defaults-file="$CONF_FILE" -se "CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\`;"
@@ -185,7 +184,7 @@ shw_info "================================================"
 mysql --defaults-file="$CONF_FILE" -e "SELECT * FROM mysql.db WHERE Db = '${DB_NAME}'\G;"
 
 # Dump the database inside the CLI pod.
-POD=$(oc -n "$NAMESPACE" get pods -o json --show-all=false -l service=cli | jq -r '.items[].metadata.name')
+POD=$(oc -n "$NAMESPACE" get pods -o json --show-all=false -l service=cli | jq -er '.items[].metadata.name')
 shw_info "> Dumping database $DB_NAME on pod $POD on host $DB_NETWORK_SERVICE"
 shw_info "================================================"
 oc -n "$NAMESPACE" exec "$POD" -- bash -c "time mysqldump -h '$DB_NETWORK_SERVICE' -u '$DB_USER' -p'$DB_PASSWORD' '$DB_NAME' > /tmp/migration.sql"
@@ -207,21 +206,20 @@ shw_norm "================================================"
 # Alter the network service(s).
 shw_info "> Altering the Network Service $DB_NETWORK_SERVICE to point at $DESTINATION_CLUSTER"
 shw_info "================================================"
-oc -n "$NAMESPACE" get "svc/$DB_NETWORK_SERVICE" -o yaml > "/tmp/$NAMESPACE-svc.yaml"
-if [ -z "$DRY_RUN" ] ; then
-  oc -n "$NAMESPACE" patch "svc/$DB_NETWORK_SERVICE" -p "{\"spec\":{\"externalName\": \"${DESTINATION_CLUSTER}\"}}"
-else
+oc -n "$NAMESPACE" get "svc/$DB_NETWORK_SERVICE" -o json --export > "/tmp/$NAMESPACE-svc.json"
+if [ "$DRY_RUN" ] ; then
   echo "**DRY RUN**"
+else
+  oc -n "$NAMESPACE" patch "svc/$DB_NETWORK_SERVICE" -p "{\"spec\":{\"externalName\": \"${DESTINATION_CLUSTER}\"}}"
 fi
 if [ "$DB_READREPLICA_HOSTS" ]; then
   shw_info "> Altering the Network Service $DB_READREPLICA_HOSTS to point at $REPLICA_CLUSTER"
   shw_info "================================================"
-  oc -n "$NAMESPACE" get "svc/$DB_READREPLICA_HOSTS" -o yaml > "/tmp/$NAMESPACE-svc-replica.yaml"
-  ORIGINAL_DB_READREPLICA_HOSTS=$(cat /tmp/${NAMESPACE}-svc-replica.yaml | shyaml get-value spec.externalName)
-  if [ -z "$DRY_RUN" ] ; then
-    oc -n "$NAMESPACE" patch "svc/$DB_READREPLICA_HOSTS" -p '{"spec":{"externalName": "'"$REPLICA_CLUSTER"'"}}'
-  else
+  ORIGINAL_DB_READREPLICA_HOSTS=$(oc -n "$NAMESPACE" get "svc/$DB_READREPLICA_HOSTS" -o json --export | tee "/tmp/$NAMESPACE-svc-replica.json" | jq -er '.spec.externalName')
+  if [ "$DRY_RUN" ] ; then
     echo "**DRY RUN**"
+  else
+    oc -n "$NAMESPACE" patch "svc/$DB_READREPLICA_HOSTS" -p '{"spec":{"externalName": "'"$REPLICA_CLUSTER"'"}}'
   fi
 fi
 
