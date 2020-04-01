@@ -724,7 +724,7 @@ const deployEnvironmentPromote = async (
   const sourceEnvironment = R.prop(0, activeEnvironments);
 
   await hasPermission('environment', 'view', {
-    project: sourceEnvironment.project,
+    project: sourceEnvironment.project.id,
   });
 
   const deployData = {
@@ -798,27 +798,27 @@ const switchActiveStandby = async (
     hasPermission,
   },
 ) => {
-  const destProject = await projectHelpers(sqlClient).getProjectByProjectInput(
+  const project = await projectHelpers(sqlClient).getProjectByProjectInput(
     projectInput,
   );
 
   // active/standby really only should be between production environments
   await hasPermission('environment', `deploy:production`, {
-    project: destProject.id,
+    project: project.id,
   });
 
   await hasPermission('task', 'view', {
-    project: destProject,
+    project: project.id,
   });
 
   const environmentRows = await query(
     sqlClient,
-    environmentSql.selectEnvironmentByNameAndProject(destProject.productionEnvironment, destProject.id),
+    environmentSql.selectEnvironmentByNameAndProject(project.productionEnvironment, project.id),
   );
   const environment = environmentRows[0];
   var environmentId = parseInt(environment.id);
 
-  if (destProject.standbyProductionEnvironment == null) {
+  if (project.standbyProductionEnvironment == null) {
     sendToLagoonLogs(
       'error',
       '',
@@ -831,20 +831,22 @@ const switchActiveStandby = async (
   }
 
   // construct the data for the misc task
+  let uuid = uuid4();
+
   const data = {
-    projectName: destProject.name,
-    productionEnvironment: destProject.productionEnvironment,
-    standbyProductionEnvironment: destProject.standbyProductionEnvironment,
+    project,
+    projectName: project.name,
+    productionEnvironment: project.productionEnvironment,
+    standbyProductionEnvironment: project.standbyProductionEnvironment,
     task: {
       id: 0,
-      uuid: '',
+      uuid: uuid,
     }
   };
 
   // try it now
   try {
     // add a task into the environment
-    var uuid = uuid4();
     var date = new Date()
     var created = convertDateFormat(date.toISOString())
     const sourceTaskData = await addTask(
@@ -861,15 +863,14 @@ const switchActiveStandby = async (
       false,
     );
     data.task.id = sourceTaskData.addTask.id
-    data.task.uuid = uuid
 
     // then send the task to openshiftmisc to trigger the migration
-    await createMiscTask({ key: 'openshift:route:migrate', data });
+    await createMiscTask({ key: 'route:migrate', data });
 
     // return the task id and remote id
     var retData = {
       id: data.task.id,
-      remoteId: data.task.uuid,
+      remoteId: uuid,
       environment: environmentId,
     }
     return retData;
@@ -896,6 +897,7 @@ const Resolvers /* : ResolversObj */ = {
   getDeploymentByRemoteId,
   getDeploymentUrl,
   addDeployment,
+  addTask,
   deleteDeployment,
   updateDeployment,
   cancelDeployment,
