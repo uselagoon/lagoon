@@ -28,21 +28,6 @@ export const getEnvVarsByProjectId = async (
   });
   let queries = [];
   let rows = [];
-  if(args.withGroupEnvVars){
-    const projectGroups = await models.GroupModel.loadGroupsByProjectId(pid);
-    projectGroups.forEach(group => {
-      const gid = group.id;
-      const prep = prepare(
-        sqlClient,
-        `SELECT
-            ev.*
-          FROM env_vars ev
-          WHERE ev.group_id = :gid
-        `,
-      );
-      queries.push(query(sqlClient, prep({ gid })));
-    })
-  }
   const prep = prepare(
     sqlClient,
     `SELECT

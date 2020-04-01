@@ -339,7 +339,7 @@ const typeDefs = gql`
     """
     Environment variables available during build-time and run-time
     """
-    envVariables(withGroupEnvVars: Boolean): [EnvKeyValue]
+    envVariables: [EnvKeyValue]
     """
     Which groups are directly linked to project
     """
