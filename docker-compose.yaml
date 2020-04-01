@@ -594,6 +594,7 @@ services:
       - SCANNER_CLAIR_DATABASE_URL=postgres://postgres:test123@harbor-database:5432/postgres?sslmode=disable
       - SCANNER_STORE_REDIS_URL=redis://harbor-redis:6379/4
       - SCANNER_LOG_LEVEL=error
+    restart: always
     labels:
       lagoon.type: custom
       lagoon.template: services/harborclairadapter/harborclair.yml
@@ -658,6 +659,7 @@ services:
       - REGISTRY_HTTP_SECRET=secret123
       - HARBOR_ADMIN_PASSWORD=admin
       - CLAIR_DB_PASSWORD=test123
+    restart: always
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor-core/harbor-core.yml
@@ -671,6 +673,7 @@ services:
       - POSTGRES_PASSWORD=test123
       - POSTGRES_USER=postgres
       - POSTGRES_DB=postgres
+    restart: always
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor-database/harbor-database.yml
@@ -699,6 +702,7 @@ services:
       - SCANNER_CLAIR_DATABASE_URL=postgres://postgres:test123@harbor-database:5432/postgres?sslmode=disable
       - SCANNER_STORE_REDIS_URL=redis://harbor-redis:6379/4
       - SCANNER_LOG_LEVEL=error
+    restart: always
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor-jobservice/harbor-jobservice.yml
@@ -714,6 +718,7 @@ services:
       - harbor-core
       - harborregistry
       - harbor-portal
+    restart: always
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor-nginx/harbor-nginx.yml
@@ -723,6 +728,7 @@ services:
     hostname: harbor-portal
     ports:
       - '8085:8080'
+    restart: always
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor-portal/harbor-portal.yml
@@ -732,6 +738,7 @@ services:
     hostname: harbor-redis
     volumes:
       - /var/lib/redis
+    restart: always
     labels:
       lagoon.type: custom
       lagoon.template: services/harbor-redis/harbor-redis.yml

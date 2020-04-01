@@ -179,7 +179,7 @@ const getDeploymentUrl = async (
 
   const lagoonUiRoute = R.compose(
     R.defaultTo('http://localhost:8888'),
-    R.find(R.test(/ui-/)),
+    R.find(R.test(/\/ui-/)),
     R.split(','),
     R.propOr('', 'LAGOON_ROUTES'),
   )(process.env);
