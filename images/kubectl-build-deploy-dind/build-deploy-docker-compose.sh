@@ -178,6 +178,10 @@ if [[ ( "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ) && ! $TH
   BUILD_ARGS=()
 
   # Add environment variables from lagoon API as build args
+  if [ ! -z "$LAGOON_GROUP_VARIABLES" ]; then
+    echo "LAGOON_GROUP_VARIABLES are available from the API"
+    BUILD_ARGS+=($(echo $LAGOON_GROUP_VARIABLES | jq -r '.[] | select(.scope == "build" or .scope == "global") | "--build-arg \(.name)=\(.value)"'))
+  fi
   if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
     BUILD_ARGS+=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "build" or .scope == "global") | "--build-arg \(.name)=\(.value)"'))
   fi
@@ -619,6 +623,16 @@ LAGOON_MONITORING_URLS=${MONITORING_URLS}\n\
 kubectl -n ${NAMESPACE} create configmap lagoon-env -o yaml --dry-run --from-env-file=/kubectl-build-deploy/values.env | kubectl apply -n ${NAMESPACE} -f -
 
 # Add environment variables from lagoon API
+if [ ! -z "$LAGOON_GROUP_VARIABLES" ]; then
+  HAS_GROUP_RUNTIME_VARS=$(echo $LAGOON_GROUP_VARIABLES | jq -r 'map( select(.scope == "runtime" or .scope == "global") )')
+
+  if [ ! "$HAS_GROUP_RUNTIME_VARS" = "[]" ]; then
+    oc patch --insecure-skip-tls-verify \
+      -n ${OPENSHIFT_PROJECT} \
+      configmap lagoon-env \
+      -p "{\"data\":$(echo $LAGOON_GROUP_VARIABLES | jq -r 'map( select(.scope == "runtime" or .scope == "global") ) | map( { (.name) : .value } ) | add | tostring')}"
+  fi
+fi
 if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
   HAS_PROJECT_RUNTIME_VARS=$(echo $LAGOON_PROJECT_VARIABLES | jq -r 'map( select(.scope == "runtime" or .scope == "global") )')
 
