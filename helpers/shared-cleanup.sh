@@ -100,9 +100,11 @@ for PROJECT in $(awk '$3 ~ /^dedicated/ {next} {print $1}' /tmp/mariadb-services
 done
 
 echo; echo
-shw_info "These projects could not adaquately checked:"
-printf "%s\\n" "${ERRORS[@]}"
-echo
+if [ ${#ERRORS[@]} -gt 0 ]; then
+  shw_info "These projects could not adaquately checked:"
+  printf "%s\\n" "${ERRORS[@]}"
+  echo
+fi
 
 for SERVER in $SERVERS; do
   CONFFILE="${HOME}/.my.cnf-${SERVER}"

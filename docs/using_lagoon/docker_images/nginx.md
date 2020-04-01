@@ -33,7 +33,7 @@ In order to create redirects, we have `redirects-map.conf` in place. This helps 
 Here's an example showing how to redirect `www.example.com` to `example.com` and preserve the request:
 
 ```bash
-RUN echo "~^www.example.com http://example.com\$request_uri;" >> /etc/nginx/redirects-map.conf
+RUN echo "~^www\.example\.com          http://example.com\$request_uri;" >> /etc/nginx/redirects-map.conf
 ```
 
 To get more details about the various types of redirects that can be achieved, see the documentation within the [`redirects-map.conf`](https://github.com/amazeeio/lagoon/blob/master/images/nginx/redirects-map.conf) directly.
@@ -48,7 +48,7 @@ COPY redirects-map.conf /etc/nginx/redirects-map.conf
 
 ### Basic Authentication
 
-If you want to protect your site via basic authentication, you can do this by defining the environment variables `BASIC_AUTH_USERNAME` and `BASIC_AUTH_PASSWORD` within your `.lagoon.env.environment` files. For further explanation on how to set up Environment Variables on Lagoon, [check here](../../using-lagoon-advanced/environment-variables.md).
+If you want to protect your site via basic authentication, you can do this by defining the environment variables `BASIC_AUTH_USERNAME` and `BASIC_AUTH_PASSWORD` within your `.lagoon.env.environment` files. For further explanation on how to set up Environment Variables on Lagoon, [check here](../environment_variables.md).
 
 ## Environment Variables
 

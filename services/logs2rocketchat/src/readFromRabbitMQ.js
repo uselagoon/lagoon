@@ -155,12 +155,14 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
       break;
 
     case "task:remove-openshift:finished":
+    case "task:remove-kubernetes:finished":
       text = `*[${meta.projectName}]* remove \`${meta.openshiftProject}\``
       sendToRocketChat(project, text, 'lawngreen', ':white_check_mark:', channelWrapperLogs, msg, appId)
       break;
 
     case "task:deploy-openshift:retry":
     case "task:remove-openshift:retry":
+    case "task:remove-kubernetes:retry":
     case "task:remove-openshift-resources:retry":
       text = `*[${meta.projectName}]*`
       if (meta.shortSha) {
@@ -177,6 +179,7 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
 
     case "task:deploy-openshift:error":
     case "task:remove-openshift:error":
+    case "task:remove-kubernetes:error":
     case "task:remove-openshift-resources:error":
     case "task:builddeploy-openshift:failed":
       text = `*[${meta.projectName}]*`

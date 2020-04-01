@@ -69,7 +69,7 @@ Array [
     "[34m![39m Set \\"name\\" option to \\"test-project\\" from arguments or config",
   ],
   Array [
-    "[34m![39m Set \\"gitUrl\\" option to \\"ssh://git@192.168.42.1:2222/git/project1.git\\" from arguments or config",
+    "[34m![39m Set \\"gitUrl\\" option to \\"ssh://git@172.17.0.1:2222/git/project1.git\\" from arguments or config",
   ],
   Array [
     "[34m![39m Set \\"openshift\\" option to \\"1\\" from arguments or config",
@@ -89,7 +89,7 @@ Array [
   Array [
     "[38;2;132;132;132mName[39m                   test-project
 [38;2;132;132;132mCustomer[39m               credentialtest-customer1
-[38;2;132;132;132mGit URL[39m                ssh://git@192.168.42.1:2222/git/project1.git
+[38;2;132;132;132mGit URL[39m                ssh://git@172.17.0.1:2222/git/project1.git
 [38;2;132;132;132mActive Systems Deploy[39m  lagoon_openshiftBuildDeploy
 [38;2;132;132;132mActive Systems Remove[39m  lagoon_openshiftRemove
 [38;2;132;132;132mBranches[39m               true

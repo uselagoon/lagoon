@@ -6,7 +6,11 @@ deploytest
 *.retry
 startVagrant.sh
 local-dev/oc
+local-dev/helm
 minishift
+minikube
+k3d
+kubectl
 **/v8-*
 node_modules/
 build/*

@@ -21,9 +21,9 @@ ENV TMPDIR=/tmp \
     BASH_ENV=/home/.bashrc
 
 ENV LAGOON=ssh \
-    OC_VERSION=v3.6.0 \
-    OC_HASH=c4dd4cf \
-		OC_SHA256=ecb0f52560ac766331052a0052b1de646011247f637c15063f4d74432e1ce389
+    OC_VERSION=v3.11.0 \
+    OC_HASH=0cbc58b \
+    OC_SHA256=4b0f07428ba854174c58d2e38287e5402964c9a9355f6c359d1242efd0990da3
 
 COPY services/ssh/libnss-mysql-1.5.tar.gz /tmp/libnss-mysql-1.5.tar.gz
 

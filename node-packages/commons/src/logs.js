@@ -1,12 +1,12 @@
-// @flow
-
 const amqp = require('amqp-connection-manager');
 const { logger } = require('./local-logging');
 
 const rabbitmqHost = process.env.RABBITMQ_HOST || 'broker';
 const rabbitmqUsername = process.env.RABBITMQ_USERNAME || 'guest';
 const rabbitmqPassword = process.env.RABBITMQ_PASSWORD || 'guest';
+
 let channelWrapperLogs;
+
 exports.initSendToLagoonLogs = initSendToLagoonLogs;
 exports.sendToLagoonLogs = sendToLagoonLogs;
 
@@ -39,13 +39,13 @@ function initSendToLagoonLogs() {
 }
 
 async function sendToLagoonLogs(
-  severity: string,
-  project: string,
-  uuid: string,
-  event: string,
-  meta: Object,
-  message: string,
-): Promise<void> {
+  severity,
+  project,
+  uuid,
+  event,
+  meta,
+  message,
+) {
   const payload = {
     severity,
     project,

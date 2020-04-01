@@ -10,6 +10,7 @@ const envVarScopeToString = R.cond([
   [R.equals('BUILD'), R.toLower],
   [R.equals('RUNTIME'), R.toLower],
   [R.equals('CONTAINER_REGISTRY'), R.toLower],
+  [R.equals('INTERNAL_CONTAINER_REGISTRY'), R.toLower],
   [R.T, R.identity],
 ]);
 

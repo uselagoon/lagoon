@@ -45,7 +45,11 @@ const Sql = {
     knex('env_vars')
       .select({ pid: 'project.id' })
       .leftJoin('environment', 'env_vars.environment', '=', 'environment.id')
-      .leftJoin('project', 'env_vars.project', '=', 'project.id')
+      .leftJoin('project', function () {
+        this
+          .on('env_vars.project', '=', 'project.id')
+          .orOn('environment.project', '=', 'project.id')
+      })
       .where('env_vars.id', id)
       .toString(),
 };

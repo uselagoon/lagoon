@@ -8,14 +8,14 @@
   - include: ../../tasks/git-init.yaml
   - include: ../../tasks/git-add-commit-push.yaml
 
-- name: "{{ testname }} - rest2tasks deploy post for just git branch on {{ project }}"
+- name: "{{ testname }} - api deployEnvironmentBranch deploy for just git branch on {{ project }}"
   hosts: localhost
   serial: 1
   vars:
     branch: "{{ branch }}"
     project: "{{ project }}"
   tasks:
-  - include: ../../tasks/rest/deploy-no-sha.yaml
+  - include: ../../tasks/api/deploy-no-sha.yaml
 
 - name: "{{ testname }} - check that the git sha is 0's"
   hosts: localhost
@@ -40,6 +40,6 @@
   serial: 1
   vars:
     url: "{{ check_url }}"
-    expected_returncode: 503
+    expected_returncode: "{{ lookup('env','DELETED_STATUS_CODE') }}"
   tasks:
   - include: ../../checks/check-url-returncode-host.yaml
