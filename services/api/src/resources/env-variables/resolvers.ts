@@ -20,14 +20,12 @@ export const getEnvVarsByProjectId = async (
   {
     sqlClient,
     hasPermission,
-    models,
   },
 ) => {
   await hasPermission('env_var', 'project:view', {
     project: pid,
   });
-  let queries = [];
-  let rows = [];
+
   const prep = prepare(
     sqlClient,
     `SELECT
@@ -38,12 +36,7 @@ export const getEnvVarsByProjectId = async (
     `,
   );
 
-  queries.push(query(sqlClient, prep({ pid })));
-  const results = await Promise.all(queries)
-
-  results.forEach( result => {
-    result.forEach( row => rows.push(row));
-  })
+  const rows = await query(sqlClient, prep({ pid }));
 
   return rows;
 };
