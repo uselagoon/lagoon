@@ -136,6 +136,7 @@ const messageConsumer = async msg => {
 
   const meta = JSON.parse(msg.content.toString())
   const logLink = deployment.uiLink;
+  meta.logLink = deployment.uiLink;
   let logMessage = ''
   if (sha) {
     meta.shortSha = sha.substring(0, 7)
