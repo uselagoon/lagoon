@@ -254,5 +254,5 @@ echo ""
 shw_grey "================================================"
 shw_grey " END_TIMESTAMP='$(date +%Y-%m-%dT%H:%M:%S%z)'"
 shw_grey "================================================"
-shw_norm "Done"
+shw_norm "Done in $SECONDS seconds"
 exit 0
