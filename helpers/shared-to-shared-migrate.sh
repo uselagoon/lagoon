@@ -184,9 +184,9 @@ POD=$(oc -n "$NAMESPACE" get pods -o json --show-all=false -l service=cli | jq -
 shw_info "> Dumping database $DB_NAME on pod $POD on host $DB_NETWORK_SERVICE"
 shw_info "================================================"
 oc -n "$NAMESPACE" exec "$POD" -- bash -c "time mysqldump -h '$DB_NETWORK_SERVICE' -u '$DB_USER' -p'$DB_PASSWORD' '$DB_NAME' > /tmp/migration.sql"
-oc -n "$NAMESPACE" exec "$POD" -- ls -lath /tmp/migration.sql || exit 1
+oc -n "$NAMESPACE" exec "$POD" -- ls -lath /tmp/migration.sql
 oc -n "$NAMESPACE" exec "$POD" -- head -n 5 /tmp/migration.sql
-oc -n "$NAMESPACE" exec "$POD" -- tail -n 5 /tmp/migration.sql || exit 1
+oc -n "$NAMESPACE" exec "$POD" -- tail -n 5 /tmp/migration.sql
 shw_norm "> Dump is done"
 shw_norm "================================================"
 
