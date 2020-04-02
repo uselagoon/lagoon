@@ -196,7 +196,6 @@ const messageConsumer = async msg => {
       const routes = configMap.data.LAGOON_ROUTES.split(',').filter(e => e !== route);
       meta.route = route
       meta.routes = routes
-      meta.logLink = loglink
       sendToLagoonLogs('info', projectName, "", `task:builddeploy-openshift:${buildPhase}`, meta,
         `*[${projectName}]* ${logMessage} Build \`${buildName}\` complete. <${logLink}|Logs> \n ${route}\n ${routes.join("\n")}`
       )
