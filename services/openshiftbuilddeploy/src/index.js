@@ -63,7 +63,15 @@ const messageConsumer = async msg => {
       safeBranchName = safeBranchName.concat('-' + hash)
     }
 
-    var environmentType = branchName === projectOpenShift.productionEnvironment ? 'production' : 'development';
+    // if we get this far, assume we already passed the point of if the environment can be deployed,
+    // so default to development, and change to production based on the same conditions as in commons/src/tasks.js
+    var environmentType = 'development'
+    if (
+      projectOpenShift.productionEnvironment === branchName
+      || projectOpenShift.standbyProductionEnvironment === branchName
+    ) {
+      environmentType = 'production'
+    }
     var gitSha = sha
     var projectId = projectOpenShift.id
     var openshiftConsole = projectOpenShift.openshift.consoleUrl.replace(/\/$/, "");
@@ -73,6 +81,8 @@ const messageConsumer = async msg => {
     var openshiftProjectUser = projectOpenShift.openshift.projectUser || ""
     var deployPrivateKey = projectOpenShift.privateKey
     var gitUrl = projectOpenShift.gitUrl
+    var projectProductionEnvironment = projectOpenShift.productionEnvironment
+    var projectStandbyEnvironment = projectOpenShift.standbyProductionEnvironment
     var subfolder = projectOpenShift.subfolder || ""
     var routerPattern = projectOpenShift.openshift.routerPattern ? projectOpenShift.openshift.routerPattern.replace('${branch}',safeBranchName).replace('${project}', safeProjectName) : ""
     var prHeadBranchName = headBranchName || ""
@@ -221,6 +231,14 @@ const messageConsumer = async msg => {
                       {
                           "name": "ENVIRONMENT_TYPE",
                           "value": environmentType
+                      },
+                      {
+                          "name": "ACTIVE_ENVIRONMENT",
+                          "value": projectProductionEnvironment
+                      },
+                      {
+                          "name": "STANDBY_ENVIRONMENT",
+                          "value": projectStandbyEnvironment
                       },
                       {
                           "name": "OPENSHIFT_NAME",

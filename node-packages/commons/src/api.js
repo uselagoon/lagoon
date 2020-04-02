@@ -932,6 +932,11 @@ const getOpenShiftInfoForProject = (project) =>
         subfolder
         openshiftProjectPattern
         productionEnvironment
+        productionRoutes
+        productionAlias
+        standbyProductionEnvironment
+        standbyRoutes
+        standbyAlias
         envVariables {
           name
           value
@@ -1084,6 +1089,54 @@ const addDeployment = (
     },
   );
 
+  const addTask = (
+    name,
+    status,
+    created,
+    environment,
+    remoteId = null,
+    id = null,
+    started = null,
+    completed = null,
+    service = null,
+    command = null,
+    execute = false,
+  ) =>
+    graphqlapi.mutate(
+      `
+    ($name: String!, $status: TaskStatusType!, $created: String!, $environment: Int!, $id: Int, $remoteId: String, $started: String, $completed: String, $service: String, $command: String, $execute: Boolean) {
+      addTask(input: {
+          name: $name
+          status: $status
+          created: $created
+          environment: $environment
+          id: $id
+          remoteId: $remoteId
+          started: $started
+          completed: $completed
+          service: $service
+          command: $command
+          execute: $execute
+      }) {
+        ...${taskFragment}
+      }
+    }
+  `,
+      {
+        name,
+        status,
+        created,
+        environment,
+        id,
+        remoteId,
+        started,
+        completed,
+        service,
+        command,
+        execute,
+      },
+    );
+
 const updateDeployment = (
   id,
   patch,
@@ -1207,6 +1260,7 @@ module.exports = {
   setEnvironmentServices,
   getDeploymentByRemoteId,
   addDeployment,
+  addTask,
   updateDeployment,
   getEnvironmentByOpenshiftProjectName,
   updateTask,

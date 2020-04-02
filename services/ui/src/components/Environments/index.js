@@ -69,6 +69,16 @@ const Environments = ({ environments = [] }) => {
                     <span>Production</span>
                   </div>
                 )}
+                {environment.project.productionEnvironment == environment.name && (
+                  <div className="activeLabel">
+                    <span>Active</span>
+                  </div>
+                )}
+                {environment.project.standbyProductionEnvironment == environment.name && (
+                  <div className="standbyLabel">
+                    <span>Standby</span>
+                  </div>
+                )}
                 <label>
                   {environment.deployType === 'pullrequest'
                     ? 'PR'
@@ -137,6 +147,60 @@ const Environments = ({ environments = [] }) => {
           ${fontSize(13)};
           position: absolute;
           right: -38px;
+          text-transform: uppercase;
+          top: 50%;
+          transform: translateY(-50%) rotate(-90deg);
+
+          &::after {
+            border-top: 1px solid ${color.grey};
+            content: '';
+            display: block;
+            position: relative;
+            right: 12px;
+            top: -12px;
+            width: calc(100% + 26px);
+            z-index: -1;
+          }
+
+          span {
+            background-color: ${color.white};
+            padding: 0 16px;
+            z-index: 0;
+          }
+        }
+
+        .standbyLabel {
+          color: ${color.blue};
+          ${fontSize(13)};
+          position: absolute;
+          right: 0px;
+          text-transform: uppercase;
+          top: 50%;
+          transform: translateY(-50%) rotate(-90deg);
+
+          &::after {
+            border-top: 1px solid ${color.grey};
+            content: '';
+            display: block;
+            position: relative;
+            right: 12px;
+            top: -12px;
+            width: calc(100% + 26px);
+            z-index: -1;
+          }
+
+          span {
+            background-color: ${color.white};
+            padding: 0 16px;
+            z-index: 0;
+          }
+        }
+
+        .activeLabel {
+          color: ${color.green};
+          ${fontSize(13)};
+          position: absolute;
+          right: 0px;
           text-transform: uppercase;
           top: 50%;
           transform: translateY(-50%) rotate(-90deg);

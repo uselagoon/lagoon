@@ -300,6 +300,29 @@ const typeDefs = gql`
     """
     productionEnvironment: String
     """
+    Routes that are attached to the active environment
+    """
+    productionRoutes: String
+    """
+    The drush alias to use for the active production environment
+    *Important:* This is mainly used for drupal, but could be used for other services potentially
+    """
+    productionAlias: String
+    """
+    Which environment(the name) should be marked as the production standby environment.
+    *Important:* This is used to determine which environment should be marked as the standby production environment
+    """
+    standbyProductionEnvironment: String
+    """
+    Routes that are attached to the standby environment
+    """
+    standbyRoutes: String
+    """
+    The drush alias to use for the standby production environment
+    *Important:* This is mainly used for drupal, but could be used for other services potentially
+    """
+    standbyAlias: String
+    """
     Should this project have auto idling enabled (\`1\` or \`0\`)
     """
     autoIdle: Int
@@ -652,6 +675,11 @@ const typeDefs = gql`
     branches: String
     pullrequests: String
     productionEnvironment: String!
+    productionRoutes: String
+    productionAlias: String
+    standbyProductionEnvironment: String
+    standbyRoutes: String
+    standbyAlias: String
     availability: ProjectAvailability
     autoIdle: Int
     storageCalc: Int
@@ -883,6 +911,11 @@ const typeDefs = gql`
     activeSystemsMisc: String
     branches: String
     productionEnvironment: String
+    productionRoutes: String
+    productionAlias: String
+    standbyProductionEnvironment: String
+    standbyRoutes: String
+    standbyAlias: String
     autoIdle: Int
     storageCalc: Int
     pullrequests: String
@@ -1041,6 +1074,10 @@ const typeDefs = gql`
     sourceEnvironment: EnvironmentInput!
     project: ProjectInput!
     destinationEnvironment: String!
+  }
+
+  input switchActiveStandbyInput {
+    project: ProjectInput!
   }
 
   input GroupInput {
@@ -1287,6 +1324,7 @@ const typeDefs = gql`
     deployEnvironmentBranch(input: DeployEnvironmentBranchInput!): String
     deployEnvironmentPullrequest(input: DeployEnvironmentPullrequestInput!): String
     deployEnvironmentPromote(input: DeployEnvironmentPromoteInput!): String
+    switchActiveStandby(input: switchActiveStandbyInput!): Task
     addGroup(input: AddGroupInput!): GroupInterface
     updateGroup(input: UpdateGroupInput!): GroupInterface
     deleteGroup(input: DeleteGroupInput!): String

@@ -98,6 +98,24 @@
   tasks:
   - include: ../../checks/check-url-content.yaml
 
+- name: "{{ testname }} - check if {{ project }} is built with project environment variables"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "{{ check_url }}"
+    expected_content: "LAGOON_API_VARIABLE_MULTILINE_SPACED_BUILDTIME=-----BEGIN PUBLIC KEY-----\\\\nB10B03D8DB7F\\\\n-----END PUBLIC KEY-----"
+  tasks:
+  - include: ../../checks/check-url-content.yaml
+
+- name: "{{ testname }} - check if {{ project }} is deployed with project environment variables"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "{{ check_url }}"
+    expected_content: "LAGOON_API_VARIABLE_MULTILINE_SPACED=-----BEGIN PUBLIC KEY-----\\\\nB10B03D8DB7F\\\\n-----END PUBLIC KEY-----"
+  tasks:
+  - include: ../../checks/check-url-content.yaml
+
 - name: "{{ testname }} - check if {{ project }} is built without RUNTIME scope environment variables"
   hosts: localhost
   serial: 1
