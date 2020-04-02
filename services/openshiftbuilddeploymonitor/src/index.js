@@ -175,12 +175,9 @@ const messageConsumer = async msg => {
     case "complete":
       try {
         const buildLog = await buildsLogGet()
-        const s3UploadResult = await saveBuildLog(buildName, projectName, branchName, buildLog, buildstatus)
-        logLink = s3UploadResult.Location
-        meta.logLink = logLink
+        await saveBuildLog(buildName, projectName, branchName, buildLog, buildstatus)
       } catch (err) {
-        logger.warn(`${openshiftProject} ${buildName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
-        meta.logLink = ''
+        logger.warn(`${openshiftProject} ${buildName}: Error while getting and sending to lagoon-logs, Error: ${err}.`)
       }
 
       try {
@@ -268,6 +265,17 @@ const messageConsumer = async msg => {
 
 }
 
+const saveBuildLog = async(buildName, projectName, branchName, buildLog, buildStatus) => {
+  const meta = {
+    buildName,
+    branchName,
+    buildPhase: buildStatus.status.phase.toLowerCase(),
+    remoteId: buildStatus.metadata.uid
+  };
+  sendToLagoonLogs('info', projectName, "", `build-logs:builddeploy-openshift:${buildName}`, meta,
+    buildLog
+  );
+}
 
 const deathHandler = async (msg, lastError) => {
   const {
