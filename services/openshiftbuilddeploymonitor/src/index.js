@@ -45,7 +45,7 @@ const messageConsumer = async msg => {
   const environmentResult = await getEnvironmentByName(branchName, project.id)
   const environment = environmentResult.environmentByName
 
-  const deploymentResult = await getDeploymentByName(projectName, jobName);
+  const deploymentResult = await getDeploymentByName(openshiftProject, buildName);
   const deployment = deploymentResult.environment.deployments[0];
 
   try {
@@ -136,6 +136,7 @@ const messageConsumer = async msg => {
 
   const meta = JSON.parse(msg.content.toString())
   const logLink = deployment.uiLink;
+  meta.logLink = deployment.uiLink;
   let logMessage = ''
   if (sha) {
     meta.shortSha = sha.substring(0, 7)
@@ -167,6 +168,12 @@ const messageConsumer = async msg => {
       break;
 
     case "failed":
+      try {
+        const buildLog = await buildsLogGet()
+        await saveBuildLog(buildName, projectName, branchName, buildLog, buildstatus)
+      } catch (err) {
+        logger.warn(`${openshiftProject} ${buildName}: Error while getting and sending to lagoon-logs, Error: ${err}.`)
+      }
       sendToLagoonLogs('error', projectName, "", `task:builddeploy-openshift:${buildPhase}`, meta,
         `*[${projectName}]* ${logMessage} Build \`${buildName}\` failed. <${logLink}|Logs>`
       )
@@ -175,12 +182,9 @@ const messageConsumer = async msg => {
     case "complete":
       try {
         const buildLog = await buildsLogGet()
-        const s3UploadResult = await saveBuildLog(buildName, projectName, branchName, buildLog, buildstatus)
-        logLink = s3UploadResult.Location
-        meta.logLink = logLink
+        await saveBuildLog(buildName, projectName, branchName, buildLog, buildstatus)
       } catch (err) {
-        logger.warn(`${openshiftProject} ${buildName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
-        meta.logLink = ''
+        logger.warn(`${openshiftProject} ${buildName}: Error while getting and sending to lagoon-logs, Error: ${err}.`)
       }
 
       try {
@@ -202,6 +206,7 @@ const messageConsumer = async msg => {
       sendToLagoonLogs('info', projectName, "", `task:builddeploy-openshift:${buildPhase}`, meta,
         `*[${projectName}]* ${logMessage} Build \`${buildName}\` complete. <${logLink}|Logs> \n ${route}\n ${routes.join("\n")}`
       )
+
       try {
         const updateEnvironmentResult = await updateEnvironment(
           environment.id,
@@ -268,6 +273,17 @@ const messageConsumer = async msg => {
 
 }
 
+const saveBuildLog = async(buildName, projectName, branchName, buildLog, buildStatus) => {
+  const meta = {
+    buildName,
+    branchName,
+    buildPhase: buildStatus.status.phase.toLowerCase(),
+    remoteId: buildStatus.metadata.uid
+  };
+  sendToLagoonLogs('info', projectName, "", `build-logs:builddeploy-openshift:${buildName}`, meta,
+    buildLog
+  );
+}
 
 const deathHandler = async (msg, lastError) => {
   const {
