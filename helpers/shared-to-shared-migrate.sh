@@ -118,6 +118,8 @@ while [[ $# -gt 0 ]] ; do
 done
 
 shw_grey "================================================"
+shw_grey " START_TIMESTAMP='$(date +%Y-%m-%dT%H:%M:%S%z)'"
+shw_grey "================================================"
 shw_grey " DESTINATION_CLUSTER=$DESTINATION_CLUSTER"
 shw_grey " REPLICA_CLUSTER=$REPLICA_CLUSTER"
 shw_grey " NAMESPACE=$NAMESPACE"
@@ -249,5 +251,8 @@ if [ "$DB_READREPLICA_HOSTS" ]; then
 fi
 
 echo ""
+shw_grey "================================================"
+shw_grey " END_TIMESTAMP='$(date +%Y-%m-%dT%H:%M:%S%z)'"
+shw_grey "================================================"
 shw_norm "Done"
 exit 0
