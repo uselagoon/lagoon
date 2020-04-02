@@ -645,8 +645,8 @@ if [ ! -z "$LAGOON_GROUP_VARIABLES" ]; then
   HAS_GROUP_RUNTIME_VARS=$(echo $LAGOON_GROUP_VARIABLES | jq -r 'map( select(.scope == "runtime" or .scope == "global") )')
 
   if [ ! "$HAS_GROUP_RUNTIME_VARS" = "[]" ]; then
-    oc patch --insecure-skip-tls-verify \
-      -n ${OPENSHIFT_PROJECT} \
+    kubectl patch --insecure-skip-tls-verify \
+      -n ${NAMESPACE} \
       configmap lagoon-env \
       -p "{\"data\":$(echo $LAGOON_GROUP_VARIABLES | jq -r 'map( select(.scope == "runtime" or .scope == "global") ) | map( { (.name) : .value } ) | add | tostring')}"
   fi
