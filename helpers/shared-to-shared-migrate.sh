@@ -24,7 +24,7 @@
 #
 # How to get your existing ASB root credentials
 # =============================================
-# oc -n openshift-ansible-service-broker get secret/lagoon-dbaas-db-credentials -o JSON | jq '.data'
+# oc -n openshift-ansible-service-broker get secret/lagoon-dbaas-db-credentials -o json | jq '.data | map_values(@base64d)'
 #
 # How to create a `.my.cnf` file
 # ==============================
