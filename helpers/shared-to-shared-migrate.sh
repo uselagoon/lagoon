@@ -39,13 +39,29 @@
 # =======================================================================
 # ssh -L 33007:shared-cluster.cluster-banana.ap-southeast-2.rds.amazonaws.com:3306 jumpbox.aws.amazee.io
 #
-# Example commands
-# ================
+# Example command 1
+# =================
 # ./helpers/shared-to-shared-migrate.sh \
 # --destination shared-cluster.cluster-apple.ap-southeast-2.rds.amazonaws.com \
 # --replica shared-cluster.cluster-r0-apple.ap-southeast-2.rds.amazonaws.com \
 # --namespace NAMESPACE \
 # --dry-run
+#
+# Example command 2
+# =================
+# namespaces="
+# foo-example-com-production
+# bar-example-com-production
+# baz-example-com-production
+# quux-example-com-production
+# "
+# for namespace in $namespaces; do
+# 	./helpers/shared-to-shared-migrate.sh \
+# 		--dry-run \
+# 		--namespace "$namespace" \
+# 		--destination shared-mysql-production-1-cluster.cluster-plum.ap-southeast-2.rds.amazonaws.com \
+# 		--replica shared-mysql-production-1-cluster.cluster-ro-plum.ap-southeast-2.rds.amazonaws.com
+# done
 #
 set -euo pipefail
 
