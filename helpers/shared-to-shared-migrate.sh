@@ -206,7 +206,7 @@ ORIGINAL_DB_HOST=$(oc -n "$NAMESPACE" get "svc/$DB_NETWORK_SERVICE" -o json --ex
 if [ "$DRY_RUN" ] ; then
   echo "**DRY RUN**"
 else
-  oc -n "$NAMESPACE" patch "svc/$DB_NETWORK_SERVICE" -p "{\"spec\":{\"externalName\": \"${DESTINATION_CLUSTER}\"}}"
+  oc -n "$NAMESPACE" patch "svc/$DB_NETWORK_SERVICE" -p "{\"spec\":{\"externalName\": \"$DESTINATION_CLUSTER\"}}"
 fi
 if [ "$DB_READREPLICA_HOSTS" ]; then
   shw_info "> Altering the Network Service $DB_READREPLICA_HOSTS to point at $REPLICA_CLUSTER"
@@ -215,7 +215,7 @@ if [ "$DB_READREPLICA_HOSTS" ]; then
   if [ "$DRY_RUN" ] ; then
     echo "**DRY RUN**"
   else
-    oc -n "$NAMESPACE" patch "svc/$DB_READREPLICA_HOSTS" -p '{"spec":{"externalName": "'"$REPLICA_CLUSTER"'"}}'
+    oc -n "$NAMESPACE" patch "svc/$DB_READREPLICA_HOSTS" -p "{\"spec\":{\"externalName\": \"$REPLICA_CLUSTER\"}}"
   fi
 fi
 
