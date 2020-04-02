@@ -167,6 +167,12 @@ const messageConsumer = async msg => {
       break;
 
     case "failed":
+      try {
+        const buildLog = await buildsLogGet()
+        await saveBuildLog(buildName, projectName, branchName, buildLog, buildstatus)
+      } catch (err) {
+        logger.warn(`${openshiftProject} ${buildName}: Error while getting and sending to lagoon-logs, Error: ${err}.`)
+      }
       sendToLagoonLogs('error', projectName, "", `task:builddeploy-openshift:${buildPhase}`, meta,
         `*[${projectName}]* ${logMessage} Build \`${buildName}\` failed. <${logLink}|Logs>`
       )
