@@ -194,7 +194,7 @@ shw_norm "================================================"
 shw_info "> Importing the dump into ${DESTINATION_CLUSTER}"
 shw_info "================================================"
 oc -n "$NAMESPACE" exec "$POD" -- bash -c "time mysql -h '$DESTINATION_CLUSTER' -u '$DB_USER' -p'$DB_PASSWORD' '$DB_NAME' < /tmp/migration.sql"
-oc -n "$NAMESPACE" exec "$POD" -- bash -c "rm /tmp/migration.sql"
+oc -n "$NAMESPACE" exec "$POD" -- rm /tmp/migration.sql
 
 shw_norm "> Import is done"
 shw_norm "================================================"
