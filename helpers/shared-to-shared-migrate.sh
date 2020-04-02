@@ -90,9 +90,7 @@ shw_err ()  {
 
 # Parse input arguments.
 while [[ $# -gt 0 ]] ; do
-  key="$1"
-
-  case $key in
+  case $1 in
     -d|--destination)
     DESTINATION_CLUSTER="$2"
     shift # past argument
@@ -111,6 +109,10 @@ while [[ $# -gt 0 ]] ; do
     --dry-run)
     DRY_RUN="TRUE"
     shift # past argument
+    ;;
+    *)
+		echo "Invalid Argument: $1"
+		exit 3
     ;;
   esac
 done
