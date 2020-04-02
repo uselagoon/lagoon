@@ -180,7 +180,7 @@ shw_info "================================================"
 mysql --defaults-file="$CONF_FILE" -e "SELECT * FROM mysql.db WHERE Db = '${DB_NAME}'\G;"
 
 # Dump the database inside the CLI pod.
-POD=$(oc -n "$NAMESPACE" get pods -o json --show-all=false -l service=cli | jq -er '.items[].metadata.name')
+POD=$(oc -n "$NAMESPACE" get pods -o json --field-selector=status.phase=Running -l service=cli | jq -er '.items[0].metadata.name')
 shw_info "> Dumping database $DB_NAME on pod $POD on host $DB_NETWORK_SERVICE"
 shw_info "================================================"
 oc -n "$NAMESPACE" exec "$POD" -- bash -c "time mysqldump -h '$DB_NETWORK_SERVICE' -u '$DB_USER' -p'$DB_PASSWORD' '$DB_NAME' > /tmp/migration.sql"
