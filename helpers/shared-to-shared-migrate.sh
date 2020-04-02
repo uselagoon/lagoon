@@ -18,7 +18,7 @@
 # ============
 # * You are logged into OpenShift CLI and have access to the NAMESPACE you want
 #   to migrate.
-# * You have a `.my.cnf` file for the desintation database cluster.
+# * You have a `.my.cnf` file for the destination database cluster.
 # * If your destination database cluster is not directly accessible, then you
 #   have created SSH tunnels to expose them on a local port.
 #
