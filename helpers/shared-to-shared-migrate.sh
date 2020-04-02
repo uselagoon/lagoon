@@ -191,7 +191,7 @@ fi
 shw_info "> Dumping database $DB_NAME on pod $POD on host $DB_NETWORK_SERVICE"
 shw_info "================================================"
 oc -n "$NAMESPACE" exec "$POD" -- bash -c "time mysqldump -h '$DB_NETWORK_SERVICE' -u '$DB_USER' -p'$DB_PASSWORD' '$DB_NAME' > /tmp/migration.sql"
-oc -n "$NAMESPACE" exec "$POD" -- ls -lath /tmp/migration.sql
+oc -n "$NAMESPACE" exec "$POD" -- ls -lh /tmp/migration.sql
 oc -n "$NAMESPACE" exec "$POD" -- head -n 5 /tmp/migration.sql
 oc -n "$NAMESPACE" exec "$POD" -- tail -n 5 /tmp/migration.sql
 shw_norm "> Dump is done"
