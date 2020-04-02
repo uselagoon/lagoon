@@ -941,7 +941,7 @@ const getOpenShiftInfoForProject = (project) =>
     }
 `);
 
-const getOpenShiftInfoForProjectWithGroupEnvVars = (project: string): Promise<Object> =>
+const getOpenShiftInfoForProjectWithGroupEnvVars = (project) =>
   graphqlapi.query(`
     {
       project:projectByName(name: "${project}"){
