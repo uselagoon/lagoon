@@ -14,6 +14,18 @@ class BaaS extends ApiGroup {
   }
 }
 
+class RouteMigration extends ApiGroup {
+  constructor(options) {
+    options = Object.assign({}, options, {
+      path: 'apis/dioscuri.amazee.io',
+      version: options.version || 'v1',
+      groupResources: [],
+      namespaceResources: ['routemigrates'],
+    });
+    super(options);
+  }
+}
+
 class ServiceCatalog extends ApiGroup {
   constructor(options) {
     options = Object.assign({}, options, {
@@ -29,4 +41,5 @@ class ServiceCatalog extends ApiGroup {
 module.exports = {
   BaaS,
   ServiceCatalog,
+  RouteMigration,
 };

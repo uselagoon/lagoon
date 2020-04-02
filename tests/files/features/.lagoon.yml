@@ -62,7 +62,7 @@ ci-multiproject1-kubernetes:
       routes:
         - node:
           - multiproject1.com
-ci-multiproject-kubernetes:
+ci-multiproject2-kubernetes:
   environments:
     multiproject:
       routes:
