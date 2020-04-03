@@ -41,11 +41,17 @@ const useSortableData = (items, config = null) => {
 const Problems = ({ problems }) => {
   const { items, requestSort, sortConfig } = useSortableData(problems);
 
+  const [openRowActive, setOpenRowState] = useState(false);
+
   const getClassNamesFor = (name) => {
     if (!sortConfig) {
         return;
     }
     return sortConfig.key === name ? sortConfig.direction : undefined;
+  };
+
+  const onHeadingClick = (problem, index, e) => {
+    setOpenRowState(!openRowActive);
   };
 
   return (
@@ -54,31 +60,58 @@ const Problems = ({ problems }) => {
             <button
                 type="button"
                 onClick={() => requestSort('id')}
-                className={getClassNamesFor('id')}
+                className={`button-sort ${getClassNamesFor('id')}`}
             >
               Problem id
             </button>
-            <label className="created">Created</label>
-            <label className="source">Source</label>
-            <label className="data">Data</label>
-            <label className="severity">Severity</label>
-            <label className="severityscore">Severity Score</label>
+            <button
+                type="button"
+                onClick={() => requestSort('created')}
+                className={`button-sort ${getClassNamesFor('created')}`}
+            >
+                Created
+            </button>
+            <button
+                type="button"
+                onClick={() => requestSort('source')}
+                className={`button-sort ${getClassNamesFor('source')}`}
+            >
+                Source
+            </button>
+            <button
+                type="button"
+                onClick={() => requestSort('severity')}
+                className={`button-sort ${getClassNamesFor('severity')}`}
+            >
+                Severity
+            </button>
+            <button
+                type="button"
+                onClick={() => requestSort('severityScore')}
+                className={`button-sort ${getClassNamesFor('severityScore')}`}
+            >
+                Severity Score
+            </button>
         </div>
         <div className="data-table">
           {!items.length && <div className="data-none">No Problems</div>}
-            {items.map(problem => (
-              <div className="data-row" key={problem.id}>
-                <div className="problemid">{problem.id}</div>
-                <div className="created">
-                  {moment
-                    .utc(problem.created)
-                    .local()
-                    .format('DD MMM YYYY, HH:mm:ss (Z)')}
+            {items.map((problem, index) => (
+              <div key={problem.id} className={`data-row--wrapper`}>
+                <div className="data-row row-heading" onClick={(e) => onHeadingClick(problem, index, e)}>
+                    <div className="problemid">{problem.id}</div>
+                    <div className="created">
+                      {moment
+                        .utc(problem.created)
+                        .local()
+                        .format('DD MMM YYYY, HH:mm:ss (Z)')}
+                    </div>
+                    <div className="source">{problem.source}</div>
+                    <div className="severity">{problem.severity}</div>
+                    <div className="severityscore">{problem.severityScore}</div>
                 </div>
-                <div className="source">{problem.source}</div>
-                <div className="data">{problem.data}</div>
-                <div className="severity">{problem.severity}</div>
-                <div className="severityscore">{problem.severityScore}</div>
+                <div className={`data-row row-data ${openRowActive ? "expanded" : ""}`}>
+                    <div className="data">{problem.data}</div>
+                </div>
               </div>
             ))}
         </div>
@@ -106,6 +139,27 @@ const Problems = ({ problems }) => {
           @media ${bp.wideUp} {
             display: block;
           }
+        }
+      }
+
+      .button-sort {
+        color: #5f6f7a;
+        font-family: 'source-code-pro',sans-serif;
+        font-size: 13px;
+        font-size: 0.8125rem;
+        line-height: 1.4;
+        text-transform: uppercase;
+        padding-left: 20px;
+        border: none;
+        background: none;
+        cursor: pointer;
+
+        &.ascending:after {
+          content: ' \\25B2';
+        }
+
+        &.descending:after {
+          content: ' \\25BC';
         }
       }
 
@@ -161,7 +215,37 @@ const Problems = ({ problems }) => {
             border-bottom-right-radius: 3px;
           }
         }
-      }
+
+        .row-heading {
+          cursor: pointer;
+        }
+
+        .row-data {
+          padding: 0;
+          margin: 0;
+          background: #2d2d2d;
+          color: white;
+          font: 0.8rem Inconsolata, monospace;
+          line-height: 2;
+
+          max-height: 0;
+          overflow: hidden;
+          transition: all 0.6s ease-in-out;
+          // opacity: 0;
+          visibility: hidden;
+
+          &.expanded {
+              // opacity: 1;
+              visibility: visible;
+              max-height: 500px;
+          }
+        }
+
+        .data {
+            padding: 20px;
+            width: 100%;
+        }
+    }
     `}</style>
     </div>
   );
