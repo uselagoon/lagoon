@@ -46,7 +46,8 @@ pages:
   - Harbor:
     - Using Harbor: using_lagoon/harbor/using_harbor.md
     - Security Scanning: using_lagoon/harbor/security_scanning.md
-    - Harbor Settings: using_lagoon/harbor/harbor_settings.md
+    - Harbor Settings: 
+      - Overview: using_lagoon/harbor/harbor_settings.md
       - harborclair: using_lagoon/harbor/harbor-container-settings/harborclair.md
       - harborclairadapter: using_lagoon/harbor/harbor-container-settings/harborclairadapter.md
       - harborregistry: using_lagoon/harbor/harbor-container-settings/harborregistry.md
