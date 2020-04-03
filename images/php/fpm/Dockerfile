@@ -64,11 +64,16 @@ RUN apk add --no-cache fcgi \
         # for webp
         libwebp-dev \
         postgresql-dev \
+	# for imagemagick
+	imagemagick \
+	imagemagick-libs \
+        imagemagick-dev \
     && apk add --no-cache --virtual .phpize-deps $PHPIZE_DEPS \
     && yes '' | pecl install -f apcu \
     && yes '' | pecl install -f xdebug \
     && yes '' | pecl install -f redis-4.3.0 \
-    && docker-php-ext-enable apcu redis xdebug \
+    && yes '' | pecl install -f imagick \
+    && docker-php-ext-enable apcu redis xdebug imagick \
     && case ${PHP_VERSION} in \
       7.4*) \
         docker-php-ext-configure gd --with-webp --with-jpeg \
