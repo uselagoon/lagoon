@@ -269,9 +269,9 @@ objects:
           <buffer>
             @type file
             path /fluentd/buffer/elasticsearch
-            # buffer params
+            # buffer params (per worker)
             chunk_limit_size 32MB
-            total_limit_size 15GB
+            total_limit_size 5GB
             # flush params
             flush_thread_count 2
             overflow_action drop_oldest_chunk
