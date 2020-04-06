@@ -53,7 +53,7 @@ objects:
       branch: ${SAFE_BRANCH}
       project: ${SAFE_PROJECT}
   spec:
-    backupCommand: /bin/sh -c "/bin/busybox tar -cf - -C /usr/share/elasticsearch/data ."
+    backupCommand: /bin/sh -c "/usr/bin/tar -cf - -C /usr/share/elasticsearch/data ."
     fileExtension: .${SERVICE_NAME}-0.tar
     pod:
       metadata:
@@ -101,7 +101,7 @@ objects:
       branch: ${SAFE_BRANCH}
       project: ${SAFE_PROJECT}
   spec:
-    backupCommand: /bin/sh -c "/bin/busybox tar -cf - -C /usr/share/elasticsearch/data ."
+    backupCommand: /bin/sh -c "/usr/bin/tar -cf - -C /usr/share/elasticsearch/data ."
     fileExtension: .${SERVICE_NAME}-1.tar
     pod:
       metadata:
@@ -149,7 +149,7 @@ objects:
       branch: ${SAFE_BRANCH}
       project: ${SAFE_PROJECT}
   spec:
-    backupCommand: /bin/sh -c "/bin/busybox tar -cf - -C /usr/share/elasticsearch/data ."
+    backupCommand: /bin/sh -c "/usr/bin/tar -cf - -C /usr/share/elasticsearch/data ."
     fileExtension: .${SERVICE_NAME}-2.tar
     pod:
       metadata:

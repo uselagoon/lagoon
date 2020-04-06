@@ -19,9 +19,15 @@ CREATE OR REPLACE PROCEDURE
     IN active_systems_promote          varchar(300),
     IN active_systems_remove           varchar(300),
     IN active_systems_task             varchar(300),
+    IN active_systems_misc             varchar(300),
     IN branches                        varchar(300),
     IN pullrequests                    varchar(300),
     IN production_environment          varchar(100),
+    IN production_routes               text,
+    IN production_alias                varchar(100),
+    IN standby_production_environment  varchar(100),
+    IN standby_routes                  text,
+    IN standby_alias                   varchar(100),
     IN auto_idle                       int(1),
     IN storage_calc                    int(1),
     IN development_environments_limit  int
@@ -57,8 +63,14 @@ CREATE OR REPLACE PROCEDURE
         active_systems_promote,
         active_systems_remove,
         active_systems_task,
+        active_systems_misc,
         branches,
         production_environment,
+        production_routes,
+        production_alias,
+        standby_production_environment,
+        standby_routes,
+        standby_alias,
         auto_idle,
         storage_calc,
         pullrequests,
@@ -77,8 +89,14 @@ CREATE OR REPLACE PROCEDURE
         active_systems_promote,
         active_systems_remove,
         active_systems_task,
+        active_systems_misc,
         branches,
         production_environment,
+        production_routes,
+        production_alias,
+        standby_production_environment,
+        standby_routes,
+        standby_alias,
         auto_idle,
         storage_calc,
         pullrequests,
@@ -144,6 +162,97 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  add_production_routes_to_project()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'production_routes'
+    ) THEN
+      ALTER TABLE `project`
+      ADD `production_routes` varchar(100);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_standby_production_environment_to_project()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'standby_production_environment'
+    ) THEN
+      ALTER TABLE `project`
+      ADD `standby_production_environment` varchar(100);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_standby_routes_to_project()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'standby_routes'
+    ) THEN
+      ALTER TABLE `project`
+      ADD `standby_routes` varchar(100);
+    END IF;
+  END;
+$$
+
+
+CREATE OR REPLACE PROCEDURE
+  add_production_alias_to_project()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'production_alias'
+    ) THEN
+      ALTER TABLE `project`
+      ADD `production_alias` varchar(100) NOT NULL DEFAULT 'lagoon-production';
+    END IF;
+  END;
+$$
+
+
+CREATE OR REPLACE PROCEDURE
+  add_standby_alias_to_project()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'standby_alias'
+    ) THEN
+      ALTER TABLE `project`
+      ADD `standby_alias` varchar(100) NOT NULL DEFAULT 'lagoon-standby';
+    END IF;
+  END;
+$$
 CREATE OR REPLACE PROCEDURE
   add_ssh_to_openshift()
 
@@ -632,6 +741,26 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
+  add_active_systems_misc_to_project()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'active_systems_misc'
+    ) THEN
+      ALTER TABLE `project`
+      ADD `active_systems_misc` varchar(300);
+      UPDATE project
+      SET active_systems_misc = 'lagoon_openshiftMisc';
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
   add_default_value_to_task_status()
 
   BEGIN
@@ -663,7 +792,7 @@ CREATE OR REPLACE PROCEDURE
         AND column_name = 'scope'
     ) THEN
       ALTER TABLE `env_vars`
-      ADD `scope` ENUM('global', 'build', 'runtime', 'container_registry') NOT NULL DEFAULT 'global';
+      ADD `scope` ENUM('global', 'build', 'runtime') NOT NULL DEFAULT 'global';
       UPDATE env_vars
       SET scope = 'global';
     END IF;
@@ -865,8 +994,57 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  add_container_registry_scope_to_env_vars()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'env_vars'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'scope'
+        AND column_type like '%''container_registry%'
+    ) THEN
+      ALTER TABLE `env_vars`
+      MODIFY scope ENUM('global', 'build', 'runtime', 'container_registry') NOT NULL DEFAULT 'global';
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_internal_container_registry_scope_to_env_vars()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'env_vars'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'scope'
+        AND column_type like '%''internal_container_registry%'
+    ) THEN
+      ALTER TABLE `env_vars`
+      MODIFY scope ENUM('global', 'build', 'runtime', 'container_registry', 'internal_container_registry') NOT NULL DEFAULT 'global';
+    END IF;
+  END;
+$$
+
+
+CREATE OR REPLACE PROCEDURE
+  update_openshift_varchar_length()
+
+  BEGIN
+    ALTER TABLE openshift
+    MODIFY token varchar(2000);
+  END;
+$$
+
 DELIMITER ;
 
+-- If adding new procedures, add them to the bottom of this list
 CALL add_availability_to_project();
 CALL add_production_environment_to_project();
 CALL add_ssh_to_openshift();
@@ -904,6 +1082,14 @@ CALL convert_user_ssh_key_usid_to_char();
 CALL add_private_key_to_project();
 CALL add_index_for_environment_backup_environment();
 CALL add_enum_email_microsoftteams_to_type_in_project_notification();
+CALL add_standby_production_environment_to_project();
+CALL add_standby_routes_to_project();
+CALL add_production_routes_to_project();
+CALL add_standby_alias_to_project();
+CALL add_production_alias_to_project();
+CALL add_active_systems_misc_to_project();
+CALL add_container_registry_scope_to_env_vars();
+CALL add_internal_container_registry_scope_to_env_vars();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;
@@ -911,3 +1097,4 @@ DROP PROCEDURE IF EXISTS DeleteProjectSshKey;
 DROP PROCEDURE IF EXISTS CreateCustomerSshKey;
 DROP PROCEDURE IF EXISTS DeleteCustomerSshKey;
 DROP PROCEDURE IF EXISTS CreateSshKey;
+

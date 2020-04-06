@@ -37,6 +37,12 @@ const Sql /* : SqlObj */ = {
     knex('project as p')
       .whereIn('p.id', projectIds)
       .toString(),
+  selectProjectByEnvironmentId: (environmentId) => 
+    knex('environment as e')
+      .select('e.id', 'e.project', 'e.openshift_project_name', 'p.name')
+      .leftJoin('project as p', 'p.id', '=', 'e.project')
+      .where('e.id', environmentId)
+      .toString(),
   // Select projects by project ids where given user ids do not have other access via `project_user` (projects where the user loses access if they lose customer access).
   selectProjectsWithoutDirectUserAccess: (
     projectIds /* : Array<number> */,

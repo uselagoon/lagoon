@@ -1,0 +1,16 @@
+docker-compose-yaml: docker-compose.yml
+
+environment_variables:
+  git_sha: 'true'
+
+production_routes:
+  active:
+    routes:
+      - nginx:
+        - active-moving-route.com:
+            tls-acme: false
+  standby:
+    routes:
+      - nginx:
+        - standby-moving-route.com:
+            tls-acme: false

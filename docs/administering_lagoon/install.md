@@ -69,7 +69,7 @@ In order to use a local Lagoon to deploy itself on an OpenShift, we need a subse
    3. This project has defined to which OpenShift it should be deployed \(one single Lagoon can deploy into multiple OpenShifts all around the world\).
    4. The local running Lagoon service `openshiftBuildDeploy` connects to this OpenShift and creates a new project, some needed configurations \(ServiceAccounts, BuildConfigs, etc.\) and triggers a new build.
    5. This build will run and deploy another Lagoon within the OpenShift it runs.
-6. As soon as the build is done, go to the `Application > Deployments` section of the OpenShift Project, and you should see all the Lagoon DeploymentConfigs deployed and running. Also go to `Application > Routes` and click on the generated route for `rest2tasks` \(for a local OpenShift this will be [http://rest2tasks-lagoon-develop.192.168.42.100.xip.io/](http://rest2tasks-lagoon-develop.192.168.42.100.xip.io/)\), if you get `welcome to rest2tasks` as result, you did everything correct, bravo! 🏆
+6. As soon as the build is done, go to the `Application > Deployments` section of the OpenShift Project, and you should see all the Lagoon DeploymentConfigs deployed and running. Also go to `Application > Routes` and click on the generated route for `ui` \(for a local OpenShift this will be [http://ui-lagoon-develop.192.168.42.100.xip.io/](http://ui-lagoon-develop.192.168.42.100.xip.io/)\), if you get the Lagoon UI as result, you did everything correct, bravo! 🏆
 
 ## OpendistroSecurity
 
@@ -81,4 +81,3 @@ Once Lagoon is install operational, you need to initialize OpendistroSecurity to
 ## Configure Installed Lagoon
 
 We have a fully running Lagoon. Now it's time to configure the first project inside of it. Follow the examples in [GraphQL API](graphql_api.md).
-

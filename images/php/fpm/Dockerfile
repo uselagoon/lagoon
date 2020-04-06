@@ -37,10 +37,14 @@ COPY php-fpm.d/www.conf /usr/local/etc/php-fpm.d/www.conf
 COPY ssmtp.conf /etc/ssmtp/ssmtp.conf
 
 # New Relic PHP Agent.
-# Support for PHP 7.4 added in 9.4.
 # @see https://docs.newrelic.com/docs/release-notes/agent-release-notes/php-release-notes/
 # @see https://docs.newrelic.com/docs/agents/php-agent/getting-started/php-agent-compatibility-requirements
-ENV NEWRELIC_VERSION=9.6.0.255
+ENV NEWRELIC_VERSION=9.8.0.259
+
+# Pin curl to Version 7.69.1-r0 as the current shipped one 7.67.0 has a bug, see
+# https://github.com/curl/curl/issues/4624
+# TODO: Remove as soon as Alpine 3.11 is shipped with a version higher than 7.67.0
+RUN apk add --no-cache curl=7.69.1-r0 libcurl=7.69.1-r0 --repository http://dl-cdn.alpinelinux.org/alpine/edge/main/
 
 RUN apk add --no-cache fcgi \
         ssmtp \
