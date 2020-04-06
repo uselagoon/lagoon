@@ -10,7 +10,7 @@ const {
   prepare,
   query,
   whereAnd,
-  isPatchEmpty
+  isPatchEmpty,
 } = require('../../util/db');
 
 const Helpers = require('./helpers');
@@ -203,14 +203,9 @@ const getProjectsByMetadata = async (
   },
 ) => {
 
-  let where;
+  let where = '';
   try {
     await hasPermission('project', 'viewAll');
-
-    where = whereAnd([
-      args.createdAfter ? 'created >= :created_after' : '',
-      args.gitUrl ? 'git_url = :git_url' : '',
-    ]);
   } catch (err) {
     if (!keycloakGrant) {
       logger.warn('No grant available for getAllProjects');
@@ -222,8 +217,6 @@ const getProjectsByMetadata = async (
     });
 
     where = whereAnd([
-      args.createdAfter ? 'created >= :created_after' : '',
-      args.gitUrl ? 'git_url = :git_url' : '',
       inClause('id', userProjectIds),
     ]);
   }
@@ -247,6 +240,8 @@ const getProjectsByMetadata = async (
       where += ` AND ` + q;
     }
   }
+
+  logger.error(`SELECT * FROM project ${where}`);
 
   const order = args.order ? ` ORDER BY ${R.toLower(args.order)} ASC` : '';
   const prep = prepare(sqlClient, `SELECT * FROM project ${where}${order}`);

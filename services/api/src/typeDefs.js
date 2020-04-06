@@ -209,7 +209,6 @@ const typeDefs = gql`
     type: String
   }
 
-
   union Notification = NotificationRocketChat | NotificationSlack | NotificationMicrosoftTeams | NotificationEmail
 
   """
@@ -344,7 +343,7 @@ const typeDefs = gql`
     """
     Metadata key/values stored against a project
     """
-    metadata: String
+    metadata: JSON
   }
 
   """
