@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import moment from 'moment';
 import { bp, color, fontSize } from 'lib/variables';
 
@@ -42,6 +42,8 @@ const Problems = ({ problems }) => {
   const { items, requestSort, sortConfig } = useSortableData(problems);
 
   const [openRowActive, setOpenRowState] = useState(false);
+  const [problemTerm, setProblemTerm] = useState('');
+  const [problemResults, setProblemResults] = React.useState([]);
 
   const getClassNamesFor = (name) => {
     if (!sortConfig) {
@@ -54,13 +56,38 @@ const Problems = ({ problems }) => {
     setOpenRowState(!openRowActive);
   };
 
+  const handleProblemIdFilter = event => {
+      setProblemTerm(event.target.value);
+  };
+
+  useEffect(() => {
+      const lowercasedFilter = problemTerm.toLowerCase();
+
+      const results = items.filter(item => {
+          if (problemTerm == null || problemTerm == '') {
+              return items;
+          }
+           return Object.keys(item).some(key =>
+               item[key].toString().toLowerCase().includes(lowercasedFilter))
+      });
+
+      setProblemResults(results);
+  }, [problemTerm]);
+
   return (
     <div className="problems">
+        <div className="filters">
+            <input type="text" id="filter"
+                   placeholder="Filter problems e.g. Drutiny"
+                   value={problemTerm}
+                   onChange={handleProblemIdFilter}
+            />
+        </div>
         <div className="header">
             <button
                 type="button"
-                onClick={() => requestSort('id')}
-                className={`button-sort ${getClassNamesFor('id')}`}
+                onClick={() => requestSort('identifier')}
+                className={`button-sort ${getClassNamesFor('identifier')}`}
             >
               Problem id
             </button>
@@ -69,36 +96,36 @@ const Problems = ({ problems }) => {
                 onClick={() => requestSort('created')}
                 className={`button-sort ${getClassNamesFor('created')}`}
             >
-                Created
+              Created
             </button>
             <button
                 type="button"
                 onClick={() => requestSort('source')}
                 className={`button-sort ${getClassNamesFor('source')}`}
             >
-                Source
+              Source
             </button>
             <button
                 type="button"
                 onClick={() => requestSort('severity')}
                 className={`button-sort ${getClassNamesFor('severity')}`}
             >
-                Severity
+              Severity
             </button>
             <button
                 type="button"
                 onClick={() => requestSort('severityScore')}
                 className={`button-sort ${getClassNamesFor('severityScore')}`}
             >
-                Severity Score
+              Severity Score
             </button>
         </div>
         <div className="data-table">
           {!items.length && <div className="data-none">No Problems</div>}
-            {items.map((problem, index) => (
+            {problemResults.map((problem, index) => (
               <div key={problem.id} className={`data-row--wrapper`}>
                 <div className="data-row row-heading" onClick={(e) => onHeadingClick(problem, index, e)}>
-                    <div className="problemid">{problem.id}</div>
+                    <div className="problemid">{problem.identifier}</div>
                     <div className="created">
                       {moment
                         .utc(problem.created)
@@ -127,7 +154,7 @@ const Problems = ({ problems }) => {
           flex-wrap: wrap;
         }
         @media ${bp.tabletUp} {
-          margin-top: 40px;
+          margin-top: 20px;
         }
 
         display: flex;
@@ -140,6 +167,13 @@ const Problems = ({ problems }) => {
             display: block;
           }
         }
+      }
+
+      input#filter {
+        width: 100%;
+        border: none;
+        padding: 10px 20px;
+        margin: 0;
       }
 
       .button-sort {
