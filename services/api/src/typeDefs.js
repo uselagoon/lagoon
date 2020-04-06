@@ -618,6 +618,10 @@ const typeDefs = gql`
     Returns the Billing Group Modifiers for a given Billing Group (all modifiers for the Billing Group will be returned if the month is not provided)
     """
     allBillingModifiers(input: GroupInput!, month: String): [BillingModifier]
+    """
+    Returns LAGOON_VERSION
+    """
+    lagoonVersion: JSON
   }
 
   # Must provide id OR name
