@@ -1,4 +1,4 @@
-{{ if .Capabilities.APIVersions.Has "backup.appuio.ch/v1alpha1/PreBackupPod" }}
+{{ if .Capabilities.APIVersions.Has "backup.appuio.ch/v1alpha1/PreBackupPod3" }}
 apiVersion: backup.appuio.ch/v1alpha1
 kind: PreBackupPod
 metadata:

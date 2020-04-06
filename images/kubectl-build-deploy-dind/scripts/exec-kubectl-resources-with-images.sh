@@ -24,4 +24,7 @@ elif [[ $(helm show values /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} | gr
   SERVICE_NAME_IMAGE_HASH="${IMAGE_HASHES[${SERVICE_NAME_IMAGE}]}"
   cat /kubectl-build-deploy/${SERVICE_NAME}-values.yaml
   helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${SERVICE_NAME}-values.yaml --set image="${SERVICE_NAME_IMAGE_HASH}" "${HELM_SET_VALUES[@]}" | outputToYaml
+else
+  cat /kubectl-build-deploy/${SERVICE_NAME}-values.yaml
+  helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${SERVICE_NAME}-values.yaml "${HELM_SET_VALUES[@]}" | outputToYaml
 fi
