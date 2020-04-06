@@ -31,7 +31,7 @@ if [[ -f "/etc/registry/pre_config.yml" ]]; then
         fi
     fi
 
-    if [[ -z ${$HARBOR_REGISTRY_STORAGE_AMAZON_ENDPOINT+x} ]]; then # Using the default s3 endpoint
+    if [[ -z ${HARBOR_REGISTRY_STORAGE_AMAZON_ENDPOINT+x} ]]; then # Using the default s3 endpoint
         sed -e "s|\$HARBOR_NGINX_ENDPOINT|$HARBOR_NGINX_ENDPOINT|g" -e "s|\$HARBOR_REGISTRY_STORAGE_AMAZON_REGION|$HARBOR_REGISTRY_STORAGE_AMAZON_REGION|g" -e "s|\$HARBOR_REGISTRY_STORAGE_AMAZON_BUCKET|$HARBOR_REGISTRY_STORAGE_AMAZON_BUCKET|g" -e "s|\$HARBOR_REGISTRY_STORAGE_AMAZON_ENDPOINT|\"https://s3.amazonaws.com\"|g" /etc/registry/pre_config.yml > /etc/registry/config.yml
     else # Setting up a non-default s3 endpoint
         sed -e "s|\$HARBOR_NGINX_ENDPOINT|$HARBOR_NGINX_ENDPOINT|g" -e "s|\$HARBOR_REGISTRY_STORAGE_AMAZON_REGION|$HARBOR_REGISTRY_STORAGE_AMAZON_REGION|g" -e "s|\$HARBOR_REGISTRY_STORAGE_AMAZON_BUCKET|$HARBOR_REGISTRY_STORAGE_AMAZON_BUCKET|g" -e "s|\$HARBOR_REGISTRY_STORAGE_AMAZON_ENDPOINT|$HARBOR_REGISTRY_STORAGE_AMAZON_ENDPOINT|g" /etc/registry/pre_config.yml > /etc/registry/config.yml
