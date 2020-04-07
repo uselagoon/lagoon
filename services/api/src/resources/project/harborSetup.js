@@ -151,7 +151,7 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
     } catch (err) {
       logger.error(`Error while creating a webhook in the Harbor project for ${lagoonProjectName}, error: ${err}`)
     }
-  }
+  },
   deleteProject: async (lagoonProjectName) => {
     // Delete harbor project
 
