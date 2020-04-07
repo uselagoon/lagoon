@@ -399,6 +399,10 @@ const deleteProject = async (
     logger.error(`Could not delete default user for project ${project.name}: ${err.message}`);
   }
 
+  const harborOperations = createHarborOperations(sqlClient);
+
+  const harborResults = await harborOperations.deleteProject(project.name)
+
   return 'success';
 };
 

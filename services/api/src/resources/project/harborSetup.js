@@ -152,6 +152,34 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
       logger.error(`Error while creating a webhook in the Harbor project for ${lagoonProjectName}, error: ${err}`)
     }
   }
+  deleteProject: async (lagoonProjectName) => {
+    // Delete harbor project
+
+    // Get new harbor project's id
+    try {
+      const res = await harborClient.get(`projects?name=${lagoonProjectName}`)
+      var harborProjectID = res.body[0].project_id
+      logger.debug(`Got the harbor project id for project ${lagoonProjectName} successfully!`)
+    } catch (err) {
+      if (err.statusCode == 404) {
+        logger.warn(`Unable to get the harbor project id of "${lagoonProjectName}", as it does not exist in harbor!`)
+        return
+      } else {
+        logger.error(`Unable to get the harbor project id of "${lagoonProjectName}", error: ${err}`)
+      }
+    }
+    logger.debug(`Harbor project id for ${lagoonProjectName}: ${harborProjectID}`)
+
+    // Delete harbor project
+    try {
+      var res = await harborClient.delete(`projects/${harborProjectID}`);
+      logger.debug(`Harbor project ${lagoonProjectName} deleted!`)
+    } catch (err) {
+      // 400 means registry ID is invalid or registry is being used by policies
+      // 404 means registry doesn't exist
+      logger.info(`Unable to delete the harbor project "${lagoonProjectName}", error: ${err}`)
+    }
+  }
 })
 
 module.exports = createHarborOperations;
