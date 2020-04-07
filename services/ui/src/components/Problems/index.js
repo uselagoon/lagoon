@@ -1,72 +1,76 @@
 import React, { useState, useEffect } from 'react';
-import moment from 'moment';
 import { bp, color, fontSize } from 'lib/variables';
-
-const useSortableData = (items, config = null) => {
-  const [sortConfig, setSortConfig] = React.useState(config);
-
-  const sortedItems = React.useMemo(() => {
-    let sortableItems = [...items];
-
-    if (sortConfig !== null) {
-      sortableItems.sort((a, b) => {
-
-        if (a[sortConfig.key] < b[sortConfig.key]) {
-          return sortConfig.direction === 'ascending' ? -1 : 1;
-        }
-        if (a[sortConfig.key] > b[sortConfig.key]) {
-          return sortConfig.direction === 'ascending' ? 1 : -1;
-        }
-
-        return 0;
-      });
-    }
-
-    return sortableItems;
-  }, [items, sortConfig]);
-
-  const requestSort = (key) => {
-    let direction = 'ascending';
-
-    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
-      direction = 'descending';
-    }
-
-    setSortConfig({ key, direction });
-  };
-
-  return { items: sortedItems, requestSort, sortConfig };
-};
+import Accordion from '../Accordion';
 
 const Problems = ({ problems }) => {
-  const { items, requestSort, sortConfig } = useSortableData(problems);
+    const [currentItems, setCurrentItems] = useState(problems);
 
-  const [openRowActive, setOpenRowState] = useState(false);
-  const [problemTerm, setProblemTerm] = useState('');
-  const [problemResults, setProblemResults] = React.useState([]);
+    const [problemTerm, setProblemTerm] = useState('');
+    const [problemResults, setProblemResults] = React.useState([]);
 
-  const getClassNamesFor = (name) => {
-    if (!sortConfig) {
-        return;
-    }
-    return sortConfig.key === name ? sortConfig.direction : undefined;
-  };
+    const getClassNamesFor = (name) => {
+        if (!sortConfig) {
+            return;
+        }
 
-  const onHeadingClick = (problem, index, e) => {
-    setOpenRowState(!openRowActive);
-  };
+        return sortConfig.key === name ? sortConfig.direction : undefined;
+    };
 
-  const handleProblemIdFilter = event => {
+    const useSortableData = (items, config = null) => {
+        const [sortConfig, setSortConfig] = React.useState(config);
+
+        const sortedItems = React.useMemo(() => {
+            let sortableItems = [...items];
+
+            if (sortConfig !== null) {
+                sortableItems.sort((a, b) => {
+
+                    if (a[sortConfig.key] < b[sortConfig.key]) {
+                        return sortConfig.direction === 'ascending' ? -1 : 1;
+                    }
+                    if (a[sortConfig.key] > b[sortConfig.key]) {
+                        return sortConfig.direction === 'ascending' ? 1 : -1;
+                    }
+
+                    return 0;
+                });
+            }
+
+            return sortableItems;
+        }, [items, sortConfig]);
+
+        const requestSort = (key) => {
+            let direction = 'ascending';
+
+            if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
+                direction = 'descending';
+            }
+
+            setCurrentItems(sortedItems);
+            setSortConfig({ key, direction });
+        };
+
+        return { items: sortedItems, requestSort, sortConfig };
+    };
+
+    const { requestSort, sortConfig } = useSortableData(currentItems);
+
+    const handleProblemIdFilter = event => {
+      if (event.target.value !== null || event.target.value !== '') {
+          setCurrentItems(problemResults);
+      }
+
       setProblemTerm(event.target.value);
   };
 
   useEffect(() => {
       const lowercasedFilter = problemTerm.toLowerCase();
 
-      const results = items.filter(item => {
+      const results = problems.filter(item => {
           if (problemTerm == null || problemTerm == '') {
-              return items;
+              return problems;
           }
+
            return Object.keys(item).some(key =>
                item[key].toString().toLowerCase().includes(lowercasedFilter))
       });
@@ -121,25 +125,20 @@ const Problems = ({ problems }) => {
             </button>
         </div>
         <div className="data-table">
-          {!items.length && <div className="data-none">No Problems</div>}
-            {problemResults.map((problem, index) => (
-              <div key={problem.id} className={`data-row--wrapper`}>
-                <div className="data-row row-heading" onClick={(e) => onHeadingClick(problem, index, e)}>
-                    <div className="problemid">{problem.identifier}</div>
-                    <div className="created">
-                      {moment
-                        .utc(problem.created)
-                        .local()
-                        .format('DD MMM YYYY, HH:mm:ss (Z)')}
+          {!currentItems.length && <div className="data-none">No Problems</div>}
+            {currentItems.map((problem) => (
+                <Accordion
+                    key={problem.id}
+                    heading={problem}
+                    defaultValue={false}
+                    className="data-row row-heading"
+                    onToggle={visibility => {
+                        console.log('visibility -->', visibility);
+                    }}>
+                    <div className={`data-row row-data`}>
+                        <div className="data">{problem.data}</div>
                     </div>
-                    <div className="source">{problem.source}</div>
-                    <div className="severity">{problem.severity}</div>
-                    <div className="severityscore">{problem.severityScore}</div>
-                </div>
-                <div className={`data-row row-data ${openRowActive ? "expanded" : ""}`}>
-                    <div className="data">{problem.data}</div>
-                </div>
-              </div>
+                </Accordion>
             ))}
         </div>
     <style jsx>{`
@@ -261,18 +260,7 @@ const Problems = ({ problems }) => {
           color: white;
           font: 0.8rem Inconsolata, monospace;
           line-height: 2;
-
-          max-height: 0;
-          overflow: hidden;
           transition: all 0.6s ease-in-out;
-          // opacity: 0;
-          visibility: hidden;
-
-          &.expanded {
-              // opacity: 1;
-              visibility: visible;
-              max-height: 500px;
-          }
         }
 
         .data {
