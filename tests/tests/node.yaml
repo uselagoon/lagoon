@@ -6,36 +6,18 @@
 
 - include: api/deploy-branch.yaml
   vars:
-    testname: "NODE 12"
+    testname: "NODE 12 {{ lookup('env','CLUSTER_TYPE')|upper }}"
     node_version: 12
     git_repo_name: node.git
-    project: ci-node
+    project: ci-node-{{ lookup('env','CLUSTER_TYPE') }}
     branch: node12
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
 
 - include: api/deploy-branch.yaml
   vars:
-    testname: "NODE 10"
+    testname: "NODE 10 {{ lookup('env','CLUSTER_TYPE')|upper }}"
     node_version: 10
     git_repo_name: node.git
-    project: ci-node
+    project: ci-node-{{ lookup('env','CLUSTER_TYPE') }}
     branch: node10
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
-
-- include: api/deploy-branch.yaml
-  vars:
-    testname: "NODE 8"
-    node_version: 8
-    git_repo_name: node.git
-    project: ci-node
-    branch: node8
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
-
-- include: api/deploy-branch.yaml
-  vars:
-    testname: "NODE 6"
-    node_version: 6_subfolder
-    git_repo_name: node.git
-    project: ci-node
-    branch: node6
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','OPENSHIFT_ROUTE_SUFFIX') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"

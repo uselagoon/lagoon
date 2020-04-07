@@ -6,6 +6,7 @@ const express = require('express');
 const morgan = require('morgan');
 const axios = require('axios');
 const logger = require('./logger');
+const validateToken = require('./util/auth');
 const { generateRoute } = require('./routes');
 
 import type { LagoonErrorWithStatus, $Request, $Response } from 'express';
@@ -24,6 +25,9 @@ app.use(
     },
   }),
 );
+
+// Only allow access with valid, admin Bearer (JWT) token
+app.use(validateToken);
 
 const port = process.env.PORT || 3000;
 const lagoonKeycloakRoute = R.compose(
@@ -62,8 +66,13 @@ const getUserGrant = async (userId: string): Promise<keycloakGrant> => {
 
 app.post('/generate', ...generateRoute(getUserGrant));
 
-app.use((err: LagoonErrorWithStatus, req: $Request, res: $Response) => {
+app.use((err: LagoonErrorWithStatus, req: $Request, res: $Response, next: Function) => {
   logger.error(err.toString());
+
+  if (res.headersSent) {
+    return next(err)
+  }
+
   res.status(err.status || 500);
   res.send(`Request failed: ${err.toString()}`);
 });

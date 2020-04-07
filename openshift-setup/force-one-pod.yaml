@@ -199,6 +199,20 @@ spec:
   targetCPUUtilizationPercentage: 80
 
 ---
+  apiVersion: autoscaling/v1
+  kind: HorizontalPodAutoscaler
+  metadata:
+    name: kubernetesmisc
+  spec:
+    maxReplicas: 1
+    minReplicas: 1
+    scaleTargetRef:
+      apiVersion: v1
+      kind: DeploymentConfig
+      name: kubernetesmisc
+    targetCPUUtilizationPercentage: 80
+
+---
 apiVersion: autoscaling/v1
 kind: HorizontalPodAutoscaler
 metadata:
@@ -210,20 +224,6 @@ spec:
     apiVersion: v1
     kind: DeploymentConfig
     name: openshiftremove
-  targetCPUUtilizationPercentage: 80
-
----
-apiVersion: autoscaling/v1
-kind: HorizontalPodAutoscaler
-metadata:
-  name: rest2tasks
-spec:
-  maxReplicas: 1
-  minReplicas: 1
-  scaleTargetRef:
-    apiVersion: v1
-    kind: DeploymentConfig
-    name: rest2tasks
   targetCPUUtilizationPercentage: 80
 
 ---
@@ -280,4 +280,88 @@ spec:
     apiVersion: v1
     kind: DeploymentConfig
     name: webhooks2tasks
+  targetCPUUtilizationPercentage: 80
+
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: kubernetesbuilddeploy
+spec:
+  maxReplicas: 1
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: v1
+    kind: DeploymentConfig
+    name: kubernetesbuilddeploy
+  targetCPUUtilizationPercentage: 80
+
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: kubernetesbuilddeploymonitor
+spec:
+  maxReplicas: 1
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: v1
+    kind: DeploymentConfig
+    name: kubernetesbuilddeploymonitor
+  targetCPUUtilizationPercentage: 80
+
+---
+  apiVersion: autoscaling/v1
+  kind: HorizontalPodAutoscaler
+  metadata:
+    name: kubernetesjobs
+  spec:
+    maxReplicas: 1
+    minReplicas: 1
+    scaleTargetRef:
+      apiVersion: v1
+      kind: DeploymentConfig
+      name: kubernetesjobs
+    targetCPUUtilizationPercentage: 80
+
+---
+  apiVersion: autoscaling/v1
+  kind: HorizontalPodAutoscaler
+  metadata:
+    name: kubernetesjobsmonitor
+  spec:
+    maxReplicas: 1
+    minReplicas: 1
+    scaleTargetRef:
+      apiVersion: v1
+      kind: DeploymentConfig
+      name: kubernetesjobsmonitor
+    targetCPUUtilizationPercentage: 80
+
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: kubernetesdeployqueue
+spec:
+  maxReplicas: 1
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: v1
+    kind: DeploymentConfig
+    name: kubernetesdeployqueue
+  targetCPUUtilizationPercentage: 80
+
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: kubernetesremove
+spec:
+  maxReplicas: 1
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: v1
+    kind: DeploymentConfig
+    name: kubernetesremove
   targetCPUUtilizationPercentage: 80

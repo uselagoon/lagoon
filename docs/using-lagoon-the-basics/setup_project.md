@@ -4,7 +4,7 @@
 NOTE: We are working hard on getting our CLI and GraphQL API set up to allow everyone using Lagoon to setup and configure their projects themselves. Right now, it needs more testing before we can release those features, so hold tight!
 {% endhint %}
 
-Until then, the setup of a new project involves talking to your Lagoon administrator \(who is a human from amazee.io\). Anyway, they are much friendlier than APIs. ☺ 
+Until then, the setup of a new project involves talking to your Lagoon administrator \(who is a human from amazee.io\). Anyway, they are much friendlier than APIs. ☺
 
 Please have the following information ready for your Lagoon administrator:
 
@@ -31,9 +31,9 @@ Your Lagoon administrator will tell you the SSH public key or the Git account to
 
 Lagoon needs to be informed about a couple of events that are happening to your Git repository. Currently these are pushes and pull requests, but we may add more in the future.
 
-As Lagoon supports many different Git hosts, we have split off those instructions into this documentation: [Configure Webhooks](https://github.com/AlannaBurke/lagoon/tree/b9add2d0bfd8db43295d7ccdab7729436674f764/docs/using-lagoon/configure_webhooks.md).
+As Lagoon supports many different Git hosts, we have split off those instructions into this documentation: [Configure Webhooks](configure_webhooks.md).
 
 ## 4. Next: First deployment
 
-Congratulations, you are now ready to run your [first deployment](https://github.com/AlannaBurke/lagoon/tree/b9add2d0bfd8db43295d7ccdab7729436674f764/docs/using-lagoon/first_deployment.md).
+Congratulations, you are now ready to run your [first deployment](first_deployment.md).
 

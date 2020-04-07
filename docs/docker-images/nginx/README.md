@@ -11,7 +11,7 @@ This image is prepared to be used on Lagoon, which leverages OpenShift. There ar
 * Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/sclorg/s2i-base-container/blob/master/core/root/usr/bin/fix-permissions), so this image will work with a random user, and therefore also on OpenShift.
 * The files within `/etc/nginx/*` are parsed through [`envplate`](https://github.com/kreuzwerker/envplate) with a container-entrypoint.
 
-## Included `nNginx` configuration \(`static-files.conf`\)
+## Included `Nginx` configuration \(`static-files.conf`\)
 
 {% hint style="warning" %}
 By default `Nginx` only serves static files - this can be used for static sites that don't require a database or PHP components: for example, static site generators like [Hugo](https://gohugo.io/), [Jekyll](https://jekyllrb.com/) or [Gatsby](https://www.gatsbyjs.org/).

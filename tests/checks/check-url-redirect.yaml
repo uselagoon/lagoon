@@ -3,11 +3,11 @@
   uri:
     url: "{{ url }}"
     follow_redirects: none
-    status_code: "301,302"
+    status_code: "301,302,308"
     validate_certs: no
   register: result
   until: result.location | default('') | regex_search(expected_redirect_location)
-  retries: 5
+  retries: 20
   delay: 10
 - name: "{{ testname }} - Check if URL {{url}} redirects to the location {{expected_redirect_location}}"
   debug: msg="Success!!!"

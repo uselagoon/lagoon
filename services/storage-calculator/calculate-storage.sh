@@ -92,7 +92,7 @@ do
       echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: redeploying storage-calc to mount volumes"
       ${OC} rollout status deploymentconfig/storage-calc --watch
 
-      POD=$(${OC} get pods -l run=storage-calc -o json | jq -r '.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running") | .metadata.name' | head -n 1)
+      POD=$(${OC} get pods -l run=storage-calc -o json | jq -r '[.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running")] | first | .metadata.name // empty')
 
       if [[ ! $POD ]]; then
         echo "No running pod found for storage-calc"
@@ -162,4 +162,3 @@ do
     echo "$OPENSHIFT_URL - $PROJECT_NAME: SKIP, does not match Regex: $PROJECT_REGEX"
   fi
 done
-

@@ -1,6 +1,6 @@
 # Contributing
 
-You would like to hack Lagoon? Yay 🎉! That's how we all started. At Lagoon we take pride in being able to run everything in a local environment, see [Developing Lagoon](/developing_lagoon/index.md) how this works.
+Want to hack Lagoon? Yay 🎉! That's how we all started. At Lagoon we take pride in being able to run everything in a local environment, see [Developing Lagoon](/developing_lagoon/index.md) how this works.
 
 ## I found a security issue 🔓 
 
@@ -9,6 +9,7 @@ We take security very seriously. If you discover a security issue or think you f
 {% hint style="danger" %}
 Please send your findings to [hello@amazee.io](mailto:hello@amazee.io). Please **DO NOT** file a GitHub issue for them.
 {% endhint %}
+
 
 Security reports are greatly appreciated and will receive public Karma and Swag! We're also working on a Bug Bounty system.
 

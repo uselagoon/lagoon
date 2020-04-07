@@ -11,14 +11,15 @@ function outputToYaml() {
   set -x
 }
 
-function cronScheduleMoreOftenThan15Minutes() {
-  #takes a unexpanded cron schedule, returns 0 if it's more often that 15 minutes
+function cronScheduleMoreOftenThanXMinutes() {
+  # Takes a unexpanded cron schedule, returns 0 if it's more often than NATIVE_CRON_POD_MINIMUM_FREQUENCY minutes
+  # NATIVE_CRON_POD_MINIMUM_FREQUENCY defaults to 15 minutes
   MINUTE=$(echo $1 | (read -a ARRAY; echo ${ARRAY[0]}) )
   if [[ $MINUTE =~ ^(M|H|\*)\/([0-5]?[0-9])$ ]]; then
     # Match found for M/xx, H/xx or */xx
-    # Check if xx is smaller than 15, which means this cronjob runs more often than every 15 minutes.
+    # Check if xx is smaller than x, which means this cronjob runs more often than every NATIVE_CRON_POD_MINIMUM_FREQUENCY minutes.
     STEP=${BASH_REMATCH[2]}
-    if [ $STEP -lt 15 ]; then
+    if [ $STEP -lt $NATIVE_CRON_POD_MINIMUM_FREQUENCY ]; then
       return 0
     else
       return 1
@@ -27,7 +28,7 @@ function cronScheduleMoreOftenThan15Minutes() {
     # We are running every minute
     return 0
   else
-    # all other cases are more often than 15 minutes
+    # all other cases are more often than NATIVE_CRON_POD_MINIMUM_FREQUENCY minutes
     return 1
   fi
 }
@@ -37,6 +38,7 @@ function cronScheduleMoreOftenThan15Minutes() {
 ##############################################
 
 # Load path of docker-compose that should be used
+set +x # reduce noise in build logs
 DOCKER_COMPOSE_YAML=($(cat .lagoon.yml | shyaml get-value docker-compose-yaml))
 
 DEPLOY_TYPE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.deploy-type default)
@@ -58,8 +60,10 @@ declare -A MAP_SERVICE_TYPE_TO_COMPOSE_SERVICE
 declare -A MAP_SERVICE_NAME_TO_IMAGENAME
 declare -A MAP_SERVICE_NAME_TO_SERVICEBROKER_CLASS
 declare -A MAP_SERVICE_NAME_TO_SERVICEBROKER_PLAN
+declare -A MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT
 declare -A IMAGES_PULL
 declare -A IMAGES_BUILD
+set -x
 
 for COMPOSE_SERVICE in "${COMPOSE_SERVICES[@]}"
 do
@@ -86,6 +90,12 @@ do
     # mariadb-single deployed (probably from the past where there was no mariadb-shared yet) and use that one
     if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get service "$SERVICE_NAME" &> /dev/null; then
       SERVICE_TYPE="mariadb-single"
+    # check if an existing mariadb service instance already exists
+    elif oc -insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get serviceinstance "$SERVICE_NAME" &> /dev/null; then
+      SERVICE_TYPE="mariadb-shared"
+    # check if we can use the dbaas operator
+    elif oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get mariadbconsumer.v1.mariadb.amazee.io &> /dev/null; then
+      SERVICE_TYPE="mariadb-dbaas"
     # heck if this cluster supports the default one, if not we assume that this cluster is not capable of shared mariadbs and we use a mariadb-single
     elif svcat --scope cluster get class $MARIADB_SHARED_DEFAULT_CLASS > /dev/null; then
       SERVICE_TYPE="mariadb-shared"
@@ -93,6 +103,20 @@ do
       SERVICE_TYPE="mariadb-single"
     fi
 
+  fi
+
+  ## check if the .lagoon.yml overwrites the environment to use
+  if [[ "$SERVICE_TYPE" == "mariadb-dbaas" ]]; then
+    # Default plan is the enviroment type
+    DBAAS_ENVIRONMENT=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.$SERVICE_TYPE\\.environment "${ENVIRONMENT_TYPE}")
+
+    # Allow the dbaas shared servicebroker plan to be overriden by environment in .lagoon.yml
+    ENVIRONMENT_DBAAS_ENVIRONMENT_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.overrides.$SERVICE_NAME.$SERVICE_TYPE\\.environment false)
+    if [ ! $DBAAS_ENVIRONMENT_OVERRIDE == "false" ]; then
+      DBAAS_ENVIRONMENT=$ENVIRONMENT_DBAAS_ENVIRONMENT_OVERRIDE
+    fi
+
+    MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]="$DBAAS_ENVIRONMENT"
   fi
 
   if [ "$SERVICE_TYPE" == "mariadb-shared" ]; then
@@ -241,13 +265,29 @@ if [[ ( "$TYPE" == "pullrequest"  ||  "$TYPE" == "branch" ) && ! $THIS_IS_TUG ==
 
   BUILD_ARGS=()
 
+  set +x # reduce noise in build logs
   # Add environment variables from lagoon API as build args
   if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
-    BUILD_ARGS+=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "build" or .scope == "global") | "--build-arg \(.name)=\(.value)"'))
+    echo "LAGOON_PROJECT_VARIABLES are available from the API"
+    # multiline/spaced variables seem to break when being added from the API.
+    # this changes the way it works to create the variable in a similar way to how they are injected below
+    LAGOON_ENV_VARS=$(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "build" or .scope == "global") | "\(.name)"')
+    for LAGOON_ENV_VAR in $LAGOON_ENV_VARS
+    do
+      BUILD_ARGS+=(--build-arg $(echo $LAGOON_ENV_VAR)="$(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "build" or .scope == "global") | select(.name == "'$LAGOON_ENV_VAR'") | "\(.value)"')")
+    done
   fi
   if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
-    BUILD_ARGS+=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.scope == "build" or .scope == "global") | "--build-arg \(.name)=\(.value)"'))
+    echo "LAGOON_ENVIRONMENT_VARIABLES are available from the API"
+    # multiline/spaced variables seem to break when being added from the API.
+    # this changes the way it works to create the variable in a similar way to how they are injected below
+    LAGOON_ENV_VARS=$(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.scope == "build" or .scope == "global") | "\(.name)"')
+    for LAGOON_ENV_VAR in $LAGOON_ENV_VARS
+    do
+      BUILD_ARGS+=(--build-arg $(echo $LAGOON_ENV_VAR)="$(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.scope == "build" or .scope == "global") | select(.name == "'$LAGOON_ENV_VAR'") | "\(.value)"')")
+    done
   fi
+  set -x
 
   BUILD_ARGS+=(--build-arg IMAGE_REPO="${CI_OVERRIDE_IMAGE_REPO}")
   BUILD_ARGS+=(--build-arg LAGOON_GIT_SHA="${LAGOON_GIT_SHA}")
@@ -256,11 +296,11 @@ if [[ ( "$TYPE" == "pullrequest"  ||  "$TYPE" == "branch" ) && ! $THIS_IS_TUG ==
   BUILD_ARGS+=(--build-arg LAGOON_PROJECT="${PROJECT}")
   BUILD_ARGS+=(--build-arg LAGOON_SAFE_PROJECT="${SAFE_PROJECT}")
   BUILD_ARGS+=(--build-arg LAGOON_BUILD_TYPE="${TYPE}")
+  BUILD_ARGS+=(--build-arg LAGOON_GIT_SOURCE_REPOSITORY="${SOURCE_REPOSITORY}")
+
   set +x
   BUILD_ARGS+=(--build-arg LAGOON_SSH_PRIVATE_KEY="${SSH_PRIVATE_KEY}")
   set -x
-  BUILD_ARGS+=(--build-arg LAGOON_GIT_SOURCE_REPOSITORY="${SOURCE_REPOSITORY}")
-
 
   if [ "$TYPE" == "pullrequest" ]; then
     BUILD_ARGS+=(--build-arg LAGOON_PR_HEAD_BRANCH="${PR_HEAD_BRANCH}")
@@ -425,6 +465,23 @@ do
     SERVICEBROKERS+=("${SERVICE_NAME}:${SERVICE_TYPE}")
   fi
 
+  # If we have a dbaas consumer, create it
+  OPENSHIFT_SERVICES_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/consumer.yml"
+  if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
+    OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
+    OPERATOR_ENVIRONMENT="${MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]}"
+    TEMPLATE_ADDITIONAL_PARAMETERS=()
+    oc process  --local -o yaml --insecure-skip-tls-verify \
+      -n ${OPENSHIFT_PROJECT} \
+      -f ${OPENSHIFT_TEMPLATE} \
+      -p SERVICE_NAME="${SERVICE_NAME}" \
+      -p SAFE_BRANCH="${SAFE_BRANCH}" \
+      -p SAFE_PROJECT="${SAFE_PROJECT}" \
+      -p ENVIRONMENT="${OPERATOR_ENVIRONMENT}" \
+      | outputToYaml
+    SERVICEBROKERS+=("${SERVICE_NAME}:${SERVICE_TYPE}")
+  fi
+
 done
 
 TEMPLATE_PARAMETERS=()
@@ -432,6 +489,93 @@ TEMPLATE_PARAMETERS=()
 ##############################################
 ### CUSTOM ROUTES FROM .lagoon.yml
 ##############################################
+
+ROUTES_SERVICE_COUNTER=0
+# we need to check for production routes for active/standby if they are defined, as these will get migrated between environments as required
+if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
+  if [ "${BRANCH//./\\.}" == "${ACTIVE_ENVIRONMENT}" ]; then
+    if [ -n "$(cat .lagoon.yml | shyaml keys production_routes.active.routes.$ROUTES_SERVICE_COUNTER 2> /dev/null)" ]; then
+      while [ -n "$(cat .lagoon.yml | shyaml keys production_routes.active.routes.$ROUTES_SERVICE_COUNTER 2> /dev/null)" ]; do
+        ROUTES_SERVICE=$(cat .lagoon.yml | shyaml keys production_routes.active.routes.$ROUTES_SERVICE_COUNTER)
+
+        ROUTE_DOMAIN_COUNTER=0
+        while [ -n "$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER 2> /dev/null)" ]; do
+          # Routes can either be a key (when the have additional settings) or just a value
+          if cat .lagoon.yml | shyaml keys production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER &> /dev/null; then
+            ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml keys production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
+            # Route Domains include dots, which need to be esacped via `\.` in order to use them within shyaml
+            ROUTE_DOMAIN_ESCAPED=$(cat .lagoon.yml | shyaml keys production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER | sed 's/\./\\./g')
+            ROUTE_TLS_ACME=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true)
+            ROUTE_MIGRATE=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate true)
+            ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
+            ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
+          else
+            # Only a value given, assuming some defaults
+            ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
+            ROUTE_TLS_ACME=true
+            ROUTE_MIGRATE=true
+            ROUTE_INSECURE=Redirect
+            ROUTE_HSTS=null
+          fi
+
+          # The very first found route is set as MAIN_CUSTOM_ROUTE
+          if [ -z "${MAIN_CUSTOM_ROUTE+x}" ]; then
+            MAIN_CUSTOM_ROUTE=$ROUTE_DOMAIN
+          fi
+
+          ROUTE_SERVICE=$ROUTES_SERVICE
+
+          .  /oc-build-deploy/scripts/exec-openshift-create-route.sh
+
+          let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
+        done
+
+        let ROUTES_SERVICE_COUNTER=ROUTES_SERVICE_COUNTER+1
+      done
+    fi
+  fi
+  if [ "${BRANCH//./\\.}" == "${STANDBY_ENVIRONMENT}" ]; then
+    if [ -n "$(cat .lagoon.yml | shyaml keys production_routes.standby.routes.$ROUTES_SERVICE_COUNTER 2> /dev/null)" ]; then
+      while [ -n "$(cat .lagoon.yml | shyaml keys production_routes.standby.routes.$ROUTES_SERVICE_COUNTER 2> /dev/null)" ]; do
+        ROUTES_SERVICE=$(cat .lagoon.yml | shyaml keys production_routes.standby.routes.$ROUTES_SERVICE_COUNTER)
+
+        ROUTE_DOMAIN_COUNTER=0
+        while [ -n "$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER 2> /dev/null)" ]; do
+          # Routes can either be a key (when the have additional settings) or just a value
+          if cat .lagoon.yml | shyaml keys production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER &> /dev/null; then
+            ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml keys production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
+            # Route Domains include dots, which need to be esacped via `\.` in order to use them within shyaml
+            ROUTE_DOMAIN_ESCAPED=$(cat .lagoon.yml | shyaml keys production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER | sed 's/\./\\./g')
+            ROUTE_TLS_ACME=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true)
+            ROUTE_MIGRATE=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate true)
+            ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
+            ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
+          else
+            # Only a value given, assuming some defaults
+            ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
+            ROUTE_TLS_ACME=true
+            ROUTE_MIGRATE=true
+            ROUTE_INSECURE=Redirect
+            ROUTE_HSTS=null
+          fi
+
+          # The very first found route is set as MAIN_CUSTOM_ROUTE
+          if [ -z "${MAIN_CUSTOM_ROUTE+x}" ]; then
+            MAIN_CUSTOM_ROUTE=$ROUTE_DOMAIN
+          fi
+
+          ROUTE_SERVICE=$ROUTES_SERVICE
+
+          .  /oc-build-deploy/scripts/exec-openshift-create-route.sh
+
+          let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
+        done
+
+        let ROUTES_SERVICE_COUNTER=ROUTES_SERVICE_COUNTER+1
+      done
+    fi
+  fi
+fi
 
 # Two while loops as we have multiple services that want routes and each service has multiple routes
 ROUTES_SERVICE_COUNTER=0
@@ -447,12 +591,14 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
         # Route Domains include dots, which need to be esacped via `\.` in order to use them within shyaml
         ROUTE_DOMAIN_ESCAPED=$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER | sed 's/\./\\./g')
         ROUTE_TLS_ACME=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true)
+        ROUTE_MIGRATE=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate false)
         ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
         ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
       else
         # Only a value given, assuming some defaults
         ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
         ROUTE_TLS_ACME=true
+        ROUTE_MIGRATE=false
         ROUTE_INSECURE=Redirect
         ROUTE_HSTS=null
       fi
@@ -483,12 +629,14 @@ else
         # Route Domains include dots, which need to be esacped via `\.` in order to use them within shyaml
         ROUTE_DOMAIN_ESCAPED=$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER | sed 's/\./\\./g')
         ROUTE_TLS_ACME=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true)
+        ROUTE_MIGRATE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate false)
         ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
         ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
       else
         # Only a value given, assuming some defaults
         ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
         ROUTE_TLS_ACME=true
+        ROUTE_MIGRATE=false
         ROUTE_INSECURE=Redirect
         ROUTE_HSTS=null
       fi
@@ -510,7 +658,7 @@ else
 fi
 
 # If restic backups are supported by this cluster we create the schedule definition
-if oc auth --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} can-i create schedules.backup.appuio.ch -q > /dev/null; then
+if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get schedules.backup.appuio.ch &> /dev/null; then
 
   if ! oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get secret baas-repo-pw &> /dev/null; then
     # Create baas-repo-pw secret based on the project secret
@@ -575,6 +723,16 @@ fi
 # Load all routes with correct schema and comma separated
 ROUTES=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get routes -l "acme.openshift.io/exposer!=true" -o=go-template --template='{{range $index, $route := .items}}{{if $index}},{{end}}{{if $route.spec.tls.termination}}https://{{else}}http://{{end}}{{$route.spec.host}}{{end}}')
 
+# Active / Standby routes
+ACTIVE_ROUTES=""
+STANDBY_ROUTES=""
+if [ "${BRANCH//./\\.}" == "${ACTIVE_ENVIRONMENT}" ]; then
+ACTIVE_ROUTES=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get routes -l "dioscuri.amazee.io/migrate=true" -o=go-template --template='{{range $index, $route := .items}}{{if $index}},{{end}}{{if $route.spec.tls.termination}}https://{{else}}http://{{end}}{{$route.spec.host}}{{end}}')
+fi
+if [ "${BRANCH//./\\.}" == "${STANDBY_ENVIRONMENT}" ]; then
+STANDBY_ROUTES=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get routes -l "dioscuri.amazee.io/migrate=true" -o=go-template --template='{{range $index, $route := .items}}{{if $index}},{{end}}{{if $route.spec.tls.termination}}https://{{else}}http://{{end}}{{$route.spec.host}}{{end}}')
+fi
+
 # Get list of autogenerated routes
 AUTOGENERATED_ROUTES=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get routes -l "lagoon/autogenerated=true" -o=go-template --template='{{range $index, $route := .items}}{{if $index}},{{end}}{{if $route.spec.tls.termination}}https://{{else}}http://{{end}}{{$route.spec.host}}{{end}}')
 
@@ -596,11 +754,14 @@ oc process --local --insecure-skip-tls-verify \
   -p ENVIRONMENT_TYPE="${ENVIRONMENT_TYPE}" \
   -p ROUTE="${ROUTE}" \
   -p ROUTES="${ROUTES}" \
+  -p ACTIVE_ROUTES="${ACTIVE_ROUTES}" \
+  -p STANDBY_ROUTES="${STANDBY_ROUTES}" \
   -p MONITORING_URLS="${MONITORING_URLS}" \
   -p OPENSHIFT_NAME="${OPENSHIFT_NAME}" \
   -p AUTOGENERATED_ROUTES="${AUTOGENERATED_ROUTES}" \
   | oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f -
 
+set +x # reduce noise in build logs
 # Add environment variables from lagoon API
 if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
   HAS_PROJECT_RUNTIME_VARS=$(echo $LAGOON_PROJECT_VARIABLES | jq -r 'map( select(.scope == "runtime" or .scope == "global") )')
@@ -622,6 +783,7 @@ if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
       -p "{\"data\":$(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r 'map( select(.scope == "runtime" or .scope == "global") ) | map( { (.name) : .value } ) | add | tostring')}"
   fi
 fi
+set -x
 
 if [ "$TYPE" == "pullrequest" ]; then
   oc patch --insecure-skip-tls-verify \
@@ -638,9 +800,14 @@ do
   SERVICE_NAME=${SERVICEBROKER_ENTRY_SPLIT[0]}
   SERVICE_TYPE=${SERVICEBROKER_ENTRY_SPLIT[1]}
 
-  SERVICE_NAME_UPPERCASE=$(echo "$SERVICE_NAME" | tr '[:lower:]' '[:upper:]')
+  # The prefix for the environment variables.
+  SERVICE_NAME_UPPERCASE=$(echo "$SERVICE_NAME" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
 
   case "$SERVICE_TYPE" in
+    # Operator can take some time to return the required information, do it here
+    mariadb-dbaas)
+        . /oc-build-deploy/scripts/exec-openshift-mariadb-dbaas.sh
+        ;;
 
     mariadb-shared)
         # ServiceBrokers take a bit, wait until the credentials secret is available
@@ -700,9 +867,8 @@ if [[ $THIS_IS_TUG == "true" ]]; then
     if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get secret tug-registry 2> /dev/null; then
       oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} delete secret tug-registry
     fi
-
-    oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} secrets new-dockercfg tug-registry --docker-server="${TUG_REGISTRY}" --docker-username="${TUG_REGISTRY_USERNAME}" --docker-password="${TUG_REGISTRY_PASSWORD}" --docker-email="${TUG_REGISTRY_USERNAME}"
-    oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} secrets add serviceaccount/default secrets/tug-registry --for=pull
+    oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} create secret docker-registry tug-registry --docker-server="${TUG_REGISTRY}" --docker-username="${TUG_REGISTRY_USERNAME}" --docker-password="${TUG_REGISTRY_PASSWORD}" --docker-email="${TUG_REGISTRY_USERNAME}"
+    oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} secrets link default tug-registry --for=pull
   fi
 
   # Import all remote Images into ImageStreams
@@ -764,7 +930,7 @@ do
   SERVICE_NAME=${SERVICE_TYPES_ENTRY_SPLIT[0]}
   SERVICE_TYPE=${SERVICE_TYPES_ENTRY_SPLIT[1]}
 
-  SERVICE_NAME_UPPERCASE=$(echo "$SERVICE_NAME" | tr '[:lower:]' '[:upper:]')
+  SERVICE_NAME_UPPERCASE=$(echo "$SERVICE_NAME" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
 
   COMPOSE_SERVICE=${MAP_SERVICE_TYPE_TO_COMPOSE_SERVICE["${SERVICE_TYPES_ENTRY}"]}
 
@@ -809,7 +975,7 @@ do
   fi
 
   # Generate Backup Definitions are supported and if service type defines one
-  if oc auth --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} can-i create prebackuppod.backup.appuio.ch -q > /dev/null; then
+  if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get prebackuppod.backup.appuio.ch &> /dev/null; then
     OPENSHIFT_SERVICES_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/prebackuppod.yml"
     if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
       OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
@@ -845,7 +1011,7 @@ do
       CRONJOB_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "$CRONJOB_SCHEDULE_RAW")
       CRONJOB_COMMAND=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.command)
 
-      if cronScheduleMoreOftenThan15Minutes "$CRONJOB_SCHEDULE_RAW" ; then
+      if cronScheduleMoreOftenThanXMinutes "$CRONJOB_SCHEDULE_RAW" ; then
         # If this cronjob is more often than 15 minutes, we run the cronjob inside the pod itself
         CRONJOBS_ARRAY_INSIDE_POD+=("${CRONJOB_SCHEDULE} ${CRONJOB_COMMAND}")
       else
@@ -989,6 +1155,10 @@ do
 
     DAEMONSET="${SERVICE_NAME}"
     . /oc-build-deploy/scripts/exec-monitor-deamonset.sh
+
+  elif [ $SERVICE_TYPE == "mariadb-dbaas" ]; then
+
+    echo "nothing to monitor for $SERVICE_TYPE"
 
   elif [ $SERVICE_TYPE == "mariadb-shared" ]; then
 

@@ -1,5 +1,3 @@
-// @flow
-
 const amqp = require('amqp-connection-manager');
 const { logger } = require('./local-logging');
 
@@ -13,8 +11,6 @@ exports.createTaskMonitor = createTaskMonitor;
 exports.consumeTaskMonitor = consumeTaskMonitor;
 exports.consumeTasks = consumeTasks;
 
-import type { ChannelWrapper } from './types';
-
 const {
   getActiveSystemForProject,
   getProductionEnvironmentForProject,
@@ -22,16 +18,16 @@ const {
 } = require('./api');
 
 let sendToLagoonTasks = (exports.sendToLagoonTasks = function sendToLagoonTasks(
-  task: string,
-  payload?: Object,
+  task,
+  payload,
 ) {
   // TODO: Actually do something here?
   return payload && undefined;
 });
 
 let sendToLagoonTasksMonitor = (exports.sendToLagoonTasksMonitor = function sendToLagoonTasksMonitor(
-  task: string,
-  payload?: Object,
+  task,
+  payload,
 ) {
   // TODO: Actually do something here?
   return payload && undefined;
@@ -43,35 +39,35 @@ const rabbitmqUsername = process.env.RABBITMQ_USERNAME || 'guest';
 const rabbitmqPassword = process.env.RABBITMQ_PASSWORD || 'guest';
 
 class UnknownActiveSystem extends Error {
-  constructor(message: string) {
+  constructor(message) {
     super(message);
     this.name = 'UnknownActiveSystem';
   }
 }
 
 class NoNeedToDeployBranch extends Error {
-  constructor(message: string) {
+  constructor(message) {
     super(message);
     this.name = 'NoNeedToDeployBranch';
   }
 }
 
 class NoNeedToRemoveBranch extends Error {
-  constructor(message: string) {
+  constructor(message) {
     super(message);
     this.name = 'NoNeedToRemoveBranch';
   }
 }
 
 class CannotDeleteProductionEnvironment extends Error {
-  constructor(message: string) {
+  constructor(message) {
     super(message);
     this.name = 'CannotDeleteProductionEnvironment';
   }
 }
 
 class EnvironmentLimit extends Error {
-  constructor(message: string) {
+  constructor(message) {
     super(message);
     this.name = 'EnvironmentLimit';
   }
@@ -96,7 +92,7 @@ function initSendToLagoonTasks() {
     }),
   );
 
-  const channelWrapperTasks: ChannelWrapper = connection.createChannel({
+  const channelWrapperTasks = connection.createChannel({
     setup(channel) {
       return Promise.all([
         // Our main Exchange for all lagoon-tasks
@@ -128,9 +124,9 @@ function initSendToLagoonTasks() {
   });
 
   exports.sendToLagoonTasks = sendToLagoonTasks = async (
-    task: string,
-    payload: Object,
-  ): Promise<string> => {
+    task,
+    payload,
+  ) => {
     try {
       const buffer = Buffer.from(JSON.stringify(payload));
       await channelWrapperTasks.publish('lagoon-tasks', task, buffer, {
@@ -153,9 +149,9 @@ function initSendToLagoonTasks() {
   };
 
   exports.sendToLagoonTasksMonitor = sendToLagoonTasksMonitor = async (
-    task: string,
-    payload: Object,
-  ): Promise<string> => {
+    task,
+    payload,
+  ) => {
     try {
       const buffer = Buffer.from(JSON.stringify(payload));
       await channelWrapperTasks.publish('lagoon-tasks-monitor', task, buffer, {
@@ -181,11 +177,11 @@ function initSendToLagoonTasks() {
   };
 }
 
-async function createTaskMonitor(task: string, payload: Object) {
+async function createTaskMonitor(task, payload) {
   return sendToLagoonTasksMonitor(task, payload);
 }
 
-async function createDeployTask(deployData: Object) {
+async function createDeployTask(deployData) {
   const {
     projectName,
     branchName,
@@ -211,13 +207,37 @@ async function createDeployTask(deployData: Object) {
 
   switch (project.activeSystemsDeploy) {
     case 'lagoon_openshiftBuildDeploy':
-      if (environments.project.productionEnvironment === branchName) {
+    case 'lagoon_kubernetesBuildDeploy':
+      // we want to limit production environments, without making it configurable currently
+      var productionEnvironmentsLimit = 2
+
+      // we want to make sure we can deploy the `production` env, and also the env defined as standby
+      if (
+        environments.project.productionEnvironment === branchName
+        || environments.project.standbyProductionEnvironment === branchName
+      ) {
+        // get a list of production environments
+        const prod_environments = environments.project.environments
+          .filter(e => e.environmentType === 'production')
+          .map(e => e.name);
         logger.debug(
-          `projectName: ${projectName}, branchName: ${branchName}, production environment, no environment limits considered`,
+          `projectName: ${projectName}, branchName: ${branchName}, existing environments are `,
+          prod_environments,
         );
+
+        if (prod_environments.length >= productionEnvironmentsLimit) {
+          if (prod_environments.find(i => i === branchName)) {
+            logger.debug(
+              `projectName: ${projectName}, branchName: ${branchName}, environment already exists, no environment limits considered`,
+            );
+          } else {
+            throw new EnvironmentLimit(
+              `'${branchName}' would exceed the configured limit of ${productionEnvironmentsLimit} production environments for project ${projectName}`,
+            );
+          }
+        }
       } else {
         // get a list of non-production environments
-        console.log(environments.project);
         const dev_environments = environments.project.environments
           .filter(e => e.environmentType === 'development')
           .map(e => e.name);
@@ -252,12 +272,34 @@ async function createDeployTask(deployData: Object) {
             logger.debug(
               `projectName: ${projectName}, branchName: ${branchName}, no branches defined in active system, assuming we want all of them`,
             );
-            return sendToLagoonTasks('builddeploy-openshift', deployData);
+            switch (project.activeSystemsDeploy) {
+              case 'lagoon_openshiftBuildDeploy':
+                return sendToLagoonTasks('builddeploy-openshift', deployData);
+              case 'lagoon_kubernetesBuildDeploy':
+                return sendToLagoonTasks('builddeploy-kubernetes', deployData);
+              default:
+                throw new UnknownActiveSystem(
+                  `Unknown active system '${
+                    project.activeSystemsDeploy
+                  }' for task 'deploy' in for project ${projectName}`,
+                );
+            }
           case 'true':
             logger.debug(
               `projectName: ${projectName}, branchName: ${branchName}, all branches active, therefore deploying`,
             );
-            return sendToLagoonTasks('builddeploy-openshift', deployData);
+            switch (project.activeSystemsDeploy) {
+              case 'lagoon_openshiftBuildDeploy':
+                return sendToLagoonTasks('builddeploy-openshift', deployData);
+              case 'lagoon_kubernetesBuildDeploy':
+                return sendToLagoonTasks('builddeploy-kubernetes', deployData);
+              default:
+                throw new UnknownActiveSystem(
+                  `Unknown active system '${
+                    project.activeSystemsDeploy
+                  }' for task 'deploy' in for project ${projectName}`,
+                );
+            }
           case 'false':
             logger.debug(
               `projectName: ${projectName}, branchName: ${branchName}, branch deployments disabled`,
@@ -276,7 +318,18 @@ async function createDeployTask(deployData: Object) {
                   project.branches
                 } matched branchname, starting deploy`,
               );
-              return sendToLagoonTasks('builddeploy-openshift', deployData);
+              switch (project.activeSystemsDeploy) {
+                case 'lagoon_openshiftBuildDeploy':
+                  return sendToLagoonTasks('builddeploy-openshift', deployData);
+                case 'lagoon_kubernetesBuildDeploy':
+                  return sendToLagoonTasks('builddeploy-kubernetes', deployData);
+                default:
+                  throw new UnknownActiveSystem(
+                    `Unknown active system '${
+                      project.activeSystemsDeploy
+                    }' for task 'deploy' in for project ${projectName}`,
+                  );
+              }
             }
             logger.debug(
               `projectName: ${projectName}, branchName: ${branchName}, regex ${
@@ -347,7 +400,7 @@ async function createDeployTask(deployData: Object) {
   }
 }
 
-async function createPromoteTask(promoteData: Object) {
+async function createPromoteTask(promoteData) {
   const {
     projectName,
     // branchName,
@@ -376,21 +429,28 @@ async function createPromoteTask(promoteData: Object) {
   }
 }
 
-async function createRemoveTask(removeData: Object) {
+async function createRemoveTask(removeData) {
   const {
     projectName,
     branch,
     branchName,
+    pullrequestNumber,
     pullrequestTitle,
     forceDeleteProductionEnvironment,
     type,
   } = removeData;
 
-  const productionEnvironment = await getProductionEnvironmentForProject(
+  // Load all environments that currently exist (and are not deleted).
+  const allEnvironments = await getEnvironmentsForProject(
     projectName,
   );
 
-  if (branch === productionEnvironment.project.productionEnvironment) {
+  // Check to see if we are deleting a production environment, and if so,
+  // ensure the flag is set to allow this.
+  if (
+    branch === allEnvironments.project.productionEnvironment
+    || (allEnvironments.project.standbyProductionEnvironment && branch === allEnvironments.project.standbyProductionEnvironment)
+  ) {
     if (forceDeleteProductionEnvironment !== true) {
       throw new CannotDeleteProductionEnvironment(
         `'${branch}' is defined as the production environment for ${projectName}, refusing to remove.`,
@@ -409,98 +469,105 @@ async function createRemoveTask(removeData: Object) {
   switch (project.activeSystemsRemove) {
     case 'lagoon_openshiftRemove':
       if (type === 'branch') {
-        switch (project.branches) {
-          case undefined:
-          case null:
-            logger.debug(
-              `projectName: ${projectName}, branchName: ${branchName}, no branches defined in active system, assuming we want all of them`,
-            );
-            return sendToLagoonTasks('remove-openshift', removeData);
-          case 'true':
-            logger.debug(
-              `projectName: ${projectName}, branchName: ${branchName}, all branches active, therefore deploying`,
-            );
-            return sendToLagoonTasks('remove-openshift', removeData);
-          case 'false':
-            logger.debug(
-              `projectName: ${projectName}, branchName: ${branchName}, branch deployments disabled`,
-            );
-            throw new NoNeedToRemoveBranch('Branch deployments disabled');
-          default: {
-            logger.debug(
-              `projectName: ${projectName}, branchName: ${branchName}, regex ${
-                project.branches
-              }, testing if it matches`,
-            );
-            const branchRegex = new RegExp(project.branches);
-            if (branchRegex.test(branchName)) {
-              logger.debug(
-                `projectName: ${projectName}, branchName: ${branchName}, regex ${
-                  project.branches
-                } matched branchname, starting deploy`,
-              );
-              return sendToLagoonTasks('remove-openshift', removeData);
-            }
-            logger.debug(
-              `projectName: ${projectName}, branchName: ${branchName}, regex ${
-                project.branches
-              } did not match branchname, not deploying`,
-            );
-            throw new NoNeedToDeployBranch(
-              `configured regex '${
-                project.branches
-              }' does not match branchname '${branchName}'`,
-            );
+        // Check to ensure the environment actually exists.
+        let foundEnvironment = false;
+        allEnvironments.project.environments.forEach(function (environment, index) {
+          if (environment.name === branch) {
+            foundEnvironment = true;
           }
-        }
-      } else if (type === 'pullrequest') {
-        switch (project.pullrequests) {
-          case undefined:
-          case null:
-            logger.debug(
-              `projectName: ${projectName}, pullrequest: ${branchName}, no pullrequest defined in active system, assuming we want all of them`,
-            );
-            return sendToLagoonTasks('remove-openshift', removeData);
-          case 'true':
-            logger.debug(
-              `projectName: ${projectName}, pullrequest: ${branchName}, all pullrequest active, therefore deploying`,
-            );
-            return sendToLagoonTasks('remove-openshift', removeData);
-          case 'false':
-            logger.debug(
-              `projectName: ${projectName}, pullrequest: ${branchName}, pullrequest deployments disabled`,
-            );
-            throw new NoNeedToDeployBranch('PullRequest deployments disabled');
-          default: {
-            logger.debug(
-              `projectName: ${projectName}, pullrequest: ${branchName}, regex ${
-                project.pullrequests
-              }, testing if it matches PR Title '${pullrequestTitle}'`,
-            );
+        });
 
-            const branchRegex = new RegExp(project.pullrequests);
-            if (branchRegex.test(pullrequestTitle)) {
-              logger.debug(
-                `projectName: ${projectName}, pullrequest: ${branchName}, regex ${
-                  project.pullrequests
-                } matched PR Title '${pullrequestTitle}', starting deploy`,
-              );
-              return sendToLagoonTasks('remove-openshift', removeData);
-            }
-            logger.debug(
-              `projectName: ${projectName}, branchName: ${branchName}, regex ${
-                project.pullrequests
-              } did not match PR Title, not removing`,
-            );
-            throw new NoNeedToDeployBranch(
-              `configured regex '${
-                project.pullrequests
-              }' does not match PR Title '${pullrequestTitle}'`,
-            );
-          }
+        if (!foundEnvironment) {
+          logger.debug(
+            `projectName: ${projectName}, branchName: ${branch}, no environment found.`,
+          );
+          throw new NoNeedToRemoveBranch('Branch environment does not exist, no need to remove anything.');
         }
+
+        logger.debug(
+          `projectName: ${projectName}, branchName: ${branchName}. Removing branch environment.`,
+        );
+        return sendToLagoonTasks('remove-openshift', removeData);
+
+      } else if (type === 'pullrequest') {
+        // Work out the branch name from the PR number.
+        let branchName = 'pr-' + pullrequestNumber;
+        removeData.branchName = 'pr-' + pullrequestNumber;
+
+        // Check to ensure the environment actually exists.
+        let foundEnvironment = false;
+        allEnvironments.project.environments.forEach(function (environment, index) {
+          if (environment.name === branchName) {
+            foundEnvironment = true;
+          }
+        });
+
+        if (!foundEnvironment) {
+          logger.debug(
+            `projectName: ${projectName}, pullrequest: ${branchName}, no pullrequest found.`,
+          );
+          throw new NoNeedToRemoveBranch('Pull Request environment does not exist, no need to remove anything.');
+        }
+
+        logger.debug(
+          `projectName: ${projectName}, pullrequest: ${branchName}. Removing pullrequest environment.`,
+        );
+        return sendToLagoonTasks('remove-openshift', removeData);
+
       } else if (type === 'promote') {
         return sendToLagoonTasks('remove-openshift', removeData);
+      }
+      break;
+
+    case 'lagoon_kubernetesRemove':
+      if (type === 'branch') {
+        // Check to ensure the environment actually exists.
+        let foundEnvironment = false;
+        allEnvironments.project.environments.forEach(function (environment, index) {
+          if (environment.name === branch) {
+            foundEnvironment = true;
+          }
+        });
+
+        if (!foundEnvironment) {
+          logger.debug(
+            `projectName: ${projectName}, branchName: ${branch}, no environment found.`,
+          );
+          throw new NoNeedToRemoveBranch('Branch environment does not exist, no need to remove anything.');
+        }
+
+        logger.debug(
+          `projectName: ${projectName}, branchName: ${branchName}. Removing branch environment.`,
+        );
+        return sendToLagoonTasks('remove-kubernetes', removeData);
+
+      } else if (type === 'pullrequest') {
+        // Work out the branch name from the PR number.
+        let branchName = 'pr-' + pullrequestNumber;
+        removeData.branchName = 'pr-' + pullrequestNumber;
+
+        // Check to ensure the environment actually exists.
+        let foundEnvironment = false;
+        allEnvironments.project.environments.forEach(function (environment, index) {
+          if (environment.name === branchName) {
+            foundEnvironment = true;
+          }
+        });
+
+        if (!foundEnvironment) {
+          logger.debug(
+            `projectName: ${projectName}, pullrequest: ${branchName}, no pullrequest found.`,
+          );
+          throw new NoNeedToRemoveBranch('Pull Request environment does not exist, no need to remove anything.');
+        }
+
+        logger.debug(
+          `projectName: ${projectName}, pullrequest: ${branchName}. Removing pullrequest environment.`,
+        );
+        return sendToLagoonTasks('remove-kubernetes', removeData);
+
+      } else if (type === 'promote') {
+        return sendToLagoonTasks('remove-kubernetes', removeData);
       }
       break;
 
@@ -513,7 +580,7 @@ async function createRemoveTask(removeData: Object) {
   }
 }
 
-async function createTaskTask(taskData: Object) {
+async function createTaskTask(taskData) {
   const {
     project,
   } = taskData;
@@ -530,6 +597,9 @@ async function createTaskTask(taskData: Object) {
     case 'lagoon_openshiftJob':
       return sendToLagoonTasks('job-openshift', taskData);
 
+    case 'lagoon_kubernetesJob':
+      return sendToLagoonTasks('job-kubernetes', taskData)
+
     default:
       throw new UnknownActiveSystem(
         `Unknown active system '${
@@ -539,15 +609,36 @@ async function createTaskTask(taskData: Object) {
   }
 }
 
-async function createMiscTask(taskData: Object) {
-  return sendToLagoonTasks('misc-openshift', taskData);
+async function createMiscTask(taskData) {
+
+  const { key, data: { project } } = taskData;
+
+  const data = await getActiveSystemForProject(project.name, 'misc');
+
+  let updatedKey = key;
+  let taskId = '';
+  switch (data.activeSystemsMisc) {
+    case 'lagoon_openshiftMisc':
+      updatedKey = `openshift:${key}`;
+      taskId = 'misc-openshift';
+      break;
+    case 'lagoon_kubernetesMisc':
+      updatedKey = `kubernetes:${key}`
+      taskId = 'misc-kubernetes';
+      break;
+
+    default:
+      break;
+  }
+
+  return sendToLagoonTasks(taskId, {...taskData, key: updatedKey});
 }
 
 async function consumeTasks(
-  taskQueueName: string,
-  messageConsumer: Function,
-  retryHandler: Function,
-  deathHandler: Function,
+  taskQueueName,
+  messageConsumer,
+  retryHandler,
+  deathHandler,
 ) {
   const onMessage = async msg => {
     try {
@@ -626,9 +717,9 @@ async function consumeTasks(
 }
 
 async function consumeTaskMonitor(
-  taskMonitorQueueName: string,
-  messageConsumer: Function,
-  deathHandler: Function,
+  taskMonitorQueueName,
+  messageConsumer,
+  deathHandler,
 ) {
   const onMessage = async msg => {
     try {

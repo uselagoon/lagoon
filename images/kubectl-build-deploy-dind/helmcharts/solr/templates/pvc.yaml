@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.persistentStorage.name | quote }}
+  labels:
+    {{- include "solr.labels" . | nindent 4 }}
+  annotations:
+    appuio.ch/backup: "false"
+    {{- include "solr.annotations" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.persistentStorage.size | quote }}

@@ -34,3 +34,25 @@ The included cli tools are:
 
 By default this image ships with the current Node.js Version \(v12 as of Jan 2020\). If you need another version you can remove the current version and install the one of your choice.
 
+## Environment variables
+
+Environment variables allow some configuration to be customised in a repeatable way.
+
+| Name                       | Default | Description                                           |
+|----------------------------|---------|-------------------------------------------------------|
+| `MARIADB_MAX_ALLOWED_PACKET` | 64M     | Controls the max allowed packet for the MySql client. |
+
+### Changing an environment variable
+
+Environment variables can be changed in the `docker-compose.yml` file.
+
+```
+x-environment:
+  &default-environment
+    MARIADB_MAX_ALLOWED_PACKET: 128M
+
+service:
+  cli:
+    environment:
+    << : *default-environment
+```

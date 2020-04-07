@@ -1,0 +1,35 @@
+{{ if .Capabilities.APIVersions.Has "backup.appuio.ch/v1alpha1/PreBackupPod" }}
+apiVersion: backup.appuio.ch/v1alpha1
+kind: PreBackupPod
+metadata:
+  name: {{ include "mariadb-dbaas.fullname" . }}-prebackuppod
+  labels:
+    {{- include "mariadb-dbaas.labels" . | nindent 4 }}
+  annotations:
+    {{- include "mariadb-dbaas.annotations" . | nindent 4 }}
+spec:
+  backupCommand: >-
+    /bin/sh -c "dump=$(mktemp) && mysqldump --max-allowed-packet=500M --events --routines --quick --add-locks --no-autocommit --single-transaction --no-create-db
+    -h ${{ include "mariadb-dbaas.fullnameUppercase" . }}_HOST
+    -u ${{ include "mariadb-dbaas.fullnameUppercase" . }}_USERNAME
+    -p${{ include "mariadb-dbaas.fullnameUppercase" . }}_PASSWORD
+    ${{ include "mariadb-dbaas.fullnameUppercase" . }}_DATABASE
+    > $dump && cat $dump && rm $dump"
+  fileExtension: .{{ include "mariadb-dbaas.fullname" . }}.sql
+  pod:
+    metadata:
+      labels:
+        prebackuppod: {{ include "mariadb-dbaas.fullname" . }}
+        {{- include "mariadb-dbaas.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - args:
+            - sleep
+            - '3600'
+          envFrom:
+            - configMapRef:
+                name: lagoon-env
+          image: amazeeio/alpine-mysql-client
+          imagePullPolicy: Always
+          name: {{ include "mariadb-dbaas.fullname" . }}-prebackuppod
+{{ end }}

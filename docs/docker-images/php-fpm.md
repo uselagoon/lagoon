@@ -1,6 +1,6 @@
 # PHP-FPM
 
-The [Lagoon `php-fpm` Docker image](https://github.com/amazeeio/lagoon/blob/master/images/php/fpm/Dockerfile). Based on [the official PHP Alpine images](https://hub.docker.com/_/php/). 
+The [Lagoon `php-fpm` Docker image](https://github.com/amazeeio/lagoon/blob/master/images/php/fpm/Dockerfile). Based on [the official PHP Alpine images](https://hub.docker.com/_/php/).
 
 > _PHP-FPM \(FastCGI Process Manager\) is an alternative PHP FastCGI implementation with some additional features useful for sites of any size, especially busier sites._
 >
@@ -16,12 +16,11 @@ This Dockerfile is intended to be used as a base for any `PHP` needs within Lago
 
 * 5.6 \(available for compatibility, not officially supported\)
 * 7.0 \(available for compatibility, not officially supported\)
-* 7.1 \(available for compatibility, not officially supported\)
 * 7.2
 * 7.3
 * 7.4 \(available for testing\)
 
-All PHP versions use the same Dockerfile. 
+All PHP versions use the same Dockerfile.
 
 ## Lagoon & OpenShift adaptions
 
@@ -65,7 +64,7 @@ Also, `php-fpm` error logging happens in `stderr`.
 
 ## default fpm-pool
 
-This image is shipped with an `fpm-pool` config \([`php-fpm.d/www.conf`](https://github.com/amazeeio/lagoon/blob/master/images/php/fpm/php-fpm.d/www.conf)\) that creates an `fpm-pool` and listens on port 9000. This is because we try to provide an image which already covers most needs for PHP, so you don't need to create your own. You are welcome to do so if you like, though! 
+This image is shipped with an `fpm-pool` config \([`php-fpm.d/www.conf`](https://github.com/amazeeio/lagoon/blob/master/images/php/fpm/php-fpm.d/www.conf)\) that creates an `fpm-pool` and listens on port 9000. This is because we try to provide an image which already covers most needs for PHP, so you don't need to create your own. You are welcome to do so if you like, though!
 
 Here a short description of what this file does:
 
@@ -104,5 +103,5 @@ Environment variables are meant to contain common information for the PHP contai
 | `PHP_MAX_FILE_UPLOADS` | `20` | The maximum number of files allowed to be uploaded simultaneously. [See php.net](http://php.net/manual/en/ini.core.php#ini.max-file-uploads). |
 | `PHP_MAX_INPUT_VARS` | `2000` | How many input variables will be accepted. [See php.net](http://php.net/manual/en/info.configuration.php#ini.max-input-vars). |
 | `PHP_MEMORY_LIMIT` | `400M` | Maximum amount of memory a script may consume. [See php.net](http://php.net/memory-limit). |
-| `XDEBUG_ENABLED` | \(not set\) | Used to enable `xdebug` extension. [See php.net](http://php.net/manual/en/apc.configuration.php#ini.apc.enabled). |
+| `XDEBUG_ENABLE` | \(not set\) | Used to enable `xdebug` extension. [See php.net](http://php.net/manual/en/apc.configuration.php#ini.apc.enabled). |
 

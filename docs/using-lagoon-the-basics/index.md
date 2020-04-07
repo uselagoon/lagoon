@@ -48,8 +48,8 @@ Some Docker images and containers need additional customizations from the provid
 
 | Type | Versions | Dockerfile |
 | :--- | :--- | :--- |
-| [Elasticsearch](https://github.com/AlannaBurke/lagoon/tree/b9add2d0bfd8db43295d7ccdab7729436674f764/docs/using-lagoon/docker_images/elasticsearch.md) | 6.8.2, 7.1.1, 7.3.0 | [elasticsearch/Dockerfiles](https://github.com/amazeeio/lagoon/tree/master/images/elasticsearch) |
-| [MariadB-Drupal](https://github.com/AlannaBurke/lagoon/tree/b9add2d0bfd8db43295d7ccdab7729436674f764/docs/using-lagoon/docker_images/mariadb-drupal.md) | 10 | [mariadb-drupal/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/mariadb-drupal/Dockerfile) |
+| [Elasticsearch](../docker_images/elasticsearch.md) | 6.8.2, 7.1.1, 7.3.0 | [elasticsearch/Dockerfiles](https://github.com/amazeeio/lagoon/tree/master/images/elasticsearch) |
+| [MariadB-Drupal](..//docker_images/mariadb-drupal.md) | 10 | [mariadb-drupal/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/mariadb-drupal/Dockerfile) |
 | [MariaDB](../docker-images/mariadb/) | 10 | [mariadb/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/mariadb/Dockerfile) |
 | [MongoDB](../docker-images/mongodb.md) | 3.6 | [mongo/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/mongo/Dockerfile) |
 | [Nginx](../docker-images/nginx/) | openresty/1.15.8.2 | [nginx/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/nginx/Dockerfile) |
@@ -59,8 +59,8 @@ Some Docker images and containers need additional customizations from the provid
 | [php-fpm](../docker-images/php-fpm.md) | 7.2, 7.3 | [php/fpm/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/php/fpm/Dockerfile) |
 | [Postgres](../docker-images/postgres.md) | 11.x | [postgres/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/postgres/Dockerfile) |
 | [RabbitMQ](../docker-images/rabbitmq.md) |  |  |
-| [Redis-persistent](https://github.com/AlannaBurke/lagoon/tree/b9add2d0bfd8db43295d7ccdab7729436674f764/docs/using-lagoon/docker_images/redis-permanent.md) | 5.0.0 | [redis-persistent/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/redis-persistent/Dockerfile) |
-| [Redis](https://github.com/AlannaBurke/lagoon/tree/b9add2d0bfd8db43295d7ccdab7729436674f764/docs/using-lagoon/docker_images/redis.md) | 5.0.0 | [redis/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/redis/Dockerfile) |
+| [Redis-persistent](../docker_images/redis-permanent.md) | 5.0.0 | [redis-persistent/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/redis-persistent/Dockerfile) |
+| [Redis](../docker_images/redis.md) | 5.0.0 | [redis/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/redis/Dockerfile) |
 | [Solr-Drupal](../docker-images/solr/solr-drupal.md) | 5.5, 6.6, 7.5 | [solr-drupal/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/solr-drupal/Dockerfile) |
 | [Solr](../docker-images/solr/) | 5.5, 6.6, 7.5 | [solr/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/solr/Dockerfile) |
 | [Varnish-Drupal](../docker-images/varnish/varnish-drupal.md) | 5 | [varnish-drupal/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/varnish-drupal/Dockerfile) |

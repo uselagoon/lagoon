@@ -21,7 +21,7 @@ const Environment = ({ environment }) => {
       <div className="field-wrapper environmentType">
         <div>
           <label>Environment Type</label>
-          <div className="field">{environment.environmentType}</div>
+          <div className="field">{environment.environmentType}{environment.environmentType == 'production' && environment.project.productionEnvironment == environment.name && (" (active)")}{environment.environmentType == 'production' && environment.project.standbyProductionEnvironment == environment.name && (" (standby)")}</div>
         </div>
       </div>
       <div className="field-wrapper deployType">
@@ -67,6 +67,36 @@ const Environment = ({ environment }) => {
         </div>
       </div>
       <div className="field-wrapper routes">
+        {environment.environmentType == 'production' && environment.project.productionEnvironment == environment.name && (
+        <div>
+          <label>Active Environment Routes</label>
+          <div className="field">
+            {environment.project.productionRoutes
+              ? environment.project.productionRoutes.split(',').map(route => (
+                  <div key={route}>
+                    <a className="hover-state" target="_blank" href={route}>
+                      {route}
+                    </a>
+                  </div>
+                ))
+              : ''}
+          </div>
+        </div>)}
+        {environment.environmentType == 'production' && environment.project.standbyProductionEnvironment == environment.name && (
+        <div>
+          <label>Standby Environment Routes</label>
+          <div className="field">
+            {environment.project.standbyRoutes
+              ? environment.project.standbyRoutes.split(',').map(route => (
+                  <div key={route}>
+                    <a className="hover-state" target="_blank" href={route}>
+                      {route}
+                    </a>
+                  </div>
+                ))
+              : ''}
+          </div>
+        </div>)}
         <div>
           <label>Routes</label>
           <div className="field">

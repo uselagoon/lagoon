@@ -21,14 +21,14 @@ ENV TMPDIR=/tmp \
     BASH_ENV=/home/.bashrc
 
 ENV LAGOON=ssh \
-    OC_VERSION=v3.6.0 \
-    OC_HASH=c4dd4cf \
-		OC_SHA256=ecb0f52560ac766331052a0052b1de646011247f637c15063f4d74432e1ce389
+    OC_VERSION=v3.11.0 \
+    OC_HASH=0cbc58b \
+    OC_SHA256=4b0f07428ba854174c58d2e38287e5402964c9a9355f6c359d1242efd0990da3
 
 COPY services/ssh/libnss-mysql-1.5.tar.gz /tmp/libnss-mysql-1.5.tar.gz
 
 RUN apt-get update \
-    && apt-get install -y curl build-essential libmysqlclient-dev ssh curl npm vim jq \
+    && apt-get install -y curl build-essential libmysqlclient-dev ssh curl vim jq \
     && ln -s /usr/lib/x86_64-linux-gnu/libmysqlclient.so /usr/lib/libmysqlclient.so \
     && mkdir /tmp/libnss-mysql \
     && tar -xzf /tmp/libnss-mysql-1.5.tar.gz -C /tmp/libnss-mysql --strip-components=1 \
@@ -51,10 +51,6 @@ RUN curl -L https://github.com/krallin/tini/releases/download/v0.18.0/tini -o /s
 
 # Reproduce behavior of Alpine: Run Bash as sh
 RUN rm -f /bin/sh && ln -s /bin/bash /bin/sh
-
-# Needed for jwt generation
-RUN npm config set unsafe-perm true \
-    && npm -g install jwtgen
 
 COPY services/ssh/etc/ /etc/
 COPY services/ssh/home/ /home/
