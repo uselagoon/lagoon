@@ -170,13 +170,36 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
     }
     logger.debug(`Harbor project id for ${lagoonProjectName}: ${harborProjectID}`)
 
+    // Check for existing repositories within the project
+    try {
+      const res = await harborClient.get(`search?name=${lagoonProjectName}`)
+      const harborRepos = []
+      for (i = 0; i < res.repository.length; i++) {
+        if (res.repository[i].project_name == lagoonProjectName){
+          harborRepos.push(res.repository[i])
+        }
+      }
+    } catch (err) {
+      logger.error(`Unable to search for repositories within the harbor project "${lagoonProjectName}", error: ${err}`)
+    }
+
+    // Delete any repositories within this project
+    try {
+      for (i = 0; i < harborRepos.length; i++) {
+        var res = await harborClient.delete(`repositories/${harborRepos[i].repository_name}`)
+      }
+    } catch (err) {
+      logger.error(`Unable to delete repositories within the harbor project "${lagoonProjectName}", error: ${err}`)
+    }
+
     // Delete harbor project
     try {
       var res = await harborClient.delete(`projects/${harborProjectID}`);
       logger.debug(`Harbor project ${lagoonProjectName} deleted!`)
     } catch (err) {
-      // 400 means registry ID is invalid or registry is being used by policies
-      // 404 means registry doesn't exist
+      // 400 means the project id is invalid
+      // 404 means project doesn't exist
+      // 412 means project still contains repositories
       logger.info(`Unable to delete the harbor project "${lagoonProjectName}", error: ${err}`)
     }
   }
