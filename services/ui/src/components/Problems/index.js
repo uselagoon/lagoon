@@ -168,6 +168,13 @@ const Problems = ({ problems }) => {
         }
       }
 
+      .accordion-heading {
+        display: flex;
+        justify-content: space-between;
+        padding: 20px;
+        cursor: pointer;
+      }
+
       input#filter {
         width: 100%;
         border: none;
