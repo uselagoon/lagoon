@@ -5,9 +5,7 @@ import { Query } from 'react-apollo';
 import MainLayout from '../../layouts/MainLayout';
 import GlobalStlyes from '../../layouts/GlobalStyles';
 
-import { StatusLayoutNoHeader } from "../../layouts/StatusLayout";
 import renderWhile from '../../lib/renderWhile';
-
 
 import AllBillingGroupsQuery from '../../lib/query/AllBillingGroups';
 import BillingGroups from '../../components/BillingGroups';
