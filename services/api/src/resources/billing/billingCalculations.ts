@@ -224,20 +224,18 @@ export const devCost = ({ currency, projects }: IBillingGroup) => {
   const { availability: currencyPricingAvailability } = CURRENCY_PRICING[
     currency
   ];
-
-  // Each project gets two free environments per month.
-  // hours in month x 2 x number of projects
-  const freeDevHours = hoursInMonth(projects[0].month) * 2 * projects.length;
-
-  // project.devHours is a sum of all development hours for each environment
-  const devHours = projects.reduce((acc, project) => acc + project.devHours, 0);
   // TODO: Once availability is set per environment change below
   // const { devSitePerHour } = currencyPricingAvailability[availability];
   const { devSitePerHour } = currencyPricingAvailability[AVAILABILITY.STANDARD];
-  const devToBill = Math.max(devHours - freeDevHours, 0);
+
+  const {cost, formula} = projects.reduce((acc, project) => ({ 
+    cost:  acc.cost + Math.max((project.devHours - (project.prodHours * 2)) * devSitePerHour, 0), 
+    formula: acc.formula + `Math.max((Total Dev Environment Hours: ${project.devHours} - (Total Prod Environment Hours: ${project.prodHours} * 2)) * Dev Cost Per Hour: ${devSitePerHour}, 0)`}), 
+    { cost: 0, formula: ''});
+
   return {
-    cost: Number((devToBill * devSitePerHour).toFixed(2)),
-    formula: `${devToBill} X ${devSitePerHour} ( Max(Total Project Dev Hours - Free Hours Per Month ${freeDevHours}, 0) X Dev Cost Per Hour))`
+    cost: Number(cost.toFixed(2)),
+    formula
   };
 };
 

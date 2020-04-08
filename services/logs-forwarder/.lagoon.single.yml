@@ -139,19 +139,25 @@ objects:
   data:
     FLUENT_CONF: |-
       <system>
-        log_level warn
+        log_level info
+        workers 4
       </system>
 
       <source>
-        @type secure_forward
+        @type forward
+        @id forward_in
         @label @LOGS
-        self_hostname "#{ENV['HOSTNAME']}"
-        secure true
+        tag forward
         port 24284
-        shared_key "#{ENV['LOGS_FORWARDER_SHARED_KEY']}"
-        ca_cert_path /fluentd/ssl/ca_cert.pem
-        ca_private_key_path /fluentd/ssl/ca_key.pem
-        ca_private_key_passphrase "#{ENV['LOGS_FORWARDER_PRIVATE_KEY_PASSPHRASE']}"
+        <security>
+          self_hostname "#{ENV['HOSTNAME']}"
+          shared_key "#{ENV['LOGS_FORWARDER_SHARED_KEY']}"
+        </security>
+        <transport tls>
+          ca_cert_path /fluentd/ssl/ca_cert.pem
+          ca_private_key_path /fluentd/ssl/ca_key.pem
+          ca_private_key_passphrase "#{ENV['LOGS_FORWARDER_PRIVATE_KEY_PASSPHRASE']}"
+        </transport>
       </source>
 
       <source>
@@ -206,7 +212,7 @@ objects:
         <filter **>
           @type record_modifier
           <record>
-            index_name container-logs-${record['namespace_name']}-${Time.at(time).strftime("%Y.%m")}
+            index_name container-logs-${record['namespace_name'] || 'noproject'}-${Time.at(time).strftime("%Y.%m")}
           </record>
         </filter>
 
@@ -229,32 +235,29 @@ objects:
       <label @LAGOON_ELASTICSEARCH>
         <match **>
           @type elasticsearch
+          @id out_elasticsearch
           #with_transporter_log true
           #@log_level debug
-          host logs-db-service
-          port 9200
+          host "#{ENV['ELASTICSEARCH_HOST']}"
+          port "#{ENV['ELASTICSEARCH_HOST_PORT']}"
+          scheme "#{ENV.fetch('ELASTICSEARCH_SCHEME','http')}"
           templates { "container-logs": "/fluentd/etc/container-logs.json"}
           template_overwrite true
           target_index_key index_name
-          index_name container-logs-noproject-%Y.%m
           reconnect_on_error true
           reload_on_failure true
           ssl_version TLSv1_2
-          request_timeout 60s
-          slow_flush_log_threshold 90s
-          <buffer tag,time>
+          request_timeout 600s
+          slow_flush_log_threshold 300s
+          <buffer>
             @type file
-            path /fluentd/buffer/elasticsarch
-            timekey 3600
-            timekey_wait 0s
-            flush_mode interval
-            flush_interval 10s
-            chunk_limit_size 16MB
-            total_limit_size 15GB
-            flush_thread_count 8
-            overflow_action block
-            retry_type periodic
-            retry_wait 10s
+            path /fluentd/buffer/elasticsearch
+            # buffer params (per worker)
+            chunk_limit_size 32MB
+            total_limit_size 5GB
+            # flush params
+            flush_thread_count 2
+            overflow_action drop_oldest_chunk
           </buffer>
           id_key viaq_msg_id
           remove_keys viaq_msg_id
@@ -265,16 +268,19 @@ objects:
       </label>
     LOGS_COPY_FORWARDER_EXTERNAL_FLUENTD: |-
       <store>
-        @type secure_forward
-        self_hostname "#{ENV['HOSTNAME']}"
-        secure true
-        shared_key "#{ENV['FLUENTD_FORWARD_EXTERNAL_SHARED_KEY']}"
-        ca_cert_path "/fluentd/ssl/ca_cert.pem"
+        @type forward
+        @id forward_out
+        transport tls
+        tls_cert_path "/fluentd/ssl/ca_cert.pem"
+        tls_verify_hostname false
+        <security>
+          self_hostname "#{ENV['HOSTNAME']}"
+          shared_key "#{ENV['FLUENTD_FORWARD_EXTERNAL_SHARED_KEY']}"
+        </security>
         <server>
           host "#{ENV['FLUENTD_FORWARD_EXTERNAL_HOST']}"
           port "#{ENV['FLUENTD_FORWARD_EXTERNAL_PORT']}"
         </server>
-
         <buffer>
           @type file
           path /fluentd/buffer/external-fluentd
