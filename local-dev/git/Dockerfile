@@ -1,4 +1,5 @@
-FROM alpine:3.11
+ARG ALPINE_VERSION
+FROM alpine:${ALPINE_VERSION}
 
 RUN apk add --no-cache \
       bash \
