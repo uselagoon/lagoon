@@ -116,8 +116,14 @@ function genBuildRules(fullTarget, dockerfile) {
 			tag = "python:" versions[i] type
 			appendToLists(rule, class, tag)
 			# append the recipe to the rules
-			rules = rules rule "\n\t$(call docker_build_version_cmd,python," \
-						versions[i] "," versions[i] type "," dockerfile "," context")\n";
+			if (versions[i] ~ /2.7/) {
+				rules = rules rule "\n\t$(call docker_build_version_cmd,python," \
+							versions[i] "," versions[i] type "," dockerfile "," \
+							context",3.10)\n";
+			} else {
+				rules = rules rule "\n\t$(call docker_build_version_cmd,python," \
+							versions[i] "," versions[i] type "," dockerfile "," context")\n";
+			}
 		}
 	} else if (fullTarget ~ /^build\\:solr/) {
 		# extract the image type

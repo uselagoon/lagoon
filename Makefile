@@ -578,7 +578,8 @@ docker_build_cmd = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSIO
 # $3: image tag
 # $4: Dockerfile path
 # $5: docker build context directory
-docker_build_version_cmd = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg ALPINE_VERSION=$(DEFAULT_ALPINE_VERSION) --build-arg BASE_VERSION=$(2) -t $(CI_BUILD_TAG)/$(1):$(3) -f $(4) $(5)
+# $6: optional ALPINE_VERSION. defaults to DEFAULT_ALPINE_VERSION.
+docker_build_version_cmd = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg ALPINE_VERSION=$(or $(6),$(DEFAULT_ALPINE_VERSION)) --build-arg BASE_VERSION=$(2) -t $(CI_BUILD_TAG)/$(1):$(3) -f $(4) $(5)
 
 # Tag an image with the `amazeeio` repository and push it.
 # $1: source image name:tag
