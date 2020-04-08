@@ -573,6 +573,10 @@ services:
       - SCANNER_STORE_REDIS_URL=redis://harbor-redis:6379/4
       - SCANNER_LOG_LEVEL=error
     restart: on-failure
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
     labels:
       lagoon.type: custom
       lagoon.template: services/harborclair/harborclair.yml
