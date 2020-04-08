@@ -61,7 +61,7 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
       if (err.statusCode == 404) {
         logger.error(`Unable to get the harbor project id of "${lagoonProjectName}", as it does not exist in harbor!`)
       } else {
-        logger.error(`Unable to get the harbor project id of "${lagoonProjectName}" !!`)
+        logger.error(`Unable to get the harbor project id of "${lagoonProjectName}", error: ${err}`)
       }
     }
     logger.debug(`Harbor project id for ${lagoonProjectName}: ${harborProjectID}`)
@@ -87,7 +87,7 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
       if (err.statusCode == 409) {
         logger.warn(`Unable to create a robot account for harbor project "${lagoonProjectName}", as a robot account of the same name already exists!`)
       } else {
-        logger.warn(`Unable to create a robot account for harbor project "${lagoonProjectName}" !!`)
+        logger.error(`Unable to create a robot account for harbor project "${lagoonProjectName}", error: ${err}`)
       }
     }
 
@@ -155,17 +155,20 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
   deleteProject: async (lagoonProjectName) => {
     // Delete harbor project
 
-    // Get new harbor project's id
+    // Get existing harbor project's id
     try {
       const res = await harborClient.get(`projects?name=${lagoonProjectName}`)
       var harborProjectID = res.body[0].project_id
       logger.debug(`Got the harbor project id for project ${lagoonProjectName} successfully!`)
     } catch (err) {
       if (err.statusCode == 404) {
+        // This case could come to pass if a project was created
+        // before we began using Harbor as our container registry
         logger.warn(`Unable to get the harbor project id of "${lagoonProjectName}", as it does not exist in harbor!`)
         return
       } else {
         logger.error(`Unable to get the harbor project id of "${lagoonProjectName}", error: ${err}`)
+        return
       }
     }
     logger.debug(`Harbor project id for ${lagoonProjectName}: ${harborProjectID}`)
@@ -200,7 +203,7 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
       // 400 means the project id is invalid
       // 404 means project doesn't exist
       // 412 means project still contains repositories
-      logger.info(`Unable to delete the harbor project "${lagoonProjectName}", error: ${err}`)
+      logger.error(`Unable to delete the harbor project "${lagoonProjectName}", error: ${err}`)
     }
   }
 })
