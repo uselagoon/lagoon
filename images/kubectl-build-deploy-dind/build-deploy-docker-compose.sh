@@ -100,7 +100,7 @@ do
       SERVICE_TYPE="mariadb-single"
     # heck if this cluster supports the default one, if not we assume that this cluster is not capable of shared mariadbs and we use a mariadb-single
     # real basic check to see if the mariadbconsumer exists as a kind
-    elif kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get mariadbconsumer.v1.mariadb.amazee.io &> /dev/null; then
+    elif [[ "${CAPABILITIES[@]}" =~ "mariadb.amazee.io/v1/MariaDBConsumer" ]]; then
       SERVICE_TYPE="mariadb-dbaas"
     else
       SERVICE_TYPE="mariadb-single"
@@ -550,7 +550,7 @@ else
 fi
 
 # If k8up is supported by this cluster we create the schedule definition
-if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get schedules.backup.appuio.ch &> /dev/null; then
+if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
 
   if ! kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get secret baas-repo-pw &> /dev/null; then
     # Create baas-repo-pw secret based on the project secret
