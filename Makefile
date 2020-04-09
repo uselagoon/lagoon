@@ -1023,6 +1023,13 @@ endif
 	local-dev/kubectl apply -f $$PWD/local-dev/k3d-storageclass-bulk.yaml; \
 	docker tag $(CI_BUILD_TAG)/docker-host localhost:5000/lagoon/docker-host; \
 	docker push localhost:5000/lagoon/docker-host; \
+	local-dev/kubectl create namespace k8up; \
+	local-dev/helm/helm repo add appuio https://charts.appuio.ch; \
+	local-dev/helm/helm upgrade --install -n k8up k8up appuio/k8up; \
+	local-dev/kubectl create namespace dbaas-operator; \
+	local-dev/helm/helm repo add dbaas-operator https://raw.githubusercontent.com/amazeeio/dbaas-operator/master/charts ; \
+	local-dev/helm/helm upgrade --install -n dbaas-operator dbaas-operator dbaas-operator/dbaas-operator ; \
+	local-dev/helm/helm upgrade --install -n dbaas-operator mariadbprovider dbaas-operator/mariadbprovider -f local-dev/helm-values-mariadbprovider.yml ; \
 	local-dev/kubectl create namespace lagoon; \
 	local-dev/helm/helm upgrade --install -n lagoon lagoon-remote ./charts/lagoon-remote --set dockerHost.image.name=172.17.0.1:5000/lagoon/docker-host --set dockerHost.registry=172.17.0.1:5000; \
 	local-dev/kubectl -n lagoon rollout status deployment docker-host -w;

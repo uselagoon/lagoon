@@ -63,6 +63,14 @@ declare -A MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT
 declare -A IMAGES_PULL
 declare -A IMAGES_BUILD
 declare -A IMAGE_HASHES
+
+
+HELM_ARGUMENTS=()
+. /kubectl-build-deploy/scripts/kubectl-get-cluster-capabilities.sh
+for CAPABILITIES in "${CAPABILITIES[@]}"; do
+  HELM_ARGUMENTS+=(-a "${CAPABILITIES}")
+done
+
 set -x
 
 for COMPOSE_SERVICE in "${COMPOSE_SERVICES[@]}"
@@ -419,7 +427,7 @@ do
   HELM_SERVICE_TEMPLATE="templates/service.yaml"
   if [ -f /kubectl-build-deploy/helmcharts/${SERVICE_TYPE}/$HELM_SERVICE_TEMPLATE ]; then
     cat /kubectl-build-deploy/values.yaml
-    helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -s $HELM_SERVICE_TEMPLATE -f /kubectl-build-deploy/values.yaml | outputToYaml
+    helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -s $HELM_SERVICE_TEMPLATE -f /kubectl-build-deploy/values.yaml "${HELM_ARGUMENTS[@]}" | outputToYaml
   fi
 
   HELM_INGRESS_TEMPLATE="templates/ingress.yaml"
@@ -430,7 +438,7 @@ do
       MAIN_GENERATED_ROUTE=$SERVICE_NAME
     fi
 
-    helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -s $HELM_INGRESS_TEMPLATE -f /kubectl-build-deploy/values.yaml | outputToYaml
+    helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -s $HELM_INGRESS_TEMPLATE -f /kubectl-build-deploy/values.yaml "${HELM_ARGUMENTS[@]}" | outputToYaml
   fi
 
   HELM_DBAAS_TEMPLATE="templates/dbaas.yaml"
@@ -439,7 +447,7 @@ do
     # Load the requested class and plan for this service
     DBAAS_ENVIRONMENT="${MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]}"
     yq write -i /kubectl-build-deploy/${SERVICE_NAME}-values.yaml 'environment' $DBAAS_ENVIRONMENT
-    helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -s $HELM_DBAAS_TEMPLATE -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${SERVICE_NAME}-values.yaml | outputToYaml
+    helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -s $HELM_DBAAS_TEMPLATE -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${SERVICE_NAME}-values.yaml "${HELM_ARGUMENTS[@]}"  | outputToYaml
     DBAAS+=("${SERVICE_NAME}:${SERVICE_TYPE}")
   fi
 
@@ -489,7 +497,7 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
         --set tls_acme="${ROUTE_TLS_ACME}" \
         --set insecure="${ROUTE_INSECURE}" \
         --set hsts="${ROUTE_HSTS}" \
-        -f /kubectl-build-deploy/values.yaml | outputToYaml
+        -f /kubectl-build-deploy/values.yaml "${HELM_ARGUMENTS[@]}" | outputToYaml
 
       let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
     done
@@ -532,7 +540,7 @@ else
         --set tls_acme="${ROUTE_TLS_ACME}" \
         --set insecure="${ROUTE_INSECURE}" \
         --set hsts="${ROUTE_HSTS}" \
-        -f /kubectl-build-deploy/values.yaml | outputToYaml
+        -f /kubectl-build-deploy/values.yaml "${HELM_ARGUMENTS[@]}" | outputToYaml
 
       let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
     done
@@ -570,7 +578,7 @@ if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get schedules.backup.appui
     -f /kubectl-build-deploy/values.yaml \
     --set backup.schedule="${BACKUP_SCHEDULE}" \
     --set check.schedule="${CHECK_SCHEDULE}" \
-    --set prune.schedule="${PRUNE_SCHEDULE}" | outputToYaml
+    --set prune.schedule="${PRUNE_SCHEDULE}" "${HELM_ARGUMENTS[@]}" | outputToYaml
 fi
 
 cat /kubectl-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml
