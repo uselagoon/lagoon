@@ -152,7 +152,6 @@ def cleanup() {
     sh "make down || true"
     sh "make kill"
     sh "make down"
-    sh "make clean"
   } catch (error) {
     echo "cleanup failed, ignoring this."
   }
