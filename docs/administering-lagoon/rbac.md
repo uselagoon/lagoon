@@ -142,6 +142,8 @@ Here is a table that lists the roles and the access they have:
 | taskDrushCacheClear | task | drushCacheClear:production | projectID | Yes | Yes | Yes | Yes | Yes | Yes | Yes |  |
 | taskDrushCron | task | drushCron:development | projectID | Yes | Yes | Yes | Yes | Yes | Yes | Yes |  |
 | taskDrushCron | task | drushCron:production | projectID | Yes | Yes | Yes | Yes | Yes | Yes | Yes |  |
+| taskDrushUserLogin | task | drushUserLogin:destination:production | EnvironmentID | Yes | Yes | Yes | Yes | No | No | No |  |
+| taskDrushUserLogin | task | drushUserLogin:destination:development | EnvironmentID | Yes | Yes | Yes | Yes | Yes | No | No |  |
 | taskDrushSqlSync | task | drushSqlSync:source:development | ProjectID | Yes | Yes | Yes | Yes | Yes | No | No |  |
 | taskDrushSqlSync | task | drushSqlSync:source:production | ProjectID | Yes | Yes | Yes | Yes | Yes | No | No |  |
 | taskDrushSqlSync | task | drushSqlSync:destination:production | ProjectID | Yes | Yes | Yes | Yes | No | No | No |  |
@@ -164,4 +166,3 @@ Here is a table that lists the roles and the access they have:
 | getProjectByEnvironmentId | project | viewPrivateKey | projectID | Yes | Yes | Yes | No | No | No | No |  |
 | getProjectByGitUrl | project | viewPrivateKey | projectID | Yes | Yes | Yes | No | No | No | No |  |
 | getProjectByName | project | viewPrivateKey | projectID | Yes | Yes | Yes | No | No | No | No |  |
-
