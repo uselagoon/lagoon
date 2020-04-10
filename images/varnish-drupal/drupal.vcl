@@ -151,7 +151,12 @@ sub vcl_recv {
      return (pipe);
   }
 
-  # We only try to cache  GET and HEAD, other things are passed
+  # Large binary files are passed.
+  if (req.url ~ "\.(msi|exe|dmg|zip|tgz|gz|pkg)") {
+    return(pass);
+  }
+
+  # We only try to cache  GET and HEAD, other things are passed.
   if (req.method != "GET" && req.method != "HEAD") {
     return (pass);
   }

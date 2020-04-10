@@ -43,6 +43,10 @@ sub vcl_recv {
     return (synth(200,"OK"));
   }
 
+  # Large binary files are passed.
+  if (req.url ~ "\.(msi|exe|dmg|zip|tgz|gz|pkg)") {
+    return(pass);
+  }
 }
 
 sub vcl_backend_response {
