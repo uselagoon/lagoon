@@ -315,7 +315,6 @@ sub vcl_backend_response {
 
   # Don't allow static files to set cookies.
   if (bereq.url ~ "(?i)\.(css|js|jpg|jpeg|gif|ico|png|tiff|tif|img|tga|wmf|swf|html|htm|woff|woff2|mp4|ttf|eot|svg)(\?.*)?$") {
-    # beresp == Back-end response from the web server.
     unset beresp.http.set-cookie;
     unset beresp.http.Cache-Control;
 
@@ -328,6 +327,13 @@ sub vcl_backend_response {
     set beresp.ttl = ${VARNISH_ASSETS_TTL:-2628001}s;
     set beresp.http.Cache-Control = "public, max-age=${VARNISH_ASSETS_TTL:-2628001}";
     set beresp.http.Expires = "" + (now + beresp.ttl);
+  }
+
+  # Files larger than 10 MB get streamed.
+  if (beresp.http.Content-Length ~ "[0-9]{8,}") {
+    set beresp.do_stream = true;
+    set beresp.uncacheable = true;
+    set beresp.ttl = 0s;
   }
 
   # Disable buffering only for BigPipe responses
