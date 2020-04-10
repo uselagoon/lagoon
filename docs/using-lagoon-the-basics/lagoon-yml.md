@@ -323,7 +323,7 @@ additional-yaml:
 Each definition is keyed by a unique name \(`secrets` and `logs-db-secrets` in the example above\), and takes these keys:
 
 * `path` - the path to the YAML file.
-* `command` - can either be `create` or `apply`, depending on if you want to run `kubectl create -f [yamlfile]` or `kubectl apply -f [yamlfile].`
+* `command` - can either be `create` or `apply`, depending on whether you want to run `kubectl create -f [yamlfile]` or `kubectl apply -f [yamlfile].`
 * `ignore_error` - either `true` or `false` \(default\).  This allows you to instruct the Lagoon build script to ignore any errors that might be returned during running the command. \(This can be useful to handle the case where you want to run `create` during every build, so that new configurations are created, but don't fail if they already exist\).
 
 #### `container-registries`

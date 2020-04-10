@@ -67,7 +67,7 @@ tasks:
 
 ## Promotion
 
-Another way of deploying your code into an environment is the promotion workflow. 
+Another way of deploying your code into an environment is the **promotion** workflow. 
 
 The idea behind the promotion workflow comes from this \(as an example\): 
 
@@ -79,7 +79,7 @@ In our example, we want to promote the Docker images from the `master` environme
 
 * First, we need a regular deployed environment with the name `master`. Make sure that the deployment successfully.
 * Also, make sure that you don't have a branch called `production` in your Git repository. This could lead to weird confusions \(like people pushing into this branch, etc.\).
-* Now trigger a promotion deployment via this curl request:
+* Now trigger a promotion deployment via this `curl` request:
 
 ```bash
   curl -X POST \

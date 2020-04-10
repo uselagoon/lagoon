@@ -70,8 +70,6 @@ ARG MYVARIABLENAME
 
 This defines a project-wide build-time variable \(available in all environments\) for the project with id `463`:
 
-{% tabs %}
-{% tab title="dockerfile" %}
 ```graphql
 mutation addBuildtimeEnv {
   addEnvVariable(
@@ -86,13 +84,9 @@ mutation addBuildtimeEnv {
   }
 }
 ```
-{% endtab %}
-{% endtabs %}
 
 This defines a environment id `546` specific build-time variable \(available only in that specific environment\):
 
-{% tabs %}
-{% tab title="dockerfile" %}
 ```graphql
 mutation addBuildtimeEnv {
   addEnvVariable(input:{type:ENVIRONMENT, typeId:546, scope:BUILD, name:"MYVARIABLENAME", value:"MyVariableValue"}) {
@@ -100,10 +94,6 @@ mutation addBuildtimeEnv {
   }
 }
 ```
-{% endtab %}
-{% endtabs %}
-
-### Container Registry Environment Variables \(Lagoon API\)
 
 Container registry environment variables are only available during a build and are used when attempting to log in to a private registry. They are used to store the password for the user defined in [Specials » `container-registries`](../using-lagoon-the-basics/lagoon-yml.md#specials). They can be applied at the project or environment level.
 
@@ -148,7 +138,7 @@ If you have environment variables that can safely be saved within a Git reposito
 The syntax in the environment files is as following:
 
 {% tabs %}
-{% tab title="Environment File" %}
+{% tab title="myenvironment.env" %}
 ```bash
 MYVARIABLENAME="MyVariableValue"
 MVARIABLENUMBER=4242

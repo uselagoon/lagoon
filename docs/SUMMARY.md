@@ -51,16 +51,16 @@
 * [OpenShift Requirements](administering-lagoon/openshift_requirements.md)
 * [GraphQL API](administering-lagoon/graphql-queries.md)
 * [Role-Based Access Control \(RBAC\)](administering-lagoon/rbac.md)
-* [Harbor](administering-lagoon/harbor/using_harbor.md)
-  * [Security Scanning](administering-lagoon/harbor/security_scanning.md)
-  * Harbor Settings
-    * [harborclair](administering-lagoon/harbor/harbor-container-settings/harborclair.md)
-    * [harborclairadapter](administering-lagoon//harbor/harbor-container-settings/harborclairadapter.md)
-    * [harborregistry](administering-lagoon/harbor/harbor-container-settings/harborregistry.md)
-    * [harborregistryctl](administering-lagoon/harbor/harbor-container-settings/harborregistryctl.md)
-    * [harbor-core](administering-lagoon/harbor/harbor-container-settings/harbor-core.md)
-    * [harbor-database](administering-lagoon/harbor/harbor-container-settings/harbor-database.md)
-    * [harbor-jobservice](administering-lagoon/harbor/harbor-container-settings/harbor-jobservice.md)
+* [Harbor](administering-lagoon/using_harbor/README.md)
+  * [Security Scanning](administering-lagoon/using_harbor/security_scanning.md)
+  * [Harbor Settings](administering-lagoon/using_harbor/harbor-settings/README.md)
+    * [harborclair](administering-lagoon/using_harbor/harbor-settings/harborclair.md)
+    * [harborclairadapter](administering-lagoon/using_harbor/harbor-settings/harborclairadapter.md)
+    * [harborregistry](administering-lagoon/using_harbor/harbor-settings/harborregistry.md)
+    * [harborregistryctl](administering-lagoon/using_harbor/harbor-settings/harborregistryctl.md)
+    * [harbor-core](administering-lagoon/using_harbor/harbor-settings/harbor-core.md)
+    * [harbor-database](administering-lagoon/using_harbor/harbor-settings/harbor-database.md)
+    * [harbor-jobservice](administering-lagoon/using_harbor/harbor-settings/harbor-jobservice.md)
 
 ## Docker Images
 
