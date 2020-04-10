@@ -21,6 +21,7 @@
 * [Environment Variables](using-lagoon-advanced/environment-variables.md)
 * [Base Images](using-lagoon-advanced/base-images.md)
 * [Workflows](using-lagoon-advanced/workflows.md)
+* [Active/Standby](using-lagoon-advanced/active_standby.md)
 * [Backups](using-lagoon-advanced/backups.md)
 * [Remote Shell](using-lagoon-advanced/remote-shell.md)
 * [GraphQL](using-lagoon-advanced/graphql.md)
@@ -50,6 +51,16 @@
 * [OpenShift Requirements](administering-lagoon/openshift_requirements.md)
 * [GraphQL API](administering-lagoon/graphql-queries.md)
 * [Role-Based Access Control \(RBAC\)](administering-lagoon/rbac.md)
+  * [Harbor](administering-lagoon/harbor/using_harbor.md)
+  * [Security Scanning](administering-lagoon/harbor/security_scanning.md)
+  * Harbor Settings
+    * [harborclair](administering-lagoon/harbor/harbor-container-settings/harborclair.md)
+    * [harborclairadapter](administering-lagoon//harbor/harbor-container-settings/harborclairadapter.md)
+    * [harborregistry](administering-lagoon/harbor/harbor-container-settings/harborregistry.md)
+    * [harborregistryctl](administering-lagoon/harbor/harbor-container-settings/harborregistryctl.md)
+    * [harbor-core](administering-lagoon/harbor/harbor-container-settings/harbor-core.md)
+    * [harbor-database](administering-lagoon/harbor/harbor-container-settings/harbor-database.md)
+    * [harbor-jobservice](administering-lagoon/harbor/harbor-container-settings/harbor-jobservice.md)
 
 ## Docker Images
 
