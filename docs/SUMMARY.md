@@ -26,7 +26,7 @@
 * [Remote Shell](using-lagoon-advanced/remote-shell.md)
 * [GraphQL](using-lagoon-advanced/graphql.md)
 * [Node.js Graceful Shutdown](using-lagoon-advanced/nodejs.md)
-* [Migrations from Amazee.io](using-lagoon-advanced/migration.md)
+* [Migrations from amazee.io](using-lagoon-advanced/migration.md)
 
 ## Drupal
 
@@ -54,13 +54,13 @@
 * [Harbor](administering-lagoon/using_harbor/README.md)
   * [Security Scanning](administering-lagoon/using_harbor/security_scanning.md)
   * [Harbor Settings](administering-lagoon/using_harbor/harbor-settings/README.md)
-    * [harborclair](administering-lagoon/using_harbor/harbor-settings/harborclair.md)
-    * [harborclairadapter](administering-lagoon/using_harbor/harbor-settings/harborclairadapter.md)
-    * [harborregistry](administering-lagoon/using_harbor/harbor-settings/harborregistry.md)
-    * [harborregistryctl](administering-lagoon/using_harbor/harbor-settings/harborregistryctl.md)
-    * [harbor-core](administering-lagoon/using_harbor/harbor-settings/harbor-core.md)
-    * [harbor-database](administering-lagoon/using_harbor/harbor-settings/harbor-database.md)
-    * [harbor-jobservice](administering-lagoon/using_harbor/harbor-settings/harbor-jobservice.md)
+    * [HarborClair](administering-lagoon/using_harbor/harbor-settings/harborclair.md)
+    * [HarborClairAdapter](administering-lagoon/using_harbor/harbor-settings/harborclairadapter.md)
+    * [HarborRegistry](administering-lagoon/using_harbor/harbor-settings/harborregistry.md)
+    * [HarborRegistryCtl](administering-lagoon/using_harbor/harbor-settings/harborregistryctl.md)
+    * [Harbor-Core](administering-lagoon/using_harbor/harbor-settings/harbor-core.md)
+    * [Harbor-Database](administering-lagoon/using_harbor/harbor-settings/harbor-database.md)
+    * [Harbor-Jobservice](administering-lagoon/using_harbor/harbor-settings/harbor-jobservice.md)
 
 ## Docker Images
 

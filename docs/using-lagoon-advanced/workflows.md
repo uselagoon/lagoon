@@ -30,13 +30,13 @@ Even more advanced are workflows via pull requests. Such workflows need the supp
 
 In our example we would configure Lagoon to deploy the branches `^(staging|master)$` and the pull requests to `.*` \(to deploy all pull requests\). Now our workflow would be:
 
-* Create a new branch from `master` called `feature/myfeature` and push `feature/myfeature` \(no deployment will happen now because we have only specific staging and master as our branches to be deployed\).
-* Create a pull request in your Git hosting from `feature/myfeature` into `master`.
-* Lagoon will now merge the `feature/myfeature` branch merged on top of the `master` branch and deploy that resulting code for you.
-* Now you can test the functionality of the `feature/myfeature` branch just as if it had been merged into `master`, so all changes that have happened in `master` since you created the  `feature/myfeature` branch from it will be there, and you don't need to worry that you might have an older version of the `master` branch.
-  * If there is a merge conflict, the build will fail, Lagoon will stop and notify you.
-* After you have tested your pull request branch, you can go back to your Git hosting and actually merge the code into `master`, this will now trigger a deployment of `master`.
-* With the merge of the pull request it is automatically closed and Lagoon will remove the environment for the pull request automatically.
+1. Create a new branch from `master` called `feature/myfeature` and push `feature/myfeature` \(no deployment will happen now because we have only specific staging and master as our branches to be deployed\).
+2. Create a pull request in your Git hosting from `feature/myfeature` into `master`.
+3. Lagoon will now merge the `feature/myfeature` branch on top of the `master` branch and deploy that resulting code for you.
+4. Now you can test the functionality of the `feature/myfeature` branch just as if it had been merged into `master`, so all changes that have happened in `master` since you created the  `feature/myfeature` branch from it will be there, and you don't need to worry that you might have an older version of the `master` branch.
+   1. If there is a merge conflict, the build will fail, Lagoon will stop and notify you.
+5. After you have tested your pull request branch, you can go back to your Git hosting and actually merge the code into `master`. This will now trigger a deployment of `master`.
+6. When the pull request is merged, it is automatically closed and Lagoon will remove the environment for the pull request automatically.
 
 Some teams might opt to create the pull request against a shared `staging` branch and then merge the `staging` branch into the `master` branch via another pull request. This depends on the kind of Git workflow you're using.
 
@@ -71,13 +71,13 @@ Another way of deploying your code into an environment is the **promotion** work
 
 The idea behind the promotion workflow comes from this \(as an example\): 
 
-Even if you merge the branch `staging` into the `master` branch, _and_ if there were no changes to `master` , so `master` and `staging` have the exact same code in Git, it could still technically be possible that the resulting Docker images are slightly different. This is because it's possible that between the last `staging` deployment and the current `master` deployment, some upstream Docker images may have changed, or dependencies loaded from the various package managers may have changed. This is a very small chance, but it's there.
+If you merge the branch `staging` into the `master` branch, _and_ if there are no changes to `master` , so `master` and `staging` have the exact same code in Git, it could still technically be possible that the resulting Docker images are slightly different. This is because it's possible that between the last `staging` deployment and the current `master` deployment, some upstream Docker images may have changed, or dependencies loaded from the various package managers may have changed. This is a very small chance, but it's there.
 
-For this situation, Lagoon understand the concept of promoting Lagoon images from one environment to another. This basically means that it will take the already built and deployed Docker images from one environment, and will use those exact same Docker images for another environment.
+For this situation, Lagoon understands the concept of promoting Lagoon images from one environment to another. This basically means that it will take the already built and deployed Docker images from one environment, and will use those exact same Docker images for another environment.
 
 In our example, we want to promote the Docker images from the `master` environment to the `production` environment:
 
-* First, we need a regular deployed environment with the name `master`. Make sure that the deployment successfully.
+* First, we need a regular deployed environment with the name `master`. Make sure that the environment has deployed successfully.
 * Also, make sure that you don't have a branch called `production` in your Git repository. This could lead to weird confusions \(like people pushing into this branch, etc.\).
 * Now trigger a promotion deployment via this `curl` request:
 
@@ -96,7 +96,7 @@ This tells Lagoon that you want to promote from the source `master` to the desti
 
 Lagoon will now do the following:
 
-* Checkout the Git branch `master` in order to load the `.lagoon.yml` and `docker-compose.yml` \(Lagoon still needs these in order to fully work\).
+* Checkout the Git branch `master` in order to load the `.lagoon.yml` and `docker-compose.yml` files \(Lagoon still needs these in order to fully work\).
 * Create all Kubernetes/OpenShift objects for the defined services in `docker-compose.yml` , but with `LAGOON_GIT_BRANCH=production` as environment variable.
 * Copy the newest Images from the `master` environment and use them \(instead of building Images or tagging them from upstream\).
 * Run all post-rollout tasks like a normal deployment.

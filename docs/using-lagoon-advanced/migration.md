@@ -1,10 +1,10 @@
-# Migrations from Amazee.io
+# Migrations from amazee.io
 
 If you are migrating from the amazee.io legacy infrastructure over to Lagoon, you will notice that everything is very familiar. In the end, the same brains are behind both projects. There are some changes, however, and this documentation will explain each of them. 
 
 ## Migration
 
-The migration itself will be done by the amazee.io team. We have fully automated migration scripts and will release them soon! Until then: lean back and let the amazee.io team do that work for you ☺.
+The migration itself will be done by the amazee.io team. We have fully-automated migration scripts and will release them soon! Until then: lean back and let the amazee.io team do that work for you ☺.
 
 ## Pygmy required for local development, migrate from cachalot.
 
@@ -34,14 +34,14 @@ Instead of an `.amazeeio.yml` file, Lagoon projects now are mostly configured vi
 * Custom routes.
 * and many more!
 
-See [.lagoon.yml ](../using-lagoon-the-basics/lagoon-yml.md)for more!
+See [`.lagoon.yml` ](../using-lagoon-the-basics/lagoon-yml.md)for more!
 
 ## Renaming of `before_deploy` and `after_deploy` - plus their location has moved
 
 Lagoon has a new definition of build and post-rollout tasks:
 
 * Build tasks are defined in Dockerfiles, and should be used for tasks that do not require connections to other services \(like databases\). They are the new `before_deploy` tasks. Build tasks will profit from well-written Dockerfiles and will be sped up by Docker layer caching.
-* Post-Rollout tasks are executed after the old running containers have been replaced by the new ones created by the deployment. They can be used for any tasks that need access to other services, like a cache clear of the CMS. These tasks are the old `after_deploy` tasks.
+* Post-rollout tasks are executed after the old running containers have been replaced by the new ones created by the deployment. They can be used for any tasks that need access to other services, like a cache clear of the CMS. These tasks are the old `after_deploy` tasks.
 * With the legacy hosting system, we had `development` and `production` tasks for `before_deploy` and `after_deploy`. We believe this was a mistake and caused some issues because we never really had the same system of development and production. With the new Lagoon system, it is technically still possible to have different build or post-rollout tasks based on the environment type \(aka `development` and `production`\) or the branch name, but we suggest keeping them the same as much as possible, as it can still cause weird situations where something might work on development but not on production.
 
 ## Drush is still the same
@@ -60,7 +60,9 @@ Lagoon is a fully open-source project and does not want too many ties to amazee.
 
 ## Non-predictable user ids
 
-Lagoon is based on OpenShift, which puts one thing at a very high priority: **Security**. Not only is each project completely encapsulated in its own virtual network, each container is also run with a random user id. This brings much higher security, as a possible attacker cannot know the ID of the user during a Docker build step.
+Lagoon is based on OpenShift, which puts one thing at a very high priority: **Security**. 
+
+Not only is each project completely encapsulated in its own virtual network, each container is also run with a random user id. This brings much higher security, as a possible attacker cannot know the ID of the user during a Docker build step.
 
 On the other side, this makes development a bit harder as we still want writable persistent storage, so OpenShift runs the container with a known group ID: 1 \(root\). This gives the container access to the files that have been written by previous containers, but doesn't actually give you root access inside the container.
 

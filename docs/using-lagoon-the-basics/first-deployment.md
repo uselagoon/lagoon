@@ -62,7 +62,7 @@ That's the beauty of Lagoon: it's exactly the same! Just push the branch name yo
 
 Did the deployment fail? Oh no! But we're here to help:
 
-1. If you deployed a Drupal site, make sure to read the [Drupal-specific first deployment documentation](https://github.com/AlannaBurke/lagoon/tree/9331f688073fb0d34541bf3fb5fe65d2a2c665aa/docs/using-lagoon/drupal/first-deployment-of-drupal.md), which explains why this happens.
+1. If you deployed a Drupal site, make sure to read the [Drupal-specific first deployment documentation](../drupal/first-deployment-of-drupal.md), which explains why this happens.
 2. Click on the `Logs` link in the error notification, it will tell you where in the deployment process the failure happened.
 3. If you can't figure it out, just ask your Lagoon support, we are here to help!
 4. Reach out to us in [Rocket Chat](https://amazeeio.rocket.chat/home).

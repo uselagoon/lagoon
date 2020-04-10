@@ -1,4 +1,4 @@
-# harbor-jobservice
+# Harbor-Jobservice
 
 Harbor-Jobservice requires a configuration file to start, which is located at `/etc/jobservice/config.yml` within the container. Any changes made to this config file are temporary and will not persist once the pod is restarted.
 
@@ -6,40 +6,40 @@ The configmap from which this config file is generated is stored within Lagoon i
 
 ## Config File Contents
 
-* `CORE_URL`
-  * This value tells harbor-jobservice where harbor-core can be reached.
+* **`CORE_URL`**
+  * This value tells `harbor-jobservice` where `harbor-core` can be reached.
   * The default value is `http://harbor-core:8080`.
-* `CORE_SECRET`
-  * This value is a pre-shared key that must match between the various services connecting to harbor-core.
+* **`CORE_SECRET`**
+  * This value is a pre-shared key that must match between the various services connecting to `harbor-core`.
   * The default value is set to `secret123` when Harbor is run locally or during CI testing.
   * This value is retrieved from a secret created when Harbor is first set up on a running Lagoon.
-* `HTTP_PROXY`
+* **`HTTP_PROXY`**
   * The default value is an empty string.
-* `HTTPS_PROXY`
+* **`HTTPS_PROXY`**
   * The default value is an empty string.
-* `JOBSERVICE_SECRET`
-  * This value is a pre-shared key that must match between the various services connecting to harbor-jobservice.
+* **`JOBSERVICE_SECRET`**
+  * This value is a pre-shared key that must match between the various services connecting to `harbor-jobservice`.
   * The default value is set to `secret123` when Harbor is run locally or during CI testing.
   * This value is retrieved from a secret created when Harbor is first set up on a running Lagoon.
-* `LOG_LEVEL`
+* **`LOG_LEVEL`**
   * The logging level this service should use.
   * The default value is `error`.
     * This can also be set to `debug` to enable very verbose logging.
-* `NO_PROXY`
+* **`NO_PROXY`**
   * A list of hosts which should never have their requests proxied.
-  * The default is `harbor-core,harbor-jobservice,harbor-database,harborclair,harborclairadapter,harborregistry,harbor-portal,127.0.0.1,localhost,.local,.internal`.
-* `REGISTRY_CONTROLLER_URL`
-  * This value tells the service where to connect to the harborregistryctl service.
+  * The default is `harbor-core,harbor-jobservice,harbor-database,harborclair,harborclairadapter,harborregistry,harbor-portal,127.0.0.1,localhost,.local,.internal`
+* **`REGISTRY_CONTROLLER_URL`**
+  * This value tells the service where to connect to the `harborregistryctl` service.
   * The default value is set to `http://harborregistryctl:8080`
-* `SCANNER_CLAIR_DATABASE_URL`
-  * This value tells harborclair how to connect to its postgres database.
+* **`SCANNER_CLAIR_DATABASE_URL`**
+  * This value tells `harborclair` how to connect to its Postgres database.
   * The default value is `postgres://postgres:test123@harbor-database:5432/postgres?sslmode=disable` when Harbor is run locally or during CI testing.
-  * This value is retrieved from a secret created when Harbor is first set up on a running Lagoon, as the postgres password needs to be injected here.
-* `SCANNER_LOG_LEVEL`
+  * This value is retrieved from a secret created when Harbor is first set up on a running Lagoon, as the Postgres password needs to be injected here.
+* **`SCANNER_LOG_LEVEL`**
   * The logging level the scanning service should use.
   * The default value is `error`.
     * This can also be set to `debug` to enable very verbose logging.
-* `SCANNER_STORE_REDIS_URL`
-  * This value tells harborclair how to connect to its Redis store.
+* **`SCANNER_STORE_REDIS_URL`**
+  * This value tells `harborclair` how to connect to its Redis store.
   * The default value is `redis://harbor-redis:6379/4`.
 

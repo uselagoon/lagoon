@@ -1,6 +1,6 @@
 # Tests
 
-All of our test are written with [Ansible](https://docs.ansible.com/ansible/latest/index.html) and mostly follow this approach:
+All of our tests are written with [Ansible](https://docs.ansible.com/ansible/latest/index.html) and mostly follow this approach:
 
 1. They create a new Git repository.
 2. Add and commit some files from a list of files \(in `tests/files`\) into this Git repository.

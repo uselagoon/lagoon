@@ -9,7 +9,7 @@ We recommend using [Redis](https://redis.io/) for internal caching. Add the Redi
     image: amazeeio/redis
     labels:
       lagoon.type: redis
-    << : *default-user # uses the defined user from top
+    << : *default-user # Uses the defined user from top.
     environment:
       << : *default-environment
 ```

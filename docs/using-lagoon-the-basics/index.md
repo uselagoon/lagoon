@@ -42,14 +42,14 @@ This file is used by `Docker Compose` to start your local development environmen
 Some Docker images and containers need additional customizations from the provided images. This usually has two reasons:
 
 1. **Application code**: Containers like Nginx, PHP, Node.js, etc., need the actual programming code within their images. This is done during a Docker build step, which is configured in a Dockerfile. Lagoon has full support for Docker, and therefore also allows you full control over the resulting images via Dockerfile customizations.
-2. **Customization of Images**: Lagoon also allows you to customize the base images according to your needs. This can be to inject an additional environment variable, change a service configuration, or even install additional tools. We advise caution with installing additional tools to the Docker images, as you will need to maintain any adaptions in the future!
+2. **Customization of images**: Lagoon also allows you to customize the base images according to your needs. This can be to inject an additional environment variable, change a service configuration, or even install additional tools. We advise caution with installing additional tools to the Docker images, as you will need to maintain any adaptions in the future!
 
 ## Supported Services & Base Images by Lagoon
 
 | Type | Versions | Dockerfile |
 | :--- | :--- | :--- |
-| [Elasticsearch](https://github.com/AlannaBurke/lagoon/tree/6c60efce4fc48ebd7d5858cedaafb6ed86b704ee/docs/docker_images/elasticsearch.md) | 6.8.2, 7.1.1, 7.3.0 | [elasticsearch/Dockerfiles](https://github.com/amazeeio/lagoon/tree/master/images/elasticsearch) |
-| [MariadB-Drupal](https://github.com/AlannaBurke/lagoon/tree/6c60efce4fc48ebd7d5858cedaafb6ed86b704ee/docs/docker_images/mariadb-drupal.md) | 10 | [mariadb-drupal/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/mariadb-drupal/Dockerfile) |
+| [Elasticsearch](../docker-images/elasticsearch.md) | 6.8.2, 7.1.1, 7.3.0 | [elasticsearch/Dockerfiles](https://github.com/amazeeio/lagoon/tree/master/images/elasticsearch) |
+| [MariaDB-Drupal](../docker-images/mariadb/mariadb-drupal.md) | 10 | [mariadb-drupal/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/mariadb-drupal/Dockerfile) |
 | [MariaDB](../docker-images/mariadb/) | 10 | [mariadb/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/mariadb/Dockerfile) |
 | [MongoDB](../docker-images/mongodb.md) | 3.6 | [mongo/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/mongo/Dockerfile) |
 | [Nginx](../docker-images/nginx/) | openresty/1.15.8.2 | [nginx/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/nginx/Dockerfile) |
@@ -59,7 +59,7 @@ Some Docker images and containers need additional customizations from the provid
 | [php-fpm](../docker-images/php-fpm.md) | 7.2, 7.3 | [php/fpm/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/php/fpm/Dockerfile) |
 | [Postgres](../docker-images/postgres.md) | 11.x | [postgres/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/postgres/Dockerfile) |
 | [RabbitMQ](../docker-images/rabbitmq.md) |  |  |
-| [Redis-persistent](https://github.com/AlannaBurke/lagoon/tree/6c60efce4fc48ebd7d5858cedaafb6ed86b704ee/docs/docker_images/redis-permanent.md) | 5.0.0 | [redis-persistent/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/redis-persistent/Dockerfile) |
+| [Redis-persistent](../docker-images/redis/redis-persistent.md) | 5.0.0 | [redis-persistent/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/redis-persistent/Dockerfile) |
 | [Redis](https://github.com/AlannaBurke/lagoon/tree/6c60efce4fc48ebd7d5858cedaafb6ed86b704ee/docs/docker_images/redis.md) | 5.0.0 | [redis/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/redis/Dockerfile) |
 | [Solr-Drupal](../docker-images/solr/solr-drupal.md) | 5.5, 6.6, 7.5 | [solr-drupal/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/solr-drupal/Dockerfile) |
 | [Solr](../docker-images/solr/) | 5.5, 6.6, 7.5 | [solr/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/solr/Dockerfile) |

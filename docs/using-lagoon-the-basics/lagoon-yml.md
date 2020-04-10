@@ -287,7 +287,7 @@ example-project-name:
 If you run directly on amazee.io you will not need this key set.
 {% endhint %}
 
-With the key `api` you can define another URL that should be used by `lagu` and `drush` to connect to the Lagoon GraphQL `api`. This needs to be a full URL with a scheme, like: `http://localhost:3000` This usually does not need to be changed, but there might be situations where your Lagoon administrator tells you to do so.
+With the key `api` you can define another URL that should be used by `lagu` and `drush` to connect to the Lagoon GraphQL API. This needs to be a full URL with a scheme, like: `http://localhost:3000` This usually does not need to be changed, but there might be situations where your Lagoon administrator tells you to do so.
 
 #### `ssh`
 
@@ -299,7 +299,7 @@ With the key `ssh` you can define another SSH endpoint that should be used by `l
 
 #### `additional-yaml`
 
-The `additional-yaml` has some super powers. Basically, it allows you to define any arbitrary YAML configuration file to be inserted before the build step \(it still needs to be valid Kubernetes/Openshift YAML , though☺\).
+The `additional-yaml` has some super powers. Basically, it allows you to define any arbitrary YAML configuration file to be inserted before the build step \(it still needs to be valid Kubernetes/OpenShift YAML , though☺\).
 
 Example:
 
@@ -323,7 +323,7 @@ additional-yaml:
 Each definition is keyed by a unique name \(`secrets` and `logs-db-secrets` in the example above\), and takes these keys:
 
 * `path` - the path to the YAML file.
-* `command` - can either be `create` or `apply`, depending on whether you want to run `kubectl create -f [yamlfile]` or `kubectl apply -f [yamlfile].`
+* `command` - can either be `create` or `apply`, depending on whether you want to run.`kubectl create -f [yamlfile]` or `kubectl apply -f [yamlfile]`.
 * `ignore_error` - either `true` or `false` \(default\).  This allows you to instruct the Lagoon build script to ignore any errors that might be returned during running the command. \(This can be useful to handle the case where you want to run `create` during every build, so that new configurations are created, but don't fail if they already exist\).
 
 #### `container-registries`

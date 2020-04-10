@@ -4,7 +4,7 @@ Node.js has integrated web server capabilities. Plus, with [Express](https://exp
 
 Unfortunately, Node.js does not handle shutting itself down very nicely out of the box. This causes many issues with containerized systems. The biggest issue is that when a Node.js container is told to shut down, it will immediately kill all active connections, and does not allow them to stop gracefully.
 
-This part explains how you can teach Node.js to behave like a real web server: Finishing active requests and then gracefully shutting down.
+This part explains how you can teach Node.js to behave like a real web server: finishing active requests and then gracefully shutting down.
 
 As an example we use a super simple Node.js server with Express:
 
@@ -12,7 +12,7 @@ As an example we use a super simple Node.js server with Express:
 const express = require('express');
 const app = express();
 
-// Adds a 5 sec delay for all requests
+// Adds a 5 sec delay for all requests.
 app.use((req, res, next) => setTimeout(next, 5000));
 
 app.get('/', function (req, res) {
@@ -57,13 +57,13 @@ If we were not running Node.js in a containerized environment, we would probably
 
 ## Part B: Yarn and NPM children spawning issues
 
-If we just implemented Part A, we would have a good experiece. In the real world, many Node.js systems are built with Yarn or NPM, which provide not only package management systems to Node.js, but also script management.
+If we just implemented Part A, we would have a good experience. In the real world, many Node.js systems are built with Yarn or NPM, which provide not only package management systems to Node.js, but also script management.
 
-With these script functionalities, we simplify the start of our application. We can see many `package.json` filsthat look like:
+With these script functionalities, we simplify the start of our application. We can see many `package.json` files that look like:
 
 {% tabs %}
 {% tab title="package.json" %}
-```text
+```javascript
 {
   "name": "node",
   "version": "1.0.0",
@@ -95,7 +95,7 @@ npm start
 This is nice and makes the life of developers easier. So we also end up using the same within Dockerfiles:
 
 {% tabs %}
-{% tab title="dockerfile" %}
+{% tab title=".dockerfile" %}
 ```text
 CMD ["yarn", "start"]
 ```

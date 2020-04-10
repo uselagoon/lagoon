@@ -54,7 +54,7 @@ As checking every page of your website might be a bit a tedious job, you can mak
 
 If you need non-www to www redirects, make sure you have them set up in the `redirects-map.conf` - [see Documentation](../docker-images/nginx/#redirects-map-conf).
 
-### Cron jobs.
+### Cron jobs
 
 Check if your cron jobs have been set up for your production environment - see [`.lagoon.yml`](lagoon-yml.md).
 

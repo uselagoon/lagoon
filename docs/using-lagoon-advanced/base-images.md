@@ -42,7 +42,7 @@ We only require this metapackage, which points to a GitHub repository.
 
 ### **`docker-compose.yml`**
 
-Other pieces of your project are defined in [`docker-compose.yml`](https://lagoon.readthedocs.io/en/latest/using_lagoon/docker-compose_yml/). For example, if you have a Drupal project, you need the Drupal image, but you also need MariaDB, Solr, Redis, and Varnish. We have versions of these services optimized for Drupal, all of which are included in `docker-compose.yml`.
+Other pieces of your project are defined in [`docker-compose.yml`](../using-lagoon-the-basics/docker-compose-yml.md). For example, if you have a Drupal project, you need the Drupal image, but you also need MariaDB, Solr, Redis, and Varnish. We have versions of these services optimized for Drupal, all of which are included in `docker-compose.yml`.
 
 ### Drupal
 
@@ -89,7 +89,7 @@ If your project makes use of [queues](https://laravel.com/docs/5.8/queues), you 
 
 ## Understanding the process of building a base image
 
-There are several parts to the process of building a base image. All of the major steps are represented in the Makefile. The Jenkinsfile contains a more stripped-down view. Taking a look at both files will give you a good understanding of what happens during this process. Most steps can be tested locally \(this is important when building new versions of the base image\). After you’ve created and tested everything locally and pushed it up, the actual base image is built by [Jenkins](https://jenkins.io/) and pushed to [Harbor](https://goharbor.io/).
+There are several parts to the process of building a base image. All of the major steps are represented in the Makefile. The Jenkinsfile contains a more stripped-down view. Taking a look at both files will give you a good understanding of what happens during this process. Most steps can be tested locally \(this is important when building new versions of the base image\). After you’ve created and tested everything locally and pushed it up, the actual base image is built by [Jenkins](https://jenkins.io/) and pushed to [Harbor](../administering-lagoon/using_harbor/).
 
 ### Makefile and build assumptions
 
@@ -139,7 +139,7 @@ There are many reasons to release a new version of a base image. On Drupal or La
 The images that your project's base images are built on are the managed images maintained by Amazee IO. Amazee IO periodically releases updates to these underlying images. When these are updated, you need to build new versions of your own base images in order to incorporate the changes and upgrades bundled in the Amazee IO images.
 
 {% hint style="info" %}
-**Note**: if you are using Amazee IO's hosting service, your service agreement may dictate that Amazee IO updates your base images, or that you do - it can be done by either party.
+**Note**: if you are using amazee.io's hosting service, your service agreement may dictate that amazee.io updates your base images, or that you do - it can be done by either party.
 {% endhint %}
 
 In this section we will demonstrate the process of updating and tagging a new release of the Drupal 8 base image. We will add a new module \([ClamAV](https://www.drupal.org/project/clamav)\) to the base. We’re demonstrating on Drupal because it has the most complex setup of the base images. The steps that are common to every base image are noted below.
@@ -174,7 +174,7 @@ When the composer require process completes, the package should then appear in t
 
 Here we open the `composer.json` file and take a look at the list of required packages, and check that the ClamAV package is listed, and see that it is:
 
-![Opening composer.json to check that ClamAv is now required.](../.gitbook/assets/2.gif)
+![Opening composer.json to check that ClamAV is now required.](../.gitbook/assets/2.gif)
 
 #### Step 2.2 - Ensure that the required Drupal module is enabled in template-based derived images.
 
@@ -184,11 +184,11 @@ Here we open `web/modules/contrib/lagoon/lagoon_bundle/lagoon_bundle.info.yml` a
 
 ![Adding ClamAV as a dependency of Lagoon Bundle.](../.gitbook/assets/3.png)
 
-Adding a dependency to this will ensure that whenever the Lagoon Bundle module is enabled on the derived image, its dependencies \(in this case, the just-added clamAV module\) will also be enabled. This is enforced by a post-rollout script which enables `lagoon_bundle` on the derived images when they are rolled out.
+Adding a dependency to this will ensure that whenever the Lagoon Bundle module is enabled on the derived image, its dependencies \(in this case, the just-added ClamAV module\) will also be enabled. This is enforced by a post-rollout script which enables `lagoon_bundle` on the derived images when they are rolled out.
 
 #### Step 2.3 - Test
 
-This will depend on what you’re testing. In the case of adding the ClamAV module, we want to ensure that in the base image, the module is downloaded, and that the Lagoon Bundle module enables clamAV when it is enabled.
+This will depend on what you’re testing. In the case of adding the ClamAV module, we want to ensure that in the base image, the module is downloaded, and that the Lagoon Bundle module enables ClamAV when it is enabled.
 
 Here we check that the module is downloaded to `/app/web/modules/contrib`:
 

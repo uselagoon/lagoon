@@ -15,7 +15,9 @@ Lagoon currently works best with `pygmy` , which is the amazee.io flavored syste
 
 `pygmy` is a [Ruby](https://www.ruby-lang.org/en/) gem, so to install it, run: `gem install pygmy`.
 
-For detailed usage info on `pygmy`, see the [documentation of pygmy](https://pygmy.readthedocs.io/)
+For detailed usage info on `pygmy`, see the [documentation of pygmy](https://pygmy.readthedocs.io/).
 
-We are evaluating adding support for other systems like [Lando](https://lando.dev/), [Docksal](https://docksal.io/), [DDEV](https://www.ddev.com/ddev-local/), and [Docker4Drupal](https://wodby.com/docs/stacks/drupal/local/), and will possibly add full support for these in the future. If you do have Lagoon running with a system like these, we would love for you to submit a [PR on GitHub](https://github.com/amazeeio/pygmy)!
+[Lando integration with Lagoon is coming soon!](https://www.amazee.io/blog/post/announcing-lando-integration-for-lagoon)
+
+We are evaluating adding support for other systems like [Docksal](https://docksal.io/), [DDEV](https://www.ddev.com/ddev-local/), and [Docker4Drupal](https://wodby.com/docs/stacks/drupal/local/), and will possibly add full support for these in the future. If you do have Lagoon running with a system like these, we would love for you to submit a [PR on GitHub](https://github.com/amazeeio/pygmy)!
 

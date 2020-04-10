@@ -60,7 +60,7 @@ If all went well, you should see your first GraphQL response.
 
 ## Mutations
 
-The Lagoon GraphQL API cannot only display objects and create objects, but it also has the capability to update existing objects. All of this happens in full GraphQL best practices manner.
+The Lagoon GraphQL API can not only display objects and create objects, but it also has the capability to update existing objects. All of this happens in full GraphQL best practices manner.
 
 Update the branches to deploy within a project:
 
@@ -75,7 +75,7 @@ mutation editProjectBranches {
 Update the production environment within a project:
 
 {% hint style="info" %}
-Important: Needs a redeploy in order for all changes to be reflected in the containers.
+Important: This requires a redeploy in order for all changes to be reflected in the containers.
 {% endhint %}
 
 ```graphql

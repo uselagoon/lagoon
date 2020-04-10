@@ -6,7 +6,8 @@ Lagoon supports active/standby \(also known as blue/green\) deployments.
 
 To change an existing project to support active/standby you'll need to configure some project settings with the Lagoon API.
 
-`productionEnviromment` should be set to the branch name of the current active environment. `standbyProductionEnvironment` should be set to the branch name of the current environment that is in standby.
+* `productionEnviromment` should be set to the branch name of the current active environment. 
+* `standbyProductionEnvironment` should be set to the branch name of the current environment that is in standby.
 
 ```graphql
 mutation updateProject {
