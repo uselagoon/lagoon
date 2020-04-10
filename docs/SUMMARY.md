@@ -51,7 +51,7 @@
 * [OpenShift Requirements](administering-lagoon/openshift_requirements.md)
 * [GraphQL API](administering-lagoon/graphql-queries.md)
 * [Role-Based Access Control \(RBAC\)](administering-lagoon/rbac.md)
-  * [Harbor](administering-lagoon/harbor/using_harbor.md)
+* [Harbor](administering-lagoon/harbor/using_harbor.md)
   * [Security Scanning](administering-lagoon/harbor/security_scanning.md)
   * Harbor Settings
     * [harborclair](administering-lagoon/harbor/harbor-container-settings/harborclair.md)
