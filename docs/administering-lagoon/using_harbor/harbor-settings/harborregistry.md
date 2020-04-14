@@ -2,7 +2,9 @@
 
 HarborRegistry requires a configuration file to start, which is located at `/etc/registry/config.yml` within the container. Any changes made to this config file are temporary and will not persist once the pod is restarted.
 
-This config file is stored within the `services/harborregistry/harborregistry.yml` file and loaded into the container as `/etc/registry/pre-config.yml`. A custom container entrypoint, `services/harborregistry/entrypoint.sh`, then transposes provided environment variables into this config file and saves the results as `/etc/registry/config.yml`.
+This config file is stored within the `services/harborregistry/harborregistry.yml` file and loaded into the container as `/etc/registry/pre-config.yml`. 
+
+A custom container entrypoint, `services/harborregistry/entrypoint.sh`, then transposes provided environment variables into this config file and saves the results as `/etc/registry/config.yml`.
 
 ## Config File Contents
 

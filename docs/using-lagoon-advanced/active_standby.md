@@ -1,6 +1,8 @@
-# Active/Standby
+---
+description: Lagoon supports active/standby (also known as blue/green) deployments.
+---
 
-Lagoon supports active/standby \(also known as blue/green\) deployments.
+# Active/Standby
 
 ## Configuration
 

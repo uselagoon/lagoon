@@ -57,7 +57,7 @@ In order to use a local Lagoon to deploy itself on an OpenShift, we need a subse
 
    1. Build all required Lagoon service images \(this can take a while\).
    2. Start all required Lagoon services.
-   3. Wait 30 secs for all services to fully start.
+   3. Wait 30 seconds for all services to fully start.
    4. Trigger a deployment of the `lagoon` sitegroup that you edited, which will cause your local lagoon to connect to the defined OpenShift and trigger a new deployment.
    5. Show the logs of all local Lagoon services.
 

@@ -29,7 +29,7 @@ If all is correct, you will see a notification in your configured chat system \(
 
 ![Slack notification of a deployment starting.](../.gitbook/assets/first_deployment_slack_start.jpg)
 
-This tells you that Lagoon has just started to deploy your code. Depending on the size of the code and amount of containers, this will take a couple of seconds. Just relax. If you'd like to know what's happening now, check out the[ Build and Deploy Process of Lagoon](../using-lagoon-the-basics/build-and-deploy-process.md).
+This tells you that Lagoon has just started to deploy your code. Depending on the size of the codebase and amount of containers, this will take a couple of seconds. Just relax. If you'd like to know what's happening now, check out the[ Build and Deploy Process of Lagoon](../using-lagoon-the-basics/build-and-deploy-process.md).
 
 You can also check your Lagoon UI to see the progress of any deployment \(your Lagoon administrator has the info\).
 
@@ -39,7 +39,7 @@ Depending on the post-rollout tasks defined in `.lagoon.yml` , you might have ru
 
 ## 5. Synchronize local database to the remote Lagoon environment
 
-With full Drush site alias support in Lagoon, it is super easy to synchronize a local database with the remote Lagoon environment.
+With full Drush site alias support in Lagoon, you can synchronize a local database with the remote Lagoon environment.
 
 {% hint style="warning" %}
 You may have to tell pygmy about your public keys before the next step.
@@ -122,7 +122,7 @@ You will delete files in drupal-example-develop@ssh.lagoon.amazeeio.cloud:'/app/
 Do you really want to continue? (y/n):
 ```
 
-The reason for that is that the Drupal cannot resolve the path of the files directory. This most probably has to do that the Drupal is not fully configured or has a missing database. For an easy workaround you can use `drush rsync @self:sites/default/files @develop:sites/default/files` but we suggest that you actually check your local and remote Drupal \(you can test with `drush status` to see if the files directory is correctly configured\).
+The reason for that is that the Drupal cannot resolve the path of the files directory. This most probably has to do that the Drupal is not fully configured or has a missing database. For a workaround you can use `drush rsync @self:sites/default/files @develop:sites/default/files`, but we suggest that you actually check your local and remote Drupal \(you can test with `drush status` to see if the files directory is correctly configured\).
 
 ## 7. It's done!
 

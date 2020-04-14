@@ -4,11 +4,11 @@ Lagoon tries to support any development workflow possible. It specifically does 
 
 ## Fixed Branches
 
-The most obvious and easiest workflow are deployment-based on some fixed branches:
+The most straightforward workflows are deployment-based on some fixed branches:
 
 You define which branches \(like `develop`, `staging` and `master`, which would be `^(develop|staging|master)$` as regular expressions\) that Lagoon should deploy and it will do so. Done!
 
-If you would like to test a new feature, just merge them into a branch that you have set up locally and push, and Lagoon will deploy the feature and you can test. When all is good, merge the branch into your production branch and push.
+If you would like to test a new feature, merge them into a branch that you have set up locally and push, and Lagoon will deploy the feature and you can test. When all is good, merge the branch into your production branch and push.
 
 ## Feature Branches
 

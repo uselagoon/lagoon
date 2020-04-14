@@ -13,7 +13,7 @@ Please have the following information ready for your Lagoon administrator:
 * The name of the Git branch you would like to use for your production environment \(see [Environment Types](../using-lagoon-advanced/environment-types.md) for details about the environments\).
 * Which branches and pull requests you would like to deploy to your additional environments. With Lagoon, you can filter branches and pull requests by name with regular expressions, and your Lagoon administrator can get this set up for you.
 
-We suggest that you deploy specific important branches \(like `develop` and `master`\) and pull requests. But that's all up to you! \(see [Workflows](../using-lagoon-advanced/workflows.md) for some more information\)
+We suggest deploying specific important branches \(like `develop` and `master`\) and pull requests. But that's all up to you! \(see [Workflows](../using-lagoon-advanced/workflows.md) for some more information\)
 
 ## 1. Make sure your project is Lagoonized
 
@@ -31,9 +31,9 @@ Your Lagoon administrator will tell you the SSH public key or the Git account to
 
 Lagoon needs to be informed about a couple of events that are happening to your Git repository. Currently these are pushes and pull requests, but we may add more in the future.
 
-As Lagoon supports many different Git hosts, we have split off those instructions into this documentation: [Configure Webhooks](https://github.com/AlannaBurke/lagoon/tree/6c60efce4fc48ebd7d5858cedaafb6ed86b704ee/docs/using-lagoon-the-basics/configure_webhooks.md).
+As Lagoon supports many different Git hosts, we have split off those instructions into this documentation: [Configure Webhooks](configure-webhooks.md).
 
 ## 4. Next: First deployment
 
-Congratulations, you are now ready to run your [first deployment](https://github.com/AlannaBurke/lagoon/tree/6c60efce4fc48ebd7d5858cedaafb6ed86b704ee/docs/using-lagoon-the-basics/first_deployment.md).
+Congratulations, you are now ready to run your [first deployment](first-deployment.md).
 

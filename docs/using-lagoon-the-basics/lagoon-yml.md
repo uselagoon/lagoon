@@ -12,7 +12,7 @@ The `.lagoon.yml` file must be placed at the root of your Git repository.
 
 ## Example `.lagoon.yml`
 
-This is an example `.lagoon.yml` which showcases all settings that are possible. You will need to adapt it to your needs.
+This is an example `.lagoon.yml` which showcases all settings that are possible. You will need to adapt it to your project.
 
 {% tabs %}
 {% tab title=".lagoon.yml" %}
@@ -262,7 +262,7 @@ As most of the time it is not desirable to run the same cron jobs across all env
 
 ## Polysite
 
-In Lagoon, the same Git repository can be added to multiple projects, creating what is called a Polysite. This allows you to run the same codebase, but allow for different, isolated, databases and persistent files. In `.lagoon.yml` , we currently only support specifying custom routes for a polysite project. The key difference from a standard project is that the `environments` becomes the second-level element, and the project name the top level.
+In Lagoon, the same Git repository can be added to multiple projects, creating what is called a polysite. This allows you to run the same codebase, but allow for different, isolated, databases and persistent files. In `.lagoon.yml` , we currently only support specifying custom routes for a polysite project. The key difference from a standard project is that the `environments` becomes the second-level element, and the project name the top level.
 
 Example:
 

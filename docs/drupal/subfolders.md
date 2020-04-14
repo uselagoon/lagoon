@@ -1,6 +1,10 @@
-# Subfolders
+---
+description: >-
+  The customizability of Lagoon allows you to run Drupal within a subfolder of
+  another application.
+---
 
-The customizability of Lagoon allows you to run Drupal within a subfolder of another application.
+# Subfolders
 
 An example could be: `www.example.com` points to one Drupal site, while `www.example.com/blog` loads a blog built in another Drupal.
 
