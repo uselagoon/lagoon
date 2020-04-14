@@ -99,12 +99,25 @@ async function resticbackupSnapshotFinished(webhook: WebhookRequestData) {
       'YYYY-MM-DD HH:mm:ss'
     );
 
-    // Determine source from the snapshot path.
-    // 1: `/data/*` --> means this is a PVC we use whatever is after `/data/` as the name of the backup
-    // 2: `*.tar` or `*.sql` --> current implementation with the name of the backup right before the ending, for example: foo.bar.tar (the backup is called `bar`)
+    // Determine source from the snapshot path. This is used in the UI to show
+    // the type of backup this is.
+    //
+    // 1: `/data/*` --> means this is a PVC we use whatever is after `/data/` as
+    // the name of the backup.
+    // 2: `*.tar` or `*.sql` --> current implementation with the name of the
+    // backup right before the ending. For example: foo.bar.tar (the backup is
+    // called `bar`). This logic is made slightly more complex by the fact that
+    // there was a bug in the k8up system that produced filenames like
+    //
+    // * drupal-example-site-master-solr-prebackuppod.solr.tar
+    // * drupal-example-site-master-solr-prebackuppod
+    // * drupal-example-site-master-mariadb-prebackuppod
+    // * drupal-example-site-master-mariadb-prebackuppod.mariadb.sql
+    //
+    // So we need to cater for these additional filenames.
     let source;
     const paths = R.prop('paths', snapshot);
-    const pattern = /^\/data\/([\w-]+)|([\w-]+).(?:sql|tar)$/;
+    const pattern = /^\/data\/([\w-]+)|([\w-]+)\.(?:sql|tar)$|([\w]+)-prebackuppod/;
     if (R.isEmpty(paths)) {
       source = 'unknown';
     } else {
@@ -117,6 +130,8 @@ async function resticbackupSnapshotFinished(webhook: WebhookRequestData) {
           source = R.prop(1, matches);
         } else if (R.prop(2, matches)) {
           source = R.prop(2, matches);
+        } else if (R.prop(3, matches)) {
+          source = R.prop(3, matches);
         } else {
           source = 'unknown';
         }

@@ -31,6 +31,8 @@ const currMonth = moment().format('MM').toString();
 const currYear = parseInt(moment().format('YYYY'), 10);
 const years = Array.from({length: yearsToShow}, (v, k) => (currYear - yearsToShow) + k + 1).sort((a, b) => b - a);
 
+const monthsToGraph = 2;
+
 const months = [
   {name: "January", value: "01"},
   {name: "February", value: "02"},
@@ -55,7 +57,7 @@ export const PageBillingGroup = ({ router }) => {
   const [costs, setCosts] = useState([])
 
   const queries = [];
-  for (let i = 0; i <= 5; i++) {
+  for (let i = monthsToGraph; i > 0; i--) {
     queries.push(useQuery(BillingGroupCostsQuery, { variables: { input: { name: group }, month: moment().subtract(i, 'M').format('YYYY-MM').toString() } }))
   }
 

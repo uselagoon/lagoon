@@ -43,7 +43,9 @@ const addSshKey = async (
   { sqlClient, hasPermission, models },
 ) => {
   const keyType = sshKeyTypeToString(unformattedKeyType);
-  const keyFormatted = formatSshKey({ keyType, keyValue });
+  // handle key being sent as "ssh-rsa SSHKEY foo@bar.baz" as well as just the SSHKEY
+  const keyValueParts = keyValue.split(' ');
+  const keyFormatted = formatSshKey({ keyType, keyValue: keyValueParts.length > 1 ? keyValueParts[1] : keyValue });
 
   if (!validateSshKey(keyFormatted)) {
     throw new Error('Invalid SSH key format! Please verify keyType + keyValue');

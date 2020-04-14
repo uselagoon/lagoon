@@ -37,6 +37,7 @@ function cronScheduleMoreOftenThan30Minutes() {
 ##############################################
 
 # Load path of docker-compose that should be used
+set +x # reduce noise in build logs
 DOCKER_COMPOSE_YAML=($(cat .lagoon.yml | shyaml get-value docker-compose-yaml))
 
 DEPLOY_TYPE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.deploy-type default)
@@ -62,6 +63,15 @@ declare -A MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT
 declare -A IMAGES_PULL
 declare -A IMAGES_BUILD
 declare -A IMAGE_HASHES
+
+
+HELM_ARGUMENTS=()
+. /kubectl-build-deploy/scripts/kubectl-get-cluster-capabilities.sh
+for CAPABILITIES in "${CAPABILITIES[@]}"; do
+  HELM_ARGUMENTS+=(-a "${CAPABILITIES}")
+done
+
+set -x
 
 for COMPOSE_SERVICE in "${COMPOSE_SERVICES[@]}"
 do
@@ -90,7 +100,7 @@ do
       SERVICE_TYPE="mariadb-single"
     # heck if this cluster supports the default one, if not we assume that this cluster is not capable of shared mariadbs and we use a mariadb-single
     # real basic check to see if the mariadbconsumer exists as a kind
-    elif kubectl --insecure-skip-tls-verify -n ${NAMESPACE} auth can-i create mariadbconsumer.mariadb.amazee.io > /dev/null; then
+    elif [[ "${CAPABILITIES[@]}" =~ "mariadb.amazee.io/v1/MariaDBConsumer" ]]; then
       SERVICE_TYPE="mariadb-dbaas"
     else
       SERVICE_TYPE="mariadb-single"
@@ -177,13 +187,29 @@ if [[ ( "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ) && ! $TH
 
   BUILD_ARGS=()
 
+  set +x # reduce noise in build logs
   # Add environment variables from lagoon API as build args
   if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
-    BUILD_ARGS+=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "build" or .scope == "global") | "--build-arg \(.name)=\(.value)"'))
+    echo "LAGOON_PROJECT_VARIABLES are available from the API"
+    # multiline/spaced variables seem to break when being added from the API.
+    # this changes the way it works to create the variable in a similar way to how they are injected below
+    LAGOON_ENV_VARS=$(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "build" or .scope == "global") | "\(.name)"')
+    for LAGOON_ENV_VAR in $LAGOON_ENV_VARS
+    do
+      BUILD_ARGS+=(--build-arg $(echo $LAGOON_ENV_VAR)="$(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "build" or .scope == "global") | select(.name == "'$LAGOON_ENV_VAR'") | "\(.value)"')")
+    done
   fi
   if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
-    BUILD_ARGS+=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.scope == "build" or .scope == "global") | "--build-arg \(.name)=\(.value)"'))
+    echo "LAGOON_ENVIRONMENT_VARIABLES are available from the API"
+    # multiline/spaced variables seem to break when being added from the API.
+    # this changes the way it works to create the variable in a similar way to how they are injected below
+    LAGOON_ENV_VARS=$(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.scope == "build" or .scope == "global") | "\(.name)"')
+    for LAGOON_ENV_VAR in $LAGOON_ENV_VARS
+    do
+      BUILD_ARGS+=(--build-arg $(echo $LAGOON_ENV_VAR)="$(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.scope == "build" or .scope == "global") | select(.name == "'$LAGOON_ENV_VAR'") | "\(.value)"')")
+    done
   fi
+  set -x
 
   BUILD_ARGS+=(--build-arg IMAGE_REPO="${CI_OVERRIDE_IMAGE_REPO}")
   BUILD_ARGS+=(--build-arg LAGOON_PROJECT="${PROJECT}")
@@ -199,7 +225,6 @@ if [[ ( "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ) && ! $TH
     BUILD_ARGS+=(--build-arg LAGOON_GIT_SHA="${LAGOON_GIT_SHA}")
     BUILD_ARGS+=(--build-arg LAGOON_GIT_BRANCH="${BRANCH}")
   fi
-
 
   if [ "$BUILD_TYPE" == "pullrequest" ]; then
     BUILD_ARGS+=(--build-arg LAGOON_PR_HEAD_BRANCH="${PR_HEAD_BRANCH}")
@@ -392,6 +417,8 @@ do
   SERVICE_NAME=${SERVICE_TYPES_ENTRY_SPLIT[0]}
   SERVICE_TYPE=${SERVICE_TYPES_ENTRY_SPLIT[1]}
 
+  touch /kubectl-build-deploy/${SERVICE_NAME}-values.yaml
+
   SERVICE_TYPE_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.types.$SERVICE_NAME false)
   if [ ! $SERVICE_TYPE_OVERRIDE == "false" ]; then
     SERVICE_TYPE=$SERVICE_TYPE_OVERRIDE
@@ -400,7 +427,7 @@ do
   HELM_SERVICE_TEMPLATE="templates/service.yaml"
   if [ -f /kubectl-build-deploy/helmcharts/${SERVICE_TYPE}/$HELM_SERVICE_TEMPLATE ]; then
     cat /kubectl-build-deploy/values.yaml
-    helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -s $HELM_SERVICE_TEMPLATE -f /kubectl-build-deploy/values.yaml | outputToYaml
+    helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -s $HELM_SERVICE_TEMPLATE -f /kubectl-build-deploy/values.yaml "${HELM_ARGUMENTS[@]}" | outputToYaml
   fi
 
   HELM_INGRESS_TEMPLATE="templates/ingress.yaml"
@@ -411,7 +438,7 @@ do
       MAIN_GENERATED_ROUTE=$SERVICE_NAME
     fi
 
-    helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -s $HELM_INGRESS_TEMPLATE -f /kubectl-build-deploy/values.yaml | outputToYaml
+    helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -s $HELM_INGRESS_TEMPLATE -f /kubectl-build-deploy/values.yaml "${HELM_ARGUMENTS[@]}" | outputToYaml
   fi
 
   HELM_DBAAS_TEMPLATE="templates/dbaas.yaml"
@@ -419,8 +446,8 @@ do
     # cat $KUBERNETES_SERVICES_TEMPLATE
     # Load the requested class and plan for this service
     DBAAS_ENVIRONMENT="${MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]}"
-    yq write -i /kubectl-build-deploy/values.yaml 'environment' $DBAAS_ENVIRONMENT
-    helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -s $HELM_DBAAS_TEMPLATE -f /kubectl-build-deploy/values.yaml | outputToYaml
+    yq write -i /kubectl-build-deploy/${SERVICE_NAME}-values.yaml 'environment' $DBAAS_ENVIRONMENT
+    helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -s $HELM_DBAAS_TEMPLATE -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${SERVICE_NAME}-values.yaml "${HELM_ARGUMENTS[@]}"  | outputToYaml
     DBAAS+=("${SERVICE_NAME}:${SERVICE_TYPE}")
   fi
 
@@ -470,7 +497,7 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
         --set tls_acme="${ROUTE_TLS_ACME}" \
         --set insecure="${ROUTE_INSECURE}" \
         --set hsts="${ROUTE_HSTS}" \
-        -f /kubectl-build-deploy/values.yaml | outputToYaml
+        -f /kubectl-build-deploy/values.yaml "${HELM_ARGUMENTS[@]}" | outputToYaml
 
       let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
     done
@@ -513,7 +540,7 @@ else
         --set tls_acme="${ROUTE_TLS_ACME}" \
         --set insecure="${ROUTE_INSECURE}" \
         --set hsts="${ROUTE_HSTS}" \
-        -f /kubectl-build-deploy/values.yaml | outputToYaml
+        -f /kubectl-build-deploy/values.yaml "${HELM_ARGUMENTS[@]}" | outputToYaml
 
       let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
     done
@@ -523,7 +550,7 @@ else
 fi
 
 # If k8up is supported by this cluster we create the schedule definition
-if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get crd schedules.backup.appuio.ch > /dev/null && kubectl auth --insecure-skip-tls-verify -n ${NAMESPACE} can-i create schedules.backup.appuio.ch -q > /dev/null; then
+if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
 
   if ! kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get secret baas-repo-pw &> /dev/null; then
     # Create baas-repo-pw secret based on the project secret
@@ -551,7 +578,7 @@ if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get crd schedules.backup.a
     -f /kubectl-build-deploy/values.yaml \
     --set backup.schedule="${BACKUP_SCHEDULE}" \
     --set check.schedule="${CHECK_SCHEDULE}" \
-    --set prune.schedule="${PRUNE_SCHEDULE}" | outputToYaml
+    --set prune.schedule="${PRUNE_SCHEDULE}" "${HELM_ARGUMENTS[@]}" | outputToYaml
 fi
 
 cat /kubectl-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml
@@ -578,10 +605,10 @@ if [ "$MAIN_ROUTE_NAME" ]; then
 fi
 
 # Load all routes with correct schema and comma separated
-ROUTES=$(kubectl -n ${NAMESPACE} get ingress -l "acme.openshift.io/exposer!=true" -o=go-template --template='{{range $indexItems, $ingress := .items}}{{if $indexItems}},{{end}}{{$tls := .spec.tls}}{{range $indexRule, $rule := .spec.rules}}{{if $indexRule}},{{end}}{{if $tls}}https://{{else}}http://{{end}}{{.host}}{{end}}{{end}}')
+ROUTES=$(kubectl -n ${NAMESPACE} get ingress --sort-by='{.metadata.name}' -l "acme.openshift.io/exposer!=true" -o=go-template --template='{{range $indexItems, $ingress := .items}}{{if $indexItems}},{{end}}{{$tls := .spec.tls}}{{range $indexRule, $rule := .spec.rules}}{{if $indexRule}},{{end}}{{if $tls}}https://{{else}}http://{{end}}{{.host}}{{end}}{{end}}')
 
 # Get list of autogenerated routes
-AUTOGENERATED_ROUTES=$(kubectl -n ${NAMESPACE} get ingress -l "lagoon/autogenerated=true" -o=go-template --template='{{range $indexItems, $ingress := .items}}{{if $indexItems}},{{end}}{{$tls := .spec.tls}}{{range $indexRule, $rule := .spec.rules}}{{if $indexRule}},{{end}}{{if $tls}}https://{{else}}http://{{end}}{{.host}}{{end}}{{end}}')
+AUTOGENERATED_ROUTES=$(kubectl -n ${NAMESPACE} get ingress --sort-by='{.metadata.name}' -l "lagoon/autogenerated=true" -o=go-template --template='{{range $indexItems, $ingress := .items}}{{if $indexItems}},{{end}}{{$tls := .spec.tls}}{{range $indexRule, $rule := .spec.rules}}{{if $indexRule}},{{end}}{{if $tls}}https://{{else}}http://{{end}}{{.host}}{{end}}{{end}}')
 
 yq write -i /kubectl-build-deploy/values.yaml 'route' "$ROUTE"
 yq write -i /kubectl-build-deploy/values.yaml 'routes' "$ROUTES"
@@ -596,6 +623,7 @@ LAGOON_AUTOGENERATED_ROUTES=${AUTOGENERATED_ROUTES}\n\
 # Generate a Config Map with project wide env variables
 kubectl -n ${NAMESPACE} create configmap lagoon-env -o yaml --dry-run --from-env-file=/kubectl-build-deploy/values.env | kubectl apply -n ${NAMESPACE} -f -
 
+set +x # reduce noise in build logs
 # Add environment variables from lagoon API
 if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
   HAS_PROJECT_RUNTIME_VARS=$(echo $LAGOON_PROJECT_VARIABLES | jq -r 'map( select(.scope == "runtime" or .scope == "global") )')
@@ -617,6 +645,7 @@ if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
       -p "{\"data\":$(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r 'map( select(.scope == "runtime" or .scope == "global") ) | map( { (.name) : .value } ) | add | tostring')}"
   fi
 fi
+set -x
 
 if [ "$BUILD_TYPE" == "pullrequest" ]; then
   kubectl patch --insecure-skip-tls-verify \
@@ -762,8 +791,6 @@ do
   # if [ ! $DEPLOYMENT_STRATEGY == "false" ]; then
   #   TEMPLATE_PARAMETERS+=(-p DEPLOYMENT_STRATEGY="${DEPLOYMENT_STRATEGY}")
   # fi
-
-  touch /kubectl-build-deploy/${SERVICE_NAME}-values.yaml
 
   CRONJOB_COUNTER=0
   CRONJOBS_ARRAY_INSIDE_POD=()   #crons run inside an existing pod more frequently than every 15 minutes

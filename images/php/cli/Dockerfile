@@ -6,9 +6,10 @@ FROM ${IMAGE_REPO:-lagoon}/php:${PHP_VERSION}-fpm
 LABEL maintainer="amazee.io"
 ENV LAGOON=cli
 
-# Defining Versions - https://getcomposer.org/download/
-ENV COMPOSER_VERSION=1.9.1 \
-  COMPOSER_HASH_SHA256=1f210b9037fcf82670d75892dfc44400f13fe9ada7af9e787f93e50e3b764111
+# Defining Versions - Composer
+# @see https://getcomposer.org/download/
+ENV COMPOSER_VERSION=1.10.1 \
+  COMPOSER_HASH_SHA256=1831f266580f221189dc04d4b58d7fc50c934ffc3a0eca89ecb4a53aa44867e2
 
 RUN apk add --no-cache git \
         unzip \
