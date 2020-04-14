@@ -8,7 +8,7 @@ This Dockerfile is intended to be used to set up a standalone Solr server with a
 
 * 5.5
 * 6.6
-* 7.5
+* 7.7
 
 ## Lagoon & OpenShift adaptions
 
