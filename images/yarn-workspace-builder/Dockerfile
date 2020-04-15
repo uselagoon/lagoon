@@ -29,6 +29,5 @@ COPY services/kubernetesremove/package.json /app/services/kubernetesremove/
 COPY services/webhook-handler/package.json /app/services/webhook-handler/
 COPY services/webhooks2tasks/package.json /app/services/webhooks2tasks/
 COPY services/ui/package.json /app/services/ui/
-COPY cli/package.json /app/cli/
 
 RUN yarn install --frozen-lockfile
