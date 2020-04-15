@@ -39,7 +39,9 @@ Questions? Ideas? Meet the maintainers and contributors. `#lagoon` in amazee.io 
 9. **Most important: It's a work in progress**. It's not done yet. At amazee.io, we believe that as a hosting community, we need to work together and share code where we can.
 
 We want you to understand the Lagoon infrastructure and how the services work together. Here is a schema: [https://www.lucidchart.com/documents/view/a3cf0c4f-1bc1-438f-977d-4b26f235ceac](https://www.lucidchart.com/documents/view/a3cf0c4f-1bc1-438f-977d-4b26f235ceac)  
-‌History of Lagoon
+‌
+
+## History of Lagoon
 
 As described, Lagoon is a dream come true. At amazee.io, we've been hosting Drupal for more than 8 years. This is the fourth major iteration of our hosting platform. The third iteration was built around Puppet and Ansible. Every single piece of the platform was done with configuration management. This allowed very fast setup of new servers, but at the same time was also lacking customizability for developers. We implemented some customizability, with some already with Docker in production. However, we were never completely happy with it. We realized that our existing platform wasn't enough. With the rise of decoupled Drupal, the need to run Node.js on the server side, the requests for Elasticsearch, and different Solr versions, we had to do more. ‌
 
