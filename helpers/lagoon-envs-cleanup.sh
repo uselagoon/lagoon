@@ -4,19 +4,19 @@
 # Email: vincenzo.denaropapa@amazee.io
 #
 # Description: Cleanup Lagoon project's environments belonging to a closed GitHub's PR.
-# Usage: LAGOON_API_TOKEN="xxxx" GITHUB_API_TOKEN="xxxx" ./lagoonenvclean [-c customer] [-p all|project1,project2,...projectn] [-m number_of_months] [-d] 
+# Usage: LAGOON_API_TOKEN="xxxx" GITHUB_API_TOKEN="xxxx" ./lagoonenvclean [-g group ] [-p all|project1,project2,...projectn] [-m number_of_months] [-d] 
 #
-# Example: LAGOON_API_TOKEN="xxxx" GITHUB_API_TOKEN="xxxx" ./lagoonenvclean -c amazeeio -m -d -p drupal-example
-# Above command, will revome all environments older than 3 months, in drupal-example customer's project, related to closed PRs on GitHub.
+# Example: LAGOON_API_TOKEN="xxxx" GITHUB_API_TOKEN="xxxx" ./lagoonenvclean -g amazeeio -m -d -p drupal-example
+# Above command, will revome all environments older than 3 months, in drupal-example group's project, related to closed PRs on GitHub.
 
 # Script options are:
 #
-# -c CUSTOMER (MANDATORY Lagoon customer to query)
+# -g GROUP (MANDATORY Lagoon group to query)
 # -m MONTHS (OPTIONAL number of months since starting the cleanup. Default is 0)
 # -p PROJECTS (OPTIONAL comma separated list of projects to look for closed PRs to cleanup. Default is "all")
 # -d DRYRUN (OPTIONAL check to run the script in dry-run mode to see what is going to be cleaned. Default is "false")
 
-CUSTOMER=""
+GROUP=""
 DRYRUN="false"
 PROJECT="all"
 
@@ -41,19 +41,20 @@ GITHUB_BEARER_TOKEN="Authorization: bearer $GITHUB_API_TOKEN"
 
 QL_ENVS_QUERY="query envbyproject { projectByName (name: \"PROJECT\") { gitUrl, id, environments { name, openshiftProjectName, deployType } }}"
 QL_ENV_QUERY="query envbyname { environmentByName (name: NAME, project: ID) { updated }}"
-QL_ENV_DELETE_QUERY="mutation delenv { deleteEnvironment(input: {name: ENV, project: PROJECT, execute: BOOLEAN})}"
+#QL_ENV_DELETE_QUERY="mutation delenv { deleteEnvironment(input: {name: ENV, project: PROJECT, execute: BOOLEAN})}"
+QL_ENV_DELETE_QUERY="mutation delenv { deleteEnvironment(input: {name: ENV, project: PROJECT})}"
 
-# Function to retrieve customer's projects
+# Function to retrieve group's projects
 lagoon_allproject_query() {
 	
-	# QL_PROJECTS_QUERY: GraphQL query to retrieve all projects belonging to a customer
-	QL_PROJECTS_QUERY="query allcustomerproject { customerByName (name: \"$CUSTOMER\") { projects { name } }}"
+	# QL_PROJECTS_QUERY: GraphQL query to retrieve all projects belonging to a group
+	QL_PROJECTS_QUERY="query allprojectbygroup { allProjectsInGroup (input: {name: \"$GROUP\"}) { name } } "
 
-	# PROJECT_QUERY: one-line and escaped query to retrieve projects of a customer
+	# PROJECT_QUERY: one-line and escaped query to retrieve projects of a group 
 	PROJECTS_QUERY=$(echo $QL_PROJECTS_QUERY | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
 
-	# Variable with all customer's projects
-	PROJECTS=$(curl -s -k -X POST -H 'Content-Type: application/json' -H "$LAGOON_BEARER_TOKEN" $LAGOON_ENDPOINT -d "{\"query\": \"$PROJECTS_QUERY\"}" | jq -r '.[].customerByName.projects[].name')
+	# Variable with all group's projects
+	PROJECTS=$(curl -s -k -X POST -H 'Content-Type: application/json' -H "$LAGOON_BEARER_TOKEN" $LAGOON_ENDPOINT -d "{\"query\": \"$PROJECTS_QUERY\"}" | jq -r '.[].allProjectsInGroup[].name')
 
 	# Check if query failed for some reason
 	echo "Projects are $PROJECTS"
@@ -74,6 +75,11 @@ lagoon_allenvironment_query() {
 
 	# From the results, take only environemnts identified as PullRequest deploytype
 	ENVS=$(echo $RESULT | jq -r '.[].projectByName.environments[] | .name+"_"+.deployType'|grep pullrequest|cut -f 1 -d "_")
+
+	if [ -z "$ENVS" ]; then
+		echo "No PR envs"
+		return 1
+	fi
 
 	# Retrieve the GitURL
 	GIT_URL=$(echo $RESULT | jq -r '.[].projectByName.gitUrl')
@@ -101,7 +107,7 @@ lagoon_environment_clean() {
 	ENV_DELETE_QUERY=$(echo $QL_ENV_DELETE_QUERY | sed "s/ENV/\"$1\"/g" | sed "s/PROJECT/\"$2\"/g" | sed "s/BOOLEAN/$3/g" | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
 
 	# Check for dry-run option
-	if [ "$3" = "true" ]; then
+	if [ "$DRYRUN" = "true" ]; then
 		echo "Dry-run delete of the $1 env of $2 project"
 		echo $ENV_DELETE_QUERY
 	else
@@ -126,8 +132,8 @@ github_pr_query_delete() {
 
 	# Execute the clean function *only* if the PR is closed and the lagoon environment last update time is before last N months.
 	if [ "$GITHUB_PR_STATUS" = "closed" -a $GITHUB_PR_UPDATE -le $CLEAN_DATE ]; then
-		echo "Delete environment ${env} $DRYRUN"
-		lagoon_environment_clean $env $i $DRYRUN
+		echo "Delete environment ${env} true"
+		lagoon_environment_clean $env $i true
 	else
 		if [ "$GITHUB_PR_STATUS" = "open" ]; then
 			echo "Environment ${env} is not deleted because status"
@@ -138,9 +144,9 @@ github_pr_query_delete() {
 }
 
 usage() {
-	echo -e "Usage is: $0 [-c customer] [-m number_of_months] [-p all|project1,project2,...,projectN] [-d] \nes: $0 -c amazeeio -m 4 -d true\n"
+	echo -e "Usage is: $0 [-c group] [-m number_of_months] [-p all|project1,project2,...,projectN] [-d] \nes: $0 -c amazeeio -m 4 -d true\n"
 	echo "Script options are:
-	-c CUSTOMER (MANDATORY Lagoon customer to query)
+	-g GROUP (MANDATORY Lagoon group to query)
  	-m MONTHS (OPTIONAL number of months since starting the cleanup. Default is 0)
  	-p PROJECTS (OPTIONAL comma separated list of projects to look for closed PRs to cleanup. Default is "all")
  	-d DRYRUN (OPTIONAL check to run the script in dry-run mode to see what is going to be cleaned. Default is "false")"
@@ -150,14 +156,14 @@ usage() {
 
 # Main function
 main () {
-	while getopts "hc:m:p:d" opt
+	while getopts "hg:m:p:d" opt
 	do
 		case "${opt}" in
 			h)
 				usage
 				;;
-			c)
-				CUSTOMER="${OPTARG}"
+			g)
+				GROUP="${OPTARG}"
 				;;
 			m)
 				MONTHS="${OPTARG:-0}"
@@ -167,7 +173,7 @@ main () {
 				DRYRUN="true"
 				;;
 			p)	
-				# Possible to specify single customer's project to query
+				# Possible to specify single group's project to query
 				PROJECT="${OPTARG:-all}"
 				;;
 			*)
@@ -176,8 +182,8 @@ main () {
 		esac
 	done
 
-	if [ -z "$CUSTOMER" ]; then
-		echo -e "Customer is MANDATORY\n"
+	if [ -z "$GROUP" ]; then
+		echo -e "Group is MANDATORY\n"
 		usage
 	fi
 
@@ -188,7 +194,7 @@ main () {
 
 	# Script body
 	if [ "$PROJECT" = "all" ]; then
-		lagoon_allproject_query $CUSTOMER
+		lagoon_allproject_query $GROUP
 	else
 		PROJECTS=$PROJECT
 	fi
