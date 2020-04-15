@@ -25,6 +25,7 @@ metadata:
     monitor.stakater.com/enabled: "true"
     uptimerobot.monitor.stakater.com/interval: {{ .Values.ingressmonitorcontroller.interval }}
     uptimerobot.monitor.stakater.com/alert-contacts: {{ .Values.ingressmonitorcontroller.alertContacts }}
+    uptimerobot.monitor.stakater.com/path: {{ .Values.ingressmonitorcontroller.path }}
     # HSTS Handling
     {{- if .Values.hsts}}
     # haproxy.router.openshift.io/hsts_header: {{ .Values.route_hsts }}
@@ -43,5 +44,3 @@ spec:
           - backend:
               serviceName: {{ .Values.service }}
               servicePort: http
-
-
