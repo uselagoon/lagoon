@@ -197,6 +197,14 @@ openshift-test-services-up: main-test-services-up $(foreach image,$(openshift-te
 kubernetes-test-services-up: main-test-services-up $(foreach image,$(kubernetes-test-services),build\:$(image))
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(kubernetes-test-services)
 
+# hack to work around the fact that the *-test-services variable is used for
+# both builds and brining services up. instead of using their own images, the
+# tests-{kubernetes,openshift} services use the same tests image.
+.PHONY: build\:tests-kubernetes
+build\:tests-kubernetes: build\:tests
+.PHONY: build\:tests-openshift
+build\:tests-openshift: build\:tests
+
 .PHONY: drupaltest-services-up
 drupaltest-services-up: main-test-services-up $(foreach image,$(drupal-test-services),build\:$(image))
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(drupal-test-services)
