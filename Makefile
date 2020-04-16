@@ -240,10 +240,12 @@ $(end2end-all-tests): start-end2end-ansible
 end2end-tests/clean:
 		docker-compose -f docker-compose.yaml -f docker-compose.end2end.yaml -p end2end down -v
 
+.PHONY: push-docker-host-image
 push-docker-host-image: minishift build\:docker-host minishift/login-docker-registry
 	docker tag $(CI_BUILD_TAG)/docker-host $$(cat minishift):30000/lagoon/docker-host
 	docker push $$(cat minishift):30000/lagoon/docker-host | cat
 
+.PHONY: lagoon-kickstart
 lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build\:$(image))
 	IMAGE_REPO=$(CI_BUILD_TAG) CI=false docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
 	sleep 30
@@ -428,8 +430,10 @@ else
 	chmod a+x local-dev/helm/helm
 endif
 
-k3d: local-dev/k3d local-dev/kubectl local-dev/helm/helm build\:docker-host
-	$(MAKE) local-registry-up
+k3d: local-dev/k3d local-dev/kubectl local-dev/helm/helm
+	# these phony targets can't be prerequisites of a file target as per
+	# https://www.gnu.org/software/make/manual/html_node/Phony-Targets.html
+	$(MAKE) local-registry-up build:docker-host
 	$(info starting k3d with name $(K3D_NAME))
 	$(info Creating Loopback Interface for docker gateway if it does not exist, this might ask for sudo)
 ifeq ($(ARCH), darwin)
