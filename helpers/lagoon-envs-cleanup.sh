@@ -4,9 +4,9 @@
 # Email: vincenzo.denaropapa@amazee.io
 #
 # Description: Scripts to cleanup Lagoon environments related to closed/old PRs.
-# Usage: LAGOON_API_TOKEN="xxxx" GITHUB_API_TOKEN="xxxx" ./lagoonenvclean [-g group ] [-p all|project1,project2,...projectn] [-m number_of_months] [-d] 
+# Usage: LAGOON_API_TOKEN="xxxx" GITHUB_API_TOKEN="xxxx" GITLAB_API_TOKEN="xxxx" ./lagoonenvclean [-g group ] [-p all|project1,project2,...projectn] [-m number_of_months] [-d]
 #
-# Example: LAGOON_API_TOKEN="xxxx" GITHUB_API_TOKEN="xxxx" ./lagoonenvclean -g amazeeio -m 3 -p drupal-example
+# Example: LAGOON_API_TOKEN="xxxx" GITHUB_API_TOKEN="xxxx" GITLAB_API_TOKEN="xxxx" ./lagoonenvclean -g amazeeio -m 3 -p drupal-example
 # Will revome drupal-example's environments older than 3 months related to closed PRs.
 
 # Script options are:
@@ -23,8 +23,10 @@ MONTHS=0
 
 # LAGOON_ENDPOINT: Lagoon API endpoint
 # GITHUB_ENDPOINT: GitHub API endpoint
+# GITLAB_ENDPOINT: Gitlab API endpoint
 # LAGOON_API_TOKEN: Lagoon API token
 # GITHUB_API_TOKEN: GitHub API Authentication token
+# GITLAB_API_TOKEN: Gitlab API Authentication token
 
 LAGOON_ENDPOINT="https://api-lagoon-master.lagoon.ch.amazee.io/graphql"
 LAGOON_BEARER_TOKEN="Authorization: bearer $LAGOON_API_TOKEN"
@@ -32,6 +34,10 @@ LAGOON_BEARER_TOKEN="Authorization: bearer $LAGOON_API_TOKEN"
 GITHUB_ENDPOINT="https://api.github.com"
 # GH Token must have at least `repo Full control of private repositories` scope
 GITHUB_BEARER_TOKEN="Authorization: bearer $GITHUB_API_TOKEN"
+
+GITLAB_ENDPOINT="https://gitlab.com/api/v4"
+# GL Token must have at least `api read and read repository` scope
+GITLAB_BEARER_TOKEN="Authorization: bearer $GITLAB_API_TOKEN"
 
 # Some basic Lagoon GraphQL queries:
 #
@@ -56,6 +62,9 @@ gnudate() {
 
 export -f gnudate
 
+# CLEANDATE: environments older will be remove if related to a closed PR
+CLEAN_DATE=$(gnudate "-$MONTHS months")
+
 # Function to retrieve group's projects
 lagoon_allproject_query() {
 	
@@ -66,7 +75,7 @@ lagoon_allproject_query() {
 	PROJECTS_QUERY=$(echo $QL_PROJECTS_QUERY | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
 
 	# Variable with all group's projects
-	PROJECTS=$(curl -s -k -X POST -H 'Content-Type: application/json' -H "$LAGOON_BEARER_TOKEN" $LAGOON_ENDPOINT -d "{\"query\": \"$PROJECTS_QUERY\"}" | jq -r '.[].allProjectsInGroup[].name')
+	PROJECTS=$(curl -s -k -X POST -H 'Content-Type: application/json' -H "$LAGOON_BEARER_TOKEN" $LAGOON_ENDPOINT -d "{\"query\": \"$PROJECTS_QUERY\"}" | jq -r '.data.allProjectsInGroup[].name'|grep -wv null)
 
 	# Check if query failed for some reason
 	echo "Projects are $PROJECTS"
@@ -90,11 +99,19 @@ lagoon_allenvironment_query() {
 
 	if [ -z "$ENVS" ]; then
 		echo "No PR envs"
-		return 1
 	fi
 
 	# Retrieve the GitURL
 	GIT_URL=$(echo $RESULT | jq -r '.[].projectByName.gitUrl')
+	
+	if [ $(echo $GIT_URL|grep -q github; echo $?) -eq 0 ]; then
+		GIT_SERVER_TYPE="github"
+	elif [ $(echo $GIT_URL|grep -q gitlab; echo $?) -eq 0 ]; then
+		GIT_SERVER_TYPE="gitlab"
+	else
+		echo "Git server not supported"
+		return
+	fi
 
 	# Retrieve GitHub project and owner by the git url
 	GIT_PROJECT=$(echo ${GIT_URL%%.git}|cut -f 2 -d "/")
@@ -132,9 +149,6 @@ lagoon_environment_clean() {
 # Function to query GitHub PR's status
 github_pr_query_delete() {
 	
-	# CLEANDATE: environments older will be remove if related to a closed PR
-	CLEAN_DATE=$(gnudate "-$MONTHS months")
-
 	# Retrieve the status of a PR
 	GITHUB_PR_STATUS=$(curl -s -k -H "$GITHUB_BEARER_TOKEN" $GITHUB_ENDPOINT/repos/$1/$2/pulls/$3|jq -r .state)
 
@@ -154,6 +168,36 @@ github_pr_query_delete() {
 		fi
 	fi
 }
+
+# Function to query Gitlab PR's status
+gitlab_pr_query_delete() {
+	
+	# Retrieve project's ID
+	GITLAB_PROJECT_ID=$(curl -s -k -H "$GITLAB_BEARER_TOKEN" $GITLAB_ENDPOINT/projects/$1%2F$2 | jq -r .id)
+
+	# Retrieve PR's iid
+	GITLAB_PR_IID=$(curl -s -k -H "$GITLAB_BEARER_TOKEN" $GITLAB_ENDPOINT/projects/$1%2F$2/merge_requests?view=simple |jq -r ".[] | select(.id == $3)|.iid")
+
+	# Retrieve the status of a PR
+	GITLAB_PR_STATUS=$(curl -s -k -H "$GITLAB_BEARER_TOKEN" $GITLAB_ENDPOINT/projects/$1%2F$2/merge_requests/$GITLAB_PR_IID |jq -r .state)
+
+	# Retrieve the lastupdate time of a PR
+	GITLAB_PR_UPDATE=$(curl -s -k -H "$GITLAB_BEARER_TOKEN" $GITLAB_ENDPOINT/projects/$1%2F$2/merge_requests/$GITLAB_PR_IID|jq -r .updated_at| xargs -I {} bash -c "gnudate {}")
+	echo "PR $3 is $GITLAB_PR_STATUS and updated on $GITLAB_PR_UPDATE"
+
+	# Invoke clean function *only* if the PR is closed and last update date is before N months.
+	if [ "$GITLAB_PR_STATUS" = "closed" -a $GITLAB_PR_UPDATE -le $CLEAN_DATE ]; then
+		echo "Delete environment ${env} true"
+		lagoon_environment_clean $env $i true
+	else
+		if [ "$GITLAB_PR_STATUS" = "open" ]; then
+			echo "Environment ${env} is not deleted because status"
+		else
+			echo "Environment ${env} is not deleted because date"
+		fi
+	fi
+}
+
 
 usage() {
 	echo -e "Usage is: $0 [-c group] [-m number_of_months] [-p all|project1,project2,...,projectN] [-d] \nes: $0 -c amazeeio -m 4 -d true\n"
@@ -199,7 +243,7 @@ main () {
 		usage
 	fi
 
-	if [ -z "$LAGOON_API_TOKEN" -o -z "$GITHUB_API_TOKEN" ]; then
+	if [ -z "$LAGOON_API_TOKEN" -o -z "$GITHUB_API_TOKEN" -a -z "$GITLAB_API_TOKEN" ]; then
 		echo "Lagoon JWT token or Github Token are not set"
 		exit 1
 	fi
@@ -217,7 +261,15 @@ main () {
 		for env in ${LAGOON_ENVS[$i,envs]}
 		do
 			id=${LAGOON_ENVS[$i,id]}
-			github_pr_query_delete $GIT_OWNER $GIT_PROJECT ${env##pr-} 
+			if [ "$GIT_SERVER_TYPE" = "github" ]; then
+				echo "Git is github"
+				github_pr_query_delete $GIT_OWNER $GIT_PROJECT ${env##pr-}
+			elif [ "$GIT_SERVER_TYPE" = "gitlab" ]; then
+				echo "Git is gitlab"
+				gitlab_pr_query_delete $GIT_OWNER $GIT_PROJECT ${env##pr-}
+			else
+				echo "Not supported git"
+			fi
 		unset IFS
 		done
 	done
