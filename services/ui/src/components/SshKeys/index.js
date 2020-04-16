@@ -1,7 +1,7 @@
 import React from 'react';
 import css from 'styled-jsx/css';
 import moment from 'moment';
-import DeleteButton from 'components/DeleteButton';
+import Button from 'components/Button';
 import { Mutation } from 'react-apollo';
 import DeleteSshKeyById from 'lib/mutation/DeleteSshKeyById';
 import Me from 'lib/query/Me';
@@ -39,13 +39,13 @@ const SshKeys = ({me: { id, email, sshKeys: keys }}) => {
                   }
 
                   return (
-                    <DeleteButton action={() => deleteSshKeyById({
+                    <Button variant='red' action={() => deleteSshKeyById({
                       variables: {
                         input: {
                           id: key.id,
                         }
                       }
-                    })}>Delete</DeleteButton>
+                    })}>Delete</Button>
                   );
                 }}
               </Mutation>

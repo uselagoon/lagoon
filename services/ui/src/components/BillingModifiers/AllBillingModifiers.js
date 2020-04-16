@@ -75,13 +75,14 @@ const AllBillingModifiers = ({group, modifiers, month}) => (
                           variables: { input: { id } }
                         })
                       }
+                      variant='red'
                     >
                       Delete
                     </Button>
                   );
                 }}
               </Mutation>
-            </div>                
+            </div>
           </div>
           )
         )}
@@ -97,7 +98,7 @@ const AllBillingModifiers = ({group, modifiers, month}) => (
         border-radius: 3px;
         box-shadow: 0px 4px 8px 0px rgba(0,0,0,0.03);
       }
-      
+
       .header {
         @media ${bp.wideUp} {
           align-items: center;
