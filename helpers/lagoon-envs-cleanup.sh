@@ -3,18 +3,18 @@
 # Author: Vincenzo De Naro Papa
 # Email: vincenzo.denaropapa@amazee.io
 #
-# Description: Cleanup Lagoon project's environments belonging to a closed GitHub's PR.
+# Description: Scripts to cleanup Lagoon environments related to closed/old PRs.
 # Usage: LAGOON_API_TOKEN="xxxx" GITHUB_API_TOKEN="xxxx" ./lagoonenvclean [-g group ] [-p all|project1,project2,...projectn] [-m number_of_months] [-d] 
 #
-# Example: LAGOON_API_TOKEN="xxxx" GITHUB_API_TOKEN="xxxx" ./lagoonenvclean -g amazeeio -m -d -p drupal-example
-# Above command, will revome all environments older than 3 months, in drupal-example group's project, related to closed PRs on GitHub.
+# Example: LAGOON_API_TOKEN="xxxx" GITHUB_API_TOKEN="xxxx" ./lagoonenvclean -g amazeeio -m 3 -p drupal-example
+# Will revome drupal-example's environments older than 3 months related to closed PRs.
 
 # Script options are:
 #
 # -g GROUP (MANDATORY Lagoon group to query)
 # -m MONTHS (OPTIONAL number of months since starting the cleanup. Default is 0)
-# -p PROJECTS (OPTIONAL comma separated list of projects to look for closed PRs to cleanup. Default is "all")
-# -d DRYRUN (OPTIONAL check to run the script in dry-run mode to see what is going to be cleaned. Default is "false")
+# -p PROJECTS (OPTIONAL comma separated list of projects. Default is "all")
+# -d DRYRUN (OPTIONAL check to run the script in dry-run mode)
 
 GROUP=""
 DRYRUN="false"
@@ -30,13 +30,13 @@ LAGOON_ENDPOINT="https://api-lagoon-master.lagoon.ch.amazee.io/graphql"
 LAGOON_BEARER_TOKEN="Authorization: bearer $LAGOON_API_TOKEN"
 
 GITHUB_ENDPOINT="https://api.github.com"
-# GitHub Personal Access token must have at least `repo Full control of private repositories` scope
+# GH Token must have at least `repo Full control of private repositories` scope
 GITHUB_BEARER_TOKEN="Authorization: bearer $GITHUB_API_TOKEN"
 
 # Some basic Lagoon GraphQL queries:
 #
-# QL_ENVS_QUERY: GraphQL query to retrieve, for each project, all the environments
-# QL_ENV_QUERY: GraphQL query to retrieve information on a single environment per project
+# QL_ENVS_QUERY: Query to retrieve, for each project, all the environments
+# QL_ENV_QUERY: Query to retrieve environment's information per project
 # QL_ENV_DELETE: GraphQL mutation to delete the environment
 
 
@@ -104,7 +104,7 @@ lagoon_allenvironment_query() {
 	PROJECT_ID=$(echo $RESULT | jq -r '.[].projectByName.id')
 	OC_PROJECT=$(echo $RESULT | jq -r '.[].projectByName.environments[].openshiftProjectName')
 
-	# Create a global associative array (it simulates a multi-dimensional array) where to store some variables per project
+	# Create a global associative array to store some variables per project
 	declare -gA LAGOON_ENVS
 	LAGOON_ENVS[$1,id]="$PROJECT_ID"
 	LAGOON_ENVS[$1,gitproject]="$GIT_PROJECT"
@@ -132,7 +132,7 @@ lagoon_environment_clean() {
 # Function to query GitHub PR's status
 github_pr_query_delete() {
 	
-	# CLEANDATE: environments older than that date will be remove if related to a closed PR
+	# CLEANDATE: environments older will be remove if related to a closed PR
 	CLEAN_DATE=$(gnudate "-$MONTHS months")
 
 	# Retrieve the status of a PR
@@ -142,7 +142,7 @@ github_pr_query_delete() {
 	GITHUB_PR_UPDATE=$(curl -s -k -H "$GITHUB_BEARER_TOKEN" $GITHUB_ENDPOINT/repos/$1/$2/pulls/$3|jq -r .updated_at| xargs -I {} bash -c "gnudate {}")
 	echo "PR $3 is $GITHUB_PR_STATUS and updated on $GITHUB_PR_UPDATE"
 
-	# Execute the clean function *only* if the PR is closed and the lagoon environment last update time is before last N months.
+	# Invoke clean function *only* if the PR is closed and last update date is before N months.
 	if [ "$GITHUB_PR_STATUS" = "closed" -a $GITHUB_PR_UPDATE -le $CLEAN_DATE ]; then
 		echo "Delete environment ${env} true"
 		lagoon_environment_clean $env $i true
