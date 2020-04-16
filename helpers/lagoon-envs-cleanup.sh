@@ -19,6 +19,7 @@
 GROUP=""
 DRYRUN="false"
 PROJECT="all"
+MONTHS=0
 
 # LAGOON_ENDPOINT: Lagoon API endpoint
 # GITHUB_ENDPOINT: GitHub API endpoint
@@ -41,8 +42,19 @@ GITHUB_BEARER_TOKEN="Authorization: bearer $GITHUB_API_TOKEN"
 
 QL_ENVS_QUERY="query envbyproject { projectByName (name: \"PROJECT\") { gitUrl, id, environments { name, openshiftProjectName, deployType } }}"
 QL_ENV_QUERY="query envbyname { environmentByName (name: NAME, project: ID) { updated }}"
-#QL_ENV_DELETE_QUERY="mutation delenv { deleteEnvironment(input: {name: ENV, project: PROJECT, execute: BOOLEAN})}"
 QL_ENV_DELETE_QUERY="mutation delenv { deleteEnvironment(input: {name: ENV, project: PROJECT})}"
+
+# Set `date` command to gdate or date according to Mac/Linux
+
+gnudate() {
+	if hash gdate 2> /dev/null; then
+		gdate +%Y%m%d -d "$@" 
+	else
+		date +%Y%m%d -d "$@"
+	fi
+}
+
+export -f gnudate
 
 # Function to retrieve group's projects
 lagoon_allproject_query() {
@@ -121,13 +133,13 @@ lagoon_environment_clean() {
 github_pr_query_delete() {
 	
 	# CLEANDATE: environments older than that date will be remove if related to a closed PR
-	CLEAN_DATE=$(date +%Y%m%d -d "-$MONTHS months")
+	CLEAN_DATE=$(gnudate "-$MONTHS months")
 
 	# Retrieve the status of a PR
 	GITHUB_PR_STATUS=$(curl -s -k -H "$GITHUB_BEARER_TOKEN" $GITHUB_ENDPOINT/repos/$1/$2/pulls/$3|jq -r .state)
 
 	# Retrieve the lastupdate time of a PR
-	GITHUB_PR_UPDATE=$(curl -s -k -H "$GITHUB_BEARER_TOKEN" $GITHUB_ENDPOINT/repos/$1/$2/pulls/$3|jq -r .updated_at| xargs date +%Y%m%d -d)
+	GITHUB_PR_UPDATE=$(curl -s -k -H "$GITHUB_BEARER_TOKEN" $GITHUB_ENDPOINT/repos/$1/$2/pulls/$3|jq -r .updated_at| xargs -I {} bash -c "gnudate {}")
 	echo "PR $3 is $GITHUB_PR_STATUS and updated on $GITHUB_PR_UPDATE"
 
 	# Execute the clean function *only* if the PR is closed and the lagoon environment last update time is before last N months.
@@ -206,7 +218,6 @@ main () {
 		do
 			id=${LAGOON_ENVS[$i,id]}
 			github_pr_query_delete $GIT_OWNER $GIT_PROJECT ${env##pr-} 
-			#github_pr_query_delete $GIT_OWNER $GIT_PROJECT ${env} 
 		unset IFS
 		done
 	done
