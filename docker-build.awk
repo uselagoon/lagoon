@@ -218,23 +218,22 @@ function genS3LoadRules(allTags) {
 }
 
 # generate the push-minishift rules
-function genPushMinishiftRules(baseImageTags) {
+function genPushLocalRegistry(baseImageTags) {
 	split(baseImageTags, tags, " ")
-	allRules = "build\:push-minishift:"
+	allRules = "build\:push-local-registry:"
 	rules = ""
 	for (i in tags) {
 		# tag may have a colon, so generate a clean version for target names
 		cleanTarget = tags[i]
 		gsub(/:/, "-", cleanTarget)
-		cleanTarget = "build\\:push-minishift-" cleanTarget
+		cleanTarget = "build\\:push-local-registry-" cleanTarget
 		allRules = allRules " " cleanTarget
 		rules = rules ".PHONY: " cleanTarget "\n" cleanTarget ":\n" \
 					"\t@if docker inspect $(CI_BUILD_TAG)/" tags[i] \
 					" > /dev/null 2>&1; then \\\n" \
-					"\t\techo pushing " tags[i] " to minishift registry; \\\n" \
 					"\t\tdocker tag $(CI_BUILD_TAG)/" tags[i] \
-					" $$(cat minishift):30000/lagoon/" tags[i] " && \\\n" \
-					"\t\tdocker push $$(cat minishift):30000/lagoon/" tags[i] "; \\\n" \
+					" localhost:5000/lagoon/" tags[i] " && \\\n" \
+					"\t\tdocker push localhost:5000/lagoon/" tags[i] "; \\\n" \
 					"\tfi\n"
 	}
 	return allRules " ## Push any available built images to the local minishift registry\n" rules
@@ -344,7 +343,7 @@ END {
 	printf genS3SaveRules(allTags)
 	printf genS3LoadRules(allTags)
 	# generate the push-minishift rule
-	printf genPushMinishiftRules(allTagsByClass["images"])
+	printf genPushLocalRegistry(allTagsByClass["images"])
 	# generate the publish rules
 	printf genPublishAmazeeioBaseimages(allTagsByClass["images"])
 	printf genPublishAmazeeiolagoonBaseimages(allTagsByClass["images"])
