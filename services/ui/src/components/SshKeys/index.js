@@ -1,7 +1,7 @@
 import React from 'react';
 import css from 'styled-jsx/css';
 import moment from 'moment';
-import Button from 'components/Button';
+import DeleteButton from 'components/DeleteButton';
 import { Mutation } from 'react-apollo';
 import DeleteSshKeyById from 'lib/mutation/DeleteSshKeyById';
 import Me from 'lib/query/Me';
@@ -29,7 +29,7 @@ const SshKeys = ({me: { id, email, sshKeys: keys }}) => {
             <div className="delete">
               <Mutation mutation={DeleteSshKeyById} refetchQueries={[{ query: Me}]}>
                 {(deleteSshKeyById, { loading, called, error, data }) => {
-                  
+
                   if (error) {
                     return <div>{error.message}</div>;
                   }
@@ -39,13 +39,13 @@ const SshKeys = ({me: { id, email, sshKeys: keys }}) => {
                   }
 
                   return (
-                    <Button action={() => deleteSshKeyById({
+                    <DeleteButton action={() => deleteSshKeyById({
                       variables: {
                         input: {
                           id: key.id,
                         }
                       }
-                    })}>Delete</Button>
+                    })}>Delete</DeleteButton>
                   );
                 }}
               </Mutation>
@@ -96,7 +96,7 @@ const SshKeys = ({me: { id, email, sshKeys: keys }}) => {
                 width: 55%;
               }
             }
-            
+
           }
         }
 

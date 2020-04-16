@@ -1,6 +1,6 @@
 import React from 'react';
 import Modal from 'components/Modal';
-import Button from 'components/Button';
+import DeleteButton from 'components/DeleteButton';
 import { color } from 'lib/variables';
 import withLogic from 'components/DeleteConfirm/logic';
 
@@ -19,9 +19,9 @@ export const DeleteConfirm = ({
 }) => {
   return (
     <React.Fragment>
-      <Button action={openModal}>
+      <DeleteButton action={openModal}>
         Delete
-      </Button>
+      </DeleteButton>
       <Modal
         isOpen={open}
         onRequestClose={closeModal}
@@ -39,12 +39,12 @@ export const DeleteConfirm = ({
             <a href="#" className="hover-state" onClick={closeModal}>
               cancel
             </a>
-            <Button
+            <DeleteButton
               disabled={inputValue !== deleteName}
               action={onDelete}
             >
               Delete
-            </Button>
+            </DeleteButton>
           </div>
         </React.Fragment>
       </Modal>
