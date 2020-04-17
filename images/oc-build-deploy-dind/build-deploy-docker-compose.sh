@@ -491,8 +491,21 @@ TEMPLATE_PARAMETERS=()
 ##############################################
 
 ROUTES_SERVICE_COUNTER=0
+# Start with route monitoring disabled
+MONITOR_ENABLED="false"
 # we need to check for production routes for active/standby if they are defined, as these will get migrated between environments as required
 if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
+  # only production environments get route monitoring
+  MONITOR_ENABLED="true"
+  # Because we run an 'oc patch' on all routes in exec-openshift-create-route.sh, we need to set defaults here on these variables
+  MONITOR_PATH="/"
+  MONITOR_INTERVAL="60"
+  # Set alerting contact based on site availability
+  if [ "${AVAILABILITY}" == "HIGH" ]; then
+    MONITOR_ALERTCONTACTS=$MONITORING_ALERTCONTACT_HA
+  else
+    MONITOR_ALERTCONTACTS=$MONITORING_ALERTCONTACT_SA
+  fi
   if [ "${BRANCH//./\\.}" == "${ACTIVE_ENVIRONMENT}" ]; then
     if [ -n "$(cat .lagoon.yml | shyaml keys production_routes.active.routes.$ROUTES_SERVICE_COUNTER 2> /dev/null)" ]; then
       while [ -n "$(cat .lagoon.yml | shyaml keys production_routes.active.routes.$ROUTES_SERVICE_COUNTER 2> /dev/null)" ]; do
