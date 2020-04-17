@@ -87,7 +87,11 @@ const messageConsumer = async msg => {
     var graphqlEnvironmentType = environmentType.toUpperCase()
     var graphqlGitType = type.toUpperCase()
     var openshiftPromoteSourceProject = promoteSourceEnvironment ? `${safeProjectName}-${ocsafety(promoteSourceEnvironment)}` : ""
-    // A secret which is the same across all Environments of this Lagoon Project
+    var monitoringConfig = JSON.parse(projectOpenShift.openshift.monitoringConfig)
+    var alertContactHa = monitoringConfig.uptimerobot.alertContactHA
+    var alertContactSa = monitoringConfig.uptimerobot.alertContactSA
+    var availability = projectOpenShift.availability
+        // A secret which is the same across all Environments of this Lagoon Project
     var projectSecret = crypto.createHash('sha256').update(`${projectName}-${jwtSecret}`).digest('hex');
   } catch(error) {
     logger.error(`Error while loading information for project ${projectName}`)
@@ -245,6 +249,18 @@ const messageConsumer = async msg => {
                       {
                         "name": "NATIVE_CRON_POD_MINIMUM_FREQUENCY",
                         "value": NativeCronPodMinimumFrequency
+                      },
+                      {
+                        "name": "MONITORING_ALERTCONTACT_HA",
+                        "value": alertContactHa
+                      },
+                      {
+                        "name": "MONITORING_ALERTCONTACT_SA",
+                        "value": alertContactSa
+                      },
+                      {
+                        "name": "AVAILABILITY",
+                        "value": availability
                       }
                   ],
                   "forcePull": true,
