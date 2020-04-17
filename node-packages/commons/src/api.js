@@ -928,6 +928,7 @@ const getOpenShiftInfoForProject = (project) =>
           routerPattern
           monitoringConfig
         }
+        availability
         gitUrl
         privateKey
         subfolder
