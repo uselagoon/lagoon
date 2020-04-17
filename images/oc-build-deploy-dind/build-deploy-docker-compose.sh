@@ -707,6 +707,7 @@ fi
 ##############################################
 URL_COUNTER=0
 while [ -n "$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.monitoring_urls.$URL_COUNTER 2> /dev/null)" ]; do
+  echo "DEPRECATION WARNING: 'monitoring_urls' is being moved to a per-route 'monitoring_path', please update your route"
   MONITORING_URL="$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.monitoring_urls.$URL_COUNTER)"
   if [[ $URL_COUNTER > 0 ]]; then
     MONITORING_URLS="${MONITORING_URLS}, ${MONITORING_URL}"
