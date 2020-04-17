@@ -24,7 +24,7 @@ Unfortunately the Drupal community has not decided on a standardized webroot fol
 
 ## 2. Customise `docker-compose.yml`
 
-Don't forget to customize the values in `lagoon-project` & `LAGOON_ROUTE` with your site-specific name & the URL you'd like to access the site with. Here's a sample from our [drupal-example](https://github.com/amazeeio/drupal-example):
+Don't forget to customize the values in `lagoon-project` & `LAGOON_ROUTE` with your site-specific name & the URL you'd like to access the site with. Here's an example:
 
 {% tabs %}
 {% tab title="docker-compose.yml" %}
