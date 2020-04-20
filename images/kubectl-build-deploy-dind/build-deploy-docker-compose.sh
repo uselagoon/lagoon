@@ -324,7 +324,7 @@ do
     # STATEFULSET="${SERVICE_NAME}-galera"
     # SERVICE_NAME="${SERVICE_NAME}-maxscale"
     ## noone should be using `mariadb-galera`
-    CURRENT_VERSION=$(oc -n ${NAMESPACE} get replicaset -l app.kubernetes.io/instance=${SERVICE_NAME} --sort-by=.metadata.creationTimestamp -o=json | jq -r -e '.items[-1].metadata.labels."pod-template-hash" // empty')
+    CURRENT_VERSION=$(oc -n ${NAMESPACE} get replicaset -l app.kubernetes.io/instance=${SERVICE_NAME} --sort-by=.metadata.creationTimestamp -o=json | jq -r -e '.items[-1].metadata.labels."pod-template-hash" // 0')
   elif [ $SERVICE_TYPE == "elasticsearch-cluster" ]; then
     # STATEFULSET="${SERVICE_NAME}"\
     CURRENT_VERSION=$(oc -n ${OPENSHIFT_PROJECT} get --insecure-skip-tls-verify statefulset ${STATEFULSET} -o=go-template --template='{{.status.updateRevision}}' 2> /dev/null)
@@ -338,17 +338,15 @@ do
     # DAEMONSET="${SERVICE_NAME}"
     CURRENT_VERSION=$(oc -n ${OPENSHIFT_PROJECT} get --insecure-skip-tls-verify daemonset ${DAEMONSET} -o=go-template --template='{{.metadata.generation}}' 2> /dev/null)
   elif [ $SERVICE_TYPE == "mariadb-dbaas" ]; then
-    echo "nothing to monitor for $SERVICE_TYPE"
     CURRENT_VERSION=0
   elif [ $SERVICE_TYPE == "postgres" ]; then
-    echo "nothing to monitor for $SERVICE_TYPE - for now"
     CURRENT_VERSION=0
   elif [ ! $SERVICE_ROLLOUT_TYPE == "false" ]; then
-    CURRENT_VERSION=$(kubectl -n ${NAMESPACE} get replicaset -l app.kubernetes.io/instance=${SERVICE_NAME} --sort-by=.metadata.creationTimestamp -o=json | jq -r -e '.items[-1].metadata.labels."pod-template-hash" // empty')
+    CURRENT_VERSION=$(kubectl -n ${NAMESPACE} get replicaset -l app.kubernetes.io/instance=${SERVICE_NAME} --sort-by=.metadata.creationTimestamp -o=json | jq -r -e '.items[-1].metadata.labels."pod-template-hash" // 0')
   fi
   # set the values in the new map, but default `CURRENT_VERSION` to 0 if nothing has been deployed yet
   SERVICE_TYPES_CURRENT_VERSION+=("${SERVICE_NAME}:${SERVICE_TYPE}:${CURRENT_VERSION:-0}")
-  if [ ${CURRENT_VERSION:-0} == 0 ]
+  if [ ${CURRENT_VERSION:-0} == 0 ]; then
     let "COUNT_VERSIONS=COUNT_VERSIONS+1"
   fi
 done
@@ -394,7 +392,11 @@ fi
 
 # get a sha sum of the config map `lagoon-env`, we will use this to check later on if the config map has changed
 # if the configmap doesn't exist, we will just get a dummy sha
-CONFIG_MAP_SHA=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap lagoon-env -o yaml 2> /dev/null | shyaml get-value data 2> /dev/null | sha256sum | awk '{print $1}')
+if ! kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap lagoon-env &> /dev/null; then
+  CONFIG_MAP_SHA=0000000000000000000000000000000000000000000000000000000000000000
+else
+  CONFIG_MAP_SHA=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap lagoon-env -o yaml 2> /dev/null | shyaml get-value data 2> /dev/null | sha256sum | awk '{print $1}')
+fi
 
 ##############################################
 ### CREATE OPENSHIFT SERVICES, ROUTES and SERVICEBROKERS
