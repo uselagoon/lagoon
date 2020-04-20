@@ -398,25 +398,37 @@ do
     # STATEFULSET="${SERVICE_NAME}-galera"
     # SERVICE_NAME="${SERVICE_NAME}-maxscale"
     ## noone should be using `mariadb-galera`
-    CURRENT_VERSION=$(oc -n ${OPENSHIFT_PROJECT} get --insecure-skip-tls-verify dc/${SERVICE_NAME} -o=go-template --template='{{.status.latestVersion}}' 2> /dev/null)
+    if oc -n ${OPENSHIFT_PROJECT} get --insecure-skip-tls-verify dc/${SERVICE_NAME} -o=go-template --template='{{.status.latestVersion}}' &> /dev/null; then
+      CURRENT_VERSION=$(oc -n ${OPENSHIFT_PROJECT} get --insecure-skip-tls-verify dc/${SERVICE_NAME} -o=go-template --template='{{.status.latestVersion}}' 2> /dev/null)
+    fi
   elif [ $SERVICE_TYPE == "elasticsearch-cluster" ]; then
     # STATEFULSET="${SERVICE_NAME}"\
-    CURRENT_VERSION=$(oc -n ${OPENSHIFT_PROJECT} get --insecure-skip-tls-verify statefulset ${STATEFULSET} -o=go-template --template='{{.status.updateRevision}}' 2> /dev/null)
+    if oc -n ${OPENSHIFT_PROJECT} get --insecure-skip-tls-verify statefulset ${STATEFULSET} -o=go-template --template='{{.status.updateRevision}}' &> /dev/null; then
+      CURRENT_VERSION=$(oc -n ${OPENSHIFT_PROJECT} get --insecure-skip-tls-verify statefulset ${STATEFULSET} -o=go-template --template='{{.status.updateRevision}}' 2> /dev/null)
+    fi
   elif [ $SERVICE_TYPE == "rabbitmq-cluster" ]; then
     # STATEFULSET="${SERVICE_NAME}"
-    CURRENT_VERSION=$(oc -n ${OPENSHIFT_PROJECT} get --insecure-skip-tls-verify statefulset ${STATEFULSET} -o=go-template --template='{{.status.updateRevision}}' 2> /dev/null)
+    if oc -n ${OPENSHIFT_PROJECT} get --insecure-skip-tls-verify statefulset ${STATEFULSET} -o=go-template --template='{{.status.updateRevision}}' &> /dev/null; then
+      CURRENT_VERSION=$(oc -n ${OPENSHIFT_PROJECT} get --insecure-skip-tls-verify statefulset ${STATEFULSET} -o=go-template --template='{{.status.updateRevision}}' 2> /dev/null)
+    fi
   elif [ $SERVICE_ROLLOUT_TYPE == "statefulset" ]; then
     # STATEFULSET="${SERVICE_NAME}"
-    CURRENT_VERSION=$(oc -n ${OPENSHIFT_PROJECT} get --insecure-skip-tls-verify statefulset ${STATEFULSET} -o=go-template --template='{{.status.updateRevision}}' 2> /dev/null)
+    if oc -n ${OPENSHIFT_PROJECT} get --insecure-skip-tls-verify statefulset ${STATEFULSET} -o=go-template --template='{{.status.updateRevision}}' &> /dev/null; then
+      CURRENT_VERSION=$(oc -n ${OPENSHIFT_PROJECT} get --insecure-skip-tls-verify statefulset ${STATEFULSET} -o=go-template --template='{{.status.updateRevision}}' 2> /dev/null)
+    fi
   elif [ $SERVICE_ROLLOUT_TYPE == "deamonset" ]; then
     # DAEMONSET="${SERVICE_NAME}"
-    CURRENT_VERSION=$(oc -n ${OPENSHIFT_PROJECT} get --insecure-skip-tls-verify daemonset ${DAEMONSET} -o=go-template --template='{{.metadata.generation}}' 2> /dev/null)
+    if oc -n ${OPENSHIFT_PROJECT} get --insecure-skip-tls-verify daemonset ${DAEMONSET} -o=go-template --template='{{.metadata.generation}}' &> /dev/null; then
+      CURRENT_VERSION=$(oc -n ${OPENSHIFT_PROJECT} get --insecure-skip-tls-verify daemonset ${DAEMONSET} -o=go-template --template='{{.metadata.generation}}' 2> /dev/null)
+    fi
   elif [ $SERVICE_TYPE == "mariadb-dbaas" ]; then
     CURRENT_VERSION=0
   elif [ $SERVICE_TYPE == "mariadb-shared" ]; then
     CURRENT_VERSION=0
   elif [ ! $SERVICE_ROLLOUT_TYPE == "false" ]; then
-    CURRENT_VERSION=$(oc -n ${OPENSHIFT_PROJECT} get --insecure-skip-tls-verify dc/${SERVICE_NAME} -o=go-template --template='{{.status.latestVersion}}' 2> /dev/null)
+    if oc -n ${OPENSHIFT_PROJECT} get --insecure-skip-tls-verify dc/${SERVICE_NAME} -o=go-template --template='{{.status.latestVersion}}' &> /dev/null; then
+      CURRENT_VERSION=$(oc -n ${OPENSHIFT_PROJECT} get --insecure-skip-tls-verify dc/${SERVICE_NAME} -o=go-template --template='{{.status.latestVersion}}' 2> /dev/null)
+    fi
   fi
   # set the values in the new map, but default `CURRENT_VERSION` to 0 if nothing has been deployed yet
   SERVICE_TYPES_CURRENT_VERSION+=("${SERVICE_NAME}:${SERVICE_TYPE}:${CURRENT_VERSION:-0}")
@@ -466,7 +478,7 @@ fi
 
 # get a sha sum of the config map `lagoon-env`, we will use this to check later on if the config map has changed
 # if the configmap doesn't exist, we will just get a dummy sha
-if ! oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get configmap &> /dev/null; then
+if ! oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get configmap lagoon-env &> /dev/null; then
   CONFIG_MAP_SHA=0000000000000000000000000000000000000000000000000000000000000000
 else
   CONFIG_MAP_SHA=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get configmap lagoon-env -o yaml 2> /dev/null | shyaml get-value data 2> /dev/null | sha256sum | awk '{print $1}')

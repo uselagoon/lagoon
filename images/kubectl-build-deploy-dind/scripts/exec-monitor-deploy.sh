@@ -31,7 +31,7 @@ stream_logs_deployment() {
 # if they are, check the service version is greater than 0, 0 = new/never deployed
 # then check if we have the flag to redeploy if the configmap was updated
 LATEST_POD_TEMPLATE_HASH=$(kubectl -n ${NAMESPACE} get replicaset -l app.kubernetes.io/instance=${SERVICE_NAME} --sort-by=.metadata.creationTimestamp -o=json | jq -r '.items[-1].metadata.labels."pod-template-hash"')
-if [[ $SERVICE_VERSION == $LATEST_POD_TEMPLATE_HASH ] && [ $SERVICE_VERSION -gt 0] && [ "$REDEPLOY_IF_CONFIG_CHANGED" == "true" ]]; then
+if [[ $SERVICE_VERSION == $LATEST_POD_TEMPLATE_HASH && $SERVICE_VERSION -gt 0 && "$REDEPLOY_IF_CONFIG_CHANGED" == "true" ]]; then
   # do the redeploy
   kubectl -n ${NAMESPACE} --insecure-skip-tls-verify rollout restart deployments/${SERVICE_NAME}
 fi
