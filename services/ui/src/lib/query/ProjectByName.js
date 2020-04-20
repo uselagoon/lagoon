@@ -22,6 +22,8 @@ export default gql`
         project {
           id
           name
+          productionEnvironment
+          standbyProductionEnvironment
         }
       }
     }
