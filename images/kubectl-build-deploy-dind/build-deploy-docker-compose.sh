@@ -842,7 +842,7 @@ fi
 ## once we have set everything up, check if we modified the configmap in any way, we may need to redeploy
 ADJUSTED_CONFIG_MAP_SHA=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap lagoon-env -o yaml | shyaml get-value data | sha256sum | awk '{print $1}')
 REDEPLOY_IF_CONFIG_CHANGED=false
-if [ "${ADJUSTED_CONFIG_MAP_SHA}" -ne "${CONFIG_MAP_SHA}"]; then
+if [ "${ADJUSTED_CONFIG_MAP_SHA}" -ne "${CONFIG_MAP_SHA}" ]; then
   REDEPLOY_IF_CONFIG_CHANGED=true
 fi
 
