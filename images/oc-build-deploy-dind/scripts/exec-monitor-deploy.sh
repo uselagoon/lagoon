@@ -27,6 +27,15 @@ stream_logs_deployment() {
   done
 }
 
+# Check if the latest version and the service version we got this at the start of the build are the same
+# if they are, check the service version is greater than 0, 0 = new/never deployed
+# then check if we have the flag to redeploy if the configmap was updated
+LATEST_VERSION=$(oc -n ${OPENSHIFT_PROJECT} get --insecure-skip-tls-verify dc/${SERVICE_NAME} -o=go-template --template='{{.status.latestVersion}}')
+if [[ $SERVICE_VERSION == $LATEST_VERSION ] && [ $SERVICE_VERSION -gt 0] && [ "$REDEPLOY_IF_CONFIG_CHANGED" == "true" ]]; then
+  # do the redeploy
+  oc -n ${OPENSHIFT_PROJECT} --insecure-skip-tls-verify rollout latest dc/${SERVICE_NAME}
+fi
+
 # start background logs streaming
 stream_logs_deployment &
 STREAM_LOGS_PID=$!

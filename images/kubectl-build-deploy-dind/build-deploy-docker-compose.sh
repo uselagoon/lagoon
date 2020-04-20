@@ -298,33 +298,103 @@ exit 1
 fi
 
 ##############################################
+### CHECK FOR CURRENT DEPLOYMENTS
+##############################################
+
+# loop through all the SERVICE_TYPES and create a new list with the current version of any dc / statefulsets / daemonsets
+# create a new list with the current version / generation / revision so we can force a roll out
+# @TODO: could probably do this in the initial `COMPOSE_SERVICES` generation section, but for initial work its here
+SERVICE_TYPES_CURRENT_VERSION=()
+COUNT_VERSIONS=0
+for SERVICE_LATEST_VERSION_ENTRY in "${SERVICE_TYPES[@]}"
+do
+  IFS=':' read -ra SERVICE_LATEST_VERSION_ENTRY_SPLIT <<< "$SERVICE_LATEST_VERSION_ENTRY"
+  SERVICE_NAME=${SERVICE_LATEST_VERSION_ENTRY_SPLIT[0]}
+  SERVICE_TYPE=${SERVICE_LATEST_VERSION_ENTRY_SPLIT[1]}
+  # default to version 0 for unsupported/unknown types
+  CURRENT_VERSION=0
+  SERVICE_ROLLOUT_TYPE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.${SERVICE_NAME}.labels.lagoon\\.rollout deployment)
+  # Allow the rollout type to be overriden by environment in .lagoon.yml
+  ENVIRONMENT_SERVICE_ROLLOUT_TYPE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.rollouts.${SERVICE_NAME} false)
+  if [ ! $ENVIRONMENT_SERVICE_ROLLOUT_TYPE == "false" ]; then
+    SERVICE_ROLLOUT_TYPE=$ENVIRONMENT_SERVICE_ROLLOUT_TYPE
+  fi
+  # if mariadb-galera is a statefulset check also for maxscale
+  if [ $SERVICE_TYPE == "mariadb-galera" ]; then
+    # STATEFULSET="${SERVICE_NAME}-galera"
+    # SERVICE_NAME="${SERVICE_NAME}-maxscale"
+    ## noone should be using `mariadb-galera`
+    CURRENT_VERSION=$(oc -n ${NAMESPACE} get replicaset -l app.kubernetes.io/instance=${SERVICE_NAME} --sort-by=.metadata.creationTimestamp -o=json | jq -r -e '.items[-1].metadata.labels."pod-template-hash" // empty')
+  elif [ $SERVICE_TYPE == "elasticsearch-cluster" ]; then
+    # STATEFULSET="${SERVICE_NAME}"\
+    CURRENT_VERSION=$(oc -n ${OPENSHIFT_PROJECT} get --insecure-skip-tls-verify statefulset ${STATEFULSET} -o=go-template --template='{{.status.updateRevision}}' 2> /dev/null)
+  elif [ $SERVICE_TYPE == "rabbitmq-cluster" ]; then
+    # STATEFULSET="${SERVICE_NAME}"
+    CURRENT_VERSION=$(oc -n ${OPENSHIFT_PROJECT} get --insecure-skip-tls-verify statefulset ${STATEFULSET} -o=go-template --template='{{.status.updateRevision}}' 2> /dev/null)
+  elif [ $SERVICE_ROLLOUT_TYPE == "statefulset" ]; then
+    # STATEFULSET="${SERVICE_NAME}"
+    CURRENT_VERSION=$(oc -n ${OPENSHIFT_PROJECT} get --insecure-skip-tls-verify statefulset ${STATEFULSET} -o=go-template --template='{{.status.updateRevision}}' 2> /dev/null)
+  elif [ $SERVICE_ROLLOUT_TYPE == "deamonset" ]; then
+    # DAEMONSET="${SERVICE_NAME}"
+    CURRENT_VERSION=$(oc -n ${OPENSHIFT_PROJECT} get --insecure-skip-tls-verify daemonset ${DAEMONSET} -o=go-template --template='{{.metadata.generation}}' 2> /dev/null)
+  elif [ $SERVICE_TYPE == "mariadb-dbaas" ]; then
+    echo "nothing to monitor for $SERVICE_TYPE"
+    CURRENT_VERSION=0
+  elif [ $SERVICE_TYPE == "postgres" ]; then
+    echo "nothing to monitor for $SERVICE_TYPE - for now"
+    CURRENT_VERSION=0
+  elif [ ! $SERVICE_ROLLOUT_TYPE == "false" ]; then
+    CURRENT_VERSION=$(kubectl -n ${NAMESPACE} get replicaset -l app.kubernetes.io/instance=${SERVICE_NAME} --sort-by=.metadata.creationTimestamp -o=json | jq -r -e '.items[-1].metadata.labels."pod-template-hash" // empty')
+  fi
+  # set the values in the new map, but default `CURRENT_VERSION` to 0 if nothing has been deployed yet
+  SERVICE_TYPES_CURRENT_VERSION+=("${SERVICE_NAME}:${SERVICE_TYPE}:${CURRENT_VERSION:-0}")
+  if [ ${CURRENT_VERSION:-0} == 0 ]
+    let "COUNT_VERSIONS=COUNT_VERSIONS+1"
+  fi
+done
+
+# if all our versions are 0 and the number of versions equalling 0 match the number of service_types we have
+# then this is likely the first deployment
+FIRST_DEPLOYMENT=false
+if [ ${COUNT_VERSIONS} == ${#SERVICE_TYPES[@]} ]; then
+  FIRST_DEPLOYMENT=true
+fi
+
+##############################################
 ### RUN PRE-ROLLOUT tasks defined in .lagoon.yml
 ##############################################
 
+# if this is the first deployment, don't try to run any pre-rollout tasks
+if [ "${FIRST_DEPLOYMENT}" != "true" ]; then
+  COUNTER=0
+  while [ -n "$(cat .lagoon.yml | shyaml keys tasks.pre-rollout.$COUNTER 2> /dev/null)" ]
+  do
+    TASK_TYPE=$(cat .lagoon.yml | shyaml keys tasks.pre-rollout.$COUNTER)
+    echo $TASK_TYPE
+    case "$TASK_TYPE" in
+      run)
+          COMMAND=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.command)
+          SERVICE_NAME=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.service)
+          CONTAINER=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.container false)
+          SHELL=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.shell sh)
+          . /kubectl-build-deploy/scripts/exec-pre-tasks-run.sh
+          ;;
+      *)
+          echo "Task Type ${TASK_TYPE} not implemented"; exit 1;
 
-COUNTER=0
-while [ -n "$(cat .lagoon.yml | shyaml keys tasks.pre-rollout.$COUNTER 2> /dev/null)" ]
-do
-  TASK_TYPE=$(cat .lagoon.yml | shyaml keys tasks.pre-rollout.$COUNTER)
-  echo $TASK_TYPE
-  case "$TASK_TYPE" in
-    run)
-        COMMAND=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.command)
-        SERVICE_NAME=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.service)
-        CONTAINER=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.container false)
-        SHELL=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.shell sh)
-        . /kubectl-build-deploy/scripts/exec-pre-tasks-run.sh
-        ;;
-    *)
-        echo "Task Type ${TASK_TYPE} not implemented"; exit 1;
+    esac
 
-  esac
+    let COUNTER=COUNTER+1
+  done
+fi
 
-  let COUNTER=COUNTER+1
-done
+##############################################
+### GET CURRENT CONFIG MAP
+##############################################
 
-
-
+# get a sha sum of the config map `lagoon-env`, we will use this to check later on if the config map has changed
+# if the configmap doesn't exist, we will just get a dummy sha
+CONFIG_MAP_SHA=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap lagoon-env -o yaml 2> /dev/null | shyaml get-value data 2> /dev/null | sha256sum | awk '{print $1}')
 
 ##############################################
 ### CREATE OPENSHIFT SERVICES, ROUTES and SERVICEBROKERS
@@ -766,6 +836,17 @@ elif [ "$BUILD_TYPE" == "pullrequest" ] || [ "$BUILD_TYPE" == "branch" ]; then
 fi
 
 ##############################################
+### REDEPLOY DEPLOYMENTS IF CONFIG MAP CHANGES
+##############################################
+
+## once we have set everything up, check if we modified the configmap in any way, we may need to redeploy
+ADJUSTED_CONFIG_MAP_SHA=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap lagoon-env -o yaml | shyaml get-value data | sha256sum | awk '{print $1}')
+REDEPLOY_IF_CONFIG_CHANGED=false
+if [ "${ADJUSTED_CONFIG_MAP_SHA}" -ne "${CONFIG_MAP_SHA}"]; then
+  REDEPLOY_IF_CONFIG_CHANGED=true
+fi
+
+##############################################
 ### CREATE PVC, DEPLOYMENTS AND CRONJOBS
 ##############################################
 YAML_CONFIG_FILE="deploymentconfigs-pvcs-cronjobs-backups"
@@ -920,13 +1001,15 @@ fi
 ### WAIT FOR POST-ROLLOUT TO BE FINISHED
 ##############################################
 
-for SERVICE_TYPES_ENTRY in "${SERVICE_TYPES[@]}"
+# Use the `SERVICE_TYPES_CURRENT_VERSION` to pass through service_version to the rollout scripts instead of `SERVICE_TYPES`
+for SERVICE_TYPES_ENTRY in "${SERVICE_TYPES_CURRENT_VERSION[@]}"
 do
 
   IFS=':' read -ra SERVICE_TYPES_ENTRY_SPLIT <<< "$SERVICE_TYPES_ENTRY"
 
   SERVICE_NAME=${SERVICE_TYPES_ENTRY_SPLIT[0]}
   SERVICE_TYPE=${SERVICE_TYPES_ENTRY_SPLIT[1]}
+  SERVICE_VERSION=${SERVICE_TYPES_ENTRY_SPLIT[1]}
 
   SERVICE_ROLLOUT_TYPE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.${SERVICE_NAME}.labels.lagoon\\.rollout deployment)
 
