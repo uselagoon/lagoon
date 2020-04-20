@@ -250,7 +250,8 @@ function genPushMinishiftRules(baseImageTags) {
 		gsub(/:/, "-", cleanTarget)
 		cleanTarget = "build\\:push-minishift-" cleanTarget
 		allRules = allRules " " cleanTarget
-		rules = rules ".PHONY: " cleanTarget "\n" cleanTarget ":\n" \
+		rules = rules ".PHONY: " cleanTarget "\n" cleanTarget \
+					": minishift/login-docker-registry\n" \
 					"\t@if docker inspect $(CI_BUILD_TAG)/" tags[i] \
 					" > /dev/null 2>&1; then \\\n" \
 					"\t\techo pushing " tags[i] " to minishift registry; \\\n" \
