@@ -358,7 +358,7 @@ const addProject = async (
 
   const harborOperations = createHarborOperations(sqlClient);
 
-  const harborResults = await harborOperations.addProject(project.name, project.id)
+  //const harborResults = await harborOperations.addProject(project.name, project.id)
 
   return project;
 };
