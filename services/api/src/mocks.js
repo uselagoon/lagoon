@@ -491,7 +491,7 @@ mocks.Problem = () => {
     const associated_package = faker.random.arrayElement(packages);
     const version = `${faker.random.number(4)}.${faker.random.number(9)}.${faker.random.number(49)}`;
     const fixed_version = `${version}+deb8u${faker.random.number(9)}`;
-    const severity = faker.random.arrayElement(['Negligible', 'Low', 'Medium', 'High', 'Critical']);
+    const severity = faker.random.arrayElement(['Unknown', 'Negligible', 'Low', 'Medium', 'High', 'Critical']);
     const description = faker.lorem.paragraph();
     const link = `https://security-tracker.debian.org/tracker/${vuln_id}`;
     const deleted = '0000-00-00 00:00:00';
