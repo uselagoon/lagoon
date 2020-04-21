@@ -33,7 +33,6 @@ export const PageProblems = ({ router }) => (
         withEnvironmentRequired
       )(({ data: { environment } }) => {
 
-        console.log('environment: ', environment);
         return (
           <MainLayout>
             <Breadcrumbs>

@@ -23,6 +23,15 @@ const Accordion = ({ children, defaultValue = true, className = "", onToggle, he
             </div>
 
             {visibility ? <Fragment>{children}</Fragment> : null}
+            <style jsx>{`
+                .accordion-heading {
+                    display: flex;
+                    justify-content: space-between;
+                    padding: 20px;
+                    border: 1px solid #efefef;
+                    cursor: pointer;
+                }
+            `}</style>
         </div>
     );
 };

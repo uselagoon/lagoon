@@ -55,11 +55,11 @@ const Problems = ({ problems }) => {
 
     const { requestSort, sortConfig } = useSortableData(currentItems);
 
-    const handleProblemIdFilter = event => {
-      if (event.target.value !== null || event.target.value !== '') {
+    const handleProblemIdFilter = (event) => {
+        if (event.target.value !== null || event.target.value !== '') {
+            console.log('called');
           setCurrentItems(problemResults);
       }
-
       setProblemTerm(event.target.value);
   };
 
@@ -70,11 +70,13 @@ const Problems = ({ problems }) => {
           if (problemTerm == null || problemTerm == '') {
               return problems;
           }
+          console.log('effect: ', problemTerm);
 
            return Object.keys(item).some(key =>
                item[key].toString().toLowerCase().includes(lowercasedFilter))
       });
 
+      setCurrentItems(results);
       setProblemResults(results);
   }, [problemTerm]);
 
@@ -166,13 +168,6 @@ const Problems = ({ problems }) => {
             display: block;
           }
         }
-      }
-
-      .accordion-heading {
-        display: flex;
-        justify-content: space-between;
-        padding: 20px;
-        cursor: pointer;
       }
 
       input#filter {
