@@ -1,5 +1,8 @@
 import React from 'react';
 import Problems from './index';
+import faker from 'faker/locale/en';
+import mocks, { generator } from 'api/src/mocks';
+import {MockList} from "graphql-tools";
 
 export default {
   component: Problems,
@@ -13,10 +16,9 @@ const problemsData = [
     "data": "{hello:'world'}",
     "severity": "HIGH",
     "source": "Drutiny",
-    "service": "",
     "created": "2020-04-01 15:29:22",
     "deleted": "0000-00-00 00:00:00",
-    "severityScore": 0.9
+    "severityScore": "0.9"
   },
   {
     "id": 1,
@@ -24,14 +26,14 @@ const problemsData = [
     "data": "{hello:'world'}",
     "severity": "LOW",
     "source": "Harbor",
-    "service": "",
     "created": "2020-04-01 15:27:53",
     "deleted": "0000-00-00 00:00:00",
-    "severityScore": 0.5
+    "severityScore": "0.5"
   }
 ];
+
 export const Default = () => (
-  <Problems problems={problemsData} />
+  <Problems problems={generator(mocks.Problem, 1, 10)} />
 );
 
 export const NoProblems = () => (
