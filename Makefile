@@ -359,8 +359,10 @@ build/solr__6.6-ckan: build/solr__6.6
 #######
 ####### Node Images are alpine linux based Node images.
 
-nodeimages := 	node__12 \
+nodeimages := 	node__14 \
+				node__12 \
 				node__10 \
+				node__14-builder \
 				node__12-builder \
 				node__10-builder \
 
@@ -383,7 +385,8 @@ $(build-nodeimages): build/commons
 base-images-with-versions += $(nodeimages)
 s3-images += $(nodeimages)
 
-build/node__10 build/node__12: images/commons images/node/Dockerfile
+build/node__10 build/node__12 build/node__14: images/commons images/node/Dockerfile
+build/node__14-builder: build/node__14 images/node/builder/Dockerfile
 build/node__12-builder: build/node__12 images/node/builder/Dockerfile
 build/node__10-builder: build/node__10 images/node/builder/Dockerfile
 
