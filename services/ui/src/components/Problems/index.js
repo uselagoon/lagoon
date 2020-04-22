@@ -114,12 +114,14 @@ const Problems = ({ problems }) => {
                     onToggle={visibility => {
                         console.log('visibility -->', visibility);
                     }}>
-                    <div className="version">{problem.version}</div>
-                    <div className="fixedVersion">{problem.fixedVersion}</div>
-                    <div className="links">{problem.links}</div>
-                    <div className="description">{problem.description}</div>
-                    <div className={`data-row row-data`}>
-                        <div className="data">{problem.data}</div>
+                    <div className="expanded-wrapper">
+                        <div className="version"><p>Version: {problem.version}</p></div>
+                        <div className="fixedVersion"><p>Fixed Version: {problem.fixedVersion}</p></div>
+                        <div className="links"><p><a href={problem.links}>{problem.links}</a></p></div>
+                        <div className="description"><p>{problem.description}</p></div>
+                        <div className={`data-row row-data`}>
+                            <div className="data">{problem.data}</div>
+                        </div>
                     </div>
                 </Accordion>
             ))}
@@ -177,6 +179,10 @@ const Problems = ({ problems }) => {
         &.descending:after {
           content: ' \\25BC';
         }
+      }
+
+      .expanded-wrapper {
+        padding: 20px;
       }
 
       .data-table {
