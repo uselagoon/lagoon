@@ -1,126 +1,103 @@
 import React, { useState, useEffect } from 'react';
 import { bp, color, fontSize } from 'lib/variables';
+import useSortableData from './sortedItems';
 import Accordion from '../Accordion';
 
 const Problems = ({ problems }) => {
-    const [currentItems, setCurrentItems] = useState(problems);
+    const { sortedItems, requestSort, getClassNamesFor } = useSortableData(problems);
 
+    const [currentItems, setCurrentItems] = useState(sortedItems);
     const [problemTerm, setProblemTerm] = useState('');
-    const [problemResults, setProblemResults] = React.useState([]);
+    const [hasFilter, setHasFilter] = React.useState(false);
 
-    const getClassNamesFor = (name) => {
-        if (!sortConfig) {
-            return;
-        }
+    const handleProblemFilterChange = (event) => {
+      setHasFilter(false);
 
-        return sortConfig.key === name ? sortConfig.direction : undefined;
-    };
-
-    const useSortableData = (items, config = null) => {
-        const [sortConfig, setSortConfig] = React.useState(config);
-
-        const sortedItems = React.useMemo(() => {
-            let sortableItems = [...items];
-
-            if (sortConfig !== null) {
-                sortableItems.sort((a, b) => {
-
-                    if (a[sortConfig.key] < b[sortConfig.key]) {
-                        return sortConfig.direction === 'ascending' ? -1 : 1;
-                    }
-                    if (a[sortConfig.key] > b[sortConfig.key]) {
-                        return sortConfig.direction === 'ascending' ? 1 : -1;
-                    }
-
-                    return 0;
-                });
-            }
-
-            return sortableItems;
-        }, [items, sortConfig]);
-
-        const requestSort = (key) => {
-            let direction = 'ascending';
-
-            if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
-                direction = 'descending';
-            }
-
-            setCurrentItems(sortedItems);
-            setSortConfig({ key, direction });
-        };
-
-        return { items: sortedItems, requestSort, sortConfig };
-    };
-
-    const { requestSort, sortConfig } = useSortableData(currentItems);
-
-    const handleProblemIdFilter = (event) => {
-        if (event.target.value !== null || event.target.value !== '') {
-            console.log('called');
-          setCurrentItems(problemResults);
+      if (event.target.value !== null || event.target.value !== '') {
+        setCurrentItems(sortedItems);
+        setHasFilter(true);
       }
       setProblemTerm(event.target.value);
-  };
+    };
 
-  useEffect(() => {
-      const lowercasedFilter = problemTerm.toLowerCase();
+    const handleSort = (key) => {
+        if (hasFilter) {
+            const results = filterResults();
+            setCurrentItems(results);
+        }
+        else {
+            setCurrentItems(sortedItems);
+        }
 
-      const results = problems.filter(item => {
-          if (problemTerm == null || problemTerm == '') {
-              return problems;
-          }
-          console.log('effect: ', problemTerm);
+        return requestSort(key);
+    };
 
-           return Object.keys(item).some(key =>
-               item[key].toString().toLowerCase().includes(lowercasedFilter))
-      });
+    const filterResults = () => {
+        const lowercasedFilter = problemTerm.toLowerCase();
 
+        return sortedItems.filter(item => {
+            if (problemTerm == null || problemTerm === '') {
+                setHasFilter(false);
+                return problems;
+            }
+
+            return Object.keys(item).some(key =>
+                item[key].toString().toLowerCase().includes(lowercasedFilter))
+        });
+    };
+
+    useEffect(() => {
+      const results = filterResults();
       setCurrentItems(results);
-      setProblemResults(results);
-  }, [problemTerm]);
+    }, [problemTerm]);
 
-  return (
-    <div className="problems">
+    return (
+      <div className="problems">
         <div className="filters">
-            <input type="text" id="filter"
-                   placeholder="Filter problems e.g. Drutiny"
+            <input type="text" id="filter" placeholder="Filter problems e.g. CVE-2020-2342"
                    value={problemTerm}
-                   onChange={handleProblemIdFilter}
+                   onChange={handleProblemFilterChange}
             />
         </div>
         <div className="header">
             <button
                 type="button"
-                onClick={() => requestSort('identifier')}
+                onClick={() => handleSort('identifier')}
                 className={`button-sort ${getClassNamesFor('identifier')}`}
             >
               Problem id
             </button>
             <button
                 type="button"
-                onClick={() => requestSort('created')}
+                onClick={() => handleSort('created')}
                 className={`button-sort ${getClassNamesFor('created')}`}
             >
               Created
             </button>
             <button
                 type="button"
-                onClick={() => requestSort('source')}
+                onClick={() => handleSort('associatedPackage')}
+                className={`button-sort ${getClassNamesFor('associatedPackage')}`}
+            >
+              Package
+            </button>
+            <button
+                type="button"
+                onClick={() => handleSort('source')}
                 className={`button-sort ${getClassNamesFor('source')}`}
             >
               Source
             </button>
             <button
                 type="button"
-                onClick={() => requestSort('severity')}
+                onClick={() => handleSort('severity')}
                 className={`button-sort ${getClassNamesFor('severity')}`}
             >
               Severity
             </button>
             <button
                 type="button"
-                onClick={() => requestSort('severityScore')}
+                onClick={() => handleSort('severityScore')}
                 className={`button-sort ${getClassNamesFor('severityScore')}`}
             >
               Severity Score
@@ -137,6 +114,10 @@ const Problems = ({ problems }) => {
                     onToggle={visibility => {
                         console.log('visibility -->', visibility);
                     }}>
+                    <div className="version">{problem.version}</div>
+                    <div className="fixedVersion">{problem.fixedVersion}</div>
+                    <div className="links">{problem.links}</div>
+                    <div className="description">{problem.description}</div>
                     <div className={`data-row row-data`}>
                         <div className="data">{problem.data}</div>
                     </div>
@@ -272,7 +253,7 @@ const Problems = ({ problems }) => {
     }
     `}</style>
     </div>
-  );
+    );
 };
 
 export default Problems;

@@ -1,6 +1,6 @@
 import { GraphQLScalarType, GraphQLError } from 'graphql';
 import { makeExecutableSchema } from 'graphql-tools';
-import {Kind} from 'graphql/language';
+import { Kind } from 'graphql/language';
 
 const SeverityScoreType = new GraphQLScalarType({
   name: 'SeverityScore',
@@ -25,6 +25,6 @@ const SeverityScoreType = new GraphQLScalarType({
 
 const types = {
   SeverityScoreType,
-}
+};
 
 module.exports = types;

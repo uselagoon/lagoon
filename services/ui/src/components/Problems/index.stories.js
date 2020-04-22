@@ -9,31 +9,10 @@ export default {
   title: 'Components/Problems',
 }
 
-const problemsData = [
-  {
-    "id": 2,
-    "identifier": "321321",
-    "data": "{hello:'world'}",
-    "severity": "HIGH",
-    "source": "Drutiny",
-    "created": "2020-04-01 15:29:22",
-    "deleted": "0000-00-00 00:00:00",
-    "severityScore": "0.9"
-  },
-  {
-    "id": 1,
-    "identifier": "12341234",
-    "data": "{hello:'world'}",
-    "severity": "LOW",
-    "source": "Harbor",
-    "created": "2020-04-01 15:27:53",
-    "deleted": "0000-00-00 00:00:00",
-    "severityScore": "0.5"
-  }
-];
+let temp = mocks.ProblemMutation(mocks.Problem);
 
 export const Default = () => (
-  <Problems problems={generator(mocks.Problem, 1, 10)} />
+  <Problems problems={generator(mocks.Problem, 1, 20)} />
 );
 
 export const NoProblems = () => (

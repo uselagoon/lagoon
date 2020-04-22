@@ -488,28 +488,27 @@ mocks.Problem = () => {
     const vuln_id = `CVE-${recentYear}-${faker.random.number({min: 1000, max: 99999})}`;
     const source = faker.random.arrayElement(['Clair', 'Drutiny']);
     const created = faker.date.between('2019-10-01 00:00:00', '2020-03-31 23:59:59').toUTCString();
-    const associated_package = faker.random.arrayElement(packages);
+    const associatedPackage = faker.random.arrayElement(packages);
     const version = `${faker.random.number(4)}.${faker.random.number(9)}.${faker.random.number(49)}`;
-    const fixed_version = `${version}+deb8u${faker.random.number(9)}`;
+    const fixedVersion = `${version}+deb8u${faker.random.number(9)}`;
     const severity = faker.random.arrayElement(['Unknown', 'Negligible', 'Low', 'Medium', 'High', 'Critical']);
     const description = faker.lorem.paragraph();
-    const link = `https://security-tracker.debian.org/tracker/${vuln_id}`;
+    const links = `https://security-tracker.debian.org/tracker/${vuln_id}`;
     const deleted = '0000-00-00 00:00:00';
     const severityScore = `0.${faker.random.number({min:1, max:9})}`;
     const data = "{hello: 'world'}";
 
     return {
-        id: faker.random.number(100),
-        vuln_id: vuln_id,
-        identifier: faker.random.uuid(),
+        id: `${faker.random.number(9999999)}`,
+        identifier: vuln_id,
         source: source,
         status: mocks.TaskStatusType(),
-        associated_package,
+        associatedPackage,
         version,
-        fixed_version,
+        fixedVersion,
         severity,
         description,
-        link,
+        links,
         created,
         deleted,
         severityScore,
@@ -518,6 +517,20 @@ mocks.Problem = () => {
 };
 
 mocks.Problems = () => generator(mocks.Problem, 1, 50);
+
+mocks.ProblemMutation = (schema) => {
+    return Array.from({
+        length: faker.random.number({
+            min: 1,
+            max: 500,
+        }),
+    }).map(() => {
+        let temp = schema();
+        return (
+            `problem${faker.random.number(1000000)}: addProblem(input: ${JSON.stringify(temp, 2, null)}) { identifier }`
+        );
+    });
+};
 
 //
 // Query 'type' mock from typeDefs.
