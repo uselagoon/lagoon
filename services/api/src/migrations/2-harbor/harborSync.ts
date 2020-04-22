@@ -18,13 +18,12 @@ import { query, prepare } from '../../util/db';
     // Get project's env vars
     var envVars = await query(sqlClient, `SELECT * FROM env_vars WHERE project='${project.id}';`);
     var hasVars = false;
-    if (envVars != null) {
-      // Check for Harbor variables
-      for (var j = 0; j < envVars.length; j++) {
-        if (envVars[j].name == "INTERNAL_REGISTRY_PASSWORD") {
-          hasVars = true;
-        }
-      };
+
+    // Check for Harbor variables
+    for (var j = 0; j < envVars.length; j++) {
+      if (envVars[j].name == "INTERNAL_REGISTRY_PASSWORD") {
+        hasVars = true;
+      }
     };
 
     if (! hasVars) {
