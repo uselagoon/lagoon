@@ -11,5 +11,10 @@ export default gql`
       created
       deleted
       severityScore
+      associatedPackage
+      description
+      version
+      fixedVersion
+      links
   }
 `;

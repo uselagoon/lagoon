@@ -15,7 +15,7 @@ const {
 
 const {
   SeverityScoreType
-} = require('./resources/problem/types')
+} = require('./resources/problem/types');
 
 const {
   getDeploymentsByEnvironmentId,

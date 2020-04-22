@@ -105,6 +105,8 @@ const typeDefs = gql`
 
   enum ProblemSeverityRating {
     NONE
+    UNKNOWN
+    NEGLIGIBLE
     LOW
     MEDIUM
     HIGH
@@ -121,6 +123,11 @@ const typeDefs = gql`
     identifier: String
     service: String
     source: String
+    associatedPackage: String
+    description: String
+    links: String
+    version: String
+    fixedVersion: String
     data: String
     created: String
     deleted: String
@@ -134,6 +141,11 @@ const typeDefs = gql`
     identifier: String!
     service: String
     source: String!
+    associatedPackage: String
+    description: String
+    links: String
+    version: String
+    fixedVersion: String
     data: String!
     created: String
   }

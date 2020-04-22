@@ -15,8 +15,9 @@ const Accordion = ({ children, defaultValue = true, className = "", onToggle, he
                     {moment
                         .utc(heading.created)
                         .local()
-                        .format('DD MMM YYYY, HH:mm:ss (Z)')}
+                        .format('DD MM YYYY, HH:mm:ss')}
                 </div>
+                <div className="associatedPackage">{heading.associatedPackage}</div>
                 <div className="source">{heading.source}</div>
                 <div className="severity">{heading.severity}</div>
                 <div className="severityscore">{heading.severityScore}</div>
