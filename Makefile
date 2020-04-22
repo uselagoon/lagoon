@@ -473,8 +473,8 @@ $(build-services-galera):
 # Dependencies of Service Images
 build/auth-server build/logs2email build/logs2slack build/logs2rocketchat build/logs2microsoftteams build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftjobs build/openshiftjobsmonitor build/openshiftmisc build/openshiftremove build/backup-handler build/kubernetesbuilddeploy build/kubernetesdeployqueue build/kubernetesbuilddeploymonitor build/kubernetesjobs build/kubernetesjobsmonitor build/kubernetesmisc build/kubernetesremove build/webhook-handler build/webhooks2tasks build/api build/cli build/ui: build/yarn-workspace-builder
 build/logs2logs-db: build/logstash__7
-build/logs-db: build/elasticsearch__7.1
-build/logs-db-ui: build/kibana__7.1
+build/logs-db: build/elasticsearch__7
+build/logs-db-ui: build/kibana__7
 build/logs-db-curator: build/curator
 build/auto-idler: build/oc
 build/storage-calculator: build/oc
@@ -835,7 +835,13 @@ logs:
 
 # Start all Lagoon Services
 up:
+ifeq ($(ARCH), darwin)
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d
+else
+	KEYCLOAK_URL=$$(docker network inspect -f '{{(index .IPAM.Config 0).Gateway}}' bridge):8088 \
+	IMAGE_REPO=$(CI_BUILD_TAG) \
+	docker-compose -p $(CI_BUILD_TAG) up -d
+endif
 	grep -m 1 ".opendistro_security index does not exist yet" <(docker-compose -p $(CI_BUILD_TAG) logs -f logs-db 2>&1)
 	while ! docker exec "$$(docker-compose -p $(CI_BUILD_TAG) ps -q logs-db)" ./securityadmin_demo.sh; do sleep 5; done
 	$(MAKE) wait-for-keycloak
