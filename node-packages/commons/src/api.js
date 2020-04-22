@@ -1107,6 +1107,52 @@ const getGroupMembersByGroupName = groupName => graphqlapi.query(
   { name: groupName }
 );
 
+const addProblem = (
+  id: ?number = null,
+  environment: number,
+  identifier: string,
+  severity: string,
+  source: string,
+  severityScore: number,
+  data: string
+): Promise<Object> => {
+  return graphqlapi.mutate(
+    `
+    ($id: Int, $environment: Int!, $identifier: String!, $severity: ProblemSeverityRating!, $source: String!, $severityScore: SeverityScore, $data: String!) {
+      addProblem(input: {
+          id: $id
+          environment: $environment
+          identifier: $identifier
+          severity: $severity
+          source: $source
+          severityScore: $severityScore
+          data: $data
+      }) {
+        id
+        environment {
+          id
+        }
+        identifier
+        severity
+        source
+        severityScore
+        data
+      }
+    }
+  `,
+    {
+      id,
+      environment,
+      identifier,
+      severity,
+      source,
+      severityScore,
+      data
+    },
+  );
+}
+
+
 module.exports = {
   addGroup,
   addGroupWithParent,
@@ -1154,4 +1200,5 @@ module.exports = {
   sanitizeProjectName,
   getProjectsByGroupName,
   getGroupMembersByGroupName,
+  addProblem,
 };

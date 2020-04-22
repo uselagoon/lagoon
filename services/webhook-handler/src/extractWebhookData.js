@@ -91,6 +91,10 @@ function extractWebhookData(req: Req, body?: string): WebhookRequestData {
       webhooktype = 'resticbackup';
       event = 'restore:finished';
       uuid = uuid4();
+    } else if (bodyObj.type && bodyObj.type == 'scanningCompleted') {
+      webhooktype = 'harbor';
+      event = 'harbor:scanningcompleted';
+      uuid = uuid4();
     } else {
       throw new Error('No supported event header found on POST request');
     }
