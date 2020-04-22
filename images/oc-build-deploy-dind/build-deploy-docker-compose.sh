@@ -266,6 +266,18 @@ if [[ ( "$TYPE" == "pullrequest"  ||  "$TYPE" == "branch" ) && ! $THIS_IS_TUG ==
   BUILD_ARGS=()
 
   set +x # reduce noise in build logs
+  # Get the pre-rollout and post-rollout vars
+    if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
+      LAGOON_PREROLLOUT_DISABLED=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_PREROLLOUT_DISABLED") | "\(.value)"'))
+      LAGOON_POSTROLLOUT_DISABLED=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_POSTROLLOUT_DISABLED") | "\(.value)"'))
+    fi
+    if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
+      LAGOON_PREROLLOUT_DISABLED=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_PREROLLOUT_DISABLED") | "\(.value)"'))
+      LAGOON_POSTROLLOUT_DISABLED=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_POSTROLLOUT_DISABLED") | "\(.value)"'))
+    fi
+  set -x
+
+  set +x # reduce noise in build logs
   # Add environment variables from lagoon API as build args
   if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
     echo "LAGOON_PROJECT_VARIABLES are available from the API"
@@ -379,7 +391,6 @@ fi
 # create a new list with the current version / generation / revision so we can force a roll out
 # @TODO: could probably do this in the initial `COMPOSE_SERVICES` generation section, but for initial work its here
 SERVICE_TYPES_CURRENT_VERSION=()
-COUNT_VERSIONS=0
 for SERVICE_LATEST_VERSION_ENTRY in "${SERVICE_TYPES[@]}"
 do
   IFS=':' read -ra SERVICE_LATEST_VERSION_ENTRY_SPLIT <<< "$SERVICE_LATEST_VERSION_ENTRY"
@@ -432,24 +443,14 @@ do
   fi
   # set the values in the new map, but default `CURRENT_VERSION` to 0 if nothing has been deployed yet
   SERVICE_TYPES_CURRENT_VERSION+=("${SERVICE_NAME}:${SERVICE_TYPE}:${CURRENT_VERSION:-0}")
-  if [ ${CURRENT_VERSION:-0} == 0 ]; then
-    let "COUNT_VERSIONS=COUNT_VERSIONS+1"
-  fi
 done
-
-# if all our versions are 0 and the number of versions equalling 0 match the number of service_types we have
-# then this is likely the first deployment
-FIRST_DEPLOYMENT=false
-if [ ${COUNT_VERSIONS} == ${#SERVICE_TYPES[@]} ]; then
-  FIRST_DEPLOYMENT=true
-fi
 
 ##############################################
 ### RUN PRE-ROLLOUT tasks defined in .lagoon.yml
 ##############################################
 
-# if this is the first deployment, don't try to run any pre-rollout tasks
-if [ "${FIRST_DEPLOYMENT}" != "true" ]; then
+# if we have LAGOON_PREROLLOUT_DISABLED set, don't try to run any pre-rollout tasks
+if [ "${LAGOON_PREROLLOUT_DISABLED}" != "true" ]; then
   COUNTER=0
   while [ -n "$(cat .lagoon.yml | shyaml keys tasks.pre-rollout.$COUNTER 2> /dev/null)" ]
   do
@@ -470,6 +471,8 @@ if [ "${FIRST_DEPLOYMENT}" != "true" ]; then
 
     let COUNTER=COUNTER+1
   done
+else
+  echo "pre-rollout tasks are currently disabled LAGOON_PREROLLOUT_DISABLED is set to true"
 fi
 
 ##############################################
@@ -1295,23 +1298,29 @@ done
 ### RUN POST-ROLLOUT tasks defined in .lagoon.yml
 ##############################################
 
-COUNTER=0
-while [ -n "$(cat .lagoon.yml | shyaml keys tasks.post-rollout.$COUNTER 2> /dev/null)" ]
-do
-  TASK_TYPE=$(cat .lagoon.yml | shyaml keys tasks.post-rollout.$COUNTER)
-  echo $TASK_TYPE
-  case "$TASK_TYPE" in
-    run)
-        COMMAND=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.command)
-        SERVICE_NAME=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.service)
-        CONTAINER=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.container false)
-        SHELL=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.shell sh)
-        . /oc-build-deploy/scripts/exec-tasks-run.sh
-        ;;
-    *)
-        echo "Task Type ${TASK_TYPE} not implemented"; exit 1;
 
-  esac
+# if we have LAGOON_POSTROLLOUT_DISABLED set, don't try to run any pre-rollout tasks
+if [ "${LAGOON_POSTROLLOUT_DISABLED}" != "true" ]; then
+  COUNTER=0
+  while [ -n "$(cat .lagoon.yml | shyaml keys tasks.post-rollout.$COUNTER 2> /dev/null)" ]
+  do
+    TASK_TYPE=$(cat .lagoon.yml | shyaml keys tasks.post-rollout.$COUNTER)
+    echo $TASK_TYPE
+    case "$TASK_TYPE" in
+      run)
+          COMMAND=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.command)
+          SERVICE_NAME=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.service)
+          CONTAINER=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.container false)
+          SHELL=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.shell sh)
+          . /oc-build-deploy/scripts/exec-tasks-run.sh
+          ;;
+      *)
+          echo "Task Type ${TASK_TYPE} not implemented"; exit 1;
 
-  let COUNTER=COUNTER+1
-done
+    esac
+
+    let COUNTER=COUNTER+1
+  done
+else
+  echo "post-rollout tasks are currently disabled LAGOON_POSTROLLOUT_DISABLED is set to true"
+fi
