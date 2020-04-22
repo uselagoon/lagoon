@@ -210,10 +210,8 @@ build/kubectl-build-deploy-dind: build/kubectl images/kubectl-build-deploy-dind
 
 elasticimages :=  elasticsearch__6 \
 								  elasticsearch__7 \
-								  elasticsearch__7.1 \
 									kibana__6 \
 									kibana__7 \
-									kibana__7.1 \
 									logstash__6 \
 									logstash__7
 
@@ -232,7 +230,7 @@ $(build-elasticimages): build/commons
 base-images-with-versions += $(elasticimages)
 s3-images += $(elasticimages)
 
-build/elasticsearch__6 build/elasticsearch__7 build/elasticsearch__7.1 build/kibana__6 build/kibana__7 build/kibana__7.1 build/logstash__6 build/logstash__7: images/commons
+build/elasticsearch__6 build/elasticsearch__7 build/kibana__6 build/kibana__7 build/logstash__6 build/logstash__7: images/commons
 
 #######
 ####### Python Images
