@@ -7,6 +7,7 @@ const {
   getProblemsByEnvironmentId,
   addProblem,
   deleteProblem,
+  deleteProblemsFromSource,
 } = require('./resources/problem/resolvers');
 
 const {
@@ -300,6 +301,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
   Mutation: {
     addProblem,
     deleteProblem,
+    deleteProblemsFromSource,
     addOrUpdateEnvironment,
     updateEnvironment,
     deleteEnvironment,

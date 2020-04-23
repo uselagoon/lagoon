@@ -95,10 +95,32 @@ const deleteProblem = async (
   return 'success';
 };
 
+const deleteProblemsFromSource = async (
+  root,
+  {
+    input : {
+      environment: environmentId,
+      source,
+    }
+  },
+  { sqlClient, hasPermission },
+) => {
+  const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+
+  await hasPermission('problem', 'delete', {
+    project: environment.project,
+  });
+
+  await query(sqlClient, Sql.deleteProblemsFromSource(environmentId, source));
+
+  return 'success';
+}
+
 const Resolvers /* : ResolversObj */ = {
   getProblemsByEnvironmentId,
   addProblem,
   deleteProblem,
+  deleteProblemsFromSource,
 };
 
 module.exports = Resolvers;
