@@ -142,6 +142,11 @@ const typeDefs = gql`
     identifier: String!
   }
 
+  input DeleteProblemsFromSourceInput {
+    environment: Int!
+    source: String!
+  }
+
   type File {
     id: Int
     filename: String
@@ -1276,6 +1281,7 @@ const typeDefs = gql`
     addBackup(input: AddBackupInput!): Backup
     addProblem(input: AddProblemInput!): Problem
     deleteProblem(input: DeleteProblemInput!): String
+    deleteProblemsFromSource(input: DeleteProblemsFromSourceInput!): String
     deleteBackup(input: DeleteBackupInput!): String
     deleteAllBackups: String
     addRestore(input: AddRestoreInput!): Restore
