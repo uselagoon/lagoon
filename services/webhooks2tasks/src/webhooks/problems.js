@@ -6,6 +6,7 @@ const { logger } = require('@lagoon/commons/src/local-logging');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const addAProblem = require('../handlers/problems/addProblem');
 const harborScanningCompleted = require('../handlers/problems/harborScanningCompleted');
+const processHarborVulnerabilityList = require('../handlers/problems/processHarborVulnerabilityList');
 
 
 import type {
@@ -14,9 +15,6 @@ import type {
   RabbitMQMsg,
   Project
 } from './types';
-
-// import convertDateToMYSQLDateTimeFormat from '../../../api/src/util/convertDateToMYSQLDateTimeFormat';
-
 
 
 async function processProblems(
@@ -31,62 +29,17 @@ async function processProblems(
       event
     } = webhook;
 
-
     switch(webhook.event) {
-      case 'harbor:lastsplash' :
-        //TODO: here we
-      // break;
-        console.log("crash, I'm the last splash!");
-      break;
       case 'harbor:scanningcompleted' :
         //TODO: here we're going to be doing the actual scanning connection and setting up a new set of items
         await handle(harborScanningCompleted, webhook, `${webhooktype}:${event}`, channelWrapperWebhooks);
         break
       case 'harbor:scanningresultfetched' :
-      //   for(const objKey in webhook.body) {
-
-
-      //     if(webhook.body[objKey].vulnerabilities) {
-      //       let vulnerabilities = webhook.body[objKey].vulnerabilities;
-      //       //Should we test these objects against some kind of type? Can we?
-      //       vulnerabilities.forEach(element => {
-      //         //console.log(element.description);
-      //         //TODO: convert trivy severity to our levels
-      //         //TODO:
-      //         try {
-      //           addAProblem(null, 1, element.id, 'HIGH', 'harbor', null, JSON.stringify({description: element.description, links: element.links}));
-      //           // console.log(element);
-      //         }
-      //        catch (error) {
-      //           console.log(error);
-      //        }
-
-      //       });
-      //     }
-      // }
-      try {
-        const webhookData = generateWebhookData(webhook.giturl, 'problems', 'harbor:lastsplash', {message: 'last splash!!! 2'});
-        const buffer = new Buffer(JSON.stringify(webhookData));
-        await channelWrapperWebhooks.publish(`lagoon-webhooks`, '', buffer, { persistent: true });
-      } catch(error) {
-        logger.error(`Error queuing lagoon-webhooks harbor:harbor:lastsplash, error: ${error}`);
-      }
+        await handle(processHarborVulnerabilityList, webhook, `${webhooktype}:${event}`, channelWrapperWebhooks);
       break;
     }
     channelWrapperWebhooks.ack(rabbitMsg);
 };
-
-
-const generateWebhookData = (webhookGiturl, webhooktype, event, body, id = null) => {
-  return {
-    webhooktype: webhooktype,
-    event: event,
-    giturl: webhookGiturl,
-    uuid: id ? id : uuid4(),
-    body: body
-  }
-};
-
 
 async function handle(handler, webhook: WebhookRequestData, fullEvent: string, channelWrapperWebhooks: ChannelWrapper) {
   const {
