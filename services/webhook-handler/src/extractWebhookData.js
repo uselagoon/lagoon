@@ -92,7 +92,7 @@ function extractWebhookData(req: Req, body?: string): WebhookRequestData {
       event = 'restore:finished';
       uuid = uuid4();
     } else if (bodyObj.type && bodyObj.type == 'scanningCompleted') {
-      webhooktype = 'harbor';
+      webhooktype = 'problems';
       event = 'harbor:scanningcompleted';
       uuid = uuid4();
     } else {

@@ -22,7 +22,7 @@ function processQueue (rabbitMsg: RabbitMQMsg, channelWrapperWebhooks: ChannelWr
     processDataSync(rabbitMsg, channelWrapperWebhooks);
   } else if (webhooktype == 'resticbackup') {
     processBackup(rabbitMsg, channelWrapperWebhooks);
-  } else if (webhooktype == 'harbor') {
+  } else if (webhooktype == 'problems') {
     processProblem(rabbitMsg, channelWrapperWebhooks);
   }
   else {
