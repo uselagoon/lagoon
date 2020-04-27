@@ -746,8 +746,7 @@ elif [ "$BUILD_TYPE" == "pullrequest" ] || [ "$BUILD_TYPE" == "branch" ]; then
 
   # If we have Images to Push to the OpenRegistry, let's do so
   if [ -f /kubectl-build-deploy/lagoon/push ]; then
-    # TODO: check if we still need the paralelism
-    parallel --retries 1 < /kubectl-build-deploy/lagoon/push
+    parallel --retries 4 < /kubectl-build-deploy/lagoon/push
   fi
 
   # load the image hashes for just pushed Images
