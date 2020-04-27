@@ -69,6 +69,45 @@ const addProblem = async (
   return R.prop(0, rows);
 };
 
+/**
+ * Essentially this is a bulk insert
+ */
+const addProblemsFromSource = async(
+  root,
+  {
+    input: {
+      environment: environmentId,
+      source,
+      problems,
+    }
+  },
+  { sqlClient, hasPermission }
+  ) => {
+    const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+
+    await hasPermission('problem', 'add', {
+      project: environment.project,
+    });
+
+    element = problems[0];
+
+     const Promises = problems.map(element => query(
+        sqlClient,
+        Sql.insertProblem({
+          severity: element.severity,
+          severity_score: element.severityScore,
+          identifier: element.identifier,
+          environment: environmentId,
+          source,
+          data: element.data,
+        })
+      ));
+
+      await Promise.all(Promises).then(values => console.log(values));
+};
+
+
+
 const deleteProblem = async (
   root,
   {
@@ -116,6 +155,7 @@ const Resolvers /* : ResolversObj */ = {
   addProblem,
   deleteProblem,
   deleteProblemsFromSource,
+  addProblemsFromSource,
 };
 
 module.exports = Resolvers;
