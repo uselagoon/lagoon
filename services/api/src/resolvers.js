@@ -18,6 +18,10 @@ const {
 } = require('./resources/problem/types');
 
 const {
+  getLagoonVersion,
+} = require('./resources/lagoon/resolvers');
+
+const {
   getDeploymentsByEnvironmentId,
   getDeploymentByRemoteId,
   addDeployment,
