@@ -3,7 +3,7 @@
 const R = require('ramda');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { createMiscTask } = require('@lagoon/commons/src/tasks');
-const { query, isPatchEmpty } = require('../../util/db');
+const { knex, query, isPatchEmpty } = require('../../util/db');
 const environmentHelpers = require('../environment/helpers');
 const Sql = require('./sql');
 
@@ -89,8 +89,7 @@ const addProblemsFromSource = async(
       project: environment.project,
     });
 
-    element = problems[0];
-
+    //NOTE: this actually works - let's move it into a transaction ...
      const Promises = problems.map(element => query(
         sqlClient,
         Sql.insertProblem({
@@ -103,9 +102,11 @@ const addProblemsFromSource = async(
         })
       ));
 
-      await Promise.all(Promises).then(values => console.log(values));
+      let rets = [];
+      //TODO: use Rambda to pull these props off - build some kind of fallback logic for errors ...
+      await Promise.all(Promises).then(values => rets = values.map(e => e.info.insertId));
+      // return rets;
 };
-
 
 
 const deleteProblem = async (

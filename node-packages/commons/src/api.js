@@ -1152,6 +1152,21 @@ const addProblem = (
   );
 }
 
+const deleteProblemsFromSource = (
+  environment: number,
+  source: string
+): Promise<Object> => {
+  return graphqlapi.mutate(
+    `($environment: Int!, $source: String!) {
+      deleteProblemsFromSource(input: {environment: $environment, source: $source })
+    }
+    `,
+    {
+      environment,
+      source
+    }
+  );
+}
 
 module.exports = {
   addGroup,
@@ -1201,4 +1216,5 @@ module.exports = {
   getProjectsByGroupName,
   getGroupMembersByGroupName,
   addProblem,
+  deleteProblemsFromSource,
 };
