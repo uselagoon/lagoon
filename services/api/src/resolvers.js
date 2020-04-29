@@ -12,13 +12,10 @@ const {
 const {
   SeverityScoreType
 } = require('./resources/problem/types');
-<<<<<<< HEAD
 
 const {
   getLagoonVersion,
 } = require('./resources/lagoon/resolvers');
-=======
->>>>>>> 506e142f13edfa67d5a251c0edda6883f2a34be4
 
 const {
   getDeploymentsByEnvironmentId,
