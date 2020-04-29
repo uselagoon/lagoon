@@ -3,7 +3,7 @@
 exports[`lagu should create a project 1`] = `
 "! Set \\"customer\\" option to \\"3\\" from arguments or config
 ! Set \\"name\\" option to \\"e2e-test-project\\" from arguments or config
-! Set \\"gitUrl\\" option to \\"ssh://git@192.168.42.1:2222/git/e2e-test-project.git\\" from arguments or config
+! Set \\"gitUrl\\" option to \\"ssh://git@172.17.0.1:2222/git/e2e-test-project.git\\" from arguments or config
 ! Set \\"openshift\\" option to \\"2\\" from arguments or config
 ! Set \\"branches\\" option to \\"true\\" from arguments or config
 ! Set \\"pullrequests\\" option to \\"true\\" from arguments or config
@@ -11,7 +11,7 @@ exports[`lagu should create a project 1`] = `
 Project \\"e2e-test-project\\" created successfully:
 Name                   e2e-test-project
 Customer               ci-customer
-Git URL                ssh://git@192.168.42.1:2222/git/e2e-test-project.git
+Git URL                ssh://git@172.17.0.1:2222/git/e2e-test-project.git
 Active Systems Deploy  lagoon_openshiftBuildDeploy
 Active Systems Remove  lagoon_openshiftRemove
 Branches               true
@@ -50,43 +50,43 @@ Updated                              "
 
 exports[`lagu should list all projects 1`] = `
 "Project                Git URL                                                 Branches  Pull Requests  Created
-ci-bitbucket           ssh://git@192.168.42.1:2222/git/bitbucket.git           true      true
-ci-drupal              ssh://git@192.168.42.1:2222/git/drupal.git              true      true
-ci-drupal-galera       ssh://git@192.168.42.1:2222/git/drupal-galera.git       true      true
-ci-drupal-postgres     ssh://git@192.168.42.1:2222/git/drupal-postgres.git     true      true
-ci-elasticsearch       ssh://git@192.168.42.1:2222/git/elasticsearch.git       true      true
-ci-env-limit           ssh://git@192.168.42.1:2222/git/node.git                true      true
-ci-features            ssh://git@192.168.42.1:2222/git/features.git            true      true
-ci-features-subfolder  ssh://git@192.168.42.1:2222/git/features-subfolder.git  true      true
-ci-github              ssh://git@192.168.42.1:2222/git/github.git              true      true
-ci-gitlab              ssh://git@192.168.42.1:2222/git/gitlab.git              true      true
-ci-multiproject1       ssh://git@192.168.42.1:2222/git/multiproject.git        true      true
-ci-multiproject2       ssh://git@192.168.42.1:2222/git/multiproject.git        true      true
-ci-nginx               ssh://git@192.168.42.1:2222/git/nginx.git               true      true
-ci-node                ssh://git@192.168.42.1:2222/git/node.git                true      true
-ci-rest                ssh://git@192.168.42.1:2222/git/rest.git                true      true                              "
+ci-bitbucket           ssh://git@172.17.0.1:2222/git/bitbucket.git           true      true
+ci-drupal              ssh://git@172.17.0.1:2222/git/drupal.git              true      true
+ci-drupal-galera       ssh://git@172.17.0.1:2222/git/drupal-galera.git       true      true
+ci-drupal-postgres     ssh://git@172.17.0.1:2222/git/drupal-postgres.git     true      true
+ci-elasticsearch       ssh://git@172.17.0.1:2222/git/elasticsearch.git       true      true
+ci-env-limit           ssh://git@172.17.0.1:2222/git/node.git                true      true
+ci-features            ssh://git@172.17.0.1:2222/git/features.git            true      true
+ci-features-subfolder  ssh://git@172.17.0.1:2222/git/features-subfolder.git  true      true
+ci-github              ssh://git@172.17.0.1:2222/git/github.git              true      true
+ci-gitlab              ssh://git@172.17.0.1:2222/git/gitlab.git              true      true
+ci-multiproject1       ssh://git@172.17.0.1:2222/git/multiproject.git        true      true
+ci-multiproject2       ssh://git@172.17.0.1:2222/git/multiproject.git        true      true
+ci-nginx               ssh://git@172.17.0.1:2222/git/nginx.git               true      true
+ci-node                ssh://git@172.17.0.1:2222/git/node.git                true      true
+ci-rest                ssh://git@172.17.0.1:2222/git/rest.git                true      true                              "
 `;
 
 exports[`lagu should list no environments for a project with none (using --project option) 1`] = `"Name  Environment Type  Deploy Type  Created  Updated"`;
 
 exports[`lagu should list the new project among all projects 1`] = `
 "Project                Git URL                                                 Branches  Pull Requests  Created
-ci-bitbucket           ssh://git@192.168.42.1:2222/git/bitbucket.git           true      true
-ci-drupal              ssh://git@192.168.42.1:2222/git/drupal.git              true      true
-ci-drupal-galera       ssh://git@192.168.42.1:2222/git/drupal-galera.git       true      true
-ci-drupal-postgres     ssh://git@192.168.42.1:2222/git/drupal-postgres.git     true      true
-ci-elasticsearch       ssh://git@192.168.42.1:2222/git/elasticsearch.git       true      true
-ci-env-limit           ssh://git@192.168.42.1:2222/git/node.git                true      true
-ci-features            ssh://git@192.168.42.1:2222/git/features.git            true      true
-ci-features-subfolder  ssh://git@192.168.42.1:2222/git/features-subfolder.git  true      true
-ci-github              ssh://git@192.168.42.1:2222/git/github.git              true      true
-ci-gitlab              ssh://git@192.168.42.1:2222/git/gitlab.git              true      true
-ci-multiproject1       ssh://git@192.168.42.1:2222/git/multiproject.git        true      true
-ci-multiproject2       ssh://git@192.168.42.1:2222/git/multiproject.git        true      true
-ci-nginx               ssh://git@192.168.42.1:2222/git/nginx.git               true      true
-ci-node                ssh://git@192.168.42.1:2222/git/node.git                true      true
-ci-rest                ssh://git@192.168.42.1:2222/git/rest.git                true      true
-e2e-test-project       ssh://git@192.168.42.1:2222/git/e2e-test-project.git    true      true                              "
+ci-bitbucket           ssh://git@172.17.0.1:2222/git/bitbucket.git           true      true
+ci-drupal              ssh://git@172.17.0.1:2222/git/drupal.git              true      true
+ci-drupal-galera       ssh://git@172.17.0.1:2222/git/drupal-galera.git       true      true
+ci-drupal-postgres     ssh://git@172.17.0.1:2222/git/drupal-postgres.git     true      true
+ci-elasticsearch       ssh://git@172.17.0.1:2222/git/elasticsearch.git       true      true
+ci-env-limit           ssh://git@172.17.0.1:2222/git/node.git                true      true
+ci-features            ssh://git@172.17.0.1:2222/git/features.git            true      true
+ci-features-subfolder  ssh://git@172.17.0.1:2222/git/features-subfolder.git  true      true
+ci-github              ssh://git@172.17.0.1:2222/git/github.git              true      true
+ci-gitlab              ssh://git@172.17.0.1:2222/git/gitlab.git              true      true
+ci-multiproject1       ssh://git@172.17.0.1:2222/git/multiproject.git        true      true
+ci-multiproject2       ssh://git@172.17.0.1:2222/git/multiproject.git        true      true
+ci-nginx               ssh://git@172.17.0.1:2222/git/nginx.git               true      true
+ci-node                ssh://git@172.17.0.1:2222/git/node.git                true      true
+ci-rest                ssh://git@172.17.0.1:2222/git/rest.git                true      true
+e2e-test-project       ssh://git@172.17.0.1:2222/git/e2e-test-project.git    true      true                              "
 `;
 
 exports[`lagu should log an error for a non-existent project (using --project option) 1`] = `"No project 'non-existent-project' found."`;
@@ -123,7 +123,7 @@ Created                                "
 exports[`lagu should show newly-created project details (using --project option) 1`] = `
 "Name                   e2e-test-project
 Customer               ci-customer
-Git URL                ssh://git@192.168.42.1:2222/git/e2e-test-project.git
+Git URL                ssh://git@172.17.0.1:2222/git/e2e-test-project.git
 Active Systems Deploy  lagoon_openshiftBuildDeploy
 Active Systems Remove  lagoon_openshiftRemove
 Branches               true
@@ -135,7 +135,7 @@ Created                                   "
 exports[`lagu should show project details (read from .lagoon.yml) 1`] = `
 "Name                   ci-github
 Customer               ci-customer
-Git URL                ssh://git@192.168.42.1:2222/git/github.git
+Git URL                ssh://git@172.17.0.1:2222/git/github.git
 Active Systems Deploy  lagoon_openshiftBuildDeploy
 Active Systems Remove  lagoon_openshiftRemove
 Branches               true

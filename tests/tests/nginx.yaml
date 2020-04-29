@@ -6,7 +6,7 @@
 
 - include: nginx/nginx.yaml
   vars:
-    testname: "NGINX"
+    testname: "NGINX {{ lookup('env','CLUSTER_TYPE')|upper }}"
     git_repo_name: nginx.git
-    project: ci-nginx
+    project: ci-nginx-{{ lookup('env','CLUSTER_TYPE') }}
     branch: nginx

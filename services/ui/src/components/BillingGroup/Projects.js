@@ -3,7 +3,6 @@ import css from 'styled-jsx/css';
 import { bp, color, fontSize } from 'lib/variables';
 
 const Projects = ({ projects }) => {
-  console.log(projects);
   return (
     <div className="projects">
       
@@ -12,24 +11,28 @@ const Projects = ({ projects }) => {
         </div>
         {projects.map(({ id, name, hits, storageDays, prodHours, devHours }) => (
           <div key={id} className="data-table">
-            <div className="data-row name">
-              {name}
-            </div>
             <div className="data-row">
-              <div>Hits</div>
-              <div className="value">{hits}</div>
-            </div>
-            <div className="data-row">
-              <div>Storage</div>
-              <div className="value">{storageDays}</div>
-            </div>
-            <div className="data-row">
-              <div>Prod</div>
-              <div className="value">{prodHours}</div>
-            </div>
-            <div className="data-row">
-              <div>Dev</div>
-              <div className="value">{devHours}</div>
+              <div className="name">{name}</div>
+              <div className="metrics hits">
+                <div>Hits:</div>
+                <div className="value">{hits}</div>
+              </div>
+
+              <div className="metrics storage">
+                <div>Storage:</div>
+                <div className="value">{storageDays}</div>
+              </div>
+
+              <div className="metrics prod">
+                <div>Prod:</div>
+                <div className="value">{prodHours}</div>
+              </div>
+
+              <div className="metrics dev">
+                <div>Dev:</div>
+                <div className="value">{devHours}</div>
+              </div>
+
             </div>
           </div>
         ))}
@@ -57,6 +60,7 @@ const Projects = ({ projects }) => {
           .name {
             font-weight: bold;
             margin-left: 15px;
+            white-space: nowrap;
           }
           
           .data-row {
@@ -72,14 +76,20 @@ const Projects = ({ projects }) => {
               padding-right: 15px;
             }
 
+            .metrics {
+              display: flex;
+              width: 100%;
+            }
+
             .value {
               width: 100%;
-              text-align: right;
+              margin-left: 5px;
+              text-align: left;
             }
 
             & > div {
               padding-left: 20px;
-              @media ${bp.wideDown} {
+              @media ${bp.wideUp} {
                 padding-right: 40px;
               }
               @media ${bp.wideUp} {

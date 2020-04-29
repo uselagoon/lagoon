@@ -1,5 +1,6 @@
 import GlobalStlyes from 'layouts/GlobalStyles';
 import Header from 'components/Header';
+import Footer from 'components/Footer';
 import { bp } from 'lib/variables';
 
 /**
@@ -27,6 +28,7 @@ const StatusLayout = ({ children }) => (
         }
       }
     `}</style>
+    <Footer />
   </GlobalStlyes>
 );
 

@@ -19,6 +19,8 @@ const { OpendistroSecurityOperations } = require('../group/opendistroSecurity');
 const Sql = require('./sql');
 const { generatePrivateKey, getSshKeyFingerprint } = require('../sshKey');
 const sshKeySql = require('../sshKey/sql');
+const harborClient = require('../../clients/harborClient');
+const createHarborOperations = require('./harborSetup');
 
 /* ::
 
@@ -263,9 +265,19 @@ const addProject = async (
     ? ':active_systems_task'
     : '"lagoon_openshiftJob"'
 },
+        ${
+  input.activeSystemsMisc
+    ? ':active_systems_misc'
+    : '"lagoon_openshiftMisc"'
+},
         ${input.branches ? ':branches' : '"true"'},
         ${input.pullrequests ? ':pullrequests' : '"true"'},
         ${input.productionEnvironment ? ':production_environment' : 'NULL'},
+        ${input.productionRoutes ? ':production_routes' : 'NULL'},
+        ${input.productionAlias ? ':production_alias' : '"lagoon-production"'},
+        ${input.standbyProductionEnvironment ? ':standby_production_environment' : 'NULL'},
+        ${input.standbyRoutes ? ':standby_routes' : 'NULL'},
+        ${input.standbyAlias ? ':standby_alias' : '"lagoon-standby"'},
         ${input.autoIdle ? ':auto_idle' : '1'},
         ${input.storageCalc ? ':storage_calc' : '1'},
         ${
@@ -298,7 +310,6 @@ const addProject = async (
   }
 
   OpendistroSecurityOperations(sqlClient, models.GroupModel).syncGroup(`project-${project.name}`, project.id);
-
 
   // Find or create a user that has the public key linked to them
   const userRows = await query(
@@ -344,6 +355,10 @@ const addProject = async (
   } catch (err) {
     logger.error(`Could not link user to default projet group for ${project.name}: ${err.message}`);
   }
+
+  const harborOperations = createHarborOperations(sqlClient);
+
+  const harborResults = await harborOperations.addProject(project.name, project.id)
 
   return project;
 };
@@ -402,8 +417,14 @@ const updateProject = async (
         activeSystemsDeploy,
         activeSystemsRemove,
         activeSystemsTask,
+        activeSystemsMisc,
         branches,
         productionEnvironment,
+        productionRoutes,
+        productionAlias,
+        standbyProductionEnvironment,
+        standbyRoutes,
+        standbyAlias,
         autoIdle,
         storageCalc,
         pullrequests,
@@ -484,8 +505,14 @@ const updateProject = async (
         activeSystemsDeploy,
         activeSystemsRemove,
         activeSystemsTask,
+        activeSystemsMisc,
         branches,
         productionEnvironment,
+        productionRoutes,
+        productionAlias,
+        standbyProductionEnvironment,
+        standbyRoutes,
+        standbyAlias,
         autoIdle,
         storageCalc,
         pullrequests,
