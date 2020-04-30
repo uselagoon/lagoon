@@ -4,6 +4,8 @@ import { CopyToClipboard } from 'react-copy-to-clipboard';
 import moment from 'moment';
 import giturlparse from 'git-url-parse';
 import Environments from 'components/Environments';
+// @TODO: logic doesn't work
+// import ActiveStandbyConfirm from 'components/ActiveStandbyConfirm';
 import { bp, color, fontSize } from 'lib/variables';
 
 import { Mutation } from 'react-apollo';
@@ -91,8 +93,9 @@ const Project = ({ project }) => {
           </div>
         </div>
       </div>
-
-      {project.productionEnvironment && project.standbyProductionEnvironment
+      {
+      // @TODO: remove this when logic works project.standbyProductionEnvironment == null
+      project.standbyProductionEnvironment == null && project.productionEnvironment && project.standbyProductionEnvironment
         ? <div className="field-wrapper activeEnvironment">
             <div className="inner">
               <label>Active Environment</label>
