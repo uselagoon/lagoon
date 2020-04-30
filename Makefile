@@ -78,7 +78,8 @@ MINIKUBE_MEMORY := 2048
 MINIKUBE_DISK_SIZE := 30g
 
 K3D_VERSION := 1.4.0
-K3D_NAME := k3s-$(CI_BUILD_TAG)
+# k3d has a 35-char name limit
+K3D_NAME := k3s-$(shell echo $(CI_BUILD_TAG) | sed -E 's/.*(.{31})$$/\1/')
 
 ARCH := $(shell uname | tr '[:upper:]' '[:lower:]')
 LAGOON_VERSION := $(shell git describe --tags --exact-match 2>/dev/null || echo development)
