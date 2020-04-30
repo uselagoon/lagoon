@@ -19,12 +19,7 @@ const AllBillingModifiers = ({group, modifiers, month}) => (
 
   <div className="modifiers">
 
-    <h2>All Billing Modifiers</h2>
-    <div className="header">
-      <label className="weight">Weight</label>
-      <label className="dates">Dates</label>
-      <label className="value">Value</label>
-    </div>
+    <h2>Billing Modifiers</h2>
 
       <div className="data-table">
         {!modifiers.length && (
@@ -32,20 +27,25 @@ const AllBillingModifiers = ({group, modifiers, month}) => (
         )}
         {modifiers.map(({ id, group, name, startDate, endDate, customerComments, adminComments, weight, discountFixed, discountPercentage, extraFixed, extraPercentage }) => (
           <div className="data-row" key={id}>
-            <div className="weight">{weight}</div>
-            <div className="dates">{startDate.replace('00:00:00', '')} - {endDate.replace('00:00:00', '')}</div>
-            <div className="value" >
+            
+            <div className="modifier-value">
+              {discountFixed !== 0 ? `- $${discountFixed}` : ''}
+              {discountPercentage !== 0 ? `-  ${discountPercentage}%` : ''}
+              {extraFixed !== 0 ? `+ $${extraFixed}` : ''}
+              {extraPercentage !== 0 ? `+  ${extraPercentage}%` : ''}
+            </div>
+
+            <div className="modifier-range">
+              {startDate.replace('00:00:00', '')} - {endDate.replace('00:00:00', '')}<br/>
+            </div>
+            
+            
+            <div className="comments">
               <div>
-                {discountFixed !== 0 ? `- $${discountFixed}` : ''}
+                Customer Comments: {customerComments}
               </div>
               <div>
-                {discountPercentage !== 0 ? `-  ${discountPercentage}%` : ''}
-              </div>
-              <div>
-                {extraFixed !== 0 ? `+ $${extraFixed}` : ''}
-              </div>
-              <div>
-                {extraPercentage !== 0 ? `+  ${extraPercentage}%` : ''}
+                Admin Comments: {adminComments}
               </div>
             </div>
             <div className="delete">
@@ -135,6 +135,21 @@ const AllBillingModifiers = ({group, modifiers, month}) => (
         }
       }
 
+      .modifier-value {
+        font-weight: bold;
+      }
+
+      .comments {
+        padding-top: 15px;
+        margin-right: 100px;
+      }
+
+      .delete {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+      }
+
       .data-table {
         background-color: ${color.white};
         border: 1px solid ${color.lightestGrey};
@@ -155,25 +170,15 @@ const AllBillingModifiers = ({group, modifiers, month}) => (
           border-bottom: 1px solid ${color.lightestGrey};
           border-radius: 0;
           line-height: 1.5rem;
+          display: block;
+          position: relative;
           padding: 8px 0 7px 0;
-          @media ${bp.wideUp} {
-            display: flex;
-            justify-content: space-between;
-            padding-right: 15px;
-          }
+
 
           & > div {
             padding-left: 20px;
             @media ${bp.wideDown} {
               padding-right: 40px;
-            }
-            @media ${bp.wideUp} {
-              &.dates {
-                width: 50%;
-              }
-              &.value {
-                width: 100px;
-              }
             }
           }
 

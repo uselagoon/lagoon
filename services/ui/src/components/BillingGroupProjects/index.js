@@ -2,7 +2,16 @@ import React from 'react';
 import css from 'styled-jsx/css';
 import { bp, color, fontSize } from 'lib/variables';
 
-const Projects = ({ projects }) => {
+
+const projectsDataReducer = (projects, objKey) => projects.reduce((acc, obj) => acc + obj[objKey], 0);
+
+
+const BillingGroupProjects = ({ projects }) => {
+
+  const hitsTotal = projectsDataReducer(projects, 'hits');
+  const storageTotal = projectsDataReducer(projects, 'storageDays');
+  const prodTotal = projectsDataReducer(projects, 'prodHours');
+  const devTotal = projectsDataReducer(projects, 'devHours');
 
   return (
     <div className="projects">
@@ -18,13 +27,20 @@ const Projects = ({ projects }) => {
         </div>
         {projects.map(({ name, hits, storageDays, prodHours, devHours }) => (
           <div className="data-row">
-            <div className="data-cell name">{name}</div>
-            <div className="data-cell hits">{hits}</div>
-            <div className="data-cell storage">{storageDays}</div>
-            <div className="data-cell prod">{prodHours}</div>
-            <div className="data-cell dev">{devHours}</div>
+            <div className="data-cell name">{name.toLocaleString()}</div>
+            <div className="data-cell hits">{hits.toLocaleString()}</div>
+            <div className="data-cell storage">{storageDays.toLocaleString()}</div>
+            <div className="data-cell prod">{prodHours.toLocaleString()}</div>
+            <div className="data-cell dev">{devHours.toLocaleString()}</div>
           </div>
         ))}
+          <div className="data-row total">
+            <div className="data-cell name">TOTAL</div>
+            <div className="data-cell hits">{hitsTotal.toLocaleString()}</div>
+            <div className="data-cell storage">{storageTotal.toLocaleString()}</div>
+            <div className="data-cell prod">{prodTotal.toLocaleString()}</div>
+            <div className="data-cell dev">{devTotal.toLocaleString()}</div>
+          </div>
         </div>
 
       <style jsx>{`
@@ -49,6 +65,10 @@ const Projects = ({ projects }) => {
             background-color: #ddd;
           }
 
+          .total {
+            background-color: #f2f2f2;
+          }
+
           .data-cell, .data-head {
             display: table-cell;
             text-align: left;
@@ -69,4 +89,4 @@ const Projects = ({ projects }) => {
   );
 };
 
-export default Projects;
+export default BillingGroupProjects;

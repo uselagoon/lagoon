@@ -10,9 +10,10 @@ import MainLayout from 'layouts/MainLayout';
 import BillingGroupCostsQuery from 'lib/query/BillingGroupCosts';
 import AllBillingModifiersQuery from 'lib/query/AllBillingModifiers';
 
-import BarChart from "components/BillingGroup/BarChart";
+import BarChart from "components/BillingGroupBarChart";
 import BillingGroup from "components/BillingGroup";
-import Projects from "components/BillingGroup/Projects";
+import Projects from "components/BillingGroupProjects";
+import Invoice from "components/BillingGroupInvoice";
 import AllBillingModifiers from "components/BillingModifiers/AllBillingModifiers";
 import AddBillingModifier from "components/BillingModifiers/AddBillingModifier";
 
@@ -166,6 +167,7 @@ export const PageBillingGroup = ({ router }) => {
                                 <Button disabled={(values.year >= currYear && values.month >= currMonth) ? true: false} action={nextSubmitHandler}>Next Month</Button>
                               </div>
                               <Projects projects={costs.projects} />
+                              <Invoice cost={costs} />
                             </div>
                           );
                         }
