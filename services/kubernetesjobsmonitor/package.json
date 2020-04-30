@@ -1,0 +1,26 @@
+{
+  "name": "kubernetesjobsmonitor",
+  "version": "0.9.0",
+  "description": "",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "ts-node src/index.ts",
+    "dev": "nodemon --watch src/**/* --watch ../../node-packages -e ts,json --exec 'node --inspect=0.0.0.0:9229 -r ts-node/register src/index.ts'"
+  },
+  "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
+  "contributors": [
+    "Michael Schmid <michael@amazee.io> (https://amazee.io)",
+    "Justin Winter <justin.winter@amazee.io> (https://amazee.io)"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@lagoon/commons": "4.0.0",
+    "kubernetes-client": "^8.3.6",
+    "ts-node": "^8.6.2",
+    "typescript": "^3.7.5",
+    "ramda": "^0.26.1"
+  },
+  "devDependencies": {
+    "nodemon": "^1.12.1"
+  }
+}

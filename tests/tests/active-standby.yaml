@@ -1,0 +1,13 @@
+---
+
+- include: features/api-token.yaml
+  vars:
+    testname: "API TOKEN"
+
+- include: active-standby/active-standby.yaml
+  vars:
+    testname: "ACTIVE_STANDBY"
+    git_repo_name: active-standby.git
+    project: ci-active-standby
+    branch: master-a
+    standby_branch: master-b

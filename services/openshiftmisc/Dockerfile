@@ -10,7 +10,7 @@ FROM ${IMAGE_REPO:-amazeeiolagoon}/node:10
 COPY --from=yarn-workspace-builder /app /app
 
 # Setting the workdir to the service, all following commands will run from here
-WORKDIR /app/services/openshiftjobs/
+WORKDIR /app/services/openshiftmisc/
 
 # Copying the .env.defaults into the Workdir, as the dotenv system searches within the workdir for it
 COPY --from=yarn-workspace-builder /app/.env.defaults .

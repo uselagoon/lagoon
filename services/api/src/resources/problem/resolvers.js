@@ -32,12 +32,12 @@ const getProblemsByEnvironmentId = async (
   return  R.sort(R.descend(R.prop('created')), rows);
 };
 
-
 const addProblem = async (
   root,
   {
     input: {
-      id, severity, environment: environmentId, identifier, service, source, data, created, severityScore
+      id, severity, environment: environmentId, identifier, service, source, data, created,
+        severityScore, associatedPackage, description, version, fixedVersion, links
     },
   },
   { sqlClient, hasPermission },
@@ -60,6 +60,11 @@ const addProblem = async (
       identifier,
       environment: environmentId,
       source,
+      associated_package: associatedPackage,
+      description,
+      version,
+      fixed_version: fixedVersion,
+      links: links,
       data,
       created,
     }),
@@ -128,7 +133,7 @@ const deleteProblem = async (
   await query(sqlClient, Sql.deleteProblem(environmentId, identifier));
 
   return 'success';
-}
+};
 
 const deleteProblemsFromSource = async (
   root,

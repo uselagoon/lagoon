@@ -227,6 +227,7 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
       break;
 
     case "task:remove-openshift:finished":
+    case "task:remove-kubernetes:finished":
       messageMeta.color = 'lawngreen'
       messageMeta.emoji = '✅'
       messageMeta.mainHtml = `Remove <code>${meta.openshiftProject}</code>`
@@ -237,6 +238,7 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
 
     case "task:deploy-openshift:retry":
     case "task:remove-openshift:retry":
+    case "task:remove-kubernetes:retry":
     case "task:remove-openshift-resources:retry":
       messageMeta.color = 'gold'
       messageMeta.emoji = '⚠️'
@@ -260,6 +262,7 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
 
     case "task:deploy-openshift:error":
     case "task:remove-openshift:error":
+    case "task:remove-kubernetes:error":
     case "task:remove-openshift-resources:error":
     case "task:builddeploy-openshift:failed":
       messageMeta.color = 'red'

@@ -56,6 +56,7 @@ const typeDefs = gql`
     RUNTIME
     GLOBAL
     CONTAINER_REGISTRY
+    INTERNAL_CONTAINER_REGISTRY
   }
 
   enum TaskStatusType {
@@ -104,6 +105,8 @@ const typeDefs = gql`
 
   enum ProblemSeverityRating {
     NONE
+    UNKNOWN
+    NEGLIGIBLE
     LOW
     MEDIUM
     HIGH
@@ -120,6 +123,11 @@ const typeDefs = gql`
     identifier: String
     service: String
     source: String
+    associatedPackage: String
+    description: String
+    links: String
+    version: String
+    fixedVersion: String
     data: String
     created: String
     deleted: String
@@ -133,6 +141,11 @@ const typeDefs = gql`
     identifier: String!
     service: String
     source: String!
+    associatedPackage: String
+    description: String
+    links: String
+    version: String
+    fixedVersion: String
     data: String!
     created: String
   }
@@ -283,8 +296,8 @@ const typeDefs = gql`
     name: String
     """
     Git URL, needs to be SSH Git URL in one of these two formats
-    - git@192.168.42.1/project1.git
-    - ssh://git@192.168.42.1:2222/project1.git
+    - git@172.17.0.1/project1.git
+    - ssh://git@172.17.0.1:2222/project1.git
     """
     gitUrl: String
     """
@@ -326,9 +339,14 @@ const typeDefs = gql`
     activeSystemsRemove: String
     """
     Which internal Lagoon System is responsible for tasks
-    Currently only 'lagoon_openshiftJob' exists
+    'lagoon_openshiftJob' or 'lagoon_kubernetesJob'
     """
     activeSystemsTask: String
+    """
+    Which internal Lagoon System is responsible for miscellaneous tasks
+    'lagoon_openshiftMisc' or 'lagoon_kubernetesMisc'
+    """
+    activeSystemsMisc: String
     """
     Which branches should be deployed, can be one of:
     - \`true\` - all branches are deployed
@@ -348,6 +366,29 @@ const typeDefs = gql`
     *Important:* If you change this, you need to deploy both environments (the current and previous one) that are affected in order for the change to propagate correctly
     """
     productionEnvironment: String
+    """
+    Routes that are attached to the active environment
+    """
+    productionRoutes: String
+    """
+    The drush alias to use for the active production environment
+    *Important:* This is mainly used for drupal, but could be used for other services potentially
+    """
+    productionAlias: String
+    """
+    Which environment(the name) should be marked as the production standby environment.
+    *Important:* This is used to determine which environment should be marked as the standby production environment
+    """
+    standbyProductionEnvironment: String
+    """
+    Routes that are attached to the standby environment
+    """
+    standbyRoutes: String
+    """
+    The drush alias to use for the standby production environment
+    *Important:* This is mainly used for drupal, but could be used for other services potentially
+    """
+    standbyAlias: String
     """
     Should this project have auto idling enabled (\`1\` or \`0\`)
     """
@@ -536,6 +577,10 @@ const typeDefs = gql`
     environment: Environment
     remoteId: String
     buildLog: String
+    """
+    The Lagoon URL
+    """
+    uiLink: String
   }
 
   type EnvKeyValue {
@@ -645,6 +690,10 @@ const typeDefs = gql`
     Returns the Billing Group Modifiers for a given Billing Group (all modifiers for the Billing Group will be returned if the month is not provided)
     """
     allBillingModifiers(input: GroupInput!, month: String): [BillingModifier]
+    """
+    Returns LAGOON_VERSION
+    """
+    lagoonVersion: JSON
   }
 
   # Must provide id OR name
@@ -694,9 +743,15 @@ const typeDefs = gql`
     activeSystemsPromote: String
     activeSystemsRemove: String
     activeSystemsTask: String
+    activeSystemsMisc: String
     branches: String
     pullrequests: String
     productionEnvironment: String!
+    productionRoutes: String
+    productionAlias: String
+    standbyProductionEnvironment: String
+    standbyRoutes: String
+    standbyAlias: String
     availability: ProjectAvailability
     autoIdle: Int
     storageCalc: Int
@@ -925,8 +980,14 @@ const typeDefs = gql`
     activeSystemsDeploy: String
     activeSystemsRemove: String
     activeSystemsTask: String
+    activeSystemsMisc: String
     branches: String
     productionEnvironment: String
+    productionRoutes: String
+    productionAlias: String
+    standbyProductionEnvironment: String
+    standbyRoutes: String
+    standbyAlias: String
     autoIdle: Int
     storageCalc: Int
     pullrequests: String
@@ -1077,6 +1138,10 @@ const typeDefs = gql`
     sourceEnvironment: EnvironmentInput!
     project: ProjectInput!
     destinationEnvironment: String!
+  }
+
+  input switchActiveStandbyInput {
+    project: ProjectInput!
   }
 
   input GroupInput {
@@ -1326,6 +1391,7 @@ const typeDefs = gql`
     deployEnvironmentBranch(input: DeployEnvironmentBranchInput!): String
     deployEnvironmentPullrequest(input: DeployEnvironmentPullrequestInput!): String
     deployEnvironmentPromote(input: DeployEnvironmentPromoteInput!): String
+    switchActiveStandby(input: switchActiveStandbyInput!): Task
     addGroup(input: AddGroupInput!): GroupInterface
     updateGroup(input: UpdateGroupInput!): GroupInterface
     deleteGroup(input: DeleteGroupInput!): String
