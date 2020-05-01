@@ -153,37 +153,43 @@ export const PageBillingGroup = ({ router }) => {
                     </select>
                   </div>
                 </div>
-          
-                <div className="content-wrapper">
-                  <div className="leftColumn">
-                    <Query query={BillingGroupCostsQuery} variables={{ input: { name: group }, month: `${year}-${month}` }} >
-                      {R.compose(withQueryLoading, withQueryError)(
-                        ({ data: { costs } }) => {
-                          return(
-                            <div>
-                              <BillingGroup billingGroupCosts={costs} />
-                              <div className="btnWrapper">
-                                <Button action={prevSubmitHandler}>Previous Month</Button>
-                                <Button disabled={(values.year >= currYear && values.month >= currMonth) ? true: false} action={nextSubmitHandler}>Next Month</Button>
-                              </div>
-                              <Projects projects={costs.projects} />
-                              <Invoice cost={costs} />
-                            </div>
-                          );
-                        }
-                      )}
-                    </Query>
 
-                  </div>
-                  <div className="rightColumn">
-                    {<Query query={AllBillingModifiersQuery} variables={{ input: { name: group } }} >
-                        {R.compose(withQueryLoading, withQueryError)(
-                          ({ data: { allBillingModifiers: modifiers } }) => <AllBillingModifiers modifiers={modifiers} group={group} month={`${year}-${month}`} />
-                        )}
-                      </Query>}
-                      <AddBillingModifier group={group} month={`${year}-${month}`} />
-                  </div>
-                </div>
+
+                <Query query={BillingGroupCostsQuery} variables={{ input: { name: group }, month: `${year}-${month}` }} >
+                  {R.compose(withQueryLoading, withQueryError)(
+                    ({ data: { costs } }) => {
+                      return(
+                        <>
+                          <div className="content-wrapper">
+                            <div className="leftColumn">
+                              <div>
+                                <BillingGroup billingGroupCosts={costs} />
+                                <div className="btnWrapper">
+                                  <Button action={prevSubmitHandler}>Previous Month</Button>
+                                  <Button disabled={(values.year >= currYear && values.month >= currMonth) ? true: false} action={nextSubmitHandler}>Next Month</Button>
+                                </div>
+                                <Projects projects={costs.projects} />
+                              </div>
+                            </div>
+                            <div className="rightColumn">
+                              {<Query query={AllBillingModifiersQuery} variables={{ input: { name: group } }} >
+                                  {R.compose(withQueryLoading, withQueryError)(
+                                    ({ data: { allBillingModifiers: modifiers } }) => <AllBillingModifiers modifiers={modifiers} group={group} month={`${year}-${month}`} />
+                                  )}
+                                </Query>}
+                                <AddBillingModifier group={group} month={`${year}-${month}`} />
+                            </div>
+                          </div>
+                          <div className="content-wrapper">
+                            <Invoice cost={costs} />
+                          </div>
+                        </>
+                      );
+                    }
+                  )}
+                </Query>
+
+
               </div>
             );
           }
@@ -248,6 +254,10 @@ export const PageBillingGroup = ({ router }) => {
           width: 50%;
           margin: 1rem;
         }
+      }
+
+      .invoiceContainer {
+        width: 100%;
       }
 
       .monthYearContainer {
