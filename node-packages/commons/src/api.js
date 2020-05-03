@@ -1183,14 +1183,14 @@ const getGroupMembersByGroupName = groupName => graphqlapi.query(
 );
 
 const addProblem = (
-  id: ?number = null,
-  environment: number,
-  identifier: string,
-  severity: string,
-  source: string,
-  severityScore: number,
-  data: string
-): Promise<Object> => {
+  id = null,
+  environment,
+  identifier,
+  severity,
+  source,
+  severityScore,
+  data
+) => {
   return graphqlapi.mutate(
     `
     ($id: Int, $environment: Int!, $identifier: String!, $severity: ProblemSeverityRating!, $source: String!, $severityScore: SeverityScore, $data: String!) {
@@ -1228,9 +1228,9 @@ const addProblem = (
 }
 
 const deleteProblemsFromSource = (
-  environment: number,
-  source: string
-): Promise<Object> => {
+  environment,
+  source
+) => {
   return graphqlapi.mutate(
     `($environment: Int!, $source: String!) {
       deleteProblemsFromSource(input: {environment: $environment, source: $source })
