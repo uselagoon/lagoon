@@ -238,7 +238,7 @@ export const PageBillingGroup = ({ router }) => {
       }
 
       .content-wrapper {
-        @media ${bp.tabletUp} {
+        @media ${bp.desktopUp} {
           display: flex;
           justify-content: space-between;
         }
@@ -251,7 +251,6 @@ export const PageBillingGroup = ({ router }) => {
       .leftColumn, .rightColumn {
         width: 100%;
         @media ${bp.tabletUp} {
-          width: 50%;
           margin: 1rem;
         }
       }

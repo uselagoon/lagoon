@@ -27,9 +27,9 @@ const Invoice = ({ cost }) => {
                 {cost.environmentCostDescription.prod.description.projects.map(({name, hours}) => (<div><span>{name}</span> - <span>{hours} h</span></div>)) }
               </div>
               
-              Total hours: {cost.environmentCostDescription.prod.quantity} h
+              Total hours: {cost.environmentCostDescription.prod.quantity.toFixed(2).toLocaleString()} h
             </div>
-            <div className="data-cell qty">{cost.environmentCostDescription.prod.quantity.toFixed(2)}</div>
+            <div className="data-cell qty">{cost.environmentCostDescription.prod.quantity.toFixed(2).toLocaleString()}</div>
             <div className="data-cell unitPrice">{cost.environmentCostDescription.prod.unitPrice}</div>
             <div className="data-cell amt">{cost.environmentCost.prod.toFixed(2)}</div>
           </div>
@@ -42,10 +42,10 @@ const Invoice = ({ cost }) => {
                 {cost.hitCostDescription.description.projects.map(({name, hits}) => (<div><span>{name}</span> - <span>{hits.toLocaleString()}</span></div>)) }
               </div>
 
-              Combined Hits: {cost.hitCostDescription.total}
+              Combined Hits: {cost.hitCostDescription.description.total.toLocaleString()}
             </div>
-            <div className="data-cell qty">1</div>
-            <div className="data-cell unitPrice">{cost.hitCostDescription.unitPrice.toFixed(2)}</div>
+            <div className="data-cell qty">1.00</div>
+            <div className="data-cell unitPrice">{cost.hitCost.toFixed(2)}</div>
             <div className="data-cell amt">{cost.hitCost.toFixed(2)}</div>
           </div>
 
@@ -58,12 +58,12 @@ const Invoice = ({ cost }) => {
                 {cost.storageCostDescription.description.projects.map(({name, storage}) => (<div><span>{name}</span> - <span>{storage.toFixed(2)} GB</span></div>)) }
               </div>
 
-              Total Storage: {cost.storageCostDescription.quantity.toFixed()} GB <br/>
-              Included Storage: {cost.storageCostDescription.description.included.toFixed(2)} GB <br/>
-              Additional Storage: {cost.storageCostDescription.description.additional.toFixed(2)} GB <br/>
+              Total Storage: {cost.storageCostDescription.quantity.toFixed(2).toLocaleString()} GB <br/>
+              Included Storage: {cost.storageCostDescription.description.included.toFixed(2).toLocaleString()} GB <br/>
+              Additional Storage: {cost.storageCostDescription.description.additional.toFixed(2).toLocaleString()} GB <br/>
 
             </div>
-            <div className="data-cell qty">{cost.storageCostDescription.description.additional.toFixed(2)}</div>
+            <div className="data-cell qty">{cost.storageCostDescription.description.additional.toFixed(2).toLocaleString()}</div>
             <div className="data-cell unitPrice">{cost.storageCostDescription.unitPrice}</div>
             <div className="data-cell amt">{cost.storageCost.toFixed(2)}</div>
           </div>
@@ -77,9 +77,9 @@ const Invoice = ({ cost }) => {
                 {cost.environmentCostDescription.dev.description.projects.map(({name, hours}) => (<div><span>{name}</span> - <span>{hours} h</span></div>)) }
               </div>
 
-              Total additional hours: {cost.environmentCostDescription.dev.quantity} h
+              Total additional hours: {cost.environmentCostDescription.dev.quantity.toFixed(2).toLocaleString()} h
             </div>
-            <div className="data-cell qty">{cost.environmentCostDescription.dev.quantity}</div>
+            <div className="data-cell qty">{cost.environmentCostDescription.dev.quantity.toFixed(2).toLocaleString()}</div>
             <div className="data-cell unitPrice">{cost.environmentCostDescription.dev.unitPrice}</div>
             <div className="data-cell amt">{cost.environmentCost.dev}</div>
           </div>
@@ -88,7 +88,7 @@ const Invoice = ({ cost }) => {
             <div className="data-cell">Total</div>
             <div className="data-cell"></div>
             <div className="data-cell"></div>
-            <div className="data-cell">{cost.total}</div>
+            <div className="data-cell">{cost.total.toFixed(2)}</div>
           </div>
         
         </div>
@@ -101,7 +101,7 @@ const Invoice = ({ cost }) => {
         }
 
         .projects {
-          padding-top: 40px;
+          padding-top: 1rem 0;
         }
 
         .data-table {
@@ -123,6 +123,7 @@ const Invoice = ({ cost }) => {
           .data-heading {
             display: table-header-group;
             background-color: #ddd;
+            white-space: nowrap;
           }
 
           .data-cell, .data-head {
