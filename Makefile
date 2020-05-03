@@ -59,8 +59,12 @@ DOCKER_BUILD_PARAMS := --quiet
 # If it's not set we assume that we are running local and just call it lagoon.
 CI_BUILD_TAG ?= lagoon
 
-# Version and Hash of the OpenShift cli that should be downloaded
+# Local environment
+ARCH := $(shell uname | tr '[:upper:]' '[:lower:]')
+LAGOON_VERSION := $(shell git describe --tags --exact-match 2>/dev/null || echo development)
+DOCKER_DRIVER := $(shell docker info -f '{{.Driver}}')
 
+# Version and Hash of the OpenShift cli that should be downloaded
 MINISHIFT_VERSION := 1.34.1
 OPENSHIFT_VERSION := v3.11.0
 MINISHIFT_CPUS := 6
@@ -81,8 +85,6 @@ K3D_VERSION := 1.4.0
 # k3d has a 35-char name limit
 K3D_NAME := k3s-$(shell echo $(CI_BUILD_TAG) | sed -E 's/.*(.{31})$$/\1/')
 
-ARCH := $(shell uname | tr '[:upper:]' '[:lower:]')
-LAGOON_VERSION := $(shell git describe --tags --exact-match 2>/dev/null || echo development)
 # Name of the Branch we are currently in
 BRANCH_NAME :=
 DEFAULT_ALPINE_VERSION := 3.11
@@ -1014,6 +1016,13 @@ else
 	chmod a+x local-dev/helm/helm
 endif
 
+ifeq ($(DOCKER_DRIVER), btrfs)
+# https://github.com/rancher/k3d/blob/master/docs/faq.md
+K3D_BTRFS_VOLUME := --volume /dev/mapper:/dev/mapper
+else
+K3D_BTRFS_VOLUME :=
+endif
+
 k3d: local-dev/k3d local-dev/kubectl local-dev/helm/helm build/docker-host
 	$(MAKE) local-registry-up
 	$(info starting k3d with name $(K3D_NAME))
@@ -1027,6 +1036,7 @@ endif
 		--name $(K3D_NAME) \
 		--image docker.io/rancher/k3s:$(K3S_VERSION) \
 		--volume $$PWD/local-dev/k3d-registries.yaml:/etc/rancher/k3s/registries.yaml \
+		$(K3D_BTRFS_VOLUME) \
 		-x --no-deploy=traefik \
 		--volume $$PWD/local-dev/k3d-nginx-ingress.yaml:/var/lib/rancher/k3s/server/manifests/k3d-nginx-ingress.yaml
 	echo "$(K3D_NAME)" > $@
