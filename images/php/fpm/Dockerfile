@@ -93,7 +93,7 @@ RUN apk add --no-cache fcgi \
     && sed -i -e "s/newrelic.logfile = .*/newrelic.logfile = \"\/dev\/stdout\"/" /usr/local/etc/php/conf.d/newrelic.ini \
     && sed -i -e "s/newrelic.daemon.logfile = .*/newrelic.daemon.logfile = \"\/dev\/stdout\"/" /usr/local/etc/php/conf.d/newrelic.ini \
     && mv /usr/local/etc/php/conf.d/newrelic.ini /usr/local/etc/php/conf.d/newrelic.disable \
-    && cd / && rm -rf /tmp/newrelic; \
+    && cd / && rm -rf /tmp/newrelic \
     && mkdir -p /app \
     && fix-permissions /usr/local/etc/ \
     && fix-permissions /app \
