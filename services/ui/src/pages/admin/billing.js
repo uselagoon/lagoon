@@ -54,8 +54,8 @@ const months = [
  */
 export const PageBillingGroup = ({ router }) => {
 
-  const { billingGroupName: group } = router.query;
-  const [costs, setCosts] = useState([])
+  const { billingGroupName: group, year: yearSlug, month: monthSlug } = router.query;
+  const [costs, setCosts] = useState([]);
 
   const queries = [];
   for (let i = monthsToGraph; i > 0; i--) {
@@ -78,7 +78,7 @@ export const PageBillingGroup = ({ router }) => {
     setCosts(result);
   }, queries)
 
-  const [values, setValues] = useState({ month: currMonth, year: currYear });
+  const [values, setValues] = useState({ month: monthSlug ? monthSlug: currMonth, year: yearSlug? yearSlug : currYear });
   const {month, year} = values;
   const handleChange = e => {
     const {name, value} = e.target;

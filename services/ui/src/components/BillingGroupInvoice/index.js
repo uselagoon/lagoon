@@ -3,8 +3,6 @@ import css from 'styled-jsx/css';
 import { bp, color, fontSize } from 'lib/variables';
 
 const Invoice = ({ cost }) => {
-
-  console.log(cost);
   
   return (
     <div className="invoice">
@@ -24,7 +22,7 @@ const Invoice = ({ cost }) => {
               PHP CMS Bundle: ${cost.environmentCostDescription.prod.unitPrice} per h<br/>
 
               <div className="projects">
-                {cost.environmentCostDescription.prod.description.projects.map(({name, hours}) => (<div><span>{name}</span> - <span>{hours} h</span></div>)) }
+                {cost.environmentCostDescription.prod.description.projects.map(({name, hours}, index) => (<div key={`prod-${name}-${hours}-${index}`}><span>{name}</span> - <span>{hours} h</span></div>)) }
               </div>
               
               Total hours: {cost.environmentCostDescription.prod.quantity.toFixed(2).toLocaleString()} h
@@ -39,7 +37,7 @@ const Invoice = ({ cost }) => {
               Monthly Hits Fee for { cost.availability } Availability Environment<br/>
 
               <div className="projects">
-                {cost.hitCostDescription.description.projects.map(({name, hits}) => (<div><span>{name}</span> - <span>{hits.toLocaleString()}</span></div>)) }
+                {cost.hitCostDescription.description.projects.map(({name, hits}, index) => (<div  key={`${name}-${hits}-${index}`}><span>{name}</span> - <span>{hits.toLocaleString()}</span></div>)) }
               </div>
 
               Combined Hits: {cost.hitCostDescription.description.total.toLocaleString()}
@@ -55,7 +53,7 @@ const Invoice = ({ cost }) => {
               Storage per GB/day: ${cost.storageCostDescription.unitPrice}<br/>
 
               <div className="projects">
-                {cost.storageCostDescription.description.projects.map(({name, storage}) => (<div><span>{name}</span> - <span>{storage.toFixed(2)} GB</span></div>)) }
+                {cost.storageCostDescription.description.projects.map(({name, storage}, index) => (<div  key={`${name}-${storage}-${index}`}><span>{name}</span> - <span>{storage.toFixed(2)} GB</span></div>)) }
               </div>
 
               Total Storage: {cost.storageCostDescription.quantity.toFixed(2).toLocaleString()} GB <br/>
@@ -74,7 +72,7 @@ const Invoice = ({ cost }) => {
               DEV Environment: ${cost.storageCostDescription.unitPrice} per hour<br/>
 
               <div className="projects">
-                {cost.environmentCostDescription.dev.description.projects.map(({name, hours}) => (<div><span>{name}</span> - <span>{hours} h</span></div>)) }
+                {cost.environmentCostDescription.dev.description.projects.map(({name, hours}, index) => (<div key={`dev-${name}-${hours}-${index}`}><span>{name}</span> - <span>{hours} h</span></div>)) }
               </div>
 
               Total additional hours: {cost.environmentCostDescription.dev.quantity.toFixed(2).toLocaleString()} h
