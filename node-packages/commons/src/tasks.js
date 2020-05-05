@@ -350,12 +350,34 @@ async function createDeployTask(deployData) {
             logger.debug(
               `projectName: ${projectName}, pullrequest: ${branchName}, no pullrequest defined in active system, assuming we want all of them`,
             );
-            return sendToLagoonTasks('builddeploy-openshift', deployData);
+            switch (project.activeSystemsDeploy) {
+              case 'lagoon_openshiftBuildDeploy':
+                return sendToLagoonTasks('builddeploy-openshift', deployData);
+              case 'lagoon_kubernetesBuildDeploy':
+                return sendToLagoonTasks('builddeploy-kubernetes', deployData);
+              default:
+                throw new UnknownActiveSystem(
+                  `Unknown active system '${
+                    project.activeSystemsDeploy
+                  }' for task 'deploy' in for project ${projectName}`,
+                );
+            }
           case 'true':
             logger.debug(
               `projectName: ${projectName}, pullrequest: ${branchName}, all pullrequest active, therefore deploying`,
             );
-            return sendToLagoonTasks('builddeploy-openshift', deployData);
+            switch (project.activeSystemsDeploy) {
+              case 'lagoon_openshiftBuildDeploy':
+                return sendToLagoonTasks('builddeploy-openshift', deployData);
+              case 'lagoon_kubernetesBuildDeploy':
+                return sendToLagoonTasks('builddeploy-kubernetes', deployData);
+              default:
+                throw new UnknownActiveSystem(
+                  `Unknown active system '${
+                    project.activeSystemsDeploy
+                  }' for task 'deploy' in for project ${projectName}`,
+                );
+            }
           case 'false':
             logger.debug(
               `projectName: ${projectName}, pullrequest: ${branchName}, pullrequest deployments disabled`,
