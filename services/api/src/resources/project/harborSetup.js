@@ -8,6 +8,7 @@ const harborClient = require('../../clients/harborClient');
 const logger = require('../../logger');
 const R = require('ramda');
 const Sql = require('../env-variables/sql');
+const PSql = require('./sql');
 const { isPatchEmpty, prepare, query, whereAnd } = require('../../util/db');
 
 const lagoonHarborRoute = R.compose(
@@ -25,7 +26,18 @@ const lagoonWebhookAddress = R.compose(
 )(process.env);
 
 const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
-  addProject: async (lagoonProjectName, projectID) => {
+  addProject: async (lagoonProjectName, projectID, robotName = "") => {
+
+    await query(
+      sqlClient,
+      Sql.insertEnvVariable({
+        "name": "INTERNAL_REGISTRY_TEST",
+        "value": "abc",
+        "scope": "INTERNAL_CONTAINER_REGISTRY",
+        "project": projectID,
+      }),
+    );
+
     // Create harbor project
     try {
       var res = await harborClient.post(`projects`, {
@@ -42,13 +54,13 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
       });
       logger.debug(`Harbor project ${lagoonProjectName} created!`)
     } catch (err) {
-      // 409 means project already exists
-      // 201 means project created successfully
       if (err.statusCode == 409) {
+        // 409 means project already exists
         logger.info(`Unable to create the harbor project "${lagoonProjectName}", as it already exists in harbor!`)
       } else {
         console.log(res)
         logger.error(`Unable to create the harbor project "${lagoonProjectName}", error: ${err}`)
+        return
       }
     }
 
@@ -56,21 +68,49 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
     try {
       const res = await harborClient.get(`projects?name=${lagoonProjectName}`)
       var harborProjectID = res.body[0].project_id
-      logger.debug(`Got the harbor project id for project ${lagoonProjectName} successfully!`)
+      logger.debug(`Harbor project id for ${lagoonProjectName} is: ${harborProjectID}`)
     } catch (err) {
       if (err.statusCode == 404) {
         logger.error(`Unable to get the harbor project id of "${lagoonProjectName}", as it does not exist in harbor!`)
+        return
       } else {
         logger.error(`Unable to get the harbor project id of "${lagoonProjectName}" !!`)
+        return
       }
     }
-    logger.debug(`Harbor project id for ${lagoonProjectName}: ${harborProjectID}`)
+
+    // Check for any preexisting robot accounts
+    var robotNames = []
+    try {
+      const res = await harborClient.get(`projects/${harborProjectID}/robots`);
+
+      for (var i = 0; i < res.body.length; i++) {
+        robotNames.push(res.body[i])
+      }
+    } catch (err) {
+      logger.info(`Unable to retrieve list of current robot accounts for Harbor Project: ${lagoonProjectName}`, err)
+    }
+
+    // Remove any preexisting robot accounts
+    try {
+      for (var i = 0; i < robotNames.length; i++) {
+        var result = await harborClient.delete(`projects/${harborProjectID}/robots/${robotNames[i].id}`, {
+          body: {
+            project_id: harborProjectID,
+            robot_id: robotNames[i].id
+          }
+        });
+        logger.debug(`Removed harbor robot account: ${robotNames[i].name}`)
+      }
+    } catch (err) {
+      logger.info(`Unable to remove pre-existing robot accounts for Harbor project: ${lagoonProjectName}`, err)
+    }
 
     // Create robot account for new harbor project
     try {
       const res = await harborClient.post(`projects/${harborProjectID}/robots`, {
         body: {
-          name: lagoonProjectName,
+          name: (robotName != "") ? robotName : lagoonProjectName,
           access: [
             {
               resource: `/project/${harborProjectID}/repository`,
@@ -80,7 +120,7 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
         }
       })
       var harborTokenInfo = res.body
-      logger.debug(`Robot was created for Harbor project ${lagoonProjectName} !`)
+      logger.debug(`Robot ${(robotName != "") ? robotName : lagoonProjectName} was created for Harbor project ${lagoonProjectName} !`)
     } catch (err) {
       // 409 means project already exists
       // 201 means project created successfully
@@ -91,7 +131,43 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
       }
     }
 
-    // Set Harbor env vars for lagoon environment
+    // Find any currently set env vars
+    var old_env_vars = [];
+    try {
+      const result = await query(
+        sqlClient,
+        PSql.selectProjectByName(lagoonProjectName),
+      );
+      const env_vars = await query(
+        sqlClient,
+        `SELECT *
+        FROM env_vars
+        WHERE project = '${result[0].id}'
+        AND scope = 'internal_container_registry'`
+      );
+
+      for (var i=0; i < env_vars.length; i++) {
+        old_env_vars.push(env_vars[i])
+      }
+    } catch (err) {
+      logger.info(`Unable to get current env vars for project: ${lagoonProjectName}`, err)
+    }
+
+    // Remove any previously set Harbor env vars
+    try {
+      for (var j=0; j < old_env_vars.length; j++) {
+        await query(
+          sqlClient,
+          Sql.deleteEnvVariable (old_env_vars[j].id)
+        );
+        logger.debug(`Removed ${old_env_vars[j].name} env var from project ${lagoonProjectName}`)
+      }
+    } catch (err) {
+      logger.error(`Unable to remove ${old_env_vars[j].name} env var from project ${lagoonProjectName}`, err)
+      return
+    }
+
+    // Set required Lagoon env vars to enable Harbor on this project
     try {
       await query(
         sqlClient,
@@ -103,7 +179,12 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
         }),
       );
       logger.debug(`Environment variable INTERNAL_REGISTRY_URL for ${lagoonProjectName} created!`)
+    } catch (err) {
+      logger.error(`Error while setting INTERNAL_REGISTRY_URL variable for ${lagoonProjectName}, error: ${err}`)
+      return
+    }
 
+    try {
       await query(
         sqlClient,
         Sql.insertEnvVariable({
@@ -114,7 +195,12 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
         }),
       );
       logger.debug(`Environment variable INTERNAL_REGISTRY_USERNAME for ${lagoonProjectName} created!`)
+    } catch (err) {
+      logger.error(`Error while setting INTERNAL_REGISTRY_USERNAME variable for ${lagoonProjectName}, error: ${err}`)
+      return
+    }
 
+    try {
       await query(
         sqlClient,
         Sql.insertEnvVariable({
@@ -126,10 +212,39 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
       );
       logger.debug(`Environment variable INTERNAL_REGISTRY_PASSWORD for ${lagoonProjectName} created!`)
     } catch (err) {
-      logger.error(`Error while setting up harbor environment variables for ${lagoonProjectName}, error: ${err}`)
+      logger.error(`Error while setting INTERNAL_REGISTRY_PASSWORD variable for ${lagoonProjectName}, error: ${err}`)
+      return
     }
 
-    // Set webhooks for Harbor Project
+    // Get current webhooks for Harbor project
+    old_webhooks = []
+    try {
+      const res = await harborClient.get(`projects/${harborProjectID}/webhook/policies`);
+
+      for (var i = 0; i < res.body.length; i++) {
+        old_webhooks.push(res.body[i])
+      }
+    } catch (err) {
+      logger.info(`Unable to retrieve list of current webhooks for Harbor Project: ${lagoonProjectName}`, err)
+    }
+
+    // Remove old webhooks from Harbor project
+    try {
+      for (var j=0; j < old_webhooks.length; j++) {
+        var result = await harborClient.delete(`projects/${harborProjectID}/webhook/policies/${old_webhooks[j].id}`, {
+          body: {
+            project_id: harborProjectID,
+            policy_id: old_webhooks[j].id
+          }
+        });
+        logger.debug(`Removed ${old_webhooks[j].name} webhook from Harbor project ${lagoonProjectName}`)
+      }
+    } catch (err) {
+      logger.error(`Unable to remove ${old_webhooks[j].name} webhook from Harbor project ${lagoonProjectName}`, err)
+      return
+    }
+
+    // Set webhook for Harbor Project
     try {
       var res = await harborClient.post(`projects/${harborProjectID}/webhook/policies`, {
         body: {
@@ -148,8 +263,10 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
           enabled: true
         }
       });
+      logger.info(`Created Lagoon default webhook for Harbor project: ${lagoonProjectName}`)
     } catch (err) {
       logger.error(`Error while creating a webhook in the Harbor project for ${lagoonProjectName}, error: ${err}`)
+      return
     }
   }
 })
