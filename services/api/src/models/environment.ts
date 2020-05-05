@@ -261,40 +261,78 @@ export const EnvironmentModel = (clients) => {
     // This generates YYYY-MM
     const interested_year_month = `${year}-${month < 10 ? `0${month}` : month}`;
     try {
-      const result = await esClient.count({
+      const result = await esClient.search({
         index: `router-logs-${openshiftProjectName}-*`,
         body: {
-          query: {
-            bool: {
-              must: [
+          "size": 0,
+          "query": {
+            "bool": {
+              "must": [
                 {
-                  range: {
-                    '@timestamp': {
-                      gte: `${interested_year_month}||/M`,
-                      lte: `${interested_year_month}||/M`,
-                      format: 'strict_year_month',
-                    },
-                  },
-                },
+                  "range": {
+                    "@timestamp": {
+                      "gte": `${interested_year_month}||/M`,
+                      "lte": `${interested_year_month}||/M`,
+                      "format": "strict_year_month"
+                    }
+                  }
+                }
               ],
-              must_not: [
+              "must_not": [
                 {
-                  match_phrase: {
-                    request_header_useragent: {
-                      query: 'StatusCake',
-                    },
-                  },
-                },
-              ],
-            },
+                  "match_phrase": {
+                    "request_header_useragent": {
+                      "query": "StatusCake"
+                    }
+                  }
+                }
+              ]
+            }
           },
+          "aggs": {
+            "hourly": {
+              "date_histogram": {
+                "field": "@timestamp",
+                "interval": "hour",
+                "min_doc_count": 0,
+                "extended_bounds": {
+                  "min": `${interested_year_month}-01`,
+                  "max": `${interested_year_month}-31` // elasticsearch is clever enough to realize if a month does not have 31 days.
+                }
+              },
+              "aggs": {
+                "count": {
+                  "value_count": {
+                    "field": "@timestamp"
+                  }
+                }
+              }
+            },
+            "average": {
+              "avg_bucket": {
+                "buckets_path": "hourly>count",
+                "gap_policy": "skip" // makes sure that we don't use empty buckets as average calculation
+              }
+            }
+          }
         },
       });
 
-      const response = {
-        total: result.count,
-      };
-      return response;
+      // 0 hits found in elasticsearch, don't even try to generate monthly counts
+      if (result.hits.total.value === 0) {
+        return { total: 0 };
+      }
+
+      var total = 0;
+
+      // loop through all hourly sum counts
+      // if the sum count is empty, this means we have missing data and we use the overall average instead.
+      result.aggregations.hourly.buckets.forEach(bucket => {
+        total += (bucket.count.value === 0 ? parseInt(result.aggregations.average.value) : bucket.count.value);
+      });
+
+      return { total };
+
     } catch (e) {
       logger.error(`Elastic Search Query Error: ${JSON.stringify(e)}`);
       const noHits = { total: 0 };
