@@ -50,7 +50,9 @@ const lagoonHarborRoute = R.compose(
 
     // Filter for projects using this Lagoon's Harbor route
     if (localLagoonURL == lagoonHarborRoute) {
+      logger.info('Lagoon project: ', project.name, " is using this Lagoon's Harbor; syncing new robot account for it.");
       await harborClient.syncProject(project.name, project.id, `${project.name}-${timestamp}`);
+      logger.info('New robot account creation for Lagoon project: ', project.name, " completed.")
     }
     // No registry URL means this project doesn't have a Harbor project set up
     else if (localLagoonURL == "") {
