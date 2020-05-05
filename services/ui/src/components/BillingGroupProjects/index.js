@@ -25,8 +25,8 @@ const BillingGroupProjects = ({ projects }) => {
           <div className="data-head">PROD</div>
           <div className="data-head">DEV</div>
         </div>
-        {projects.map(({ name, hits, storageDays, prodHours, devHours }) => (
-          <div className="data-row">
+        {projects.map(({ name, hits, storageDays, prodHours, devHours }, index) => (
+          <div key={`${index}-name`} className="data-row">
             <div className="data-cell name">{name.toLocaleString()}</div>
             <div className="data-cell hits">{hits.toLocaleString()}</div>
             <div className="data-cell storage">{storageDays.toLocaleString()}</div>

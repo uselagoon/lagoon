@@ -3,9 +3,9 @@ import css from 'styled-jsx/css';
 import { bp, color, fontSize } from 'lib/variables';
 
 const Invoice = ({ cost }) => {
-
+  
   return (
-    <div className="projects">
+    <div className="invoice">
       <h2>Invoice</h2>
 
       <div className="data-table">
@@ -13,31 +13,38 @@ const Invoice = ({ cost }) => {
           <div className="data-head">Description</div>
           <div className="data-head">Quantity</div>
           <div className="data-head">Unit Price</div>
-          <div className="data-head">Amount</div>
+          <div className="data-head">Amount {cost.currency}</div>
         </div>
         
           <div className="data-row prod">
             <div className="data-cell description">
               Monthly Hosting Fee for { cost.availability } Availability Environment<br/>
               PHP CMS Bundle: ${cost.environmentCostDescription.prod.unitPrice} per h<br/>
-              {cost.environmentCostDescription.prod.description.split(',').map(line => <span>{line}<br/></span>)}<br/>
-              Combined Total hours: {cost.environmentCostDescription.prod.quantity} h
+
+              <div className="projects">
+                {cost.environmentCostDescription.prod.description.projects.map(({name, hours}, index) => (<div key={`prod-${name}-${hours}-${index}`}><span>{name}</span> - <span>{hours} h</span></div>)) }
+              </div>
+              
+              Total hours: {cost.environmentCostDescription.prod.quantity.toFixed(2).toLocaleString()} h
             </div>
-            <div className="data-cell qty">{cost.environmentCostDescription.prod.quantity}</div>
+            <div className="data-cell qty">{cost.environmentCostDescription.prod.quantity.toFixed(2).toLocaleString()}</div>
             <div className="data-cell unitPrice">{cost.environmentCostDescription.prod.unitPrice}</div>
-            <div className="data-cell amt">{cost.environmentCost.prod}</div>
+            <div className="data-cell amt">{cost.environmentCost.prod.toFixed(2)}</div>
           </div>
 
           <div className="data-row hits">
             <div className="data-cell description">
               Monthly Hits Fee for { cost.availability } Availability Environment<br/>
-          
-              {cost.hitCostDescription.description.split(',').map(line => <span>{line}<br/></span>)}<br/>
-              Combined Total Hits: {cost.hitCostDescription.quantity}
+
+              <div className="projects">
+                {cost.hitCostDescription.description.projects.map(({name, hits}, index) => (<div  key={`${name}-${hits}-${index}`}><span>{name}</span> - <span>{hits.toLocaleString()}</span></div>)) }
+              </div>
+
+              Combined Hits: {cost.hitCostDescription.description.total.toLocaleString()}
             </div>
-            <div className="data-cell qty">{cost.hitCostDescription.quantity}</div>
-            <div className="data-cell unitPrice">{cost.hitCostDescription.unitPrice}</div>
-            <div className="data-cell amt">{cost.hitCost}</div>
+            <div className="data-cell qty">1.00</div>
+            <div className="data-cell unitPrice">{cost.hitCost.toFixed(2)}</div>
+            <div className="data-cell amt">{cost.hitCost.toFixed(2)}</div>
           </div>
 
           <div className="data-row storage">
@@ -45,32 +52,54 @@ const Invoice = ({ cost }) => {
               Additional Storage Fee<br/>
               Storage per GB/day: ${cost.storageCostDescription.unitPrice}<br/>
 
-              {cost.storageCostDescription.description.split(',').map(line => <span>{line}<br/></span>)}<br/>
-              Combined Total Storage: {cost.storageCostDescription.quantity} GB
+              <div className="projects">
+                {cost.storageCostDescription.description.projects.map(({name, storage}, index) => (<div  key={`${name}-${storage}-${index}`}><span>{name}</span> - <span>{storage.toFixed(2)} GB</span></div>)) }
+              </div>
+
+              Total Storage: {cost.storageCostDescription.quantity.toFixed(2).toLocaleString()} GB <br/>
+              Included Storage: {cost.storageCostDescription.description.included.toFixed(2).toLocaleString()} GB <br/>
+              Additional Storage: {cost.storageCostDescription.description.additional.toFixed(2).toLocaleString()} GB <br/>
+
             </div>
-            <div className="data-cell qty">{cost.storageCostDescription.quantity}</div>
+            <div className="data-cell qty">{cost.storageCostDescription.description.additional.toFixed(2).toLocaleString()}</div>
             <div className="data-cell unitPrice">{cost.storageCostDescription.unitPrice}</div>
-            <div className="data-cell amt">{cost.storageCost}</div>
+            <div className="data-cell amt">{cost.storageCost.toFixed(2)}</div>
           </div>
 
           <div className="data-row storage">
             <div className="data-cell description">
               Additional Development Environments for { cost.availability } Availability Environment<br/>
-              DEV Environment: ${cost.storageCostDescription.unitPrice}<br/>
+              DEV Environment: ${cost.storageCostDescription.unitPrice} per hour<br/>
 
-              {cost.environmentCostDescription.dev.description.split(',').map(line => <span>{line}<br/></span>)}<br/>
-              Combined Total hours: {cost.environmentCostDescription.dev.quantity} h
+              <div className="projects">
+                {cost.environmentCostDescription.dev.description.projects.map(({name, hours}, index) => (<div key={`dev-${name}-${hours}-${index}`}><span>{name}</span> - <span>{hours} h</span></div>)) }
+              </div>
+
+              Total additional hours: {cost.environmentCostDescription.dev.quantity.toFixed(2).toLocaleString()} h
             </div>
-            <div className="data-cell qty">{cost.environmentCostDescription.dev.quantity}</div>
+            <div className="data-cell qty">{cost.environmentCostDescription.dev.quantity.toFixed(2).toLocaleString()}</div>
             <div className="data-cell unitPrice">{cost.environmentCostDescription.dev.unitPrice}</div>
             <div className="data-cell amt">{cost.environmentCost.dev}</div>
+          </div>
+
+          <div className="data-heading">
+            <div className="data-cell">Total</div>
+            <div className="data-cell"></div>
+            <div className="data-cell"></div>
+            <div className="data-cell">{cost.total.toFixed(2)}</div>
           </div>
         
         </div>
 
       <style jsx>{`
+
+        .invoice {
+          width: 100%;
+          margin: 1rem;
+        }
+
         .projects {
-          padding-top: 40px;
+          padding: 1rem 0;
         }
 
         .data-table {
@@ -83,11 +112,16 @@ const Invoice = ({ cost }) => {
           .data-row {
             display: table-row;
             width: 100%;
+
+            &:nth-of-type(odd) {
+              background: #f3f3f3;
+            }
           }
 
           .data-heading {
             display: table-header-group;
             background-color: #ddd;
+            white-space: nowrap;
           }
 
           .data-cell, .data-head {

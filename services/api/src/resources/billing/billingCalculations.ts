@@ -147,22 +147,21 @@ export const hitsCost = ({ projects, currency }: IBillingGroup) => {
   const { hitCosts, hitBase } = currencyPricingAvailability[availability];
   const hitBaseTiers = calculateHitBaseTiers(hitBase, hitCosts);
 
-  const description = projects.reduce((acc, project) => 
-    (acc + `${project.name} - ${project.hits},`), '') + 
-    `Total Hits - ${hits}`;
+  const description = {
+    projects: projects.map(({name, hits}) => ({name, hits})),
+    total: hits
+  }
 
   return tier > 0
     ? {
         cost: Number((hitBaseTiers[tier] + hitsInTier * hitCosts[tier]).toFixed(2)),
         description,
         unitPrice:  hitCosts[tier],
-        quantity: hits
       }
     : {
-      cost: hitBaseTiers[0],
-      description,
-      unitPrice:  hitCosts[tier],
-      quantity: hits
+        cost: hitBaseTiers[0],
+        description,
+        unitPrice:  hitCosts[tier],
       };
 };
 
@@ -179,24 +178,27 @@ export const storageCost = ({ projects, currency }: IBillingGroup) => {
   const days = daysInMonth(projects[0].month, projects[0].year);
   const freeGBDays = projects.length * (5 * days);
   const storageToBill = Math.max(storageDays - freeGBDays, 0);
-  // const averageGBsPerDay = storageDays / days;
+  const averageGBsPerDay = storageDays / days;
 
-  const description = projects.reduce((acc, project) => 
-    (acc + `${project.name} - ${project.storageDays} GB,`), '') + 
-    `Total Storage - ${storageDays} GB, Included Storage ${freeGBDays} GB, Additional Storage - ${storageToBill} GB`;
+  const description = {
+    projects: projects.map(({name, storageDays}) => ({name, storage: storageDays/days})),
+    included: freeGBDays/days,
+    additional: storageToBill
+  }
+
 
   return storageDays > freeGBDays
     ? {
         cost: Number((storageToBill * storagePerDay).toFixed(2)),
         description,
         unitPrice: storagePerDay,
-        quantity: storageToBill
+        quantity: averageGBsPerDay
       }
     : {
         cost: 0,
         description,
         unitPrice: storagePerDay,
-        quantity: storageToBill
+        quantity: averageGBsPerDay
       };
 };
 
@@ -223,7 +225,7 @@ export const prodCost = ({ currency, projects }: IBillingGroup) => {
     totalProdHours = totalProdHours + prodHours;
   });
 
-  const description = projects.map(({name, prodHours}) => (`${name} - ${prodHours} h`)).join(',');
+  const description = { projects: projects.map(({name, prodHours:hours}) => ({name, hours})) };
 
   // TODO - HANDLE MORE THAN 1 PROD ENV FOR A PROJECT
   return {
@@ -251,13 +253,21 @@ export const devCost = ({ currency, projects }: IBillingGroup) => {
 
   const {cost, description, quantity} = projects.reduce((acc, project) => ({ 
     cost:  acc.cost + Math.max((project.devHours - (project.prodHours * 2)) * devSitePerHour, 0), 
-    description: acc.description + `${project.name} - ${project.devHours} h,Included hours - ${project.prodHours},Additional hours - ${Math.max((project.devHours - (project.prodHours * 2)) * devSitePerHour, 0)}`,
-    quantity: acc.quantity + Math.max((project.devHours - (project.prodHours * 2)) * devSitePerHour, 0)}), 
-    { cost: 0, description: '', quantity: 0});
+    description: [
+      ...acc.description, 
+      {
+        name: project.name, 
+        hours: project.devHours, 
+        included: project.prodHours * 2, 
+        additional: Math.max((project.devHours - (project.prodHours * 2)), 0)
+      }
+    ],
+    quantity: acc.quantity + Math.max((project.devHours - (project.prodHours * 2)), 0)}), 
+    { cost: 0, description: [], quantity: 0});
 
   return {
     cost: Number(cost.toFixed(2)),
-    description, 
+    description: { projects: description }, 
     unitPrice: devSitePerHour,
     quantity
   };
