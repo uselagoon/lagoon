@@ -12,6 +12,9 @@ const {
 
 const HARBOR_USERNAME = process.env.HARBOR_USERNAME || "admin";
 const HARBOR_PASSWORD = process.env.HARBOR_PASSWORD || harborpassword;
+const HARBOUR_BASE_API_URL = process.env.HARBOR_USERNAME || "https://harbor-nginx-lagoon-master.ch.amazee.io/api/repositories/";
+const HARBOR_BASE_URL_POSTFIX = "/tags/latest/scan";
+const HARBOR_ACCEPT_HEADER = "application/vnd.scanner.adapter.vuln.report.harbor+json; version=1.0";
 
 async function harborScanningCompleted(
   webhook: WebhookRequestData,
@@ -22,8 +25,6 @@ async function harborScanningCompleted(
   try {
     let { resources, repository } = body.event_data;
 
-    //TODO: check this comes back right - throw malformed error if not
-    let harborEndpoint = resources[0].resource_url;
 
     const [
       lagoonProjectName,
@@ -31,14 +32,14 @@ async function harborScanningCompleted(
       lagoonServiceName = null,
     ] = extractRepositoryDetails(repository.repo_full_name);
 
+    //TODO: check this comes back right - throw malformed error if not
+    let harborEndpoint = HARBOUR_BASE_API_URL + repository.repo_full_name + HARBOR_BASE_URL_POSTFIX;
 
-    //TODO: okay - let's go ahead and actually do the vulnerability extraction.
-    console.log(harborEndpoint);
     let vulnerabilities = await getVulnerabilitiesFromHarbor(harborEndpoint);
-    return;
-    //vulnerabilities = extractVulnerabilities(testData);
 
     //TODO: try/catch/log end
+    console.log(lagoonProjectName);
+
     let { id: lagoonProjectId } = await getProjectByName(lagoonProjectName);
 
     //TODO: this can fail - try, catch, log
@@ -72,21 +73,14 @@ async function harborScanningCompleted(
   }
 }
 
-const extractVulnerabilities = (harborScanResponse) => {
-  for (let [key, value] of Object.entries(harborScanResponse)) {
-    if (value.hasOwnProperty('vulnerabilities')) {
-      return value.vulnerabilities;
-    }
-  }
-  //TODO: should we throw an error here? And how best do we identify the webhook details that come through?
-};
+
 
 const extractRepositoryDetails = (repoFullName) => {
   const pattern = /^(.+)\/(.+)\/(.+)$/;
 
-  if(!pattern.test(repoFullName)) {
-    throw new ProblemsInvalidWebhookData("'" + repoFullName + "' does not conform to the appropriate structure of Project/Environment/Service")
-  }
+  // if(!pattern.test(repoFullName)) {
+  //   throw new ProblemsInvalidWebhookData("'" + repoFullName + "' does not conform to the appropriate structure of Project/Environment/Service")
+  // }
 
   return repoFullName.split('/');
 }
@@ -110,19 +104,28 @@ const generateWebhookData = (
 const getVulnerabilitiesFromHarbor = async (endpoint) => {
   const options = {
     headers: {
-      'Accept': 'application/vnd.scanner.adapter.vuln.report.harbor+json; version=1.0',
+      'Accept': HARBOR_ACCEPT_HEADER,
       'Authorization': 'Basic ' + Buffer.from(HARBOR_USERNAME + ':' + HARBOR_PASSWORD).toString('base64'),
     }
   };
 
   try {
-    const response = await axios.get('https://harbor-nginx-lagoon-master.ch.amazee.io/api/repositories/library/java/tags/latest/scan', options);
-    console.log(response);
+    const response = await axios.get(endpoint, options);
+    return extractVulnerabilities(response.data);
   } catch (error) {
     console.log(error);
   }
 
 }
+
+const extractVulnerabilities = (harborScanResponse) => {
+  for (let [key, value] of Object.entries(harborScanResponse)) {
+    if (value.hasOwnProperty('vulnerabilities')) {
+      return value.vulnerabilities;
+    }
+  }
+  //TODO: should we throw an error here? And how best do we identify the webhook details that come through?
+};
 
 
 class ProblemsHarborConnectionError extends Error {
