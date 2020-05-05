@@ -5,6 +5,13 @@ import createHarborOperations from '../../resources/project/harborSetup';
 import projectHelpers from '../../resources/project/helpers';
 import { query, prepare } from '../../util/db';
 
+const lagoonHarborRoute = R.compose(
+  R.defaultTo('http://172.17.0.1:8084'),
+  R.find(R.test(/harbor-nginx/)),
+  R.split(','),
+  R.propOr('', 'LAGOON_ROUTES'),
+)(process.env);
+
 (async () => {
   const sqlClient = getSqlClient();
   const harborClient = createHarborOperations(sqlClient);
@@ -17,7 +24,13 @@ import { query, prepare } from '../../util/db';
     var project = projects[i];
 
     // Get project's env vars
-    var envVars = await query(sqlClient, `SELECT * FROM env_vars WHERE project='${project.id}';`);
+    var envVars = await query(
+      sqlClient,
+     `SELECT * 
+        FROM env_vars
+        WHERE project='${project.id}'
+        AND scope = 'internal_container_registry';`
+    );
     var hasURL = false;
     var hasUser = false;
     var hasPass = false;
@@ -36,9 +49,8 @@ import { query, prepare } from '../../util/db';
     };
 
     // Filter for projects using this Lagoon's Harbor route
-    if (localLagoonURL == harborClient.lagoonHarborRoute) {
-      // timestamp is the var to keep this random
-
+    if (localLagoonURL == lagoonHarborRoute) {
+      await harborClient.syncProject(project.name, project.id, `${project.name}-${timestamp}`);
     }
     // No registry URL means this project doesn't have a Harbor project set up
     else if (localLagoonURL == "") {
@@ -48,9 +60,8 @@ import { query, prepare } from '../../util/db';
     }
     // Project not using the Harbor local to this Lagoon; do nothing
     else {
-      logger.info('Lagoon project ', project.name, " is setup to use another Harbor: ", harborClient.lagoonHarborRoute);
+      logger.info('Skipping processing of Lagoon project ', project.name, ", as it is setup to use another Harbor: ", lagoonHarborRoute);
     }
-
   };
 
   logger.info('Harbor project sync completed');
