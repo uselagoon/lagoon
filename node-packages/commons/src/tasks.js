@@ -375,7 +375,18 @@ async function createDeployTask(deployData) {
                   project.pullrequests
                 } matched PR Title '${pullrequestTitle}', starting deploy`,
               );
-              return sendToLagoonTasks('builddeploy-openshift', deployData);
+              switch (project.activeSystemsDeploy) {
+                case 'lagoon_openshiftBuildDeploy':
+                  return sendToLagoonTasks('builddeploy-openshift', deployData);
+                case 'lagoon_kubernetesBuildDeploy':
+                  return sendToLagoonTasks('builddeploy-kubernetes', deployData);
+                default:
+                  throw new UnknownActiveSystem(
+                    `Unknown active system '${
+                      project.activeSystemsDeploy
+                    }' for task 'deploy' in for project ${projectName}`,
+                  );
+              }
             }
             logger.debug(
               `projectName: ${projectName}, branchName: ${branchName}, regex ${
