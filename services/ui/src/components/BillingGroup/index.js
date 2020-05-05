@@ -21,26 +21,29 @@ const BillingGroup = ({ billingGroupCosts }) => {
 
         <div className="data-row">
           <div>
-            Hits:<br/><span className="formula">{hitCostFormula}</span>
+            Hits:
           </div><div className="value"> ${hitCost}</div>
         </div>
 
         <div className="data-row">
-          <div>Storage:<br/><span className="formula">{storageCostFormula}</span></div><div className="value"> ${storageCost}</div>
+          <div>Storage:</div><div className="value"> ${storageCost}</div>
         </div>
 
         <div className="data-row">
-          <div>Dev:<br/><span className="formula">{environmentCostFormula.dev}</span></div><div className="value"> ${environmentCost.dev}</div>
+          <div>Dev:</div><div className="value"> ${environmentCost.dev}</div>
         </div>
 
         <div className="data-row">
-          <div>Prod:<br/><span className="formula">{environmentCostFormula.prod}</span></div><div className="value"> ${environmentCost.prod}</div><br/>
-        </div>
+          <div>Prod:</div><div className="value"> ${environmentCost.prod}</div><br/>
+        </div>        
+        
+        <div className="modifiers-heading">Modifiers</div>
+
         { 
           modifiers.map(
             ({ id, startDate, endDate, discountFixed, discountPercentage, extraFixed, extraPercentage, customerComments, adminComments, weight }, index) => (
               <div className="data-row">
-              <div>{index === 0 ? "Modifiers:" : ''}</div>
+                <div className="formula">{adminComments}</div>
                 <div className="value">
                   {discountFixed !== 0 ? (`- $${discountFixed}`) : ''}
                   {discountPercentage !== 0 ? (`-  ${discountPercentage}%`) : ''}
@@ -62,6 +65,11 @@ const BillingGroup = ({ billingGroupCosts }) => {
           font-style: italic;
           color: darkgrey;
         }
+
+        .modifiers-heading {
+          padding: 8px 0 3px 0;
+        }
+
         .data-table {
           background-color: ${color.white};
           border: 1px solid ${color.lightestGrey};
@@ -75,6 +83,15 @@ const BillingGroup = ({ billingGroupCosts }) => {
             line-height: 1.5rem;
             padding: 8px 0 7px 0;
             text-align: center;
+          }
+          & > div {
+            padding-left: 20px;
+            @media ${bp.wideDown} {
+              padding-right: 40px;
+            }
+            @media ${bp.wideUp} {
+
+            }
           }
 
           .data-row {
@@ -102,6 +119,7 @@ const BillingGroup = ({ billingGroupCosts }) => {
             }
 
             & > div {
+              width: 100%;
               padding-left: 20px;
               @media ${bp.wideDown} {
                 padding-right: 40px;
