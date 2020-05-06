@@ -13,8 +13,8 @@ const { publicRuntimeConfig } = getConfig();
 const Header = ({ logo }) => (
   <div className='header'>
     <Link href="/">
-      <a className="home">BOMOKO WAS HERE
-        <img
+      <a className="home">
+	<img
           alt="Home"
           src={logo ? logo : `data:image/svg+xml;utf8,${
             publicRuntimeConfig.LAGOON_UI_ICON
