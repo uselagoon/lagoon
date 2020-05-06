@@ -109,13 +109,15 @@ const Invoice = ({ cost }) => {
             <div className="data-cell amt">{cost.environmentCost.dev}</div>
           </div>
 
-
-          <div className="data-heading">
-            <div className="data-cell">Additional Fees</div>
-            <div className="data-cell"></div>
-            <div className="data-cell"></div>
-            <div className="data-cell"></div>
-          </div>
+          {
+            cost.modifiers.length > 0 &&
+            <div className="data-heading">
+              <div className="data-cell">Additional Fees</div>
+              <div className="data-cell"></div>
+              <div className="data-cell"></div>
+              <div className="data-cell"></div>
+            </div>
+          }
 
           { 
             cost.modifiers.map(
