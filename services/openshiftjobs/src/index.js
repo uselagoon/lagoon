@@ -86,7 +86,7 @@ const messageConsumer = async msg => {
       metadata: {
         name,
         labels: {
-          "lagoon.job.type": "task",
+          "lagoon.sh/jobType": "task",
         }
       },
       spec: {

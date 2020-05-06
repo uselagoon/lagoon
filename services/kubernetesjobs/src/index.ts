@@ -53,7 +53,7 @@ const jobConfig = (name, spec) => {
     metadata: {
       name,
       labels: {
-        "lagoon.job.type": "task",
+        "lagoon.sh/jobType": "task",
       }
     },
     spec: {

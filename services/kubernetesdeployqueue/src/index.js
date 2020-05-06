@@ -89,7 +89,7 @@ const messageConsumer = async msg => {
     new Promise(async (resolve, reject) => {
       const namespaceJobs = await jobsGet({
         qs: {
-          labelSelector: 'lagoon.job.type=build'
+          labelSelector: 'lagoon.sh/jobType=build'
         }
       });
       const activeBuilds = R.pipe(

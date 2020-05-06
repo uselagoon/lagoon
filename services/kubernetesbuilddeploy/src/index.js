@@ -135,7 +135,7 @@ const messageConsumer = async msg => {
           "creationTimestamp": null,
           "name": buildName,
           "labels": {
-            "lagoon.job.type": "build",
+            "lagoon.sh/jobType": "build",
           }
       },
       "spec": {
