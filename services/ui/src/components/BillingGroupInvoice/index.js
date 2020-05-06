@@ -3,6 +3,25 @@ import css from 'styled-jsx/css';
 import { bp, color, fontSize } from 'lib/variables';
 
 const Invoice = ({ cost }) => {
+
+  const currencyChar = ((currency) => {
+    switch (currency) {
+      case 'USD':
+        return '$';
+      case 'CHF':
+        return 'CHF';
+      case 'EUR':
+        return '€';
+      case 'GBP':
+        return '£';
+      case 'ZAR':
+        return 'R';
+      case 'AUD':
+        return 'AU$';
+      default:
+        return '$';
+    }
+  })(cost.currency);
   
   return (
     <div className="invoice">
@@ -19,7 +38,7 @@ const Invoice = ({ cost }) => {
           <div className="data-row prod">
             <div className="data-cell description">
               Monthly Hosting Fee for { cost.availability } Availability Environment<br/>
-              PHP CMS Bundle: ${cost.environmentCostDescription.prod.unitPrice} per h<br/>
+  PHP CMS Bundle: {currencyChar} {cost.environmentCostDescription.prod.unitPrice} per h<br/>
 
               <div className="projects">
                 {cost.environmentCostDescription.prod.description.projects.map(({name, hours}, index) => (<div key={`prod-${name}-${hours}-${index}`}><span>{name}</span> - <span>{hours} h</span></div>)) }
@@ -50,7 +69,7 @@ const Invoice = ({ cost }) => {
           <div className="data-row storage">
             <div className="data-cell description">
               Additional Storage Fee<br/>
-              Storage per GB/day: ${cost.storageCostDescription.unitPrice}<br/>
+  Storage per GB/day: {currencyChar} {cost.storageCostDescription.unitPrice}<br/>
 
               <div className="projects">
                 {cost.storageCostDescription.description.projects.map(({name, storage}, index) => (<div  key={`${name}-${storage}-${index}`}><span>{name}</span> - <span>{storage.toFixed(2)} GB</span></div>)) }
@@ -69,7 +88,7 @@ const Invoice = ({ cost }) => {
           <div className="data-row storage">
             <div className="data-cell description">
               Additional Development Environments for { cost.availability } Availability Environment<br/>
-              DEV Environment: ${cost.storageCostDescription.unitPrice} per hour<br/>
+  DEV Environment: {currencyChar} {cost.storageCostDescription.unitPrice} per hour<br/>
 
               <div className="projects">
                 {cost.environmentCostDescription.dev.description.projects.map(({name, hours}, index) => (<div key={`dev-${name}-${hours}-${index}`}><span>{name}</span> - <span>{hours} h</span></div>)) }
@@ -81,6 +100,37 @@ const Invoice = ({ cost }) => {
             <div className="data-cell unitPrice">{cost.environmentCostDescription.dev.unitPrice}</div>
             <div className="data-cell amt">{cost.environmentCost.dev}</div>
           </div>
+
+
+          <div className="data-heading">
+            <div className="data-cell">Additional Fees</div>
+            <div className="data-cell"></div>
+            <div className="data-cell"></div>
+            <div className="data-cell"></div>
+          </div>
+
+          { 
+            cost.modifiers.map(
+              ({ id, discountFixed, discountPercentage, extraFixed, extraPercentage, customerComments }, index) => (
+                <div key={`${id}-${index}`} className="data-row modifiers">
+                  <div className="data-cell description">{customerComments}</div>
+                  <div className="data-cell qty">1.00</div>
+                  <div className="data-cell unitPrice">
+                    {discountFixed !== 0 ? (`-${discountFixed.toFixed(2)}`) : ''}
+                    {discountPercentage !== 0 ? (`-${discountPercentage.toFixed(2)}%`) : ''}
+                    {extraFixed !== 0 ? (`${extraFixed.toFixed(2)}`) : ''}
+                    {extraPercentage !== 0 ? (`${extraPercentage.toFixed(2)}%`) : ''}
+                  </div>
+                  <div className="data-cell amt">
+                    {discountFixed !== 0 ? (`-${discountFixed.toFixed(2)}`) : ''}
+                    {discountPercentage !== 0 ? (`-${discountPercentage.toFixed(2)}%`) : ''}
+                    {extraFixed !== 0 ? (`${extraFixed.toFixed(2)}`) : ''}
+                    {extraPercentage !== 0 ? (`${extraPercentage.toFixed(2)}%`) : ''}
+                  </div>
+                </div>
+              )
+            )
+          }
 
           <div className="data-heading">
             <div className="data-cell">Total</div>

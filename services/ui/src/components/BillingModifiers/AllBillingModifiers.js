@@ -29,10 +29,10 @@ const AllBillingModifiers = ({group, modifiers, month}) => (
           <div className="data-row" key={id}>
             
             <div className="modifier-value">
-              {discountFixed !== 0 ? `- $${discountFixed}` : ''}
-              {discountPercentage !== 0 ? `-  ${discountPercentage}%` : ''}
-              {extraFixed !== 0 ? `+ $${extraFixed}` : ''}
-              {extraPercentage !== 0 ? `+  ${extraPercentage}%` : ''}
+              {discountFixed !== 0 ? `- ${discountFixed}` : ''}
+              {discountPercentage !== 0 ? `- ${discountPercentage}%` : ''}
+              {extraFixed !== 0 ? `+ ${extraFixed}` : ''}
+              {extraPercentage !== 0 ? `+ ${extraPercentage}%` : ''}
             </div>
 
             <div className="modifier-range">
