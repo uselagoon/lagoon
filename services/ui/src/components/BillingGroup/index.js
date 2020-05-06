@@ -5,6 +5,27 @@ import { bp, color, fontSize } from 'lib/variables';
 const BillingGroup = ({ billingGroupCosts }) => {
 
   const { id, name, currency, availability, hitCost, hitCostFormula, storageCost, storageCostFormula, environmentCost, environmentCostFormula, total, modifiers, projects } = billingGroupCosts;
+
+  const currencyChar = ((currency) => {
+    switch (currency) {
+      case 'USD':
+        return '$';
+      case 'CHF':
+        return 'CHF';
+      case 'EUR':
+        return '€';
+      case 'GBP':
+        return '£';
+      case 'ZAR':
+        return 'R';
+      case 'AUD':
+        return 'AU$';
+      default:
+        return '$';
+    }
+  })(currency);
+
+
   return(
     <div className="billingGroup">
       <div className="data-table">
@@ -22,19 +43,19 @@ const BillingGroup = ({ billingGroupCosts }) => {
         <div className="data-row">
           <div>
             Hits:
-          </div><div className="value"> ${hitCost}</div>
+          </div><div className="value">{hitCost}</div>
         </div>
 
         <div className="data-row">
-          <div>Storage:</div><div className="value"> ${storageCost}</div>
+          <div>Storage:</div><div className="value">{storageCost}</div>
         </div>
 
         <div className="data-row">
-          <div>Dev:</div><div className="value"> ${environmentCost.dev}</div>
+          <div>Dev:</div><div className="value">{environmentCost.dev}</div>
         </div>
 
         <div className="data-row">
-          <div>Prod:</div><div className="value"> ${environmentCost.prod}</div><br/>
+          <div>Prod:</div><div className="value">{environmentCost.prod}</div><br/>
         </div>        
         
         <div className="modifiers-heading">Modifiers</div>
@@ -45,16 +66,16 @@ const BillingGroup = ({ billingGroupCosts }) => {
               <div className="data-row">
                 <div className="formula">{adminComments}</div>
                 <div className="value">
-                  {discountFixed !== 0 ? (`- $${discountFixed}`) : ''}
-                  {discountPercentage !== 0 ? (`-  ${discountPercentage}%`) : ''}
-                  {extraFixed !== 0 ? (`+ $${extraFixed}`) : ''}
-                  {extraPercentage !== 0 ? (`+  ${extraPercentage}%`) : ''}
+                  {discountFixed !== 0 ? (`- ${discountFixed}`) : ''}
+                  {discountPercentage !== 0 ? (`- ${discountPercentage}%`) : ''}
+                  {extraFixed !== 0 ? (`+ ${extraFixed}`) : ''}
+                  {extraPercentage !== 0 ? (`+ ${extraPercentage}%`) : ''}
                 </div>
               </div>
             ))
         }
         <div className="data-row total">
-          <div className="">Total:</div> <div className="value"> ${total.toFixed(2)}</div>
+      <div className="">Total:</div> <div className="value">{currencyChar} {total.toFixed(2)}</div>
         </div>
 
       </div>
