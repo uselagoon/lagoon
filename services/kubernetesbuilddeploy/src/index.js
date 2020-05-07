@@ -134,6 +134,9 @@ const messageConsumer = async msg => {
       "metadata": {
           "creationTimestamp": null,
           "name": buildName,
+          "labels": {
+            "lagoon.sh/jobType": "build",
+          }
       },
       "spec": {
         "backoffLimit": 0,
