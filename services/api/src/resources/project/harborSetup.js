@@ -87,7 +87,7 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
       if (err.statusCode == 409) {
         logger.warn(`Unable to create a robot account for harbor project "${lagoonProjectName}", as a robot account of the same name already exists!`)
       } else {
-        logger.warn(`Unable to create a robot account for harbor project "${lagoonProjectName}" !!`)
+        logger.warn(`Unable to create a robot account for harbor project "${lagoonProjectName}"!`, err)
       }
     }
 

@@ -10,9 +10,10 @@ import MainLayout from 'layouts/MainLayout';
 import BillingGroupCostsQuery from 'lib/query/BillingGroupCosts';
 import AllBillingModifiersQuery from 'lib/query/AllBillingModifiers';
 
-import BarChart from "components/BillingGroup/BarChart";
+import BarChart from "components/BillingGroupBarChart";
 import BillingGroup from "components/BillingGroup";
-import Projects from "components/BillingGroup/Projects";
+import Projects from "components/BillingGroupProjects";
+import Invoice from "components/BillingGroupInvoice";
 import AllBillingModifiers from "components/BillingModifiers/AllBillingModifiers";
 import AddBillingModifier from "components/BillingModifiers/AddBillingModifier";
 
@@ -53,8 +54,8 @@ const months = [
  */
 export const PageBillingGroup = ({ router }) => {
 
-  const { billingGroupName: group } = router.query;
-  const [costs, setCosts] = useState([])
+  const { billingGroupName: group, year: yearSlug, month: monthSlug, lang } = router.query;
+  const [costs, setCosts] = useState([]);
 
   const queries = [];
   for (let i = monthsToGraph; i > 0; i--) {
@@ -77,7 +78,7 @@ export const PageBillingGroup = ({ router }) => {
     setCosts(result);
   }, queries)
 
-  const [values, setValues] = useState({ month: currMonth, year: currYear });
+  const [values, setValues] = useState({ month: monthSlug ? monthSlug: currMonth, year: yearSlug? yearSlug : currYear });
   const {month, year} = values;
   const handleChange = e => {
     const {name, value} = e.target;
@@ -152,36 +153,43 @@ export const PageBillingGroup = ({ router }) => {
                     </select>
                   </div>
                 </div>
-          
-                <div className="content-wrapper">
-                  <div className="leftColumn">
-                    <Query query={BillingGroupCostsQuery} variables={{ input: { name: group }, month: `${year}-${month}` }} >
-                      {R.compose(withQueryLoading, withQueryError)(
-                        ({ data: { costs } }) => {
-                          return(
-                            <div>
-                              <BillingGroup billingGroupCosts={costs} />
-                              <div className="btnWrapper">
-                                <Button action={prevSubmitHandler}>Previous Month</Button>
-                                <Button disabled={(values.year >= currYear && values.month >= currMonth) ? true: false} action={nextSubmitHandler}>Next Month</Button>
-                              </div>
-                              <Projects projects={costs.projects} />
-                            </div>
-                          );
-                        }
-                      )}
-                    </Query>
 
-                  </div>
-                  <div className="rightColumn">
-                    {<Query query={AllBillingModifiersQuery} variables={{ input: { name: group } }} >
-                        {R.compose(withQueryLoading, withQueryError)(
-                          ({ data: { allBillingModifiers: modifiers } }) => <AllBillingModifiers modifiers={modifiers} group={group} month={`${year}-${month}`} />
-                        )}
-                      </Query>}
-                      <AddBillingModifier group={group} month={`${year}-${month}`} />
-                  </div>
-                </div>
+
+                <Query query={BillingGroupCostsQuery} variables={{ input: { name: group }, month: `${year}-${month}` }} >
+                  {R.compose(withQueryLoading, withQueryError)(
+                    ({ data: { costs } }) => {
+                      return(
+                        <>
+                          <div className="content-wrapper">
+                            <div className="leftColumn">
+                              <div>
+                                <BillingGroup billingGroupCosts={costs} />
+                                <div className="btnWrapper">
+                                  <Button action={prevSubmitHandler}>Previous Month</Button>
+                                  <Button disabled={(values.year >= currYear && values.month >= currMonth) ? true: false} action={nextSubmitHandler}>Next Month</Button>
+                                </div>
+                                <Projects projects={costs.projects} />
+                              </div>
+                            </div>
+                            <div className="rightColumn">
+                              {<Query query={AllBillingModifiersQuery} variables={{ input: { name: group } }} >
+                                  {R.compose(withQueryLoading, withQueryError)(
+                                    ({ data: { allBillingModifiers: modifiers } }) => <AllBillingModifiers modifiers={modifiers} group={group} month={`${year}-${month}`} />
+                                  )}
+                                </Query>}
+                                <AddBillingModifier group={group} month={`${year}-${month}`} />
+                            </div>
+                          </div>
+                          <div className="content-wrapper">
+                            <Invoice cost={costs} language={lang} />
+                          </div>
+                        </>
+                      );
+                    }
+                  )}
+                </Query>
+
+
               </div>
             );
           }
@@ -230,7 +238,7 @@ export const PageBillingGroup = ({ router }) => {
       }
 
       .content-wrapper {
-        @media ${bp.tabletUp} {
+        @media ${bp.desktopUp} {
           display: flex;
           justify-content: space-between;
         }
@@ -243,9 +251,12 @@ export const PageBillingGroup = ({ router }) => {
       .leftColumn, .rightColumn {
         width: 100%;
         @media ${bp.tabletUp} {
-          width: 50%;
           margin: 1rem;
         }
+      }
+
+      .invoiceContainer {
+        width: 100%;
       }
 
       .monthYearContainer {

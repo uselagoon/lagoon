@@ -48,7 +48,7 @@ Some Docker images and containers need additional customizations from the provid
 
 | Type | Versions | Dockerfile |
 | :--- | :--- | :--- |
-| [Elasticsearch](docker_images/elasticsearch.md) | 6.8, 7.1, 7.3 | [elasticsearch/Dockerfiles](https://github.com/amazeeio/lagoon/tree/master/images/elasticsearch) |
+| [Elasticsearch](docker_images/elasticsearch.md) | 6.8, 7.6 | [elasticsearch/Dockerfiles](https://github.com/amazeeio/lagoon/tree/master/images/elasticsearch) |
 | [MariadB-Drupal](docker_images/mariadb-drupal.md) | 10.2 | [mariadb-drupal/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/mariadb-drupal/Dockerfile) |
 | [MariaDB](docker_images/mariadb.md) | 10.2 | [mariadb/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/mariadb/Dockerfile) |
 | [MongoDB](docker_images/mongo.md) | 3.6 | [mongo/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/mongo/Dockerfile) |
@@ -61,8 +61,8 @@ Some Docker images and containers need additional customizations from the provid
 | [RabbitMQ](docker_images/rabbitmq.md) | 3.8  |  |
 | [Redis-persistent](docker_images/redis-persistent.md) | 5.0 | [redis-persistent/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/redis-persistent/Dockerfile) |
 | [Redis](docker_images/redis.md) | 5.0 | [redis/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/redis/Dockerfile) |
-| [Solr-Drupal](docker_images/solr-drupal.md) | 5.5, 6.6, 7.5 | [solr-drupal/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/solr-drupal/Dockerfile) |
-| [Solr](docker_images/solr.md) | 5.5, 6.6, 7.5 | [solr/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/solr/Dockerfile) |
+| [Solr-Drupal](docker_images/solr-drupal.md) | 5.5, 6.6, 7.7 | [solr-drupal/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/solr-drupal/Dockerfile) |
+| [Solr](docker_images/solr.md) | 5.5, 6.6, 7.7 | [solr/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/solr/Dockerfile) |
 | [Varnish-Drupal](docker_images/varnish-drupal.md) | 5.2 | [varnish-drupal/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/varnish-drupal/Dockerfile) |
 | [Varnish](docker_images/varnish.md) | 5.2 | [varnish/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/varnish/Dockerfile) |
 

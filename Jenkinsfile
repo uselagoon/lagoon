@@ -39,6 +39,15 @@ node {
           env.GIT_COMMIT = checkout["GIT_COMMIT"]
         }
 
+        // in order to have the newest images from upstream (with all the security updates) we clean our local docker cache on tag deployments
+        // we don't do this all the time to still profit from image layer caching
+        // but we want this on tag deployments in order to ensure that we publish images always with the newest possible images.
+        if (env.TAG_NAME) {
+          stage ('clean docker image cache') {
+            sh "docker image prune -af"
+          }
+        }
+
         stage ('build images') {
           sh "make -O${SYNC_MAKE_OUTPUT} -j6 build"
         }
