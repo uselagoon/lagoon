@@ -21,6 +21,8 @@ export const color = {
   lightBlue: '#4c84ff',
   blue: '#4578e6',
   brightBlue: '#2bc0d8',
+  lightRed: '#dc3545',
+  red: '#c82333',
 };
 
 export const bp = {
