@@ -54,7 +54,7 @@ const months = [
  */
 export const PageBillingGroup = ({ router }) => {
 
-  const { billingGroupName: group, year: yearSlug, month: monthSlug } = router.query;
+  const { billingGroupName: group, year: yearSlug, month: monthSlug, lang } = router.query;
   const [costs, setCosts] = useState([]);
 
   const queries = [];
@@ -181,7 +181,7 @@ export const PageBillingGroup = ({ router }) => {
                             </div>
                           </div>
                           <div className="content-wrapper">
-                            <Invoice cost={costs} />
+                            <Invoice cost={costs} language={lang} />
                           </div>
                         </>
                       );

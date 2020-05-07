@@ -1,8 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import css from 'styled-jsx/css';
 import { bp, color, fontSize } from 'lib/variables';
 
-const Invoice = ({ cost }) => {
+const Invoice = ({ cost, language }) => {
+
+  const LANGS = {
+    ENGLISH: 'ENGLISH',
+    GERMAN: 'GERMAN'
+  }
+  const [lang, setLang] = useState(language === 'de' ? LANGS.GERMAN : LANGS.ENGLISH );
 
   const currencyChar = ((currency) => {
     switch (currency) {
@@ -22,29 +28,70 @@ const Invoice = ({ cost }) => {
         return '$';
     }
   })(cost.currency);
+
+  const handleChange = e => {
+    const {name, value} = e.target;
+    setLang(value);
+  }
+
   
   return (
     <div className="invoice">
-      <h2>Invoice</h2>
+
+      
+<form className="langSwitcher">
+  <h2>Invoice</h2>
+    <div>
+      <input type="radio" id={LANGS.ENGLISH} value={LANGS.ENGLISH}
+      checked={lang === LANGS.ENGLISH} onChange={handleChange}/>
+      <label htmlFor={LANGS.ENGLISH}>{LANGS.ENGLISH}</label>
+    </div>
+    <div>
+      <input type="radio" id={LANGS.GERMAN} value={LANGS.GERMAN}
+      checked={lang === LANGS.GERMAN} onChange={handleChange}/>
+      <label htmlFor={LANGS.GERMAN}>{LANGS.GERMAN}</label>
+    </div>
+</form>
+
+
+
+      
 
       <div className="data-table">
         <div className="data-heading">
-          <div className="data-head">Description</div>
-          <div className="data-head">Quantity</div>
-          <div className="data-head">Unit Price</div>
-          <div className="data-head">Amount {cost.currency}</div>
+          <div className="data-head">{ lang === LANGS.ENGLISH ? `Description` : `Beschreibung` }</div>
+          <div className="data-head">{ lang === LANGS.ENGLISH ? `Quantity` : `Menge` }</div>
+          <div className="data-head">{ lang === LANGS.ENGLISH ? `Unit Price` : `Einzelpreis` }</div>
+          <div className="data-head">{ lang === LANGS.ENGLISH ? `Amount ${cost.currency}` : `Preis in ${cost.currency}` }</div>
         </div>
         
           <div className="data-row prod">
             <div className="data-cell description">
-              Monthly Hosting Fee for { cost.availability } Availability Environment<br/>
-  PHP CMS Bundle: {currencyChar} {cost.environmentCostDescription.prod.unitPrice} per h<br/>
+              { lang === LANGS.ENGLISH ? 
+              <div>
+                Monthly Hosting Fee for { cost.availability } Availability Environment<br/>
+                PHP CMS Bundle: {currencyChar} {cost.environmentCostDescription.prod.unitPrice} per h<br/>
+              </div>
+              : 
+              <div>
+                Monatliche Hostinggebühr im { cost.availability } Availability Environment<br />
+                PHP CMS Bundle: {currencyChar} {cost.environmentCostDescription.prod.unitPrice} pro Stunde<br/>
+              </div>
+              }
 
               <div className="projects">
-                {cost.environmentCostDescription.prod.description.projects.map(({name, hours}, index) => (<div key={`prod-${name}-${hours}-${index}`}><span>{name}</span> - <span>{hours} h</span></div>)) }
+                {cost.environmentCostDescription.prod.description.projects.map(({name, hours}, index) => (<div key={`prod-${name}-${hours}-${index}`}><span>{name}</span> - <span>{hours} { lang === LANGS.ENGLISH ? `h` : `Std.` }</span></div>)) }
               </div>
               
-              Total hours: {cost.environmentCostDescription.prod.quantity.toFixed(2).toLocaleString()} h
+              { lang === LANGS.ENGLISH ? 
+              <div>
+                Total hours: {cost.environmentCostDescription.prod.quantity.toFixed(2).toLocaleString()} h
+              </div>
+              :
+              <div>
+                Total: {cost.environmentCostDescription.prod.quantity.toFixed(2).toLocaleString()} Std.
+              </div>
+              }
             </div>
             <div className="data-cell qty">{cost.environmentCostDescription.prod.quantity.toFixed(2).toLocaleString()}</div>
             <div className="data-cell unitPrice">{cost.environmentCostDescription.prod.unitPrice}</div>
@@ -53,13 +100,31 @@ const Invoice = ({ cost }) => {
 
           <div className="data-row hits">
             <div className="data-cell description">
-              Monthly Hits Fee for { cost.availability } Availability Environment<br/>
+
+              { lang === LANGS.ENGLISH ? 
+                <div>
+                  Monthly Hits Fee for { cost.availability } Availability Environment<br/>
+                </div>
+                : 
+                <div>
+                  Monatliche Gebühren für Hits im { cost.availability } Availability Environment
+                </div>
+              }
 
               <div className="projects">
                 {cost.hitCostDescription.description.projects.map(({name, hits}, index) => (<div  key={`${name}-${hits}-${index}`}><span>{name}</span> - <span>{hits.toLocaleString()}</span></div>)) }
               </div>
 
-              Combined Hits: {cost.hitCostDescription.description.total.toLocaleString()}
+              { lang === LANGS.ENGLISH ? 
+                <div>
+                  Combined Hits: {cost.hitCostDescription.description.total.toLocaleString()}
+                </div>
+                : 
+                <div>
+                  Hits Total: {cost.hitCostDescription.description.total.toLocaleString()}
+                </div>
+              }
+              
             </div>
             <div className="data-cell qty">1.00</div>
             <div className="data-cell unitPrice">{cost.hitCost.toFixed(2)}</div>
@@ -68,41 +133,80 @@ const Invoice = ({ cost }) => {
 
           <div className="data-row storage">
             <div className="data-cell description">
-              Additional Storage Fee<br/>
-  Storage per GB/day: {currencyChar} {cost.storageCostDescription.unitPrice}<br/>
+
+              { lang === LANGS.ENGLISH ? 
+                <div>
+                  Additional Storage Fee<br/>
+                  Storage per GB/day: {currencyChar} {cost.storageCostDescription.unitPrice}<br/>
+                </div>
+                : 
+                <div>
+                  Zusätzliche Storagegebühren<br/>
+                  Storage GB/Tag: {currencyChar} {cost.storageCostDescription.unitPrice}<br/>
+                  Durchschnittlicher Storage pro Environment pro Tag:
+                </div>
+              }
 
               <div className="projects">
                 {cost.storageCostDescription.description.projects.map(({name, storage}, index) => (<div  key={`${name}-${storage}-${index}`}><span>{name}</span> - <span>{storage.toFixed(2)} GB</span></div>)) }
               </div>
 
-              Total Storage: {cost.storageCostDescription.quantity.toFixed(2).toLocaleString()} GB <br/>
-              Included Storage: {cost.storageCostDescription.description.included.toFixed(2).toLocaleString()} GB <br/>
-              Additional Storage: {cost.storageCostDescription.description.additional.toFixed(2).toLocaleString()} GB <br/>
-
+              { lang === LANGS.ENGLISH ? 
+                <div>
+                  Total Storage: {cost.storageCostDescription.quantity.toFixed(2).toLocaleString()} GB <br/>
+                  Included Storage: {cost.storageCostDescription.description.included.toFixed(2).toLocaleString()} GB <br/>
+                  Additional Storage: {cost.storageCostDescription.description.additional.toFixed(2).toLocaleString()} GB <br/>
+                </div>
+                :
+                <div>
+                  Totaler Storage - {cost.storageCostDescription.quantity.toFixed(2).toLocaleString()} GB <br/>
+                  Inklusiver Storage - {cost.storageCostDescription.description.included.toFixed(2).toLocaleString()} GB <br/>
+                  Zusätzlicher Storage - {cost.storageCostDescription.description.additional.toFixed(2).toLocaleString()} GB <br/>
+                </div>
+              }
             </div>
             <div className="data-cell qty">{cost.storageCostDescription.description.additional.toFixed(2).toLocaleString()}</div>
             <div className="data-cell unitPrice">{cost.storageCostDescription.unitPrice}</div>
             <div className="data-cell amt">{cost.storageCost.toFixed(2)}</div>
           </div>
 
-          <div className="data-row storage">
+          <div className="data-row dev">
             <div className="data-cell description">
-              Additional Development Environments for { cost.availability } Availability Environment<br/>
-  DEV Environment: {currencyChar} {cost.storageCostDescription.unitPrice} per hour<br/>
+
+            { lang === LANGS.ENGLISH ? 
+                <div>
+                  Additional Development Environments<br/>
+                  DEV Environment: {currencyChar} {cost.environmentCostDescription.dev.unitPrice} per hour<br/>
+                </div>
+                :
+                <div>
+                  Zusätzliche Development Environments<br/>
+                  DEV Environment: Standard {currencyChar} {cost.environmentCostDescription.dev.unitPrice} pro Stunde<br/>
+                </div>
+              }
 
               <div className="projects">
                 {
                   cost.environmentCostDescription.dev.description.projects.map(({name, hours, additional, included}, index) => (
-                    <div key={`dev-${name}-${hours}-${index}`}>
-                      <span>{name}</span> - <span>{hours} h</span>
-                      <div>Included hours - {included} h</div>
-                      <div>Additional hours - {additional} h</div>
+                    <div key={`dev-${name}-${hours}-${index}`} className="devProject">
+                      <span>{name}</span> - <span>{hours} { lang === LANGS.ENGLISH ? `h` : `Std.` }</span>
+                      <div>Included hours - {included} { lang === LANGS.ENGLISH ? `h` : `Std.` }</div>
+                      { additional !== 0 && <div>{ lang === LANGS.ENGLISH ? `Additional hours` : `Zusätzliche Stunden` } - {additional} { lang === LANGS.ENGLISH ? `h` : `Std.` }</div> }
                     </div>)
                   ) 
                 }
               </div>
 
-              Total additional hours: {cost.environmentCostDescription.dev.quantity.toFixed(2).toLocaleString()} h
+              { lang === LANGS.ENGLISH ? 
+                <div>
+                  Total additional hours: {cost.environmentCostDescription.dev.quantity.toFixed(2).toLocaleString()} h
+                </div>
+                :
+                <div>
+                  Total: {cost.environmentCostDescription.dev.quantity.toFixed(2).toLocaleString()} Std.
+                </div>
+              }
+
             </div>
             <div className="data-cell qty">{cost.environmentCostDescription.dev.quantity.toFixed(2).toLocaleString()}</div>
             <div className="data-cell unitPrice">{cost.environmentCostDescription.dev.unitPrice}</div>
@@ -112,7 +216,7 @@ const Invoice = ({ cost }) => {
           {
             cost.modifiers.length > 0 &&
             <div className="data-heading">
-              <div className="data-cell">Additional Fees</div>
+              <div className="data-cell">{ lang === LANGS.ENGLISH ? `Additional Fees` : `Zusätzliche Gebühren` }</div>
               <div className="data-cell"></div>
               <div className="data-cell"></div>
               <div className="data-cell"></div>
@@ -160,6 +264,22 @@ const Invoice = ({ cost }) => {
 
         .projects {
           padding: 1rem 0;
+        }
+
+        .devProject {
+          padding: 0.5rem 0;
+        }
+
+        .langSwitcher {
+          display: flex;
+
+          h2 {
+            margin-right: 2rem;
+          }
+
+          input {
+            margin: 1rem 0.5rem;
+          }
         }
 
         .data-table {
