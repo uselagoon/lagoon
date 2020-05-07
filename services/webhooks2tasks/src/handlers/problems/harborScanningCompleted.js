@@ -1,6 +1,7 @@
 // @flow
 
 const { logger } = require('@lagoon/commons/src/local-logging');
+const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const testData = require('./test_data');
 const uuid4 = require('uuid4');
 const axios = require('axios');
@@ -12,7 +13,7 @@ const {
 
 const HARBOR_USERNAME = process.env.HARBOR_USERNAME || "admin";
 const HARBOR_PASSWORD = process.env.HARBOR_PASSWORD || harborpassword;
-const HARBOUR_BASE_API_URL = process.env.HARBOR_USERNAME || "https://harbor-nginx-lagoon-master.ch.amazee.io/api/repositories/";
+const HARBOUR_BASE_API_URL = process.env.HARBOUR_BASE_API_URL || "https://harbor-nginx-lagoon-master.ch.amazee.io/api/repositories/";
 const HARBOR_BASE_URL_POSTFIX = "/tags/latest/scan";
 const HARBOR_ACCEPT_HEADER = "application/vnd.scanner.adapter.vuln.report.harbor+json; version=1.0";
 
@@ -20,11 +21,14 @@ async function harborScanningCompleted(
   webhook: WebhookRequestData,
   channelWrapperWebhooks
 ) {
-  const { webhooktype, event, uuid, body } = webhook;
+  const {
+    webhooktype,
+    event,
+    uuid,
+    body } = webhook;
 
   try {
     let { resources, repository } = body.event_data;
-
 
     const [
       lagoonProjectName,
@@ -33,16 +37,18 @@ async function harborScanningCompleted(
     ] = extractRepositoryDetails(repository.repo_full_name);
 
     //TODO: check this comes back right - throw malformed error if not
+    throw generateError('InvalidHarborInput', "Unable to find repo_full_name in body.event_data.repository");
+    if(!repository.repo_full_name) {
+      throw generateError('InvalidHarborInput', "Unable to find repo_full_name in body.event_data.repository");
+    }
+
     let harborEndpoint = HARBOUR_BASE_API_URL + repository.repo_full_name + HARBOR_BASE_URL_POSTFIX;
 
     let vulnerabilities = await getVulnerabilitiesFromHarbor(harborEndpoint);
 
     //TODO: try/catch/log end
-    console.log(lagoonProjectName);
-
     let { id: lagoonProjectId } = await getProjectByName(lagoonProjectName);
 
-    //TODO: this can fail - try, catch, log
     let { environmentByName: environmentDetails } = await getEnvironmentByName(
       LagoonEnvironmentName,
       lagoonProjectId
@@ -73,7 +79,11 @@ async function harborScanningCompleted(
   }
 }
 
-
+const generateError = (name, message) => {
+  let e = new Error(message);
+  e.name = name;
+  return e;
+}
 
 const extractRepositoryDetails = (repoFullName) => {
   const pattern = /^(.+)\/(.+)\/(.+)$/;
