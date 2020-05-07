@@ -183,7 +183,7 @@ export const storageCost = ({ projects, currency }: IBillingGroup) => {
   const description = {
     projects: projects.map(({name, storageDays}) => ({name, storage: storageDays/days})),
     included: freeGBDays/days,
-    additional: storageToBill
+    additional: storageToBill/days
   }
 
 
