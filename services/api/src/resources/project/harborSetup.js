@@ -75,8 +75,9 @@ async function createRobot(sqlClient /* : MariaSQL */, harborClient /* : harborC
 
   // Create robot account for new harbor project
   try {
-    var robotName = (robot != "") ? robot : `lagoonProjectName-${timestamp}`
-    var timestamp = Math.floor(Date.now() / 1000)
+    const timestamp = Math.floor(Date.now() / 1000)
+    var robotName = (robot != "") ? robot : `${lagoonProjectName}-${timestamp}`
+
     const res = await harborClient.post(`projects/${harborProjectID}/robots`, {
       body: {
         name: robotName,
@@ -283,7 +284,7 @@ async function resetHarborWebhook(sqlClient /* : MariaSQL */, harborClient /* : 
         enabled: true
       }
     });
-    logger.info(`Created Lagoon default webhook for Harbor project: ${lagoonProjectName}`)
+    logger.debug(`Created Lagoon default webhook for Harbor project: ${lagoonProjectName}`)
   } catch (err) {
     logger.error(`Error while creating a webhook in the Harbor project for ${lagoonProjectName}, error: ${err}`)
     return false
