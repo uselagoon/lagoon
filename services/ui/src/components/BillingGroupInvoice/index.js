@@ -91,7 +91,15 @@ const Invoice = ({ cost }) => {
   DEV Environment: {currencyChar} {cost.storageCostDescription.unitPrice} per hour<br/>
 
               <div className="projects">
-                {cost.environmentCostDescription.dev.description.projects.map(({name, hours}, index) => (<div key={`dev-${name}-${hours}-${index}`}><span>{name}</span> - <span>{hours} h</span></div>)) }
+                {
+                  cost.environmentCostDescription.dev.description.projects.map(({name, hours, additional, included}, index) => (
+                    <div key={`dev-${name}-${hours}-${index}`}>
+                      <span>{name}</span> - <span>{hours} h</span>
+                      <div>Included hours - {included} h</div>
+                      <div>Additional hours - {additional} h</div>
+                    </div>)
+                  ) 
+                }
               </div>
 
               Total additional hours: {cost.environmentCostDescription.dev.quantity.toFixed(2).toLocaleString()} h
@@ -101,13 +109,15 @@ const Invoice = ({ cost }) => {
             <div className="data-cell amt">{cost.environmentCost.dev}</div>
           </div>
 
-
-          <div className="data-heading">
-            <div className="data-cell">Additional Fees</div>
-            <div className="data-cell"></div>
-            <div className="data-cell"></div>
-            <div className="data-cell"></div>
-          </div>
+          {
+            cost.modifiers.length > 0 &&
+            <div className="data-heading">
+              <div className="data-cell">Additional Fees</div>
+              <div className="data-cell"></div>
+              <div className="data-cell"></div>
+              <div className="data-cell"></div>
+            </div>
+          }
 
           { 
             cost.modifiers.map(
