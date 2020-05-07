@@ -64,9 +64,9 @@ RUN apk add --no-cache fcgi \
         # for webp
         libwebp-dev \
         postgresql-dev \
-	# for imagemagick
-	imagemagick \
-	imagemagick-libs \
+        # for imagemagick
+        imagemagick \
+        imagemagick-libs \
         imagemagick-dev \
     && apk add --no-cache --virtual .phpize-deps $PHPIZE_DEPS \
     && yes '' | pecl install -f apcu \
