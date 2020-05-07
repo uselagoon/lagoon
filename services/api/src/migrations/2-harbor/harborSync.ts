@@ -17,13 +17,14 @@ const lagoonHarborRoute = R.compose(
   const harborClient = createHarborOperations(sqlClient);
 
   logger.info('Syncing Harbor projects with Lagoon projects');
+
   // Get a list of all Lagoon projects
   const projects = await projectHelpers(sqlClient).getAllProjects();
   const timestamp = Math.floor(Date.now() / 1000)
   for(var i=0; i < projects.length; i++) {
     var project = projects[i];
 
-    // Get project's env vars
+    // Get project's env vars from db
     var envVars = await query(
       sqlClient,
      `SELECT * 
@@ -51,7 +52,7 @@ const lagoonHarborRoute = R.compose(
     // Filter for projects using this Lagoon's Harbor route
     if (localLagoonURL == lagoonHarborRoute) {
       logger.info('Lagoon project: ', project.name, " is using this Lagoon's Harbor; syncing new robot account for it.");
-      await harborClient.syncProject(project.name, project.id, `${project.name}-${timestamp}`);
+      await harborClient.addProject(project.name, project.id, `${project.name}-${timestamp}`);
       logger.info('New robot account creation for Lagoon project: ', project.name, " completed.")
     }
     // No registry URL means this project doesn't have a Harbor project set up
