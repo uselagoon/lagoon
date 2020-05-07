@@ -63,7 +63,7 @@ const BillingGroup = ({ billingGroupCosts }) => {
         { 
           modifiers.map(
             ({ id, startDate, endDate, discountFixed, discountPercentage, extraFixed, extraPercentage, customerComments, adminComments, weight }, index) => (
-              <div className="data-row">
+              <div key={`${index}-${id}`} className="data-row">
                 <div className="formula">{adminComments}</div>
                 <div className="value">
                   {discountFixed !== 0 ? (`- ${discountFixed}`) : ''}

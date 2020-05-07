@@ -27,13 +27,24 @@ app
       app.render(req, res, '/project', { projectName: req.params.projectSlug });
     });
 
+
     server.get('/admin/billing/:billingGroupSlug', (req, res) => {
       app.render(req, res, '/admin/billing', { billingGroupName: req.params.billingGroupSlug });
+    });
+
+    server.get('/admin/billing/:billingGroupSlug/:lang', (req, res) => {
+      app.render(req, res, '/admin/billing', { billingGroupName: req.params.billingGroupSlug, lang: req.params.lang });
     });
 
     server.get('/admin/billing/:billingGroupSlug/:yearSlug/:monthSlug', (req, res) => {
       app.render(req, res, '/admin/billing', { billingGroupName: req.params.billingGroupSlug, year: req.params.yearSlug, month: req.params.monthSlug });
     });
+
+    server.get('/admin/billing/:billingGroupSlug/:yearSlug/:monthSlug/:lang', (req, res) => {
+      app.render(req, res, '/admin/billing', { billingGroupName: req.params.billingGroupSlug, year: req.params.yearSlug, month: req.params.monthSlug, lang: req.params.lang });
+    });
+
+
 
     server.get('/projects/:projectSlug/:environmentSlug', (req, res) => {
       app.render(req, res, '/environment', {
