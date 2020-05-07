@@ -84,7 +84,10 @@ const messageConsumer = async msg => {
       apiVersion: 'batch/v1',
       kind: 'Job',
       metadata: {
-        name
+        name,
+        labels: {
+          "lagoon.sh/jobType": "task",
+        }
       },
       spec: {
         parallelism: 1,
@@ -92,7 +95,7 @@ const messageConsumer = async msg => {
         backoffLimit: 0,
         template: {
           metadata: {
-            name: 'pi'
+            name
           },
           spec: {
             ...spec,

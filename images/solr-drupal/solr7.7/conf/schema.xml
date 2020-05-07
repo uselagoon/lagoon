@@ -49,7 +49,7 @@
     that avoids logging every request
 -->
 
-<schema name="drupal-8.3.4-solr-7.x" version="1.6">
+<schema name="drupal-8.3.8-solr-7.x" version="1.6">
   <!-- attribute "name" is the name of this schema and is only used for display purposes.
        version="x.y" is Solr's version number for the schema syntax and
        semantics.  It should not normally be changed by applications.

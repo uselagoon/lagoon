@@ -87,7 +87,11 @@ const messageConsumer = async msg => {
 
   const hasNoActiveBuilds = () =>
     new Promise(async (resolve, reject) => {
-      const namespaceJobs = await jobsGet();
+      const namespaceJobs = await jobsGet({
+        qs: {
+          labelSelector: 'lagoon.sh/jobType=build'
+        }
+      });
       const activeBuilds = R.pipe(
         R.propOr([], 'items'),
         R.filter(R.pathSatisfies(R.lt(0), ['status', 'active']))

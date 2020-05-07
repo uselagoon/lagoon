@@ -19,7 +19,7 @@ const useResizeObserver = ref => {
   return dimensions;
 };
 
-function BarChart({ data }) {
+function BillingGroupBarChart({ data }) {
   const svgRef = useRef();
   const wrapperRef = useRef();
   const dimensions = useResizeObserver(wrapperRef);
@@ -109,4 +109,4 @@ function BarChart({ data }) {
   return (<div>Hey</div>)
 }
 
-export default BarChart;
+export default BillingGroupBarChart;

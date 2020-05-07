@@ -1,5 +1,6 @@
 import React from 'react';
 import getConfig from 'next/config';
+import { queryStringToObject } from 'lib/util';
 
 const { serverRuntimeConfig, publicRuntimeConfig } = getConfig();
 
@@ -27,10 +28,16 @@ export default (App, initialAuth) => {
       };
 
       await keycloak.init({
-        onLoad: 'login-required',
         checkLoginIframe: false,
         promiseType: 'native',
       });
+
+      if (!keycloak.authenticated) {
+        const urlQuery = queryStringToObject(location.search);
+        const options = urlQuery.idpHint ? { idpHint: urlQuery.idpHint } : {};
+
+        await keycloak.login(options);
+      }
 
       this.setAuth(keycloak);
     }
