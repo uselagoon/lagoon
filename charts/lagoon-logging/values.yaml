@@ -58,6 +58,25 @@ logsDispatcher:
 
   affinity: {}
 
+# Don't collect logs from these namespaces.
+# Comment out this field to collect from all namespaces.
+excludeNamespaces:
+- cattle-prometheus
+- kube-system
+- syn
+- syn-cert-manager
+- syn-synsights
+- syn-cluster-autoscaler
+
+# Configure the cluster output buffer.
+# This may require tweaking to handle high volumes of logs.
+clusterOutputBuffer:
+  flush_thread_count: 256
+  timekey: 1m
+  timekey_wait: 10s
+  timekey_use_utc: true
+
+# Elasticsearch output config.
 elasticsearchHostPort: "443"
 elasticsearchScheme: https
 # The values below must be supplied during installation as they have no sane
@@ -65,3 +84,8 @@ elasticsearchScheme: https
 elasticsearchHost: ""
 elasticsearchAdminPassword: ""
 clusterName: ""
+
+# chart dependency on logging-operator
+logging-operator:
+  enabled: true
+  createCustomResource: false
