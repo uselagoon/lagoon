@@ -44,7 +44,7 @@ sub vcl_recv {
   }
 
   # Large binary files are passed.
-  if (req.url ~ "\.(msi|exe|dmg|zip|tgz|gz|pkg)") {
+  if (req.url ~ "\.(msi|exe|dmg|zip|tgz|gz|pkg)$") {
     return(pass);
   }
 }
