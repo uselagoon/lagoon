@@ -15,7 +15,7 @@ logsDispatcher:
     repository: amazeeiolagoon/logs-dispatcher
     pullPolicy: Always
     # Overrides the image tag whose default is the chart version.
-    tag: logs-overhaul-v2
+    tag: v1-5-0
 
   serviceAccount:
     # Specifies whether a service account should be created
