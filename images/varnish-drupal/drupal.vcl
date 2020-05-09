@@ -333,7 +333,7 @@ sub vcl_backend_response {
   if (beresp.http.Content-Length ~ "[0-9]{8,}") {
     set beresp.do_stream = true;
     set beresp.uncacheable = true;
-    set beresp.ttl = 0s;
+    set beresp.ttl = 120s;
   }
 
   # Disable buffering only for BigPipe responses
