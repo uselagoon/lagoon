@@ -96,7 +96,7 @@ EOF
     for f in `ls /docker-entrypoint-initdb.d/*`; do
       case "$f" in
         *.sh)     echo "$0: running $f"; . "$f" ;;
-        *.sql)    echo "$0: running $f"; cat $f| tee | mysql -u root -p${MARIADB_ROOT_PASSWORD}; echo ;;
+        *.sql)    echo "$0: running $f"; cat $f| envsubst | tee | mysql -u root -p${MARIADB_ROOT_PASSWORD}; echo ;;
         *)        echo "$0: ignoring $f" ;;
       esac
     echo
