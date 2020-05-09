@@ -3,8 +3,6 @@
 const Promise = require("bluebird");
 const OpenShiftClient = require('openshift-client');
 const sleep = require("es7-sleep");
-const AWS = require('aws-sdk');
-const uuidv4 = require('uuid/v4');
 const R = require('ramda');
 const { logger } = require('@lagoon/commons/src/local-logging');
 const {
@@ -12,7 +10,9 @@ const {
   getEnvironmentByName,
   updateEnvironment,
   getDeploymentByRemoteId,
+  getDeploymentByName,
   updateDeployment,
+  updateProject,
   setEnvironmentServices,
 } = require('@lagoon/commons/src/api');
 
@@ -25,19 +25,6 @@ class BuildNotCompletedYet extends Error {
     this.name = 'BuildNotCompletedYet';
   }
 }
-
-const accessKeyId =  process.env.AWS_ACCESS_KEY_ID
-const secretAccessKey =  process.env.AWS_SECRET_ACCESS_KEY
-const bucket = process.env.AWS_BUCKET
-const region = process.env.AWS_REGION || 'us-east-2'
-
-
-if ( !accessKeyId || !secretAccessKey || !bucket) {
-  logger.error('AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY or AWS_BUCKET not set.')
-}
-
-AWS.config.update({accessKeyId: accessKeyId, secretAccessKey: secretAccessKey, region: region});
-const s3 = new AWS.S3();
 
 initSendToLagoonLogs();
 initSendToLagoonTasks();
@@ -57,6 +44,9 @@ const messageConsumer = async msg => {
 
   const environmentResult = await getEnvironmentByName(branchName, project.id)
   const environment = environmentResult.environmentByName
+
+  const deploymentResult = await getDeploymentByName(openshiftProject, buildName);
+  const deployment = deploymentResult.environment.deployments[0];
 
   try {
     var gitSha = sha
@@ -145,7 +135,8 @@ const messageConsumer = async msg => {
   }
 
   const meta = JSON.parse(msg.content.toString())
-  let logLink = ""
+  const logLink = deployment.uiLink;
+  meta.logLink = deployment.uiLink;
   let logMessage = ''
   if (sha) {
     meta.shortSha = sha.substring(0, 7)
@@ -171,15 +162,6 @@ const messageConsumer = async msg => {
 
     case "cancelled":
     case "error":
-      try {
-        const buildLog = await buildsLogGet()
-        const s3UploadResult = await saveBuildLog(buildName, projectName, branchName, buildLog, buildstatus)
-        logLink = s3UploadResult.Location
-        meta.logLink = logLink
-      } catch (err) {
-        logger.warn(`${openshiftProject} ${buildName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
-        meta.logLink = ''
-      }
       sendToLagoonLogs('warn', projectName, "", `task:builddeploy-openshift:${buildPhase}`, meta,
         `*[${projectName}]* ${logMessage} Build \`${buildName}\` cancelled. <${logLink}|Logs>`
       )
@@ -188,14 +170,10 @@ const messageConsumer = async msg => {
     case "failed":
       try {
         const buildLog = await buildsLogGet()
-        const s3UploadResult = await saveBuildLog(buildName, projectName, branchName, buildLog, buildstatus)
-        logLink = s3UploadResult.Location
-        meta.logLink = logLink
+        await saveBuildLog(buildName, projectName, branchName, buildLog, buildstatus)
       } catch (err) {
-        logger.warn(`${openshiftProject} ${buildName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
-        meta.logLink = ''
+        logger.warn(`${openshiftProject} ${buildName}: Error while getting and sending to lagoon-logs, Error: ${err}.`)
       }
-
       sendToLagoonLogs('error', projectName, "", `task:builddeploy-openshift:${buildPhase}`, meta,
         `*[${projectName}]* ${logMessage} Build \`${buildName}\` failed. <${logLink}|Logs>`
       )
@@ -204,12 +182,9 @@ const messageConsumer = async msg => {
     case "complete":
       try {
         const buildLog = await buildsLogGet()
-        const s3UploadResult = await saveBuildLog(buildName, projectName, branchName, buildLog, buildstatus)
-        logLink = s3UploadResult.Location
-        meta.logLink = logLink
+        await saveBuildLog(buildName, projectName, branchName, buildLog, buildstatus)
       } catch (err) {
-        logger.warn(`${openshiftProject} ${buildName}: Error while getting and uploading Logs to S3, Error: ${err}. Continuing without log link in message`)
-        meta.logLink = ''
+        logger.warn(`${openshiftProject} ${buildName}: Error while getting and sending to lagoon-logs, Error: ${err}.`)
       }
 
       try {
@@ -231,6 +206,7 @@ const messageConsumer = async msg => {
       sendToLagoonLogs('info', projectName, "", `task:builddeploy-openshift:${buildPhase}`, meta,
         `*[${projectName}]* ${logMessage} Build \`${buildName}\` complete. <${logLink}|Logs> \n ${route}\n ${routes.join("\n")}`
       )
+
       try {
         const updateEnvironmentResult = await updateEnvironment(
           environment.id,
@@ -240,9 +216,24 @@ const messageConsumer = async msg => {
             monitoringUrls: "${configMap.data.LAGOON_MONITORING_URLS}",
             project: ${project.id}
           }`)
-        } catch (err) {
-          logger.warn(`${openshiftProject} ${buildName}: Error while updating routes in API, Error: ${err}. Continuing without update`)
+      } catch (err) {
+        logger.warn(`${openshiftProject} ${buildName}: Error while updating routes in API, Error: ${err}. Continuing without update`)
+      }
+
+      //update the active/standby routes in the api
+      try {
+        if (project.productionEnvironment == environment.name) {
+          const updateProjectResult = await updateProject(project.id, {
+            productionRoutes: configMap.data.LAGOON_ACTIVE_ROUTES,
+          });
+        } else if (project.standbyProductionEnvironment == environment.name){
+          const updateProjectResult = await updateProject(project.id, {
+            standbyRoutes: configMap.data.LAGOON_STANDBY_ROUTES,
+          });
         }
+      } catch (err) {
+        logger.warn(`${openshiftProject} ${buildName}: Error while updating active/standby routes in API, Error: ${err}. Continuing without update`)
+      }
 
       // Tell api what services are running in this environment
       try {
@@ -289,29 +280,10 @@ const saveBuildLog = async(buildName, projectName, branchName, buildLog, buildSt
     buildPhase: buildStatus.status.phase.toLowerCase(),
     remoteId: buildStatus.metadata.uid
   };
-
   sendToLagoonLogs('info', projectName, "", `build-logs:builddeploy-openshift:${buildName}`, meta,
     buildLog
   );
-  return await uploadLogToS3(buildName, projectName, branchName, buildLog);
 }
-
-const uploadLogToS3 = async (buildName, projectName, branchName, buildLog) => {
-  const uuid = uuidv4();
-  const path = `${projectName}/${branchName}/${uuid}.txt`
-
-  const params = {
-    Bucket: bucket,
-    Key:    path,
-    Body:   buildLog,
-    ACL:    'public-read',
-    ContentType: 'text/plain',
-  };
-  const s3Upload = Promise.promisify(s3.upload, { context: s3 })
-  return s3Upload(params);
-
-};
-
 
 const deathHandler = async (msg, lastError) => {
   const {

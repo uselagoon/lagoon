@@ -1,0 +1,21 @@
+version: '2'
+services:
+  nginx:
+    networks:
+      - amazeeio-network
+      - default
+    build:
+      context: .
+      dockerfile: Dockerfile
+    labels:
+      lagoon.type: nginx
+      lagoon.deployment.strategy: Recreate
+    volumes:
+      - ./app:/app:delegated
+    ports:
+      - "8080:8080"
+    environment:
+      - AMAZEEIO_URL=nginx.docker.amazee.io
+networks:
+  amazeeio-network:
+    external: true

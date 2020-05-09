@@ -29,7 +29,7 @@ const SshKeys = ({me: { id, email, sshKeys: keys }}) => {
             <div className="delete">
               <Mutation mutation={DeleteSshKeyById} refetchQueries={[{ query: Me}]}>
                 {(deleteSshKeyById, { loading, called, error, data }) => {
-                  
+
                   if (error) {
                     return <div>{error.message}</div>;
                   }
@@ -39,7 +39,7 @@ const SshKeys = ({me: { id, email, sshKeys: keys }}) => {
                   }
 
                   return (
-                    <Button action={() => deleteSshKeyById({
+                    <Button variant='red' action={() => deleteSshKeyById({
                       variables: {
                         input: {
                           id: key.id,
@@ -96,7 +96,7 @@ const SshKeys = ({me: { id, email, sshKeys: keys }}) => {
                 width: 55%;
               }
             }
-            
+
           }
         }
 
@@ -134,10 +134,12 @@ const SshKeys = ({me: { id, email, sshKeys: keys }}) => {
               }
               @media ${bp.wideUp} {
                 &.name {
+                  align-self: center;
                   width: 40%;
                 }
 
                 &.type {
+                  align-self: center;
                   width: 20%;
                 }
 
