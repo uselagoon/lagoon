@@ -113,6 +113,11 @@ objects:
               value: ${SERVICE_NAME}
             - name: CRONJOBS
               value: ${CRONJOBS}
+            - name: API_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: api-db-password
+                  key: API_DB_PASSWORD
           resources:
             requests:
               cpu: 10m
