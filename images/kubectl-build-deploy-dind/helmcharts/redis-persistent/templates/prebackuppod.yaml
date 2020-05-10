@@ -8,7 +8,7 @@ metadata:
   annotations:
     {{- include "redis-persistent.annotations" . | nindent 4 }}
 spec:
-  backupCommand: /bin/sh -c "/bin/busybox tar -cf - -C {{ .Values.persistentStorage.name }} ."
+  backupCommand: /bin/sh -c "/bin/busybox tar -cf - -C {{ .Values.persistentStorage.path }} ."
   fileExtension: .{{ include "redis-persistent.fullname" . }}.tar
   pod:
     metadata:
