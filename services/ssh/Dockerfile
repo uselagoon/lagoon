@@ -61,7 +61,8 @@ RUN fix-permissions /home/grant.sh
 
 RUN fix-permissions /etc/ssh/ && \
     fix-permissions /run/ && \
-    fix-permissions /etc/libnss-mysql.cfg
+    fix-permissions /etc/libnss-mysql.cfg && \
+    fix-permissions /etc/libnss-mysql-root.cfg
 
 RUN mkdir -p /var/run/sshd && chmod 700 /var/run/sshd
 

@@ -6,12 +6,8 @@ import Button from 'components/Button';
 import { bp, color, fontSize } from 'lib/variables';
 
 const taskDrushCron = gql`
-  mutation taskDrushCron(
-    $environment: Int!
-  ) {
-    taskDrushCron(
-      environment: $environment
-    ) {
+  mutation taskDrushCron($environment: Int!) {
+    taskDrushCron(environment: $environment) {
       id
       name
       status
@@ -25,15 +21,14 @@ const taskDrushCron = gql`
   }
 `;
 
-const DrushCron = ({
-  pageEnvironment,
-  onCompleted,
-  onError,
-}) => (
+const DrushCron = ({ pageEnvironment, onCompleted, onError }) => (
   <Mutation
     mutation={taskDrushCron}
     onCompleted={onCompleted}
     onError={onError}
+    variables={{
+      environment: pageEnvironment.id
+    }}
   >
     {(taskDrushCron, { loading, called, error, data }) => {
       return (

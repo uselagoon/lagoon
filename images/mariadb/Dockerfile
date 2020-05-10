@@ -41,7 +41,8 @@ RUN \
     net-tools \
     pwgen \
     tzdata \
-    wget; \
+    wget \
+    gettext; \
     rm -rf /tmp/* /var/tmp/* /var/cache/apk/* /var/cache/distfiles/*; \
     rm -rf /var/lib/mysql/* /etc/mysql/; \
     curl -sSL http://mysqltuner.pl/ -o mysqltuner.pl
