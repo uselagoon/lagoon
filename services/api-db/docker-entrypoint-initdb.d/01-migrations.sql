@@ -1059,7 +1059,7 @@ CREATE OR REPLACE PROCEDURE
       ADD `description` varchar(300) DEFAULT '',
       ADD `version` varchar(300) DEFAULT '',
       ADD `fixed_version` varchar(300) DEFAULT '',
-      ADD `links` varchar(300) DEFAULT '',
+      ADD `links` varchar(300) DEFAULT '';
     END IF;
   END;
 $$
