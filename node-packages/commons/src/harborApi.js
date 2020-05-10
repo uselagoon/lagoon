@@ -15,7 +15,7 @@ const HARBOR_PASSWORD = process.env.HARBOR_PASSWORD;
 const getVulnerabilitiesPayloadFromHarbor = async (repoFullName, harborpassword = null) => {
   const endpoint =
     HARBOUR_BASE_API_URL + repoFullName + HARBOR_BASE_URL_POSTFIX;
-
+console.log(Buffer.from(HARBOR_USERNAME + ':' + (HARBOR_PASSWORD || harborpassword)).toString('base64'));
   const options = {
     timeout: 30000,
     headers: {

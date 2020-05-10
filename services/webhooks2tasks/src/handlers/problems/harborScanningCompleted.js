@@ -3,6 +3,7 @@
 const { logger } = require('@lagoon/commons/src/local-logging');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { getVulnerabilitiesPayloadFromHarbor } = require('@lagoon/commons/src/harborApi');
+const R = require('ramda');
 const uuid4 = require('uuid4');
 
 
@@ -25,21 +26,16 @@ async function harborScanningCompleted(
     body } = webhook;
 
   try {
-    let { resources, repository } = body.event_data;
-
-    const [
+    let { resources,
+      repository,
+      scanOverview,
       lagoonProjectName,
       LagoonEnvironmentName,
-      lagoonServiceName = null,
-    ] = extractRepositoryDetails(repository.repo_full_name);
+      lagoonServiceName,
+      harborScanId,
+    } = validateAndTransformIncomingWebhookdata(body);
 
-    if(!repository.repo_full_name) {
-      throw generateError('InvalidHarborInput', "Unable to find repo_full_name in body.event_data.repository");
-    }
-
-    let harborScanId =repository.repo_full_name;
-
-    let vulnerabilities = await getVulnerabilitiesFromHarbor(harborScanId);
+    let vulnerabilities = await getVulnerabilitiesFromHarbor(harborScanId, harborpassword);
 
     let { id: lagoonProjectId } = await getProjectByName(lagoonProjectName);
 
@@ -54,7 +50,6 @@ async function harborScanningCompleted(
       vulnerabilities,
     };
 
-
     const webhookData = generateWebhookData(
       webhook.giturl,
       'problems',
@@ -63,9 +58,11 @@ async function harborScanningCompleted(
     );
 
     const buffer = new Buffer(JSON.stringify(webhookData));
+
     await channelWrapperWebhooks.publish(`lagoon-webhooks`, '', buffer, {
       persistent: true,
     });
+
   } catch (error) {
     sendToLagoonLogs(
       'error',
@@ -75,9 +72,46 @@ async function harborScanningCompleted(
       { data: body },
       `Could not fetch Harbor scan results, reason: ${error}`
     );
-
-    return;
   }
+}
+
+
+/**
+ * This function will take an incoming Harbor webhook and decompose it
+ * into a more useable format
+ *
+ * @param {*} rawData
+ */
+const validateAndTransformIncomingWebhookdata = (rawData) => {
+  let { resources, repository } = rawData.event_data;
+
+  if(!repository.repo_full_name) {
+    throw generateError('InvalidHarborInput', "Unable to find repo_full_name in body.event_data.repository");
+  }
+
+  // scan_overview is tricky because the property doesn't have an obvious name.
+  // We convert it to an array of objects with the old property as a member
+  let scanOverviewArray = R.toPairs(resources[0].scan_overview).map(e => {
+    let obj = e[1];
+    obj.scan_key = e[0];
+    return obj;
+  });
+
+  let [
+    lagoonProjectName,
+    LagoonEnvironmentName,
+    lagoonServiceName = null,
+   ] = extractRepositoryDetails(repository.repo_full_name);
+
+  return {
+    resources,
+    repository,
+    scanOverview: scanOverviewArray.pop(),
+    lagoonProjectName,
+    LagoonEnvironmentName,
+    lagoonServiceName,
+    harborScanId: repository.repo_full_name,
+  };
 }
 
 const generateError = (name, message) => {
@@ -121,6 +155,7 @@ const extractVulnerabilities = (harborScanResponse) => {
   }
   throw new ProblemsHarborConnectionError('Scan response from Harbor does not contain a \'vulnerabilities\' key');
 };
+
 
 
 const getVulnerabilitiesFromHarbor = async (scanId) => {
