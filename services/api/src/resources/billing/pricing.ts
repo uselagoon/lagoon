@@ -76,7 +76,7 @@ export const EUR = {
 };
 
 export const GBP = {
-  storagePerDay: 0.0283,
+  storagePerDay: 0.02833,
   availability: {
     STANDARD: {
       hitCosts: [0.0, 0.00012, 0.000056, 0.000024],

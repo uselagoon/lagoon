@@ -7,6 +7,7 @@ ep /home/grant.sh
 ep /home/token-debug.sh
 
 ep /etc/libnss-mysql.cfg
+ep /etc/libnss-mysql-root.cfg
 
 # filling /authorize.env with all our current env variables, this file
 # will be sourced by /authorize.sh in order to have all environment variables.
