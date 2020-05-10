@@ -3,7 +3,6 @@
 const { logger } = require('@lagoon/commons/src/local-logging');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { getVulnerabilitiesPayloadFromHarbor } = require('@lagoon/commons/src/harborApi');
-const testData = require('./test_data');
 const uuid4 = require('uuid4');
 
 
