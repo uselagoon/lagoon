@@ -242,6 +242,7 @@ build/elasticsearch__6 build/elasticsearch__7 build/kibana__6 build/kibana__7 bu
 
 pythonimages :=  python__2.7 \
 								 python__3.7 \
+								 python__3.8 \
 								 python__2.7-ckan \
 								 python__2.7-ckandatapusher
 
@@ -263,7 +264,7 @@ $(build-pythonimages): build/commons
 base-images-with-versions += $(pythonimages)
 s3-images += $(pythonimages)
 
-build/python__2.7 build/python__3.7: images/commons
+build/python__2.7 build/python__3.7 build/python__3.8: images/commons
 build/python__2.7-ckan: build/python__2.7
 build/python__2.7-ckandatapusher: build/python__2.7
 
