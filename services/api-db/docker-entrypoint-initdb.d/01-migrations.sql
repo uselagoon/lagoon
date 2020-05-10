@@ -1042,6 +1042,28 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  add_additional_harbor_scan_fields_to_environment_problem()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'environment_problem'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'associated_package'
+    ) THEN
+      ALTER TABLE `environment_problem`
+      ADD `associated_package` varchar(300) DEFAULT '',
+      ADD `description` varchar(300) DEFAULT '',
+      ADD `version` varchar(300) DEFAULT '',
+      ADD `fixed_version` varchar(300) DEFAULT '',
+      ADD `links` varchar(300) DEFAULT '',
+    END IF;
+  END;
+$$
+
 DELIMITER ;
 
 -- If adding new procedures, add them to the bottom of this list
@@ -1090,6 +1112,7 @@ CALL add_production_alias_to_project();
 CALL add_active_systems_misc_to_project();
 CALL add_container_registry_scope_to_env_vars();
 CALL add_internal_container_registry_scope_to_env_vars();
+CALL add_additional_harbor_scan_fields_to_environment_problem();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;
