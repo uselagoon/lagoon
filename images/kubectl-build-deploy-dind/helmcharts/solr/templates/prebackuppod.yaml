@@ -22,7 +22,7 @@ spec:
             - podAffinityTerm:
                 labelSelector:
                   matchExpressions:
-                    - key: service
+                    - key: lagoon/service
                       operator: In
                       values:
                         - {{ include "solr.fullname" . }}
