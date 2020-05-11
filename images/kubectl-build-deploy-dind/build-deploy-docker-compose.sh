@@ -935,16 +935,7 @@ do
     SERVICE_ROLLOUT_TYPE=$ENVIRONMENT_SERVICE_ROLLOUT_TYPE
   fi
 
-  # if mariadb-galera is a statefulset check also for maxscale
-  if [ $SERVICE_TYPE == "mariadb-galera" ]; then
-
-    STATEFULSET="${SERVICE_NAME}-galera"
-    . /kubectl-build-deploy/scripts/exec-monitor-statefulset.sh
-
-    SERVICE_NAME="${SERVICE_NAME}-maxscale"
-    . /kubectl-build-deploy/scripts/exec-monitor-deploy.sh
-
-  elif [ $SERVICE_TYPE == "elasticsearch-cluster" ]; then
+  if [ $SERVICE_TYPE == "elasticsearch-cluster" ]; then
 
     STATEFULSET="${SERVICE_NAME}"
     . /kubectl-build-deploy/scripts/exec-monitor-statefulset.sh

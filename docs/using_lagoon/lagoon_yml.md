@@ -55,7 +55,7 @@ environments:
             insecure: Redirect
             hsts: max-age=31536000
     types:
-      mariadb: mariadb-galera
+      mariadb: mariadb
     templates:
       mariadb: mariadb.master.deployment.yml
     rollouts:
@@ -173,7 +173,7 @@ In the `"www.example.com"` example repeated below, we see two more options \(als
 
 The Lagoon build process checks the `lagoon.type` label from the `docker-compose.yml` file in order to learn what type of service should be deployed  \(read more about them in the [documentation of `docker-compose.yml`](docker-compose_yml.md)\).
 
-Sometimes you might want to override the **type** just for a single environment, and not for all of them. For example, if you want a MariaDB-Galera high availability database for your production environment called `master`:
+Sometimes you might want to override the **type** just for a single environment, and not for all of them. For example, if you want a standalone MariaDB database (instead of letting the Service Broker/operator provision a shared one) for your non-production environment called `develop`:
 
 `service-name: service-type`
 
@@ -184,9 +184,9 @@ Example:
 
 ```
 environments:
-  master:
+  develop:
     types:
-      mariadb: mariadb-galera
+      mariadb: mariadb-single
 ```
 
 
