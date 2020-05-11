@@ -149,7 +149,6 @@ const generateWebhookData = (
 
 const extractVulnerabilities = (harborScanResponse) => {
   for (let [key, value] of Object.entries(harborScanResponse)) {
-    console.log(key);
     if (value.hasOwnProperty('vulnerabilities')) {
       return value.vulnerabilities;
     }
