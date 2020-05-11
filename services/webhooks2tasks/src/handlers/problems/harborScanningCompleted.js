@@ -13,8 +13,6 @@ const {
   getEnvironmentByName,
 } = require('@lagoon/commons/src/api');
 
-const harborpassword = require('./harborpassword');
-
 async function harborScanningCompleted(
   webhook: WebhookRequestData,
   channelWrapperWebhooks
@@ -162,8 +160,7 @@ const getVulnerabilitiesFromHarbor = async (scanId) => {
   let harborPayload = null;
   try {
     harborPayload = await getVulnerabilitiesPayloadFromHarbor(
-      scanId,
-      harborpassword
+      scanId
     );
   } catch (error) {
     throw error;
