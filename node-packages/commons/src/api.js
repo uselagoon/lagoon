@@ -1182,18 +1182,36 @@ const getGroupMembersByGroupName = groupName => graphqlapi.query(
   { name: groupName }
 );
 
-const addProblem = (
+const addProblem = ({
   id = null,
   environment,
   identifier,
   severity,
   source,
   severityScore,
-  data
-) => {
+  data,
+  service,
+  associatedPackage,
+  description,
+  version,
+  fixedVersion,
+  links
+}) => {
   return graphqlapi.mutate(
     `
-    ($id: Int, $environment: Int!, $identifier: String!, $severity: ProblemSeverityRating!, $source: String!, $severityScore: SeverityScore, $data: String!) {
+    ($id: Int,
+      $environment: Int!,
+      $identifier: String!,
+      $severity: ProblemSeverityRating!,
+      $source: String!,
+      $severityScore: SeverityScore,
+      $data: String!,
+      $service: String,
+      $associatedPackage: String,
+      $description: String,
+      $version: String,
+      $fixedVersion: String,
+      $links: String) {
       addProblem(input: {
           id: $id
           environment: $environment
@@ -1202,6 +1220,12 @@ const addProblem = (
           source: $source
           severityScore: $severityScore
           data: $data
+          service: $service
+          associatedPackage: $associatedPackage
+          description: $description
+          version: $version
+          fixedVersion: $fixedVersion
+          links: $links
       }) {
         id
         environment {
@@ -1212,6 +1236,11 @@ const addProblem = (
         source
         severityScore
         data
+        associatedPackage
+        description
+        version
+        fixedVersion
+        links
       }
     }
   `,
@@ -1222,7 +1251,13 @@ const addProblem = (
       severity,
       source,
       severityScore,
-      data
+      data,
+      service,
+      associatedPackage,
+      description: description.substring(0, 299),
+      version,
+      fixedVersion,
+      links
     },
   );
 }
