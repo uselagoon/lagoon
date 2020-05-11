@@ -4,7 +4,6 @@
 const uuid4 = require('uuid4');
 const { logger } = require('@lagoon/commons/src/local-logging');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
-const addAProblem = require('../handlers/problems/addProblem');
 const harborScanningCompleted = require('../handlers/problems/harborScanningCompleted');
 const processHarborVulnerabilityList = require('../handlers/problems/processHarborVulnerabilityList');
 
