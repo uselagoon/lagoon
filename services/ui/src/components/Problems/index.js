@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { bp, color, fontSize } from 'lib/variables';
 import useSortableData from './sortedItems';
-import Accordion from '../Accordion';
+import Accordion from './Accordion';
 
 const Problems = ({ problems }) => {
     const { sortedItems, requestSort, getClassNamesFor } = useSortableData(problems);
@@ -70,9 +70,9 @@ const Problems = ({ problems }) => {
             <button
                 type="button"
                 onClick={() => handleSort('created')}
-                className={`button-sort ${getClassNamesFor('created')}`}
+                className={`button-sort ${getClassNamesFor('service')}`}
             >
-              Created
+              Service
             </button>
             <button
                 type="button"
@@ -100,7 +100,7 @@ const Problems = ({ problems }) => {
                 onClick={() => handleSort('severityScore')}
                 className={`button-sort ${getClassNamesFor('severityScore')}`}
             >
-              Severity Score
+              Score
             </button>
         </div>
         <div className="data-table">
