@@ -42,6 +42,7 @@ async function harborScanningCompleted(
     let messageBody = {
       lagoonProjectId,
       lagoonEnvironmentId: environmentDetails.id,
+      lagoonServiceName,
       vulnerabilities,
     };
 
@@ -96,7 +97,7 @@ const validateAndTransformIncomingWebhookdata = (rawData) => {
   let [
     lagoonProjectName,
     LagoonEnvironmentName,
-    lagoonServiceName = null,
+    lagoonServiceName,
   ] = extractRepositoryDetails(repository.repo_full_name);
 
   return {

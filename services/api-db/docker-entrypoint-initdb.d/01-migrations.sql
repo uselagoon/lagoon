@@ -1060,6 +1060,10 @@ CREATE OR REPLACE PROCEDURE
       ADD `version` varchar(300) DEFAULT '',
       ADD `fixed_version` varchar(300) DEFAULT '',
       ADD `links` varchar(300) DEFAULT '';
+      ALTER TABLE `environment_problem`
+      DROP INDEX environment;
+      ALTER TABLE `environment_problem`
+      ADD UNIQUE KEY `environment` (`environment`, `lagoon_service`, `version`, `identifier`, `deleted`);
     END IF;
   END;
 $$
