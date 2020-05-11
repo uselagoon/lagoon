@@ -3,6 +3,7 @@
 const processProjects = require('./webhooks/projects');
 const processDataSync = require('./webhooks/dataSync');
 const processBackup = require('./webhooks/backup');
+const processProblem = require('./webhooks/problems');
 
 import type { WebhookRequestData, ChannelWrapper, RabbitMQMsg } from './types';
 
@@ -21,6 +22,8 @@ function processQueue (rabbitMsg: RabbitMQMsg, channelWrapperWebhooks: ChannelWr
     processDataSync(rabbitMsg, channelWrapperWebhooks);
   } else if (webhooktype == 'resticbackup') {
     processBackup(rabbitMsg, channelWrapperWebhooks);
+  } else if (webhooktype == 'problems') {
+    processProblem(rabbitMsg, channelWrapperWebhooks);
   }
   else {
     processProjects(rabbitMsg, channelWrapperWebhooks);

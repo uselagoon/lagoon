@@ -150,9 +150,28 @@ const typeDefs = gql`
     created: String
   }
 
+
+  input BulkProblem {
+    severity: ProblemSeverityRating
+    severityScore: SeverityScore
+    identifier: String
+    data: String
+  }
+
+  input AddProblemsFromSourceInput {
+    environment: Int!
+    source: String!
+    problems: [BulkProblem]
+  }
+
   input DeleteProblemInput {
     environment: Int!
     identifier: String!
+  }
+
+  input DeleteProblemsFromSourceInput {
+    environment: Int!
+    source: String!
   }
 
   type File {
@@ -1340,7 +1359,9 @@ const typeDefs = gql`
     cancelDeployment(input: CancelDeploymentInput!): String
     addBackup(input: AddBackupInput!): Backup
     addProblem(input: AddProblemInput!): Problem
+    addProblemsFromSource(input: AddProblemsFromSourceInput!): String
     deleteProblem(input: DeleteProblemInput!): String
+    deleteProblemsFromSource(input: DeleteProblemsFromSourceInput!): String
     deleteBackup(input: DeleteBackupInput!): String
     deleteAllBackups: String
     addRestore(input: AddRestoreInput!): Restore

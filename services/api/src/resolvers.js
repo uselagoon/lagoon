@@ -7,20 +7,8 @@ const {
   getProblemsByEnvironmentId,
   addProblem,
   deleteProblem,
-} = require('./resources/problem/resolvers');
-
-const {
-  SeverityScoreType
-} = require('./resources/problem/types');
-
-const {
-  getLagoonVersion,
-} = require('./resources/lagoon/resolvers');
-
-const {
-  getProblemsByEnvironmentId,
-  addProblem,
-  deleteProblem,
+  deleteProblemsFromSource,
+  addProblemsFromSource,
 } = require('./resources/problem/resolvers');
 
 const {
@@ -313,7 +301,9 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
   },
   Mutation: {
     addProblem,
+    addProblemsFromSource,
     deleteProblem,
+    deleteProblemsFromSource,
     addOrUpdateEnvironment,
     updateEnvironment,
     deleteEnvironment,

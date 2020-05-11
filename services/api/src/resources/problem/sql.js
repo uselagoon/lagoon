@@ -50,6 +50,15 @@ const Sql /* : SqlObj */ = {
       .where('deleted', '=', '0000-00-00 00:00:00')
       .update({ deleted: knex.fn.now() })
       .toString(),
+  deleteProblemsFromSource: (environment, source) =>
+      knex('environment_problem')
+        .where({
+          environment: environment,
+          source: source
+        })
+        .where('deleted', '=', '0000-00-00 00:00:00')
+        .update({ deleted: knex.fn.now() })
+        .toString(),
 };
 
 module.exports = Sql;

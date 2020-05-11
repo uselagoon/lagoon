@@ -190,6 +190,17 @@ const NavTabs = ({ activeTab, environment }) => (
               background-image: url('/static/images/tasks-active.svg');
             }
           }
+
+          &.problems {
+            &::before {
+              background-image: url('/static/images/problems.svg');
+              background-size: 16px;
+            }
+
+            &.active::before {
+              background-image: url('/static/images/problems-active.svg');
+            }
+          }
         }
       }
     `}</style>

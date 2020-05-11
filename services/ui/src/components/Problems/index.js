@@ -110,18 +110,28 @@ const Problems = ({ problems }) => {
                     key={problem.id}
                     heading={problem}
                     defaultValue={false}
-                    className="data-row row-heading"
-                    onToggle={visibility => {
-                        console.log('visibility -->', visibility);
-                    }}>
+                    className="data-row row-heading">
                     <div className="expanded-wrapper">
-                        <div className="version"><p>Version: {problem.version}</p></div>
-                        <div className="fixedVersion"><p>Fixed Version: {problem.fixedVersion}</p></div>
-                        <div className="links"><p><a href={problem.links}>{problem.links}</a></p></div>
-                        <div className="description"><p>{problem.description}</p></div>
-                        <div className={`data-row row-data`}>
-                            <div className="data">{problem.data}</div>
-                        </div>
+                      <div className="fieldWrapper">
+                        <label>Problem Description</label>
+                        <div className="description">{problem.description}</div>
+                      </div>
+                      <div className="fieldWrapper">
+                        <label>Problem Version</label>
+                        <div className="version">{problem.version}</div>
+                      </div>
+                      <div className="fieldWrapper">
+                        <label>Problem Fixed in Version</label>
+                        <div className="fixed-version">{problem.fixedVersion}</div>
+                      </div>
+                      <div className="fieldWrapper">
+                        <label>Associated link (CVE description etc.)</label>
+                        <div className="links"><a href={problem.links} target="_blank">{problem.links}</a></div>
+                      </div>
+                      <div className="fieldWrapper">
+                        <label>Raw Data</label>
+                        <div className="data">{problem.data}</div>
+                      </div>
                     </div>
                 </Accordion>
             ))}
@@ -183,6 +193,10 @@ const Problems = ({ problems }) => {
 
       .expanded-wrapper {
         padding: 20px;
+        background: ${color.lightestGrey};
+        .fieldWrapper {
+          padding-bottom: 20px;
+        }
       }
 
       .data-table {
