@@ -132,8 +132,6 @@ images :=     oc \
 							kubectl \
 							mariadb \
 							mariadb-drupal \
-							mariadb-galera \
-							mariadb-galera-drupal \
 							postgres \
 							postgres-ckan \
 							postgres-drupal \
@@ -180,8 +178,6 @@ $(build-images):
 #    changed on the Dockerfiles
 build/mariadb: build/commons images/mariadb/Dockerfile
 build/mariadb-drupal: build/mariadb images/mariadb-drupal/Dockerfile
-build/mariadb-galera: build/commons images/mariadb-galera/Dockerfile
-build/mariadb-galera-drupal: build/mariadb-galera images/mariadb-galera-drupal/Dockerfile
 build/postgres: build/commons images/postgres/Dockerfile
 build/postgres-ckan: build/postgres images/postgres-ckan/Dockerfile
 build/postgres-drupal: build/postgres images/postgres-drupal/Dockerfile
@@ -454,10 +450,7 @@ services :=       api \
 									harborregistry \
 									harborregistryctl
 
-services-galera := 	api-db-galera \
-										keycloak-db-galera
-
-service-images += $(services) $(services-galera)
+service-images += $(services)
 
 build-services = $(foreach image,$(services),build/$(image))
 
@@ -465,14 +458,6 @@ build-services = $(foreach image,$(services),build/$(image))
 $(build-services):
 	$(eval image = $(subst build/,,$@))
 	$(call docker_build,$(image),services/$(image)/Dockerfile,services/$(image))
-	touch $@
-
-build-services-galera = $(foreach image,$(services-galera),build/$(image))
-
-$(build-services-galera):
-	$(eval image = $(subst build/,,$@))
-	$(eval service = $(subst -galera,,$(image)))
-	$(call docker_build,$(image),services/$(service)/Dockerfile-galera,services/$(service))
 	touch $@
 
 # Dependencies of Service Images
@@ -484,7 +469,6 @@ build/logs-db-curator: build/curator
 build/auto-idler: build/oc
 build/storage-calculator: build/oc
 build/api-db build/keycloak-db: build/mariadb
-build/api-db-galera build/keycloak-db-galera: build/mariadb-galera
 build/broker: build/rabbitmq-cluster build/broker-single
 build/broker-single: build/rabbitmq
 build/drush-alias: build/nginx
@@ -496,6 +480,7 @@ build/harborregistryctl: build/harborregistry
 build/harbor-nginx: build/harborregistryctl services/harbor-core/Dockerfile services/harbor-portal/Dockerfile
 build/tests-kubernetes: build/tests
 build/tests-openshift: build/tests
+build/toolbox: build/mariadb
 
 # Auth SSH needs the context of the root folder, so we have it individually
 build/ssh: build/commons
@@ -587,7 +572,6 @@ all-openshift-tests-list:=	features-openshift \
 														node \
 														drupal \
 														drupal-postgres \
-														drupal-galera \
 														github \
 														gitlab \
 														bitbucket \
@@ -631,7 +615,7 @@ webhook-tests = github gitlab bitbucket
 api-tests = node features-openshift features-kubernetes nginx elasticsearch active-standby
 
 # All drupal tests
-drupal-tests = drupal drupal-postgres drupal-galera
+drupal-tests = drupal drupal-postgres
 drupal-dependencies = build/varnish-drupal build/solr__5.5-drupal build/nginx-drupal build/redis build/php__7.2-cli-drupal build/php__7.3-cli-drupal build/php__7.4-cli-drupal build/postgres-drupal build/mariadb-drupal
 
 # These targets are used as dependencies to bring up containers in the right order.
