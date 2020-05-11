@@ -2,10 +2,11 @@
 
 const { logger } = require('@lagoon/commons/src/local-logging');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
-const { getVulnerabilitiesPayloadFromHarbor } = require('@lagoon/commons/src/harborApi');
+const {
+  getVulnerabilitiesPayloadFromHarbor,
+} = require('@lagoon/commons/src/harborApi');
 const R = require('ramda');
 const uuid4 = require('uuid4');
-
 
 const {
   getProjectByName,
@@ -14,19 +15,15 @@ const {
 
 const harborpassword = require('./harborpassword');
 
-
 async function harborScanningCompleted(
   webhook: WebhookRequestData,
   channelWrapperWebhooks
 ) {
-  const {
-    webhooktype,
-    event,
-    uuid,
-    body } = webhook;
+  const { webhooktype, event, uuid, body } = webhook;
 
   try {
-    let { resources,
+    let {
+      resources,
       repository,
       scanOverview,
       lagoonProjectName,
@@ -35,7 +32,10 @@ async function harborScanningCompleted(
       harborScanId,
     } = validateAndTransformIncomingWebhookdata(body);
 
-    let vulnerabilities = await getVulnerabilitiesFromHarbor(harborScanId, harborpassword);
+    let vulnerabilities = await getVulnerabilitiesFromHarbor(
+      harborScanId,
+      harborpassword
+    );
 
     let { id: lagoonProjectId } = await getProjectByName(lagoonProjectName);
 
@@ -62,7 +62,6 @@ async function harborScanningCompleted(
     await channelWrapperWebhooks.publish(`lagoon-webhooks`, '', buffer, {
       persistent: true,
     });
-
   } catch (error) {
     sendToLagoonLogs(
       'error',
@@ -75,7 +74,6 @@ async function harborScanningCompleted(
   }
 }
 
-
 /**
  * This function will take an incoming Harbor webhook and decompose it
  * into a more useable format
@@ -85,13 +83,16 @@ async function harborScanningCompleted(
 const validateAndTransformIncomingWebhookdata = (rawData) => {
   let { resources, repository } = rawData.event_data;
 
-  if(!repository.repo_full_name) {
-    throw generateError('InvalidHarborInput', "Unable to find repo_full_name in body.event_data.repository");
+  if (!repository.repo_full_name) {
+    throw generateError(
+      'InvalidHarborInput',
+      'Unable to find repo_full_name in body.event_data.repository'
+    );
   }
 
   // scan_overview is tricky because the property doesn't have an obvious name.
   // We convert it to an array of objects with the old property as a member
-  let scanOverviewArray = R.toPairs(resources[0].scan_overview).map(e => {
+  let scanOverviewArray = R.toPairs(resources[0].scan_overview).map((e) => {
     let obj = e[1];
     obj.scan_key = e[0];
     return obj;
@@ -101,7 +102,7 @@ const validateAndTransformIncomingWebhookdata = (rawData) => {
     lagoonProjectName,
     LagoonEnvironmentName,
     lagoonServiceName = null,
-   ] = extractRepositoryDetails(repository.repo_full_name);
+  ] = extractRepositoryDetails(repository.repo_full_name);
 
   return {
     resources,
@@ -112,13 +113,13 @@ const validateAndTransformIncomingWebhookdata = (rawData) => {
     lagoonServiceName,
     harborScanId: repository.repo_full_name,
   };
-}
+};
 
 const generateError = (name, message) => {
   let e = new Error(message);
   e.name = name;
   return e;
-}
+};
 
 const extractRepositoryDetails = (repoFullName) => {
   const pattern = /^(.+)\/(.+)\/(.+)$/;
@@ -128,7 +129,7 @@ const extractRepositoryDetails = (repoFullName) => {
   // }
 
   return repoFullName.split('/');
-}
+};
 
 const generateWebhookData = (
   webhookGiturl,
@@ -153,22 +154,24 @@ const extractVulnerabilities = (harborScanResponse) => {
       return value.vulnerabilities;
     }
   }
-  throw new ProblemsHarborConnectionError('Scan response from Harbor does not contain a \'vulnerabilities\' key');
+  throw new ProblemsHarborConnectionError(
+    "Scan response from Harbor does not contain a 'vulnerabilities' key"
+  );
 };
-
-
 
 const getVulnerabilitiesFromHarbor = async (scanId) => {
   let harborPayload = null;
   try {
-    harborPayload = await getVulnerabilitiesPayloadFromHarbor(scanId, harborpassword);
-  }
-  catch(error) {
+    harborPayload = await getVulnerabilitiesPayloadFromHarbor(
+      scanId,
+      harborpassword
+    );
+  } catch (error) {
     throw error;
   }
 
   return extractVulnerabilities(harborPayload);
-}
+};
 
 class ProblemsHarborConnectionError extends Error {
   constructor(message) {

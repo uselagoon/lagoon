@@ -20,20 +20,6 @@ const {
 } = require('./resources/lagoon/resolvers');
 
 const {
-  getProblemsByEnvironmentId,
-  addProblem,
-  deleteProblem,
-} = require('./resources/problem/resolvers');
-
-const {
-  SeverityScoreType
-} = require('./resources/problem/types');
-
-const {
-  getLagoonVersion,
-} = require('./resources/lagoon/resolvers');
-
-const {
   getDeploymentsByEnvironmentId,
   getDeploymentByRemoteId,
   addDeployment,
