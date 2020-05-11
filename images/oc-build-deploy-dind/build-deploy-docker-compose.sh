@@ -499,7 +499,8 @@ MONITORING_INTERVAL="60"
 # we need to check for production routes for active/standby if they are defined, as these will get migrated between environments as required
 if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
   # only production environments get route monitoring
-  MONITORING_ENABLED="true"
+  # TODO : work on openshift monitoring after k8s
+  # MONITORING_ENABLED="true"
   # Set alerting contact based on site availability
   if [ "${AVAILABILITY}" == "HIGH" ]; then
     MONITOR_ALERTCONTACTS=$MONITORING_ALERTCONTACT_HA
