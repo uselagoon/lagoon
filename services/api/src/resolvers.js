@@ -4,6 +4,16 @@ const GraphQLDate = require('graphql-iso-date');
 const GraphQLJSON = require('graphql-type-json');
 
 const {
+  getProblemsByEnvironmentId,
+  addProblem,
+  deleteProblem,
+} = require('./resources/problem/resolvers');
+
+const {
+  SeverityScoreType
+} = require('./resources/problem/types');
+
+const {
   getLagoonVersion,
 } = require('./resources/lagoon/resolvers');
 
