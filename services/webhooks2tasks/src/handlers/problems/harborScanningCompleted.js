@@ -30,10 +30,7 @@ async function harborScanningCompleted(
       harborScanId,
     } = validateAndTransformIncomingWebhookdata(body);
 
-    let vulnerabilities = await getVulnerabilitiesFromHarbor(
-      harborScanId,
-      harborpassword
-    );
+    let vulnerabilities = await getVulnerabilitiesFromHarbor(harborScanId);
 
     let { id: lagoonProjectId } = await getProjectByName(lagoonProjectName);
 
