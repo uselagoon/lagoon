@@ -297,7 +297,7 @@ export const EnvironmentModel = (clients) => {
                 "min_doc_count": 0,
                 "extended_bounds": {
                   "min": `${interested_year_month}-01`,
-                  "max": `${interested_year_month}-31` // elasticsearch is clever enough to realize if a month does not have 31 days.
+                  "max": `${interested_year_month}-30` // elasticsearch is clever enough to realize if a month does not have 31 days.
                 }
               },
               "aggs": {
