@@ -21,8 +21,6 @@ async function processProblems(
     channelWrapperWebhooks: ChannelWrapper
   ): Promise<void> {
     const webhook: WebhookRequestData = JSON.parse(rabbitMsg.content.toString());
-    //webhook.body = testData; //Just dropping this here TODO remove later
-
     const {
       webhooktype,
       event
@@ -30,7 +28,6 @@ async function processProblems(
 
     switch(webhook.event) {
       case 'harbor:scanningcompleted' :
-        //TODO: here we're going to be doing the actual scanning connection and setting up a new set of items
         await handle(harborScanningCompleted, webhook, `${webhooktype}:${event}`, channelWrapperWebhooks);
         break
       case 'harbor:scanningresultfetched' :
