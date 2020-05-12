@@ -1,24 +1,36 @@
 const { knex } = require('../../util/db');
 
+// content_type was introduced as a later extension
+// to the notifications system - we set the default type
+// to 'deployment' to ensure external consistency of the API
+const DEFAULT_NOTIFICATION_CONTENT_TYPE = 'deployment';
+
+/* ::
+
+import type {Cred, SqlObj} from '../';
+
+*/
+
 export const Sql = {
   createProjectNotification: (input) => {
-    const { pid, notificationType, nid } = input;
+    const { pid, notificationType, nid, contentType = DEFAULT_NOTIFICATION_CONTENT_TYPE } = input;
 
     return knex('project_notification')
       .insert({
         pid,
         type: notificationType,
         nid,
+        content_type: contentType,
       })
       .toString();
   },
   selectProjectNotificationByNotificationName: (input) => {
-    const { name, type } = input;
+    const { name, type, contentType = DEFAULT_NOTIFICATION_CONTENT_TYPE } = input;
 
     return knex('project_notification AS pn')
       .joinRaw(
-        `JOIN notification_${type} AS nt ON pn.nid = nt.id AND pn.type = ?`,
-        [type],
+        `JOIN notification_${type} AS nt ON pn.nid = nt.id AND pn.type = :type and pn.content_type = :content_type`,
+        {type: type, content_type: contentType},
       )
       .where('nt.name', '=', name)
       .select('nt.*', 'pn.*', knex.raw('? as type', [type]))

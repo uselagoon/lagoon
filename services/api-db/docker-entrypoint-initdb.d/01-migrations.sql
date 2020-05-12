@@ -1121,7 +1121,7 @@ CREATE OR REPLACE PROCEDURE
         AND table_schema = 'infrastructure'
         AND column_name = 'content_type'
     ) THEN
-      ALTER TABLE `project_notification` ADD `content_type` content_type ENUM('deployment', 'problem') NOT NULL DEFAULT 'deployment';
+      ALTER TABLE `project_notification` ADD `content_type` ENUM('deployment', 'problem') NOT NULL DEFAULT 'deployment';
     END IF;
   END;
 $$
