@@ -459,6 +459,16 @@ TEMPLATE_PARAMETERS=()
 ### CUSTOM ROUTES FROM .lagoon.yml
 ##############################################
 
+# set some monitoring defaults
+if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
+  echo "PRODUCTION environment, ingresmonitorcontroller enabled"
+  MONITORING_ENABLED="true"
+else
+  MONITORING_ENABLED="false"
+fi
+
+echo "ALERTCONTACT = ${ALERTCONTACT}"
+
 # Two while loops as we have multiple services that want routes and each service has multiple routes
 ROUTES_SERVICE_COUNTER=0
 if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER 2> /dev/null)" ]; then
@@ -475,12 +485,14 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
         ROUTE_TLS_ACME=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true)
         ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
         ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
+        MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring_path "/")
       else
         # Only a value given, assuming some defaults
         ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
         ROUTE_TLS_ACME=true
         ROUTE_INSECURE=Redirect
         ROUTE_HSTS=null
+        MONITORING_PATH="/"
       fi
 
       # The very first found route is set as MAIN_CUSTOM_ROUTE
@@ -497,6 +509,9 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
         --set tls_acme="${ROUTE_TLS_ACME}" \
         --set insecure="${ROUTE_INSECURE}" \
         --set hsts="${ROUTE_HSTS}" \
+        --set ingressmonitorcontroller.enabled="${MONITORING_ENABLED}" \
+        --set ingressmonitorcontroller.path="${MONITORING_PATH}" \
+        --set ingressmonitorcontroller.alertContacts="${ALERTCONTACT}" \
         -f /kubectl-build-deploy/values.yaml "${HELM_ARGUMENTS[@]}" | outputToYaml
 
       let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
@@ -518,12 +533,14 @@ else
         ROUTE_TLS_ACME=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true)
         ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
         ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
+        MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring_path "/")
       else
         # Only a value given, assuming some defaults
         ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
         ROUTE_TLS_ACME=true
         ROUTE_INSECURE=Redirect
         ROUTE_HSTS=null
+        MONITORING_PATH="/"
       fi
 
       # The very first found route is set as MAIN_CUSTOM_ROUTE
@@ -540,6 +557,9 @@ else
         --set tls_acme="${ROUTE_TLS_ACME}" \
         --set insecure="${ROUTE_INSECURE}" \
         --set hsts="${ROUTE_HSTS}" \
+        --set ingressmonitorcontroller.enabled="${MONITORING_ENABLED}" \
+        --set ingressmonitorcontroller.path="${MONITORING_PATH}" \
+        --set ingressmonitorcontroller.alertContacts="${ALERTCONTACT}" \
         -f /kubectl-build-deploy/values.yaml "${HELM_ARGUMENTS[@]}" | outputToYaml
 
       let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
