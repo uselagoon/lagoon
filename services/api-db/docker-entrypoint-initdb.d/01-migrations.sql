@@ -1060,6 +1060,15 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  update_user_password()
+
+  BEGIN
+    SET PASSWORD FOR '$MARIADB_USER'@'%' = PASSWORD('$MARIADB_PASSWORD');
+    FLUSH PRIVILEGES;
+  END;
+$$
+
 DELIMITER ;
 
 -- If adding new procedures, add them to the bottom of this list
@@ -1109,6 +1118,7 @@ CALL add_production_alias_to_project();
 CALL add_active_systems_misc_to_project();
 CALL add_container_registry_scope_to_env_vars();
 CALL add_internal_container_registry_scope_to_env_vars();
+CALL update_user_password();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;
