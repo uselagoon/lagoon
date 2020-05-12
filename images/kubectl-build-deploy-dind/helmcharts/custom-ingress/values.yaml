@@ -9,6 +9,7 @@ insecure: Allow
 service: ''
 
 ingressmonitorcontroller:
-  interval: 60
-  alertContacts: ''
+  enabled: 'false'
+  interval: '60'
+  alertContacts: 'unconfigured'
   path: '/'
