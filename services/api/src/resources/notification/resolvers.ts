@@ -1,3 +1,4 @@
+<<<<<<< HEAD:services/api/src/resources/notification/resolvers.ts
 import * as R from 'ramda';
 import { ResolverFn } from '../';
 import { query, prepare, isPatchEmpty } from '../../util/db';
@@ -5,6 +6,22 @@ import { Helpers as projectHelpers } from '../project/helpers';
 import { Helpers } from './helpers';
 import { Sql } from './sql';
 import { Sql as projectSql } from '../project/sql';
+=======
+// @flow
+
+const R = require('ramda');
+const { query, prepare, isPatchEmpty } = require('../../util/db');
+const projectHelpers = require('../project/helpers');
+const Helpers = require('./helpers');
+const Sql = require('./sql');
+const DEFAULTS = require('./defaults');
+
+/* ::
+
+import type {ResolversObj} from '../';
+
+*/
+>>>>>>> 7c0c0638... Adds graphql notification content types for adding:services/api/src/resources/notification/resolvers.js
 
 const notificationTypeToString = R.cond([
   [R.equals('MICROSOFTTEAMS'), R.toLower],
@@ -14,7 +31,17 @@ const notificationTypeToString = R.cond([
   [R.T, R.identity],
 ]);
 
+<<<<<<< HEAD:services/api/src/resources/notification/resolvers.ts
 export const addNotificationMicrosoftTeams: ResolverFn = async (root, { input }, { sqlClient, hasPermission }) => {
+=======
+const notifiationContentTypeToString = R.cond([
+  [R.equals('DEPLOYMENT'), R.toLower],
+  [R.equals('PROBLEM'), R.toLower],
+  [R.T, R.identity],
+]);
+
+const addNotificationMicrosoftTeams = async (root, { input }, { sqlClient, hasPermission }) => {
+>>>>>>> 7c0c0638... Adds graphql notification content types for adding:services/api/src/resources/notification/resolvers.js
   await hasPermission('notification', 'add');
 
   const prep = prepare(
@@ -80,7 +107,12 @@ export const addNotificationToProject: ResolverFn = async (
 ) => {
   const input = R.compose(
     R.over(R.lensProp('notificationType'), notificationTypeToString),
+<<<<<<< HEAD:services/api/src/resources/notification/resolvers.ts
   )(unformattedInput) as any;
+=======
+    R.over(R.lensProp('contentType'), notifiationContentTypeToString),
+  )(unformattedInput);
+>>>>>>> 7c0c0638... Adds graphql notification content types for adding:services/api/src/resources/notification/resolvers.js
 
   const pid = await projectHelpers(sqlClient).getProjectIdByName(input.project);
   await hasPermission('project', 'addNotification', {
@@ -97,6 +129,7 @@ export const addNotificationToProject: ResolverFn = async (
     );
   }
   projectNotification.notificationType = input.notificationType;
+  projectNotification.contentType = input.contentType || DEFAULTS.NOTIFICATION_CONTENT_TYPE;
 
   await query(sqlClient, Sql.createProjectNotification(projectNotification));
   const select = await query(

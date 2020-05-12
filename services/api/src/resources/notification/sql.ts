@@ -1,9 +1,5 @@
 const { knex } = require('../../util/db');
-
-// content_type was introduced as a later extension
-// to the notifications system - we set the default type
-// to 'deployment' to ensure external consistency of the API
-const DEFAULT_NOTIFICATION_CONTENT_TYPE = 'deployment';
+const DEFAULTS = require('./defaults');
 
 /* ::
 
@@ -11,9 +7,15 @@ import type {Cred, SqlObj} from '../';
 
 */
 
+<<<<<<< HEAD:services/api/src/resources/notification/sql.ts
 export const Sql = {
   createProjectNotification: (input) => {
     const { pid, notificationType, nid, contentType = DEFAULT_NOTIFICATION_CONTENT_TYPE } = input;
+=======
+const Sql /* : SqlObj */ = {
+  createProjectNotification: (input /* : Object */) => {
+    const { pid, notificationType, nid, contentType = DEFAULTS.NOTIFICATION_CONTENT_TYPE } = input;
+>>>>>>> 7c0c0638... Adds graphql notification content types for adding:services/api/src/resources/notification/sql.js
 
     return knex('project_notification')
       .insert({
@@ -24,8 +26,13 @@ export const Sql = {
       })
       .toString();
   },
+<<<<<<< HEAD:services/api/src/resources/notification/sql.ts
   selectProjectNotificationByNotificationName: (input) => {
     const { name, type, contentType = DEFAULT_NOTIFICATION_CONTENT_TYPE } = input;
+=======
+  selectProjectNotificationByNotificationName: (input /* : Object */) => {
+    const { name, type, contentType = DEFAULTS.NOTIFICATION_CONTENT_TYPE } = input;
+>>>>>>> 7c0c0638... Adds graphql notification content types for adding:services/api/src/resources/notification/sql.js
 
     return knex('project_notification AS pn')
       .joinRaw(
@@ -59,8 +66,23 @@ export const Sql = {
         'project.id': input,
       })
       .toString(),
+<<<<<<< HEAD:services/api/src/resources/notification/sql.ts
   selectProjectNotification: (input) => {
     const { project, notificationType, notificationName } = input;
+=======
+  selectProjectByName: (input /* : Object */) => {
+    const { project } = input;
+
+    return knex('project')
+      .select('*')
+      .where({
+        'project.name': project,
+      })
+      .toString();
+  },
+  selectProjectNotification: (input /* : Object */) => {
+    const { project, notificationType, notificationName, contentType = DEFAULTS.NOTIFICATION_CONTENT_TYPE } = input;
+>>>>>>> 7c0c0638... Adds graphql notification content types for adding:services/api/src/resources/notification/sql.js
     return knex({ p: 'project', nt: `notification_${notificationType}` })
       .where({ 'p.name': project })
       .andWhere({ 'nt.name': notificationName })
@@ -99,11 +121,16 @@ export const Sql = {
       .update(patch)
       .toString();
   },
+<<<<<<< HEAD:services/api/src/resources/notification/sql.ts
   selectNotificationsByTypeByProjectId: (input) => {
     const { type, pid } = input;
+=======
+  selectNotificationsByTypeByProjectId: (input /* : Object */) => {
+    const { type, pid, contentType = DEFAULTS.NOTIFICATION_CONTENT_TYPE } = input;
+>>>>>>> 7c0c0638... Adds graphql notification content types for adding:services/api/src/resources/notification/sql.js
     const selectQuery = knex('project_notification AS pn').joinRaw(
-      `JOIN notification_${type} AS nt ON pn.nid = nt.id AND pn.type = ?`,
-      [type],
+      `JOIN notification_${type} AS nt ON pn.nid = nt.id AND pn.type = :type AND pn.content_type = :contentType`,
+      {type, contentType},
     );
 
     return selectQuery
