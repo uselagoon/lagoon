@@ -80,14 +80,16 @@ export async function readFromRabbitMQ (msg: ConsumeMessage, channelWrapperLogs:
     case "rest:remove:CannotDeleteProductionEnvironment":
       sendToSlack(project, message, 'warning', ':warning:', channelWrapperLogs, msg, appId)
       break;
-
+    case "problem:notification:example":
+      sendToSlack(project, message, 'warning', ':warning:', channelWrapperLogs, msg, appId, 'PROBLEM')
+      break;
     default:
       return channelWrapperLogs.ack(msg)
   }
 
 }
 
-const sendToSlack = async (project, message, color, emoji, channelWrapperLogs, msg, appId) => {
+const sendToSlack = async (project, message, color, emoji, channelWrapperLogs, msg, appId, contentType = 'DEPLOYMENT') => {
 
   let projectSlacks;
   try {

@@ -711,7 +711,7 @@ export async function getRocketChatInfoForProject(
 }
 
 export async function getSlackinfoForProject(
-  project: string
+  project: string, contentType = 'DEPLOYMENT'
 ): Promise<Project> {
   const notificationsFragment = graphqlapi.createFragment(`
     fragment on NotificationSlack {
@@ -723,7 +723,7 @@ export async function getSlackinfoForProject(
   const result = await graphqlapi.query(`
     {
       project:projectByName(name: "${project}") {
-        slacks: notifications(type: SLACK) {
+        slacks: notifications(type: SLACK, contentType: ${contentType}) {
           ...${notificationsFragment}
         }
       }
