@@ -5,6 +5,7 @@ import EnvironmentLink from 'components/link/Environment';
 import BackupsLink from 'components/link/Backups';
 import DeploymentsLink from 'components/link/Deployments';
 import TasksLink from 'components/link/Tasks';
+import ProblemsLink from 'components/link/Problems';
 import { bp, color } from 'lib/variables';
 
 const { className: aClassName, styles: aStyles } = css.resolve`
@@ -73,6 +74,17 @@ const NavTabs = ({ activeTab, environment }) => (
       >
         Tasks
       </TasksLink>
+    </li>
+    <li
+      className={`problems ${activeTab == 'problems' ? 'active' : ''} ${aClassName}`}
+    >
+      <ProblemsLink
+          environmentSlug={environment.openshiftProjectName}
+          projectSlug={environment.project.name}
+          className={aClassName}
+      >
+        Problems
+      </ProblemsLink>
     </li>
     <style jsx>{`
       .navigation {
@@ -176,6 +188,17 @@ const NavTabs = ({ activeTab, environment }) => (
 
             &.active::before {
               background-image: url('/static/images/tasks-active.svg');
+            }
+          }
+
+          &.problems {
+            &::before {
+              background-image: url('/static/images/problems.svg');
+              background-size: 16px;
+            }
+
+            &.active::before {
+              background-image: url('/static/images/problems-active.svg');
             }
           }
         }

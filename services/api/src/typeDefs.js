@@ -103,6 +103,77 @@ const typeDefs = gql`
     ZAR
   }
 
+  enum ProblemSeverityRating {
+    NONE
+    UNKNOWN
+    NEGLIGIBLE
+    LOW
+    MEDIUM
+    HIGH
+    CRITICAL
+  }
+
+  scalar SeverityScore
+
+  type Problem {
+    id: Int
+    environment: Environment
+    severity: ProblemSeverityRating
+    severityScore: SeverityScore
+    identifier: String
+    service: String
+    source: String
+    associatedPackage: String
+    description: String
+    links: String
+    version: String
+    fixedVersion: String
+    data: String
+    created: String
+    deleted: String
+  }
+
+  input AddProblemInput {
+    id: Int
+    environment: Int!
+    severity: ProblemSeverityRating
+    severityScore: SeverityScore
+    identifier: String!
+    service: String
+    source: String!
+    associatedPackage: String
+    description: String
+    links: String
+    version: String
+    fixedVersion: String
+    data: String!
+    created: String
+  }
+
+
+  input BulkProblem {
+    severity: ProblemSeverityRating
+    severityScore: SeverityScore
+    identifier: String
+    data: String
+  }
+
+  input AddProblemsFromSourceInput {
+    environment: Int!
+    source: String!
+    problems: [BulkProblem]
+  }
+
+  input DeleteProblemInput {
+    environment: Int!
+    identifier: String!
+  }
+
+  input DeleteProblemsFromSourceInput {
+    environment: Int!
+    source: String!
+  }
+
   type File {
     id: Int
     filename: String
@@ -448,6 +519,7 @@ const typeDefs = gql`
     backups(includeDeleted: Boolean): [Backup]
     tasks(id: Int): [Task]
     services: [EnvironmentService]
+    problems: [Problem]
   }
 
   type EnvironmentHitsMonth {
@@ -1286,6 +1358,10 @@ const typeDefs = gql`
     updateDeployment(input: UpdateDeploymentInput): Deployment
     cancelDeployment(input: CancelDeploymentInput!): String
     addBackup(input: AddBackupInput!): Backup
+    addProblem(input: AddProblemInput!): Problem
+    addProblemsFromSource(input: AddProblemsFromSourceInput!): String
+    deleteProblem(input: DeleteProblemInput!): String
+    deleteProblemsFromSource(input: DeleteProblemsFromSourceInput!): String
     deleteBackup(input: DeleteBackupInput!): String
     deleteAllBackups: String
     addRestore(input: AddRestoreInput!): Restore
