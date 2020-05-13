@@ -269,11 +269,13 @@ export const getNotificationsByProjectId: ResolverFn = async (
     project: pid,
   });
 
-  const args = R.compose(R.over(R.lensProp('type'), notificationTypeToString))(
+  const args = R.compose(
+    R.over(R.lensProp('type'), notificationTypeToString),
+    R.over(R.lensProp('contentType'), notifiationContentTypeToString))(
     unformattedArgs,
   );
 
-  const { type: argsType } = args;
+  const { type: argsType, contentType = DEFAULTS.NOTIFICATION_CONTENT_TYPE } = args;
 
   // Types to collect notifications from all different
   // notification type tables
@@ -287,6 +289,7 @@ export const getNotificationsByProjectId: ResolverFn = async (
           {
             type,
             pid,
+            contentType,
           },
         ),
       ),
