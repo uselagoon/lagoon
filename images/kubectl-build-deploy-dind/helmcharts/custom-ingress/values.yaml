@@ -12,4 +12,3 @@ ingressmonitorcontroller:
   enabled: 'false'
   interval: '60'
   alertContacts: 'unconfigured'
-  path: '/'
