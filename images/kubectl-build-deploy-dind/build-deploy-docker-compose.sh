@@ -467,8 +467,6 @@ else
   MONITORING_ENABLED="false"
 fi
 
-echo "ALERTCONTACT = ${ALERTCONTACT}"
-
 # Two while loops as we have multiple services that want routes and each service has multiple routes
 ROUTES_SERVICE_COUNTER=0
 if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER 2> /dev/null)" ]; then
