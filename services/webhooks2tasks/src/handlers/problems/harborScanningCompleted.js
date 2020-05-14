@@ -27,7 +27,7 @@ async function harborScanningCompleted(
       repository,
       scanOverview,
       lagoonProjectName,
-      LagoonEnvironmentName,
+      lagoonEnvironmentName,
       lagoonServiceName,
       harborScanId,
     } = validateAndTransformIncomingWebhookdata(body);
@@ -51,7 +51,7 @@ async function harborScanningCompleted(
     let { id: lagoonProjectId } = await getProjectByName(lagoonProjectName);
 
     let { environmentByName: environmentDetails } = await getEnvironmentByName(
-      LagoonEnvironmentName,
+      lagoonEnvironmentName,
       lagoonProjectId
     );
 
@@ -114,7 +114,7 @@ const validateAndTransformIncomingWebhookdata = (rawData) => {
 
   let [
     lagoonProjectName,
-    LagoonEnvironmentName,
+    lagoonEnvironmentName,
     lagoonServiceName,
   ] = extractRepositoryDetails(repository.repo_full_name);
 
@@ -123,7 +123,7 @@ const validateAndTransformIncomingWebhookdata = (rawData) => {
     repository,
     scanOverview: scanOverviewArray.pop(),
     lagoonProjectName,
-    LagoonEnvironmentName,
+    lagoonEnvironmentName,
     lagoonServiceName,
     harborScanId: repository.repo_full_name,
   };
@@ -141,7 +141,7 @@ const extractRepositoryDetails = (repoFullName) => {
   // if(!pattern.test(repoFullName)) {
   //   throw new ProblemsInvalidWebhookData("'" + repoFullName + "' does not conform to the appropriate structure of Project/Environment/Service")
   // }
-
+  console.log(repoFullName.split('/'));
   return repoFullName.split('/');
 };
 
