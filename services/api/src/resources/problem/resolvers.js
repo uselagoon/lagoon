@@ -141,6 +141,7 @@ const deleteProblemsFromSource = async (
     input : {
       environment: environmentId,
       source,
+      service,
     }
   },
   { sqlClient, hasPermission },
@@ -151,7 +152,7 @@ const deleteProblemsFromSource = async (
     project: environment.project,
   });
 
-  await query(sqlClient, Sql.deleteProblemsFromSource(environmentId, source));
+  await query(sqlClient, Sql.deleteProblemsFromSource(environmentId, source, service));
 
   return 'success';
 }
