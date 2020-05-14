@@ -89,6 +89,14 @@ const messageConsumer = async msg => {
     var openshiftPromoteSourceProject = promoteSourceEnvironment ? `${safeProjectName}-${ocsafety(promoteSourceEnvironment)}` : ""
         // A secret which is the same across all Environments of this Lagoon Project
     var projectSecret = crypto.createHash('sha256').update(`${projectName}-${jwtSecret}`).digest('hex');
+    var alertContactHA
+    var alertContactSA
+    var monitoringConfig = JSON.parse(projectOpenShift.openshift.monitoringConfig) || "invalid"
+    if (monitoringConfig != "invalid"){
+      alertContactHA = monitoringConfig.uptimerobot.alertContactHA || ""
+      alertContactSA = monitoringConfig.uptimerobot.alertContactSA || ""
+    }
+    var availability = projectOpenShift.availability || "STANDARD"
   } catch(error) {
     logger.error(`Error while loading information for project ${projectName}`)
     logger.error(error)
@@ -245,6 +253,10 @@ const messageConsumer = async msg => {
                       {
                         "name": "NATIVE_CRON_POD_MINIMUM_FREQUENCY",
                         "value": NativeCronPodMinimumFrequency
+                      },
+                      {
+                        "name": "AVAILABILITY",
+                        "value": availability
                       }
                   ],
                   "forcePull": true,
@@ -273,6 +285,15 @@ const messageConsumer = async msg => {
     }
     if (!R.isEmpty(environment.envVariables)) {
       buildconfig.spec.strategy.customStrategy.env.push({"name": "LAGOON_ENVIRONMENT_VARIABLES", "value": JSON.stringify(environment.envVariables)})
+    }
+    if (alertContactHA != undefined && alertContactSA != undefined){
+      if (availability == "HIGH") {
+        buildconfig.spec.strategy.customStrategy.env.push({"name": "ALERTCONTACT","value": alertContactHA})
+      } else {
+        buildconfig.spec.strategy.customStrategy.env.push({"name": "ALERTCONTACT","value": alertContactSA})
+      }
+    } else {
+      buildconfig.spec.strategy.customStrategy.env.push({"name": "ALERTCONTACT","value": "unconfigured"})
     }
     return buildconfig
   }
