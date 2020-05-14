@@ -1264,16 +1264,18 @@ const addProblem = ({
 
 const deleteProblemsFromSource = (
   environment,
-  source
+  source,
+  service
 ) => {
   return graphqlapi.mutate(
-    `($environment: Int!, $source: String!) {
-      deleteProblemsFromSource(input: {environment: $environment, source: $source })
+    `($environment: Int!, $source: String!, $service: String!) {
+      deleteProblemsFromSource(input: {environment: $environment, source: $source, service: $service })
     }
     `,
     {
       environment,
-      source
+      source,
+      service
     }
   );
 }

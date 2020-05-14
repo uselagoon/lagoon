@@ -172,6 +172,7 @@ const typeDefs = gql`
   input DeleteProblemsFromSourceInput {
     environment: Int!
     source: String!
+    service: String!
   }
 
   type File {
