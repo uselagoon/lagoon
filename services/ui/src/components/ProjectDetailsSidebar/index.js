@@ -4,6 +4,8 @@ import { CopyToClipboard } from 'react-copy-to-clipboard';
 import moment from 'moment';
 import giturlparse from 'git-url-parse';
 import Environments from 'components/Environments';
+// @TODO: add this once the logic exists
+// import ActiveStandbyConfirm from 'components/ActiveStandbyConfirm';
 import { bp, color, fontSize } from 'lib/variables';
 
 import { Mutation } from 'react-apollo';
@@ -91,7 +93,8 @@ const Project = ({ project }) => {
           </div>
         </div>
       </div>
-
+      {/*
+      @TODO: add this once the logic exists
       {project.productionEnvironment && project.standbyProductionEnvironment
         ? <div className="field-wrapper activeEnvironment">
             <div className="inner">
@@ -132,7 +135,7 @@ const Project = ({ project }) => {
             </div>
           </div>
         : null
-      }
+      } */}
 
       <style jsx>{`
         .details {
