@@ -461,7 +461,6 @@ TEMPLATE_PARAMETERS=()
 
 # set some monitoring defaults
 if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
-  echo "PRODUCTION environment, ingresmonitorcontroller enabled"
   MONITORING_ENABLED="true"
 else
   MONITORING_ENABLED="false"
