@@ -17,6 +17,13 @@ const lagoonHarborRoute = R.compose(
   R.propOr('', 'LAGOON_ROUTES'),
 )(process.env);
 
+const lagoonWebhookAddress = R.compose(
+  R.defaultTo('http://webhook-handler:3000'),
+  R.find(R.test(/webhook-handler/)),
+  R.split(','),
+  R.propOr('', 'LAGOON_ROUTES'),
+)(process.env);
+
 const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
   addProject: async (lagoonProjectName, projectID) => {
     // Create harbor project
@@ -57,8 +64,8 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
         logger.error(`Unable to get the harbor project id of "${lagoonProjectName}" !!`)
       }
     }
-
     logger.debug(`Harbor project id for ${lagoonProjectName}: ${harborProjectID}`)
+
     // Create robot account for new harbor project
     try {
       const res = await harborClient.post(`projects/${harborProjectID}/robots`, {
@@ -80,7 +87,7 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
       if (err.statusCode == 409) {
         logger.warn(`Unable to create a robot account for harbor project "${lagoonProjectName}", as a robot account of the same name already exists!`)
       } else {
-        logger.warn(`Unable to create a robot account for harbor project "${lagoonProjectName}" !!`)
+        logger.warn(`Unable to create a robot account for harbor project "${lagoonProjectName}"!`, err)
       }
     }
 
@@ -120,6 +127,29 @@ const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
       logger.debug(`Environment variable INTERNAL_REGISTRY_PASSWORD for ${lagoonProjectName} created!`)
     } catch (err) {
       logger.error(`Error while setting up harbor environment variables for ${lagoonProjectName}, error: ${err}`)
+    }
+
+    // Set webhooks for Harbor Project
+    try {
+      var res = await harborClient.post(`projects/${harborProjectID}/webhook/policies`, {
+        body: {
+          targets: [
+            {
+              type: "http",
+              skip_cert_verify: true,
+              address: lagoonWebhookAddress
+            }
+          ],
+          event_types: [
+            "scanningFailed",
+            "scanningCompleted"
+          ],
+          name: "Lagoon Default Webhook",
+          enabled: true
+        }
+      });
+    } catch (err) {
+      logger.error(`Error while creating a webhook in the Harbor project for ${lagoonProjectName}, error: ${err}`)
     }
   }
 })

@@ -38,6 +38,7 @@ RUN echo $'xpack.security.enabled: false\n\
 \n\
 node.name: "${HOSTNAME}"\n\
 node.master: "${NODE_MASTER}"\n\
+cluster.routing.allocation.disk.threshold_enabled: "true"\n\
 discovery.zen.minimum_master_nodes: "${DISCOVERY_ZEN_MINIMUM_MASTER_NODES}"' >> config/elasticsearch.yml
 
 RUN fix-permissions config

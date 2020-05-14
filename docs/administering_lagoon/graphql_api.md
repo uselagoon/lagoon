@@ -4,10 +4,16 @@
 
 Direct API interactions in Lagoon are done via [GraphQL](../using_lagoon/graphql_api.md).
 
-In order to authenticate with the API, we need a JWT \(JSON Web Token\) that allows us to use the GraphQL API as admin. To generate this token, open the terminal of the `auto-idler` pod via the OpenShift UI or `oc rsh` on the command line and run the following command:
+In order to authenticate with the API, we need a JWT \(JSON Web Token\) that allows us to use the GraphQL API as admin. To generate this token, open the terminal of the `auto-idler` pod via the OpenShift UI and run the following command:
 
 ```bash
 ./create_jwt.sh
+```
+
+This can also be done with the `oc` command:
+
+```bash
+oc -n lagoon-master rsh dc/auto-idler ./create_jwt.sh
 ```
 
 This will return a long string which is the JWT token. Make a note of this, as we will need it to send queries.

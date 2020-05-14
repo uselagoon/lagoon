@@ -208,13 +208,36 @@ async function createDeployTask(deployData) {
   switch (project.activeSystemsDeploy) {
     case 'lagoon_openshiftBuildDeploy':
     case 'lagoon_kubernetesBuildDeploy':
-      if (environments.project.productionEnvironment === branchName) {
+      // we want to limit production environments, without making it configurable currently
+      var productionEnvironmentsLimit = 2
+
+      // we want to make sure we can deploy the `production` env, and also the env defined as standby
+      if (
+        environments.project.productionEnvironment === branchName
+        || environments.project.standbyProductionEnvironment === branchName
+      ) {
+        // get a list of production environments
+        const prod_environments = environments.project.environments
+          .filter(e => e.environmentType === 'production')
+          .map(e => e.name);
         logger.debug(
-          `projectName: ${projectName}, branchName: ${branchName}, production environment, no environment limits considered`,
+          `projectName: ${projectName}, branchName: ${branchName}, existing environments are `,
+          prod_environments,
         );
+
+        if (prod_environments.length >= productionEnvironmentsLimit) {
+          if (prod_environments.find(i => i === branchName)) {
+            logger.debug(
+              `projectName: ${projectName}, branchName: ${branchName}, environment already exists, no environment limits considered`,
+            );
+          } else {
+            throw new EnvironmentLimit(
+              `'${branchName}' would exceed the configured limit of ${productionEnvironmentsLimit} production environments for project ${projectName}`,
+            );
+          }
+        }
       } else {
         // get a list of non-production environments
-        console.log(environments.project);
         const dev_environments = environments.project.environments
           .filter(e => e.environmentType === 'development')
           .map(e => e.name);
@@ -327,12 +350,34 @@ async function createDeployTask(deployData) {
             logger.debug(
               `projectName: ${projectName}, pullrequest: ${branchName}, no pullrequest defined in active system, assuming we want all of them`,
             );
-            return sendToLagoonTasks('builddeploy-openshift', deployData);
+            switch (project.activeSystemsDeploy) {
+              case 'lagoon_openshiftBuildDeploy':
+                return sendToLagoonTasks('builddeploy-openshift', deployData);
+              case 'lagoon_kubernetesBuildDeploy':
+                return sendToLagoonTasks('builddeploy-kubernetes', deployData);
+              default:
+                throw new UnknownActiveSystem(
+                  `Unknown active system '${
+                    project.activeSystemsDeploy
+                  }' for task 'deploy' in for project ${projectName}`,
+                );
+            }
           case 'true':
             logger.debug(
               `projectName: ${projectName}, pullrequest: ${branchName}, all pullrequest active, therefore deploying`,
             );
-            return sendToLagoonTasks('builddeploy-openshift', deployData);
+            switch (project.activeSystemsDeploy) {
+              case 'lagoon_openshiftBuildDeploy':
+                return sendToLagoonTasks('builddeploy-openshift', deployData);
+              case 'lagoon_kubernetesBuildDeploy':
+                return sendToLagoonTasks('builddeploy-kubernetes', deployData);
+              default:
+                throw new UnknownActiveSystem(
+                  `Unknown active system '${
+                    project.activeSystemsDeploy
+                  }' for task 'deploy' in for project ${projectName}`,
+                );
+            }
           case 'false':
             logger.debug(
               `projectName: ${projectName}, pullrequest: ${branchName}, pullrequest deployments disabled`,
@@ -352,7 +397,18 @@ async function createDeployTask(deployData) {
                   project.pullrequests
                 } matched PR Title '${pullrequestTitle}', starting deploy`,
               );
-              return sendToLagoonTasks('builddeploy-openshift', deployData);
+              switch (project.activeSystemsDeploy) {
+                case 'lagoon_openshiftBuildDeploy':
+                  return sendToLagoonTasks('builddeploy-openshift', deployData);
+                case 'lagoon_kubernetesBuildDeploy':
+                  return sendToLagoonTasks('builddeploy-kubernetes', deployData);
+                default:
+                  throw new UnknownActiveSystem(
+                    `Unknown active system '${
+                      project.activeSystemsDeploy
+                    }' for task 'deploy' in for project ${projectName}`,
+                  );
+              }
             }
             logger.debug(
               `projectName: ${projectName}, branchName: ${branchName}, regex ${
@@ -422,9 +478,12 @@ async function createRemoveTask(removeData) {
     projectName,
   );
 
-  // Check to see if we are deleting the production environment, and if so,
+  // Check to see if we are deleting a production environment, and if so,
   // ensure the flag is set to allow this.
-  if (branch === allEnvironments.project.productionEnvironment) {
+  if (
+    branch === allEnvironments.project.productionEnvironment
+    || (allEnvironments.project.standbyProductionEnvironment && branch === allEnvironments.project.standbyProductionEnvironment)
+  ) {
     if (forceDeleteProductionEnvironment !== true) {
       throw new CannotDeleteProductionEnvironment(
         `'${branch}' is defined as the production environment for ${projectName}, refusing to remove.`,

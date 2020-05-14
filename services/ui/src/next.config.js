@@ -14,6 +14,8 @@ const lagoonKeycloakRoute = lagoonRoutes.find(routes =>
 );
 const envKeycloakRoute = process.env.KEYCLOAK_API;
 
+const lagoonVersion = process.env.LAGOON_VERSION;
+
 const taskBlacklist =
   (process.env.LAGOON_UI_TASK_BLACKLIST &&
     process.env.LAGOON_UI_TASK_BLACKLIST.split(',')) ||
@@ -27,7 +29,8 @@ module.exports = withCSS({
       ? `${lagoonKeycloakRoute}/auth`
       : envKeycloakRoute,
     LAGOON_UI_ICON: process.env.LAGOON_UI_ICON,
-    LAGOON_UI_TASK_BLACKLIST: taskBlacklist
+    LAGOON_UI_TASK_BLACKLIST: taskBlacklist,
+    LAGOON_VERSION: lagoonVersion
   },
   distDir: '../build',
   webpack(config, options) {

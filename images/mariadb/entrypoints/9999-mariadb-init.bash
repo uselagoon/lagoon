@@ -36,7 +36,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
   else
     echo "MySQL data directory not found, creating initial DBs"
 
-    mysql_install_db --skip-name-resolve --skip-auth-anonymous-user --datadir=/var/lib/mysql --basedir=/usr
+    mysql_install_db --skip-name-resolve --skip-test-db --auth-root-authentication-method=normal --datadir=/var/lib/mysql --basedir=/usr
 
     echo "starting mysql for initdb.d import."
     /usr/bin/mysqld --skip-networking --wsrep_on=OFF &
@@ -68,7 +68,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
     cat << EOF > $tfile
 DROP DATABASE IF EXISTS test;
 USE mysql;
-UPDATE mysql.user SET PASSWORD=PASSWORD("$MARIADB_ROOT_PASSWORD") WHERE user="root";
+ALTER USER root@localhost IDENTIFIED VIA mysql_native_password USING PASSWORD("$MARIADB_ROOT_PASSWORD");
 FLUSH PRIVILEGES;
 
 EOF
@@ -96,7 +96,7 @@ EOF
     for f in `ls /docker-entrypoint-initdb.d/*`; do
       case "$f" in
         *.sh)     echo "$0: running $f"; . "$f" ;;
-        *.sql)    echo "$0: running $f"; cat $f| tee | mysql -u root -p${MARIADB_ROOT_PASSWORD}; echo ;;
+        *.sql)    echo "$0: running $f"; cat $f| envsubst | tee | mysql -u root -p${MARIADB_ROOT_PASSWORD}; echo ;;
         *)        echo "$0: ignoring $f" ;;
       esac
     echo

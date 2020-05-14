@@ -257,6 +257,7 @@ const addProject = async (
     hasPermission,
     sqlClient,
     models,
+    keycloakGrant,
   },
 ) => {
   await hasPermission('project', 'add');
@@ -330,6 +331,11 @@ const addProject = async (
         ${input.branches ? ':branches' : '"true"'},
         ${input.pullrequests ? ':pullrequests' : '"true"'},
         ${input.productionEnvironment ? ':production_environment' : 'NULL'},
+        ${input.productionRoutes ? ':production_routes' : 'NULL'},
+        ${input.productionAlias ? ':production_alias' : '"lagoon-production"'},
+        ${input.standbyProductionEnvironment ? ':standby_production_environment' : 'NULL'},
+        ${input.standbyRoutes ? ':standby_routes' : 'NULL'},
+        ${input.standbyAlias ? ':standby_alias' : '"lagoon-standby"'},
         ${input.autoIdle ? ':auto_idle' : '1'},
         ${input.storageCalc ? ':storage_calc' : '1'},
         ${
@@ -408,6 +414,27 @@ const addProject = async (
     logger.error(`Could not link user to default projet group for ${project.name}: ${err.message}`);
   }
 
+  // Add the user who submitted this request to the project
+  let userAlreadyHasAccess;
+  try {
+    await hasPermission('project', 'viewAll');
+    userAlreadyHasAccess = true;
+  } catch(e) {
+    userAlreadyHasAccess = false;
+  }
+
+  if (!userAlreadyHasAccess && keycloakGrant) {
+    const user = await models.UserModel.loadUserById(
+      keycloakGrant.access_token.content.sub,
+    );
+
+    try {
+      await models.GroupModel.addUserToGroup(user, group, 'owner');
+    } catch (err) {
+      logger.error(`Could not link requesting user to default projet group for ${project.name}: ${err.message}`);
+    }
+  }
+
   const harborOperations = createHarborOperations(sqlClient);
 
   const harborResults = await harborOperations.addProject(project.name, project.id)
@@ -472,6 +499,11 @@ const updateProject = async (
         activeSystemsMisc,
         branches,
         productionEnvironment,
+        productionRoutes,
+        productionAlias,
+        standbyProductionEnvironment,
+        standbyRoutes,
+        standbyAlias,
         autoIdle,
         storageCalc,
         pullrequests,
@@ -555,6 +587,11 @@ const updateProject = async (
         activeSystemsMisc,
         branches,
         productionEnvironment,
+        productionRoutes,
+        productionAlias,
+        standbyProductionEnvironment,
+        standbyRoutes,
+        standbyAlias,
         autoIdle,
         storageCalc,
         pullrequests,
