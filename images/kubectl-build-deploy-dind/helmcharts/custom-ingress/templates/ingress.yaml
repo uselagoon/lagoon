@@ -22,13 +22,11 @@ metadata:
     ingress.kubernetes.io/ssl-redirect: "true"
     {{- end }}
     kubernetes.io/tls-acme: "true"
-    {{- if .Values.ingressmonitorcontroller.enabled }}
     monitor.stakater.com/enabled: "{{ .Values.ingressmonitorcontroller.enabled }}"
     uptimerobot.monitor.stakater.com/interval: "{{ .Values.ingressmonitorcontroller.interval }}"
     uptimerobot.monitor.stakater.com/alert-contacts: "{{ .Values.ingressmonitorcontroller.alertContacts }}"
     {{- if .Values.ingressmonitorcontroller.path }}
     monitor.stakater.com/overridePath: "{{ .Values.ingressmonitorcontroller.path }}"
-    {{- end }}
     {{- end }}
     # HSTS Handling
     {{- if .Values.hsts}}
