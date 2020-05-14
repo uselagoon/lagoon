@@ -57,7 +57,9 @@ async function harborScanningCompleted(
 
     let messageBody = {
       lagoonProjectId,
+      lagoonProjectName,
       lagoonEnvironmentId: environmentDetails.id,
+      lagoonEnvironmentName: environmentDetails.name,
       lagoonServiceName,
       vulnerabilities,
     };
