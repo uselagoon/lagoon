@@ -13,6 +13,8 @@ const {
   getEnvironmentByName,
 } = require('@lagoon/commons/src/api');
 
+const HARBOR_WEBHOOK_SUCCESSFUL_SCAN = "Success";
+
 async function harborScanningCompleted(
   webhook: WebhookRequestData,
   channelWrapperWebhooks
@@ -29,6 +31,20 @@ async function harborScanningCompleted(
       lagoonServiceName,
       harborScanId,
     } = validateAndTransformIncomingWebhookdata(body);
+
+
+    if(scanOverview.scan_status !== HARBOR_WEBHOOK_SUCCESSFUL_SCAN) {
+      sendToLagoonLogs(
+        'error',
+        '',
+        uuid,
+        `${webhooktype}:${event}:unhandled`,
+        { data: body },
+        `Received a scan report of status "${scanOverview.scan_status}" - ignoring`
+      );
+
+      return;
+    }
 
     let vulnerabilities = await getVulnerabilitiesFromHarbor(harborScanId);
 
