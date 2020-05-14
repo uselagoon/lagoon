@@ -19,7 +19,7 @@ export const DeleteConfirm = ({
 }) => {
   return (
     <React.Fragment>
-      <Button action={openModal}>
+      <Button variant='red' action={openModal}>
         Delete
       </Button>
       <Modal
@@ -42,6 +42,7 @@ export const DeleteConfirm = ({
             <Button
               disabled={inputValue !== deleteName}
               action={onDelete}
+              variant='red'
             >
               Delete
             </Button>

@@ -11,10 +11,9 @@ import 'react-nice-dates/build/style.css'
 
 const BillingModifierForm = ({group, submitHandler}) => {
 
-  const [startDate, setStartDate] = useState()
-  const [endDate, setEndDate] = useState()
-
   const defaultValues = {
+    startDate: '',
+    endDate: '',
     modifierType: 'discountFixed',
     modifierValue: '',
     customerComments: '',
@@ -35,8 +34,8 @@ const BillingModifierForm = ({group, submitHandler}) => {
   const formSubmitHandler = () => {
     const variables = { 
       group: { name: group},
-      startDate: moment(startDate).format('YYYY-MM-DD').toString(), 
-      endDate: moment(endDate).format('YYYY-MM-DD').toString(), 
+      startDate: values.startDate, 
+      endDate: values.endDate, 
       discountFixed: values.modifierType === 'discountFixed' ? parseFloat(values.modifierValue) : 0, 
       discountPercentage: values.modifierType === 'discountPercentage' ? parseFloat(values.modifierValue) : 0, 
       extraFixed: values.modifierType === 'extraFixed' ? parseFloat(values.modifierValue) : 0,
@@ -45,40 +44,36 @@ const BillingModifierForm = ({group, submitHandler}) => {
       adminComments: values.adminComments,
       weight: values.weight !== 0 ? parseInt(values.weight): 0
     };
+
     submitHandler(variables)
   }
 
   return (
     <div>
-
-      <DateRangePicker
-        startDate={startDate}
-        endDate={endDate}
-        onStartDateChange={setStartDate}
-        onEndDateChange={setEndDate}
-        format='dd MMM yyyy'
-        locale={enGB}
-      >
-        {({ startDateInputProps, endDateInputProps, focus }) => (
-          <div className='date-range'>
-            <input
-              className={'input' + (focus === START_DATE ? ' -focused' : '')}
-              {...startDateInputProps}
-              placeholder='Start date'
-            />
-            <span className='date-range_arrow' />
-            <input
-              className={'input' + (focus === END_DATE ? ' -focused' : '')}
-              {...endDateInputProps}
-              placeholder='End date'
-            />
-          </div>
-        )}
-      </DateRangePicker>
-
+        
+      <div>
+        <label htmlFor="startDate">Date Range</label>
+        <div className='date-range modifierInput'>
+          <input
+            id="startDate"
+            name="startDate"
+            className={'input' + (focus === START_DATE ? ' -focused' : '')}
+            placeholder='Start date (YYYY-MM-DD)'
+            onChange={handleChange}
+          />
+          <span className='date-range_arrow' />
+          <input
+            id="endDate"
+            name="endDate"
+            className={'input' + (focus === END_DATE ? ' -focused' : '')}
+            placeholder='End date (YYYY-MM-DD)'
+            onChange={handleChange}
+          />
+        </div>
+      </div>
   
       <div>
-        <label htmlFor="Modifier Type">Type</label>
+        <label htmlFor="ModifierType">Type</label>
         <select
           id="modifierType"
           name="modifierType"
