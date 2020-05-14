@@ -90,6 +90,11 @@ objects:
                 secretKeyRef:
                   name: rabbitmq-password
                   key: RABBITMQ_PASSWORD
+            - name: HARBOR_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: harbor-admin-password
+                  key: HARBOR_ADMIN_PASSWORD
             - name: JWTSECRET
               valueFrom:
                 secretKeyRef:
