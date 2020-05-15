@@ -39,6 +39,7 @@ RUN \
     mariadb \
     mariadb-client \
     mariadb-common \
+    mariadb-server-utils \
     net-tools \
     pwgen \
     tzdata \
