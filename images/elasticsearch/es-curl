@@ -11,4 +11,8 @@ COMMAND=$2
 shift
 shift
 
-curl -X $VERB -k -u "admin:$LOGSDB_ADMIN_PASSWORD" "http://localhost:9200/$COMMAND" -H 'Content-Type: application/json' "$@"
+if [ "$LOGSDB_ADMIN_PASSWORD" ]; then
+  curl -X $VERB -k -u "admin:$LOGSDB_ADMIN_PASSWORD" "http://localhost:9200/$COMMAND" -H 'Content-Type: application/json' "$@"
+else
+  curl -X $VERB -k "http://localhost:9200/$COMMAND" -H 'Content-Type: application/json' "$@"
+fi
