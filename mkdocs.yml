@@ -24,6 +24,7 @@ pages:
   - Build & Deployment Process: using_lagoon/build_deploy_process.md
   - Environment Types: using_lagoon/environment_types.md
   - Environment Variables: using_lagoon/environment_variables.md
+  - Base Images: using_lagoon/base_images.md
   - Workflows: using_lagoon/workflows.md
   - Backups: using_lagoon/backups.md
   - Going Live: using_lagoon/golive.md
@@ -42,6 +43,18 @@ pages:
   - GraphQL API: administering_lagoon/graphql_api.md
   - Role Based Access Control: administering_lagoon/rbac.md
   - SSL Ciphers: administering_lagoon/ssl_ciphers.md
+  - Harbor:
+    - Using Harbor: using_lagoon/harbor/using_harbor.md
+    - Security Scanning: using_lagoon/harbor/security_scanning.md
+    - Harbor Settings: 
+      - Overview: using_lagoon/harbor/harbor_settings.md
+      - harborclair: using_lagoon/harbor/harbor-container-settings/harborclair.md
+      - harborclairadapter: using_lagoon/harbor/harbor-container-settings/harborclairadapter.md
+      - harborregistry: using_lagoon/harbor/harbor-container-settings/harborregistry.md
+      - harborregistryctl: using_lagoon/harbor/harbor-container-settings/harborregistryctl.md
+      - harbor-core: using_lagoon/harbor/harbor-container-settings/harbor-core.md
+      - harbor-database: using_lagoon/harbor/harbor-container-settings/harbor-database.md
+      - harbor-jobservice: using_lagoon/harbor/harbor-container-settings/harbor-jobservice.md
 - Docker Images:
   - Elasticsearch: using_lagoon/docker_images/elasticsearch.md
   - MariaDB Drupal: using_lagoon/docker_images/mariadb-drupal.md

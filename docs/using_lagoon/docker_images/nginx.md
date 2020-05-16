@@ -33,7 +33,7 @@ In order to create redirects, we have `redirects-map.conf` in place. This helps 
 Here's an example showing how to redirect `www.example.com` to `example.com` and preserve the request:
 
 ```bash
-RUN echo "~^www.example.com http://example.com\$request_uri;" >> /etc/nginx/redirects-map.conf
+RUN echo "~^www\.example\.com          http://example.com\$request_uri;" >> /etc/nginx/redirects-map.conf
 ```
 
 To get more details about the various types of redirects that can be achieved, see the documentation within the [`redirects-map.conf`](https://github.com/amazeeio/lagoon/blob/master/images/nginx/redirects-map.conf) directly.
@@ -48,7 +48,8 @@ COPY redirects-map.conf /etc/nginx/redirects-map.conf
 
 ### Basic Authentication
 
-If you want to protect your site via basic authentication, you can do this by defining the environment variables `BASIC_AUTH`, `BASIC_AUTH_USERNAME` and `BASIC_AUTH_PASSWORD`. For further explanation on how to set up Environment Variables on Lagoon, [see the documentation page](../../../using_lagoon/environment_variables/).
+If you want to protect your site via basic authentication, you can do this by defining the environment variables `BASIC_AUTH_USERNAME` and `BASIC_AUTH_PASSWORD`. For further explanation on how to set up Environment Variables on Lagoon, [see the documentation page](../../../using_lagoon/environment_variables/).
+
 
 ## Environment Variables
 
@@ -56,6 +57,6 @@ Environment variables are meant to contain common information for the `Nginx` co
 
 | Environment Variable | Default | Description |
 | :--- | :--- | :--- |
-| `BASIC_AUTH` | `restricted` | This will completely disable basic authentication when set to the string `off` |
+| `BASIC_AUTH` | `restricted` | By not setting `BASIC_AUTH` this will instruct Lagoon to automatically enable basic authentication if `BASIC_AUTH_USERNAME` and `BASIC_AUTH_PASSWORD` are set. To disable basic authentication even if `BASIC_AUTH_USERNAME` and `BASIC_AUTH_PASSWORD` are set, set `BASIC_AUTH` to `off`. |
 | `BASIC_AUTH_USERNAME` | \(not set\) | Username for basic authentication |
 | `BASIC_AUTH_PASSWORD` | \(not set\) | Password for basic authentication \(unencrypted\) |

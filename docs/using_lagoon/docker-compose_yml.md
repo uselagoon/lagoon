@@ -12,7 +12,7 @@ Docker-compose \(the tool\) is very strict in validating the content of the YAML
     Lagoon only reads the labels, service names, image names and build definitions from a `docker-compose.yml` file. Definitions like: ports, environment variables, volumes, networks, links, users, etc. are IGNORED. This is intentional as the `docker-compose` file is there to define your local environment configuration. Lagoon learns from the `lagoon.type` the type of service you are deploying and from that knows about ports, networks and any additional configuration that this service might need.
 
 
-Here a straightforward example of a `docker-compose.yml` file for Drupal:
+Here is a straightforward example of a `docker-compose.yml` file for Drupal:
 
 ```
 services:

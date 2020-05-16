@@ -10,6 +10,7 @@ export default gql`
       created
       gitUrl
       productionEnvironment
+      standbyProductionEnvironment
       developmentEnvironmentsLimit
       environments {
         id
@@ -22,6 +23,8 @@ export default gql`
         project {
           id
           name
+          productionEnvironment
+          standbyProductionEnvironment
         }
       }
     }

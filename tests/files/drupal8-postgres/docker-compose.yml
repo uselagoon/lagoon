@@ -13,8 +13,6 @@ services:
       LAGOON_PROJECT: ci-drupal
     volumes:
       - ./web:/app/web:delegated
-    depends_on:
-      - builder
   varnish:
     networks:
       - amazeeio-network
@@ -41,7 +39,7 @@ services:
     volumes:
       - ./web:/app/web:delegated
     depends_on:
-      - builder
+      - cli
     expose:
       - "8080"
     environment:
@@ -57,7 +55,7 @@ services:
     volumes:
       - ./web:/app/web:delegated
     depends_on:
-      - builder
+      - cli
   postgres:
     build:
       context: .

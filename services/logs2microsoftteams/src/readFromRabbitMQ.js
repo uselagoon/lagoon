@@ -158,12 +158,14 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
       break;
 
     case "task:remove-openshift:finished":
+    case "task:remove-kubernetes:finished":
       text = `remove \`${meta.openshiftProject}\``
       sendToMicrosoftTeams(project, text, 'lawngreen', whiteCheckMark, channelWrapperLogs, msg, appId)
       break;
 
     case "task:deploy-openshift:retry":
     case "task:remove-openshift:retry":
+    case "task:remove-kubernetes:retry":
     case "task:remove-openshift-resources:retry":
       if (meta.shortSha) {
         text = `${text} \`${meta.branchName}\` (${meta.shortSha})`
@@ -179,6 +181,7 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
 
     case "task:deploy-openshift:error":
     case "task:remove-openshift:error":
+    case "task:remove-kubernetes:error":
     case "task:remove-openshift-resources:error":
     case "task:builddeploy-openshift:failed":
       if (meta.shortSha) {

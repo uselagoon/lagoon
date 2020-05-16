@@ -1,0 +1,188 @@
+<searchComponent name="spellcheck" class="solr.SpellCheckComponent">
+    <lst name="spellchecker">
+      <str name="name">en</str>
+      <str name="field">spellcheck_en</str>
+      <str name="classname">solr.DirectSolrSpellChecker</str>
+      <str name="distanceMeasure">internal</str>
+      <str name="accuracy">0.5</str>
+      <str name="maxEdits">2</str>
+      <str name="minPrefix">1</str>
+      <str name="maxInspections">5</str>
+      <str name="minQueryLength">4</str>
+      <str name="maxQueryFrequency">0.01</str>
+      <str name="thresholdTokenFrequency">.01</str>
+      <str name="onlyMorePopular">true</str>
+    </lst>
+  
+    <lst name="spellchecker">
+      <str name="name">und</str>
+      <str name="field">spellcheck_und</str>
+      <str name="classname">solr.DirectSolrSpellChecker</str>
+      <str name="distanceMeasure">internal</str>
+      <str name="accuracy">0.5</str>
+      <str name="maxEdits">2</str>
+      <str name="minPrefix">1</str>
+      <str name="maxInspections">5</str>
+      <str name="minQueryLength">4</str>
+      <str name="maxQueryFrequency">0.01</str>
+      <str name="thresholdTokenFrequency">.01</str>
+      <str name="onlyMorePopular">true</str>
+    </lst>
+  </searchComponent>
+<searchComponent name="suggest" class="solr.SuggestComponent">
+    <lst name="suggester">
+      <str name="name">en</str>
+      <str name="lookupImpl">AnalyzingInfixLookupFactory</str>
+      <str name="dictionaryImpl">DocumentDictionaryFactory</str>
+      <str name="field">twm_suggest</str>
+      <str name="suggestAnalyzerFieldType">text_en</str>
+      <str name="contextField">sm_context_tags</str>
+      <str name="buildOnCommit">true</str>
+      <str name="buildOnStartup">false</str>
+    </lst>
+  
+    <lst name="suggester">
+      <str name="name">und</str>
+      <str name="lookupImpl">AnalyzingInfixLookupFactory</str>
+      <str name="dictionaryImpl">DocumentDictionaryFactory</str>
+      <str name="field">twm_suggest</str>
+      <str name="suggestAnalyzerFieldType">text_und</str>
+      <str name="contextField">sm_context_tags</str>
+      <str name="buildOnCommit">true</str>
+      <str name="buildOnStartup">false</str>
+    </lst>
+  </searchComponent>
+<!--
+  Autocomplete
+  7.0.0
+-->
+<requestHandler name="/autocomplete" class="solr.SearchHandler" startup="lazy">
+  <lst name="defaults">
+    <str name="terms">false</str>
+    <str name="distrib">false</str>
+    <str name="spellcheck">false</str>
+    <str name="spellcheck.onlyMorePopular">true</str>
+    <str name="spellcheck.extendedResults">false</str>
+    <str name="spellcheck.count">1</str>
+    <str name="suggest">false</str>
+    <str name="suggest.count">10</str>
+  </lst>
+  <arr name="components">
+    <str>terms</str>
+    <str>spellcheck</str>
+    <str>suggest</str>
+  </arr>
+</requestHandler>
+
+<!--
+  Extract
+  7.0.0
+-->
+<requestHandler name="/update/extract" class="solr.extraction.ExtractingRequestHandler" startup="lazy">
+  <lst name="defaults">
+    <str name="lowernames">true</str>
+    <str name="uprefix">ignored_</str>
+    <str name="captureAttr">true</str>
+    <str name="fmap.a">links</str>
+    <str name="fmap.div">ignored_</str>
+  </lst>
+</requestHandler>
+
+<!--
+  More Like This
+  7.0.0
+-->
+<requestHandler name="/mlt" class="solr.MoreLikeThisHandler">
+  <lst name="defaults">
+    <str name="mlt.mintf">1</str>
+    <str name="mlt.mindf">1</str>
+    <str name="mlt.match.include">false</str>
+    <str name="timeAllowed">${solr.mlt.timeAllowed:2000}</str>
+  </lst>
+</requestHandler>
+
+<!--
+  Select
+  7.0.0
+-->
+<requestHandler name="/select" class="solr.SearchHandler">
+  <lst name="defaults">
+    <str name="defType">lucene</str>
+    <str name="df">id</str>
+    <str name="echoParams">explicit</str>
+    <str name="omitHeader">true</str>
+    <str name="timeAllowed">${solr.selectSearchHandler.timeAllowed:-1}</str>
+    <str name="spellcheck">false</str>
+  </lst>
+  <arr name="last-components">
+    <str>spellcheck</str>
+    <str>elevator</str>
+  </arr>
+</requestHandler>
+
+<!--
+  Spellcheck
+  7.0.0
+-->
+<requestHandler name="/spell" class="solr.SearchHandler" startup="lazy">
+  <lst name="defaults">
+    <str name="df">id</str>
+    <str name="spellcheck.dictionary">und</str>
+    <str name="spellcheck">on</str>
+    <str name="spellcheck.onlyMorePopular">false</str>
+    <str name="spellcheck.extendedResults">false</str>
+    <str name="spellcheck.count">1</str>
+    <str name="spellcheck.alternativeTermCount">5</str>
+    <str name="spellcheck.maxResultsForSuggest">5</str>
+    <str name="spellcheck.collate">true</str>
+    <str name="spellcheck.collateExtendedResults">true</str>
+    <str name="spellcheck.maxCollationTries">10</str>
+    <str name="spellcheck.maxCollations">5</str>
+  </lst>
+  <arr name="last-components">
+    <str>spellcheck</str>
+  </arr>
+</requestHandler>
+
+<!--
+  Suggester
+  7.0.0
+-->
+<requestHandler name="/suggest" class="solr.SearchHandler" startup="lazy">
+  <lst name="defaults">
+    <str name="suggest">true</str>
+    <str name="suggest.dictionary">und</str>
+    <str name="suggest.dictionary">10</str>
+  </lst>
+  <arr name="components">
+    <str>suggest</str>
+  </arr>
+</requestHandler>
+
+<!--
+  Term Vector
+  7.0.0
+-->
+<requestHandler name="/tvrh" class="solr.SearchHandler" startup="lazy">
+  <lst name="defaults">
+    <str name="df">id</str>
+    <str name="tv">true</str>
+  </lst>
+  <arr name="last-components">
+    <str>tvComponent</str>
+  </arr>
+</requestHandler>
+
+<!--
+  Special configs for Elevator
+  7.0.0
+-->
+  <searchComponent name="elevator" class="solr.QueryElevationComponent">
+    <str name="queryFieldType">string</str>
+    <str name="config-file">elevate.xml</str>
+  </searchComponent>
+<!--
+  Special configs for Term Vector
+  7.0.0
+-->
+  <searchComponent name="tvComponent" class="solr.TermVectorComponent"/>

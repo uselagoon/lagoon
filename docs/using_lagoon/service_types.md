@@ -8,13 +8,12 @@ This table lists all service types that can be defined via `lagoon.type` within 
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | `cli` | Use for any kind of CLI container \(like PHP, Node.js, etc.\). Automatically gets the customer SSH private key that is mounted in `/var/run/secrets/lagoon/sshkey/ssh-privatekey`. | - | - | - |  |
 | `cli-persistent` | Like `cli`, expects `lagoon.persistent.name` to be given the name of a service that has persistent storage, which will be mounted under defined `lagoon.persistent` label. Does NOT generate its own persistent storage, only used to mount another service's persistent storage. | - | - | `lagoon.persistent.name`, `lagoon.persistent` |  |
-| `custom` | Full custom definition, see [documentation](../using-lagoon-the-basics/docker-compose_yml.md#custom-type) | - | - | - | - |
+| `custom` | Full custom definition, see [documentation](docker-compose_yml.md#custom-type) | - | - | - | - |
 | `elasticsearch` | Elasticsearch container, will auto-generate persistent storage under `/usr/share/elasticsearch/data`. | HTTP on `localhost:9200/_cluster/health?local=true` | `9200` | - | `lagoon.persistent.size` |
 | `elasticsearch-cluster` | Elasticsearch cluster with 3 nodes, uses `Statefulset`, will auto-generate persistent storage for each cluster node under `/usr/share/elasticsearch/data`. | HTTP on `localhost:9200/_cluster/health?local=true` | `9200`, `9300` | - | - |
 | `kibana` | Kibana container. | TCP connection on `5601` | `5601` | yes | - |
 | `logstash` | Logstash container. | TCP connection on `9600` | `9600` | - | - |
 | `mariadb` | A meta-service which will tell Lagoon to automatically decide between `mariadb-single` and `mariadb-shared`. | - | - | - | - |
-| `mariadb-galera` | MariaDB Galera Cluster with 3 nodes, uses `Statefulset`. Generates persistent storage for each cluster node. Creates cron job for backups running every 24h executing `/lagoon/mysql-backup.sh 127.0.0.1`. Starts additional `maxscale` container where the service points to \(no direct connection to Galera nodes\). | TCP connection on `3306` | `3306` | - | `lagoon.persistent.size` |
 | `mariadb-shared` | Uses a shared MariaDB server via a MariaDB service broker. | Not Needed | `3306` | - | - |
 | `mariadb-single` | MariaDB container. Creates cron job for backups running every 24h executing `/lagoon/mysql-backup.sh 127.0.0.1`. | TCP connection on `3306` | `3306` | - | `lagoon.persistent.size` |
 | `mongo` | MongoDB container, will generate persistent storage of min 1GB mounted at `/data/db`. | TCP connection on `27017` | `27017` | - | - |
