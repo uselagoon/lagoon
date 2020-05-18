@@ -789,3 +789,22 @@ services:
       lagoon.template: services/harborregistryctl/harborregistry.yml
       lagoon.name: harborregistry
       lagoon.image: amazeeiolagoon/harborregistryctl:testing-billing
+  grafana:
+    image: grafana/grafana:5.1.0
+    ports:
+      - 3333:3000
+    volumes:
+      - ${PWD}/services/grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - api-db
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ${PWD}/services/prometheus/config:/prometheus
+      - ${PWD}/services/prometheus/data/prometheus:/data
+    command:
+      - '--config.file=/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/data'
+    ports:
+      - 9999:9090
+    restart: always
