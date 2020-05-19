@@ -797,6 +797,8 @@ services:
       - ${PWD}/services/grafana/provisioning:/etc/grafana/provisioning
     depends_on:
       - api-db
+    labels:
+      lagoon.type: none
   prometheus:
     image: prom/prometheus
     volumes:
@@ -808,3 +810,5 @@ services:
     ports:
       - 9999:9090
     restart: always
+    labels:
+      lagoon.type: none
