@@ -800,16 +800,3 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/grafana/.lagoon.app.yml
-  prometheus:
-    image: prom/prometheus
-    volumes:
-      - ${PWD}/services/prometheus/config:/prometheus
-      - ${PWD}/services/prometheus/data/prometheus:/data
-    command:
-      - '--config.file=/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/data'
-    ports:
-      - 9999:9090
-    restart: always
-    labels:
-      lagoon.type: none
