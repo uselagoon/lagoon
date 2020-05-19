@@ -77,19 +77,19 @@ objects:
         - image: ${SERVICE_IMAGE}
           name: ${SERVICE_NAME}
           ports:
-            - containerPort: 9090
+            - containerPort: 3000
               protocol: TCP
           readinessProbe:
             httpGet:
               path: /
-              port: 9090
+              port: 3000
               scheme: HTTP
             initialDelaySeconds: 5
             timeoutSeconds: 1
           livenessProbe:
             httpGet:
               path: /
-              port: 9090
+              port: 3000
               scheme: HTTP
             initialDelaySeconds: 30
             timeoutSeconds: 1
@@ -135,10 +135,10 @@ objects:
     name: ${SERVICE_NAME}
   spec:
     ports:
-    - name: 9090-tcp
-      port: 9090
+    - name: 3000-tcp
+      port: 3000
       protocol: TCP
-      targetPort: 9090
+      targetPort: 3000
     selector:
       service: ${SERVICE_NAME}
   status:
@@ -155,7 +155,7 @@ objects:
   spec:
     host: ${SERVICE_ROUTER_URL}
     port:
-      targetPort: 9090-tcp
+      targetPort: 3000-tcp
     to:
       kind: Service
       name: ${SERVICE_NAME}
