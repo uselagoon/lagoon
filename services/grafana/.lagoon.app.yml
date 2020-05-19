@@ -81,14 +81,14 @@ objects:
               protocol: TCP
           readinessProbe:
             httpGet:
-              path: /
+              path: /login
               port: 3000
               scheme: HTTP
             initialDelaySeconds: 5
             timeoutSeconds: 1
           livenessProbe:
             httpGet:
-              path: /
+              path: /login
               port: 3000
               scheme: HTTP
             initialDelaySeconds: 30
