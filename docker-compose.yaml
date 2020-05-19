@@ -798,7 +798,8 @@ services:
     depends_on:
       - api-db
     labels:
-      lagoon.type: none
+      lagoon.type: custom
+      lagoon.template: services/grafana/.lagoon.app.yml
   prometheus:
     image: prom/prometheus
     volumes:
