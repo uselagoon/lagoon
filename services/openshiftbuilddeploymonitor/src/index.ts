@@ -1,11 +1,8 @@
-// @flow
-
-const Promise = require("bluebird");
-const OpenShiftClient = require('openshift-client');
-const sleep = require("es7-sleep");
-const R = require('ramda');
-const { logger } = require('@lagoon/commons/dist/local-logging');
-const {
+import { promisify } from 'util';
+import OpenShiftClient from 'openshift-client';
+import R from 'ramda';
+import { logger } from '@lagoon/commons/dist/local-logging';
+import {
   getOpenShiftInfoForProject,
   getEnvironmentByName,
   updateEnvironment,
@@ -14,10 +11,10 @@ const {
   updateDeployment,
   updateProject,
   setEnvironmentServices,
-} = require('@lagoon/commons/dist/api');
+} from '@lagoon/commons/dist/api';
 
-const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/dist/logs');
-const { consumeTaskMonitor, initSendToLagoonTasks } = require('@lagoon/commons/dist/tasks');
+import { sendToLagoonLogs, initSendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { consumeTaskMonitor, initSendToLagoonTasks } from '@lagoon/commons/dist/tasks';
 
 class BuildNotCompletedYet extends Error {
   constructor(message: string) {
@@ -83,7 +80,7 @@ const messageConsumer = async msg => {
 
   let projectStatus = {}
   try {
-    const projectsGet = Promise.promisify(openshift.projects(openshiftProject).get, { context: openshift.projects(openshiftProject) })
+    const projectsGet = promisify(openshift.projects(openshiftProject).get)
     projectStatus = await projectsGet()
   } catch (err) {
     // a non existing project also throws an error, we check if it's a 404, means it does not exist, so we create it.
@@ -96,8 +93,9 @@ const messageConsumer = async msg => {
     }
   }
 
+  let buildstatus: any
   try {
-    const buildsGet = Promise.promisify(openshift.ns(openshiftProject).builds(buildName).get, { context: openshift.ns(openshiftProject).builds(buildName) })
+    const buildsGet = promisify(openshift.ns(openshiftProject).builds(buildName).get)
     buildstatus = await buildsGet()
   } catch (err) {
     if (err.code == 404) {
@@ -112,8 +110,8 @@ const messageConsumer = async msg => {
 
 
   const buildPhase = buildstatus.status.phase.toLowerCase();
-  const buildsLogGet = Promise.promisify(openshift.ns(openshiftProject).builds(`${buildName}/log`).get, { context: openshift.ns(openshiftProject).builds(`${buildName}/log`) })
-  const routesGet = Promise.promisify(openshift.ns(openshiftProject).routes.get, { context: openshift.ns(openshiftProject).routes })
+  const buildsLogGet = promisify(openshift.ns(openshiftProject).builds(`${buildName}/log`).get)
+  const routesGet = promisify(openshift.ns(openshiftProject).routes.get)
 
   try {
     const deployment = await getDeploymentByRemoteId(buildstatus.metadata.uid);
@@ -122,7 +120,7 @@ const messageConsumer = async msg => {
     }
 
     const convertDateFormat = R.init;
-    const dateOrNull = R.unless(R.isNil, convertDateFormat);
+    const dateOrNull = R.unless(R.isNil, convertDateFormat) as any;
 
     await updateDeployment(deployment.deploymentByRemoteId.id, {
       status: buildstatus.status.phase.toUpperCase(),
@@ -187,8 +185,9 @@ const messageConsumer = async msg => {
         logger.warn(`${openshiftProject} ${buildName}: Error while getting and sending to lagoon-logs, Error: ${err}.`)
       }
 
+      let configMap: any
       try {
-        const configMapGet = Promise.promisify(kubernetes.ns(openshiftProject).configmaps('lagoon-env').get, { context: kubernetes.ns(openshiftProject).configmaps('lagoon-env') })
+        const configMapGet = promisify(kubernetes.ns(openshiftProject).configmaps('lagoon-env').get)
         configMap = await configMapGet()
       } catch (err) {
         if (err.code == 404) {
@@ -238,9 +237,7 @@ const messageConsumer = async msg => {
       // Tell api what services are running in this environment
       try {
         // Get pod template from existing service
-        const deploymentConfigsGet = Promise.promisify(
-          openshift.ns(openshiftProject).deploymentconfigs.get, { context: openshift.ns(openshiftProject).deploymentconfigs }
-        );
+        const deploymentConfigsGet = promisify(openshift.ns(openshiftProject).deploymentconfigs.get);
         const deploymentConfigs = await deploymentConfigsGet();
 
         const serviceNames = deploymentConfigs.items.reduce(
