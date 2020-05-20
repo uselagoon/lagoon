@@ -131,10 +131,10 @@ Environment names match your deployed branches or pull requests. This allows for
 
 #### `environments.[name].monitoring_urls`
 
-At the end of a deploy, Lagoon will check this field for any URLs which you have specified to add to the API for the purpose of monitoring. The default value for this field is the first route for a project. It is useful for adding specific paths of a project to the API, for consumption by a monitoring service.
+!!!danger
+    This feature will be removed in an upcoming release of Lagoon. Please use the newer monitoring_path method on your specific route
 
-!!!hint
-    Please note, Lagoon does not provide any direct integration to a monitoring service, this just adds the URLs to the API. On amazee.io, we take the `monitoring_urls` and add them to our StatusCake account.
+At the end of a deploy, Lagoon will check this field for any URLs which you have specified to add to the API for the purpose of monitoring. The default value for this field is the first route for a project. It is useful for adding specific paths of a project to the API, for consumption by a monitoring service.
 
 
 #### `environments.[name].routes`
@@ -166,6 +166,14 @@ In the `"www.example.com"` example repeated below, we see two more options \(als
             tls-acme: 'true'
             insecure: Redirect
             hsts: max-age=31536000
+```
+
+#### Monitoring a specific path
+When UptimeRobot is configured for your cluster (OpenShift or Kubernetes), Lagoon will inject annotations to each route/ingress for use by the `stakater/IngressControllerMonitor`. The default action is to monitor the homepage of the route. If you have a specific route to be monitored, this can be overriden by adding a `monitoring_path` to your route specification. A common use is to set up a path for monitoring which bypasses caching to give a more real-time monitoring of your site.
+
+```
+     - "www.example.com":
+            monitoring_path: "/bypass-cache"
 ```
 
 
@@ -349,5 +357,3 @@ Once the `docker-compose.yml` file has been updated to use a build, you need to 
 ```text
 FROM dockerhubuser/my-private-database:tag
 ```
-
-

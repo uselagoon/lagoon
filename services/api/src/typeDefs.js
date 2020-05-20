@@ -247,6 +247,7 @@ const typeDefs = gql`
     sshHost: String
     sshPort: String
     created: String
+    monitoringConfig: JSON
   }
 
   type NotificationMicrosoftTeams {
@@ -889,6 +890,7 @@ const typeDefs = gql`
     projectUser: String
     sshHost: String
     sshPort: String
+    monitoringConfig: JSON
   }
 
   input DeleteOpenshiftInput {
@@ -1010,6 +1012,7 @@ const typeDefs = gql`
     projectUser: String
     sshHost: String
     sshPort: String
+    monitoringConfig: JSON
   }
 
   input UpdateOpenshiftInput {

@@ -7,3 +7,8 @@ hsts: 'null'
 tls_acme: true
 insecure: Allow
 service: ''
+
+ingressmonitorcontroller:
+  enabled: 'false'
+  interval: '60'
+  alertContacts: 'unconfigured'
