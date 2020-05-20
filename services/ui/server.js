@@ -81,6 +81,13 @@ app
       }
     );
 
+    server.get(
+      '/problems-insights',
+        (req, res) => {
+          app.render(req, res, '/problems-insights');
+        }
+    );
+
     server.get('*', (req, res) => {
       return handle(req, res);
     });
