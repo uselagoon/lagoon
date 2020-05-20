@@ -1,35 +1,12 @@
-// @flow
+import { URL } from 'url';
+import http from 'https';
+import { ChannelWrapper } from 'amqp-connection-manager';
+import { ConsumeMessage } from 'amqplib';
+import { logger } from '@lagoon/commons/dist/local-logging';
+import { getMicrosoftTeamsInfoForProject } from '@lagoon/commons/dist/api';
 
-const { logger } = require('@lagoon/commons/dist/local-logging');
-
-const { getMicrosoftTeamsInfoForProject } = require('@lagoon/commons/dist/api');
-
-const { URL } = require('url');
-const http = require('https');
-
-export type ChannelWrapper = {
-  ack: (msg: Object) => void,
-}
-
-export type RabbitMQMsg = {
-  content: Buffer,
-  fields: Object,
-  properties: Object,
-};
-
-export type Project = {
-  microsoftTeams: Object,
-  name: string,
-};
-
-async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWrapper): Promise<void> {
-  const {
-    content,
-    fields,
-    properties,
-  } = msg;
-
-  const logMessage = JSON.parse(content.toString())
+export async function readFromRabbitMQ (msg: ConsumeMessage, channelWrapperLogs: ChannelWrapper): Promise<void> {
+  const logMessage = JSON.parse(msg.content.toString())
 
   const {
     severity,
@@ -262,5 +239,3 @@ const sendToMicrosoftTeams = async (project, message, color, emoji, channelWrapp
   channelWrapperLogs.ack(msg)
   return
 }
-
-module.exports = readFromRabbitMQ;
