@@ -1,9 +1,9 @@
 // @flow
 
 const amqp = require('amqp-connection-manager');
-const { logger } = require('@lagoon/commons/src/local-logging');
-const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/src/logs');
-const { sendToLagoonTasks, initSendToLagoonTasks } = require('@lagoon/commons/src/tasks');
+const { logger } = require('@lagoon/commons/dist/local-logging');
+const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/dist/logs');
+const { sendToLagoonTasks, initSendToLagoonTasks } = require('@lagoon/commons/dist/tasks');
 
 const processQueue = require('./processQueue');
 

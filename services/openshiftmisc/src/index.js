@@ -1,16 +1,16 @@
 // @flow
 
 const R = require('ramda');
-const { logger } = require('@lagoon/commons/src/local-logging');
+const { logger } = require('@lagoon/commons/dist/local-logging');
 const {
   sendToLagoonLogs,
   initSendToLagoonLogs
-} = require('@lagoon/commons/src/logs');
+} = require('@lagoon/commons/dist/logs');
 const {
   consumeTasks,
   initSendToLagoonTasks,
   createTaskMonitor
-} = require('@lagoon/commons/src/tasks');
+} = require('@lagoon/commons/dist/tasks');
 const resticRestore = require('./handlers/resticRestore');
 const routeMigration = require('./handlers/routeMigration');
 const openshiftBuildCancel = require('./handlers/openshiftBuildCancel');

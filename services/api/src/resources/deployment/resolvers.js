@@ -2,12 +2,12 @@
 
 const R = require('ramda');
 const getFieldNames = require('graphql-list-fields');
-const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
+const { sendToLagoonLogs } = require('@lagoon/commons/dist/logs');
 const {
   createDeployTask,
   createPromoteTask,
   createMiscTask,
-} = require('@lagoon/commons/src/tasks');
+} = require('@lagoon/commons/dist/tasks');
 const esClient = require('../../clients/esClient');
 const {
   pubSub,
@@ -26,7 +26,7 @@ const environmentHelpers = require('../environment/helpers');
 const projectHelpers = require('../project/helpers');
 const {
   addTask,
-} = require('@lagoon/commons/src/api');
+} = require('@lagoon/commons/dist/api');
 const uuid4 = require('uuid4');
 const convertDateFormat = R.init;
 const environmentSql = require('../environment/sql');

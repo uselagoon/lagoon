@@ -1,14 +1,16 @@
-// @flow
-
-const jwt = require('jsonwebtoken');
-const { createJWT } = require('../jwt');
+import jwt from 'jsonwebtoken';
+import { createJWT } from '../jwt';
 
 describe('createJWT', () => {
   test('should create token properly', async () => {
     const input = {
       payload: {
         userId: 0,
-        role: 'admin',
+        permissions: {
+          projects: [],
+          customers: []
+        },
+        role: 'admin' as const,
         iat: 1503014400000,
         iss: 'jest',
       },
@@ -26,14 +28,18 @@ describe('createJWT', () => {
     const input = {
       payload: {
         userId: 'invalid userId',
-        role: 'admin',
+        permissions: {
+          projects: [],
+          customers: []
+        },
+        role: 'admin' as const,
         iat: 1503014400000,
         iss: 'jest',
       },
       jwtSecret: 'secret',
     };
 
-    // $FlowFixMe This intentionally passes an incorrect format to createJWT
+    // @ts-ignore This intentionally passes an incorrect format to createJWT
     expect(createJWT(input)).rejects.toEqual(
       new Error(
         'Incorrect userId parameter "invalid userId" passed (expecting a number)!',
@@ -48,7 +54,11 @@ describe('createJWT', () => {
     const input = {
       payload: {
         userId: 0,
-        role: 'admin',
+        permissions: {
+          projects: [],
+          customers: []
+        },
+        role: 'admin' as const,
         iat: currentTime,
         iss: 'jest',
       },
@@ -66,7 +76,11 @@ describe('createJWT', () => {
     const input = {
       payload: {
         userId: 0,
-        role: 'admin',
+        permissions: {
+          projects: [],
+          customers: []
+        },
+        role: 'admin' as const,
         iat: 1503014400, // way back in the past
         iss: 'jest',
       },

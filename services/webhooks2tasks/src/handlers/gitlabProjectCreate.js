@@ -2,9 +2,9 @@
 
 const R = require('ramda');
 const sshpk = require('sshpk');
-const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
-const { getProject, addDeployKeyToProject } = require('@lagoon/commons/src/gitlabApi');
-const { addProject, addGroupToProject, sanitizeGroupName } = require('@lagoon/commons/src/api');
+const { sendToLagoonLogs } = require('@lagoon/commons/dist/logs');
+const { getProject, addDeployKeyToProject } = require('@lagoon/commons/dist/gitlabApi');
+const { addProject, addGroupToProject, sanitizeGroupName } = require('@lagoon/commons/dist/api');
 
 import type { WebhookRequestData } from '../types';
 

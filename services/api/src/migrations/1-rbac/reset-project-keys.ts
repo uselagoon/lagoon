@@ -1,8 +1,8 @@
 import * as R from 'ramda';
 import { parsePrivateKey } from 'sshpk';
-import { logger } from '@lagoon/commons/src/local-logging';
-import * as api from '@lagoon/commons/src/api';
-import * as gitlabApi from '@lagoon/commons/src/gitlabApi';
+import { logger } from '@lagoon/commons/dist/local-logging';
+import * as api from '@lagoon/commons/dist/api';
+import * as gitlabApi from '@lagoon/commons/dist/gitlabApi';
 import { getKeycloakAdminClient } from '../../clients/keycloak-admin';
 import { getSqlClient } from '../../clients/sqlClient';
 import { query, prepare } from '../../util/db';

@@ -1,8 +1,8 @@
 // @flow
 
-const { logger } = require('@lagoon/commons/src/local-logging');
+const { logger } = require('@lagoon/commons/dist/local-logging');
 
-const { getEmailInfoForProject } = require('@lagoon/commons/src/api');
+const { getEmailInfoForProject } = require('@lagoon/commons/dist/api');
 
 const nodemailer = require('nodemailer');
 let transporter = nodemailer.createTransport({

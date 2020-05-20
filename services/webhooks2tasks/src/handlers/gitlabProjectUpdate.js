@@ -1,8 +1,8 @@
 // @flow
 
 const R = require('ramda');
-const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
-const { getProject } = require('@lagoon/commons/src/gitlabApi');
+const { sendToLagoonLogs } = require('@lagoon/commons/dist/logs');
+const { getProject } = require('@lagoon/commons/dist/gitlabApi');
 const {
   addProject,
   updateProject,
@@ -10,7 +10,7 @@ const {
   addGroupToProject,
   removeGroupFromProject,
   sanitizeGroupName,
-} = require('@lagoon/commons/src/api');
+} = require('@lagoon/commons/dist/api');
 
 import type { WebhookRequestData } from '../types';
 

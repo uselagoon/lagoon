@@ -2,10 +2,10 @@
 
 const {
   logger
-} = require('@lagoon/commons/src/local-logging');
+} = require('@lagoon/commons/dist/local-logging');
 const {
   sendToLagoonLogs
-} = require('@lagoon/commons/src/logs');
+} = require('@lagoon/commons/dist/logs');
 const resticbackupSnapshotFinished = require('../handlers/resticbackupSnapshotFinished');
 const resticbackupSnapshotSync = require('../handlers/resticbackupSnapshotSync');
 const resticbackupRestoreFinished = require('../handlers/resticbackupRestoreFinished');

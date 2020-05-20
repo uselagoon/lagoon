@@ -1,12 +1,12 @@
 // @flow
 
 const uuid4 = require('uuid4');
-const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
-const { logger } = require('@lagoon/commons/src/local-logging');
+const { sendToLagoonLogs } = require('@lagoon/commons/dist/logs');
+const { logger } = require('@lagoon/commons/dist/local-logging');
 const {
   deleteBackup,
   getEnvironmentBackups
-} = require('@lagoon/commons/src/api');
+} = require('@lagoon/commons/dist/api');
 const R = require('ramda');
 
 import type { WebhookRequestData, ChannelWrapper } from '../types';

@@ -1,7 +1,5 @@
-const {
-  Transport: LokkaTransportHttp,
-} = require('@lagoon/lokka-transport-http');
-const fetchUrl = require('node-fetch');
+import { Transport as LokkaTransportHttp } from '@lagoon/lokka-transport-http';
+import fetchUrl from 'node-fetch';
 
 class NetworkError extends Error {}
 class ApiError extends Error {}
@@ -20,7 +18,9 @@ const retryFetch = (endpoint, options, retriesLeft = 5, interval = 1000) =>
       .then(({ data, errors }) => {
         if (errors) {
           const error = new ApiError(`GraphQL Error: ${errors[0].message}`);
+          //@ts-ignore
           error.rawError = errors;
+          //@ts-ignore
           error.rawData = data;
           throw error;
         }
@@ -37,22 +37,20 @@ const retryFetch = (endpoint, options, retriesLeft = 5, interval = 1000) =>
         setTimeout(() => {
           retryFetch(endpoint, options, retriesLeft - 1).then(resolve, reject);
         }, interval);
-      }),
+      })
   );
 
-class Transport extends LokkaTransportHttp {
+export class Transport extends LokkaTransportHttp {
   constructor(endpoint, options = {}) {
     super(endpoint, options);
   }
 
   send(query, variables, operationName) {
     const payload = { query, variables, operationName };
+    //@ts-ignore
     const options = this._buildOptions(payload);
 
+    //@ts-ignore
     return retryFetch(this.endpoint, options);
   }
 }
-
-module.exports = {
-  Transport,
-};

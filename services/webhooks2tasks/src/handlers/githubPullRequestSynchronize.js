@@ -1,9 +1,9 @@
 // @flow
 
 const R = require('ramda');
-const { logger } = require('@lagoon/commons/src/local-logging');
-const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
-const { createDeployTask } = require('@lagoon/commons/src/tasks');
+const { logger } = require('@lagoon/commons/dist/local-logging');
+const { sendToLagoonLogs } = require('@lagoon/commons/dist/logs');
+const { createDeployTask } = require('@lagoon/commons/dist/tasks');
 
 import type { WebhookRequestData, removeData, ChannelWrapper, Project } from '../types';
 

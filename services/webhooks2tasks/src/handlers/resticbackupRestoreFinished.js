@@ -2,11 +2,11 @@
 
 const {
   sendToLagoonLogs
-} = require('@lagoon/commons/src/logs');
+} = require('@lagoon/commons/dist/logs');
 const {
   updateRestore,
   getEnvironmentByOpenshiftProjectName
-} = require('@lagoon/commons/src/api');
+} = require('@lagoon/commons/dist/api');
 const R = require('ramda');
 
 import type {

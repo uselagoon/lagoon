@@ -1,8 +1,8 @@
 // @flow
 
 const R = require('ramda');
-const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
-const { getUserBySshKey, deleteSshKey } = require('@lagoon/commons/src/api');
+const { sendToLagoonLogs } = require('@lagoon/commons/dist/logs');
+const { getUserBySshKey, deleteSshKey } = require('@lagoon/commons/dist/api');
 
 import type { WebhookRequestData } from '../types';
 

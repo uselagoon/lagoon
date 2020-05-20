@@ -2,7 +2,7 @@ const promisify = require('util').promisify;
 const kubernetesClient = require('kubernetes-client');
 const sleep = require("es7-sleep");
 const R = require('ramda');
-const { logger } = require('@lagoon/commons/src/local-logging');
+const { logger } = require('@lagoon/commons/dist/local-logging');
 
 const {
   getOpenShiftInfoForProject,
@@ -12,10 +12,10 @@ const {
   getDeploymentByName,
   updateDeployment,
   setEnvironmentServices,
-} = require('@lagoon/commons/src/api');
+} = require('@lagoon/commons/dist/api');
 
-const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/src/logs');
-const { consumeTaskMonitor, initSendToLagoonTasks } = require('@lagoon/commons/src/tasks');
+const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/dist/logs');
+const { consumeTaskMonitor, initSendToLagoonTasks } = require('@lagoon/commons/dist/tasks');
 
 class BuildNotCompletedYet extends Error {
   constructor(message) {

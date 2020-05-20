@@ -1,21 +1,89 @@
-const { Lokka } = require('lokka');
-const { Transport } = require('./lokka-transport-http-retry');
-const R = require('ramda');
-const { createJWTWithoutUserId } = require('./jwt');
-const { logger } = require('./local-logging');
+import { Lokka } from 'lokka';
+import { Transport } from './lokka-transport-http-retry';
+import { propOr, replace, toUpper, pipe, toLower } from 'ramda';
+import { createJWTWithoutUserId } from './jwt';
+import { logger } from './local-logging';
+
+interface Project {
+  slack: any;
+  name: string;
+  openshift: any;
+}
+
+interface GroupPatch {
+  name?: string;
+}
+
+interface UserPatch {
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  comment?: string;
+  gitlabId?: number;
+}
+
+interface ProjectPatch {
+  name?: string;
+  gitUrl?: string;
+  subfolder?: string;
+  activesystemsdeploy?: string;
+  activesystemsremove?: string;
+  branches?: string;
+  productionenvironment?: string;
+  autoidle?: number;
+  storagecalc?: number;
+  pullrequests?: string;
+  openshift?: number;
+  openshiftprojectpattern?: string;
+  productionRoutes?: string;
+  standbyRoutes?: string;
+  productionEnvironment?: string;
+  standbyProductionEnvironment?: string;
+}
+
+interface DeploymentPatch {
+  name?: number;
+  status?: string;
+  created?: string;
+  started?: string;
+  completed?: string;
+  environment?: number;
+  remoteId?: string;
+}
+
+interface TaskPatch {
+  name?: number;
+  status?: string;
+  created?: string;
+  started?: string;
+  completed?: string;
+  environment?: number;
+  remoteId?: string;
+}
+
+interface RestorePatch {
+  status?: string;
+  created?: string;
+  restoreLocation?: string;
+}
+
+enum EnvType {
+  PRODUCTION = 'production',
+  DEVELOPMENT = 'development'
+}
 
 const { JWTSECRET, JWTAUDIENCE } = process.env;
-const API_HOST = R.propOr('http://api:3000', 'API_HOST', process.env);
+const API_HOST = propOr('http://api:3000', 'API_HOST', process.env);
 
 if (JWTSECRET == null) {
   logger.warn(
-    'No JWTSECRET env variable set... this will cause api requests to fail',
+    'No JWTSECRET env variable set... this will cause api requests to fail'
   );
 }
 
 if (JWTAUDIENCE == null) {
   logger.warn(
-    'No JWTAUDIENCE env variable set... this may cause api requests to fail',
+    'No JWTAUDIENCE env variable set... this may cause api requests to fail'
   );
 }
 
@@ -23,16 +91,16 @@ const apiAdminToken = createJWTWithoutUserId({
   payload: {
     role: 'admin',
     iss: 'lagoon-commons',
-    aud: JWTAUDIENCE || 'api.amazee.io',
+    aud: JWTAUDIENCE || 'api.amazee.io'
   },
-  jwtSecret: JWTSECRET || '',
+  jwtSecret: JWTSECRET || ''
 });
 
 const options = {
   headers: {
-    Authorization: `Bearer ${apiAdminToken}`,
+    Authorization: `Bearer ${apiAdminToken}`
   },
-  timeout: 60000,
+  timeout: 60000
 };
 
 const transport = new Transport(`${API_HOST}/graphql`, options);
@@ -59,8 +127,6 @@ class NoActiveSystemsDefined extends Error {
     this.name = 'NoActiveSystemsDefined';
   }
 }
-
-const capitalize = R.replace(/^\w/, R.toUpper);
 
 const sshKeyFragment = graphqlapi.createFragment(`
 fragment on SshKey {
@@ -92,7 +158,6 @@ fragment on Group {
 }
 `);
 
-
 const projectFragment = graphqlapi.createFragment(`
 fragment on Project {
   id
@@ -114,9 +179,7 @@ fragment on Backup {
 }
 `);
 
-const addGroup = (
-  name,
-) =>
+export const addGroup = (name: string): Promise<any> =>
   graphqlapi.mutate(
     `
   ($name: String!) {
@@ -128,14 +191,14 @@ const addGroup = (
   }
 `,
     {
-      name,
-    },
+      name
+    }
   );
 
-const addGroupWithParent = (
-  name,
-  parentGroupName,
-) =>
+export const addGroupWithParent = (
+  name: string,
+  parentGroupName: string
+): Promise<any> =>
   graphqlapi.mutate(
     `
     ($name: String!, $parentGroupName: String) {
@@ -149,17 +212,17 @@ const addGroupWithParent = (
   `,
     {
       name,
-      parentGroupName,
-    },
+      parentGroupName
+    }
   );
 
-const addBackup = (
-  id = null,
-  environment,
-  source,
-  backupId,
-  created,
-) =>
+export const addBackup = (
+  id: number = null,
+  environment: number,
+  source: string,
+  backupId: string,
+  created: string
+): Promise<any> =>
   graphqlapi.mutate(
     `
     ($id: Int, $environment: Int!, $source: String!, $backupId: String!, $created: String!) {
@@ -179,11 +242,11 @@ const addBackup = (
       environment,
       source,
       backupId,
-      created,
-    },
+      created
+    }
   );
 
-const deleteBackup = (backupId) =>
+export const deleteBackup = (backupId: string): Promise<any> =>
   graphqlapi.mutate(
     `
   ($backupId: String!) {
@@ -192,7 +255,7 @@ const deleteBackup = (backupId) =>
     })
   }
   `,
-    { backupId },
+    { backupId }
   );
 
 const restoreFragment = graphqlapi.createFragment(`
@@ -205,10 +268,10 @@ const restoreFragment = graphqlapi.createFragment(`
   }
   `);
 
-const updateRestore = (
-  backupId,
-  patch,
-) =>
+export const updateRestore = (
+  backupId: string,
+  patch: RestorePatch
+): Promise<any> =>
   graphqlapi.mutate(
     `
   ($backupId: String!, $patch: UpdateRestorePatchInput!) {
@@ -220,10 +283,10 @@ const updateRestore = (
     }
   }
 `,
-    { backupId, patch },
+    { backupId, patch }
   );
 
-const getAllEnvironmentBackups = () =>
+export const getAllEnvironmentBackups = (): Promise<Project[]> =>
   graphqlapi.query(
     `
   {
@@ -239,10 +302,12 @@ const getAllEnvironmentBackups = () =>
       }
     }
   }
-`,
+`
   );
 
-const getEnvironmentBackups = (openshiftProjectName) =>
+export const getEnvironmentBackups = (
+  openshiftProjectName: string
+): Promise<any[]> =>
   graphqlapi.query(
     `
   query environmentByOpenshiftProjectName($openshiftProjectName: String!) {
@@ -261,10 +326,11 @@ const getEnvironmentBackups = (openshiftProjectName) =>
       }
     }
   }
-`, { openshiftProjectName }
+`,
+    { openshiftProjectName }
   );
 
-const updateGroup = (name, patch) =>
+export const updateGroup = (name: string, patch: GroupPatch): Promise<any> =>
   graphqlapi.mutate(
     `
   ($name: String!, $patch: UpdateGroupPatchInput!) {
@@ -278,10 +344,10 @@ const updateGroup = (name, patch) =>
     }
   }
   `,
-    { name, patch },
+    { name, patch }
   );
 
-const deleteGroup = (name) =>
+export const deleteGroup = (name: string): Promise<any> =>
   graphqlapi.mutate(
     `
   ($name: String!) {
@@ -292,10 +358,10 @@ const deleteGroup = (name) =>
     })
   }
   `,
-    { name },
+    { name }
   );
 
-const getUserBySshKey = (sshKey) =>
+export const getUserBySshKey = (sshKey: string): Promise<any> =>
   graphqlapi.query(
     `
   query userBySshKey($sshKey: String!) {
@@ -304,16 +370,16 @@ const getUserBySshKey = (sshKey) =>
     }
   }
 `,
-    { sshKey },
+    { sshKey }
   );
 
-const addUser = (
-  email,
-  firstName = null,
-  lastName = null,
-  comment = null,
-  gitlabId = null,
-) =>
+export const addUser = (
+  email: string,
+  firstName: string = null,
+  lastName: string = null,
+  comment: string = null,
+  gitlabId: number = null
+): Promise<any> =>
   graphqlapi.mutate(
     `
   ($email: String!, $firstName: String, $lastName: String, $comment: String, $gitlabId: Int) {
@@ -333,11 +399,11 @@ const addUser = (
       firstName,
       lastName,
       comment,
-      gitlabId,
-    },
+      gitlabId
+    }
   );
 
-const updateUser = (email, patch) =>
+export const updateUser = (email: string, patch: UserPatch): Promise<any> =>
   graphqlapi.mutate(
     `
   ($email: String!, $patch: UpdateUserPatchInput!) {
@@ -351,10 +417,10 @@ const updateUser = (email, patch) =>
     }
   }
   `,
-    { email, patch },
+    { email, patch }
   );
 
-const deleteUser = (email) =>
+export const deleteUser = (email: string): Promise<any> =>
   graphqlapi.mutate(
     `
   ($email: Int!) {
@@ -365,10 +431,14 @@ const deleteUser = (email) =>
     })
   }
   `,
-    { email },
+    { email }
   );
 
-const addUserToGroup = (userEmail, groupName, role) =>
+export const addUserToGroup = (
+  userEmail: string,
+  groupName: string,
+  role: string
+): Promise<any> =>
   graphqlapi.mutate(
     `
   ($userEmail: String!, $groupName: String!, $role: GroupRole!) {
@@ -381,10 +451,13 @@ const addUserToGroup = (userEmail, groupName, role) =>
     }
   }
   `,
-    { userEmail, groupName, role },
+    { userEmail, groupName, role }
   );
 
-const addGroupToProject = (project, group) =>
+export const addGroupToProject = (
+  project: string,
+  group: string
+): Promise<any> =>
   graphqlapi.mutate(
     `
   ($project: String!, $group: String!) {
@@ -396,10 +469,13 @@ const addGroupToProject = (project, group) =>
     }
   }
   `,
-    { project, group },
+    { project, group }
   );
 
-const removeGroupFromProject = (project, group) =>
+export const removeGroupFromProject = (
+  project: string,
+  group: string
+): Promise<any> =>
   graphqlapi.mutate(
     `
   ($project: String!, $group: String!) {
@@ -411,12 +487,13 @@ const removeGroupFromProject = (project, group) =>
     }
   }
   `,
-    { project, group },
+    { project, group }
   );
 
-const removeUserFromGroup = (
-  userEmail, groupName,
-) =>
+export const removeUserFromGroup = (
+  userEmail: string,
+  groupName: string
+): Promise<any> =>
   graphqlapi.mutate(
     `
   ($userEmail: String!, $groupName: String!) {
@@ -428,16 +505,16 @@ const removeUserFromGroup = (
     }
   }
   `,
-    { userEmail, groupName },
+    { userEmail, groupName }
   );
 
-const addSshKey = (
-  id = null,
-  name,
-  keyValue,
-  keyType,
-  userEmail,
-) =>
+export const addSshKey = (
+  id: number = null,
+  name: string,
+  keyValue: string,
+  keyType: string,
+  userEmail: string
+): Promise<any> =>
   graphqlapi.mutate(
     `
   ($id: Int, $name: String!, $keyValue: String!, $keyType: SshKeyType!, $userEmail: String!) {
@@ -459,11 +536,11 @@ const addSshKey = (
       name,
       keyValue,
       userEmail,
-      keyType,
-    },
+      keyType
+    }
   );
 
-const deleteSshKey = (name) =>
+export const deleteSshKey = (name: string): Promise<any> =>
   graphqlapi.mutate(
     `
     ($name: String!) {
@@ -477,27 +554,13 @@ const deleteSshKey = (name) =>
     },
   );
 
-  const deleteSshKeyById = (id) =>
-  graphqlapi.mutate(
-    `
-    ($id: Int!) {
-      deleteSshKeyById(input: {
-        id: $id
-      })
-    }
-    `,
-    {
-      name,
-    },
-  );
-
-const addProject = (
-  name,
-  gitUrl,
-  openshift,
-  productionenvironment,
-  id = null,
-) =>
+export const addProject = (
+  name: string,
+  gitUrl: string,
+  openshift: number,
+  productionenvironment: string,
+  id: number = null
+): Promise<any> =>
   graphqlapi.mutate(
     `
     ($name: String!, $gitUrl: String!, $openshift: Int!, $productionenvironment: String!, $id: Int) {
@@ -517,11 +580,14 @@ const addProject = (
       gitUrl,
       openshift,
       productionenvironment,
-      id,
-    },
+      id
+    }
   );
 
-const updateProject = (id, patch) =>
+export const updateProject = (
+  id: number,
+  patch: ProjectPatch
+): Promise<any> =>
   graphqlapi.mutate(
     `
   ($id: Int!, $patch: UpdateProjectPatchInput!) {
@@ -533,10 +599,10 @@ const updateProject = (id, patch) =>
     }
   }
   `,
-    { id, patch },
+    { id, patch }
   );
 
-const deleteProject = (name) =>
+export const deleteProject = (name: string): Promise<any> =>
   graphqlapi.mutate(
     `
   ($name: String!) {
@@ -545,10 +611,10 @@ const deleteProject = (name) =>
     })
   }
   `,
-    { name },
+    { name }
   );
 
-async function getProjectsByGitUrl(gitUrl) {
+export async function getProjectsByGitUrl(gitUrl: string): Promise<Project[]> {
   const result = await graphqlapi.query(`
     {
       allProjects(gitUrl: "${gitUrl}") {
@@ -571,9 +637,7 @@ async function getProjectsByGitUrl(gitUrl) {
   return result.allProjects;
 }
 
-async function getProjectByName(
-  project,
-) {
+export async function getProjectByName(project: string): Promise<any> {
   const result = await graphqlapi.query(`
     {
       project:projectByName(name: "${project}") {
@@ -583,17 +647,15 @@ async function getProjectByName(
   `);
 
   if (!result || !result.project) {
-    throw new ProjectNotFound(
-      `Cannot find project ${project}`,
-    );
+    throw new ProjectNotFound(`Cannot find project ${project}`);
   }
 
   return result.project;
 }
 
-async function getMicrosoftTeamsInfoForProject(
-  project,
-) {
+export async function getMicrosoftTeamsInfoForProject(
+  project: string
+): Promise<any[]> {
   const notificationsFragment = graphqlapi.createFragment(`
     fragment on NotificationMicrosoftTeams {
       webhook
@@ -612,16 +674,16 @@ async function getMicrosoftTeamsInfoForProject(
 
   if (!result || !result.project || !result.project.microsoftTeams) {
     throw new ProjectNotFound(
-      `Cannot find Microsoft Teams information for project ${project}`,
+      `Cannot find Microsoft Teams information for project ${project}`
     );
   }
 
   return result.project.microsoftTeams;
 }
 
-async function getRocketChatInfoForProject(
-  project,
-) {
+export async function getRocketChatInfoForProject(
+  project: string
+): Promise<any[]> {
   const notificationsFragment = graphqlapi.createFragment(`
     fragment on NotificationRocketChat {
       webhook
@@ -641,14 +703,16 @@ async function getRocketChatInfoForProject(
 
   if (!result || !result.project || !result.project.rocketchats) {
     throw new ProjectNotFound(
-      `Cannot find rocketchat information for project ${project}`,
+      `Cannot find rocketchat information for project ${project}`
     );
   }
 
   return result.project.rocketchats;
 }
 
-async function getSlackinfoForProject(project) {
+export async function getSlackinfoForProject(
+  project: string
+): Promise<Project> {
   const notificationsFragment = graphqlapi.createFragment(`
     fragment on NotificationSlack {
       webhook
@@ -668,16 +732,16 @@ async function getSlackinfoForProject(project) {
 
   if (!result || !result.project || !result.project.slacks) {
     throw new ProjectNotFound(
-      `Cannot find slack information for project ${project}`,
+      `Cannot find slack information for project ${project}`
     );
   }
 
   return result.project.slacks;
 }
 
-async function getEmailInfoForProject(
-  project,
-) {
+export async function getEmailInfoForProject(
+  project: string
+): Promise<any[]> {
   const notificationsFragment = graphqlapi.createFragment(`
     fragment on NotificationEmail {
       emailAddress
@@ -696,22 +760,36 @@ async function getEmailInfoForProject(
 
   if (!result || !result.project || !result.project.emails) {
     throw new ProjectNotFound(
-      `Cannot find email information for project ${project}`,
+      `Cannot find email information for project ${project}`
     );
   }
 
   return result.project.emails;
 }
 
-async function getActiveSystemForProject(
-  project,
-  task,
-) {
-  const field = `activeSystems${capitalize(task)}`;
+interface GetActiveSystemForProjectResult {
+  branches: string;
+  pullrequests: string;
+  activeSystemsDeploy: string;
+  activeSystemsPromote: string;
+  activeSystemsRemove: string;
+  activeSystemsTask: string;
+  activeSystemsMisc: string;
+}
+
+export async function getActiveSystemForProject(
+  project: string,
+  task: 'Deploy' | 'Promote' | 'Remove' | 'Task' | 'Misc'
+): Promise<GetActiveSystemForProjectResult> {
+  const field = `activeSystems${task}`;
   const result = await graphqlapi.query(`
     {
       project:projectByName(name: "${project}"){
-        ${field}
+        activeSystemsDeploy
+        activeSystemsPromote
+        activeSystemsRemove
+        activeSystemsTask
+        activeSystemsMisc
         branches
         pullrequests
       }
@@ -720,23 +798,23 @@ async function getActiveSystemForProject(
 
   if (!result || !result.project) {
     throw new ProjectNotFound(
-      `Cannot find active-systems information for project ${project}`,
+      `Cannot find active-systems information for project ${project}`
     );
   }
 
   if (!result.project[field]) {
     throw new NoActiveSystemsDefined(
-      `Cannot find active system for task ${task} in project ${project}`,
+      `Cannot find active system for task ${task} in project ${project}`
     );
   }
 
   return result.project;
 }
 
-async function getEnvironmentByName(
-  name,
-  projectId,
-) {
+export async function getEnvironmentByName(
+  name: string,
+  projectId: number
+): Promise<any> {
   const result = await graphqlapi.query(`
     {
       environmentByName(name: "${name}", project:${projectId}) {
@@ -756,19 +834,17 @@ async function getEnvironmentByName(
 
   if (!result || !result.environmentByName) {
     throw new EnvironmentNotFound(
-      `Cannot find environment for projectId ${projectId}, name ${name}\n${
-        result.environmentByName
-      }`,
+      `Cannot find environment for projectId ${projectId}, name ${name}\n${result.environmentByName}`
     );
   }
 
   return result;
 }
 
-async function getDeploymentByName(
-  openshiftProjectName,
-  deploymentName,
-) {
+export async function getDeploymentByName(
+  openshiftProjectName: string,
+  deploymentName: string,
+): Promise<any> {
   const result = await graphqlapi.query(`
     {
       environment:environmentByOpenshiftProjectName( openshiftProjectName: "${openshiftProjectName}") {
@@ -790,7 +866,7 @@ async function getDeploymentByName(
 
   if (!result || !result.environment) {
     throw new EnvironmentNotFound(
-      `Cannot find deployment ${deploymentName} by projectName ${projectName}\n${
+      `Cannot find deployment ${deploymentName} by projectName ${openshiftProjectName}\n${
         result.environment
       }`,
     );
@@ -799,9 +875,9 @@ async function getDeploymentByName(
   return result;
 }
 
-async function getEnvironmentByOpenshiftProjectName(
-  openshiftProjectName,
-) {
+export async function getEnvironmentByOpenshiftProjectName(
+  openshiftProjectName: string
+): Promise<any[]> {
   const result = await graphqlapi.query(`
     {
       environmentByOpenshiftProjectName(openshiftProjectName: "${openshiftProjectName}") {
@@ -816,25 +892,23 @@ async function getEnvironmentByOpenshiftProjectName(
 
   if (!result || !result.environmentByOpenshiftProjectName) {
     throw new EnvironmentNotFound(
-      `Cannot find environment for OpenshiftProjectName ${openshiftProjectName}\n${
-        result.environmentByOpenshiftProjectName
-      }`,
+      `Cannot find environment for OpenshiftProjectName ${openshiftProjectName}\n${result.environmentByOpenshiftProjectName}`
     );
   }
 
   return result;
 }
 
-const addOrUpdateEnvironment = (
-  name,
-  projectId,
-  deployType,
-  deployBaseRef,
-  environmentType,
-  openshiftProjectName,
-  deployHeadRef = null,
-  deployTitle = null,
-) =>
+export const addOrUpdateEnvironment = (
+  name: string,
+  projectId: number,
+  deployType: string,
+  deployBaseRef: string,
+  environmentType: string,
+  openshiftProjectName: string,
+  deployHeadRef: string = null,
+  deployTitle: string = null
+): Promise<any> =>
   graphqlapi.mutate(
     `
 ($name: String!, $project: Int!, $deployType: DeployType!, $deployBaseRef: String!, $deployHeadRef: String, $deployTitle: String, $environmentType: EnvType!, $openshiftProjectName: String!) {
@@ -872,14 +946,14 @@ const addOrUpdateEnvironment = (
       deployHeadRef,
       deployTitle,
       environmentType,
-      openshiftProjectName,
-    },
+      openshiftProjectName
+    }
   );
 
-const updateEnvironment = (
-  environmentId,
-  patch,
-) =>
+export const updateEnvironment = (
+  environmentId: number,
+  patch: string
+): Promise<any> =>
   graphqlapi.query(`
     mutation {
       updateEnvironment(input: {
@@ -892,11 +966,11 @@ const updateEnvironment = (
     }
   `);
 
-async function deleteEnvironment(
-  name,
-  project,
-  execute = true,
-) {
+export async function deleteEnvironment(
+  name: string,
+  project: string,
+  execute: boolean = true
+): Promise<any> {
   return graphqlapi.mutate(
     `
   ($name: String!, $project: String!, $execute: Boolean) {
@@ -910,12 +984,12 @@ async function deleteEnvironment(
     {
       name,
       project,
-      execute,
-    },
+      execute
+    }
   );
 }
 
-const getOpenShiftInfoForProject = (project) =>
+export const getOpenShiftInfoForProject = (project: string): Promise<any> =>
   graphqlapi.query(`
     {
       project:projectByName(name: "${project}"){
@@ -946,7 +1020,25 @@ const getOpenShiftInfoForProject = (project) =>
     }
 `);
 
-const getEnvironmentsForProject = (project) =>
+interface GetEnvironentsForProjectEnvironmentResult {
+  name: string;
+  environmentType: EnvType;
+}
+
+interface GetEnvironentsForProjectProjectResult {
+  developmentEnvironmentsLimit: number;
+  productionEnvironment: string;
+  standbyProductionEnvironment: string;
+  environments: GetEnvironentsForProjectEnvironmentResult[];
+}
+
+interface GetEnvironentsForProjectResult {
+  project: GetEnvironentsForProjectProjectResult
+}
+
+export const getEnvironmentsForProject = (
+  project: string
+): Promise<GetEnvironentsForProjectResult> =>
   graphqlapi.query(`
   {
     project:projectByName(name: "${project}"){
@@ -957,7 +1049,9 @@ const getEnvironmentsForProject = (project) =>
   }
 `);
 
-const getProductionEnvironmentForProject = (project) =>
+export const getProductionEnvironmentForProject = (
+  project: string
+): Promise<any> =>
   graphqlapi.query(`
     {
       project:projectByName(name: "${project}"){
@@ -966,10 +1060,10 @@ const getProductionEnvironmentForProject = (project) =>
     }
 `);
 
-const setEnvironmentServices = (
-  environment,
-  services,
-) =>
+export const setEnvironmentServices = (
+  environment: number,
+  services: string[]
+): Promise<any> =>
   graphqlapi.mutate(
     `
   ($environment: Int!, $services: [String]!) {
@@ -982,7 +1076,7 @@ const setEnvironmentServices = (
     }
   }
   `,
-    { environment, services },
+    { environment, services }
   );
 
 const deploymentFragment = graphqlapi.createFragment(`
@@ -1000,7 +1094,7 @@ fragment on Deployment {
 }
 `);
 
-const getDeploymentByRemoteId = (id) =>
+export const getDeploymentByRemoteId = (id: string): Promise<any> =>
   graphqlapi.query(
     `
   query deploymentByRemoteId($id: String!) {
@@ -1009,19 +1103,19 @@ const getDeploymentByRemoteId = (id) =>
     }
   }
 `,
-    { id },
+    { id }
   );
 
-const addDeployment = (
-  name,
-  status,
-  created,
-  environment,
-  remoteId = null,
-  id = null,
-  started = null,
-  completed = null,
-) =>
+export const addDeployment = (
+  name: string,
+  status: string,
+  created: string,
+  environment: number,
+  remoteId: string = null,
+  id: number = null,
+  started: string = null,
+  completed: string = null
+): Promise<any> =>
   graphqlapi.mutate(
     `
   ($name: String!, $status: DeploymentStatusType!, $created: String!, $environment: Int!, $id: Int, $remoteId: String, $started: String, $completed: String) {
@@ -1047,11 +1141,11 @@ const addDeployment = (
       id,
       remoteId,
       started,
-      completed,
-    },
+      completed
+    }
   );
 
-  const addTask = (
+  export const addTask = (
     name,
     status,
     created,
@@ -1099,10 +1193,10 @@ const addDeployment = (
       },
     );
 
-const updateDeployment = (
-  id,
-  patch,
-) =>
+export const updateDeployment = (
+  id: number,
+  patch: DeploymentPatch
+): Promise<any> =>
   graphqlapi.mutate(
     `
   ($id: Int!, $patch: UpdateDeploymentPatchInput!) {
@@ -1114,7 +1208,7 @@ const updateDeployment = (
     }
   }
 `,
-    { id, patch },
+    { id, patch }
   );
 
 const taskFragment = graphqlapi.createFragment(`
@@ -1132,7 +1226,7 @@ fragment on Task {
 }
 `);
 
-const updateTask = (id, patch) =>
+export const updateTask = (id: number, patch: TaskPatch): Promise<any> =>
   graphqlapi.mutate(
     `
   ($id: Int!, $patch: UpdateTaskPatchInput!) {
@@ -1144,14 +1238,21 @@ const updateTask = (id, patch) =>
     }
   }
 `,
-    { id, patch },
+    { id, patch }
   );
 
-const sanitizeGroupName = R.pipe(R.replace(/[^a-zA-Z0-9-]/g, '-'), R.toLower);
-const sanitizeProjectName = R.pipe(R.replace(/[^a-zA-Z0-9-]/g, '-'), R.toLower);
+export const sanitizeGroupName = pipe(
+  replace(/[^a-zA-Z0-9-]/g, '-'),
+  toLower
+);
+export const sanitizeProjectName = pipe(
+  replace(/[^a-zA-Z0-9-]/g, '-'),
+  toLower
+);
 
-const getProjectsByGroupName = groupName => graphqlapi.query(
-  `query groupByName($name: String!) {
+export const getProjectsByGroupName = groupName =>
+  graphqlapi.query(
+    `query groupByName($name: String!) {
     groupByName(name: $name) {
       id
       name
@@ -1162,11 +1263,12 @@ const getProjectsByGroupName = groupName => graphqlapi.query(
       }
     }
   }`,
-  { name: groupName }
-);
+    { name: groupName }
+  );
 
-const getGroupMembersByGroupName = groupName => graphqlapi.query(
-  `query groupByName($name: String!) {
+export const getGroupMembersByGroupName = groupName =>
+  graphqlapi.query(
+    `query groupByName($name: String!) {
     groupByName(name: $name) {
       id
       name
@@ -1179,56 +1281,5 @@ const getGroupMembersByGroupName = groupName => graphqlapi.query(
       }
     }
   }`,
-  { name: groupName }
-);
-
-module.exports = {
-  addGroup,
-  addGroupWithParent,
-  updateGroup,
-  deleteGroup,
-  getUserBySshKey,
-  addUser,
-  addBackup,
-  deleteBackup,
-  updateRestore,
-  getAllEnvironmentBackups,
-  getEnvironmentBackups,
-  updateUser,
-  deleteUser,
-  addUserToGroup,
-  removeUserFromGroup,
-  addSshKey,
-  deleteSshKey,
-  addProject,
-  updateProject,
-  deleteProject,
-  getProjectsByGitUrl,
-  getProjectByName,
-  getMicrosoftTeamsInfoForProject,
-  getRocketChatInfoForProject,
-  getSlackinfoForProject,
-  getEmailInfoForProject,
-  getActiveSystemForProject,
-  getOpenShiftInfoForProject,
-  getEnvironmentByName,
-  getProductionEnvironmentForProject,
-  getEnvironmentsForProject,
-  getDeploymentByName,
-  addOrUpdateEnvironment,
-  updateEnvironment,
-  deleteEnvironment,
-  setEnvironmentServices,
-  getDeploymentByRemoteId,
-  addDeployment,
-  addTask,
-  updateDeployment,
-  getEnvironmentByOpenshiftProjectName,
-  updateTask,
-  addGroupToProject,
-  removeGroupFromProject,
-  sanitizeGroupName,
-  sanitizeProjectName,
-  getProjectsByGroupName,
-  getGroupMembersByGroupName,
-};
+    { name: groupName }
+  );

@@ -16,7 +16,7 @@
 const http = require('http');
 const events = require('events');
 const amqp = require('amqp-connection-manager');
-const { logger } = require('@lagoon/commons/src/local-logging');
+const { logger } = require('@lagoon/commons/dist/local-logging');
 const createReqHandler = require('./createReqHandler');
 
 import type { ChannelWrapper } from './types';

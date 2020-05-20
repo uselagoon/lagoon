@@ -2,20 +2,20 @@ import * as R from 'ramda';
 import Api, { ClientConfiguration } from 'kubernetes-client';
 const Client = Api.Client1_13;
 
-const { logger } = require('@lagoon/commons/src/local-logging');
+const { logger } = require('@lagoon/commons/dist/local-logging');
 const {
   getOpenShiftInfoForProject,
   updateTask
-} = require('@lagoon/commons/src/api');
+} = require('@lagoon/commons/dist/api');
 const {
   sendToLagoonLogs,
   initSendToLagoonLogs
-} = require('@lagoon/commons/src/logs');
+} = require('@lagoon/commons/dist/logs');
 const {
   consumeTasks,
   initSendToLagoonTasks,
   createTaskMonitor
-} = require('@lagoon/commons/src/tasks');
+} = require('@lagoon/commons/dist/tasks');
 
 const lagoonApiRoute = R.compose(
   // Default to the gateway IP in virtualbox, so pods running in minishift can

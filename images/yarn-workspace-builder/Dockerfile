@@ -31,3 +31,5 @@ COPY services/webhooks2tasks/package.json /app/services/webhooks2tasks/
 COPY services/ui/package.json /app/services/ui/
 
 RUN yarn install --frozen-lockfile
+
+RUN cd /app/node-packages/commons && yarn build

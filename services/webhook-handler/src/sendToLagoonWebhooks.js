@@ -1,6 +1,6 @@
 // @flow
 
-const { logger } = require('@lagoon/commons/src/local-logging');
+const { logger } = require('@lagoon/commons/dist/local-logging');
 
 import type { WebhookRequestData } from './types';
 

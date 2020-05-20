@@ -2,20 +2,20 @@
 
 const promisify = require('util').promisify;
 const OpenShiftClient = require('openshift-client');
-const { ServiceCatalog } = require('@lagoon/commons/src/openshiftApi');
-const { logger } = require('@lagoon/commons/src/local-logging');
+const { ServiceCatalog } = require('@lagoon/commons/dist/openshiftApi');
+const { logger } = require('@lagoon/commons/dist/local-logging');
 const {
   sendToLagoonLogs,
   initSendToLagoonLogs
-} = require('@lagoon/commons/src/logs');
+} = require('@lagoon/commons/dist/logs');
 const {
   consumeTasks,
   initSendToLagoonTasks
-} = require('@lagoon/commons/src/tasks');
+} = require('@lagoon/commons/dist/tasks');
 const {
   getOpenShiftInfoForProject,
   deleteEnvironment
-} = require('@lagoon/commons/src/api');
+} = require('@lagoon/commons/dist/api');
 
 initSendToLagoonLogs();
 initSendToLagoonTasks();

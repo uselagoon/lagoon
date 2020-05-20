@@ -5,11 +5,11 @@ const R = require('ramda');
 const sha1 = require('sha1');
 const crypto = require('crypto');
 const moment = require('moment');
-const { logger } = require('@lagoon/commons/src/local-logging');
-const { getOpenShiftInfoForProject, addOrUpdateEnvironment, getEnvironmentByName, addDeployment } = require('@lagoon/commons/src/api');
+const { logger } = require('@lagoon/commons/dist/local-logging');
+const { getOpenShiftInfoForProject, addOrUpdateEnvironment, getEnvironmentByName, addDeployment } = require('@lagoon/commons/dist/api');
 
-const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/src/logs');
-const { consumeTasks, initSendToLagoonTasks, createTaskMonitor } = require('@lagoon/commons/src/tasks');
+const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/dist/logs');
+const { consumeTasks, initSendToLagoonTasks, createTaskMonitor } = require('@lagoon/commons/dist/tasks');
 
 initSendToLagoonLogs();
 initSendToLagoonTasks();

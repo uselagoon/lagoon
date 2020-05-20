@@ -1,7 +1,7 @@
 // @flow
 
 const amqp = require('amqp-connection-manager');
-const { logger } = require('@lagoon/commons/src/local-logging');
+const { logger } = require('@lagoon/commons/dist/local-logging');
 const readFromRabbitMQ = require('./readFromRabbitMQ');
 
 import type { ChannelWrapper } from './types';

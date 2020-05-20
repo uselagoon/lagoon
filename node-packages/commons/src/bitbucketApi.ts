@@ -1,13 +1,13 @@
-const axios = require('axios');
-const R = require('ramda');
+import axios from 'axios';
+import { find, pathOr, propEq, propOr } from 'ramda';
 
-const API_HOST = R.propOr(
+const API_HOST = propOr(
   'https://bitbucket.org',
   'BITBUCKET_API_HOST',
   process.env
 );
 
-const API_TOKEN = R.propOr(
+const API_TOKEN = propOr(
   'personal access token',
   'BITBUCKET_API_TOKEN',
   process.env
@@ -43,7 +43,7 @@ const getRequest = async url => {
     return response.data;
   } catch (error) {
     if (error.response) {
-      const errorMessage = R.pathOr(
+      const errorMessage = pathOr(
         error.message,
         ['data', 'errors'],
         error.response
@@ -85,7 +85,7 @@ const getAllPagesRequest = async url => {
       results = [...results, ...response.data.values];
     } catch (error) {
       if (error.response) {
-        const errorMessage = R.pathOr(
+        const errorMessage = pathOr(
           error.message,
           ['data', 'errors'],
           error.response
@@ -107,21 +107,16 @@ const getAllPagesRequest = async url => {
   return results;
 };
 
-searchReposByName = async name => {
+export const searchReposByName = async name => {
   try {
     const repos = await getAllPagesRequest(
       `repos?name=${name}&permission=REPO_READ`
     );
-    return R.find(R.propEq('slug', name), repos);
+    return find(propEq('slug', name), repos);
   } catch (e) {
     throw e;
   }
 };
 
-getRepoUsers = async (project, repo) =>
+export const getRepoUsers = async (project, repo) =>
   getAllPagesRequest(`projects/${project}/repos/${repo}/permissions/users`);
-
-module.exports = {
-  searchReposByName,
-  getRepoUsers
-};

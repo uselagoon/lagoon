@@ -5,9 +5,10 @@ const { bufferEq } = require('buffer-equal-constant-time');
 const extractWebhookData = require('./extractWebhookData');
 
 const sendToLagoonWebhooks = require('./sendToLagoonWebhooks');
-const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/src/logs');
+const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/dist/logs');
 
-import type { Logger } from '@lagoon/commons/src/local-logging';
+// TODO: re-import type when this file converts to typescript
+// import type { Logger } from '@lagoon/commons/dist/local-logging';
 import type { ChannelWrapper } from './types';
 
 type Req = http$IncomingMessage;
@@ -20,7 +21,9 @@ type Options = {
   channelWrapperWebhooks: ChannelWrapper,
 };
 
-type Handler = (req: Req, res: Res, logger: Logger, cb: Cb) => void;
+// Fix Logger type when this file converts to typescript
+// type Handler = (req: Req, res: Res, logger: Logger, cb: Cb) => void;
+type Handler = (req: Req, res: Res, logger, cb: Cb) => void;
 
 initSendToLagoonLogs();
 
