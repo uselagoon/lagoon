@@ -1,15 +1,15 @@
-const promisify = require('util').promisify;
-const KubernetesClient = require('kubernetes-client');
-const sleep = require("es7-sleep");
-const R = require('ramda');
-const sha1 = require('sha1');
-const crypto = require('crypto');
-const moment = require('moment');
-const { logger } = require('@lagoon/commons/dist/local-logging');
-const { getOpenShiftInfoForProject, addOrUpdateEnvironment, getEnvironmentByName, addDeployment } = require('@lagoon/commons/dist/api');
+import { promisify } from 'util';
+import KubernetesClient from 'kubernetes-client';
+import sleep from "es7-sleep";
+import R from 'ramda';
+import sha1 from 'sha1';
+import crypto from 'crypto';
+import moment from 'moment';
+import { logger } from '@lagoon/commons/dist/local-logging';
+import { getOpenShiftInfoForProject, addOrUpdateEnvironment, getEnvironmentByName, addDeployment } from '@lagoon/commons/dist/api';
 
-const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/dist/logs');
-const { consumeTasks, initSendToLagoonTasks, createTaskMonitor } = require('@lagoon/commons/dist/tasks');
+import { sendToLagoonLogs, initSendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { consumeTasks, initSendToLagoonTasks, createTaskMonitor } from '@lagoon/commons/dist/tasks';
 
 initSendToLagoonLogs();
 initSendToLagoonTasks();
@@ -56,7 +56,7 @@ const messageConsumer = async msg => {
     }
 
     var environmentType = branch === projectOpenShift.productionEnvironment ? 'production' : 'development';
-    var gitSha = sha
+    var gitSha = sha as string
     var projectId = projectOpenShift.id
     var openshiftConsole = projectOpenShift.openshift.consoleUrl.replace(/\/$/, "");
     var openshiftToken = projectOpenShift.openshift.token || ""
@@ -111,7 +111,7 @@ const messageConsumer = async msg => {
 
 
   // Generates a jobconfig object
-  const generateJobConfig = (buildName, secret, buildType, environment = {}) => {
+  const generateJobConfig = (buildName, secret, buildType, environment: any = {}) => {
 
     let buildImage = {}
     // During CI we want to use the OpenShift Registry for our build Image and use the OpenShift registry for the base Images
@@ -270,7 +270,7 @@ const messageConsumer = async msg => {
 
   // Kubernetes API Object - needed as some API calls are done to the Kubernetes API part of OpenShift and
   // the OpenShift API does not support them.
-  const kubernetes = new KubernetesClient.Core({
+  const kubernetes: any = new KubernetesClient.Core({
     url: openshiftConsole,
     insecureSkipTlsVerify: true,
     auth: {
@@ -350,7 +350,7 @@ const messageConsumer = async msg => {
   try {
     logger.info(`${openshiftProject}: Check if ServiceAccount lagoon-deployer already exists`)
     const serviceaccountsGet = promisify(kubernetes.ns(openshiftProject).serviceaccounts('lagoon-deployer').get)
-    projectStatus = await serviceaccountsGet()
+    await serviceaccountsGet()
     logger.info(`${openshiftProject}: ServiceAccount lagoon-deployer already exists, continuing`)
   } catch (err) {
     if (err.code == 404) {
@@ -360,6 +360,7 @@ const messageConsumer = async msg => {
       await sleep(2000); // sleep a bit after creating the ServiceAccount for Kubernetes to create all the secrets
       const serviceaccountsRolebindingsBody = {"kind":"RoleBinding","apiVersion":"rbac.authorization.k8s.io/v1","metadata":{"name":"lagoon-deployer-admin","namespace":openshiftProject},"roleRef":{"name":"admin","kind":"ClusterRole","apiGroup":"rbac.authorization.k8s.io"},"subjects":[{"name":"lagoon-deployer","kind":"ServiceAccount","namespace":openshiftProject}]};
       const serviceaccountsRolebindingsPost = promisify(kubernetesApi.group(serviceaccountsRolebindingsBody).ns(openshiftProject).rolebindings.post)
+      // @ts-ignore
       await serviceaccountsRolebindingsPost({ body: serviceaccountsRolebindingsBody })
     } else {
       logger.error(err)
@@ -400,7 +401,7 @@ const messageConsumer = async msg => {
   // }
 
   // Create SSH Key Secret if not exist yet, if it does update it.
-  let sshKey = {}
+  let sshKey: any = {}
   const sshKeyBase64 = new Buffer(deployPrivateKey.replace(/\\n/g, "\n")).toString('base64')
   try {
     logger.info(`${openshiftProject}: Check if secret lagoon-sshkey exists`)
@@ -422,7 +423,7 @@ const messageConsumer = async msg => {
 
   // Load the Token Secret Name for our created ServiceAccount
   const serviceaccountsGet = promisify(kubernetes.ns(openshiftProject).serviceaccounts("lagoon-deployer").get)
-  serviceaccount = await serviceaccountsGet()
+  const serviceaccount = await serviceaccountsGet()
   // a ServiceAccount can have multiple secrets, we are interested in one that has starts with 'lagoon-deployer-token'
   let serviceaccountTokenSecret = '';
   for (var key in serviceaccount.secrets) {
