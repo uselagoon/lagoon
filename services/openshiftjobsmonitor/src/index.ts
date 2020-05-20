@@ -1,21 +1,19 @@
-// @flow
-
-const promisify = require('util').promisify;
-const OpenShiftClient = require('openshift-client');
-const R = require('ramda');
-const { logger } = require('@lagoon/commons/dist/local-logging');
-const {
+import { promisify } from 'util';
+import OpenShiftClient from 'openshift-client';
+import R from 'ramda';
+import { logger } from '@lagoon/commons/dist/local-logging';
+import {
   getOpenShiftInfoForProject,
   updateTask
-} = require('@lagoon/commons/dist/api');
-const {
+} from '@lagoon/commons/dist/api';
+import {
   sendToLagoonLogs,
   initSendToLagoonLogs
-} = require('@lagoon/commons/dist/logs');
-const {
+} from '@lagoon/commons/dist/logs';
+import {
   consumeTaskMonitor,
   initSendToLagoonTasks
-} = require('@lagoon/commons/dist/tasks');
+} from '@lagoon/commons/dist/tasks';
 
 class JobNotCompletedYet extends Error {
   constructor(message: string) {
@@ -197,7 +195,7 @@ ${podLog}`;
         },
       });
     } catch (err) {
-      logger.error(`Couldn't delete job ${jobName}. Error: ${error}`);
+      logger.error(`Couldn't delete job ${jobName}. Error: ${err.message}`);
     }
   };
 
@@ -207,7 +205,7 @@ ${podLog}`;
   try {
     const convertDateFormat = R.init;
     const dateOrNull = R.unless(R.isNil, convertDateFormat);
-    let completedDate = dateOrNull(jobInfo.status.completionTime);
+    let completedDate = dateOrNull(jobInfo.status.completionTime) as any;
 
     if (jobStatus === 'failed') {
       completedDate = dateOrNull(jobInfo.status.conditions[0].lastTransitionTime);
@@ -216,7 +214,7 @@ ${podLog}`;
     await updateTask(taskId, {
       status: jobStatus.toUpperCase(),
       created: convertDateFormat(jobInfo.metadata.creationTimestamp),
-      started: dateOrNull(jobInfo.status.startTime),
+      started: dateOrNull(jobInfo.status.startTime) as any,
       completed: completedDate
     });
   } catch (error) {
@@ -304,6 +302,7 @@ const saveTaskLog = async (jobName, projectName, jobInfo, log) => {
 
 const deathHandler = async (msg, lastError) => {
   const { project, task } = JSON.parse(msg.content.toString());
+  const taskId = typeof task.id === 'string' ? parseInt(task.id, 10) : task.id;
 
   failTask(taskId);
 
