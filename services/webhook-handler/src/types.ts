@@ -1,10 +1,8 @@
-// @flow
-
 /**
  * Webhook related types for incoming Events
  */
 
-export type WebhookRequestData = {
+export interface WebhookRequestData {
   webhooktype: string,
   event: string,
   giturl?: string,
@@ -12,12 +10,8 @@ export type WebhookRequestData = {
   body?: Object,
 };
 
-export type ChannelWrapper = {
-  sendToQueue: (evt: string, data: Buffer, opts: Object) => void,
-}
-
 // See: https://developer.github.com/v3/activity/events/types/#pushevent
-export type GithubPushEvent = {
+export interface GithubPushEvent {
   event: 'push',
   webhooktype: 'github',
   uuid: string,
@@ -31,7 +25,7 @@ export type GithubPushEvent = {
 };
 
 // See: https://developer.github.com/v3/activity/events/types/#pullrequestevent
-export type GithubPullRequestEvent = {
+export interface GithubPullRequestEvent {
   event: 'pull_request',
   webhooktype: 'github',
   uuid: string,
@@ -45,7 +39,7 @@ export type GithubPullRequestEvent = {
 };
 
 // See: https://developer.github.com/v3/activity/events/types/#deleteevent
-export type GithubDeleteEvent = {
+export interface GithubDeleteEvent {
   event: 'delete',
   webhooktype: 'github',
   uuid: string,
@@ -58,7 +52,7 @@ export type GithubDeleteEvent = {
   }
 };
 
-export type CustomPushEvent = {
+export interface CustomPushEvent {
   event: 'push',
   webhooktype: 'custom',
   uuid: string,
@@ -73,7 +67,7 @@ export type CustomPushEvent = {
  * Payload related types for RabbitMQ
  */
 
-export type PayloadData = {
+export interface PayloadData {
   giturl: string,
   branch?: string,
   sha?: string,
@@ -84,7 +78,8 @@ export type RawData =
   GithubPushEvent
   | GithubPullRequestEvent
   | GithubDeleteEvent
-  | CustomPushEvent;
+  | CustomPushEvent
+  | any;
 
 // A payload we want to send to RabbitMQ
 export type Payload = PayloadData & {

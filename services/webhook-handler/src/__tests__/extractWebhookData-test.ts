@@ -1,9 +1,8 @@
-// @flow
-
+// @ts-nocheck
 // prevent uuid side-effects (this needs to called before any require statement)
 jest.mock('uuid4', () => () => 'uuid');
 
-const extractWebhookData = require('../extractWebhookData');
+import { extractWebhookData } from '../extractWebhookData';
 
 it('should return github related webhook data', () => {
   const req = {
@@ -39,11 +38,14 @@ it('should return gitlab related webhook data', () => {
       'x-gitlab-event': 'something',
       'x-gitlab-delivery': '123',
     },
-    url: 'url',
+    url: 'url'
   };
 
   const body = JSON.stringify({
     object_kind: 'gl',
+    project: {
+      git_ssh_url: 'sshurl'
+    }
   });
 
   const result = extractWebhookData(req, body);
@@ -52,8 +54,12 @@ it('should return gitlab related webhook data', () => {
     webhooktype: 'gitlab',
     event: 'gl',
     uuid: 'uuid',
+    giturl: 'sshurl',
     body: {
       object_kind: 'gl',
+      project: {
+        git_ssh_url: 'sshurl'
+      }
     },
   });
 });

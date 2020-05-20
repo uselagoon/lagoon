@@ -1,16 +1,9 @@
-// @flow
-
-const uuid4 = require('uuid4');
-const url = require('url');
-const R = require('ramda');
+import uuid4 from 'uuid4';
+import url from 'url';
+import R from 'ramda';
+import { IncomingMessage } from 'http';
 
 import type { RawData, WebhookRequestData } from './types';
-
-type Req = {
-  method: string,
-  url: string,
-  headers: { [key: string]: string }
-};
 
 /**
  * This function will check request headers for
@@ -23,14 +16,14 @@ type Req = {
  * Will throw an error on malformed request headers,
  * non-json body data or unsupported method.
  */
-function extractWebhookData(req: Req, body?: string): WebhookRequestData {
+export function extractWebhookData(req: IncomingMessage, body: string): WebhookRequestData {
   const { method, headers } = req;
 
-  const parameters = {};
+  let parameters: any = {};
   let webhooktype;
   let event;
   let uuid;
-  let bodyObj: ?RawData;
+  let bodyObj: RawData;
   let giturl;
 
   if (method === 'POST') {
@@ -112,6 +105,7 @@ function extractWebhookData(req: Req, body?: string): WebhookRequestData {
         if (value === '' && shouldThrow) {
           throw new Error(`Query param '${name}' is empty!`);
         }
+        // @ts-ignore
         return value;
       };
 
@@ -143,5 +137,3 @@ function extractWebhookData(req: Req, body?: string): WebhookRequestData {
 
   return ret;
 }
-
-module.exports = extractWebhookData;

@@ -1,15 +1,8 @@
-// @flow
+import { ChannelWrapper } from 'amqp-connection-manager';
+import { logger } from '@lagoon/commons/dist/local-logging';
+import { WebhookRequestData } from './types';
 
-const { logger } = require('@lagoon/commons/dist/local-logging');
-
-import type { WebhookRequestData } from './types';
-
-export type ChannelWrapper = {
-  publish: (string, string, Buffer, Object) => void,
-  sendToQueue: (evt: string, data: Buffer, opts: Object) => void,
-}
-
-async function sendToLagoonWebhooks (args: WebhookRequestData, channelWrapperWebhooks: ChannelWrapper): Promise<void> {
+export async function sendToLagoonWebhooks (args: WebhookRequestData, channelWrapperWebhooks: ChannelWrapper): Promise<void> {
   const {
     webhooktype,
     event,

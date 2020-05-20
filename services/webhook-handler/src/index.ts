@@ -1,5 +1,3 @@
-// @flow
-
 // // Handle signals properly
 // // see: https://github.com/nodejs/node-v0.x-archive/issues/9131
 // exitOnSignal('SIGINT');
@@ -13,21 +11,20 @@
 //   });
 // }
 
-const http = require('http');
-const events = require('events');
-const amqp = require('amqp-connection-manager');
-const { logger } = require('@lagoon/commons/dist/local-logging');
-const createReqHandler = require('./createReqHandler');
-
-import type { ChannelWrapper } from './types';
+import http from 'http';
+import amqp, { ChannelWrapper } from 'amqp-connection-manager';
+import { logger } from '@lagoon/commons/dist/local-logging';
+import { createReqHandler } from './createReqHandler';
 
 const rabbitmqHost = process.env.RABBITMQ_HOST || "broker"
 const rabbitmqUsername = process.env.RABBITMQ_USERNAME || "guest"
 const rabbitmqPassword = process.env.RABBITMQ_PASSWORD || "guest"
 const port = process.env.PORT || 3000
+// @ts-ignore
 const connection = amqp.connect([`amqp://${rabbitmqUsername}:${rabbitmqPassword}@${rabbitmqHost}`], { json: true });
 
 connection.on('connect', ({ url }) => logger.verbose('Connected to %s', url, { action: 'connected', url }));
+// @ts-ignore
 connection.on('disconnect', params => logger.error('Not connected, error: %s', params.err.code, { action: 'disconnected', reason: params }));
 
 // Cast any to ChannelWrapper to get type-safetiness through our own code
@@ -51,7 +48,7 @@ http.createServer((req, res) => {
     headers,
   });
 
-	handler(req, res, logger, (err) => {
+	handler(req, res, logger, () => {
 		res.statusCode = 404
 		res.end('no such location')
 	});

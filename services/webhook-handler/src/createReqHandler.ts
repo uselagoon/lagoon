@@ -1,33 +1,28 @@
-// @flow
+import bl from 'bl';
+import { IncomingMessage, ServerResponse } from 'http';
+import { ChannelWrapper } from 'amqp-connection-manager';
+import { extractWebhookData } from './extractWebhookData';
 
-const bl = require('bl');
-const { bufferEq } = require('buffer-equal-constant-time');
-const extractWebhookData = require('./extractWebhookData');
+import { sendToLagoonWebhooks } from './sendToLagoonWebhooks';
+import { sendToLagoonLogs, initSendToLagoonLogs } from '@lagoon/commons/dist/logs';
 
-const sendToLagoonWebhooks = require('./sendToLagoonWebhooks');
-const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/dist/logs');
+import type { Logger } from '@lagoon/commons/dist/local-logging';
 
-// TODO: re-import type when this file converts to typescript
-// import type { Logger } from '@lagoon/commons/dist/local-logging';
-import type { ChannelWrapper } from './types';
+interface Callback {
+  (): void
+}
 
-type Req = http$IncomingMessage;
-type Res = http$ServerResponse;
-
-type Cb = () => void;
-
-type Options = {
+interface Options {
   path: string,
   channelWrapperWebhooks: ChannelWrapper,
 };
 
 // Fix Logger type when this file converts to typescript
-// type Handler = (req: Req, res: Res, logger: Logger, cb: Cb) => void;
-type Handler = (req: Req, res: Res, logger, cb: Cb) => void;
+type Handler = (req: IncomingMessage, res: ServerResponse, logger: Logger, cb: Callback) => void;
 
 initSendToLagoonLogs();
 
-function createReqHandler(options: Options): Handler {
+export function createReqHandler(options: Options): Handler {
   const {
     path,
     channelWrapperWebhooks,
@@ -92,5 +87,3 @@ function createReqHandler(options: Options): Handler {
 
   return handler;
 }
-
-module.exports = createReqHandler;
