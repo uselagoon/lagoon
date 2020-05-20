@@ -1,17 +1,14 @@
-// @flow
-
-const R = require('ramda');
-const { parseJson } = require('./util/routing');
-
-import type { $Request, $Response } from 'express';
+import R from 'ramda';
+import { Request, Response } from 'express';
+import { parseJson } from './util/routing';
 
 declare type keycloakGrant = {
   access_token: string,
 }
 
-const generateRoute = (getUserGrant: (userId: string) => Promise<keycloakGrant>) => {
-  const route = async (req: $Request, res: $Response) => {
-    const userId = R.path(['body', 'userId'], req);
+export const generateRoute = (getUserGrant: (userId: string) => Promise<keycloakGrant>) => {
+  const route = async (req: Request, res: Response) => {
+    const userId: any = R.path(['body', 'userId'], req);
     const verbose = R.pathOr(false, ['body', 'verbose'], req);
     const returnGrant = R.pathOr(false, ['body', 'grant'], req);
 
@@ -44,8 +41,4 @@ const generateRoute = (getUserGrant: (userId: string) => Promise<keycloakGrant>)
   };
 
   return [parseJson, route];
-};
-
-module.exports = {
-  generateRoute,
 };

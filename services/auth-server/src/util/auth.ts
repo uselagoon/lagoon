@@ -1,17 +1,19 @@
-const R = require('ramda');
-const logger = require('../logger');
-const JWT = require('jsonwebtoken');
+import R from 'ramda';
+import JWT from 'jsonwebtoken';
+import { Request, Response, NextFunction } from 'express';
+import { logger } from '../logger';
 
 const { JWTSECRET, JWTAUDIENCE } = process.env;
 
 const parseBearerToken = R.compose(
   R.ifElse(
-    splits =>
+    (splits: any) =>
       R.length(splits) === 2 &&
       R.compose(
         R.toLower,
         R.defaultTo(''),
         R.head,
+      // @ts-ignore
       )(splits) === 'bearer',
     R.nth(1),
     R.always(null),
@@ -20,11 +22,12 @@ const parseBearerToken = R.compose(
   R.defaultTo(''),
 );
 
-const validateToken = async (
-  req,
-  res,
-  next,
+export const validateToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
 ) => {
+  // @ts-ignore
   const token = parseBearerToken(req.get('Authorization'));
 
   if (token == null) {
@@ -35,7 +38,7 @@ const validateToken = async (
   }
 
   try {
-    decoded = JWT.verify(token, JWTSECRET);
+    const decoded = JWT.verify(token, JWTSECRET);
 
     if (decoded == null) {
       throw new Error('Decoding token resulted in "null" or "undefined".');
@@ -61,8 +64,4 @@ const validateToken = async (
       errors: [{ message: `Forbidden - Invalid Auth Token: ${e.message}` }],
     });
   }
-
-  next();
 };
-
-module.exports = validateToken;

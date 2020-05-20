@@ -1,8 +1,6 @@
-// @flow
+import winston from 'winston';
 
-const winston = require('winston');
-
-const logger = new winston.Logger({
+export const logger = new winston.Logger({
   exitOnError: false,
   transports: [
     new winston.transports.Console({
@@ -13,5 +11,3 @@ const logger = new winston.Logger({
     }),
   ],
 });
-
-module.exports = logger;

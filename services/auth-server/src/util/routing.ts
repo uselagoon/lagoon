@@ -1,12 +1,9 @@
-// @flow
+import R from 'ramda';
+import sshpk from 'sshpk';
+import bodyParser from 'body-parser';
+import { Request, Response, NextFunction } from 'express';
 
-const R = require('ramda');
-const sshpk = require('sshpk');
-const bodyParser = require('body-parser');
-
-import type { $Request, $Response } from 'express';
-
-function validateKey(req: $Request, res: $Response, next: Function): void {
+export function validateKey(req: Request, res: Response, next: NextFunction): void {
   const key =
     req.body && req.body.key && typeof req.body.key === 'string'
       ? req.body.key
@@ -33,6 +30,7 @@ function validateKey(req: $Request, res: $Response, next: Function): void {
       R.nth(1),
       R.split(' '),
       R.defaultTo(''),
+    // @ts-ignore
     )(key);
 
     if (parsedKey == null) {
@@ -40,7 +38,7 @@ function validateKey(req: $Request, res: $Response, next: Function): void {
       return;
     }
 
-    // $FlowFixMe
+    // @ts-ignore
     req.parsedKey = parsedKey;
 
     next();
@@ -49,9 +47,4 @@ function validateKey(req: $Request, res: $Response, next: Function): void {
   }
 }
 
-const parseJson = bodyParser.json();
-
-module.exports = {
-  validateKey,
-  parseJson,
-};
+export const parseJson = bodyParser.json();

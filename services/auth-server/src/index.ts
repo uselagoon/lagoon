@@ -1,17 +1,17 @@
-// @flow
+import querystring from 'querystring';
+import R from 'ramda';
+import express, { Request, Response, NextFunction } from 'express';
+import morgan from 'morgan';
+import axios from 'axios';
+import { logger } from './logger';
+import { validateToken } from './util/auth';
+import { generateRoute } from './routes';
 
-const querystring = require('querystring');
-const R = require('ramda');
-const express = require('express');
-const morgan = require('morgan');
-const axios = require('axios');
-const logger = require('./logger');
-const validateToken = require('./util/auth');
-const { generateRoute } = require('./routes');
+interface LagoonErrorWithStatus extends Error {
+  status: number;
+}
 
-import type { LagoonErrorWithStatus, $Request, $Response } from 'express';
-
-declare type keycloakGrant = {
+interface keycloakGrant {
   access_token: string,
 }
 
@@ -66,7 +66,7 @@ const getUserGrant = async (userId: string): Promise<keycloakGrant> => {
 
 app.post('/generate', ...generateRoute(getUserGrant));
 
-app.use((err: LagoonErrorWithStatus, req: $Request, res: $Response, next: Function) => {
+app.use((err: LagoonErrorWithStatus, req: Request, res: Response, next: NextFunction) => {
   logger.error(err.toString());
 
   if (res.headersSent) {
