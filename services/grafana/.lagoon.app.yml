@@ -133,7 +133,7 @@ objects:
             - key: DATASOURCES
               path: datasources/datasource.yaml
             name: ${SERVICE_NAME}-config
-        name: provisioning
+          name: provisioning
     test: false
     triggers:
     - type: ConfigChange
