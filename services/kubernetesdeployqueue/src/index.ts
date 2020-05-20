@@ -1,21 +1,21 @@
 const promisify = require('util').promisify;
-const KubernetesClient = require('kubernetes-client');
-const R = require('ramda');
-const { logger } = require('@lagoon/commons/dist/local-logging');
-const {
+import KubernetesClient from 'kubernetes-client';
+import R from 'ramda';
+import { logger } from '@lagoon/commons/dist/local-logging';
+import {
   getOpenShiftInfoForProject,
   updateDeployment
-} = require('@lagoon/commons/dist/api');
+} from '@lagoon/commons/dist/api';
 
-const {
+import {
   sendToLagoonLogs,
   initSendToLagoonLogs
-} = require('@lagoon/commons/dist/logs');
-const {
+} from '@lagoon/commons/dist/logs';
+import {
   consumeTaskMonitor,
   initSendToLagoonTasks,
   createTaskMonitor
-} = require('@lagoon/commons/dist/tasks');
+} from '@lagoon/commons/dist/tasks';
 
 initSendToLagoonLogs();
 initSendToLagoonTasks();
@@ -92,7 +92,7 @@ const messageConsumer = async msg => {
           labelSelector: 'lagoon.sh/jobType=build'
         }
       });
-      const activeBuilds = R.pipe(
+      const activeBuilds: any = R.pipe(
         R.propOr([], 'items'),
         R.filter(R.pathSatisfies(R.lt(0), ['status', 'active']))
       )(namespaceJobs);
