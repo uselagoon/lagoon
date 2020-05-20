@@ -1,6 +1,7 @@
+ARG ALPINE_VERSION
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM alpine:3.8
+FROM alpine:${ALPINE_VERSION}
 
 LABEL maintainer="amazee.io"
 
@@ -38,13 +39,14 @@ RUN \
     mariadb \
     mariadb-client \
     mariadb-common \
+    mariadb-server-utils \
     net-tools \
     pwgen \
     tzdata \
     wget \
     gettext; \
     rm -rf /tmp/* /var/tmp/* /var/cache/apk/* /var/cache/distfiles/*; \
-    rm -rf /var/lib/mysql/* /etc/mysql/; \
+    rm -rf /var/lib/mysql/* /etc/mysql/ /etc/my.cnf*; \
     curl -sSL http://mysqltuner.pl/ -o mysqltuner.pl
 
 COPY entrypoints/ /lagoon/entrypoints/
