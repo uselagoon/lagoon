@@ -1,22 +1,20 @@
-// @flow
-
-const promisify = require('util').promisify;
-const OpenShiftClient = require('openshift-client');
-const R = require('ramda');
-const { logger } = require('@lagoon/commons/dist/local-logging');
-const {
+import { promisify } from 'util';
+import OpenShiftClient from 'openshift-client';
+import R from 'ramda';
+import { logger } from '@lagoon/commons/dist/local-logging';
+import {
   getOpenShiftInfoForProject,
   updateTask
-} = require('@lagoon/commons/dist/api');
-const {
+} from '@lagoon/commons/dist/api';
+import {
   sendToLagoonLogs,
   initSendToLagoonLogs
-} = require('@lagoon/commons/dist/logs');
-const {
+} from '@lagoon/commons/dist/logs';
+import {
   consumeTasks,
   initSendToLagoonTasks,
   createTaskMonitor
-} = require('@lagoon/commons/dist/tasks');
+} from '@lagoon/commons/dist/tasks';
 
 const lagoonApiRoute = R.compose(
   // Default to the gateway IP in virtualbox, so pods running in minishift can
@@ -230,7 +228,7 @@ const messageConsumer = async msg => {
   let updatedTask;
   try {
     const convertDateFormat = R.init;
-    const dateOrNull = R.unless(R.isNil, convertDateFormat);
+    const dateOrNull = R.unless(R.isNil, convertDateFormat) as any;
 
     updatedTask = await updateTask(taskId, {
       remoteId: openshiftJob.metadata.uid,
@@ -268,6 +266,7 @@ const messageConsumer = async msg => {
 
 const deathHandler = async (msg, lastError) => {
   const { project, task } = JSON.parse(msg.content.toString());
+  const taskId = typeof task.id === 'string' ? parseInt(task.id, 10) : task.id;
 
   failTask(taskId);
 
