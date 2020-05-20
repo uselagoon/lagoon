@@ -1,21 +1,19 @@
-// @flow
-
-const promisify = require('util').promisify;
-const OpenShiftClient = require('openshift-client');
-const { ServiceCatalog } = require('@lagoon/commons/dist/openshiftApi');
-const { logger } = require('@lagoon/commons/dist/local-logging');
-const {
+import { promisify } from 'util';
+import OpenShiftClient from 'openshift-client';
+import { ServiceCatalog } from '@lagoon/commons/dist/openshiftApi';
+import { logger } from '@lagoon/commons/dist/local-logging';
+import {
   sendToLagoonLogs,
   initSendToLagoonLogs
-} = require('@lagoon/commons/dist/logs');
-const {
+} from '@lagoon/commons/dist/logs';
+import {
   consumeTasks,
   initSendToLagoonTasks
-} = require('@lagoon/commons/dist/tasks');
-const {
+} from '@lagoon/commons/dist/tasks';
+import {
   getOpenShiftInfoForProject,
   deleteEnvironment
-} = require('@lagoon/commons/dist/api');
+} from '@lagoon/commons/dist/api';
 
 initSendToLagoonLogs();
 initSendToLagoonTasks();
@@ -93,17 +91,7 @@ const messageConsumer = async function(msg) {
     }
   });
 
-  // Kubernetes API Object - needed as some API calls are done to the Kubernetes API part of OpenShift and
-  // the OpenShift API does not support them.
-  const kubernetes = new OpenShiftClient.Core({
-    url: openshiftConsole,
-    insecureSkipTlsVerify: true,
-    auth: {
-      bearer: openshiftToken
-    }
-  });
-
-  const serviceCatalog = new ServiceCatalog({
+  const serviceCatalog: any = new ServiceCatalog({
     url: openshiftConsole,
     insecureSkipTlsVerify: true,
     auth: {
