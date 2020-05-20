@@ -1,13 +1,11 @@
-// @flow
+import { promisify } from 'util';
+import OpenShiftClient from 'openshift-client';
+import R from 'ramda';
+import { logger } from '@lagoon/commons/dist/local-logging';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { getOpenShiftInfoForProject } from '@lagoon/commons/dist/api';
 
-const promisify = require('util').promisify;
-const OpenShiftClient = require('openshift-client');
-const R = require('ramda');
-const { logger } = require('@lagoon/commons/dist/local-logging');
-const { sendToLagoonLogs } = require('@lagoon/commons/dist/logs');
-const { getOpenShiftInfoForProject } = require('@lagoon/commons/dist/api');
-
-async function openshiftBuildCancel(data: Object) {
+export async function openshiftBuildCancel(data) {
   const { build, project, environment } = data;
 
   const result = await getOpenShiftInfoForProject(project.name);
@@ -73,5 +71,3 @@ async function openshiftBuildCancel(data: Object) {
     `*[${project.name}]* Cancelling build \`${buildName}\``
   );
 }
-
-module.exports = openshiftBuildCancel;

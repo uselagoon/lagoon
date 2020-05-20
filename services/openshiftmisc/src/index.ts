@@ -1,19 +1,15 @@
-// @flow
-
-const R = require('ramda');
-const { logger } = require('@lagoon/commons/dist/local-logging');
-const {
+import { logger } from '@lagoon/commons/dist/local-logging';
+import {
   sendToLagoonLogs,
   initSendToLagoonLogs
-} = require('@lagoon/commons/dist/logs');
-const {
+} from '@lagoon/commons/dist/logs';
+import {
   consumeTasks,
   initSendToLagoonTasks,
-  createTaskMonitor
-} = require('@lagoon/commons/dist/tasks');
-const resticRestore = require('./handlers/resticRestore');
-const routeMigration = require('./handlers/routeMigration');
-const openshiftBuildCancel = require('./handlers/openshiftBuildCancel');
+} from '@lagoon/commons/dist/tasks';
+import { resticRestore } from './handlers/resticRestore';
+import { routeMigration } from './handlers/routeMigration';
+import { openshiftBuildCancel } from './handlers/openshiftBuildCancel';
 
 initSendToLagoonLogs();
 initSendToLagoonTasks();

@@ -1,16 +1,14 @@
-// @flow
-
-const promisify = require('util').promisify;
-const OpenShiftClient = require('openshift-client');
-const R = require('ramda');
-const { logger } = require('@lagoon/commons/dist/local-logging');
-const { sendToLagoonLogs } = require('@lagoon/commons/dist/logs');
-const {
+import { promisify } from 'util';
+import OpenShiftClient from 'openshift-client';
+import R from 'ramda';
+import { logger } from '@lagoon/commons/dist/local-logging';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import {
   getOpenShiftInfoForProject,
   updateProject,
   updateTask,
-} = require('@lagoon/commons/dist/api');
-const { RouteMigration } = require('@lagoon/commons/dist/openshiftApi');
+} from '@lagoon/commons/dist/api';
+import { RouteMigration } from '@lagoon/commons/dist/openshiftApi';
 const convertDateFormat = R.init;
 
 const pause = duration => new Promise(res => setTimeout(res, duration));
@@ -22,7 +20,7 @@ const retry = (retries, fn, delay = 1000) =>
         : Promise.reject(err)
   );
 
-async function routeMigration (data: Object) {
+export async function routeMigration (data) {
   const { projectName, productionEnvironment, standbyProductionEnvironment, task } = data;
 
   const result = await getOpenShiftInfoForProject(projectName);
@@ -78,7 +76,7 @@ async function routeMigration (data: Object) {
 
   // Kubernetes API Object - needed as some API calls are done to the Kubernetes API part of OpenShift and
   // the OpenShift API does not support them.
-  const dioscuri = new RouteMigration({
+  const dioscuri: any = new RouteMigration({
     url: openshiftConsole,
     insecureSkipTlsVerify: true,
     auth: {
@@ -121,12 +119,12 @@ async function routeMigration (data: Object) {
   // check that the namespaces exist for source and destination before we try and move any routes
   try {
     // check source
-    const projectSourceGet = promisify(openshift.projects(openshiftProject).get, { context: openshift.projects(openshiftProject) })
-    projectStatus = await projectSourceGet()
+    const projectSourceGet = promisify(openshift.projects(openshiftProject).get)
+    await projectSourceGet()
     logger.info(`${openshiftProject}: Project ${openshiftProject} already exists, continuing`)
     // check dest
-    const projectDestGet = promisify(openshift.projects(destinationOpenshiftProject).get, { context: openshift.projects(destinationOpenshiftProject) })
-    projectStatus = await projectDestGet()
+    const projectDestGet = promisify(openshift.projects(destinationOpenshiftProject).get)
+    await projectDestGet()
     logger.info(`${openshiftProject}: Project ${destinationOpenshiftProject} already exists, continuing`)
   } catch (err) {
     // throw error if the namespace doesn't exist
@@ -185,8 +183,8 @@ async function routeMigration (data: Object) {
   // this will check the resource in openshift, then updates the task in the api
   const updateActiveStandbyTask = () => {
     return (new Promise(async (resolve, reject) => {
-      var exitResolve = false;
-      routeMigrateStatus = await routeMigrateGet();
+      let exitResolve = false;
+      const routeMigrateStatus = await routeMigrateGet();
       if (routeMigrateStatus === undefined || routeMigrateStatus.status === undefined || routeMigrateStatus.status.conditions === undefined) {
         logger.info(`${openshiftProject}: active/standby switch not ready, will try again in 2sec`);
       } else {
@@ -207,7 +205,7 @@ async function routeMigration (data: Object) {
                 status: 'FAILED',
                 completed: created,
               });
-              var condition = new Object();
+              var condition: any = new Object();
               // send a log off with the status information
               condition.condition = routeMigrateStatus.status.conditions[i].condition
               condition.activeRoutes = routeMigrateStatus.spec.routes.activeRoutes
@@ -238,7 +236,7 @@ async function routeMigration (data: Object) {
                 completed: created,
               });
               // send a log off with the status information
-              var condition = new Object();
+              var condition: any = new Object();
               condition.condition = routeMigrateStatus.status.conditions[i].condition
               condition.activeRoutes = routeMigrateStatus.spec.routes.activeRoutes
               condition.standbyRoutes = routeMigrateStatus.spec.routes.standbyRoutes
@@ -261,9 +259,9 @@ async function routeMigration (data: Object) {
         resolve();
       } else {
         logger.info(`${openshiftProject}: active/standby switch not ready, will try again in 2sec`);
-        reject();
+        reject(exitResolve);
       }
-    })).catch((errorMessage) => {return exitResolve});
+    })).catch((errorMessage) => {return errorMessage});
   }
 
   try {
@@ -292,5 +290,3 @@ const saveTaskLog = async (jobName, projectName, status, uid, log) => {
     log
   );
 };
-
-module.exports = routeMigration;

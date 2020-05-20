@@ -1,17 +1,14 @@
-// @flow
-
-const promisify = require('util').promisify;
-const OpenShiftClient = require('openshift-client');
-const R = require('ramda');
-const { logger } = require('@lagoon/commons/dist/local-logging');
-const { sendToLagoonLogs } = require('@lagoon/commons/dist/logs');
-const {
+import { promisify } from 'util';
+import R from 'ramda';
+import { logger } from '@lagoon/commons/dist/local-logging';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import {
   getOpenShiftInfoForProject,
-} = require('@lagoon/commons/dist/api');
-const { BaaS } = require('@lagoon/commons/dist/openshiftApi');
+} from '@lagoon/commons/dist/api';
+import { BaaS } from '@lagoon/commons/dist/openshiftApi';
 
 
-async function resticRestore (data: Object) {
+export async function resticRestore (data) {
   const { backup, restore, project, environment } = data;
 
   const result = await getOpenShiftInfoForProject(project.name);
@@ -69,7 +66,7 @@ async function resticRestore (data: Object) {
 
   // Kubernetes API Object - needed as some API calls are done to the Kubernetes API part of OpenShift and
   // the OpenShift API does not support them.
-  const baas = new BaaS({
+  const baas: any = new BaaS({
     url: openshiftConsole,
     insecureSkipTlsVerify: true,
     auth: {
@@ -100,5 +97,3 @@ async function resticRestore (data: Object) {
     `*[${project.name}]* Restore \`${restore.id}\` *${backup.backupId}* started`
   );
 }
-
-module.exports = resticRestore;
