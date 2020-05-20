@@ -1,10 +1,9 @@
-const promisify = require('util').promisify;
-const kubernetesClient = require('kubernetes-client');
-const sleep = require("es7-sleep");
-const R = require('ramda');
-const { logger } = require('@lagoon/commons/dist/local-logging');
+import { promisify } from 'util';
+import kubernetesClient from 'kubernetes-client';
+import R from 'ramda';
+import { logger } from '@lagoon/commons/dist/local-logging';
 
-const {
+import {
   getOpenShiftInfoForProject,
   getEnvironmentByName,
   updateEnvironment,
@@ -12,10 +11,10 @@ const {
   getDeploymentByName,
   updateDeployment,
   setEnvironmentServices,
-} = require('@lagoon/commons/dist/api');
+} from '@lagoon/commons/dist/api';
 
-const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/dist/logs');
-const { consumeTaskMonitor, initSendToLagoonTasks } = require('@lagoon/commons/dist/tasks');
+import { sendToLagoonLogs, initSendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { consumeTaskMonitor, initSendToLagoonTasks } from '@lagoon/commons/dist/tasks';
 
 class BuildNotCompletedYet extends Error {
   constructor(message) {
@@ -93,6 +92,7 @@ const messageConsumer = async msg => {
   // Check if project exists
   try {
     const namespacesSearch = promisify(kubernetesCore.namespaces.get);
+    // @ts-ignore
     const namespacesResult = await namespacesSearch({
       qs: {
         fieldSelector: `metadata.name=${openshiftProject}`
@@ -113,6 +113,7 @@ const messageConsumer = async msg => {
   let jobInfo;
   try {
     const jobsGet = promisify(kubernetesBatchApi.namespaces(openshiftProject).jobs(jobName).get);
+    // @ts-ignore
     jobInfo = await jobsGet();
   } catch (err) {
     if (err.code == 404) {
@@ -128,7 +129,8 @@ const messageConsumer = async msg => {
   const jobsLogGet = async () => {
     // First fetch the pod(s) used to run this job
     const podsGet = promisify(kubernetesCore.namespaces(openshiftProject).pods.get);
-    const pods = await podsGet({
+    // @ts-ignore
+    const pods: any = await podsGet({
       qs: {
         labelSelector: `job-name=${jobName}`
       }
@@ -139,6 +141,7 @@ const messageConsumer = async msg => {
     let finalLog = '';
     for (const podName of podNames) {
       const podLogGet = promisify(kubernetesCore.namespaces(openshiftProject).pods(podName).log.get)
+      // @ts-ignore
       const podLog = await podLogGet();
 
       finalLog =
@@ -162,7 +165,7 @@ ${podLog}`;
     }
 
     const convertDateFormat = R.init;
-    const dateOrNull = R.unless(R.isNil, convertDateFormat);
+    const dateOrNull = R.unless(R.isNil, convertDateFormat) as any;
 
     // The status needs a mapping from k8s job status (active, succeeded, failed) to api deployment statuses (new, pending, running, cancelled, error, failed, complete)
     status = ((status) => {
@@ -225,9 +228,10 @@ ${podLog}`;
       } catch (err) {
         logger.warn(`${projectName} ${jobName}: Error while getting and sending to lagoon-logs, Error: ${err}.`)
       }
-      let configMap = {};
+      let configMap: any = {};
       try {
         const configMapSearch = promisify(kubernetesCore.namespaces(openshiftProject).configmaps.get);
+        // @ts-ignore
         const configMapSearchResult = await configMapSearch({
           qs: {
             fieldSelector: `metadata.name=lagoon-env`
@@ -292,7 +296,8 @@ ${podLog}`;
         */
 
         const podsGet = promisify(kubernetesCore.namespaces(openshiftProject).pods.get)
-        const pods = await podsGet()
+        // @ts-ignore
+        const pods: any = await podsGet()
 
         const serviceNames = pods.items.reduce(
           (names, pod) => [
