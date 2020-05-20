@@ -1,34 +1,11 @@
-// @flow
+import { IncomingWebhook } from '@slack/client';
+import { ChannelWrapper } from 'amqp-connection-manager';
+import { ConsumeMessage } from 'amqplib';
+import { logger } from '@lagoon/commons/dist/local-logging';
+import { getSlackinfoForProject } from '@lagoon/commons/dist/api';
 
-const { logger } = require('@lagoon/commons/dist/local-logging');
-
-const { getSlackinfoForProject } = require('@lagoon/commons/dist/api');
-
-var IncomingWebhook = require('@slack/client').IncomingWebhook;
-
-export type ChannelWrapper = {
-  ack: (msg: Object) => void,
-}
-
-export type RabbitMQMsg = {
-  content: Buffer,
-  fields: Object,
-  properties: Object,
-};
-
-export type Project = {
-  slack: Object,
-  name: string,
-};
-
-async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWrapper): Promise<void> {
-  const {
-    content,
-    fields,
-    properties,
-  } = msg;
-
-  const logMessage = JSON.parse(content.toString())
+export async function readFromRabbitMQ (msg: ConsumeMessage, channelWrapperLogs: ChannelWrapper): Promise<void> {
+  const logMessage = JSON.parse(msg.content.toString())
 
   const {
     severity,
@@ -135,5 +112,3 @@ const sendToSlack = async (project, message, color, emoji, channelWrapperLogs, m
   channelWrapperLogs.ack(msg)
   return
 }
-
-module.exports = readFromRabbitMQ;
