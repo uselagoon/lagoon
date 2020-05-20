@@ -1,5 +1,5 @@
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-lagoon}/kibana:7.1
+FROM ${IMAGE_REPO:-lagoon}/kibana:7
 
 ENV NODE_OPTIONS="--max-old-space-size=2048" \
     LOGSDB_KIBANASERVER_PASSWORD=kibanaserver \
@@ -58,7 +58,7 @@ opendistro_security.cookie.password: "${OPENDISTRO_SECURITY_COOKIE_PASSWORD:-aaa
 \n\
 ' >> config/kibana.yml
 
-RUN bin/kibana-plugin install https://d3g5vo6xdbdb9a.cloudfront.net/downloads/kibana-plugins/opendistro-security/opendistro_security_kibana_plugin-1.1.0.0.zip
+RUN bin/kibana-plugin --allow-root install https://d3g5vo6xdbdb9a.cloudfront.net/downloads/kibana-plugins/opendistro-security/opendistro_security_kibana_plugin-1.6.0.0.zip
 
 COPY entrypoints/80-keycloak-url.bash /lagoon/entrypoints/
 COPY entrypoints/81-logs-db-ui-url.bash /lagoon/entrypoints/

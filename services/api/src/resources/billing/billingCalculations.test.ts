@@ -29,7 +29,6 @@ import {
   deleteAllBillingModifiers
 } from './graphql';
 import moment = require('moment');
-import { deleteGroup } from '../project/keycloak';
 
 interface ITestBillingGroup extends IBillingGroup {
   expectations?: {
@@ -311,6 +310,39 @@ const mockData: IMockDataType = {
           availability: AVAILABILITY.STANDARD,
           storageDays: 164,
           prodHours: 744,
+          devHours: 744,
+        },
+      ],
+    },
+    {
+      name: 'Dev Only',
+      expectations: {
+        hits: 136.2435,
+        storage: 0,
+        prod: 31.02,
+        dev: 20.68,
+      },
+      currency: CURRENCIES.USD,
+      billingSoftware: '',
+      projects: [
+        {
+          name: 'gza',
+          month: 3,
+          year: 2020,
+          hits: 748_290,
+          availability: AVAILABILITY.STANDARD,
+          storageDays: 189.05702100000002,
+          prodHours: 744,
+          devHours: 2232,
+        },
+        {
+          name: 'gza-archive',
+          month: 3,
+          year: 2020,
+          hits: 0,
+          availability: AVAILABILITY.STANDARD,
+          storageDays: 0,
+          prodHours: 0,
           devHours: 744,
         },
       ],

@@ -24,7 +24,12 @@ const Helpers = require('./helpers');
 const EVENTS = require('./events');
 const environmentHelpers = require('../environment/helpers');
 const projectHelpers = require('../project/helpers');
-
+const {
+  addTask,
+} = require('@lagoon/commons/src/api');
+const uuid4 = require('uuid4');
+const convertDateFormat = R.init;
+const environmentSql = require('../environment/sql');
 /* ::
 
 import type {ResolversObj} from '../';
@@ -164,6 +169,29 @@ const getDeploymentByRemoteId = async (
   });
 
   return injectBuildLog(deployment);
+};
+
+const getDeploymentUrl = async (
+  { id, environment },
+  args,
+  { sqlClient, hasPermission },
+) => {
+
+  const lagoonUiRoute = R.compose(
+    R.defaultTo('http://localhost:8888'),
+    R.find(R.test(/\/ui-/)),
+    R.split(','),
+    R.propOr('', 'LAGOON_ROUTES'),
+  )(process.env);
+
+  const { name: project, openshiftProjectName  } = await projectHelpers(sqlClient).getProjectByEnvironmentId(
+    environment,
+  );
+
+  const rows = await query(sqlClient, knex('deployment').where('id', '=', id).toString());
+  const deployment = R.prop(0, rows);
+
+  return `${lagoonUiRoute}/projects/${project}/${openshiftProjectName}/deployments/${deployment.name}`;
 };
 
 const addDeployment = async (
@@ -326,7 +354,7 @@ const cancelDeployment = async (
   };
 
   try {
-    await createMiscTask({ key: 'openshift:build:cancel', data });
+    await createMiscTask({ key: 'build:cancel', data });
     return 'success';
   } catch (error) {
     sendToLagoonLogs(
@@ -696,7 +724,7 @@ const deployEnvironmentPromote = async (
   const sourceEnvironment = R.prop(0, activeEnvironments);
 
   await hasPermission('environment', 'view', {
-    project: sourceEnvironment.project,
+    project: sourceEnvironment.project
   });
 
   const deployData = {
@@ -758,6 +786,107 @@ const deployEnvironmentPromote = async (
   }
 };
 
+const switchActiveStandby = async (
+  root,
+  {
+    input: {
+      project: projectInput,
+    },
+  },
+  {
+    sqlClient,
+    hasPermission,
+  },
+) => {
+  const project = await projectHelpers(sqlClient).getProjectByProjectInput(
+    projectInput,
+  );
+
+  // active/standby really only should be between production environments
+  await hasPermission('environment', `deploy:production`, {
+    project: project.id,
+  });
+
+  await hasPermission('task', 'view', {
+    project: project.id,
+  });
+
+  const environmentRows = await query(
+    sqlClient,
+    environmentSql.selectEnvironmentByNameAndProject(project.productionEnvironment, project.id),
+  );
+  const environment = environmentRows[0];
+  var environmentId = parseInt(environment.id);
+
+  if (project.standbyProductionEnvironment == null) {
+    sendToLagoonLogs(
+      'error',
+      '',
+      '',
+      'api:switchActiveStandby',
+      '',
+      `Failed to create active to standby task, reason: no standbyProductionEnvironment configured`,
+    );
+    return `Error: no standbyProductionEnvironment configured`;
+  }
+
+  // construct the data for the misc task
+  let uuid = uuid4();
+
+  const data = {
+    project,
+    projectName: project.name,
+    productionEnvironment: project.productionEnvironment,
+    standbyProductionEnvironment: project.standbyProductionEnvironment,
+    task: {
+      id: 0,
+      uuid: uuid,
+    }
+  };
+
+  // try it now
+  try {
+    // add a task into the environment
+    var date = new Date()
+    var created = convertDateFormat(date.toISOString())
+    const sourceTaskData = await addTask(
+      'Active/Standby Switch',
+      'ACTIVE',
+      created,
+      environmentId,
+      uuid,
+      null,
+      null,
+      null,
+      '',
+      '',
+      false,
+    );
+    data.task.id = sourceTaskData.addTask.id
+
+    // then send the task to openshiftmisc to trigger the migration
+    await createMiscTask({ key: 'route:migrate', data });
+
+    // return the task id and remote id
+    var retData = {
+      id: data.task.id,
+      remoteId: uuid,
+      environment: environmentId,
+    }
+    return retData;
+  } catch (error) {
+    sendToLagoonLogs(
+      'error',
+      '',
+      '',
+      'api:switchActiveStandby',
+      data,
+      `Failed to create active to standby task, reason: ${error}`,
+    );
+    return `Error: ${error.message}`;
+  }
+};
+
 const deploymentSubscriber = createEnvironmentFilteredSubscriber([
   EVENTS.DEPLOYMENT.ADDED,
   EVENTS.DEPLOYMENT.UPDATED,
@@ -766,7 +895,9 @@ const deploymentSubscriber = createEnvironmentFilteredSubscriber([
 const Resolvers /* : ResolversObj */ = {
   getDeploymentsByEnvironmentId,
   getDeploymentByRemoteId,
+  getDeploymentUrl,
   addDeployment,
+  addTask,
   deleteDeployment,
   updateDeployment,
   cancelDeployment,
@@ -774,6 +905,7 @@ const Resolvers /* : ResolversObj */ = {
   deployEnvironmentBranch,
   deployEnvironmentPullrequest,
   deployEnvironmentPromote,
+  switchActiveStandby,
   deploymentSubscriber,
 };
 

@@ -7,11 +7,17 @@ const {
   getProblemsByEnvironmentId,
   addProblem,
   deleteProblem,
+  deleteProblemsFromSource,
+  addProblemsFromSource,
 } = require('./resources/problem/resolvers');
 
 const {
   SeverityScoreType
-} = require('./resources/problem/types')
+} = require('./resources/problem/types');
+
+const {
+  getLagoonVersion,
+} = require('./resources/lagoon/resolvers');
 
 const {
   getDeploymentsByEnvironmentId,
@@ -24,7 +30,9 @@ const {
   deployEnvironmentBranch,
   deployEnvironmentPullrequest,
   deployEnvironmentPromote,
+  switchActiveStandby,
   deploymentSubscriber,
+  getDeploymentUrl
 } = require('./resources/deployment/resolvers');
 
 const {
@@ -69,6 +77,7 @@ const {
   getAllEnvironments,
   deleteAllEnvironments,
   userCanSshToEnvironment,
+  getEnvironmentUrl
 } = require('./resources/environment/resolvers');
 
 const {
@@ -112,6 +121,7 @@ const {
   getAllProjects,
   updateProject,
   deleteAllProjects,
+  getProjectUrl
 } = require('./resources/project/resolvers');
 
 const {
@@ -237,6 +247,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
   },
   Deployment: {
     environment: getEnvironmentByDeploymentId,
+    uiLink: getDeploymentUrl,
   },
   Task: {
     environment: getEnvironmentByTaskId,
@@ -269,6 +280,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
   },
   Query: {
     me: getMe,
+    lagoonVersion: getLagoonVersion,
     userBySshKey: getUserBySshKey,
     projectByGitUrl: getProjectByGitUrl,
     projectByName: getProjectByName,
@@ -289,7 +301,9 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
   },
   Mutation: {
     addProblem,
+    addProblemsFromSource,
     deleteProblem,
+    deleteProblemsFromSource,
     addOrUpdateEnvironment,
     updateEnvironment,
     deleteEnvironment,
@@ -360,6 +374,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     deployEnvironmentBranch,
     deployEnvironmentPullrequest,
     deployEnvironmentPromote,
+    switchActiveStandby,
     addGroup,
     addBillingGroup,
     updateBillingGroup,
