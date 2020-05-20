@@ -1,10 +1,10 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "allowJs": true,
-    "module": "CommonJS",
-    "skipLibCheck": true,
-    "target": "ES6",
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true
-  }
+    "outDir": "./dist"
+  },
+  "include": ["./src"],
+  "references": [
+    { "path": "../../node-packages/commons" }
+  ]
 }
