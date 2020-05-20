@@ -93,7 +93,7 @@ const kubernetesBuildCancel = async (data: any) => {
     logger.error(`Job ${buildName} does not exist, bailing`);
     await deleteJob(client, namespace, buildName);
     // Update lagoon deployment to CANCELLED.
-    await updateDeployment(parseInt(id, 10), {status: 'CANCELLED'})
+    await updateDeployment(parseInt(id, 10), { status: 'CANCELLED' })
   }
 
 

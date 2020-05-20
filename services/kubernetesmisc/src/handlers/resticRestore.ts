@@ -82,7 +82,7 @@ async function resticRestore (data: any) {
   // Kubernetes API Object - needed as some API calls are done to the Kubernetes API part of OpenShift and
   // the OpenShift API does not support them.
   const config = getConfig(url, token)
-  const baas = new BaaS(config);
+  const baas = new BaaS(config) as any;
 
   try {
 
