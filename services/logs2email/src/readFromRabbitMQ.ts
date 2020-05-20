@@ -1,39 +1,17 @@
-// @flow
+import nodemailer from 'nodemailer';
+import { ChannelWrapper } from 'amqp-connection-manager';
+import { ConsumeMessage } from 'amqplib';
+import { logger } from '@lagoon/commons/dist/local-logging';
+import { getEmailInfoForProject } from '@lagoon/commons/dist/api';
 
-const { logger } = require('@lagoon/commons/dist/local-logging');
-
-const { getEmailInfoForProject } = require('@lagoon/commons/dist/api');
-
-const nodemailer = require('nodemailer');
 let transporter = nodemailer.createTransport({
   sendmail: true,
   newline: 'unix',
   path: '/usr/sbin/ssmtp'
 });
 
-export type ChannelWrapper = {
-  ack: (msg: Object) => void,
-}
-
-export type RabbitMQMsg = {
-  content: Buffer,
-  fields: Object,
-  properties: Object,
-};
-
-export type Project = {
-  email: Object,
-  name: string,
-};
-
-async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWrapper): Promise<void> {
-  const {
-    content,
-    fields,
-    properties,
-  } = msg;
-
-  const logMessage = JSON.parse(content.toString())
+export async function readFromRabbitMQ (msg: ConsumeMessage, channelWrapperLogs: ChannelWrapper): Promise<void> {
+  const logMessage = JSON.parse(msg.content.toString())
 
   const {
     severity,
@@ -67,7 +45,6 @@ async function readFromRabbitMQ (msg: RabbitMQMsg, channelWrapperLogs: ChannelWr
       messageMeta.mainHtml = `PR <a href="${meta.pullrequestUrl}">#${meta.pullrequestNumber} (${meta.pullrequestTitle}</a> opened in <a href="${meta.repoUrl}">${meta.repoName}</a>`
       messageMeta.plainText = `[${meta.projectName}] PR #${meta.pullrequestNumber} - ${meta.pullrequestTitle} opened in ${meta.repoName}`
       messageMeta.subject = messageMeta.plainText
-      messageMeta.
       sendToEmail(project, messageMeta, channelWrapperLogs, msg, appId)
       break;
 
@@ -364,5 +341,3 @@ const sendToEmail = async (project, messageMeta, channelWrapperLogs, msg, appId)
   channelWrapperLogs.ack(msg)
   return
 }
-
-module.exports = readFromRabbitMQ;
