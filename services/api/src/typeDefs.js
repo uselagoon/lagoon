@@ -520,7 +520,7 @@ const typeDefs = gql`
     backups(includeDeleted: Boolean): [Backup]
     tasks(id: Int): [Task]
     services: [EnvironmentService]
-    problems: [Problem]
+    problems(severity: [ProblemSeverityRating]): [Problem]
   }
 
   type EnvironmentHitsMonth {
