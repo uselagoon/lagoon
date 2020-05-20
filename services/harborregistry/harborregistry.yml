@@ -80,6 +80,7 @@ objects:
         s3:
           region: $HARBOR_REGISTRY_STORAGE_AMAZON_REGION
           bucket: $HARBOR_REGISTRY_STORAGE_AMAZON_BUCKET
+          regionendpoint: $HARBOR_REGISTRY_STORAGE_AMAZON_ENDPOINT
         cache:
           layerinfo: redis
         maintenance:

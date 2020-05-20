@@ -200,6 +200,7 @@ const addProject = async (
     hasPermission,
     sqlClient,
     models,
+    keycloakGrant,
   },
 ) => {
   await hasPermission('project', 'add');
@@ -354,6 +355,27 @@ const addProject = async (
     await models.GroupModel.addUserToGroup(user, group, 'maintainer');
   } catch (err) {
     logger.error(`Could not link user to default projet group for ${project.name}: ${err.message}`);
+  }
+
+  // Add the user who submitted this request to the project
+  let userAlreadyHasAccess;
+  try {
+    await hasPermission('project', 'viewAll');
+    userAlreadyHasAccess = true;
+  } catch(e) {
+    userAlreadyHasAccess = false;
+  }
+
+  if (!userAlreadyHasAccess && keycloakGrant) {
+    const user = await models.UserModel.loadUserById(
+      keycloakGrant.access_token.content.sub,
+    );
+
+    try {
+      await models.GroupModel.addUserToGroup(user, group, 'owner');
+    } catch (err) {
+      logger.error(`Could not link requesting user to default projet group for ${project.name}: ${err.message}`);
+    }
   }
 
   const harborOperations = createHarborOperations(sqlClient);

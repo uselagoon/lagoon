@@ -9,8 +9,7 @@
   "private": true,
   "workspaces": [
     "node-packages/*",
-    "services/*",
-    "cli"
+    "services/*"
   ],
   "devDependencies": {
     "flow-bin": "^0.78.0",
