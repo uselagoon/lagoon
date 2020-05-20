@@ -1,19 +1,19 @@
 const promisify = require('util').promisify;
-const R = require('ramda');
-const KubernetesClient = require('kubernetes-client');
-const { logger } = require('@lagoon/commons/dist/local-logging');
-const {
+import R from 'ramda';
+import KubernetesClient from 'kubernetes-client';
+import { logger } from '@lagoon/commons/dist/local-logging';
+import {
   sendToLagoonLogs,
   initSendToLagoonLogs
-} = require('@lagoon/commons/dist/logs');
-const {
+} from '@lagoon/commons/dist/logs';
+import {
   consumeTasks,
   initSendToLagoonTasks
-} = require('@lagoon/commons/dist/tasks');
-const {
+} from '@lagoon/commons/dist/tasks';
+import {
   getOpenShiftInfoForProject,
   deleteEnvironment
-} = require('@lagoon/commons/dist/api');
+} from '@lagoon/commons/dist/api';
 
 initSendToLagoonLogs();
 initSendToLagoonTasks();
