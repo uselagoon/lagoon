@@ -125,14 +125,14 @@ objects:
             name: provisioning
         volumes:
         - configMap:
-          items:
-          - key: DASHBOARDS_JSON
-            path: dashboards/dashboards.json
-          - key: DASHBOARDS_YAML
-            path: dashboards/dashboards.yaml
-          - key: DATASOURCES
-          path: datasources/datasource.yaml
-          name: ${SERVICE_NAME}-config
+            items:
+            - key: DASHBOARDS_JSON
+              path: dashboards/dashboards.json
+            - key: DASHBOARDS_YAML
+              path: dashboards/dashboards.yaml
+            - key: DATASOURCES
+              path: datasources/datasource.yaml
+            name: ${SERVICE_NAME}-config
         name: provisioning
     test: false
     triggers:
