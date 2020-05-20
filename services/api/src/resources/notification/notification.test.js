@@ -1,26 +1,10 @@
-// @flow
-
-const Sql = require('./sql');
+const { Sql } = require('./sql');
 
 describe('Sql', () => {
   describe('selectAssignedProjectNotificationByName', () => {
     it('should create proper statement', () => {
       const input = { name: 'slack_foo', type: 'slack' };
       const ret = Sql.selectProjectNotificationByNotificationName(input);
-      expect(ret).toMatchSnapshot();
-    });
-  });
-
-  describe('selectProjectNotificationsWithoutAccess', () => {
-    it('should create a proper statement', () => {
-      const cred = {
-        permissions: {
-          projects: ['3', '4'],
-        },
-      };
-
-      const nids = ['1'];
-      const ret = Sql.selectProjectNotificationsWithoutAccess(cred, { nids });
       expect(ret).toMatchSnapshot();
     });
   });
@@ -33,13 +17,6 @@ describe('Sql', () => {
       };
 
       const ret = Sql.selectNotificationsByTypeByProjectId(input);
-      expect(ret).toMatchSnapshot();
-    });
-  });
-
-  describe('selectUnassignedNotificationsByType', () => {
-    it('should create a proper query', () => {
-      const ret = Sql.selectUnassignedNotificationsByType('rocketchat');
       expect(ret).toMatchSnapshot();
     });
   });

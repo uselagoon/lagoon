@@ -1,6 +1,7 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "allowJs": false,
     "composite": true,
     "declarationMap": true,
     "outDir": "./dist",

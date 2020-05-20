@@ -1,5 +1,3 @@
-// @flow
-
 const GraphQLDate = require('graphql-iso-date');
 const GraphQLJSON = require('graphql-type-json');
 
@@ -182,13 +180,7 @@ const {
   deleteEnvVariable,
 } = require('./resources/env-variables/resolvers');
 
-/* ::
-
-import type {ResolversObj} from './resources';
-
-*/
-
-const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
+const resolvers = {
   GroupRole: {
     GUEST: 'guest',
     REPORTER: 'reporter',
@@ -242,7 +234,6 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
   },
   Notification: {
     __resolveType(obj) {
-      // $FlowFixMe
       switch (obj.type) {
         case 'slack':
           return 'NotificationSlack';

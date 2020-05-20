@@ -1,5 +1,3 @@
-// @flow
-
 const { initSendToLagoonLogs } = require('@lagoon/commons/dist/logs');
 const { initSendToLagoonTasks } = require('@lagoon/commons/dist/tasks');
 const waitForKeycloak = require('./util/waitForKeycloak');

@@ -1,6 +1,6 @@
 import * as R from 'ramda';
 import { Group } from './group';
-import Helpers from '../resources/project/helpers';
+import { Helpers } from '../resources/project/helpers';
 
 export interface Project {
   id: Number; // int(11) NOT NULL AUTO_INCREMENT,
