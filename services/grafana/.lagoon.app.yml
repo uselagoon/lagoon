@@ -129,7 +129,7 @@ objects:
             - key: DASHBOARDS_JSON
               path: dashboards/dashboards.json
             - key: DASHBOARDS_YAML
-              path: dashboards/dashboards.yaml
+              path: dashboards/provider.yaml
             - key: DATASOURCES
               path: datasources/datasource.yaml
             name: ${SERVICE_NAME}-config
