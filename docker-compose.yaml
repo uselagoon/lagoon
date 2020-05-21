@@ -775,3 +775,16 @@ services:
       lagoon.template: services/harborregistryctl/harborregistry.yml
       lagoon.name: harborregistry
       lagoon.image: amazeeiolagoon/harborregistryctl:v1-5-0
+  grafana:
+    image: ${IMAGE_REPO:-lagoon}/grafana
+    ports:
+      - 3333:3000
+    volumes:
+      - ${PWD}/services/grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - api-db
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/grafana/.lagoon.app.yml
+      lagoon.name: grafana
+      lagoon.image: amazeeiolagoon/grafana:v1-5-0
