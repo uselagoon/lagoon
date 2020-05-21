@@ -6,6 +6,7 @@ const { logger } = require('@lagoon/commons/src/local-logging');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const harborScanningCompleted = require('../handlers/problems/harborScanningCompleted');
 const processHarborVulnerabilityList = require('../handlers/problems/processHarborVulnerabilityList');
+const processDrutinyResultset = require('../handlers/problems/processDrutinyResults');
 
 
 import type {
@@ -32,6 +33,9 @@ async function processProblems(
         break
       case 'harbor:scanningresultfetched' :
         await handle(processHarborVulnerabilityList, webhook, `${webhooktype}:${event}`, channelWrapperWebhooks);
+      break;
+      case 'drutiny:resultset' :
+        await handle(processDrutinyResultset, webhook, `${webhooktype}:${event}`, channelWrapperWebhooks);
       break;
     }
     channelWrapperWebhooks.ack(rabbitMsg);
