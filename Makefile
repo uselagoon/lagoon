@@ -450,7 +450,8 @@ services :=       api \
 									harbor-portal \
 									harbor-redis \
 									harborregistry \
-									harborregistryctl
+									harborregistryctl \
+									grafana
 
 services-galera := 	api-db-galera \
 										keycloak-db-galera

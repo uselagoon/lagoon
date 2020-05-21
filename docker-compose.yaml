@@ -790,7 +790,7 @@ services:
       lagoon.name: harborregistry
       lagoon.image: amazeeiolagoon/harborregistryctl:testing-billing
   grafana:
-    image: grafana/grafana:5.1.0
+    image: ${IMAGE_REPO:-lagoon}/grafana
     ports:
       - 3333:3000
     volumes:
