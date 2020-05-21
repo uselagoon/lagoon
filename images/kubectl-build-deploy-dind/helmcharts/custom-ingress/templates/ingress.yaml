@@ -28,6 +28,9 @@ metadata:
     {{ end -}}
     kubernetes.io/tls-acme: {{ .Values.tls_acme | quote }}
     {{- include "custom-ingress.annotations" . | nindent 4 }}
+    {{- with .Values.annotations }}
+      {{- toYaml . | nindent 4  }}
+    {{- end }}
 spec:
   tls:
     - hosts:
