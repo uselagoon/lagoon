@@ -800,3 +800,5 @@ services:
     labels:
       lagoon.type: custom
       lagoon.template: services/grafana/.lagoon.app.yml
+      lagoon.name: grafana
+      lagoon.image: amazeeiolagoon/grafana:testing-billing
