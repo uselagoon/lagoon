@@ -95,6 +95,10 @@ function extractWebhookData(req: Req, body?: string): WebhookRequestData {
       webhooktype = 'problems';
       event = 'harbor:scanningcompleted';
       uuid = uuid4();
+    } else if (bodyObj.lagoonInfo) {
+      webhooktype = 'problems';
+      event = 'drutiny:resultset';
+      uuid = uuid4();
     } else {
       throw new Error('No supported event header found on POST request');
     }
