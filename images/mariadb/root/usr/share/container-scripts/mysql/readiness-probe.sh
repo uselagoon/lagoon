@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# openshift-mariadb-galera: mysqld readinessProbe
+# openshift-mariadb: mysqld readinessProbe
 #
 
 mysql --defaults-file=/var/lib/mysql/.my.cnf -e"SHOW DATABASES;"

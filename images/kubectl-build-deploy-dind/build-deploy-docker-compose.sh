@@ -746,8 +746,7 @@ elif [ "$BUILD_TYPE" == "pullrequest" ] || [ "$BUILD_TYPE" == "branch" ]; then
 
   # If we have Images to Push to the OpenRegistry, let's do so
   if [ -f /kubectl-build-deploy/lagoon/push ]; then
-    # TODO: check if we still need the paralelism
-    parallel --retries 1 < /kubectl-build-deploy/lagoon/push
+    parallel --retries 4 < /kubectl-build-deploy/lagoon/push
   fi
 
   # load the image hashes for just pushed Images
@@ -936,16 +935,7 @@ do
     SERVICE_ROLLOUT_TYPE=$ENVIRONMENT_SERVICE_ROLLOUT_TYPE
   fi
 
-  # if mariadb-galera is a statefulset check also for maxscale
-  if [ $SERVICE_TYPE == "mariadb-galera" ]; then
-
-    STATEFULSET="${SERVICE_NAME}-galera"
-    . /kubectl-build-deploy/scripts/exec-monitor-statefulset.sh
-
-    SERVICE_NAME="${SERVICE_NAME}-maxscale"
-    . /kubectl-build-deploy/scripts/exec-monitor-deploy.sh
-
-  elif [ $SERVICE_TYPE == "elasticsearch-cluster" ]; then
+  if [ $SERVICE_TYPE == "elasticsearch-cluster" ]; then
 
     STATEFULSET="${SERVICE_NAME}"
     . /kubectl-build-deploy/scripts/exec-monitor-statefulset.sh

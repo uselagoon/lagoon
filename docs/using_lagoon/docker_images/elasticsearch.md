@@ -8,7 +8,7 @@
 
 * 6.8.2 [\[Dockerfile\]](https://github.com/amazeeio/lagoon/blob/master/images/elasticsearch/Dockerfile6)
 * 7.1.1 [\[Dockerfile\]](https://github.com/amazeeio/lagoon/blob/master/images/elasticsearch/Dockerfile7.1)
-* 7.3.0 [\[Dockerfile\]](https://github.com/amazeeio/lagoon/blob/master/images/elasticsearch/Dockerfile7)
+* 7.6.1 [\[Dockerfile\]](https://github.com/amazeeio/lagoon/blob/master/images/elasticsearch/Dockerfile7)
 
 ## Known issues
 

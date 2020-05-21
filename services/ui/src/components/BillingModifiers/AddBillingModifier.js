@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import css from 'styled-jsx/css';
 import { Mutation } from 'react-apollo';
 

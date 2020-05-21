@@ -3,10 +3,10 @@ import Link from 'next/link';
 
 export const getLinkData = billingGroupSlug => ({
   urlObject: {
-    pathname: '/admin/billingGroup',
+    pathname: '/admin/billing',
     query: { billingGroupName: billingGroupSlug }
   },
-  asPath: `/admin/billingGroup/${billingGroupSlug}`
+  asPath: `/admin/billing/${billingGroupSlug}`
 });
 
 /**
