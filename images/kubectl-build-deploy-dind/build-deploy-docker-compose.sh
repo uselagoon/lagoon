@@ -585,9 +585,8 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
     --set prune.schedule="${PRUNE_SCHEDULE}" "${HELM_ARGUMENTS[@]}"  > $YAML_FOLDER/k8up-lagoon-backup-schedule.yaml
 fi
 
-cat $YAML_FOLDER/*
-
 if [ "$(ls -A $YAML_FOLDER/)" ]; then
+  find $YAML_FOLDER -type f -exec cat {} \;
   kubectl apply --insecure-skip-tls-verify -n ${NAMESPACE} -f $YAML_FOLDER/
 fi
 
@@ -916,8 +915,7 @@ if [ "$(ls -A $YAML_FOLDER/)" ]; then
     find $YAML_FOLDER -type f  -print0 | xargs -0 sed -i s/ReadWriteMany/ReadWriteOnce/g
   fi
 
-  cat $YAML_FOLDER/*
-
+  find $YAML_FOLDER -type f -exec cat {} \;
   kubectl apply --insecure-skip-tls-verify -n ${NAMESPACE} -f $YAML_FOLDER/
 fi
 
