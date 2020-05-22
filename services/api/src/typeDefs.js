@@ -114,10 +114,10 @@ const typeDefs = gql`
   }
 
   scalar SeverityScore
-
+  
   type Problem {
     id: Int
-    environment: Environment
+    environmentId: Int
     severity: ProblemSeverityRating
     severityScore: SeverityScore
     identifier: String
@@ -149,7 +149,6 @@ const typeDefs = gql`
     data: String!
     created: String
   }
-
 
   input BulkProblem {
     severity: ProblemSeverityRating
@@ -671,6 +670,10 @@ const typeDefs = gql`
     """
     allEnvironments(createdAfter: String, type: EnvType, order: EnvOrderType): [Environment]
     """
+    Returns all Problems matching given filter (all if no filter defined)
+    """
+    allProblems(createdAfter: String, environment: Int, type: EnvType): [Problem]
+    """
     Returns all Groups matching given filter (all if no filter defined)
     """
     allGroups(name: String, type: String): [GroupInterface]
@@ -1154,8 +1157,6 @@ const typeDefs = gql`
     parentGroup: GroupInput
   }
 
-
-
   input AddBillingModifierInput {
     """
     The existing billing group for this modifier
@@ -1406,7 +1407,6 @@ const typeDefs = gql`
     updateProjectBillingGroup(input: ProjectBillingGroupInput): Project
     removeProjectFromBillingGroup(input: ProjectBillingGroupInput): Project
     removeGroupsFromProject(input: ProjectGroupsInput!): Project
-
     addBillingModifier(input: AddBillingModifierInput!): BillingModifier
     updateBillingModifier(input: UpdateBillingModifierInput!): BillingModifier
     deleteBillingModifier(input: DeleteBillingModifierInput!): String

@@ -1,23 +1,11 @@
 import gql from 'graphql-tag';
+import ProblemsFragment from 'lib/fragment/Problem';
 
 export default gql`
-  {
-    allGroups {
-      name
-      projects {
-        name
-        id
-        environments(type: PRODUCTION) {
-          name
-          id
-          problems {
-            id
-            identifier
-            severity
-            source
-          }
-        }
-      }
+  query getAllProblemsQuery($environment: Int) {
+    allProblems(environment: $environment) {
+      ...problemFields
     }
   }
+  ${ProblemsFragment}
 `;

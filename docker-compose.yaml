@@ -256,6 +256,8 @@ services:
       lagoon.type: custom
       lagoon.template: services/webhooks2tasks/.lagoon.app.yml
       lagoon.image: amazeeiolagoon/webhooks2tasks:v1-5-0
+    environment:
+      - HARBOR_ADMIN_PASSWORD=AmQOF2WAQBR5kyfeBIgMbcIUgKIYRTw5
   api:
     image: ${IMAGE_REPO:-lagoon}/api
     command: yarn run dev

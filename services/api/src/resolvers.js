@@ -4,6 +4,7 @@ const GraphQLDate = require('graphql-iso-date');
 const GraphQLJSON = require('graphql-type-json');
 
 const {
+  getAllProblems,
   getProblemsByEnvironmentId,
   addProblem,
   deleteProblem,
@@ -293,6 +294,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     allProjects: getAllProjects,
     allOpenshifts: getAllOpenshifts,
     allEnvironments: getAllEnvironments,
+    allProblems: getAllProblems,
     allGroups: getAllGroups,
     allProjectsInGroup: getAllProjectsInGroup,
     billingGroupCost: getBillingGroupCost,

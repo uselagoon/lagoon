@@ -547,6 +547,7 @@ mocks.Query = () => ({
   taskByRemoteId: () => mocks.Task(),
   allProjects: () => new MockList(9),
   allOpenshifts: () => new MockList(9),
+  allProblems: () => new MockList(5),
   allEnvironments: (parent, args = {}, context, info) => {
     const project = args.hasOwnProperty('project')
       ? args.project

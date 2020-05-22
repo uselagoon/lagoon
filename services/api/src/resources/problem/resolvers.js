@@ -3,15 +3,69 @@
 const R = require('ramda');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { createMiscTask } = require('@lagoon/commons/src/tasks');
-const { knex, query, isPatchEmpty } = require('../../util/db');
 const environmentHelpers = require('../environment/helpers');
 const Sql = require('./sql');
+const {
+    knex,
+    inClause,
+    prepare,
+    query,
+    whereAnd,
+    isPatchEmpty,
+} = require('../../util/db');
 
 /* ::
 
 import type {ResolversObj} from '../';
 
 */
+
+const getAllProblems = async (
+    root,
+    args,
+    {
+        sqlClient,
+        hasPermission,
+        keycloakGrant,
+    }
+) => {
+
+    let where;
+    try {
+        //@TODO: Create a permission for viewing problems.
+        await hasPermission('project', 'viewAll');
+
+        where = whereAnd([
+            args.createdAfter ? 'created >= :created_after' : '',
+        ]);
+    } catch (err) {
+        if (!keycloakGrant) {
+            logger.warn('No grant available for getAllProblems');
+            return [];
+        }
+    }
+
+    const order = args.order ? ` ORDER BY ${R.toLower(args.order)} ASC` : '';
+
+    let rows = [];
+    if (!R.isEmpty(args.environment)) {
+        rows = await query(
+            sqlClient,
+            Sql.selectProblemsByEnvironmentId(args.environment),
+        );
+    }
+    else {
+        // if (!R.isEmpty(args.type)) {
+        //     where = whereAnd([
+        //         args.type ? 'environment_type = :type' : '',
+        //     ]);
+        // }
+        const prep = prepare(sqlClient, `SELECT * FROM environment_problem ${where}${order}`);
+        rows = await query(sqlClient, prep(args));
+    }
+
+    return rows.map(row => ({ environmentId: row.environment, ...row }));
+};
 
 const getProblemsByEnvironmentId = async (
   { id: environmentId },
@@ -113,7 +167,6 @@ const addProblemsFromSource = async(
       // return rets;
 };
 
-
 const deleteProblem = async (
   root,
   {
@@ -154,9 +207,10 @@ const deleteProblemsFromSource = async (
   await query(sqlClient, Sql.deleteProblemsFromSource(environmentId, source));
 
   return 'success';
-}
+};
 
 const Resolvers /* : ResolversObj */ = {
+  getAllProblems,
   getProblemsByEnvironmentId,
   addProblem,
   deleteProblem,
