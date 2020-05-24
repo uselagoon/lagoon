@@ -112,7 +112,7 @@ const Problems = ({ problems, meta }) => {
                     <Accordion
                         key={problem.id}
                         headings={problem}
-                        meta={meta && meta}
+                        meta={problem.project}
                         defaultValue={false}
                         className="data-row row-heading">
                         <div className="expanded-wrapper">

@@ -11,8 +11,8 @@ const Accordion = ({ children, defaultValue = true, className = "", onToggle, he
         <div className={className}>
             {meta &&
             <div className="accordion-meta-heading">
-                <span>Project: {meta.project.name}</span>
-                <span>Openshift: {meta.openshiftProjectName}:{meta.name}</span>
+                <span>Project: {meta.name}</span>
+                <span>Id: {meta.id}</span>
             </div>
             }
             <div className="accordion-heading" onClick={() => {

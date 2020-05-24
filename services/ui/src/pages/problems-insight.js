@@ -51,8 +51,6 @@ const ProblemsInsightPage = () => {
 
   const { data, loading, error } = useQuery(AllProjectsAndEnvironmentsQuery);
 
-console.log(environmentID);
-
   return (
   <>
     <Head>
@@ -105,7 +103,7 @@ console.log(environmentID);
                     withQueryLoadingNoHeader,
                     withQueryNoHeaderError
                 )(({data: {problems, environment}}) => {
-console.log(environment);
+console.log(problems);
                   return (
                     <div className="content-wrapper">
                         <div className="content">
