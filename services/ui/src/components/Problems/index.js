@@ -3,7 +3,7 @@ import { bp, color, fontSize } from 'lib/variables';
 import useSortableData from './sortedItems';
 import Accordion from '../Accordion';
 
-const Problems = ({ problems }) => {
+const Problems = ({ problems, meta }) => {
     const { sortedItems, requestSort, getClassNamesFor } = useSortableData(problems);
 
     const [currentItems, setCurrentItems] = useState(sortedItems);
@@ -34,15 +34,17 @@ const Problems = ({ problems }) => {
 
     const filterResults = () => {
         const lowercasedFilter = problemTerm.toLowerCase();
-
         return sortedItems.filter(item => {
             if (problemTerm == null || problemTerm === '') {
                 setHasFilter(false);
                 return problems;
             }
 
-            return Object.keys(item).some(key =>
-                item[key].toString().toLowerCase().includes(lowercasedFilter))
+            return Object.keys(item).some(key => {
+                if (item[key] !== null) {
+                    return item[key].toString().toLowerCase().includes(lowercasedFilter);
+                }
+            });
         });
     };
 
@@ -55,8 +57,8 @@ const Problems = ({ problems }) => {
       <div className="problems">
         <div className="filters">
             <input type="text" id="filter" placeholder="Filter problems e.g. CVE-2020-2342"
-                   value={problemTerm}
-                   onChange={handleProblemFilterChange}
+               value={problemTerm}
+               onChange={handleProblemFilterChange}
             />
         </div>
         <div className="header">
@@ -105,36 +107,39 @@ const Problems = ({ problems }) => {
         </div>
         <div className="data-table">
           {!currentItems.length && <div className="data-none">No Problems</div>}
-            {currentItems.map((problem) => (
-                <Accordion
-                    key={problem.id}
-                    heading={problem}
-                    defaultValue={false}
-                    className="data-row row-heading">
-                    <div className="expanded-wrapper">
-                      <div className="fieldWrapper">
-                        <label>Problem Description</label>
-                        <div className="description">{problem.description}</div>
-                      </div>
-                      <div className="fieldWrapper">
-                        <label>Problem Version</label>
-                        <div className="version">{problem.version}</div>
-                      </div>
-                      <div className="fieldWrapper">
-                        <label>Problem Fixed in Version</label>
-                        <div className="fixed-version">{problem.fixedVersion}</div>
-                      </div>
-                      <div className="fieldWrapper">
-                        <label>Associated link (CVE description etc.)</label>
-                        <div className="links"><a href={problem.links} target="_blank">{problem.links}</a></div>
-                      </div>
-                      <div className="fieldWrapper">
-                        <label>Raw Data</label>
-                        <div className="data">{problem.data}</div>
-                      </div>
-                    </div>
-                </Accordion>
-            ))}
+            {currentItems.map((problem) => {
+                return (
+                    <Accordion
+                        key={problem.id}
+                        headings={problem}
+                        meta={meta && meta}
+                        defaultValue={false}
+                        className="data-row row-heading">
+                        <div className="expanded-wrapper">
+                            <div className="fieldWrapper">
+                                <label>Problem Description</label>
+                                <div className="description">{problem.description}</div>
+                            </div>
+                            <div className="fieldWrapper">
+                                <label>Problem Version</label>
+                                <div className="version">{problem.version}</div>
+                            </div>
+                            <div className="fieldWrapper">
+                                <label>Problem Fixed in Version</label>
+                                <div className="fixed-version">{problem.fixedVersion}</div>
+                            </div>
+                            <div className="fieldWrapper">
+                                <label>Associated link (CVE description etc.)</label>
+                                <div className="links"><a href={problem.links} target="_blank">{problem.links}</a></div>
+                            </div>
+                            <div className="fieldWrapper">
+                                <label>Raw Data</label>
+                                <div className="data">{problem.data}</div>
+                            </div>
+                        </div>
+                    </Accordion>
+                );
+            })}
         </div>
     <style jsx>{`
       .header {

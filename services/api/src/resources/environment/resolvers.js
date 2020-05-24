@@ -57,6 +57,25 @@ const getEnvironmentByName = async (
   return environment;
 };
 
+const getEnvironmentById = async (
+  root,
+  args,
+  { sqlClient, hasPermission },
+) => {
+    const environment = await Helpers(sqlClient).getEnvironmentById(args.id);
+
+    if (!environment) {
+      return null;
+    }
+
+    await hasPermission('environment', 'view', {
+        project: environment.project,
+    });
+
+    const rows = await query(sqlClient, Sql.selectEnvironmentById(args.id));
+    return rows[0];
+};
+
 const getEnvironmentsByProjectId = async (
   project,
   unformattedArgs,
@@ -625,6 +644,7 @@ const Resolvers /* : ResolversObj */ = {
   addOrUpdateEnvironment,
   addOrUpdateEnvironmentStorage,
   getEnvironmentByName,
+  getEnvironmentById,
   getEnvironmentByOpenshiftProjectName,
   getEnvironmentHoursMonthByEnvironmentId,
   getEnvironmentStorageByEnvironmentId,

@@ -14,10 +14,13 @@ const Sql /* : SqlObj */ = {
       .where('id', '=', id)
       .update(patch)
       .toString(),
-  selectEnvironmentById: (id /* : number */) =>
-    knex('environment')
-      .where('id', '=', id)
-      .toString(),
+  selectEnvironmentById: (id /* : number */) => {
+    let q = knex('environment');
+    // if (id) {
+      q.where('id', '=', id);
+    // }
+    return q.toString();
+  },
   selectEnvironmentByNameAndProject: (name /* : string */, projectId /* : numbere */) =>
     knex('environment')
       .where('name', '=', name)

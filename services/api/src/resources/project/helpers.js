@@ -25,7 +25,7 @@ const Helpers = (sqlClient /* : MariaSQL */) => {
   const getProjectByEnvironmentId = async (environmentId) => {
     const rows = await query(sqlClient, Sql.selectProjectByEnvironmentId(environmentId));
     return R.prop(0, rows);
-  }
+  };
 
   const getProjectsByIds = (projectIds /* : Array<number> */) =>
     query(sqlClient, Sql.selectProjectsByIds(projectIds));

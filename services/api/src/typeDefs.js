@@ -118,6 +118,7 @@ const typeDefs = gql`
   type Problem {
     id: Int
     environmentId: Int
+    project: Project
     severity: ProblemSeverityRating
     severityScore: SeverityScore
     identifier: String
@@ -646,6 +647,7 @@ const typeDefs = gql`
     """
     projectByGitUrl(gitUrl: String!): Project
     environmentByName(name: String!, project: Int!): Environment
+    environmentById(id: Int!): Environment
     """
     Returns Environment Object by a given openshiftProjectName
     """
@@ -672,7 +674,7 @@ const typeDefs = gql`
     """
     Returns all Problems matching given filter (all if no filter defined)
     """
-    allProblems(createdAfter: String, environment: Int, type: EnvType): [Problem]
+    allProblems(createdAfter: String, project: Int, environment: Int, severity: [ProblemSeverityRating]): [Problem]
     """
     Returns all Groups matching given filter (all if no filter defined)
     """

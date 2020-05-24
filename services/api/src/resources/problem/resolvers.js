@@ -5,6 +5,9 @@ const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { createMiscTask } = require('@lagoon/commons/src/tasks');
 const environmentHelpers = require('../environment/helpers');
 const Sql = require('./sql');
+const projectSql = require('../project/sql');
+const projectHelpers = require('../project/helpers');
+
 const {
     knex,
     inClause,
@@ -21,50 +24,53 @@ import type {ResolversObj} from '../';
 */
 
 const getAllProblems = async (
-    root,
-    args,
-    {
-        sqlClient,
-        hasPermission,
-        keycloakGrant,
-    }
+  root,
+  args,
+  {
+    sqlClient,
+    hasPermission,
+    keycloakGrant,
+  }
 ) => {
+console.log('args: ', args);
 
-    let where;
-    try {
-        //@TODO: Create a permission for viewing problems.
-        await hasPermission('project', 'viewAll');
+  let where;
+  try {
+    //@TODO: Define a permission for this specific case.
+    await hasPermission('project', 'viewAll');
 
-        where = whereAnd([
-            args.createdAfter ? 'created >= :created_after' : '',
-        ]);
+    where = whereAnd([
+      args.createdAfter ? 'created >= :created_after' : '',
+    ]);
     } catch (err) {
-        if (!keycloakGrant) {
-            logger.warn('No grant available for getAllProblems');
-            return [];
-        }
+      if (!keycloakGrant) {
+        logger.warn('No grant available for getAllProblems');
+        return [];
+      }
     }
 
     const order = args.order ? ` ORDER BY ${R.toLower(args.order)} ASC` : '';
 
     let rows = [];
-    if (!R.isEmpty(args.environment)) {
-        rows = await query(
-            sqlClient,
-            Sql.selectProblemsByEnvironmentId(args.environment),
-        );
+
+    if (!R.isEmpty(args) && (!R.isEmpty(args.project) || !R.isEmpty(args.environment) || !R.isEmpty(args.severity))) {
+      rows = await query(
+        sqlClient,
+        Sql.selectAllProblems({
+          environmentId: args.environment,
+          severity: args.severity,
+        })
+      );
+
+// const environment = await environmentHelpers(sqlClient).getEnvironmentById(args.environment);
     }
     else {
-        // if (!R.isEmpty(args.type)) {
-        //     where = whereAnd([
-        //         args.type ? 'environment_type = :type' : '',
-        //     ]);
-        // }
-        const prep = prepare(sqlClient, `SELECT * FROM environment_problem ${where}${order}`);
-        rows = await query(sqlClient, prep(args));
+      const prep = prepare(sqlClient, `SELECT * FROM environment_problem ${where}${order}`);
+      rows = await query(sqlClient, prep(args));
     }
 
-    return rows.map(row => ({ environmentId: row.environment, ...row }));
+    const sorted = R.sort(R.descend(R.prop('created')), rows);
+    return sorted.map(row => ({ environmentId: row.environment, ...row }));
 };
 
 const getProblemsByEnvironmentId = async (

@@ -27,9 +27,20 @@ const standardEnvironmentReturn = {
 };
 
 const Sql /* : SqlObj */ = {
-  selectAllProblems: () =>
-    knex('environment_problem')
-    .select(standardEnvironmentReturn).toString(),
+  selectAllProblems: ({
+    environmentId,
+    severity = [],
+  }) => {
+    let q = knex('environment_problem').select(standardEnvironmentReturn)
+    .where('deleted', '=', '0000-00-00 00:00:00');
+    if (environmentId) {
+      q.where('environment', environmentId);
+    }
+    if (severity.length > 0) {
+      q.whereIn('severity', severity);
+    }
+    return q.toString();
+  },
   selectProblemByDatabaseId: (id) =>
     knex('environment_problem').where('id', id).toString(),
   selectProblemsByEnvironmentId: (environmentId) =>

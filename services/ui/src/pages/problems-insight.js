@@ -1,111 +1,143 @@
 import React, { useState, useEffect } from 'react';
+import { useQuery } from '@apollo/react-hooks';
 import * as R from 'ramda';
 import Head from 'next/head';
 import { Query } from 'react-apollo';
 import MainLayout from 'layouts/MainLayout';
 import AllProblemsQuery from 'lib/query/AllProblems';
+import AllProjectsAndEnvironmentsQuery from 'lib/query/AllProjectsAndEnvironments';
 import Problems from 'components/Problems';
-import withQueryLoading from 'lib/withQueryLoading';
-import withQueryError from 'lib/withQueryError';
+import ProjectFilter from 'components/Filters';
+import withQueryLoadingNoHeader from 'lib/withQueryLoadingNoHeader';
+import withQueryNoHeaderError from 'lib/withQueryNoHeaderError';
 import { bp } from 'lib/variables';
-import Breadcrumbs from 'components/Breadcrumbs';
 import Select from 'react-select';
 
 const severityOptions = [
     { value: 'CRITICAL', label: 'Critical' },
     { value: 'HIGH', label: 'High' },
     { value: 'MEDIUM', label: 'Medium' },
-    { value: 'LOW', label: 'Low'}
-];
-
-const environmentOptions = [
-    { value: 1, label: '1' },
-    { value: 2, label: '2' },
-    { value: 3, label: '3' },
-    { value: 4, label: '4'}
+    { value: 'LOW', label: 'Low'},
+    { value: 'NEGLIGIBLE', label: 'Negligible'},
+    { value: 'UNKNOWN', label: 'Unknown'},
+    { value: 'NONE', label: 'None'},
 ];
 
 /**
  * Displays the problems overview page.
  */
 const ProblemsInsightPage = () => {
+  const [environmentID, setEnvironmentID] = React.useState(0);
+  const [environmentLabel, setEnvironmentLabel] = React.useState('All');
+  const [severityOption, setSeverityOption] = React.useState([]);
+  const [severityLabel, setSeverityLabel] = React.useState([]);
 
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [environmentID, setEnvironmentID] = React.useState(null);
-
-  const handleEnvironmentChange = (environmentID) => {
-    setEnvironmentID(environmentID.value);
-    console.log(`Option selected:`, environmentID.value);
+  const handleProjectChange = (environment) => {
+    setEnvironmentID(environment.value);
+    setEnvironmentLabel(environment.label);
   };
+
+  const handleSeverityChange = (option) => {
+    setSeverityOption(severityOption => [...severityOption, option.value]);
+    setSeverityLabel(severityLabel => [...severityLabel, option.label]);
+  };
+
+  const handleReset = () => {
+    setEnvironmentID(0);
+    setEnvironmentLabel('All');
+    setSeverityOption([]);
+    setSeverityLabel([]);
+  };
+
+  const { data, loading, error } = useQuery(AllProjectsAndEnvironmentsQuery);
+
+console.log(environmentID);
 
   return (
   <>
     <Head>
       <title>Problems Insight</title>
     </Head>
-    <Query
-      query={AllProblemsQuery}
-      variables={
-        { environment: environmentID }
-      }
-      displayName="AllProblemsQuery"
-    >
-      {R.compose(
-        withQueryLoading,
-        withQueryError
-      )(({data}) => {
-
-        // const severity = data.allProblems.map(problem => problem.severity);
-
-        return (
-          <MainLayout>
-            <Breadcrumbs>
-              <h2>Problems Dashboard</h2>
-            </Breadcrumbs>
-            <div className="content-wrapper">
-              <div className="content">
-                <div className="filters">
-                  <h3>Project</h3>
-                  <Select
-                    options={environmentOptions}
-                    onChange={handleEnvironmentChange}
-                    value={environmentID}
-                  />
-                  <h3>Severity</h3>
-                  <Select options={severityOptions}/>
-                </div>
-                <Problems problems={data.allProblems || []}/>
-              </div>
-            </div>
+    <MainLayout>
+        <div className="filters">
+            <h2>Problems Dashboard</h2>
+            {loading && "Loading..."}
+            {data && (
+              <ProjectFilter
+                  title="Projects"
+                  options={data.projects}
+                  onFilterChange={handleProjectChange}
+                  currentValues={{value: environmentID, label: environmentLabel}}
+                  multi
+              />
+            )}
+          <h4>Severity</h4>
+          <Select
+              name="severity-filter"
+              placeholder="e.g Critical, High, Medium, Low"
+              options={severityOptions}
+              onChange={handleSeverityChange}
+              value={{label: severityLabel, value: severityOption}}
+              multi
+          />
+          <button type="button" onClick={handleReset}>Reset</button>
             <style jsx>{`
-                .content-wrapper {
-                  .filters {
-                    margin: auto;
+                .filters {
+                  margin: 38px calc((100vw / 16) * 1);
+                  @media ${bp.wideUp} {
+                    margin: 38px calc((100vw / 16) * 2);
                   }
-                  h2 {
-                    margin: 38px calc((100vw / 16) * 1) 0;
-                    @media ${bp.wideUp} {
-                      margin: 62px calc((100vw / 16) * 2) 0;
-                    }
-                    @media ${bp.extraWideUp} {
-                      margin: 62px calc((100vw / 16) * 3) 0;
-                    }
-                  }
-                  .content {
-                    margin: 38px calc((100vw / 16) * 1);
-                    @media ${bp.wideUp} {
-                      margin: 38px calc((100vw / 16) * 2);
-                    }
-                    @media ${bp.extraWideUp} {
-                      margin: 38px calc((100vw / 16) * 3);
-                    }
+                  @media ${bp.extraWideUp} {
+                    margin: 38px calc((100vw / 16) * 3);
                   }
                 }
             `}</style>
-          </MainLayout>
-        );
-      })}
-    </Query>
+        </div>
+            <Query
+                query={AllProblemsQuery}
+                variables={{
+                    environment: environmentID,
+                    severity: severityOption
+                }}
+                displayName="AllProblemsQuery"
+            >
+                {R.compose(
+                    withQueryLoadingNoHeader,
+                    withQueryNoHeaderError
+                )(({data: {problems, environment}}) => {
+console.log(environment);
+                  return (
+                    <div className="content-wrapper">
+                        <div className="content">
+                            <Problems problems={problems || []} meta={environment && environment}/>
+                        </div>
+                        <style jsx>{`
+                            .content-wrapper {
+                              h2 {
+                                margin: 38px calc((100vw / 16) * 1) 0;
+                                @media ${bp.wideUp} {
+                                  margin: 62px calc((100vw / 16) * 2) 0;
+                                }
+                                @media ${bp.extraWideUp} {
+                                  margin: 62px calc((100vw / 16) * 3) 0;
+                                }
+                              }
+                              .content {
+                                margin: 38px calc((100vw / 16) * 1);
+                                @media ${bp.wideUp} {
+                                  margin: 38px calc((100vw / 16) * 2);
+                                }
+                                @media ${bp.extraWideUp} {
+                                  margin: 38px calc((100vw / 16) * 3);
+                                }
+                              }
+                            }
+                        `}</style>
+                    </div>
+                  );
+                })}
+            </Query>
+      </MainLayout>
   </>
   );
 };
