@@ -223,7 +223,7 @@ CREATE TABLE IF NOT EXISTS environment_problem (
   data                     JSON,
   created                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   deleted                  timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  UNIQUE(environment, identifier, deleted)
+  UNIQUE(environment, lagoon_service, version, identifier, deleted)
 );
 
 -- Junction Tables

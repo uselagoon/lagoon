@@ -11,12 +11,7 @@ const Accordion = ({ children, defaultValue = true, className = "", onToggle, he
                 if (onToggle) onToggle(!visibility);
             }}>
                 <div className="problemid">{heading.identifier}</div>
-                <div className="created">
-                    {moment
-                        .utc(heading.created)
-                        .local()
-                        .format('DD MM YYYY, HH:mm:ss')}
-                </div>
+                <div className="service">{heading.service}</div>
                 <div className="associatedPackage">{heading.associatedPackage}</div>
                 <div className="source">{heading.source}</div>
                 <div className="severity">{heading.severity}</div>

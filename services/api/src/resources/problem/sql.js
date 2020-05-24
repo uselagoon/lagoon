@@ -32,11 +32,18 @@ const Sql /* : SqlObj */ = {
     .select(standardEnvironmentReturn).toString(),
   selectProblemByDatabaseId: (id) =>
     knex('environment_problem').where('id', id).toString(),
-  selectProblemsByEnvironmentId: (environmentId) =>
-    knex('environment_problem').select(standardEnvironmentReturn)
+  selectProblemsByEnvironmentId: ({
+    environmentId,
+    severity = [],
+  }) => {
+    let q = knex('environment_problem').select(standardEnvironmentReturn)
     .where('environment', environmentId)
-    .where('deleted', '=', '0000-00-00 00:00:00')
-    .toString(),
+    .where('deleted', '=', '0000-00-00 00:00:00');
+    if(severity.length > 0) {
+      q.whereIn('severity', severity);
+    }
+    return q.toString()
+  },
   insertProblem: ({id, environment, severity, severity_score, identifier, lagoon_service, source,
                       associated_package, description, version, fixed_version, links, data, created}) =>
     knex('environment_problem').insert({id, environment, severity, severity_score, identifier, lagoon_service, source,
@@ -50,11 +57,12 @@ const Sql /* : SqlObj */ = {
       .where('deleted', '=', '0000-00-00 00:00:00')
       .update({ deleted: knex.fn.now() })
       .toString(),
-  deleteProblemsFromSource: (environment, source) =>
+  deleteProblemsFromSource: (environment, source, service) =>
       knex('environment_problem')
         .where({
           environment: environment,
-          source: source
+          source: source,
+          lagoon_service: service,
         })
         .where('deleted', '=', '0000-00-00 00:00:00')
         .update({ deleted: knex.fn.now() })

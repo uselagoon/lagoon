@@ -13,7 +13,7 @@ const {
   getEnvironmentByName,
 } = require('@lagoon/commons/src/api');
 
-const harborpassword = require('./harborpassword');
+const HARBOR_WEBHOOK_SUCCESSFUL_SCAN = "Success";
 
 async function harborScanningCompleted(
   webhook: WebhookRequestData,
@@ -27,26 +27,40 @@ async function harborScanningCompleted(
       repository,
       scanOverview,
       lagoonProjectName,
-      LagoonEnvironmentName,
+      lagoonEnvironmentName,
       lagoonServiceName,
       harborScanId,
     } = validateAndTransformIncomingWebhookdata(body);
 
-    let vulnerabilities = await getVulnerabilitiesFromHarbor(
-      harborScanId,
-      harborpassword
-    );
+
+    if(scanOverview.scan_status !== HARBOR_WEBHOOK_SUCCESSFUL_SCAN) {
+      sendToLagoonLogs(
+        'error',
+        '',
+        uuid,
+        `${webhooktype}:${event}:unhandled`,
+        { data: body },
+        `Received a scan report of status "${scanOverview.scan_status}" - ignoring`
+      );
+
+      return;
+    }
+
+    let vulnerabilities = await getVulnerabilitiesFromHarbor(harborScanId);
 
     let { id: lagoonProjectId } = await getProjectByName(lagoonProjectName);
 
     let { environmentByName: environmentDetails } = await getEnvironmentByName(
-      LagoonEnvironmentName,
+      lagoonEnvironmentName,
       lagoonProjectId
     );
 
     let messageBody = {
       lagoonProjectId,
+      lagoonProjectName,
       lagoonEnvironmentId: environmentDetails.id,
+      lagoonEnvironmentName: environmentDetails.name,
+      lagoonServiceName,
       vulnerabilities,
     };
 
@@ -100,8 +114,8 @@ const validateAndTransformIncomingWebhookdata = (rawData) => {
 
   let [
     lagoonProjectName,
-    LagoonEnvironmentName,
-    lagoonServiceName = null,
+    lagoonEnvironmentName,
+    lagoonServiceName,
   ] = extractRepositoryDetails(repository.repo_full_name);
 
   return {
@@ -109,7 +123,7 @@ const validateAndTransformIncomingWebhookdata = (rawData) => {
     repository,
     scanOverview: scanOverviewArray.pop(),
     lagoonProjectName,
-    LagoonEnvironmentName,
+    lagoonEnvironmentName,
     lagoonServiceName,
     harborScanId: repository.repo_full_name,
   };
@@ -127,7 +141,7 @@ const extractRepositoryDetails = (repoFullName) => {
   // if(!pattern.test(repoFullName)) {
   //   throw new ProblemsInvalidWebhookData("'" + repoFullName + "' does not conform to the appropriate structure of Project/Environment/Service")
   // }
-
+  console.log(repoFullName.split('/'));
   return repoFullName.split('/');
 };
 
@@ -162,8 +176,7 @@ const getVulnerabilitiesFromHarbor = async (scanId) => {
   let harborPayload = null;
   try {
     harborPayload = await getVulnerabilitiesPayloadFromHarbor(
-      scanId,
-      harborpassword
+      scanId
     );
   } catch (error) {
     throw error;

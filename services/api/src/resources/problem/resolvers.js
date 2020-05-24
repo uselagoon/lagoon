@@ -15,7 +15,7 @@ import type {ResolversObj} from '../';
 
 const getProblemsByEnvironmentId = async (
   { id: environmentId },
-  {},
+  {severity},
   { sqlClient, hasPermission },
 ) => {
   const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
@@ -26,7 +26,10 @@ const getProblemsByEnvironmentId = async (
 
   const rows = await query(
     sqlClient,
-    Sql.selectProblemsByEnvironmentId(environmentId),
+    Sql.selectProblemsByEnvironmentId({
+      environmentId,
+      severity,
+    }),
   );
 
   return  R.sort(R.descend(R.prop('created')), rows);
@@ -141,6 +144,7 @@ const deleteProblemsFromSource = async (
     input : {
       environment: environmentId,
       source,
+      service,
     }
   },
   { sqlClient, hasPermission },
@@ -151,7 +155,7 @@ const deleteProblemsFromSource = async (
     project: environment.project,
   });
 
-  await query(sqlClient, Sql.deleteProblemsFromSource(environmentId, source));
+  await query(sqlClient, Sql.deleteProblemsFromSource(environmentId, source, service));
 
   return 'success';
 }
