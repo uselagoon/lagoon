@@ -33,10 +33,30 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 
   if [ -d /var/lib/mysql/mysql ]; then
     echo "MySQL directory already present, skipping creation"
+
+    echo "starting mysql for mysql upgrade."
+    /usr/bin/mysqld --skip-networking --wsrep_on=OFF &
+    pid="$!"
+    echo "pid is $pid"
+
+    for i in {30..0}; do
+      if echo 'SELECT 1' | mysql -u root; then
+        break
+      fi
+      echo 'MySQL init process in progress...'
+      sleep 1
+    done
+
+    mysql_upgrade --force
+
+    if ! kill -s TERM "$pid" || ! wait "$pid"; then
+      echo >&2 'MySQL init process failed.'
+      exit 1
+    fi
   else
     echo "MySQL data directory not found, creating initial DBs"
 
-    mysql_install_db --skip-name-resolve --skip-auth-anonymous-user --datadir=/var/lib/mysql --basedir=/usr
+    mysql_install_db --skip-name-resolve --skip-test-db --auth-root-authentication-method=normal --datadir=/var/lib/mysql --basedir=/usr
 
     echo "starting mysql for initdb.d import."
     /usr/bin/mysqld --skip-networking --wsrep_on=OFF &
@@ -68,7 +88,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
     cat << EOF > $tfile
 DROP DATABASE IF EXISTS test;
 USE mysql;
-UPDATE mysql.user SET PASSWORD=PASSWORD("$MARIADB_ROOT_PASSWORD") WHERE user="root";
+ALTER USER root@localhost IDENTIFIED VIA mysql_native_password USING PASSWORD("$MARIADB_ROOT_PASSWORD");
 FLUSH PRIVILEGES;
 
 EOF

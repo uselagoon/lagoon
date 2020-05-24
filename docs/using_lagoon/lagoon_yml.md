@@ -54,8 +54,12 @@ environments:
             tls-acme: 'true'
             insecure: Redirect
             hsts: max-age=31536000
+        - "example.ch":
+            annotations:
+              nginx.ingress.kubernetes.io/permanent-redirect: https://www.example.ch$request_uri
+        - www.example.ch
     types:
-      mariadb: mariadb-galera
+      mariadb: mariadb
     templates:
       mariadb: mariadb.master.deployment.yml
     rollouts:
@@ -160,7 +164,6 @@ In the `"www.example.com"` example repeated below, we see two more options \(als
     If you plan to switch from a SSL certificate signed by a Certificate Authority \(CA\) to a Let's Encrypt certificate, it's best get in touch with your Lagoon administrator to oversee the transition. There are [known issues](https://github.com/tnozicka/openshift-acme/issues/68) during the transition. The workaround would be manually removing the CA certificate and then triggering the Let's Encrypt process.
 
 
-
 ```
      - "www.example.com":
             tls-acme: 'true'
@@ -168,12 +171,37 @@ In the `"www.example.com"` example repeated below, we see two more options \(als
             hsts: max-age=31536000
 ```
 
+#### Ingress annotations (Redirects)
+
+!!!hint
+    Route/Ingress annotations are only supported by projects that deploy into clusters that run nginx-ingress controllers! Check with your Lagoon administrator if this is supported.
+
+
+* `annotations` can be a yaml map of [annotations supported by the nginx-ingress controller](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/), this is specifically usefull for easy redirects:
+
+
+In this example any requests to `example.ch` will be redirected to `https://www.example.ch` with keeping folders or query parameters intact (`example.com/folder?query` -> `https://www.example.ch/folder?query`)
+
+```
+        - "example.ch":
+            annotations:
+              nginx.ingress.kubernetes.io/permanent-redirect: https://www.example.ch$request_uri
+        - www.example.ch
+```
+
+You can of course also redirect to any other URL not hosted on Lagoon, this will direct requests to `example.de` to `https://www.google.com`
+
+```
+        - "example.de":
+            annotations:
+              nginx.ingress.kubernetes.io/permanent-redirect: https://www.google.com
+```
 
 #### `environments.[name].types`
 
 The Lagoon build process checks the `lagoon.type` label from the `docker-compose.yml` file in order to learn what type of service should be deployed  \(read more about them in the [documentation of `docker-compose.yml`](docker-compose_yml.md)\).
 
-Sometimes you might want to override the **type** just for a single environment, and not for all of them. For example, if you want a MariaDB-Galera high availability database for your production environment called `master`:
+Sometimes you might want to override the **type** just for a single environment, and not for all of them. For example, if you want a standalone MariaDB database (instead of letting the Service Broker/operator provision a shared one) for your non-production environment called `develop`:
 
 `service-name: service-type`
 
@@ -184,9 +212,9 @@ Example:
 
 ```
 environments:
-  master:
+  develop:
     types:
-      mariadb: mariadb-galera
+      mariadb: mariadb-single
 ```
 
 
