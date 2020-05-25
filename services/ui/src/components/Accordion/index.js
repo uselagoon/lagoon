@@ -5,8 +5,6 @@ import moment from 'moment';
 const Accordion = ({ children, defaultValue = true, className = "", onToggle, headings, meta }) => {
     const [visibility, setVisibility] = useState(defaultValue);
 
-//console.log(meta);
-
     return (
         <div className={className}>
             {meta &&
@@ -26,10 +24,14 @@ const Accordion = ({ children, defaultValue = true, className = "", onToggle, he
                         .local()
                         .format('DD MM YYYY, HH:mm:ss')}
                 </div>
-                <div className="associatedPackage">{headings.associatedPackage}</div>
-                <div className="source">{headings.source}</div>
-                <div className="severity">{headings.severity}</div>
-                <div className="severityscore">{headings.severityScore}</div>
+                {headings.problems &&
+                  <>
+                    <div className="associatedPackage">{headings.problems[0].associatedPackage}</div>
+                    <div className="source">{headings.problems[0].source}</div>
+                    <div className="severity">{headings.problems[0].severity}</div>
+                    <div className="severityscore">{headings.problems[0].severityScore}</div>
+                  </>
+                }
             </div>
 
             {visibility ? <Fragment>{children}</Fragment> : null}

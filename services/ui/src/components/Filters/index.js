@@ -7,13 +7,8 @@ import { color } from 'lib/variables';
  * Displays the filters for problems page
  */
 const ProjectFilter = ({ title, options, onFilterChange, currentValues }) => {
-    // const [environmentID, setEnvironmentID] = React.useState(0);
-    // const [environmentLabel, setEnvironmentLabel] = React.useState('All');
-    // const [projects, setProjects] = React.useState(options);
 
     const handleEnvironmentChange = (environment) => {
-      // setEnvironmentID(environment.value);
-      // setEnvironmentLabel(environment.label);
       onFilterChange(environment);
     };
 

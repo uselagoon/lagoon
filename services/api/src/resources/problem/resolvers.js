@@ -1,5 +1,8 @@
 // @flow
 
+import {useQuery} from "@apollo/react-hooks";
+import moment from "moment";
+
 const R = require('ramda');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { createMiscTask } = require('@lagoon/commons/src/tasks');
@@ -53,7 +56,7 @@ console.log('args: ', args);
 
     let rows = [];
 
-    if (!R.isEmpty(args) && (!R.isEmpty(args.project) || !R.isEmpty(args.environment) || !R.isEmpty(args.severity))) {
+    if (!R.isEmpty(args) && (!R.isEmpty(args.environment) || !R.isEmpty(args.severity))) {
       rows = await query(
         sqlClient,
         Sql.selectAllProblems({
@@ -61,15 +64,33 @@ console.log('args: ', args);
           severity: args.severity,
         })
       );
-
-// const environment = await environmentHelpers(sqlClient).getEnvironmentById(args.environment);
     }
     else {
       const prep = prepare(sqlClient, `SELECT * FROM environment_problem ${where}${order}`);
       rows = await query(sqlClient, prep(args));
     }
 
-    const sorted = R.sort(R.descend(R.prop('created')), rows);
+    let groupByProblemId = rows.reduce(function (obj, problem) {
+        obj[problem.identifier] = obj[problem.identifier] || [];
+        obj[problem.identifier].push(problem);
+        return obj;
+    }, {});
+
+    let problems = Object.keys(groupByProblemId).map(async (key) => {
+
+        let projects = [];
+        let problem = groupByProblemId[key];
+        problem.map(async (problem) => {
+            let p = await projects.push(projectHelpers(sqlClient).getProjectByEnvironmentId(problem.environment));
+            return !R.isEmpty(p);
+        });
+
+            return {identifier: key, ...problem, projects: await Promise.all(projects), problems: await groupByProblemId[key]};
+    });
+
+    const withProjects = await Promise.all(problems);
+
+    const sorted = R.sort(R.descend(R.prop('identifier')), withProjects);
     return sorted.map(row => ({ environmentId: row.environment, ...row }));
 };
 

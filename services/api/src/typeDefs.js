@@ -118,7 +118,7 @@ const typeDefs = gql`
   type Problem {
     id: Int
     environmentId: Int
-    project: Project
+    project: [Project]
     severity: ProblemSeverityRating
     severityScore: SeverityScore
     identifier: String
@@ -132,6 +132,12 @@ const typeDefs = gql`
     data: String
     created: String
     deleted: String
+  }
+  
+  type ProblemIdentifier {
+    identifier: String
+    projects: [Project]
+    problems: [Problem]
   }
 
   input AddProblemInput {
@@ -674,7 +680,7 @@ const typeDefs = gql`
     """
     Returns all Problems matching given filter (all if no filter defined)
     """
-    allProblems(createdAfter: String, project: Int, environment: Int, severity: [ProblemSeverityRating]): [Problem]
+    allProblems(createdAfter: String, project: Int, environment: Int, identifier: String, severity: [ProblemSeverityRating]): [ProblemIdentifier]
     """
     Returns all Groups matching given filter (all if no filter defined)
     """

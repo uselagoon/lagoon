@@ -6,7 +6,7 @@ import { Query } from 'react-apollo';
 import MainLayout from 'layouts/MainLayout';
 import AllProblemsQuery from 'lib/query/AllProblems';
 import AllProjectsAndEnvironmentsQuery from 'lib/query/AllProjectsAndEnvironments';
-import Problems from 'components/Problems';
+import ProblemsByIdentifier from "../components/ProblemsByIdentifier";
 import ProjectFilter from 'components/Filters';
 import withQueryLoadingNoHeader from 'lib/withQueryLoadingNoHeader';
 import withQueryNoHeaderError from 'lib/withQueryNoHeaderError';
@@ -26,7 +26,7 @@ const severityOptions = [
 /**
  * Displays the problems overview page.
  */
-const ProblemsInsightPage = () => {
+const ProblemsDashboardPage = () => {
   const [environmentID, setEnvironmentID] = React.useState(0);
   const [environmentLabel, setEnvironmentLabel] = React.useState('All');
   const [severityOption, setSeverityOption] = React.useState([]);
@@ -54,16 +54,16 @@ const ProblemsInsightPage = () => {
   return (
   <>
     <Head>
-      <title>Problems Insight</title>
+      <title>Problems Dashboard</title>
     </Head>
     <MainLayout>
         <div className="filters">
-            <h2>Problems Insight</h2>
+            <h2>Problems Dashboard</h2>
             {loading && "Loading..."}
             {data && (
               <ProjectFilter
                   title="Projects"
-                  options={data.projects}
+                  options={data.projects && data.projects}
                   onFilterChange={handleProjectChange}
                   currentValues={{value: environmentID, label: environmentLabel}}
                   multi
@@ -102,12 +102,11 @@ const ProblemsInsightPage = () => {
                 {R.compose(
                     withQueryLoadingNoHeader,
                     withQueryNoHeaderError
-                )(({data: {problems, environment}}) => {
-console.log(problems);
+                )(({data: { problems }}) => {
                   return (
                     <div className="content-wrapper">
                         <div className="content">
-                            <Problems problems={problems || []} meta={environment && environment}/>
+                            <ProblemsByIdentifier problems={problems || []}/>
                         </div>
                         <style jsx>{`
                             .content-wrapper {
@@ -140,4 +139,4 @@ console.log(problems);
   );
 };
 
-export default ProblemsInsightPage;
+export default ProblemsDashboardPage;
