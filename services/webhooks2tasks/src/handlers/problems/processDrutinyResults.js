@@ -13,6 +13,7 @@ const {
   getProjectByName,
   getEnvironmentByName,
 } = require('@lagoon/commons/src/api');
+const { generateProblemsWebhookEventName } = require("./webhookHelpers");
 
 const ERROR_STATES = ["error", "failure"];
 const SEVERITY_LEVELS = [
@@ -83,7 +84,10 @@ async function processDrutinyResultset(
                 'info',
                 lagoonProjectName,
                 uuid,
-                '${webhooktype}:${event}:problem_added',
+                generateProblemsWebhookEventName({
+                  source: "drutiny",
+                  severity: convertSeverityLevels(element.severity)
+                }),
                 {
                   lagoonProjectId,
                   lagoonProjectName,
