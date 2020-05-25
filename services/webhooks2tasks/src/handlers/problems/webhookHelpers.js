@@ -7,7 +7,6 @@ const generateProblemsWebhookEventName = ({
     const eventType = 'insert';
     const dataType = isSummaryData ? 'summary' : 'item';
     let ret = `${prefix}:${eventType}:${source}:${dataType}:${severity}`;
-    console.log(ret);
     return ret;
 };
 
