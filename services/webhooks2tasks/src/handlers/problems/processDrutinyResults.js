@@ -24,7 +24,7 @@ const SEVERITY_LEVELS = [
   "HIGH",
   "CRITICAL"
 ];
-const DEFAULT_SEVERITY_LEVEL = "UNKNOWN";
+const DEFAULT_SEVERITY_LEVEL = "NEGLIGIBLE";
 
 async function processDrutinyResultset(
   webhook: WebhookRequestData,
