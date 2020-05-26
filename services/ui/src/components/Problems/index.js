@@ -105,8 +105,8 @@ const Problems = ({ problems }) => {
         </div>
         <div className="data-table">
           {!currentItems.length && <div className="data-none">No Problems</div>}
-            {currentItems.map((problem) => (
-                <Accordion
+            {currentItems.map((problem) => {
+              return (<Accordion
                     key={problem.id}
                     heading={problem}
                     defaultValue={false}
@@ -128,13 +128,22 @@ const Problems = ({ problems }) => {
                         <label>Associated link (CVE description etc.)</label>
                         <div className="links"><a href={problem.links} target="_blank">{problem.links}</a></div>
                       </div>
-                      <div className="fieldWrapper">
-                        <label>Raw Data</label>
-                        <div className="data">{problem.data}</div>
+                      <div className="rawdata">
+                      {Object.entries(JSON.parse(problem.data)).map(([a, b]) => {
+                        if(b) {
+                          return (
+                            <div className="fieldWrapper">
+                            <label>{a}</label>
+                            <div className="data"><pre>{b}</pre></div>
+                          </div>
+                          );
+                        }
+                      })}
                       </div>
                     </div>
                 </Accordion>
-            ))}
+            );
+            })}
         </div>
     <style jsx>{`
       .header {
