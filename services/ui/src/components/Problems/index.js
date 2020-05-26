@@ -63,7 +63,7 @@ const Problems = ({ problems }) => {
             <button
                 type="button"
                 onClick={() => handleSort('identifier')}
-                className={`button-sort ${getClassNamesFor('identifier')}`}
+                className={`button-sort problem-id ${getClassNamesFor('identifier')}`}
             >
               Problem id
             </button>
@@ -129,16 +129,19 @@ const Problems = ({ problems }) => {
                         <div className="links"><a href={problem.links} target="_blank">{problem.links}</a></div>
                       </div>
                       <div className="rawdata">
-                      {Object.entries(JSON.parse(problem.data)).map(([a, b]) => {
-                        if(b) {
-                          return (
-                            <div className="fieldWrapper">
-                            <label>{a}</label>
-                            <div className="data"><pre>{b}</pre></div>
-                          </div>
-                          );
-                        }
-                      })}
+                        <div className="rawdata-header">Raw Data:</div>
+                          <div className="rawdata-elements">
+                          {Object.entries(JSON.parse(problem.data)).map(([a, b]) => {
+                            if(b) {
+                              return (
+                                <div className="rawdata-element">
+                                <label>{a}</label>
+                                <div className="data"><pre>{b}</pre></div>
+                              </div>
+                              );
+                            }
+                          })}
+                        </div>
                       </div>
                     </div>
                 </Accordion>
@@ -152,6 +155,12 @@ const Problems = ({ problems }) => {
           display: flex;
           margin: 0 0 14px;
           padding-right: 40px;
+          button {
+            width: 15%;
+          }
+          button.problem-id {
+            width: 40%;
+          }
         }
         @media ${bp.smallOnly} {
           flex-wrap: wrap;
@@ -279,6 +288,23 @@ const Problems = ({ problems }) => {
             padding: 20px;
             width: 100%;
         }
+    }
+    .rawdata {
+      padding: 20px;
+      background: black;
+      color: lightgray;
+      font-family: 'source-code-pro',sans-serif;
+      .rawdata-header {
+        font-size: 14px;
+        margin: 0 0 15px 0;
+        text-transform: uppercase;
+      }
+      .rawdata-elements .rawdata-element {
+        label, div, pre {
+          display: inline;
+          font-size: 12px;
+        }
+      }
     }
     `}</style>
     </div>

@@ -12,7 +12,7 @@ const Accordion = ({ children, defaultValue = true, className = "", onToggle, he
             }}>
                 <div className="problemid">{heading.identifier}</div>
                 <div className="service">{heading.service}</div>
-                <div className="associatedPackage">{heading.associatedPackage}</div>
+                <div className="associatedPackage">{heading.associatedPackage || 'UNSET'}</div>
                 <div className="source">{heading.source}</div>
                 <div className="severity">{heading.severity}</div>
                 <div className="severityscore">{heading.severityScore}</div>
@@ -26,6 +26,12 @@ const Accordion = ({ children, defaultValue = true, className = "", onToggle, he
                     padding: 20px;
                     border: 1px solid #efefef;
                     cursor: pointer;
+                    div {
+                        width: 15%;
+                    }
+                    .problemid {
+                        width: 40%
+                    }
                 }
             `}</style>
         </div>
