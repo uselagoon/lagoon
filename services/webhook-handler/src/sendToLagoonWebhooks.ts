@@ -24,5 +24,3 @@ export async function sendToLagoonWebhooks (args: WebhookRequestData, channelWra
     logger.error(`Error queuing lagoon-webhooks ${webhooktype}:${event}, error: ${error}`);
   }
 }
-
-module.exports = sendToLagoonWebhooks;
