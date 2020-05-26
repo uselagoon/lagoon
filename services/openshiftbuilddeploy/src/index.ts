@@ -474,7 +474,7 @@ const messageConsumer = async msg => {
   // Create or update the BuildConfig
   try {
     const buildConfigsGet = promisify(openshift.ns(openshiftProject).buildconfigs('lagoon').get)
-    await buildConfigsGet()
+    const currentBuildConfig = await buildConfigsGet()
     logger.info(`${openshiftProject}: Buildconfig lagoon already exists, updating`)
     const buildConfigsPut = promisify(openshift.ns(openshiftProject).buildconfigs('lagoon').put)
     // The OpenShift API needs the current resource Version so it knows that we're updating data of the last known version. This is filled within currentBuildConfig.metadata.resourceVersion
