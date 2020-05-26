@@ -44,6 +44,22 @@ helm upgrade --dry-run --install --debug --create-namespace --namespace lagoon-l
 helm upgrade --install --debug --create-namespace --namespace lagoon-logging -f ./lagoon-logging.values.yaml lagoon-logging lagoon-logging
 ```
 
+**OpenShift only**
+
+Give the various serviceaccounts permissions required:
+```
+oc project lagoon-logging
+
+# fluentd statefulset serviceaccount (logging-operator chart)
+oc adm policy add-scc-to-user nonroot -z lagoon-logging-fluentd
+
+# fluentbit daemonset serviceaccount (logging-operator chart)
+oc adm policy add-scc-to-user hostaccess -z lagoon-logging-fluentbit
+
+# logs-dispatcher statefulset serviceaccount (lagoon-logging chart)
+oc adm policy add-scc-to-user anyuid -z lagoon-logging-logs-dispatcher
+```
+
 ## View logs
 
 ### For namespaces without a lagoon.sh/project label
