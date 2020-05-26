@@ -84,6 +84,7 @@ const typeDefs = gql`
   enum ProjectAvailability {
     STANDARD
     HIGH
+    POLYSITE
   }
 
   enum GroupRole {
