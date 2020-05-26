@@ -54,6 +54,10 @@ environments:
             tls-acme: 'true'
             insecure: Redirect
             hsts: max-age=31536000
+        - "example.ch":
+            annotations:
+              nginx.ingress.kubernetes.io/permanent-redirect: https://www.example.ch$request_uri
+        - www.example.ch
     types:
       mariadb: mariadb
     templates:
@@ -160,7 +164,6 @@ In the `"www.example.com"` example repeated below, we see two more options \(als
     If you plan to switch from a SSL certificate signed by a Certificate Authority \(CA\) to a Let's Encrypt certificate, it's best get in touch with your Lagoon administrator to oversee the transition. There are [known issues](https://github.com/tnozicka/openshift-acme/issues/68) during the transition. The workaround would be manually removing the CA certificate and then triggering the Let's Encrypt process.
 
 
-
 ```
      - "www.example.com":
             tls-acme: 'true'
@@ -168,14 +171,31 @@ In the `"www.example.com"` example repeated below, we see two more options \(als
             hsts: max-age=31536000
 ```
 
-#### Monitoring a specific path
-When UptimeRobot is configured for your cluster (OpenShift or Kubernetes), Lagoon will inject annotations to each route/ingress for use by the `stakater/IngressControllerMonitor`. The default action is to monitor the homepage of the route. If you have a specific route to be monitored, this can be overriden by adding a `monitoring_path` to your route specification. A common use is to set up a path for monitoring which bypasses caching to give a more real-time monitoring of your site.
+#### Ingress annotations (Redirects)
+
+!!!hint
+    Route/Ingress annotations are only supported by projects that deploy into clusters that run nginx-ingress controllers! Check with your Lagoon administrator if this is supported.
+
+
+* `annotations` can be a yaml map of [annotations supported by the nginx-ingress controller](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/), this is specifically usefull for easy redirects:
+
+
+In this example any requests to `example.ch` will be redirected to `https://www.example.ch` with keeping folders or query parameters intact (`example.com/folder?query` -> `https://www.example.ch/folder?query`)
 
 ```
-     - "www.example.com":
-            monitoring_path: "/bypass-cache"
+        - "example.ch":
+            annotations:
+              nginx.ingress.kubernetes.io/permanent-redirect: https://www.example.ch$request_uri
+        - www.example.ch
 ```
 
+You can of course also redirect to any other URL not hosted on Lagoon, this will direct requests to `example.de` to `https://www.google.com`
+
+```
+        - "example.de":
+            annotations:
+              nginx.ingress.kubernetes.io/permanent-redirect: https://www.google.com
+```
 
 #### `environments.[name].types`
 
