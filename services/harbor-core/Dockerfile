@@ -1,4 +1,4 @@
-FROM goharbor/harbor-core:v1.10.0
+FROM goharbor/harbor-core:v1.10.2
 LABEL maintainer="amazee.io"
 
 COPY entrypoint.sh /

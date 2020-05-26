@@ -554,7 +554,7 @@ services:
       - CLAIR_DB_PASSWORD=test123
       - HTTP_PROXY=
       - HTTPS_PROXY=
-      - NO_PROXY=harbor-core,harbor-jobservice,harbor-database,harborclair,harborclairadapter,harborregistry,harbor-portal,127.0.0.1,localhost,.local,.internal
+      - NO_PROXY=harbor-core,harbor-jobservice,harbor-database,harborclair,harborclairadapter,harborregistry,harbor-portal,harbor-trivy,127.0.0.1,localhost,.local,.internal
       - SCANNER_CLAIR_DATABASE_URL=postgres://postgres:test123@harbor-database:5432/postgres?sslmode=disable
       - SCANNER_STORE_REDIS_URL=redis://harbor-redis:6379/4
       - SCANNER_LOG_LEVEL=error
@@ -620,7 +620,7 @@ services:
       - WITH_NOTARY=false
       - CFG_EXPIRATION=5
       - ADMIRAL_URL=NA
-      - WITH_CLAIR=true
+      - WITH_CLAIR=false
       - CLAIR_DB_HOST=harbor-database
       - CLAIR_DB_PORT=5432
       - CLAIR_DB_USERNAME=postgres
@@ -641,7 +641,7 @@ services:
       - CLAIR_HEALTH_CHECK_SERVER_URL=http://harborclair:6061
       - HTTP_PROXY=
       - HTTPS_PROXY=
-      - NO_PROXY=harbor-core,harbor-jobservice,harbor-database,harborclair,harborclairadapter,harborregistry,harbor-portal,127.0.0.1,localhost,.local,.internal
+      - NO_PROXY=harbor-core,harbor-jobservice,harbor-database,harborclair,harborclairadapter,harborregistry,harbor-portal,harbor-trivy,127.0.0.1,localhost,.local,.internal
       - HARBOR_NGINX_ENDPOINT=http://harbor-nginx:8080
       - ROBOT_TOKEN_DURATION=999
       - CORE_SECRET=secret123
@@ -649,6 +649,8 @@ services:
       - REGISTRY_HTTP_SECRET=secret123
       - HARBOR_ADMIN_PASSWORD=admin
       - CLAIR_DB_PASSWORD=test123
+      - WITH_TRIVY=true
+      - TRIVY_ADAPTER_URL=http://harbor-trivy:8080
     restart: always
     labels:
       lagoon.type: custom
@@ -688,7 +690,7 @@ services:
       - LOG_LEVEL=error
       - HTTP_PROXY=
       - HTTPS_PROXY=
-      - NO_PROXY=harbor-core,harbor-jobservice,harbor-database,harborclair,harborclairadapter,harborregistry,harbor-portal,127.0.0.1,localhost,.local,.internal
+      - NO_PROXY=harbor-core,harbor-jobservice,harbor-database,harborclair,harborclairadapter,harborregistry,harbor-portal,harbor-trivy,127.0.0.1,localhost,.local,.internal
       - SCANNER_CLAIR_DATABASE_URL=postgres://postgres:test123@harbor-database:5432/postgres?sslmode=disable
       - SCANNER_STORE_REDIS_URL=redis://harbor-redis:6379/4
       - SCANNER_LOG_LEVEL=error
@@ -733,6 +735,38 @@ services:
       lagoon.type: custom
       lagoon.template: services/harbor-redis/harbor-redis.yml
       lagoon.image: amazeeiolagoon/harbor-redis:v1-5-0
+  harbor-trivy:
+    image: ${IMAGE_REPO:-lagoon}/harbor-trivy
+    hostname: harbor-trivy
+    volumes:
+      - /tmp
+    depends_on:
+      - harbor-redis
+      - harbor-database
+    environment:
+      - SCANNER_LOG_LEVEL=error
+      - SCANNER_TRIVY_CACHE_DIR=/home/scanner/.cache/trivy
+      - SCANNER_TRIVY_REPORTS_DIR=/home/scanner/.cache/reports
+      - SCANNER_TRIVY_DEBUG_MODE=false
+      - SCANNER_TRIVY_VULN_TYPE=os,library
+      - SCANNER_TRIVY_GITHUB_TOKEN=
+      - SCANNER_TRIVY_SEVERITY=UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+      - SCANNER_TRIVY_IGNORE_UNFIXED=false
+      - SCANNER_TRIVY_SKIP_UPDATE=false
+      - SCANNER_STORE_REDIS_URL=redis://harbor-redis:6379/5
+      - SCANNER_JOB_QUEUE_REDIS_URL=redis://harbor-redis:6379/5
+      - TRIVY_NON_SSL=true
+    restart: on-failure
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1g
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/harbor-trivy/harbor-trivy.yml
+      lagoon.name: harbor-trivy
+      lagoon.image: amazeeiolagoon/harbor-trivy:v1-5-0
   harborregistry:
     image: ${IMAGE_REPO:-lagoon}/harborregistry
     hostname: harborregistry
@@ -742,9 +776,6 @@ services:
     depends_on:
       - harbor-database
       - harbor-redis
-    ports:
-      - '4999:5000'
-      - '5001:5001'
     environment:
       - HARBOR_NGINX_ENDPOINT=http://harbor-nginx:8080
       - REGISTRY_REDIS_PASSWORD=
@@ -763,8 +794,6 @@ services:
     hostname: harborregistryctl
     volumes:
       - ${PWD}/services/harborregistryctl/registryctl_ci.cfg.yaml:/etc/registryctl/config.yml
-    ports:
-      - '8086:8080'
     environment:
       - REGISTRY_REDIS_PASSWORD=
       - CORE_SECRET=secret123
