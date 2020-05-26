@@ -38,7 +38,7 @@ helm template --debug --namespace lagoon-logging -f ./lagoon-logging.values.yaml
 helm upgrade --dry-run --install --debug --create-namespace --namespace lagoon-logging -f ./lagoon-logging.values.yaml lagoon-logging lagoon-logging
 ```
 
-2. Run installation.
+3. Run installation.
 
 ```
 helm upgrade --install --debug --create-namespace --namespace lagoon-logging -f ./lagoon-logging.values.yaml lagoon-logging lagoon-logging
