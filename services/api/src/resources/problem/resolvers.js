@@ -82,6 +82,11 @@ console.log('args: ', args);
         let problem = groupByProblemId[key];
         problem.map(async (problem) => {
             let p = await projects.push(projectHelpers(sqlClient).getProjectByEnvironmentId(problem.environment));
+
+            await hasPermission('project', 'view', {
+                project: p.id,
+            });
+
             return !R.isEmpty(p);
         });
 
