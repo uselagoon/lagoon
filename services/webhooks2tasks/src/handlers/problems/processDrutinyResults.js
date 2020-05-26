@@ -4,6 +4,7 @@ const { logger } = require('@lagoon/commons/src/local-logging');
 const {
   addProblem,
   deleteProblemsFromSource,
+  getProblemsforProjectEnvironment,
 } = require('@lagoon/commons/src/api');
 const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const DRUTINY_VULNERABILITY_SOURCE_BASE = 'Drutiny';
@@ -36,83 +37,100 @@ async function processDrutinyResultset(
   const { lagoonInfo, results, profile: drutinyProfile } = body;
 
   try {
-    const lagoonProjectName =
-      lagoonInfo.LAGOON_DRUTINY_PROJECT_NAME || lagoonInfo.LAGOON_PROJECT || lagoonInfo.LAGOON_SAFE_PROJECT;
+        const lagoonProjectName =
+          lagoonInfo.LAGOON_DRUTINY_PROJECT_NAME ||
+          lagoonInfo.LAGOON_PROJECT ||
+          lagoonInfo.LAGOON_SAFE_PROJECT;
 
-    if(!lagoonProjectName) {
-      throw new Error("No project name passed in Drutiny results");
-    }
+        if (!lagoonProjectName) {
+          throw new Error('No project name passed in Drutiny results');
+        }
 
-    const lagoonEnvironmentName = lagoonInfo.LAGOON_DRUTINY_ENVIRONMENT_NAME || lagoonInfo.LAGOON_ENVIRONMENT || lagoonInfo.LAGOON_GIT_BRANCH;
+        const lagoonEnvironmentName =
+          lagoonInfo.LAGOON_DRUTINY_ENVIRONMENT_NAME ||
+          lagoonInfo.LAGOON_ENVIRONMENT ||
+          lagoonInfo.LAGOON_GIT_BRANCH;
 
-    if(!lagoonEnvironmentName) {
-      throw new Error("No environment name passed in Drutiny results");
-    }
+        if (!lagoonEnvironmentName) {
+          throw new Error('No environment name passed in Drutiny results');
+        }
 
-    const { id: lagoonProjectId } = await getProjectByName(lagoonProjectName);
+        const { id: lagoonProjectId } = await getProjectByName(
+          lagoonProjectName
+        );
 
-    const { environmentByName: environmentDetails } = await getEnvironmentByName(
-      lagoonEnvironmentName,
-      lagoonProjectId
-    );
+        const {
+          environmentByName: environmentDetails,
+        } = await getEnvironmentByName(lagoonEnvironmentName, lagoonProjectId);
 
-    const lagoonEnvironmentId = environmentDetails.id;
-    const lagoonServiceName = DRUTINY_SERVICE_NAME;
-    const drutinyVulnerabilitySource = `${DRUTINY_VULNERABILITY_SOURCE_BASE}-${drutinyProfile}`;
+        const lagoonEnvironmentId = environmentDetails.id;
+        const lagoonServiceName = DRUTINY_SERVICE_NAME;
+        const drutinyVulnerabilitySource = `${DRUTINY_VULNERABILITY_SOURCE_BASE}-${drutinyProfile}`;
 
-    await deleteProblemsFromSource(
-      environmentDetails.id,
-      drutinyVulnerabilitySource,
-      DRUTINY_SERVICE_NAME
-    );
+        //Let's get the existing problems before removing them ...
+        const existingProblemSet = (
+          await getProblemsforProjectEnvironment(
+            lagoonEnvironmentName,
+            lagoonProjectId
+          )
+        )
+          .filter((e) => e.service == lagoonServiceName)
+          .reduce((prev, current) => prev.concat([current.identifier]), []);
 
-    if (results) {
-      results
-        .filter((e) => ERROR_STATES.includes(e.type))
-        .forEach((element) => {
-          addProblem({
-            environment: lagoonEnvironmentId,
-            identifier: element.name,
-            severity: convertSeverityLevels(element.severity),
-            source: drutinyVulnerabilitySource,
-            description: element.description,
-            data: JSON.stringify(element),
-            service: DRUTINY_SERVICE_NAME,
-          })
-            .then(() => {
-              sendToLagoonLogs(
-                'info',
-                lagoonProjectName,
-                uuid,
-                generateProblemsWebhookEventName({
-                  source: "drutiny",
-                  severity: convertSeverityLevels(element.severity)
-                }),
-                {
-                  lagoonProjectId,
-                  lagoonProjectName,
-                  lagoonEnvironmentId,
-                  lagoonEnvironmentName,
-                  lagoonServiceName,
-                  severity: convertSeverityLevels(element.severity),
-                  vulnerability: element,
-                },
-                `New problem found for ${lagoonProjectName}:${lagoonEnvironmentName}:${lagoonServiceName}. Severity: ${element.severity}. Description: ${element.description}`
-              );
-            })
-            .catch((error) =>
-              sendToLagoonLogs(
-                'error',
-                '',
-                uuid,
-                `${webhooktype}:${event}:problem_insert_error`,
-                { data: body },
-                `Error inserting problem id ${element.id} for ${lagoonProjectId}:${environmentDetails.id} -- ${error.message}`
-              )
-            );
-        });
-    }
-  } catch (error) {
+        await deleteProblemsFromSource(
+          environmentDetails.id,
+          drutinyVulnerabilitySource,
+          DRUTINY_SERVICE_NAME
+        );
+
+        if (results) {
+          results
+            .filter((e) => ERROR_STATES.includes(e.type))
+            .forEach((element) => {
+              addProblem({
+                environment: lagoonEnvironmentId,
+                identifier: element.name,
+                severity: convertSeverityLevels(element.severity),
+                source: drutinyVulnerabilitySource,
+                description: element.description,
+                data: JSON.stringify(element),
+                service: DRUTINY_SERVICE_NAME,
+              })
+                .then(() => {
+                    sendToLagoonLogs(
+                      'info',
+                      lagoonProjectName,
+                      uuid,
+                      generateProblemsWebhookEventName({
+                        source: 'drutiny',
+                        severity: convertSeverityLevels(element.severity),
+                        isNew: !existingProblemSet.includes(element.name)
+                      }),
+                      {
+                        lagoonProjectId,
+                        lagoonProjectName,
+                        lagoonEnvironmentId,
+                        lagoonEnvironmentName,
+                        lagoonServiceName,
+                        severity: convertSeverityLevels(element.severity),
+                        vulnerability: element,
+                      },
+                      `New problem found for ${lagoonProjectName}:${lagoonEnvironmentName}:${lagoonServiceName}. Severity: ${element.severity}. Description: ${element.description}`
+                    );
+                })
+                .catch((error) =>
+                  sendToLagoonLogs(
+                    'error',
+                    '',
+                    uuid,
+                    `${webhooktype}:${event}:problem_insert_error`,
+                    { data: body },
+                    `Error inserting problem id ${element.id} for ${lagoonProjectId}:${environmentDetails.id} -- ${error.message}`
+                  )
+                );
+            });
+        }
+      } catch (error) {
     sendToLagoonLogs(
       'error',
       '',

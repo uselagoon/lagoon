@@ -1,13 +1,13 @@
 const generateProblemsWebhookEventName = ({
     source,
     severity,
-    isSummaryData = false
+    isSummaryData = false,
+    isNew = true,
 }) => {
     const prefix = 'problem';
-    const eventType = 'insert';
+    const eventType = isNew ? 'insert' :  'update';
     const dataType = isSummaryData ? 'summary' : 'item';
-    let ret = `${prefix}:${eventType}:${source}:${dataType}:${severity}`;
-    return ret;
+    return `${prefix}:${eventType}:${source}:${dataType}:${severity}`;
 };
 
 module.exports = {
