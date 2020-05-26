@@ -77,3 +77,11 @@ e.g. if `lagoon.sh/project: drupal-example`
 container-logs-drupal-example-*
 router-logs-drupal-example-*
 ```
+
+## How to upgrade
+
+NOTE: If the `logging-operator` chart upgrade doesn't work, just uninstall the helm release and install it again. Logs won't be lost since fluentbit will send the contents of the log files once it is reinstalled.
+
+```
+helm upgrade --debug --namespace lagoon-logging --reuse-values lagoon-logging lagoon-logging
+```
