@@ -112,22 +112,22 @@ const Problems = ({ problems }) => {
                     defaultValue={false}
                     className="data-row row-heading">
                     <div className="expanded-wrapper">
-                      <div className="fieldWrapper">
-                        <label>Problem Description</label>
-                        <div className="description">{problem.description}</div>
-                      </div>
-                      <div className="fieldWrapper">
+                      {problem.description.length > 0 && (<div className="fieldWrapper">
+                          <label>Problem Description</label>
+                          <div className="description">{problem.description}</div>
+                        </div>)}
+                      {problem.version.length > 0 && (<div className="fieldWrapper">
                         <label>Problem Version</label>
                         <div className="version">{problem.version}</div>
-                      </div>
-                      <div className="fieldWrapper">
+                      </div>)}
+                      {problem.fixedVersion.length > 0 && (<div className="fieldWrapper">
                         <label>Problem Fixed in Version</label>
                         <div className="fixed-version">{problem.fixedVersion}</div>
-                      </div>
-                      <div className="fieldWrapper">
+                      </div>)}
+                      {problem.fixedVersion.length > 0 && (<div className="fieldWrapper">
                         <label>Associated link (CVE description etc.)</label>
                         <div className="links"><a href={problem.links} target="_blank">{problem.links}</a></div>
-                      </div>
+                      </div>)}
                       <div className="rawdata">
                         <div className="rawdata-header">Raw Data:</div>
                           <div className="rawdata-elements">
