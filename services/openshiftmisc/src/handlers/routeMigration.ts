@@ -259,9 +259,9 @@ export async function routeMigration (data) {
         resolve();
       } else {
         logger.info(`${openshiftProject}: active/standby switch not ready, will try again in 2sec`);
-        reject(exitResolve);
+        reject();
       }
-    })).catch((errorMessage) => {return errorMessage});
+    }));
   }
 
   try {
