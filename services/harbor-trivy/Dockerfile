@@ -1,7 +1,7 @@
 FROM goharbor/trivy-adapter-photon:v2.0.0
 LABEL maintainer="amazee.io"
 
-COPY install-cert.sh /home/scanner
+COPY install_cert.sh /home/scanner
 COPY entrypoint.sh /home/scanner
 USER root
 RUN mkdir /home/scanner/.cache \
