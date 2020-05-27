@@ -439,8 +439,6 @@ services :=       api \
 									keycloak \
 									keycloak-db \
 									ui \
-									harborclair \
-									harborclairadapter \
 									harbor-core \
 									harbor-database \
 									harbor-jobservice \
@@ -475,8 +473,8 @@ build/broker-single: build/rabbitmq
 build/drush-alias: build/nginx
 build/keycloak: build/commons
 build/harbor-database: build/postgres
-build/harborclair build/harbor-trivy build/local-minio: build/harbor-database services/harbor-redis/Dockerfile services/harborclairadapter/Dockerfile
-build/harborregistry: build/harborclair services/harbor-jobservice/Dockerfile
+build/harbor-trivy build/local-minio: build/harbor-database services/harbor-redis/Dockerfile
+build/harborregistry: services/harbor-jobservice/Dockerfile
 build/harborregistryctl: build/harborregistry
 build/harbor-nginx: build/harborregistryctl services/harbor-core/Dockerfile services/harbor-portal/Dockerfile
 build/tests-kubernetes: build/tests
@@ -595,7 +593,7 @@ wait-for-keycloak:
 	grep -m 1 "Config of Keycloak done." <(docker-compose -p $(CI_BUILD_TAG) --compatibility logs -f keycloak 2>&1)
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
-main-test-services = broker logs2email logs2slack logs2rocketchat logs2microsoftteams api api-db keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher harbor-core harbor-database harbor-jobservice harbor-portal harbor-nginx harbor-redis harborregistry harborregistryctl harborclair harborclairadapter harbor-trivy local-minio
+main-test-services = broker logs2email logs2slack logs2rocketchat logs2microsoftteams api api-db keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher harbor-core harbor-database harbor-jobservice harbor-portal harbor-nginx harbor-redis harborregistry harborregistryctl harbor-trivy local-minio
 
 # Define a list of which Lagoon Services are needed for openshift testing
 openshift-test-services = openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor openshiftmisc tests-openshift
