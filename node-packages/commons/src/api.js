@@ -1282,6 +1282,48 @@ const deleteProblemsFromSource = (
   );
 }
 
+
+const problemFragment = graphqlapi.createFragment(`
+fragment on Problem {
+  id
+  severity
+  severityScore
+  identifier
+  service
+  source
+  associatedPackage
+  description
+  links
+  version
+  fixedVersion
+  data
+  created
+  deleted
+}
+`);
+
+const getProblemsforProjectEnvironment = async (
+  environmentName,
+  project
+) => {
+  const response = await graphqlapi.query(
+    `query getProject($environmentName: String!, $project: Int!) {
+      environmentByName(name: $environmentName, project: $project) {
+        id
+        name
+        problems {
+          ...${problemFragment}
+        }
+      }
+    }`
+  ,
+  {
+    environmentName,
+    project
+  });
+  return response.environmentByName.problems;
+}
+
 module.exports = {
   addGroup,
   addGroupWithParent,
@@ -1333,4 +1375,5 @@ module.exports = {
   getGroupMembersByGroupName,
   addProblem,
   deleteProblemsFromSource,
+  getProblemsforProjectEnvironment,
 };

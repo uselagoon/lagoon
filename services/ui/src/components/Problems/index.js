@@ -63,7 +63,7 @@ const Problems = ({ problems }) => {
             <button
                 type="button"
                 onClick={() => handleSort('identifier')}
-                className={`button-sort ${getClassNamesFor('identifier')}`}
+                className={`button-sort problem-id ${getClassNamesFor('identifier')}`}
             >
               Problem id
             </button>
@@ -105,36 +105,48 @@ const Problems = ({ problems }) => {
         </div>
         <div className="data-table">
           {!currentItems.length && <div className="data-none">No Problems</div>}
-            {currentItems.map((problem) => (
-                <Accordion
+            {currentItems.map((problem) => {
+              return (<Accordion
                     key={problem.id}
                     heading={problem}
                     defaultValue={false}
                     className="data-row row-heading">
                     <div className="expanded-wrapper">
-                      <div className="fieldWrapper">
-                        <label>Problem Description</label>
-                        <div className="description">{problem.description}</div>
-                      </div>
-                      <div className="fieldWrapper">
+                      {problem.description.length > 0 && (<div className="fieldWrapper">
+                          <label>Problem Description</label>
+                          <div className="description">{problem.description}</div>
+                        </div>)}
+                      {problem.version.length > 0 && (<div className="fieldWrapper">
                         <label>Problem Version</label>
                         <div className="version">{problem.version}</div>
-                      </div>
-                      <div className="fieldWrapper">
+                      </div>)}
+                      {problem.fixedVersion.length > 0 && (<div className="fieldWrapper">
                         <label>Problem Fixed in Version</label>
                         <div className="fixed-version">{problem.fixedVersion}</div>
-                      </div>
-                      <div className="fieldWrapper">
+                      </div>)}
+                      {problem.fixedVersion.length > 0 && (<div className="fieldWrapper">
                         <label>Associated link (CVE description etc.)</label>
                         <div className="links"><a href={problem.links} target="_blank">{problem.links}</a></div>
-                      </div>
-                      <div className="fieldWrapper">
-                        <label>Raw Data</label>
-                        <div className="data">{problem.data}</div>
+                      </div>)}
+                      <div className="rawdata">
+                        <div className="rawdata-header">Raw Data:</div>
+                          <div className="rawdata-elements">
+                          {Object.entries(JSON.parse(problem.data)).map(([a, b]) => {
+                            if(b) {
+                              return (
+                                <div className="rawdata-element">
+                                <label>{a}</label>
+                                <div className="data"><pre>{b}</pre></div>
+                              </div>
+                              );
+                            }
+                          })}
+                        </div>
                       </div>
                     </div>
                 </Accordion>
-            ))}
+            );
+            })}
         </div>
     <style jsx>{`
       .header {
@@ -143,6 +155,12 @@ const Problems = ({ problems }) => {
           display: flex;
           margin: 0 0 14px;
           padding-right: 40px;
+          button {
+            width: 15%;
+          }
+          button.problem-id {
+            width: 40%;
+          }
         }
         @media ${bp.smallOnly} {
           flex-wrap: wrap;
@@ -270,6 +288,23 @@ const Problems = ({ problems }) => {
             padding: 20px;
             width: 100%;
         }
+    }
+    .rawdata {
+      padding: 20px;
+      background: black;
+      color: lightgray;
+      font-family: 'source-code-pro',sans-serif;
+      .rawdata-header {
+        font-size: 14px;
+        margin: 0 0 15px 0;
+        text-transform: uppercase;
+      }
+      .rawdata-elements .rawdata-element {
+        label, div, pre {
+          display: inline;
+          font-size: 12px;
+        }
+      }
     }
     `}</style>
     </div>
