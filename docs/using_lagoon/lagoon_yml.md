@@ -341,26 +341,25 @@ There are 2 ways to define the password used for your registry user.
 * Create an environment variable in the Lagoon API \(see more on [Environment Variables](environment_variables.md)\). The name of the variable you create can then be set as the password:
 
 ```
-  container-registries:
+container-registries:
   my-custom-registry:
     username: myownregistryuser
     password: MY_OWN_REGISTRY_PASSWORD
     url: my.own.registry.com
-  ```
+```
 
 * Define it directly in the `.lagoon.yml` file in plain text:
 
 ```
-  container-registries:
+container-registries:
   docker-hub:
     username: dockerhubuser
     password: MySecretPassword
-  ```
+```
 
 **Consuming a custom or private container registry image**
 
 To consume a custom or private container registry image, you need to update the service inside your `docker-compose.yml` file to use a build context instead of defining an image:
-
 
 ```
 services:
@@ -370,12 +369,8 @@ services:
       dockerfile: Dockerfile.mariadb
 ```
 
-
 Once the `docker-compose.yml` file has been updated to use a build, you need to create the `Dockerfile.<service>` and then set your private image as the `FROM <repo>/<name>:<tag>`
-
 
 ```text
 FROM dockerhubuser/my-private-database:tag
 ```
-
-
