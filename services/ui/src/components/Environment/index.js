@@ -21,7 +21,11 @@ const Environment = ({ environment }) => {
       <div className="field-wrapper environmentType">
         <div>
           <label>Environment Type</label>
-          <div className="field">{environment.environmentType}{environment.environmentType == 'production' && environment.project.productionEnvironment == environment.name && (" (active)")}{environment.environmentType == 'production' && environment.project.standbyProductionEnvironment == environment.name && (" (standby)")}</div>
+          <div className="field">
+          {environment.environmentType}
+          {environment.project.productionEnvironment && environment.project.standbyProductionEnvironment && environment.environmentType == 'production' && environment.project.productionEnvironment == environment.name &&
+          (" (active)")}{environment.project.productionEnvironment && environment.project.standbyProductionEnvironment && environment.environmentType == 'production' && environment.project.standbyProductionEnvironment == environment.name && (" (standby)")}
+          </div>
         </div>
       </div>
       <div className="field-wrapper deployType">
@@ -67,7 +71,7 @@ const Environment = ({ environment }) => {
         </div>
       </div>
       <div className="field-wrapper routes">
-        {environment.environmentType == 'production' && environment.project.productionEnvironment == environment.name && (
+        {environment.project.productionEnvironment && environment.project.standbyProductionEnvironment && environment.environmentType == 'production' && environment.project.productionEnvironment == environment.name && (
         <div>
           <label>Active Environment Routes</label>
           <div className="field">
@@ -82,7 +86,7 @@ const Environment = ({ environment }) => {
               : ''}
           </div>
         </div>)}
-        {environment.environmentType == 'production' && environment.project.standbyProductionEnvironment == environment.name && (
+        {environment.project.productionEnvironment && environment.project.standbyProductionEnvironment && environment.environmentType == 'production' && environment.project.standbyProductionEnvironment == environment.name && (
         <div>
           <label>Standby Environment Routes</label>
           <div className="field">

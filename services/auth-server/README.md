@@ -1,35 +1,47 @@
-Auth-Server
+<p align="center"><img
+src="https://raw.githubusercontent.com/amazeeio/lagoon/master/docs/images/lagoon-logo.png"
+alt="The Lagoon logo is a blue hexagon split in two pieces with an L-shaped cut"
+width="40%"></p>
 
-This service serves as a authentication backend for the lagoon API and
-auth-ssh server. Make sure to not expose it to untrusted consumers.
+This service is part of amazee.io Lagoon, a Docker build and deploy system for
+OpenShift & Kubernetes. Please reference our [documentation] for detailed
+information on using, developing, and administering Lagoon.
 
-# `/login` #
+# Auth Server (`auth-server`)
 
-This will create or read a token mapped to a specific ssh public key,
-dependent on whether the ssh-key was registered or not.
+Generates authentication tokens that are valid for other lagoon services.
 
-On creation, there is no verification of the given key, it will create a token
-regardless.
+## Technology
 
-Method: POST
+* Node
+* Rest API
 
-Request Body:
+## Related Services
 
-```json
-{
-  "key": "my-public-ssh-key"
-}
-```
+* Keycloak [***dependency***]
+* SSH [***dependent***]
 
-Error Response:
+## API
 
-```
-Code: 401
-```
+* Authentication [**required**]: `Authorization` header with bearer token
+* **POST** `/generate`
+* Body [`application/json`]:
+    ```json
+    {
+      "userId": 1,
+      "grant": true,
+      "verbose": true
+    }
+    ```
+* Responses `401`, `403`, `500`; `200`:
+    ```
+    {
+      payload: {
+        userId,
+      },
+      token,
+      grant,
+    }
+    ```
 
-Success Response:
-
-```
-Code: 200
-Body: your-token-as-plain-text
-```
+[documentation]: https://lagoon.readthedocs.io/

@@ -33,6 +33,26 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
 
   if [ -d /var/lib/mysql/mysql ]; then
     echo "MySQL directory already present, skipping creation"
+
+    echo "starting mysql for mysql upgrade."
+    /usr/bin/mysqld --skip-networking --wsrep_on=OFF &
+    pid="$!"
+    echo "pid is $pid"
+
+    for i in {30..0}; do
+      if echo 'SELECT 1' | mysql -u root; then
+        break
+      fi
+      echo 'MySQL init process in progress...'
+      sleep 1
+    done
+
+    mysql_upgrade --force
+
+    if ! kill -s TERM "$pid" || ! wait "$pid"; then
+      echo >&2 'MySQL init process failed.'
+      exit 1
+    fi
   else
     echo "MySQL data directory not found, creating initial DBs"
 
