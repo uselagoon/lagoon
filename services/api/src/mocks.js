@@ -232,6 +232,7 @@ MIIJKQIBAAKCAgEA+o[...]P0yoL8BoQQG2jCvYfWh6vyglQdrDYx/o6/8ecTwXokKKh6fg1q
     productionEnvironment: 'master',
     autoIdle: faker.random.arrayElement([0, 1]),
     storageCalc: faker.random.arrayElement([0, 1]),
+    problemsUi: faker.random.arrayElement([0, 1]),
     openshift: mocks.Openshift(),
     openshiftProjectPattern: '${project}-${name}',
     developmentEnvironmentsLimit: 10,

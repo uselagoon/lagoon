@@ -281,6 +281,7 @@ const addProject = async (
         ${input.standbyAlias ? ':standby_alias' : '"lagoon-standby"'},
         ${input.autoIdle ? ':auto_idle' : '1'},
         ${input.storageCalc ? ':storage_calc' : '1'},
+        ${input.problemsUi ? ':problems_ui' : '0'},
         ${
   input.developmentEnvironmentsLimit
     ? ':development_environments_limit'
@@ -449,6 +450,7 @@ const updateProject = async (
         standbyAlias,
         autoIdle,
         storageCalc,
+        problemsUi,
         pullrequests,
         openshift,
         openshiftProjectPattern,
@@ -537,6 +539,7 @@ const updateProject = async (
         standbyAlias,
         autoIdle,
         storageCalc,
+        problemsUi,
         pullrequests,
         openshift,
         openshiftProjectPattern,

@@ -35,6 +35,7 @@ CREATE OR REPLACE PROCEDURE
     IN standby_alias                   varchar(100),
     IN auto_idle                       int(1),
     IN storage_calc                    int(1),
+    IN problems_ui                     int(1),
     IN development_environments_limit  int
   )
   BEGIN
@@ -73,6 +74,7 @@ CREATE OR REPLACE PROCEDURE
         standby_routes,
         standby_alias,
         auto_idle,
+        problems_ui,
         storage_calc,
         pullrequests,
         openshift,
@@ -100,6 +102,7 @@ CREATE OR REPLACE PROCEDURE
         standby_alias,
         auto_idle,
         storage_calc,
+        problems_ui,
         pullrequests,
         os.id,
         openshift_project_pattern,

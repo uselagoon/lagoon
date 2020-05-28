@@ -30,6 +30,7 @@ CREATE OR REPLACE PROCEDURE
     IN standby_alias                   varchar(100),
     IN auto_idle                       int(1),
     IN storage_calc                    int(1),
+    IN problems_ui                     int(1),
     IN development_environments_limit  int
   )
   BEGIN
@@ -73,6 +74,7 @@ CREATE OR REPLACE PROCEDURE
         standby_alias,
         auto_idle,
         storage_calc,
+        problems_ui,
         pullrequests,
         openshift,
         openshift_project_pattern,
@@ -99,6 +101,7 @@ CREATE OR REPLACE PROCEDURE
         standby_alias,
         auto_idle,
         storage_calc,
+        problems_ui,
         pullrequests,
         os.id,
         openshift_project_pattern,
@@ -1069,6 +1072,24 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
+  add_problems_ui_to_project()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'problems_ui'
+    ) THEN
+      ALTER TABLE `project`
+      ADD `problems_ui` int(1) NOT NULL default '0';
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
   update_user_password()
 
   BEGIN
@@ -1127,6 +1148,7 @@ CALL add_container_registry_scope_to_env_vars();
 CALL add_internal_container_registry_scope_to_env_vars();
 CALL add_additional_harbor_scan_fields_to_environment_problem();
 CALL update_user_password();
+CALL add_problems_ui_to_project();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;
@@ -1134,4 +1156,3 @@ DROP PROCEDURE IF EXISTS DeleteProjectSshKey;
 DROP PROCEDURE IF EXISTS CreateCustomerSshKey;
 DROP PROCEDURE IF EXISTS DeleteCustomerSshKey;
 DROP PROCEDURE IF EXISTS CreateSshKey;
-

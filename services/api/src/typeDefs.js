@@ -399,6 +399,10 @@ const typeDefs = gql`
     """
     storageCalc: Int
     """
+    Should the Problems UI be available for this Project (\`1\` or \`0\`)
+    """
+    problemsUi: Int
+    """
     Reference to OpenShift Object this Project should be deployed to
     """
     openshift: Openshift
@@ -758,6 +762,7 @@ const typeDefs = gql`
     storageCalc: Int
     developmentEnvironmentsLimit: Int
     privateKey: String
+    problemsUi: Int
   }
 
   input AddEnvironmentInput {
@@ -995,6 +1000,7 @@ const typeDefs = gql`
     openshift: Int
     openshiftProjectPattern: String
     developmentEnvironmentsLimit: Int
+    problemsUi: Int
   }
 
   input UpdateProjectInput {

@@ -43,6 +43,7 @@ export type ProjectPatch = {
   productionenvironment: ?string,
   autoidle: ?number,
   storagecalc: ?number,
+  problemsUi: ?Number,
   pullrequests: ?string,
   openshift: ?number,
   openshiftprojectpattern: ?string,
