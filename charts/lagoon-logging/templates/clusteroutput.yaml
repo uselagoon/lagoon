@@ -1,0 +1,13 @@
+apiVersion: logging.banzaicloud.io/v1beta1
+kind: ClusterOutput
+metadata:
+  namespace: {{ .Release.Namespace | quote }}
+  name: {{ include "lagoon-logging.fullname" . }}
+  labels:
+    {{- include "lagoon-logging.labels" . | nindent 4 }}
+spec:
+  forward:
+    servers:
+      - host: {{ include "lagoon-logging.logsDispatcher.fullname" . }}
+        port: 24224
+    buffer: {{ required "A valid .Values.clusterOutputBuffer required!" .Values.clusterOutputBuffer | toYaml | nindent 6 }}
