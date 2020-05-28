@@ -325,7 +325,19 @@ const messageConsumer = async msg => {
       logger.info(`${openshiftProject}: Project ${openshiftProject}  does not exist, creating`)
       const projectrequestsPost = promisify(openshift.projectrequests.post)
       // @ts-ignore
-      await projectrequestsPost({ body: {"apiVersion":"v1","kind":"ProjectRequest","metadata":{"name":openshiftProject},"displayName":`[${projectName}] ${branchName}`} });
+      await projectrequestsPost({
+        body: {
+          "apiVersion":"v1",
+          "kind":"ProjectRequest",
+          "metadata": {
+            "name":openshiftProject,
+            "labels": {
+              "lagoon.sh/project": safeProjectName,
+              "lagoon.sh/environment": safeBranchName
+            }
+          },
+          "displayName":`[${projectName}] ${branchName}`
+        } });
     } else {
       logger.error(err)
       throw new Error

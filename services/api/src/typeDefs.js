@@ -82,6 +82,7 @@ const typeDefs = gql`
   enum ProjectAvailability {
     STANDARD
     HIGH
+    POLYSITE
   }
 
   enum GroupRole {
@@ -361,6 +362,10 @@ const typeDefs = gql`
     Which groups are directly linked to project
     """
     groups: [GroupInterface]
+    """
+    Metadata key/values stored against a project
+    """
+    metadata: JSON
   }
 
   """
@@ -551,6 +556,22 @@ const typeDefs = gql`
     execute: Boolean
   }
 
+  input MetadataKeyValue {
+    key: String!
+    value: String
+  }
+
+  input UpdateMetadataInput {
+    id: Int!
+    patch: MetadataKeyValue!
+  }
+
+  input RemoveMetadataInput {
+    id: Int!
+    key: String!
+  }
+
+
   type Query {
     """
     Returns the current user
@@ -588,6 +609,10 @@ const typeDefs = gql`
     Returns all Project Objects matching given filters (all if no filter defined)
     """
     allProjects(createdAfter: String, gitUrl: String, order: ProjectOrderType): [Project]
+    """
+    Returns all Project Objects matching metadata filters
+    """
+    projectsByMetadata(metadata: [MetadataKeyValue]): [Project]
     """
     Returns all OpenShift Objects
     """
@@ -1328,6 +1353,8 @@ const typeDefs = gql`
     updateProjectBillingGroup(input: ProjectBillingGroupInput): Project
     removeProjectFromBillingGroup(input: ProjectBillingGroupInput): Project
     removeGroupsFromProject(input: ProjectGroupsInput!): Project
+    updateProjectMetadata(input: UpdateMetadataInput!): Project
+    removeProjectMetadataByKey(input: RemoveMetadataInput!): Project
 
     addBillingModifier(input: AddBillingModifierInput!): BillingModifier
     updateBillingModifier(input: UpdateBillingModifierInput!): BillingModifier

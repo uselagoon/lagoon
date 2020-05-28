@@ -104,10 +104,13 @@ const {
   getProjectByName,
   getProjectByGitUrl,
   getProjectByEnvironmentId,
+  getProjectsByMetadata,
   getAllProjects,
   updateProject,
   deleteAllProjects,
-  getProjectUrl
+  getProjectUrl,
+  updateProjectMetadata,
+  removeProjectMetadataByKey
 } = require('./resources/project/resolvers');
 
 const {
@@ -275,7 +278,8 @@ const resolvers = {
     allProjectsInGroup: getAllProjectsInGroup,
     billingGroupCost: getBillingGroupCost,
     allBillingGroupsCost: getAllBillingGroupsCost,
-    allBillingModifiers: getBillingModifiers
+    allBillingModifiers: getBillingModifiers,
+    projectsByMetadata: getProjectsByMetadata
   },
   Mutation: {
     addOrUpdateEnvironment,
@@ -310,6 +314,8 @@ const resolvers = {
     updateProject,
     deleteProject,
     deleteAllProjects,
+    updateProjectMetadata,
+    removeProjectMetadataByKey,
     addSshKey,
     updateSshKey,
     deleteSshKey,

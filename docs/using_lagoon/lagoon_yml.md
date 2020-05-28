@@ -54,6 +54,10 @@ environments:
             tls-acme: 'true'
             insecure: Redirect
             hsts: max-age=31536000
+        - "example.ch":
+            annotations:
+              nginx.ingress.kubernetes.io/permanent-redirect: https://www.example.ch$request_uri
+        - www.example.ch
     types:
       mariadb: mariadb
     templates:
@@ -160,7 +164,6 @@ In the `"www.example.com"` example repeated below, we see two more options \(als
     If you plan to switch from a SSL certificate signed by a Certificate Authority \(CA\) to a Let's Encrypt certificate, it's best get in touch with your Lagoon administrator to oversee the transition. There are [known issues](https://github.com/tnozicka/openshift-acme/issues/68) during the transition. The workaround would be manually removing the CA certificate and then triggering the Let's Encrypt process.
 
 
-
 ```
      - "www.example.com":
             tls-acme: 'true'
@@ -168,6 +171,31 @@ In the `"www.example.com"` example repeated below, we see two more options \(als
             hsts: max-age=31536000
 ```
 
+#### Ingress annotations (Redirects)
+
+!!!hint
+    Route/Ingress annotations are only supported by projects that deploy into clusters that run nginx-ingress controllers! Check with your Lagoon administrator if this is supported.
+
+
+* `annotations` can be a yaml map of [annotations supported by the nginx-ingress controller](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/), this is specifically usefull for easy redirects:
+
+
+In this example any requests to `example.ch` will be redirected to `https://www.example.ch` with keeping folders or query parameters intact (`example.com/folder?query` -> `https://www.example.ch/folder?query`)
+
+```
+        - "example.ch":
+            annotations:
+              nginx.ingress.kubernetes.io/permanent-redirect: https://www.example.ch$request_uri
+        - www.example.ch
+```
+
+You can of course also redirect to any other URL not hosted on Lagoon, this will direct requests to `example.de` to `https://www.google.com`
+
+```
+        - "example.de":
+            annotations:
+              nginx.ingress.kubernetes.io/permanent-redirect: https://www.google.com
+```
 
 #### `environments.[name].types`
 
@@ -313,26 +341,25 @@ There are 2 ways to define the password used for your registry user.
 * Create an environment variable in the Lagoon API \(see more on [Environment Variables](environment_variables.md)\). The name of the variable you create can then be set as the password:
 
 ```
-  container-registries:
+container-registries:
   my-custom-registry:
     username: myownregistryuser
     password: MY_OWN_REGISTRY_PASSWORD
     url: my.own.registry.com
-  ```
+```
 
 * Define it directly in the `.lagoon.yml` file in plain text:
 
 ```
-  container-registries:
+container-registries:
   docker-hub:
     username: dockerhubuser
     password: MySecretPassword
-  ```
+```
 
 **Consuming a custom or private container registry image**
 
 To consume a custom or private container registry image, you need to update the service inside your `docker-compose.yml` file to use a build context instead of defining an image:
-
 
 ```
 services:
@@ -342,12 +369,8 @@ services:
       dockerfile: Dockerfile.mariadb
 ```
 
-
 Once the `docker-compose.yml` file has been updated to use a build, you need to create the `Dockerfile.<service>` and then set your private image as the `FROM <repo>/<name>:<tag>`
-
 
 ```text
 FROM dockerhubuser/my-private-database:tag
 ```
-
-

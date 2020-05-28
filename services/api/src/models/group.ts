@@ -7,9 +7,10 @@ import { User } from './user';
 
 import {
   getProjectsData,
-  availabilityProjectsCosts,
   extractMonthYear
 } from '../resources/billing/helpers';
+
+import { getProjectsCosts } from '../resources/billing/billingCalculations';
 
 import ProjectModel, { Project } from './project';
 import BillingModel from './billing'
@@ -39,6 +40,7 @@ export interface Group {
 export interface BillingGroup extends Group {
   currency?: string;
   billingSoftware?: string;
+  type?: string;
 }
 
 interface GroupMembership {
@@ -614,10 +616,15 @@ export const Group = (clients) => {
       id, name, availability, month, year
     }));
 
+    const availability = initialProjects[0].availability;
+
     // Check that all projects have availability set
-    const availabilityCheck = initialProjects.reduce((acc, project) => [...acc, ...(project.availability === '' ? [project.name] : [])], []);
+    const availabilityCheck = initialProjects.reduce((acc, project) => [
+      ...acc,
+      ...(project.availability === '' && project.availability == availability ? [project.name] : [])
+    ], []);
     if(availabilityCheck.length > 0){
-      throw new Error(`Project(s): [${availabilityCheck.join(', ')}] must have availability set.`);
+      throw new Error(`Project(s): [${availabilityCheck.join(', ')}] must all have availability set and be the same in a billing group.`);
     }
 
     const environment = EnvironmentModel(clients);
@@ -627,33 +634,17 @@ export const Group = (clients) => {
 
     // Get any modifiers for the month
     const modifiers = await BillingModel(clients).getBillingModifiers(groupInput, yearMonth);
+    const costs = getProjectsCosts(currency, projects, modifiers);
 
-    // Calculate costs based on Availability - All projects in the billing group should have the same availability
-    const high = availabilityProjectsCosts(
-      projects,
-      'HIGH',
-      currency,
-      modifiers
-    );
-    const standard = availabilityProjectsCosts(
-      projects,
-      'STANDARD',
-      currency,
-      modifiers
-    );
-
-    // Mark the returned BillingGroupCosts as 'HIGH' | 'STANDARD'
-    const availability = (high as availabilityProjectCostsType).projects
-      ? 'HIGH'
-      : 'STANDARD';
+    getProjectsCosts(currency, projects, modifiers)
 
     // Return the JSON
-    return { id, name, yearMonth, currency, availability, ...high, ...standard };
+    return { id, name, yearMonth, currency, availability, ...costs };
   };
 
   const allBillingGroupCosts = async yearMonth => {
     const allGroups: Group[] = await loadAllGroups();
-    const billingGroups = allGroups.filter(({ type }) => type === 'billing');
+    const billingGroups = allGroups.filter(({ type }) => type === 'billing' || type === 'billing-poly');
     const billingGroupCosts = [];
     for (let i = 0; i < billingGroups.length; i++) {
       const costs = await billingGroupCost(

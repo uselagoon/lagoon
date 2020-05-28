@@ -393,6 +393,7 @@ mocks.Query = () => ({
   projectByName: () => mocks.Project(),
   groupByName: () => mocks.Group(),
   projectByGitUrl: () => mocks.Project(),
+  projectsByMetadata: () => mocks.Project(),
   environmentByName: () => mocks.Environment(),
   environmentByOpenshiftProjectName: () => mocks.Environment(),
   userCanSshToEnvironment: () => mocks.Environment(),
