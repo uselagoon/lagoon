@@ -256,10 +256,25 @@ export const EnvironmentModel = (clients) => {
     yearMonth,
   ) => {
     const interested_date = yearMonth ? new Date(yearMonth) : new Date();
-    const year = interested_date.getFullYear();
-    const month = interested_date.getMonth() + 1;
+    const year = interested_date.getUTCFullYear();
+    const month = interested_date.getUTCMonth() + 1; // internally months start with 0, we need them with 1
+
     // This generates YYYY-MM
     const interested_year_month = `${year}-${month < 10 ? `0${month}` : month}`;
+
+    // generate a string of the date on the very first second of the month
+    const interested_date_begin_string = interested_date.toISOString();
+
+    // generate a string of the date on the very last second of the month
+    const interested_date_end = interested_date;
+    interested_date_end.setUTCMonth(interested_date.getUTCMonth() + 1)
+    interested_date_end.setUTCDate(0); // setting the date to 0 will select 1 day before the actual date
+    interested_date_end.setUTCHours(23);
+    interested_date_end.setUTCMinutes(59);
+    interested_date_end.setUTCSeconds(59);
+    interested_date_end.setUTCMilliseconds(999);
+    const interested_date_end_string = interested_date_end.toISOString();
+
     try {
       const result = await esClient.search({
         index: `router-logs-${openshiftProjectName}-*`,
@@ -293,11 +308,11 @@ export const EnvironmentModel = (clients) => {
             "hourly": {
               "date_histogram": {
                 "field": "@timestamp",
-                "interval": "hour",
+                "fixed_interval": "1h",
                 "min_doc_count": 0,
                 "extended_bounds": {
-                  "min": `${interested_year_month}-01`,
-                  "max": `${interested_year_month}-31` // elasticsearch is clever enough to realize if a month does not have 31 days.
+                  "min": interested_date_begin_string,
+                  "max": interested_date_end_string
                 }
               },
               "aggs": {
