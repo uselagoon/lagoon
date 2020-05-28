@@ -19,6 +19,7 @@ export const CURRENCIES = {
 export const AVAILABILITY = {
   STANDARD: 'STANDARD',
   HIGH: 'HIGH',
+  POLYSITE: 'POLYSITE'
 };
 
 export const USD = {
