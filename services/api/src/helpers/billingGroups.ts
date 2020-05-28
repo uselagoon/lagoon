@@ -53,7 +53,7 @@ export const getAllProjectsNotInBillingGroup = async () => {
   const projects = await projectHelpers(sqlClient).getAllProjectsNotIn(pids);
 
   sqlClient.destroy()
-  
+
   return projects.map(project => ({
     id: project.id,
     name: project.name,

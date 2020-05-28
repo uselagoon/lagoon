@@ -1069,6 +1069,17 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  add_metadata_to_project()
+
+  BEGIN
+    ALTER TABLE project
+    ADD metadata JSON DEFAULT '{}' CHECK (JSON_VALID(metadata));
+    UPDATE project
+    SET metadata = '{}';
+  END;
+$$
+
 DELIMITER ;
 
 -- If adding new procedures, add them to the bottom of this list
@@ -1119,6 +1130,7 @@ CALL add_active_systems_misc_to_project();
 CALL add_container_registry_scope_to_env_vars();
 CALL add_internal_container_registry_scope_to_env_vars();
 CALL update_user_password();
+CALL add_metadata_to_project();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;
