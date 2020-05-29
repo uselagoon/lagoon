@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { bp, color, fontSize } from 'lib/variables';
 import useSortableData from './sortedItems';
-import Accordion from '../Accordion';
+import Accordion from 'components/Accordion';
+import ProblemsLink from 'components/link/Problems';
 
 const ProblemsByIdentifier = ({ problems }) => {
-    const { sortedItems, requestSort, getClassNamesFor } = useSortableData(problems);
+    const { sortedItems, requestSort } = useSortableData(problems);
 
     const [currentItems, setCurrentItems] = useState(sortedItems);
     const [problemTerm, setProblemTerm] = useState('');
@@ -65,90 +66,85 @@ const ProblemsByIdentifier = ({ problems }) => {
             <button
                 type="button"
                 onClick={() => handleSort('identifier')}
-                className={`button-sort ${getClassNamesFor('identifier')}`}
+                className={`button-sort identifier`}
             >
-              Problem id
+              Problem identifier
             </button>
             <button
                 type="button"
-                onClick={() => handleSort('created')}
-                className={`button-sort ${getClassNamesFor('created')}`}
+                onClick={() => handleSort('source')}
+                className={`button-sort source`}
             >
-              Created
+                Source
             </button>
             <button
                 type="button"
                 onClick={() => handleSort('associatedPackage')}
-                className={`button-sort ${getClassNamesFor('associatedPackage')}`}
+                className={`button-sort associatedPackage`}
             >
               Package
             </button>
             <button
                 type="button"
-                onClick={() => handleSort('source')}
-                className={`button-sort ${getClassNamesFor('source')}`}
-            >
-              Source
-            </button>
-            <button
-                type="button"
                 onClick={() => handleSort('severity')}
-                className={`button-sort ${getClassNamesFor('severity')}`}
+                className={`button-sort severity`}
             >
               Severity
             </button>
             <button
                 type="button"
-                onClick={() => handleSort('severityScore')}
-                className={`button-sort ${getClassNamesFor('severityScore')}`}
+                onClick={() => handleSort('projectsAffected')}
+                className={`button-sort projectsAffected`}
             >
-              Severity Score
+              Projects affected
             </button>
         </div>
         <div className="data-table">
           {!currentItems.length && <div className="data-none">No Problems</div>}
-            {currentItems.map((problem) => {
+            {currentItems.map((item) => {
+                const {identifier, problem, projects, problems } = item;
+                const { source, associatedPackage, severity } = problem;
+                const columns = {
+                    identifier: identifier,
+                    source, associatedPackage, severity,
+                    projectsAffected: projects.filter(p => p != null).length
+                };
+
                 return (
                     <Accordion
-                        key={problem.id}
-                        headings={problem}
-                        defaultValue={false}
-                        className="data-row row-heading">
+                      key={identifier}
+                      columns={columns}
+                      defaultValue={false}
+                      className="data-row row-heading"
+                    >
                         <div className="expanded-wrapper">
                             <div className="fieldWrapper">
+                                <label>Problem Description</label>
+                                {problem &&
+                                    <div className="description">{problem.description}</div>
+                                }
+                            </div>
+                            <div className="fieldWrapper">
                                 <label>Projects affected:</label>
-                                {problem.projects.map(project => {
-                                    return <div className="name">{project ? project.name : ''}</div>
+                                {projects.map(project => {
+                                    const envName = project.environments.map(e => e.name) || {};
+                                    return (
+                                        <div key={project && project.id} className="name">
+                                            <ProblemsLink
+                                                environmentSlug={project && project.openshiftProjectName}
+                                                projectSlug={project ? project.name : ''}
+                                                className="problems-link"
+                                            >
+                                                {project ? `${project.name}` : ''}{envName ? ` : ${envName[0]}` : ''}
+                                            </ProblemsLink>
+                                        </div>
+                                    )
                                 })}
                             </div>
                             <div className="fieldWrapper">
-                                <label>Problem Description</label>
-                                {problem.problems &&
-                                  <div className="description">{problem.problems[0].description}</div>
-                                }
-                            </div>
-                            <div className="fieldWrapper">
-                                <label>Problem Version</label>
-                                {problem.problems &&
-                                   <div className="version">{problem.problems[0].version}</div>
-                                }
-                            </div>
-                            <div className="fieldWrapper">
-                                <label>Problem Fixed in Version</label>
-                                {problem.problems &&
-                                  <div className="fixed-version">{problem.problems[0].fixedVersion}</div>
-                                }
-                            </div>
-                            <div className="fieldWrapper">
                                 <label>Associated link (CVE description etc.)</label>
-                                {problem.problems &&
-                                   <div className="links"><a href={problem.problems[0].links} target="_blank">{problem.problems[0].links}</a></div>
-                                }
-                            </div>
-                            <div className="fieldWrapper">
-                                <label>Raw Data</label>
-                                {problem.problems &&
-                                  <div className="data">{problem.problems[0].data}</div>
+                                {problem &&
+                                   <div className="links"><a href={problem.links} target="_blank">{problem.links}</a></div>
                                 }
                             </div>
                         </div>
@@ -159,10 +155,8 @@ const ProblemsByIdentifier = ({ problems }) => {
     <style jsx>{`
       .header {
         @media ${bp.wideUp} {
-          align-items: center;
           display: flex;
           margin: 0 0 14px;
-          padding-right: 40px;
         }
         @media ${bp.smallOnly} {
           flex-wrap: wrap;
@@ -181,6 +175,21 @@ const ProblemsByIdentifier = ({ problems }) => {
             display: block;
           }
         }
+        .identifier {
+          width: 38%;
+        }
+        .source {
+          width: 12%;
+        }
+        .associatedPackage {
+          width: 12%;
+        }
+        .severity {
+          width: 11%;
+        }
+        .projectsAffected {
+          width: 17.5%;
+        }
       }
 
       input#filter {
@@ -189,7 +198,6 @@ const ProblemsByIdentifier = ({ problems }) => {
         padding: 10px 20px;
         margin: 0;
       }
-
       .button-sort {
         color: #5f6f7a;
         font-family: 'source-code-pro',sans-serif;
@@ -197,10 +205,14 @@ const ProblemsByIdentifier = ({ problems }) => {
         font-size: 0.8125rem;
         line-height: 1.4;
         text-transform: uppercase;
-        padding-left: 20px;
         border: none;
         background: none;
         cursor: pointer;
+        text-align: left;
+
+        &.identifier {
+          padding-left: 20px;
+        }
 
         &.ascending:after {
           content: ' \\25B2';
@@ -290,7 +302,10 @@ const ProblemsByIdentifier = ({ problems }) => {
             padding: 20px;
             width: 100%;
         }
-    }
+      }
+      .problems-link {
+        color: #2bc0d8;
+      }
     `}</style>
     </div>
     );

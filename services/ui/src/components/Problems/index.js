@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { bp, color, fontSize } from 'lib/variables';
 import useSortableData from './sortedItems';
-import Accordion from '../Accordion';
+import Accordion from 'components/Accordion';
 
-const Problems = ({ problems, meta }) => {
+const Problems = ({ problems }) => {
     const { sortedItems, requestSort, getClassNamesFor } = useSortableData(problems);
 
     const [currentItems, setCurrentItems] = useState(sortedItems);
@@ -71,17 +71,10 @@ const Problems = ({ problems, meta }) => {
             </button>
             <button
                 type="button"
-                onClick={() => handleSort('created')}
-                className={`button-sort ${getClassNamesFor('created')}`}
+                onClick={() => handleSort('severity')}
+                className={`button-sort ${getClassNamesFor('severity')}`}
             >
-              Created
-            </button>
-            <button
-                type="button"
-                onClick={() => handleSort('associatedPackage')}
-                className={`button-sort ${getClassNamesFor('associatedPackage')}`}
-            >
-              Package
+              Severity
             </button>
             <button
                 type="button"
@@ -92,10 +85,10 @@ const Problems = ({ problems, meta }) => {
             </button>
             <button
                 type="button"
-                onClick={() => handleSort('severity')}
-                className={`button-sort ${getClassNamesFor('severity')}`}
+                onClick={() => handleSort('created')}
+                className={`button-sort ${getClassNamesFor('created')}`}
             >
-              Severity
+              Created
             </button>
             <button
                 type="button"
@@ -104,14 +97,37 @@ const Problems = ({ problems, meta }) => {
             >
               Severity Score
             </button>
+            <button
+                type="button"
+                onClick={() => handleSort('associatedPackage')}
+                className={`button-sort ${getClassNamesFor('associatedPackage')}`}
+            >
+              Package
+            </button>
         </div>
         <div className="data-table">
           {!currentItems.length && <div className="data-none">No Problems</div>}
             {currentItems.map((problem) => {
+
+                const {
+                    id,
+                    description,
+                    environmentId,
+                    project,
+                    data,
+                    service,
+                    deleted,
+                    version,
+                    fixedVersion,
+                    links,
+                    __typename,
+                    ...selectedColumns
+                } = problem;
+
                 return (
                     <Accordion
                         key={problem.id}
-                        headings={problem}
+                        columns={selectedColumns}
                         meta={problem.project}
                         defaultValue={false}
                         className="data-row row-heading">

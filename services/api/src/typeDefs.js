@@ -136,6 +136,7 @@ const typeDefs = gql`
   
   type ProblemIdentifier {
     identifier: String
+    problem: Problem
     projects: [Project]
     problems: [Problem]
   }
@@ -416,6 +417,10 @@ const typeDefs = gql`
     """
     developmentEnvironmentsLimit: Int
     """
+    Name of the OpenShift Project/Namespace
+    """
+    openshiftProjectName: String
+    """
     Deployed Environments for this Project
     """
     environments(
@@ -680,7 +685,7 @@ const typeDefs = gql`
     """
     Returns all Problems matching given filter (all if no filter defined)
     """
-    allProblems(createdAfter: String, project: Int, environment: Int, identifier: String, severity: [ProblemSeverityRating]): [ProblemIdentifier]
+    allProblems(source: [String], project: Int, environment: Int, identifier: String, severity: [ProblemSeverityRating]): [ProblemIdentifier]
     """
     Returns all Groups matching given filter (all if no filter defined)
     """

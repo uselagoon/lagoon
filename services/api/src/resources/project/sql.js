@@ -39,7 +39,7 @@ const Sql /* : SqlObj */ = {
       .toString(),
   selectProjectByEnvironmentId: (environmentId) => 
     knex('environment as e')
-      .select('e.id', 'e.project', 'e.openshift_project_name', 'p.name')
+      .select('e.id', {environmentName: 'e.name'}, 'e.project', 'e.openshift_project_name', 'p.name')
       .leftJoin('project as p', 'p.id', '=', 'e.project')
       .where('e.id', environmentId)
       .toString(),

@@ -1,47 +1,55 @@
 import React, { useState, useEffect } from 'react';
-import Select from 'react-select';
+import Select, { components } from 'react-select';
+const R = require('ramda');
 import { bp } from 'lib/variables';
 import { color } from 'lib/variables';
 
 /**
- * Displays the filters for problems page
+ * Displays a select filter and sends state back to parent in a callback.
  */
-const ProjectFilter = ({ title, options, onFilterChange, currentValues }) => {
-
-    const handleEnvironmentChange = (environment) => {
-      onFilterChange(environment);
+const SelectFilter = ({ title, options, onFilterChange, currentValues, placeholder, isMulti}) => {
+    placeholder = placeholder || '';
+    
+    const handleChange = (values) => {
+      onFilterChange(values);
     };
 
-    let projectOptions = options && options.map((project) => {
-        return {
-            value: project.environments.length ? project.environments[0].id : 0,
-            label: project.environments.length ? project.name : `${project.name} ": No production environment"`
-        };
-    });
+    const selectStyles = {
+        container: styles => ({
+            ...styles,
+            width: '40%'
+        }),
+        control: styles => ({ ...styles, backgroundColor: 'white' }),
+        option: (styles, { data, isDisabled, isFocused, isSelected }) => {
+            return {
+                ...styles,
+                backgroundColor: isDisabled && 'grey',
+                cursor: isDisabled ? 'not-allowed' : 'default',
+            };
+        },
+    };
 
     return (
       <>
-        <h4>{title}</h4>
+        <label id={`${title.toLowerCase()}-label`} className="title">{title}</label>
         <Select
-            name="project-filter"
-            placeholder="Project"
-            options={projectOptions && projectOptions}
-            onChange={handleEnvironmentChange}
-            value={{label: currentValues.label, value: currentValues.value}}
+            instanceId={title.toLowerCase()}
+            aria-label={title}
+            name={title.toLowerCase()}
+            styles={selectStyles}
+            closeMenuOnSelect={false}
+            options={options}
+            isMulti={isMulti}
+            onChange={handleChange}
+            // value={{label: currentValues.label, value: currentValues.value}}
         />
         <style jsx>{`
-            .filters {
-              margin: 38px calc((100vw / 16) * 1);
-              @media ${bp.wideUp} {
-                margin: 38px calc((100vw / 16) * 2);
-              }
-              @media ${bp.extraWideUp} {
-                margin: 38px calc((100vw / 16) * 3);
-              }
+            .title {
+              margin: auto 0;
             }
         `}</style>
       </>
     );
 };
 
-export default ProjectFilter;
+export default SelectFilter;

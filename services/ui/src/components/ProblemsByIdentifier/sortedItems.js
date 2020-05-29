@@ -3,27 +3,32 @@ import moment from 'moment';
 import hash from 'object-hash';
 
 const useSortableData = (initialItems) => {
-    const initialConfig = {key: 'identifier', direction: 'ascending'};
+    const initialConfig = {key: 'severity', direction: 'ascending'};
     const [sortConfig, setSortConfig] = React.useState(initialConfig);
     const [currentItems, setCurrentItems] = useState(initialItems);
-
-    const getClassNamesFor = (name) => {
-        if (!sortConfig) {
-            return;
-        }
-
-        return sortConfig.key === name ? sortConfig.direction : undefined;
-    };
 
     const sortedItems = React.useMemo(() => {
         let sortableItems = [...currentItems];
 
         if (sortConfig !== null) {
             sortableItems.sort((a, b) => {
-                let aParsed = sortConfig.key === 'created' ? new moment(a[sortConfig.key]).format('YYYYMMDD')
-                        : a[sortConfig.key].toString().toLowerCase().trim();
-                let bParsed = sortConfig.key === 'created' ? new moment(b[sortConfig.key]).format('YYYYMMDD')
-                        : b[sortConfig.key].toString().toLowerCase().trim();
+                let aParsed, bParsed = '';
+
+                if (sortConfig.key === 'identifier') {
+                    aParsed = a[sortConfig.key].toString().toLowerCase().trim();
+                }
+                else {
+                    let problem = a.problem[sortConfig.key];
+                    aParsed = problem.toString().toLowerCase().trim();
+                }
+
+                if (sortConfig.key === 'identifier') {
+                    bParsed = b[sortConfig.key].toString().toLowerCase().trim();
+                }
+                else {
+                    let problem = b.problem[sortConfig.key];
+                    bParsed = problem.toString().toLowerCase().trim();
+                }
 
                 if (aParsed < bParsed) {
                     return sortConfig.direction === 'ascending' ? -1 : 1;
@@ -56,7 +61,7 @@ const useSortableData = (initialItems) => {
        return { sortedItems: currentItems };
     };
 
-    return { sortedItems: currentItems, getClassNamesFor, requestSort };
+    return { sortedItems: currentItems, requestSort };
 };
 
 export default useSortableData;

@@ -28,11 +28,15 @@ const standardEnvironmentReturn = {
 
 const Sql /* : SqlObj */ = {
   selectAllProblems: ({
+    source = [],
     environmentId,
     severity = [],
   }) => {
     let q = knex('environment_problem').select(standardEnvironmentReturn)
     .where('deleted', '=', '0000-00-00 00:00:00');
+    if (source.length > 0) {
+      q.whereIn('source', source);
+    }
     if (environmentId) {
       q.where('environment', environmentId);
     }

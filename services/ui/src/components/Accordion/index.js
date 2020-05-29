@@ -2,36 +2,31 @@ import React, { useState, Fragment } from "react";
 import PropTypes from "prop-types";
 import moment from 'moment';
 
-const Accordion = ({ children, defaultValue = true, className = "", onToggle, headings, meta }) => {
+const Accordion = ({ children, defaultValue = true, className = "", onToggle, columns }) => {
     const [visibility, setVisibility] = useState(defaultValue);
 
     return (
         <div className={className}>
-            {meta &&
-            <div className="accordion-meta-heading">
-                <span>Project: {meta.name}</span>
-                <span>Id: {meta.id}</span>
-            </div>
-            }
             <div className="accordion-heading" onClick={() => {
                 setVisibility(!visibility);
                 if (onToggle) onToggle(!visibility);
             }}>
-                <div className="problemid">{headings.identifier}</div>
-                <div className="created">
-                    {moment
-                        .utc(headings.created)
-                        .local()
-                        .format('DD MM YYYY, HH:mm:ss')}
-                </div>
-                {headings.problems &&
-                  <>
-                    <div className="associatedPackage">{headings.problems[0].associatedPackage}</div>
-                    <div className="source">{headings.problems[0].source}</div>
-                    <div className="severity">{headings.problems[0].severity}</div>
-                    <div className="severityscore">{headings.problems[0].severityScore}</div>
-                  </>
-                }
+                {Object.keys(columns).map((item, i) => {
+                    if (item === 'created') {
+                        return (<div key={i} className="created">
+                            {moment
+                                .utc(columns[item])
+                                .local()
+                                .format('DD MM YYYY, HH:mm:ss')}
+                        </div>)
+                    }
+                    else if (item === 'projects') {
+                        return <div key={i} className="environmentsAffected">{columns[item].length}</div>
+                    }
+                    else {
+                        return <div key={i} className={item}>{columns[item]}</div>
+                    }
+                })}
             </div>
 
             {visibility ? <Fragment>{children}</Fragment> : null}
@@ -45,9 +40,30 @@ const Accordion = ({ children, defaultValue = true, className = "", onToggle, he
                 .accordion-heading {
                     display: flex;
                     justify-content: space-between;
-                    padding: 20px;
+                    padding: 20px 12px;
                     border: 1px solid #efefef;
                     cursor: pointer;
+
+                    > div {
+                      padding: 0 6px;
+                    }
+
+                    .identifier {
+                      width: 40%;
+                    }
+                    .source {
+                      width: 15%;
+                    }
+                    .associatedPackage {
+                      width: 15%;
+                    }
+                    .severity {
+                      width: 12.5%;
+                    }
+                    .projectsAffected {
+                      width: 17.5%;
+                      text-align: right;
+                    }
                 }
             `}</style>
         </div>
@@ -55,9 +71,11 @@ const Accordion = ({ children, defaultValue = true, className = "", onToggle, he
 };
 
 Accordion.propTypes = {
-    className: PropTypes.string,
     children: PropTypes.any.isRequired,
+    defaultValue: PropTypes.bool,
+    className: PropTypes.string,
     onToggle: PropTypes.func,
+    columns: PropTypes.any.isRequired
 };
 
 export default Accordion;

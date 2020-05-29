@@ -8,7 +8,6 @@ const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
 const { createMiscTask } = require('@lagoon/commons/src/tasks');
 const environmentHelpers = require('../environment/helpers');
 const Sql = require('./sql');
-const projectSql = require('../project/sql');
 const projectHelpers = require('../project/helpers');
 
 const {
@@ -35,7 +34,6 @@ const getAllProblems = async (
     keycloakGrant,
   }
 ) => {
-console.log('args: ', args);
 
   let where;
   try {
@@ -56,10 +54,11 @@ console.log('args: ', args);
 
     let rows = [];
 
-    if (!R.isEmpty(args) && (!R.isEmpty(args.environment) || !R.isEmpty(args.severity))) {
+    if (!R.isEmpty(args) && (!R.isEmpty(args.source) || !R.isEmpty(args.environment) || !R.isEmpty(args.severity))) {
       rows = await query(
         sqlClient,
         Sql.selectAllProblems({
+          source: args.source,
           environmentId: args.environment,
           severity: args.severity,
         })
@@ -72,31 +71,33 @@ console.log('args: ', args);
 
     let groupByProblemId = rows.reduce(function (obj, problem) {
         obj[problem.identifier] = obj[problem.identifier] || [];
+        problem.environmentId = problem.environment || '';
         obj[problem.identifier].push(problem);
         return obj;
     }, {});
 
     let problems = Object.keys(groupByProblemId).map(async (key) => {
 
-        let projects = [];
-        let problem = groupByProblemId[key];
-        problem.map(async (problem) => {
-            let p = await projects.push(projectHelpers(sqlClient).getProjectByEnvironmentId(problem.environment));
+        let projects, problems = groupByProblemId[key];
+
+        projects = problems.map(async (problem) => {
+            const { id, project,
+                openshiftProjectName, name, environmentName} = await projectHelpers(sqlClient).getProjectByEnvironmentId(problem.environment) || {};
 
             await hasPermission('project', 'view', {
-                project: p.id,
+                project: !R.isNil(project) && project,
             });
 
-            return !R.isEmpty(p);
+            return (!R.isNil(id)) && {id, project, openshiftProjectName, name, environments: {name: environmentName}};
         });
 
-            return {identifier: key, ...problem, projects: await Promise.all(projects), problems: await groupByProblemId[key]};
+        const {...problem} = R.prop(0, groupByProblemId[key]);
+        return {identifier: key, problem: {...problem}, projects: await Promise.all(projects), problems: await groupByProblemId[key]};
     });
 
     const withProjects = await Promise.all(problems);
-
-    const sorted = R.sort(R.descend(R.prop('identifier')), withProjects);
-    return sorted.map(row => ({ environmentId: row.environment, ...row }));
+    const sorted = R.sort(R.descend(R.prop('severity')), withProjects);
+    return sorted.map(row => ({ ...row }));
 };
 
 const getProblemsByEnvironmentId = async (

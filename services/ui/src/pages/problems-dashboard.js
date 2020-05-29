@@ -1,17 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useQuery } from '@apollo/react-hooks';
 import * as R from 'ramda';
 import Head from 'next/head';
 import { Query } from 'react-apollo';
 import MainLayout from 'layouts/MainLayout';
 import AllProblemsQuery from 'lib/query/AllProblems';
-import AllProjectsAndEnvironmentsQuery from 'lib/query/AllProjectsAndEnvironments';
-import ProblemsByIdentifier from "../components/ProblemsByIdentifier";
-import ProjectFilter from 'components/Filters';
+import ProblemsByIdentifier from "components/ProblemsByIdentifier";
+import SelectFilter from 'components/Filters';
 import withQueryLoadingNoHeader from 'lib/withQueryLoadingNoHeader';
 import withQueryNoHeaderError from 'lib/withQueryNoHeaderError';
 import { bp } from 'lib/variables';
-import Select from 'react-select';
 
 const severityOptions = [
     { value: 'CRITICAL', label: 'Critical' },
@@ -23,33 +20,31 @@ const severityOptions = [
     { value: 'NONE', label: 'None'},
 ];
 
+const sourceOptions = [
+    { value: 'drutiny', label: 'Drutiny' },
+    { value: 'harbor', label: 'Harbor' },
+];
+
 /**
  * Displays the problems overview page.
  */
 const ProblemsDashboardPage = () => {
-  const [environmentID, setEnvironmentID] = React.useState(0);
-  const [environmentLabel, setEnvironmentLabel] = React.useState('All');
+  const [source, setSource] = React.useState([]);
   const [severityOption, setSeverityOption] = React.useState([]);
-  const [severityLabel, setSeverityLabel] = React.useState([]);
 
-  const handleProjectChange = (environment) => {
-    setEnvironmentID(environment.value);
-    setEnvironmentLabel(environment.label);
+  const handleSourceChange = (source) => {
+    if (source) {
+      let values = source.map(s => s.value);
+      setSource(values);
+    }
   };
 
-  const handleSeverityChange = (option) => {
-    setSeverityOption(severityOption => [...severityOption, option.value]);
-    setSeverityLabel(severityLabel => [...severityLabel, option.label]);
+  const handleSeverityChange = (severity) => {
+      if (severity) {
+        let values = severity.map(s => s.value);
+        setSeverityOption(values);
+      }
   };
-
-  const handleReset = () => {
-    setEnvironmentID(0);
-    setEnvironmentLabel('All');
-    setSeverityOption([]);
-    setSeverityLabel([]);
-  };
-
-  const { data, loading, error } = useQuery(AllProjectsAndEnvironmentsQuery);
 
   return (
   <>
@@ -57,30 +52,28 @@ const ProblemsDashboardPage = () => {
       <title>Problems Dashboard</title>
     </Head>
     <MainLayout>
-        <div className="filters">
+        <div className="filters-wrapper">
             <h2>Problems Dashboard</h2>
-            {loading && "Loading..."}
-            {data && (
-              <ProjectFilter
-                  title="Projects"
-                  options={data.projects && data.projects}
-                  onFilterChange={handleProjectChange}
-                  currentValues={{value: environmentID, label: environmentLabel}}
-                  multi
-              />
-            )}
-          <h4>Severity</h4>
-          <Select
-              name="severity-filter"
-              placeholder="e.g Critical, High, Medium, Low"
-              options={severityOptions}
-              onChange={handleSeverityChange}
-              value={{label: severityLabel, value: severityOption}}
-              multi
-          />
-          <button type="button" onClick={handleReset}>Reset</button>
+            <div className="filters">
+                <SelectFilter
+                    title="Source"
+                    options={sourceOptions}
+                    onFilterChange={handleSourceChange}
+                    // currentValues={{label: sourceLabel, value: sourceID}}
+                    placeholder="e.g. Drutiny, Harbor"
+                    isMulti
+                />
+                <SelectFilter
+                    title="Severity"
+                    options={severityOptions}
+                    onFilterChange={handleSeverityChange}
+                    // currentValues={{label: severityLabel, value: severityOption}}
+                    placeholder="e.g Critical, High, Medium, Low"
+                    isMulti
+                />
+            </div>
             <style jsx>{`
-                .filters {
+                .filters-wrapper {
                   margin: 38px calc((100vw / 16) * 1);
                   @media ${bp.wideUp} {
                     margin: 38px calc((100vw / 16) * 2);
@@ -88,13 +81,17 @@ const ProblemsDashboardPage = () => {
                   @media ${bp.extraWideUp} {
                     margin: 38px calc((100vw / 16) * 3);
                   }
+                  .filters {
+                    display: flex;
+                    justify-content: space-between;
+                  }
                 }
             `}</style>
         </div>
             <Query
                 query={AllProblemsQuery}
                 variables={{
-                    environment: environmentID,
+                    source: source && source,
                     severity: severityOption
                 }}
                 displayName="AllProblemsQuery"
