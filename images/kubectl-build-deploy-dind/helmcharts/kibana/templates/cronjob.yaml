@@ -76,5 +76,8 @@ spec:
             - effect: NoSchedule
               key: lagoon/build
               operator: Exists
+            - effect: NoSchedule
+              key: lagoon.sh/build
+              operator: Exists
             {{- toYaml $.Values.tolerations | nindent 12 }}
 {{- end }}
