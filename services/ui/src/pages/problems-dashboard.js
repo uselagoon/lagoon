@@ -33,17 +33,13 @@ const ProblemsDashboardPage = () => {
   const [severityOption, setSeverityOption] = React.useState([]);
 
   const handleSourceChange = (source) => {
-    if (source) {
-      let values = source.map(s => s.value);
+      let values = source && source.map(s => s.value) || [];
       setSource(values);
-    }
   };
 
   const handleSeverityChange = (severity) => {
-      if (severity) {
-        let values = severity.map(s => s.value);
-        setSeverityOption(values);
-      }
+      let values = severity && severity.map(s => s.value) || [];
+      setSeverityOption(values);
   };
 
   return (
@@ -59,16 +55,12 @@ const ProblemsDashboardPage = () => {
                     title="Source"
                     options={sourceOptions}
                     onFilterChange={handleSourceChange}
-                    // currentValues={{label: sourceLabel, value: sourceID}}
-                    placeholder="e.g. Drutiny, Harbor"
                     isMulti
                 />
                 <SelectFilter
                     title="Severity"
                     options={severityOptions}
                     onFilterChange={handleSeverityChange}
-                    // currentValues={{label: severityLabel, value: severityOption}}
-                    placeholder="e.g Critical, High, Medium, Low"
                     isMulti
                 />
             </div>
@@ -91,7 +83,7 @@ const ProblemsDashboardPage = () => {
             <Query
                 query={AllProblemsQuery}
                 variables={{
-                    source: source && source,
+                    source: source,
                     severity: severityOption
                 }}
                 displayName="AllProblemsQuery"
@@ -100,9 +92,22 @@ const ProblemsDashboardPage = () => {
                     withQueryLoadingNoHeader,
                     withQueryNoHeaderError
                 )(({data: { problems }}) => {
-                  return (
+                    const critical = problems.filter(p => p.problem.severity === 'CRITICAL').length;
+                    const high = problems.filter(p => p.problem.severity === 'HIGH').length;
+                    const medium = problems.filter(p => p.problem.severity === 'MEDIUM').length;
+                    const low = problems.filter(p => p.problem.severity === 'LOW').length;
+
+                    return (
                     <div className="content-wrapper">
                         <div className="content">
+                            <div className="overview">
+                                <ul className="overview-list">
+                                    <li className="result"><label>Results: </label>{Object.keys(problems).length} Problems</li>
+                                    <li className="result"><label>High: </label>{high}</li>
+                                    <li className="result"><label>Medium: </label>{medium}</li>
+                                    <li className="result"><label>Low: </label>{low}</li>
+                                </ul>
+                            </div>
                             <ProblemsByIdentifier problems={problems || []}/>
                         </div>
                         <style jsx>{`
@@ -123,6 +128,10 @@ const ProblemsDashboardPage = () => {
                                 }
                                 @media ${bp.extraWideUp} {
                                   margin: 38px calc((100vw / 16) * 3);
+                                }
+
+                                li.result {
+                                  display: inline;
                                 }
                               }
                             }

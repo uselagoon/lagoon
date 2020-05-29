@@ -41,7 +41,6 @@ const SelectFilter = ({ title, options, onFilterChange, currentValues, placehold
             options={options}
             isMulti={isMulti}
             onChange={handleChange}
-            // value={{label: currentValues.label, value: currentValues.value}}
         />
         <style jsx>{`
             .title {
