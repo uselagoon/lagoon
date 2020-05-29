@@ -20,7 +20,7 @@ class RouteMigration extends ApiGroup {
       path: 'apis/dioscuri.amazee.io',
       version: options.version || 'v1',
       groupResources: [],
-      namespaceResources: ['routemigrates'],
+      namespaceResources: ['routemigrates','ingressmigrates'],
     });
     super(options);
   }

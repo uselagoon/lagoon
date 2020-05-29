@@ -4,6 +4,7 @@ import { consumeTasks, initSendToLagoonTasks } from '@lagoon/commons/src/tasks';
 
 import resticRestore from './handlers/resticRestore';
 import kubernetesBuildCancel from "./handlers/kubernetesBuildCancel";
+import ingressMigration from "./handlers/ingressMigration";
 
 initSendToLagoonLogs();
 initSendToLagoonTasks();
@@ -23,6 +24,10 @@ const messageConsumer = async msg => {
 
     case 'kubernetes:build:cancel':
       kubernetesBuildCancel(data);
+      break;
+
+    case 'kubernetes:route:migrate':
+      ingressMigration(data);
       break;
 
     default:

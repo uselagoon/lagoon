@@ -530,7 +530,8 @@ build-list:
 # Define list of all tests
 all-k8s-tests-list:=				features-kubernetes \
 														nginx \
-														drupal
+														drupal \
+														active-standby-kubernetes
 all-k8s-tests = $(foreach image,$(all-k8s-tests-list),k8s-tests/$(image))
 
 # Run all k8s tests
@@ -577,7 +578,7 @@ all-openshift-tests-list:=	features-openshift \
 														bitbucket \
 														nginx \
 														elasticsearch \
-														active-standby
+														active-standby-openshift
 all-openshift-tests = $(foreach image,$(all-openshift-tests-list),openshift-tests/$(image))
 
 .PHONY: openshift-tests
@@ -1028,6 +1029,9 @@ endif
 	local-dev/kubectl create namespace k8up; \
 	local-dev/helm/helm repo add appuio https://charts.appuio.ch; \
 	local-dev/helm/helm upgrade --install -n k8up k8up appuio/k8up; \
+	local-dev/kubectl create namespace dioscuri; \
+	local-dev/helm/helm repo add dioscuri https://raw.githubusercontent.com/amazeeio/dioscuri/ingress/charts ; \
+	local-dev/helm/helm upgrade --install -n dioscuri dioscuri dioscuri/dioscuri ; \
 	local-dev/kubectl create namespace dbaas-operator; \
 	local-dev/helm/helm repo add dbaas-operator https://raw.githubusercontent.com/amazeeio/dbaas-operator/master/charts ; \
 	local-dev/helm/helm upgrade --install -n dbaas-operator dbaas-operator dbaas-operator/dbaas-operator ; \
