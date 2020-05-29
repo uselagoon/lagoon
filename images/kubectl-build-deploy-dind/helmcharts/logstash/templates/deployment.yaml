@@ -6,6 +6,7 @@ metadata:
     {{- include "logstash.labels" . | nindent 4 }}
   annotations:
     {{- include "logstash.annotations" . | nindent 4 }}
+    lagoon.sh/config_map_sha: {{ .Values.configMapSha | quote }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:

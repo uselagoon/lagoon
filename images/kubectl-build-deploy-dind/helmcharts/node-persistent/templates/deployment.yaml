@@ -6,6 +6,7 @@ metadata:
     {{- include "node-persistent.labels" . | nindent 4 }}
   annotations:
     {{- include "node-persistent.annotations" . | nindent 4 }}
+    lagoon.sh/config_map_sha: {{ .Values.configMapSha | quote }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:

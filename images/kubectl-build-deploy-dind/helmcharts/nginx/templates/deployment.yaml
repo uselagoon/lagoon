@@ -6,6 +6,7 @@ metadata:
     {{- include "nginx.labels" . | nindent 4 }}
   annotations:
     {{- include "nginx.annotations" . | nindent 4 }}
+    lagoon.sh/config_map_sha: {{ .Values.configMapSha | quote }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
