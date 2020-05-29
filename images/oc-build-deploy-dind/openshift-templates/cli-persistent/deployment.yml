@@ -65,8 +65,6 @@ objects:
     kind: DeploymentConfig
     metadata:
       creationTimestamp: null
-      annotations:
-        lagoon.sh/config_map_sha: ${CONFIG_MAP_SHA}
       labels:
         service: ${SERVICE_NAME}
         branch: ${SAFE_BRANCH}
@@ -85,6 +83,8 @@ objects:
             service: ${SERVICE_NAME}
             branch: ${SAFE_BRANCH}
             project: ${SAFE_PROJECT}
+          annotations:
+            lagoon.sh/configMapSha: ${CONFIG_MAP_SHA}
         spec:
           tolerations:
             - effect: NoSchedule

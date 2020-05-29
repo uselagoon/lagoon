@@ -49,3 +49,5 @@ affinity: {}
 inPodCronjobs: ""
 
 nativeinPodCronjobs: ""
+
+configMapSha: ""

@@ -71,3 +71,5 @@ cronjobs: ""
 
 tls_acme: false
 routesAutogenerateInsecure: Allow
+
+configMapSha: ""

@@ -6,7 +6,6 @@ metadata:
     {{- include "redis-persistent.labels" . | nindent 4 }}
   annotations:
     {{- include "redis-persistent.annotations" . | nindent 4 }}
-    lagoon.sh/config_map_sha: {{ .Values.configMapSha | quote }}
 spec:
   replicas: {{ .Values.replicaCount }}
   strategy:
@@ -20,6 +19,7 @@ spec:
         {{- include "redis-persistent.labels" . | nindent 8 }}
       annotations:
         {{- include "redis-persistent.annotations" . | nindent  }}
+        lagoon.sh/configMapSha: {{ .Values.configMapSha | quote }}
     spec:
     {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
