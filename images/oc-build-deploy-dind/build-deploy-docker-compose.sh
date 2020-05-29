@@ -266,6 +266,18 @@ if [[ ( "$TYPE" == "pullrequest"  ||  "$TYPE" == "branch" ) && ! $THIS_IS_TUG ==
   BUILD_ARGS=()
 
   set +x # reduce noise in build logs
+  # Get the pre-rollout and post-rollout vars
+    if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
+      LAGOON_PREROLLOUT_DISABLED=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_PREROLLOUT_DISABLED") | "\(.value)"'))
+      LAGOON_POSTROLLOUT_DISABLED=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_POSTROLLOUT_DISABLED") | "\(.value)"'))
+    fi
+    if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
+      LAGOON_PREROLLOUT_DISABLED=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_PREROLLOUT_DISABLED") | "\(.value)"'))
+      LAGOON_POSTROLLOUT_DISABLED=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_POSTROLLOUT_DISABLED") | "\(.value)"'))
+    fi
+  set -x
+
+  set +x # reduce noise in build logs
   # Add environment variables from lagoon API as build args
   if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
     echo "LAGOON_PROJECT_VARIABLES are available from the API"
@@ -375,27 +387,30 @@ fi
 ### RUN PRE-ROLLOUT tasks defined in .lagoon.yml
 ##############################################
 
+if [ "${LAGOON_PREROLLOUT_DISABLED}" != "true" ]; then
+  COUNTER=0
+  while [ -n "$(cat .lagoon.yml | shyaml keys tasks.pre-rollout.$COUNTER 2> /dev/null)" ]
+  do
+    TASK_TYPE=$(cat .lagoon.yml | shyaml keys tasks.pre-rollout.$COUNTER)
+    echo $TASK_TYPE
+    case "$TASK_TYPE" in
+      run)
+          COMMAND=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.command)
+          SERVICE_NAME=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.service)
+          CONTAINER=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.container false)
+          SHELL=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.shell sh)
+          . /oc-build-deploy/scripts/exec-pre-tasks-run.sh
+          ;;
+      *)
+          echo "Task Type ${TASK_TYPE} not implemented"; exit 1;
 
-COUNTER=0
-while [ -n "$(cat .lagoon.yml | shyaml keys tasks.pre-rollout.$COUNTER 2> /dev/null)" ]
-do
-  TASK_TYPE=$(cat .lagoon.yml | shyaml keys tasks.pre-rollout.$COUNTER)
-  echo $TASK_TYPE
-  case "$TASK_TYPE" in
-    run)
-        COMMAND=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.command)
-        SERVICE_NAME=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.service)
-        CONTAINER=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.container false)
-        SHELL=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.shell sh)
-        . /oc-build-deploy/scripts/exec-pre-tasks-run.sh
-        ;;
-    *)
-        echo "Task Type ${TASK_TYPE} not implemented"; exit 1;
+    esac
 
-  esac
-
-  let COUNTER=COUNTER+1
-done
+    let COUNTER=COUNTER+1
+  done
+else
+  echo "pre-rollout tasks are currently disabled LAGOON_PREROLLOUT_DISABLED is set to true"
+fi
 
 ##############################################
 ### CREATE OPENSHIFT SERVICES, ROUTES and SERVICEBROKERS
@@ -1194,23 +1209,28 @@ done
 ### RUN POST-ROLLOUT tasks defined in .lagoon.yml
 ##############################################
 
-COUNTER=0
-while [ -n "$(cat .lagoon.yml | shyaml keys tasks.post-rollout.$COUNTER 2> /dev/null)" ]
-do
-  TASK_TYPE=$(cat .lagoon.yml | shyaml keys tasks.post-rollout.$COUNTER)
-  echo $TASK_TYPE
-  case "$TASK_TYPE" in
-    run)
-        COMMAND=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.command)
-        SERVICE_NAME=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.service)
-        CONTAINER=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.container false)
-        SHELL=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.shell sh)
-        . /oc-build-deploy/scripts/exec-tasks-run.sh
-        ;;
-    *)
-        echo "Task Type ${TASK_TYPE} not implemented"; exit 1;
+# if we have LAGOON_POSTROLLOUT_DISABLED set, don't try to run any pre-rollout tasks
+if [ "${LAGOON_POSTROLLOUT_DISABLED}" != "true" ]; then
+  COUNTER=0
+  while [ -n "$(cat .lagoon.yml | shyaml keys tasks.post-rollout.$COUNTER 2> /dev/null)" ]
+  do
+    TASK_TYPE=$(cat .lagoon.yml | shyaml keys tasks.post-rollout.$COUNTER)
+    echo $TASK_TYPE
+    case "$TASK_TYPE" in
+      run)
+          COMMAND=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.command)
+          SERVICE_NAME=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.service)
+          CONTAINER=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.container false)
+          SHELL=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.shell sh)
+          . /oc-build-deploy/scripts/exec-tasks-run.sh
+          ;;
+      *)
+          echo "Task Type ${TASK_TYPE} not implemented"; exit 1;
 
-  esac
+    esac
 
-  let COUNTER=COUNTER+1
-done
+    let COUNTER=COUNTER+1
+  done
+else
+  echo "post-rollout tasks are currently disabled LAGOON_POSTROLLOUT_DISABLED is set to true"
+fi
