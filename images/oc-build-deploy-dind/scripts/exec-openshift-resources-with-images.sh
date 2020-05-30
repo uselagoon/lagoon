@@ -34,6 +34,7 @@ if [[ $(oc process --local -f ${OPENSHIFT_TEMPLATE} --parameters | grep ENVIRONM
 fi
 
 oc process  --local -o yaml --insecure-skip-tls-verify \
+  --ignore-unknown-parameters=true \
   -n ${OPENSHIFT_PROJECT} \
   -f ${OPENSHIFT_TEMPLATE} \
   -p SERVICE_NAME="${SERVICE_NAME}" \
@@ -45,6 +46,7 @@ oc process  --local -o yaml --insecure-skip-tls-verify \
   -p SERVICE_ROUTER_URL="${SERVICE_ROUTER_URL}" \
   -p REGISTRY="${OPENSHIFT_REGISTRY}" \
   -p OPENSHIFT_PROJECT=${OPENSHIFT_PROJECT} \
+  -p CONFIG_MAP_SHA=${CONFIG_MAP_SHA} \
   "${TEMPLATE_PARAMETERS[@]}" \
   "${TEMPLATE_ADDITIONAL_PARAMETERS[@]}" \
   | outputToYaml

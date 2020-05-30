@@ -63,3 +63,5 @@ tolerations: []
 affinity: {}
 
 inPodCronjobs: ""
+
+configMapSha: ""

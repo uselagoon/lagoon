@@ -67,3 +67,5 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+configMapSha: ""

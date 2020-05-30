@@ -717,6 +717,15 @@ do
 done
 
 ##############################################
+### REDEPLOY DEPLOYMENTS IF CONFIG MAP CHANGES
+##############################################
+
+CONFIG_MAP_SHA=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap lagoon-env -o yaml | shyaml get-value data | sha256sum | awk '{print $1}')
+# write the configmap to the values file so when we `exec-kubectl-resources-with-images.sh` the deployments will get the value of the config map
+# which will cause a change in the deployment and trigger a rollout if only the configmap has changed
+yq write -i /kubectl-build-deploy/values.yaml 'configMapSha' $CONFIG_MAP_SHA
+
+##############################################
 ### PUSH IMAGES TO OPENSHIFT REGISTRY
 ##############################################
 
