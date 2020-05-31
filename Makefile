@@ -447,7 +447,8 @@ services :=       api \
 									harbor-redis \
 									harborregistry \
 									harborregistryctl \
-									harbor-trivy
+									harbor-trivy \
+									grafana
 
 service-images += $(services)
 
