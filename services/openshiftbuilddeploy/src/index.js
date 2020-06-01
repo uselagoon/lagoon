@@ -326,7 +326,19 @@ const messageConsumer = async msg => {
     if (err.code == 404 || err.code == 403) {
       logger.info(`${openshiftProject}: Project ${openshiftProject}  does not exist, creating`)
       const projectrequestsPost = Promise.promisify(openshift.projectrequests.post, { context: openshift.projectrequests })
-      await projectrequestsPost({ body: {"apiVersion":"v1","kind":"ProjectRequest","metadata":{"name":openshiftProject},"displayName":`[${projectName}] ${branchName}`} });
+      await projectrequestsPost({
+        body: {
+          "apiVersion":"v1",
+          "kind":"ProjectRequest",
+          "metadata": {
+            "name":openshiftProject,
+            "labels": {
+              "lagoon.sh/project": safeProjectName,
+              "lagoon.sh/environment": safeBranchName
+            }
+          },
+          "displayName":`[${projectName}] ${branchName}`
+        } });
     } else {
       logger.error(err)
       throw new Error

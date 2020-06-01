@@ -115,7 +115,24 @@ if [[ $($OC get deploymentconfigs -l service=${SERVICE} 2> /dev/null) ]]; then
   fi
 fi
 
-# If there is a deployment for the given service
+# If there is a deployment for the given service searching for lagoon.sh labels
+if [[ $($OC get deployment -l "lagoon.sh/service=${SERVICE}" 2> /dev/null) ]]; then
+  DEPLOYMENT=$($OC get deployment -l "lagoon.sh/service=${SERVICE}" -o name)
+  # If the deployment is scaled to 0, scale to 1
+  if [[ $($OC get ${DEPLOYMENT} -o go-template --template='{{.status.replicas}}') == "0" ]]; then
+
+    $OC scale --replicas=1 ${DEPLOYMENT} >/dev/null 2>&1
+
+    # Wait until the scaling is done
+    while [[ ! $($OC get ${DEPLOYMENT} -o go-template --template='{{.status.readyReplicas}}') == "1" ]]
+    do
+      sleep 1
+    done
+  fi
+fi
+
+# If there is a deployment for the given service search for lagoon labels
+# @DEPRECATED: Remove with Lagoon 2.0.0
 if [[ $($OC get deployment -l lagoon/service=${SERVICE} 2> /dev/null) ]]; then
   DEPLOYMENT=$($OC get deployment -l lagoon/service=${SERVICE} -o name)
   # If the deployment is scaled to 0, scale to 1
@@ -134,7 +151,13 @@ fi
 
 POD=$($OC get pods -l service=${SERVICE} -o json | jq -r '[.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running")] | first | .metadata.name // empty')
 
-# Check for newer Helm chart lagoon labels
+# Check for newer Helm chart "lagoon.sh" labels
+if [[ ! $POD ]]; then
+  POD=$($OC get pods -l "lagoon.sh/service=${SERVICE}" -o json | jq -r '[.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running")] | first | .metadata.name // empty')
+fi
+
+# Check for deprecated Helm chart "lagoon" labels
+# @DEPRECATED: Remove with Lagoon 2.0.0
 if [[ ! $POD ]]; then
   POD=$($OC get pods -l lagoon/service=${SERVICE} -o json | jq -r '[.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running")] | first | .metadata.name // empty')
 fi
