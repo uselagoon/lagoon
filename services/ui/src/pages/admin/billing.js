@@ -158,6 +158,17 @@ export const PageBillingGroup = ({ router }) => {
                 <Query query={BillingGroupCostsQuery} variables={{ input: { name: group }, month: `${year}-${month}` }} >
                   {R.compose(withQueryLoading, withQueryError)(
                     ({ data: { costs } }) => {
+
+                      
+                      if (costs.projects.count === 0) {
+                        return (<div className="content-wrapper"><div className="error"><h1>No Projects</h1></div></div>)
+                      }
+
+                      const isAvailabilityEqual = costs.projects.reduce((acc, proj) => (proj.availability !== costs.projects[0].availability ? false : true), true);
+                      if (!isAvailabilityEqual){
+                        return(<div className="content-wrapper"><div className="error"><h1>All projects in billing group do not have the same availability.</h1></div></div>)
+                      }
+
                       return(
                         <>
                           <div className="content-wrapper">
@@ -172,12 +183,14 @@ export const PageBillingGroup = ({ router }) => {
                               </div>
                             </div>
                             <div className="rightColumn">
-                              {<Query query={AllBillingModifiersQuery} variables={{ input: { name: group } }} >
+                              {
+                                <Query query={AllBillingModifiersQuery} variables={{ input: { name: group } }} >
                                   {R.compose(withQueryLoading, withQueryError)(
-                                    ({ data: { allBillingModifiers: modifiers } }) => <AllBillingModifiers modifiers={modifiers} group={group} month={`${year}-${month}`} />
+                                    ({ data: { allBillingModifiers: modifiers } }) => <AllBillingModifiers group={group} modifiers={modifiers} month={`${year}-${month}`} />
                                   )}
-                                </Query>}
-                                <AddBillingModifier group={group} month={`${year}-${month}`} />
+                                </Query>
+                              }
+                              <AddBillingModifier group={group} month={`${year}-${month}`} />
                             </div>
                           </div>
                           <div className="content-wrapper">
@@ -207,6 +220,10 @@ export const PageBillingGroup = ({ router }) => {
         .btn {
           padding: 0 10px 0;
         }
+      }
+
+      .error {
+        margin: 1rem;
       }
 
       .barChart-wrapper {

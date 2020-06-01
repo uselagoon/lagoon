@@ -11,6 +11,7 @@ export default gql`
     extraFixed, 
     extraPercentage, 
     customerComments, 
-    adminComments 
+    adminComments
+    weight
   }
 `;

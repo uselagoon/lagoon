@@ -67,20 +67,23 @@ const Invoice = ({ cost, language }) => {
 
           <div className="data-row prod">
             <div className="data-cell description">
-              { lang === LANGS.ENGLISH ?
               <div>
-                Monthly Hosting Fee for { cost.availability } Availability Environment<br/>
-                PHP CMS Bundle: {currencyChar} {cost.environmentCostDescription.prod.unitPrice} per h<br/>
-              </div>
-              :
-              <div>
-                Monatliche Hostinggebühr im { cost.availability } Availability Environment<br />
-                PHP CMS Bundle: {currencyChar} {cost.environmentCostDescription.prod.unitPrice} pro Stunde<br/>
-              </div>
-              }
 
-              Production Environment(s):
+                { lang === LANGS.ENGLISH ?
+                <div>
+                  Monthly Hosting Fee for { cost.availability } Availability Environment<br/>
+                  PHP CMS Bundle: {currencyChar} {cost.environmentCostDescription.prod.unitPrice} per h<br/>
+                </div>
+                :
+                <div>
+                  Monatliche Hostinggebühr im { cost.availability } Availability Environment<br />
+                  PHP CMS Bundle: {currencyChar} {cost.environmentCostDescription.prod.unitPrice} pro Stunde<br/>
+                </div>
+                }
+              </div>
+
               <div className="projects">
+                Production Environment{cost.environmentCostDescription.prod.description.projects.count > 1 && 's'}:
                 {cost.environmentCostDescription.prod.description.projects.map(({name, hours}, index) => (<div key={`prod-${name}-${hours}-${index}`}><span>{name}</span> - <span>{hours} { lang === LANGS.ENGLISH ? `h` : `Std.` }</span></div>)) }
               </div>
 
@@ -112,8 +115,8 @@ const Invoice = ({ cost, language }) => {
                 </div>
               }
 
-              { lang === LANGS.ENGLISH ? `Hits per Production Environment:` : `Hits pro Production Environment:` }
               <div className="projects">
+                { lang === LANGS.ENGLISH ? `Hits per Production Environment:` : `Hits pro Production Environment:` }
                 {cost.hitCostDescription.description.projects.map(({name, hits}, index) => (<div  key={`${name}-${hits}-${index}`}><span>{name}</span> - <span>{hits.toLocaleString()}</span></div>)) }
               </div>
 
@@ -140,6 +143,7 @@ const Invoice = ({ cost, language }) => {
                 <div>
                   Additional Storage Fee<br/>
                   Storage per GB/day: {currencyChar} {cost.storageCostDescription.unitPrice}<br/>
+                  Average Storage per Environment per day:
                 </div>
                 :
                 <div>

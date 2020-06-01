@@ -16,10 +16,10 @@ const AddBillingModifier = ({ group, month }) => {
 
       <Mutation 
         mutation={AddBillingModifierMutation} 
-        refetchQueries={[
-          { query: AllBillingModifiersQuery, variables: { input: { name: group } } },
-          { query: BillingGroupCostsQuery, variables: { input: { name: group }, month }}
-        ]}
+        // refetchQueries={[
+        //   { query: AllBillingModifiersQuery, variables: { input: { name: group } } },
+        //   { query: BillingGroupCostsQuery, variables: { input: { name: group }, month }}
+        // ]}
       >
         {(addBillingModifier, { loading, called, error, data }) => {
 
