@@ -37,7 +37,7 @@ function extractWebhookData(req: Req, body?: string): WebhookRequestData {
     try {
       bodyObj = body == null || body === '' ? {} : JSON.parse(body);
     } catch (e) {
-      throw new Error(`request body is not parsable as JSON: ${e}`);
+      throw new Error(`Request body is not parsable as JSON. Are you sure you have enabled application/json as the webhook content type? ${e}.`);
     }
 
     if ('x-github-event' in req.headers) {

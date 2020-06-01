@@ -53,35 +53,3 @@ export const getProjectsData = async (
   const projectsWithData = projects.map(billingDataFn);
   return Promise.all(projectsWithData);
 };
-
-// Helper function to filter projects by availability
-const availabilityFilterFn = filterKey => ({ availability }) =>
-  availability === filterKey;
-
-/**
- * Filter out High or Standard availability and calculate costs
- *
- * @param {[Project]} projects an array of projects
- * @param {string} availability High or Standard
- * @param {string} currency the currency
- *
- * @return {BillingGroupCosts} An object includeing all availability costs
- */
-export const availabilityProjectsCosts = (
-  projects,
-  availability,
-  currency,
-  modifiers: BillingModifier[]
-) => {
-  const filteredProjects = projects.filter(availabilityFilterFn(availability));
-  return (filteredProjects.length > 0
-    ? getProjectsCosts(currency, filteredProjects, modifiers)
-    : {}) as BillingGroupCosts;
-};
-
-export default {
-  extractMonthYear,
-  projectWithBillingDataFn,
-  getProjectsData,
-  availabilityProjectsCosts,
-};

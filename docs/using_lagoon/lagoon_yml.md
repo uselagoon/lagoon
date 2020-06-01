@@ -54,8 +54,12 @@ environments:
             tls-acme: 'true'
             insecure: Redirect
             hsts: max-age=31536000
+        - "example.ch":
+            annotations:
+              nginx.ingress.kubernetes.io/permanent-redirect: https://www.example.ch$request_uri
+        - www.example.ch
     types:
-      mariadb: mariadb-galera
+      mariadb: mariadb
     templates:
       mariadb: mariadb.master.deployment.yml
     rollouts:
@@ -111,6 +115,11 @@ Common uses for post-rollout tasks include running `drush updb`, `drush cim`, or
 * `shell`
   * Which shell should be used to run the task in. By default `sh` is used, but if the container also has other shells \(like `bash`, you can define it here\). This is useful if you want to run some small if/else bash scripts within the post-rollouts. \(see the example above how to write a script with multiple lines\).
 
+Note: If you would like to temporarily disable pre/post-rollout tasks during a deployment, you can set either of the following environment variables in the API at the project or environment level \(see how on [Environment Variables](environment_variables.md)\).
+
+* `LAGOON_PREROLLOUT_DISABLED=true`
+* `LAGOON_POSTROLLOUT_DISABLED=true`
+
 ## Routes
 
 ### `routes.autogenerate.enabled`
@@ -160,7 +169,6 @@ In the `"www.example.com"` example repeated below, we see two more options \(als
     If you plan to switch from a SSL certificate signed by a Certificate Authority \(CA\) to a Let's Encrypt certificate, it's best get in touch with your Lagoon administrator to oversee the transition. There are [known issues](https://github.com/tnozicka/openshift-acme/issues/68) during the transition. The workaround would be manually removing the CA certificate and then triggering the Let's Encrypt process.
 
 
-
 ```
      - "www.example.com":
             tls-acme: 'true'
@@ -168,12 +176,37 @@ In the `"www.example.com"` example repeated below, we see two more options \(als
             hsts: max-age=31536000
 ```
 
+#### Ingress annotations (Redirects)
+
+!!!hint
+    Route/Ingress annotations are only supported by projects that deploy into clusters that run nginx-ingress controllers! Check with your Lagoon administrator if this is supported.
+
+
+* `annotations` can be a yaml map of [annotations supported by the nginx-ingress controller](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/), this is specifically usefull for easy redirects:
+
+
+In this example any requests to `example.ch` will be redirected to `https://www.example.ch` with keeping folders or query parameters intact (`example.com/folder?query` -> `https://www.example.ch/folder?query`)
+
+```
+        - "example.ch":
+            annotations:
+              nginx.ingress.kubernetes.io/permanent-redirect: https://www.example.ch$request_uri
+        - www.example.ch
+```
+
+You can of course also redirect to any other URL not hosted on Lagoon, this will direct requests to `example.de` to `https://www.google.com`
+
+```
+        - "example.de":
+            annotations:
+              nginx.ingress.kubernetes.io/permanent-redirect: https://www.google.com
+```
 
 #### `environments.[name].types`
 
 The Lagoon build process checks the `lagoon.type` label from the `docker-compose.yml` file in order to learn what type of service should be deployed  \(read more about them in the [documentation of `docker-compose.yml`](docker-compose_yml.md)\).
 
-Sometimes you might want to override the **type** just for a single environment, and not for all of them. For example, if you want a MariaDB-Galera high availability database for your production environment called `master`:
+Sometimes you might want to override the **type** just for a single environment, and not for all of them. For example, if you want a standalone MariaDB database (instead of letting the Service Broker/operator provision a shared one) for your non-production environment called `develop`:
 
 `service-name: service-type`
 
@@ -184,9 +217,9 @@ Example:
 
 ```
 environments:
-  master:
+  develop:
     types:
-      mariadb: mariadb-galera
+      mariadb: mariadb-single
 ```
 
 
@@ -313,26 +346,25 @@ There are 2 ways to define the password used for your registry user.
 * Create an environment variable in the Lagoon API \(see more on [Environment Variables](environment_variables.md)\). The name of the variable you create can then be set as the password:
 
 ```
-  container-registries:
+container-registries:
   my-custom-registry:
     username: myownregistryuser
     password: MY_OWN_REGISTRY_PASSWORD
     url: my.own.registry.com
-  ```
+```
 
 * Define it directly in the `.lagoon.yml` file in plain text:
 
 ```
-  container-registries:
+container-registries:
   docker-hub:
     username: dockerhubuser
     password: MySecretPassword
-  ```
+```
 
 **Consuming a custom or private container registry image**
 
 To consume a custom or private container registry image, you need to update the service inside your `docker-compose.yml` file to use a build context instead of defining an image:
-
 
 ```
 services:
@@ -342,12 +374,8 @@ services:
       dockerfile: Dockerfile.mariadb
 ```
 
-
 Once the `docker-compose.yml` file has been updated to use a build, you need to create the `Dockerfile.<service>` and then set your private image as the `FROM <repo>/<name>:<tag>`
-
 
 ```text
 FROM dockerhubuser/my-private-database:tag
 ```
-
-

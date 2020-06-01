@@ -1,0 +1,47 @@
+<!--
+  Document Cache
+  7.0.0
+-->
+<documentCache class="solr.LRUCache" size="512" initialSize="512" autowarmCount="0"/>
+
+<!--
+  Field Value Cache
+  7.0.0
+-->
+<fieldValueCache class="solr.FastLRUCache" size="512" autowarmCount="128" showItems="32"/>
+
+<!--
+  Filter Cache
+  7.0.0
+-->
+<filterCache class="solr.FastLRUCache" size="512" initialSize="512" autowarmCount="0"/>
+
+<!--
+  Per Segment Filter Cache
+  7.0.0
+-->
+<cache name="perSegFilter" class="solr.search.LRUCache" size="10" initialSize="0" autowarmCount="10" regenerator="solr.NoOpRegenerator"/>
+
+<!--
+  Query Result Cache
+  7.0.0
+-->
+<queryResultCache class="solr.LRUCache" size="512" initialSize="512" autowarmCount="0"/>
+
+<!--
+  Special configs for Field Value Cache
+  7.0.0
+-->
+  <query name="enableLazyFieldLoading">true</query>
+<!--
+  Special configs for Filter Cache
+  7.0.0
+-->
+  <query name="useFilterForSortedQuery">false</query>
+<!--
+  Special configs for Query Result Cache
+  7.0.0
+-->
+  <query name="queryResultWindowSize">20</query>
+  <query name="queryResultMaxDocsCached">200</query>
+  <query name="maxBooleanClauses">1024</query>

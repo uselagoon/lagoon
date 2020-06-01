@@ -4,6 +4,10 @@ const GraphQLDate = require('graphql-iso-date');
 const GraphQLJSON = require('graphql-type-json');
 
 const {
+  getLagoonVersion,
+} = require('./resources/lagoon/resolvers');
+
+const {
   getDeploymentsByEnvironmentId,
   getDeploymentByRemoteId,
   addDeployment,
@@ -102,10 +106,13 @@ const {
   getProjectByName,
   getProjectByGitUrl,
   getProjectByEnvironmentId,
+  getProjectsByMetadata,
   getAllProjects,
   updateProject,
   deleteAllProjects,
-  getProjectUrl
+  getProjectUrl,
+  updateProjectMetadata,
+  removeProjectMetadataByKey
 } = require('./resources/project/resolvers');
 
 const {
@@ -263,6 +270,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
   },
   Query: {
     me: getMe,
+    lagoonVersion: getLagoonVersion,
     userBySshKey: getUserBySshKey,
     projectByGitUrl: getProjectByGitUrl,
     projectByName: getProjectByName,
@@ -279,7 +287,8 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     allProjectsInGroup: getAllProjectsInGroup,
     billingGroupCost: getBillingGroupCost,
     allBillingGroupsCost: getAllBillingGroupsCost,
-    allBillingModifiers: getBillingModifiers
+    allBillingModifiers: getBillingModifiers,
+    projectsByMetadata: getProjectsByMetadata
   },
   Mutation: {
     addOrUpdateEnvironment,
@@ -314,6 +323,8 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     updateProject,
     deleteProject,
     deleteAllProjects,
+    updateProjectMetadata,
+    removeProjectMetadataByKey,
     addSshKey,
     updateSshKey,
     deleteSshKey,
