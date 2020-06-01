@@ -70,13 +70,13 @@ async function createHarborProject(sqlClient /* : MariaSQL */, harborClient /* :
   return harborProjectID
 }
 
-async function createRobot(sqlClient /* : MariaSQL */, harborClient /* : harborClient */, lagoonProjectName /* : string */, harborProjectID /* : string */, robot /* : string */) {
+async function createRobot(sqlClient /* : MariaSQL */, harborClient /* : harborClient */, lagoonProjectName /* : string */, harborProjectID /* : string */) {
   // Returns false on an error and a token object on a success
 
   // Create robot account for new harbor project
   try {
     const timestamp = Math.floor(Date.now() / 1000)
-    var robotName = (robot != "") ? robot : `${lagoonProjectName}-${timestamp}`
+    var robotName = `${lagoonProjectName}-${timestamp}`
 
     const res = await harborClient.post(`projects/${harborProjectID}/robots`, {
       body: {
@@ -225,13 +225,13 @@ async function resetHarborWebhook(sqlClient /* : MariaSQL */, harborClient /* : 
 }
 
 const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
-  addProject: async (lagoonProjectName, projectID, robotName = "") => {
+  addProject: async (lagoonProjectName, projectID) => {
     // Create harbor project
     harborProjectID = await createHarborProject(sqlClient, harborClient, lagoonProjectName)
     if (harborProjectID == "") {return}
 
     // Create robot account for new harbor project
-    var harborTokenInfo = await createRobot(sqlClient, harborClient, lagoonProjectName, harborProjectID, robotName)
+    var harborTokenInfo = await createRobot(sqlClient, harborClient, lagoonProjectName, harborProjectID)
     if (harborTokenInfo == false) {return}
 
     // Remove previously set internal registry env vars
