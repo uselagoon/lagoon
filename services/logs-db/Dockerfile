@@ -31,6 +31,5 @@ RUN fix-permissions plugins/opendistro_security/securityconfig
 COPY entrypoints/80-keycloak-url.bash /lagoon/entrypoints/
 
 COPY start.sh /start.sh
-COPY es-curl /usr/share/elasticsearch/bin/es-curl
 
 CMD ["/start.sh"]
