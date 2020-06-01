@@ -7,6 +7,7 @@ import DeploymentsLink from 'components/link/Deployments';
 import TasksLink from 'components/link/Tasks';
 import ProblemsLink from 'components/link/Problems';
 import { bp, color } from 'lib/variables';
+import problems from '../../pages/problems';
 
 const { className: aClassName, styles: aStyles } = css.resolve`
   a {
@@ -75,6 +76,7 @@ const NavTabs = ({ activeTab, environment }) => (
         Tasks
       </TasksLink>
     </li>
+    { environment.project.problemsUi &&
     <li
       className={`problems ${activeTab == 'problems' ? 'active' : ''} ${aClassName}`}
     >
@@ -86,6 +88,7 @@ const NavTabs = ({ activeTab, environment }) => (
         Problems
       </ProblemsLink>
     </li>
+    }
     <style jsx>{`
       .navigation {
         background: ${color.lightestGrey};
