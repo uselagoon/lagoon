@@ -248,7 +248,7 @@ $(build-pythonimages): build/commons
 	$(eval clean = $(subst build/python__,,$@))
 	$(eval version = $(word 1,$(subst -, ,$(clean))))
 	$(eval type = $(word 2,$(subst -, ,$(clean))))
-	$(eval alpine_version := $(shell case $(version) in (2.7) echo "3.10" ;; (*) echo $(DEFAULT_ALPINE_VERSION) ;; esac ))
+	$(eval alpine_version := $(shell case $(version) in (2.7|3.7) echo "3.10" ;; (*) echo $(DEFAULT_ALPINE_VERSION) ;; esac ))
 # this fills variables only if $type is existing, if not they are just empty
 	$(eval type_dash = $(if $(type),-$(type)))
 # Call the docker build
@@ -439,8 +439,6 @@ services :=       api \
 									keycloak \
 									keycloak-db \
 									ui \
-									harborclair \
-									harborclairadapter \
 									harbor-core \
 									harbor-database \
 									harbor-jobservice \
@@ -448,7 +446,8 @@ services :=       api \
 									harbor-portal \
 									harbor-redis \
 									harborregistry \
-									harborregistryctl
+									harborregistryctl \
+									harbor-trivy
 
 service-images += $(services)
 
@@ -474,8 +473,8 @@ build/broker-single: build/rabbitmq
 build/drush-alias: build/nginx
 build/keycloak: build/commons
 build/harbor-database: build/postgres
-build/harborclair build/local-minio: build/harbor-database services/harbor-redis/Dockerfile services/harborclairadapter/Dockerfile
-build/harborregistry: build/harborclair services/harbor-jobservice/Dockerfile
+build/harbor-trivy build/local-minio: build/harbor-database services/harbor-redis/Dockerfile
+build/harborregistry: services/harbor-jobservice/Dockerfile
 build/harborregistryctl: build/harborregistry
 build/harbor-nginx: build/harborregistryctl services/harbor-core/Dockerfile services/harbor-portal/Dockerfile
 build/tests-kubernetes: build/tests
@@ -595,7 +594,7 @@ wait-for-keycloak:
 	grep -m 1 "Config of Keycloak done." <(docker-compose -p $(CI_BUILD_TAG) --compatibility logs -f keycloak 2>&1)
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
-main-test-services = broker logs2email logs2slack logs2rocketchat logs2microsoftteams api api-db keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher harbor-core harbor-database harbor-jobservice harbor-portal harbor-nginx harbor-redis harborregistry harborregistryctl harborclair harborclairadapter local-minio
+main-test-services = broker logs2email logs2slack logs2rocketchat logs2microsoftteams api api-db keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher harbor-core harbor-database harbor-jobservice harbor-portal harbor-nginx harbor-redis harborregistry harborregistryctl harbor-trivy local-minio
 
 # Define a list of which Lagoon Services are needed for openshift testing
 openshift-test-services = openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor openshiftmisc tests-openshift
@@ -704,6 +703,10 @@ lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build/$(image
 	sleep 30
 	curl -X POST http://localhost:5555/deploy -H 'content-type: application/json' -d '{ "projectName": "lagoon", "branchName": "master" }'
 	make logs
+
+# Start only the local Harbor for testing purposes
+local-harbor: build/harbor-core build/harbor-database build/harbor-jobservice build/harbor-portal build/harbor-nginx build/harbor-redis build/harborregistry build/harborregistryctl build/harbor-trivy build/local-minio
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d harbor-core harbor-database harbor-jobservice harbor-portal harbor-nginx harbor-redis harborregistry harborregistryctl harbor-trivy local-minio
 
 # Publish command to amazeeio docker hub, this should probably only be done during a master deployments
 publish-amazeeio-baseimages = $(foreach image,$(base-images),[publish-amazeeio-baseimages]-$(image))

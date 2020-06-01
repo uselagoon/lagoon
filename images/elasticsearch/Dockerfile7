@@ -59,6 +59,9 @@ ENV ES_JAVA_OPTS="-Xms400m -Xmx400m" \
     CLUSTER_REMOTE_CONNECT=true \
     EXTRA_OPTS=""
 
+# Copy es-curl wrapper
+COPY es-curl /usr/share/elasticsearch/bin/es-curl
+
 
 VOLUME [ "/usr/share/elasticsearch/data" ]
 

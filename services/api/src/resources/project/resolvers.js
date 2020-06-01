@@ -193,6 +193,70 @@ const getProjectByName = async (
   }
 };
 
+
+const getProjectsByMetadata = async (
+  root,
+  { metadata },
+  {
+    sqlClient,
+    hasPermission,
+    keycloakGrant,
+    models
+  },
+) => {
+
+  let where = '';
+  try {
+    await hasPermission('project', 'viewAll');
+  } catch (err) {
+    if (!keycloakGrant) {
+      logger.warn('No grant available for getAllProjects');
+      return [];
+    }
+
+    const userProjectIds = await models.UserModel.getAllProjectsIdsForUser({
+      id: keycloakGrant.access_token.content.sub,
+    });
+
+    where = whereAnd([
+      inClause('id', userProjectIds),
+    ]);
+  }
+
+  let queryArgs = [];
+  for (const { key: meta_key, value: meta_value } of metadata) {
+    let q;
+    if (meta_value) {
+      q = 'JSON_CONTAINS(metadata, ?, ?)';
+      queryArgs = [
+        ...queryArgs,
+        `"${meta_value}"`,
+        `$.${meta_key}`
+      ]
+    }
+    // Support key-only queries.
+    else {
+      q = "JSON_CONTAINS_PATH(metadata, 'one', ?)";
+      queryArgs = [
+        ...queryArgs,
+        `$.${meta_key}`
+      ]
+    }
+
+    if (where === '') {
+      where += ' WHERE ' + q;
+    }
+    else {
+      where += ' AND ' + q;
+    }
+  }
+
+  const prep = prepare(sqlClient, `SELECT * FROM project ${where}`);
+  const rows = await query(sqlClient, prep(queryArgs));
+
+  return rows;
+};
+
 const addProject = async (
   root,
   { input },
@@ -624,6 +688,90 @@ const deleteAllProjects = async (
   return 'success';
 };
 
+
+const removeProjectMetadataByKey = async (
+  root,
+  {
+    input: {
+      id,
+      key,
+    },
+  },
+  {
+    sqlClient,
+    hasPermission,
+  },
+) => {
+
+  await hasPermission('project', 'update', {
+    project: id,
+  });
+
+  if (!key) {
+    throw new Error('key to remove is required');
+  }
+
+  if (typeof key === 'string') {
+    if (validator.matches(key, /[^0-9a-z-]/)) {
+      throw new Error(
+        'Only lowercase characters, numbers and dashes allowed for key!',
+      );
+    }
+  }
+
+  const str = 'UPDATE project SET metadata = JSON_REMOVE(metadata, :meta_key) WHERE id = :id';
+
+  const prep = prepare(sqlClient, str);
+  await query(sqlClient, prep({ id, meta_key: `$.${key}` }));
+  return Helpers(sqlClient).getProjectById(id);
+};
+
+
+const updateProjectMetadata = async (
+  root,
+  {
+    input: {
+      id,
+      patch,
+      patch: {
+        key,
+        value,
+      },
+    },
+  },
+  {
+    sqlClient,
+    hasPermission,
+  },
+) => {
+
+  await hasPermission('project', 'update', {
+    project: id,
+  });
+
+  if (isPatchEmpty({ patch })) {
+    throw new Error('input.patch expects both key and value attributes');
+  }
+
+  if (!key || !value) {
+    throw new Error('input.patch expects both key and value attributes');
+  }
+
+  if (typeof key === 'string') {
+    if (validator.matches(key, /[^0-9a-z-]/)) {
+      throw new Error(
+        'Only lowercase characters, numbers and dashes allowed for key!',
+      );
+    }
+  }
+
+  const str = 'UPDATE project SET metadata = JSON_SET(metadata, :meta_key, :meta_value) WHERE id = :id';
+
+  const prep = prepare(sqlClient, str);
+  await query(sqlClient, prep({ id, meta_key: `$.${key}`, meta_value: value }));
+  return Helpers(sqlClient).getProjectById(id);
+};
+
 const Resolvers /* : ResolversObj */ = {
   deleteProject,
   addProject,
@@ -631,8 +779,11 @@ const Resolvers /* : ResolversObj */ = {
   getProjectByGitUrl,
   getProjectByEnvironmentId,
   getAllProjects,
+  getProjectsByMetadata,
   updateProject,
   deleteAllProjects,
+  updateProjectMetadata,
+  removeProjectMetadataByKey,
 };
 
 module.exports = Resolvers;
