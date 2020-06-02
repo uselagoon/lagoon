@@ -106,6 +106,8 @@ CREATE TABLE IF NOT EXISTS billing_modifier (
   discount_percentage             FLOAT NULL DEFAULT 0.0,
   extra_fixed                     DECIMAL NULL DEFAULT 0.0,
   extra_percentage                FLOAT NULL DEFAULT 0.0,
+  min                             FLOAT NULL DEFAULT 0.0,
+  max                             FLOAT NULL DEFAULT 0.0,
   customer_comments               text,
   admin_comments                  text
 );

@@ -30,7 +30,7 @@ const ModifierItem = styled.div`
 `;
 
 const Modifier = ({modifier, index, editHandler}) => {
-  const { id, group, name, startDate, endDate, customerComments, adminComments, weight, discountFixed, discountPercentage, extraFixed, extraPercentage } = modifier;
+  const { id, group, name, startDate, endDate, customerComments, adminComments, weight, discountFixed, discountPercentage, extraFixed, extraPercentage, min, max } = modifier;
 
   const [deleteModifier, {
     loading: mutationLoading, 
@@ -66,6 +66,8 @@ const Modifier = ({modifier, index, editHandler}) => {
               {discountPercentage !== 0 ? `- ${discountPercentage}%` : ''}
               {extraFixed !== 0 ? `+ ${extraFixed}` : ''}
               {extraPercentage !== 0 ? `+ ${extraPercentage}%` : ''}
+              {min !== 0 ? `Minimum: ${min.toFixed(2)}` : ''}
+              {max !== 0 ? `Maximum: ${max.toFixed(2)}` : ''}
             </div>
             <div className="modifier-range">
               {startDate.replace('00:00:00', '')} - {endDate.replace('00:00:00', '')}<br/>

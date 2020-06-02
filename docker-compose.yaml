@@ -522,7 +522,7 @@ services:
       - './services/auto-idler/idle-clis.sh:/idle-clis.sh'
       - './services/auto-idler/openshift-services.sh:/openshift-services.sh'
       - './services/auto-idler/openshift-clis.sh:/openshift-clis.sh'
-      - './services/auto-idler/create_jwt.sh:/create_jwt.sh'
+      - './services/auto-idler/create_jwt.py:/create_jwt.py'
     labels:
       lagoon.type: custom
       lagoon.template: services/auto-idler/.lagoon.yml

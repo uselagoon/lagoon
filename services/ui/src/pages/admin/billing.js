@@ -196,7 +196,7 @@ export const PageBillingGroup = ({ router }) => {
                                   )}
                                 </Query>
                               }
-                              <AddBillingModifier group={group} month={`${year}-${month}`} editBillingModifier={editModifier} />
+                              <AddBillingModifier group={group} month={`${year}-${month}`} editBillingModifier={editModifier} editHandler={editModifierHandler} />
                             </div>
                           </div>
                           <div className="content-wrapper">

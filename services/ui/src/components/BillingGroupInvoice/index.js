@@ -227,7 +227,7 @@ const Invoice = ({ cost, language }) => {
 
           {
             cost.modifiers.map(
-              ({ id, discountFixed, discountPercentage, extraFixed, extraPercentage, customerComments }, index) => (
+              ({ id, discountFixed, discountPercentage, extraFixed, extraPercentage, min, max, customerComments }, index) => (
                 <div key={`${id}-${index}`} className="data-row modifiers">
                   <div className="data-cell description">{customerComments}</div>
                   <div className="data-cell qty">1.00</div>
@@ -236,12 +236,16 @@ const Invoice = ({ cost, language }) => {
                     {discountPercentage !== 0 ? (`-${discountPercentage.toFixed(2)}%`) : ''}
                     {extraFixed !== 0 ? (`${extraFixed.toFixed(2)}`) : ''}
                     {extraPercentage !== 0 ? (`${extraPercentage.toFixed(2)}%`) : ''}
+                    {min !== 0 ? (`${min.toFixed(2)}`) : ''}
+                    {max !== 0 ? (`${max.toFixed(2)}`) : ''}
                   </div>
                   <div className="data-cell amt">
                     {discountFixed !== 0 ? (`-${discountFixed.toFixed(2)}`) : ''}
-                    {discountPercentage !== 0 ? (`-${discountPercentage.toFixed(2)}%`) : ''}
+                    {discountPercentage !== 0 ? (`-${cost.modifiersDescription[index].amt.toFixed(2)}`) : ''}
                     {extraFixed !== 0 ? (`${extraFixed.toFixed(2)}`) : ''}
-                    {extraPercentage !== 0 ? (`${extraPercentage.toFixed(2)}%`) : ''}
+                    {extraPercentage !== 0 ?  (`+${cost.modifiersDescription[index].amt.toFixed(2)}`) : ''}
+                    {min !== 0 ? (`${min.toFixed(2)}`) : ''}
+                    {max !== 0 ? (`${max.toFixed(2)}`) : ''}
                   </div>
                 </div>
               )
@@ -252,7 +256,7 @@ const Invoice = ({ cost, language }) => {
             <div className="data-cell">Total</div>
             <div className="data-cell"></div>
             <div className="data-cell"></div>
-            <div className="data-cell">{cost.total.toFixed(2)}</div>
+            <div className="data-cell total">{cost.total.toFixed(2)}</div>
           </div>
 
         </div>
@@ -311,9 +315,13 @@ const Invoice = ({ cost, language }) => {
             text-align: left;
             padding: 15px;
             width: 100%;
+
           }
-
-
+          
+          .qty, .unitPrice, .amt, .data-cell.total {
+            text-align: right;
+            padding-right: 20px;
+          }
           .name {
             font-weight: bold;
             margin-left: 15px;

@@ -21,10 +21,11 @@ const requestConfig = (token) => ({
 const getJWTToken = async () => {
   try {
     const { stdout: jwtToken, stderr } = await exec(
-      'docker-compose exec -T auto-idler /create_jwt.sh',
+      'docker-compose exec -T auto-idler /create_jwt.py',
     );
     if (stderr) {
-      throw stderr;
+      // throw stderr;
+      console.error(stderr);
     }
     return jwtToken;
   } catch (err) {
@@ -68,7 +69,7 @@ const graphql: AxiosGraphQL = async (query: String, variables?: any) => {
 }
 
 
-const BILLING_MODIFIER_FIELDS = 'id, group { id, name, type }, startDate, endDate, discountFixed, discountPercentage, extraFixed, extraPercentage, customerComments, adminComments';
+const BILLING_MODIFIER_FIELDS = 'id, group { id, name, type }, startDate, endDate, discountFixed, discountPercentage, extraFixed, extraPercentage, min, max, customerComments, adminComments';
 
 const ADD_BILLING_MODIFIER = `
   mutation addBillingModifier($input: AddBillingModifierInput!) {

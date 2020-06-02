@@ -6,14 +6,14 @@ import { color } from 'lib/variables';
 
 import BillingModifierForm from "./BillingModifierForm";
 
-const AddBillingModifier = ({ group, month, editBillingModifier }) => {
+const AddBillingModifier = ({ group, month, editBillingModifier, editHandler }) => {
 
   return(
     <div className="addBillingModifier">
 
       <div className="addNew">
         <h2>{R.isEmpty(editBillingModifier) ? 'Add' : 'Edit' } Billing Modifier</h2>
-        <BillingModifierForm group={group} editBillingModifier={editBillingModifier} />
+        <BillingModifierForm group={group} editBillingModifier={editBillingModifier} editHandler={editHandler} />
       </div>
 
       <style jsx>{`

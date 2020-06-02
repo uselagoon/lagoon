@@ -17,9 +17,9 @@ import { DateRangePicker, START_DATE, END_DATE } from 'react-nice-dates'
 
 import 'react-nice-dates/build/style.css'
 
-const BillingModifierForm = ({group, editBillingModifier}) => {
+const BillingModifierForm = ({group, editBillingModifier, editHandler}) => {
 
-  const getModifierType = ({discountFixed, discountPercentage, extraFixed, extraPercentage}) => {
+  const getModifierType = ({discountFixed, discountPercentage, extraFixed, extraPercentage, min, max}) => {
     if(discountFixed !== 0){
       return 'discountFixed'
     }
@@ -35,10 +35,19 @@ const BillingModifierForm = ({group, editBillingModifier}) => {
     if(extraPercentage !== 0){
       return 'extraPercentage'
     }
+
+    if(min !== 0){
+      return 'min'
+    }
+
+    if(max !== 0){
+      return 'max'
+    }
+
     return '';
   }
 
-  const getModifierValue = ({discountFixed, discountPercentage, extraFixed, extraPercentage}) => {
+  const getModifierValue = ({discountFixed, discountPercentage, extraFixed, extraPercentage, min, max}) => {
     if(discountFixed !== 0){
       return discountFixed
     }
@@ -54,6 +63,15 @@ const BillingModifierForm = ({group, editBillingModifier}) => {
     if(extraPercentage !== 0){
       return extraPercentage
     }
+
+    if(min !== 0){
+      return min
+    }
+
+    if(max !== 0){
+      return max
+    }
+
     return '';
   }
 
@@ -102,6 +120,9 @@ const BillingModifierForm = ({group, editBillingModifier}) => {
           cache.writeQuery({ query: AllBillingModifiersQuery, variables, data });
         }
         
+        if(updateBillingModifier){
+          editHandler({})
+        }
       }
     }
   );
@@ -117,6 +138,8 @@ const BillingModifierForm = ({group, editBillingModifier}) => {
       discountPercentage: values.modifierType === 'discountPercentage' ? parseFloat(values.modifierValue) : 0, 
       extraFixed: values.modifierType === 'extraFixed' ? parseFloat(values.modifierValue) : 0,
       extraPercentage: values.modifierType === 'extraPercentage' ? parseFloat(values.modifierValue) : 0,
+      min: values.modifierType === 'min' ? parseFloat(values.modifierValue) : 0,
+      max: values.modifierType === 'max' ? parseFloat(values.modifierValue) : 0,
       customerComments: values.customerComments,
       adminComments: values.adminComments,
       weight: values.weight !== 0 ? parseInt(values.weight): 0
@@ -194,7 +217,9 @@ const BillingModifierForm = ({group, editBillingModifier}) => {
             {name: 'Discount: Fixed', value: 'discountFixed'}, 
             {name: 'Discount: Percentage (0-100)', value: 'discountPercentage'},
             {name: 'Extra: Fixed', value: 'extraFixed'}, 
-            {name: 'Extra: Percentage (0-100)', value: 'extraPercentage'} 
+            {name: 'Extra: Percentage (0-100)', value: 'extraPercentage'},
+            {name: 'Minimum Amount', value: 'min'},
+            {name: 'Maximum Amount', value: 'max'}
           ].map(modifier => (
             <option key={`${modifier.name}-${modifier.value}`} value={modifier.value}>
               {modifier.name}
