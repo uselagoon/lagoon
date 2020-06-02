@@ -512,7 +512,7 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
             --set insecure="${ROUTE_INSECURE}" \
             --set hsts="${ROUTE_HSTS}" \
             --set routeMigrate="${ROUTE_MIGRATE}" \
-            -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml "${HELM_ARGUMENTS[@]}" | outputToYaml
+            -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${ROUTE_DOMAIN}.yaml
 
           let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
         done
@@ -566,7 +566,7 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
             --set insecure="${ROUTE_INSECURE}" \
             --set hsts="${ROUTE_HSTS}" \
             --set routeMigrate="${ROUTE_MIGRATE}" \
-            -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml "${HELM_ARGUMENTS[@]}" | outputToYaml
+            -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${ROUTE_DOMAIN}.yaml
 
           let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
         done
