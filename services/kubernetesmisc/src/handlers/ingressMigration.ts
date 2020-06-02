@@ -1,15 +1,3 @@
-// import { promisify } from 'util';
-// import KubernetesClient from 'kubernetes-client';
-// import R from 'ramda';
-// import { logger } from '@lagoon/commons/dist/local-logging';
-// import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
-// import {
-//   getOpenShiftInfoForProject,
-//   updateProject,
-//   updateTask,
-// } from '@lagoon/commons/dist/api';
-// import { RouteMigration } from '@lagoon/commons/dist/openshiftApi';
-// const convertDateFormat = R.init;
 const promisify = require("util").promisify;
 const R = require("ramda");
 const {logger} = require("@lagoon/commons/src/local-logging");
@@ -76,7 +64,7 @@ export async function ingressMigration (data) {
     throw error;
   }
 
-  // define the routemigration. the annotation being set to true is what actually triggers the switch
+  // define the ingressmigration. the annotation being set to true is what actually triggers the switch
   const migrateRoutes = (openshiftProject, destinationOpenshiftProject) => {
     let config = {
       apiVersion: 'dioscuri.amazee.io/v1',
@@ -109,11 +97,11 @@ export async function ingressMigration (data) {
   const config: ClientConfiguration = getConfig(openshiftConsole, openshiftToken);
   const client = new Client({ config });
 
-  const routeMigratesGet = promisify(
+  const ingressMigratesGet = promisify(
     dioscuri.ns(openshiftProject).ingressmigrates.get
   );
 
-  const routeMigrateDelete = async name => {
+  const ingressMigrateDelete = async name => {
     const deleteFn = promisify(dioscuri.ns(openshiftProject).ingressmigrates(openshiftProject).delete);
     return deleteFn({
       body: {}
@@ -122,8 +110,8 @@ export async function ingressMigration (data) {
 
   const hasNoRouteMigrate = () =>
     new Promise(async (resolve, reject) => {
-      const routeMigrates = await routeMigratesGet();
-      if (routeMigrates.items.length === 0) {
+      const ingressMigrates = await ingressMigratesGet();
+      if (ingressMigrates.items.length === 0) {
         logger.info(`${openshiftProject}: RouteMigrate deleted`);
         resolve();
       } else {
@@ -155,13 +143,13 @@ export async function ingressMigration (data) {
       return;
     }
 
-  // check if there is already a route migrate resource, delete it if there is
+  // check if there is already a ingress migrate resource, delete it if there is
   try {
-    const routeMigrates = await routeMigratesGet();
-    for (let routeMigrate of routeMigrates.items) {
-      await routeMigrateDelete(routeMigrate.metadata.name);
+    const ingressMigrates = await ingressMigratesGet();
+    for (let ingressMigrate of ingressMigrates.items) {
+      await ingressMigrateDelete(ingressMigrate.metadata.name);
       logger.info(
-        `${openshiftProject}: Deleting RouteMigrate ${routeMigrate.metadata.name}`
+        `${openshiftProject}: Deleting IngressMigrate ${ingressMigrate.metadata.name}`
       );
     }
     // RouteMigrates are deleted quickly, but we still have to wait before we attempt to create the new one
@@ -169,22 +157,22 @@ export async function ingressMigration (data) {
       await retry(10, hasNoRouteMigrate, 2000);
     } catch (err) {
       throw new Error(
-        `${openshiftProject}: RouteMigrate not deleted`
+        `${openshiftProject}: IngressMigrate not deleted`
       );
     }
   } catch (err) {
-      logger.info(`${openshiftProject}: RouteMigrate doesn't exist`); // proceed if it doesn't exist
+      logger.info(`${openshiftProject}: IngressMigrate doesn't exist`); // proceed if it doesn't exist
   }
 
-  // add the routemigrate resource
+  // add the ingressmigrate resource
   try {
-    const routeMigratePost = promisify(
+    const ingressMigratePost = promisify(
         dioscuri.ns(openshiftProject).ingressmigrates.post
     );
-    await routeMigratePost({
+    await ingressMigratePost({
       body: migrateRoutes(openshiftProject, destinationOpenshiftProject)
     });
-    logger.verbose(`${openshiftProject}: RouteMigrate resource created`);
+    logger.verbose(`${openshiftProject}: IngressMigrate resource created`);
   } catch (err) {
       logger.error(err);
       throw new Error();
@@ -194,12 +182,12 @@ export async function ingressMigration (data) {
     'info',
     projectName,
     '',
-    'task:misc-openshift:route:migrate',
+    'task:misc-kubernetes:route:migrate',
     data,
-    `*[${projectName}]* Route Migration between environments *${destinationOpenshiftProject}* started`
+    `*[${projectName}]* Ingress Migration between environments *${destinationOpenshiftProject}* started`
   );
 
-  const routeMigrateGet = promisify(
+  const ingressMigrateGet = promisify(
     dioscuri.ns(openshiftProject).ingressmigrates(openshiftProject).get
   );
 
@@ -207,15 +195,15 @@ export async function ingressMigration (data) {
   const updateActiveStandbyTask = () => {
     return (new Promise(async (resolve, reject) => {
       let exitResolve = false;
-      const routeMigrateStatus = await routeMigrateGet();
-      if (routeMigrateStatus === undefined || routeMigrateStatus.status === undefined || routeMigrateStatus.status.conditions === undefined) {
-        logger.info(`${openshiftProject}: active/standby switch not ready, will try again in 2sec, RETRY`);
+      const ingressMigrateStatus = await ingressMigrateGet();
+      if (ingressMigrateStatus === undefined || ingressMigrateStatus.status === undefined || ingressMigrateStatus.status.conditions === undefined) {
+        logger.info(`${openshiftProject}: active/standby switch not ready, will try again in 2sec`);
       } else {
-        for (let i = 0; i < routeMigrateStatus.status.conditions.length; i++) {
-          switch (routeMigrateStatus.status.conditions[i].type ) {
+        for (let i = 0; i < ingressMigrateStatus.status.conditions.length; i++) {
+          switch (ingressMigrateStatus.status.conditions[i].type ) {
             case 'started':
               // update the task to started
-              var created = convertDateFormat(routeMigrateStatus.status.conditions[i].lastTransitionTime)
+              var created = convertDateFormat(ingressMigrateStatus.status.conditions[i].lastTransitionTime)
               await updateTask(task.id, {
                 status: 'ACTIVE',
                 created: created,
@@ -223,16 +211,16 @@ export async function ingressMigration (data) {
               break;
             case 'failed':
               // update the task to failed
-              var created = convertDateFormat(routeMigrateStatus.status.conditions[i].lastTransitionTime)
+              var created = convertDateFormat(ingressMigrateStatus.status.conditions[i].lastTransitionTime)
               await updateTask(task.id, {
                 status: 'FAILED',
                 completed: created,
               });
               var condition: any = new Object();
               // send a log off with the status information
-              condition.condition = routeMigrateStatus.status.conditions[i].condition
-              condition.activeRoutes = routeMigrateStatus.spec.ingress.activeIngress
-              condition.standbyRoutes = routeMigrateStatus.spec.ingress.standbyIngress
+              condition.condition = ingressMigrateStatus.status.conditions[i].condition
+              condition.activeRoutes = ingressMigrateStatus.spec.ingress.activeIngress
+              condition.standbyRoutes = ingressMigrateStatus.spec.ingress.standbyIngress
               var conditionStr= JSON.stringify(condition);
               await saveTaskLog(
                 'active-standby-switch',
@@ -249,20 +237,20 @@ export async function ingressMigration (data) {
               const response = await updateProject(projectOpenShift.id, {
                 productionEnvironment: safeStandbyProductionEnvironment,
                 standbyProductionEnvironment: safeActiveProductionEnvironment,
-                productionRoutes: routeMigrateStatus.spec.ingress.activeIngress,
-                standbyRoutes: routeMigrateStatus.spec.ingress.standbyIngress,
+                productionRoutes: ingressMigrateStatus.spec.ingress.activeIngress,
+                standbyRoutes: ingressMigrateStatus.spec.ingress.standbyIngress,
               });
               // update the task to completed
-              var created = convertDateFormat(routeMigrateStatus.status.conditions[i].lastTransitionTime)
+              var created = convertDateFormat(ingressMigrateStatus.status.conditions[i].lastTransitionTime)
               await updateTask(task.id, {
                 status: 'SUCCEEDED',
                 completed: created,
               });
               // send a log off with the status information
               var condition: any = new Object();
-              condition.condition = routeMigrateStatus.status.conditions[i].condition
-              condition.activeRoutes = routeMigrateStatus.spec.ingress.activeIngress
-              condition.standbyRoutes = routeMigrateStatus.spec.ingress.standbyIngress
+              condition.condition = ingressMigrateStatus.status.conditions[i].condition
+              condition.activeRoutes = ingressMigrateStatus.spec.ingress.activeIngress
+              condition.standbyRoutes = ingressMigrateStatus.spec.ingress.standbyIngress
               var conditionStr= JSON.stringify(condition);
               await saveTaskLog(
                 'active-standby-switch',
@@ -281,7 +269,7 @@ export async function ingressMigration (data) {
       if (exitResolve == true) {
         resolve();
       } else {
-        logger.info(`${openshiftProject}: active/standby switch not ready, will try again in 2sec, REJECT`);
+        logger.info(`${openshiftProject}: active/standby switch not ready, will try again in 2sec`);
         reject();
       }
     }));
