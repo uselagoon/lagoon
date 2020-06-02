@@ -46,7 +46,7 @@ async function createHarborProject(sqlClient /* : MariaSQL */, harborClient /* :
   } catch (err) {
     if (err.statusCode == 409) {
       // 409 means project already exists
-      logger.info(`Unable to create the harbor project "${lagoonProjectName}", as it already exists in harbor!`)
+      logger.info(`Unable to create the harbor project "${lagoonProjectName}", as it already exists in harbor, continuing with existing project`)
     } else {
       logger.error(`Unable to create the harbor project "${lagoonProjectName}", error: ${err}`)
       return ""
