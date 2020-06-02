@@ -17,6 +17,7 @@ spec:
         {{- include "logstash.labels" . | nindent 8 }}
       annotations:
         {{- include "logstash.annotations" . | nindent 4 }}
+        lagoon.sh/configMapSha: {{ .Values.configMapSha | quote }}
     spec:
     {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
