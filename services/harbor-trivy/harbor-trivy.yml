@@ -36,8 +36,8 @@ parameters:
     description: Strategy of Deploymentconfig
     value: "Rolling"
   - name: SERVICE_IMAGE
-      description: Pullable image of service
-      required: true
+    description: Pullable image of service
+    required: true
 objects:
 - apiVersion: v1
   kind: Service
