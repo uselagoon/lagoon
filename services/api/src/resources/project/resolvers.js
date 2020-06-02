@@ -196,10 +196,12 @@ const getProjectByName = async (
 
 const getProjectsByMetadata = async (
   root,
-  args,
+  { metadata },
   {
     sqlClient,
     hasPermission,
+    keycloakGrant,
+    models
   },
 ) => {
 
@@ -221,31 +223,36 @@ const getProjectsByMetadata = async (
     ]);
   }
 
-  for (const meta of args['metadata']) {
-
-    let key = meta['key'];
-    let val = meta['value'];
-
-    var q = `JSON_CONTAINS(metadata, '"`+val+`"', '$.`+key+`')`;
-
+  let queryArgs = [];
+  for (const { key: meta_key, value: meta_value } of metadata) {
+    let q;
+    if (meta_value) {
+      q = 'JSON_CONTAINS(metadata, ?, ?)';
+      queryArgs = [
+        ...queryArgs,
+        `"${meta_value}"`,
+        `$.${meta_key}`
+      ]
+    }
     // Support key-only queries.
-    if (!val) {
-      q = `JSON_CONTAINS_PATH(metadata, 'one', '$.`+key+`')`;
+    else {
+      q = "JSON_CONTAINS_PATH(metadata, 'one', ?)";
+      queryArgs = [
+        ...queryArgs,
+        `$.${meta_key}`
+      ]
     }
 
     if (where === '') {
-      where += ` WHERE ` + q;
+      where += ' WHERE ' + q;
     }
     else {
-      where += ` AND ` + q;
+      where += ' AND ' + q;
     }
   }
 
-  logger.error(`SELECT * FROM project ${where}`);
-
-  const order = args.order ? ` ORDER BY ${R.toLower(args.order)} ASC` : '';
-  const prep = prepare(sqlClient, `SELECT * FROM project ${where}${order}`);
-  const rows = await query(sqlClient, prep(args));
+  const prep = prepare(sqlClient, `SELECT * FROM project ${where}`);
+  const rows = await query(sqlClient, prep(queryArgs));
 
   return rows;
 };
@@ -693,7 +700,6 @@ const removeProjectMetadataByKey = async (
   {
     sqlClient,
     hasPermission,
-    models,
   },
 ) => {
 
@@ -713,16 +719,10 @@ const removeProjectMetadataByKey = async (
     }
   }
 
-  const oldProject = await Helpers(sqlClient).getProjectById(id);
-
-  const str = `
-      UPDATE project
-      SET metadata = JSON_REMOVE(metadata, '$.`+ key + `')
-      WHERE id = `+ id + `
-    `;
+  const str = 'UPDATE project SET metadata = JSON_REMOVE(metadata, :meta_key) WHERE id = :id';
 
   const prep = prepare(sqlClient, str);
-  await query(sqlClient, prep(oldProject));
+  await query(sqlClient, prep({ id, meta_key: `$.${key}` }));
   return Helpers(sqlClient).getProjectById(id);
 };
 
@@ -742,7 +742,6 @@ const updateProjectMetadata = async (
   {
     sqlClient,
     hasPermission,
-    models,
   },
 ) => {
 
@@ -766,16 +765,10 @@ const updateProjectMetadata = async (
     }
   }
 
-  const oldProject = await Helpers(sqlClient).getProjectById(id);
-
-  const str = `
-      UPDATE project
-      SET metadata = JSON_SET(metadata, '$.`+key+`', '`+value+`')
-      WHERE id = `+id+`
-    `;
+  const str = 'UPDATE project SET metadata = JSON_SET(metadata, :meta_key, :meta_value) WHERE id = :id';
 
   const prep = prepare(sqlClient, str);
-  await query(sqlClient, prep(oldProject));
+  await query(sqlClient, prep({ id, meta_key: `$.${key}`, meta_value: value }));
   return Helpers(sqlClient).getProjectById(id);
 };
 
