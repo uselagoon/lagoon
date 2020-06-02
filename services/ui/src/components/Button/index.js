@@ -1,7 +1,7 @@
 import React from 'react';
 import { bp, color } from 'lib/variables';
 
-const Button = ({ action = null, href = null, disabled, children }) => {
+const Button = ({ action = null, href = null, disabled, children, variant }) => {
   const ButtonElement = href ? 'a' : 'button';
   const onClick = action
     ? action
@@ -17,7 +17,7 @@ const Button = ({ action = null, href = null, disabled, children }) => {
         onClick={onClick}
         href={href}
         disabled={disabled}
-        className={`btn ${disabled ? 'btn--disabled' : ''}`}
+        className={`${variant ? `btn-${variant}` : 'btn'} ${disabled ? 'btn--disabled' : ''} `}
       >
         {children}
       </ButtonElement>
@@ -37,6 +37,28 @@ const Button = ({ action = null, href = null, disabled, children }) => {
 
             &:hover {
               background-color: ${color.blue};
+            }
+
+            &.btn--disabled {
+              background-color: ${color.lightestGrey};
+              color: ${color.darkGrey};
+              cursor: not-allowed;
+            }
+          }
+          .btn-red {
+            display: inline-block;
+            background-color: ${color.lightRed};
+            border: none;
+            border-radius: 3px;
+            color: ${color.white};
+            cursor: pointer;
+            padding: 10px 30px;
+            @media ${bp.tinyUp} {
+              align-self: auto;
+            }
+
+            &:hover {
+              background-color: ${color.red};
             }
 
             &.btn--disabled {

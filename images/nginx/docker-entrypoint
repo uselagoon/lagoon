@@ -1,18 +1,18 @@
 #!/bin/sh
 
-# If BASIC_AUTH is not already set to "off"
-if [ ! "${BASIC_AUTH}" == "off" ]; then
-  # And if a username and password is set
+# If `BASIC_AUTH` is not already set to 'off'.
+if [[ ! "${BASIC_AUTH}" == "off" ]]; then
+  # And if a username and password is set.
   if [ ! -z ${BASIC_AUTH_USERNAME+x} ] && [ ! -z ${BASIC_AUTH_PASSWORD+x} ]; then
-    # Generate a basic auth config file
+    # Generate a basic authentication config file for Nginx.
     printf "${BASIC_AUTH_USERNAME}:$(openssl passwd -crypt ${BASIC_AUTH_PASSWORD})\n" >> /etc/nginx/.htpasswd
-    # and set $BASIC_AUTH to restricted which will tell nginx to do Basic Auth.
+    # Set `BASIC_AUTH` to restricted which will tell nginx to do basic authentication.
     export BASIC_AUTH="restricted"
   fi
 fi
 
 ep /etc/nginx/*
-# find all folders within /etc/nginx/conf.d/
+# Find all folders within /etc/nginx/conf.d/
 find /etc/nginx/conf.d/ -type d | while read DIR; do
   # envplate if found folder is not empty
   if find $DIR -mindepth 1 | read; then 

@@ -58,25 +58,25 @@ Create a PriorityClassName.
 Lagoon Labels
 */}}
 {{- define "nginx-php-persistent.lagoonLabels" -}}
-lagoon/service: {{ .Release.Name }}
-lagoon/service-type: {{ .Chart.Name }}
-lagoon/project: {{ .Values.project }}
-lagoon/environment: {{ .Values.environment }}
-lagoon/environmentType: {{ .Values.environmentType }}
-lagoon/buildType: {{ .Values.buildType }}
+lagoon.sh/service: {{ .Release.Name }}
+lagoon.sh/service-type: {{ .Chart.Name }}
+lagoon.sh/project: {{ .Values.project }}
+lagoon.sh/environment: {{ .Values.environment }}
+lagoon.sh/environmentType: {{ .Values.environmentType }}
+lagoon.sh/buildType: {{ .Values.buildType }}
 {{- end -}}
 
 {{/*
 Annotations
 */}}
 {{- define "nginx-php-persistent.annotations" -}}
-lagoon/version: {{ .Values.lagoonVersion | quote }}
+lagoon.sh/version: {{ .Values.lagoonVersion | quote }}
 {{- if .Values.branch }}
-lagoon/branch: {{ .Values.branch | quote }}
+lagoon.sh/branch: {{ .Values.branch | quote }}
 {{- end }}
 {{- if .Values.prNumber }}
-lagoon/prNumber: {{ .Values.prNumber | quote }}
-lagoon/prHeadBranch: {{ .Values.prHeadBranch | quote }}
-lagoon/prBaseBranch: {{ .Values.prBaseBranch | quote }}
+lagoon.sh/prNumber: {{ .Values.prNumber | quote }}
+lagoon.sh/prHeadBranch: {{ .Values.prHeadBranch | quote }}
+lagoon.sh/prBaseBranch: {{ .Values.prBaseBranch | quote }}
 {{- end }}
 {{- end -}}

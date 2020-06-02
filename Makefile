@@ -132,8 +132,6 @@ images :=     oc \
 							kubectl \
 							mariadb \
 							mariadb-drupal \
-							mariadb-galera \
-							mariadb-galera-drupal \
 							postgres \
 							postgres-ckan \
 							postgres-drupal \
@@ -180,8 +178,6 @@ $(build-images):
 #    changed on the Dockerfiles
 build/mariadb: build/commons images/mariadb/Dockerfile
 build/mariadb-drupal: build/mariadb images/mariadb-drupal/Dockerfile
-build/mariadb-galera: build/commons images/mariadb-galera/Dockerfile
-build/mariadb-galera-drupal: build/mariadb-galera images/mariadb-galera-drupal/Dockerfile
 build/postgres: build/commons images/postgres/Dockerfile
 build/postgres-ckan: build/postgres images/postgres-ckan/Dockerfile
 build/postgres-drupal: build/postgres images/postgres-drupal/Dockerfile
@@ -213,10 +209,8 @@ build/kubectl-build-deploy-dind: build/kubectl images/kubectl-build-deploy-dind
 
 elasticimages :=  elasticsearch__6 \
 								  elasticsearch__7 \
-								  elasticsearch__7.1 \
 									kibana__6 \
 									kibana__7 \
-									kibana__7.1 \
 									logstash__6 \
 									logstash__7
 
@@ -235,7 +229,7 @@ $(build-elasticimages): build/commons
 base-images-with-versions += $(elasticimages)
 s3-images += $(elasticimages)
 
-build/elasticsearch__6 build/elasticsearch__7 build/elasticsearch__7.1 build/kibana__6 build/kibana__7 build/kibana__7.1 build/logstash__6 build/logstash__7: images/commons
+build/elasticsearch__6 build/elasticsearch__7 build/kibana__6 build/kibana__7 build/logstash__6 build/logstash__7: images/commons
 
 #######
 ####### Python Images
@@ -254,7 +248,7 @@ $(build-pythonimages): build/commons
 	$(eval clean = $(subst build/python__,,$@))
 	$(eval version = $(word 1,$(subst -, ,$(clean))))
 	$(eval type = $(word 2,$(subst -, ,$(clean))))
-	$(eval alpine_version := $(shell case $(version) in (2.7) echo "3.10" ;; (*) echo $(DEFAULT_ALPINE_VERSION) ;; esac ))
+	$(eval alpine_version := $(shell case $(version) in (2.7|3.7) echo "3.10" ;; (*) echo $(DEFAULT_ALPINE_VERSION) ;; esac ))
 # this fills variables only if $type is existing, if not they are just empty
 	$(eval type_dash = $(if $(type),-$(type)))
 # Call the docker build
@@ -362,8 +356,10 @@ build/solr__6.6-ckan: build/solr__6.6
 #######
 ####### Node Images are alpine linux based Node images.
 
-nodeimages := 	node__12 \
+nodeimages := 	node__14 \
+				node__12 \
 				node__10 \
+				node__14-builder \
 				node__12-builder \
 				node__10-builder \
 
@@ -386,7 +382,8 @@ $(build-nodeimages): build/commons
 base-images-with-versions += $(nodeimages)
 s3-images += $(nodeimages)
 
-build/node__10 build/node__12: images/commons images/node/Dockerfile
+build/node__10 build/node__12 build/node__14: images/commons images/node/Dockerfile
+build/node__14-builder: build/node__14 images/node/builder/Dockerfile
 build/node__12-builder: build/node__12 images/node/builder/Dockerfile
 build/node__10-builder: build/node__10 images/node/builder/Dockerfile
 
@@ -429,6 +426,7 @@ services :=       api \
 									backup-handler \
 									broker \
 									broker-single \
+									logs-dispatcher \
 									logs-forwarder \
 									logs-db \
 									logs-db-ui \
@@ -441,8 +439,6 @@ services :=       api \
 									keycloak \
 									keycloak-db \
 									ui \
-									harborclair \
-									harborclairadapter \
 									harbor-core \
 									harbor-database \
 									harbor-jobservice \
@@ -450,12 +446,10 @@ services :=       api \
 									harbor-portal \
 									harbor-redis \
 									harborregistry \
-									harborregistryctl
+									harborregistryctl \
+									harbor-trivy
 
-services-galera := 	api-db-galera \
-										keycloak-db-galera
-
-service-images += $(services) $(services-galera)
+service-images += $(services)
 
 build-services = $(foreach image,$(services),build/$(image))
 
@@ -465,35 +459,27 @@ $(build-services):
 	$(call docker_build,$(image),services/$(image)/Dockerfile,services/$(image))
 	touch $@
 
-build-services-galera = $(foreach image,$(services-galera),build/$(image))
-
-$(build-services-galera):
-	$(eval image = $(subst build/,,$@))
-	$(eval service = $(subst -galera,,$(image)))
-	$(call docker_build,$(image),services/$(service)/Dockerfile-galera,services/$(service))
-	touch $@
-
 # Dependencies of Service Images
-build/auth-server build/logs2email build/logs2slack build/logs2rocketchat build/logs2microsoftteams build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftjobs build/openshiftjobsmonitor build/openshiftmisc build/openshiftremove build/backup-handler build/kubernetesbuilddeploy build/kubernetesdeployqueue build/kubernetesbuilddeploymonitor build/kubernetesjobs build/kubernetesjobsmonitor build/kubernetesmisc build/kubernetesremove build/webhook-handler build/webhooks2tasks build/api build/cli build/ui: build/yarn-workspace-builder
+build/auth-server build/logs2email build/logs2slack build/logs2rocketchat build/logs2microsoftteams build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftjobs build/openshiftjobsmonitor build/openshiftmisc build/openshiftremove build/backup-handler build/kubernetesbuilddeploy build/kubernetesdeployqueue build/kubernetesbuilddeploymonitor build/kubernetesjobs build/kubernetesjobsmonitor build/kubernetesmisc build/kubernetesremove build/webhook-handler build/webhooks2tasks build/api build/ui: build/yarn-workspace-builder
 build/logs2logs-db: build/logstash__7
-build/logs-db: build/elasticsearch__7.1
-build/logs-db-ui: build/kibana__7.1
+build/logs-db: build/elasticsearch__7
+build/logs-db-ui: build/kibana__7
 build/logs-db-curator: build/curator
 build/auto-idler: build/oc
 build/storage-calculator: build/oc
 build/api-db build/keycloak-db: build/mariadb
-build/api-db-galera build/keycloak-db-galera: build/mariadb-galera
 build/broker: build/rabbitmq-cluster build/broker-single
 build/broker-single: build/rabbitmq
 build/drush-alias: build/nginx
 build/keycloak: build/commons
 build/harbor-database: build/postgres
-build/harborclair build/local-minio: build/harbor-database services/harbor-redis/Dockerfile services/harborclairadapter/Dockerfile
-build/harborregistry: build/harborclair services/harbor-jobservice/Dockerfile
+build/harbor-trivy build/local-minio: build/harbor-database services/harbor-redis/Dockerfile
+build/harborregistry: services/harbor-jobservice/Dockerfile
 build/harborregistryctl: build/harborregistry
 build/harbor-nginx: build/harborregistryctl services/harbor-core/Dockerfile services/harbor-portal/Dockerfile
 build/tests-kubernetes: build/tests
 build/tests-openshift: build/tests
+build/toolbox: build/mariadb
 
 # Auth SSH needs the context of the root folder, so we have it individually
 build/ssh: build/commons
@@ -514,15 +500,6 @@ $(build-localdevimages):
 	$(eval folder = $(subst build/local-,,$@))
 	$(eval image = $(subst build/,,$@))
 	$(call docker_build,$(image),local-dev/$(folder)/Dockerfile,local-dev/$(folder))
-	touch $@
-
-# Images for local helpers that exist in another folder than the service images
-cliimages := cli
-service-images += $(cliimages)
-
-build/cli: build/ssh cli/Dockerfile
-	$(eval image = $(subst build/,,$@))
-	$(call docker_build,$(image),cli/Dockerfile,cli)
 	touch $@
 
 # Image with ansible test
@@ -563,7 +540,12 @@ k8s-tests: $(all-k8s-tests)
 $(all-k8s-tests): k3d kubernetes-test-services-up
 		$(MAKE) push-local-registry -j6
 		$(eval testname = $(subst k8s-tests/,,$@))
-		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --rm tests-kubernetes ansible-playbook --skip-tags="skip-on-kubernetes" /ansible/tests/$(testname).yaml
+		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility run --rm \
+			tests-kubernetes ansible-playbook --skip-tags="skip-on-kubernetes" \
+			/ansible/tests/$(testname).yaml \
+			--extra-vars \
+			"$$(cat $$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)') | \
+				jq -rcsR '{kubeconfig: .}')"
 
 # push command of our base images into minishift
 push-local-registry-images = $(foreach image,$(base-images) $(base-images-with-versions),[push-local-registry]-$(image))
@@ -589,7 +571,6 @@ all-openshift-tests-list:=	features-openshift \
 														node \
 														drupal \
 														drupal-postgres \
-														drupal-galera \
 														github \
 														gitlab \
 														bitbucket \
@@ -609,10 +590,10 @@ tests: k8s-tests openshift-tests
 .PHONY: wait-for-keycloak
 wait-for-keycloak:
 	$(info Waiting for Keycloak to be ready....)
-	grep -m 1 "Config of Keycloak done." <(docker-compose -p $(CI_BUILD_TAG) logs -f keycloak 2>&1)
+	grep -m 1 "Config of Keycloak done." <(docker-compose -p $(CI_BUILD_TAG) --compatibility logs -f keycloak 2>&1)
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
-main-test-services = broker logs2email logs2slack logs2rocketchat logs2microsoftteams api api-db keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher harbor-core harbor-database harbor-jobservice harbor-portal harbor-nginx harbor-redis harborregistry harborregistryctl harborclair harborclairadapter local-minio
+main-test-services = broker logs2email logs2slack logs2rocketchat logs2microsoftteams api api-db keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher harbor-core harbor-database harbor-jobservice harbor-portal harbor-nginx harbor-redis harborregistry harborregistryctl harbor-trivy local-minio
 
 # Define a list of which Lagoon Services are needed for openshift testing
 openshift-test-services = openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor openshiftmisc tests-openshift
@@ -633,53 +614,52 @@ webhook-tests = github gitlab bitbucket
 api-tests = node features-openshift features-kubernetes nginx elasticsearch active-standby
 
 # All drupal tests
-drupal-tests = drupal drupal-postgres drupal-galera
+drupal-tests = drupal drupal-postgres
 drupal-dependencies = build/varnish-drupal build/solr__5.5-drupal build/nginx-drupal build/redis build/php__7.2-cli-drupal build/php__7.3-cli-drupal build/php__7.4-cli-drupal build/postgres-drupal build/mariadb-drupal
 
 # These targets are used as dependencies to bring up containers in the right order.
 .PHONY: main-test-services-up
 main-test-services-up: $(foreach image,$(main-test-services),build/$(image))
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(main-test-services)
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d $(main-test-services)
 	$(MAKE) wait-for-keycloak
 
 .PHONY: openshift-test-services-up
 openshift-test-services-up: main-test-services-up $(foreach image,$(openshift-test-services),build/$(image))
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(openshift-test-services)
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d $(openshift-test-services)
 
 .PHONY: kubernetes-test-services-up
 kubernetes-test-services-up: main-test-services-up $(foreach image,$(kubernetes-test-services),build/$(image))
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(kubernetes-test-services)
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d $(kubernetes-test-services)
 
 .PHONY: drupaltest-services-up
 drupaltest-services-up: main-test-services-up $(foreach image,$(drupal-test-services),build/$(image))
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(drupal-test-services)
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d $(drupal-test-services)
 
 .PHONY: webhooks-test-services-up
 webhooks-test-services-up: main-test-services-up $(foreach image,$(webhooks-test-services),build/$(image))
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d $(webhooks-test-services)
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d $(webhooks-test-services)
 
 .PHONY: local-registry-up
 local-registry-up: build/local-registry
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d local-registry
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d local-registry
 
 openshift-run-api-tests = $(foreach image,$(api-tests),openshift-tests/$(image))
 .PHONY: $(openshift-run-api-tests)
 $(openshift-run-api-tests): minishift build/oc-build-deploy-dind openshift-test-services-up push-minishift
 		$(eval testname = $(subst openshift-tests/,,$@))
-		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --rm tests-openshift ansible-playbook /ansible/tests/$(testname).yaml
+		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility run --rm tests-openshift ansible-playbook /ansible/tests/$(testname).yaml
 
 openshift-run-drupal-tests = $(foreach image,$(drupal-tests),openshift-tests/$(image))
 .PHONY: $(openshift-run-drupal-tests)
 $(openshift-run-drupal-tests): minishift build/oc-build-deploy-dind $(drupal-dependencies) openshift-test-services-up drupaltest-services-up push-minishift
 		$(eval testname = $(subst openshift-tests/,,$@))
-		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --rm tests-openshift ansible-playbook /ansible/tests/$(testname).yaml
+		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility run --rm tests-openshift ansible-playbook /ansible/tests/$(testname).yaml
 
 openshift-run-webhook-tests = $(foreach image,$(webhook-tests),openshift-tests/$(image))
 .PHONY: $(openshift-run-webhook-tests)
 $(openshift-run-webhook-tests): minishift build/oc-build-deploy-dind openshift-test-services-up webhooks-test-services-up push-minishift
 		$(eval testname = $(subst openshift-tests/,,$@))
-		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) run --rm tests-openshift ansible-playbook /ansible/tests/$(testname).yaml
-
+		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility run --rm tests-openshift ansible-playbook /ansible/tests/$(testname).yaml
 
 end2end-all-tests = $(foreach image,$(all-tests-list),end2end-tests/$(image))
 
@@ -688,14 +668,14 @@ end2end-tests: $(end2end-all-tests)
 
 .PHONY: start-end2end-ansible
 start-end2end-ansible: build/tests
-		docker-compose -f docker-compose.yaml -f docker-compose.end2end.yaml -p end2end up -d tests
+		docker-compose -f docker-compose.yaml -f docker-compose.end2end.yaml -p end2end --compatibility up -d tests
 
 $(end2end-all-tests): start-end2end-ansible
 		$(eval testname = $(subst end2end-tests/,,$@))
 		docker exec -i $$(docker-compose -f docker-compose.yaml -f docker-compose.end2end.yaml -p end2end ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml
 
 end2end-tests/clean:
-		docker-compose -f docker-compose.yaml -f docker-compose.end2end.yaml -p end2end down -v
+		docker-compose -f docker-compose.yaml -f docker-compose.end2end.yaml -p end2end --compatibility down -v
 
 # push command of our base images into minishift
 push-minishift-images = $(foreach image,$(base-images) $(base-images-with-versions),[push-minishift]-$(image))
@@ -718,10 +698,14 @@ push-docker-host-image: build/docker-host minishift/login-docker-registry
 	docker push $$(cat minishift):30000/lagoon/docker-host | cat
 
 lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build/$(image))
-	IMAGE_REPO=$(CI_BUILD_TAG) CI=false docker-compose -p $(CI_BUILD_TAG) up -d $(deployment-test-services-rest)
+	IMAGE_REPO=$(CI_BUILD_TAG) CI=false docker-compose -p $(CI_BUILD_TAG) --compatibility up -d $(deployment-test-services-rest)
 	sleep 30
 	curl -X POST http://localhost:5555/deploy -H 'content-type: application/json' -d '{ "projectName": "lagoon", "branchName": "master" }'
 	make logs
+
+# Start only the local Harbor for testing purposes
+local-harbor: build/harbor-core build/harbor-database build/harbor-jobservice build/harbor-portal build/harbor-nginx build/harbor-redis build/harborregistry build/harborregistryctl build/harbor-trivy build/local-minio
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d harbor-core harbor-database harbor-jobservice harbor-portal harbor-nginx harbor-redis harborregistry harborregistryctl harbor-trivy local-minio
 
 # Publish command to amazeeio docker hub, this should probably only be done during a master deployments
 publish-amazeeio-baseimages = $(foreach image,$(base-images),[publish-amazeeio-baseimages]-$(image))
@@ -834,7 +818,7 @@ clean:
 
 # Show Lagoon Service Logs
 logs:
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) logs --tail=10 -f $(service)
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility logs --tail=10 -f $(service)
 
 # Start all Lagoon Services
 up:
@@ -852,7 +836,7 @@ endif
 	$(MAKE) wait-for-keycloak
 
 down:
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) down -v --remove-orphans
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility down -v --remove-orphans
 
 # kill all containers containing the name "lagoon"
 kill:
@@ -1149,4 +1133,4 @@ rebuild-push-oc-build-deploy-dind:
 
 .PHONY: ui-development
 ui-development: build/api build/api-db build/local-api-data-watcher-pusher build/ui build/keycloak build/keycloak-db build/broker build/broker-single
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) up -d api api-db local-api-data-watcher-pusher ui keycloak keycloak-db broker
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db local-api-data-watcher-pusher ui keycloak keycloak-db broker

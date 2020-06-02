@@ -256,45 +256,98 @@ export const EnvironmentModel = (clients) => {
     yearMonth,
   ) => {
     const interested_date = yearMonth ? new Date(yearMonth) : new Date();
-    const year = interested_date.getFullYear();
-    const month = interested_date.getMonth() + 1;
+    const year = interested_date.getUTCFullYear();
+    const month = interested_date.getUTCMonth() + 1; // internally months start with 0, we need them with 1
+
     // This generates YYYY-MM
     const interested_year_month = `${year}-${month < 10 ? `0${month}` : month}`;
+
+    // generate a string of the date on the very first second of the month
+    const interested_date_begin_string = interested_date.toISOString();
+
+    // generate a string of the date on the very last second of the month
+    const interested_date_end = interested_date;
+    interested_date_end.setUTCMonth(interested_date.getUTCMonth() + 1)
+    interested_date_end.setUTCDate(0); // setting the date to 0 will select 1 day before the actual date
+    interested_date_end.setUTCHours(23);
+    interested_date_end.setUTCMinutes(59);
+    interested_date_end.setUTCSeconds(59);
+    interested_date_end.setUTCMilliseconds(999);
+    const interested_date_end_string = interested_date_end.toISOString();
+
     try {
-      const result = await esClient.count({
+      const result = await esClient.search({
         index: `router-logs-${openshiftProjectName}-*`,
         body: {
-          query: {
-            bool: {
-              must: [
+          "size": 0,
+          "query": {
+            "bool": {
+              "must": [
                 {
-                  range: {
-                    '@timestamp': {
-                      gte: `${interested_year_month}||/M`,
-                      lte: `${interested_year_month}||/M`,
-                      format: 'strict_year_month',
-                    },
-                  },
-                },
+                  "range": {
+                    "@timestamp": {
+                      "gte": `${interested_year_month}||/M`,
+                      "lte": `${interested_year_month}||/M`,
+                      "format": "strict_year_month"
+                    }
+                  }
+                }
               ],
-              must_not: [
+              "must_not": [
                 {
-                  match_phrase: {
-                    request_header_useragent: {
-                      query: 'StatusCake',
-                    },
-                  },
-                },
-              ],
-            },
+                  "match_phrase": {
+                    "request_header_useragent": {
+                      "query": "StatusCake"
+                    }
+                  }
+                }
+              ]
+            }
           },
+          "aggs": {
+            "hourly": {
+              "date_histogram": {
+                "field": "@timestamp",
+                "fixed_interval": "1h",
+                "min_doc_count": 0,
+                "extended_bounds": {
+                  "min": interested_date_begin_string,
+                  "max": interested_date_end_string
+                }
+              },
+              "aggs": {
+                "count": {
+                  "value_count": {
+                    "field": "@timestamp"
+                  }
+                }
+              }
+            },
+            "average": {
+              "avg_bucket": {
+                "buckets_path": "hourly>count",
+                "gap_policy": "skip" // makes sure that we don't use empty buckets as average calculation
+              }
+            }
+          }
         },
       });
 
-      const response = {
-        total: result.count,
-      };
-      return response;
+      // 0 hits found in elasticsearch, don't even try to generate monthly counts
+      if (result.hits.total.value === 0) {
+        return { total: 0 };
+      }
+
+      var total = 0;
+
+      // loop through all hourly sum counts
+      // if the sum count is empty, this means we have missing data and we use the overall average instead.
+      result.aggregations.hourly.buckets.forEach(bucket => {
+        total += (bucket.count.value === 0 ? parseInt(result.aggregations.average.value) : bucket.count.value);
+      });
+
+      return { total };
+
     } catch (e) {
       logger.error(`Elastic Search Query Error: ${JSON.stringify(e)}`);
       const noHits = { total: 0 };
