@@ -279,12 +279,12 @@ const messageConsumer = async msg => {
     }
     if (alertContactHA != undefined && alertContactSA != undefined){
       if (availability == "HIGH") {
-        jobconfig.spec.template.spec.containers[0].env.push({"name": "ALERTCONTACT","value": alertContactHA})
+        jobconfig.spec.template.spec.containers[0].env.push({"name": "MONITORING_ALERTCONTACT","value": alertContactHA})
       } else {
-        jobconfig.spec.template.spec.containers[0].env.push({"name": "ALERTCONTACT","value": alertContactSA})
+        jobconfig.spec.template.spec.containers[0].env.push({"name": "MONITORING_ALERTCONTACT","value": alertContactSA})
       }
     } else {
-      jobconfig.spec.template.spec.containers[0].env.push({"name": "ALERTCONTACT","value": "unconfigured"})
+      jobconfig.spec.template.spec.containers[0].env.push({"name": "MONITORING_ALERTCONTACT","value": "unconfigured"})
     }
     console.log(JSON.stringify(jobconfig.spec.template.spec.containers[0].env,null,2));
 

@@ -504,7 +504,7 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
         --set hsts="${ROUTE_HSTS}" \
         --set ingressmonitorcontroller.enabled="${MONITORING_ENABLED}" \
         --set ingressmonitorcontroller.path="${MONITORING_PATH}" \
-        --set ingressmonitorcontroller.alertContacts="${ALERTCONTACT}" \
+        --set ingressmonitorcontroller.alertContacts="${MONITORING_ALERTCONTACT}" \
         -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${ROUTE_DOMAIN}.yaml
 
       let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
@@ -558,7 +558,7 @@ else
         --set hsts="${ROUTE_HSTS}" \
         --set ingressmonitorcontroller.enabled="${MONITORING_ENABLED}" \
         --set ingressmonitorcontroller.path="${MONITORING_PATH}" \
-        --set ingressmonitorcontroller.alertContacts="${ALERTCONTACT}" \
+        --set ingressmonitorcontroller.alertContacts="${MONITORING_ALERTCONTACT}" \
         -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml  "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${ROUTE_DOMAIN}.yaml
 
       let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1

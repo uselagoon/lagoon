@@ -288,12 +288,12 @@ const messageConsumer = async msg => {
     }
     if (alertContactHA != undefined && alertContactSA != undefined){
       if (availability == "HIGH") {
-        buildconfig.spec.strategy.customStrategy.env.push({"name": "ALERTCONTACT","value": alertContactHA})
+        buildconfig.spec.strategy.customStrategy.env.push({"name": "MONITORING_ALERTCONTACT","value": alertContactHA})
       } else {
-        buildconfig.spec.strategy.customStrategy.env.push({"name": "ALERTCONTACT","value": alertContactSA})
+        buildconfig.spec.strategy.customStrategy.env.push({"name": "MONITORING_ALERTCONTACT","value": alertContactSA})
       }
     } else {
-      buildconfig.spec.strategy.customStrategy.env.push({"name": "ALERTCONTACT","value": "unconfigured"})
+      buildconfig.spec.strategy.customStrategy.env.push({"name": "MONITORING_ALERTCONTACT","value": "unconfigured"})
     }
     return buildconfig
   }
