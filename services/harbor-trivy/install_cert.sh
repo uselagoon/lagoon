@@ -3,7 +3,7 @@
 set -e
 
 if [ ! -f /home/scanner/ca-bundle.crt.original ]; then
-    cp /etc/pki/tls/certs/ca-bundle.crt ~/ca-bundle.crt.original
+    cp /etc/pki/tls/certs/ca-bundle.crt /home/scanner/ca-bundle.crt.original
 else
     echo "Cert bundle copy operation failed. Exiting!!"
     exit 0
