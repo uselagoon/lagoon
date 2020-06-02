@@ -12,6 +12,8 @@ const lagoonHarborRoute = R.compose(
   R.propOr('', 'LAGOON_ROUTES'),
 )(process.env);
 
+const projectRegex = process.env.PROJECT_REGEX ? new RegExp(process.env.PROJECT_REGEX) : /.*/;
+
 (async () => {
   const sqlClient = getSqlClient();
   const harborClient = createHarborOperations(sqlClient);
@@ -24,10 +26,15 @@ const lagoonHarborRoute = R.compose(
   for(var i=0; i < projects.length; i++) {
     var project = projects[i];
 
+    if (!R.test(projectRegex, project.name)) {
+      logger.info(`Skipping ${project.name}`);
+      continue;
+    }
+
     // Get project's env vars from db
     var envVars = await query(
       sqlClient,
-     `SELECT * 
+     `SELECT *
         FROM env_vars
         WHERE project='${project.id}'
         AND scope = 'internal_container_registry';`
