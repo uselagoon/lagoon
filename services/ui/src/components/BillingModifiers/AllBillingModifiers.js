@@ -1,7 +1,6 @@
 import * as R from 'ramda';
 import React, { useState }  from 'react';
-import { graphql, compose, withApollo, Mutation, Query } from 'react-apollo';
-import gql from "graphql-tag";
+import { graphql, compose, Mutation, Query } from 'react-apollo';
 import { useMutation, useQuery } from '@apollo/react-hooks';
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { useApolloClient } from "@apollo/react-hooks";
@@ -30,8 +29,26 @@ const ModifierItem = styled.div`
   padding: ${grid}px;
 `;
 
-const Modifier = ({modifier, index}) => {
+const Modifier = ({modifier, index, editHandler}) => {
   const { id, group, name, startDate, endDate, customerComments, adminComments, weight, discountFixed, discountPercentage, extraFixed, extraPercentage } = modifier;
+
+  const [deleteModifier, {
+    loading: mutationLoading, 
+    error: mutationError
+  }] = useMutation(DeleteBillingModifierMutation,
+    {
+      update(cache, { data: { deleteBillingModifier } }){
+        if (deleteBillingModifier === 'success'){
+          const variables = { input: { name: group.name } };
+          const { allBillingModifiers } = cache.readQuery({ query: AllBillingModifiersQuery, variables});
+          const data = { allBillingModifiers: allBillingModifiers.filter(modifier => modifier.id !== id) };
+          cache.writeQuery({ query: AllBillingModifiersQuery, variables, data });
+        }
+      }
+    }
+  );
+
+  const deletehandler = () => deleteModifier({ variables: { input: { id } } })
   return(
     <Draggable draggableId={`${id}-${name}`} index={index}>
       {provided => (
@@ -40,6 +57,8 @@ const Modifier = ({modifier, index}) => {
           {...provided.draggableProps}
           {...provided.dragHandleProps}
         >
+          {mutationLoading && <p>Deleting...</p>}
+          {mutationError && <p>Error :( Please try again</p>}
 
           <div className="modifier-item">
             <div className="modifier-value">
@@ -55,45 +74,30 @@ const Modifier = ({modifier, index}) => {
               <div>Customer Comments: {customerComments}</div>
               <div>Admin Comments: {adminComments}</div>
             </div>
-            <div className="delete">
-              <Mutation
-                  mutation={DeleteBillingModifierMutation}
-                  // refetchQueries={[
-                  //   { query: AllBillingModifiersQuery, variables: { input: { name: group.name } } },
-                  //   { query: BillingGroupCostsQuery, variables: { input: { name: group.name }, month }}
-                  // ]}
-                >
-                  {(
-                    deleteBillingModifier,
-                    { loading, called, error, data }
-                  ) => {
-                    if (error) {
-                      return <div>{error.message}</div>;
-                    }
-
-                    if (called) {
-                      return <div>Deleting Billing Modifier...</div>;
-                    }
-
-                    return (
-                      <Button
-                        action={() =>
-                          deleteBillingModifier({
-                            variables: { input: { id } }
-                          })
-                        }
-                        variant='red'
-                      >
-                        Delete
-                      </Button>
-                    );
-                  }}
-                </Mutation>
+            <div className="edit-delete-container">
+              <div className="edit">
+                <Button action={()=>{editHandler(modifier)}}>Edit</Button>
+              </div>
+              <div className="delete">
+                <Button action={deletehandler} variant='red' >Delete</Button>
+              </div>
             </div>
           </div>
 
 
           <style jsx>{`
+
+          .edit-delete-container {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display:flex;
+            
+            div::after {
+              content: '';
+              padding: 0.5em;
+            }
+          }
 
           .modifier-item {
             position: relative;
@@ -107,9 +111,7 @@ const Modifier = ({modifier, index}) => {
             margin-right: 100px;
           }
           .delete {
-            position: absolute;
-            top: 15px;
-            right: 15px;
+
           }
 
           `}</style>
@@ -121,8 +123,8 @@ const Modifier = ({modifier, index}) => {
   );
 }
 
-const ModifierList = React.memo(function ModifierList({ modifiers }) {
-  return modifiers.map((modifier, index) => (<Modifier modifier={modifier} index={index} key={modifier.id} />));
+const ModifierList = React.memo(function ModifierList({ modifiers, editHandler }) {
+  return modifiers.map((modifier, index) => (<Modifier modifier={modifier} index={index} key={modifier.id} editHandler={editHandler} />));
 });
 
 
@@ -134,7 +136,7 @@ const reorder = (list, startIndex, endIndex) => {
   return result.map((item, index) => ({...item, weight: index}));
 };
 
-const AllBillingModifiers = ({group, modifiers, month}) => { 
+const AllBillingModifiers = ({group, modifiers, month, editHandler}) => { 
 
   const client = useApolloClient();
 
@@ -159,6 +161,9 @@ const AllBillingModifiers = ({group, modifiers, month}) => {
 
 
   const onDragEnd = (result) => {
+
+    editHandler({});
+    
     if (!result.destination) {
       return;
     }
@@ -191,8 +196,7 @@ const AllBillingModifiers = ({group, modifiers, month}) => {
 
       const variables = { input: { id, patch: { weight }} };
       
-      updateModifier({variables, optimisticResponse })
-
+      updateModifier({variables, optimisticResponse });
     });
 
 
@@ -215,7 +219,7 @@ const AllBillingModifiers = ({group, modifiers, month}) => {
         <Droppable droppableId="droppable">
             {(provided, snapshot) => (
               <div ref={provided.innerRef} {...provided.droppableProps}>
-                <ModifierList modifiers={modifiers} />
+                <ModifierList modifiers={modifiers} editHandler={editHandler} />
                 {provided.placeholder}
               </div>
             )}

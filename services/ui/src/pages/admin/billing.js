@@ -62,6 +62,8 @@ export const PageBillingGroup = ({ router }) => {
     queries.push(useQuery(BillingGroupCostsQuery, { variables: { input: { name: group }, month: moment().subtract(i, 'M').format('YYYY-MM').toString() } }))
   }
 
+  const [editModifier, setEditModifier] = useState({ });
+
   useEffect(() => {
     const result = queries.map(query => { 
       if (query && query.data && query.data.costs) {
@@ -97,6 +99,10 @@ export const PageBillingGroup = ({ router }) => {
     const date = new Date(dateTime);
     const [year, month] = moment(date).add(1, 'M').format('YYYY-MM').toString().split('-');
     setValues({month, year});
+  }
+
+  const editModifierHandler = (modifier) => {
+    setEditModifier(modifier)
   }
   
   return(
@@ -186,11 +192,11 @@ export const PageBillingGroup = ({ router }) => {
                               {
                                 <Query query={AllBillingModifiersQuery} variables={{ input: { name: group } }} >
                                   {R.compose(withQueryLoading, withQueryError)(
-                                    ({ data: { allBillingModifiers: modifiers } }) => <AllBillingModifiers group={group} modifiers={modifiers} month={`${year}-${month}`} />
+                                    ({ data: { allBillingModifiers: modifiers } }) => <AllBillingModifiers group={group} modifiers={modifiers} month={`${year}-${month}`} editHandler={editModifierHandler} />
                                   )}
                                 </Query>
                               }
-                              <AddBillingModifier group={group} month={`${year}-${month}`} />
+                              <AddBillingModifier group={group} month={`${year}-${month}`} editBillingModifier={editModifier} />
                             </div>
                           </div>
                           <div className="content-wrapper">

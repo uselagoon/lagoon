@@ -37,25 +37,19 @@ const Invoice = ({ cost, language }) => {
 
   return (
     <div className="invoice">
-
-
-<form className="langSwitcher">
-  <h2>Invoice</h2>
-    <div>
-      <input type="radio" id={LANGS.ENGLISH} value={LANGS.ENGLISH}
-      checked={lang === LANGS.ENGLISH} onChange={handleChange}/>
-      <label htmlFor={LANGS.ENGLISH}>{LANGS.ENGLISH}</label>
-    </div>
-    <div>
-      <input type="radio" id={LANGS.GERMAN} value={LANGS.GERMAN}
-      checked={lang === LANGS.GERMAN} onChange={handleChange}/>
-      <label htmlFor={LANGS.GERMAN}>{LANGS.GERMAN}</label>
-    </div>
-</form>
-
-
-
-
+      <form className="langSwitcher">
+        <h2>Invoice</h2>
+          <div>
+            <input type="radio" id={LANGS.ENGLISH} value={LANGS.ENGLISH}
+            checked={lang === LANGS.ENGLISH} onChange={handleChange}/>
+            <label htmlFor={LANGS.ENGLISH}>{LANGS.ENGLISH}</label>
+          </div>
+          <div>
+            <input type="radio" id={LANGS.GERMAN} value={LANGS.GERMAN}
+            checked={lang === LANGS.GERMAN} onChange={handleChange}/>
+            <label htmlFor={LANGS.GERMAN}>{LANGS.GERMAN}</label>
+          </div>
+      </form>
 
       <div className="data-table">
         <div className="data-heading">
