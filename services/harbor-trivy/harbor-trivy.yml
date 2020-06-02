@@ -65,7 +65,7 @@ objects:
       project: ${SAFE_PROJECT}
   type: Opaque
   data:
-    redisURL: cmVkaXM6Ly9oYXJib3ItcmVkaXM6NjM3OS81Cg==  # redis://harbor-redis:6379/5
+    redisURL: cmVkaXM6Ly9oYXJib3ItcmVkaXM6NjM3OS81  # redis://harbor-redis:6379/5
     gitHubToken: ""
 - apiVersion: apps/v1
   kind: StatefulSet
