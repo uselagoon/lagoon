@@ -11,3 +11,4 @@
     project: ci-active-standby-k8s
     branch: master-a
     standby_branch: master-b
+    error_code_check: 404
