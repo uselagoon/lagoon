@@ -1066,9 +1066,18 @@ CREATE OR REPLACE PROCEDURE
   add_min_max_to_billing_modifier()
 
   BEGIN
-    ALTER TABLE billing_modifier
-    ADD `min` float DEFAULT 0,
-    ADD `max` float DEFAULT 0,
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM billing_modifier.COLUMNS
+      WHERE
+        table_name = 'billing_modifiers'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'min';
+    ) THEN
+      ALTER TABLE `billing_modifier`
+        ADD `min` float DEFAULT 0,
+        ADD `max` float DEFAULT 0;
+    END IF;
   END;
 $$
 

@@ -102,12 +102,12 @@ CREATE TABLE IF NOT EXISTS billing_modifier (
   weight                          int NOT NULL DEFAULT 0,
   start_date                      datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   end_date                        datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  discount_fixed                  DECIMAL NULL DEFAULT 0.0,
-  discount_percentage             FLOAT NULL DEFAULT 0.0,
-  extra_fixed                     DECIMAL NULL DEFAULT 0.0,
-  extra_percentage                FLOAT NULL DEFAULT 0.0,
-  min                             FLOAT NULL DEFAULT 0.0,
-  max                             FLOAT NULL DEFAULT 0.0,
+  discount_fixed                  DECIMAL NULL DEFAULT 0,
+  discount_percentage             FLOAT NULL DEFAULT 0,
+  extra_fixed                     DECIMAL NULL DEFAULT 0,
+  extra_percentage                FLOAT NULL DEFAULT 0,
+  min                             FLOAT NULL DEFAULT 0,
+  max                             FLOAT NULL DEFAULT 0,
   customer_comments               text,
   admin_comments                  text
 );
