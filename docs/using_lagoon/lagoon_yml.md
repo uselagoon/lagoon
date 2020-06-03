@@ -141,7 +141,7 @@ Environment names match your deployed branches or pull requests. This allows for
 #### `environments.[name].monitoring_urls`
 
 !!!danger
-    This feature will be removed in an upcoming release of Lagoon. Please use the newer [`monitoring_path` method](lagoon_yml.md#monitoring-a-specific-path) on your specific route.
+    This feature will be removed in an upcoming release of Lagoon. Please use the newer [`monitoring-path` method](lagoon_yml.md#monitoring-a-specific-path) on your specific route.
 
 At the end of a deploy, Lagoon will check this field for any URLs which you have specified to add to the API for the purpose of monitoring. The default value for this field is the first route for a project. It is useful for adding specific paths of a project to the API, for consumption by a monitoring service.
 
@@ -177,11 +177,11 @@ In the `"www.example.com"` example repeated below, we see two more options \(als
 ```
 
 #### Monitoring a specific path
-When [UptimeRobot](https://uptimerobot.com/) is configured for your cluster (OpenShift or Kubernetes), Lagoon will inject annotations to each route/ingress for use by the `stakater/IngressControllerMonitor`. The default action is to monitor the homepage of the route. If you have a specific route to be monitored, this can be overriden by adding a `monitoring_path` to your route specification. A common use is to set up a path for monitoring which bypasses caching to give a more real-time monitoring of your site.
+When [UptimeRobot](https://uptimerobot.com/) is configured for your cluster (OpenShift or Kubernetes), Lagoon will inject annotations to each route/ingress for use by the `stakater/IngressControllerMonitor`. The default action is to monitor the homepage of the route. If you have a specific route to be monitored, this can be overriden by adding a `monitoring-path` to your route specification. A common use is to set up a path for monitoring which bypasses caching to give a more real-time monitoring of your site.
 
 ```
      - "www.example.com":
-            monitoring_path: "/bypass-cache"
+            monitoring-path: "/bypass-cache"
 ```
 
 #### Ingress annotations (Redirects)
