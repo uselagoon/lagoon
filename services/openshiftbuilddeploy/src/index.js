@@ -253,10 +253,6 @@ const messageConsumer = async msg => {
                       {
                         "name": "NATIVE_CRON_POD_MINIMUM_FREQUENCY",
                         "value": NativeCronPodMinimumFrequency
-                      },
-                      {
-                        "name": "AVAILABILITY",
-                        "value": availability
                       }
                   ],
                   "forcePull": true,

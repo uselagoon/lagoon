@@ -232,10 +232,6 @@ const messageConsumer = async msg => {
                   {
                       "name": "REGISTRY",
                       "value": registry
-                  },
-                  {
-                    "name": "AVAILABILITY",
-                    "value": availability
                   }
                 ],
                 "volumeMounts": [
