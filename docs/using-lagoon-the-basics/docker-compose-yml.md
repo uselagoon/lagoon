@@ -81,7 +81,7 @@ This is done via the `lagoon.type` label. There are many different types to choo
 
 ## **Skip/Ignore containers**
 
-If you'd like Lagoon to ignore a service completely - for example, you need a container only during local development - just give it the type `none`.
+If you'd like Lagoon to ignore a service completely - for example, you need a container only during local development - give it the type `none`.
 
 ## Persistent Storage
 
@@ -140,24 +140,30 @@ In order for Lagoon to realize which one is the `nginx` and which one is the `ph
 
 ### **Custom Templates**
 
-If you need to make changes to the OpenShift templates, you can define your own template via `lagoon.template`. Check out the shipped templates from the [templates folder of `oc-build-deploy-dind`](https://github.com/amazeeio/lagoon/tree/master/images/oc-build-deploy-dind/openshift-templates). 
+OpenShift defines templates as follows:
+
+> A template describes a set of objects that can be parameterized and processed to produce a list of objects for creation by OpenShift Container Platform. A template can be processed to create anything you have permission to create within a project, for example services, build configurations, and DeploymentConfigs. A template may also define a set of labels to apply to every object defined in the template.
+
+Lagoon comes with a variety of pre-defined templates, which set all kinds of needed configuration in YAML files. Check out the shipped templates from the [templates folder of `oc-build-deploy-dind`](https://github.com/amazeeio/lagoon/tree/master/images/oc-build-deploy-dind/openshift-templates). 
+
+If you need to make changes to the OpenShift templates, you can define your own template via `lagoon.template`. 
 
 {% hint style="info" %}
 The template is called with `oc process`,  so you should define the same parameters as seen in the default templates.
 {% endhint %}
 
-You can also overwrite the templates only for a specific environment. This is done in [`.lagoon.yml`](lagoon-yml.md#environmentsnametypes)
+You can also overwrite the templates for a specific environment. This is done in [`.lagoon.yml`](lagoon-yml.md#environmentsnametypes)
 
 ### **Custom Rollout Monitor Types**
 
-By default , Lagoon expects that services from custom templates are rolled out via a `DeploymentConfig` object within Openshift/Kubernetes. It monitors the rollout based on this object. In some cases, the services that are defined via custom deployment need a different way of monitoring. This can be defined via `lagoon.rollout`:
+By default , Lagoon expects that services from custom templates are rolled out via a [`DeploymentConfig`](https://docs.openshift.com/container-platform/4.4/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are) object within Openshift/Kubernetes. It monitors the rollout based on this object. In some cases, the services that are defined via custom deployment need a different way of monitoring. This can be defined via `lagoon.rollout`:
 
-* `deploymentconfig` - This is the default. Expects a `DeploymentConfig` object in the template for the service.
-* `statefulset` - Expects a `Statefulset` object in the template for the service.
-* `daemonset` - Expects a `Daemonset` object in the template for the service.
+* `deploymentconfig` - This is the default. Expects a [`DeploymentConfig`](https://docs.openshift.com/container-platform/4.4/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are) object in the template for the service.
+* `statefulset` - Expects a [`Statefulset`](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/) object in the template for the service.
+* `daemonset` - Expects a [`Daemonset`](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/) object in the template for the service.
 * `false` - Will not monitor any rollouts, and will just be happy if the template applies and does not throw any errors.
 
-You can also overwrite the rollout for just one specific environment. This is done in [`.lagoon.yml`](lagoon-yml.md#environmentsnamerollouts)
+You can also overwrite the rollout for just one specific environment. This is done in [`.lagoon.yml`](lagoon-yml.md#environments-name-rollouts).
 
 ### **Custom Type**
 

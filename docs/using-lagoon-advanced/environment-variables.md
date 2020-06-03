@@ -159,7 +159,7 @@ If you want to define environment variables different per environment you can cr
 
 ### `PHP_ERROR_REPORTING`
 
-This variable, if set, will define the logging level you would like PHP to use. If not supplied, it will be set dynamically based on whether this is a production or development environment.
+This variable, if set, will define the [logging](../logging/logging.md) level you would like PHP to use. If not supplied, it will be set dynamically based on whether this is a production or development environment.
 
 On production environments, this value defaults to `E_ALL & ~E_DEPRECATED & ~E_STRICT & ~E_NOTICE`.
 

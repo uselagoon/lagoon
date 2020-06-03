@@ -175,16 +175,16 @@ If you plan to switch from a SSL certificate signed by a Certificate Authority \
 
 #### `environments.[name].types`
 
-The Lagoon build process checks the `lagoon.type` label from the `docker-compose.yml` file in order to learn what type of service should be deployed  \(read more about them in the [documentation of `docker-compose.yml`](docker-compose-yml.md)\).
+The Lagoon build process checks the `lagoon.type` label from the `docker-compose.yml` file in order to learn what type of service should be deployed  \(read more about them in the [documentation of `docker-compose.yml`](docker-compose-yml.md#custom-templates)\).
 
-Sometimes you might want to override the **type** just for a single environment, and not for all of them. For example, if you want a MariaDB-Galera high availability database for your production environment called `master`:
+Sometimes you might want to override the **type of service** just for a single environment, and not for all of them. For example, if you want a MariaDB-Galera high availability database for your production environment called `master`:
 
 `service-name: service-type`
 
 * `service-name` is the name of the service from `docker-compose.yml` you would like to override.
 * `service-type` the type of the service you would like to use in your override.
 
-Example:
+Example for setting up MariaDB\_Galera:
 
 {% tabs %}
 {% tab title=".lagoon.yml" %}
@@ -223,7 +223,7 @@ environments:
 
 #### `environments.[name].rollouts`
 
-The Lagoon build process checks the `lagoon.rollout` label from the `docker-compose.yml` file in order to check if the service needs a special rollout type \(read more about them in the [documentation of `docker-compose.yml`](docker-compose-yml.md)\)
+The Lagoon build process checks the `lagoon.rollout` label from the `docker-compose.yml` file in order to check if the service needs a special rollout type \(read more about them in the [documentation of `docker-compose.yml`](docker-compose-yml.md#custom-rollout-monitor-types)\)
 
 Sometimes you might want to override the **rollout type** just for a single environment, especially if you also overwrote the template type for the environment:
 

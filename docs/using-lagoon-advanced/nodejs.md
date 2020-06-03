@@ -6,7 +6,7 @@ Unfortunately, Node.js does not handle shutting itself down very nicely out of t
 
 This part explains how you can teach Node.js to behave like a real web server: finishing active requests and then gracefully shutting down.
 
-As an example we use a super simple Node.js server with Express:
+As an example we use a no-frills Node.js server with Express:
 
 ```javascript
 const express = require('express');
@@ -57,7 +57,7 @@ If we were not running Node.js in a containerized environment, we would probably
 
 ## Part B: Yarn and NPM children spawning issues
 
-If we just implemented Part A, we would have a good experience. In the real world, many Node.js systems are built with Yarn or NPM, which provide not only package management systems to Node.js, but also script management.
+If we only implemented Part A, we would have a good experience. In the real world, many Node.js systems are built with Yarn or NPM, which provide not only package management systems to Node.js, but also script management.
 
 With these script functionalities, we simplify the start of our application. We can see many `package.json` files that look like:
 

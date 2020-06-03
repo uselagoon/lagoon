@@ -61,7 +61,7 @@ This configuration allows customers to create files called `location_drupal_prep
 Those files, once created, **MUST** exist in the `Nginx` container, so add them to `Dockerfile.nginx` like so:
 
 {% tabs %}
-{% tab title="Dockerfile.nginx" %}
+{% tab title="dockerfile.nginx" %}
 ```bash
 COPY location_drupal_prepend.conf /etc/nginx/conf.d/drupal/location_drupal_prepend.conf
 RUN fix-permissions /etc/nginx/conf.d/drupal/location_drupal_prepend.conf

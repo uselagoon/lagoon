@@ -68,7 +68,7 @@ The "main" route is injected via the `LAGOON_ROUTE` environment variable.
 
 Now it is time to push the previously built Docker images into the internal Docker image registry.
 
-For services that didn't specify a Dockerfile to be built in `docker-compose.yml` and just gave an image, they are tagged via `oc tag` in the OpenShift project. This will cause the internal Docker image registry to know about the images, so that they can be used in containers.
+For services that didn't specify a Dockerfile to be built in `docker-compose.yml` and only gave an image, they are tagged via `oc tag` in the OpenShift project. This will cause the internal Docker image registry to know about the images, so that they can be used in containers.
 
 ## 6. Persistent Storage
 
@@ -76,11 +76,11 @@ Lagoon will now create persistent storage \(PVC\) for each service that needs an
 
 ## 7. Cron jobs
 
-For each service that requests a cron job \(like MariaDB\), plus for each custom cron job defined in `.lagoon.yml,` Lagoon will now generate the cron job environment variables which are later injected into the DeploymentConfigs.
+For each service that requests a cron job \(like MariaDB\), plus for each custom cron job defined in `.lagoon.yml,` Lagoon will now generate the cron job environment variables which are later injected into the [DeploymentConfigs](https://docs.openshift.com/container-platform/4.4/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are).
 
 ## 8. DeploymentConfigs, Statefulsets, Daemonsets
 
-This is probably the most important step. Based on the defined service type, Lagoon will create the DeploymentConfigs, Statefulset or Daemonsets for the service.
+This is probably the most important step. Based on the defined service type, Lagoon will create the [DeploymentConfigs](https://docs.openshift.com/container-platform/4.4/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are), [Statefulset](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/) or [Daemonsets](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/) for the service.
 
 It will include all previously gathered information like the cron jobs, the location of persistent storage, the pushed images and so on.
 

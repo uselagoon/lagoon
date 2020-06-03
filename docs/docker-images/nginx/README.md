@@ -28,7 +28,7 @@ Build the content during the build process and inject it into the `Nginx` contai
 In order to create redirects, we have `redirects-map.conf` in place. This helps you to redirect marketing domains to sub-sites or do non-www to www redirects. **If you have a lot of redirects, we suggest having `redirects-map.conf` stored next to your code for easier maintainability.**
 
 {% hint style="info" %}
-If you just have a few redirects, there's a handy trick to create the redirects with a `RUN` command in your `nginx.dockerfile`.
+If you only have a few redirects, there's a handy trick to create the redirects with a `RUN` command in your `nginx.dockerfile`.
 {% endhint %}
 
 Here's an example showing how to redirect `www.example.com` to `example.com` and preserve the request:

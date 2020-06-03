@@ -60,7 +60,7 @@ Check if your cron jobs have been set up for your production environment - see [
 
 ## DNS
 
-To make it as easy as possible for you to get your site pointing to our servers, we have dedicated load-balancer DNS records. Those technical DNS resource records are used just for getting your site linked to the amazee.io infrastructure and serve no other purpose. If you are in doubt of the CNAME record, ask your Lagoon administrator about the exact CNAME you need to set up.
+To make it as smooth as possible for you to get your site pointing to our servers, we have dedicated load-balancer DNS records. Those technical DNS resource records are used for getting your site linked to the amazee.io infrastructure and serve no other purpose. If you are in doubt of the CNAME record, ask your Lagoon administrator about the exact CNAME you need to set up.
 
 **Example on amazee.io :** `<region-identifier>.amazee.io`
 

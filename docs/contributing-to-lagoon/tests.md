@@ -13,7 +13,7 @@ Lagoon is mostly tested in 3 different ways:
 
 ## 1. Locally
 
-During local development, the best and easiest way is to test locally. All tests are started via `make`. Make will download and build all the required dependencies.
+During local development, the best way to test is locally. All tests are started via `make`. Make will download and build all the required dependencies.
 
 ```text
 make tests
@@ -65,6 +65,6 @@ Besides that, it's exactly the same as the automated integration testing.
 
 The tests can be found here:
 
-* `develop` branch: [https://lagoon-ci.amazeeio.cloud/job/lagoon-test-develop/](https://lagoon-ci.amazeeio.cloud/job/lagoon-test-develop/)
-* `master` branch: [https://lagoon-ci.amazeeio.cloud/job/lagoon-test-master/](https://lagoon-ci.amazeeio.cloud/job/lagoon-test-master/)
+* `develop` branch: [https://lagoon-ci.amazeeio.cloud/blue/organizations/jenkins/lagoon/activity/?branch=develop](https://lagoon-ci.amazeeio.cloud/blue/organizations/jenkins/lagoon/activity/?branch=develop)
+* `master` branch: [https://lagoon-ci.amazeeio.cloud/blue/organizations/jenkins/lagoon/activity/?branch=master](https://lagoon-ci.amazeeio.cloud/blue/organizations/jenkins/lagoon/activity/?branch=master)
 

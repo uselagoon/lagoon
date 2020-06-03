@@ -10,13 +10,13 @@ description: >-
 
 ## 1. Make sure you are all set
 
-In order to make your first deployment a successful one, please make sure that your [Drupal Project is Lagoonized](../using-lagoon-the-basics/setup_project.md) and you have set up the project in Lagoon. If not, don't worry, just follow the [Step-by-Step Guide](step-by-step-getting-drupal-ready-to-run-on-lagoon.md) which show you how this works.
+In order to make your first deployment a successful one, please make sure that your [Drupal Project is Lagoonized](../using-lagoon-the-basics/setup_project.md) and you have set up the project in Lagoon. If not, don't worry! Follow the [Step-by-Step Guide](step-by-step-getting-drupal-ready-to-run-on-lagoon.md) which show you how this works.
 
 ## 2. Push!
 
-With Lagoon, you create a new deployment by just pushing into a branch that is configured to be deployed.
+With Lagoon, you create a new deployment by pushing into a branch that is configured to be deployed.
 
-If you don't have any new code to push, don't worry, just run
+If you don't have any new code to push, don't worry, you can run
 
 ```bash
 git commit --allow-empty -m "go, go! Power Rangers!"
@@ -83,7 +83,7 @@ Copying dump file from Source to Destination.                                   
 Starting to import dump file onto Destination database.
 ```
 
-Now let's try another deployment, again just an empty push:
+Now let's try another deployment, again an empty push:
 
 ```bash
 git commit --allow-empty -m "go, go! Power Rangers!"
@@ -141,12 +141,12 @@ That's it! We hope that wasn't too hard - making devOps accessible is what we ar
 
 ## But wait, how about other branches or the production environment?
 
-That's the beauty of Lagoon: it's exactly the same: Just push the branch name you defined to be your production branch and that one will be deployed.
+That's the beauty of Lagoon: it's exactly the same: Push the branch name you defined to be your production branch and that one will be deployed.
 
 ## Failure? Don't worry.
 
 Did the deployment fail? Oh no! But we're here to help:
 
 1. Click on the `logs` link in the error notification. It will tell you where in the deployment process the failure happened.
-2. If you can't figure it out, just ask your Lagoon support, they are here to help!
+2. If you can't figure it out, ask your Lagoon administrator, they are here to help!
 

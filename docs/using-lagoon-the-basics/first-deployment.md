@@ -18,9 +18,9 @@ In order to make your first deployment a successful one, please make sure that y
 
 ## 2. Push!
 
-With Lagoon, you create a new deployment by just pushing into a branch that is configured to be deployed.
+With Lagoon, you create a new deployment by pushing into a branch that is configured to be deployed.
 
-If you don't have any new code to push, don't worry, just run:
+If you don't have any new code to push, don't worry! Run:
 
 ```bash
 git commit --allow-empty -m "go, go! Power Rangers!"
