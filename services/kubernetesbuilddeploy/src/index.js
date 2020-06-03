@@ -286,7 +286,6 @@ const messageConsumer = async msg => {
     } else {
       jobconfig.spec.template.spec.containers[0].env.push({"name": "MONITORING_ALERTCONTACT","value": "unconfigured"})
     }
-    console.log(JSON.stringify(jobconfig.spec.template.spec.containers[0].env,null,2));
 
     return jobconfig
   }
