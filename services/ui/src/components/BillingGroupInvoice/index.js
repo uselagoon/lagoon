@@ -232,20 +232,20 @@ const Invoice = ({ cost, language }) => {
                   <div className="data-cell description">{customerComments}</div>
                   <div className="data-cell qty">1.00</div>
                   <div className="data-cell unitPrice">
-                    {discountFixed !== 0 ? (`-${discountFixed.toFixed(2)}`) : ''}
-                    {discountPercentage !== 0 ? (`-${discountPercentage.toFixed(2)}%`) : ''}
-                    {extraFixed !== 0 ? (`${extraFixed.toFixed(2)}`) : ''}
-                    {extraPercentage !== 0 ? (`${extraPercentage.toFixed(2)}%`) : ''}
-                    {min !== 0 ? (`${min.toFixed(2)}`) : ''}
-                    {max !== 0 ? (`${max.toFixed(2)}`) : ''}
+                    {discountFixed && discountFixed !== 0 ? (`-${discountFixed.toFixed(2)}`) : ''}
+                    {discountPercentage && discountPercentage !== 0 ? (`-${discountPercentage.toFixed(2)}%`) : ''}
+                    {extraFixed && extraFixed !== 0 ? (`${extraFixed.toFixed(2)}`) : ''}
+                    {extraPercentage && extraPercentage !== 0 ? (`${extraPercentage.toFixed(2)}%`) : ''}
+                    {min && min !== 0 ? (`${min.toFixed(2)}`) : ''}
+                    {max && max !== 0 ? (`${max.toFixed(2)}`) : ''}
                   </div>
                   <div className="data-cell amt">
-                    {discountFixed !== 0 ? (`-${discountFixed.toFixed(2)}`) : ''}
-                    {discountPercentage !== 0 ? (`-${cost.modifiersDescription[index].amt.toFixed(2)}`) : ''}
-                    {extraFixed !== 0 ? (`${extraFixed.toFixed(2)}`) : ''}
-                    {extraPercentage !== 0 ?  (`+${cost.modifiersDescription[index].amt.toFixed(2)}`) : ''}
-                    {min !== 0 ? (`${min.toFixed(2)}`) : ''}
-                    {max !== 0 ? (`${max.toFixed(2)}`) : ''}
+                    {discountFixed && discountFixed !== 0 ? (`-${discountFixed.toFixed(2)}`) : ''}
+                    {discountPercentage && discountPercentage !== 0 && cost.modifiersDescription[index].amt ? (`-${cost.modifiersDescription[index].amt.toFixed(2)}`) : ''}
+                    {extraFixed && extraFixed !== 0 ? (`${extraFixed.toFixed(2)}`) : ''}
+                    {extraPercentage && extraPercentage !== 0 && cost.modifiersDescription[index].amt?  (`+${cost.modifiersDescription[index].amt.toFixed(2)}`) : ''}
+                    {min && min !== 0 ? (`${min.toFixed(2)}`) : ''}
+                    {max && max !== 0 ? (`${max.toFixed(2)}`) : ''}
                   </div>
                 </div>
               )

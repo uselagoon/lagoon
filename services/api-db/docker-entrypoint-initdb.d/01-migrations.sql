@@ -1068,15 +1068,15 @@ CREATE OR REPLACE PROCEDURE
   BEGIN
     IF NOT EXISTS (
       SELECT NULL
-      FROM billing_modifier.COLUMNS
+      FROM INFORMATION_SCHEMA.COLUMNS
       WHERE
-        table_name = 'billing_modifiers'
+        table_name = 'billing_modifier'
         AND table_schema = 'infrastructure'
-        AND column_name = 'min';
+        AND column_name = 'min'
     ) THEN
       ALTER TABLE `billing_modifier`
-        ADD `min` float DEFAULT 0,
-        ADD `max` float DEFAULT 0;
+      ADD `min` FLOAT DEFAULT 0,
+      ADD `max` FLOAT DEFAULT 0;
     END IF;
   END;
 $$

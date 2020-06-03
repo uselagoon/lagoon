@@ -98,7 +98,7 @@ CREATE TABLE IF NOT EXISTS project (
 
 CREATE TABLE IF NOT EXISTS billing_modifier (
   id                              int NOT NULL auto_increment PRIMARY KEY,
-  group_id                             varchar(36),
+  group_id                        varchar(36),
   weight                          int NOT NULL DEFAULT 0,
   start_date                      datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   end_date                        datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -66,29 +66,25 @@ export const AvailabilityError = ({group}) => {
         <p>Unfortunately we can't yet generate billing costs with mixed availability.</p>
         <p>Please pass along the following information to one of your friendly billing engineers.</p>
 
-      <div className="data-table">
-        <div className="data-heading">
-          <div className="data-head">ID</div>
-          <div className="data-head">NAME</div>
-          <div className="data-head">AVAILABILITY</div>
+        <div className="data-table">
+          <div className="data-heading">
+            <div className="data-head">ID</div>
+            <div className="data-head">NAME</div>
+            <div className="data-head">AVAILABILITY</div>
+          </div>
+          {
+            projects.map(project => {
+              const {id, name, availability} = project;
+              return(
+                <div className="data-row" key={`${id}-${name}`}>
+                  <div className="data-cell id">{id}</div>
+                  <div className="data-cell name">{name}</div>
+                  <div className="data-cell availability">{availability}</div>
+                </div>
+              );
+            })
+          }
         </div>
-        {
-          projects.map(project => {
-            const {id, name, availability} = project;
-            return(
-              <div className="data-row" key={`${id}-${name}`}>
-                <div className="data-cell id">{id}</div>
-                <div className="data-cell name">{name}</div>
-                <div className="data-cell availability">{availability}</div>
-              </div>
-            );
-          })
-        }
-      </div>
-
-
-        
-
       </div>
       <style jsx>{`
         h1{
@@ -150,7 +146,7 @@ export const PageBillingGroup = ({ router }) => {
   const [costs, setCosts] = useState([]);
 
   const queries = [];
-  for (let i = monthsToGraph; i > 0; i--) {
+  for (let i = monthsToGraph; i >= 0; i--) {
     queries.push(useQuery(BillingGroupCostsQuery, { variables: { input: { name: group }, month: moment().subtract(i, 'M').format('YYYY-MM').toString() } }))
   }
 
@@ -223,13 +219,21 @@ export const PageBillingGroup = ({ router }) => {
           }
 
           if (costs.length > 0 && costs[0].error){
-            return costs[0].error.message.includes("Projects must have the same availability") 
-            ?  <AvailabilityError group={group} />
-            :  (<div className="content-wrapper"><div className="content"><div>{costs[0].error.message}</div></div></div>); 
+            if (costs[0].error.message.includes("Projects must have the same availability") ){
+              return (<AvailabilityError group={group} />);
+            }
+
+            if (costs[0].error.message.includes("Cannot read property 'availability' of undefined")){
+              return (<div className="content-wrapper"><div className="content"><div>This billing group does not seem to have any projedcts.</div></div></div>); 
+            }
+
+            return (<div className="content-wrapper"><div className="content"><div>{costs[0].error.message}</div></div></div>); 
           }
 
-          if (costs.length > 0 && costs[0]){
-            console.log(costs[0])
+          const selectedMonthCosts = costs.find(o => o.yearMonth === `${values.year}-${values.month}`);
+
+          if (selectedMonthCosts){
+
             return (
               <div>
                 <div className="barChart-wrapper">
@@ -278,12 +282,12 @@ export const PageBillingGroup = ({ router }) => {
                 <div className="content-wrapper">
                   <div className="leftColumn">
                     <div>
-                      <BillingGroup billingGroupCosts={costs[0]} />
+                      <BillingGroup billingGroupCosts={selectedMonthCosts} />
                       <div className="btnWrapper">
                         <Button action={prevSubmitHandler}>Previous Month</Button>
                         <Button disabled={(values.year >= currYear && values.month >= currMonth) ? true: false} action={nextSubmitHandler}>Next Month</Button>
                       </div>
-                      <Projects projects={costs[0].projects} />
+                      <Projects projects={selectedMonthCosts.projects} />
                     </div>
                   </div>
                   <div className="rightColumn">
@@ -298,7 +302,7 @@ export const PageBillingGroup = ({ router }) => {
                   </div>
                 </div>
                 <div className="content-wrapper">
-                  <Invoice cost={costs[0]} language={lang} />
+                  <Invoice cost={selectedMonthCosts} language={lang} />
                 </div>
 
               </div>
