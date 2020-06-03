@@ -12,7 +12,7 @@
 */
 
 import * as R from 'ramda';
-import projectHelpers from '../resources/project/helpers';
+import { Helpers as projectHelpers } from '../resources/project/helpers';
 import { getSqlClient } from '../clients/sqlClient';
 import { getKeycloakAdminClient } from '../clients/keycloak-admin';
 import { Group, BillingGroup } from '../models/group';

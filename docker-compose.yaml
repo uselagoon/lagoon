@@ -314,7 +314,6 @@ services:
       - JWTAUDIENCE=api.dev
     volumes:
       - ./services/auth-server/src:/app/services/auth-server/src
-    user: '111111111'
     ports:
       - '3001:3000'
     labels:

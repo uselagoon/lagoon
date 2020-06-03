@@ -9,21 +9,18 @@ module.exports = {
       'eslint-import-resolver-typescript': true,
     },
   },
-  extends: ['airbnb-base', 'plugin:flowtype/recommended'],
-  plugins: ['flowtype', 'typescript'],
+  extends: ['airbnb-base'],
+  plugins: ['typescript'],
   env: { es6: true, jest: true, node: true },
   rules: {
+    // TODO: Flow is gone, do we need this?
     // Disable 'arrow-parens': ['error', 'as-needed'] Airbnb stylistic rule for Flow types in comments in single-parameter functions (in the API). This does not cause a regression either, because Prettier will remove other parentheses when it can.
     'arrow-parens': 'off',
     // Disable Airbnb stylistic rule because we communicate with services with snake case
     camelcase: 'off',
+    // TODO: Flow is gone, do we need this?
     // Rule to enforce function return types. We disable this Airbnb setting because Flow will check our function return types.
     'consistent-return': 'off',
-    // Fix issue with the way Prettier formats types
-    'flowtype/generic-spacing': 'off',
-    // Fix issue with the way Prettier formats types
-    'flowtype/space-after-type-colon': 'off',
-    'flowtype/no-types-missing-file-annotation': 0,
     // Fix issue with the way Prettier formats function calls
     'function-paren-newline': 'off',
     // Disable Airbnb stylistic rule

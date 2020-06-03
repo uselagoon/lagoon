@@ -5,6 +5,7 @@ import * as logger from '../logger';
 const { API_DB_PASSWORD, API_DB_HOST, API_DB_PORT, API_DB_USER, API_DB_DATABASE } = process.env;
 
 export const getSqlClient = () => {
+  // @ts-ignore
   const sqlClient = new Client({
     host: API_DB_HOST || 'api-db',
     port: API_DB_PORT || 3306,
