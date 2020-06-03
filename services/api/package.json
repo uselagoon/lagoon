@@ -2,7 +2,7 @@
   "name": "api",
   "version": "3.0.0",
   "description": "Lagoon GraphQL API",
-  "main": "./dist/index.js",
+  "main": "dist/index.js",
   "engines": {
     "node": ">=10.16.3"
   },
@@ -11,16 +11,22 @@
     "lint": "../../node-packages/eslint-config-lagoon-node/node_modules/.bin/eslint .",
     "test": "jest --forceExit --detectOpenHandles --maxWorkers=10",
     "test:watch": "jest --forceExit --detectOpenHandles --maxWorkers=10 --watch",
-    "build": "tsc --pretty",
-    "start": "flow-node -r dotenv-extended/config dist",
-    "dev": "NODE_ENV=development nodemon --ignore '*.test.ts' --watch src -e js,json,ts --exec 'tsc --sourceMap && flow-node --inspect=0.0.0.0:9229 -r dotenv-extended/config' -- dist",
-    "sync:gitlab:users": "flow-node dist/gitlab-sync/users",
-    "sync:gitlab:groups": "flow-node dist/gitlab-sync/groups",
-    "sync:gitlab:projects": "flow-node dist/gitlab-sync/projects",
+    "build": "tsc --build",
+    "start": "node -r dotenv-extended/config dist/index",
+    "dev": "mkdir -p ../../node-packages/commons/dist && NODE_ENV=development nodemon",
+    "sync:gitlab:users": "node dist/gitlab-sync/users",
+    "sync:gitlab:groups": "node dist/gitlab-sync/groups",
+    "sync:gitlab:projects": "node dist/gitlab-sync/projects",
     "sync:gitlab:all": "yarn run sync:gitlab:users && yarn run sync:gitlab:groups && yarn run sync:gitlab:projects",
-    "sync:opendistro-security": "flow-node --max-http-header-size=80000 dist/helpers/sync-groups-opendistro-security",
-    "sync:bitbucket:repo-permissions": "flow-node dist/bitbucket-sync/repo-permissions",
-    "sync:harbor:projects": "flow-node dist/migrations/2-harbor/harborSync.js"
+    "sync:opendistro-security": "node --max-http-header-size=80000 dist/helpers/sync-groups-opendistro-security",
+    "sync:bitbucket:repo-permissions": "node dist/bitbucket-sync/repo-permissions",
+    "sync:harbor:projects": "node dist/migrations/2-harbor/harborSync.js"
+  },
+  "nodemonConfig": {
+    "ignore": ["*.test.js", "../../node-packages/commons/dist/"],
+    "watch": ["src", "../../node-packages/"],
+    "ext": "js,ts,json",
+    "exec": "yarn build --incremental && yarn start --inspect=0.0.0.0:9229"
   },
   "keywords": [],
   "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
@@ -38,7 +44,6 @@
     "elasticsearch": "^15.0.0",
     "es7-sleep": "^1.0.0",
     "express": "^4.16.1",
-    "flow-remove-types": "^1.2.3",
     "got": "^9.2.2",
     "graphql": "^14.5.8",
     "graphql-iso-date": "^3.5.0",
@@ -63,8 +68,10 @@
     "winston": "^2.4.0"
   },
   "devDependencies": {
+    "@types/express": "^4.17.6",
     "@types/faker": "^4.1.5",
     "@types/jest": "^24.0.18",
+    "@types/mariasql": "^0.1.30",
     "@types/ramda": "types/npm-ramda#dist",
     "axios": "^0.19.0",
     "faker": "^4.1.0",

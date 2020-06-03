@@ -1,9 +1,7 @@
-// @flow
-
 const R = require('ramda');
 const S3 = require('aws-sdk/clients/s3');
 
-const makeS3TempLink = async (restore /* : Object */) => {
+const makeS3TempLink = async (restore) => {
   const restoreLocation = R.prop('restoreLocation', restore);
 
   // https://{endpoint}/{bucket}/{key}

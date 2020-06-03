@@ -1,5 +1,5 @@
 import * as R from 'ramda';
-import { logger } from '@lagoon/commons/src/local-logging';
+import { logger } from '@lagoon/commons/dist/local-logging';
 import { getSqlClient } from '../clients/sqlClient';
 import { Group } from '../models/group';
 import { OpendistroSecurityOperations } from '../resources/group/opendistroSecurity';
