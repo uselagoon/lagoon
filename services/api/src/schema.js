@@ -1,5 +1,3 @@
-// @flow
-
 const { makeExecutableSchema } = require('graphql-tools');
 
 const typeDefs = require('./typeDefs');

@@ -1,7 +1,4 @@
 module.exports = {
-  rootDir: '.',
+  preset: 'ts-jest',
   testEnvironment: 'node',
-  transform: {
-    '\\.js$': '<rootDir>/src/jest-flow-transform.js',
-  },
 };

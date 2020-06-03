@@ -1,7 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Resolvers selectAllUsersForProjectId should return proper select statement 1`] = `"select distinct \`user\`.* from \`user\` left join \`project_user\` as \`pu\` on \`pu\`.\`usid\` = \`user\`.\`id\` left join \`customer_user\` as \`cu\` on \`cu\`.\`usid\` = \`user\`.\`id\` left join \`project\` as \`project_via_customer\` on \`cu\`.\`cid\` = \`project_via_customer\`.\`customer\` left join \`project\` as \`project_via_user\` on \`pu\`.\`pid\` = \`project_via_user\`.\`id\` where \`project_via_user\`.\`id\` = 1 or \`project_via_customer\`.\`id\` = 1"`;
-
 exports[`Resolvers selectProject should create query 1`] = `"select * from \`project\` where \`id\` = 1"`;
 
 exports[`Resolvers updateProject should return proper update statement 1`] = `"update \`project\` set \`name\` = 'test' where \`id\` = 1"`;

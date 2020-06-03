@@ -1,13 +1,14 @@
 import * as R from 'ramda';
+import { ResolverFn } from '../';
 import { query, isPatchEmpty } from '../../util/db';
 import Sql from './sql';
 
-export const getMe = async (_root, args, { models, keycloakGrant: grant }) => {
+export const getMe: ResolverFn = async (_root, args, { models, keycloakGrant: grant }) => {
   const currentUserId: string = grant.access_token.content.sub;
   return models.UserModel.loadUserById(currentUserId);
 }
 
-export const getUserBySshKey = async (
+export const getUserBySshKey: ResolverFn = async (
   _root,
   { sshKey },
   { sqlClient, models, hasPermission },
@@ -31,7 +32,7 @@ export const getUserBySshKey = async (
   return user;
 };
 
-export const addUser = async (
+export const addUser: ResolverFn = async (
   _root,
   { input },
   { models, hasPermission },
@@ -50,7 +51,7 @@ export const addUser = async (
   return user;
 };
 
-export const updateUser = async (
+export const updateUser: ResolverFn = async (
   _root,
   { input: { user: userInput, patch } },
   { models, hasPermission },
@@ -81,7 +82,7 @@ export const updateUser = async (
   return updatedUser;
 };
 
-export const deleteUser = async (
+export const deleteUser: ResolverFn = async (
   _root,
   { input: { user: userInput } },
   { models, hasPermission },
@@ -102,7 +103,7 @@ export const deleteUser = async (
   return 'success';
 };
 
-export const deleteAllUsers = async (
+export const deleteAllUsers: ResolverFn = async (
   _root,
   _args,
   { models, hasPermission },

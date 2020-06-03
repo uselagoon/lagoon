@@ -1,3 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`createJWT should create token properly 1`] = `"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjAsInJvbGUiOiJhZG1pbiIsImlhdCI6MTUwMzAxNDQwMDAwMCwiaXNzIjoiamVzdCJ9.8Bw5oRoHiKTOfNfS1E-62JfuXOSmDkRd97p7vIGZp5M"`;

@@ -1,8 +1,8 @@
 import * as R from 'ramda';
-import { getOpenShiftInfoForProject, updateTask } from '@lagoon/commons/src/api';
-import { BaaS } from '@lagoon/commons/src/openshiftApi';
-import { logger } from "@lagoon/commons/src/local-logging";
-import { sendToLagoonLogs } from '@lagoon/commons/src/logs';
+import { getOpenShiftInfoForProject, updateTask } from '@lagoon/commons/dist/api';
+import { BaaS } from '@lagoon/commons/dist/openshiftApi';
+import { logger } from "@lagoon/commons/dist/local-logging";
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
 import { promisify } from 'util';
 
 const ocsafety = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g, '-');
@@ -82,7 +82,7 @@ async function resticRestore (data: any) {
   // Kubernetes API Object - needed as some API calls are done to the Kubernetes API part of OpenShift and
   // the OpenShift API does not support them.
   const config = getConfig(url, token)
-  const baas = new BaaS(config);
+  const baas = new BaaS(config) as any;
 
   try {
 
