@@ -1,5 +1,5 @@
 import * as R from 'ramda';
-import { logger } from '@lagoon/commons/src/local-logging';
+import { logger } from '@lagoon/commons/dist/local-logging';
 import { getKeycloakAdminClient } from '../../clients/keycloak-admin';
 import { getSqlClient } from '../../clients/sqlClient';
 import { query, prepare } from '../../util/db';

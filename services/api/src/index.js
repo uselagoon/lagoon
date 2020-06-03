@@ -1,7 +1,5 @@
-// @flow
-
-const { initSendToLagoonLogs } = require('@lagoon/commons/src/logs');
-const { initSendToLagoonTasks } = require('@lagoon/commons/src/tasks');
+const { initSendToLagoonLogs } = require('@lagoon/commons/dist/logs');
+const { initSendToLagoonTasks } = require('@lagoon/commons/dist/tasks');
 const waitForKeycloak = require('./util/waitForKeycloak');
 const logger = require('./logger');
 const createServer = require('./server');

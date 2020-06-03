@@ -1,5 +1,3 @@
-// @flow
-
 const http = require('http');
 const util = require('util');
 const logger = require('./logger');
