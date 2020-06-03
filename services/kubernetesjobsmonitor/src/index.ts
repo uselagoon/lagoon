@@ -2,10 +2,10 @@ import * as R from 'ramda';
 import Api, { ClientConfiguration } from 'kubernetes-client';
 const Client = Api.Client1_13;
 
-const { logger } = require('@lagoon/commons/src/local-logging');
-const { getOpenShiftInfoForProject, updateTask } = require('@lagoon/commons/src/api');
-const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/src/logs');
-const { consumeTaskMonitor, initSendToLagoonTasks } = require('@lagoon/commons/src/tasks');
+import { logger } from '@lagoon/commons/dist/local-logging';
+import { getOpenShiftInfoForProject, updateTask } from '@lagoon/commons/dist/api';
+import { sendToLagoonLogs, initSendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { consumeTaskMonitor, initSendToLagoonTasks } from '@lagoon/commons/dist/tasks';
 
 class JobNotCompletedYet extends Error {
   constructor(message: string) {
@@ -105,8 +105,8 @@ const projectExists = async (client: Api.ApiRoot, namespace: string) => {
 
 const jobsLogGet = async (client: Api.ApiRoot, namespace: string, jobName: string) => {
   try {
-    const pods = await client.api.v1.namespaces(namespace).pods.get({ 
-      qs: { labelSelector: `job-name=${jobName}` } 
+    const pods = await client.api.v1.namespaces(namespace).pods.get({
+      qs: { labelSelector: `job-name=${jobName}` }
     });
     const podNames = pods.body.items.map(pod => pod.metadata.name);
 
@@ -162,8 +162,8 @@ const updateLagoonTask = async (jobInfo, jobStatus, taskId, project, jobName) =>
   // Update lagoon task
   try {
     const convertDateFormat = R.init;
-    const dateOrNull = R.unless(R.isNil, convertDateFormat);
-    let completedDate = dateOrNull(jobInfo.body.status.completionTime);
+    const dateOrNull = R.unless(R.isNil, convertDateFormat) as any;
+    let completedDate = dateOrNull(jobInfo.body.status.completionTime) as any;
 
     if (jobStatus === 'failed') {
       completedDate = dateOrNull(jobInfo.body.status.conditions[0].lastTransitionTime);
@@ -223,7 +223,7 @@ const messageConsumer = async msg => {
         meta,
         `*[${project.name}]* Task \`${task.id}\` *${task.name}* active`
       );
-      
+
       throw new JobNotCompletedYet(
         `*[${project.name}]* Task \`${task.id}\` *${task.name}* phase ${jobStatus}`
         );

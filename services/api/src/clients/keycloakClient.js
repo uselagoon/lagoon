@@ -1,5 +1,3 @@
-// @flow
-
 const crypto = require('crypto');
 const R = require('ramda');
 const KeycloakConfig = require('keycloak-connect/middleware/auth-utils/config');

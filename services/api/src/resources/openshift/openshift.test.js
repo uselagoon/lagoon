@@ -1,6 +1,4 @@
-// @flow
-
-const Sql = require('./sql');
+const { Sql } = require('./sql');
 
 describe('Sql', () => {
   describe('updateOpenshift', () => {

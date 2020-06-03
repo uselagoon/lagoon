@@ -1,5 +1,3 @@
-// @flow
-
 const elasticsearch = require('elasticsearch');
 
 const { LOGSDB_ADMIN_PASSWORD, ELASTCISEARCH_HOST } = process.env;

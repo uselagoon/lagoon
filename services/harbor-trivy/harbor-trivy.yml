@@ -36,8 +36,8 @@ parameters:
     description: Strategy of Deploymentconfig
     value: "Rolling"
   - name: SERVICE_IMAGE
-      description: Pullable image of service
-      required: true
+    description: Pullable image of service
+    required: true
 objects:
 - apiVersion: v1
   kind: Service
@@ -137,16 +137,16 @@ objects:
           - name: "SCANNER_STORE_REDIS_URL"
             valueFrom:
               secretKeyRef:
-                name: harbor.trivy
+                name: harbor-trivy
                 key: redisURL
           - name: "SCANNER_JOB_QUEUE_REDIS_URL"
             valueFrom:
               secretKeyRef:
-                name: harbor.trivy
+                name: harbor-trivy
                 key: redisURL
           ports:
           - name: api-server
-            containerPort:
+            containerPort: 8080
           volumeMounts:
           - mountPath: /tmp
             name: tmp-data

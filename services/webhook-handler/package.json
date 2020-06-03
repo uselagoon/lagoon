@@ -3,14 +3,20 @@
   "version": "0.9.0",
   "description": "lagoon handler for webhooks",
   "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
-  "main": "build/index.js",
+  "main": "dist/index.js",
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
-    "start": "flow-node build/index.js",
-    "build": "flow-remove-types --out-dir build/ src/",
-    "dev": "nodemon --ignore build --watch . --watch ../../node-packages --exec 'flow-node src/index.js'",
+    "build": "tsc --build",
+    "start": "node dist/index",
+    "dev": "mkdir -p ../../node-packages/commons/dist && NODE_ENV=development nodemon",
     "newman:all": "newman run ./newman/lagoon-webhook-handler.postman_collection.json -e ./newman/localhost.postman_environment.json"
+  },
+  "nodemonConfig": {
+    "ignore": ["../../node-packages/commons/dist/"],
+    "watch": ["src", "../../node-packages/"],
+    "ext": "js,ts,json",
+    "exec": "yarn build --incremental && yarn start --inspect=0.0.0.0:9229"
   },
   "license": "MIT",
   "dependencies": {
@@ -18,14 +24,14 @@
     "amqp-connection-manager": "^1.3.5",
     "amqplib": "^0.5.1",
     "bl": "^1.2.1",
-    "buffer-equal-constant-time": "^1.0.1",
     "ramda": "^0.25.0",
     "uuid4": "^1.0.0"
   },
   "devDependencies": {
-    "flow-remove-types": "^1.2.3",
     "jest": "^24.9.0",
     "newman": "^4.5.4",
-    "nodemon": "^1.12.1"
+    "nodemon": "^1.12.1",
+    "ts-jest": "^26.0.0",
+    "typescript": "^3.9.3"
   }
 }
