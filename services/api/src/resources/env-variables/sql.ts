@@ -14,7 +14,7 @@ export const Sql = {
     project,
     environment,
   }: {
-    id: number,
+    id?: number,
     name: string,
     value: string,
     scope: string,
