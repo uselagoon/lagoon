@@ -9,6 +9,7 @@ import MainLayout from 'layouts/MainLayout';
 
 import BillingGroupCostsQuery from 'lib/query/BillingGroupCosts';
 import AllBillingModifiersQuery from 'lib/query/AllBillingModifiers';
+import GroupByName from 'lib/query/GroupByName';
 
 import BarChart from "components/BillingGroupBarChart";
 import BillingGroup from "components/BillingGroup";
@@ -49,6 +50,97 @@ const months = [
   {name: "Dec", value: "12"},
 ];
 
+export const AvailabilityError = ({group}) => {
+  const {loading, error, data} = useQuery(GroupByName, {variables: {name: group}});
+  
+  if (loading) {
+    return <div>Loading...</div>
+  }
+
+  const { groupByName: { projects }} = data
+
+  return (
+    <div className="content-wrapper">
+      <div className="content">
+        <h1>Error: All projects in this billing group do not have the same availability.</h1>
+        <p>Unfortunately we can't yet generate billing costs with mixed availability.</p>
+        <p>Please pass along the following information to one of your friendly billing engineers.</p>
+
+      <div className="data-table">
+        <div className="data-heading">
+          <div className="data-head">ID</div>
+          <div className="data-head">NAME</div>
+          <div className="data-head">AVAILABILITY</div>
+        </div>
+        {
+          projects.map(project => {
+            const {id, name, availability} = project;
+            return(
+              <div className="data-row" key={`${id}-${name}`}>
+                <div className="data-cell id">{id}</div>
+                <div className="data-cell name">{name}</div>
+                <div className="data-cell availability">{availability}</div>
+              </div>
+            );
+          })
+        }
+      </div>
+
+
+        
+
+      </div>
+      <style jsx>{`
+        h1{
+          line-height: normal;
+        }
+        .data-table {
+          display: table;
+          background-color: ${color.white};
+          border: 1px solid ${color.lightestGrey};
+          border-radius: 3px;
+          box-shadow: 0px 4px 8px 0px rgba(0, 0, 0, 0.03);
+
+          .data-row {
+            display: table-row;
+            width: 100%;
+          }
+
+          .data-heading {
+            display: table-header-group;
+            background-color: #ddd;
+          }
+
+          .data-cell, .data-head {
+            display: table-cell;
+            text-align: left;
+            padding: 15px;
+            width: 100%;
+          }
+
+
+          .name {
+            font-weight: bold;
+            margin-left: 15px;
+            white-space: nowrap;
+          }  
+
+        }
+        .content-wrapper {
+          @media ${bp.desktopUp} {
+            display: flex;
+            justify-content: space-between;
+          }
+        }
+        .content {
+          padding: 32px calc((100vw / 16) * 1);
+          width: 100%;
+        }
+      `}</style>
+    </div>
+  );
+}
+
 /**
  * Displays a billingGroupCost page, given the billingGroupCost name.
  */
@@ -65,11 +157,19 @@ export const PageBillingGroup = ({ router }) => {
   const [editModifier, setEditModifier] = useState({ });
 
   useEffect(() => {
-    const result = queries.map(query => { 
-      if (query && query.data && query.data.costs) {
-        return (query.data.costs)
+    const result = queries.map(({loading, error, data}) => { 
+      if (error) {
+        return {error};
       }
-      return ({total: 0});
+
+      if (loading){
+        return {loading};
+      }
+      
+      if (data && data.costs) {
+        return (data.costs)
+      }
+      return {};
     });
 
     // for (let i = 0; i <= 5; i++) {
@@ -114,7 +214,22 @@ export const PageBillingGroup = ({ router }) => {
 
       <AuthContext.Consumer>
         {auth => {
-          if (adminAuthChecker(auth)) {
+          if (!adminAuthChecker(auth)) {
+            return (<div className="content-wrapper"><div className="content">Seems that you do not have permissions to access this resource.</div></div>);
+          }
+
+          if (costs.length > 0 && costs[0].loading){
+            return <div>Loading...</div>
+          }
+
+          if (costs.length > 0 && costs[0].error){
+            return costs[0].error.message.includes("Projects must have the same availability") 
+            ?  <AvailabilityError group={group} />
+            :  (<div className="content-wrapper"><div className="content"><div>{costs[0].error.message}</div></div></div>); 
+          }
+
+          if (costs.length > 0 && costs[0]){
+            console.log(costs[0])
             return (
               <div>
                 <div className="barChart-wrapper">
@@ -159,63 +274,39 @@ export const PageBillingGroup = ({ router }) => {
                     </select>
                   </div>
                 </div>
-
-
-                <Query query={BillingGroupCostsQuery} variables={{ input: { name: group }, month: `${year}-${month}` }} >
-                  {R.compose(withQueryLoading, withQueryError)(
-                    ({ data: { costs } }) => {
-
-                      
-                      if (costs.projects.count === 0) {
-                        return (<div className="content-wrapper"><div className="error"><h1>No Projects</h1></div></div>)
-                      }
-
-                      const isAvailabilityEqual = costs.projects.reduce((acc, proj) => (proj.availability !== costs.projects[0].availability ? false : true), true);
-                      if (!isAvailabilityEqual){
-                        return(<div className="content-wrapper"><div className="error"><h1>All projects in billing group do not have the same availability.</h1></div></div>)
-                      }
-
-                      return(
-                        <>
-                          <div className="content-wrapper">
-                            <div className="leftColumn">
-                              <div>
-                                <BillingGroup billingGroupCosts={costs} />
-                                <div className="btnWrapper">
-                                  <Button action={prevSubmitHandler}>Previous Month</Button>
-                                  <Button disabled={(values.year >= currYear && values.month >= currMonth) ? true: false} action={nextSubmitHandler}>Next Month</Button>
-                                </div>
-                                <Projects projects={costs.projects} />
-                              </div>
-                            </div>
-                            <div className="rightColumn">
-                              {
-                                <Query query={AllBillingModifiersQuery} variables={{ input: { name: group } }} >
-                                  {R.compose(withQueryLoading, withQueryError)(
-                                    ({ data: { allBillingModifiers: modifiers } }) => <AllBillingModifiers group={group} modifiers={modifiers} month={`${year}-${month}`} editHandler={editModifierHandler} />
-                                  )}
-                                </Query>
-                              }
-                              <AddBillingModifier group={group} month={`${year}-${month}`} editBillingModifier={editModifier} editHandler={editModifierHandler} />
-                            </div>
-                          </div>
-                          <div className="content-wrapper">
-                            <Invoice cost={costs} language={lang} />
-                          </div>
-                        </>
-                      );
+                  
+                <div className="content-wrapper">
+                  <div className="leftColumn">
+                    <div>
+                      <BillingGroup billingGroupCosts={costs[0]} />
+                      <div className="btnWrapper">
+                        <Button action={prevSubmitHandler}>Previous Month</Button>
+                        <Button disabled={(values.year >= currYear && values.month >= currMonth) ? true: false} action={nextSubmitHandler}>Next Month</Button>
+                      </div>
+                      <Projects projects={costs[0].projects} />
+                    </div>
+                  </div>
+                  <div className="rightColumn">
+                    {
+                      <Query query={AllBillingModifiersQuery} variables={{ input: { name: group } }} >
+                        {R.compose(withQueryLoading, withQueryError)(
+                          ({ data: { allBillingModifiers: modifiers } }) => <AllBillingModifiers group={group} modifiers={modifiers} month={`${year}-${month}`} editHandler={editModifierHandler} />
+                        )}
+                      </Query>
                     }
-                  )}
-                </Query>
-
+                    <AddBillingModifier group={group} month={`${year}-${month}`} editBillingModifier={editModifier} editHandler={editModifierHandler} />
+                  </div>
+                </div>
+                <div className="content-wrapper">
+                  <Invoice cost={costs[0]} language={lang} />
+                </div>
 
               </div>
             );
-          }
-          
-          return (<div className="content-wrapper"><div className="content">Seems that you do not have permissions to access this resource.</div></div>);
+          }  
         }}
       </AuthContext.Consumer>
+
     </MainLayout>
     <style jsx>{`
 
