@@ -1,6 +1,6 @@
 import * as R from 'ramda';
 import { parsePrivateKey } from 'sshpk';
-import { logger } from '@lagoon/commons/src/local-logging';
+import { logger } from '@lagoon/commons/dist/local-logging';
 import { getKeycloakAdminClient } from '../../clients/keycloak-admin';
 import { getSqlClient } from '../../clients/sqlClient';
 import { query, prepare } from '../../util/db';
@@ -10,11 +10,7 @@ import {
   generatePrivateKey,
   getSshKeyFingerprint,
 } from '../../resources/sshKey';
-import {
-  selectUserIdsBySshKeyFingerprint,
-  insertSshKey,
-  addSshKeyToUser,
-} from '../../resources/sshKey/sql';
+import { Sql as sshKeySql } from '../../resources/sshKey/sql';
 
 const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
 
@@ -149,7 +145,7 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
     // Find or create a user that has the public key linked to them
     const userRows = await query(
       sqlClient,
-      selectUserIdsBySshKeyFingerprint(getSshKeyFingerprint(keyPair.public)),
+      sshKeySql.selectUserIdsBySshKeyFingerprint(getSshKeyFingerprint(keyPair.public)),
     );
     const userId = R.path([0, 'usid'], userRows);
 
@@ -168,7 +164,7 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
           info: { insertId },
         } = await query(
           sqlClient,
-          insertSshKey({
+          sshKeySql.insertSshKey({
             id: null,
             name: 'auto-add via migration',
             keyValue: keyParts[1],
@@ -178,7 +174,7 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
         );
         await query(
           sqlClient,
-          addSshKeyToUser({ sshKeyId: insertId, userId: user.id }),
+          sshKeySql.addSshKeyToUser({ sshKeyId: insertId, userId: user.id }),
         );
       } catch (err) {
         logger.error(

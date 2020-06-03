@@ -1,7 +1,7 @@
 import * as R from 'ramda';
-import * as bitbucketApi from '@lagoon/commons/src/bitbucketApi';
-import * as api from '@lagoon/commons/src/api';
-import { logger } from '@lagoon/commons/src/local-logging';
+import * as bitbucketApi from '@lagoon/commons/dist/bitbucketApi';
+import * as api from '@lagoon/commons/dist/api';
+import { logger } from '@lagoon/commons/dist/local-logging';
 
 // The lagoon group that has all of the projects needing to be synced
 const LAGOON_SYNC_GROUP = R.propOr(

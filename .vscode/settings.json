@@ -6,6 +6,5 @@
   ],
   "git.ignoreLimitWarning": true,
   "javascript.validate.enable": false,
-  "files.trimTrailingWhitespace": true,
-  "flow.useNPMPackagedFlow": true
+  "files.trimTrailingWhitespace": true
 }
