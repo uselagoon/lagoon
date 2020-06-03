@@ -11,13 +11,13 @@
     # Newrelic - https://docs.newrelic.com/docs/release-notes/agent-release-notes/php-release-notes/
     NEWRELIC_VERSION: '9.10.1.263'
     # Composer - https://getcomposer.org/download/
-    COMPOSER_VERSION: '1.10.6'
-    COMPOSER_HASH_SHA256: '29bdac1bda34d8902b9f9e4f5816de08879b8f3fafad901e4283519cdefbee7b'
+    COMPOSER_VERSION: '1.10.7'
+    COMPOSER_HASH_SHA256: 'b94b872729668de5b5fbf62f16ff588d2a23480dda88c0e45cb43b721b75ae29'
     # Drupal Console Launcher - https://github.com/hechoendrupal/drupal-console-launcher/releases
     DRUPAL_CONSOLE_LAUNCHER_VERSION: 1.9.4
     DRUPAL_CONSOLE_LAUNCHER_SHA: b7759279668caf915b8e9f3352e88f18e4f20659
     # Drush - https://github.com/drush-ops/drush/releases
-    DRUSH_VERSION: 8.3.2
+    DRUSH_VERSION: 8.3.5
     # Drush Launcher Version - https://github.com/drush-ops/drush-launcher/releases
     DRUSH_LAUNCHER_VERSION: 0.6.0
   tasks:
