@@ -87,8 +87,8 @@ const messageConsumer = async msg => {
     var openshiftPromoteSourceProject = promoteSourceEnvironment ? `${safeProjectName}-${ocsafety(promoteSourceEnvironment)}` : ""
         // A secret which is the same across all Environments of this Lagoon Project
     var projectSecret = crypto.createHash('sha256').update(`${projectName}-${jwtSecret}`).digest('hex');
-    var alertContactHA
-    var alertContactSA
+    var alertContactHA = ""
+    var alertContactSA = ""
     var monitoringConfig = JSON.parse(projectOpenShift.openshift.monitoringConfig) || "invalid"
     if (monitoringConfig != "invalid"){
       alertContactHA = monitoringConfig.uptimerobot.alertContactHA || ""
