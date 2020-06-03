@@ -134,6 +134,9 @@ const messageConsumer = async msg => {
       "metadata": {
           "creationTimestamp": null,
           "name": buildName,
+          "labels": {
+            "lagoon.sh/jobType": "build",
+          }
       },
       "spec": {
         "backoffLimit": 0,
@@ -154,6 +157,18 @@ const messageConsumer = async msg => {
                   secretName: "lagoon-sshkey",
                   defaultMode: 420
                 }
+              }
+            ],
+            "tolerations": [
+              {
+                 "key": "lagoon/build",
+                 "effect": "NoSchedule",
+                 "operator": "Exists"
+              },
+              {
+                 "key": "lagoon/build",
+                 "effect": "PreferNoSchedule",
+                 "operator": "Exists"
               }
             ],
             "containers": [
@@ -295,7 +310,19 @@ const messageConsumer = async msg => {
   let namespaceStatus = {}
   try {
     const namespacePost = promisify(kubernetes.namespace.post)
-    namespaceStatus = await namespacePost({ body: {"apiVersion":"v1","kind":"Namespace","metadata":{"name":openshiftProject}} })
+    namespaceStatus = await namespacePost({
+      body: {
+        "apiVersion":"v1",
+        "kind":"Namespace",
+        "metadata": {
+          "name":openshiftProject,
+          "labels": {
+            "lagoon.sh/project": projectName,
+            "lagoon.sh/environment": environmentName
+          }
+        }
+      }
+    })
     logger.info(`${openshiftProject}: Namespace ${openshiftProject} created`)
   } catch (err) {
     console.log(err.code)

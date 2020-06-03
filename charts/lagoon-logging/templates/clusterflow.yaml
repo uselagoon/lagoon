@@ -1,0 +1,21 @@
+apiVersion: logging.banzaicloud.io/v1beta1
+kind: ClusterFlow
+metadata:
+  namespace: {{ .Release.Namespace | quote }}
+  name: {{ include "lagoon-logging.fullname" . }}
+  labels:
+    {{- include "lagoon-logging.labels" . | nindent 4 }}
+spec:
+  # match entries are considered in order
+  # the empty "select: {}" indicates all namespaces/labels
+  match:
+  {{- with .Values.excludeNamespaces }}
+  - exclude:
+      namespaces:
+        {{- toYaml . | nindent 6 }}
+  {{- end }}
+  - select: {}
+  filters:
+  - tag_normaliser: {}
+  outputRefs:
+  - {{ include "lagoon-logging.fullname" . }}

@@ -20,5 +20,5 @@ spec:
   prune:
     retention:
       keepDaily: 7
-      keepWeekly: 4
+      keepWeekly: 6
     schedule: '{{ .Values.prune.schedule }}'

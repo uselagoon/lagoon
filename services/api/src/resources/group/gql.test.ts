@@ -124,7 +124,7 @@ mutation deleteProject($input:DeleteProjectInput!){
 }`;
 
 export const BILLING_GROUP_COST = `
-query billingGroupCost($input: GroupInput, $month: String) {
+query billingGroupCost($input: GroupInput, $month: String!) {
   billingGroupCost(input: $input, month: $month)
 }
 `;

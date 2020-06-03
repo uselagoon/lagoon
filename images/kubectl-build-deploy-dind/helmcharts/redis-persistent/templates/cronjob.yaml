@@ -1,4 +1,5 @@
 {{- range $cronjobName, $cronjobConfig := .Values.nativeCronjobs }}
+---
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
@@ -36,10 +37,9 @@ spec:
           securityContext:
             {{- toYaml $.Values.podSecurityContext | nindent 12 }}
           volumes:
-            - name: lagoon-sshkey
-              secret:
-                defaultMode: 420
-                secretName: lagoon-sshkey
+        - name: {{ $.Values.persistentStorage.name }}
+          persistentVolumeClaim:
+            claimName: {{ $.Values.persistentStorage.name }}
           containers:
             - image: {{ $.Values.image | quote }}
               name: cronjob-{{ $.Release.Name }}-{{ $cronjobName }}
@@ -48,7 +48,7 @@ spec:
               imagePullPolicy: {{ $.Values.imagePullPolicy }}
               command:
                 - /lagoon/cronjob.sh
-                - {{ $cronjobConfig.command | quote }}
+                - {{ $cronjobConfig.command }}
               env:
                 - name: LAGOON_GIT_SHA
                   value: {{ $.Values.gitSha | quote }}
@@ -63,6 +63,8 @@ spec:
                 - mountPath: /var/run/secrets/lagoon/sshkey/
                   name: lagoon-sshkey
                   readOnly: true
+                - name: {{ $.Values.persistentStorage.name }}
+                  mountPath: {{ $.Values.persistentStorage.path | quote }}
           restartPolicy: Never
           {{- with $.Values.nodeSelector }}
           nodeSelector:
@@ -72,9 +74,8 @@ spec:
           affinity:
             {{- toYaml $ | nindent 12 }}
         {{- end }}
+        {{- with $.Values.tolerations }}
           tolerations:
-            - effect: NoSchedule
-              key: lagoon/build
-              operator: Exists
-            {{- toYaml $.Values.tolerations | nindent 12 }}
+            {{- toYaml $ | nindent 12 }}
+        {{- end }}
 {{- end }}

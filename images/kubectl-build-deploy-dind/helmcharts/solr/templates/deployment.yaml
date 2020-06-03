@@ -8,6 +8,8 @@ metadata:
     {{- include "solr.annotations" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       {{- include "solr.selectorLabels" . | nindent 6 }}
@@ -17,6 +19,7 @@ spec:
         {{- include "solr.labels" . | nindent 8 }}
       annotations:
         {{- include "solr.annotations" . | nindent 8 }}
+        lagoon.sh/configMapSha: {{ .Values.configMapSha | quote }}
     spec:
     {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -50,13 +53,12 @@ spec:
             failureThreshold: 5
           securityContext:
             runAsGroup: 0
-            runAsUser: 8983
           envFrom:
             - configMapRef:
                 name: lagoon-env
           env:
             - name: CRONJOBS
-              value: {{ .Values.cronjobs | quote }}
+              value: {{ .Values.inPodCronjobs | quote }}
           volumeMounts:
             - name: {{ .Values.persistentStorage.name }}
               mountPath: {{ .Values.persistentStorage.path | quote }}

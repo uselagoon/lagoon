@@ -120,6 +120,11 @@ objects:
                   value: dns.DNS_PING
                 - name: JGROUPS_DISCOVERY_PROPERTIES
                   value: dns_query=${SERVICE_NAME}-headless
+                - name: DB_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: keycloak-db-password
+                      key: KEYCLOAK_DB_PASSWORD
               resources:
                 requests:
                   cpu: 10m

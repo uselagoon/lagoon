@@ -208,13 +208,36 @@ async function createDeployTask(deployData) {
   switch (project.activeSystemsDeploy) {
     case 'lagoon_openshiftBuildDeploy':
     case 'lagoon_kubernetesBuildDeploy':
-      if (environments.project.productionEnvironment === branchName) {
+      // we want to limit production environments, without making it configurable currently
+      var productionEnvironmentsLimit = 2
+
+      // we want to make sure we can deploy the `production` env, and also the env defined as standby
+      if (
+        environments.project.productionEnvironment === branchName
+        || environments.project.standbyProductionEnvironment === branchName
+      ) {
+        // get a list of production environments
+        const prod_environments = environments.project.environments
+          .filter(e => e.environmentType === 'production')
+          .map(e => e.name);
         logger.debug(
-          `projectName: ${projectName}, branchName: ${branchName}, production environment, no environment limits considered`,
+          `projectName: ${projectName}, branchName: ${branchName}, existing environments are `,
+          prod_environments,
         );
+
+        if (prod_environments.length >= productionEnvironmentsLimit) {
+          if (prod_environments.find(i => i === branchName)) {
+            logger.debug(
+              `projectName: ${projectName}, branchName: ${branchName}, environment already exists, no environment limits considered`,
+            );
+          } else {
+            throw new EnvironmentLimit(
+              `'${branchName}' would exceed the configured limit of ${productionEnvironmentsLimit} production environments for project ${projectName}`,
+            );
+          }
+        }
       } else {
         // get a list of non-production environments
-        console.log(environments.project);
         const dev_environments = environments.project.environments
           .filter(e => e.environmentType === 'development')
           .map(e => e.name);
@@ -327,12 +350,34 @@ async function createDeployTask(deployData) {
             logger.debug(
               `projectName: ${projectName}, pullrequest: ${branchName}, no pullrequest defined in active system, assuming we want all of them`,
             );
-            return sendToLagoonTasks('builddeploy-openshift', deployData);
+            switch (project.activeSystemsDeploy) {
+              case 'lagoon_openshiftBuildDeploy':
+                return sendToLagoonTasks('builddeploy-openshift', deployData);
+              case 'lagoon_kubernetesBuildDeploy':
+                return sendToLagoonTasks('builddeploy-kubernetes', deployData);
+              default:
+                throw new UnknownActiveSystem(
+                  `Unknown active system '${
+                    project.activeSystemsDeploy
+                  }' for task 'deploy' in for project ${projectName}`,
+                );
+            }
           case 'true':
             logger.debug(
               `projectName: ${projectName}, pullrequest: ${branchName}, all pullrequest active, therefore deploying`,
             );
-            return sendToLagoonTasks('builddeploy-openshift', deployData);
+            switch (project.activeSystemsDeploy) {
+              case 'lagoon_openshiftBuildDeploy':
+                return sendToLagoonTasks('builddeploy-openshift', deployData);
+              case 'lagoon_kubernetesBuildDeploy':
+                return sendToLagoonTasks('builddeploy-kubernetes', deployData);
+              default:
+                throw new UnknownActiveSystem(
+                  `Unknown active system '${
+                    project.activeSystemsDeploy
+                  }' for task 'deploy' in for project ${projectName}`,
+                );
+            }
           case 'false':
             logger.debug(
               `projectName: ${projectName}, pullrequest: ${branchName}, pullrequest deployments disabled`,
@@ -352,7 +397,18 @@ async function createDeployTask(deployData) {
                   project.pullrequests
                 } matched PR Title '${pullrequestTitle}', starting deploy`,
               );
-              return sendToLagoonTasks('builddeploy-openshift', deployData);
+              switch (project.activeSystemsDeploy) {
+                case 'lagoon_openshiftBuildDeploy':
+                  return sendToLagoonTasks('builddeploy-openshift', deployData);
+                case 'lagoon_kubernetesBuildDeploy':
+                  return sendToLagoonTasks('builddeploy-kubernetes', deployData);
+                default:
+                  throw new UnknownActiveSystem(
+                    `Unknown active system '${
+                      project.activeSystemsDeploy
+                    }' for task 'deploy' in for project ${projectName}`,
+                  );
+              }
             }
             logger.debug(
               `projectName: ${projectName}, branchName: ${branchName}, regex ${
@@ -411,16 +467,23 @@ async function createRemoveTask(removeData) {
     projectName,
     branch,
     branchName,
+    pullrequestNumber,
     pullrequestTitle,
     forceDeleteProductionEnvironment,
     type,
   } = removeData;
 
-  const productionEnvironment = await getProductionEnvironmentForProject(
+  // Load all environments that currently exist (and are not deleted).
+  const allEnvironments = await getEnvironmentsForProject(
     projectName,
   );
 
-  if (branch === productionEnvironment.project.productionEnvironment) {
+  // Check to see if we are deleting a production environment, and if so,
+  // ensure the flag is set to allow this.
+  if (
+    branch === allEnvironments.project.productionEnvironment
+    || (allEnvironments.project.standbyProductionEnvironment && branch === allEnvironments.project.standbyProductionEnvironment)
+  ) {
     if (forceDeleteProductionEnvironment !== true) {
       throw new CannotDeleteProductionEnvironment(
         `'${branch}' is defined as the production environment for ${projectName}, refusing to remove.`,
@@ -439,96 +502,51 @@ async function createRemoveTask(removeData) {
   switch (project.activeSystemsRemove) {
     case 'lagoon_openshiftRemove':
       if (type === 'branch') {
-        switch (project.branches) {
-          case undefined:
-          case null:
-            logger.debug(
-              `projectName: ${projectName}, branchName: ${branchName}, no branches defined in active system, assuming we want all of them`,
-            );
-            return sendToLagoonTasks('remove-openshift', removeData);
-          case 'true':
-            logger.debug(
-              `projectName: ${projectName}, branchName: ${branchName}, all branches active, therefore deploying`,
-            );
-            return sendToLagoonTasks('remove-openshift', removeData);
-          case 'false':
-            logger.debug(
-              `projectName: ${projectName}, branchName: ${branchName}, branch deployments disabled`,
-            );
-            throw new NoNeedToRemoveBranch('Branch deployments disabled');
-          default: {
-            logger.debug(
-              `projectName: ${projectName}, branchName: ${branchName}, regex ${
-                project.branches
-              }, testing if it matches`,
-            );
-            const branchRegex = new RegExp(project.branches);
-            if (branchRegex.test(branchName)) {
-              logger.debug(
-                `projectName: ${projectName}, branchName: ${branchName}, regex ${
-                  project.branches
-                } matched branchname, starting deploy`,
-              );
-              return sendToLagoonTasks('remove-openshift', removeData);
-            }
-            logger.debug(
-              `projectName: ${projectName}, branchName: ${branchName}, regex ${
-                project.branches
-              } did not match branchname, not deploying`,
-            );
-            throw new NoNeedToDeployBranch(
-              `configured regex '${
-                project.branches
-              }' does not match branchname '${branchName}'`,
-            );
+        // Check to ensure the environment actually exists.
+        let foundEnvironment = false;
+        allEnvironments.project.environments.forEach(function (environment, index) {
+          if (environment.name === branch) {
+            foundEnvironment = true;
           }
-        }
-      } else if (type === 'pullrequest') {
-        switch (project.pullrequests) {
-          case undefined:
-          case null:
-            logger.debug(
-              `projectName: ${projectName}, pullrequest: ${branchName}, no pullrequest defined in active system, assuming we want all of them`,
-            );
-            return sendToLagoonTasks('remove-openshift', removeData);
-          case 'true':
-            logger.debug(
-              `projectName: ${projectName}, pullrequest: ${branchName}, all pullrequest active, therefore deploying`,
-            );
-            return sendToLagoonTasks('remove-openshift', removeData);
-          case 'false':
-            logger.debug(
-              `projectName: ${projectName}, pullrequest: ${branchName}, pullrequest deployments disabled`,
-            );
-            throw new NoNeedToDeployBranch('PullRequest deployments disabled');
-          default: {
-            logger.debug(
-              `projectName: ${projectName}, pullrequest: ${branchName}, regex ${
-                project.pullrequests
-              }, testing if it matches PR Title '${pullrequestTitle}'`,
-            );
+        });
 
-            const branchRegex = new RegExp(project.pullrequests);
-            if (branchRegex.test(pullrequestTitle)) {
-              logger.debug(
-                `projectName: ${projectName}, pullrequest: ${branchName}, regex ${
-                  project.pullrequests
-                } matched PR Title '${pullrequestTitle}', starting deploy`,
-              );
-              return sendToLagoonTasks('remove-openshift', removeData);
-            }
-            logger.debug(
-              `projectName: ${projectName}, branchName: ${branchName}, regex ${
-                project.pullrequests
-              } did not match PR Title, not removing`,
-            );
-            throw new NoNeedToDeployBranch(
-              `configured regex '${
-                project.pullrequests
-              }' does not match PR Title '${pullrequestTitle}'`,
-            );
-          }
+        if (!foundEnvironment) {
+          logger.debug(
+            `projectName: ${projectName}, branchName: ${branch}, no environment found.`,
+          );
+          throw new NoNeedToRemoveBranch('Branch environment does not exist, no need to remove anything.');
         }
+
+        logger.debug(
+          `projectName: ${projectName}, branchName: ${branchName}. Removing branch environment.`,
+        );
+        return sendToLagoonTasks('remove-openshift', removeData);
+
+      } else if (type === 'pullrequest') {
+        // Work out the branch name from the PR number.
+        let branchName = 'pr-' + pullrequestNumber;
+        removeData.branchName = 'pr-' + pullrequestNumber;
+
+        // Check to ensure the environment actually exists.
+        let foundEnvironment = false;
+        allEnvironments.project.environments.forEach(function (environment, index) {
+          if (environment.name === branchName) {
+            foundEnvironment = true;
+          }
+        });
+
+        if (!foundEnvironment) {
+          logger.debug(
+            `projectName: ${projectName}, pullrequest: ${branchName}, no pullrequest found.`,
+          );
+          throw new NoNeedToRemoveBranch('Pull Request environment does not exist, no need to remove anything.');
+        }
+
+        logger.debug(
+          `projectName: ${projectName}, pullrequest: ${branchName}. Removing pullrequest environment.`,
+        );
+        return sendToLagoonTasks('remove-openshift', removeData);
+
       } else if (type === 'promote') {
         return sendToLagoonTasks('remove-openshift', removeData);
       }
@@ -536,96 +554,51 @@ async function createRemoveTask(removeData) {
 
     case 'lagoon_kubernetesRemove':
       if (type === 'branch') {
-        switch (project.branches) {
-          case undefined:
-          case null:
-            logger.debug(
-              `projectName: ${projectName}, branchName: ${branchName}, no branches defined in active system, assuming we want all of them`,
-            );
-            return sendToLagoonTasks('remove-kubernetes', removeData);
-          case 'true':
-            logger.debug(
-              `projectName: ${projectName}, branchName: ${branchName}, all branches active, therefore deploying`,
-            );
-            return sendToLagoonTasks('remove-kubernetes', removeData);
-          case 'false':
-            logger.debug(
-              `projectName: ${projectName}, branchName: ${branchName}, branch deployments disabled`,
-            );
-            throw new NoNeedToRemoveBranch('Branch deployments disabled');
-          default: {
-            logger.debug(
-              `projectName: ${projectName}, branchName: ${branchName}, regex ${
-                project.branches
-              }, testing if it matches`,
-            );
-            const branchRegex = new RegExp(project.branches);
-            if (branchRegex.test(branchName)) {
-              logger.debug(
-                `projectName: ${projectName}, branchName: ${branchName}, regex ${
-                  project.branches
-                } matched branchname, starting deploy`,
-              );
-              return sendToLagoonTasks('remove-kubernetes', removeData);
-            }
-            logger.debug(
-              `projectName: ${projectName}, branchName: ${branchName}, regex ${
-                project.branches
-              } did not match branchname, not deploying`,
-            );
-            throw new NoNeedToDeployBranch(
-              `configured regex '${
-                project.branches
-              }' does not match branchname '${branchName}'`,
-            );
+        // Check to ensure the environment actually exists.
+        let foundEnvironment = false;
+        allEnvironments.project.environments.forEach(function (environment, index) {
+          if (environment.name === branch) {
+            foundEnvironment = true;
           }
-        }
-      } else if (type === 'pullrequest') {
-        switch (project.pullrequests) {
-          case undefined:
-          case null:
-            logger.debug(
-              `projectName: ${projectName}, pullrequest: ${branchName}, no pullrequest defined in active system, assuming we want all of them`,
-            );
-            return sendToLagoonTasks('remove-kubernetes', removeData);
-          case 'true':
-            logger.debug(
-              `projectName: ${projectName}, pullrequest: ${branchName}, all pullrequest active, therefore deploying`,
-            );
-            return sendToLagoonTasks('remove-kubernetes', removeData);
-          case 'false':
-            logger.debug(
-              `projectName: ${projectName}, pullrequest: ${branchName}, pullrequest deployments disabled`,
-            );
-            throw new NoNeedToDeployBranch('PullRequest deployments disabled');
-          default: {
-            logger.debug(
-              `projectName: ${projectName}, pullrequest: ${branchName}, regex ${
-                project.pullrequests
-              }, testing if it matches PR Title '${pullrequestTitle}'`,
-            );
+        });
 
-            const branchRegex = new RegExp(project.pullrequests);
-            if (branchRegex.test(pullrequestTitle)) {
-              logger.debug(
-                `projectName: ${projectName}, pullrequest: ${branchName}, regex ${
-                  project.pullrequests
-                } matched PR Title '${pullrequestTitle}', starting deploy`,
-              );
-              return sendToLagoonTasks('remove-kubernetes', removeData);
-            }
-            logger.debug(
-              `projectName: ${projectName}, branchName: ${branchName}, regex ${
-                project.pullrequests
-              } did not match PR Title, not removing`,
-            );
-            throw new NoNeedToDeployBranch(
-              `configured regex '${
-                project.pullrequests
-              }' does not match PR Title '${pullrequestTitle}'`,
-            );
-          }
+        if (!foundEnvironment) {
+          logger.debug(
+            `projectName: ${projectName}, branchName: ${branch}, no environment found.`,
+          );
+          throw new NoNeedToRemoveBranch('Branch environment does not exist, no need to remove anything.');
         }
+
+        logger.debug(
+          `projectName: ${projectName}, branchName: ${branchName}. Removing branch environment.`,
+        );
+        return sendToLagoonTasks('remove-kubernetes', removeData);
+
+      } else if (type === 'pullrequest') {
+        // Work out the branch name from the PR number.
+        let branchName = 'pr-' + pullrequestNumber;
+        removeData.branchName = 'pr-' + pullrequestNumber;
+
+        // Check to ensure the environment actually exists.
+        let foundEnvironment = false;
+        allEnvironments.project.environments.forEach(function (environment, index) {
+          if (environment.name === branchName) {
+            foundEnvironment = true;
+          }
+        });
+
+        if (!foundEnvironment) {
+          logger.debug(
+            `projectName: ${projectName}, pullrequest: ${branchName}, no pullrequest found.`,
+          );
+          throw new NoNeedToRemoveBranch('Pull Request environment does not exist, no need to remove anything.');
+        }
+
+        logger.debug(
+          `projectName: ${projectName}, pullrequest: ${branchName}. Removing pullrequest environment.`,
+        );
+        return sendToLagoonTasks('remove-kubernetes', removeData);
+
       } else if (type === 'promote') {
         return sendToLagoonTasks('remove-kubernetes', removeData);
       }
@@ -657,6 +630,9 @@ async function createTaskTask(taskData) {
     case 'lagoon_openshiftJob':
       return sendToLagoonTasks('job-openshift', taskData);
 
+    case 'lagoon_kubernetesJob':
+      return sendToLagoonTasks('job-kubernetes', taskData)
+
     default:
       throw new UnknownActiveSystem(
         `Unknown active system '${
@@ -667,7 +643,28 @@ async function createTaskTask(taskData) {
 }
 
 async function createMiscTask(taskData) {
-  return sendToLagoonTasks('misc-openshift', taskData);
+
+  const { key, data: { project } } = taskData;
+
+  const data = await getActiveSystemForProject(project.name, 'misc');
+
+  let updatedKey = key;
+  let taskId = '';
+  switch (data.activeSystemsMisc) {
+    case 'lagoon_openshiftMisc':
+      updatedKey = `openshift:${key}`;
+      taskId = 'misc-openshift';
+      break;
+    case 'lagoon_kubernetesMisc':
+      updatedKey = `kubernetes:${key}`
+      taskId = 'misc-kubernetes';
+      break;
+
+    default:
+      break;
+  }
+
+  return sendToLagoonTasks(taskId, {...taskData, key: updatedKey});
 }
 
 async function consumeTasks(

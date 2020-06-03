@@ -199,6 +199,20 @@ spec:
   targetCPUUtilizationPercentage: 80
 
 ---
+  apiVersion: autoscaling/v1
+  kind: HorizontalPodAutoscaler
+  metadata:
+    name: kubernetesmisc
+  spec:
+    maxReplicas: 1
+    minReplicas: 1
+    scaleTargetRef:
+      apiVersion: v1
+      kind: DeploymentConfig
+      name: kubernetesmisc
+    targetCPUUtilizationPercentage: 80
+
+---
 apiVersion: autoscaling/v1
 kind: HorizontalPodAutoscaler
 metadata:
@@ -295,6 +309,34 @@ spec:
     kind: DeploymentConfig
     name: kubernetesbuilddeploymonitor
   targetCPUUtilizationPercentage: 80
+
+---
+  apiVersion: autoscaling/v1
+  kind: HorizontalPodAutoscaler
+  metadata:
+    name: kubernetesjobs
+  spec:
+    maxReplicas: 1
+    minReplicas: 1
+    scaleTargetRef:
+      apiVersion: v1
+      kind: DeploymentConfig
+      name: kubernetesjobs
+    targetCPUUtilizationPercentage: 80
+
+---
+  apiVersion: autoscaling/v1
+  kind: HorizontalPodAutoscaler
+  metadata:
+    name: kubernetesjobsmonitor
+  spec:
+    maxReplicas: 1
+    minReplicas: 1
+    scaleTargetRef:
+      apiVersion: v1
+      kind: DeploymentConfig
+      name: kubernetesjobsmonitor
+    targetCPUUtilizationPercentage: 80
 
 ---
 apiVersion: autoscaling/v1

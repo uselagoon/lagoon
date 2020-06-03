@@ -1,14 +1,9 @@
 const promisify = require('util').promisify;
 const KubernetesClient = require('kubernetes-client');
-const sleep = require('es7-sleep');
 const R = require('ramda');
-const sha1 = require('sha1');
-const crypto = require('crypto');
 const { logger } = require('@lagoon/commons/src/local-logging');
 const {
   getOpenShiftInfoForProject,
-  addOrUpdateEnvironment,
-  getEnvironmentByName,
   updateDeployment
 } = require('@lagoon/commons/src/api');
 
@@ -24,6 +19,15 @@ const {
 
 initSendToLagoonLogs();
 initSendToLagoonTasks();
+
+const pause = duration => new Promise(res => setTimeout(res, duration));
+
+const retry = (retries, fn, delay = 1000) =>
+  fn().catch(err =>
+    retries > 1
+      ? pause(delay).then(() => retry(retries - 1, fn, delay))
+      : Promise.reject(err)
+  );
 
 const messageConsumer = async msg => {
   const {
@@ -77,29 +81,40 @@ const messageConsumer = async msg => {
     }
   });
 
-  // Check for currently active builds
-  let activeBuilds;
+  const jobsGet = promisify(
+    kubernetesBatchApi.namespaces(openshiftProject).jobs.get
+  );
+
+  const hasNoActiveBuilds = () =>
+    new Promise(async (resolve, reject) => {
+      const namespaceJobs = await jobsGet({
+        qs: {
+          labelSelector: 'lagoon.sh/jobType=build'
+        }
+      });
+      const activeBuilds = R.pipe(
+        R.propOr([], 'items'),
+        R.filter(R.pathSatisfies(R.lt(0), ['status', 'active']))
+      )(namespaceJobs);
+
+      if (R.isEmpty(activeBuilds)) {
+        resolve();
+      } else {
+        logger.info(
+          `Delaying build of ${buildName} due to ${activeBuilds.length} pending builds`
+        );
+        reject();
+      }
+    });
+
+  // Wait until an there are no active builds in this namespace running
   try {
-    const jobsGet = promisify(
-      kubernetesBatchApi.namespaces(openshiftProject).jobs.get
-    );
-    namespaceJobs = await jobsGet();
-
-    activeBuilds = R.pipe(
-      R.propOr([], 'items'),
-      R.filter(R.pathSatisfies(R.lt(0), ['status', 'active'])),
-    )(namespaceJobs);
+    // Check every minute for 30 minutes
+    await retry(30, hasNoActiveBuilds, 1 * 60 * 1000);
   } catch (err) {
-    logger.error(
-      `${openshiftProject}: Unexpected error loading jobs, unable to build ${buildName}: ${err}`
+    throw new Error(
+      `${openshiftProject}: Requeue build due to error: ${err.message}`
     );
-    return;
-  }
-
-  // If there are current builds running, delay this one
-  if (!R.isEmpty(activeBuilds)) {
-    logger.info(`Delaying build of ${buildName} due to ${activeBuilds.length} pending builds`);
-    throw new Error('requeue');
   }
 
   // Load job, if not exists create
@@ -113,13 +128,13 @@ const messageConsumer = async msg => {
   } catch (err) {
     if (err.code == 404) {
       try {
-      const jobPost = promisify(
-        kubernetesApi.group(jobConfig).ns(openshiftProject).jobs.post
-      );
+        const jobPost = promisify(
+          kubernetesApi.group(jobConfig).ns(openshiftProject).jobs.post
+        );
         console.log(JSON.stringify(jobConfig, null, 4));
 
-      jobInfo = await jobPost({ body: jobConfig });
-      logger.info(`${openshiftProject}: Created build ${buildName}`);
+        jobInfo = await jobPost({ body: jobConfig });
+        logger.info(`${openshiftProject}: Created build ${buildName}`);
       } catch (error) {
         logger.error(
           `${openshiftProject}: Unexpected error creating job ${buildName}: ${err}`

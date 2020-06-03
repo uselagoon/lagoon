@@ -4,6 +4,10 @@ const GraphQLDate = require('graphql-iso-date');
 const GraphQLJSON = require('graphql-type-json');
 
 const {
+  getLagoonVersion,
+} = require('./resources/lagoon/resolvers');
+
+const {
   getDeploymentsByEnvironmentId,
   getDeploymentByRemoteId,
   addDeployment,
@@ -14,7 +18,9 @@ const {
   deployEnvironmentBranch,
   deployEnvironmentPullrequest,
   deployEnvironmentPromote,
+  switchActiveStandby,
   deploymentSubscriber,
+  getDeploymentUrl
 } = require('./resources/deployment/resolvers');
 
 const {
@@ -29,6 +35,7 @@ const {
   taskDrushCron,
   taskDrushSqlSync,
   taskDrushRsyncFiles,
+  taskDrushUserLogin,
   taskSubscriber,
 } = require('./resources/task/resolvers');
 
@@ -58,6 +65,7 @@ const {
   getAllEnvironments,
   deleteAllEnvironments,
   userCanSshToEnvironment,
+  getEnvironmentUrl
 } = require('./resources/environment/resolvers');
 
 const {
@@ -98,9 +106,13 @@ const {
   getProjectByName,
   getProjectByGitUrl,
   getProjectByEnvironmentId,
+  getProjectsByMetadata,
   getAllProjects,
   updateProject,
   deleteAllProjects,
+  getProjectUrl,
+  updateProjectMetadata,
+  removeProjectMetadataByKey
 } = require('./resources/project/resolvers');
 
 const {
@@ -114,6 +126,7 @@ const {
 } = require('./resources/sshKey/resolvers');
 
 const {
+  getMe,
   getUserBySshKey,
   addUser,
   updateUser,
@@ -144,6 +157,15 @@ const {
   addGroupsToProject,
   removeGroupsFromProject,
 } = require('./resources/group/resolvers');
+
+const {
+  addBillingModifier,
+  updateBillingModifier,
+  deleteBillingModifier,
+  deleteAllBillingModifiersByBillingGroup,
+  getBillingModifiers,
+  getAllModifiersByGroupId
+} = require('./resources/billing/resolvers');
 
 const {
   addBackup,
@@ -199,6 +221,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
   },
   BillingGroup: {
     projects: getAllProjectsByGroupId,
+    modifiers: getAllModifiersByGroupId,
   },
   Environment: {
     project: getProjectByEnvironmentId,
@@ -214,6 +237,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
   },
   Deployment: {
     environment: getEnvironmentByDeploymentId,
+    uiLink: getDeploymentUrl,
   },
   Task: {
     environment: getEnvironmentByTaskId,
@@ -245,6 +269,8 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     environment: getEnvironmentByBackupId,
   },
   Query: {
+    me: getMe,
+    lagoonVersion: getLagoonVersion,
     userBySshKey: getUserBySshKey,
     projectByGitUrl: getProjectByGitUrl,
     projectByName: getProjectByName,
@@ -261,6 +287,8 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     allProjectsInGroup: getAllProjectsInGroup,
     billingGroupCost: getBillingGroupCost,
     allBillingGroupsCost: getAllBillingGroupsCost,
+    allBillingModifiers: getBillingModifiers,
+    projectsByMetadata: getProjectsByMetadata
   },
   Mutation: {
     addOrUpdateEnvironment,
@@ -295,6 +323,8 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     updateProject,
     deleteProject,
     deleteAllProjects,
+    updateProjectMetadata,
+    removeProjectMetadataByKey,
     addSshKey,
     updateSshKey,
     deleteSshKey,
@@ -323,6 +353,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     taskDrushCron,
     taskDrushSqlSync,
     taskDrushRsyncFiles,
+    taskDrushUserLogin,
     deleteTask,
     updateTask,
     setEnvironmentServices,
@@ -332,6 +363,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     deployEnvironmentBranch,
     deployEnvironmentPullrequest,
     deployEnvironmentPromote,
+    switchActiveStandby,
     addGroup,
     addBillingGroup,
     updateBillingGroup,
@@ -346,6 +378,10 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     removeUserFromGroup,
     addGroupsToProject,
     removeGroupsFromProject,
+    addBillingModifier,
+    updateBillingModifier,
+    deleteBillingModifier,
+    deleteAllBillingModifiersByBillingGroup,
   },
   Subscription: {
     backupChanged: backupSubscriber,

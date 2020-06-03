@@ -309,7 +309,7 @@ const getUserBySshKey = (sshKey) =>
 
 const addUser = (
   email,
-  firstName,
+  firstName = null,
   lastName = null,
   comment = null,
   gitlabId = null,
@@ -765,6 +765,40 @@ async function getEnvironmentByName(
   return result;
 }
 
+async function getDeploymentByName(
+  openshiftProjectName,
+  deploymentName,
+) {
+  const result = await graphqlapi.query(`
+    {
+      environment:environmentByOpenshiftProjectName( openshiftProjectName: "${openshiftProjectName}") {
+        id
+        name
+        openshiftProjectName
+        project {
+          id
+          name
+        }
+        deployments(name: "${deploymentName}") {
+          id
+          name
+          uiLink
+        }
+      }
+    }
+  `);
+
+  if (!result || !result.environment) {
+    throw new EnvironmentNotFound(
+      `Cannot find deployment ${deploymentName} by projectName ${projectName}\n${
+        result.environment
+      }`,
+    );
+  }
+
+  return result;
+}
+
 async function getEnvironmentByOpenshiftProjectName(
   openshiftProjectName,
 ) {
@@ -898,6 +932,11 @@ const getOpenShiftInfoForProject = (project) =>
         subfolder
         openshiftProjectPattern
         productionEnvironment
+        productionRoutes
+        productionAlias
+        standbyProductionEnvironment
+        standbyRoutes
+        standbyAlias
         envVariables {
           name
           value
@@ -1012,6 +1051,54 @@ const addDeployment = (
     },
   );
 
+  const addTask = (
+    name,
+    status,
+    created,
+    environment,
+    remoteId = null,
+    id = null,
+    started = null,
+    completed = null,
+    service = null,
+    command = null,
+    execute = false,
+  ) =>
+    graphqlapi.mutate(
+      `
+    ($name: String!, $status: TaskStatusType!, $created: String!, $environment: Int!, $id: Int, $remoteId: String, $started: String, $completed: String, $service: String, $command: String, $execute: Boolean) {
+      addTask(input: {
+          name: $name
+          status: $status
+          created: $created
+          environment: $environment
+          id: $id
+          remoteId: $remoteId
+          started: $started
+          completed: $completed
+          service: $service
+          command: $command
+          execute: $execute
+      }) {
+        ...${taskFragment}
+      }
+    }
+  `,
+      {
+        name,
+        status,
+        created,
+        environment,
+        id,
+        remoteId,
+        started,
+        completed,
+        service,
+        command,
+        execute,
+      },
+    );
+
 const updateDeployment = (
   id,
   patch,
@@ -1063,6 +1150,38 @@ const updateTask = (id, patch) =>
 const sanitizeGroupName = R.pipe(R.replace(/[^a-zA-Z0-9-]/g, '-'), R.toLower);
 const sanitizeProjectName = R.pipe(R.replace(/[^a-zA-Z0-9-]/g, '-'), R.toLower);
 
+const getProjectsByGroupName = groupName => graphqlapi.query(
+  `query groupByName($name: String!) {
+    groupByName(name: $name) {
+      id
+      name
+      projects {
+        id
+        name
+        gitUrl
+      }
+    }
+  }`,
+  { name: groupName }
+);
+
+const getGroupMembersByGroupName = groupName => graphqlapi.query(
+  `query groupByName($name: String!) {
+    groupByName(name: $name) {
+      id
+      name
+      members {
+        user {
+          id
+          email
+        }
+        role
+      }
+    }
+  }`,
+  { name: groupName }
+);
+
 module.exports = {
   addGroup,
   addGroupWithParent,
@@ -1095,12 +1214,14 @@ module.exports = {
   getEnvironmentByName,
   getProductionEnvironmentForProject,
   getEnvironmentsForProject,
+  getDeploymentByName,
   addOrUpdateEnvironment,
   updateEnvironment,
   deleteEnvironment,
   setEnvironmentServices,
   getDeploymentByRemoteId,
   addDeployment,
+  addTask,
   updateDeployment,
   getEnvironmentByOpenshiftProjectName,
   updateTask,
@@ -1108,4 +1229,6 @@ module.exports = {
   removeGroupFromProject,
   sanitizeGroupName,
   sanitizeProjectName,
+  getProjectsByGroupName,
+  getGroupMembersByGroupName,
 };

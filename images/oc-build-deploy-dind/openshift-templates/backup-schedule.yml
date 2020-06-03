@@ -45,6 +45,10 @@ objects:
   kind: Schedule
   metadata:
     name: backup-schedule
+    labels:
+      schedule: backup
+      branch: ${SAFE_BRANCH}
+      project: ${SAFE_PROJECT}
   spec:
     backend:
       repoPasswordSecretRef:
@@ -59,5 +63,5 @@ objects:
     prune:
       retention:
         keepDaily: 7
-        keepWeekly: 4
+        keepWeekly: 6
       schedule: '${PRUNE_SCHEDULE}'
