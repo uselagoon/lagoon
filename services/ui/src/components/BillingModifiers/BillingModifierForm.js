@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import css from 'styled-jsx/css';
 import Button from 'components/Button';
 
-import { useMutation, useQuery } from '@apollo/react-hooks';
+import { useMutation } from '@apollo/react-hooks';
 
 import AddBillingModifierMutation from '../../lib/mutation/AddBillingModifier';
 import UpdateBillingModifierMutation from 'lib/mutation/UpdateBillingModifier';
