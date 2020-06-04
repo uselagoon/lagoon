@@ -57,7 +57,7 @@ Create a PriorityClassName.
 {{/*
 Lagoon Labels
 */}}
-{{- define "cli.lagoonLabels" -}}
+{{- define "logstash.lagoonLabels" -}}
 lagoon.sh/service: {{ .Release.Name }}
 lagoon.sh/service-type: {{ .Chart.Name }}
 lagoon.sh/project: {{ .Values.project }}
@@ -69,7 +69,7 @@ lagoon.sh/buildType: {{ .Values.buildType }}
 {{/*
 Annotations
 */}}
-{{- define "cli.annotations" -}}
+{{- define "logstash.annotations" -}}
 lagoon.sh/version: {{ .Values.lagoonVersion | quote }}
 {{- if .Values.branch }}
 lagoon.sh/branch: {{ .Values.branch | quote }}
