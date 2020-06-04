@@ -77,7 +77,7 @@ const Invoice = ({ cost, language }) => {
               </div>
 
               <div className="projects">
-                Production Environment{cost.environmentCostDescription.prod.description.projects.count > 1 && 's'}:
+                Production Environment{cost.projects.count > 1 && 's'}:
                 {cost.environmentCostDescription.prod.description.projects.map(({name, hours}, index) => (<div key={`prod-${name}-${hours}-${index}`}><span>{name}</span> - <span>{hours} { lang === LANGS.ENGLISH ? `h` : `Std.` }</span></div>)) }
               </div>
 

@@ -224,7 +224,7 @@ export const PageBillingGroup = ({ router }) => {
             }
 
             if (costs[0].error.message.includes("Cannot read property 'availability' of undefined")){
-              return (<div className="content-wrapper"><div className="content"><div>This billing group does not seem to have any projedcts.</div></div></div>); 
+              return (<div className="content-wrapper"><div className="content"><div>This billing group does not seem to have any projects.</div></div></div>); 
             }
 
             return (<div className="content-wrapper"><div className="content"><div>{costs[0].error.message}</div></div></div>); 

@@ -221,19 +221,12 @@ export const storageCost = ({ projects, currency }: IBillingGroup) => {
     qty: storageToBill
   }
 
-  return storageDays > freeGBDays
-    ? {
-        cost: Number((storageToBill * storagePerDay).toFixed(2)),
-        description,
-        unitPrice: storagePerDay,
-        quantity: averageGBsPerDay
-      }
-    : {
-        cost: 0,
-        description,
-        unitPrice: storagePerDay,
-        quantity: averageGBsPerDay
-      };
+  return {
+    cost: storageDays > freeGBDays ? Number((storageToBill * storagePerDay).toFixed(2)) : 0,
+    description,
+    unitPrice: storagePerDay,
+    quantity: averageGBsPerDay
+  }
 };
 
 /**
