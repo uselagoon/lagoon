@@ -1,7 +1,6 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  namespace: {{ .Release.Namespace | quote }}
   name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}
   labels:
     {{- include "lagoon-logging.logsDispatcher.labels" . | nindent 4 }}
@@ -61,9 +60,11 @@ spec:
           subPath: fluent.conf
         - mountPath: /fluentd/buffer/
           name: buffer
+        - mountPath: /fluentd/tls/
+          name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}-tls
         envFrom:
         - secretRef:
-            name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}
+            name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}-env
         - configMapRef:
             name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}-env
         resources:
@@ -88,6 +89,10 @@ spec:
             path: fluent.conf
           name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}-fluent-conf
         name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}-fluent-conf
+      - secret:
+          defaultMode: 420
+          secretName: {{ include "lagoon-logging.logsDispatcher.fullname" . }}-tls
+        name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}-tls
   volumeClaimTemplates:
   - metadata:
       name: buffer

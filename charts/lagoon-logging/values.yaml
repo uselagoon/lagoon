@@ -15,7 +15,7 @@ logsDispatcher:
     repository: amazeeiolagoon/logs-dispatcher
     pullPolicy: Always
     # Overrides the image tag whose default is the chart version.
-    tag: v1-5-0
+    tag: logs-concentrator
 
   serviceAccount:
     # Specifies whether a service account should be created
@@ -71,21 +71,46 @@ excludeNamespaces:
 # Configure the cluster output buffer.
 # This may require tweaking to handle high volumes of logs.
 clusterOutputBuffer:
-  flush_thread_count: 256
+  flush_thread_count: 32
   timekey: 1m
   timekey_wait: 10s
   timekey_use_utc: true
-
-# Elasticsearch output config.
-elasticsearchHostPort: "443"
-elasticsearchScheme: https
-# The values below must be supplied during installation as they have no sane
-# defaults.
-elasticsearchHost: ""
-elasticsearchAdminPassword: ""
-clusterName: ""
 
 # chart dependency on logging-operator
 logging-operator:
   enabled: true
   createCustomResource: false
+
+# The values below must be supplied during installation.
+# Certificates should be provided in PEM format, and are generated as described
+# in the README for the lagoon-logs-concentrator chart.
+# Sample data shown below.
+
+#tls:
+#  caCert: |
+#    -----BEGIN CERTIFICATE-----
+#    ...
+#    -----END CERTIFICATE-----
+#  clientCert: |
+#    -----BEGIN CERTIFICATE-----
+#    ...
+#    -----END CERTIFICATE-----
+#  clientKey: |
+#    -----BEGIN EC PRIVATE KEY-----
+#    ...
+#    -----END EC PRIVATE KEY-----
+#
+#forward:
+#  username: "example1"
+#  password: "securepass"
+#  host: "203.0.113.9"
+#  # hostName is optional, with a fallback to host
+#  # this is useful for when host is an IP address, or when the server
+#  # certificate doesn't match the hostName.
+#  hostName: "logs.server.example.com"
+#  # hostPort is optional, default 24224
+#  hostPort: "24224"
+#  selfHostname: "logs-dispatcher.example1.lagoon.example.com"
+#  sharedKey: "supersecurekey"
+#
+#clusterName: "example1"

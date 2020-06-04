@@ -1,7 +1,6 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  namespace: {{ .Release.Namespace | quote }}
   name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}-fluent-conf
   labels:
     {{- include "lagoon-logging.logsDispatcher.labels" . | nindent 4 }}
@@ -12,6 +11,18 @@ data:
       workers 2
     </system>
 
+    # prometheus metrics
+    <source>
+      @type prometheus
+    </source>
+    <source>
+      @type prometheus_monitor
+    </source>
+    <source>
+      @type prometheus_output_monitor
+    </source>
+
+    # container logs collected by the logging-operator
     <source>
       # fluentd parameters
       @type  forward
@@ -98,13 +109,13 @@ data:
       <filter **>
         @type record_modifier
         <record>
-          index_name container-logs-${record.dig('kubernetes','namespace_labels','lagoon_sh/project') || "#{record.dig('kubernetes','namespace_name') || 'unknown_project'}_#{ENV.fetch('CLUSTER_NAME','unknown_cluster')}"}-${Time.at(time).strftime("%Y.%m")}
+          index_name container-logs-${record.dig('kubernetes','namespace_labels','lagoon_sh/project') || "#{record.dig('kubernetes','namespace_name') || 'unknown_project'}_#{ENV['CLUSTER_NAME']}"}-${Time.at(time).strftime("%Y.%m")}
         </record>
       </filter>
-      # route to elasticsearch block
+      # route to forward block
       <match **>
         @type relabel
-        @label @elasticsearch
+        @label @forward
       </match>
     </label>
 
@@ -137,50 +148,50 @@ data:
       <filter **>
         @type record_modifier
         <record>
-          index_name router-logs-${record.dig('kubernetes','namespace_labels','lagoon_sh/project') || "#{record.dig('kubernetes','namespace_name') || 'unknown_project'}_#{ENV.fetch('CLUSTER_NAME','unknown_cluster')}"}-${Time.at(time).strftime("%Y.%m")}
+          index_name router-logs-${record.dig('kubernetes','namespace_labels','lagoon_sh/project') || "#{record.dig('kubernetes','namespace_name') || 'unknown_project'}_#{ENV['CLUSTER_NAME']}"}-${Time.at(time).strftime("%Y.%m")}
         </record>
       </filter>
-      # route to elasticsearch block
+      # route to forward block
       <match **>
         @type relabel
-        @label @elasticsearch
+        @label @forward
       </match>
     </label>
 
-    <label @elasticsearch>
-      # send to elasticsearch
+    <label @forward>
+      # forward to logs-concentrator
       <match **>
-        @type elasticsearch
-        @id out_elasticsearch
-        # ingestion
-        target_index_key index_name
-        include_timestamp true
-        time_key time
+        @type forward
+        @id out_forward
+        # error out early
+        verify_connection_at_startup true
+        # tls
+        transport tls
+        tls_cert_path /fluentd/tls/ca.crt
+        tls_client_cert_path /fluentd/tls/client.crt
+        tls_client_private_key_path /fluentd/tls/client.key
         # endpoint
-        host "#{ENV['ELASTICSEARCH_HOST']}"
-        port "#{ENV['ELASTICSEARCH_HOST_PORT']}"
-        scheme "#{ENV.fetch('ELASTICSEARCH_SCHEME','http')}"
-        ssl_min_version TLSv1_2
-        ssl_max_version TLSv1_3
-        user admin
-        password "#{ENV['LOGSDB_ADMIN_PASSWORD']}"
-        # endpoint error handling
-        reconnect_on_error true
-        reload_on_failure true
-        request_timeout 600s
-        slow_flush_log_threshold 300s
+        <server>
+          port "#{ENV['LOGS_FORWARD_HOST_PORT']}"
+          host "#{ENV['LOGS_FORWARD_HOST']}"
+          name "#{ENV['LOGS_FORWARD_HOSTNAME']}"
+          username "#{ENV['LOGS_FORWARD_USERNAME']}"
+          password "#{ENV['LOGS_FORWARD_PASSWORD']}"
+        </server>
+        # authentication
+        <security>
+          self_hostname "#{ENV['LOGS_FORWARD_SELF_HOSTNAME']}"
+          shared_key "#{ENV['LOGS_FORWARD_SHARED_KEY']}"
+        </security>
         # buffer chunks by tag
         <buffer tag>
           @type file
-          path /fluentd/buffer/elasticsearch
+          path /fluentd/buffer/forward
           # buffer params (per worker)
           total_limit_size 8GB
           # flush params
           flush_thread_count 2
           overflow_action drop_oldest_chunk
         </buffer>
-        # silence warnings (these have no effect)
-        type_name _doc
-        ssl_version TLSv1_2
       </match>
     </label>

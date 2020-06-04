@@ -19,8 +19,8 @@ helm repo add banzaicloud-stable https://kubernetes-charts.banzaicloud.com
 helm dependency build lagoon-logging
 ```
 
-1. Create a `lagoon-logging.values.yaml` file inside `charts/` directory containing these fields with the
-   relevant values added.
+1. Create a `lagoon-logging.values.yaml` file inside `charts/` directory containing these fields with the relevant values added.
+   For required values and documentation see the comment block at the end of the chart's `values.yaml`.
 
 ```
 elasticsearchHost: ...
@@ -38,7 +38,7 @@ helm template --debug --namespace lagoon-logging -f ./lagoon-logging.values.yaml
 helm upgrade --dry-run --install --debug --create-namespace --namespace lagoon-logging -f ./lagoon-logging.values.yaml lagoon-logging lagoon-logging
 ```
 
-2. Run installation.
+3. Run installation.
 
 ```
 helm upgrade --install --debug --create-namespace --namespace lagoon-logging -f ./lagoon-logging.values.yaml lagoon-logging lagoon-logging
@@ -76,4 +76,12 @@ e.g. if `lagoon.sh/project: drupal-example`
 ```
 container-logs-drupal-example-*
 router-logs-drupal-example-*
+```
+
+## How to upgrade
+
+NOTE: If the `logging-operator` chart upgrade doesn't work, just uninstall the helm release and install it again. Logs won't be lost since fluentbit will send the contents of the log files once it is reinstalled.
+
+```
+helm upgrade --debug --namespace lagoon-logging --reuse-values lagoon-logging lagoon-logging
 ```
