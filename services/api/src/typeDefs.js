@@ -1,6 +1,4 @@
-// @flow
-
-const gql = require('./util/gql');
+const { gql } = require('./util/gql');
 
 // TODO: Split up this file
 

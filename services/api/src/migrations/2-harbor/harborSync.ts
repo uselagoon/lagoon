@@ -1,8 +1,8 @@
 import * as R from 'ramda';
 import { logger } from '@lagoon/commons/src/local-logging';
 import { getSqlClient } from '../../clients/sqlClient';
-import createHarborOperations from '../../resources/project/harborSetup';
-import projectHelpers from '../../resources/project/helpers';
+import { createHarborOperations } from '../../resources/project/harborSetup';
+import { Helpers as projectHelpers } from '../../resources/project/helpers';
 import { query, prepare } from '../../util/db';
 
 const lagoonHarborRoute = R.compose(

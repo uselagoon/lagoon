@@ -1,5 +1,5 @@
 import * as R from 'ramda';
-import { asyncPipe } from '@lagoon/commons/src/util';
+import { asyncPipe } from '@lagoon/commons/dist/util';
 import pickNonNil from '../util/pickNonNil';
 import * as logger from '../logger';
 import GroupRepresentation from 'keycloak-admin/lib/defs/groupRepresentation';

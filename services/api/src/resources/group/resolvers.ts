@@ -1,13 +1,14 @@
 import * as R from 'ramda';
+import { ResolverFn } from '../';
 import validator from 'validator';
 import * as logger from '../../logger';
 import { isPatchEmpty } from '../../util/db';
 import { GroupNotFoundError } from '../../models/group';
-import projectHelpers from '../project/helpers';
+import { Helpers as projectHelpers } from '../project/helpers';
 import { OpendistroSecurityOperations } from './opendistroSecurity';
 import { KeycloakUnauthorizedError } from '../../util/auth';
 
-export const getAllGroups = async (
+export const getAllGroups: ResolverFn = async (
   root,
   { name, type },
   { hasPermission, models, keycloakGrant },
@@ -53,7 +54,7 @@ export const getAllGroups = async (
   }
 };
 
-export const getGroupsByProjectId = async (
+export const getGroupsByProjectId: ResolverFn = async (
   { id: pid },
   _input,
   { hasPermission, models, keycloakGrant },
@@ -80,7 +81,7 @@ export const getGroupsByProjectId = async (
   }
 };
 
-export const getGroupsByUserId = async (
+export const getGroupsByUserId: ResolverFn = async (
   { id: uid },
   _input,
   { hasPermission, models, keycloakGrant },
@@ -110,7 +111,7 @@ export const getGroupsByUserId = async (
   }
 };
 
-export const getGroupByName = async (
+export const getGroupByName: ResolverFn = async (
   root,
   { name },
   { models, hasPermission },
@@ -149,7 +150,7 @@ export const addGroup = async (_root, { input }, { models, sqlClient, hasPermiss
   return group;
 };
 
-export const updateGroup = async (
+export const updateGroup: ResolverFn = async (
   _root,
   { input: { group: groupInput, patch } },
   { models, hasPermission },
@@ -180,7 +181,7 @@ export const updateGroup = async (
   return updatedGroup;
 };
 
-export const deleteGroup = async (
+export const deleteGroup: ResolverFn = async (
   _root,
   { input: { group: groupInput } },
   { models, sqlClient, hasPermission },
@@ -198,7 +199,7 @@ export const deleteGroup = async (
   return 'success';
 };
 
-export const deleteAllGroups = async (
+export const deleteAllGroups: ResolverFn = async (
   _root,
   _args,
   { models, hasPermission },
@@ -221,7 +222,7 @@ export const deleteAllGroups = async (
   })(deleteErrors);
 };
 
-export const addUserToGroup = async (
+export const addUserToGroup: ResolverFn = async (
   _root,
   { input: { user: userInput, group: groupInput, role } },
   { models, hasPermission },
@@ -255,7 +256,7 @@ export const addUserToGroup = async (
   return updatedGroup;
 };
 
-export const removeUserFromGroup = async (
+export const removeUserFromGroup: ResolverFn = async (
   _root,
   { input: { user: userInput, group: groupInput } },
   { models, hasPermission },
@@ -284,7 +285,7 @@ export const removeUserFromGroup = async (
   return updatedGroup;
 };
 
-export const addGroupsToProject = async (
+export const addGroupsToProject: ResolverFn = async (
   _root,
   { input: { project: projectInput, groups: groupsInput } },
   { models, sqlClient, hasPermission },
@@ -337,7 +338,7 @@ export const addGroupsToProject = async (
   return await projectHelpers(sqlClient).getProjectById(project.id);
 };
 
-export const addBillingGroup = async (
+export const addBillingGroup: ResolverFn = async (
   _root,
   { input: { name, currency, billingSoftware } },
   { models, hasPermission },
@@ -362,7 +363,7 @@ export const addBillingGroup = async (
   });
 };
 
-export const updateBillingGroup = async (
+export const updateBillingGroup: ResolverFn = async (
   _root,
   { input: { group: groupInput, patch } },
   { models, hasPermission },
@@ -390,7 +391,7 @@ export const updateBillingGroup = async (
   return updatedGroup;
 };
 
-export const addProjectToBillingGroup = async (
+export const addProjectToBillingGroup: ResolverFn = async (
   _root,
   { input: { project: projectInput, group: groupInput } },
   { models, sqlClient, hasPermission },
@@ -433,7 +434,7 @@ export const addProjectToBillingGroup = async (
   return project;
 };
 
-export const updateProjectBillingGroup = async (
+export const updateProjectBillingGroup: ResolverFn = async (
   _root,
   { input: { project: projectInput, group: groupInput } },
   { models, sqlClient, hasPermission },
@@ -471,7 +472,7 @@ export const updateProjectBillingGroup = async (
   return projectHelpers(sqlClient).getProjectById(project.id);
 };
 
-export const removeProjectFromBillingGroup = async (
+export const removeProjectFromBillingGroup: ResolverFn = async (
   root,
   { input: { project, group } },
   context,
@@ -482,10 +483,10 @@ export const removeProjectFromBillingGroup = async (
     context,
   );
 
-export const getAllProjectsByGroupId = async (root, input, context) =>
+export const getAllProjectsByGroupId: ResolverFn = async (root, input, context) =>
   getAllProjectsInGroup(root, { input: { id: root.id } }, { ...context });
 
-export const getAllProjectsInGroup = async (
+export const getAllProjectsInGroup: ResolverFn = async (
   _root,
   { input: groupInput },
   { models, sqlClient, hasPermission },
@@ -512,7 +513,7 @@ export const getAllProjectsInGroup = async (
  *
  * @return {JSON} A JSON object that includes the billing costs, projects, and environments
  */
-export const getBillingGroupCost = async (root, args, context) => {
+export const getBillingGroupCost: ResolverFn = async (root, args, context) => {
   const { models, hasPermission, sqlClient } = context;
   const { input: groupInput, month: yearMonth } = args;
 
@@ -535,7 +536,7 @@ export const getBillingGroupCost = async (root, args, context) => {
  *
  * @return {JSON} A JSON object
  */
-export const getAllBillingGroupsCost = async (root, args, context) => {
+export const getAllBillingGroupsCost: ResolverFn = async (root, args, context) => {
   const { models, hasPermission } = context;
   const { input: groupInput, month: yearMonth } = args;
 
@@ -548,7 +549,7 @@ export const getAllBillingGroupsCost = async (root, args, context) => {
   return await models.GroupModel.allBillingGroupCosts(yearMonth);
 };
 
-export const removeGroupsFromProject = async (
+export const removeGroupsFromProject: ResolverFn = async (
   _root,
   { input: { project: projectInput, groups: groupsInput } },
   { models, sqlClient, hasPermission },

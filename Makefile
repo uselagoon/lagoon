@@ -700,8 +700,8 @@ push-docker-host-image: build/docker-host minishift/login-docker-registry
 
 lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build/$(image))
 	IMAGE_REPO=$(CI_BUILD_TAG) CI=false docker-compose -p $(CI_BUILD_TAG) --compatibility up -d $(deployment-test-services-rest)
-	sleep 30
-	curl -X POST http://localhost:5555/deploy -H 'content-type: application/json' -d '{ "projectName": "lagoon", "branchName": "master" }'
+	sleep 90
+	curl -X POST -H "Content-Type: application/json" --data 'mutation { deployEnvironmentBranch(input: { project: { name: "lagoon" }, branchName: "master" } )}' http://localhost:3000/graphql
 	make logs
 
 # Start only the local Harbor for testing purposes
