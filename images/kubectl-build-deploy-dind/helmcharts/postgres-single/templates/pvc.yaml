@@ -3,15 +3,14 @@ kind: PersistentVolumeClaim
 metadata:
   name: {{ .Values.persistentStorage.name | quote }}
   labels:
-    {{- include "postgres.labels" . | nindent 4 }}
+    {{- include "postgres-single.labels" . | nindent 4 }}
   annotations:
-    {{- include "postgres.annotations" . | nindent 4 }}
+    {{- include "postgres-single.annotations" . | nindent 4 }}
   annotations:
     appuio.ch/backup: "true"
 spec:
   accessModes:
     - ReadWriteOnce
-    # storageClassName: {{ .Values.persistentStorage.class | quote }}
   resources:
     requests:
       storage: {{ .Values.persistentStorage.size | quote }}

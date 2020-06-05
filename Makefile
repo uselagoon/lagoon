@@ -529,7 +529,8 @@ build-list:
 # Define list of all tests
 all-k8s-tests-list:=				features-kubernetes \
 														nginx \
-														drupal
+														drupal \
+														drupal-postgres
 all-k8s-tests = $(foreach image,$(all-k8s-tests-list),k8s-tests/$(image))
 
 # Run all k8s tests

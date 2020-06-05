@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "postgres-single.fullname" . }}
+  labels:
+    {{- include "postgres-single.labels" . | nindent 4 }}
+  annotations:
+    {{- include "postgres-single.annotations" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: 5432
+      protocol: TCP
+      name: 5432-tcp
+  selector:
+    {{- include "postgres-single.selectorLabels" . | nindent 4 }}
