@@ -162,6 +162,7 @@ const typeDefs = gql`
     currency: String
     billingSoftware: String
     modifiers: [BillingModifier]
+    uptimeRobotStatusPageId: String
   }
 
   type Openshift {
@@ -1213,6 +1214,7 @@ const typeDefs = gql`
     name: String!
     currency: Currency!
     billingSoftware: String
+    uptimeRobotStatusPageId: String
   }
 
   input ProjectBillingGroupInput {
@@ -1224,6 +1226,7 @@ const typeDefs = gql`
     name: String!
     currency: Currency
     billingSoftware: String
+    uptimeRobotStatusPageId: String
   }
 
   input UpdateBillingGroupInput {
