@@ -1,0 +1,15 @@
+### amazee.io Drupal 8 development environment services file.
+#
+# This file should contain service definitions that are needed on development environments
+#
+# It contains some defaults that the amazee.io team suggests, please edit them as required.
+#
+parameters:
+  twig.config:
+    debug: true # displays twig debug messages, developers like them :)
+    auto_reload: true # reloads the twig files on every request, so no drush cache clear is required
+    cache: false # No twig internal cache, important: check the example.settings.loca.php to fully fully disable the twig cache
+
+services:
+  cache.backend.null: # Defines a Cache Backend Factory which is just empty, it is not used by default
+    class: Drupal\Core\Cache\NullBackendFactory

@@ -9,7 +9,7 @@ prefixwith() {
 }
 
 # Create an JWT Admin Token to talk to the API
-API_ADMIN_JWT_TOKEN=$(./create_jwt.sh)
+API_ADMIN_JWT_TOKEN=$(./create_jwt.py)
 BEARER="Authorization: bearer $API_ADMIN_JWT_TOKEN"
 
 # Load all projects and their environments

@@ -1,5 +1,3 @@
-// @flow
-
 const GraphQLDate = require('graphql-iso-date');
 const GraphQLJSON = require('graphql-type-json');
 
@@ -118,10 +116,13 @@ const {
   getProjectByName,
   getProjectByGitUrl,
   getProjectByEnvironmentId,
+  getProjectsByMetadata,
   getAllProjects,
   updateProject,
   deleteAllProjects,
-  getProjectUrl
+  getProjectUrl,
+  updateProjectMetadata,
+  removeProjectMetadataByKey
 } = require('./resources/project/resolvers');
 
 const {
@@ -194,13 +195,7 @@ const {
   deleteEnvVariable,
 } = require('./resources/env-variables/resolvers');
 
-/* ::
-
-import type {ResolversObj} from './resources';
-
-*/
-
-const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
+const resolvers = {
   GroupRole: {
     GUEST: 'guest',
     REPORTER: 'reporter',
@@ -255,7 +250,6 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
   },
   Notification: {
     __resolveType(obj) {
-      // $FlowFixMe
       switch (obj.type) {
         case 'slack':
           return 'NotificationSlack';
@@ -298,6 +292,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     billingGroupCost: getBillingGroupCost,
     allBillingGroupsCost: getAllBillingGroupsCost,
     allBillingModifiers: getBillingModifiers,
+    projectsByMetadata: getProjectsByMetadata
   },
   Mutation: {
     addProblem,
@@ -336,6 +331,8 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     updateProject,
     deleteProject,
     deleteAllProjects,
+    updateProjectMetadata,
+    removeProjectMetadataByKey,
     addSshKey,
     updateSshKey,
     deleteSshKey,

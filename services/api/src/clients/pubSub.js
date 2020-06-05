@@ -1,12 +1,10 @@
-// @flow
-
 const R = require('ramda');
 const { withFilter } = require('graphql-subscriptions');
 const { AmqpPubSub } = require('graphql-rabbitmq-subscriptions');
 const { ForbiddenError } = require('apollo-server-express');
 const logger = require('../logger');
 const { query } = require('../util/db');
-const environmentSql = require('../resources/environment/sql');
+const { Sql: environmentSql } = require('../resources/environment/sql');
 
 const rabbitmqHost = process.env.RABBITMQ_HOST || 'broker';
 const rabbitmqUsername = process.env.RABBITMQ_USERNAME || 'guest';

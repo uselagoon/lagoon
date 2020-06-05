@@ -43,6 +43,9 @@ parameters:
   - name: ENVIRONMENT_TYPE
     description: production level of this environment
     required: true
+  - name: CONFIG_MAP_SHA
+    description: SHA sum of the configmap
+    value: ''
 objects:
   - apiVersion: v1
     kind: DeploymentConfig
@@ -66,6 +69,8 @@ objects:
             service: ${SERVICE_NAME}
             branch: ${SAFE_BRANCH}
             project: ${SAFE_PROJECT}
+          annotations:
+            lagoon.sh/configMapSha: ${CONFIG_MAP_SHA}
         spec:
           tolerations:
             - effect: NoSchedule

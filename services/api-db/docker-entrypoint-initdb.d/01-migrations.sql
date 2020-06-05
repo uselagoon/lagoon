@@ -32,7 +32,7 @@ CREATE OR REPLACE PROCEDURE
     IN storage_calc                    int(1),
     IN problems_ui                     int(1),
     IN development_environments_limit  int
-  )
+
   BEGIN
     DECLARE new_pid int;
     DECLARE v_oid int;
@@ -1098,6 +1098,17 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  add_metadata_to_project()
+
+  BEGIN
+    ALTER TABLE project
+    ADD metadata JSON DEFAULT '{}' CHECK (JSON_VALID(metadata));
+    UPDATE project
+    SET metadata = '{}';
+  END;
+$$
+
 DELIMITER ;
 
 -- If adding new procedures, add them to the bottom of this list
@@ -1149,6 +1160,7 @@ CALL add_internal_container_registry_scope_to_env_vars();
 CALL add_additional_harbor_scan_fields_to_environment_problem();
 CALL update_user_password();
 CALL add_problems_ui_to_project();
+CALL add_metadata_to_project();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;

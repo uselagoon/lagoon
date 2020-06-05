@@ -17,7 +17,7 @@ import type {
 } from './types';
 
 
-async function processProblems(
+export async function processProblems(
     rabbitMsg: RabbitMQMsg,
     channelWrapperWebhooks: ChannelWrapper
   ): Promise<void> {
@@ -76,5 +76,3 @@ async function unhandled(webhook: WebhookRequestData, fullEvent: string) {
   );
   return;
 }
-
-module.exports = processProblems;

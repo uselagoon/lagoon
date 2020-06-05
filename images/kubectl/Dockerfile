@@ -1,11 +1,12 @@
+ARG ALPINE_VERSION
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM golang:alpine as golang
+FROM golang:1.13-alpine${ALPINE_VERSION} as golang
 
 RUN apk add --no-cache git
 RUN go get github.com/a8m/envsubst/cmd/envsubst
 
-FROM docker:stable
+FROM docker:19.03.10
 
 LABEL maintainer="amazee.io"
 ENV LAGOON=oc

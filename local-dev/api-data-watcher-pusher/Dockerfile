@@ -1,12 +1,10 @@
 FROM alpine:3.11
 
-RUN apk add --no-cache mysql-client tini openssl bash wget curl nodejs nodejs-npm \
-    && npm config set unsafe-perm true \
-    && npm -g install jwtgen
+RUN apk add --no-cache tini bash wget py3-jwt
 
 ENV JWTSECRET=super-secret-string \
     JWTAUDIENCE=api.dev
 
-COPY api-watch-push.sh create_jwt.sh /home/
+COPY api-watch-push.sh create_jwt.py /home/
 
 CMD ["tini", "--", "/home/api-watch-push.sh"]

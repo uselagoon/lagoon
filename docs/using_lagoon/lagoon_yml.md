@@ -115,6 +115,11 @@ Common uses for post-rollout tasks include running `drush updb`, `drush cim`, or
 * `shell`
   * Which shell should be used to run the task in. By default `sh` is used, but if the container also has other shells \(like `bash`, you can define it here\). This is useful if you want to run some small if/else bash scripts within the post-rollouts. \(see the example above how to write a script with multiple lines\).
 
+Note: If you would like to temporarily disable pre/post-rollout tasks during a deployment, you can set either of the following environment variables in the API at the project or environment level \(see how on [Environment Variables](environment_variables.md)\).
+
+* `LAGOON_PREROLLOUT_DISABLED=true`
+* `LAGOON_POSTROLLOUT_DISABLED=true`
+
 ## Routes
 
 ### `routes.autogenerate.enabled`
@@ -341,26 +346,25 @@ There are 2 ways to define the password used for your registry user.
 * Create an environment variable in the Lagoon API \(see more on [Environment Variables](environment_variables.md)\). The name of the variable you create can then be set as the password:
 
 ```
-  container-registries:
+container-registries:
   my-custom-registry:
     username: myownregistryuser
     password: MY_OWN_REGISTRY_PASSWORD
     url: my.own.registry.com
-  ```
+```
 
 * Define it directly in the `.lagoon.yml` file in plain text:
 
 ```
-  container-registries:
+container-registries:
   docker-hub:
     username: dockerhubuser
     password: MySecretPassword
-  ```
+```
 
 **Consuming a custom or private container registry image**
 
 To consume a custom or private container registry image, you need to update the service inside your `docker-compose.yml` file to use a build context instead of defining an image:
-
 
 ```
 services:
@@ -370,12 +374,8 @@ services:
       dockerfile: Dockerfile.mariadb
 ```
 
-
 Once the `docker-compose.yml` file has been updated to use a build, you need to create the `Dockerfile.<service>` and then set your private image as the `FROM <repo>/<name>:<tag>`
-
 
 ```text
 FROM dockerhubuser/my-private-database:tag
 ```
-
-
