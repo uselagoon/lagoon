@@ -1,5 +1,3 @@
-// @flow
-
 const R = require('ramda');
 const {
   ApolloServer,

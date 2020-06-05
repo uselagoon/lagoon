@@ -1,0 +1,11 @@
+apiVersion: logging.banzaicloud.io/v1beta1
+kind: Logging
+metadata:
+  namespace: {{ .Release.Namespace | quote }}
+  name: {{ include "lagoon-logging.fullname" . }}
+  labels:
+    {{- include "lagoon-logging.labels" . | nindent 4 }}
+spec:
+  fluentd: {}
+  fluentbit: {}
+  controlNamespace: {{ .Release.Namespace | quote }}

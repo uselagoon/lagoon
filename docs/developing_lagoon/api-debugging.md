@@ -1,12 +1,12 @@
 # API Debugging
 How to debug Lagoon in VSCode.
 
-1 . Ensure the `dev` script at `services/api/package.json` looks like the following:
+1 . Ensure the `dev` script at `services/api/package.json` includes the following:
 
 💡 _Tip: Scroll to the right to see the whole script!_
 
 ```javascript
-"dev": "NODE_ENV=development nodemon --ignore '*.test.ts' --watch src -e js,json,ts --exec 'tsc --sourceMap && flow-node --inspect=0.0.0.0:9229 -r dotenv-extended/config' -- dist"
+node --inspect=0.0.0.0:9229
 ```
 
 2 . Update `docker-compose.yml` to map the `dist` folder and expose the `9229` port:
@@ -59,4 +59,3 @@ $ rm build/api && make build/api && docker-compose restart api
 ```
 
 5 . Restart VScode.
-

@@ -1,24 +1,5 @@
-// @flow
-
 const logger = require('../logger');
 const { getKeycloakAdminClient } = require('../clients/keycloak-admin');
-
-/* ::
-
-type ConnectionSettings = {
-  baseUrl?: string,
-  realmName?: string,
-  requestConfig?: Object,
-}
-
-type UserSettings = {
-  username?: string,
-  password?: string,
-  grantType?: string,
-  clientId?: string,
-};
-
-*/
 
 async function waitForKeycloak() {
   let keycloakReady = false;

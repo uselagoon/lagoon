@@ -1,6 +1,6 @@
 import * as R from 'ramda';
 import { Group } from './group';
-import Helpers from '../resources/project/helpers';
+import { Helpers } from '../resources/project/helpers';
 
 export interface Project {
   id: Number; // int(11) NOT NULL AUTO_INCREMENT,
@@ -28,6 +28,7 @@ export interface Project {
   active_systems_task: String; // varchar(300) COLLATE utf8_bin DEFAULT NULL,
   private_key: String; // varchar(5000) COLLATE utf8_bin DEFAULT NULL,
   availability: String; // varchar(50) COLLATE utf8_bin DEFAULT NULL,
+  metadata: JSON; // JSON DEFAULT NULL,
 }
 
 export const ProjectModel = (clients) => {

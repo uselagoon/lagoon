@@ -47,6 +47,9 @@ ENV ES_JAVA_OPTS="-Xms200m -Xmx200m" \
     DISCOVERY_ZEN_MINIMUM_MASTER_NODES=1 \
     NODE_MASTER=true
 
+# Copy es-curl wrapper
+COPY es-curl /usr/share/elasticsearch/bin/es-curl
+
 VOLUME [ "/usr/share/elasticsearch/data" ]
 
 ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.bash"]
