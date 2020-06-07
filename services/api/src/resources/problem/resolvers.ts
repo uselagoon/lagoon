@@ -1,11 +1,11 @@
 // @flow
 
-const R = require('ramda');
-const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
-const { createMiscTask } = require('@lagoon/commons/src/tasks');
-const { knex, query, isPatchEmpty } = require('../../util/db');
-const environmentHelpers = require('../environment/helpers');
-const Sql = require('./sql');
+import * as R from 'ramda';
+import { sendToLagoonLogs } from '@lagoon/commons/src/logs';
+import { createMiscTask } from '@lagoon/commons/src/tasks';
+import { knex, query, isPatchEmpty } from '../../util/db';
+import { Helpers as environmentHelpers } from '../environment/helpers';
+import { Sql } from './sql';
 
 /* ::
 
@@ -160,7 +160,7 @@ const deleteProblemsFromSource = async (
   return 'success';
 }
 
-const Resolvers /* : ResolversObj */ = {
+export const Resolvers /* : ResolversObj */ = {
   getProblemsByEnvironmentId,
   addProblem,
   deleteProblem,
@@ -168,4 +168,3 @@ const Resolvers /* : ResolversObj */ = {
   addProblemsFromSource,
 };
 
-module.exports = Resolvers;

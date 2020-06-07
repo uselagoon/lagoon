@@ -1,6 +1,6 @@
 // @flow
 
-const { knex } = require('../../util/db');
+import { knex } from '../../util/db';
 
 /* ::
 
@@ -26,7 +26,7 @@ const standardEnvironmentReturn = {
     deleted: 'deleted'
 };
 
-const Sql /* : SqlObj */ = {
+export const Sql /* : SqlObj */ = {
   selectAllProblems: () =>
     knex('environment_problem')
     .select(standardEnvironmentReturn).toString(),
@@ -68,5 +68,3 @@ const Sql /* : SqlObj */ = {
         .update({ deleted: knex.fn.now() })
         .toString(),
 };
-
-module.exports = Sql;
