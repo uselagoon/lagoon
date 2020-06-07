@@ -56,7 +56,6 @@ const addProblem = async (
   } = await query(
     sqlClient,
     Sql.insertProblem({
-      id,
       severity,
       severity_score: severityScore,
       lagoon_service: service,
