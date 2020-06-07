@@ -77,46 +77,6 @@ const addProblem = async (
   return R.prop(0, rows);
 };
 
-/**
- * Essentially this is a bulk insert
- */
-const addProblemsFromSource = async(
-  root,
-  {
-    input: {
-      environment: environmentId,
-      source,
-      problems,
-    }
-  },
-  { sqlClient, hasPermission }
-  ) => {
-    const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
-
-    await hasPermission('problem', 'add', {
-      project: environment.project,
-    });
-
-    //NOTE: this actually works - let's move it into a transaction ...
-     const Promises = problems.map(element => query(
-        sqlClient,
-        Sql.insertProblem({
-          severity: element.severity,
-          severity_score: element.severityScore,
-          identifier: element.identifier,
-          environment: environmentId,
-          source,
-          data: element.data,
-        })
-      ));
-
-      let rets = [];
-      //TODO: use Rambda to pull these props off - build some kind of fallback logic for errors ...
-      await Promise.all(Promises).then(values => rets = values.map(e => e.info.insertId));
-      // return rets;
-};
-
-
 const deleteProblem = async (
   root,
   {
@@ -165,6 +125,5 @@ export const Resolvers /* : ResolversObj */ = {
   addProblem,
   deleteProblem,
   deleteProblemsFromSource,
-  addProblemsFromSource,
 };
 

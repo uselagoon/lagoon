@@ -6,7 +6,6 @@ const {
   addProblem,
   deleteProblem,
   deleteProblemsFromSource,
-  addProblemsFromSource,
 } = require('./resources/problem/resolvers');
 
 const {
@@ -296,7 +295,6 @@ const resolvers = {
   },
   Mutation: {
     addProblem,
-    addProblemsFromSource,
     deleteProblem,
     deleteProblemsFromSource,
     addOrUpdateEnvironment,
