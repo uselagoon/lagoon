@@ -2,8 +2,8 @@
 
 
 import uuid4 from 'uuid4';
-import { logger } from '@lagoon/commons/src/local-logging';
-import { sendToLagoonLogs } from '@lagoon/commons/src/logs';
+import { logger } from '@lagoon/commons/dist/local-logging';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
 import { harborScanningCompleted } from '../handlers/problems/harborScanningCompleted';
 import { processHarborVulnerabilityList } from '../handlers/problems/processHarborVulnerabilityList';
 import { processDrutinyResultset }  from '../handlers/problems/processDrutinyResults';

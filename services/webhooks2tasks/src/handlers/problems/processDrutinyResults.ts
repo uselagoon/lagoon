@@ -4,15 +4,15 @@ import {
   addProblem,
   deleteProblemsFromSource,
   getProblemsforProjectEnvironment,
-} from'@lagoon/commons/src/api';
-import { sendToLagoonLogs } from '@lagoon/commons/src/logs';
+} from'@lagoon/commons/dist/api';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
 const DRUTINY_VULNERABILITY_SOURCE_BASE = 'Drutiny';
 const DRUTINY_SERVICE_NAME = 'cli';
 const DRUTINY_PACKAGE_NAME = ''
 import {
   getProjectByName,
   getEnvironmentByName,
-} from '@lagoon/commons/src/api';
+} from '@lagoon/commons/dist/api';
 import { generateProblemsWebhookEventName } from "./webhookHelpers";
 
 const ERROR_STATES = ["error", "failure"];

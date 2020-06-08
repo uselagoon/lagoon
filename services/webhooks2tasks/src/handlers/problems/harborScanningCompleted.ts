@@ -1,16 +1,16 @@
 // @flow
 
-import { sendToLagoonLogs } from '@lagoon/commons/src/logs';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
 import {
   getVulnerabilitiesPayloadFromHarbor,
-} from '@lagoon/commons/src/harborApi';
+} from '@lagoon/commons/dist/harborApi';
 import * as R from 'ramda';
 import uuid4 from 'uuid4';
 
 import {
   getProjectByName,
   getEnvironmentByName,
-} from '@lagoon/commons/src/api';
+} from '@lagoon/commons/dist/api';
 
 const HARBOR_WEBHOOK_SUCCESSFUL_SCAN = "Success";
 

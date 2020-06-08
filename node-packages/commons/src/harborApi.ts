@@ -1,7 +1,7 @@
 // @flow
 
-const axios = require('axios');
-const R = require('ramda');
+import axios from 'axios';
+import * as R from 'ramda';
 
 const HARBOUR_BASE_API_URL =
   process.env.HARBOUR_BASE_API_URL ||
@@ -12,7 +12,7 @@ const HARBOR_ACCEPT_HEADER =
 const HARBOR_USERNAME = process.env.HARBOR_USERNAME || 'admin';
 const HARBOR_PASSWORD = process.env.HARBOR_ADMIN_PASSWORD;
 
-const getVulnerabilitiesPayloadFromHarbor = async (repoFullName) => {
+export const getVulnerabilitiesPayloadFromHarbor = async (repoFullName) => {
   const endpoint =
     HARBOUR_BASE_API_URL + repoFullName + HARBOR_BASE_URL_POSTFIX;
   const options = {
@@ -27,8 +27,4 @@ const getVulnerabilitiesPayloadFromHarbor = async (repoFullName) => {
 
   const response = await axios.get(endpoint, options);
   return response.data;
-};
-
-module.exports = {
-  getVulnerabilitiesPayloadFromHarbor,
 };
