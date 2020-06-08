@@ -250,6 +250,8 @@ objects:
           request_timeout 600s
           slow_flush_log_threshold 300s
           log_es_400_reason true
+          # mapping exception ignore. these chunks will be dropped
+          ignore_exceptions ["Fluent::Plugin::ElasticsearchErrorHandler::ElasticsearchError"]
           <buffer tag,index_name>
             @type file
             path /fluentd/buffer/elasticsearch
