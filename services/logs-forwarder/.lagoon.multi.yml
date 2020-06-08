@@ -266,6 +266,7 @@ objects:
           ssl_version TLSv1_2
           request_timeout 600s
           slow_flush_log_threshold 300s
+          log_es_400_reason true
           <buffer>
             @type file
             path /fluentd/buffer/elasticsearch
