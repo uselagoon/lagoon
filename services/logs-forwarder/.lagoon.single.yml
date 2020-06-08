@@ -300,7 +300,8 @@ objects:
           "index.refresh_interval" : "5s",
           "number_of_shards": 1,
           "number_of_replicas": 1,
-          "index.routing.allocation.require.box_type": "live"
+          "index.routing.allocation.require.box_type": "live",
+          "index.mapping.ignore_malformed": true
         },
         "mappings" : {
           "dynamic_templates" : [ {
