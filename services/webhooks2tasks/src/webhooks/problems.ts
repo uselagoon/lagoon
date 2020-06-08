@@ -1,25 +1,23 @@
 // @flow
 
 
-const uuid4 = require('uuid4');
-const { logger } = require('@lagoon/commons/src/local-logging');
-const { sendToLagoonLogs } = require('@lagoon/commons/src/logs');
-const harborScanningCompleted = require('../handlers/problems/harborScanningCompleted');
-const processHarborVulnerabilityList = require('../handlers/problems/processHarborVulnerabilityList');
-const processDrutinyResultset = require('../handlers/problems/processDrutinyResults');
+import uuid4 from 'uuid4';
+import { logger } from '@lagoon/commons/src/local-logging';
+import { sendToLagoonLogs } from '@lagoon/commons/src/logs';
+import { harborScanningCompleted } from '../handlers/problems/harborScanningCompleted';
+import { processHarborVulnerabilityList } from '../handlers/problems/processHarborVulnerabilityList';
+import { processDrutinyResultset }  from '../handlers/problems/processDrutinyResults';
 
 
-import type {
+import {
   WebhookRequestData,
-  ChannelWrapper,
-  RabbitMQMsg,
   Project
-} from './types';
+} from '../types';
 
 
 export async function processProblems(
-    rabbitMsg: RabbitMQMsg,
-    channelWrapperWebhooks: ChannelWrapper
+    rabbitMsg,
+    channelWrapperWebhooks
   ): Promise<void> {
     const webhook: WebhookRequestData = JSON.parse(rabbitMsg.content.toString());
     const {
@@ -41,7 +39,7 @@ export async function processProblems(
     channelWrapperWebhooks.ack(rabbitMsg);
 };
 
-async function handle(handler, webhook: WebhookRequestData, fullEvent: string, channelWrapperWebhooks: ChannelWrapper) {
+async function handle(handler, webhook: WebhookRequestData, fullEvent: string, channelWrapperWebhooks) {
   const {
     uuid
   } = webhook;

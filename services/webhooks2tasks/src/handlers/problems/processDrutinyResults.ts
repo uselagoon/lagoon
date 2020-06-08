@@ -1,6 +1,5 @@
 // @flow
 
-import { logger } from '@lagoon/commons/src/local-logging';
 import {
   addProblem,
   deleteProblemsFromSource,
@@ -29,11 +28,11 @@ const SEVERITY_LEVELS = [
 const DEFAULT_SEVERITY_LEVEL = "NEGLIGIBLE";
 
 export async function processDrutinyResultset(
-  webhook: WebhookRequestData,
+  WebhookRequestData,
   channelWrapperWebhooks
 ) {
 
-  const { webhooktype, event, uuid, body } = webhook;
+  const { webhooktype, event, uuid, body } = WebhookRequestData;
   const { lagoonInfo, results, profile: drutinyProfile } = body;
 
   try {
@@ -95,6 +94,11 @@ export async function processDrutinyResultset(
                 description: element.description,
                 data: JSON.stringify(element),
                 service: DRUTINY_SERVICE_NAME,
+                severityScore: null,
+                associatedPackage: 'Drupal',
+                version: null,
+                fixedVersion: null,
+                links: null,
               })
                 .then(() => {
                     sendToLagoonLogs(

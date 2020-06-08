@@ -1,10 +1,9 @@
 // @flow
 
-import { logger } from '@lagoon/commons/src/local-logging';
 import { sendToLagoonLogs } from '@lagoon/commons/src/logs';
 import {
   getVulnerabilitiesPayloadFromHarbor,
-} = require('@lagoon/commons/src/harborApi');
+} from '@lagoon/commons/src/harborApi';
 import * as R from 'ramda';
 import uuid4 from 'uuid4';
 
@@ -16,10 +15,10 @@ import {
 const HARBOR_WEBHOOK_SUCCESSFUL_SCAN = "Success";
 
 export async function harborScanningCompleted(
-  webhook: WebhookRequestData,
+  WebhookRequestData,
   channelWrapperWebhooks
 ) {
-  const { webhooktype, event, uuid, body } = webhook;
+  const { webhooktype, event, uuid, body } = WebhookRequestData;
 
   try {
     let {
@@ -65,7 +64,7 @@ export async function harborScanningCompleted(
     };
 
     const webhookData = generateWebhookData(
-      webhook.giturl,
+      WebhookRequestData.giturl,
       'problems',
       'harbor:scanningresultfetched',
       messageBody
@@ -163,8 +162,9 @@ const generateWebhookData = (
 
 const extractVulnerabilities = (harborScanResponse) => {
   for (let [key, value] of Object.entries(harborScanResponse)) {
-    if (value.hasOwnProperty('vulnerabilities')) {
-      return value.vulnerabilities;
+    let potentialStore: any = value;
+    if (potentialStore.hasOwnProperty('vulnerabilities')) {
+      return potentialStore.vulnerabilities;
     }
   }
   throw new ProblemsHarborConnectionError(

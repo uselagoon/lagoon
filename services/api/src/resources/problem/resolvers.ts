@@ -13,7 +13,7 @@ import type {ResolversObj} from '../';
 
 */
 
-const getProblemsByEnvironmentId = async (
+export const getProblemsByEnvironmentId = async (
   { id: environmentId },
   {severity},
   { sqlClient, hasPermission },
@@ -35,7 +35,7 @@ const getProblemsByEnvironmentId = async (
   return  R.sort(R.descend(R.prop('created')), rows);
 };
 
-const addProblem = async (
+export const addProblem = async (
   root,
   {
     input: {
@@ -76,7 +76,7 @@ const addProblem = async (
   return R.prop(0, rows);
 };
 
-const deleteProblem = async (
+export const deleteProblem = async (
   root,
   {
     input : {
@@ -97,7 +97,7 @@ const deleteProblem = async (
   return 'success';
 };
 
-const deleteProblemsFromSource = async (
+export const deleteProblemsFromSource = async (
   root,
   {
     input : {
@@ -118,11 +118,3 @@ const deleteProblemsFromSource = async (
 
   return 'success';
 }
-
-export const Resolvers /* : ResolversObj */ = {
-  getProblemsByEnvironmentId,
-  addProblem,
-  deleteProblem,
-  deleteProblemsFromSource,
-};
-
