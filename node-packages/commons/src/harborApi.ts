@@ -3,8 +3,8 @@
 import axios from 'axios';
 import * as R from 'ramda';
 
-const HARBOUR_BASE_API_URL =
-  process.env.HARBOUR_BASE_API_URL ||
+const HARBOR_BASE_API_URL =
+  process.env.HARBOR_BASE_API_URL ||
   'https://harbor-nginx-lagoon-master.ch.amazee.io/api/repositories/';
 const HARBOR_BASE_URL_POSTFIX = '/tags/latest/scan';
 const HARBOR_ACCEPT_HEADER =
@@ -14,7 +14,7 @@ const HARBOR_PASSWORD = process.env.HARBOR_ADMIN_PASSWORD;
 
 export const getVulnerabilitiesPayloadFromHarbor = async (repoFullName) => {
   const endpoint =
-    HARBOUR_BASE_API_URL + repoFullName + HARBOR_BASE_URL_POSTFIX;
+    HARBOR_BASE_API_URL + repoFullName + HARBOR_BASE_URL_POSTFIX;
   const options = {
     timeout: 30000,
     headers: {

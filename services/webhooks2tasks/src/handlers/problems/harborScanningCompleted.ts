@@ -10,15 +10,26 @@ import uuid4 from 'uuid4';
 import {
   getProjectByName,
   getEnvironmentByName,
+  getProblemHarborScanMatches,
 } from '@lagoon/commons/dist/api';
 
 const HARBOR_WEBHOOK_SUCCESSFUL_SCAN = "Success";
 
-export async function harborScanningCompleted(
+const DEFAULT_REPO_DETAILS_REGEX = "^(?<lagoonProjectName>.+)\/(?<lagoonEnvironmentName>.+)\/(?<lagoonServiceName>.+)$";
+
+const DEFAULT_REPO_DETAILS_MATCHER = {
+  defaultProjectName: "",
+  defaultEnvironmentName: "",
+  defaultServiceName: "",
+  regex: DEFAULT_REPO_DETAILS_REGEX,
+};
+
+ export async function harborScanningCompleted(
   WebhookRequestData,
   channelWrapperWebhooks
 ) {
   const { webhooktype, event, uuid, body } = WebhookRequestData;
+  const HARBOR_WEBHOOK_SUCCESSFUL_SCAN = "Success";
 
   try {
     let {
@@ -29,8 +40,7 @@ export async function harborScanningCompleted(
       lagoonEnvironmentName,
       lagoonServiceName,
       harborScanId,
-    } = validateAndTransformIncomingWebhookdata(body);
-
+    } = await validateAndTransformIncomingWebhookdata(body);
 
     if(scanOverview.scan_status !== HARBOR_WEBHOOK_SUCCESSFUL_SCAN) {
       sendToLagoonLogs(
@@ -75,6 +85,7 @@ export async function harborScanningCompleted(
     await channelWrapperWebhooks.publish(`lagoon-webhooks`, '', buffer, {
       persistent: true,
     });
+
   } catch (error) {
     sendToLagoonLogs(
       'error',
@@ -93,7 +104,7 @@ export async function harborScanningCompleted(
  *
  * @param {*} rawData
  */
-const validateAndTransformIncomingWebhookdata = (rawData) => {
+const validateAndTransformIncomingWebhookdata = async (rawData) => {
   let { resources, repository } = rawData.event_data;
 
   if (!repository.repo_full_name) {
@@ -111,11 +122,13 @@ const validateAndTransformIncomingWebhookdata = (rawData) => {
     return obj;
   });
 
-  let [
+  let harborScanPatternMatchers = await getProblemHarborScanMatches();
+
+  let {
     lagoonProjectName,
     lagoonEnvironmentName,
     lagoonServiceName,
-  ] = extractRepositoryDetails(repository.repo_full_name);
+   } = matchRepositoryAgainstPatterns(repository.repo_full_name, harborScanPatternMatchers.allProblemHarborScanMatchers);
 
   return {
     resources,
@@ -134,15 +147,38 @@ const generateError = (name, message) => {
   return e;
 };
 
-const extractRepositoryDetails = (repoFullName) => {
-  const pattern = /^(.+)\/(.+)\/(.+)$/;
+const matchRepositoryAgainstPatterns = (repoFullName, matchPatterns = []) => {
+  const matchingRes = matchPatterns.filter((e) => generateRegex(e.regex).test(repoFullName));
 
-  // if(!pattern.test(repoFullName)) {
-  //   throw new ProblemsInvalidWebhookData("'" + repoFullName + "' does not conform to the appropriate structure of Project/Environment/Service")
-  // }
-  console.log(repoFullName.split('/'));
-  return repoFullName.split('/');
-};
+  if(matchingRes.length > 1) {
+    const stringifyMatchingRes = matchingRes.reduce((prevRetString, e) => `${e.regex},${prevRetString}`, '');
+    throw generateError("InvalidHarborConfiguration",
+      `We have multiple matching regexes for '${repoFullName}'`
+    );
+  } else if (matchingRes.length == 0 && !generateRegex(DEFAULT_REPO_DETAILS_MATCHER.regex).test(repoFullName)) {
+    throw generateError("HarborError",
+    `We have no matching regexes, including default, for '${repoFullName}'`
+    );
+  }
+
+  const matchPatternDetails = matchingRes.pop() || DEFAULT_REPO_DETAILS_MATCHER;
+
+  const {
+    lagoonProjectName = matchPatternDetails.defaultProjectName,
+    lagoonEnvironmentName = matchPatternDetails.defaultEnvironmentName,
+    lagoonServiceName = matchPatternDetails.defaultServiceName,
+  } = extractRepositoryDetailsGivenRegex(repoFullName, matchPatternDetails.regex);
+
+  return {lagoonProjectName, lagoonEnvironmentName, lagoonServiceName};
+}
+
+const generateRegex = R.memoizeWith(R.identity, re => new RegExp(re));
+
+const extractRepositoryDetailsGivenRegex = (repoFullName, pattern = DEFAULT_REPO_DETAILS_REGEX) => {
+  const re = generateRegex(pattern);
+  const match = re.exec(repoFullName);
+  return match.groups;
+}
 
 const generateWebhookData = (
   webhookGiturl,

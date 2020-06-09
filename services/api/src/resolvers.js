@@ -6,6 +6,9 @@ const {
   addProblem,
   deleteProblem,
   deleteProblemsFromSource,
+  getProblemHarborScanMatches,
+  addProblemHarborScanMatch,
+  deleteProblemHarborScanMatch,
 } = require('./resources/problem/resolvers');
 
 const {
@@ -291,12 +294,15 @@ const resolvers = {
     billingGroupCost: getBillingGroupCost,
     allBillingGroupsCost: getAllBillingGroupsCost,
     allBillingModifiers: getBillingModifiers,
+    allProblemHarborScanMatchers: getProblemHarborScanMatches,
     projectsByMetadata: getProjectsByMetadata
   },
   Mutation: {
     addProblem,
+    addProblemHarborScanMatch,
     deleteProblem,
     deleteProblemsFromSource,
+    deleteProblemHarborScanMatch,
     addOrUpdateEnvironment,
     updateEnvironment,
     deleteEnvironment,

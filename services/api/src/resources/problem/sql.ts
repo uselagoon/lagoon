@@ -26,6 +26,16 @@ const standardEnvironmentReturn = {
     deleted: 'deleted'
 };
 
+const standardProblemHarborScanMatchReturn = {
+    id: 'id',
+    name: 'name',
+    description: 'description',
+    default_lagoon_project: 'defaultLagoonProject',
+    default_lagoon_environment: 'defaultLagoonEnvironment',
+    default_lagoon_service_name: 'defaultLagoonServiceName',
+    regex: 'regex'
+  };
+
 export const Sql /* : SqlObj */ = {
   selectAllProblems: () =>
     knex('environment_problem')
@@ -67,4 +77,33 @@ export const Sql /* : SqlObj */ = {
         .where('deleted', '=', '0000-00-00 00:00:00')
         .update({ deleted: knex.fn.now() })
         .toString(),
+  selectAllProblemHarborScanMatches: () =>
+  knex('problem_harbor_scan_matcher')
+  .select(standardProblemHarborScanMatchReturn).toString(),
+  selectAllProblemHarborScanMatchByDatabaseId: (id) =>
+  knex('problem_harbor_scan_matcher')
+  .select(standardProblemHarborScanMatchReturn).
+  where({ id: id }).toString(),
+  insertProblemHarborScanMatch: ({
+        id,
+        name,
+        description,
+        default_lagoon_project,
+        default_lagoon_environment,
+        default_lagoon_service_name,
+        regex
+      }) =>
+      knex('problem_harbor_scan_matcher').insert({
+        name,
+        description,
+        default_lagoon_project,
+        default_lagoon_environment,
+        default_lagoon_service_name,
+        regex
+      }).toString(),
+  deleteProblemHarborScanMatch: (id) =>
+      knex('problem_harbor_scan_matcher')
+        .where({
+          id: id,
+        }).delete().toString(),
 };

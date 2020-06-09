@@ -42,7 +42,7 @@ const Problems = ({ problems }) => {
             }
 
             return Object.keys(item).some(key =>
-                item[key].toString().toLowerCase().includes(lowercasedFilter))
+                item[key] && item[key].toString().toLowerCase().includes(lowercasedFilter))
         });
     };
 
