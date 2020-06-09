@@ -52,6 +52,9 @@ parameters:
   - name: MONITORING_PATH
     description: Path for monitoring of this route
     value: ""
+  - name: MONITORING_STATUSPAGEID
+    description: Uptime Robot status page ID
+    value: ""
 objects:
 - apiVersion: v1
   kind: Route
@@ -64,6 +67,7 @@ objects:
       uptimerobot.monitor.stakater.com/interval: '${MONITORING_INTERVAL}'
       uptimerobot.monitor.stakater.com/alert-contacts: '${MONITOR_ALERTCONTACTS}'
       monitor.stakater.com/overridePath: '${MONITORING_PATH}'
+      uptimerobot.monitor.stakater.com/status-pages: '${MONITORING_STATUSPAGEID}'
     creationTimestamp: null
     labels:
       branch: ${SAFE_BRANCH}
