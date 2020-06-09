@@ -21,7 +21,6 @@ metadata:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     ingress.kubernetes.io/ssl-redirect: "true"
     {{- end }}
-    kubernetes.io/tls-acme: "true"
     monitor.stakater.com/enabled: "{{ .Values.ingressmonitorcontroller.enabled }}"
     uptimerobot.monitor.stakater.com/interval: "{{ .Values.ingressmonitorcontroller.interval }}"
     uptimerobot.monitor.stakater.com/alert-contacts: "{{ .Values.ingressmonitorcontroller.alertContacts }}"
