@@ -41,9 +41,12 @@ const Problems = ({ problems }) => {
                 return problems;
             }
 
-            return Object.keys(item).some(key =>
-                item[key] && item[key].toString().toLowerCase().includes(lowercasedFilter))
-        });
+            return Object.keys(item).some(key => {
+              if (item[key] !== null) {
+                  return item[key].toString().toLowerCase().includes(lowercasedFilter);
+              }
+            });
+      });
     };
 
     useEffect(() => {

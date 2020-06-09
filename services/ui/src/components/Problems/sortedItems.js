@@ -21,9 +21,9 @@ const useSortableData = (initialItems) => {
         if (sortConfig !== null) {
             sortableItems.sort((a, b) => {
                 let aParsed = sortConfig.key === 'created' ? new moment(a[sortConfig.key]).format('YYYYMMDD')
-                        : a[sortConfig.key].toString().toLowerCase().trim();
+                        : (a[sortConfig.key] ? a[sortConfig.key].toString().toLowerCase().trim() : null);
                 let bParsed = sortConfig.key === 'created' ? new moment(b[sortConfig.key]).format('YYYYMMDD')
-                        : b[sortConfig.key].toString().toLowerCase().trim();
+                        : (b[sortConfig.key] ? b[sortConfig.key].toString().toLowerCase().trim() : null);
 
                 if (aParsed < bParsed) {
                     return sortConfig.direction === 'ascending' ? -1 : 1;
