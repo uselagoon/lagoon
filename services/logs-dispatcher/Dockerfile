@@ -5,8 +5,8 @@ USER root
 
 RUN apk add --no-cache --update --virtual .build-deps \
       build-base ruby-dev \
-      && gem install fluent-plugin-elasticsearch \
       && gem install fluent-plugin-kubernetes_metadata_filter \
+      && gem install fluent-plugin-multi-format-parser \
       && gem install fluent-plugin-prometheus \
       && gem install fluent-plugin-record-modifier \
       && gem install fluent-plugin-rewrite-tag-filter \
