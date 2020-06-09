@@ -28,6 +28,9 @@ metadata:
     {{- if .Values.ingressmonitorcontroller.path }}
     monitor.stakater.com/overridePath: "{{ .Values.ingressmonitorcontroller.path }}"
     {{- end }}
+    {{- if .Values.ingressmonitorcontroller.statuspageId }}
+    uptimerobot.monitor.stakater.com/status-pages: "{{ .Values.ingressmonitorcontroller.statuspageId }}"
+    {{- end }}
     # HSTS Handling
     {{- if .Values.hsts}}
     # haproxy.router.openshift.io/hsts_header: {{ .Values.route_hsts }}
