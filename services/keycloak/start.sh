@@ -1537,7 +1537,7 @@ function configure_harbor_scan_system {
 
   CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
   hs_system=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Harbor+Scan+Match --config $CONFIG_PATH)
-  echo Checking task:manageProblems
+  echo Checking task:View Harbor Scan Match
 
   if [ "$hs_system" != "[ ]" ]; then
     echo "Harbor Scan Match Permissions already configured"
@@ -1612,6 +1612,7 @@ function configure_keycloak {
     add_billing_modifier
     configure_task_uli
     configure_problems_system
+    configure_harbor_scan_system
 
     echo "Config of Keycloak done. Log in via admin user '$KEYCLOAK_ADMIN_USER' and password '$KEYCLOAK_ADMIN_PASSWORD'"
 }
