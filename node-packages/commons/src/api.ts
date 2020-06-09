@@ -1018,6 +1018,12 @@ export const getOpenShiftInfoForProject = (project: string): Promise<any> =>
           value
           scope
         }
+        groups {
+          ... on BillingGroup {
+            type
+            uptimeRobotStatusPageId
+          }
+        }
       }
     }
 `);
