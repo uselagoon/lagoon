@@ -1356,7 +1356,7 @@ export const addProblem = ({
       data,
       service,
       associatedPackage,
-      description: description.substring(0, 299),
+      description,
       version,
       fixedVersion,
       links

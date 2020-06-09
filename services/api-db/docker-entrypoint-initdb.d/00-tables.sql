@@ -217,7 +217,7 @@ CREATE TABLE IF NOT EXISTS environment_problem (
   lagoon_service           varchar(300) DEFAULT '',
   source                   varchar(300) DEFAULT '',
   associated_package       varchar(300) DEFAULT '',
-  description              varchar(300) DEFAULT '',
+  description              TEXT NULL    DEFAULT '',
   version                  varchar(300) DEFAULT '',
   fixed_version            varchar(300) DEFAULT '',
   links                    varchar(300) DEFAULT '',
