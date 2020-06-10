@@ -95,6 +95,8 @@ const messageConsumer = async msg => {
       alertContactSA = monitoringConfig.uptimerobot.alertContactSA || ""
     }
     var availability = projectOpenShift.availability || "STANDARD"
+    const billingGroup = projectOpenShift.groups.find(i => i.type == "billing" ) || ""
+    var uptimeRobotStatusPageId = billingGroup.uptimeRobotStatusPageId || ""
   } catch(error) {
     logger.error(`Error while loading information for project ${projectName}`)
     logger.error(error)
@@ -288,6 +290,9 @@ const messageConsumer = async msg => {
       }
     } else {
       buildconfig.spec.strategy.customStrategy.env.push({"name": "MONITORING_ALERTCONTACT","value": "unconfigured"})
+    }
+    if (uptimeRobotStatusPageId){
+      buildconfig.spec.strategy.customStrategy.env.push({"name": "MONITORING_STATUSPAGEID","value": uptimeRobotStatusPageId})
     }
     return buildconfig
   }
