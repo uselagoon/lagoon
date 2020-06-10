@@ -29,7 +29,18 @@ data:
       tag    process.container
     </source>
 
-    # logs emitted by the openshift routers
+    # application logs emitted by the lagoon_logs drupal module
+    <source>
+      @type  udp
+      @id    in_application
+      tag    "lagoon.#{ENV['CLUSTER_NAME']}.application"
+      port   5140
+      <parse>
+        @type json
+      </parse>
+    </source>
+
+    # router logs emitted by the openshift routers
     <source>
       @type                syslog
       @id                  in_router_openshift
@@ -127,6 +138,45 @@ data:
       @type record_modifier
       remove_keys docker
     </filter>
+    # add the index name
+    <filter lagoon.*.container>
+      @type record_modifier
+      <record>
+        index_name container-logs-${record.dig('kubernetes','namespace_labels','lagoon_sh/project') || "#{record.dig('kubernetes','namespace_name') || 'unknown_project'}_#{ENV['CLUSTER_NAME']}"}-${Time.at(time).strftime("%Y.%m")}
+      </record>
+    </filter>
+
+    #
+    # process application logs
+    #
+    # restructure so the kubernetes_metadata plugin can find the keys it needs
+    <filter lagoon.*.application>
+      @type record_modifier
+      remove_keys _dummy_,type
+      <record>
+        _dummy_ ${record['openshift_project'] = record['type']; record['kubernetes'] = {'namespace_name' => record['type'], 'pod_name' => record['host'], 'container_name' => 'unknown'}; record['docker'] = {'container_id' => "#{record['type']}_#{record['host']}"}; nil}
+      </record>
+    </filter>
+    # enrich with k8s metadata (will get the namespace labels)
+    <filter lagoon.*.application>
+      @type kubernetes_metadata
+      @log_level warn
+      skip_container_metadata true
+      skip_master_url         true
+    </filter>
+    # add the index_name
+    <filter lagoon.*.application>
+      @type record_modifier
+      <record>
+        index_name application-logs-${record.dig('kubernetes','namespace_labels','lagoon_sh/project') || "#{record.dig('kubernetes','namespace_name') || 'unknown_project'}_#{ENV['CLUSTER_NAME']}"}-${Time.at(time).strftime("%Y.%m")}
+      </record>
+    </filter>
+    # strip the kubernetes data as it's duplicated in container/router logs and
+    # not really relevant for application logs
+    <filter lagoon.*.application>
+      @type record_modifier
+      remove_keys docker,kubernetes
+    </filter>
 
     #
     # process nginx_router logs
@@ -178,20 +228,12 @@ data:
     </filter>
 
     #
-    # add the index_names
+    # add the router index_name
     #
-    # router
     <filter lagoon.*.router.*>
       @type record_modifier
       <record>
         index_name router-logs-${record.dig('kubernetes','namespace_labels','lagoon_sh/project') || "#{record.dig('kubernetes','namespace_name') || 'unknown_project'}_#{ENV['CLUSTER_NAME']}"}-${Time.at(time).strftime("%Y.%m")}
-      </record>
-    </filter>
-    # container
-    <filter lagoon.*.container>
-      @type record_modifier
-      <record>
-        index_name container-logs-${record.dig('kubernetes','namespace_labels','lagoon_sh/project') || "#{record.dig('kubernetes','namespace_name') || 'unknown_project'}_#{ENV['CLUSTER_NAME']}"}-${Time.at(time).strftime("%Y.%m")}
       </record>
     </filter>
 
