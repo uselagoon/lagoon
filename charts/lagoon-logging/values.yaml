@@ -61,12 +61,40 @@ logsDispatcher:
 # Don't collect logs from these namespaces.
 # Comment out this field to collect from all namespaces.
 excludeNamespaces:
+# k8s
 - cattle-prometheus
 - kube-system
 - syn
 - syn-cert-manager
 - syn-synsights
 - syn-cluster-autoscaler
+# openshift
+- acme-controller
+- appuio-baas-operator
+- appuio-dnsmonitor
+- appuio-espejo
+- appuio-infra
+- appuio-monitoring
+- appuio-pruner
+- appuio-tiller
+- default
+- dioscuri-controller
+- kube-public
+- kube-service-catalog
+- management-infra
+- monitoring-infra
+- openshift
+- openshift-ansible-service-broker
+- openshift-console
+- openshift-infra
+- openshift-logging
+- openshift-metrics-server
+- openshift-monitoring
+- openshift-node
+- openshift-sdn
+- openshift-web-console
+- syn-resource-locker
+- tiller
 
 # Configure the cluster output buffer.
 # This may require tweaking to handle high volumes of logs.
