@@ -62,6 +62,10 @@ oc adm policy add-scc-to-user privileged -z lagoon-logging-fluentbit
 oc adm policy add-scc-to-user anyuid -z lagoon-logging-logs-dispatcher
 ```
 
+4. Update application logs service
+
+The `application-logs` service in the `lagoon` namespace needs to be updated to point its `externalName` to the `lagoon-logging-logs-dispatcher` service in the `lagoon-logging` namespace (or wherever you've installed it).
+
 ## View logs
 
 ### For namespaces without a lagoon.sh/project label
@@ -69,6 +73,7 @@ oc adm policy add-scc-to-user anyuid -z lagoon-logging-logs-dispatcher
 Logs will appear in indices matching these patterns:
 
 ```
+application-logs-*_$CLUSTERNAME-*
 container-logs-*_$CLUSTERNAME-*
 router-logs-*_$CLUSTERNAME-*
 ```
@@ -76,6 +81,7 @@ router-logs-*_$CLUSTERNAME-*
 e.g. if `clusterName: test1`
 
 ```
+application-logs-*_test1-*
 container-logs-*_test1-*
 router-logs-*_test1-*
 ```
@@ -85,6 +91,7 @@ router-logs-*_test1-*
 Logs will appear in indices matching these patterns:
 
 ```
+application-logs-$PROJECT-*
 container-logs-$PROJECT-*
 router-logs-$PROJECT-*
 ```
@@ -92,6 +99,7 @@ router-logs-$PROJECT-*
 e.g. if `lagoon.sh/project: drupal-example`
 
 ```
+application-logs-drupal-example-*
 container-logs-drupal-example-*
 router-logs-drupal-example-*
 ```
