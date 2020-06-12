@@ -17,3 +17,11 @@ spec:
     port: 24231
     protocol: TCP
     targetPort: 24231
+  - name: applicationlog
+    port: 5140
+    protocol: UDP
+    targetPort: 5140
+  - name: syslog
+    port: 5141
+    protocol: UDP
+    targetPort: 5141
