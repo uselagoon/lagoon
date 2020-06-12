@@ -594,7 +594,7 @@ services:
       - HTTPS_PROXY=
       - NO_PROXY=harbor-core,harbor-jobservice,harbor-database,harborregistry,harbor-portal,harbor-trivy,127.0.0.1,localhost,.local,.internal
       - HARBOR_NGINX_ENDPOINT=http://harbor-nginx:8080
-      - ROBOT_TOKEN_DURATION=999
+      - ROBOT_TOKEN_DURATION=500
       - CORE_SECRET=secret123
       - JOBSERVICE_SECRET=secret123
       - REGISTRY_HTTP_SECRET=secret123
