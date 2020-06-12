@@ -111,3 +111,26 @@ NOTE: If the `logging-operator` chart upgrade doesn't work, just uninstall the h
 ```
 helm upgrade --debug --namespace lagoon-logging --reuse-values lagoon-logging lagoon-logging
 ```
+
+## Log export
+
+The `logs-dispatcher` includes support for sending logs to external sinks such as [cloudwatch](https://github.com/fluent-plugins-nursery/fluent-plugin-cloudwatch-logs) or [S3](https://docs.fluentd.org/output/s3).
+This feature uses the [fluentd copy plugin](https://docs.fluentd.org/output/copy), so see that link for syntax.
+
+For example configure the `exportLogs` value like so:
+
+```
+exportLogs:
+  s3.conf: |
+    <store ignore_error>
+      @type s3
+      ...
+    </store>
+  cloudwatch.conf: |
+    <store ignore_error>
+      @type cloudwatch_logs
+      ...
+    </store>
+```
+
+IMPORTANT: use `ignore_error` so that the main log flow to elasticsearch is not interrupted.

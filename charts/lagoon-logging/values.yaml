@@ -142,6 +142,21 @@ logging-operator:
 #  sharedKey: "supersecurekey"
 #
 #clusterName: "example1"
-#
+
+# Optional log export configuration
+
+#exportLogs:
+#  s3.conf: |
+#    <store ignore_error>
+#      @type s3
+#      ...
+#    </store>
+#  cloudwatch.conf: |
+#    <store ignore_error>
+#      @type cloudwatch_logs
+#      ...
+#    </store>
+
 # Openshift only!
+
 #fluentbitPrivileged: true

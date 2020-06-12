@@ -58,6 +58,10 @@ spec:
         - mountPath: /fluentd/etc/fluent.conf
           name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}-fluent-conf
           subPath: fluent.conf
+        {{- if .Values.exportLogs }}
+        - mountPath: /fluentd/etc/store.d
+          name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}-store
+        {{- end }}
         - mountPath: /fluentd/buffer/
           name: buffer
         - mountPath: /fluentd/tls/
@@ -89,6 +93,12 @@ spec:
             path: fluent.conf
           name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}-fluent-conf
         name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}-fluent-conf
+      {{- if .Values.exportLogs }}
+      - configMap:
+          defaultMode: 420
+          name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}-store
+        name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}-store
+      {{- end }}
       - secret:
           defaultMode: 420
           secretName: {{ include "lagoon-logging.logsDispatcher.fullname" . }}-tls

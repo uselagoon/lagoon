@@ -241,36 +241,40 @@ data:
     # forward all to logs-concentrator
     #
     <match lagoon.**>
-      @type forward
-      @id out_forward
-      # error out early
-      verify_connection_at_startup true
-      # tls
-      transport tls
-      tls_cert_path /fluentd/tls/ca.crt
-      tls_client_cert_path /fluentd/tls/client.crt
-      tls_client_private_key_path /fluentd/tls/client.key
-      # endpoint
-      <server>
-        port "#{ENV['LOGS_FORWARD_HOST_PORT']}"
-        host "#{ENV['LOGS_FORWARD_HOST']}"
-        name "#{ENV['LOGS_FORWARD_HOSTNAME']}"
-        username "#{ENV['LOGS_FORWARD_USERNAME']}"
-        password "#{ENV['LOGS_FORWARD_PASSWORD']}"
-      </server>
-      # authentication
-      <security>
-        self_hostname "#{ENV['LOGS_FORWARD_SELF_HOSTNAME']}"
-        shared_key "#{ENV['LOGS_FORWARD_SHARED_KEY']}"
-      </security>
-      # buffer chunks by tag
-      <buffer tag>
-        @type file
-        path /fluentd/buffer/forward
-        # buffer params (per worker)
-        total_limit_size 8GB
-        # flush params
-        flush_thread_count 2
-        overflow_action drop_oldest_chunk
-      </buffer>
+      @type copy
+      <store>
+        @type forward
+        @id out_forward
+        # error out early
+        verify_connection_at_startup true
+        # tls
+        transport tls
+        tls_cert_path /fluentd/tls/ca.crt
+        tls_client_cert_path /fluentd/tls/client.crt
+        tls_client_private_key_path /fluentd/tls/client.key
+        # endpoint
+        <server>
+          port "#{ENV['LOGS_FORWARD_HOST_PORT']}"
+          host "#{ENV['LOGS_FORWARD_HOST']}"
+          name "#{ENV['LOGS_FORWARD_HOSTNAME']}"
+          username "#{ENV['LOGS_FORWARD_USERNAME']}"
+          password "#{ENV['LOGS_FORWARD_PASSWORD']}"
+        </server>
+        # authentication
+        <security>
+          self_hostname "#{ENV['LOGS_FORWARD_SELF_HOSTNAME']}"
+          shared_key "#{ENV['LOGS_FORWARD_SHARED_KEY']}"
+        </security>
+        # buffer chunks by tag
+        <buffer tag>
+          @type file
+          path /fluentd/buffer/forward
+          # buffer params (per worker)
+          total_limit_size 8GB
+          # flush params
+          flush_thread_count 2
+          overflow_action drop_oldest_chunk
+        </buffer>
+      </store>
+      @include store.d/*.conf
     </match>
