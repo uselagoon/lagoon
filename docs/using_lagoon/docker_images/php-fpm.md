@@ -88,6 +88,7 @@ Environment variables are meant to contain common information for the PHP contai
 | :--- | :--- | :--- |
 | `NEWRELIC_ENABLED` | `false` | Enable NewRelic performance monitoring, needs `NEWRELIC_LICENSE` be configured. |
 | `NEWRELIC_LICENSE` | \(not set\) | NewRelic license to be used, Important: `NEWRELIC_ENABLED` needs to be set to`true` in order for NewRelic to be enabled. |
+| `NEWRELIC_BROWSER_MONITORING_ENABLED` | `true` | This enables auto-insertion of the JavaScript fragments for NewRelic browser monitoring, Important: `NEWRELIC_ENABLED` needs to be set to`true` in order for NewRelic to be enabled. |
 | `PHP_APC_ENABLED` | `1` | Can be set to 0 to disable APC. [See php.net](http://php.net/manual/en/apc.configuration.php#ini.apc.enabled). |
 | `PHP_APC_SHM_SIZE` | `32m` | The size of each shared memory segment given. [See php.net](http://php.net/manual/en/apc.configuration.php#ini.apc.shm-size). |
 | `PHP_DISPLAY_ERRORS` | `Off` | This determines whether errors should be printed to the screen as part of the output or if they should be hidden from the user. [See php.net](http://php.net/display-errors). |
@@ -104,4 +105,3 @@ Environment variables are meant to contain common information for the PHP contai
 | `PHP_MAX_INPUT_VARS` | `2000` | How many input variables will be accepted. [See php.net](http://php.net/manual/en/info.configuration.php#ini.max-input-vars). |
 | `PHP_MEMORY_LIMIT` | `400M` | Maximum amount of memory a script may consume. [See php.net](http://php.net/memory-limit). |
 | `XDEBUG_ENABLE` | \(not set\) | Used to enable `xdebug` extension. [See php.net](http://php.net/manual/en/apc.configuration.php#ini.apc.enabled). |
-
