@@ -45,7 +45,7 @@ ENV NEWRELIC_VERSION=9.10.1.263
 # @see https://github.com/curl/curl/issues/4624
 # @see https://pkgs.alpinelinux.org/packages?name=curl&branch=v3.11
 # TODO: Remove as soon as Alpine 3.11 is shipped with a version higher than 7.67.0
-RUN apk add --no-cache curl=7.70.0-r0 libcurl=7.70.0-r0 --repository http://dl-cdn.alpinelinux.org/alpine/edge/main/
+RUN apk add --no-cache curl --repository http://dl-cdn.alpinelinux.org/alpine/edge/main/
 
 RUN apk add --no-cache fcgi \
         ssmtp \
