@@ -162,10 +162,12 @@ data:
         </pattern>
       </parse>
     </filter>
-    # remove the duplicate "log" field if the record was successfully parsed
+    # remove the redundant "log" field if the record was successfully parsed
+    # some container logs have a duplicate message field for some reason, so
+    # remove that too.
     <filter lagoon.*.container>
       @type record_modifier
-      remove_keys _dummy_
+      remove_keys _dummy_,message
       <record>
         # check for nginxy fields
         _dummy_ ${if %w(http_x_forwarded_for referer agent).all?{|key| record[key]}; record.delete("log"); end; nil}
