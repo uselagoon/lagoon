@@ -145,6 +145,32 @@ data:
         index_name container-logs-${record.dig('kubernetes','namespace_labels','lagoon_sh/project') || "#{record.dig('kubernetes','namespace_name') || 'unknown_project'}_#{ENV['CLUSTER_NAME']}"}-${Time.at(time).strftime("%Y.%m")}
       </record>
     </filter>
+    # post-process to try to eke some more structure out of the logs.
+    # the last "format none" block is a catch-all for unmatched messages.
+    <filter lagoon.*.container>
+      @type parser
+      key_name log
+      reserve_data true
+      <parse>
+        @type multi_format
+        <pattern>
+          format nginx
+          types  size:integer
+        </pattern>
+        <pattern>
+          format none
+        </pattern>
+      </parse>
+    </filter>
+    # remove the duplicate "log" field if the record was successfully parsed
+    <filter lagoon.*.container>
+      @type record_modifier
+      remove_keys _dummy_
+      <record>
+        # check for nginxy fields
+        _dummy_ ${if %w(http_x_forwarded_for referer agent).all?{|key| record[key]}; record.delete("log"); end; nil}
+      </record>
+    </filter>
 
     #
     # process application logs
