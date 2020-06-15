@@ -143,6 +143,12 @@ logging-operator:
 #
 #clusterName: "example1"
 
+# Optional namespace selection. Logs will _only_ be collected from these
+# namespaces. You probably don't want to configure this, except for debugging.
+#
+#selectNamespaces:
+#- drupal-example
+
 # Optional log export configuration
 
 #exportLogs:
