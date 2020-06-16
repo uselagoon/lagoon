@@ -142,7 +142,7 @@ data:
     <filter lagoon.*.container>
       @type record_modifier
       <record>
-        index_name container-logs-${record.dig('kubernetes','namespace_labels','lagoon_sh/project') || "#{record.dig('kubernetes','namespace_name') || 'unknown_project'}_#{ENV['CLUSTER_NAME']}"}-${Time.at(time).strftime("%Y.%m")}
+        index_name container-logs-${record.dig('kubernetes','namespace_labels','lagoon_sh/project') || "#{record.dig('kubernetes','namespace_name') || 'unknown_project'}_#{ENV['CLUSTER_NAME']}"}-${record.dig('kubernetes','namespace_labels','lagoon_sh/environmenttype') || "unknown_environmenttype"}-${Time.at(time).strftime("%Y.%m")}
       </record>
     </filter>
     # post-process to try to eke some more structure out of the logs.
@@ -196,7 +196,7 @@ data:
     <filter lagoon.*.application>
       @type record_modifier
       <record>
-        index_name application-logs-${record.dig('kubernetes','namespace_labels','lagoon_sh/project') || "#{record.dig('kubernetes','namespace_name') || 'unknown_project'}_#{ENV['CLUSTER_NAME']}"}-${Time.at(time).strftime("%Y.%m")}
+        index_name application-logs-${record.dig('kubernetes','namespace_labels','lagoon_sh/project') || "#{record.dig('kubernetes','namespace_name') || 'unknown_project'}_#{ENV['CLUSTER_NAME']}"}-${record.dig('kubernetes','namespace_labels','lagoon_sh/environmenttype') || "unknown_environmenttype"}-${Time.at(time).strftime("%Y.%m")}
       </record>
     </filter>
     # strip the kubernetes data as it's duplicated in container/router logs and
@@ -261,7 +261,7 @@ data:
     <filter lagoon.*.router.*>
       @type record_modifier
       <record>
-        index_name router-logs-${record.dig('kubernetes','namespace_labels','lagoon_sh/project') || "#{record.dig('kubernetes','namespace_name') || 'unknown_project'}_#{ENV['CLUSTER_NAME']}"}-${Time.at(time).strftime("%Y.%m")}
+        index_name router-logs-${record.dig('kubernetes','namespace_labels','lagoon_sh/project') || "#{record.dig('kubernetes','namespace_name') || 'unknown_project'}_#{ENV['CLUSTER_NAME']}"}-${record.dig('kubernetes','namespace_labels','lagoon_sh/environmenttype') || "unknown_environmenttype"}-${Time.at(time).strftime("%Y.%m")}
       </record>
     </filter>
 
