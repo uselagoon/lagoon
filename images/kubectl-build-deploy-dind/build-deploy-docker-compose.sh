@@ -250,6 +250,13 @@ if [[ ( "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ) && ! $TH
 
       # allow to overwrite image that we pull
       OVERRIDE_IMAGE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.labels.lagoon\\.image false)
+
+      # allow to overwrite image that we pull for this environment and service
+      ENVIRONMENT_IMAGE_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.overwrites.$SERVICE_NAME.image false)
+      if [ ! $ENVIRONMENT_IMAGE_OVERRIDE == "false" ]; then
+        OVERRIDE_IMAGE=$ENVIRONMENT_IMAGE_OVERRIDE
+      fi
+
       if [ ! $OVERRIDE_IMAGE == "false" ]; then
         # expand environment variables from ${OVERRIDE_IMAGE}
         PULL_IMAGE=$(echo "${OVERRIDE_IMAGE}" | envsubst)
@@ -261,6 +268,12 @@ if [[ ( "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ) && ! $TH
     else
       # Dockerfile defined, load the context and build it
 
+      # allow to overwrite build dockerfile for this environment and service
+      ENVIRONMENT_DOCKERFILE_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.overwrites.$SERVICE_NAME.build.dockerfile false)
+      if [ ! $ENVIRONMENT_DOCKERFILE_OVERRIDE == "false" ]; then
+        DOCKERFILE=$ENVIRONMENT_DOCKERFILE_OVERRIDE
+      fi
+
       # We need the Image Name uppercase sometimes, so we create that here
       IMAGE_NAME_UPPERCASE=$(echo "$IMAGE_NAME" | tr '[:lower:]' '[:upper:]')
 
@@ -269,6 +282,13 @@ if [[ ( "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ) && ! $TH
       TEMPORARY_IMAGE_NAME="${NAMESPACE}-${IMAGE_NAME}"
 
       BUILD_CONTEXT=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.build.context .)
+
+      # allow to overwrite build context for this environment and service
+      ENVIRONMENT_BUILD_CONTEXT_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.overwrites.$SERVICE_NAME.build.context false)
+      if [ ! $ENVIRONMENT_BUILD_CONTEXT_OVERRIDE == "false" ]; then
+        BUILD_CONTEXT=$ENVIRONMENT_BUILD_CONTEXT_OVERRIDE
+      fi
+
       if [ ! -f $BUILD_CONTEXT/$DOCKERFILE ]; then
         echo "defined Dockerfile $DOCKERFILE for service $IMAGE_NAME not found"; exit 1;
       fi
