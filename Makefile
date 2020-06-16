@@ -428,6 +428,7 @@ services :=       api \
 									broker-single \
 									logs-concentrator \
 									logs-dispatcher \
+									logs-tee \
 									logs-forwarder \
 									logs-db \
 									logs-db-ui \
