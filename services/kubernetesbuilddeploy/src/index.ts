@@ -125,7 +125,7 @@ const messageConsumer = async msg => {
       buildImage = `amazeeio/kubectl-build-deploy-dind:${lagoonVersion}`
     } else {
       // we are a development enviornment, use the amazeeiolagoon image with the same branch name
-      buildImage = `amazeeiolagoon/oc-build-deploy-dind:${lagoonGitSafeBranch}`
+      buildImage = `amazeeiolagoon/kubectl-build-deploy-dind:${lagoonGitSafeBranch}`
     }
 
     let jobconfig = {
