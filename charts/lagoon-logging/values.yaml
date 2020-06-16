@@ -58,6 +58,126 @@ logsDispatcher:
 
   affinity: {}
 
+logsTeeRouter:
+
+  enabled: true
+
+  name: logs-tee-router
+
+  replicaCount: 2
+
+  image:
+    repository: amazeeiolagoon/logs-tee
+    pullPolicy: Always
+    # Overrides the image tag whose default is the chart version.
+    tag: logs-concentrator
+
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: false
+    # Annotations to add to the service account
+    annotations: {}
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname
+    # template
+    # If this value is set, the serviceAccount named must have clusterrole
+    # view.
+    name: ""
+
+  listenPort: 5141
+  endpoints:
+  # the logs-dispatcher endpoint is automatically added to this list
+  - logs-forwarder-logstash.lagoon.svc.cluster.local:5140
+
+  podAnnotations: {}
+
+  podSecurityContext: {}
+    # fsGroup: 2000
+
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+
+  resources: {}
+    # If you want to specify resources, uncomment the following lines, adjust
+    # them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+logsTeeApplication:
+
+  enabled: true
+
+  name: logs-tee-application
+
+  replicaCount: 2
+
+  image:
+    repository: amazeeiolagoon/logs-tee
+    pullPolicy: Always
+    # Overrides the image tag whose default is the chart version.
+    tag: logs-concentrator
+
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: false
+    # Annotations to add to the service account
+    annotations: {}
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname
+    # template
+    # If this value is set, the serviceAccount named must have clusterrole
+    # view.
+    name: ""
+
+  listenPort: 5140
+  endpoints:
+  # the logs-dispatcher endpoint is automatically added to this list
+  - logs-forwarder-logstash.lagoon.svc.cluster.local:5140
+
+  podAnnotations: {}
+
+  podSecurityContext: {}
+    # fsGroup: 2000
+
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+
+  resources: {}
+    # If you want to specify resources, uncomment the following lines, adjust
+    # them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
 # Don't collect logs from these namespaces.
 # Comment out this field to collect from all namespaces.
 excludeNamespaces:

@@ -46,6 +46,12 @@ spec:
         - containerPort: 24231
           protocol: TCP
           name: metrics
+        - containerPort: 5140
+          protocol: UDP
+          name: application
+        - containerPort: 5141
+          protocol: UDP
+          name: syslog-router
         readinessProbe:
           tcpSocket:
             port: 24224
