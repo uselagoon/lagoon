@@ -1,13 +1,9 @@
 const promisify = require("util").promisify;
 const R = require("ramda");
-const {logger} = require("@lagoon/commons/src/local-logging");
-const {sendToLagoonLogs} = require("@lagoon/commons/src/logs");
-const {
-    getOpenShiftInfoForProject,
-    updateProject,
-    updateTask,
-} = require("@lagoon/commons/src/api");
-const {RouteMigration} = require("@lagoon/commons/src/openshiftApi");
+import { logger } from "@lagoon/commons/dist/local-logging";
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { getOpenShiftInfoForProject, updateProject, updateTask } from '@lagoon/commons/dist/api';
+import { RouteMigration } from '@lagoon/commons/dist/openshiftApi';
 const convertDateFormat = R.init;
 
 import Api, { ClientConfiguration } from 'kubernetes-client';
