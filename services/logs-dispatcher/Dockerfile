@@ -9,6 +9,7 @@ RUN apk add --no-cache --update --virtual .build-deps \
       && gem install fluent-plugin-kubernetes_metadata_filter \
       && gem install fluent-plugin-multi-format-parser \
       && gem install fluent-plugin-prometheus \
+      && gem install fluent-plugin-rabbitmq \
       && gem install fluent-plugin-record-modifier \
       && gem install fluent-plugin-remote-syslog \
       && gem install fluent-plugin-rewrite-tag-filter \
