@@ -64,6 +64,11 @@ data:
     </source>
 
     #
+    # optional sources which can be enabled in the chart
+    #
+    @include source.d/*.conf
+
+    #
     # capture unmatched openshift router logs
     #
     <filter lagoon.*.router.openshift.unmatched>

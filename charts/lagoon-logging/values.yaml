@@ -229,6 +229,11 @@ logging-operator:
   enabled: true
   createCustomResource: false
 
+# lagoon logs collection disabled by default. see below for instructions on
+# enabling this.
+lagoonLogs:
+  enabled: false
+
 # The values below must be supplied during installation.
 # Certificates should be provided in PEM format, and are generated as described
 # in the README for the lagoon-logs-concentrator chart.
@@ -262,6 +267,16 @@ logging-operator:
 #  sharedKey: "supersecurekey"
 #
 #clusterName: "example1"
+
+# Optional lagoon logs configuration. This should be enabled on a full lagoon
+# install, but not in a lagoon-remote install. If enabled, the rabbitMQ* values
+# are required.
+#
+#lagoonLogs:
+#  enabled: true
+#  rabbitMQHost: secureuser
+#  rabbitMQUser: secureuser
+#  rabbitMQPassword: secureuser
 
 # Optional namespace selection. Logs will _only_ be collected from these
 # namespaces. You probably don't want to configure this, except for debugging.
