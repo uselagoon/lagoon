@@ -24,9 +24,9 @@ spec:
         {{- toYaml . | nindent 8 }}
     {{- end }}
       volumes:
-        - name: {{ .Values.persistentStorage.name }}
+        - name: {{ include "nginx-php-persistent.persistentStorageName" . }}
           persistentVolumeClaim:
-            claimName: {{ .Values.persistentStorage.name }}
+            claimName: {{ include "nginx-php-persistent.persistentStorageName" . }}
       priorityClassName: {{ include "nginx-php-persistent.lagoonPriority" . }}
       enableServiceLinks: false
       securityContext:
@@ -65,7 +65,7 @@ spec:
             - configMapRef:
                 name: lagoon-env
           volumeMounts:
-            - name: {{ .Values.persistentStorage.name }}
+            - name: {{ include "nginx-php-persistent.persistentStorageName" . }}
               mountPath: {{ .Values.persistentStorage.path | quote }}
           resources:
             {{- toYaml .Values.resources.nginx | nindent 12 }}
@@ -97,7 +97,7 @@ spec:
             - name: NGINX_FASTCGI_PASS
               value: '127.0.0.1'
           volumeMounts:
-            - name: {{ .Values.persistentStorage.name }}
+            - name: {{ include "nginx-php-persistent.persistentStorageName" . }}
               mountPath: {{ .Values.persistentStorage.path | quote }}
           resources:
             {{- toYaml .Values.resources.php | nindent 12 }}
