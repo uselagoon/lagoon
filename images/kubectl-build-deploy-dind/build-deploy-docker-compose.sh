@@ -445,11 +445,6 @@ do
 
   touch /kubectl-build-deploy/${SERVICE_NAME}-values.yaml
 
-  SERVICE_TYPE_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.types.$SERVICE_NAME false)
-  if [ ! $SERVICE_TYPE_OVERRIDE == "false" ]; then
-    SERVICE_TYPE=$SERVICE_TYPE_OVERRIDE
-  fi
-
   HELM_SERVICE_TEMPLATE="templates/service.yaml"
   if [ -f /kubectl-build-deploy/helmcharts/${SERVICE_TYPE}/$HELM_SERVICE_TEMPLATE ]; then
     cat /kubectl-build-deploy/values.yaml
