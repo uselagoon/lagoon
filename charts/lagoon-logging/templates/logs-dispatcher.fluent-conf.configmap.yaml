@@ -270,6 +270,11 @@ data:
       </record>
     </filter>
 
+    # DEBUG DELETE ME
+    <match lagoon.*.lagoon>
+      @type stdout
+    </match>
+
     #
     # forward all to logs-concentrator
     #
