@@ -39,7 +39,7 @@ COPY ssmtp.conf /etc/ssmtp/ssmtp.conf
 # New Relic PHP Agent.
 # @see https://docs.newrelic.com/docs/release-notes/agent-release-notes/php-release-notes/
 # @see https://docs.newrelic.com/docs/agents/php-agent/getting-started/php-agent-compatibility-requirements
-ENV NEWRELIC_VERSION=9.10.1.263
+ENV NEWRELIC_VERSION=9.11.0.267
 
 # Pin curl to Version 7.69.1-r0 as the current shipped one 7.67.0 has a bug, see
 # https://github.com/curl/curl/issues/4624
