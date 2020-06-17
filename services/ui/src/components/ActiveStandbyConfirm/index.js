@@ -20,7 +20,7 @@ export const ActiveStandbyConfirm = ({
   return (
     <React.Fragment>
       <div className="margins"><Button action={openModal}>
-        Promote Active Environment
+        Replace Active Environment
       </Button></div>
       <Modal
         isOpen={open}
@@ -29,7 +29,9 @@ export const ActiveStandbyConfirm = ({
       >
         <React.Fragment>
           <p>
-            Are you sure you want to promote the environment <span className="environment-name">{standbyEnvironment}</span> to active?<br/>
+            This will replace the current active environment <span className="environment-name">{standbyEnvironment}</span><br/>
+            with the selected standby environment <span className="environment-name">{standbyEnvironment}</span>.<br/><br/>
+            Are you sure you want to do this?<br/><br/>
             Upon confirmation you will be taken to the task page to monitor execution.
           </p>
 
