@@ -131,7 +131,7 @@ This allows you to define the behavior of the automatic creates routes \(NOT the
 
 Environment names match your deployed branches or pull requests. This allows for each environment to have a different config. In our example it will apply to the `master` and `staging` environment.
 
-#### `environments.[name].monitoring_urls`
+### `environments.[name].monitoring_urls`
 
 At the end of a deploy, Lagoon will check this field for any URLs which you have specified to add to the API for the purpose of monitoring. The default value for this field is the first route for a project. It is useful for adding specific paths of a project to the API, for consumption by a monitoring service. 
 
@@ -139,7 +139,7 @@ At the end of a deploy, Lagoon will check this field for any URLs which you have
 Please note, Lagoon does not provide any direct integration to a monitoring service, this just adds the URLs to the API. On amazee.io, we take the `monitoring_urls` and add them to our StatusCake account.
 {% endhint %}
 
-#### `environments.[name].routes`
+### `environments.[name].routes`
 
 In the route section, we identify the domain names to which the environment will respond. It is typical to only have an environment with routes specified for your production environment. All environments receive a generated route, but sometimes there is a need for a non-production environment to have its own domain name. You can specify it here, and then add that domain with your DNS provider as a CNAME to the generated route name \(these routes publish in deploy messages\).
 
@@ -281,7 +281,7 @@ example-project-name:
 
 ## Specials
 
-#### `api`
+### `api`
 
 {% hint style="info" %}
 If you run directly on amazee.io you will not need this key set.
@@ -289,7 +289,7 @@ If you run directly on amazee.io you will not need this key set.
 
 With the key `api` you can define another URL that should be used by `lagu` and `drush` to connect to the Lagoon GraphQL API. This needs to be a full URL with a scheme, like: `http://localhost:3000` This usually does not need to be changed, but there might be situations where your Lagoon administrator tells you to do so.
 
-#### `ssh`
+### `ssh`
 
 {% hint style="info" %}
 If you run directly on amazee.io you will not need this key set.
@@ -297,7 +297,7 @@ If you run directly on amazee.io you will not need this key set.
 
 With the key `ssh` you can define another SSH endpoint that should be used by `lagu` and `drush` to connect to the Lagoon remote shell service. This needs to be a hostname and a port separated by a colon, like: `localhost:2020` This usually does not need to be changed, but there might be situations where your Lagoon administrator tells you to do so.
 
-#### `additional-yaml`
+### `additional-yaml`
 
 The `additional-yaml` has some super powers. Basically, it allows you to define any arbitrary YAML configuration file to be inserted before the build step \(it still needs to be valid Kubernetes/OpenShift YAML , though☺\).
 
@@ -326,7 +326,7 @@ Each definition is keyed by a unique name \(`secrets` and `logs-db-secrets` in t
 * `command` - can either be `create` or `apply`, depending on whether you want to run. `kubectl create -f [yamlfile]` or `kubectl apply -f [yamlfile]`.
 * `ignore_error` - either `true` or `false` \(default\).  This allows you to instruct the Lagoon build script to ignore any errors that might be returned during running the command. \(This can be useful to handle the case where you want to run `create` during every build, so that new configurations are created, but don't fail if they already exist\).
 
-#### `container-registries`
+### `container-registries`
 
 The `container-registries` block allows you to define your own private container registries to pull custom or private images. To use a private container registry, you will need a `username`, `password`, and optionally the `url` for your registry. If you don't specify a `url` in your YAML, it will default to using Docker Hub.
 
