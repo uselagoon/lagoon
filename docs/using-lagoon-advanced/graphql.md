@@ -60,7 +60,9 @@ If all went well, you should see your first GraphQL response.
 
 ## Mutations
 
-The Lagoon GraphQL API can not only display objects and create objects, but it also has the capability to update existing objects. All of this happens in full GraphQL best practices manner.
+The Lagoon GraphQL API can not only display objects and create objects, but it also has the capability to update existing objects. All of Lagoon's GraphQL uses best practices. 
+
+_Mutation queries in GraphQL modify the data in the data store,  and return a value. They can be used to insert, update, and delete data. Mutations are defined as a part of the schema._
 
 Update the branches to deploy within a project:
 

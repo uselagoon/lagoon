@@ -9,7 +9,7 @@ The [Lagoon `php-fpm` Docker image](https://github.com/amazeeio/lagoon/blob/mast
 > FastCGI is a way of having server scripts execute time-consuming code just once instead of every time the script is loaded, reducing overhead.
 
 {% hint style="info" %}
-This Dockerfile is intended to be used as a base for any `PHP` needs within Lagoon. This image itself does not create a web server, rather just a `php-fpm` fastcgi listener. You may need to adapt the `php-fpm` pool config.
+This Dockerfile is intended to be used as a base for any `PHP` needs within Lagoon. This image itself does not create a web server, rather  a `php-fpm` fastcgi listener. You may need to adapt the `php-fpm` pool config.
 {% endhint %}
 
 ## Supported Versions
@@ -53,12 +53,14 @@ Also, `php-fpm` error logging happens in `stderr`.
 1. If they are changeable via environment variables, use environment variables \(this is the preferred method, see [table of environment variables below](php-fpm.md#environment-variables)\).
 2. Create your own `fpm-pool` config and set via `php_admin_value` and
 
-   `php_admin_flag` \(learn more about them [here](http://php.net/manual/en/configuration.changes.php) - yes, this documentation refers to Apache, but it is also the case for `php-fpm`\).
+   `php_admin_flag` 
 
-   _Important:_
+   1. Learn more about them in [`this documentation for Running PHP as an Apache module`](https://www.php.net/manual/en/configuration.changes.php). This documentation refers to Apache, but it is also the case for `php-fpm`\).
 
-   1. If you want to provide your own `php-fpm` pool, overwrite the file `/usr/local/etc/php-fpm.d/www.conf` with your own config, or rename this file if you want it to have another name. If you don't do that, the provided pool will be started!
-   2. PHP values with the [`PHP_INI_SYSTEM` changeable mode](http://php.net/manual/en/configuration.changes.modes.php) cannot be changed via an `fpm-pool` config. They need to be changed either via already provided environment variables or:
+      _Important:_
+
+      1. If you want to provide your own `php-fpm` pool, overwrite the file `/usr/local/etc/php-fpm.d/www.conf` with your own config, or rename this file if you want it to have another name. If you don't do that, the provided pool will be started!
+      2. PHP values with the [`PHP_INI_SYSTEM` changeable mode](http://php.net/manual/en/configuration.changes.modes.php) cannot be changed via an `fpm-pool` config. They need to be changed either via already provided environment variables or:
 
 3. Provide your own `php.ini` or `php-fpm.conf` file \(this is the least preferred method\).
 
@@ -71,7 +73,7 @@ Here a short description of what this file does:
 * Listens on port 9000 via IPv4 and IPv6.
 * Uses the pm `dynamic` and creates between 2-50 children.
 * Re-spawns `php-fpm` pool children after 500 requests to prevent memory leaks.
-* Replies with `pong` when making a fastcgi request to `/ping` \(good for
+* Replies with `pong` when making a `fastcgi` request to `/ping` \(good for
 
   automated testing to check if the pool started\).
 

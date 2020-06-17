@@ -1,6 +1,6 @@
 # Install Lagoon on OpenShift
 
-Lagoon is not only capable of _deploying_ into OpenShift, it actually _runs_ in OpenShift. This creates the just tiny chicken-egg problem of how to install Lagoon on an OpenShift when there is no Lagoon yet. 🐣
+Lagoon is not only capable of _deploying_ into OpenShift, it actually _runs_ in OpenShift. This creates the  tiny chicken and egg problem of how to install Lagoon on an OpenShift when there is no Lagoon yet. 🐣
 
 Luckily, we can use the local development environment to kickstart another Lagoon in any OpenShift, running somewhere in the world.
 
@@ -69,7 +69,7 @@ In order to use a local Lagoon to deploy itself on an OpenShift, we need a subse
    3. This project has defined to which OpenShift it should be deployed \(one single Lagoon can deploy into multiple OpenShifts all around the world\).
    4. The local running Lagoon service `openshiftBuildDeploy` connects to this OpenShift and creates a new project, some needed configurations \(ServiceAccounts, BuildConfigs, etc.\) and triggers a new build.
    5. This build will run and deploy another Lagoon within the OpenShift it runs.
-6. As soon as the build is done, go to the `Application > Deployments` section of the OpenShift Project, and you should see all the Lagoon DeploymentConfigs deployed and running. Also go to `Application > Routes` and click on the generated route for `rest2tasks` \(for a local OpenShift this will be [http://rest2tasks-lagoon-develop.192.168.42.100.xip.io/](http://rest2tasks-lagoon-develop.192.168.42.100.xip.io/)\), if you get `welcome to rest2tasks` as result, you did everything correct, bravo! 🏆
+6. As soon as the build is done, go to the `Application > Deployments` section of the OpenShift Project, and you should see all the Lagoon [DeploymentConfigs](https://docs.openshift.com/container-platform/4.4/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are) deployed and running. Also go to `Application > Routes` and click on the generated route for `rest2tasks` \(for a local OpenShift this will be [http://rest2tasks-lagoon-develop.192.168.42.100.xip.io/](http://rest2tasks-lagoon-develop.192.168.42.100.xip.io/)\), if you get `welcome to rest2tasks` as result, you did everything correct, bravo! 🏆
 
 ## OpendistroSecurity
 

@@ -40,13 +40,13 @@ Also, you will need to change your service definition in your `docker-compose.ym
 
 It is recommended that you configure the environment _before_ the initial deploy of the production site, otherwise manual intervention may be needed from your Lagoon administrator.
 
-## Additional MariaDB Logging
+## Additional MariaDB [Logging](../../logging/logging.md)
 
 During the course of development, it may be necessary to enable either query logging or slow query logging. To do so, set the environment variables `MARIADB_LOG_SLOW` or `MARIADB_LOG_QUERIES`. This can be done in `docker-compose.yml`.
 
 ## Connecting to MySQL container from the host
 
-If you would like to connect to your MySQL database inside the Docker container with an external tool like [Sequel Pro](http://www.sequelpro.com/), [MySQL Workbench](http://www.mysql.com/products/workbench/), [HeidiSQL](http://www.heidisql.com/), [DBeaver](http://dbeaver.jkiss.org/), just plain old `mysql-cli` or anything else, here's how to get the IP and port info.
+If you would like to connect to your MySQL database inside the Docker container with an external tool like [Sequel Pro](http://www.sequelpro.com/), [MySQL Workbench](http://www.mysql.com/products/workbench/), [HeidiSQL](http://www.heidisql.com/), [DBeaver](http://dbeaver.jkiss.org/), plain old `mysql-cli` or anything else, here's how to get the IP and port info.
 
 ### Get published MySQL port from the container
 

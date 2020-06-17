@@ -18,9 +18,9 @@ In order to make your first deployment a successful one, please make sure that y
 
 ## 2. Push!
 
-With Lagoon, you create a new deployment by just pushing into a branch that is configured to be deployed.
+With Lagoon, you create a new deployment by pushing into a branch that is configured to be deployed.
 
-If you don't have any new code to push, don't worry, just run
+If you don't have any new code to push, don't worry! Run:
 
 ```bash
 git commit --allow-empty -m "go, go! Power Rangers!"
@@ -33,7 +33,7 @@ If all is correct, you should see a notification in your configured chat system 
 
 ![Slack notification that a push has been made in a Lagoonized repository.](../.gitbook/assets/first_deployment_slack_start.jpg)
 
-This informs you that Lagoon has just started to deploy your code. Depending on the size of the code and amount of containers, this will take a couple of seconds. Just relax. If you want to know what's happening now, check out the [Build and Deploy Process of Lagoon](build-and-deploy-process.md)
+This informs you that Lagoon has just started to deploy your code. Depending on the size of the code and amount of containers, this will take a couple of seconds. Just relax. If you want to know what's happening now, check out the [Build and Deploy Process of Lagoon](build-and-deploy-process.md).
 
 You can also check your Lagoon UI to see the progress of any deployment \(your Lagoon administrator has the info\).
 
@@ -56,7 +56,7 @@ That's it! We hope that wasn't too hard - making devOps accessible is what we ar
 
 ## But wait, how about other branches or the production environment?
 
-That's the beauty of Lagoon: it's exactly the same! Just push the branch name you defined to be your production branch and that one will be deployed.
+That's the beauty of Lagoon: it's exactly the same! Just push the name of the branch and that one will be deployed.
 
 ## Failure? Don't worry.
 

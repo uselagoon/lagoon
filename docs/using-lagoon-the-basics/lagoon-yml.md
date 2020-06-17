@@ -6,13 +6,13 @@ The `.lagoon.yml` file is the central file to set up your project. It contains c
 * [Define pre-rollout tasks](lagoon-yml.md#pre-rollout-tasks-pre_rollout-i-run).
 * [Define post-rollout tasks](lagoon-yml.md#post-rollout-tasks-post_rollout-i-run).
 * [Set up SSL certificates](lagoon-yml.md#ssl-configuration-tls-acme).
-* [Add cron jobs for environments](lagoon-yml.md#cronjobs-environments-name-cronjobs)
+* [Add cron jobs for environments](lagoon-yml.md#cron-jobs-environments-name-cronjobs).
 
 The `.lagoon.yml` file must be placed at the root of your Git repository.
 
 ## Example `.lagoon.yml`
 
-This is an example `.lagoon.yml` which showcases all settings that are possible. You will need to adapt it to your project.
+This is an example `.lagoon.yml` which showcases all possible settings. You will need to adapt it to your project.
 
 {% tabs %}
 {% tab title=".lagoon.yml" %}
@@ -80,7 +80,7 @@ environments:
 
 ### `docker-compose-yaml`
 
-Tells the build script which docker-compose YAML file should be used, in order to learn which services and containers should be deployed. This defaults to `docker-compose.yml`, but could be used for a specific Lagoon docker-compose YAML file if you need something like that.
+Tells the build script which docker-compose YAML file should be used, in order to learn which services and containers should be deployed. This defaults to `docker-compose.yml`, but could be used for a specific Lagoon docker-compose YAML file if needed.
 
 ### `environment_variables.git_sha`
 
@@ -88,7 +88,7 @@ This setting allows you to enable injecting the deployed Git SHA into your proje
 
 ## Tasks
 
-There are different type of tasks you can define, and they differ when exactly they are executed in a build flow:
+There are different type of tasks you can define, and they differ in when exactly they are executed in a build flow:
 
 ### Pre-Rollout Tasks - `pre_rollout.[i].run`
 
@@ -109,7 +109,7 @@ Common uses for post-rollout tasks include running `drush updb`, `drush cim`, or
 * `command`
   * Here you specify what command should run. These are run in the WORKDIR of each container, for Lagoon images this is `/app`, keep this in mind if you need to `cd` into a specific location to run your task.
 * `service`
-  * The service which to run the task in. If following our drupal-example, this will be the CLI container, as it has all your site code, files, and a connection to the database. Typically you do not need to change this.
+  * The service which to run the task in. If following our drupal example, this will be the CLI container, as it has all your site code, files, and a connection to the database. Typically you do not need to change this.
 * `shell`
   * Which shell should be used to run the task in. By default `sh` is used, but if the container also has other shells \(like `bash`, you can define it here\). This is useful if you want to run some small if/else bash scripts within the post-rollouts. \(see the example above how to write a script with multiple lines\).
 
@@ -131,7 +131,7 @@ This allows you to define the behavior of the automatic creates routes \(NOT the
 
 Environment names match your deployed branches or pull requests. This allows for each environment to have a different config. In our example it will apply to the `master` and `staging` environment.
 
-#### `environments.[name].monitoring_urls`
+### `environments.[name].monitoring_urls`
 
 At the end of a deploy, Lagoon will check this field for any URLs which you have specified to add to the API for the purpose of monitoring. The default value for this field is the first route for a project. It is useful for adding specific paths of a project to the API, for consumption by a monitoring service. 
 
@@ -139,7 +139,7 @@ At the end of a deploy, Lagoon will check this field for any URLs which you have
 Please note, Lagoon does not provide any direct integration to a monitoring service, this just adds the URLs to the API. On amazee.io, we take the `monitoring_urls` and add them to our StatusCake account.
 {% endhint %}
 
-#### `environments.[name].routes`
+### `environments.[name].routes`
 
 In the route section, we identify the domain names to which the environment will respond. It is typical to only have an environment with routes specified for your production environment. All environments receive a generated route, but sometimes there is a need for a non-production environment to have its own domain name. You can specify it here, and then add that domain with your DNS provider as a CNAME to the generated route name \(these routes publish in deploy messages\).
 
@@ -156,7 +156,7 @@ In the `"www.example.com"` example repeated below, we see two more options \(als
   * `Allow` simply sets up both routes for HTTP and HTTPS \(this is the default\).
   * `Redirect` will redirect any HTTP requests to HTTPS.
   * `None` will mean a route for HTTP will _not_ be created, and no redirect will take place.
-* `hsts` can be set to a value of `max-age=31536000;includeSubDomains;preload`. Ensure there are no spaces and no other parameters included. Only `max-age` parameter is required. The required `max-age` parameter indicates the length of time, in seconds, the HSTS policy is in effect for.
+* `hsts` can be set to a value of `max-age=31536000;includeSubDomains;preload`. Ensure there are no spaces and no other parameters included. Only the `max-age` parameter is required. The required `max-age` parameter indicates the length of time, in seconds, the HSTS policy is in effect for.
 
 {% hint style="info" %}
 If you plan to switch from a SSL certificate signed by a Certificate Authority \(CA\) to a Let's Encrypt certificate, it's best get in touch with your Lagoon administrator to oversee the transition. There are [known issues](https://github.com/tnozicka/openshift-acme/issues/68) during the transition. The workaround would be manually removing the CA certificate and then triggering the Let's Encrypt process.
@@ -175,16 +175,16 @@ If you plan to switch from a SSL certificate signed by a Certificate Authority \
 
 #### `environments.[name].types`
 
-The Lagoon build process checks the `lagoon.type` label from the `docker-compose.yml` file in order to learn what type of service should be deployed  \(read more about them in the [documentation of `docker-compose.yml`](docker-compose-yml.md)\).
+The Lagoon build process checks the `lagoon.type` label from the `docker-compose.yml` file in order to learn what type of service should be deployed  \(read more about them in the [documentation of `docker-compose.yml`](docker-compose-yml.md#custom-templates)\).
 
-Sometimes you might want to override the **type** just for a single environment, and not for all of them. For example, if you want a MariaDB-Galera high availability database for your production environment called `master`:
+Sometimes you might want to override the **type of service** just for a single environment, and not for all of them. For example, if you want a MariaDB-Galera high availability database for your production environment called `master`:
 
 `service-name: service-type`
 
 * `service-name` is the name of the service from `docker-compose.yml` you would like to override.
 * `service-type` the type of the service you would like to use in your override.
 
-Example:
+Example for setting up MariaDB\_Galera:
 
 {% tabs %}
 {% tab title=".lagoon.yml" %}
@@ -223,7 +223,7 @@ environments:
 
 #### `environments.[name].rollouts`
 
-The Lagoon build process checks the `lagoon.rollout` label from the `docker-compose.yml` file in order to check if the service needs a special rollout type \(read more about them in the [documentation of `docker-compose.yml`](docker-compose-yml.md)\)
+The Lagoon build process checks the `lagoon.rollout` label from the `docker-compose.yml` file in order to check if the service needs a special rollout type \(read more about them in the [documentation of `docker-compose.yml`](docker-compose-yml.md#custom-rollout-monitor-types)\)
 
 Sometimes you might want to override the **rollout type** just for a single environment, especially if you also overwrote the template type for the environment:
 
@@ -281,7 +281,7 @@ example-project-name:
 
 ## Specials
 
-#### `api`
+### `api`
 
 {% hint style="info" %}
 If you run directly on amazee.io you will not need this key set.
@@ -289,7 +289,7 @@ If you run directly on amazee.io you will not need this key set.
 
 With the key `api` you can define another URL that should be used by `lagu` and `drush` to connect to the Lagoon GraphQL API. This needs to be a full URL with a scheme, like: `http://localhost:3000` This usually does not need to be changed, but there might be situations where your Lagoon administrator tells you to do so.
 
-#### `ssh`
+### `ssh`
 
 {% hint style="info" %}
 If you run directly on amazee.io you will not need this key set.
@@ -297,7 +297,7 @@ If you run directly on amazee.io you will not need this key set.
 
 With the key `ssh` you can define another SSH endpoint that should be used by `lagu` and `drush` to connect to the Lagoon remote shell service. This needs to be a hostname and a port separated by a colon, like: `localhost:2020` This usually does not need to be changed, but there might be situations where your Lagoon administrator tells you to do so.
 
-#### `additional-yaml`
+### `additional-yaml`
 
 The `additional-yaml` has some super powers. Basically, it allows you to define any arbitrary YAML configuration file to be inserted before the build step \(it still needs to be valid Kubernetes/OpenShift YAML , though☺\).
 
@@ -323,10 +323,10 @@ additional-yaml:
 Each definition is keyed by a unique name \(`secrets` and `logs-db-secrets` in the example above\), and takes these keys:
 
 * `path` - the path to the YAML file.
-* `command` - can either be `create` or `apply`, depending on whether you want to run.`kubectl create -f [yamlfile]` or `kubectl apply -f [yamlfile]`.
+* `command` - can either be `create` or `apply`, depending on whether you want to run. `kubectl create -f [yamlfile]` or `kubectl apply -f [yamlfile]`.
 * `ignore_error` - either `true` or `false` \(default\).  This allows you to instruct the Lagoon build script to ignore any errors that might be returned during running the command. \(This can be useful to handle the case where you want to run `create` during every build, so that new configurations are created, but don't fail if they already exist\).
 
-#### `container-registries`
+### `container-registries`
 
 The `container-registries` block allows you to define your own private container registries to pull custom or private images. To use a private container registry, you will need a `username`, `password`, and optionally the `url` for your registry. If you don't specify a `url` in your YAML, it will default to using Docker Hub.
 
@@ -367,7 +367,7 @@ services:
 {% endtab %}
 {% endtabs %}
 
-Once the `docker-compose.yml` file has been updated to use a build, you need to create the `Dockerfile.<service>` and then set your private image as the `FROM <repo>/<name>:<tag>`
+Once the `docker-compose.yml` file has been updated to use a build, you need to create the `Dockerfile.<service>` and then set your private image as the `FROM <repo>/<name>:<tag>`:
 
 {% tabs %}
 {% tab title="Dockerfile.mariadb" %}

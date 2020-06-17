@@ -4,11 +4,11 @@
 
 In order for Drupal to work with Lagoon, we need to teach Drupal about Lagoon and Lagoon about Drupal. This happens by copying specific YAML and PHP files into your Git repository.
 
-You can find [these files in our GitHub repository](https://github.com/amazeeio/lagoon/tree/master/docs/using_lagoon/drupal). The easiest way to get them is to [download these files as a ZIP file](https://minhaskamal.github.io/DownGit/#/home?url=https://github.com/amazeeio/lagoon/tree/master/docs/using_lagoon/drupal) and copy them into your Git repository. For each Drupal version and database type you will find an individual folder. A short overview of what they are:
+You can find [these files in our GitHub repository](https://github.com/amazeeio/lagoon/tree/master/docs/using_lagoon/drupal). The best way to get them is to [download these files as a ZIP file](https://minhaskamal.github.io/DownGit/#/home?url=https://github.com/amazeeio/lagoon/tree/master/docs/using_lagoon/drupal) and copy them into your Git repository. For each Drupal version and database type you will find an individual folder. A short overview of what they are:
 
 * `.lagoon.yml` - The main file that will be used by Lagoon to understand what should be deployed and many more things. This file has some sensible Drupal defaults. If you would like to edit or modify, please check the [documentation for `.lagoon.yml`](../using-lagoon-the-basics/lagoon-yml.md).
 * `docker-compose.yml`, `.dockerignore`, and `*.dockerfile` \(or `Dockerfile`\) - These files are used to run your local Drupal development environment, they tell Docker which services to start and how to build them. They contain sensible defaults and many commented lines. We hope that it's well-commented enough to be self-describing. If you would like to find out more, see [documentation for `docker-compose.yml`](../using-lagoon-the-basics/docker-compose-yml.md).
-* `sites/default/*` - These `.php` and `.yml` files tell Drupal how to communicate with Lagoon containers both locally and in production. They also provide an easy system for specific overrides in development and production environments. Unlike other Drupal hosting systems, Lagoon never ever injects Drupal settings files into your Drupal. Therefore, you can edit them however you like. Like all other files, they contain sensible defaults and some commented parts.
+* `sites/default/*` - These `.php` and `.yml` files tell Drupal how to communicate with Lagoon containers both locally and in production. They also provide a straightforward system for specific overrides in development and production environments. Unlike other Drupal hosting systems, Lagoon never ever injects Drupal settings files into your Drupal. Therefore, you can edit them however you like. Like all other files, they contain sensible defaults and some commented parts.
 * `drush/aliases.drushrc.php` - These files are specific to Drush and tell Drush how to talk to the Lagoon GraphQL API in order to learn about all site aliases there are.
 * `drush/drushrc.php` - Some sensible defaults for Drush commands.
 
@@ -18,9 +18,9 @@ Don't forget to make sure your `.gitignore` will allow you to commit the setting
 
 Drupal is shipped with `sites/*/settings*.php` and `sites/*/services*.yml` in `.gitignore`. Remove that, as with Lagoon we don't ever have sensitive information in the Git repository.
 
-### Note about Webroot in Drupal 8
+### Note about `WEBROOT` in Drupal 8
 
-Unfortunately the Drupal community has not decided on a standardized webroot folder name. Some projects put Drupal within `web`, and others within `docroot` or somewhere else. The Lagoon Drupal settings files assume that your Drupal is within `web`, but if this is different for your Drupal, please adapt the files accordingly.
+Unfortunately the Drupal community has not decided on a standardized `WEBROOT` folder name. Some projects put Drupal within `web`, and others within `docroot` or somewhere else. The Lagoon Drupal settings files assume that your Drupal is within `web`, but if this is different for your Drupal, please adapt the files accordingly.
 
 ## 2. Customise `docker-compose.yml`
 
@@ -170,11 +170,9 @@ Verify that everything works with visiting the URL of your project. You should h
 
 ## 8. Drupal files directory
 
-A Drupal site also needs the files directory. As the whole folder is mounted into the Docker containers, just add the files into the correct folder \(probably `web/sites/default/files`, `sites/default/files` or something similar\). Remember what you've set as your webroot - [it may not be the same for all projects](step-by-step-getting-drupal-ready-to-run-on-lagoon.md#note-about-webroot-in-drupal-8).
+A Drupal site also needs the files directory. As the whole folder is mounted into the Docker containers,  add the files into the correct folder \(probably `web/sites/default/files`, `sites/default/files` or something similar\). Remember what you've set as your `WEBROOT` - [it may not be the same for all projects](step-by-step-getting-drupal-ready-to-run-on-lagoon.md#note-about-webroot-in-drupal-8).
 
 ## 9. Done!
 
 You are done with your local setup. The Lagoon team wishes happy Drupaling!
-
-If you'd like to deploy your local Drupal into Lagoon, make sure you Lagoonize your site before deploy: [Set up a new project.](../using-lagoon-the-basics/setup_project.md)
 

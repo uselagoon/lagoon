@@ -1,7 +1,7 @@
 ---
 description: >-
   Lagoon differentiates between three backup categories: short-, mid- and
-  long-term Backups.
+  long-term backups.
 ---
 
 # Backups

@@ -95,4 +95,5 @@
 
 * [FAQ](resources/faq.md)
 * [Glossary](resources/glossary.md)
+* [Tutorials & Webinars](resources/tutorials-and-webinars.md)
 

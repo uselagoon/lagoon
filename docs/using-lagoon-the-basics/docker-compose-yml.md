@@ -9,7 +9,9 @@ The `docker-compose.yml` file is used by Lagoon to:
 Docker-compose \(the tool\) is very strict in validating the content of the YAML file, so we can only do configuration within `labels` of a service definition.
 
 {% hint style="warning" %}
-Lagoon only reads the labels, service names, image names and build definitions from a `docker-compose.yml` file. Definitions like: ports, environment variables, volumes, networks, links, users, etc. are IGNORED. This is intentional as the `docker-compose` file is there to define your local environment configuration. Lagoon learns from the `lagoon.type` the type of service you are deploying and from that knows about ports, networks and any additional configuration that this service might need.
+Lagoon only reads the labels, service names, image names and build definitions from a `docker-compose.yml` file. Definitions like: ports, environment variables, volumes, networks, links, users, etc. are IGNORED. 
+
+This is intentional as the `docker-compose` file is there to define your local environment configuration. Lagoon learns from the `lagoon.type` the type of service you are deploying and from that knows about ports, networks and any additional configuration that this service might need.
 {% endhint %}
 
 Here a straightforward example of a `docker-compose.yml` file for Drupal:
@@ -17,6 +19,33 @@ Here a straightforward example of a `docker-compose.yml` file for Drupal:
 {% tabs %}
 {% tab title="docker-compose.yml" %}
 ```yaml
+version: '2.3'
+
+x-lagoon-project:
+  # Lagoon project name (leave `&lagoon-project` when you edit this)
+  &lagoon-project drupal-example
+
+x-volumes:
+  &default-volumes
+    # Define all volumes you would like to have real-time mounted into the docker containers
+    volumes:
+      - .:/app:delegated
+
+x-environment:
+  &default-environment
+    LAGOON_PROJECT: *lagoon-project
+    # Route that should be used locally, if you are using pygmy, this route *must* end with .docker.amazee.io
+    LAGOON_ROUTE: http://drupal-example.docker.amazee.io
+    # Uncomment if you like to have the system behave like in production
+    #LAGOON_ENVIRONMENT_TYPE: production
+    # Uncomment to enable xdebug and then restart via `docker-compose up -d`
+    #XDEBUG_ENABLE: "true"
+
+x-user:
+  &default-user
+    # The default user under which the containers should run. Change this if you are on linux and run with another user than id `1000`
+    user: '1000'
+    
 services:
 
   nginx:
@@ -44,15 +73,35 @@ services:
 {% endtab %}
 {% endtabs %}
 
+## Basic settings
+
+`x-lagoon-project`: 
+
+This is the machine name of your project, define it here. We’ll use “drupal-example.”
+
+`x-volumes`: 
+
+This tells Lagoon what to mount into the container. Your web application lives in `/app`, but you can add or change this if needed.
+
+`x-environment`: 
+
+1. Here you can set your local development url. If you are using pygmy, it must end with `.docker.amazee.io`. 
+2. If you want to exactly mimic the production environment, uncomment `LAGOON_ENVIRONMENT_TYPE: production`. 
+3. If you want to enable xd-ebug, uncomment `DEBUG_ENABLE: "true"`.
+
+`x-user`: 
+
+You are unlikely to need to change this, unless you are on Linux and would like to run with a user other than `1000`.
+
 ## **`services`**
 
 This defines all the services you want to deploy. _Unfortunately,_ `docker-compose` calls them services, even though they are actually containers. Going forward we'll be calling them services, and throughout this documentation.
 
 The name of the service \(`nginx`, `php`, and `mariadb` in the example above\) is used by Lagoon as the name of the Kubernetes pod \(yet another term - again, we'll be calling them services\) that is generated, plus also any additional Kubernetes objects that are created based on the defined `lagoon.type`, which could be things like services, routes, persistent storage, etc.
 
-## Docker Images
+### Docker Images
 
-### **`build`**
+#### **`build`**
 
 If you want Lagoon to build a Dockerfile for your service during every deployment, you can define it here:
 
@@ -67,27 +116,27 @@ If you want Lagoon to build a Dockerfile for your service during every deploymen
 Lagoon does NOT support the short version of `build: <Dockerfile>` and will fail if it finds such a definition.
 {% endhint %}
 
-### `image`
+#### `image`
 
 If you don't need to build a Dockerfile and just want to use an existing Dockerfile, define it via `image`.
 
-## Types
+### Types
 
 Lagoon needs to know what type of service you are deploying in order to configure the correct Kubernetes and OpenShift objects.
 
 This is done via the `lagoon.type` label. There are many different types to choose from. Check [Service Types](../using-lagoon-advanced/service-types.md) to see all of them and their additional configuration possibilities.
 
-## **Skip/Ignore containers**
+#### **Skip/Ignore containers**
 
-If you'd like Lagoon to ignore a service completely - for example, you need a container only during local development - just give it the type `none`.
+If you'd like Lagoon to ignore a service completely - for example, you need a container only during local development - give it the type `none`.
 
-## Persistent Storage
+### Persistent Storage
 
 Some containers need persistent storage. In many cases, Lagoon knows where that persistent storage needs to go. For example, for a MariaDB container, Lagoon knows that the persistent storage should be put into `/var/lib/mysql` , and puts it there automatically without any extra configuration to define that. For some situations, though, Lagoon needs your help to know where to put the persistent storage:
 
 * `lagoon.persistent` - The **absolute** path where the persistent storage should be mounted \(the above example uses `/app/web/sites/default/files/` which is where Drupal expects its persistent storage\).
 * `lagoon.persistent.name` - Tells Lagoon to not create a new persistent storage for that service, but instead mounts the persistent storage of another defined service into this service.
-* `lagoon.persistent.size` - The size of persistent storage you require \(Lagoon usually gives you minimum 5G of persistent storage, if you need more define it here\).
+* `lagoon.persistent.size` - The size of persistent storage you require \(Lagoon usually gives you minimum 5G of persistent storage, if you need more, define it here\).
 * `lagoon.persistent.class` - By default Lagoon automatically assigns the right storage class for your service \(like SSDs for MySQL, bulk storage for Nginx, etc.\). If you need to overwrite this, you can do so here. This is highly dependent on the underlying Kubernetes/OpenShift that Lagoon runs on. Ask your Lagoon administrator about this.
 
 ## Multi-Container Pods
@@ -136,28 +185,34 @@ In order for Lagoon to realize which one is the `nginx` and which one is the `ph
 
 
 
-### **Custom Templates**
+## **Custom Templates**
 
-If you need to make changes to the OpenShift templates, you can define your own template via `lagoon.template`. Check out the shipped templates from the [templates folder of `oc-build-deploy-dind`](https://github.com/amazeeio/lagoon/tree/master/images/oc-build-deploy-dind/openshift-templates). 
+OpenShift defines templates as follows:
+
+> A template describes a set of objects that can be parameterized and processed to produce a list of objects for creation by OpenShift Container Platform. A template can be processed to create anything you have permission to create within a project, for example services, build configurations, and DeploymentConfigs. A template may also define a set of labels to apply to every object defined in the template.
+
+Lagoon comes with a variety of pre-defined templates, which set all kinds of needed configuration in YAML files. Check out the shipped templates from the [templates folder of `oc-build-deploy-dind`](https://github.com/amazeeio/lagoon/tree/master/images/oc-build-deploy-dind/openshift-templates). 
+
+If you need to make changes to the OpenShift templates, you can define your own template via `lagoon.template`. 
 
 {% hint style="info" %}
 The template is called with `oc process`,  so you should define the same parameters as seen in the default templates.
 {% endhint %}
 
-You can also overwrite the templates only for a specific environment. This is done in [`.lagoon.yml`](lagoon-yml.md#environmentsnametypes)
+You can also overwrite the templates for a specific environment. This is done in [`.lagoon.yml`](lagoon-yml.md#environmentsnametypes)
 
-### **Custom Rollout Monitor Types**
+## **Custom Rollout Monitor Types**
 
-By default , Lagoon expects that services from custom templates are rolled out via a `DeploymentConfig` object within Openshift/Kubernetes. It monitors the rollout based on this object. In some cases, the services that are defined via custom deployment need a different way of monitoring. This can be defined via `lagoon.rollout`:
+By default , Lagoon expects that services from custom templates are rolled out via a [`DeploymentConfig`](https://docs.openshift.com/container-platform/4.4/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are) object within Openshift/Kubernetes. It monitors the rollout based on this object. In some cases, the services that are defined via custom deployment need a different way of monitoring. This can be defined via `lagoon.rollout`:
 
-* `deploymentconfig` - This is the default. Expects a `DeploymentConfig` object in the template for the service.
-* `statefulset` - Expects a `Statefulset` object in the template for the service.
-* `daemonset` - Expects a `Daemonset` object in the template for the service.
+* `deploymentconfig` - This is the default. Expects a [`DeploymentConfig`](https://docs.openshift.com/container-platform/4.4/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are) object in the template for the service.
+* `statefulset` - Expects a [`Statefulset`](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/) object in the template for the service.
+* `daemonset` - Expects a [`Daemonset`](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/) object in the template for the service.
 * `false` - Will not monitor any rollouts, and will just be happy if the template applies and does not throw any errors.
 
-You can also overwrite the rollout for just one specific environment. This is done in [`.lagoon.yml`](lagoon-yml.md#environmentsnamerollouts)
+You can also overwrite the rollout for just one specific environment. This is done in [`.lagoon.yml`](lagoon-yml.md#environments-name-rollouts).
 
-### **Custom Type**
+## **Custom Type**
 
 Feeling adventurous and want to do something completely customized? Welcome to the Danger Zone!
 

@@ -9,8 +9,8 @@ As there can be environment variables defined in either the Dockerfile or during
 1. Environment variables \(defined via Lagoon API\) - environment specific.
 2. Environment variables \(defined via Lagoon API\) - project-wide.
 3. Environment variables defined in Dockerfile \(`ENV` command\).
-4. Environment variables defined in `.lagoon.env.$BRANCHNAME` \(if file exists and where `$BRANCHNAME` is the branch this Dockerimage has been built for\), use this for overwriting variables for only specific branches.
-5. Environment variables defined in `.lagoon.env` \(if exists\), use this for overwriting variables for all branches.
+4. Environment variables defined in `.lagoon.env.$BRANCHNAME` \(if the file exists and where `$BRANCHNAME` is the branch this Docker image has been built for\), use this for overwriting variables for only specific branches.
+5. Environment variables defined in `.lagoon.env` \(if it exists\), use this for overwriting variables for all branches.
 6. Environment variables defined in `.env`.
 7. Environment variables defined in `.env.defaults`.
 
@@ -24,7 +24,7 @@ The Lagoon API allows you to define project-wide or environment-specific variabl
 
 Runtime environment variables are automatically made available in all containers, but they are only added or updated after an environment has been re-deployed.
 
-This defines a project wide runtime variable \(available in all environments\) for the project with id `463`:
+This defines a project wide runtime variable \(available in all environments\) for the project with ID `463`:
 
 ```graphql
 mutation addRuntimeEnv {
@@ -42,7 +42,7 @@ mutation addRuntimeEnv {
 }
 ```
 
-This defines a environment id `546` specific runtime variable \(available only in that specific environment\):
+This defines a environment ID `546` specific runtime variable \(available only in that specific environment\):
 
 ```graphql
 mutation addRuntimeEnv {
@@ -68,7 +68,7 @@ Build-time environment variables are only available during a build and need to b
 ARG MYVARIABLENAME
 ```
 
-This defines a project-wide build-time variable \(available in all environments\) for the project with id `463`:
+This defines a project-wide build-time variable \(available in all environments\) for the project with ID `463`:
 
 ```graphql
 mutation addBuildtimeEnv {
@@ -85,7 +85,7 @@ mutation addBuildtimeEnv {
 }
 ```
 
-This defines a environment id `546` specific build-time variable \(available only in that specific environment\):
+This defines an environment ID `546`specific build-time variable \(available only in that specific environment\):
 
 ```graphql
 mutation addBuildtimeEnv {
@@ -97,7 +97,7 @@ mutation addBuildtimeEnv {
 
 Container registry environment variables are only available during a build and are used when attempting to log in to a private registry. They are used to store the password for the user defined in [Specials » `container-registries`](../using-lagoon-the-basics/lagoon-yml.md#specials). They can be applied at the project or environment level.
 
-This defines a project-wide container registry variable \(available in all environments\) for the project with id `463`:
+This defines a project-wide container registry variable \(available in all environments\) for the project with ID `463`:
 
 ```graphql
 mutation addContainerRegistryEnv {
@@ -153,13 +153,13 @@ If you want to define environment variables different per environment you can cr
 
 ### `.env` and `.env.defaults`
 
-`.env` and `.env.defaults` will act as the default values for environment variables if none other is defined. For example as default environment variables for pull request environments \(see [Workflows](workflows.md#pull-requests)\).
+`.env` and `.env.defaults` will act as the default values for environment variables if none other is defined. For example, as default environment variables for pull request environments \(see [Workflows](workflows.md#pull-requests)\).
 
 ## Special Environment Variables
 
 ### `PHP_ERROR_REPORTING`
 
-This variable, if set, will define the logging level you would like PHP to use. If not supplied, it will be set dynamically based on whether this is a production or development environment.
+This variable, if set, will define the [logging](../logging/logging.md) level you would like PHP to use. If not supplied, it will be set dynamically based on whether this is a production or development environment.
 
 On production environments, this value defaults to `E_ALL & ~E_DEPRECATED & ~E_STRICT & ~E_NOTICE`.
 

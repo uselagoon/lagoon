@@ -8,7 +8,7 @@ Congratulations, you're _this_ close to going live with your website on Lagoon! 
 
 Check to be sure that all routes have been set up in your `.lagoon.yml`. Be aware that if you don't point the domains towards Lagoon, you should disable Let's Encrypt \(LE\) certificate creation, as it will lead to issues. Domains not pointing towards Lagoon will be disabled after a while in order to not exceed the Let's Encrypt quotas.
 
-If you use Certificate Authority \(CA\) signed certificates you can set `tls-acme` to `false` , but leave the `insecure` flag set to `Allow` or `Redirect`. In the case of CA certificates, let your Lagoon administrator know the routes and the SSL certificate that needs to be put in place.
+If you use Certificate Authority \(CA\) signed certificates, you can set `tls-acme` to `false` , but leave the `insecure` flag set to `Allow` or `Redirect`. In the case of CA certificates, let your Lagoon administrator know the routes and the SSL certificate that needs to be put in place.
 
 {% tabs %}
 {% tab title=".lagoon.yml" %}
@@ -60,7 +60,7 @@ Check if your cron jobs have been set up for your production environment - see [
 
 ## DNS
 
-To make it as easy as possible for you to get your site pointing to our servers, we have dedicated load-balancer DNS records. Those technical DNS resource records are used just for getting your site linked to the amazee.io infrastructure and serve no other purpose. If you are in doubt of the CNAME record, ask your Lagoon administrator about the exact CNAME you need to set up.
+To make it as smooth as possible for you to get your site pointing to our servers, we have dedicated load-balancer DNS records. Those technical DNS resource records are used for getting your site linked to the amazee.io infrastructure and serve no other purpose. If you are in doubt of the CNAME record, ask your Lagoon administrator about the exact CNAME you need to set up.
 
 **Example on amazee.io :** `<region-identifier>.amazee.io`
 

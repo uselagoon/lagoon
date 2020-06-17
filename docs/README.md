@@ -8,8 +8,8 @@ Lagoon gives developers what they dream about. It's a system that allows develop
 
 ## Who are you?
 
-* If you want to use Lagoon to host your Website or Application, visit [Using Lagoon](https://lagoon.readthedocs.io/en/latest/using_lagoon/)
-* If you want to develop Lagoon \(i.e. add features\), [Developing Lagoon](https://lagoon.readthedocs.io/en/latest/developing_lagoon/)
+* If you want to use Lagoon to host your website or application, visit [Using Lagoon](using-lagoon-the-basics/index.md).
+* If you want to develop Lagoon \(add features, fix bugs\), [Developing Lagoon](contributing-to-lagoon/developing-lagoon.md).
 
 ## TL;DR: How Lagoon Works
 
@@ -20,16 +20,18 @@ Lagoon gives developers what they dream about. It's a system that allows develop
 5. Lagoon creates the needed resources in OpenShift.
 6. Lagoon pushes them to a Docker registry.
 7. Lagoon monitors the deployment of the containers.
-8. When all is done, Lagoon informs the developers in different ways \(Slack, e-mail, website, etc.\).
+8. When all is done, Lagoon informs the developers in different ways \(Slack, email, website, etc.\).
 
 ## Help?
 
-Questions? Ideas? Meet the maintainers and contributors. `#lagoon` in amazee.io RocketChat [https://amazeeio.rocket.chat](https://amazeeio.rocket.chat/)
+Questions? Ideas? Meet the maintainers and contributors. 
+
+Head to `#lagoon` in the amazee.io RocketChat: [https://amazeeio.rocket.chat](https://amazeeio.rocket.chat/)
 
 ## A couple of things about Lagoon
 
 1. **Lagoon is based on microservices**. The deployment and build workflow is very complex. We have multiple version control sources, multiple OpenShift servers, and multiple notification systems. Each deployment is unique and can take from seconds to hours. It's built with flexibility and robustness in mind. Microservices communicate through a messaging system, which allows us to scale individual services up and down. It allows us to survive down times of individual services. It also allows us to try out new parts of Lagoon in production without affecting others.
-2. **Lagoon uses many programming languages**. Each programming language has specific strengths. We try to decide which language makes the most sense for each service. Currently, a lot of Lagoon is built in Node.js. This is partly because we started with Node.js, but also because Node.js allows asynchronous processing of webhooks, tasks and more. We are likely going to change the programming language of some services. This is what is great about micro services! We can replace a single service with another language without worrying about other parts of the platform.
+2. **Lagoon uses many programming languages**. Each programming language has specific strengths. We try to decide which language makes the most sense for each service. Currently, a lot of Lagoon is built in Node.js. This is partly because we started with Node.js, but also because Node.js allows asynchronous processing of webhooks, tasks and more. We are likely going to change the programming language of some services. This is what is great about microservices! We can replace a single service with another language without worrying about other parts of the platform.
 3. **Lagoon is not Drupal specific**. Everything has been built so that it can run any Docker image. There are existing Docker images for Drupal, and support for Drupal-specific tools like Drush. But that's it!
 4. **Lagoon is DevOps**. It allows developers to define the services they need and customize them as they need. You might think this is not the right way to do it, and gives too much power to developers. We believe that as system engineers, we need to empower developers. If we allow developers to define services locally, and test them locally, they will find bugs and mistakes themselves.
 5. **Lagoon runs on Docker and OpenShift.** \(That one should be obvious, right?\)
@@ -49,5 +51,11 @@ At the same time, we've been using Docker for many years for local development. 
 
 Lagoon was born in 2017. It has since been developed into a system that runs Docker in production. Lagoon has replaced our third generation hosting platform with a cutting edge all Docker-based system.
 
-At amazee.io, we believe in open source. It was always troubling for us that open source code like Drupal was hosted on proprietary hosting platforms. The strength and success of a hosting company is not just their deployment systems or service configurations. It's the the people and knowledge that run the platform. The processes, skills, ability to react to unforeseen situations, and last but not least, the support they provide their clients.
+### Open Source
+
+At amazee.io, we believe in open source. It was always troubling for us that open source code like Drupal was hosted on proprietary hosting platforms. The strength and success of a hosting company is not just their deployment systems or service configurations. It's the the people and knowledge that run the platform. The processes, skills, ability to react to unforeseen situations, and last but not least, the support they provide their clients. 
+
+### License
+
+Lagoon is available under [`an Apache 2.0 License`](https://github.com/amazeeio/lagoon/blob/master/LICENSE). 
 
