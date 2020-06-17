@@ -240,6 +240,13 @@ if [[ ( "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ) && ! $TH
   do
 
     DOCKERFILE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.build.dockerfile false)
+
+    # allow to overwrite build dockerfile for this environment and service
+    ENVIRONMENT_DOCKERFILE_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.overwrites.$SERVICE_NAME.build.dockerfile false)
+    if [ ! $ENVIRONMENT_DOCKERFILE_OVERRIDE == "false" ]; then
+      DOCKERFILE=$ENVIRONMENT_DOCKERFILE_OVERRIDE
+    fi
+
     if [ $DOCKERFILE == "false" ]; then
       # No Dockerfile defined, assuming to download the Image directly
 
@@ -267,12 +274,6 @@ if [[ ( "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ) && ! $TH
 
     else
       # Dockerfile defined, load the context and build it
-
-      # allow to overwrite build dockerfile for this environment and service
-      ENVIRONMENT_DOCKERFILE_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.overwrites.$SERVICE_NAME.build.dockerfile false)
-      if [ ! $ENVIRONMENT_DOCKERFILE_OVERRIDE == "false" ]; then
-        DOCKERFILE=$ENVIRONMENT_DOCKERFILE_OVERRIDE
-      fi
 
       # We need the Image Name uppercase sometimes, so we create that here
       IMAGE_NAME_UPPERCASE=$(echo "$IMAGE_NAME" | tr '[:lower:]' '[:upper:]')
