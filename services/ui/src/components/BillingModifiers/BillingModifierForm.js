@@ -1,5 +1,5 @@
 import * as R from 'ramda';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import css from 'styled-jsx/css';
 import Button from 'components/Button';
 
@@ -85,6 +85,10 @@ const BillingModifierForm = ({group, editBillingModifier, editHandler}) => {
     weight: !R.isEmpty(editBillingModifier) ? editBillingModifier.weight : 0,
   };
   const [values, setValues] = useState(defaultValues);
+
+  useEffect(() => {
+    setValues(defaultValues)
+  }, [editBillingModifier])
 
   const handleChange = e => {
     const {name, value} = e.target;

@@ -184,11 +184,18 @@ export const PageBillingGroup = ({ router }) => {
   }
 
   const prevSubmitHandler = () => {
-    const dateTime = `${values.year}-${values.month}-01 0:00:00.000`;
-    const date = new Date(dateTime);
-    const [year, month] = moment(date).subtract(1, 'M').format('YYYY-MM').toString().split('-');
-    setValues({month, year});
+    //currently we can't go back more than 2 months
+      const dateTime = `${values.year}-${values.month}-01 0:00:00.000`;
+      const date = new Date(dateTime);
+
+      // const monthDifference =  Math.round(moment(new Date()).diff(date, 'months', true));
+      // if(monthDifference < 3){
+        const [year, month] = moment(date).subtract(1, 'M').format('YYYY-MM').toString().split('-');
+        setValues({month, year});
+      // }
   }
+
+
 
   const nextSubmitHandler = () => {
     const dateTime = `${values.year}-${values.month}-01 0:00:00.000`;
@@ -215,7 +222,7 @@ export const PageBillingGroup = ({ router }) => {
           }
 
           if (costs.length > 0 && costs[0].loading){
-            return <div>Loading...</div>
+            return (<div className="content-wrapper"><div className="content"><h3>Loading...</h3></div></div>);
           }
 
           if (costs.length > 0 && costs[0].error){
@@ -224,7 +231,7 @@ export const PageBillingGroup = ({ router }) => {
             }
 
             if (costs[0].error.message.includes("Cannot read property 'availability' of undefined")){
-              return (<div className="content-wrapper"><div className="content"><div>This billing group does not seem to have any projects.</div></div></div>); 
+              return (<div className="content-wrapper"><div className="content"><div>This billing group does not seem to have any projedcts.</div></div></div>); 
             }
 
             return (<div className="content-wrapper"><div className="content"><div>{costs[0].error.message}</div></div></div>); 
@@ -232,12 +239,10 @@ export const PageBillingGroup = ({ router }) => {
 
           const selectedMonthCosts = costs.find(o => o.yearMonth === `${values.year}-${values.month}`);
 
-          if (selectedMonthCosts){
-
             return (
               <div>
                 <div className="barChart-wrapper">
-                  <BarChart data={costs} />
+                  { selectedMonthCosts && <BarChart data={costs} /> }
                 </div>
           
                 <div className="monthYear-wrapper">
@@ -282,12 +287,13 @@ export const PageBillingGroup = ({ router }) => {
                 <div className="content-wrapper">
                   <div className="leftColumn">
                     <div>
-                      <BillingGroup billingGroupCosts={selectedMonthCosts} />
+                      { selectedMonthCosts &&  <BillingGroup billingGroupCosts={selectedMonthCosts} /> }
+                      { !selectedMonthCosts && <div>Sorry, we don't have billing data for this month.</div>}
                       <div className="btnWrapper">
                         <Button action={prevSubmitHandler}>Previous Month</Button>
                         <Button disabled={(values.year >= currYear && values.month >= currMonth) ? true: false} action={nextSubmitHandler}>Next Month</Button>
                       </div>
-                      <Projects projects={selectedMonthCosts.projects} />
+                      { selectedMonthCosts && <Projects projects={selectedMonthCosts.projects} /> }
                     </div>
                   </div>
                   <div className="rightColumn">
@@ -302,12 +308,12 @@ export const PageBillingGroup = ({ router }) => {
                   </div>
                 </div>
                 <div className="content-wrapper">
-                  <Invoice cost={selectedMonthCosts} language={lang} />
+                  { selectedMonthCosts && <Invoice cost={selectedMonthCosts} language={lang} /> }
                 </div>
 
               </div>
             );
-          }  
+          
         }}
       </AuthContext.Consumer>
 
