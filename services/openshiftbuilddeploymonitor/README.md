@@ -11,7 +11,7 @@ information on using, developing, and administering Lagoon.
 
 Monitors the builds running in OpenShift and updates the Lagoon deployment with
 the build status and log messages via the API. OpenShift builds are monitored
-until it completes, fails, or the monitor task times out.
+until they complete, fail, or the monitor task times out.
 
 Some errors that can occur during the monitoring are tolerable and/or expected
 in which case the request will be requeued and retried after some delay.
