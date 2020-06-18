@@ -103,6 +103,8 @@ objects:
               secret:
                 defaultMode: 420
                 secretName: lagoon-sshkey
+            - name: ${PERSISTENT_STORAGE_NAME}-twig
+              type: emptyDir
           priorityClassName: lagoon-priority-${ENVIRONMENT_TYPE}
           containers:
             - image: ${SERVICE_IMAGE}
@@ -125,6 +127,8 @@ objects:
                 - mountPath: /var/run/secrets/lagoon/sshkey/
                   name: lagoon-sshkey
                   readOnly: true
+                - name: ${PERSISTENT_STORAGE_NAME}-twig
+                  mountPath: ${PERSISTENT_STORAGE_PATH}/php/twig
               resources:
                 requests:
                   cpu: 10m

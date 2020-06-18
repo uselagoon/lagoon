@@ -103,6 +103,8 @@ objects:
             - name: ${SERVICE_NAME}
               persistentVolumeClaim:
                 claimName: ${SERVICE_NAME}
+            - name: ${PERSISTENT_STORAGE_NAME}-twig
+              type: emptyDir
           priorityClassName: lagoon-priority-${ENVIRONMENT_TYPE}
           containers:
             - image: ${NGINX_SERVICE_IMAGE}
@@ -170,6 +172,8 @@ objects:
               volumeMounts:
                 - name: ${SERVICE_NAME}
                   mountPath: ${PERSISTENT_STORAGE_PATH}
+                - name: ${PERSISTENT_STORAGE_NAME}-twig
+                  mountPath: ${PERSISTENT_STORAGE_PATH}/php/twig
               resources:
                 requests:
                   cpu: 10m
