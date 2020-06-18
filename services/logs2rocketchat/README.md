@@ -10,10 +10,10 @@ information on using, developing, and administering Lagoon.
 # Logs to Rocket.Chat (`logs2rocketchat`)
 
 Watches all the Lagoon logs and checks for events that should trigger a
-Rocket.Chat message. Each log message is tied to a Lagoon project and
+Rocket.Chat message. Each log message is tied to a Lagoon project, and
 channel configuration for that project is retrieved from the Lagoon API.
 
-Examples of events that might trigger a message: Github pullrequest opened, a
+Examples of events that might trigger a message: GitHub pull request opened, a
 new build for a Lagoon project environent has started, a task was completed.
 
 ## Technology
