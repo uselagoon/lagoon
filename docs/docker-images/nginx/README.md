@@ -43,9 +43,11 @@ After you put the `redirects-map.conf` in place, you also need to include it in 
 
 {% tabs %}
 {% tab title="nginx.dockerfile" %}
+
 ```bash
 COPY redirects-map.conf /etc/nginx/redirects-map.conf
 ```
+
 {% endtab %}
 {% endtabs %}
 
@@ -59,6 +61,6 @@ Environment variables are meant to contain common information for the `Nginx` co
 
 | Environment Variable | Default | Description |
 | :--- | :--- | :--- |
+| `BASIC_AUTH` | `restricted` | By not setting `BASIC_AUTH` this will instruct Lagoon to automatically enable basic authentication if `BASIC_AUTH_USERNAME` and `BASIC_AUTH_PASSWORD` are set. To disable basic authentication even if `BASIC_AUTH_USERNAME` and `BASIC_AUTH_PASSWORD` are set, set `BASIC_AUTH` to `off`. |
 | `BASIC_AUTH_USERNAME` | \(not set\) | Username for basic authentication |
 | `BASIC_AUTH_PASSWORD` | \(not set\) | Password for basic authentication \(unencrypted\) |
-

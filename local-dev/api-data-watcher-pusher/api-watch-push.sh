@@ -8,7 +8,7 @@ populate_kubernetes_gql_file_path="/api-data/03-populate-api-data-kubernetes.gql
 send_graphql_query() {
     local file_path=${1}
 
-    API_ADMIN_JWT_TOKEN=$(/home/create_jwt.sh)
+    API_ADMIN_JWT_TOKEN=$(/home/create_jwt.py)
 
     bearer="Authorization: bearer $API_ADMIN_JWT_TOKEN"
 

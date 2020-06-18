@@ -9,6 +9,30 @@ environments:
     - node:
       - customdomain-will-be-main-domain.com
       - customdomain-will-be-not-be-main-domain.com
+  ingress-annotations:
+    routes:
+    - node:
+      - annotations.com:
+          annotations:
+            multiline: |
+              first
+              second
+              third
+            foo: bar
+            ladybird: dog
+      - redirect-to-example.com:
+          annotations:
+            nginx.ingress.kubernetes.io/permanent-redirect: https://example.com$request_uri
+
+      - redirect-to-www.com:
+          annotations:
+            nginx.ingress.kubernetes.io/permanent-redirect: https://www.redirect-to-www.com$request_uri
+      - www.redirect-to-www.com
+
+      - www.redirect-from-www.com:
+          annotations:
+            nginx.ingress.kubernetes.io/permanent-redirect: https://redirect-from-www.com$request_uri
+      - redirect-from-www.com
   branch/cronjob:
     cronjobs:
     - name: echo /files/cron.txt multi

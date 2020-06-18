@@ -2,11 +2,17 @@
   "name": "openshiftmisc",
   "version": "0.9.0",
   "description": "MISC tools for openshift",
-  "main": "build/index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "start": "flow-node build/index.js",
-    "build": "flow-remove-types --out-dir build/ src/",
-    "dev": "nodemon --ignore build --watch . --watch ../../node-packages --exec 'flow-node src/index.js'"
+    "build": "tsc --build",
+    "start": "node dist/index",
+    "dev": "mkdir -p ../../node-packages/commons/dist && NODE_ENV=development nodemon"
+  },
+  "nodemonConfig": {
+    "ignore": ["../../node-packages/commons/dist/"],
+    "watch": ["src", "../../node-packages/"],
+    "ext": "js,ts,json",
+    "exec": "yarn build --incremental && yarn start --inspect=0.0.0.0:9229"
   },
   "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
   "contributors": [
@@ -15,11 +21,11 @@
   "license": "MIT",
   "dependencies": {
     "@lagoon/commons": "4.0.0",
-    "flow-remove-types": "^1.2.1",
     "openshift-client": "^3.10.8",
     "ramda": "^0.25.0"
   },
   "devDependencies": {
-    "nodemon": "^1.12.1"
+    "nodemon": "^1.12.1",
+    "typescript": "^3.9.3"
   }
 }

@@ -69,12 +69,12 @@ const Environments = ({ environments = [] }) => {
                     <span>Production</span>
                   </div>
                 )}
-                {environment.project.productionEnvironment == environment.name && (
+                {environment.project.productionEnvironment && environment.project.standbyProductionEnvironment && environment.project.productionEnvironment == environment.name && (
                   <div className="activeLabel">
                     <span>Active</span>
                   </div>
                 )}
-                {environment.project.standbyProductionEnvironment == environment.name && (
+                {environment.project.productionEnvironment && environment.project.standbyProductionEnvironment && environment.project.standbyProductionEnvironment == environment.name && (
                   <div className="standbyLabel">
                     <span>Standby</span>
                   </div>

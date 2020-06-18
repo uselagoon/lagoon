@@ -66,7 +66,6 @@ Some Docker images and containers need additional customizations from the provid
 | [Varnish-Drupal](../docker-images/varnish/varnish-drupal.md) | 5 | [varnish-drupal/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/varnish-drupal/Dockerfile) |
 | [Varnish](../docker-images/varnish/) | 5 | [varnish/Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/varnish/Dockerfile) |
 
-All images are pushed to [https://hub.docker.com/u/amazeeio](https://hub.docker.com/u/amazeeio). We suggest always using the latest tag \(like `amazeeio/nginx:latest`\) or unsuffixed images \(like `amazeeio/node:10`\), as they are kept up to date in terms of features and security. 
+All images are pushed to [https://hub.docker.com/u/amazeeio](https://hub.docker.com/u/amazeeio). We suggest always using the latest tag \(like `amazeeio/nginx:latest`\) or unsuffixed images \(like `amazeeio/node:10`\), as they are kept up to date in terms of features and security.
 
 If you choose to use a specific Lagoon version of an image like `amazeeio/nginx:v0.21.0` or `amazeeio/node:10-v0.21.0` it is your own responsibility to upgrade the version of the images as soon as a new Lagoon version is released!
-

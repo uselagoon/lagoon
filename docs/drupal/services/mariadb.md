@@ -12,12 +12,14 @@ For improved reliability, MariaDB can be used in a cluster for production sites.
 
 {% tabs %}
 {% tab title=".lagoon.yml" %}
+
 ```yaml
 environments:
   production:
     types:
       mariadb: mariadb-galera
 ```
+
 {% endtab %}
 {% endtabs %}
 
@@ -25,6 +27,7 @@ Also, you will need to change your service definition in your `docker-compose.ym
 
 {% tabs %}
 {% tab title="docker-compose.yml" %}
+
 ```yaml
   mariadb:
     image: amazeeio/mariadb-galera-drupal
@@ -35,6 +38,7 @@ Also, you will need to change your service definition in your `docker-compose.ym
     environment:
       << : *default-environment
 ```
+
 {% endtab %}
 {% endtabs %}
 
@@ -78,12 +82,14 @@ To set a static port, edit your service definition in your `docker-compose.yml`.
 
 {% tabs %}
 {% tab title="docker-compose.yml" %}
+
 ```yaml
   mariadb:
     ...
     ports:
       - "33772:3306" # Exposes port 3306 with a 33772 on the host port. Note by doing this you are responsible for managing port collisions`.
 ```
+
 {% endtab %}
 {% endtabs %}
 
@@ -102,4 +108,3 @@ Now you can use these details to connect to whatever database management tool yo
 | Username | `drupal` | `drupal` |
 | Password | `drupal` | `drupal` |
 | Database | `drupal` | `drupal` |
-

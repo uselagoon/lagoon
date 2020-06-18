@@ -180,6 +180,7 @@ objects:
     #CHART_REPOSITORY_URL: "http://harbor-chartmuseum"
     LOG_LEVEL: "error"
     CONFIG_PATH: "/etc/core/app.conf"
+    SYNC_QUOTA: "false"
     SYNC_REGISTRY: "false"
     CHART_CACHE_DRIVER: "redis"
     _REDIS_URL: "harbor-redis:6379,100,"
@@ -187,9 +188,11 @@ objects:
     PORTAL_URL: "http://harbor-portal"
     REGISTRYCTL_URL: "http://harborregistry:8080"
     CLAIR_HEALTH_CHECK_SERVER_URL: "http://harborclair:6061"
+    WITH_TRIVY: "true"
+    TRIVY_ADAPTER_URL: "harbor-trivy:8080"
     HTTP_PROXY: ""
     HTTPS_PROXY: ""
-    NO_PROXY: "harbor-core,harbor-jobservice,harbor-database,harborclair,harborclairadapter,harborregistry,harbor-portal,127.0.0.1,localhost,.local,.internal"
+    NO_PROXY: "harbor-core,harbor-jobservice,harbor-database,harborclair,harborclairadapter,harborregistry,harbor-portal,harbor-trivy,127.0.0.1,localhost,.local,.internal"
 - apiVersion: v1
   kind: Service
   metadata:

@@ -30,4 +30,3 @@ This table lists all service types that can be defined via `lagoon.type` within 
 | `redis` | Redis container. | TCP connection on `6379` | `6379` | - | - |
 | `solr` | Solr container with auto-generated persistent storage mounted under `/opt/solr/server/solr/mycores`. | TCP connection on `8983` | `8983` | - | - |
 | `varnish` | Varnish container. | HTTP request `localhost:8080/varnish_status` | `8080` | yes | - |
-

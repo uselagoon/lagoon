@@ -1,8 +1,8 @@
 import * as R from 'ramda';
 import * as sshpk from 'sshpk';
-import * as gitlabApi from '@lagoon/commons/src/gitlabApi';
-import * as api from '@lagoon/commons/src/api';
-import { logger } from '@lagoon/commons/src/local-logging';
+import * as gitlabApi from '@lagoon/commons/dist/gitlabApi';
+import * as api from '@lagoon/commons/dist/api';
+import { logger } from '@lagoon/commons/dist/local-logging';
 
 interface GitlabProject {
   id: number,

@@ -16,6 +16,7 @@ This is an example `.lagoon.yml` which showcases all possible settings. You will
 
 {% tabs %}
 {% tab title=".lagoon.yml" %}
+
 ```yaml
 docker-compose-yaml: docker-compose.yml
 
@@ -55,8 +56,12 @@ environments:
             tls-acme: 'true'
             insecure: Redirect
             hsts: max-age=31536000
+        - "example.ch":
+            annotations:
+              nginx.ingress.kubernetes.io/permanent-redirect: https://www.example.ch$request_uri
+        - www.example.ch
     types:
-      mariadb: mariadb-galera
+      mariadb: mariadb
     templates:
       mariadb: mariadb.master.deployment.yml
     rollouts:
@@ -73,6 +78,7 @@ environments:
        command: drush cron
        service: cli
 ```
+
 {% endtab %}
 {% endtabs %}
 
@@ -113,6 +119,11 @@ Common uses for post-rollout tasks include running `drush updb`, `drush cim`, or
 * `shell`
   * Which shell should be used to run the task in. By default `sh` is used, but if the container also has other shells \(like `bash`, you can define it here\). This is useful if you want to run some small if/else bash scripts within the post-rollouts. \(see the example above how to write a script with multiple lines\).
 
+Note: If you would like to temporarily disable pre/post-rollout tasks during a deployment, you can set either of the following environment variables in the API at the project or environment level \(see how on [Environment Variables](environment_variables.md)\).
+
+* `LAGOON_PREROLLOUT_DISABLED=true`
+* `LAGOON_POSTROLLOUT_DISABLED=true`
+
 ## Routes
 
 ### `routes.autogenerate.enabled`
@@ -133,7 +144,7 @@ Environment names match your deployed branches or pull requests. This allows for
 
 ### `environments.[name].monitoring_urls`
 
-At the end of a deploy, Lagoon will check this field for any URLs which you have specified to add to the API for the purpose of monitoring. The default value for this field is the first route for a project. It is useful for adding specific paths of a project to the API, for consumption by a monitoring service. 
+At the end of a deploy, Lagoon will check this field for any URLs which you have specified to add to the API for the purpose of monitoring. The default value for this field is the first route for a project. It is useful for adding specific paths of a project to the API, for consumption by a monitoring service.
 
 {% hint style="info" %}
 Please note, Lagoon does not provide any direct integration to a monitoring service, this just adds the URLs to the API. On amazee.io, we take the `monitoring_urls` and add them to our StatusCake account.
@@ -164,12 +175,14 @@ If you plan to switch from a SSL certificate signed by a Certificate Authority \
 
 {% tabs %}
 {% tab title=".lagoon.yml" %}
+
 ```yaml
      - "www.example.com":
             tls-acme: 'true'
             insecure: Redirect
             hsts: max-age=31536000
 ```
+
 {% endtab %}
 {% endtabs %}
 
@@ -177,7 +190,7 @@ If you plan to switch from a SSL certificate signed by a Certificate Authority \
 
 The Lagoon build process checks the `lagoon.type` label from the `docker-compose.yml` file in order to learn what type of service should be deployed  \(read more about them in the [documentation of `docker-compose.yml`](docker-compose-yml.md#custom-templates)\).
 
-Sometimes you might want to override the **type of service** just for a single environment, and not for all of them. For example, if you want a MariaDB-Galera high availability database for your production environment called `master`:
+Sometimes you might want to override the **type** just for a single environment, and not for all of them. For example, if you want a standalone MariaDB database (instead of letting the Service Broker/operator provision a shared one) for your non-production environment called `develop`:
 
 `service-name: service-type`
 
@@ -188,12 +201,14 @@ Example for setting up MariaDB\_Galera:
 
 {% tabs %}
 {% tab title=".lagoon.yml" %}
+
 ```yaml
 environments:
-  master:
+  develop:
     types:
-      mariadb: mariadb-galera
+      mariadb: mariadb-single
 ```
+
 {% endtab %}
 {% endtabs %}
 
@@ -212,12 +227,14 @@ Example:
 
 {% tabs %}
 {% tab title=".lagoon.yml" %}
+
 ```yaml
 environments:
   master:
     templates:
       mariadb: mariadb.master.deployment.yml
 ```
+
 {% endtab %}
 {% endtabs %}
 
@@ -236,12 +253,14 @@ Example:
 
 {% tabs %}
 {% tab title=".lagoon.yml" %}
+
 ```yaml
 environments:
   master:
     rollouts:
       mariadb: statefulset
 ```
+
 {% endtab %}
 {% endtabs %}
 
@@ -268,6 +287,7 @@ Example:
 
 {% tabs %}
 {% tab title=".lagoon.yml" %}
+
 ```yaml
 example-project-name:
   environments:
@@ -276,6 +296,7 @@ example-project-name:
         - nginx:
           - example.com
 ```
+
 {% endtab %}
 {% endtabs %}
 
@@ -305,6 +326,7 @@ Example:
 
 {% tabs %}
 {% tab title=".lagoon.yml" %}
+
 ```yaml
 additional-yaml:
   secrets:
@@ -317,6 +339,7 @@ additional-yaml:
     command: create
     ignore_error: true
 ```
+
 {% endtab %}
 {% endtabs %}
 
@@ -334,29 +357,27 @@ There are 2 ways to define the password used for your registry user.
 
 * Create an environment variable in the Lagoon API \(see more on [Environment Variables](../using-lagoon-advanced/environment-variables.md)\). The name of the variable you create can then be set as the password:
 
-  ```text
-  container-registries:
+```yaml
+container-registries:
   my-custom-registry:
     username: myownregistryuser
     password: MY_OWN_REGISTRY_PASSWORD
     url: my.own.registry.com
-  ```
+```
 
 * Define it directly in the `.lagoon.yml` file in plain text:
 
-  ```text
-  container-registries:
+```yaml
+container-registries:
   docker-hub:
     username: dockerhubuser
     password: MySecretPassword
-  ```
+```
 
-**Consuming a custom or private container registry image**
+####Consuming a custom or private container registry image
 
 To consume a custom or private container registry image, you need to update the service inside your `docker-compose.yml` file to use a build context instead of defining an image:
 
-{% tabs %}
-{% tab title="docker-compose.yml" %}
 ```yaml
 services:
   mariadb:
@@ -364,16 +385,12 @@ services:
       context: .
       dockerfile: Dockerfile.mariadb
 ```
+
 {% endtab %}
 {% endtabs %}
 
-Once the `docker-compose.yml` file has been updated to use a build, you need to create the `Dockerfile.<service>` and then set your private image as the `FROM <repo>/<name>:<tag>`:
+Once the `docker-compose.yml` file has been updated to use a build, you need to create the `Dockerfile.<service>` and then set your private image as the `FROM <repo>/<name>:<tag>`
 
-{% tabs %}
-{% tab title="Dockerfile.mariadb" %}
-```bash
+```text
 FROM dockerhubuser/my-private-database:tag
 ```
-{% endtab %}
-{% endtabs %}
-
