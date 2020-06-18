@@ -29,7 +29,7 @@ export const ActiveStandbyConfirm = ({
       >
         <React.Fragment>
           <p>
-            This will replace the current active environment <span className="environment-name">{standbyEnvironment}</span><br/>
+            This will replace the current active environment <span className="environment-name">{activeEnvironment}</span><br/>
             with the selected standby environment <span className="environment-name">{standbyEnvironment}</span>.<br/><br/>
             Are you sure you want to do this?<br/><br/>
             Upon confirmation you will be taken to the task page to monitor execution.
