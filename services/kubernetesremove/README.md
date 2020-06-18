@@ -1,29 +1,33 @@
-# lagoon-kubernetesremove
+<p align="center"><img
+src="https://raw.githubusercontent.com/amazeeio/lagoon/master/docs/images/lagoon-logo.png"
+alt="The Lagoon logo is a blue hexagon split in two pieces with an L-shaped cut"
+width="40%"></p>
 
-This service is called 'kubernetesremove', and is part of the amazee.io lagoon deployment system and is responsible for removing Kubernetes Resources for each task in the rabbitmq queue `lagoon-tasks:remove-kubernetes-resources`
+This service is part of amazee.io Lagoon, a Docker build and deploy system for
+OpenShift & Kubernetes. Please reference our [documentation] for detailed
+information on using, developing, and administering Lagoon.
 
-It does the following:
-1. read message from a rabbitmq queue called `lagoon-tasks:remove-kubernetes-resources`, which have the following information:
+# Kubernetes Remove (`kubernetesremove`)
 
-- `projectName` (name of the project that should be handled)
-- `kubernetesRessourceAppName` (name of resource in kubernetes that should be removed, it use them as an kubernetes label with the key `app`)
-- `kubernetesProject` (name of the kubernetes project that should be removed)
+Deletes the resources for a Lagoon project environment running in a Kubernetes
+cluster.
 
-2. connect to the lagoon api and load additional kubernetes information (token and the console url) for the given project
-3. create a new jenkinsjob which runs `oc delete all -l app={kubernetesRessourceAppName}` against the found Kubernetes console
+Some errors that can occur during the deletion are tolerable and/or expected in
+which case the request will be requeued and retried after some delay.
 
-It logs the start, success and error of the jenkins jobs into lagoon-logs.
+## Technology
 
-It uses https://github.com/benbria/node-amqp-connection-manager for connecting to rabbitmq, so it can handle situations were rabbitmq is not reachable and still receive webhooks, process them and keep them in memory. As soon as rabbitmq is reachable again, it will send the messages there.
+* Node
+* Message Queue
 
-## Hosting
+## Related Services
 
-Fully developed in Docker and hosted on amazee.io Openshift, see the `.openshift` folder. Deployed via Jenkinsfile.
+* API [***dependency***]
+* RabbitMQ [***dependency***]
 
-Uses `lagoon/node:10` as base image.
+## Message Queues
 
-## Development
+* Consumes: `lagoon-tasks:remove-kubernetes`
+* Produces: `lagoon-tasks-delay`
 
-Via the existing docker-compose.yml (see the file for defining the Api, Jenkins and RabbitMQ Host to be used)
-
-        docker-compose up -d
+[documentation]: https://lagoon.readthedocs.io/

@@ -7,14 +7,13 @@ This service is part of amazee.io Lagoon, a Docker build and deploy system for
 OpenShift & Kubernetes. Please reference our [documentation] for detailed
 information on using, developing, and administering Lagoon.
 
-# OpenShift Build & Deploy (`openshiftbuilddeploy`)
+# OpenShift Jobs Monitor (`openshiftjobsmonitor`)
 
-Prepares a build/deployment request for a Lagoon project environment running in
-an OpenShift cluster. It gathers all the data necessary for a Lagoon build and
-deployment, validates the request, prepares the OpenShift project, and creates a
-new OpenShift build.
+Monitors the jobs running in OpenShift and updates the Lagoon task with the job
+status and log messages via the API. OpenShift jobs are monitored until it
+completes successfully, fails, or the monitor task times out.
 
-Some errors that can occur during the preperation are tolerable and/or expected
+Some errors that can occur during the monitoring are tolerable and/or expected
 in which case the request will be requeued and retried after some delay.
 
 ## Technology
@@ -26,11 +25,11 @@ in which case the request will be requeued and retried after some delay.
 
 * API [***dependency***]
 * RabbitMQ [***dependency***]
-* openshiftbuilddeploymonitor [***related***]
+* openshiftjobs [***related***]
 
 ## Message Queues
 
-* Consumes: `lagoon-tasks:builddeploy-openshift`
-* Produces: `lagoon-tasks-monitor:builddeploy-openshift`, `lagoon-tasks-delay`
+* Consumes: `lagoon-tasks-monitor:job-openshift`
+* Produces: `lagoon-tasks-monitor-delay`
 
 [documentation]: https://lagoon.readthedocs.io/

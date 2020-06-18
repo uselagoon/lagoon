@@ -7,29 +7,26 @@ This service is part of amazee.io Lagoon, a Docker build and deploy system for
 OpenShift & Kubernetes. Please reference our [documentation] for detailed
 information on using, developing, and administering Lagoon.
 
-# OpenShift Build & Deploy Monitor (`openshiftbuilddeploymonitor`)
+# API (`api`)
 
-Monitors the builds running in OpenShift and updates the Lagoon deployment with
-the build status and log messages via the API. OpenShift builds are monitored
-until it completes, fails, or the monitor task times out.
-
-Some errors that can occur during the monitoring are tolerable and/or expected
-in which case the request will be requeued and retried after some delay.
+The main GraphQL API for Lagoon. Uses the apollo server library.
 
 ## Technology
 
 * Node
+* GraphQL
 * Message Queue
 
 ## Related Services
 
 * API [***dependency***]
+* Keycloak [***dependency***]
 * RabbitMQ [***dependency***]
-* openshiftbuilddeploy [***related***]
 
-## Message Queues
+## API
 
-* Consumes: `lagoon-tasks-monitor:builddeploy-openshift`
-* Produces: `lagoon-tasks-monitor-delay`
+* Authentication [**required**]: `Authorization` header with bearer token
+* Query/Muation documented via API introspection, supported in most GraphQL
+  clients
 
 [documentation]: https://lagoon.readthedocs.io/
