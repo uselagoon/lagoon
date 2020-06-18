@@ -13,7 +13,7 @@ The main Lagoon entrypoint for webhooks originating from other services. Every
 incoming webhook is parsed and validated before being queued for processing
 later.
 
-Examples of webhooks Lagoon is interested in: Github/Bitbucket/Gitlab repository
+Examples of webhooks Lagoon is interested in: GitHub/Bitbucket/GitLab repository
 activity, Lagoon project environment backup events.
 
 ## Technology
@@ -33,7 +33,7 @@ activity, Lagoon project environment backup events.
 
 ## Testing
 
-There is testdata available from Postman. In order to use it, download
+There is test data available from Postman. In order to use it, download
 [Postman] and import the `lagoon-webhook-handler.postman_collection.json` as
 collection, plus the `localhost.postman_environment.json` as environment. Now
 you can send single requests to the webhook handler.
