@@ -9,7 +9,7 @@ information on using, developing, and administering Lagoon.
 
 # SSH (`ssh`)
 
-Acts as the main entrypoint for all SSH related connections and commands for
+Acts as the main entrypoint for all SSH-related connections and commands for
 Lagoon projects. All connections are authenticated via the Lagoon API using
 standard SSH public/private keys. Authenticated connections can: 1) request a
 token that can be used to authenticate to the Lagoon API or 2) connect via SSH
