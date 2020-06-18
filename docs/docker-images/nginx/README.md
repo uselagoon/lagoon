@@ -1,6 +1,6 @@
-# Nginx
+# NGINX
 
-The [Lagoon `Nginx` image Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/nginx/Dockerfile). Based on the official [`openresty/openresty` images](https://hub.docker.com/r/openresty/openresty/).
+The [Lagoon `nginx` image Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/nginx/Dockerfile). Based on the official [`openresty/openresty` images](https://hub.docker.com/r/openresty/openresty/).
 
 This Dockerfile is intended to be used as a base for any web servers within Lagoon.
 
@@ -11,15 +11,15 @@ This image is prepared to be used on Lagoon, which leverages OpenShift. There ar
 * Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/sclorg/s2i-base-container/blob/master/core/root/usr/bin/fix-permissions), so this image will work with a random user, and therefore also on OpenShift.
 * The files within `/etc/nginx/*` are parsed through [`envplate`](https://github.com/kreuzwerker/envplate) with a container-entrypoint.
 
-## Included `Nginx` configuration \(`static-files.conf`\)
+## Included `NGINX` configuration \(`static-files.conf`\)
 
 {% hint style="warning" %}
-By default `Nginx` only serves static files - this can be used for static sites that don't require a database or PHP components: for example, static site generators like [Hugo](https://gohugo.io/), [Jekyll](https://jekyllrb.com/) or [Gatsby](https://www.gatsbyjs.org/).
+By default `NGINX` only serves static files - this can be used for static sites that don't require a database or PHP components: for example, static site generators like [Hugo](https://gohugo.io/), [Jekyll](https://jekyllrb.com/) or [Gatsby](https://www.gatsbyjs.org/).
 
 If you need PHP, have a look at the `php-fpm` image and use `nginx` and `php-fpm` in tandem.
 {% endhint %}
 
-Build the content during the build process and inject it into the `Nginx` container.
+Build the content during the build process and inject it into the `nginx` container.
 
 ## Helpers
 
@@ -43,11 +43,9 @@ After you put the `redirects-map.conf` in place, you also need to include it in 
 
 {% tabs %}
 {% tab title="nginx.dockerfile" %}
-
 ```bash
 COPY redirects-map.conf /etc/nginx/redirects-map.conf
 ```
-
 {% endtab %}
 {% endtabs %}
 
@@ -57,10 +55,11 @@ If you want to protect your site via basic authentication, you can do this by de
 
 ## Environment Variables
 
-Environment variables are meant to contain common information for the `Nginx` container.
+Environment variables are meant to contain common information for the `nginx` container.
 
 | Environment Variable | Default | Description |
 | :--- | :--- | :--- |
 | `BASIC_AUTH` | `restricted` | By not setting `BASIC_AUTH` this will instruct Lagoon to automatically enable basic authentication if `BASIC_AUTH_USERNAME` and `BASIC_AUTH_PASSWORD` are set. To disable basic authentication even if `BASIC_AUTH_USERNAME` and `BASIC_AUTH_PASSWORD` are set, set `BASIC_AUTH` to `off`. |
 | `BASIC_AUTH_USERNAME` | \(not set\) | Username for basic authentication |
 | `BASIC_AUTH_PASSWORD` | \(not set\) | Password for basic authentication \(unencrypted\) |
+

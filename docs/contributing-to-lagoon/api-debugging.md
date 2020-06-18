@@ -28,7 +28,7 @@ node --inspect=0.0.0.0:9229
       - '9229:9229'
 ```
 
-3 . Add the following to  `.vscode/launch.json`:
+3 . Add the following to `.vscode/launch.json`:
 
 ```javascript
 {
@@ -60,3 +60,4 @@ $ rm build/api && make build/api && docker-compose restart api
 ```
 
 5 . Restart VScode.
+

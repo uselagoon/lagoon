@@ -16,7 +16,6 @@ This is an example `.lagoon.yml` which showcases all possible settings. You will
 
 {% tabs %}
 {% tab title=".lagoon.yml" %}
-
 ```yaml
 docker-compose-yaml: docker-compose.yml
 
@@ -78,7 +77,6 @@ environments:
        command: drush cron
        service: cli
 ```
-
 {% endtab %}
 {% endtabs %}
 
@@ -90,7 +88,7 @@ Tells the build script which docker-compose YAML file should be used, in order t
 
 ### `environment_variables.git_sha`
 
-This setting allows you to enable injecting the deployed Git SHA into your project as an environment variable. By default this is disabled. Setting the value to`true`  sets the SHA as the environment variable `LAGOON_GIT_SHA`.
+This setting allows you to enable injecting the deployed Git SHA into your project as an environment variable. By default this is disabled. Setting the value to`true` sets the SHA as the environment variable `LAGOON_GIT_SHA`.
 
 ## Tasks
 
@@ -108,7 +106,7 @@ Here you can specify tasks which need to run against your project, _after_:
 * All containers are updated with the new images.
 * All containers are running have passed their readiness checks.
 
-Common uses for post-rollout tasks include running `drush updb`, `drush cim`, or clearing  various caches.
+Common uses for post-rollout tasks include running `drush updb`, `drush cim`, or clearing various caches.
 
 * `name`
   * The name is an arbitrary label for making it easier to identify each task in the logs.
@@ -119,7 +117,7 @@ Common uses for post-rollout tasks include running `drush updb`, `drush cim`, or
 * `shell`
   * Which shell should be used to run the task in. By default `sh` is used, but if the container also has other shells \(like `bash`, you can define it here\). This is useful if you want to run some small if/else bash scripts within the post-rollouts. \(see the example above how to write a script with multiple lines\).
 
-Note: If you would like to temporarily disable pre/post-rollout tasks during a deployment, you can set either of the following environment variables in the API at the project or environment level \(see how on [Environment Variables](environment_variables.md)\).
+Note: If you would like to temporarily disable pre/post-rollout tasks during a deployment, you can set either of the following environment variables in the API at the project or environment level \(see how on [Environment Variables](https://github.com/AlannaBurke/lagoon/tree/6615c2080c5f92ec0e38e828ddd4d33f196f62cd/docs/using-lagoon-the-basics/environment_variables.md)\).
 
 * `LAGOON_PREROLLOUT_DISABLED=true`
 * `LAGOON_POSTROLLOUT_DISABLED=true`
@@ -175,22 +173,20 @@ If you plan to switch from a SSL certificate signed by a Certificate Authority \
 
 {% tabs %}
 {% tab title=".lagoon.yml" %}
-
 ```yaml
      - "www.example.com":
             tls-acme: 'true'
             insecure: Redirect
             hsts: max-age=31536000
 ```
-
 {% endtab %}
 {% endtabs %}
 
 #### `environments.[name].types`
 
-The Lagoon build process checks the `lagoon.type` label from the `docker-compose.yml` file in order to learn what type of service should be deployed  \(read more about them in the [documentation of `docker-compose.yml`](docker-compose-yml.md#custom-templates)\).
+The Lagoon build process checks the `lagoon.type` label from the `docker-compose.yml` file in order to learn what type of service should be deployed \(read more about them in the [documentation of `docker-compose.yml`](docker-compose-yml.md#custom-templates)\).
 
-Sometimes you might want to override the **type** just for a single environment, and not for all of them. For example, if you want a standalone MariaDB database (instead of letting the Service Broker/operator provision a shared one) for your non-production environment called `develop`:
+Sometimes you might want to override the **type** just for a single environment, and not for all of them. For example, if you want a standalone MariaDB database \(instead of letting the Service Broker/operator provision a shared one\) for your non-production environment called `develop`:
 
 `service-name: service-type`
 
@@ -201,14 +197,12 @@ Example for setting up MariaDB\_Galera:
 
 {% tabs %}
 {% tab title=".lagoon.yml" %}
-
 ```yaml
 environments:
   develop:
     types:
       mariadb: mariadb-single
 ```
-
 {% endtab %}
 {% endtabs %}
 
@@ -227,14 +221,12 @@ Example:
 
 {% tabs %}
 {% tab title=".lagoon.yml" %}
-
 ```yaml
 environments:
   master:
     templates:
       mariadb: mariadb.master.deployment.yml
 ```
-
 {% endtab %}
 {% endtabs %}
 
@@ -253,14 +245,12 @@ Example:
 
 {% tabs %}
 {% tab title=".lagoon.yml" %}
-
 ```yaml
 environments:
   master:
     rollouts:
       mariadb: statefulset
 ```
-
 {% endtab %}
 {% endtabs %}
 
@@ -287,7 +277,6 @@ Example:
 
 {% tabs %}
 {% tab title=".lagoon.yml" %}
-
 ```yaml
 example-project-name:
   environments:
@@ -296,7 +285,6 @@ example-project-name:
         - nginx:
           - example.com
 ```
-
 {% endtab %}
 {% endtabs %}
 
@@ -326,7 +314,6 @@ Example:
 
 {% tabs %}
 {% tab title=".lagoon.yml" %}
-
 ```yaml
 additional-yaml:
   secrets:
@@ -339,7 +326,6 @@ additional-yaml:
     command: create
     ignore_error: true
 ```
-
 {% endtab %}
 {% endtabs %}
 
@@ -374,7 +360,7 @@ container-registries:
     password: MySecretPassword
 ```
 
-####Consuming a custom or private container registry image
+#### Consuming a custom or private container registry image
 
 To consume a custom or private container registry image, you need to update the service inside your `docker-compose.yml` file to use a build context instead of defining an image:
 
@@ -386,11 +372,9 @@ services:
       dockerfile: Dockerfile.mariadb
 ```
 
-{% endtab %}
-{% endtabs %}
-
 Once the `docker-compose.yml` file has been updated to use a build, you need to create the `Dockerfile.<service>` and then set your private image as the `FROM <repo>/<name>:<tag>`
 
 ```text
 FROM dockerhubuser/my-private-database:tag
 ```
+

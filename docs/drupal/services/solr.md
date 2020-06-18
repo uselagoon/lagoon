@@ -2,13 +2,13 @@
 
 ## Standard use
 
-For Solr 5.5 and 6.6, we ship the default schema files provided by the [search\_api\_solr](https://www.drupal.org/project/search_api_solr) module version 8.x-1.2. Add the Solr version you would like to use in your `docker-compose.yml` file, following [our example](https://github.com/amazeeio/drupal-example/blob/master/docker-compose.yml#L103-L111).
+For Solr 5.5, 6.6 and 7.7, we ship the default schema files provided by the [search\_api\_solr](https://www.drupal.org/project/search_api_solr) Drupal module. Add the Solr version you would like to use in your `docker-compose.yml` file, following [our example](https://github.com/amazeeio/drupal-example/blob/master/docker-compose.yml#L103-L111).
 
 ## Custom schema
 
 To implement schema customizations for Solr in your project, look to how Lagoon [creates our standard images](https://github.com/amazeeio/lagoon/blob/master/images/solr-drupal/Dockerfile).
 
-* In the `solr` section of your `docker-compose.yml` file, replace `image: amazeeio/solr:6.6` with:
+* In the `solr` section of your `docker-compose.yml` file, replace `image: amazeeio/solr:7.7` with:
 
 {% tabs %}
 {% tab title="docker-compose.yml" %}
@@ -26,7 +26,7 @@ To implement schema customizations for Solr in your project, look to how Lagoon 
 {% tabs %}
 {% tab title="solr.dockerfile" %}
 ```bash
-FROM amazeeio/solr:6.6
+FROM amazeeio/solr:7.7
 
 COPY .lagoon/solr /solr-conf/conf
 
@@ -46,7 +46,7 @@ To implement multiple cores, you will also need to ship your own Solr schema as 
 {% tabs %}
 {% tab title="solr.dockerfile" %}
 ```bash
-FROM amazeeio/solr:6.6-drupal
+FROM amazeeio/solr:7.7-drupal
 
 RUN precreate-core drupal-index1 /solr-conf && \
     precreate-core drupal-index2 /solr-conf && \

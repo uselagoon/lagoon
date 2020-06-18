@@ -29,7 +29,7 @@ Under "GraphQL Endpoint", enter the API endpoint URL with `/graphql` on the end.
 
 Press ESC to close the HTTP header overlay and now we are ready to send the first GraphQL request!
 
-![Editing HTTP Headers in GraphiQL.](../.gitbook/assets/graphiql-2020-01-29-18-05-54.png)
+![Editing HTTP Headers in GraphiQL.](../.gitbook/assets/graphiql-2020-01-29-18-05-54%20%281%29.png)
 
 Enter this in the left panel
 
@@ -41,7 +41,7 @@ query allProjects{
 }
 ```
 
-![Running a query in GraphiQL.](../.gitbook/assets/graphiql-2020-01-29-20-10-32.png)
+![Running a query in GraphiQL.](../.gitbook/assets/graphiql-2020-01-29-20-10-32%20%281%29.png)
 
 And press the ▶️button \(or press CTRL+ENTER\).
 
@@ -514,7 +514,7 @@ mutation {
 
 ### Query for projects by metadata
 
-Queries may be by `key` only (e.g return all projects where a specific key exists) or both `key` and `value` where both key and value must match.
+Queries may be by `key` only \(e.g return all projects where a specific key exists\) or both `key` and `value` where both key and value must match.
 
 All projects that have the `version` tag:
 
@@ -552,3 +552,4 @@ mutation {
   }
 }
 ```
+

@@ -16,7 +16,7 @@ This image is prepared to be used on Lagoon, which leverages OpenShift. There ar
 
 * Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/sclorg/s2i-base-container/blob/master/core/root/usr/bin/fix-permissions), so this image will work with a random user, and therefore also on OpenShift.
 * `10-solr-port.sh` script to fix and check `Solr` port.
-* `20-solr-datadir.sh` script to check if `Solr` config is compliant for Lagoon.
+* `20-solr-datadir.sh` script to check if `Solr` config is compliant for Lagoon.  This sets directory paths, and configures the correct lock type.
 
 ## Environment Variables
 
@@ -25,3 +25,4 @@ Environment variables defined in `Solr` base image.
 | Environment Variable | Default | Description |
 | :--- | :--- | :--- |
 | `SOLR_JAVA_MEM` | 512M | Default Java HEAP size \(ie. `SOLR_JAVA_MEM="-Xms10g -Xmx10g"` \). |
+
