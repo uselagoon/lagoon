@@ -10,10 +10,10 @@ information on using, developing, and administering Lagoon.
 # Logs to Email (`logs2email`)
 
 Watches all the Lagoon logs and checks for events that should trigger an email
-notification. Each log message is tied to a Lagoon project and email
+notification. Each log message is tied to a Lagoon project, and email
 configuration for that project is retrieved from the Lagoon API.
 
-Examples of events that might trigger an email: Github pullrequest opened, a new
+Examples of events that might trigger an email: Github pull request opened, a new
 build for a Lagoon project environent has started, a task was completed.
 
 ## Technology
