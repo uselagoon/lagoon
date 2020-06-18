@@ -10,10 +10,10 @@ information on using, developing, and administering Lagoon.
 # Logs to Microsoft Teams (`logs2microsoftteams`)
 
 Watches all the Lagoon logs and checks for events that should trigger a
-Microsoft Teams message. Each log message is tied to a Lagoon project and
+Microsoft Teams message. Each log message is tied to a Lagoon project, and
 channel configuration for that project is retrieved from the Lagoon API.
 
-Examples of events that might trigger a message: Github pullrequest opened, a
+Examples of events that might trigger a message: GitHub pull request opened, a
 new build for a Lagoon project environent has started, a task was completed.
 
 ## Technology
