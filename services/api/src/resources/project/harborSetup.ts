@@ -219,61 +219,6 @@ async function resetHarborWebhook(sqlClient: MariaClient, harborClient, lagoonPr
   return true
 }
 
-async function deleteProject(lagoonProjectName: string) {
-  // Delete harbor project
-
-  // Get existing harbor project's id
-  try {
-    const res = await harborClient.get(`projects?name=${lagoonProjectName}`)
-    var harborProjectID = res.body[0].project_id
-    logger.debug(`Got the harbor project id for project ${lagoonProjectName} successfully!`)
-  } catch (err) {
-    if (err.statusCode == 404) {
-      // This case could come to pass if a project was created
-      // before we began using Harbor as our container registry
-      logger.warn(`Unable to get the harbor project id of "${lagoonProjectName}", as it does not exist in harbor!`)
-      return
-    } else {
-      logger.error(`Unable to get the harbor project id of "${lagoonProjectName}", error: ${err}`)
-      return
-    }
-  }
-  logger.debug(`Harbor project id for ${lagoonProjectName}: ${harborProjectID}`)
-
-  // Check for existing repositories within the project
-  try {
-    const res = await harborClient.get(`search?name=${lagoonProjectName}`)
-    const harborRepos = []
-    for (i = 0; i < res.repository.length; i++) {
-      if (res.repository[i].project_name == lagoonProjectName){
-        harborRepos.push(res.repository[i])
-      }
-    }
-  } catch (err) {
-    logger.error(`Unable to search for repositories within the harbor project "${lagoonProjectName}", error: ${err}`)
-  }
-
-  // Delete any repositories within this project
-  try {
-    for (i = 0; i < harborRepos.length; i++) {
-      var res = await harborClient.delete(`repositories/${harborRepos[i].repository_name}`)
-    }
-  } catch (err) {
-    logger.error(`Unable to delete repositories within the harbor project "${lagoonProjectName}", error: ${err}`)
-  }
-
-  // Delete harbor project
-  try {
-    var res = await harborClient.delete(`projects/${harborProjectID}`);
-    logger.debug(`Harbor project ${lagoonProjectName} deleted!`)
-  } catch (err) {
-    // 400 means the project id is invalid
-    // 404 means project doesn't exist
-    // 412 means project still contains repositories
-    logger.info(`Unable to delete the harbor project "${lagoonProjectName}", error: ${err}`)
-  }
-}
-
 export const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
   addProject: async (lagoonProjectName, projectID) => {
     // Create harbor project
@@ -294,5 +239,58 @@ export const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
 
     // Reset harbor project webhook to point to this Lagoon's Harbor
     if (! await resetHarborWebhook(sqlClient, harborClient, lagoonProjectName, lagoonWebhookAddress, harborProjectID)) {return}
+  },
+
+  deleteProject: async (lagoonProjectName) => {
+    // Get existing harbor project's id
+    try {
+      const res = await harborClient.get(`projects?name=${lagoonProjectName}`)
+      var harborProjectID = res.body[0].project_id
+      logger.debug(`Got the harbor project id for project ${lagoonProjectName} successfully!`)
+    } catch (err) {
+      if (err.statusCode == 404) {
+        // This case could come to pass if a project was created
+        // before we began using Harbor as our container registry
+        logger.warn(`Unable to get the harbor project id of "${lagoonProjectName}", as it does not exist in harbor!`)
+        return
+      } else {
+        logger.error(`Unable to get the harbor project id of "${lagoonProjectName}", error: ${err}`)
+        return
+      }
+    }
+    logger.debug(`Harbor project id for ${lagoonProjectName}: ${harborProjectID}`)
+
+    // Check for existing repositories within the project
+    try {
+      const res = await harborClient.get(`search?name=${lagoonProjectName}`)
+      const harborRepos = []
+      for (i = 0; i < res.repository.length; i++) {
+        if (res.repository[i].project_name == lagoonProjectName){
+          harborRepos.push(res.repository[i])
+        }
+      }
+    } catch (err) {
+      logger.error(`Unable to search for repositories within the harbor project "${lagoonProjectName}", error: ${err}`)
+    }
+
+    // Delete any repositories within this project
+    try {
+      for (i = 0; i < harborRepos.length; i++) {
+        var res = await harborClient.delete(`repositories/${harborRepos[i].repository_name}`)
+      }
+    } catch (err) {
+      logger.error(`Unable to delete repositories within the harbor project "${lagoonProjectName}", error: ${err}`)
+    }
+
+    // Delete harbor project
+    try {
+      var res = await harborClient.delete(`projects/${harborProjectID}`);
+      logger.debug(`Harbor project ${lagoonProjectName} deleted!`)
+    } catch (err) {
+      // 400 means the project id is invalid
+      // 404 means project doesn't exist
+      // 412 means project still contains repositories
+      logger.info(`Unable to delete the harbor project "${lagoonProjectName}", error: ${err}`)
+    }
   }
 })
