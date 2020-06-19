@@ -9,3 +9,8 @@ insecure: Allow
 service: ''
 annotations: {}
 routeMigrate: false
+
+ingressmonitorcontroller:
+  enabled: 'false'
+  interval: '60'
+  alertContacts: 'unconfigured'

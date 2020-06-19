@@ -3,7 +3,7 @@ import { ConsumeMessage } from 'amqplib';
 import { processProjects } from './webhooks/projects';
 import { processDataSync } from './webhooks/dataSync';
 import { processBackup } from './webhooks/backup';
-
+import { processProblems } from './webhooks/problems';
 import { WebhookRequestData } from './types';
 
 export async function processQueue (rabbitMsg: ConsumeMessage, channelWrapperWebhooks: ChannelWrapper): Promise<void> {
@@ -21,6 +21,8 @@ export async function processQueue (rabbitMsg: ConsumeMessage, channelWrapperWeb
     processDataSync(rabbitMsg, channelWrapperWebhooks);
   } else if (webhooktype == 'resticbackup') {
     processBackup(rabbitMsg, channelWrapperWebhooks);
+  } else if (webhooktype == 'problems') {
+    processProblems(rabbitMsg, channelWrapperWebhooks);
   }
   else {
     processProjects(rabbitMsg, channelWrapperWebhooks);

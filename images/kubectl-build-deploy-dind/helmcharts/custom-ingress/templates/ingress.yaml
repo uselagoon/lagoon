@@ -22,6 +22,15 @@ metadata:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     ingress.kubernetes.io/ssl-redirect: "true"
     {{- end }}
+    monitor.stakater.com/enabled: "{{ .Values.ingressmonitorcontroller.enabled }}"
+    uptimerobot.monitor.stakater.com/interval: "{{ .Values.ingressmonitorcontroller.interval }}"
+    uptimerobot.monitor.stakater.com/alert-contacts: "{{ .Values.ingressmonitorcontroller.alertContacts }}"
+    {{- if .Values.ingressmonitorcontroller.path }}
+    monitor.stakater.com/overridePath: "{{ .Values.ingressmonitorcontroller.path }}"
+    {{- end }}
+    {{- if .Values.ingressmonitorcontroller.statuspageId }}
+    uptimerobot.monitor.stakater.com/status-pages: "{{ .Values.ingressmonitorcontroller.statuspageId }}"
+    {{- end }}
     # HSTS Handling
     {{- if .Values.hsts}}
     # haproxy.router.openshift.io/hsts_header: {{ .Values.route_hsts }}
@@ -43,5 +52,3 @@ spec:
           - backend:
               serviceName: {{ .Values.service }}
               servicePort: http
-
-

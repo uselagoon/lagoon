@@ -86,6 +86,16 @@ const messageConsumer = async msg => {
     var openshiftPromoteSourceProject = promoteSourceEnvironment ? `${projectName}-${ocsafety(promoteSourceEnvironment)}` : ""
     // A secret which is the same across all Environments of this Lagoon Project
     var projectSecret = crypto.createHash('sha256').update(`${projectName}-${jwtSecret}`).digest('hex');
+    var alertContactHA = ""
+    var alertContactSA = ""
+    var monitoringConfig = JSON.parse(projectOpenShift.openshift.monitoringConfig) || "invalid"
+    if (monitoringConfig != "invalid"){
+      alertContactHA = monitoringConfig.uptimerobot.alertContactHA || ""
+      alertContactSA = monitoringConfig.uptimerobot.alertContactSA || ""
+    }
+    var availability = projectOpenShift.availability || "STANDARD"
+    const billingGroup = projectOpenShift.groups.find(i => i.type == "billing" ) || ""
+    var uptimeRobotStatusPageId = billingGroup.uptimeRobotStatusPageId || ""
   } catch(error) {
     logger.error(`Error while loading information for project ${projectName}`)
     logger.error(error)
@@ -281,6 +291,19 @@ const messageConsumer = async msg => {
     if (!R.isEmpty(environment.envVariables)) {
       jobconfig.spec.template.spec.containers[0].env.push({"name": "LAGOON_ENVIRONMENT_VARIABLES", "value": JSON.stringify(environment.envVariables)})
     }
+    if (alertContactHA != undefined && alertContactSA != undefined){
+      if (availability == "HIGH") {
+        jobconfig.spec.template.spec.containers[0].env.push({"name": "MONITORING_ALERTCONTACT","value": alertContactHA})
+      } else {
+        jobconfig.spec.template.spec.containers[0].env.push({"name": "MONITORING_ALERTCONTACT","value": alertContactSA})
+      }
+    } else {
+      jobconfig.spec.template.spec.containers[0].env.push({"name": "MONITORING_ALERTCONTACT","value": "unconfigured"})
+    }
+    if (uptimeRobotStatusPageId){
+      jobconfig.spec.template.spec.containers[0].env.push({"name": "MONITORING_STATUSPAGEID","value": uptimeRobotStatusPageId})
+    }
+
     return jobconfig
   }
 
@@ -334,7 +357,8 @@ const messageConsumer = async msg => {
           "name":openshiftProject,
           "labels": {
             "lagoon.sh/project": projectName,
-            "lagoon.sh/environment": environmentName
+            "lagoon.sh/environment": environmentName,
+            "lagoon.sh/environmentType": lagoonEnvironmentType
           }
         }
       }

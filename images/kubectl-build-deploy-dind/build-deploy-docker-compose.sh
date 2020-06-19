@@ -464,6 +464,7 @@ TEMPLATE_PARAMETERS=()
 ### CUSTOM ROUTES FROM .lagoon.yml
 ##############################################
 
+
 ROUTES_SERVICE_COUNTER=0
 # we need to check for production routes for active/standby if they are defined, as these will get migrated between environments as required
 if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
@@ -577,6 +578,14 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
   fi
 fi
 
+# set some monitoring defaults
+if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
+  MONITORING_ENABLED="true"
+else
+  MONITORING_ENABLED="false"
+
+fi
+
 # Two while loops as we have multiple services that want routes and each service has multiple routes
 ROUTES_SERVICE_COUNTER=0
 if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER 2> /dev/null)" ]; then
@@ -594,6 +603,7 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
         ROUTE_MIGRATE=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate false)
         ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
         ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
+        MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring-path "")
         ROUTE_ANNOTATIONS=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.annotations {})
       else
         # Only a value given, assuming some defaults
@@ -625,6 +635,10 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
         --set insecure="${ROUTE_INSECURE}" \
         --set hsts="${ROUTE_HSTS}" \
         --set routeMigrate="${ROUTE_MIGRATE}" \
+        --set ingressmonitorcontroller.enabled="${MONITORING_ENABLED}" \
+        --set ingressmonitorcontroller.path="${MONITORING_PATH}" \
+        --set ingressmonitorcontroller.alertContacts="${MONITORING_ALERTCONTACT}" \
+        --set ingressmonitorcontroller.statuspageId="${MONITORING_STATUSPAGEID}" \
         -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${ROUTE_DOMAIN}.yaml
 
       let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
@@ -647,6 +661,7 @@ else
         ROUTE_MIGRATE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate false)
         ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
         ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
+        MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring-path "")
         ROUTE_ANNOTATIONS=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.annotations {})
       else
         # Only a value given, assuming some defaults
@@ -678,6 +693,10 @@ else
         --set insecure="${ROUTE_INSECURE}" \
         --set hsts="${ROUTE_HSTS}" \
         --set routeMigrate="${ROUTE_MIGRATE}" \
+        --set ingressmonitorcontroller.enabled="${MONITORING_ENABLED}" \
+        --set ingressmonitorcontroller.path="${MONITORING_PATH}" \
+        --set ingressmonitorcontroller.alertContacts="${MONITORING_ALERTCONTACT}" \
+        --set ingressmonitorcontroller.statuspageId="${MONITORING_STATUSPAGEID}" \
         -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml  "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${ROUTE_DOMAIN}.yaml
 
       let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
@@ -725,20 +744,6 @@ if [ "$(ls -A $YAML_FOLDER/)" ]; then
 fi
 
 ##############################################
-### CUSTOM MONITORING_URLS FROM .lagoon.yml
-##############################################
-URL_COUNTER=0
-while [ -n "$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.monitoring_urls.$URL_COUNTER 2> /dev/null)" ]; do
-  MONITORING_URL="$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.monitoring_urls.$URL_COUNTER)"
-  if [[ $URL_COUNTER > 0 ]]; then
-    MONITORING_URLS="${MONITORING_URLS}, ${MONITORING_URL}"
-  else
-    MONITORING_URLS="${MONITORING_URL}"
-  fi
-  let URL_COUNTER=URL_COUNTER+1
-done
-
-##############################################
 ### PROJECT WIDE ENV VARIABLES
 ##############################################
 
@@ -769,22 +774,14 @@ fi
 # Get list of autogenerated routes
 AUTOGENERATED_ROUTES=$(kubectl -n ${NAMESPACE} get ingress --sort-by='{.metadata.name}' -l "lagoon.sh/autogenerated=true" -o=go-template --template='{{range $indexItems, $ingress := .items}}{{if $indexItems}},{{end}}{{$tls := .spec.tls}}{{range $indexRule, $rule := .spec.rules}}{{if $indexRule}},{{end}}{{if $tls}}https://{{else}}http://{{end}}{{.host}}{{end}}{{end}}')
 
-# If no MONITORING_URLS were specified, fall back to the ROUTE of the project
-if [ -z "$MONITORING_URLS"]; then
-  echo "No monitoring_urls provided, using ROUTE"
-  MONITORING_URLS="${ROUTE}"
-fi
-
 yq write -i /kubectl-build-deploy/values.yaml 'route' "$ROUTE"
 yq write -i /kubectl-build-deploy/values.yaml 'routes' "$ROUTES"
 yq write -i /kubectl-build-deploy/values.yaml 'autogeneratedRoutes' "$AUTOGENERATED_ROUTES"
-yq write -i /kubectl-build-deploy/values.yaml 'monitoringUrls' "$MONITORING_URLS"
 
 echo -e "\
 LAGOON_ROUTE=${ROUTE}\n\
 LAGOON_ROUTES=${ROUTES}\n\
 LAGOON_AUTOGENERATED_ROUTES=${AUTOGENERATED_ROUTES}\n\
-LAGOON_MONITORING_URLS=${MONITORING_URLS}\n\
 " >> /kubectl-build-deploy/values.env
 
 # Generate a Config Map with project wide env variables
