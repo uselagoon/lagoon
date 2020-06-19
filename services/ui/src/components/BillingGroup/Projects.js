@@ -25,7 +25,7 @@ const Projects = ({ projects }) => {
             <div className="data-cell dev">{devHours}</div>
           </div>
         ))}
-        </div>
+      </div>
 
       <style jsx>{`
         .projects {

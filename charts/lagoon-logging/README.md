@@ -58,6 +58,7 @@ oc adm policy add-scc-to-user nonroot -z lagoon-logging-fluentd
 # fluentbit daemonset serviceaccount (logging-operator chart)
 oc adm policy add-scc-to-user privileged -z lagoon-logging-fluentbit
 
+
 # logs-dispatcher statefulset serviceaccount (lagoon-logging chart)
 oc adm policy add-scc-to-user anyuid -z lagoon-logging-logs-dispatcher
 ```
