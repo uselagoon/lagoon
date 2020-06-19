@@ -28,7 +28,7 @@ ENV LAGOON=ssh \
 COPY services/ssh/libnss-mysql-1.5.tar.gz /tmp/libnss-mysql-1.5.tar.gz
 
 RUN apt-get update \
-    && apt-get install -y curl build-essential libmysqlclient-dev ssh curl vim jq \
+    && apt-get install -y curl build-essential libmysqlclient-dev ssh curl vim jq python3-jwt \
     && ln -s /usr/lib/x86_64-linux-gnu/libmysqlclient.so /usr/lib/libmysqlclient.so \
     && mkdir /tmp/libnss-mysql \
     && tar -xzf /tmp/libnss-mysql-1.5.tar.gz -C /tmp/libnss-mysql --strip-components=1 \
@@ -61,7 +61,8 @@ RUN fix-permissions /home/grant.sh
 
 RUN fix-permissions /etc/ssh/ && \
     fix-permissions /run/ && \
-    fix-permissions /etc/libnss-mysql.cfg
+    fix-permissions /etc/libnss-mysql.cfg && \
+    fix-permissions /etc/libnss-mysql-root.cfg
 
 RUN mkdir -p /var/run/sshd && chmod 700 /var/run/sshd
 
@@ -73,7 +74,7 @@ COPY services/ssh/authorize.sh /authorize.sh
 RUN chmod 755 /authorize.sh
 
 # create_60_sec_jwt to create a JWT Admin Token which is valid for 60 secs
-COPY services/ssh/create_60_sec_jwt.sh /create_60_sec_jwt.sh
+COPY services/ssh/create_60_sec_jwt.py /create_60_sec_jwt.py
 
 # Create /authorize.env file and give api right to write it, it will be filled
 # within docker-entrypoint with all environment variables and then sourced

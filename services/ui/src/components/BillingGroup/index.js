@@ -32,11 +32,9 @@ const BillingGroup = ({ billingGroupCosts }) => {
 
         <div className="data-row">
           <div>
-            
             <h1>{name}</h1>
             <div>Availability: {availability}</div>
             <div>Currency: ({currency})</div>
-            
           </div>
         </div>
 
@@ -56,26 +54,28 @@ const BillingGroup = ({ billingGroupCosts }) => {
 
         <div className="data-row">
           <div>Prod:</div><div className="value">{environmentCost.prod}</div><br/>
-        </div>        
-        
+        </div>
+
         <div className="modifiers-heading">Modifiers</div>
 
-        { 
+        {
           modifiers.map(
-            ({ id, startDate, endDate, discountFixed, discountPercentage, extraFixed, extraPercentage, customerComments, adminComments, weight }, index) => (
-              <div className="data-row">
+            ({ id, startDate, endDate, discountFixed, discountPercentage, extraFixed, extraPercentage, min, max, customerComments, adminComments, weight }, index) => (
+              <div key={`${index}-${id}`} className="data-row">
                 <div className="formula">{adminComments}</div>
                 <div className="value">
                   {discountFixed !== 0 ? (`- ${discountFixed}`) : ''}
                   {discountPercentage !== 0 ? (`- ${discountPercentage}%`) : ''}
                   {extraFixed !== 0 ? (`+ ${extraFixed}`) : ''}
                   {extraPercentage !== 0 ? (`+ ${extraPercentage}%`) : ''}
+                  {min !== 0 ? (`Minimum: ${min}`) : ''}
+                  {max !== 0 ? (`Maximum: ${max}`) : ''}
                 </div>
               </div>
             ))
         }
         <div className="data-row total">
-      <div className="">Total:</div> <div className="value">{currencyChar} {total.toFixed(2)}</div>
+          <div className="">Total:</div> <div className="value">{currencyChar} {total.toFixed(2)}</div>
         </div>
 
       </div>

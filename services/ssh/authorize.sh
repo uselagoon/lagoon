@@ -11,7 +11,7 @@
 # variables during the container entrypoint.
 source /authorize.env
 
-API_ADMIN_TOKEN=$(/create_60_sec_jwt.sh)
+API_ADMIN_TOKEN=$(/create_60_sec_jwt.py)
 
 # This token will be required for accessing the sshKeys in the lagoon api
 bearer="Authorization: bearer $API_ADMIN_TOKEN"

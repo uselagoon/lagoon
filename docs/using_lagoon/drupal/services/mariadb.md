@@ -1,36 +1,5 @@
 # MariaDB
 MariaDB is the open source successor to MySQL.
-## Galera
-
-[MariaDB Galera Cluster](https://mariadb.com/kb/en/galera-cluster/) is a synchronous multi-master cluster for MariaDB.
-
-For improved reliability, MariaDB can be used in a cluster for production sites. This example, when placed in `.lagoon.yml` will enable Galera on the `production` branch.
-
-
-```
-environments:
-  production:
-    types:
-      mariadb: mariadb-galera
-```
-
-
-Also, you will need to change your service definition in your `docker-compose.yml`
-
-
-```
-  mariadb:
-    image: amazeeio/mariadb-galera-drupal
-    labels:
-      lagoon.type: mariadb
-    ports:
-      - "3306" # Exposes the port 3306 with a random local port, find it with `docker-compose port mariadb 3306`.
-    environment:
-      << : *default-environment
-```
-
-
-It is recommended that you configure the environment _before_ the initial deploy of the production site, otherwise manual intervention may be needed from your Lagoon administrator.
 
 ## Additional MariaDB Logging
 

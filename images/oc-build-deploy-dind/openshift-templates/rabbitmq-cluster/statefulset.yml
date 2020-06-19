@@ -75,6 +75,8 @@ objects:
           branch: ${SAFE_BRANCH}
           project: ${SAFE_PROJECT}
           service: ${SERVICE_NAME}
+        annotations:
+          lagoon.sh/configMapSha: ${CONFIG_MAP_SHA}
       spec:
         serviceAccountName: ${SERVICE_NAME}-sa
         affinity:

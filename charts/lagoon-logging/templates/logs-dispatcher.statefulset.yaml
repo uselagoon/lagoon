@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  namespace: {{ .Release.Namespace | quote }}
+  name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}
+  labels:
+    {{- include "lagoon-logging.logsDispatcher.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.logsDispatcher.replicaCount }}
+  serviceName: {{ include "lagoon-logging.logsDispatcher.fullname" . }}
+  selector:
+    matchLabels:
+      {{- include "lagoon-logging.logsDispatcher.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+    {{- with .Values.logsDispatcher.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      labels:
+        {{- include "lagoon-logging.logsDispatcher.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "lagoon-logging.logsDispatcher.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.logsDispatcher.podSecurityContext | nindent 8 }}
+      initContainers:
+      - image: busybox:musl
+        imagePullPolicy: Always
+        name: chown-buffer
+        command:
+        - chown
+        - '100:0'
+        - /fluentd/buffer
+        volumeMounts:
+        - mountPath: /fluentd/buffer/
+          name: buffer
+      containers:
+      - name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}-fluentd
+        securityContext:
+          {{- toYaml .Values.logsDispatcher.securityContext | nindent 10 }}
+        image: "{{ .Values.logsDispatcher.image.repository }}:{{ .Values.logsDispatcher.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.logsDispatcher.image.pullPolicy }}
+        ports:
+        - containerPort: 24224
+          protocol: TCP
+          name: forward
+        - containerPort: 24231
+          protocol: TCP
+          name: metrics
+        readinessProbe:
+          tcpSocket:
+            port: 24224
+          initialDelaySeconds: 20
+        livenessProbe:
+          tcpSocket:
+            port: 24224
+          initialDelaySeconds: 120
+        volumeMounts:
+        - mountPath: /fluentd/etc/fluent.conf
+          name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}-fluent-conf
+          subPath: fluent.conf
+        - mountPath: /fluentd/buffer/
+          name: buffer
+        envFrom:
+        - secretRef:
+            name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}
+        - configMapRef:
+            name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}-env
+        resources:
+          {{- toYaml .Values.logsDispatcher.resources | nindent 10 }}
+      {{- with .Values.logsDispatcher.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.logsDispatcher.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.logsDispatcher.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+      - configMap:
+          defaultMode: 420
+          items:
+          - key: fluent.conf
+            path: fluent.conf
+          name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}-fluent-conf
+        name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}-fluent-conf
+  volumeClaimTemplates:
+  - metadata:
+      name: buffer
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 16Gi

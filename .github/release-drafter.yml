@@ -6,6 +6,8 @@ categories:
       - '0-kubernetes'
   - title: 'API & Authentication subsystem'
     label: '1-api-auth'
+  - title: 'Admin & User Interfaces subsystem'
+    label: '10-admin-user-interfaces'
   - title: 'Build & Deploy subsystem'
     label: '2-build-deploy'
   - title: 'Logging & Reporting subsystem'
@@ -22,6 +24,7 @@ categories:
     label: '8-automation-helpers'
   - title: 'Security subsystem'
     label: '9-security'
+
 exclude-labels:
   - 'skip-changelog'
 

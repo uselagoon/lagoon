@@ -1,8 +1,8 @@
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-lagoon}/elasticsearch:7.1
+FROM ${IMAGE_REPO:-lagoon}/elasticsearch:7
 
-RUN bin/elasticsearch-plugin install -b https://d3g5vo6xdbdb9a.cloudfront.net/downloads/elasticsearch-plugins/opendistro-security/opendistro_security-1.1.0.0.zip \
-    && bin/elasticsearch-plugin install https://d3g5vo6xdbdb9a.cloudfront.net/downloads/elasticsearch-plugins/opendistro-sql/opendistro_sql-1.1.0.0.zip \
+RUN bin/elasticsearch-plugin install -b https://d3g5vo6xdbdb9a.cloudfront.net/downloads/elasticsearch-plugins/opendistro-security/opendistro_security-1.6.0.0.zip \
+    && bin/elasticsearch-plugin install https://d3g5vo6xdbdb9a.cloudfront.net/downloads/elasticsearch-plugins/opendistro-sql/opendistro_sql-1.6.0.0.zip \
     && bin/elasticsearch-plugin install -b repository-s3 \
     && bin/elasticsearch-plugin install -b repository-azure \
     && chmod a+x /usr/share/elasticsearch/plugins/opendistro_security/tools/install_demo_configuration.sh \
@@ -31,6 +31,5 @@ RUN fix-permissions plugins/opendistro_security/securityconfig
 COPY entrypoints/80-keycloak-url.bash /lagoon/entrypoints/
 
 COPY start.sh /start.sh
-COPY es-curl /usr/share/elasticsearch/bin/es-curl
 
 CMD ["/start.sh"]

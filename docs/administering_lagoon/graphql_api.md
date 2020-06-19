@@ -4,10 +4,16 @@
 
 Direct API interactions in Lagoon are done via [GraphQL](../using_lagoon/graphql_api.md).
 
-In order to authenticate with the API, we need a JWT \(JSON Web Token\) that allows us to use the GraphQL API as admin. To generate this token, open the terminal of the `auto-idler` pod via the OpenShift UI or `oc rsh` on the command line and run the following command:
+In order to authenticate with the API, we need a JWT \(JSON Web Token\) that allows us to use the GraphQL API as admin. To generate this token, open the terminal of the `auto-idler` pod via the OpenShift UI and run the following command:
 
 ```bash
 ./create_jwt.sh
+```
+
+This can also be done with the `oc` command:
+
+```bash
+oc -n lagoon-master rsh dc/auto-idler ./create_jwt.sh
 ```
 
 This will return a long string which is the JWT token. Make a note of this, as we will need it to send queries.
@@ -484,3 +490,62 @@ query search{
 }
 ```
 
+## Maintaining project metadata
+
+Project metadata can be assigned using arbitrary key/value pairs. Projects can then be queried by the associated metadata; for example you may categorise projects by type of software, version number, or any other categorisation you may wish to query on later.
+
+### Add/update metadata on a project
+
+Updates to metadata expect a key/value pair. It operates as an `UPSERT`, meaning if a key already exists the value will be updated, otherwise inserted.
+
+You may have any number of k/v pairs stored against a project.
+
+```graphql
+mutation {
+  updateProjectMetadata(
+    input: { id: 1,  patch: { key: "type", value: "saas" } }
+  ) {
+    id
+    metadata
+  }
+}
+```
+
+### Query for projects by metadata
+
+Queries may be by `key` only (e.g return all projects where a specific key exists) or both `key` and `value` where both key and value must match.
+
+All projects that have the `version` tag:
+```graphql
+query projectsByMetadata {
+  projectsByMetadata(metadata: [{key: "version"] ) {
+    id
+    name
+  }
+}
+```
+
+All projects that have the `version` tag, specifically version `8`:
+```graphql
+query projectsByMetadata {
+  projectsByMetadata(metadata: [{key: "version", value: "8"] ) {
+    id
+    name
+  }
+}
+```
+
+### Removing metadata on a project
+
+Metadata can be removed on a per-key basis. Other metadata key/value pairs will persist.
+
+```graphql
+mutation {
+  removeProjectMetadataByKey (
+    input: { id: 1,  key: "version" }
+  ) {
+    id
+    metadata
+  }
+}
+```

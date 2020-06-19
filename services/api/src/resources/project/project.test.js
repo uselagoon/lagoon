@@ -1,6 +1,4 @@
-// @flow
-
-const Sql = require('./sql');
+const { Sql } = require('./sql');
 
 describe('Resolvers', () => {
   describe('updateProject', () => {
@@ -20,14 +18,6 @@ describe('Resolvers', () => {
   describe('selectProject', () => {
     it('should create query', () => {
       const ret = Sql.selectProject(1);
-      expect(ret).toMatchSnapshot();
-    });
-  });
-
-  describe('selectAllUsersForProjectId', () => {
-    it('should return proper select statement', () => {
-      const ret = Sql.selectAllUsersForProjectId(1);
-
       expect(ret).toMatchSnapshot();
     });
   });
