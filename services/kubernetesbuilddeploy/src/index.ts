@@ -341,7 +341,8 @@ const messageConsumer = async msg => {
           "name":openshiftProject,
           "labels": {
             "lagoon.sh/project": projectName,
-            "lagoon.sh/environment": environmentName
+            "lagoon.sh/environment": environmentName,
+            "lagoon.sh/environmentType": lagoonEnvironmentType
           }
         }
       }

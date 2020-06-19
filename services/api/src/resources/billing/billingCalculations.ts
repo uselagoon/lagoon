@@ -37,6 +37,7 @@ export interface BillingGroupCosts {
   environmentCostDescription?: any;
   total?: number;
   modifiers?: [BillingModifier];
+  modifiersDescription?: [string];
   projects?: [any];
 }
 
@@ -103,17 +104,46 @@ export const getProjectsCosts = (currency, projects, modifiers: BillingModifier[
 
   // Apply Modifiers
   const modifiersSortFn = (a:BillingModifier, b:BillingModifier) => a.weight < b.weight? -1 : 1
-  const reducerFn: (previousValue: number, currentValue: BillingModifier) => number =
-  (total, modifier) => {
-    const { discountFixed, extraFixed, discountPercentage, extraPercentage } = modifier;
+
+  const reducerFn: (acc: {total: number, description: any[]}, obj: BillingModifier) => { total: number, description: any[] } =
+  ({total, description}, modifier) => {
+    const { discountFixed, extraFixed, discountPercentage, extraPercentage, min, max } = modifier;
+
+    if (discountFixed){
+      description = [...description, { type: 'discountFixed', amt: discountFixed, subTotal: total}];
+    }
     total = discountFixed ? total - discountFixed : total;
-    total = extraFixed ? total + extraFixed : total;
+
+    if (extraFixed){
+      description = [...description, { type: 'extraFixed', amt: extraFixed, subTotal: total}];
+    }
+    total = extraFixed ? total + extraFixed : total; 
+
+    if (discountPercentage){
+      description = [...description, { type: 'discountPercentage', amt: (total * (discountPercentage / 100)), subTotal: total}];
+    }
     total = discountPercentage ? total - (total * (discountPercentage / 100)) : total;
+
+    if (extraPercentage){
+      description = [...description, { type: 'extraPercentage', amt: (total * (extraPercentage / 100)), subTotal: total}];
+    }
     total = extraPercentage ? total + (total * (extraPercentage / 100)) : total;
-    return total;
+
+    if (min){
+      description = [...description, { type: 'min', amt: min, subTotal: total}];
+    }
+    total = min ? Math.max(total, min) : total;
+
+    if (max){
+      description = [...description, { type: 'max', amt: max, subTotal: total}];
+    }
+    total = max ? Math.min(total, max) : total;
+
+    return { total, description };
   }
+  const sortedModifiers = modifiers.sort(modifiersSortFn);
   const subTotal = hitCost.cost + storage.cost + prod.cost + dev.cost;
-  const total = Math.max(0, modifiers.sort(modifiersSortFn).reduce(reducerFn, subTotal));
+  const { total, description } = sortedModifiers.reduce(reducerFn, {total: subTotal, description: []});
 
   return ({
     hitCost: hitCost.cost,
@@ -122,8 +152,9 @@ export const getProjectsCosts = (currency, projects, modifiers: BillingModifier[
     storageCostDescription,
     environmentCost,
     environmentCostDescription,
-    total,
+    total: Math.max(0, total),
     modifiers,
+    modifiersDescription: description,
     projects,
   }) as BillingGroupCosts;
 };
@@ -186,22 +217,16 @@ export const storageCost = ({ projects, currency }: IBillingGroup) => {
   const description = {
     projects: projects.map(({name, storageDays}) => ({name, storage: storageDays/days})),
     included: freeGBDays/days,
-    additional: storageToBill/days
+    additional: storageToBill/days,
+    qty: storageToBill
   }
 
-  return storageDays > freeGBDays
-    ? {
-        cost: Number((storageToBill * storagePerDay).toFixed(2)),
-        description,
-        unitPrice: storagePerDay,
-        quantity: averageGBsPerDay
-      }
-    : {
-        cost: 0,
-        description,
-        unitPrice: storagePerDay,
-        quantity: averageGBsPerDay
-      };
+  return {
+    cost: storageDays > freeGBDays ? Number((storageToBill * storagePerDay).toFixed(2)) : 0,
+    description,
+    unitPrice: storagePerDay,
+    quantity: averageGBsPerDay
+  }
 };
 
 /**

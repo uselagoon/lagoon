@@ -23,6 +23,29 @@ const addTime = (originalDate, hoursLimit) => {
   return date.toISOString();
 };
 
+// Helper function to build an array of a given schema.
+export const generator = (schema, min = 1, max) => {
+  max = max || min;
+  return Array.from({
+    length: faker.random.number({
+      min,
+      max,
+    }),
+  }).map(() => {
+    const innerGen = (anySchema) => Object.keys(anySchema).reduce((entity, key) => {
+      if (Object.prototype.toString.call(anySchema[key]) === '[object Object]') {
+        entity[key] = innerGen(anySchema[key]);
+        return entity;
+      }
+      entity[key] = faker.fake(anySchema[key]);
+
+      return entity;
+    }, {});
+
+    return innerGen(schema());
+  });
+};
+
 //
 // 'scalar' and 'enum' mocks from typeDefs.
 //
@@ -209,6 +232,7 @@ MIIJKQIBAAKCAgEA+o[...]P0yoL8BoQQG2jCvYfWh6vyglQdrDYx/o6/8ecTwXokKKh6fg1q
     productionEnvironment: 'master',
     autoIdle: faker.random.arrayElement([0, 1]),
     storageCalc: faker.random.arrayElement([0, 1]),
+    problemsUi: faker.random.arrayElement([0, 1]),
     openshift: mocks.Openshift(),
     openshiftProjectPattern: '${project}-${name}',
     developmentEnvironmentsLimit: 10,
@@ -383,6 +407,130 @@ mocks.Task = (parent, args = {}, context, info) => {
     logs: 'Taskem logem ipsum.',
     files: [ mocks.File() ],
   };
+};
+
+mocks.Problem = () => {
+    const packages = [
+        'ansible',
+        'apache-log4j1.2',
+        'awl',
+        'cacti',
+        'ceph',
+        'chromium',
+        'commons-configuration2',
+        'consul',
+        'dom4j',
+        'drupal',
+        'file-roller',
+        'freeipa',
+        'freeradius',
+        'glibc',
+        'golang-github-buger-jsonparser',
+        'golang-github-opencontainers-selinux',
+        'golang-github-proglottis-gpgme',
+        'golang-go.crypto',
+        'golang-golang-x-net-dev',
+        'graphicsmagick',
+        'http-parser',
+        'imagemagick',
+        'inetutils',
+        'ipmitool',
+        'janus',
+        'jruby',
+        'knot-resolver',
+        'ksh',
+        'libapache2-mod-auth-openidc',
+        'libjackson-json-java',
+        'libmicrodns',
+        'libopenmpt',
+        'libpam-radius-auth',
+        'libperlspeak-perl',
+        'librsvg',
+        'libspring-java',
+        'libusrsctp',
+        'libvirt',
+        'libxml-security-java',
+        'linux',
+        'lucene-solr',
+        'lxc-templates',
+        'matrix-synapse',
+        'mbedtls',
+        'mupdf',
+        'netty',
+        'nginx',
+        'node-yarnpkg',
+        'nodejs',
+        'nss',
+        'openjdk-11',
+        'phantomjs',
+        'php7.0',
+        'php7.1',
+        'php7.2',
+        'php7.3',
+        'puma',
+        'python',
+        'rmysql',
+        'ruby-json-jwt',
+        'ruby-omniauth',
+        'salt',
+        'shiro',
+        'slirp',
+        'squid',
+        'ssvnc',
+        'thrift',
+        'tomcat9',
+        'trafficserver',
+        'varnish',
+        'xcftools',
+        'xerces-c',
+        'yubikey-val',
+    ];
+    const recentYear = faker.random.arrayElement(['2019', '2020']);
+    const vuln_id = `CVE-${recentYear}-${faker.random.number({min: 1000, max: 99999})}`;
+    const source = faker.random.arrayElement(['Clair', 'Drutiny']);
+    const created = faker.date.between('2019-10-01 00:00:00', '2020-03-31 23:59:59').toUTCString();
+    const associatedPackage = faker.random.arrayElement(packages);
+    const version = `${faker.random.number(4)}.${faker.random.number(9)}.${faker.random.number(49)}`;
+    const fixedVersion = `${version}+deb8u${faker.random.number(9)}`;
+    const severity = faker.random.arrayElement(['Unknown', 'Negligible', 'Low', 'Medium', 'High', 'Critical']);
+    const description = faker.lorem.paragraph();
+    const links = `https://security-tracker.debian.org/tracker/${vuln_id}`;
+    const deleted = '0000-00-00 00:00:00';
+    const severityScore = `0.${faker.random.number({min:1, max:9})}`;
+    const data = "{hello: 'world'}";
+
+    return {
+        id: `${faker.random.number(9999999)}`,
+        identifier: vuln_id,
+        source: source,
+        status: mocks.TaskStatusType(),
+        associatedPackage,
+        version,
+        fixedVersion,
+        severity,
+        description,
+        links,
+        created,
+        deleted,
+        severityScore,
+        data
+    };
+};
+
+mocks.Problems = () => generator(mocks.Problem, 1, 50);
+
+mocks.ProblemMutation = (schema) => {
+    return Array.from({
+        length: faker.random.number({
+            min: 1,
+            max: 500,
+        }),
+    }).map(() => {
+        let temp = schema();
+        return (
+            `problem${faker.random.number(1000000)}: addProblem(input: ${JSON.stringify(temp, 2, null)}) { identifier }`
+        );
+    });
 };
 
 //
