@@ -53,7 +53,9 @@
           "discountFixed": 0,
           "discountPercentage": 0,
           "extraFixed": 1517,
-          "extraPercentage": 0
+          "extraPercentage": 0,
+          "min": 0,
+          "max": 0
         },
         {
           "id": "18",
@@ -88,7 +90,9 @@
           "discountFixed": 0,
           "discountPercentage": 0,
           "extraFixed": 540,
-          "extraPercentage": 0
+          "extraPercentage": 0,
+          "min": 0,
+          "max": 0
         }
       ],
       "projects": [

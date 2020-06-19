@@ -60,7 +60,7 @@ const BillingGroup = ({ billingGroupCosts }) => {
 
         {
           modifiers.map(
-            ({ id, startDate, endDate, discountFixed, discountPercentage, extraFixed, extraPercentage, customerComments, adminComments, weight }, index) => (
+            ({ id, startDate, endDate, discountFixed, discountPercentage, extraFixed, extraPercentage, min, max, customerComments, adminComments, weight }, index) => (
               <div key={`${index}-${id}`} className="data-row">
                 <div className="formula">{adminComments}</div>
                 <div className="value">
@@ -68,6 +68,8 @@ const BillingGroup = ({ billingGroupCosts }) => {
                   {discountPercentage !== 0 ? (`- ${discountPercentage}%`) : ''}
                   {extraFixed !== 0 ? (`+ ${extraFixed}`) : ''}
                   {extraPercentage !== 0 ? (`+ ${extraPercentage}%`) : ''}
+                  {min !== 0 ? (`Minimum: ${min}`) : ''}
+                  {max !== 0 ? (`Maximum: ${max}`) : ''}
                 </div>
               </div>
             ))

@@ -1,6 +1,14 @@
-import React, { useState } from 'react';
+import * as R from 'ramda';
+import React, { useState, useEffect } from 'react';
 import css from 'styled-jsx/css';
 import Button from 'components/Button';
+
+import { useMutation } from '@apollo/react-hooks';
+
+import AddBillingModifierMutation from '../../lib/mutation/AddBillingModifier';
+import UpdateBillingModifierMutation from 'lib/mutation/UpdateBillingModifier';
+import AllBillingModifiersQuery from 'lib/query/AllBillingModifiers';
+import BillingGroupCostsQuery from 'lib/query/BillingGroupCosts';
 
 import moment from 'moment';
 
@@ -9,27 +17,121 @@ import { DateRangePicker, START_DATE, END_DATE } from 'react-nice-dates'
 
 import 'react-nice-dates/build/style.css'
 
-const BillingModifierForm = ({group, submitHandler}) => {
+const BillingModifierForm = ({group, editBillingModifier, editHandler}) => {
+
+  const getModifierType = ({discountFixed, discountPercentage, extraFixed, extraPercentage, min, max}) => {
+    if(discountFixed !== 0){
+      return 'discountFixed'
+    }
+
+    if (discountPercentage !== 0) {
+      return 'discountPercentage'
+    }
+    
+    if(extraFixed !== 0){
+      return 'extraFixed'
+    }
+
+    if(extraPercentage !== 0){
+      return 'extraPercentage'
+    }
+
+    if(min !== 0){
+      return 'min'
+    }
+
+    if(max !== 0){
+      return 'max'
+    }
+
+    return '';
+  }
+
+  const getModifierValue = ({discountFixed, discountPercentage, extraFixed, extraPercentage, min, max}) => {
+    if(discountFixed !== 0){
+      return discountFixed
+    }
+
+    if (discountPercentage !== 0) {
+      return discountPercentage
+    }
+    
+    if(extraFixed !== 0){
+      return extraFixed
+    }
+
+    if(extraPercentage !== 0){
+      return extraPercentage
+    }
+
+    if(min !== 0){
+      return min
+    }
+
+    if(max !== 0){
+      return max
+    }
+
+    return '';
+  }
 
   const defaultValues = {
-    startDate: '',
-    endDate: '',
-    modifierType: 'discountFixed',
-    modifierValue: '',
-    customerComments: '',
-    adminComments: '',
-    weight: 0,
+    startDate: !R.isEmpty(editBillingModifier) ? editBillingModifier.startDate : '',
+    endDate: !R.isEmpty(editBillingModifier) ? editBillingModifier.endDate : '',
+    modifierType: !R.isEmpty(editBillingModifier) ? getModifierType(editBillingModifier) : 'discountFixed',
+    modifierValue: !R.isEmpty(editBillingModifier) ? getModifierValue(editBillingModifier) : '',
+    customerComments: !R.isEmpty(editBillingModifier) ? editBillingModifier.customerComments : '',
+    adminComments: !R.isEmpty(editBillingModifier) ? editBillingModifier.adminComments : '',
+    weight: !R.isEmpty(editBillingModifier) ? editBillingModifier.weight : 0,
   };
   const [values, setValues] = useState(defaultValues);
+
+  useEffect(() => {
+    setValues(defaultValues)
+  }, [editBillingModifier])
 
   const handleChange = e => {
     const {name, value} = e.target;
     setValues({...values, [name]: value});
   }
 
+  const [addBillingModifier] = useMutation(
+    AddBillingModifierMutation,
+    {
+      update(cache, { data: { addBillingModifier } }){
+        
+        const variables = { input: { name: group } };
+        const { allBillingModifiers } = cache.readQuery({ query: AllBillingModifiersQuery, variables});
+        const data = { allBillingModifiers: [...allBillingModifiers, {...addBillingModifier}] };
+
+        cache.writeQuery({ query: AllBillingModifiersQuery, variables, data });    
+      }
+    }
+  );
+
+  const [updateModifier] = useMutation(
+    UpdateBillingModifierMutation,
+    {
+      update(cache, { data: { updateBillingModifier } }){
+        const variables = { input: { name: group } };
+        const { allBillingModifiers } = cache.readQuery({ query: AllBillingModifiersQuery, variables});
+        const { id, weight } = updateBillingModifier;
+
+        const idx = allBillingModifiers.findIndex(({id}) => id === id );
+        
+        if(allBillingModifiers[idx].weight !== weight){
+          const data = { allBillingModifiers: allBillingModifiers.map(obj => id === obj.id ? updateBillingModifier : obj) };
+          cache.writeQuery({ query: AllBillingModifiersQuery, variables, data });
+        }
+        
+        if(updateBillingModifier){
+          editHandler({})
+        }
+      }
+    }
+  );
 
   const isFormValid = values.startDate !== '' && values.endDate !== '' && values.modifierType && values.modifierValue && values.adminComments !== '';
-
 
   const formSubmitHandler = () => {
     const variables = { 
@@ -40,13 +142,43 @@ const BillingModifierForm = ({group, submitHandler}) => {
       discountPercentage: values.modifierType === 'discountPercentage' ? parseFloat(values.modifierValue) : 0, 
       extraFixed: values.modifierType === 'extraFixed' ? parseFloat(values.modifierValue) : 0,
       extraPercentage: values.modifierType === 'extraPercentage' ? parseFloat(values.modifierValue) : 0,
+      min: values.modifierType === 'min' ? parseFloat(values.modifierValue) : 0,
+      max: values.modifierType === 'max' ? parseFloat(values.modifierValue) : 0,
       customerComments: values.customerComments,
       adminComments: values.adminComments,
       weight: values.weight !== 0 ? parseInt(values.weight): 0
     };
 
-    submitHandler(variables)
+    // const optimisticResponse = {
+    //   addBillingModifier: {
+    //     ...variables,
+    //     __typename: "BillingModifier",
+    //   }
+    // };
+
+    if(R.isEmpty(editBillingModifier)){
+      addBillingModifier({ variables: { input: {...variables } } })
+    }else{
+
+      const optimisticResponse = {
+        updateBillingModifier: {
+          ...editBillingModifier,
+          ...variables,
+          __typename: "BillingModifier",
+          group: {
+            ...editBillingModifier.group,
+            type:'billing',
+            __typename: "BillingGroup"
+          }
+        }
+      };
+
+      const editVariables = { input: { id: editBillingModifier.id, patch: { ...variables }} };
+      updateModifier({variables: editVariables, optimisticResponse });
+    }
   }
+
+
 
   return (
     <div>
@@ -60,6 +192,7 @@ const BillingModifierForm = ({group, submitHandler}) => {
             className={'input' + (focus === START_DATE ? ' -focused' : '')}
             placeholder='Start date (YYYY-MM-DD)'
             onChange={handleChange}
+            value={values.startDate}
           />
           <span className='date-range_arrow' />
           <input
@@ -68,6 +201,7 @@ const BillingModifierForm = ({group, submitHandler}) => {
             className={'input' + (focus === END_DATE ? ' -focused' : '')}
             placeholder='End date (YYYY-MM-DD)'
             onChange={handleChange}
+            value={values.endDate}
           />
         </div>
       </div>
@@ -81,12 +215,15 @@ const BillingModifierForm = ({group, submitHandler}) => {
           aria-labelledby="modifierType"
           label='Modifier Type'
           className="modifierInput"
+          value={values.modifierType}
         >
           {[
             {name: 'Discount: Fixed', value: 'discountFixed'}, 
             {name: 'Discount: Percentage (0-100)', value: 'discountPercentage'},
             {name: 'Extra: Fixed', value: 'extraFixed'}, 
-            {name: 'Extra: Percentage (0-100)', value: 'extraPercentage'} 
+            {name: 'Extra: Percentage (0-100)', value: 'extraPercentage'},
+            {name: 'Minimum Amount', value: 'min'},
+            {name: 'Maximum Amount', value: 'max'}
           ].map(modifier => (
             <option key={`${modifier.name}-${modifier.value}`} value={modifier.value}>
               {modifier.name}
@@ -152,7 +289,7 @@ const BillingModifierForm = ({group, submitHandler}) => {
       </div>
   
       <div className="btnContainer">
-        <Button disabled={!isFormValid} action={formSubmitHandler}>Add</Button>
+        <Button disabled={!isFormValid} action={formSubmitHandler}>{R.isEmpty(editBillingModifier) ? 'Add' : 'Submit Changes' } </Button>
       </div>
 
       <style jsx>{`

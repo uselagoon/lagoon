@@ -764,7 +764,7 @@ describe('Billing Calculations #only-billing-calculations', () => {
     });
   });
 
-  describe('Billing Cost Modifiers', () => {
+  describe('Billing Cost Modifiers #modifiers', () => {
     beforeAll(async () => {
       await initializeGraphQL();
     });
@@ -934,6 +934,90 @@ describe('Billing Calculations #only-billing-calculations', () => {
           dev: 1.67
         },
         total: 2083.46 // 1041.73 before extra
+      };
+
+      expect(result).toMatchObject(expected);
+    });
+
+    it('Total Costs with `max` modifier. (100). #modifiers, #max', () => {
+      // Arrange
+      const projects = [
+        {
+          availability: 'STANDARD',
+          month: '11',
+          year: '2019',
+          hits: 1000000,
+          storageDays: 10000,
+          prodHours: 720,
+          devHours: 1500
+        },
+        {
+          availability: 'STANDARD',
+          month: '11',
+          year: '2019',
+          hits: 1000000,
+          storageDays: 10000,
+          prodHours: 720,
+          devHours: 1500
+        }
+      ];
+
+      // Act
+      const result = getProjectsCosts('USD', projects, [
+        { max: 100 }
+      ]);
+
+      // Assert
+      const expected = {
+        hitCost: 324,
+        storageCost: 656.01,
+        environmentCost: {
+          prod: 60.05,
+          dev: 1.67
+        },
+        total: 100 // 1041.73 before extra
+      };
+
+      expect(result).toMatchObject(expected);
+    });
+
+    it('Total Costs with `min` modifier. (1000). #modifiers, #min', () => {
+      // Arrange
+      const projects = [
+        {
+          availability: 'STANDARD',
+          month: '06',
+          year: '2020',
+          hits: 1,
+          storageDays: 1,
+          prodHours: 0,
+          devHours: 0
+        },
+        {
+          availability: 'STANDARD',
+          month: '06',
+          year: '2020',
+          hits: 0,
+          storageDays: 1,
+          prodHours: 0,
+          devHours: 0
+        }
+      ];
+
+      // Act
+      const result = getProjectsCosts('USD', projects, [
+        { min: 1000 }
+      ]);
+
+      // Assert
+      const expected = {
+        hitCost: 69,
+        storageCost: 0,
+        environmentCost: {
+          prod: 0,
+          dev: 0
+        },
+        total: 1000 // 1041.73 before extra
       };
 
       expect(result).toMatchObject(expected);
@@ -1176,9 +1260,6 @@ describe('Billing Calculations #only-billing-calculations', () => {
       expect(currMonthBillingGroupModifiers.length).toBe(2);
       expect(nextYearBillingGroupModifiers.length).toBe(1);
     });
-
-
-
 
     it('Given a single, or multiple, Billing modifiers that would generage a negative total, ensure it does not go below 0 (zero). #belowZero', async() => {
 

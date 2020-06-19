@@ -1,45 +1,20 @@
+import * as R from 'ramda';
 import React from 'react';
 import css from 'styled-jsx/css';
-import { Mutation } from 'react-apollo';
-
 import { color } from 'lib/variables';
-import AddBillingModifierMutation from '../../lib/mutation/AddBillingModifier';
-import AllBillingModifiersQuery from 'lib/query/AllBillingModifiers';
-import BillingGroupCostsQuery from 'lib/query/BillingGroupCosts';
+
 
 import BillingModifierForm from "./BillingModifierForm";
 
-const AddBillingModifier = ({ group, month }) => {
+const AddBillingModifier = ({ group, month, editBillingModifier, editHandler }) => {
 
   return(
     <div className="addBillingModifier">
 
-      <Mutation 
-        mutation={AddBillingModifierMutation} 
-        refetchQueries={[
-          { query: AllBillingModifiersQuery, variables: { input: { name: group } } },
-          { query: BillingGroupCostsQuery, variables: { input: { name: group }, month }}
-        ]}
-      >
-        {(addBillingModifier, { loading, called, error, data }) => {
-
-          const addBillingModifierHandler = (input) => { 
-            addBillingModifier({ variables: { input } });
-          };
-
-          if (!error && called && loading) {
-            return <div>Adding Billing Modifier...</div>;
-          }
-
-          return (
-            <div className="addNew">
-              <h2>Add Billing Modifier</h2>
-              { error ? <div className="error">{error.message.replace('GraphQL error:', '').trim()}</div> : "" } 
-              <BillingModifierForm group={group} submitHandler={addBillingModifierHandler} />
-            </div>
-          );
-        }}
-      </Mutation>
+      <div className="addNew">
+        <h2>{R.isEmpty(editBillingModifier) ? 'Add' : 'Edit' } Billing Modifier</h2>
+        <BillingModifierForm group={group} editBillingModifier={editBillingModifier} editHandler={editHandler} />
+      </div>
 
       <style jsx>{`
         .addBillingModifier {
