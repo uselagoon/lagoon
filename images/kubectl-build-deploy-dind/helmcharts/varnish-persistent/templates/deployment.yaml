@@ -53,6 +53,9 @@ spec:
             - name: http
               containerPort: 8080
               protocol: TCP
+            - name: controlport
+              containerPort: 6082
+              protocol: TCP
           livenessProbe:
             tcpSocket:
               port: http
