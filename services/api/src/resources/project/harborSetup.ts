@@ -219,7 +219,7 @@ async function resetHarborWebhook(sqlClient: MariaClient, harborClient, lagoonPr
   return true
 }
 
-async function deleteProject (lagoonProjectName) => {
+async function deleteProject(lagoonProjectName: string) {
   // Delete harbor project
 
   // Get existing harbor project's id
