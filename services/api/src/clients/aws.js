@@ -1,5 +1,3 @@
-// @flow
-
 const R = require('ramda');
 const S3 = require('aws-sdk/clients/s3');
 

@@ -2,20 +2,20 @@ import * as R from 'ramda';
 import Api, { ClientConfiguration } from 'kubernetes-client';
 const Client = Api.Client1_13;
 
-const { logger } = require('@lagoon/commons/src/local-logging');
-const {
+import { logger } from '@lagoon/commons/dist/local-logging';
+import {
   getOpenShiftInfoForProject,
   updateTask
-} = require('@lagoon/commons/src/api');
-const {
+} from '@lagoon/commons/dist/api';
+import {
   sendToLagoonLogs,
   initSendToLagoonLogs
-} = require('@lagoon/commons/src/logs');
-const {
+} from '@lagoon/commons/dist/logs';
+import {
   consumeTasks,
   initSendToLagoonTasks,
   createTaskMonitor
-} = require('@lagoon/commons/src/tasks');
+} from '@lagoon/commons/dist/tasks';
 
 const lagoonApiRoute = R.compose(
   // Default to the gateway IP in virtualbox, so pods running in minishift can
@@ -219,7 +219,7 @@ const createJob = async (client, namespace, jobName, taskPodSpec) => {
 const performUpdateTask = async (taskId, job, task, project) => {
   try {
     const convertDateFormat = R.init;
-    const dateOrNull = R.unless(R.isNil, convertDateFormat);
+    const dateOrNull = R.unless(R.isNil, convertDateFormat) as any;
 
     const updatedTask = await updateTask(taskId, {
       remoteId: job.body.metadata.uid,
