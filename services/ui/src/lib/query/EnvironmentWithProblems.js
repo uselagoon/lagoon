@@ -1,5 +1,5 @@
 import gql from 'graphql-tag';
-import BackupsFragment from 'lib/fragment/Backup';
+import ProblemsFragment from 'lib/fragment/Problem';
 
 export default gql`
   query getEnvironment($openshiftProjectName: String!) {
@@ -14,10 +14,10 @@ export default gql`
         name
         problemsUi
       }
-      backups {
-        ...backupFields
+      problems {
+        ...problemFields
       }
     }
   }
-  ${BackupsFragment}
+  ${ProblemsFragment}
 `;
