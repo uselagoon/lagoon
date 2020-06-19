@@ -110,7 +110,7 @@ objects:
               persistentVolumeClaim:
                 claimName: ${SERVICE_NAME}
             - name: ${PERSISTENT_STORAGE_NAME}-twig
-              type: emptyDir
+              emptyDir: {}
           priorityClassName: lagoon-priority-${ENVIRONMENT_TYPE}
           containers:
             - image: ${NGINX_SERVICE_IMAGE}

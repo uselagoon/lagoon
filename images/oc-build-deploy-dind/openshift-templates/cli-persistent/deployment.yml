@@ -104,7 +104,7 @@ objects:
                 defaultMode: 420
                 secretName: lagoon-sshkey
             - name: ${PERSISTENT_STORAGE_NAME}-twig
-              type: emptyDir
+              emptyDir: {}
           priorityClassName: lagoon-priority-${ENVIRONMENT_TYPE}
           containers:
             - image: ${SERVICE_IMAGE}
