@@ -242,6 +242,8 @@ export const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
   },
 
   deleteProject: async (lagoonProjectName) => {
+    const harborRepos = []
+
     // Get existing harbor project's id
     try {
       const res = await harborClient.get(`projects?name=${lagoonProjectName}`)
@@ -263,8 +265,7 @@ export const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
     // Check for existing repositories within the project
     try {
       const res = await harborClient.get(`search?name=${lagoonProjectName}`)
-      const harborRepos = []
-      for (i = 0; i < res.repository.length; i++) {
+      for (var i = 0; i < res.repository.length; i++) {
         if (res.repository[i].project_name == lagoonProjectName){
           harborRepos.push(res.repository[i])
         }
@@ -275,7 +276,7 @@ export const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
 
     // Delete any repositories within this project
     try {
-      for (i = 0; i < harborRepos.length; i++) {
+      for (var i = 0; i < harborRepos.length; i++) {
         var res = await harborClient.delete(`repositories/${harborRepos[i].repository_name}`)
       }
     } catch (err) {
