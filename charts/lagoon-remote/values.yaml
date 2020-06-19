@@ -65,6 +65,12 @@ dockerHost:
     - key: lagoon/build
       effect: PreferNoSchedule
       operator: Exists
+    - key: lagoon.sh/build
+      effect: NoSchedule
+      operator: Exists
+    - key: lagoon.sh/build
+      effect: PreferNoSchedule
+      operator: Exists
 
 
   affinity: {}

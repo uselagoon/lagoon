@@ -8,8 +8,8 @@ ENV LAGOON=cli
 
 # Defining Versions - Composer
 # @see https://getcomposer.org/download/
-ENV COMPOSER_VERSION=1.10.1 \
-  COMPOSER_HASH_SHA256=1831f266580f221189dc04d4b58d7fc50c934ffc3a0eca89ecb4a53aa44867e2
+ENV COMPOSER_VERSION=1.10.7 \
+  COMPOSER_HASH_SHA256=b94b872729668de5b5fbf62f16ff588d2a23480dda88c0e45cb43b721b75ae29
 
 RUN apk add --no-cache git \
         unzip \

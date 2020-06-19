@@ -1,6 +1,4 @@
-// @flow
-
-const gql = require('./util/gql');
+const { gql } = require('./util/gql');
 
 // TODO: Split up this file
 
@@ -84,6 +82,7 @@ const typeDefs = gql`
   enum ProjectAvailability {
     STANDARD
     HIGH
+    POLYSITE
   }
 
   enum GroupRole {
@@ -101,6 +100,95 @@ const typeDefs = gql`
     USD
     CHF
     ZAR
+  }
+
+  enum ProblemSeverityRating {
+    NONE
+    UNKNOWN
+    NEGLIGIBLE
+    LOW
+    MEDIUM
+    HIGH
+    CRITICAL
+  }
+
+  scalar SeverityScore
+
+  type Problem {
+    id: Int
+    environment: Environment
+    severity: ProblemSeverityRating
+    severityScore: SeverityScore
+    identifier: String
+    service: String
+    source: String
+    associatedPackage: String
+    description: String
+    links: String
+    version: String
+    fixedVersion: String
+    data: String
+    created: String
+    deleted: String
+  }
+
+  type ProblemHarborScanMatch {
+    id: Int
+    name: String
+    description: String
+    defaultLagoonProject: String
+    defaultLagoonEnvironment: String
+    defaultLagoonService: String
+    regex: String
+  }
+
+  input AddProblemHarborScanMatchInput {
+    name: String!
+    description: String!
+    defaultLagoonProject: String
+    defaultLagoonEnvironment: String
+    defaultLagoonService: String
+    regex: String!
+  }
+
+  input DeleteProblemHarborScanMatchInput {
+    id: Int!
+  }
+
+  input AddProblemInput {
+    id: Int
+    environment: Int!
+    severity: ProblemSeverityRating
+    severityScore: SeverityScore
+    identifier: String!
+    service: String
+    source: String!
+    associatedPackage: String
+    description: String
+    links: String
+    version: String
+    fixedVersion: String
+    data: String!
+    created: String
+  }
+
+
+  input BulkProblem {
+    severity: ProblemSeverityRating
+    severityScore: SeverityScore
+    identifier: String
+    data: String
+  }
+
+  input DeleteProblemInput {
+    environment: Int!
+    identifier: String!
+  }
+
+  input DeleteProblemsFromSourceInput {
+    environment: Int!
+    source: String!
+    service: String!
   }
 
   type File {
@@ -163,6 +251,7 @@ const typeDefs = gql`
     currency: String
     billingSoftware: String
     modifiers: [BillingModifier]
+    uptimeRobotStatusPageId: String
   }
 
   type Openshift {
@@ -175,6 +264,7 @@ const typeDefs = gql`
     sshHost: String
     sshPort: String
     created: String
+    monitoringConfig: JSON
   }
 
   type NotificationMicrosoftTeams {
@@ -327,6 +417,10 @@ const typeDefs = gql`
     """
     storageCalc: Int
     """
+    Should the Problems UI be available for this Project (\`1\` or \`0\`)
+    """
+    problemsUi: Int
+    """
     Reference to OpenShift Object this Project should be deployed to
     """
     openshift: Openshift
@@ -363,6 +457,10 @@ const typeDefs = gql`
     Which groups are directly linked to project
     """
     groups: [GroupInterface]
+    """
+    Metadata key/values stored against a project
+    """
+    metadata: JSON
   }
 
   """
@@ -448,6 +546,7 @@ const typeDefs = gql`
     backups(includeDeleted: Boolean): [Backup]
     tasks(id: Int): [Task]
     services: [EnvironmentService]
+    problems(severity: [ProblemSeverityRating]): [Problem]
   }
 
   type EnvironmentHitsMonth {
@@ -542,6 +641,8 @@ const typeDefs = gql`
     discountPercentage: Float
     extraFixed: Float
     extraPercentage: Float
+    min: Float
+    max: Float
     customerComments: String
     adminComments: String
     weight: Int
@@ -552,6 +653,22 @@ const typeDefs = gql`
     project: String!
     execute: Boolean
   }
+
+  input MetadataKeyValue {
+    key: String!
+    value: String
+  }
+
+  input UpdateMetadataInput {
+    id: Int!
+    patch: MetadataKeyValue!
+  }
+
+  input RemoveMetadataInput {
+    id: Int!
+    key: String!
+  }
+
 
   type Query {
     """
@@ -591,6 +708,10 @@ const typeDefs = gql`
     """
     allProjects(createdAfter: String, gitUrl: String, order: ProjectOrderType): [Project]
     """
+    Returns all Project Objects matching metadata filters
+    """
+    projectsByMetadata(metadata: [MetadataKeyValue]): [Project]
+    """
     Returns all OpenShift Objects
     """
     allOpenshifts: [Openshift]
@@ -622,6 +743,10 @@ const typeDefs = gql`
     Returns LAGOON_VERSION
     """
     lagoonVersion: JSON
+    """
+    Returns all ProblemHarborScanMatchers
+    """
+    allProblemHarborScanMatchers: [ProblemHarborScanMatch]
   }
 
   # Must provide id OR name
@@ -685,6 +810,7 @@ const typeDefs = gql`
     storageCalc: Int
     developmentEnvironmentsLimit: Int
     privateKey: String
+    problemsUi: Int
   }
 
   input AddEnvironmentInput {
@@ -816,6 +942,7 @@ const typeDefs = gql`
     projectUser: String
     sshHost: String
     sshPort: String
+    monitoringConfig: JSON
   }
 
   input DeleteOpenshiftInput {
@@ -922,6 +1049,7 @@ const typeDefs = gql`
     openshift: Int
     openshiftProjectPattern: String
     developmentEnvironmentsLimit: Int
+    problemsUi: Int
   }
 
   input UpdateProjectInput {
@@ -937,6 +1065,7 @@ const typeDefs = gql`
     projectUser: String
     sshHost: String
     sshPort: String
+    monitoringConfig: JSON
   }
 
   input UpdateOpenshiftInput {
@@ -1098,7 +1227,7 @@ const typeDefs = gql`
     """
     endDate: String!
     """
-    The amount that the total monthly bill should be discounted - Format (Int)
+    The amount that the total monthly bill should be discounted - Format (Float)
     """
     discountFixed: Float
     """
@@ -1106,13 +1235,21 @@ const typeDefs = gql`
     """
     discountPercentage: Float
     """
-    The amount of exta cost that should be added to the total- Format (Int)
+    The amount of exta cost that should be added to the total- Format (Float)
     """
     extraFixed: Float
     """
     The percentage the total monthly bill should be added - Format (0-100)
     """
     extraPercentage: Float
+    """
+    The minimum amount of the invoice applied to the total- Format (Float)
+    """
+    min: Float
+    """
+    The maximum amount of the invoice applied to the total- Format (Float)
+    """
+    max: Float
     """
     Customer comments are visible to the customer
     """
@@ -1135,6 +1272,8 @@ const typeDefs = gql`
     discountPercentage: Float
     extraFixed: Float
     extraPercentage: Float
+    min: Float
+    max: Float
     customerComments: String
     adminComments: String
     weight: Int
@@ -1187,6 +1326,7 @@ const typeDefs = gql`
     name: String!
     currency: Currency!
     billingSoftware: String
+    uptimeRobotStatusPageId: String
   }
 
   input ProjectBillingGroupInput {
@@ -1198,6 +1338,7 @@ const typeDefs = gql`
     name: String!
     currency: Currency
     billingSoftware: String
+    uptimeRobotStatusPageId: String
   }
 
   input UpdateBillingGroupInput {
@@ -1286,6 +1427,11 @@ const typeDefs = gql`
     updateDeployment(input: UpdateDeploymentInput): Deployment
     cancelDeployment(input: CancelDeploymentInput!): String
     addBackup(input: AddBackupInput!): Backup
+    addProblem(input: AddProblemInput!): Problem
+    addProblemHarborScanMatch(input: AddProblemHarborScanMatchInput!): ProblemHarborScanMatch
+    deleteProblem(input: DeleteProblemInput!): String
+    deleteProblemsFromSource(input: DeleteProblemsFromSourceInput!): String
+    deleteProblemHarborScanMatch(input: DeleteProblemHarborScanMatchInput!): String
     deleteBackup(input: DeleteBackupInput!): String
     deleteAllBackups: String
     addRestore(input: AddRestoreInput!): Restore
@@ -1330,6 +1476,8 @@ const typeDefs = gql`
     updateProjectBillingGroup(input: ProjectBillingGroupInput): Project
     removeProjectFromBillingGroup(input: ProjectBillingGroupInput): Project
     removeGroupsFromProject(input: ProjectGroupsInput!): Project
+    updateProjectMetadata(input: UpdateMetadataInput!): Project
+    removeProjectMetadataByKey(input: RemoveMetadataInput!): Project
 
     addBillingModifier(input: AddBillingModifierInput!): BillingModifier
     updateBillingModifier(input: UpdateBillingModifierInput!): BillingModifier

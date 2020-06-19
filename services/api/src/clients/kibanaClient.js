@@ -1,5 +1,3 @@
-// @flow
-
 const got = require('got');
 
 const { LOGSDB_ADMIN_PASSWORD } = process.env;

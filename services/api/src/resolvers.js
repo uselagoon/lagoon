@@ -1,7 +1,19 @@
-// @flow
-
 const GraphQLDate = require('graphql-iso-date');
 const GraphQLJSON = require('graphql-type-json');
+
+const {
+  getProblemsByEnvironmentId,
+  addProblem,
+  deleteProblem,
+  deleteProblemsFromSource,
+  getProblemHarborScanMatches,
+  addProblemHarborScanMatch,
+  deleteProblemHarborScanMatch,
+} = require('./resources/problem/resolvers');
+
+const {
+  SeverityScoreType
+} = require('./resources/problem/types');
 
 const {
   getLagoonVersion,
@@ -106,10 +118,13 @@ const {
   getProjectByName,
   getProjectByGitUrl,
   getProjectByEnvironmentId,
+  getProjectsByMetadata,
   getAllProjects,
   updateProject,
   deleteAllProjects,
-  getProjectUrl
+  getProjectUrl,
+  updateProjectMetadata,
+  removeProjectMetadataByKey
 } = require('./resources/project/resolvers');
 
 const {
@@ -182,13 +197,7 @@ const {
   deleteEnvVariable,
 } = require('./resources/env-variables/resolvers');
 
-/* ::
-
-import type {ResolversObj} from './resources';
-
-*/
-
-const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
+const resolvers = {
   GroupRole: {
     GUEST: 'guest',
     REPORTER: 'reporter',
@@ -231,6 +240,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     backups: getBackupsByEnvironmentId,
     envVariables: getEnvVarsByEnvironmentId,
     services: getEnvironmentServicesByEnvironmentId,
+    problems: getProblemsByEnvironmentId,
   },
   Deployment: {
     environment: getEnvironmentByDeploymentId,
@@ -242,7 +252,6 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
   },
   Notification: {
     __resolveType(obj) {
-      // $FlowFixMe
       switch (obj.type) {
         case 'slack':
           return 'NotificationSlack';
@@ -284,9 +293,16 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     allProjectsInGroup: getAllProjectsInGroup,
     billingGroupCost: getBillingGroupCost,
     allBillingGroupsCost: getAllBillingGroupsCost,
-    allBillingModifiers: getBillingModifiers
+    allBillingModifiers: getBillingModifiers,
+    allProblemHarborScanMatchers: getProblemHarborScanMatches,
+    projectsByMetadata: getProjectsByMetadata
   },
   Mutation: {
+    addProblem,
+    addProblemHarborScanMatch,
+    deleteProblem,
+    deleteProblemsFromSource,
+    deleteProblemHarborScanMatch,
     addOrUpdateEnvironment,
     updateEnvironment,
     deleteEnvironment,
@@ -319,6 +335,8 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
     updateProject,
     deleteProject,
     deleteAllProjects,
+    updateProjectMetadata,
+    removeProjectMetadataByKey,
     addSshKey,
     updateSshKey,
     deleteSshKey,
@@ -384,6 +402,7 @@ const resolvers /* : { [string]: ResolversObj | typeof GraphQLDate } */ = {
   },
   Date: GraphQLDate,
   JSON: GraphQLJSON,
+  SeverityScore: SeverityScoreType,
 };
 
 module.exports = resolvers;

@@ -1,0 +1,5 @@
+Thank you for installing {{ .Chart.Name }}.
+
+Your release is named {{ .Release.Name }}.
+
+Your logs are now being sent to {{ .Values.elasticsearchScheme }}://{{ .Values.elasticsearchHost }}:{{ .Values.elasticsearchHostPort }}

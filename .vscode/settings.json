@@ -1,12 +1,10 @@
 // Place your settings in this file to overwrite default and user settings.
 {
   "eslint.workingDirectories": [
-    "./cli",
     "./node-packages/commons",
     "./services/auth-server"
   ],
   "git.ignoreLimitWarning": true,
   "javascript.validate.enable": false,
-  "files.trimTrailingWhitespace": true,
-  "flow.useNPMPackagedFlow": true
+  "files.trimTrailingWhitespace": true
 }

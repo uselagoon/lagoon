@@ -14,7 +14,9 @@
     "serve-storybook": "storybook-server -s ./src"
   },
   "dependencies": {
-    "@apollo/react-hooks": "^3.1.3",
+    "@apollo/react-hooks": "^3.1.5",
+    "@emotion/core": "^10.0.28",
+    "@emotion/styled": "^10.0.27",
     "@zeit/next-css": "^1.0.1",
     "apollo-cache-inmemory": "^1.3.9",
     "apollo-client": "^2.4.5",
@@ -37,6 +39,7 @@
     "ramda": "^0.25.0",
     "react": "^16.8.4",
     "react-apollo": "^2.1.11",
+    "react-beautiful-dnd": "^13.0.0",
     "react-copy-to-clipboard": "^5.0.1",
     "react-dom": "^16.8.4",
     "react-highlight-words": "^0.14.0",
