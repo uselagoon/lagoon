@@ -6,6 +6,9 @@ metadata:
   labels:
     {{- include "lagoon-logging.labels" . | nindent 4 }}
 spec:
-  fluentd: {}
+  fluentd:
+    security:
+      podSecurityContext:
+        runAsUser: 100
   fluentbit: {}
   controlNamespace: {{ .Release.Namespace | quote }}
