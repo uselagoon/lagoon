@@ -190,6 +190,7 @@ objects:
     CLAIR_HEALTH_CHECK_SERVER_URL: "http://harborclair:6061"
     WITH_TRIVY: "true"
     TRIVY_ADAPTER_URL: "harbor-trivy:8080"
+    ROBOT_TOKEN_DURATION: 500
     HTTP_PROXY: ""
     HTTPS_PROXY: ""
     NO_PROXY: "harbor-core,harbor-jobservice,harbor-database,harborclair,harborclairadapter,harborregistry,harbor-portal,harbor-trivy,127.0.0.1,localhost,.local,.internal"

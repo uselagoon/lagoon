@@ -75,7 +75,7 @@ const requestConfig = {
 const getJWTToken = async () => {
   try {
     const { stdout: jwtToken, stderr } = await exec(
-      'docker-compose exec -T auto-idler /create_jwt.sh',
+      'docker-compose exec -T auto-idler /create_jwt.py',
     );
     if (stderr) {
       throw stderr;
