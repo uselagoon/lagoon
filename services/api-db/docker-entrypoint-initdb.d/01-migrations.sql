@@ -1046,6 +1046,24 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
+  add_monitoring_config_to_openshift()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'openshift'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'monitoring_config'
+    ) THEN
+      ALTER TABLE `openshift`
+      ADD `monitoring_config` varchar(2048);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
   add_additional_harbor_scan_fields_to_environment_problem()
 
   BEGIN
@@ -1168,6 +1186,7 @@ CALL convert_user_ssh_key_usid_to_char();
 CALL add_private_key_to_project();
 CALL add_index_for_environment_backup_environment();
 CALL add_enum_email_microsoftteams_to_type_in_project_notification();
+CALL add_monitoring_config_to_openshift();
 CALL add_standby_production_environment_to_project();
 CALL add_standby_routes_to_project();
 CALL add_production_routes_to_project();

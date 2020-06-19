@@ -251,6 +251,7 @@ const typeDefs = gql`
     currency: String
     billingSoftware: String
     modifiers: [BillingModifier]
+    uptimeRobotStatusPageId: String
   }
 
   type Openshift {
@@ -263,6 +264,7 @@ const typeDefs = gql`
     sshHost: String
     sshPort: String
     created: String
+    monitoringConfig: JSON
   }
 
   type NotificationMicrosoftTeams {
@@ -940,6 +942,7 @@ const typeDefs = gql`
     projectUser: String
     sshHost: String
     sshPort: String
+    monitoringConfig: JSON
   }
 
   input DeleteOpenshiftInput {
@@ -1062,6 +1065,7 @@ const typeDefs = gql`
     projectUser: String
     sshHost: String
     sshPort: String
+    monitoringConfig: JSON
   }
 
   input UpdateOpenshiftInput {
@@ -1322,6 +1326,7 @@ const typeDefs = gql`
     name: String!
     currency: Currency!
     billingSoftware: String
+    uptimeRobotStatusPageId: String
   }
 
   input ProjectBillingGroupInput {
@@ -1333,6 +1338,7 @@ const typeDefs = gql`
     name: String!
     currency: Currency
     billingSoftware: String
+    uptimeRobotStatusPageId: String
   }
 
   input UpdateBillingGroupInput {
