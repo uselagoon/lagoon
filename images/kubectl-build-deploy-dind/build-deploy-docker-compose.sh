@@ -242,7 +242,7 @@ if [[ ( "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ) && ! $TH
     DOCKERFILE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.build.dockerfile false)
 
     # allow to overwrite build dockerfile for this environment and service
-    ENVIRONMENT_DOCKERFILE_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.overwrites.$IMAGE_NAME.build.dockerfile false)
+    ENVIRONMENT_DOCKERFILE_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.overrides.$IMAGE_NAME.build.dockerfile false)
     if [ ! $ENVIRONMENT_DOCKERFILE_OVERRIDE == "false" ]; then
       DOCKERFILE=$ENVIRONMENT_DOCKERFILE_OVERRIDE
     fi
@@ -259,7 +259,7 @@ if [[ ( "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ) && ! $TH
       OVERRIDE_IMAGE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.labels.lagoon\\.image false)
 
       # allow to overwrite image that we pull for this environment and service
-      ENVIRONMENT_IMAGE_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.overwrites.$IMAGE_NAME.image false)
+      ENVIRONMENT_IMAGE_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.overrides.$IMAGE_NAME.image false)
       if [ ! $ENVIRONMENT_IMAGE_OVERRIDE == "false" ]; then
         OVERRIDE_IMAGE=$ENVIRONMENT_IMAGE_OVERRIDE
       fi
@@ -285,7 +285,7 @@ if [[ ( "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ) && ! $TH
       BUILD_CONTEXT=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.build.context .)
 
       # allow to overwrite build context for this environment and service
-      ENVIRONMENT_BUILD_CONTEXT_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.overwrites.$IMAGE_NAME.build.context false)
+      ENVIRONMENT_BUILD_CONTEXT_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.overrides.$IMAGE_NAME.build.context false)
       if [ ! $ENVIRONMENT_BUILD_CONTEXT_OVERRIDE == "false" ]; then
         BUILD_CONTEXT=$ENVIRONMENT_BUILD_CONTEXT_OVERRIDE
       fi
