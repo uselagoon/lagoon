@@ -217,7 +217,8 @@ async function resetHarborWebhook(sqlClient: MariaClient, harborClient, lagoonPr
     return false
   }
   return true
-},
+}
+
 async function deleteProject (lagoonProjectName) => {
   // Delete harbor project
 
