@@ -14,7 +14,7 @@ spec:
       protocol: TCP
       name: http
     - port: 6082
-      targetPort: 6082
+      targetPort: controlport
       protocol: TCP
       name: controlport
   selector:
