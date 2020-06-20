@@ -109,7 +109,7 @@ objects:
             - name: ${SERVICE_NAME}
               persistentVolumeClaim:
                 claimName: ${SERVICE_NAME}
-            - name: ${PERSISTENT_STORAGE_NAME}-twig
+            - name: ${SERVICE_NAME}-twig
               emptyDir: {}
           priorityClassName: lagoon-priority-${ENVIRONMENT_TYPE}
           containers:
@@ -182,7 +182,7 @@ objects:
               volumeMounts:
                 - name: ${SERVICE_NAME}
                   mountPath: ${PERSISTENT_STORAGE_PATH}
-                - name: ${PERSISTENT_STORAGE_NAME}-twig
+                - name: ${SERVICE_NAME}-twig
                   mountPath: ${PERSISTENT_STORAGE_PATH}/php/twig
               resources:
                 requests:
