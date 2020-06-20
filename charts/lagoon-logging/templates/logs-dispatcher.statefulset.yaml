@@ -1,7 +1,6 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  namespace: {{ .Release.Namespace | quote }}
   name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}
   labels:
     {{- include "lagoon-logging.logsDispatcher.labels" . | nindent 4 }}
@@ -47,6 +46,12 @@ spec:
         - containerPort: 24231
           protocol: TCP
           name: metrics
+        - containerPort: 5140
+          protocol: UDP
+          name: application
+        - containerPort: 5141
+          protocol: UDP
+          name: syslog-router
         readinessProbe:
           tcpSocket:
             port: 24224
@@ -59,11 +64,21 @@ spec:
         - mountPath: /fluentd/etc/fluent.conf
           name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}-fluent-conf
           subPath: fluent.conf
+        {{- if .Values.exportLogs }}
+        - mountPath: /fluentd/etc/store.d
+          name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}-store
+        {{- end }}
+        {{- if .Values.lagoonLogs.enabled }}
+        - mountPath: /fluentd/etc/source.d
+          name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}-source-lagoon
+        {{- end }}
         - mountPath: /fluentd/buffer/
           name: buffer
+        - mountPath: /fluentd/tls/
+          name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}-tls
         envFrom:
         - secretRef:
-            name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}
+            name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}-env
         - configMapRef:
             name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}-env
         resources:
@@ -88,6 +103,16 @@ spec:
             path: fluent.conf
           name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}-fluent-conf
         name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}-fluent-conf
+      {{- if .Values.exportLogs }}
+      - configMap:
+          defaultMode: 420
+          name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}-store
+        name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}-store
+      {{- end }}
+      - secret:
+          defaultMode: 420
+          secretName: {{ include "lagoon-logging.logsDispatcher.fullname" . }}-tls
+        name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}-tls
   volumeClaimTemplates:
   - metadata:
       name: buffer

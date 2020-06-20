@@ -249,7 +249,10 @@ objects:
           ssl_version TLSv1_2
           request_timeout 600s
           slow_flush_log_threshold 300s
-          <buffer>
+          log_es_400_reason true
+          # mapping exception ignore. these chunks will be dropped
+          ignore_exceptions ["Fluent::Plugin::ElasticsearchErrorHandler::ElasticsearchError"]
+          <buffer tag,index_name>
             @type file
             path /fluentd/buffer/elasticsearch
             # buffer params (per worker)
@@ -299,7 +302,8 @@ objects:
           "index.refresh_interval" : "5s",
           "number_of_shards": 1,
           "number_of_replicas": 1,
-          "index.routing.allocation.require.box_type": "live"
+          "index.routing.allocation.require.box_type": "live",
+          "index.mapping.ignore_malformed": true
         },
         "mappings" : {
           "dynamic_templates" : [ {

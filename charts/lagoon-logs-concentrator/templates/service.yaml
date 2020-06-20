@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "lagoon-logs-concentrator.fullname" . }}
+  labels:
+    {{- include "lagoon-logs-concentrator.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: forward
+      protocol: TCP
+      name: forward
+  selector:
+    {{- include "lagoon-logs-concentrator.selectorLabels" . | nindent 4 }}

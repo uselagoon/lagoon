@@ -1,7 +1,6 @@
 apiVersion: logging.banzaicloud.io/v1beta1
 kind: ClusterFlow
 metadata:
-  namespace: {{ .Release.Namespace | quote }}
   name: {{ include "lagoon-logging.fullname" . }}
   labels:
     {{- include "lagoon-logging.labels" . | nindent 4 }}
@@ -14,7 +13,13 @@ spec:
       namespaces:
         {{- toYaml . | nindent 6 }}
   {{- end }}
+  {{- with .Values.selectNamespaces }}
+  - select:
+      namespaces:
+        {{- toYaml . | nindent 6 }}
+  {{- else }}
   - select: {}
+  {{- end }}
   filters:
   - tag_normaliser: {}
   outputRefs:

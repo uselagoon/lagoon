@@ -9,8 +9,11 @@ export default gql`
     discountFixed, 
     discountPercentage, 
     extraFixed, 
-    extraPercentage, 
+    extraPercentage,
+    min,
+    max 
     customerComments, 
-    adminComments 
+    adminComments
+    weight
   }
 `;

@@ -8,3 +8,8 @@ tls_acme: true
 insecure: Allow
 service: ''
 annotations: {}
+
+ingressmonitorcontroller:
+  enabled: 'false'
+  interval: '60'
+  alertContacts: 'unconfigured'

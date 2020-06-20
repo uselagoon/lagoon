@@ -13,5 +13,9 @@ spec:
       targetPort: http
       protocol: TCP
       name: http
+    - port: 6082
+      targetPort: controlport
+      protocol: TCP
+      name: controlport
   selector:
     {{- include "varnish-persistent.selectorLabels" . | nindent 4 }}
