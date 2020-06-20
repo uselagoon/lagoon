@@ -426,7 +426,9 @@ services :=       api \
 									backup-handler \
 									broker \
 									broker-single \
+									logs-concentrator \
 									logs-dispatcher \
+									logs-tee \
 									logs-forwarder \
 									logs-db \
 									logs-db-ui \
