@@ -11,7 +11,6 @@ You find [these Files in our GitHub repository](https://github.com/amazeeio/lago
 - `sites/default/*` - These .php and .yml files teach Drupal how to communicate with Lagoon containers both locally and in production. It also provides an easy system for specific overrides in development and production environments. Unlike other Drupal hosting systems, Lagoon never ever injects Drupal settings files into your Drupal. Therefore you can edit them however you like. Like all other files, they contain sensible defaults and some commented parts.
 - `drush/aliases.drushrc.php` - These files are specific to Drush and tell Drush how to talk to the Lagoon GraphQL API in order to learn about all Site Aliases there are.
 - `drush/drushrc.php` - Some sensible defaults for Drush commands.
-- Add `patches` directory if you choose [drupal8-composer-mariadb](../drupal/services/mariadb.md).
 
 ### Update your `.gitignore` Settings
 
