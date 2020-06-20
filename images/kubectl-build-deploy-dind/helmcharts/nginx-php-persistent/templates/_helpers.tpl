@@ -80,3 +80,17 @@ lagoon.sh/prHeadBranch: {{ .Values.prHeadBranch | quote }}
 lagoon.sh/prBaseBranch: {{ .Values.prBaseBranch | quote }}
 {{- end }}
 {{- end -}}
+
+{{/*
+Generate name for twig storage emptyDir
+*/}}
+{{- define "cli-persistent.twig-storage.name" -}}
+{{- printf "%s-twig" .Values.persistentStorage.name }}
+{{- end -}}
+
+{{/*
+Generate path for twig storage emptyDir
+*/}}
+{{- define "cli-persistent.twig-storage.path" -}}
+{{- printf "%s/php/twig" .Values.persistentStorage.path }}
+{{- end -}}
