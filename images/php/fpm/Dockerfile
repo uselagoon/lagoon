@@ -102,6 +102,19 @@ RUN apk add --no-cache fcgi \
     && fix-permissions /app \
     && fix-permissions /etc/ssmtp/ssmtp.conf
 
+
+# Defining Versions - Composer
+# @see https://getcomposer.org/download/
+ENV COMPOSER_VERSION=1.10.7 \
+  COMPOSER_HASH_SHA256=b94b872729668de5b5fbf62f16ff588d2a23480dda88c0e45cb43b721b75ae29
+
+RUN curl -L -o /tmp/composer https://github.com/composer/composer/releases/download/${COMPOSER_VERSION}/composer.phar \
+    && echo "$COMPOSER_HASH_SHA256 /tmp/composer" | sha256sum \
+    && chmod +x /tmp/composer \
+    && php -d memory_limit=-1 /tmp/composer create-project amazeeio/healthz-php /healthz-php \
+    && rm /tmp/composer
+
+
 EXPOSE 9000
 
 ENV AMAZEEIO_DB_HOST=mariadb \
