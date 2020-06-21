@@ -755,10 +755,8 @@ ROUTES=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get routes -l "ac
 # Active / Standby routes
 ACTIVE_ROUTES=""
 STANDBY_ROUTES=""
-if [ "${BRANCH//./\\.}" == "${ACTIVE_ENVIRONMENT}" ]; then
+if [ ! -z "${STANDBY_ENVIRONMENT}" ]; then
 ACTIVE_ROUTES=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get routes -l "dioscuri.amazee.io/migrate=true" -o=go-template --template='{{range $index, $route := .items}}{{if $index}},{{end}}{{if $route.spec.tls.termination}}https://{{else}}http://{{end}}{{$route.spec.host}}{{end}}')
-fi
-if [ "${BRANCH//./\\.}" == "${STANDBY_ENVIRONMENT}" ]; then
 STANDBY_ROUTES=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get routes -l "dioscuri.amazee.io/migrate=true" -o=go-template --template='{{range $index, $route := .items}}{{if $index}},{{end}}{{if $route.spec.tls.termination}}https://{{else}}http://{{end}}{{$route.spec.host}}{{end}}')
 fi
 

@@ -55,7 +55,13 @@ const messageConsumer = async msg => {
       environmentName = environmentName.concat('-' + hash)
     }
 
-    var environmentType = branch === projectOpenShift.productionEnvironment ? 'production' : 'development';
+    var environmentType = 'development'
+    if (
+      projectOpenShift.productionEnvironment === environmentName
+      || projectOpenShift.standbyProductionEnvironment === environmentName
+    ) {
+      environmentType = 'production'
+    }
     var gitSha = sha as string
     var projectId = projectOpenShift.id
     var openshiftConsole = projectOpenShift.openshift.consoleUrl.replace(/\/$/, "");
@@ -65,6 +71,8 @@ const messageConsumer = async msg => {
     var openshiftProjectUser = projectOpenShift.openshift.projectUser || ""
     var deployPrivateKey = projectOpenShift.privateKey
     var gitUrl = projectOpenShift.gitUrl
+    var projectProductionEnvironment = projectOpenShift.productionEnvironment
+    var projectStandbyEnvironment = projectOpenShift.standbyProductionEnvironment
     var subfolder = projectOpenShift.subfolder || ""
     var routerPattern = projectOpenShift.openshift.routerPattern ? projectOpenShift.openshift.routerPattern.replace('${environment}',environmentName).replace('${project}', projectName) : ""
     var prHeadBranch = headBranch || ""
@@ -222,6 +230,14 @@ const messageConsumer = async msg => {
                   {
                       "name": "ENVIRONMENT_TYPE",
                       "value": environmentType
+                  },
+                  {
+                      "name": "ACTIVE_ENVIRONMENT",
+                      "value": projectProductionEnvironment
+                  },
+                  {
+                      "name": "STANDBY_ENVIRONMENT",
+                      "value": projectStandbyEnvironment
                   },
                   {
                       "name": "KUBERNETES",
