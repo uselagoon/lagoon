@@ -8,6 +8,7 @@ tls_acme: true
 insecure: Allow
 service: ''
 annotations: {}
+routeMigrate: false
 
 ingressmonitorcontroller:
   enabled: 'false'

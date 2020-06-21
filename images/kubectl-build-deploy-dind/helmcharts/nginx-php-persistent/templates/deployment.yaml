@@ -27,6 +27,8 @@ spec:
         - name: {{ .Values.persistentStorage.name }}
           persistentVolumeClaim:
             claimName: {{ .Values.persistentStorage.name }}
+        - name: {{ include "cli-persistent.twig-storage.name" . | quote }}
+          emptyDir: {}
       priorityClassName: {{ include "nginx-php-persistent.lagoonPriority" . }}
       enableServiceLinks: false
       securityContext:
@@ -99,6 +101,8 @@ spec:
           volumeMounts:
             - name: {{ .Values.persistentStorage.name }}
               mountPath: {{ .Values.persistentStorage.path | quote }}
+            - name: {{ include "cli-persistent.twig-storage.name" . | quote }}
+              mountPath: {{ include "cli-persistent.twig-storage.path" . | quote }}
           resources:
             {{- toYaml .Values.resources.php | nindent 12 }}
       {{- with .Values.nodeSelector }}

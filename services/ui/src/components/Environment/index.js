@@ -6,6 +6,9 @@ import { Mutation } from 'react-apollo';
 import DeleteEnvironmentMutation from 'lib/mutation/DeleteEnvironment';
 import DeleteConfirm from 'components/DeleteConfirm';
 import { bp, color } from 'lib/variables';
+import Router from 'next/router';
+import ActiveStandbyConfirm from 'components/ActiveStandbyConfirm';
+import SwitchActiveStandbyMutation from 'lib/mutation/SwitchActiveStandby';
 
 /**
  * Displays the environment information.
@@ -116,6 +119,34 @@ const Environment = ({ environment }) => {
           </div>
         </div>
       </div>
+      {environment.project.standbyProductionEnvironment && environment.environmentType == 'production' && (
+      <Mutation mutation={SwitchActiveStandbyMutation}>
+        {(switchActiveStandby, { loading, called, error, data }) => {
+          const switchActiveBranch = () => {
+            const input = {
+              project:{
+                name: environment.project.name
+              }
+            }
+
+            switchActiveStandby({ variables: { input } });
+            Router.push(`/projects/${environment.project.name}/${environment.openshiftProjectName}/tasks`)
+          }
+
+          if (!error && called && loading) {
+            return <div>Switching Standby Environment to Active...</div>;
+          }
+
+          return (
+            <ActiveStandbyConfirm
+              activeEnvironment={environment.project.productionEnvironment}
+              standbyEnvironment={environment.project.standbyProductionEnvironment}
+              onProceed={switchActiveBranch}
+            />
+          );
+        }}
+      </Mutation>
+      )}
       <Mutation mutation={DeleteEnvironmentMutation}>
         {(deleteEnvironment, { loading, called, error, data }) => {
           if (error) {
