@@ -92,13 +92,13 @@ lagoon.sh/prBaseBranch: {{ .Values.prBaseBranch | quote }}
 {{/*
 Generate name for twig storage emptyDir
 */}}
-{{- define "cli-persistent.twig-storage.name" -}}
-{{- printf "%s-twig" .Values.persistentStorage.name }}
+{{- define "nginx-php-persistent.twig-storage.name" -}}
+{{- printf "%s-twig" (include "nginx-php-persistent.persistentStorageName" .) }}
 {{- end -}}
 
 {{/*
 Generate path for twig storage emptyDir
 */}}
-{{- define "cli-persistent.twig-storage.path" -}}
+{{- define "nginx-php-persistent.twig-storage.path" -}}
 {{- printf "%s/php/twig" .Values.persistentStorage.path }}
 {{- end -}}
