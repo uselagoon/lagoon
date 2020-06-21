@@ -21,7 +21,7 @@
 set -eu -o pipefail
 
 # directory to put the backup files
-BACKUP_DIR=/var/lib/mysql/backup
+BACKUP_DIR=${MARIADB_DATA_DIR:-/var/lib/mysql}/backup
 
 # MYSQL Parameters
 MARIADB_USER=${MARIADB_USER:-lagoon}
