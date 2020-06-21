@@ -25,4 +25,5 @@ Environment variables defined in `Solr` base image.
 | Environment Variable | Default | Description |
 | :--- | :--- | :--- |
 | `SOLR_JAVA_MEM` | 512M | Default Java HEAP size \(ie. `SOLR_JAVA_MEM="-Xms10g -Xmx10g"` \). |
-
+| `SOLR_DATA_DIR` | /var/solr | Path of the solr data dir, be careful, changing this can occur data loss! |
+| `SOLR_COPY_DATA_DIR_SOURCE` | unset | Path which the entrypoint script of solr will use to copy into the defined `SOLR_DATA_DIR`, this can be used for prepopulating the Solr with a core. The scripts expects actual Solr data files! Plus it only copies data if the destination does not already have a solr core in it. |
