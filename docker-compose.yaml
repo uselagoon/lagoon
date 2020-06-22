@@ -267,6 +267,10 @@ services:
       - keycloak
     ports:
       - '3000:3000'
+    # Uncomment for local new relic tracking
+    # environment:
+    #   - NEW_RELIC_LICENSE_KEY=
+    #   - NEW_RELIC_APP_NAME=api-local
     labels:
       lagoon.type: custom
       lagoon.template: services/api/.lagoon.app.yml
