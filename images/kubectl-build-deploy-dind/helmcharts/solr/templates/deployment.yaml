@@ -26,9 +26,9 @@ spec:
         {{- toYaml . | nindent 8 }}
     {{- end }}
       volumes:
-        - name: {{ .Values.persistentStorage.name }}
+        - name: {{ include "solr.persistentStorageName" . }}
           persistentVolumeClaim:
-            claimName: {{ .Values.persistentStorage.name }}
+            claimName: {{ include "solr.persistentStorageName" . }}
       priorityClassName: {{ include "solr.lagoonPriority" . }}
       enableServiceLinks: false
       securityContext:
@@ -60,7 +60,7 @@ spec:
             - name: CRONJOBS
               value: {{ .Values.inPodCronjobs | quote }}
           volumeMounts:
-            - name: {{ .Values.persistentStorage.name }}
+            - name: {{ include "solr.persistentStorageName" . }}
               mountPath: {{ .Values.persistentStorage.path | quote }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
