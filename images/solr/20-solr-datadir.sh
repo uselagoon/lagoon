@@ -6,7 +6,7 @@ set -eo pipefail
 # This is different than just setting $SOLR_DATA_DIR to the source folder, as only /var/solr is a persistent folder, so setting
 # $SOLR_DATA_DIR to another folder will make solr to not store the datadir across container restarts, while with this copy system
 # the data will be prefilled and persistent across container restarts.
-if [ -n "$SOLR_COPY_DATA_DIR_SOURCE" ]
+if [ -n "$SOLR_COPY_DATA_DIR_SOURCE" ]; then
   echo "MARIADB_COPY_DATA_DIR_SOURCE is set, start copying from source location"
   for solrcorepath in $(ls -d $SOLR_COPY_DATA_DIR_SOURCE/*/ | grep -v lost+found) ; do
       corename=$(basename $solrcorepath)
