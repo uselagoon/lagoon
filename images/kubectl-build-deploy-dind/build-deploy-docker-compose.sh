@@ -352,7 +352,7 @@ ROUTES_AUTOGENERATE_ALLOW_PRS=$(cat .lagoon.yml | shyaml get-value routes.autoge
 if [[ "$TYPE" == "pullrequest" && "$ROUTES_AUTOGENERATE_ALLOW_PRS" == "true" ]]; then
   ROUTES_AUTOGENERATE_ENABLED=true
 fi
-ROUTES_AUTOGENERATE_BRANCH_REGEX=$(cat .lagoon.yml | shyaml get-value routes.autogenerate.branch_regex)
+ROUTES_AUTOGENERATE_BRANCH_REGEX=$(cat .lagoon.yml | shyaml get-value routes.autogenerate.branch_regex "")
 if [[ "${BRANCH//./\\.}" =~ $ROUTES_AUTOGENERATE_BRANCH_REGEX  ]]; then
   ROUTES_AUTOGENERATE_ENABLED=true
 fi
