@@ -76,7 +76,7 @@ const NavTabs = ({ activeTab, environment }) => (
         Tasks
       </TasksLink>
     </li>
-    { (environment.project.problemsUi == 1) && <li
+    {(environment.project.problemsUi == 1) && <li
       className={`problems ${activeTab == 'problems' ? 'active' : ''} ${aClassName}`}
     >
       <ProblemsLink

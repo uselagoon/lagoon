@@ -1,21 +1,69 @@
-// @flow
-
 import * as R from 'ramda';
-import { sendToLagoonLogs } from '@lagoon/commons/src/logs';
-import { createMiscTask } from '@lagoon/commons/src/tasks';
-import { knex, query, isPatchEmpty } from '../../util/db';
-import { Helpers as environmentHelpers } from '../environment/helpers';
+import { query, prepare } from '../../util/db';
 import { Sql } from './sql';
+import { Helpers as problemHelpers } from './helpers';
+import { Helpers as environmentHelpers } from '../environment/helpers';
+import { ResolverFn } from '../';
+const logger = require('../../logger');
 
-/* ::
+export const getAllProblems: ResolverFn = async (
+  root,
+  args,
+  { sqlClient }
+) => {
+  let rows = [];
 
-import type {ResolversObj} from '../';
+  try {
+    if (!R.isEmpty(args)) {
+      rows = await problemHelpers(sqlClient).getAllProblems(args.source, args.environment, args.envType, args.severity);
+    }
+    else {
+      rows = await query(sqlClient, Sql.selectAllProblems({source: [], environmentId: 0, environmentType: [], severity: []}));
+    }
+  }
+  catch (err) {
+    if (err) {
+      logger.warn(err);
+      return [];
+    }
+  }
 
-*/
+  const problems = rows && rows.map(problem => {
+     const { environment: envId, name, project, environmentType, openshiftProjectName, ...rest} = problem;
+     return { ...rest, environment: { id: envId, name, project, environmentType, openshiftProjectName }};
+  });
+
+  const sorted = R.sort(R.descend(R.prop('severity')), problems);
+  return sorted.map((row: any) => ({ ...(row as Object) }));
+};
+
+export const getSeverityOptions = async (
+  root,
+  args,
+  { sqlClient },
+) => {
+  return await problemHelpers(sqlClient).getSeverityOptions();
+};
+
+export const getProblemSources = async (
+  root,
+  args,
+  { sqlClient },
+) => {
+  const preparedQuery = prepare(
+    sqlClient,
+    `SELECT DISTINCT source FROM environment_problem`,
+  );
+
+  return R.map(
+    R.prop('source'),
+      await query(sqlClient, preparedQuery(args))
+    );
+};
 
 export const getProblemsByEnvironmentId = async (
   { id: environmentId },
-  {severity},
+  {severity, source},
   { sqlClient, hasPermission },
 ) => {
   const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
@@ -29,6 +77,7 @@ export const getProblemsByEnvironmentId = async (
     Sql.selectProblemsByEnvironmentId({
       environmentId,
       severity,
+      source,
     }),
   );
 
@@ -189,4 +238,4 @@ export const deleteProblemHarborScanMatch = async (
   await query(sqlClient, Sql.deleteProblemHarborScanMatch(id));
 
   return 'success';
-}
+};

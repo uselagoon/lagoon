@@ -1,6 +1,5 @@
 // @flow
 
-
 import uuid4 from 'uuid4';
 import { logger } from '@lagoon/commons/dist/local-logging';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
@@ -8,12 +7,10 @@ import { harborScanningCompleted } from '../handlers/problems/harborScanningComp
 import { processHarborVulnerabilityList } from '../handlers/problems/processHarborVulnerabilityList';
 import { processDrutinyResultset }  from '../handlers/problems/processDrutinyResults';
 
-
 import {
   WebhookRequestData,
   Project
 } from '../types';
-
 
 export async function processProblems(
     rabbitMsg,

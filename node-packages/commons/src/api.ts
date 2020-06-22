@@ -1308,69 +1308,66 @@ export const addProblem = ({
   links
 }) => {
   return graphqlapi.mutate(
-    `
-    ($id: Int,
-      $environment: Int!,
-      $identifier: String!,
-      $severity: ProblemSeverityRating!,
-      $source: String!,
-      $severityScore: SeverityScore,
-      $data: String!,
-      $service: String,
-      $associatedPackage: String,
-      $description: String,
-      $version: String,
-      $fixedVersion: String,
-      $links: String) {
-      addProblem(input: {
-          id: $id
-          environment: $environment
-          identifier: $identifier
-          severity: $severity
-          source: $source
-          severityScore: $severityScore
-          data: $data
-          service: $service
-          associatedPackage: $associatedPackage
-          description: $description
-          version: $version
-          fixedVersion: $fixedVersion
-          links: $links
-      }) {
+  `($id: Int,
+    $environment: Int!,
+    $identifier: String!,
+    $severity: ProblemSeverityRating!,
+    $source: String!,
+    $severityScore: SeverityScore,
+    $data: String!,
+    $service: String,
+    $associatedPackage: String,
+    $description: String,
+    $version: String,
+    $fixedVersion: String,
+    $links: String) {
+    addProblem(input: {
+      id: $id
+      environment: $environment
+      identifier: $identifier
+      severity: $severity
+      source: $source
+      severityScore: $severityScore
+      data: $data
+      service: $service
+      associatedPackage: $associatedPackage
+      description: $description
+      version: $version
+      fixedVersion: $fixedVersion
+      links: $links
+    }) {
+      id
+      environment {
         id
-        environment {
-          id
-        }
-        identifier
-        severity
-        source
-        severityScore
-        data
-        associatedPackage
-        description
-        version
-        fixedVersion
-        links
       }
-    }
-  `,
-    {
-      id,
-      environment,
-      identifier,
-      severity,
-      source,
-      severityScore,
-      data,
-      service,
-      associatedPackage,
-      description,
-      version,
-      fixedVersion,
+      identifier
+      severity
+      source
+      severityScore
+      data
+      associatedPackage
+      description
+      version
+      fixedVersion
       links
-    },
-  );
-}
+    }
+  }`,
+  {
+    id,
+    environment,
+    identifier,
+    severity,
+    source,
+    severityScore,
+    data,
+    service,
+    associatedPackage,
+    description,
+    version,
+    fixedVersion,
+    links
+  },
+)};
 
 export const deleteProblemsFromSource = (
   environment,
@@ -1387,9 +1384,7 @@ export const deleteProblemsFromSource = (
       source,
       service
     }
-  );
-}
-
+  )};
 
 const problemFragment = graphqlapi.createFragment(`
 fragment on Problem {
@@ -1407,7 +1402,7 @@ fragment on Problem {
   data
   created
   deleted
-}
+} 
 `);
 
 export const getProblemsforProjectEnvironment = async (
@@ -1430,7 +1425,7 @@ export const getProblemsforProjectEnvironment = async (
     project
   });
   return response.environmentByName.problems;
-}
+};
 
 export const getProblemHarborScanMatches = () => graphqlapi.query(
     `query getProblemHarborScanMatches {
@@ -1443,4 +1438,5 @@ export const getProblemHarborScanMatches = () => graphqlapi.query(
         defaultLagoonService
         regex
       }
-    }`);
+    }`
+);
