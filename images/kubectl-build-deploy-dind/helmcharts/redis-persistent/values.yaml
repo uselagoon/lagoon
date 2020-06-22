@@ -9,7 +9,6 @@ image: ""
 environmentType: production
 
 persistentStorage:
-  name: "redis"
   size: 5Gi
   path: "/data"
 

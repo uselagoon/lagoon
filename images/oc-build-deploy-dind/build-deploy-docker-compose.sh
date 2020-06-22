@@ -91,7 +91,7 @@ do
     if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get service "$SERVICE_NAME" &> /dev/null; then
       SERVICE_TYPE="mariadb-single"
     # check if an existing mariadb service instance already exists
-    elif oc -insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get serviceinstance "$SERVICE_NAME" &> /dev/null; then
+    elif oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get serviceinstance "$SERVICE_NAME" &> /dev/null; then
       SERVICE_TYPE="mariadb-shared"
     # check if we can use the dbaas operator
     elif oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get mariadbconsumer.v1.mariadb.amazee.io &> /dev/null; then
