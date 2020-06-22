@@ -79,7 +79,7 @@ lagoon.sh/prBaseBranch: {{ .Values.prBaseBranch | quote }}
 Generate name for twig storage emptyDir
 */}}
 {{- define "cli-persistent.twig-storage.name" -}}
-{{- printf "%s-twig" (include "cli-persistent.persistentStorageName" .) }}
+{{- printf "%s-twig" .Values.persistentStorage.name }}
 {{- end -}}
 
 {{/*
