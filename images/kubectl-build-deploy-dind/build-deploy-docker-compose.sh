@@ -352,8 +352,9 @@ ROUTES_AUTOGENERATE_ALLOW_PRS=$(cat .lagoon.yml | shyaml get-value routes.autoge
 if [[ "$TYPE" == "pullrequest" && "$ROUTES_AUTOGENERATE_ALLOW_PRS" == "true" ]]; then
   ROUTES_AUTOGENERATE_ENABLED=true
 fi
-ROUTES_AUTOGENERATE_BRANCH_REGEX=$(cat .lagoon.yml | shyaml get-value routes.autogenerate.branch_regex "^$")
-if [[ "${BRANCH//./\\.}" =~ $ROUTES_AUTOGENERATE_BRANCH_REGEX  ]]; then
+## fail silently if the key autogenerateRoutes doesn't exist and default to whatever ROUTES_AUTOGENERATE_ENABLED is set to
+ROUTES_AUTOGENERATE_BRANCH=$(cat .lagoon.yml | shyaml -q get-value environments.${BRANCH//./\\.}.autogenerateRoutes $ROUTES_AUTOGENERATE_ENABLED)
+if [ "$ROUTES_AUTOGENERATE_BRANCH" =~ [Tt]rue ]; then
   ROUTES_AUTOGENERATE_ENABLED=true
 fi
 
