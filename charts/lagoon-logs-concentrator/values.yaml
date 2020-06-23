@@ -39,6 +39,8 @@ securityContext: {}
 service:
   type: ClusterIP
   port: 24224
+  # Annotations to add to the service
+  annotations: {}
 
 ingress:
   enabled: false
