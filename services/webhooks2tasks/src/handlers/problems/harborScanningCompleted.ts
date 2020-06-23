@@ -11,6 +11,9 @@ import {
   getProjectByName,
   getEnvironmentByName,
   getProblemHarborScanMatches,
+  getEnvironmentByOpenshiftProjectName,
+  sanitizeProjectName,
+  sanitizeGroupName,
 } from '@lagoon/commons/dist/api';
 
 const HARBOR_WEBHOOK_SUCCESSFUL_SCAN = "Success";
@@ -55,14 +58,22 @@ const DEFAULT_REPO_DETAILS_MATCHER = {
       return;
     }
 
-    let vulnerabilities = await getVulnerabilitiesFromHarbor(harborScanId);
+    let vulnerabilities = [];
+    try {
+      vulnerabilities = await getVulnerabilitiesFromHarbor(harborScanId);
+    } catch(error) {
+      console.log(error);
+      throw error;
+    }
+
 
     let { id: lagoonProjectId } = await getProjectByName(lagoonProjectName);
 
-    let { environmentByName: environmentDetails } = await getEnvironmentByName(
-      lagoonEnvironmentName,
-      lagoonProjectId
-    );
+
+    let openshiftProjectName = sanitizeProjectName(`${lagoonProjectName}-${lagoonEnvironmentName}`);
+    const environmentResult = await getEnvironmentByOpenshiftProjectName(openshiftProjectName);
+    const environmentDetails: any = R.prop('environmentByOpenshiftProjectName', environmentResult)
+
 
     let messageBody = {
       lagoonProjectId,
