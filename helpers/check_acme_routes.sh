@@ -161,6 +161,7 @@ function check_routes() {
 				if [[ $DRYRUN = true ]]; then
 					echo -e "DRYRUN oc delete -n $ROUTE_NAMESPACE route $OCROUTE_NAME"
 				else
+					echo -e "\nDelete route $OCROUTE_NAME"
 					oc delete -n "$ROUTE_NAMESPACE" route "$OCROUTE_NAME"
 				fi
 			done
@@ -172,13 +173,13 @@ function check_routes() {
 # Function to update route's annotation (ie: update tls-amce, remove tls-acme-awaiting-* and set a new one for internal purpose)
 function update_annotation() {
 	echo "Update route's annotations"
-	OCOPTIONS=""
+	OCOPTIONS="--overwrite"
 	if [[ "$DRYRUN" = "true" ]]; then
-		OCOPTIONS="--dry-run"
+		OCOPTIONS="--dry-run --overwrite"
 	fi
 
 	# Annotate the route
-	oc annotate -n "$2" "$OCOPTIONS" --overwrite route "$1" acme.openshift.io/status- kubernetes.io/tls-acme-awaiting-authorization-owner- kubernetes.io/tls-acme-awaiting-authorization-at-url- kubernetes.io/tls-acme="false" amazee.io/administratively-disabled="$(date +%s)"
+	oc annotate -n "$2" $OCOPTIONS route "$1" acme.openshift.io/status- kubernetes.io/tls-acme-awaiting-authorization-owner- kubernetes.io/tls-acme-awaiting-authorization-at-url- kubernetes.io/tls-acme="false" amazee.io/administratively-disabled="$(date +%s)"
 }
 
 
@@ -199,15 +200,15 @@ function notify_customer() {
 	WEBHOOK=$(echo "$NOTIFICATION_DATA"|cut -f2 -d ";")
 	MESSAGE="Your $ROUTE_HOSTNAME route is configured in the \`.lagoon.yml\` file to issue an TLS certificate from Lets Encrypt. Unfortunately Lagoon is unable to issue a certificate as $DNS_ERROR.\nTo be issued correctly, the DNS records for $ROUTE_HOSTNAME should point to $CLUSTER_HOSTNAME with an CNAME record (preferred) or to ${CLUSTER_IPS[*]} via an A record (also possible but not preferred).\nIf you don'\''t need the SSL certificate or you are using a CDN that provides you with an TLS certificate, please update your .lagoon.yml file by setting the tls-acme parameter to false for $ROUTE_HOSTNAME, as described here:  https://lagoon.readthedocs.io/en/latest/using_lagoon/lagoon_yml/#ssl-configuration-tls-acme.\nWe have now administratively disabled the issuing of Lets Encrypt certificate for $ROUTE_HOSTNAME in order to protect the cluster, this will be reset during the next deployment, therefore we suggest to resolve this issue as soon as possible. Feel free to reach out to us for further information.\nThanks you.\namazee.io team"
 
-	# JSON payload
-	JSON="'{\"channel\": \"$CHANNEL\", \"text\":\"$MESSAGE\"}'"
-	echo "Sending message $JSON to $CHANNEL"
+	# json Payload
+	JSON=\'"{\"channel\": \"$CHANNEL\", \"text\": \"${MESSAGE}\"}"\'
 
+	echo -e "Sending notification into ${CHANNEL}"
 	# Execute curl to send message into the channel
 	if [[ $DRYRUN = true ]]; then
 		echo "DRYRUN on \"$NOTIFICATION\" curl -X POST -H 'Content-type: application/json' --data "$JSON" "$WEBHOOK""
 	else
-		curl -X POST -H 'Content-type: application/json' --data "$JSON" "$WEBHOOK"
+		eval "curl -X POST -H 'Content-type: application/json' --data "${JSON}" ${WEBHOOK}"
 	fi
 }
 
