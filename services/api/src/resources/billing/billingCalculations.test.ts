@@ -19,7 +19,6 @@ import {
   getProjectsCosts,
   BillingGroupCosts
 } from './billingCalculations';
-import { availabilityProjectsCosts } from './helpers';
 import { defaultModifier } from './resolvers.test';
 import {
   initializeGraphQL,
@@ -29,7 +28,6 @@ import {
   deleteAllBillingModifiers
 } from './graphql';
 import moment = require('moment');
-import { deleteGroup } from '../project/keycloak';
 
 interface ITestBillingGroup extends IBillingGroup {
   expectations?: {
@@ -46,7 +44,7 @@ interface IMockDataType {
 // month: 'July 2019',
 const mockData: IMockDataType = {
   billingGroups: [
-    {
+      {
       // CH - July 2019
       name: 'VF',
       expectations: {
@@ -315,6 +313,133 @@ const mockData: IMockDataType = {
         },
       ],
     },
+    {
+      name: 'Dev Only',
+      expectations: {
+        hits: 136.24,
+        storage: 0,
+        prod: 31.02,
+        dev: 20.68,
+      },
+      currency: CURRENCIES.USD,
+      billingSoftware: '',
+      projects: [
+        {
+          name: 'gza',
+          month: 3,
+          year: 2020,
+          hits: 748_290,
+          availability: AVAILABILITY.STANDARD,
+          storageDays: 189.05702100000002,
+          prodHours: 744,
+          devHours: 2232,
+        },
+        {
+          name: 'gza-archive',
+          month: 3,
+          year: 2020,
+          hits: 0,
+          availability: AVAILABILITY.STANDARD,
+          storageDays: 0,
+          prodHours: 0,
+          devHours: 744,
+        },
+      ],
+    },
+    //POLY
+    {
+      name: 'IDGSDF',
+      expectations: {
+        hits: 69.81,
+        storage: 0,
+        prod: 30.02,
+        dev: 10.01,
+      },
+      currency: CURRENCIES.EUR,
+      billingSoftware: 'xero',
+      projects: [
+        {
+          name: "IDGHKSLD",
+          availability: AVAILABILITY.POLYSITE,
+          month: 4,
+          year: 2020,
+          hits: 1394,
+          storageDays: 12.813023999999999,
+          prodHours: 720,
+          devHours: 720
+        },
+        {
+          name: "idg-standard-public-fr",
+          availability: AVAILABILITY.POLYSITE,
+          month: 4,
+          year: 2020,
+          hits: 12693,
+          storageDays: 21.669425999999998,
+          prodHours: 720,
+          devHours: 720,
+        },
+        {
+          name: "idg-standard-public-nl",
+          availability: AVAILABILITY.POLYSITE,
+          month: 4,
+          year: 2020,
+          hits: 162076,
+          storageDays: 13.590564,
+          prodHours: 720,
+          devHours: 720,
+        },
+        {
+          name: "idg-standard-public-ch",
+          availability: AVAILABILITY.POLYSITE,
+          month: 4,
+          year: 2020,
+          hits: 98569,
+          storageDays: 15.029644000000001,
+          prodHours: 720,
+          devHours: 720,
+        },
+        {
+          name: "idg-standard-public-be",
+          availability: AVAILABILITY.POLYSITE,
+          month: 4,
+          year: 2020,
+          hits: 1394,
+          storageDays: 7.220072,
+          prodHours: 720,
+          devHours: 720,
+        },
+        {
+          name: "idg-standard-public-africa",
+          availability: AVAILABILITY.POLYSITE,
+          month: 4,
+          year: 2020,
+          hits: 29275,
+          storageDays: 4.415667999999999,
+          prodHours: 720,
+          devHours: 720,
+        },
+        {
+          name: "idg-standard-public-it",
+          availability: AVAILABILITY.POLYSITE,
+          month: 4,
+          year: 2020,
+          hits: 0,
+          storageDays: 6.02611,
+          prodHours: 720,
+          devHours: 720,
+        },
+        {
+          name: "idg-standard-public-hu",
+          availability: AVAILABILITY.POLYSITE,
+          month: 4,
+          year: 2020,
+          hits: 0,
+          storageDays: 11.531086,
+          prodHours: 720,
+          devHours: 720,
+        }
+      ]
+    },
   ],
 };
 
@@ -407,8 +532,11 @@ const devEnvironmentCostTestString = (group: ITestBillingGroup) =>
 const currencyFilter = currency => group =>
   group.currency === CURRENCIES[currency];
 
+const availabilityFilter = availability => group =>
+  group.projects[0].availability === AVAILABILITY[availability];
+
 // Unit Under Test
-describe('Billing Calculations', () => {
+describe('Billing Calculations #only-billing-calculations', () => {
   describe('Hit Tier #hit-tier', () => {
     // scenarios and expectation
     it('When hits are between { MIN: 300_001, MAX: 2_500_000 }, then the "hitTier should be 1', () => {
@@ -431,6 +559,18 @@ describe('Billing Calculations', () => {
   describe('Hit Costs - Customers billed in US Dollars (USD) #Hits #USD', () => {
     // scenarios and expectation
     mockData.billingGroups.filter(currencyFilter(CURRENCIES.USD)).map(group => {
+      it(hitsCostTestString(group), () => {
+        // Act
+        const { cost } = hitsCost(group);
+        // Assert
+        expect(cost).toBe(group.expectations.hits);
+      });
+    });
+  });
+
+  describe('Hit Costs - POLY #Hits #POLY', () => {
+    // scenarios and expectation
+    mockData.billingGroups.filter(availabilityFilter(AVAILABILITY.POLYSITE)).map(group => {
       it(hitsCostTestString(group), () => {
         // Act
         const { cost } = hitsCost(group);
@@ -464,6 +604,18 @@ describe('Billing Calculations', () => {
     });
   });
 
+  describe('Storage Costs - POLY #Storage #POLY', () => {
+    // scenarios and expectation
+    mockData.billingGroups.filter(availabilityFilter(AVAILABILITY.POLYSITE)).map(group => {
+      it(storageCostTestString(group), () => {
+        // Act
+        const { cost } = storageCost(group);
+        // Assert
+        expect(cost).toBe(group.expectations.storage);
+      });
+    });
+  });
+
   describe('Storage Costs - Customers billed in Pounds (GBP) #Storage #GBP', () => {
     // scenarios and expectation
     mockData.billingGroups.filter(currencyFilter(CURRENCIES.GBP)).map(group => {
@@ -488,6 +640,18 @@ describe('Billing Calculations', () => {
     });
   });
 
+  describe('Prod Environment Costs - POLY #Environment #POLY', () => {
+    // scenarios and expectation
+    mockData.billingGroups.filter(availabilityFilter(AVAILABILITY.POLYSITE)).map(group => {
+      it(prodEnvironmentCostTestString(group), () => {
+        // Act
+        const { cost } = prodCost(group);
+        // Assert
+        expect(cost).toBe(group.expectations.prod);
+      });
+    });
+  });
+
   describe('Dev Environment Costs - Customers billed in US Dollars (USD) #Environment #USD', () => {
     // scenarios and expectation
     mockData.billingGroups.filter(currencyFilter(CURRENCIES.USD)).map(group => {
@@ -501,6 +665,18 @@ describe('Billing Calculations', () => {
           console.log(exception);
           throw exception;
         }
+      });
+    });
+  });
+
+  describe('Dev Environment Costs - POLY #Environment #POLY', () => {
+    // scenarios and expectation
+    mockData.billingGroups.filter(availabilityFilter(AVAILABILITY.POLYSITE)).map(group => {
+      it(devEnvironmentCostTestString(group), () => {
+        // Act
+        const { cost } = devCost(group);
+        // Assert
+        expect(cost).toBe(group.expectations.dev);
       });
     });
   });
@@ -588,7 +764,7 @@ describe('Billing Calculations', () => {
     });
   });
 
-  describe('Billing Cost Modifiers', () => {
+  describe('Billing Cost Modifiers #modifiers', () => {
     beforeAll(async () => {
       await initializeGraphQL();
     });
@@ -763,6 +939,90 @@ describe('Billing Calculations', () => {
       expect(result).toMatchObject(expected);
     });
 
+    it('Total Costs with `max` modifier. (100). #modifiers, #max', () => {
+      // Arrange
+      const projects = [
+        {
+          availability: 'STANDARD',
+          month: '11',
+          year: '2019',
+          hits: 1000000,
+          storageDays: 10000,
+          prodHours: 720,
+          devHours: 1500
+        },
+        {
+          availability: 'STANDARD',
+          month: '11',
+          year: '2019',
+          hits: 1000000,
+          storageDays: 10000,
+          prodHours: 720,
+          devHours: 1500
+        }
+      ];
+
+      // Act
+      const result = getProjectsCosts('USD', projects, [
+        { max: 100 }
+      ]);
+
+      // Assert
+      const expected = {
+        hitCost: 324,
+        storageCost: 656.01,
+        environmentCost: {
+          prod: 60.05,
+          dev: 1.67
+        },
+        total: 100 // 1041.73 before extra
+      };
+
+      expect(result).toMatchObject(expected);
+    });
+
+    it('Total Costs with `min` modifier. (1000). #modifiers, #min', () => {
+      // Arrange
+      const projects = [
+        {
+          availability: 'STANDARD',
+          month: '06',
+          year: '2020',
+          hits: 1,
+          storageDays: 1,
+          prodHours: 0,
+          devHours: 0
+        },
+        {
+          availability: 'STANDARD',
+          month: '06',
+          year: '2020',
+          hits: 0,
+          storageDays: 1,
+          prodHours: 0,
+          devHours: 0
+        }
+      ];
+
+      // Act
+      const result = getProjectsCosts('USD', projects, [
+        { min: 1000 }
+      ]);
+
+      // Assert
+      const expected = {
+        hitCost: 69,
+        storageCost: 0,
+        environmentCost: {
+          prod: 0,
+          dev: 0
+        },
+        total: 1000 // 1041.73 before extra
+      };
+
+      expect(result).toMatchObject(expected);
+    });
+
     it('Total Costs with Multiple modifiers. (100% + $100 with lower weight used first). #modifiers, #multiple', () => {
       // Arrange
       const projects = [
@@ -915,26 +1175,23 @@ describe('Billing Calculations', () => {
       } = currMonthData;
 
       // Request costs for last month
-      const lastMonthCosts = availabilityProjectsCosts(
-        mockProjects,
-        AVAILABILITY.STANDARD,
+      const lastMonthCosts = getProjectsCosts(
         CURRENCIES.CHF,
+        mockProjects,
         lastMonthBillingGroupModifiers
       ) as BillingGroupCosts;
 
       // Request costs for next month
-      const nextMonthCosts = availabilityProjectsCosts(
-        mockProjects,
-        AVAILABILITY.STANDARD,
+      const nextMonthCosts = getProjectsCosts(
         CURRENCIES.CHF,
+        mockProjects,
         nextMonthBillingGroupModifiers
       );
 
       // Request costs for current month
-      const currMonthCosts = availabilityProjectsCosts(
-        mockProjects,
-        AVAILABILITY.STANDARD,
+      const currMonthCosts = getProjectsCosts(
         CURRENCIES.CHF,
+        mockProjects,
         currMonthBillingGroupModifiers
       );
 
@@ -1004,9 +1261,6 @@ describe('Billing Calculations', () => {
       expect(nextYearBillingGroupModifiers.length).toBe(1);
     });
 
-
-
-
     it('Given a single, or multiple, Billing modifiers that would generage a negative total, ensure it does not go below 0 (zero). #belowZero', async() => {
 
       // Arrange
@@ -1034,7 +1288,7 @@ describe('Billing Calculations', () => {
       // Act
 
       // Costs for current month
-      const currMonthCosts = availabilityProjectsCosts( mockProjects, AVAILABILITY.STANDARD, CURRENCIES.CHF, modifiers );
+      const currMonthCosts = getProjectsCosts( CURRENCIES.CHF, mockProjects, modifiers );
 
       // Assert
       expect(currMonthCosts.modifiers.length).toBe(1);

@@ -1,0 +1,303 @@
+# Default values for lagoon-logging.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+nameOverride: ""
+fullnameOverride: ""
+
+logsDispatcher:
+
+  name: logs-dispatcher
+
+  replicaCount: 2
+
+  image:
+    repository: amazeeiolagoon/logs-dispatcher
+    pullPolicy: Always
+    # Overrides the image tag whose default is the chart version.
+    tag: logs-concentrator
+
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: true
+    # Annotations to add to the service account
+    annotations: {}
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname
+    # template
+    # If this value is set, the serviceAccount named must have clusterrole
+    # view.
+    name: ""
+
+  podAnnotations: {}
+
+  podSecurityContext: {}
+    # fsGroup: 2000
+
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+
+  resources: {}
+    # If you want to specify resources, uncomment the following lines, adjust
+    # them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+logsTeeRouter:
+
+  enabled: true
+
+  name: logs-tee-router
+
+  replicaCount: 2
+
+  image:
+    repository: amazeeiolagoon/logs-tee
+    pullPolicy: Always
+    # Overrides the image tag whose default is the chart version.
+    tag: logs-concentrator
+
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: false
+    # Annotations to add to the service account
+    annotations: {}
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname
+    # template
+    # If this value is set, the serviceAccount named must have clusterrole
+    # view.
+    name: ""
+
+  listenPort: 5141
+  endpoints:
+  # the logs-dispatcher endpoint is automatically added to this list
+  - logs-forwarder-logstash.lagoon.svc.cluster.local:5140
+
+  podAnnotations: {}
+
+  podSecurityContext: {}
+    # fsGroup: 2000
+
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+
+  resources: {}
+    # If you want to specify resources, uncomment the following lines, adjust
+    # them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+logsTeeApplication:
+
+  enabled: true
+
+  name: logs-tee-application
+
+  replicaCount: 2
+
+  image:
+    repository: amazeeiolagoon/logs-tee
+    pullPolicy: Always
+    # Overrides the image tag whose default is the chart version.
+    tag: logs-concentrator
+
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: false
+    # Annotations to add to the service account
+    annotations: {}
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname
+    # template
+    # If this value is set, the serviceAccount named must have clusterrole
+    # view.
+    name: ""
+
+  listenPort: 5140
+  endpoints:
+  # the logs-dispatcher endpoint is automatically added to this list
+  - logs-forwarder-logstash.lagoon.svc.cluster.local:5140
+
+  podAnnotations: {}
+
+  podSecurityContext: {}
+    # fsGroup: 2000
+
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+
+  resources: {}
+    # If you want to specify resources, uncomment the following lines, adjust
+    # them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+# Don't collect logs from these namespaces.
+# Comment out this field to collect from all namespaces.
+excludeNamespaces:
+# k8s
+- cattle-prometheus
+- kube-system
+- syn
+- syn-cert-manager
+- syn-synsights
+- syn-cluster-autoscaler
+# openshift
+- acme-controller
+- appuio-baas-operator
+- appuio-dnsmonitor
+- appuio-espejo
+- appuio-infra
+- appuio-monitoring
+- appuio-pruner
+- appuio-tiller
+- default
+- dioscuri-controller
+- kube-public
+- kube-service-catalog
+- management-infra
+- monitoring-infra
+- openshift
+- openshift-ansible-service-broker
+- openshift-console
+- openshift-infra
+- openshift-logging
+- openshift-metrics-server
+- openshift-monitoring
+- openshift-node
+- openshift-sdn
+- openshift-web-console
+- syn-resource-locker
+- tiller
+
+# Configure the cluster output buffer.
+# This may require tweaking to handle high volumes of logs.
+clusterOutputBuffer:
+  flush_thread_count: 32
+  timekey: 1m
+  timekey_wait: 10s
+  timekey_use_utc: true
+
+# chart dependency on logging-operator
+logging-operator:
+  enabled: true
+  createCustomResource: false
+
+# lagoon logs collection disabled by default. see below for instructions on
+# enabling this.
+lagoonLogs:
+  enabled: false
+
+# The values below must be supplied during installation.
+# Certificates should be provided in PEM format, and are generated as described
+# in the README for the lagoon-logs-concentrator chart.
+# Sample data shown below.
+
+#tls:
+#  caCert: |
+#    -----BEGIN CERTIFICATE-----
+#    ...
+#    -----END CERTIFICATE-----
+#  clientCert: |
+#    -----BEGIN CERTIFICATE-----
+#    ...
+#    -----END CERTIFICATE-----
+#  clientKey: |
+#    -----BEGIN EC PRIVATE KEY-----
+#    ...
+#    -----END EC PRIVATE KEY-----
+#
+#forward:
+#  username: "example1"
+#  password: "securepass"
+#  host: "203.0.113.9"
+#  # hostName is optional, with a fallback to host
+#  # this is useful for when host is an IP address, or when the server
+#  # certificate doesn't match the hostName.
+#  hostName: "logs.server.example.com"
+#  # hostPort is optional, default 24224
+#  hostPort: "24224"
+#  selfHostname: "logs-dispatcher.example1.lagoon.example.com"
+#  sharedKey: "supersecurekey"
+#
+#clusterName: "example1"
+
+# Optional lagoon logs configuration. This should be enabled on a full lagoon
+# install, but not in a lagoon-remote install. If enabled, the rabbitMQ* values
+# are required.
+#
+#lagoonLogs:
+#  enabled: true
+#  rabbitMQHost: secureuser
+#  rabbitMQUser: secureuser
+#  rabbitMQPassword: secureuser
+
+# Optional namespace selection. Logs will _only_ be collected from these
+# namespaces. You probably don't want to configure this, except for debugging.
+#
+#selectNamespaces:
+#- drupal-example
+
+# Optional log export configuration
+
+#exportLogs:
+#  s3.conf: |
+#    <store ignore_error>
+#      @type s3
+#      ...
+#    </store>
+#  cloudwatch.conf: |
+#    <store ignore_error>
+#      @type cloudwatch_logs
+#      ...
+#    </store>
+
+# Openshift only!
+
+#fluentbitPrivileged: true

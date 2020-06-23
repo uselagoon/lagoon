@@ -4,6 +4,20 @@
   vars:
     testname: "API TOKEN"
 
+- include: features/ingress-annotations.yaml
+  vars:
+    testname: "INGRESS ANNOTATIONS {{ lookup('env','CLUSTER_TYPE')|upper }}"
+    git_repo_name: features.git
+    project: ci-features-{{ lookup('env','CLUSTER_TYPE') }}
+    branch: ingress-annotations
+
+- include: features/namespace-labels.yaml
+  vars:
+    testname: "NAMESPACE LABELS {{ lookup('env','CLUSTER_TYPE')|upper }}"
+    git_repo_name: features.git
+    project: ci-features-{{ lookup('env','CLUSTER_TYPE') }}
+    branch: namespace-labels
+
 - include: features/remote-shell.yaml
   vars:
     testname: "REMOTE SHELL {{ lookup('env','CLUSTER_TYPE')|upper }}"

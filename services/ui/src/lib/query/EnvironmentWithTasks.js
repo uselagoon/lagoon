@@ -17,6 +17,7 @@ export default gql`
       project {
         id
         name
+        problemsUi
       }
       services {
         id

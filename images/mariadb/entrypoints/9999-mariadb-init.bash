@@ -23,7 +23,23 @@ for arg; do
   esac
 done
 
+# check if MARIADB_COPY_DATA_DIR_SOURCE is set, if yes we're coping the contents of the given folder into the data dir folder
+# this allows to prefill the datadir with a provided datadir (either added in a Dockerfile build, or mounted into the running container).
+# This is different than just setting $MARIADB_DATA_DIR to the source folder, as only /var/lib/mysql is a persistent folder, so setting
+# $MARIADB_DATA_DIR to another folder will make mariadb to not store the datadir across container restarts, while with this copy system
+# the data will be prefilled and persistent across container restarts.
+if [ -n "$MARIADB_COPY_DATA_DIR_SOURCE" ]; then
+  if [ -d ${MARIADB_DATA_DIR:-/var/lib/mysql}/mysql ]; then
+    echo "MARIADB_COPY_DATA_DIR_SOURCE is set, but MySQL directory already present in '${MARIADB_DATA_DIR:-/var/lib/mysql}/mysql' skipping copying"
+  else
+    echo "MARIADB_COPY_DATA_DIR_SOURCE is set, copying datadir contents from '$MARIADB_COPY_DATA_DIR_SOURCE' to '${MARIADB_DATA_DIR:-/var/lib/mysql}'"
+    CUR_DIR=${PWD}
+    cd ${MARIADB_COPY_DATA_DIR_SOURCE}/; tar cf - . | (cd ${MARIADB_DATA_DIR:-/var/lib/mysql}; tar xvf -)
+    cd $CUR_DIR
+  fi
+fi
 
+ln -s ${MARIADB_DATA_DIR:-/var/lib/mysql}/.my.cnf /home/.my.cnf
 
 if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
   if [ ! -d "/run/mysqld" ]; then
@@ -31,12 +47,32 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
     chown -R mysql:mysql /run/mysqld
   fi
 
-  if [ -d /var/lib/mysql/mysql ]; then
+  if [ -d ${MARIADB_DATA_DIR:-/var/lib/mysql}/mysql ]; then
     echo "MySQL directory already present, skipping creation"
+
+    echo "starting mysql for mysql upgrade."
+    /usr/bin/mysqld --skip-networking --wsrep_on=OFF &
+    pid="$!"
+    echo "pid is $pid"
+
+    for i in {30..0}; do
+      if echo 'SELECT 1' | mysql -u root; then
+        break
+      fi
+      echo 'MySQL init process in progress...'
+      sleep 1
+    done
+
+    mysql_upgrade --force
+
+    if ! kill -s TERM "$pid" || ! wait "$pid"; then
+      echo >&2 'MySQL init process failed.'
+      exit 1
+    fi
   else
     echo "MySQL data directory not found, creating initial DBs"
 
-    mysql_install_db --skip-name-resolve --skip-auth-anonymous-user --datadir=/var/lib/mysql --basedir=/usr
+    mysql_install_db --skip-name-resolve --skip-test-db --auth-root-authentication-method=normal --datadir=${MARIADB_DATA_DIR:-/var/lib/mysql} --basedir=/usr
 
     echo "starting mysql for initdb.d import."
     /usr/bin/mysqld --skip-networking --wsrep_on=OFF &
@@ -68,7 +104,7 @@ if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
     cat << EOF > $tfile
 DROP DATABASE IF EXISTS test;
 USE mysql;
-UPDATE mysql.user SET PASSWORD=PASSWORD("$MARIADB_ROOT_PASSWORD") WHERE user="root";
+ALTER USER root@localhost IDENTIFIED VIA mysql_native_password USING PASSWORD("$MARIADB_ROOT_PASSWORD");
 FLUSH PRIVILEGES;
 
 EOF
@@ -87,16 +123,16 @@ EOF
     cat $tfile | mysql -v -u root
     rm -v -f $tfile
 
-    echo "[client]" >> /var/lib/mysql/.my.cnf
-    echo "user=root" >> /var/lib/mysql/.my.cnf
-    echo "password=${MARIADB_ROOT_PASSWORD}"  >> /var/lib/mysql/.my.cnf
-    echo "[mysql]" >> /var/lib/mysql/.my.cnf
-    echo "database=${MARIADB_DATABASE}" >> /var/lib/mysql/.my.cnf
+    echo "[client]" >> ${MARIADB_DATA_DIR:-/var/lib/mysql}/.my.cnf
+    echo "user=root" >> ${MARIADB_DATA_DIR:-/var/lib/mysql}/.my.cnf
+    echo "password=${MARIADB_ROOT_PASSWORD}"  >> ${MARIADB_DATA_DIR:-/var/lib/mysql}/.my.cnf
+    echo "[mysql]" >> ${MARIADB_DATA_DIR:-/var/lib/mysql}/.my.cnf
+    echo "database=${MARIADB_DATABASE}" >> ${MARIADB_DATA_DIR:-/var/lib/mysql}/.my.cnf
 
     for f in `ls /docker-entrypoint-initdb.d/*`; do
       case "$f" in
         *.sh)     echo "$0: running $f"; . "$f" ;;
-        *.sql)    echo "$0: running $f"; cat $f| tee | mysql -u root -p${MARIADB_ROOT_PASSWORD}; echo ;;
+        *.sql)    echo "$0: running $f"; cat $f| envsubst | tee | mysql -u root -p${MARIADB_ROOT_PASSWORD}; echo ;;
         *)        echo "$0: ignoring $f" ;;
       esac
     echo
@@ -109,6 +145,6 @@ EOF
 
   fi
 
-echo "done, now starting daemon"
+  echo "done, now starting daemon"
 
 fi

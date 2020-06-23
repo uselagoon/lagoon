@@ -39,6 +39,8 @@ export const defaultModifier: BillingModifierInput = {
   discountPercentage: 0,
   extraFixed: 0,
   extraPercentage: 0,
+  min: 0,
+  max: 0,
   customerComments: 'xxx',
   adminComments: 'xxx'
 };

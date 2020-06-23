@@ -91,7 +91,7 @@ do
     if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get service "$SERVICE_NAME" &> /dev/null; then
       SERVICE_TYPE="mariadb-single"
     # check if an existing mariadb service instance already exists
-    elif oc -insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get serviceinstance "$SERVICE_NAME" &> /dev/null; then
+    elif oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get serviceinstance "$SERVICE_NAME" &> /dev/null; then
       SERVICE_TYPE="mariadb-shared"
     # check if we can use the dbaas operator
     elif oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get mariadbconsumer.v1.mariadb.amazee.io &> /dev/null; then
@@ -266,6 +266,18 @@ if [[ ( "$TYPE" == "pullrequest"  ||  "$TYPE" == "branch" ) && ! $THIS_IS_TUG ==
   BUILD_ARGS=()
 
   set +x # reduce noise in build logs
+  # Get the pre-rollout and post-rollout vars
+    if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
+      LAGOON_PREROLLOUT_DISABLED=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_PREROLLOUT_DISABLED") | "\(.value)"'))
+      LAGOON_POSTROLLOUT_DISABLED=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_POSTROLLOUT_DISABLED") | "\(.value)"'))
+    fi
+    if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
+      LAGOON_PREROLLOUT_DISABLED=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_PREROLLOUT_DISABLED") | "\(.value)"'))
+      LAGOON_POSTROLLOUT_DISABLED=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_POSTROLLOUT_DISABLED") | "\(.value)"'))
+    fi
+  set -x
+
+  set +x # reduce noise in build logs
   # Add environment variables from lagoon API as build args
   if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
     echo "LAGOON_PROJECT_VARIABLES are available from the API"
@@ -375,27 +387,30 @@ fi
 ### RUN PRE-ROLLOUT tasks defined in .lagoon.yml
 ##############################################
 
+if [ "${LAGOON_PREROLLOUT_DISABLED}" != "true" ]; then
+  COUNTER=0
+  while [ -n "$(cat .lagoon.yml | shyaml keys tasks.pre-rollout.$COUNTER 2> /dev/null)" ]
+  do
+    TASK_TYPE=$(cat .lagoon.yml | shyaml keys tasks.pre-rollout.$COUNTER)
+    echo $TASK_TYPE
+    case "$TASK_TYPE" in
+      run)
+          COMMAND=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.command)
+          SERVICE_NAME=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.service)
+          CONTAINER=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.container false)
+          SHELL=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.shell sh)
+          . /oc-build-deploy/scripts/exec-pre-tasks-run.sh
+          ;;
+      *)
+          echo "Task Type ${TASK_TYPE} not implemented"; exit 1;
 
-COUNTER=0
-while [ -n "$(cat .lagoon.yml | shyaml keys tasks.pre-rollout.$COUNTER 2> /dev/null)" ]
-do
-  TASK_TYPE=$(cat .lagoon.yml | shyaml keys tasks.pre-rollout.$COUNTER)
-  echo $TASK_TYPE
-  case "$TASK_TYPE" in
-    run)
-        COMMAND=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.command)
-        SERVICE_NAME=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.service)
-        CONTAINER=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.container false)
-        SHELL=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.shell sh)
-        . /oc-build-deploy/scripts/exec-pre-tasks-run.sh
-        ;;
-    *)
-        echo "Task Type ${TASK_TYPE} not implemented"; exit 1;
+    esac
 
-  esac
-
-  let COUNTER=COUNTER+1
-done
+    let COUNTER=COUNTER+1
+  done
+else
+  echo "pre-rollout tasks are currently disabled LAGOON_PREROLLOUT_DISABLED is set to true"
+fi
 
 ##############################################
 ### CREATE OPENSHIFT SERVICES, ROUTES and SERVICEBROKERS
@@ -490,7 +505,15 @@ TEMPLATE_PARAMETERS=()
 ### CUSTOM ROUTES FROM .lagoon.yml
 ##############################################
 
+if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
+  MONITORING_ENABLED="true"
+else
+  MONITORING_ENABLED="false"
+fi
+MONITORING_INTERVAL=60
+
 ROUTES_SERVICE_COUNTER=0
+
 # we need to check for production routes for active/standby if they are defined, as these will get migrated between environments as required
 if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
   if [ "${BRANCH//./\\.}" == "${ACTIVE_ENVIRONMENT}" ]; then
@@ -509,6 +532,7 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
             ROUTE_MIGRATE=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate true)
             ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
             ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
+            MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring-path "")
           else
             # Only a value given, assuming some defaults
             ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
@@ -550,6 +574,7 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
             ROUTE_MIGRATE=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate true)
             ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
             ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
+            MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring-path "")
           else
             # Only a value given, assuming some defaults
             ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
@@ -594,6 +619,7 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
         ROUTE_MIGRATE=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate false)
         ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
         ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
+        MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring-path "")
       else
         # Only a value given, assuming some defaults
         ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
@@ -632,6 +658,7 @@ else
         ROUTE_MIGRATE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate false)
         ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
         ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
+        MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring-path "")
       else
         # Only a value given, assuming some defaults
         ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
@@ -692,8 +719,10 @@ fi
 ##############################################
 ### CUSTOM MONITORING_URLS FROM .lagoon.yml
 ##############################################
+# @DEPRECATED - to be removed with Lagoon 2.0
 URL_COUNTER=0
 while [ -n "$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.monitoring_urls.$URL_COUNTER 2> /dev/null)" ]; do
+  echo "DEPRECATION WARNING: 'monitoring_urls' is being moved to a per-route 'monitoring-path', please update your route"
   MONITORING_URL="$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.monitoring_urls.$URL_COUNTER)"
   if [[ $URL_COUNTER > 0 ]]; then
     MONITORING_URLS="${MONITORING_URLS}, ${MONITORING_URL}"
@@ -726,10 +755,8 @@ ROUTES=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get routes -l "ac
 # Active / Standby routes
 ACTIVE_ROUTES=""
 STANDBY_ROUTES=""
-if [ "${BRANCH//./\\.}" == "${ACTIVE_ENVIRONMENT}" ]; then
+if [ ! -z "${STANDBY_ENVIRONMENT}" ]; then
 ACTIVE_ROUTES=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get routes -l "dioscuri.amazee.io/migrate=true" -o=go-template --template='{{range $index, $route := .items}}{{if $index}},{{end}}{{if $route.spec.tls.termination}}https://{{else}}http://{{end}}{{$route.spec.host}}{{end}}')
-fi
-if [ "${BRANCH//./\\.}" == "${STANDBY_ENVIRONMENT}" ]; then
 STANDBY_ROUTES=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get routes -l "dioscuri.amazee.io/migrate=true" -o=go-template --template='{{range $index, $route := .items}}{{if $index}},{{end}}{{if $route.spec.tls.termination}}https://{{else}}http://{{end}}{{$route.spec.host}}{{end}}')
 fi
 
@@ -916,6 +943,14 @@ parallel --retries 40 --results /tmp/istag oc --insecure-skip-tls-verify -n ${OP
 for i in $(ls /tmp/istag/1); do
   IMAGE_HASHES[${i}]=$(cat /tmp/istag/1/${i}/stdout)
 done
+
+##############################################
+### REDEPLOY DEPLOYMENTS IF CONFIG MAP CHANGES
+##############################################
+
+CONFIG_MAP_SHA=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get configmap lagoon-env -o yaml | shyaml get-value data | sha256sum | awk '{print $1}')
+# write the configmap value to a variable so when we `exec-openshift-resources-with-images.sh` the deploymentconfigs will get the value of the config map
+# which will cause a change in the deployment and trigger a rollout if only the configmap has changed
 
 ##############################################
 ### CREATE PVC, DEPLOYMENTS AND CRONJOBS
@@ -1127,16 +1162,7 @@ do
     SERVICE_ROLLOUT_TYPE=$ENVIRONMENT_SERVICE_ROLLOUT_TYPE
   fi
 
-  # if mariadb-galera is a statefulset check also for maxscale
-  if [ $SERVICE_TYPE == "mariadb-galera" ]; then
-
-    STATEFULSET="${SERVICE_NAME}-galera"
-    . /oc-build-deploy/scripts/exec-monitor-statefulset.sh
-
-    SERVICE_NAME="${SERVICE_NAME}-maxscale"
-    . /oc-build-deploy/scripts/exec-monitor-deploy.sh
-
-  elif [ $SERVICE_TYPE == "elasticsearch-cluster" ]; then
+  if [ $SERVICE_TYPE == "elasticsearch-cluster" ]; then
 
     STATEFULSET="${SERVICE_NAME}"
     . /oc-build-deploy/scripts/exec-monitor-statefulset.sh
@@ -1195,23 +1221,28 @@ done
 ### RUN POST-ROLLOUT tasks defined in .lagoon.yml
 ##############################################
 
-COUNTER=0
-while [ -n "$(cat .lagoon.yml | shyaml keys tasks.post-rollout.$COUNTER 2> /dev/null)" ]
-do
-  TASK_TYPE=$(cat .lagoon.yml | shyaml keys tasks.post-rollout.$COUNTER)
-  echo $TASK_TYPE
-  case "$TASK_TYPE" in
-    run)
-        COMMAND=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.command)
-        SERVICE_NAME=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.service)
-        CONTAINER=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.container false)
-        SHELL=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.shell sh)
-        . /oc-build-deploy/scripts/exec-tasks-run.sh
-        ;;
-    *)
-        echo "Task Type ${TASK_TYPE} not implemented"; exit 1;
+# if we have LAGOON_POSTROLLOUT_DISABLED set, don't try to run any pre-rollout tasks
+if [ "${LAGOON_POSTROLLOUT_DISABLED}" != "true" ]; then
+  COUNTER=0
+  while [ -n "$(cat .lagoon.yml | shyaml keys tasks.post-rollout.$COUNTER 2> /dev/null)" ]
+  do
+    TASK_TYPE=$(cat .lagoon.yml | shyaml keys tasks.post-rollout.$COUNTER)
+    echo $TASK_TYPE
+    case "$TASK_TYPE" in
+      run)
+          COMMAND=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.command)
+          SERVICE_NAME=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.service)
+          CONTAINER=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.container false)
+          SHELL=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.shell sh)
+          . /oc-build-deploy/scripts/exec-tasks-run.sh
+          ;;
+      *)
+          echo "Task Type ${TASK_TYPE} not implemented"; exit 1;
 
-  esac
+    esac
 
-  let COUNTER=COUNTER+1
-done
+    let COUNTER=COUNTER+1
+  done
+else
+  echo "post-rollout tasks are currently disabled LAGOON_POSTROLLOUT_DISABLED is set to true"
+fi

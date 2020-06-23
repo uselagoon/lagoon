@@ -20,7 +20,7 @@ else
   CI_OVERRIDE_IMAGE_REPO=""
 fi
 
-if [ "$TYPE" == "pullrequest" ]; then
+if [ "$BUILD_TYPE" == "pullrequest" ]; then
   /kubectl-build-deploy/scripts/git-checkout-pull-merge.sh "$SOURCE_REPOSITORY" "$PR_HEAD_SHA" "$PR_BASE_SHA"
 else
   /kubectl-build-deploy/scripts/git-checkout-pull.sh "$SOURCE_REPOSITORY" "$GIT_REF"
@@ -106,15 +106,15 @@ do
     if [ $PRIVATE_CONTAINER_REGISTRY_URL != "false" ]; then
       echo "Attempting to log in to $PRIVATE_CONTAINER_REGISTRY_URL with user $PRIVATE_CONTAINER_REGISTRY_USERNAME - $PRIVATE_CONTAINER_REGISTRY_PASSWORD"
       docker login --username $PRIVATE_CONTAINER_REGISTRY_USERNAME --password $PRIVATE_REGISTRY_CREDENTIAL $PRIVATE_CONTAINER_REGISTRY_URL
-      kubectl create secret docker-registry "lagoon-private-registry-${PRIVATE_REGISTRY_COUNTER}-secret" --docker-server=$PRIVATE_CONTAINER_REGISTRY_URL --docker-username=PRIVATE_CONTAINER_REGISTRY_USERNAME --docker-password=$PRIVATE_REGISTRY_REGISTRY_PASSWORD --dry-run -o yaml | kubectl apply -f -
+      kubectl create secret docker-registry "lagoon-private-registry-${PRIVATE_REGISTRY_COUNTER}-secret" --docker-server=$PRIVATE_CONTAINER_REGISTRY_URL --docker-username=$PRIVATE_CONTAINER_REGISTRY_USERNAME --docker-password=$PRIVATE_REGISTRY_CREDENTIAL --dry-run -o yaml | kubectl apply -f -
       REGISTRY_SECRETS+=("lagoon-private-registry-${PRIVATE_REGISTRY_COUNTER}-secret")
-      let PRIVATE_REGISTRY_COUNTER++
+      let ++PRIVATE_REGISTRY_COUNTER
     else
       echo "Attempting to log in to docker hub with user $PRIVATE_CONTAINER_REGISTRY_USERNAME - $PRIVATE_CONTAINER_REGISTRY_PASSWORD"
       docker login --username $PRIVATE_CONTAINER_REGISTRY_USERNAME --password $PRIVATE_REGISTRY_CREDENTIAL
-      kubectl create secret docker-registry "lagoon-private-registry-${PRIVATE_REGISTRY_COUNTER}-secret" --docker-server="https://index.docker.io/v1/" --docker-username=PRIVATE_CONTAINER_REGISTRY_USERNAME --docker-password=$PRIVATE_REGISTRY_REGISTRY_PASSWORD --dry-run -o yaml | kubectl apply -f -
+      kubectl create secret docker-registry "lagoon-private-registry-${PRIVATE_REGISTRY_COUNTER}-secret" --docker-server="https://index.docker.io/v1/" --docker-username=$PRIVATE_CONTAINER_REGISTRY_USERNAME --docker-password=$PRIVATE_REGISTRY_CREDENTIAL --dry-run -o yaml | kubectl apply -f -
       REGISTRY_SECRETS+=("lagoon-private-registry-${PRIVATE_REGISTRY_COUNTER}-secret")
-      let PRIVATE_REGISTRY_COUNTER++
+      let ++PRIVATE_REGISTRY_COUNTER
     fi
   fi
 done

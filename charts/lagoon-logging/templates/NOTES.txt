@@ -1,0 +1,5 @@
+Thank you for installing {{ .Chart.Name }}.
+
+Your release is named {{ .Release.Name }}.
+
+Your logs are now being sent to {{ coalesce .Values.forward.hostName .Values.forward.host }}:{{ .Values.forward.hostPort }}.

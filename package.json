@@ -9,11 +9,9 @@
   "private": true,
   "workspaces": [
     "node-packages/*",
-    "services/*",
-    "cli"
+    "services/*"
   ],
   "devDependencies": {
-    "flow-bin": "^0.78.0",
     "glow": "^1.2.2",
     "prettier": "^1.14.2"
   },

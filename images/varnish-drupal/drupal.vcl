@@ -14,10 +14,10 @@ backend default {
 # Allow purging from localhost
 # @TODO allow from openshift network
 acl purge {
-      "127.0.0.1";
-      "10.0.0.0"/8;
-      "172.16.0.0"/12;
-      "192.168.0.0"/16;
+  "127.0.0.1";
+  "10.0.0.0"/8;
+  "172.16.0.0"/12;
+  "192.168.0.0"/16;
 }
 
 sub vcl_init {
@@ -31,52 +31,55 @@ sub vcl_init {
 # This configuration is optimized for Drupal hosting:
 # Respond to incoming requests.
 sub vcl_recv {
-  if (req.url ~ "^/varnish_status$")  {
+  if (req.url ~ "^/varnish_status$") {
     return (synth(200,"OK"));
   }
   # set the backend, which should be used:
   set req.backend_hint = www_dir.backend("${VARNISH_BACKEND_HOST:-nginx}");
 
   # Always set the forward ip.
-   if (req.restarts == 0) {
-     if (req.http.x-forwarded-for) {
-         set req.http.X-Forwarded-For =  req.http.X-Forwarded-For + ", " + client.ip;
-     } else {
-         set req.http.X-Forwarded-For = client.ip;
-     }
-   }
-
-
+  if (req.restarts == 0) {
+    if (req.http.x-forwarded-for) {
+      set req.http.X-Forwarded-For =  req.http.X-Forwarded-For + ", " + client.ip;
+    }
+    else {
+      set req.http.X-Forwarded-For = client.ip;
+    }
+  }
 
   if (req.http.X-LAGOON-VARNISH ) {
-    ## Pass all Requests which are handled via an upstream Varnish
+    # Pass all Requests which are handled via an upstream Varnish
     set req.http.X-LAGOON-VARNISH = "${HOSTNAME}-${LAGOON_GIT_BRANCH:-undef}-${LAGOON_PROJECT}, " + req.http.X-LAGOON-VARNISH;
     set req.http.X-LAGOON-VARNISH-BYPASS = "true";
-  } else if (req.http.Fastly-FF) {
-    ## Pass all Requests which are handled via Fastly
+  }
+  else if (req.http.Fastly-FF) {
+    # Pass all Requests which are handled via Fastly
     set req.http.X-LAGOON-VARNISH = "${HOSTNAME}-${LAGOON_GIT_BRANCH:-undef}-${LAGOON_PROJECT}, fastly";
     set req.http.X-LAGOON-VARNISH-BYPASS = "true";
     set req.http.X-Forwarded-For = req.http.Fastly-Client-IP;
-  } else if (req.http.CF-RAY) {
-    ## Pass all Requests which are handled via CloudFlare
+  }
+  else if (req.http.CF-RAY) {
+    # Pass all Requests which are handled via CloudFlare
     set req.http.X-LAGOON-VARNISH = "${HOSTNAME}-${LAGOON_GIT_BRANCH:-undef}-${LAGOON_PROJECT}, cloudflare";
     set req.http.X-LAGOON-VARNISH-BYPASS = "true";
     set req.http.X-Forwarded-For = req.http.CF-Connecting-IP;
-  } else if (req.http.X-Pull) {
-    ## Pass all Requests which are handled via KeyCDN
+  }
+  else if (req.http.X-Pull) {
+    # Pass all Requests which are handled via KeyCDN
     set req.http.X-LAGOON-VARNISH = "${HOSTNAME}-${LAGOON_GIT_BRANCH:-undef}-${LAGOON_PROJECT}, keycdn";
     set req.http.X-LAGOON-VARNISH-BYPASS = "true";
-  } else {
-    ## We set a header to let a Varnish Chain know that it already has been varnishcached
+  }
+  else {
+    # We set a header to let a Varnish chain know that it already has been varnishcached
     set req.http.X-LAGOON-VARNISH = "${HOSTNAME}-${LAGOON_GIT_BRANCH:-undef}-${LAGOON_PROJECT}";
 
-    ## Allow to bypass based on env variable `VARNISH_BYPASS`
+    # Allow to bypass based on env variable `VARNISH_BYPASS`
     set req.http.X-LAGOON-VARNISH-BYPASS = "${VARNISH_BYPASS:-false}";
   }
 
   # Websockets are piped
   if (req.http.Upgrade ~ "(?i)websocket") {
-      return (pipe);
+    return (pipe);
   }
 
   if (req.http.X-LAGOON-VARNISH-BYPASS == "true" || req.http.X-LAGOON-VARNISH-BYPASS == "TRUE") {
@@ -98,42 +101,43 @@ sub vcl_recv {
 
   # Bypass a cache hit (the request is still sent to the backend)
   if (req.method == "REFRESH") {
-      if (!client.ip ~ purge) { return (synth(405, "Not allowed")); }
-      set req.method = "GET";
-      set req.hash_always_miss = true;
+    if (!client.ip ~ purge) {
+      return (synth(405, "Not allowed"));
+    }
+    set req.method = "GET";
+    set req.hash_always_miss = true;
   }
 
   # Only allow BAN requests from IP addresses in the 'purge' ACL.
   if (req.method == "BAN" || req.method == "URIBAN" || req.method == "PURGE") {
-      # Only allow BAN from defined ACL
-      if (!client.ip ~ purge) {
-          return (synth(403, "Your IP is not allowed."));
-      }
+    # Only allow BAN from defined ACL
+    if (!client.ip ~ purge) {
+      return (synth(403, "Your IP is not allowed."));
+    }
 
-      # Only allows BAN if the Host Header has the style of with "${SERVICE_NAME:-varnish}:8080" or "${SERVICE_NAME:-varnish}".
-      # Such a request is only possible from within the Docker network, as a request from external goes trough the Kubernetes Router and for that needs a proper Host Header
-      if (!req.http.host ~ "^${SERVICE_NAME:-varnish}(:\d+)?$") {
-          return (synth(403, "Only allowed from within own network."));
-      }
+    # Only allows BAN if the Host Header has the style of with "${SERVICE_NAME:-varnish}:8080" or "${SERVICE_NAME:-varnish}".
+    # Such a request is only possible from within the Docker network, as a request from external goes trough the Kubernetes Router and for that needs a proper Host Header
+    if (!req.http.host ~ "^${SERVICE_NAME:-varnish}(:\d+)?$") {
+      return (synth(403, "Only allowed from within own network."));
+    }
 
-      if (req.method == "BAN") {
-        # Logic for the ban, using the Cache-Tags header.
-        if (req.http.Cache-Tags) {
-            ban("obj.http.Cache-Tags ~ " + req.http.Cache-Tags);
-            # Throw a synthetic page so the request won't go to the backend.
-            return (synth(200, "Ban added."));
-        }
-        else {
-            return (synth(403, "Cache-Tags header missing."));
-        }
-      }
-
-      if (req.method == "URIBAN" || req.method == "PURGE") {
-        ban("req.url ~ " + req.url);
+    if (req.method == "BAN") {
+      # Logic for the ban, using the Cache-Tags header.
+      if (req.http.Cache-Tags) {
+        ban("obj.http.Cache-Tags ~ " + req.http.Cache-Tags);
         # Throw a synthetic page so the request won't go to the backend.
         return (synth(200, "Ban added."));
       }
+      else {
+        return (synth(403, "Cache-Tags header missing."));
+      }
+    }
 
+    if (req.method == "URIBAN" || req.method == "PURGE") {
+      ban("req.url ~ " + req.url);
+      # Throw a synthetic page so the request won't go to the backend.
+      return (synth(200, "Ban added."));
+    }
   }
 
   # Non-RFC2616 or CONNECT which is weird, we pipe that
@@ -147,23 +151,27 @@ sub vcl_recv {
      return (pipe);
   }
 
-  # We only try to cache  GET and HEAD, other things are passed
+  # Large binary files are passed.
+  if (req.url ~ "\.(msi|exe|dmg|zip|tgz|gz|pkg)$") {
+    return(pass);
+  }
+
+  # We only try to cache  GET and HEAD, other things are passed.
   if (req.method != "GET" && req.method != "HEAD") {
     return (pass);
   }
 
-  # Any requests with Basic Auth are passed
-  if (req.http.Authorization || req.http.Authenticate)
-  {
+  # Any requests with Basic Authentication are passed.
+  if (req.http.Authorization || req.http.Authenticate) {
     return (pass);
   }
 
-  ## Pass requests which are from blackfire
+  # Blackfire requests are passed.
   if (req.http.X-Blackfire-Query) {
     return (pass);
   }
 
-  # Some URLs should never be cached
+  # Some URLs should never be cached.
   if (req.url ~ "^/status\.php$" ||
       req.url ~ "^/update\.php$" ||
       req.url ~ "^/admin([/?]|$).*$" ||
@@ -176,9 +184,8 @@ sub vcl_recv {
     return (pass);
   }
 
-  # Plupload likes to get piped
-  if (req.url ~ "^.*/plupload-handle-uploads.*$"
-  ) {
+  # Plupload likes to get piped.
+  if (req.url ~ "^.*/plupload-handle-uploads.*$") {
     return (pipe);
   }
 
@@ -259,31 +266,32 @@ sub vcl_pipe {
 }
 
 sub vcl_hit {
-    if (obj.ttl >= 0s) {
-        # normal hit
-        return (deliver);
-    }
-    # We have no fresh fish. Lets look at the stale ones.
-    if (std.healthy(req.backend_hint)) {
-        # Backend is healthy. If the object is not older then 30secs, deliver it to the client
-        # and automatically create a separate backend request to warm the cache for this request.
-        if (obj.ttl + 30s > 0s) {
-            set req.http.grace = "normal(limited)";
-            return (deliver);
-        } else {
-            # No candidate for grace. Fetch a fresh object.
-            return(miss);
-        }
+  if (obj.ttl >= 0s) {
+    # normal hit
+    return (deliver);
+  }
+  # We have no fresh fish. Lets look at the stale ones.
+  if (std.healthy(req.backend_hint)) {
+    # Backend is healthy. If the object is not older then 30secs, deliver it to the client
+    # and automatically create a separate backend request to warm the cache for this request.
+    if (obj.ttl + 30s > 0s) {
+      set req.http.grace = "normal(limited)";
+      return (deliver);
     } else {
-        # backend is sick - use full grace
-        if (obj.ttl + obj.grace > 0s) {
-            set req.http.grace = "full";
-            return (deliver);
-        } else {
-            # no graced object.
-            return (miss);
-        }
+      # No candidate for grace. Fetch a fresh object.
+      return (miss);
     }
+  }
+  else {
+    # backend is sick - use full grace
+    if (obj.ttl + obj.grace > 0s) {
+      set req.http.grace = "full";
+      return (deliver);
+    } else {
+      # no graced object.
+      return (miss);
+    }
+  }
 }
 
 sub vcl_backend_response {
@@ -295,19 +303,18 @@ sub vcl_backend_response {
   set beresp.http.X-Host = bereq.http.host;
 
   # If the backend sends a X-LAGOON-VARNISH-BACKEND-BYPASS header we directly deliver
-  if(beresp.http.X-LAGOON-VARNISH-BACKEND-BYPASS == "TRUE") {
+  if (beresp.http.X-LAGOON-VARNISH-BACKEND-BYPASS == "TRUE") {
     return (deliver);
   }
 
   # Cache 404 and 403 for 10 seconds
-  if(beresp.status == 404 || beresp.status == 403) {
+  if (beresp.status == 404 || beresp.status == 403) {
     set beresp.ttl = 10s;
     return (deliver);
   }
 
   # Don't allow static files to set cookies.
   if (bereq.url ~ "(?i)\.(css|js|jpg|jpeg|gif|ico|png|tiff|tif|img|tga|wmf|swf|html|htm|woff|woff2|mp4|ttf|eot|svg)(\?.*)?$") {
-    # beresp == Back-end response from the web server.
     unset beresp.http.set-cookie;
     unset beresp.http.Cache-Control;
 
@@ -321,6 +328,14 @@ sub vcl_backend_response {
     set beresp.http.Cache-Control = "public, max-age=${VARNISH_ASSETS_TTL:-2628001}";
     set beresp.http.Expires = "" + (now + beresp.ttl);
   }
+
+  # Files larger than 10 MB get streamed.
+  if (beresp.http.Content-Length ~ "[0-9]{8,}") {
+    set beresp.do_stream = true;
+    set beresp.uncacheable = true;
+    set beresp.ttl = 120s;
+  }
+
   # Disable buffering only for BigPipe responses
   if (beresp.http.Surrogate-Control ~ "BigPipe/1.0") {
     set beresp.do_stream = true;
@@ -359,18 +374,19 @@ sub vcl_deliver {
 }
 
 sub vcl_hash {
-     hash_data(req.url);
-     if (req.http.host) {
-         hash_data(req.http.host);
-     } else {
-         hash_data(server.ip);
-     }
-     if (req.http.X-Forwarded-Proto) {
-        hash_data(req.http.X-Forwarded-Proto);
-     }
-     if (req.http.HTTPS) {
-        hash_data(req.http.HTTPS);
-     }
+  hash_data(req.url);
+  if (req.http.host) {
+    hash_data(req.http.host);
+  }
+  else {
+    hash_data(server.ip);
+  }
+  if (req.http.X-Forwarded-Proto) {
+    hash_data(req.http.X-Forwarded-Proto);
+  }
+  if (req.http.HTTPS) {
+    hash_data(req.http.HTTPS);
+  }
   return (lookup);
 }
 
@@ -387,20 +403,20 @@ sub vcl_synth {
     # Create our synthetic response
     synthetic("");
     return(deliver);
-}
+  }
   return (deliver);
 }
 
 sub vcl_backend_error {
-    # Restart the request, when we have a backend server error, to try another backend.
-    # Restart max twice.
-    if (bereq.retries < 2) {
-      return(retry);
-    }
+  # Restart the request, when we have a backend server error, to try another backend.
+  # Restart max twice.
+  if (bereq.retries < 2) {
+    return(retry);
+  }
 
-    set beresp.http.Content-Type = "text/html; charset=utf-8";
-    set beresp.http.Retry-After = "5";
-    synthetic( {"
+  set beresp.http.Content-Type = "text/html; charset=utf-8";
+  set beresp.http.Retry-After = "5";
+  synthetic({"
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -443,6 +459,6 @@ sub vcl_backend_error {
 </body>
 </html>
 
-"} );
-    return (deliver);
+"});
+  return (deliver);
 }

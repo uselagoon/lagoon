@@ -13,6 +13,8 @@ export interface BillingModifierBase {
   discountPercentage?: number;
   extraFixed?: number;
   extraPercentage?: number;
+  min?:number;
+  max?:number;
   customerComments?: string;
   adminComments?: string;
   weight?: number;
@@ -86,7 +88,7 @@ export const BillingModel = (clients) => {
 
     const sql = Sql.getAllBillingModifierByBillingGroup(group.id, monthStart, monthEnd );
     const result = (await query(sqlClient, sql));
-    return result.map(({weight, discountFixed, discountPercentage, extraFixed, extraPercentage, ...rest}) => 
+    return result.map(({weight, discountFixed, discountPercentage, extraFixed, extraPercentage, min, max, ...rest}) => 
       ({ 
         ...rest, 
         group, 
@@ -94,7 +96,10 @@ export const BillingModel = (clients) => {
         discountFixed: parseFloat(discountFixed), 
         discountPercentage: parseFloat(discountPercentage), 
         extraFixed: parseFloat(extraFixed), 
-        extraPercentage: parseFloat(extraPercentage) }));
+        extraPercentage: parseFloat(extraPercentage),
+        min: parseFloat(min),
+        max: parseFloat(max)
+      }));
   };
 
   /**

@@ -1,6 +1,7 @@
+ARG ALPINE_VERSION
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
-FROM alpine:3.8
+FROM alpine:${ALPINE_VERSION}
 
 LABEL maintainer="amazee.io"
 
@@ -38,22 +39,23 @@ RUN \
     mariadb \
     mariadb-client \
     mariadb-common \
+    mariadb-server-utils \
     net-tools \
     pwgen \
     tzdata \
-    wget; \
+    wget \
+    gettext; \
     rm -rf /tmp/* /var/tmp/* /var/cache/apk/* /var/cache/distfiles/*; \
-    rm -rf /var/lib/mysql/* /etc/mysql/; \
+    rm -rf /var/lib/mysql/* /etc/mysql/ /etc/my.cnf*; \
     curl -sSL http://mysqltuner.pl/ -o mysqltuner.pl
 
 COPY entrypoints/ /lagoon/entrypoints/
 COPY mysql-backup.sh /lagoon/
 COPY my.cnf /etc/mysql/my.cnf
 
-RUN for i in /var/run/mysqld /var/lib/mysql /etc/mysql/conf.d /docker-entrypoint-initdb.d/ "${BACKUPS_DIR}"; \
+RUN for i in /var/run/mysqld /var/lib/mysql /etc/mysql/conf.d /docker-entrypoint-initdb.d/ "${BACKUPS_DIR}" /home; \
     do mkdir -p $i; chown mysql $i; /bin/fix-permissions $i; \
-    done && \
-    ln -s /var/lib/mysql/.my.cnf /home/.my.cnf
+    done
 
 COPY root/usr/share/container-scripts/mysql/readiness-probe.sh /usr/share/container-scripts/mysql/readiness-probe.sh
 RUN /bin/fix-permissions /usr/share/container-scripts/mysql/ \

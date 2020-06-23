@@ -1,4 +1,3 @@
-// @flow
 const got = require('got');
 
 const { LOGSDB_ADMIN_PASSWORD, ELASTICSEARCH_URL } = process.env;

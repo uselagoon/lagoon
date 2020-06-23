@@ -3,7 +3,6 @@
     "presets": [["latest-node", { "target": "10" }]]
   ],
   "plugins": [
-    "transform-flow-strip-types",
     "transform-es2015-modules-commonjs"
   ]
 }

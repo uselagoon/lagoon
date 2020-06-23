@@ -2,7 +2,7 @@
 
 # TODO: find out why we are using the if/else and if it's still needed for kubernetes
 if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get route "$ROUTE_DOMAIN" &> /dev/null; then
-  oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} patch route "$ROUTE_DOMAIN" -p "{\"metadata\":{\"labels\":{\"dioscuri.amazee.io/migrate\": \"${ROUTE_MIGRATE}\"},\"annotations\":{\"kubernetes.io/tls-acme\":\"${ROUTE_TLS_ACME}\",\"haproxy.router.openshift.io/hsts_header\":\"${ROUTE_HSTS}\"}},\"spec\":{\"to\":{\"name\":\"${ROUTE_SERVICE}\"},\"tls\":{\"insecureEdgeTerminationPolicy\":\"${ROUTE_INSECURE}\"}}}"
+  oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} patch route "$ROUTE_DOMAIN" -p "{\"metadata\":{\"labels\":{\"dioscuri.amazee.io/migrate\":\"${ROUTE_MIGRATE}\"},\"annotations\":{\"kubernetes.io/tls-acme\":\"${ROUTE_TLS_ACME}\",\"haproxy.router.openshift.io/hsts_header\":\"${ROUTE_HSTS}\",\"monitor.stakater.com/enabled\":\"${MONITORING_ENABLED}\",\"uptimerobot.monitor.stakater.com/interval\":\"${MONITORING_INTERVAL}\",\"uptimerobot.monitor.stakater.com/alert-contacts\":\"${MONITORING_ALERTCONTACT}\",\"monitor.stakater.com/overridePath\":\"${MONITORING_PATH}\",\"uptimerobot.monitor.stakater.com/status-pages\":\"${MONITORING_STATUSPAGEID}\"}},\"spec\":{\"to\":{\"name\":\"${ROUTE_SERVICE}\"},\"tls\":{\"insecureEdgeTerminationPolicy\":\"${ROUTE_INSECURE}\"}}}"
 else
   oc process  --local -o yaml --insecure-skip-tls-verify \
     -n ${OPENSHIFT_PROJECT} \
@@ -19,5 +19,10 @@ else
     -p ROUTE_INSECURE="${ROUTE_INSECURE}" \
     -p ROUTE_HSTS="${ROUTE_HSTS}" \
     -p ROUTE_MIGRATE="${ROUTE_MIGRATE}" \
+    -p MONITORING_ENABLED="${MONITORING_ENABLED}" \
+    -p MONITOR_ALERTCONTACTS="${MONITOR_ALERTCONTACTS}" \
+    -p MONITORING_PATH="${MONITORING_PATH}" \
+    -p MONITORING_INTERVAL="${MONITORING_INTERVAL}" \
+    -p MONITORING_STATUSPAGEID="${MONITORING_STATUSPAGEID}" \
     | outputToYaml
 fi
