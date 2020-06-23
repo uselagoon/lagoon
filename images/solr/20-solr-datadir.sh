@@ -97,7 +97,7 @@ function fixConfig {
     echo "Found old non lagoon compatible dataDir config in solrconfig.xml:"
     cat $1/solrconfig.xml | grep dataDir
     SOLR_DATA_DIR=${SOLR_DATA_DIR:-/var/solr}
-    SOLR_DATA_DIR_ESCAPED=${SOLR_DATA_DIR////\\/} # escapig the forward slashes with backslahes
+    SOLR_DATA_DIR_ESCAPED=${SOLR_DATA_DIR//\//\\/} # escapig the forward slashes with backslahes
     if [ -w $1/ ]; then
       sed -ibak "s/<dataDir>.*/<dataDir>$SOLR_DATA_DIR_ESCAPED\/\${solr.core.name}<\/dataDir>/" $1/solrconfig.xml
       echo "automagically updated to compatible config: "
