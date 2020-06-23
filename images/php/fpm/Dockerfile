@@ -3,6 +3,21 @@ ARG PHP_IMAGE_VERSION
 ARG ALPINE_VERSION
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
+
+FROM php:${PHP_IMAGE_VERSION}-fpm-alpine${ALPINE_VERSION} as healthcheckbuilder
+
+# Defining Versions - Composer
+# @see https://getcomposer.org/download/
+ENV COMPOSER_VERSION=1.10.7 \
+  COMPOSER_HASH_SHA256=b94b872729668de5b5fbf62f16ff588d2a23480dda88c0e45cb43b721b75ae29
+
+RUN curl -L -o /tmp/composer https://github.com/composer/composer/releases/download/${COMPOSER_VERSION}/composer.phar \
+    && echo "$COMPOSER_HASH_SHA256 /tmp/composer" | sha256sum \
+    && chmod +x /tmp/composer \
+    && php -d memory_limit=-1 /tmp/composer create-project amazeeio/healthz-php /healthz-php \
+    && rm /tmp/composer
+
+
 FROM php:${PHP_IMAGE_VERSION}-fpm-alpine${ALPINE_VERSION}
 
 LABEL maintainer="amazee.io"
@@ -16,6 +31,10 @@ COPY --from=commons /lagoon /lagoon
 COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
 COPY --from=commons /sbin/tini /sbin/
 COPY --from=commons /home /home
+
+# Copy healthcheck files
+
+COPY --from=healthcheckbuilder /healthz-php /healthz-php
 
 RUN chmod g+w /etc/passwd \
     && mkdir -p /home
@@ -101,19 +120,6 @@ RUN apk add --no-cache fcgi \
     && fix-permissions /usr/local/etc/ \
     && fix-permissions /app \
     && fix-permissions /etc/ssmtp/ssmtp.conf
-
-
-# Defining Versions - Composer
-# @see https://getcomposer.org/download/
-ENV COMPOSER_VERSION=1.10.7 \
-  COMPOSER_HASH_SHA256=b94b872729668de5b5fbf62f16ff588d2a23480dda88c0e45cb43b721b75ae29
-
-RUN curl -L -o /tmp/composer https://github.com/composer/composer/releases/download/${COMPOSER_VERSION}/composer.phar \
-    && echo "$COMPOSER_HASH_SHA256 /tmp/composer" | sha256sum \
-    && chmod +x /tmp/composer \
-    && php -d memory_limit=-1 /tmp/composer create-project amazeeio/healthz-php /healthz-php \
-    && rm /tmp/composer
-
 
 EXPOSE 9000
 
