@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ .Values.persistentStorage.name | quote }}
+  name: {{ include "nginx-php-persistent.persistentStorageName" . }}
   labels:
     {{- include "nginx-php-persistent.labels" . | nindent 4 }}
   annotations:

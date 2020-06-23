@@ -43,18 +43,31 @@ sub vcl_recv {
     return (synth(200,"OK"));
   }
 
+  # Large binary files are passed.
+  if (req.url ~ "\.(msi|exe|dmg|zip|tgz|gz|pkg)$") {
+    return(pass);
+  }
 }
 
 sub vcl_backend_response {
-    # Happens after we have read the response headers from the backend.
-    #
-    # Here you clean the response headers, removing silly Set-Cookie headers
-    # and other mistakes your backend does.
+  # Happens after we have read the response headers from the backend.
+  #
+  # Here you clean the response headers, removing silly Set-Cookie headers
+  # and other mistakes your backend does.
+
+  # Files larger than 10 MB get streamed.
+  if (beresp.http.Content-Length ~ "[0-9]{8,}") {
+    set beresp.do_stream = true;
+    set beresp.uncacheable = true;
+    set beresp.ttl = 120s;
+  }
+
+  return (deliver);
 }
 
 sub vcl_deliver {
-    # Happens when we have all the pieces we need, and are about to send the
-    # response to the client.
-    #
-    # You can do accounting or modifying the final object here.
+  # Happens when we have all the pieces we need, and are about to send the
+  # response to the client.
+  #
+  # You can do accounting or modifying the final object here.
 }
