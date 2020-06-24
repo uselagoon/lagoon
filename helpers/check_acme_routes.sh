@@ -198,20 +198,19 @@ function notify_customer() {
 	NOTIFICATION_DATA=$(lagoon list $NOTIFICATION -p "$1" --no-header|head -n1|awk '{print $3";"$4}')
 	CHANNEL=$(echo "$NOTIFICATION_DATA"|cut -f1 -d ";")
 	WEBHOOK=$(echo "$NOTIFICATION_DATA"|cut -f2 -d ";")
-	MESSAGE="Your $ROUTE_HOSTNAME route is configured in the \`.lagoon.yml\` file to issue an TLS certificate from Lets Encrypt. Unfortunately Lagoon is unable to issue a certificate as $DNS_ERROR.\nTo be issued correctly, the DNS records for $ROUTE_HOSTNAME should point to $CLUSTER_HOSTNAME with an CNAME record (preferred) or to ${CLUSTER_IPS[*]} via an A record (also possible but not preferred).\nIf you don'\''t need the SSL certificate or you are using a CDN that provides you with an TLS certificate, please update your .lagoon.yml file by setting the tls-acme parameter to false for $ROUTE_HOSTNAME, as described here:  https://lagoon.readthedocs.io/en/latest/using_lagoon/lagoon_yml/#ssl-configuration-tls-acme.\nWe have now administratively disabled the issuing of Lets Encrypt certificate for $ROUTE_HOSTNAME in order to protect the cluster, this will be reset during the next deployment, therefore we suggest to resolve this issue as soon as possible. Feel free to reach out to us for further information.\nThanks you.\namazee.io team"
+	MESSAGE="Your $ROUTE_HOSTNAME route is configured in the \`.lagoon.yml\` file to issue an TLS certificate from Lets Encrypt. Unfortunately Lagoon is unable to issue a certificate as $DNS_ERROR.\nTo be issued correctly, the DNS records for $ROUTE_HOSTNAME should point to $CLUSTER_HOSTNAME with an CNAME record (preferred) or to ${CLUSTER_IPS[*]} via an A record (also possible but not preferred).\nIf you don't need the SSL certificate or you are using a CDN that provides you with an TLS certificate, please update your .lagoon.yml file by setting the tls-acme parameter to false for $ROUTE_HOSTNAME, as described here:  https://lagoon.readthedocs.io/en/latest/using_lagoon/lagoon_yml/#ssl-configuration-tls-acme.\nWe have now administratively disabled the issuing of Lets Encrypt certificate for $ROUTE_HOSTNAME in order to protect the cluster, this will be reset during the next deployment, therefore we suggest to resolve this issue as soon as possible. Feel free to reach out to us for further information.\nThanks you.\namazee.io team"
 
 	# json Payload
-	JSON=\'"{\"channel\": \"$CHANNEL\", \"text\": \"${MESSAGE}\"}"\'
+	PAYLOAD="\"channel\": \"$CHANNEL\", \"text\": \"${MESSAGE}\""
 
 	echo -e "Sending notification into ${CHANNEL}"
 	# Execute curl to send message into the channel
 	if [[ $DRYRUN = true ]]; then
-		echo "DRYRUN on \"$NOTIFICATION\" curl -X POST -H 'Content-type: application/json' --data "$JSON" "$WEBHOOK""
+		echo "DRYRUN on \"$NOTIFICATION\" curl -X POST -H 'Content-type: application/json' --data "$PAYLOAD" "$WEBHOOK""
 	else
-		eval "curl -X POST -H 'Content-type: application/json' --data "${JSON}" ${WEBHOOK}"
+		curl --trace-ascii /dev/stdout -X POST -H 'Content-type: application/json' --data '{'"${PAYLOAD}"'}' ${WEBHOOK}
 	fi
 }
-
 
 # Main function
 function main() {
