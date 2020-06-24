@@ -9,7 +9,7 @@ const logger = require('../../logger');
 export const getAllProblems: ResolverFn = async (
   root,
   args,
-  { sqlClient }
+  { sqlClient, hasPermission }
 ) => {
   let rows = [];
 
@@ -28,12 +28,17 @@ export const getAllProblems: ResolverFn = async (
     }
   }
 
-  const problems = rows && rows.map(problem => {
+  const problems = rows && rows.map(async problem => {
      const { environment: envId, name, project, environmentType, openshiftProjectName, ...rest} = problem;
-     return { ...rest, environment: { id: envId, name, project, environmentType, openshiftProjectName }};
+
+      await hasPermission('problem', 'view', {
+          project: project,
+      });
+
+      return { ...rest, environment: { id: envId, name, project, environmentType, openshiftProjectName }};
   });
 
-  const sorted = R.sort(R.descend(R.prop('severity')), problems);
+  const sorted = R.sort(R.descend(R.prop('severity')), await problems);
   return sorted.map((row: any) => ({ ...(row as Object) }));
 };
 
