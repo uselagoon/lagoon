@@ -4,9 +4,21 @@ import * as logger from '../logger';
 import { keycloakGrantManager } from'../clients/keycloakClient';
 import { User } from '../models/user';
 import { Group } from '../models/group';
+import redis from "redis";
 
 
 const { JWTSECRET, JWTAUDIENCE } = process.env;
+
+const client = redis.createClient({
+  host: 'api-redis',
+});
+
+client.on("error", function(error) {
+  console.error(error);
+});
+
+client.set("key", "value", redis.print);
+client.get("key", redis.print);
 
 interface ILegacyToken {
   aud: string,
