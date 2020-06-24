@@ -69,6 +69,7 @@
     "newrelic": "^6.9.0",
     "node-cache": "^4.2.1",
     "ramda": "^0.25.0",
+    "redis": "^3.0.2",
     "snakecase-keys": "^1.2.0",
     "sshpk": "^1.14.2",
     "validator": "^10.8.0",
