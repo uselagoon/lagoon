@@ -18,6 +18,7 @@ redisClient.on("error", function(error) {
 });
 
 let redisGetAsync = promisify(redisClient.get).bind(redisClient);
+let redisHMGetAllAsync = promisify(redisClient.hgetall).bind(redisClient);
 
 
 interface ILegacyToken {
@@ -128,10 +129,13 @@ export const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) 
       return cachedPermissions;
     }
 
-    const key = JSON.parse(await redisGetAsync(cacheKey));
-    console.log(key);
-    if (key) {
-      if (key && key.allowed && key.allowed === true) {
+    const redisHash = await redisHMGetAllAsync(`cache:authz:${currentUserId}`);
+    const redisHashKey = `${resource}:${attributes.project ? `${attributes.project}:`: ''}${attributes.group ? `${attributes.group}:`: ''}${scope}`;
+
+    if (redisHash && redisHash[redisHashKey]) {
+
+      console.log('redisHash[redisHashKey]: ', redisHash[redisHashKey]);
+      if (redisHash && redisHash[redisHashKey] === 'allowed:true') {
         console.log('Redis cache allowed');
         return;
       } else {
@@ -273,8 +277,7 @@ export const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) 
 
       if (newGrant.access_token.hasPermission(resource, scope)) {
         requestCache.set(cacheKey, true);
-        console.log('Setting redis key')
-        const redisSet = await redisClient.set(cacheKey,  JSON.stringify({ allowed: true }));
+        await redisClient.hmset(`cache:authz:${currentUserId}`,  redisHashKey, 'allowed:true', );
         return;
       }
     } catch (err) {
@@ -284,7 +287,7 @@ export const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) 
     }
 
     requestCache.set(cacheKey, false);
-    const redisSet = await redisClient.set(cacheKey, JSON.stringify({ allowed: false }));
+    await redisClient.hmset(`cache:authz:${currentUserId}`,  redisHashKey, 'allowed:false', );
     throw new KeycloakUnauthorizedError(`Unauthorized: You don't have permission to "${scope}" on "${resource}".`);
   };
 };
