@@ -23,6 +23,7 @@ mutation updateProject {
   }
 }
 ```
+
 ### `.lagoon.yml` - `production_routes`
 To configure a project for active/standby in the `.lagoon.yml` file, you'll need to configure the `production_routes` section with any routes you want to attach to the `active` environment, and any routes to the `standby` environment. During an Active/Standby switch, these routes will migrate between the two environments.
 
@@ -110,6 +111,41 @@ mutation updateProject {
     productionAlias
     name
     standbyAlias
+  }
+}
+```
+
+## Notes
+
+When the active/standby trigger has been executed, the `productionEnvironment` and `standbyProductionEnvironments` will switch within the Lagoon API. Both environments are still classed as `production` environment types. We use the `productionEnvironment` to determine which one is labelled as `active`.
+
+```
+query projectByName {
+  projectByName(name:"drupal-example"){
+    productionEnvironment
+    standbyProductionEnvironment
+  }
+}
+```
+Before switching environments
+```
+{
+  "data": {
+    "projectByName": {
+      "productionEnvironment": "production-brancha",
+      "standbyProductionEnvironment": "production-branchb"
+    }
+  }
+}
+```
+After switching environments
+```
+{
+  "data": {
+    "projectByName": {
+      "productionEnvironment": "production-branchb",
+      "standbyProductionEnvironment": "production-brancha"
+    }
   }
 }
 ```
