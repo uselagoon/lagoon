@@ -3,10 +3,10 @@
 Lagoon supports Active/Standby (also known as blue/green) deployments.
 
 ## Configuration
-To change an existing project to support active/standby you'll need to configure some project settings in the Lagoon API
+To change an existing project to support active/standby you'll need to configure some project settings in the Lagoon API.
 
-`productionEnviromment` should be set to the branch name of the current environment that is active
-`standbyProductionEnvironment` should be set to the branch name of the environment that will be in standby
+* `productionEnviromment` should be set to the branch name of the current environment that is active.
+* `standbyProductionEnvironment` should be set to the branch name of the environment that will be in standby.
 
 ```
 mutation updateProject {
@@ -123,7 +123,7 @@ mutation updateProject {
 
 ## Notes
 
-When the active/standby trigger has been executed, the `productionEnvironment` and `standbyProductionEnvironments` will switch within the Lagoon API. Both environments are still classed as `production` environment types. We use the `productionEnvironment` to determine which one is labelled as `active`.
+When the active/standby trigger has been executed, the `productionEnvironment` and `standbyProductionEnvironments` will switch within the Lagoon API. Both environments are still classed as `production` environment types. We use the `productionEnvironment` to determine which one is labelled as `active`. For more information on the differences between environment types, read the [documentation for `environment types`](environment_types.md#environment-types)
 
 ```
 query projectByName {
