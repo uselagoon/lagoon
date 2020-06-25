@@ -128,14 +128,16 @@ export const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) 
       return cachedPermissions;
     }
 
-    const key = await redisGetAsync(cacheKey);
+    const key = JSON.parse(await redisGetAsync(cacheKey));
     console.log(key);
-    if (key && key === 'TRUE') {
-      console.log('Redis cache allowed');
-      return;
-    } else {
-      console.log('Redis cache denied');
-      throw new KeycloakUnauthorizedError(`Unauthorized: You don't have permission to "${scope}" on "${resource}".`);
+    if (key) {
+      if (key && key.allowed && key.allowed === true) {
+        console.log('Redis cache allowed');
+        return;
+      } else {
+        console.log('Redis cache denied');
+        throw new KeycloakUnauthorizedError(`Unauthorized: You don't have permission to "${scope}" on "${resource}".`);
+      }
     }
 
     const currentUser = await UserModel.loadUserById(currentUserId);
@@ -271,8 +273,8 @@ export const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) 
 
       if (newGrant.access_token.hasPermission(resource, scope)) {
         requestCache.set(cacheKey, true);
-
-        const redisSet = await redisClient.set(cacheKey, 'TRUE');
+        console.log('Setting redis key')
+        const redisSet = await redisClient.set(cacheKey,  JSON.stringify({ allowed: true }));
         return;
       }
     } catch (err) {
@@ -282,7 +284,7 @@ export const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) 
     }
 
     requestCache.set(cacheKey, false);
-    const redisSet = await redisClient.set(cacheKey, 'FALSE');
+    const redisSet = await redisClient.set(cacheKey, JSON.stringify({ allowed: false }));
     throw new KeycloakUnauthorizedError(`Unauthorized: You don't have permission to "${scope}" on "${resource}".`);
   };
 };
