@@ -39,6 +39,7 @@
   "license": "MIT",
   "dependencies": {
     "@lagoon/commons": "4.0.0",
+    "@types/redis": "^2.8.22",
     "apollo-server-express": "^2.14.2",
     "aws-sdk": "^2.378.0",
     "body-parser": "^1.18.2",
