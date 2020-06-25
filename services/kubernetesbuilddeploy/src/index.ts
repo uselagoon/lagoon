@@ -55,7 +55,13 @@ const messageConsumer = async msg => {
       environmentName = environmentName.concat('-' + hash)
     }
 
-    var environmentType = branch === projectOpenShift.productionEnvironment ? 'production' : 'development';
+    var environmentType = 'development'
+    if (
+      projectOpenShift.productionEnvironment === environmentName
+      || projectOpenShift.standbyProductionEnvironment === environmentName
+    ) {
+      environmentType = 'production'
+    }
     var gitSha = sha as string
     var projectId = projectOpenShift.id
     var openshiftConsole = projectOpenShift.openshift.consoleUrl.replace(/\/$/, "");
@@ -65,6 +71,8 @@ const messageConsumer = async msg => {
     var openshiftProjectUser = projectOpenShift.openshift.projectUser || ""
     var deployPrivateKey = projectOpenShift.privateKey
     var gitUrl = projectOpenShift.gitUrl
+    var projectProductionEnvironment = projectOpenShift.productionEnvironment
+    var projectStandbyEnvironment = projectOpenShift.standbyProductionEnvironment
     var subfolder = projectOpenShift.subfolder || ""
     var routerPattern = projectOpenShift.openshift.routerPattern ? projectOpenShift.openshift.routerPattern.replace('${environment}',environmentName).replace('${project}', projectName) : ""
     var prHeadBranch = headBranch || ""
@@ -78,6 +86,16 @@ const messageConsumer = async msg => {
     var openshiftPromoteSourceProject = promoteSourceEnvironment ? `${projectName}-${ocsafety(promoteSourceEnvironment)}` : ""
     // A secret which is the same across all Environments of this Lagoon Project
     var projectSecret = crypto.createHash('sha256').update(`${projectName}-${jwtSecret}`).digest('hex');
+    var alertContactHA = ""
+    var alertContactSA = ""
+    var monitoringConfig = JSON.parse(projectOpenShift.openshift.monitoringConfig) || "invalid"
+    if (monitoringConfig != "invalid"){
+      alertContactHA = monitoringConfig.uptimerobot.alertContactHA || ""
+      alertContactSA = monitoringConfig.uptimerobot.alertContactSA || ""
+    }
+    var availability = projectOpenShift.availability || "STANDARD"
+    const billingGroup = projectOpenShift.groups.find(i => i.type == "billing" ) || ""
+    var uptimeRobotStatusPageId = billingGroup.uptimeRobotStatusPageId || ""
   } catch(error) {
     logger.error(`Error while loading information for project ${projectName}`)
     logger.error(error)
@@ -125,7 +143,7 @@ const messageConsumer = async msg => {
       buildImage = `amazeeio/kubectl-build-deploy-dind:${lagoonVersion}`
     } else {
       // we are a development enviornment, use the amazeeiolagoon image with the same branch name
-      buildImage = `amazeeiolagoon/oc-build-deploy-dind:${lagoonGitSafeBranch}`
+      buildImage = `amazeeiolagoon/kubectl-build-deploy-dind:${lagoonGitSafeBranch}`
     }
 
     let jobconfig = {
@@ -214,6 +232,14 @@ const messageConsumer = async msg => {
                       "value": environmentType
                   },
                   {
+                      "name": "ACTIVE_ENVIRONMENT",
+                      "value": projectProductionEnvironment
+                  },
+                  {
+                      "name": "STANDBY_ENVIRONMENT",
+                      "value": projectStandbyEnvironment
+                  },
+                  {
                       "name": "KUBERNETES",
                       "value": openshiftName
                   },
@@ -265,6 +291,19 @@ const messageConsumer = async msg => {
     if (!R.isEmpty(environment.envVariables)) {
       jobconfig.spec.template.spec.containers[0].env.push({"name": "LAGOON_ENVIRONMENT_VARIABLES", "value": JSON.stringify(environment.envVariables)})
     }
+    if (alertContactHA != undefined && alertContactSA != undefined){
+      if (availability == "HIGH") {
+        jobconfig.spec.template.spec.containers[0].env.push({"name": "MONITORING_ALERTCONTACT","value": alertContactHA})
+      } else {
+        jobconfig.spec.template.spec.containers[0].env.push({"name": "MONITORING_ALERTCONTACT","value": alertContactSA})
+      }
+    } else {
+      jobconfig.spec.template.spec.containers[0].env.push({"name": "MONITORING_ALERTCONTACT","value": "unconfigured"})
+    }
+    if (uptimeRobotStatusPageId){
+      jobconfig.spec.template.spec.containers[0].env.push({"name": "MONITORING_STATUSPAGEID","value": uptimeRobotStatusPageId})
+    }
+
     return jobconfig
   }
 
@@ -318,7 +357,8 @@ const messageConsumer = async msg => {
           "name":openshiftProject,
           "labels": {
             "lagoon.sh/project": projectName,
-            "lagoon.sh/environment": environmentName
+            "lagoon.sh/environment": environmentName,
+            "lagoon.sh/environmentType": lagoonEnvironmentType
           }
         }
       }

@@ -1,7 +1,6 @@
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: {{ .Release.Namespace | quote }}
   name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}
   labels:
     {{- include "lagoon-logging.logsDispatcher.labels" . | nindent 4 }}
@@ -13,8 +12,16 @@ spec:
   - name: forward
     port: 24224
     protocol: TCP
-    targetPort: 24224
+    targetPort: forward
   - name: metrics
     port: 24231
     protocol: TCP
-    targetPort: 24231
+    targetPort: metrics
+  - name: application
+    port: 5140
+    protocol: UDP
+    targetPort: application
+  - name: syslog-router
+    port: 5141
+    protocol: UDP
+    targetPort: syslog-router

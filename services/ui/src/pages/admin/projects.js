@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useQuery } from '@apollo/react-hooks';
 import * as R from 'ramda';
 import moment from 'moment';
 import { withRouter } from 'next/router';

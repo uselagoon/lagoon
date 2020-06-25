@@ -50,15 +50,6 @@ environments:
     rollouts:
       logs-db: statefulset
       logs-forwarder: statefulset
-    cronjobs:
-      - name: idle-clis
-        schedule: '*/15 * * * *'
-        command: /idle-clis.sh
-        service: auto-idler
-      - name: idle-services
-        schedule: '*/30 * * * *'
-        command: /idle-services.sh
-        service: auto-idler
   develop:
     types:
       logs-db: elasticsearch-cluster

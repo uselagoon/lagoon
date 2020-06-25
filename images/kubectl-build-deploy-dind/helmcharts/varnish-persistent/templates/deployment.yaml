@@ -26,9 +26,9 @@ spec:
         {{- toYaml . | nindent 8 }}
     {{- end }}
       volumes:
-        - name: {{ .Values.persistentStorage.name }}
+        - name: {{ include "varnish-persistent.persistentStorageName" . }}
           persistentVolumeClaim:
-            claimName: {{ .Values.persistentStorage.name }}
+            claimName: {{ include "varnish-persistent.persistentStorageName" . }}
       priorityClassName: {{ include "varnish-persistent.lagoonPriority" . }}
       enableServiceLinks: false
       securityContext:
@@ -53,6 +53,9 @@ spec:
             - name: http
               containerPort: 8080
               protocol: TCP
+            - name: controlport
+              containerPort: 6082
+              protocol: TCP
           livenessProbe:
             tcpSocket:
               port: http
@@ -60,7 +63,7 @@ spec:
             tcpSocket:
               port: http
           volumeMounts:
-            - name: {{ .Values.persistentStorage.name }}
+            - name: {{ include "varnish-persistent.persistentStorageName" . }}
               mountPath: {{ .Values.persistentStorage.path | quote }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}

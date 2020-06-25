@@ -340,7 +340,7 @@ export const addGroupsToProject: ResolverFn = async (
 
 export const addBillingGroup: ResolverFn = async (
   _root,
-  { input: { name, currency, billingSoftware } },
+  { input: { name, currency, billingSoftware, uptimeRobotStatusPageId } },
   { models, hasPermission },
 ) => {
   await hasPermission('group', 'add');
@@ -358,6 +358,7 @@ export const addBillingGroup: ResolverFn = async (
     attributes: {
       type: ['billing'],
       currency: [currency],
+      uptimeRobotStatusPageId: [uptimeRobotStatusPageId],
       ...(billingSoftware ? { billingSoftware: [billingSoftware] } : {}),
     },
   });
@@ -377,11 +378,12 @@ export const updateBillingGroup: ResolverFn = async (
     throw new Error('Input patch requires at least 1 attribute');
   }
 
-  const { name, currency, billingSoftware } = patch;
+  const { name, currency, billingSoftware, uptimeRobotStatusPageId } = patch;
   const updatedAttributes = {
     ...attributes,
     type: ['billing'],
     ...(currency ? { currency: [currency] } : {}),
+    ...(uptimeRobotStatusPageId ? {uptimeRobotStatusPageId: [uptimeRobotStatusPageId] }: {}),
     ...(billingSoftware ? { billingSoftware: [billingSoftware] } : {}),
   };
 
