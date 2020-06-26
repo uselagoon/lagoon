@@ -18,6 +18,9 @@ COMMAND=${1:-"help"}
 # Set DRYRUN variable to true to run in dry-run mode
 DRYRUN="${DRYRUN:-"false"}"
 
+# Set DEBUG variable to true, to print echo messages
+DEBUG="${DEBUG:-"false"}"
+
 # Set a REGEX variable to filter the execution of the script
 REGEX=${REGEX:-".*"}
 
@@ -116,6 +119,10 @@ function create_routes_array() {
 
 	# Create a sorted array of unique route to check
 	ROUTES_ARRAY_SORTED=($(sort -u -k 2 -t ";"<<<"${ROUTES_ARRAY[*]}"))
+
+	if [[ "${DEBUG}" == true ]]; then
+		echo -e "===== DEBUG INFORMATION =====\n${ROUTES_ARRAY_SORTED[*]}"
+	fi
 }
 
 # Function to check the routes, update them and delete the exposer's routes
@@ -137,6 +144,10 @@ function check_routes() {
 		# Get route DNS record(s)
 		ROUTE_HOSTNAME_IP=$(dig +short "$ROUTE_HOSTNAME")
 
+		if [[ "${DEBUG}" == true ]]; then
+			echo -e "===== DEBUG INFORMATION =====\n${route[*]}\n$ROUTE_HOSTNAME_IP"
+		fi
+
 		# Check if the route matches the Cluster's IP(s)
 		if echo "$ROUTE_HOSTNAME_IP" | grep -E -q -v "${CLUSTER_IPS[*]}"; then
 
@@ -154,7 +165,6 @@ function check_routes() {
 
 			# Now once the main route is updated, it's time to get rid of exposers' routes
 			for j in $(oc get -n "$ROUTE_NAMESPACE" route|grep exposer|grep -E '(^|\s)'"$ROUTE_HOSTNAME"'($|\s)'|awk '{print $1";"$2}')
-			#for j in $(oc get -n $ROUTE_NAMESPACE route|grep exposer|awk '{print $1";"$2}')
 			do
 				ocroute=($(echo "$j" | tr ";" "\n"))
 				OCROUTE_NAME=${ocroute[0]}
@@ -167,6 +177,8 @@ function check_routes() {
 			done
 		fi
 		echo -e "\n"
+
+
 	done
 }
 
@@ -208,7 +220,7 @@ function notify_customer() {
 	if [[ $DRYRUN = true ]]; then
 		echo "DRYRUN on \"$NOTIFICATION\" curl -X POST -H 'Content-type: application/json' --data "$PAYLOAD" "$WEBHOOK""
 	else
-		curl --trace-ascii /dev/stdout -X POST -H 'Content-type: application/json' --data '{'"${PAYLOAD}"'}' ${WEBHOOK}
+		curl -X POST -H 'Content-type: application/json' --data '{'"${PAYLOAD}"'}' ${WEBHOOK}
 	fi
 }
 
