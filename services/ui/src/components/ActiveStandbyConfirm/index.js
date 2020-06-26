@@ -20,7 +20,7 @@ export const ActiveStandbyConfirm = ({
   return (
     <React.Fragment>
       <div className="margins"><Button action={openModal}>
-        Replace Active Environment
+        Switch Active/Standby environments
       </Button></div>
       <Modal
         isOpen={open}
