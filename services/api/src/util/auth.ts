@@ -1,24 +1,25 @@
 import * as R from 'ramda';
+// import redis from "redis";
+// import { promisify } from 'util';
+import { isRedisCacheAllowed, saveRedisCache } from '../clients/redisClient';
 import { verify } from 'jsonwebtoken';
 import * as logger from '../logger';
 import { keycloakGrantManager } from'../clients/keycloakClient';
 import { User } from '../models/user';
 import { Group } from '../models/group';
-import redis from "redis";
-import { promisify } from 'util';
 
 const { JWTSECRET, JWTAUDIENCE } = process.env;
 
-const redisClient = redis.createClient({
-  host: 'api-redis',
-});
+// const redisClient = redis.createClient({
+//   host: 'api-redis',
+// });
 
-redisClient.on("error", function(error) {
-  console.error(error);
-});
+// redisClient.on("error", function(error) {
+//   console.error(error);
+// });
 
-let redisGetAsync = promisify(redisClient.get).bind(redisClient);
-let redisHMGetAllAsync = promisify(redisClient.hgetall).bind(redisClient);
+// let redisGetAsync = promisify(redisClient.get).bind(redisClient);
+// let redisHMGetAllAsync = promisify(redisClient.hgetall).bind(redisClient);
 
 
 interface ILegacyToken {
@@ -129,19 +130,9 @@ export const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) 
       return cachedPermissions;
     }
 
-    const redisHash = await redisHMGetAllAsync(`cache:authz:${currentUserId}`);
-    const redisHashKey = `${resource}:${attributes.project ? `${attributes.project}:`: ''}${attributes.group ? `${attributes.group}:`: ''}${scope}`;
-
-    if (redisHash && redisHash[redisHashKey]) {
-
-      console.log('redisHash[redisHashKey]: ', redisHash[redisHashKey]);
-      if (redisHash && redisHash[redisHashKey] === 'allowed:true') {
-        console.log('Redis cache allowed');
-        return;
-      } else {
-        console.log('Redis cache denied');
-        throw new KeycloakUnauthorizedError(`Unauthorized: You don't have permission to "${scope}" on "${resource}".`);
-      }
+    const resourceScope = {resource, scope, currentUserId, ...attributes };
+    if (!isRedisCacheAllowed(resourceScope)){
+      throw new KeycloakUnauthorizedError(`Unauthorized: You don't have permission to "${scope}" on "${resource}".`);
     }
 
     const currentUser = await UserModel.loadUserById(currentUserId);
@@ -277,7 +268,7 @@ export const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) 
 
       if (newGrant.access_token.hasPermission(resource, scope)) {
         requestCache.set(cacheKey, true);
-        await redisClient.hmset(`cache:authz:${currentUserId}`,  redisHashKey, 'allowed:true', );
+        saveRedisCache(resourceScope, 1);
         return;
       }
     } catch (err) {
@@ -287,7 +278,7 @@ export const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) 
     }
 
     requestCache.set(cacheKey, false);
-    await redisClient.hmset(`cache:authz:${currentUserId}`,  redisHashKey, 'allowed:false', );
+    saveRedisCache(resourceScope, 0);
     throw new KeycloakUnauthorizedError(`Unauthorized: You don't have permission to "${scope}" on "${resource}".`);
   };
 };
