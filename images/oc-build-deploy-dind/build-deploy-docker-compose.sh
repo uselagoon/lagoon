@@ -1139,6 +1139,8 @@ if [ -f /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml ]; then
     sed -i /priorityClassName/d /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml
   fi
 
+  cat /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml
+
   oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f /oc-build-deploy/lagoon/${YAML_CONFIG_FILE}.yml
 fi
 
