@@ -197,6 +197,9 @@ const ProblemsByProject = ({ problems }) => {
 
             .fieldWrapper {
               padding-bottom: 1em;
+              display: flex;
+              flex-direction: column;
+              width: 100%;
             }
 
             .left-content,

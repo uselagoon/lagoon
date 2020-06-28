@@ -28,7 +28,7 @@ export const getAllProblems: ResolverFn = async (
     }
   }
 
-  const problems = rows && rows.map(async problem => {
+  const problems: any = rows && rows.map(async problem => {
      const { environment: envId, name, project, environmentType, openshiftProjectName, ...rest} = problem;
 
       await hasPermission('problem', 'view', {
@@ -38,8 +38,10 @@ export const getAllProblems: ResolverFn = async (
       return { ...rest, environment: { id: envId, name, project, environmentType, openshiftProjectName }};
   });
 
-  const sorted = R.sort(R.descend(R.prop('severity')), await problems);
-  return sorted.map((row: any) => ({ ...(row as Object) }));
+  return Promise.all(problems).then((completed) => {
+      const sorted = R.sort(R.descend(R.prop('severity')), completed);
+      return sorted.map((row: any) => ({ ...(row as Object) }));
+  });
 };
 
 export const getSeverityOptions = async (

@@ -44,7 +44,7 @@ const ProblemsDashboardPage = () => {
     return enums && enums.map(s => ({ value: s.name, label: s.name}));
   };
 
-  const groupByProblemIdentifier = (problems) => problems.reduce((arr, problem) => {
+  const groupByProblemIdentifier = (problems) => problems && problems.reduce((arr, problem) => {
     arr[problem.identifier] = arr[problem.identifier] || [];
     arr[problem.identifier].push(problem);
     return arr;
@@ -122,17 +122,17 @@ const ProblemsDashboardPage = () => {
         )(({data: {problems} }) => {
 
           // Group problems by identifier
-          const problemsById = groupByProblemIdentifier(problems);
-          const problemIdentifiers = Object.keys(problemsById).map(p => {
+          const problemsById = groupByProblemIdentifier(problems) || [];
+          const problemIdentifiers = problemsById && Object.keys(problemsById).map(p => {
             const problem = problemsById[p][0];
 
             return {identifier: p, source: problem.source, severity: problem.severity, problems: problemsById[p]};
           }, []);
 
-          const critical = problems.filter(p => p.severity === 'CRITICAL').length;
-          const high = problems.filter(p => p.severity === 'HIGH').length;
-          const medium = problems.filter(p => p.severity === 'MEDIUM').length;
-          const low = problems.filter(p => p.severity === 'LOW').length;
+          const critical = problems && problems.filter(p => p.severity === 'CRITICAL').length;
+          const high = problems && problems.filter(p => p.severity === 'HIGH').length;
+          const medium = problems && problems.filter(p => p.severity === 'MEDIUM').length;
+          const low = problems && problems.filter(p => p.severity === 'LOW').length;
 
           return (
           <>

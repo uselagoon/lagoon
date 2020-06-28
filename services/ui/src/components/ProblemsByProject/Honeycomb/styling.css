@@ -38,6 +38,7 @@ svg.grid g text {
     fill: #000;
     fill-opacity: 0.5;
     transition: fill-opacity .2s;
+    cursor: pointer;
 }
 svg.grid g text.no-text {
     font-size: 0;

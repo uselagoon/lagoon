@@ -114,10 +114,22 @@ const Honeycomb = ({ data, filter }) => {
                 const critical = problemsPerProject.filter(p => p.severity === 'CRITICAL').length;
                 const problemCount = problemsPerProject.length || 0;
 
+                const HexText = () => {
+                    const classes = display.type !== "normal" ? "no-text" : 'text';
+
+                    if (problemsPerProject.length) {
+                        return (<Text className={classes}>
+                            {`P: ${problemCount}, C: ${critical}`}
+                        </Text>);
+                    }
+                    else {
+                        return <Text className={classes}>{`P: ${problemCount}`}</Text>
+                    }
+                };
+
                 return (
                   <Hexagon key={i} q={hex.q} r={hex.r} s={hex.s} className={getClassName(critical)} onClick={() => handleHexClick(project)}>
-                    {problemsPerProject.length ? <Text className={display.type !== "normal" && "no-text"}>P: {problemCount}, C: {critical}</Text>
-                      : <Text className={display.type !== "normal" && "no-text"}>P: {problemCount}</Text>}
+                    <HexText />
                   </Hexagon>
                 )})}
             </Layout>
@@ -129,7 +141,7 @@ const Honeycomb = ({ data, filter }) => {
                   <>
                     <div className="project"><label>Project: {projectInView.name}</label></div>
                     {projectInView.environments && projectInView.environments.map(environment => (
-                      <div className="environment-wrapper">
+                      <div key={environment.id} className="environment-wrapper">
                         <label className="environment"><h5>Environment: {environment.name}</h5></label>
                         <ProblemsByProject key={environment.id} problems={environment.problems || [] } minified={true}/>
                       </div>
