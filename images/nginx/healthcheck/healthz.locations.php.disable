@@ -1,5 +1,5 @@
 location /.lagoonhealthz {
-  rewrite ^/.lagoonhealthz(/.*)$ /.lagoonhealthz/index.php;
+  rewrite ^/.lagoonhealthz(/.*)?$ /.lagoonhealthz/index.php;
 
   location ~* \.php(/|$) {
     include        /etc/nginx/fastcgi.conf;
