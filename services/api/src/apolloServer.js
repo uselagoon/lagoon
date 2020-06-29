@@ -14,6 +14,7 @@ const {
   keycloakHasPermission
 } = require('./util/auth');
 const { getSqlClient } = require('./clients/sqlClient');
+const redisClient = require('./clients/redisClient');
 const { getKeycloakAdminClient } = require('./clients/keycloak-admin');
 const logger = require('./logger');
 const typeDefs = require('./typeDefs');
@@ -83,8 +84,8 @@ const apolloServer = new ApolloServer({
         keycloakGrant: grant,
         requestCache,
         models: {
-          UserModel: User.User({ keycloakAdminClient }),
-          GroupModel: Group.Group({ keycloakAdminClient }),
+          UserModel: User.User({ keycloakAdminClient, redisClient }),
+          GroupModel: Group.Group({ keycloakAdminClient, redisClient }),
           BillingModel: BillingModel.BillingModel({
             keycloakAdminClient,
             sqlClient
@@ -138,7 +139,7 @@ const apolloServer = new ApolloServer({
         keycloakGrant: req.kauth ? req.kauth.grant : null,
         requestCache,
         models: {
-          UserModel: User.User({ keycloakAdminClient }),
+          UserModel: User.User({ keycloakAdminClient, redisClient }),
           GroupModel: Group.Group({ keycloakAdminClient, sqlClient }),
           BillingModel: BillingModel.BillingModel({
             keycloakAdminClient,

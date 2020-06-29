@@ -10,9 +10,9 @@ redisClient.on("error", function(error) {
   console.error(error);
 });
 
-let redisGetAsync = promisify(redisClient.get).bind(redisClient);
+// let redisGetAsync = promisify(redisClient.get).bind(redisClient);
 let redisHMGetAllAsync = promisify(redisClient.hgetall).bind(redisClient);
-let redisHDelAsync = promisify(redisClient.hdel).bind(redisClient);
+let redisDelAsync = promisify(redisClient.del).bind(redisClient);
 
 interface IUserResourceScope {
   resource: string,
@@ -43,14 +43,10 @@ export const saveRedisCache = async (resourceScope: IUserResourceScope, value: n
   await redisClient.hmset(`cache:authz:${resourceScope.currentUserId}`,  key, value);
 }
 
-export const deleteRedisCacheForScope = async (resourceScope: IUserResourceScope) => {
-  const key = hashKey(resourceScope);
-  const result = await redisHDelAsync(`cache:authz:${resourceScope.currentUserId}`,  key);
-  return result;
-}
+export const deleteRedisUserCache = (userId) => redisDelAsync(`cache:authz:${userId}`);
 
 export default {
   isRedisCacheAllowed,
   saveRedisCache,
-  deleteRedisCacheForScope
+  deleteRedisUserCache
 };

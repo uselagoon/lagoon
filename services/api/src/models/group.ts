@@ -98,7 +98,7 @@ const attributeKVOrNull = (key: string, group: GroupRepresentation) =>
   String(R.pathOr(null, ['attributes', key], group));
 
 export const Group = (clients) => {
-  const { keycloakAdminClient } = clients;
+  const { keycloakAdminClient, redisClient } = clients;
 
   const transformKeycloakGroups = async (
     keycloakGroups: GroupRepresentation[],
@@ -523,6 +523,13 @@ export const Group = (clients) => {
       } catch (err) {
         throw new Error(`Could not remove user from group: ${err.message}`);
       }
+
+      try {
+        await redisClient.deleteRedisUserCache(user.id)
+      } catch(err) {
+        throw new Error(`Error deleting user cache ${user.id}: ${err}`);
+      }
+
     }
 
     return await loadGroupById(group.id);

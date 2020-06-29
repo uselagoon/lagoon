@@ -37,6 +37,7 @@ interface UserModel {
   addUser: (userInput: User) => Promise<User>;
   updateUser: (userInput: UserEdit) => Promise<User>;
   deleteUser: (id: string) => Promise<void>;
+  deleteRedisKeys: (id: string) => Promise<void>;
 }
 
 export class UsernameExistsError extends Error {
@@ -64,7 +65,7 @@ const attrCommentLens = R.compose(
 );
 
 export const User = (clients): UserModel => {
-  const { keycloakAdminClient } = clients;
+  const { keycloakAdminClient, redisClient } = clients;
 
   const fetchGitlabId = async (user: User): Promise<string> => {
     const identities = await keycloakAdminClient.users.listFederatedIdentities({
@@ -353,6 +354,14 @@ export const User = (clients): UserModel => {
     }
   };
 
+  const deleteRedisKeys = async (id: string): Promise<void> => {
+    try {
+      await redisClient.deleteRedisUserCache(id)
+    } catch(err) {
+      throw new Error(`Error deleting user cache ${id}: ${err}`);
+    }
+  }
+
   return {
     loadAllUsers,
     loadUserById,
@@ -364,5 +373,6 @@ export const User = (clients): UserModel => {
     addUser,
     updateUser,
     deleteUser,
+    deleteRedisKeys,
   }
 };

@@ -96,8 +96,8 @@ export const deleteUser: ResolverFn = async (
     users: [user.id],
   });
 
+  await models.UserModel.deleteRedisKeys(user.id)
   await models.UserModel.deleteUser(user.id);
-
   // TODO remove user ssh keys
 
   return 'success';
@@ -116,6 +116,7 @@ export const deleteAllUsers: ResolverFn = async (
   for (const user of users) {
     try {
       await models.UserModel.deleteUser(user.id)
+      await models.UserModel.deleteRedisKeys(user.id)
     } catch (err) {
       deleteErrors = [
         ...deleteErrors,
