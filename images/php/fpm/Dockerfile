@@ -4,19 +4,9 @@ ARG ALPINE_VERSION
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
 
-FROM php:${PHP_IMAGE_VERSION}-fpm-alpine${ALPINE_VERSION} as healthcheckbuilder
+FROM composer:latest as healthcheckbuilder
 
-# Defining Versions - Composer
-# @see https://getcomposer.org/download/
-ENV COMPOSER_VERSION=1.10.7 \
-  COMPOSER_HASH_SHA256=b94b872729668de5b5fbf62f16ff588d2a23480dda88c0e45cb43b721b75ae29
-
-RUN curl -L -o /tmp/composer https://github.com/composer/composer/releases/download/${COMPOSER_VERSION}/composer.phar \
-    && echo "$COMPOSER_HASH_SHA256 /tmp/composer" | sha256sum \
-    && chmod +x /tmp/composer \
-    && php -d memory_limit=-1 /tmp/composer create-project amazeeio/healthz-php /healthz-php v0.0.3 \
-    && rm /tmp/composer
-
+RUN composer create-project --no-dev amazeeio/healthz-php /healthz-php v0.0.3
 
 FROM php:${PHP_IMAGE_VERSION}-fpm-alpine${ALPINE_VERSION}
 
