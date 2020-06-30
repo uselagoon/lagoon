@@ -30,3 +30,8 @@ else
   echo "Setting up Healthz routing - using Lua as fallback"
   cp /etc/nginx/conf.d/healthz.locations.lua.disable /etc/nginx/conf.d/healthz.locations
 fi
+
+if [ "$FAST_HEALTH_CHECK" == "on" ]; then
+   echo "FAST HEALTH CHECK ENABLED"
+   cp /etc/nginx/helpers/90_healthz_fast_check.conf.disabled /etc/nginx/helpers/90_health_fast_check.conf
+fi
