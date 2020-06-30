@@ -14,7 +14,7 @@ ENV COMPOSER_VERSION=1.10.7 \
 RUN curl -L -o /tmp/composer https://github.com/composer/composer/releases/download/${COMPOSER_VERSION}/composer.phar \
     && echo "$COMPOSER_HASH_SHA256 /tmp/composer" | sha256sum \
     && chmod +x /tmp/composer \
-    && php -d memory_limit=-1 /tmp/composer create-project amazeeio/healthz-php /healthz-php \
+    && php -d memory_limit=-1 /tmp/composer create-project amazeeio/healthz-php /healthz-php v0.0.3 \
     && rm /tmp/composer
 
 
