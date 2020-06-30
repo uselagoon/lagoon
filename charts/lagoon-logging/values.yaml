@@ -9,7 +9,7 @@ logsDispatcher:
 
   name: logs-dispatcher
 
-  replicaCount: 2
+  replicaCount: 3
 
   image:
     repository: amazeeiolagoon/logs-dispatcher
@@ -64,7 +64,7 @@ logsTeeRouter:
 
   name: logs-tee-router
 
-  replicaCount: 2
+  replicaCount: 3
 
   image:
     repository: amazeeiolagoon/logs-tee
@@ -124,7 +124,7 @@ logsTeeApplication:
 
   name: logs-tee-application
 
-  replicaCount: 2
+  replicaCount: 3
 
   image:
     repository: amazeeiolagoon/logs-tee

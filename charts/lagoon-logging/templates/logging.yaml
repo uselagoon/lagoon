@@ -9,6 +9,8 @@ spec:
     security:
       podSecurityContext:
         runAsUser: 100
+    scaling:
+      replicas: 3
   {{- with .Values.fluentbitPrivileged }}
   fluentbit:
     security:
