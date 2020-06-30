@@ -71,7 +71,7 @@ oc adm pod-network make-projects-global lagoon-logging
 
 The `application-logs` and `router-logs` services in the `lagoon` namespace needs to be updated to point their `externalName` to the `lagoon-logging-logs-dispatcher` service in the `lagoon-logging` namespace (or wherever you've installed it).
 
-If you are migrating from the old lagoon logging infrastructure and want to keep logs flowing to both old and new infrastructure, point these services at the relevant `logs-tee` service in the `lagoon-logging` namespace. See the comments in the chart `values.yaml` for `logs-tee` configuration.
+If you are migrating from the old lagoon logging infrastructure and want to keep logs flowing to both old and new infrastructure, point these services at the relevant `logs-tee` service in the `lagoon-logging` namespace. The `logs-tee` services then need to have the legacy `endpoint` configured. See the comments in the chart `values.yaml` for an example.
 
 ## View logs
 

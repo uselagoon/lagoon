@@ -84,10 +84,11 @@ logsTeeRouter:
     # view.
     name: ""
 
-  listenPort: 5141
-  endpoints:
+  listenPort: 5140
   # the logs-dispatcher endpoint is automatically added to this list
-  - logs-forwarder-logstash.lagoon.svc.cluster.local:5140
+  # define other endpoints here
+  #endpoints:
+  #- logs2logs-db.lagoon.svc.cluster.local
 
   podAnnotations: {}
 
@@ -145,9 +146,10 @@ logsTeeApplication:
     name: ""
 
   listenPort: 5140
-  endpoints:
   # the logs-dispatcher endpoint is automatically added to this list
-  - logs-forwarder-logstash.lagoon.svc.cluster.local:5140
+  # define other endpoints here
+  #endpoints:
+  #- logs2logs-db.lagoon.svc.cluster.local
 
   podAnnotations: {}
 
