@@ -10,18 +10,6 @@ import { Group } from '../models/group';
 
 const { JWTSECRET, JWTAUDIENCE } = process.env;
 
-// const redisClient = redis.createClient({
-//   host: 'api-redis',
-// });
-
-// redisClient.on("error", function(error) {
-//   console.error(error);
-// });
-
-// let redisGetAsync = promisify(redisClient.get).bind(redisClient);
-// let redisHMGetAllAsync = promisify(redisClient.hgetall).bind(redisClient);
-
-
 interface ILegacyToken {
   aud: string,
   role: string,
