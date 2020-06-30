@@ -37,7 +37,6 @@ interface UserModel {
   addUser: (userInput: User) => Promise<User>;
   updateUser: (userInput: UserEdit) => Promise<User>;
   deleteUser: (id: string) => Promise<void>;
-  deleteRedisKeys: (id: string) => Promise<void>;
 }
 
 export class UsernameExistsError extends Error {
@@ -352,15 +351,12 @@ export const User = (clients): UserModel => {
         throw new Error(`Error deleting user ${id}: ${err}`);
       }
     }
-  };
-
-  const deleteRedisKeys = async (id: string): Promise<void> => {
     try {
       await redisClient.deleteRedisUserCache(id)
     } catch(err) {
       throw new Error(`Error deleting user cache ${id}: ${err}`);
     }
-  }
+  };
 
   return {
     loadAllUsers,
@@ -372,7 +368,6 @@ export const User = (clients): UserModel => {
     getUserRolesForProject,
     addUser,
     updateUser,
-    deleteUser,
-    deleteRedisKeys,
+    deleteUser
   }
 };

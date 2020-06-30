@@ -529,7 +529,6 @@ export const Group = (clients) => {
       } catch(err) {
         throw new Error(`Error deleting user cache ${user.id}: ${err}`);
       }
-
     }
 
     return await loadGroupById(group.id);

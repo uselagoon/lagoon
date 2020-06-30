@@ -116,7 +116,6 @@ export const deleteAllUsers: ResolverFn = async (
   for (const user of users) {
     try {
       await models.UserModel.deleteUser(user.id)
-      await models.UserModel.deleteRedisKeys(user.id)
     } catch (err) {
       deleteErrors = [
         ...deleteErrors,
