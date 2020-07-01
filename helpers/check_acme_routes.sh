@@ -5,6 +5,10 @@
 # by disabling the tls-acme, removing other acme related annotations and add
 # an interal one for filtering purpose
 
+if [ "$DEBUG" = "true" ]; then
+	set -x
+fi
+
 set -eu -o pipefail
 
 # Some variables
@@ -23,6 +27,9 @@ DEBUG="${DEBUG:-"false"}"
 
 # Set a REGEX variable to filter the execution of the script
 REGEX=${REGEX:-".*"}
+
+# Set NOTIFYONLY to true if you want to only notify customers about their failed routes
+NOTIFYONLY=${NOTIFYONLY:-"false"}
 
 # Help function
 function usage() {
@@ -108,7 +115,9 @@ function create_routes_array() {
 	# Get the list of namespaces with broker routes, according to REGEX
 	for namespace in $(oc get routes --all-namespaces|grep exposer|awk '{print $1}'|sort -u|grep -E "$REGEX")
 	do
-		PROJECTNAME=$(oc get project "$namespace" -o=jsonpath="{.metadata.labels.lagoon\.sh/project}")
+		#PROJECTNAME=$(oc get project "$namespace" -o=jsonpath="{.metadata.labels.lagoon\.sh/project}")
+		PROJECTNAME=$(oc get project "$namespace" -o json|grep display-name|awk -F'[][]' '{print $2}'|tr "_" "-")
+
 		# Get the list of broken unique routes for each namespace
 		for routelist in $(oc get -n "$namespace" route|grep exposer|awk -vNAMESPACE="$namespace" -vPROJECTNAME="$PROJECTNAME" '{print $1";"$2";"NAMESPACE";"PROJECTNAME}'|sort -u -k2 -t ";")
 		do
@@ -142,7 +151,11 @@ function check_routes() {
 		ROUTE_PROJECTNAME=${route[3]}
 
 		# Get route DNS record(s)
-		ROUTE_HOSTNAME_IP=$(dig +short "$ROUTE_HOSTNAME")
+		if [[ $(dig +short "$ROUTE_HOSTNAME" &> /dev/null; echo $?) -ne 0 ]]; then
+			ROUTE_HOSTNAME_IP="null"
+		else
+			ROUTE_HOSTNAME_IP=$(dig +short "$ROUTE_HOSTNAME")
+		fi
 
 		if [[ "${DEBUG}" == true ]]; then
 			echo -e "===== DEBUG INFORMATION =====\n${route[*]}\n$ROUTE_HOSTNAME_IP"
@@ -159,22 +172,29 @@ function check_routes() {
 			fi
 
 			echo "$DNS_ERROR"
-			# Call the update function to update the route
-			update_annotation "$ROUTE_HOSTNAME" "$ROUTE_NAMESPACE"
-			notify_customer "$ROUTE_PROJECTNAME"
 
-			# Now once the main route is updated, it's time to get rid of exposers' routes
-			for j in $(oc get -n "$ROUTE_NAMESPACE" route|grep exposer|grep -E '(^|\s)'"$ROUTE_HOSTNAME"'($|\s)'|awk '{print $1";"$2}')
-			do
-				ocroute=($(echo "$j" | tr ";" "\n"))
-				OCROUTE_NAME=${ocroute[0]}
-				if [[ $DRYRUN = true ]]; then
-					echo -e "DRYRUN oc delete -n $ROUTE_NAMESPACE route $OCROUTE_NAME"
-				else
-					echo -e "\nDelete route $OCROUTE_NAME"
-					oc delete -n "$ROUTE_NAMESPACE" route "$OCROUTE_NAME"
-				fi
-			done
+			if [[ "$NOTIFYONLY" = "true" ]]; then
+				echo $NOTIFYONLY
+				notify_customer "$ROUTE_PROJECTNAME"
+			else
+				echo $NOTIFYONLY
+				# Call the update function to update the route
+				update_annotation "$ROUTE_HOSTNAME" "$ROUTE_NAMESPACE"
+				notify_customer "$ROUTE_PROJECTNAME"
+
+				# Now once the main route is updated, it's time to get rid of exposers' routes
+				for j in $(oc get -n "$ROUTE_NAMESPACE" route|grep exposer|grep -E '(^|\s)'"$ROUTE_HOSTNAME"'($|\s)'|awk '{print $1";"$2}')
+				do
+					ocroute=($(echo "$j" | tr ";" "\n"))
+					OCROUTE_NAME=${ocroute[0]}
+					if [[ $DRYRUN = true ]]; then
+						echo -e "DRYRUN oc delete -n $ROUTE_NAMESPACE route $OCROUTE_NAME"
+					else
+						echo -e "\nDelete route $OCROUTE_NAME"
+						oc delete -n "$ROUTE_NAMESPACE" route "$OCROUTE_NAME"
+					fi
+				done
+			fi
 		fi
 		echo -e "\n"
 
