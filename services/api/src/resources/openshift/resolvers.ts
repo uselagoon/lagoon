@@ -71,10 +71,12 @@ export const getAllOpenshifts: ResolverFn = async (
 
   const prep = prepare(
     sqlClient,
-    `SELECT DISTINCT
-        o.*
-      FROM project p
-      JOIN openshift o ON o.id = p.openshift
+    `SELECT
+        o.*,
+        count(p.id) as project_count
+      FROM openshift o
+      LEFT JOIN project p ON o.id = p.openshift
+      GROUP BY p.openshift
     `,
   );
 

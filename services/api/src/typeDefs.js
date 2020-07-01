@@ -265,6 +265,7 @@ const typeDefs = gql`
     sshPort: String
     created: String
     monitoringConfig: JSON
+    projectCount: Int
   }
 
   type NotificationMicrosoftTeams {
