@@ -383,7 +383,7 @@ export const updateBillingGroup: ResolverFn = async (
     ...attributes,
     type: ['billing'],
     ...(currency ? { currency: [currency] } : {}),
-    ...(uptimeRobotStatusPageId ? {uptimeRobotStatusPageId: [uptimeRobotStatusPageId] }: {}),
+    ...(R.is(String, uptimeRobotStatusPageId) ? {uptimeRobotStatusPageId: [uptimeRobotStatusPageId] }: {}),
     ...(billingSoftware ? { billingSoftware: [billingSoftware] } : {}),
   };
 
