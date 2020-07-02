@@ -3,7 +3,22 @@ entries:
   lagoon-logging:
   - apiVersion: v2
     appVersion: 0.1.0
-    created: "2020-05-27T21:44:37.427234974+08:00"
+    created: "2020-07-08T15:23:02.537279009+08:00"
+    dependencies:
+    - name: logging-operator
+      repository: https://kubernetes-charts.banzaicloud.com
+      version: ~3.3.0
+    description: |
+      A Helm chart for Kubernetes which installs the lagoon container and router logs collection system.
+    digest: 516961903c4c2fc2d8b39b3a9c8f594bdb5db7a1e70c480b89554e64d7303902
+    name: lagoon-logging
+    type: application
+    urls:
+    - lagoon-logging-0.6.1.tgz
+    version: 0.6.1
+  - apiVersion: v2
+    appVersion: 0.1.0
+    created: "2020-07-08T15:23:02.527457528+08:00"
     dependencies:
     - name: logging-operator
       repository: https://kubernetes-charts.banzaicloud.com
@@ -18,7 +33,7 @@ entries:
     version: 0.2.0
   - apiVersion: v2
     appVersion: 0.1.0
-    created: "2020-05-27T21:44:37.420526997+08:00"
+    created: "2020-07-08T15:23:02.522593529+08:00"
     dependencies:
     - name: logging-operator
       repository: https://kubernetes-charts.banzaicloud.com
@@ -31,10 +46,22 @@ entries:
     urls:
     - lagoon-logging-0.1.0.tgz
     version: 0.1.0
+  lagoon-logs-concentrator:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2020-07-08T15:23:02.538051671+08:00"
+    description: A Helm chart for Kubernetes which installs the Lagoon logs-concentrator
+      service.
+    digest: c66bc7450f61a74cb1e8742c4feb5146c7361e2c04e3171235c1e776ca958327
+    name: lagoon-logs-concentrator
+    type: application
+    urls:
+    - lagoon-logs-concentrator-0.2.0.tgz
+    version: 0.2.0
   lagoon-remote:
   - apiVersion: v2
     appVersion: 1.4.0
-    created: "2020-05-27T21:44:37.428425112+08:00"
+    created: "2020-07-08T15:23:02.539156031+08:00"
     description: A Helm chart to run a lagoon-remote
     digest: 96bc41bc9985cd6a7fbd85a32affea3bbbabdf4baa0cd829e7e3d33fb975ceeb
     name: lagoon-remote
@@ -44,7 +71,7 @@ entries:
     version: 0.1.3
   - apiVersion: v2
     appVersion: 1.4.0
-    created: "2020-05-27T21:44:37.427949322+08:00"
+    created: "2020-07-08T15:23:02.538674677+08:00"
     description: A Helm chart to run a lagoon-remote
     digest: 5756a3fbb46a11f2f43fdcadb41d709d90c70208b90fa0257d48dcacc4df3040
     name: lagoon-remote
@@ -52,4 +79,4 @@ entries:
     urls:
     - lagoon-remote-0.1.2.tgz
     version: 0.1.2
-generated: "2020-05-27T21:44:37.415688985+08:00"
+generated: "2020-07-08T15:23:02.517886032+08:00"
