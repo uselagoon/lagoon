@@ -5,13 +5,16 @@
 # by disabling the tls-acme, removing other acme related annotations and add
 # an interal one for filtering purpose
 
+set -eu -o pipefail
+
+# Set DEBUG variable to true, to start bash in debug mode
+DEBUG="${DEBUG:-"false"}"
 if [ "$DEBUG" = "true" ]; then
 	set -x
 fi
 
-set -eu -o pipefail
-
 # Some variables
+
 # Cluster full hostname and API hostname
 CLUSTER_HOSTNAME="${CLUSTER_HOSTNAME:-""}"
 CLUSTER_API_HOSTNAME="${CLUSTER_API_HOSTNAME:-"$CLUSTER_HOSTNAME"}"
@@ -22,13 +25,14 @@ COMMAND=${1:-"help"}
 # Set DRYRUN variable to true to run in dry-run mode
 DRYRUN="${DRYRUN:-"false"}"
 
-# Set DEBUG variable to true, to print echo messages
-DEBUG="${DEBUG:-"false"}"
 
 # Set a REGEX variable to filter the execution of the script
 REGEX=${REGEX:-".*"}
 
-# Set NOTIFYONLY to true if you want to only notify customers about their failed routes
+# Set NOTIFYONLY to true if you want to send customers a notification
+# explaining why Lagoon is not able to issue Let'S Encrypt certificate for
+# some routes defined in customer's .lagoon.yml file.
+# If set to true, no other action rather than notification is done (ie: no annotation or deletion)
 NOTIFYONLY=${NOTIFYONLY:-"false"}
 
 # Help function
@@ -115,7 +119,6 @@ function create_routes_array() {
 	# Get the list of namespaces with broker routes, according to REGEX
 	for namespace in $(oc get routes --all-namespaces|grep exposer|awk '{print $1}'|sort -u|grep -E "$REGEX")
 	do
-		#PROJECTNAME=$(oc get project "$namespace" -o=jsonpath="{.metadata.labels.lagoon\.sh/project}")
 		PROJECTNAME=$(oc get project "$namespace" -o json|grep display-name|awk -F'[][]' '{print $2}'|tr "_" "-")
 
 		# Get the list of broken unique routes for each namespace
@@ -128,10 +131,6 @@ function create_routes_array() {
 
 	# Create a sorted array of unique route to check
 	ROUTES_ARRAY_SORTED=($(sort -u -k 2 -t ";"<<<"${ROUTES_ARRAY[*]}"))
-
-	if [[ "${DEBUG}" == true ]]; then
-		echo -e "===== DEBUG INFORMATION =====\n${ROUTES_ARRAY_SORTED[*]}"
-	fi
 }
 
 # Function to check the routes, update them and delete the exposer's routes
@@ -157,10 +156,6 @@ function check_routes() {
 			ROUTE_HOSTNAME_IP=$(dig +short "$ROUTE_HOSTNAME")
 		fi
 
-		if [[ "${DEBUG}" == true ]]; then
-			echo -e "===== DEBUG INFORMATION =====\n${route[*]}\n$ROUTE_HOSTNAME_IP"
-		fi
-
 		# Check if the route matches the Cluster's IP(s)
 		if echo "$ROUTE_HOSTNAME_IP" | grep -E -q -v "${CLUSTER_IPS[*]}"; then
 
@@ -171,13 +166,12 @@ function check_routes() {
 				DNS_ERROR="$ROUTE_HOSTNAME in $ROUTE_NAMESPACE has no DNS record poiting to ${CLUSTER_IPS[*]} and going to disable tls-acme"
 			fi
 
+			# Print the error on stdout
 			echo "$DNS_ERROR"
 
 			if [[ "$NOTIFYONLY" = "true" ]]; then
-				echo $NOTIFYONLY
 				notify_customer "$ROUTE_PROJECTNAME"
 			else
-				echo $NOTIFYONLY
 				# Call the update function to update the route
 				update_annotation "$ROUTE_HOSTNAME" "$ROUTE_NAMESPACE"
 				notify_customer "$ROUTE_PROJECTNAME"
@@ -238,7 +232,7 @@ function notify_customer() {
 	echo -e "Sending notification into ${CHANNEL}"
 	# Execute curl to send message into the channel
 	if [[ $DRYRUN = true ]]; then
-		echo "DRYRUN on \"$NOTIFICATION\" curl -X POST -H 'Content-type: application/json' --data "$PAYLOAD" "$WEBHOOK""
+		echo "DRYRUN Sending notification on \"$NOTIFICATION\" curl -X POST -H 'Content-type: application/json' --data '{'"$PAYLOAD"'}' "$WEBHOOK""
 	else
 		curl -X POST -H 'Content-type: application/json' --data '{'"${PAYLOAD}"'}' ${WEBHOOK}
 	fi
