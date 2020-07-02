@@ -1018,6 +1018,14 @@ export const getOpenShiftInfoForProject = (project: string): Promise<any> =>
           value
           scope
         }
+      }
+    }
+`);
+
+export const getBillingGroupForProject = (project: string): Promise<any> =>
+  graphqlapi.query(`
+    {
+      project:projectByName(name: "${project}"){
         groups {
           ... on BillingGroup {
             type
