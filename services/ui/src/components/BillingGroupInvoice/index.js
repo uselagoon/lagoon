@@ -87,7 +87,7 @@ const Invoice = ({ cost, language }) => {
               </div>
               :
               <div>
-                Total: {cost.environmentCostDescription.prod.quantity.toFixed(2).toLocaleString()} Std.
+                Total: {cost.environmentCostDescription.prod.quantity} Std.
               </div>
               }
             </div>
@@ -136,13 +136,13 @@ const Invoice = ({ cost, language }) => {
               { lang === LANGS.ENGLISH ?
                 <div>
                   Additional Storage Fee<br/>
-                  Storage per GB/day: {currencyChar} {cost.storageCostDescription.unitPrice}<br/>
+                  Storage per GB/day: {currencyChar} {cost.storageCostDescription.unitPrice}<br/><br/>
                   Average Storage per Environment per day:
                 </div>
                 :
                 <div>
                   Zusätzliche Storagegebühren<br/>
-                  Storage GB/Tag: {currencyChar} {cost.storageCostDescription.unitPrice}<br/>
+                  Storage GB/Tag: {currencyChar} {cost.storageCostDescription.unitPrice}<br/><br/>
                   Durchschnittlicher Storage pro Environment pro Tag:
                 </div>
               }
@@ -191,7 +191,7 @@ const Invoice = ({ cost, language }) => {
                       additional > 0 &&
                       <div key={`dev-${name}-${hours}-${index}`} className="devProject">
                         <span>{name}</span> - <span>{hours} { lang === LANGS.ENGLISH ? `h` : `Std.` }</span>
-                        <div>Included hours - {included} { lang === LANGS.ENGLISH ? `h` : `Std.` }</div>
+                        <div>{ lang === LANGS.ENGLISH ? `Included hours` : `Zusätzliche Stunden` } - {included} { lang === LANGS.ENGLISH ? `h` : `Std.` }</div>
                         { additional !== 0 && <div>{ lang === LANGS.ENGLISH ? `Additional hours` : `Zusätzliche Stunden` } - {additional} { lang === LANGS.ENGLISH ? `h` : `Std.` }</div> }
                       </div>
                     )
@@ -317,7 +317,7 @@ const Invoice = ({ cost, language }) => {
             width: 100%;
 
           }
-          
+
           .qty, .unitPrice, .amt, .data-cell.total {
             text-align: right;
             padding-right: 20px;
