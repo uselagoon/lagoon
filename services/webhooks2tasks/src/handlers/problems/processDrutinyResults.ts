@@ -12,8 +12,11 @@ const DRUTINY_PACKAGE_NAME = ''
 import {
   getProjectByName,
   getEnvironmentByName,
+  getEnvironmentByOpenshiftProjectName,
+  sanitizeProjectName,
 } from '@lagoon/commons/dist/api';
 import { generateProblemsWebhookEventName } from "./webhookHelpers";
+import * as R from 'ramda';
 
 const ERROR_STATES = ["error", "failure"];
 const SEVERITY_LEVELS = [
@@ -58,9 +61,9 @@ export async function processDrutinyResultset(
           lagoonProjectName
         );
 
-        const {
-          environmentByName: environmentDetails,
-        } = await getEnvironmentByName(lagoonEnvironmentName, lagoonProjectId);
+        let openshiftProjectName = sanitizeProjectName(`${lagoonProjectName}-${lagoonEnvironmentName}`);
+        const environmentResult = await getEnvironmentByOpenshiftProjectName(openshiftProjectName);
+        const environmentDetails: any = R.prop('environmentByOpenshiftProjectName', environmentResult)
 
         const lagoonEnvironmentId = environmentDetails.id;
         const lagoonServiceName = DRUTINY_SERVICE_NAME;
