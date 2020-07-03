@@ -183,11 +183,21 @@ logsTeeApplication:
 excludeNamespaces:
 # k8s
 - cattle-prometheus
+- cattle-system
+- dbaas-operator
+- default
+- kube-cleanup-operator
+- kube-node-lease
+- kube-public
 - kube-system
+- metrics-server
 - syn
+- syn-backup
 - syn-cert-manager
-- syn-synsights
 - syn-cluster-autoscaler
+- syn-efs-provisioner
+- syn-resource-locker
+- syn-synsights
 # openshift
 - acme-controller
 - appuio-baas-operator
@@ -197,9 +207,7 @@ excludeNamespaces:
 - appuio-monitoring
 - appuio-pruner
 - appuio-tiller
-- default
 - dioscuri-controller
-- kube-public
 - kube-service-catalog
 - management-infra
 - monitoring-infra
@@ -213,7 +221,6 @@ excludeNamespaces:
 - openshift-node
 - openshift-sdn
 - openshift-web-console
-- syn-resource-locker
 - tiller
 
 # Configure the cluster output buffer.
