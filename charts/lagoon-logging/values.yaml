@@ -257,10 +257,14 @@ lagoonLogs:
 #  username: "example1"
 #  password: "securepass"
 #  host: "203.0.113.9"
-#  # hostName is optional, with a fallback to host
-#  # this is useful for when host is an IP address, or when the server
-#  # certificate doesn't match the hostName.
+#  # hostName is optional - it is used for TLS verification for when host is an
+#  # IP address.
+#  # NOTE: if host is _not_ an IP address and it is presents a certificate
+#  # without that hostname, you'll also need to set tlsVerifyHostname to
+#  # false. The hostName field does _not_ override the host field for TLS
+#  # verification when host is not an IP address.
 #  hostName: "logs.server.example.com"
+#  # tlsVerifyHostname: false
 #  # hostPort is optional, default 24224
 #  hostPort: "24224"
 #  selfHostname: "logs-dispatcher.example1.lagoon.example.com"

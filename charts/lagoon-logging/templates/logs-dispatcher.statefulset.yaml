@@ -109,6 +109,12 @@ spec:
           name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}-store
         name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}-store
       {{- end }}
+      {{- if .Values.lagoonLogs.enabled }}
+      - configMap:
+          defaultMode: 420
+          name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}-source-lagoon
+        name: {{ include "lagoon-logging.logsDispatcher.fullname" . }}-source-lagoon
+      {{- end }}
       - secret:
           defaultMode: 420
           secretName: {{ include "lagoon-logging.logsDispatcher.fullname" . }}-tls
