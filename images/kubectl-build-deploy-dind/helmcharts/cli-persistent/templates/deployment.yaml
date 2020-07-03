@@ -65,6 +65,13 @@ spec:
               mountPath: {{ include "cli-persistent.twig-storage.path" . | quote }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          readinessProbe:
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            exec:
+              command:
+              - cat
+              - /tmp/ready
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

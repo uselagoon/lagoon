@@ -135,6 +135,12 @@ objects:
                   memory: 10Mi
                 limits:
                   memory: 8Gi
+              readinessProbe:
+                initialDelaySeconds: 15
+                exec:
+                  command:
+                  - cat
+                  - /tmp/ready
       test: false
       triggers:
         - type: ConfigChange
