@@ -60,7 +60,7 @@ logsDispatcher:
 
 logsTeeRouter:
 
-  enabled: true
+  enabled: false
 
   name: logs-tee-router
 
@@ -120,7 +120,7 @@ logsTeeRouter:
 
 logsTeeApplication:
 
-  enabled: true
+  enabled: false
 
   name: logs-tee-application
 
