@@ -20,14 +20,12 @@ import {
 initSendToLagoonLogs();
 initSendToLagoonTasks();
 
-const pause = duration => new Promise(res => setTimeout(res, duration));
-
-const retry = (retries, fn, delay = 1000) =>
-  fn().catch(err =>
-    retries > 1
-      ? pause(delay).then(() => retry(retries - 1, fn, delay))
-      : Promise.reject(err)
-  );
+class AnotherBuildAlreadyRunning extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'AnotherBuildAlreadyRunning';
+  }
+}
 
 const messageConsumer = async msg => {
   const {
@@ -81,40 +79,31 @@ const messageConsumer = async msg => {
     }
   });
 
-  const jobsGet = promisify(
-    kubernetesBatchApi.namespaces(openshiftProject).jobs.get
-  );
-
-  const hasNoActiveBuilds = () =>
-    new Promise(async (resolve, reject) => {
-      const namespaceJobs = await jobsGet({
-        qs: {
-          labelSelector: 'lagoon.sh/jobType=build'
-        }
-      });
-      const activeBuilds: any = R.pipe(
-        R.propOr([], 'items'),
-        R.filter(R.pathSatisfies(R.lt(0), ['status', 'active']))
-      )(namespaceJobs);
-
-      if (R.isEmpty(activeBuilds)) {
-        resolve();
-      } else {
-        logger.info(
-          `Delaying build of ${buildName} due to ${activeBuilds.length} pending builds`
-        );
-        reject();
+  // Check that there are no active builds in this namespace running
+  try {
+    const jobsGetAll = promisify(
+      kubernetesBatchApi.namespaces(openshiftProject).jobs.get
+    );
+    const namespaceJobs = await jobsGetAll({
+      qs: {
+        labelSelector: 'lagoon.sh/jobType=build'
       }
     });
+    const activeBuilds: any = R.pipe(
+      R.propOr([], 'items'),
+      R.filter(R.pathSatisfies(R.lt(0), ['status', 'active']))
+    )(namespaceJobs);
 
-  // Wait until an there are no active builds in this namespace running
-  try {
-    // Check every minute for 30 minutes
-    await retry(30, hasNoActiveBuilds, 1 * 60 * 1000);
+    if (!R.isEmpty(activeBuilds)) {
+      throw new AnotherBuildAlreadyRunning(
+        `${openshiftProject}: Reqeueing ${buildName} due to ${activeBuilds.length} pending builds`
+      );
+    }
   } catch (err) {
-    throw new Error(
-      `${openshiftProject}: Requeue build due to error: ${err.message}`
+    logger.error(
+      `${openshiftProject}: Unexpected error loading current running Jobs, unable to build ${buildName}: ${err}`
     );
+    return;
   }
 
   // Load job, if not exists create
