@@ -59,13 +59,7 @@ const DEFAULT_REPO_DETAILS_MATCHER = {
     }
 
     let vulnerabilities = [];
-    try {
-      vulnerabilities = await getVulnerabilitiesFromHarbor(harborScanId);
-    } catch(error) {
-      console.log(error);
-      throw error;
-    }
-
+    vulnerabilities = await getVulnerabilitiesFromHarbor(harborScanId);
 
     let { id: lagoonProjectId } = await getProjectByName(lagoonProjectName);
 
