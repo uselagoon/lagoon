@@ -71,8 +71,8 @@ const rabbitmqHost = process.env.RABBITMQ_HOST || 'broker';
 const rabbitmqUsername = process.env.RABBITMQ_USERNAME || 'guest';
 const rabbitmqPassword = process.env.RABBITMQ_PASSWORD || 'guest';
 
-const taskPrefetch = process.env.TASK_PREFETCH_COUNT || 2;
-const taskMonitorPrefetch = process.env.TASKMONITOR_PREFETCH_COUNT || 1;
+const taskPrefetch = process.env.TASK_PREFETCH_COUNT ? Number(process.env.TASK_PREFETCH_COUNT) : 2;
+const taskMonitorPrefetch = process.env.TASKMONITOR_PREFETCH_COUNT ? Number(process.env.TASKMONITOR_PREFETCH_COUNT) : 1;
 
 class UnknownActiveSystem extends Error {
   constructor(message) {
