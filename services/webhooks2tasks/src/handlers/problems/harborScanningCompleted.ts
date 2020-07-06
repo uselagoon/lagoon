@@ -73,7 +73,6 @@ const DEFAULT_REPO_DETAILS_MATCHER = {
         .replace('${project}', ocsafety(lagoonProjectName))
     : ocsafety(`${lagoonProjectName}-${lagoonEnvironmentName}`);
 
-    // let openshiftProjectName = sanitizeProjectName(`${lagoonProjectName}-${lagoonEnvironmentName}`);
     const environmentResult = await getEnvironmentByOpenshiftProjectName(openshiftProjectName);
     const environmentDetails: any = R.prop('environmentByOpenshiftProjectName', environmentResult)
 
