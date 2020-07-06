@@ -1,12 +1,21 @@
-import redis from "redis";
+import redis, { ClientOpts } from 'redis';
 import { promisify } from 'util';
 
+const { REDIS_HOST, REDIS_PASSWORD, REDIS_PORT } = process.env;
 
-const redisClient = redis.createClient({
-  host: 'api-redis',
-});
+let clientOptions: ClientOpts = {
+  host: REDIS_HOST || 'api-redis',
+  port: parseInt(REDIS_PORT, 10) || 6379,
+  enable_offline_queue: false
+};
 
-redisClient.on("error", function(error) {
+if (typeof REDIS_PASSWORD !== undefined) {
+  clientOptions.password = REDIS_PASSWORD;
+}
+
+const redisClient = redis.createClient(clientOptions);
+
+redisClient.on('error', function(error) {
   console.error(error);
 });
 
@@ -15,35 +24,48 @@ let redisHMGetAllAsync = promisify(redisClient.hgetall).bind(redisClient);
 let redisDelAsync = promisify(redisClient.del).bind(redisClient);
 
 interface IUserResourceScope {
-  resource: string,
-  scope: string,
-  currentUserId: string,
-  project?: number,
-  group?: string,
-  users?: number[]
+  resource: string;
+  scope: string;
+  currentUserId: string;
+  project?: number;
+  group?: string;
+  users?: number[];
 }
 
 const hashKey = ({ resource, project, group, scope }: IUserResourceScope) =>
-  `${resource}:${project ? `${project}:`: ''}${group ? `${group}:`: ''}${scope}`;
+  `${resource}:${project ? `${project}:` : ''}${
+    group ? `${group}:` : ''
+  }${scope}`;
 
-
-export const isRedisCacheAllowed = async (resourceScope: IUserResourceScope) => {
-  const redisHash = await redisHMGetAllAsync(`cache:authz:${resourceScope.currentUserId}`);
+export const isRedisCacheAllowed = async (
+  resourceScope: IUserResourceScope
+) => {
+  const redisHash = await redisHMGetAllAsync(
+    `cache:authz:${resourceScope.currentUserId}`
+  );
   const key = hashKey(resourceScope);
 
   if (redisHash && !redisHash[key]) {
     return null;
   }
 
-  return (redisHash && redisHash[key] === 1) ? true : false;
-}
+  return redisHash && redisHash[key] === 1 ? true : false;
+};
 
-export const saveRedisCache = async (resourceScope: IUserResourceScope, value: number|string) => {
+export const saveRedisCache = async (
+  resourceScope: IUserResourceScope,
+  value: number | string
+) => {
   const key = hashKey(resourceScope);
-  await redisClient.hmset(`cache:authz:${resourceScope.currentUserId}`,  key, value);
-}
+  await redisClient.hmset(
+    `cache:authz:${resourceScope.currentUserId}`,
+    key,
+    value
+  );
+};
 
-export const deleteRedisUserCache = (userId) => redisDelAsync(`cache:authz:${userId}`);
+export const deleteRedisUserCache = userId =>
+  redisDelAsync(`cache:authz:${userId}`);
 
 export default {
   isRedisCacheAllowed,

@@ -763,5 +763,3 @@ services:
     image: ${IMAGE_REPO:-lagoon}/redis
     labels:
       lagoon.type: redis
-    ports:
-      - '6397:6397'
