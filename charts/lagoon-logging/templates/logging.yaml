@@ -17,5 +17,7 @@ spec:
     security:
       securityContext:
         privileged: {{ . }}
+  {{- else }}
+  fluentbit: {}
   {{- end }}
   controlNamespace: {{ .Release.Namespace | quote }}
