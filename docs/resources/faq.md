@@ -63,9 +63,15 @@ No need to panic! This usually happens when a tenant has not been selected.  To 
 
 You should now be able to see your logs.
 
-### I'm unable to ssh into any environment!
+### I'm unable to SSH into any environment!
 
-I'm unable to SSH into any environment. I'm getting the following message: ```Permission denied (publickey)``. When I run `drush sa` no aliases are returned.
+I'm unable to SSH into any environment. I'm getting the following message: `Permission denied (publickey)`.  
+
+**When I run `pygmy status`, no keys are loaded:**
+
+You'll need to load your SSH key into pygmy. Here's how: [https://pygmy.readthedocs.io/en/master/troubleshooting/](https://pygmy.readthedocs.io/en/master/troubleshooting/)
+
+**When I run `drush sa` no aliases are returned:**
 
 This typically indicates an issue with Pygmy. You can find our troubleshooting docs for Pygmy here: [https://pygmy.readthedocs.io/en/master/troubleshooting/](https://pygmy.readthedocs.io/en/master/troubleshooting/).
 
