@@ -119,7 +119,7 @@ const Environment = ({ environment }) => {
           </div>
         </div>
       </div>
-      {environment.project.standbyProductionEnvironment && environment.environmentType == 'production' && (
+      {environment.project.productionEnvironment && environment.project.standbyProductionEnvironment && environment.environmentType == 'production' && environment.project.standbyProductionEnvironment == environment.name && (
       <Mutation mutation={SwitchActiveStandbyMutation}>
         {(switchActiveStandby, { loading, called, error, data }) => {
           const switchActiveBranch = () => {
