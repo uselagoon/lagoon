@@ -834,7 +834,7 @@ export const consumeTaskMonitor = async function(
           'lagoon-tasks-monitor',
           taskMonitorQueueName
         ),
-        channel.prefetch(1),
+        channel.prefetch(6),
         channel.consume(
           `lagoon-tasks-monitor:${taskMonitorQueueName}`,
           onMessage,
