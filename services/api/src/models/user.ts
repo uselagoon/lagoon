@@ -1,5 +1,6 @@
 import * as R from 'ramda';
 import pickNonNil from '../util/pickNonNil';
+import * as logger from '../logger';
 import UserRepresentation from 'keycloak-admin/lib/defs/userRepresentation';
 import { Group, isRoleSubgroup } from './group';
 
@@ -354,7 +355,7 @@ export const User = (clients): UserModel => {
     try {
       await redisClient.deleteRedisUserCache(id)
     } catch(err) {
-      throw new Error(`Error deleting user cache ${id}: ${err}`);
+      logger.error(`Error deleting user cache ${id}: ${err}`);
     }
   };
 

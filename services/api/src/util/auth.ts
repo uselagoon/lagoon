@@ -1,7 +1,5 @@
 import * as R from 'ramda';
-// import redis from "redis";
-// import { promisify } from 'util';
-import { isRedisCacheAllowed, saveRedisCache } from '../clients/redisClient';
+import { getRedisCache, saveRedisCache } from '../clients/redisClient';
 import { verify } from 'jsonwebtoken';
 import * as logger from '../logger';
 import { keycloakGrantManager } from'../clients/keycloakClient';
@@ -114,12 +112,18 @@ export const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) 
     // or group context) and cache a single query instead?
     const cacheKey = `${currentUserId}:${resource}:${scope}:${JSON.stringify(attributes)}`;
     const cachedPermissions = requestCache.get(cacheKey);
-    if (cachedPermissions !== undefined) {
-      return cachedPermissions;
+    if (cachedPermissions === true) {
+      return true;
+    } else if (!cachedPermissions === false) {
+      throw new KeycloakUnauthorizedError(`Unauthorized: You don't have permission to "${scope}" on "${resource}".`);
     }
 
+    // Check a redis cache before doing a full keycloak lookup.
     const resourceScope = {resource, scope, currentUserId, ...attributes };
-    if (!isRedisCacheAllowed(resourceScope)){
+    const redisCache = await getRedisCache(resourceScope);
+    if (redisCache == 1) {
+      return true;
+    } else if (redisCache == 0) {
       throw new KeycloakUnauthorizedError(`Unauthorized: You don't have permission to "${scope}" on "${resource}".`);
     }
 

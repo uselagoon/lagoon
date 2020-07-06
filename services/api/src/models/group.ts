@@ -527,7 +527,7 @@ export const Group = (clients) => {
       try {
         await redisClient.deleteRedisUserCache(user.id)
       } catch(err) {
-        throw new Error(`Error deleting user cache ${user.id}: ${err}`);
+        logger.error(`Error deleting user cache ${user.id}: ${err}`);
       }
     }
 

@@ -140,7 +140,7 @@ const apolloServer = new ApolloServer({
         requestCache,
         models: {
           UserModel: User.User({ keycloakAdminClient, redisClient }),
-          GroupModel: Group.Group({ keycloakAdminClient, sqlClient }),
+          GroupModel: Group.Group({ keycloakAdminClient, redisClient }),
           BillingModel: BillingModel.BillingModel({
             keycloakAdminClient,
             sqlClient
