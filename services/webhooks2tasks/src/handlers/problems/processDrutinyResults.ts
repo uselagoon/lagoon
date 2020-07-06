@@ -11,9 +11,8 @@ const DRUTINY_SERVICE_NAME = 'cli';
 const DRUTINY_PACKAGE_NAME = ''
 import {
   getProjectByName,
-  getEnvironmentByName,
   getEnvironmentByOpenshiftProjectName,
-  sanitizeProjectName,
+  getOpenShiftInfoForProject,
 } from '@lagoon/commons/dist/api';
 import { generateProblemsWebhookEventName } from "./webhookHelpers";
 import * as R from 'ramda';
@@ -61,7 +60,18 @@ export async function processDrutinyResultset(
           lagoonProjectName
         );
 
-        let openshiftProjectName = sanitizeProjectName(`${lagoonProjectName}-${lagoonEnvironmentName}`);
+        const result = await getOpenShiftInfoForProject(lagoonProjectName);
+        const projectOpenShift = result.project;
+
+        const ocsafety = string =>
+        string.toLocaleLowerCase().replace(/[^0-9a-z-]/g, '-');
+
+        let openshiftProjectName = projectOpenShift.openshiftProjectPattern
+        ? projectOpenShift.openshiftProjectPattern
+            .replace('${branch}', ocsafety(lagoonEnvironmentName))
+            .replace('${project}', ocsafety(lagoonProjectName))
+        : ocsafety(`${lagoonProjectName}-${lagoonEnvironmentName}`);
+
         const environmentResult = await getEnvironmentByOpenshiftProjectName(openshiftProjectName);
         const environmentDetails: any = R.prop('environmentByOpenshiftProjectName', environmentResult)
 

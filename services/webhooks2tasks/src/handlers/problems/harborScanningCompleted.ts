@@ -9,11 +9,9 @@ import uuid4 from 'uuid4';
 
 import {
   getProjectByName,
-  getEnvironmentByName,
   getProblemHarborScanMatches,
   getEnvironmentByOpenshiftProjectName,
-  sanitizeProjectName,
-  sanitizeGroupName,
+  getOpenShiftInfoForProject,
 } from '@lagoon/commons/dist/api';
 
 const HARBOR_WEBHOOK_SUCCESSFUL_SCAN = "Success";
@@ -63,8 +61,19 @@ const DEFAULT_REPO_DETAILS_MATCHER = {
 
     let { id: lagoonProjectId } = await getProjectByName(lagoonProjectName);
 
+    const result = await getOpenShiftInfoForProject(lagoonProjectName);
+    const projectOpenShift = result.project;
 
-    let openshiftProjectName = sanitizeProjectName(`${lagoonProjectName}-${lagoonEnvironmentName}`);
+    const ocsafety = string =>
+    string.toLocaleLowerCase().replace(/[^0-9a-z-]/g, '-');
+
+    let openshiftProjectName = projectOpenShift.openshiftProjectPattern
+    ? projectOpenShift.openshiftProjectPattern
+        .replace('${branch}', ocsafety(lagoonEnvironmentName))
+        .replace('${project}', ocsafety(lagoonProjectName))
+    : ocsafety(`${lagoonProjectName}-${lagoonEnvironmentName}`);
+
+    // let openshiftProjectName = sanitizeProjectName(`${lagoonProjectName}-${lagoonEnvironmentName}`);
     const environmentResult = await getEnvironmentByOpenshiftProjectName(openshiftProjectName);
     const environmentDetails: any = R.prop('environmentByOpenshiftProjectName', environmentResult)
 
