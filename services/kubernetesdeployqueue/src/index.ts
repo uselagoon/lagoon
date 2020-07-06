@@ -79,6 +79,12 @@ const messageConsumer = async msg => {
     }
   });
 
+  //@TODO
+  // 1. Load all current deployments from lagoon api that have "status: NEW"
+  // 2. Check if current buildName is the oldest of all found deployments
+  // IF yes: continue with checking if k8s has an active build
+  // IF no: republish (via throwing an exception) into the queue with a delay of 30secs
+
   // Check that there are no active builds in this namespace running
   try {
     const jobsGetAll = promisify(
