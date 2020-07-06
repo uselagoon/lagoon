@@ -1,3 +1,4 @@
+import * as R from 'ramda';
 import redis, { ClientOpts } from 'redis';
 import { promisify } from 'util';
 
@@ -19,8 +20,10 @@ redisClient.on('error', function(error) {
   console.error(error);
 });
 
-let redisHMGetAllAsync = promisify(redisClient.hgetall).bind(redisClient);
-let redisDelAsync = promisify(redisClient.del).bind(redisClient);
+const hgetall = promisify(redisClient.hgetall).bind(redisClient);
+const smembers = promisify(redisClient.smembers).bind(redisClient);
+const sadd = promisify(redisClient.sadd).bind(redisClient);
+const del = promisify(redisClient.del).bind(redisClient);
 
 interface IUserResourceScope {
   resource: string;
@@ -36,15 +39,13 @@ const hashKey = ({ resource, project, group, scope }: IUserResourceScope) =>
     group ? `${group}:` : ''
   }${scope}`;
 
-export const getRedisCache = async (
-  resourceScope: IUserResourceScope
-) => {
-  const redisHash = await redisHMGetAllAsync(
+export const getRedisCache = async (resourceScope: IUserResourceScope) => {
+  const redisHash = await hgetall(
     `cache:authz:${resourceScope.currentUserId}`
   );
   const key = hashKey(resourceScope);
 
-  return redisHash[key];
+  return R.prop(key, redisHash);
 };
 
 export const saveRedisCache = async (
@@ -59,11 +60,19 @@ export const saveRedisCache = async (
   );
 };
 
-export const deleteRedisUserCache = userId =>
-  redisDelAsync(`cache:authz:${userId}`);
+export const deleteRedisUserCache = userId => del(`cache:authz:${userId}`);
+
+export const getProjectGroupsCache = async projectId =>
+  smembers(`project-groups:${projectId}`);
+export const saveProjectGroupsCache = async (projectId, groupIds) =>
+  sadd(`project-groups:${projectId}`, groupIds);
+export const deleteProjectGroupsCache = async projectId =>
+  del(`project-groups:${projectId}`);
 
 export default {
   getRedisCache,
   saveRedisCache,
-  deleteRedisUserCache
+  deleteRedisUserCache,
+  getProjectGroupsCache,
+  saveProjectGroupsCache
 };

@@ -215,21 +215,11 @@ export const Group = (clients) => {
       R.cond([[R.isEmpty, R.always(null)], [R.T, loadGroupByName]]),
     )(groupInput);
 
-  const loadGroupsByAttribute = async (
+  const filterGroupsByAttribute = (
+    groups: Group[] | BillingGroup[],
     filterFn: AttributeFilterFn,
-  ): Promise<Group[] | BillingGroup[]> => {
-    const keycloakGroups = await keycloakAdminClient.groups.find();
-
-    let fullGroups: Group[] | BillingGroup[] = [];
-    for (const group of keycloakGroups) {
-      const fullGroup = await keycloakAdminClient.groups.findOne({
-        id: group.id,
-      });
-
-      fullGroups = [...fullGroups, fullGroup];
-    }
-
-    const filteredGroups = R.filter((group: Group) =>
+  ): Group[] | BillingGroup[] =>
+    R.filter((group: Group) =>
       R.pipe(
         R.toPairs,
         R.reduce((isMatch: boolean, attribute: [string, string[]]): boolean => {
@@ -245,7 +235,23 @@ export const Group = (clients) => {
           return isMatch;
         }, false),
       )(group.attributes),
-    )(fullGroups);
+    )(groups);
+
+  const loadGroupsByAttribute = async (
+    filterFn: AttributeFilterFn,
+  ): Promise<Group[] | BillingGroup[]> => {
+    const keycloakGroups = await keycloakAdminClient.groups.find();
+
+    let fullGroups: Group[] | BillingGroup[] = [];
+    for (const group of keycloakGroups) {
+      const fullGroup = await keycloakAdminClient.groups.findOne({
+        id: group.id,
+      });
+
+      fullGroups = [...fullGroups, fullGroup];
+    }
+
+    const filteredGroups = filterGroupsByAttribute(fullGroups, filterFn);
 
     const groups = await transformKeycloakGroups(filteredGroups);
 
@@ -266,7 +272,43 @@ export const Group = (clients) => {
       return false;
     };
 
-    return loadGroupsByAttribute(filterFn);
+    let groupIds = [];
+
+    // This function is called often and is expensive to compute so prefer
+    // performance over DRY
+    try {
+      groupIds = await redisClient.getProjectGroupsCache(projectId);
+    } catch (err) {
+      logger.warn(`Error loading project groups from cache: ${err.message}`);
+      groupIds = [];
+    }
+
+    if (R.isEmpty(groupIds)) {
+      const keycloakGroups = await keycloakAdminClient.groups.find();
+      // @ts-ignore
+      groupIds = R.pluck('id', keycloakGroups);
+    }
+
+    let fullGroups = [];
+    for (const id of groupIds) {
+      const fullGroup = await keycloakAdminClient.groups.findOne({
+        id,
+      });
+
+      fullGroups = [...fullGroups, fullGroup];
+    }
+
+    const filteredGroups = filterGroupsByAttribute(fullGroups, filterFn);
+    try {
+      const filteredGroupIds = R.pluck('id', filteredGroups);
+      await redisClient.saveProjectGroupsCache(projectId, filteredGroupIds);
+    } catch (err) {
+      logger.warn(`Error saving project groups to cache: ${err.message}`);
+    }
+
+    const groups = await transformKeycloakGroups(filteredGroups);
+
+    return groups;
   };
 
   // Recursive function to load projects "up" the group chain
@@ -536,7 +578,7 @@ export const Group = (clients) => {
       try {
         await redisClient.deleteRedisUserCache(user.id)
       } catch(err) {
-        logger.error(`Error deleting user cache ${user.id}: ${err}`);
+        logger.warn(`Error deleting user cache ${user.id}: ${err}`);
       }
     }
 
@@ -573,6 +615,12 @@ export const Group = (clients) => {
       throw new Error(
         `Error setting projects for group ${group.name}: ${err.message}`,
       );
+    };
+
+    try {
+      await redisClient.deleteProjectGroupsCache(projectId);
+    } catch (err) {
+      logger.warn(`Error deleting project groups cache: ${err.message}`);
     }
   };
 
@@ -605,6 +653,12 @@ export const Group = (clients) => {
       throw new Error(
         `Error setting projects for group ${group.name}: ${err.message}`,
       );
+    };
+
+    try {
+      await redisClient.deleteProjectGroupsCache(projectId);
+    } catch (err) {
+      logger.warn(`Error deleting project groups cache: ${err.message}`);
     }
   };
 
