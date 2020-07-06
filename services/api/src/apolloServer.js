@@ -32,7 +32,6 @@ const apolloServer = new ApolloServer({
   schema,
   debug: process.env.NODE_ENV === 'development',
   introspection: true,
-  tracing: true,
   subscriptions: {
     onConnect: async (connectionParams, webSocket) => {
       const token = R.prop('authToken', connectionParams);
@@ -211,17 +210,6 @@ const apolloServer = new ApolloServer({
         return {
           willSendResponse: data => {
             const { response } = data;
-            const traceDuration = R.pathSatisfies(
-              R.is(Number),
-              ['extensions', 'tracing', 'duration'],
-              response
-            )
-              ? `Total Duration (ms): ${R.path(
-                  ['extensions', 'tracing', 'duration'],
-                  response
-                ) / 1000000}`
-              : 'No trace data';
-            newrelic.addCustomAttribute('totalDuration', traceDuration);
             newrelic.addCustomAttribute(
               'errorCount',
               R.pipe(
