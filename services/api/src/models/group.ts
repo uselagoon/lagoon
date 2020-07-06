@@ -62,7 +62,7 @@ interface GroupEdit {
 }
 
 interface AttributeFilterFn {
-  (attribute: { name: string; value: string[] }, group: Group): boolean;
+  (attribute: { name: string; value: string[] }): boolean;
 }
 
 export class GroupExistsError extends Error {
@@ -121,11 +121,10 @@ export const Group = (clients) => {
     let groupsWithGroupsAndMembers = [];
 
     for (const group of groups) {
+      const subGroups = R.reject(isRoleSubgroup)(group.subGroups);
       groupsWithGroupsAndMembers.push({
         ...group,
-        groups: await transformKeycloakGroups(
-          R.reject(isRoleSubgroup)(group.subGroups),
-        ),
+        groups: R.isEmpty(subGroups) ? [] : await transformKeycloakGroups(subGroups),
         members: await getGroupMembership(group),
       });
     }
@@ -219,7 +218,16 @@ export const Group = (clients) => {
   const loadGroupsByAttribute = async (
     filterFn: AttributeFilterFn,
   ): Promise<Group[] | BillingGroup[]> => {
-    const allGroups = await loadAllGroups();
+    const keycloakGroups = await keycloakAdminClient.groups.find();
+
+    let fullGroups: Group[] | BillingGroup[] = [];
+    for (const group of keycloakGroups) {
+      const fullGroup = await keycloakAdminClient.groups.findOne({
+        id: group.id,
+      });
+
+      fullGroups = [...fullGroups, fullGroup];
+    }
 
     const filteredGroups = R.filter((group: Group) =>
       R.pipe(
@@ -231,16 +239,17 @@ export const Group = (clients) => {
                 name: attribute[0],
                 value: attribute[1],
               },
-              group,
             );
           }
 
           return isMatch;
         }, false),
       )(group.attributes),
-    )(allGroups);
+    )(fullGroups);
 
-    return filteredGroups;
+    const groups = await transformKeycloakGroups(filteredGroups);
+
+    return groups;
   };
 
   const loadGroupsByProjectId = async (
