@@ -120,12 +120,17 @@ export const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) 
 
     // Check a redis cache before doing a full keycloak lookup.
     const resourceScope = {resource, scope, currentUserId, ...attributes };
-    const redisCache = await getRedisCache(resourceScope);
-    if (redisCache == 1) {
-      return true;
-    } else if (redisCache == 0) {
-      throw new KeycloakUnauthorizedError(`Unauthorized: You don't have permission to "${scope}" on "${resource}".`);
+    try {
+      const redisCache = await getRedisCache(resourceScope);
+      if (redisCache == 1) {
+        return true;
+      } else if (redisCache == 0) {
+        throw new KeycloakUnauthorizedError(`Unauthorized: You don't have permission to "${scope}" on "${resource}".`);
+      }
+    } catch (err) {
+      logger.warn(`Could not lookup authz cache: ${err.message}`);
     }
+
 
     const currentUser = await UserModel.loadUserById(currentUserId);
     const serviceAccount = await keycloakGrantManager.obtainFromClientCredentials();
@@ -260,7 +265,12 @@ export const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) 
 
       if (newGrant.access_token.hasPermission(resource, scope)) {
         requestCache.set(cacheKey, true);
-        saveRedisCache(resourceScope, 1);
+        try {
+          saveRedisCache(resourceScope, 1);
+        } catch (err) {
+          logger.warn(`Could not save authz cache: ${err.message}`);
+        }
+
         return;
       }
     } catch (err) {
@@ -270,7 +280,11 @@ export const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) 
     }
 
     requestCache.set(cacheKey, false);
-    saveRedisCache(resourceScope, 0);
+    try {
+      saveRedisCache(resourceScope, 0);
+    } catch (err) {
+      logger.warn(`Could not save authz cache: ${err.message}`);
+    }
     throw new KeycloakUnauthorizedError(`Unauthorized: You don't have permission to "${scope}" on "${resource}".`);
   };
 };
