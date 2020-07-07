@@ -247,6 +247,7 @@ CREATE TABLE IF NOT EXISTS project_notification (
   pid      int REFERENCES project (id),
   type     ENUM('slack','rocketchat','microsoftteams','email') NOT NULL,
   content_type ENUM('deployment', 'problem') NOT NULL,
+  notification_severity_threshold int NOT NULL default 0,
   CONSTRAINT project_notification_pkey PRIMARY KEY (nid, pid, type)
 );
 

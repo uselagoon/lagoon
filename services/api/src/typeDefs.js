@@ -995,6 +995,7 @@ const typeDefs = gql`
     notificationType: NotificationType!
     notificationName: String!
     contentType: NotificationContentType
+    notificationSeverityThreshold: ProblemSeverityRating
   }
 
   input RemoveNotificationFromProjectInput {

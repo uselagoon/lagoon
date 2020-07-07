@@ -1,3 +1,5 @@
+import { NOTIFICATION_SEVERITY_THRESHOLD } from "./defaults";
+
 const { knex } = require('../../util/db');
 const DEFAULTS = require('./defaults');
 
@@ -9,7 +11,12 @@ import type {Cred, SqlObj} from '../';
 
 export const Sql = {
   createProjectNotification: (input) => {
-    const { pid, notificationType, nid, contentType = DEFAULT_NOTIFICATION_CONTENT_TYPE } = input;
+    const { pid,
+      notificationType,
+      nid,
+      contentType = DEFAULTS.NOTIFICATION_CONTENT_TYPE,
+      notificationSeverityThreshold = DEFAULTS.NOTIFICATION_SEVERITY_THRESHOLD,
+    } = input;
 
     return knex('project_notification')
       .insert({
@@ -17,11 +24,12 @@ export const Sql = {
         type: notificationType,
         nid,
         content_type: contentType,
+        notification_severity_threshold: notificationSeverityThreshold,
       })
       .toString();
   },
   selectProjectNotificationByNotificationName: (input) => {
-    const { name, type, contentType = DEFAULT_NOTIFICATION_CONTENT_TYPE } = input;
+    const { name, type, contentType = DEFAULTS.NOTIFICATION_CONTENT_TYPE } = input;
 
     return knex('project_notification AS pn')
       .joinRaw(
