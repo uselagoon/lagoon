@@ -1000,7 +1000,9 @@ export const getOpenShiftInfoForProject = (project: string): Promise<any> =>
           token
           projectUser
           routerPattern
+          monitoringConfig
         }
+        availability
         gitUrl
         privateKey
         subfolder
@@ -1015,6 +1017,20 @@ export const getOpenShiftInfoForProject = (project: string): Promise<any> =>
           name
           value
           scope
+        }
+      }
+    }
+`);
+
+export const getBillingGroupForProject = (project: string): Promise<any> =>
+  graphqlapi.query(`
+    {
+      project:projectByName(name: "${project}"){
+        groups {
+          ... on BillingGroup {
+            type
+            uptimeRobotStatusPageId
+          }
         }
       }
     }

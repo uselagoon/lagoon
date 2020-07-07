@@ -39,7 +39,9 @@ parameters:
     required: true
   - name: CRONJOBS
     description: Oneliner of Cronjobs
-    value: ""
+    value: |-
+      30 * * * * /idle-clis.sh
+      0 */4 * * * /idle-services.sh
 objects:
 - apiVersion: v1
   kind: DeploymentConfig

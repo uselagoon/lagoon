@@ -1,4 +1,4 @@
-FROM goharbor/trivy-adapter-photon:v2.0.0
+FROM aquasec/harbor-scanner-trivy:0.11.0
 LABEL maintainer="amazee.io"
 
 COPY install_cert.sh /home/scanner
@@ -9,8 +9,6 @@ RUN mkdir /home/scanner/.cache \
     && mkdir /home/scanner/.cache/reports \
     && chown scanner:root -R /home/scanner/.cache \
     && chown scanner:root -R /home/scanner/.cache \
-    && chown scanner:root /etc/pki/tls/certs/ca-bundle.crt \
-    && chmod g+w /etc/pki/tls/certs/ca-bundle.crt \
     && chown -R scanner:root /home/scanner \
     && chmod g+rw /home/scanner
 USER scanner

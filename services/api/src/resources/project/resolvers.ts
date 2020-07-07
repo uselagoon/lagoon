@@ -476,6 +476,11 @@ export const deleteProject: ResolverFn = async (
     logger.error(`Could not delete default user for project ${project.name}: ${err.message}`);
   }
 
+  // @TODO discuss if we want to delete projects in harbor or not
+  //const harborOperations = createHarborOperations(sqlClient);
+
+  //const harborResults = await harborOperations.deleteProject(project.name)
+
   return 'success';
 };
 

@@ -40,6 +40,21 @@ parameters:
   - name: ROUTE_MIGRATE
     description: Setting to determine if this route should be migratable for active/standby purposes
     required: true
+  - name: MONITORING_ENABLED
+    description: Default to monitoring disabled, only enabled on production routes
+    value: "false"
+  - name: MONITORING_INTERVAL
+    description: Frequency of checks by monitoring
+    value: ""
+  - name: MONITOR_ALERTCONTACTS
+    description: Alertcontacts to associate to this monitor
+    value: ""
+  - name: MONITORING_PATH
+    description: Path for monitoring of this route
+    value: ""
+  - name: MONITORING_STATUSPAGEID
+    description: Uptime Robot status page ID
+    value: ""
 objects:
 - apiVersion: v1
   kind: Route
@@ -48,6 +63,11 @@ objects:
       haproxy.router.openshift.io/disable_cookies: 'true'
       haproxy.router.openshift.io/hsts_header: '${ROUTE_HSTS}'
       kubernetes.io/tls-acme: '${ROUTE_TLS_ACME}'
+      monitor.stakater.com/enabled: '${MONITORING_ENABLED}'
+      uptimerobot.monitor.stakater.com/interval: '${MONITORING_INTERVAL}'
+      uptimerobot.monitor.stakater.com/alert-contacts: '${MONITOR_ALERTCONTACTS}'
+      monitor.stakater.com/overridePath: '${MONITORING_PATH}'
+      uptimerobot.monitor.stakater.com/status-pages: '${MONITORING_STATUSPAGEID}'
     creationTimestamp: null
     labels:
       branch: ${SAFE_BRANCH}

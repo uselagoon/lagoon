@@ -5,7 +5,7 @@ import R from 'ramda';
 import sha1 from 'sha1';
 import crypto from 'crypto';
 import { logger } from '@lagoon/commons/dist/local-logging';
-import { getOpenShiftInfoForProject, addOrUpdateEnvironment, getEnvironmentByName, addDeployment } from '@lagoon/commons/dist/api';
+import { getOpenShiftInfoForProject, addOrUpdateEnvironment, getEnvironmentByName, addDeployment, getBillingGroupForProject } from '@lagoon/commons/dist/api';
 
 import { sendToLagoonLogs, initSendToLagoonLogs } from '@lagoon/commons/dist/logs';
 import { consumeTasks, initSendToLagoonTasks, createTaskMonitor } from '@lagoon/commons/dist/tasks';
@@ -39,6 +39,8 @@ const messageConsumer = async msg => {
 
   const result = await getOpenShiftInfoForProject(projectName);
   const projectOpenShift = result.project
+  const billingGroupResult = await getBillingGroupForProject(projectName);
+  const projectBillingGroup = billingGroupResult.project
 
   const ocsafety = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
 
@@ -85,8 +87,18 @@ const messageConsumer = async msg => {
     var graphqlEnvironmentType = environmentType.toUpperCase()
     var graphqlGitType = type.toUpperCase()
     var openshiftPromoteSourceProject = promoteSourceEnvironment ? `${safeProjectName}-${ocsafety(promoteSourceEnvironment)}` : ""
-    // A secret which is the same across all Environments of this Lagoon Project
+        // A secret which is the same across all Environments of this Lagoon Project
     var projectSecret = crypto.createHash('sha256').update(`${projectName}-${jwtSecret}`).digest('hex');
+    var alertContactHA = ""
+    var alertContactSA = ""
+    var monitoringConfig = JSON.parse(projectOpenShift.openshift.monitoringConfig) || "invalid"
+    if (monitoringConfig != "invalid"){
+      alertContactHA = monitoringConfig.uptimerobot.alertContactHA || ""
+      alertContactSA = monitoringConfig.uptimerobot.alertContactSA || ""
+    }
+    var availability = projectOpenShift.availability || "STANDARD"
+    const billingGroup = projectBillingGroup.groups.find(i => i.type == "billing" ) || ""
+    var uptimeRobotStatusPageId = billingGroup.uptimeRobotStatusPageId || ""
   } catch(error) {
     logger.error(`Error while loading information for project ${projectName}`)
     logger.error(error)
@@ -272,6 +284,18 @@ const messageConsumer = async msg => {
     if (!R.isEmpty(environment.envVariables)) {
       buildconfig.spec.strategy.customStrategy.env.push({"name": "LAGOON_ENVIRONMENT_VARIABLES", "value": JSON.stringify(environment.envVariables)})
     }
+    if (alertContactHA != undefined && alertContactSA != undefined){
+      if (availability == "HIGH") {
+        buildconfig.spec.strategy.customStrategy.env.push({"name": "MONITORING_ALERTCONTACT","value": alertContactHA})
+      } else {
+        buildconfig.spec.strategy.customStrategy.env.push({"name": "MONITORING_ALERTCONTACT","value": alertContactSA})
+      }
+    } else {
+      buildconfig.spec.strategy.customStrategy.env.push({"name": "MONITORING_ALERTCONTACT","value": "unconfigured"})
+    }
+    if (uptimeRobotStatusPageId){
+      buildconfig.spec.strategy.customStrategy.env.push({"name": "MONITORING_STATUSPAGEID","value": uptimeRobotStatusPageId})
+    }
     return buildconfig
   }
 
@@ -333,7 +357,8 @@ const messageConsumer = async msg => {
             "name":openshiftProject,
             "labels": {
               "lagoon.sh/project": safeProjectName,
-              "lagoon.sh/environment": safeBranchName
+              "lagoon.sh/environment": safeBranchName,
+              "lagoon.sh/environmentType": lagoonEnvironmentType
             }
           },
           "displayName":`[${projectName}] ${branchName}`

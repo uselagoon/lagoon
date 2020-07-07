@@ -29,15 +29,16 @@ CREATE TABLE IF NOT EXISTS customer (
 );
 
 CREATE TABLE IF NOT EXISTS openshift (
-  id              int NOT NULL auto_increment PRIMARY KEY,
-  name            varchar(50) UNIQUE,
-  console_url     varchar(300),
-  token           varchar(2000),
-  router_pattern  varchar(300),
-  project_user    varchar(100),
-  ssh_host        varchar(300),
-  ssh_port        varchar(50),
-  created         timestamp DEFAULT CURRENT_TIMESTAMP
+  id                int NOT NULL auto_increment PRIMARY KEY,
+  name              varchar(50) UNIQUE,
+  console_url       varchar(300),
+  token             varchar(2000),
+  router_pattern    varchar(300),
+  project_user      varchar(100),
+  ssh_host          varchar(300),
+  ssh_port          varchar(50),
+  monitoring_config varchar(2048),
+  created           timestamp DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS notification_microsoftteams (
@@ -99,14 +100,16 @@ CREATE TABLE IF NOT EXISTS project (
 
 CREATE TABLE IF NOT EXISTS billing_modifier (
   id                              int NOT NULL auto_increment PRIMARY KEY,
-  group_id                             varchar(36),
+  group_id                        varchar(36),
   weight                          int NOT NULL DEFAULT 0,
   start_date                      datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   end_date                        datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  discount_fixed                  DECIMAL NULL DEFAULT 0.0,
-  discount_percentage             FLOAT NULL DEFAULT 0.0,
-  extra_fixed                     DECIMAL NULL DEFAULT 0.0,
-  extra_percentage                FLOAT NULL DEFAULT 0.0,
+  discount_fixed                  DECIMAL NULL DEFAULT 0,
+  discount_percentage             FLOAT NULL DEFAULT 0,
+  extra_fixed                     DECIMAL NULL DEFAULT 0,
+  extra_percentage                FLOAT NULL DEFAULT 0,
+  min                             FLOAT NULL DEFAULT 0,
+  max                             FLOAT NULL DEFAULT 0,
   customer_comments               text,
   admin_comments                  text
 );

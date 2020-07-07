@@ -41,6 +41,7 @@ export interface BillingGroup extends Group {
   currency?: string;
   billingSoftware?: string;
   type?: string;
+  uptimeRobotStatusPageId?: string;
 }
 
 interface GroupMembership {
@@ -111,6 +112,7 @@ export const Group = (clients) => {
       type: attributeKVOrNull('type', keycloakGroup),
       currency: attributeKVOrNull('currency', keycloakGroup),
       billingSoftware: attributeKVOrNull('billingSoftware', keycloakGroup),
+      uptimeRobotStatusPageId: attributeKVOrNull('uptimeRobotStatusPageId', keycloakGroup),
       path: keycloakGroup.path,
       attributes: keycloakGroup.attributes,
       subGroups: keycloakGroup.subGroups,

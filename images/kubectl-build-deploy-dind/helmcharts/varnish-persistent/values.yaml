@@ -9,7 +9,6 @@ image: ""
 environmentType: production
 
 persistentStorage:
-  name: "varnish"
   size: 5Gi
   path: "/var/cache/varnish"
 
