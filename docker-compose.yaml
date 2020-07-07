@@ -760,6 +760,8 @@ services:
       lagoon.name: harborregistry
       lagoon.image: amazeeiolagoon/harborregistryctl:v1-7-1
   api-redis:
-    image: ${IMAGE_REPO:-lagoon}/redis
+    image: ${IMAGE_REPO:-lagoon}/api-redis
     labels:
-      lagoon.type: redis
+      lagoon.type: custom
+      lagoon.template: services/api-redis/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/api-redis:v1-7-1
