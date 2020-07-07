@@ -89,6 +89,15 @@ const attrLagoonProjectsLens = R.compose(
   R.lensPath([0]),
 );
 
+const getProjectIdsFromGroup = R.pipe(
+  // @ts-ignore
+  R.view(attrLagoonProjectsLens),
+  R.defaultTo(''),
+  R.split(','),
+  R.reject(R.isEmpty),
+  R.map(id => parseInt(id, 10)),
+);
+
 export const isRoleSubgroup = R.pathEq(
   ['attributes', 'type', 0],
   'role-subgroup',
@@ -315,13 +324,7 @@ export const Group = (clients) => {
   const getProjectsFromGroupAndParents = async (
     group: Group,
   ): Promise<number[]> => {
-    const projectIds = R.pipe(
-      R.view(attrLagoonProjectsLens),
-      R.defaultTo(''),
-      R.split(','),
-      R.reject(R.isEmpty),
-      R.map(id => parseInt(id, 10)),
-    )(group);
+    const projectIds = getProjectIdsFromGroup(group);
 
     const parentGroup = await loadParentGroup(group);
     const parentProjectIds = parentGroup
@@ -339,13 +342,7 @@ export const Group = (clients) => {
   const getProjectsFromGroupAndSubgroups = async (
     group: Group,
   ): Promise<number[]> => {
-    const groupProjectIds = R.pipe(
-      R.view(attrLagoonProjectsLens),
-      R.defaultTo(''),
-      R.split(','),
-      R.reject(R.isEmpty),
-      R.map(id => parseInt(id, 10)),
-    )(group);
+    const groupProjectIds = getProjectIdsFromGroup(group);
 
     let subGroupProjectIds = [];
     for (const subGroup of group.groups) {
@@ -502,6 +499,10 @@ export const Group = (clients) => {
   };
 
   const deleteGroup = async (id: string): Promise<void> => {
+    const group = loadGroupById(id);
+    // @ts-ignore
+    const projectIds = getProjectIdsFromGroup(group);
+
     try {
       await keycloakAdminClient.groups.del({ id });
     } catch (err) {
@@ -509,6 +510,14 @@ export const Group = (clients) => {
         throw new GroupNotFoundError(`Group not found: ${id}`);
       } else {
         throw new Error(`Error deleting group ${id}: ${err}`);
+      }
+    }
+
+    for (const projectId of projectIds) {
+      try {
+        await redisClient.deleteProjectGroupsCache(projectId);
+      } catch (err) {
+        logger.warn(`Error deleting project groups cache: ${err.message}`);
       }
     }
   };
@@ -550,6 +559,12 @@ export const Group = (clients) => {
       });
     } catch (err) {
       throw new Error(`Could not add user to group: ${err.message}`);
+    }
+
+    try {
+      await redisClient.deleteRedisUserCache(user.id)
+    } catch(err) {
+      logger.warn(`Error deleting user cache ${user.id}: ${err}`);
     }
 
     return await loadGroupById(group.id);
