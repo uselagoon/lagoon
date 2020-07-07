@@ -182,7 +182,6 @@ ${podLog}`;
 
     await updateDeployment(deployment.deploymentByRemoteId.id, {
       status: status.toUpperCase(),
-      created: convertDateFormat(jobInfo.metadata.creationTimestamp),
       started: dateOrNull(jobInfo.status.startTime),
       completed: dateOrNull(jobInfo.status.completionTime),
     });

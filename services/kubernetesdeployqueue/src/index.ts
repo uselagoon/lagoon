@@ -3,6 +3,7 @@ import KubernetesClient from 'kubernetes-client';
 import R from 'ramda';
 import { logger } from '@lagoon/commons/dist/local-logging';
 import {
+  graphqlapi,
   getOpenShiftInfoForProject,
   updateDeployment
 } from '@lagoon/commons/dist/api';
@@ -26,6 +27,49 @@ class AnotherBuildAlreadyRunning extends Error {
     this.name = 'AnotherBuildAlreadyRunning';
   }
 }
+
+class BuildOutOfOrder extends Error {
+  delayFn: (retryCount: number) => number;
+
+  constructor(message) {
+    super(message);
+    this.name = 'BuildOutOfOrder';
+    // Wait 30 seconds before checking again.
+    this.delayFn = () => 30;
+  }
+}
+
+const getEnvironmentDeployments = async (
+  openshiftProjectName: string
+): Promise<any[]> => {
+  const result = await graphqlapi.query(
+    `
+    query getEnvironmentDeployments($openshiftProjectName: String!) {
+      environmentByOpenshiftProjectName(openshiftProjectName: $openshiftProjectName) {
+        deployments {
+          name
+          status
+          created
+        }
+      }
+    }`,
+    { openshiftProjectName }
+  );
+
+  return R.pathOr(
+    [],
+    ['environmentByOpenshiftProjectName', 'deployments'],
+    result
+  );
+};
+
+const filterByNewStatus = R.filter(R.propEq('status', 'new'));
+const sortByCreatedDate = R.sort(R.ascend(R.prop('created')));
+const oldestNewDeployment = R.pipe(
+  filterByNewStatus,
+  sortByCreatedDate,
+  R.head
+);
 
 const messageConsumer = async msg => {
   const {
@@ -79,13 +123,17 @@ const messageConsumer = async msg => {
     }
   });
 
-  //@TODO
-  // 1. Load all current deployments from lagoon api that have "status: NEW"
-  // 2. Check if current buildName is the oldest of all found deployments
-  // IF yes: continue with checking if k8s has an active build
-  // IF no: republish (via throwing an exception) into the queue with a delay of 30secs
+  const deployments = await getEnvironmentDeployments(openshiftProject);
+  const nextDeploymentToRun = oldestNewDeployment(deployments);
+
+  if (R.prop('name', nextDeploymentToRun) !== buildName) {
+    const msg = `${openshiftProject}: Reqeueing ${buildName} since it's out of order`;
+    logger.debug(msg);
+    throw new BuildOutOfOrder(msg);
+  }
 
   // Check that there are no active builds in this namespace running
+  let activeBuilds;
   try {
     const jobsGetAll = promisify(
       kubernetesBatchApi.namespaces(openshiftProject).jobs.get
@@ -95,21 +143,21 @@ const messageConsumer = async msg => {
         labelSelector: 'lagoon.sh/jobType=build'
       }
     });
-    const activeBuilds: any = R.pipe(
+    activeBuilds = R.pipe(
       R.propOr([], 'items'),
       R.filter(R.pathSatisfies(R.lt(0), ['status', 'active']))
     )(namespaceJobs);
-
-    if (!R.isEmpty(activeBuilds)) {
-      throw new AnotherBuildAlreadyRunning(
-        `${openshiftProject}: Reqeueing ${buildName} due to ${activeBuilds.length} pending builds`
-      );
-    }
   } catch (err) {
     logger.error(
       `${openshiftProject}: Unexpected error loading current running Jobs, unable to build ${buildName}: ${err}`
     );
     return;
+  }
+
+  if (!R.isEmpty(activeBuilds)) {
+    const msg = `${openshiftProject}: Reqeueing ${buildName} due to ${activeBuilds.length} pending builds`;
+    logger.debug(msg);
+    throw new AnotherBuildAlreadyRunning(msg);
   }
 
   // Load job, if not exists create
@@ -126,7 +174,6 @@ const messageConsumer = async msg => {
         const jobPost = promisify(
           kubernetesApi.group(jobConfig).ns(openshiftProject).jobs.post
         );
-        console.log(JSON.stringify(jobConfig, null, 4));
 
         jobInfo = await jobPost({ body: jobConfig });
         logger.info(`${openshiftProject}: Created build ${buildName}`);
