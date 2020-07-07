@@ -353,7 +353,7 @@ const typeDefs = gql`
     """
     Notifications that should be sent for this project
     """
-    notifications(type: NotificationType, contentType: NotificationContentType): [Notification]
+    notifications(type: NotificationType, contentType: NotificationContentType, notificationSeverityThreshold: ProblemSeverityRating): [Notification]
     """
     Which internal Lagoon System is responsible for deploying
     Currently only 'lagoon_openshiftBuildDeploy' exists

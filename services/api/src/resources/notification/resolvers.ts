@@ -309,11 +309,16 @@ export const getNotificationsByProjectId: ResolverFn = async (
     unformattedArgs,
   ) as any;
 
-  args = R.compose(
-    R.over(R.lensProp('contentType'), notifiationContentTypeToString)
-    )(args) as any;
 
-  const { type: argsType, contentType = DEFAULTS.NOTIFICATION_CONTENT_TYPE } = args;
+
+  args = R.compose(
+    R.over(R.lensProp('notificationSeverityThreshold'), notificationContentTypeToInt)
+  )(args) as any;
+
+  const { type: argsType,
+    contentType = DEFAULTS.NOTIFICATION_CONTENT_TYPE,
+    notificationSeverityThreshold = DEFAULTS.NOTIFICATION_SEVERITY_THRESHOLD,
+  } = args;
 
   // Types to collect notifications from all different
   // notification type tables
@@ -328,6 +333,7 @@ export const getNotificationsByProjectId: ResolverFn = async (
             type,
             pid,
             contentType,
+            notificationSeverityThreshold,
           },
         ),
       ),
@@ -340,6 +346,7 @@ export const getNotificationsByProjectId: ResolverFn = async (
     }
     return R.concat(acc, rows);
   }, []);
+
   return resultArray.map((e) => R.over(R.lensProp('notificationSeverityThreshold'), notificationIntToContentType, e))
 };
 

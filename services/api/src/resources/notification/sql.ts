@@ -116,14 +116,19 @@ export const Sql = {
       .toString();
   },
   selectNotificationsByTypeByProjectId: (input) => {
-    const { type, pid, contentType = DEFAULTS.NOTIFICATION_CONTENT_TYPE } = input;
-    const selectQuery = knex('project_notification AS pn').joinRaw(
+    const { type,
+      pid,
+      contentType = DEFAULTS.NOTIFICATION_CONTENT_TYPE,
+      notificationSeverityThreshold = DEFAULTS.NOTIFICATION_SEVERITY_THRESHOLD,
+    } = input;
+    let selectQuery = knex('project_notification AS pn').joinRaw(
       `JOIN notification_${type} AS nt ON pn.nid = nt.id AND pn.type = :type AND pn.content_type = :contentType`,
       {type, contentType},
     );
 
     return selectQuery
       .where('pn.pid', '=', pid)
+      .where('pn.notification_severity_threshold', '>=', notificationSeverityThreshold)
       .select('nt.*', 'pn.type', 'pn.content_type as contentType', 'pn.notification_severity_threshold as notificationSeverityThreshold')
       .toString();
   },
