@@ -759,3 +759,7 @@ services:
       lagoon.template: services/harborregistryctl/harborregistry.yml
       lagoon.name: harborregistry
       lagoon.image: amazeeiolagoon/harborregistryctl:v1-7-1
+  api-redis:
+    image: ${IMAGE_REPO:-lagoon}/redis
+    labels:
+      lagoon.type: redis
