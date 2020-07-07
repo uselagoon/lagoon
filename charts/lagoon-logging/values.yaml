@@ -15,7 +15,7 @@ logsDispatcher:
     repository: amazeeiolagoon/logs-dispatcher
     pullPolicy: Always
     # Overrides the image tag whose default is the chart version.
-    tag: logs-concentrator
+    tag: logging-updates
 
   serviceAccount:
     # Specifies whether a service account should be created
@@ -70,7 +70,7 @@ logsTeeRouter:
     repository: amazeeiolagoon/logs-tee
     pullPolicy: Always
     # Overrides the image tag whose default is the chart version.
-    tag: logs-concentrator
+    tag: logging-updates
 
   serviceAccount:
     # Specifies whether a service account should be created
@@ -130,7 +130,7 @@ logsTeeApplication:
     repository: amazeeiolagoon/logs-tee
     pullPolicy: Always
     # Overrides the image tag whose default is the chart version.
-    tag: logs-concentrator
+    tag: logging-updates
 
   serviceAccount:
     # Specifies whether a service account should be created
