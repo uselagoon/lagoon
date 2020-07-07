@@ -283,6 +283,8 @@ const typeDefs = gql`
     name: String
     webhook: String
     channel: String
+    contentType: String
+    notificationSeverityThreshold: ProblemSeverityRating
   }
 
   type NotificationSlack {
@@ -290,18 +292,24 @@ const typeDefs = gql`
     name: String
     webhook: String
     channel: String
+    contentType: String
+    notificationSeverityThreshold: ProblemSeverityRating
   }
 
   type NotificationEmail {
     id: Int
     name: String
     emailAddress: String
+    contentType: String
+    notificationSeverityThreshold: ProblemSeverityRating
   }
 
   type UnassignedNotification {
     id: Int
     name: String
     type: String
+    contentType: String
+    notificationSeverityThreshold: ProblemSeverityRating
   }
 
   union Notification = NotificationRocketChat | NotificationSlack | NotificationMicrosoftTeams | NotificationEmail

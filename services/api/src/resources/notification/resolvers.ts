@@ -6,6 +6,7 @@ import { Helpers } from './helpers';
 import { Sql } from './sql';
 import { Sql as projectSql } from '../project/sql';
 import DEFAULTS from './defaults';
+import convertDateToMYSQLDateTimeFormat from '../../util/convertDateToMYSQLDateTimeFormat';
 
 const notificationTypeToString = R.cond([
   [R.equals('MICROSOFTTEAMS'), R.toLower],
@@ -37,13 +38,14 @@ const notificationContentTypeToInt = R.cond([
 ]);
 
 const notificationIntToContentType = R.cond([
-  [R.equals(0), R.always('NONE')],
-  [R.equals(10), R.always('UNKNOWN')],
-  [R.equals(20), R.always('NEGLIGIBLE')],
-  [R.equals(30), R.always('LOW')],
-  [R.equals(40), R.always('MEDIUM')],
-  [R.equals(50), R.always('HIGH')],
-  [R.equals(60), R.always('CRITICAL')],
+  [R.equals('0'), R.always('NONE')],
+  [R.equals('10'), R.always('UNKNOWN')],
+  [R.equals('20'), R.always('NEGLIGIBLE')],
+  [R.equals('30'), R.always('LOW')],
+  [R.equals('40'), R.always('MEDIUM')],
+  [R.equals('50'), R.always('HIGH')],
+  [R.equals('60'), R.always('CRITICAL')],
+  [R.T, R.always('NONE')],
 ]);
 
 export const addNotificationMicrosoftTeams: ResolverFn = async (root, { input }, { sqlClient, hasPermission }) => {
@@ -117,6 +119,8 @@ export const addNotificationToProject: ResolverFn = async (
   input = R.compose(
     R.over(R.lensProp('notificationType'), notificationTypeToString),
   )(input) as any;
+
+  input = R.over(R.lensProp('notificationSeverityThreshold'), notificationContentTypeToInt, input);
 
   const pid = await projectHelpers(sqlClient).getProjectIdByName(input.project);
   await hasPermission('project', 'addNotification', {
@@ -269,12 +273,13 @@ export const removeNotificationFromProject: ResolverFn = async (
     R.over(R.lensProp('notificationType'), notificationTypeToString),
   )(unformattedInput) as any;
 
-  const select = await query(sqlClient, projectSql.selectProjectByName(input));
+  const select = await query(sqlClient, projectSql.selectProjectByName(input.project));
   const project = R.path([0], select) as any;
 
   await hasPermission('project', 'removeNotification', {
     project: project.id,
   });
+
 
   await query(
     sqlClient,
@@ -329,12 +334,13 @@ export const getNotificationsByProjectId: ResolverFn = async (
     ),
   );
 
-  return results.reduce((acc, rows) => {
+  let resultArray =  results.reduce((acc, rows) => {
     if (rows == null) {
       return acc;
     }
     return R.concat(acc, rows);
   }, []);
+  return resultArray.map((e) => R.over(R.lensProp('notificationSeverityThreshold'), notificationIntToContentType, e))
 };
 
 export const updateNotificationMicrosoftTeams: ResolverFn = async (

@@ -1,4 +1,5 @@
 import { NOTIFICATION_SEVERITY_THRESHOLD } from "./defaults";
+import convertDateToMYSQLDateTimeFormat from "../../util/convertDateToMYSQLDateTimeFormat";
 
 const { knex } = require('../../util/db');
 const DEFAULTS = require('./defaults');
@@ -123,7 +124,7 @@ export const Sql = {
 
     return selectQuery
       .where('pn.pid', '=', pid)
-      .select('nt.*', 'pn.type')
+      .select('nt.*', 'pn.type', 'pn.content_type as contentType', 'pn.notification_severity_threshold as notificationSeverityThreshold')
       .toString();
   },
   selectNotificationMicrosoftTeamsByName:  (name: string) =>
