@@ -449,7 +449,8 @@ services :=       api \
 									harbor-redis \
 									harborregistry \
 									harborregistryctl \
-									harbor-trivy
+									harbor-trivy \
+									api-redis
 
 service-images += $(services)
 
