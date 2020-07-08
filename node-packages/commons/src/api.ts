@@ -717,6 +717,8 @@ export async function getSlackinfoForProject(
     fragment on NotificationSlack {
       webhook
       channel
+      contentType
+      notificationSeverityThreshold
     }
   `);
 

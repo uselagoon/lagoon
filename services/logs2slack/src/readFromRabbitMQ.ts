@@ -3,6 +3,7 @@ import { ChannelWrapper } from 'amqp-connection-manager';
 import { ConsumeMessage } from 'amqplib';
 import { logger } from '@lagoon/commons/dist/local-logging';
 import { getSlackinfoForProject } from '@lagoon/commons/dist/api';
+import { notificationIntToContentType, notificationContentTypeToInt } from '@lagoon/commons/dist/notificationCommons';
 
 export async function readFromRabbitMQ (msg: ConsumeMessage, channelWrapperLogs: ChannelWrapper): Promise<void> {
   const logMessage = JSON.parse(msg.content.toString())
@@ -83,50 +84,54 @@ export async function readFromRabbitMQ (msg: ConsumeMessage, channelWrapperLogs:
     case "problem:notification:example":
       sendToSlack(project, message, 'warning', ':warning:', channelWrapperLogs, msg, appId, 'PROBLEM')
       break;
-    case "problem:insert:drutiny:item:NONE":
-    case "problem:insert:drutiny:item:UNKNOWN":
-    case "problem:insert:drutiny:item:NEGLIGIBLE":
-    case "problem:insert:drutiny:item:LOW":
-    case "problem:insert:drutiny:item:MEDIUM":
-    case "problem:insert:drutiny:item:HIGH":
-    case "problem:insert:drutiny:item:CRITICAL":
-    case "problem:update:drutiny:item:NONE":
-    case "problem:update:drutiny:item:UNKNOWN":
-    case "problem:update:drutiny:item:NEGLIGIBLE":
-    case "problem:update:drutiny:item:LOW":
-    case "problem:update:drutiny:item:MEDIUM":
-    case "problem:update:drutiny:item:HIGH":
-    case "problem:update:drutiny:item:CRITICAL":
-       const severityLevel = event.split(":")[4]
-       console.log(severityLevel);
-       sendToSlack(project, message, 'warning', ':warning:', channelWrapperLogs, msg, appId, 'PROBLEM', severityLevel)
-    break;
     default:
-      return channelWrapperLogs.ack(msg)
+        //since there's no single point of acknowlegement of the msg, we need to keep track of whether we've handled the message
+        let eventHandledAsProblem =  dispatchProblemEventToSlack(event, project, message, channelWrapperLogs, msg, appId);
+        if(!eventHandledAsProblem) {
+          return channelWrapperLogs.ack(msg);
+        }
   }
 }
+
+const dispatchProblemEventToSlack = (event, project, message, channelWrapperLogs, msg, appId) => {
+  const structuredEventData = event.split(":");
+
+  if(structuredEventData[0] == 'problem') {
+    const severityLevel = structuredEventData[4];
+    const isNewProblem = structuredEventData[1] == 'insert';
+    if(isNewProblem) {
+      sendToSlack(project, message, 'warning', ':warning:', channelWrapperLogs, msg, appId, 'PROBLEM', severityLevel)
+      return true;
+    }
+  }
+  return false;
+};
 
 const sendToSlack = async (project, message, color, emoji, channelWrapperLogs, msg, appId, contentType = 'DEPLOYMENT', severityLevel = 'NONE') => {
 
   let projectSlacks;
   try {
-    projectSlacks = await getSlackinfoForProject(project)
+    projectSlacks = await getSlackinfoForProject(project, contentType)
   }
   catch (error) {
     logger.error(`No Slack information found, error: ${error}`)
     return channelWrapperLogs.ack(msg)
   }
   projectSlacks.forEach(async (projectSlack) => {
-    await new IncomingWebhook(projectSlack.webhook, {
-      channel: projectSlack.channel,
-    }).send({
-      attachments: [{
-        text: `${emoji} ${message}`,
-        color: color,
-        "mrkdwn_in": ["pretext", "text", "fields"],
-        footer: appId
-      }]
-    });
+
+    if(notificationContentTypeToInt(projectSlack.notificationSeverityThreshold) <= notificationContentTypeToInt(severityLevel))
+    {
+      await new IncomingWebhook(projectSlack.webhook, {
+        channel: projectSlack.channel,
+      }).send({
+        attachments: [{
+          text: `${emoji} ${message}`,
+          color: color,
+          "mrkdwn_in": ["pretext", "text", "fields"],
+          footer: appId
+        }]
+      });
+    }
   });
   channelWrapperLogs.ack(msg)
   return
