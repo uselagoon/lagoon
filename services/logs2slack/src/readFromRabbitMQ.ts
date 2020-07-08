@@ -83,13 +83,30 @@ export async function readFromRabbitMQ (msg: ConsumeMessage, channelWrapperLogs:
     case "problem:notification:example":
       sendToSlack(project, message, 'warning', ':warning:', channelWrapperLogs, msg, appId, 'PROBLEM')
       break;
+    case "problem:insert:drutiny:item:NONE":
+    case "problem:insert:drutiny:item:UNKNOWN":
+    case "problem:insert:drutiny:item:NEGLIGIBLE":
+    case "problem:insert:drutiny:item:LOW":
+    case "problem:insert:drutiny:item:MEDIUM":
+    case "problem:insert:drutiny:item:HIGH":
+    case "problem:insert:drutiny:item:CRITICAL":
+    case "problem:update:drutiny:item:NONE":
+    case "problem:update:drutiny:item:UNKNOWN":
+    case "problem:update:drutiny:item:NEGLIGIBLE":
+    case "problem:update:drutiny:item:LOW":
+    case "problem:update:drutiny:item:MEDIUM":
+    case "problem:update:drutiny:item:HIGH":
+    case "problem:update:drutiny:item:CRITICAL":
+       const severityLevel = event.split(":")[4]
+       console.log(severityLevel);
+       sendToSlack(project, message, 'warning', ':warning:', channelWrapperLogs, msg, appId, 'PROBLEM', severityLevel)
+    break;
     default:
       return channelWrapperLogs.ack(msg)
   }
-
 }
 
-const sendToSlack = async (project, message, color, emoji, channelWrapperLogs, msg, appId, contentType = 'DEPLOYMENT') => {
+const sendToSlack = async (project, message, color, emoji, channelWrapperLogs, msg, appId, contentType = 'DEPLOYMENT', severityLevel = 'NONE') => {
 
   let projectSlacks;
   try {
