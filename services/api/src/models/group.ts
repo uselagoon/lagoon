@@ -320,6 +320,23 @@ export const Group = (clients) => {
     return groups;
   };
 
+  // Recursive function to load membership "up" the group chain
+  const getMembersFromGroupAndParents = async (
+    group: Group,
+  ): Promise<GroupMembership[]> => {
+    const members = R.prop('members', group);
+
+    const parentGroup = await loadParentGroup(group);
+    const parentMembers = parentGroup
+      ? await getMembersFromGroupAndParents(parentGroup)
+      : [];
+
+    return [
+      ...members,
+      ...parentMembers,
+    ];
+  };
+
   // Recursive function to load projects "up" the group chain
   const getProjectsFromGroupAndParents = async (
     group: Group,
@@ -632,6 +649,17 @@ export const Group = (clients) => {
       );
     };
 
+    // Clear the cache for users that gained access to the project
+    const groupAndParentsMembers = await getMembersFromGroupAndParents(group);
+    const userIds = R.map(R.path(['user', 'id']), groupAndParentsMembers);
+    for (const userId of userIds) {
+      try {
+        await redisClient.deleteRedisUserCache(userId)
+      } catch(err) {
+        logger.warn(`Error deleting user cache ${userId}: ${err}`);
+      }
+    }
+
     try {
       await redisClient.deleteProjectGroupsCache(projectId);
     } catch (err) {
@@ -669,6 +697,17 @@ export const Group = (clients) => {
         `Error setting projects for group ${group.name}: ${err.message}`,
       );
     };
+
+    // Clear the cache for users that lost access to the project
+    const groupAndParentsMembers = await getMembersFromGroupAndParents(group);
+    const userIds = R.map(R.path(['user', 'id']), groupAndParentsMembers);
+    for (const userId of userIds) {
+      try {
+        await redisClient.deleteRedisUserCache(userId)
+      } catch(err) {
+        logger.warn(`Error deleting user cache ${userId}: ${err}`);
+      }
+    }
 
     try {
       await redisClient.deleteProjectGroupsCache(projectId);
