@@ -16,7 +16,8 @@ exports.config = {
      * issues with the agent, 'info' and higher will impose the least overhead on
      * production applications.
      */
-    level: 'info'
+    level: 'info',
+    enabled: false,
   },
   /**
    * When true, all request headers except for those listed in attributes.exclude

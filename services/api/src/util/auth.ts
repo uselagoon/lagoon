@@ -118,17 +118,21 @@ export const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) 
       throw new KeycloakUnauthorizedError(`Unauthorized: You don't have permission to "${scope}" on "${resource}".`);
     }
 
-    // Check a redis cache before doing a full keycloak lookup.
+    // Check the redis cache before doing a full keycloak lookup.
     const resourceScope = {resource, scope, currentUserId, ...attributes };
+    let redisCacheResult: number;
     try {
-      const redisCache = await getRedisCache(resourceScope);
-      if (redisCache == 1) {
-        return true;
-      } else if (redisCache == 0) {
-        throw new KeycloakUnauthorizedError(`Unauthorized: You don't have permission to "${scope}" on "${resource}".`);
-      }
+      const data = await getRedisCache(resourceScope);
+      redisCacheResult = parseInt(data, 10);
     } catch (err) {
       logger.warn(`Could not lookup authz cache: ${err.message}`);
+    }
+
+    if (redisCacheResult === 1) {
+      return true;
+    } else if (redisCacheResult === 0) {
+      logger.debug(`Redis authz cache returned denied for ${JSON.stringify(resourceScope)}`);
+      throw new KeycloakUnauthorizedError(`Unauthorized: You don't have permission to "${scope}" on "${resource}".`);
     }
 
 
@@ -266,7 +270,7 @@ export const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) 
       if (newGrant.access_token.hasPermission(resource, scope)) {
         requestCache.set(cacheKey, true);
         try {
-          saveRedisCache(resourceScope, 1);
+          await saveRedisCache(resourceScope, 1);
         } catch (err) {
           logger.warn(`Could not save authz cache: ${err.message}`);
         }
@@ -281,7 +285,7 @@ export const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) 
 
     requestCache.set(cacheKey, false);
     try {
-      saveRedisCache(resourceScope, 0);
+      await saveRedisCache(resourceScope, 0);
     } catch (err) {
       logger.warn(`Could not save authz cache: ${err.message}`);
     }
