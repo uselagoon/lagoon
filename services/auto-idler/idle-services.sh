@@ -3,6 +3,8 @@
 # make sure we stop if we fail
 set -eo pipefail
 
+if [ "${LAGOON_ENVIRONMENT_TYPE}" == "production" ]; then
+
 prefixwith() {
   local prefix="$1"
   shift
@@ -52,3 +54,5 @@ done
 sleep 5
 # clean up the tmp file
 rm $TMP_DATA
+
+fi
