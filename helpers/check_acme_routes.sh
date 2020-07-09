@@ -7,7 +7,14 @@
 
 set -eu -o pipefail
 
+# Set DEBUG variable to true, to start bash in debug mode
+DEBUG="${DEBUG:-"false"}"
+if [ "$DEBUG" = "true" ]; then
+	set -x
+fi
+
 # Some variables
+
 # Cluster full hostname and API hostname
 CLUSTER_HOSTNAME="${CLUSTER_HOSTNAME:-""}"
 CLUSTER_API_HOSTNAME="${CLUSTER_API_HOSTNAME:-"$CLUSTER_HOSTNAME"}"
@@ -18,8 +25,15 @@ COMMAND=${1:-"help"}
 # Set DRYRUN variable to true to run in dry-run mode
 DRYRUN="${DRYRUN:-"false"}"
 
+
 # Set a REGEX variable to filter the execution of the script
 REGEX=${REGEX:-".*"}
+
+# Set NOTIFYONLY to true if you want to send customers a notification
+# explaining why Lagoon is not able to issue Let'S Encrypt certificate for
+# some routes defined in customer's .lagoon.yml file.
+# If set to true, no other action rather than notification is done (ie: no annotation or deletion)
+NOTIFYONLY=${NOTIFYONLY:-"false"}
 
 # Help function
 function usage() {
@@ -105,7 +119,8 @@ function create_routes_array() {
 	# Get the list of namespaces with broker routes, according to REGEX
 	for namespace in $(oc get routes --all-namespaces|grep exposer|awk '{print $1}'|sort -u|grep -E "$REGEX")
 	do
-		PROJECTNAME=$(oc get project "$namespace" -o=jsonpath="{.metadata.labels.lagoon\.sh/project}")
+		PROJECTNAME=$(oc get project "$namespace" -o json|grep display-name|awk -F'[][]' '{print $2}'|tr "_" "-")
+
 		# Get the list of broken unique routes for each namespace
 		for routelist in $(oc get -n "$namespace" route|grep exposer|awk -vNAMESPACE="$namespace" -vPROJECTNAME="$PROJECTNAME" '{print $1";"$2";"NAMESPACE";"PROJECTNAME}'|sort -u -k2 -t ";")
 		do
@@ -135,7 +150,11 @@ function check_routes() {
 		ROUTE_PROJECTNAME=${route[3]}
 
 		# Get route DNS record(s)
-		ROUTE_HOSTNAME_IP=$(dig +short "$ROUTE_HOSTNAME")
+		if [[ $(dig +short "$ROUTE_HOSTNAME" &> /dev/null; echo $?) -ne 0 ]]; then
+			ROUTE_HOSTNAME_IP="null"
+		else
+			ROUTE_HOSTNAME_IP=$(dig +short "$ROUTE_HOSTNAME")
+		fi
 
 		# Check if the route matches the Cluster's IP(s)
 		if echo "$ROUTE_HOSTNAME_IP" | grep -E -q -v "${CLUSTER_IPS[*]}"; then
@@ -147,38 +166,46 @@ function check_routes() {
 				DNS_ERROR="$ROUTE_HOSTNAME in $ROUTE_NAMESPACE has no DNS record poiting to ${CLUSTER_IPS[*]} and going to disable tls-acme"
 			fi
 
+			# Print the error on stdout
 			echo "$DNS_ERROR"
-			# Call the update function to update the route
-			update_annotation "$ROUTE_HOSTNAME" "$ROUTE_NAMESPACE"
-			notify_customer "$ROUTE_PROJECTNAME"
 
-			# Now once the main route is updated, it's time to get rid of exposers' routes
-			for j in $(oc get -n "$ROUTE_NAMESPACE" route|grep exposer|grep -E '(^|\s)'"$ROUTE_HOSTNAME"'($|\s)'|awk '{print $1";"$2}')
-			#for j in $(oc get -n $ROUTE_NAMESPACE route|grep exposer|awk '{print $1";"$2}')
-			do
-				ocroute=($(echo "$j" | tr ";" "\n"))
-				OCROUTE_NAME=${ocroute[0]}
-				if [[ $DRYRUN = true ]]; then
-					echo -e "DRYRUN oc delete -n $ROUTE_NAMESPACE route $OCROUTE_NAME"
-				else
-					oc delete -n "$ROUTE_NAMESPACE" route "$OCROUTE_NAME"
-				fi
-			done
+			if [[ "$NOTIFYONLY" = "true" ]]; then
+				notify_customer "$ROUTE_PROJECTNAME"
+			else
+				# Call the update function to update the route
+				update_annotation "$ROUTE_HOSTNAME" "$ROUTE_NAMESPACE"
+				notify_customer "$ROUTE_PROJECTNAME"
+
+				# Now once the main route is updated, it's time to get rid of exposers' routes
+				for j in $(oc get -n "$ROUTE_NAMESPACE" route|grep exposer|grep -E '(^|\s)'"$ROUTE_HOSTNAME"'($|\s)'|awk '{print $1";"$2}')
+				do
+					ocroute=($(echo "$j" | tr ";" "\n"))
+					OCROUTE_NAME=${ocroute[0]}
+					if [[ $DRYRUN = true ]]; then
+						echo -e "DRYRUN oc delete -n $ROUTE_NAMESPACE route $OCROUTE_NAME"
+					else
+						echo -e "\nDelete route $OCROUTE_NAME"
+						oc delete -n "$ROUTE_NAMESPACE" route "$OCROUTE_NAME"
+					fi
+				done
+			fi
 		fi
 		echo -e "\n"
+
+
 	done
 }
 
 # Function to update route's annotation (ie: update tls-amce, remove tls-acme-awaiting-* and set a new one for internal purpose)
 function update_annotation() {
 	echo "Update route's annotations"
-	OCOPTIONS=""
+	OCOPTIONS="--overwrite"
 	if [[ "$DRYRUN" = "true" ]]; then
-		OCOPTIONS="--dry-run"
+		OCOPTIONS="--dry-run --overwrite"
 	fi
 
 	# Annotate the route
-	oc annotate -n "$2" "$OCOPTIONS" --overwrite route "$1" acme.openshift.io/status- kubernetes.io/tls-acme-awaiting-authorization-owner- kubernetes.io/tls-acme-awaiting-authorization-at-url- kubernetes.io/tls-acme="false" amazee.io/administratively-disabled="$(date +%s)"
+	oc annotate -n "$2" $OCOPTIONS route "$1" acme.openshift.io/status- kubernetes.io/tls-acme-awaiting-authorization-owner- kubernetes.io/tls-acme-awaiting-authorization-at-url- kubernetes.io/tls-acme="false" amazee.io/administratively-disabled="$(date +%s)"
 }
 
 
@@ -197,20 +224,19 @@ function notify_customer() {
 	NOTIFICATION_DATA=$(lagoon list $NOTIFICATION -p "$1" --no-header|head -n1|awk '{print $3";"$4}')
 	CHANNEL=$(echo "$NOTIFICATION_DATA"|cut -f1 -d ";")
 	WEBHOOK=$(echo "$NOTIFICATION_DATA"|cut -f2 -d ";")
-	MESSAGE="Your $ROUTE_HOSTNAME route is configured in the \`.lagoon.yml\` file to issue an TLS certificate from Lets Encrypt. Unfortunately Lagoon is unable to issue a certificate as $DNS_ERROR.\nTo be issued correctly, the DNS records for $ROUTE_HOSTNAME should point to $CLUSTER_HOSTNAME with an CNAME record (preferred) or to ${CLUSTER_IPS[*]} via an A record (also possible but not preferred).\nIf you don'\''t need the SSL certificate or you are using a CDN that provides you with an TLS certificate, please update your .lagoon.yml file by setting the tls-acme parameter to false for $ROUTE_HOSTNAME, as described here:  https://lagoon.readthedocs.io/en/latest/using_lagoon/lagoon_yml/#ssl-configuration-tls-acme.\nWe have now administratively disabled the issuing of Lets Encrypt certificate for $ROUTE_HOSTNAME in order to protect the cluster, this will be reset during the next deployment, therefore we suggest to resolve this issue as soon as possible. Feel free to reach out to us for further information.\nThanks you.\namazee.io team"
+	MESSAGE="Your $ROUTE_HOSTNAME route is configured in the \`.lagoon.yml\` file to issue an TLS certificate from Lets Encrypt. Unfortunately Lagoon is unable to issue a certificate as $DNS_ERROR.\nTo be issued correctly, the DNS records for $ROUTE_HOSTNAME should point to $CLUSTER_HOSTNAME with an CNAME record (preferred) or to ${CLUSTER_IPS[*]} via an A record (also possible but not preferred).\nIf you don't need the SSL certificate or you are using a CDN that provides you with an TLS certificate, please update your .lagoon.yml file by setting the tls-acme parameter to false for $ROUTE_HOSTNAME, as described here:  https://lagoon.readthedocs.io/en/latest/using_lagoon/lagoon_yml/#ssl-configuration-tls-acme.\nWe have now administratively disabled the issuing of Lets Encrypt certificate for $ROUTE_HOSTNAME in order to protect the cluster, this will be reset during the next deployment, therefore we suggest to resolve this issue as soon as possible. Feel free to reach out to us for further information.\nThanks you.\namazee.io team"
 
-	# JSON payload
-	JSON="'{\"channel\": \"$CHANNEL\", \"text\":\"$MESSAGE\"}'"
-	echo "Sending message $JSON to $CHANNEL"
+	# json Payload
+	PAYLOAD="\"channel\": \"$CHANNEL\", \"text\": \"${MESSAGE}\""
 
+	echo -e "Sending notification into ${CHANNEL}"
 	# Execute curl to send message into the channel
 	if [[ $DRYRUN = true ]]; then
-		echo "DRYRUN on \"$NOTIFICATION\" curl -X POST -H 'Content-type: application/json' --data "$JSON" "$WEBHOOK""
+		echo "DRYRUN Sending notification on \"$NOTIFICATION\" curl -X POST -H 'Content-type: application/json' --data '{'"$PAYLOAD"'}' "$WEBHOOK""
 	else
-		curl -X POST -H 'Content-type: application/json' --data "$JSON" "$WEBHOOK"
+		curl -X POST -H 'Content-type: application/json' --data '{'"${PAYLOAD}"'}' ${WEBHOOK}
 	fi
 }
-
 
 # Main function
 function main() {
