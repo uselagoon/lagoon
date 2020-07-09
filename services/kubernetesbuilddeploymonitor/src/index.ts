@@ -1,6 +1,7 @@
 import { promisify } from 'util';
 import kubernetesClient from 'kubernetes-client';
 import R from 'ramda';
+import moment from 'moment';
 import { logger } from '@lagoon/commons/dist/local-logging';
 
 import {
@@ -341,12 +342,25 @@ const saveBuildLog = async(jobName, projectName, branchName, buildLog, status, r
 
 const deathHandler = async (msg, lastError) => {
   const {
-    jobName,
+    buildName: jobName,
     projectName,
-    openshiftProject,
     branchName,
-    sha
-  } = JSON.parse(msg.content.toString())
+    sha,
+    deployment
+  } = JSON.parse(msg.content.toString());
+
+  // Don't leave the deployment in an active state
+  try {
+    const now = moment.utc();
+    await updateDeployment(deployment.id, {
+      status: 'ERROR',
+      completed: now.format('YYYY-MM-DDTHH:mm:ss'),
+    });
+  } catch (error) {
+    logger.error(
+      `Could not update deployment ${projectName} ${jobName}. Message: ${error}`
+    );
+  }
 
   let logMessage = ''
   if (sha) {

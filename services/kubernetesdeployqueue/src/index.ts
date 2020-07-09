@@ -1,6 +1,7 @@
 const promisify = require('util').promisify;
 import KubernetesClient from 'kubernetes-client';
 import R from 'ramda';
+import moment from 'moment';
 import { logger } from '@lagoon/commons/dist/local-logging';
 import {
   graphqlapi,
@@ -127,7 +128,7 @@ const messageConsumer = async msg => {
   const nextDeploymentToRun = oldestNewDeployment(deployments);
 
   if (R.prop('name', nextDeploymentToRun) !== buildName) {
-    const msg = `${openshiftProject}: Reqeueing ${buildName} since it's out of order`;
+    const msg = `The build "${buildName}" is not next in line for project "${openshiftProject}"`;
     logger.debug(msg);
     throw new BuildOutOfOrder(msg);
   }
@@ -155,7 +156,7 @@ const messageConsumer = async msg => {
   }
 
   if (!R.isEmpty(activeBuilds)) {
-    const msg = `${openshiftProject}: Reqeueing ${buildName} due to ${activeBuilds.length} pending builds`;
+    const msg = `${openshiftProject}: ${buildName} is waiting on ${activeBuilds.length} active builds`;
     logger.debug(msg);
     throw new AnotherBuildAlreadyRunning(msg);
   }
@@ -210,7 +211,12 @@ const messageConsumer = async msg => {
     projectName,
     openshiftProject,
     branchName,
-    sha
+    sha,
+    deployment: {
+      ...deployment,
+      status: 'PENDING',
+      remoteId: jobInfo.metadata.uid,
+    }
   };
 
   const taskMonitorLogs = await createTaskMonitor(
@@ -239,11 +245,23 @@ const deathHandler = async (msg, lastError) => {
   const {
     buildName,
     projectName,
-    openshiftProject,
     branchName,
     sha,
-    jobConfig
+    deployment
   } = JSON.parse(msg.content.toString());
+
+  // Don't leave the deployment in an active state
+  try {
+    const now = moment.utc();
+    await updateDeployment(deployment.id, {
+      status: 'ERROR',
+      completed: now.format('YYYY-MM-DDTHH:mm:ss'),
+    });
+  } catch (error) {
+    logger.error(
+      `Could not update deployment ${projectName} ${buildName}. Message: ${error}`
+    );
+  }
 
   let logMessage = '';
   if (sha) {
