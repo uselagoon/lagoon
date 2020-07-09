@@ -97,7 +97,6 @@ export const deleteUser: ResolverFn = async (
   });
 
   await models.UserModel.deleteUser(user.id);
-
   // TODO remove user ssh keys
 
   return 'success';
