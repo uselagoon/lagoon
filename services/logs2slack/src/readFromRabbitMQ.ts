@@ -81,9 +81,6 @@ export async function readFromRabbitMQ (msg: ConsumeMessage, channelWrapperLogs:
     case "rest:remove:CannotDeleteProductionEnvironment":
       sendToSlack(project, message, 'warning', ':warning:', channelWrapperLogs, msg, appId)
       break;
-    case "problem:notification:example":
-      sendToSlack(project, message, 'warning', ':warning:', channelWrapperLogs, msg, appId, 'PROBLEM')
-      break;
     default:
         //since there's no single point of acknowlegement of the msg, we need to keep track of whether we've handled the message
         let eventHandledAsProblem =  dispatchProblemEventToSlack(event, project, message, channelWrapperLogs, msg, appId);
@@ -119,7 +116,9 @@ const sendToSlack = async (project, message, color, emoji, channelWrapperLogs, m
   }
   projectSlacks.forEach(async (projectSlack) => {
 
-    if(notificationContentTypeToInt(projectSlack.notificationSeverityThreshold) <= notificationContentTypeToInt(severityLevel))
+    const notificationThresholdMet = notificationContentTypeToInt(projectSlack.notificationSeverityThreshold) <= notificationContentTypeToInt(severityLevel);
+
+    if(notificationThresholdMet)
     {
       await new IncomingWebhook(projectSlack.webhook, {
         channel: projectSlack.channel,
