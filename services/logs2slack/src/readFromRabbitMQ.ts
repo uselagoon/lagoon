@@ -3,7 +3,7 @@ import { ChannelWrapper } from 'amqp-connection-manager';
 import { ConsumeMessage } from 'amqplib';
 import { logger } from '@lagoon/commons/dist/local-logging';
 import { getSlackinfoForProject } from '@lagoon/commons/dist/api';
-import { notificationIntToContentType, notificationContentTypeToInt } from '@lagoon/commons/dist/notificationCommons';
+import { notificationIntToContentType, notificationContentTypeToInt, parseProblemNotification } from '@lagoon/commons/dist/notificationCommons';
 
 export async function readFromRabbitMQ (msg: ConsumeMessage, channelWrapperLogs: ChannelWrapper): Promise<void> {
   const logMessage = JSON.parse(msg.content.toString())
@@ -91,13 +91,11 @@ export async function readFromRabbitMQ (msg: ConsumeMessage, channelWrapperLogs:
 }
 
 const dispatchProblemEventToSlack = (event, project, message, channelWrapperLogs, msg, appId) => {
-  const structuredEventData = event.split(":");
-
-  if(structuredEventData[0] == 'problem') {
-    const severityLevel = structuredEventData[4];
-    const isNewProblem = structuredEventData[1] == 'insert';
+  const problemEvent = parseProblemNotification(event);
+  if(problemEvent.isProblem) {
+    const isNewProblem = problemEvent.eventType == 'insert';
     if(isNewProblem) {
-      sendToSlack(project, message, 'warning', ':warning:', channelWrapperLogs, msg, appId, 'PROBLEM', severityLevel)
+      sendToSlack(project, message, 'warning', ':warning:', channelWrapperLogs, msg, appId, 'PROBLEM', problemEvent.severityLevel)
       return true;
     }
   }
@@ -117,7 +115,6 @@ const sendToSlack = async (project, message, color, emoji, channelWrapperLogs, m
   projectSlacks.forEach(async (projectSlack) => {
 
     const notificationThresholdMet = notificationContentTypeToInt(projectSlack.notificationSeverityThreshold) <= notificationContentTypeToInt(severityLevel);
-
     if(notificationThresholdMet)
     {
       await new IncomingWebhook(projectSlack.webhook, {
