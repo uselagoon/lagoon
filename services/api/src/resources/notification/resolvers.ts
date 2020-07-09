@@ -17,7 +17,7 @@ const notificationTypeToString = R.cond([
   [R.T, R.identity],
 ]);
 
-const notifiationContentTypeToString = R.cond([
+const notificationContentTypeToString = R.cond([
   [R.equals('DEPLOYMENT'), R.toLower],
   [R.equals('PROBLEM'), R.toLower],
   [R.T, R.identity],
@@ -89,15 +89,12 @@ export const addNotificationToProject: ResolverFn = async (
     hasPermission,
   },
 ) => {
-  let input = R.compose(
-    R.over(R.lensProp('contentType'), notifiationContentTypeToString),
-  )(unformattedInput) as any;
 
-  input = R.compose(
-    R.over(R.lensProp('notificationType'), notificationTypeToString),
-  )(input) as any;
+  const input = [
+    R.over(R.lensProp('contentType'), notificationContentTypeToString),
+    R.over(R.lensProp('notificationSeverityThreshold'), notificationContentTypeToInt),
+  ].reduce((argumentsToProcess, functionToApply) => functionToApply(argumentsToProcess), unformattedInput);
 
-  input = R.over(R.lensProp('notificationSeverityThreshold'), notificationContentTypeToInt, input);
 
   const pid = await projectHelpers(sqlClient).getProjectIdByName(input.project);
   await hasPermission('project', 'addNotification', {
@@ -280,17 +277,11 @@ export const getNotificationsByProjectId: ResolverFn = async (
     project: pid,
   });
 
-  let args = R.compose(
-    R.over(R.lensProp('contentType'), notifiationContentTypeToString)
-    )(
-    unformattedArgs,
-  ) as any;
-
-
-
-  args = R.compose(
-    R.over(R.lensProp('notificationSeverityThreshold'), notificationContentTypeToInt)
-  )(args) as any;
+  const args = [
+    R.over(R.lensProp('type'), notificationTypeToString),
+    R.over(R.lensProp('contentType'), notificationContentTypeToString),
+    R.over(R.lensProp('notificationSeverityThreshold'), notificationContentTypeToInt),
+  ].reduce((argumentsToProcess, functionToApply) => functionToApply(argumentsToProcess), unformattedArgs);
 
   const { type: argsType,
     contentType = DEFAULTS.NOTIFICATION_CONTENT_TYPE,
