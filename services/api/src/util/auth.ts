@@ -1,10 +1,10 @@
 import * as R from 'ramda';
+import { getRedisCache, saveRedisCache } from '../clients/redisClient';
 import { verify } from 'jsonwebtoken';
 import * as logger from '../logger';
 import { keycloakGrantManager } from'../clients/keycloakClient';
 import { User } from '../models/user';
 import { Group } from '../models/group';
-
 
 const { JWTSECRET, JWTAUDIENCE } = process.env;
 
@@ -105,7 +105,6 @@ export const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) 
 
   return async (resource, scope, attributes: IKeycloakAuthAttributes = {}) => {
     const currentUserId: string = grant.access_token.content.sub;
-    const currentUser = await UserModel.loadUserById(currentUserId);
 
     // Check if the same set of permissions has been granted already for this
     // api query.
@@ -113,10 +112,31 @@ export const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) 
     // or group context) and cache a single query instead?
     const cacheKey = `${currentUserId}:${resource}:${scope}:${JSON.stringify(attributes)}`;
     const cachedPermissions = requestCache.get(cacheKey);
-    if (cachedPermissions !== undefined) {
-      return cachedPermissions;
+    if (cachedPermissions === true) {
+      return true;
+    } else if (!cachedPermissions === false) {
+      throw new KeycloakUnauthorizedError(`Unauthorized: You don't have permission to "${scope}" on "${resource}".`);
     }
 
+    // Check the redis cache before doing a full keycloak lookup.
+    const resourceScope = {resource, scope, currentUserId, ...attributes };
+    let redisCacheResult: number;
+    try {
+      const data = await getRedisCache(resourceScope);
+      redisCacheResult = parseInt(data, 10);
+    } catch (err) {
+      logger.warn(`Could not lookup authz cache: ${err.message}`);
+    }
+
+    if (redisCacheResult === 1) {
+      return true;
+    } else if (redisCacheResult === 0) {
+      logger.debug(`Redis authz cache returned denied for ${JSON.stringify(resourceScope)}`);
+      throw new KeycloakUnauthorizedError(`Unauthorized: You don't have permission to "${scope}" on "${resource}".`);
+    }
+
+
+    const currentUser = await UserModel.loadUserById(currentUserId);
     const serviceAccount = await keycloakGrantManager.obtainFromClientCredentials();
 
     let claims: {
@@ -249,6 +269,12 @@ export const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) 
 
       if (newGrant.access_token.hasPermission(resource, scope)) {
         requestCache.set(cacheKey, true);
+        try {
+          await saveRedisCache(resourceScope, 1);
+        } catch (err) {
+          logger.warn(`Could not save authz cache: ${err.message}`);
+        }
+
         return;
       }
     } catch (err) {
@@ -258,6 +284,11 @@ export const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) 
     }
 
     requestCache.set(cacheKey, false);
+    try {
+      await saveRedisCache(resourceScope, 0);
+    } catch (err) {
+      logger.warn(`Could not save authz cache: ${err.message}`);
+    }
     throw new KeycloakUnauthorizedError(`Unauthorized: You don't have permission to "${scope}" on "${resource}".`);
   };
 };
