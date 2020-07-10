@@ -97,6 +97,11 @@ objects:
             value: ${SERVICE_NAME}
           - name: CRONJOBS
             value: ${CRONJOBS}
+          - name: REDIS_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: api-redis-password
+                key: API_REDIS_PASSWORD
           resources:
             requests:
               cpu: 10m
