@@ -17,7 +17,7 @@ which case the request will be requeued and retried after some delay.
 
 ## Technology
 
-* Node
+* Node.js
 * Message Queue
 
 ## Related Services

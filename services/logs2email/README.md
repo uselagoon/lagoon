@@ -18,7 +18,7 @@ build for a Lagoon project environent has started, a task was completed.
 
 ## Technology
 
-* Node
+* Node.js
 * Message Queue
 
 ## Related Services

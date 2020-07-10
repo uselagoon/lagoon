@@ -17,7 +17,7 @@ Examples of tasks: trigger a new build, record a new backup.
 
 ## Technology
 
-* Node
+* Node.js
 * Message Queue
 
 ## Related Services

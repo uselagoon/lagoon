@@ -13,7 +13,7 @@ The main GraphQL API for Lagoon. Uses the [Apollo server library](https://www.ap
 
 ## Technology
 
-* Node
+* Node.js
 * GraphQL
 * Message Queue
 

@@ -18,7 +18,7 @@ activity, Lagoon project environment backup events.
 
 ## Technology
 
-* Node
+* Node.js
 * Message Queue
 
 ## Related Services
