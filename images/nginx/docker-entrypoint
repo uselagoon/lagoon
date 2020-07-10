@@ -24,11 +24,8 @@ ep /etc/nginx/helpers/*
 # If PHP is enabled, we override the Luascript /healthz check
 echo "Setting up Healthz routing"
 if [ ! -z "$NGINX_FASTCGI_PASS" ]; then
-  echo "Setting up Healthz routing - using PHP"
+  echo "Healthz routing - using PHP"
   cp /etc/nginx/conf.d/healthz.locations.php.disable /etc/nginx/conf.d/healthz.locations
-else
-  echo "Setting up Healthz routing - using Lua as fallback"
-  cp /etc/nginx/conf.d/healthz.locations.lua.disable /etc/nginx/conf.d/healthz.locations
 fi
 
 if [ "$FAST_HEALTH_CHECK" == "true" ]; then
