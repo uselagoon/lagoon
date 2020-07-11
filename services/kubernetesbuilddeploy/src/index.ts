@@ -360,7 +360,7 @@ const messageConsumer = async msg => {
           "labels": {
             "lagoon.sh/project": projectName,
             "lagoon.sh/environment": environmentName,
-            "lagoon.sh/environmentType": lagoonEnvironmentType
+            "lagoon.sh/environmentType": environmentType
           }
         }
       }

@@ -65,7 +65,7 @@ export const getAllBillingGroupsWithoutProjects = async () => {
   const GroupModel = Group({keycloakAdminClient });
 
   // Get All Billing Groups
-  const groupTypeFilterFn = ({ name, value }, group) => {
+  const groupTypeFilterFn = ({ name, value }) => {
     return name === 'type' && value[0] === 'billing';
   };
   const groups = await GroupModel.loadGroupsByAttribute(groupTypeFilterFn);
