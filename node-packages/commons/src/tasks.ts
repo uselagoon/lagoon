@@ -796,7 +796,13 @@ export const consumeTaskMonitor = async function(
         return;
       }
 
-      const retryDelayMilisecs = 5000;
+      let retryDelaySecs = 5;
+
+      if (error.delayFn) {
+        retryDelaySecs = error.delayFn(retryCount);
+      }
+
+      const retryDelayMilisecs = retryDelaySecs * 1000;
 
       // copying options from the original message
       const retryMsgOptions = {

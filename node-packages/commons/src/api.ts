@@ -105,7 +105,7 @@ const options = {
 
 const transport = new Transport(`${API_HOST}/graphql`, options);
 
-const graphqlapi = new Lokka({ transport });
+export const graphqlapi = new Lokka({ transport });
 
 class ProjectNotFound extends Error {
   constructor(message) {
