@@ -12,6 +12,12 @@ const {
 } = require('./resources/problem/resolvers');
 
 const {
+  getFactsByEnvironmentId,
+  addFact,
+  deleteFact,
+} = require('./resources/fact/resolvers');
+
+const {
   SeverityScoreType
 } = require('./resources/problem/types');
 
@@ -241,6 +247,7 @@ const resolvers = {
     envVariables: getEnvVarsByEnvironmentId,
     services: getEnvironmentServicesByEnvironmentId,
     problems: getProblemsByEnvironmentId,
+    facts: getFactsByEnvironmentId,
   },
   Deployment: {
     environment: getEnvironmentByDeploymentId,
@@ -303,6 +310,8 @@ const resolvers = {
     deleteProblem,
     deleteProblemsFromSource,
     deleteProblemHarborScanMatch,
+    addFact,
+    deleteFact,
     addOrUpdateEnvironment,
     updateEnvironment,
     deleteEnvironment,
