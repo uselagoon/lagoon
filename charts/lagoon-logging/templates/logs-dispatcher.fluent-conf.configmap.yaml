@@ -35,6 +35,8 @@ data:
       @id    in_application
       tag    "lagoon.#{ENV['CLUSTER_NAME']}.application"
       port   5140
+      # max IPv4 UDP payload size
+      message_length_limit 65507
       <parse>
         @type json
       </parse>
@@ -49,6 +51,8 @@ data:
       # syslog parameters
       port         5141
       severity_key severity
+      # max IPv4 UDP payload size
+      message_length_limit 65507
       <parse>
         @type       regexp
         # parse HTTP logs based on the haproxy documentation
