@@ -260,6 +260,7 @@ export const getEnvironmentByOpenshiftProjectName: ResolverFn = async (
       environment e
       JOIN project p ON e.project = p.id
     WHERE e.openshift_project_name = :openshift_project_name
+    AND e.deleted = "0000-00-00 00:00:00"
   `;
 
   const prep = prepare(sqlClient, str);

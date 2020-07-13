@@ -105,7 +105,7 @@ const options = {
 
 const transport = new Transport(`${API_HOST}/graphql`, options);
 
-const graphqlapi = new Lokka({ transport });
+export const graphqlapi = new Lokka({ transport });
 
 class ProjectNotFound extends Error {
   constructor(message) {
@@ -1018,6 +1018,14 @@ export const getOpenShiftInfoForProject = (project: string): Promise<any> =>
           value
           scope
         }
+      }
+    }
+`);
+
+export const getBillingGroupForProject = (project: string): Promise<any> =>
+  graphqlapi.query(`
+    {
+      project:projectByName(name: "${project}"){
         groups {
           ... on BillingGroup {
             type
