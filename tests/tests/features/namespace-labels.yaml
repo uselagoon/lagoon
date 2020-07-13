@@ -24,6 +24,7 @@
     expected_labels:
     - "lagoon.sh/project={{ project }}"
     - "lagoon.sh/environment={{ branch }}"
+    - "lagoon.sh/environmentType=development"
   tasks:
   - include: ../../checks/check-namespace-labels.yaml
 
