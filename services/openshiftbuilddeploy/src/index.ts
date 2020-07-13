@@ -322,7 +322,6 @@ const messageConsumer = async msg => {
   // openshift-client does not know about the OpenShift Resources, let's teach it.
   openshift.ns.addResource('buildconfigs');
   openshift.ns.addResource('rolebindings');
-  openshift.addResource('projectrequests');
 
   // If we should promote, first check if the source project does exist
   if (type == "promote") {
@@ -347,21 +346,23 @@ const messageConsumer = async msg => {
     // a non existing project also throws an error, we check if it's a 404, means it does not exist, so we create it.
     if (err.code == 404 || err.code == 403) {
       logger.info(`${openshiftProject}: Project ${openshiftProject}  does not exist, creating`)
-      const projectrequestsPost = promisify(openshift.projectrequests.post)
+      const projectsPost = promisify(openshift.projects.post)
       // @ts-ignore
-      await projectrequestsPost({
+      await projectsPost({
         body: {
           "apiVersion":"v1",
-          "kind":"ProjectRequest",
+          "kind":"Project",
           "metadata": {
             "name":openshiftProject,
             "labels": {
               "lagoon.sh/project": safeProjectName,
               "lagoon.sh/environment": safeBranchName,
               "lagoon.sh/environmentType": environmentType
+            },
+            "annotations": {
+              "openshift.io/display-name":`[${projectName}] ${branchName}`
             }
-          },
-          "displayName":`[${projectName}] ${branchName}`
+          }
         } });
     } else {
       logger.error(err)
