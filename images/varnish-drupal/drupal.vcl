@@ -329,6 +329,12 @@ sub vcl_backend_response {
     set beresp.http.Expires = "" + (now + beresp.ttl);
   }
 
+  if (!beresp.http.Surrogate-Control && beresp.http.Cache-Control ~ "(?i:no-cache|no-store|private)") {
+    # Mark as "Hit-For-Miss" for the next 120 seconds
+    set beresp.ttl = 120s;
+    set beresp.uncacheable = true;
+  }
+
   # Files larger than 10 MB get streamed.
   if (beresp.http.Content-Length ~ "[0-9]{8,}") {
     set beresp.do_stream = true;
