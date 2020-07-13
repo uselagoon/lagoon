@@ -272,3 +272,11 @@ CREATE TABLE IF NOT EXISTS task_file (
   fid int REFERENCES file (id),
   CONSTRAINT task_file_pkey PRIMARY KEY (tid, fid)
 );
+
+CREATE TABLE IF NOT EXISTS environment_fact (
+  id                       int NOT NULL auto_increment PRIMARY KEY,
+  environment              int REFERENCES environment (id),
+  name                     varchar(300) NOT NULL UNIQUE,
+  value                    varchar(300) NOT NULL,
+  created                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

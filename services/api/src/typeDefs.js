@@ -190,6 +190,26 @@ const typeDefs = gql`
     service: String!
   }
 
+
+  type Fact {
+    id: Int
+    environment: Environment
+    name: String
+    value: String
+  }
+
+  input AddFactInput {
+    id: Int
+    environment: Int!
+    name: String!
+    value: String!
+  }
+
+  input DeleteFactInput {
+    environment: Int!
+    name: String!
+  }
+
   type File {
     id: Int
     filename: String
@@ -550,6 +570,7 @@ const typeDefs = gql`
     tasks(id: Int): [Task]
     services: [EnvironmentService]
     problems(severity: [ProblemSeverityRating], source: [String]): [Problem]
+    facts: [Fact]
   }
 
   type EnvironmentHitsMonth {
@@ -1439,6 +1460,8 @@ const typeDefs = gql`
     deleteProblem(input: DeleteProblemInput!): String
     deleteProblemsFromSource(input: DeleteProblemsFromSourceInput!): String
     deleteProblemHarborScanMatch(input: DeleteProblemHarborScanMatchInput!): String
+    addFact(input: AddFactInput!): Fact
+    deleteFact(input: DeleteFactInput!): String
     deleteBackup(input: DeleteBackupInput!): String
     deleteAllBackups: String
     addRestore(input: AddRestoreInput!): Restore
