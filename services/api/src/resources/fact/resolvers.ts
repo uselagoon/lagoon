@@ -20,10 +20,9 @@ export const getFactsByEnvironmentId = async (
 ) => {
   const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
 
-  //TODO: add permissions
-  // await hasPermission('problem', 'view', {
-  //   project: environment.project,
-  // });
+  await hasPermission('fact', 'view', {
+    project: environment.project,
+  });
 
   const rows = await query(
     sqlClient,
@@ -46,10 +45,10 @@ export const addFact = async (
 ) => {
   const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
 
-  // TODO: add permissions
-  // await hasPermission('problem', 'add', {
-  //   project: environment.project,
-  // });
+
+  await hasPermission('fact', 'add', {
+    project: environment.project,
+  });
 
   const {
     info: { insertId },
@@ -78,10 +77,9 @@ export const deleteFact = async (
 ) => {
   const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
 
-  // TODO: add permission
-  // await hasPermission('problem', 'delete', {
-  //   project: environment.project,
-  // });
+  await hasPermission('fact', 'delete', {
+    project: environment.project,
+  });
 
   await query(sqlClient, Sql.deleteFact(environmentId, name));
 
