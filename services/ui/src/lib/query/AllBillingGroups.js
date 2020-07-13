@@ -6,6 +6,11 @@ export default gql`
       id, name
       ... on BillingGroup {
         currency
+        projects{
+          openshift {
+            name
+          }
+        }
       }
     }
   }
