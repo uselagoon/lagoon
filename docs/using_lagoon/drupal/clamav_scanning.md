@@ -1,5 +1,5 @@
 # ClamAV Scanning
-As of Lagoon version <>, there is now a ClamAV scanner daemon running within each Lagoon cluster. This daemon can be used with Drupal to scan files dynamically as they are uploaded to ensure they are free from viruses.
+There is now a ClamAV scanner daemon running within each Lagoon cluster. This daemon can be used with Drupal to scan files dynamically as they are uploaded to ensure they are free from viruses.
 
 ## Drupal Module Installation
 In order to use this functionality, the [ClamAV Drupal module](https://www.drupal.org/project/clamav) must be installed and enabled.
