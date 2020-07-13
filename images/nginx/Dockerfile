@@ -36,6 +36,7 @@ COPY fastcgi.conf /etc/nginx/fastcgi_params
 COPY helpers/ /etc/nginx/helpers/
 COPY static-files.conf /etc/nginx/conf.d/app.conf
 COPY redirects-map.conf /etc/nginx/redirects-map.conf
+COPY healthcheck/healthz.locations healthcheck/healthz.locations.php.disable /etc/nginx/conf.d/
 
 RUN mkdir -p /app \
     && rm -f /etc/nginx/conf.d/default.conf \
