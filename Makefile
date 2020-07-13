@@ -651,8 +651,12 @@ local-registry-up: build/local-registry
 openshift-run-api-tests = $(foreach image,$(api-tests),openshift-tests/$(image))
 .PHONY: $(openshift-run-api-tests)
 $(openshift-run-api-tests): minishift build/oc-build-deploy-dind openshift-test-services-up push-minishift
-		$(eval testname = $(subst openshift-tests/,,$@))
-		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility run --rm tests-openshift ansible-playbook /ansible/tests/$(testname).yaml
+	$(eval testname = $(subst openshift-tests/,,$@))
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) \
+		--compatibility run --rm tests-openshift ansible-playbook \
+		/ansible/tests/$(testname).yaml \
+		--extra-vars \
+		"$$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) ssh -- cat /home/docker/.kube/config | jq -rcsR '{kubeconfig: .}')"
 
 openshift-run-drupal-tests = $(foreach image,$(drupal-tests),openshift-tests/$(image))
 .PHONY: $(openshift-run-drupal-tests)
