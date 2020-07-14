@@ -682,19 +682,21 @@ export async function getMicrosoftTeamsInfoForProject(
 }
 
 export async function getRocketChatInfoForProject(
-  project: string
+  project: string, contentType = 'DEPLOYMENT'
 ): Promise<any[]> {
   const notificationsFragment = graphqlapi.createFragment(`
     fragment on NotificationRocketChat {
       webhook
       channel
+      contentType
+      notificationSeverityThreshold
     }
   `);
 
   const result = await graphqlapi.query(`
     {
       project:projectByName(name: "${project}") {
-        rocketchats: notifications(type: ROCKETCHAT) {
+        rocketchats: notifications(type: ROCKETCHAT, contentType: ${contentType}) {
           ...${notificationsFragment}
         }
       }
