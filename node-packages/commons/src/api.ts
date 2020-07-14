@@ -744,18 +744,20 @@ export async function getSlackinfoForProject(
 }
 
 export async function getEmailInfoForProject(
-  project: string
+  project: string, contentType = 'DEPLOYMENT'
 ): Promise<any[]> {
   const notificationsFragment = graphqlapi.createFragment(`
     fragment on NotificationEmail {
       emailAddress
+      contentType
+      notificationSeverityThreshold
     }
   `);
 
   const result = await graphqlapi.query(`
     {
       project:projectByName(name: "${project}") {
-        emails: notifications(type: EMAIL) {
+        emails: notifications(type: EMAIL, contentType: ${contentType}) {
           ...${notificationsFragment}
         }
       }
