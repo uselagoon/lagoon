@@ -279,18 +279,23 @@ export async function readFromRabbitMQ (msg: ConsumeMessage, channelWrapperLogs:
 
     default:
       //since there's no single point of acknowlegement of the msg, we need to keep track of whether we've handled the message
-      let eventHandledAsProblem =  dispatchProblemEventToEmail(event, project, message, channelWrapperLogs, msg, appId);
+      let eventHandledAsProblem =  dispatchProblemEventToEmail(event, project, message, messageMeta, channelWrapperLogs, msg, appId);
       if(!eventHandledAsProblem) {
         return channelWrapperLogs.ack(msg);
       }
   }
 }
 
-const dispatchProblemEventToEmail = (event, project, message, channelWrapperLogs, msg, appId) => {
+const dispatchProblemEventToEmail = (event, project, message, messageMeta, channelWrapperLogs, msg, appId) => {
   const problemEvent = parseProblemNotification(event);
   if(problemEvent.isProblem && problemEvent.eventType == 'insert') {
-    sendToEmail(project, message, channelWrapperLogs, msg, appId, 'PROBLEM', problemEvent.severityLevel)
-      return true;
+      messageMeta.color = 'gold'
+      messageMeta.emoji = '⚠️'
+      messageMeta.mainHtml = message
+      messageMeta.plainText = message
+      messageMeta.subject = `New Problem of severity ${problemEvent.severityLevel} detected on ${project}`
+      sendToEmail(project, messageMeta, channelWrapperLogs, msg, appId, 'PROBLEM', problemEvent.severityLevel)
+    return true;
     }
   return false;
 };
