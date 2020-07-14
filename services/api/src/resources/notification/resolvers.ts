@@ -91,6 +91,7 @@ export const addNotificationToProject: ResolverFn = async (
 ) => {
 
   const input = [
+    R.over(R.lensProp('notificationType'), notificationTypeToString),
     R.over(R.lensProp('contentType'), notificationContentTypeToString),
     R.over(R.lensProp('notificationSeverityThreshold'), notificationContentTypeToInt),
   ].reduce((argumentsToProcess, functionToApply) => functionToApply(argumentsToProcess), unformattedInput);
