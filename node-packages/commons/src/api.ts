@@ -654,18 +654,20 @@ export async function getProjectByName(project: string): Promise<any> {
 }
 
 export async function getMicrosoftTeamsInfoForProject(
-  project: string
+  project: string, contentType = 'DEPLOYMENT'
 ): Promise<any[]> {
   const notificationsFragment = graphqlapi.createFragment(`
     fragment on NotificationMicrosoftTeams {
       webhook
+      contentType
+      notificationSeverityThreshold
     }
   `);
 
   const result = await graphqlapi.query(`
     {
       project:projectByName(name: "${project}") {
-        microsoftTeams: notifications(type: MICROSOFTTEAMS) {
+        microsoftTeams: notifications(type: MICROSOFTTEAMS, contentType: ${contentType}) {
           ...${notificationsFragment}
         }
       }

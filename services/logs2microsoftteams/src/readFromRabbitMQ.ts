@@ -4,6 +4,7 @@ import { ChannelWrapper } from 'amqp-connection-manager';
 import { ConsumeMessage } from 'amqplib';
 import { logger } from '@lagoon/commons/dist/local-logging';
 import { getMicrosoftTeamsInfoForProject } from '@lagoon/commons/dist/api';
+import { notificationIntToContentType, notificationContentTypeToInt, parseProblemNotification } from '@lagoon/commons/dist/notificationCommons';
 
 export async function readFromRabbitMQ (msg: ConsumeMessage, channelWrapperLogs: ChannelWrapper): Promise<void> {
   const logMessage = JSON.parse(msg.content.toString())
@@ -181,23 +182,38 @@ export async function readFromRabbitMQ (msg: ConsumeMessage, channelWrapperLogs:
       text = `*[${meta.name}]* \`${meta.branchName}\` not deleted. ${meta.error}`
       sendToMicrosoftTeams(project, message, 'gold', warning, channelWrapperLogs, msg, appId)
       break;
-
     default:
-      return channelWrapperLogs.ack(msg)
+      //since there's no single point of acknowlegement of the msg, we need to keep track of whether we've handled the message
+      let eventHandledAsProblem =  dispatchProblemEventToTeams(event, project, message, channelWrapperLogs, msg, appId, bangBang);
+      if(!eventHandledAsProblem) {
+        return channelWrapperLogs.ack(msg);
+      }
   }
-
 }
 
-const sendToMicrosoftTeams = async (project, message, color, emoji, channelWrapperLogs, msg, appId) => {
+const dispatchProblemEventToTeams = (event, project, message, channelWrapperLogs, msg, appId, errorEmoji) => {
+  const problemEvent = parseProblemNotification(event);
+  if(problemEvent.isProblem && problemEvent.eventType == 'insert') {
+    sendToMicrosoftTeams(project, message, 'red', errorEmoji, channelWrapperLogs, msg, appId, 'PROBLEM', problemEvent.severityLevel)
+      return true;
+    }
+  return false;
+};
+
+const sendToMicrosoftTeams = async (project, message, color, emoji, channelWrapperLogs, msg, appId, contentType = 'DEPLOYMENT', severityLevel = 'NONE') => {
   let projectMicrosoftTeamsNotifications;
   try {
-    projectMicrosoftTeamsNotifications = await getMicrosoftTeamsInfoForProject(project)
+    projectMicrosoftTeamsNotifications = await getMicrosoftTeamsInfoForProject(project, contentType)
   }
   catch (error) {
     logger.error(`No Microsoft Teams information found, error: ${error}`)
     return channelWrapperLogs.ack(msg)
   }
+
   projectMicrosoftTeamsNotifications.forEach(projectMicrosoftTeams => {
+    const notificationThresholdMet = notificationContentTypeToInt(projectMicrosoftTeams.notificationSeverityThreshold) <= notificationContentTypeToInt(severityLevel);
+    if(contentType == 'PROBLEM' && !notificationThresholdMet) { return; } //go to next iteration
+
     const { webhook } = projectMicrosoftTeams;
     const webhookUrl = new URL(webhook);
 

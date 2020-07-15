@@ -276,6 +276,8 @@ const typeDefs = gql`
     id: Int
     name: String
     webhook: String
+    contentType: String
+    notificationSeverityThreshold: ProblemSeverityRating
   }
 
   type NotificationRocketChat {
