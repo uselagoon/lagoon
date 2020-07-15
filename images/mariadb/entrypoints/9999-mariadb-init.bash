@@ -39,7 +39,7 @@ if [ -n "$MARIADB_COPY_DATA_DIR_SOURCE" ]; then
   fi
 fi
 
-ln -s ${MARIADB_DATA_DIR:-/var/lib/mysql}/.my.cnf /home/.my.cnf
+ln -sf ${MARIADB_DATA_DIR:-/var/lib/mysql}/.my.cnf /home/.my.cnf
 
 if [ "$1" = 'mysqld' -a -z "$wantHelp" ]; then
   if [ ! -d "/run/mysqld" ]; then

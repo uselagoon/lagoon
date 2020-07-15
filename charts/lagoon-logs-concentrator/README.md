@@ -13,121 +13,41 @@ Clients connect to this service via TLS. Mutual TLS authentication is performed 
 
 Important notes:
 
-* Certificates are generated on the cluster `logs-concentrator` runs in so they share the same CA.
+* We run our own CA since the in-cluster CA signs certificates with only one year expiry.
 * The instructions below require [cfssl](https://github.com/cloudflare/cfssl).
-* Refer to [this documentation](https://kubernetes.io/docs/tasks/tls/managing-tls-in-a-cluster/#create-a-certificate-signing-request) for further details.
+* Refer to [this documentation](https://coreos.com/os/docs/latest/generate-self-signed-certificates.html) for further details.
+
+### Generate a CA certificate
+
+This is only required the first time you set up this chart.
+
+Edit the `ca-csr.json` as required and run this command:
+
+```
+cfssl gencert -initca ca-csr.json | cfssljson -bare ca -
+rm ca.csr
+```
+
+You'll end up with `ca-key.pem` and `ca.pem`, which are the CA key and certificate. Store these somewhere safe, they'll be used to generate all future certificates.
 
 ### Generate a server certificate
 
 This will be the certificate used by the `logs-concentrator`.
 
-NOTE: update `CN`/`hosts` as requried.
+Edit the `server.json` as required and run this command:
 
-Generate a `server.csr` and `server-key.pem`:
 ```
-cat <<EOF | cfssl genkey - | cfssljson -bare server
-{
-  "hosts": [
-    "logs.ch2.amazee.io",
-    "lagoon-logs-concentrator.lagoon-logs-concentrator.svc.cluster.local"
-  ],
-  "CN": "logs.ch2.amazee.io",
-  "key": {
-    "algo": "ecdsa",
-    "size": 256
-  }
-}
-EOF
-```
-
-Generate a `CertificateSigningRequest`:
-```
-cat <<EOF | kubectl apply -f -
-apiVersion: certificates.k8s.io/v1beta1
-kind: CertificateSigningRequest
-metadata:
-  name: logs
-spec:
-  request: $(cat server.csr | base64 | tr -d '\n')
-  usages:
-  - digital signature
-  - key encipherment
-  - server auth
-EOF
-```
-
-Approve the CSR:
-```
-$ kubectl certificate approve logs
-```
-
-Get the signed certificate via:
-```
-$ kubectl get csr logs -o json | \
-    jq -r '.status.certificate | @base64d' > server.crt
+cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=server server.json | cfssljson -bare server
+rm server.csr
 ```
 
 ### Generate a client certificate
 
-This will be the certificate used by the `logs-dispatcher`.
+This will be the certificate used by the `lagoon-logging` chart's `logs-dispatcher`.
 
-NOTE: update `CN`/`hosts` as requried.
-
-Generate a `client.csr` and `client-key.pem` (replace `test1` with the cluster name:
-```
-cat <<EOF | cfssl genkey - | cfssljson -bare client
-{
-  "hosts": [
-    "logs-dispatcher.test1.lagoon.sh"
-  ],
-  "CN": "logs-dispatcher.test1.lagoon.sh",
-  "key": {
-    "algo": "ecdsa",
-    "size": 256
-  }
-}
-EOF
-```
-
-Generate a `CertificateSigningRequest`:
-```
-cat <<EOF | kubectl apply -f -
-apiVersion: certificates.k8s.io/v1beta1
-kind: CertificateSigningRequest
-metadata:
-  name: logs-dispatcher.test1
-spec:
-  request: $(base64 < client.csr | tr -d '\n')
-  usages:
-  - digital signature
-  - key encipherment
-  - client auth
-EOF
-```
-
-Inspect the CSR, note the status `Pending`:
-```
-$ kubectl get csr
-```
-
-Approve the CSR:
-```
-$ kubectl certificate approve ...
-```
-
-Inspect the CSR, note the status `Approved,Issued`:
-```
-$ kubectl get csr
-```
-
-Get the signed certificate via:
-```
-$ kubectl get csr logs-dispatcher.test1 -o json | \
-    jq -r '.status.certificate | @base64d' > client.crt
-```
-
-### Get the cluster CA certificate
+Edit the `client.json` as required and run this command:
 
 ```
-$ kubectl run --rm -it --quiet --restart=Never --image=busybox catca -- cat /var/run/secrets/kubernetes.io/serviceaccount/ca.crt | tee ca.crt
+cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=client client.json | cfssljson -bare client
+rm client.csr
 ```

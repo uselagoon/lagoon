@@ -30,7 +30,9 @@ spec:
           - {{ .Values.logsTeeRouter.listenPort | quote }}
           # UDP endpoints out
           - {{ include "lagoon-logging.logsDispatcher.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:5141
-          {{- toYaml .Values.logsTeeRouter.endpoints | nindent 10 }}
+          {{- with .Values.logsTeeRouter.endpoints }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
           ports:
           - containerPort: {{ .Values.logsTeeRouter.listenPort }}
             protocol: UDP
@@ -94,7 +96,9 @@ spec:
           - {{ .Values.logsTeeApplication.listenPort | quote }}
           # UDP endpoints out
           - {{ include "lagoon-logging.logsDispatcher.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:5140
-          {{- toYaml .Values.logsTeeApplication.endpoints | nindent 10 }}
+          {{- with .Values.logsTeeApplication.endpoints }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
           ports:
           - containerPort: {{ .Values.logsTeeApplication.listenPort }}
             protocol: UDP

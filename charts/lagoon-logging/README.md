@@ -58,14 +58,20 @@ oc adm policy add-scc-to-user nonroot -z lagoon-logging-fluentd
 # fluentbit daemonset serviceaccount (logging-operator chart)
 oc adm policy add-scc-to-user privileged -z lagoon-logging-fluentbit
 
-
 # logs-dispatcher statefulset serviceaccount (lagoon-logging chart)
 oc adm policy add-scc-to-user anyuid -z lagoon-logging-logs-dispatcher
 ```
 
-4. Update application logs service
+And make the project network global:
+```
+oc adm pod-network make-projects-global lagoon-logging
+```
 
-The `application-logs` service in the `lagoon` namespace needs to be updated to point its `externalName` to the `lagoon-logging-logs-dispatcher` service in the `lagoon-logging` namespace (or wherever you've installed it).
+4. Update application-logs and router-logs services
+
+The `application-logs` and `router-logs` services in the `lagoon` namespace needs to be updated to point their `externalName` to the `lagoon-logging-logs-dispatcher` service in the `lagoon-logging` namespace (or wherever you've installed it).
+
+If you are migrating from the old lagoon logging infrastructure and want to keep logs flowing to both old and new infrastructure, point these services at the relevant `logs-tee` service in the `lagoon-logging` namespace. The `logs-tee` services then need to have the legacy `endpoint` configured. See the comments in the chart `values.yaml` for an example.
 
 ## View logs
 

@@ -1,5 +1,6 @@
 import * as R from 'ramda';
 import pickNonNil from '../util/pickNonNil';
+import * as logger from '../logger';
 import UserRepresentation from 'keycloak-admin/lib/defs/userRepresentation';
 import { Group, isRoleSubgroup } from './group';
 
@@ -64,7 +65,7 @@ const attrCommentLens = R.compose(
 );
 
 export const User = (clients): UserModel => {
-  const { keycloakAdminClient } = clients;
+  const { keycloakAdminClient, redisClient } = clients;
 
   const fetchGitlabId = async (user: User): Promise<string> => {
     const identities = await keycloakAdminClient.users.listFederatedIdentities({
@@ -351,6 +352,11 @@ export const User = (clients): UserModel => {
         throw new Error(`Error deleting user ${id}: ${err}`);
       }
     }
+    try {
+      await redisClient.deleteRedisUserCache(id)
+    } catch(err) {
+      logger.error(`Error deleting user cache ${id}: ${err}`);
+    }
   };
 
   return {
@@ -363,6 +369,6 @@ export const User = (clients): UserModel => {
     getUserRolesForProject,
     addUser,
     updateUser,
-    deleteUser,
+    deleteUser
   }
 };

@@ -134,6 +134,11 @@ objects:
                 secretKeyRef:
                   name: api-db-password
                   key: API_DB_PASSWORD
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: api-redis-password
+                  key: API_REDIS_PASSWORD
             - name: SERVICE_NAME
               value: ${SERVICE_NAME}
             - name: CRONJOBS
