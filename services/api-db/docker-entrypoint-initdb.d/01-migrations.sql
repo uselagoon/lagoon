@@ -1139,7 +1139,9 @@ CREATE OR REPLACE PROCEDURE
         AND table_schema = 'infrastructure'
         AND column_name = 'content_type'
     ) THEN
-      ALTER TABLE `project_notification` ADD `content_type` ENUM('deployment', 'problem') NOT NULL DEFAULT 'deployment';
+      ALTER TABLE `project_notification`
+      ADD `content_type` ENUM('deployment', 'problem') NOT NULL DEFAULT 'deployment',
+      ADD `notification_severity_threshold` int NOT NULL default 0;
     END IF;
   END;
 $$
@@ -1217,6 +1219,7 @@ CALL update_user_password();
 CALL add_problems_ui_to_project();
 CALL add_metadata_to_project();
 CALL add_min_max_to_billing_modifier();
+CALL add_content_type_to_project_notification();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;

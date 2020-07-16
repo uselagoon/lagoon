@@ -29,13 +29,14 @@ export const parseProblemNotification = (event) => {
   const rawArray = event.split(":");
   const eventData = {
     isProblem: rawArray[0] == "problem",
+    eventClass: undefined,
     eventType: undefined,
     dataType: undefined,
     source: undefined,
     severityLevel: undefined,
   }
   if(eventData.isProblem) {
-    [, eventData.eventType, eventData.source, eventData.dataType, eventData.severityLevel] = rawArray;
+    [eventData.eventClass, eventData.eventType, eventData.source, eventData.dataType, eventData.severityLevel] = rawArray;
   }
   return eventData;
 }
