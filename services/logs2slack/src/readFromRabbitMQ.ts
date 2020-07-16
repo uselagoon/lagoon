@@ -115,19 +115,18 @@ const sendToSlack = async (project, message, color, emoji, channelWrapperLogs, m
   projectSlacks.forEach(async (projectSlack) => {
 
     const notificationThresholdMet = notificationContentTypeToInt(projectSlack.notificationSeverityThreshold) <= notificationContentTypeToInt(severityLevel);
-    if(notificationThresholdMet)
-    {
-      await new IncomingWebhook(projectSlack.webhook, {
-        channel: projectSlack.channel,
+    if(contentType == 'PROBLEM' && !notificationThresholdMet) { return; } //go to next iteration
+
+    await new IncomingWebhook(projectSlack.webhook, {
+      channel: projectSlack.channel,
       }).send({
-        attachments: [{
-          text: `${emoji} ${message}`,
-          color: color,
-          "mrkdwn_in": ["pretext", "text", "fields"],
-          footer: appId
-        }]
-      });
-    }
+      attachments: [{
+        text: `${emoji} ${message}`,
+        color: color,
+        "mrkdwn_in": ["pretext", "text", "fields"],
+        footer: appId
+      }]
+    });
   });
   channelWrapperLogs.ack(msg)
   return

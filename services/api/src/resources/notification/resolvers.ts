@@ -23,8 +23,6 @@ const notificationContentTypeToString = R.cond([
   [R.T, R.identity],
 ]);
 
-
-
 export const addNotificationMicrosoftTeams: ResolverFn = async (root, { input }, { sqlClient, hasPermission }) => {
   await hasPermission('notification', 'add');
 
@@ -254,7 +252,6 @@ export const removeNotificationFromProject: ResolverFn = async (
   await hasPermission('project', 'removeNotification', {
     project: project.id,
   });
-
 
   await query(
     sqlClient,

@@ -64,7 +64,6 @@ export const Sql = {
         'project.id': input,
       })
       .toString(),
-
   selectProjectByName: (input) => {
     const { project } = input;
 
