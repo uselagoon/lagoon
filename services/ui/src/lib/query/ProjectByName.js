@@ -26,6 +26,7 @@ export default gql`
           productionEnvironment
           standbyProductionEnvironment
           problemsUi
+          factsUi
         }
       }
     }

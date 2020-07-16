@@ -6,8 +6,8 @@ import { InMemoryCache, IntrospectionFragmentMatcher } from 'apollo-cache-inmemo
 import { SchemaLink } from 'apollo-link-schema';
 import { ApolloProvider } from 'react-apollo';
 import { makeExecutableSchema, addMockFunctionsToSchema } from 'graphql-tools';
-import typeDefs from 'api/src/typeDefs';
-import mocks, { seed } from 'api/src/mocks';
+import typeDefs from 'api/dist/typeDefs';
+import mocks, { seed } from 'api/dist/mocks';
 
 import introspectionQueryResultData from 'api/src/fragmentTypes.json';
 

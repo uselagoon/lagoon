@@ -105,6 +105,15 @@ app
       }
     );
 
+    server.get(
+      '/projects/:projectSlug/:environmentSlug/facts',
+      (req, res) => {
+          app.render(req, res, '/facts', {
+              openshiftProjectName: req.params.environmentSlug
+          });
+      }
+    );
+
     server.get('*', (req, res) => {
       return handle(req, res);
     });

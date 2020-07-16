@@ -252,10 +252,6 @@ const Problems = ({ problems }) => {
             @media ${bp.wideDown} {
               padding-right: 40px;
             }
-            @media ${bp.wideUp} {
-
-            }
-
           }
 
           &:hover {
