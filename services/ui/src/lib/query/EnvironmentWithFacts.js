@@ -1,18 +1,14 @@
 import gql from 'graphql-tag';
-import TaskFragment from 'lib/fragment/Task';
+import FactsFragment from 'lib/fragment/Fact';
 
 export default gql`
   query getEnvironment($openshiftProjectName: String!) {
-    environment: environmentByOpenshiftProjectName(
+    environment: 
+    environmentByOpenshiftProjectName(
       openshiftProjectName: $openshiftProjectName
     ) {
       id
       name
-      created
-      updated
-      deployType
-      environmentType
-      routes
       openshiftProjectName
       project {
         id
@@ -20,14 +16,10 @@ export default gql`
         problemsUi
         factsUi
       }
-      services {
-        id
-        name
-      }
-      tasks {
-        ...taskFields
+      facts {
+        ...factFields
       }
     }
   }
-  ${TaskFragment}
+  ${FactsFragment}
 `;

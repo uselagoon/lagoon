@@ -36,6 +36,7 @@ CREATE OR REPLACE PROCEDURE
     IN auto_idle                       int(1),
     IN storage_calc                    int(1),
     IN problems_ui                     int(1),
+    IN facts_ui                     int(1),
     IN development_environments_limit  int
   )
   BEGIN
@@ -75,6 +76,7 @@ CREATE OR REPLACE PROCEDURE
         standby_alias,
         auto_idle,
         problems_ui,
+        facts_ui,
         storage_calc,
         pullrequests,
         openshift,
@@ -102,6 +104,7 @@ CREATE OR REPLACE PROCEDURE
         standby_alias,
         auto_idle,
         problems_ui,
+        facts_ui,
         storage_calc,
         pullrequests,
         os.id,
