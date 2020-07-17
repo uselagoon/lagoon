@@ -34,7 +34,6 @@ const Invoice = ({ cost, language }) => {
     setLang(value);
   }
 
-
   return (
     <div className="invoice">
       <form className="langSwitcher">
@@ -91,7 +90,7 @@ const Invoice = ({ cost, language }) => {
               </div>
               }
             </div>
-            <div className="data-cell qty">{cost.environmentCostDescription.prod.quantity.toFixed(2).toLocaleString()}</div>
+            <div className="data-cell qty">{ cost.availability === 'POLYSITE' && cost.projects.length > 10 ? `${Math.max(Math.round(cost.projects.length / 10), 1)} x ` : '' }{cost.environmentCostDescription.prod.quantity.toFixed(2).toLocaleString()}</div>
             <div className="data-cell unitPrice">{cost.environmentCostDescription.prod.unitPrice}</div>
             <div className="data-cell amt">{cost.environmentCost.prod.toFixed(2)}</div>
           </div>
