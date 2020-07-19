@@ -215,6 +215,17 @@ const NavTabs = ({ activeTab, environment }) => (
               background-image: url('/static/images/problems-active.svg');
             }
           }
+
+          &.facts {
+            &::before {
+              background-image: url('/static/images/facts.svg');
+              background-size: 16px;
+            }
+
+            &.active::before {
+              background-image: url('/static/images/facts-active.svg');
+            }
+          }
         }
       }
     `}</style>
