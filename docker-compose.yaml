@@ -775,7 +775,7 @@ services:
       - api-db
     labels:
       lagoon.type: custom
-      lagoon.template: services/grafana/.lagoon.app.yml
-      lagoon.name: grafana
-      lagoon.image: amazeeiolagoon/grafana:v1-7-1
+      lagoon.template: services/api-grafana/.lagoon.app.yml
+      lagoon.name: api-grafana
+      lagoon.image: amazeeiolagoon/api-grafana
 

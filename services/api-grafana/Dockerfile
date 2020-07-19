@@ -1,4 +1,4 @@
-FROM grafana/grafana:5.1.0
+FROM grafana/grafana:7.1.0
 
 USER grafana
 
