@@ -14,8 +14,11 @@ spec:
       {{- include "lagoon-logs-concentrator.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-    {{- with .Values.podAnnotations }}
       annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        checksum/env-configmap: {{ include (print $.Template.BasePath "/env.configmap.yaml") . | sha256sum }}
+        checksum/fluent-conf-configmap: {{ include (print $.Template.BasePath "/fluent-conf.configmap.yaml") . | sha256sum }}
+    {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
     {{- end }}
       labels:

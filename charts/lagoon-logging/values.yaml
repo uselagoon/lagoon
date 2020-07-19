@@ -9,13 +9,13 @@ logsDispatcher:
 
   name: logs-dispatcher
 
-  replicaCount: 2
+  replicaCount: 3
 
   image:
     repository: amazeeiolagoon/logs-dispatcher
     pullPolicy: Always
     # Overrides the image tag whose default is the chart version.
-    tag: logs-concentrator
+    tag: master
 
   serviceAccount:
     # Specifies whether a service account should be created
@@ -60,17 +60,17 @@ logsDispatcher:
 
 logsTeeRouter:
 
-  enabled: true
+  enabled: false
 
   name: logs-tee-router
 
-  replicaCount: 2
+  replicaCount: 3
 
   image:
     repository: amazeeiolagoon/logs-tee
     pullPolicy: Always
     # Overrides the image tag whose default is the chart version.
-    tag: logs-concentrator
+    tag: master
 
   serviceAccount:
     # Specifies whether a service account should be created
@@ -84,10 +84,11 @@ logsTeeRouter:
     # view.
     name: ""
 
-  listenPort: 5141
-  endpoints:
+  listenPort: 5140
   # the logs-dispatcher endpoint is automatically added to this list
-  - logs-forwarder-logstash.lagoon.svc.cluster.local:5140
+  # define other endpoints here
+  #endpoints:
+  #- logs2logs-db.lagoon.svc.cluster.local
 
   podAnnotations: {}
 
@@ -120,17 +121,17 @@ logsTeeRouter:
 
 logsTeeApplication:
 
-  enabled: true
+  enabled: false
 
   name: logs-tee-application
 
-  replicaCount: 2
+  replicaCount: 3
 
   image:
     repository: amazeeiolagoon/logs-tee
     pullPolicy: Always
     # Overrides the image tag whose default is the chart version.
-    tag: logs-concentrator
+    tag: master
 
   serviceAccount:
     # Specifies whether a service account should be created
@@ -145,9 +146,10 @@ logsTeeApplication:
     name: ""
 
   listenPort: 5140
-  endpoints:
   # the logs-dispatcher endpoint is automatically added to this list
-  - logs-forwarder-logstash.lagoon.svc.cluster.local:5140
+  # define other endpoints here
+  #endpoints:
+  #- logs2logs-db.lagoon.svc.cluster.local
 
   podAnnotations: {}
 
@@ -183,11 +185,21 @@ logsTeeApplication:
 excludeNamespaces:
 # k8s
 - cattle-prometheus
+- cattle-system
+- dbaas-operator
+- default
+- kube-cleanup-operator
+- kube-node-lease
+- kube-public
 - kube-system
+- metrics-server
 - syn
+- syn-backup
 - syn-cert-manager
-- syn-synsights
 - syn-cluster-autoscaler
+- syn-efs-provisioner
+- syn-resource-locker
+- syn-synsights
 # openshift
 - acme-controller
 - appuio-baas-operator
@@ -197,9 +209,7 @@ excludeNamespaces:
 - appuio-monitoring
 - appuio-pruner
 - appuio-tiller
-- default
 - dioscuri-controller
-- kube-public
 - kube-service-catalog
 - management-infra
 - monitoring-infra
@@ -213,7 +223,6 @@ excludeNamespaces:
 - openshift-node
 - openshift-sdn
 - openshift-web-console
-- syn-resource-locker
 - tiller
 
 # Configure the cluster output buffer.
@@ -257,10 +266,14 @@ lagoonLogs:
 #  username: "example1"
 #  password: "securepass"
 #  host: "203.0.113.9"
-#  # hostName is optional, with a fallback to host
-#  # this is useful for when host is an IP address, or when the server
-#  # certificate doesn't match the hostName.
+#  # hostName is optional - it is used for TLS verification for when host is an
+#  # IP address.
+#  # NOTE: if host is _not_ an IP address and it is presents a certificate
+#  # without that hostname, you'll also need to set tlsVerifyHostname to
+#  # false. The hostName field does _not_ override the host field for TLS
+#  # verification when host is not an IP address.
 #  hostName: "logs.server.example.com"
+#  # tlsVerifyHostname: false
 #  # hostPort is optional, default 24224
 #  hostPort: "24224"
 #  selfHostname: "logs-dispatcher.example1.lagoon.example.com"
