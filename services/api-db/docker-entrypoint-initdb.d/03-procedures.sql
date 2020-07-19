@@ -36,7 +36,7 @@ CREATE OR REPLACE PROCEDURE
     IN auto_idle                       int(1),
     IN storage_calc                    int(1),
     IN problems_ui                     int(1),
-    IN facts_ui                     int(1),
+    IN facts_ui                        int(1),
     IN development_environments_limit  int
   )
   BEGIN
