@@ -11,3 +11,4 @@
     project: ci-active-standby
     branch: master-a
     standby_branch: master-b
+    error_code_check: 503

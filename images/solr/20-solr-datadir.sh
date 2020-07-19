@@ -1,6 +1,27 @@
 #!/bin/sh
 set -eo pipefail
 
+# check if SOLR_COPY_DATA_DIR_SOURCE is set, if yes we're coping the contents of the given folder into the data dir folder
+# this allows to prefill the datadir with a provided datadir (either added in a Dockerfile build, or mounted into the running container).
+# This is different than just setting $SOLR_DATA_DIR to the source folder, as only /var/solr is a persistent folder, so setting
+# $SOLR_DATA_DIR to another folder will make solr to not store the datadir across container restarts, while with this copy system
+# the data will be prefilled and persistent across container restarts.
+if [ -n "$SOLR_COPY_DATA_DIR_SOURCE" ]; then
+  echo "MARIADB_COPY_DATA_DIR_SOURCE is set, start copying from source location"
+  for solrcorepath in $(ls -d $SOLR_COPY_DATA_DIR_SOURCE/*/ | grep -v lost+found) ; do
+      corename=$(basename $solrcorepath)
+      if [ -d ${SOLR_DATA_DIR:-/var/solr}/$corename ]; then
+          echo "core $corename already present in destination, skipping copying"
+      else
+          echo "copying datadir contents from '$SOLR_COPY_DATA_DIR_SOURCE/$corename to '${SOLR_DATA_DIR:-/var/solr}/$corename'"
+          CUR_DIR=${PWD}
+          mkdir ${SOLR_DATA_DIR:-/var/solr}/$corename
+          cd $SOLR_COPY_DATA_DIR_SOURCE/$corename; tar cf - . | (cd ${SOLR_DATA_DIR:-/var/solr}/$corename; tar xvf -)
+          cd $CUR_DIR
+      fi
+  done
+fi
+
 # Previously the Solr Config and Solr Data Dir was both kept in the persistent volume:
 # - Solr data: /opt/solr/server/solr/mycores/${corename}/data
 # - Solr config: /opt/solr/server/solr/mycores/${corename}/config
@@ -41,9 +62,9 @@ if [ ! -n "$(ls /opt/solr/server/solr/mycores)" ]; then
   printf "\n\n"
 fi
 
-if [ -n "$(ls /var/solr)" ]; then
+if [ -n "$(ls ${SOLR_DATA_DIR:-/var/solr})" ]; then
   # Iterate through all existing solr cores
-  for solrcorepath in $(ls -d /var/solr/*/ | grep -v lost+found) ; do
+  for solrcorepath in $(ls -d ${SOLR_DATA_DIR:-/var/solr}/*/ | grep -v lost+found) ; do
     corename=$(basename $solrcorepath)
     if [ -d ${solrcorepath}data ]; then
       echo "${solrcorepath} has it's data in deprecated location ${solrcorepath}data, moving to ${solrcorepath}."
@@ -72,17 +93,19 @@ fi
 
 function fixConfig {
   fail=0
-  if cat $1/solrconfig.xml | grep dataDir | grep -qv '<dataDir>/var/solr/${solr.core.name}</dataDir>'; then
+  if cat $1/solrconfig.xml | grep dataDir | grep -qv "<dataDir>${SOLR_DATA_DIR:-/var/solr}/\${solr.core.name}</dataDir>"; then
     echo "Found old non lagoon compatible dataDir config in solrconfig.xml:"
     cat $1/solrconfig.xml | grep dataDir
+    SOLR_DATA_DIR=${SOLR_DATA_DIR:-/var/solr}
+    SOLR_DATA_DIR_ESCAPED=${SOLR_DATA_DIR//\//\\/} # escapig the forward slashes with backslahes
     if [ -w $1/ ]; then
-      sed -ibak 's/<dataDir>.*/<dataDir>\/var\/solr\/${solr.core.name}<\/dataDir>/' $1/solrconfig.xml
+      sed -ibak "s/<dataDir>.*/<dataDir>$SOLR_DATA_DIR_ESCAPED\/\${solr.core.name}<\/dataDir>/" $1/solrconfig.xml
       echo "automagically updated to compatible config: "
-      echo '  <dataDir>/var/solr/${solr.core.name}</dataDir>'
+      echo "  <dataDir>${SOLR_DATA_DIR:-/var/solr}/\${solr.core.name}</dataDir>"
       echo "Please update your solrconfig.xml to make this persistent."
     else
       echo "but no write permission to automagically change to compatible config: "
-      echo '  <dataDir>/var/solr/${solr.core.name}</dataDir>'
+      echo "  <dataDir>${SOLR_DATA_DIR:-/var/solr}/\${solr.core.name}</dataDir>"
       echo "Please update your solrconfig.xml and commit again."
       fail=1
     fi

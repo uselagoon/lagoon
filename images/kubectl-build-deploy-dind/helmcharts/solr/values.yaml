@@ -9,7 +9,6 @@ image: ""
 environmentType: production
 persistentStorage:
   size: 5Gi
-  name: solr
   path: '/var/solr'
 
 imagePullPolicy: Always

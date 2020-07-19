@@ -56,10 +56,9 @@ COPY entrypoints/ /lagoon/entrypoints/
 COPY mysql-backup.sh /lagoon/
 COPY my.cnf /etc/mysql/my.cnf
 
-RUN for i in /var/run/mysqld /var/lib/mysql /etc/mysql/conf.d /docker-entrypoint-initdb.d/ "${BACKUPS_DIR}"; \
+RUN for i in /var/run/mysqld /var/lib/mysql /etc/mysql/conf.d /docker-entrypoint-initdb.d/ "${BACKUPS_DIR}" /home; \
     do mkdir -p $i; chown mysql $i; /bin/fix-permissions $i; \
-    done && \
-    ln -s /var/lib/mysql/.my.cnf /home/.my.cnf
+    done
 
 COPY root/usr/share/container-scripts/mysql/readiness-probe.sh /usr/share/container-scripts/mysql/readiness-probe.sh
 RUN /bin/fix-permissions /usr/share/container-scripts/mysql/ \

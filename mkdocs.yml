@@ -76,9 +76,10 @@ pages:
 - Development:
   - Developing Lagoon: developing_lagoon/index.md
   - Tests: developing_lagoon/tests.md
-  - Contributing: developing_lagoon/contributing.md
   - API Debugging: developing_lagoon/api-debugging.md
-  - Code Of Conduct: developing_lagoon/code_of_conduct.md
+- Code Of Conduct: code_of_conduct.md
+- Contributing: contributing.md
+
 theme: readthedocs
 
 markdown_extensions:

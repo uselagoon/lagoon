@@ -14,6 +14,8 @@ export default gql`
       discountPercentage,
       extraFixed,
       extraPercentage,
+      min,
+      max,
       customerComments,
       adminComments,
       weight

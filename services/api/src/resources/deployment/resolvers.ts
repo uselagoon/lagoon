@@ -805,13 +805,6 @@ export const switchActiveStandby: ResolverFn = async (
     project: project.id,
   });
 
-  const environmentRows = await query(
-    sqlClient,
-    environmentSql.selectEnvironmentByNameAndProject(project.productionEnvironment, project.id),
-  );
-  const environment = environmentRows[0];
-  var environmentId = parseInt(environment.id);
-
   if (project.standbyProductionEnvironment == null) {
     sendToLagoonLogs(
       'error',
@@ -823,6 +816,14 @@ export const switchActiveStandby: ResolverFn = async (
     );
     return `Error: no standbyProductionEnvironment configured`;
   }
+
+  // we want the task to show in the standby environment, as this is where the task will be initiated.
+  const environmentRows = await query(
+    sqlClient,
+    environmentSql.selectEnvironmentByNameAndProject(project.standbyProductionEnvironment, project.id),
+  );
+  const environment = environmentRows[0];
+  var environmentId = parseInt(environment.id);
 
   // construct the data for the misc task
   let uuid = uuid4();

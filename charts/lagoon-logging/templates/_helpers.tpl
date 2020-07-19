@@ -92,3 +92,85 @@ Create the name of the service account to use
 {{- default "default" .Values.logsDispatcher.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Create a default fully qualified app name for logs-tee-router
+We truncate at 63 chars because some Kubernetes name fields are limited to this
+(by the DNS naming spec).
+*/}}
+{{- define "lagoon-logging.logsTeeRouter.fullname" -}}
+{{- include "lagoon-logging.fullname" . }}-{{ .Values.logsTeeRouter.name }}
+{{- end }}
+
+{{/*
+Selector labels
+*/}}
+{{- define "lagoon-logging.logsTeeRouter.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "lagoon-logging.name" . }}
+app.kubernetes.io/component: {{ include "lagoon-logging.logsTeeRouter.fullname" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/*
+Common labels
+*/}}
+{{- define "lagoon-logging.logsTeeRouter.labels" -}}
+helm.sh/chart: {{ include "lagoon-logging.chart" . }}
+{{ include "lagoon-logging.logsTeeRouter.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{/*
+Create the name of the service account to use
+*/}}
+{{- define "lagoon-logging.logsTeeRouter.serviceAccountName" -}}
+{{- if .Values.logsTeeRouter.serviceAccount.create }}
+{{- default (include "lagoon-logging.logsTeeRouter.fullname" .) .Values.logsTeeRouter.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.logsTeeRouter.serviceAccount.name }}
+{{- end }}
+{{- end }}
+
+{{/*
+Create a default fully qualified app name for logs-tee-application
+We truncate at 63 chars because some Kubernetes name fields are limited to this
+(by the DNS naming spec).
+*/}}
+{{- define "lagoon-logging.logsTeeApplication.fullname" -}}
+{{- include "lagoon-logging.fullname" . }}-{{ .Values.logsTeeApplication.name }}
+{{- end }}
+
+{{/*
+Selector labels
+*/}}
+{{- define "lagoon-logging.logsTeeApplication.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "lagoon-logging.name" . }}
+app.kubernetes.io/component: {{ include "lagoon-logging.logsTeeApplication.fullname" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/*
+Common labels
+*/}}
+{{- define "lagoon-logging.logsTeeApplication.labels" -}}
+helm.sh/chart: {{ include "lagoon-logging.chart" . }}
+{{ include "lagoon-logging.logsTeeApplication.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{/*
+Create the name of the service account to use
+*/}}
+{{- define "lagoon-logging.logsTeeApplication.serviceAccountName" -}}
+{{- if .Values.logsTeeApplication.serviceAccount.create }}
+{{- default (include "lagoon-logging.logsTeeApplication.fullname" .) .Values.logsTeeApplication.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.logsTeeApplication.serviceAccount.name }}
+{{- end }}
+{{- end }}

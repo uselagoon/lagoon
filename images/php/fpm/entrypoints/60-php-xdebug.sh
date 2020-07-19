@@ -3,7 +3,7 @@
 # Tries to find the Dockerhost
 get_dockerhost() {
   # https://docs.docker.com/docker-for-mac/networking/#known-limitations-use-cases-and-workarounds
-  if busybox timeout 1 busybox nslookup host.docker.internal &> /dev/null; then
+  if busybox timeout 1 busybox nslookup -query=A host.docker.internal &> /dev/null; then
     echo "host.docker.internal"
     return
   fi
