@@ -74,8 +74,5 @@ COPY id_ed25519_lagoon_cli.key /home/.ssh/lagoon_cli.key
 RUN chmod 400 /home/.ssh/lagoon_cli.key
 ENV SSH_AUTH_SOCK=/tmp/ssh-agent
 
-# readinessProbe check
-COPY 999-readiness.sh /lagoon/entrypoints/
-
 ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
 CMD ["/bin/docker-sleep"]
