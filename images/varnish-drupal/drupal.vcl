@@ -341,6 +341,21 @@ sub vcl_backend_response {
     set beresp.do_stream = true;
     set beresp.ttl = 0s;
   }
+
+  # The following is taken from https://github.com/varnishcache/varnish-cache/blob/master/bin/varnishd/builtin.vcl#L149
+  if (bereq.uncacheable) {
+      return (deliver);
+  } else if (beresp.ttl <= 0s ||
+    beresp.http.Set-Cookie ||
+    beresp.http.Surrogate-control ~ "(?i)no-store" ||
+    (!beresp.http.Surrogate-Control &&
+      beresp.http.Cache-Control ~ "(?i:no-cache|no-store|private)") ||
+        beresp.http.Vary == "*") {
+      # Mark as "Hit-For-Miss" for the next 2 minutes
+      set beresp.ttl = 120s;
+      set beresp.uncacheable = true;
+  }
+  return (deliver);
 }
 
 # Set a header to track a cache HIT/MISS.
