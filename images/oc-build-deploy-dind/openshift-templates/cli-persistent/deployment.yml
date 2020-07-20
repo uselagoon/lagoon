@@ -136,7 +136,9 @@ objects:
                 limits:
                   memory: 8Gi
               readinessProbe:
-                initialDelaySeconds: 15
+                initialDelaySeconds: 5
+                periodSeconds: 2
+                failureThreshold: 3
                 exec:
                   command:
                   - cat

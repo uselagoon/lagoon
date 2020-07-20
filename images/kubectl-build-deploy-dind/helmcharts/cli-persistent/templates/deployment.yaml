@@ -66,8 +66,9 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           readinessProbe:
-            initialDelaySeconds: 15
-            periodSeconds: 5
+            initialDelaySeconds: 5
+            periodSeconds: 2
+            failureThreshold: 3
             exec:
               command:
               - cat
