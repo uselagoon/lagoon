@@ -8,26 +8,26 @@ First, Lagoon checks if the OpenShift project/Kubernetes namespace for the given
 
 ## 2. Git Checkout & Merge
 
-Next, Lagoon will check out your code from Git. It needs that to be able to read the `.lagoon.yml` and `docker-compose.yml` but also to build the Docker images.
+Next, Lagoon will check out your code from Git. It needs that to be able to read the `.lagoon.yml` ,`docker-compose.yml` and any `.env` files, but also to build the Docker images.
 
-Based on how the deployment has been triggered, different things will happen:
+Note that Lagoon will only process these actions if the branch/PR matches the branch regex set in Lagoon. Based on how the deployment has been triggered, different things will happen:
 
 ### **Branch Webhook Push**
 
-If the deployment is triggered via a webhook and is for a single branch, Lagoon will check out the Git SHA which is included in the webhook. This means that even if you push code to the Git branch twice, there will be two deployments with exactly the code that was pushed, not just the newest code in the Git branch.
+If the deployment is triggered automatically via a Git webhook and is for a single branch, Lagoon will check out the Git SHA which is included in the webhook payload. This will trigger a deployment for every Git SHA pushed.
 
 ### **Branch REST trigger**
 
-If you trigger a deployment via the REST API and do NOT define a `SHA` in the POST payload, Lagoon will just check out the branch with the newest code without a specific given Git SHA.
+If you trigger a branch deployment manually via the REST API \(via the UI, or GraphQL\) and do NOT define a `SHA` in the POST payload, Lagoon will just check out the latest commit in that branch and deploy it.
 
 ### **Pull Requests**
 
-If the deployment is a pull request deployment, Lagoon will load the base and the HEAD branch and SHAs for the pull request and will:
+If the deployment is a pull request \(PR\) deployment, Lagoon will load the base and the HEAD branch and SHAs for the pull request and will:
 
-* Check out the base branch \(the branch the pull request points to\).
-* Merge the HEAD branch \(the branch that the pull request originates from\) on top of the base branch.
+* Check out the base branch \(the branch the PR points to\).
+* Merge the `HEAD` branch \(the branch that the PR originates from\) on top of the base branch.
 * **More specifically:**
-  * Lagoon will check out and merge particular SHAs which were sent in the webhook. Those SHAs may or _may not_ point to the branch HEADs. For example, if you make a new push to a GitHub pull request, it can happen that SHA of the base branch will _not_ point to the current base branch HEAD.
+  * Lagoon will check out and merge particular SHAs which were sent in the webhook. Those SHAs may or _may not_ point to the branch heads. For example, if you make a new push to a GitHub pull request, it can happen that SHA of the base branch will _not_ point to the current base branch HEAD.
 
 If the merge fails, Lagoon will also stop and inform you about this.
 
@@ -68,7 +68,7 @@ The "main" route is injected via the `LAGOON_ROUTE` environment variable.
 
 Now it is time to push the previously built Docker images into the internal Docker image registry.
 
-For services that didn't specify a Dockerfile to be built in `docker-compose.yml` and only gave an image, they are tagged via `oc tag` in the OpenShift project. This will cause the internal Docker image registry to know about the images, so that they can be used in containers.
+For services that didn't specify a Dockerfile to be built in `docker-compose.yml` and only gave an image, they are also tagged and will cause the internal Docker image registry to know about the images, so that they can be used in containers.
 
 ## 6. Persistent Storage
 
@@ -76,29 +76,35 @@ Lagoon will now create persistent storage \(PVC\) for each service that needs an
 
 ## 7. Cron jobs
 
-For each service that requests a cron job \(like MariaDB\), plus for each custom cron job defined in `.lagoon.yml,` Lagoon will now generate the cron job environment variables which are later injected into the [DeploymentConfigs](https://docs.openshift.com/container-platform/4.4/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are).
+For each service that requests a cron job \(like MariaDB\), plus for each custom cron job defined in `.lagoon.yml,` Lagoon will now generate the cron job environment variables which are later injected into the [Deployment](https://docs.openshift.com/container-platform/4.4/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are).
 
-## 8. DeploymentConfigs, Statefulsets, Daemonsets
+## 8. Run defined pre-rollout tasks
 
-This is probably the most important step. Based on the defined service type, Lagoon will create the [DeploymentConfigs](https://docs.openshift.com/container-platform/4.4/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are), [Statefulset](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/) or [Daemonsets](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/) for the service.
+Now Lagoon will check the `.lagoon.yml` file for defined tasks in `pre-rollout` and will run them one by one in the defined services.  Note that these tasks are executed on the pods currently running \(so cannot utilise features or scripts that only exist in the latest commit\) and therefore they are also not run on first deployments.
+
+If any of them fail, Lagoon will immediately stop and notify you, and the rollout will not proceed.
+
+## 9. DeploymentConfigs, Statefulsets, Daemonsets
+
+This is probably the most important step. Based on the defined service type, Lagoon will create the [Deployment](https://docs.openshift.com/container-platform/4.4/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are), [Statefulset](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/) or [Daemonsets](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/) for the service. \(Note that Deployments are analogous DeploymentConfigs in Openshift\)
 
 It will include all previously gathered information like the cron jobs, the location of persistent storage, the pushed images and so on.
 
 Creation of these objects will also automatically cause OpenShift/Kubernetes to trigger new deployments of the pods if necessary, like when an environment variable has changed or an image has changed. But if there is no change, there will be no deployment! This means if you only update the PHP code in your application, the Varnish, Solr, MariaDB, Redis and any other service that is defined but does not include your code will not be deployed. This makes everything much much faster.
 
-## 9. Wait for all rollouts to be done
+## 10. Wait for all rollouts to be done
 
 Now Lagoon waits! It waits for all of the just-triggered deployments of the new pods to be finished, as well as for their health checks to be successful.
 
 If any of the deployments or health checks fail, the deployment will be stopped here, and you will be informed via the defined notification systems \(like Slack\) that the deployment has failed.
 
-## 10. Run defined post-rollout tasks
+## 11. Run defined post-rollout tasks
 
 Now Lagoon will check the `.lagoon.yml` file for defined tasks in `post-rollout` and will run them one by one in the defined services.
 
 If any of them fail, Lagoon will immediately stop and notify you.
 
-## 11. Success
+## 12. Success
 
 If all went well and nothing threw any errors, Lagoon will mark this build as successful and inform you via defined notifications. ✅ 
 

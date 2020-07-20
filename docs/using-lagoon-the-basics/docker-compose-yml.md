@@ -185,7 +185,7 @@ In order for Lagoon to realize which one is the `nginx` and which one is the `ph
 
 
 
-## **Custom Templates**
+## **Custom Templates \(Openshift only\)**
 
 OpenShift defines templates as follows:
 
@@ -200,6 +200,10 @@ The template is called with `oc process`,  so you should define the same paramet
 {% endhint %}
 
 You can also overwrite the templates for a specific environment. This is done in [`.lagoon.yml`](lagoon-yml.md#environmentsnametypes)
+
+## Helm Templates \(Kubernetes only\)
+
+Lagoon uses [Helm](https://helm.sh/) for templating on Kubernetes.  To do this, a series of [Charts](https://github.com/amazeeio/lagoon/tree/master/images/kubectl-build-deploy-dind/helmcharts) are included with the `kubectl-build-deploy-dind` service.
 
 ## **Custom Rollout Monitor Types**
 

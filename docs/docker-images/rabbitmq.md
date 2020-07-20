@@ -6,11 +6,11 @@ This Dockerfile is intended to be used to set up a standalone RabbitMQ queue bro
 
 By default, the RabbitMQ broker is started as single node. If you want to start a cluster, you need to use the [`rabbitmq-cluster`](https://github.com/amazeeio/lagoon/blob/master/images/rabbitmq-cluster/Dockerfile) Docker image, based on `rabbitmq` image plus the `rabbitmq_peer_discovery_k8s` plugin.
 
-## Lagoon & OpenShift adaptions
+## Lagoon adaptions
 
-This image is prepared to be used on Lagoon, which leverages OpenShift. There are therefore some things already done:
+This image is prepared to be used on Lagoon. There are therefore some things already done:
 
-* Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/sclorg/s2i-base-container/blob/master/core/root/usr/bin/fix-permissions), so this image will work with a random user, and therefore also on OpenShift.
+* Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/sclorg/s2i-base-container/blob/master/core/root/usr/bin/fix-permissions), so this image will work with a random user.
 * The file `/etc/rabbitmq/definitions.json` is parsed through [`envplate`](https://github.com/kreuzwerker/envplate) with a container-entrypoint.
 
 ## Included RabbitMQ default schema \(definitions.json\)

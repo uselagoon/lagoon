@@ -47,8 +47,9 @@
 
 ## Administering Lagoon
 
-* [Install Lagoon on OpenShift](administering-lagoon/install.md)
+* [Install Lagoon 1.x on OpenShift](administering-lagoon/install.md)
 * [OpenShift Requirements](administering-lagoon/openshift_requirements.md)
+* [Install local Kubernetes cluster for Lagoon](administering-lagoon/install-local-kubernetes-cluster-for-lagoon.md)
 * [GraphQL API](administering-lagoon/graphql-queries.md)
 * [Role-Based Access Control \(RBAC\)](administering-lagoon/rbac.md)
 * [Harbor](administering-lagoon/using_harbor/README.md)
