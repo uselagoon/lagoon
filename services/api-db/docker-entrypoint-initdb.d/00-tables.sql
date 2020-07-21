@@ -277,7 +277,8 @@ CREATE TABLE IF NOT EXISTS task_file (
 CREATE TABLE IF NOT EXISTS environment_fact (
   id                       int NOT NULL auto_increment PRIMARY KEY,
   environment              int REFERENCES environment (id),
-  name                     varchar(300) NOT NULL UNIQUE,
+  name                     varchar(300) NOT NULL,
   value                    varchar(300) NOT NULL,
-  created                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+  created                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(environment, name)
 );
