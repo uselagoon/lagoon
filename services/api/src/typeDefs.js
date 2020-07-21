@@ -197,6 +197,7 @@ const typeDefs = gql`
     environment: Environment
     name: String
     value: String
+    created: String
   }
 
   input AddFactInput {

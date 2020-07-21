@@ -1452,3 +1452,50 @@ export const getProblemHarborScanMatches = () => graphqlapi.query(
         regex
       }
     }`);
+
+
+    export const addFact = ({
+      environment,
+      name,
+      value
+    }) => {
+      return graphqlapi.mutate(
+        `
+        ($environment: Int!,
+          $name: String!,
+          $value: String!) {
+          addFact(input: {
+              environment: $environment
+              name: $name
+              value: $value
+          }) {
+            id
+            name
+            value
+          }
+        }
+      `,
+        {
+          environment,
+          name,
+          value
+        },
+      );
+    }
+
+    export const deleteFact = ({
+      environment,
+      name
+    }) => {
+      return graphqlapi.mutate(
+        `($environment: Int!, $name: String!) {
+          deleteFact(input: {environment: $environment, name: $name })
+        }
+        `,
+        {
+          environment,
+          name
+        }
+      );
+    }
+

@@ -13,6 +13,7 @@ const standardFactReturn = {
     environment: 'environment',
     name: 'name',
     value: 'value',
+    created: 'created',
 };
 
 export const Sql /* : SqlObj */ = {

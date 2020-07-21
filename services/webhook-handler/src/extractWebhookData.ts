@@ -92,7 +92,12 @@ export function extractWebhookData(req: IncomingMessage, body: string): WebhookR
       webhooktype = 'problems';
       event = 'drutiny:resultset';
       uuid = uuid4();
-    } else {
+    } else if (bodyObj.type && bodyObj.type == 'factsDB') {
+      webhooktype = 'facts';
+      event = 'facts:insert';
+      uuid = uuid4();
+    }
+    else {
       throw new Error('No supported event header found on POST request');
     }
   } else if (method === 'GET') {

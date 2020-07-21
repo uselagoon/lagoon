@@ -4,6 +4,7 @@ import { processProjects } from './webhooks/projects';
 import { processDataSync } from './webhooks/dataSync';
 import { processBackup } from './webhooks/backup';
 import { processProblems } from './webhooks/problems';
+import { processFacts } from './webhooks/facts';
 import { WebhookRequestData } from './types';
 
 export async function processQueue (rabbitMsg: ConsumeMessage, channelWrapperWebhooks: ChannelWrapper): Promise<void> {
@@ -23,8 +24,9 @@ export async function processQueue (rabbitMsg: ConsumeMessage, channelWrapperWeb
     processBackup(rabbitMsg, channelWrapperWebhooks);
   } else if (webhooktype == 'problems') {
     processProblems(rabbitMsg, channelWrapperWebhooks);
-  }
-  else {
+  } else if (webhooktype == 'facts') {
+    processFacts(rabbitMsg, channelWrapperWebhooks);
+  } else {
     processProjects(rabbitMsg, channelWrapperWebhooks);
   }
 }
