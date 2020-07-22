@@ -198,6 +198,16 @@ services:
       lagoon.type: custom
       lagoon.template: services/kubernetesremove/.lagoon.app.yml
       lagoon.image: amazeeiolagoon/kubernetesremove:v1-8-1
+  operatorhandler:
+    image: ${IMAGE_REPO:-lagoon}/operatorhandler
+    command: yarn run dev
+    volumes:
+      - ./services/operatorhandler/src:/app/services/operatorhandler/src
+      - ./node-packages:/app/node-packages:delegated
+    labels:
+      lagoon.type: custom
+      lagoon.template: services/operatorhandler/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/operatorhandler:v1-8-1
   logs2rocketchat:
     image: ${IMAGE_REPO:-lagoon}/logs2rocketchat
     command: yarn run dev
