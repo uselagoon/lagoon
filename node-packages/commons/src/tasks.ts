@@ -5,7 +5,18 @@ import {
 } from 'amqp-connection-manager';
 import { ConfirmChannel, ConsumeMessage } from 'amqplib';
 import { logger } from './local-logging';
-import { getActiveSystemForProject, getEnvironmentsForProject } from './api';
+import {
+  getActiveSystemForProject,
+  getEnvironmentsForProject,
+  getOpenShiftInfoForProject,
+  getBillingGroupForProject,
+  addOrUpdateEnvironment,
+  getEnvironmentByName,
+  addDeployment
+} from './api';
+import sha1 from 'sha1';
+import crypto from 'crypto';
+import moment from 'moment';
 
 interface MessageConsumer {
   (msg: ConsumeMessage): Promise<void>;
@@ -73,6 +84,14 @@ const rabbitmqPassword = process.env.RABBITMQ_PASSWORD || 'guest';
 
 const taskPrefetch = process.env.TASK_PREFETCH_COUNT ? Number(process.env.TASK_PREFETCH_COUNT) : 2;
 const taskMonitorPrefetch = process.env.TASKMONITOR_PREFETCH_COUNT ? Number(process.env.TASKMONITOR_PREFETCH_COUNT) : 1;
+
+const CI = process.env.CI || "false"
+const lagoonGitSafeBranch = process.env.LAGOON_GIT_SAFE_BRANCH || "master"
+const lagoonVersion = process.env.LAGOON_VERSION
+const lagoonEnvironmentType = process.env.LAGOON_ENVIRONMENT_TYPE || "development"
+const overwriteOCBuildDeployDindImage = process.env.OVERWRITE_OC_BUILD_DEPLOY_DIND_IMAGE
+const overwriteKubectlBuildDeployDindImage = process.env.OVERWRITE_KUBECTL_BUILD_DEPLOY_DIND_IMAGE
+const jwtSecret = process.env.JWTSECRET || "super-secret-string"
 
 class UnknownActiveSystem extends Error {
   constructor(message) {
@@ -219,6 +238,253 @@ export const createTaskMonitor = async function(task: string, payload: any) {
   return sendToLagoonTasksMonitor(task, payload);
 }
 
+// This is used to replace the functionality in `kubernetesbuilddeploy` to handle sending the required information
+// directly to the message queue for the operator to consume
+// @TODO: make sure if it fails, it does so properly
+const getOperatorBuildData = async function(deployData: any) {
+  const {
+    projectName,
+    branchName,
+    sha,
+    type,
+    pullrequestTitle,
+    headBranchName: headBranch,
+    headSha,
+    baseBranchName: baseBranch,
+    baseSha,
+    promoteSourceEnvironment
+  } = deployData;
+
+  const project = await getActiveSystemForProject(projectName, 'Deploy');
+  // const environments = await getEnvironmentsForProject(projectName);
+
+  const ocsafety = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
+  var environmentName = ocsafety(branchName)
+
+  const result = await getOpenShiftInfoForProject(projectName);
+  const projectOpenShift = result.project
+  const billingGroupResult = await getBillingGroupForProject(projectName);
+  const projectBillingGroup = billingGroupResult.project
+
+  var overlength = 58 - projectName.length;
+  if ( environmentName.length > overlength ) {
+    var hash = sha1(environmentName).substring(0,4)
+    environmentName = environmentName.substring(0, overlength-5)
+    environmentName = environmentName.concat('-' + hash)
+  }
+
+  var environmentType = 'development'
+  if (
+    projectOpenShift.productionEnvironment === environmentName
+    || projectOpenShift.standbyProductionEnvironment === environmentName
+  ) {
+    environmentType = 'production'
+  }
+  var gitSha = sha as string
+  var projectTargetName = projectOpenShift.openshift.name
+  var openshiftProject = projectOpenShift.openshiftProjectPattern ? projectOpenShift.openshiftProjectPattern.replace('${environment}',environmentName).replace('${project}', projectName) : `${projectName}-${environmentName}`
+  var deployPrivateKey = projectOpenShift.privateKey
+  var gitUrl = projectOpenShift.gitUrl
+  var projectProductionEnvironment = projectOpenShift.productionEnvironment
+  var projectStandbyEnvironment = projectOpenShift.standbyProductionEnvironment
+  var subfolder = projectOpenShift.subfolder || ""
+  var routerPattern = projectOpenShift.openshift.routerPattern ? projectOpenShift.openshift.routerPattern.replace('${environment}',environmentName).replace('${project}', projectName) : ""
+  var prHeadBranch = headBranch || ""
+  var prHeadSha = headSha || ""
+  var prBaseBranch = baseBranch || ""
+  var prBaseSha = baseSha || ""
+  var prPullrequestTitle = pullrequestTitle || ""
+  var prPullrequestNumber = branchName.replace('pr-','')
+  var graphqlEnvironmentType = environmentType.toUpperCase()
+  var graphqlGitType = type.toUpperCase()
+  var openshiftPromoteSourceProject = promoteSourceEnvironment ? `${projectName}-${ocsafety(promoteSourceEnvironment)}` : ""
+  // A secret which is the same across all Environments of this Lagoon Project
+  var projectSecret = crypto.createHash('sha256').update(`${projectName}-${jwtSecret}`).digest('hex');
+  var alertContactHA = ""
+  var alertContactSA = ""
+  var monitoringConfig = JSON.parse(projectOpenShift.openshift.monitoringConfig) || "invalid"
+  if (monitoringConfig != "invalid"){
+    alertContactHA = monitoringConfig.uptimerobot.alertContactHA || ""
+    alertContactSA = monitoringConfig.uptimerobot.alertContactSA || ""
+  }
+  var availability = projectOpenShift.availability || "STANDARD"
+
+  var alertContact = ""
+  if (alertContactHA != undefined && alertContactSA != undefined){
+    if (availability == "HIGH") {
+      alertContact = alertContactHA
+    } else {
+      alertContact = alertContactSA
+    }
+  } else {
+    alertContact = "unconfigured"
+  }
+  const billingGroup = projectBillingGroup.groups.find(i => i.type == "billing" ) || ""
+  var uptimeRobotStatusPageId = billingGroup.uptimeRobotStatusPageId || ""
+
+  var branchData: any = {};
+  var pullrequestData: any = {};
+  var promoteData: any = {};
+
+  switch (type) {
+    case "branch":
+      // if we have a sha given, we use that, if not we fall back to the branch (which needs be prefixed by `origin/`
+      var gitRef = gitSha ? gitSha : `origin/${branchName}`
+      var deployBaseRef = branchName
+      var deployHeadRef = null
+      var deployTitle = null
+      branchData = {
+        branch: {
+          name: branchName,
+        },
+      };
+      break;
+    case "pullrequest":
+      var gitRef = gitSha
+      var deployBaseRef = prBaseBranch
+      var deployHeadRef = prHeadBranch
+      var deployTitle = prPullrequestTitle
+      pullrequestData = {
+        pullrequest: {
+          headBranch: prHeadBranch,
+          headSha: prHeadSha,
+          baseBranch: prBaseBranch,
+          baseSha: prBaseSha,
+          title: prPullrequestTitle,
+          number: prPullrequestNumber,
+        },
+      };
+      break;
+    case "promote":
+      var gitRef = `origin/${promoteSourceEnvironment}`
+      var deployBaseRef = promoteSourceEnvironment
+      var deployHeadRef = null
+      var deployTitle = null
+      promoteData = {
+        promote: {
+          sourceEnvironment: promoteSourceEnvironment,
+          sourceProject: openshiftPromoteSourceProject,
+        }
+      };
+      break;
+  }
+
+  // @TODO: openshiftProject here can't be generated on the cluster side (it should be) but the addOrUpdate mutation doesn't allow for openshiftProject to be optional
+  // maybe need to have this generate a random uid initially?
+  let environment;
+  try {
+    environment = await addOrUpdateEnvironment(branchName, projectOpenShift.id, graphqlGitType, deployBaseRef, graphqlEnvironmentType, openshiftProject, deployHeadRef, deployTitle)
+    logger.info(`${openshiftProject}: Created/Updated Environment in API`)
+  } catch (err) {
+    logger.error(err)
+    throw new Error
+  }
+
+  const randBuildId = Math.random().toString(36).substring(7);
+  const buildName = `lagoon-build-${randBuildId}`;
+
+  let deployment;
+  try {
+    const now = moment.utc();
+    const apiEnvironment = await getEnvironmentByName(branchName, projectOpenShift.id);
+    deployment = await addDeployment(buildName, "NEW", now.format('YYYY-MM-DDTHH:mm:ss'), apiEnvironment.environmentByName.id);
+  } catch (error) {
+    logger.error(`Could not save deployment for project ${projectOpenShift.id}. Message: ${error}`);
+  }
+
+  let buildImage = {}
+  // During CI we want to use the OpenShift Registry for our build Image and use the OpenShift registry for the base Images
+  // Since the Operator could eventually support openshift, we can handle which image to supply here
+  if (CI == "true") {
+    switch (project.activeSystemsDeploy) {
+      case 'lagoon_openshiftBuildDeploy':
+        buildImage = "172.17.0.1:5000/lagoon/oc-build-deploy-dind:latest"
+        break;
+      default:
+        buildImage = "172.17.0.1:5000/lagoon/kubectl-build-deploy-dind:latest"
+    }
+  } else if (overwriteOCBuildDeployDindImage) {
+    // allow to overwrite the image we use via OVERWRITE_OC_BUILD_DEPLOY_DIND_IMAGE env variable
+    switch (project.activeSystemsDeploy) {
+      case 'lagoon_openshiftBuildDeploy':
+        buildImage = overwriteOCBuildDeployDindImage
+        break;
+    }
+  } else if (overwriteKubectlBuildDeployDindImage) {
+    // allow to overwrite the image we use via OVERWRITE_KUBECTL_BUILD_DEPLOY_DIND_IMAGE env variable
+    switch (project.activeSystemsDeploy) {
+      case 'lagoon_operatorBuildDeploy':
+      case 'lagoon_kubernetesBuildDeploy':
+        buildImage = overwriteKubectlBuildDeployDindImage
+        break;
+    }
+  } else if (lagoonEnvironmentType == 'production') {
+    // we are a production environment, use the amazeeio/ image with our current lagoon version
+    switch (project.activeSystemsDeploy) {
+      case 'lagoon_openshiftBuildDeploy':
+        buildImage = `amazeeio/oc-build-deploy-dind:${lagoonVersion}`
+        break;
+      default:
+        buildImage = `amazeeio/kubectl-build-deploy-dind:${lagoonVersion}`
+    }
+  } else {
+    // we are a development enviornment, use the amazeeiolagoon image with the same branch name
+    buildImage = `amazeeiolagoon/kubectl-build-deploy-dind:${lagoonGitSafeBranch}`
+    switch (project.activeSystemsDeploy) {
+      case 'lagoon_openshiftBuildDeploy':
+        buildImage = `amazeeiolagoon/oc-build-deploy-dind:${lagoonGitSafeBranch}`
+        break;
+      default:
+        buildImage = `amazeeiolagoon/kubectl-build-deploy-dind:${lagoonGitSafeBranch}`
+    }
+  }
+
+  var gitRef = gitSha ? gitSha : `origin/${branchName}`
+
+  const sshKeyBase64 = new Buffer(deployPrivateKey.replace(/\\n/g, "\n")).toString('base64')
+  const envVars = new Buffer(JSON.stringify(environment.addOrUpdateEnvironment.envVariables)).toString('base64')
+  const projectVars = new Buffer(JSON.stringify(projectOpenShift.envVariables)).toString('base64')
+  var buildDeployData: any = {
+    metadata: {
+      name: buildName,
+      namespace: "lagoon",
+    },
+    spec: {
+      build: {
+        type: type,
+        image: buildImage,
+        ci: CI,
+      },
+      ...branchData,
+      ...pullrequestData,
+      ...promoteData,
+      gitReference: gitRef,
+      project: {
+        name: projectName,
+        gitUrl: gitUrl,
+        environment: environmentName,
+        environmentType: environmentType,
+        productionEnvironment: projectProductionEnvironment,
+        standbyEnvironment: projectStandbyEnvironment,
+        subfolder: subfolder,
+        routerPattern: routerPattern,
+        deployTarget: projectTargetName,
+        projectSecret: projectSecret,
+        key: sshKeyBase64,
+        monitoring: {
+          contact: alertContact,
+          statuspageID: uptimeRobotStatusPageId,
+        },
+        variables: {
+          project: projectVars,
+          environment: envVars,
+        },
+      },
+    }
+  };
+  return buildDeployData;
+}
+
 export const createDeployTask = async function(deployData: any) {
   const {
     projectName,
@@ -246,6 +512,7 @@ export const createDeployTask = async function(deployData: any) {
   switch (project.activeSystemsDeploy) {
     case 'lagoon_openshiftBuildDeploy':
     case 'lagoon_kubernetesBuildDeploy':
+    case 'lagoon_operatorBuildDeploy':
       // we want to limit production environments, without making it configurable currently
       var productionEnvironmentsLimit = 2;
 
@@ -313,6 +580,9 @@ export const createDeployTask = async function(deployData: any) {
                 return sendToLagoonTasks('builddeploy-openshift', deployData);
               case 'lagoon_kubernetesBuildDeploy':
                 return sendToLagoonTasks('builddeploy-kubernetes', deployData);
+              case 'lagoon_operatorBuildDeploy':
+                const buildDeployData = await getOperatorBuildData(deployData);
+                return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
               default:
                 throw new UnknownActiveSystem(
                   `Unknown active system '${project.activeSystemsDeploy}' for task 'deploy' in for project ${projectName}`
@@ -327,6 +597,9 @@ export const createDeployTask = async function(deployData: any) {
                 return sendToLagoonTasks('builddeploy-openshift', deployData);
               case 'lagoon_kubernetesBuildDeploy':
                 return sendToLagoonTasks('builddeploy-kubernetes', deployData);
+              case 'lagoon_operatorBuildDeploy':
+                  const buildDeployData = await getOperatorBuildData(deployData);
+                  return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
               default:
                 throw new UnknownActiveSystem(
                   `Unknown active system '${project.activeSystemsDeploy}' for task 'deploy' in for project ${projectName}`
@@ -354,6 +627,9 @@ export const createDeployTask = async function(deployData: any) {
                     'builddeploy-kubernetes',
                     deployData
                   );
+                case 'lagoon_operatorBuildDeploy':
+                    const buildDeployData = await getOperatorBuildData(deployData);
+                    return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
                 default:
                   throw new UnknownActiveSystem(
                     `Unknown active system '${project.activeSystemsDeploy}' for task 'deploy' in for project ${projectName}`
@@ -380,6 +656,9 @@ export const createDeployTask = async function(deployData: any) {
                 return sendToLagoonTasks('builddeploy-openshift', deployData);
               case 'lagoon_kubernetesBuildDeploy':
                 return sendToLagoonTasks('builddeploy-kubernetes', deployData);
+              case 'lagoon_operatorBuildDeploy':
+                  const buildDeployData = await getOperatorBuildData(deployData);
+                  return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
               default:
                 throw new UnknownActiveSystem(
                   `Unknown active system '${
@@ -396,6 +675,9 @@ export const createDeployTask = async function(deployData: any) {
                 return sendToLagoonTasks('builddeploy-openshift', deployData);
               case 'lagoon_kubernetesBuildDeploy':
                 return sendToLagoonTasks('builddeploy-kubernetes', deployData);
+              case 'lagoon_operatorBuildDeploy':
+                  const buildDeployData = await getOperatorBuildData(deployData);
+                  return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
               default:
                 throw new UnknownActiveSystem(
                   `Unknown active system '${
@@ -423,6 +705,9 @@ export const createDeployTask = async function(deployData: any) {
                   return sendToLagoonTasks('builddeploy-openshift', deployData);
                 case 'lagoon_kubernetesBuildDeploy':
                   return sendToLagoonTasks('builddeploy-kubernetes', deployData);
+                case 'lagoon_operatorBuildDeploy':
+                    const buildDeployData = await getOperatorBuildData(deployData);
+                    return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
                 default:
                   throw new UnknownActiveSystem(
                     `Unknown active system '${
@@ -629,6 +914,70 @@ export const createRemoveTask = async function(removeData: any) {
         return sendToLagoonTasks('remove-kubernetes', removeData);
       } else if (type === 'promote') {
         return sendToLagoonTasks('remove-kubernetes', removeData);
+      }
+      break;
+
+    // handle removals using the operator, send the message to our specific target cluster queue
+    case 'lagoon_operatorRemove':
+      const result = await getOpenShiftInfoForProject(projectName);
+      const deployTarget = result.project.openshift.name
+      if (type === 'branch') {
+        // Check to ensure the environment actually exists.
+        let foundEnvironment = false;
+        allEnvironments.project.environments.forEach(function(
+          environment,
+          index
+        ) {
+          if (environment.name === branch) {
+            foundEnvironment = true;
+          }
+        });
+
+        if (!foundEnvironment) {
+          logger.debug(
+            `projectName: ${projectName}, branchName: ${branch}, no environment found.`
+          );
+          throw new NoNeedToRemoveBranch(
+            'Branch environment does not exist, no need to remove anything.'
+          );
+        }
+
+        logger.debug(
+          `projectName: ${projectName}, branchName: ${branchName}. Removing branch environment.`
+        );
+        // use the targetname as the routing key with the action
+        return sendToLagoonTasks(deployTarget+":remove", removeData);
+      } else if (type === 'pullrequest') {
+        // Work out the branch name from the PR number.
+        let branchName = 'pr-' + pullrequestNumber;
+        removeData.branchName = 'pr-' + pullrequestNumber;
+
+        // Check to ensure the environment actually exists.
+        let foundEnvironment = false;
+        allEnvironments.project.environments.forEach(function(
+          environment,
+          index
+        ) {
+          if (environment.name === branchName) {
+            foundEnvironment = true;
+          }
+        });
+
+        if (!foundEnvironment) {
+          logger.debug(
+            `projectName: ${projectName}, pullrequest: ${branchName}, no pullrequest found.`
+          );
+          throw new NoNeedToRemoveBranch(
+            'Pull Request environment does not exist, no need to remove anything.'
+          );
+        }
+
+        logger.debug(
+          `projectName: ${projectName}, pullrequest: ${branchName}. Removing pullrequest environment.`
+        );
+        return sendToLagoonTasks(deployTarget+":remove", removeData);
+      } else if (type === 'promote') {
+        return sendToLagoonTasks(deployTarget+":remove", removeData);
       }
       break;
 
