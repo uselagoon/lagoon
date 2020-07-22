@@ -3,6 +3,11 @@ ARG PHP_IMAGE_VERSION
 ARG ALPINE_VERSION
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/commons as commons
+
+FROM composer:latest as healthcheckbuilder
+
+RUN composer create-project --no-dev amazeeio/healthz-php /healthz-php v0.0.3
+
 FROM php:${PHP_IMAGE_VERSION}-fpm-alpine${ALPINE_VERSION}
 
 LABEL maintainer="amazee.io"
@@ -16,6 +21,10 @@ COPY --from=commons /lagoon /lagoon
 COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
 COPY --from=commons /sbin/tini /sbin/
 COPY --from=commons /home /home
+
+# Copy healthcheck files
+
+COPY --from=healthcheckbuilder /healthz-php /healthz-php
 
 RUN chmod g+w /etc/passwd \
     && mkdir -p /home
@@ -39,7 +48,7 @@ COPY ssmtp.conf /etc/ssmtp/ssmtp.conf
 # New Relic PHP Agent.
 # @see https://docs.newrelic.com/docs/release-notes/agent-release-notes/php-release-notes/
 # @see https://docs.newrelic.com/docs/agents/php-agent/getting-started/php-agent-compatibility-requirements
-ENV NEWRELIC_VERSION=9.10.1.263
+ENV NEWRELIC_VERSION=9.11.0.267
 
 RUN apk add --no-cache curl --repository http://dl-cdn.alpinelinux.org/alpine/edge/main/
 
@@ -61,6 +70,8 @@ RUN apk add --no-cache fcgi \
         # for webp
         libwebp-dev \
         postgresql-dev \
+        # for yaml
+        yaml-dev \
         # for imagemagick
         imagemagick \
         imagemagick-libs \
@@ -68,6 +79,7 @@ RUN apk add --no-cache fcgi \
     && apk add --no-cache --virtual .phpize-deps $PHPIZE_DEPS \
     && yes '' | pecl install -f apcu \
     && yes '' | pecl install -f xdebug \
+    && yes '' | pecl install -f yaml \
     && yes '' | pecl install -f redis-4.3.0 \
     && yes '' | pecl install -f imagick \
     && docker-php-ext-enable apcu redis xdebug imagick \
@@ -83,6 +95,7 @@ RUN apk add --no-cache fcgi \
     && sed -i '1s/^/;Intentionally disabled. Enable via setting env variable XDEBUG_ENABLE to true\n;/' /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
     && rm -rf /var/cache/apk/* /tmp/pear/ \
     && apk del .phpize-deps \
+    && echo "extension=yaml.so" > /usr/local/etc/php/conf.d/yaml.ini \
     && mkdir -p /tmp/newrelic && cd /tmp/newrelic \
     && wget https://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}/newrelic-php5-${NEWRELIC_VERSION}-linux-musl.tar.gz \
     && gzip -dc newrelic-php5-${NEWRELIC_VERSION}-linux-musl.tar.gz | tar --strip-components=1 -xf - \

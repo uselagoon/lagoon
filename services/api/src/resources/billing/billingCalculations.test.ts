@@ -440,6 +440,223 @@ const mockData: IMockDataType = {
         }
       ]
     },
+    {
+      name: 'RC',
+      expectations: {
+        hits: 87.78,
+        storage: 7.69,
+        prod: 30.02,
+        dev: 20.02
+      },
+      currency: CURRENCIES.CHF,
+      projects: [
+        {
+          name: "srf_ch",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 59937,
+            storageDays: 454.666423,
+            prodHours: 720,
+            devHours: 720,
+        },
+        {
+          name: "1cms-zh",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 3600,
+          storageDays: 56.651285,
+          prodHours: 720,
+          devHours: 1440,
+        },
+        {
+          name: "1cms-bl",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 720,
+          storageDays: 0.005496,
+          prodHours: 720,
+          devHours: 720,
+        },
+        {
+          name: "1cms-lu",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 0,
+          storageDays: 0.0049640000000000005,
+          prodHours: 720,
+          devHours: 720,
+        },
+        {
+          name: "1cms-zg",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 0,
+            storageDays: 0.0016020000000000001,
+            prodHours: 720,
+            devHours: 720,
+
+        },
+        {
+          name: "1cms-sg",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 0,
+            storageDays: 0.0016020000000000001,
+            prodHours: 720,
+            devHours: 720,
+
+        },
+        {
+          name: "1cms-tg",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 0,
+            storageDays: 0.0049640000000000005,
+            prodHours: 720,
+            devHours: 720,
+
+        },
+        {
+          name: "1cms-uw",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 0,
+            storageDays: 0.001588,
+            prodHours: 720,
+            devHours: 720,
+
+        },
+        {
+          name: "1cms-ag",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 0,
+            storageDays: 0.003363,
+            prodHours: 720,
+            devHours: 720,
+
+        },
+        {
+          name: "1cms-ge",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 0,
+            storageDays: 0.004966,
+            prodHours: 720,
+            devHours: 720,
+
+        },
+        {
+          name: "1cms-ju",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 0,
+            storageDays: 0.004966,
+            prodHours: 720,
+            devHours: 720,
+
+        },
+        {
+          name: "1cms-ti",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 0,
+            storageDays: 0.0022919999999999998,
+            prodHours: 720,
+            devHours: 720,
+
+        },
+        {
+          name: "1cms-gr",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 0,
+            storageDays: 0.004966,
+            prodHours: 720,
+            devHours: 720,
+
+        },
+        {
+          name: "1cms-hs",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 0,
+            storageDays: 0.001588,
+            prodHours: 720,
+            devHours: 720,
+
+        },
+        {
+          name: "1cms-lt",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 0,
+            storageDays: 0.004966,
+            prodHours: 720,
+            devHours: 720,
+
+        },
+        {
+          name: "1cms-so",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 0,
+            storageDays: 0.004067,
+            prodHours: 720,
+            devHours: 720,
+
+        },
+        {
+          name: "1cms-smsv",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 360921,
+            storageDays: 19.414938,
+            prodHours: 720,
+            devHours: 720,
+
+        },
+        {
+          name: "1cms-sh",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 0,
+            storageDays: 0.001588,
+            prodHours: 720,
+            devHours: 720,
+
+        },
+        {
+          name: "1cms-sz",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 0,
+            storageDays: 0.004951,
+            prodHours: 720,
+            devHours: 720,
+
+        }
+      ]
+    }
   ],
 };
 
@@ -1232,7 +1449,7 @@ describe('Billing Calculations #only-billing-calculations', () => {
 
       const lastMonth = moment().subtract(1, 'M').format('YYYY-MM').toString();
       const nextMonth = moment().add(1, 'M').format('YYYY-MM').toString();
-      const nextYear = moment().add(1, "year").format('YYYY-MM').toString();
+      const nextYear = moment().add(1, 'year').format('YYYY-MM').toString();
       const currMonth = moment().format('YYYY-MM').toString();
 
       // Act

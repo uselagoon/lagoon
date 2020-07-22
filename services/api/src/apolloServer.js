@@ -14,6 +14,7 @@ const {
   keycloakHasPermission
 } = require('./util/auth');
 const { getSqlClient } = require('./clients/sqlClient');
+const redisClient = require('./clients/redisClient');
 const { getKeycloakAdminClient } = require('./clients/keycloak-admin');
 const logger = require('./logger');
 const typeDefs = require('./typeDefs');
@@ -31,7 +32,6 @@ const apolloServer = new ApolloServer({
   schema,
   debug: process.env.NODE_ENV === 'development',
   introspection: true,
-  tracing: true,
   subscriptions: {
     onConnect: async (connectionParams, webSocket) => {
       const token = R.prop('authToken', connectionParams);
@@ -83,8 +83,8 @@ const apolloServer = new ApolloServer({
         keycloakGrant: grant,
         requestCache,
         models: {
-          UserModel: User.User({ keycloakAdminClient }),
-          GroupModel: Group.Group({ keycloakAdminClient }),
+          UserModel: User.User({ keycloakAdminClient, redisClient }),
+          GroupModel: Group.Group({ keycloakAdminClient, sqlClient, redisClient }),
           BillingModel: BillingModel.BillingModel({
             keycloakAdminClient,
             sqlClient
@@ -138,8 +138,8 @@ const apolloServer = new ApolloServer({
         keycloakGrant: req.kauth ? req.kauth.grant : null,
         requestCache,
         models: {
-          UserModel: User.User({ keycloakAdminClient }),
-          GroupModel: Group.Group({ keycloakAdminClient, sqlClient }),
+          UserModel: User.User({ keycloakAdminClient, redisClient }),
+          GroupModel: Group.Group({ keycloakAdminClient, sqlClient, redisClient }),
           BillingModel: BillingModel.BillingModel({
             keycloakAdminClient,
             sqlClient
@@ -210,17 +210,6 @@ const apolloServer = new ApolloServer({
         return {
           willSendResponse: data => {
             const { response } = data;
-            const traceDuration = R.pathSatisfies(
-              R.is(Number),
-              ['extensions', 'tracing', 'duration'],
-              response
-            )
-              ? `Total Duration (ms): ${R.path(
-                  ['extensions', 'tracing', 'duration'],
-                  response
-                ) / 1000000}`
-              : 'No trace data';
-            newrelic.addCustomAttribute('totalDuration', traceDuration);
             newrelic.addCustomAttribute(
               'errorCount',
               R.pipe(

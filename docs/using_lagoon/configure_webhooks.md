@@ -7,7 +7,7 @@ Your Lagoon administrator will also give you the route to the webhook-handler. Y
 - [Bitbucket](#bitbucket)
 
 !!!hint
-    If you are an amazee.io customer, the route to the webhook-handler is: [`https://hooks.lagoon.amazeeio.cloud`](https://hooks.lagoon.amazeeio.cloud).
+    If you are an amazee.io customer, the route to the webhook-handler is: [`https://webhook.amazeeio.cloud`](https://hooks.lagoon.amazeeio.cloud).
 
 !!!warning
     Managing the following settings will require you to have a high level of access to these repositories, which will be controlled by your organization. If you cannot access these settings, please contact your systems administrator or the appropriate person within your organization .

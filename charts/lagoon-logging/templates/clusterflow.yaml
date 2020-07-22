@@ -8,11 +8,12 @@ spec:
   # match entries are considered in order
   # the empty "select: {}" indicates all namespaces/labels
   match:
-  {{- with .Values.excludeNamespaces }}
   - exclude:
       namespaces:
+      - {{ .Release.Namespace }}
+      {{- with .Values.excludeNamespaces }}
         {{- toYaml . | nindent 6 }}
-  {{- end }}
+      {{- end }}
   {{- with .Values.selectNamespaces }}
   - select:
       namespaces:

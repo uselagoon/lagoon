@@ -25,7 +25,7 @@ Environment variables defined in Redis base image. See also [https://raw.githubu
 
 | Environment Variable | Default | Description |
 | :--- | :--- | :--- |
-| `LOGLEVEL` | notice | Define the level of logs |
 | `DATABASES` | -1 | Default number of databases created at startup |
+| `LOGLEVEL` | notice | Define the level of logs |
 | `MAXMEMORY` | 100mb | Maximum amount of memory |
-
+| `REDIS_PASSWORD` | disabled | Enables [authentication feature](https://redis.io/topics/security#authentication-feature) |

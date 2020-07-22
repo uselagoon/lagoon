@@ -39,6 +39,8 @@ securityContext: {}
 service:
   type: ClusterIP
   port: 24224
+  # Annotations to add to the service
+  annotations: {}
 
 ingress:
   enabled: false
@@ -60,7 +62,7 @@ resources:
 
 autoscaling:
   enabled: true
-  minReplicas: 1
+  minReplicas: 2
   maxReplicas: 4
   targetCPUUtilizationPercentage: 80
 
