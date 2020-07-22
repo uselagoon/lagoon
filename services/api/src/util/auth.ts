@@ -284,11 +284,12 @@ export const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) 
     }
 
     requestCache.set(cacheKey, false);
-    try {
-      await saveRedisCache(resourceScope, 0);
-    } catch (err) {
-      logger.warn(`Could not save authz cache: ${err.message}`);
-    }
+    // TODO: Re-enable when we can distinguish between error and access denied
+    // try {
+    //   await saveRedisCache(resourceScope, 0);
+    // } catch (err) {
+    //   logger.warn(`Could not save authz cache: ${err.message}`);
+    // }
     throw new KeycloakUnauthorizedError(`Unauthorized: You don't have permission to "${scope}" on "${resource}".`);
   };
 };
