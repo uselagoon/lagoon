@@ -23,8 +23,14 @@
     "sync:harbor:projects": "node dist/migrations/2-harbor/harborSync.js"
   },
   "nodemonConfig": {
-    "ignore": ["*.test.js", "../../node-packages/commons/dist/"],
-    "watch": ["src", "../../node-packages/"],
+    "ignore": [
+      "*.test.js",
+      "../../node-packages/commons/dist/"
+    ],
+    "watch": [
+      "src",
+      "../../node-packages/"
+    ],
     "ext": "js,ts,json",
     "exec": "yarn build --incremental && yarn start --inspect=0.0.0.0:9229"
   },
@@ -33,7 +39,8 @@
   "license": "MIT",
   "dependencies": {
     "@lagoon/commons": "4.0.0",
-    "apollo-server-express": "^2.2.5",
+    "@types/redis": "^2.8.22",
+    "apollo-server-express": "^2.14.2",
     "aws-sdk": "^2.378.0",
     "body-parser": "^1.18.2",
     "camelcase-keys": "^4.2.0",
@@ -60,8 +67,10 @@
     "mariasql": "^0.2.6",
     "moment": "^2.24.0",
     "morgan": "^1.9.0",
+    "newrelic": "^6.9.0",
     "node-cache": "^4.2.1",
     "ramda": "^0.25.0",
+    "redis": "^3.0.2",
     "snakecase-keys": "^1.2.0",
     "sshpk": "^1.14.2",
     "validator": "^10.8.0",

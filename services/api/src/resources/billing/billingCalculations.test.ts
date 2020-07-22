@@ -440,6 +440,223 @@ const mockData: IMockDataType = {
         }
       ]
     },
+    {
+      name: 'RC',
+      expectations: {
+        hits: 87.78,
+        storage: 7.69,
+        prod: 30.02,
+        dev: 20.02
+      },
+      currency: CURRENCIES.CHF,
+      projects: [
+        {
+          name: "srf_ch",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 59937,
+            storageDays: 454.666423,
+            prodHours: 720,
+            devHours: 720,
+        },
+        {
+          name: "1cms-zh",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 3600,
+          storageDays: 56.651285,
+          prodHours: 720,
+          devHours: 1440,
+        },
+        {
+          name: "1cms-bl",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 720,
+          storageDays: 0.005496,
+          prodHours: 720,
+          devHours: 720,
+        },
+        {
+          name: "1cms-lu",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 0,
+          storageDays: 0.0049640000000000005,
+          prodHours: 720,
+          devHours: 720,
+        },
+        {
+          name: "1cms-zg",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 0,
+            storageDays: 0.0016020000000000001,
+            prodHours: 720,
+            devHours: 720,
+
+        },
+        {
+          name: "1cms-sg",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 0,
+            storageDays: 0.0016020000000000001,
+            prodHours: 720,
+            devHours: 720,
+
+        },
+        {
+          name: "1cms-tg",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 0,
+            storageDays: 0.0049640000000000005,
+            prodHours: 720,
+            devHours: 720,
+
+        },
+        {
+          name: "1cms-uw",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 0,
+            storageDays: 0.001588,
+            prodHours: 720,
+            devHours: 720,
+
+        },
+        {
+          name: "1cms-ag",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 0,
+            storageDays: 0.003363,
+            prodHours: 720,
+            devHours: 720,
+
+        },
+        {
+          name: "1cms-ge",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 0,
+            storageDays: 0.004966,
+            prodHours: 720,
+            devHours: 720,
+
+        },
+        {
+          name: "1cms-ju",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 0,
+            storageDays: 0.004966,
+            prodHours: 720,
+            devHours: 720,
+
+        },
+        {
+          name: "1cms-ti",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 0,
+            storageDays: 0.0022919999999999998,
+            prodHours: 720,
+            devHours: 720,
+
+        },
+        {
+          name: "1cms-gr",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 0,
+            storageDays: 0.004966,
+            prodHours: 720,
+            devHours: 720,
+
+        },
+        {
+          name: "1cms-hs",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 0,
+            storageDays: 0.001588,
+            prodHours: 720,
+            devHours: 720,
+
+        },
+        {
+          name: "1cms-lt",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 0,
+            storageDays: 0.004966,
+            prodHours: 720,
+            devHours: 720,
+
+        },
+        {
+          name: "1cms-so",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 0,
+            storageDays: 0.004067,
+            prodHours: 720,
+            devHours: 720,
+
+        },
+        {
+          name: "1cms-smsv",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 360921,
+            storageDays: 19.414938,
+            prodHours: 720,
+            devHours: 720,
+
+        },
+        {
+          name: "1cms-sh",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 0,
+            storageDays: 0.001588,
+            prodHours: 720,
+            devHours: 720,
+
+        },
+        {
+          name: "1cms-sz",
+          availability: "POLYSITE",
+          month: 6,
+          year: 2020,
+          hits: 0,
+            storageDays: 0.004951,
+            prodHours: 720,
+            devHours: 720,
+
+        }
+      ]
+    }
   ],
 };
 
@@ -764,7 +981,7 @@ describe('Billing Calculations #only-billing-calculations', () => {
     });
   });
 
-  describe('Billing Cost Modifiers', () => {
+  describe('Billing Cost Modifiers #modifiers', () => {
     beforeAll(async () => {
       await initializeGraphQL();
     });
@@ -934,6 +1151,90 @@ describe('Billing Calculations #only-billing-calculations', () => {
           dev: 1.67
         },
         total: 2083.46 // 1041.73 before extra
+      };
+
+      expect(result).toMatchObject(expected);
+    });
+
+    it('Total Costs with `max` modifier. (100). #modifiers, #max', () => {
+      // Arrange
+      const projects = [
+        {
+          availability: 'STANDARD',
+          month: '11',
+          year: '2019',
+          hits: 1000000,
+          storageDays: 10000,
+          prodHours: 720,
+          devHours: 1500
+        },
+        {
+          availability: 'STANDARD',
+          month: '11',
+          year: '2019',
+          hits: 1000000,
+          storageDays: 10000,
+          prodHours: 720,
+          devHours: 1500
+        }
+      ];
+
+      // Act
+      const result = getProjectsCosts('USD', projects, [
+        { max: 100 }
+      ]);
+
+      // Assert
+      const expected = {
+        hitCost: 324,
+        storageCost: 656.01,
+        environmentCost: {
+          prod: 60.05,
+          dev: 1.67
+        },
+        total: 100 // 1041.73 before extra
+      };
+
+      expect(result).toMatchObject(expected);
+    });
+
+    it('Total Costs with `min` modifier. (1000). #modifiers, #min', () => {
+      // Arrange
+      const projects = [
+        {
+          availability: 'STANDARD',
+          month: '06',
+          year: '2020',
+          hits: 1,
+          storageDays: 1,
+          prodHours: 0,
+          devHours: 0
+        },
+        {
+          availability: 'STANDARD',
+          month: '06',
+          year: '2020',
+          hits: 0,
+          storageDays: 1,
+          prodHours: 0,
+          devHours: 0
+        }
+      ];
+
+      // Act
+      const result = getProjectsCosts('USD', projects, [
+        { min: 1000 }
+      ]);
+
+      // Assert
+      const expected = {
+        hitCost: 69,
+        storageCost: 0,
+        environmentCost: {
+          prod: 0,
+          dev: 0
+        },
+        total: 1000 // 1041.73 before extra
       };
 
       expect(result).toMatchObject(expected);
@@ -1148,7 +1449,7 @@ describe('Billing Calculations #only-billing-calculations', () => {
 
       const lastMonth = moment().subtract(1, 'M').format('YYYY-MM').toString();
       const nextMonth = moment().add(1, 'M').format('YYYY-MM').toString();
-      const nextYear = moment().add(1, "year").format('YYYY-MM').toString();
+      const nextYear = moment().add(1, 'year').format('YYYY-MM').toString();
       const currMonth = moment().format('YYYY-MM').toString();
 
       // Act
@@ -1176,9 +1477,6 @@ describe('Billing Calculations #only-billing-calculations', () => {
       expect(currMonthBillingGroupModifiers.length).toBe(2);
       expect(nextYearBillingGroupModifiers.length).toBe(1);
     });
-
-
-
 
     it('Given a single, or multiple, Billing modifiers that would generage a negative total, ensure it does not go below 0 (zero). #belowZero', async() => {
 

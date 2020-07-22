@@ -34,28 +34,21 @@ const Invoice = ({ cost, language }) => {
     setLang(value);
   }
 
-  
   return (
     <div className="invoice">
-
-      
-<form className="langSwitcher">
-  <h2>Invoice</h2>
-    <div>
-      <input type="radio" id={LANGS.ENGLISH} value={LANGS.ENGLISH}
-      checked={lang === LANGS.ENGLISH} onChange={handleChange}/>
-      <label htmlFor={LANGS.ENGLISH}>{LANGS.ENGLISH}</label>
-    </div>
-    <div>
-      <input type="radio" id={LANGS.GERMAN} value={LANGS.GERMAN}
-      checked={lang === LANGS.GERMAN} onChange={handleChange}/>
-      <label htmlFor={LANGS.GERMAN}>{LANGS.GERMAN}</label>
-    </div>
-</form>
-
-
-
-      
+      <form className="langSwitcher">
+        <h2>Invoice</h2>
+          <div>
+            <input type="radio" id={LANGS.ENGLISH} value={LANGS.ENGLISH}
+            checked={lang === LANGS.ENGLISH} onChange={handleChange}/>
+            <label htmlFor={LANGS.ENGLISH}>{LANGS.ENGLISH}</label>
+          </div>
+          <div>
+            <input type="radio" id={LANGS.GERMAN} value={LANGS.GERMAN}
+            checked={lang === LANGS.GERMAN} onChange={handleChange}/>
+            <label htmlFor={LANGS.GERMAN}>{LANGS.GERMAN}</label>
+          </div>
+      </form>
 
       <div className="data-table">
         <div className="data-heading">
@@ -64,36 +57,40 @@ const Invoice = ({ cost, language }) => {
           <div className="data-head">{ lang === LANGS.ENGLISH ? `Unit Price` : `Einzelpreis` }</div>
           <div className="data-head">{ lang === LANGS.ENGLISH ? `Amount ${cost.currency}` : `Preis in ${cost.currency}` }</div>
         </div>
-        
+
           <div className="data-row prod">
             <div className="data-cell description">
-              { lang === LANGS.ENGLISH ? 
               <div>
-                Monthly Hosting Fee for { cost.availability } Availability Environment<br/>
-                PHP CMS Bundle: {currencyChar} {cost.environmentCostDescription.prod.unitPrice} per h<br/>
+
+                { lang === LANGS.ENGLISH ?
+                <div>
+                  Monthly Hosting Fee for { cost.availability } Availability Environment<br/>
+                  PHP CMS Bundle: {currencyChar} {cost.environmentCostDescription.prod.unitPrice} per h<br/>
+                </div>
+                :
+                <div>
+                  Monatliche Hostinggebühr im { cost.availability } Availability Environment<br />
+                  PHP CMS Bundle: {currencyChar} {cost.environmentCostDescription.prod.unitPrice} pro Stunde<br/>
+                </div>
+                }
               </div>
-              : 
-              <div>
-                Monatliche Hostinggebühr im { cost.availability } Availability Environment<br />
-                PHP CMS Bundle: {currencyChar} {cost.environmentCostDescription.prod.unitPrice} pro Stunde<br/>
-              </div>
-              }
 
               <div className="projects">
+                Production Environment{cost.projects.count > 1 && 's'}:
                 {cost.environmentCostDescription.prod.description.projects.map(({name, hours}, index) => (<div key={`prod-${name}-${hours}-${index}`}><span>{name}</span> - <span>{hours} { lang === LANGS.ENGLISH ? `h` : `Std.` }</span></div>)) }
               </div>
-              
-              { lang === LANGS.ENGLISH ? 
+
+              { lang === LANGS.ENGLISH ?
               <div>
-                Total hours: {cost.environmentCostDescription.prod.quantity.toFixed(2).toLocaleString()} h
+                Total hours: {cost.environmentCostDescription.prod.quantity} h
               </div>
               :
               <div>
-                Total: {cost.environmentCostDescription.prod.quantity.toFixed(2).toLocaleString()} Std.
+                Total: {cost.environmentCostDescription.prod.quantity} Std.
               </div>
               }
             </div>
-            <div className="data-cell qty">{cost.environmentCostDescription.prod.quantity.toFixed(2).toLocaleString()}</div>
+            <div className="data-cell qty">{ cost.availability === 'POLYSITE' && cost.projects.length > 10 ? `${Math.max(Math.round(cost.projects.length / 10), 1)} x ` : '' }{cost.environmentCostDescription.prod.quantity.toFixed(2).toLocaleString()}</div>
             <div className="data-cell unitPrice">{cost.environmentCostDescription.prod.unitPrice}</div>
             <div className="data-cell amt">{cost.environmentCost.prod.toFixed(2)}</div>
           </div>
@@ -101,30 +98,31 @@ const Invoice = ({ cost, language }) => {
           <div className="data-row hits">
             <div className="data-cell description">
 
-              { lang === LANGS.ENGLISH ? 
+              { lang === LANGS.ENGLISH ?
                 <div>
                   Monthly Hits Fee for { cost.availability } Availability Environment<br/>
                 </div>
-                : 
+                :
                 <div>
                   Monatliche Gebühren für Hits im { cost.availability } Availability Environment
                 </div>
               }
 
               <div className="projects">
+                { lang === LANGS.ENGLISH ? `Hits per Production Environment:` : `Hits pro Production Environment:` }
                 {cost.hitCostDescription.description.projects.map(({name, hits}, index) => (<div  key={`${name}-${hits}-${index}`}><span>{name}</span> - <span>{hits.toLocaleString()}</span></div>)) }
               </div>
 
-              { lang === LANGS.ENGLISH ? 
+              { lang === LANGS.ENGLISH ?
                 <div>
                   Combined Hits: {cost.hitCostDescription.description.total.toLocaleString()}
                 </div>
-                : 
+                :
                 <div>
                   Hits Total: {cost.hitCostDescription.description.total.toLocaleString()}
                 </div>
               }
-              
+
             </div>
             <div className="data-cell qty">1.00</div>
             <div className="data-cell unitPrice">{cost.hitCost.toFixed(2)}</div>
@@ -134,15 +132,16 @@ const Invoice = ({ cost, language }) => {
           <div className="data-row storage">
             <div className="data-cell description">
 
-              { lang === LANGS.ENGLISH ? 
+              { lang === LANGS.ENGLISH ?
                 <div>
                   Additional Storage Fee<br/>
-                  Storage per GB/day: {currencyChar} {cost.storageCostDescription.unitPrice}<br/>
+                  Storage per GB/day: {currencyChar} {cost.storageCostDescription.unitPrice}<br/><br/>
+                  Average Storage per Environment per day:
                 </div>
-                : 
+                :
                 <div>
                   Zusätzliche Storagegebühren<br/>
-                  Storage GB/Tag: {currencyChar} {cost.storageCostDescription.unitPrice}<br/>
+                  Storage GB/Tag: {currencyChar} {cost.storageCostDescription.unitPrice}<br/><br/>
                   Durchschnittlicher Storage pro Environment pro Tag:
                 </div>
               }
@@ -151,7 +150,7 @@ const Invoice = ({ cost, language }) => {
                 {cost.storageCostDescription.description.projects.map(({name, storage}, index) => (<div  key={`${name}-${storage}-${index}`}><span>{name}</span> - <span>{storage.toFixed(2)} GB</span></div>)) }
               </div>
 
-              { lang === LANGS.ENGLISH ? 
+              { lang === LANGS.ENGLISH ?
                 <div>
                   Total Storage: {cost.storageCostDescription.quantity.toFixed(2).toLocaleString()} GB <br/>
                   Included Storage: {cost.storageCostDescription.description.included.toFixed(2).toLocaleString()} GB <br/>
@@ -165,7 +164,7 @@ const Invoice = ({ cost, language }) => {
                 </div>
               }
             </div>
-            <div className="data-cell qty">{cost.storageCostDescription.description.additional.toFixed(2).toLocaleString()}</div>
+            <div className="data-cell qty">{cost.storageCostDescription.description.qty.toFixed(2).toLocaleString()}</div>
             <div className="data-cell unitPrice">{cost.storageCostDescription.unitPrice}</div>
             <div className="data-cell amt">{cost.storageCost.toFixed(2)}</div>
           </div>
@@ -173,7 +172,7 @@ const Invoice = ({ cost, language }) => {
           <div className="data-row dev">
             <div className="data-cell description">
 
-            { lang === LANGS.ENGLISH ? 
+            { lang === LANGS.ENGLISH ?
                 <div>
                   Additional Development Environments<br/>
                   DEV Environment: {currencyChar} {cost.environmentCostDescription.dev.unitPrice} per hour<br/>
@@ -188,22 +187,24 @@ const Invoice = ({ cost, language }) => {
               <div className="projects">
                 {
                   cost.environmentCostDescription.dev.description.projects.map(({name, hours, additional, included}, index) => (
-                    <div key={`dev-${name}-${hours}-${index}`} className="devProject">
-                      <span>{name}</span> - <span>{hours} { lang === LANGS.ENGLISH ? `h` : `Std.` }</span>
-                      <div>Included hours - {included} { lang === LANGS.ENGLISH ? `h` : `Std.` }</div>
-                      { additional !== 0 && <div>{ lang === LANGS.ENGLISH ? `Additional hours` : `Zusätzliche Stunden` } - {additional} { lang === LANGS.ENGLISH ? `h` : `Std.` }</div> }
-                    </div>)
-                  ) 
+                      additional > 0 &&
+                      <div key={`dev-${name}-${hours}-${index}`} className="devProject">
+                        <span>{name}</span> - <span>{hours} { lang === LANGS.ENGLISH ? `h` : `Std.` }</span>
+                        <div>{ lang === LANGS.ENGLISH ? `Included hours` : `Zusätzliche Stunden` } - {included} { lang === LANGS.ENGLISH ? `h` : `Std.` }</div>
+                        { additional !== 0 && <div>{ lang === LANGS.ENGLISH ? `Additional hours` : `Zusätzliche Stunden` } - {additional} { lang === LANGS.ENGLISH ? `h` : `Std.` }</div> }
+                      </div>
+                    )
+                  )
                 }
               </div>
 
-              { lang === LANGS.ENGLISH ? 
+              { lang === LANGS.ENGLISH ?
                 <div>
-                  Total additional hours: {cost.environmentCostDescription.dev.quantity.toFixed(2).toLocaleString()} h
+                  Total additional hours: {cost.environmentCostDescription.dev.quantity} h
                 </div>
                 :
                 <div>
-                  Total: {cost.environmentCostDescription.dev.quantity.toFixed(2).toLocaleString()} Std.
+                  Total: {cost.environmentCostDescription.dev.quantity} Std.
                 </div>
               }
 
@@ -223,23 +224,27 @@ const Invoice = ({ cost, language }) => {
             </div>
           }
 
-          { 
+          {
             cost.modifiers.map(
-              ({ id, discountFixed, discountPercentage, extraFixed, extraPercentage, customerComments }, index) => (
+              ({ id, discountFixed, discountPercentage, extraFixed, extraPercentage, min, max, customerComments }, index) => (
                 <div key={`${id}-${index}`} className="data-row modifiers">
                   <div className="data-cell description">{customerComments}</div>
                   <div className="data-cell qty">1.00</div>
                   <div className="data-cell unitPrice">
-                    {discountFixed !== 0 ? (`-${discountFixed.toFixed(2)}`) : ''}
-                    {discountPercentage !== 0 ? (`-${discountPercentage.toFixed(2)}%`) : ''}
-                    {extraFixed !== 0 ? (`${extraFixed.toFixed(2)}`) : ''}
-                    {extraPercentage !== 0 ? (`${extraPercentage.toFixed(2)}%`) : ''}
+                    {discountFixed && discountFixed !== 0 ? (`-${discountFixed.toFixed(2)}`) : ''}
+                    {discountPercentage && discountPercentage !== 0 ? (`-${discountPercentage.toFixed(2)}%`) : ''}
+                    {extraFixed && extraFixed !== 0 ? (`${extraFixed.toFixed(2)}`) : ''}
+                    {extraPercentage && extraPercentage !== 0 ? (`${extraPercentage.toFixed(2)}%`) : ''}
+                    {min && min !== 0 ? (`${min.toFixed(2)}`) : ''}
+                    {max && max !== 0 ? (`${max.toFixed(2)}`) : ''}
                   </div>
                   <div className="data-cell amt">
-                    {discountFixed !== 0 ? (`-${discountFixed.toFixed(2)}`) : ''}
-                    {discountPercentage !== 0 ? (`-${discountPercentage.toFixed(2)}%`) : ''}
-                    {extraFixed !== 0 ? (`${extraFixed.toFixed(2)}`) : ''}
-                    {extraPercentage !== 0 ? (`${extraPercentage.toFixed(2)}%`) : ''}
+                    {discountFixed && discountFixed !== 0 ? (`-${discountFixed.toFixed(2)}`) : ''}
+                    {discountPercentage && discountPercentage !== 0 && cost.modifiersDescription[index].amt ? (`-${cost.modifiersDescription[index].amt.toFixed(2)}`) : ''}
+                    {extraFixed && extraFixed !== 0 ? (`${extraFixed.toFixed(2)}`) : ''}
+                    {extraPercentage && extraPercentage !== 0 && cost.modifiersDescription[index].amt?  (`+${cost.modifiersDescription[index].amt.toFixed(2)}`) : ''}
+                    {min && min !== 0 ? (`${min.toFixed(2)}`) : ''}
+                    {max && max !== 0 ? (`${max.toFixed(2)}`) : ''}
                   </div>
                 </div>
               )
@@ -250,9 +255,9 @@ const Invoice = ({ cost, language }) => {
             <div className="data-cell">Total</div>
             <div className="data-cell"></div>
             <div className="data-cell"></div>
-            <div className="data-cell">{cost.total.toFixed(2)}</div>
+            <div className="data-cell total">{cost.total.toFixed(2)}</div>
           </div>
-        
+
         </div>
 
       <style jsx>{`
@@ -309,14 +314,18 @@ const Invoice = ({ cost, language }) => {
             text-align: left;
             padding: 15px;
             width: 100%;
+
           }
 
-
+          .qty, .unitPrice, .amt, .data-cell.total {
+            text-align: right;
+            padding-right: 20px;
+          }
           .name {
             font-weight: bold;
             margin-left: 15px;
             white-space: nowrap;
-          }  
+          }
 
         }
       `}</style>

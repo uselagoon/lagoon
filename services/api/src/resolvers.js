@@ -2,6 +2,20 @@ const GraphQLDate = require('graphql-iso-date');
 const GraphQLJSON = require('graphql-type-json');
 
 const {
+  getProblemsByEnvironmentId,
+  addProblem,
+  deleteProblem,
+  deleteProblemsFromSource,
+  getProblemHarborScanMatches,
+  addProblemHarborScanMatch,
+  deleteProblemHarborScanMatch,
+} = require('./resources/problem/resolvers');
+
+const {
+  SeverityScoreType
+} = require('./resources/problem/types');
+
+const {
   getLagoonVersion,
 } = require('./resources/lagoon/resolvers');
 
@@ -226,6 +240,7 @@ const resolvers = {
     backups: getBackupsByEnvironmentId,
     envVariables: getEnvVarsByEnvironmentId,
     services: getEnvironmentServicesByEnvironmentId,
+    problems: getProblemsByEnvironmentId,
   },
   Deployment: {
     environment: getEnvironmentByDeploymentId,
@@ -279,9 +294,15 @@ const resolvers = {
     billingGroupCost: getBillingGroupCost,
     allBillingGroupsCost: getAllBillingGroupsCost,
     allBillingModifiers: getBillingModifiers,
+    allProblemHarborScanMatchers: getProblemHarborScanMatches,
     projectsByMetadata: getProjectsByMetadata
   },
   Mutation: {
+    addProblem,
+    addProblemHarborScanMatch,
+    deleteProblem,
+    deleteProblemsFromSource,
+    deleteProblemHarborScanMatch,
     addOrUpdateEnvironment,
     updateEnvironment,
     deleteEnvironment,
@@ -381,6 +402,7 @@ const resolvers = {
   },
   Date: GraphQLDate,
   JSON: GraphQLJSON,
+  SeverityScore: SeverityScoreType,
 };
 
 module.exports = resolvers;

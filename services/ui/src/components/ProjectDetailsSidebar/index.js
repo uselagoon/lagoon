@@ -4,14 +4,11 @@ import { CopyToClipboard } from 'react-copy-to-clipboard';
 import moment from 'moment';
 import giturlparse from 'git-url-parse';
 import Environments from 'components/Environments';
-// @TODO: add this once the logic exists
-// import ActiveStandbyConfirm from 'components/ActiveStandbyConfirm';
 import { bp, color, fontSize } from 'lib/variables';
 
 import { Mutation } from 'react-apollo';
 
 import ProjectByNameQuery from 'lib/query/ProjectByName';
-import SwitchActiveStandbyMutation from 'lib/mutation/SwitchActiveStandby';
 
 const Project = ({ project }) => {
   const [copied, setCopied] = useState(false);
@@ -93,49 +90,6 @@ const Project = ({ project }) => {
           </div>
         </div>
       </div>
-      {/*
-      @TODO: add this once the logic exists
-      {project.productionEnvironment && project.standbyProductionEnvironment
-        ? <div className="field-wrapper activeEnvironment">
-            <div className="inner">
-              <label>Active Environment</label>
-              <div className="field">
-                <Mutation
-                  mutation={SwitchActiveStandbyMutation}
-                  refetchQueries={[
-                    { query: ProjectByNameQuery, variables: { name: project.name } }
-                  ]}
-                >
-                  {(switchActiveStandby, { loading, called, error, data }) => {
-                    const switchActiveBranch = () => {
-                      const input = {
-                        project:{
-                          name: project.name
-                        }
-                      }
-
-                      switchActiveStandby({ variables: { input } });
-                      Router.push(`/projects/${productionEnvironment.project.name}/${productionEnvironment.openshiftProjectName}/tasks`)
-                    }
-
-                    if (!error && called && loading) {
-                      return <div>Switching Standby Environment to Active...</div>;
-                    }
-
-                    return (
-                      <ActiveStandbyConfirm
-                        activeEnvironment={project.productionEnvironment}
-                        standbyEnvironment={project.standbyProductionEnvironment}
-                        onProceed={switchActiveBranch}
-                      />
-                    );
-                  }}
-                </Mutation>
-              </div>
-            </div>
-          </div>
-        : null
-      } */}
 
       <style jsx>{`
         .details {

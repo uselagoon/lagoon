@@ -112,6 +112,7 @@ export async function readFromRabbitMQ (msg: ConsumeMessage, channelWrapperLogs:
     case "task:deploy-openshift:finished":
     case "task:remove-openshift-resources:finished":
     case "task:builddeploy-openshift:complete":
+    case "task:builddeploy-kubernetes:complete":
       text = `*[${meta.projectName}]* `
       if (meta.shortSha) {
         text = `${text} \`${meta.branchName}\` (${meta.shortSha})`

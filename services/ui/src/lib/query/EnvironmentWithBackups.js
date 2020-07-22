@@ -12,6 +12,7 @@ export default gql`
       project {
         id
         name
+        problemsUi
       }
       backups {
         ...backupFields

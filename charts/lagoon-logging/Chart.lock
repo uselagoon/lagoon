@@ -1,6 +1,6 @@
 dependencies:
 - name: logging-operator
   repository: https://kubernetes-charts.banzaicloud.com
-  version: 3.0.5
-digest: sha256:b5f1e93500944b39e9f49083594eaecdb4e584ec94dfcd8a38ef4c4835377e35
-generated: "2020-05-07T22:37:40.078678817+08:00"
+  version: 3.4.0
+digest: sha256:d248221846af4df24cb1402d84c6bf8d8db6c26a6348d10345bd5572ed6d8ab7
+generated: "2020-07-15T11:52:39.381243481+08:00"
