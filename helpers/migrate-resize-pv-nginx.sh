@@ -99,7 +99,7 @@ else
   ${OC} -n ${NS} adm policy remove-scc-from-user privileged -z pvc-migrator || true
   ${OC} -n ${NS} delete serviceaccount pvc-migrator || true
   ${OC} -n ${NS} delete deploymentconfig/pv-migrator || true
-  ${OC} -n ${NS} delete pvc/${PVC}-migrator --wait || true
+  #${OC} -n ${NS} delete pvc/${PVC}-migrator --wait || true
 
 # create the migrator pvc early and fail if it can't be created
 cat << EOF | ${OC} -n ${NS} apply -f -
@@ -131,7 +131,7 @@ EOF
   ${OC} -n ${NS} adm policy add-scc-to-user privileged -z pvc-migrator
 
   # run alpine base
-  ${OC} -n ${NS} run --image alpine pv-migrator -- sh -c "trap : TERM INT; (while true; do sleep 3600; done) & wait"
+  ${OC} -n ${NS} run --image alpine pv-migrator -- sh -c "apk add --no-cache rsync; trap : TERM INT; (while true; do sleep 3600; done) & wait"
   # pause the rollout to allow making multiple changes on the deploymentconfig
   ${OC} -n ${NS} rollout pause deploymentconfig/pv-migrator
   # change serviceaccount name so i can run as privileged
@@ -153,7 +153,9 @@ EOF
   fi
 
   echo "copy ${PVC} to ${PVC}-migrator"
-  ${OC} -n ${NS} exec $MIGRATOR -- cp -Rpav /storage/. /migrator
+  # we run it twice to catch maybe created/updated/deleted files
+  ${OC} -n ${NS} exec $MIGRATOR -- rsync -av -W --inplace --delete --exclude='/css/' --exclude='/js/' --exclude='/advagg_css/' --exclude='/advagg_js/' --exclude='/styles/' --exclude='/php/' --info=progress2 --no-inc-recursive /storage/. /migrator
+  ${OC} -n ${NS} exec $MIGRATOR -- rsync -av -W --inplace --delete --exclude='/css/' --exclude='/js/' --exclude='/advagg_css/' --exclude='/advagg_js/' --exclude='/styles/' --exclude='/php/' --info=progress2 /storage/. /migrator
 
   # update actual production pods with migrator PVC (this allows them to keep running while we migrate a second time)
   for DC in "${DC_ARRAY[@]}"
@@ -200,8 +202,9 @@ EOF
   fi
 
   # copy data from the pvc-migrator to the newly created pvc
-  ${OC} -n ${NS} exec $MIGRATOR -- cp -Rpav /migrator/. /storage
-  ${OC} -n ${NS} exec $MIGRATOR -- ls -la  /storage
+  # we run it twice to catch maybe created/updated/deleted files
+  ${OC} -n ${NS} exec $MIGRATOR -- rsync -av -W --inplace --delete --exclude='/css/' --exclude='/js/' --exclude='/advagg_css/' --exclude='/advagg_js/' --info=progress2 --exclude='/styles/' --exclude='/php/' --no-inc-recursive /migrator/. /storage
+  ${OC} -n ${NS} exec $MIGRATOR -- rsync -av -W --inplace --delete --exclude='/css/' --exclude='/js/' --exclude='/advagg_css/' --exclude='/advagg_js/' --info=progress2 --exclude='/styles/' --exclude='/php/'/migrator/. /storage
 
   # updating the production pods with the copied storage again
   for DC in "${DC_ARRAY[@]}"
