@@ -44,7 +44,7 @@ Additionally, in Lagoon you can define that only pull requests with a specific t
 
 ### Automatic Database Sync for Pull requests
 
-Automatic pull request environments are a fantastic thing. But it would also be handy to have the database synced from another environment.
+Automatic pull request environments are a fantastic thing. But it would also be handy to have the database synced from another environment when those environments are created. Lagoon can handle that!
 
 The following example will sync the staging database on the first rollout of the pull request environment:
 

@@ -1,7 +1,7 @@
 ---
 description: >-
-  Lagoon tries to run on as standard installation of OpenShift as possible, but
-  it expects some things:
+  Lagoon tries to run on as standard an installation of OpenShift as possible,
+  but it expects some things:
 ---
 
 # OpenShift Requirements
@@ -20,7 +20,7 @@ For deployment projects by Lagoon the following StorageClasses will be needed:
 
 | Name | Used for | Description |
 | :--- | :--- | :--- |
-| default | Single pod mounts \(MariaDB, Solr\) | The default StorageClass will be used for any single pod mounts like MariaDB, Solr, etc. We suggest using SSD based storage. |
+| default | Single pod mounts \(MariaDB, Solr\) | The default StorageClass will be used for any single pod mounts like MariaDB, Solr, etc. We suggest using SSD-based storage. |
 | `bulk` | Multi-pod mounts \(Drupal files\) | `bulk` StorageClass will be used whenever a project requests storage that needs to be mounted into multiple pods at the same time. Like `nginx-php-persistent`, which will mount the same PVC in all `nginx-php` pods. We suggest putting these on SSD, but it's not required. |
 
 Lagoon itself will create PVCs with the following StorageClasses:

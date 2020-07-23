@@ -96,5 +96,5 @@
 
 * [FAQ](resources/faq.md)
 * [Glossary](resources/glossary.md)
-* [Tutorials & Webinars](resources/tutorials-and-webinars.md)
+* [Tutorials, Webinars, and Videos](resources/tutorials-and-webinars.md)
 

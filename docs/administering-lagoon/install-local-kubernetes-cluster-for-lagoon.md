@@ -1,9 +1,25 @@
+---
+description: >-
+  Note that as of Lagoon 1.x, only OpenShift is supported to run Lagoon itself. 
+  Kubernetes is only supported to deploy projects and environments into.
+---
+
 # Install local Kubernetes cluster for Lagoon
 
-Let's see how to install a local lightweight k8s cluster using k3s by Rancher: [rancher/k3s](https://github.com/rancher/k3s)
+Let's see how to install a local lightweight Kubernetes cluster using k3s by Rancher: [rancher/k3s](https://github.com/rancher/k3s)
 
 {% hint style="info" %}
-In order to have the best experience we recommend the following: Linux or Mac OSX 32 GB+ RAM total 12 GB+ RAM allocated to Docker 6+ cores allocated to Docker SSD disk with 25GB+ free
+In order to have the best experience we recommend the following: 
+
+Linux or Mac OSX 
+
+32 GB+ RAM total 
+
+12 GB+ RAM allocated to Docker 
+
+6+ cores allocated to Docker 
+
+SSD disk with 25GB+ free
 {% endhint %}
 
 ## Installation checklist
@@ -12,13 +28,13 @@ In order to have the best experience we recommend the following: Linux or Mac OS
    1. Make sure no lagoon containers are running running `make kill`.
    2. Make sure to clean any old lagoon containers and volumes running `make down`.
    3. Now your `build` dir should be empty and `docker ps` should show no containers running.
-2. Make sure to allow `172.17.0.1:5000` as insecure registry, check the [docker docs](https://docs.docker.com/registry/insecure/) for more information.
+2. Make sure to allow `172.17.0.1:5000` as insecure registry, check the [Docker docs](https://docs.docker.com/registry/insecure/) for more information.
    1. Edit `insecure-registries` key in your `/etc/docker/daemon.json` and add `"insecure-registries":["172.17.0.1:5000"]` then restart docker service with `systemctl restart docker`.
-3. Using `sysctl vm.max_map_count` check the value of `vm.max_map_count` is at least `262144` or set it is using `sysctl -w vm.max_map_count=262144`. We need to increase this value to avoid error [`max virtual memory areas is too low`](https://stackoverflow.com/questions/51445846/elasticsearch-max-virtual-memory-areas-vm-max-map-count-65530-is-too-low-inc/51448773#51448773) on `logs-db` Elasticsearch service.
+3. Using `sysctl vm.max_map_count` , check the value of `vm.max_map_count` is at least `262144` or set it is using `sysctl -w vm.max_map_count=262144`. We need to increase this value to avoid error [`max virtual memory areas is too low`](https://stackoverflow.com/questions/51445846/elasticsearch-max-virtual-memory-areas-vm-max-map-count-65530-is-too-low-inc/51448773#51448773) on `logs-db` Elasticsearch service.
 
-## Create a local k8s cluster
+## Create a local k3s cluster
 
-1. Now you can create a local k3s Kubernetes cluster running `make k3d` and see the following notable outputs: \*
+1. Now you can create a local k3s Kubernetes cluster running `make k3d` and see the following notable outputs: \(k3d is a wrapper for running k3s in Docker\)\*
 
    ```text
     INFO[0000] Creating cluster [k3s-lagoon]
@@ -75,7 +91,7 @@ In order to have the best experience we recommend the following: Linux or Mac OS
    1. Execute `export KUBECONFIG="$(./local-dev/k3d get-kubeconfig --name=$(cat k3d))"` inside the terminal.
    2. Now you should be able to use the cluster via an already installed `kubectl` or making a symbolic link to `/usr/local/bin/kubectl -> /your/path/amazee/lagoon/local-dev/kubectl`
    3. If you prefer to use something more visual you could install [k9s](https://k9scli.io/topics/install/) cli tool.
-   4. Here the complete list of pods you should see with `kubectl get pod -A`
+   4. Here is the complete list of pods you should see with `kubectl get pod -A` :
 
       ```text
       NAMESPACE        NAME
@@ -91,7 +107,7 @@ In order to have the best experience we recommend the following: Linux or Mac OS
       kube-system      nginx-ingress-controller
       ```
 
-   5. Here the complete list of deployed helm [releases](https://helm.sh/docs/helm/helm_list/) you should see with `local-dev/helm/helm ls --all-namespaces`.
+   5. Here is the complete list of deployed Helm [releases](https://helm.sh/docs/helm/helm_list/) you should see with `local-dev/helm/helm ls --all-namespaces`:
 
       ```text
       NAME             NAMESPACE
@@ -118,7 +134,7 @@ Clean up k3s cluster with `make k3d/stop`.
 
 ⚠ **Unable to connect to the server: x509: certificate signed by unknown authority**
 
-Rebuild the cluster via
+Rebuild the cluster via:
 
 ```text
 make k3d/stop

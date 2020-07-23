@@ -24,6 +24,10 @@ We keep up to 7 daily backups and 4 weekly backups.
 
 If you ever need to recover or restore a backup feel free to submit a ticket or send us a message via chat and we will be more than happy to help! 
 
+### How can I download a database dump?
+
+{% embed url="https://www.youtube.com/watch?v=amkyV2skidc" %}
+
 ### I'm getting an invalid SSL certificate error
 
 The first thing to try is what is listed in [our documentation about SSL](../using-lagoon-the-basics/lagoon-yml.md#ssl-configuration-tls-acme). 
@@ -54,6 +58,8 @@ Upgrading Drush should fix that for you.  We strongly suggest that you use versi
 
 ### I'm seeing an Internal Server Error when trying to access my Kibana logs!
 
+{% embed url="https://www.youtube.com/watch?v=hyUMRlQTXEA" %}
+
 No need to panic! This usually happens when a tenant has not been selected.  To fix this, follow these  steps: 
 
 1. Go to "Tenants" on the left-hand menu of Kibana.
@@ -67,11 +73,15 @@ You should now be able to see your logs.
 
 I'm unable to SSH into any environment. I'm getting the following message: `Permission denied (publickey)`.  
 
-**When I run `pygmy status`, no keys are loaded:**
+### How can I check the status of a build?
+
+{% embed url="https://www.youtube.com/watch?v=tVx-IGaN0Bg" caption="How can I check the status of a build?" %}
+
+### **When I run `pygmy status`, no keys are loaded:**
 
 You'll need to load your SSH key into pygmy. Here's how: [https://pygmy.readthedocs.io/en/master/troubleshooting/](https://pygmy.readthedocs.io/en/master/troubleshooting/)
 
-**When I run `drush sa` no aliases are returned:**
+### **When I run `drush sa` no aliases are returned:**
 
 This typically indicates an issue with Pygmy. You can find our troubleshooting docs for Pygmy here: [https://pygmy.readthedocs.io/en/master/troubleshooting/](https://pygmy.readthedocs.io/en/master/troubleshooting/).
 

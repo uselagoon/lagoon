@@ -102,7 +102,7 @@ Variables injected into the base image build process and where to find them.
 * `BUILD_NUMBER` - This is injected by Jenkins automatically.
 * `GIT_BRANCH` - This is provided by the Jenkins build process itself. Depends on the branch being built at the time \(develop, master, etc.\).
 * `DOCKER_REPO`/`DOCKER_HUB` - This is defined inside the Jenkinsfile itself. It points to the Docker project and hub into which the resulting images will be pushed.
-* `DOCKER_USERNAME`/`DOCKER_PASSWORD` - These are used to actually log into the Docker repository early in the build. These variables are stored inside of the Jenkins credentials with an id that will be provided to you by Amazee IO. These are used in the Jenkinsfile itself and are not part of the Makefile. This means that if you’re building base images outside of Jenkins \(i.e. locally, to test, etc.\) you have to run a `docker login` manually before running any of the make steps.
+* `DOCKER_USERNAME`/`DOCKER_PASSWORD` - These are used to actually log into the Docker repository early in the build. These variables are stored inside of the Jenkins credentials with an id that will be provided to you by amazee.io. These are used in the Jenkinsfile itself and are not part of the Makefile. This means that if you’re building base images outside of Jenkins \(i.e. locally, to test, etc.\) you have to run a `docker login` manually before running any of the make steps.
 
 In practice, this means that if you're running any of the `make` targets on your local machine, you'll want to ensure that these are available in the environment - even if this is just setting them when running make from the command line, as an example:
 
@@ -134,9 +134,9 @@ There are several steps to the build process. Most of these are shared among the
 
 #### Releasing a new version of a base image
 
-There are many reasons to release a new version of a base image. On Drupal or Laravel, Node.js, etc images, it may be to upgrade or install a module/package for features or security. It may be about the underlying software that comes bundled in the container, such as updating the version of PHP or Node.js. It may be about updating the actual underlying _images_ on which the base images are built. 
+There are many reasons to release a new version of a base image. On Drupal or Laravel, Node.js, etc images, it may be in order to upgrade or install a module/package for features or security. It may be about the underlying software that comes bundled in the container, such as updating the version of PHP or Node.js. It may be about updating the actual underlying _images_ on which the base images are built. 
 
-The images that your project's base images are built on are the managed images maintained by Amazee IO. Amazee IO periodically releases updates to these underlying images. When these are updated, you need to build new versions of your own base images in order to incorporate the changes and upgrades bundled in the Amazee IO images.
+The images that your project's base images are built on are the managed images maintained by amazee.io. We periodically release updates to these underlying images. When these are updated, you need to build new versions of your own base images in order to incorporate the changes and upgrades bundled in the amazee.io images.
 
 {% hint style="info" %}
 **Note**: if you are using amazee.io's hosting service, your service agreement may dictate that amazee.io updates your base images, or that you do - it can be done by either party.
@@ -172,7 +172,7 @@ composer require drupal/clamav
 
 When the composer require process completes, the package should then appear in the `composer.json` file.
 
-Here we open the `composer.json` file and take a look at the list of required packages, and check that the ClamAV package is listed, and see that it is:
+Here we open the `composer.json` file and take a look at the list of required packages, and check that the ClamAV package is listed, and see that it is there:
 
 ![Opening composer.json to check that ClamAV is now required.](../.gitbook/assets/2.gif)
 

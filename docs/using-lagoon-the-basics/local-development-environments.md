@@ -2,7 +2,7 @@
 
 Even though Lagoon has only a hard dependency on Docker and [Docker Compose](https://docs.docker.com/compose/) \(which is mostly shipped with Docker\) there are some things which are nice for local development that are not included in Docker:
 
-* A HTTP reverse proxy for nice URLs and HTTPS offloading.
+* An HTTP reverse proxy for nice URLs and HTTPS offloading.
 * A DNS system so we don't have to remember IP addresses.
 * SSH agents to use SSH keys within containers.
 * A system that receives and displays mail locally.

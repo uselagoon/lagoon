@@ -124,6 +124,8 @@ Note: If you would like to temporarily disable pre/post-rollout tasks during a d
 
 ## Routes
 
+{% embed url="https://www.youtube.com/watch?v=un23Vivz\_-Q" caption="How do I add a new route?" %}
+
 ### `routes.autogenerate.enabled`
 
 This allows for the disabling of the automatically created routes \(NOT the custom routes per environment, see below for them\) all together.
@@ -332,6 +334,8 @@ environments:
 >>>>>>> 5920625105313eab8d6807bafec4929e1e11b576:docs/using_lagoon/lagoon_yml.md
 
 #### Cron jobs - `environments.[name].cronjobs`
+
+{% embed url="https://www.youtube.com/watch?v=6qqY-XmBZ8c" caption="How do I add a cron job?" %}
 
 As most of the time it is not desirable to run the same cron jobs across all environments, you must explicitly define which jobs you want to run for each environment.
 

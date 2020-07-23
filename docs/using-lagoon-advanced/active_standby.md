@@ -4,6 +4,8 @@ description: Lagoon supports active/standby (also known as blue/green) deploymen
 
 # Active/Standby
 
+{% embed url="https://www.youtube.com/watch?v=urq15chLvzQ" caption="How to Run Blue-Green Deployments with Active/Standby on Lagoon" %}
+
 ## Configuration
 
 To change an existing project to support active/standby you'll need to configure some project settings with the Lagoon API.
