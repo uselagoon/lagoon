@@ -146,8 +146,6 @@ This is just pulling down the Git repository locally. In the case of the Drupal 
 git clone ssh://git@bitbucket.yourrepo.com:7999/drupal8_base_image.git
 ```
 
-![Running \`git clone\` on the base image repository.](/images/0.gif)
-
 #### Step 2 - Make the changes to the repository
 
 !!!hint
