@@ -9,8 +9,19 @@ module.exports = async ({ config, mode }) => {
   // Add alias for storybook decorators and components.
   config.resolve.alias.storybook = __dirname;
 
+  config.module.rules.push({
+      test: /\.(ts|tsx)$/,
+      use: [
+          {
+              loader: require.resolve('ts-loader'),
+          },
+      ],
+  });
+
+  config.resolve.extensions.push('.ts', '.tsx');
+
   // Debug config.
-  // console.dir(config, { depth: null });
+  //console.dir(config, { depth: null });
 
   return config;
 };
