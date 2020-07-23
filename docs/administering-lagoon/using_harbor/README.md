@@ -23,4 +23,3 @@ Within each Harbor repository, you'll see a list of container images from all en
 From here, you can drill down into an individual container in order to see its details, including an overview of its security scan results.
 
 ![Harbor Container Overview](../../.gitbook/assets/container_overview.png)
-

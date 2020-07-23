@@ -47,8 +47,9 @@
 
 ## Administering Lagoon
 
-* [Install Lagoon on OpenShift](administering-lagoon/install.md)
+* [Install Lagoon 1.x on OpenShift](administering-lagoon/install.md)
 * [OpenShift Requirements](administering-lagoon/openshift_requirements.md)
+* [Install local Kubernetes cluster for Lagoon](administering-lagoon/install-local-kubernetes-cluster-for-lagoon.md)
 * [GraphQL API](administering-lagoon/graphql-queries.md)
 * [Role-Based Access Control \(RBAC\)](administering-lagoon/rbac.md)
 * [Harbor](administering-lagoon/using_harbor/README.md)
@@ -69,12 +70,12 @@
 * [MariaDB](docker-images/mariadb/README.md)
   * [MariaDB-Drupal](docker-images/mariadb/mariadb-drupal.md)
 * [MongoDB](docker-images/mongodb.md)
-* [Nginx](docker-images/nginx/README.md)
-  * [Nginx-Drupal](docker-images/nginx/nginx-drupal.md)
+* [NGINX](docker-images/nginx/README.md)
+  * [NGINX-Drupal](docker-images/nginx/nginx-drupal.md)
 * [PHP-CLI](docker-images/php-cli/README.md)
   * [PHP-CLI-Drupal](docker-images/php-cli/php-cli-drupal.md)
 * [PHP-FPM](docker-images/php-fpm.md)
-* [Postgres](docker-images/postgres.md)
+* [PostgreSQL](docker-images/postgres.md)
 * [RabbitMQ](docker-images/rabbitmq.md)
 * [Solr](docker-images/solr/README.md)
   * [Solr-Drupal](docker-images/solr/solr-drupal.md)

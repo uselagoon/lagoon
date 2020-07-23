@@ -21,4 +21,3 @@ HarborClairAdapter requires specific environment variables to be set in order to
 * **`SCANNER_STORE_REDIS_URL`**
   * This value tells `harborclairadapter` how to connect to `harborclair`'s Redis store.
   * The default value is `redis://harbor-redis:6379/4`.
-

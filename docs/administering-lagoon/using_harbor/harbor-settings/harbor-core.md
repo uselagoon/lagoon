@@ -142,11 +142,10 @@ The configmap from which this config file is generated is stored within Lagoon i
   * This service is **not** used with Lagoon's implementation of Harbor.
   * The default value is `false`.
 * **`WITH_CLAIR`**
-  * Tells `harbor-core` if the `harborclair` service is being used. 
+  * Tells `harbor-core` if the `harborclair` service is being used.
   * Lagoon **does** use this service in its implementation of Harbor.
   * The default value is `true`.
 * **`WITH_NOTARY`**
-  * Tells `harbor-core` if the Notary service is being used. 
+  * Tells `harbor-core` if the Notary service is being used.
   * This service is **not** used with Lagoon's implementation of Harbor.
   * The default value is `false`.
-

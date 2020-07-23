@@ -45,7 +45,7 @@ description: >-
 | OpenShift | Container application platform that brings Docker and Kubernetes to the enterprise. |
 | PHP | PHP \(Personal Home Page\) is a general-purpose programming language originally designed for web development. |
 | Pod | A group of containers that are deployed together on the same host. The basic unit that Kubernetes works with. |
-| Postgres | A free and open-source relational database management system emphasizing extensibility and technical standards compliance. |
+| PostgreSQL | A free and open-source relational database management system emphasizing extensibility and technical standards compliance. |
 | Public/Private Key | Public-key encryption is a cryptographic system that uses two keys -- a public key known to everyone and a private or secret key known only to the recipient of the message. |
 | Puppet | An open-source software configuration management and deployment tool. |
 | Python | Python is an open-source, interpreted, high-level, general-purpose programming language. |

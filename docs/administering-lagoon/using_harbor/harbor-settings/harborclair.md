@@ -26,4 +26,3 @@ HarborClair requires a configuration file to start, which is located at `/etc/cl
 * **`SCANNER_STORE_REDIS_URL`**
   * This value tells `harborclair` how to connect to its Redis store.
   * The default value is `redis://harbor-redis:6379/4`.
-

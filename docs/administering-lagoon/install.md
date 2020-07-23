@@ -1,4 +1,10 @@
-# Install Lagoon on OpenShift
+---
+description: >-
+  Note that as of Lagoon 1.x only Openshift is supported to run Lagoon itself.
+  Kubernetes is only supported to deploy projects and environments into.
+---
+
+# Install Lagoon 1.x on OpenShift
 
 Lagoon is not only capable of _deploying_ into OpenShift, it actually _runs_ in OpenShift. This creates the  tiny chicken and egg problem of how to install Lagoon on an OpenShift when there is no Lagoon yet. 🐣
 
@@ -81,4 +87,3 @@ Once Lagoon is install operational, you need to initialize OpendistroSecurity to
 ## Configure Installed Lagoon
 
 We have a fully running Lagoon. Now it's time to configure the first project inside of it. Follow the examples in [GraphQL API](graphql-queries.md).
-

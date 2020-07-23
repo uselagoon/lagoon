@@ -21,4 +21,3 @@ The configmap from which this config file is generated is stored within Lagoon i
 * **`REGISTRY_REDIS_PASSWORD`**
   * This environment variable tells `harborregistryctl` the password that should be used to connect to Redis.
   * The default value is an empty string.
-

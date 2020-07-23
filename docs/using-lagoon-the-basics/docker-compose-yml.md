@@ -9,7 +9,7 @@ The `docker-compose.yml` file is used by Lagoon to:
 Docker-compose \(the tool\) is very strict in validating the content of the YAML file, so we can only do configuration within `labels` of a service definition.
 
 {% hint style="warning" %}
-Lagoon only reads the labels, service names, image names and build definitions from a `docker-compose.yml` file. Definitions like: ports, environment variables, volumes, networks, links, users, etc. are IGNORED. 
+Lagoon only reads the labels, service names, image names and build definitions from a `docker-compose.yml` file. Definitions like: ports, environment variables, volumes, networks, links, users, etc. are IGNORED.
 
 This is intentional as the `docker-compose` file is there to define your local environment configuration. Lagoon learns from the `lagoon.type` the type of service you are deploying and from that knows about ports, networks and any additional configuration that this service might need.
 {% endhint %}
@@ -18,6 +18,7 @@ Here a straightforward example of a `docker-compose.yml` file for Drupal:
 
 {% tabs %}
 {% tab title="docker-compose.yml" %}
+
 ```yaml
 version: '2.3'
 
@@ -45,7 +46,7 @@ x-user:
   &default-user
     # The default user under which the containers should run. Change this if you are on linux and run with another user than id `1000`
     user: '1000'
-    
+
 services:
 
   nginx:
@@ -75,21 +76,21 @@ services:
 
 ## Basic settings
 
-`x-lagoon-project`: 
+`x-lagoon-project`:
 
 This is the machine name of your project, define it here. We’ll use “drupal-example.”
 
-`x-volumes`: 
+`x-volumes`:
 
 This tells Lagoon what to mount into the container. Your web application lives in `/app`, but you can add or change this if needed.
 
-`x-environment`: 
+`x-environment`:
 
-1. Here you can set your local development url. If you are using pygmy, it must end with `.docker.amazee.io`. 
-2. If you want to exactly mimic the production environment, uncomment `LAGOON_ENVIRONMENT_TYPE: production`. 
+1. Here you can set your local development url. If you are using pygmy, it must end with `.docker.amazee.io`.
+2. If you want to exactly mimic the production environment, uncomment `LAGOON_ENVIRONMENT_TYPE: production`.
 3. If you want to enable xd-ebug, uncomment `DEBUG_ENABLE: "true"`.
 
-`x-user`: 
+`x-user`:
 
 You are unlikely to need to change this, unless you are on Linux and would like to run with a user other than `1000`.
 
@@ -176,30 +177,33 @@ php:
       lagoon.name: nginx # We want this service be part of the nginx pod in Lagoon.
       lagoon.deployment.servicetype: php
 ```
+
 {% endtab %}
 {% endtabs %}
 
 In the example above, the services are named `nginx` and `php` \(but you can call them whatever you want\). The `lagoon.name` tells Lagoon which services go together - all of the services with the same name go together.
 
-In order for Lagoon to realize which one is the `nginx` and which one is the `php` service, we define it via `lagoon.deployment.servicetype: nginx` and `lagoon.deployment.servicetype: php`. 
+In order for Lagoon to realize which one is the `nginx` and which one is the `php` service, we define it via `lagoon.deployment.servicetype: nginx` and `lagoon.deployment.servicetype: php`.
 
-
-
-## **Custom Templates**
+## **Custom Templates \(Openshift only\)**
 
 OpenShift defines templates as follows:
 
 > A template describes a set of objects that can be parameterized and processed to produce a list of objects for creation by OpenShift Container Platform. A template can be processed to create anything you have permission to create within a project, for example services, build configurations, and DeploymentConfigs. A template may also define a set of labels to apply to every object defined in the template.
 
-Lagoon comes with a variety of pre-defined templates, which set all kinds of needed configuration in YAML files. Check out the shipped templates from the [templates folder of `oc-build-deploy-dind`](https://github.com/amazeeio/lagoon/tree/master/images/oc-build-deploy-dind/openshift-templates). 
+Lagoon comes with a variety of pre-defined templates, which set all kinds of needed configuration in YAML files. Check out the shipped templates from the [templates folder of `oc-build-deploy-dind`](https://github.com/amazeeio/lagoon/tree/master/images/oc-build-deploy-dind/openshift-templates).
 
-If you need to make changes to the OpenShift templates, you can define your own template via `lagoon.template`. 
+If you need to make changes to the OpenShift templates, you can define your own template via `lagoon.template`.
 
 {% hint style="info" %}
 The template is called with `oc process`,  so you should define the same parameters as seen in the default templates.
 {% endhint %}
 
 You can also overwrite the templates for a specific environment. This is done in [`.lagoon.yml`](lagoon-yml.md#environmentsnametypes)
+
+## Helm Templates \(Kubernetes only\)
+
+Lagoon uses [Helm](https://helm.sh/) for templating on Kubernetes.  To do this, a series of [Charts](https://github.com/amazeeio/lagoon/tree/master/images/kubectl-build-deploy-dind/helmcharts) are included with the `kubectl-build-deploy-dind` service.
 
 ## **Custom Rollout Monitor Types**
 
@@ -225,4 +229,3 @@ This also expects the label `lagoon.template` to be defined with the path to the
 {% hint style="info" %}
 The template is called with `oc process`, so you should define the same parameters as in the default templates.
 {% endhint %}
-

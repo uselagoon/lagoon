@@ -1,31 +1,26 @@
 # Install local Kubernetes cluster for Lagoon
 
-Let's see how to install a local lightweight k8s cluster using
-k3s by Rancher: [rancher/k3s](https://github.com/rancher/k3s)
+Let's see how to install a local lightweight k8s cluster using k3s by Rancher: [rancher/k3s](https://github.com/rancher/k3s)
 
-!!!hint
-  In order to have the best experience we recommend the following:
-  Linux or Mac OSX
-  32 GB+ RAM total
-  12 GB+ RAM allocated to Docker
-  6+ cores allocated to Docker
-  SSD disk with 25GB+ free
+{% hint style="info" %}
+In order to have the best experience we recommend the following: Linux or Mac OSX 32 GB+ RAM total 12 GB+ RAM allocated to Docker 6+ cores allocated to Docker SSD disk with 25GB+ free
+{% endhint %}
 
 ## Installation checklist
 
-1. Make sure you have a clean state checking the following (use `-n` option for dry-run):
-    1. Make sure no lagoon containers are running running `make kill`.
-    2. Make sure to clean any old lagoon containers and volumes running `make down`.
-    3. Now your `build` dir should be empty and `docker ps` should show no containers running.
+1. Make sure you have a clean state checking the following \(use `-n` option for dry-run\):
+   1. Make sure no lagoon containers are running running `make kill`.
+   2. Make sure to clean any old lagoon containers and volumes running `make down`.
+   3. Now your `build` dir should be empty and `docker ps` should show no containers running.
 2. Make sure to allow `172.17.0.1:5000` as insecure registry, check the [docker docs](https://docs.docker.com/registry/insecure/) for more information.
-    1. Edit `insecure-registries` key in your `/etc/docker/daemon.json` and add `"insecure-registries":["172.17.0.1:5000"]` then restart docker service with `systemctl restart docker`.
+   1. Edit `insecure-registries` key in your `/etc/docker/daemon.json` and add `"insecure-registries":["172.17.0.1:5000"]` then restart docker service with `systemctl restart docker`.
 3. Using `sysctl vm.max_map_count` check the value of `vm.max_map_count` is at least `262144` or set it is using `sysctl -w vm.max_map_count=262144`. We need to increase this value to avoid error [`max virtual memory areas is too low`](https://stackoverflow.com/questions/51445846/elasticsearch-max-virtual-memory-areas-vm-max-map-count-65530-is-too-low-inc/51448773#51448773) on `logs-db` Elasticsearch service.
 
 ## Create a local k8s cluster
 
-1. Now you can create a local k3s Kubernetes cluster running `make k3d` and see the following notable outputs:
+1. Now you can create a local k3s Kubernetes cluster running `make k3d` and see the following notable outputs: \*
 
-    ```plain-text
+   ```text
     INFO[0000] Creating cluster [k3s-lagoon]
     INFO[0000] Creating server using docker.io/rancher/k3s:v1.17.0-k3s.1...
     INFO[0008] SUCCESS: created cluster [k3s-lagoon]
@@ -66,47 +61,46 @@ k3s by Rancher: [rancher/k3s](https://github.com/rancher/k3s)
     STATUS: deployed
     REVISION: 1
     TEST SUITE: None
+   ```
 
-    ```
+2. At the end of the script, using `docker ps` you should see an output like the following: \*
 
-2. At the end of the script, using `docker ps` you should see an output like the following:
-
-    ```plain-text
+   ```text
     CONTAINER ID        IMAGE                       COMMAND                  CREATED             STATUS              PORTS                                                                     NAMES
     0d61e8ba168e        rancher/k3s:v1.17.0-k3s.1   "/bin/k3s server --h…"   28 minutes ago      Up 28 minutes       0.0.0.0:16643->16643/tcp, 0.0.0.0:18080->80/tcp, 0.0.0.0:18443->443/tcp   k3d-k3s-lagoon-server
     a7960981caaa        lagoon/local-registry       "/entrypoint.sh /etc…"   30 minutes ago      Up 30 minutes       0.0.0.0:5000->5000/tcp                                                    lagoon_local-registry_1
-    ```
+   ```
 
 3. `make k3d-kubeconfig` will print the `KUBECONFIG` env var you need to start using the cluster.
-    1. Execute `export KUBECONFIG="$(./local-dev/k3d get-kubeconfig --name=$(cat k3d))"` inside the terminal.
-    2. Now you should be able to use the cluster via an already installed `kubectl` or making a symbolic link to `/usr/local/bin/kubectl -> /your/path/amazee/lagoon/local-dev/kubectl`
-    3. If you prefer to use something more visual you could install [k9s](https://k9scli.io/topics/install/) cli tool.
-    4. Here is the complete list of pods you should see with `kubectl get pod -A`:
+   1. Execute `export KUBECONFIG="$(./local-dev/k3d get-kubeconfig --name=$(cat k3d))"` inside the terminal.
+   2. Now you should be able to use the cluster via an already installed `kubectl` or making a symbolic link to `/usr/local/bin/kubectl -> /your/path/amazee/lagoon/local-dev/kubectl`
+   3. If you prefer to use something more visual you could install [k9s](https://k9scli.io/topics/install/) cli tool.
+   4. Here the complete list of pods you should see with `kubectl get pod -A`
 
-    ```plain-text
-    NAMESPACE        NAME
-    kube-system      local-path-provisioner
-    kube-system      metrics-server
-    k8up             k8up-operator
-    dbaas-operator   kube-rbac-proxy,manager
-    kube-system      coredns
-    lagoon           docker-host
-    kube-system      helm
-    kube-system      nginx-ingress-default-backend
-    kube-system      lb-port-80,lb-port-443
-    kube-system      nginx-ingress-controller
-    ```
+      ```text
+      NAMESPACE        NAME
+      kube-system      local-path-provisioner
+      kube-system      metrics-server
+      k8up             k8up-operator
+      dbaas-operator   kube-rbac-proxy,manager
+      kube-system      coredns
+      lagoon           docker-host
+      kube-system      helm
+      kube-system      nginx-ingress-default-backend
+      kube-system      lb-port-80,lb-port-443
+      kube-system      nginx-ingress-controller
+      ```
 
-    1. Here the complete list of deployed helm [releases](https://helm.sh/docs/helm/helm_list/) you should see with `local-dev/helm/helm ls --all-namespaces`.
+   5. Here the complete list of deployed helm [releases](https://helm.sh/docs/helm/helm_list/) you should see with `local-dev/helm/helm ls --all-namespaces`.
 
-    ```plain-text
-    NAME             NAMESPACE
-    dbaas-operator 	 dbaas-operator
-    k8up           	 k8up
-    lagoon-remote  	 lagoon
-    mariadbprovider	 dbaas-operator
-    nginx          	 kube-system
-    ```
+      ```text
+      NAME             NAMESPACE
+      dbaas-operator      dbaas-operator
+      k8up                k8up
+      lagoon-remote       lagoon
+      mariadbprovider     dbaas-operator
+      nginx               kube-system
+      ```
 
 ## Deploy Lagoon on Kubernetes
 
@@ -114,7 +108,7 @@ k3s by Rancher: [rancher/k3s](https://github.com/rancher/k3s)
 
 ## Configure Installed Lagoon
 
-We have a fully running Kubernetes cluster. Now it's time to configure the first project inside of it. Follow the examples in [GraphQL API](graphql_api.md).
+We have a fully running Kubernetes cluster. Now it's time to configure the first project inside of it. Follow the examples in [GraphQL API](graphql-queries.md).
 
 ## Clean up
 
@@ -126,7 +120,8 @@ Clean up k3s cluster with `make k3d/stop`.
 
 Rebuild the cluster via
 
- ```plain-text
+```text
 make k3d/stop
 make k3d
 ```
+

@@ -4,11 +4,11 @@ The [Lagoon `Varnish` image Dockerfile](https://github.com/amazeeio/lagoon/blob/
 
 By default, `vmod-dynamic` and `vmod-bodyaccess` modules are installed.
 
-## Lagoon & OpenShift adaptions
+## Lagoon adaptions
 
-This image is prepared to be used on Lagoon, which leverages OpenShift. There are therefore some things already done:
+This image is prepared to be used on Lagoon. There are therefore some things already done:
 
-* Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/sclorg/s2i-base-container/blob/master/core/root/usr/bin/fix-permissions), so this image will work with a random user, and therefore also on OpenShift.
+* Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/sclorg/s2i-base-container/blob/master/core/root/usr/bin/fix-permissions), so this image will work with a random user.
 
 ## Included varnish modules
 
@@ -25,7 +25,7 @@ Environment variables defined in Varnish base image
 
 | Environment Variable | Default | Description |
 | :--- | :--- | :--- |
-| `VARNISH_BACKEND_HOST` | Nginx | Default backend host. |
+| `VARNISH_BACKEND_HOST` | NGINX | Default backend host. |
 | `VARNISH_BACKEND_PORT` | 8080 | Default listening varnish port. |
 | `VARNISH_SECRET` | lagoon\_default\_secret | Varnish secret used to connect to management. |
 | `LIBVMOD_DYNAMIC_VERSION` | 5.2 | Default version of `vmod-dynamic` module. |

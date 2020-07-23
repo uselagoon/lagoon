@@ -14,4 +14,3 @@ Harbor-Database requires specific environment variables to be set in order to st
 * **`POSTGRES_USER`**
   * The default user to be set up when initializing the Postgres service.
   * The default value is `postgres`.
-

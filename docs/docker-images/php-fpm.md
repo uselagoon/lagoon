@@ -18,15 +18,15 @@ This Dockerfile is intended to be used as a base for any `PHP` needs within Lago
 * 7.0 \(available for compatibility, not officially supported\)
 * 7.2
 * 7.3
-* 7.4 \(available for testing\)
+* 7.4
 
 All PHP versions use the same Dockerfile.
 
-## Lagoon & OpenShift adaptions
+## Lagoon adaptions
 
-This image is prepared to be used on Lagoon which leverages OpenShift. There are therefore some things already done:
+This image is prepared to be used on Lagoon. There are therefore some things are already done:
 
-* Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/sclorg/s2i-base-container/blob/master/core/root/usr/bin/fix-permissions), so this image will work with a random user, and therefore also on OpenShift.
+* Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/sclorg/s2i-base-container/blob/master/core/root/usr/bin/fix-permissions), so this image will work with a random user.
 * The `/usr/local/etc/php/php.ini` and `/usr/local/etc/php-fpm.conf`, plus all files within `/usr/local/etc/php-fpm.d/` , are parsed through [`envplate`](https://github.com/kreuzwerker/envplate) with a container-entrypoint.
 * See the [Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/php/fpm/Dockerfile) for installed `PHP` extensions.
 * To install further extensions, extend your Dockerfile from this image. Install extensions according to the docs, under the heading[ How to install more PHP extensions.](https://github.com/docker-library/docs/blob/master/php/README.md#how-to-install-more-php-extensions)

@@ -63,9 +63,15 @@ No need to panic! This usually happens when a tenant has not been selected.  To 
 
 You should now be able to see your logs.
 
-### I'm unable to ssh into any environment!
+### I'm unable to SSH into any environment!
 
-I'm unable to SSH into any environment. I'm getting the following message: ```Permission denied (publickey)``. When I run `drush sa` no aliases are returned.
+I'm unable to SSH into any environment. I'm getting the following message: `Permission denied (publickey)`.  
+
+**When I run `pygmy status`, no keys are loaded:**
+
+You'll need to load your SSH key into pygmy. Here's how: [https://pygmy.readthedocs.io/en/master/troubleshooting/](https://pygmy.readthedocs.io/en/master/troubleshooting/)
+
+**When I run `drush sa` no aliases are returned:**
 
 This typically indicates an issue with Pygmy. You can find our troubleshooting docs for Pygmy here: [https://pygmy.readthedocs.io/en/master/troubleshooting/](https://pygmy.readthedocs.io/en/master/troubleshooting/).
 
@@ -152,7 +158,7 @@ For amazee.io cloud customers:
 
 ### We installed the Elasticsearch\Solr service on our website. How can we get access to the UI \(port 9200/8983\) from a browser?
 
-We suggest only exposing web services \(Nginx/Varnish/Node.js\) in your deployed environments. Locally, you can get the ports mapped for these services by checking `docker-compose ps`, and then load [`http://localhost`](http://localhost/)`:<port>` in your browser.
+We suggest only exposing web services \(NGINX/Varnish/Node.js\) in your deployed environments. Locally, you can get the ports mapped for these services by checking `docker-compose ps`, and then load [`http://localhost`](http://localhost/)`:<port>` in your browser.
 
 ### Where can I find the amazee.io Status Page?
 
