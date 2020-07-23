@@ -23,6 +23,8 @@ Build the content during the build process and inject it into the `nginx` contai
 
 ## Helpers
 
+{% embed url="https://www.youtube.com/watch?v=xQ7A-e8UPzY" caption="How do I add a redirect in Lagoon?" %}
+
 ### `redirects-map.conf`
 
 In order to create redirects, we have `redirects-map.conf` in place. This helps you to redirect marketing domains to sub-sites or do non-www to www redirects. **If you have a lot of redirects, we suggest having `redirects-map.conf` stored next to your code for easier maintainability.**

@@ -1,12 +1,16 @@
 ---
 description: >-
-  Note that as of Lagoon 1.x only Openshift is supported to run Lagoon itself. 
+  Note that as of Lagoon 1.x, only OpenShift is supported to run Lagoon itself. 
   Kubernetes is only supported to deploy projects and environments into.
 ---
 
 # Install Lagoon 1.x on OpenShift
 
-Lagoon is not only capable of _deploying_ into OpenShift, it actually _runs_ in OpenShift. This creates the  tiny chicken and egg problem of how to install Lagoon on an OpenShift when there is no Lagoon yet. 🐣
+{% hint style="warning" %}
+You do not need to _install_ Lagoon locally in order to _use_ it locally! That sounds confusing, but follow the documentation. Lagoon is the system that **deploys** your local development environment to your production environment, it's **not** the environment itself. Only install Lagoon if you are interested in developing and working on it \(or if you want to do it just for fun\). You don't **need** to do it. 
+{% endhint %}
+
+Lagoon is not only capable of _deploying_ into OpenShift, it actually _runs_ in OpenShift. This creates the tiny chicken and egg problem of how to install Lagoon on an OpenShift when there is no Lagoon yet. 🐣
 
 Luckily, we can use the local development environment to kickstart another Lagoon in any OpenShift, running somewhere in the world.
 
@@ -79,7 +83,7 @@ In order to use a local Lagoon to deploy itself on an OpenShift, we need a subse
 
 ## OpendistroSecurity
 
-Once Lagoon is install operational, you need to initialize OpendistroSecurity to allow Kibana multitenancy. This only needs to be run once in a new setup of Lagoon.
+Once Lagoon is install operational, you need to initialize OpendistroSecurity to allow Kibana multi-tenancy. This only needs to be run once in a new setup of Lagoon.
 
 1. Open a shell of an Elasticsearch pod in `logs-db`.
 2. `run ./securityadmin_demo.sh`.

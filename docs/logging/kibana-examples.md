@@ -97,3 +97,9 @@ Here is an example of a daily hits visualization chart:
 
 Also note that you can save your visualizations \(and searches\)! That will make it even faster to access them in the future. And because each account has their own Kibana Tenant, no searches or visualizations are shared with another account.
 
+## Troubleshooting
+
+{% embed url="https://www.youtube.com/watch?v=hyUMRlQTXEA" caption="How do I fix an internal server error in Kibana?" %}
+
+
+

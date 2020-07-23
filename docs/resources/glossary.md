@@ -26,11 +26,17 @@ description: >-
 | GitHub | A proprietary version control hosting company using Git. A subsidiary of Microsoft, it offers all of the distributed version control and source code management functionality of Git as well as additional features. |
 | GitLab | A web-based Git repository manager with CI capabilities. |
 | GraphQL | An open-source data query and manipulation language for APIs, and a runtime for fulfilling queries with existing data. |
+| Harbor | An open source container image registry that secures images with role-based access control, scans images for vulnerabilities, and signs images as trusted. |
+| Helm | A package manager for Kubernetes, it helps you manage Kubernetes applications. |
+| Helm Charts | Helm Charts help you define, install, and upgrade even the most complex Kubernetes application. |
 | HTTP | HyperText Transfer Protocol. HTTP is the underlying protocol used by the World Wide Web and this protocol defines how messages are formatted and transmitted, and what actions Web servers and browsers should take in response to various commands. |
 | IPTables | A command line utility for configuring Linux kernel firewall. |
 | Jenkins | An open-source automation server. |
+| k3s | A highly available, certified Kubernetes distribution. |
+| k3d | k3d is a lightweight wrapper to run k3s in Docker. |
+| k8s | Numeronym for Kubernetes \(K + 8 letters + s\) |
 | Kibana | An open-source data visualization plugin for Elasticsearch. It provides visualization capabilities on top of the content indexed on an Elasticsearch cluster. |
-| Kubernetes | An open-source system for automating deployment, scaling, and management of containerised applications. |
+| Kubernetes | An open-source system for automating deployment, scaling, and management of containerized applications. |
 | Lagoon | An open-source continuous delivery system for OpenShift and Kubernetes. |
 | Laravel | A free, open-source PHP web framework, following the model–view–controller \(MVC\) architectural pattern and based on Symfony. |
 | MariaDB | A community-developed, commercially supported fork of the MySQL relational database management system, intended to remain free and open-source software under the GNU General Public License. |
@@ -39,7 +45,7 @@ description: >-
 | MongoDB | MongoDB is a cross-platform document-oriented database program. Classified as a NoSQL database program, MongoDB uses JSON-like documents with schema. |
 | Multi-Tenant | A single instance of software runs on a server and serves multiple tenants - a tenant is a group of users who share common access with privileges to access the software instance. The software is designed to provide each tenant a share of the resources. |
 | MVC | Model-view-controller - an architectural pattern that separates an application into three main logical components: the model, the view, and the controller. Each of these components are built to handle specific development aspects of an application. |
-| Nginx | Nginx is a web server which can also be used as a reverse proxy, load balancer, mail proxy and HTTP cache. |
+| NGINX | NGINX is a web server which can also be used as a reverse proxy, load balancer, mail proxy and HTTP cache. |
 | Node | Single EC2 instance \(AWS virtual machine\) |
 | Node.js | An open-source, cross-platform, JavaScript runtime environment that executes JavaScript code outside of a browser. |
 | OpenShift | Container application platform that brings Docker and Kubernetes to the enterprise. |
@@ -55,8 +61,10 @@ description: >-
 | Solr | An open-source enterprise-search platform, written in Java. |
 | SSH | Secure Socket Shell, a network protocol that provides administrators with a secure way to access a remote computer. |
 | SSL | Secure Socket Layer |
+| Symfony |  |
 | TCP | Transmission Control Protocol, a standard that defines how to establish and maintain a network conversation through which application programs can exchange data. |
 | TLS | Transport Layer Security |
+| Trivy |  |
 | TTL | Time to live or hop limit is a mechanism that limits the lifespan or lifetime of data in a computer or network. |
 | Varnish | A powerful, open-source HTTP engine/reverse HTTP proxy that can speed up a website by caching \(or storing\) a copy of a webpage the first time a user visits. |
 | VM | Virtual Machine |
