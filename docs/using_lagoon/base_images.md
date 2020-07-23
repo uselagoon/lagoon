@@ -35,7 +35,7 @@ Here’s an example from the `composer.json` in a Laravel base image:
 
 We only require this metapackage, which points to a GitHub repository.
 
-### **`docker-compose.yml`**
+### `docker-compose.yml`
 
 Other pieces of your project are defined in [`docker-compose.yml`](https://lagoon.readthedocs.io/en/latest/using_lagoon/docker-compose_yml/). For example, if you have a Drupal project, you need the Drupal image, but you also need MariaDB, Solr, Redis, and Varnish. We have versions of these services optimized for Drupal, all of which are included in `docker-compose.yml`.
 
@@ -97,7 +97,7 @@ Variables injected into the base image build process and where to find them.
 * `BUILD_NUMBER` - This is injected by Jenkins automatically.
 * `GIT_BRANCH` - This is provided by the Jenkins build process itself. Depends on the branch being built at the time \(develop, master, etc.\).
 * `DOCKER_REPO`/`DOCKER_HUB` - This is defined inside the Jenkinsfile itself. It points to the Docker project and hub into which the resulting images will be pushed.
-* `DOCKER_USERNAME`/`DOCKER_PASSWORD` - These are used to actually log into the Docker repository early in the build. These variables are stored inside of the Jenkins credentials with an id that will be provided to you by Amazee IO. These are used in the Jenkinsfile itself and are not part of the Makefile. This means that if you’re building base images outside of Jenkins \(i.e. locally, to test, etc.\) you have to run a `docker login` manually before running any of the make steps.
+* `DOCKER_USERNAME`/`DOCKER_PASSWORD` - These are used to actually log into the Docker repository early in the build. These variables are stored inside of the Jenkins credentials with an id that will be provided to you by amazee.io. These are used in the Jenkinsfile itself and are not part of the Makefile. This means that if you’re building base images outside of Jenkins \(i.e. locally, to test, etc.\) you have to run a `docker login` manually before running any of the make steps.
 
 In practice, this means that if you're running any of the `make` targets on your local machine, you'll want to ensure that these are available in the environment - even if this is just setting them when running make from the command line, as an example:
 
@@ -127,15 +127,14 @@ There are several steps to the build process. Most of these are shared among the
 4. **Docker Push** - This step runs the logic \(contained in the make target `images_publish`\) that will tag the images resulting from the **Docker Build** in Step 2 and push them to Harbor. This is described in more detail [elsewhere](#step-4-building-the-new-base-images) in this guide.
 5. **Docker Clean Images** - Runs the make target `images_remove`, which simply deletes the newly built images from the Docker host now that they are in Harbor.
 
-#### Releasing a new version of a base image
+### Releasing a new version of a base image
 
 There are many reasons to release a new version of a base image. On Drupal or Laravel, Node.js, etc images, it may be to upgrade or install a module/package for features or security. It may be about the underlying software that comes bundled in the container, such as updating the version of PHP or Node.js. It may be about updating the actual underlying _images_ on which the base images are built.
 
-The images that your project's base images are built on are the managed images maintained by Amazee IO. Amazee IO periodically releases updates to these underlying images. When these are updated, you need to build new versions of your own base images in order to incorporate the changes and upgrades bundled in the Amazee IO images.
+The images that your project's base images are built on are the managed images maintained by amazee.io. amazee.io periodically releases updates to these underlying images. When these are updated, you need to build new versions of your own base images in order to incorporate the changes and upgrades bundled in the amazee.io images.
 
 !!!hint
-    **Note**: if you are using Amazee IO's hosting service, your service agreement may dictate that Amazee IO updates your base images, or that you do - it can be done by either party.
-
+    **Note**: if you are using amazee.io's hosting service, your service agreement may dictate that amazee.io updates your base images, or that you do - it can be done by either party.
 
 In this section we will demonstrate the process of updating and tagging a new release of the Drupal 8 base image. We will add a new module \([ClamAV](https://www.drupal.org/project/clamav)\) to the base. We’re demonstrating on Drupal because it has the most complex setup of the base images. The steps that are common to every base image are noted below.
 
@@ -144,7 +143,7 @@ In this section we will demonstrate the process of updating and tagging a new re
 This is just pulling down the Git repository locally. In the case of the Drupal 8 base image. In this example, we're using Bitbucket, so we will run:
 
 ```bash
-git clone ssh://git@bitbucket.biscrum.com:7999/webpro/drupal8_base_image.git
+git clone ssh://git@bitbucket.yourrepo.com:7999/drupal8_base_image.git
 ```
 
 ![Running \`git clone\` on the base image repository.](/images/0.gif)
@@ -153,7 +152,6 @@ git clone ssh://git@bitbucket.biscrum.com:7999/webpro/drupal8_base_image.git
 
 !!!hint
     **Note:** What is demonstrated here is specific to the Drupal 8 base image. However, any changes \(adding files, changing base Docker images, etc.\) will be done in this step for all of the base images.
-
 
 In our example, we are adding the ClamAV module to the Drupal 8 base image. This involves a few steps. The first is requiring the package so that it gets added to our `composer.json` file. This is done by running a `composer require`.
 
@@ -202,7 +200,7 @@ drush pm-enable lagoon_bundle -y
 
 With our testing done, we can now tag and build the images.
 
-**Step 3 - Tagging images**
+#### Step 3 - Tagging images
 
 Images are versioned based on their [Git tags](https://git-scm.com/docs/git-tag) - these should follow standard [semantic versioning ](https://semver.org/)\(semver\) practices. All tags should have the structure **vX.Y.Z** where X, Y, and Z are integers \(to be precise the X.Y.Z are themselves the semantic version - the vX.Y.Z is a tag\). This is an assumption that is used to determine the image tags, so it _must_ be adhered to.
 
@@ -244,7 +242,6 @@ Images are tagged using the following rules, and images will be built for each o
 !!!hint
     **Note:** Generally you will have a trigger strategy set up here for automatic builds, but as that will differ based on your needs and setup, this explains how to build manually.
 
-
 1. Visit your Lagoon Jenkins instance.
 2. Select the project you are working on \(in this case, AIOBI Drupal 8 Base\).
 3. Click the branch you would like to build.
@@ -263,4 +260,3 @@ As shown in the screenshot below from Harbor, the image we’ve just built in Je
 ## Acknowledgement
 
 The base image structure draws heavily \(and, in fact, is a fork of\) [Denpal](https://github.com/dennisarslan/denpal). It is based on the original [Drupal Composer Template](https://github.com/drupal-composer/drupal-project), but includes everything necessary to run on amazee.io \(either the local development environment or on amazee.io servers\).
-
