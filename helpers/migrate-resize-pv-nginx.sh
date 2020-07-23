@@ -153,8 +153,6 @@ EOF
   fi
 
   echo "copy ${PVC} to ${PVC}-migrator"
-  # we run it twice to catch maybe created/updated/deleted files
-  ${OC} -n ${NS} exec $MIGRATOR -- rsync -av -W --inplace --delete --exclude='/css/' --exclude='/js/' --exclude='/advagg_css/' --exclude='/advagg_js/' --exclude='/styles/' --exclude='/php/' --info=progress2 --no-inc-recursive /storage/. /migrator
   ${OC} -n ${NS} exec $MIGRATOR -- rsync -av -W --inplace --delete --exclude='/css/' --exclude='/js/' --exclude='/advagg_css/' --exclude='/advagg_js/' --exclude='/styles/' --exclude='/php/' --info=progress2 /storage/. /migrator
 
   # update actual production pods with migrator PVC (this allows them to keep running while we migrate a second time)
@@ -202,9 +200,7 @@ EOF
   fi
 
   # copy data from the pvc-migrator to the newly created pvc
-  # we run it twice to catch maybe created/updated/deleted files
-  ${OC} -n ${NS} exec $MIGRATOR -- rsync -av -W --inplace --delete --exclude='/css/' --exclude='/js/' --exclude='/advagg_css/' --exclude='/advagg_js/' --info=progress2 --exclude='/styles/' --exclude='/php/' --no-inc-recursive /migrator/. /storage
-  ${OC} -n ${NS} exec $MIGRATOR -- rsync -av -W --inplace --delete --exclude='/css/' --exclude='/js/' --exclude='/advagg_css/' --exclude='/advagg_js/' --info=progress2 --exclude='/styles/' --exclude='/php/'/migrator/. /storage
+  ${OC} -n ${NS} exec $MIGRATOR -- rsync -av -W --inplace --delete --exclude='/css/' --exclude='/js/' --exclude='/advagg_css/' --exclude='/advagg_js/' --info=progress2 --exclude='/styles/' --exclude='/php/' /migrator/. /storage
 
   # updating the production pods with the copied storage again
   for DC in "${DC_ARRAY[@]}"
