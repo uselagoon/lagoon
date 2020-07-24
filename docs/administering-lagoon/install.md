@@ -1,17 +1,15 @@
 ---
 description: >-
-<<<<<<< HEAD
-  Note that as of Lagoon 1.x only Openshift is supported to run Lagoon itself.
-=======
-  Note that as of Lagoon 1.x, only OpenShift is supported to run Lagoon itself. 
->>>>>>> df065858a1df213c625704360a761e748299580c
+  Note that as of Lagoon 1.x only OpenShift is supported to run Lagoon itself.
   Kubernetes is only supported to deploy projects and environments into.
 ---
 
 # Install Lagoon 1.x on OpenShift
 
+## Install Lagoon 1.x on OpenShift
+
 {% hint style="warning" %}
-You do not need to _install_ Lagoon locally in order to _use_ it locally! That sounds confusing, but follow the documentation. Lagoon is the system that **deploys** your local development environment to your production environment, it's **not** the environment itself. Only install Lagoon if you are interested in developing and working on it \(or if you want to do it just for fun\). You don't **need** to do it. 
+You do not need to _install_ Lagoon locally in order to _use_ it locally! That sounds confusing, but follow the documentation. Lagoon is the system that **deploys** your local development environment to your production environment, it's **not** the environment itself. Only install Lagoon if you are interested in developing and working on it \(or if you want to do it just for fun\). You don't **need** to do it.
 {% endhint %}
 
 Lagoon is not only capable of _deploying_ into OpenShift, it actually _runs_ in OpenShift. This creates the tiny chicken and egg problem of how to install Lagoon on an OpenShift when there is no Lagoon yet. 🐣
@@ -27,7 +25,7 @@ This process consists of 4 main stages::
 3. Deploy!
 4. Configure Installed Lagoon.
 
-## Configure existing OpenShift
+### Configure existing OpenShift
 
 {% hint style="info" %}
 This also works with the OpenShift provided via MiniShift that can be started via `make minishift`.
@@ -54,7 +52,7 @@ In this example we create the Service Account `lagoon` in the OpenShift Project 
 
 4. At the end of this script it will give you a `serviceaccount` token. Keep that somewhere safe.
 
-## Configure and connect local Lagoon with OpenShift
+### Configure and connect local Lagoon with OpenShift
 
 In order to use a local Lagoon to deploy itself on an OpenShift, we need a subset of Lagoon running locally. We need to teach this local Lagoon how to connect to the OpenShift:
 
@@ -85,13 +83,14 @@ In order to use a local Lagoon to deploy itself on an OpenShift, we need a subse
    5. This build will run and deploy another Lagoon within the OpenShift it runs.
 6. As soon as the build is done, go to the `Application > Deployments` section of the OpenShift Project, and you should see all the Lagoon [DeploymentConfigs](https://docs.openshift.com/container-platform/4.4/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are) deployed and running. Also go to `Application > Routes` and click on the generated route for `rest2tasks` \(for a local OpenShift this will be [http://rest2tasks-lagoon-develop.192.168.42.100.xip.io/](http://rest2tasks-lagoon-develop.192.168.42.100.xip.io/)\), if you get `welcome to rest2tasks` as result, you did everything correct, bravo! 🏆
 
-## OpendistroSecurity
+### OpendistroSecurity
 
 Once Lagoon is install operational, you need to initialize OpendistroSecurity to allow Kibana multi-tenancy. This only needs to be run once in a new setup of Lagoon.
 
 1. Open a shell of an Elasticsearch pod in `logs-db`.
 2. `run ./securityadmin_demo.sh`.
 
-## Configure Installed Lagoon
+### Configure Installed Lagoon
 
 We have a fully running Lagoon. Now it's time to configure the first project inside of it. Follow the examples in [GraphQL API](graphql-queries.md).
+

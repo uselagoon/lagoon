@@ -13,3 +13,4 @@ For each Solr version, there is a specific `solr-drupal:<version>` Docker image.
 * 5.5
 * 6.6
 * 7.7
+

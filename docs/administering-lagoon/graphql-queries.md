@@ -29,7 +29,7 @@ Under "GraphQL Endpoint", enter the API endpoint URL with `/graphql` on the end.
 
 Press ESC to close the HTTP header overlay and now we are ready to send the first GraphQL request!
 
-![Editing HTTP Headers in GraphiQL.](../.gitbook/assets/graphiql-2020-01-29-18-05-54%20%281%29.png)
+![Editing HTTP Headers in GraphiQL.](../.gitbook/assets/graphiql-2020-01-29-18-05-54%20%281%29%20%281%29.png)
 
 Enter this in the left panel
 
@@ -41,7 +41,7 @@ query allProjects{
 }
 ```
 
-![Running a query in GraphiQL.](../.gitbook/assets/graphiql-2020-01-29-20-10-32%20%281%29.png)
+![Running a query in GraphiQL.](../.gitbook/assets/graphiql-2020-01-29-20-10-32%20%281%29%20%281%29.png)
 
 And press the ▶️button \(or press CTRL+ENTER\).
 
@@ -213,7 +213,7 @@ Now for every deployment you will receive messages in your defined channel.
 ### Adding a new OpenShift target
 
 {% hint style="info" %}
-In Lagoon 1.x `addOpenshift` is used for both Openshift and Kubernetes targets.  In Lagoon 2.x this will change.
+In Lagoon 1.x `addOpenshift` is used for both Openshift and Kubernetes targets. In Lagoon 2.x this will change.
 {% endhint %}
 
 The OpenShift cluster to which Lagoon should deploy. Lagoon is not only capable of deploying to its own OpenShift, but also to any OpenShift anywhere in the world.
@@ -556,3 +556,4 @@ mutation {
   }
 }
 ```
+

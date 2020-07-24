@@ -18,7 +18,6 @@ Here a straightforward example of a `docker-compose.yml` file for Drupal:
 
 {% tabs %}
 {% tab title="docker-compose.yml" %}
-
 ```yaml
 version: '2.3'
 
@@ -151,7 +150,7 @@ For these cases, it is possible to tell Lagoon which services should stay togeth
 
 This will cause Lagoon to realize that the `nginx` and `php` containers are combined in a pod that will be called `nginx`.
 
-Lagoon still needs to understand which of the two services is the actual individual service type \(`nginx` and `php` in this case\). It does this by searching for service names with the same name that are given by the type, so `nginx-php-persistent` expects one service with the name `nginx` and one with `php` in the `docker-compose.yml.` If for any reason you want to use different names for the services, or you  need for than one pod with the type `nginx-php-persistent` there is an additional label `lagoon.deployment.servicetype` which can be used to define the actual service type.
+Lagoon still needs to understand which of the two services is the actual individual service type \(`nginx` and `php` in this case\). It does this by searching for service names with the same name that are given by the type, so `nginx-php-persistent` expects one service with the name `nginx` and one with `php` in the `docker-compose.yml.` If for any reason you want to use different names for the services, or you need for than one pod with the type `nginx-php-persistent` there is an additional label `lagoon.deployment.servicetype` which can be used to define the actual service type.
 
 An example:
 
@@ -177,7 +176,6 @@ php:
       lagoon.name: nginx # We want this service be part of the nginx pod in Lagoon.
       lagoon.deployment.servicetype: php
 ```
-
 {% endtab %}
 {% endtabs %}
 
@@ -196,14 +194,14 @@ Lagoon comes with a variety of pre-defined templates, which set all kinds of nee
 If you need to make changes to the OpenShift templates, you can define your own template via `lagoon.template`.
 
 {% hint style="info" %}
-The template is called with `oc process`,  so you should define the same parameters as seen in the default templates.
+The template is called with `oc process`, so you should define the same parameters as seen in the default templates.
 {% endhint %}
 
 You can also overwrite the templates for a specific environment. This is done in [`.lagoon.yml`](lagoon-yml.md#environmentsnametypes)
 
 ## Helm Templates \(Kubernetes only\)
 
-Lagoon uses [Helm](https://helm.sh/) for templating on Kubernetes.  To do this, a series of [Charts](https://github.com/amazeeio/lagoon/tree/master/images/kubectl-build-deploy-dind/helmcharts) are included with the `kubectl-build-deploy-dind` service.
+Lagoon uses [Helm](https://helm.sh/) for templating on Kubernetes. To do this, a series of [Charts](https://github.com/amazeeio/lagoon/tree/master/images/kubectl-build-deploy-dind/helmcharts) are included with the `kubectl-build-deploy-dind` service.
 
 ## **Custom Rollout Monitor Types**
 
@@ -220,7 +218,7 @@ You can also overwrite the rollout for just one specific environment. This is do
 
 Feeling adventurous and want to do something completely customized? Welcome to the Danger Zone!
 
-![Welcome to the Danger Zone](../.gitbook/assets/topgun.gif)
+![Welcome to the Danger Zone](../.gitbook/assets/topgun%20%281%29.gif)
 
 When defining a service as `lagoon.type: custom`, you can tell Lagoon to not use any pre-defined service type templates and pass your full own custom YAML file.
 
@@ -229,3 +227,4 @@ This also expects the label `lagoon.template` to be defined with the path to the
 {% hint style="info" %}
 The template is called with `oc process`, so you should define the same parameters as in the default templates.
 {% endhint %}
+

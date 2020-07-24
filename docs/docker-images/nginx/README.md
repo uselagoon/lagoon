@@ -64,4 +64,5 @@ Environment variables are meant to contain common information for the `nginx` co
 | `BASIC_AUTH` | `restricted` | By not setting `BASIC_AUTH` this will instruct Lagoon to automatically enable basic authentication if `BASIC_AUTH_USERNAME` and `BASIC_AUTH_PASSWORD` are set. To disable basic authentication even if `BASIC_AUTH_USERNAME` and `BASIC_AUTH_PASSWORD` are set, set `BASIC_AUTH` to `off`. |
 | `BASIC_AUTH_USERNAME` | \(not set\) | Username for basic authentication |
 | `BASIC_AUTH_PASSWORD` | \(not set\) | Password for basic authentication \(unencrypted\) |
-| `FAST_HEALTH_CHECK` | \(not set\) | If set to `true` this will redirect GET requests from certain user agents (StatusCake, Pingdom, Site25x7, Uptime, nagios) to the lightweight Lagoon service healthcheck. |
+| `FAST_HEALTH_CHECK` | \(not set\) | If set to `true` this will redirect GET requests from certain user agents \(StatusCake, Pingdom, Site25x7, Uptime, nagios\) to the lightweight Lagoon service healthcheck. |
+

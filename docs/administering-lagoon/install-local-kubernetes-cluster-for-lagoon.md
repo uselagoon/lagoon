@@ -11,18 +11,14 @@ Let's see how to install a local lightweight Kubernetes cluster using k3s by Ran
 {% hint style="info" %}
 In order to have the best experience we recommend the following: 
 
-Linux or Mac OSX 
-
-32 GB+ RAM total 
-
-12 GB+ RAM allocated to Docker 
-
-6+ cores allocated to Docker 
-
-SSD disk with 25GB+ free
+* Linux or Mac OSX 
+* 32 GB+ RAM total 
+* 12 GB+ RAM allocated to Docker 
+* 6+ cores allocated to Docker 
+* SSD disk with 25GB+ free
 {% endhint %}
 
-## Installation checklist
+## Installation Checklist
 
 1. Make sure you have a clean state checking the following \(use `-n` option for dry-run\):
    1. Make sure no lagoon containers are running running `make kill`.
@@ -34,7 +30,7 @@ SSD disk with 25GB+ free
 
 ## Create a local k3s cluster
 
-1. Now you can create a local k3s Kubernetes cluster running `make k3d` and see the following notable outputs: \(k3d is a wrapper for running k3s in Docker\)\*
+1. Now you can create a local k3s Kubernetes cluster running `make k3d` and see the following notable outputs: \(k3d is a wrapper for running k3s in Docker\)
 
    ```text
     INFO[0000] Creating cluster [k3s-lagoon]
@@ -79,7 +75,7 @@ SSD disk with 25GB+ free
     TEST SUITE: None
    ```
 
-2. At the end of the script, using `docker ps` you should see an output like the following: \*
+2. At the end of the script, using `docker ps` you should see an output like the following: 
 
    ```text
     CONTAINER ID        IMAGE                       COMMAND                  CREATED             STATUS              PORTS                                                                     NAMES

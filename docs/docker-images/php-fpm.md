@@ -9,7 +9,7 @@ The [Lagoon `php-fpm` Docker image](https://github.com/amazeeio/lagoon/blob/mast
 > FastCGI is a way of having server scripts execute time-consuming code just once instead of every time the script is loaded, reducing overhead.
 
 {% hint style="info" %}
-This Dockerfile is intended to be used as a base for any `PHP` needs within Lagoon. This image itself does not create a web server, rather  a `php-fpm` fastcgi listener. You may need to adapt the `php-fpm` pool config.
+This Dockerfile is intended to be used as a base for any `PHP` needs within Lagoon. This image itself does not create a web server, rather a `php-fpm` fastcgi listener. You may need to adapt the `php-fpm` pool config.
 {% endhint %}
 
 ## Supported Versions
@@ -107,3 +107,4 @@ Environment variables are meant to contain common information for the PHP contai
 | `PHP_MAX_INPUT_VARS` | `2000` | How many input variables will be accepted. [See php.net](http://php.net/manual/en/info.configuration.php#ini.max-input-vars). |
 | `PHP_MEMORY_LIMIT` | `400M` | Maximum amount of memory a script may consume. [See php.net](http://php.net/memory-limit). |
 | `XDEBUG_ENABLE` | \(not set\) | Used to enable `xdebug` extension. [See php.net](http://php.net/manual/en/apc.configuration.php#ini.apc.enabled). |
+

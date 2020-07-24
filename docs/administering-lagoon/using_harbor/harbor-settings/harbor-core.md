@@ -149,3 +149,4 @@ The configmap from which this config file is generated is stored within Lagoon i
   * Tells `harbor-core` if the Notary service is being used.
   * This service is **not** used with Lagoon's implementation of Harbor.
   * The default value is `false`.
+

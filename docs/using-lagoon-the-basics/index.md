@@ -70,3 +70,4 @@ Some Docker images and containers need additional customizations from the provid
 All images are pushed to [https://hub.docker.com/u/amazeeio](https://hub.docker.com/u/amazeeio). We suggest always using the latest tag \(like `amazeeio/nginx:latest`\) or unsuffixed images \(like `amazeeio/node:14`\), as they are kept up to date in terms of features and security.
 
 If you choose to use a specific Lagoon version of an image like `amazeeio/nginx:v0.21.0` or `amazeeio/node:10-v0.21.0` it is your own responsibility to upgrade the version of the images as soon as a new Lagoon version is released!
+
