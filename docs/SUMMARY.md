@@ -55,11 +55,11 @@
 * [Harbor](administering-lagoon/using_harbor/README.md)
   * [Security Scanning](administering-lagoon/using_harbor/security_scanning.md)
   * [Harbor Settings](administering-lagoon/using_harbor/harbor-settings/README.md)
+    * [Harbor-Core](administering-lagoon/using_harbor/harbor-settings/harbor-core.md)
     * [HarborClair](administering-lagoon/using_harbor/harbor-settings/harborclair.md)
     * [HarborClairAdapter](administering-lagoon/using_harbor/harbor-settings/harborclairadapter.md)
     * [HarborRegistry](administering-lagoon/using_harbor/harbor-settings/harborregistry.md)
     * [HarborRegistryCtl](administering-lagoon/using_harbor/harbor-settings/harborregistryctl.md)
-    * [Harbor-Core](administering-lagoon/using_harbor/harbor-settings/harbor-core.md)
     * [Harbor-Database](administering-lagoon/using_harbor/harbor-settings/harbor-database.md)
     * [Harbor-Jobservice](administering-lagoon/using_harbor/harbor-settings/harbor-jobservice.md)
 

@@ -162,9 +162,7 @@ Environment names match your deployed branches or pull requests. This allows for
 #### `environments.[name].monitoring_urls`
 
 {% hint style="danger" %}
-```text
-This feature will be removed in an upcoming release of Lagoon. Please use the newer [`monitoring-path` method](lagoon_yml.md#monitoring-a-specific-path) on your specific route.
-```
+This feature will be removed in an upcoming release of Lagoon. Please use the newer `monitoring-path` method on your specific route.
 {% endhint %}
 
 {% hint style="info" %}
@@ -183,7 +181,7 @@ The simplest route is the `example.com` example in our sample `.lagoon.yml` abov
 
 In the `"www.example.com"` example repeated below, we see two more options \(also notice the `:` at the end of the route and that the route is wrapped in `"`, that's important!\):
 
-**SSL Configuration - tls-acme**
+#### **SSL Configuration - `tls-acme`**
 
 * `tls-acme: 'true'` tells Lagoon to issue a Let's Encrypt certificate for that route. This is the default. If you don't want a Let's Encrypt, set this to `tls-acme: 'false'`
 * `insecure` can be set to `None`, `Allow` or `Redirect`.
@@ -207,41 +205,53 @@ If you plan to switch from a SSL certificate signed by a Certificate Authority \
 {% endtab %}
 {% endtabs %}
 
-**Monitoring a specific path**
+#### **Monitoring a specific path**
 
 When [UptimeRobot](https://uptimerobot.com/) is configured for your cluster \(OpenShift or Kubernetes\), Lagoon will inject annotations to each route/ingress for use by the `stakater/IngressControllerMonitor`. The default action is to monitor the homepage of the route. If you have a specific route to be monitored, this can be overriden by adding a `monitoring-path` to your route specification. A common use is to set up a path for monitoring which bypasses caching to give a more real-time monitoring of your site.
 
-```text
+{% tabs %}
+{% tab title=".lagoon.yml" %}
+```yaml
      - "www.example.com":
             monitoring-path: "/bypass-cache"
 ```
+{% endtab %}
+{% endtabs %}
 
-**Ingress annotations \(Redirects\)**
+#### **Ingress annotations \(Redirects\)**
 
-!!!hint Route/Ingress annotations are only supported by projects that deploy into clusters that run nginx-ingress controllers! Check with your Lagoon administrator if this is supported.
+{% hint style="info" %}
+ Route/Ingress annotations are only supported by projects that deploy into clusters that run nginx-ingress controllers! Check with your Lagoon administrator if this is supported.
+{% endhint %}
 
-* `annotations` can be a yaml map of [annotations supported by the nginx-ingress controller](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/), this is specifically usefull for easy redirects:
+* `annotations` can be a yaml map of [annotations supported by the nginx-ingress controller](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/), this is specifically useful for easy redirects:
 
 In this example any requests to `example.ch` will be redirected to `https://www.example.ch` with keeping folders or query parameters intact \(`example.com/folder?query` -&gt; `https://www.example.ch/folder?query`\)
 
-```text
+{% tabs %}
+{% tab title=".lagoon.yml" %}
+```yaml
         - "example.ch":
             annotations:
               nginx.ingress.kubernetes.io/permanent-redirect: https://www.example.ch$request_uri
         - www.example.ch
 ```
+{% endtab %}
+{% endtabs %}
 
 You can of course also redirect to any other URL not hosted on Lagoon, this will direct requests to `example.de` to `https://www.google.com`
 
-```text
+{% tabs %}
+{% tab title=".lagoon.yml" %}
+```yaml
         - "example.de":
             annotations:
               nginx.ingress.kubernetes.io/permanent-redirect: https://www.google.com
 ```
+{% endtab %}
+{% endtabs %}
 
-> > > > > > > 5920625105313eab8d6807bafec4929e1e11b576:docs/using\_lagoon/lagoon\_yml.md
-
-**environments.\[name\].types**
+#### `Environments.[name].types`
 
 The Lagoon build process checks the `lagoon.type` label from the `docker-compose.yml` file in order to learn what type of service should be deployed \(read more about them in the [documentation of `docker-compose.yml`](docker-compose-yml.md#custom-templates)\).
 
@@ -265,7 +275,7 @@ environments:
 {% endtab %}
 {% endtabs %}
 
-**environments.\[name\].templates**
+#### **`environments.[name].templates`**
 
 The Lagoon build process checks the `lagoon.template` label from the `docker-compose.yml` file in order to check if the service needs a custom template file \(read more about them in the [documentation of `docker-compose.yml`](docker-compose-yml.md)\).
 
@@ -276,7 +286,7 @@ Sometimes you might want to override the **template** just for a single environm
 * `service-name` is the name of the service from `docker-compose.yml` you would like to override.
 * `template-file` is the path and name of the template to use for this service in this environment.
 
-Example:
+**Example**:
 
 {% tabs %}
 {% tab title=".lagoon.yml" %}
@@ -289,7 +299,7 @@ environments:
 {% endtab %}
 {% endtabs %}
 
-**environments.\[name\].rollouts**
+#### **`environments.[name].rollouts`**
 
 The Lagoon build process checks the `lagoon.rollout` label from the `docker-compose.yml` file in order to check if the service needs a special rollout type \(read more about them in the [documentation of `docker-compose.yml`](docker-compose-yml.md#custom-rollout-monitor-types)\)
 
@@ -303,38 +313,34 @@ Sometimes you might want to override the **rollout type** just for a single envi
 Example:
 
 {% tabs %}
-
+{% tab title=".lagoon.yml" %}
 ```yaml
 environments:
   master:
     rollouts:
       mariadb: statefulset
 ```
-
-&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
-
-## &lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD:docs/using-lagoon-the-basics/lagoon-yml.md
-
-> > > > > > > b1b823af8f549917232ddaee3852ec28566efc13
-
-## {% endtabs %}
+{% endtab %}
+{% endtabs %}
 
 #### `environments.[name].autogenerateRoutes`
 
 This allows for any environments to get autogenerated routes when route autogeneration is disabled.
 
-```text
+{% tabs %}
+{% tab title=".lagoon.yml" %}
+```yaml
 routes:
   autogenerate:
     enabled: false
 environments:
   develop:
-    autogenerateRoutes: true
+    autogenerateRoutes: tru
 ```
+{% endtab %}
+{% endtabs %}
 
-> > > > > > > 5920625105313eab8d6807bafec4929e1e11b576:docs/using\_lagoon/lagoon\_yml.md
-
-**Cron jobs - environments.\[name\].cronjobs**
+#### `Cron jobs - environments.[name].cronjobs`
 
 {% embed url="https://www.youtube.com/watch?v=6qqY-XmBZ8c" caption="How do I add a cron job?" %}
 
@@ -424,6 +430,7 @@ The `container-registries` block allows you to define your own private container
 There are 2 ways to define the password used for your registry user.
 
 * Create an environment variable in the Lagoon API \(see more on [Environment Variables](../using-lagoon-advanced/environment-variables.md)\). The name of the variable you create can then be set as the password:
+* Define it directly in the `.lagoon.yml` file in plain text:
 
 ```yaml
 container-registries:
@@ -433,19 +440,23 @@ container-registries:
     url: my.own.registry.com
 ```
 
-* Define it directly in the `.lagoon.yml` file in plain text:
-
+{% tabs %}
+{% tab title=".lagoon.yml" %}
 ```yaml
 container-registries:
   docker-hub:
     username: dockerhubuser
     password: MySecretPassword
 ```
+{% endtab %}
+{% endtabs %}
 
 **Consuming a custom or private container registry image**
 
 To consume a custom or private container registry image, you need to update the service inside your `docker-compose.yml` file to use a build context instead of defining an image:
 
+{% tabs %}
+{% tab title="docker-compose.yml" %}
 ```yaml
 services:
   mariadb:
@@ -453,6 +464,8 @@ services:
       context: .
       dockerfile: Dockerfile.mariadb
 ```
+{% endtab %}
+{% endtabs %}
 
 Once the `docker-compose.yml` file has been updated to use a build, you need to create the `Dockerfile.<service>` and then set your private image as the `FROM <repo>/<name>:<tag>`
 
