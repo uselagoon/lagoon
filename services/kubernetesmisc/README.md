@@ -7,14 +7,14 @@ This service is part of amazee.io Lagoon, a Docker build and deploy system for
 OpenShift & Kubernetes. Please reference our [documentation] for detailed
 information on using, developing, and administering Lagoon.
 
-# Kubernetes Build & Deploy (`kubernetesbuilddeploy`)
+# Kubernetes Miscellaneous (`kubernetesmisc`)
 
-Prepares a build/deployment request for a Lagoon project environment running in
-a Kubernetes cluster. It gathers all the data necessary for a Lagoon build and
-deployment, validates the request, prepares the Kubernetes namespace, prepares a
-build container, and queues it for build/deployment.
+Handles miscellaneous requirements of a Lagoon project environment running in a
+Kubernetes cluster. Currently able to retrieve a backup of a Lagoon project
+environment and cancel a running build/deployment of a Lagoon project
+environment.
 
-Some errors that can occur during the preperation are tolerable and/or expected
+Some errors that can occur during the processing are tolerable and/or expected
 in which case the request will be requeued and retried after some delay.
 
 ## Technology
@@ -26,12 +26,10 @@ in which case the request will be requeued and retried after some delay.
 
 * API [***dependency***]
 * RabbitMQ [***dependency***]
-* kubernetesdeployqueue [***related***]
-* kubernetesbuilddeploymonitor [***related***]
 
 ## Message Queues
 
-* Consumes: `lagoon-tasks:builddeploy-kubernetes`
-* Produces: `lagoon-tasks-monitor:queuedeploy-kubernetes`, `lagoon-tasks-delay`
+* Consumes: `lagoon-tasks:misc-kubernetes`
+* Produces: `lagoon-tasks-delay`
 
 [documentation]: https://lagoon.readthedocs.io/

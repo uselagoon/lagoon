@@ -7,14 +7,14 @@ This service is part of amazee.io Lagoon, a Docker build and deploy system for
 OpenShift & Kubernetes. Please reference our [documentation] for detailed
 information on using, developing, and administering Lagoon.
 
-# Logs to Email (`logs2email`)
+# OpenShift Jobs (`openshiftjobs`)
 
-Watches all the Lagoon logs and checks for events that should trigger an email
-notification. Each log message is tied to a Lagoon project, and email
-configuration for that project is retrieved from the Lagoon API.
+Runs a Lagoon task for a project environment running in an OpenShift cluster. It
+validates the request, creates a job container in OpenShift, and then the
+OpenShift Job Monitor service takes over.
 
-Examples of events that might trigger an email: GitHub pull request opened, a new
-build for a Lagoon project environent has started, a task was completed.
+Some errors that can occur during the running are tolerable and/or expected in
+which case the request will be requeued and retried after some delay.
 
 ## Technology
 
@@ -25,10 +25,11 @@ build for a Lagoon project environent has started, a task was completed.
 
 * API [***dependency***]
 * RabbitMQ [***dependency***]
+* openshiftjobmonitor [***related***]
 
 ## Message Queues
 
-* Consumes: `lagoon-logs`, `lagoon-logs:email`
-* Produces: `lagoon-logs:email`
+* Consumes: `lagoon-tasks:job-openshift`
+* Produces: `lagoon-tasks-monitor:job-openshift`, `lagoon-tasks-delay`
 
 [documentation]: https://lagoon.readthedocs.io/

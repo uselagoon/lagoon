@@ -1,29 +1,34 @@
-# lagoon-webhooks2tasks
+<p align="center"><img
+src="https://raw.githubusercontent.com/amazeeio/lagoon/master/docs/images/lagoon-logo.png"
+alt="The Lagoon logo is a blue hexagon split in two pieces with an L-shaped cut"
+width="40%"></p>
 
-This service is called 'webhooks2tasks', is part of the amazee.io lagoon deployment system and is responsible for converting webhooks into actual tasks that should be executed.
+This service is part of amazee.io Lagoon, a Docker build and deploy system for
+OpenShift & Kubernetes. Please reference our [documentation] for detailed
+information on using, developing, and administering Lagoon.
 
-It does the following:
-1. read message from a rabbitmq queue called `lagoon-webhooks`
-2. connect to the lagoon api and load the Project information for the GitURL in the message (if project cannot be resolved, logs to lagoon-logs)
-3. analyzing the message and calls a specific handler for the webhooktype and the event name (like githubPullRequestClosed)
-4. the handler will then create a task in the correct rabbitmq task queue. (In our example, closed pull requests need to remove openshift resources, so it creates a task in `lagoon-tasks:remove-openshift-resources`)
-5. If no handler is defined for the webhook type or the event, it will log that to `lagoon-logs`
+# Webhook to Tasks (`webhooks2tasks`)
 
-It uses https://github.com/benbria/node-amqp-connection-manager for connecting to rabbitmq, so it can handle situations were rabbitmq is not reachable and still receive webhooks, process them and keep them in memory. As soon as rabbitmq is reachable again, it will send the messages there.
+Processes the queue of incoming webhooks and initiates tasks in Lagoon based on
+their type. "Tasks" here is generic for any action, not a Lagoon project
+environment task (as seen in the UI).
 
-## Hosting
+Examples of tasks: trigger a new build, record a new backup.
 
-Fully developed in Docker and hosted on amazee.io Openshift, see the `.openshift` folder. Deployed via Jenkinsfile.
+## Technology
 
-Uses `lagoon/node:10` as base image.
+* Node.js
+* Message Queue
 
-## Development
+## Related Services
 
-Can be used with a local nodejs and connect to a rabbitmq of your choice.
+* API [***dependency***]
+* RabbitMQ [***dependency***]
+* webhook-handler [***related***]
 
-        yarn install
-        RABBITMQ_HOST=guest:guest@rabbitmqhost yarn run start
+## Message Queues
 
-Or via the existing docker-compose.yml
+* Consumes: `lagoon-webhooks`, `lagoon-webhooks:queue`
+* Produces: `lagoon-webhooks-delay`
 
-        docker-compose up -d
+[documentation]: https://lagoon.readthedocs.io/

@@ -7,28 +7,26 @@ This service is part of amazee.io Lagoon, a Docker build and deploy system for
 OpenShift & Kubernetes. Please reference our [documentation] for detailed
 information on using, developing, and administering Lagoon.
 
-# Logs to Email (`logs2email`)
+# API (`api`)
 
-Watches all the Lagoon logs and checks for events that should trigger an email
-notification. Each log message is tied to a Lagoon project, and email
-configuration for that project is retrieved from the Lagoon API.
-
-Examples of events that might trigger an email: GitHub pull request opened, a new
-build for a Lagoon project environent has started, a task was completed.
+The main GraphQL API for Lagoon. Uses the [Apollo server library](https://www.apollographql.com/docs/apollo-server/v1/).
 
 ## Technology
 
 * Node.js
+* GraphQL
 * Message Queue
 
 ## Related Services
 
 * API [***dependency***]
+* Keycloak [***dependency***]
 * RabbitMQ [***dependency***]
 
-## Message Queues
+## API
 
-* Consumes: `lagoon-logs`, `lagoon-logs:email`
-* Produces: `lagoon-logs:email`
+* Authentication [**required**]: `Authorization` header with bearer token.
+* Query/Muation documented via API introspection, supported in most GraphQL
+  clients.
 
 [documentation]: https://lagoon.readthedocs.io/
