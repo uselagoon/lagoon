@@ -43,20 +43,20 @@
   tasks:
     - include: ../../checks/check-url-returncode.yaml
 
-- name: "{{ testname }} - check if {{ project }} redirects requests to /install.php/node/1"
+- name: "{{ testname }} - check if {{ project }} redirects requests to /index.php/node"
   hosts: localhost
   serial: 1
   vars:
-    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}/install.php/node/1"
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}/index.php/node"
     expected_returncode: 301
   tasks:
     - include: ../../checks/check-url-returncode.yaml
 
-- name: "{{ testname }} - check if {{ project }} redirects requests to /es/install.php/node/1"
+- name: "{{ testname }} - check if {{ project }} redirects requests to /es/index.php/node"
   hosts: localhost
   serial: 1
   vars:
-    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}/es/install.php/node/1"
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}/es/index.php/node"
     expected_returncode: 301
   tasks:
     - include: ../../checks/check-url-returncode.yaml
