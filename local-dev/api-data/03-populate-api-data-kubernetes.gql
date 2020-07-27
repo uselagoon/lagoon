@@ -6,10 +6,10 @@ mutation PopulateApi {
       id: 1002
       name: "ci-local-kubernetes"
       consoleUrl: "https://172.17.0.1:16643/" # make-host-docker-internal
-      routerPattern: "${project}.${environment}.172.17.0.1.xip.io"
+      routerPattern: "${project}.${environment}.172.17.0.1.nip.io"
       sshHost: "172.17.0.1"
       sshPort: "2020"
-      token: "eyJhbGciOiJSUzI1NiIsImtpZCI6ImNMaTF3aC1PR2dSeElnMlJXdG5kOUF5d1N1X1JQVGZhQUo0WHBYcEVMUUEifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJsYWdvb24iLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlY3JldC5uYW1lIjoia3ViZXJuZXRlc2J1aWxkZGVwbG95LXRva2VuLWY1OGQ1Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQubmFtZSI6Imt1YmVybmV0ZXNidWlsZGRlcGxveSIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6ImEyN2NiOTBhLTQ0MDAtNDljYy04Yzc1LWQ4NTAyZmRmMDhhNCIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpsYWdvb246a3ViZXJuZXRlc2J1aWxkZGVwbG95In0.dvmjV1_XXt__2juq392y2M1LyfFUGZz6D3do5ywkLy7zXz1IUv5Qf9dPAk4t3NP4xjtbhR_jJc8pWnVSP1Z2d1tZqj-XYJJvAf6YHXv8L4ram-MObz0x0zyCVK8w_bbzwWCEySM92eUI_TtpPCxFyEhJE7XJ--NppzBq-LaQ8eb8WvOrR5YHJAej1_HrtyQ_4Lm2DAm8dug-ptuAYQ8X4CWbXq-L_dmQnt-LgnKCCbDnvxo8XIJ_LQeMewtwtWmwOXscwGGM2Gq3C-9ykrnI1hd42GE_otLRBHTKLZfJ34eIYXsxXoMIXllxZp4O-NSIzEtafoaOL6BOQkSitAADZQ" # make-kubernetes-token
+      token: "eyJhbGciOiJSUzI1NiIsImtpZCI6IjZWamZLTzEzZ2lPSGFtc0d6QXVkWXpDYi1fcmlfLWVBd3JtbEEydGItTHcifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJsYWdvb24iLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlY3JldC5uYW1lIjoia3ViZXJuZXRlc2J1aWxkZGVwbG95LXRva2VuLXJxNDg1Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQubmFtZSI6Imt1YmVybmV0ZXNidWlsZGRlcGxveSIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjA3YzViODAxLTI5ZDgtNDU5Ni1hODBlLTZlMmU3MmY3YmMwMCIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpsYWdvb246a3ViZXJuZXRlc2J1aWxkZGVwbG95In0.srj-zZguNXCQbeTIS5GtJw7Jl61k_miC8hXED70NQULm6OAMkImHrURRCfD4kjKPy-jbwEI88m5TNLFP8_0sMfdwj2vr2Gv8fTC55qoAJ589ff_dwv8THSKdKNj6VaHynzEzQ4IfZscd3ogP4HYF9alt-X4mMcJ2BApBt4F13Hg-bE2-4uzO0b_u13pJhzn0XrH8JGXWP0_oMPtE7M0zJL9BfOrBph_MgSb2djSbVBNbhPJ0fs9-eIB5aAu0NmqPhpxj6WL4UOAKX178IsDAq4vtRZrScZwvZxRcaDUxZ-MgwewWI8Ll0yg7UCxtZTdkLglkCgpjTK33Ei0PXWdE4A" # make-kubernetes-token
     }
   ) {
     id
@@ -1123,7 +1123,7 @@ mutation PopulateApi {
     CiActiveStandby: addProject(
       input: {
         id: 1024
-        name: "ci-active-standby-k8s"
+        name: "ci-active-standby-kubernetes"
         openshift: 1002
         gitUrl: "ssh://git@192.168.42.1:2222/git/active-standby.git"
         productionEnvironment:"master-a"
@@ -1140,7 +1140,7 @@ mutation PopulateApi {
     CiActiveStandbyGroup3: addGroupsToProject(
       input: {
         project: {
-          name: "ci-active-standby-k8s"
+          name: "ci-active-standby-kubernetes"
         }
         groups: [
           {
@@ -1153,7 +1153,7 @@ mutation PopulateApi {
     }
     CiActiveStandbyRocketChat: addNotificationToProject(
       input: {
-        project: "ci-active-standby-k8s"
+        project: "ci-active-standby-kubernetes"
         notificationType: ROCKETCHAT
         notificationName: "amazeeio--lagoon-local-ci"
       }
@@ -1162,7 +1162,7 @@ mutation PopulateApi {
     }
     CiActiveStandbyEmail: addNotificationToProject(
       input: {
-        project: "ci-active-standby-k8s"
+        project: "ci-active-standby-kubernetes"
         notificationType: EMAIL
         notificationName: "local-email-testing"
       }

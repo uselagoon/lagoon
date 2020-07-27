@@ -6,7 +6,7 @@ mutation PopulateApi {
       id: 2
       name: "ci-local-openshift"
       consoleUrl: "https://192.168.42.103:8443/"
-      routerPattern: "${project}.${branch}.192.168.42.103.xip.io"
+      routerPattern: "${project}.${branch}.192.168.42.103.nip.io"
       projectUser: "developer"
       sshHost: "172.17.0.1"
       sshPort: "2020"
