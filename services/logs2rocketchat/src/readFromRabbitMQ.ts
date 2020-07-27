@@ -169,7 +169,7 @@ export async function readFromRabbitMQ (msg: ConsumeMessage, channelWrapperLogs:
       }
       text = `${text} Build \`${meta.buildName}\` failed.`
       if (meta.logLink){
-        text = `${text} ${meta.logLink}`
+        text = `${text} [Logs](${meta.logLink})\n`
       }
       sendToRocketChat(project, text, 'red', ':bangbang:', channelWrapperLogs, msg, appId)
       break;
