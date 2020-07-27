@@ -76,9 +76,7 @@ Here a short description of what this file does:
   automated testing to check if the pool started\).
 
 * `catch_workers_output = yes` to see PHP errors.
-* `clear_env = no` to be able to inject PHP environment variables via regular
-
-  Docker environment variables.
+* `clear_env = no` to be able to inject PHP environment variables via regular Docker environment variables.
 
 ## Environment Variables
 
