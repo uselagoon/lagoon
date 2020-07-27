@@ -56,7 +56,7 @@ export async function readFromRabbitMQ (msg: ConsumeMessage, channelWrapperLogs:
     case "gitlab:remove:handled":
     case "bitbucket:delete:handled":
     case "api:deleteEnvironment":
-      text = `*[${meta.projectName}]* deleted in \`${meta.branchName}\``
+      text = `*[${meta.projectName}]* delete trigger \`${meta.environmentName}\``
       sendToRocketChat(project, text, '#E8E8E8', ':information_source:', channelWrapperLogs, msg, appId)
       break;
 
@@ -159,6 +159,7 @@ export async function readFromRabbitMQ (msg: ConsumeMessage, channelWrapperLogs:
     case "task:remove-openshift:error":
     case "task:remove-kubernetes:error":
     case "task:remove-openshift-resources:error":
+    case "task:builddeploy-kubernetes:failed":
     case "task:builddeploy-openshift:failed":
       text = `*[${meta.projectName}]*`
       if (meta.shortSha) {
