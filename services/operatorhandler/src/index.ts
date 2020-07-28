@@ -29,23 +29,23 @@ const messageConsumer = async function(msg) {
   const {
     type,
     namespace,
-    buildInfo,
+    meta,
    } = JSON.parse(msg.content.toString());
 
 
   switch (type) {
     case 'build':
       logger.verbose(
-        `Received deployment and environment update task ${buildInfo.buildName} - ${buildInfo.buildPhase}`
+        `Received deployment and environment update task ${meta.buildName} - ${meta.buildPhase}`
       );
       try {
         let deploymentId;
         try {
           // try get the ID from our build UID
-          const deployment = await getDeploymentByRemoteId(buildInfo.jobUid);
+          const deployment = await getDeploymentByRemoteId(meta.remoteId);
           if (!deployment.deploymentByRemoteId) {
             // otherwise find it using the build name
-            const deploymentResult = await getDeploymentByName(namespace, buildInfo.buildName);
+            const deploymentResult = await getDeploymentByName(namespace, meta.buildName);
             deploymentId = deploymentResult.environment.deployments[0].id;
           } else {
             deploymentId = deployment.deploymentByRemoteId.id
@@ -59,20 +59,27 @@ const messageConsumer = async function(msg) {
         const dateOrNull = R.unless(R.isNil, convertDateFormat) as any;
 
         await updateDeployment(deploymentId, {
-          remoteId: buildInfo.jobUid,
-          status: buildInfo.buildPhase.toUpperCase(),
-          started: dateOrNull(buildInfo.startTime),
-          completed: dateOrNull(buildInfo.endTime),
+          remoteId: meta.remoteId,
+          status: meta.buildPhase.toUpperCase(),
+          started: dateOrNull(meta.startTime),
+          completed: dateOrNull(meta.endTime),
         });
       } catch (error) {
-        logger.error(`Could not update deployment ${buildInfo.project} ${buildInfo.Buildname}. Message: ${error}`);
+        logger.error(`Could not update deployment ${meta.project} ${meta.Buildname}. Message: ${error}`);
       }
 
-      const projectResult = await getOpenShiftInfoForProject(buildInfo.project);
-      const project = projectResult.project
 
-      const environmentResult = await getEnvironmentByName(buildInfo.environment, project.id)
-      const environment = environmentResult.environmentByName
+      let environment;
+      let project;
+      try {
+        const projectResult = await getOpenShiftInfoForProject(meta.project);
+        project = projectResult.project
+
+        const environmentResult = await getEnvironmentByName(meta.environment, project.id)
+        environment = environmentResult.environmentByName
+      } catch (err) {
+        logger.warn(`${namespace} ${meta.buildName}: Error while getting project or environment information, Error: ${err}. Continuing without update`)
+      }
 
       try {
         const updateEnvironmentResult = await updateEnvironment(
@@ -82,34 +89,49 @@ const messageConsumer = async function(msg) {
           }`
         );
       } catch (err) {
-        logger.warn(`${namespace} ${buildInfo.buildName}: Error while updating routes in API, Error: ${err}. Continuing without update`)
+        logger.warn(`${namespace} ${meta.buildName}: Error while updating routes in API, Error: ${err}. Continuing without update`)
       }
       // Update GraphQL API if the Environment has completed or failed
-      switch (buildInfo.buildPhase) {
+      switch (meta.buildPhase) {
         case 'complete':
         case 'failed':
           try {
             const updateEnvironmentResult = await updateEnvironment(
               environment.id,
               `{
-                route: "${buildInfo.route}",
-                routes: "${buildInfo.routes}",
-                monitoringUrls: "${buildInfo.monitoringUrls}",
+                route: "${meta.route}",
+                routes: "${meta.routes}",
+                monitoringUrls: "${meta.monitoringUrls}",
                 project: ${project.id}
               }`
             );
           } catch (err) {
-            logger.warn(`${namespace} ${buildInfo.buildName}: Error while updating routes in API, Error: ${err}. Continuing without update`)
+            logger.warn(`${namespace} ${meta.buildName}: Error while updating routes in API, Error: ${err}. Continuing without update`)
           }
       }
       break;
     case 'remove':
-        logger.verbose(`Received remove task for ${namespace}`);
-        // Update GraphQL API that the Environment has been deleted
-        await deleteEnvironment(buildInfo.environment, buildInfo.project, false);
+      logger.verbose(`Received remove task for ${namespace}`);
+      // Update GraphQL API that the Environment has been deleted
+      try {
+        await deleteEnvironment(meta.environment, meta.project, false);
         logger.info(
-          `${namespace}: Deleted Environment '${buildInfo.environment}' in API`
+          `${meta.project}: Deleted Environment '${meta.environment}' in API`
         );
+        meta.openshiftProject = meta.environment
+        meta.openshiftProjectName = namespace
+        meta.projectName = meta.project
+        sendToLagoonLogs(
+          'success',
+          meta.project,
+          '',
+          'task:remove-kubernetes:finished',
+          meta,
+          `*[${meta.project}]* remove \`${meta.environment}\``
+        );
+      } catch (err) {
+        logger.warn(`${namespace}: Error while deleting environment, Error: ${err}. Continuing without update`)
+      }
       break;
   }
 };
@@ -118,16 +140,16 @@ const deathHandler = async (msg, lastError) => {
   const {
     type,
     namespace,
-    buildInfo,
+    meta,
   } = JSON.parse(msg.content.toString());
 
   sendToLagoonLogs(
     'error',
-    buildInfo.project,
+    meta.project,
     '',
     'task:remove-kubernetes:error', //@TODO: this probably needs to be changed to a new event type for the operator to use
     {},
-    `*[${buildInfo.project}]* remove \`${namespace}\` ERROR:
+    `*[${meta.project}]* remove \`${namespace}\` ERROR:
 \`\`\`
 ${lastError}
 \`\`\``
