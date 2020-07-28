@@ -85,7 +85,10 @@ const rabbitmqPassword = process.env.RABBITMQ_PASSWORD || 'guest';
 const taskPrefetch = process.env.TASK_PREFETCH_COUNT ? Number(process.env.TASK_PREFETCH_COUNT) : 2;
 const taskMonitorPrefetch = process.env.TASKMONITOR_PREFETCH_COUNT ? Number(process.env.TASKMONITOR_PREFETCH_COUNT) : 1;
 
+// these are required for the builddeploydata creation
+// they match what are used in the kubernetesbuilddeploy service
 const CI = process.env.CI || "false"
+const registry = process.env.REGISTRY || "registry.lagoon.svc:5000"
 const lagoonGitSafeBranch = process.env.LAGOON_GIT_SAFE_BRANCH || "master"
 const lagoonVersion = process.env.LAGOON_VERSION
 const lagoonEnvironmentType = process.env.LAGOON_ENVIRONMENT_TYPE || "development"
@@ -401,10 +404,12 @@ const getOperatorBuildData = async function(deployData: any) {
         buildImage = "172.17.0.1:5000/lagoon/oc-build-deploy-dind:latest"
         break;
       default:
+        // default to the kubectl builddeploy dind since the operator and kubernetes use the same underlying process
         buildImage = "172.17.0.1:5000/lagoon/kubectl-build-deploy-dind:latest"
     }
   } else if (overwriteOCBuildDeployDindImage) {
     // allow to overwrite the image we use via OVERWRITE_OC_BUILD_DEPLOY_DIND_IMAGE env variable
+    // this needs to be added to the `api` deployment/pods to be used
     switch (project.activeSystemsDeploy) {
       case 'lagoon_openshiftBuildDeploy':
         buildImage = overwriteOCBuildDeployDindImage
@@ -412,6 +417,7 @@ const getOperatorBuildData = async function(deployData: any) {
     }
   } else if (overwriteKubectlBuildDeployDindImage) {
     // allow to overwrite the image we use via OVERWRITE_KUBECTL_BUILD_DEPLOY_DIND_IMAGE env variable
+    // this needs to be added to the `api` deployment/pods to be used
     switch (project.activeSystemsDeploy) {
       case 'lagoon_operatorBuildDeploy':
       case 'lagoon_kubernetesBuildDeploy':
@@ -425,6 +431,7 @@ const getOperatorBuildData = async function(deployData: any) {
         buildImage = `amazeeio/oc-build-deploy-dind:${lagoonVersion}`
         break;
       default:
+          // default to the kubectl builddeploy dind since the operator and kubernetes use the same underlying process
         buildImage = `amazeeio/kubectl-build-deploy-dind:${lagoonVersion}`
     }
   } else {
@@ -435,6 +442,7 @@ const getOperatorBuildData = async function(deployData: any) {
         buildImage = `amazeeiolagoon/oc-build-deploy-dind:${lagoonGitSafeBranch}`
         break;
       default:
+          // default to the kubectl builddeploy dind since the operator and kubernetes use the same underlying process
         buildImage = `amazeeiolagoon/kubectl-build-deploy-dind:${lagoonGitSafeBranch}`
     }
   }
@@ -444,6 +452,8 @@ const getOperatorBuildData = async function(deployData: any) {
   const sshKeyBase64 = new Buffer(deployPrivateKey.replace(/\\n/g, "\n")).toString('base64')
   const envVars = new Buffer(JSON.stringify(environment.addOrUpdateEnvironment.envVariables)).toString('base64')
   const projectVars = new Buffer(JSON.stringify(projectOpenShift.envVariables)).toString('base64')
+
+  // this is what will be returned and sent to the operator via message queue, it is the lagoonbuild operator spec
   var buildDeployData: any = {
     metadata: {
       name: buildName,
@@ -462,6 +472,7 @@ const getOperatorBuildData = async function(deployData: any) {
       project: {
         name: projectName,
         gitUrl: gitUrl,
+        uiLink: deployment.addDeployment.uiLink,
         environment: environmentName,
         environmentType: environmentType,
         productionEnvironment: projectProductionEnvironment,
@@ -471,6 +482,7 @@ const getOperatorBuildData = async function(deployData: any) {
         deployTarget: projectTargetName,
         projectSecret: projectSecret,
         key: sshKeyBase64,
+        registry: registry,
         monitoring: {
           contact: alertContact,
           statuspageID: uptimeRobotStatusPageId,
@@ -581,6 +593,7 @@ export const createDeployTask = async function(deployData: any) {
               case 'lagoon_kubernetesBuildDeploy':
                 return sendToLagoonTasks('builddeploy-kubernetes', deployData);
               case 'lagoon_operatorBuildDeploy':
+                // operator uses a different message than the other services, so we need to source it here
                 const buildDeployData = await getOperatorBuildData(deployData);
                 return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
               default:
@@ -598,6 +611,7 @@ export const createDeployTask = async function(deployData: any) {
               case 'lagoon_kubernetesBuildDeploy':
                 return sendToLagoonTasks('builddeploy-kubernetes', deployData);
               case 'lagoon_operatorBuildDeploy':
+                  // operator uses a different message than the other services, so we need to source it here
                   const buildDeployData = await getOperatorBuildData(deployData);
                   return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
               default:
@@ -628,6 +642,7 @@ export const createDeployTask = async function(deployData: any) {
                     deployData
                   );
                 case 'lagoon_operatorBuildDeploy':
+                    // operator uses a different message than the other services, so we need to source it here
                     const buildDeployData = await getOperatorBuildData(deployData);
                     return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
                 default:
@@ -657,6 +672,7 @@ export const createDeployTask = async function(deployData: any) {
               case 'lagoon_kubernetesBuildDeploy':
                 return sendToLagoonTasks('builddeploy-kubernetes', deployData);
               case 'lagoon_operatorBuildDeploy':
+                  // operator uses a different message than the other services, so we need to source it here
                   const buildDeployData = await getOperatorBuildData(deployData);
                   return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
               default:
@@ -676,6 +692,7 @@ export const createDeployTask = async function(deployData: any) {
               case 'lagoon_kubernetesBuildDeploy':
                 return sendToLagoonTasks('builddeploy-kubernetes', deployData);
               case 'lagoon_operatorBuildDeploy':
+                  // operator uses a different message than the other services, so we need to source it here
                   const buildDeployData = await getOperatorBuildData(deployData);
                   return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
               default:
@@ -706,6 +723,7 @@ export const createDeployTask = async function(deployData: any) {
                 case 'lagoon_kubernetesBuildDeploy':
                   return sendToLagoonTasks('builddeploy-kubernetes', deployData);
                 case 'lagoon_operatorBuildDeploy':
+                    // operator uses a different message than the other services, so we need to source it here
                     const buildDeployData = await getOperatorBuildData(deployData);
                     return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
                 default:
