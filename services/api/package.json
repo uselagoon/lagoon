@@ -39,6 +39,7 @@
   "license": "MIT",
   "dependencies": {
     "@lagoon/commons": "4.0.0",
+    "@types/redis": "^2.8.22",
     "apollo-server-express": "^2.14.2",
     "aws-sdk": "^2.378.0",
     "body-parser": "^1.18.2",
@@ -69,6 +70,7 @@
     "newrelic": "^6.9.0",
     "node-cache": "^4.2.1",
     "ramda": "^0.25.0",
+    "redis": "^3.0.2",
     "snakecase-keys": "^1.2.0",
     "sshpk": "^1.14.2",
     "validator": "^10.8.0",

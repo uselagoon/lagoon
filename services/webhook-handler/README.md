@@ -1,38 +1,46 @@
-# lagoon-webhook-handler
+<p align="center"><img
+src="https://raw.githubusercontent.com/amazeeio/lagoon/master/docs/images/lagoon-logo.png"
+alt="The Lagoon logo is a blue hexagon split in two pieces with an L-shaped cut"
+width="40%"></p>
 
-This webhook handler is part of the amazee.io lagoon deployment system and is responsible for receiving webhooks from github, bitbucket, gitlab or any other system, parse them and add them in a unified format (as each of the different git hosters have different webhook formats) to a rabbitmq queue. For each webhook the following information are extracted:
+This service is part of amazee.io Lagoon, a Docker build and deploy system for
+OpenShift & Kubernetes. Please reference our [documentation] for detailed
+information on using, developing, and administering Lagoon.
 
-- `webhooktype` (`github`, `gitlab`, etc.)
-- `event` (event type, like `push` `pull_request`, specific for each webhook type)
-- `giturl` (URL of the git repo)
-- `body` (full body of webhook payload)
+# Webhook Handler (`webhook-handler`)
 
-It uses https://github.com/benbria/node-amqp-connection-manager for connecting to rabbitmq, so it can handle situations were rabbitmq is not reachable and still receive webhooks, process them and keep them in memory. As soon as rabbitmq is reachable again, it will send the messages there.
+The main Lagoon entrypoint for webhooks originating from other services. Every
+incoming webhook is parsed and validated before being queued for processing
+later.
 
-Logs each received webhook to the lagoon-logs queue.
+Examples of webhooks Lagoon is interested in: GitHub/Bitbucket/GitLab repository
+activity, Lagoon project environment backup events.
 
-## Hosting
+## Technology
 
-Fully developed in Docker and hosted on amazee.io Openshift, see the `.openshift` folder. Deployed via Jenkinsfile.
+* Node.js
+* Message Queue
 
-Uses `lagoon/node:10` as base image.
+## Related Services
 
-## Development
+* API [***dependency***]
+* RabbitMQ [***dependency***]
+* webhooks2tasks [***related***]
 
-Can be used with a local nodejs and connect to a rabbitmq of your choice.
+## Message Queues
 
-        yarn install
-        RABBITMQ_HOST=guest:guest@rabbitmqhost yarn run start
+* Produces: `lagoon-webhooks`
 
-Or via the existing docker-compose.yml
+## Testing
 
-        docker-compose up -d
-
-## Testdata
-
-There is testdata available from Postman. In order to use it, download [Postman](https://www.getpostman.com/) and import the `lagoon-webhook-handler.postman_collection.json` as collection, plus the `localhost.postman_environment.json` as environment.
-Now you can send single requests to the webhook handler.
+There is test data available from Postman. In order to use it, download
+[Postman] and import the `lagoon-webhook-handler.postman_collection.json` as
+collection, plus the `localhost.postman_environment.json` as environment. Now
+you can send single requests to the webhook handler.
 
 You can also run all tests from the CLI via newman
 
         yarn run newman:all
+
+[documentation]: https://lagoon.readthedocs.io/
+[Postman]: https://www.getpostman.com/

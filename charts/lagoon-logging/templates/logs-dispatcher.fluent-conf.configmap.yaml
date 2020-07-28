@@ -35,6 +35,8 @@ data:
       @id    in_application
       tag    "lagoon.#{ENV['CLUSTER_NAME']}.application"
       port   5140
+      # max IPv4 UDP payload size
+      message_length_limit 65507
       <parse>
         @type json
       </parse>
@@ -49,6 +51,8 @@ data:
       # syslog parameters
       port         5141
       severity_key severity
+      # max IPv4 UDP payload size
+      message_length_limit 65507
       <parse>
         @type       regexp
         # parse HTTP logs based on the haproxy documentation
@@ -147,7 +151,7 @@ data:
     <filter lagoon.*.container>
       @type record_modifier
       <record>
-        index_name container-logs-${record.dig('kubernetes','namespace_labels','lagoon_sh/project') || "#{record.dig('kubernetes','namespace_name') || 'unknown_project'}_#{ENV['CLUSTER_NAME']}"}-${record.dig('kubernetes','namespace_labels','lagoon_sh/environmenttype') || "unknown_environmenttype"}-${Time.at(time).strftime("%Y.%m")}
+        index_name container-logs-${record.dig('kubernetes','namespace_labels','lagoon_sh/project') || "#{record.dig('kubernetes','namespace_name') || 'unknown_project'}_#{ENV['CLUSTER_NAME']}"}-_-${record.dig('kubernetes','namespace_labels','lagoon_sh/environmentType') || "unknown_environmenttype"}-_-${Time.at(time).strftime("%Y.%m")}
       </record>
     </filter>
     # post-process to try to eke some more structure out of the logs.
@@ -167,16 +171,11 @@ data:
         </pattern>
       </parse>
     </filter>
-    # remove the redundant "log" field if the record was successfully parsed
     # some container logs have a duplicate message field for some reason, so
-    # remove that too.
+    # remove that.
     <filter lagoon.*.container>
       @type record_modifier
-      remove_keys _dummy_,message
-      <record>
-        # check for nginxy fields
-        _dummy_ ${if %w(http_x_forwarded_for referer agent).all?{|key| record[key]}; record.delete("log"); end; nil}
-      </record>
+      remove_keys message
     </filter>
 
     #
@@ -201,7 +200,7 @@ data:
     <filter lagoon.*.application>
       @type record_modifier
       <record>
-        index_name application-logs-${record.dig('kubernetes','namespace_labels','lagoon_sh/project') || "#{record.dig('kubernetes','namespace_name') || 'unknown_project'}_#{ENV['CLUSTER_NAME']}"}-${record.dig('kubernetes','namespace_labels','lagoon_sh/environmenttype') || "unknown_environmenttype"}-${Time.at(time).strftime("%Y.%m")}
+        index_name application-logs-${record.dig('kubernetes','namespace_labels','lagoon_sh/project') || "#{record.dig('kubernetes','namespace_name') || 'unknown_project'}_#{ENV['CLUSTER_NAME']}"}-_-${record.dig('kubernetes','namespace_labels','lagoon_sh/environmentType') || "unknown_environmenttype"}-_-${Time.at(time).strftime("%Y.%m")}
       </record>
     </filter>
     # strip the kubernetes data as it's duplicated in container/router logs and
@@ -266,14 +265,20 @@ data:
     <filter lagoon.*.router.*>
       @type record_modifier
       <record>
-        index_name router-logs-${record.dig('kubernetes','namespace_labels','lagoon_sh/project') || "#{record.dig('kubernetes','namespace_name') || 'unknown_project'}_#{ENV['CLUSTER_NAME']}"}-${record.dig('kubernetes','namespace_labels','lagoon_sh/environmenttype') || "unknown_environmenttype"}-${Time.at(time).strftime("%Y.%m")}
+        index_name router-logs-${record.dig('kubernetes','namespace_labels','lagoon_sh/project') || "#{record.dig('kubernetes','namespace_name') || 'unknown_project'}_#{ENV['CLUSTER_NAME']}"}-_-${record.dig('kubernetes','namespace_labels','lagoon_sh/environmentType') || "unknown_environmenttype"}-_-${Time.at(time).strftime("%Y.%m")}
       </record>
     </filter>
 
-    # DEBUG DELETE ME
-    <match lagoon.*.lagoon>
-      @type stdout
-    </match>
+    #
+    # add the lagoon index_name
+    # the source for this tag is included when lagoonLogs.enabled is true
+    #
+    <filter lagoon.*.lagoon>
+      @type record_modifier
+      <record>
+        index_name lagoon-logs-${record['project']}-_-all_environments-_-${Time.at(time).strftime("%Y.%m")}
+      </record>
+    </filter>
 
     #
     # forward all to logs-concentrator
@@ -290,6 +295,9 @@ data:
         tls_cert_path /fluentd/tls/ca.crt
         tls_client_cert_path /fluentd/tls/client.crt
         tls_client_private_key_path /fluentd/tls/client.key
+        {{- with .Values.forward.tlsVerifyHostname }}
+        tls_verify_hostname {{ . }}
+        {{- end }}
         # endpoint
         <server>
           port "#{ENV['LOGS_FORWARD_HOST_PORT']}"

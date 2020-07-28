@@ -367,19 +367,18 @@ const messageConsumer = async msg => {
           "labels": {
             "lagoon.sh/project": projectName,
             "lagoon.sh/environment": environmentName,
-            "lagoon.sh/environmentType": lagoonEnvironmentType
+            "lagoon.sh/environmentType": environmentType
           }
         }
       }
     })
     logger.info(`${openshiftProject}: Namespace ${openshiftProject} created`)
   } catch (err) {
-    console.log(err.code)
     // an already existing namespace  throws an error, we check if it's a 409, means it does already exist, so we ignore that error.
     if (err.code == 409) {
       logger.info(`${openshiftProject}: Namespace ${openshiftProject} already exists`)
     } else {
-      logger.error(err)
+      logger.error(`Could not create namespace '${openshiftProject}': ${err.code} ${err.message}`);
       throw new Error
     }
   }

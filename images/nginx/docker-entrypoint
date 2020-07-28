@@ -15,8 +15,20 @@ ep /etc/nginx/*
 # Find all folders within /etc/nginx/conf.d/
 find /etc/nginx/conf.d/ -type d | while read DIR; do
   # envplate if found folder is not empty
-  if find $DIR -mindepth 1 | read; then 
+  if find $DIR -mindepth 1 | read; then
     ep $DIR/*;
   fi
 done
 ep /etc/nginx/helpers/*
+
+# If PHP is enabled, we override the Luascript /healthz check
+echo "Setting up Healthz routing"
+if [ ! -z "$NGINX_FASTCGI_PASS" ]; then
+  echo "Healthz routing - using PHP"
+  cp /etc/nginx/conf.d/healthz.locations.php.disable /etc/nginx/conf.d/healthz.locations
+fi
+
+if [ "$FAST_HEALTH_CHECK" == "true" ]; then
+   echo "FAST HEALTH CHECK ENABLED"
+   cp /etc/nginx/helpers/90_healthz_fast_check.conf.disabled /etc/nginx/helpers/90_health_fast_check.conf
+fi
