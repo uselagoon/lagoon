@@ -1,12 +1,4 @@
-// @flow
-
-import { knex } from '../../util/db';
-
-/* ::
-
-import type {SqlObj} from '../';
-
-*/
+const { knex } = require('../../util/db');
 
 const standardEnvironmentReturn = {
     id: 'id',
@@ -34,23 +26,54 @@ const standardProblemHarborScanMatchReturn = {
     default_lagoon_environment: 'defaultLagoonEnvironment',
     default_lagoon_service_name: 'defaultLagoonServiceName',
     regex: 'regex'
-  };
+};
 
-export const Sql /* : SqlObj */ = {
-  selectAllProblems: () =>
+export const Sql = {
+  selectAllProblems: ({
+    source = [],
+    environmentId,
+    environmentType = [],
+    severity = [],
+  }: { source: string[], environmentId: number, environmentType: string[], severity: string[]}) => {
+    let q = knex('environment_problem as p')
+    .join('environment as e', {environment: 'e.id'}, '=', {environment: 'p.environment'})
+    .where('p.deleted', '=', '0000-00-00 00:00:00')
+    .select('p.*', {environment: 'e.id'}, { name: 'e.name', project: 'e.project',
+        environmentType: 'e.environment_type', openshiftProjectName: 'e.openshift_project_name'});
+
+    if (environmentType.length > 0) {
+      q.whereIn('e.environment_type', environmentType);
+    }
+    if (source.length > 0) {
+      q.whereIn('p.source', source);
+    }
+    if (environmentId) {
+      q.where('p.environment', environmentId);
+    }
+    if (severity.length > 0) {
+      q.whereIn('p.severity', severity);
+    }
+    return q.toString();
+  },
+  selectSeverityOptions: () =>
     knex('environment_problem')
-    .select(standardEnvironmentReturn).toString(),
+      .select('severity')
+      .toString(),
   selectProblemByDatabaseId: (id) =>
     knex('environment_problem').where('id', id).toString(),
   selectProblemsByEnvironmentId: ({
     environmentId,
     severity = [],
+    source = [],
   }) => {
     let q = knex('environment_problem').select(standardEnvironmentReturn)
     .where('environment', environmentId)
     .where('deleted', '=', '0000-00-00 00:00:00');
-    if(severity.length > 0) {
+    if (severity.length > 0) {
       q.whereIn('severity', severity);
+    }
+    if (source.length > 0) {
+      q.whereIn('source', source);
     }
     return q.toString()
   },

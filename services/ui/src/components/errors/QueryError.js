@@ -1,6 +1,12 @@
 import React from 'react';
-import ErrorPage from 'pages/_error';
+import ErrorPage, {ErrorNoHeader} from 'pages/_error';
 
-export default ({ error }) => (
+const QueryError = ({ error }) => (
   <ErrorPage statusCode={500} errorMessage={error.toString()} />
 );
+
+export const QueryNoHeaderError = ({ error }) => (
+  <ErrorNoHeader errorMessage={error.toString()} />
+);
+
+export default QueryError;

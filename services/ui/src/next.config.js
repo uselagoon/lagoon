@@ -1,7 +1,7 @@
 const webpackShared = require('./webpack.shared-config');
 require('dotenv-extended').load();
 
-const withCSS = require('@zeit/next-css')
+const withCSS = require('@zeit/next-css');
 
 const lagoonRoutes =
   (process.env.LAGOON_ROUTES && process.env.LAGOON_ROUTES.split(',')) || [];

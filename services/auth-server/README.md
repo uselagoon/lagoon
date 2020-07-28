@@ -13,7 +13,7 @@ Generates authentication tokens that are valid for other lagoon services.
 
 ## Technology
 
-* Node
+* Node.js
 * Rest API
 
 ## Related Services

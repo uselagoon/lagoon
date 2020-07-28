@@ -86,5 +86,5 @@ Generate name for twig storage emptyDir
 Generate path for twig storage emptyDir
 */}}
 {{- define "cli-persistent.twig-storage.path" -}}
-{{- printf "%s/php/twig" .Values.persistentStorage.path }}
+{{- printf "%s/php" .Values.persistentStorage.path }}
 {{- end -}}
