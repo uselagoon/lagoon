@@ -62,8 +62,7 @@ spec:
             failureThreshold: 3
             exec:
               command:
-              - cat
-              - /tmp/ready
+              - /bin/entrypoint-readiness
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

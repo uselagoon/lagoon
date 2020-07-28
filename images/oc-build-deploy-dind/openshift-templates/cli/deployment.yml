@@ -118,8 +118,7 @@ objects:
                 failureThreshold: 3
                 exec:
                   command:
-                  - cat
-                  - /tmp/ready
+                  - /bin/entrypoint-readiness
 
       test: false
       triggers:
