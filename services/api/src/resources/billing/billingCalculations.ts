@@ -117,7 +117,7 @@ export const getProjectsCosts = (currency, projects, modifiers: BillingModifier[
     if (extraFixed){
       description = [...description, { type: 'extraFixed', amt: extraFixed, subTotal: total}];
     }
-    total = extraFixed ? total + extraFixed : total; 
+    total = extraFixed ? total + extraFixed : total;
 
     if (discountPercentage){
       description = [...description, { type: 'discountPercentage', amt: (total * (discountPercentage / 100)), subTotal: total}];
@@ -280,7 +280,7 @@ export const devCost = ({ currency, projects }: IBillingGroup) => {
   const availability = projects[0].availability;
   const { devSitePerHour } = currencyPricingAvailability[AVAILABILITY.STANDARD];
 
-  const averageDevHours = projects.reduce((acc, proj) => acc + proj.prodHours, 0) / projects.length;
+  const averageProdHours = projects.reduce((acc, proj) => acc + proj.prodHours, 0) / projects.length;
 
   const standardHighReducerFn = (acc, project) => ({
     cost:  acc.cost + Math.max((project.devHours - (project.prodHours * 2)) * devSitePerHour, 0),
@@ -296,8 +296,18 @@ export const devCost = ({ currency, projects }: IBillingGroup) => {
     quantity: acc.quantity + Math.max((project.devHours - (project.prodHours * 2)), 0)
   });
 
+  const polySiteGroups = (Math.max(Math.round(projects.length / 10), 1));
+  const polySiteIncludedHours = polySiteGroups * (averageProdHours * 2);
+
   const polyReducerFn = (acc, project) => ({
-    cost:  Math.max(Math.round(projects.length / 10), 1) * averageDevHours * devSitePerHour,
+    // Poly Sites get two free dev environments per lot of 10 polysite groups
+    // See IDGSDF in BillingCalculations.test.ts
+    // EXAMPLE:   8 projects w/ 720 hours each dev site :
+    //            total dev hours = 720 * 8 ->  5760
+    //            Included free hours =  (1 x (720 x 2)) -> 1440
+    //            Dev Site Per Hour Cost = 0.0139
+    //            (5760 - 1440) * 0.0139 = 60.05
+    cost:  ((acc.quantity + project.devHours) - polySiteIncludedHours) * devSitePerHour,
     description: [
       ...acc.description,
       {

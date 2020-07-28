@@ -128,7 +128,7 @@ objects:
                   name: lagoon-sshkey
                   readOnly: true
                 - name: ${PERSISTENT_STORAGE_NAME}-twig
-                  mountPath: ${PERSISTENT_STORAGE_PATH}/php/twig
+                  mountPath: ${PERSISTENT_STORAGE_PATH}/php
               resources:
                 requests:
                   cpu: 10m

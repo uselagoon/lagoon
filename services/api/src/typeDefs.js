@@ -172,7 +172,6 @@ const typeDefs = gql`
     created: String
   }
 
-
   input BulkProblem {
     severity: ProblemSeverityRating
     severityScore: SeverityScore
@@ -433,6 +432,10 @@ const typeDefs = gql`
     """
     developmentEnvironmentsLimit: Int
     """
+    Name of the OpenShift Project/Namespace
+    """
+    openshiftProjectName: String
+    """
     Deployed Environments for this Project
     """
     environments(
@@ -546,7 +549,7 @@ const typeDefs = gql`
     backups(includeDeleted: Boolean): [Backup]
     tasks(id: Int): [Task]
     services: [EnvironmentService]
-    problems(severity: [ProblemSeverityRating]): [Problem]
+    problems(severity: [ProblemSeverityRating], source: [String]): [Problem]
   }
 
   type EnvironmentHitsMonth {
@@ -692,6 +695,7 @@ const typeDefs = gql`
     """
     projectByGitUrl(gitUrl: String!): Project
     environmentByName(name: String!, project: Int!): Environment
+    environmentById(id: Int!): Environment
     """
     Returns Environment Object by a given openshiftProjectName
     """
@@ -719,6 +723,11 @@ const typeDefs = gql`
     Returns all Environments matching given filter (all if no filter defined)
     """
     allEnvironments(createdAfter: String, type: EnvType, order: EnvOrderType): [Environment]
+    """
+    Returns all Problems matching given filter (all if no filter defined)
+    """
+    allProblems(source: [String], project: Int, environment: Int, envType: [EnvType], identifier: String, severity: [ProblemSeverityRating]): [Problem]
+    problemSources: [String]
     """
     Returns all Groups matching given filter (all if no filter defined)
     """
@@ -1211,8 +1220,6 @@ const typeDefs = gql`
     parentGroup: GroupInput
   }
 
-
-
   input AddBillingModifierInput {
     """
     The existing billing group for this modifier
@@ -1478,7 +1485,6 @@ const typeDefs = gql`
     removeGroupsFromProject(input: ProjectGroupsInput!): Project
     updateProjectMetadata(input: UpdateMetadataInput!): Project
     removeProjectMetadataByKey(input: RemoveMetadataInput!): Project
-
     addBillingModifier(input: AddBillingModifierInput!): BillingModifier
     updateBillingModifier(input: UpdateBillingModifierInput!): BillingModifier
     deleteBillingModifier(input: DeleteBillingModifierInput!): String
