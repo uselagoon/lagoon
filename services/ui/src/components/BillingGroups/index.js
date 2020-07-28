@@ -13,10 +13,10 @@ const BillingGroups = ({ billingGroups }) => (
     <div className="data-table">
       {!billingGroups.length && <div className="data-none">No BillingGroups</div>}
       {
-        billingGroups.map(({name, id, currency, projects}) => (
+        billingGroups.map(({name, id, currency}) => (
           <BillingGroupLink billingGroupSlug={name} key={id}>
             <div className="data-row" key={id}>
-              <div className="name">{name}<br/><span className="cluster">{projects[0].openshift.name}</span></div>
+              <div className="name">{name}</div>
               <div className="currency">{currency}</div>
             </div>
           </BillingGroupLink>
@@ -59,10 +59,6 @@ const BillingGroups = ({ billingGroups }) => (
             }
           }
         }
-      }
-
-      .cluster {
-        color: gray;
       }
 
       .data-table {
