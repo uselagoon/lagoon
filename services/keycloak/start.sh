@@ -1649,11 +1649,16 @@ EOF
 }
 
 
-function configure_keycloak {
+function wait_for_keycloak {
     until is_keycloak_running; do
         echo Keycloak still not running, waiting 5 seconds
         sleep 5
     done
+}
+
+
+function configure_keycloak {
+    wait_for_keycloak
 
     # Set the config file path because $HOME/.keycloak/kcadm.config resolves to /opt/jboss/?/.keycloak/kcadm.config for some reason, causing it to fail
     CONFIG_PATH=/opt/jboss/keycloak/standalone/data/.keycloak/kcadm.config
@@ -1678,7 +1683,6 @@ function configure_keycloak {
 }
 
 /opt/jboss/keycloak/bin/add-user-keycloak.sh --user $KEYCLOAK_ADMIN_USER --password $KEYCLOAK_ADMIN_PASSWORD
-configure_keycloak &
 
 /bin/sh /opt/jboss/tools/databases/change-database.sh mariadb
 
@@ -1701,6 +1705,21 @@ fi
 # in 7.0.1+ script uploads are disabled by default. Enable them here.
 # https://www.keycloak.org/docs/latest/release_notes/index.html#keycloak-7-0-1-final
 SYS_PROPS+=" -Dkeycloak.profile.feature.upload_scripts=enabled"
+
+# use the cached realm if available.
+# cached realm generated via:
+#   ./standalone.sh -Dkeycloak.migration.action=export \
+#     -Dkeycloak.migration.provider=singleFile \
+#     -Dkeycloak.migration.file=/tmp/lagoon-realm.json \
+#     -Dkeycloak.migration.realmName=lagoon
+if [[ -r /lagoon-realm-ci.json ]] && [[ $USE_CACHED_LAGOON_REALM_CI = true ]]; then
+    SYS_PROPS+=" -Dkeycloak.migration.action=import"
+    SYS_PROPS+=" -Dkeycloak.migration.provider=singleFile"
+    SYS_PROPS+=" -Dkeycloak.migration.file=/lagoon-realm-ci.json"
+    (wait_for_keycloak && echo "Config of Keycloak done. Log in via admin user '$KEYCLOAK_ADMIN_USER' and password '$KEYCLOAK_ADMIN_PASSWORD'") &
+else
+    configure_keycloak &
+fi
 
 ##################
 # Start Keycloak #
