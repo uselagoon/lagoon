@@ -21,6 +21,8 @@ const AddSshKey = ({me: { id, email }}) => {
     values.sshKey.trim().startsWith('ssh-ed25519')
   );
 
+  const regex = /\s*(ssh-\S+)\s([\S\n]+).*/
+
   return(
     <div className="addSshKey">
 
@@ -32,8 +34,8 @@ const AddSshKey = ({me: { id, email }}) => {
               variables: {
                 input: {
                   name: values.sshKeyName,
-                  keyValue: values.sshKey.match(/\s*(ssh-\S+)\s([\S\n]+).*/)[2].replace(/\n/g, ''),
-                  keyType: values.sshKey.match(/\s*(ssh-\S+)\s([\S\n]+).*/)[1].replace('-', '_').toUpperCase(),
+                  keyValue: values.sshKey.match(regex)[2].replace(/\n/g, ''),
+                  keyType: values.sshKey.match(regex)[1].replace('-', '_').toUpperCase(),
                   user: {
                     id,
                     email
