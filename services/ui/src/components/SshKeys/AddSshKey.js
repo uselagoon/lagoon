@@ -8,7 +8,7 @@ import AddSshKeyMutation from '../../lib/mutation/AddSshKey';
 
 const AddSshKey = ({me: { id, email }}) => {
 
-  const defaultValues = {sshKeyName: '', sshKey: '', sshKeyType: 'SSH_RSA'};
+  const defaultValues = {sshKeyName: '', sshKey: ''};
   const [values, setValues] = useState(defaultValues);
 
   const handleChange = e => {
@@ -16,7 +16,10 @@ const AddSshKey = ({me: { id, email }}) => {
     setValues({...values, [name]: value});
   }
 
-  const isFormValid = values.sshKeyName !== '' && values.sshKey !== '';
+  const isFormValid = values.sshKeyName !== '' && (
+    values.sshKey.trim().startsWith('ssh-rsa') || 
+    values.sshKey.trim().startsWith('ssh-ed25519')
+  );
 
   return(
     <div className="addSshKey">
@@ -29,8 +32,8 @@ const AddSshKey = ({me: { id, email }}) => {
               variables: {
                 input: {
                   name: values.sshKeyName,
-                  keyValue: values.sshKey.replace('ssh-rsa', '').replace('ssh-ed25519', '').trim(),
-                  keyType: values.sshKeyType,
+                  keyValue: values.sshKey.match(/\s*(ssh-\S+)\s([\S\n]+).*/)[2].replace(/\n/g, ''),
+                  keyType: values.sshKey.match(/\s*(ssh-\S+)\s([\S\n]+).*/)[1].replace('-', '_').toUpperCase(),
                   user: {
                     id,
                     email
@@ -60,22 +63,6 @@ const AddSshKey = ({me: { id, email }}) => {
                   value={values.sshKeyName}
                   onChange={handleChange}
                 />
-              </div>
-
-              <div>
-                <label htmlFor="sshKeyType">SSH Key Type</label>
-                <select
-                  id="sshKeyType"
-                  name="sshKeyType"
-                  onChange={handleChange}
-                  className="addSshKeyInput"
-                >
-                  {['SSH_RSA', 'SSH_ED25519'].map(value => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
-                </select>
               </div>
 
               <div>
