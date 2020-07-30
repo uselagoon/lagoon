@@ -885,7 +885,7 @@ mutation PopulateApi {
   CiActiveStandby: addProject(
     input: {
       id: 24
-      name: "ci-active-standby"
+      name: "ci-active-standby-openshift"
       openshift: 2
       gitUrl: "ssh://git@192.168.42.1:2222/git/active-standby.git"
       productionEnvironment:"master-a"
@@ -898,7 +898,7 @@ mutation PopulateApi {
   CiActiveStandbyGroup3: addGroupsToProject(
     input: {
       project: {
-        name: "ci-active-standby"
+        name: "ci-active-standby-openshift"
       }
       groups: [
         {
@@ -911,7 +911,7 @@ mutation PopulateApi {
   }
   CiActiveStandbyRocketChat: addNotificationToProject(
     input: {
-      project: "ci-active-standby"
+      project: "ci-active-standby-openshift"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
     }
@@ -920,7 +920,7 @@ mutation PopulateApi {
   }
   CiActiveStandbyEmail: addNotificationToProject(
     input: {
-      project: "ci-active-standby"
+      project: "ci-active-standby-openshift"
       notificationType: EMAIL
       notificationName: "local-email-testing"
     }
