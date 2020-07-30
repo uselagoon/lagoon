@@ -1,7 +1,14 @@
 #!/bin/bash
 
-# Script to remove old .kibana* indexes aliases
+# Description: script to remove old .kibana* indexes' aliases created after Kibana
+# restart.
+#
+# The aim of the script is to keep only the latest index with the latest 
+# configuration, and delete the old ones.
+
 # Usage is: CLUSTER="amazeeio-test" ELASTICSEARCH_NAMESPACE="elasticsearch" ./clean-kibana-indexes.sh"
+
+set -eu -o pipefail
 
 # Cluster to connect to
 CLUSTER="${CLUSTER:-""}"
@@ -48,6 +55,7 @@ do
 		for OLD_INDEX in "\${OLD_INDEXES[@]}"
 		do
 			echo "Going to remove \$OLD_INDEX with es-curl DELETE \$OLD_INDEX"
+			es-curl DELETE \$OLD_INDEX
 		done
 done
 unset IFS
