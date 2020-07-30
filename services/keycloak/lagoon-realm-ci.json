@@ -1,0 +1,3663 @@
+{
+  "id" : "0015dd24-b16d-4d0f-9b43-e5c885190188",
+  "realm" : "lagoon",
+  "notBefore" : 0,
+  "revokeRefreshToken" : false,
+  "refreshTokenMaxReuse" : 0,
+  "accessTokenLifespan" : 300,
+  "accessTokenLifespanForImplicitFlow" : 900,
+  "ssoSessionIdleTimeout" : 1800,
+  "ssoSessionMaxLifespan" : 36000,
+  "ssoSessionIdleTimeoutRememberMe" : 0,
+  "ssoSessionMaxLifespanRememberMe" : 0,
+  "offlineSessionIdleTimeout" : 2592000,
+  "offlineSessionMaxLifespanEnabled" : false,
+  "offlineSessionMaxLifespan" : 5184000,
+  "accessCodeLifespan" : 60,
+  "accessCodeLifespanUserAction" : 300,
+  "accessCodeLifespanLogin" : 1800,
+  "actionTokenGeneratedByAdminLifespan" : 43200,
+  "actionTokenGeneratedByUserLifespan" : 300,
+  "enabled" : true,
+  "sslRequired" : "external",
+  "registrationAllowed" : false,
+  "registrationEmailAsUsername" : false,
+  "rememberMe" : false,
+  "verifyEmail" : false,
+  "loginWithEmailAllowed" : true,
+  "duplicateEmailsAllowed" : false,
+  "resetPasswordAllowed" : false,
+  "editUsernameAllowed" : true,
+  "bruteForceProtected" : false,
+  "permanentLockout" : false,
+  "maxFailureWaitSeconds" : 900,
+  "minimumQuickLoginWaitSeconds" : 60,
+  "waitIncrementSeconds" : 60,
+  "quickLoginCheckMilliSeconds" : 1000,
+  "maxDeltaTimeSeconds" : 43200,
+  "failureFactor" : 30,
+  "roles" : {
+    "realm" : [ {
+      "id" : "1660ac56-e55d-4677-b1ca-110c53869154",
+      "name" : "owner",
+      "composite" : true,
+      "composites" : {
+        "realm" : [ "developer", "reporter", "guest", "maintainer" ]
+      },
+      "clientRole" : false,
+      "containerId" : "0015dd24-b16d-4d0f-9b43-e5c885190188",
+      "attributes" : { }
+    }, {
+      "id" : "5cdd2042-312b-4b61-b26c-a1138a2aa8fa",
+      "name" : "platform-owner",
+      "composite" : false,
+      "clientRole" : false,
+      "containerId" : "0015dd24-b16d-4d0f-9b43-e5c885190188",
+      "attributes" : { }
+    }, {
+      "id" : "cb37be40-eb37-42b4-a165-0b998d220175",
+      "name" : "admin",
+      "composite" : true,
+      "composites" : {
+        "realm" : [ "platform-owner" ]
+      },
+      "clientRole" : false,
+      "containerId" : "0015dd24-b16d-4d0f-9b43-e5c885190188",
+      "attributes" : { }
+    }, {
+      "id" : "a915025f-56ed-4832-b06c-7a737e09246e",
+      "name" : "developer",
+      "composite" : true,
+      "composites" : {
+        "realm" : [ "reporter", "guest" ]
+      },
+      "clientRole" : false,
+      "containerId" : "0015dd24-b16d-4d0f-9b43-e5c885190188",
+      "attributes" : { }
+    }, {
+      "id" : "8ab864c6-2731-4a64-be50-a78477b9d846",
+      "name" : "reporter",
+      "composite" : true,
+      "composites" : {
+        "realm" : [ "guest" ]
+      },
+      "clientRole" : false,
+      "containerId" : "0015dd24-b16d-4d0f-9b43-e5c885190188",
+      "attributes" : { }
+    }, {
+      "id" : "ff5f4360-9288-460f-8f84-29d4fea43226",
+      "name" : "maintainer",
+      "composite" : true,
+      "composites" : {
+        "realm" : [ "developer", "reporter", "guest" ]
+      },
+      "clientRole" : false,
+      "containerId" : "0015dd24-b16d-4d0f-9b43-e5c885190188",
+      "attributes" : { }
+    }, {
+      "id" : "920b1a49-f092-4335-8b6b-8302e84b8c30",
+      "name" : "guest",
+      "composite" : false,
+      "clientRole" : false,
+      "containerId" : "0015dd24-b16d-4d0f-9b43-e5c885190188",
+      "attributes" : { }
+    }, {
+      "id" : "086d2edf-6386-4308-b701-4c98c6612fcf",
+      "name" : "uma_authorization",
+      "description" : "${role_uma_authorization}",
+      "composite" : false,
+      "clientRole" : false,
+      "containerId" : "0015dd24-b16d-4d0f-9b43-e5c885190188",
+      "attributes" : { }
+    }, {
+      "id" : "1d8f7867-1f7b-4f3f-94cf-d384e8c11bbf",
+      "name" : "offline_access",
+      "description" : "${role_offline-access}",
+      "composite" : false,
+      "clientRole" : false,
+      "containerId" : "0015dd24-b16d-4d0f-9b43-e5c885190188",
+      "attributes" : { }
+    } ],
+    "client" : {
+      "lagoon-opendistro-security" : [ ],
+      "realm-management" : [ {
+        "id" : "d51f258d-5b86-42b7-bbd8-335f89999ab9",
+        "name" : "impersonation",
+        "description" : "${role_impersonation}",
+        "composite" : false,
+        "clientRole" : true,
+        "containerId" : "0ebade55-4e75-4cf9-8ce9-1f5195f0b21f",
+        "attributes" : { }
+      }, {
+        "id" : "5e77ebb6-f0e7-4383-9b29-cf45de2b79c5",
+        "name" : "manage-users",
+        "description" : "${role_manage-users}",
+        "composite" : false,
+        "clientRole" : true,
+        "containerId" : "0ebade55-4e75-4cf9-8ce9-1f5195f0b21f",
+        "attributes" : { }
+      }, {
+        "id" : "72e3c132-3dbb-44a7-984c-3a3707cfaf76",
+        "name" : "view-realm",
+        "description" : "${role_view-realm}",
+        "composite" : false,
+        "clientRole" : true,
+        "containerId" : "0ebade55-4e75-4cf9-8ce9-1f5195f0b21f",
+        "attributes" : { }
+      }, {
+        "id" : "be2db31a-56d5-4635-8d1c-b9d17bbd8ba8",
+        "name" : "manage-events",
+        "description" : "${role_manage-events}",
+        "composite" : false,
+        "clientRole" : true,
+        "containerId" : "0ebade55-4e75-4cf9-8ce9-1f5195f0b21f",
+        "attributes" : { }
+      }, {
+        "id" : "5bb8bdd7-8e22-4eac-9fa9-325ecc450857",
+        "name" : "manage-authorization",
+        "description" : "${role_manage-authorization}",
+        "composite" : false,
+        "clientRole" : true,
+        "containerId" : "0ebade55-4e75-4cf9-8ce9-1f5195f0b21f",
+        "attributes" : { }
+      }, {
+        "id" : "5123df48-23fe-4d57-ae39-44fa2663e581",
+        "name" : "view-clients",
+        "description" : "${role_view-clients}",
+        "composite" : true,
+        "composites" : {
+          "client" : {
+            "realm-management" : [ "query-clients" ]
+          }
+        },
+        "clientRole" : true,
+        "containerId" : "0ebade55-4e75-4cf9-8ce9-1f5195f0b21f",
+        "attributes" : { }
+      }, {
+        "id" : "096e75d8-4f87-461b-a8f5-a347fa2ced36",
+        "name" : "view-users",
+        "description" : "${role_view-users}",
+        "composite" : true,
+        "composites" : {
+          "client" : {
+            "realm-management" : [ "query-users", "query-groups" ]
+          }
+        },
+        "clientRole" : true,
+        "containerId" : "0ebade55-4e75-4cf9-8ce9-1f5195f0b21f",
+        "attributes" : { }
+      }, {
+        "id" : "dc635bae-2ccc-4c39-963a-ba07027d23f4",
+        "name" : "view-events",
+        "description" : "${role_view-events}",
+        "composite" : false,
+        "clientRole" : true,
+        "containerId" : "0ebade55-4e75-4cf9-8ce9-1f5195f0b21f",
+        "attributes" : { }
+      }, {
+        "id" : "d614835a-1162-47c3-9f24-39c5547c39a1",
+        "name" : "query-clients",
+        "description" : "${role_query-clients}",
+        "composite" : false,
+        "clientRole" : true,
+        "containerId" : "0ebade55-4e75-4cf9-8ce9-1f5195f0b21f",
+        "attributes" : { }
+      }, {
+        "id" : "f8dada9d-aae3-46cb-8d31-fe42e3ed832b",
+        "name" : "view-identity-providers",
+        "description" : "${role_view-identity-providers}",
+        "composite" : false,
+        "clientRole" : true,
+        "containerId" : "0ebade55-4e75-4cf9-8ce9-1f5195f0b21f",
+        "attributes" : { }
+      }, {
+        "id" : "65ba0479-d74d-4f5d-a221-f03a866669fb",
+        "name" : "create-client",
+        "description" : "${role_create-client}",
+        "composite" : false,
+        "clientRole" : true,
+        "containerId" : "0ebade55-4e75-4cf9-8ce9-1f5195f0b21f",
+        "attributes" : { }
+      }, {
+        "id" : "ac706576-dba9-4f4d-b6ae-d52e96a75af4",
+        "name" : "query-users",
+        "description" : "${role_query-users}",
+        "composite" : false,
+        "clientRole" : true,
+        "containerId" : "0ebade55-4e75-4cf9-8ce9-1f5195f0b21f",
+        "attributes" : { }
+      }, {
+        "id" : "b245ab1c-87ad-421b-a6e3-d24126bbb813",
+        "name" : "manage-identity-providers",
+        "description" : "${role_manage-identity-providers}",
+        "composite" : false,
+        "clientRole" : true,
+        "containerId" : "0ebade55-4e75-4cf9-8ce9-1f5195f0b21f",
+        "attributes" : { }
+      }, {
+        "id" : "c59da396-3724-4394-b693-9a7b8f2c9e69",
+        "name" : "view-authorization",
+        "description" : "${role_view-authorization}",
+        "composite" : false,
+        "clientRole" : true,
+        "containerId" : "0ebade55-4e75-4cf9-8ce9-1f5195f0b21f",
+        "attributes" : { }
+      }, {
+        "id" : "28a95d55-3d38-4cd4-9f4f-ac0d743ee241",
+        "name" : "manage-realm",
+        "description" : "${role_manage-realm}",
+        "composite" : false,
+        "clientRole" : true,
+        "containerId" : "0ebade55-4e75-4cf9-8ce9-1f5195f0b21f",
+        "attributes" : { }
+      }, {
+        "id" : "da996a36-9553-4ed1-a582-0eefef6e5c68",
+        "name" : "query-realms",
+        "description" : "${role_query-realms}",
+        "composite" : false,
+        "clientRole" : true,
+        "containerId" : "0ebade55-4e75-4cf9-8ce9-1f5195f0b21f",
+        "attributes" : { }
+      }, {
+        "id" : "a542d5b4-2b41-4c5a-9b7f-7f253f847e68",
+        "name" : "manage-clients",
+        "description" : "${role_manage-clients}",
+        "composite" : false,
+        "clientRole" : true,
+        "containerId" : "0ebade55-4e75-4cf9-8ce9-1f5195f0b21f",
+        "attributes" : { }
+      }, {
+        "id" : "077ab4c8-37e8-4cf8-8839-5cc0ba763399",
+        "name" : "query-groups",
+        "description" : "${role_query-groups}",
+        "composite" : false,
+        "clientRole" : true,
+        "containerId" : "0ebade55-4e75-4cf9-8ce9-1f5195f0b21f",
+        "attributes" : { }
+      }, {
+        "id" : "37778c17-cb38-4ecf-9594-8ae3876c67e9",
+        "name" : "realm-admin",
+        "description" : "${role_realm-admin}",
+        "composite" : true,
+        "composites" : {
+          "client" : {
+            "realm-management" : [ "impersonation", "manage-users", "view-realm", "manage-events", "manage-authorization", "view-clients", "view-users", "view-events", "query-clients", "view-identity-providers", "create-client", "query-users", "manage-identity-providers", "view-authorization", "manage-realm", "query-realms", "manage-clients", "query-groups" ]
+          }
+        },
+        "clientRole" : true,
+        "containerId" : "0ebade55-4e75-4cf9-8ce9-1f5195f0b21f",
+        "attributes" : { }
+      } ],
+      "security-admin-console" : [ ],
+      "auth-server" : [ ],
+      "admin-cli" : [ ],
+      "api" : [ {
+        "id" : "6d6a0e11-fb56-4723-adf8-eef562bbb177",
+        "name" : "uma_protection",
+        "composite" : false,
+        "clientRole" : true,
+        "containerId" : "b1bd9a70-d3d9-4058-89a7-b4a4f0f1d828",
+        "attributes" : { }
+      } ],
+      "broker" : [ {
+        "id" : "b5c29428-e53a-471c-abc4-2ae98a74c1fe",
+        "name" : "read-token",
+        "description" : "${role_read-token}",
+        "composite" : false,
+        "clientRole" : true,
+        "containerId" : "ec5aaa7c-700a-4386-b124-a5f00d9b33db",
+        "attributes" : { }
+      } ],
+      "account" : [ {
+        "id" : "c9114a79-6c8e-4229-bae4-77249cb2308f",
+        "name" : "manage-account-links",
+        "description" : "${role_manage-account-links}",
+        "composite" : false,
+        "clientRole" : true,
+        "containerId" : "655db7ac-d7da-4b06-b61f-92d744753a0c",
+        "attributes" : { }
+      }, {
+        "id" : "00e13f7a-393d-4b2b-8d64-50a034693bb7",
+        "name" : "manage-account",
+        "description" : "${role_manage-account}",
+        "composite" : true,
+        "composites" : {
+          "client" : {
+            "account" : [ "manage-account-links" ]
+          }
+        },
+        "clientRole" : true,
+        "containerId" : "655db7ac-d7da-4b06-b61f-92d744753a0c",
+        "attributes" : { }
+      }, {
+        "id" : "ee0af6a2-aec9-4760-97f1-c79d0dc2c2ef",
+        "name" : "view-profile",
+        "description" : "${role_view-profile}",
+        "composite" : false,
+        "clientRole" : true,
+        "containerId" : "655db7ac-d7da-4b06-b61f-92d744753a0c",
+        "attributes" : { }
+      } ],
+      "lagoon-ui" : [ ]
+    }
+  },
+  "groups" : [ {
+    "id" : "f5b9f046-e667-4fe6-a80f-066f60c19d30",
+    "name" : "lagoonadmin",
+    "path" : "/lagoonadmin",
+    "attributes" : { },
+    "realmRoles" : [ ],
+    "clientRoles" : { },
+    "subGroups" : [ ]
+  } ],
+  "defaultRoles" : [ "uma_authorization", "offline_access" ],
+  "requiredCredentials" : [ "password" ],
+  "otpPolicyType" : "totp",
+  "otpPolicyAlgorithm" : "HmacSHA1",
+  "otpPolicyInitialCounter" : 0,
+  "otpPolicyDigits" : 6,
+  "otpPolicyLookAheadWindow" : 1,
+  "otpPolicyPeriod" : 30,
+  "otpSupportedApplications" : [ "FreeOTP", "Google Authenticator" ],
+  "users" : [ {
+    "id" : "1c346144-c526-41e9-8406-97efd0c7b792",
+    "createdTimestamp" : 1596115917111,
+    "username" : "lagoonadmin",
+    "enabled" : true,
+    "totp" : false,
+    "emailVerified" : false,
+    "credentials" : [ {
+      "type" : "password",
+      "hashedSaltedValue" : "XFjueBixSQHqda1u0K2JrtbG7ZNYJLR/UAXXIxPbaL9dIKGXuEKNrp83cgJAo8YU42oYRSy3yOTrcF5hFHFJyw==",
+      "salt" : "RQndwtbkMuBy+ZYKpKNw9g==",
+      "hashIterations" : 27500,
+      "counter" : 0,
+      "algorithm" : "pbkdf2-sha256",
+      "digits" : 0,
+      "period" : 0,
+      "createdDate" : 1596115917732,
+      "config" : { }
+    } ],
+    "disableableCredentialTypes" : [ "password" ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "admin", "uma_authorization", "offline_access" ],
+    "clientRoles" : {
+      "account" : [ "manage-account", "view-profile" ]
+    },
+    "notBefore" : 0,
+    "groups" : [ "/lagoonadmin" ]
+  }, {
+    "id" : "19318566-1085-4570-b0d2-805a26a14771",
+    "createdTimestamp" : 1596115943952,
+    "username" : "service-account-api",
+    "enabled" : true,
+    "totp" : false,
+    "emailVerified" : false,
+    "email" : "service-account-api@placeholder.org",
+    "serviceAccountClientId" : "api",
+    "credentials" : [ ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "uma_authorization", "offline_access" ],
+    "clientRoles" : {
+      "api" : [ "uma_protection" ],
+      "account" : [ "manage-account", "view-profile" ]
+    },
+    "notBefore" : 0,
+    "groups" : [ ]
+  }, {
+    "id" : "017d8dd8-c38d-40c5-ae52-fd6274bcfdbf",
+    "createdTimestamp" : 1596115925813,
+    "username" : "service-account-auth-server",
+    "enabled" : true,
+    "totp" : false,
+    "emailVerified" : false,
+    "email" : "service-account-auth-server@placeholder.org",
+    "serviceAccountClientId" : "auth-server",
+    "credentials" : [ ],
+    "disableableCredentialTypes" : [ ],
+    "requiredActions" : [ ],
+    "realmRoles" : [ "uma_authorization", "offline_access" ],
+    "clientRoles" : {
+      "account" : [ "manage-account", "view-profile" ]
+    },
+    "notBefore" : 0,
+    "groups" : [ ]
+  } ],
+  "scopeMappings" : [ {
+    "clientScope" : "offline_access",
+    "roles" : [ "offline_access" ]
+  } ],
+  "clients" : [ {
+    "id" : "655db7ac-d7da-4b06-b61f-92d744753a0c",
+    "clientId" : "account",
+    "name" : "${client_account}",
+    "baseUrl" : "/auth/realms/lagoon/account",
+    "surrogateAuthRequired" : false,
+    "enabled" : true,
+    "clientAuthenticatorType" : "client-secret",
+    "secret" : "76d6991b-9fb4-459d-9961-1db00e4a58a2",
+    "defaultRoles" : [ "manage-account", "view-profile" ],
+    "redirectUris" : [ "/auth/realms/lagoon/account/*" ],
+    "webOrigins" : [ ],
+    "notBefore" : 0,
+    "bearerOnly" : false,
+    "consentRequired" : false,
+    "standardFlowEnabled" : true,
+    "implicitFlowEnabled" : false,
+    "directAccessGrantsEnabled" : false,
+    "serviceAccountsEnabled" : false,
+    "publicClient" : false,
+    "frontchannelLogout" : false,
+    "protocol" : "openid-connect",
+    "attributes" : { },
+    "authenticationFlowBindingOverrides" : { },
+    "fullScopeAllowed" : false,
+    "nodeReRegistrationTimeout" : 0,
+    "defaultClientScopes" : [ "web-origins", "role_list", "roles", "profile", "email" ],
+    "optionalClientScopes" : [ "address", "phone", "offline_access", "microprofile-jwt" ]
+  }, {
+    "id" : "120bb9f4-28d7-4646-b187-22b0d683f244",
+    "clientId" : "admin-cli",
+    "name" : "${client_admin-cli}",
+    "surrogateAuthRequired" : false,
+    "enabled" : true,
+    "clientAuthenticatorType" : "client-secret",
+    "secret" : "88ac31e2-c85f-41aa-bac9-56d874d58384",
+    "redirectUris" : [ ],
+    "webOrigins" : [ ],
+    "notBefore" : 0,
+    "bearerOnly" : false,
+    "consentRequired" : false,
+    "standardFlowEnabled" : false,
+    "implicitFlowEnabled" : false,
+    "directAccessGrantsEnabled" : true,
+    "serviceAccountsEnabled" : false,
+    "publicClient" : true,
+    "frontchannelLogout" : false,
+    "protocol" : "openid-connect",
+    "attributes" : { },
+    "authenticationFlowBindingOverrides" : { },
+    "fullScopeAllowed" : false,
+    "nodeReRegistrationTimeout" : 0,
+    "defaultClientScopes" : [ "web-origins", "role_list", "roles", "profile", "email" ],
+    "optionalClientScopes" : [ "address", "phone", "offline_access", "microprofile-jwt" ]
+  }, {
+    "id" : "b1bd9a70-d3d9-4058-89a7-b4a4f0f1d828",
+    "clientId" : "api",
+    "surrogateAuthRequired" : false,
+    "enabled" : true,
+    "clientAuthenticatorType" : "client-secret",
+    "secret" : "39d5282d-3684-4026-b4ed-04bbc034b61a",
+    "redirectUris" : [ ],
+    "webOrigins" : [ ],
+    "notBefore" : 0,
+    "bearerOnly" : false,
+    "consentRequired" : false,
+    "standardFlowEnabled" : false,
+    "implicitFlowEnabled" : false,
+    "directAccessGrantsEnabled" : false,
+    "serviceAccountsEnabled" : true,
+    "authorizationServicesEnabled" : true,
+    "publicClient" : false,
+    "frontchannelLogout" : false,
+    "protocol" : "openid-connect",
+    "attributes" : { },
+    "authenticationFlowBindingOverrides" : { },
+    "fullScopeAllowed" : true,
+    "nodeReRegistrationTimeout" : -1,
+    "protocolMappers" : [ {
+      "id" : "96cb4ff4-a086-486c-a0ff-069c90cc8402",
+      "name" : "Client IP Address",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usersessionmodel-note-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "user.session.note" : "clientAddress",
+        "id.token.claim" : "true",
+        "access.token.claim" : "true",
+        "claim.name" : "clientAddress",
+        "jsonType.label" : "String"
+      }
+    }, {
+      "id" : "c8730d18-cd12-4bf1-89b3-608795094237",
+      "name" : "Client ID",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usersessionmodel-note-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "user.session.note" : "clientId",
+        "id.token.claim" : "true",
+        "access.token.claim" : "true",
+        "claim.name" : "clientId",
+        "jsonType.label" : "String"
+      }
+    }, {
+      "id" : "2e774956-ceb0-416f-ab3e-1357bb4193a2",
+      "name" : "Client Host",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usersessionmodel-note-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "user.session.note" : "clientHost",
+        "id.token.claim" : "true",
+        "access.token.claim" : "true",
+        "claim.name" : "clientHost",
+        "jsonType.label" : "String"
+      }
+    } ],
+    "defaultClientScopes" : [ "web-origins", "role_list", "roles", "profile", "email" ],
+    "optionalClientScopes" : [ "address", "phone", "offline_access", "microprofile-jwt" ],
+    "authorizationSettings" : {
+      "allowRemoteResourceManagement" : true,
+      "policyEnforcementMode" : "ENFORCING",
+      "resources" : [ {
+        "name" : "user",
+        "ownerManagedAccess" : false,
+        "displayName" : "user",
+        "attributes" : { },
+        "_id" : "09f6d264-0d4d-42a1-8ce7-1bd896f03c41",
+        "uris" : [ ],
+        "scopes" : [ {
+          "name" : "add"
+        }, {
+          "name" : "getBySshKey"
+        }, {
+          "name" : "update"
+        }, {
+          "name" : "deleteAll"
+        }, {
+          "name" : "delete"
+        } ]
+      }, {
+        "name" : "deployment",
+        "ownerManagedAccess" : false,
+        "displayName" : "deployment",
+        "attributes" : { },
+        "_id" : "1de9d78f-7461-4b30-b3d4-e6a67c363ec3",
+        "uris" : [ ],
+        "scopes" : [ {
+          "name" : "view"
+        }, {
+          "name" : "cancel"
+        }, {
+          "name" : "update"
+        }, {
+          "name" : "delete"
+        } ]
+      }, {
+        "name" : "harbor_scan_match",
+        "ownerManagedAccess" : false,
+        "displayName" : "Harbor scan match",
+        "attributes" : { },
+        "_id" : "1eed6d3c-9d00-4295-b752-3630f9a181c9",
+        "uris" : [ ],
+        "scopes" : [ {
+          "name" : "add"
+        }, {
+          "name" : "view"
+        }, {
+          "name" : "delete"
+        } ]
+      }, {
+        "name" : "restore",
+        "ownerManagedAccess" : false,
+        "displayName" : "restore",
+        "attributes" : { },
+        "_id" : "31bdd366-2c55-4f73-91b7-9042e41f10a9",
+        "uris" : [ ],
+        "scopes" : [ {
+          "name" : "add"
+        }, {
+          "name" : "update"
+        }, {
+          "name" : "addNoExec"
+        } ]
+      }, {
+        "name" : "problem",
+        "ownerManagedAccess" : false,
+        "displayName" : "problem",
+        "attributes" : { },
+        "_id" : "4a7f6364-fe23-418b-9575-cd501fb22509",
+        "uris" : [ ],
+        "scopes" : [ {
+          "name" : "add"
+        }, {
+          "name" : "view"
+        }, {
+          "name" : "delete"
+        } ]
+      }, {
+        "name" : "notification",
+        "ownerManagedAccess" : false,
+        "displayName" : "notification",
+        "attributes" : { },
+        "_id" : "4ae4f39d-08cf-491d-94fb-543d78ef967e",
+        "uris" : [ ],
+        "scopes" : [ {
+          "name" : "add"
+        }, {
+          "name" : "removeAll"
+        }, {
+          "name" : "view"
+        }, {
+          "name" : "update"
+        }, {
+          "name" : "deleteAll"
+        }, {
+          "name" : "delete"
+        } ]
+      }, {
+        "name" : "env_var",
+        "ownerManagedAccess" : false,
+        "displayName" : "env_var",
+        "attributes" : { },
+        "_id" : "57f01c08-bae4-4d1c-b99e-8cf8963331fa",
+        "uris" : [ ],
+        "scopes" : [ {
+          "name" : "environment:add:production"
+        }, {
+          "name" : "project:add"
+        }, {
+          "name" : "environment:view:production"
+        }, {
+          "name" : "environment:add:development"
+        }, {
+          "name" : "environment:view:development"
+        }, {
+          "name" : "delete"
+        }, {
+          "name" : "project:view"
+        } ]
+      }, {
+        "name" : "environment",
+        "ownerManagedAccess" : false,
+        "displayName" : "environment",
+        "attributes" : { },
+        "_id" : "5d6f6a1e-ff39-4219-8a26-1698b9e3c295",
+        "uris" : [ ],
+        "scopes" : [ {
+          "name" : "deploy:production"
+        }, {
+          "name" : "addOrUpdate:production"
+        }, {
+          "name" : "viewAll"
+        }, {
+          "name" : "storage"
+        }, {
+          "name" : "deleteAll"
+        }, {
+          "name" : "addOrUpdate:development"
+        }, {
+          "name" : "update:development"
+        }, {
+          "name" : "ssh:development"
+        }, {
+          "name" : "delete:development"
+        }, {
+          "name" : "view"
+        }, {
+          "name" : "deploy:development"
+        }, {
+          "name" : "deleteNoExec"
+        }, {
+          "name" : "ssh:production"
+        }, {
+          "name" : "delete:production"
+        }, {
+          "name" : "update:production"
+        } ]
+      }, {
+        "name" : "billing_modifier",
+        "ownerManagedAccess" : false,
+        "displayName" : "billing_modifier",
+        "attributes" : { },
+        "_id" : "6c1e92c2-66fa-427a-a6e1-fe5e6aa4d498",
+        "uris" : [ ],
+        "scopes" : [ {
+          "name" : "add"
+        }, {
+          "name" : "update"
+        }, {
+          "name" : "deleteAll"
+        }, {
+          "name" : "delete"
+        } ]
+      }, {
+        "name" : "ssh_key",
+        "ownerManagedAccess" : false,
+        "displayName" : "ssh_key",
+        "attributes" : { },
+        "_id" : "7bdf7cff-4fb2-4dae-95cf-023545c3b190",
+        "uris" : [ ],
+        "scopes" : [ {
+          "name" : "add"
+        }, {
+          "name" : "removeAll"
+        }, {
+          "name" : "update"
+        }, {
+          "name" : "deleteAll"
+        }, {
+          "name" : "view:user"
+        }, {
+          "name" : "delete"
+        }, {
+          "name" : "view:project"
+        } ]
+      }, {
+        "name" : "group",
+        "ownerManagedAccess" : false,
+        "displayName" : "group",
+        "attributes" : { },
+        "_id" : "8151cf15-71ee-4572-b82e-89030fe703ea",
+        "uris" : [ ],
+        "scopes" : [ {
+          "name" : "add"
+        }, {
+          "name" : "addUser"
+        }, {
+          "name" : "removeUser"
+        }, {
+          "name" : "update"
+        }, {
+          "name" : "viewAll"
+        }, {
+          "name" : "deleteAll"
+        }, {
+          "name" : "delete"
+        } ]
+      }, {
+        "name" : "openshift",
+        "ownerManagedAccess" : false,
+        "displayName" : "openshift",
+        "attributes" : { },
+        "_id" : "85bf89fd-8c6c-42f9-ad59-46b4a5263040",
+        "uris" : [ ],
+        "scopes" : [ {
+          "name" : "add"
+        }, {
+          "name" : "view"
+        }, {
+          "name" : "view:token"
+        }, {
+          "name" : "update"
+        }, {
+          "name" : "viewAll"
+        }, {
+          "name" : "deleteAll"
+        }, {
+          "name" : "delete"
+        } ]
+      }, {
+        "name" : "project",
+        "ownerManagedAccess" : false,
+        "displayName" : "project",
+        "attributes" : { },
+        "_id" : "e620e07a-34ae-4871-a168-c780dc5e2d20",
+        "uris" : [ ],
+        "scopes" : [ {
+          "name" : "addNotification"
+        }, {
+          "name" : "add"
+        }, {
+          "name" : "removeNotification"
+        }, {
+          "name" : "view"
+        }, {
+          "name" : "removeGroup"
+        }, {
+          "name" : "update"
+        }, {
+          "name" : "viewAll"
+        }, {
+          "name" : "deleteAll"
+        }, {
+          "name" : "delete"
+        }, {
+          "name" : "viewPrivateKey"
+        }, {
+          "name" : "addGroup"
+        } ]
+      }, {
+        "name" : "task",
+        "ownerManagedAccess" : false,
+        "displayName" : "task",
+        "attributes" : { },
+        "_id" : "f0372024-dd5c-4276-a212-f0a3e3de8f0c",
+        "uris" : [ ],
+        "scopes" : [ {
+          "name" : "drushRsync:source:production"
+        }, {
+          "name" : "drushArchiveDump:development"
+        }, {
+          "name" : "drushSqlSync:source:development"
+        }, {
+          "name" : "drushCacheClear:production"
+        }, {
+          "name" : "drushUserLogin:production"
+        }, {
+          "name" : "drushCron:development"
+        }, {
+          "name" : "update"
+        }, {
+          "name" : "drushSqlSync:destination:development"
+        }, {
+          "name" : "drushSqlDump:production"
+        }, {
+          "name" : "drushSqlSync:destination:production"
+        }, {
+          "name" : "drushRsync:destination:production"
+        }, {
+          "name" : "add:development"
+        }, {
+          "name" : "delete"
+        }, {
+          "name" : "view"
+        }, {
+          "name" : "drushSqlDump:development"
+        }, {
+          "name" : "drushUserLogin:development"
+        }, {
+          "name" : "add:production"
+        }, {
+          "name" : "drushRsync:source:development"
+        }, {
+          "name" : "addNoExec"
+        }, {
+          "name" : "drushArchiveDump:production"
+        }, {
+          "name" : "drushRsync:destination:development"
+        }, {
+          "name" : "drushCacheClear:development"
+        }, {
+          "name" : "drushSqlSync:source:production"
+        }, {
+          "name" : "drushCron:production"
+        } ]
+      }, {
+        "name" : "Default Resource",
+        "type" : "urn:api:resources:default",
+        "ownerManagedAccess" : false,
+        "attributes" : { },
+        "_id" : "f28b2d15-222a-4c02-97de-7135304008ac",
+        "uris" : [ "/*" ]
+      }, {
+        "name" : "backup",
+        "ownerManagedAccess" : false,
+        "displayName" : "backup",
+        "attributes" : { },
+        "_id" : "fdc6caa4-173d-4a3f-9459-a5a090e2f75f",
+        "uris" : [ ],
+        "scopes" : [ {
+          "name" : "add"
+        }, {
+          "name" : "view"
+        }, {
+          "name" : "deleteAll"
+        }, {
+          "name" : "delete"
+        } ]
+      } ],
+      "policies" : [ {
+        "id" : "0d0e07f6-08d8-41bd-ab10-c83e7981203e",
+        "name" : "Users role for group is Owner",
+        "description" : "Checks the users role for a group is Owner or higher",
+        "type" : "js",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "code" : "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 0,\n    developer: 0,\n    reporter: 0,\n    guest: 0,\n};\n\n// Check roles calculated by lagoon\nif (!ctxAttr.exists('userGroupRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userGroupRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    }\n}"
+        }
+      }, {
+        "id" : "0e442099-a31e-469c-bbb8-77ff7bd09696",
+        "name" : "Default Policy",
+        "description" : "A policy that grants access only for users within this realm",
+        "type" : "js",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "AFFIRMATIVE",
+        "config" : {
+          "code" : "// by default, grants any permission associated with this policy\n$evaluation.grant();\n"
+        }
+      }, {
+        "id" : "147278bc-075b-4862-85fa-3016119c7761",
+        "name" : "User has access to project",
+        "description" : "Checks that the user has access to a project via groups",
+        "type" : "js",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "code" : "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\n\n// Check projects calculated by lagoon\nif (!ctxAttr.exists('projectQuery') || !ctxAttr.exists('userProjects')) {\n    $evaluation.deny();\n} else {\n    var project = ctxAttr.getValue('projectQuery').asString(0);\n    var projects = ctxAttr.getValue('userProjects').asString(0);\n    var projectsArr = projects.split('-');\n    var grant = false;\n\n    for (var i=0; i<projectsArr.length; i++) {\n        if (project == projectsArr[i]) {\n            grant = true;\n            break;\n        }\n    }\n\n    if (grant) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    }\n}"
+        }
+      }, {
+        "id" : "15dc38e8-3608-4a73-8d3a-6a70b2e93846",
+        "name" : "Users role for realm is Admin",
+        "description" : "Checks the users role for the realm is Admin",
+        "type" : "js",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "code" : "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\n\nif (!ctxAttr.exists('currentUser')) {\n    $evaluation.deny();\n} else {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'admin')) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}"
+        }
+      }, {
+        "id" : "2c6c02b4-e8fe-4370-bb45-511d3c114d88",
+        "name" : "Users role for project is Developer",
+        "description" : "Checks the users role for a project is Developer or higher",
+        "type" : "js",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "code" : "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 1,\n    reporter: 0,\n    guest: 0,\n};\n\n// Check roles calculated by lagoon\nif (!ctxAttr.exists('userProjectRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userProjectRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    }\n}"
+        }
+      }, {
+        "id" : "41b746ff-99f8-4723-b778-3ff01fb1ebb2",
+        "name" : "Users role for group is Maintainer",
+        "description" : "Checks the users role for a group is Maintainer or higher",
+        "type" : "js",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "code" : "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 0,\n    reporter: 0,\n    guest: 0,\n};\n\n// Check roles calculated by lagoon\nif (!ctxAttr.exists('userGroupRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userGroupRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    }\n}"
+        }
+      }, {
+        "id" : "6a6e2b1a-ec95-461d-9cd1-f47dd627736f",
+        "name" : "Users role for project is Reporter",
+        "description" : "Checks the users role for a project is Reporter or higher",
+        "type" : "js",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "code" : "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 1,\n    reporter: 1,\n    guest: 0,\n};\n\n// Check roles calculated by lagoon\nif (!ctxAttr.exists('userProjectRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userProjectRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    }\n}"
+        }
+      }, {
+        "id" : "9301b274-dbfd-4f62-9f95-475b8528e422",
+        "name" : "User has access to own data",
+        "description" : "Checks that the current user is same as queried",
+        "type" : "js",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "code" : "var ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\n\nif (!ctxAttr.exists('usersQuery') || !ctxAttr.exists('currentUser')) {\n    $evaluation.deny();\n} else {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n    var users = ctxAttr.getValue('usersQuery').asString(0);\n    var usersArr = users.split('|');\n    var grant = false;\n    \n    for (var i=0; i<usersArr.length; i++) {\n        if (currentUser == usersArr[i]) {\n            grant = true;\n            break;\n        }\n    }\n\n    if (grant) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}"
+        }
+      }, {
+        "id" : "c332bd25-68de-4dcc-9cc5-13afdd959a82",
+        "name" : "Users role for group is Guest",
+        "description" : "Checks the users role for a group is Guest or higher",
+        "type" : "js",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "code" : "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 1,\n    reporter: 1,\n    guest: 1,\n};\n\n// Check roles calculated by lagoon\nif (!ctxAttr.exists('userGroupRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userGroupRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    }\n}"
+        }
+      }, {
+        "id" : "c4645798-d828-4c00-a2ec-ee437ede0f80",
+        "name" : "Users role for project is Maintainer",
+        "description" : "Checks the users role for a project is Maintainer or higher",
+        "type" : "js",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "code" : "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 0,\n    reporter: 0,\n    guest: 0,\n};\n\n// Check roles calculated by lagoon\nif (!ctxAttr.exists('userProjectRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userProjectRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    }\n}"
+        }
+      }, {
+        "id" : "eb4d0364-3619-41bb-8ee6-655b2e259885",
+        "name" : "Users role for project is Owner",
+        "description" : "Checks the users role for a project is Owner or higher",
+        "type" : "js",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "code" : "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 0,\n    developer: 0,\n    reporter: 0,\n    guest: 0,\n};\n\n// Check roles calculated by lagoon\nif (!ctxAttr.exists('userProjectRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userProjectRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    }\n}"
+        }
+      }, {
+        "id" : "f0cde65f-0efb-4ec6-a1d2-bff34b64637d",
+        "name" : "Users role for group is Reporter",
+        "description" : "Checks the users role for a group is Reporter or higher",
+        "type" : "js",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "code" : "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 1,\n    reporter: 1,\n    guest: 0,\n};\n\n// Check roles calculated by lagoon\nif (!ctxAttr.exists('userGroupRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userGroupRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    }\n}"
+        }
+      }, {
+        "id" : "f7276ab2-cd75-4676-b29e-e033b4b3c7ce",
+        "name" : "Users role for realm is Platform Owner",
+        "description" : "Checks the users role for the realm is Platform Owner or higher",
+        "type" : "js",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "code" : "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\n\nif (!ctxAttr.exists('currentUser')) {\n    $evaluation.deny();\n} else {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}"
+        }
+      }, {
+        "id" : "fef7b629-7e66-420c-8b04-799830d7a020",
+        "name" : "Users role for project is Guest",
+        "description" : "Checks the users role for a project is Guest or higher",
+        "type" : "js",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "code" : "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 1,\n    reporter: 1,\n    guest: 1,\n};\n\n// Check roles calculated by lagoon\nif (!ctxAttr.exists('userProjectRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userProjectRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    }\n}"
+        }
+      }, {
+        "id" : "ff610d56-d0d9-4f43-aa2f-a5c0d3138d0e",
+        "name" : "Users role for group is Developer",
+        "description" : "Checks the users role for a group is Developer or higher",
+        "type" : "js",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "code" : "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 1,\n    reporter: 0,\n    guest: 0,\n};\n\n// Check roles calculated by lagoon\nif (!ctxAttr.exists('userGroupRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userGroupRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    }\n}"
+        }
+      }, {
+        "id" : "02473e0a-2b4b-4a46-b115-18d057944f60",
+        "name" : "Delete Task",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"task\"]",
+          "scopes" : "[\"delete\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Developer\"]"
+        }
+      }, {
+        "id" : "0254533e-7630-45dc-a12f-39dda9f6a627",
+        "name" : "Add Billing Modifier",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"billing_modifier\"]",
+          "scopes" : "[\"add\"]",
+          "applyPolicies" : "[\"Users role for realm is Platform Owner\"]"
+        }
+      }, {
+        "id" : "0476a2cf-4f5c-45c7-b8c4-5d71037ece27",
+        "name" : "Add User",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"user\"]",
+          "scopes" : "[\"add\"]",
+          "applyPolicies" : "[\"Default Policy\"]"
+        }
+      }, {
+        "id" : "085021b2-1ca7-4970-90ea-16fd62dcce77",
+        "name" : "Run Drush sql-sync to Development Environment",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"task\"]",
+          "scopes" : "[\"drushSqlSync:destination:development\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Developer\"]"
+        }
+      }, {
+        "id" : "0ac3722d-eed7-4536-bdc4-e459757eb9a9",
+        "name" : "Add Task to Production Environment",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"task\"]",
+          "scopes" : "[\"add:production\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Maintainer\"]"
+        }
+      }, {
+        "id" : "0b408e7f-945b-44fd-b503-09b40be63f1f",
+        "name" : "Run Drush sql-sync from Any Environment",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"task\"]",
+          "scopes" : "[\"drushSqlSync:source:development\",\"drushSqlSync:source:production\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Developer\"]"
+        }
+      }, {
+        "id" : "1069308b-b27a-4785-acbd-229485f6c026",
+        "name" : "Run Drush archive-dump",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"task\"]",
+          "scopes" : "[\"drushArchiveDump:production\",\"drushArchiveDump:development\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Developer\"]"
+        }
+      }, {
+        "id" : "11d3f2e0-6bc0-40a3-a89d-3737ef26b377",
+        "name" : "Add Groups to Project",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"project\"]",
+          "scopes" : "[\"addGroup\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Maintainer\"]"
+        }
+      }, {
+        "id" : "15ced935-4f0f-4161-8e4a-76e789949668",
+        "name" : "Add Deployment to Development Environment",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"environment\"]",
+          "scopes" : "[\"deploy:development\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Developer\"]"
+        }
+      }, {
+        "id" : "15fb1096-5fb3-440c-bddb-e9b1100d5144",
+        "name" : "Delete SSH Key",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "AFFIRMATIVE",
+        "config" : {
+          "resources" : "[\"ssh_key\"]",
+          "scopes" : "[\"delete\"]",
+          "applyPolicies" : "[\"User has access to own data\",\"Users role for realm is Platform Owner\"]"
+        }
+      }, {
+        "id" : "1cdcc214-397c-42cd-9117-2c801919b8e0",
+        "name" : "Update Project",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"project\"]",
+          "scopes" : "[\"update\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Maintainer\"]"
+        }
+      }, {
+        "id" : "1d8bf19b-631c-4996-bcfa-599cd88b4bc8",
+        "name" : "Remove Groups from Project",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"project\"]",
+          "scopes" : "[\"removeGroup\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Maintainer\"]"
+        }
+      }, {
+        "id" : "20873816-7c3b-4572-8dca-591964e9c6ab",
+        "name" : "Run Drush sql-sync to Production Environment",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"task\"]",
+          "scopes" : "[\"drushSqlSync:destination:production\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Maintainer\"]"
+        }
+      }, {
+        "id" : "2bdb2899-1464-44c5-b4c1-92d613f12793",
+        "name" : "Run Drush uli on Development Environment",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"task\"]",
+          "scopes" : "[\"drushUserLogin:development\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Developer\"]"
+        }
+      }, {
+        "id" : "2c2e3c4f-0b9d-4b81-a7d5-8cea924589fd",
+        "name" : "Add Notification to Project",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"project\"]",
+          "scopes" : "[\"addNotification\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Maintainer\"]"
+        }
+      }, {
+        "id" : "2d84df17-8d0c-4b8a-a8e6-40e3f22b8366",
+        "name" : "Delete User",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "AFFIRMATIVE",
+        "config" : {
+          "resources" : "[\"user\"]",
+          "scopes" : "[\"delete\"]",
+          "applyPolicies" : "[\"User has access to own data\",\"Users role for realm is Platform Owner\"]"
+        }
+      }, {
+        "id" : "2f020d88-72b9-4899-b5d6-577e8124395a",
+        "name" : "Delete Backup",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"backup\"]",
+          "scopes" : "[\"delete\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Maintainer\"]"
+        }
+      }, {
+        "id" : "313aa5c4-a9ad-44bc-8317-02990fab7935",
+        "name" : "Update Billing Modifier",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"billing_modifier\"]",
+          "scopes" : "[\"update\"]",
+          "applyPolicies" : "[\"Users role for realm is Platform Owner\"]"
+        }
+      }, {
+        "id" : "31fab8ad-d7c7-49f0-a34d-a9a15d25b5ad",
+        "name" : "Delete Environment Variable",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"env_var\"]",
+          "scopes" : "[\"delete\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Maintainer\"]"
+        }
+      }, {
+        "id" : "3a7305b9-31b4-49b6-8ccf-a4764d1ff6c7",
+        "name" : "Update Deployment",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"deployment\"]",
+          "scopes" : "[\"update\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Maintainer\"]"
+        }
+      }, {
+        "id" : "3c194301-3db2-4806-821c-3d6d472bdbec",
+        "name" : "Run Drush cache-clear",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"task\"]",
+          "scopes" : "[\"drushCacheClear:development\",\"drushCacheClear:production\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Guest\"]"
+        }
+      }, {
+        "id" : "3ce2da20-6b6c-4812-9f13-70bad3f94213",
+        "name" : "Run Drush sql-dump",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"task\"]",
+          "scopes" : "[\"drushSqlDump:development\",\"drushSqlDump:production\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Developer\"]"
+        }
+      }, {
+        "id" : "3e884b78-3fd7-40ce-9899-591700e725bd",
+        "name" : "Run Drush rsync to Production Environment",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"task\"]",
+          "scopes" : "[\"drushRsync:destination:production\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Maintainer\"]"
+        }
+      }, {
+        "id" : "3ef128a1-dab4-4f89-a7aa-127f8ae9f472",
+        "name" : "Add Harbor Scan Match",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"harbor_scan_match\"]",
+          "scopes" : "[\"add\"]",
+          "applyPolicies" : "[\"Users role for realm is Admin\"]"
+        }
+      }, {
+        "id" : "40d19f89-2b00-4662-81ee-58dc213908ef",
+        "name" : "Update Group",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"group\"]",
+          "scopes" : "[\"update\"]",
+          "applyPolicies" : "[\"Users role for group is Maintainer\"]"
+        }
+      }, {
+        "id" : "4287c8ac-50a5-457a-a603-82bbe6cf9464",
+        "name" : "Run Drush uli on Production Environment",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"task\"]",
+          "scopes" : "[\"drushUserLogin:production\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Maintainer\"]"
+        }
+      }, {
+        "id" : "4b5c5a5e-663f-42e4-aa7f-97aad304b241",
+        "name" : "View Deployments",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"deployment\"]",
+          "scopes" : "[\"view\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Guest\"]"
+        }
+      }, {
+        "id" : "4fbaf9e7-7eeb-4409-97e0-810ee915d3ab",
+        "name" : "View Task",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"task\"]",
+          "scopes" : "[\"view\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Guest\"]"
+        }
+      }, {
+        "id" : "58528098-6f53-4044-a5d4-d7bd4e6b0acd",
+        "name" : "Cancel Deployment",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"deployment\"]",
+          "scopes" : "[\"cancel\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Maintainer\"]"
+        }
+      }, {
+        "id" : "5aebdfbb-6989-4aef-9918-43fdb25c26f7",
+        "name" : "Add Problem",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"problem\"]",
+          "scopes" : "[\"add\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Developer\"]"
+        }
+      }, {
+        "id" : "5b65d388-9353-47a3-9aa8-713504425f80",
+        "name" : "Delete Project",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"project\"]",
+          "scopes" : "[\"delete\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Owner\"]"
+        }
+      }, {
+        "id" : "5c1e0345-a649-4f4c-9aa7-5e464c57a940",
+        "name" : "Delete All Environments",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"environment\"]",
+          "scopes" : "[\"deleteAll\"]",
+          "applyPolicies" : "[\"Users role for realm is Admin\"]"
+        }
+      }, {
+        "id" : "5eef1336-7527-4135-8aa5-301ec27439fe",
+        "name" : "View Environment Variable for Development Environment",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"env_var\"]",
+          "scopes" : "[\"environment:view:development\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Developer\"]"
+        }
+      }, {
+        "id" : "5faa8d84-b2f8-422c-8fb6-79b12ca997dc",
+        "name" : "Delete Problem",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"problem\"]",
+          "scopes" : "[\"delete\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Developer\"]"
+        }
+      }, {
+        "id" : "68de806b-d119-4f3e-b9a0-1a9c8cdcaef0",
+        "name" : "User can SSH to Production Environment",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"environment\"]",
+          "scopes" : "[\"ssh:production\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Maintainer\"]"
+        }
+      }, {
+        "id" : "6bb001cc-74b6-44af-b166-b8e4781db200",
+        "name" : "Update Development Environment",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"environment\"]",
+          "scopes" : "[\"update:development\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Developer\"]"
+        }
+      }, {
+        "id" : "6bc62a1e-ed5e-45ed-b5dc-c55bf928a813",
+        "name" : "Delete All Projects",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"project\"]",
+          "scopes" : "[\"deleteAll\"]",
+          "applyPolicies" : "[\"Users role for realm is Admin\"]"
+        }
+      }, {
+        "id" : "6d89e88d-7e82-4393-aa3a-cd9bb0496886",
+        "name" : "CUD Notification",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"notification\"]",
+          "scopes" : "[\"add\",\"delete\",\"update\"]",
+          "applyPolicies" : "[\"Users role for realm is Platform Owner\"]"
+        }
+      }, {
+        "id" : "6e5357e9-311b-4549-8eb6-2949b68d393c",
+        "name" : "Add Environment Variable to Development Environment",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"env_var\"]",
+          "scopes" : "[\"environment:add:development\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Developer\"]"
+        }
+      }, {
+        "id" : "7048a3b2-02bc-4e17-a502-cc48dbf0dbfb",
+        "name" : "View Notification",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"notification\"]",
+          "scopes" : "[\"view\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Developer\"]"
+        }
+      }, {
+        "id" : "7ba778cc-7ce4-42e9-9843-fe95ffb61ba6",
+        "name" : "Update SSH Key",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "AFFIRMATIVE",
+        "config" : {
+          "resources" : "[\"ssh_key\"]",
+          "scopes" : "[\"update\"]",
+          "applyPolicies" : "[\"User has access to own data\",\"Users role for realm is Platform Owner\"]"
+        }
+      }, {
+        "id" : "7bd545bd-d2a3-4bd4-abdf-1db7a531c618",
+        "name" : "Update Restore",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"restore\"]",
+          "scopes" : "[\"update\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Guest\"]"
+        }
+      }, {
+        "id" : "7e548784-f7cf-4a50-800d-58f87bc2777b",
+        "name" : "Run Drush rsync to Development Environment",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"task\"]",
+          "scopes" : "[\"drushRsync:destination:development\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Developer\"]"
+        }
+      }, {
+        "id" : "7e5c2671-a6e6-401a-a172-d4eab8bb0f0c",
+        "name" : "Add Deployment to Production Environment",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"environment\"]",
+          "scopes" : "[\"deploy:production\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Maintainer\"]"
+        }
+      }, {
+        "id" : "8078ada4-b58f-49ed-b4f6-23b48e57e949",
+        "name" : "Delete Deployment",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"deployment\"]",
+          "scopes" : "[\"delete\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Maintainer\"]"
+        }
+      }, {
+        "id" : "8685c756-621f-41ae-9269-16515d1f9413",
+        "name" : "View Environment Variable for Production Environment",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"env_var\"]",
+          "scopes" : "[\"environment:view:production\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Maintainer\"]"
+        }
+      }, {
+        "id" : "925b2c07-5b27-450b-a308-7c5ffa455966",
+        "name" : "Delete Development Environment",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"environment\"]",
+          "scopes" : "[\"delete:development\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Developer\"]"
+        }
+      }, {
+        "id" : "9650832b-bdf4-45e5-b644-3fdd4e0b5f7f",
+        "name" : "View Environment Metrics",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"environment\"]",
+          "scopes" : "[\"storage\"]",
+          "applyPolicies" : "[\"Users role for realm is Admin\"]"
+        }
+      }, {
+        "id" : "96d2d724-1e8a-4488-b4c6-aeac49ea0d18",
+        "name" : "Add or Update Production Environment",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"environment\"]",
+          "scopes" : "[\"addOrUpdate:production\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Maintainer\"]"
+        }
+      }, {
+        "id" : "9e253d25-165c-4a83-b75a-bdcf5d2a79c6",
+        "name" : "Delete Harbor Scan Match",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"harbor_scan_match\"]",
+          "scopes" : "[\"delete\"]",
+          "applyPolicies" : "[\"Users role for realm is Admin\"]"
+        }
+      }, {
+        "id" : "a03e21ff-5cd2-4e9b-8aaf-66f057a38a5f",
+        "name" : "Add User to Group",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"group\"]",
+          "scopes" : "[\"addUser\"]",
+          "applyPolicies" : "[\"Users role for group is Maintainer\"]"
+        }
+      }, {
+        "id" : "a0e30a55-81e9-482d-a0e7-68b1359ea2e0",
+        "name" : "Add Group",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"group\"]",
+          "scopes" : "[\"add\"]",
+          "applyPolicies" : "[\"Default Policy\"]"
+        }
+      }, {
+        "id" : "a1bfaef7-1b61-4d97-90f2-75c85affb42a",
+        "name" : "Run Drush rsync from Any Environment",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"task\"]",
+          "scopes" : "[\"drushRsync:source:production\",\"drushRsync:source:development\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Developer\"]"
+        }
+      }, {
+        "id" : "a5492a8b-9139-452b-a37b-c73e357ee270",
+        "name" : "Delete All SSH Keys",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"ssh_key\"]",
+          "scopes" : "[\"removeAll\",\"deleteAll\"]",
+          "applyPolicies" : "[\"Users role for realm is Admin\"]"
+        }
+      }, {
+        "id" : "aacae4ff-d7fa-4d12-99f2-c898419e5ae9",
+        "name" : "Get SSH Keys for User",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "AFFIRMATIVE",
+        "config" : {
+          "resources" : "[\"ssh_key\"]",
+          "scopes" : "[\"view:user\"]",
+          "applyPolicies" : "[\"User has access to own data\",\"Users role for realm is Platform Owner\"]"
+        }
+      }, {
+        "id" : "ab92286e-8683-4533-8e97-82db23d8fccc",
+        "name" : "View All Openshifts",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"openshift\"]",
+          "scopes" : "[\"viewAll\"]",
+          "applyPolicies" : "[\"Users role for realm is Admin\"]"
+        }
+      }, {
+        "id" : "acb55a79-fcfa-446e-8348-fc92782ac931",
+        "name" : "View Environment",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"environment\"]",
+          "scopes" : "[\"view\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Guest\"]"
+        }
+      }, {
+        "id" : "ad62a0cc-31ab-423c-9984-3bd5fcecc673",
+        "name" : "Add or Update Development Environment",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"environment\"]",
+          "scopes" : "[\"addOrUpdate:development\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Developer\"]"
+        }
+      }, {
+        "id" : "ae91e5c7-0b8d-49bb-b685-e8b682772b65",
+        "name" : "Remove Notification from Project",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"project\"]",
+          "scopes" : "[\"removeNotification\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Maintainer\"]"
+        }
+      }, {
+        "id" : "b082bc08-b513-4a52-9581-220ae51c91d3",
+        "name" : "Add Environment Variable to Project",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"env_var\"]",
+          "scopes" : "[\"project:add\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Owner\"]"
+        }
+      }, {
+        "id" : "b092a93e-00e6-4b0d-a16c-ddc855fbfbd2",
+        "name" : "Add Project",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"project\"]",
+          "scopes" : "[\"add\"]",
+          "applyPolicies" : "[\"Default Policy\"]"
+        }
+      }, {
+        "id" : "b3e72463-3502-4231-8837-6cb4d42c0719",
+        "name" : "View Problems",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"problem\"]",
+          "scopes" : "[\"view\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Developer\"]"
+        }
+      }, {
+        "id" : "b5b5a0a9-4a4f-4d0e-838f-8914aaba08ae",
+        "name" : "Update Task",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"task\"]",
+          "scopes" : "[\"update\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Developer\"]"
+        }
+      }, {
+        "id" : "c1e8a9be-dd61-446a-9328-e311235ce0d5",
+        "name" : "View All Groups",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"group\"]",
+          "scopes" : "[\"viewAll\"]",
+          "applyPolicies" : "[\"Users role for realm is Platform Owner\"]"
+        }
+      }, {
+        "id" : "c33e6c4b-f7ed-4963-918b-32c0389a7e76",
+        "name" : "Delete Production Environment",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"environment\"]",
+          "scopes" : "[\"delete:production\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Owner\"]"
+        }
+      }, {
+        "id" : "c5b90481-0e60-48d5-a817-f7aee8624e9e",
+        "name" : "Delete All Backups",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"backup\"]",
+          "scopes" : "[\"deleteAll\"]",
+          "applyPolicies" : "[\"Users role for realm is Admin\"]"
+        }
+      }, {
+        "id" : "c5cab999-388f-44cc-bf38-a00f243bb857",
+        "name" : "Delete Environment",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"environment\"]",
+          "scopes" : "[\"delete\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Maintainer\"]"
+        }
+      }, {
+        "id" : "cc3ae488-fd97-4bef-b9f8-82219bcb4310",
+        "name" : "Remove User from Group",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"group\"]",
+          "scopes" : "[\"removeUser\"]",
+          "applyPolicies" : "[\"Users role for group is Maintainer\"]"
+        }
+      }, {
+        "id" : "cd029362-1c93-4603-b9ec-81b3993ecf95",
+        "name" : "View Harbor Scan Match",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"harbor_scan_match\"]",
+          "scopes" : "[\"view\"]",
+          "applyPolicies" : "[\"Users role for realm is Admin\"]"
+        }
+      }, {
+        "id" : "d052858e-7021-43a2-a31c-46c250729af9",
+        "name" : "User can SSH to Development Environment",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"environment\"]",
+          "scopes" : "[\"ssh:development\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Developer\"]"
+        }
+      }, {
+        "id" : "d2d3dca6-f329-4ba7-97cd-a811f8db9da4",
+        "name" : "Delete Group",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"group\"]",
+          "scopes" : "[\"delete\"]",
+          "applyPolicies" : "[\"Users role for group is Maintainer\"]"
+        }
+      }, {
+        "id" : "d61ec68a-4d46-4a6e-ba45-99bd5fe85e0a",
+        "name" : "Run Drush cron",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"task\"]",
+          "scopes" : "[\"drushCron:production\",\"drushCron:development\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Guest\"]"
+        }
+      }, {
+        "id" : "d68eec24-5466-4c5c-b3b0-e68777624eb4",
+        "name" : "View Project",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"project\"]",
+          "scopes" : "[\"view\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Guest\"]"
+        }
+      }, {
+        "id" : "d98a7514-60ff-4190-b3d4-3daedd07f3c0",
+        "name" : "Add Backup",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"backup\"]",
+          "scopes" : "[\"add\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Developer\"]"
+        }
+      }, {
+        "id" : "dc09083f-5dd5-4670-8cbc-7fc55ac4c49f",
+        "name" : "Delete All Groups",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"group\"]",
+          "scopes" : "[\"deleteAll\"]",
+          "applyPolicies" : "[\"Users role for realm is Admin\"]"
+        }
+      }, {
+        "id" : "dc9b3f1a-d0ff-4582-be0e-cc00eabad688",
+        "name" : "Manage Openshift",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"openshift\"]",
+          "scopes" : "[\"add\",\"deleteAll\",\"delete\",\"update\",\"view:token\"]",
+          "applyPolicies" : "[\"Users role for realm is Platform Owner\"]"
+        }
+      }, {
+        "id" : "e13f020a-ace0-4885-82bd-dbcf3c51e93b",
+        "name" : "View Openshift",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"openshift\"]",
+          "scopes" : "[\"view\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Maintainer\"]"
+        }
+      }, {
+        "id" : "eabc2de3-cd40-408b-a718-35fffb31624f",
+        "name" : "Delete All Billing Group Modifiers",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"billing_modifier\"]",
+          "scopes" : "[\"deleteAll\"]",
+          "applyPolicies" : "[\"Users role for realm is Platform Owner\"]"
+        }
+      }, {
+        "id" : "ec0ba5af-e2de-459d-b923-0e4e526cd95a",
+        "name" : "View Environment Variable for Project",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"env_var\"]",
+          "scopes" : "[\"project:view\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Maintainer\"]"
+        }
+      }, {
+        "id" : "f0e09af9-0161-46eb-afbd-bc44b8079daa",
+        "name" : "Delete All Users",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"user\"]",
+          "scopes" : "[\"deleteAll\"]",
+          "applyPolicies" : "[\"Users role for realm is Admin\"]"
+        }
+      }, {
+        "id" : "f247d193-9c32-4678-936c-e33966f9b7ba",
+        "name" : "Add Task to Development Environment",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"task\"]",
+          "scopes" : "[\"add:development\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Developer\"]"
+        }
+      }, {
+        "id" : "f37c773f-21d2-43c4-adc9-143b76c9ebc8",
+        "name" : "View All Projects",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"project\"]",
+          "scopes" : "[\"viewAll\"]",
+          "applyPolicies" : "[\"Users role for realm is Platform Owner\"]"
+        }
+      }, {
+        "id" : "f5891480-3be9-4de7-a88a-96d3c9bac1aa",
+        "name" : "Add Restore",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"restore\"]",
+          "scopes" : "[\"add\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Guest\"]"
+        }
+      }, {
+        "id" : "f6142c2c-3396-4235-aea2-588217b691c2",
+        "name" : "Delete Billing Modifier",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"billing_modifier\"]",
+          "scopes" : "[\"delete\"]",
+          "applyPolicies" : "[\"Users role for realm is Platform Owner\"]"
+        }
+      }, {
+        "id" : "f6494a28-d5d9-4a6d-975f-2626c9890017",
+        "name" : "Update User",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "AFFIRMATIVE",
+        "config" : {
+          "resources" : "[\"user\"]",
+          "scopes" : "[\"update\"]",
+          "applyPolicies" : "[\"User has access to own data\",\"Users role for realm is Platform Owner\"]"
+        }
+      }, {
+        "id" : "f774a896-4a44-43e5-98a2-66757030f6e5",
+        "name" : "Add SSH Key",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "AFFIRMATIVE",
+        "config" : {
+          "resources" : "[\"ssh_key\"]",
+          "scopes" : "[\"add\"]",
+          "applyPolicies" : "[\"User has access to own data\",\"Users role for realm is Platform Owner\"]"
+        }
+      }, {
+        "id" : "f8ab260f-97ed-463f-a63a-9c62ed53a222",
+        "name" : "View Project Private Key",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"project\"]",
+          "scopes" : "[\"viewPrivateKey\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Owner\"]"
+        }
+      }, {
+        "id" : "f90a13b4-4f83-4b77-8886-75b23d857d77",
+        "name" : "View Backups",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"backup\"]",
+          "scopes" : "[\"view\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Developer\"]"
+        }
+      }, {
+        "id" : "f9ed9fe5-428a-4114-bc31-dbbc676ce1c1",
+        "name" : "Update Production Environment",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"environment\"]",
+          "scopes" : "[\"update:production\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Maintainer\"]"
+        }
+      }, {
+        "id" : "fae885b3-24f1-40fc-9951-5c94110426b8",
+        "name" : "Delete All Notifications",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"notification\"]",
+          "scopes" : "[\"removeAll\",\"deleteAll\"]",
+          "applyPolicies" : "[\"Users role for realm is Admin\"]"
+        }
+      }, {
+        "id" : "fce65250-2d64-4e8d-ab55-758b1715ca82",
+        "name" : "Add Environment Variable to Production Environment",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"env_var\"]",
+          "scopes" : "[\"environment:add:production\"]",
+          "applyPolicies" : "[\"User has access to project\",\"Users role for project is Maintainer\"]"
+        }
+      } ],
+      "scopes" : [ {
+        "id" : "04e99b3b-bfeb-44c8-ad09-3e433e851e3b",
+        "name" : "delete:production"
+      }, {
+        "id" : "13007c40-6935-4859-abf5-373cdb8bac52",
+        "name" : "deploy:production"
+      }, {
+        "id" : "15e803cd-e3ad-40e4-a87f-eab55a7e3eb8",
+        "name" : "drushRsync:source:production"
+      }, {
+        "id" : "1f6134f7-753f-40d0-b895-9b05d299e2d1",
+        "name" : "drushSqlSync:source:development"
+      }, {
+        "id" : "24924c3a-8462-4122-a691-839e3e5fa03f",
+        "name" : "addOrUpdate:production"
+      }, {
+        "id" : "29e0387c-d490-4073-94bd-56a99cb1d9e3",
+        "name" : "ssh:development"
+      }, {
+        "id" : "2dad2f08-e1ad-4f67-923d-f2c14477c9dd",
+        "name" : "drushSqlSync:destination:production"
+      }, {
+        "id" : "3e0d1702-0527-4a84-ae03-70dc84fe6147",
+        "name" : "drushCron:production"
+      }, {
+        "id" : "3ec83573-d7bc-4e69-a25d-c63874ad1e56",
+        "name" : "deleteNoExec"
+      }, {
+        "id" : "40093b32-0cfc-4c1a-b181-0a1542ef849a",
+        "name" : "deploy:development"
+      }, {
+        "id" : "442c3126-258e-49e1-8bd1-d1a2d7b3280c",
+        "name" : "removeGroup"
+      }, {
+        "id" : "445e2e18-3939-4840-94b6-dc17f33a7258",
+        "name" : "project:view"
+      }, {
+        "id" : "44c02063-2509-4324-a138-0eed463ec58d",
+        "name" : "removeAll"
+      }, {
+        "id" : "46262c84-921d-4591-b397-0fc5f66355f2",
+        "name" : "update"
+      }, {
+        "id" : "472fadf0-05df-4032-8673-8e39b4c81dee",
+        "name" : "viewAll"
+      }, {
+        "id" : "47575093-452e-4432-8ee7-ca79034d32e8",
+        "name" : "addGroup"
+      }, {
+        "id" : "4af39644-7f5a-44eb-869f-c275e962cc9e",
+        "name" : "view:user"
+      }, {
+        "id" : "4c00f33b-2665-436d-905b-1f630ac091a4",
+        "name" : "storage"
+      }, {
+        "id" : "51d67f84-1ec9-4755-be91-6956516e1515",
+        "name" : "add"
+      }, {
+        "id" : "59bcaacd-bbe4-48a1-bce0-cd1715381fbb",
+        "name" : "drushRsync:source:development"
+      }, {
+        "id" : "619a9b06-da65-474a-9eff-015e008ba417",
+        "name" : "removeNotification"
+      }, {
+        "id" : "62c78243-d090-443d-ae12-caf59c7d9dbf",
+        "name" : "drushSqlDump:development"
+      }, {
+        "id" : "6c0ba543-cb54-4e28-84ad-e629cb546a3c",
+        "name" : "drushSqlDump:production"
+      }, {
+        "id" : "6cf81bbb-aa28-4ef4-ab31-6cceda9d1a83",
+        "name" : "delete:development"
+      }, {
+        "id" : "6da5dc0e-93c9-42f8-90ff-9d284048c88f",
+        "name" : "drushCacheClear:production"
+      }, {
+        "id" : "72ca3f83-d49f-4065-aa22-37a3f1118c61",
+        "name" : "drushRsync:destination:production"
+      }, {
+        "id" : "793b27ef-38ec-4db1-818b-95a20bd5c60e",
+        "name" : "viewPrivateKey"
+      }, {
+        "id" : "8099ef7e-31db-40cf-9c87-3b4b730454f1",
+        "name" : "delete"
+      }, {
+        "id" : "83f24c2b-6c37-47e4-8db3-8b1e8447d309",
+        "name" : "drushUserLogin:production"
+      }, {
+        "id" : "88ff965f-a0e1-4bdb-a75f-3606759aeacf",
+        "name" : "drushUserLogin:development"
+      }, {
+        "id" : "8b3ce5e4-7814-443d-9a65-e78a2b105a68",
+        "name" : "view:token"
+      }, {
+        "id" : "8c823dbb-cf22-48cd-a073-31cbb3c2a8a4",
+        "name" : "drushRsync:destination:development"
+      }, {
+        "id" : "8d803533-1c75-4c0e-bd12-9ccd16350833",
+        "name" : "addOrUpdate:development"
+      }, {
+        "id" : "912f60b2-ebc6-4deb-9fe1-274f4ff9bc6c",
+        "name" : "ssh:production"
+      }, {
+        "id" : "95a2303b-804d-483c-a32a-91ed433b655b",
+        "name" : "add:development"
+      }, {
+        "id" : "97f303fb-47bf-4bc1-811c-e953a1c0359a",
+        "name" : "view:project"
+      }, {
+        "id" : "987ceb63-d0ae-4eaa-b862-4f6a05d5563d",
+        "name" : "drushCacheClear:development"
+      }, {
+        "id" : "a3d68bae-2592-49dd-b487-e4917e238d52",
+        "name" : "removeUser"
+      }, {
+        "id" : "ab262d92-ba1a-4ff6-8afb-7416fb0576b4",
+        "name" : "addNotification"
+      }, {
+        "id" : "ac05695e-fff6-4efe-9b0f-ec42669ca7bb",
+        "name" : "environment:view:production"
+      }, {
+        "id" : "b4f1fb4c-73e5-4a32-b5e5-47584e57b761",
+        "name" : "view"
+      }, {
+        "id" : "bfa86c2a-6a4a-46ad-9862-574120d055ab",
+        "name" : "environment:add:production"
+      }, {
+        "id" : "bfd9cf49-31ee-4b94-8aef-4689640e3943",
+        "name" : "project:add"
+      }, {
+        "id" : "c75feb22-3ca7-4901-bd85-a54b62f76f03",
+        "name" : "drushSqlSync:destination:development"
+      }, {
+        "id" : "d2b9417e-6bbf-4200-a33d-48d5bae695bf",
+        "name" : "cancel"
+      }, {
+        "id" : "d47e008a-473e-4909-9df2-fb168a21c558",
+        "name" : "drushCron:development"
+      }, {
+        "id" : "d49e4f9e-f179-4ffa-8f37-185e11b1da0c",
+        "name" : "deleteAll"
+      }, {
+        "id" : "dc4e7d10-e55c-41cf-b5a0-2a77f85d2083",
+        "name" : "addUser"
+      }, {
+        "id" : "ddd216a2-799b-4d70-b20c-e54e47ef8400",
+        "name" : "environment:add:development"
+      }, {
+        "id" : "df06531e-c4dc-4271-bf2f-d6885257987c",
+        "name" : "drushArchiveDump:development"
+      }, {
+        "id" : "e082d8bd-a74b-4c5a-99d8-cb500497e5af",
+        "name" : "drushSqlSync:source:production"
+      }, {
+        "id" : "e0940164-27bf-4d56-a8bb-72477e7de688",
+        "name" : "addNoExec"
+      }, {
+        "id" : "e7fa31c5-6923-4446-8708-638a7f698982",
+        "name" : "update:production"
+      }, {
+        "id" : "eb59ddcb-98ac-4294-9e8a-0c29fad71fd1",
+        "name" : "add:production"
+      }, {
+        "id" : "f1f4a792-6e92-4f44-9d62-9592aa4f41a0",
+        "name" : "environment:view:development"
+      }, {
+        "id" : "f843eda2-bc50-4009-bfb2-b580b4101b79",
+        "name" : "drushArchiveDump:production"
+      }, {
+        "id" : "fc034ca0-82a8-4ad7-af5b-aec1655707ce",
+        "name" : "update:development"
+      }, {
+        "id" : "fcfe8439-48ed-4368-82dd-66c19889d629",
+        "name" : "getBySshKey"
+      } ],
+      "decisionStrategy" : "UNANIMOUS"
+    }
+  }, {
+    "id" : "7acbae32-7be2-4e6a-8569-9c5f7fb9fd67",
+    "clientId" : "auth-server",
+    "surrogateAuthRequired" : false,
+    "enabled" : true,
+    "clientAuthenticatorType" : "client-secret",
+    "secret" : "f605b150-7636-4447-abd3-70988786b330",
+    "redirectUris" : [ ],
+    "webOrigins" : [ ],
+    "notBefore" : 0,
+    "bearerOnly" : false,
+    "consentRequired" : false,
+    "standardFlowEnabled" : false,
+    "implicitFlowEnabled" : false,
+    "directAccessGrantsEnabled" : false,
+    "serviceAccountsEnabled" : true,
+    "publicClient" : false,
+    "frontchannelLogout" : false,
+    "protocol" : "openid-connect",
+    "attributes" : { },
+    "authenticationFlowBindingOverrides" : { },
+    "fullScopeAllowed" : true,
+    "nodeReRegistrationTimeout" : -1,
+    "protocolMappers" : [ {
+      "id" : "fbf2d4b4-1265-4822-a6ac-78ab89ce1c9b",
+      "name" : "Client Host",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usersessionmodel-note-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "user.session.note" : "clientHost",
+        "id.token.claim" : "true",
+        "access.token.claim" : "true",
+        "claim.name" : "clientHost",
+        "jsonType.label" : "String"
+      }
+    }, {
+      "id" : "34d37819-79db-4a74-8546-f91ed4c6dc31",
+      "name" : "Client IP Address",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usersessionmodel-note-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "user.session.note" : "clientAddress",
+        "id.token.claim" : "true",
+        "access.token.claim" : "true",
+        "claim.name" : "clientAddress",
+        "jsonType.label" : "String"
+      }
+    }, {
+      "id" : "b5fc6d88-800a-4301-8ae2-3b666df79c52",
+      "name" : "Client ID",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usersessionmodel-note-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "user.session.note" : "clientId",
+        "id.token.claim" : "true",
+        "access.token.claim" : "true",
+        "claim.name" : "clientId",
+        "jsonType.label" : "String"
+      }
+    } ],
+    "defaultClientScopes" : [ "web-origins", "role_list", "roles", "profile", "email" ],
+    "optionalClientScopes" : [ "address", "phone", "offline_access", "microprofile-jwt" ]
+  }, {
+    "id" : "ec5aaa7c-700a-4386-b124-a5f00d9b33db",
+    "clientId" : "broker",
+    "name" : "${client_broker}",
+    "surrogateAuthRequired" : false,
+    "enabled" : true,
+    "clientAuthenticatorType" : "client-secret",
+    "secret" : "cd7fd251-e7ae-4a40-b3d9-3faaa33f7feb",
+    "redirectUris" : [ ],
+    "webOrigins" : [ ],
+    "notBefore" : 0,
+    "bearerOnly" : false,
+    "consentRequired" : false,
+    "standardFlowEnabled" : true,
+    "implicitFlowEnabled" : false,
+    "directAccessGrantsEnabled" : false,
+    "serviceAccountsEnabled" : false,
+    "publicClient" : false,
+    "frontchannelLogout" : false,
+    "protocol" : "openid-connect",
+    "attributes" : { },
+    "authenticationFlowBindingOverrides" : { },
+    "fullScopeAllowed" : false,
+    "nodeReRegistrationTimeout" : 0,
+    "defaultClientScopes" : [ "web-origins", "role_list", "roles", "profile", "email" ],
+    "optionalClientScopes" : [ "address", "phone", "offline_access", "microprofile-jwt" ]
+  }, {
+    "id" : "1ed52b48-c411-4dc4-aa80-743314384b32",
+    "clientId" : "lagoon-opendistro-security",
+    "surrogateAuthRequired" : false,
+    "enabled" : true,
+    "clientAuthenticatorType" : "client-secret",
+    "secret" : "d36cb391-5bd9-4f0d-9cd8-735d6502fb02",
+    "redirectUris" : [ "*" ],
+    "webOrigins" : [ "*" ],
+    "notBefore" : 0,
+    "bearerOnly" : false,
+    "consentRequired" : false,
+    "standardFlowEnabled" : true,
+    "implicitFlowEnabled" : false,
+    "directAccessGrantsEnabled" : false,
+    "serviceAccountsEnabled" : false,
+    "publicClient" : false,
+    "frontchannelLogout" : false,
+    "protocol" : "openid-connect",
+    "attributes" : { },
+    "authenticationFlowBindingOverrides" : { },
+    "fullScopeAllowed" : true,
+    "nodeReRegistrationTimeout" : -1,
+    "protocolMappers" : [ {
+      "id" : "4a0229be-84eb-4604-b53a-4fb5156f328e",
+      "name" : "groups",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-script-based-protocol-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "multivalued" : "true",
+        "userinfo.token.claim" : "true",
+        "id.token.claim" : "true",
+        "access.token.claim" : "true",
+        "claim.name" : "groups",
+        "jsonType.label" : "String",
+        "script" : "var ArrayList = Java.type(\"java.util.ArrayList\");\nvar groupsAndRoles = new ArrayList();\nvar forEach = Array.prototype.forEach;\n\n// add all groups the user is part of\nforEach.call(user.getGroups().toArray(), function(group) {\n  // remove the group role suffixes\n  var groupName = group.getName().replace(/-owner|-maintainer|-developer|-reporter|-guest/gi,\"\");\n  groupsAndRoles.add(groupName);\n});\n\n// add all roles the user is part of\nforEach.call(user.getRoleMappings().toArray(), function(role) {\n   var roleName = role.getName();\n   groupsAndRoles.add(roleName);\n});\n\nexports = groupsAndRoles;"
+      }
+    } ],
+    "defaultClientScopes" : [ "web-origins", "role_list", "roles", "profile", "email" ],
+    "optionalClientScopes" : [ "address", "phone", "offline_access", "microprofile-jwt" ]
+  }, {
+    "id" : "e2bd26b8-0fa4-41cf-b1f3-03fedaccc45a",
+    "clientId" : "lagoon-ui",
+    "surrogateAuthRequired" : false,
+    "enabled" : true,
+    "clientAuthenticatorType" : "client-secret",
+    "secret" : "057fc2a2-0a4b-4b46-a335-51b206f424ce",
+    "redirectUris" : [ "*" ],
+    "webOrigins" : [ "*" ],
+    "notBefore" : 0,
+    "bearerOnly" : false,
+    "consentRequired" : false,
+    "standardFlowEnabled" : true,
+    "implicitFlowEnabled" : false,
+    "directAccessGrantsEnabled" : false,
+    "serviceAccountsEnabled" : false,
+    "publicClient" : true,
+    "frontchannelLogout" : false,
+    "protocol" : "openid-connect",
+    "attributes" : { },
+    "authenticationFlowBindingOverrides" : { },
+    "fullScopeAllowed" : true,
+    "nodeReRegistrationTimeout" : -1,
+    "protocolMappers" : [ {
+      "id" : "c6201a0e-65ea-47f6-9d9b-66d500f3ea60",
+      "name" : "Lagoon User ID",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usermodel-attribute-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "userinfo.token.claim" : "true",
+        "user.attribute" : "lagoon-uid",
+        "id.token.claim" : "true",
+        "access.token.claim" : "true",
+        "claim.name" : "lagoon.user_id",
+        "jsonType.label" : "int"
+      }
+    } ],
+    "defaultClientScopes" : [ "web-origins", "role_list", "roles", "profile", "email" ],
+    "optionalClientScopes" : [ "address", "phone", "offline_access", "microprofile-jwt" ]
+  }, {
+    "id" : "0ebade55-4e75-4cf9-8ce9-1f5195f0b21f",
+    "clientId" : "realm-management",
+    "name" : "${client_realm-management}",
+    "surrogateAuthRequired" : false,
+    "enabled" : true,
+    "clientAuthenticatorType" : "client-secret",
+    "secret" : "70acab93-f4e1-46d7-81a3-8443e52f1dec",
+    "redirectUris" : [ ],
+    "webOrigins" : [ ],
+    "notBefore" : 0,
+    "bearerOnly" : true,
+    "consentRequired" : false,
+    "standardFlowEnabled" : true,
+    "implicitFlowEnabled" : false,
+    "directAccessGrantsEnabled" : false,
+    "serviceAccountsEnabled" : false,
+    "authorizationServicesEnabled" : true,
+    "publicClient" : false,
+    "frontchannelLogout" : false,
+    "protocol" : "openid-connect",
+    "attributes" : { },
+    "authenticationFlowBindingOverrides" : { },
+    "fullScopeAllowed" : false,
+    "nodeReRegistrationTimeout" : 0,
+    "defaultClientScopes" : [ "web-origins", "role_list", "roles", "profile", "email" ],
+    "optionalClientScopes" : [ "address", "phone", "offline_access", "microprofile-jwt" ],
+    "authorizationSettings" : {
+      "allowRemoteResourceManagement" : false,
+      "policyEnforcementMode" : "ENFORCING",
+      "resources" : [ {
+        "name" : "client.resource.7acbae32-7be2-4e6a-8569-9c5f7fb9fd67",
+        "type" : "Client",
+        "ownerManagedAccess" : false,
+        "attributes" : { },
+        "_id" : "1c498c6e-6b54-4c4a-9028-91f86edaabbf",
+        "uris" : [ ],
+        "scopes" : [ {
+          "name" : "view"
+        }, {
+          "name" : "map-roles-client-scope"
+        }, {
+          "name" : "map-roles"
+        }, {
+          "name" : "configure"
+        }, {
+          "name" : "manage"
+        }, {
+          "name" : "map-roles-composite"
+        }, {
+          "name" : "token-exchange"
+        } ]
+      }, {
+        "name" : "Users",
+        "ownerManagedAccess" : false,
+        "attributes" : { },
+        "_id" : "7be59259-1dc4-47f3-b2b4-bd541fcb209f",
+        "uris" : [ ],
+        "scopes" : [ {
+          "name" : "user-impersonated"
+        }, {
+          "name" : "view"
+        }, {
+          "name" : "manage-group-membership"
+        }, {
+          "name" : "impersonate"
+        }, {
+          "name" : "map-roles"
+        }, {
+          "name" : "manage"
+        } ]
+      } ],
+      "policies" : [ {
+        "id" : "eb4ae518-d662-4215-b2b6-d09ce6155d1c",
+        "name" : "Client auth-server Policy",
+        "type" : "client",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "clients" : "[\"auth-server\"]"
+        }
+      }, {
+        "id" : "3fa35d0c-5856-40f8-b82a-053bd460f59f",
+        "name" : "user-impersonated.permission.users",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"Users\"]",
+          "scopes" : "[\"user-impersonated\"]"
+        }
+      }, {
+        "id" : "45b4486d-2dfe-4047-a435-09c29613e0f4",
+        "name" : "map-roles-client-scope.permission.client.7acbae32-7be2-4e6a-8569-9c5f7fb9fd67",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"client.resource.7acbae32-7be2-4e6a-8569-9c5f7fb9fd67\"]",
+          "scopes" : "[\"map-roles-client-scope\"]"
+        }
+      }, {
+        "id" : "483c1236-32b8-49c7-9fb0-1f7332a219dc",
+        "name" : "manage.permission.users",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"Users\"]",
+          "scopes" : "[\"manage\"]"
+        }
+      }, {
+        "id" : "6825815b-3105-455a-bc0e-84626b6fa563",
+        "name" : "manage-group-membership.permission.users",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"Users\"]",
+          "scopes" : "[\"manage-group-membership\"]"
+        }
+      }, {
+        "id" : "6d6ac513-4632-4d3c-9c35-464c8788496b",
+        "name" : "view.permission.client.7acbae32-7be2-4e6a-8569-9c5f7fb9fd67",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"client.resource.7acbae32-7be2-4e6a-8569-9c5f7fb9fd67\"]",
+          "scopes" : "[\"view\"]"
+        }
+      }, {
+        "id" : "80bbd747-6e08-4b5a-b70b-7da4e7b54e92",
+        "name" : "view.permission.users",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"Users\"]",
+          "scopes" : "[\"view\"]"
+        }
+      }, {
+        "id" : "8f91357a-875e-407f-ac29-1b07db27dbb3",
+        "name" : "map-roles.permission.users",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"Users\"]",
+          "scopes" : "[\"map-roles\"]"
+        }
+      }, {
+        "id" : "a948d533-ae0f-46ca-baa1-5c3d24adbe2f",
+        "name" : "admin-impersonating.permission.users",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"Users\"]",
+          "scopes" : "[\"impersonate\"]",
+          "applyPolicies" : "[\"Client auth-server Policy\"]"
+        }
+      }, {
+        "id" : "b05e6539-90d9-49ff-9dd1-c1ca2846f984",
+        "name" : "configure.permission.client.7acbae32-7be2-4e6a-8569-9c5f7fb9fd67",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"client.resource.7acbae32-7be2-4e6a-8569-9c5f7fb9fd67\"]",
+          "scopes" : "[\"configure\"]"
+        }
+      }, {
+        "id" : "b48b0568-9195-4dde-85ca-f964e5836f8d",
+        "name" : "map-roles.permission.client.7acbae32-7be2-4e6a-8569-9c5f7fb9fd67",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"client.resource.7acbae32-7be2-4e6a-8569-9c5f7fb9fd67\"]",
+          "scopes" : "[\"map-roles\"]"
+        }
+      }, {
+        "id" : "c7efc417-06df-43d5-b5bb-64f0383bca95",
+        "name" : "map-roles-composite.permission.client.7acbae32-7be2-4e6a-8569-9c5f7fb9fd67",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"client.resource.7acbae32-7be2-4e6a-8569-9c5f7fb9fd67\"]",
+          "scopes" : "[\"map-roles-composite\"]"
+        }
+      }, {
+        "id" : "cc3cba87-88ce-43cd-856f-d1f203c249c2",
+        "name" : "token-exchange.permission.client.7acbae32-7be2-4e6a-8569-9c5f7fb9fd67",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"client.resource.7acbae32-7be2-4e6a-8569-9c5f7fb9fd67\"]",
+          "scopes" : "[\"token-exchange\"]"
+        }
+      }, {
+        "id" : "ce64d36c-23b9-45f2-b5fc-e4fe2735f826",
+        "name" : "manage.permission.client.7acbae32-7be2-4e6a-8569-9c5f7fb9fd67",
+        "type" : "scope",
+        "logic" : "POSITIVE",
+        "decisionStrategy" : "UNANIMOUS",
+        "config" : {
+          "resources" : "[\"client.resource.7acbae32-7be2-4e6a-8569-9c5f7fb9fd67\"]",
+          "scopes" : "[\"manage\"]"
+        }
+      } ],
+      "scopes" : [ {
+        "id" : "158b0d5f-73fd-4926-906f-472870c5a492",
+        "name" : "view"
+      }, {
+        "id" : "1b5c3480-d567-4c25-b244-3289b9da7b73",
+        "name" : "map-roles-client-scope"
+      }, {
+        "id" : "27dfa562-634c-4b3c-8a85-db27cec7a527",
+        "name" : "map-roles-composite"
+      }, {
+        "id" : "375bfe3b-3da1-4f44-92b9-c7a6b44c8bff",
+        "name" : "map-roles"
+      }, {
+        "id" : "3fe3ca12-2529-47e4-881c-93b9b2f70947",
+        "name" : "manage-group-membership"
+      }, {
+        "id" : "8c3b5052-ddb7-441e-8066-413aa1d9dd56",
+        "name" : "manage"
+      }, {
+        "id" : "aaa285a6-a5b2-4ce8-b89a-a43db7cbef55",
+        "name" : "token-exchange"
+      }, {
+        "id" : "cf96110e-6b87-44d5-86b9-ee6bcc423d86",
+        "name" : "user-impersonated"
+      }, {
+        "id" : "e7ba62d5-d5fc-43dd-afdb-b580781d3b67",
+        "name" : "impersonate"
+      }, {
+        "id" : "fa4b7a80-eec5-4137-9c45-5f4f87270ee1",
+        "name" : "configure"
+      } ],
+      "decisionStrategy" : "UNANIMOUS"
+    }
+  }, {
+    "id" : "1d75a6a8-663b-46c6-bf04-4b5a58efbea3",
+    "clientId" : "security-admin-console",
+    "name" : "${client_security-admin-console}",
+    "baseUrl" : "/auth/admin/lagoon/console/index.html",
+    "surrogateAuthRequired" : false,
+    "enabled" : true,
+    "clientAuthenticatorType" : "client-secret",
+    "secret" : "1325d2a4-ed2d-4180-9dc3-3602efb361e5",
+    "redirectUris" : [ "/auth/admin/lagoon/console/*" ],
+    "webOrigins" : [ ],
+    "notBefore" : 0,
+    "bearerOnly" : false,
+    "consentRequired" : false,
+    "standardFlowEnabled" : true,
+    "implicitFlowEnabled" : false,
+    "directAccessGrantsEnabled" : false,
+    "serviceAccountsEnabled" : false,
+    "publicClient" : true,
+    "frontchannelLogout" : false,
+    "protocol" : "openid-connect",
+    "attributes" : { },
+    "authenticationFlowBindingOverrides" : { },
+    "fullScopeAllowed" : false,
+    "nodeReRegistrationTimeout" : 0,
+    "protocolMappers" : [ {
+      "id" : "cbb778d6-1e9d-4f30-a551-ee84d6512d5e",
+      "name" : "locale",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usermodel-attribute-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "userinfo.token.claim" : "true",
+        "user.attribute" : "locale",
+        "id.token.claim" : "true",
+        "access.token.claim" : "true",
+        "claim.name" : "locale",
+        "jsonType.label" : "String"
+      }
+    } ],
+    "defaultClientScopes" : [ "web-origins", "role_list", "roles", "profile", "email" ],
+    "optionalClientScopes" : [ "address", "phone", "offline_access", "microprofile-jwt" ]
+  } ],
+  "clientScopes" : [ {
+    "id" : "013bd51a-3f98-440a-be71-8237c6d7f482",
+    "name" : "email",
+    "description" : "OpenID Connect built-in scope: email",
+    "protocol" : "openid-connect",
+    "attributes" : {
+      "include.in.token.scope" : "true",
+      "display.on.consent.screen" : "true",
+      "consent.screen.text" : "${emailScopeConsentText}"
+    },
+    "protocolMappers" : [ {
+      "id" : "b11341ac-9c5d-497a-b33c-26e7d271c90a",
+      "name" : "email verified",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usermodel-property-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "userinfo.token.claim" : "true",
+        "user.attribute" : "emailVerified",
+        "id.token.claim" : "true",
+        "access.token.claim" : "true",
+        "claim.name" : "email_verified",
+        "jsonType.label" : "boolean"
+      }
+    }, {
+      "id" : "58862898-b9cd-4389-ad94-f6559885b152",
+      "name" : "email",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usermodel-property-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "userinfo.token.claim" : "true",
+        "user.attribute" : "email",
+        "id.token.claim" : "true",
+        "access.token.claim" : "true",
+        "claim.name" : "email",
+        "jsonType.label" : "String"
+      }
+    } ]
+  }, {
+    "id" : "0dd0482a-cc27-44d3-ba2e-e6074afb588f",
+    "name" : "role_list",
+    "description" : "SAML role list",
+    "protocol" : "saml",
+    "attributes" : {
+      "consent.screen.text" : "${samlRoleListScopeConsentText}",
+      "display.on.consent.screen" : "true"
+    },
+    "protocolMappers" : [ {
+      "id" : "7f6f1ade-fb94-4195-8027-ffa29fe9da20",
+      "name" : "role list",
+      "protocol" : "saml",
+      "protocolMapper" : "saml-role-list-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "single" : "false",
+        "attribute.nameformat" : "Basic",
+        "attribute.name" : "Role"
+      }
+    } ]
+  }, {
+    "id" : "14f3e828-dbde-4c9d-9301-befab223743d",
+    "name" : "microprofile-jwt",
+    "description" : "Microprofile - JWT built-in scope",
+    "protocol" : "openid-connect",
+    "attributes" : {
+      "include.in.token.scope" : "true",
+      "display.on.consent.screen" : "false"
+    },
+    "protocolMappers" : [ {
+      "id" : "fcc5baa3-996b-4615-a6aa-4f3bdc9fa36f",
+      "name" : "upn",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usermodel-property-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "userinfo.token.claim" : "true",
+        "user.attribute" : "username",
+        "id.token.claim" : "true",
+        "access.token.claim" : "true",
+        "claim.name" : "upn",
+        "jsonType.label" : "String"
+      }
+    }, {
+      "id" : "13ddeed3-2d26-47a3-81fe-5a0ee97a83c1",
+      "name" : "groups",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usermodel-realm-role-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "multivalued" : "true",
+        "user.attribute" : "foo",
+        "id.token.claim" : "true",
+        "access.token.claim" : "true",
+        "claim.name" : "groups",
+        "jsonType.label" : "String"
+      }
+    } ]
+  }, {
+    "id" : "177afa95-3cc6-48eb-b326-b32ae0de1839",
+    "name" : "web-origins",
+    "description" : "OpenID Connect scope for add allowed web origins to the access token",
+    "protocol" : "openid-connect",
+    "attributes" : {
+      "include.in.token.scope" : "false",
+      "display.on.consent.screen" : "false",
+      "consent.screen.text" : ""
+    },
+    "protocolMappers" : [ {
+      "id" : "2d8a0507-83a0-48cd-a552-c032d4828adc",
+      "name" : "allowed web origins",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-allowed-origins-mapper",
+      "consentRequired" : false,
+      "config" : { }
+    } ]
+  }, {
+    "id" : "37b227bb-d17a-4eea-97ef-736ce9fbdf0d",
+    "name" : "offline_access",
+    "description" : "OpenID Connect built-in scope: offline_access",
+    "protocol" : "openid-connect",
+    "attributes" : {
+      "consent.screen.text" : "${offlineAccessScopeConsentText}",
+      "display.on.consent.screen" : "true"
+    }
+  }, {
+    "id" : "4abdb89a-62e4-4c2a-8162-d1aa38a0a557",
+    "name" : "address",
+    "description" : "OpenID Connect built-in scope: address",
+    "protocol" : "openid-connect",
+    "attributes" : {
+      "include.in.token.scope" : "true",
+      "display.on.consent.screen" : "true",
+      "consent.screen.text" : "${addressScopeConsentText}"
+    },
+    "protocolMappers" : [ {
+      "id" : "683ad5f6-389e-4dfa-86eb-ce17f9dadf3e",
+      "name" : "address",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-address-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "user.attribute.formatted" : "formatted",
+        "user.attribute.country" : "country",
+        "user.attribute.postal_code" : "postal_code",
+        "userinfo.token.claim" : "true",
+        "user.attribute.street" : "street",
+        "id.token.claim" : "true",
+        "user.attribute.region" : "region",
+        "access.token.claim" : "true",
+        "user.attribute.locality" : "locality"
+      }
+    } ]
+  }, {
+    "id" : "b07c40c4-0c38-4eb6-98b6-78fef0fdd868",
+    "name" : "phone",
+    "description" : "OpenID Connect built-in scope: phone",
+    "protocol" : "openid-connect",
+    "attributes" : {
+      "include.in.token.scope" : "true",
+      "display.on.consent.screen" : "true",
+      "consent.screen.text" : "${phoneScopeConsentText}"
+    },
+    "protocolMappers" : [ {
+      "id" : "4616923a-9cb5-494e-bcd7-f506754d543e",
+      "name" : "phone number verified",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usermodel-attribute-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "userinfo.token.claim" : "true",
+        "user.attribute" : "phoneNumberVerified",
+        "id.token.claim" : "true",
+        "access.token.claim" : "true",
+        "claim.name" : "phone_number_verified",
+        "jsonType.label" : "boolean"
+      }
+    }, {
+      "id" : "da70c9e6-b7d4-4d12-81f9-ccbd1408fd98",
+      "name" : "phone number",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usermodel-attribute-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "userinfo.token.claim" : "true",
+        "user.attribute" : "phoneNumber",
+        "id.token.claim" : "true",
+        "access.token.claim" : "true",
+        "claim.name" : "phone_number",
+        "jsonType.label" : "String"
+      }
+    } ]
+  }, {
+    "id" : "c840f937-50ce-49af-8c6c-23310e56f081",
+    "name" : "roles",
+    "description" : "OpenID Connect scope for add user roles to the access token",
+    "protocol" : "openid-connect",
+    "attributes" : {
+      "include.in.token.scope" : "false",
+      "display.on.consent.screen" : "true",
+      "consent.screen.text" : "${rolesScopeConsentText}"
+    },
+    "protocolMappers" : [ {
+      "id" : "1791530a-51bf-4f64-ba71-aa62aae2a0f2",
+      "name" : "client roles",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usermodel-client-role-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "user.attribute" : "foo",
+        "access.token.claim" : "true",
+        "claim.name" : "resource_access.${client_id}.roles",
+        "jsonType.label" : "String",
+        "multivalued" : "true"
+      }
+    }, {
+      "id" : "553b940f-565f-4d3f-9f46-5b9d39ca6dfa",
+      "name" : "realm roles",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usermodel-realm-role-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "user.attribute" : "foo",
+        "access.token.claim" : "true",
+        "claim.name" : "realm_access.roles",
+        "jsonType.label" : "String",
+        "multivalued" : "true"
+      }
+    }, {
+      "id" : "a8aa5ecb-d845-4258-a669-3914b4c4ca59",
+      "name" : "audience resolve",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-audience-resolve-mapper",
+      "consentRequired" : false,
+      "config" : { }
+    } ]
+  }, {
+    "id" : "d2f5fc3b-bc25-4d91-a12a-f6580fc5c9ec",
+    "name" : "profile",
+    "description" : "OpenID Connect built-in scope: profile",
+    "protocol" : "openid-connect",
+    "attributes" : {
+      "include.in.token.scope" : "true",
+      "display.on.consent.screen" : "true",
+      "consent.screen.text" : "${profileScopeConsentText}"
+    },
+    "protocolMappers" : [ {
+      "id" : "7531bc21-b6ce-4aee-9f6e-f7232b4dce0c",
+      "name" : "username",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usermodel-property-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "userinfo.token.claim" : "true",
+        "user.attribute" : "username",
+        "id.token.claim" : "true",
+        "access.token.claim" : "true",
+        "claim.name" : "preferred_username",
+        "jsonType.label" : "String"
+      }
+    }, {
+      "id" : "7823ce3d-438c-4e43-8375-f8e4d924c44c",
+      "name" : "zoneinfo",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usermodel-attribute-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "userinfo.token.claim" : "true",
+        "user.attribute" : "zoneinfo",
+        "id.token.claim" : "true",
+        "access.token.claim" : "true",
+        "claim.name" : "zoneinfo",
+        "jsonType.label" : "String"
+      }
+    }, {
+      "id" : "84e2375f-770c-4cbf-95f7-4d62feb1ce05",
+      "name" : "given name",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usermodel-property-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "userinfo.token.claim" : "true",
+        "user.attribute" : "firstName",
+        "id.token.claim" : "true",
+        "access.token.claim" : "true",
+        "claim.name" : "given_name",
+        "jsonType.label" : "String"
+      }
+    }, {
+      "id" : "42389d9f-1b68-4926-9bf8-7aea8e10f819",
+      "name" : "picture",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usermodel-attribute-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "userinfo.token.claim" : "true",
+        "user.attribute" : "picture",
+        "id.token.claim" : "true",
+        "access.token.claim" : "true",
+        "claim.name" : "picture",
+        "jsonType.label" : "String"
+      }
+    }, {
+      "id" : "a732228b-c343-4cb9-a5ae-1f06d99aee4e",
+      "name" : "website",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usermodel-attribute-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "userinfo.token.claim" : "true",
+        "user.attribute" : "website",
+        "id.token.claim" : "true",
+        "access.token.claim" : "true",
+        "claim.name" : "website",
+        "jsonType.label" : "String"
+      }
+    }, {
+      "id" : "101edc6f-9e55-4d96-ba55-8563b5fbfb82",
+      "name" : "locale",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usermodel-attribute-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "userinfo.token.claim" : "true",
+        "user.attribute" : "locale",
+        "id.token.claim" : "true",
+        "access.token.claim" : "true",
+        "claim.name" : "locale",
+        "jsonType.label" : "String"
+      }
+    }, {
+      "id" : "45b1d6f9-3503-4341-b4b0-dc9c6e6b9b12",
+      "name" : "updated at",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usermodel-attribute-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "userinfo.token.claim" : "true",
+        "user.attribute" : "updatedAt",
+        "id.token.claim" : "true",
+        "access.token.claim" : "true",
+        "claim.name" : "updated_at",
+        "jsonType.label" : "String"
+      }
+    }, {
+      "id" : "6ec585c1-cf69-4bb7-afdd-c4e142758130",
+      "name" : "gender",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usermodel-attribute-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "userinfo.token.claim" : "true",
+        "user.attribute" : "gender",
+        "id.token.claim" : "true",
+        "access.token.claim" : "true",
+        "claim.name" : "gender",
+        "jsonType.label" : "String"
+      }
+    }, {
+      "id" : "85c5fee6-e278-456c-a634-49446e75262a",
+      "name" : "family name",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usermodel-property-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "userinfo.token.claim" : "true",
+        "user.attribute" : "lastName",
+        "id.token.claim" : "true",
+        "access.token.claim" : "true",
+        "claim.name" : "family_name",
+        "jsonType.label" : "String"
+      }
+    }, {
+      "id" : "cbce46c2-b529-4c6f-a47a-07a0a846dbac",
+      "name" : "full name",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-full-name-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "id.token.claim" : "true",
+        "access.token.claim" : "true",
+        "userinfo.token.claim" : "true"
+      }
+    }, {
+      "id" : "ac375b82-33c4-42f5-b123-cc0d9ef34fc6",
+      "name" : "nickname",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usermodel-attribute-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "userinfo.token.claim" : "true",
+        "user.attribute" : "nickname",
+        "id.token.claim" : "true",
+        "access.token.claim" : "true",
+        "claim.name" : "nickname",
+        "jsonType.label" : "String"
+      }
+    }, {
+      "id" : "eb9e6f1e-df3b-4849-9463-83943597643b",
+      "name" : "middle name",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usermodel-attribute-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "userinfo.token.claim" : "true",
+        "user.attribute" : "middleName",
+        "id.token.claim" : "true",
+        "access.token.claim" : "true",
+        "claim.name" : "middle_name",
+        "jsonType.label" : "String"
+      }
+    }, {
+      "id" : "be6bf901-01b5-4800-9f69-ca48a5898506",
+      "name" : "profile",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usermodel-attribute-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "userinfo.token.claim" : "true",
+        "user.attribute" : "profile",
+        "id.token.claim" : "true",
+        "access.token.claim" : "true",
+        "claim.name" : "profile",
+        "jsonType.label" : "String"
+      }
+    }, {
+      "id" : "cf18be0b-1feb-40e2-8a42-ea0ecc33c2ab",
+      "name" : "birthdate",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-usermodel-attribute-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "userinfo.token.claim" : "true",
+        "user.attribute" : "birthdate",
+        "id.token.claim" : "true",
+        "access.token.claim" : "true",
+        "claim.name" : "birthdate",
+        "jsonType.label" : "String"
+      }
+    } ]
+  } ],
+  "defaultDefaultClientScopes" : [ "email", "role_list", "web-origins", "roles", "profile" ],
+  "defaultOptionalClientScopes" : [ "microprofile-jwt", "offline_access", "address", "phone" ],
+  "browserSecurityHeaders" : {
+    "contentSecurityPolicyReportOnly" : "",
+    "xContentTypeOptions" : "nosniff",
+    "xRobotsTag" : "none",
+    "xFrameOptions" : "SAMEORIGIN",
+    "xXSSProtection" : "1; mode=block",
+    "contentSecurityPolicy" : "frame-src 'self'; frame-ancestors 'self'; object-src 'none';",
+    "strictTransportSecurity" : "max-age=31536000; includeSubDomains"
+  },
+  "smtpServer" : { },
+  "eventsEnabled" : false,
+  "eventsListeners" : [ "jboss-logging" ],
+  "enabledEventTypes" : [ ],
+  "adminEventsEnabled" : false,
+  "adminEventsDetailsEnabled" : false,
+  "components" : {
+    "org.keycloak.services.clientregistration.policy.ClientRegistrationPolicy" : [ {
+      "id" : "fd304ecd-17f2-415a-995d-4abee2a66e64",
+      "name" : "Consent Required",
+      "providerId" : "consent-required",
+      "subType" : "anonymous",
+      "subComponents" : { },
+      "config" : { }
+    }, {
+      "id" : "2bc37a01-27e3-48f0-bb5e-a3cfbc1fbf63",
+      "name" : "Trusted Hosts",
+      "providerId" : "trusted-hosts",
+      "subType" : "anonymous",
+      "subComponents" : { },
+      "config" : {
+        "host-sending-registration-request-must-match" : [ "true" ],
+        "client-uris-must-match" : [ "true" ]
+      }
+    }, {
+      "id" : "27ddc332-85d6-4fb7-8e04-d103767579d7",
+      "name" : "Allowed Protocol Mapper Types",
+      "providerId" : "allowed-protocol-mappers",
+      "subType" : "authenticated",
+      "subComponents" : { },
+      "config" : {
+        "allowed-protocol-mapper-types" : [ "oidc-sha256-pairwise-sub-mapper", "saml-user-property-mapper", "oidc-usermodel-attribute-mapper", "oidc-usermodel-property-mapper", "oidc-full-name-mapper", "oidc-address-mapper", "saml-user-attribute-mapper", "saml-role-list-mapper" ]
+      }
+    }, {
+      "id" : "b0c650a0-11d7-4ce1-a047-e3517cb16cee",
+      "name" : "Allowed Protocol Mapper Types",
+      "providerId" : "allowed-protocol-mappers",
+      "subType" : "anonymous",
+      "subComponents" : { },
+      "config" : {
+        "allowed-protocol-mapper-types" : [ "oidc-full-name-mapper", "saml-user-property-mapper", "oidc-address-mapper", "saml-user-attribute-mapper", "saml-role-list-mapper", "oidc-usermodel-property-mapper", "oidc-sha256-pairwise-sub-mapper", "oidc-usermodel-attribute-mapper" ]
+      }
+    }, {
+      "id" : "01939863-ca42-4c98-b752-4356c1dda9e0",
+      "name" : "Max Clients Limit",
+      "providerId" : "max-clients",
+      "subType" : "anonymous",
+      "subComponents" : { },
+      "config" : {
+        "max-clients" : [ "200" ]
+      }
+    }, {
+      "id" : "0bb7484a-16df-407c-98d4-e1414c999c7b",
+      "name" : "Allowed Client Scopes",
+      "providerId" : "allowed-client-templates",
+      "subType" : "anonymous",
+      "subComponents" : { },
+      "config" : {
+        "allow-default-scopes" : [ "true" ]
+      }
+    }, {
+      "id" : "c732e479-dc70-4555-9fd9-d8a1c4207bfd",
+      "name" : "Allowed Client Scopes",
+      "providerId" : "allowed-client-templates",
+      "subType" : "authenticated",
+      "subComponents" : { },
+      "config" : {
+        "allow-default-scopes" : [ "true" ]
+      }
+    }, {
+      "id" : "af6e49bb-d14b-46b4-92f3-8a0fe46cb277",
+      "name" : "Full Scope Disabled",
+      "providerId" : "scope",
+      "subType" : "anonymous",
+      "subComponents" : { },
+      "config" : { }
+    } ],
+    "org.keycloak.keys.KeyProvider" : [ {
+      "id" : "e7532079-bf48-402d-97b8-29776bb00504",
+      "name" : "hmac-generated",
+      "providerId" : "hmac-generated",
+      "subComponents" : { },
+      "config" : {
+        "kid" : [ "26100e2f-72a1-4023-9e4b-0586f30fc5a6" ],
+        "secret" : [ "6wuoSxRXGzOT-fNf-_8X3tIG04NJr-CwKcekSLLnxSlmBjYTWuWCbR9Ker-9OD8TfhVSD8E9EUYU21wRdGmJdA" ],
+        "priority" : [ "100" ],
+        "algorithm" : [ "HS256" ]
+      }
+    }, {
+      "id" : "d571b38c-41c8-4b5a-b0c4-8b3f31629a23",
+      "name" : "rsa-generated",
+      "providerId" : "rsa-generated",
+      "subComponents" : { },
+      "config" : {
+        "privateKey" : [ "MIIEpAIBAAKCAQEA1NBodEN7QgJnTO4yJ2vKL98d1qFGbL9e7llLsP7z791sWkoztrcDLk4WoKW4OjwTmnZ8hViopgy9+d0QHrCmAj4zKcy0zRPO+hPSLhq9eNgkwpZqH1CN70w5BCtU5c4xtcK1nA8l6iSTYvDcsP3kXC+03n1rldwCcK3Yi2mb7KmTG8rJBRD4dCS0ofv6mvqvSRHzIIk4aZm12Mf+KZCUUZX7z6/4JNEEpUA0uILAwnSm2/7mMRlG0b5NnObj1w7ioB0/4HVwpI+kOXhjl/QyJfarpPWCxPA3Zo8Y0CWbr5z2Bv+DXaNodb0A1l1EoGqX8ZhPrpnvXXjzdRcRhFoAdQIDAQABAoIBAQCVBatfXrG9M3mqwVGVkUFv7Ek0tpJeLFQJi7YZJy8iVGc/gp5b4CP2FPB7ZhBvlwoTK81egwr13A5cHZTgKMrW3z9skdA5mxlgvOh9KHRtXs2/BR0i+IGrhDCY3s8AbTcaFFKgCWt/XkVnD0s7FU8HztBUzHa95eY/iT0NwtJREdXKseQrBf4Mizpl32ygjkrt6DYU1qBBlbwRobAL14MKN9vE0XTlG4SsLNcPniCVL70+l1OES7QjERjAppv9oZ3A4UoIxOaa+iDjeoZ5VVQ+ZhLb9KB5/jKVsEwZ6BWXXvqbY7x+sglBIJ7Ptl2BNJymzQ6+XJ2l5n/ZYbD5IWOBAoGBAP3QpdTeom6bBWonwl6NksALmh5U2IHGD+b5QCqm8TvL7+SNtvG9b/c5TCNJdiNfiQBbqgYHIulC5/ed2mWeOavkgp4WklEymQMSa2PYA7NVOwYkL7dXac6TruQqqmeD01GAIsw/D2jakmpU0bQuMZCn4TX7QM34dHrbejrlV2rtAoGBANalZzr9V03sQoeK7XDDxzzBWB/I3/eAlatmDCJsd8Sv5NjSSb6sufX44B/SwrZQa8gotEZ+n4rLNcVOsDliXwYe4Yyw7LLemkDco6toDHHxL5RED6YsIdzacjxmLXHkfl545z9wnB7qkZvK3Ccm/jNK//eFGKraQCCCCo/T5tKpAoGBANDV8wxCHr4I2RyuGBQ6Qku3gBiC0R19/Kmb3br6XzRHKVwRajxfFRgCUe4azJRwT8Y2pZ+OEaCBx2EKxZ6k4GjZfMtcYQlkK1fGuQuOugS9FPKJpaUhzFIHW3gqzsibQ60kU/1fyWsJpDzPCzhIZcnTB8+lqn2OdzB7E4gQGaxFAoGADCyDZ1gZDIVa3J8nil7APRTmL59P/JShaIA4Lfei71fejeGXZyYawfWkmIl2m6qCAm80kk76M4AFA7TLz+VhaFJ2Dmm2cwqnCwi4i68yDYBVZ35YuN8F6KXHFt/gsfX4qNkInJOBd0tsiL5/sATJJBWb4Oj+liocuvtFKBUnoUkCgYAQUC/TRpjaLmXBQ6oplc861XDqkATmfGgTsd6BV/FCpz/uq/EdL+ofuNWHLG5Vwieh8ECyqDhC3OE+bJmfJbgLOOTkqa7VA884OboGXCH30S4L7+q5QR7IHPldkJFm6ANgNOVhieHoaOggpw7jtnHGeFhkGx1/IWVm7PxkOnTmHw==" ],
+        "certificate" : [ "MIICmzCCAYMCBgFzn+wLhzANBgkqhkiG9w0BAQsFADARMQ8wDQYDVQQDDAZsYWdvb24wHhcNMjAwNzMwMTMzMDEzWhcNMzAwNzMwMTMzMTUzWjARMQ8wDQYDVQQDDAZsYWdvb24wggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDU0Gh0Q3tCAmdM7jIna8ov3x3WoUZsv17uWUuw/vPv3WxaSjO2twMuThagpbg6PBOadnyFWKimDL353RAesKYCPjMpzLTNE876E9IuGr142CTClmofUI3vTDkEK1TlzjG1wrWcDyXqJJNi8Nyw/eRcL7TefWuV3AJwrdiLaZvsqZMbyskFEPh0JLSh+/qa+q9JEfMgiThpmbXYx/4pkJRRlfvPr/gk0QSlQDS4gsDCdKbb/uYxGUbRvk2c5uPXDuKgHT/gdXCkj6Q5eGOX9DIl9quk9YLE8DdmjxjQJZuvnPYG/4Ndo2h1vQDWXUSgapfxmE+ume9dePN1FxGEWgB1AgMBAAEwDQYJKoZIhvcNAQELBQADggEBAAaC9Y+Z5wCF3E2W0wJJ23OGyuvLuscYp0QAfdz0MeilZD3NTqbLW/aFYxmjqvdRFl02HoJMg+0RY/hr2GOfvX/qGwbxVGUN+m1n1eKNY/1cPVRfb2DQI5rgdWQxEycQ893pcVNNUuBbUraUpOdfVLSqQrEHXv1S0RHrzY5IF5ZHCGtVeJ0KomPx6iknGN/QoyM4ER82yVBi2KLjD7V2K8z4FGzuNSpM8Zi5hOhDZ5Vp0zU7KBb6OfhIM7xGIOPbpDmCM/3iSD7qQ1wwWOM9B1LzKvBzQLqBfWW4XlAyXECbp2VJJp/EQwdAtl/msLtLC6TPT2WboTFnATQED3SPuLc=" ],
+        "priority" : [ "100" ]
+      }
+    }, {
+      "id" : "cef98f29-ec0f-466e-bc7a-6409195eb7f7",
+      "name" : "aes-generated",
+      "providerId" : "aes-generated",
+      "subComponents" : { },
+      "config" : {
+        "kid" : [ "e35e164d-484b-4fd4-a982-989d14efe3fb" ],
+        "secret" : [ "uo8LIG3RcGpVuoZiofStRA" ],
+        "priority" : [ "100" ]
+      }
+    } ]
+  },
+  "internationalizationEnabled" : false,
+  "supportedLocales" : [ ],
+  "authenticationFlows" : [ {
+    "id" : "4fe4c888-c14c-492c-b65e-733a1104c8d9",
+    "alias" : "Handle Existing Account",
+    "description" : "Handle what to do if there is existing account with same email/username like authenticated identity provider",
+    "providerId" : "basic-flow",
+    "topLevel" : false,
+    "builtIn" : true,
+    "authenticationExecutions" : [ {
+      "authenticator" : "idp-confirm-link",
+      "requirement" : "REQUIRED",
+      "priority" : 10,
+      "userSetupAllowed" : false,
+      "autheticatorFlow" : false
+    }, {
+      "authenticator" : "idp-email-verification",
+      "requirement" : "ALTERNATIVE",
+      "priority" : 20,
+      "userSetupAllowed" : false,
+      "autheticatorFlow" : false
+    }, {
+      "requirement" : "ALTERNATIVE",
+      "priority" : 30,
+      "flowAlias" : "Verify Existing Account by Re-authentication",
+      "userSetupAllowed" : false,
+      "autheticatorFlow" : true
+    } ]
+  }, {
+    "id" : "964dfcd6-f127-4922-a98c-5fc28c2a7f97",
+    "alias" : "Verify Existing Account by Re-authentication",
+    "description" : "Reauthentication of existing account",
+    "providerId" : "basic-flow",
+    "topLevel" : false,
+    "builtIn" : true,
+    "authenticationExecutions" : [ {
+      "authenticator" : "idp-username-password-form",
+      "requirement" : "REQUIRED",
+      "priority" : 10,
+      "userSetupAllowed" : false,
+      "autheticatorFlow" : false
+    }, {
+      "authenticator" : "auth-otp-form",
+      "requirement" : "OPTIONAL",
+      "priority" : 20,
+      "userSetupAllowed" : false,
+      "autheticatorFlow" : false
+    } ]
+  }, {
+    "id" : "53a82811-6e58-4003-a27e-cf06521fb908",
+    "alias" : "browser",
+    "description" : "browser based authentication",
+    "providerId" : "basic-flow",
+    "topLevel" : true,
+    "builtIn" : true,
+    "authenticationExecutions" : [ {
+      "authenticator" : "auth-cookie",
+      "requirement" : "ALTERNATIVE",
+      "priority" : 10,
+      "userSetupAllowed" : false,
+      "autheticatorFlow" : false
+    }, {
+      "authenticator" : "auth-spnego",
+      "requirement" : "DISABLED",
+      "priority" : 20,
+      "userSetupAllowed" : false,
+      "autheticatorFlow" : false
+    }, {
+      "authenticator" : "identity-provider-redirector",
+      "requirement" : "ALTERNATIVE",
+      "priority" : 25,
+      "userSetupAllowed" : false,
+      "autheticatorFlow" : false
+    }, {
+      "requirement" : "ALTERNATIVE",
+      "priority" : 30,
+      "flowAlias" : "forms",
+      "userSetupAllowed" : false,
+      "autheticatorFlow" : true
+    } ]
+  }, {
+    "id" : "532eb347-530a-4495-903c-70866b9b6cef",
+    "alias" : "clients",
+    "description" : "Base authentication for clients",
+    "providerId" : "client-flow",
+    "topLevel" : true,
+    "builtIn" : true,
+    "authenticationExecutions" : [ {
+      "authenticator" : "client-secret",
+      "requirement" : "ALTERNATIVE",
+      "priority" : 10,
+      "userSetupAllowed" : false,
+      "autheticatorFlow" : false
+    }, {
+      "authenticator" : "client-jwt",
+      "requirement" : "ALTERNATIVE",
+      "priority" : 20,
+      "userSetupAllowed" : false,
+      "autheticatorFlow" : false
+    }, {
+      "authenticator" : "client-secret-jwt",
+      "requirement" : "ALTERNATIVE",
+      "priority" : 30,
+      "userSetupAllowed" : false,
+      "autheticatorFlow" : false
+    }, {
+      "authenticator" : "client-x509",
+      "requirement" : "ALTERNATIVE",
+      "priority" : 40,
+      "userSetupAllowed" : false,
+      "autheticatorFlow" : false
+    } ]
+  }, {
+    "id" : "95a2b160-418f-4758-8dd5-018e60ace197",
+    "alias" : "direct grant",
+    "description" : "OpenID Connect Resource Owner Grant",
+    "providerId" : "basic-flow",
+    "topLevel" : true,
+    "builtIn" : true,
+    "authenticationExecutions" : [ {
+      "authenticator" : "direct-grant-validate-username",
+      "requirement" : "REQUIRED",
+      "priority" : 10,
+      "userSetupAllowed" : false,
+      "autheticatorFlow" : false
+    }, {
+      "authenticator" : "direct-grant-validate-password",
+      "requirement" : "REQUIRED",
+      "priority" : 20,
+      "userSetupAllowed" : false,
+      "autheticatorFlow" : false
+    }, {
+      "authenticator" : "direct-grant-validate-otp",
+      "requirement" : "OPTIONAL",
+      "priority" : 30,
+      "userSetupAllowed" : false,
+      "autheticatorFlow" : false
+    } ]
+  }, {
+    "id" : "76903077-4b22-4226-95f4-24a92dd0f8d8",
+    "alias" : "docker auth",
+    "description" : "Used by Docker clients to authenticate against the IDP",
+    "providerId" : "basic-flow",
+    "topLevel" : true,
+    "builtIn" : true,
+    "authenticationExecutions" : [ {
+      "authenticator" : "docker-http-basic-authenticator",
+      "requirement" : "REQUIRED",
+      "priority" : 10,
+      "userSetupAllowed" : false,
+      "autheticatorFlow" : false
+    } ]
+  }, {
+    "id" : "178ce422-1a64-4c29-a9fd-3c697015545c",
+    "alias" : "first broker login",
+    "description" : "Actions taken after first broker login with identity provider account, which is not yet linked to any Keycloak account",
+    "providerId" : "basic-flow",
+    "topLevel" : true,
+    "builtIn" : true,
+    "authenticationExecutions" : [ {
+      "authenticatorConfig" : "review profile config",
+      "authenticator" : "idp-review-profile",
+      "requirement" : "REQUIRED",
+      "priority" : 10,
+      "userSetupAllowed" : false,
+      "autheticatorFlow" : false
+    }, {
+      "authenticatorConfig" : "create unique user config",
+      "authenticator" : "idp-create-user-if-unique",
+      "requirement" : "ALTERNATIVE",
+      "priority" : 20,
+      "userSetupAllowed" : false,
+      "autheticatorFlow" : false
+    }, {
+      "requirement" : "ALTERNATIVE",
+      "priority" : 30,
+      "flowAlias" : "Handle Existing Account",
+      "userSetupAllowed" : false,
+      "autheticatorFlow" : true
+    } ]
+  }, {
+    "id" : "bc44f4f1-a261-476a-938f-3aade69327c0",
+    "alias" : "forms",
+    "description" : "Username, password, otp and other auth forms.",
+    "providerId" : "basic-flow",
+    "topLevel" : false,
+    "builtIn" : true,
+    "authenticationExecutions" : [ {
+      "authenticator" : "auth-username-password-form",
+      "requirement" : "REQUIRED",
+      "priority" : 10,
+      "userSetupAllowed" : false,
+      "autheticatorFlow" : false
+    }, {
+      "authenticator" : "auth-otp-form",
+      "requirement" : "OPTIONAL",
+      "priority" : 20,
+      "userSetupAllowed" : false,
+      "autheticatorFlow" : false
+    } ]
+  }, {
+    "id" : "d1e4cfd4-862c-4e38-8e58-bd52f2cecfb2",
+    "alias" : "http challenge",
+    "description" : "An authentication flow based on challenge-response HTTP Authentication Schemes",
+    "providerId" : "basic-flow",
+    "topLevel" : true,
+    "builtIn" : true,
+    "authenticationExecutions" : [ {
+      "authenticator" : "no-cookie-redirect",
+      "requirement" : "REQUIRED",
+      "priority" : 10,
+      "userSetupAllowed" : false,
+      "autheticatorFlow" : false
+    }, {
+      "authenticator" : "basic-auth",
+      "requirement" : "REQUIRED",
+      "priority" : 20,
+      "userSetupAllowed" : false,
+      "autheticatorFlow" : false
+    }, {
+      "authenticator" : "basic-auth-otp",
+      "requirement" : "DISABLED",
+      "priority" : 30,
+      "userSetupAllowed" : false,
+      "autheticatorFlow" : false
+    }, {
+      "authenticator" : "auth-spnego",
+      "requirement" : "DISABLED",
+      "priority" : 40,
+      "userSetupAllowed" : false,
+      "autheticatorFlow" : false
+    } ]
+  }, {
+    "id" : "bdc7d640-98e5-4a9c-beed-faa6815f9a90",
+    "alias" : "registration",
+    "description" : "registration flow",
+    "providerId" : "basic-flow",
+    "topLevel" : true,
+    "builtIn" : true,
+    "authenticationExecutions" : [ {
+      "authenticator" : "registration-page-form",
+      "requirement" : "REQUIRED",
+      "priority" : 10,
+      "flowAlias" : "registration form",
+      "userSetupAllowed" : false,
+      "autheticatorFlow" : true
+    } ]
+  }, {
+    "id" : "6c71da19-1baf-4649-8b96-763489c915b3",
+    "alias" : "registration form",
+    "description" : "registration form",
+    "providerId" : "form-flow",
+    "topLevel" : false,
+    "builtIn" : true,
+    "authenticationExecutions" : [ {
+      "authenticator" : "registration-user-creation",
+      "requirement" : "REQUIRED",
+      "priority" : 20,
+      "userSetupAllowed" : false,
+      "autheticatorFlow" : false
+    }, {
+      "authenticator" : "registration-profile-action",
+      "requirement" : "REQUIRED",
+      "priority" : 40,
+      "userSetupAllowed" : false,
+      "autheticatorFlow" : false
+    }, {
+      "authenticator" : "registration-password-action",
+      "requirement" : "REQUIRED",
+      "priority" : 50,
+      "userSetupAllowed" : false,
+      "autheticatorFlow" : false
+    }, {
+      "authenticator" : "registration-recaptcha-action",
+      "requirement" : "DISABLED",
+      "priority" : 60,
+      "userSetupAllowed" : false,
+      "autheticatorFlow" : false
+    } ]
+  }, {
+    "id" : "46b101d3-a90c-4e3d-ac3b-d4087807cb51",
+    "alias" : "reset credentials",
+    "description" : "Reset credentials for a user if they forgot their password or something",
+    "providerId" : "basic-flow",
+    "topLevel" : true,
+    "builtIn" : true,
+    "authenticationExecutions" : [ {
+      "authenticator" : "reset-credentials-choose-user",
+      "requirement" : "REQUIRED",
+      "priority" : 10,
+      "userSetupAllowed" : false,
+      "autheticatorFlow" : false
+    }, {
+      "authenticator" : "reset-credential-email",
+      "requirement" : "REQUIRED",
+      "priority" : 20,
+      "userSetupAllowed" : false,
+      "autheticatorFlow" : false
+    }, {
+      "authenticator" : "reset-password",
+      "requirement" : "REQUIRED",
+      "priority" : 30,
+      "userSetupAllowed" : false,
+      "autheticatorFlow" : false
+    }, {
+      "authenticator" : "reset-otp",
+      "requirement" : "OPTIONAL",
+      "priority" : 40,
+      "userSetupAllowed" : false,
+      "autheticatorFlow" : false
+    } ]
+  }, {
+    "id" : "c398ec39-4101-4e2c-af7d-d2fa120cdc07",
+    "alias" : "saml ecp",
+    "description" : "SAML ECP Profile Authentication Flow",
+    "providerId" : "basic-flow",
+    "topLevel" : true,
+    "builtIn" : true,
+    "authenticationExecutions" : [ {
+      "authenticator" : "http-basic-authenticator",
+      "requirement" : "REQUIRED",
+      "priority" : 10,
+      "userSetupAllowed" : false,
+      "autheticatorFlow" : false
+    } ]
+  } ],
+  "authenticatorConfig" : [ {
+    "id" : "a9cb8a42-168e-4941-86fb-775f21e51962",
+    "alias" : "create unique user config",
+    "config" : {
+      "require.password.update.after.registration" : "false"
+    }
+  }, {
+    "id" : "d8e7ee9b-ab29-4e0e-af12-6d119bc2c100",
+    "alias" : "review profile config",
+    "config" : {
+      "update.profile.on.first.login" : "missing"
+    }
+  } ],
+  "requiredActions" : [ {
+    "alias" : "CONFIGURE_TOTP",
+    "name" : "Configure OTP",
+    "providerId" : "CONFIGURE_TOTP",
+    "enabled" : true,
+    "defaultAction" : false,
+    "priority" : 10,
+    "config" : { }
+  }, {
+    "alias" : "terms_and_conditions",
+    "name" : "Terms and Conditions",
+    "providerId" : "terms_and_conditions",
+    "enabled" : false,
+    "defaultAction" : false,
+    "priority" : 20,
+    "config" : { }
+  }, {
+    "alias" : "UPDATE_PASSWORD",
+    "name" : "Update Password",
+    "providerId" : "UPDATE_PASSWORD",
+    "enabled" : true,
+    "defaultAction" : false,
+    "priority" : 30,
+    "config" : { }
+  }, {
+    "alias" : "UPDATE_PROFILE",
+    "name" : "Update Profile",
+    "providerId" : "UPDATE_PROFILE",
+    "enabled" : true,
+    "defaultAction" : false,
+    "priority" : 40,
+    "config" : { }
+  }, {
+    "alias" : "VERIFY_EMAIL",
+    "name" : "Verify Email",
+    "providerId" : "VERIFY_EMAIL",
+    "enabled" : true,
+    "defaultAction" : false,
+    "priority" : 50,
+    "config" : { }
+  } ],
+  "browserFlow" : "browser",
+  "registrationFlow" : "registration",
+  "directGrantFlow" : "direct grant",
+  "resetCredentialsFlow" : "reset credentials",
+  "clientAuthenticationFlow" : "clients",
+  "dockerAuthenticationFlow" : "docker auth",
+  "attributes" : {
+    "_browser_header.xXSSProtection" : "1; mode=block",
+    "_browser_header.strictTransportSecurity" : "max-age=31536000; includeSubDomains",
+    "_browser_header.xFrameOptions" : "SAMEORIGIN",
+    "permanentLockout" : "false",
+    "quickLoginCheckMilliSeconds" : "1000",
+    "_browser_header.xRobotsTag" : "none",
+    "maxFailureWaitSeconds" : "900",
+    "minimumQuickLoginWaitSeconds" : "60",
+    "failureFactor" : "30",
+    "actionTokenGeneratedByUserLifespan" : "300",
+    "maxDeltaTimeSeconds" : "43200",
+    "_browser_header.xContentTypeOptions" : "nosniff",
+    "actionTokenGeneratedByAdminLifespan" : "43200",
+    "offlineSessionMaxLifespan" : "5184000",
+    "_browser_header.contentSecurityPolicyReportOnly" : "",
+    "bruteForceProtected" : "false",
+    "_browser_header.contentSecurityPolicy" : "frame-src 'self'; frame-ancestors 'self'; object-src 'none';",
+    "offlineSessionMaxLifespanEnabled" : "false",
+    "waitIncrementSeconds" : "60"
+  },
+  "keycloakVersion" : "7.0.1",
+  "userManagedAccessAllowed" : false
+}
