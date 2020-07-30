@@ -16,12 +16,16 @@ const AddSshKey = ({me: { id, email }}) => {
     setValues({...values, [name]: value});
   }
 
-  const isFormValid = values.sshKeyName !== '' && (
+  const isFormValid = values.sshKeyName !== '' && !values.sshKey.includes('\n') &&
+  (
     values.sshKey.trim().startsWith('ssh-rsa') || 
     values.sshKey.trim().startsWith('ssh-ed25519')
   );
 
-  const regex = /\s*(ssh-\S+)\s([\S\n]+).*/
+  const regex = /\s*(ssh-\S+)\s+(\S+).*/
+  // First capture group is the type of the ssh key
+  // Second capture group is the actual ssh key
+  // Whitespace and comments are ignored
 
   return(
     <div className="addSshKey">
@@ -34,7 +38,7 @@ const AddSshKey = ({me: { id, email }}) => {
               variables: {
                 input: {
                   name: values.sshKeyName,
-                  keyValue: values.sshKey.match(regex)[2].replace(/\n/g, ''),
+                  keyValue: values.sshKey.match(regex)[2],
                   keyType: values.sshKey.match(regex)[1].replace('-', '_').toUpperCase(),
                   user: {
                     id,
