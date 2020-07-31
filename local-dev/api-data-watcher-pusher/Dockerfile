@@ -1,4 +1,4 @@
-FROM python:3.8.5-alpine3.11
+FROM python:3-alpine3.11
 
 RUN apk add --no-cache tini bash wget
 RUN pip install mysql-connector python-keycloak PyJWT
