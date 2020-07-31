@@ -1,6 +1,7 @@
-FROM alpine:3.11
+FROM python:3.8.5-alpine3.11
 
-RUN apk add --no-cache tini bash wget py3-jwt
+RUN apk add --no-cache tini bash wget
+RUN pip install mysql-connector python-keycloak PyJWT
 
 ENV JWTSECRET=super-secret-string \
     JWTAUDIENCE=api.dev
