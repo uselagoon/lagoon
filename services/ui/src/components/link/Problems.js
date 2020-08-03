@@ -16,7 +16,7 @@ const ProblemsLink = ({
   projectSlug,
   children,
   className = null,
-  prefetch = false
+  prefetch = false,
 }) => {
   const linkData = getLinkData(environmentSlug, projectSlug);
 

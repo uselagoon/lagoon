@@ -1,0 +1,10 @@
+{
+  "hosts": [
+    "logs-dispatcher.cluster2.example.com"
+  ],
+  "CN": "logs-dispatcher.cluster2.example.com",
+  "key": {
+    "algo": "ecdsa",
+    "size": 256
+  }
+}
