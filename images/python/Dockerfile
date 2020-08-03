@@ -24,10 +24,11 @@ ENV TMPDIR=/tmp \
     # When Bash is invoked as non-interactive (like `bash -c command`) it sources a file that is given in `BASH_ENV`
     BASH_ENV=/home/.bashrc
 
-
-RUN apk add --no-cache build-base \
+RUN apk add --no-cache --virtual .build-deps \
+      build-base \
     && pip install --upgrade pip \
-    && pip install virtualenv==16.7.10
+    && pip install virtualenv==16.7.10 \
+    && apk del .build-deps
 
 # Make sure shells are not running forever
 COPY 80-shell-timeout.sh /lagoon/entrypoints/
