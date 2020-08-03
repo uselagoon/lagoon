@@ -480,6 +480,7 @@ build/harbor-trivy build/local-minio: build/harbor-database services/harbor-redi
 build/harborregistry: services/harbor-jobservice/Dockerfile
 build/harborregistryctl: build/harborregistry
 build/harbor-nginx: build/harborregistryctl services/harbor-core/Dockerfile services/harbor-portal/Dockerfile
+build/tests: build/python__2.7
 build/tests-kubernetes: build/tests
 build/tests-openshift: build/tests
 build/toolbox: build/mariadb
