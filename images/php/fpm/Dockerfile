@@ -6,7 +6,7 @@ FROM ${IMAGE_REPO:-lagoon}/commons as commons
 
 FROM composer:latest as healthcheckbuilder
 
-RUN composer create-project --no-dev amazeeio/healthz-php /healthz-php v0.0.5
+RUN composer create-project --no-dev amazeeio/healthz-php /healthz-php v0.0.6
 
 FROM php:${PHP_IMAGE_VERSION}-fpm-alpine${ALPINE_VERSION}
 
