@@ -68,8 +68,8 @@ DOCKER_DRIVER := $(shell docker info -f '{{.Driver}}')
 MINISHIFT_VERSION := 1.34.1
 OPENSHIFT_VERSION := v3.11.0
 MINISHIFT_CPUS := 6
-MINISHIFT_MEMORY := 8GB
-MINISHIFT_DISK_SIZE := 30GB
+MINISHIFT_MEMORY := 16GB
+MINISHIFT_DISK_SIZE := 40GB
 
 # Version and Hash of the minikube cli that should be downloaded
 K3S_VERSION := v1.17.0-k3s.1
