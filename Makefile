@@ -67,8 +67,8 @@ DOCKER_DRIVER := $(shell docker info -f '{{.Driver}}')
 # Version and Hash of the OpenShift cli that should be downloaded
 MINISHIFT_VERSION := 1.34.1
 OPENSHIFT_VERSION := v3.11.0
-MINISHIFT_CPUS := 6
-MINISHIFT_MEMORY := 12GB
+MINISHIFT_CPUS := $(nproc)
+MINISHIFT_MEMORY := 8GB
 MINISHIFT_DISK_SIZE := 30GB
 
 # Version and Hash of the minikube cli that should be downloaded
@@ -77,7 +77,7 @@ KUBECTL_VERSION := v1.17.0
 HELM_VERSION := v3.0.3
 MINIKUBE_VERSION := 1.5.2
 MINIKUBE_PROFILE := $(CI_BUILD_TAG)-minikube
-MINIKUBE_CPUS := 6
+MINIKUBE_CPUS := $(nproc)
 MINIKUBE_MEMORY := 2048
 MINIKUBE_DISK_SIZE := 30g
 
