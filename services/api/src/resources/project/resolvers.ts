@@ -339,6 +339,7 @@ export const addProject = async (
         ${input.standbyAlias ? ':standby_alias' : '"lagoon-standby"'},
         ${input.autoIdle ? ':auto_idle' : '1'},
         ${input.storageCalc ? ':storage_calc' : '1'},
+        ${input.factsUi ? ':facts_ui' : '0' }, 
         ${input.problemsUi ? ':problems_ui' : '0'},
         ${
   input.developmentEnvironmentsLimit
@@ -514,6 +515,7 @@ export const updateProject: ResolverFn = async (
         autoIdle,
         storageCalc,
         problemsUi,
+        factsUi,
         pullrequests,
         openshift,
         openshiftProjectPattern,
@@ -603,6 +605,7 @@ export const updateProject: ResolverFn = async (
         autoIdle,
         storageCalc,
         problemsUi,
+        factsUi,
         pullrequests,
         openshift,
         openshiftProjectPattern,
