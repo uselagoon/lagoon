@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useQuery } from '@apollo/react-hooks';
+import { useQuery, useMutation } from '@apollo/react-hooks';
 import * as R from 'ramda';
 import moment from 'moment';
 import { withRouter } from 'next/router';
@@ -10,6 +10,7 @@ import css from 'styled-jsx/css';
 import AllBillingGroupsQuery from 'lib/query/AllBillingGroups';
 import AllProjectsAfterDateQuery from 'lib/query/AllProjectsAfterDate';
 import ProjectGroupsByProjectNameQuery from 'lib/query/ProjectGroupsByProjectName';
+import AddProjectToBillingGroupMutation from 'lib/mutation/AddProjectToBillingGroup';
 
 import Box from 'components/Box';
 import withQueryLoading from 'lib/withQueryLoading';
@@ -21,22 +22,53 @@ import { bp, color } from 'lib/variables';
 import Button from 'components/Button';
 import { database } from 'faker';
 
-const BillingGroups = () => {
-  const {loading, error, data}  = useQuery(AllBillingGroupsQuery)
 
-  if (error) {
-    return {error};
+
+const BillingGroupSelect = ({billingGroups, project}) => {
+
+  const [values, setValues] = useState({billingGroup: 'UNDEFINED'});
+  const [updateProject, {
+    loading: mutationLoading,
+    error: mutationError
+  }] = useMutation(AddProjectToBillingGroupMutation);
+
+  const handleChange = e => {
+    const {name, value} = e.target;
+    setValues({...values, [name]: value});
+
+    const variables = { input: { project: { id: project.id }, group: { name: value } } };
+    updateProject({ variables })
   }
 
-  if (loading){
-    return "loading";
-  }
 
-  return null;
+
+  return (
+    <div>
+        {
+          billingGroups &&
+          <div>
+            <div>Billing Group: {values.billingGroup}</div>
+            <label htmlFor="billingGroups">Select: </label>
+            <select
+              id="billingGroup"
+              name="billingGroup"
+              onChange={handleChange}
+              className="selectBillingGroup"
+              value={values.billingGroup}
+            >
+              <option>No Billing Group</option>
+              { billingGroups && billingGroups.map(g => (
+                <option key={`${g.name}-${g.value}`} value={g.value}>{g.name}</option>
+              ))}
+            </select>
+          </div>
+        }
+    </div>
+  );
 }
 
 
-const Project = ({ project }) => {
+const Project = ({ project, allBillingGroups }) => {
 
   const {loading, error, data} = useQuery(ProjectGroupsByProjectNameQuery, { variables: { name: project.name }})
 
@@ -45,9 +77,8 @@ const Project = ({ project }) => {
   }
 
   if (loading){
-    return "loading";
+    return null;
   }
-
 
   const billingGroups = data.project.groups.filter((group) => (group.type === 'billing') ? true : false);
 
@@ -59,7 +90,18 @@ const Project = ({ project }) => {
         <div> Created: {project.created} </div>
         <div> Availability: {project.availability} </div>
         <div>Git URL: {data.project.gitUrl}</div>
-        <div className={billingGroups.length > 0 ? 'hasBillingGroup' : 'noBillingGroup'}>Billing Group: {billingGroups.length > 0 ? billingGroups[0] && billingGroups[0].name : 'UNDEFINED'}</div>
+        {
+          billingGroups.length === 0 &&
+          <div className="noBillingGroup">
+            { billingGroups.length === 0 && <BillingGroupSelect billingGroups={allBillingGroups} project={project} />}
+          </div>
+        }
+        {
+          billingGroups.length > 0 &&
+          <div className="hasBillingGroup">
+            <div>Billing Group: {billingGroups[0].name}</div>
+          </div>
+        }
       </div>
     </Box>
     <style jsx>{`
@@ -75,7 +117,7 @@ const Project = ({ project }) => {
 };
 
 
-const ProjectsAfterDate = ({date}) => {
+const ProjectsAfterDate = ({date, allBillingGroups}) => {
 
   const {loading, error, data}  = useQuery(AllProjectsAfterDateQuery, { variables: { createdAfter: `${moment(date).format('YYYY-MM-DD').toString()}` }})
 
@@ -84,7 +126,7 @@ const ProjectsAfterDate = ({date}) => {
   }
 
   if (loading){
-    return "loading";
+    return null;
   }
 
   const { allProjects: projects } = data;
@@ -99,7 +141,7 @@ const ProjectsAfterDate = ({date}) => {
         </Box>
       )}
 
-      { projects.map((project, index) => <Project project={project} key={`${project.name}-${index}`} />)}
+      { projects.map((project, index) => <Project project={project} key={`${project.name}-${index}`} allBillingGroups={allBillingGroups} />)}
 
     </div>
   )
@@ -119,6 +161,8 @@ export const BillingProjectsNotInBillingGroups = ({ router }) => {
     const {name, value} = e.target;
     setValues({...values, [name]: value});
   }
+
+  const {data } = useQuery(AllBillingGroupsQuery)
 
   return (
     <>
@@ -144,7 +188,7 @@ export const BillingProjectsNotInBillingGroups = ({ router }) => {
                     onChange={handleChange}
                     value={values.afterDate}
                   />
-                  <ProjectsAfterDate date={values.afterDate} />
+                  <ProjectsAfterDate date={values.afterDate} allBillingGroups={ data && data.allGroups ? data.allGroups : null } />
                 </Box>
               </div>
             );
