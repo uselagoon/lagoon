@@ -81,7 +81,7 @@ do
 	echo "\$ALIAS is the alias for \$INDEX"
 	
 	# Generate an arry with old indexes to remove
-	if [ "$TENANT" = "kibana" ]; then
+	if [ "\$ALIAS" = ".kibana" ]; then
 		# This fix avoids the "catch-all" .kibana* regex
 		OLD_INDEXES=(\$(es-curl GET "_cat/indices/.kibana*?h=index" -s |grep -E '^.kibana_?[0-9]$'| grep -v -w \$INDEX))
 	else
