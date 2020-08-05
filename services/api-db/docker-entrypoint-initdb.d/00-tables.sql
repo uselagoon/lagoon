@@ -91,6 +91,7 @@ CREATE TABLE IF NOT EXISTS project (
   auto_idle                        int(1) NOT NULL default 1,
   storage_calc                     int(1) NOT NULL default 1,
   problems_ui                      int(1) NOT NULL default 0,
+  facts_ui                         int(1) NOT NULL default 0,
   openshift                        int REFERENCES openshift (id),
   openshift_project_pattern        varchar(300),
   development_environments_limit   int DEFAULT NULL,
@@ -271,4 +272,13 @@ CREATE TABLE IF NOT EXISTS task_file (
   tid int REFERENCES task (id),
   fid int REFERENCES file (id),
   CONSTRAINT task_file_pkey PRIMARY KEY (tid, fid)
+);
+
+CREATE TABLE IF NOT EXISTS environment_fact (
+  id                       int NOT NULL auto_increment PRIMARY KEY,
+  environment              int REFERENCES environment (id),
+  name                     varchar(300) NOT NULL,
+  value                    varchar(300) NOT NULL,
+  created                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(environment, name)
 );
