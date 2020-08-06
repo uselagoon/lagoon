@@ -1,11 +1,11 @@
 import React from 'react';
-import Link from 'next/link';
 import css from 'styled-jsx/css';
 import EnvironmentLink from 'components/link/Environment';
 import BackupsLink from 'components/link/Backups';
 import DeploymentsLink from 'components/link/Deployments';
 import TasksLink from 'components/link/Tasks';
 import ProblemsLink from 'components/link/Problems';
+import FactsLink from 'components/link/Facts';
 import { bp, color } from 'lib/variables';
 import problems from '../../pages/problems';
 
@@ -86,6 +86,18 @@ const NavTabs = ({ activeTab, environment }) => (
       >
         Problems
       </ProblemsLink>
+    </li>
+    }
+    {(environment.project.factsUi == 1) && <li
+      className={`facts ${activeTab == 'facts' ? 'active' : ''} ${aClassName}`}
+    >
+      <FactsLink
+        environmentSlug={environment.openshiftProjectName}
+        projectSlug={environment.project.name}
+        className={aClassName}
+      >
+        Facts
+      </FactsLink>
     </li>
     }
     <style jsx>{`
@@ -201,6 +213,17 @@ const NavTabs = ({ activeTab, environment }) => (
 
             &.active::before {
               background-image: url('/static/images/problems-active.svg');
+            }
+          }
+
+          &.facts {
+            &::before {
+              background-image: url('/static/images/facts.svg');
+              background-size: 16px;
+            }
+
+            &.active::before {
+              background-image: url('/static/images/facts-active.svg');
             }
           }
         }

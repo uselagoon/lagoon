@@ -31,6 +31,7 @@ CREATE OR REPLACE PROCEDURE
     IN auto_idle                       int(1),
     IN storage_calc                    int(1),
     IN problems_ui                     int(1),
+    IN facts_ui                        int(1),
     IN development_environments_limit  int
   )
   BEGIN
@@ -75,6 +76,7 @@ CREATE OR REPLACE PROCEDURE
         auto_idle,
         storage_calc,
         problems_ui,
+        facts_ui,
         pullrequests,
         openshift,
         openshift_project_pattern,
@@ -102,6 +104,7 @@ CREATE OR REPLACE PROCEDURE
         auto_idle,
         storage_calc,
         problems_ui,
+        facts_ui,
         pullrequests,
         os.id,
         openshift_project_pattern,
@@ -1108,6 +1111,24 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
+  add_facts_ui_to_project()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'facts_ui'
+    ) THEN
+      ALTER TABLE `project`
+      ADD `facts_ui` int(1) NOT NULL default '0';
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
   update_user_password()
 
   BEGIN
@@ -1198,6 +1219,7 @@ CALL add_internal_container_registry_scope_to_env_vars();
 CALL add_additional_harbor_scan_fields_to_environment_problem();
 CALL update_user_password();
 CALL add_problems_ui_to_project();
+CALL add_facts_ui_to_project();
 CALL add_metadata_to_project();
 CALL add_min_max_to_billing_modifier();
 

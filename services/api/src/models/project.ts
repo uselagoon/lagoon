@@ -22,6 +22,7 @@ export interface Project {
   active_systems_promote: String; // varchar(300) COLLATE utf8_bin DEFAULT NULL,
   auto_idle: Boolean; // int(1) NOT NULL DEFAULT 1,
   storage_calc: Boolean; // int(1) NOT NULL DEFAULT 1,
+  facts_ui: Boolean; // int(1) NOT NULL DEFAULT 1,
   subfolder: String; // varchar(300) COLLATE utf8_bin DEFAULT NULL,
   openshift_project_pattern: String; // varchar(300) COLLATE utf8_bin DEFAULT NULL,
   development_environments_limit: Number; // int(11) DEFAULT NULL,
