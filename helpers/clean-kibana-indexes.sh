@@ -18,7 +18,7 @@ if [ "$DEBUG" = "true" ]; then
         set -x
 fi
 
-# Cluster to connect to
+# Target Kubernetes/Openshift cluster where Elasticsearch is located
 CLUSTER="${CLUSTER:-""}"
 if [ -z "$CLUSTER" ]; then
 	echo -e "Set CLUSTER variable\n"
@@ -40,12 +40,12 @@ DRYRUN="${DRYRUN:-"false"}"
 # Optional set a tenant to check and close/delete indexes
 TENANT="${TENANT:-"*"}"
 if [ "$TENANT" = "*" ]; then
-	REGEX="*"
-# This is a special tenant that requires a special REGEX
+	INDEXES="*"
+# This is a special tenant that requires a special INDEXES string
 elif [ "$TENANT" = "kibana" ]; then
-	REGEX=""
+	INDEXES=""
 else
-	REGEX="_*_$TENANT"
+	INDEXES="_*_$TENANT"
 fi
 
 # Switch context to the selected cluster
@@ -71,7 +71,7 @@ cat << EOF |
 IFS=$'\n'
 
 # Generate array with kibana aliases for a specific tenant if specified, otherwise get all aliases
-ELASTICSEARCH_ALIASES=(\$(es-curl GET "_cat/aliases/.kibana$REGEX?h=alias,index"))
+ELASTICSEARCH_ALIASES=(\$(es-curl GET "_cat/aliases/.kibana$INDEXES?h=alias,index"))
 
 # For each row, get current alias and index
 for ALIAS_ROW in "\${ELASTICSEARCH_ALIASES[@]}"
