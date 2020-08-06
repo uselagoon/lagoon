@@ -49,6 +49,25 @@ export const getEnvironmentByName: ResolverFn = async (
   return environment;
 };
 
+export const getEnvironmentById = async (
+  root,
+  args,
+  { sqlClient, hasPermission },
+) => {
+    const environment = await Helpers(sqlClient).getEnvironmentById(args.id);
+
+    if (!environment) {
+      return null;
+    }
+
+    await hasPermission('environment', 'view', {
+        project: environment.project,
+    });
+
+    const rows = await query(sqlClient, Sql.selectEnvironmentById(args.id));
+    return rows[0];
+};
+
 export const getEnvironmentsByProjectId: ResolverFn = async (
   project,
   unformattedArgs,

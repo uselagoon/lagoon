@@ -6,7 +6,7 @@ FROM ${IMAGE_REPO:-lagoon}/commons as commons
 
 FROM composer:latest as healthcheckbuilder
 
-RUN composer create-project --no-dev amazeeio/healthz-php /healthz-php v0.0.3
+RUN composer create-project --no-dev amazeeio/healthz-php /healthz-php v0.0.6
 
 FROM php:${PHP_IMAGE_VERSION}-fpm-alpine${ALPINE_VERSION}
 
@@ -48,7 +48,7 @@ COPY ssmtp.conf /etc/ssmtp/ssmtp.conf
 # New Relic PHP Agent.
 # @see https://docs.newrelic.com/docs/release-notes/agent-release-notes/php-release-notes/
 # @see https://docs.newrelic.com/docs/agents/php-agent/getting-started/php-agent-compatibility-requirements
-ENV NEWRELIC_VERSION=9.11.0.267
+ENV NEWRELIC_VERSION=9.12.0.268
 
 RUN apk add --no-cache curl --repository http://dl-cdn.alpinelinux.org/alpine/edge/main/
 

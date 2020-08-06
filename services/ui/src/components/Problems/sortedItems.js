@@ -2,17 +2,14 @@ import React, {useState} from "react";
 import moment from 'moment';
 import hash from 'object-hash';
 
-const useSortableData = (initialItems) => {
+const useSortableProblemsData = (initialItems) => {
     const initialConfig = {key: 'identifier', direction: 'ascending'};
     const [sortConfig, setSortConfig] = React.useState(initialConfig);
     const [currentItems, setCurrentItems] = useState(initialItems);
 
     const getClassNamesFor = (name) => {
-        if (!sortConfig) {
-            return;
-        }
-
-        return sortConfig.key === name ? sortConfig.direction : undefined;
+        if (!sortConfig) return;
+        return sortConfig.key === name && sortConfig.direction || 'no-sort';
     };
 
     const sortedItems = React.useMemo(() => {
@@ -59,4 +56,4 @@ const useSortableData = (initialItems) => {
     return { sortedItems: currentItems, getClassNamesFor, requestSort };
 };
 
-export default useSortableData;
+export default useSortableProblemsData;
