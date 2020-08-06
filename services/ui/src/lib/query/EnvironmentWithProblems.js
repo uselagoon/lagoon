@@ -3,7 +3,8 @@ import ProblemsFragment from 'lib/fragment/Problem';
 
 export default gql`
   query getEnvironment($openshiftProjectName: String!) {
-    environment: environmentByOpenshiftProjectName(
+    environment: 
+    environmentByOpenshiftProjectName(
       openshiftProjectName: $openshiftProjectName
     ) {
       id
@@ -13,6 +14,7 @@ export default gql`
         id
         name
         problemsUi
+        factsUi
       }
       problems {
         ...problemFields
