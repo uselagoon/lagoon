@@ -8,13 +8,13 @@ metadata:
   annotations:
     {{- include "mariadb-dbaas.annotations" . | nindent 4 }}
 spec:
-  backupCommand: >-
-    /bin/sh -c "dump=$(mktemp) && mysqldump --max-allowed-packet=500M --events --routines --quick --add-locks --no-autocommit --single-transaction --no-create-db
-    -h ${{ include "mariadb-dbaas.fullnameUppercase" . }}_HOST
-    -u ${{ include "mariadb-dbaas.fullnameUppercase" . }}_USERNAME
-    -p${{ include "mariadb-dbaas.fullnameUppercase" . }}_PASSWORD
-    ${{ include "mariadb-dbaas.fullnameUppercase" . }}_DATABASE
-    > $dump && cat $dump && rm $dump"
+  backupCommand: >
+    /bin/sh -c 'dump=$(mktemp) && mysqldump --max-allowed-packet=500M --events --routines --quick --add-locks --no-autocommit --single-transaction --no-create-db
+    -h "${{`{`}}{{ include "mariadb-dbaas.fullnameUppercase" . }}_HOST}"
+    -u "${{`{`}}{{ include "mariadb-dbaas.fullnameUppercase" . }}_USERNAME}"
+    -p"${{`{`}}{{ include "mariadb-dbaas.fullnameUppercase" . }}_PASSWORD}"
+    "${{`{`}}{{ include "mariadb-dbaas.fullnameUppercase" . }}_DATABASE}"
+    > $dump && cat $dump && rm $dump'
   fileExtension: .{{ include "mariadb-dbaas.fullname" . }}.sql
   pod:
     metadata:
