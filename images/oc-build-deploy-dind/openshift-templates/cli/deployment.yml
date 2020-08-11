@@ -112,6 +112,14 @@ objects:
                   memory: 10Mi
                 limits:
                   memory: 8Gi
+              readinessProbe:
+                initialDelaySeconds: 5
+                periodSeconds: 2
+                failureThreshold: 3
+                exec:
+                  command:
+                  - /bin/entrypoint-readiness
+
       test: false
       triggers:
         - type: ConfigChange
