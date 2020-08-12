@@ -40,7 +40,14 @@ svg.grid g text {
     transition: fill-opacity .2s;
     cursor: pointer;
 }
-svg.grid g text.no-text {
+svg.grid g .text-small {
+    font-size: 0.25em;
+    fill: #000;
+    fill-opacity: 0.5;
+    transition: fill-opacity .2s;
+    cursor: pointer;
+}
+svg.grid g .no-text {
     font-size: 0;
 }
 svg.grid path {

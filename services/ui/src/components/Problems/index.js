@@ -214,6 +214,7 @@ const Problems = ({ problems }) => {
           }
 
           .rawdata {
+            max-width: 100%;
             .rawdata-elements {
               border: 1px solid ${color.white};
               border-bottom: 1px solid ${color.lightestGrey};
@@ -222,6 +223,7 @@ const Problems = ({ problems }) => {
               padding: 8px 0 7px 0;
               background-color: ${color.white};
               border: 1px solid ${color.lightestGrey};
+              width: 100%;
 
               @media ${bp.wideUp} {
                 display: flex;
@@ -249,6 +251,13 @@ const Problems = ({ problems }) => {
                 border-bottom-left-radius: 3px;
                 border-bottom-right-radius: 3px;
               }
+            }
+
+            pre {
+              font-family: monospace, monospace;
+              font-size: 1em;
+              width: 100%;
+              white-space: pre-wrap;
             }
 
             .row-heading {
