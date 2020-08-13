@@ -72,8 +72,8 @@ node {
                 try {
                   sh 'make minishift/cleanall || echo'
                   sh script: "make minishift MINISHIFT_CPUS=\$(nproc --ignore 3) MINISHIFT_MEMORY=24GB MINISHIFT_DISK_SIZE=50GB MINISHIFT_VERSION=${minishift_version} OPENSHIFT_VERSION=${openshift_version}", label: "Making openshift"
-                  sh script: "make -O${SYNC_MAKE_OUTPUT} push-minishift -j4", label: "Pushing built images into openshift"
-                  sh script: "make -O${SYNC_MAKE_OUTPUT} openshift-tests -j4", label: "Making openshift tests"
+                  sh script: "make -O${SYNC_MAKE_OUTPUT} push-minishift -j3", label: "Pushing built images into openshift"
+                  sh script: "make -O${SYNC_MAKE_OUTPUT} openshift-tests -j3", label: "Making openshift tests"
                 } catch (e) {
                   echo "Something went wrong, trying to cleanup"
                   cleanup()
