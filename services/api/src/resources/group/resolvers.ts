@@ -114,10 +114,41 @@ export const getGroupsByUserId: ResolverFn = async (
 export const getGroupByName: ResolverFn = async (
   root,
   { name },
-  { models, hasPermission },
+  { models, hasPermission, keycloakGrant },
 ) => {
-  await hasPermission('group', 'viewAll');
-  return await models.GroupModel.loadGroupByIdOrName({ name });
+  try {
+    await hasPermission('group', 'viewAll');
+
+    const group = await models.GroupModel.loadGroupByName(name);
+    return group;
+  } catch (err) {
+    if (err instanceof GroupNotFoundError) {
+      throw err;
+    }
+
+    if (err instanceof KeycloakUnauthorizedError) {
+      if (!keycloakGrant) {
+        logger.warn('Access denied to user for getGroupByName');
+        throw new GroupNotFoundError(`Group not found: ${name}`);
+      } else {
+        const user = await models.UserModel.loadUserById(
+          keycloakGrant.access_token.content.sub,
+        );
+        const userGroups = await models.UserModel.getAllGroupsForUser(user);
+
+        const group = R.head(R.filter(R.propEq('name', name), userGroups));
+
+        if (R.isEmpty(group)) {
+          throw new GroupNotFoundError(`Group not found: ${name}`);
+        }
+
+        return group;
+      }
+    }
+
+    logger.warn(`getGroupByName failed unexpectedly: ${err.message}`);
+    throw err;
+  }
 };
 
 export const addGroup = async (_root, { input }, { models, sqlClient, hasPermission }) => {
