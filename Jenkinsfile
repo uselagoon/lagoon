@@ -78,10 +78,14 @@ node {
               }
               stage ('minishift tests') {
                 try {
-                  sh 'make minishift/cleanall || echo'
-                  sh "make minishift MINISHIFT_CPUS=16 MINISHIFT_MEMORY=32GB MINISHIFT_DISK_SIZE=50GB MINISHIFT_VERSION=${minishift_version} OPENSHIFT_VERSION=${openshift_version}"
-                  sh "make -O${SYNC_MAKE_OUTPUT} push-minishift -j5"
-                  sh "make -O${SYNC_MAKE_OUTPUT} openshift-tests -j7"
+                  if (pullRequest.labels.contains("skip-openshift-tests")) {
+                    echo "PR identified as not needing Openshift Testing, skipping stage."
+                  } else {
+                    sh 'make minishift/cleanall || echo'
+                    sh "make minishift MINISHIFT_CPUS=16 MINISHIFT_MEMORY=32GB MINISHIFT_DISK_SIZE=50GB MINISHIFT_VERSION=${minishift_version} OPENSHIFT_VERSION=${openshift_version}"
+                    sh "make -O${SYNC_MAKE_OUTPUT} push-minishift -j5"
+                    sh "make -O${SYNC_MAKE_OUTPUT} openshift-tests -j7"
+		              }
                 } catch (e) {
                   echo "Something went wrong, trying to cleanup"
                   cleanup()
