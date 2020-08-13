@@ -48,6 +48,14 @@ node {
           }
         }
 
+        stage ('check PR labels') {
+          if (env.BRANCH_NAME ==~ /PR-\d+/) {
+            pullRequest.labels.each{
+              echo "This PR has labels: $it"
+              }
+            }
+        }
+
         stage ('build images') {
           sh "make -O${SYNC_MAKE_OUTPUT} -j6 build"
         }
