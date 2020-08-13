@@ -60,7 +60,7 @@ node {
                   try {
                     sh script: "make k3d/clean K3S_VERSION=${kubernetes_version['k3s']} KUBECTL_VERSION=${kubernetes_version['kubectl']}", label: "Removing any previous k3d versions"
                     sh script: "make k3d K3S_VERSION=${kubernetes_version['k3s']} KUBECTL_VERSION=${kubernetes_version['kubectl']}", label: "Making k3d"
-                    sh script: "make -O${SYNC_MAKE_OUTPUT} k8s-tests", label: "Making kubernetes tests"
+                    sh script: "make -O${SYNC_MAKE_OUTPUT} k8s-tests -j2", label: "Making kubernetes tests"
                   } catch (e) {
                     echo "Something went wrong, trying to cleanup"
                     cleanup()
@@ -73,7 +73,7 @@ node {
                   sh 'make minishift/cleanall || echo'
                   sh script: "make minishift MINISHIFT_CPUS=\$(nproc --ignore 3) MINISHIFT_MEMORY=24GB MINISHIFT_DISK_SIZE=70GB MINISHIFT_VERSION=${minishift_version} OPENSHIFT_VERSION=${openshift_version}", label: "Making openshift"
                   sh script: "make -O${SYNC_MAKE_OUTPUT} push-minishift -j5", label: "Pushing built images into openshift"
-                  sh script: "make -O${SYNC_MAKE_OUTPUT} openshift-tests -j5", label: "Making openshift tests"
+                  sh script: "make -O${SYNC_MAKE_OUTPUT} openshift-tests -j2", label: "Making openshift tests"
                 } catch (e) {
                   echo "Something went wrong, trying to cleanup"
                   cleanup()
