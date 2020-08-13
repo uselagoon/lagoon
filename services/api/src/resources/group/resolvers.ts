@@ -491,17 +491,53 @@ export const getAllProjectsByGroupId: ResolverFn = async (root, input, context) 
 export const getAllProjectsInGroup: ResolverFn = async (
   _root,
   { input: groupInput },
-  { models, sqlClient, hasPermission },
+  { models, sqlClient, hasPermission, keycloakGrant },
 ) => {
-  await hasPermission('group', 'viewAll');
   const {
     GroupModel: { loadGroupByIdOrName, getProjectsFromGroupAndSubgroups },
   } = models;
-  const group = await loadGroupByIdOrName(groupInput);
-  const projectIdsArray = await getProjectsFromGroupAndSubgroups(group);
-  return projectIdsArray.map(async id =>
-    projectHelpers(sqlClient).getProjectByProjectInput({ id }),
-  );
+
+  try {
+    await hasPermission('group', 'viewAll');
+
+    const group = await loadGroupByIdOrName(groupInput);
+    const projectIdsArray = await getProjectsFromGroupAndSubgroups(group);
+    return projectIdsArray.map(async id =>
+      projectHelpers(sqlClient).getProjectByProjectInput({ id }),
+    );
+  } catch (err) {
+    if (err instanceof GroupNotFoundError) {
+      throw err;
+    }
+
+    if (!(err instanceof KeycloakUnauthorizedError)) {
+      logger.warn(`getAllGroups failed unexpectedly: ${err.message}`);
+      throw err;
+    }
+  }
+
+  if (!keycloakGrant) {
+    logger.warn('Access denied to user for getAllProjectsInGroup: no keycloakGrant');
+    return [];
+  } else {
+    const group = await loadGroupByIdOrName(groupInput);
+
+    const user = await models.UserModel.loadUserById(
+      keycloakGrant.access_token.content.sub,
+    );
+    const userGroups = await models.UserModel.getAllGroupsForUser(user);
+
+    // @ts-ignore
+    if (!R.contains(group.name, R.pluck('name', userGroups))) {
+      logger.warn('Access denied to user for getAllProjectsInGroup: user not in group');
+      return [];
+    }
+
+    const projectIdsArray = await getProjectsFromGroupAndSubgroups(group);
+    return projectIdsArray.map(async id =>
+      projectHelpers(sqlClient).getProjectByProjectInput({ id }),
+    );
+  }
 };
 
 /**
