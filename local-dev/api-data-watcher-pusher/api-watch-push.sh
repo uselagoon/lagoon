@@ -41,7 +41,11 @@ watch_apidatafolder() {
         then
             echo "******* Found changes in gql files in /api-data/, clearing and re-populating"
 
-            clear_data=$(/home/clear_api_data.py)
+            clear_api_data=$(/home/clear_api_data.py)
+            echo "CLEARING API DATA $clear_api_data "
+
+            clear_keycloak_data=$(/home/clear_keycloak_data.py)
+            echo "CLEARING KEYCLOAK DATA $clear_keycloak_data "
 
             if
                 send_graphql_query $populate_general_gql_file_path;
