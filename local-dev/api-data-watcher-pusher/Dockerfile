@@ -6,6 +6,6 @@ RUN pip install mysql-connector python-keycloak PyJWT
 ENV JWTSECRET=super-secret-string \
     JWTAUDIENCE=api.dev
 
-COPY api-watch-push.sh create_jwt.py /home/
+COPY api-watch-push.sh create_jwt.py clear_api_data.py clear_keycloak_data.py /home/
 
 CMD ["tini", "--", "/home/api-watch-push.sh"]
