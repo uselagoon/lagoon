@@ -379,7 +379,7 @@ if [ "$ROUTES_AUTOGENERATE_BRANCH" =~ [Tt]rue ]; then
   ROUTES_AUTOGENERATE_ENABLED=true
 fi
 
-ROUTES_AUTOGENERATE_PREFIXES=$(yq r -C -D "false" .lagoon.yml routes.autogenerate.prefixes.*)
+ROUTES_AUTOGENERATE_PREFIXES=$(yq r -C .lagoon.yml routes.autogenerate.prefixes.*)
 
 touch /kubectl-build-deploy/values.yaml
 
