@@ -56,6 +56,13 @@ spec:
             - mountPath: /var/run/secrets/lagoon/sshkey/
               name: lagoon-sshkey
               readOnly: true
+          readinessProbe:
+            initialDelaySeconds: 5
+            periodSeconds: 2
+            failureThreshold: 3
+            exec:
+              command:
+              - /bin/entrypoint-readiness
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
