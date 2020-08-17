@@ -1024,6 +1024,13 @@ export const createTaskTask = async function(taskData: any) {
     case 'lagoon_kubernetesJob':
       return sendToLagoonTasks('job-kubernetes', taskData);
 
+    case 'lagoon_operatorJob':
+      // since operator queues are named, we have to send it to the right tasks queue
+      // do that here
+      const result = await getOpenShiftInfoForProject(project.name);
+      const deployTarget = result.project.openshift.name
+      return sendToLagoonTasks(deployTarget+":jobs", taskData);
+
     default:
       throw new UnknownActiveSystem(
         `Unknown active system '${projectSystem.activeSystemsTask}' for 'task' for project ${project.name}`
