@@ -22,7 +22,7 @@ if [[ -n "$REQUESTED_PROJECT" ]]; then
     PROJECT=$REQUESTED_PROJECT
   else
     echo "ERROR: given project '$REQUESTED_PROJECT' contains illegal characters";
-    exit
+    exit 1
   fi
 else
   echo "ERROR: no project defined";
@@ -46,7 +46,7 @@ ENVIRONMENT=$(curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" ap
 # Check if the returned OpenShift projectname is the same as the one being requested. This will only be true if the user actually has access to this environment
 if [[ ! "$(echo $ENVIRONMENT | jq --raw-output '.data.userCanSshToEnvironment.openshiftProjectName')" == "$PROJECT" ]]; then
   echo "no access to $PROJECT"
-  exit
+  exit 1
 fi
 
 ##
