@@ -155,46 +155,46 @@ const Honeycomb = ({ data, filter }) => {
             </>
             }
             <style jsx>{`
-          .content-wrapper {
-             &.results {
-               background: #f1f1f1;
-               margin-bottom: 20px;
+              .content-wrapper {
+                 &.results {
+                   background: #f1f1f1;
+                   margin-bottom: 20px;
 
-               .content {
-                 padding: 0 15px;
-               }
-             }
-            .content {
-              margin: 0 calc((100vw / 16) * 1) 0;
-              @media ${bp.wideUp} {
-                margin: 0 calc((100vw / 16) * 2) 0;
-              }
-              @media ${bp.extraWideUp} {
-                margin: 0 calc((100vw / 16) * 3) 0;
-              }
-              li.result {
-                display: inline;
-              }
-              .project {
-                padding: 20px;
-                background: #fff;
-              }
-              .environment-wrapper {
-                padding-bottom: 20px;
-                .environment {
-                  h5 {
-                    padding: 10px 20px;
-                    margin-top: 0;
-                    background: #f3f3f3;
+                   .content {
+                     padding: 0 15px;
+                   }
+                 }
+                .content {
+                  margin: 0 calc((100vw / 16) * 1) 0;
+                  @media ${bp.wideUp} {
+                    margin: 0 calc((100vw / 16) * 2) 0;
+                  }
+                  @media ${bp.extraWideUp} {
+                    margin: 0 calc((100vw / 16) * 3) 0;
+                  }
+                  li.result {
+                    display: inline;
+                  }
+                  .project {
+                    padding: 20px;
+                    background: #fff;
+                  }
+                  .environment-wrapper {
+                    padding-bottom: 20px;
+                    .environment {
+                      h5 {
+                        padding: 10px 20px;
+                        margin-top: 0;
+                        background: #f3f3f3;
+                      }
+                    }
                   }
                 }
+                .loading {
+                  margin: 2em calc(100vw / 2) 0;
+                }
               }
-            }
-            .loading {
-              margin: 2em calc(100vw / 2) 0;
-            }
-          }
-        `}</style>
+            `}</style>
         </div>
     );
 };
