@@ -384,7 +384,7 @@ example-project-name:
 If you run directly on amazee.io you will not need this key set.
 {% endhint %}
 
-With the key `api` you can define another URL that should be used by `lagu` and `drush` to connect to the Lagoon GraphQL API. This needs to be a full URL with a scheme, like: `http://localhost:3000` This usually does not need to be changed, but there might be situations where your Lagoon administrator tells you to do so.
+With the key `api` you can define another URL that should be used by the Lagoon CLI and `drush` to connect to the Lagoon GraphQL API. This needs to be a full URL with a scheme, like: `http://localhost:3000` This usually does not need to be changed, but there might be situations where your Lagoon administrator tells you to do so.
 
 #### `ssh`
 
@@ -392,7 +392,7 @@ With the key `api` you can define another URL that should be used by `lagu` and 
 If you run directly on amazee.io you will not need this key set.
 {% endhint %}
 
-With the key `ssh` you can define another SSH endpoint that should be used by `lagu` and `drush` to connect to the Lagoon remote shell service. This needs to be a hostname and a port separated by a colon, like: `localhost:2020` This usually does not need to be changed, but there might be situations where your Lagoon administrator tells you to do so.
+With the key `ssh` you can define another SSH endpoint that should be used by the Lagoon CLI and `drush` to connect to the Lagoon remote shell service. This needs to be a hostname and a port separated by a colon, like: `localhost:2020` This usually does not need to be changed, but there might be situations where your Lagoon administrator tells you to do so.
 
 #### `additional-yaml`
 
