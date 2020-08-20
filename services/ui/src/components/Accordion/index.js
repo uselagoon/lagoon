@@ -45,7 +45,6 @@ const Accordion = ({ children, defaultValue = true, minified = false, className 
                       }
 
                       .identifier {
-                        width: 25%;
                         text-align: left;
                       }
                     }
