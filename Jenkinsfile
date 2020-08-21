@@ -79,13 +79,13 @@ node {
               stage ('minishift tests') {
                 try {
                   if (pullRequest.labels.contains("skip-openshift-tests")) {
-                    echo "PR identified as not needing Openshift Testing, skipping stage."
+                    sh script: 'echo "PR identified as not needing Openshift testing."', label: "Skipping Openshift testing stage"
                   } else {
                     sh 'make minishift/cleanall || echo'
                     sh script: "make minishift MINISHIFT_CPUS=\$(nproc --ignore 3) MINISHIFT_MEMORY=24GB MINISHIFT_DISK_SIZE=70GB MINISHIFT_VERSION=${minishift_version} OPENSHIFT_VERSION=${openshift_version}", label: "Making openshift"
                     sh script: "make -O${SYNC_MAKE_OUTPUT} push-minishift -j5", label: "Pushing built images into openshift"
                     sh script: "make -O${SYNC_MAKE_OUTPUT} openshift-tests -j2", label: "Making openshift tests"
-		              }
+                  }
                 } catch (e) {
                   echo "Something went wrong, trying to cleanup"
                   cleanup()
