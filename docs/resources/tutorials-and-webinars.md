@@ -40,27 +40,39 @@
 
 ## How do I fix an internal server error in Kibana?
 
-{% embed url="https://www.youtube.com/watch?v=hyUMRlQTXEA" %}
+{% embed url="https://www.youtube.com/watch?v=is-mt6oBQs8" %}
+
+
 
 ## How do I add a new route?
 
-{% embed url="https://www.youtube.com/watch?v=un23Vivz\_-Q" %}
+{% embed url="https://www.youtube.com/watch?v=0D8vp55z1qc" %}
+
+
 
 ## How do I check the status of a build?
 
-{% embed url="https://www.youtube.com/watch?v=tVx-IGaN0Bg" %}
+{% embed url="https://www.youtube.com/watch?v=UM6lM12ACK4" %}
+
+
 
 ## How do I add a redirect in Lagoon?
 
-{% embed url="https://www.youtube.com/watch?v=xQ7A-e8UPzY" %}
+{% embed url="https://www.youtube.com/watch?v=zmlfJT1FlL0" %}
+
+
 
 ## How do I download a database dump?
 
-{% embed url="https://www.youtube.com/watch?v=amkyV2skidc" %}
+{% embed url="https://www.youtube.com/watch?v=vnr3EITlQys" %}
+
+
 
 ## How do I add a cron job?
 
-{% embed url="https://www.youtube.com/watch?v=6qqY-XmBZ8c" %}
+{% embed url="https://youtube.com/watch?v=7mtw8wM\_Ntg" %}
+
+
 
 
 
