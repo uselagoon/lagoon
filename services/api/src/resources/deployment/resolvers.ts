@@ -824,17 +824,38 @@ export const switchActiveStandby: ResolverFn = async (
   );
   const environment = environmentRows[0];
   var environmentId = parseInt(environment.id);
+  // we need to pass some additional information about the production environment
+  const environmentRowsProd = await query(
+    sqlClient,
+    environmentSql.selectEnvironmentByNameAndProject(project.productionEnvironment, project.id),
+  );
+  const environmentProd = environmentRowsProd[0];
+  var environmentProdId = parseInt(environmentProd.id);
 
   // construct the data for the misc task
   let uuid = uuid4();
 
+  // set up the task data payload
   const data = {
-    project,
-    projectName: project.name,
-    productionEnvironment: project.productionEnvironment,
-    standbyProductionEnvironment: project.standbyProductionEnvironment,
+    project: {
+      id: project.id,
+      name: project.name,
+      productionEnvironment: project.productionEnvironment,
+      standbyProductionEnvironment: project.standbyProductionEnvironment,
+    },
+    productionEnvironment: {
+      id: environmentProdId,
+      name: environmentProd.name,
+      openshiftProjectName: environmentProd.openshiftProjectName,
+    },
+    environment: {
+      id: environmentId,
+      name: environment.name,
+      openshiftProjectName: environment.openshiftProjectName,
+    },
     task: {
-      id: 0,
+      id: "0",
+      name: "Active/Standby Switch",
       uuid: uuid,
     }
   };
@@ -857,7 +878,7 @@ export const switchActiveStandby: ResolverFn = async (
       '',
       false,
     );
-    data.task.id = sourceTaskData.addTask.id
+    data.task.id = sourceTaskData.addTask.id.toString()
 
     // then send the task to openshiftmisc to trigger the migration
     await createMiscTask({ key: 'route:migrate', data });
