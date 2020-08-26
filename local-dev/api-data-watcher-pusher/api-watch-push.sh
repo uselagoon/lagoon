@@ -18,7 +18,7 @@ send_graphql_query() {
     # Create a correct json string
     json="{\"query\": \"$data\"}"
 
-    curl -s -L api:3000/graphql --header "Content-Type: application/json" --header "$bearer" --data "$json" --show-error
+    wget --header "Content-Type: application/json" --header "$bearer" api:3000/graphql --post-data "$json" --content-on-error -O -
 }
 
 watch_apidatafolder() {

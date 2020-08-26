@@ -53,7 +53,6 @@ ENV NEWRELIC_VERSION=9.12.0.268
 RUN apk add --no-cache curl --repository http://dl-cdn.alpinelinux.org/alpine/edge/main/
 
 RUN apk add --no-cache fcgi \
-        curl \
         ssmtp \
         libzip libzip-dev \
         # for gd
