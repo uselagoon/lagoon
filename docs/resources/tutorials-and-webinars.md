@@ -72,13 +72,3 @@
 
 {% embed url="https://youtube.com/watch?v=7mtw8wM\_Ntg" %}
 
-
-
-
-
-
-
-Lagoonizing Your Site \[Video\] \[Slides\]
-
-Migrating from Legacy to Lagoon \[Video\] \[Slides\]
-
