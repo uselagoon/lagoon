@@ -198,7 +198,7 @@ const messageConsumer = async function(msg) {
               try {
                 // get the project ID
                 const projectResult = await getOpenShiftInfoForProject(meta.project);
-                const project = projectResult.projectName
+                const project = projectResult.project
                 // since the advanceddata contains a base64 encoded value, we have to decode it first
                 var decodedData = new Buffer(meta.advancedData, 'base64').toString('ascii')
                 const taskResult = JSON.parse(decodedData)

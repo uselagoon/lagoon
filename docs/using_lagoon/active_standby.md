@@ -71,17 +71,16 @@ mutation ActiveStandby {
     }
   ){
     id
-    remoteId
   }
 }
 ```
 
 A task is created in the current active environment `tasks` tab when a switch event is triggered, you can check the status of the switch here.
 
-Using the `remoteId` from the `switchActiveStandby` mutation, we can also check the status of the task.
+Using the `id` from the `switchActiveStandby` mutation, we can also check the status of the task.
 ```
 query getTask {
-  taskByRemoteId(id: "<remoteId>") {
+  taskById(id: <taskId>) {
     id
     name
     created

@@ -22,7 +22,6 @@ import { Helpers as projectHelpers } from '../project/helpers';
 import {
   addTask,
 } from '@lagoon/commons/dist/api';
-import uuid4 from 'uuid4';
 const convertDateFormat = R.init;
 import { Sql as environmentSql } from '../environment/sql';
 
@@ -833,8 +832,6 @@ export const switchActiveStandby: ResolverFn = async (
   var environmentProdId = parseInt(environmentProd.id);
 
   // construct the data for the misc task
-  let uuid = uuid4();
-
   // set up the task data payload
   const data = {
     project: {
@@ -856,7 +853,6 @@ export const switchActiveStandby: ResolverFn = async (
     task: {
       id: "0",
       name: "Active/Standby Switch",
-      uuid: uuid,
     }
   };
 
@@ -870,7 +866,7 @@ export const switchActiveStandby: ResolverFn = async (
       'ACTIVE',
       created,
       environmentId,
-      uuid,
+      null,
       null,
       null,
       null,
@@ -886,7 +882,6 @@ export const switchActiveStandby: ResolverFn = async (
     // return the task id and remote id
     var retData = {
       id: data.task.id,
-      remoteId: uuid,
       environment: environmentId,
     }
     return retData;
