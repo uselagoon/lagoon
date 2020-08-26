@@ -1,3 +1,4 @@
+import * as R from 'ramda';
 import {
   connect,
   AmqpConnectionManager,
@@ -241,6 +242,9 @@ export const createTaskMonitor = async function(task: string, payload: any) {
   return sendToLagoonTasksMonitor(task, payload);
 }
 
+// makes strings "safe" if it is to be used in something dns related
+const makeSafe = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
+
 // This is used to replace the functionality in `kubernetesbuilddeploy` to handle sending the required information
 // directly to the message queue for the operator to consume
 // @TODO: make sure if it fails, it does so properly
@@ -261,8 +265,7 @@ const getOperatorBuildData = async function(deployData: any) {
   const project = await getActiveSystemForProject(projectName, 'Deploy');
   // const environments = await getEnvironmentsForProject(projectName);
 
-  const ocsafety = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
-  var environmentName = ocsafety(branchName)
+  var environmentName = makeSafe(branchName)
 
   const result = await getOpenShiftInfoForProject(projectName);
   const projectOpenShift = result.project
@@ -300,7 +303,7 @@ const getOperatorBuildData = async function(deployData: any) {
   var prPullrequestNumber = branchName.replace('pr-','')
   var graphqlEnvironmentType = environmentType.toUpperCase()
   var graphqlGitType = type.toUpperCase()
-  var openshiftPromoteSourceProject = promoteSourceEnvironment ? `${projectName}-${ocsafety(promoteSourceEnvironment)}` : ""
+  var openshiftPromoteSourceProject = promoteSourceEnvironment ? `${projectName}-${makeSafe(promoteSourceEnvironment)}` : ""
   // A secret which is the same across all Environments of this Lagoon Project
   var projectSecret = crypto.createHash('sha256').update(`${projectName}-${jwtSecret}`).digest('hex');
   var alertContactHA = ""
@@ -449,6 +452,7 @@ const getOperatorBuildData = async function(deployData: any) {
 
   var gitRef = gitSha ? gitSha : `origin/${branchName}`
 
+  // encode some values so they get sent to the operator nicely
   const sshKeyBase64 = new Buffer(deployPrivateKey.replace(/\\n/g, "\n")).toString('base64')
   const envVars = new Buffer(JSON.stringify(environment.addOrUpdateEnvironment.envVariables)).toString('base64')
   const projectVars = new Buffer(JSON.stringify(projectOpenShift.envVariables)).toString('base64')
@@ -1006,6 +1010,56 @@ export const createRemoveTask = async function(removeData: any) {
   }
 }
 
+// creates the restore job configuration for use in the misc task
+const restoreConfig = (name, backupId, safeProjectName) => {
+  let config = {
+    apiVersion: 'backup.appuio.ch/v1alpha1',
+    kind: 'Restore',
+    metadata: {
+      name
+    },
+    spec: {
+      snapshot: backupId,
+      restoreMethod: {
+        s3: {},
+      },
+      backend: {
+        s3: {
+          bucket: `baas-${safeProjectName}`
+        },
+        repoPasswordSecretRef: {
+          key: 'repo-pw',
+          name: 'baas-repo-pw'
+        },
+      },
+    },
+  };
+
+  return config;
+};
+
+// creates the route/ingress migration config
+const migrateIngress = (destinationNamespace, sourceNamespace) => {
+  const randId = Math.random().toString(36).substring(7);
+  const migrateName = `ingress-migrate-${randId}`;
+  let config = {
+    apiVersion: 'dioscuri.amazee.io/v1',
+    kind: 'IngressMigrate',
+    metadata: {
+      name: migrateName,
+      annotations: {
+          'dioscuri.amazee.io/migrate':'true'
+      }
+    },
+    spec: {
+      destinationNamespace: destinationNamespace,
+      activeEnvironment: sourceNamespace,
+    },
+  };
+
+  return config;
+};
+
 export const createTaskTask = async function(taskData: any) {
   const { project } = taskData;
 
@@ -1057,7 +1111,69 @@ export const createMiscTask = async function(taskData: any) {
       updatedKey = `kubernetes:${key}`;
       taskId = 'misc-kubernetes';
       break;
-
+    case 'lagoon_operatorMisc':
+      // handle any operator based misc tasks
+      updatedKey = `kubernetes:${key}`;
+      taskId = 'misc-kubernetes';
+      // determine the deploy target (openshift/kubernetes) for the task to go to
+      const result = await getOpenShiftInfoForProject(project.name);
+      const projectOpenShift = result.project
+      var deployTarget = projectOpenShift.openshift.name
+      // this is the json structure for sending a misc task to the operator
+      // there are some additional bits that can be adjusted, and these are done in the switch below on `updatedKey`
+      var miscTaskData: any = {
+        misc: {},
+        key: updatedKey,
+        environment: {
+          name: taskData.data.environment.name,
+          openshiftProjectName: taskData.data.environment.openshiftProjectName
+        },
+        project: {
+          name: taskData.data.project.name
+        },
+        task: taskData.data.task,
+        advancedTask: {}
+      }
+      switch (updatedKey) {
+        case 'kubernetes:restic:backup:restore':
+          // Handle setting up the configuration for a restic restoration task
+          const restoreName = `restore-${R.slice(0, 7, taskData.data.backup.backupId)}`;
+          // generate the restore CRD
+          const restoreConf = restoreConfig(restoreName, taskData.data.backup.backupId, makeSafe(taskData.data.project.name))
+          // base64 encode it
+          const restoreBytes = new Buffer(JSON.stringify(restoreConf).replace(/\\n/g, "\n")).toString('base64')
+          miscTaskData.misc.miscResource = restoreBytes
+          break;
+        case 'kubernetes:route:migrate':
+          // handle setting up the task configuration for running the active/standby switch
+          // this uses the `advanced task` system in the operator
+          // first generate the migration CRD
+          const migrateConf = migrateIngress(
+            makeSafe(taskData.data.productionEnvironment.openshiftProjectName),
+            makeSafe(taskData.data.environment.openshiftProjectName))
+          // generate out custom json payload to send to the advanced task
+          var jsonPayload: any = {
+            productionEnvironment: taskData.data.productionEnvironment.name,
+            standbyEnvironment: taskData.data.environment.name,
+            crd: migrateConf
+          }
+          // encode it
+          const jsonPayloadBytes = new Buffer(JSON.stringify(jsonPayload).replace(/\\n/g, "\n")).toString('base64')
+          // set the task data up
+          miscTaskData.advancedTask.JSONPayload = jsonPayloadBytes
+          // use this image to run the task
+          miscTaskData.advancedTask.runnerImage = "shreddedbacon/runner:latest"
+          break;
+        case 'kubernetes:build:cancel':
+          // build cancellation is just a standard unmodified message
+          miscTaskData.misc = taskData.data.build
+          break;
+        default:
+          miscTaskData.misc = taskData.data.build
+          break;
+      }
+      // send the task to the queue
+      return sendToLagoonTasks(deployTarget+':misc', miscTaskData);
     default:
       break;
   }
