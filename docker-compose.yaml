@@ -335,6 +335,10 @@ services:
       lagoon.type: custom
       lagoon.template: services/keycloak/.lagoon.app.yml
       lagoon.image: amazeeiolagoon/keycloak:v1-8-2
+    environment:
+      - USE_CACHED_LAGOON_REALM_CI=true
+    volumes:
+      - ./services/keycloak/lagoon-realm-ci.json:/lagoon-realm-ci.json
   keycloak-db:
     image: ${IMAGE_REPO:-lagoon}/keycloak-db
     ports:
