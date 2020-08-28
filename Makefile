@@ -401,6 +401,18 @@ build/yarn-workspace-builder: build/node__10-builder images/yarn-workspace-build
 	$(call docker_build,$(image),images/$(image)/Dockerfile,.)
 	touch $@
 
+#######
+####### Task Images
+#######
+####### Task Images are standalone images that are used to run advanced tasks when using the builddeploy controllers.
+
+# tasks-activestandby is the task image that lagoon builddeploy controller uses to run active/standby misc tasks
+build/tasks-activestandby: images/tasks/activestandby/Dockerfile
+	$(call docker_build,tasks-activestandby,images/tasks/activestandby/Dockerfile,images/tasks/activestandby)
+	touch $@
+
+task-images += tasks-activestandby
+
 # Variables of service images we manage and build
 services :=       api \
 									auth-server \
@@ -577,7 +589,7 @@ $(all-operator-k8s-tests): k3d operator-kubernetes-test-services-up
 				jq -rcsR '{kubeconfig: .}')"
 
 # push command of our base images into minishift
-push-local-registry-images = $(foreach image,$(base-images) $(base-images-with-versions),[push-local-registry]-$(image))
+push-local-registry-images = $(foreach image,$(base-images) $(base-images-with-versions) $(task-images),[push-local-registry]-$(image))
 # tag and push all images
 .PHONY: push-local-registry
 push-local-registry: $(push-local-registry-images)

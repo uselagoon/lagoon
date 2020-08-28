@@ -95,6 +95,7 @@ const lagoonVersion = process.env.LAGOON_VERSION
 const lagoonEnvironmentType = process.env.LAGOON_ENVIRONMENT_TYPE || "development"
 const overwriteOCBuildDeployDindImage = process.env.OVERWRITE_OC_BUILD_DEPLOY_DIND_IMAGE
 const overwriteKubectlBuildDeployDindImage = process.env.OVERWRITE_KUBECTL_BUILD_DEPLOY_DIND_IMAGE
+const overwriteActiveStandbyTaskImage = process.env.OVERWRITE_ACTIVESTANDBY_TASK_IMAGE
 const jwtSecret = process.env.JWTSECRET || "super-secret-string"
 
 class UnknownActiveSystem extends Error {
@@ -1162,7 +1163,21 @@ export const createMiscTask = async function(taskData: any) {
           // set the task data up
           miscTaskData.advancedTask.JSONPayload = jsonPayloadBytes
           // use this image to run the task
-          miscTaskData.advancedTask.runnerImage = "shreddedbacon/runner:latest"
+          let taskImage = ""
+          // choose which task image to use
+          if (CI == "true") {
+            taskImage = "172.17.0.1:5000/lagoon/tasks-activestandby:latest"
+          } else if (overwriteActiveStandbyTaskImage) {
+            // allow to overwrite the image we use via OVERWRITE_ACTIVESTANDBY_TASK_IMAGE env variable
+            taskImage = overwriteActiveStandbyTaskImage
+          } else if (lagoonEnvironmentType == 'production') {
+            taskImage = `amazeeio/tasks-activestandby:${lagoonVersion}`
+          } else {
+            // we are a development enviornment, use the amazeeiolagoon image with the same branch name
+            taskImage = `amazeeiolagoon/tasks-activestandby:${lagoonGitSafeBranch}`
+          }
+          miscTaskData.advancedTask.runnerImage = taskImage
+          // miscTaskData.advancedTask.runnerImage = "shreddedbacon/runner:latest"
           break;
         case 'kubernetes:build:cancel':
           // build cancellation is just a standard unmodified message
