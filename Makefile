@@ -536,7 +536,7 @@ s3-images += $(service-images)
 
 # Builds all Images
 .PHONY: build
-build: $(foreach image,$(base-images) $(base-images-with-versions) $(service-images),build/$(image))
+build: $(foreach image,$(base-images) $(base-images-with-versions) $(service-images) $(task-images),build/$(image))
 # Outputs a list of all Images we manage
 .PHONY: build-list
 build-list:
