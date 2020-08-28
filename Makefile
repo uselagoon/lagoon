@@ -406,12 +406,23 @@ build/yarn-workspace-builder: build/node__10-builder images/yarn-workspace-build
 #######
 ####### Task Images are standalone images that are used to run advanced tasks when using the builddeploy controllers.
 
-# tasks-activestandby is the task image that lagoon builddeploy controller uses to run active/standby misc tasks
-build/tasks-activestandby: images/tasks/activestandby/Dockerfile
-	$(call docker_build,tasks-activestandby,images/tasks/activestandby/Dockerfile,images/tasks/activestandby)
-	touch $@
+# task-activestandby is the task image that lagoon builddeploy controller uses to run active/standby misc tasks
+build/task-activestandby: taskimages/activestandby/Dockerfile
 
-task-images += tasks-activestandby
+# the `taskimages` are the name of the task directories contained within `taskimages/` in the repostory root
+taskimages := activestandby
+# in the following process, taskimages are prepended with `task-` to make built task images more identifiable
+# use `build/task-<name>` to build it, but the references in the directory structure remain simpler with
+# taskimages/
+#	activestandby
+#	anothertask
+# the resulting image will be called `task-<name>` instead of `<name>` to make it known that it is a task image
+task-images += $(foreach image,$(taskimages),task-$(image))
+build-taskimages = $(foreach image,$(taskimages),build/task-$(image))
+$(build-taskimages):
+	$(eval image = $(subst build/task-,,$@))
+	$(call docker_build,task-$(image),taskimages/$(image)/Dockerfile,taskimages/$(image))
+	touch $@
 
 # Variables of service images we manage and build
 services :=       api \
