@@ -444,7 +444,7 @@ services :=       api \
 									kubernetesjobsmonitor \
 									kubernetesmisc \
 									kubernetesremove \
-									operatorhandler \
+									controllerhandler \
 									webhook-handler \
 									webhooks2tasks \
 									backup-handler \
@@ -487,7 +487,7 @@ $(build-services):
 	touch $@
 
 # Dependencies of Service Images
-build/auth-server build/logs2email build/logs2slack build/logs2rocketchat build/logs2microsoftteams build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftjobs build/openshiftjobsmonitor build/openshiftmisc build/openshiftremove build/backup-handler build/kubernetesbuilddeploy build/kubernetesdeployqueue build/kubernetesbuilddeploymonitor build/kubernetesjobs build/kubernetesjobsmonitor build/kubernetesmisc build/kubernetesremove build/operatorhandler build/webhook-handler build/webhooks2tasks build/api build/ui: build/yarn-workspace-builder
+build/auth-server build/logs2email build/logs2slack build/logs2rocketchat build/logs2microsoftteams build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftjobs build/openshiftjobsmonitor build/openshiftmisc build/openshiftremove build/backup-handler build/kubernetesbuilddeploy build/kubernetesdeployqueue build/kubernetesbuilddeploymonitor build/kubernetesjobs build/kubernetesjobsmonitor build/kubernetesmisc build/kubernetesremove build/controllerhandler build/webhook-handler build/webhooks2tasks build/api build/ui: build/yarn-workspace-builder
 build/logs2logs-db: build/logstash__7
 build/logs-db: build/elasticsearch__7
 build/logs-db-ui: build/kibana__7
@@ -505,7 +505,7 @@ build/harborregistry: services/harbor-jobservice/Dockerfile
 build/harborregistryctl: build/harborregistry
 build/harbor-nginx: build/harborregistryctl services/harbor-core/Dockerfile services/harbor-portal/Dockerfile
 build/tests-kubernetes: build/tests
-build/tests-operator-k8s: build/tests
+build/tests-controller-kubernetes: build/tests
 build/tests-openshift: build/tests
 build/toolbox: build/mariadb
 build/api-redis: build/redis
@@ -578,22 +578,22 @@ $(all-k8s-tests): k3d kubernetes-test-services-up
 				jq -rcsR '{kubeconfig: .}')"
 
 # Define list of all tests
-all-operator-k8s-tests-list:=				features-kubernetes \
+all-controller-k8s-tests-list:=				features-kubernetes \
 														nginx \
 														drupal \
 														active-standby-kubernetes
-all-operator-k8s-tests = $(foreach image,$(all-operator-k8s-tests-list),operator-k8s-tests/$(image))
+all-controller-k8s-tests = $(foreach image,$(all-controller-k8s-tests-list),controller-k8s-tests/$(image))
 
 # Run all k8s tests
-.PHONY: operator-k8s-tests
-operator-k8s-tests: $(all-operator-k8s-tests)
+.PHONY: controller-k8s-tests
+controller-k8s-tests: $(all-controller-k8s-tests)
 
-.PHONY: $(all-operator-k8s-tests)
-$(all-operator-k8s-tests): k3d operator-kubernetes-test-services-up
+.PHONY: $(all-controller-k8s-tests)
+$(all-controller-k8s-tests): k3d controller-k8s-test-services-up
 		$(MAKE) push-local-registry -j6
-		$(eval testname = $(subst operator-k8s-tests/,,$@))
+		$(eval testname = $(subst controller-k8s-tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility run --rm \
-			tests-operator-k8s ansible-playbook --skip-tags="skip-on-kubernetes" \
+			tests-controller-kubernetes ansible-playbook --skip-tags="skip-on-kubernetes" \
 			/ansible/tests/$(testname).yaml \
 			--extra-vars \
 			"$$(cat $$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)') | \
@@ -636,7 +636,7 @@ openshift-tests: $(all-openshift-tests)
 
 # Run all tests
 .PHONY: tests
-tests: operator-k8s-tests k8s-tests openshift-tests
+tests: controller-k8s-tests k8s-tests openshift-tests
 
 # Wait for Keycloak to be ready (before this no API calls will work)
 .PHONY: wait-for-keycloak
@@ -653,8 +653,8 @@ openshift-test-services = openshiftremove openshiftbuilddeploy openshiftbuilddep
 # Define a list of which Lagoon Services are needed for kubernetes testing
 kubernetes-test-services = kubernetesbuilddeploy kubernetesdeployqueue kubernetesbuilddeploymonitor kubernetesjobs kubernetesjobsmonitor kubernetesremove kubernetesmisc tests-kubernetes local-registry local-dbaas-provider drush-alias
 
-# Define a list of which Lagoon Services are needed for kubernetes testing
-operator-kubernetes-test-services = operatorhandler kubernetesjobs kubernetesjobsmonitor kubernetesmisc tests-operator-k8s local-registry local-dbaas-provider drush-alias
+# Define a list of which Lagoon Services are needed for controller kubernetes testing
+controller-k8s-test-services = controllerhandler kubernetesjobs kubernetesjobsmonitor kubernetesmisc tests-controller-kubernetes local-registry local-dbaas-provider drush-alias
 
 # List of Lagoon Services needed for webhook endpoint testing
 webhooks-test-services = webhook-handler webhooks2tasks backup-handler
@@ -686,9 +686,9 @@ openshift-test-services-up: main-test-services-up $(foreach image,$(openshift-te
 kubernetes-test-services-up: main-test-services-up $(foreach image,$(kubernetes-test-services),build/$(image))
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d $(kubernetes-test-services)
 
-.PHONY: operator-kubernetes-test-services-up
-operator-kubernetes-test-services-up: main-test-services-up $(foreach image,$(operator-kubernetes-test-services),build/$(image))
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d $(operator-kubernetes-test-services)
+.PHONY: controller-k8s-test-services-up
+controller-k8s-test-services-up: main-test-services-up $(foreach image,$(controller-k8s-test-services),build/$(image))
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d $(controller-k8s-test-services)
 
 .PHONY: drupaltest-services-up
 drupaltest-services-up: main-test-services-up $(foreach image,$(drupal-test-services),build/$(image))
@@ -703,7 +703,7 @@ local-registry-up: build/local-registry
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d local-registry
 
 # broker-up is used to ensure the broker is running before the lagoon-builddeploy operator is installed
-# when running operator-k8s tests
+# when running controller-kubernetes tests
 .PHONY: broker-up
 broker-up: build/broker
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d broker
@@ -1107,7 +1107,7 @@ endif
 	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' create namespace lagoon-builddeploy; \
 	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add lagoon-builddeploy https://raw.githubusercontent.com/amazeeio/lagoon-kbd/main/charts ; \
 	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n lagoon-builddeploy lagoon-builddeploy lagoon-builddeploy/lagoon-builddeploy \
-		--set vars.lagoonTargetName=ci-local-operator-k8s \
+		--set vars.lagoonTargetName=ci-local-controller-kubernetes \
 		--set vars.rabbitPassword=guest \
 		--set vars.rabbitUsername=guest \
 		--set vars.rabbitHostname=172.17.0.1:5672; \

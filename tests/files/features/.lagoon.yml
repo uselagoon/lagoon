@@ -93,13 +93,13 @@ ci-multiproject2-kubernetes:
         - node:
           - multiproject2.com
 
-ci-multiproject1-operator-k8s:
+ci-multiproject1-controller-kubernetes:
   environments:
     multiproject:
       routes:
         - node:
           - multiproject1.com
-ci-multiproject2-operator-k8s:
+ci-multiproject2-controller-kubernetes:
   environments:
     multiproject:
       routes:

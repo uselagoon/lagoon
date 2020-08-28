@@ -4,7 +4,7 @@ mutation PopulateApi {
   CiLocalKubernetes: addOpenshift(
     input: {
       id: 2001
-      name: "ci-local-operator-k8s"
+      name: "ci-local-controller-kubernetes"
       consoleUrl: "https://172.17.0.1:16643/" # make-host-docker-internal
       routerPattern: "${project}.${environment}.172.17.0.1.nip.io"
       sshHost: "172.17.0.1"
@@ -19,14 +19,14 @@ mutation PopulateApi {
   CredentialstestProject1: addProject(
     input: {
       id: 2001
-      name: "credentialstest-project1-operator-k8s"
+      name: "credentialstest-project1-controller-kubernetes"
       openshift: 2001
       gitUrl: "ssh://git@172.17.0.1:2222/git/project1.git"
       productionEnvironment:"master"
-      activeSystemsTask: "lagoon_operatorJob"
-      activeSystemsMisc: "lagoon_operatorMisc"
-      activeSystemsDeploy: "lagoon_operatorBuildDeploy"
-      activeSystemsRemove: "lagoon_operatorRemove"
+      activeSystemsTask: "lagoon_controllerJob"
+      activeSystemsMisc: "lagoon_controllerMisc"
+      activeSystemsDeploy: "lagoon_controllerBuildDeploy"
+      activeSystemsRemove: "lagoon_controllerRemove"
     }
   ) {
     id
@@ -34,7 +34,7 @@ mutation PopulateApi {
   CredentialstestProject1Group1: addGroupsToProject(
     input: {
       project: {
-        name: "credentialstest-project1-operator-k8s"
+        name: "credentialstest-project1-controller-kubernetes"
       }
       groups: [
         {
@@ -48,14 +48,14 @@ mutation PopulateApi {
   CredentialstestProject2: addProject(
     input: {
       id: 2002
-      name: "credentialstest-project2-operator-k8s"
+      name: "credentialstest-project2-controller-kubernetes"
       openshift: 2001
       gitUrl: "ssh://git@172.17.0.1:2222/git/project2.git"
       productionEnvironment:"master"
-      activeSystemsTask: "lagoon_operatorJob"
-      activeSystemsMisc: "lagoon_operatorMisc"
-      activeSystemsDeploy: "lagoon_operatorBuildDeploy"
-      activeSystemsRemove: "lagoon_operatorRemove"
+      activeSystemsTask: "lagoon_controllerJob"
+      activeSystemsMisc: "lagoon_controllerMisc"
+      activeSystemsDeploy: "lagoon_controllerBuildDeploy"
+      activeSystemsRemove: "lagoon_controllerRemove"
     }
   ) {
     id
@@ -63,7 +63,7 @@ mutation PopulateApi {
   CredentialstestProject2Group2: addGroupsToProject(
     input: {
       project: {
-        name: "credentialstest-project2-operator-k8s"
+        name: "credentialstest-project2-controller-kubernetes"
       }
       groups: [
         {
@@ -77,14 +77,14 @@ mutation PopulateApi {
   CredentialstestProject3: addProject(
     input: {
       id: 2022
-      name: "credentialstest-project3-operator-k8s"
+      name: "credentialstest-project3-controller-kubernetes"
       openshift: 2001
       gitUrl: "ssh://git@172.17.0.1:2222/git/project2.git"
       productionEnvironment:"master"
-      activeSystemsTask: "lagoon_operatorJob"
-      activeSystemsMisc: "lagoon_operatorMisc"
-      activeSystemsDeploy: "lagoon_operatorBuildDeploy"
-      activeSystemsRemove: "lagoon_operatorRemove"
+      activeSystemsTask: "lagoon_controllerJob"
+      activeSystemsMisc: "lagoon_controllerMisc"
+      activeSystemsDeploy: "lagoon_controllerBuildDeploy"
+      activeSystemsRemove: "lagoon_controllerRemove"
     }
   ) {
     id
@@ -92,7 +92,7 @@ mutation PopulateApi {
   CredentialstestProject3Group3: addGroupsToProject(
     input: {
       project: {
-        name: "credentialstest-project3-operator-k8s"
+        name: "credentialstest-project3-controller-kubernetes"
       }
       groups: [
         {
@@ -108,14 +108,14 @@ mutation PopulateApi {
   CiGithub1: addProject(
     input: {
       id: 2003
-      name: "ci-github-operator-k8s"
+      name: "ci-github-controller-kubernetes"
       openshift: 2001
       gitUrl: "ssh://git@172.17.0.1:2222/git/github.git"
       productionEnvironment:"master"
-      activeSystemsTask: "lagoon_operatorJob"
-      activeSystemsMisc: "lagoon_operatorMisc"
-      activeSystemsDeploy: "lagoon_operatorBuildDeploy"
-      activeSystemsRemove: "lagoon_operatorRemove"
+      activeSystemsTask: "lagoon_controllerJob"
+      activeSystemsMisc: "lagoon_controllerMisc"
+      activeSystemsDeploy: "lagoon_controllerBuildDeploy"
+      activeSystemsRemove: "lagoon_controllerRemove"
       privateKey: "-----BEGIN RSA PRIVATE KEY-----\n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\n-----END RSA PRIVATE KEY-----"
     }
   ) {
@@ -124,7 +124,7 @@ mutation PopulateApi {
   CiGithub1Group3: addGroupsToProject(
     input: {
       project: {
-        name: "ci-github-operator-k8s"
+        name: "ci-github-controller-kubernetes"
       }
       groups: [
         {
@@ -137,7 +137,7 @@ mutation PopulateApi {
   }
   CiGithubRocketChat: addNotificationToProject(
     input: {
-      project: "ci-github-operator-k8s"
+      project: "ci-github-controller-kubernetes"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
     }
@@ -146,7 +146,7 @@ mutation PopulateApi {
   }
   CiGithubEmail: addNotificationToProject(
     input: {
-      project: "ci-github-operator-k8s"
+      project: "ci-github-controller-kubernetes"
       notificationType: EMAIL
       notificationName: "local-email-testing"
     }
@@ -161,7 +161,7 @@ mutation PopulateApi {
       deployType: BRANCH
       deployBaseRef: "master"
       environmentType: PRODUCTION
-      openshiftProjectName: "ci-local-operator-k8s"
+      openshiftProjectName: "ci-local-controller-kubernetes"
     }
   ) {
     id
@@ -170,14 +170,14 @@ mutation PopulateApi {
   CiGitlab: addProject(
     input: {
       id: 2004
-      name: "ci-gitlab-operator-k8s"
+      name: "ci-gitlab-controller-kubernetes"
       openshift: 2001
       gitUrl: "ssh://git@172.17.0.1:2222/git/gitlab.git"
       productionEnvironment:"master"
-      activeSystemsTask: "lagoon_operatorJob"
-      activeSystemsMisc: "lagoon_operatorMisc"
-      activeSystemsDeploy: "lagoon_operatorBuildDeploy"
-      activeSystemsRemove: "lagoon_operatorRemove"
+      activeSystemsTask: "lagoon_controllerJob"
+      activeSystemsMisc: "lagoon_controllerMisc"
+      activeSystemsDeploy: "lagoon_controllerBuildDeploy"
+      activeSystemsRemove: "lagoon_controllerRemove"
       privateKey: "-----BEGIN RSA PRIVATE KEY-----\n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\n-----END RSA PRIVATE KEY-----"
     }
   ) {
@@ -186,7 +186,7 @@ mutation PopulateApi {
   CiGitlabGroup3: addGroupsToProject(
     input: {
       project: {
-        name: "ci-gitlab-operator-k8s"
+        name: "ci-gitlab-controller-kubernetes"
       }
       groups: [
         {
@@ -199,7 +199,7 @@ mutation PopulateApi {
   }
   CiGitlabRocketChat: addNotificationToProject(
     input: {
-      project: "ci-gitlab-operator-k8s"
+      project: "ci-gitlab-controller-kubernetes"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
     }
@@ -208,7 +208,7 @@ mutation PopulateApi {
   }
   CiGitlabEmail: addNotificationToProject(
     input: {
-      project: "ci-gitlab-operator-k8s"
+      project: "ci-gitlab-controller-kubernetes"
       notificationType: EMAIL
       notificationName: "local-email-testing"
     }
@@ -219,14 +219,14 @@ mutation PopulateApi {
   CiBitbucket: addProject(
     input: {
       id: 2005
-      name: "ci-bitbucket-operator-k8s"
+      name: "ci-bitbucket-controller-kubernetes"
       openshift: 2001
       gitUrl: "ssh://git@172.17.0.1:2222/git/bitbucket.git"
       productionEnvironment:"master"
-      activeSystemsTask: "lagoon_operatorJob"
-      activeSystemsMisc: "lagoon_operatorMisc"
-      activeSystemsDeploy: "lagoon_operatorBuildDeploy"
-      activeSystemsRemove: "lagoon_operatorRemove"
+      activeSystemsTask: "lagoon_controllerJob"
+      activeSystemsMisc: "lagoon_controllerMisc"
+      activeSystemsDeploy: "lagoon_controllerBuildDeploy"
+      activeSystemsRemove: "lagoon_controllerRemove"
       privateKey: "-----BEGIN RSA PRIVATE KEY-----\n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\n-----END RSA PRIVATE KEY-----"
     }
   ) {
@@ -235,7 +235,7 @@ mutation PopulateApi {
   CiBitbucketGroup3: addGroupsToProject(
     input: {
       project: {
-       name: "ci-bitbucket-operator-k8s"
+       name: "ci-bitbucket-controller-kubernetes"
       }
       groups: [
         {
@@ -248,7 +248,7 @@ mutation PopulateApi {
   }
   CiBitbucketRocketChat: addNotificationToProject(
     input: {
-      project: "ci-bitbucket-operator-k8s"
+      project: "ci-bitbucket-controller-kubernetes"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
     }
@@ -257,7 +257,7 @@ mutation PopulateApi {
   }
   CiBitbucketEmail: addNotificationToProject(
     input: {
-      project: "ci-bitbucket-operator-k8s"
+      project: "ci-bitbucket-controller-kubernetes"
       notificationType: EMAIL
       notificationName: "local-email-testing"
     }
@@ -269,14 +269,14 @@ mutation PopulateApi {
   CiRest: addProject(
     input: {
       id: 2006
-      name: "ci-rest-operator-k8s"
+      name: "ci-rest-controller-kubernetes"
       openshift: 2001
       gitUrl: "ssh://git@172.17.0.1:2222/git/rest.git"
       productionEnvironment:"master"
-      activeSystemsTask: "lagoon_operatorJob"
-      activeSystemsMisc: "lagoon_operatorMisc"
-      activeSystemsDeploy: "lagoon_operatorBuildDeploy"
-      activeSystemsRemove: "lagoon_operatorRemove"
+      activeSystemsTask: "lagoon_controllerJob"
+      activeSystemsMisc: "lagoon_controllerMisc"
+      activeSystemsDeploy: "lagoon_controllerBuildDeploy"
+      activeSystemsRemove: "lagoon_controllerRemove"
       privateKey: "-----BEGIN RSA PRIVATE KEY-----\n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\n-----END RSA PRIVATE KEY-----"
     }
   ) {
@@ -285,7 +285,7 @@ mutation PopulateApi {
   CiRestGroup3: addGroupsToProject(
     input: {
       project: {
-        name: "ci-rest-operator-k8s"
+        name: "ci-rest-controller-kubernetes"
       }
       groups: [
         {
@@ -298,7 +298,7 @@ mutation PopulateApi {
   }
   CiRestRocketChat: addNotificationToProject(
     input: {
-      project: "ci-rest-operator-k8s"
+      project: "ci-rest-controller-kubernetes"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
     }
@@ -307,7 +307,7 @@ mutation PopulateApi {
   }
   CiRestEmail: addNotificationToProject(
     input: {
-      project: "ci-rest-operator-k8s"
+      project: "ci-rest-controller-kubernetes"
       notificationType: EMAIL
       notificationName: "local-email-testing"
     }
@@ -318,14 +318,14 @@ mutation PopulateApi {
   CiNode: addProject(
     input: {
       id: 2007
-      name: "ci-node-operator-k8s"
+      name: "ci-node-controller-kubernetes"
       openshift: 2001
       gitUrl: "ssh://git@172.17.0.1:2222/git/node.git"
       productionEnvironment:"master"
-      activeSystemsTask: "lagoon_operatorJob"
-      activeSystemsMisc: "lagoon_operatorMisc"
-      activeSystemsDeploy: "lagoon_operatorBuildDeploy"
-      activeSystemsRemove: "lagoon_operatorRemove"
+      activeSystemsTask: "lagoon_controllerJob"
+      activeSystemsMisc: "lagoon_controllerMisc"
+      activeSystemsDeploy: "lagoon_controllerBuildDeploy"
+      activeSystemsRemove: "lagoon_controllerRemove"
       privateKey: "-----BEGIN RSA PRIVATE KEY-----\n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\n-----END RSA PRIVATE KEY-----"
     }
   ) {
@@ -334,7 +334,7 @@ mutation PopulateApi {
   CiNodeGroup3: addGroupsToProject(
     input: {
       project: {
-        name: "ci-node-operator-k8s"
+        name: "ci-node-controller-kubernetes"
       }
       groups: [
         {
@@ -347,7 +347,7 @@ mutation PopulateApi {
   }
   CiNodeRocketChat: addNotificationToProject(
     input: {
-      project: "ci-node-operator-k8s"
+      project: "ci-node-controller-kubernetes"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
     }
@@ -356,7 +356,7 @@ mutation PopulateApi {
   }
   CiNodeEmail: addNotificationToProject(
     input: {
-      project: "ci-node-operator-k8s"
+      project: "ci-node-controller-kubernetes"
       notificationType: EMAIL
       notificationName: "local-email-testing"
     }
@@ -367,14 +367,14 @@ mutation PopulateApi {
   CiMultiproject1: addProject(
     input: {
       id: 2008
-      name: "ci-multiproject1-operator-k8s"
+      name: "ci-multiproject1-controller-kubernetes"
       openshift: 2001
       gitUrl: "ssh://git@172.17.0.1:2222/git/multiproject.git"
       productionEnvironment:"master"
-      activeSystemsTask: "lagoon_operatorJob"
-      activeSystemsMisc: "lagoon_operatorMisc"
-      activeSystemsDeploy: "lagoon_operatorBuildDeploy"
-      activeSystemsRemove: "lagoon_operatorRemove"
+      activeSystemsTask: "lagoon_controllerJob"
+      activeSystemsMisc: "lagoon_controllerMisc"
+      activeSystemsDeploy: "lagoon_controllerBuildDeploy"
+      activeSystemsRemove: "lagoon_controllerRemove"
       privateKey: "-----BEGIN RSA PRIVATE KEY-----\n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\n-----END RSA PRIVATE KEY-----"
     }
   ) {
@@ -383,7 +383,7 @@ mutation PopulateApi {
   CiMultiproject1Group3: addGroupsToProject(
     input: {
       project: {
-        name: "ci-multiproject1-operator-k8s"
+        name: "ci-multiproject1-controller-kubernetes"
       }
       groups: [
         {
@@ -396,7 +396,7 @@ mutation PopulateApi {
   }
   CiMultiproject1RocketChat: addNotificationToProject(
     input: {
-      project: "ci-multiproject1-operator-k8s"
+      project: "ci-multiproject1-controller-kubernetes"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
     }
@@ -405,7 +405,7 @@ mutation PopulateApi {
   }
   CiMultiproject1Email: addNotificationToProject(
     input: {
-      project: "ci-multiproject1-operator-k8s"
+      project: "ci-multiproject1-controller-kubernetes"
       notificationType: EMAIL
       notificationName: "local-email-testing"
     }
@@ -416,14 +416,14 @@ mutation PopulateApi {
   CiMultiproject2: addProject(
     input: {
       id: 2009
-      name: "ci-multiproject2-operator-k8s"
+      name: "ci-multiproject2-controller-kubernetes"
       openshift: 2001
       gitUrl: "ssh://git@172.17.0.1:2222/git/multiproject.git"
       productionEnvironment:"master"
-      activeSystemsTask: "lagoon_operatorJob"
-      activeSystemsMisc: "lagoon_operatorMisc"
-      activeSystemsDeploy: "lagoon_operatorBuildDeploy"
-      activeSystemsRemove: "lagoon_operatorRemove"
+      activeSystemsTask: "lagoon_controllerJob"
+      activeSystemsMisc: "lagoon_controllerMisc"
+      activeSystemsDeploy: "lagoon_controllerBuildDeploy"
+      activeSystemsRemove: "lagoon_controllerRemove"
       privateKey: "-----BEGIN RSA PRIVATE KEY-----\n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\n-----END RSA PRIVATE KEY-----"
     }
   ) {
@@ -432,7 +432,7 @@ mutation PopulateApi {
   CiMultiproject2Group3: addGroupsToProject(
     input: {
       project: {
-        name: "ci-multiproject2-operator-k8s"
+        name: "ci-multiproject2-controller-kubernetes"
       }
       groups: [
         {
@@ -445,7 +445,7 @@ mutation PopulateApi {
   }
   CiMultiproject2RocketChat: addNotificationToProject(
     input: {
-      project: "ci-multiproject2-operator-k8s"
+      project: "ci-multiproject2-controller-kubernetes"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
     }
@@ -454,7 +454,7 @@ mutation PopulateApi {
   }
   CiMultiproject2Email: addNotificationToProject(
     input: {
-      project: "ci-multiproject2-operator-k8s"
+      project: "ci-multiproject2-controller-kubernetes"
       notificationType: EMAIL
       notificationName: "local-email-testing"
     }
@@ -465,14 +465,14 @@ mutation PopulateApi {
   CiDrupal: addProject(
     input: {
       id: 2010
-      name: "ci-drupal-operator-k8s"
+      name: "ci-drupal-controller-kubernetes"
       openshift: 2001
       developmentEnvironmentsLimit: 10
       gitUrl: "ssh://git@172.17.0.1:2222/git/drupal.git"
-      activeSystemsTask: "lagoon_operatorJob"
-      activeSystemsMisc: "lagoon_operatorMisc"
-      activeSystemsDeploy: "lagoon_operatorBuildDeploy"
-      activeSystemsRemove: "lagoon_operatorRemove"
+      activeSystemsTask: "lagoon_controllerJob"
+      activeSystemsMisc: "lagoon_controllerMisc"
+      activeSystemsDeploy: "lagoon_controllerBuildDeploy"
+      activeSystemsRemove: "lagoon_controllerRemove"
       productionEnvironment:"master"
       privateKey: "-----BEGIN RSA PRIVATE KEY-----\n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\n-----END RSA PRIVATE KEY-----"
     }
@@ -482,7 +482,7 @@ mutation PopulateApi {
   CiDrupalGroup3: addGroupsToProject(
     input: {
       project: {
-        name: "ci-drupal-operator-k8s"
+        name: "ci-drupal-controller-kubernetes"
       }
       groups: [
         {
@@ -495,7 +495,7 @@ mutation PopulateApi {
   }
   CiDrupalRocketChat: addNotificationToProject(
     input: {
-      project: "ci-drupal-operator-k8s"
+      project: "ci-drupal-controller-kubernetes"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
     }
@@ -505,7 +505,7 @@ mutation PopulateApi {
 
   CiDrupalEmail: addNotificationToProject(
     input: {
-      project: "ci-drupal-operator-k8s"
+      project: "ci-drupal-controller-kubernetes"
       notificationType: EMAIL
       notificationName: "local-email-testing"
     }
@@ -516,15 +516,15 @@ mutation PopulateApi {
   CiNginx: addProject(
     input: {
       id: 2011
-      name: "ci-nginx-operator-k8s"
+      name: "ci-nginx-controller-kubernetes"
       openshift: 2001
       gitUrl: "ssh://git@172.17.0.1:2222/git/nginx.git"
       productionEnvironment:"master"
       privateKey: "-----BEGIN RSA PRIVATE KEY-----\n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\n-----END RSA PRIVATE KEY-----"
-      activeSystemsTask: "lagoon_operatorJob"
-      activeSystemsMisc: "lagoon_operatorMisc"
-      activeSystemsDeploy: "lagoon_operatorBuildDeploy"
-      activeSystemsRemove: "lagoon_operatorRemove"
+      activeSystemsTask: "lagoon_controllerJob"
+      activeSystemsMisc: "lagoon_controllerMisc"
+      activeSystemsDeploy: "lagoon_controllerBuildDeploy"
+      activeSystemsRemove: "lagoon_controllerRemove"
     }
   ) {
     id
@@ -532,7 +532,7 @@ mutation PopulateApi {
   CiNginxGroup3: addGroupsToProject(
     input: {
       project: {
-        name: "ci-nginx-operator-k8s"
+        name: "ci-nginx-controller-kubernetes"
       }
       groups: [
         {
@@ -545,7 +545,7 @@ mutation PopulateApi {
   }
   CiNginxRocketChat: addNotificationToProject(
     input: {
-      project: "ci-nginx-operator-k8s"
+      project: "ci-nginx-controller-kubernetes"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
     }
@@ -554,7 +554,7 @@ mutation PopulateApi {
   }
   CiNginxEmail: addNotificationToProject(
     input: {
-      project: "ci-nginx-operator-k8s"
+      project: "ci-nginx-controller-kubernetes"
       notificationType: EMAIL
       notificationName: "local-email-testing"
     }
@@ -565,15 +565,15 @@ mutation PopulateApi {
   CiFeatures: addProject(
     input: {
       id: 2012
-      name: "ci-features-operator-k8s"
+      name: "ci-features-controller-kubernetes"
       openshift: 2001
       gitUrl: "ssh://git@172.17.0.1:2222/git/features.git"
       productionEnvironment: "master"
       privateKey: "-----BEGIN RSA PRIVATE KEY-----\n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\n-----END RSA PRIVATE KEY-----"
-      activeSystemsTask: "lagoon_operatorJob"
-      activeSystemsMisc: "lagoon_operatorMisc"
-      activeSystemsDeploy: "lagoon_operatorBuildDeploy"
-      activeSystemsRemove: "lagoon_operatorRemove"
+      activeSystemsTask: "lagoon_controllerJob"
+      activeSystemsMisc: "lagoon_controllerMisc"
+      activeSystemsDeploy: "lagoon_controllerBuildDeploy"
+      activeSystemsRemove: "lagoon_controllerRemove"
     }
   ) {
     id
@@ -581,7 +581,7 @@ mutation PopulateApi {
   CiFeaturesGroup3: addGroupsToProject(
     input: {
       project: {
-        name: "ci-features-operator-k8s"
+        name: "ci-features-controller-kubernetes"
       }
       groups: [
         {
@@ -600,7 +600,7 @@ mutation PopulateApi {
       deployType: BRANCH
       deployBaseRef: "lagoon-api-variables"
       environmentType: PRODUCTION
-      openshiftProjectName: "ci-features-operator-k8s-lagoon-api-variables"
+      openshiftProjectName: "ci-features-controller-kubernetes-lagoon-api-variables"
     }
   ) {
     id
@@ -688,7 +688,7 @@ mutation PopulateApi {
 
   CiFeaturesRocketChat: addNotificationToProject(
     input: {
-      project: "ci-features-operator-k8s"
+      project: "ci-features-controller-kubernetes"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
     }
@@ -697,7 +697,7 @@ mutation PopulateApi {
   }
   CiFeaturesEmail: addNotificationToProject(
     input: {
-      project: "ci-features-operator-k8s"
+      project: "ci-features-controller-kubernetes"
       notificationType: EMAIL
       notificationName: "local-email-testing"
     }
@@ -708,15 +708,15 @@ mutation PopulateApi {
   CiFeaturesSubfolder: addProject(
     input: {
       id: 2017
-      name: "ci-features-subfolder-operator-k8s"
+      name: "ci-features-subfolder-controller-kubernetes"
       openshift: 2001
       gitUrl: "ssh://git@172.17.0.1:2222/git/features-subfolder.git"
       productionEnvironment: "master"
       subfolder: "subfolder1/subfolder2"
-      activeSystemsTask: "lagoon_operatorJob"
-      activeSystemsMisc: "lagoon_operatorMisc"
-      activeSystemsDeploy: "lagoon_operatorBuildDeploy"
-      activeSystemsRemove: "lagoon_operatorRemove"
+      activeSystemsTask: "lagoon_controllerJob"
+      activeSystemsMisc: "lagoon_controllerMisc"
+      activeSystemsDeploy: "lagoon_controllerBuildDeploy"
+      activeSystemsRemove: "lagoon_controllerRemove"
       privateKey: "-----BEGIN RSA PRIVATE KEY-----\n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\n-----END RSA PRIVATE KEY-----"
     }
   ) {
@@ -726,7 +726,7 @@ mutation PopulateApi {
   CiFeaturesSubfolderGroup3: addGroupsToProject(
     input: {
       project: {
-        name: "ci-features-subfolder-operator-k8s"
+        name: "ci-features-subfolder-controller-kubernetes"
       }
       groups: [
         {
@@ -740,7 +740,7 @@ mutation PopulateApi {
 
   CiFeaturesSubfolderRocketChat: addNotificationToProject(
     input: {
-      project: "ci-features-subfolder-operator-k8s"
+      project: "ci-features-subfolder-controller-kubernetes"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
     }
@@ -749,7 +749,7 @@ mutation PopulateApi {
   }
   CiFeaturesSubfolderEmail: addNotificationToProject(
     input: {
-      project: "ci-features-subfolder-operator-k8s"
+      project: "ci-features-subfolder-controller-kubernetes"
       notificationType: EMAIL
       notificationName: "local-email-testing"
     }
@@ -760,14 +760,14 @@ mutation PopulateApi {
   CiElasticsearch: addProject(
     input: {
       id: 2014
-      name: "ci-elasticsearch-operator-k8s"
+      name: "ci-elasticsearch-controller-kubernetes"
       openshift: 2001
       gitUrl: "ssh://git@172.17.0.1:2222/git/elasticsearch.git"
       productionEnvironment: "master"
-      activeSystemsTask: "lagoon_operatorJob"
-      activeSystemsMisc: "lagoon_operatorMisc"
-      activeSystemsDeploy: "lagoon_operatorBuildDeploy"
-      activeSystemsRemove: "lagoon_operatorRemove"
+      activeSystemsTask: "lagoon_controllerJob"
+      activeSystemsMisc: "lagoon_controllerMisc"
+      activeSystemsDeploy: "lagoon_controllerBuildDeploy"
+      activeSystemsRemove: "lagoon_controllerRemove"
       privateKey: "-----BEGIN RSA PRIVATE KEY-----\nMIIJKAIBAAKCAgEAxGZZrOV7Islo5p51Moabfd1YB8qbHvQZfJDZJmSU4jNxMf8G\nQH8KIM6ndi60xIiDlkh9R50Gs0fgnPaBwpjMjcUay5EvzBJdMmd/EPhg359+4f5Z\nQiGTVaB5UoGJKg9DEK4Xxi+QLpQ1CiJXvd3QOqnQlJZ2WYwz4kdLxF0d+sRrl+0G\nAISt9Gg9kq6wa7k7RRr4/OyD/9DhDr1GXvHXFPRv6QqKq084CqiUaarP7OcbZKi5\nEyMkf0s86ZTttQPqQijWsenLAw6t7J0vM38eojPDMFX4fJ7wVvbHmsdcwb2YxwD0\nk7I85mV5uM99v7owJ/0YSJGcN2YESq8c68rbRp1iSfDhchd9SUyYMFlrj3R+dxte\nTwvN2W5hIEld8Ip+dUWUVaaTeLkFLmqmVhvcMJNmuj+Wnp9USwki6U5HdpgBJPT5\nYJia3/LyE5IlPaRfZ+vBDQqKOeeqkncVtqcZ468ylT0qpqjtV4OSuCzl+P/TeJ+K\npCxDoqp88yQpYRYn9ztvEVvOkT8RERnT0/NVCNKAwHFOXrkK/BJs/h3fj2NddeVC\nJXdwiB4m+T2C/RHtGxVColqUf2nEntXxweuJgqBz+4YxXqRrKu4p5L4NuudcFAyg\nbIRpbaTZDI+vmmXnTXNP6ymMo5fNJ0/IPEBAoDkkc6ZmKdM5Yth6RaCzolsCAwEA\nAQKCAgBRL4n0SaxcFevyISCLMU+HeP8RwXPcGMWMU4ggMcXFt8QcCbK46Ir0QtjA\nps/8yf2zGuYGu2dwps63s8KyAV3VYNwRuEOM1S6HTncdOb850YGuw+h7yMtRwxND\nwt5Db6mmdIDJYRH13zgJp2ajytRv25CoS4ZCwA0WhahRVLi214kudUFc53vNI2YI\ng4PUE+7nQx4X12E9V0ghQqabStdBB0ZXjA8Ef6vH5CXthDmNUX9mXcSbn5RPtndI\ni1Kz2Bl3HdCaHO3ZprDItbU0UWEFZeZSzcb5JO5u1HZwiebTA5/q638uqqg4CUyG\n0+bEYZ/Ud/AY13A/CkHN6ZNH+UQotCH3GLyaTQq6OhyXlgMBojn3xs9iMUclFcuy\nkbZ1jAxqci25pxCIeNDHBDKRyxgSkDPna8ZZ4eKGXjIZzsds4+IDkYJLMg0OCtd2\nKm+ZPM2CFU2YCqt11dlr0higGK/9gdpajJMVgEYAmigQ670LdcBc4XIOpPMrR70a\nPjbF9ze/UqtKDWtz8KMIUcvr0CjhHa3XRgMJiM34hIOZU6xf6rjEgkN2Geq24u1b\nhUW8URb+5dcasQ9iIfkNn3R+zK5PzyvQNf6+XrbVjpLqPHXJYrD85EKlXkPqiE6y\n3ehYMrIaZIY6gMuIVcg8AEtsm5EwQY7ETw4YnMQLKfyweLsHEQKCAQEA5vavDyQj\nn6PqfF1Ntr3N/FfwRr/167HB+/3wHT+FwRpCw62ACeBC0iFXmzG2wfQfot60fUGa\nQEJiUDGZFvBM0tiTpzmgGG7QpRbPe1919Sl5LZeLA9bngRnmqn5zAkmVTeBCO/4F\nMSk9hnBZ0v0W3DqNmjuIH298g3gl4VJeKpILd62LbhjvhjT/LXlekYDEj3p9Xob8\n1OQxFJgftFyg4P07RRaUzsNLhqEdY3VxDcUMb9459fEYeb7sYig+zVPaZQ31aMVK\nj6K+XiH5M5uKJWkPdMDUG84jreFAdBY9kGCuSulTWgmTLlMKSI85q5hkckY2EQQL\n5u456xfyuFcnEwKCAQEA2bCCcqcGIAiMwk/6z7XIJeUsSUg+ObvkEdogk5n6Y1Ea\nt5LxMpQzhG6SHJ2f38VyKgv9e/jnwXI8eiejper6OeQEBG4+AedcLYi0V5SUMIgD\nX4bxT9+qCwYrwt9YHkJySk237WZUWJPVfxHg0vqNYyD/CXBowx0nm8jEuZ8iT+CW\nO2uZq+0DO2WqoYT54lZux6aEzm+oAkzwJJVXJcUVPg7bJXK1ObOzvHpkZJxHL8+S\nKufzew/CXALKWHoCkEP/P8b7oxjcjQI3KK0EM2fABNvN28+qscqTqQjfAsNw24Ob\nP8rL8amgd/x7iddIbEpOSoLAH1gVoxJXA0oqkC6YmQKCAQEAiIeoomW1nUgTdCLf\nrrfyzUnaoqgVIpf42RKa319OnQD+GJg2iSAFwBuvovE3XN4H2YqW3Thri7LyVP+M\nxM+WSkl2tzLMXcUcF4staXvbyeoTVQ0xQzrFrT53aa/IIsEGvntkC/y0awQ6937w\nylWMLvF6BYNNi2+nBjx+//xl5/pfRwbS1mltJkOr2ODXM2IQT9STyc44JU0jak4m\n58Kd44IuiD+6BaPSwKn7KnEhPIeQO4z9bFJyKn3fVIL/5Pa9smEXAjEmS1Rj/ldM\n7eHzPvwlA9p9SFaKJt5x8G25ROCyB1x4RlBEreyutofcCoDSV+8DRPnEY2XN3RhS\nBgCW+wKCAQAyHrqaDSyS2YUXA/UaN59CYlZk9PYmssTa+16+vRfyH+1H0NQpsgd+\neTq4ze3ORpZ3adVN4svxNQ0JjvDVtZkxFPd70aoDJDKL5UqoU3QfDGHCb75FhpiO\n+ze+IVAXf3Ly+pvbU9Edp8PjAsnBqaA9743orXHhYmgJLRtmJWZv/6R3P9ncxLAW\nz9yOXaBu5TmSTBuNsBV9mhs8QQoUjyDJ7f+0yolBJMfAIGnW5EhbkK31pPvhHIrC\nRn4yCr1mW9F77KNpNMMq0BTFD7jE4SFLvRPThSem0Z5Xr8wwxbDJSa7H7DgyhryE\ng6Qp42AwVpdZ/mqfjNdGeWWBQ2UzVxcZAoIBAHNXgjD3umcKciYRAbltNJrXx9xk\ndAv8I69oEMCy4hCmvKUjy/UI9NqXFjBb/G6VGgh6NUE9o9o27t1Y5Plm0izyCA1M\nDFruaRfjyJ8qjbEifcqRtcF3rzsBiXIwdmbN6qT4PUipN2elpUAd7J1OIwGIIe3u\nCWNyOTNL+2+oQ/Eg1Y99mg3yrsVyOwhynVE80/X5cy07bXXR5rv1x4NKSVbPhlnt\nL6J5iAoqoDKICzjcgF5x3mj9YFWZrC3aRxRrN5RoEgeVdcXeK56UJqXHjmKN++m3\nc8OPEIBZiD8UJuhSNSOLiBFrGz6toy6rpHavqqknGhVWotXsAs1h8LNkBe8=\n-----END RSA PRIVATE KEY-----"
     }
   ) {
@@ -776,7 +776,7 @@ mutation PopulateApi {
   CiElasticsearchGroup3: addGroupsToProject(
     input: {
       project: {
-        name: "ci-elasticsearch-operator-k8s"
+        name: "ci-elasticsearch-controller-kubernetes"
       }
       groups: [
         {
@@ -789,7 +789,7 @@ mutation PopulateApi {
   }
   CiElasticsearchRocketChat: addNotificationToProject(
     input: {
-      project: "ci-elasticsearch-operator-k8s"
+      project: "ci-elasticsearch-controller-kubernetes"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
     }
@@ -798,7 +798,7 @@ mutation PopulateApi {
   }
   CiElasticsearchEmail: addNotificationToProject(
     input: {
-      project: "ci-elasticsearch-operator-k8s"
+      project: "ci-elasticsearch-controller-kubernetes"
       notificationType: EMAIL
       notificationName: "local-email-testing"
     }
@@ -809,14 +809,14 @@ mutation PopulateApi {
   CiDrupalPostgres: addProject(
     input: {
       id: 2016
-      name: "ci-drupal-postgres-operator-k8s"
+      name: "ci-drupal-postgres-controller-kubernetes"
       openshift: 2001
       gitUrl: "ssh://git@172.17.0.1:2222/git/drupal-postgres.git"
       productionEnvironment:"master"
-      activeSystemsTask: "lagoon_operatorJob"
-      activeSystemsMisc: "lagoon_operatorMisc"
-      activeSystemsDeploy: "lagoon_operatorBuildDeploy"
-      activeSystemsRemove: "lagoon_operatorRemove"
+      activeSystemsTask: "lagoon_controllerJob"
+      activeSystemsMisc: "lagoon_controllerMisc"
+      activeSystemsDeploy: "lagoon_controllerBuildDeploy"
+      activeSystemsRemove: "lagoon_controllerRemove"
       privateKey: "-----BEGIN RSA PRIVATE KEY-----\n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\n-----END RSA PRIVATE KEY-----"
     }
   ) {
@@ -825,7 +825,7 @@ mutation PopulateApi {
   CiDrupalPostgresGroup3: addGroupsToProject(
     input: {
       project: {
-        name: "ci-drupal-postgres-operator-k8s"
+        name: "ci-drupal-postgres-controller-kubernetes"
       }
       groups: [
         {
@@ -838,7 +838,7 @@ mutation PopulateApi {
   }
   CiDrupalPostgresRocketChat: addNotificationToProject(
     input: {
-      project: "ci-drupal-postgres-operator-k8s"
+      project: "ci-drupal-postgres-controller-kubernetes"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
     }
@@ -847,7 +847,7 @@ mutation PopulateApi {
   }
   CiDrupalPostgresEmail: addNotificationToProject(
     input: {
-      project: "ci-drupal-postgres-operator-k8s"
+      project: "ci-drupal-postgres-controller-kubernetes"
       notificationType: EMAIL
       notificationName: "local-email-testing"
     }
@@ -858,14 +858,14 @@ mutation PopulateApi {
   CiSolr: addProject(
     input: {
       id: 2020
-      name: "ci-solr-operator-k8s"
+      name: "ci-solr-controller-kubernetes"
       openshift: 2001
       gitUrl: "ssh://git@172.17.0.1:2222/git/solr.git"
       productionEnvironment:"master"
-      activeSystemsTask: "lagoon_operatorJob"
-      activeSystemsMisc: "lagoon_operatorMisc"
-      activeSystemsDeploy: "lagoon_operatorBuildDeploy"
-      activeSystemsRemove: "lagoon_operatorRemove"
+      activeSystemsTask: "lagoon_controllerJob"
+      activeSystemsMisc: "lagoon_controllerMisc"
+      activeSystemsDeploy: "lagoon_controllerBuildDeploy"
+      activeSystemsRemove: "lagoon_controllerRemove"
       privateKey: "-----BEGIN RSA PRIVATE KEY-----\n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\n-----END RSA PRIVATE KEY-----"
     }
   ) {
@@ -874,7 +874,7 @@ mutation PopulateApi {
   CiSolrGroup3: addGroupsToProject(
     input: {
       project: {
-        name: "ci-solr-operator-k8s"
+        name: "ci-solr-controller-kubernetes"
       }
       groups: [
         {
@@ -887,7 +887,7 @@ mutation PopulateApi {
   }
   CiSolrRocketChat: addNotificationToProject(
     input: {
-      project: "ci-solr-operator-k8s"
+      project: "ci-solr-controller-kubernetes"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
     }
@@ -896,7 +896,7 @@ mutation PopulateApi {
   }
   CiSolrEmail: addNotificationToProject(
     input: {
-      project: "ci-solr-operator-k8s"
+      project: "ci-solr-controller-kubernetes"
       notificationType: EMAIL
       notificationName: "local-email-testing"
     }
@@ -907,14 +907,14 @@ mutation PopulateApi {
   CiApi: addProject(
     input: {
       id: 2021
-      name: "ci-api-operator-k8s"
+      name: "ci-api-controller-kubernetes"
       openshift: 2001
       gitUrl: "ssh://git@172.17.0.1:2222/git/api.git"
       productionEnvironment: "master"
-      activeSystemsTask: "lagoon_operatorJob"
-      activeSystemsMisc: "lagoon_operatorMisc"
-      activeSystemsDeploy: "lagoon_operatorBuildDeploy"
-      activeSystemsRemove: "lagoon_operatorRemove"
+      activeSystemsTask: "lagoon_controllerJob"
+      activeSystemsMisc: "lagoon_controllerMisc"
+      activeSystemsDeploy: "lagoon_controllerBuildDeploy"
+      activeSystemsRemove: "lagoon_controllerRemove"
       privateKey: "-----BEGIN RSA PRIVATE KEY-----\n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\n-----END RSA PRIVATE KEY-----"
     }
   ) {
@@ -923,7 +923,7 @@ mutation PopulateApi {
   CiApiGroup3: addGroupsToProject(
     input: {
       project: {
-        name: "ci-api-operator-k8s"
+        name: "ci-api-controller-kubernetes"
       }
       groups: [
         {
@@ -936,7 +936,7 @@ mutation PopulateApi {
   }
   CiApiRocketChat: addNotificationToProject(
     input: {
-      project: "ci-api-operator-k8s"
+      project: "ci-api-controller-kubernetes"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
     }
@@ -945,7 +945,7 @@ mutation PopulateApi {
   }
   CiApiEmail: addNotificationToProject(
     input: {
-      project: "ci-api-operator-k8s"
+      project: "ci-api-controller-kubernetes"
       notificationType: EMAIL
       notificationName: "local-email-testing"
     }
@@ -958,15 +958,15 @@ mutation PopulateApi {
   CILimit: addProject(
     input: {
       id: 2019
-      name: "ci-env-limit-operator-k8s"
+      name: "ci-env-limit-controller-kubernetes"
       productionEnvironment: "master"
       openshift: 2001
       developmentEnvironmentsLimit: 2
       gitUrl: "ssh://git@172.17.0.1:2222/git/node.git"
-      activeSystemsTask: "lagoon_operatorJob"
-      activeSystemsMisc: "lagoon_operatorMisc"
-      activeSystemsDeploy: "lagoon_operatorBuildDeploy"
-      activeSystemsRemove: "lagoon_operatorRemove"
+      activeSystemsTask: "lagoon_controllerJob"
+      activeSystemsMisc: "lagoon_controllerMisc"
+      activeSystemsDeploy: "lagoon_controllerBuildDeploy"
+      activeSystemsRemove: "lagoon_controllerRemove"
       privateKey: "-----BEGIN RSA PRIVATE KEY-----\n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\n-----END RSA PRIVATE KEY-----"
     }
   ) {
@@ -976,7 +976,7 @@ mutation PopulateApi {
   CILimitGroup3: addGroupsToProject(
     input: {
       project: {
-        name: "ci-env-limit-operator-k8s"
+        name: "ci-env-limit-controller-kubernetes"
       }
       groups: [
         {
@@ -1033,16 +1033,16 @@ mutation PopulateApi {
   CIPicky: addProject(
       input: {
         id: 2013
-        name: "ci-branch-picky-operator-k8s"
+        name: "ci-branch-picky-controller-kubernetes"
         productionEnvironment: "master"
         openshift: 2001
         branches: "^feature/|^(dev|test|develop|master)$"
         developmentEnvironmentsLimit: 5
         gitUrl: "ssh://git@172.17.0.1:2222/git/node.git"
-        activeSystemsTask: "lagoon_operatorJob"
-        activeSystemsMisc: "lagoon_operatorMisc"
-        activeSystemsDeploy: "lagoon_operatorBuildDeploy"
-        activeSystemsRemove: "lagoon_operatorRemove"
+        activeSystemsTask: "lagoon_controllerJob"
+        activeSystemsMisc: "lagoon_controllerMisc"
+        activeSystemsDeploy: "lagoon_controllerBuildDeploy"
+        activeSystemsRemove: "lagoon_controllerRemove"
         privateKey: "-----BEGIN RSA PRIVATE KEY-----\n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\n-----END RSA PRIVATE KEY-----"
       }
     ) {
@@ -1052,7 +1052,7 @@ mutation PopulateApi {
   CIPickyGroup1: addGroupsToProject(
       input: {
         project: {
-          name: "ci-branch-picky-operator-k8s"
+          name: "ci-branch-picky-controller-kubernetes"
         }
         groups: [
           {
@@ -1123,15 +1123,15 @@ mutation PopulateApi {
     CiActiveStandby: addProject(
       input: {
         id: 2024
-        name: "ci-active-standby-operator-k8s"
+        name: "ci-active-standby-controller-kubernetes"
         openshift: 2001
         gitUrl: "ssh://git@192.168.42.1:2222/git/active-standby.git"
         productionEnvironment:"master-a"
         standbyProductionEnvironment:"master-b"
-        activeSystemsTask: "lagoon_operatorJob"
-        activeSystemsMisc: "lagoon_operatorMisc"
-        activeSystemsDeploy: "lagoon_operatorBuildDeploy"
-        activeSystemsRemove: "lagoon_operatorRemove"
+        activeSystemsTask: "lagoon_controllerJob"
+        activeSystemsMisc: "lagoon_controllerMisc"
+        activeSystemsDeploy: "lagoon_controllerBuildDeploy"
+        activeSystemsRemove: "lagoon_controllerRemove"
         privateKey: "-----BEGIN RSA PRIVATE KEY-----\n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\n-----END RSA PRIVATE KEY-----"
       }
     ) {
@@ -1140,7 +1140,7 @@ mutation PopulateApi {
     CiActiveStandbyGroup3: addGroupsToProject(
       input: {
         project: {
-          name: "ci-active-standby-operator-k8s"
+          name: "ci-active-standby-controller-kubernetes"
         }
         groups: [
           {
@@ -1153,7 +1153,7 @@ mutation PopulateApi {
     }
     CiActiveStandbyRocketChat: addNotificationToProject(
       input: {
-        project: "ci-active-standby-operator-k8s"
+        project: "ci-active-standby-controller-kubernetes"
         notificationType: ROCKETCHAT
         notificationName: "amazeeio--lagoon-local-ci"
       }
@@ -1162,7 +1162,7 @@ mutation PopulateApi {
     }
     CiActiveStandbyEmail: addNotificationToProject(
       input: {
-        project: "ci-active-standby-operator-k8s"
+        project: "ci-active-standby-controller-kubernetes"
         notificationType: EMAIL
         notificationName: "local-email-testing"
       }

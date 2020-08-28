@@ -198,16 +198,16 @@ services:
       lagoon.type: custom
       lagoon.template: services/kubernetesremove/.lagoon.app.yml
       lagoon.image: amazeeiolagoon/kubernetesremove:v1-8-2
-  operatorhandler:
-    image: ${IMAGE_REPO:-lagoon}/operatorhandler
+  controllerhandler:
+    image: ${IMAGE_REPO:-lagoon}/controllerhandler
     command: yarn run dev
     volumes:
-      - ./services/operatorhandler/src:/app/services/operatorhandler/src
+      - ./services/controllerhandler/src:/app/services/controllerhandler/src
       - ./node-packages:/app/node-packages:delegated
     labels:
       lagoon.type: custom
-      lagoon.template: services/operatorhandler/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/operatorhandler:v1-8-2
+      lagoon.template: services/controllerhandler/.lagoon.app.yml
+      lagoon.image: amazeeiolagoon/controllerhandler:v1-8-2
   logs2rocketchat:
     image: ${IMAGE_REPO:-lagoon}/logs2rocketchat
     command: yarn run dev
@@ -381,10 +381,10 @@ services:
       - ./tests:/ansible
     labels:
       lagoon.type: none
-  tests-operator-k8s:
+  tests-controller-kubernetes:
     image: ${IMAGE_REPO:-lagoon}/tests
     environment:
-      - CLUSTER_TYPE=operator-k8s
+      - CLUSTER_TYPE=controller-kubernetes
       - WEBHOOK_HOST=webhook-handler
       - WEBHOOK_PORT=3000
       - WEBHOOK_PROTOCOL=http
