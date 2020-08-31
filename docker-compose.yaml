@@ -384,7 +384,7 @@ services:
   tests-controller-kubernetes:
     image: ${IMAGE_REPO:-lagoon}/tests
     environment:
-      - CLUSTER_TYPE=controller-kubernetes
+      - CLUSTER_TYPE=control-k8s
       - WEBHOOK_HOST=webhook-handler
       - WEBHOOK_PORT=3000
       - WEBHOOK_PROTOCOL=http

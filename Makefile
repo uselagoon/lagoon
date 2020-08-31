@@ -1107,7 +1107,7 @@ endif
 	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' create namespace lagoon-builddeploy; \
 	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add lagoon-builddeploy https://raw.githubusercontent.com/amazeeio/lagoon-kbd/main/charts ; \
 	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n lagoon-builddeploy lagoon-builddeploy lagoon-builddeploy/lagoon-builddeploy \
-		--set vars.lagoonTargetName=ci-local-controller-kubernetes \
+		--set vars.lagoonTargetName=ci-local-control-k8s \
 		--set vars.rabbitPassword=guest \
 		--set vars.rabbitUsername=guest \
 		--set vars.rabbitHostname=172.17.0.1:5672; \

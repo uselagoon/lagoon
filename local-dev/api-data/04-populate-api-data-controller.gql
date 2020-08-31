@@ -4,7 +4,7 @@ mutation PopulateApi {
   CiLocalKubernetes: addOpenshift(
     input: {
       id: 2001
-      name: "ci-local-controller-kubernetes"
+      name: "ci-local-control-k8s"
       consoleUrl: "https://172.17.0.1:16643/" # make-host-docker-internal
       routerPattern: "${project}.${environment}.172.17.0.1.nip.io"
       sshHost: "172.17.0.1"
@@ -19,7 +19,7 @@ mutation PopulateApi {
   CredentialstestProject1: addProject(
     input: {
       id: 2001
-      name: "credentialstest-project1-controller-kubernetes"
+      name: "credentialstest-project1-control-k8s"
       openshift: 2001
       gitUrl: "ssh://git@172.17.0.1:2222/git/project1.git"
       productionEnvironment:"master"
@@ -34,7 +34,7 @@ mutation PopulateApi {
   CredentialstestProject1Group1: addGroupsToProject(
     input: {
       project: {
-        name: "credentialstest-project1-controller-kubernetes"
+        name: "credentialstest-project1-control-k8s"
       }
       groups: [
         {
@@ -48,7 +48,7 @@ mutation PopulateApi {
   CredentialstestProject2: addProject(
     input: {
       id: 2002
-      name: "credentialstest-project2-controller-kubernetes"
+      name: "credentialstest-project2-control-k8s"
       openshift: 2001
       gitUrl: "ssh://git@172.17.0.1:2222/git/project2.git"
       productionEnvironment:"master"
@@ -63,7 +63,7 @@ mutation PopulateApi {
   CredentialstestProject2Group2: addGroupsToProject(
     input: {
       project: {
-        name: "credentialstest-project2-controller-kubernetes"
+        name: "credentialstest-project2-control-k8s"
       }
       groups: [
         {
@@ -77,7 +77,7 @@ mutation PopulateApi {
   CredentialstestProject3: addProject(
     input: {
       id: 2022
-      name: "credentialstest-project3-controller-kubernetes"
+      name: "credentialstest-project3-control-k8s"
       openshift: 2001
       gitUrl: "ssh://git@172.17.0.1:2222/git/project2.git"
       productionEnvironment:"master"
@@ -92,7 +92,7 @@ mutation PopulateApi {
   CredentialstestProject3Group3: addGroupsToProject(
     input: {
       project: {
-        name: "credentialstest-project3-controller-kubernetes"
+        name: "credentialstest-project3-control-k8s"
       }
       groups: [
         {
@@ -108,7 +108,7 @@ mutation PopulateApi {
   CiGithub1: addProject(
     input: {
       id: 2003
-      name: "ci-github-controller-kubernetes"
+      name: "ci-github-control-k8s"
       openshift: 2001
       gitUrl: "ssh://git@172.17.0.1:2222/git/github.git"
       productionEnvironment:"master"
@@ -124,7 +124,7 @@ mutation PopulateApi {
   CiGithub1Group3: addGroupsToProject(
     input: {
       project: {
-        name: "ci-github-controller-kubernetes"
+        name: "ci-github-control-k8s"
       }
       groups: [
         {
@@ -137,7 +137,7 @@ mutation PopulateApi {
   }
   CiGithubRocketChat: addNotificationToProject(
     input: {
-      project: "ci-github-controller-kubernetes"
+      project: "ci-github-control-k8s"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
     }
@@ -146,7 +146,7 @@ mutation PopulateApi {
   }
   CiGithubEmail: addNotificationToProject(
     input: {
-      project: "ci-github-controller-kubernetes"
+      project: "ci-github-control-k8s"
       notificationType: EMAIL
       notificationName: "local-email-testing"
     }
@@ -161,7 +161,7 @@ mutation PopulateApi {
       deployType: BRANCH
       deployBaseRef: "master"
       environmentType: PRODUCTION
-      openshiftProjectName: "ci-local-controller-kubernetes"
+      openshiftProjectName: "ci-local-control-k8s"
     }
   ) {
     id
@@ -170,7 +170,7 @@ mutation PopulateApi {
   CiGitlab: addProject(
     input: {
       id: 2004
-      name: "ci-gitlab-controller-kubernetes"
+      name: "ci-gitlab-control-k8s"
       openshift: 2001
       gitUrl: "ssh://git@172.17.0.1:2222/git/gitlab.git"
       productionEnvironment:"master"
@@ -186,7 +186,7 @@ mutation PopulateApi {
   CiGitlabGroup3: addGroupsToProject(
     input: {
       project: {
-        name: "ci-gitlab-controller-kubernetes"
+        name: "ci-gitlab-control-k8s"
       }
       groups: [
         {
@@ -199,7 +199,7 @@ mutation PopulateApi {
   }
   CiGitlabRocketChat: addNotificationToProject(
     input: {
-      project: "ci-gitlab-controller-kubernetes"
+      project: "ci-gitlab-control-k8s"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
     }
@@ -208,7 +208,7 @@ mutation PopulateApi {
   }
   CiGitlabEmail: addNotificationToProject(
     input: {
-      project: "ci-gitlab-controller-kubernetes"
+      project: "ci-gitlab-control-k8s"
       notificationType: EMAIL
       notificationName: "local-email-testing"
     }
@@ -219,7 +219,7 @@ mutation PopulateApi {
   CiBitbucket: addProject(
     input: {
       id: 2005
-      name: "ci-bitbucket-controller-kubernetes"
+      name: "ci-bitbucket-control-k8s"
       openshift: 2001
       gitUrl: "ssh://git@172.17.0.1:2222/git/bitbucket.git"
       productionEnvironment:"master"
@@ -235,7 +235,7 @@ mutation PopulateApi {
   CiBitbucketGroup3: addGroupsToProject(
     input: {
       project: {
-       name: "ci-bitbucket-controller-kubernetes"
+       name: "ci-bitbucket-control-k8s"
       }
       groups: [
         {
@@ -248,7 +248,7 @@ mutation PopulateApi {
   }
   CiBitbucketRocketChat: addNotificationToProject(
     input: {
-      project: "ci-bitbucket-controller-kubernetes"
+      project: "ci-bitbucket-control-k8s"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
     }
@@ -257,7 +257,7 @@ mutation PopulateApi {
   }
   CiBitbucketEmail: addNotificationToProject(
     input: {
-      project: "ci-bitbucket-controller-kubernetes"
+      project: "ci-bitbucket-control-k8s"
       notificationType: EMAIL
       notificationName: "local-email-testing"
     }
@@ -269,7 +269,7 @@ mutation PopulateApi {
   CiRest: addProject(
     input: {
       id: 2006
-      name: "ci-rest-controller-kubernetes"
+      name: "ci-rest-control-k8s"
       openshift: 2001
       gitUrl: "ssh://git@172.17.0.1:2222/git/rest.git"
       productionEnvironment:"master"
@@ -285,7 +285,7 @@ mutation PopulateApi {
   CiRestGroup3: addGroupsToProject(
     input: {
       project: {
-        name: "ci-rest-controller-kubernetes"
+        name: "ci-rest-control-k8s"
       }
       groups: [
         {
@@ -298,7 +298,7 @@ mutation PopulateApi {
   }
   CiRestRocketChat: addNotificationToProject(
     input: {
-      project: "ci-rest-controller-kubernetes"
+      project: "ci-rest-control-k8s"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
     }
@@ -307,7 +307,7 @@ mutation PopulateApi {
   }
   CiRestEmail: addNotificationToProject(
     input: {
-      project: "ci-rest-controller-kubernetes"
+      project: "ci-rest-control-k8s"
       notificationType: EMAIL
       notificationName: "local-email-testing"
     }
@@ -318,7 +318,7 @@ mutation PopulateApi {
   CiNode: addProject(
     input: {
       id: 2007
-      name: "ci-node-controller-kubernetes"
+      name: "ci-node-control-k8s"
       openshift: 2001
       gitUrl: "ssh://git@172.17.0.1:2222/git/node.git"
       productionEnvironment:"master"
@@ -334,7 +334,7 @@ mutation PopulateApi {
   CiNodeGroup3: addGroupsToProject(
     input: {
       project: {
-        name: "ci-node-controller-kubernetes"
+        name: "ci-node-control-k8s"
       }
       groups: [
         {
@@ -347,7 +347,7 @@ mutation PopulateApi {
   }
   CiNodeRocketChat: addNotificationToProject(
     input: {
-      project: "ci-node-controller-kubernetes"
+      project: "ci-node-control-k8s"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
     }
@@ -356,7 +356,7 @@ mutation PopulateApi {
   }
   CiNodeEmail: addNotificationToProject(
     input: {
-      project: "ci-node-controller-kubernetes"
+      project: "ci-node-control-k8s"
       notificationType: EMAIL
       notificationName: "local-email-testing"
     }
@@ -367,7 +367,7 @@ mutation PopulateApi {
   CiMultiproject1: addProject(
     input: {
       id: 2008
-      name: "ci-multiproject1-controller-kubernetes"
+      name: "ci-multiproject1-control-k8s"
       openshift: 2001
       gitUrl: "ssh://git@172.17.0.1:2222/git/multiproject.git"
       productionEnvironment:"master"
@@ -383,7 +383,7 @@ mutation PopulateApi {
   CiMultiproject1Group3: addGroupsToProject(
     input: {
       project: {
-        name: "ci-multiproject1-controller-kubernetes"
+        name: "ci-multiproject1-control-k8s"
       }
       groups: [
         {
@@ -396,7 +396,7 @@ mutation PopulateApi {
   }
   CiMultiproject1RocketChat: addNotificationToProject(
     input: {
-      project: "ci-multiproject1-controller-kubernetes"
+      project: "ci-multiproject1-control-k8s"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
     }
@@ -405,7 +405,7 @@ mutation PopulateApi {
   }
   CiMultiproject1Email: addNotificationToProject(
     input: {
-      project: "ci-multiproject1-controller-kubernetes"
+      project: "ci-multiproject1-control-k8s"
       notificationType: EMAIL
       notificationName: "local-email-testing"
     }
@@ -416,7 +416,7 @@ mutation PopulateApi {
   CiMultiproject2: addProject(
     input: {
       id: 2009
-      name: "ci-multiproject2-controller-kubernetes"
+      name: "ci-multiproject2-control-k8s"
       openshift: 2001
       gitUrl: "ssh://git@172.17.0.1:2222/git/multiproject.git"
       productionEnvironment:"master"
@@ -432,7 +432,7 @@ mutation PopulateApi {
   CiMultiproject2Group3: addGroupsToProject(
     input: {
       project: {
-        name: "ci-multiproject2-controller-kubernetes"
+        name: "ci-multiproject2-control-k8s"
       }
       groups: [
         {
@@ -445,7 +445,7 @@ mutation PopulateApi {
   }
   CiMultiproject2RocketChat: addNotificationToProject(
     input: {
-      project: "ci-multiproject2-controller-kubernetes"
+      project: "ci-multiproject2-control-k8s"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
     }
@@ -454,7 +454,7 @@ mutation PopulateApi {
   }
   CiMultiproject2Email: addNotificationToProject(
     input: {
-      project: "ci-multiproject2-controller-kubernetes"
+      project: "ci-multiproject2-control-k8s"
       notificationType: EMAIL
       notificationName: "local-email-testing"
     }
@@ -465,7 +465,7 @@ mutation PopulateApi {
   CiDrupal: addProject(
     input: {
       id: 2010
-      name: "ci-drupal-controller-kubernetes"
+      name: "ci-drupal-control-k8s"
       openshift: 2001
       developmentEnvironmentsLimit: 10
       gitUrl: "ssh://git@172.17.0.1:2222/git/drupal.git"
@@ -482,7 +482,7 @@ mutation PopulateApi {
   CiDrupalGroup3: addGroupsToProject(
     input: {
       project: {
-        name: "ci-drupal-controller-kubernetes"
+        name: "ci-drupal-control-k8s"
       }
       groups: [
         {
@@ -495,7 +495,7 @@ mutation PopulateApi {
   }
   CiDrupalRocketChat: addNotificationToProject(
     input: {
-      project: "ci-drupal-controller-kubernetes"
+      project: "ci-drupal-control-k8s"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
     }
@@ -505,7 +505,7 @@ mutation PopulateApi {
 
   CiDrupalEmail: addNotificationToProject(
     input: {
-      project: "ci-drupal-controller-kubernetes"
+      project: "ci-drupal-control-k8s"
       notificationType: EMAIL
       notificationName: "local-email-testing"
     }
@@ -516,7 +516,7 @@ mutation PopulateApi {
   CiNginx: addProject(
     input: {
       id: 2011
-      name: "ci-nginx-controller-kubernetes"
+      name: "ci-nginx-control-k8s"
       openshift: 2001
       gitUrl: "ssh://git@172.17.0.1:2222/git/nginx.git"
       productionEnvironment:"master"
@@ -532,7 +532,7 @@ mutation PopulateApi {
   CiNginxGroup3: addGroupsToProject(
     input: {
       project: {
-        name: "ci-nginx-controller-kubernetes"
+        name: "ci-nginx-control-k8s"
       }
       groups: [
         {
@@ -545,7 +545,7 @@ mutation PopulateApi {
   }
   CiNginxRocketChat: addNotificationToProject(
     input: {
-      project: "ci-nginx-controller-kubernetes"
+      project: "ci-nginx-control-k8s"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
     }
@@ -554,7 +554,7 @@ mutation PopulateApi {
   }
   CiNginxEmail: addNotificationToProject(
     input: {
-      project: "ci-nginx-controller-kubernetes"
+      project: "ci-nginx-control-k8s"
       notificationType: EMAIL
       notificationName: "local-email-testing"
     }
@@ -565,7 +565,7 @@ mutation PopulateApi {
   CiFeatures: addProject(
     input: {
       id: 2012
-      name: "ci-features-controller-kubernetes"
+      name: "ci-features-control-k8s"
       openshift: 2001
       gitUrl: "ssh://git@172.17.0.1:2222/git/features.git"
       productionEnvironment: "master"
@@ -581,7 +581,7 @@ mutation PopulateApi {
   CiFeaturesGroup3: addGroupsToProject(
     input: {
       project: {
-        name: "ci-features-controller-kubernetes"
+        name: "ci-features-control-k8s"
       }
       groups: [
         {
@@ -600,7 +600,7 @@ mutation PopulateApi {
       deployType: BRANCH
       deployBaseRef: "lagoon-api-variables"
       environmentType: PRODUCTION
-      openshiftProjectName: "ci-features-controller-kubernetes-lagoon-api-variables"
+      openshiftProjectName: "ci-features-control-k8s-lagoon-api-variables"
     }
   ) {
     id
@@ -688,7 +688,7 @@ mutation PopulateApi {
 
   CiFeaturesRocketChat: addNotificationToProject(
     input: {
-      project: "ci-features-controller-kubernetes"
+      project: "ci-features-control-k8s"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
     }
@@ -697,7 +697,7 @@ mutation PopulateApi {
   }
   CiFeaturesEmail: addNotificationToProject(
     input: {
-      project: "ci-features-controller-kubernetes"
+      project: "ci-features-control-k8s"
       notificationType: EMAIL
       notificationName: "local-email-testing"
     }
@@ -708,7 +708,7 @@ mutation PopulateApi {
   CiFeaturesSubfolder: addProject(
     input: {
       id: 2017
-      name: "ci-features-subfolder-controller-kubernetes"
+      name: "ci-features-subfolder-control-k8s"
       openshift: 2001
       gitUrl: "ssh://git@172.17.0.1:2222/git/features-subfolder.git"
       productionEnvironment: "master"
@@ -726,7 +726,7 @@ mutation PopulateApi {
   CiFeaturesSubfolderGroup3: addGroupsToProject(
     input: {
       project: {
-        name: "ci-features-subfolder-controller-kubernetes"
+        name: "ci-features-subfolder-control-k8s"
       }
       groups: [
         {
@@ -740,7 +740,7 @@ mutation PopulateApi {
 
   CiFeaturesSubfolderRocketChat: addNotificationToProject(
     input: {
-      project: "ci-features-subfolder-controller-kubernetes"
+      project: "ci-features-subfolder-control-k8s"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
     }
@@ -749,7 +749,7 @@ mutation PopulateApi {
   }
   CiFeaturesSubfolderEmail: addNotificationToProject(
     input: {
-      project: "ci-features-subfolder-controller-kubernetes"
+      project: "ci-features-subfolder-control-k8s"
       notificationType: EMAIL
       notificationName: "local-email-testing"
     }
@@ -760,7 +760,7 @@ mutation PopulateApi {
   CiElasticsearch: addProject(
     input: {
       id: 2014
-      name: "ci-elasticsearch-controller-kubernetes"
+      name: "ci-elasticsearch-control-k8s"
       openshift: 2001
       gitUrl: "ssh://git@172.17.0.1:2222/git/elasticsearch.git"
       productionEnvironment: "master"
@@ -776,7 +776,7 @@ mutation PopulateApi {
   CiElasticsearchGroup3: addGroupsToProject(
     input: {
       project: {
-        name: "ci-elasticsearch-controller-kubernetes"
+        name: "ci-elasticsearch-control-k8s"
       }
       groups: [
         {
@@ -789,7 +789,7 @@ mutation PopulateApi {
   }
   CiElasticsearchRocketChat: addNotificationToProject(
     input: {
-      project: "ci-elasticsearch-controller-kubernetes"
+      project: "ci-elasticsearch-control-k8s"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
     }
@@ -798,7 +798,7 @@ mutation PopulateApi {
   }
   CiElasticsearchEmail: addNotificationToProject(
     input: {
-      project: "ci-elasticsearch-controller-kubernetes"
+      project: "ci-elasticsearch-control-k8s"
       notificationType: EMAIL
       notificationName: "local-email-testing"
     }
@@ -809,7 +809,7 @@ mutation PopulateApi {
   CiDrupalPostgres: addProject(
     input: {
       id: 2016
-      name: "ci-drupal-postgres-controller-kubernetes"
+      name: "ci-drupal-postgres-control-k8s"
       openshift: 2001
       gitUrl: "ssh://git@172.17.0.1:2222/git/drupal-postgres.git"
       productionEnvironment:"master"
@@ -825,7 +825,7 @@ mutation PopulateApi {
   CiDrupalPostgresGroup3: addGroupsToProject(
     input: {
       project: {
-        name: "ci-drupal-postgres-controller-kubernetes"
+        name: "ci-drupal-postgres-control-k8s"
       }
       groups: [
         {
@@ -838,7 +838,7 @@ mutation PopulateApi {
   }
   CiDrupalPostgresRocketChat: addNotificationToProject(
     input: {
-      project: "ci-drupal-postgres-controller-kubernetes"
+      project: "ci-drupal-postgres-control-k8s"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
     }
@@ -847,7 +847,7 @@ mutation PopulateApi {
   }
   CiDrupalPostgresEmail: addNotificationToProject(
     input: {
-      project: "ci-drupal-postgres-controller-kubernetes"
+      project: "ci-drupal-postgres-control-k8s"
       notificationType: EMAIL
       notificationName: "local-email-testing"
     }
@@ -858,7 +858,7 @@ mutation PopulateApi {
   CiSolr: addProject(
     input: {
       id: 2020
-      name: "ci-solr-controller-kubernetes"
+      name: "ci-solr-control-k8s"
       openshift: 2001
       gitUrl: "ssh://git@172.17.0.1:2222/git/solr.git"
       productionEnvironment:"master"
@@ -874,7 +874,7 @@ mutation PopulateApi {
   CiSolrGroup3: addGroupsToProject(
     input: {
       project: {
-        name: "ci-solr-controller-kubernetes"
+        name: "ci-solr-control-k8s"
       }
       groups: [
         {
@@ -887,7 +887,7 @@ mutation PopulateApi {
   }
   CiSolrRocketChat: addNotificationToProject(
     input: {
-      project: "ci-solr-controller-kubernetes"
+      project: "ci-solr-control-k8s"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
     }
@@ -896,7 +896,7 @@ mutation PopulateApi {
   }
   CiSolrEmail: addNotificationToProject(
     input: {
-      project: "ci-solr-controller-kubernetes"
+      project: "ci-solr-control-k8s"
       notificationType: EMAIL
       notificationName: "local-email-testing"
     }
@@ -907,7 +907,7 @@ mutation PopulateApi {
   CiApi: addProject(
     input: {
       id: 2021
-      name: "ci-api-controller-kubernetes"
+      name: "ci-api-control-k8s"
       openshift: 2001
       gitUrl: "ssh://git@172.17.0.1:2222/git/api.git"
       productionEnvironment: "master"
@@ -923,7 +923,7 @@ mutation PopulateApi {
   CiApiGroup3: addGroupsToProject(
     input: {
       project: {
-        name: "ci-api-controller-kubernetes"
+        name: "ci-api-control-k8s"
       }
       groups: [
         {
@@ -936,7 +936,7 @@ mutation PopulateApi {
   }
   CiApiRocketChat: addNotificationToProject(
     input: {
-      project: "ci-api-controller-kubernetes"
+      project: "ci-api-control-k8s"
       notificationType: ROCKETCHAT
       notificationName: "amazeeio--lagoon-local-ci"
     }
@@ -945,7 +945,7 @@ mutation PopulateApi {
   }
   CiApiEmail: addNotificationToProject(
     input: {
-      project: "ci-api-controller-kubernetes"
+      project: "ci-api-control-k8s"
       notificationType: EMAIL
       notificationName: "local-email-testing"
     }
@@ -958,7 +958,7 @@ mutation PopulateApi {
   CILimit: addProject(
     input: {
       id: 2019
-      name: "ci-env-limit-controller-kubernetes"
+      name: "ci-env-limit-control-k8s"
       productionEnvironment: "master"
       openshift: 2001
       developmentEnvironmentsLimit: 2
@@ -976,7 +976,7 @@ mutation PopulateApi {
   CILimitGroup3: addGroupsToProject(
     input: {
       project: {
-        name: "ci-env-limit-controller-kubernetes"
+        name: "ci-env-limit-control-k8s"
       }
       groups: [
         {
@@ -1033,7 +1033,7 @@ mutation PopulateApi {
   CIPicky: addProject(
       input: {
         id: 2013
-        name: "ci-branch-picky-controller-kubernetes"
+        name: "ci-branch-picky-control-k8s"
         productionEnvironment: "master"
         openshift: 2001
         branches: "^feature/|^(dev|test|develop|master)$"
@@ -1052,7 +1052,7 @@ mutation PopulateApi {
   CIPickyGroup1: addGroupsToProject(
       input: {
         project: {
-          name: "ci-branch-picky-controller-kubernetes"
+          name: "ci-branch-picky-control-k8s"
         }
         groups: [
           {
@@ -1123,7 +1123,7 @@ mutation PopulateApi {
     CiActiveStandby: addProject(
       input: {
         id: 2024
-        name: "ci-active-standby-controller-kubernetes"
+        name: "ci-active-standby-control-k8s"
         openshift: 2001
         gitUrl: "ssh://git@192.168.42.1:2222/git/active-standby.git"
         productionEnvironment:"master-a"
@@ -1140,7 +1140,7 @@ mutation PopulateApi {
     CiActiveStandbyGroup3: addGroupsToProject(
       input: {
         project: {
-          name: "ci-active-standby-controller-kubernetes"
+          name: "ci-active-standby-control-k8s"
         }
         groups: [
           {
@@ -1153,7 +1153,7 @@ mutation PopulateApi {
     }
     CiActiveStandbyRocketChat: addNotificationToProject(
       input: {
-        project: "ci-active-standby-controller-kubernetes"
+        project: "ci-active-standby-control-k8s"
         notificationType: ROCKETCHAT
         notificationName: "amazeeio--lagoon-local-ci"
       }
@@ -1162,7 +1162,7 @@ mutation PopulateApi {
     }
     CiActiveStandbyEmail: addNotificationToProject(
       input: {
-        project: "ci-active-standby-controller-kubernetes"
+        project: "ci-active-standby-control-k8s"
         notificationType: EMAIL
         notificationName: "local-email-testing"
       }
