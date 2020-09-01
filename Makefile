@@ -231,11 +231,11 @@ services :=	api \
 			logs2slack \
 			logs2s3 \
 			logs2webhook \
+			ssh-portal \
 			storage-calculator \
 			ui \
 			webhook-handler \
 			webhooks2tasks
-
 
 service-images += $(services)
 
