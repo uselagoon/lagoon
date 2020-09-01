@@ -23,6 +23,8 @@ type CLI struct {
 	KeycloakAuthServerSecret string `kong:"required,env='KEYCLOAK_AUTH_SERVER_CLIENT_SECRET',help='auth-server client secret'"`
 	KeycloakAPI              string `kong:"required,env='KEYCLOAK_BASEURL',help='base URL of keycloak API'"`
 	LagoonAPI                string `kong:"required,env='GRAPHQL_ENDPOINT',help='base URL of Lagoon API'"`
+	HostKeyRSA               string `kong:"required,env='HOSTKEY_RSA',help='RSA ssh host key (PEM)'"`
+	HostKeyED25519           string `kong:"required,env='HOSTKEY_ED25519',help='ED25519 ssh host key (PEM)'"`
 }
 
 func main() {
@@ -64,5 +66,7 @@ func main() {
 				log,
 				cli.JWTSecret,
 				cli.LagoonAPI,
-				cli.Debug)))))
+				cli.Debug)),
+			ssh.HostKeyPEM([]byte(cli.HostKeyRSA)),
+			ssh.HostKeyPEM([]byte(cli.HostKeyED25519)))))
 }
