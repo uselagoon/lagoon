@@ -3,6 +3,7 @@ module github.com/smlx/lagoon/services/ssh-portal
 go 1.15
 
 require (
+	github.com/alecthomas/kong v0.2.11
 	github.com/amazeeio/lagoon-cli v0.0.0-20200713064816-3a4fd500a9e0
 	github.com/anmitsu/go-shlex v0.0.0-20200514113438-38f4b401e2be // indirect
 	github.com/coreos/etcd v3.3.25+incompatible // indirect
