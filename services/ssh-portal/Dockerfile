@@ -6,7 +6,6 @@ WORKDIR /go/src/app
 COPY . .
 RUN apk add --no-cache make git \
       && go get -u github.com/go-bindata/go-bindata/... \
-      && go-bindata --version \
       && make build VERSION="${LAGOON_VERSION}"
 
 FROM alpine:${ALPINE_VERSION}
