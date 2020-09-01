@@ -10,6 +10,7 @@ all_access:
   backend_roles:
     - admin
     - platform-owner
+    - platform-viewer
 
 kibana_server:
   reserved: true
