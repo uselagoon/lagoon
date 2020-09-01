@@ -139,6 +139,8 @@ function configure_api_client {
     # Setup platform wide roles.
     /opt/jboss/keycloak/bin/kcadm.sh create roles --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s name=platform-owner
     /opt/jboss/keycloak/bin/kcadm.sh add-roles --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} --rname admin --rolename platform-owner
+    /opt/jboss/keycloak/bin/kcadm.sh create roles --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s name=platform-viewer
+    /opt/jboss/keycloak/bin/kcadm.sh add-roles --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} --rname admin --rolename platform-viewer
 
     # Configure keycloak for api
     echo Creating client api
@@ -151,6 +153,7 @@ function configure_api_client {
     MAINTAINER_ROLE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon roles/maintainer --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)["id"]')
     OWNER_ROLE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon roles/owner --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)["id"]')
     PLATFORM_OWNER_ROLE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon roles/platform-owner --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)["id"]')
+    PLATFORM_VIEWER_ROLE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon roles/platform-viewer --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)["id"]')
 
     # Resource Scopes
     resource_scope_names=(add add:development add:production addGroup addNoExec addNotification addOrUpdate:development addOrUpdate:production addUser delete delete:development delete:production deleteAll deleteNoExec deploy:development deploy:production drushArchiveDump:development drushArchiveDump:production drushCacheClear:development drushCacheClear:production drushRsync:destination:development drushRsync:destination:production drushRsync:source:development drushRsync:source:production drushSqlDump:development drushSqlDump:production drushSqlSync:destination:development drushSqlSync:destination:production drushSqlSync:source:development drushSqlSync:source:production environment:add:development environment:add:production environment:view:development environment:view:production getBySshKey project:add project:view removeAll removeGroup removeNotification removeUser ssh:development ssh:production storage update update:development update:production view view:token view:user viewAll viewPrivateKey)
