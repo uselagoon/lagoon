@@ -65,7 +65,6 @@
 
 ## Docker Images
 
-* [How to use Docker images](docker-images/how-to-use-docker-images.md)
 * [Elasticsearch](docker-images/elasticsearch.md)
 * [MariaDB](docker-images/mariadb/README.md)
   * [MariaDB-Drupal](docker-images/mariadb/mariadb-drupal.md)
