@@ -1,5 +1,6 @@
 // Import the mocked next.config before importing decorators.
 import config from './next.mock-config';
+import React from 'react';
 import requireContext from 'require-context.macro';
 import { addDecorator, addParameters, configure } from '@storybook/react';
 import { withA11y } from '@storybook/addon-a11y';
@@ -54,6 +55,7 @@ addDecorator(withA11y);
 addDecorator(withKnobs);
 addDecorator(withApiConnection);
 addDecorator(withGlobalStyles);
+addDecorator(Story => <Story />);
 
 const loaderFn = () => {
   const allExports = [];

@@ -1,24 +1,41 @@
+import { NOTIFICATION_SEVERITY_THRESHOLD } from "./defaults";
+import convertDateToMYSQLDateTimeFormat from "../../util/convertDateToMYSQLDateTimeFormat";
+
 const { knex } = require('../../util/db');
+const DEFAULTS = require('./defaults');
+
+/* ::
+
+import type {Cred, SqlObj} from '../';
+
+*/
 
 export const Sql = {
   createProjectNotification: (input) => {
-    const { pid, notificationType, nid } = input;
+    const { pid,
+      notificationType,
+      nid,
+      contentType = DEFAULTS.NOTIFICATION_CONTENT_TYPE,
+      notificationSeverityThreshold = DEFAULTS.NOTIFICATION_SEVERITY_THRESHOLD,
+    } = input;
 
     return knex('project_notification')
       .insert({
         pid,
         type: notificationType,
         nid,
+        content_type: contentType,
+        notification_severity_threshold: notificationSeverityThreshold,
       })
       .toString();
   },
   selectProjectNotificationByNotificationName: (input) => {
-    const { name, type } = input;
+    const { name, type, contentType = DEFAULTS.NOTIFICATION_CONTENT_TYPE } = input;
 
     return knex('project_notification AS pn')
       .joinRaw(
-        `JOIN notification_${type} AS nt ON pn.nid = nt.id AND pn.type = ?`,
-        [type],
+        `JOIN notification_${type} AS nt ON pn.nid = nt.id AND pn.type = :type and pn.content_type = :content_type`,
+        {type: type, content_type: contentType},
       )
       .where('nt.name', '=', name)
       .select('nt.*', 'pn.*', knex.raw('? as type', [type]))
@@ -47,8 +64,18 @@ export const Sql = {
         'project.id': input,
       })
       .toString(),
+  selectProjectByName: (input) => {
+    const { project } = input;
+
+    return knex('project')
+      .select('*')
+      .where({
+        'project.name': project,
+      })
+      .toString();
+  },
   selectProjectNotification: (input) => {
-    const { project, notificationType, notificationName } = input;
+    const { project, notificationType, notificationName, contentType = DEFAULTS.NOTIFICATION_CONTENT_TYPE } = input;
     return knex({ p: 'project', nt: `notification_${notificationType}` })
       .where({ 'p.name': project })
       .andWhere({ 'nt.name': notificationName })
@@ -88,15 +115,20 @@ export const Sql = {
       .toString();
   },
   selectNotificationsByTypeByProjectId: (input) => {
-    const { type, pid } = input;
-    const selectQuery = knex('project_notification AS pn').joinRaw(
-      `JOIN notification_${type} AS nt ON pn.nid = nt.id AND pn.type = ?`,
-      [type],
+    const { type,
+      pid,
+      contentType = DEFAULTS.NOTIFICATION_CONTENT_TYPE,
+      notificationSeverityThreshold = DEFAULTS.NOTIFICATION_SEVERITY_THRESHOLD,
+    } = input;
+    let selectQuery = knex('project_notification AS pn').joinRaw(
+      `JOIN notification_${type} AS nt ON pn.nid = nt.id AND pn.type = :type AND pn.content_type = :contentType`,
+      {type, contentType},
     );
 
     return selectQuery
       .where('pn.pid', '=', pid)
-      .select('nt.*', 'pn.type')
+      .where('pn.notification_severity_threshold', '>=', notificationSeverityThreshold)
+      .select('nt.*', 'pn.type', 'pn.content_type as contentType', 'pn.notification_severity_threshold as notificationSeverityThreshold')
       .toString();
   },
   selectNotificationMicrosoftTeamsByName:  (name: string) =>

@@ -3,6 +3,7 @@ import { ChannelWrapper } from 'amqp-connection-manager';
 import { ConsumeMessage } from 'amqplib';
 import { logger } from '@lagoon/commons/dist/local-logging';
 import { getSlackinfoForProject } from '@lagoon/commons/dist/api';
+import { notificationIntToContentType, notificationContentTypeToInt, parseProblemNotification } from '@lagoon/commons/dist/notificationCommons';
 
 export async function readFromRabbitMQ (msg: ConsumeMessage, channelWrapperLogs: ChannelWrapper): Promise<void> {
   const logMessage = JSON.parse(msg.content.toString())
@@ -80,27 +81,45 @@ export async function readFromRabbitMQ (msg: ConsumeMessage, channelWrapperLogs:
     case "rest:remove:CannotDeleteProductionEnvironment":
       sendToSlack(project, message, 'warning', ':warning:', channelWrapperLogs, msg, appId)
       break;
-
     default:
-      return channelWrapperLogs.ack(msg)
+        //since there's no single point of acknowlegement of the msg, we need to keep track of whether we've handled the message
+        let eventHandledAsProblem =  dispatchProblemEventToSlack(event, project, message, channelWrapperLogs, msg, appId);
+        if(!eventHandledAsProblem) {
+          return channelWrapperLogs.ack(msg);
+        }
   }
-
 }
 
-const sendToSlack = async (project, message, color, emoji, channelWrapperLogs, msg, appId) => {
+const dispatchProblemEventToSlack = (event, project, message, channelWrapperLogs, msg, appId) => {
+  const problemEvent = parseProblemNotification(event);
+  if(problemEvent.isProblem) {
+    const isNewProblem = problemEvent.eventType == 'insert';
+    if(isNewProblem) {
+      sendToSlack(project, message, 'warning', ':warning:', channelWrapperLogs, msg, appId, 'PROBLEM', problemEvent.severityLevel)
+      return true;
+    }
+  }
+  return false;
+};
+
+const sendToSlack = async (project, message, color, emoji, channelWrapperLogs, msg, appId, contentType = 'DEPLOYMENT', severityLevel = 'NONE') => {
 
   let projectSlacks;
   try {
-    projectSlacks = await getSlackinfoForProject(project)
+    projectSlacks = await getSlackinfoForProject(project, contentType)
   }
   catch (error) {
     logger.error(`No Slack information found, error: ${error}`)
     return channelWrapperLogs.ack(msg)
   }
   projectSlacks.forEach(async (projectSlack) => {
+
+    const notificationThresholdMet = notificationContentTypeToInt(projectSlack.notificationSeverityThreshold) <= notificationContentTypeToInt(severityLevel);
+    if(contentType == 'PROBLEM' && !notificationThresholdMet) { return; } //go to next iteration
+
     await new IncomingWebhook(projectSlack.webhook, {
       channel: projectSlack.channel,
-    }).send({
+      }).send({
       attachments: [{
         text: `${emoji} ${message}`,
         color: color,

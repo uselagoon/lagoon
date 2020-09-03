@@ -44,8 +44,8 @@ routes:
 environments:
   master:
     monitoring_urls:
-      - "www.example.com"
-      - "www.example.com/special_page"
+      - "https://www.example.com"
+      - "https://www.example.com/special_page"
     routes:
       - nginx:
         - example.com
