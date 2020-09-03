@@ -53,7 +53,7 @@ objects:
       branch: ${SAFE_BRANCH}
       project: ${SAFE_PROJECT}
   spec:
-    backupCommand: /bin/sh -c "dump=$(mktemp) && mysqldump --max-allowed-packet=500M --events --routines --quick --add-locks --no-autocommit --single-transaction --no-create-db -h $${SERVICE_NAME_UPPERCASE}_HOST -u $${SERVICE_NAME_UPPERCASE}_USERNAME -p$${SERVICE_NAME_UPPERCASE}_PASSWORD $${SERVICE_NAME_UPPERCASE}_DATABASE > $dump && cat $dump && rm $dump"
+    backupCommand: /bin/sh -c "dump=$(mktemp) && mysqldump --max-allowed-packet=500M --events --routines --quick --add-locks --no-autocommit --single-transaction --no-create-db -h $BACKUP_DB_HOST -u $BACKUP_DB_USERNAME -p$BACKUP_DB_PASSWORD $BACKUP_DB_DATABASE > $dump && cat $dump && rm $dump"
     fileExtension: .${SERVICE_NAME}.sql
     pod:
       metadata:
@@ -67,9 +67,27 @@ objects:
           - args:
               - sleep
               - '3600'
-            envFrom:
-              - configMapRef:
-                  name: lagoon-env
+            env:
+              - name: BACKUP_DB_HOST
+                valueFrom:
+                  configMapKeyRef:
+                    key: $${SERVICE_NAME_UPPERCASE}_HOST
+                    name: lagoon-env
+              - name: BACKUP_DB_USERNAME
+                valueFrom:
+                  configMapKeyRef:
+                    key: $${SERVICE_NAME_UPPERCASE}_USERNAME
+                    name: lagoon-env
+              - name: BACKUP_DB_PASSWORD
+                valueFrom:
+                  configMapKeyRef:
+                    key: $${SERVICE_NAME_UPPERCASE}_PASSWORD
+                    name: lagoon-env
+              - name: BACKUP_DB_DATABASE
+                valueFrom:
+                  configMapKeyRef:
+                    key: $${SERVICE_NAME_UPPERCASE}_DATABASE
+                    name: lagoon-env
             image: amazeeio/alpine-mysql-client
             imagePullPolicy: Always
             name: ${SERVICE_NAME}-prebackuppod

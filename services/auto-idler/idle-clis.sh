@@ -32,7 +32,7 @@ GRAPHQL='query environments {
 }'
 # Convert GraphQL file into single line (but with still \n existing), turn \n into \\n, esapee the Quotes
 query=$(echo $GRAPHQL | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
-ALL_ENVIRONMENTS=$(curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" api:3000/graphql -d "{\"query\": \"$query\"}")
+ALL_ENVIRONMENTS=$(curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" "${GRAPHQL_ENDPOINT:-api:3000/graphql}" -d "{\"query\": \"$query\"}")
 
 # All data successfully loaded, now we don't want to fail anymore if a single idle fails
 set +eo pipefail
