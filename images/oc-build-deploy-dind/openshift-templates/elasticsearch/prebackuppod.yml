@@ -53,7 +53,7 @@ objects:
       branch: ${SAFE_BRANCH}
       project: ${SAFE_PROJECT}
   spec:
-    backupCommand: /bin/sh -c "/usr/bin/tar -cf - -C /usr/share/elasticsearch/data ."
+    backupCommand: /bin/sh -c "tar -cf - -C /usr/share/elasticsearch/data ."
     fileExtension: .${SERVICE_NAME}.tar
     pod:
       metadata:

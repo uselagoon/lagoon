@@ -1125,7 +1125,7 @@ mutation PopulateApi {
         id: 1024
         name: "ci-active-standby-k8s"
         openshift: 1002
-        gitUrl: "ssh://git@192.168.42.1:2222/git/active-standby.git"
+        gitUrl: "ssh://git@172.17.0.1:2222/git/active-standby.git"
         productionEnvironment:"master-a"
         standbyProductionEnvironment:"master-b"
         activeSystemsTask: "lagoon_kubernetesJob"

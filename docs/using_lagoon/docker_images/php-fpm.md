@@ -71,14 +71,9 @@ Here a short description of what this file does:
 * Listens on port 9000 via IPv4 and IPv6.
 * Uses the pm `dynamic` and creates between 2-50 children.
 * Re-spawns `php-fpm` pool children after 500 requests to prevent memory leaks.
-* Replies with `pong` when making a fastcgi request to `/ping` \(good for
-
-  automated testing to check if the pool started\).
-
+* Replies with `pong` when making a fastcgi request to `/ping` \(good for automated testing to check if the pool started\).
 * `catch_workers_output = yes` to see PHP errors.
-* `clear_env = no` to be able to inject PHP environment variables via regular
-
-  Docker environment variables.
+* `clear_env = no` to be able to inject PHP environment variables via regular Docker environment variables.
 
 ## Environment Variables
 
