@@ -204,6 +204,17 @@ EOF
 
     /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
 {
+  "name": "Users role for realm is Platform Viewer or Platform Owner",
+  "description": "Checks the users role for the realm is Platform Viewer or higher",
+  "type": "js",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "code": "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\n\nif (!ctxAttr.exists('currentUser')) {\n    $evaluation.deny();\n} else {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-viewer')) {\n        $evaluation.grant();\n    } else if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}"
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
+{
   "name": "Users role for realm is Admin",
   "description": "Checks the users role for the realm is Admin",
   "type": "js",
@@ -345,6 +356,72 @@ EOF
 }
 EOF
 
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
+{
+  "name": "User has access to view project",
+  "description": "Checks that the user has access to a project via groups",
+  "type": "js",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "code": "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\n\n// Check projects calculated by lagoon\nif (!ctxAttr.exists('projectQuery') || !ctxAttr.exists('userProjects')) {\n    $evaluation.deny();\n} else {\n    var project = ctxAttr.getValue('projectQuery').asString(0);\n    var projects = ctxAttr.getValue('userProjects').asString(0);\n    var projectsArr = projects.split('-');\n    var grant = false;\n\n    for (var i=0; i<projectsArr.length; i++) {\n        if (project == projectsArr[i]) {\n            grant = true;\n            break;\n        }\n    }\n\n    if (grant) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    } else if (realm.isUserInRealmRole(currentUser, 'platform-viewer')) {\n        $evaluation.grant();\n    }\n}"
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
+{
+  "name": "Users role for view project is Developer",
+  "description": "Checks the users role for a project is Developer or higher",
+  "type": "js",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "code": "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 1,\n    reporter: 0,\n    guest: 0,\n};\n\n// Check roles calculated by lagoon\nif (!ctxAttr.exists('userProjectRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userProjectRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    } else if (realm.isUserInRealmRole(currentUser, 'platform-viewer')) {\n        $evaluation.grant();\n    }\n}"
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
+{
+  "name": "Users role for view project is Reporter",
+  "description": "Checks the users role for a project is Reporter or higher",
+  "type": "js",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "code": "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 1,\n    reporter: 1,\n    guest: 0,\n};\n\n// Check roles calculated by lagoon\nif (!ctxAttr.exists('userProjectRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userProjectRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    } else if (realm.isUserInRealmRole(currentUser, 'platform-viewer')) {\n        $evaluation.grant();\n    }\n}"
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
+{
+  "name": "Users role for view project is Guest",
+  "description": "Checks the users role for a project is Guest or higher",
+  "type": "js",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "code": "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 1,\n    reporter: 1,\n    guest: 1,\n};\n\n// Check roles calculated by lagoon\nif (!ctxAttr.exists('userProjectRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userProjectRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    } else if (realm.isUserInRealmRole(currentUser, 'platform-viewer')) {\n        $evaluation.grant();\n    }\n}"
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
+{
+  "name": "Users role for view project is Maintainer",
+  "description": "Checks the users role for a project is Maintainer or higher",
+  "type": "js",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "code": "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 1,\n    developer: 0,\n    reporter: 0,\n    guest: 0,\n};\n\n// Check roles calculated by lagoon\nif (!ctxAttr.exists('userProjectRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userProjectRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    } else if (realm.isUserInRealmRole(currentUser, 'platform-viewer')) {\n        $evaluation.grant();\n    }\n}"
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
+{
+  "name": "Users role for view project is Owner",
+  "description": "Checks the users role for a project is Owner or higher",
+  "type": "js",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "code": "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\nvar validRoles = {\n    owner: 1,\n    maintainer: 0,\n    developer: 0,\n    reporter: 0,\n    guest: 0,\n};\n\n// Check roles calculated by lagoon\nif (!ctxAttr.exists('userProjectRole')) {\n    $evaluation.deny();\n} else {\n    var groupRole = ctxAttr.getValue('userProjectRole').asString(0);\n\n    if (validRoles[groupRole.toLowerCase()]) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    } else if (realm.isUserInRealmRole(currentUser, 'platform-viewer')) {\n        $evaluation.grant();\n    }\n}"
+}
+EOF
+
     #Authorization permissions
     echo Creating api authz permissions
     DEFAULT_PERMISSION_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Default+Permission --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
@@ -359,7 +436,7 @@ EOF
   "decisionStrategy": "UNANIMOUS",
   "resources": ["task"],
   "scopes": ["view"],
-  "policies": ["User has access to project","Users role for project is Guest"]
+  "policies": ["Users role for view project is Guest","User has access to view project"]
 }
 EOF
 
@@ -467,7 +544,7 @@ EOF
   "decisionStrategy": "UNANIMOUS",
   "resources": ["backup"],
   "scopes": ["view"],
-  "policies": ["Users role for project is Developer","User has access to project"]
+  "policies": ["Users role for view project is Developer","User has access to view project"]
 }
 EOF
 
@@ -527,7 +604,7 @@ EOF
   "decisionStrategy": "UNANIMOUS",
   "resources": ["deployment"],
   "scopes": ["view"],
-  "policies": ["User has access to project","Users role for project is Guest"]
+  "policies": ["Users role for view project is Guest","User has access to view project"]
 }
 EOF
 
@@ -564,7 +641,7 @@ EOF
   "decisionStrategy": "UNANIMOUS",
   "resources": ["notification"],
   "scopes": ["view"],
-  "policies": ["Users role for project is Developer","User has access to project"]
+  "policies": ["Users role for view project is Developer","User has access to view project"]
 }
 EOF
 
@@ -576,7 +653,7 @@ EOF
   "decisionStrategy": "UNANIMOUS",
   "resources": ["project"],
   "scopes": ["viewAll"],
-  "policies": ["Users role for realm is Platform Owner"]
+  "policies": ["Users role for realm is Platform Viewer or Platform Owner"]
 }
 EOF
 
@@ -624,7 +701,7 @@ EOF
   "decisionStrategy": "UNANIMOUS",
   "resources": ["environment"],
   "scopes": ["view"],
-  "policies": ["User has access to project","Users role for project is Guest"]
+  "policies": ["Users role for view project is Guest","User has access to view project"]
 }
 EOF
 
@@ -648,7 +725,7 @@ EOF
   "decisionStrategy": "UNANIMOUS",
   "resources": ["env_var"],
   "scopes": ["project:view"],
-  "policies": ["Users role for project is Maintainer","User has access to project"]
+  "policies": ["Users role for project is Maintainer","User has access to view project"]
 }
 EOF
 
@@ -660,7 +737,7 @@ EOF
   "decisionStrategy": "UNANIMOUS",
   "resources": ["project"],
   "scopes": ["viewPrivateKey"],
-  "policies": ["User has access to project","Users role for project is Owner"]
+  "policies": ["Users role for project is Owner","User has access to view project"]
 }
 EOF
 
@@ -756,7 +833,7 @@ EOF
   "decisionStrategy": "AFFIRMATIVE",
   "resources": ["ssh_key"],
   "scopes": ["view:user"],
-  "policies": ["User has access to own data","Users role for realm is Platform Owner"]
+  "policies": ["User has access to own data","Users role for realm is Platform Viewer or Platform Owner"]
 }
 EOF
 
@@ -768,7 +845,7 @@ EOF
   "decisionStrategy": "UNANIMOUS",
   "resources": ["openshift"],
   "scopes": ["view"],
-  "policies": ["User has access to project","Users role for project is Maintainer"]
+  "policies": ["Users role for view project is Maintainer","User has access to view project"]
 }
 EOF
 
@@ -1093,7 +1170,7 @@ EOF
   "decisionStrategy": "UNANIMOUS",
   "resources": ["project"],
   "scopes": ["view"],
-  "policies": ["User has access to project","Users role for project is Guest"]
+  "policies": ["Users role for view project is Guest","User has access to view project"]
 }
 EOF
 
@@ -1201,7 +1278,7 @@ EOF
   "decisionStrategy": "UNANIMOUS",
   "resources": ["env_var"],
   "scopes": ["environment:view:production"],
-  "policies": ["Users role for project is Maintainer","User has access to project"]
+  "policies": ["Users role for project is Maintainer","User has access to view project"]
 }
 EOF
 
@@ -1357,7 +1434,7 @@ function add_group_viewall {
   "decisionStrategy": "UNANIMOUS",
   "resources": ["group"],
   "scopes": ["viewAll"],
-  "policies": ["Users role for realm is Platform Owner"]
+  "policies": ["Users role for realm is Platform Viewer or Platform Owner"]
 }
 EOF
 }
@@ -1503,7 +1580,7 @@ function configure_problems_system {
   "decisionStrategy": "UNANIMOUS",
   "resources": ["problem"],
   "scopes": ["view"],
-  "policies": ["Users role for project is Developer","User has access to project"]
+  "policies": ["Users role for view project is Developer","User has access to view project"]
 }
 EOF
 
@@ -1621,7 +1698,7 @@ function configure_facts_system {
   "decisionStrategy": "UNANIMOUS",
   "resources": ["fact"],
   "scopes": ["view"],
-  "policies": ["Users role for project is Developer","User has access to project"]
+  "policies": ["Users role for view project is Developer","User has access to view project"]
 }
 EOF
 
