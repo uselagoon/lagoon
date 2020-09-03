@@ -84,6 +84,7 @@ func sessionHandler(k *keycloak.Client, c *exec.Client,
 		if s.User() == "lagoon" && len(cmd) == 1 && cmd[0] == "token" {
 			log.Info("issuing user token", zap.String("sessionID", sid.String()))
 			io.WriteString(s, ctoken)
+			io.WriteString(s, "\n")
 			return
 		}
 		// get the lagoon client using the user token
