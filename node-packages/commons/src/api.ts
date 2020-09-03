@@ -654,18 +654,20 @@ export async function getProjectByName(project: string): Promise<any> {
 }
 
 export async function getMicrosoftTeamsInfoForProject(
-  project: string
+  project: string, contentType = 'DEPLOYMENT'
 ): Promise<any[]> {
   const notificationsFragment = graphqlapi.createFragment(`
     fragment on NotificationMicrosoftTeams {
       webhook
+      contentType
+      notificationSeverityThreshold
     }
   `);
 
   const result = await graphqlapi.query(`
     {
       project:projectByName(name: "${project}") {
-        microsoftTeams: notifications(type: MICROSOFTTEAMS) {
+        microsoftTeams: notifications(type: MICROSOFTTEAMS, contentType: ${contentType}) {
           ...${notificationsFragment}
         }
       }
@@ -682,19 +684,21 @@ export async function getMicrosoftTeamsInfoForProject(
 }
 
 export async function getRocketChatInfoForProject(
-  project: string
+  project: string, contentType = 'DEPLOYMENT'
 ): Promise<any[]> {
   const notificationsFragment = graphqlapi.createFragment(`
     fragment on NotificationRocketChat {
       webhook
       channel
+      contentType
+      notificationSeverityThreshold
     }
   `);
 
   const result = await graphqlapi.query(`
     {
       project:projectByName(name: "${project}") {
-        rocketchats: notifications(type: ROCKETCHAT) {
+        rocketchats: notifications(type: ROCKETCHAT, contentType: ${contentType}) {
           ...${notificationsFragment}
         }
       }
@@ -711,19 +715,21 @@ export async function getRocketChatInfoForProject(
 }
 
 export async function getSlackinfoForProject(
-  project: string
+  project: string, contentType = 'DEPLOYMENT'
 ): Promise<Project> {
   const notificationsFragment = graphqlapi.createFragment(`
     fragment on NotificationSlack {
       webhook
       channel
+      contentType
+      notificationSeverityThreshold
     }
   `);
 
   const result = await graphqlapi.query(`
     {
       project:projectByName(name: "${project}") {
-        slacks: notifications(type: SLACK) {
+        slacks: notifications(type: SLACK, contentType: ${contentType}) {
           ...${notificationsFragment}
         }
       }
@@ -740,18 +746,20 @@ export async function getSlackinfoForProject(
 }
 
 export async function getEmailInfoForProject(
-  project: string
+  project: string, contentType = 'DEPLOYMENT'
 ): Promise<any[]> {
   const notificationsFragment = graphqlapi.createFragment(`
     fragment on NotificationEmail {
       emailAddress
+      contentType
+      notificationSeverityThreshold
     }
   `);
 
   const result = await graphqlapi.query(`
     {
       project:projectByName(name: "${project}") {
-        emails: notifications(type: EMAIL) {
+        emails: notifications(type: EMAIL, contentType: ${contentType}) {
           ...${notificationsFragment}
         }
       }

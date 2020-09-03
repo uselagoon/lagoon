@@ -34,6 +34,11 @@ const typeDefs = gql`
     EMAIL
   }
 
+  enum NotificationContentType {
+    DEPLOYMENT
+    PROBLEM
+  }
+
   enum DeploymentStatusType {
     NEW
     PENDING
@@ -290,6 +295,8 @@ const typeDefs = gql`
     id: Int
     name: String
     webhook: String
+    contentType: String
+    notificationSeverityThreshold: ProblemSeverityRating
   }
 
   type NotificationRocketChat {
@@ -297,6 +304,8 @@ const typeDefs = gql`
     name: String
     webhook: String
     channel: String
+    contentType: String
+    notificationSeverityThreshold: ProblemSeverityRating
   }
 
   type NotificationSlack {
@@ -304,18 +313,24 @@ const typeDefs = gql`
     name: String
     webhook: String
     channel: String
+    contentType: String
+    notificationSeverityThreshold: ProblemSeverityRating
   }
 
   type NotificationEmail {
     id: Int
     name: String
     emailAddress: String
+    contentType: String
+    notificationSeverityThreshold: ProblemSeverityRating
   }
 
   type UnassignedNotification {
     id: Int
     name: String
     type: String
+    contentType: String
+    notificationSeverityThreshold: ProblemSeverityRating
   }
 
   union Notification = NotificationRocketChat | NotificationSlack | NotificationMicrosoftTeams | NotificationEmail
@@ -359,7 +374,7 @@ const typeDefs = gql`
     """
     Notifications that should be sent for this project
     """
-    notifications(type: NotificationType): [Notification]
+    notifications(type: NotificationType, contentType: NotificationContentType, notificationSeverityThreshold: ProblemSeverityRating): [Notification]
     """
     Which internal Lagoon System is responsible for deploying
     Currently only 'lagoon_openshiftBuildDeploy' exists
@@ -1024,6 +1039,8 @@ const typeDefs = gql`
     project: String!
     notificationType: NotificationType!
     notificationName: String!
+    contentType: NotificationContentType
+    notificationSeverityThreshold: ProblemSeverityRating
   }
 
   input RemoveNotificationFromProjectInput {
