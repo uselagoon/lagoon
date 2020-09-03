@@ -8,10 +8,11 @@ Lagoon solves what developers are dreaming about: A system that allows developer
 
 Please reference our [documentation](https://lagoon.readthedocs.io/) for detailed information on using, developing, and administering Lagoon.
 
-### Contribute
-Do you want to contribute to Lagoon? Fabulous! [See our Documentation](https://lagoon.readthedocs.io/en/latest/developing_lagoon/contributing/) on how to get started.
+## Contribute
 
-### Services
+Do you want to contribute to Lagoon? Fabulous! [See our Documentation](https://lagoon.readthedocs.io/en/latest/contributing/) on how to get started.
+
+## Services
 
 This project contains the following services:
 - [UI](/services/ui/)
@@ -35,4 +36,3 @@ This project contains the following services:
 - [backup-handler](/services/backup-handler/)
 - [webhook-handler](/services/webhook-handler/)
 - [logs2logs-db](/services/logs2logs-db/)
-
