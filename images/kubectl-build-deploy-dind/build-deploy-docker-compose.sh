@@ -379,6 +379,8 @@ if [ "$ROUTES_AUTOGENERATE_BRANCH" =~ [Tt]rue ]; then
   ROUTES_AUTOGENERATE_ENABLED=true
 fi
 
+ROUTES_AUTOGENERATE_PREFIXES=$(yq r -C .lagoon.yml routes.autogenerate.prefixes.*)
+
 touch /kubectl-build-deploy/values.yaml
 
 yq write -i /kubectl-build-deploy/values.yaml 'project' $PROJECT
@@ -390,6 +392,7 @@ yq write -i /kubectl-build-deploy/values.yaml 'buildType' $BUILD_TYPE
 yq write -i /kubectl-build-deploy/values.yaml 'routesAutogenerateInsecure' $ROUTES_AUTOGENERATE_INSECURE
 yq write -i /kubectl-build-deploy/values.yaml 'routesAutogenerateEnabled' $ROUTES_AUTOGENERATE_ENABLED
 yq write -i /kubectl-build-deploy/values.yaml 'routesAutogenerateSuffix' $ROUTER_URL
+for i in $ROUTES_AUTOGENERATE_PREFIXES; do yq write -i /kubectl-build-deploy/values.yaml 'routesAutogeneratePrefixes[+]' $i; done
 yq write -i /kubectl-build-deploy/values.yaml 'kubernetes' $KUBERNETES
 yq write -i /kubectl-build-deploy/values.yaml 'lagoonVersion' $LAGOON_VERSION
 
@@ -924,8 +927,6 @@ elif [ "$BUILD_TYPE" == "pullrequest" ] || [ "$BUILD_TYPE" == "branch" ]; then
   if [ -f /kubectl-build-deploy/lagoon/push ]; then
     parallel --retries 4 < /kubectl-build-deploy/lagoon/push
   fi
-
-  
 
   # load the image hashes for just pushed Images
   for IMAGE_NAME in "${!IMAGES_BUILD[@]}"

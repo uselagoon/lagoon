@@ -1682,15 +1682,11 @@ configure_keycloak &
 
 /bin/sh /opt/jboss/tools/databases/change-database.sh mariadb
 
-if [ -z "$BIND" ]; then
-    BIND=$(hostname --all-ip-addresses)
-fi
-if [ -z "$BIND_OPTS" ]; then
-    for BIND_IP in $BIND
-    do
-        BIND_OPTS+=" -Djboss.bind.address=$BIND_IP -Djboss.bind.address.private=$BIND_IP "
-    done
-fi
+BIND=$(hostname --all-ip-addresses | cut -d' ' -f1)
+BIND_OPTS=" -Djboss.bind.address=0.0.0.0"
+BIND_OPTS+=" -Djboss.bind.address.private=0.0.0.0"
+BIND_OPTS+=" -Djgroups.bind_addr=$BIND"
+
 SYS_PROPS+=" $BIND_OPTS"
 
 # If the server configuration parameter is not present, append the HA profile.
