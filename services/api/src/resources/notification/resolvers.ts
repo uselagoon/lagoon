@@ -231,7 +231,7 @@ export const removeNotificationFromProject: ResolverFn = async (
     R.over(R.lensProp('notificationType'), notificationTypeToString),
   )(unformattedInput) as any;
 
-  const select = await query(sqlClient, projectSql.selectProjectByName(input));
+  const select = await query(sqlClient, projectSql.selectProjectByName(input.project));
   const project = R.path([0], select) as any;
 
   await hasPermission('project', 'removeNotification', {
