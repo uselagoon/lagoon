@@ -12,8 +12,17 @@ spec:
       {{- include "lagoon-logging.logsDispatcher.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-    {{- with .Values.logsDispatcher.podAnnotations }}
       annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/logs-dispatcher.secret.yaml") . | sha256sum }}
+        checksum/env-configmap: {{ include (print $.Template.BasePath "/logs-dispatcher.env.configmap.yaml") . | sha256sum }}
+        checksum/fluent-conf-configmap: {{ include (print $.Template.BasePath "/logs-dispatcher.fluent-conf.configmap.yaml") . | sha256sum }}
+        {{- if .Values.exportLogs }}
+        checksum/store-configmap: {{ include (print $.Template.BasePath "/logs-dispatcher.store.configmap.yaml") . | sha256sum }}
+        {{- end }}
+        {{- if .Values.lagoonLogs.enabled }}
+        checksum/source-lagoon-configmap: {{ include (print $.Template.BasePath "/logs-dispatcher.source-lagoon.configmap.yaml") . | sha256sum }}
+        {{- end }}
+    {{- with .Values.logsDispatcher.podAnnotations }}
         {{- toYaml . | nindent 8 }}
     {{- end }}
       labels:

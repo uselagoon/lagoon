@@ -172,7 +172,6 @@ const typeDefs = gql`
     created: String
   }
 
-
   input BulkProblem {
     severity: ProblemSeverityRating
     severityScore: SeverityScore
@@ -189,6 +188,26 @@ const typeDefs = gql`
     environment: Int!
     source: String!
     service: String!
+  }
+
+
+  type Fact {
+    id: Int
+    environment: Environment
+    name: String
+    value: String
+  }
+
+  input AddFactInput {
+    id: Int
+    environment: Int!
+    name: String!
+    value: String!
+  }
+
+  input DeleteFactInput {
+    environment: Int!
+    name: String!
   }
 
   type File {
@@ -421,6 +440,10 @@ const typeDefs = gql`
     """
     problemsUi: Int
     """
+    Should the Facts UI be available for this Project (\`1\` or \`0\`)
+    """
+    factsUi: Int
+    """
     Reference to OpenShift Object this Project should be deployed to
     """
     openshift: Openshift
@@ -432,6 +455,10 @@ const typeDefs = gql`
     How many environments can be deployed at one timeout
     """
     developmentEnvironmentsLimit: Int
+    """
+    Name of the OpenShift Project/Namespace
+    """
+    openshiftProjectName: String
     """
     Deployed Environments for this Project
     """
@@ -546,7 +573,8 @@ const typeDefs = gql`
     backups(includeDeleted: Boolean): [Backup]
     tasks(id: Int): [Task]
     services: [EnvironmentService]
-    problems(severity: [ProblemSeverityRating]): [Problem]
+    problems(severity: [ProblemSeverityRating], source: [String]): [Problem]
+    facts: [Fact]
   }
 
   type EnvironmentHitsMonth {
@@ -692,6 +720,7 @@ const typeDefs = gql`
     """
     projectByGitUrl(gitUrl: String!): Project
     environmentByName(name: String!, project: Int!): Environment
+    environmentById(id: Int!): Environment
     """
     Returns Environment Object by a given openshiftProjectName
     """
@@ -719,6 +748,11 @@ const typeDefs = gql`
     Returns all Environments matching given filter (all if no filter defined)
     """
     allEnvironments(createdAfter: String, type: EnvType, order: EnvOrderType): [Environment]
+    """
+    Returns all Problems matching given filter (all if no filter defined)
+    """
+    allProblems(source: [String], project: Int, environment: Int, envType: [EnvType], identifier: String, severity: [ProblemSeverityRating]): [Problem]
+    problemSources: [String]
     """
     Returns all Groups matching given filter (all if no filter defined)
     """
@@ -811,6 +845,7 @@ const typeDefs = gql`
     developmentEnvironmentsLimit: Int
     privateKey: String
     problemsUi: Int
+    factsUi: Int
   }
 
   input AddEnvironmentInput {
@@ -1050,6 +1085,7 @@ const typeDefs = gql`
     openshiftProjectPattern: String
     developmentEnvironmentsLimit: Int
     problemsUi: Int
+    factsUi: Int
   }
 
   input UpdateProjectInput {
@@ -1210,8 +1246,6 @@ const typeDefs = gql`
     name: String!
     parentGroup: GroupInput
   }
-
-
 
   input AddBillingModifierInput {
     """
@@ -1432,6 +1466,8 @@ const typeDefs = gql`
     deleteProblem(input: DeleteProblemInput!): String
     deleteProblemsFromSource(input: DeleteProblemsFromSourceInput!): String
     deleteProblemHarborScanMatch(input: DeleteProblemHarborScanMatchInput!): String
+    addFact(input: AddFactInput!): Fact
+    deleteFact(input: DeleteFactInput!): String
     deleteBackup(input: DeleteBackupInput!): String
     deleteAllBackups: String
     addRestore(input: AddRestoreInput!): Restore
@@ -1478,7 +1514,6 @@ const typeDefs = gql`
     removeGroupsFromProject(input: ProjectGroupsInput!): Project
     updateProjectMetadata(input: UpdateMetadataInput!): Project
     removeProjectMetadataByKey(input: RemoveMetadataInput!): Project
-
     addBillingModifier(input: AddBillingModifierInput!): BillingModifier
     updateBillingModifier(input: UpdateBillingModifierInput!): BillingModifier
     deleteBillingModifier(input: DeleteBillingModifierInput!): String

@@ -1,5 +1,6 @@
 import { MockList } from 'graphql-tools';
 import faker from 'faker/locale/en';
+import { packages } from './data/mock-data';
 
 // The mocks object is an Apollo Resolver Map where each mock function has the
 // following definition: (parent, args, context, info) => {}
@@ -233,6 +234,7 @@ MIIJKQIBAAKCAgEA+o[...]P0yoL8BoQQG2jCvYfWh6vyglQdrDYx/o6/8ecTwXokKKh6fg1q
     autoIdle: faker.random.arrayElement([0, 1]),
     storageCalc: faker.random.arrayElement([0, 1]),
     problemsUi: faker.random.arrayElement([0, 1]),
+    factsUi: faker.random.arrayElement([0, 1]),
     openshift: mocks.Openshift(),
     openshiftProjectPattern: '${project}-${name}',
     developmentEnvironmentsLimit: 10,
@@ -409,115 +411,41 @@ mocks.Task = (parent, args = {}, context, info) => {
   };
 };
 
+mocks.ProblemIdentifier = () => {
+  const recentYear = faker.random.arrayElement(['2019', '2020']);
+  const vuln_id = `CVE-${recentYear}-${faker.random.number({min: 1000, max: 99999})}`;
+
+  return {
+    identifier: vuln_id,
+    problem: mocks.Problem(),
+  };
+};
+
 mocks.Problem = () => {
-    const packages = [
-        'ansible',
-        'apache-log4j1.2',
-        'awl',
-        'cacti',
-        'ceph',
-        'chromium',
-        'commons-configuration2',
-        'consul',
-        'dom4j',
-        'drupal',
-        'file-roller',
-        'freeipa',
-        'freeradius',
-        'glibc',
-        'golang-github-buger-jsonparser',
-        'golang-github-opencontainers-selinux',
-        'golang-github-proglottis-gpgme',
-        'golang-go.crypto',
-        'golang-golang-x-net-dev',
-        'graphicsmagick',
-        'http-parser',
-        'imagemagick',
-        'inetutils',
-        'ipmitool',
-        'janus',
-        'jruby',
-        'knot-resolver',
-        'ksh',
-        'libapache2-mod-auth-openidc',
-        'libjackson-json-java',
-        'libmicrodns',
-        'libopenmpt',
-        'libpam-radius-auth',
-        'libperlspeak-perl',
-        'librsvg',
-        'libspring-java',
-        'libusrsctp',
-        'libvirt',
-        'libxml-security-java',
-        'linux',
-        'lucene-solr',
-        'lxc-templates',
-        'matrix-synapse',
-        'mbedtls',
-        'mupdf',
-        'netty',
-        'nginx',
-        'node-yarnpkg',
-        'nodejs',
-        'nss',
-        'openjdk-11',
-        'phantomjs',
-        'php7.0',
-        'php7.1',
-        'php7.2',
-        'php7.3',
-        'puma',
-        'python',
-        'rmysql',
-        'ruby-json-jwt',
-        'ruby-omniauth',
-        'salt',
-        'shiro',
-        'slirp',
-        'squid',
-        'ssvnc',
-        'thrift',
-        'tomcat9',
-        'trafficserver',
-        'varnish',
-        'xcftools',
-        'xerces-c',
-        'yubikey-val',
-    ];
     const recentYear = faker.random.arrayElement(['2019', '2020']);
     const vuln_id = `CVE-${recentYear}-${faker.random.number({min: 1000, max: 99999})}`;
-    const source = faker.random.arrayElement(['Clair', 'Drutiny']);
+    const source = faker.random.arrayElement(['Harbor', 'Drutiny']);
     const created = faker.date.between('2019-10-01 00:00:00', '2020-03-31 23:59:59').toUTCString();
     const associatedPackage = faker.random.arrayElement(packages);
     const version = `${faker.random.number(4)}.${faker.random.number(9)}.${faker.random.number(49)}`;
     const fixedVersion = `${version}+deb8u${faker.random.number(9)}`;
-    const severity = faker.random.arrayElement(['Unknown', 'Negligible', 'Low', 'Medium', 'High', 'Critical']);
+    const severity = faker.random.arrayElement(['UNKNOWN', 'NEGLIGIBLE', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL']);
     const description = faker.lorem.paragraph();
     const links = `https://security-tracker.debian.org/tracker/${vuln_id}`;
-    const deleted = '0000-00-00 00:00:00';
     const severityScore = `0.${faker.random.number({min:1, max:9})}`;
-    const data = "{hello: 'world'}";
+    const data = ({ id: faker.random.number(), hello: 'hello', world: 'world' });
 
     return {
-        id: `${faker.random.number(9999999)}`,
         identifier: vuln_id,
+        severity: severity,
         source: source,
-        status: mocks.TaskStatusType(),
-        associatedPackage,
-        version,
-        fixedVersion,
-        severity,
+        severityScore: severityScore,
+        associatedPackage: associatedPackage,
         description,
         links,
-        created,
-        deleted,
-        severityScore,
         data
     };
 };
-
-mocks.Problems = () => generator(mocks.Problem, 1, 50);
 
 mocks.ProblemMutation = (schema) => {
     return Array.from({
@@ -547,8 +475,9 @@ mocks.Query = () => ({
   userCanSshToEnvironment: () => mocks.Environment(),
   deploymentByRemoteId: () => mocks.Deployment(),
   taskByRemoteId: () => mocks.Task(),
-  allProjects: () => new MockList(9),
+  allProjects: () => new MockList(600),
   allOpenshifts: () => new MockList(9),
+  allProblems: () => new MockList(5),
   allEnvironments: (parent, args = {}, context, info) => {
     const project = args.hasOwnProperty('project')
       ? args.project

@@ -183,7 +183,7 @@ objects:
                 - name: ${SERVICE_NAME}
                   mountPath: ${PERSISTENT_STORAGE_PATH}
                 - name: ${SERVICE_NAME}-twig
-                  mountPath: ${PERSISTENT_STORAGE_PATH}/php/twig
+                  mountPath: ${PERSISTENT_STORAGE_PATH}/php
               resources:
                 requests:
                   cpu: 10m
