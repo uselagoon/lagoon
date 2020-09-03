@@ -1,6 +1,7 @@
 ARG PHP_VERSION
 ARG IMAGE_REPO
 ARG PHP_IMAGE_VERSION
+FROM ${IMAGE_REPO:-lagoon}/commons as commons
 FROM ${IMAGE_REPO:-lagoon}/php:${PHP_VERSION}-fpm
 
 LABEL maintainer="amazee.io"
@@ -10,6 +11,8 @@ ENV LAGOON=cli
 # @see https://getcomposer.org/download/
 ENV COMPOSER_VERSION=1.10.9 \
   COMPOSER_HASH_SHA256=70d6b9c3e0774b398a372dcb7f89dfe22fc25884e6e09ebf277286dd64cfaf35
+
+COPY --from=commons /bin/entrypoint-readiness /bin/
 
 RUN apk add --no-cache git \
         unzip \
@@ -23,6 +26,7 @@ RUN apk add --no-cache git \
         coreutils \
         mariadb-client \
         postgresql-client \
+        mongodb-tools \
         openssh-sftp-server \
         findutils \
         nodejs-current \

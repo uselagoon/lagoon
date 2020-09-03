@@ -1,16 +1,23 @@
-# Held at alpine 3.10 because of Python2 dependencies not available in 3.11
-FROM alpine:3.10
+ARG IMAGE_REPO
+FROM ${IMAGE_REPO:-lagoon}/python:2.7
 
 RUN apk add --no-cache \
-      ansible \
       bash \
       curl \
       git \
       jq \
       openssh-client \
-      py2-jwt \
-      py2-requests \
       rsync
+
+RUN apk add --no-cache --virtual .build-deps \
+      g++ \
+      libffi-dev \
+      openssl-dev \
+    && pip install \
+      ansible==2.8.13 \
+      PyJWT \
+      requests \
+    && apk del .build-deps
 
 # download, extract and install kubectl binary
 # https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.18.md#downloads-for-v1182
