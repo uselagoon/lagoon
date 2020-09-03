@@ -13,6 +13,7 @@ export default gql`
         id
         name
         problemsUi
+        factsUi
       }
       backups {
         ...backupFields

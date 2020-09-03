@@ -41,9 +41,17 @@ export default class Error extends React.Component {
   }
 }
 
+export class ErrorNoHeader extends React.Component {
+    static displayName = 'ErrorNoHeader';
+
+    render() {
+        const { errorMessage } = this.props;
+        return (errorMessage && <p>{errorMessage}</p>);
+    }
+}
+
 if (process.env.NODE_ENV !== 'production') {
   Error.propTypes = {
-    statusCode: PropTypes.number,
     errorMessage: PropTypes.string,
   };
 }

@@ -128,13 +128,20 @@ objects:
                   name: lagoon-sshkey
                   readOnly: true
                 - name: ${PERSISTENT_STORAGE_NAME}-twig
-                  mountPath: ${PERSISTENT_STORAGE_PATH}/php/twig
+                  mountPath: ${PERSISTENT_STORAGE_PATH}/php
               resources:
                 requests:
                   cpu: 10m
                   memory: 10Mi
                 limits:
                   memory: 8Gi
+              readinessProbe:
+                initialDelaySeconds: 5
+                periodSeconds: 2
+                failureThreshold: 3
+                exec:
+                  command:
+                  - /bin/entrypoint-readiness
       test: false
       triggers:
         - type: ConfigChange

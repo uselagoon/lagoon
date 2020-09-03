@@ -1,8 +1,8 @@
-import * as R from 'ramda';
+const R = require('ramda');
 import { MariaClient } from 'mariasql';
-import { asyncPipe } from '@lagoon/commons/dist/util';
-import { query } from '../../util/db';
-import { Sql } from './sql';
+const { asyncPipe } = require('@lagoon/commons/dist/util');
+const { query } = require('../../util/db');
+const { Sql } = require('./sql');
 
 export const Helpers = (sqlClient: MariaClient) => {
   const getProjectById = async (id: number) => {
@@ -10,10 +10,15 @@ export const Helpers = (sqlClient: MariaClient) => {
     return R.prop(0, rows);
   };
 
-  const getProjectByEnvironmentId = async (environmentId) => {
-    const rows = await query(sqlClient, Sql.selectProjectByEnvironmentId(environmentId));
+  const getProjectByName = async (name: string) => {
+    const rows = await query(sqlClient, Sql.selectProjectByName(name));
     return R.prop(0, rows);
-  }
+  };
+
+  const getProjectByEnvironmentId = async (environmentId: number, environmentType = null) => {
+    const rows = await query(sqlClient, Sql.selectProjectByEnvironmentId(environmentId, environmentType));
+    return R.prop(0, rows);
+  };
 
   const getProjectsByIds = (projectIds: number[]) =>
     query(sqlClient, Sql.selectProjectsByIds(projectIds));

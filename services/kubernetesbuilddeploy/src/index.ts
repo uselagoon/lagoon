@@ -6,7 +6,7 @@ import sha1 from 'sha1';
 import crypto from 'crypto';
 import moment from 'moment';
 import { logger } from '@lagoon/commons/dist/local-logging';
-import { getOpenShiftInfoForProject, addOrUpdateEnvironment, getEnvironmentByName, addDeployment } from '@lagoon/commons/dist/api';
+import { getOpenShiftInfoForProject, addOrUpdateEnvironment, getEnvironmentByName, addDeployment, getBillingGroupForProject } from '@lagoon/commons/dist/api';
 
 import { sendToLagoonLogs, initSendToLagoonLogs } from '@lagoon/commons/dist/logs';
 import { consumeTasks, initSendToLagoonTasks, createTaskMonitor } from '@lagoon/commons/dist/tasks';
@@ -44,6 +44,8 @@ const messageConsumer = async msg => {
 
   const result = await getOpenShiftInfoForProject(projectName);
   const projectOpenShift = result.project
+  const billingGroupResult = await getBillingGroupForProject(projectName);
+  const projectBillingGroup = billingGroupResult.project
 
   try {
 
@@ -94,7 +96,7 @@ const messageConsumer = async msg => {
       alertContactSA = monitoringConfig.uptimerobot.alertContactSA || ""
     }
     var availability = projectOpenShift.availability || "STANDARD"
-    const billingGroup = projectOpenShift.groups.find(i => i.type == "billing" ) || ""
+    const billingGroup = projectBillingGroup.groups.find(i => i.type == "billing" ) || ""
     var uptimeRobotStatusPageId = billingGroup.uptimeRobotStatusPageId || ""
   } catch(error) {
     logger.error(`Error while loading information for project ${projectName}`)
@@ -358,19 +360,18 @@ const messageConsumer = async msg => {
           "labels": {
             "lagoon.sh/project": projectName,
             "lagoon.sh/environment": environmentName,
-            "lagoon.sh/environmentType": lagoonEnvironmentType
+            "lagoon.sh/environmentType": environmentType
           }
         }
       }
     })
     logger.info(`${openshiftProject}: Namespace ${openshiftProject} created`)
   } catch (err) {
-    console.log(err.code)
     // an already existing namespace  throws an error, we check if it's a 409, means it does already exist, so we ignore that error.
     if (err.code == 409) {
       logger.info(`${openshiftProject}: Namespace ${openshiftProject} already exists`)
     } else {
-      logger.error(err)
+      logger.error(`Could not create namespace '${openshiftProject}': ${err.code} ${err.message}`);
       throw new Error
     }
   }
