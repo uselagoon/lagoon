@@ -16,6 +16,9 @@ USER_SSH_KEY=$2
 REQUESTED_PROJECT=$3
 shift 3
 
+# get the graphql endpoint, if set
+eval "$(grep GRAPHQL_ENDPOINT /authorize.env)"
+
 # check if project is a valid one
 if [[ -n "$REQUESTED_PROJECT" ]]; then
   if [[ "$REQUESTED_PROJECT" =~ ^[A-Za-z0-9-]+$ ]]; then
