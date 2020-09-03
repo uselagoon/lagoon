@@ -26,6 +26,7 @@ RUN apk add --no-cache git \
         coreutils \
         mariadb-client \
         postgresql-client \
+        mongodb-tools \
         openssh-sftp-server \
         findutils \
         nodejs-current \
