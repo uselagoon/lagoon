@@ -353,7 +353,7 @@ const mockData: IMockDataType = {
         hits: 69.81,
         storage: 0,
         prod: 30.02,
-        dev: 10.01,
+        dev: 60.05,
       },
       currency: CURRENCIES.EUR,
       billingSoftware: 'xero',
@@ -445,8 +445,8 @@ const mockData: IMockDataType = {
       expectations: {
         hits: 87.78,
         storage: 7.69,
-        prod: 30.02,
-        dev: 20.02
+        prod: 60.05,
+        dev: 160.13
       },
       currency: CURRENCIES.CHF,
       projects: [

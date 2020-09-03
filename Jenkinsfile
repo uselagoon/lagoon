@@ -44,12 +44,20 @@ node {
         // but we want this on tag deployments in order to ensure that we publish images always with the newest possible images.
         if (env.TAG_NAME) {
           stage ('clean docker image cache') {
-            sh "docker image prune -af"
+            sh script: "docker image prune -af", label: "Pruning images"
           }
         }
 
+        stage ('check PR labels') {
+          if (env.BRANCH_NAME ==~ /PR-\d+/) {
+            pullRequest.labels.each{
+              echo "This PR has labels: $it"
+              }
+            }
+        }
+
         stage ('build images') {
-          sh "make -O${SYNC_MAKE_OUTPUT} -j6 build"
+          sh script: "make -O${SYNC_MAKE_OUTPUT} -j6 build", label: "Building images"
         }
 
         try {
@@ -58,9 +66,9 @@ node {
               kubernetes_versions.each { kubernetes_version ->
                 stage ("kubernetes ${kubernetes_version['kubernetes']} tests") {
                   try {
-                    sh "make k3d/clean K3S_VERSION=${kubernetes_version['k3s']} KUBECTL_VERSION=${kubernetes_version['kubectl']}"
-                    sh "make k3d K3S_VERSION=${kubernetes_version['k3s']} KUBECTL_VERSION=${kubernetes_version['kubectl']}"
-                    sh "make -O${SYNC_MAKE_OUTPUT} k8s-tests"
+                    sh script: "make k3d/clean K3S_VERSION=${kubernetes_version['k3s']} KUBECTL_VERSION=${kubernetes_version['kubectl']}", label: "Removing any previous k3d versions"
+                    sh script: "make k3d K3S_VERSION=${kubernetes_version['k3s']} KUBECTL_VERSION=${kubernetes_version['kubectl']}", label: "Making k3d"
+                    sh script: "make -O${SYNC_MAKE_OUTPUT} k8s-tests -j2", label: "Making kubernetes tests"
                   } catch (e) {
                     echo "Something went wrong, trying to cleanup"
                     cleanup()
@@ -70,10 +78,14 @@ node {
               }
               stage ('minishift tests') {
                 try {
-                  sh 'make minishift/cleanall || echo'
-                  sh "make minishift MINISHIFT_CPUS=16 MINISHIFT_MEMORY=32GB MINISHIFT_DISK_SIZE=50GB MINISHIFT_VERSION=${minishift_version} OPENSHIFT_VERSION=${openshift_version}"
-                  sh "make -O${SYNC_MAKE_OUTPUT} push-minishift -j5"
-                  sh "make -O${SYNC_MAKE_OUTPUT} openshift-tests -j7"
+                  if (pullRequest.labels.contains("skip-openshift-tests")) {
+                    sh script: 'echo "PR identified as not needing Openshift testing."', label: "Skipping Openshift testing stage"
+                  } else {
+                    sh 'make minishift/cleanall || echo'
+                    sh script: "make minishift MINISHIFT_CPUS=\$(nproc --ignore 3) MINISHIFT_MEMORY=24GB MINISHIFT_DISK_SIZE=70GB MINISHIFT_VERSION=${minishift_version} OPENSHIFT_VERSION=${openshift_version}", label: "Making openshift"
+                    sh script: "make -O${SYNC_MAKE_OUTPUT} push-minishift -j5", label: "Pushing built images into openshift"
+                    sh script: "make -O${SYNC_MAKE_OUTPUT} openshift-tests -j2", label: "Making openshift tests"
+                  }
                 } catch (e) {
                   echo "Something went wrong, trying to cleanup"
                   cleanup()
@@ -103,10 +115,10 @@ node {
                 withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
                   try {
                     if (env.SKIP_IMAGE_PUBLISH != 'true') {
-                      sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-                      sh "make -O${SYNC_MAKE_OUTPUT} -j4 publish-amazeeiolagoon-baseimages publish-amazeeiolagoon-serviceimages BRANCH_NAME=${SAFEBRANCH_NAME}"
+                      sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
+                      sh script: "make -O${SYNC_MAKE_OUTPUT} -j4 publish-amazeeiolagoon-baseimages publish-amazeeiolagoon-serviceimages BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Publishing built images"
                     } else {
-                      sh 'echo "skipped because of SKIP_IMAGE_PUBLISH env variable"'
+                      sh script: 'echo "skipped because of SKIP_IMAGE_PUBLISH env variable"', label: "Skipping image publishing"
                     }
                   } catch (e) {
                     echo "Something went wrong, trying to cleanup"
@@ -126,15 +138,15 @@ node {
         if (env.TAG_NAME && env.SKIP_IMAGE_PUBLISH != 'true') {
           stage ('publish-amazeeio') {
             withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
-              sh 'docker login -u amazeeiojenkins -p $PASSWORD'
-              sh "make -O${SYNC_MAKE_OUTPUT} -j4 publish-amazeeio-baseimages"
+              sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
+              sh script: "make -O${SYNC_MAKE_OUTPUT} -j4 publish-amazeeio-baseimages", label: "Publishing built images"
             }
           }
         }
 
         if (env.BRANCH_NAME == 'master' && env.SKIP_IMAGE_PUBLISH != 'true') {
           stage ('save-images-s3') {
-            sh "make -O${SYNC_MAKE_OUTPUT} -j8 s3-save"
+            sh script: "make -O${SYNC_MAKE_OUTPUT} -j8 s3-save", label: "Saving images to AWS S3"
           }
         }
 

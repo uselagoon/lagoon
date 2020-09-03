@@ -108,4 +108,3 @@ To fix, you must remove the extra search domain.
 * Remove the setting from `/etc/resolv.conf`.
 * Restart openshift docker: `sudo docker restart origin`.
 * Redeploy `docker-host` in the `lagoon` project.
-
