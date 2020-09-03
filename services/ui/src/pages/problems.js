@@ -59,6 +59,7 @@ export const PageProblems = ({ router }) => (
               .content {
                 padding: 32px calc((100vw / 16) * 1);
                 width: 100%;
+                max-width: 75%;
               }
 
               .notification {
