@@ -18,6 +18,7 @@ export default gql`
         id
         name
         problemsUi
+        factsUi
       }
       services {
         id

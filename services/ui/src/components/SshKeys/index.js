@@ -14,6 +14,7 @@ const SshKeys = ({me: { id, email, sshKeys: keys }}) => {
       <div className="header">
         <label className="name">Name</label>
         <label className="type">Type</label>
+        <label className="fingerprint">Fingerprint</label>
         <label className="created">Created</label>
       </div>
       <div className="data-table">
@@ -22,6 +23,7 @@ const SshKeys = ({me: { id, email, sshKeys: keys }}) => {
           <div className="data-row" key={key.id}>
             <div className="name">{key.id} - {key.name}</div>
             <div className="type">{key.keyType}</div>
+            <div className="fingerprint">{key.keyFingerprint}</div>
             <div className="created">{moment
                 .utc(key.create)
                 .local()
@@ -77,23 +79,30 @@ const SshKeys = ({me: { id, email, sshKeys: keys }}) => {
             }
 
             &.name {
+              width: 18%;
+              @media ${bp.extraWideUp} {
+                width: 18%;
+              }
+            }
+
+            &.type {
+              width: 15%;
+              @media ${bp.extraWideUp} {
+                width: 15%;
+              }
+            }
+
+            &.fingerprint {
               width: 40%;
               @media ${bp.extraWideUp} {
                 width: 40%;
               }
             }
 
-            &.type {
-              width: 20%;
+            &.created {
+              width: 25%;
               @media ${bp.extraWideUp} {
                 width: 25%;
-              }
-            }
-
-            &.created {
-              width: 55%;
-              @media ${bp.extraWideUp} {
-                width: 55%;
               }
             }
 
@@ -135,7 +144,8 @@ const SshKeys = ({me: { id, email, sshKeys: keys }}) => {
               @media ${bp.wideUp} {
                 &.name {
                   align-self: center;
-                  width: 40%;
+                  width: 35%;
+                  overflow-wrap: break-word;
                 }
 
                 &.type {
@@ -143,9 +153,15 @@ const SshKeys = ({me: { id, email, sshKeys: keys }}) => {
                   width: 20%;
                 }
 
+                &.fingerprint {
+                  align-self: center;
+                  overflow-wrap: break-word;
+                  width: 35%;
+                }
+
                 &.created {
                   align-self: center;
-                  width: 25%;
+                  width: 20%;
                   @media ${bp.extraWideUp} {
                     width: 20%;
                   }

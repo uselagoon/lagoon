@@ -15,6 +15,6 @@ export const Default = () => (
     environmentSlug={environment.openshiftProjectName}
     projectSlug={environment.project.name}
   >
-    Backups link
+    Problems link
   </ProblemsLink>
 );

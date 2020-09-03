@@ -67,7 +67,7 @@ DOCKER_DRIVER := $(shell docker info -f '{{.Driver}}')
 # Version and Hash of the OpenShift cli that should be downloaded
 MINISHIFT_VERSION := 1.34.1
 OPENSHIFT_VERSION := v3.11.0
-MINISHIFT_CPUS := 6
+MINISHIFT_CPUS := $(nproc --ignore 2)
 MINISHIFT_MEMORY := 8GB
 MINISHIFT_DISK_SIZE := 30GB
 
@@ -77,7 +77,7 @@ KUBECTL_VERSION := v1.17.0
 HELM_VERSION := v3.0.3
 MINIKUBE_VERSION := 1.5.2
 MINIKUBE_PROFILE := $(CI_BUILD_TAG)-minikube
-MINIKUBE_CPUS := 6
+MINIKUBE_CPUS := $(nproc --ignore 2)
 MINIKUBE_MEMORY := 2048
 MINIKUBE_DISK_SIZE := 30g
 
@@ -248,7 +248,7 @@ $(build-pythonimages): build/commons
 	$(eval clean = $(subst build/python__,,$@))
 	$(eval version = $(word 1,$(subst -, ,$(clean))))
 	$(eval type = $(word 2,$(subst -, ,$(clean))))
-	$(eval alpine_version := $(shell case $(version) in (2.7|3.7) echo "3.10" ;; (*) echo $(DEFAULT_ALPINE_VERSION) ;; esac ))
+	$(eval alpine_version = $(DEFAULT_ALPINE_VERSION))
 # this fills variables only if $type is existing, if not they are just empty
 	$(eval type_dash = $(if $(type),-$(type)))
 # Call the docker build
@@ -480,6 +480,7 @@ build/harbor-trivy build/local-minio: build/harbor-database services/harbor-redi
 build/harborregistry: services/harbor-jobservice/Dockerfile
 build/harborregistryctl: build/harborregistry
 build/harbor-nginx: build/harborregistryctl services/harbor-core/Dockerfile services/harbor-portal/Dockerfile
+build/tests: build/python__2.7
 build/tests-kubernetes: build/tests
 build/tests-openshift: build/tests
 build/toolbox: build/mariadb
@@ -1140,9 +1141,9 @@ rebuild-push-oc-build-deploy-dind:
 
 
 .PHONY: ui-development
-ui-development: build/api build/api-db build/local-api-data-watcher-pusher build/ui build/keycloak build/keycloak-db build/broker build/broker-single
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db local-api-data-watcher-pusher ui keycloak keycloak-db broker
+ui-development: build/api build/api-db build/local-api-data-watcher-pusher build/ui build/keycloak build/keycloak-db build/broker build/broker-single build/api-redis
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis
 
 .PHONY: api-development
-api-development: build/api build/api-db build/local-api-data-watcher-pusher build/keycloak build/keycloak-db build/broker build/broker-single
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db local-api-data-watcher-pusher keycloak keycloak-db broker
+api-development: build/api build/api-db build/local-api-data-watcher-pusher build/keycloak build/keycloak-db build/broker build/broker-single build/api-redis
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db local-api-data-watcher-pusher keycloak keycloak-db broker api-redis

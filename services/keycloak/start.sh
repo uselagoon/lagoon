@@ -1590,6 +1590,65 @@ EOF
 }
 
 
+function configure_facts_system {
+
+  echo "configure_facts_system running"
+
+  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
+  facts_system=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Facts --config $CONFIG_PATH)
+  echo Checking task:manageFacts
+
+  if [ "$facts_system" != "[ ]" ]; then
+    echo "Facts Permissions already configured"
+    return 0
+  fi
+
+  echo Configuring Facts Permissions
+
+  echo Creating resource fact
+
+  echo '{"name":"fact","displayName":"fact","scopes":[{"name":"view"},{"name":"add"},{"name":"delete"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+
+  # Create new permissions
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View Facts",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["fact"],
+  "scopes": ["view"],
+  "policies": ["Users role for project is Developer","User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Add Fact",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["fact"],
+  "scopes": ["add"],
+  "policies": ["Users role for project is Developer","User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Delete Fact",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["fact"],
+  "scopes": ["delete"],
+  "policies": ["Users role for project is Developer","User has access to project"]
+}
+EOF
+
+}
+
+
 function configure_keycloak {
     until is_keycloak_running; do
         echo Keycloak still not running, waiting 5 seconds
@@ -1612,6 +1671,7 @@ function configure_keycloak {
     add_billing_modifier
     configure_task_uli
     configure_problems_system
+    configure_facts_system
     configure_harbor_scan_system
 
     echo "Config of Keycloak done. Log in via admin user '$KEYCLOAK_ADMIN_USER' and password '$KEYCLOAK_ADMIN_PASSWORD'"
@@ -1622,15 +1682,11 @@ configure_keycloak &
 
 /bin/sh /opt/jboss/tools/databases/change-database.sh mariadb
 
-if [ -z "$BIND" ]; then
-    BIND=$(hostname --all-ip-addresses)
-fi
-if [ -z "$BIND_OPTS" ]; then
-    for BIND_IP in $BIND
-    do
-        BIND_OPTS+=" -Djboss.bind.address=$BIND_IP -Djboss.bind.address.private=$BIND_IP "
-    done
-fi
+BIND=$(hostname --all-ip-addresses | cut -d' ' -f1)
+BIND_OPTS=" -Djboss.bind.address=0.0.0.0"
+BIND_OPTS+=" -Djboss.bind.address.private=0.0.0.0"
+BIND_OPTS+=" -Djgroups.bind_addr=$BIND"
+
 SYS_PROPS+=" $BIND_OPTS"
 
 # If the server configuration parameter is not present, append the HA profile.

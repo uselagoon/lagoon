@@ -8,7 +8,7 @@ import AddSshKeyMutation from '../../lib/mutation/AddSshKey';
 
 const AddSshKey = ({me: { id, email }}) => {
 
-  const defaultValues = {sshKeyName: '', sshKey: '', sshKeyType: 'SSH_RSA'};
+  const defaultValues = {sshKeyName: '', sshKey: ''};
   const [values, setValues] = useState(defaultValues);
 
   const handleChange = e => {
@@ -16,7 +16,16 @@ const AddSshKey = ({me: { id, email }}) => {
     setValues({...values, [name]: value});
   }
 
-  const isFormValid = values.sshKeyName !== '' && values.sshKey !== '';
+  const isFormValid = values.sshKeyName !== '' && !values.sshKey.includes('\n') &&
+  (
+    values.sshKey.trim().startsWith('ssh-rsa') || 
+    values.sshKey.trim().startsWith('ssh-ed25519')
+  );
+
+  const regex = /\s*(ssh-\S+)\s+(\S+).*/
+  // First capture group is the type of the ssh key
+  // Second capture group is the actual ssh key
+  // Whitespace and comments are ignored
 
   return(
     <div className="addSshKey">
@@ -29,8 +38,8 @@ const AddSshKey = ({me: { id, email }}) => {
               variables: {
                 input: {
                   name: values.sshKeyName,
-                  keyValue: values.sshKey.replace('ssh-rsa', '').replace('ssh-ed25519', '').trim(),
-                  keyType: values.sshKeyType,
+                  keyValue: values.sshKey.match(regex)[2],
+                  keyType: values.sshKey.match(regex)[1].replace('-', '_').toUpperCase(),
                   user: {
                     id,
                     email
@@ -60,22 +69,6 @@ const AddSshKey = ({me: { id, email }}) => {
                   value={values.sshKeyName}
                   onChange={handleChange}
                 />
-              </div>
-
-              <div>
-                <label htmlFor="sshKeyType">SSH Key Type</label>
-                <select
-                  id="sshKeyType"
-                  name="sshKeyType"
-                  onChange={handleChange}
-                  className="addSshKeyInput"
-                >
-                  {['SSH_RSA', 'SSH_ED25519'].map(value => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
-                </select>
               </div>
 
               <div>

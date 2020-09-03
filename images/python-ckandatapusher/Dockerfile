@@ -9,7 +9,7 @@ RUN apk update \
     postgresql-dev \
     gcc \
     musl-dev \
-    libmagic \
+    file-dev \
     libxslt-dev \
     libxml2-dev \
     libffi-dev \

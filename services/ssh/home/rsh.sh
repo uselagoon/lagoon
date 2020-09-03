@@ -16,13 +16,16 @@ USER_SSH_KEY=$2
 REQUESTED_PROJECT=$3
 shift 3
 
+# get the graphql endpoint, if set
+eval "$(grep GRAPHQL_ENDPOINT /authorize.env)"
+
 # check if project is a valid one
 if [[ -n "$REQUESTED_PROJECT" ]]; then
   if [[ "$REQUESTED_PROJECT" =~ ^[A-Za-z0-9-]+$ ]]; then
     PROJECT=$REQUESTED_PROJECT
   else
     echo "ERROR: given project '$REQUESTED_PROJECT' contains illegal characters";
-    exit
+    exit 1
   fi
 else
   echo "ERROR: no project defined";
@@ -41,12 +44,12 @@ GRAPHQL="query userCanSshToEnvironment {
 }"
 # GraphQL query on single line with \\n for newlines and escaped quotes
 QUERY=$(echo $GRAPHQL | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
-ENVIRONMENT=$(curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" api:3000/graphql -d "{\"query\": \"$QUERY\"}")
+ENVIRONMENT=$(curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" "${GRAPHQL_ENDPOINT:-api:3000/graphql}" -d "{\"query\": \"$QUERY\"}")
 
 # Check if the returned OpenShift projectname is the same as the one being requested. This will only be true if the user actually has access to this environment
 if [[ ! "$(echo $ENVIRONMENT | jq --raw-output '.data.userCanSshToEnvironment.openshiftProjectName')" == "$PROJECT" ]]; then
   echo "no access to $PROJECT"
-  exit
+  exit 1
 fi
 
 ##
@@ -66,7 +69,7 @@ ADMIN_GRAPHQL="query getEnvironmentByOpenshiftProjectName {
 }"
 # GraphQL query on single line with \\n for newlines and escaped quotes
 ADMIN_QUERY=$(echo $ADMIN_GRAPHQL | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
-ADMIN_ENVIRONMENT=$(curl -s -XPOST -H 'Content-Type: application/json' -H "$ADMIN_BEARER" api:3000/graphql -d "{\"query\": \"$ADMIN_QUERY\"}")
+ADMIN_ENVIRONMENT=$(curl -s -XPOST -H 'Content-Type: application/json' -H "$ADMIN_BEARER" "${GRAPHQL_ENDPOINT:-api:3000/graphql}" -d "{\"query\": \"$ADMIN_QUERY\"}")
 
 OPENSHIFT_CONSOLE=$(echo $ADMIN_ENVIRONMENT | jq --raw-output '.data.environmentByOpenshiftProjectName.project.openshift.consoleUrl')
 OPENSHIFT_TOKEN=$(echo $ADMIN_ENVIRONMENT | jq --raw-output '.data.environmentByOpenshiftProjectName.project.openshift.token')
