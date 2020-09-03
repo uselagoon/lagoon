@@ -1278,7 +1278,7 @@ EOF
   "decisionStrategy": "UNANIMOUS",
   "resources": ["env_var"],
   "scopes": ["environment:view:production"],
-  "policies": ["Users role for project is Maintainer","User has access to view project"]
+  "policies": ["Users role for project is Maintainer","User has access to project"]
 }
 EOF
 
