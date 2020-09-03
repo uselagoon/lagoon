@@ -75,15 +75,15 @@ const ProblemsByProject = ({ problems }) => {
         </div>
         <div className="data-table">
           {!sortedItems.filter(problem => filterResults(problem)).length && <div className="data-none">No Problems</div>}
-          {sortedItems.filter(problem => filterResults(problem)).map((problem) => {
+          {sortedItems.filter(problem => filterResults(problem)).map((problem, index) => {
 
             const {identifier, source, severity, associatedPackage, data } = problem;
             const columns = {identifier, source, severity, associatedPackage};
-            const parsedData = JSON.parse(data);
+            const parsedData = data && JSON.parse(data) || null;
 
             return (
               <Accordion
-                key={identifier}
+                key={`${identifier}-${source.toLowerCase()}-${index}`}
                 columns={columns}
                 defaultValue={false}
                 className="data-row row-heading"
@@ -106,8 +106,8 @@ const ProblemsByProject = ({ problems }) => {
                   {problem && (<div className="fieldWrapper">
                     <label>Data:</label>
                     <div className="data-wrapper">
-                      {parsedData && <div className="data">{Object.keys(parsedData).map((key) => {
-                          return <div className="data-item"><span className="key">{key}: </span><span className="value">{`${parsedData[key]}`}</span></div>
+                      {parsedData && <div className="data">{Object.keys(parsedData).map((key, index) => {
+                          return <div key={`${key}-${index}`} className="data-item"><span className="key">{key}: </span><span className="value">{`${parsedData[key]}`}</span></div>
                     })}</div>}
                   </div>
                   </div>)}

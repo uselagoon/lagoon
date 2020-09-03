@@ -8,5 +8,31 @@ Lagoon solves what developers are dreaming about: A system that allows developer
 
 Please reference our [documentation](https://lagoon.readthedocs.io/) for detailed information on using, developing, and administering Lagoon.
 
-### Contribute
-Do you want to contribute to Lagoon? Fabulous! [See our Documentation](https://lagoon.readthedocs.io/en/latest/developing_lagoon/contributing/) on how to get started.
+## Contribute
+
+Do you want to contribute to Lagoon? Fabulous! [See our Documentation](https://lagoon.readthedocs.io/en/latest/contributing/) on how to get started.
+
+## Services
+
+This project contains the following services:
+- [UI](/services/ui/)
+- [logs2microsoftteams](/services/logs2microsoftteams/)
+- [logs2rocketchat](/services/logs2rocketchat/)
+- [kubernetesdeployqueue](/services/kubernetesdeployqueue/)
+- [kubernetesremove](/services/kubernetesremove/)
+- [kubernetesbuilddeploymonitor](/services/kubernetesbuilddeploymonitor/)
+- [logs-db-ui](/services/logs-db-ui/)
+- [logs-db](/services/logs-db/)
+- [openshiftremove](/services/openshiftremove/)
+- [auth-server](/services/auth-server/)
+- [ssh](/services/ssh/)
+- [openshiftbuilddeploymonitor](/services/openshiftbuilddeploymonitor/)
+- [logs2slack](/services/logs2slack/)
+- [drush-alias](/services/drush-alias/)
+- [webhooks2tasks](/services/webhooks2tasks/)
+- [kubernetesbuilddeploy](/services/kubernetesbuilddeploy/)
+- [logs2email](/services/logs2email/)
+- [openshiftbuilddeploy](/services/openshiftbuilddeploy/)
+- [backup-handler](/services/backup-handler/)
+- [webhook-handler](/services/webhook-handler/)
+- [logs2logs-db](/services/logs2logs-db/)

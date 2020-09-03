@@ -5,12 +5,21 @@ import { Helpers as projectHelpers } from '../project/helpers';
 import { Helpers } from './helpers';
 import { Sql } from './sql';
 import { Sql as projectSql } from '../project/sql';
+import DEFAULTS from './defaults';
+import convertDateToMYSQLDateTimeFormat from '../../util/convertDateToMYSQLDateTimeFormat';
+import { notificationIntToContentType, notificationContentTypeToInt } from '@lagoon/commons/dist/notificationCommons';
 
 const notificationTypeToString = R.cond([
   [R.equals('MICROSOFTTEAMS'), R.toLower],
   [R.equals('ROCKETCHAT'), R.toLower],
   [R.equals('EMAIL'), R.toLower],
   [R.equals('SLACK'), R.toLower],
+  [R.T, R.identity],
+]);
+
+const notificationContentTypeToString = R.cond([
+  [R.equals('DEPLOYMENT'), R.toLower],
+  [R.equals('PROBLEM'), R.toLower],
   [R.T, R.identity],
 ]);
 
@@ -78,9 +87,13 @@ export const addNotificationToProject: ResolverFn = async (
     hasPermission,
   },
 ) => {
-  const input = R.compose(
+
+  const input = [
     R.over(R.lensProp('notificationType'), notificationTypeToString),
-  )(unformattedInput) as any;
+    R.over(R.lensProp('contentType'), notificationContentTypeToString),
+    R.over(R.lensProp('notificationSeverityThreshold'), notificationContentTypeToInt),
+  ].reduce((argumentsToProcess, functionToApply) => functionToApply(argumentsToProcess), unformattedInput);
+
 
   const pid = await projectHelpers(sqlClient).getProjectIdByName(input.project);
   await hasPermission('project', 'addNotification', {
@@ -97,6 +110,8 @@ export const addNotificationToProject: ResolverFn = async (
     );
   }
   projectNotification.notificationType = input.notificationType;
+  projectNotification.contentType = input.contentType || DEFAULTS.NOTIFICATION_CONTENT_TYPE;
+  projectNotification.notificationSeverityThreshold = input.notificationSeverityThreshold || DEFAULTS.NOTIFICATION_SEVERITY_THRESHOLD;
 
   await query(sqlClient, Sql.createProjectNotification(projectNotification));
   const select = await query(
@@ -231,7 +246,7 @@ export const removeNotificationFromProject: ResolverFn = async (
     R.over(R.lensProp('notificationType'), notificationTypeToString),
   )(unformattedInput) as any;
 
-  const select = await query(sqlClient, projectSql.selectProjectByName(input));
+  const select = await query(sqlClient, projectSql.selectProjectByName(input.project));
   const project = R.path([0], select) as any;
 
   await hasPermission('project', 'removeNotification', {
@@ -260,11 +275,16 @@ export const getNotificationsByProjectId: ResolverFn = async (
     project: pid,
   });
 
-  const args = R.compose(R.over(R.lensProp('type'), notificationTypeToString))(
-    unformattedArgs,
-  );
+  const args = [
+    R.over(R.lensProp('type'), notificationTypeToString),
+    R.over(R.lensProp('contentType'), notificationContentTypeToString),
+    R.over(R.lensProp('notificationSeverityThreshold'), notificationContentTypeToInt),
+  ].reduce((argumentsToProcess, functionToApply) => functionToApply(argumentsToProcess), unformattedArgs);
 
-  const { type: argsType } = args;
+  const { type: argsType,
+    contentType = DEFAULTS.NOTIFICATION_CONTENT_TYPE,
+    notificationSeverityThreshold = DEFAULTS.NOTIFICATION_SEVERITY_THRESHOLD,
+  } = args;
 
   // Types to collect notifications from all different
   // notification type tables
@@ -278,18 +298,22 @@ export const getNotificationsByProjectId: ResolverFn = async (
           {
             type,
             pid,
+            contentType,
+            notificationSeverityThreshold,
           },
         ),
       ),
     ),
   );
 
-  return results.reduce((acc, rows) => {
+  let resultArray =  results.reduce((acc, rows) => {
     if (rows == null) {
       return acc;
     }
     return R.concat(acc, rows);
   }, []);
+
+  return resultArray.map((e) => R.over(R.lensProp('notificationSeverityThreshold'), notificationIntToContentType, e))
 };
 
 export const updateNotificationMicrosoftTeams: ResolverFn = async (

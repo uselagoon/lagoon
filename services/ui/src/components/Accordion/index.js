@@ -28,6 +28,7 @@ const Accordion = ({ children, defaultValue = true, minified = false, className 
                     justify-content: space-between;
                     padding: 20px 12px;
                     border: 1px solid #efefef;
+                    background: #fff;
                     cursor: pointer;
 
                     &.minified {

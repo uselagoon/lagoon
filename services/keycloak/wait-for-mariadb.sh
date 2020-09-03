@@ -1,9 +1,6 @@
 #!/bin/sh
-
-set -eo pipefail
-
-echo "Waiting until mariadb is ready "
-until $(nc -zv keycloak-db 3306); do
-    printf '.'
+set -eu
+echo "Waiting until $DB_ADDR is ready"
+until nc -vzw5 "$DB_ADDR" 3306; do
     sleep 1
 done
