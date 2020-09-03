@@ -190,6 +190,26 @@ const typeDefs = gql`
     service: String!
   }
 
+
+  type Fact {
+    id: Int
+    environment: Environment
+    name: String
+    value: String
+  }
+
+  input AddFactInput {
+    id: Int
+    environment: Int!
+    name: String!
+    value: String!
+  }
+
+  input DeleteFactInput {
+    environment: Int!
+    name: String!
+  }
+
   type File {
     id: Int
     filename: String
@@ -420,6 +440,10 @@ const typeDefs = gql`
     """
     problemsUi: Int
     """
+    Should the Facts UI be available for this Project (\`1\` or \`0\`)
+    """
+    factsUi: Int
+    """
     Reference to OpenShift Object this Project should be deployed to
     """
     openshift: Openshift
@@ -550,6 +574,7 @@ const typeDefs = gql`
     tasks(id: Int): [Task]
     services: [EnvironmentService]
     problems(severity: [ProblemSeverityRating], source: [String]): [Problem]
+    facts: [Fact]
   }
 
   type EnvironmentHitsMonth {
@@ -820,6 +845,7 @@ const typeDefs = gql`
     developmentEnvironmentsLimit: Int
     privateKey: String
     problemsUi: Int
+    factsUi: Int
   }
 
   input AddEnvironmentInput {
@@ -1059,6 +1085,7 @@ const typeDefs = gql`
     openshiftProjectPattern: String
     developmentEnvironmentsLimit: Int
     problemsUi: Int
+    factsUi: Int
   }
 
   input UpdateProjectInput {
@@ -1439,6 +1466,8 @@ const typeDefs = gql`
     deleteProblem(input: DeleteProblemInput!): String
     deleteProblemsFromSource(input: DeleteProblemsFromSourceInput!): String
     deleteProblemHarborScanMatch(input: DeleteProblemHarborScanMatchInput!): String
+    addFact(input: AddFactInput!): Fact
+    deleteFact(input: DeleteFactInput!): String
     deleteBackup(input: DeleteBackupInput!): String
     deleteAllBackups: String
     addRestore(input: AddRestoreInput!): Restore
