@@ -1,7 +1,7 @@
 import * as R from 'ramda';
 import React, { useState }  from 'react';
 import { graphql, compose, Mutation, Query } from 'react-apollo';
-import { useMutation, useQuery } from '@apollo/react-hooks';
+import { useMutation } from '@apollo/react-hooks';
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { useApolloClient } from "@apollo/react-hooks";
 
@@ -33,7 +33,7 @@ const Modifier = ({modifier, index, editHandler}) => {
   const { id, group, name, startDate, endDate, customerComments, adminComments, weight, discountFixed, discountPercentage, extraFixed, extraPercentage, min, max } = modifier;
 
   const [deleteModifier, {
-    loading: mutationLoading, 
+    loading: mutationLoading,
     error: mutationError
   }] = useMutation(DeleteBillingModifierMutation,
     {
@@ -94,7 +94,7 @@ const Modifier = ({modifier, index, editHandler}) => {
             top: 15px;
             right: 15px;
             display:flex;
-            
+
             div::after {
               content: '';
               padding: 0.5em;
@@ -138,7 +138,7 @@ const reorder = (list, startIndex, endIndex) => {
   return result.map((item, index) => ({...item, weight: index}));
 };
 
-const AllBillingModifiers = ({group, modifiers, month, editHandler}) => { 
+const AllBillingModifiers = ({group, modifiers, month, editHandler}) => {
 
   const client = useApolloClient();
 
@@ -151,12 +151,12 @@ const AllBillingModifiers = ({group, modifiers, month, editHandler}) => {
         const { id, weight } = updateBillingModifier;
 
         const idx = allBillingModifiers.findIndex(({id}) => id === id );
-        
+
         if(allBillingModifiers[idx].weight !== weight){
           const data = { allBillingModifiers: allBillingModifiers.map(obj => id === obj.id ? updateBillingModifier : obj) };
           cache.writeQuery({ query: AllBillingModifiersQuery, variables, data });
         }
-        
+
       }
     }
   );
@@ -165,7 +165,7 @@ const AllBillingModifiers = ({group, modifiers, month, editHandler}) => {
   const onDragEnd = (result) => {
 
     editHandler({});
-    
+
     if (!result.destination) {
       return;
     }
@@ -197,7 +197,7 @@ const AllBillingModifiers = ({group, modifiers, month, editHandler}) => {
       };
 
       const variables = { input: { id, patch: { weight }} };
-      
+
       updateModifier({variables, optimisticResponse });
     });
 
@@ -206,7 +206,7 @@ const AllBillingModifiers = ({group, modifiers, month, editHandler}) => {
     const data = { allBillingModifiers: reorderedModifiers };
     client.writeQuery({ query: AllBillingModifiersQuery, variables, data });
 
-  } // end onDragEnd 
+  } // end onDragEnd
 
   return(
     <div className="modifiers">
@@ -245,7 +245,7 @@ const AllBillingModifiers = ({group, modifiers, month, editHandler}) => {
           margin-top: 40px;
         }
       }
-      
+
     `}</style>
   </div>
   );
