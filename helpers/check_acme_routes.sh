@@ -53,7 +53,8 @@ function usage() {
 		Examples:
 		CLUSTER_HOSTNAME=\"ch.amazee.io\" CLUSTER_API_HOSTNAME=\"ch.amazeeio.cloud\" ./check_acme_routes.sh getpendingroutes (Returns a list of all routes witl TLS in Pending status for the defined cluster)
 		REGEX=\"drupal-example\" ./check_acme_routes.sh getpendingroutes (Returns a list of all routes for all projects matchiing the regex \`drupal-example\` with TLS in Pending status)
-		REGEX=\"drupal-example-master\" DRYRUN=true ./check_acme_routes.sh updateroutes (Will run in DRYRUN mode to check and update all broken routes in \`drupal-example-master\` project)"
+		REGEX=\"drupal-example-master\" DRYRUN=true ./check_acme_routes.sh updateroutes (Will run in DRYRUN mode to check and update all broken routes in \`drupal-example-master\` project)
+		DRYRUN=true DEBUG=false REGEX=\"drupal-example-master\" CLUSTER_HOSTNAME="ch.amazee.io" CLUSTER_API_HOSTNAME="ch.amazeeio.cloud" ./check_acme_routes.sh updateroutes"
 
 }
 
