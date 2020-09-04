@@ -10,6 +10,6 @@ if [ ! -z "$SSH_PRIVATE_KEY" ]; then
   ssh-add ~/.ssh/id_rsa
 fi
 
-echo -e "Host * \n    StrictHostKeyChecking no" > ~/.ssh/config
+echo -e "Host * \n    StrictHostKeyChecking no" >> /etc/ssh/ssh_config
 
 exec "$@"

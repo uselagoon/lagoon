@@ -293,6 +293,14 @@ mocks.Environment = (parent, args = {}, context, info) => {
     deployments: [],
     backups: [],
     tasks: [],
+    problems: [
+      mocks.Problem(null, {source: "Drutiny", severity: "CRITICAL"}),
+      mocks.Problem(null, {source: "Trivy", severity: "MEDIUM"}),
+      mocks.Problem(null, {source: "Drutiny", severity: "HIGH"}),
+      mocks.Problem(null, {source: "OWASP ZAP", severity: "LOW"}),
+      mocks.Problem(),
+      mocks.Problem()
+    ],
     services: [ mocks.EnvironmentService() ],
   };
   environment.project.environments.push(environment);
@@ -414,36 +422,47 @@ mocks.Task = (parent, args = {}, context, info) => {
 mocks.ProblemIdentifier = () => {
   const recentYear = faker.random.arrayElement(['2019', '2020']);
   const vuln_id = `CVE-${recentYear}-${faker.random.number({min: 1000, max: 99999})}`;
+  const severity = faker.random.arrayElement(['UNKNOWN', 'NEGLIGIBLE', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL']);
+  const source = faker.random.arrayElement(['Harbor', 'Drutiny']);
 
   return {
     identifier: vuln_id,
-    problem: mocks.Problem(),
-  };
+    severity: severity,
+    source: source,
+    problems: Array.from({
+        length: faker.random.number({
+            min: 1,
+            max: 20,
+        }),
+    }).map(() => {
+        return mocks.Problem()
+    })
+  }
 };
 
-mocks.Problem = () => {
+mocks.Problem = (parent, args = {}, context, info) => {
     const recentYear = faker.random.arrayElement(['2019', '2020']);
     const vuln_id = `CVE-${recentYear}-${faker.random.number({min: 1000, max: 99999})}`;
-    const source = faker.random.arrayElement(['Harbor', 'Drutiny']);
-    const created = faker.date.between('2019-10-01 00:00:00', '2020-03-31 23:59:59').toUTCString();
+    const source = faker.random.arrayElement(['Lighthouse', 'Drutiny', 'Trivy', 'OWASP ZAP', 'Script']);
+    // const created = faker.date.between('2019-10-01 00:00:00', '2020-03-31 23:59:59').toUTCString();
     const associatedPackage = faker.random.arrayElement(packages);
-    const version = `${faker.random.number(4)}.${faker.random.number(9)}.${faker.random.number(49)}`;
-    const fixedVersion = `${version}+deb8u${faker.random.number(9)}`;
+    // const version = `${faker.random.number(4)}.${faker.random.number(9)}.${faker.random.number(49)}`;
+    // const fixedVersion = `${version}+deb8u${faker.random.number(9)}`;
     const severity = faker.random.arrayElement(['UNKNOWN', 'NEGLIGIBLE', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL']);
     const description = faker.lorem.paragraph();
     const links = `https://security-tracker.debian.org/tracker/${vuln_id}`;
     const severityScore = `0.${faker.random.number({min:1, max:9})}`;
-    const data = ({ id: faker.random.number(), hello: 'hello', world: 'world' });
+    const data =  JSON.stringify({id: `${faker.random.number({min:1, max:100})}`}, null, '\t');
 
     return {
-        identifier: vuln_id,
-        severity: severity,
-        source: source,
-        severityScore: severityScore,
-        associatedPackage: associatedPackage,
-        description,
-        links,
-        data
+      identifier: vuln_id,
+      severity: args.hasOwnProperty('severity') ? args.severity : severity,
+      source: args.hasOwnProperty('source') ? args.source : source,
+      severityScore: severityScore,
+      associatedPackage: associatedPackage,
+      description,
+      links,
+      data
     };
 };
 
@@ -475,9 +494,9 @@ mocks.Query = () => ({
   userCanSshToEnvironment: () => mocks.Environment(),
   deploymentByRemoteId: () => mocks.Deployment(),
   taskByRemoteId: () => mocks.Task(),
-  allProjects: () => new MockList(600),
+  allProjects: () => new MockList(100),
   allOpenshifts: () => new MockList(9),
-  allProblems: () => new MockList(5),
+  allProblems: () => new MockList(20),
   allEnvironments: (parent, args = {}, context, info) => {
     const project = args.hasOwnProperty('project')
       ? args.project

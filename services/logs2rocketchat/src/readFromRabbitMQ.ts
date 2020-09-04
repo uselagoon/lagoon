@@ -4,6 +4,7 @@ import { ChannelWrapper } from 'amqp-connection-manager';
 import { ConsumeMessage } from 'amqplib';
 import { logger } from '@lagoon/commons/dist/local-logging';
 import { getRocketChatInfoForProject } from '@lagoon/commons/dist/api';
+import { notificationIntToContentType, notificationContentTypeToInt, parseProblemNotification } from '@lagoon/commons/dist/notificationCommons';
 
 export async function readFromRabbitMQ (msg: ConsumeMessage, channelWrapperLogs: ChannelWrapper): Promise<void> {
   const logMessage = JSON.parse(msg.content.toString())
@@ -183,21 +184,38 @@ export async function readFromRabbitMQ (msg: ConsumeMessage, channelWrapperLogs:
       break;
 
     default:
-      return channelWrapperLogs.ack(msg)
+      //since there's no single point of acknowlegement of the msg, we need to keep track of whether we've handled the message
+      let eventHandledAsProblem =  dispatchProblemEventToRocketChat(event, project, message, channelWrapperLogs, msg, appId);
+      if(!eventHandledAsProblem) {
+        return channelWrapperLogs.ack(msg);
+      }
   }
 
 }
 
-const sendToRocketChat = async (project, message, color, emoji, channelWrapperLogs, msg, appId) => {
+const dispatchProblemEventToRocketChat = (event, project, message, channelWrapperLogs, msg, appId) => {
+  const problemEvent = parseProblemNotification(event);
+  if(problemEvent.isProblem && problemEvent.eventType == 'insert') {
+      sendToRocketChat(project, message, 'red', ':warning:', channelWrapperLogs, msg, appId, 'PROBLEM', problemEvent.severityLevel)
+      return true;
+    }
+  return false;
+};
+
+const sendToRocketChat = async (project, message, color, emoji, channelWrapperLogs, msg, appId, contentType = 'DEPLOYMENT', severityLevel = 'NONE') => {
   let projectRocketChats;
   try {
-    projectRocketChats = await getRocketChatInfoForProject(project)
+    projectRocketChats = await getRocketChatInfoForProject(project, contentType)
   }
   catch (error) {
     logger.error(`No RocketChat information found, error: ${error}`)
     return channelWrapperLogs.ack(msg)
   }
   projectRocketChats.forEach(async (projectRocketChat) => {
+
+    const notificationThresholdMet = notificationContentTypeToInt(projectRocketChat.notificationSeverityThreshold) <= notificationContentTypeToInt(severityLevel);
+    if(contentType == 'PROBLEM' && !notificationThresholdMet) { return; } //go to next iteration
+
     const { channel, webhook } = projectRocketChat;
     const rocketchat = new URL(webhook);
 

@@ -12,6 +12,9 @@ export default gql`
       productionEnvironment
       standbyProductionEnvironment
       developmentEnvironmentsLimit
+      openshift {
+        name
+      }
       environments {
         id
         name
