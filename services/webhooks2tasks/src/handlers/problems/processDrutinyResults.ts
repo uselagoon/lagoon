@@ -132,7 +132,7 @@ export async function processDrutinyResultset(
                         severity: convertSeverityLevels(element.severity),
                         vulnerability: element,
                       },
-                      `New problem found for ${lagoonProjectName}:${lagoonEnvironmentName}:${lagoonServiceName}. Severity: ${element.severity}. Description: ${element.description}`
+                      `New problem found for ${lagoonProjectName}:${lagoonEnvironmentName}:${lagoonServiceName}.\n Severity: ${element.severity}.\n Description: ${element.description}`
                     );
                 })
                 .catch((error) =>

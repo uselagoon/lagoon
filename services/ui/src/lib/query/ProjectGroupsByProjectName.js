@@ -12,9 +12,6 @@ export default gql`
       productionEnvironment
       standbyProductionEnvironment
       developmentEnvironmentsLimit
-      openshift {
-        name
-      }
       environments {
         id
         name
@@ -23,14 +20,12 @@ export default gql`
         deployType
         environmentType
         openshiftProjectName
-        project {
-          id
-          name
-          productionEnvironment
-          standbyProductionEnvironment
-          problemsUi
-          factsUi
-        }
+      }
+      availability
+      groups{
+        id
+        name
+        type
       }
     }
   }
