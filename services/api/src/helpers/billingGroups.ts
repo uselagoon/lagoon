@@ -78,7 +78,7 @@ export const getAllBillingGroupsWithoutProjects = async () => {
     }),
   );
 
-  // Filter only projects that have zero projects
+  // Filter only Billing Groups that have zero projects
   const projectFilterFn = ({ projects }) =>
     projects.length === 0 ? true : false;
   const groupsWithoutProjects = groupsWithProjects.filter(projectFilterFn);
