@@ -68,6 +68,16 @@
   tasks:
   - include: ../../checks/check-url-returncode.yaml
 
+# delete the envvar
+- name: "{{ testname }} - api delete envVariable on {{ project }}"
+  hosts: localhost
+  serial: 1
+  vars:
+    envName: "LAGOON_SERVICE_TYPES"
+    project: "{{ project }}"
+  tasks:
+  - include: ../../tasks/api/delete-project-variable.yaml
+
 - name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
   hosts: localhost
   serial: 1
