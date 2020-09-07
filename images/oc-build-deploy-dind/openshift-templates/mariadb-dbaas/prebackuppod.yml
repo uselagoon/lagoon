@@ -53,7 +53,26 @@ objects:
       branch: ${SAFE_BRANCH}
       project: ${SAFE_PROJECT}
   spec:
-    backupCommand: /bin/sh -c "dump=$(mktemp) && mysqldump --max-allowed-packet=500M --events --routines --quick --add-locks --no-autocommit --single-transaction --no-create-db -h $BACKUP_DB_HOST -u $BACKUP_DB_USERNAME -p$BACKUP_DB_PASSWORD $BACKUP_DB_DATABASE > $dump && cat $dump && rm $dump"
+    backupCommand: >-
+      /bin/sh -c "dump=$(mktemp)
+      && mysqldump --max-allowed-packet=500M --events --routines --quick
+      --add-locks --no-autocommit --single-transaction --no-create-db
+      --no-data
+      -h $BACKUP_DB_HOST
+      -u $BACKUP_DB_USERNAME
+      -p$BACKUP_DB_PASSWORD
+      $BACKUP_DB_DATABASE
+      > $dump
+      && mysqldump --max-allowed-packet=500M --events --routines --quick
+      --add-locks --no-autocommit --single-transaction --no-create-db
+      --ignore-table=$BACKUP_DB_DATABASE.watchdog
+      --no-create-info
+      -h $BACKUP_DB_HOST
+      -u $BACKUP_DB_USERNAME
+      -p$BACKUP_DB_PASSWORD
+      $BACKUP_DB_DATABASE
+      >> $dump
+      && cat $dump && rm $dump"
     fileExtension: .${SERVICE_NAME}.sql
     pod:
       metadata:
