@@ -33,10 +33,9 @@
   serial: 1
   vars:
     url: "{{ check_url }}"
-    host: "customdomain.com"
     expected_returncode: "{{ lookup('env','DELETED_STATUS_CODE') }}"
   tasks:
-  - include: ../../checks/check-url-returncode-host.yaml
+  - include: ../../checks/check-url-returncode.yaml
 
 # add the environment variable
 - name: "{{ testname }} - api add envVariable on {{ project }}"
@@ -60,22 +59,12 @@
   tasks:
   - include: ../../tasks/api/deploy-no-sha.yaml
 
-- name: "{{ testname }} - check if {{ project }} is deployed with accessing the custom domain and searching for the environment variable LAGOON_ROUTES"
+- name: "{{ testname }} - check if {{ project }} is deployed"
   hosts: localhost
   serial: 1
   vars:
     url: "{{ check_url }}"
-    host: "customdomain.com"
-    expected_content: "LAGOON_ROUTES=https://customdomain.com"
-  tasks:
-  - include: ../../checks/check-url-content-host.yaml
-
-- name: "{{ testname }} - check that usual auto generated domain does not work"
-  hosts: localhost
-  serial: 1
-  vars:
-    url: "{{ check_url }}"
-    expected_returncode: "{{ lookup('env','DELETED_STATUS_CODE') }}"
+    expected_returncode: 200
   tasks:
   - include: ../../checks/check-url-returncode.yaml
 
@@ -93,7 +82,6 @@
   serial: 1
   vars:
     url: "{{ check_url }}"
-    host: "customdomain.com"
     expected_returncode: "{{ lookup('env','DELETED_STATUS_CODE') }}"
   tasks:
-  - include: ../../checks/check-url-returncode-host.yaml
+  - include: ../../checks/check-url-returncode.yaml
