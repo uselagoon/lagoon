@@ -1,0 +1,15 @@
+docker-compose-yaml: docker-compose.yml
+
+environment_variables:
+  git_sha: 'true'
+
+routes:
+  autogenerate:
+    enabled: 'false'
+
+environments:
+  lagoon-type-override:
+    routes:
+    - node:
+        - "customdomain.com":
+            insecure: Allow
