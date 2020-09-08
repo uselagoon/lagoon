@@ -47,6 +47,7 @@ const {
 const {
   getTasksByEnvironmentId,
   getTaskByRemoteId,
+  getTaskById,
   addTask,
   deleteTask,
   updateTask,
@@ -299,6 +300,7 @@ const resolvers = {
     userCanSshToEnvironment,
     deploymentByRemoteId: getDeploymentByRemoteId,
     taskByRemoteId: getTaskByRemoteId,
+    taskById: getTaskById,
     allProjects: getAllProjects,
     allOpenshifts: getAllOpenshifts,
     allEnvironments: getAllEnvironments,

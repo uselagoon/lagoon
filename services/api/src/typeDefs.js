@@ -747,6 +747,7 @@ const typeDefs = gql`
     ): Environment
     deploymentByRemoteId(id: String): Deployment
     taskByRemoteId(id: String): Task
+    taskById(id: Int): Task
     """
     Returns all Project Objects matching given filters (all if no filter defined)
     """

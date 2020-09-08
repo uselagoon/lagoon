@@ -1112,6 +1112,7 @@ fragment on Deployment {
   started
   completed
   remoteId
+  uiLink
   environment {
     name
   }
