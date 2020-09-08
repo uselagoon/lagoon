@@ -181,7 +181,7 @@ CREATE OR REPLACE PROCEDURE
         AND column_name = 'production_routes'
     ) THEN
       ALTER TABLE `project`
-      ADD `production_routes` varchar(100);
+      ADD `production_routes` text;
     END IF;
   END;
 $$
@@ -217,7 +217,7 @@ CREATE OR REPLACE PROCEDURE
         AND column_name = 'standby_routes'
     ) THEN
       ALTER TABLE `project`
-      ADD `standby_routes` varchar(100);
+      ADD `standby_routes` text;
     END IF;
   END;
 $$
