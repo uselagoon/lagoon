@@ -13,29 +13,34 @@ if [ "$DEBUG" = "true" ]; then
 	set -x
 fi
 
-# Some variables
+# Some variables.
 
-# Cluster full hostname and API hostname
+# Cluster full hostname and API hostname.
 CLUSTER_HOSTNAME="${CLUSTER_HOSTNAME:-""}"
 CLUSTER_API_HOSTNAME="${CLUSTER_API_HOSTNAME:-"$CLUSTER_HOSTNAME"}"
 
 # Default command
 COMMAND=${1:-"help"}
 
-# Set DRYRUN variable to true to run in dry-run mode
+# Set DRYRUN variable to true to run in dry-run mode.
 DRYRUN="${DRYRUN:-"false"}"
 
+# Mac OSXs version of awk is not good enough, gawk must be installed. On Linux
+# regular awk is fine.
+AWK="awk"
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  AWK="gawk"
+fi
 
-# Set a REGEX variable to filter the execution of the script
+# Set a REGEX variable to filter the execution of the script.
 REGEX=${REGEX:-".*"}
 
-# Set NOTIFYONLY to true if you want to send customers a notification
-# explaining why Lagoon is not able to issue Let'S Encrypt certificate for
-# some routes defined in customer's .lagoon.yml file.
-# If set to true, no other action rather than notification is done (ie: no annotation or deletion)
+# Set NOTIFYONLY to true if you want to send customers a notification explaining
+# why Lagoon is not able to issue Let'S Encrypt certificate for some routes
+# defined in customer's .lagoon.yml file. If set to true, no other action rather
+# than notification is done (ie: no annotation or deletion).
 NOTIFYONLY=${NOTIFYONLY:-"false"}
 
-# Help function
 function usage() {
 	echo -e "The available commands are:
 		- help (get this help)
@@ -57,32 +62,40 @@ function usage() {
 
 }
 
-# Function that performs mandatory variales and dependencies checks
+# Mandatory variables and dependency checks.
 function initial_checks() {
-	# By default script doesn't set CLUSTER_HOSTNAME and CLUSTER_API_HOSTNAME. At least CLUSTER_HOSTNAME must be set
+	# By default script doesn't set CLUSTER_HOSTNAME and CLUSTER_API_HOSTNAME. At
+	# least CLUSTER_HOSTNAME must be set.
 	if [ -z "$CLUSTER_HOSTNAME" ]; then
 		echo "Please set CLUSTER_HOSTNAME variable"
 		usage
 		exit 1
 	fi
 
-	# Script depends on `lagoon-cli`. Check if it in installed
+	# Script depends on `lagoon-cli`.
 	if [[ ! $(command -v lagoon) ]]; then
-		echo "Please install \`lagoon-cli\` from https://github.com/amazeeio/lagoon-cli because the script relys on it"
+		echo "Please install \`lagoon-cli\` from https://github.com/amazeeio/lagoon-cli because the script relies on it"
+		exit 1
+	fi
+
+	# Script depends on (g)awk.
+	if [[ ! $(command -v $AWK) ]]; then
+		echo "Please install \`$AWK\`"
 		exit 1
 	fi
 }
 
-# function to get a list of all "administratively-disabled" routes
+# Get a list of all "administratively-disabled" routes.
 function get_all_disabled_routes() {
 	echo -e "List of routes administratively disabled\n"
 	oc get route --all-namespaces -o=jsonpath="{range .items[?(@.metadata.annotations.amazee\.io/administratively-disabled)]}{.metadata.namespace}{'\t'}{.metadata.name}{'\n'}{end}"
 	exit 0
 }
 
-# Function to check if you are running the script on the right cluster and if you're logged in correctly
+# Check if you are running the script on the right cluster and if you're logged
+# in correctly.
 function check_cluster_api() {
-	# Check on which cluster you're going to run commands
+	# Check on which cluster you're going to run commands.
 	if oc whoami --show-server | grep -q -v "$CLUSTER_API_HOSTNAME"; then
 		echo "Please connect to the right cluster"
 		exit 1
@@ -95,12 +108,14 @@ function check_cluster_api() {
 	fi
 }
 
-# Function to get a list of all routes with acme.openshift.io/status.provisioningStatus.orderStatus=pending
+# Get a list of all routes with
+# acme.openshift.io/status.provisioningStatus.orderStatus=pending
 function get_pending_routes() {
-	for namespace in $(oc get projects --no-headers=true |awk '{print $1}'|sort -u|grep -E "$REGEX")
+	for namespace in $(oc get projects --no-headers=true |$AWK '{print $1}'|sort -u|grep -E "$REGEX")
 	do
 		IFS=$';'
-		# For each route in a namespace with `tls-acme` set to true, check the `orderStatus` if in pending status
+		# For each route in a namespace with `tls-acme` set to true, check the
+		# `orderStatus` if in pending status.
 		for routelist in $(oc get route -n "$namespace" -o=jsonpath="{range .items[?(@.metadata.annotations.kubernetes\.io/tls-acme=='true')]}{.metadata.name}{'\n'}{.metadata.annotations.acme\.openshift\.io/status}{';'}{end}"|sed "s/^[[:space:]]*//")
 		do
 			PENDING_ROUTE_NAME=$(echo "$routelist"|sed -n 1p)
@@ -114,78 +129,79 @@ function get_pending_routes() {
 	done
 }
 
-# Function for creating an array with all routes that might be updated
+# Create an array with all routes that might be updated.
 function create_routes_array() {
-	# Get the list of namespaces with broker routes, according to REGEX
-	for namespace in $(oc get routes --all-namespaces|grep exposer|awk '{print $1}'|sort -u|grep -E "$REGEX")
+	# Get the list of namespaces with broker routes, according to REGEX.
+	for namespace in $(oc get routes --all-namespaces|grep exposer|$AWK '{print $1}'|sort -u|grep -E "$REGEX")
 	do
-		# Raw JSON Openshift project output
+		# Raw JSON Openshift project output.
 		PROJECTJSON="$(oc get project "$namespace" -o json)"
 
-		# Gather project name based on a label or an annotation
+		# Gather project name based on a label or an annotation.
 		if [ $(echo $PROJECTJSON |grep -q 'lagoon.sh/project'; echo $?) -eq 0 ]; then
-			PROJECTNAME=$(echo "${PROJECTJSON}" | grep 'lagoon.sh/project' | awk -F'"' '{print $4}')
+			PROJECTNAME=$(echo "${PROJECTJSON}" | grep 'lagoon.sh/project' | $AWK -F'"' '{print $4}')
 		else
-			PROJECTNAME=$(echo "${PROJECTJSON}" |grep display-name|awk -F'[][]' '{print $2}'|tr "_" "-")
+			PROJECTNAME=$(echo "${PROJECTJSON}" |grep display-name|$AWK -F'[][]' '{print $2}'|tr "_" "-")
 		fi
 
-		# Get the list of broken unique routes for each namespace
-		for routelist in $(oc get -n "$namespace" route|grep exposer|awk -vNAMESPACE="$namespace" -vPROJECTNAME="$PROJECTNAME" '{print $1";"$2";"NAMESPACE";"PROJECTNAME}'|sort -u -k2 -t ";")
+		# Get the list of broken unique routes for each namespace.
+		for routelist in $(oc get -n "$namespace" route|grep exposer|$AWK -vNAMESPACE="$namespace" -vPROJECTNAME="$PROJECTNAME" '{print $1";"$2";"NAMESPACE";"PROJECTNAME}'|sort -u -k2 -t ";")
 		do
-			# Put the list into an array
+			# Put the list into an array.
 			ROUTES_ARRAY+=("$routelist")
 		done
 	done
 
-	# Create a sorted array of unique route to check
+	# Create a sorted array of unique route to check.
 	ROUTES_ARRAY_SORTED=($(sort -u -k 2 -t ";"<<<"${ROUTES_ARRAY[*]}"))
 }
 
-# Function to check the routes, update them and delete the exposer's routes
+# Check the routes, update them and delete the exposer's routes.
 function check_routes() {
 
-	# Cluster array of IPs
+	# Cluster array of IPs.
 	CLUSTER_IPS=($(dig +short "$CLUSTER_HOSTNAME"))
 	for i in "${ROUTES_ARRAY_SORTED[@]}"
 	do
-		# Tranform the item into an array
+		# Transform the item into an array
 		route=($(echo "$i" | tr ";" "\n"))
 
-		# Gather some useful variables
+		# Gather some useful variables.
 		ROUTE_NAME=${route[0]}
 		ROUTE_HOSTNAME=${route[1]}
 		ROUTE_NAMESPACE=${route[2]}
 		ROUTE_PROJECTNAME=${route[3]}
 
-		# Get route DNS record(s)
+		# Get route DNS record(s).
 		if [[ $(dig +short "$ROUTE_HOSTNAME" &> /dev/null; echo $?) -ne 0 ]]; then
 			ROUTE_HOSTNAME_IP="null"
 		else
 			ROUTE_HOSTNAME_IP=$(dig +short "$ROUTE_HOSTNAME")
 		fi
 
-		# Check if the route matches the Cluster's IP(s)
+		# Check if the route matches the Cluster's IP(s).
 		if echo "$ROUTE_HOSTNAME_IP" | grep -E -q -v "${CLUSTER_IPS[*]}"; then
 
-			# If IP is empty, then no DNS record set
+			# If IP is empty, then no DNS record set.
 			if [ -z "$ROUTE_HOSTNAME_IP" ]; then
 				DNS_ERROR="No A or CNAME record set"
 			else
 				DNS_ERROR="$ROUTE_HOSTNAME in $ROUTE_NAMESPACE has no DNS record poiting to ${CLUSTER_IPS[*]} and going to disable tls-acme"
 			fi
 
-			# Print the error on stdout
+			# Print the error on stdout.
 			echo "$DNS_ERROR"
 
 			if [[ "$NOTIFYONLY" = "true" ]]; then
 				notify_customer "$ROUTE_PROJECTNAME"
 			else
-				# Call the update function to update the route
+				# Call the update function to update the route.
 				update_annotation "$ROUTE_HOSTNAME" "$ROUTE_NAMESPACE"
 				notify_customer "$ROUTE_PROJECTNAME"
 
-				# Now once the main route is updated, it's time to get rid of exposers' routes
-				for j in $(oc get -n "$ROUTE_NAMESPACE" route|grep exposer|grep -E '(^|\s)'"$ROUTE_HOSTNAME"'($|\s)'|awk '{print $1";"$2}')
+				# Now once the main route is updated, it's time to get rid of exposers'
+				# routes.
+				for j in $(oc get -n "$ROUTE_NAMESPACE" route|grep exposer|grep -E '(^|\s)'"$ROUTE_HOSTNAME"'($|\s)'|$AWK '{print $1";"$2}')
 				do
 					ocroute=($(echo "$j" | tr ";" "\n"))
 					OCROUTE_NAME=${ocroute[0]}
@@ -204,7 +220,8 @@ function check_routes() {
 	done
 }
 
-# Function to update route's annotation (ie: update tls-amce, remove tls-acme-awaiting-* and set a new one for internal purpose)
+# Update route's annotation (ie: update tls-acme, remove tls-acme-awaiting-* and
+# set a new one for internal purpose).
 function update_annotation() {
 	echo "Update route's annotations"
 	OCOPTIONS="--overwrite"
@@ -212,18 +229,16 @@ function update_annotation() {
 		OCOPTIONS="--dry-run --overwrite"
 	fi
 
-	# Annotate the route
+	# Annotate the route.
 	oc annotate -n "$2" $OCOPTIONS route "$1" acme.openshift.io/status- kubernetes.io/tls-acme-awaiting-authorization-owner- kubernetes.io/tls-acme-awaiting-authorization-at-url- kubernetes.io/tls-acme="false" amazee.io/administratively-disabled="$(date +%s)"
 }
 
-
-# Function to notify customer about the misconfiguration of their routes
+# Notify customer about the misconfiguration of their routes.
 function notify_customer() {
-
 	# Get Slack|Rocketchat channel and webhook
-	if [ $(TEST=$(lagoon list slack -p "$1" --no-header|awk '{print $3";"$4}'); echo $?) -eq 0 ]; then
+	if [ $(TEST=$(lagoon list slack -p "$1" --no-header|$AWK '{print $3";"$4}'); echo $?) -eq 0 ]; then
 		NOTIFICATION="slack"
-	elif [ $(TEST=$(lagoon list rocketchat -p "$1" --no-header|awk '{print $3";"$4}'); echo $?) -eq 0 ]; then
+	elif [ $(TEST=$(lagoon list rocketchat -p "$1" --no-header|$AWK '{print $3";"$4}'); echo $?) -eq 0 ]; then
 		NOTIFICATION="rocketchat"
 	else
 		echo "No notification set"
@@ -232,7 +247,7 @@ function notify_customer() {
 
 	MESSAGE="Your $ROUTE_HOSTNAME route is configured in the \`.lagoon.yml\` file to issue an TLS certificate from Lets Encrypt. Unfortunately Lagoon is unable to issue a certificate as $DNS_ERROR.\nTo be issued correctly, the DNS records for $ROUTE_HOSTNAME should point to $CLUSTER_HOSTNAME with an CNAME record (preferred) or to ${CLUSTER_IPS[*]} via an A record (also possible but not preferred).\nIf you don't need the SSL certificate or you are using a CDN that provides you with an TLS certificate, please update your .lagoon.yml file by setting the tls-acme parameter to false for $ROUTE_HOSTNAME, as described here:  https://lagoon.readthedocs.io/en/latest/using_lagoon/lagoon_yml/#ssl-configuration-tls-acme.\nWe have now administratively disabled the issuing of Lets Encrypt certificate for $ROUTE_HOSTNAME in order to protect the cluster, this will be reset during the next deployment, therefore we suggest to resolve this issue as soon as possible. Feel free to reach out to us for further information.\nThanks you.\namazee.io team"
 
-	NOTIFICATION_DATA=($(lagoon list $NOTIFICATION -p "$1" --no-header|awk '{print $3";"$4}'))
+	NOTIFICATION_DATA=($(lagoon list $NOTIFICATION -p "$1" --no-header|$AWK '{print $3";"$4}'))
 	for notification in ${NOTIFICATION_DATA[@]}
 	do
 		CHANNEL=$(echo "$notification"|cut -f1 -d ";")
@@ -243,7 +258,7 @@ function notify_customer() {
 
 		echo -e "Sending notification into ${CHANNEL}"
 
-		# Execute curl to send message into the channel
+		# Execute curl to send message into the channel.
 		if [[ $DRYRUN = true ]]; then
 			echo "DRYRUN Sending notification on \"$NOTIFICATION\" curl -X POST -H 'Content-type: application/json' --data '{'"$PAYLOAD"'}' "$WEBHOOK""
 		else
@@ -252,12 +267,11 @@ function notify_customer() {
 	done
 }
 
-# Main function
 function main() {
 
 	COMMAND="$1"
 
-	# Check first the cluster you're connected to
+	# Check first the cluster you're connected to.
 	echo -e "You're running the script on $CLUSTER_HOSTNAME\nDRYRUN mode is set to \"$DRYRUN\""
 	check_cluster_api
 
@@ -277,9 +291,9 @@ function main() {
 			echo -e "ROUTE_NAMESPACE;ROUTE_NAME;ROUTE_HOSTNAME"|column -t -s ";"
 			for i in "${ROUTES_ARRAY_SORTED[@]}"
 			do
-				# Tranform the item into an array
+				# Transform the item into an array.
 				route=($(echo "$i" | tr ";" "\n"))
-				# Gather some useful variables
+				# Gather some useful variables.
 				ROUTE_NAME=${route[0]}
 				ROUTE_HOSTNAME=${route[1]}
 				ROUTE_NAMESPACE=${route[2]}
