@@ -1,0 +1,97 @@
+
+- name: "{{ testname }} - init git, add files, commit, git push"
+  hosts: localhost
+  serial: 1
+  vars:
+    git_files: "features-lagoon-type-override/"
+  tasks:
+  - include: ../../tasks/git-init.yaml
+  - include: ../../tasks/git-add-commit-push.yaml
+
+# delete the envvar if it exists already
+- name: "{{ testname }} - api delete envVariable on {{ project }}"
+  hosts: localhost
+  serial: 1
+  vars:
+    envName: "LAGOON_SERVICE_TYPES"
+    project: "{{ project }}"
+  tasks:
+  - include: ../../tasks/api/delete-project-variable.yaml
+
+- name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}"
+  hosts: localhost
+  serial: 1
+  vars:
+    branch: "{{ branch }}"
+    project: "{{ project }}"
+  tasks:
+  - include: ../../tasks/api/deploy-no-sha.yaml
+
+# the site should not exist, as the .lagoon.yml has a type: none for the service, so it should not deploy anything at all
+- name: "{{ testname }} - check if site for {{ project }} does not exist anymore"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "{{ check_url }}"
+    expected_returncode: "{{ lookup('env','DELETED_STATUS_CODE') }}"
+  tasks:
+  - include: ../../checks/check-url-returncode.yaml
+
+# add the environment variable
+- name: "{{ testname }} - api add envVariable on {{ project }}"
+  hosts: localhost
+  serial: 1
+  vars:
+    envName: "LAGOON_SERVICE_TYPES"
+    envValue: "node:node-persistent"
+    envScope: "BUILD"
+    project: "{{ project }}"
+  tasks:
+  - include: ../../tasks/api/add-project-variable.yaml
+
+# if no site, then deploy with the variable defined now
+- name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}"
+  hosts: localhost
+  serial: 1
+  vars:
+    branch: "{{ branch }}"
+    project: "{{ project }}"
+  tasks:
+  - include: ../../tasks/api/deploy-no-sha.yaml
+
+- name: "{{ testname }} - check if {{ project }} is deployed"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "{{ check_url }}"
+    expected_returncode: 200
+  tasks:
+  - include: ../../checks/check-url-returncode.yaml
+
+# delete the envvar
+- name: "{{ testname }} - api delete envVariable on {{ project }}"
+  hosts: localhost
+  serial: 1
+  vars:
+    envName: "LAGOON_SERVICE_TYPES"
+    project: "{{ project }}"
+  tasks:
+  - include: ../../tasks/api/delete-project-variable.yaml
+
+- name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ project }}"
+    branch: "{{ branch }}"
+  tasks:
+  - include: ../../tasks/api/remove.yaml
+
+- name: "{{ testname }} - check if site for {{ project }} does not exist anymore"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "{{ check_url }}"
+    expected_returncode: "{{ lookup('env','DELETED_STATUS_CODE') }}"
+  tasks:
+  - include: ../../checks/check-url-returncode.yaml

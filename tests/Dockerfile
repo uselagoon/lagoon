@@ -17,6 +17,7 @@ RUN apk add --no-cache --virtual .build-deps \
       ansible==2.8.13 \
       PyJWT \
       requests \
+      jmespath \
     && apk del .build-deps
 
 # download, extract and install kubectl binary
