@@ -79,7 +79,7 @@ node {
               }
               stage ('minishift tests') {
                 try {
-                  if (pullRequest.labels.contains("skip-openshift-tests")) {
+                  if (env.CHANGE_ID && pullRequest.labels.contains("skip-openshift-tests")) {
                     sh script: 'echo "PR identified as not needing Openshift testing."', label: "Skipping Openshift testing stage"
                   } else {
                     sh 'make minishift/cleanall || echo'
