@@ -166,8 +166,10 @@ export const getDeploymentUrl: ResolverFn = async (
   { sqlClient, hasPermission },
 ) => {
 
+  const defaultUiUrl = R.propOr('http://localhost:8888', 'UI_URL', process.env);
+
   const lagoonUiRoute = R.compose(
-    R.defaultTo('http://localhost:8888'),
+    R.defaultTo(defaultUiUrl),
     R.find(R.test(/\/ui-/)),
     R.split(','),
     R.propOr('', 'LAGOON_ROUTES'),
