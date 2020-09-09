@@ -3,8 +3,10 @@ const R = require('ramda');
 const KeycloakConfig = require('keycloak-connect/middleware/auth-utils/config');
 const KeycloakGrantManager = require('../lib/keycloak-grant-manager');
 
+const defaultKeycloakUrl = R.propOr( 'http://keycloak:8080', 'KEYCLOAK_URL', process.env);
+
 const ConnectionConfig = {
-  baseUrl: 'http://keycloak:8080/auth',
+  baseUrl: `${defaultKeycloakUrl}/auth`,
   realmName: 'lagoon',
 };
 
@@ -17,7 +19,7 @@ const Credentials = {
 };
 
 const lagoonKeycloakRoute = R.compose(
-  R.defaultTo('http://keycloak:8080'),
+  R.defaultTo(defaultKeycloakUrl),
   R.find(R.test(/keycloak-/)),
   R.split(','),
   R.propOr('', 'LAGOON_ROUTES'),
