@@ -6,15 +6,19 @@ import { Sql as PSql } from './sql';
 import { Sql } from '../env-variables/sql';
 import { isPatchEmpty, prepare, query, whereAnd } from '../../util/db';
 
+const defaultHarborUrl = R.propOr('http://172.17.0.1:8084', 'HARBOR_URL', process.env);
+
 const lagoonHarborRoute = R.compose(
-  R.defaultTo('http://172.17.0.1:8084'),
+  R.defaultTo(defaultHarborUrl),
   R.find(R.test(/harbor-nginx/)),
   R.split(','),
   R.propOr('', 'LAGOON_ROUTES'),
 )(process.env) as string;
 
+const defaultWebhookUrl = R.propOr('http://webhook-handler:3000', 'WEBHOOK_URL', process.env);
+
 const lagoonWebhookAddress = R.compose(
-  R.defaultTo('http://webhook-handler:3000'),
+  R.defaultTo(defaultWebhookUrl),
   R.find(R.test(/webhook-handler/)),
   R.split(','),
   R.propOr('', 'LAGOON_ROUTES'),
