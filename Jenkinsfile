@@ -117,7 +117,7 @@ node {
                   try {
                     if (env.SKIP_IMAGE_PUBLISH != 'true') {
                       sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
-                      sh script: "make -O${SYNC_MAKE_OUTPUT} -j4 publish-amazeeiolagoon-baseimages publish-amazeeiolagoon-serviceimages BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Publishing built images"
+                      sh script: "make -O${SYNC_MAKE_OUTPUT} -j4 publish-amazeeiolagoon-baseimages publish-amazeeiolagoon-serviceimages publish-amazeeiolagoon-taskimages BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Publishing built images"
                     } else {
                       sh script: 'echo "skipped because of SKIP_IMAGE_PUBLISH env variable"', label: "Skipping image publishing"
                     }

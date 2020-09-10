@@ -853,6 +853,22 @@ $(publish-amazeeiolagoon-serviceimages):
 		$(call docker_publish_amazeeiolagoon,$(image),$(image):$(BRANCH_NAME))
 
 
+# Publish command to amazeeio docker hub, this should probably only be done during a master deployments
+publish-amazeeiolagoon-taskimages = $(foreach image,$(task-images),[publish-amazeeiolagoon-taskimages]-$(image))
+# tag and push all images
+.PHONY: publish-amazeeiolagoon-taskimages
+publish-amazeeiolagoon-taskimages: $(publish-amazeeiolagoon-taskimages)
+
+
+# tag and push of each image
+.PHONY: $(publish-amazeeiolagoon-taskimages)
+$(publish-amazeeiolagoon-taskimages):
+#   Calling docker_publish for image, but remove the prefix '[publish-amazeeiolagoon-taskimages]-' first
+		$(eval image = $(subst [publish-amazeeiolagoon-taskimages]-,,$@))
+# 	Publish images with version tag
+		$(call docker_publish_amazeeiolagoon,$(image),$(image):$(BRANCH_NAME))
+
+
 s3-save = $(foreach image,$(s3-images),[s3-save]-$(image))
 # save all images to s3
 .PHONY: s3-save
