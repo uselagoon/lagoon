@@ -182,7 +182,7 @@ function check_routes() {
 				notify_customer "$ROUTE_PROJECTNAME"
 			else
 				# Call the update function to update the route
-				update_annotation "$ROUTE_NAME" "$ROUTE_NAMESPACE"
+				update_annotation "$ROUTE_HOSTNAME" "$ROUTE_NAMESPACE"
 				notify_customer "$ROUTE_PROJECTNAME"
 
 				# Now once the main route is updated, it's time to get rid of exposers' routes
