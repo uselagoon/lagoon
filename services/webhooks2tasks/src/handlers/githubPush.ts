@@ -16,9 +16,10 @@ export async function githubPush(webhook: WebhookRequestData, project: Project) 
 
     const branchName = body.ref.toLowerCase().replace('refs/heads/','')
     const sha = body.after
+    var afterUrl = `${body.repository.html_url}/commit/${body.after}`
 
     // @ts-ignore
-    const skip_deploy = R.pathOr('',['commits',0,'message'], body).match(/\[skip deploy\]|\[deploy skip\]/i)
+    const skip_deploy = R.pathOr('',['head_commit','message'], body).match(/\[skip deploy\]|\[deploy skip\]/i)
 
     const meta = {
       projectName: project.name,
@@ -28,7 +29,7 @@ export async function githubPush(webhook: WebhookRequestData, project: Project) 
       repoFullName: body.repository.full_name,
       repoUrl: body.repository.html_url,
       branchName: branchName,
-      commitUrl: body.commits[0].url,
+      commitUrl: afterUrl,
       event: event,
     }
 
@@ -42,7 +43,7 @@ export async function githubPush(webhook: WebhookRequestData, project: Project) 
     let logMessage = `\`<${body.repository.html_url}/tree/${meta.branch}|${meta.branch}>\``
     if (sha) {
       const shortSha: string = sha.substring(0, 7)
-      logMessage = `${logMessage} (<${body.commits[0].url}|${shortSha}>)`
+      logMessage = `${logMessage} (<${afterUrl}|${shortSha}>)`
     }
 
     if (skip_deploy) {
