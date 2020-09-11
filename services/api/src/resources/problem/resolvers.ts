@@ -9,17 +9,15 @@ const logger = require('../../logger');
 export const getAllProblems: ResolverFn = async (
   root,
   args,
-  { sqlClient, hasPermission }
+  {
+    sqlClient,
+    hasPermission
+  }
 ) => {
   let rows = [];
 
   try {
-    if (!R.isEmpty(args)) {
-      rows = await problemHelpers(sqlClient).getAllProblems(args.source, args.environment, args.envType, args.severity);
-    }
-    else {
-      rows = await query(sqlClient, Sql.selectAllProblems({source: [], environmentId: 0, environmentType: [], severity: []}));
-    }
+     rows = await problemHelpers(sqlClient).getAllProblemsPerProject(args.source, args.environment, args.envType, args.severity);
   }
   catch (err) {
     if (err) {
@@ -28,19 +26,23 @@ export const getAllProblems: ResolverFn = async (
     }
   }
 
-  const problems: any = rows && rows.map(async problem => {
-     const { environment: envId, name, project, environmentType, openshiftProjectName, ...rest} = problem;
+  const problems: any = rows && Object.keys(rows).map(async (p: any) => {
+    // Only check if user has access to each project, not problem.
+    await hasPermission('problem', 'view', {
+        project: p,
+    });
 
-      await hasPermission('problem', 'view', {
-          project: project,
-      });
+    const problem = rows[p].map((problem: any) => {
+        const { environment: envId, name, project, environmentType, openshiftProjectName, ...rest } = problem;
+        return { ...rest, environment: { id: envId, name, project, environmentType, openshiftProjectName }};
+    });
 
-      return { ...rest, environment: { id: envId, name, project, environmentType, openshiftProjectName }};
+    return problem.map(p => p);
   });
 
-  return Promise.all(problems).then((completed) => {
-      const sorted = R.sort(R.descend(R.prop('severity')), completed);
-      return sorted.map((row: any) => ({ ...(row as Object) }));
+  return Promise.all(problems).then((p) => {
+    const sorted = R.sort(R.descend(R.prop('severity')), [].concat.apply([], p));
+    return sorted.map((row: any) => ({ ...(row as Object) }));
   });
 };
 
