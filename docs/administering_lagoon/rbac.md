@@ -159,6 +159,7 @@ Here is a table that lists the roles and the access they have:
 | getFilesByTaskId | task | view | projectID | Yes | Yes | Yes | Yes | Yes | Yes | Yes |  |
 | getTasksByEnvironmentId | task | view | projectID | Yes | Yes | Yes | Yes | Yes | Yes | Yes |  |
 | getTaskByRemoteId | task | view | projectID | Yes | Yes | Yes | Yes | Yes | Yes | Yes |  |
+| getTaskById | task | view | projectID | Yes | Yes | Yes | Yes | Yes | Yes | Yes |  |
 | addUser | user | add |  | Yes | Yes | Yes | Yes | Yes | Yes | Yes |  |
 | updateUser | user | update | userId | Yes | Yes |  |  |  |  |  | Yes |
 | deleteUser | user | delete | userId | Yes | Yes |  |  |  |  |  | Yes |

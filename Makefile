@@ -248,7 +248,7 @@ $(build-pythonimages): build/commons
 	$(eval clean = $(subst build/python__,,$@))
 	$(eval version = $(word 1,$(subst -, ,$(clean))))
 	$(eval type = $(word 2,$(subst -, ,$(clean))))
-	$(eval alpine_version := $(shell case $(version) in (2.7|3.7) echo "3.10" ;; (*) echo $(DEFAULT_ALPINE_VERSION) ;; esac ))
+	$(eval alpine_version = $(DEFAULT_ALPINE_VERSION))
 # this fills variables only if $type is existing, if not they are just empty
 	$(eval type_dash = $(if $(type),-$(type)))
 # Call the docker build
@@ -401,6 +401,29 @@ build/yarn-workspace-builder: build/node__10-builder images/yarn-workspace-build
 	$(call docker_build,$(image),images/$(image)/Dockerfile,.)
 	touch $@
 
+#######
+####### Task Images
+#######
+####### Task Images are standalone images that are used to run advanced tasks when using the builddeploy controllers.
+
+# task-activestandby is the task image that lagoon builddeploy controller uses to run active/standby misc tasks
+build/task-activestandby: taskimages/activestandby/Dockerfile
+
+# the `taskimages` are the name of the task directories contained within `taskimages/` in the repostory root
+taskimages := activestandby
+# in the following process, taskimages are prepended with `task-` to make built task images more identifiable
+# use `build/task-<name>` to build it, but the references in the directory structure remain simpler with
+# taskimages/
+#	activestandby
+#	anothertask
+# the resulting image will be called `task-<name>` instead of `<name>` to make it known that it is a task image
+task-images += $(foreach image,$(taskimages),task-$(image))
+build-taskimages = $(foreach image,$(taskimages),build/task-$(image))
+$(build-taskimages):
+	$(eval image = $(subst build/task-,,$@))
+	$(call docker_build,task-$(image),taskimages/$(image)/Dockerfile,taskimages/$(image))
+	touch $@
+
 # Variables of service images we manage and build
 services :=       api \
 									auth-server \
@@ -421,6 +444,7 @@ services :=       api \
 									kubernetesjobsmonitor \
 									kubernetesmisc \
 									kubernetesremove \
+									controllerhandler \
 									webhook-handler \
 									webhooks2tasks \
 									backup-handler \
@@ -463,7 +487,7 @@ $(build-services):
 	touch $@
 
 # Dependencies of Service Images
-build/auth-server build/logs2email build/logs2slack build/logs2rocketchat build/logs2microsoftteams build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftjobs build/openshiftjobsmonitor build/openshiftmisc build/openshiftremove build/backup-handler build/kubernetesbuilddeploy build/kubernetesdeployqueue build/kubernetesbuilddeploymonitor build/kubernetesjobs build/kubernetesjobsmonitor build/kubernetesmisc build/kubernetesremove build/webhook-handler build/webhooks2tasks build/api build/ui: build/yarn-workspace-builder
+build/auth-server build/logs2email build/logs2slack build/logs2rocketchat build/logs2microsoftteams build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftjobs build/openshiftjobsmonitor build/openshiftmisc build/openshiftremove build/backup-handler build/kubernetesbuilddeploy build/kubernetesdeployqueue build/kubernetesbuilddeploymonitor build/kubernetesjobs build/kubernetesjobsmonitor build/kubernetesmisc build/kubernetesremove build/controllerhandler build/webhook-handler build/webhooks2tasks build/api build/ui: build/yarn-workspace-builder
 build/logs2logs-db: build/logstash__7
 build/logs-db: build/elasticsearch__7
 build/logs-db-ui: build/kibana__7
@@ -480,7 +504,9 @@ build/harbor-trivy build/local-minio: build/harbor-database services/harbor-redi
 build/harborregistry: services/harbor-jobservice/Dockerfile
 build/harborregistryctl: build/harborregistry
 build/harbor-nginx: build/harborregistryctl services/harbor-core/Dockerfile services/harbor-portal/Dockerfile
+build/tests: build/python__2.7
 build/tests-kubernetes: build/tests
+build/tests-controller-kubernetes: build/tests
 build/tests-openshift: build/tests
 build/toolbox: build/mariadb
 build/api-redis: build/redis
@@ -522,7 +548,7 @@ s3-images += $(service-images)
 
 # Builds all Images
 .PHONY: build
-build: $(foreach image,$(base-images) $(base-images-with-versions) $(service-images),build/$(image))
+build: $(foreach image,$(base-images) $(base-images-with-versions) $(service-images) $(task-images),build/$(image))
 # Outputs a list of all Images we manage
 .PHONY: build-list
 build-list:
@@ -552,8 +578,30 @@ $(all-k8s-tests): k3d kubernetes-test-services-up
 			"$$(cat $$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)') | \
 				jq -rcsR '{kubeconfig: .}')"
 
+# Define list of all tests
+all-controller-k8s-tests-list:=				features-kubernetes \
+														nginx \
+														drupal \
+														active-standby-kubernetes
+all-controller-k8s-tests = $(foreach image,$(all-controller-k8s-tests-list),controller-k8s-tests/$(image))
+
+# Run all k8s tests
+.PHONY: controller-k8s-tests
+controller-k8s-tests: $(all-controller-k8s-tests)
+
+.PHONY: $(all-controller-k8s-tests)
+$(all-controller-k8s-tests): k3d controller-k8s-test-services-up
+		$(MAKE) push-local-registry -j6
+		$(eval testname = $(subst controller-k8s-tests/,,$@))
+		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility run --rm \
+			tests-controller-kubernetes ansible-playbook --skip-tags="skip-on-kubernetes" \
+			/ansible/tests/$(testname).yaml \
+			--extra-vars \
+			"$$(cat $$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)') | \
+				jq -rcsR '{kubeconfig: .}')"
+
 # push command of our base images into minishift
-push-local-registry-images = $(foreach image,$(base-images) $(base-images-with-versions),[push-local-registry]-$(image))
+push-local-registry-images = $(foreach image,$(base-images) $(base-images-with-versions) $(task-images),[push-local-registry]-$(image))
 # tag and push all images
 .PHONY: push-local-registry
 push-local-registry: $(push-local-registry-images)
@@ -589,7 +637,7 @@ openshift-tests: $(all-openshift-tests)
 
 # Run all tests
 .PHONY: tests
-tests: k8s-tests openshift-tests
+tests: controller-k8s-tests k8s-tests openshift-tests
 
 # Wait for Keycloak to be ready (before this no API calls will work)
 .PHONY: wait-for-keycloak
@@ -605,6 +653,9 @@ openshift-test-services = openshiftremove openshiftbuilddeploy openshiftbuilddep
 
 # Define a list of which Lagoon Services are needed for kubernetes testing
 kubernetes-test-services = kubernetesbuilddeploy kubernetesdeployqueue kubernetesbuilddeploymonitor kubernetesjobs kubernetesjobsmonitor kubernetesremove kubernetesmisc tests-kubernetes local-registry local-dbaas-provider drush-alias
+
+# Define a list of which Lagoon Services are needed for controller kubernetes testing
+controller-k8s-test-services = controllerhandler tests-controller-kubernetes local-registry local-dbaas-provider drush-alias
 
 # List of Lagoon Services needed for webhook endpoint testing
 webhooks-test-services = webhook-handler webhooks2tasks backup-handler
@@ -636,6 +687,10 @@ openshift-test-services-up: main-test-services-up $(foreach image,$(openshift-te
 kubernetes-test-services-up: main-test-services-up $(foreach image,$(kubernetes-test-services),build/$(image))
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d $(kubernetes-test-services)
 
+.PHONY: controller-k8s-test-services-up
+controller-k8s-test-services-up: main-test-services-up $(foreach image,$(controller-k8s-test-services),build/$(image))
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d $(controller-k8s-test-services)
+
 .PHONY: drupaltest-services-up
 drupaltest-services-up: main-test-services-up $(foreach image,$(drupal-test-services),build/$(image))
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d $(drupal-test-services)
@@ -647,6 +702,12 @@ webhooks-test-services-up: main-test-services-up $(foreach image,$(webhooks-test
 .PHONY: local-registry-up
 local-registry-up: build/local-registry
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d local-registry
+
+# broker-up is used to ensure the broker is running before the lagoon-builddeploy operator is installed
+# when running controller-kubernetes tests
+.PHONY: broker-up
+broker-up: build/broker
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d broker
 
 openshift-run-api-tests = $(foreach image,$(api-tests),openshift-tests/$(image))
 .PHONY: $(openshift-run-api-tests)
@@ -788,6 +849,22 @@ publish-amazeeiolagoon-serviceimages: $(publish-amazeeiolagoon-serviceimages)
 $(publish-amazeeiolagoon-serviceimages):
 #   Calling docker_publish for image, but remove the prefix '[publish-amazeeiolagoon-serviceimages]-' first
 		$(eval image = $(subst [publish-amazeeiolagoon-serviceimages]-,,$@))
+# 	Publish images with version tag
+		$(call docker_publish_amazeeiolagoon,$(image),$(image):$(BRANCH_NAME))
+
+
+# Publish command to amazeeio docker hub, this should probably only be done during a master deployments
+publish-amazeeiolagoon-taskimages = $(foreach image,$(task-images),[publish-amazeeiolagoon-taskimages]-$(image))
+# tag and push all images
+.PHONY: publish-amazeeiolagoon-taskimages
+publish-amazeeiolagoon-taskimages: $(publish-amazeeiolagoon-taskimages)
+
+
+# tag and push of each image
+.PHONY: $(publish-amazeeiolagoon-taskimages)
+$(publish-amazeeiolagoon-taskimages):
+#   Calling docker_publish for image, but remove the prefix '[publish-amazeeiolagoon-taskimages]-' first
+		$(eval image = $(subst [publish-amazeeiolagoon-taskimages]-,,$@))
 # 	Publish images with version tag
 		$(call docker_publish_amazeeiolagoon,$(image),$(image):$(BRANCH_NAME))
 
@@ -1014,6 +1091,7 @@ endif
 
 k3d: local-dev/k3d local-dev/kubectl local-dev/helm/helm build/docker-host
 	$(MAKE) local-registry-up
+	$(MAKE) broker-up
 	$(info starting k3d with name $(K3D_NAME))
 	$(info Creating Loopback Interface for docker gateway if it does not exist, this might ask for sudo)
 ifeq ($(ARCH), darwin)
@@ -1043,21 +1121,35 @@ endif
 	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add dbaas-operator https://raw.githubusercontent.com/amazeeio/dbaas-operator/master/charts ; \
 	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n dbaas-operator dbaas-operator dbaas-operator/dbaas-operator ; \
 	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n dbaas-operator mariadbprovider dbaas-operator/mariadbprovider -f local-dev/helm-values-mariadbprovider.yml ; \
+	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' create namespace lagoon-builddeploy; \
+	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add lagoon-builddeploy https://raw.githubusercontent.com/amazeeio/lagoon-kbd/main/charts ; \
+	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n lagoon-builddeploy lagoon-builddeploy lagoon-builddeploy/lagoon-builddeploy \
+		--set vars.lagoonTargetName=ci-local-control-k8s \
+		--set vars.rabbitPassword=guest \
+		--set vars.rabbitUsername=guest \
+		--set vars.rabbitHostname=172.17.0.1:5672; \
 	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' create namespace lagoon; \
-	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n lagoon lagoon-remote ./charts/lagoon-remote --set dockerHost.image.name=172.17.0.1:5000/lagoon/docker-host --set dockerHost.registry=172.17.0.1:5000; \
+	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add amazeeio https://amazeeio.github.io/charts/; \
+	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n lagoon lagoon-remote amazeeio/lagoon-remote --set dockerHost.image.name=172.17.0.1:5000/lagoon/docker-host --set dockerHost.registry=172.17.0.1:5000; \
 	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n lagoon rollout status deployment docker-host -w;
 ifeq ($(ARCH), darwin)
 	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; \
 	KUBERNETESBUILDDEPLOY_TOKEN=$$(local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n lagoon describe secret $$(local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n lagoon get secret | grep kubernetesbuilddeploy | awk '{print $$1}') | grep token: | awk '{print $$2}'); \
 	sed -i '' -e "s/\".*\" # make-kubernetes-token/\"$${KUBERNETESBUILDDEPLOY_TOKEN}\" # make-kubernetes-token/g" local-dev/api-data/03-populate-api-data-kubernetes.gql; \
+	sed -i '' -e "s/\".*\" # make-kubernetes-token/\"$${KUBERNETESBUILDDEPLOY_TOKEN}\" # make-kubernetes-token/g" local-dev/api-data/04-populate-api-data-controller.gql; \
 	DOCKER_IP="$$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"; \
-	sed -i '' -e "s/172\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${DOCKER_IP}/g" local-dev/api-data/03-populate-api-data-kubernetes.gql docker-compose.yaml;
+	sed -i '' -e "s/172\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${DOCKER_IP}/g" local-dev/api-data/03-populate-api-data-kubernetes.gql docker-compose.yaml; \
+	DOCKER_IP="$$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"; \
+	sed -i '' -e "s/172\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${DOCKER_IP}/g" local-dev/api-data/04-populate-api-data-controller.gql docker-compose.yaml;
 else
 	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; \
 	KUBERNETESBUILDDEPLOY_TOKEN=$$(local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n lagoon describe secret $$(local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n lagoon get secret | grep kubernetesbuilddeploy | awk '{print $$1}') | grep token: | awk '{print $$2}'); \
 	sed -i "s/\".*\" # make-kubernetes-token/\"$${KUBERNETESBUILDDEPLOY_TOKEN}\" # make-kubernetes-token/g" local-dev/api-data/03-populate-api-data-kubernetes.gql; \
+	sed -i "s/\".*\" # make-kubernetes-token/\"$${KUBERNETESBUILDDEPLOY_TOKEN}\" # make-kubernetes-token/g" local-dev/api-data/04-populate-api-data-controller.gql; \
 	DOCKER_IP="$$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"; \
-	sed -i "s/172\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${DOCKER_IP}/g" local-dev/api-data/03-populate-api-data-kubernetes.gql docker-compose.yaml;
+	sed -i "s/172\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${DOCKER_IP}/g" local-dev/api-data/03-populate-api-data-kubernetes.gql docker-compose.yaml; \
+	DOCKER_IP="$$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"; \
+	sed -i "s/172\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${DOCKER_IP}/g" local-dev/api-data/04-populate-api-data-controller.gql docker-compose.yaml;
 endif
 	$(MAKE) push-kubectl-build-deploy-dind
 
@@ -1124,7 +1216,8 @@ k3d/cleanall: k3d/stopall
 .PHONY: kubernetes-lagoon-setup
 kubernetes-lagoon-setup:
 	kubectl create namespace lagoon; \
-	local-dev/helm/helm upgrade --install -n lagoon lagoon-remote ./charts/lagoon-remote; \
+	local-dev/helm/helm repo add amazeeio https://amazeeio.github.io/charts/; \
+	local-dev/helm/helm upgrade --install -n lagoon lagoon-remote amazeeio/lagoon-remote; \
 	echo -e "\n\nAll Setup, use this token as described in the Lagoon Install Documentation:";
 	$(MAKE) kubernetes-get-kubernetesbuilddeploy-token
 

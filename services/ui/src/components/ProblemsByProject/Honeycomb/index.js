@@ -70,15 +70,15 @@ const Honeycomb = ({ data, filter }) => {
         if (critical === 1) { return "light-red" } else
         if (critical >= 1 && critical <= 5) { return "red" } else
         if (critical >= 5 && critical < 10) { return "dark-red" } else
-        if (critical >= 10 && critical < 15) { return "darker-red" }
+        if (critical >= 10) { return "darker-red" }
     };
 
     useEffect(() => {
         const count = projectsProblems && projectsProblems.length;
         if (count <= 48) setDisplay({type: "normal", multiplier: 2, hexSize: 4, viewBox: "180 -20 100 100"});
-        if (count >= 49 && count <= 96) setDisplay({type: "medium", multiplier: 4, hexSize: 1, viewBox: "65 -30 100 100"});
-        if (count >= 97 && count <=479) setDisplay({type: "large", multiplier: 4, hexSize: 1, viewBox: "65 -10 100 100"});
-        if (count >= 480) setDisplay({type: "extra-large", multiplier: 5.5, hexSize: 0.66, viewBox: "30 -10 100 100"});
+        if (count >= 49 && count <= 120) setDisplay({type: "small", multiplier: 3, hexSize: 2, viewBox: "125 -20 100 100"});
+        if (count >= 121 && count <= 384) setDisplay({type: "smaller", multiplier: 4, hexSize: 1, viewBox: "70 -10 100 100"});
+        if (count >= 385) setDisplay({type: "smallest", multiplier: 5, hexSize: 0.66, viewBox: "30 -10 100 100"});
 
         const filterProjects = !filter.showCleanProjects ? projectsProblems && projectsProblems.filter(p => {
             return !R.isEmpty(flattenProblems(p))

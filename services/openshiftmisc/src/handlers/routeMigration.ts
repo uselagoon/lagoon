@@ -21,17 +21,17 @@ const retry = (retries, fn, delay = 1000) =>
   );
 
 export async function routeMigration (data) {
-  const { projectName, productionEnvironment, standbyProductionEnvironment, task } = data;
+  const { project, productionEnvironment, standbyProductionEnvironment, task } = data;
 
-  const result = await getOpenShiftInfoForProject(projectName);
+  const result = await getOpenShiftInfoForProject(project.name);
   const projectOpenShift = result.project;
   const ocsafety = string =>
     string.toLocaleLowerCase().replace(/[^0-9a-z-]/g, '-');
 
   try {
-    var safeActiveProductionEnvironment = ocsafety(productionEnvironment);
-    var safeStandbyProductionEnvironment = ocsafety(standbyProductionEnvironment);
-    var safeProjectName = ocsafety(projectName);
+    var safeActiveProductionEnvironment = ocsafety(project.productionEnvironment);
+    var safeStandbyProductionEnvironment = ocsafety(project.standbyProductionEnvironment);
+    var safeProjectName = ocsafety(project.name);
     var openshiftConsole = projectOpenShift.openshift.consoleUrl.replace(
       /\/$/,
       ''
@@ -49,7 +49,7 @@ export async function routeMigration (data) {
           .replace('${project}', safeProjectName)
       : `${safeProjectName}-${safeStandbyProductionEnvironment}`;
   } catch (error) {
-    logger.error(`Error while loading information for project ${projectName}`);
+    logger.error(`Error while loading information for project ${project.name}`);
     logger.error(error);
     throw error;
   }
@@ -169,11 +169,11 @@ export async function routeMigration (data) {
 
   sendToLagoonLogs(
     'info',
-    projectName,
+    project.name,
     '',
     'task:misc-openshift:route:migrate',
     data,
-    `*[${projectName}]* Route Migration between environments *${destinationOpenshiftProject}* started`
+    `*[${project.name}]* Route Migration between environments *${destinationOpenshiftProject}* started`
   );
 
   const routeMigrateGet = promisify(
@@ -193,7 +193,7 @@ export async function routeMigration (data) {
             case 'started':
               // update the task to started
               var created = convertDateFormat(routeMigrateStatus.status.conditions[i].lastTransitionTime)
-              await updateTask(task.id, {
+              await updateTask(parseInt(task.id), {
                 status: 'ACTIVE',
                 created: created,
               });
@@ -201,7 +201,7 @@ export async function routeMigration (data) {
             case 'failed':
               // update the task to failed
               var created = convertDateFormat(routeMigrateStatus.status.conditions[i].lastTransitionTime)
-              await updateTask(task.id, {
+              await updateTask(parseInt(task.id), {
                 status: 'FAILED',
                 completed: created,
               });
@@ -231,7 +231,7 @@ export async function routeMigration (data) {
               });
               // update the task to completed
               var created = convertDateFormat(routeMigrateStatus.status.conditions[i].lastTransitionTime)
-              await updateTask(task.id, {
+              await updateTask(parseInt(task.id), {
                 status: 'SUCCEEDED',
                 completed: created,
               });

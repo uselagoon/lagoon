@@ -2,6 +2,8 @@ import React, { useState }  from 'react';
 import css from 'styled-jsx/css';
 import { bp, color, fontSize } from 'lib/variables';
 
+import ClusterName from "./ClusterName";
+
 
 const projectsDataReducer = (projects, objKey) => projects.reduce((acc, obj) => acc + obj[objKey], 0);
 
@@ -27,7 +29,7 @@ const BillingGroupProjects = ({ projects }) => {
         </div>
         {projects.map(({ name, hits, storageDays, prodHours, devHours }, index) => (
           <div key={`${index}-name`} className="data-row">
-            <div className="data-cell name">{name.toLocaleString()}</div>
+            <div className="data-cell name">{name.toLocaleString()}<span className="cluster"><ClusterName project={name} /></span></div>
             <div className="data-cell hits">{hits.toLocaleString()}</div>
             <div className="data-cell storage">{storageDays.toLocaleString()}</div>
             <div className="data-cell prod">{prodHours.toLocaleString()}</div>
@@ -46,6 +48,11 @@ const BillingGroupProjects = ({ projects }) => {
       <style jsx>{`
         .projects {
           padding-top: 40px;
+        }
+
+        .cluster {
+          font-weight: normal;
+          color: gray;
         }
 
         .data-table {
@@ -81,7 +88,7 @@ const BillingGroupProjects = ({ projects }) => {
             font-weight: bold;
             margin-left: 15px;
             white-space: nowrap;
-          }  
+          }
 
         }
       `}</style>

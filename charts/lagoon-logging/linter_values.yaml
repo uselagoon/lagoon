@@ -1,7 +1,0 @@
-# Linter-specific values for lagoon-logging.
-# This is a YAML-formatted file.
-# Any variables defined here are not used anywhere other than lint
-
-clusterName: notarealcluster
-elasticsearchHost: notarealhost
-elasticsearchAdminPassword: notarealpassword

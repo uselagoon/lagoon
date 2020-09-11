@@ -2,14 +2,15 @@ import React from 'react';
 import Honeycomb from './index';
 import { Query } from 'react-apollo';
 import AllProjectsProblemsQuery from 'lib/query/AllProjectsProblems';
+import mocks, { seed } from "api/src/mocks";
 
 export default {
   component: Honeycomb,
   title: 'Components/Honeycomb',
 }
 
-export const Default = (projects) => {
-  return projects && <Honeycomb data={projects.projects} filter={{showCleanProjects: true}}/>
+export const Default = ({projects}) => {
+  return projects && <Honeycomb data={projects} filter={{showCleanProjects: false}}/>
 };
 Default.story = {
   decorators: [
@@ -22,5 +23,5 @@ Default.story = {
 };
 
 export const NoProjects = () => (
-  <Honeycomb data={[]} />
+  <Honeycomb data={[]} filter={{showCleanProjects: false}}/>
 );

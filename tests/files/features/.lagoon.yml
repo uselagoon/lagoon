@@ -92,3 +92,16 @@ ci-multiproject2-kubernetes:
       routes:
         - node:
           - multiproject2.com
+
+ci-multiproject1-control-k8s:
+  environments:
+    multiproject:
+      routes:
+        - node:
+          - multiproject1.com
+ci-multiproject2-control-k8s:
+  environments:
+    multiproject:
+      routes:
+        - node:
+          - multiproject2.com
