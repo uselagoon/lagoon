@@ -13,7 +13,7 @@ The main Lagoon entrypoint for webhooks originating from other services. Every
 incoming webhook is parsed and validated before being queued for processing
 later.
 
-Examples of webhooks Lagoon is interested in: GitHub/Bitbucket/GitLab repository
+Examples of webhooks Lagoon is interested in: GitHub/Gitea/Bitbucket/GitLab repository
 activity, Lagoon project environment backup events.
 
 ## Technology

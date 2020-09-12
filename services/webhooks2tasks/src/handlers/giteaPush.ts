@@ -4,7 +4,7 @@ import { createDeployTask } from '@lagoon/commons/dist/tasks';
 
 import { WebhookRequestData, deployData, Project } from '../types';
 
-export async function githubPush(webhook: WebhookRequestData, project: Project) {
+export async function giteaPush(webhook: WebhookRequestData, project: Project) {
 
     const {
       webhooktype,
@@ -16,6 +16,7 @@ export async function githubPush(webhook: WebhookRequestData, project: Project) 
 
     const branchName = body.ref.toLowerCase().replace('refs/heads/','')
     const sha = body.after
+    var afterUrl = `${body.repository.html_url}/commit/${body.after}`
 
     // @ts-ignore
     const skip_deploy = R.pathOr('',['head_commit','message'], body).match(/\[skip deploy\]|\[deploy skip\]/i)
@@ -28,7 +29,7 @@ export async function githubPush(webhook: WebhookRequestData, project: Project) 
       repoFullName: body.repository.full_name,
       repoUrl: body.repository.html_url,
       branchName: branchName,
-      commitUrl: body.head_commit.url,
+      commitUrl: afterUrl,
       event: event,
     }
 
@@ -42,7 +43,7 @@ export async function githubPush(webhook: WebhookRequestData, project: Project) 
     let logMessage = `\`<${body.repository.html_url}/tree/${meta.branch}|${meta.branch}>\``
     if (sha) {
       const shortSha: string = sha.substring(0, 7)
-      logMessage = `${logMessage} (<${body.head_commit.url}|${shortSha}>)`
+      logMessage = `${logMessage} (<${afterUrl}|${shortSha}>)`
     }
 
     if (skip_deploy) {

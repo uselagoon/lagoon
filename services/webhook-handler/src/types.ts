@@ -24,10 +24,38 @@ export interface GithubPushEvent {
   },
 };
 
+// See: https://docs.gitea.io/en-us/webhooks/
+export interface GiteaPushEvent {
+  event: 'push',
+  webhooktype: 'gitea',
+  uuid: string,
+  body: {
+    repository: {
+      ssh_url: string,
+    },
+    ref: string,
+    after: string,
+  },
+};
+
 // See: https://developer.github.com/v3/activity/events/types/#pullrequestevent
 export interface GithubPullRequestEvent {
   event: 'pull_request',
   webhooktype: 'github',
+  uuid: string,
+  body: {
+    action: string,
+    repository: {
+      ssh_url: string,
+    },
+    number: number,
+  }
+};
+
+// See: https://docs.gitea.io/en-us/webhooks/
+export interface GiteaPullRequestEvent {
+  event: 'pull_request',
+  webhooktype: 'gitea',
   uuid: string,
   body: {
     action: string,
@@ -48,6 +76,19 @@ export interface GithubDeleteEvent {
     repository: {
       ssh_url: string,
       ref_type: string,
+    }
+  }
+};
+
+// See: https://docs.gitea.io/en-us/webhooks/
+export interface GiteaDeleteEvent {
+  event: 'delete',
+  webhooktype: 'gitea',
+  uuid: string,
+  body: {
+    ref_type: string,
+    repository: {
+      ssh_url: string,
     }
   }
 };
@@ -78,6 +119,9 @@ export type RawData =
   GithubPushEvent
   | GithubPullRequestEvent
   | GithubDeleteEvent
+  | GiteaPushEvent
+  | GiteaPullRequestEvent
+  | GiteaDeleteEvent
   | CustomPushEvent
   | any;
 

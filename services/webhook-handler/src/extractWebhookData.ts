@@ -38,6 +38,11 @@ export function extractWebhookData(req: IncomingMessage, body: string): WebhookR
       event = req.headers['x-github-event'];
       uuid = req.headers['x-github-delivery'];
       giturl = R.path(['repository', 'ssh_url'], bodyObj);
+    } else if ('x-gitea-event' in req.headers) {
+      webhooktype = 'gitea';
+      event = req.headers['x-gitea-event'];
+      uuid = req.headers['x-gitea-delivery'];
+      giturl = R.path(['repository', 'ssh_url'], bodyObj);
     } else if ('x-gitlab-event' in req.headers) {
       webhooktype = 'gitlab';
       event = bodyObj.object_kind || bodyObj.event_name;
