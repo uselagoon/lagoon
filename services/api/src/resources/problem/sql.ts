@@ -30,13 +30,28 @@ const standardProblemHarborScanMatchReturn = {
 
 export const Sql = {
   selectProblemsByProjects: ({
-    projects = []
-  }: { projects: string[] }) => {
+    projects = [],
+    envType = [],
+    source = [],
+    severity = [],
+  }: { projects: string[], source: string[], envType: string[], severity: string[] }) => {
     let q = knex('environment_problem as p')
     .join('environment as e', {environment: 'e.id'}, '=', {environment: 'p.environment'})
     .whereIn('e.project', projects)
     .where('p.deleted', '=', '0000-00-00 00:00:00')
     .select('p.*', { environment: 'e.id' });
+
+    if (envType.length > 0) {
+      q.whereIn('e.environment_type', envType);
+    }
+
+    if (source.length > 0) {
+      q.whereIn('p.source', source);
+    }
+
+    if (severity.length > 0) {
+      q.whereIn('p.severity', severity);
+    }
 
     return q.toString()
   },
