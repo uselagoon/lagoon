@@ -1,5 +1,5 @@
 import * as R from 'ramda';
-import { query, prepare } from '../../util/db';
+import {query, prepare, whereAnd, inClause} from '../../util/db';
 import { Sql } from './sql';
 import { Helpers as problemHelpers } from './helpers';
 import { Helpers as environmentHelpers } from '../environment/helpers';
@@ -11,13 +11,24 @@ export const getAllProblems: ResolverFn = async (
   args,
   {
     sqlClient,
-    hasPermission
-  }
+    hasPermission,
+    models,
+    keycloakGrant,
+  },
 ) => {
   let rows = [];
 
+  if (!keycloakGrant) {
+    logger.warn('No grant available for getAllProblems');
+    return [];
+  }
+
+  const userProjectIds = await models.UserModel.getAllProjectsIdsForUser({
+    id: keycloakGrant.access_token.content.sub,
+  });
+
   try {
-     rows = await problemHelpers(sqlClient).getAllProblemsPerProject(args.source, args.environment, args.envType, args.severity);
+     rows = await problemHelpers(sqlClient).getAllProblems(userProjectIds, args);
   }
   catch (err) {
     if (err) {
@@ -26,24 +37,13 @@ export const getAllProblems: ResolverFn = async (
     }
   }
 
-  const problems: any = rows && Object.keys(rows).map(async (p: any) => {
-    // Only check if user has access to each project, not problem.
-    await hasPermission('problem', 'view', {
-        project: p,
-    });
-
-    const problem = rows[p].map((problem: any) => {
-        const { environment: envId, name, project, environmentType, openshiftProjectName, ...rest } = problem;
-        return { ...rest, environment: { id: envId, name, project, environmentType, openshiftProjectName }};
-    });
-
-    return problem.map(p => p);
+  const problems: any = rows && rows.map( (p: any) => {
+    const { environment: envId, name, project, environmentType, openshiftProjectName, ...rest } = p;
+    return { ...rest, environment: { id: envId, name, project, environmentType, openshiftProjectName }};
   });
 
-  return Promise.all(problems).then((p) => {
-    const sorted = R.sort(R.descend(R.prop('severity')), [].concat.apply([], p));
-    return sorted.map((row: any) => ({ ...(row as Object) }));
-  });
+  const sorted = R.sort(R.descend(R.prop('severity')), [].concat.apply([], problems));
+  return sorted.map((row: any) => ({ ...(row as Object) }));
 };
 
 export const getSeverityOptions = async (

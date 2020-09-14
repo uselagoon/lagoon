@@ -1,29 +1,18 @@
 import * as R from 'ramda';
 import { MariaClient } from 'mariasql';
-import { query } from '../../util/db';
+import {prepare, query} from '../../util/db';
 import { Sql } from './sql';
 
 export const Helpers = (sqlClient: MariaClient) => {
-    const groupProblemsByProject = (problems) => problems.reduce((obj, problem) => {
-        obj[problem.project] = obj[problem.project] || [];
-        obj[problem.project].push(problem);
-        return obj;
-    }, {});
-
-    const getAllProblemsPerProject = async (source, environment, envType, severity) => {
-      const environmentType = envType && envType.map(t => t.toLowerCase() || []);
+    const getAllProblems = async (projects, args) => {
+      const environmentType = args.envType && args.envType.map(t => t.toLowerCase() || []);
 
       const rows = await query(
-          sqlClient,
-          Sql.selectAllProblems({
-              source,
-              environmentId: environment,
-              environmentType,
-              severity,
-          })
+        sqlClient,
+        Sql.selectProblemsByProjects({ projects })
       );
 
-      return await groupProblemsByProject(rows);
+      return rows;
     };
 
     const getSeverityOptions = async () => (
@@ -34,7 +23,7 @@ export const Helpers = (sqlClient: MariaClient) => {
     );
 
     return {
-      getAllProblemsPerProject,
+      getAllProblems,
       getSeverityOptions
     };
 };
