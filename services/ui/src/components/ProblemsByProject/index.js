@@ -1,122 +1,85 @@
 import React, { useState, useEffect } from 'react';
 import { bp, color, fontSize } from 'lib/variables';
 import useSortableData from './sortedItems';
-import Accordion from 'components/Accordion';
+import Problem from 'components/Problem';
 
-const ProblemsByProject = ({ problems }) => {
+const ProblemsByProject = ({ problems, minified }) => {
     const { sortedItems, getClassNamesFor, requestSort } = useSortableData(problems, {key: 'id', direction: 'ascending'});
 
     const [problemTerm, setProblemTerm] = useState('');
     const [hasFilter, setHasFilter] = React.useState(false);
 
     const handleProblemFilterChange = (event) => {
-      setHasFilter(false);
+        setHasFilter(false);
 
-      if (event.target.value !== null || event.target.value !== '') {
-        setHasFilter(true);
-      }
-      setProblemTerm(event.target.value);
+        if (event.target.value !== null || event.target.value !== '') {
+            setHasFilter(true);
+        }
+        setProblemTerm(event.target.value);
     };
 
     const handleSort = (key) => {
-      return requestSort(key);
+        return requestSort(key);
     };
 
     const filterResults = (item) => {
-      const lowercasedFilter = problemTerm.toLowerCase();
+        const lowercasedFilter = problemTerm.toLowerCase();
         if (problemTerm == null || problemTerm === '') {
-          return problems;
+            return problems;
         }
 
         return Object.keys(item).some(key => {
-          if (item[key] !== null) {
-            return item[key].toString().toLowerCase().includes(lowercasedFilter);
-          }
+            if (item[key] !== null) {
+                return item[key].toString().toLowerCase().includes(lowercasedFilter);
+            }
         });
     };
 
     return (
-      <div className="problems">
-        <div className="filters">
-          <input type="text" id="filter" placeholder="Filter problems e.g. CVE-2020-2342"
-            value={problemTerm}
-            onChange={handleProblemFilterChange}
-          />
-        </div>
-        <div className="header">
-          <button
-            type="button"
-            onClick={() => handleSort('identifier')}
-            className={`button-sort identifier ${getClassNamesFor('identifier')}`}
-          >
-            Problem identifier
-          </button>
-          <button
-            type="button"
-            onClick={() => handleSort('source')}
-            className={`button-sort source ${getClassNamesFor('source')}`}
-          >
-            Source
-          </button>
-          <button
-            type="button"
-            onClick={() => handleSort('severity')}
-            className={`button-sort severity ${getClassNamesFor('severity')}`}
-          >
-            Severity
-          </button>
-          <button
-            type="button"
-            onClick={() => handleSort('associatedPackage')}
-            className={`button-sort associatedPackage ${getClassNamesFor('associatedPackage')}`}
-          >
-            Package
-          </button>
-        </div>
-        <div className="data-table">
-          {!sortedItems.filter(problem => filterResults(problem)).length && <div className="data-none">No Problems</div>}
-          {sortedItems.filter(problem => filterResults(problem)).map((problem, index) => {
-
-            const {identifier, source, severity, associatedPackage, data } = problem;
-            const columns = {identifier, source, severity, associatedPackage};
-            const parsedData = data && JSON.parse(data) || null;
-
-            return (
-              <Accordion
-                key={`${identifier}-${source.toLowerCase()}-${index}`}
-                columns={columns}
-                defaultValue={false}
-                className="data-row row-heading"
-              >
-                <div className="expanded-wrapper">
-                  <div className="fieldWrapper">
-                    <label>Problem Description</label>
-                    {problem && <div className="description">
-                      {(problem.description).length > 250 ? problem.description.substring(0, 247)+'...' : problem.description}
-                    </div>}
-                  </div>
-                  <div className="fieldWrapper">
-                    <label>Package</label>
-                    {problem && <div className="package">{problem.associatedPackage}</div>}
-                  </div>
-                  <div className="fieldWrapper">
-                    <label>Associated link (CVE description etc.)</label>
-                    {problem && <div className="links"><a href={problem.links} target="_blank">{problem.links}</a></div>}
-                  </div>
-                  {problem && (<div className="fieldWrapper">
-                    <label>Data:</label>
-                    <div className="data-wrapper">
-                      {parsedData && <div className="data">{Object.keys(parsedData).map((key, index) => {
-                          return <div key={`${key}-${index}`} className="data-item"><span className="key">{key}: </span><span className="value">{`${parsedData[key]}`}</span></div>
-                    })}</div>}
-                  </div>
-                  </div>)}
-                </div>
-              </Accordion>
-            );
-          })}
-        </div>
-        <style jsx>{`
+        <div className="problems">
+            <div className="filters">
+                <input type="text" id="filter" placeholder="Filter problems e.g. CVE-2020-2342"
+                       value={problemTerm}
+                       onChange={handleProblemFilterChange}
+                />
+            </div>
+            <div className="header">
+                <button
+                    type="button"
+                    onClick={() => handleSort('identifier')}
+                    className={`button-sort identifier ${getClassNamesFor('identifier')}`}
+                >
+                    Problem identifier
+                </button>
+                <button
+                    type="button"
+                    onClick={() => handleSort('source')}
+                    className={`button-sort source ${getClassNamesFor('source')}`}
+                >
+                    Source
+                </button>
+                <button
+                    type="button"
+                    onClick={() => handleSort('severity')}
+                    className={`button-sort severity ${getClassNamesFor('severity')}`}
+                >
+                    Severity
+                </button>
+                <button
+                    type="button"
+                    onClick={() => handleSort('associatedPackage')}
+                    className={`button-sort associatedPackage ${getClassNamesFor('associatedPackage')}`}
+                >
+                    Package
+                </button>
+            </div>
+            <div className="data-table">
+                {!sortedItems.filter(problem => filterResults(problem)).length && <div className="data-none">No Problems</div>}
+                {sortedItems.filter(problem => filterResults(problem)).map((problem) => (
+                    <Problem key={`${problem.identifier}-${problem.id}`} problem={problem} />
+                ))}
+            </div>
+            <style jsx>{`
           .header {
             @media ${bp.wideUp} {
               display: flex;
@@ -184,34 +147,6 @@ const ProblemsByProject = ({ problems }) => {
 
             &.descending:after {
               content: ' \\25BC';
-            }
-          }
-
-          .expanded-wrapper {
-            display: flex;
-            flex-direction: row;
-            flex-wrap: wrap;
-            width: 100%;
-            padding: 20px;
-            background: ${color.lightestGrey};
-
-            .fieldWrapper {
-              padding-bottom: 1em;
-              display: flex;
-              flex-direction: column;
-              width: 100%;
-            }
-
-            .left-content,
-            .right-content {
-              display: flex;
-              flex-direction: column;
-              flex-basis: 100%;
-              flex: 1;
-            }
-
-            .problems-link {
-              color: #2bc0d8;
             }
           }
 
@@ -302,7 +237,7 @@ const ProblemsByProject = ({ problems }) => {
             }
           }
         `}</style>
-      </div>
+        </div>
     );
 };
 
