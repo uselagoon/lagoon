@@ -44,6 +44,7 @@ RUN mkdir -p /app \
     && fix-permissions /var/run/
 
 COPY docker-entrypoint /lagoon/entrypoints/70-nginx-entrypoint
+COPY matomo/80-nginx-matomo-config /lagoon/entrypoints/
 
 WORKDIR /app
 
