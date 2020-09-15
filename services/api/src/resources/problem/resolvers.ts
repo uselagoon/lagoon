@@ -13,22 +13,33 @@ export const getAllProblems: ResolverFn = async (
     sqlClient,
     hasPermission,
     models,
-    keycloakGrant,
+    keycloakGrant
   },
 ) => {
   let rows = [];
-
-  if (!keycloakGrant) {
-    logger.warn('No grant available for getAllProblems');
-    return [];
-  }
-
-  const userProjectIds = await models.UserModel.getAllProjectsIdsForUser({
-    id: keycloakGrant.access_token.content.sub,
-  });
+  let userProjectIds = [];
 
   try {
-     rows = await problemHelpers(sqlClient).getAllProblems(userProjectIds, args);
+    await hasPermission('problem', 'viewAll');
+
+    // Get all projects
+    const prep = prepare(sqlClient, `SELECT id FROM project`);
+    let projects  = await query(sqlClient, prep(args));
+    userProjectIds = projects.map(p => p.id);
+  }
+  catch (err) {
+    if (!keycloakGrant) {
+      logger.warn('No grant available for getAllProblems');
+      return [];
+    }
+
+    userProjectIds = await models.UserModel.getAllProjectsIdsForUser({
+      id: keycloakGrant.access_token.content.sub,
+    });
+  }
+
+  try {
+    rows = await problemHelpers(sqlClient).getAllProblems(userProjectIds, args);
   }
   catch (err) {
     if (err) {
