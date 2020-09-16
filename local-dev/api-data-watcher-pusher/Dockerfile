@@ -1,9 +1,16 @@
 FROM alpine:3.11
 
-RUN apk add --no-cache tini bash wget py3-jwt
+RUN apk add --no-cache \
+      bash \
+      gettext \
+      moreutils \
+      py3-jwt \
+      tini \
+      wget
 
 ENV JWTSECRET=super-secret-string \
-    JWTAUDIENCE=api.dev
+    JWTAUDIENCE=api.dev \
+    GIT_HOST="172.17.0.1"
 
 COPY api-data /api-data
 COPY api-watch-push.sh create_jwt.py /home/
