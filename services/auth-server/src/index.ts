@@ -29,9 +29,11 @@ app.use(
 // Only allow access with valid, admin Bearer (JWT) token
 app.use(validateToken);
 
+const defaultKeycloakUrl = R.propOr('http://keycloak:8080', 'KEYCLOAK_URL', process.env);
+
 const port = process.env.PORT || 3000;
 const lagoonKeycloakRoute = R.compose(
-  R.defaultTo('http://keycloak:8080'),
+  R.defaultTo(defaultKeycloakUrl),
   R.find(R.test(/keycloak-/)),
   R.split(','),
   R.propOr('', 'LAGOON_ROUTES'),
