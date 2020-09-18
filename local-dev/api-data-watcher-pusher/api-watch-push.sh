@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # inject variables from environment into the GQL template
-envsubst '$GIT_HOST $GIT_PORT $INGRESS_IP $CONSOLE_URL' < /api-data/04-populate-api-data-controller.gql | sponge /api-data/04-populate-api-data-controller.gql
+envsubst '$GIT_HOST $GIT_PORT $INGRESS_IP $CONSOLE_URL $TOKEN' < /api-data/04-populate-api-data-controller.gql | sponge /api-data/04-populate-api-data-controller.gql
 
 clear_gql_file_path="/api-data/00-clear-api-data.gql"
 populate_general_gql_file_path="/api-data/01-populate-api-data-general.gql"
