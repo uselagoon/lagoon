@@ -12,6 +12,7 @@ ENV JWTSECRET=super-secret-string \
     JWTAUDIENCE=api.dev \
     GIT_HOST="172.17.0.1" \
     GIT_PORT="2222" \
+    CONSOLE_URL="https://172.17.0.1:16643/" \
     INGRESS_IP="172.17.0.1"
 
 COPY api-data /api-data
