@@ -4,7 +4,7 @@
     set -e
     # create the $label and $value variables from item
     eval $(echo "{{ item }}" | awk -F= '{sep=index($0,"="); print "label=\"" $1 "\" value=\"" substr($0,sep+1) "\""}')
-    [ $(kubectl --insecure-skip-tls-verify=true get namespace {{ project }}-{{ branch }} -o json |
+    [ $(kubectl get namespace {{ project }}-{{ branch }} -o json |
     jq -er ".metadata.labels | .\"$label\"") = "$value" ]
   loop: "{{ expected_labels }}"
   register: result
