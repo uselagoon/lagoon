@@ -5,7 +5,7 @@ mutation PopulateApi {
     input: {
       id: 2001
       name: "ci-local-control-k8s"
-      consoleUrl: "https://172.17.0.1:16643/" # make-host-docker-internal
+      consoleUrl: "${CONSOLE_URL}" # make-host-docker-internal
       routerPattern: "${project}.${environment}.${INGRESS_IP}.nip.io"
       sshHost: "172.17.0.1"
       sshPort: "2020"
