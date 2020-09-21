@@ -450,7 +450,7 @@ mutation PopulateApi {
     input: {
       name: "build-3"
       status: RUNNING
-      environment: 2
+      environment: 3
       created: "2018-10-07 23:02:41"
       started: "2018-10-07 23:03:41"
     }
