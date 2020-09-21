@@ -207,6 +207,17 @@ mutation PopulateApi {
     id
   }
 
+  # Fake email address for testing
+  CiEmail: addNotificationEmail(
+    input: {
+      name: "local-email-testing",
+      emailAddress: "mail@example.com"
+    }
+  ) {
+    id
+    }
+  }
+
 
   #### Lagoon Kickstart Objects
   # Customer with a private key that has access to the local-git server.
