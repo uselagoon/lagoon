@@ -751,7 +751,7 @@ mutation PopulateApi {
     input: {
       project: "ci-features-subfolder-kubernetes"
       notificationType: EMAIL
-      notificationName: "local-email-testin-kubernetes"
+      notificationName: "local-email-testing"
     }
   ) {
     id
