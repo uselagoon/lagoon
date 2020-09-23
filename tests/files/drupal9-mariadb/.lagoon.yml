@@ -1,7 +1,7 @@
 docker-compose-yaml: docker-compose.yml
 
-endpoint: 172.17.0.1:2020
-api: 172.17.0.1:3000
+endpoint: lagoon-core-ssh.lagoon.svc.cluster.local:2020
+api: lagoon-core-api.lagoon.svc.cluster.local:80
 
 environment_variables:
   git_sha: 'true'
