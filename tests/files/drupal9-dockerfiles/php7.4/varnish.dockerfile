@@ -1,2 +1,2 @@
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-amazeeio}/varnish-drupal
+FROM uselagoon/varnish-drupal

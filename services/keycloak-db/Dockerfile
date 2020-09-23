@@ -1,5 +1,5 @@
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-lagoon}/mariadb
+FROM uselagoon/mariadb
 
 ENV MARIADB_DATABASE=keycloak \
     MARIADB_USER=keycloak \

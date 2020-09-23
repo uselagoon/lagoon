@@ -1,5 +1,5 @@
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-amazeeio}/nginx
+FROM uselagoon/nginx
 
 ENV BASIC_AUTH_USERNAME=username \
     BASIC_AUTH_PASSWORD=password

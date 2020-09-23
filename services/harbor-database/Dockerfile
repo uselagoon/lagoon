@@ -1,5 +1,5 @@
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-lagoon}/postgres
+FROM uselagoon/postgres-11
 LABEL maintainer="amazee.io"
 
 COPY docker-entrypoint-initdb.d /docker-entrypoint-initdb.d

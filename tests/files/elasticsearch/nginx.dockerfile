@@ -1,4 +1,4 @@
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-amazeeio}/nginx
+FROM uselagoon/nginx
 
 COPY app.conf /etc/nginx/conf.d/app.conf

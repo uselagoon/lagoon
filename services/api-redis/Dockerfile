@@ -1,4 +1,4 @@
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-lagoon}/redis
+FROM uselagoon/redis-5
 
 ENV REDIS_PASSWORD=admin

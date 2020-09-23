@@ -1,2 +1,2 @@
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-amazeeio}/postgres-drupal
+FROM uselagoon/postgres-11-drupal

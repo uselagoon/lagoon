@@ -1,5 +1,5 @@
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-amazeeio}/nginx
+FROM uselagoon/nginx
 
 COPY redirects-map.conf /etc/nginx/redirects-map.conf
 

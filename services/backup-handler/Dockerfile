@@ -17,7 +17,7 @@ RUN CGO_ENABLED=0  GOOS=linux GOARCH=amd64 go build -a -o backup-handler .
 
 # put the binary into container
 # use the commons image to get entrypoints
-FROM ${IMAGE_REPO:-lagoon}/commons
+FROM uselagoon/commons
 
 WORKDIR /app/
 

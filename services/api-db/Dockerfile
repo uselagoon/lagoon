@@ -1,5 +1,5 @@
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-lagoon}/mariadb
+FROM uselagoon/mariadb
 
 USER root
 RUN apk add --no-cache openssh-keygen

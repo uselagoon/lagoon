@@ -4,7 +4,7 @@ ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-amazeeiolagoon}/yarn-workspace-builder:${LAGOON_GIT_BRANCH:-latest} as yarn-workspace-builder
 
 # STAGE 2: specific service Image
-FROM ${IMAGE_REPO:-amazeeiolagoon}/node:10
+FROM uselagoon/node-10
 
 COPY entrypoints/50-ssmtp.sh /lagoon/entrypoints/
 COPY ssmtp.conf /etc/ssmtp/ssmtp.conf

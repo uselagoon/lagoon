@@ -1,5 +1,5 @@
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-lagoon}/node:10-builder
+FROM uselagoon/node-10-builder
 
 RUN apk add --no-cache \
         libexecinfo-dev \

@@ -1,4 +1,4 @@
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-amazeeiolagoon}/nginx
+FROM uselagoon/nginx
 ADD nginx.conf /etc/nginx/conf.d/app.conf
 ADD web/ /app/

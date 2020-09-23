@@ -1,5 +1,5 @@
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-lagoon}/python:2.7
+FROM uselagoon/python-2.7
 
 RUN apk add --no-cache \
       bash \

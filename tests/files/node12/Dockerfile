@@ -1,9 +1,9 @@
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-amazeeio}/node:12-builder as builder
+FROM uselagoon/node-12-builder as builder
 COPY package.json yarn.lock /app/
 RUN yarn install
 
-FROM ${IMAGE_REPO:-amazeeio}/node:12
+FROM uselagoon/node-12
 COPY --from=builder /app/node_modules /app/node_modules
 COPY . /app/
 

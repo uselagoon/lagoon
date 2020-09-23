@@ -1,2 +1,2 @@
 ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-amazeeio}/redis
+FROM uselagoon/redis-5
