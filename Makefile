@@ -97,6 +97,15 @@ DEFAULT_ALPINE_VERSION := 3.11
 # Docker Build Context
 docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg ALPINE_VERSION=$(DEFAULT_ALPINE_VERSION) -t $(CI_BUILD_TAG)/$(1) -f $(2) $(3)
 
+# Tags an image with the `testlagoon` repository and pushes it
+docker_publish_testlagoon = docker tag $(CI_BUILD_TAG)/$(1) testlagoon/$(2) && docker push testlagoon/$(2) | cat
+
+# Tags an image with the `uselagoon` repository and pushes it
+docker_publish_uselagoon = docker tag $(CI_BUILD_TAG)/$(1) uselagoon/$(2) && docker push uselagoon/$(2) | cat
+
+# Tags an image with the `amazeeio` repository and pushes it
+docker_publish_amazeeio = docker tag $(CI_BUILD_TAG)/$(1) amazeeio/$(2) && docker push amazeeio/$(2) | cat
+
 # Tags an image with the `amazeeiolagoon` repository and pushes it
 docker_publish_amazeeiolagoon = docker tag $(CI_BUILD_TAG)/$(1) amazeeiolagoon/$(2) && docker push amazeeiolagoon/$(2) | cat
 
@@ -376,7 +385,7 @@ $(all-controller-k8s-tests): k3d controller-k8s-test-services-up
 				jq -rcsR '{kubeconfig: .}')"
 
 # push command of our base images into minishift
-push-local-registry-images = $(foreach image,$(base-images) $(base-images-with-versions) $(task-images),[push-local-registry]-$(image))
+push-local-registry-images = $(foreach image,$(base-images) $(task-images),[push-local-registry]-$(image))
 # tag and push all images
 .PHONY: push-local-registry
 push-local-registry: $(push-local-registry-images)
@@ -518,7 +527,7 @@ end2end-tests/clean:
 		docker-compose -f docker-compose.yaml -f docker-compose.end2end.yaml -p end2end --compatibility down -v
 
 # push command of our base images into minishift
-push-minishift-images = $(foreach image,$(base-images) $(base-images-with-versions),[push-minishift]-$(image))
+push-minishift-images = $(foreach image,$(base-images),[push-minishift]-$(image))
 # tag and push all images
 .PHONY: push-minishift
 push-minishift: minishift/login-docker-registry $(push-minishift-images)
@@ -547,12 +556,120 @@ lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build/$(image
 local-harbor: build/harbor-core build/harbor-database build/harbor-jobservice build/harbor-portal build/harbor-nginx build/harbor-redis build/harborregistry build/harborregistryctl build/harbor-trivy
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d harbor-core harbor-database harbor-jobservice harbor-portal harbor-nginx harbor-redis harborregistry harborregistryctl harbor-trivy local-minio
 
+
+#######
+####### Publishing Images
+#######
+####### All main&PR images are pushed to testlagoon repository
+#######
+
+# Publish command to testlagoon docker hub, done on any main branch or PR
+publish-testlagoon-baseimages = $(foreach image,$(base-images),[publish-testlagoon-baseimages]-$(image))
+# tag and push all images
+
+.PHONY: publish-testlagoon-baseimages
+publish-testlagoon-baseimages: $(publish-testlagoon-baseimages)
+
+# tag and push of each image
+.PHONY: $(publish-testlagoon-baseimages)
+$(publish-testlagoon-baseimages):
+#   Calling docker_publish for image, but remove the prefix '[publish-testlagoon-baseimages]-' first
+		$(eval image = $(subst [publish-testlagoon-baseimages]-,,$@))
+# 	Publish images with version tag
+		$(call docker_publish_testlagoon,$(image),$(image):$(BRANCH_NAME))
+
+
+# Publish command to amazeeio docker hub, this should probably only be done during a master deployments
+publish-testlagoon-serviceimages = $(foreach image,$(service-images),[publish-testlagoon-serviceimages]-$(image))
+# tag and push all images
+.PHONY: publish-testlagoon-serviceimages
+publish-testlagoon-serviceimages: $(publish-testlagoon-serviceimages)
+
+# tag and push of each image
+.PHONY: $(publish-testlagoon-serviceimages)
+$(publish-testlagoon-serviceimages):
+#   Calling docker_publish for image, but remove the prefix '[publish-testlagoon-serviceimages]-' first
+		$(eval image = $(subst [publish-testlagoon-serviceimages]-,,$@))
+# 	Publish images with version tag
+		$(call docker_publish_testlagoon,$(image),$(image):$(BRANCH_NAME))
+
+
+# Publish command to amazeeio docker hub, this should probably only be done during a master deployments
+publish-testlagoon-taskimages = $(foreach image,$(task-images),[publish-testlagoon-taskimages]-$(image))
+# tag and push all images
+.PHONY: publish-testlagoon-taskimages
+publish-testlagoon-taskimages: $(publish-testlagoon-taskimages)
+
+# tag and push of each image
+.PHONY: $(publish-testlagoon-taskimages)
+$(publish-testlagoon-taskimages):
+#   Calling docker_publish for image, but remove the prefix '[publish-testlagoon-taskimages]-' first
+		$(eval image = $(subst [publish-testlagoon-taskimages]-,,$@))
+# 	Publish images with version tag
+		$(call docker_publish_testlagoon,$(image),$(image):$(BRANCH_NAME))
+
+
+#######
+####### All tagged releases are pushed to uselagoon repository with new semantic tags
+#######
+
+# Publish command to uselagoon docker hub, only done on tags
+publish-uselagoon-baseimages = $(foreach image,$(base-images),[publish-uselagoon-baseimages]-$(image))
+
+# tag and push all images
+.PHONY: publish-uselagoon-baseimages
+publish-uselagoon-baseimages: $(publish-uselagoon-baseimages)
+
+# tag and push of each image
+.PHONY: $(publish-uselagoon-baseimages)
+$(publish-uselagoon-baseimages):
+#   Calling docker_publish for image, but remove the prefix '[publish-uselagoon-baseimages]-' first
+		$(eval image = $(subst [publish-uselagoon-baseimages]-,,$@))
+# 	Publish images as :latest
+		$(call docker_publish_uselagoon,$(image),$(image):latest)
+# 	Publish images with version tag
+		$(call docker_publish_uselagoon,$(image),$(image):$(LAGOON_VERSION))
+
+
+# Publish command to amazeeio docker hub, this should probably only be done during a master deployments
+publish-uselagoon-serviceimages = $(foreach image,$(service-images),[publish-uselagoon-serviceimages]-$(image))
+# tag and push all images
+.PHONY: publish-uselagoon-serviceimages
+publish-uselagoon-serviceimages: $(publish-uselagoon-serviceimages)
+
+# tag and push of each image
+.PHONY: $(publish-uselagoon-serviceimages)
+$(publish-uselagoon-serviceimages):
+#   Calling docker_publish for image, but remove the prefix '[publish-uselagoon-serviceimages]-' first
+		$(eval image = $(subst [publish-uselagoon-serviceimages]-,,$@))
+# 	Publish images with version tag
+		$(call docker_publish_uselagoon,$(image),$(image):$(LAGOON_VERSION))
+
+
+# Publish command to amazeeio docker hub, this should probably only be done during a master deployments
+publish-uselagoon-taskimages = $(foreach image,$(task-images),[publish-uselagoon-taskimages]-$(image))
+# tag and push all images
+.PHONY: publish-uselagoon-taskimages
+publish-uselagoon-taskimages: $(publish-uselagoon-taskimages)
+
+# tag and push of each image
+.PHONY: $(publish-uselagoon-taskimages)
+$(publish-uselagoon-taskimages):
+#   Calling docker_publish for image, but remove the prefix '[publish-uselagoon-taskimages]-' first
+		$(eval image = $(subst [publish-uselagoon-taskimages]-,,$@))
+# 	Publish images with version tag
+		$(call docker_publish_uselagoon,$(image),$(image):$(LAGOON_VERSION))
+
+
+#######
+####### All tagged releases are also pushed to amazeeio repository with legacy tags
+#######
+
 # Publish command to amazeeio docker hub, this should probably only be done during a master deployments
 publish-amazeeio-baseimages = $(foreach image,$(base-images),[publish-amazeeio-baseimages]-$(image))
-publish-amazeeio-baseimages-with-versions = $(foreach image,$(base-images-with-versions),[publish-amazeeio-baseimages-with-versions]-$(image))
 # tag and push all images
 .PHONY: publish-amazeeio-baseimages
-publish-amazeeio-baseimages: $(publish-amazeeio-baseimages) $(publish-amazeeio-baseimages-with-versions)
+publish-amazeeio-baseimages: $(publish-amazeeio-baseimages)
 
 
 # tag and push of each image
@@ -564,83 +681,6 @@ $(publish-amazeeio-baseimages):
 		$(call docker_publish_amazeeio,$(image),$(image):latest)
 # 	Publish images with version tag
 		$(call docker_publish_amazeeio,$(image),$(image):$(LAGOON_VERSION))
-
-
-# tag and push of base image with version
-.PHONY: $(publish-amazeeio-baseimages-with-versions)
-$(publish-amazeeio-baseimages-with-versions):
-#   Calling docker_publish for image, but remove the prefix '[publish-amazeeio-baseimages-with-versions]-' first
-		$(eval image = $(subst [publish-amazeeio-baseimages-with-versions]-,,$@))
-#   The underline is a placeholder for a colon, replace that
-		$(eval image = $(subst __,:,$(image)))
-#		These images already use a tag to differentiate between different versions of the service itself (like node:9 and node:10)
-#		We push a version without the `-latest` suffix
-		$(call docker_publish_amazeeio,$(image),$(image))
-#		Plus a version with the `-latest` suffix, this makes it easier for people with automated testing
-		$(call docker_publish_amazeeio,$(image),$(image)-latest)
-#		We add the Lagoon Version just as a dash
-		$(call docker_publish_amazeeio,$(image),$(image)-$(LAGOON_VERSION))
-
-
-
-# Publish command to amazeeio docker hub, this should probably only be done during a master deployments
-publish-amazeeiolagoon-baseimages = $(foreach image,$(base-images),[publish-amazeeiolagoon-baseimages]-$(image))
-publish-amazeeiolagoon-baseimages-with-versions = $(foreach image,$(base-images-with-versions),[publish-amazeeiolagoon-baseimages-with-versions]-$(image))
-# tag and push all images
-.PHONY: publish-amazeeiolagoon-baseimages
-publish-amazeeiolagoon-baseimages: $(publish-amazeeiolagoon-baseimages) $(publish-amazeeiolagoon-baseimages-with-versions)
-
-
-# tag and push of each image
-.PHONY: $(publish-amazeeiolagoon-baseimages)
-$(publish-amazeeiolagoon-baseimages):
-#   Calling docker_publish for image, but remove the prefix '[publish-amazeeiolagoon-baseimages]-' first
-		$(eval image = $(subst [publish-amazeeiolagoon-baseimages]-,,$@))
-# 	Publish images with version tag
-		$(call docker_publish_amazeeiolagoon,$(image),$(image):$(BRANCH_NAME))
-
-
-# tag and push of base image with version
-.PHONY: $(publish-amazeeiolagoon-baseimages-with-versions)
-$(publish-amazeeiolagoon-baseimages-with-versions):
-#   Calling docker_publish for image, but remove the prefix '[publish-amazeeiolagoon-baseimages-with-versions]-' first
-		$(eval image = $(subst [publish-amazeeiolagoon-baseimages-with-versions]-,,$@))
-#   The underline is a placeholder for a colon, replace that
-		$(eval image = $(subst __,:,$(image)))
-#		We add the Lagoon Version just as a dash
-		$(call docker_publish_amazeeiolagoon,$(image),$(image)-$(BRANCH_NAME))
-
-
-# Publish command to amazeeio docker hub, this should probably only be done during a master deployments
-publish-amazeeiolagoon-serviceimages = $(foreach image,$(service-images),[publish-amazeeiolagoon-serviceimages]-$(image))
-# tag and push all images
-.PHONY: publish-amazeeiolagoon-serviceimages
-publish-amazeeiolagoon-serviceimages: $(publish-amazeeiolagoon-serviceimages)
-
-
-# tag and push of each image
-.PHONY: $(publish-amazeeiolagoon-serviceimages)
-$(publish-amazeeiolagoon-serviceimages):
-#   Calling docker_publish for image, but remove the prefix '[publish-amazeeiolagoon-serviceimages]-' first
-		$(eval image = $(subst [publish-amazeeiolagoon-serviceimages]-,,$@))
-# 	Publish images with version tag
-		$(call docker_publish_amazeeiolagoon,$(image),$(image):$(BRANCH_NAME))
-
-
-# Publish command to amazeeio docker hub, this should probably only be done during a master deployments
-publish-amazeeiolagoon-taskimages = $(foreach image,$(task-images),[publish-amazeeiolagoon-taskimages]-$(image))
-# tag and push all images
-.PHONY: publish-amazeeiolagoon-taskimages
-publish-amazeeiolagoon-taskimages: $(publish-amazeeiolagoon-taskimages)
-
-
-# tag and push of each image
-.PHONY: $(publish-amazeeiolagoon-taskimages)
-$(publish-amazeeiolagoon-taskimages):
-#   Calling docker_publish for image, but remove the prefix '[publish-amazeeiolagoon-taskimages]-' first
-		$(eval image = $(subst [publish-amazeeiolagoon-taskimages]-,,$@))
-# 	Publish images with version tag
-		$(call docker_publish_amazeeiolagoon,$(image),$(image):$(BRANCH_NAME))
 
 
 s3-save = $(foreach image,$(s3-images),[s3-save]-$(image))
@@ -960,7 +1000,7 @@ k8s-dashboard:
 	kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-rc2/aio/deploy/recommended.yaml; \
 	kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n kubernetes-dashboard rollout status deployment kubernetes-dashboard -w; \
 	echo -e "\nUse this token:"; \
-	kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n lagoon describe secret $$(local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n lagoon get secret | grep kubernetes-builddeploy | awk '{print $$1}') | grep token: | awk '{print $$2}'; \
+	kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n lagoon describe secret $$(local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n lagoon get secret | grep kubernetes-build-deploy | awk '{print $$1}') | grep token: | awk '{print $$2}'; \
 	open http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/ ; \
 	kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' proxy
 
