@@ -1,9 +1,9 @@
-import React, {useState, Fragment, useEffect, useRef} from "react";
-import { HexGrid, Layout, Hexagon, Text, GridGenerator, HexUtils } from 'react-hexgrid';
+import React, { useState, useEffect } from "react";
+import { HexGrid, Layout, Hexagon, Text, GridGenerator } from 'react-hexgrid';
 import * as R from 'ramda';
-import ProblemsByProject from "components/ProblemsByProject";
-import {LoadingPageNoHeader} from 'pages/_loading';
-import {ErrorNoHeader} from 'pages/_error';
+import ProblemsByProject from 'components/ProblemsByProject';
+import { LoadingPageNoHeader } from 'pages/_loading';
+import { ErrorNoHeader } from 'pages/_error';
 import { bp } from 'lib/variables';
 import './styling.css';
 
@@ -81,7 +81,7 @@ const Honeycomb = ({ data, filter }) => {
         if (count >= 385) setDisplay({type: "smallest", multiplier: 5, hexSize: 0.66, viewBox: "30 -10 100 100"});
 
         const filterProjects = !filter.showCleanProjects ? projectsProblems && projectsProblems.filter(p => {
-           return !R.isEmpty(flattenProblems(p))
+            return !R.isEmpty(flattenProblems(p))
         }) : projectsProblems && projectsProblems;
 
         const sortProjects = filterProjects && sortByProjects(filterProjects);
@@ -90,123 +90,112 @@ const Honeycomb = ({ data, filter }) => {
     }, [projectsProblems, filter]);
 
     return (
-      <div className="honeycomb-display">
-        {!projects && <LoadingPageNoHeader />}
-        {projects &&
-          <div className="content-wrapper results">
-            <div className="content">
-              <label>Projects: {projects.length}</label>
+        <div className="honeycomb-display">
+            {!projects && <LoadingPageNoHeader />}
+            {projects &&
+            <div className="content-wrapper results">
+                <div className="content">
+                    <label>Projects: {projects.length}</label>
+                </div>
             </div>
-          </div>
-        }
-        {projects &&
-        <>
-          <HexGrid width={config.width} height={parseInt(display.multiplier * config.height)} viewBox={display.viewBox}>
-            <Layout size={size} flat={layout.flat} spacing={layout.spacing} origin={config.origin}>
-              {hexs.slice(0, projects.length).map((hex, i) => {
-                const project = projects[i] || null;
-                const {environments, id, name} = project;
-                const filterProblems = environments && environments.filter(e => e instanceof Object).map(e => {
-                  return e.problems;
-                });
+            }
+            {projects &&
+            <>
+                <HexGrid width={config.width} height={parseInt(display.multiplier * config.height)} viewBox={display.viewBox}>
+                    <Layout size={size} flat={layout.flat} spacing={layout.spacing} origin={config.origin}>
+                        {hexs.slice(0, projects.length).map((hex, i) => {
+                            const project = projects[i] || null;
+                            const {environments, id, name} = project;
+                            const filterProblems = environments && environments.filter(e => e instanceof Object).map(e => {
+                                return e.problems;
+                            });
 
-                const problemsPerProject = Array.prototype.concat.apply([], filterProblems);
-                const critical = problemsPerProject.filter(p => p.severity === 'CRITICAL').length;
-                const problemCount = problemsPerProject.length || 0;
+                            const problemsPerProject = Array.prototype.concat.apply([], filterProblems);
+                            const critical = problemsPerProject.filter(p => p.severity === 'CRITICAL').length;
+                            const problemCount = problemsPerProject.length || 0;
 
-                const HexText = () => {
-                    const classes = (type) => ({
-                        "normal": "text",
-                        "small": "text-small",
-                        "smaller": "no-text",
-                        "smallest": "no-text"
-                    })[type];
+                            const HexText = () => {
+                                const classes = display.type !== "normal" ? "no-text" : 'text';
 
-                    if (problemsPerProject.length) {
-                        const text = display.type === 'normal'
-                                ? `P: ${problemCount}, C: ${critical}`
-                                : display.type === 'small' && `C: ${critical}`;
-                        return (
-                          <Text className={classes(display.type)}>{text}</Text>
-                        );
-                    }
-                    else {
-                        return <Text className={classes(display.type)}>{`P: ${problemCount}`}</Text>
-                    }
-                };
+                                if (problemsPerProject.length) {
+                                    return (<Text className={classes}>
+                                        {`P: ${problemCount}, C: ${critical}`}
+                                    </Text>);
+                                }
+                                else {
+                                    return <Text className={classes}>{`P: ${problemCount}`}</Text>
+                                }
+                            };
 
-                return (
-                  <Hexagon key={i} q={hex.q} r={hex.r} s={hex.s} className={getClassName(critical)} onClick={() => handleHexClick(project)}>
-                    <HexText />
-                  </Hexagon>
-                )})}
-            </Layout>
-          </HexGrid>
-          <div className="project-details">
-            <div className="content-wrapper">
-              <div className="content">
-                {projectInView ?
-                  <>
-                    <div className="project"><label>Project: {projectInView.name}</label></div>
-                    {projectInView.environments && projectInView.environments.map((env, index) => {
-                        console.log('env', env);
-                      return (
-                        <div key={`${env.id}-${env.name}-${index}`} className="environment-wrapper">
-                          <label className="environment"><h5>Environment: {env.name}</h5></label>
-                          <ProblemsByProject problems={env.problems || [] } minified={true}/>
+                            return (
+                                <Hexagon key={i} q={hex.q} r={hex.r} s={hex.s} className={getClassName(critical)} onClick={() => handleHexClick(project)}>
+                                    <HexText />
+                                </Hexagon>
+                            )})}
+                    </Layout>
+                </HexGrid>
+                <div className="project-details">
+                    <div className="content-wrapper">
+                        <div className="content">
+                            {projectInView ?
+                                <>
+                                    <div className="project"><label>Project: {projectInView.name}</label></div>
+                                    {projectInView.environments && projectInView.environments.map(environment => (
+                                        <div key={environment.id} className="environment-wrapper">
+                                            <label className="environment"><h5>Environment: {environment.name}</h5></label>
+                                            <ProblemsByProject key={environment.id} problems={environment.problems || [] } minified={true}/>
+                                        </div>
+                                    ))}
+                                </>
+                                : <div className="project">No project selected</div>
+                            }
                         </div>
-                      )
-                    })}
-                  </>
-                : <div className="project">No project selected</div>
-                }
-              </div>
-            </div>
-          </div>
-        </>
-        }
-        <style jsx>{`
-          .content-wrapper {
-             &.results {
-               background: #f1f1f1;
-               margin-bottom: 20px;
+                    </div>
+                </div>
+            </>
+            }
+            <style jsx>{`
+              .content-wrapper {
+                 &.results {
+                   background: #f1f1f1;
+                   margin-bottom: 20px;
 
-               .content {
-                 padding: 0 15px;
-               }
-             }
-            .content {
-              margin: 0 calc((100vw / 16) * 1) 0;
-              @media ${bp.wideUp} {
-                margin: 0 calc((100vw / 16) * 2) 0;
-              }
-              @media ${bp.extraWideUp} {
-                margin: 0 calc((100vw / 16) * 3) 0;
-              }
-              li.result {
-                display: inline;
-              }
-              .project {
-                padding: 20px;
-                background: #fff;
-              }
-              .environment-wrapper {
-                padding-bottom: 20px;
-                .environment {
-                  h5 {
-                    padding: 10px 20px;
-                    margin-top: 0;
-                    background: #f3f3f3;
+                   .content {
+                     padding: 0 15px;
+                   }
+                 }
+                .content {
+                  margin: 0 calc((100vw / 16) * 1) 0;
+                  @media ${bp.wideUp} {
+                    margin: 0 calc((100vw / 16) * 2) 0;
+                  }
+                  @media ${bp.extraWideUp} {
+                    margin: 0 calc((100vw / 16) * 3) 0;
+                  }
+                  li.result {
+                    display: inline;
+                  }
+                  .project {
+                    padding: 20px;
+                    background: #fff;
+                  }
+                  .environment-wrapper {
+                    padding-bottom: 20px;
+                    .environment {
+                      h5 {
+                        padding: 10px 20px;
+                        margin-top: 0;
+                        background: #f3f3f3;
+                      }
+                    }
                   }
                 }
+                .loading {
+                  margin: 2em calc(100vw / 2) 0;
+                }
               }
-            }
-            .loading {
-              margin: 2em calc(100vw / 2) 0;
-            }
-          }
-        `}</style>
-      </div>
+            `}</style>
+        </div>
     );
 };
 

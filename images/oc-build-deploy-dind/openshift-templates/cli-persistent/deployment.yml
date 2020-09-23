@@ -141,7 +141,12 @@ objects:
                 failureThreshold: 3
                 exec:
                   command:
-                  - /bin/entrypoint-readiness
+                  - "/bin/sh"
+                  - "-c"
+                  - >
+                    if [ -x /bin/entrypoint-readiness ]; then
+                      /bin/entrypoint-readiness;
+                    fi
       test: false
       triggers:
         - type: ConfigChange
