@@ -24,9 +24,18 @@ USER git
 RUN mkdir -m 700 /git/.ssh && \
 	chmod 600 /git/.ssh/authorized_keys >> /git/.ssh/authorized_keys && \
 	touch /git/.hushlogin && \
-	git --bare init /git/github.git && \
-	git --bare init /git/gitlab.git && \
-	git --bare init /git/bitbucket.git && \
+	git --bare init /git/github-openshift.git && \
+	git --bare init /git/gitlab-openshift.git && \
+	git --bare init /git/bitbucket-openshift.git && \
+	git --bare init /git/github-kubernetes.git && \
+	git --bare init /git/gitlab-kubernetes.git && \
+	git --bare init /git/bitbucket-kubernetes.git && \
+	git --bare init /git/github-control-k8s.git && \
+	git --bare init /git/gitlab-control-k8s.git && \
+	git --bare init /git/bitbucket-control-k8s.git && \
+	git --bare init /git/github-control-os.git && \
+	git --bare init /git/gitlab-control-os.git && \
+	git --bare init /git/bitbucket-control-os.git && \
 	git --bare init /git/rest.git && \
 	git --bare init /git/api.git && \
 	git --bare init /git/multiproject.git && \
