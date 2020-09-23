@@ -26,6 +26,7 @@ RUN apk add --no-cache git \
         coreutils \
         mariadb-client \
         postgresql-client \
+        mongodb-tools \
         openssh-sftp-server \
         findutils \
         nodejs-current \
@@ -33,7 +34,7 @@ RUN apk add --no-cache git \
         yarn \
     && ln -s /usr/lib/ssh/sftp-server /usr/local/bin/sftp-server \
     && rm -rf /var/cache/apk/* \
-    && curl -L -o /usr/local/bin/composer https://github.com/composer/composer/releases/download/${COMPOSER_VERSION}/composer.phar \
+    && curl -sSLo /usr/local/bin/composer https://github.com/composer/composer/releases/download/${COMPOSER_VERSION}/composer.phar \
     && echo "$COMPOSER_HASH_SHA256 /usr/local/bin/composer" | sha256sum \
     && chmod +x /usr/local/bin/composer \
     && php -d memory_limit=-1 /usr/local/bin/composer global require hirak/prestissimo \

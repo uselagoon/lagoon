@@ -24,7 +24,7 @@ Lagoon gives developers what they dream about. It's a system that allows develop
 
 ## Help?
 
-Questions? Ideas? Meet the maintainers and contributors. 
+Questions? Ideas? Meet the maintainers and contributors.
 
 Head to `#lagoon` in the amazee.io RocketChat: [https://amazeeio.rocket.chat](https://amazeeio.rocket.chat/)
 
@@ -40,8 +40,8 @@ Head to `#lagoon` in the amazee.io RocketChat: [https://amazeeio.rocket.chat](ht
 8. **Lagoon is built and deployed via Lagoon.** \(Mind blown? 🤯 \)
 9. **Most important: It's a work in progress**. It's not done yet. At amazee.io, we believe that as a hosting community, we need to work together and share code where we can.
 
-We want you to understand the Lagoon infrastructure and how the services work together. Here is a schema \(it's a little out of date - it doesn't include some of the more recent services we've added, or cover Kubernetes, so we're working on an update!\):  
-[https://www.lucidchart.com/documents/view/a3cf0c4f-1bc1-438f-977d-4b26f235ceac](https://www.lucidchart.com/documents/view/a3cf0c4f-1bc1-438f-977d-4b26f235ceac)  
+We want you to understand the Lagoon infrastructure and how the services work together. Here is a schema \(it's a little out of date - it doesn't include some of the more recent services we've added, or cover Kubernetes, so we're working on an update!\):
+[https://www.lucidchart.com/documents/view/a3cf0c4f-1bc1-438f-977d-4b26f235ceac](https://www.lucidchart.com/documents/view/a3cf0c4f-1bc1-438f-977d-4b26f235ceac)
 ‌
 
 ## History of Lagoon
@@ -54,9 +54,9 @@ Lagoon was born in 2017. It has since been developed into a system that runs Doc
 
 ### Open Source
 
-At amazee.io, we believe in open source. It was always troubling for us that open source code like Drupal was hosted on proprietary hosting platforms. The strength and success of a hosting company is not just their deployment systems or service configurations. It's the the people and knowledge that run the platform. The processes, skills, ability to react to unforeseen situations, and last but not least, the support they provide their clients. 
+At amazee.io, we believe in open source. It was always troubling for us that open source code like Drupal was hosted on proprietary hosting platforms. The strength and success of a hosting company is not just their deployment systems or service configurations. It's the the people and knowledge that run the platform. The processes, skills, ability to react to unforeseen situations, and last but not least, the support they provide their clients.
 
 ### License
 
-Lagoon is available under [`an Apache 2.0 License`](https://github.com/amazeeio/lagoon/blob/master/LICENSE). 
+Lagoon is available under [`an Apache 2.0 License`](https://github.com/amazeeio/lagoon/blob/master/LICENSE).
 

@@ -181,7 +181,7 @@ CREATE OR REPLACE PROCEDURE
         AND column_name = 'production_routes'
     ) THEN
       ALTER TABLE `project`
-      ADD `production_routes` varchar(100);
+      ADD `production_routes` text;
     END IF;
   END;
 $$
@@ -217,7 +217,7 @@ CREATE OR REPLACE PROCEDURE
         AND column_name = 'standby_routes'
     ) THEN
       ALTER TABLE `project`
-      ADD `standby_routes` varchar(100);
+      ADD `standby_routes` text;
     END IF;
   END;
 $$
@@ -1149,6 +1149,25 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
+  add_content_type_to_project_notification()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project_notification'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'content_type'
+    ) THEN
+      ALTER TABLE `project_notification`
+      ADD `content_type` ENUM('deployment', 'problem') NOT NULL DEFAULT 'deployment',
+      ADD `notification_severity_threshold` int NOT NULL default 0;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
   add_min_max_to_billing_modifier()
 
   BEGIN
@@ -1163,6 +1182,46 @@ CREATE OR REPLACE PROCEDURE
       ALTER TABLE `billing_modifier`
       ADD `min` FLOAT DEFAULT 0,
       ADD `max` FLOAT DEFAULT 0;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  convert_project_production_routes_to_text()
+
+  BEGIN
+    DECLARE column_type varchar(50);
+
+    SELECT DATA_TYPE INTO column_type
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      table_name = 'project'
+      AND table_schema = 'infrastructure'
+      AND column_name = 'production_routes';
+
+    IF (column_type = 'varchar') THEN
+      ALTER TABLE project
+      MODIFY production_routes text;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  convert_project_standby_routes_to_text()
+
+  BEGIN
+    DECLARE column_type varchar(50);
+
+    SELECT DATA_TYPE INTO column_type
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      table_name = 'project'
+      AND table_schema = 'infrastructure'
+      AND column_name = 'standby_routes';
+
+    IF (column_type = 'varchar') THEN
+      ALTER TABLE project
+      MODIFY standby_routes text;
     END IF;
   END;
 $$
@@ -1222,6 +1281,9 @@ CALL add_problems_ui_to_project();
 CALL add_facts_ui_to_project();
 CALL add_metadata_to_project();
 CALL add_min_max_to_billing_modifier();
+CALL add_content_type_to_project_notification();
+CALL convert_project_production_routes_to_text();
+CALL convert_project_standby_routes_to_text();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;

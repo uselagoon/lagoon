@@ -199,6 +199,13 @@ mutation {
       # TODO: Fill in the notification field.
       # This is the notification name.
       notificationName: ""
+      # TODO: OPTIONAL
+      # The kind notification class you're interested in defaults to DEPLOYMENT
+      contentType: DEPLOYMENT/PROBLEM
+      # TODO: OPTIONAL
+      # Related to contentType PROBLEM, we can set the threshold for the kinds of problems
+      # we'd like to be notified about
+      notificationSeverityThreshold "NONE/UNKNOWN/NEGLIGIBLE/LOW/MEDIUM/HIGH/CRITICAL
     }
   ) {
     id

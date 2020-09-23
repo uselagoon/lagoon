@@ -100,6 +100,33 @@ export const getTaskByRemoteId: ResolverFn = async (
   return Helpers(sqlClient).injectLogs(task);
 };
 
+export const getTaskById: ResolverFn = async (
+  root,
+  { id },
+  {
+    sqlClient,
+    hasPermission,
+  },
+) => {
+  const queryString = knex('task')
+    .where('id', '=', id)
+    .toString();
+
+  const rows = await query(sqlClient, queryString);
+  const task = R.prop(0, rows);
+
+  if (!task) {
+    return null;
+  }
+
+  const rowsPerms = await query(sqlClient, Sql.selectPermsForTask(task.id));
+  await hasPermission('task', 'view', {
+    project: R.path(['0', 'pid'], rowsPerms),
+  });
+
+  return Helpers(sqlClient).injectLogs(task);
+};
+
 export const addTask: ResolverFn = async (
   root,
   {

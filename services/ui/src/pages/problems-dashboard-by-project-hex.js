@@ -1,7 +1,7 @@
-import React, {useEffect, useState} from 'react';
+import React, { useState } from 'react';
 import * as R from 'ramda';
 import Head from 'next/head';
-import {useQuery} from "@apollo/react-hooks";
+import { useQuery } from "@apollo/react-hooks";
 import AllProjectsProblemsQuery from 'lib/query/AllProjectsProblems';
 import getSeverityEnumQuery, {getProjectOptions, getSourceOptions} from 'components/Filters/helpers';
 import Honeycomb from "components/ProblemsByProject/Honeycomb";
@@ -13,7 +13,7 @@ import { bp } from 'lib/variables';
  *  Displays problems page by project.
  *
  */
-const ProblemsDashboardProductHexPage = () => {
+const ProblemsDashboardByProjectPageHexDisplay = () => {
   const [showCleanProjects, setShowCleanProjects] = useState(true);
   const [source, setSource] = useState([]);
   const [severity, setSeverity] = useState(['CRITICAL']);
@@ -92,10 +92,12 @@ const ProblemsDashboardProductHexPage = () => {
       </div>
       <div className="content-wrapper">
         <div className="overview">
-          <Honeycomb
-            data={!R.isNil(projectsProblems) && projectsProblems}
-            filter={{showCleanProjects: showCleanProjects}}
-          />
+          {!projectsProblemsLoading &&
+            <Honeycomb
+              data={!R.isNil(projectsProblems) && projectsProblems}
+              filter={{showCleanProjects: showCleanProjects}}
+            />
+          }
         </div>
       </div>
       <style jsx>{`
@@ -166,4 +168,4 @@ const ProblemsDashboardProductHexPage = () => {
   </>);
 };
 
-export default ProblemsDashboardProductHexPage;
+export default ProblemsDashboardByProjectPageHexDisplay;

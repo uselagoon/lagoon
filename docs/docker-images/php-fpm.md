@@ -73,14 +73,9 @@ Here a short description of what this file does:
 * Listens on port 9000 via IPv4 and IPv6.
 * Uses the pm `dynamic` and creates between 2-50 children.
 * Re-spawns `php-fpm` pool children after 500 requests to prevent memory leaks.
-* Replies with `pong` when making a `fastcgi` request to `/ping` \(good for
-
-  automated testing to check if the pool started\).
-
+* Replies with `pong` when making a fastcgi request to `/ping` \(good for automated testing to check if the pool started\).
 * `catch_workers_output = yes` to see PHP errors.
-* `clear_env = no` to be able to inject PHP environment variables via regular
-
-  Docker environment variables.
+* `clear_env = no` to be able to inject PHP environment variables via regular Docker environment variables.
 
 ## Environment Variables
 
@@ -107,4 +102,3 @@ Environment variables are meant to contain common information for the PHP contai
 | `PHP_MAX_INPUT_VARS` | `2000` | How many input variables will be accepted. [See php.net](http://php.net/manual/en/info.configuration.php#ini.max-input-vars). |
 | `PHP_MEMORY_LIMIT` | `400M` | Maximum amount of memory a script may consume. [See php.net](http://php.net/memory-limit). |
 | `XDEBUG_ENABLE` | \(not set\) | Used to enable `xdebug` extension. [See php.net](http://php.net/manual/en/apc.configuration.php#ini.apc.enabled). |
-

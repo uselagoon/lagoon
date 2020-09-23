@@ -10,7 +10,7 @@ description: Lagoon supports active/standby (also known as blue/green) deploymen
 
 To change an existing project to support active/standby you'll need to configure some project settings with the Lagoon API.
 
-* `productionEnviromment` should be set to the branch name of the current active environment. 
+* `productionEnviromment` should be set to the branch name of the current active environment.
 * `standbyProductionEnvironment` should be set to the branch name of the current environment that is in standby.
 
 ```graphql
@@ -70,6 +70,14 @@ Any routes that are under the section `environments..routes` will not be moved a
 {% endhint %}
 
 ## Triggering a switch event
+
+### via the UI
+
+To trigger the switching of environment routes, you can visit the standby environment in the Lagoon UI and click on the button labeled `Switch Active/Standby environments`. You will be prompted to confirm your action.
+
+Once confirmed, it will take you to the tasks page where you can view the progress of the switch.
+
+### via the API
 
 To trigger an event to switch the environments, run the following graphQL mutation. This will tell Lagoon to begin the process.
 
@@ -133,3 +141,41 @@ mutation updateProject {
 }
 ```
 
+## Notes
+
+When the active/standby trigger has been executed, the `productionEnvironment` and `standbyProductionEnvironments` will switch within the Lagoon API. Both environments are still classed as `production` environment types. We use the `productionEnvironment` to determine which one is labelled as `active`. For more information on the differences between environment types, read the [documentation for `environment types`](environment_types.md#environment-types)
+
+```graphql
+query projectByName {
+  projectByName(name:"drupal-example"){
+    productionEnvironment
+    standbyProductionEnvironment
+  }
+}
+```
+
+Before switching environments:
+
+```graphql
+{
+  "data": {
+    "projectByName": {
+      "productionEnvironment": "production-brancha",
+      "standbyProductionEnvironment": "production-branchb"
+    }
+  }
+}
+```
+
+After switching environments:
+
+```graphql
+{
+  "data": {
+    "projectByName": {
+      "productionEnvironment": "production-branchb",
+      "standbyProductionEnvironment": "production-brancha"
+    }
+  }
+}
+```

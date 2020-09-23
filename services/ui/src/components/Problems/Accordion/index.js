@@ -24,6 +24,7 @@ const Accordion = ({ children, defaultValue = true, className = "", onToggle, he
                     display: flex;
                     justify-content: space-between;
                     padding: 20px;
+                    background: #fff;
                     border: 1px solid #efefef;
                     cursor: pointer;
                     div {

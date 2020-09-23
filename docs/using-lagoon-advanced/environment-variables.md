@@ -14,6 +14,8 @@ As there can be environment variables defined in either the Dockerfile or during
 6. Environment variables defined in `.env`.
 7. Environment variables defined in `.env.defaults`.
 
+`.lagoon.env.$BRANCHNAME`, `.lagoon.env.$BRANCHNAME`, `.env`, and `.env.defaults` are all sourced by the individual containers themselves as part of running their entrypoint scripts. They are not read by Lagoon, but by the containers themselves.
+
 ## Environment Variables \(Lagoon API\)
 
 We suggest using the Lagoon API environment variable system for variables that you don't want to keep in your Git repo \(like secrets or API keys\), as they could be compromised by somebody having them on their local development environment or on the internet, etc.

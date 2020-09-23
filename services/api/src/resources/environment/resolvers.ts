@@ -431,6 +431,7 @@ export const deleteEnvironment: ResolverFn = async (
   } = {
     projectName: project.name,
     type: environment.deployType,
+    openshiftProjectName: environment.openshiftProjectName,
     forceDeleteProductionEnvironment: canDeleteProduction,
   };
 

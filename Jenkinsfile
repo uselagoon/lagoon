@@ -69,6 +69,7 @@ node {
                     sh script: "make k3d/clean K3S_VERSION=${kubernetes_version['k3s']} KUBECTL_VERSION=${kubernetes_version['kubectl']}", label: "Removing any previous k3d versions"
                     sh script: "make k3d K3S_VERSION=${kubernetes_version['k3s']} KUBECTL_VERSION=${kubernetes_version['kubectl']}", label: "Making k3d"
                     sh script: "make -O${SYNC_MAKE_OUTPUT} k8s-tests -j2", label: "Making kubernetes tests"
+                    sh script: "make -O${SYNC_MAKE_OUTPUT} controller-k8s-tests -j2", label: "Making controller based kubernetes tests"
                   } catch (e) {
                     echo "Something went wrong, trying to cleanup"
                     cleanup()
@@ -78,7 +79,7 @@ node {
               }
               stage ('minishift tests') {
                 try {
-                  if (pullRequest.labels.contains("skip-openshift-tests")) {
+                  if (env.CHANGE_ID && pullRequest.labels.contains("skip-openshift-tests")) {
                     sh script: 'echo "PR identified as not needing Openshift testing."', label: "Skipping Openshift testing stage"
                   } else {
                     sh 'make minishift/cleanall || echo'
@@ -116,7 +117,7 @@ node {
                   try {
                     if (env.SKIP_IMAGE_PUBLISH != 'true') {
                       sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
-                      sh script: "make -O${SYNC_MAKE_OUTPUT} -j4 publish-amazeeiolagoon-baseimages publish-amazeeiolagoon-serviceimages BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Publishing built images"
+                      sh script: "make -O${SYNC_MAKE_OUTPUT} -j4 publish-amazeeiolagoon-baseimages publish-amazeeiolagoon-serviceimages publish-amazeeiolagoon-taskimages BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Publishing built images"
                     } else {
                       sh script: 'echo "skipped because of SKIP_IMAGE_PUBLISH env variable"', label: "Skipping image publishing"
                     }
