@@ -1,5 +1,6 @@
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
 import { createRemoveTask } from '@lagoon/commons/dist/tasks';
+import { getOpenShiftInfoForProject } from '@lagoon/commons/dist/api';
 
 import { WebhookRequestData, removeData, Project } from '../types';
 
@@ -22,10 +23,25 @@ export async function bitbucketPullRequestClosed(webhook: WebhookRequestData, pr
       repoUrl: body.repository.links.html.href,
     }
 
+    const result = await getOpenShiftInfoForProject(project.name);
+    const projectOpenShift = result.project;
+
+    const ocsafety = string =>
+    string.toLocaleLowerCase().replace(/[^0-9a-z-]/g, '-');
+
+    let branchName = `pr-${body.pullrequest.id}`
+    let openshiftProjectName = projectOpenShift.openshiftProjectPattern
+    ? projectOpenShift.openshiftProjectPattern
+        .replace('${branch}', ocsafety(branchName))
+        .replace('${project}', ocsafety(project.name))
+    : ocsafety(`${project.name}-${branchName}`);
+
     const data: removeData = {
       projectName: project.name,
       pullrequestNumber: body.pullrequest.id,
       pullrequestTitle: body.pullrequest.title,
+      branch: branchName,
+      openshiftProjectName: openshiftProjectName,
       type: 'pullrequest'
     }
 
