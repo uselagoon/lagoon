@@ -110,7 +110,7 @@ mutation PopulateApi {
       id: 3003
       name: "ci-github-control-os"
       openshift: 3001
-      gitUrl: "ssh://git@172.17.0.1:2222/git/github.git"
+      gitUrl: "ssh://git@172.17.0.1:2222/git/github-control-os.git"
       productionEnvironment:"master"
       activeSystemsTask: "lagoon_osControllerJob"
       activeSystemsMisc: "lagoon_osControllerMisc"
@@ -163,7 +163,7 @@ mutation PopulateApi {
       id: 3004
       name: "ci-gitlab-control-os"
       openshift: 3001
-      gitUrl: "ssh://git@172.17.0.1:2222/git/gitlab.git"
+      gitUrl: "ssh://git@172.17.0.1:2222/git/gitlab-control-os.git"
       productionEnvironment:"master"
       activeSystemsTask: "lagoon_osControllerJob"
       activeSystemsMisc: "lagoon_osControllerMisc"
@@ -203,7 +203,7 @@ mutation PopulateApi {
       id: 3005
       name: "ci-bitbucket-control-os"
       openshift: 3001
-      gitUrl: "ssh://git@172.17.0.1:2222/git/bitbucket.git"
+      gitUrl: "ssh://git@172.17.0.1:2222/git/bitbucket-control-os.git"
       productionEnvironment:"master"
       activeSystemsTask: "lagoon_osControllerJob"
       activeSystemsMisc: "lagoon_osControllerMisc"
