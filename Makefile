@@ -251,19 +251,12 @@ $(build-services):
 
 # Dependencies of Service Images
 build/auth-server build/logs2email build/logs2slack build/logs2rocketchat build/logs2microsoftteams build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftjobs build/openshiftjobsmonitor build/openshiftmisc build/openshiftremove build/backup-handler build/kubernetesbuilddeploy build/kubernetesdeployqueue build/kubernetesbuilddeploymonitor build/kubernetesjobs build/kubernetesjobsmonitor build/kubernetesmisc build/kubernetesremove build/controllerhandler build/webhook-handler build/webhooks2tasks build/api build/ui: build/yarn-workspace-builder
-build/logs2logs-db: services/logs2logs-db/Dockerfile
-build/logs-db: services/logs-db/Dockerfile
-build/logs-db-ui: services/logs-db-ui/Dockerfile
-build/logs-db-curator: build/curator
-build/logs-forwarder: services/logs-forwarder/Dockerfile
-build/auto-idler: build/oc
-build/storage-calculator: build/oc
 build/api-db: services/api-db/Dockerfile
-build/keycloak-db: services/keycloak-db/Dockerfile
-build/broker: build/rabbitmq-cluster build/broker-single
+build/api-redis: services/api-redis/Dockerfile
+build/auto-idler: build/oc
 build/broker-single: build/rabbitmq
+build/broker: build/rabbitmq-cluster build/broker-single
 build/drush-alias: services/drush-alias/Dockerfile
-build/keycloak: services/keycloak/Dockerfile
 build/harbor-core: services/harbor-core/Dockerfile
 build/harbor-database: services/harbor-database/Dockerfile
 build/harbor-jobservice: services/harbor-jobservice/Dockerfile
@@ -273,15 +266,21 @@ build/harbor-redis: services/harbor-redis/Dockerfile
 build/harbor-trivy: services/harbor-trivy/Dockerfile
 build/harborregistry: services/harborregistry/Dockerfile
 build/harborregistryctl: services/harborregistryctl/Dockerfile
-build/harbor-trivy build/local-minio: build/harbor-database services/harbor-redis/Dockerfile
-build/harborregistry: services/harbor-jobservice/Dockerfile
-build/harborregistryctl: build/harborregistry
-build/harbor-nginx: build/harborregistryctl services/harbor-core/Dockerfile services/harbor-portal/Dockerfile
-build/tests: tests/Dockerfile
-build/tests-kubernetes: build/tests
+build/keycloak-db: services/keycloak-db/Dockerfile
+build/keycloak: services/keycloak/Dockerfile
+build/logs-concentrator: services/logs-concentrator/Dockerfile
+build/logs-db-curator: build/curator
+build/logs-db-ui: services/logs-db-ui/Dockerfile
+build/logs-db: services/logs-db/Dockerfile
+build/logs-dispatcher: services/logs-dispatcher/Dockerfile
+build/logs-forwarder: services/logs-forwarder/Dockerfile
+build/logs-tee: services/logs-tee/Dockerfile
+build/logs2logs-db: services/logs2logs-db/Dockerfile
+build/storage-calculator: build/oc
 build/tests-controller-kubernetes: build/tests
+build/tests-kubernetes: build/tests
 build/tests-openshift: build/tests
-build/api-redis: services/api-redis/Dockerfile
+build/tests: tests/Dockerfile
 # Auth SSH needs the context of the root folder, so we have it individually
 build/ssh: services/ssh/Dockerfile
 	$(eval image = $(subst build/,,$@))
@@ -422,7 +421,7 @@ wait-for-keycloak:
 	grep -m 1 "Config of Keycloak done." <(docker-compose -p $(CI_BUILD_TAG) --compatibility logs -f keycloak 2>&1)
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
-main-test-services = broker logs2email logs2slack logs2rocketchat logs2microsoftteams api api-db keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher harbor-core harbor-database harbor-jobservice harbor-portal harbor-nginx harbor-redis harborregistry harborregistryctl harbor-trivy local-minio
+main-test-services = broker logs2email logs2slack logs2rocketchat logs2microsoftteams api api-db keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher harbor-core harbor-database harbor-jobservice harbor-portal harbor-nginx harbor-redis harborregistry harborregistryctl harbor-trivy
 
 # Define a list of which Lagoon Services are needed for openshift testing
 openshift-test-services = openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor openshiftmisc tests-openshift
@@ -545,7 +544,7 @@ lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build/$(image
 	make logs
 
 # Start only the local Harbor for testing purposes
-local-harbor: build/harbor-core build/harbor-database build/harbor-jobservice build/harbor-portal build/harbor-nginx build/harbor-redis build/harborregistry build/harborregistryctl build/harbor-trivy build/local-minio
+local-harbor: build/harbor-core build/harbor-database build/harbor-jobservice build/harbor-portal build/harbor-nginx build/harbor-redis build/harborregistry build/harborregistryctl build/harbor-trivy
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d harbor-core harbor-database harbor-jobservice harbor-portal harbor-nginx harbor-redis harborregistry harborregistryctl harbor-trivy local-minio
 
 # Publish command to amazeeio docker hub, this should probably only be done during a master deployments
@@ -909,7 +908,7 @@ endif
 	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n lagoon rollout status deployment lagoon-remote-docker-host -w;
 ifeq ($(ARCH), darwin)
 	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; \
-	KUBERNETESBUILDDEPLOY_TOKEN=$$(local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n lagoon describe secret $$(local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n lagoon get secret | grep kubernetesbuilddeploy | awk '{print $$1}') | grep token: | awk '{print $$2}'); \
+	KUBERNETESBUILDDEPLOY_TOKEN=$$(local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n lagoon describe secret $$(local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n lagoon get secret | grep kubernetes-build-deploy | awk '{print $$1}') | grep token: | awk '{print $$2}'); \
 	sed -i '' -e "s/\".*\" # make-kubernetes-token/\"$${KUBERNETESBUILDDEPLOY_TOKEN}\" # make-kubernetes-token/g" local-dev/api-data/03-populate-api-data-kubernetes.gql; \
 	sed -i '' -e "s/\".*\" # make-kubernetes-token/\"$${KUBERNETESBUILDDEPLOY_TOKEN}\" # make-kubernetes-token/g" local-dev/api-data/04-populate-api-data-controller.gql; \
 	DOCKER_IP="$$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"; \
@@ -918,7 +917,7 @@ ifeq ($(ARCH), darwin)
 	sed -i '' -e "s/172\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${DOCKER_IP}/g" local-dev/api-data/04-populate-api-data-controller.gql docker-compose.yaml;
 else
 	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; \
-	KUBERNETESBUILDDEPLOY_TOKEN=$$(local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n lagoon describe secret $$(local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n lagoon get secret | grep kubernetesbuilddeploy | awk '{print $$1}') | grep token: | awk '{print $$2}'); \
+	KUBERNETESBUILDDEPLOY_TOKEN=$$(local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n lagoon describe secret $$(local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n lagoon get secret | grep kubernetes-build-deploy | awk '{print $$1}') | grep token: | awk '{print $$2}'); \
 	sed -i "s/\".*\" # make-kubernetes-token/\"$${KUBERNETESBUILDDEPLOY_TOKEN}\" # make-kubernetes-token/g" local-dev/api-data/03-populate-api-data-kubernetes.gql; \
 	sed -i "s/\".*\" # make-kubernetes-token/\"$${KUBERNETESBUILDDEPLOY_TOKEN}\" # make-kubernetes-token/g" local-dev/api-data/04-populate-api-data-controller.gql; \
 	DOCKER_IP="$$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"; \
@@ -961,7 +960,7 @@ k8s-dashboard:
 	kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-rc2/aio/deploy/recommended.yaml; \
 	kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n kubernetes-dashboard rollout status deployment kubernetes-dashboard -w; \
 	echo -e "\nUse this token:"; \
-	kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n lagoon describe secret $$(local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n lagoon get secret | grep kubernetesbuilddeploy | awk '{print $$1}') | grep token: | awk '{print $$2}'; \
+	kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n lagoon describe secret $$(local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n lagoon get secret | grep kubernetes-builddeploy | awk '{print $$1}') | grep token: | awk '{print $$2}'; \
 	open http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/ ; \
 	kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' proxy
 
@@ -998,7 +997,7 @@ kubernetes-lagoon-setup:
 
 .PHONY: kubernetes-get-kubernetesbuilddeploy-token
 kubernetes-get-kubernetesbuilddeploy-token:
-	kubectl -n lagoon describe secret $$(kubectl -n lagoon get secret | grep kubernetesbuilddeploy | awk '{print $$1}') | grep token: | awk '{print $$2}'
+	kubectl -n lagoon describe secret $$(kubectl -n lagoon get secret | grep kubernetes-build-deploy | awk '{print $$1}') | grep token: | awk '{print $$2}'
 
 .PHONY: rebuild-push-oc-build-deploy-dind
 rebuild-push-oc-build-deploy-dind:
