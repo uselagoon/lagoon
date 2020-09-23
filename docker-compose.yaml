@@ -259,6 +259,9 @@ services:
   webhooks2tasks:
     image: ${IMAGE_REPO:-lagoon}/webhooks2tasks
     command: yarn run dev
+    environment:
+      - CI=${CI:-true}
+      - REGISTRY=172.17.0.1:8084 # Docker network bridge and forwarded port for harbor-nginx
     volumes:
       - ./services/webhooks2tasks/src:/app/services/webhooks2tasks/src
       - ./node-packages:/app/node-packages:delegated
@@ -413,9 +416,34 @@ services:
       - WEBHOOK_HOST=webhook-handler
       - WEBHOOK_PORT=3000
       - WEBHOOK_PROTOCOL=http
-      - ROUTE_SUFFIX_HTTP=192.168.42.103.nip.io
+      - ROUTE_SUFFIX_HTTP=192.168.42.100.nip.io
       - ROUTE_SUFFIX_HTTP_PORT=80
-      - ROUTE_SUFFIX_HTTPS=192.168.42.103.nip.io
+      - ROUTE_SUFFIX_HTTPS=192.168.42.100.nip.io
+      - ROUTE_SUFFIX_HTTPS_PORT=443
+      - WEBHOOK_REPO_PREFIX=ssh://git@172.17.0.1:2222/git/
+      - GIT_REPO_PREFIX=git@local-git:/git/
+      - SSH_PRIVATE_KEY=-----BEGIN RSA PRIVATE KEY-----\n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\n-----END RSA PRIVATE KEY-----
+      - SSH_HOST=ssh
+      - SSH_PORT=2020
+      - API_HOST=api
+      - API_PROTOCOL=http
+      - API_PORT=3000
+      - KEYCLOAK_AUTH_SERVER_CLIENT_SECRET=f605b150-7636-4447-abd3-70988786b330
+      - DELETED_STATUS_CODE=503
+    volumes:
+      - ./tests:/ansible
+    labels:
+      lagoon.type: none
+  tests-controller-openshift:
+    image: ${IMAGE_REPO:-lagoon}/tests
+    environment:
+      - CLUSTER_TYPE=control-os
+      - WEBHOOK_HOST=webhook-handler
+      - WEBHOOK_PORT=3000
+      - WEBHOOK_PROTOCOL=http
+      - ROUTE_SUFFIX_HTTP=192.168.42.100.nip.io
+      - ROUTE_SUFFIX_HTTP_PORT=80
+      - ROUTE_SUFFIX_HTTPS=192.168.42.100.nip.io
       - ROUTE_SUFFIX_HTTPS_PORT=443
       - WEBHOOK_REPO_PREFIX=ssh://git@172.17.0.1:2222/git/
       - GIT_REPO_PREFIX=git@local-git:/git/
