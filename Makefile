@@ -762,16 +762,16 @@ $(controller-openshift-run-api-tests): minishift build/oc-build-deploy-dind cont
 		$(eval testname = $(subst controller-openshift-tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility run --rm tests-controller-openshift ansible-playbook /ansible/tests/$(testname).yaml
 
-controller-openshift-run-drupal-tests = $(foreach image,$(drupal-tests),controller-openshift-tests/$(image))
-.PHONY: $(controller-openshift-run-drupal-tests)
-$(controller-openshift-run-drupal-tests): minishift build/oc-build-deploy-dind $(drupal-dependencies) controller-openshift-test-services-up drupaltest-services-up
+controller-openshift-run-webhook-tests = $(foreach image,$(webhook-tests),controller-openshift-tests/$(image))
+.PHONY: $(controller-openshift-run-webhook-tests)
+$(controller-openshift-run-webhook-tests): minishift build/oc-build-deploy-dind controller-openshift-test-services-up webhooks-test-services-up
 		$(MAKE) push-local-registry -j6
 		$(eval testname = $(subst controller-openshift-tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility run --rm tests-controller-openshift ansible-playbook /ansible/tests/$(testname).yaml
 
-controller-openshift-run-webhook-tests = $(foreach image,$(webhook-tests),controller-openshift-tests/$(image))
-.PHONY: $(controller-openshift-run-webhook-tests)
-$(controller-openshift-run-webhook-tests): minishift build/oc-build-deploy-dind controller-openshift-test-services-up webhooks-test-services-up
+controller-openshift-run-drupal-tests = $(foreach image,$(drupal-tests),controller-openshift-tests/$(image))
+.PHONY: $(controller-openshift-run-drupal-tests)
+$(controller-openshift-run-drupal-tests): minishift build/oc-build-deploy-dind $(drupal-dependencies) controller-openshift-test-services-up drupaltest-services-up
 		$(MAKE) push-local-registry -j6
 		$(eval testname = $(subst controller-openshift-tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility run --rm tests-controller-openshift ansible-playbook /ansible/tests/$(testname).yaml
