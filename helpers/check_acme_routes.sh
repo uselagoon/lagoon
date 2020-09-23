@@ -5,7 +5,8 @@
 # by disabling the tls-acme, removing other acme related annotations and add
 # an interal one for filtering purpose
 
-set -eu -o pipefail
+#set -eu -o pipefail
+set -eu
 
 # Set DEBUG variable to true, to start bash in debug mode
 DEBUG="${DEBUG:-"false"}"
@@ -14,6 +15,12 @@ if [ "$DEBUG" = "true" ]; then
 fi
 
 # Some variables
+
+# Script starting date in UNIX time
+SCRIPT_STARTTIME=$(date +%s)
+
+# Exposer route purging threshold in seconds
+ROUTE_THRESHOLD=10800
 
 # Cluster full hostname and API hostname
 CLUSTER_HOSTNAME="${CLUSTER_HOSTNAME:-""}"
@@ -118,7 +125,8 @@ function get_pending_routes() {
 # Function for creating an array with all routes that might be updated
 function create_routes_array() {
 	# Get the list of namespaces with broker routes, according to REGEX
-	for namespace in $(oc get routes --all-namespaces|grep exposer|awk '{print $1}'|sort -u|grep -E "$REGEX")
+	namespaces=($(oc get routes --all-namespaces|grep exposer|awk '{print $1}'|sort -u|grep -E "$REGEX"))
+	for namespace in "${namespaces[@]}"
 	do
 		# Raw JSON Openshift project output
 		PROJECTJSON="$(oc get project "$namespace" -o json)"
@@ -128,7 +136,11 @@ function create_routes_array() {
 			PROJECTNAME=$(echo "${PROJECTJSON}" | grep 'lagoon.sh/project' | awk -F'"' '{print $4}')
 		else
 			PROJECTNAME=$(echo "${PROJECTJSON}" |grep display-name|awk -F'[][]' '{print $2}'|tr "_" "-")
+			if [ $(lagoon list projects | grep $PROJECTNAME; echo $?) -ne 0 ]; then
+				PROJECTNAME=$(echo "${PROJECTJSON}" |grep display-name|awk -F'[][]' '{print $2}')
+			fi
 		fi
+		echo $PROJECTNAME
 
 		# Get the list of broken unique routes for each namespace
 		for routelist in $(oc get -n "$namespace" route|grep exposer|awk -vNAMESPACE="$namespace" -vPROJECTNAME="$PROJECTNAME" '{print $1";"$2";"NAMESPACE";"PROJECTNAME}'|sort -u -k2 -t ";")
@@ -185,16 +197,35 @@ function check_routes() {
 				update_annotation "$ROUTE_HOSTNAME" "$ROUTE_NAMESPACE"
 				notify_customer "$ROUTE_PROJECTNAME"
 
-				# Now once the main route is updated, it's time to get rid of exposers' routes
+				# Now once the main route is updated, it's time to get rid of exposers' routes if they are older than 2 hours
 				for j in $(oc get -n "$ROUTE_NAMESPACE" route|grep exposer|grep -E '(^|\s)'"$ROUTE_HOSTNAME"'($|\s)'|awk '{print $1";"$2}')
 				do
 					ocroute=($(echo "$j" | tr ";" "\n"))
 					OCROUTE_NAME=${ocroute[0]}
-					if [[ $DRYRUN = true ]]; then
-						echo -e "DRYRUN oc delete -n $ROUTE_NAMESPACE route $OCROUTE_NAME"
+
+					# creationTimestamp of the exposer route in UNIX time
+					OCROUTE_STARTTIME=$(oc get -n "$ROUTE_NAMESPACE" route $OCROUTE_NAME -o=jsonpath="{.metadata.creationTimestamp}"|date +%s -f -)
+					echo $OCROUTE_STARTTIME
+					# Difference in seconds between script starting time and the route starting time
+					OCROUTE_TIMESHIFT=$((( $SCRIPT_STARTTIME - $OCROUTE_STARTTIME )))
+					echo $OCROUTE_TIMESHIFT
+					echo $SCRIPT_STARTTIME
+
+					# Choose if delete or not the pod based on the ROUTE_THRESHOLD set (3h by default)
+					if [[ $OCROUTE_TIMESHIFT -ge $ROUTE_THRESHOLD ]]; then
+						DELETE_ROUTE="yes"
 					else
-						echo -e "\nDelete route $OCROUTE_NAME"
-						oc delete -n "$ROUTE_NAMESPACE" route "$OCROUTE_NAME"
+						DELETE_ROUTE="no"
+					fi
+					if [[ $DRYRUN = true ]]; then
+						echo -e "DRYRUN oc delete -n $ROUTE_NAMESPACE route $OCROUTE_NAME\nDELETE_ROUTE is set to $DELETE_ROUTE because OCROUTE_TIMESHIFT is $OCROUTE_TIMESHIFT seconds"
+					else
+						if [[ "$DELETE_ROUTE" = "yes" ]]; then
+							echo -e "\nDelete route $OCROUTE_NAME"
+							oc delete -n "$ROUTE_NAMESPACE" route "$OCROUTE_NAME"
+						else
+							continue
+						fi
 					fi
 				done
 			fi
@@ -222,9 +253,9 @@ function update_annotation() {
 function notify_customer() {
 
 	# Get Slack|Rocketchat channel and webhook
-	if [ $(TEST=$(lagoon list slack -p "$1" --no-header|awk '{print $3";"$4}'); echo $?) -eq 0 ]; then
+	if [ $(TEST=$(lagoon list slack -p "$1" --no-header|grep -vq Error); echo $?) -eq 0 ]; then
 		NOTIFICATION="slack"
-	elif [ $(TEST=$(lagoon list rocketchat -p "$1" --no-header|awk '{print $3";"$4}'); echo $?) -eq 0 ]; then
+	elif [ $(TEST=$(lagoon list rocketchat -p "$1" --no-header|grep -vq Error); echo $?) -eq 0 ]; then
 		NOTIFICATION="rocketchat"
 	else
 		echo "No notification set"
