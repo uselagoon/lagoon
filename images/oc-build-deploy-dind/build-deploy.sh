@@ -8,7 +8,7 @@ OPENSHIFT_PROJECT=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
 REGISTRY_REPOSITORY=$OPENSHIFT_PROJECT
 
 if [ "$CI" == "true" ]; then
-  CI_OVERRIDE_IMAGE_REPO=${OPENSHIFT_REGISTRY}/lagoon
+  CI_OVERRIDE_IMAGE_REPO=172.17.0.1:5000/lagoon
 else
   CI_OVERRIDE_IMAGE_REPO=""
 fi
