@@ -124,7 +124,6 @@ Here is a table that lists the roles and the access they have:
 | getProjectByEnvironmentId | project | view | projectID | Yes | Yes | Yes | Yes | Yes | Yes | Yes |  |
 | getProjectByGitUrl | project | view | projectID | Yes | Yes | Yes | Yes | Yes | Yes | Yes |  |
 | getProjectByName | project | view | projectID | Yes | Yes | Yes | Yes | Yes | Yes | Yes |  |
-| getAllProblems | problem | viewAll |  | Yes | Yes |  |  |  |  |  |  |
 | addRestore | restore | add | projectID | Yes | Yes | Yes | Yes | Yes | Yes | Yes |  |
 | updateRestore | restore | update | projectID | Yes | Yes | Yes | Yes | Yes | Yes | Yes |  |
 | addSshKey | ssh\_key | add | userId | Yes | Yes |  |  |  |  |  | Yes |
