@@ -26,5 +26,6 @@
     testname: "BITBUCKET {{ lookup('env','CLUSTER_TYPE')|upper }} - PULLREQUEST"
     node_version: 10
     git_repo_name: bitbucket-{{ lookup('env','CLUSTER_TYPE') }}.git
+    git_repo_full_name: git/bitbucket-{{ lookup('env','CLUSTER_TYPE') }}
     project: ci-bitbucket-{{ lookup('env','CLUSTER_TYPE') }}
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.pr-2.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
