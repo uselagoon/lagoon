@@ -102,7 +102,7 @@ const messageConsumer = async msg => {
     }
     var availability = projectOpenShift.availability || "STANDARD"
     const billingGroup = projectBillingGroup.groups.find(i => i.type == "billing" ) || ""
-    if (billingGroup.uptimeRobotStatusPageId && !R.isEmpty(billingGroup.uptimeRobotStatusPageId)){
+    if (billingGroup.uptimeRobotStatusPageId && billingGroup.uptimeRobotStatusPageId != "null" && !R.isEmpty(billingGroup.uptimeRobotStatusPageId)){
       uptimeRobotStatusPageIds.push(billingGroup.uptimeRobotStatusPageId)
     }
     var uptimeRobotStatusPageId = uptimeRobotStatusPageIds.join('-')
