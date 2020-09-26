@@ -9,7 +9,7 @@ ENV LAGOON=cli-drupal
 # Defining Versions - https://github.com/hechoendrupal/drupal-console-launcher/releases
 ENV DRUPAL_CONSOLE_LAUNCHER_VERSION=1.9.4 \
     DRUPAL_CONSOLE_LAUNCHER_SHA=b7759279668caf915b8e9f3352e88f18e4f20659 \
-    DRUSH_VERSION=8.3.5 \
+    DRUSH_VERSION=8.3.6 \
     DRUSH_LAUNCHER_VERSION=0.6.0 \
     DRUSH_LAUNCHER_FALLBACK=/opt/drush8/vendor/bin/drush
 

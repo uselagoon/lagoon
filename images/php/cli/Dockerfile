@@ -9,8 +9,8 @@ ENV LAGOON=cli
 
 # Defining Versions - Composer
 # @see https://getcomposer.org/download/
-ENV COMPOSER_VERSION=1.10.9 \
-  COMPOSER_HASH_SHA256=70d6b9c3e0774b398a372dcb7f89dfe22fc25884e6e09ebf277286dd64cfaf35
+ENV COMPOSER_VERSION=1.10.13 \
+  COMPOSER_HASH_SHA256=5ca7445cfd48dd27c5a84aa005a47b4d9fd91132313830609875df3a6973708f
 
 COPY --from=commons /bin/entrypoint-readiness /bin/
 
