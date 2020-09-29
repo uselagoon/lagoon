@@ -286,14 +286,12 @@ const typeDefs = gql`
   interface DeploymentTarget {
     id: Int
     name: String
-    customSettings: JSON
     created: String
   }
 
   type Kubernetes implements DeploymentTarget {
     id: Int
     name: String
-    customSettings: JSON
     created: String
     apiType: KubernetesApiType
     apiEndpoint: string
@@ -348,10 +346,14 @@ const typeDefs = gql`
 
   union Notification = NotificationRocketChat | NotificationSlack | NotificationMicrosoftTeams | NotificationEmail
 
+  """
+  You can define a cluster for production and one for development environment types and/or the environment name.
+  precedence matters
+  """
   type DeploymentTargetRule {
     id: Int
     environmentType: EnvType
-    nameRegex: String
+    environmentNameRegex: String
     deploymentTarget: DeploymentTarget
     weight: Int
   }
