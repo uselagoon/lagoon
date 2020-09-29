@@ -89,81 +89,105 @@ const Problems = ({ problems }) => {
                 </button>
             </div>
             <div className="problems-container">
-                {!sortedItems.filter(item => filterResults(item)) && <div className="data-none">No Problems</div>}
+                {sortedItems.filter(item => filterResults(item)).length == 0 &&
+                  <div className="data-table">
+                    <div className="data-none">
+                      No Problems
+                    </div>
+                  </div>
+                }
                 {sortedItems.filter(item => filterResults(item)).map((problem) => {
                     return <Problem key={`${problem.identifier}-${problem.id}`} problem={problem}/>
                 })}
             </div>
             <style jsx>{`
-          .header {
-            @media ${bp.wideUp} {
-              align-items: center;
-              display: flex;
-              margin: 0 0 14px;
-              padding: 0px 12px;
-            }
-            @media ${bp.smallOnly} {
-              flex-wrap: wrap;
-            }
-            @media ${bp.tabletUp} {
-              margin-top: 20px;
-            }
-
-            display: flex;
-            justify-content: space-between;
-
-            label {
-              display: none;
-              padding-left: 20px;
+            .header {
               @media ${bp.wideUp} {
-                display: block;
+                align-items: center;
+                display: flex;
+                margin: 0 0 14px;
+                padding: 0px 12px;
+              }
+              @media ${bp.smallOnly} {
+                flex-wrap: wrap;
+              }
+              @media ${bp.tabletUp} {
+                margin-top: 20px;
+              }
+
+              input#filter {
+                width: 100%;
+                border: none;
+                padding: 10px 20px;
+                margin: 0;
+                font-style: italic;
+              }
+
+              label {
+                display: none;
+                padding-left: 20px;
+                @media ${bp.wideUp} {
+                  display: block;
+                }
               }
             }
-          }
 
-          input#filter {
-            width: 100%;
-            border: none;
-            padding: 10px 20px;
-            margin: 0;
-          }
-
-          .button-sort {
-            color: #5f6f7a;
-            font-family: 'source-code-pro',sans-serif;
-            font-size: 12px;
-            font-size: 0.8125rem;
-            line-height: 1.4;
-            text-transform: uppercase;
-            text-align: center;
-            border: none;
-            background: none;
-            cursor: pointer;
-            padding: 0;
-            width: calc(100% / 6);
-
-            &.identifier {
-              text-align: left;
+            input#filter {
+              width: 100%;
+              border: none;
+              padding: 10px 20px;
+              margin: 0;
             }
 
-            &.ascending:after {
-              content: ' \\25B2';
-            }
+            .button-sort {
+              color: #5f6f7a;
+              font-family: 'source-code-pro',sans-serif;
+              font-size: 12px;
+              font-size: 0.8125rem;
+              line-height: 1.4;
+              text-transform: uppercase;
+              text-align: center;
+              border: none;
+              background: none;
+              cursor: pointer;
+              padding: 0;
+              width: calc(100% / 6);
 
-            &.descending:after {
-              content: ' \\25BC';
-            }
-          }
+              &.identifier {
+                text-align: left;
+              }
 
-         .data-none {
-            border: 1px solid ${color.white};
-            border-bottom: 1px solid ${color.lightestGrey};
-            border-radius: 3px;
-            line-height: 1.5rem;
-            padding: 8px 0 7px 0;
-            text-align: center;
-          }
-        `}</style>
+              .overview {
+                .overview-list {
+                  display: flex;
+                  justify-content: space-between;
+                  padding: 10px 20px;
+                  margin: 0 0 20px;
+                  background: ${color.lightestGrey};
+
+                  li.result {
+                    display: flex;
+                    flex-direction: column;
+                    margin: 0;
+                    padding: 0;
+                  }
+                }
+              }
+
+              .data-table {
+                background-color: ${color.white};
+                border: 1px solid ${color.lightestGrey};
+                border-radius: 3px;
+              }
+              .data-none {
+                border: 1px solid ${color.white};
+                border-bottom: 1px solid ${color.lightestGrey};
+                border-radius: 3px;
+                line-height: 1.5rem;
+                padding: 8px 0 7px 0;
+                text-align: center;
+              }
+            `}</style>
         </div>
     );
 };
