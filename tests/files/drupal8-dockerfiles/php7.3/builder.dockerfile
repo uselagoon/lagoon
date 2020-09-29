@@ -1,5 +1,5 @@
-ARG IMAGE_REPO
-FROM uselagoon/php-7.3-cli-drupal
+ARG UPSTREAM_REPO
+FROM ${UPSTREAM_REPO:-uselagoon}/php-7.3-cli-drupal
 
 COPY composer.json composer.lock /app/
 COPY scripts /app/scripts

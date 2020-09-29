@@ -1,5 +1,5 @@
-ARG IMAGE_REPO
-FROM uselagoon/commons as commons
+ARG UPSTREAM_REPO
+FROM ${UPSTREAM_REPO:-uselagoon}/commons as commons
 FROM arachnysdocker/athenapdf-service:2.13.0
 
 LABEL maintainer="amazee.io"

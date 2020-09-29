@@ -1,5 +1,5 @@
-ARG IMAGE_REPO
-FROM uselagoon/commons as commons
+ARG UPSTREAM_REPO
+FROM ${UPSTREAM_REPO:-uselagoon}/commons as commons
 # alpine 3.11 as per https://github.com/docker-library/rabbitmq/blob/master/3.8/alpine/Dockerfile
 FROM rabbitmq:3.8-management-alpine
 

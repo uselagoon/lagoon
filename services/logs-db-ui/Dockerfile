@@ -1,5 +1,5 @@
-ARG IMAGE_REPO
-FROM uselagoon/kibana-7
+ARG UPSTREAM_REPO
+FROM ${UPSTREAM_REPO:-uselagoon}/kibana-7
 
 ENV NODE_OPTIONS="--max-old-space-size=2048" \
     LOGSDB_KIBANASERVER_PASSWORD=kibanaserver \

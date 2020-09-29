@@ -1,4 +1,4 @@
-ARG IMAGE_REPO
-FROM uselagoon/redis-5
+ARG UPSTREAM_REPO
+FROM ${UPSTREAM_REPO:-uselagoon}/redis-5
 
 ENV REDIS_PASSWORD=admin

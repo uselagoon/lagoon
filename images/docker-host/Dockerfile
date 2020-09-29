@@ -1,5 +1,5 @@
-ARG IMAGE_REPO
-FROM uselagoon/commons as commons
+ARG UPSTREAM_REPO
+FROM ${UPSTREAM_REPO:-uselagoon}/commons as commons
 FROM docker:19.03.10-dind
 
 LABEL maintainer="amazee.io"

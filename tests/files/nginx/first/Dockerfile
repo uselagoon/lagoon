@@ -1,5 +1,5 @@
-ARG IMAGE_REPO
-FROM uselagoon/nginx
+ARG UPSTREAM_REPO
+FROM ${UPSTREAM_REPO:-uselagoon}/nginx
 
 COPY redirects-map.conf /etc/nginx/redirects-map.conf
 

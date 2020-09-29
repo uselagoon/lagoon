@@ -1,2 +1,2 @@
-ARG IMAGE_REPO
-FROM uselagoon/mariadb-drupal
+ARG UPSTREAM_REPO
+FROM ${UPSTREAM_REPO:-uselagoon}/mariadb-drupal

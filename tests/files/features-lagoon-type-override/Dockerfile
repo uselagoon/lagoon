@@ -1,9 +1,9 @@
-ARG IMAGE_REPO
-FROM uselagoon/node-10-builder as builder
+ARG UPSTREAM_REPO
+FROM ${UPSTREAM_REPO:-uselagoon}/node-10-builder as builder
 COPY package.json yarn.lock /app/
 RUN yarn install
 
-FROM uselagoon/node-10
+FROM ${UPSTREAM_REPO:-uselagoon}/node-10
 COPY --from=builder /app/node_modules /app/node_modules
 COPY . /app/
 

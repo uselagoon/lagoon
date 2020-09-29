@@ -1,5 +1,5 @@
-ARG IMAGE_REPO
-FROM uselagoon/mariadb
+ARG UPSTREAM_REPO
+FROM ${UPSTREAM_REPO:-uselagoon}/mariadb
 
 ENV MARIADB_DATABASE=keycloak \
     MARIADB_USER=keycloak \

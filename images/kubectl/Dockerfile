@@ -1,6 +1,6 @@
 ARG ALPINE_VERSION
-ARG IMAGE_REPO
-FROM uselagoon/commons as commons
+ARG UPSTREAM_REPO
+FROM ${UPSTREAM_REPO:-uselagoon}/commons as commons
 FROM golang:1.13-alpine${ALPINE_VERSION} as golang
 
 RUN apk add --no-cache git

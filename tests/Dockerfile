@@ -1,5 +1,5 @@
-ARG IMAGE_REPO
-FROM uselagoon/python-2.7
+ARG UPSTREAM_REPO
+FROM ${UPSTREAM_REPO:-uselagoon}/python-2.7
 
 RUN apk add --no-cache \
       bash \

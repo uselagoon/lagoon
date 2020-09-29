@@ -1,3 +1,3 @@
-ARG IMAGE_REPO
+ARG UPSTREAM_REPO
 
-FROM uselagoon/solr-5.5-drupal
+FROM ${UPSTREAM_REPO:-uselagoon}/solr-5.5-drupal

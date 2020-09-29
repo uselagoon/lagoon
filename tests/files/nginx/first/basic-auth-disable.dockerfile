@@ -1,5 +1,5 @@
-ARG IMAGE_REPO
-FROM uselagoon/nginx
+ARG UPSTREAM_REPO
+FROM ${UPSTREAM_REPO:-uselagoon}/nginx
 
 ENV BASIC_AUTH_USERNAME=username \
     BASIC_AUTH_PASSWORD=password

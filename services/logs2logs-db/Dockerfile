@@ -1,5 +1,5 @@
 ARG IMAGE_REPO
-FROM uselagoon/logstash-7
+FROM ${IMAGE_REPO:-uselagoon}/logstash-7
 
 RUN bin/logstash-plugin install logstash-input-lumberjack
 
