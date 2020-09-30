@@ -501,9 +501,9 @@ const typeDefs = gql`
     """
     id: Int
     """
-    Name of this Environment
+    Display Name of this Environment
     """
-    name: String
+    displayName: String
     """
     Unique Name (auto generated) environmentName.projectName.kubernetesName (ex. pr-104.drupal-example.ch1.amazee.io)
     """
