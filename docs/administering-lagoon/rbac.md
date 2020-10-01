@@ -48,9 +48,8 @@ Here is a table that lists the roles and the access they have:
 
 ### Lagoon 1.0.0 RBAC Permission Matrix
 
-|  |  |  |  | All Projects | and Groups |  |  |  |  |  |  |
-| :--- | :--- | :--- | :--- | ---: | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Name** | **Resource** | **Scope** | **Attributes** | **Platform-Wide Admin** | **Platform-Wide Owner** | **Owner** | **Maintainer** | **Developer** | **Reporter** | **Guest** | **Self** |
+| :--- | :--- | :--- | :--- | ---: | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | addBackup | backup | add | projectID | Yes | Yes | Yes | Yes | Yes | No | No |  |
 | deleteBackup | backup | delete | projectID | Yes | Yes | Yes | Yes | No | No | No |  |
 | deleteAllBackups | backup | deleteAll |  | Yes |  |  |  |  | No | No |  |
