@@ -27,15 +27,6 @@ export const Sql /* : SqlObj */ = {
   },
   insertFact: ({ environment, name, value, source, description }) =>
     knex('environment_fact').insert({environment, name, value, source, description}).toString(),
-  updateFact: ({ environment, patch }: { environment: number, patch: { [key: string]: any } }) => {
-
-  console.log(patch);
-
-      return knex('environment_fact')
-          .where('environment', '=', environment)
-          .update(patch)
-          .toString()
-  },
   deleteFact: (environment, name) =>
     knex('environment_fact')
       .where({

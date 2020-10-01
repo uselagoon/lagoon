@@ -18,7 +18,6 @@ const {
   getFactsByEnvironmentId,
   addFact,
   addFacts,
-  updateFact,
   deleteFact,
   deleteFactsFromSource,
 } = require('./resources/fact/resolvers');

@@ -82,71 +82,36 @@ export const addFacts = async (
   { sqlClient, hasPermission }
 ) => {
 
-    return await facts.map(async (fact) => {
-        const { environment, name, value, source, description } = fact;
-        const env = await environmentHelpers(sqlClient).getEnvironmentById(environment);
+  // We first check that the user has access to all of the environments, so this is an atomic operation.
+  await facts.map(async (fact) => {
+    const { environment } = fact;
+    const env = await environmentHelpers(sqlClient).getEnvironmentById(environment);
 
-        await hasPermission('fact', 'add', {
-            project: env.project,
-        });
-
-        const {
-            info: { insertId },
-        } = await query(
-            sqlClient,
-            Sql.insertFact({
-                environment,
-                name,
-                value,
-                source,
-                description
-            }),
-        );
-
-        const rows =  await query(sqlClient, Sql.selectFactByDatabaseId(insertId));
-        return R.prop(0, rows);
+    await hasPermission('fact', 'add', {
+      project: env.project,
     });
-};
-
-export const updateFact = async (
-  root,
-  {
-    input : {
-      environment: environmentId,
-      patch,
-    }
-  },
-  { sqlClient, hasPermission },
-) => {
-
-  const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
-
-  await hasPermission('fact', 'add', {
-    project: environment.project,
   });
 
+  return await facts.map(async (fact) => {
+    const { environment, name, value, source, description } = fact;
 
-  if (isPatchEmpty({ patch })) {
-    throw new Error('Input patch requires at least 1 attribute');
-  }
+    const {
+      info: { insertId },
+    } = await query(
+      sqlClient,
+      Sql.insertFact({
+        environment,
+        name,
+        value,
+        source,
+        description
+      }),
+    );
 
-  if (typeof patch.name === 'string' || typeof patch.value === 'string' || typeof patch.source === 'string') {
-    if (validator.matches(patch.name, /[^0-9a-z-]/)) {
-      throw new Error(
-      'Only lowercase characters, numbers and dashes allowed!',
-      );
-    }
-  }
-
-  const rows = await query(
-    sqlClient,
-    Sql.updateFact({ environment: environmentId, patch }),
-  );
-
-  return R.prop(0, rows);
-
-}
-
+    const rows =  await query(sqlClient, Sql.selectFactByDatabaseId(insertId));
+    return R.prop(0, rows);
+  });
+};
 
 export const deleteFact = async (
   root,
@@ -179,14 +144,13 @@ export const deleteFactsFromSource = async (
   },
   { sqlClient, hasPermission },
 ) => {
+  const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
 
-    const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+  await hasPermission('fact', 'delete', {
+    project: environment.project,
+  });
 
-    await hasPermission('fact', 'delete', {
-        project: environment.project,
-    });
+  await query(sqlClient, Sql.deleteFactsFromSource(environmentId, source));
 
-    await query(sqlClient, Sql.deleteFactsFromSource(environmentId, source));
-
-    return 'success';
+  return 'success';
 };

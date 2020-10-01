@@ -1511,7 +1511,6 @@ const typeDefs = gql`
     deleteProblemHarborScanMatch(input: DeleteProblemHarborScanMatchInput!): String
     addFact(input: AddFactInput!): Fact
     addFacts(input: AddFactsInput!): [Fact]
-    updateFact(input: UpdateFactInput!): Fact
     deleteFact(input: DeleteFactInput!): String
     deleteFactsFromSource(input: DeleteFactsFromSourceInput!): String
     deleteBackup(input: DeleteBackupInput!): String
