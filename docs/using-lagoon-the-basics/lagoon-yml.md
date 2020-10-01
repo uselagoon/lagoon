@@ -205,7 +205,7 @@ In the `"www.example.com"` example repeated below, we see two more options \(als
 * `hsts` can be set to a value of `max-age=31536000;includeSubDomains;preload`. Ensure there are no spaces and no other parameters included. Only the `max-age` parameter is required. The required `max-age` parameter indicates the length of time, in seconds, the HSTS policy is in effect for.
 
 {% hint style="info" %}
-  If you plan to switch from a SSL certificate signed by a Certificate Authority \(CA\) to a Let's Encrypt certificate, it's best get in touch with your Lagoon administrator to oversee the transition. There are [known issues](https://github.com/tnozicka/openshift-acme/issues/68) during the transition. The workaround would be manually removing the CA certificate and then triggering the Let's Encrypt process.
+If you plan to switch from a SSL certificate signed by a Certificate Authority \(CA\) to a Let's Encrypt certificate, it's best get in touch with your Lagoon administrator to oversee the transition. There are [known issues](https://github.com/tnozicka/openshift-acme/issues/68) during the transition. The workaround would be manually removing the CA certificate and then triggering the Let's Encrypt process.
 {% endhint %}
 
 {% tabs %}
@@ -235,7 +235,7 @@ When [UptimeRobot](https://uptimerobot.com/) is configured for your cluster \(Op
 ### **Ingress annotations \(Redirects\)**
 
 {% hint style="info" %}
- Route/Ingress annotations are only supported by projects that deploy into clusters that run nginx-ingress controllers! Check with your Lagoon administrator if this is supported.
+Route/Ingress annotations are only supported by projects that deploy into clusters that run nginx-ingress controllers! Check with your Lagoon administrator if this is supported.
 {% endhint %}
 
 * `annotations` can be a yaml map of [annotations supported by the nginx-ingress controller](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/), this is specifically useful for easy redirects:
@@ -486,3 +486,4 @@ Once the `docker-compose.yml` file has been updated to use a build, you need to 
 ```text
 FROM dockerhubuser/my-private-database:tag
 ```
+

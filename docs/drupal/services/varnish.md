@@ -16,7 +16,7 @@ TL;DR: Check out the [Drupal 8 Example](https://github.com/amazeeio/drupal-examp
 
 ### Install Purge and Varnish Purge modules
 
-In order to fully use Varnish with Drupal 8 cache tags, you need to install the [Purge](https://www.drupal.org/project/purge) and [Varnish Purge](https://www.drupal.org/project/varnish_purge) modules. They ship with many submodules. We suggest installing at least the following: 
+In order to fully use Varnish with Drupal 8 cache tags, you need to install the [Purge](https://www.drupal.org/project/purge) and [Varnish Purge](https://www.drupal.org/project/varnish_purge) modules. They ship with many submodules. We suggest installing at least the following:
 
 * `purge`
 * `purge_drush`
@@ -85,7 +85,7 @@ To test Varnish locally, change the following in `docker-compose.yml`:
 * Set `LAGOON_ENVIRONMENT_TYPE` to `production` in the `x-environment` section.
 * Run `docker-compose up -d` , which restarts all services with the new environment variables.
 
-Now you should be able to test Varnish! 
+Now you should be able to test Varnish!
 
 Here is a short example assuming there is a node with the ID `1` and has the URL `drupal-example.docker.amazee.io/node/1`
 
@@ -107,7 +107,7 @@ If you come from other Drupal hosts or have done a Drupal 8 & Varnish tutorial b
 
 #### Usage of `Varnish Bundled Purger` instead of `Varnish Purger`
 
-The `Varnish Purger` purger sends a `BAN` request for each cache-tag that should be invalidated. Drupal has a lot of cache-tags, and this could lead to quite a large amount of requests sent to Varnish. `Varnish Bundled Purger` instead sends just one `BAN` request for multiple invalidations, separated nicely by pipe \(`|`\),  which fits perfectly with the Varnish regular expression system of bans. This causes less requests and a smaller ban list table inside Varnish.
+The `Varnish Purger` purger sends a `BAN` request for each cache-tag that should be invalidated. Drupal has a lot of cache-tags, and this could lead to quite a large amount of requests sent to Varnish. `Varnish Bundled Purger` instead sends just one `BAN` request for multiple invalidations, separated nicely by pipe \(`|`\), which fits perfectly with the Varnish regular expression system of bans. This causes less requests and a smaller ban list table inside Varnish.
 
 #### Usage of `Purge Late runtime processor`
 
@@ -117,7 +117,7 @@ Instead, we suggest using the `Purge Late runtime processor`, which processes th
 
 #### Full support for Varnish Ban Lurker
 
-Our Varnish configurations have full support for `Ban Lurker`. Ban Lurker helps you to maintain a clean cache and keep Varnish running smoothly. It is basically a small tool that runs through the Varnish ban list and compares them to the cached requests in the Varnish cache. Varnish bans are used to mark an object in the cache for purging. If Ban Lurker finds an item that should be "banned," it removes them from the cache and also removes the ban itself. Now any seldom-accessed objects with very long TTLs which would normally never be banned and just keep taking up cache space are removed and can be refreshed. This keeps the list of bans small and with that, less processing time for Varnish on each request. Check out the [official Varnish post on Ban Lurker](https://info.varnish-software.com/blog/ban-lurker) and some [other helpful reading](https://www.randonomicon.com/varnish/2018/09/19/banlurker.html) for more information. 
+Our Varnish configurations have full support for `Ban Lurker`. Ban Lurker helps you to maintain a clean cache and keep Varnish running smoothly. It is basically a small tool that runs through the Varnish ban list and compares them to the cached requests in the Varnish cache. Varnish bans are used to mark an object in the cache for purging. If Ban Lurker finds an item that should be "banned," it removes them from the cache and also removes the ban itself. Now any seldom-accessed objects with very long TTLs which would normally never be banned and just keep taking up cache space are removed and can be refreshed. This keeps the list of bans small and with that, less processing time for Varnish on each request. Check out the [official Varnish post on Ban Lurker](https://info.varnish-software.com/blog/ban-lurker) and some [other helpful reading](https://www.randonomicon.com/varnish/2018/09/19/banlurker.html) for more information.
 
 ### Troubleshooting
 

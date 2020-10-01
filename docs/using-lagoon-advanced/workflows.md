@@ -67,9 +67,9 @@ tasks:
 
 ## Promotion
 
-Another way of deploying your code into an environment is the **promotion** workflow. 
+Another way of deploying your code into an environment is the **promotion** workflow.
 
-The idea behind the promotion workflow comes from this \(as an example\): 
+The idea behind the promotion workflow comes from this \(as an example\):
 
 If you merge the branch `staging` into the `master` branch, _and_ if there are no changes to `master` , so `master` and `staging` have the exact same code in Git, it could still technically be possible that the resulting Docker images are slightly different. This is because it's possible that between the last `staging` deployment and the current `master` deployment, some upstream Docker images may have changed, or dependencies loaded from the various package managers may have changed. This is a very small chance, but it's there.
 
