@@ -1,6 +1,6 @@
 # Lagoon
 
-![](.gitbook/assets/lagoon-logo.png)
+![](.gitbook/assets/lagoon-logo%20%282%29.png)
 
 ## Lagoon - Docker Build and Deploy System for OpenShift & Kubernetes
 
@@ -40,9 +40,7 @@ Head to `#lagoon` in the amazee.io RocketChat: [https://amazeeio.rocket.chat](ht
 8. **Lagoon is built and deployed via Lagoon.** \(Mind blown? 🤯 \)
 9. **Most important: It's a work in progress**. It's not done yet. At amazee.io, we believe that as a hosting community, we need to work together and share code where we can.
 
-We want you to understand the Lagoon infrastructure and how the services work together. Here is a schema \(it's a little out of date - it doesn't include some of the more recent services we've added, or cover Kubernetes, so we're working on an update!\):
-[https://www.lucidchart.com/documents/view/a3cf0c4f-1bc1-438f-977d-4b26f235ceac](https://www.lucidchart.com/documents/view/a3cf0c4f-1bc1-438f-977d-4b26f235ceac)
-‌
+We want you to understand the Lagoon infrastructure and how the services work together. Here is a schema \(it's a little out of date - it doesn't include some of the more recent services we've added, or cover Kubernetes, so we're working on an update!\): [https://www.lucidchart.com/documents/view/a3cf0c4f-1bc1-438f-977d-4b26f235ceac](https://www.lucidchart.com/documents/view/a3cf0c4f-1bc1-438f-977d-4b26f235ceac) ‌
 
 ## History of Lagoon
 

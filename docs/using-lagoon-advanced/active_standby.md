@@ -43,8 +43,6 @@ During an active/standby switch, the routes will swap:
 * Routes under `production_routes.active` will direct you to `production-branchb`.
 * Routes under `production_routes.standby` will direct you to `production-brancha`.
 
-
-
 {% tabs %}
 {% tab title=".lagoon.yml" %}
 ```yaml
@@ -96,7 +94,7 @@ mutation ActiveStandby {
 }
 ```
 
-A task is created in the current active environment `tasks` tab when a switch event is triggered.  You can check the status of the switch here.
+A task is created in the current active environment `tasks` tab when a switch event is triggered. You can check the status of the switch here.
 
 Using the `remoteId` from the `switchActiveStandby` mutation, we can also check the status of the task.
 
@@ -143,7 +141,7 @@ mutation updateProject {
 
 ## Notes
 
-When the active/standby trigger has been executed, the `productionEnvironment` and `standbyProductionEnvironments` will switch within the Lagoon API. Both environments are still classed as `production` environment types. We use the `productionEnvironment` to determine which one is labelled as `active`. For more information on the differences between environment types, read the [documentation for `environment types`](environment_types.md#environment-types)
+When the active/standby trigger has been executed, the `productionEnvironment` and `standbyProductionEnvironments` will switch within the Lagoon API. Both environments are still classed as `production` environment types. We use the `productionEnvironment` to determine which one is labelled as `active`. For more information on the differences between environment types, read the [documentation for `environment types`](https://github.com/amazeeio/lagoon/tree/035b4cc1e09b63ac944891cec191aa6169a7f36b/docs/using-lagoon-advanced/environment_types.md#environment-types)
 
 ```graphql
 query projectByName {
@@ -179,3 +177,4 @@ After switching environments:
   }
 }
 ```
+

@@ -167,3 +167,4 @@ Here is a table that lists the roles and the access they have:
 | getProjectByEnvironmentId | project | viewPrivateKey | projectID | Yes | Yes | Yes | No | No | No | No |  |
 | getProjectByGitUrl | project | viewPrivateKey | projectID | Yes | Yes | Yes | No | No | No | No |  |
 | getProjectByName | project | viewPrivateKey | projectID | Yes | Yes | Yes | No | No | No | No |  |
+

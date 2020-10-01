@@ -2,7 +2,7 @@
 
 ## What is a base image?
 
-A base image is a [Docker](https://www.docker.com/) image that can be and is used by a project deployed on Lagoon. A base image provides a way to ensure that nothing is brought into the codebase/project from upstream that has not been audited. It also allows us to ensure that anything we might need on the deployed environment is available - from lower-level libraries to application-level themes and modules. 
+A base image is a [Docker](https://www.docker.com/) image that can be and is used by a project deployed on Lagoon. A base image provides a way to ensure that nothing is brought into the codebase/project from upstream that has not been audited. It also allows us to ensure that anything we might need on the deployed environment is available - from lower-level libraries to application-level themes and modules.
 
 Base images save time and resources when you know what system is being deployed to - if shared packages are included in the base image, they don’t have to be deployed to hundreds of sites individually.
 
@@ -134,7 +134,7 @@ There are several steps to the build process. Most of these are shared among the
 
 #### Releasing a new version of a base image
 
-There are many reasons to release a new version of a base image. On Drupal or Laravel, Node.js, etc images, it may be in order to upgrade or install a module/package for features or security. It may be about the underlying software that comes bundled in the container, such as updating the version of PHP or Node.js. It may be about updating the actual underlying _images_ on which the base images are built. 
+There are many reasons to release a new version of a base image. On Drupal or Laravel, Node.js, etc images, it may be in order to upgrade or install a module/package for features or security. It may be about the underlying software that comes bundled in the container, such as updating the version of PHP or Node.js. It may be about updating the actual underlying _images_ on which the base images are built.
 
 The images that your project's base images are built on are the managed images maintained by amazee.io. We periodically release updates to these underlying images. When these are updated, you need to build new versions of your own base images in order to incorporate the changes and upgrades bundled in the amazee.io images.
 
@@ -152,7 +152,7 @@ This is just pulling down the Git repository locally. In the case of the Drupal 
 git clone ssh://git@bitbucket.biscrum.com:7999/webpro/drupal8_base_image.git
 ```
 
-![Running \`git clone\` on the base image repository.](../.gitbook/assets/0.gif)
+![Running \`git clone\` on the base image repository.](../.gitbook/assets/0%20%281%29.gif)
 
 #### Step 2 - Make the changes to the repository
 
@@ -160,7 +160,7 @@ git clone ssh://git@bitbucket.biscrum.com:7999/webpro/drupal8_base_image.git
 **Note:** What is demonstrated here is specific to the Drupal 8 base image. However, any changes \(adding files, changing base Docker images, etc.\) will be done in this step for all of the base images.
 {% endhint %}
 
-In our example, we are adding the ClamAV module to the Drupal 8 base image. This involves a few steps. The first is requiring the package so that it gets added to our `composer.json` file. This is done by running a `composer require`. 
+In our example, we are adding the ClamAV module to the Drupal 8 base image. This involves a few steps. The first is requiring the package so that it gets added to our `composer.json` file. This is done by running a `composer require`.
 
 Here we run:
 
@@ -168,13 +168,13 @@ Here we run:
 composer require drupal/clamav
 ```
 
-![Running \`composer require drupal/clamav\`](../.gitbook/assets/step2_require.gif)
+![Running \`composer require drupal/clamav\`](../.gitbook/assets/step2_require%20%281%29.gif)
 
 When the composer require process completes, the package should then appear in the `composer.json` file.
 
 Here we open the `composer.json` file and take a look at the list of required packages, and check that the ClamAV package is listed, and see that it is there:
 
-![Opening composer.json to check that ClamAV is now required.](../.gitbook/assets/2.gif)
+![Opening composer.json to check that ClamAV is now required.](../.gitbook/assets/2%20%281%29.gif)
 
 #### Step 2.2 - Ensure that the required Drupal module is enabled in template-based derived images.
 
@@ -182,7 +182,7 @@ For any modules now added to the base image, we need to ensure that they’re en
 
 Here we open `web/modules/contrib/lagoon/lagoon_bundle/lagoon_bundle.info.yml` and add `clamav:clamav` as a dependency:
 
-![Adding ClamAV as a dependency of Lagoon Bundle.](../.gitbook/assets/3.png)
+![Adding ClamAV as a dependency of Lagoon Bundle.](../.gitbook/assets/3%20%281%29.png)
 
 Adding a dependency to this will ensure that whenever the Lagoon Bundle module is enabled on the derived image, its dependencies \(in this case, the just-added ClamAV module\) will also be enabled. This is enforced by a post-rollout script which enables `lagoon_bundle` on the derived images when they are rolled out.
 
@@ -192,7 +192,7 @@ This will depend on what you’re testing. In the case of adding the ClamAV modu
 
 Here we check that the module is downloaded to `/app/web/modules/contrib`:
 
-![Checking /app/web/modules/contrib to make sure ClamAV is downloaded. ](../.gitbook/assets/4.gif)
+![Checking /app/web/modules/contrib to make sure ClamAV is downloaded. ](../.gitbook/assets/4%20%281%29.gif)
 
 And then we check that when we enable the `lagoon_bundle` module, it enables `clamav` by running:
 
@@ -200,7 +200,7 @@ And then we check that when we enable the `lagoon_bundle` module, it enables `cl
 drush pm-enable lagoon_bundle -y
 ```
 
-![Running \`drush pm-enable lagoon\_bundle -y\` and seeing that it also enables ClamAV](../.gitbook/assets/5.gif)
+![Running \`drush pm-enable lagoon\_bundle -y\` and seeing that it also enables ClamAV](../.gitbook/assets/5%20%281%29.gif)
 
 {% hint style="warning" %}
 **Note:** You’ll see that there is a JWT error in the container above. You can safely ignore this in the demonstration above - but, for background, you will see this error when there is no Lagoon environment for the site you’re working on.
@@ -226,10 +226,10 @@ We check that we have committed \(but not pushed\) our changes, just as you woul
 5. And finally, push all of our changes with `git push`.
 
 {% hint style="danger" %}
-**Note:**  The tags must be pushed explicitly in their own step!
+**Note:** The tags must be pushed explicitly in their own step!
 {% endhint %}
 
-![Demonstrating how to tag and push a base image.](../.gitbook/assets/6.gif)
+![Demonstrating how to tag and push a base image.](../.gitbook/assets/6%20%281%29.gif)
 
 #### How Git tags map to image tags
 
@@ -249,7 +249,7 @@ Images are tagged using the following rules, and images will be built for each o
 #### Step 4 - Building the new base images.
 
 {% hint style="info" %}
-**Note:** Generally you will have a trigger strategy set up here for automatic builds, but as that will differ based on your needs and setup, this explains how to build manually. 
+**Note:** Generally you will have a trigger strategy set up here for automatic builds, but as that will differ based on your needs and setup, this explains how to build manually.
 {% endhint %}
 
 1. Visit your Lagoon Jenkins instance. 
@@ -257,7 +257,7 @@ Images are tagged using the following rules, and images will be built for each o
 3. Click the branch you would like to build.
 4. Click “Build Now.”
 
-![Showing how to build a base image in the Jenkins UI.](../.gitbook/assets/7.gif)
+![Showing how to build a base image in the Jenkins UI.](../.gitbook/assets/7%20%281%29.gif)
 
 This will kick off the build process which, if successful, will push up the new images to Harbor.
 
@@ -265,7 +265,7 @@ If the build is not successful, you can click into the build itself and read the
 
 As shown in the screenshot below from Harbor, the image we’ve just built in Jenkins has been uploaded and tagged in Harbor, where it will now be scanned for any vulnerabilities. Since it was tagged as v0.0.9, an image with that tag is present, and because we built the **master** branch, the “latest” image has also been built. At this stage, the v0.0.9 and “latest” images are identical.
 
-![Screenshot from Harbor showing uploaded and tagged images.](../.gitbook/assets/8.png)
+![Screenshot from Harbor showing uploaded and tagged images.](../.gitbook/assets/8%20%281%29.png)
 
 ## Acknowledgement
 
