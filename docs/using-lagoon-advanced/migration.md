@@ -1,6 +1,6 @@
 # Migrations from amazee.io
 
-If you are migrating from the amazee.io legacy infrastructure over to Lagoon, you will notice that everything is very familiar. In the end, the same brains are behind both projects. There are some changes, however, and this documentation will explain each of them.
+If you are migrating from the amazee.io legacy infrastructure over to Lagoon, you will notice that everything is very familiar. In the end, the same brains are behind both projects. There are some changes, however, and this documentation will explain each of them. 
 
 ## Migration
 
@@ -50,7 +50,7 @@ You can use `drush sql-sync @remote @self` like you are used to, also `drush @re
 
 ## Everything is always in `/app`
 
-With the legacy system, the absolute path of the files was different for every environment, like `/var/www/drupal-example_master/public_html` and `/var/www/drupal-example_develop/public_html`.
+With the legacy system, the absolute path of the files was different for every environment, like `/var/www/drupal-example_master/public_html` and `/var/www/drupal-example_develop/public_html`. 
 
 This is now resolved and your files will always be in `/app` no matter which server or environment you are in!
 
@@ -60,7 +60,7 @@ Lagoon is a fully open-source project and does not want too many ties to amazee.
 
 ## Non-predictable user ids
 
-Lagoon is based on OpenShift, which puts one thing at a very high priority: **Security**.
+Lagoon is based on OpenShift, which puts one thing at a very high priority: **Security**. 
 
 Not only is each project completely encapsulated in its own virtual network, each container is also run with a random user id. This brings much higher security, as a possible attacker cannot know the ID of the user during a Docker build step.
 

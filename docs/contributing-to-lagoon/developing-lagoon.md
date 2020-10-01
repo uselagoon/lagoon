@@ -77,7 +77,7 @@ The development of the services can happen directly within Docker. Each containe
 
 ### lagoon-commons
 
-The services not only share many Node.js packages, but also share actual custom code. This code is within `node-packages/lagoon-commons`. It will be automatically symlinked by Yarn workspaces. Additionally, the [`nodemon`](https://www.npmjs.com/package/nodemon) of the services is set up in a way that it checks for changes in `node-packages` and will restart the node process automatically.
+The services not only share many Node.js packages, but also share actual custom code. This code is within `node-packages/lagoon-commons`. It will be automatically symlinked by Yarn workspaces. Additionally,  the [`nodemon`](https://www.npmjs.com/package/nodemon) of the services is set up in a way that it checks for changes in `node-packages` and will restart the node process automatically.
 
 ### Hiera
 
@@ -108,4 +108,3 @@ To fix, you must remove the extra search domain.
 * Remove the setting from `/etc/resolv.conf`.
 * Restart openshift docker: `sudo docker restart origin`.
 * Redeploy `docker-host` in the `lagoon` project.
-

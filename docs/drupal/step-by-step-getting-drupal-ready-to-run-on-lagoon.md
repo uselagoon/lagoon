@@ -170,7 +170,7 @@ Verify that everything works with visiting the URL of your project. You should h
 
 ## 8. Drupal files directory
 
-A Drupal site also needs the files directory. As the whole folder is mounted into the Docker containers, add the files into the correct folder \(probably `web/sites/default/files`, `sites/default/files` or something similar\). Remember what you've set as your `WEBROOT` - [it may not be the same for all projects](step-by-step-getting-drupal-ready-to-run-on-lagoon.md#note-about-webroot-in-drupal-8).
+A Drupal site also needs the files directory. As the whole folder is mounted into the Docker containers,  add the files into the correct folder \(probably `web/sites/default/files`, `sites/default/files` or something similar\). Remember what you've set as your `WEBROOT` - [it may not be the same for all projects](step-by-step-getting-drupal-ready-to-run-on-lagoon.md#note-about-webroot-in-drupal-8).
 
 ## 9. Done!
 

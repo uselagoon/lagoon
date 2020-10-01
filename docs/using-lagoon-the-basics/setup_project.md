@@ -4,7 +4,7 @@
 NOTE: We are working hard on getting our CLI and GraphQL API set up to allow everyone using Lagoon to setup and configure their projects themselves. Right now, it needs more testing before we can release those features, so hold tight!
 {% endhint %}
 
-Until then, the setup of a new project involves talking to your Lagoon administrator \(who is a human from amazee.io\). Anyway, they are much friendlier than APIs. 😊
+Until then, the setup of a new project involves talking to your Lagoon administrator \(who is a human from amazee.io\). Anyway, they are much friendlier than APIs. 😊 
 
 Please have the following information ready for your Lagoon administrator:
 

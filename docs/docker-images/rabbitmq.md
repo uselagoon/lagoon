@@ -22,7 +22,7 @@ This image is prepared to be used on Lagoon. There are therefore some things alr
 
   UI, `permissions` , and `policies`.
 
-By default, a policy called `lagoon-ha` is created at startup, but it is not active because it doesn't match any queue's name pattern \(see default [Environment Variables](rabbitmq.md#environment-variables)\).
+By default,  a policy called `lagoon-ha` is created at startup,  but it is not active because it doesn't match any queue's name pattern \(see default [Environment Variables](rabbitmq.md#environment-variables)\).
 
 {% tabs %}
 {% tab title="definitions.json" %}

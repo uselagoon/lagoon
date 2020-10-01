@@ -26,7 +26,7 @@ Redis is a fast, open-source, in-memory key-value data store for use as a databa
 {% endtab %}
 
 {% tab title="Solr" %}
-Solr is an open-source search platform.
+ Solr is an open-source search platform.
 
 [Learn about Solr with Drupal.](solr.md)
 
@@ -36,7 +36,7 @@ Solr is an open-source search platform.
 {% endtab %}
 
 {% tab title="Varnish" %}
-Varnish is a powerful, open-source HTTP engine and reverse HTTP proxy that helps to speed up your website.
+Varnish is a powerful, open-source HTTP engine and reverse HTTP proxy that helps to speed up your website. 
 
 [Learn about Varnish with Drupal](varnish.md)
 
@@ -45,4 +45,6 @@ Varnish is a powerful, open-source HTTP engine and reverse HTTP proxy that helps
 [Documentation on the plain Varnish image](../../docker-images/varnish/) \(the Varnish-Drupal image is built on this\).
 {% endtab %}
 {% endtabs %}
+
+
 

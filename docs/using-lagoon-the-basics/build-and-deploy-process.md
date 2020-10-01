@@ -84,7 +84,7 @@ For each service that requests a cron job \(like MariaDB\), plus for each custom
 
 ## 8. Run defined pre-rollout tasks
 
-Now Lagoon will check the `.lagoon.yml` file for defined tasks in `pre-rollout` and will run them one by one in the defined services. Note that these tasks are executed on the pods currently running \(so cannot utilise features or scripts that only exist in the latest commit\) and therefore they are also not run on first deployments.
+Now Lagoon will check the `.lagoon.yml` file for defined tasks in `pre-rollout` and will run them one by one in the defined services.  Note that these tasks are executed on the pods currently running \(so cannot utilise features or scripts that only exist in the latest commit\) and therefore they are also not run on first deployments.
 
 If any of them fail, Lagoon will immediately stop and notify you, and the rollout will not proceed.
 
@@ -110,5 +110,5 @@ If any of them fail, Lagoon will immediately stop and notify you.
 
 ## 12. Success
 
-If all went well and nothing threw any errors, Lagoon will mark this build as successful and inform you via defined notifications. ✅
+If all went well and nothing threw any errors, Lagoon will mark this build as successful and inform you via defined notifications. ✅ 
 
