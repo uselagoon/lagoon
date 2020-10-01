@@ -6,6 +6,11 @@ import { createMiscTask } from '@lagoon/commons/src/tasks';
 import { knex, query, isPatchEmpty } from '../../util/db';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Sql } from './sql';
+import validator from 'validator';
+import {ResolverFn} from "../index";
+import {Helpers} from "../task/helpers";
+import {pubSub} from "../../clients/pubSub";
+import EVENTS from "../task/events";
 
 /* ::
 
@@ -38,12 +43,15 @@ export const addFact = async (
   root,
   {
     input: {
-      id, environment: environmentId, name, value
+      id, environment: environmentId, name, value, source, description
     },
   },
   { sqlClient, hasPermission },
 ) => {
-  const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+
+    console.log('environmentId: ', environmentId);
+
+    const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
 
 
   await hasPermission('fact', 'add', {
@@ -55,15 +63,90 @@ export const addFact = async (
   } = await query(
     sqlClient,
     Sql.insertFact({
-        environment: environmentId,
-        name,
-        value,
+      environment: environmentId,
+      name,
+      value,
+      source,
+      description
     }),
   );
 
   const rows = await query(sqlClient, Sql.selectFactByDatabaseId(insertId));
   return R.prop(0, rows);
 };
+
+export const addFacts = async (
+  root,
+  {
+    input: {
+      facts
+    }
+  },
+  { sqlClient, hasPermission }
+) => {
+    
+    console.log('facts: ', facts);
+
+    return [];
+    // await hasPermission('fact', 'add', {
+    //     project: environment.project,
+    // });
+    //
+    // const {
+    //     info: { insertId },
+    // } = await query(
+    //     sqlClient,
+    //     Sql.insertFact({
+    //         environment: environmentId,
+    //         name,
+    //         value,
+    //         source,
+    //         description
+    //     }),
+    // );
+
+
+};
+
+export const updateFact = async (
+  root,
+  {
+    input : {
+      environment: environmentId,
+      patch,
+    }
+  },
+  { sqlClient, hasPermission },
+) => {
+
+  const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+
+  await hasPermission('fact', 'add', {
+    project: environment.project,
+  });
+
+
+  if (isPatchEmpty({ patch })) {
+    throw new Error('Input patch requires at least 1 attribute');
+  }
+
+  if (typeof patch.name === 'string' || typeof patch.value === 'string' || typeof patch.source === 'string') {
+    if (validator.matches(patch.name, /[^0-9a-z-]/)) {
+      throw new Error(
+      'Only lowercase characters, numbers and dashes allowed!',
+      );
+    }
+  }
+
+  const rows = await query(
+    sqlClient,
+    Sql.updateFact({ environment: environmentId, patch }),
+  );
+
+  return R.prop(0, rows);
+
+}
+
 
 export const deleteFact = async (
   root,
@@ -84,4 +167,26 @@ export const deleteFact = async (
   await query(sqlClient, Sql.deleteFact(environmentId, name));
 
   return 'success';
+};
+
+export const deleteFactsFromSource = async (
+  root,
+  {
+    input : {
+     environment: environmentId,
+     source,
+    }
+  },
+  { sqlClient, hasPermission },
+) => {
+
+    const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+
+    await hasPermission('fact', 'delete', {
+        project: environment.project,
+    });
+
+    await query(sqlClient, Sql.deleteFactsFromSource(environmentId, source));
+
+    return 'success';
 };
