@@ -121,6 +121,11 @@ node {
                     } else {
                       sh script: 'echo "skipped because of SKIP_IMAGE_PUBLISH env variable"', label: "Skipping image publishing"
                     }
+                    if (env.BRANCH_NAME == 'main' ) {
+                      withCredentials([string(credentialsId: 'vshn-gitlab-helmfile-ci-trigger', variable: 'TOKEN')]) {
+                        sh script: "curl -X POST -F token=$TOKEN -F ref=master https://git.vshn.net/api/v4/projects/1263/trigger/pipeline" label: "Trigger lagoon-core helmfile sync on amazeeio-test6"
+                      }
+                    }
                   } catch (e) {
                     echo "Something went wrong, trying to cleanup"
                     cleanup()
