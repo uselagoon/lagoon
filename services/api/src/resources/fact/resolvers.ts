@@ -49,10 +49,7 @@ export const addFact = async (
   { sqlClient, hasPermission },
 ) => {
 
-    console.log('environmentId: ', environmentId);
-
-    const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
-
+  const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
 
   await hasPermission('fact', 'add', {
     project: environment.project,
@@ -84,28 +81,31 @@ export const addFacts = async (
   },
   { sqlClient, hasPermission }
 ) => {
-    
-    console.log('facts: ', facts);
 
-    return [];
-    // await hasPermission('fact', 'add', {
-    //     project: environment.project,
-    // });
-    //
-    // const {
-    //     info: { insertId },
-    // } = await query(
-    //     sqlClient,
-    //     Sql.insertFact({
-    //         environment: environmentId,
-    //         name,
-    //         value,
-    //         source,
-    //         description
-    //     }),
-    // );
+    return await facts.map(async (fact) => {
+        const { environment, name, value, source, description } = fact;
+        const env = await environmentHelpers(sqlClient).getEnvironmentById(environment);
 
+        await hasPermission('fact', 'add', {
+            project: env.project,
+        });
 
+        const {
+            info: { insertId },
+        } = await query(
+            sqlClient,
+            Sql.insertFact({
+                environment,
+                name,
+                value,
+                source,
+                description
+            }),
+        );
+
+        const rows =  await query(sqlClient, Sql.selectFactByDatabaseId(insertId));
+        return R.prop(0, rows);
+    });
 };
 
 export const updateFact = async (
