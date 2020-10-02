@@ -1,0 +1,120 @@
+version: '2.3'
+
+x-lagoon-project:
+  # Lagoon project name (leave `&lagoon-project` when you edit this)
+  &lagoon-project drupal-example
+
+x-volumes:
+  &default-volumes
+    # Define all volumes you would like to have real-time mounted into the docker containers
+    volumes:
+      - .:/app:delegated
+
+x-environment:
+  &default-environment
+    LAGOON_PROJECT: *lagoon-project
+    # Route that should be used locally
+    LAGOON_ROUTE: http://drupal.docker.amazee.io
+    # Uncomment if you like to have the system behave like in production
+    #LAGOON_ENVIRONMENT_TYPE: production
+    # Uncomment to enable xdebug and then restart via `docker-compose up -d`
+    #XDEBUG_ENABLE: "true"
+
+
+services:
+
+  cli: # cli container, will be used for executing composer and any local commands (drush, drupal, etc.)
+    build:
+      context: .
+      dockerfile: cli.dockerfile
+    image: *lagoon-project # this image will be reused as `CLI_IMAGE` in subsequent Docker builds
+    labels:
+      # Lagoon Labels
+      lagoon.type: cli-persistent
+      lagoon.persistent.name: nginx # mount the persistent storage of nginx into this container
+      lagoon.persistent: /app/web/sites/default/files/ # location where the persistent storage should be mounted
+    << : *default-volumes # loads the defined volumes from the top
+    volumes_from: # mount the ssh-agent from the pygmy or cachalot ssh-agent
+      - container:amazeeio-ssh-agent
+    environment:
+      << : *default-environment # loads the defined environment variables from the top
+
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx.dockerfile
+      args:
+        CLI_IMAGE: *lagoon-project # Inject the name of the cli image
+    labels:
+      lagoon.type: nginx-php-persistent
+      lagoon.persistent: /app/web/sites/default/files/ # define where the persistent storage should be mounted too
+    << : *default-volumes # loads the defined volumes from the top
+    depends_on:
+      - cli # basically just tells docker-compose to build the cli first
+    environment:
+      << : *default-environment # loads the defined environment variables from the top
+      LAGOON_LOCALDEV_URL: nginx-drupal.docker.amazee.io # generate another route for nginx, by default we go to varnish
+    networks:
+      - amazeeio-network
+      - default
+
+  php:
+    build:
+      context: .
+      dockerfile: php.dockerfile
+      args:
+        CLI_IMAGE: *lagoon-project
+    labels:
+      lagoon.type: nginx-php-persistent
+      lagoon.name: nginx # we want this service be part of the nginx pod in Lagoon
+      lagoon.persistent: /app/web/sites/default/files/ # define where the persistent storage should be mounted too
+    << : *default-volumes # loads the defined volumes from the top
+    depends_on:
+      - cli # basically just tells docker-compose to build the cli first
+    environment:
+      << : *default-environment # loads the defined environment variables from the top
+
+
+  mariadb:
+    image: amazeeio/mariadb-drupal
+    labels:
+      lagoon.type: mariadb
+    ports:
+      - "3306" # exposes the port 3306 with a random local port, find it with `docker-compose port mariadb 3306`
+    environment:
+      << : *default-environment
+
+  ## Uncomment for Redis
+  # redis:
+  #   image: amazeeio/redis
+  #   labels:
+  #     lagoon.type: redis
+  #   environment:
+  #     << : *default-environment
+
+  ## Uncomment for Solr
+  # solr:
+  #   image: amazeeio/solr:6.6-drupal
+  #   labels:
+  #     lagoon.type: solr
+  #   ports:
+  #     - "8983" # exposes the port 8983 with a random local port, find it with `docker-compose port solr 8983`
+  #   environment:
+  #     << : *default-environment
+
+  varnish:
+    image: amazeeio/varnish-drupal
+    labels:
+      lagoon.type: varnish
+    links:
+      - nginx # links varnish to the nginx in this docker-compose project, or it would try to connect to any nginx running in docker
+    environment:
+      << : *default-environment
+      VARNISH_BYPASS: "true" # by default we bypass varnish, change to 'false' or remove in order to tell varnish to cache if possible
+    networks:
+      - amazeeio-network
+      - default
+
+networks:
+  amazeeio-network:
+    external: true

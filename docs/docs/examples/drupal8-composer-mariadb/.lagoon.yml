@@ -1,0 +1,29 @@
+docker-compose-yaml: docker-compose.yml
+
+tasks:
+  post-rollout:
+    - run:
+        name: env variables
+        command: env
+        service: cli
+    - run:
+        name: drush cim
+        command: drush -y cim
+        service: cli
+    - run:
+        name: drush cr
+        command: drush -y cr
+        service: cli
+
+
+
+environments:
+  master:
+    cronjobs:
+      - name: drush cron
+        schedule: "H * * * *" # this will run the cron once per hour
+        command: drush cron
+        service: cli
+    # routes:
+    #   - varnish:
+    #       - "domain.com"
