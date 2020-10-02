@@ -1,5 +1,6 @@
 ARG UPSTREAM_REPO
-FROM ${UPSTREAM_REPO:-uselagoon}/mariadb
+ARG UPSTREAM_TAG
+FROM ${UPSTREAM_REPO:-uselagoon}/mariadb:${UPSTREAM_TAG:-latest}
 
 USER root
 RUN apk add --no-cache openssh-keygen

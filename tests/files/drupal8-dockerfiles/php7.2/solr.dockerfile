@@ -1,3 +1,3 @@
 ARG UPSTREAM_REPO
-
-FROM ${UPSTREAM_REPO:-uselagoon}/solr-5.5-drupal
+ARG UPSTREAM_TAG
+FROM ${UPSTREAM_REPO:-testlagoon}/solr-5.5-drupal:${UPSTREAM_TAG:-latest}

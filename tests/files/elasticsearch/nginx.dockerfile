@@ -1,4 +1,5 @@
 ARG UPSTREAM_REPO
-FROM ${UPSTREAM_REPO:-uselagoon}/nginx
+ARG UPSTREAM_TAG
+FROM ${UPSTREAM_REPO:-testlagoon}/nginx:${UPSTREAM_TAG:-latest}
 
 COPY app.conf /etc/nginx/conf.d/app.conf

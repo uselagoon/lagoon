@@ -1,5 +1,6 @@
 ARG UPSTREAM_REPO
-FROM ${UPSTREAM_REPO:-uselagoon}/logstash-7
+ARG UPSTREAM_TAG
+FROM ${UPSTREAM_REPO:-uselagoon}/logstash-7:${UPSTREAM_TAG:-latest}
 
 RUN bin/logstash-plugin install logstash-input-lumberjack
 

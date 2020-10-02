@@ -1,5 +1,6 @@
 ARG UPSTREAM_REPO
-FROM ${UPSTREAM_REPO:-uselagoon}/php-7.4-cli-drupal
+ARG UPSTREAM_TAG
+FROM ${UPSTREAM_REPO:-testlagoon}/php-7.4-cli-drupal:${UPSTREAM_TAG:-latest}
 
 COPY composer.json composer.lock /app/
 COPY scripts /app/scripts

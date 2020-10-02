@@ -1,2 +1,3 @@
 ARG UPSTREAM_REPO
-FROM ${UPSTREAM_REPO:-uselagoon}/postgres-11-drupal
+ARG UPSTREAM_TAG
+FROM ${UPSTREAM_REPO:-testlagoon}/postgres-11-drupal:${UPSTREAM_TAG:-latest}

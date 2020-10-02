@@ -1,5 +1,6 @@
 ARG UPSTREAM_REPO
-FROM ${UPSTREAM_REPO:-uselagoon}/nginx
+ARG UPSTREAM_TAG
+FROM ${UPSTREAM_REPO:-testlagoon}/nginx:${UPSTREAM_TAG:-latest}
 
 ENV BASIC_AUTH_USERNAME=username \
     BASIC_AUTH_PASSWORD=password

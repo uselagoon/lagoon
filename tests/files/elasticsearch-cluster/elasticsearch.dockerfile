@@ -1,2 +1,3 @@
 ARG UPSTREAM_REPO
-FROM ${UPSTREAM_REPO:-uselagoon}/elasticsearch-6
+ARG UPSTREAM_TAG
+FROM ${UPSTREAM_REPO:-testlagoon}/elasticsearch-6:${UPSTREAM_TAG:-latest}

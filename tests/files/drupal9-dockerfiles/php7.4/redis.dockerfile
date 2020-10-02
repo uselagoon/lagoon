@@ -1,2 +1,3 @@
 ARG UPSTREAM_REPO
-FROM ${UPSTREAM_REPO:-uselagoon}/redis-5
+ARG UPSTREAM_TAG
+FROM ${UPSTREAM_REPO:-testlagoon}/redis-5:${UPSTREAM_TAG:-latest}

@@ -1,5 +1,6 @@
 ARG UPSTREAM_REPO
-FROM ${UPSTREAM_REPO:-uselagoon}/kibana-7
+ARG UPSTREAM_TAG
+FROM ${UPSTREAM_REPO:-uselagoon}/kibana-7:${UPSTREAM_TAG:-latest}
 
 ENV NODE_OPTIONS="--max-old-space-size=2048" \
     LOGSDB_KIBANASERVER_PASSWORD=kibanaserver \

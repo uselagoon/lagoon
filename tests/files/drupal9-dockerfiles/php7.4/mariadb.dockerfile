@@ -1,2 +1,3 @@
 ARG UPSTREAM_REPO
-FROM ${UPSTREAM_REPO:-uselagoon}/mariadb-drupal
+ARG UPSTREAM_TAG
+FROM ${UPSTREAM_REPO:-testlagoon}/mariadb-drupal:${UPSTREAM_TAG:-latest}

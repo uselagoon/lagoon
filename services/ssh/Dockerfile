@@ -1,5 +1,6 @@
 ARG UPSTREAM_REPO
-FROM ${UPSTREAM_REPO:-uselagoon}/commons as commons
+ARG UPSTREAM_TAG
+FROM ${UPSTREAM_REPO:-uselagoon}/commons:${UPSTREAM_TAG:-latest} as commons
 FROM ubuntu:18.04
 
 LABEL maintainer="amazee.io"

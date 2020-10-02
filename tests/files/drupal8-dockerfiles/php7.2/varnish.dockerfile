@@ -1,2 +1,3 @@
 ARG UPSTREAM_REPO
-FROM ${UPSTREAM_REPO:-uselagoon}/varnish-drupal
+ARG UPSTREAM_TAG
+FROM ${UPSTREAM_REPO:-testlagoon}/varnish-drupal:${UPSTREAM_TAG:-latest}
