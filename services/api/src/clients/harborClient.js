@@ -12,8 +12,8 @@ const lagoonHarborRoute = R.compose(
   R.propOr('', 'LAGOON_ROUTES'),
 )(process.env);
 
-const apiVersion = R.propOr('v1', 'HARBOR_API_VERSION', process.env);
-// 'v1' is here for backwards compatibility with Harbor version 1.x.x
+const apiVersion = R.propOr('v2.0', 'HARBOR_API_VERSION', process.env);
+// Use 'v1' for backwards compatibility with Harbor version 1.x.x
 
 const harborClient = got.extend({
   baseUrl: `${lagoonHarborRoute}/api/${apiVersion}/`,
