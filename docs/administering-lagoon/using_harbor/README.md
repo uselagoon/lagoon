@@ -1,6 +1,6 @@
 # Harbor
 
-[Harbor](https://goharbor.io/) is used as the default package repository for Lagoon when deploying to Kubernetes infrastructure. Harbor provides a Docker registry and a container security scanning solution provided by [Clair](https://coreos.com/clair/docs/latest/).
+[Harbor](https://goharbor.io/) is used as the default package repository for Lagoon when deploying to Kubernetes infrastructure. Harbor provides a Docker registry and a container security scanning solution provided by [Trivy](https://github.com/aquasecurity/trivy).
 
 {% hint style="info" %}
 When running Lagoon locally, the configuration for Harbor is handled entirely automagically.

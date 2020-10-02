@@ -1,5 +1,4 @@
-# Harbor-Core
-
+# Harbor-Core Settings
 Harbor-Core requires a configuration file to start, which is located at `/etc/core/app.conf` within the container. Any changes made to this config file are temporary and will not persist once the pod is restarted.
 
 The configmap from which this config file is generated is stored within Lagoon in the `services/harbor-core/harbor-core.yml` file. Any changes made to this configmap will be persisted across container restarts.
@@ -161,4 +160,3 @@ The configmap from which this config file is generated is stored within Lagoon i
 * `WITH_TRIVY`
   * Tells harbor-core if the Trivy service is being used.
   * The default value is `true`.
-
