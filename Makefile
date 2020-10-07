@@ -459,7 +459,6 @@ api-tests = node features-openshift features-kubernetes nginx elasticsearch acti
 
 # All drupal tests
 drupal-tests = drupal drupal-postgres
-drupal-dependencies = build/varnish-drupal build/solr__5.5-drupal build/nginx-drupal build/redis build/php__7.2-cli-drupal build/php__7.3-cli-drupal build/php__7.4-cli-drupal build/postgres-drupal build/mariadb-drupal
 
 # These targets are used as dependencies to bring up containers in the right order.
 .PHONY: main-test-services-up
