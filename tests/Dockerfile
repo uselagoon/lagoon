@@ -38,7 +38,6 @@ COPY hosts /etc/ansible/hosts
 
 ENV ANSIBLE_FORCE_COLOR=true
 ENV SSH_AUTH_SOCK=/tmp/ssh-agent
-ENV KEYCLOAK_URL=http://keycloak:8080
 
 COPY entrypoint.sh /
 ENTRYPOINT ["/entrypoint.sh"]
