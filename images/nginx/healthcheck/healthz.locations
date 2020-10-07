@@ -1,8 +1,0 @@
-location /.lagoonhealthz {
- content_by_lua_block {
-  ngx.status = ngx.HTTP_OK;
-  ngx.header.content_type = 'application/json';
-  ngx.say('{"check_nginx":"pass"}');
-  ngx.exit(ngx.OK);
- }
-}
