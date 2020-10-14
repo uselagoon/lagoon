@@ -50,7 +50,7 @@ COPY ssmtp.conf /etc/ssmtp/ssmtp.conf
 # @see https://docs.newrelic.com/docs/agents/php-agent/getting-started/php-agent-compatibility-requirements
 ENV NEWRELIC_VERSION=9.12.0.268
 
-RUN apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/v3.12/main/ 'curl>7.68'
+RUN apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/v3.12/main/ 'curl>7.68' 'libcurl>7.68'
 
 RUN apk add --no-cache fcgi \
         ssmtp \
