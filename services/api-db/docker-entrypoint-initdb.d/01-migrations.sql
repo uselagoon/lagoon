@@ -1142,8 +1142,7 @@ CREATE OR REPLACE PROCEDURE
     ) THEN
       ALTER TABLE `environment_fact`
       ADD `source` varchar(300) NOT NULL default ''
-      ADD `description` TEXT NULL DEFAULT ''
-      ALTER TABLE `environment_fact`
+      ADD `description` TEXT NULL DEFAULT '';
     END IF;
   END;
 $$
