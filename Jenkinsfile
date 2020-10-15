@@ -112,13 +112,13 @@ node {
                 }
               }
             },
-            '3 push images to testlagoon': {
-              stage ('push images to testlagoon/*') {
+            '3 push images to amazeeiolagoon': {
+              stage ('push images to amazeeiolagoon/*') {
                 withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
                   try {
                     if (env.SKIP_IMAGE_PUBLISH != 'true') {
                       sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
-                      sh script: "make -O${SYNC_MAKE_OUTPUT} -j8 publish-testlagoon-baseimages publish-testlagoon-serviceimages publish-testlagoon-taskimages BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Publishing built images"
+                      sh script: "make -O${SYNC_MAKE_OUTPUT} -j8 publish-amazeeiolagoon-baseimages publish-amazeeiolagoon-serviceimages publish-amazeeiolagoon-taskimages BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Publishing built images"
                     } else {
                       sh script: 'echo "skipped because of SKIP_IMAGE_PUBLISH env variable"', label: "Skipping image publishing"
                     }
@@ -146,8 +146,7 @@ node {
           stage ('publish-amazeeio') {
             withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
               sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
-              sh script: "make -O${SYNC_MAKE_OUTPUT} -j8 publish-uselagoon-baseimages publish-uselagoon-serviceimages publish-uselagoon-taskimages", label: "Publishing built images to uselagoon"
-              // sh script: "make -O${SYNC_MAKE_OUTPUT} -j8 publish-amazeeio-baseimages", label: "Publishing legacy images to amazeeio"
+              sh script: "make -O${SYNC_MAKE_OUTPUT} -j8 publish-amazeeio-baseimages publish-amazeeio-taskimages", label: "Publishing legacy images to amazeeio"
             }
           }
         }

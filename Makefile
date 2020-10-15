@@ -100,12 +100,6 @@ DEFAULT_ALPINE_VERSION := 3.11
 # Docker Build Context
 docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg UPSTREAM_REPO=$(UPSTREAM_REPO) --build-arg UPSTREAM_TAG=$(UPSTREAM_TAG) --build-arg ALPINE_VERSION=$(DEFAULT_ALPINE_VERSION) -t $(CI_BUILD_TAG)/$(1) -f $(2) $(3)
 
-# Tags an image with the `testlagoon` repository and pushes it
-docker_publish_testlagoon = docker tag $(CI_BUILD_TAG)/$(1) testlagoon/$(2) && docker push testlagoon/$(2) | cat
-
-# Tags an image with the `uselagoon` repository and pushes it
-docker_publish_uselagoon = docker tag $(CI_BUILD_TAG)/$(1) uselagoon/$(2) && docker push uselagoon/$(2) | cat
-
 # Tags an image with the `amazeeio` repository and pushes it
 docker_publish_amazeeio = docker tag $(CI_BUILD_TAG)/$(1) amazeeio/$(2) && docker push amazeeio/$(2) | cat
 
@@ -564,127 +558,69 @@ local-harbor: build/harbor-core build/harbor-database build/harbor-jobservice bu
 #######
 ####### Publishing Images
 #######
-####### All main&PR images are pushed to testlagoon repository
-#######
-
-# Publish command to testlagoon docker hub, done on any main branch or PR
-publish-testlagoon-baseimages = $(foreach image,$(base-images),[publish-testlagoon-baseimages]-$(image))
-# tag and push all images
-
-.PHONY: publish-testlagoon-baseimages
-publish-testlagoon-baseimages: $(publish-testlagoon-baseimages)
-
-# tag and push of each image
-.PHONY: $(publish-testlagoon-baseimages)
-$(publish-testlagoon-baseimages):
-#   Calling docker_publish for image, but remove the prefix '[publish-testlagoon-baseimages]-' first
-		$(eval image = $(subst [publish-testlagoon-baseimages]-,,$@))
-# 	Publish images with version tag
-		$(call docker_publish_testlagoon,$(image),$(image):$(BRANCH_NAME))
-
-
-# Publish command to amazeeio docker hub, this should probably only be done during a master deployments
-publish-testlagoon-serviceimages = $(foreach image,$(service-images),[publish-testlagoon-serviceimages]-$(image))
-# tag and push all images
-.PHONY: publish-testlagoon-serviceimages
-publish-testlagoon-serviceimages: $(publish-testlagoon-serviceimages)
-
-# tag and push of each image
-.PHONY: $(publish-testlagoon-serviceimages)
-$(publish-testlagoon-serviceimages):
-#   Calling docker_publish for image, but remove the prefix '[publish-testlagoon-serviceimages]-' first
-		$(eval image = $(subst [publish-testlagoon-serviceimages]-,,$@))
-# 	Publish images with version tag
-		$(call docker_publish_testlagoon,$(image),$(image):$(BRANCH_NAME))
-
-
-# Publish command to amazeeio docker hub, this should probably only be done during a master deployments
-publish-testlagoon-taskimages = $(foreach image,$(task-images),[publish-testlagoon-taskimages]-$(image))
-# tag and push all images
-.PHONY: publish-testlagoon-taskimages
-publish-testlagoon-taskimages: $(publish-testlagoon-taskimages)
-
-# tag and push of each image
-.PHONY: $(publish-testlagoon-taskimages)
-$(publish-testlagoon-taskimages):
-#   Calling docker_publish for image, but remove the prefix '[publish-testlagoon-taskimages]-' first
-		$(eval image = $(subst [publish-testlagoon-taskimages]-,,$@))
-# 	Publish images with version tag
-		$(call docker_publish_testlagoon,$(image),$(image):$(BRANCH_NAME))
-
-
-#######
-####### All tagged releases are pushed to uselagoon repository with new semantic tags
-#######
-
-# Publish command to uselagoon docker hub, only done on tags
-publish-uselagoon-baseimages = $(foreach image,$(base-images),[publish-uselagoon-baseimages]-$(image))
-
-# tag and push all images
-.PHONY: publish-uselagoon-baseimages
-publish-uselagoon-baseimages: $(publish-uselagoon-baseimages)
-
-# tag and push of each image
-.PHONY: $(publish-uselagoon-baseimages)
-$(publish-uselagoon-baseimages):
-#   Calling docker_publish for image, but remove the prefix '[publish-uselagoon-baseimages]-' first
-		$(eval image = $(subst [publish-uselagoon-baseimages]-,,$@))
-# 	Publish images as :latest
-		$(call docker_publish_uselagoon,$(image),$(image):latest)
-# 	Publish images with version tag
-		$(call docker_publish_uselagoon,$(image),$(image):$(LAGOON_VERSION))
-
-
-# Publish command to amazeeio docker hub, this should probably only be done during a master deployments
-publish-uselagoon-serviceimages = $(foreach image,$(service-images),[publish-uselagoon-serviceimages]-$(image))
-# tag and push all images
-.PHONY: publish-uselagoon-serviceimages
-publish-uselagoon-serviceimages: $(publish-uselagoon-serviceimages)
-
-# tag and push of each image
-.PHONY: $(publish-uselagoon-serviceimages)
-$(publish-uselagoon-serviceimages):
-#   Calling docker_publish for image, but remove the prefix '[publish-uselagoon-serviceimages]-' first
-		$(eval image = $(subst [publish-uselagoon-serviceimages]-,,$@))
-# 	Publish images with version tag
-		$(call docker_publish_uselagoon,$(image),$(image):$(LAGOON_VERSION))
-
-
-# Publish command to amazeeio docker hub, this should probably only be done during a master deployments
-publish-uselagoon-taskimages = $(foreach image,$(task-images),[publish-uselagoon-taskimages]-$(image))
-# tag and push all images
-.PHONY: publish-uselagoon-taskimages
-publish-uselagoon-taskimages: $(publish-uselagoon-taskimages)
-
-# tag and push of each image
-.PHONY: $(publish-uselagoon-taskimages)
-$(publish-uselagoon-taskimages):
-#   Calling docker_publish for image, but remove the prefix '[publish-uselagoon-taskimages]-' first
-		$(eval image = $(subst [publish-uselagoon-taskimages]-,,$@))
-# 	Publish images with version tag
-		$(call docker_publish_uselagoon,$(image),$(image):$(LAGOON_VERSION))
-
-
-#######
-####### All tagged releases are also pushed to amazeeio repository with legacy tags
-#######
+####### baseimages are pushed to amazeeio repository for b/c
 
 # Publish command to amazeeio docker hub, this should probably only be done during a master deployments
 publish-amazeeio-baseimages = $(foreach image,$(base-images),[publish-amazeeio-baseimages]-$(image))
 # tag and push all images
+
 .PHONY: publish-amazeeio-baseimages
 publish-amazeeio-baseimages: $(publish-amazeeio-baseimages)
-
 
 # tag and push of each image
 .PHONY: $(publish-amazeeio-baseimages)
 $(publish-amazeeio-baseimages):
 #   Calling docker_publish for image, but remove the prefix '[publish-amazeeio-baseimages]-' first
 		$(eval image = $(subst [publish-amazeeio-baseimages]-,,$@))
-# 	Publish images as :latest
-		$(call docker_publish_amazeeio,$(image),$(image):latest)
 # 	Publish images with version tag
 		$(call docker_publish_amazeeio,$(image),$(image):$(LAGOON_VERSION))
+
+# Publish command to amazeeio docker hub, this should probably only be done during a master deployments
+publish-amazeeio-taskimages = $(foreach image,$(task-images),[publish-amazeeio-taskimages]-$(image))
+# tag and push all images
+.PHONY: publish-amazeeio-taskimages
+publish-amazeeio-taskimages: $(publish-amazeeio-taskimages)
+
+# tag and push of each image
+.PHONY: $(publish-amazeeio-taskimages)
+$(publish-amazeeio-taskimages):
+#   Calling docker_publish for image, but remove the prefix '[publish-amazeeio-taskimages]-' first
+		$(eval image = $(subst [publish-amazeeio-taskimages]-,,$@))
+# 	Publish images with version tag
+		$(call docker_publish_amazeeio,$(image),$(image):$(LAGOON_VERSION))
+
+#######
+####### All main&PR images are pushed to amazeeiolagoon repository
+
+# Publish command to amazeeiolagoon docker hub, done on any main branch or PR
+publish-amazeeiolagoon-baseimages = $(foreach image,$(base-images),[publish-amazeeiolagoon-baseimages]-$(image))
+# tag and push all images
+
+.PHONY: publish-amazeeiolagoon-baseimages
+publish-amazeeiolagoon-baseimages: $(publish-amazeeiolagoon-baseimages)
+
+# tag and push of each image
+.PHONY: $(publish-amazeeiolagoon-baseimages)
+$(publish-amazeeiolagoon-baseimages):
+#   Calling docker_publish for image, but remove the prefix '[publish-amazeeiolagoon-baseimages]-' first
+		$(eval image = $(subst [publish-amazeeiolagoon-baseimages]-,,$@))
+# 	Publish images with version tag
+		$(call docker_publish_amazeeiolagoon,$(image),$(image):$(BRANCH_NAME))
+
+
+# Publish command to amazeeio docker hub, this should probably only be done during a master deployments
+publish-amazeeiolagoon-serviceimages = $(foreach image,$(service-images),[publish-amazeeiolagoon-serviceimages]-$(image))
+# tag and push all images
+.PHONY: publish-amazeeiolagoon-serviceimages
+publish-amazeeiolagoon-serviceimages: $(publish-amazeeiolagoon-serviceimages)
+
+# tag and push of each image
+.PHONY: $(publish-amazeeiolagoon-serviceimages)
+$(publish-amazeeiolagoon-serviceimages):
+#   Calling docker_publish for image, but remove the prefix '[publish-amazeeiolagoon-serviceimages]-' first
+		$(eval image = $(subst [publish-amazeeiolagoon-serviceimages]-,,$@))
+# 	Publish images with version tag
+		$(call docker_publish_amazeeiolagoon,$(image),$(image):$(BRANCH_NAME))
 
 
 # Publish command to amazeeio docker hub, this should probably only be done during a master deployments
@@ -692,7 +628,6 @@ publish-amazeeiolagoon-taskimages = $(foreach image,$(task-images),[publish-amaz
 # tag and push all images
 .PHONY: publish-amazeeiolagoon-taskimages
 publish-amazeeiolagoon-taskimages: $(publish-amazeeiolagoon-taskimages)
-
 
 # tag and push of each image
 .PHONY: $(publish-amazeeiolagoon-taskimages)
