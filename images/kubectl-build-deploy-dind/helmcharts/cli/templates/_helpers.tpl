@@ -29,6 +29,9 @@ helm.sh/chart: {{ include "cli.chart" . }}
 {{ include "cli.selectorLabels" . }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{ include "cli.lagoonLabels" . }}
+{{- if eq .Values.environmentType "production" -}}
+{{ include "cli.datadogLabels" . }}
+{{- end -}}
 {{- end -}}
 
 {{/*
@@ -57,6 +60,13 @@ lagoon.sh/project: {{ .Values.project }}
 lagoon.sh/environment: {{ .Values.environment }}
 lagoon.sh/environmentType: {{ .Values.environmentType }}
 lagoon.sh/buildType: {{ .Values.buildType }}
+{{- end -}}
+
+{{/*
+Datadog Admission Controller label
+*/}}
+{{- define "cli.datadogLabels" -}}
+admission.datadoghq.com/enabled: "true"
 {{- end -}}
 
 {{/*
