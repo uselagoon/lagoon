@@ -956,14 +956,9 @@ elif [ "$TYPE" == "pullrequest" ] || [ "$TYPE" == "branch" ]; then
     . /oc-build-deploy/scripts/exec-push-parallel.sh
   done
 
-  # If we have Images to Push to the OpenRegistry, let's do so
+  # If we have Images to Push to the OpenRegistry and Harbor, let's do so
   if [ -f /oc-build-deploy/lagoon/push ]; then
     parallel --retries 4 < /oc-build-deploy/lagoon/push
-  fi
-
-  # If we have Images to Push to the the Internal Harbor, let's do so
-  if [ -f /oc-build-deploy/lagoon/push_harbor ]; then
-    parallel --retries 4 < /oc-build-deploy/lagoon/push_harbor
   fi
 
 elif [ "$TYPE" == "promote" ]; then
