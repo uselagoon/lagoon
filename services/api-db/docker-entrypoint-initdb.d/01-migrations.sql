@@ -1140,9 +1140,10 @@ CREATE OR REPLACE PROCEDURE
         AND table_schema = 'infrastructure'
         AND column_name = 'source'
     ) THEN
-      ALTER TABLE `environment_fact`
-      ADD `source` varchar(300) NOT NULL default ''
-      ADD `description` TEXT NULL DEFAULT '';
+        ALTER TABLE `environment_fact`
+        ADD `source` varchar(300) NOT NULL default '';
+        ALTER TABLE `environment_fact`
+        ADD `description` TEXT NULL DEFAULT '';
     END IF;
   END;
 $$
