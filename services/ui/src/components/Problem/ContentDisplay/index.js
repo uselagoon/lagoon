@@ -13,5 +13,4 @@ const ContentDisplay = ({ problem }) => (
     </>
 );
 
-
 export default ContentDisplay;
