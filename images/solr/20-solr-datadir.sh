@@ -99,7 +99,7 @@ function fixConfig {
     SOLR_DATA_DIR=${SOLR_DATA_DIR:-/var/solr}
     SOLR_DATA_DIR_ESCAPED=${SOLR_DATA_DIR//\//\\/} # escapig the forward slashes with backslahes
     if [ -w $1/ ]; then
-      sed -ibak "s/<dataDir>.*/<dataDir>$SOLR_DATA_DIR_ESCAPED\/\${solr.core.name}<\/dataDir>/" $1/solrconfig.xml
+      sed -ibak "/<\!\-\-/!s/<dataDir>.*/<dataDir>$SOLR_DATA_DIR_ESCAPED\/\${solr.core.name}<\/dataDir>/" $1/solrconfig.xml
       echo "automagically updated to compatible config: "
       echo "  <dataDir>${SOLR_DATA_DIR:-/var/solr}/\${solr.core.name}</dataDir>"
       echo "Please update your solrconfig.xml to make this persistent."
