@@ -60,6 +60,15 @@ lagoon.sh/buildType: {{ .Values.buildType }}
 {{- end -}}
 
 {{/*
+Datadog Admission Controller label
+*/}}
+{{- define "cli.datadogLabels" -}}
+{{- if eq .Values.environmentType "production" -}}
+admission.datadoghq.com/enabled: "true"
+{{- end -}}
+{{- end -}}
+
+{{/*
 Annotations
 */}}
 {{- define "cli.annotations" -}}
