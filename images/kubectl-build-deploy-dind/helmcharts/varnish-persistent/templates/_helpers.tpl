@@ -49,9 +49,6 @@ helm.sh/chart: {{ include "varnish-persistent.chart" . }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{ include "varnish-persistent.lagoonLabels" . }}
 {{- end -}}
-{{- if eq .Values.environmentType "production" -}}
-{{ include "varnish-persistent.datadogLabels" . }}
-{{- end -}}
 
 {{/*
 Selector labels
@@ -85,7 +82,9 @@ lagoon.sh/buildType: {{ .Values.buildType }}
 Datadog Admission Controller label
 */}}
 {{- define "varnish-persistent.datadogLabels" -}}
+{{- if eq .Values.environmentType "production" -}}
 admission.datadoghq.com/enabled: "true"
+{{- end -}}
 {{- end -}}
 
 {{/*

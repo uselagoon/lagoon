@@ -41,9 +41,6 @@ helm.sh/chart: {{ include "varnish.chart" . }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{ include "varnish.lagoonLabels" . }}
 {{- end -}}
-{{- if eq .Values.environmentType "production" -}}
-{{ include "varnish.datadogLabels" . }}
-{{- end -}}
 
 {{/*
 Selector labels
@@ -77,7 +74,9 @@ lagoon.sh/buildType: {{ .Values.buildType }}
 Datadog Admission Controller label
 */}}
 {{- define "varnish.datadogLabels" -}}
+{{- if eq .Values.environmentType "production" -}}
 admission.datadoghq.com/enabled: "true"
+{{- end -}}
 {{- end -}}
 
 {{/*

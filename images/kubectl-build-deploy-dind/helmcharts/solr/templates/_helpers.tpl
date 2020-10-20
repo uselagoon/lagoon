@@ -44,10 +44,6 @@ helm.sh/chart: {{ include "solr.chart" . }}
 {{ include "solr.selectorLabels" . }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{ include "solr.lagoonLabels" . }}
-{{- if eq .Values.environmentType "production" -}}
-{{ include "solr.datadogLabels" . }}
-{{- end -}}
-
 {{- end -}}
 
 {{/*
@@ -82,7 +78,9 @@ lagoon.sh/buildType: {{ .Values.buildType }}
 Datadog Admission Controller label
 */}}
 {{- define "solr.datadogLabels" -}}
+{{- if eq .Values.environmentType "production" -}}
 admission.datadoghq.com/enabled: "true"
+{{- end -}}
 {{- end -}}
 
 {{/*
