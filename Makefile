@@ -492,7 +492,6 @@ build/harborregistry: services/harbor-jobservice/Dockerfile
 build/harborregistryctl: build/harborregistry
 build/harbor-nginx: build/harborregistryctl services/harbor-core/Dockerfile services/harbor-portal/Dockerfile
 build/tests: build/python__2.7
-build/tests-kubernetes: build/tests
 build/tests-controller-kubernetes: build/tests
 build/tests-openshift: build/tests
 build/toolbox: build/mariadb
@@ -542,28 +541,6 @@ build-list:
 	@for number in $(foreach image,$(build-images),build/$(image)); do \
 			echo $$number ; \
 	done
-
-# Define list of all tests
-all-k8s-tests-list:=				features-kubernetes \
-														nginx \
-														drupal \
-														active-standby-kubernetes
-all-k8s-tests = $(foreach image,$(all-k8s-tests-list),k8s-tests/$(image))
-
-# Run all k8s tests
-.PHONY: k8s-tests
-k8s-tests: $(all-k8s-tests)
-
-.PHONY: $(all-k8s-tests)
-$(all-k8s-tests): k3d kubernetes-test-services-up
-		$(MAKE) push-local-registry -j6
-		$(eval testname = $(subst k8s-tests/,,$@))
-		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility run --rm \
-			tests-kubernetes ansible-playbook --skip-tags="skip-on-kubernetes" \
-			/ansible/tests/$(testname).yaml \
-			--extra-vars \
-			"$$(cat $$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)') | \
-				jq -rcsR '{kubeconfig: .}')"
 
 # Define list of all tests
 all-controller-k8s-tests-list:=				features-kubernetes \
@@ -624,7 +601,7 @@ openshift-tests: $(all-openshift-tests)
 
 # Run all tests
 .PHONY: tests
-tests: controller-k8s-tests k8s-tests openshift-tests
+tests: controller-k8s-tests openshift-tests
 
 # Wait for Keycloak to be ready (before this no API calls will work)
 .PHONY: wait-for-keycloak
@@ -637,9 +614,6 @@ main-test-services = broker logs2email logs2slack logs2rocketchat logs2microsoft
 
 # Define a list of which Lagoon Services are needed for openshift testing
 openshift-test-services = openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor openshiftmisc tests-openshift
-
-# Define a list of which Lagoon Services are needed for kubernetes testing
-kubernetes-test-services = tests-kubernetes local-registry local-dbaas-provider drush-alias
 
 # Define a list of which Lagoon Services are needed for controller kubernetes testing
 controller-k8s-test-services = controllerhandler tests-controller-kubernetes local-registry local-dbaas-provider drush-alias
@@ -669,10 +643,6 @@ main-test-services-up: $(foreach image,$(main-test-services),build/$(image))
 .PHONY: openshift-test-services-up
 openshift-test-services-up: main-test-services-up $(foreach image,$(openshift-test-services),build/$(image))
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d $(openshift-test-services)
-
-.PHONY: kubernetes-test-services-up
-kubernetes-test-services-up: main-test-services-up $(foreach image,$(kubernetes-test-services),build/$(image))
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d $(kubernetes-test-services)
 
 .PHONY: controller-k8s-test-services-up
 controller-k8s-test-services-up: main-test-services-up $(foreach image,$(controller-k8s-test-services),build/$(image))
