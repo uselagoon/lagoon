@@ -201,7 +201,7 @@ services:
       lagoon.type: custom
       lagoon.template: services/keycloak-db/.lagoon.app.yml
       lagoon.image: amazeeiolagoon/keycloak-db:v1-9-1
-  tests-controller-kubernetes:
+  tests-kubernetes:
     image: ${IMAGE_REPO:-lagoon}/tests
     environment:
       - CLUSTER_TYPE=control-k8s
