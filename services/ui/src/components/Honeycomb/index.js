@@ -4,7 +4,7 @@ import * as R from 'ramda';
 import ProblemsByProject from 'components/ProblemsByProject';
 import { LoadingPageNoHeader } from 'pages/_loading';
 import { ErrorNoHeader } from 'pages/_error';
-import { bp } from 'lib/variables';
+import { bp, color } from 'lib/variables';
 import './styling.css';
 
 const config = {
@@ -91,7 +91,6 @@ const Honeycomb = ({ data, filter }) => {
 
     return (
         <div className="honeycomb-display">
-            {!projects && <LoadingPageNoHeader />}
             {projects &&
             <div className="content-wrapper results">
                 <div className="content">
@@ -140,12 +139,27 @@ const Honeycomb = ({ data, filter }) => {
                             {projectInView ?
                                 <>
                                     <div className="project"><label>Project: {projectInView.name}</label></div>
-                                    {projectInView.environments && projectInView.environments.map(environment => (
-                                        <div key={environment.id} className="environment-wrapper">
-                                            <label className="environment"><h5>Environment: {environment.name}</h5></label>
-                                            <ProblemsByProject key={environment.id} problems={environment.problems || [] } minified={true}/>
-                                        </div>
-                                    ))}
+                                    {projectInView.environments && projectInView.environments.map(environment => {
+                                        const problems = Array.prototype.concat.apply([], environment.problems);
+
+                                        return (
+                                            <div key={environment.id} className="environment-wrapper">
+                                                <div className="environment">
+                                                    <label>Environment: {environment.name}</label>
+                                                    <div className="overview">
+                                                        <ul className="overview-list">
+                                                            <li className="result"><label>Problems </label><span className="text-large">{Object.keys(problems).length}</span></li>
+                                                            <li className="result"><label>Critical </label><span className="text-large red">{problems.filter(p => p.severity === 'CRITICAL').length}</span></li>
+                                                            <li className="result"><label>High </label><span className="text-large blue">{problems.filter(p => p.severity === 'HIGH').length}</span></li>
+                                                            <li className="result"><label>Medium </label><span className="text-large yellow">{problems.filter(p => p.severity === 'MEDIUM').length}</span></li>
+                                                            <li className="result"><label>Low </label><span className="text-large grey">{problems.filter(p => p.severity === 'LOW').length}</span></li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                                <ProblemsByProject key={environment.id} problems={environment.problems || [] } minified={true}/>
+                                            </div>
+                                        )
+                                    })}
                                 </>
                                 : <div className="project">No project selected</div>
                             }
@@ -172,22 +186,31 @@ const Honeycomb = ({ data, filter }) => {
                   @media ${bp.extraWideUp} {
                     margin: 0 calc((100vw / 16) * 3) 0;
                   }
+
                   li.result {
                     display: inline;
                   }
+
                   .project {
                     padding: 20px;
-                    background: #fff;
+                    background: ${color.white};
+                    margin-bottom:  20px;
                   }
+
                   .environment-wrapper {
                     padding-bottom: 20px;
+
                     .environment {
-                      h5 {
-                        padding: 10px 20px;
-                        margin-top: 0;
-                        background: #f3f3f3;
-                      }
+                      display: flex;
+                      justify-content: space-between;
+                      padding: 10px 20px;
+                      margin-top: 0;
+                      background: #f3f3f3;
                     }
+                  }
+
+                  .overview-list {
+                    margin: 0;
                   }
                 }
                 .loading {
