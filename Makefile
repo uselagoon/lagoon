@@ -431,19 +431,6 @@ services :=       api \
 									logs2slack \
 									logs2rocketchat \
 									logs2microsoftteams \
-									openshiftbuilddeploy \
-									openshiftbuilddeploymonitor \
-									openshiftjobs \
-									openshiftjobsmonitor \
-									openshiftmisc \
-									openshiftremove \
-									kubernetesbuilddeploy \
-									kubernetesdeployqueue \
-									kubernetesbuilddeploymonitor \
-									kubernetesjobs \
-									kubernetesjobsmonitor \
-									kubernetesmisc \
-									kubernetesremove \
 									controllerhandler \
 									webhook-handler \
 									webhooks2tasks \
@@ -487,7 +474,7 @@ $(build-services):
 	touch $@
 
 # Dependencies of Service Images
-build/auth-server build/logs2email build/logs2slack build/logs2rocketchat build/logs2microsoftteams build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftjobs build/openshiftjobsmonitor build/openshiftmisc build/openshiftremove build/backup-handler build/kubernetesbuilddeploy build/kubernetesdeployqueue build/kubernetesbuilddeploymonitor build/kubernetesjobs build/kubernetesjobsmonitor build/kubernetesmisc build/kubernetesremove build/controllerhandler build/webhook-handler build/webhooks2tasks build/api build/ui: build/yarn-workspace-builder
+build/auth-server build/logs2email build/logs2slack build/logs2rocketchat build/logs2microsoftteams build/backup-handler build/controllerhandler build/webhook-handler build/webhooks2tasks build/api build/ui: build/yarn-workspace-builder
 build/logs2logs-db: build/logstash__7
 build/logs-db: build/elasticsearch__7
 build/logs-db-ui: build/kibana__7
@@ -652,7 +639,7 @@ main-test-services = broker logs2email logs2slack logs2rocketchat logs2microsoft
 openshift-test-services = openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor openshiftmisc tests-openshift
 
 # Define a list of which Lagoon Services are needed for kubernetes testing
-kubernetes-test-services = kubernetesbuilddeploy kubernetesdeployqueue kubernetesbuilddeploymonitor kubernetesjobs kubernetesjobsmonitor kubernetesremove kubernetesmisc tests-kubernetes local-registry local-dbaas-provider drush-alias
+kubernetes-test-services = tests-kubernetes local-registry local-dbaas-provider drush-alias
 
 # Define a list of which Lagoon Services are needed for controller kubernetes testing
 controller-k8s-test-services = controllerhandler tests-controller-kubernetes local-registry local-dbaas-provider drush-alias
