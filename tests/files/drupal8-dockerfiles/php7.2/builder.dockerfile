@@ -1,5 +1,6 @@
-ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-amazeeio}/php:7.2-cli-drupal
+ARG UPSTREAM_REPO
+ARG UPSTREAM_TAG
+FROM ${UPSTREAM_REPO:-testlagoon}/php-7.2-cli-drupal:${UPSTREAM_TAG:-latest}
 
 COPY composer.json composer.lock /app/
 COPY scripts /app/scripts
