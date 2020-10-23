@@ -25,10 +25,11 @@ services:
       lagoon.rollout: daemonset
       lagoon.template: logs-collector/.lagoon.yml
   docker-host:
-    image: amazeeio/docker-host:latest
+    image: ${IMAGE_REPO:-lagoon}/docker-host
     labels:
       lagoon.type: custom
       lagoon.template: docker-host/docker-host.yaml
+      lagoon.image: amazeeiolagoon/docker-host:v1-9-1
   harborclair:
     image: ${IMAGE_REPO:-lagoon}/harborclair
     labels:

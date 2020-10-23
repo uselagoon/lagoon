@@ -10,7 +10,7 @@ local-dev/helm
 minishift
 minikube
 k3d
-kubectl
+local-dev/kubectl
 **/v8-*
 node_modules/
 build/*

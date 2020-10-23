@@ -1,4 +1,4 @@
-FROM amazeeio/logstash
+FROM uselagoon/logstash-7
 
 RUN sed -ibak s/^xpack.*//g /usr/share/logstash/config/logstash.yml
 

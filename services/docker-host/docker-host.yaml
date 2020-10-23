@@ -39,7 +39,7 @@ parameters:
     value: "Recreate"
   - name: SERVICE_IMAGE
     description: Pullable image of service
-    value: amazeeio/docker-host:latest
+    value: amazeeiolagoon/docker-host:master
 objects:
 - apiVersion: v1
   kind: DeploymentConfig
