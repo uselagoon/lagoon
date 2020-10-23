@@ -175,11 +175,10 @@ const matchRepositoryAgainstPatterns = (repoFullName, matchPatterns = []) => {
   }
 
   const matchPatternDetails = matchingRes.pop() || DEFAULT_REPO_DETAILS_MATCHER;
-
   const {
-    lagoonProjectName = matchPatternDetails.defaultProjectName,
-    lagoonEnvironmentName = matchPatternDetails.defaultEnvironmentName,
-    lagoonServiceName = matchPatternDetails.defaultServiceName,
+    lagoonProjectName = matchPatternDetails.defaultLagoonProject,
+    lagoonEnvironmentName = matchPatternDetails.defaultLagoonEnvironment,
+    lagoonServiceName = matchPatternDetails.defaultLagoonService,
   } = extractRepositoryDetailsGivenRegex(repoFullName, matchPatternDetails.regex);
 
   return {lagoonProjectName, lagoonEnvironmentName, lagoonServiceName};
@@ -190,7 +189,7 @@ const generateRegex = R.memoizeWith(R.identity, re => new RegExp(re));
 const extractRepositoryDetailsGivenRegex = (repoFullName, pattern = DEFAULT_REPO_DETAILS_REGEX) => {
   const re = generateRegex(pattern);
   const match = re.exec(repoFullName);
-  return match.groups;
+  return match.groups || {};
 }
 
 const generateWebhookData = (

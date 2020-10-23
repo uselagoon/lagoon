@@ -24,7 +24,7 @@ const standardProblemHarborScanMatchReturn = {
     description: 'description',
     default_lagoon_project: 'defaultLagoonProject',
     default_lagoon_environment: 'defaultLagoonEnvironment',
-    default_lagoon_service_name: 'defaultLagoonServiceName',
+    default_lagoon_service: 'defaultLagoonServiceName',
     regex: 'regex'
 };
 
