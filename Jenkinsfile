@@ -78,7 +78,7 @@ node {
                 }
               }
               stage ('minishift tests') {
-                withCredentials([string(credentialsId: 'amazeeio-github-bearer-token', variable: 'MINISHIFT_GITHUB_API_TOKEN')]) {
+                withCredentials([string(credentialsId: 'github_api_public_read', variable: 'MINISHIFT_GITHUB_API_TOKEN')]) {
                   try {
                     if (env.CHANGE_ID && pullRequest.labels.contains("skip-openshift-tests")) {
                       sh script: 'echo "PR identified as not needing Openshift testing."', label: "Skipping Openshift testing stage"
