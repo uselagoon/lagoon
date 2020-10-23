@@ -29,13 +29,13 @@ The following environment variables can be set if required:
 ## Container Specific Settings
 
 The following containers make use of configuration files:
-* [HarborClair](harbor-container-settings/harborclair.md)
-* [HarborClairAdapter](harbor-container-settings/harborclairadapter.md)
+
 * [HarborRegistry](harbor-container-settings/harborregistry.md)
 * [HarborRegistryCtl](harbor-container-settings/harborregistryctl.md)
 * [Harbor-Core](harbor-container-settings/harbor-core.md)
 * [Harbor-Database](harbor-container-settings/harbor-database.md)
 * [Harbor-Jobservice](harbor-container-settings/harbor-jobservice.md)
+* [Harbor-Trivy](harbor-container-settings/harbor-trivy.md)
 
 The following containers do not require configuration files to run:
 * Harbor-Nginx

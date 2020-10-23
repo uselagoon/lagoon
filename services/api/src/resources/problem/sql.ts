@@ -91,15 +91,15 @@ export const Sql = {
       .update({ deleted: knex.fn.now() })
       .toString(),
   deleteProblemsFromSource: (environment, source, service) =>
-      knex('environment_problem')
-        .where({
-          environment: environment,
-          source: source,
-          lagoon_service: service,
-        })
-        .where('deleted', '=', '0000-00-00 00:00:00')
-        .update({ deleted: knex.fn.now() })
-        .toString(),
+    knex('environment_problem')
+      .where({
+        environment: environment,
+        source: source,
+        lagoon_service: service,
+      })
+      .where('deleted', '=', '0000-00-00 00:00:00')
+      .update({ deleted: knex.fn.now() })
+      .toString(),
   selectAllProblemHarborScanMatches: () =>
   knex('problem_harbor_scan_matcher')
   .select(standardProblemHarborScanMatchReturn).toString(),

@@ -1,6 +1,7 @@
 # Table of contents
 
 * [Lagoon](README.md)
+* [Getting Started](getting-started.md)
 
 ## Using Lagoon - The Basics
 
@@ -56,12 +57,11 @@
   * [Security Scanning](administering-lagoon/using_harbor/security_scanning.md)
   * [Harbor Settings](administering-lagoon/using_harbor/harbor-settings/README.md)
     * [Harbor-Core](administering-lagoon/using_harbor/harbor-settings/harbor-core.md)
-    * [HarborClair](administering-lagoon/using_harbor/harbor-settings/harborclair.md)
-    * [HarborClairAdapter](administering-lagoon/using_harbor/harbor-settings/harborclairadapter.md)
-    * [HarborRegistry](administering-lagoon/using_harbor/harbor-settings/harborregistry.md)
-    * [HarborRegistryCtl](administering-lagoon/using_harbor/harbor-settings/harborregistryctl.md)
     * [Harbor-Database](administering-lagoon/using_harbor/harbor-settings/harbor-database.md)
     * [Harbor-Jobservice](administering-lagoon/using_harbor/harbor-settings/harbor-jobservice.md)
+    * [Harbor-Trivy](administering-lagoon/using_harbor/harbor-settings/harbor-trivy.md)
+    * [HarborRegistry](administering-lagoon/using_harbor/harbor-settings/harborregistry.md)
+    * [HarborRegistryCtl](administering-lagoon/using_harbor/harbor-settings/harborregistryctl.md)
 
 ## Docker Images
 

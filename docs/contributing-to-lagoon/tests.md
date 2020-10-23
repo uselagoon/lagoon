@@ -37,7 +37,7 @@ make logs service=webhook-handler
 
 Sometimes you will want to see what is happening inside of [Jenkins](https://jenkins.io/doc/). Your Jenkins instance can be found here:
 
-[http://localhost:8888/](http://localhost:8888/)       \(`admin`:`admin`\)
+[http://localhost:8888/](http://localhost:8888/) \(`admin`:`admin`\)
 
 Sometimes you just want to create another push webhook without having to wait for the Git repository to be initialized and pushed.
 
@@ -57,7 +57,7 @@ This will build all images, start an OpenShift and run all tests.
 
 To make sure that our services also work in the real world \(for example, deployed on OpenShift with real URLs, real Git repositories, etc.\), we also have tests for this. Currently we only deploy the `develop` and `master` branches to a real OpenShift infrastructure.
 
-For these tests, we use the exact same Ansible scripts, and just like the local and automated testing, we  push to an actual GitHub repository \([https://github.com/amazeeio-ci-testing](https://github.com/amazeeio-ci-testing)\), and send webhooks to webhook handlers that are running OpenShift.
+For these tests, we use the exact same Ansible scripts, and just like the local and automated testing, we push to an actual GitHub repository \([https://github.com/amazeeio-ci-testing](https://github.com/amazeeio-ci-testing)\), and send webhooks to webhook handlers that are running OpenShift.
 
 These tests are defined in `Jenkinsfile.testing-develop` and `Jenkinsfile.testing-master`. They get their testing infrastructure \(endpoints, etc.\) from a `docker-compose.yml` file within the `tests` folder.
 

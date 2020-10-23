@@ -195,12 +195,13 @@ const typeDefs = gql`
     service: String!
   }
 
-
   type Fact {
     id: Int
     environment: Environment
     name: String
     value: String
+    source: String
+    description: String
   }
 
   input AddFactInput {
@@ -208,11 +209,35 @@ const typeDefs = gql`
     environment: Int!
     name: String!
     value: String!
+    source: String!
+    description: String!
+  }
+  
+  input AddFactsInput {
+    facts: [AddFactInput]!
+  }
+  
+  input UpdateFactInputValue {
+    environment: Int!
+    name: String!
+    value: String!
+    source: String!
+    description: String
+  }
+  
+  input UpdateFactInput {
+    environment: Int!
+    patch: UpdateFactInputValue!
   }
 
   input DeleteFactInput {
     environment: Int!
     name: String!
+  }
+  
+  input DeleteFactsFromSourceInput {
+    environment: Int!
+    source: String!
   }
 
   type File {
@@ -1485,7 +1510,9 @@ const typeDefs = gql`
     deleteProblemsFromSource(input: DeleteProblemsFromSourceInput!): String
     deleteProblemHarborScanMatch(input: DeleteProblemHarborScanMatchInput!): String
     addFact(input: AddFactInput!): Fact
+    addFacts(input: AddFactsInput!): [Fact]
     deleteFact(input: DeleteFactInput!): String
+    deleteFactsFromSource(input: DeleteFactsFromSourceInput!): String
     deleteBackup(input: DeleteBackupInput!): String
     deleteAllBackups: String
     addRestore(input: AddRestoreInput!): Restore

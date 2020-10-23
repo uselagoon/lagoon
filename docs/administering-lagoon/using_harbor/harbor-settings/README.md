@@ -2,15 +2,15 @@
 
 There are a variety of settings you can configure for Harbor's services. Each has its own YAML file.
 
-[HarborClair](harborclair.md)
+[HarborClair]()
 
-[HarborClairAdapter](harborclairadapter.md)
+[HarborClairAdapter]()
 
 [HarborRegistry](harborregistry.md)
 
 [HarborRegistryCtl](harborregistryctl.md)
 
-[Harbor-Core](harbor-core.md)
+[Harbor-Core]()
 
 [Harbor-Database](harbor-database.md)
 

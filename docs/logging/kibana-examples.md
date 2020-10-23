@@ -10,7 +10,7 @@ Make sure that you have selected your tenant before starting! You can do that by
 
 ## Router Logs
 
-Below you'll find examples for two common log requests: 
+Below you'll find examples for two common log requests:
 
 * Viewing the total number of hits/requests to your site.
 * Viewing the number of hits/requests from a specific IP address. 
@@ -100,6 +100,4 @@ Also note that you can save your visualizations \(and searches\)! That will make
 ## Troubleshooting
 
 {% embed url="https://www.youtube.com/watch?v=hyUMRlQTXEA" caption="How do I fix an internal server error in Kibana?" %}
-
-
 

@@ -27,19 +27,15 @@ The configmap from which this config file is generated is stored within Lagoon i
     * This can also be set to `debug` to enable very verbose logging.
 * **`NO_PROXY`**
   * A list of hosts which should never have their requests proxied.
-  * The default is `harbor-core,harbor-jobservice,harbor-database,harborclair,harborclairadapter,harborregistry,harbor-portal,127.0.0.1,localhost,.local,.internal`
+  * The default is `harbor-core,harbor-jobservice,harbor-database,harbor-trivy,harborregistry,harbor-portal,127.0.0.1,localhost,.local,.internal`.
 * **`REGISTRY_CONTROLLER_URL`**
   * This value tells the service where to connect to the `harborregistryctl` service.
   * The default value is set to `http://harborregistryctl:8080`
-* **`SCANNER_CLAIR_DATABASE_URL`**
-  * This value tells `harborclair` how to connect to its Postgres database.
-  * The default value is `postgres://postgres:test123@harbor-database:5432/postgres?sslmode=disable` when Harbor is run locally or during CI testing.
-  * This value is retrieved from a secret created when Harbor is first set up on a running Lagoon, as the Postgres password needs to be injected here.
 * **`SCANNER_LOG_LEVEL`**
   * The logging level the scanning service should use.
   * The default value is `error`.
     * This can also be set to `debug` to enable very verbose logging.
 * **`SCANNER_STORE_REDIS_URL`**
-  * This value tells `harborclair` how to connect to its Redis store.
+  * This value tells `harbor-trivy` how to connect to its Redis store.
   * The default value is `redis://harbor-redis:6379/4`.
 
