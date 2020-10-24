@@ -572,6 +572,8 @@ publish-amazeeio-baseimages: $(publish-amazeeio-baseimages)
 $(publish-amazeeio-baseimages):
 #   Calling docker_publish for image, but remove the prefix '[publish-amazeeio-baseimages]-' first
 		$(eval image = $(subst [publish-amazeeio-baseimages]-,,$@))
+# 	Publish images as :latest
+		$(call docker_publish_amazeeio,$(image),$(image):latest)
 # 	Publish images with version tag
 		$(call docker_publish_amazeeio,$(image),$(image):$(LAGOON_VERSION))
 
@@ -586,6 +588,8 @@ publish-amazeeio-taskimages: $(publish-amazeeio-taskimages)
 $(publish-amazeeio-taskimages):
 #   Calling docker_publish for image, but remove the prefix '[publish-amazeeio-taskimages]-' first
 		$(eval image = $(subst [publish-amazeeio-taskimages]-,,$@))
+# 	Publish images as :latest
+		$(call docker_publish_amazeeio,$(image),$(image):latest)
 # 	Publish images with version tag
 		$(call docker_publish_amazeeio,$(image),$(image):$(LAGOON_VERSION))
 
