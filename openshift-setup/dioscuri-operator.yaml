@@ -94,6 +94,96 @@ status:
   conditions: []
   storedVersions: []
 ---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.2.4
+  creationTimestamp: null
+  name: hostmigrations.dioscuri.amazee.io
+spec:
+  group: dioscuri.amazee.io
+  names:
+    kind: HostMigration
+    listKind: HostMigrationList
+    plural: hostmigrations
+    singular: hostmigration
+  scope: Namespaced
+  validation:
+    openAPIV3Schema:
+      description: HostMigration is the Schema for the hostmigrations API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: HostMigrationSpec defines the desired state of HostMigration
+          properties:
+            destinationNamespace:
+              description: Migrate is an example field of RouteMigrate. Edit RouteMigrate_types.go
+                to remove/update
+              type: string
+            hosts:
+              description: HostMigrationHosts .
+              properties:
+                activeHosts:
+                  type: string
+                standbyHosts:
+                  type: string
+              required:
+              - activeHosts
+              - standbyHosts
+              type: object
+          type: object
+        status:
+          description: HostMigrationStatus defines the observed state of RouteMigrate
+          properties:
+            conditions:
+              description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
+                of cluster Important: Run "make" to regenerate code after modifying
+                this file'
+              items:
+                description: HostMigrationConditions defines the observed conditions
+                  of the migrations
+                properties:
+                  condition:
+                    type: string
+                  lastTransitionTime:
+                    type: string
+                  status:
+                    type: string
+                  type:
+                    type: string
+                required:
+                - condition
+                - lastTransitionTime
+                - status
+                - type
+                type: object
+              type: array
+          type: object
+      type: object
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -286,7 +376,7 @@ spec:
         - --enable-leader-election
         command:
         - /manager
-        image: amazeeio/dioscuri:v0.1.4
+        image: amazeeio/dioscuri:v0.1.6rc2
         name: manager
         resources:
           limits:
