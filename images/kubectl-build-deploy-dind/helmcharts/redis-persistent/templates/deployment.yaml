@@ -17,6 +17,7 @@ spec:
     metadata:
       labels:
         {{- include "redis-persistent.labels" . | nindent 8 }}
+        {{- include "redis-persistent.datadogLabels" . | nindent 8 }}
       annotations:
         {{- include "redis-persistent.annotations" . | nindent 8 }}
         lagoon.sh/configMapSha: {{ .Values.configMapSha | quote }}

@@ -1,5 +1,6 @@
-ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-lagoon}/node:10-builder
+ARG UPSTREAM_REPO
+ARG UPSTREAM_TAG
+FROM ${UPSTREAM_REPO:-uselagoon}/node-10-builder:${UPSTREAM_TAG:-latest}
 
 RUN apk add --no-cache \
         libexecinfo-dev \

@@ -1,2 +1,3 @@
-ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-amazeeio}/redis
+ARG UPSTREAM_REPO
+ARG UPSTREAM_TAG
+FROM ${UPSTREAM_REPO:-testlagoon}/redis-5:${UPSTREAM_TAG:-latest}
