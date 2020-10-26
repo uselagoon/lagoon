@@ -287,9 +287,6 @@ build/tests-controller-kubernetes: build/tests
 build/tests-kubernetes: build/tests
 build/tests-openshift: build/tests
 build/tests-controller-openshift: build/tests
-build/toolbox: build/mariadb
-build/api-redis: build/redis
-
 build/tests: tests/Dockerfile
 # Auth SSH needs the context of the root folder, so we have it individually
 build/ssh: services/ssh/Dockerfile
