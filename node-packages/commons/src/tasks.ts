@@ -403,60 +403,59 @@ const getControllerBuildData = async function(deployData: any) {
   }
 
   let buildImage = {}
+  // @TODO: revise this section around deciding which image to use
+  // it will probably end up being removed as the controller will handle it, but it would still be good to be able to maybe have a per-project
+  // or per-environment build image overwrite
   // During CI we want to use the OpenShift Registry for our build Image and use the OpenShift registry for the base Images
   // Since the Operator could eventually support openshift, we can handle which image to supply here
-  if (CI == "true") {
-    switch (project.activeSystemsDeploy) {
-      case 'lagoon_openshiftBuildDeploy':
-      case 'lagoon_osControllerBuildDeploy':
-        buildImage = "172.17.0.1:5000/lagoon/oc-build-deploy-dind:latest"
-        break;
-      default:
-        // default to the kubectl builddeploy dind since the controllers and kubernetes use the same underlying process
-        buildImage = "172.17.0.1:5000/lagoon/kubectl-build-deploy-dind:latest"
-    }
-  } else if (overwriteOCBuildDeployDindImage) {
-    // allow to overwrite the image we use via OVERWRITE_OC_BUILD_DEPLOY_DIND_IMAGE env variable
-    // this needs to be added to the `api` deployment/pods to be used
-    switch (project.activeSystemsDeploy) {
-      case 'lagoon_openshiftBuildDeploy':
-      case 'lagoon_osControllerBuildDeploy':
-        buildImage = overwriteOCBuildDeployDindImage
-        break;
-    }
-  } else if (overwriteKubectlBuildDeployDindImage) {
-    // allow to overwrite the image we use via OVERWRITE_KUBECTL_BUILD_DEPLOY_DIND_IMAGE env variable
-    // this needs to be added to the `api` deployment/pods to be used
-    switch (project.activeSystemsDeploy) {
-      case 'lagoon_controllerBuildDeploy':
-      case 'lagoon_kubernetesBuildDeploy':
-        buildImage = overwriteKubectlBuildDeployDindImage
-        break;
-    }
-  } else if (lagoonEnvironmentType == 'production') {
-    // we are a production environment, use the amazeeio/ image with our current lagoon version
-    switch (project.activeSystemsDeploy) {
-      case 'lagoon_openshiftBuildDeploy':
-      case 'lagoon_osControllerBuildDeploy':
-        buildImage = `amazeeio/oc-build-deploy-dind:${lagoonVersion}`
-        break;
-      default:
-          // default to the kubectl builddeploy dind since the controllers and kubernetes use the same underlying process
-        buildImage = `amazeeio/kubectl-build-deploy-dind:${lagoonVersion}`
-    }
-  } else {
-    // we are a development enviornment, use the amazeeiolagoon image with the same branch name
-    buildImage = `amazeeiolagoon/kubectl-build-deploy-dind:${lagoonGitSafeBranch}`
-    switch (project.activeSystemsDeploy) {
-      case 'lagoon_openshiftBuildDeploy':
-      case 'lagoon_osControllerBuildDeploy':
-        buildImage = `amazeeiolagoon/oc-build-deploy-dind:${lagoonGitSafeBranch}`
-        break;
-      default:
-          // default to the kubectl builddeploy dind since the controllers and kubernetes use the same underlying process
-        buildImage = `amazeeiolagoon/kubectl-build-deploy-dind:${lagoonGitSafeBranch}`
-    }
-  }
+  // if (CI == "true") {
+  //   switch (project.activeSystemsDeploy) {
+  //     case 'lagoon_openshiftBuildDeploy':
+  //       buildImage = "172.17.0.1:5000/lagoon/oc-build-deploy-dind:latest"
+  //       break;
+  //     default:
+  //       // default to the kubectl builddeploy dind since the controllers and kubernetes use the same underlying process
+  //       buildImage = "172.17.0.1:5000/lagoon/kubectl-build-deploy-dind:latest"
+  //   }
+  // } else if (overwriteOCBuildDeployDindImage) {
+  //   // allow to overwrite the image we use via OVERWRITE_OC_BUILD_DEPLOY_DIND_IMAGE env variable
+  //   // this needs to be added to the `api` deployment/pods to be used
+  //   switch (project.activeSystemsDeploy) {
+  //     case 'lagoon_openshiftBuildDeploy':
+  //       buildImage = overwriteOCBuildDeployDindImage
+  //       break;
+  //   }
+  // } else if (overwriteKubectlBuildDeployDindImage) {
+  //   // allow to overwrite the image we use via OVERWRITE_KUBECTL_BUILD_DEPLOY_DIND_IMAGE env variable
+  //   // this needs to be added to the `api` deployment/pods to be used
+  //   switch (project.activeSystemsDeploy) {
+  //     case 'lagoon_controllerBuildDeploy':
+  //     case 'lagoon_kubernetesBuildDeploy':
+  //       buildImage = overwriteKubectlBuildDeployDindImage
+  //       break;
+  //   }
+  // } else if (lagoonEnvironmentType == 'production') {
+  //   // we are a production environment, use the amazeeio/ image with our current lagoon version
+  //   switch (project.activeSystemsDeploy) {
+  //     case 'lagoon_openshiftBuildDeploy':
+  //       buildImage = `amazeeio/oc-build-deploy-dind:${lagoonVersion}`
+  //       break;
+  //     default:
+  //         // default to the kubectl builddeploy dind since the controllers and kubernetes use the same underlying process
+  //       buildImage = `amazeeio/kubectl-build-deploy-dind:${lagoonVersion}`
+  //   }
+  // } else {
+  //   // we are a development enviornment, use the amazeeiolagoon image with the same branch name
+  //   buildImage = `amazeeiolagoon/kubectl-build-deploy-dind:${lagoonGitSafeBranch}`
+  //   switch (project.activeSystemsDeploy) {
+  //     case 'lagoon_openshiftBuildDeploy':
+  //       buildImage = `amazeeiolagoon/oc-build-deploy-dind:${lagoonGitSafeBranch}`
+  //       break;
+  //     default:
+  //         // default to the kubectl builddeploy dind since the controllers and kubernetes use the same underlying process
+  //       buildImage = `amazeeiolagoon/kubectl-build-deploy-dind:${lagoonGitSafeBranch}`
+  //   }
+  // }
 
 
   // encode some values so they get sent to the controllers nicely
@@ -610,10 +609,6 @@ export const createDeployTask = async function(deployData: any) {
                 // controllers uses a different message than the other services, so we need to source it here
                 const buildDeployData = await getControllerBuildData(deployData);
                 return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
-              case 'lagoon_osControllerBuildDeploy':
-                const osBuildDeployData = await getControllerBuildData(deployData);
-                osBuildDeployData.spec.openshift = true;
-                return sendToLagoonTasks(osBuildDeployData.spec.project.deployTarget+':builddeploy', osBuildDeployData);
               default:
                 throw new UnknownActiveSystem(
                   `Unknown active system '${project.activeSystemsDeploy}' for task 'deploy' in for project ${projectName}`
@@ -632,10 +627,6 @@ export const createDeployTask = async function(deployData: any) {
                 // controllers uses a different message than the other services, so we need to source it here
                 const buildDeployData = await getControllerBuildData(deployData);
                 return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
-              case 'lagoon_osControllerBuildDeploy':
-                const osBuildDeployData = await getControllerBuildData(deployData);
-                osBuildDeployData.spec.openshift = true;
-                return sendToLagoonTasks(osBuildDeployData.spec.project.deployTarget+':builddeploy', osBuildDeployData);
               default:
                 throw new UnknownActiveSystem(
                   `Unknown active system '${project.activeSystemsDeploy}' for task 'deploy' in for project ${projectName}`
@@ -667,10 +658,6 @@ export const createDeployTask = async function(deployData: any) {
                   // controllers uses a different message than the other services, so we need to source it here
                   const buildDeployData = await getControllerBuildData(deployData);
                   return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
-                case 'lagoon_osControllerBuildDeploy':
-                  const osBuildDeployData = await getControllerBuildData(deployData);
-                  osBuildDeployData.spec.openshift = true;
-                  return sendToLagoonTasks(osBuildDeployData.spec.project.deployTarget+':builddeploy', osBuildDeployData);
                 default:
                   throw new UnknownActiveSystem(
                     `Unknown active system '${project.activeSystemsDeploy}' for task 'deploy' in for project ${projectName}`
@@ -698,13 +685,9 @@ export const createDeployTask = async function(deployData: any) {
               case 'lagoon_kubernetesBuildDeploy':
                 return sendToLagoonTasks('builddeploy-kubernetes', deployData);
               case 'lagoon_controllerBuildDeploy':
-                  // controllers uses a different message than the other services, so we need to source it here
-                  const buildDeployData = await getControllerBuildData(deployData);
-                  return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
-              case 'lagoon_osControllerBuildDeploy':
-                const osBuildDeployData = await getControllerBuildData(deployData);
-                osBuildDeployData.spec.openshift = true;
-                return sendToLagoonTasks(osBuildDeployData.spec.project.deployTarget+':builddeploy', osBuildDeployData);
+                // controllers uses a different message than the other services, so we need to source it here
+                const buildDeployData = await getControllerBuildData(deployData);
+                return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
               default:
                 throw new UnknownActiveSystem(
                   `Unknown active system '${
@@ -722,14 +705,9 @@ export const createDeployTask = async function(deployData: any) {
               case 'lagoon_kubernetesBuildDeploy':
                 return sendToLagoonTasks('builddeploy-kubernetes', deployData);
               case 'lagoon_controllerBuildDeploy':
-                  // controllers uses a different message than the other services, so we need to source it here
-                  const buildDeployData = await getControllerBuildData(deployData);
-                  return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
-              case 'lagoon_osControllerBuildDeploy':
-                const osBuildDeployData = await getControllerBuildData(deployData);
-                osBuildDeployData.spec.openshift = true;
-                return sendToLagoonTasks(osBuildDeployData.spec.project.deployTarget+':builddeploy', osBuildDeployData);
-                // return sendToLagoonTasks('builddeploy-openshift', deployData);
+                // controllers uses a different message than the other services, so we need to source it here
+                const buildDeployData = await getControllerBuildData(deployData);
+                return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
               default:
                 throw new UnknownActiveSystem(
                   `Unknown active system '${
@@ -758,13 +736,9 @@ export const createDeployTask = async function(deployData: any) {
                 case 'lagoon_kubernetesBuildDeploy':
                   return sendToLagoonTasks('builddeploy-kubernetes', deployData);
                 case 'lagoon_controllerBuildDeploy':
-                    // controllers uses a different message than the other services, so we need to source it here
-                    const buildDeployData = await getControllerBuildData(deployData);
-                    return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
-                case 'lagoon_osControllerBuildDeploy':
-                  const osBuildDeployData = await getControllerBuildData(deployData);
-                  osBuildDeployData.spec.openshift = true;
-                  return sendToLagoonTasks(osBuildDeployData.spec.project.deployTarget+':builddeploy', osBuildDeployData);
+                  // controllers uses a different message than the other services, so we need to source it here
+                  const buildDeployData = await getControllerBuildData(deployData);
+                  return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
                 default:
                   throw new UnknownActiveSystem(
                     `Unknown active system '${
@@ -809,9 +783,8 @@ export const createPromoteTask = async function(promoteData: any) {
   switch (project.activeSystemsPromote) {
     case 'lagoon_openshiftBuildDeploy':
       return sendToLagoonTasks('builddeploy-openshift', promoteData);
-    case 'lagoon_osControllerBuildDeploy':
+    case 'lagoon_controllerBuildDeploy':
         const buildDeployData = await getControllerBuildData(promoteData);
-        buildDeployData.spec.openshift = true;
         return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
 
     default:
@@ -1079,34 +1052,12 @@ const restoreConfig = (name, backupId, safeProjectName) => {
 };
 
 // creates the route/ingress migration config
-const migrateIngress = (destinationNamespace, sourceNamespace) => {
+const migrateHosts = (destinationNamespace, sourceNamespace) => {
   const randId = Math.random().toString(36).substring(7);
-  const migrateName = `ingress-migrate-${randId}`;
+  const migrateName = `host-migration-${randId}`;
   let config = {
     apiVersion: 'dioscuri.amazee.io/v1',
-    kind: 'IngressMigrate',
-    metadata: {
-      name: migrateName,
-      annotations: {
-          'dioscuri.amazee.io/migrate':'true'
-      }
-    },
-    spec: {
-      destinationNamespace: destinationNamespace,
-      activeEnvironment: sourceNamespace,
-    },
-  };
-
-  return config;
-};
-
-// creates the route/ingress migration config
-const migrateRoute = (destinationNamespace, sourceNamespace) => {
-  const randId = Math.random().toString(36).substring(7);
-  const migrateName = `ingress-migrate-${randId}`;
-  let config = {
-    apiVersion: 'dioscuri.amazee.io/v1',
-    kind: 'RouteMigrate',
+    kind: 'HostMigration',
     metadata: {
       name: migrateName,
       annotations: {
@@ -1206,7 +1157,7 @@ export const createMiscTask = async function(taskData: any) {
           // handle setting up the task configuration for running the active/standby switch
           // this uses the `advanced task` system in the controllers
           // first generate the migration CRD
-          const migrateConf = migrateRoute(
+          const migrateConf = migrateHosts(
             makeSafe(taskData.data.productionEnvironment.openshiftProjectName),
             makeSafe(taskData.data.environment.openshiftProjectName))
           // generate out custom json payload to send to the advanced task
@@ -1234,7 +1185,6 @@ export const createMiscTask = async function(taskData: any) {
             taskImage = `amazeeiolagoon/task-activestandby:${lagoonGitSafeBranch}`
           }
           miscTaskData.advancedTask.runnerImage = taskImage
-          // miscTaskData.advancedTask.runnerImage = "shreddedbacon/runner:latest"
           break;
         case 'openshift:build:cancel':
           // build cancellation is just a standard unmodified message
@@ -1287,7 +1237,7 @@ export const createMiscTask = async function(taskData: any) {
           // handle setting up the task configuration for running the active/standby switch
           // this uses the `advanced task` system in the controllers
           // first generate the migration CRD
-          const migrateConf = migrateIngress(
+          const migrateConf = migrateHosts(
             makeSafe(taskData.data.productionEnvironment.openshiftProjectName),
             makeSafe(taskData.data.environment.openshiftProjectName))
           // generate out custom json payload to send to the advanced task
