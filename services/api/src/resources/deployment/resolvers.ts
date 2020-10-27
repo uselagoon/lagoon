@@ -878,7 +878,7 @@ export const switchActiveStandby: ResolverFn = async (
     );
     data.task.id = sourceTaskData.addTask.id.toString()
 
-    // then send the task to openshiftmisc to trigger the migration
+    // queue the task to trigger the migration
     await createMiscTask({ key: 'route:migrate', data });
 
     // return the task id and remote id

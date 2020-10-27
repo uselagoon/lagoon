@@ -87,7 +87,6 @@ const taskPrefetch = process.env.TASK_PREFETCH_COUNT ? Number(process.env.TASK_P
 const taskMonitorPrefetch = process.env.TASKMONITOR_PREFETCH_COUNT ? Number(process.env.TASKMONITOR_PREFETCH_COUNT) : 1;
 
 // these are required for the builddeploydata creation
-// they match what are used in the kubernetesbuilddeploy service
 const CI = process.env.CI || "false"
 const registry = process.env.REGISTRY || "registry.lagoon.svc:5000"
 const lagoonGitSafeBranch = process.env.LAGOON_GIT_SAFE_BRANCH || "master"
@@ -246,8 +245,8 @@ export const createTaskMonitor = async function(task: string, payload: any) {
 // makes strings "safe" if it is to be used in something dns related
 const makeSafe = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
 
-// This is used to replace the functionality in `kubernetesbuilddeploy` to handle sending the required information
-// directly to the message queue for the controllers to consume
+// This is used to send the required information directly to the message queue
+// for the controllers to consume
 // @TODO: make sure if it fails, it does so properly
 const getOperatorBuildData = async function(deployData: any) {
   const {
