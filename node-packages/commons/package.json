@@ -30,7 +30,7 @@
     "jsonwebtoken": "^8.0.1",
     "kubernetes-client": "^3.15.0",
     "lokka": "^1.7.0",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.1",
     "ramda": "^0.25.0",
     "sha1": "^1.1.1",
     "winston": "^2.4.0",
