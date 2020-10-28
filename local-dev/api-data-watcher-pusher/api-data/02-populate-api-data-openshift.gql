@@ -1005,7 +1005,7 @@ mutation PopulateApi {
         id: 23
         name: "ci-branch-picky-openshift"
         productionEnvironment: "master"
-        openshift: 1
+        openshift: 2
         branches: "^feature/|^(dev|test|develop|master)$"
         developmentEnvironmentsLimit: 5
         gitUrl: "ssh://git@172.17.0.1:2222/git/node.git"
