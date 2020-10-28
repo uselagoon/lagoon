@@ -286,25 +286,6 @@ export const updateRestore = (
     { backupId, patch }
   );
 
-export const getAllEnvironmentBackups = (): Promise<Project[]> =>
-  graphqlapi.query(
-    `
-  {
-    allEnvironments {
-      id
-      name
-      openshiftProjectName
-      project {
-        name
-      }
-      backups {
-        ...${backupFragment}
-      }
-    }
-  }
-`
-  );
-
 export const getEnvironmentBackups = (
   openshiftProjectName: string
 ): Promise<any[]> =>
@@ -1073,17 +1054,6 @@ export const getEnvironmentsForProject = (
   }
 `);
 
-export const getProductionEnvironmentForProject = (
-  project: string
-): Promise<any> =>
-  graphqlapi.query(`
-    {
-      project:projectByName(name: "${project}"){
-        productionEnvironment
-      }
-    }
-`);
-
 export const setEnvironmentServices = (
   environment: number,
   services: string[]
@@ -1419,7 +1389,7 @@ fragment on Problem {
   data
   created
   deleted
-} 
+}
 `);
 
 export const getProblemsforProjectEnvironment = async (
