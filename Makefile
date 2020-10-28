@@ -269,7 +269,7 @@ build/harbor-jobservice: services/harbor-jobservice/Dockerfile
 build/harbor-nginx: services/harbor-nginx/Dockerfile
 build/harbor-portal: services/harbor-portal/Dockerfile
 build/harbor-redis: services/harbor-redis/Dockerfile
-build/harbor-trivy: services/harbor-trivy/Dockerfile
+build/harbor-trivy build/local-minio: services/harbor-trivy/Dockerfile
 build/harborregistry: services/harborregistry/Dockerfile
 build/harborregistryctl: services/harborregistryctl/Dockerfile
 build/keycloak-db: services/keycloak-db/Dockerfile
