@@ -35,7 +35,7 @@ spec:
           envFrom:
             - configMapRef:
                 name: lagoon-env
-          image: imagecache.amazeeio.cloud/alpine
+          image: imagecache.amazeeio.cloud/library/alpine
           imagePullPolicy: Always
           name: {{ include "solr.fullname" . }}-prebackuppod
           volumeMounts:
