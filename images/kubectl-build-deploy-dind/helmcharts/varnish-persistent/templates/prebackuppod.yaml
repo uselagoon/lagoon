@@ -35,7 +35,7 @@ spec:
           envFrom:
             - configMapRef:
                 name: lagoon-env
-          image: https://imagecache.amazeeio.cloud/alpine
+          image: imagecache.amazeeio.cloud/alpine
           imagePullPolicy: Always
           name: {{ include "varnish-persistent.fullname" . }}-prebackuppod
           volumeMounts:

@@ -107,6 +107,6 @@ objects:
                   configMapKeyRef:
                     key: ${SERVICE_NAME_UPPERCASE}_DATABASE
                     name: lagoon-env
-            image: https://imagecache.amazeeio.cloud/amazeeio/alpine-mysql-client
+            image: imagecache.amazeeio.cloud/amazeeio/alpine-mysql-client
             imagePullPolicy: Always
             name: ${SERVICE_NAME}-prebackuppod
