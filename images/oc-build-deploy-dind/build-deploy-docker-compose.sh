@@ -940,11 +940,11 @@ if [[ $THIS_IS_TUG == "true" ]]; then
 
 elif [ "$TYPE" == "pullrequest" ] || [ "$TYPE" == "branch" ]; then
 
-  # All images that should be pulled are tagged as Images directly in OpenShift Registry
+  # All images that should be pulled are copied to the openshift and harbor registry
   for IMAGE_NAME in "${!IMAGES_PULL[@]}"
   do
     PULL_IMAGE="${IMAGES_PULL[${IMAGE_NAME}]}"
-    . /oc-build-deploy/scripts/exec-openshift-tag-dockerhub.sh
+    . /oc-build-deploy/scripts/exec-openshift-copy-to-registry.sh
   done
 
   for IMAGE_NAME in "${!IMAGES_BUILD[@]}"
