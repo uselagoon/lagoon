@@ -930,13 +930,13 @@ if [[ $THIS_IS_TUG == "true" ]]; then
 
 elif [ "$BUILD_TYPE" == "pullrequest" ] || [ "$BUILD_TYPE" == "branch" ]; then
 
-  # All images that should be pulled are tagged as Images directly in OpenShift Registry
+  # All images that should be pulled are copied to the harbor registry
   for IMAGE_NAME in "${!IMAGES_PULL[@]}"
   do
     PULL_IMAGE="${IMAGES_PULL[${IMAGE_NAME}]}"
-    # . /kubectl-build-deploy/scripts/exec-kubernetes-tag-dockerhub.sh
-    # TODO: check if we can download and push the images to harbour (e.g. how artifactory does this)
-    IMAGE_HASHES[${IMAGE_NAME}]=$(skopeo inspect docker://${PULL_IMAGE} --tls-verify=false | jq ".Name + \"@\" + .Digest" -r)
+    . /kubectl-build-deploy/scripts/exec-kubernetes-copy-to-registry.sh
+
+    IMAGE_HASHES[${IMAGE_NAME}]=$(skopeo inspect docker://${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG:-latest} --tls-verify=false | jq ".Name + \"@\" + .Digest" -r)
   done
 
   for IMAGE_NAME in "${!IMAGES_BUILD[@]}"
