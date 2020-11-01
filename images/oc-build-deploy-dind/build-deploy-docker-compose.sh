@@ -368,7 +368,7 @@ if [[ ( "$TYPE" == "pullrequest"  ||  "$TYPE" == "branch" ) && ! $THIS_IS_TUG ==
 
       # if the image just is an image name (like "alpine") we prefix it with `libary/` as the imagecache does not understand
       # the magic `alpine` images
-      if [[ ! "$IMAGE" =~ "/" ]]; then
+      if [[ ! "$PULL_IMAGE" =~ "/" ]]; then
         PULL_IMAGE="library/$PULL_IMAGE"
       fi
 
