@@ -567,7 +567,7 @@ spec:
         - --openshift
         command:
         - /manager
-        image: amazeeio/dioscuri:v0.1.6rc2
+        image: amazeeio/dioscuri:v0.1.6
         name: manager
         resources:
           limits:
