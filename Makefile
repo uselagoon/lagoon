@@ -269,7 +269,7 @@ build/harbor-jobservice: services/harbor-jobservice/Dockerfile
 build/harbor-nginx: services/harbor-nginx/Dockerfile
 build/harbor-portal: services/harbor-portal/Dockerfile
 build/harbor-redis: services/harbor-redis/Dockerfile
-build/harbor-trivy: services/harbor-trivy/Dockerfile
+build/harbor-trivy build/local-minio: services/harbor-trivy/Dockerfile
 build/harborregistry: services/harborregistry/Dockerfile
 build/harborregistryctl: services/harborregistryctl/Dockerfile
 build/keycloak-db: services/keycloak-db/Dockerfile
@@ -445,7 +445,7 @@ wait-for-keycloak:
 	grep -m 1 "Config of Keycloak done." <(docker-compose -p $(CI_BUILD_TAG) --compatibility logs -f keycloak 2>&1)
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
-main-test-services = broker logs2email logs2slack logs2rocketchat logs2microsoftteams api api-db keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher harbor-core harbor-database harbor-jobservice harbor-portal harbor-nginx harbor-redis harborregistry harborregistryctl harbor-trivy
+main-test-services = broker logs2email logs2slack logs2rocketchat logs2microsoftteams api api-db keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher harbor-core harbor-database harbor-jobservice harbor-portal harbor-nginx harbor-redis harborregistry harborregistryctl harbor-trivy local-minio
 
 # Define a list of which Lagoon Services are needed for openshift testing
 openshift-test-services = openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor openshiftmisc tests-openshift
@@ -621,6 +621,8 @@ publish-amazeeio-baseimages: $(publish-amazeeio-baseimages)
 $(publish-amazeeio-baseimages):
 #   Calling docker_publish for image, but remove the prefix '[publish-amazeeio-baseimages]-' first
 		$(eval image = $(subst [publish-amazeeio-baseimages]-,,$@))
+# 	Publish images as :latest
+		$(call docker_publish_amazeeio,$(image),$(image):latest)
 # 	Publish images with version tag
 		$(call docker_publish_amazeeio,$(image),$(image):$(LAGOON_VERSION))
 
@@ -635,6 +637,8 @@ publish-amazeeio-taskimages: $(publish-amazeeio-taskimages)
 $(publish-amazeeio-taskimages):
 #   Calling docker_publish for image, but remove the prefix '[publish-amazeeio-taskimages]-' first
 		$(eval image = $(subst [publish-amazeeio-taskimages]-,,$@))
+# 	Publish images as :latest
+		$(call docker_publish_amazeeio,$(image),$(image):latest)
 # 	Publish images with version tag
 		$(call docker_publish_amazeeio,$(image),$(image):$(LAGOON_VERSION))
 
