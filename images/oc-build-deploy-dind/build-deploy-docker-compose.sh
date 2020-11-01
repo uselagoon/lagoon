@@ -371,6 +371,12 @@ if [[ ( "$TYPE" == "pullrequest"  ||  "$TYPE" == "branch" ) && ! $THIS_IS_TUG ==
         PULL_IMAGE=$(echo "${OVERRIDE_IMAGE}" | envsubst)
       fi
 
+      # if the image just is an image name (like "alpine") we prefix it with `libary/` as the imagecache does not understand
+      # the magic `alpine` images
+      if [[ ! "$PULL_IMAGE" =~ "/" ]]; then
+        PULL_IMAGE="library/$PULL_IMAGE"
+      fi
+
       # Add the images we should pull to the IMAGES_PULL array, they will later be tagged from dockerhub
       IMAGES_PULL["${IMAGE_NAME}"]="${PULL_IMAGE}"
 
@@ -945,11 +951,11 @@ if [[ $THIS_IS_TUG == "true" ]]; then
 
 elif [ "$TYPE" == "pullrequest" ] || [ "$TYPE" == "branch" ]; then
 
-  # All images that should be pulled are tagged as Images directly in OpenShift Registry
+  # All images that should be pulled are copied to the openshift and harbor registry
   for IMAGE_NAME in "${!IMAGES_PULL[@]}"
   do
     PULL_IMAGE="${IMAGES_PULL[${IMAGE_NAME}]}"
-    . /oc-build-deploy/scripts/exec-openshift-tag-dockerhub.sh
+    . /oc-build-deploy/scripts/exec-openshift-copy-to-registry.sh
   done
 
   for IMAGE_NAME in "${!IMAGES_BUILD[@]}"
