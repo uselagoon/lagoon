@@ -209,7 +209,7 @@ spec:
           value: ci-local-openshift-os
         - name: OVERRIDE_BUILD_DEPLOY_DIND_IMAGE
           value: 172.17.0.1:5000/lagoon/oc-build-deploy-dind:latest
-        image: amazeeio/lagoon-builddeploy:v0.1.4rc1
+        image: amazeeio/lagoon-builddeploy:v0.1.4
         name: manager
         resources:
           limits:
