@@ -39,7 +39,6 @@ parameters:
     value: "Recreate"
   - name: SERVICE_IMAGE
     description: Pullable image of service
-    required: true
   - name: CRONJOBS
     description: Oneliner of Cronjobs
     value: ""
