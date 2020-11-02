@@ -299,6 +299,12 @@ if [[ ( "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ) && ! $TH
         PULL_IMAGE=$(echo "${OVERRIDE_IMAGE}" | envsubst)
       fi
 
+      # if the image just is an image name (like "alpine") we prefix it with `libary/` as the imagecache does not understand
+      # the magic `alpine` images
+      if [[ ! "$PULL_IMAGE" =~ "/" ]]; then
+        PULL_IMAGE="library/$PULL_IMAGE"
+      fi
+
       # Add the images we should pull to the IMAGES_PULL array, they will later be tagged from dockerhub
       IMAGES_PULL["${IMAGE_NAME}"]="${PULL_IMAGE}"
 
