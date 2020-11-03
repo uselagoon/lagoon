@@ -441,7 +441,8 @@ export const EnvironmentModel = (clients) => {
             --> if both are 0, use newResult.average
       */
 
-      for (let i = 0; i < legacyResultCount; i++) {
+      const count = newResultCount > 0 ? newResultCount : legacyResultCount;
+      for (let i = 0; i < count; i++) {
         if (newResultCount !== 0 && newBuckets[i] && newBuckets[i].count && newBuckets[i].count.value !== 0){
           // We have new logging data, use this for total
           total += newBuckets[i].count.value;
