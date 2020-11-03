@@ -88,7 +88,8 @@ const apolloServer = new ApolloServer({
           GroupModel: Group.Group({ keycloakAdminClient, sqlClient, redisClient }),
           BillingModel: BillingModel.BillingModel({
             keycloakAdminClient,
-            sqlClient
+            sqlClient,
+            esClient
           }),
           ProjectModel: ProjectModel.ProjectModel({
             keycloakAdminClient,
@@ -143,7 +144,8 @@ const apolloServer = new ApolloServer({
           GroupModel: Group.Group({ keycloakAdminClient, sqlClient, redisClient }),
           BillingModel: BillingModel.BillingModel({
             keycloakAdminClient,
-            sqlClient
+            sqlClient,
+            esClient
           }),
           ProjectModel: ProjectModel.ProjectModel({
             keycloakAdminClient,
