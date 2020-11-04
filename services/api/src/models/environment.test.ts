@@ -7,6 +7,10 @@ import bNewMissingData from "./mockHitDataNew-project-b-missing-data.json";
 import cLegacyPartial from "./mockHitDataLegacy-project-c.json";
 import cNewPartial from "./mockHitDataNew-project-c.json"
 
+
+import legacyData from "./legacy.json";
+import newData from "./new.json";
+
 import esClient from '../clients/esClient';
 
 const zeroOutBuckets = (mockResult) => {
@@ -27,10 +31,44 @@ const zeroOutBuckets = (mockResult) => {
   }
 }
 
+
+const legacyHitsMonthByEnvironmentId = (result) => {
+
+  // 0 hits found in elasticsearch, don't even try to generate monthly counts
+  if (result.hits.total.value === 0) {
+    return { total: 0 };
+  }
+
+  var total = 0;
+
+  // loop through all hourly sum counts
+  // if the sum count is empty, this means we have missing data and we use the overall average instead.
+  result.aggregations.hourly.buckets.forEach(bucket => {
+    total += (bucket.count.value === 0 ? parseInt(result.aggregations.average.value) : bucket.count.value);
+  });
+
+  return { total };
+};
+
+
+
 // Unit Under Test
 describe('Environment Data', () => {
 
   describe('Hits', () => {
+
+    it('When calculating hits, it should match legacy numbers #calculations', async () => {
+
+      const environmentModel = EnvironmentModel({esClient});
+
+      const legacyCalculations = legacyHitsMonthByEnvironmentId(legacyData);
+      const newCalculations = environmentModel.calculateHitsFromESData(legacyData, newData)
+
+      console.log(`legacy: ${legacyCalculations.total} new: ${newCalculations.total}`)
+
+      expect(newCalculations.total).toBe(legacyCalculations.total);
+    })
+
     // scenarios and expectation
     it('When using the legacy logging system, with all Sept hourly buckets total set to 10, then the hits should be 7200 #legacy #logging', async () => {
       // Arrange
