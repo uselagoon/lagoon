@@ -421,11 +421,11 @@ export const EnvironmentModel = (clients) => {
 
     const legacyBuckets = legacyResult && legacyResult.aggregations && legacyResult.aggregations.hourly && legacyResult.aggregations.hourly.buckets ? legacyResult.aggregations.hourly.buckets : 0;
     const legacyResultCount = legacyResult && legacyResult.aggregations && legacyResult.aggregations.hourly && legacyResult.aggregations.hourly.buckets && legacyResult.aggregations.hourly.buckets.length ? legacyResult.aggregations.hourly.buckets.length : 0;
-    const legacyAvg = legacyResult && legacyResult.aggregations && legacyResult.aggregations.average && legacyResult.aggregations.average.value ? Math.round(legacyResult.aggregations.average.value) : 0;
+    const legacyAvg = legacyResult && legacyResult.aggregations && legacyResult.aggregations.average && legacyResult.aggregations.average.value ? parseInt(legacyResult.aggregations.average.value) : 0;
 
     const newBuckets = newResult && newResult.aggregations && newResult.aggregations.hourly && newResult.aggregations.hourly.buckets ? newResult.aggregations.hourly.buckets : 0;
     const newResultCount = newResult && newResult.aggregations && newResult.aggregations.hourly && newResult.aggregations.hourly.buckets && newResult.aggregations.hourly.buckets.length ? newResult.aggregations.hourly.buckets.length : 0;
-    const newAvg = newResult && newResult.aggregations && newResult.aggregations.average && newResult.aggregations.average.value ? Math.round(newResult.aggregations.average.value) : 0;
+    const newAvg = newResult && newResult.aggregations && newResult.aggregations.average && newResult.aggregations.average.value ? parseInt(newResult.aggregations.average.value) : 0;
 
 
     /*
@@ -449,7 +449,7 @@ export const EnvironmentModel = (clients) => {
         total += legacyBuckets[i].count.value;
       }else{
         // Both legacy and new logging buckets are zero, meaning we have missing data, use the avg
-        if(newAvg !== 0){
+        if(newAvg !== 0 && newAvg > legacyAvg){
           total += newAvg;
         }else if (legacyAvg !== 0){
           total += legacyAvg;
@@ -489,7 +489,7 @@ export const EnvironmentModel = (clients) => {
     interestedDateEnd.setUTCMilliseconds(999);
     const interestedDateEndString = interestedDateEnd.toISOString();
 
-    const {newResult, legacyResult} = await fetchElasticSearchHitsData(project, openshiftProjectName, interestedYearMonth, interestedDateBeginString, interestedDateEndString)
+    const {newResult, legacyResult} = await fetchElasticSearchHitsData(project.replace('_', '-'), openshiftProjectName, interestedYearMonth, interestedDateBeginString, interestedDateEndString)
 
     if ( newResult === null || legacyResult === null ){
       return { total: 0 }
