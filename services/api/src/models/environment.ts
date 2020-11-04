@@ -78,7 +78,7 @@ export const EnvironmentModel = (clients) => {
 
   // Needed for local Dev - Required if not connected to openshift
   const errorCatcherFn = (msg, responseObj) => err => {
-    const errMsg = err && err.status && err.message ? `${err.status} : ${err.message} : ${responseObj.headers} : ${responseObj.url}` : `err undefined`;
+    const errMsg = err && err.status && err.message ? `${err.status} : ${err.message} : ${err.headers} : ${err.url}` : `err undefined`;
     logger.error(`${msg}: ${errMsg}`);
     return { ...responseObj };
   };
@@ -253,31 +253,7 @@ export const EnvironmentModel = (clients) => {
     return { month, hours };
   };
 
-  const environmentHitsMonthByEnvironmentId = async (
-    project,
-    openshiftProjectName,
-    yearMonth,
-  ) => {
-    const interestedDate = yearMonth ? new Date(yearMonth) : new Date();
-    const year = interestedDate.getUTCFullYear();
-    const month = interestedDate.getUTCMonth() + 1; // internally months start with 0, we need them with 1
-
-    // This generates YYYY-MM
-    const interestedYearMonth = `${year}-${month < 10 ? `0${month}` : month}`;
-
-    // generate a string of the date on the very first second of the month
-    const interestedDateBeginString = interestedDate.toISOString();
-
-    // generate a string of the date on the very last second of the month
-    const interestedDateEnd = interestedDate;
-    interestedDateEnd.setUTCMonth(interestedDate.getUTCMonth() + 1)
-    interestedDateEnd.setUTCDate(0); // setting the date to 0 will select 1 day before the actual date
-    interestedDateEnd.setUTCHours(23);
-    interestedDateEnd.setUTCMinutes(59);
-    interestedDateEnd.setUTCSeconds(59);
-    interestedDateEnd.setUTCMilliseconds(999);
-    const interestedDateEndString = interestedDateEnd.toISOString();
-
+  const fetchElasticSearchHitsData = async (project, openshiftProjectName, interestedYearMonth, interestedDateBeginString, interestedDateEndString) => {
     try {
       // LEGACY LOGGING SYSTEM - REMOVE ONCE WE MIGRATE EVERYTHING TO THE NEW SYSTEM
       const legacyQuery = {
@@ -355,7 +331,6 @@ export const EnvironmentModel = (clients) => {
                     }
                   }
                 },
-                ,
                 {
                   "match_phrase": { "kubernetes.namespace_name": `${openshiftProjectName}` }
                 }
@@ -415,68 +390,114 @@ export const EnvironmentModel = (clients) => {
       };
       const newResult = await esClient.search(newQuery);
 
-      // 0 hits found in elasticsearch, don't even try to generate monthly counts
-      if (legacyResult.hits.total.value === 0 && newResult.hits.total.value === 0) {
-        return { total: 0 };
-      }
-
-      var total = 0;
-
-      const legacyBuckets = legacyResult && legacyResult.aggregations && legacyResult.aggregations.hourly && legacyResult.aggregations.hourly.buckets ? legacyResult.aggregations.hourly.buckets : 0;
-      const legacyResultCount = legacyResult && legacyResult.aggregations && legacyResult.aggregations.hourly && legacyResult.aggregations.hourly.buckets && legacyResult.aggregations.hourly.buckets.length ? legacyResult.aggregations.hourly.buckets.length : 0;
-      const legacyAvg = legacyResult && legacyResult.aggregations && legacyResult.aggregations.average && legacyResult.aggregations.average.value ? Math.round(legacyResult.aggregations.average.value) : 0;
-
-      const newBuckets = newResult && newResult.aggregations && newResult.aggregations.hourly && newResult.aggregations.hourly.buckets ? newResult.aggregations.hourly.buckets : 0;
-      const newResultCount = newResult && newResult.aggregations && newResult.aggregations.hourly && newResult.aggregations.hourly.buckets && newResult.aggregations.hourly.buckets.length ? newResult.aggregations.hourly.buckets.length : 0;
-      const newAvg = newResult && newResult.aggregations && newResult.aggregations.average && newResult.aggregations.average.value ? Math.round(newResult.aggregations.average.value) : 0;
-
-      /*
-      foreach hourlybucket (#both result buckets should have the exact same amount of buckets)
-      add to total
-         if newResult.bucketcount is not 0 use newResult.bucketcount
-         if legacyResult.bucketcount is not 0 use legacyResult.bucketcount
-         if newResult.bucketcount is 0 and legacyResult.bucketcount is 0
-            --> if newResult.average is not 0, use newResult.average
-            --> if legacyResult.average is not 0, use legacyResult.average
-            --> if both are 0, use newResult.average
-      */
-
-      const count = newResultCount > 0 ? newResultCount : legacyResultCount;
-      for (let i = 0; i < count; i++) {
-        if (newResultCount !== 0 && newBuckets[i] && newBuckets[i].count && newBuckets[i].count.value !== 0){
-          // We have new logging data, use this for total
-          total += newBuckets[i].count.value;
-        }else if (legacyResultCount !== 0 && legacyBuckets[i] && legacyBuckets[i].count && legacyBuckets[i].count.value !== 0){
-          // We have legacy data
-          total += legacyBuckets[i].count.value;
-        }else{
-          // Both legacy and new logging buckets are zero, meaning we have missing data, use the avg
-          if(newAvg !== 0){
-            total += newAvg;
-          }else if (legacyAvg !== 0){
-            total += legacyAvg;
-          }else{
-            total += newAvg;
-          }
-        }
-      }
-
-      return { total };
+      return {newResult, legacyResult};
 
     } catch (e) {
       logger.error(`Elastic Search Query Error: ${JSON.stringify(e)}`);
-      const noHits = { total: 0 };
+      // const noHits = { total: 0 };
 
-      if(e.body === "Open Distro Security not initialized."){
-        return noHits;
-      }
+      // if(e.body === "Open Distro Security not initialized."){
+      //   return noHits;
+      // }
 
-      if (e.body && e.body.error && e.body.error.type && (e.body.error.type === 'index_not_found_exception' || e.body.error.type === 'security_exception')) {
-        return noHits;
-      }
+      // if (e.body && e.body.error && e.body.error.type && (e.body.error.type === 'index_not_found_exception' || e.body.error.type === 'security_exception')) {
+      //   return noHits;
+      // }
+
+      return { newResult: null, legacyResult: null }
 
       throw e;
     }
+  }
+
+  const calculateHitsFromESData = (legacyResult, newResult)  => {
+
+    // 0 hits found in elasticsearch, don't even try to generate monthly counts
+    if (legacyResult.hits.total.value === 0 && newResult.hits.total.value === 0) {
+      return { total: 0 };
+    }
+
+    var total = 0;
+
+    const legacyBuckets = legacyResult && legacyResult.aggregations && legacyResult.aggregations.hourly && legacyResult.aggregations.hourly.buckets ? legacyResult.aggregations.hourly.buckets : 0;
+    const legacyResultCount = legacyResult && legacyResult.aggregations && legacyResult.aggregations.hourly && legacyResult.aggregations.hourly.buckets && legacyResult.aggregations.hourly.buckets.length ? legacyResult.aggregations.hourly.buckets.length : 0;
+    const legacyAvg = legacyResult && legacyResult.aggregations && legacyResult.aggregations.average && legacyResult.aggregations.average.value ? Math.round(legacyResult.aggregations.average.value) : 0;
+
+    const newBuckets = newResult && newResult.aggregations && newResult.aggregations.hourly && newResult.aggregations.hourly.buckets ? newResult.aggregations.hourly.buckets : 0;
+    const newResultCount = newResult && newResult.aggregations && newResult.aggregations.hourly && newResult.aggregations.hourly.buckets && newResult.aggregations.hourly.buckets.length ? newResult.aggregations.hourly.buckets.length : 0;
+    const newAvg = newResult && newResult.aggregations && newResult.aggregations.average && newResult.aggregations.average.value ? Math.round(newResult.aggregations.average.value) : 0;
+
+
+    /*
+    foreach hourlybucket (#both result buckets should have the exact same amount of buckets)
+    add to total
+        if newResult.bucketcount is not 0 use newResult.bucketcount
+        if legacyResult.bucketcount is not 0 use legacyResult.bucketcount
+        if newResult.bucketcount is 0 and legacyResult.bucketcount is 0
+          --> if newResult.average is not 0, use newResult.average
+          --> if legacyResult.average is not 0, use legacyResult.average
+          --> if both are 0, use newResult.average
+    */
+
+    const count = newResultCount > 0 ? newResultCount : legacyResultCount;
+    for (let i = 0; i < count; i++) {
+      if (newResultCount !== 0 && newBuckets[i] && newBuckets[i].count && newBuckets[i].count.value !== 0){
+        // We have new logging data, use this for total
+        total += newBuckets[i].count.value;
+      }else if (legacyResultCount !== 0 && legacyBuckets[i] && legacyBuckets[i].count && legacyBuckets[i].count.value !== 0){
+        // We have legacy data
+        total += legacyBuckets[i].count.value;
+      }else{
+        // Both legacy and new logging buckets are zero, meaning we have missing data, use the avg
+        if(newAvg !== 0){
+          total += newAvg;
+        }else if (legacyAvg !== 0){
+          total += legacyAvg;
+        }else{
+          total += newAvg;
+        }
+      }
+    }
+
+    return { total };
+  }
+
+
+  const environmentHitsMonthByEnvironmentId = async (
+    project,
+    openshiftProjectName,
+    yearMonth,
+  ) => {
+
+    const interestedDate = yearMonth ? new Date(yearMonth) : new Date();
+    const year = interestedDate.getUTCFullYear();
+    const month = interestedDate.getUTCMonth() + 1; // internally months start with 0, we need them with 1
+
+    // This generates YYYY-MM
+    const interestedYearMonth = `${year}-${month < 10 ? `0${month}` : month}`;
+
+    // generate a string of the date on the very first second of the month
+    const interestedDateBeginString = interestedDate.toISOString();
+
+    // generate a string of the date on the very last second of the month
+    const interestedDateEnd = interestedDate;
+    interestedDateEnd.setUTCMonth(interestedDate.getUTCMonth() + 1)
+    interestedDateEnd.setUTCDate(0); // setting the date to 0 will select 1 day before the actual date
+    interestedDateEnd.setUTCHours(23);
+    interestedDateEnd.setUTCMinutes(59);
+    interestedDateEnd.setUTCSeconds(59);
+    interestedDateEnd.setUTCMilliseconds(999);
+    const interestedDateEndString = interestedDateEnd.toISOString();
+
+    const {newResult, legacyResult} = await fetchElasticSearchHitsData(project, openshiftProjectName, interestedYearMonth, interestedDateBeginString, interestedDateEndString)
+
+    if ( newResult === null || legacyResult === null ){
+      return { total: 0 }
+    }
+
+    const result = calculateHitsFromESData(legacyResult, newResult);
+
+    return result;
   };
 
   return {
@@ -487,6 +508,7 @@ export const EnvironmentModel = (clients) => {
     environmentStorageMonthByEnvironmentId,
     environmentHoursMonthByEnvironmentId,
     environmentHitsMonthByEnvironmentId,
+    calculateHitsFromESData
   }
 }
 
