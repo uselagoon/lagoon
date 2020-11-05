@@ -16,9 +16,13 @@ This Dockerfile is intended to be used as a base for any `PHP` needs within Lago
 
 * 5.6 \(available for compatibility, not officially supported\)
 * 7.0 \(available for compatibility, not officially supported\)
-* 7.2
+* 7.2 \(available for compatibility, not officially supported - End of Support by 30 Nov 2020 \)
 * 7.3
 * 7.4
+
+{% hint style="info" %}
+We stop updating end of life PHP images usually with the lagoon release after the officialy communicated End of life date https://www.php.net/supported-versions.php
+{% endhint %}
 
 All PHP versions use the same Dockerfile.
 
