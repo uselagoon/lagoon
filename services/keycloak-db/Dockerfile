@@ -1,5 +1,6 @@
-ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-lagoon}/mariadb
+ARG UPSTREAM_REPO
+ARG UPSTREAM_TAG
+FROM ${UPSTREAM_REPO:-uselagoon}/mariadb:${UPSTREAM_TAG:-latest}
 
 ENV MARIADB_DATABASE=keycloak \
     MARIADB_USER=keycloak \

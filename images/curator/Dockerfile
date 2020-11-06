@@ -1,5 +1,6 @@
-ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-lagoon}/commons as commons
+ARG UPSTREAM_REPO
+ARG UPSTREAM_TAG
+FROM ${UPSTREAM_REPO:-uselagoon}/commons:${UPSTREAM_TAG:-latest} as commons
 FROM bobrik/curator:5.7.6
 
 USER root
