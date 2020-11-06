@@ -123,6 +123,8 @@ node {
                       sh script: 'echo "skipped because of SKIP_IMAGE_PUBLISH env variable"', label: "Skipping image publishing"
                     }
                     if (env.BRANCH_NAME == 'main' ) {
+                      sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
+                      sh script: "make -O${SYNC_MAKE_OUTPUT} -j8 publish-testlagoon-baseimages publish-testlagoon-serviceimages publish-testlagoon-taskimages BRANCH_NAME=latest", label: "Publishing built images with :latest tag"
                       withCredentials([string(credentialsId: 'vshn-gitlab-helmfile-ci-trigger', variable: 'TOKEN')]) {
                         sh script: "curl -X POST -F token=$TOKEN -F ref=master https://git.vshn.net/api/v4/projects/1263/trigger/pipeline", label: "Trigger lagoon-core helmfile sync on amazeeio-test6"
                       }
