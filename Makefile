@@ -598,6 +598,8 @@ publish-uselagoon-serviceimages: $(publish-uselagoon-serviceimages)
 $(publish-uselagoon-serviceimages):
 #   Calling docker_publish for image, but remove the prefix '[publish-uselagoon-serviceimages]-' first
 		$(eval image = $(subst [publish-uselagoon-serviceimages]-,,$@))
+# 	Publish images as :latest
+		$(call docker_publish_uselagoon,$(image),$(image):latest)
 # 	Publish images with version tag
 		$(call docker_publish_uselagoon,$(image),$(image):$(LAGOON_VERSION))
 
@@ -613,6 +615,8 @@ publish-uselagoon-taskimages: $(publish-uselagoon-taskimages)
 $(publish-uselagoon-taskimages):
 #   Calling docker_publish for image, but remove the prefix '[publish-uselagoon-taskimages]-' first
 		$(eval image = $(subst [publish-uselagoon-taskimages]-,,$@))
+# 	Publish images as :latest
+		$(call docker_publish_uselagoon,$(image),$(image):latest)
 # 	Publish images with version tag
 		$(call docker_publish_uselagoon,$(image),$(image):$(LAGOON_VERSION))
 
