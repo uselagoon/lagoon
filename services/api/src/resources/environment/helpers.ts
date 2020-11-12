@@ -6,15 +6,26 @@ import { Sql } from './sql';
 import { Helpers as projectHelpers } from '../project/helpers';
 
 export const Helpers = (sqlClient: MariaClient) => {
+  const aliasOpenshiftToK8s = (environments: any[]) => {
+    return environments.map(environment => {
+      return {
+        ...environment,
+        kubernetesNamespaceName: environment.openshiftProjectName,
+      }
+    });
+  };
+
   const getEnvironmentById = async (environmentID: number) => {
     const rows = await query(
       sqlClient,
       Sql.selectEnvironmentById(environmentID),
     );
-    return R.prop(0, rows);
+    const withK8s = aliasOpenshiftToK8s(rows);
+    return R.prop(0, withK8s);
   };
 
   return {
+    aliasOpenshiftToK8s,
     getEnvironmentById,
     getEnvironmentsByEnvironmentInput: async environmentInput => {
       const notEmpty = R.complement(R.anyPass([R.isNil, R.isEmpty]));

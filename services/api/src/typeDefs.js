@@ -596,6 +596,10 @@ const typeDefs = gql`
     """
     openshiftProjectName: String
     """
+    Name of the Kubernetes Namespace this environment is deployed into
+    """
+    kubernetesNamespaceName: String
+    """
     Unix Timestamp of the last time this environment has been updated
     """
     updated: String
@@ -788,8 +792,15 @@ const typeDefs = gql`
     environmentByOpenshiftProjectName(
       openshiftProjectName: String!
     ): Environment
+    """
+    Returns Environment Object by a given kubernetesNamespaceName
+    """
+    environmentByKubernetesNamespaceName(
+      kubernetesNamespaceName: String!
+    ): Environment
     userCanSshToEnvironment(
       openshiftProjectName: String
+      kubernetesNamespaceName: String
     ): Environment
     deploymentByRemoteId(id: String): Deployment
     taskByRemoteId(id: String): Task
@@ -921,7 +932,8 @@ const typeDefs = gql`
     deployHeadRef: String
     deployTitle: String
     environmentType: EnvType!
-    openshiftProjectName: String!
+    openshiftProjectName: String
+    kubernetesNamespaceName: String
   }
 
   input AddOrUpdateEnvironmentStorageInput {
@@ -1237,6 +1249,7 @@ const typeDefs = gql`
     deployTitle: String
     environmentType: EnvType
     openshiftProjectName: String
+    kubernetesNamespaceName: String
     route: String
     routes: String
     monitoringUrls: String
