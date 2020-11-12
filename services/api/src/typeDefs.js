@@ -212,11 +212,11 @@ const typeDefs = gql`
     source: String!
     description: String!
   }
-  
+
   input AddFactsInput {
     facts: [AddFactInput]!
   }
-  
+
   input UpdateFactInputValue {
     environment: Int!
     name: String!
@@ -224,7 +224,7 @@ const typeDefs = gql`
     source: String!
     description: String
   }
-  
+
   input UpdateFactInput {
     environment: Int!
     patch: UpdateFactInputValue!
@@ -234,7 +234,7 @@ const typeDefs = gql`
     environment: Int!
     name: String!
   }
-  
+
   input DeleteFactsFromSourceInput {
     environment: Int!
     source: String!
@@ -304,6 +304,19 @@ const typeDefs = gql`
   }
 
   type Openshift {
+    id: Int
+    name: String
+    consoleUrl: String
+    token: String
+    routerPattern: String
+    projectUser: String
+    sshHost: String
+    sshPort: String
+    created: String
+    monitoringConfig: JSON
+  }
+
+  type Kubernetes {
     id: Int
     name: String
     consoleUrl: String
@@ -491,6 +504,14 @@ const typeDefs = gql`
     Pattern of OpenShift Project/Namespace that should be generated, default: \`$\{project}-$\{environmentname}\`
     """
     openshiftProjectPattern: String
+    """
+    Reference to Kubernetes Object this Project should be deployed to
+    """
+    kubernetes: Kubernetes
+    """
+    Pattern of Kubernetes Namespace that should be generated, default: \`$\{project}-$\{environmentname}\`
+    """
+    kubernetesNamespacePattern: String
     """
     How many environments can be deployed at one timeout
     """
@@ -865,8 +886,10 @@ const typeDefs = gql`
     name: String!
     gitUrl: String!
     subfolder: String
-    openshift: Int!
+    openshift: Int
     openshiftProjectPattern: String
+    kubernetes: Int
+    kubernetesNamespacePattern: String
     activeSystemsDeploy: String
     activeSystemsPromote: String
     activeSystemsRemove: String
@@ -1126,6 +1149,8 @@ const typeDefs = gql`
     pullrequests: String
     openshift: Int
     openshiftProjectPattern: String
+    kubernetes: Int
+    kubernetesNamespacePattern: String
     developmentEnvironmentsLimit: Int
     problemsUi: Int
     factsUi: Int

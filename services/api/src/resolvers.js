@@ -221,6 +221,7 @@ const resolvers = {
   Project: {
     notifications: getNotificationsByProjectId,
     openshift: getOpenshiftByProjectId,
+    kubernetes: getOpenshiftByProjectId,
     environments: getEnvironmentsByProjectId,
     envVariables: getEnvVarsByProjectId,
     groups: getGroupsByProjectId,

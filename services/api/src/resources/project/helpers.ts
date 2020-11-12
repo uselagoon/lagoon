@@ -5,9 +5,20 @@ const { query } = require('../../util/db');
 const { Sql } = require('./sql');
 
 export const Helpers = (sqlClient: MariaClient) => {
+  const aliasOpenshiftToK8s = (projects: any[]) => {
+    return projects.map(project => {
+      return {
+        ...project,
+        kubernetes: project.openshift,
+        kubernetesNamespacePattern: project.openshiftProjectPattern,
+      }
+    });
+  };
+
   const getProjectById = async (id: number) => {
     const rows = await query(sqlClient, Sql.selectProject(id));
-    return R.prop(0, rows);
+    const withK8s = aliasOpenshiftToK8s(rows);
+    return R.prop(0, withK8s);
   };
 
   const getProjectByName = async (name: string) => {
@@ -24,6 +35,7 @@ export const Helpers = (sqlClient: MariaClient) => {
     query(sqlClient, Sql.selectProjectsByIds(projectIds));
 
   return {
+    aliasOpenshiftToK8s,
     getProjectById,
     getProjectsByIds,
     getProjectByEnvironmentId,
