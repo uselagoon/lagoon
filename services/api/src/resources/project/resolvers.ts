@@ -317,27 +317,27 @@ export const addProject = async (
         ${
   input.activeSystemsDeploy
     ? ':active_systems_deploy'
-    : '"lagoon_openshiftBuildDeploy"'
+    : '"lagoon_controllerBuildDeploy"'
 },
         ${
   input.activeSystemsPromote
     ? ':active_systems_promote'
-    : '"lagoon_openshiftBuildDeploy"'
+    : '"lagoon_controllerBuildDeploy"'
 },
         ${
   input.activeSystemsRemove
     ? ':active_systems_remove'
-    : '"lagoon_openshiftRemove"'
+    : '"lagoon_controllerRemove"'
 },
         ${
   input.activeSystemsTask
     ? ':active_systems_task'
-    : '"lagoon_openshiftJob"'
+    : '"lagoon_controllerJob"'
 },
         ${
   input.activeSystemsMisc
     ? ':active_systems_misc'
-    : '"lagoon_openshiftMisc"'
+    : '"lagoon_controllerMisc"'
 },
         ${input.branches ? ':branches' : '"true"'},
         ${input.pullrequests ? ':pullrequests' : '"true"'},
