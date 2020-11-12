@@ -818,6 +818,10 @@ const typeDefs = gql`
     """
     allOpenshifts: [Openshift]
     """
+    Returns all Kubernetes Objects
+    """
+    allKubernetes: [Kubernetes]
+    """
     Returns all Environments matching given filter (all if no filter defined)
     """
     allEnvironments(createdAfter: String, type: EnvType, order: EnvOrderType): [Environment]
@@ -1056,7 +1060,23 @@ const typeDefs = gql`
     monitoringConfig: JSON
   }
 
+  input AddKubernetesInput {
+    id: Int
+    name: String!
+    consoleUrl: String!
+    token: String
+    routerPattern: String
+    projectUser: String
+    sshHost: String
+    sshPort: String
+    monitoringConfig: JSON
+  }
+
   input DeleteOpenshiftInput {
+    name: String!
+  }
+
+  input DeleteKubernetesInput {
     name: String!
   }
 
@@ -1187,6 +1207,22 @@ const typeDefs = gql`
   input UpdateOpenshiftInput {
     id: Int!
     patch: UpdateOpenshiftPatchInput!
+  }
+
+  input UpdateKubernetesPatchInput {
+    name: String
+    consoleUrl: String
+    token: String
+    routerPattern: String
+    projectUser: String
+    sshHost: String
+    sshPort: String
+    monitoringConfig: JSON
+  }
+
+  input UpdateKubernetesInput {
+    id: Int!
+    patch: UpdateKubernetesPatchInput!
   }
 
   input UpdateNotificationMicrosoftTeamsPatchInput {
@@ -1523,6 +1559,10 @@ const typeDefs = gql`
     updateOpenshift(input: UpdateOpenshiftInput!): Openshift
     deleteOpenshift(input: DeleteOpenshiftInput!): String
     deleteAllOpenshifts: String
+    addKubernetes(input: AddKubernetesInput!): Kubernetes
+    updateKubernetes(input: UpdateKubernetesInput!): Kubernetes
+    deleteKubernetes(input: DeleteKubernetesInput!): String
+    deleteAllKubernetes: String
     addProject(input: AddProjectInput!): Project
     updateProject(input: UpdateProjectInput!): Project
     deleteProject(input: DeleteProjectInput!): String
