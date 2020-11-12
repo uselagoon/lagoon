@@ -280,6 +280,13 @@ export const EnvironmentModel = (clients) => {
                       "query": "StatusCake"
                     }
                   }
+                },
+                {
+                  "match_phrase": {
+                    "request_user_agent": {
+                      "query": "UptimeRobot"
+                    }
+                  }
                 }
               ]
             }
@@ -354,6 +361,13 @@ export const EnvironmentModel = (clients) => {
                   "match_phrase": {
                     "request_user_agent": {
                       "query": "StatusCake"
+                    }
+                  }
+                },
+                {
+                  "match_phrase": {
+                    "request_user_agent": {
+                      "query": "UptimeRobot"
                     }
                   }
                 }
