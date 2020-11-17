@@ -210,9 +210,14 @@ export const getProjectByOpenshift: ResolverFn = async (
       id: keycloakGrant.access_token.content.sub,
     });
 
+    const userOpenshiftIds = await models.UserModel.getAllOpenshiftsIdsForUser({
+      id: keycloakGrant.access_token.content.sub,
+    });
+    
     where = whereAnd([
       args.createdAfter ? 'created >= :created_after' : '',
       inClause('id', userProjectIds),
+      inClause('openshift', userOpenshiftIds)
     ]);
   }
 

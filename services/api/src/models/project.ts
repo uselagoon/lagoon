@@ -36,6 +36,16 @@ export const ProjectModel = (clients) => {
 
   const { sqlClient, keycloakAdminClient } = clients;
 
+  const openshiftsByProjectIds = async (projectIds: number[]) => {
+    let openshiftIds = []
+    const projects = await Helpers(sqlClient).getProjectsByIds(projectIds);
+    for (const project of projects) {
+      const openshiftId = R.pluck("openshift")
+      openshiftIds.push(openshiftId);
+    }
+    return openshiftIds;
+  };
+
   const projectsByGroup = async (group: Group) => {
     const GroupModel = Group({keycloakAdminClient});
     const projectIds = await GroupModel.getProjectsFromGroupAndSubgroups(group);
@@ -44,7 +54,8 @@ export const ProjectModel = (clients) => {
   };
 
   return {
-    projectsByGroup
+    projectsByGroup,
+    openshiftsByProjectIds
   }
 }
 

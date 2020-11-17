@@ -30,6 +30,7 @@ interface UserModel {
   loadUserByUsername: (username: string) => Promise<User>;
   loadUserByIdOrUsername: (userInput: UserEdit) => Promise<User>;
   getAllGroupsForUser: (userInput: User) => Promise<Group[]>;
+  getAllOpenshiftsIdsForUser: (userInput: User) => Promise<number[]>;
   getAllProjectsIdsForUser: (userInput: User) => Promise<number[]>;
   getUserRolesForProject: (
     userInput: User,
@@ -244,6 +245,24 @@ export const User = (clients): UserModel => {
     return R.uniq(projects);
   };
 
+  const getAllOpenshiftsIdsForUser = async (userInput: User): Promise<number[]> => {
+    const GroupModel = Group({ keycloakAdminClient });
+    const ProjectModel = require('./models/project');
+    let projects = [];
+    let openshifts = [];
+
+    const userGroups = await getAllGroupsForUser(userInput);
+
+    for (const group of userGroups) {
+      const projectIds = await GroupModel.getProjectsFromGroupAndSubgroups(group);
+      projects = [...projects, ...projectIds];
+    }
+
+    const openshiftIds = await ProjectModel.openshiftsByProjectIds(projects);
+
+    return R.uniq(openshiftIds);
+  };
+
   const getUserRolesForProject = async (
     userInput: User,
     projectId: number,
@@ -365,6 +384,7 @@ export const User = (clients): UserModel => {
     loadUserByUsername,
     loadUserByIdOrUsername,
     getAllGroupsForUser,
+    getAllOpenshiftsIdsForUser,
     getAllProjectsIdsForUser,
     getUserRolesForProject,
     addUser,
