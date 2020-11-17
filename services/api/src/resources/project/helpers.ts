@@ -15,6 +15,11 @@ export const Helpers = (sqlClient: MariaClient) => {
     return R.prop(0, rows);
   };
 
+  const getProjectByOpenshift = async (openshift: number) => {
+    const rows = await query(sqlClient, Sql.selectProjectByOpenshift(openshift));
+    return R.prop(0, rows);
+  };
+
   const getProjectByEnvironmentId = async (environmentId: number, environmentType = null) => {
     const rows = await query(sqlClient, Sql.selectProjectByEnvironmentId(environmentId, environmentType));
     return R.prop(0, rows);
@@ -27,6 +32,7 @@ export const Helpers = (sqlClient: MariaClient) => {
     getProjectById,
     getProjectsByIds,
     getProjectByEnvironmentId,
+    getProjectByOpenshift,
     getProjectIdByName: async (name: string): Promise<number> => {
       const pidResult = await query(sqlClient, Sql.selectProjectIdByName(name));
 

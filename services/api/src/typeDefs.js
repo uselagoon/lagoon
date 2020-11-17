@@ -754,6 +754,10 @@ const typeDefs = gql`
     """
     Returns Group Object by a given name
     """
+    projectByOpenshift(openshift: Int!, order: ProjectOrderType): [Project]
+    """
+    Returns Group Object by a given name
+    """
     groupByName(name: String!): GroupInterface
     """
     Returns Project Object by a given gitUrl (only the first one if there are multiple)

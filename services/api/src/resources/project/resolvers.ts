@@ -187,6 +187,47 @@ export const getProjectByName: ResolverFn = async (
   }
 };
 
+export const getProjectByOpenshift: ResolverFn = async (
+  root,
+  args,
+  {
+    sqlClient,
+    hasPermission,
+    models,
+    keycloakGrant,
+  },
+) => {
+  let where;
+  try {
+    await hasPermission('project', 'viewAll');
+  } catch (err) {
+    if (!keycloakGrant) {
+      logger.warn('No grant available for getProjectByOpenshift');
+      return [];
+    }
+  }
+
+  const str = `
+      SELECT
+        *
+      FROM project
+      WHERE openshift = :openshift
+    `;
+
+  const order = args.order ? ` ORDER BY ${R.toLower(args.order)} ASC` : '';
+  const prep = prepare(sqlClient, str);
+  const rows = await query(sqlClient, prep(args));
+
+  // This resolver is used for the main UI page and is quite slow. Since we've
+  // already authorized the user has access to all the projects we are
+  // returning, AND all user roles are allowed to view all environments, we can
+  // short-circuit the slow keycloak check in the getEnvironmentsByProjectId
+  // resolver.
+  //
+  // @TODO: When this performance issue is fixed for real, remove this hack as
+  // it hardcodes a "everyone can view environments" authz rule.
+  return rows.map(row => ({ ...row, environmentAuthz: true }));
+};
 
 export const getProjectsByMetadata: ResolverFn = async (
   root,

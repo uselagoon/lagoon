@@ -20,6 +20,10 @@ export const Sql = {
     knex('project')
       .where('name', name)
       .toString(),
+  selectProjectByOpenshift: (openshift: number) =>
+    knex('project')
+      .where('openshift', openshift)
+      .toString(),
   selectProjectIdByName: (name: string) =>
     knex('project')
       .where('name', name)
