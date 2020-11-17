@@ -295,7 +295,7 @@ const resolvers = {
     userBySshKey: getUserBySshKey,
     projectByGitUrl: getProjectByGitUrl,
     projectByName: getProjectByName,
-    projectByOpenshift: getProjectByOpenshift,
+    projectsByOpenshift: getProjectByOpenshift,
     groupByName: getGroupByName,
     problemSources: getProblemSources,
     environmentByName: getEnvironmentByName,
