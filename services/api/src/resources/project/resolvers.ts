@@ -205,6 +205,15 @@ export const getProjectByOpenshift: ResolverFn = async (
       logger.warn('No grant available for getProjectByOpenshift');
       return [];
     }
+
+    const userProjectIds = await models.UserModel.getAllProjectsIdsForUser({
+      id: keycloakGrant.access_token.content.sub,
+    });
+
+    where = whereAnd([
+      args.createdAfter ? 'created >= :created_after' : '',
+      inClause('id', userProjectIds),
+    ]);
   }
 
   const str = `

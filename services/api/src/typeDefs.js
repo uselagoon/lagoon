@@ -754,7 +754,7 @@ const typeDefs = gql`
     """
     Returns Group Object by a given name
     """
-    projectByOpenshift(openshift: Int!, order: ProjectOrderType): [Project]
+    projectByOpenshift(openshift: Int!, order: ProjectOrderType, createdAfter: String): [Project]
     """
     Returns Group Object by a given name
     """
