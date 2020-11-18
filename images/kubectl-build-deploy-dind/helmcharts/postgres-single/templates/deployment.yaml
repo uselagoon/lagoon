@@ -6,6 +6,8 @@ metadata:
     {{- include "postgres-single.labels" . | nindent 4 }}
   annotations:
     {{- include "postgres-single.annotations" . | nindent 4 }}
+    appuio.ch/backupcommand: /bin/sh -c "/bin/busybox tar -cf - -C /var/lib/postgresql/data ."
+    backup.appuio.ch/file-extension: .{{ include "postgres-single.fullname" . }}.tar
 spec:
   replicas: {{ .Values.replicaCount }}
   strategy:
@@ -26,21 +28,28 @@ spec:
         {{- toYaml . | nindent 8 }}
     {{- end }}
       volumes:
-        - name: {{ .Values.persistentStorage.name }}
+        - name: {{ include "postgres-single.fullname" . }}
           persistentVolumeClaim:
-            claimName: {{ .Values.persistentStorage.name }}
-      priorityClassName: {{ include "postgres-single.lagoonPriority" . }}
-      enableServiceLinks: false
+            claimName: {{ include "postgres-single.fullname" . }}
       securityContext:
         fsGroup: 0
       containers:
-        - image: {{ .Values.image | quote }}
-          name: {{ .Chart.Name }}
+        - name: {{ .Chart.Name }}
+          securityContext:
+            runAsGroup: 0
+          image: "{{ .Values.image }}"
           imagePullPolicy: {{ .Values.imagePullPolicy }}
+          env:
+            - name: CRONJOBS
+              value: {{ .Values.inPodCronjobs | quote }}
+            - name: LAGOON_GIT_SHA
+              value: {{ .Values.gitSha | quote }}
+          envFrom:
+            - configMapRef:
+                name: lagoon-env
           ports:
-            - name: 5432-tcp
-              containerPort: 5432
-              protocol: TCP
+          - containerPort: 5432
+            protocol: TCP
           readinessProbe:
             tcpSocket:
               port: 5432
@@ -51,16 +60,8 @@ spec:
               port: 5432
             initialDelaySeconds: 120
             periodSeconds: 5
-          env:
-            - name: CRONJOBS
-              value: {{ .Values.inPodCronjobs | quote }}
-            - name: LAGOON_GIT_SHA
-              value: {{ .Values.gitSha | quote }}
-          envFrom:
-            - configMapRef:
-                name: lagoon-env
           volumeMounts:
-            - name: {{ .Values.persistentStorage.name }}
+            - name: {{ include "postgres-single.fullname" . }}
               mountPath: {{ .Values.persistentStorage.path | quote }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}

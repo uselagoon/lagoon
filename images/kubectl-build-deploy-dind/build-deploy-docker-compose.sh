@@ -36,6 +36,7 @@ COMPOSE_SERVICES=($(cat $DOCKER_COMPOSE_YAML | shyaml keys services))
 
 # Default shared mariadb service broker
 MARIADB_SHARED_DEFAULT_CLASS="lagoon-dbaas-mariadb-apb"
+MARIADB_SHARED_DEFAULT_CLASS="lagoon-dbaas-mariadb-apb"
 MONGODB_SHARED_DEFAULT_CLASS="lagoon-maas-mongodb-apb"
 
 # Figure out which services should we handle
@@ -206,6 +207,7 @@ do
   # Do not handle images for shared services
   if  [[ "$SERVICE_TYPE" != "mariadb-dbaas" ]] &&
       [[ "$SERVICE_TYPE" != "mariadb-shared" ]] &&
+      [[ "$SERVICE_TYPE" != "postgres-shared" ]] &&
       [[ "$SERVICE_TYPE" != "mongodb-shared" ]]; then
     # Generate List of Images to build
     IMAGES+=("${IMAGE_NAME}")
@@ -934,6 +936,10 @@ do
         . /kubectl-build-deploy/scripts/exec-kubectl-mariadb-dbaas.sh
         ;;
 
+    postgres-dbaas)
+        . /kubectl-build-deploy/scripts/exec-kubectl-postgres-dbaas.sh
+        ;;
+
     *)
         echo "DBAAS Type ${SERVICE_TYPE} not implemented"; exit 1;
 
@@ -1212,9 +1218,9 @@ do
 
     echo "nothing to monitor for $SERVICE_TYPE"
 
-  elif [ $SERVICE_TYPE == "postgres" ]; then
-    # TODO: Remove
-    echo "nothing to monitor for $SERVICE_TYPE - for now"
+  elif [ $SERVICE_TYPE == "postgres-dbaas" ]; then
+
+    echo "nothing to monitor for $SERVICE_TYPE"
 
   elif [ ! $SERVICE_ROLLOUT_TYPE == "false" ]; then
     . /kubectl-build-deploy/scripts/exec-monitor-deploy.sh

@@ -39,6 +39,15 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end -}}
 
 {{/*
+Add annotations
+*/}}
+{{- define "postgres-single.annotations" -}}
+{{ if .Values.annotations }}
+{{- toYaml .Values.annotations }}
+{{- end }}
+{{- end -}}
+
+{{/*
 Selector labels
 */}}
 {{- define "postgres-single.selectorLabels" -}}
@@ -69,7 +78,7 @@ lagoon.sh/buildType: {{ .Values.buildType }}
 {{/*
 Annotations
 */}}
-{{- define "postgres-single.annotations" -}}
+{{- define "postgres-single" -}}
 lagoon.sh/version: {{ .Values.lagoonVersion | quote }}
 {{- if .Values.branch }}
 lagoon.sh/branch: {{ .Values.branch | quote }}

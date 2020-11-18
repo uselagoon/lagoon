@@ -9,7 +9,6 @@ environmentType: production
 persistentStorage:
   size: 5Gi
   path: "/var/lib/postgresql/data"
-  name:  postgres
 
 imagePullPolicy: Always
 
@@ -52,6 +51,8 @@ ingress:
   #    hosts:
   #      - chart-example.local
 
+annotations: {}
+
 resources:
   # limits:
   #   cpu: 100m
@@ -67,5 +68,8 @@ tolerations: []
 affinity: {}
 
 inPodCronjobs: ""
+
+tls_acme: false
+routesAutogenerateInsecure: Allow
 
 configMapSha: ""
