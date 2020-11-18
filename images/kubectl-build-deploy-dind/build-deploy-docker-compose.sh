@@ -923,6 +923,10 @@ do
         . /kubectl-build-deploy/scripts/exec-kubectl-mariadb-dbaas.sh
         ;;
 
+    postgres-dbaas)
+        . /kubectl-build-deploy/scripts/exec-kubectl-postgres-dbaas.sh
+        ;;
+
     *)
         echo "DBAAS Type ${SERVICE_TYPE} not implemented"; exit 1;
 
@@ -1201,9 +1205,9 @@ do
 
     echo "nothing to monitor for $SERVICE_TYPE"
 
-  elif [ $SERVICE_TYPE == "postgres" ]; then
-    # TODO: Remove
-    echo "nothing to monitor for $SERVICE_TYPE - for now"
+  elif [ $SERVICE_TYPE == "postgres-dbaas" ]; then
+
+    echo "nothing to monitor for $SERVICE_TYPE"
 
   elif [ ! $SERVICE_ROLLOUT_TYPE == "false" ]; then
     . /kubectl-build-deploy/scripts/exec-monitor-deploy.sh
