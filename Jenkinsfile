@@ -57,7 +57,7 @@ node {
         }
 
         stage ('build images') {
-          sh script: "make -O${SYNC_MAKE_OUTPUT} -j6 build", label: "Building images"
+          sh script: "make -O${SYNC_MAKE_OUTPUT} -j8 build", label: "Building images"
         }
 
         try {
@@ -77,19 +77,21 @@ node {
                 }
               }
               stage ('minishift tests') {
-                try {
-                  if (env.CHANGE_ID && pullRequest.labels.contains("skip-openshift-tests")) {
-                    sh script: 'echo "PR identified as not needing Openshift testing."', label: "Skipping Openshift testing stage"
-                  } else {
-                    sh 'make minishift/cleanall || echo'
-                    sh script: "make minishift MINISHIFT_CPUS=\$(nproc --ignore 3) MINISHIFT_MEMORY=24GB MINISHIFT_DISK_SIZE=70GB MINISHIFT_VERSION=${minishift_version} OPENSHIFT_VERSION=${openshift_version}", label: "Making openshift"
-                    sh script: "make -O${SYNC_MAKE_OUTPUT} push-minishift -j5", label: "Pushing built images into openshift"
-                    sh script: "make -O${SYNC_MAKE_OUTPUT} openshift-tests -j2", label: "Making openshift tests"
+                withCredentials([string(credentialsId: 'github_api_public_read', variable: 'MINISHIFT_GITHUB_API_TOKEN')]) {
+                  try {
+                    if (env.CHANGE_ID && pullRequest.labels.contains("skip-openshift-tests")) {
+                      sh script: 'echo "PR identified as not needing Openshift testing."', label: "Skipping Openshift testing stage"
+                    } else {
+                      sh 'make minishift/cleanall || echo'
+                      sh script: "make minishift MINISHIFT_GITHUB_API_TOKEN=$MINISHIFT_GITHUB_API_TOKEN MINISHIFT_CPUS=\$(nproc --ignore 3) MINISHIFT_MEMORY=24GB MINISHIFT_DISK_SIZE=70GB MINISHIFT_VERSION=${minishift_version} OPENSHIFT_VERSION=${openshift_version}", label: "Making openshift"
+                      sh script: "make -O${SYNC_MAKE_OUTPUT} push-minishift -j5", label: "Pushing built images into openshift"
+                      sh script: "make -O${SYNC_MAKE_OUTPUT} openshift-tests -j1", label: "Making openshift tests"
+                    }
+                  } catch (e) {
+                    echo "Something went wrong, trying to cleanup"
+                    cleanup()
+                    throw e
                   }
-                } catch (e) {
-                  echo "Something went wrong, trying to cleanup"
-                  cleanup()
-                  throw e
                 }
               }
               stage ('cleanup') {
@@ -110,17 +112,19 @@ node {
                 }
               }
             },
-            '3 push images to amazeeiolagoon': {
-              stage ('push images to amazeeiolagoon/*') {
+            '3 push images to testlagoon': {
+              stage ('push images to testlagoon/*') {
                 withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
                   try {
                     if (env.SKIP_IMAGE_PUBLISH != 'true') {
                       sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
-                      sh script: "make -O${SYNC_MAKE_OUTPUT} -j4 publish-amazeeiolagoon-baseimages publish-amazeeiolagoon-serviceimages publish-amazeeiolagoon-taskimages BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Publishing built images"
+                      sh script: "make -O${SYNC_MAKE_OUTPUT} -j8 publish-testlagoon-baseimages publish-testlagoon-serviceimages publish-testlagoon-taskimages BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Publishing built images"
                     } else {
                       sh script: 'echo "skipped because of SKIP_IMAGE_PUBLISH env variable"', label: "Skipping image publishing"
                     }
                     if (env.BRANCH_NAME == 'main' ) {
+                      sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
+                      sh script: "make -O${SYNC_MAKE_OUTPUT} -j8 publish-testlagoon-baseimages publish-testlagoon-serviceimages publish-testlagoon-taskimages BRANCH_NAME=latest", label: "Publishing built images with :latest tag"
                       withCredentials([string(credentialsId: 'vshn-gitlab-helmfile-ci-trigger', variable: 'TOKEN')]) {
                         sh script: "curl -X POST -F token=$TOKEN -F ref=master https://git.vshn.net/api/v4/projects/1263/trigger/pipeline", label: "Trigger lagoon-core helmfile sync on amazeeio-test6"
                       }
@@ -144,12 +148,12 @@ node {
           stage ('publish-amazeeio') {
             withCredentials([string(credentialsId: 'amazeeiojenkins-dockerhub-password', variable: 'PASSWORD')]) {
               sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
-              sh script: "make -O${SYNC_MAKE_OUTPUT} -j4 publish-amazeeio-baseimages", label: "Publishing built images"
+              sh script: "make -O${SYNC_MAKE_OUTPUT} -j8 publish-uselagoon-baseimages publish-uselagoon-serviceimages publish-uselagoon-taskimages", label: "Publishing built images to uselagoon"
             }
           }
         }
 
-        if (env.BRANCH_NAME == 'master' && env.SKIP_IMAGE_PUBLISH != 'true') {
+        if (env.BRANCH_NAME == 'main' && env.SKIP_IMAGE_PUBLISH != 'true') {
           stage ('save-images-s3') {
             sh script: "make -O${SYNC_MAKE_OUTPUT} -j8 s3-save", label: "Saving images to AWS S3"
           }
