@@ -3,6 +3,8 @@
 # make sure we stop if we fail
 set -eo pipefail
 
+if [ "${LAGOON_ENVIRONMENT_TYPE}" == "production" ]; then
+
 prefixwith() {
   local prefix="$1"
   shift
@@ -32,7 +34,7 @@ GRAPHQL='query developmentEnvironments {
 }'
 # Convert GraphQL file into single line (but with still \n existing), turn \n into \\n, esapee the Quotes
 query=$(set -e -o pipefail; echo $GRAPHQL | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
-DEVELOPMENT_ENVIRONMENTS=$(set -e -o pipefail; curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" api:3000/graphql -d "{\"query\": \"$query\"}")
+DEVELOPMENT_ENVIRONMENTS=$(set -e -o pipefail; curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" "${GRAPHQL_ENDPOINT:-api:3000/graphql}" -d "{\"query\": \"$query\"}")
 
 # All data successfully loaded, now we don't want to fail anymore if a single idle fails
 set +eo pipefail
@@ -52,3 +54,5 @@ done
 sleep 5
 # clean up the tmp file
 rm $TMP_DATA
+
+fi

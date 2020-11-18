@@ -58,6 +58,9 @@ DOCKER_BUILD_PARAMS := --quiet
 # CI systems to define an Environment variable CI_BUILD_TAG which uniquely identifies each build.
 # If it's not set we assume that we are running local and just call it lagoon.
 CI_BUILD_TAG ?= lagoon
+# SOURCE_REPO is the repos where the upstream images are found (usually uselagoon, but can substiture for testlagoon)
+UPSTREAM_REPO ?= uselagoon
+UPSTREAM_TAG ?= latest
 
 # Local environment
 ARCH := $(shell uname | tr '[:upper:]' '[:lower:]')
@@ -67,7 +70,7 @@ DOCKER_DRIVER := $(shell docker info -f '{{.Driver}}')
 # Version and Hash of the OpenShift cli that should be downloaded
 MINISHIFT_VERSION := 1.34.1
 OPENSHIFT_VERSION := v3.11.0
-MINISHIFT_CPUS := 6
+MINISHIFT_CPUS := $(nproc --ignore 2)
 MINISHIFT_MEMORY := 8GB
 MINISHIFT_DISK_SIZE := 30GB
 
@@ -77,7 +80,7 @@ KUBECTL_VERSION := v1.17.0
 HELM_VERSION := v3.0.3
 MINIKUBE_VERSION := 1.5.2
 MINIKUBE_PROFILE := $(CI_BUILD_TAG)-minikube
-MINIKUBE_CPUS := 6
+MINIKUBE_CPUS := $(nproc --ignore 2)
 MINIKUBE_MEMORY := 2048
 MINIKUBE_DISK_SIZE := 30g
 
@@ -95,26 +98,7 @@ DEFAULT_ALPINE_VERSION := 3.11
 
 # Builds a docker image. Expects as arguments: name of the image, location of Dockerfile, path of
 # Docker Build Context
-docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg ALPINE_VERSION=$(DEFAULT_ALPINE_VERSION) -t $(CI_BUILD_TAG)/$(1) -f $(2) $(3)
-
-# Build a Python docker image. Expects as arguments:
-# 1. Python version
-# 2. Location of Dockerfile
-# 3. Path of Docker Build context
-docker_build_python = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg PYTHON_VERSION=$(1) --build-arg ALPINE_VERSION=$(2) -t $(CI_BUILD_TAG)/python:$(3) -f $(4) $(5)
-
-docker_build_elastic = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) -t $(CI_BUILD_TAG)/$(2):$(1) -f $(3) $(4)
-
-# Build a PHP docker image. Expects as arguments:
-# 1. PHP version
-# 2. PHP version and type of image (ie 7.3-fpm, 7.3-cli etc)
-# 3. Location of Dockerfile
-# 4. Path of Docker Build Context
-docker_build_php = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg PHP_VERSION=$(1)  --build-arg PHP_IMAGE_VERSION=$(1) --build-arg ALPINE_VERSION=$(2) -t $(CI_BUILD_TAG)/php:$(3) -f $(4) $(5)
-
-docker_build_node = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg NODE_VERSION=$(1) --build-arg ALPINE_VERSION=$(2) -t $(CI_BUILD_TAG)/node:$(3) -f $(4) $(5)
-
-docker_build_solr = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg SOLR_MAJ_MIN_VERSION=$(1) -t $(CI_BUILD_TAG)/solr:$(2) -f $(3) $(4)
+docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg UPSTREAM_REPO=$(UPSTREAM_REPO) --build-arg UPSTREAM_TAG=$(UPSTREAM_TAG) --build-arg ALPINE_VERSION=$(DEFAULT_ALPINE_VERSION) -t $(CI_BUILD_TAG)/$(1) -f $(2) $(3)
 
 # Tags an image with the `amazeeio` repository and pushes it
 docker_publish_amazeeio = docker tag $(CI_BUILD_TAG)/$(1) amazeeio/$(2) && docker push amazeeio/$(2) | cat
@@ -130,29 +114,13 @@ docker_publish_amazeeiolagoon = docker tag $(CI_BUILD_TAG)/$(1) amazeeiolagoon/$
 
 images :=     oc \
 							kubectl \
-							mariadb \
-							mariadb-drupal \
-							postgres \
-							postgres-ckan \
-							postgres-drupal \
 							oc-build-deploy-dind \
 							kubectl-build-deploy-dind \
-							commons \
-							nginx \
-							nginx-drupal \
-							varnish \
-							varnish-drupal \
-							varnish-persistent \
-							varnish-persistent-drupal \
-							redis \
-							redis-persistent \
 							rabbitmq \
 							rabbitmq-cluster \
-							mongo \
 							athenapdf-service \
 							curator \
-							docker-host \
-							toolbox
+							docker-host
 
 # base-images is a variable that will be constantly filled with all base image there are
 base-images += $(images)
@@ -176,216 +144,16 @@ $(build-images):
 #    if the parent has been built
 # 2. Dockerfiles of the Images itself, will cause make to rebuild the images if something has
 #    changed on the Dockerfiles
-build/mariadb: build/commons images/mariadb/Dockerfile
-build/mariadb-drupal: build/mariadb images/mariadb-drupal/Dockerfile
-build/postgres: build/commons images/postgres/Dockerfile
-build/postgres-ckan: build/postgres images/postgres-ckan/Dockerfile
-build/postgres-drupal: build/postgres images/postgres-drupal/Dockerfile
-build/commons: images/commons/Dockerfile
-build/nginx: build/commons images/nginx/Dockerfile
-build/nginx-drupal: build/nginx images/nginx-drupal/Dockerfile
-build/varnish: build/commons images/varnish/Dockerfile
-build/varnish-drupal: build/varnish images/varnish-drupal/Dockerfile
-build/varnish-persistent: build/varnish images/varnish/Dockerfile
-build/varnish-persistent-drupal: build/varnish-persistent images/varnish-drupal/Dockerfile
-build/redis: build/commons images/redis/Dockerfile
-build/redis-persistent: build/redis images/redis-persistent/Dockerfile
-build/rabbitmq: build/commons images/rabbitmq/Dockerfile
+build/rabbitmq: images/rabbitmq/Dockerfile
 build/rabbitmq-cluster: build/rabbitmq images/rabbitmq-cluster/Dockerfile
-build/mongo: build/commons images/mongo/Dockerfile
-build/docker-host: build/commons images/docker-host/Dockerfile
-build/oc: build/commons images/oc/Dockerfile
-build/kubectl: build/commons images/kubectl/Dockerfile
-build/curator: build/commons images/curator/Dockerfile
+build/docker-host: images/docker-host/Dockerfile
+build/oc: images/oc/Dockerfile
+build/kubectl: images/kubectl/Dockerfile
+build/curator: images/curator/Dockerfile
 build/oc-build-deploy-dind: build/oc images/oc-build-deploy-dind
-build/athenapdf-service: build/commons images/athenapdf-service/Dockerfile
-build/toolbox: build/commons images/toolbox/Dockerfile
+build/athenapdf-service:images/athenapdf-service/Dockerfile
 build/kubectl-build-deploy-dind: build/kubectl images/kubectl-build-deploy-dind
 
-
-#######
-####### Elastic Images
-#######
-
-elasticimages :=  elasticsearch__6 \
-								  elasticsearch__7 \
-									kibana__6 \
-									kibana__7 \
-									logstash__6 \
-									logstash__7
-
-build-elasticimages = $(foreach image,$(elasticimages),build/$(image))
-
-# Define the make recipe for all base images
-$(build-elasticimages): build/commons
-	$(eval clean = $(subst build/,,$@))
-	$(eval tool = $(word 1,$(subst __, ,$(clean))))
-	$(eval version = $(word 2,$(subst __, ,$(clean))))
-# Call the docker build
-	$(call docker_build_elastic,$(version),$(tool),images/$(tool)/Dockerfile$(version),images/$(tool))
-# Touch an empty file which make itself is using to understand when the image has been last build
-	touch $@
-
-base-images-with-versions += $(elasticimages)
-s3-images += $(elasticimages)
-
-build/elasticsearch__6 build/elasticsearch__7 build/kibana__6 build/kibana__7 build/logstash__6 build/logstash__7: images/commons
-
-#######
-####### Python Images
-#######
-####### Python Images are alpine linux based Python images.
-
-pythonimages :=  python__2.7 \
-								 python__3.7 \
-								 python__2.7-ckan \
-								 python__2.7-ckandatapusher
-
-build-pythonimages = $(foreach image,$(pythonimages),build/$(image))
-
-# Define the make recipe for all base images
-$(build-pythonimages): build/commons
-	$(eval clean = $(subst build/python__,,$@))
-	$(eval version = $(word 1,$(subst -, ,$(clean))))
-	$(eval type = $(word 2,$(subst -, ,$(clean))))
-	$(eval alpine_version := $(shell case $(version) in (2.7|3.7) echo "3.10" ;; (*) echo $(DEFAULT_ALPINE_VERSION) ;; esac ))
-# this fills variables only if $type is existing, if not they are just empty
-	$(eval type_dash = $(if $(type),-$(type)))
-# Call the docker build
-	$(call docker_build_python,$(version),$(alpine_version),$(version)$(type_dash),images/python$(type_dash)/Dockerfile,images/python$(type_dash))
-# Touch an empty file which make itself is using to understand when the image has been last build
-	touch $@
-
-base-images-with-versions += $(pythonimages)
-s3-images += $(pythonimages)
-
-build/python__2.7 build/python__3.7: images/commons
-build/python__2.7-ckan: build/python__2.7
-build/python__2.7-ckandatapusher: build/python__2.7
-
-
-#######
-####### PHP Images
-#######
-####### PHP Images are alpine linux based PHP images.
-
-phpimages := 	php__7.2-fpm \
-				php__7.3-fpm \
-				php__7.4-fpm \
-				php__7.2-cli \
-				php__7.3-cli \
-				php__7.4-cli \
-				php__7.2-cli-drupal \
-				php__7.3-cli-drupal \
-				php__7.4-cli-drupal
-
-
-build-phpimages = $(foreach image,$(phpimages),build/$(image))
-
-# Define the make recipe for all base images
-$(build-phpimages): build/commons
-	$(eval clean = $(subst build/php__,,$@))
-	$(eval version = $(word 1,$(subst -, ,$(clean))))
-	$(eval type = $(word 2,$(subst -, ,$(clean))))
-	$(eval subtype = $(word 3,$(subst -, ,$(clean))))
-	$(eval alpine_version := $(shell case $(version) in (5.6) echo "3.8" ;; (7.0) echo "3.7" ;; (7.1) echo "3.10" ;; (*) echo $(DEFAULT_ALPINE_VERSION) ;; esac ))
-# this fills variables only if $type is existing, if not they are just empty
-	$(eval type_dash = $(if $(type),-$(type)))
-	$(eval type_slash = $(if $(type),/$(type)))
-# if there is a subtype, add it. If not, just keep what we already had
-	$(eval type_dash = $(if $(subtype),-$(type)-$(subtype),$(type_dash)))
-	$(eval type_slash = $(if $(subtype),/$(type)-$(subtype),$(type_slash)))
-
-# Call the docker build
-	$(call docker_build_php,$(version),$(alpine_version),$(version)$(type_dash),images/php$(type_slash)/Dockerfile,images/php$(type_slash))
-# Touch an empty file which make itself is using to understand when the image has been last build
-	touch $@
-
-base-images-with-versions += $(phpimages)
-s3-images += $(phpimages)
-
-build/php__7.2-fpm build/php__7.3-fpm build/php__7.4-fpm: images/commons
-build/php__7.2-cli: build/php__7.2-fpm
-build/php__7.3-cli: build/php__7.3-fpm
-build/php__7.4-cli: build/php__7.4-fpm
-build/php__7.2-cli-drupal: build/php__7.2-cli
-build/php__7.3-cli-drupal: build/php__7.3-cli
-build/php__7.4-cli-drupal: build/php__7.4-cli
-
-#######
-####### Solr Images
-#######
-####### Solr Images are alpine linux based Solr images.
-
-solrimages := 	solr__5.5 \
-				solr__6.6 \
-				solr__7.7 \
-				solr__5.5-drupal \
-				solr__6.6-drupal \
-				solr__7.7-drupal \
-				solr__5.5-ckan \
-				solr__6.6-ckan
-
-
-build-solrimages = $(foreach image,$(solrimages),build/$(image))
-
-# Define the make recipe for all base images
-$(build-solrimages): build/commons
-	$(eval clean = $(subst build/solr__,,$@))
-	$(eval version = $(word 1,$(subst -, ,$(clean))))
-	$(eval type = $(word 2,$(subst -, ,$(clean))))
-# this fills variables only if $type is existing, if not they are just empty
-	$(eval type_dash = $(if $(type),-$(type)))
-# Call the docker build
-	$(call docker_build_solr,$(version),$(version)$(type_dash),images/solr$(type_dash)/Dockerfile,images/solr$(type_dash))
-# Touch an empty file which make itself is using to understand when the image has been last build
-	touch $@
-
-base-images-with-versions += $(solrimages)
-s3-images += $(solrimages)
-
-build/solr__5.5  build/solr__6.6 build/solr__7.7: images/commons
-build/solr__5.5-drupal: build/solr__5.5
-build/solr__6.6-drupal: build/solr__6.6
-build/solr__7.7-drupal: build/solr__7.7
-build/solr__5.5-ckan: build/solr__5.5
-build/solr__6.6-ckan: build/solr__6.6
-
-#######
-####### Node Images
-#######
-####### Node Images are alpine linux based Node images.
-
-nodeimages := 	node__14 \
-				node__12 \
-				node__10 \
-				node__14-builder \
-				node__12-builder \
-				node__10-builder \
-
-build-nodeimages = $(foreach image,$(nodeimages),build/$(image))
-
-# Define the make recipe for all base images
-$(build-nodeimages): build/commons
-	$(eval clean = $(subst build/node__,,$@))
-	$(eval version = $(word 1,$(subst -, ,$(clean))))
-	$(eval type = $(word 2,$(subst -, ,$(clean))))
-	$(eval alpine_version := $(shell case $(version) in (6) echo "" ;; (9) echo "" ;; (*) echo $(DEFAULT_ALPINE_VERSION) ;; esac ))
-# this fills variables only if $type is existing, if not they are just empty
-	$(eval type_dash = $(if $(type),-$(type)))
-	$(eval type_slash = $(if $(type),/$(type)))
-# Call the docker build
-	$(call docker_build_node,$(version),$(alpine_version),$(version)$(type_dash),images/node$(type_slash)/Dockerfile,images/node$(type_slash))
-# Touch an empty file which make itself is using to understand when the image has been last build
-	touch $@
-
-base-images-with-versions += $(nodeimages)
-s3-images += $(nodeimages)
-
-build/node__10 build/node__12 build/node__14: images/commons images/node/Dockerfile
-build/node__14-builder: build/node__14 images/node/builder/Dockerfile
-build/node__12-builder: build/node__12 images/node/builder/Dockerfile
-build/node__10-builder: build/node__10 images/node/builder/Dockerfile
 
 #######
 ####### Service Images
@@ -396,58 +164,86 @@ build/node__10-builder: build/node__10 images/node/builder/Dockerfile
 # Yarn Workspace Image which builds the Yarn Workspace within a single image. This image will be
 # used by all microservices based on Node.js to not build similar node packages again
 build-images += yarn-workspace-builder
-build/yarn-workspace-builder: build/node__10-builder images/yarn-workspace-builder/Dockerfile
+build/yarn-workspace-builder: images/yarn-workspace-builder/Dockerfile
 	$(eval image = $(subst build/,,$@))
 	$(call docker_build,$(image),images/$(image)/Dockerfile,.)
 	touch $@
 
+#######
+####### Task Images
+#######
+####### Task Images are standalone images that are used to run advanced tasks when using the builddeploy controllers.
+
+# task-activestandby is the task image that lagoon builddeploy controller uses to run active/standby misc tasks
+build/task-activestandby: taskimages/activestandby/Dockerfile
+
+# the `taskimages` are the name of the task directories contained within `taskimages/` in the repostory root
+taskimages := activestandby
+# in the following process, taskimages are prepended with `task-` to make built task images more identifiable
+# use `build/task-<name>` to build it, but the references in the directory structure remain simpler with
+# taskimages/
+#	activestandby
+#	anothertask
+# the resulting image will be called `task-<name>` instead of `<name>` to make it known that it is a task image
+task-images += $(foreach image,$(taskimages),task-$(image))
+build-taskimages = $(foreach image,$(taskimages),build/task-$(image))
+$(build-taskimages):
+	$(eval image = $(subst build/task-,,$@))
+	$(call docker_build,task-$(image),taskimages/$(image)/Dockerfile,taskimages/$(image))
+	touch $@
+
 # Variables of service images we manage and build
-services :=       api \
-									auth-server \
-									logs2email \
-									logs2slack \
-									logs2rocketchat \
-									logs2microsoftteams \
-									openshiftbuilddeploy \
-									openshiftbuilddeploymonitor \
-									openshiftjobs \
-									openshiftjobsmonitor \
-									openshiftmisc \
-									openshiftremove \
-									kubernetesbuilddeploy \
-									kubernetesdeployqueue \
-									kubernetesbuilddeploymonitor \
-									kubernetesjobs \
-									kubernetesjobsmonitor \
-									kubernetesmisc \
-									kubernetesremove \
-									webhook-handler \
-									webhooks2tasks \
-									backup-handler \
-									broker \
-									broker-single \
-									logs-dispatcher \
-									logs-forwarder \
-									logs-db \
-									logs-db-ui \
-									logs-db-curator \
-									logs2logs-db \
-									auto-idler \
-									storage-calculator \
-									api-db \
-									drush-alias \
-									keycloak \
-									keycloak-db \
-									ui \
-									harbor-core \
-									harbor-database \
-									harbor-jobservice \
-									harbor-nginx \
-									harbor-portal \
-									harbor-redis \
-									harborregistry \
-									harborregistryctl \
-									harbor-trivy
+services :=	api \
+			api-db \
+			api-redis \
+			auth-server \
+			auto-idler \
+			backup-handler \
+			broker \
+			broker-single \
+			controllerhandler \
+			drush-alias \
+			harbor-core \
+			harbor-database \
+			harbor-jobservice \
+			harbor-nginx \
+			harbor-portal \
+			harbor-redis \
+			harbor-trivy \
+			harborregistry \
+			harborregistryctl \
+			keycloak \
+			keycloak-db \
+			kubernetesbuilddeploy \
+			kubernetesbuilddeploymonitor \
+			kubernetesdeployqueue \
+			kubernetesjobs \
+			kubernetesjobsmonitor \
+			kubernetesmisc \
+			kubernetesremove \
+			logs-concentrator \
+			logs-db \
+			logs-db-curator \
+			logs-db-ui \
+			logs-dispatcher \
+			logs-forwarder \
+			logs-tee \
+			logs2email \
+			logs2logs-db \
+			logs2microsoftteams \
+			logs2rocketchat \
+			logs2slack \
+			openshiftbuilddeploy \
+			openshiftbuilddeploymonitor \
+			openshiftjobs \
+			openshiftjobsmonitor \
+			openshiftmisc \
+			openshiftremove \
+			storage-calculator \
+			ui \
+			webhook-handler \
+			webhooks2tasks
+
 
 service-images += $(services)
 
@@ -460,38 +256,53 @@ $(build-services):
 	touch $@
 
 # Dependencies of Service Images
-build/auth-server build/logs2email build/logs2slack build/logs2rocketchat build/logs2microsoftteams build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftjobs build/openshiftjobsmonitor build/openshiftmisc build/openshiftremove build/backup-handler build/kubernetesbuilddeploy build/kubernetesdeployqueue build/kubernetesbuilddeploymonitor build/kubernetesjobs build/kubernetesjobsmonitor build/kubernetesmisc build/kubernetesremove build/webhook-handler build/webhooks2tasks build/api build/ui: build/yarn-workspace-builder
-build/logs2logs-db: build/logstash__7
-build/logs-db: build/elasticsearch__7
-build/logs-db-ui: build/kibana__7
-build/logs-db-curator: build/curator
+build/auth-server build/logs2email build/logs2slack build/logs2rocketchat build/logs2microsoftteams build/openshiftbuilddeploy build/openshiftbuilddeploymonitor build/openshiftjobs build/openshiftjobsmonitor build/openshiftmisc build/openshiftremove build/backup-handler build/kubernetesbuilddeploy build/kubernetesdeployqueue build/kubernetesbuilddeploymonitor build/kubernetesjobs build/kubernetesjobsmonitor build/kubernetesmisc build/kubernetesremove build/controllerhandler build/webhook-handler build/webhooks2tasks build/api build/ui: build/yarn-workspace-builder
+build/api-db: services/api-db/Dockerfile
+build/api-redis: services/api-redis/Dockerfile
 build/auto-idler: build/oc
-build/storage-calculator: build/oc
-build/api-db build/keycloak-db: build/mariadb
-build/broker: build/rabbitmq-cluster build/broker-single
 build/broker-single: build/rabbitmq
-build/drush-alias: build/nginx
-build/keycloak: build/commons
-build/harbor-database: build/postgres
-build/harbor-trivy build/local-minio: build/harbor-database services/harbor-redis/Dockerfile
-build/harborregistry: services/harbor-jobservice/Dockerfile
-build/harborregistryctl: build/harborregistry
-build/harbor-nginx: build/harborregistryctl services/harbor-core/Dockerfile services/harbor-portal/Dockerfile
+build/broker: build/rabbitmq-cluster build/broker-single
+build/drush-alias: services/drush-alias/Dockerfile
+build/harbor-core: services/harbor-core/Dockerfile
+build/harbor-database: services/harbor-database/Dockerfile
+build/harbor-jobservice: services/harbor-jobservice/Dockerfile
+build/harbor-nginx: services/harbor-nginx/Dockerfile
+build/harbor-portal: services/harbor-portal/Dockerfile
+build/harbor-redis: services/harbor-redis/Dockerfile
+build/harbor-trivy build/local-minio: services/harbor-trivy/Dockerfile
+build/harborregistry: services/harborregistry/Dockerfile
+build/harborregistryctl: services/harborregistryctl/Dockerfile
+build/keycloak-db: services/keycloak-db/Dockerfile
+build/keycloak: services/keycloak/Dockerfile
+build/logs-concentrator: services/logs-concentrator/Dockerfile
+build/logs-db-curator: build/curator
+build/logs-db-ui: services/logs-db-ui/Dockerfile
+build/logs-db: services/logs-db/Dockerfile
+build/logs-dispatcher: services/logs-dispatcher/Dockerfile
+build/logs-forwarder: services/logs-forwarder/Dockerfile
+build/logs-tee: services/logs-tee/Dockerfile
+build/logs2logs-db: services/logs2logs-db/Dockerfile
+build/storage-calculator: build/oc
+build/tests-controller-kubernetes: build/tests
 build/tests-kubernetes: build/tests
 build/tests-openshift: build/tests
-build/toolbox: build/mariadb
-
+build/tests: tests/Dockerfile
 # Auth SSH needs the context of the root folder, so we have it individually
-build/ssh: build/commons
+build/ssh: services/ssh/Dockerfile
 	$(eval image = $(subst build/,,$@))
 	$(call docker_build,$(image),services/$(image)/Dockerfile,.)
 	touch $@
 service-images += ssh
 
+build/local-git: local-dev/git/Dockerfile
+build/local-api-data-watcher-pusher: local-dev/api-data-watcher-pusher/Dockerfile
+build/local-registry: local-dev/registry/Dockerfile
+build/local-dbaas-provider: local-dev/dbaas-provider/Dockerfile
+
 # Images for local helpers that exist in another folder than the service images
 localdevimages := local-git \
 									local-api-data-watcher-pusher \
-									local-registry\
+									local-registry \
 									local-dbaas-provider
 service-images += $(localdevimages)
 build-localdevimages = $(foreach image,$(localdevimages),build/$(image))
@@ -518,7 +329,7 @@ s3-images += $(service-images)
 
 # Builds all Images
 .PHONY: build
-build: $(foreach image,$(base-images) $(base-images-with-versions) $(service-images),build/$(image))
+build: $(foreach image,$(base-images) $(service-images) $(task-images),build/$(image))
 # Outputs a list of all Images we manage
 .PHONY: build-list
 build-list:
@@ -527,10 +338,12 @@ build-list:
 	done
 
 # Define list of all tests
-all-k8s-tests-list:=				features-kubernetes \
-														nginx \
+all-k8s-tests-list:=				nginx \
 														drupal \
-														drupal-postgres
+														drupal-postgres \
+														active-standby-kubernetes \
+														features-kubernetes
+
 all-k8s-tests = $(foreach image,$(all-k8s-tests-list),k8s-tests/$(image))
 
 # Run all k8s tests
@@ -541,15 +354,37 @@ k8s-tests: $(all-k8s-tests)
 $(all-k8s-tests): k3d kubernetes-test-services-up
 		$(MAKE) push-local-registry -j6
 		$(eval testname = $(subst k8s-tests/,,$@))
-		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility run --rm \
+		IMAGE_REPO=$(CI_BUILD_TAG) UPSTREAM_REPO=$(UPSTREAM_REPO) UPSTREAM_TAG=$(UPSTREAM_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility run --rm \
 			tests-kubernetes ansible-playbook --skip-tags="skip-on-kubernetes" \
 			/ansible/tests/$(testname).yaml \
 			--extra-vars \
 			"$$(cat $$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)') | \
 				jq -rcsR '{kubeconfig: .}')"
 
+# Define list of all tests
+all-controller-k8s-tests-list:=				features-kubernetes \
+														nginx \
+														drupal \
+														active-standby-kubernetes
+all-controller-k8s-tests = $(foreach image,$(all-controller-k8s-tests-list),controller-k8s-tests/$(image))
+
+# Run all k8s tests
+.PHONY: controller-k8s-tests
+controller-k8s-tests: $(all-controller-k8s-tests)
+
+.PHONY: $(all-controller-k8s-tests)
+$(all-controller-k8s-tests): k3d controller-k8s-test-services-up
+		$(MAKE) push-local-registry -j6
+		$(eval testname = $(subst controller-k8s-tests/,,$@))
+		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility run --rm \
+			tests-controller-kubernetes ansible-playbook --skip-tags="skip-on-kubernetes" \
+			/ansible/tests/$(testname).yaml \
+			--extra-vars \
+			"$$(cat $$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)') | \
+				jq -rcsR '{kubeconfig: .}')"
+
 # push command of our base images into minishift
-push-local-registry-images = $(foreach image,$(base-images) $(base-images-with-versions),[push-local-registry]-$(image))
+push-local-registry-images = $(foreach image,$(base-images) $(task-images),[push-local-registry]-$(image))
 # tag and push all images
 .PHONY: push-local-registry
 push-local-registry: $(push-local-registry-images)
@@ -577,7 +412,7 @@ all-openshift-tests-list:=	features-openshift \
 														bitbucket \
 														nginx \
 														elasticsearch \
-														active-standby
+														active-standby-openshift
 all-openshift-tests = $(foreach image,$(all-openshift-tests-list),openshift-tests/$(image))
 
 .PHONY: openshift-tests
@@ -585,7 +420,7 @@ openshift-tests: $(all-openshift-tests)
 
 # Run all tests
 .PHONY: tests
-tests: k8s-tests openshift-tests
+tests: controller-k8s-tests k8s-tests openshift-tests
 
 # Wait for Keycloak to be ready (before this no API calls will work)
 .PHONY: wait-for-keycloak
@@ -602,6 +437,9 @@ openshift-test-services = openshiftremove openshiftbuilddeploy openshiftbuilddep
 # Define a list of which Lagoon Services are needed for kubernetes testing
 kubernetes-test-services = kubernetesbuilddeploy kubernetesdeployqueue kubernetesbuilddeploymonitor kubernetesjobs kubernetesjobsmonitor kubernetesremove kubernetesmisc tests-kubernetes local-registry local-dbaas-provider drush-alias
 
+# Define a list of which Lagoon Services are needed for controller kubernetes testing
+controller-k8s-test-services = controllerhandler tests-controller-kubernetes local-registry local-dbaas-provider drush-alias
+
 # List of Lagoon Services needed for webhook endpoint testing
 webhooks-test-services = webhook-handler webhooks2tasks backup-handler
 
@@ -612,11 +450,10 @@ drupal-test-services = drush-alias
 webhook-tests = github gitlab bitbucket
 
 # All Tests that use API endpoints
-api-tests = node features-openshift features-kubernetes nginx elasticsearch active-standby
+api-tests = node features-openshift features-kubernetes nginx elasticsearch active-standby-openshift active-standby-kubernetes
 
 # All drupal tests
 drupal-tests = drupal drupal-postgres
-drupal-dependencies = build/varnish-drupal build/solr__5.5-drupal build/nginx-drupal build/redis build/php__7.2-cli-drupal build/php__7.3-cli-drupal build/php__7.4-cli-drupal build/postgres-drupal build/mariadb-drupal
 
 # These targets are used as dependencies to bring up containers in the right order.
 .PHONY: main-test-services-up
@@ -632,6 +469,10 @@ openshift-test-services-up: main-test-services-up $(foreach image,$(openshift-te
 kubernetes-test-services-up: main-test-services-up $(foreach image,$(kubernetes-test-services),build/$(image))
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d $(kubernetes-test-services)
 
+.PHONY: controller-k8s-test-services-up
+controller-k8s-test-services-up: main-test-services-up $(foreach image,$(controller-k8s-test-services),build/$(image))
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d $(controller-k8s-test-services)
+
 .PHONY: drupaltest-services-up
 drupaltest-services-up: main-test-services-up $(foreach image,$(drupal-test-services),build/$(image))
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d $(drupal-test-services)
@@ -643,6 +484,12 @@ webhooks-test-services-up: main-test-services-up $(foreach image,$(webhooks-test
 .PHONY: local-registry-up
 local-registry-up: build/local-registry
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d local-registry
+
+# broker-up is used to ensure the broker is running before the lagoon-builddeploy operator is installed
+# when running controller-kubernetes tests
+.PHONY: broker-up
+broker-up: build/broker
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d broker
 
 openshift-run-api-tests = $(foreach image,$(api-tests),openshift-tests/$(image))
 .PHONY: $(openshift-run-api-tests)
@@ -679,7 +526,7 @@ end2end-tests/clean:
 		docker-compose -f docker-compose.yaml -f docker-compose.end2end.yaml -p end2end --compatibility down -v
 
 # push command of our base images into minishift
-push-minishift-images = $(foreach image,$(base-images) $(base-images-with-versions),[push-minishift]-$(image))
+push-minishift-images = $(foreach image,$(base-images),[push-minishift]-$(image))
 # tag and push all images
 .PHONY: push-minishift
 push-minishift: minishift/login-docker-registry $(push-minishift-images)
@@ -705,16 +552,21 @@ lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build/$(image
 	make logs
 
 # Start only the local Harbor for testing purposes
-local-harbor: build/harbor-core build/harbor-database build/harbor-jobservice build/harbor-portal build/harbor-nginx build/harbor-redis build/harborregistry build/harborregistryctl build/harbor-trivy build/local-minio
+local-harbor: build/harbor-core build/harbor-database build/harbor-jobservice build/harbor-portal build/harbor-nginx build/harbor-redis build/harborregistry build/harborregistryctl build/harbor-trivy
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d harbor-core harbor-database harbor-jobservice harbor-portal harbor-nginx harbor-redis harborregistry harborregistryctl harbor-trivy local-minio
+
+
+#######
+####### Publishing Images
+#######
+####### baseimages are pushed to amazeeio repository for b/c
 
 # Publish command to amazeeio docker hub, this should probably only be done during a master deployments
 publish-amazeeio-baseimages = $(foreach image,$(base-images),[publish-amazeeio-baseimages]-$(image))
-publish-amazeeio-baseimages-with-versions = $(foreach image,$(base-images-with-versions),[publish-amazeeio-baseimages-with-versions]-$(image))
 # tag and push all images
-.PHONY: publish-amazeeio-baseimages
-publish-amazeeio-baseimages: $(publish-amazeeio-baseimages) $(publish-amazeeio-baseimages-with-versions)
 
+.PHONY: publish-amazeeio-baseimages
+publish-amazeeio-baseimages: $(publish-amazeeio-baseimages)
 
 # tag and push of each image
 .PHONY: $(publish-amazeeio-baseimages)
@@ -726,31 +578,31 @@ $(publish-amazeeio-baseimages):
 # 	Publish images with version tag
 		$(call docker_publish_amazeeio,$(image),$(image):$(LAGOON_VERSION))
 
-
-# tag and push of base image with version
-.PHONY: $(publish-amazeeio-baseimages-with-versions)
-$(publish-amazeeio-baseimages-with-versions):
-#   Calling docker_publish for image, but remove the prefix '[publish-amazeeio-baseimages-with-versions]-' first
-		$(eval image = $(subst [publish-amazeeio-baseimages-with-versions]-,,$@))
-#   The underline is a placeholder for a colon, replace that
-		$(eval image = $(subst __,:,$(image)))
-#		These images already use a tag to differentiate between different versions of the service itself (like node:9 and node:10)
-#		We push a version without the `-latest` suffix
-		$(call docker_publish_amazeeio,$(image),$(image))
-#		Plus a version with the `-latest` suffix, this makes it easier for people with automated testing
-		$(call docker_publish_amazeeio,$(image),$(image)-latest)
-#		We add the Lagoon Version just as a dash
-		$(call docker_publish_amazeeio,$(image),$(image)-$(LAGOON_VERSION))
-
-
-
 # Publish command to amazeeio docker hub, this should probably only be done during a master deployments
-publish-amazeeiolagoon-baseimages = $(foreach image,$(base-images),[publish-amazeeiolagoon-baseimages]-$(image))
-publish-amazeeiolagoon-baseimages-with-versions = $(foreach image,$(base-images-with-versions),[publish-amazeeiolagoon-baseimages-with-versions]-$(image))
+publish-amazeeio-taskimages = $(foreach image,$(task-images),[publish-amazeeio-taskimages]-$(image))
 # tag and push all images
-.PHONY: publish-amazeeiolagoon-baseimages
-publish-amazeeiolagoon-baseimages: $(publish-amazeeiolagoon-baseimages) $(publish-amazeeiolagoon-baseimages-with-versions)
+.PHONY: publish-amazeeio-taskimages
+publish-amazeeio-taskimages: $(publish-amazeeio-taskimages)
 
+# tag and push of each image
+.PHONY: $(publish-amazeeio-taskimages)
+$(publish-amazeeio-taskimages):
+#   Calling docker_publish for image, but remove the prefix '[publish-amazeeio-taskimages]-' first
+		$(eval image = $(subst [publish-amazeeio-taskimages]-,,$@))
+# 	Publish images as :latest
+		$(call docker_publish_amazeeio,$(image),$(image):latest)
+# 	Publish images with version tag
+		$(call docker_publish_amazeeio,$(image),$(image):$(LAGOON_VERSION))
+
+#######
+####### All main&PR images are pushed to amazeeiolagoon repository
+
+# Publish command to amazeeiolagoon docker hub, done on any main branch or PR
+publish-amazeeiolagoon-baseimages = $(foreach image,$(base-images),[publish-amazeeiolagoon-baseimages]-$(image))
+# tag and push all images
+
+.PHONY: publish-amazeeiolagoon-baseimages
+publish-amazeeiolagoon-baseimages: $(publish-amazeeiolagoon-baseimages)
 
 # tag and push of each image
 .PHONY: $(publish-amazeeiolagoon-baseimages)
@@ -761,29 +613,32 @@ $(publish-amazeeiolagoon-baseimages):
 		$(call docker_publish_amazeeiolagoon,$(image),$(image):$(BRANCH_NAME))
 
 
-# tag and push of base image with version
-.PHONY: $(publish-amazeeiolagoon-baseimages-with-versions)
-$(publish-amazeeiolagoon-baseimages-with-versions):
-#   Calling docker_publish for image, but remove the prefix '[publish-amazeeiolagoon-baseimages-with-versions]-' first
-		$(eval image = $(subst [publish-amazeeiolagoon-baseimages-with-versions]-,,$@))
-#   The underline is a placeholder for a colon, replace that
-		$(eval image = $(subst __,:,$(image)))
-#		We add the Lagoon Version just as a dash
-		$(call docker_publish_amazeeiolagoon,$(image),$(image)-$(BRANCH_NAME))
-
-
 # Publish command to amazeeio docker hub, this should probably only be done during a master deployments
 publish-amazeeiolagoon-serviceimages = $(foreach image,$(service-images),[publish-amazeeiolagoon-serviceimages]-$(image))
 # tag and push all images
 .PHONY: publish-amazeeiolagoon-serviceimages
 publish-amazeeiolagoon-serviceimages: $(publish-amazeeiolagoon-serviceimages)
 
-
 # tag and push of each image
 .PHONY: $(publish-amazeeiolagoon-serviceimages)
 $(publish-amazeeiolagoon-serviceimages):
 #   Calling docker_publish for image, but remove the prefix '[publish-amazeeiolagoon-serviceimages]-' first
 		$(eval image = $(subst [publish-amazeeiolagoon-serviceimages]-,,$@))
+# 	Publish images with version tag
+		$(call docker_publish_amazeeiolagoon,$(image),$(image):$(BRANCH_NAME))
+
+
+# Publish command to amazeeio docker hub, this should probably only be done during a master deployments
+publish-amazeeiolagoon-taskimages = $(foreach image,$(task-images),[publish-amazeeiolagoon-taskimages]-$(image))
+# tag and push all images
+.PHONY: publish-amazeeiolagoon-taskimages
+publish-amazeeiolagoon-taskimages: $(publish-amazeeiolagoon-taskimages)
+
+# tag and push of each image
+.PHONY: $(publish-amazeeiolagoon-taskimages)
+$(publish-amazeeiolagoon-taskimages):
+#   Calling docker_publish for image, but remove the prefix '[publish-amazeeiolagoon-taskimages]-' first
+		$(eval image = $(subst [publish-amazeeiolagoon-taskimages]-,,$@))
 # 	Publish images with version tag
 		$(call docker_publish_amazeeiolagoon,$(image),$(image):$(BRANCH_NAME))
 
@@ -1010,6 +865,7 @@ endif
 
 k3d: local-dev/k3d local-dev/kubectl local-dev/helm/helm build/docker-host
 	$(MAKE) local-registry-up
+	$(MAKE) broker-up
 	$(info starting k3d with name $(K3D_NAME))
 	$(info Creating Loopback Interface for docker gateway if it does not exist, this might ask for sudo)
 ifeq ($(ARCH), darwin)
@@ -1026,31 +882,48 @@ endif
 		--volume $$PWD/local-dev/k3d-nginx-ingress.yaml:/var/lib/rancher/k3s/server/manifests/k3d-nginx-ingress.yaml
 	echo "$(K3D_NAME)" > $@
 	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; \
-	local-dev/kubectl apply -f $$PWD/local-dev/k3d-storageclass-bulk.yaml; \
+	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" apply -f $$PWD/local-dev/k3d-storageclass-bulk.yaml; \
 	docker tag $(CI_BUILD_TAG)/docker-host localhost:5000/lagoon/docker-host; \
 	docker push localhost:5000/lagoon/docker-host; \
-	local-dev/kubectl create namespace k8up; \
-	local-dev/helm/helm repo add appuio https://charts.appuio.ch; \
-	local-dev/helm/helm upgrade --install -n k8up k8up appuio/k8up; \
-	local-dev/kubectl create namespace dbaas-operator; \
-	local-dev/helm/helm repo add dbaas-operator https://raw.githubusercontent.com/amazeeio/dbaas-operator/master/charts ; \
-	local-dev/helm/helm upgrade --install -n dbaas-operator dbaas-operator dbaas-operator/dbaas-operator ; \
-	local-dev/helm/helm upgrade --install -n dbaas-operator mariadbprovider dbaas-operator/mariadbprovider -f local-dev/helm-values-mariadbprovider.yml ; \
-	local-dev/kubectl create namespace lagoon; \
-	local-dev/helm/helm upgrade --install -n lagoon lagoon-remote ./charts/lagoon-remote --set dockerHost.image.name=172.17.0.1:5000/lagoon/docker-host --set dockerHost.registry=172.17.0.1:5000; \
-	local-dev/kubectl -n lagoon rollout status deployment docker-host -w;
+	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' create namespace k8up; \
+	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add appuio https://charts.appuio.ch; \
+	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n k8up k8up appuio/k8up; \
+	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' create namespace dioscuri; \
+	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add dioscuri https://raw.githubusercontent.com/amazeeio/dioscuri/ingress/charts ; \
+	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n dioscuri dioscuri dioscuri/dioscuri ; \
+	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' create namespace dbaas-operator; \
+	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add dbaas-operator https://raw.githubusercontent.com/amazeeio/dbaas-operator/master/charts ; \
+	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n dbaas-operator dbaas-operator dbaas-operator/dbaas-operator ; \
+	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n dbaas-operator mariadbprovider dbaas-operator/mariadbprovider -f local-dev/helm-values-mariadbprovider.yml ; \
+	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' create namespace lagoon-builddeploy; \
+	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add lagoon-builddeploy https://raw.githubusercontent.com/amazeeio/lagoon-kbd/main/charts ; \
+	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n lagoon-builddeploy lagoon-builddeploy lagoon-builddeploy/lagoon-builddeploy \
+		--set vars.lagoonTargetName=ci-local-control-k8s \
+		--set vars.rabbitPassword=guest \
+		--set vars.rabbitUsername=guest \
+		--set vars.rabbitHostname=172.17.0.1:5672; \
+	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' create namespace lagoon; \
+	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add lagoon https://uselagoon.github.io/lagoon-charts/; \
+	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n lagoon lagoon-remote lagoon/lagoon-remote --set dockerHost.image.name=172.17.0.1:5000/lagoon/docker-host --set dockerHost.registry=172.17.0.1:5000; \
+	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n lagoon rollout status deployment lagoon-remote-docker-host -w;
 ifeq ($(ARCH), darwin)
 	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; \
-	KUBERNETESBUILDDEPLOY_TOKEN=$$(local-dev/kubectl -n lagoon describe secret $$(local-dev/kubectl -n lagoon get secret | grep kubernetesbuilddeploy | awk '{print $$1}') | grep token: | awk '{print $$2}'); \
+	KUBERNETESBUILDDEPLOY_TOKEN=$$(local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n lagoon describe secret $$(local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n lagoon get secret | grep lagoon-remote-kubernetes-build-deploy-token | awk '{print $$1}') | grep token: | awk '{print $$2}' | tr -d '\n'); \
 	sed -i '' -e "s/\".*\" # make-kubernetes-token/\"$${KUBERNETESBUILDDEPLOY_TOKEN}\" # make-kubernetes-token/g" local-dev/api-data/03-populate-api-data-kubernetes.gql; \
+	sed -i '' -e "s/\".*\" # make-kubernetes-token/\"$${KUBERNETESBUILDDEPLOY_TOKEN}\" # make-kubernetes-token/g" local-dev/api-data/04-populate-api-data-controller.gql; \
 	DOCKER_IP="$$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"; \
-	sed -i '' -e "s/172\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${DOCKER_IP}/g" local-dev/api-data/03-populate-api-data-kubernetes.gql docker-compose.yaml;
+	sed -i '' -e "s/172\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${DOCKER_IP}/g" local-dev/api-data/03-populate-api-data-kubernetes.gql docker-compose.yaml; \
+	DOCKER_IP="$$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"; \
+	sed -i '' -e "s/172\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${DOCKER_IP}/g" local-dev/api-data/04-populate-api-data-controller.gql docker-compose.yaml;
 else
 	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; \
-	KUBERNETESBUILDDEPLOY_TOKEN=$$(local-dev/kubectl -n lagoon describe secret $$(local-dev/kubectl -n lagoon get secret | grep kubernetesbuilddeploy | awk '{print $$1}') | grep token: | awk '{print $$2}'); \
+	KUBERNETESBUILDDEPLOY_TOKEN=$$(local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n lagoon describe secret $$(local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n lagoon get secret | grep lagoon-remote-kubernetes-build-deploy-token | awk '{print $$1}') | grep token: | awk '{print $$2}' | tr -d '\n'); \
 	sed -i "s/\".*\" # make-kubernetes-token/\"$${KUBERNETESBUILDDEPLOY_TOKEN}\" # make-kubernetes-token/g" local-dev/api-data/03-populate-api-data-kubernetes.gql; \
+	sed -i "s/\".*\" # make-kubernetes-token/\"$${KUBERNETESBUILDDEPLOY_TOKEN}\" # make-kubernetes-token/g" local-dev/api-data/04-populate-api-data-controller.gql; \
 	DOCKER_IP="$$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"; \
-	sed -i "s/172\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${DOCKER_IP}/g" local-dev/api-data/03-populate-api-data-kubernetes.gql docker-compose.yaml;
+	sed -i "s/172\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${DOCKER_IP}/g" local-dev/api-data/03-populate-api-data-kubernetes.gql docker-compose.yaml; \
+	DOCKER_IP="$$(docker network inspect bridge --format='{{(index .IPAM.Config 0).Gateway}}')"; \
+	sed -i "s/172\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$${DOCKER_IP}/g" local-dev/api-data/04-populate-api-data-controller.gql docker-compose.yaml;
 endif
 	$(MAKE) push-kubectl-build-deploy-dind
 
@@ -1069,27 +942,27 @@ k3d-kubeconfig:
 
 k3d-dashboard:
 	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name=$$(cat k3d))"; \
-	local-dev/kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-rc2/aio/deploy/recommended/00_dashboard-namespace.yaml; \
-	local-dev/kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-rc2/aio/deploy/recommended/01_dashboard-serviceaccount.yaml; \
-	local-dev/kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-rc2/aio/deploy/recommended/02_dashboard-service.yaml; \
-	local-dev/kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-rc2/aio/deploy/recommended/03_dashboard-secret.yaml; \
-	local-dev/kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-rc2/aio/deploy/recommended/04_dashboard-configmap.yaml; \
-	echo '{"apiVersion": "rbac.authorization.k8s.io/v1","kind": "ClusterRoleBinding","metadata": {"name": "kubernetes-dashboard","namespace": "kubernetes-dashboard"},"roleRef": {"apiGroup": "rbac.authorization.k8s.io","kind": "ClusterRole","name": "cluster-admin"},"subjects": [{"kind": "ServiceAccount","name": "kubernetes-dashboard","namespace": "kubernetes-dashboard"}]}' | local-dev/kubectl -n kubernetes-dashboard apply -f - ; \
-	local-dev/kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-rc2/aio/deploy/recommended/06_dashboard-deployment.yaml; \
-	local-dev/kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-rc2/aio/deploy/recommended/07_scraper-service.yaml; \
-	local-dev/kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-rc2/aio/deploy/recommended/08_scraper-deployment.yaml; \
-	local-dev/kubectl -n kubernetes-dashboard patch deployment kubernetes-dashboard --patch '{"spec": {"template": {"spec": {"containers": [{"name": "kubernetes-dashboard","args": ["--auto-generate-certificates","--namespace=kubernetes-dashboard","--enable-skip-login"]}]}}}}'; \
-	local-dev/kubectl -n kubernetes-dashboard rollout status deployment kubernetes-dashboard -w; \
+	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-rc2/aio/deploy/recommended/00_dashboard-namespace.yaml; \
+	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-rc2/aio/deploy/recommended/01_dashboard-serviceaccount.yaml; \
+	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-rc2/aio/deploy/recommended/02_dashboard-service.yaml; \
+	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-rc2/aio/deploy/recommended/03_dashboard-secret.yaml; \
+	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-rc2/aio/deploy/recommended/04_dashboard-configmap.yaml; \
+	echo '{"apiVersion": "rbac.authorization.k8s.io/v1","kind": "ClusterRoleBinding","metadata": {"name": "kubernetes-dashboard","namespace": "kubernetes-dashboard"},"roleRef": {"apiGroup": "rbac.authorization.k8s.io","kind": "ClusterRole","name": "cluster-admin"},"subjects": [{"kind": "ServiceAccount","name": "kubernetes-dashboard","namespace": "kubernetes-dashboard"}]}' | local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n kubernetes-dashboard apply -f - ; \
+	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-rc2/aio/deploy/recommended/06_dashboard-deployment.yaml; \
+	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-rc2/aio/deploy/recommended/07_scraper-service.yaml; \
+	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-rc2/aio/deploy/recommended/08_scraper-deployment.yaml; \
+	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n kubernetes-dashboard patch deployment kubernetes-dashboard --patch '{"spec": {"template": {"spec": {"containers": [{"name": "kubernetes-dashboard","args": ["--auto-generate-certificates","--namespace=kubernetes-dashboard","--enable-skip-login"]}]}}}}'; \
+	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n kubernetes-dashboard rollout status deployment kubernetes-dashboard -w; \
 	open http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/ ; \
-	local-dev/kubectl proxy
+	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' proxy
 
 k8s-dashboard:
-	kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-rc2/aio/deploy/recommended.yaml; \
-	kubectl -n kubernetes-dashboard rollout status deployment kubernetes-dashboard -w; \
+	kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-rc2/aio/deploy/recommended.yaml; \
+	kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n kubernetes-dashboard rollout status deployment kubernetes-dashboard -w; \
 	echo -e "\nUse this token:"; \
-	kubectl -n lagoon describe secret $$(local-dev/kubectl -n lagoon get secret | grep kubernetesbuilddeploy | awk '{print $$1}') | grep token: | awk '{print $$2}'; \
+	kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n lagoon describe secret $$(local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n lagoon get secret | grep kubernetes-build-deploy | awk '{print $$1}') | grep token: | awk '{print $$2}'; \
 	open http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/ ; \
-	kubectl proxy
+	kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' proxy
 
 # Stop k3d
 .PHONY: k3d/stop
@@ -1117,13 +990,14 @@ k3d/cleanall: k3d/stopall
 .PHONY: kubernetes-lagoon-setup
 kubernetes-lagoon-setup:
 	kubectl create namespace lagoon; \
-	local-dev/helm/helm upgrade --install -n lagoon lagoon-remote ./charts/lagoon-remote; \
+	local-dev/helm/helm repo add lagoon https://uselagoon.github.io/lagoon-charts/; \
+	local-dev/helm/helm upgrade --install -n lagoon lagoon-remote lagoon/lagoon-remote; \
 	echo -e "\n\nAll Setup, use this token as described in the Lagoon Install Documentation:";
 	$(MAKE) kubernetes-get-kubernetesbuilddeploy-token
 
 .PHONY: kubernetes-get-kubernetesbuilddeploy-token
 kubernetes-get-kubernetesbuilddeploy-token:
-	kubectl -n lagoon describe secret $$(kubectl -n lagoon get secret | grep kubernetesbuilddeploy | awk '{print $$1}') | grep token: | awk '{print $$2}'
+	kubectl -n lagoon describe secret $$(kubectl -n lagoon get secret | grep kubernetes-build-deploy | awk '{print $$1}') | grep token: | awk '{print $$2}'
 
 .PHONY: rebuild-push-oc-build-deploy-dind
 rebuild-push-oc-build-deploy-dind:
@@ -1133,5 +1007,9 @@ rebuild-push-oc-build-deploy-dind:
 
 
 .PHONY: ui-development
-ui-development: build/api build/api-db build/local-api-data-watcher-pusher build/ui build/keycloak build/keycloak-db build/broker build/broker-single
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db local-api-data-watcher-pusher ui keycloak keycloak-db broker
+ui-development: build/api build/api-db build/local-api-data-watcher-pusher build/ui build/keycloak build/keycloak-db build/broker build/broker-single build/api-redis
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis
+
+.PHONY: api-development
+api-development: build/api build/api-db build/local-api-data-watcher-pusher build/keycloak build/keycloak-db build/broker build/broker-single build/api-redis
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db local-api-data-watcher-pusher keycloak keycloak-db broker api-redis

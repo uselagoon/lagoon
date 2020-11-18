@@ -17,6 +17,7 @@ spec:
     metadata:
       labels:
         {{- include "redis-persistent.labels" . | nindent 8 }}
+        {{- include "redis-persistent.datadogLabels" . | nindent 8 }}
       annotations:
         {{- include "redis-persistent.annotations" . | nindent 8 }}
         lagoon.sh/configMapSha: {{ .Values.configMapSha | quote }}
@@ -26,9 +27,9 @@ spec:
         {{- toYaml . | nindent 8 }}
     {{- end }}
       volumes:
-        - name: {{ .Values.persistentStorage.name }}
+        - name: {{ include "redis-persistent.persistentStorageName" . }}
           persistentVolumeClaim:
-            claimName: {{ .Values.persistentStorage.name }}
+            claimName: {{ include "redis-persistent.persistentStorageName" . }}
       priorityClassName: {{ include "redis-persistent.lagoonPriority" . }}
       enableServiceLinks: false
       securityContext:
@@ -64,7 +65,7 @@ spec:
             - configMapRef:
                 name: lagoon-env
           volumeMounts:
-            - name: {{ .Values.persistentStorage.name }}
+            - name: {{ include "redis-persistent.persistentStorageName" . }}
               mountPath: {{ .Values.persistentStorage.path | quote }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}

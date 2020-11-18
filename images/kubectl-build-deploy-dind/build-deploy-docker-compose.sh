@@ -62,6 +62,20 @@ done
 
 set -x
 
+set +x # reduce noise in build logs
+# Allow the servicetype be overridden by the lagoon API
+# This accepts colon separated values like so `SERVICE_NAME:SERVICE_TYPE_OVERRIDE`, and multiple overrides
+# separated by commas
+# Example 1: mariadb:mariadb-dbaas < tells any docker-compose services named mariadb to use the mariadb-dbaas service type
+# Example 2: mariadb:mariadb-dbaas,nginx:nginx-persistent
+if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
+  LAGOON_SERVICE_TYPES=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_SERVICE_TYPES") | "\(.value)"'))
+fi
+if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
+  LAGOON_SERVICE_TYPES=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_SERVICE_TYPES") | "\(.value)"'))
+fi
+set -x
+
 for COMPOSE_SERVICE in "${COMPOSE_SERVICES[@]}"
 do
   # The name of the service can be overridden, if not we use the actual servicename
@@ -77,6 +91,17 @@ do
   ENVIRONMENT_SERVICE_TYPE_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.types.$SERVICE_NAME false)
   if [ ! $ENVIRONMENT_SERVICE_TYPE_OVERRIDE == "false" ]; then
     SERVICE_TYPE=$ENVIRONMENT_SERVICE_TYPE_OVERRIDE
+  fi
+
+  if [ ! -z "$LAGOON_SERVICE_TYPES" ]; then
+    IFS=',' read -ra LAGOON_SERVICE_TYPES_SPLIT <<< "$LAGOON_SERVICE_TYPES"
+    for LAGOON_SERVICE_TYPE in "${LAGOON_SERVICE_TYPES_SPLIT[@]}"
+    do
+      IFS=':' read -ra LAGOON_SERVICE_TYPE_SPLIT <<< "$LAGOON_SERVICE_TYPE"
+      if [ "${LAGOON_SERVICE_TYPE_SPLIT[0]}" == "$SERVICE_NAME" ]; then
+        SERVICE_TYPE=${LAGOON_SERVICE_TYPE_SPLIT[1]}
+      fi
+    done
   fi
 
   # "mariadb" is a meta service, which allows lagoon to decide itself which of the services to use:
@@ -178,8 +203,13 @@ do
   # The ImageName is the same as the Name of the Docker Compose ServiceName
   IMAGE_NAME=$COMPOSE_SERVICE
 
-  # Generate List of Images to build
-  IMAGES+=("${IMAGE_NAME}")
+  # Do not handle images for shared services
+  if  [[ "$SERVICE_TYPE" != "mariadb-dbaas" ]] &&
+      [[ "$SERVICE_TYPE" != "mariadb-shared" ]] &&
+      [[ "$SERVICE_TYPE" != "mongodb-shared" ]]; then
+    # Generate List of Images to build
+    IMAGES+=("${IMAGE_NAME}")
+  fi
 
   # Map Deployment ServiceType to the ImageName
   MAP_DEPLOYMENT_SERVICETYPE_TO_IMAGENAME["${SERVICE_NAME}:${DEPLOYMENT_SERVICETYPE}"]="${IMAGE_NAME}"
@@ -219,8 +249,8 @@ if [[ ( "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ) && ! $TH
       LAGOON_POSTROLLOUT_DISABLED=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_POSTROLLOUT_DISABLED") | "\(.value)"'))
     fi
     if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
-      LAGOON_PREROLLOUT_DISABLED=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_PREROLLOUT_DISABLED") | "\(.value)"'))
-      LAGOON_POSTROLLOUT_DISABLED=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_POSTROLLOUT_DISABLED") | "\(.value)"'))
+      LAGOON_PREROLLOUT_DISABLED=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_PREROLLOUT_DISABLED") | "\(.value)"'))
+      LAGOON_POSTROLLOUT_DISABLED=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_POSTROLLOUT_DISABLED") | "\(.value)"'))
     fi
   set -x
 
@@ -276,6 +306,13 @@ if [[ ( "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ) && ! $TH
   do
 
     DOCKERFILE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.build.dockerfile false)
+
+    # allow to overwrite build dockerfile for this environment and service
+    ENVIRONMENT_DOCKERFILE_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.overrides.$IMAGE_NAME.build.dockerfile false)
+    if [ ! $ENVIRONMENT_DOCKERFILE_OVERRIDE == "false" ]; then
+      DOCKERFILE=$ENVIRONMENT_DOCKERFILE_OVERRIDE
+    fi
+
     if [ $DOCKERFILE == "false" ]; then
       # No Dockerfile defined, assuming to download the Image directly
 
@@ -286,9 +323,22 @@ if [[ ( "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ) && ! $TH
 
       # allow to overwrite image that we pull
       OVERRIDE_IMAGE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.labels.lagoon\\.image false)
+
+      # allow to overwrite image that we pull for this environment and service
+      ENVIRONMENT_IMAGE_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.overrides.$IMAGE_NAME.image false)
+      if [ ! $ENVIRONMENT_IMAGE_OVERRIDE == "false" ]; then
+        OVERRIDE_IMAGE=$ENVIRONMENT_IMAGE_OVERRIDE
+      fi
+
       if [ ! $OVERRIDE_IMAGE == "false" ]; then
         # expand environment variables from ${OVERRIDE_IMAGE}
         PULL_IMAGE=$(echo "${OVERRIDE_IMAGE}" | envsubst)
+      fi
+
+      # if the image just is an image name (like "alpine") we prefix it with `libary/` as the imagecache does not understand
+      # the magic `alpine` images
+      if [[ ! "$PULL_IMAGE" =~ "/" ]]; then
+        PULL_IMAGE="library/$PULL_IMAGE"
       fi
 
       # Add the images we should pull to the IMAGES_PULL array, they will later be tagged from dockerhub
@@ -305,6 +355,13 @@ if [[ ( "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ) && ! $TH
       TEMPORARY_IMAGE_NAME="${NAMESPACE}-${IMAGE_NAME}"
 
       BUILD_CONTEXT=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$IMAGE_NAME.build.context .)
+
+      # allow to overwrite build context for this environment and service
+      ENVIRONMENT_BUILD_CONTEXT_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.overrides.$IMAGE_NAME.build.context false)
+      if [ ! $ENVIRONMENT_BUILD_CONTEXT_OVERRIDE == "false" ]; then
+        BUILD_CONTEXT=$ENVIRONMENT_BUILD_CONTEXT_OVERRIDE
+      fi
+
       if [ ! -f $BUILD_CONTEXT/$DOCKERFILE ]; then
         echo "defined Dockerfile $DOCKERFILE for service $IMAGE_NAME not found"; exit 1;
       fi
@@ -384,20 +441,32 @@ else
 fi
 
 ROUTES_AUTOGENERATE_ENABLED=$(cat .lagoon.yml | shyaml get-value routes.autogenerate.enabled true)
+ROUTES_AUTOGENERATE_ALLOW_PRS=$(cat .lagoon.yml | shyaml get-value routes.autogenerate.allowPullrequests $ROUTES_AUTOGENERATE_ENABLED)
+if [[ "$TYPE" == "pullrequest" && "$ROUTES_AUTOGENERATE_ALLOW_PRS" == "true" ]]; then
+  ROUTES_AUTOGENERATE_ENABLED=true
+fi
+## fail silently if the key autogenerateRoutes doesn't exist and default to whatever ROUTES_AUTOGENERATE_ENABLED is set to
+ROUTES_AUTOGENERATE_BRANCH=$(cat .lagoon.yml | shyaml -q get-value environments.${BRANCH//./\\.}.autogenerateRoutes $ROUTES_AUTOGENERATE_ENABLED)
+if [ "$ROUTES_AUTOGENERATE_BRANCH" =~ [Tt]rue ]; then
+  ROUTES_AUTOGENERATE_ENABLED=true
+fi
+
+ROUTES_AUTOGENERATE_PREFIXES=$(yq r -C .lagoon.yml routes.autogenerate.prefixes.*)
 
 touch /kubectl-build-deploy/values.yaml
 
-yq write -i /kubectl-build-deploy/values.yaml 'project' $PROJECT
-yq write -i /kubectl-build-deploy/values.yaml 'environment' $ENVIRONMENT
-yq write -i /kubectl-build-deploy/values.yaml 'environmentType' $ENVIRONMENT_TYPE
-yq write -i /kubectl-build-deploy/values.yaml 'namespace' $NAMESPACE
-yq write -i /kubectl-build-deploy/values.yaml 'gitSha' $LAGOON_GIT_SHA
-yq write -i /kubectl-build-deploy/values.yaml 'buildType' $BUILD_TYPE
-yq write -i /kubectl-build-deploy/values.yaml 'routesAutogenerateInsecure' $ROUTES_AUTOGENERATE_INSECURE
-yq write -i /kubectl-build-deploy/values.yaml 'routesAutogenerateEnabled' $ROUTES_AUTOGENERATE_ENABLED
-yq write -i /kubectl-build-deploy/values.yaml 'routesAutogenerateSuffix' $ROUTER_URL
-yq write -i /kubectl-build-deploy/values.yaml 'kubernetes' $KUBERNETES
-yq write -i /kubectl-build-deploy/values.yaml 'lagoonVersion' $LAGOON_VERSION
+yq write -i -- /kubectl-build-deploy/values.yaml 'project' $PROJECT
+yq write -i -- /kubectl-build-deploy/values.yaml 'environment' $ENVIRONMENT
+yq write -i -- /kubectl-build-deploy/values.yaml 'environmentType' $ENVIRONMENT_TYPE
+yq write -i -- /kubectl-build-deploy/values.yaml 'namespace' $NAMESPACE
+yq write -i -- /kubectl-build-deploy/values.yaml 'gitSha' $LAGOON_GIT_SHA
+yq write -i -- /kubectl-build-deploy/values.yaml 'buildType' $BUILD_TYPE
+yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogenerateInsecure' $ROUTES_AUTOGENERATE_INSECURE
+yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogenerateEnabled' $ROUTES_AUTOGENERATE_ENABLED
+yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogenerateSuffix' $ROUTER_URL
+for i in $ROUTES_AUTOGENERATE_PREFIXES; do yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogeneratePrefixes[+]' $i; done
+yq write -i -- /kubectl-build-deploy/values.yaml 'kubernetes' $KUBERNETES
+yq write -i -- /kubectl-build-deploy/values.yaml 'lagoonVersion' $LAGOON_VERSION
 
 
 echo -e "\
@@ -427,7 +496,7 @@ LAGOON_GIT_SAFE_BRANCH=${ENVIRONMENT}\n\
 " >> /kubectl-build-deploy/values.env
 
 if [ "$BUILD_TYPE" == "branch" ]; then
-  yq write -i /kubectl-build-deploy/values.yaml 'branch' $BRANCH
+  yq write -i -- /kubectl-build-deploy/values.yaml 'branch' $BRANCH
 
   echo -e "\
 LAGOON_GIT_BRANCH=${BRANCH}\n\
@@ -435,10 +504,10 @@ LAGOON_GIT_BRANCH=${BRANCH}\n\
 fi
 
 if [ "$BUILD_TYPE" == "pullrequest" ]; then
-  yq write -i /kubectl-build-deploy/values.yaml 'prHeadBranch' "$PR_HEAD_BRANCH"
-  yq write -i /kubectl-build-deploy/values.yaml 'prBaseBranch' "$PR_BASE_BRANCH"
-  yq write -i /kubectl-build-deploy/values.yaml 'prTitle' "$PR_TITLE"
-  yq write -i /kubectl-build-deploy/values.yaml 'prNumber' "$PR_NUMBER"
+  yq write -i -- /kubectl-build-deploy/values.yaml 'prHeadBranch' "$PR_HEAD_BRANCH"
+  yq write -i -- /kubectl-build-deploy/values.yaml 'prBaseBranch' "$PR_BASE_BRANCH"
+  yq write -i -- /kubectl-build-deploy/values.yaml 'prTitle' "$PR_TITLE"
+  yq write -i -- /kubectl-build-deploy/values.yaml 'prNumber' "$PR_NUMBER"
 
   echo -e "\
 LAGOON_PR_HEAD_BRANCH=${PR_HEAD_BRANCH}\n\
@@ -459,11 +528,6 @@ do
   SERVICE_TYPE=${SERVICE_TYPES_ENTRY_SPLIT[1]}
 
   touch /kubectl-build-deploy/${SERVICE_NAME}-values.yaml
-
-  SERVICE_TYPE_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.types.$SERVICE_NAME false)
-  if [ ! $SERVICE_TYPE_OVERRIDE == "false" ]; then
-    SERVICE_TYPE=$SERVICE_TYPE_OVERRIDE
-  fi
 
   HELM_SERVICE_TEMPLATE="templates/service.yaml"
   if [ -f /kubectl-build-deploy/helmcharts/${SERVICE_TYPE}/$HELM_SERVICE_TEMPLATE ]; then
@@ -487,7 +551,7 @@ do
     # cat $KUBERNETES_SERVICES_TEMPLATE
     # Load the requested class and plan for this service
     DBAAS_ENVIRONMENT="${MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]}"
-    yq write -i /kubectl-build-deploy/${SERVICE_NAME}-values.yaml 'environment' $DBAAS_ENVIRONMENT
+    yq write -i -- /kubectl-build-deploy/${SERVICE_NAME}-values.yaml 'environment' $DBAAS_ENVIRONMENT
     helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -s $HELM_DBAAS_TEMPLATE -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${SERVICE_NAME}-values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${SERVICE_NAME}.yaml
     DBAAS+=("${SERVICE_NAME}:${SERVICE_TYPE}")
   fi
@@ -499,6 +563,128 @@ TEMPLATE_PARAMETERS=()
 ##############################################
 ### CUSTOM ROUTES FROM .lagoon.yml
 ##############################################
+
+
+ROUTES_SERVICE_COUNTER=0
+# we need to check for production routes for active/standby if they are defined, as these will get migrated between environments as required
+if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
+  if [ "${BRANCH//./\\.}" == "${ACTIVE_ENVIRONMENT}" ]; then
+    if [ -n "$(cat .lagoon.yml | shyaml keys production_routes.active.routes.$ROUTES_SERVICE_COUNTER 2> /dev/null)" ]; then
+      while [ -n "$(cat .lagoon.yml | shyaml keys production_routes.active.routes.$ROUTES_SERVICE_COUNTER 2> /dev/null)" ]; do
+        ROUTES_SERVICE=$(cat .lagoon.yml | shyaml keys production_routes.active.routes.$ROUTES_SERVICE_COUNTER)
+
+        ROUTE_DOMAIN_COUNTER=0
+        while [ -n "$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER 2> /dev/null)" ]; do
+          # Routes can either be a key (when the have additional settings) or just a value
+          if cat .lagoon.yml | shyaml keys production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER &> /dev/null; then
+            ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml keys production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
+            # Route Domains include dots, which need to be esacped via `\.` in order to use them within shyaml
+            ROUTE_DOMAIN_ESCAPED=$(cat .lagoon.yml | shyaml keys production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER | sed 's/\./\\./g')
+            ROUTE_TLS_ACME=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true)
+            ROUTE_MIGRATE=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate true)
+            ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
+            ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
+          else
+            # Only a value given, assuming some defaults
+            ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
+            ROUTE_TLS_ACME=true
+            ROUTE_MIGRATE=true
+            ROUTE_INSECURE=Redirect
+            ROUTE_HSTS=null
+          fi
+
+          touch /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
+          echo "$ROUTE_ANNOTATIONS" | yq p - annotations > /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
+
+          # The very first found route is set as MAIN_CUSTOM_ROUTE
+          if [ -z "${MAIN_CUSTOM_ROUTE+x}" ]; then
+            MAIN_CUSTOM_ROUTE=$ROUTE_DOMAIN
+          fi
+
+          ROUTE_SERVICE=$ROUTES_SERVICE
+
+          cat /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
+
+          helm template ${ROUTE_DOMAIN} \
+            /kubectl-build-deploy/helmcharts/custom-ingress \
+            --set host="${ROUTE_DOMAIN}" \
+            --set service="${ROUTE_SERVICE}" \
+            --set tls_acme="${ROUTE_TLS_ACME}" \
+            --set insecure="${ROUTE_INSECURE}" \
+            --set hsts="${ROUTE_HSTS}" \
+            --set routeMigrate="${ROUTE_MIGRATE}" \
+            -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${ROUTE_DOMAIN}.yaml
+
+          let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
+        done
+
+        let ROUTES_SERVICE_COUNTER=ROUTES_SERVICE_COUNTER+1
+      done
+    fi
+  fi
+  if [ "${BRANCH//./\\.}" == "${STANDBY_ENVIRONMENT}" ]; then
+    if [ -n "$(cat .lagoon.yml | shyaml keys production_routes.standby.routes.$ROUTES_SERVICE_COUNTER 2> /dev/null)" ]; then
+      while [ -n "$(cat .lagoon.yml | shyaml keys production_routes.standby.routes.$ROUTES_SERVICE_COUNTER 2> /dev/null)" ]; do
+        ROUTES_SERVICE=$(cat .lagoon.yml | shyaml keys production_routes.standby.routes.$ROUTES_SERVICE_COUNTER)
+
+        ROUTE_DOMAIN_COUNTER=0
+        while [ -n "$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER 2> /dev/null)" ]; do
+          # Routes can either be a key (when the have additional settings) or just a value
+          if cat .lagoon.yml | shyaml keys production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER &> /dev/null; then
+            ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml keys production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
+            # Route Domains include dots, which need to be esacped via `\.` in order to use them within shyaml
+            ROUTE_DOMAIN_ESCAPED=$(cat .lagoon.yml | shyaml keys production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER | sed 's/\./\\./g')
+            ROUTE_TLS_ACME=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true)
+            ROUTE_MIGRATE=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate true)
+            ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
+            ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
+          else
+            # Only a value given, assuming some defaults
+            ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
+            ROUTE_TLS_ACME=true
+            ROUTE_MIGRATE=true
+            ROUTE_INSECURE=Redirect
+            ROUTE_HSTS=null
+          fi
+
+          touch /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
+          echo "$ROUTE_ANNOTATIONS" | yq p - annotations > /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
+
+          # The very first found route is set as MAIN_CUSTOM_ROUTE
+          if [ -z "${MAIN_CUSTOM_ROUTE+x}" ]; then
+            MAIN_CUSTOM_ROUTE=$ROUTE_DOMAIN
+          fi
+
+          ROUTE_SERVICE=$ROUTES_SERVICE
+
+          cat /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
+
+          helm template ${ROUTE_DOMAIN} \
+            /kubectl-build-deploy/helmcharts/custom-ingress \
+            --set host="${ROUTE_DOMAIN}" \
+            --set service="${ROUTE_SERVICE}" \
+            --set tls_acme="${ROUTE_TLS_ACME}" \
+            --set insecure="${ROUTE_INSECURE}" \
+            --set hsts="${ROUTE_HSTS}" \
+            --set routeMigrate="${ROUTE_MIGRATE}" \
+            -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${ROUTE_DOMAIN}.yaml
+
+          let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
+        done
+
+        let ROUTES_SERVICE_COUNTER=ROUTES_SERVICE_COUNTER+1
+      done
+    fi
+  fi
+fi
+
+# set some monitoring defaults
+if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
+  MONITORING_ENABLED="true"
+else
+  MONITORING_ENABLED="false"
+
+fi
 
 # Two while loops as we have multiple services that want routes and each service has multiple routes
 ROUTES_SERVICE_COUNTER=0
@@ -514,13 +700,16 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
         # Route Domains include dots, which need to be esacped via `\.` in order to use them within shyaml
         ROUTE_DOMAIN_ESCAPED=$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER | sed 's/\./\\./g')
         ROUTE_TLS_ACME=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true)
+        ROUTE_MIGRATE=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate false)
         ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
         ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
+        MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring-path "/")
         ROUTE_ANNOTATIONS=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.annotations {})
       else
         # Only a value given, assuming some defaults
         ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
         ROUTE_TLS_ACME=true
+        ROUTE_MIGRATE=false
         ROUTE_INSECURE=Redirect
         ROUTE_HSTS=null
         ROUTE_ANNOTATIONS="{}"
@@ -545,6 +734,11 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
         --set tls_acme="${ROUTE_TLS_ACME}" \
         --set insecure="${ROUTE_INSECURE}" \
         --set hsts="${ROUTE_HSTS}" \
+        --set routeMigrate="${ROUTE_MIGRATE}" \
+        --set ingressmonitorcontroller.enabled="${MONITORING_ENABLED}" \
+        --set ingressmonitorcontroller.path="${MONITORING_PATH}" \
+        --set ingressmonitorcontroller.alertContacts="${MONITORING_ALERTCONTACT}" \
+        --set ingressmonitorcontroller.statuspageId="${MONITORING_STATUSPAGEID}" \
         -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${ROUTE_DOMAIN}.yaml
 
       let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
@@ -564,13 +758,16 @@ else
         # Route Domains include dots, which need to be esacped via `\.` in order to use them within shyaml
         ROUTE_DOMAIN_ESCAPED=$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER | sed 's/\./\\./g')
         ROUTE_TLS_ACME=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true)
+        ROUTE_MIGRATE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate false)
         ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
         ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
+        MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring-path "/")
         ROUTE_ANNOTATIONS=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.annotations {})
       else
         # Only a value given, assuming some defaults
         ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
         ROUTE_TLS_ACME=true
+        ROUTE_MIGRATE=false
         ROUTE_INSECURE=Redirect
         ROUTE_HSTS=null
         ROUTE_ANNOTATIONS="{}"
@@ -595,6 +792,11 @@ else
         --set tls_acme="${ROUTE_TLS_ACME}" \
         --set insecure="${ROUTE_INSECURE}" \
         --set hsts="${ROUTE_HSTS}" \
+        --set routeMigrate="${ROUTE_MIGRATE}" \
+        --set ingressmonitorcontroller.enabled="${MONITORING_ENABLED}" \
+        --set ingressmonitorcontroller.path="${MONITORING_PATH}" \
+        --set ingressmonitorcontroller.alertContacts="${MONITORING_ALERTCONTACT}" \
+        --set ingressmonitorcontroller.statuspageId="${MONITORING_STATUSPAGEID}" \
         -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml  "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${ROUTE_DOMAIN}.yaml
 
       let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
@@ -642,20 +844,6 @@ if [ "$(ls -A $YAML_FOLDER/)" ]; then
 fi
 
 ##############################################
-### CUSTOM MONITORING_URLS FROM .lagoon.yml
-##############################################
-URL_COUNTER=0
-while [ -n "$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.monitoring_urls.$URL_COUNTER 2> /dev/null)" ]; do
-  MONITORING_URL="$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.monitoring_urls.$URL_COUNTER)"
-  if [[ $URL_COUNTER > 0 ]]; then
-    MONITORING_URLS="${MONITORING_URLS}, ${MONITORING_URL}"
-  else
-    MONITORING_URLS="${MONITORING_URL}"
-  fi
-  let URL_COUNTER=URL_COUNTER+1
-done
-
-##############################################
 ### PROJECT WIDE ENV VARIABLES
 ##############################################
 
@@ -675,25 +863,25 @@ fi
 # Load all routes with correct schema and comma separated
 ROUTES=$(kubectl -n ${NAMESPACE} get ingress --sort-by='{.metadata.name}' -l "acme.openshift.io/exposer!=true" -o=go-template --template='{{range $indexItems, $ingress := .items}}{{if $indexItems}},{{end}}{{$tls := .spec.tls}}{{range $indexRule, $rule := .spec.rules}}{{if $indexRule}},{{end}}{{if $tls}}https://{{else}}http://{{end}}{{.host}}{{end}}{{end}}')
 
+# Active / Standby routes
+ACTIVE_ROUTES=""
+STANDBY_ROUTES=""
+if [ ! -z "${STANDBY_ENVIRONMENT}" ]; then
+ACTIVE_ROUTES=$(kubectl -n ${NAMESPACE} get ingress --sort-by='{.metadata.name}' -l "dioscuri.amazee.io/migrate=true" -o=go-template --template='{{range $indexItems, $ingress := .items}}{{if $indexItems}},{{end}}{{$tls := .spec.tls}}{{range $indexRule, $rule := .spec.rules}}{{if $indexRule}},{{end}}{{if $tls}}https://{{else}}http://{{end}}{{.host}}{{end}}{{end}}')
+STANDBY_ROUTES=$(kubectl -n ${NAMESPACE} get ingress --sort-by='{.metadata.name}' -l "dioscuri.amazee.io/migrate=true" -o=go-template --template='{{range $indexItems, $ingress := .items}}{{if $indexItems}},{{end}}{{$tls := .spec.tls}}{{range $indexRule, $rule := .spec.rules}}{{if $indexRule}},{{end}}{{if $tls}}https://{{else}}http://{{end}}{{.host}}{{end}}{{end}}')
+fi
+
 # Get list of autogenerated routes
 AUTOGENERATED_ROUTES=$(kubectl -n ${NAMESPACE} get ingress --sort-by='{.metadata.name}' -l "lagoon.sh/autogenerated=true" -o=go-template --template='{{range $indexItems, $ingress := .items}}{{if $indexItems}},{{end}}{{$tls := .spec.tls}}{{range $indexRule, $rule := .spec.rules}}{{if $indexRule}},{{end}}{{if $tls}}https://{{else}}http://{{end}}{{.host}}{{end}}{{end}}')
 
-# If no MONITORING_URLS were specified, fall back to the ROUTE of the project
-if [ -z "$MONITORING_URLS"]; then
-  echo "No monitoring_urls provided, using ROUTE"
-  MONITORING_URLS="${ROUTE}"
-fi
-
-yq write -i /kubectl-build-deploy/values.yaml 'route' "$ROUTE"
-yq write -i /kubectl-build-deploy/values.yaml 'routes' "$ROUTES"
-yq write -i /kubectl-build-deploy/values.yaml 'autogeneratedRoutes' "$AUTOGENERATED_ROUTES"
-yq write -i /kubectl-build-deploy/values.yaml 'monitoringUrls' "$MONITORING_URLS"
+yq write -i -- /kubectl-build-deploy/values.yaml 'route' "$ROUTE"
+yq write -i -- /kubectl-build-deploy/values.yaml 'routes' "$ROUTES"
+yq write -i -- /kubectl-build-deploy/values.yaml 'autogeneratedRoutes' "$AUTOGENERATED_ROUTES"
 
 echo -e "\
 LAGOON_ROUTE=${ROUTE}\n\
 LAGOON_ROUTES=${ROUTES}\n\
 LAGOON_AUTOGENERATED_ROUTES=${AUTOGENERATED_ROUTES}\n\
-LAGOON_MONITORING_URLS=${MONITORING_URLS}\n\
 " >> /kubectl-build-deploy/values.env
 
 # Generate a Config Map with project wide env variables
@@ -759,7 +947,7 @@ done
 CONFIG_MAP_SHA=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap lagoon-env -o yaml | shyaml get-value data | sha256sum | awk '{print $1}')
 # write the configmap to the values file so when we `exec-kubectl-resources-with-images.sh` the deployments will get the value of the config map
 # which will cause a change in the deployment and trigger a rollout if only the configmap has changed
-yq write -i /kubectl-build-deploy/values.yaml 'configMapSha' $CONFIG_MAP_SHA
+yq write -i -- /kubectl-build-deploy/values.yaml 'configMapSha' $CONFIG_MAP_SHA
 
 ##############################################
 ### PUSH IMAGES TO OPENSHIFT REGISTRY
@@ -789,13 +977,13 @@ if [[ $THIS_IS_TUG == "true" ]]; then
 
 elif [ "$BUILD_TYPE" == "pullrequest" ] || [ "$BUILD_TYPE" == "branch" ]; then
 
-  # All images that should be pulled are tagged as Images directly in OpenShift Registry
+  # All images that should be pulled are copied to the harbor registry
   for IMAGE_NAME in "${!IMAGES_PULL[@]}"
   do
     PULL_IMAGE="${IMAGES_PULL[${IMAGE_NAME}]}"
-    # . /kubectl-build-deploy/scripts/exec-kubernetes-tag-dockerhub.sh
-    # TODO: check if we can download and push the images to harbour (e.g. how artifactory does this)
-    IMAGE_HASHES[${IMAGE_NAME}]=$(skopeo inspect docker://${PULL_IMAGE} --tls-verify=false | jq ".Name + \"@\" + .Digest" -r)
+    . /kubectl-build-deploy/scripts/exec-kubernetes-copy-to-registry.sh
+
+    IMAGE_HASHES[${IMAGE_NAME}]=$(skopeo inspect docker://${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG:-latest} --tls-verify=false | jq ".Name + \"@\" + .Digest" -r)
   done
 
   for IMAGE_NAME in "${!IMAGES_BUILD[@]}"
@@ -815,7 +1003,8 @@ elif [ "$BUILD_TYPE" == "pullrequest" ] || [ "$BUILD_TYPE" == "branch" ]; then
   # load the image hashes for just pushed Images
   for IMAGE_NAME in "${!IMAGES_BUILD[@]}"
   do
-    IMAGE_HASHES[${IMAGE_NAME}]=$(docker inspect ${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG:-latest} --format '{{index .RepoDigests 0}}')
+    JQ_QUERY=(jq -r ".[]|select(test(\"${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}\"))")
+    IMAGE_HASHES[${IMAGE_NAME}]=$(docker inspect ${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG:-latest} --format '{{json .RepoDigests}}' | "${JQ_QUERY[@]}")
   done
 
 # elif [ "$BUILD_TYPE" == "promote" ]; then
@@ -911,8 +1100,8 @@ do
         #   echo "No cronjob support for service '${SERVICE_NAME}' with type '${SERVICE_TYPE}', please contact the Lagoon maintainers to implement cronjob support"; exit 1;
         # else
 
-        yq write -i /kubectl-build-deploy/${SERVICE_NAME}-values.yaml "nativeCronjobs.${CRONJOB_NAME,,}.schedule" "$CRONJOB_SCHEDULE"
-        yq write -i /kubectl-build-deploy/${SERVICE_NAME}-values.yaml "nativeCronjobs.${CRONJOB_NAME,,}.command" "$CRONJOB_COMMAND"
+        yq write -i -- /kubectl-build-deploy/${SERVICE_NAME}-values.yaml "nativeCronjobs.${CRONJOB_NAME,,}.schedule" "$CRONJOB_SCHEDULE"
+        yq write -i -- /kubectl-build-deploy/${SERVICE_NAME}-values.yaml "nativeCronjobs.${CRONJOB_NAME,,}.command" "$CRONJOB_COMMAND"
 
         # fi
       fi
@@ -924,9 +1113,9 @@ do
 
   # if there are cronjobs running inside pods, add them to the deploymentconfig.
   if [[ ${#CRONJOBS_ARRAY_INSIDE_POD[@]} -ge 1 ]]; then
-    yq write -i /kubectl-build-deploy/${SERVICE_NAME}-values.yaml 'inPodCronjobs' "$(printf '%s\n' "${CRONJOBS_ARRAY_INSIDE_POD[@]}")"
+    yq write -i -- /kubectl-build-deploy/${SERVICE_NAME}-values.yaml 'inPodCronjobs' "$(printf '%s\n' "${CRONJOBS_ARRAY_INSIDE_POD[@]}")"
   else
-    yq write -i /kubectl-build-deploy/${SERVICE_NAME}-values.yaml 'inPodCronjobs' --tag '!!str' ''
+    yq write -i --tag '!!str' -- /kubectl-build-deploy/${SERVICE_NAME}-values.yaml 'inPodCronjobs' ''
   fi
 
   #OVERRIDE_TEMPLATE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.template false)

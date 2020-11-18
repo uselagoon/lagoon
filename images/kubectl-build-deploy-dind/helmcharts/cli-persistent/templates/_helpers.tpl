@@ -29,7 +29,6 @@ helm.sh/chart: {{ include "cli-persistent.chart" . }}
 {{ include "cli-persistent.selectorLabels" . }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{ include "cli-persistent.lagoonLabels" . }}
-
 {{- end -}}
 
 {{/*
@@ -61,6 +60,15 @@ lagoon.sh/buildType: {{ .Values.buildType }}
 {{- end -}}
 
 {{/*
+Datadog Admission Controller label
+*/}}
+{{- define "cli-persistent.datadogLabels" -}}
+{{- if eq .Values.environmentType "production" -}}
+admission.datadoghq.com/enabled: "true"
+{{- end -}}
+{{- end -}}
+
+{{/*
 Annotations
 */}}
 {{- define "cli-persistent.annotations" -}}
@@ -73,4 +81,18 @@ lagoon.sh/prNumber: {{ .Values.prNumber | quote }}
 lagoon.sh/prHeadBranch: {{ .Values.prHeadBranch | quote }}
 lagoon.sh/prBaseBranch: {{ .Values.prBaseBranch | quote }}
 {{- end }}
+{{- end -}}
+
+{{/*
+Generate name for twig storage emptyDir
+*/}}
+{{- define "cli-persistent.twig-storage.name" -}}
+{{- printf "%s-twig" .Values.persistentStorage.name }}
+{{- end -}}
+
+{{/*
+Generate path for twig storage emptyDir
+*/}}
+{{- define "cli-persistent.twig-storage.path" -}}
+{{- printf "%s/php" .Values.persistentStorage.path }}
 {{- end -}}

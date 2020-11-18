@@ -2,6 +2,31 @@ const GraphQLDate = require('graphql-iso-date');
 const GraphQLJSON = require('graphql-type-json');
 
 const {
+  getAllProblems,
+  getProblemsByEnvironmentId,
+  addProblem,
+  deleteProblem,
+  deleteProblemsFromSource,
+  addProblemsFromSource,
+  getProblemSources,
+  getProblemHarborScanMatches,
+  addProblemHarborScanMatch,
+  deleteProblemHarborScanMatch,
+} = require('./resources/problem/resolvers');
+
+const {
+  getFactsByEnvironmentId,
+  addFact,
+  addFacts,
+  deleteFact,
+  deleteFactsFromSource,
+} = require('./resources/fact/resolvers');
+
+const {
+  SeverityScoreType
+} = require('./resources/problem/types');
+
+const {
   getLagoonVersion,
 } = require('./resources/lagoon/resolvers');
 
@@ -24,6 +49,7 @@ const {
 const {
   getTasksByEnvironmentId,
   getTaskByRemoteId,
+  getTaskById,
   addTask,
   deleteTask,
   updateTask,
@@ -47,6 +73,7 @@ const {
   addOrUpdateEnvironment,
   addOrUpdateEnvironmentStorage,
   getEnvironmentByName,
+  getEnvironmentById,
   getEnvironmentByOpenshiftProjectName,
   getEnvironmentHoursMonthByEnvironmentId,
   getEnvironmentStorageByEnvironmentId,
@@ -226,6 +253,8 @@ const resolvers = {
     backups: getBackupsByEnvironmentId,
     envVariables: getEnvVarsByEnvironmentId,
     services: getEnvironmentServicesByEnvironmentId,
+    problems: getProblemsByEnvironmentId,
+    facts: getFactsByEnvironmentId,
   },
   Deployment: {
     environment: getEnvironmentByDeploymentId,
@@ -266,22 +295,36 @@ const resolvers = {
     projectByGitUrl: getProjectByGitUrl,
     projectByName: getProjectByName,
     groupByName: getGroupByName,
+    problemSources: getProblemSources,
     environmentByName: getEnvironmentByName,
+    environmentById: getEnvironmentById,
     environmentByOpenshiftProjectName: getEnvironmentByOpenshiftProjectName,
     userCanSshToEnvironment,
     deploymentByRemoteId: getDeploymentByRemoteId,
     taskByRemoteId: getTaskByRemoteId,
+    taskById: getTaskById,
     allProjects: getAllProjects,
     allOpenshifts: getAllOpenshifts,
     allEnvironments: getAllEnvironments,
+    allProblems: getAllProblems,
     allGroups: getAllGroups,
     allProjectsInGroup: getAllProjectsInGroup,
     billingGroupCost: getBillingGroupCost,
     allBillingGroupsCost: getAllBillingGroupsCost,
     allBillingModifiers: getBillingModifiers,
+    allProblemHarborScanMatchers: getProblemHarborScanMatches,
     projectsByMetadata: getProjectsByMetadata
   },
   Mutation: {
+    addProblem,
+    addProblemHarborScanMatch,
+    deleteProblem,
+    deleteProblemsFromSource,
+    deleteProblemHarborScanMatch,
+    addFact,
+    addFacts,
+    deleteFact,
+    deleteFactsFromSource,
     addOrUpdateEnvironment,
     updateEnvironment,
     deleteEnvironment,
@@ -381,6 +424,7 @@ const resolvers = {
   },
   Date: GraphQLDate,
   JSON: GraphQLJSON,
+  SeverityScore: SeverityScoreType,
 };
 
 module.exports = resolvers;

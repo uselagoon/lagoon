@@ -65,6 +65,20 @@ declare -A IMAGES_PULL
 declare -A IMAGES_BUILD
 set -x
 
+set +x # reduce noise in build logs
+# Allow the servicetype be overridden by the lagoon API
+# This accepts colon separated values like so `SERVICE_NAME:SERVICE_TYPE_OVERRIDE`, and multiple overrides
+# separated by commas
+# Example 1: mariadb:mariadb-dbaas < tells any docker-compose services named mariadb to use the mariadb-dbaas service type
+# Example 2: mariadb:mariadb-dbaas,nginx:nginx-persistent
+if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
+  LAGOON_SERVICE_TYPES=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_SERVICE_TYPES") | "\(.value)"'))
+fi
+if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
+  LAGOON_SERVICE_TYPES=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_SERVICE_TYPES") | "\(.value)"'))
+fi
+set -x
+
 for COMPOSE_SERVICE in "${COMPOSE_SERVICES[@]}"
 do
   # The name of the service can be overridden, if not we use the actual servicename
@@ -82,6 +96,17 @@ do
     SERVICE_TYPE=$ENVIRONMENT_SERVICE_TYPE_OVERRIDE
   fi
 
+  if [ ! -z "$LAGOON_SERVICE_TYPES" ]; then
+    IFS=',' read -ra LAGOON_SERVICE_TYPES_SPLIT <<< "$LAGOON_SERVICE_TYPES"
+    for LAGOON_SERVICE_TYPE in "${LAGOON_SERVICE_TYPES_SPLIT[@]}"
+    do
+      IFS=':' read -ra LAGOON_SERVICE_TYPE_SPLIT <<< "$LAGOON_SERVICE_TYPE"
+      if [ "${LAGOON_SERVICE_TYPE_SPLIT[0]}" == "$SERVICE_NAME" ]; then
+        SERVICE_TYPE=${LAGOON_SERVICE_TYPE_SPLIT[1]}
+      fi
+    done
+  fi
+
   # "mariadb" is a meta service, which allows lagoon to decide itself which of the services to use:
   # - mariadb-single (a single mariadb pod)
   # - mariadb-shared (use a mariadb shared service broker)
@@ -91,7 +116,7 @@ do
     if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get service "$SERVICE_NAME" &> /dev/null; then
       SERVICE_TYPE="mariadb-single"
     # check if an existing mariadb service instance already exists
-    elif oc -insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get serviceinstance "$SERVICE_NAME" &> /dev/null; then
+    elif oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get serviceinstance "$SERVICE_NAME" &> /dev/null; then
       SERVICE_TYPE="mariadb-shared"
     # check if we can use the dbaas operator
     elif oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get mariadbconsumer.v1.mariadb.amazee.io &> /dev/null; then
@@ -183,8 +208,13 @@ do
   # The ImageName is the same as the Name of the Docker Compose ServiceName
   IMAGE_NAME=$COMPOSE_SERVICE
 
-  # Generate List of Images to build
-  IMAGES+=("${IMAGE_NAME}")
+  # Do not handle images for shared services
+  if  [[ "$SERVICE_TYPE" != "mariadb-dbaas" ]] &&
+      [[ "$SERVICE_TYPE" != "mariadb-shared" ]] &&
+      [[ "$SERVICE_TYPE" != "mongodb-shared" ]]; then
+    # Generate List of Images to build
+    IMAGES+=("${IMAGE_NAME}")
+  fi
 
   # Map Deployment ServiceType to the ImageName
   MAP_DEPLOYMENT_SERVICETYPE_TO_IMAGENAME["${SERVICE_NAME}:${DEPLOYMENT_SERVICETYPE}"]="${IMAGE_NAME}"
@@ -272,8 +302,8 @@ if [[ ( "$TYPE" == "pullrequest"  ||  "$TYPE" == "branch" ) && ! $THIS_IS_TUG ==
       LAGOON_POSTROLLOUT_DISABLED=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_POSTROLLOUT_DISABLED") | "\(.value)"'))
     fi
     if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
-      LAGOON_PREROLLOUT_DISABLED=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_PREROLLOUT_DISABLED") | "\(.value)"'))
-      LAGOON_POSTROLLOUT_DISABLED=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_POSTROLLOUT_DISABLED") | "\(.value)"'))
+      LAGOON_PREROLLOUT_DISABLED=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_PREROLLOUT_DISABLED") | "\(.value)"'))
+      LAGOON_POSTROLLOUT_DISABLED=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_POSTROLLOUT_DISABLED") | "\(.value)"'))
     fi
   set -x
 
@@ -339,6 +369,12 @@ if [[ ( "$TYPE" == "pullrequest"  ||  "$TYPE" == "branch" ) && ! $THIS_IS_TUG ==
       if [ ! $OVERRIDE_IMAGE == "false" ]; then
         # expand environment variables from ${OVERRIDE_IMAGE}
         PULL_IMAGE=$(echo "${OVERRIDE_IMAGE}" | envsubst)
+      fi
+
+      # if the image just is an image name (like "alpine") we prefix it with `libary/` as the imagecache does not understand
+      # the magic `alpine` images
+      if [[ ! "$PULL_IMAGE" =~ "/" ]]; then
+        PULL_IMAGE="library/$PULL_IMAGE"
       fi
 
       # Add the images we should pull to the IMAGES_PULL array, they will later be tagged from dockerhub
@@ -429,7 +465,15 @@ else
 fi
 
 ROUTES_AUTOGENERATE_ENABLED=$(cat .lagoon.yml | shyaml get-value routes.autogenerate.enabled true)
-
+ROUTES_AUTOGENERATE_ALLOW_PRS=$(cat .lagoon.yml | shyaml get-value routes.autogenerate.allowPullrequests $ROUTES_AUTOGENERATE_ENABLED)
+if [[ "$TYPE" == "pullrequest" && "$ROUTES_AUTOGENERATE_ALLOW_PRS" == "true" ]]; then
+  ROUTES_AUTOGENERATE_ENABLED=true
+fi
+## fail silently if the key autogenerateRoutes doesn't exist and default to whatever ROUTES_AUTOGENERATE_ENABLED is set to
+ROUTES_AUTOGENERATE_BRANCH=$(cat .lagoon.yml | shyaml -q get-value environments.${BRANCH//./\\.}.autogenerateRoutes $ROUTES_AUTOGENERATE_ENABLED)
+if [[ "$ROUTES_AUTOGENERATE_BRANCH" =~ [Tt]rue ]]; then
+  ROUTES_AUTOGENERATE_ENABLED=true
+fi
 
 for SERVICE_TYPES_ENTRY in "${SERVICE_TYPES[@]}"
 do
@@ -505,7 +549,15 @@ TEMPLATE_PARAMETERS=()
 ### CUSTOM ROUTES FROM .lagoon.yml
 ##############################################
 
+if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
+  MONITORING_ENABLED="true"
+else
+  MONITORING_ENABLED="false"
+fi
+MONITORING_INTERVAL=60
+
 ROUTES_SERVICE_COUNTER=0
+
 # we need to check for production routes for active/standby if they are defined, as these will get migrated between environments as required
 if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
   if [ "${BRANCH//./\\.}" == "${ACTIVE_ENVIRONMENT}" ]; then
@@ -524,6 +576,7 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
             ROUTE_MIGRATE=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate true)
             ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
             ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
+            MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring-path "/")
           else
             # Only a value given, assuming some defaults
             ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
@@ -565,6 +618,7 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
             ROUTE_MIGRATE=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate true)
             ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
             ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
+            MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring-path "/")
           else
             # Only a value given, assuming some defaults
             ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
@@ -609,6 +663,7 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
         ROUTE_MIGRATE=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate false)
         ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
         ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
+        MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring-path "/")
       else
         # Only a value given, assuming some defaults
         ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
@@ -647,6 +702,7 @@ else
         ROUTE_MIGRATE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate false)
         ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
         ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
+        MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring-path "/")
       else
         # Only a value given, assuming some defaults
         ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
@@ -707,8 +763,10 @@ fi
 ##############################################
 ### CUSTOM MONITORING_URLS FROM .lagoon.yml
 ##############################################
+# @DEPRECATED - to be removed with Lagoon 2.0
 URL_COUNTER=0
 while [ -n "$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.monitoring_urls.$URL_COUNTER 2> /dev/null)" ]; do
+  echo "DEPRECATION WARNING: 'monitoring_urls' is being moved to a per-route 'monitoring-path', please update your route"
   MONITORING_URL="$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.monitoring_urls.$URL_COUNTER)"
   if [[ $URL_COUNTER > 0 ]]; then
     MONITORING_URLS="${MONITORING_URLS}, ${MONITORING_URL}"
@@ -741,10 +799,8 @@ ROUTES=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get routes -l "ac
 # Active / Standby routes
 ACTIVE_ROUTES=""
 STANDBY_ROUTES=""
-if [ "${BRANCH//./\\.}" == "${ACTIVE_ENVIRONMENT}" ]; then
+if [ ! -z "${STANDBY_ENVIRONMENT}" ]; then
 ACTIVE_ROUTES=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get routes -l "dioscuri.amazee.io/migrate=true" -o=go-template --template='{{range $index, $route := .items}}{{if $index}},{{end}}{{if $route.spec.tls.termination}}https://{{else}}http://{{end}}{{$route.spec.host}}{{end}}')
-fi
-if [ "${BRANCH//./\\.}" == "${STANDBY_ENVIRONMENT}" ]; then
 STANDBY_ROUTES=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get routes -l "dioscuri.amazee.io/migrate=true" -o=go-template --template='{{range $index, $route := .items}}{{if $index}},{{end}}{{if $route.spec.tls.termination}}https://{{else}}http://{{end}}{{$route.spec.host}}{{end}}')
 fi
 
@@ -895,11 +951,11 @@ if [[ $THIS_IS_TUG == "true" ]]; then
 
 elif [ "$TYPE" == "pullrequest" ] || [ "$TYPE" == "branch" ]; then
 
-  # All images that should be pulled are tagged as Images directly in OpenShift Registry
+  # All images that should be pulled are copied to the openshift and harbor registry
   for IMAGE_NAME in "${!IMAGES_PULL[@]}"
   do
     PULL_IMAGE="${IMAGES_PULL[${IMAGE_NAME}]}"
-    . /oc-build-deploy/scripts/exec-openshift-tag-dockerhub.sh
+    . /oc-build-deploy/scripts/exec-openshift-copy-to-registry.sh
   done
 
   for IMAGE_NAME in "${!IMAGES_BUILD[@]}"
@@ -911,7 +967,7 @@ elif [ "$TYPE" == "pullrequest" ] || [ "$TYPE" == "branch" ]; then
     . /oc-build-deploy/scripts/exec-push-parallel.sh
   done
 
-  # If we have Images to Push to the OpenRegistry, let's do so
+  # If we have Images to Push to the OpenRegistry and Harbor, let's do so
   if [ -f /oc-build-deploy/lagoon/push ]; then
     parallel --retries 4 < /oc-build-deploy/lagoon/push
   fi

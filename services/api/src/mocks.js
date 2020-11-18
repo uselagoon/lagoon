@@ -1,5 +1,6 @@
 import { MockList } from 'graphql-tools';
 import faker from 'faker/locale/en';
+import { packages } from './data/mock-data';
 
 // The mocks object is an Apollo Resolver Map where each mock function has the
 // following definition: (parent, args, context, info) => {}
@@ -21,6 +22,29 @@ const addTime = (originalDate, hoursLimit) => {
     + faker.random.number(hoursLimit*60*60*1000)
   );
   return date.toISOString();
+};
+
+// Helper function to build an array of a given schema.
+export const generator = (schema, min = 1, max) => {
+  max = max || min;
+  return Array.from({
+    length: faker.random.number({
+      min,
+      max,
+    }),
+  }).map(() => {
+    const innerGen = (anySchema) => Object.keys(anySchema).reduce((entity, key) => {
+      if (Object.prototype.toString.call(anySchema[key]) === '[object Object]') {
+        entity[key] = innerGen(anySchema[key]);
+        return entity;
+      }
+      entity[key] = faker.fake(anySchema[key]);
+
+      return entity;
+    }, {});
+
+    return innerGen(schema());
+  });
 };
 
 //
@@ -209,6 +233,8 @@ MIIJKQIBAAKCAgEA+o[...]P0yoL8BoQQG2jCvYfWh6vyglQdrDYx/o6/8ecTwXokKKh6fg1q
     productionEnvironment: 'master',
     autoIdle: faker.random.arrayElement([0, 1]),
     storageCalc: faker.random.arrayElement([0, 1]),
+    problemsUi: faker.random.arrayElement([0, 1]),
+    factsUi: faker.random.arrayElement([0, 1]),
     openshift: mocks.Openshift(),
     openshiftProjectPattern: '${project}-${name}',
     developmentEnvironmentsLimit: 10,
@@ -267,6 +293,14 @@ mocks.Environment = (parent, args = {}, context, info) => {
     deployments: [],
     backups: [],
     tasks: [],
+    problems: [
+      mocks.Problem(null, {source: "Drutiny", severity: "CRITICAL"}),
+      mocks.Problem(null, {source: "Trivy", severity: "MEDIUM"}),
+      mocks.Problem(null, {source: "Drutiny", severity: "HIGH"}),
+      mocks.Problem(null, {source: "OWASP ZAP", severity: "LOW"}),
+      mocks.Problem(),
+      mocks.Problem()
+    ],
     services: [ mocks.EnvironmentService() ],
   };
   environment.project.environments.push(environment);
@@ -385,6 +419,67 @@ mocks.Task = (parent, args = {}, context, info) => {
   };
 };
 
+mocks.ProblemIdentifier = () => {
+  const recentYear = faker.random.arrayElement(['2019', '2020']);
+  const vuln_id = `CVE-${recentYear}-${faker.random.number({min: 1000, max: 99999})}`;
+  const severity = faker.random.arrayElement(['UNKNOWN', 'NEGLIGIBLE', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL']);
+  const source = faker.random.arrayElement(['Harbor', 'Drutiny']);
+
+  return {
+    identifier: vuln_id,
+    severity: severity,
+    source: source,
+    problems: Array.from({
+        length: faker.random.number({
+            min: 1,
+            max: 20,
+        }),
+    }).map(() => {
+        return mocks.Problem()
+    })
+  }
+};
+
+mocks.Problem = (parent, args = {}, context, info) => {
+    const recentYear = faker.random.arrayElement(['2019', '2020']);
+    const vuln_id = `CVE-${recentYear}-${faker.random.number({min: 1000, max: 99999})}`;
+    const source = faker.random.arrayElement(['Lighthouse', 'Drutiny', 'Trivy', 'OWASP ZAP', 'Script']);
+    // const created = faker.date.between('2019-10-01 00:00:00', '2020-03-31 23:59:59').toUTCString();
+    const associatedPackage = faker.random.arrayElement(packages);
+    // const version = `${faker.random.number(4)}.${faker.random.number(9)}.${faker.random.number(49)}`;
+    // const fixedVersion = `${version}+deb8u${faker.random.number(9)}`;
+    const severity = faker.random.arrayElement(['UNKNOWN', 'NEGLIGIBLE', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL']);
+    const description = faker.lorem.paragraph();
+    const links = `https://security-tracker.debian.org/tracker/${vuln_id}`;
+    const severityScore = `0.${faker.random.number({min:1, max:9})}`;
+    const data =  JSON.stringify({id: `${faker.random.number({min:1, max:100})}`}, null, '\t');
+
+    return {
+      identifier: vuln_id,
+      severity: args.hasOwnProperty('severity') ? args.severity : severity,
+      source: args.hasOwnProperty('source') ? args.source : source,
+      severityScore: severityScore,
+      associatedPackage: associatedPackage,
+      description,
+      links,
+      data
+    };
+};
+
+mocks.ProblemMutation = (schema) => {
+    return Array.from({
+        length: faker.random.number({
+            min: 1,
+            max: 500,
+        }),
+    }).map(() => {
+        let temp = schema();
+        return (
+            `problem${faker.random.number(1000000)}: addProblem(input: ${JSON.stringify(temp, 2, null)}) { identifier }`
+        );
+    });
+};
+
 //
 // Query 'type' mock from typeDefs.
 //
@@ -399,8 +494,9 @@ mocks.Query = () => ({
   userCanSshToEnvironment: () => mocks.Environment(),
   deploymentByRemoteId: () => mocks.Deployment(),
   taskByRemoteId: () => mocks.Task(),
-  allProjects: () => new MockList(9),
+  allProjects: () => new MockList(100),
   allOpenshifts: () => new MockList(9),
+  allProblems: () => new MockList(20),
   allEnvironments: (parent, args = {}, context, info) => {
     const project = args.hasOwnProperty('project')
       ? args.project

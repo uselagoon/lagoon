@@ -20,6 +20,8 @@ export default gql`
         standbyRoutes
         productionEnvironment
         standbyProductionEnvironment
+        problemsUi
+        factsUi
       }
     }
   }

@@ -11,7 +11,8 @@ export default gql`
         id
         name,
         keyType,
-        created
+        created,
+        keyFingerprint
       }
     }
   }

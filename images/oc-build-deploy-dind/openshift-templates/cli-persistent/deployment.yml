@@ -103,6 +103,8 @@ objects:
               secret:
                 defaultMode: 420
                 secretName: lagoon-sshkey
+            - name: ${PERSISTENT_STORAGE_NAME}-twig
+              emptyDir: {}
           priorityClassName: lagoon-priority-${ENVIRONMENT_TYPE}
           containers:
             - image: ${SERVICE_IMAGE}
@@ -125,12 +127,26 @@ objects:
                 - mountPath: /var/run/secrets/lagoon/sshkey/
                   name: lagoon-sshkey
                   readOnly: true
+                - name: ${PERSISTENT_STORAGE_NAME}-twig
+                  mountPath: ${PERSISTENT_STORAGE_PATH}/php
               resources:
                 requests:
                   cpu: 10m
                   memory: 10Mi
                 limits:
                   memory: 8Gi
+              readinessProbe:
+                initialDelaySeconds: 5
+                periodSeconds: 2
+                failureThreshold: 3
+                exec:
+                  command:
+                  - "/bin/sh"
+                  - "-c"
+                  - >
+                    if [ -x /bin/entrypoint-readiness ]; then
+                      /bin/entrypoint-readiness;
+                    fi
       test: false
       triggers:
         - type: ConfigChange

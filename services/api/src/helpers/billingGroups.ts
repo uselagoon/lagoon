@@ -65,7 +65,7 @@ export const getAllBillingGroupsWithoutProjects = async () => {
   const GroupModel = Group({keycloakAdminClient });
 
   // Get All Billing Groups
-  const groupTypeFilterFn = ({ name, value }, group) => {
+  const groupTypeFilterFn = ({ name, value }) => {
     return name === 'type' && value[0] === 'billing';
   };
   const groups = await GroupModel.loadGroupsByAttribute(groupTypeFilterFn);
@@ -78,7 +78,7 @@ export const getAllBillingGroupsWithoutProjects = async () => {
     }),
   );
 
-  // Filter only projects that have zero projects
+  // Filter only Billing Groups that have zero projects
   const projectFilterFn = ({ projects }) =>
     projects.length === 0 ? true : false;
   const groupsWithoutProjects = groupsWithProjects.filter(projectFilterFn);

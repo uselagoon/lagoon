@@ -3,6 +3,7 @@ import { ChannelWrapper } from 'amqp-connection-manager';
 import { ConsumeMessage } from 'amqplib';
 import { logger } from '@lagoon/commons/dist/local-logging';
 import { getEmailInfoForProject } from '@lagoon/commons/dist/api';
+import { notificationIntToContentType, notificationContentTypeToInt, parseProblemNotification } from '@lagoon/commons/dist/notificationCommons';
 
 let transporter = nodemailer.createTransport({
   sendmail: true,
@@ -277,22 +278,43 @@ export async function readFromRabbitMQ (msg: ConsumeMessage, channelWrapperLogs:
       break;
 
     default:
-      return channelWrapperLogs.ack(msg)
+      //since there's no single point of acknowlegement of the msg, we need to keep track of whether we've handled the message
+      let eventHandledAsProblem =  dispatchProblemEventToEmail(event, project, message, messageMeta, channelWrapperLogs, msg, appId);
+      if(!eventHandledAsProblem) {
+        return channelWrapperLogs.ack(msg);
+      }
   }
-
 }
 
-const sendToEmail = async (project, messageMeta, channelWrapperLogs, msg, appId) => {
+const dispatchProblemEventToEmail = (event, project, message, messageMeta, channelWrapperLogs, msg, appId) => {
+  const problemEvent = parseProblemNotification(event);
+  if(problemEvent.isProblem && problemEvent.eventType == 'insert') {
+      messageMeta.color = 'gold'
+      messageMeta.emoji = '⚠️'
+      messageMeta.mainHtml = message
+      messageMeta.plainText = message
+      messageMeta.subject = `New Problem of severity ${problemEvent.severityLevel} detected on ${project}`
+      sendToEmail(project, messageMeta, channelWrapperLogs, msg, appId, 'PROBLEM', problemEvent.severityLevel)
+    return true;
+    }
+  return false;
+};
+
+const sendToEmail = async (project, messageMeta, channelWrapperLogs, msg, appId, contentType = 'DEPLOYMENT', severityLevel = 'NONE') => {
   let projectEmails;
   try {
-    projectEmails = await getEmailInfoForProject(project)
+    projectEmails = await getEmailInfoForProject(project, contentType)
   }
   catch (error) {
     logger.error(`No Email information found, error: ${error}`)
     return channelWrapperLogs.ack(msg)
   }
+
   projectEmails.forEach(projectEmail => {
     const { emailAddress } = projectEmail;
+
+    const notificationThresholdMet = notificationContentTypeToInt(projectEmail.notificationSeverityThreshold) <= notificationContentTypeToInt(severityLevel);
+    if(contentType == 'PROBLEM' && !notificationThresholdMet) { return; } //go to next iteration
 
     let info = transporter.sendMail({
       from: 'lagoon@amazee.io',

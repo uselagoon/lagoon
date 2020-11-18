@@ -33,7 +33,8 @@ export const addOpenshift: ResolverFn = async (
         ${input.routerPattern ? ':router_pattern' : 'NULL'},
         ${input.projectUser ? ':project_user' : 'NULL'},
         ${input.sshHost ? ':ssh_host' : 'NULL'},
-        ${input.sshPort ? ':ssh_port' : 'NULL'}
+        ${input.sshPort ? ':ssh_port' : 'NULL'},
+        ${input.monitoringConfig ? ':monitoring_config' : 'NULL'}
       );
     `,
   );
@@ -70,10 +71,9 @@ export const getAllOpenshifts: ResolverFn = async (
 
   const prep = prepare(
     sqlClient,
-    `SELECT DISTINCT
+    `SELECT
         o.*
-      FROM project p
-      JOIN openshift o ON o.id = p.openshift
+      FROM openshift o
     `,
   );
 

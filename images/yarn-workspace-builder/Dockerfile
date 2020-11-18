@@ -1,5 +1,6 @@
-ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-lagoon}/node:10-builder
+ARG UPSTREAM_REPO
+ARG UPSTREAM_TAG
+FROM ${UPSTREAM_REPO:-uselagoon}/node-10-builder:${UPSTREAM_TAG:-latest}
 
 RUN apk add --no-cache \
         libexecinfo-dev \
@@ -30,6 +31,7 @@ COPY services/openshiftjobs/package.json /app/services/openshiftjobs/
 COPY services/openshiftjobsmonitor/package.json /app/services/openshiftjobsmonitor/
 COPY services/openshiftmisc/package.json /app/services/openshiftmisc/
 COPY services/openshiftremove/package.json /app/services/openshiftremove/
+COPY services/controllerhandler/package.json /app/services/controllerhandler/
 COPY services/webhook-handler/package.json /app/services/webhook-handler/
 COPY services/webhooks2tasks/package.json /app/services/webhooks2tasks/
 COPY services/ui/package.json /app/services/ui/

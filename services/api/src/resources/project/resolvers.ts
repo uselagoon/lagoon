@@ -168,6 +168,10 @@ export const getProjectByName: ResolverFn = async (
   const rows = await query(sqlClient, prep(args));
   const project = rows[0];
 
+  if (!project) {
+    return null;
+  }
+
   await hasPermission('project', 'view', {
     project: project.id,
   });
@@ -335,6 +339,8 @@ export const addProject = async (
         ${input.standbyAlias ? ':standby_alias' : '"lagoon-standby"'},
         ${input.autoIdle ? ':auto_idle' : '1'},
         ${input.storageCalc ? ':storage_calc' : '1'},
+        ${input.factsUi ? ':facts_ui' : '0' }, 
+        ${input.problemsUi ? ':problems_ui' : '0'},
         ${
   input.developmentEnvironmentsLimit
     ? ':development_environments_limit'
@@ -475,6 +481,11 @@ export const deleteProject: ResolverFn = async (
     logger.error(`Could not delete default user for project ${project.name}: ${err.message}`);
   }
 
+  // @TODO discuss if we want to delete projects in harbor or not
+  //const harborOperations = createHarborOperations(sqlClient);
+
+  //const harborResults = await harborOperations.deleteProject(project.name)
+
   return 'success';
 };
 
@@ -503,6 +514,8 @@ export const updateProject: ResolverFn = async (
         standbyAlias,
         autoIdle,
         storageCalc,
+        problemsUi,
+        factsUi,
         pullrequests,
         openshift,
         openshiftProjectPattern,
@@ -591,6 +604,8 @@ export const updateProject: ResolverFn = async (
         standbyAlias,
         autoIdle,
         storageCalc,
+        problemsUi,
+        factsUi,
         pullrequests,
         openshift,
         openshiftProjectPattern,

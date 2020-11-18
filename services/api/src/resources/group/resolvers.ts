@@ -114,10 +114,41 @@ export const getGroupsByUserId: ResolverFn = async (
 export const getGroupByName: ResolverFn = async (
   root,
   { name },
-  { models, hasPermission },
+  { models, hasPermission, keycloakGrant },
 ) => {
-  await hasPermission('group', 'viewAll');
-  return await models.GroupModel.loadGroupByIdOrName({ name });
+  try {
+    await hasPermission('group', 'viewAll');
+
+    const group = await models.GroupModel.loadGroupByName(name);
+    return group;
+  } catch (err) {
+    if (err instanceof GroupNotFoundError) {
+      throw err;
+    }
+
+    if (err instanceof KeycloakUnauthorizedError) {
+      if (!keycloakGrant) {
+        logger.warn('Access denied to user for getGroupByName');
+        throw new GroupNotFoundError(`Group not found: ${name}`);
+      } else {
+        const user = await models.UserModel.loadUserById(
+          keycloakGrant.access_token.content.sub,
+        );
+        const userGroups = await models.UserModel.getAllGroupsForUser(user);
+
+        const group = R.head(R.filter(R.propEq('name', name), userGroups));
+
+        if (R.isEmpty(group)) {
+          throw new GroupNotFoundError(`Group not found: ${name}`);
+        }
+
+        return group;
+      }
+    }
+
+    logger.warn(`getGroupByName failed unexpectedly: ${err.message}`);
+    throw err;
+  }
 };
 
 export const addGroup = async (_root, { input }, { models, sqlClient, hasPermission }) => {
@@ -340,7 +371,7 @@ export const addGroupsToProject: ResolverFn = async (
 
 export const addBillingGroup: ResolverFn = async (
   _root,
-  { input: { name, currency, billingSoftware } },
+  { input: { name, currency, billingSoftware, uptimeRobotStatusPageId } },
   { models, hasPermission },
 ) => {
   await hasPermission('group', 'add');
@@ -358,6 +389,7 @@ export const addBillingGroup: ResolverFn = async (
     attributes: {
       type: ['billing'],
       currency: [currency],
+      uptimeRobotStatusPageId: [uptimeRobotStatusPageId],
       ...(billingSoftware ? { billingSoftware: [billingSoftware] } : {}),
     },
   });
@@ -377,11 +409,12 @@ export const updateBillingGroup: ResolverFn = async (
     throw new Error('Input patch requires at least 1 attribute');
   }
 
-  const { name, currency, billingSoftware } = patch;
+  const { name, currency, billingSoftware, uptimeRobotStatusPageId } = patch;
   const updatedAttributes = {
     ...attributes,
     type: ['billing'],
     ...(currency ? { currency: [currency] } : {}),
+    ...(R.is(String, uptimeRobotStatusPageId) ? {uptimeRobotStatusPageId: [uptimeRobotStatusPageId] }: {}),
     ...(billingSoftware ? { billingSoftware: [billingSoftware] } : {}),
   };
 
@@ -489,17 +522,53 @@ export const getAllProjectsByGroupId: ResolverFn = async (root, input, context) 
 export const getAllProjectsInGroup: ResolverFn = async (
   _root,
   { input: groupInput },
-  { models, sqlClient, hasPermission },
+  { models, sqlClient, hasPermission, keycloakGrant },
 ) => {
-  await hasPermission('group', 'viewAll');
   const {
     GroupModel: { loadGroupByIdOrName, getProjectsFromGroupAndSubgroups },
   } = models;
-  const group = await loadGroupByIdOrName(groupInput);
-  const projectIdsArray = await getProjectsFromGroupAndSubgroups(group);
-  return projectIdsArray.map(async id =>
-    projectHelpers(sqlClient).getProjectByProjectInput({ id }),
-  );
+
+  try {
+    await hasPermission('group', 'viewAll');
+
+    const group = await loadGroupByIdOrName(groupInput);
+    const projectIdsArray = await getProjectsFromGroupAndSubgroups(group);
+    return projectIdsArray.map(async id =>
+      projectHelpers(sqlClient).getProjectByProjectInput({ id }),
+    );
+  } catch (err) {
+    if (err instanceof GroupNotFoundError) {
+      throw err;
+    }
+
+    if (!(err instanceof KeycloakUnauthorizedError)) {
+      logger.warn(`getAllGroups failed unexpectedly: ${err.message}`);
+      throw err;
+    }
+  }
+
+  if (!keycloakGrant) {
+    logger.warn('Access denied to user for getAllProjectsInGroup: no keycloakGrant');
+    return [];
+  } else {
+    const group = await loadGroupByIdOrName(groupInput);
+
+    const user = await models.UserModel.loadUserById(
+      keycloakGrant.access_token.content.sub,
+    );
+    const userGroups = await models.UserModel.getAllGroupsForUser(user);
+
+    // @ts-ignore
+    if (!R.contains(group.name, R.pluck('name', userGroups))) {
+      logger.warn('Access denied to user for getAllProjectsInGroup: user not in group');
+      return [];
+    }
+
+    const projectIdsArray = await getProjectsFromGroupAndSubgroups(group);
+    return projectIdsArray.map(async id =>
+      projectHelpers(sqlClient).getProjectByProjectInput({ id }),
+    );
+  }
 };
 
 /**

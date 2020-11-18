@@ -30,6 +30,8 @@ CREATE OR REPLACE PROCEDURE
     IN standby_alias                   varchar(100),
     IN auto_idle                       int(1),
     IN storage_calc                    int(1),
+    IN problems_ui                     int(1),
+    IN facts_ui                        int(1),
     IN development_environments_limit  int
   )
   BEGIN
@@ -73,6 +75,8 @@ CREATE OR REPLACE PROCEDURE
         standby_alias,
         auto_idle,
         storage_calc,
+        problems_ui,
+        facts_ui,
         pullrequests,
         openshift,
         openshift_project_pattern,
@@ -99,6 +103,8 @@ CREATE OR REPLACE PROCEDURE
         standby_alias,
         auto_idle,
         storage_calc,
+        problems_ui,
+        facts_ui,
         pullrequests,
         os.id,
         openshift_project_pattern,
@@ -175,7 +181,7 @@ CREATE OR REPLACE PROCEDURE
         AND column_name = 'production_routes'
     ) THEN
       ALTER TABLE `project`
-      ADD `production_routes` varchar(100);
+      ADD `production_routes` text;
     END IF;
   END;
 $$
@@ -211,7 +217,7 @@ CREATE OR REPLACE PROCEDURE
         AND column_name = 'standby_routes'
     ) THEN
       ALTER TABLE `project`
-      ADD `standby_routes` varchar(100);
+      ADD `standby_routes` text;
     END IF;
   END;
 $$
@@ -1043,6 +1049,106 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
+  add_monitoring_config_to_openshift()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'openshift'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'monitoring_config'
+    ) THEN
+      ALTER TABLE `openshift`
+      ADD `monitoring_config` varchar(2048);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_additional_harbor_scan_fields_to_environment_problem()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'environment_problem'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'associated_package'
+    ) THEN
+      ALTER TABLE `environment_problem`
+      ADD `associated_package` varchar(300) DEFAULT '',
+      ADD `description` TEXT NULL DEFAULT '',
+      ADD `version` varchar(300) DEFAULT '',
+      ADD `fixed_version` varchar(300) DEFAULT '',
+      ADD `links` varchar(300) DEFAULT '';
+      ALTER TABLE `environment_problem`
+      DROP INDEX environment;
+      ALTER TABLE `environment_problem`
+      ADD UNIQUE KEY `environment` (`environment`, `lagoon_service`, `version`, `identifier`, `deleted`);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_problems_ui_to_project()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'problems_ui'
+    ) THEN
+      ALTER TABLE `project`
+      ADD `problems_ui` int(1) NOT NULL default '0';
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_facts_ui_to_project()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'facts_ui'
+    ) THEN
+      ALTER TABLE `project`
+      ADD `facts_ui` int(1) NOT NULL default '0';
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_fact_source_and_description_to_environment_fact()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'environment_fact'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'source'
+    ) THEN
+        ALTER TABLE `environment_fact`
+        ADD `source` varchar(300) NOT NULL default '';
+        ALTER TABLE `environment_fact`
+        ADD `description` TEXT NULL DEFAULT '';
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
   update_user_password()
 
   BEGIN
@@ -1055,10 +1161,97 @@ CREATE OR REPLACE PROCEDURE
   add_metadata_to_project()
 
   BEGIN
-    ALTER TABLE project
-    ADD metadata JSON DEFAULT '{}' CHECK (JSON_VALID(metadata));
-    UPDATE project
-    SET metadata = '{}';
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'metadata'
+    ) THEN
+      ALTER TABLE project
+      ADD metadata JSON DEFAULT '{}' CHECK (JSON_VALID(metadata));
+      UPDATE project
+      SET metadata = '{}';
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_content_type_to_project_notification()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project_notification'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'content_type'
+    ) THEN
+      ALTER TABLE `project_notification`
+      ADD `content_type` ENUM('deployment', 'problem') NOT NULL DEFAULT 'deployment',
+      ADD `notification_severity_threshold` int NOT NULL default 0;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_min_max_to_billing_modifier()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'billing_modifier'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'min'
+    ) THEN
+      ALTER TABLE `billing_modifier`
+      ADD `min` FLOAT DEFAULT 0,
+      ADD `max` FLOAT DEFAULT 0;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  convert_project_production_routes_to_text()
+
+  BEGIN
+    DECLARE column_type varchar(50);
+
+    SELECT DATA_TYPE INTO column_type
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      table_name = 'project'
+      AND table_schema = 'infrastructure'
+      AND column_name = 'production_routes';
+
+    IF (column_type = 'varchar') THEN
+      ALTER TABLE project
+      MODIFY production_routes text;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  convert_project_standby_routes_to_text()
+
+  BEGIN
+    DECLARE column_type varchar(50);
+
+    SELECT DATA_TYPE INTO column_type
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      table_name = 'project'
+      AND table_schema = 'infrastructure'
+      AND column_name = 'standby_routes';
+
+    IF (column_type = 'varchar') THEN
+      ALTER TABLE project
+      MODIFY standby_routes text;
+    END IF;
   END;
 $$
 
@@ -1102,6 +1295,7 @@ CALL convert_user_ssh_key_usid_to_char();
 CALL add_private_key_to_project();
 CALL add_index_for_environment_backup_environment();
 CALL add_enum_email_microsoftteams_to_type_in_project_notification();
+CALL add_monitoring_config_to_openshift();
 CALL add_standby_production_environment_to_project();
 CALL add_standby_routes_to_project();
 CALL add_production_routes_to_project();
@@ -1110,8 +1304,16 @@ CALL add_production_alias_to_project();
 CALL add_active_systems_misc_to_project();
 CALL add_container_registry_scope_to_env_vars();
 CALL add_internal_container_registry_scope_to_env_vars();
+CALL add_additional_harbor_scan_fields_to_environment_problem();
 CALL update_user_password();
+CALL add_problems_ui_to_project();
+CALL add_facts_ui_to_project();
+CALL add_fact_source_and_description_to_environment_fact();
 CALL add_metadata_to_project();
+CALL add_min_max_to_billing_modifier();
+CALL add_content_type_to_project_notification();
+CALL convert_project_production_routes_to_text();
+CALL convert_project_standby_routes_to_text();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;
@@ -1119,4 +1321,3 @@ DROP PROCEDURE IF EXISTS DeleteProjectSshKey;
 DROP PROCEDURE IF EXISTS CreateCustomerSshKey;
 DROP PROCEDURE IF EXISTS DeleteCustomerSshKey;
 DROP PROCEDURE IF EXISTS CreateSshKey;
-
