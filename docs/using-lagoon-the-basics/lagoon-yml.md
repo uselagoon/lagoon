@@ -349,14 +349,14 @@ routes:
     enabled: false
 environments:
   develop:
-    autogenerateRoutes: tru
+    autogenerateRoutes: true
 ```
 {% endtab %}
 {% endtabs %}
 
 ### `Cron jobs - environments.[name].cronjobs`
 
-{% embed url="https://www.youtube.com/watch?v=6qqY-XmBZ8c" caption="How do I add a cron job?" %}
+{% embed url="https://www.youtube.com/watch?v=7mtw8wM\_Ntg" caption="How do I add a cron job?" %}
 
 As most of the time it is not desirable to run the same cron jobs across all environments, you must explicitly define which jobs you want to run for each environment.
 
