@@ -200,7 +200,7 @@ gitlab_pr_query_delete() {
 
 
 usage() {
-	echo -e "Usage is: $0 [-c group] [-m number_of_months] [-p all|project1,project2,...,projectN] [-d] \nes: $0 -c amazeeio -m 4 -d true\n"
+	echo -e "Usage is: $0 [-g group] [-m number_of_months] [-p all|project1,project2,...,projectN] [-d] \nes: $0 -c amazeeio -m 4 -d true\n"
 	echo "Script options are:
 	-g GROUP (MANDATORY Lagoon group to query)
  	-m MONTHS (OPTIONAL number of months since starting the cleanup. Default is 0)
