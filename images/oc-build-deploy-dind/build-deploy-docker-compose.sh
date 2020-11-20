@@ -278,8 +278,8 @@ do
       #if no password defined in the lagoon api, pass the one in `.lagoon.yml` as a password
       PRIVATE_REGISTRY_CREDENTIAL=$PRIVATE_CONTAINER_REGISTRY_PASSWORD
     fi
-    if [ ! -z "$PRIVATE_REGISTRY_CREDENTIAL" ]; then
-      echo -e "A private container registry wass defined on the .lagoon.yml file, but no password could be found in either the .lagoon.yml or in the Lagoon API\n\nPlease check if the password has been set correctly."
+    if [ -z "$PRIVATE_REGISTRY_CREDENTIAL" ]; then
+      echo -e "A private container registry was defined in the .lagoon.yml file, but no password could be found in either the .lagoon.yml or in the Lagoon API\n\nPlease check if the password has been set correctly."
       exit 1
     fi
     if [ $PRIVATE_CONTAINER_REGISTRY_URL != "false" ]; then
