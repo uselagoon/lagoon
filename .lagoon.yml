@@ -16,10 +16,6 @@ additional-yaml:
     command: create
     ignore_error: true
 
-  harbor-secrets:
-    path: .lagoon.harbor-secrets.yaml
-    command: create
-    ignore_error: true
 tasks:
 #   pre-rollout:
 #     - run:

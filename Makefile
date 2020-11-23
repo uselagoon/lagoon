@@ -203,15 +203,6 @@ services :=	api \
 			broker-single \
 			controllerhandler \
 			drush-alias \
-			harbor-core \
-			harbor-database \
-			harbor-jobservice \
-			harbor-nginx \
-			harbor-portal \
-			harbor-redis \
-			harbor-trivy \
-			harborregistry \
-			harborregistryctl \
 			keycloak \
 			keycloak-db \
 			logs-concentrator \
@@ -250,15 +241,6 @@ build/auto-idler: build/oc
 build/broker-single: build/rabbitmq
 build/broker: build/rabbitmq-cluster build/broker-single
 build/drush-alias: services/drush-alias/Dockerfile
-build/harbor-core: services/harbor-core/Dockerfile
-build/harbor-database: services/harbor-database/Dockerfile
-build/harbor-jobservice: services/harbor-jobservice/Dockerfile
-build/harbor-nginx: services/harbor-nginx/Dockerfile
-build/harbor-portal: services/harbor-portal/Dockerfile
-build/harbor-redis: services/harbor-redis/Dockerfile
-build/harbor-trivy build/local-minio: services/harbor-trivy/Dockerfile
-build/harborregistry: services/harborregistry/Dockerfile
-build/harborregistryctl: services/harborregistryctl/Dockerfile
 build/keycloak-db: services/keycloak-db/Dockerfile
 build/keycloak: services/keycloak/Dockerfile
 build/logs-concentrator: services/logs-concentrator/Dockerfile
@@ -393,7 +375,7 @@ wait-for-keycloak:
 	grep -m 1 "Config of Keycloak done." <(docker-compose -p $(CI_BUILD_TAG) --compatibility logs -f keycloak 2>&1)
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
-main-test-services = broker logs2email logs2slack logs2rocketchat logs2microsoftteams api api-db keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher harbor-core harbor-database harbor-jobservice harbor-portal harbor-nginx harbor-redis harborregistry harborregistryctl harbor-trivy local-minio
+main-test-services = broker logs2email logs2slack logs2rocketchat logs2microsoftteams api api-db keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher local-minio
 
 # Define a list of which Lagoon Services are needed for openshift testing
 openshift-test-services = openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor openshiftmisc tests-openshift
@@ -507,11 +489,6 @@ lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build/$(image
 	sleep 90
 	curl -X POST -H "Content-Type: application/json" --data 'mutation { deployEnvironmentBranch(input: { project: { name: "lagoon" }, branchName: "master" } )}' http://localhost:3000/graphql
 	make logs
-
-# Start only the local Harbor for testing purposes
-local-harbor: build/harbor-core build/harbor-database build/harbor-jobservice build/harbor-portal build/harbor-nginx build/harbor-redis build/harborregistry build/harborregistryctl build/harbor-trivy
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d harbor-core harbor-database harbor-jobservice harbor-portal harbor-nginx harbor-redis harborregistry harborregistryctl harbor-trivy local-minio
-
 
 #######
 ####### Publishing Images
@@ -873,6 +850,9 @@ endif
 	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add dbaas-operator https://raw.githubusercontent.com/amazeeio/dbaas-operator/master/charts ; \
 	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n dbaas-operator dbaas-operator dbaas-operator/dbaas-operator ; \
 	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n dbaas-operator mariadbprovider dbaas-operator/mariadbprovider -f local-dev/helm-values-mariadbprovider.yml ; \
+	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' create namespace harbor; \
+	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add harbor https://helm.goharbor.io ; \
+	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n harbor harbor harbor/harbor -f local-dev/helm-values-harbor.yml ; \
 	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' create namespace lagoon-builddeploy; \
 	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add lagoon-builddeploy https://raw.githubusercontent.com/amazeeio/lagoon-kbd/main/charts ; \
 	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n lagoon-builddeploy lagoon-builddeploy lagoon-builddeploy/lagoon-builddeploy \
