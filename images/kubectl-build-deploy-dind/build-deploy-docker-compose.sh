@@ -72,7 +72,10 @@ if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
   LAGOON_SERVICE_TYPES=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_SERVICE_TYPES") | "\(.value)"'))
 fi
 if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
-  LAGOON_SERVICE_TYPES=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_SERVICE_TYPES") | "\(.value)"'))
+  TEMP_LAGOON_SERVICE_TYPES=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_SERVICE_TYPES") | "\(.value)"'))
+  if [ ! -z $TEMP_LAGOON_SERVICE_TYPES ]; then
+    LAGOON_SERVICE_TYPES=$TEMP_LAGOON_SERVICE_TYPES
+  fi
 fi
 set -x
 
