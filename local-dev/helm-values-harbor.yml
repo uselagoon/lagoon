@@ -11,7 +11,7 @@ expose:
       nginx.ingress.kubernetes.io/proxy-body-size: "0"
 harborAdminPassword: Harbor12345
 secretKey: "not-a-secure-key"
-externalURL: http://harbor.172.17.0.1.nip.io
+externalURL: http://harbor.172.17.0.1.nip.io:18080
 persistence:
   enabled: false
 
