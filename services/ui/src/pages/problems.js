@@ -33,6 +33,17 @@ export const PageProblems = ({ router }) => (
         withEnvironmentRequired
       )(({ data: { environment } }) => {
 
+        const problems = environment.problems && environment.problems.map(problem => {
+          return {
+            ...problem,
+            environment: {
+              id: environment.id,
+              openshiftProjectName: environment.openshiftProjectName,
+              project: environment.project
+            }
+          }
+        });
+
         return (
           <MainLayout>
             <Breadcrumbs>
@@ -45,7 +56,7 @@ export const PageProblems = ({ router }) => (
             <div className="content-wrapper">
               <NavTabs activeTab="problems" environment={environment} />
               <div className="content">
-                <Problems problems={environment.problems} />
+                <Problems problems={problems} />
               </div>
             </div>
             <style jsx>{`
@@ -59,7 +70,9 @@ export const PageProblems = ({ router }) => (
               .content {
                 padding: 32px calc((100vw / 16) * 1);
                 width: 100%;
-                max-width: 75%;
+                @media ${bp.tabletUp} {
+                  max-width: 75%;
+                }
               }
 
               .notification {

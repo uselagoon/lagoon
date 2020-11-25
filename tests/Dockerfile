@@ -1,5 +1,6 @@
-ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-lagoon}/python:2.7
+ARG UPSTREAM_REPO
+ARG UPSTREAM_TAG
+FROM ${UPSTREAM_REPO:-uselagoon}/python-2.7:${UPSTREAM_TAG:-latest}
 
 RUN apk add --no-cache \
       bash \
@@ -37,6 +38,7 @@ COPY hosts /etc/ansible/hosts
 
 ENV ANSIBLE_FORCE_COLOR=true
 ENV SSH_AUTH_SOCK=/tmp/ssh-agent
+ENV KEYCLOAK_URL=http://keycloak:8080
 
 COPY entrypoint.sh /
 ENTRYPOINT ["/entrypoint.sh"]

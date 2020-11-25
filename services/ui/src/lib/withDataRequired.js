@@ -1,6 +1,7 @@
 import * as R from 'ramda';
 import EnvironmentNotFound from 'components/errors/EnvironmentNotFound';
 import TaskNotFound from 'components/errors/TaskNotFound';
+import ProblemNotFound from 'components/errors/ProblemNotFound';
 import DeploymentNotFound from 'components/errors/DeploymentNotFound';
 import ProjectNotFound from 'components/errors/ProjectNotFound';
 import renderWhile from 'lib/renderWhile';
@@ -17,6 +18,11 @@ export const withEnvironmentRequired = renderWhile(
 export const withTaskRequired = renderWhile(
   ({ data: { environment } }) => !environment.tasks.length,
   TaskNotFound
+);
+
+export const withProblemRequired = renderWhile(
+  ({ data: { environment } }) => !environment.problem.id === null,
+  ProblemNotFound
 );
 
 export const withDeploymentRequired = renderWhile(

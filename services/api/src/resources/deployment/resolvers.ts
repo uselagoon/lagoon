@@ -166,8 +166,10 @@ export const getDeploymentUrl: ResolverFn = async (
   { sqlClient, hasPermission },
 ) => {
 
+  const defaultUiUrl = R.propOr('http://localhost:8888', 'UI_URL', process.env);
+
   const lagoonUiRoute = R.compose(
-    R.defaultTo('http://localhost:8888'),
+    R.defaultTo(defaultUiUrl),
     R.find(R.test(/\/ui-/)),
     R.split(','),
     R.propOr('', 'LAGOON_ROUTES'),
@@ -876,7 +878,7 @@ export const switchActiveStandby: ResolverFn = async (
     );
     data.task.id = sourceTaskData.addTask.id.toString()
 
-    // then send the task to openshiftmisc to trigger the migration
+    // queue the task to trigger the migration
     await createMiscTask({ key: 'route:migrate', data });
 
     // return the task id and remote id

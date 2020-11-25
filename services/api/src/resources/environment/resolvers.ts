@@ -397,7 +397,7 @@ export const deleteEnvironment: ResolverFn = async (
   });
 
   // Deleting environment in api w/o executing the openshift remove.
-  // This gets called by openshiftremove service after successful remove.
+  // This gets called after successful removal from cluster.
   if (execute === false) {
     try {
       await hasPermission('environment', 'deleteNoExec', {

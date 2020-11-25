@@ -22,33 +22,39 @@ The configmap from which this config file is generated is stored within Lagoon i
   * Tells harbor-core where to store any uploaded charts.
   * The default value is `redis`.
 * `CLAIR_ADAPTER_URL`
-  * The URL that harbor-core should use to connect to the harborclairadapter service.
-  * The default value is `http://harborclairadapter:8080`.
+  * The URL that harbor-core should use to connect to the harbor-trivy service.
+  * The default value is `http://harbor-trivy:8080`.
 * `CLAIR_DB`
   * The database type harborclair should use.
+  * This value is not used, and is included only for legacy support
   * The default value is `postgres`.
 * `CLAIR_DB_HOST`
+  * This value is not used, and is included only for legacy support
   * Tells harbor-core where to find the harborclair service.
   * The default value is `harbor-database`.
 * `CLAIR_DB_PASSWORD`
   * The password used to access harborclair's postgres database.
   * The default value is `test123` when run locally or during CI testing.
+  * This value is not used, and is included only for legacy support
   * This value is retrieved from a secret created when Harbor is first set up on a running Lagoon.
 * `CLAIR_DB_PORT`
   * The port harborclair should use to connect to the harborclair server.
+  * This value is not used, and is included only for legacy support
   * The default value is `5432`.
 * `CLAIR_DB_SSLMODE`
   * Whether or not harborclair should use SSL to connect to the postgresql server.
+  * This value is not used, and is included only for legacy support
   * The default value is `disable`.
 * `CLAIR_DB_USERNAME`
   * The user harborclair should use to connect to the postgresql server.
+  * This value is not used, and is included only for legacy support
   * The default value is `postgres`.
 * `CLAIR_HEALTH_CHECK_SERVER_URL`
-  * This value tells harbor-core where it should issue health checks to for the harborclair service.
-  * The default value is `http://harborclair:6061`
+  * This value tells harbor-core where it should issue health checks to for the harbor-trivy service.
+  * The default value is `http://harbor-trivy:8080`
 * `CLAIR_URL`
-  * The URL that harbor-core should use to connect to the harborclair service.
-  * The default value is `http://harborclair:6060`.
+  * The URL that harbor-core should use to connect to the harbor-trivy service.
+  * The default value is `http://harbor-trivy:6060`.
 * `CONFIG_PATH`
   * Where harbor-core should look for its config file.
   * The default value is `/etc/core/app.conf`.
@@ -86,7 +92,7 @@ The configmap from which this config file is generated is stored within Lagoon i
   * The default value is `error`.
 * `NO_PROXY`
   * A list of hosts which should never have their requests proxied.
-  * The default is `harbor-core,harbor-jobservice,harbor-database,harborclair,harborclairadapter,harborregistry,harbor-portal,127.0.0.1,localhost,.local,.internal`.
+  * The default is `harbor-core,harbor-jobservice,harbor-database,harbor-trivy,harborregistry,harbor-portal,127.0.0.1,localhost,.local,.internal`.
 * `PORTAL_URL`
   * This value tells the service where to connect to the harbor-portal service.
   * The default value is `http://harbor-portal:8080`.
@@ -136,15 +142,21 @@ The configmap from which this config file is generated is stored within Lagoon i
 * `TOKEN_SERVICE_URL`
   * The URL that the harbor-core service publishes to other services in order to retrieve a JWT token.
   * The default value is `http://harbor-core:8080/service/token`.
+* `TRIVY_ADAPTER_URL`
+  * The URL that the harbor-core service should use to connect to the harbor-trivy service.
+  * The default value is `http://harbor-trivy:8080`.
 * `WITH_CHARTMUSEUM`
   * Tells harbor-core if the Chartmuseum service is being used.
   * This service is **not** used with Lagoon's implementation of Harbor.
   * The default value is `false`.
 * `WITH_CLAIR`
-  * Tells harbor-core if the harborclair service is being used. 
+  * Tells harbor-core if the harborclair service is being used.
   * Lagoon **does** use this service in its implementation of Harbor.
   * The default value is `true`.
 * `WITH_NOTARY`
-  * Tells harbor-core if the Notary service is being used. 
+  * Tells harbor-core if the Notary service is being used.
   * This service is **not** used with Lagoon's implementation of Harbor.
   * The default value is `false`.
+* `WITH_TRIVY`
+  * Tells harbor-core if the Trivy service is being used.
+  * The default value is `true`.

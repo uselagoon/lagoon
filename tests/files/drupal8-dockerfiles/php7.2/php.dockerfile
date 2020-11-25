@@ -1,7 +1,8 @@
 ARG CLI_IMAGE
-ARG IMAGE_REPO
+ARG UPSTREAM_REPO
+ARG UPSTREAM_TAG
 FROM ${CLI_IMAGE:-builder} as builder
 
-FROM ${IMAGE_REPO:-amazeeio}/php:7.2-fpm
+FROM ${UPSTREAM_REPO:-testlagoon}/php-7.2-fpm:${UPSTREAM_TAG:-latest}
 
 COPY --from=builder /app /app

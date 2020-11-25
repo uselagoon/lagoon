@@ -1,9 +1,10 @@
-ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-amazeeio}/node:14-builder as builder
+ARG UPSTREAM_REPO
+ARG UPSTREAM_TAG
+FROM ${UPSTREAM_REPO:-testlagoon}/node-14-builder:${UPSTREAM_TAG:-latest} as builder
 COPY package.json yarn.lock /app/
 RUN yarn install
 
-FROM ${IMAGE_REPO:-amazeeio}/node:14
+FROM ${UPSTREAM_REPO:-testlagoon}/node-14:${UPSTREAM_TAG:-latest}
 COPY --from=builder /app/node_modules /app/node_modules
 COPY . /app/
 

@@ -1,7 +1,0 @@
-Host *
-  StrictHostKeyChecking no
-  UserKnownHostsFile /dev/null
-  IdentityFile /home/.ssh/lagoon_cli.key
-  IdentityFile /home/.ssh/key
-  ServerAliveInterval 60
-  ServerAliveCountMax 1440
