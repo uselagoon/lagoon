@@ -26,7 +26,9 @@ If you ever need to recover or restore a backup feel free to submit a ticket or 
 
 ## How can I download a database dump?
 
-{% embed url="https://www.youtube.com/watch?v=amkyV2skidc" caption="" %}
+{% embed url="https://www.youtube.com/watch?v=vnr3EITlQys&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=3" %}
+
+
 
 ## I'm getting an invalid SSL certificate error
 
@@ -58,7 +60,9 @@ Upgrading Drush should fix that for you. We strongly suggest that you use versio
 
 ## I'm seeing an Internal Server Error when trying to access my Kibana logs!
 
-{% embed url="https://www.youtube.com/watch?v=hyUMRlQTXEA" caption="" %}
+{% embed url="https://www.youtube.com/watch?v=is-mt6oBQs8&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=5" %}
+
+
 
 No need to panic! This usually happens when a tenant has not been selected. To fix this, follow these steps:
 
@@ -75,7 +79,9 @@ I'm unable to SSH into any environment. I'm getting the following message: `Perm
 
 ## How can I check the status of a build?
 
-{% embed url="https://www.youtube.com/watch?v=tVx-IGaN0Bg" caption="How can I check the status of a build?" %}
+{% embed url="https://www.youtube.com/watch?v=UM6lM12ACK4&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=1" %}
+
+
 
 ## **When I run `pygmy status`, no keys are loaded:**
 
@@ -91,7 +97,7 @@ This usually means that there is no database uploaded to the project. [Follow ou
 
 ## When I start pygmy I see an "address already in use" error?
 
-\`\`Error starting userland proxy: listen tcp 0.0.0.0:80: bind: address already in use Error: failed to start containers: amazeeio-haproxy\`\`\`
+`Error starting userland proxy: listen tcp 0.0.0.0:80: bind: address already in use Error: failed to start containers: amazeeio-haproxy`
 
 This is a known error! Most of the time it means that there is already something running on port 80. You can find the culprit by running the following query:
 
@@ -123,7 +129,7 @@ Once you've added a runtime environment variable to your production environment 
 
 For cloud hosting customers, you can SFTP to your Lagoon environment by using the following information:
 
-* **Server Hostname**: ssh.lagoon.amazeeio.cloud
+* **Server Hostname**: `ssh.lagoon.amazeeio.cloud`
 * **Port**: 32222
 * **Username**: &lt;Project-Environment-Name&gt;
 
