@@ -61,7 +61,6 @@ async function createHarborProject(sqlClient: MariaClient, harborClient, lagoonP
         results = results.concat(res.body)
         i++
         res = await harborClient.get(`projects?name=${lagoonProjectName}&page_size=${pageSize}&page=${i}`)
-        console.log(res.body)
       }
     } else {
       results = res.body
