@@ -85,7 +85,7 @@ The API uses a [Puppet](https://puppet.com/docs/puppet/latest/puppet_index.html)
 
 ## Troubleshooting
 
-\*\*\*\*⚠ **I can't build a docker image for any Node.js based service**
+⚠ **I can't build a docker image for any Node.js based service**
 
 Rebuild the images via
 
@@ -94,7 +94,7 @@ make clean
 make build
 ```
 
-\*\*\*\*⚠ **I get errors about missing node\_modules content when I try to build / run a Node.js based image**
+⚠ **I get errors about missing node\_modules content when I try to build / run a Node.js based image**
 
 Make sure to run `yarn` in Lagoon's root directory, since some services have common dependencies managed by `yarn` workspaces.
 

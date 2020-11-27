@@ -34,7 +34,7 @@
   vars:
     url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
     host: "insecure-redirect.com"
-    expected_redirect_location: "https://insecure-redirect.com/$"
+    expected_redirect_location: "https://insecure-redirect.com/?$"
   tasks:
   - include: ../../checks/check-url-redirect-host.yaml
 
