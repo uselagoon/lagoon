@@ -61,7 +61,7 @@ services:
       context: .
       dockerfile: postgres.dockerfile
     labels:
-      lagoon.type: postgres
+      lagoon.type: postgres-single
   redis:
     build:
       context: .
