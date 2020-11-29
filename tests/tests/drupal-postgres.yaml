@@ -12,4 +12,4 @@
     php_version: 7.2
     git_repo_name: drupal-postgres.git
     project: ci-drupal-postgres-{{ lookup('env','CLUSTER_TYPE') }}
-    branch: drupal8-composer-72-postgres-single
+    branch: d8-php72-psql-single
