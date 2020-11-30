@@ -1008,8 +1008,8 @@ done
 ### REDEPLOY DEPLOYMENTS IF CONFIG MAP CHANGES
 ##############################################
 
-VARS_CONFIGMAP_SHA=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get configmap lagoon-api-vars -o yaml | shyaml get-value data | sha256sum | awk '{print $1}')
-LAGOON_CONFIG_MAP_SHA=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get configmap lagoon-env -o yaml | shyaml get-value data | sha256sum | awk '{print $1}')
+VARS_CONFIGMAP_SHA=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get configmap lagoon-api-vars -o yaml | shyaml get-value data "" | sha256sum | awk '{print $1}')
+LAGOON_CONFIG_MAP_SHA=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get configmap lagoon-env -o yaml | shyaml get-value data "" | sha256sum | awk '{print $1}')
 CONFIG_MAP_SHA=$(echo $VARS_CONFIGMAP_SHA$LAGOON_CONFIG_MAP_SHA | sha256sum | awk '{print $1}')
 # write the configmap value to a variable so when we `exec-openshift-resources-with-images.sh` the deploymentconfigs will get the value of the config map
 # which will cause a change in the deployment and trigger a rollout if only the configmap has changed

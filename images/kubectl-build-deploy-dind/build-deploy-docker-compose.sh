@@ -922,8 +922,8 @@ done
 ##############################################
 ### REDEPLOY DEPLOYMENTS IF CONFIG MAP CHANGES
 ##############################################
-VARS_CONFIGMAP_SHA=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap lagoon-api-vars -o yaml | shyaml get-value data | sha256sum | awk '{print $1}')
-LAGOON_CONFIG_MAP_SHA=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap lagoon-env -o yaml | shyaml get-value data | sha256sum | awk '{print $1}')
+VARS_CONFIGMAP_SHA=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap lagoon-api-vars -o yaml | shyaml get-value data "" | sha256sum | awk '{print $1}')
+LAGOON_CONFIG_MAP_SHA=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap lagoon-env -o yaml | shyaml get-value data "" | sha256sum | awk '{print $1}')
 CONFIG_MAP_SHA=$(echo $VARS_CONFIGMAP_SHA$LAGOON_CONFIG_MAP_SHA | sha256sum | awk '{print $1}')
 # write the configmap to the values file so when we `exec-kubectl-resources-with-images.sh` the deployments will get the value of the config map
 # which will cause a change in the deployment and trigger a rollout if only the configmap has changed
