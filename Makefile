@@ -298,12 +298,15 @@ build/local-git: local-dev/git/Dockerfile
 build/local-api-data-watcher-pusher: local-dev/api-data-watcher-pusher/Dockerfile
 build/local-registry: local-dev/registry/Dockerfile
 build/local-dbaas-provider: local-dev/dbaas-provider/Dockerfile
+build/local-postgresql-dbaas-provider: local-dev/postgresql-dbaas-provider/Dockerfile
 
 # Images for local helpers that exist in another folder than the service images
 localdevimages := local-git \
 									local-api-data-watcher-pusher \
 									local-registry \
-									local-dbaas-provider
+									local-dbaas-provider \
+									local-postgresql-dbaas-provider
+
 service-images += $(localdevimages)
 build-localdevimages = $(foreach image,$(localdevimages),build/$(image))
 
@@ -435,10 +438,10 @@ main-test-services = broker logs2email logs2slack logs2rocketchat logs2microsoft
 openshift-test-services = openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor openshiftmisc tests-openshift
 
 # Define a list of which Lagoon Services are needed for kubernetes testing
-kubernetes-test-services = kubernetesbuilddeploy kubernetesdeployqueue kubernetesbuilddeploymonitor kubernetesjobs kubernetesjobsmonitor kubernetesremove kubernetesmisc tests-kubernetes local-registry local-dbaas-provider drush-alias
+kubernetes-test-services = kubernetesbuilddeploy kubernetesdeployqueue kubernetesbuilddeploymonitor kubernetesjobs kubernetesjobsmonitor kubernetesremove kubernetesmisc tests-kubernetes local-registry local-dbaas-provider local-postgresql-dbaas-provider drush-alias
 
 # Define a list of which Lagoon Services are needed for controller kubernetes testing
-controller-k8s-test-services = controllerhandler tests-controller-kubernetes local-registry local-dbaas-provider drush-alias
+controller-k8s-test-services = controllerhandler tests-controller-kubernetes local-registry local-dbaas-provider postgres-local-dbaas-provider drush-alias
 
 # List of Lagoon Services needed for webhook endpoint testing
 webhooks-test-services = webhook-handler webhooks2tasks backup-handler
@@ -897,6 +900,7 @@ endif
 	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add dbaas-operator https://raw.githubusercontent.com/amazeeio/dbaas-operator/master/charts ; \
 	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n dbaas-operator dbaas-operator dbaas-operator/dbaas-operator ; \
 	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n dbaas-operator mariadbprovider dbaas-operator/mariadbprovider -f local-dev/helm-values-mariadbprovider.yml ; \
+	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n dbaas-operator postgresqlprovider dbaas-operator/postgresqlprovider -f local-dev/helm-values-postgresqlprovider.yml ; \
 	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' create namespace lagoon-builddeploy; \
 	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add lagoon-builddeploy https://raw.githubusercontent.com/amazeeio/lagoon-kbd/main/charts ; \
 	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n lagoon-builddeploy lagoon-builddeploy lagoon-builddeploy/lagoon-builddeploy \
