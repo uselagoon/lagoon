@@ -34,15 +34,15 @@
     project: ci-features-{{ lookup('env','CLUSTER_TYPE') }}
     branch: remoteshell
 
-# - include: features/promote.yaml
-#   vars:
-#     testname: "PROMOTE {{ lookup('env','CLUSTER_TYPE')|upper }}"
-#     git_repo_name: features.git
-#     project: ci-features-{{ lookup('env','CLUSTER_TYPE') }}
-#     source_environment: source
-#     promote_environment: target
-#     check_url_source: "https://node.{{ project | regex_replace('_', '-') }}.{{ source_environment | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }}:{{ lookup('env','ROUTE_SUFFIX_HTTPS_PORT') }}"
-#     check_url_promote: "https://node.{{ project | regex_replace('_', '-') }}.{{ promote_environment | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }}:{{ lookup('env','ROUTE_SUFFIX_HTTPS_PORT') }}"
+- include: features/promote.yaml
+  vars:
+    testname: "PROMOTE {{ lookup('env','CLUSTER_TYPE')|upper }}"
+    git_repo_name: features.git
+    project: ci-features-{{ lookup('env','CLUSTER_TYPE') }}
+    source_environment: source
+    promote_environment: target
+    check_url_source: "https://node.{{ project | regex_replace('_', '-') }}.{{ source_environment | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }}:{{ lookup('env','ROUTE_SUFFIX_HTTPS_PORT') }}"
+    check_url_promote: "https://node.{{ project | regex_replace('_', '-') }}.{{ promote_environment | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }}:{{ lookup('env','ROUTE_SUFFIX_HTTPS_PORT') }}"
 
 - include: features/cronjobs.yaml
   vars:

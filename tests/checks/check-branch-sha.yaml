@@ -15,6 +15,7 @@
     expected_content: "LAGOON_GIT_BRANCH={{ expected_branch }}"
   tasks:
   - include: check-url-content.yaml
+    when: expected_branch != ""
 
 - name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash inside an environment variable set during buildtime"
   hosts: localhost
