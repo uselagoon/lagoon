@@ -1161,10 +1161,19 @@ CREATE OR REPLACE PROCEDURE
   add_metadata_to_project()
 
   BEGIN
-    ALTER TABLE project
-    ADD metadata JSON DEFAULT '{}' CHECK (JSON_VALID(metadata));
-    UPDATE project
-    SET metadata = '{}';
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'metadata'
+    ) THEN
+      ALTER TABLE project
+      ADD metadata JSON DEFAULT '{}' CHECK (JSON_VALID(metadata));
+      UPDATE project
+      SET metadata = '{}';
+    END IF;
   END;
 $$
 
