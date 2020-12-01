@@ -5,9 +5,11 @@ providers:
     password: password
     port: '5432'
     user: postgres
+    type: local
   development:
     environment: development
     hostname: postgresqldev.172.17.0.1.nip.io
     password: password
     port: '5432'
     user: postgres
+    type: local
