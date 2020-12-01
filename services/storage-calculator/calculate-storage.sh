@@ -1,6 +1,6 @@
 #!/bin/bash
 
-API_ADMIN_JWT_TOKEN=$(./create_jwt.sh)
+API_ADMIN_JWT_TOKEN=$(./create_jwt.py)
 BEARER="Authorization: bearer $API_ADMIN_JWT_TOKEN"
 
 # Load all projects and their environments
@@ -23,7 +23,7 @@ GRAPHQL='query environments {
 
 # Convert GraphQL file into single line (but with still \n existing), turn \n into \\n, esapee the Quotes
 query=$(echo $GRAPHQL | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
-ALL_ENVIRONMENTS=$(curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" api:3000/graphql -d "{\"query\": \"$query\"}")
+ALL_ENVIRONMENTS=$(curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" "${GRAPHQL_ENDPOINT:-api:3000/graphql}" -d "{\"query\": \"$query\"}")
 
 echo "$ALL_ENVIRONMENTS" | jq -c '.data.environments[] | select((.environments|length)>=1)' | while read project
 do
@@ -54,7 +54,7 @@ do
 
         # Convert GraphQL file into single line (but with still \n existing), turn \n into \\n, esapee the Quotes
         query=$(echo $MUTATION | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
-        curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" api:3000/graphql -d "{\"query\": \"$query\"}"
+        curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" "${GRAPHQL_ENDPOINT:-api:3000/graphql}" -d "{\"query\": \"$query\"}"
 
         continue
 
@@ -74,7 +74,7 @@ do
       ${OC} delete deploymentconfig/storage-calc >/dev/null 2>&1
 
       # Start storage-calc deployment
-      ${OC} run --generator=deploymentconfig/v1 --image amazeeio/alpine-mysql-client storage-calc -- sh -c "while sleep 3600; do :; done"
+      ${OC} run --generator=deploymentconfig/v1 --image imagecache.amazeeio.cloud/amazeeio/alpine-mysql-client storage-calc -- sh -c "while sleep 3600; do :; done"
       ${OC} rollout pause deploymentconfig/storage-calc
 
       # Copy environment variable from lagoon-env configmap.
@@ -92,7 +92,7 @@ do
       echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: redeploying storage-calc to mount volumes"
       ${OC} rollout status deploymentconfig/storage-calc --watch
 
-      POD=$(${OC} get pods -l run=storage-calc -o json | jq -r '.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running") | .metadata.name' | head -n 1)
+      POD=$(${OC} get pods -l run=storage-calc -o json | jq -r '[.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running")] | first | .metadata.name // empty')
 
       if [[ ! $POD ]]; then
         echo "No running pod found for storage-calc"
@@ -114,7 +114,7 @@ do
 
         # Convert GraphQL file into single line (but with still \n existing), turn \n into \\n, esapee the Quotes
         query=$(echo $MUTATION | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
-        curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" api:3000/graphql -d "{\"query\": \"$query\"}"
+        curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" "${GRAPHQL_ENDPOINT:-api:3000/graphql}" -d "{\"query\": \"$query\"}"
 
       else
         for PVC in "${PVCS[@]}"
@@ -131,7 +131,7 @@ do
 
             # Convert GraphQL file into single line (but with still \n existing), turn \n into \\n, esapee the Quotes
             query=$(echo $MUTATION | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
-            curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" api:3000/graphql -d "{\"query\": \"$query\"}"
+            curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" "${GRAPHQL_ENDPOINT:-api:3000/graphql}" -d "{\"query\": \"$query\"}"
 
             # Update namespace labels
             if [ ! -z "$LAGOON_STORAGE_LABEL_NAMESPACE"]; then
@@ -152,7 +152,7 @@ do
 
         # Convert GraphQL file into single line (but with still \n existing), turn \n into \\n, esapee the Quotes
         query=$(echo $MUTATION | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
-        curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" api:3000/graphql -d "{\"query\": \"$query\"}"
+        curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" "${GRAPHQL_ENDPOINT:-api:3000/graphql}" -d "{\"query\": \"$query\"}"
       fi
 
       ${OC} delete deploymentconfig/storage-calc
@@ -162,4 +162,3 @@ do
     echo "$OPENSHIFT_URL - $PROJECT_NAME: SKIP, does not match Regex: $PROJECT_REGEX"
   fi
 done
-

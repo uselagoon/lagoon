@@ -43,6 +43,9 @@ parameters:
   - name: ENVIRONMENT_TYPE
     description: production level of this environment
     required: true
+  - name: CONFIG_MAP_SHA
+    description: SHA sum of the configmap
+    value: ''
 objects:
   - apiVersion: v1
     kind: DeploymentConfig
@@ -66,6 +69,8 @@ objects:
             service: ${SERVICE_NAME}
             branch: ${SAFE_BRANCH}
             project: ${SAFE_PROJECT}
+          annotations:
+            lagoon.sh/configMapSha: ${CONFIG_MAP_SHA}
         spec:
           tolerations:
             - effect: NoSchedule
@@ -107,6 +112,19 @@ objects:
                   memory: 10Mi
                 limits:
                   memory: 8Gi
+              readinessProbe:
+                initialDelaySeconds: 5
+                periodSeconds: 2
+                failureThreshold: 3
+                exec:
+                  command:
+                  - "/bin/sh"
+                  - "-c"
+                  - >
+                    if [ -x /bin/entrypoint-readiness ]; then
+                      /bin/entrypoint-readiness;
+                    fi
+
       test: false
       triggers:
         - type: ConfigChange

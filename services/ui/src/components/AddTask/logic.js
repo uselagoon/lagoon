@@ -36,13 +36,17 @@ const withOptions = withProps(({ pageEnvironment }) => {
     {
       label: 'Generate database and files backup (Drush 8 only) [drush archive-dump]',
       value: 'DrushArchiveDump'
+    },
+    {
+      label: 'Generate login link [drush uli]',
+      value: 'DrushUserLogin'
     }
   ];
 
-  // Remove tasks that are blacklisted.
+  // Remove tasks that are blocklisted.
   options = R.reject(
     option =>
-      R.contains(option.value, publicRuntimeConfig.LAGOON_UI_TASK_BLACKLIST),
+      R.contains(option.value, publicRuntimeConfig.LAGOON_UI_TASK_BLOCKLIST),
     options
   );
 

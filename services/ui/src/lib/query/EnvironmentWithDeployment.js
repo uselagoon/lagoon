@@ -12,6 +12,8 @@ export default gql`
       project {
         id
         name
+        problemsUi
+        factsUi
       }
       deployments(name: $deploymentName) {
         ...deploymentFields

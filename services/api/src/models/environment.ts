@@ -1,8 +1,8 @@
 import moment from 'moment';
 
-import { getSqlClient, USE_SINGLETON } from '../clients/sqlClient';
-import * as esClient from '../clients/esClient';
 import { prepare, query } from '../util/db';
+
+import * as logger from '../logger';
 
 export interface Environment {
   id?: number; // int(11) NOT NULL AUTO_INCREMENT,
@@ -34,283 +34,496 @@ interface EnvironmentData {
 
 type projectEnvWithDataType = (
   pid: string,
+  projectName: string,
   month: string,
 ) => Promise<EnvironmentData[]>;
 
-const sqlClient = getSqlClient(USE_SINGLETON);
 
-/**
- * Get all environments for a project.
- *
- * @param {string} pid The project id.
- * @param {string} type The environment type we're interested in
- * @param {boolean} includeDeleted include deleted environments
- *
- * @return {Promise<[Environments]>} An array of all project environments
- */
-export const projectEnvironments = async (
-  pid,
-  type,
-  includeDeleted = false,
-) => {
-  const prep = prepare(
-    sqlClient,
-    ` SELECT *
-      FROM environment e
-      WHERE e.project = :pid
-      ${includeDeleted ? '' : 'AND deleted = "0000-00-00 00:00:00"'}
-      ${type ? 'AND e.environment_type = :type' : ''}`,
-  );
+export const EnvironmentModel = (clients) => {
 
-  const environments: [Environment] = await query(
-    sqlClient,
-    prep({ pid, includeDeleted, type }),
-  );
-  return environments;
-};
+  const { sqlClient, esClient } = clients;
 
-// alias on the above
-export const environmentsByProjectId = projectEnvironments;
-
-// Needed for local Dev - Required if not connected to openshift
-export const errorCatcherFn = (msg, responseObj) => err => {
-  console.log(`${msg}: ${err.status} : ${err.message}`);
-  return { ...responseObj };
-};
-
-/**
- * Get billing data for an environment.
- *
- * @param {number} eid the environment id
- * @param {string} month The billing month we want to get data for.
- * @param {string} openshiftProjectName The openshiftProjectName - used for hits.
- *
- * @return {object} An object that includes hits, storage, hours
- */
-export const environmentData = async (
-  eid: number,
-  month: string,
-  openshiftProjectName: string,
-) => {
-  const hits = await environmentHitsMonthByEnvironmentId(
-    openshiftProjectName,
-    month,
-  ).catch(errorCatcherFn('getHits', { total: 0 }));
-
-  const storage = await environmentStorageMonthByEnvironmentId(
-    eid,
-    month,
-  ).catch(errorCatcherFn('getStorage', { bytesUsed: 0 }));
-  const hours = await environmentHoursMonthByEnvironmentId(eid, month).catch(
-    errorCatcherFn('getHours', { hours: 0 }),
-  );
-
-  return { hits, storage, hours };
-};
-
-/**
- * Get all environments and billing data for a project.
- *
- * @param {string} pid The project id.
- * @param {string} month The month we're interested in
- *
- * @return {Promise<[Environments ]>} An array of all project environments with data
- */
-export const projectEnvironmentsWithData: projectEnvWithDataType = async (
-  pid,
-  month,
-) => {
-  const environments = await projectEnvironments(pid, null, true);
-
-  const environmentDataFn = async ({
-    id: eid,
-    environmentType: type,
-    openshiftProjectName: openshift,
-  }: Environment) => ({
-    eid,
+  /**
+   * Get all environments for a project.
+   *
+   * @param {string} pid The project id.
+   * @param {string} type The environment type we're interested in
+   * @param {boolean} includeDeleted include deleted environments
+   *
+   * @return {Promise<[Environments]>} An array of all project environments
+   */
+  const projectEnvironments = async (
+    pid,
     type,
-    data: {
-      ...(await environmentData(eid, month, openshift)),
-    },
-  });
-  const data = await Promise.all(environments.map(environmentDataFn));
+    includeDeleted = false,
+  ) => {
+    const prep = prepare(
+      sqlClient,
+      ` SELECT *
+        FROM environment e
+        WHERE e.project = :pid
+        ${includeDeleted ? '' : 'AND deleted = "0000-00-00 00:00:00"'}
+        ${type ? 'AND e.environment_type = :type' : ''}`,
+    );
 
-  const environmentDataReducerFn = (obj, item) => ({
-    ...obj,
-    [item.eid]: { ...item.data },
-  });
-  const keyedData = data.reduce(environmentDataReducerFn, {});
+    const environments: [Environment] = await query(
+      sqlClient,
+      prep({ pid, includeDeleted, type }),
+    );
+    return environments;
+  };
 
-  const environmentsMapFn = ({ id, name, environmentType: type }) => ({
-    id,
-    name,
-    type,
-    ...keyedData[id],
-  });
-  return environments.map(environmentsMapFn);
-};
+  // alias on the above
+  const environmentsByProjectId = projectEnvironments;
 
-export const environmentStorageMonthByEnvironmentId = async (eid, month) => {
-  const str = `
-    SELECT
-      SUM(bytes_used) as bytes_used, max(DATE_FORMAT(updated, '%Y-%m')) as month
-    FROM
-      environment_storage
-    WHERE
-      environment = :eid
-      AND YEAR(updated) = YEAR(STR_TO_DATE(:month, '%Y-%m'))
-      AND MONTH(updated) = MONTH(STR_TO_DATE(:month, '%Y-%m'))
-  `;
+  // Needed for local Dev - Required if not connected to openshift
+  const errorCatcherFn = (msg, responseObj) => err => {
+    const errMsg = err && err.status && err.message ? `${err.status} : ${err.message} : ${err.headers} : ${err.url}` : `err undefined`;
+    logger.error(`${msg}: ${errMsg}`);
+    return { ...responseObj };
+  };
 
-  const prep = prepare(sqlClient, str);
-  const rows = await query(sqlClient, prep({ eid, month }));
-  return rows[0];
-};
+  /**
+   * Get billing data for an environment.
+   *
+   * @param {number} eid the environment id
+   * @param {string} month The billing month we want to get data for.
+   * @param {string} openshiftProjectName The openshiftProjectName - used for hits.
+   *
+   * @return {object} An object that includes hits, storage, hours
+   */
+  const environmentData = async (
+    eid: number,
+    month: string,
+    project: string,
+    openshiftProjectName: string,
+  ) => {
+    const hits = await environmentHitsMonthByEnvironmentId(project, openshiftProjectName, month)
+      .catch(errorCatcherFn(`getHits - openShiftProjectName: ${openshiftProjectName} month: ${month}`, { total: 0 }));
 
-export const environmentHoursMonthByEnvironmentId = async (
-  eid: number,
-  yearMonth: string,
-) => {
-  const str =
-    'SELECT e.created, e.deleted FROM environment e WHERE e.id = :eid';
-  const prep = prepare(sqlClient, str);
-  const rows = await query(sqlClient, prep({ eid }));
+    const storage = await environmentStorageMonthByEnvironmentId(eid, month)
+      .catch(errorCatcherFn('getStorage', { bytesUsed: 0 }));
 
-  const { created, deleted } = rows[0];
+    const hours = await environmentHoursMonthByEnvironmentId(eid, month)
+      .catch(errorCatcherFn('getHours', { hours: 0 }));
 
-  const created_date = new Date(created);
-  const deleted_date = new Date(deleted);
+    return { hits, storage, hours };
+  };
 
-  const now = new Date();
+  /**
+   * Get all environments and billing data for a project.
+   *
+   * @param {string} pid The project id.
+   * @param {string} month The month we're interested in
+   *
+   * @return {Promise<[Environments ]>} An array of all project environments with data
+   */
+  const projectEnvironmentsWithData: projectEnvWithDataType = async (
+    pid,
+    projectName,
+    month,
+  ) => {
+    const environments = await projectEnvironments(pid, null, true);
 
-  // Generate date object of the requested month, but with the first day, hour, minute, seconds and milliseconds
-  const interested_month_start = new Date(yearMonth) || new Date();
-  interested_month_start.setDate(1);
-  interested_month_start.setHours(0);
-  interested_month_start.setMinutes(0);
-  interested_month_start.setSeconds(0);
-  interested_month_start.setMilliseconds(0);
-
-  if (interested_month_start > now) {
-    throw new Error("Can't predict the future, yet.");
-  }
-
-  // Generate Date Variable with the month we are interested in plus one month
-  let interested_month_end = new Date(interested_month_start);
-  interested_month_end.setMonth(interested_month_start.getMonth() + 1);
-
-  // If the the the interested month end is in the future, we use the current time for real time cost calculations
-  if (interested_month_end > now) {
-    interested_month_end = now;
-  }
-
-  // calculate the month in format `YYYY-MM`. getMonth() does not return with a leading zero and starts its index at 0 as well.
-  const month_leading_zero =
-    interested_month_start.getMonth() + 1 < 10
-      ? `0${interested_month_start.getMonth() + 1}`
-      : interested_month_start.getMonth() + 1;
-  const month = `${interested_month_start.getFullYear()}-${month_leading_zero}`;
-
-  // Created Date is created after the interested month: Ran for 0 hours in the requested month
-  if (created_date > interested_month_end) {
-    return { month, hours: 0 };
-  }
-
-  // Environment was deleted before the month we are interested in: Ran for 0 hours in the requested month
-  if (
-    deleted_date < interested_month_start &&
-    moment(deleted_date).format('YYYY-MM-DD HH:mm:ss') !== '0000-00-00 00:00:00'
-  ) {
-    return { month, hours: 0 };
-  }
-
-  let date_from;
-  let date_to;
-
-  if (created_date >= interested_month_start) {
-    // Environment was created within the interested month
-    date_from = created_date;
-  } else {
-    // Environment was created before the interested month
-    date_from = interested_month_start;
-  }
-
-  if (
-    deleted === '0000-00-00 00:00:00' ||
-    deleted_date > interested_month_end
-  ) {
-    // Environment is not deleted yet or was deleted after the interested month
-    date_to = interested_month_end;
-  } else {
-    // Environment was deleted in the interested month
-    date_to = deleted_date;
-  }
-
-  const hours = Math.ceil(Math.abs(date_to - date_from) / 36e5);
-  return { month, hours };
-};
-
-export const environmentHitsMonthByEnvironmentId = async (
-  openshiftProjectName,
-  yearMonth,
-) => {
-  const interested_date = yearMonth ? new Date(yearMonth) : new Date();
-  const year = interested_date.getFullYear();
-  const month = interested_date.getMonth() + 1;
-  // This generates YYYY-MM
-  const interested_year_month = `${year}-${month < 10 ? `0${month}` : month}`;
-  try {
-    const result = await esClient.count({
-      index: `router-logs-${openshiftProjectName}-*`,
-      body: {
-        query: {
-          bool: {
-            must: [
-              {
-                range: {
-                  '@timestamp': {
-                    gte: `${interested_year_month}||/M`,
-                    lte: `${interested_year_month}||/M`,
-                    format: 'strict_year_month',
-                  },
-                },
-              },
-            ],
-            must_not: [
-              {
-                match_phrase: {
-                  request_header_useragent: {
-                    query: 'StatusCake',
-                  },
-                },
-              },
-            ],
-          },
-        },
+    const environmentDataFn = async ({
+      id: eid,
+      environmentType: type,
+      openshiftProjectName: openshift,
+    }: Environment) => ({
+      eid,
+      type,
+      data: {
+        ...(await environmentData(eid, month, projectName, openshift)),
       },
     });
+    const data = await Promise.all(environments.map(environmentDataFn));
 
-    const response = {
-      total: result.count,
-    };
-    return response;
-  } catch (e) {
+    const environmentDataReducerFn = (obj, item) => ({
+      ...obj,
+      [item.eid]: { ...item.data },
+    });
+    const keyedData = data.reduce(environmentDataReducerFn, {});
+
+    const environmentsMapFn = ({ id, name, environmentType: type }) => ({
+      id,
+      name,
+      type,
+      ...keyedData[id],
+    });
+    return environments.map(environmentsMapFn);
+  };
+
+  const environmentStorageMonthByEnvironmentId = async (eid, month) => {
+    const str = `
+      SELECT
+        SUM(bytes_used) as bytes_used, max(DATE_FORMAT(updated, '%Y-%m')) as month
+      FROM
+        environment_storage
+      WHERE
+        environment = :eid
+        AND YEAR(updated) = YEAR(STR_TO_DATE(:month, '%Y-%m'))
+        AND MONTH(updated) = MONTH(STR_TO_DATE(:month, '%Y-%m'))
+    `;
+
+    const prep = prepare(sqlClient, str);
+    const rows = await query(sqlClient, prep({ eid, month }));
+    return rows[0];
+  };
+
+  const environmentHoursMonthByEnvironmentId = async (
+    eid: number,
+    yearMonth: string,
+  ) => {
+    const str =
+      'SELECT e.created, e.deleted FROM environment e WHERE e.id = :eid';
+    const prep = prepare(sqlClient, str);
+    const rows = await query(sqlClient, prep({ eid }));
+
+    const { created, deleted } = rows[0];
+
+    const created_date = new Date(created);
+    const deleted_date = new Date(deleted);
+
+    const now = new Date();
+
+    // Generate date object of the requested month, but with the first day, hour, minute, seconds and milliseconds
+    const interested_month_start = new Date(yearMonth) || new Date();
+    interested_month_start.setDate(1);
+    interested_month_start.setHours(0);
+    interested_month_start.setMinutes(0);
+    interested_month_start.setSeconds(0);
+    interested_month_start.setMilliseconds(0);
+
+    if (interested_month_start > now) {
+      throw new Error("Can't predict the future, yet.");
+    }
+
+    // Generate Date Variable with the month we are interested in plus one month
+    let interested_month_end = new Date(interested_month_start);
+    interested_month_end.setMonth(interested_month_start.getMonth() + 1);
+
+    // If the the the interested month end is in the future, we use the current time for real time cost calculations
+    if (interested_month_end > now) {
+      interested_month_end = now;
+    }
+
+    // calculate the month in format `YYYY-MM`. getMonth() does not return with a leading zero and starts its index at 0 as well.
+    const month_leading_zero =
+      interested_month_start.getMonth() + 1 < 10
+        ? `0${interested_month_start.getMonth() + 1}`
+        : interested_month_start.getMonth() + 1;
+    const month = `${interested_month_start.getFullYear()}-${month_leading_zero}`;
+
+    // Created Date is created after the interested month: Ran for 0 hours in the requested month
+    if (created_date > interested_month_end) {
+      return { month, hours: 0 };
+    }
+
+    // Environment was deleted before the month we are interested in: Ran for 0 hours in the requested month
     if (
-      e.body.error.type &&
-      (e.body.error.type === 'index_not_found_exception' ||
-        e.body.error.type === 'security_exception')
+      deleted_date < interested_month_start &&
+      moment(deleted_date).format('YYYY-MM-DD HH:mm:ss') !== '0000-00-00 00:00:00'
     ) {
+      return { month, hours: 0 };
+    }
+
+    let date_from;
+    let date_to;
+
+    if (created_date >= interested_month_start) {
+      // Environment was created within the interested month
+      date_from = created_date;
+    } else {
+      // Environment was created before the interested month
+      date_from = interested_month_start;
+    }
+
+    if (
+      deleted === '0000-00-00 00:00:00' ||
+      deleted_date > interested_month_end
+    ) {
+      // Environment is not deleted yet or was deleted after the interested month
+      date_to = interested_month_end;
+    } else {
+      // Environment was deleted in the interested month
+      date_to = deleted_date;
+    }
+
+    const hours = Math.ceil(Math.abs(date_to - date_from) / 36e5);
+    return { month, hours };
+  };
+
+  const fetchElasticSearchHitsData = async (project, openshiftProjectName, interestedYearMonth, interestedDateBeginString, interestedDateEndString) => {
+    try {
+      // LEGACY LOGGING SYSTEM - REMOVE ONCE WE MIGRATE EVERYTHING TO THE NEW SYSTEM
+      const legacyQuery = {
+        index: `router-logs-${openshiftProjectName}-*`,
+        body: {
+          "size": 0,
+          "query": {
+            "bool": {
+              "must": [
+                {
+                  "range": {
+                    "@timestamp": {
+                      "gte": `${interestedYearMonth}||/M`,
+                      "lte": `${interestedYearMonth}||/M`,
+                      "format": "strict_year_month"
+                    }
+                  }
+                }
+              ],
+              "must_not": [
+                {
+                  "match_phrase": {
+                    "request_header_useragent": {
+                      "query": "StatusCake"
+                    }
+                  }
+                },
+                {
+                  "match_phrase": {
+                    "request_user_agent": {
+                      "query": "UptimeRobot"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "aggs": {
+            "hourly": {
+              "date_histogram": {
+                "field": "@timestamp",
+                "fixed_interval": "1h",
+                "min_doc_count": 0,
+                "extended_bounds": {
+                  "min": interestedDateBeginString,
+                  "max": interestedDateEndString
+                }
+              },
+              "aggs": {
+                "count": {
+                  "value_count": {
+                    "field": "@timestamp"
+                  }
+                }
+              }
+            },
+            "average": {
+              "avg_bucket": {
+                "buckets_path": "hourly>count",
+                "gap_policy": "skip" // makes sure that we don't use empty buckets as average calculation
+              }
+            }
+          }
+        },
+      };
+      const legacyResult = await esClient.search(legacyQuery);
+
+      // NEW LOGGING SYSTEM - K8S openshift/HAProxy && kubernetes Nginx/kubernetes logs
+      const newQuery = {
+        index: `router-logs-${project}-_-*`,
+        body: {
+          "size": 0,
+          "query": {
+            "bool": {
+              "must": [
+                {
+                  "range": {
+                    "@timestamp": {
+                      "gte": `${interestedYearMonth}||/M`,
+                      "lte": `${interestedYearMonth}||/M`,
+                      "format": "strict_year_month"
+                    }
+                  }
+                },
+                {
+                  "match_phrase": { "kubernetes.namespace_name": `${openshiftProjectName}` }
+                }
+              ],
+              "must_not": [
+                {
+                  "match_phrase": {
+                    "request_header_useragent": {
+                      "query": "StatusCake"
+                    }
+                  }
+                },
+                {
+                  "match_phrase": {
+                    "http_user_agent": {
+                      "query": "StatusCake"
+                    }
+                  }
+                },
+                {
+                  "match_phrase": {
+                    "request_user_agent": {
+                      "query": "StatusCake"
+                    }
+                  }
+                },
+                {
+                  "match_phrase": {
+                    "request_user_agent": {
+                      "query": "UptimeRobot"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "aggs": {
+            "hourly": {
+              "date_histogram": {
+                "field": "@timestamp",
+                "fixed_interval": "1h",
+                "min_doc_count": 0,
+                "extended_bounds": {
+                  "min": interestedDateBeginString,
+                  "max": interestedDateEndString
+                }
+              },
+              "aggs": {
+                "count": {
+                  "value_count": {
+                    "field": "@timestamp"
+                  }
+                }
+              }
+            },
+            "average": {
+              "avg_bucket": {
+                "buckets_path": "hourly>count",
+                "gap_policy": "skip" // makes sure that we don't use empty buckets as average calculation
+              }
+            }
+          }
+        },
+      };
+      const newResult = await esClient.search(newQuery);
+
+      return {newResult, legacyResult};
+
+    } catch (e) {
+      logger.error(`Elastic Search Query Error: ${JSON.stringify(e)}`);
+      // const noHits = { total: 0 };
+
+      // if(e.body === "Open Distro Security not initialized."){
+      //   return noHits;
+      // }
+
+      // if (e.body && e.body.error && e.body.error.type && (e.body.error.type === 'index_not_found_exception' || e.body.error.type === 'security_exception')) {
+      //   return noHits;
+      // }
+
+      return { newResult: null, legacyResult: null }
+
+      throw e;
+    }
+  }
+
+  const calculateHitsFromESData = (legacyResult, newResult)  => {
+
+    // 0 hits found in elasticsearch, don't even try to generate monthly counts
+    if (legacyResult.hits.total.value === 0 && newResult.hits.total.value === 0) {
       return { total: 0 };
     }
-    throw e;
-  }
-};
 
-export default {
-  projectEnvironments,
-  environmentsByProjectId,
-  environmentData,
-  environmentStorageMonthByEnvironmentId,
-  environmentHoursMonthByEnvironmentId,
-  environmentHitsMonthByEnvironmentId,
-};
+    var total = 0;
+
+    const legacyBuckets = legacyResult && legacyResult.aggregations && legacyResult.aggregations.hourly && legacyResult.aggregations.hourly.buckets ? legacyResult.aggregations.hourly.buckets : 0;
+    const legacyResultCount = legacyResult && legacyResult.aggregations && legacyResult.aggregations.hourly && legacyResult.aggregations.hourly.buckets && legacyResult.aggregations.hourly.buckets.length ? legacyResult.aggregations.hourly.buckets.length : 0;
+    const legacyAvg = legacyResult && legacyResult.aggregations && legacyResult.aggregations.average && legacyResult.aggregations.average.value ? parseInt(legacyResult.aggregations.average.value) : 0;
+
+    const newBuckets = newResult && newResult.aggregations && newResult.aggregations.hourly && newResult.aggregations.hourly.buckets ? newResult.aggregations.hourly.buckets : 0;
+    const newResultCount = newResult && newResult.aggregations && newResult.aggregations.hourly && newResult.aggregations.hourly.buckets && newResult.aggregations.hourly.buckets.length ? newResult.aggregations.hourly.buckets.length : 0;
+    const newAvg = newResult && newResult.aggregations && newResult.aggregations.average && newResult.aggregations.average.value ? parseInt(newResult.aggregations.average.value) : 0;
+
+
+    /*
+    foreach hourlybucket (#both result buckets should have the exact same amount of buckets)
+    add to total
+        if newResult.bucketcount is not 0 use newResult.bucketcount
+        if legacyResult.bucketcount is not 0 use legacyResult.bucketcount
+        if newResult.bucketcount is 0 and legacyResult.bucketcount is 0
+          --> if newResult.average is not 0, use newResult.average
+          --> if legacyResult.average is not 0, use legacyResult.average
+          --> if both are 0, use newResult.average
+    */
+
+    const count = newResultCount > 0 ? newResultCount : legacyResultCount;
+    for (let i = 0; i < count; i++) {
+      if (newResultCount !== 0 && newBuckets[i] && newBuckets[i].count && newBuckets[i].count.value !== 0){
+        // We have new logging data, use this for total
+        total += newBuckets[i].count.value;
+      }else if (legacyResultCount !== 0 && legacyBuckets[i] && legacyBuckets[i].count && legacyBuckets[i].count.value !== 0){
+        // We have legacy data
+        total += legacyBuckets[i].count.value;
+      }else{
+        // Both legacy and new logging buckets are zero, meaning we have missing data, use the avg
+        if(newAvg !== 0 && newAvg > legacyAvg){
+          total += newAvg;
+        }else if (legacyAvg !== 0){
+          total += legacyAvg;
+        }else{
+          total += newAvg;
+        }
+      }
+    }
+
+    return { total };
+  }
+
+
+  const environmentHitsMonthByEnvironmentId = async (
+    project,
+    openshiftProjectName,
+    yearMonth,
+  ) => {
+
+    const interestedDate = yearMonth ? new Date(yearMonth) : new Date();
+    const year = interestedDate.getUTCFullYear();
+    const month = interestedDate.getUTCMonth() + 1; // internally months start with 0, we need them with 1
+
+    // This generates YYYY-MM
+    const interestedYearMonth = `${year}-${month < 10 ? `0${month}` : month}`;
+
+    // generate a string of the date on the very first second of the month
+    const interestedDateBeginString = interestedDate.toISOString();
+
+    // generate a string of the date on the very last second of the month
+    const interestedDateEnd = interestedDate;
+    interestedDateEnd.setUTCMonth(interestedDate.getUTCMonth() + 1)
+    interestedDateEnd.setUTCDate(0); // setting the date to 0 will select 1 day before the actual date
+    interestedDateEnd.setUTCHours(23);
+    interestedDateEnd.setUTCMinutes(59);
+    interestedDateEnd.setUTCSeconds(59);
+    interestedDateEnd.setUTCMilliseconds(999);
+    const interestedDateEndString = interestedDateEnd.toISOString();
+
+    const {newResult, legacyResult} = await fetchElasticSearchHitsData(project.replace('_', '-'), openshiftProjectName, interestedYearMonth, interestedDateBeginString, interestedDateEndString)
+
+    if ( newResult === null || legacyResult === null ){
+      return { total: 0 }
+    }
+
+    const result = calculateHitsFromESData(legacyResult, newResult);
+
+    return result;
+  };
+
+  return {
+    projectEnvironments,
+    projectEnvironmentsWithData,
+    environmentsByProjectId,
+    environmentData,
+    environmentStorageMonthByEnvironmentId,
+    environmentHoursMonthByEnvironmentId,
+    environmentHitsMonthByEnvironmentId,
+    calculateHitsFromESData
+  }
+}
+
+export default EnvironmentModel;

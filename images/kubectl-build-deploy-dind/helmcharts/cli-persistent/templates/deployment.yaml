@@ -15,8 +15,10 @@ spec:
     metadata:
       labels:
         {{- include "cli-persistent.labels" . | nindent 8 }}
+        {{- include "cli-persistent.datadogLabels" . | nindent 8 }}
       annotations:
         {{- include "cli-persistent.annotations" . | nindent 8 }}
+        lagoon.sh/configMapSha: {{ .Values.configMapSha | quote }}
     spec:
     {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -30,19 +32,21 @@ spec:
         - name: {{ .Values.persistentStorage.name }}
           persistentVolumeClaim:
             claimName: {{ .Values.persistentStorage.name }}
+        - name: {{ include "cli-persistent.twig-storage.name" . | quote }}
+          emptyDir: {}
       priorityClassName: {{ include "cli-persistent.lagoonPriority" . }}
       enableServiceLinks: false
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - image: {{ .Values.image | quote }}
-          name: {{ .Chart.Name }}
+          name: {{ include "cli-persistent.fullname" . }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           env:
             - name: CRONJOBS
-              value: {{ .Values.cronjobs | quote }}
+              value: {{ .Values.inPodCronjobs | quote }}
             ## LAGOON_GIT_SHA is injected directly and not loaded via `lagoon-env` config
             ## This will cause the pod to redeploy on every deployment, even the files have not changed
             - name: LAGOON_GIT_SHA
@@ -58,8 +62,22 @@ spec:
               readOnly: true
             - name: {{ .Values.persistentStorage.name }}
               mountPath: {{ .Values.persistentStorage.path | quote }}
+            - name: {{ include "cli-persistent.twig-storage.name" . | quote }}
+              mountPath: {{ include "cli-persistent.twig-storage.path" . | quote }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          readinessProbe:
+            initialDelaySeconds: 5
+            periodSeconds: 2
+            failureThreshold: 3
+            exec:
+              command:
+              - "/bin/sh"
+              - "-c"
+              - >
+                if [ -x /bin/entrypoint-readiness ]; then
+                  /bin/entrypoint-readiness;
+                fi
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

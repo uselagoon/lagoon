@@ -1,19 +1,21 @@
-// @flow
-
 const R = require('ramda');
 const {
   ApolloServer,
   AuthenticationError,
-  makeExecutableSchema,
+  makeExecutableSchema
 } = require('apollo-server-express');
 const NodeCache = require('node-cache');
+const gql = require('graphql-tag');
+const newrelic = require('newrelic');
 const {
   getCredentialsForLegacyToken,
   getGrantForKeycloakToken,
   legacyHasPermission,
-  keycloakHasPermission,
+  keycloakHasPermission
 } = require('./util/auth');
 const { getSqlClient } = require('./clients/sqlClient');
+const esClient = require('./clients/esClient');
+const redisClient = require('./clients/redisClient');
 const { getKeycloakAdminClient } = require('./clients/keycloak-admin');
 const logger = require('./logger');
 const typeDefs = require('./typeDefs');
@@ -21,6 +23,9 @@ const resolvers = require('./resolvers');
 
 const User = require('./models/user');
 const Group = require('./models/group');
+const BillingModel = require('./models/billing');
+const ProjectModel = require('./models/project');
+const EnvironmentModel = require('./models/environment');
 
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 
@@ -53,7 +58,7 @@ const apolloServer = new ApolloServer({
         if (!grant) {
           legacyCredentials = await getCredentialsForLegacyToken(
             sqlClientLegacy,
-            token,
+            token
           );
           sqlClientLegacy.end();
         }
@@ -65,21 +70,33 @@ const apolloServer = new ApolloServer({
       const keycloakAdminClient = await getKeycloakAdminClient();
       const requestCache = new NodeCache({
         stdTTL: 0,
-        checkperiod: 0,
+        checkperiod: 0
       });
+
+      const sqlClient = getSqlClient();
 
       return {
         keycloakAdminClient,
-        sqlClient: getSqlClient(),
+        sqlClient,
         hasPermission: grant
           ? keycloakHasPermission(grant, requestCache, keycloakAdminClient)
           : legacyHasPermission(legacyCredentials),
         keycloakGrant: grant,
         requestCache,
         models: {
-          UserModel: User.User({ keycloakAdminClient }),
-          GroupModel: Group.Group({ keycloakAdminClient }),
-        },
+          UserModel: User.User({ keycloakAdminClient, redisClient }),
+          GroupModel: Group.Group({ keycloakAdminClient, sqlClient, redisClient, esClient }),
+          BillingModel: BillingModel.BillingModel({
+            keycloakAdminClient,
+            sqlClient,
+            esClient
+          }),
+          ProjectModel: ProjectModel.ProjectModel({
+            keycloakAdminClient,
+            sqlClient
+          }),
+          EnvironmentModel: EnvironmentModel.EnvironmentModel({ sqlClient, esClient })
+        }
       };
     },
     onDisconnect: (websocket, context) => {
@@ -89,14 +106,14 @@ const apolloServer = new ApolloServer({
       if (context.requestCache) {
         context.requestCache.flushAll();
       }
-    },
+    }
   },
   context: async ({ req, connection }) => {
     // Websocket requests
     if (connection) {
       // onConnect must always provide connection.context.
       return {
-        ...connection.context,
+        ...connection.context
       };
     }
 
@@ -105,25 +122,41 @@ const apolloServer = new ApolloServer({
       const keycloakAdminClient = await getKeycloakAdminClient();
       const requestCache = new NodeCache({
         stdTTL: 0,
-        checkperiod: 0,
+        checkperiod: 0
       });
+
+      const sqlClient = getSqlClient();
 
       return {
         keycloakAdminClient,
-        sqlClient: getSqlClient(),
+        sqlClient,
         hasPermission: req.kauth
           ? keycloakHasPermission(
               req.kauth.grant,
               requestCache,
-              keycloakAdminClient,
+              keycloakAdminClient
             )
           : legacyHasPermission(req.legacyCredentials),
         keycloakGrant: req.kauth ? req.kauth.grant : null,
         requestCache,
         models: {
-          UserModel: User.User({ keycloakAdminClient }),
-          GroupModel: Group.Group({ keycloakAdminClient }),
-        },
+          UserModel: User.User({ keycloakAdminClient, redisClient }),
+          GroupModel: Group.Group({ keycloakAdminClient, sqlClient, redisClient, esClient }),
+          BillingModel: BillingModel.BillingModel({
+            keycloakAdminClient,
+            sqlClient,
+            esClient
+          }),
+          ProjectModel: ProjectModel.ProjectModel({
+            keycloakAdminClient,
+            sqlClient
+          }),
+          EnvironmentModel: EnvironmentModel.EnvironmentModel({
+            keycloakAdminClient,
+            sqlClient,
+            esClient
+          })
+        }
       };
     }
   },
@@ -135,10 +168,11 @@ const apolloServer = new ApolloServer({
       path: error.path,
       ...(process.env.NODE_ENV === 'development'
         ? { extensions: error.extensions }
-        : {}),
+        : {})
     };
   },
   plugins: [
+    // mariasql client closer plugin
     {
       requestDidStart: () => ({
         willSendResponse: response => {
@@ -148,10 +182,50 @@ const apolloServer = new ApolloServer({
           if (response.context.requestCache) {
             response.context.requestCache.flushAll();
           }
-        },
-      }),
+        }
+      })
     },
-  ],
+    // newrelic instrumentation plugin. Based heavily on https://github.com/essaji/apollo-newrelic-extension-plus
+    {
+      requestDidStart({ request }) {
+        const operationName = R.prop('operationName', request);
+        const queryString = R.prop('query', request);
+        const variables = R.prop('variables', request);
+
+        const queryObject = gql`
+          ${queryString}
+        `;
+        const rootFieldName = queryObject.definitions[0].selectionSet.selections.reduce(
+          (init, q, idx) =>
+            idx === 0 ? `${q.name.value}` : `${init}, ${q.name.value}`,
+          ''
+        );
+
+        // operationName is set by the client and optional. rootFieldName is
+        // set by the API type defs.
+        // operationName would be "getHighCottonProjectId" and rootFieldName
+        // would be "getProjectByName" with a query like:
+        // query getHighCottonProjectId { getProjectByName(name: "high-cotton") { id } }
+        const transactionName = operationName ? operationName : rootFieldName;
+        newrelic.setTransactionName(`graphql (${transactionName})`);
+        newrelic.addCustomAttribute('gqlQuery', queryString);
+        newrelic.addCustomAttribute('gqlVars', JSON.stringify(variables));
+
+        return {
+          willSendResponse: data => {
+            const { response } = data;
+            newrelic.addCustomAttribute(
+              'errorCount',
+              R.pipe(
+                R.propOr([], 'errors'),
+                R.length
+              )(response)
+            );
+          }
+        };
+      }
+    }
+  ]
 });
 
 module.exports = apolloServer;

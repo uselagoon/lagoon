@@ -1,6 +1,0 @@
-node_modules/
-build/
-.npmrc
-.DS_Store
-.lagoon.yml
-npm-debug.log*

@@ -57,6 +57,9 @@ parameters:
   - name: ENVIRONMENT_TYPE
     description: production level of this environment
     value: 'production'
+  - name: CONFIG_MAP_SHA
+    description: SHA sum of the configmap
+    value: ''
 objects:
   - apiVersion: v1
     kind: DeploymentConfig
@@ -80,6 +83,8 @@ objects:
             service: ${SERVICE_NAME}
             branch: ${SAFE_BRANCH}
             project: ${SAFE_PROJECT}
+          annotations:
+            lagoon.sh/configMapSha: ${CONFIG_MAP_SHA}
         spec:
           tolerations:
             - effect: NoSchedule
@@ -98,6 +103,8 @@ objects:
               secret:
                 defaultMode: 420
                 secretName: lagoon-sshkey
+            - name: ${PERSISTENT_STORAGE_NAME}-twig
+              emptyDir: {}
           priorityClassName: lagoon-priority-${ENVIRONMENT_TYPE}
           containers:
             - image: ${SERVICE_IMAGE}
@@ -120,12 +127,26 @@ objects:
                 - mountPath: /var/run/secrets/lagoon/sshkey/
                   name: lagoon-sshkey
                   readOnly: true
+                - name: ${PERSISTENT_STORAGE_NAME}-twig
+                  mountPath: ${PERSISTENT_STORAGE_PATH}/php
               resources:
                 requests:
                   cpu: 10m
                   memory: 10Mi
                 limits:
                   memory: 8Gi
+              readinessProbe:
+                initialDelaySeconds: 5
+                periodSeconds: 2
+                failureThreshold: 3
+                exec:
+                  command:
+                  - "/bin/sh"
+                  - "-c"
+                  - >
+                    if [ -x /bin/entrypoint-readiness ]; then
+                      /bin/entrypoint-readiness;
+                    fi
       test: false
       triggers:
         - type: ConfigChange

@@ -21,4 +21,6 @@ COPY scripts /oc-build-deploy/scripts
 
 COPY openshift-templates  /oc-build-deploy/openshift-templates
 
+ENV IMAGECACHE_REGISTRY=imagecache.amazeeio.cloud
+
 CMD ["/oc-build-deploy/build-deploy.sh"]

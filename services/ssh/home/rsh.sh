@@ -16,13 +16,16 @@ USER_SSH_KEY=$2
 REQUESTED_PROJECT=$3
 shift 3
 
+# get the graphql endpoint, if set
+eval "$(grep GRAPHQL_ENDPOINT /authorize.env)"
+
 # check if project is a valid one
 if [[ -n "$REQUESTED_PROJECT" ]]; then
   if [[ "$REQUESTED_PROJECT" =~ ^[A-Za-z0-9-]+$ ]]; then
     PROJECT=$REQUESTED_PROJECT
   else
     echo "ERROR: given project '$REQUESTED_PROJECT' contains illegal characters";
-    exit
+    exit 1
   fi
 else
   echo "ERROR: no project defined";
@@ -41,12 +44,12 @@ GRAPHQL="query userCanSshToEnvironment {
 }"
 # GraphQL query on single line with \\n for newlines and escaped quotes
 QUERY=$(echo $GRAPHQL | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
-ENVIRONMENT=$(curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" api:3000/graphql -d "{\"query\": \"$QUERY\"}")
+ENVIRONMENT=$(curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" "${GRAPHQL_ENDPOINT:-api:3000/graphql}" -d "{\"query\": \"$QUERY\"}")
 
 # Check if the returned OpenShift projectname is the same as the one being requested. This will only be true if the user actually has access to this environment
 if [[ ! "$(echo $ENVIRONMENT | jq --raw-output '.data.userCanSshToEnvironment.openshiftProjectName')" == "$PROJECT" ]]; then
   echo "no access to $PROJECT"
-  exit
+  exit 1
 fi
 
 ##
@@ -66,7 +69,7 @@ ADMIN_GRAPHQL="query getEnvironmentByOpenshiftProjectName {
 }"
 # GraphQL query on single line with \\n for newlines and escaped quotes
 ADMIN_QUERY=$(echo $ADMIN_GRAPHQL | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
-ADMIN_ENVIRONMENT=$(curl -s -XPOST -H 'Content-Type: application/json' -H "$ADMIN_BEARER" api:3000/graphql -d "{\"query\": \"$ADMIN_QUERY\"}")
+ADMIN_ENVIRONMENT=$(curl -s -XPOST -H 'Content-Type: application/json' -H "$ADMIN_BEARER" "${GRAPHQL_ENDPOINT:-api:3000/graphql}" -d "{\"query\": \"$ADMIN_QUERY\"}")
 
 OPENSHIFT_CONSOLE=$(echo $ADMIN_ENVIRONMENT | jq --raw-output '.data.environmentByOpenshiftProjectName.project.openshift.consoleUrl')
 OPENSHIFT_TOKEN=$(echo $ADMIN_ENVIRONMENT | jq --raw-output '.data.environmentByOpenshiftProjectName.project.openshift.token')
@@ -100,7 +103,7 @@ fi
 OC="/usr/bin/oc --insecure-skip-tls-verify -n ${PROJECT} --token=${OPENSHIFT_TOKEN} --server=${OPENSHIFT_CONSOLE} "
 
 # If there is a deploymentconfig for the given service
-if [[ $($OC get deploymentconfigs -l service=${SERVICE} &> /dev/null) ]]; then
+if [[ $($OC get deploymentconfigs -l service=${SERVICE} 2> /dev/null) ]]; then
   DEPLOYMENTCONFIG=$($OC get deploymentconfigs -l service=${SERVICE} -o name)
   # If the deploymentconfig is scaled to 0, scale to 1
   if [[ $($OC get ${DEPLOYMENTCONFIG} -o go-template --template='{{.status.replicas}}') == "0" ]]; then
@@ -115,8 +118,25 @@ if [[ $($OC get deploymentconfigs -l service=${SERVICE} &> /dev/null) ]]; then
   fi
 fi
 
-# If there is a deployment for the given service
-if [[ $($OC get deployment -l lagoon/service=${SERVICE}  &> /dev/null) ]]; then
+# If there is a deployment for the given service searching for lagoon.sh labels
+if [[ $($OC get deployment -l "lagoon.sh/service=${SERVICE}" 2> /dev/null) ]]; then
+  DEPLOYMENT=$($OC get deployment -l "lagoon.sh/service=${SERVICE}" -o name)
+  # If the deployment is scaled to 0, scale to 1
+  if [[ $($OC get ${DEPLOYMENT} -o go-template --template='{{.status.replicas}}') == "0" ]]; then
+
+    $OC scale --replicas=1 ${DEPLOYMENT} >/dev/null 2>&1
+
+    # Wait until the scaling is done
+    while [[ ! $($OC get ${DEPLOYMENT} -o go-template --template='{{.status.readyReplicas}}') == "1" ]]
+    do
+      sleep 1
+    done
+  fi
+fi
+
+# If there is a deployment for the given service search for lagoon labels
+# @DEPRECATED: Remove with Lagoon 2.0.0
+if [[ $($OC get deployment -l lagoon/service=${SERVICE} 2> /dev/null) ]]; then
   DEPLOYMENT=$($OC get deployment -l lagoon/service=${SERVICE} -o name)
   # If the deployment is scaled to 0, scale to 1
   if [[ $($OC get ${DEPLOYMENT} -o go-template --template='{{.status.replicas}}') == "0" ]]; then
@@ -132,11 +152,17 @@ if [[ $($OC get deployment -l lagoon/service=${SERVICE}  &> /dev/null) ]]; then
 fi
 
 
-POD=$($OC get pods -l service=${SERVICE} -o json | jq -r '.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running") | .metadata.name' | head -n 1)
+POD=$($OC get pods -l service=${SERVICE} -o json | jq -r '[.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running")] | first | .metadata.name // empty')
 
-# Check for newer Helm chart lagoon labels
+# Check for newer Helm chart "lagoon.sh" labels
 if [[ ! $POD ]]; then
-  POD=$($OC get pods -l lagoon/service=${SERVICE} -o json | jq -r '.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running") | .metadata.name' | head -n 1)
+  POD=$($OC get pods -l "lagoon.sh/service=${SERVICE}" -o json | jq -r '[.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running")] | first | .metadata.name // empty')
+fi
+
+# Check for deprecated Helm chart "lagoon" labels
+# @DEPRECATED: Remove with Lagoon 2.0.0
+if [[ ! $POD ]]; then
+  POD=$($OC get pods -l lagoon/service=${SERVICE} -o json | jq -r '[.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running")] | first | .metadata.name // empty')
 fi
 
 if [[ ! $POD ]]; then

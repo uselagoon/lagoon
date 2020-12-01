@@ -6,6 +6,9 @@ import { Mutation } from 'react-apollo';
 import DeleteEnvironmentMutation from 'lib/mutation/DeleteEnvironment';
 import DeleteConfirm from 'components/DeleteConfirm';
 import { bp, color } from 'lib/variables';
+import Router from 'next/router';
+import ActiveStandbyConfirm from 'components/ActiveStandbyConfirm';
+import SwitchActiveStandbyMutation from 'lib/mutation/SwitchActiveStandby';
 
 /**
  * Displays the environment information.
@@ -21,7 +24,11 @@ const Environment = ({ environment }) => {
       <div className="field-wrapper environmentType">
         <div>
           <label>Environment Type</label>
-          <div className="field">{environment.environmentType}</div>
+          <div className="field">
+          {environment.environmentType}
+          {environment.project.productionEnvironment && environment.project.standbyProductionEnvironment && environment.environmentType == 'production' && environment.project.productionEnvironment == environment.name &&
+          (" (active)")}{environment.project.productionEnvironment && environment.project.standbyProductionEnvironment && environment.environmentType == 'production' && environment.project.standbyProductionEnvironment == environment.name && (" (standby)")}
+          </div>
         </div>
       </div>
       <div className="field-wrapper deployType">
@@ -67,6 +74,36 @@ const Environment = ({ environment }) => {
         </div>
       </div>
       <div className="field-wrapper routes">
+        {environment.project.productionEnvironment && environment.project.standbyProductionEnvironment && environment.environmentType == 'production' && environment.project.productionEnvironment == environment.name && (
+        <div>
+          <label>Active Environment Routes</label>
+          <div className="field">
+            {environment.project.productionRoutes
+              ? environment.project.productionRoutes.split(',').map(route => (
+                  <div key={route}>
+                    <a className="hover-state" target="_blank" href={route}>
+                      {route}
+                    </a>
+                  </div>
+                ))
+              : ''}
+          </div>
+        </div>)}
+        {environment.project.productionEnvironment && environment.project.standbyProductionEnvironment && environment.environmentType == 'production' && environment.project.standbyProductionEnvironment == environment.name && (
+        <div>
+          <label>Standby Environment Routes</label>
+          <div className="field">
+            {environment.project.standbyRoutes
+              ? environment.project.standbyRoutes.split(',').map(route => (
+                  <div key={route}>
+                    <a className="hover-state" target="_blank" href={route}>
+                      {route}
+                    </a>
+                  </div>
+                ))
+              : ''}
+          </div>
+        </div>)}
         <div>
           <label>Routes</label>
           <div className="field">
@@ -82,6 +119,34 @@ const Environment = ({ environment }) => {
           </div>
         </div>
       </div>
+      {environment.project.productionEnvironment && environment.project.standbyProductionEnvironment && environment.environmentType == 'production' && environment.project.standbyProductionEnvironment == environment.name && (
+      <Mutation mutation={SwitchActiveStandbyMutation}>
+        {(switchActiveStandby, { loading, called, error, data }) => {
+          const switchActiveBranch = () => {
+            const input = {
+              project:{
+                name: environment.project.name
+              }
+            }
+
+            switchActiveStandby({ variables: { input } });
+            Router.push(`/projects/${environment.project.name}/${environment.openshiftProjectName}/tasks`)
+          }
+
+          if (!error && called && loading) {
+            return <div>Switching Standby Environment to Active...</div>;
+          }
+
+          return (
+            <ActiveStandbyConfirm
+              activeEnvironment={environment.project.productionEnvironment}
+              standbyEnvironment={environment.project.standbyProductionEnvironment}
+              onProceed={switchActiveBranch}
+            />
+          );
+        }}
+      </Mutation>
+      )}
       <Mutation mutation={DeleteEnvironmentMutation}>
         {(deleteEnvironment, { loading, called, error, data }) => {
           if (error) {

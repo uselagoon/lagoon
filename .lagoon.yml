@@ -50,19 +50,6 @@ environments:
     rollouts:
       logs-db: statefulset
       logs-forwarder: statefulset
-    cronjobs:
-      - name: idle-clis
-        schedule: '*/15 * * * *'
-        command: /idle-clis.sh
-        service: auto-idler
-      - name: idle-services
-        schedule: '*/30 * * * *'
-        command: /idle-services.sh
-        service: auto-idler
-      - name: curator
-        schedule: '01 0 * * * '
-        command: /lagoon/cronjob.sh "/usr/bin/curator --config /curator/curator.yml /curator/actions.yml"
-        service: logs-db-curator
   develop:
     types:
       logs-db: elasticsearch-cluster

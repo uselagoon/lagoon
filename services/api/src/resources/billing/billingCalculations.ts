@@ -1,4 +1,5 @@
 import { HIT_TIERS, CURRENCY_PRICING, AVAILABILITY } from './pricing';
+import { BillingModifier } from '../../models/billing';
 
 /* IProjectData
  * availability - Standard or High
@@ -25,6 +26,19 @@ export interface IBillingGroup {
   currency: string;
   billingSoftware?: string;
   projects: IProjectData[];
+}
+
+export interface BillingGroupCosts {
+  hitCost?: number;
+  hitCostDescription?: any;
+  storageCost?: number;
+  storageCostDescription?: any;
+  environmentCost?: { prod: number; dev: number; };
+  environmentCostDescription?: any;
+  total?: number;
+  modifiers?: [BillingModifier];
+  modifiersDescription?: [string];
+  projects?: [any];
 }
 
 export const projectsDataReducer = (projects: any, objKey: string) =>
@@ -75,22 +89,75 @@ export const calculateProjectEnvironmentsTotalsToBill = environments => {
   };
 };
 
-export const getProjectsCosts = (currency, projects) => {
+export const getProjectsCosts = (currency, projects, modifiers: BillingModifier[] = []) => {
   const billingGroup = { projects, currency };
   const hitCost = hitsCost(billingGroup);
   const storage = storageCost(billingGroup);
   const prod = prodCost(billingGroup);
   const dev = devCost(billingGroup);
 
-  const environmentCost = { prod, dev };
-  const total = hitCost + storage + prod + dev;
-  return {
-    hitCost,
-    storageCost: storage,
+  // ternary null check on prod.cost and dev.cost
+  const environmentCost = { prod: prod.cost ? prod.cost : 0, dev: dev.cost ? dev.cost : 0 };
+  const environmentCostDescription = {prod: {...prod }, dev: {...dev} };
+
+  const hitCostDescription = { ...hitCost };
+  const storageCostDescription = { ...storage };
+
+  // Apply Modifiers
+  const modifiersSortFn = (a:BillingModifier, b:BillingModifier) => a.weight < b.weight? -1 : 1
+
+  const reducerFn: (acc: {total: number, description: any[]}, obj: BillingModifier) => { total: number, description: any[] } =
+  ({total, description}, modifier) => {
+    const { discountFixed, extraFixed, discountPercentage, extraPercentage, min, max } = modifier;
+
+    if (discountFixed){
+      description = [...description, { type: 'discountFixed', amt: discountFixed, subTotal: total}];
+    }
+    total = discountFixed ? total - discountFixed : total;
+
+    if (extraFixed){
+      description = [...description, { type: 'extraFixed', amt: extraFixed, subTotal: total}];
+    }
+    total = extraFixed ? total + extraFixed : total;
+
+    if (discountPercentage){
+      description = [...description, { type: 'discountPercentage', amt: (total * (discountPercentage / 100)), subTotal: total}];
+    }
+    total = discountPercentage ? total - (total * (discountPercentage / 100)) : total;
+
+    if (extraPercentage){
+      description = [...description, { type: 'extraPercentage', amt: (total * (extraPercentage / 100)), subTotal: total}];
+    }
+    total = extraPercentage ? total + (total * (extraPercentage / 100)) : total;
+
+    if (min){
+      description = [...description, { type: 'min', amt: min, subTotal: total}];
+    }
+    total = min ? Math.max(total, min) : total;
+
+    if (max){
+      description = [...description, { type: 'max', amt: max, subTotal: total}];
+    }
+    total = max ? Math.min(total, max) : total;
+
+    return { total, description };
+  }
+  const sortedModifiers = modifiers.sort(modifiersSortFn);
+  const subTotal = (hitCost.cost ? hitCost.cost : 0) + (storage.cost ? storage.cost : 0) + (prod.cost ? prod.cost : 0) + (dev.cost ? dev.cost : 0);
+  const { total, description } = sortedModifiers.reduce(reducerFn, {total: subTotal, description: []});
+
+  return ({
+    hitCost: hitCost.cost,
+    hitCostDescription,
+    storageCost: storage.cost,
+    storageCostDescription,
     environmentCost,
-    total,
+    environmentCostDescription,
+    total: Math.max(0, total),
+    modifiers,
+    modifiersDescription: description,
     projects,
-  };
+  }) as BillingGroupCosts;
 };
 
 /**
@@ -103,7 +170,7 @@ export const getProjectsCosts = (currency, projects) => {
 export const hitsCost = ({ projects, currency }: IBillingGroup) => {
   uniformAvailabilityCheck(projects);
   const hits = projectsDataReducer(projects, 'hits');
-  const availability = projects[0].availability;
+  const availability = projects[0].availability === AVAILABILITY.POLYSITE ? AVAILABILITY.STANDARD : projects[0].availability;
   const tier = hitTier(hits);
   const hitsInTier = tier > 0 ? hits - HIT_TIERS[tier - 1].max : hits;
   const { availability: currencyPricingAvailability } = CURRENCY_PRICING[
@@ -112,9 +179,22 @@ export const hitsCost = ({ projects, currency }: IBillingGroup) => {
   const { hitCosts, hitBase } = currencyPricingAvailability[availability];
   const hitBaseTiers = calculateHitBaseTiers(hitBase, hitCosts);
 
+  const description = {
+    projects: projects.map(({name, hits}) => ({name, hits})),
+    total: hits
+  }
+
   return tier > 0
-    ? Number((hitBaseTiers[tier] + hitsInTier * hitCosts[tier]).toFixed(2))
-    : hitBaseTiers[0];
+    ? {
+        cost: Number((hitBaseTiers[tier] + hitsInTier * hitCosts[tier]).toFixed(2)),
+        description,
+        unitPrice:  hitCosts[tier],
+      }
+    : {
+        cost: hitBaseTiers[0],
+        description,
+        unitPrice:  hitCosts[tier],
+      };
 };
 
 /**
@@ -128,13 +208,26 @@ export const storageCost = ({ projects, currency }: IBillingGroup) => {
   const { storagePerDay } = CURRENCY_PRICING[currency];
   const storageDays = projectsDataReducer(projects, 'storageDays');
   const days = daysInMonth(projects[0].month, projects[0].year);
-  const freeGBDays = projects.length * (5 * days);
+  const availability = projects[0].availability;
+  const freeGBDays = availability === AVAILABILITY.POLYSITE
+    ? Math.max(Math.round(projects.length / 10), 1) * (5 * days)
+    : projects.length * (5 * days);
   const storageToBill = Math.max(storageDays - freeGBDays, 0);
-  // const averageGBsPerDay = storageDays / days;
+  const averageGBsPerDay = storageDays / days;
 
-  return storageDays > freeGBDays
-    ? Number((storageToBill * storagePerDay).toFixed(2))
-    : 0;
+  const description = {
+    projects: projects.map(({name, storageDays}) => ({name, storage: storageDays/days})),
+    included: freeGBDays/days,
+    additional: storageToBill/days,
+    qty: storageToBill
+  }
+
+  return {
+    cost: storageDays > freeGBDays ? Number((storageToBill * storagePerDay).toFixed(2)) : 0,
+    description,
+    unitPrice: storagePerDay,
+    quantity: averageGBsPerDay
+  }
 };
 
 /**
@@ -148,16 +241,28 @@ export const prodCost = ({ currency, projects }: IBillingGroup) => {
   const { availability: currencyPricingAvailability } = CURRENCY_PRICING[
     currency
   ];
+  const availability = projects[0].availability;
+  const { prodSitePerHour } = currencyPricingAvailability[availability === AVAILABILITY.POLYSITE ? AVAILABILITY.STANDARD : availability];
+  const averageProdHours = projects.reduce((acc, proj) => acc + proj.prodHours, 0) / projects.length;
+  const reducerFn = ({qty, cost}, { prodHours}) => ({qty: qty + prodHours, cost: prodHours * prodSitePerHour + cost });
+  const standardHighCosts = projects.reduce(reducerFn, {qty: 0, cost: 0});
 
-  const projectProdCosts = [];
-  projects.map(project => {
-    const { prodHours, availability } = project;
-    const { prodSitePerHour } = currencyPricingAvailability[availability];
-    projectProdCosts.push(prodHours * prodSitePerHour);
-  });
+  const polySiteCosts = {
+    qty: averageProdHours,
+    cost: Math.max(Math.round(projects.length / 10), 1) * averageProdHours * prodSitePerHour
+  }
+
+  const description = { projects: projects.map(({name, prodHours: hours}) => ({name, hours})) };
+
+  const {cost, qty} = availability === AVAILABILITY.POLYSITE ? polySiteCosts : standardHighCosts;
 
   // TODO - HANDLE MORE THAN 1 PROD ENV FOR A PROJECT
-  return Number(projectProdCosts.reduce((acc, obj) => acc + obj, 0).toFixed(2));
+  return {
+    cost: Number(cost.toFixed(2)),
+    description,
+    unitPrice : prodSitePerHour,
+    quantity: qty
+  };
 };
 
 /**
@@ -171,18 +276,75 @@ export const devCost = ({ currency, projects }: IBillingGroup) => {
   const { availability: currencyPricingAvailability } = CURRENCY_PRICING[
     currency
   ];
-
-  // Each project gets two free environments per month.
-  // hours in month x 2 x number of projects
-  const freeDevHours = hoursInMonth(projects[0].month) * 2 * projects.length;
-
-  // project.devHours is a sum of all development hours for each environment
-  const devHours = projects.reduce((acc, project) => acc + project.devHours, 0);
   // TODO: Once availability is set per environment change below
   // const { devSitePerHour } = currencyPricingAvailability[availability];
+  const availability = projects[0].availability;
   const { devSitePerHour } = currencyPricingAvailability[AVAILABILITY.STANDARD];
-  const devToBill = Math.max(devHours - freeDevHours, 0);
-  return Number((devToBill * devSitePerHour).toFixed(2));
+
+  const averageProdHours = projects.reduce((acc, proj) => acc + proj.prodHours, 0) / projects.length;
+
+  const standardHighReducerFn = (acc, project) => ({
+    cost:  acc.cost + Math.max((project.devHours - (project.prodHours * 2)) * devSitePerHour, 0),
+    description: [
+      ...acc.description,
+      {
+        name: project.name,
+        hours: project.devHours,
+        included: project.prodHours * 2,
+        additional: Math.max((project.devHours - (project.prodHours * 2)), 0)
+      }
+    ],
+    quantity: acc.quantity + Math.max((project.devHours - (project.prodHours * 2)), 0)
+  });
+
+  const polySiteGroups = (Math.max(Math.round(projects.length / 10), 1));
+  const polySiteIncludedHours = polySiteGroups * (averageProdHours * 2);
+
+  // Poly Sites get two free dev environments per lot of 10 polysite groups
+  // See IDGSDF in BillingCalculations.test.ts
+  // EXAMPLE:   8 projects w/ 720 hours each dev site :
+  //            total dev hours = 720 * 8 ->  5760
+  //            Included free hours =  (1 x (720 x 2)) -> 1440
+  //            Dev Site Per Hour Cost = 0.0139
+  //            (5760 - 1440) * 0.0139 = 60.05
+  const polyReducerFn = (acc, project) => {
+    const totalDevHours = acc.totalDevHours + project.devHours;
+    const quantity = totalDevHours - polySiteIncludedHours;
+
+    return {
+      totalDevHours,
+      quantity,
+      cost: quantity * devSitePerHour,
+      description: [
+        ...acc.description,
+        {
+          name: project.name,
+          hours: project.devHours,
+          included: 'N/A',
+          additional: 'N/A'
+        }
+      ]
+    };
+  };
+
+  const reducerFn =
+    availability === AVAILABILITY.POLYSITE
+      ? polyReducerFn
+      : standardHighReducerFn;
+
+  const { cost, description, quantity } = projects.reduce(reducerFn, {
+    totalDevHours: 0,
+    quantity: 0,
+    cost: 0,
+    description: []
+  });
+
+  return {
+    cost: Number(cost.toFixed(2)),
+    description: { projects: description },
+    unitPrice: devSitePerHour,
+    quantity
+  };
 };
 
 // Hit Cost Helpers

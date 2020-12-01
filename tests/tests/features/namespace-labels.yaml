@@ -1,0 +1,39 @@
+- name: "{{ testname }} - init git, add files, commit, git push"
+  hosts: localhost
+  serial: 1
+  vars:
+    git_files: "features/"
+  tasks:
+  - include: ../../tasks/git-init.yaml
+  - include: ../../tasks/git-add-commit-push.yaml
+
+- name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}"
+  hosts: localhost
+  serial: 1
+  vars:
+    branch: "{{ branch }}"
+    project: "{{ project }}"
+  tasks:
+  - include: ../../tasks/api/deploy-no-sha.yaml
+
+- name: >
+    {{ testname }} - check that the namespace is labelled correctly
+  hosts: localhost
+  serial: 1
+  vars:
+    expected_labels:
+    - "lagoon.sh/project={{ project }}"
+    - "lagoon.sh/environment={{ branch }}"
+  tasks:
+  - include: ../../checks/check-namespace-labels.yaml
+
+- name: >
+    {{ testname }} - api deleteEnvironment on {{ project }}, which should remove
+    all resources
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ project }}"
+    branch: "{{ branch }}"
+  tasks:
+  - include: ../../tasks/api/remove.yaml

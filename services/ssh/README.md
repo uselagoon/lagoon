@@ -1,19 +1,32 @@
-# Debugging
+<p align="center"><img
+src="https://raw.githubusercontent.com/amazeeio/lagoon/master/docs/images/lagoon-logo.png"
+alt="The Lagoon logo is a blue hexagon split in two pieces with an L-shaped cut"
+width="40%"></p>
 
-**Generate an admin token for the api service and store it in your lagoon `.env` file:**
+This service is part of amazee.io Lagoon, a Docker build and deploy system for
+OpenShift & Kubernetes. Please reference our [documentation] for detailed
+information on using, developing, and administering Lagoon.
 
-```
-AUTH_SSH_ADMIN_TOKEN=<YOUR_TOKEN>
-```
+# SSH (`ssh`)
 
-**Run all relevant docker containers:**
+Acts as the main entrypoint for all SSH-related connections and commands for
+Lagoon projects. All connections are authenticated via the Lagoon API using
+standard SSH public/private keys. Authenticated connections can: 1) request a
+token that can be used to authenticate to the Lagoon API or 2) connect via SSH
+to a Lagoon project environment.
 
-```
-docker-compose up api auth-ssh auth-server auth-database
-```
+This service is typically transparent to end users since connections are handled
+by Drush for Drupal projects, but direct connections can be made for non-Drush
+workflows.
 
-**Try to connect with a ssh-client:**
+## Technology
 
-```bash
-ssh api@localhost -p 2020 login
-```
+* Bash
+* Python
+
+## Related Services
+
+* API [***dependency***]
+* auth-server [***dependency***]
+
+[documentation]: https://lagoon.readthedocs.io/

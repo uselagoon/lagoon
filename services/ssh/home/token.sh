@@ -22,13 +22,14 @@ ADMIN_GRAPHQL="query GetUserIdBySshKey {
 }"
 # GraphQL query on single line with \\n for newlines and escaped quotes
 ADMIN_QUERY=$(echo $ADMIN_GRAPHQL | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
-USER_ID=$(curl -s -XPOST -H 'Content-Type: application/json' -H "$ADMIN_BEARER" api:3000/graphql -d "{\"query\": \"$ADMIN_QUERY\"}" | jq --raw-output '.data.userBySshKey.id')
+USER_ID=$(curl -s -XPOST -H 'Content-Type: application/json' -H "$ADMIN_BEARER" "${GRAPHQL_ENDPOINT:-api:3000/graphql}" -d "{\"query\": \"$ADMIN_QUERY\"}" | jq --raw-output '.data.userBySshKey.id')
 
-header="Content-Type: application/json"
+CONTENT_TYPE="Content-Type: application/json"
+AUTHORIZATION="Authorization: Bearer $API_ADMIN_TOKEN"
 
 # Prepare the post (containing the user id) as a JSON object.
 data="{\"userId\": \"$USER_ID\"}"
 
 # Submit the token request as a POST request with the JSON data
 # containing the key.
-echo $(wget "$server/generate" --header "$header" --post-data "$data" -q -O -)
+echo $(wget "$server/generate" --header "$CONTENT_TYPE" --header "$AUTHORIZATION" --post-data "$data" -q -O -)

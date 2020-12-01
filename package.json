@@ -9,13 +9,18 @@
   "private": true,
   "workspaces": [
     "node-packages/*",
-    "services/*",
-    "cli"
+    "services/*"
   ],
   "devDependencies": {
-    "flow-bin": "^0.78.0",
     "glow": "^1.2.2",
     "prettier": "^1.14.2"
+  },
+  "resolutions-comment": [
+    "Used to override security release for nested dependencies",
+    "serialize-javascript: Can probably be removed when next.js upgrades to ^9.0"
+  ],
+  "resolutions": {
+    "serialize-javascript": "^2.1.1"
   },
   "scripts": {
     "glow": "glow check"

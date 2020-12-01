@@ -1,20 +1,25 @@
 import * as R from 'ramda';
-import { asyncPipe } from '@lagoon/commons/src/util';
+import { asyncPipe } from '@lagoon/commons/dist/util';
 import pickNonNil from '../util/pickNonNil';
 import * as logger from '../logger';
 import GroupRepresentation from 'keycloak-admin/lib/defs/groupRepresentation';
 import { User } from './user';
-import { projectsByGroup, Project } from './project';
+
 import {
   getProjectsData,
-  availabiltyProjectsCosts,
-  extractMonthYear,
+  extractMonthYear
 } from '../resources/billing/helpers';
 
+import { getProjectsCosts } from '../resources/billing/billingCalculations';
+
+import ProjectModel, { Project } from './project';
+import BillingModel from './billing'
+import EnvironmentModel from './environment';
+
 interface IGroupAttributes {
-  "lagoon-projects"?: [string];
+  'lagoon-projects'?: [string];
   comment?: [string];
-  [propName: string]: any
+  [propName: string]: any;
 }
 
 export interface Group {
@@ -35,12 +40,19 @@ export interface Group {
 export interface BillingGroup extends Group {
   currency?: string;
   billingSoftware?: string;
+  type?: string;
+  uptimeRobotStatusPageId?: string;
 }
 
 interface GroupMembership {
   user: User;
   role: string;
   roleSubgroupId: string;
+}
+
+export interface GroupInput {
+  id?: string;
+  name?: string;
 }
 
 interface GroupEdit {
@@ -50,39 +62,7 @@ interface GroupEdit {
 }
 
 interface AttributeFilterFn {
-  (attribute: { name: string; value: string[] }, group: Group): boolean;
-}
-
-interface GroupModel {
-  loadAllGroups: () => Promise<Group[] | BillingGroup[]>;
-  loadGroupById: (id: string) => Promise<Group | BillingGroup>;
-  loadGroupByName: (name: string) => Promise<Group | BillingGroup>;
-  loadGroupByIdOrName: (groupInput: GroupEdit) => Promise<Group | BillingGroup>;
-  loadParentGroup: (groupInput: Group) => Promise<Group | BillingGroup>;
-  loadGroupsByAttribute: (
-    filterFn: AttributeFilterFn,
-  ) => Promise<Group[] | BillingGroup[]>;
-  loadGroupsByProjectId: (
-    projectId: number,
-  ) => Promise<Group[] | BillingGroup[]>;
-  getProjectsFromGroupAndParents: (group: Group) => Promise<number[]>;
-  getProjectsFromGroupAndSubgroups: (group: Group) => Promise<number[]>;
-  addGroup: (groupInput: Group) => Promise<Group | BillingGroup>;
-  updateGroup: (groupInput: GroupEdit) => Promise<Group | BillingGroup>;
-  deleteGroup: (id: string) => Promise<void>;
-  addUserToGroup: (
-    user: User,
-    group: Group,
-    role: string,
-  ) => Promise<Group | BillingGroup>;
-  removeUserFromGroup: (
-    user: User,
-    group: Group,
-  ) => Promise<Group | BillingGroup>;
-  addProjectToGroup: (projectId: number, group: Group) => Promise<void>;
-  removeProjectFromGroup: (projectId: number, group: Group) => Promise<void>;
-  billingGroupCost: (groupInput: any, yearMonth: any) => Promise<any>;
-  allBillingGroupCosts: (yearMonth: string) => Promise<any>;
+  (attribute: { name: string; value: string[] }): boolean;
 }
 
 export class GroupExistsError extends Error {
@@ -109,6 +89,15 @@ const attrLagoonProjectsLens = R.compose(
   R.lensPath([0]),
 );
 
+const getProjectIdsFromGroup = R.pipe(
+  // @ts-ignore
+  R.view(attrLagoonProjectsLens),
+  R.defaultTo(''),
+  R.split(','),
+  R.reject(R.isEmpty),
+  R.map(id => parseInt(id, 10)),
+);
+
 export const isRoleSubgroup = R.pathEq(
   ['attributes', 'type', 0],
   'role-subgroup',
@@ -117,8 +106,8 @@ export const isRoleSubgroup = R.pathEq(
 const attributeKVOrNull = (key: string, group: GroupRepresentation) =>
   String(R.pathOr(null, ['attributes', key], group));
 
-export const Group = (clients): GroupModel => {
-  const { keycloakAdminClient } = clients;
+export const Group = (clients) => {
+  const { keycloakAdminClient, redisClient } = clients;
 
   const transformKeycloakGroups = async (
     keycloakGroups: GroupRepresentation[],
@@ -132,6 +121,7 @@ export const Group = (clients): GroupModel => {
       type: attributeKVOrNull('type', keycloakGroup),
       currency: attributeKVOrNull('currency', keycloakGroup),
       billingSoftware: attributeKVOrNull('billingSoftware', keycloakGroup),
+      uptimeRobotStatusPageId: attributeKVOrNull('uptimeRobotStatusPageId', keycloakGroup),
       path: keycloakGroup.path,
       attributes: keycloakGroup.attributes,
       subGroups: keycloakGroup.subGroups,
@@ -140,11 +130,10 @@ export const Group = (clients): GroupModel => {
     let groupsWithGroupsAndMembers = [];
 
     for (const group of groups) {
+      const subGroups = R.reject(isRoleSubgroup)(group.subGroups);
       groupsWithGroupsAndMembers.push({
         ...group,
-        groups: await transformKeycloakGroups(
-          R.reject(isRoleSubgroup)(group.subGroups),
-        ),
+        groups: R.isEmpty(subGroups) ? [] : await transformKeycloakGroups(subGroups),
         members: await getGroupMembership(group),
       });
     }
@@ -199,7 +188,7 @@ export const Group = (clients): GroupModel => {
   };
 
   const loadGroupByIdOrName = async (
-    groupInput: GroupEdit,
+    groupInput: GroupInput,
   ): Promise<Group | BillingGroup> => {
     if (R.prop('id', groupInput)) {
       return loadGroupById(R.prop('id', groupInput));
@@ -235,12 +224,11 @@ export const Group = (clients): GroupModel => {
       R.cond([[R.isEmpty, R.always(null)], [R.T, loadGroupByName]]),
     )(groupInput);
 
-  const loadGroupsByAttribute = async (
+  const filterGroupsByAttribute = (
+    groups: Group[] | BillingGroup[],
     filterFn: AttributeFilterFn,
-  ): Promise<Group[] | BillingGroup[]> => {
-    const allGroups = await loadAllGroups();
-
-    const filteredGroups = R.filter((group: Group) =>
+  ): Group[] | BillingGroup[] =>
+    R.filter((group: Group) =>
       R.pipe(
         R.toPairs,
         R.reduce((isMatch: boolean, attribute: [string, string[]]): boolean => {
@@ -250,16 +238,33 @@ export const Group = (clients): GroupModel => {
                 name: attribute[0],
                 value: attribute[1],
               },
-              group,
             );
           }
 
           return isMatch;
         }, false),
       )(group.attributes),
-    )(allGroups);
+    )(groups);
 
-    return filteredGroups;
+  const loadGroupsByAttribute = async (
+    filterFn: AttributeFilterFn,
+  ): Promise<Group[] | BillingGroup[]> => {
+    const keycloakGroups = await keycloakAdminClient.groups.find();
+
+    let fullGroups: Group[] | BillingGroup[] = [];
+    for (const group of keycloakGroups) {
+      const fullGroup = await keycloakAdminClient.groups.findOne({
+        id: group.id,
+      });
+
+      fullGroups = [...fullGroups, fullGroup];
+    }
+
+    const filteredGroups = filterGroupsByAttribute(fullGroups, filterFn);
+
+    const groups = await transformKeycloakGroups(filteredGroups);
+
+    return groups;
   };
 
   const loadGroupsByProjectId = async (
@@ -276,20 +281,67 @@ export const Group = (clients): GroupModel => {
       return false;
     };
 
-    return loadGroupsByAttribute(filterFn);
+    let groupIds = [];
+
+    // This function is called often and is expensive to compute so prefer
+    // performance over DRY
+    try {
+      groupIds = await redisClient.getProjectGroupsCache(projectId);
+    } catch (err) {
+      logger.warn(`Error loading project groups from cache: ${err.message}`);
+      groupIds = [];
+    }
+
+    if (R.isEmpty(groupIds)) {
+      const keycloakGroups = await keycloakAdminClient.groups.find();
+      // @ts-ignore
+      groupIds = R.pluck('id', keycloakGroups);
+    }
+
+    let fullGroups = [];
+    for (const id of groupIds) {
+      const fullGroup = await keycloakAdminClient.groups.findOne({
+        id,
+      });
+
+      fullGroups = [...fullGroups, fullGroup];
+    }
+
+    const filteredGroups = filterGroupsByAttribute(fullGroups, filterFn);
+    try {
+      const filteredGroupIds = R.pluck('id', filteredGroups);
+      await redisClient.saveProjectGroupsCache(projectId, filteredGroupIds);
+    } catch (err) {
+      logger.warn(`Error saving project groups to cache: ${err.message}`);
+    }
+
+    const groups = await transformKeycloakGroups(filteredGroups);
+
+    return groups;
+  };
+
+  // Recursive function to load membership "up" the group chain
+  const getMembersFromGroupAndParents = async (
+    group: Group,
+  ): Promise<GroupMembership[]> => {
+    const members = R.prop('members', group);
+
+    const parentGroup = await loadParentGroup(group);
+    const parentMembers = parentGroup
+      ? await getMembersFromGroupAndParents(parentGroup)
+      : [];
+
+    return [
+      ...members,
+      ...parentMembers,
+    ];
   };
 
   // Recursive function to load projects "up" the group chain
   const getProjectsFromGroupAndParents = async (
     group: Group,
   ): Promise<number[]> => {
-    const projectIds = R.pipe(
-      R.view(attrLagoonProjectsLens),
-      R.defaultTo(''),
-      R.split(','),
-      R.reject(R.isEmpty),
-      R.map(id => parseInt(id, 10)),
-    )(group);
+    const projectIds = getProjectIdsFromGroup(group);
 
     const parentGroup = await loadParentGroup(group);
     const parentProjectIds = parentGroup
@@ -307,13 +359,7 @@ export const Group = (clients): GroupModel => {
   const getProjectsFromGroupAndSubgroups = async (
     group: Group,
   ): Promise<number[]> => {
-    const groupProjectIds = R.pipe(
-      R.view(attrLagoonProjectsLens),
-      R.defaultTo(''),
-      R.split(','),
-      R.reject(R.isEmpty),
-      R.map(id => parseInt(id, 10)),
-    )(group);
+    const groupProjectIds = getProjectIdsFromGroup(group);
 
     let subGroupProjectIds = [];
     for (const subGroup of group.groups) {
@@ -470,6 +516,10 @@ export const Group = (clients): GroupModel => {
   };
 
   const deleteGroup = async (id: string): Promise<void> => {
+    const group = loadGroupById(id);
+    // @ts-ignore
+    const projectIds = getProjectIdsFromGroup(group);
+
     try {
       await keycloakAdminClient.groups.del({ id });
     } catch (err) {
@@ -477,6 +527,14 @@ export const Group = (clients): GroupModel => {
         throw new GroupNotFoundError(`Group not found: ${id}`);
       } else {
         throw new Error(`Error deleting group ${id}: ${err}`);
+      }
+    }
+
+    for (const projectId of projectIds) {
+      try {
+        await redisClient.deleteProjectGroupsCache(projectId);
+      } catch (err) {
+        logger.warn(`Error deleting project groups cache: ${err.message}`);
       }
     }
   };
@@ -520,6 +578,12 @@ export const Group = (clients): GroupModel => {
       throw new Error(`Could not add user to group: ${err.message}`);
     }
 
+    try {
+      await redisClient.deleteRedisUserCache(user.id)
+    } catch(err) {
+      logger.warn(`Error deleting user cache ${user.id}: ${err}`);
+    }
+
     return await loadGroupById(group.id);
   };
 
@@ -541,6 +605,12 @@ export const Group = (clients): GroupModel => {
         });
       } catch (err) {
         throw new Error(`Could not remove user from group: ${err.message}`);
+      }
+
+      try {
+        await redisClient.deleteRedisUserCache(user.id)
+      } catch(err) {
+        logger.warn(`Error deleting user cache ${user.id}: ${err}`);
       }
     }
 
@@ -577,6 +647,23 @@ export const Group = (clients): GroupModel => {
       throw new Error(
         `Error setting projects for group ${group.name}: ${err.message}`,
       );
+    };
+
+    // Clear the cache for users that gained access to the project
+    const groupAndParentsMembers = await getMembersFromGroupAndParents(group);
+    const userIds = R.map(R.path(['user', 'id']), groupAndParentsMembers);
+    for (const userId of userIds) {
+      try {
+        await redisClient.deleteRedisUserCache(userId)
+      } catch(err) {
+        logger.warn(`Error deleting user cache ${userId}: ${err}`);
+      }
+    }
+
+    try {
+      await redisClient.deleteProjectGroupsCache(projectId);
+    } catch (err) {
+      logger.warn(`Error deleting project groups cache: ${err.message}`);
     }
   };
 
@@ -609,6 +696,23 @@ export const Group = (clients): GroupModel => {
       throw new Error(
         `Error setting projects for group ${group.name}: ${err.message}`,
       );
+    };
+
+    // Clear the cache for users that lost access to the project
+    const groupAndParentsMembers = await getMembersFromGroupAndParents(group);
+    const userIds = R.map(R.path(['user', 'id']), groupAndParentsMembers);
+    for (const userId of userIds) {
+      try {
+        await redisClient.deleteRedisUserCache(userId)
+      } catch(err) {
+        logger.warn(`Error deleting user cache ${userId}: ${err}`);
+      }
+    }
+
+    try {
+      await redisClient.deleteProjectGroupsCache(projectId);
+    } catch (err) {
+      logger.warn(`Error deleting project groups cache: ${err.message}`);
     }
   };
 
@@ -623,56 +727,67 @@ export const Group = (clients): GroupModel => {
   };
 
   const billingGroupCost = async (groupInput, yearMonth) => {
+
     const group = (await loadGroupByIdOrName(groupInput)) as BillingGroup;
     const { id, currency, name } = group;
     const { month, year } = extractMonthYear(yearMonth);
 
-    const groupProjects = await projectsByGroup(group);
+    // Get all projects in the group
+    const groupProjects = await ProjectModel(clients).projectsByGroup(group);
 
-    const initialProjects = groupProjects.map(({ id, name, availability }) => ({
+    // Map a subset of project fields to the initial projects array
+    const initialProjects: [{id: string, name: string, availability: string, month: string, year:string}] =
+    groupProjects.map(({ id, name, availability }) => ({
       id, name, availability, month, year
     }));
 
-    const projects = await getProjectsData(initialProjects, yearMonth);
+    const availability = initialProjects[0].availability;
 
-    const high = availabiltyProjectsCosts(
-      projects,
-      'HIGH',
-      currency,
-    ) as availabilityProjectCostsType;
-    const standard = availabiltyProjectsCosts(
-      projects,
-      'STANDARD',
-      currency,
-    ) as availabilityProjectCostsType;
+    // Check that all projects have availability set
+    const availabilityCheck = initialProjects.reduce((acc, project) => [
+      ...acc,
+      ...(project.availability === '' && project.availability == availability ? [project.name] : [])
+    ], []);
+    if(availabilityCheck.length > 0){
+      throw new Error(`Project(s): [${availabilityCheck.join(', ')}] must all have availability set and be the same in a billing group.`);
+    }
 
-    const availability = high.projects ? 'HIGH' : 'STANDARD';
+    const environment = EnvironmentModel(clients);
 
-    return { id, name, currency, availability, ...high, ...standard };
+    // Get the hit, storage, environment data for each project and month
+    const projects = await getProjectsData(initialProjects, yearMonth, environment);
+
+    // Get any modifiers for the month
+    const modifiers = await BillingModel(clients).getBillingModifiers(groupInput, yearMonth);
+    const costs = getProjectsCosts(currency, projects, modifiers);
+
+    getProjectsCosts(currency, projects, modifiers)
+
+    // Return the JSON
+    return { id, name, yearMonth, currency, availability, ...costs };
   };
 
   const allBillingGroupCosts = async yearMonth => {
-    const allGroups = await loadAllGroups();
-    const filterFn = (key, val) => group => group[key].includes(val);
-    const billingGroups = allGroups.filter(filterFn('type', 'billing'));
-
+    const allGroups: Group[] = await loadAllGroups();
+    const billingGroups = allGroups.filter(({ type }) => type === 'billing' || type === 'billing-poly');
     const billingGroupCosts = [];
     for (let i = 0; i < billingGroups.length; i++) {
-      const group = billingGroups[i];
-      billingGroupCosts.push(
-        await billingGroupCost({ id: group.id }, yearMonth),
+      const costs = await billingGroupCost(
+        { id: billingGroups[i].id },
+        yearMonth
       );
+      billingGroupCosts.push(costs);
     }
 
     return billingGroupCosts
       .map(billingGroup => {
-        if (billingGroup.availability === 'STANDARD') {
+        if (billingGroup.availability === 'STANDARD' && billingGroup.projects) {
           billingGroup.projects.map(project => {
             project.environments = undefined;
           });
         }
 
-        if (billingGroup.availability === 'HIGH') {
+        if (billingGroup.availability === 'HIGH' && billingGroup.projects) {
           billingGroup.projects.map(project => {
             project.environments = undefined;
           });

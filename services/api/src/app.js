@@ -1,13 +1,11 @@
-// @flow
-
 const express = require('express');
 const morgan = require('morgan');
 const compression = require('compression');
 const cors = require('cors');
 const { json } = require('body-parser');
 const logger = require('./logger');
-const createRouter = require('./routes');
-const authMiddleware = require('./authMiddleware');
+const { createRouter } = require('./routes');
+const { authMiddleware } = require('./authMiddleware');
 const apolloServer = require('./apolloServer');
 
 const app = express();
@@ -30,7 +28,6 @@ app.use(
 // TODO: Restrict requests to lagoon domains?
 app.use(cors());
 
-// $FlowFixMe
 app.use(authMiddleware);
 
 // Add routes.

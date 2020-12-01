@@ -24,11 +24,19 @@ CREATE OR REPLACE PROCEDURE
     IN active_systems_promote          varchar(300),
     IN active_systems_remove           varchar(300),
     IN active_systems_task             varchar(300),
+    IN active_systems_misc             varchar(300),
     IN branches                        varchar(300),
     IN pullrequests                    varchar(300),
     IN production_environment          varchar(100),
+    IN production_routes               text,
+    IN production_alias                varchar(100),
+    IN standby_production_environment  varchar(100),
+    IN standby_routes                  text,
+    IN standby_alias                   varchar(100),
     IN auto_idle                       int(1),
     IN storage_calc                    int(1),
+    IN problems_ui                     int(1),
+    IN facts_ui                        int(1),
     IN development_environments_limit  int
   )
   BEGIN
@@ -58,9 +66,17 @@ CREATE OR REPLACE PROCEDURE
         active_systems_promote,
         active_systems_remove,
         active_systems_task,
+        active_systems_misc,
         branches,
         production_environment,
+        production_routes,
+        production_alias,
+        standby_production_environment,
+        standby_routes,
+        standby_alias,
         auto_idle,
+        problems_ui,
+        facts_ui,
         storage_calc,
         pullrequests,
         openshift,
@@ -78,9 +94,17 @@ CREATE OR REPLACE PROCEDURE
         active_systems_promote,
         active_systems_remove,
         active_systems_task,
+        active_systems_misc,
         branches,
         production_environment,
+        production_routes,
+        production_alias,
+        standby_production_environment,
+        standby_routes,
+        standby_alias,
         auto_idle,
+        problems_ui,
+        facts_ui,
         storage_calc,
         pullrequests,
         os.id,
@@ -264,14 +288,15 @@ $$
 CREATE OR REPLACE PROCEDURE
   CreateOpenshift
   (
-    IN id              int,
-    IN name            varchar(50),
-    IN console_url     varchar(300),
-    IN token           varchar(1000),
-    IN router_pattern  varchar(300),
-    IN project_user    varchar(100),
-    IN ssh_host        varchar(300),
-    IN ssh_port        varchar(50)
+    IN id                int,
+    IN name              varchar(50),
+    IN console_url       varchar(300),
+    IN token             varchar(2000),
+    IN router_pattern    varchar(300),
+    IN project_user      varchar(100),
+    IN ssh_host          varchar(300),
+    IN ssh_port          varchar(50),
+    IN monitoring_config varchar(2048)
   )
   BEGIN
     DECLARE new_oid int;
@@ -288,7 +313,8 @@ CREATE OR REPLACE PROCEDURE
       router_pattern,
       project_user,
       ssh_host,
-      ssh_port
+      ssh_port,
+      monitoring_config
     ) VALUES (
       id,
       name,
@@ -297,7 +323,8 @@ CREATE OR REPLACE PROCEDURE
       router_pattern,
       project_user,
       ssh_host,
-      ssh_port
+      ssh_port,
+      monitoring_config
     );
 
     IF (id = 0) THEN

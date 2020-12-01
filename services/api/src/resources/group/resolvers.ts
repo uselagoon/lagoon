@@ -1,13 +1,14 @@
 import * as R from 'ramda';
+import { ResolverFn } from '../';
 import validator from 'validator';
 import * as logger from '../../logger';
 import { isPatchEmpty } from '../../util/db';
 import { GroupNotFoundError } from '../../models/group';
-import projectHelpers from '../project/helpers';
+import { Helpers as projectHelpers } from '../project/helpers';
 import { OpendistroSecurityOperations } from './opendistroSecurity';
 import { KeycloakUnauthorizedError } from '../../util/auth';
 
-export const getAllGroups = async (
+export const getAllGroups: ResolverFn = async (
   root,
   { name, type },
   { hasPermission, models, keycloakGrant },
@@ -53,7 +54,7 @@ export const getAllGroups = async (
   }
 };
 
-export const getGroupsByProjectId = async (
+export const getGroupsByProjectId: ResolverFn = async (
   { id: pid },
   _input,
   { hasPermission, models, keycloakGrant },
@@ -80,7 +81,7 @@ export const getGroupsByProjectId = async (
   }
 };
 
-export const getGroupsByUserId = async (
+export const getGroupsByUserId: ResolverFn = async (
   { id: uid },
   _input,
   { hasPermission, models, keycloakGrant },
@@ -110,13 +111,44 @@ export const getGroupsByUserId = async (
   }
 };
 
-export const getGroupByName = async (
+export const getGroupByName: ResolverFn = async (
   root,
   { name },
-  { models, hasPermission },
+  { models, hasPermission, keycloakGrant },
 ) => {
-  await hasPermission('group', 'viewAll');
-  return await models.GroupModel.loadGroupByIdOrName({ name });
+  try {
+    await hasPermission('group', 'viewAll');
+
+    const group = await models.GroupModel.loadGroupByName(name);
+    return group;
+  } catch (err) {
+    if (err instanceof GroupNotFoundError) {
+      throw err;
+    }
+
+    if (err instanceof KeycloakUnauthorizedError) {
+      if (!keycloakGrant) {
+        logger.warn('Access denied to user for getGroupByName');
+        throw new GroupNotFoundError(`Group not found: ${name}`);
+      } else {
+        const user = await models.UserModel.loadUserById(
+          keycloakGrant.access_token.content.sub,
+        );
+        const userGroups = await models.UserModel.getAllGroupsForUser(user);
+
+        const group = R.head(R.filter(R.propEq('name', name), userGroups));
+
+        if (R.isEmpty(group)) {
+          throw new GroupNotFoundError(`Group not found: ${name}`);
+        }
+
+        return group;
+      }
+    }
+
+    logger.warn(`getGroupByName failed unexpectedly: ${err.message}`);
+    throw err;
+  }
 };
 
 export const addGroup = async (_root, { input }, { models, sqlClient, hasPermission }) => {
@@ -149,7 +181,7 @@ export const addGroup = async (_root, { input }, { models, sqlClient, hasPermiss
   return group;
 };
 
-export const updateGroup = async (
+export const updateGroup: ResolverFn = async (
   _root,
   { input: { group: groupInput, patch } },
   { models, hasPermission },
@@ -180,7 +212,7 @@ export const updateGroup = async (
   return updatedGroup;
 };
 
-export const deleteGroup = async (
+export const deleteGroup: ResolverFn = async (
   _root,
   { input: { group: groupInput } },
   { models, sqlClient, hasPermission },
@@ -198,7 +230,7 @@ export const deleteGroup = async (
   return 'success';
 };
 
-export const deleteAllGroups = async (
+export const deleteAllGroups: ResolverFn = async (
   _root,
   _args,
   { models, hasPermission },
@@ -221,7 +253,7 @@ export const deleteAllGroups = async (
   })(deleteErrors);
 };
 
-export const addUserToGroup = async (
+export const addUserToGroup: ResolverFn = async (
   _root,
   { input: { user: userInput, group: groupInput, role } },
   { models, hasPermission },
@@ -255,7 +287,7 @@ export const addUserToGroup = async (
   return updatedGroup;
 };
 
-export const removeUserFromGroup = async (
+export const removeUserFromGroup: ResolverFn = async (
   _root,
   { input: { user: userInput, group: groupInput } },
   { models, hasPermission },
@@ -284,7 +316,7 @@ export const removeUserFromGroup = async (
   return updatedGroup;
 };
 
-export const addGroupsToProject = async (
+export const addGroupsToProject: ResolverFn = async (
   _root,
   { input: { project: projectInput, groups: groupsInput } },
   { models, sqlClient, hasPermission },
@@ -337,9 +369,9 @@ export const addGroupsToProject = async (
   return await projectHelpers(sqlClient).getProjectById(project.id);
 };
 
-export const addBillingGroup = async (
+export const addBillingGroup: ResolverFn = async (
   _root,
-  { input: { name, currency, billingSoftware } },
+  { input: { name, currency, billingSoftware, uptimeRobotStatusPageId } },
   { models, hasPermission },
 ) => {
   await hasPermission('group', 'add');
@@ -357,12 +389,13 @@ export const addBillingGroup = async (
     attributes: {
       type: ['billing'],
       currency: [currency],
+      uptimeRobotStatusPageId: [uptimeRobotStatusPageId],
       ...(billingSoftware ? { billingSoftware: [billingSoftware] } : {}),
     },
   });
 };
 
-export const updateBillingGroup = async (
+export const updateBillingGroup: ResolverFn = async (
   _root,
   { input: { group: groupInput, patch } },
   { models, hasPermission },
@@ -376,11 +409,12 @@ export const updateBillingGroup = async (
     throw new Error('Input patch requires at least 1 attribute');
   }
 
-  const { name, currency, billingSoftware } = patch;
+  const { name, currency, billingSoftware, uptimeRobotStatusPageId } = patch;
   const updatedAttributes = {
     ...attributes,
     type: ['billing'],
     ...(currency ? { currency: [currency] } : {}),
+    ...(R.is(String, uptimeRobotStatusPageId) ? {uptimeRobotStatusPageId: [uptimeRobotStatusPageId] }: {}),
     ...(billingSoftware ? { billingSoftware: [billingSoftware] } : {}),
   };
 
@@ -390,7 +424,7 @@ export const updateBillingGroup = async (
   return updatedGroup;
 };
 
-export const addProjectToBillingGroup = async (
+export const addProjectToBillingGroup: ResolverFn = async (
   _root,
   { input: { project: projectInput, group: groupInput } },
   { models, sqlClient, hasPermission },
@@ -428,12 +462,12 @@ export const addProjectToBillingGroup = async (
     );
   }
 
-  // const group = await loadGroupByIdOrName(groupInput);
-  await addProjectToGroup(project.id, groupInput);
-  return 'success';
+  const group = await loadGroupByIdOrName(groupInput);
+  await addProjectToGroup(project.id, {id: group.id});
+  return project;
 };
 
-export const updateProjectBillingGroup = async (
+export const updateProjectBillingGroup: ResolverFn = async (
   _root,
   { input: { project: projectInput, group: groupInput } },
   { models, sqlClient, hasPermission },
@@ -471,7 +505,7 @@ export const updateProjectBillingGroup = async (
   return projectHelpers(sqlClient).getProjectById(project.id);
 };
 
-export const removeProjectFromBillingGroup = async (
+export const removeProjectFromBillingGroup: ResolverFn = async (
   root,
   { input: { project, group } },
   context,
@@ -482,23 +516,59 @@ export const removeProjectFromBillingGroup = async (
     context,
   );
 
-export const getAllProjectsByGroupId = async (root, input, context) =>
+export const getAllProjectsByGroupId: ResolverFn = async (root, input, context) =>
   getAllProjectsInGroup(root, { input: { id: root.id } }, { ...context });
 
-export const getAllProjectsInGroup = async (
+export const getAllProjectsInGroup: ResolverFn = async (
   _root,
   { input: groupInput },
-  { models, sqlClient, hasPermission },
+  { models, sqlClient, hasPermission, keycloakGrant },
 ) => {
-  await hasPermission('group', 'viewAll');
   const {
     GroupModel: { loadGroupByIdOrName, getProjectsFromGroupAndSubgroups },
   } = models;
-  const group = await loadGroupByIdOrName(groupInput);
-  const projectIdsArray = await getProjectsFromGroupAndSubgroups(group);
-  return projectIdsArray.map(async id =>
-    projectHelpers(sqlClient).getProjectByProjectInput({ id }),
-  );
+
+  try {
+    await hasPermission('group', 'viewAll');
+
+    const group = await loadGroupByIdOrName(groupInput);
+    const projectIdsArray = await getProjectsFromGroupAndSubgroups(group);
+    return projectIdsArray.map(async id =>
+      projectHelpers(sqlClient).getProjectByProjectInput({ id }),
+    );
+  } catch (err) {
+    if (err instanceof GroupNotFoundError) {
+      throw err;
+    }
+
+    if (!(err instanceof KeycloakUnauthorizedError)) {
+      logger.warn(`getAllGroups failed unexpectedly: ${err.message}`);
+      throw err;
+    }
+  }
+
+  if (!keycloakGrant) {
+    logger.warn('Access denied to user for getAllProjectsInGroup: no keycloakGrant');
+    return [];
+  } else {
+    const group = await loadGroupByIdOrName(groupInput);
+
+    const user = await models.UserModel.loadUserById(
+      keycloakGrant.access_token.content.sub,
+    );
+    const userGroups = await models.UserModel.getAllGroupsForUser(user);
+
+    // @ts-ignore
+    if (!R.contains(group.name, R.pluck('name', userGroups))) {
+      logger.warn('Access denied to user for getAllProjectsInGroup: user not in group');
+      return [];
+    }
+
+    const projectIdsArray = await getProjectsFromGroupAndSubgroups(group);
+    return projectIdsArray.map(async id =>
+      projectHelpers(sqlClient).getProjectByProjectInput({ id }),
+    );
+  }
 };
 
 /**
@@ -512,7 +582,7 @@ export const getAllProjectsInGroup = async (
  *
  * @return {JSON} A JSON object that includes the billing costs, projects, and environments
  */
-export const getBillingGroupCost = async (root, args, context) => {
+export const getBillingGroupCost: ResolverFn = async (root, args, context) => {
   const { models, hasPermission, sqlClient } = context;
   const { input: groupInput, month: yearMonth } = args;
 
@@ -535,7 +605,7 @@ export const getBillingGroupCost = async (root, args, context) => {
  *
  * @return {JSON} A JSON object
  */
-export const getAllBillingGroupsCost = async (root, args, context) => {
+export const getAllBillingGroupsCost: ResolverFn = async (root, args, context) => {
   const { models, hasPermission } = context;
   const { input: groupInput, month: yearMonth } = args;
 
@@ -548,7 +618,7 @@ export const getAllBillingGroupsCost = async (root, args, context) => {
   return await models.GroupModel.allBillingGroupCosts(yearMonth);
 };
 
-export const removeGroupsFromProject = async (
+export const removeGroupsFromProject: ResolverFn = async (
   _root,
   { input: { project: projectInput, groups: groupsInput } },
   { models, sqlClient, hasPermission },

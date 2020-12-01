@@ -53,7 +53,7 @@ objects:
       branch: ${SAFE_BRANCH}
       project: ${SAFE_PROJECT}
   spec:
-    backupCommand: /bin/sh -c "/bin/busybox tar -cf - -C /usr/share/elasticsearch/data ."
+    backupCommand: /bin/sh -c "tar -cf - -C /usr/share/elasticsearch/data ."
     fileExtension: .${SERVICE_NAME}.tar
     pod:
       metadata:
@@ -82,7 +82,7 @@ objects:
             envFrom:
               - configMapRef:
                   name: lagoon-env
-            image: alpine
+            image: imagecache.amazeeio.cloud/library/alpine
             imagePullPolicy: Always
             name: ${SERVICE_NAME}-prebackuppod
             volumeMounts:

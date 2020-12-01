@@ -1,6 +1,8 @@
 const webpackShared = require('./webpack.shared-config');
 require('dotenv-extended').load();
 
+const withCSS = require('@zeit/next-css');
+
 const lagoonRoutes =
   (process.env.LAGOON_ROUTES && process.env.LAGOON_ROUTES.split(',')) || [];
 
@@ -12,12 +14,14 @@ const lagoonKeycloakRoute = lagoonRoutes.find(routes =>
 );
 const envKeycloakRoute = process.env.KEYCLOAK_API;
 
-const taskBlacklist =
-  (process.env.LAGOON_UI_TASK_BLACKLIST &&
-    process.env.LAGOON_UI_TASK_BLACKLIST.split(',')) ||
+const lagoonVersion = process.env.LAGOON_VERSION;
+
+const taskBlocklist =
+  (process.env.LAGOON_UI_TASK_BLOCKLIST &&
+    process.env.LAGOON_UI_TASK_BLOCKLIST.split(',')) ||
   [];
 
-module.exports = {
+module.exports = withCSS({
   publicRuntimeConfig: {
     GRAPHQL_API: lagoonApiRoute ? `${lagoonApiRoute}/graphql` : envApiRoute,
     GRAPHQL_API_TOKEN: process.env.GRAPHQL_API_TOKEN,
@@ -25,7 +29,8 @@ module.exports = {
       ? `${lagoonKeycloakRoute}/auth`
       : envKeycloakRoute,
     LAGOON_UI_ICON: process.env.LAGOON_UI_ICON,
-    LAGOON_UI_TASK_BLACKLIST: taskBlacklist
+    LAGOON_UI_TASK_BLOCKLIST: taskBlocklist,
+    LAGOON_VERSION: lagoonVersion
   },
   distDir: '../build',
   webpack(config, options) {
@@ -51,4 +56,4 @@ module.exports = {
 
     return config;
   }
-};
+});

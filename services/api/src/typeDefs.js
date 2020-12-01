@@ -1,6 +1,4 @@
-// @flow
-
-const gql = require('./util/gql');
+const { gql } = require('./util/gql');
 
 // TODO: Split up this file
 
@@ -36,6 +34,11 @@ const typeDefs = gql`
     EMAIL
   }
 
+  enum NotificationContentType {
+    DEPLOYMENT
+    PROBLEM
+  }
+
   enum DeploymentStatusType {
     NEW
     PENDING
@@ -56,6 +59,7 @@ const typeDefs = gql`
     RUNTIME
     GLOBAL
     CONTAINER_REGISTRY
+    INTERNAL_CONTAINER_REGISTRY
   }
 
   enum TaskStatusType {
@@ -83,6 +87,7 @@ const typeDefs = gql`
   enum ProjectAvailability {
     STANDARD
     HIGH
+    POLYSITE
   }
 
   enum GroupRole {
@@ -100,6 +105,139 @@ const typeDefs = gql`
     USD
     CHF
     ZAR
+  }
+
+  enum ProblemSeverityRating {
+    NONE
+    UNKNOWN
+    NEGLIGIBLE
+    LOW
+    MEDIUM
+    HIGH
+    CRITICAL
+  }
+
+  scalar SeverityScore
+
+  type Problem {
+    id: Int
+    environment: Environment
+    severity: ProblemSeverityRating
+    severityScore: SeverityScore
+    identifier: String
+    service: String
+    source: String
+    associatedPackage: String
+    description: String
+    links: String
+    version: String
+    fixedVersion: String
+    data: String
+    created: String
+    deleted: String
+  }
+
+  type ProblemHarborScanMatch {
+    id: Int
+    name: String
+    description: String
+    defaultLagoonProject: String
+    defaultLagoonEnvironment: String
+    defaultLagoonService: String
+    regex: String
+  }
+
+  input AddProblemHarborScanMatchInput {
+    name: String!
+    description: String!
+    defaultLagoonProject: String
+    defaultLagoonEnvironment: String
+    defaultLagoonService: String
+    regex: String!
+  }
+
+  input DeleteProblemHarborScanMatchInput {
+    id: Int!
+  }
+
+  input AddProblemInput {
+    id: Int
+    environment: Int!
+    severity: ProblemSeverityRating
+    severityScore: SeverityScore
+    identifier: String!
+    service: String
+    source: String!
+    associatedPackage: String
+    description: String
+    links: String
+    version: String
+    fixedVersion: String
+    data: String!
+    created: String
+  }
+
+  input BulkProblem {
+    severity: ProblemSeverityRating
+    severityScore: SeverityScore
+    identifier: String
+    data: String
+  }
+
+  input DeleteProblemInput {
+    environment: Int!
+    identifier: String!
+  }
+
+  input DeleteProblemsFromSourceInput {
+    environment: Int!
+    source: String!
+    service: String!
+  }
+
+  type Fact {
+    id: Int
+    environment: Environment
+    name: String
+    value: String
+    source: String
+    description: String
+  }
+
+  input AddFactInput {
+    id: Int
+    environment: Int!
+    name: String!
+    value: String!
+    source: String!
+    description: String!
+  }
+  
+  input AddFactsInput {
+    facts: [AddFactInput]!
+  }
+  
+  input UpdateFactInputValue {
+    environment: Int!
+    name: String!
+    value: String!
+    source: String!
+    description: String
+  }
+  
+  input UpdateFactInput {
+    environment: Int!
+    patch: UpdateFactInputValue!
+  }
+
+  input DeleteFactInput {
+    environment: Int!
+    name: String!
+  }
+  
+  input DeleteFactsFromSourceInput {
+    environment: Int!
+    source: String!
   }
 
   type File {
@@ -161,6 +299,8 @@ const typeDefs = gql`
     projects: [Project]
     currency: String
     billingSoftware: String
+    modifiers: [BillingModifier]
+    uptimeRobotStatusPageId: String
   }
 
   type Openshift {
@@ -173,12 +313,15 @@ const typeDefs = gql`
     sshHost: String
     sshPort: String
     created: String
+    monitoringConfig: JSON
   }
 
   type NotificationMicrosoftTeams {
     id: Int
     name: String
     webhook: String
+    contentType: String
+    notificationSeverityThreshold: ProblemSeverityRating
   }
 
   type NotificationRocketChat {
@@ -186,6 +329,8 @@ const typeDefs = gql`
     name: String
     webhook: String
     channel: String
+    contentType: String
+    notificationSeverityThreshold: ProblemSeverityRating
   }
 
   type NotificationSlack {
@@ -193,18 +338,24 @@ const typeDefs = gql`
     name: String
     webhook: String
     channel: String
+    contentType: String
+    notificationSeverityThreshold: ProblemSeverityRating
   }
 
   type NotificationEmail {
     id: Int
     name: String
     emailAddress: String
+    contentType: String
+    notificationSeverityThreshold: ProblemSeverityRating
   }
 
   type UnassignedNotification {
     id: Int
     name: String
     type: String
+    contentType: String
+    notificationSeverityThreshold: ProblemSeverityRating
   }
 
   union Notification = NotificationRocketChat | NotificationSlack | NotificationMicrosoftTeams | NotificationEmail
@@ -248,7 +399,7 @@ const typeDefs = gql`
     """
     Notifications that should be sent for this project
     """
-    notifications(type: NotificationType): [Notification]
+    notifications(type: NotificationType, contentType: NotificationContentType, notificationSeverityThreshold: ProblemSeverityRating): [Notification]
     """
     Which internal Lagoon System is responsible for deploying
     Currently only 'lagoon_openshiftBuildDeploy' exists
@@ -266,9 +417,14 @@ const typeDefs = gql`
     activeSystemsRemove: String
     """
     Which internal Lagoon System is responsible for tasks
-    Currently only 'lagoon_openshiftJob' exists
+    'lagoon_openshiftJob' or 'lagoon_kubernetesJob'
     """
     activeSystemsTask: String
+    """
+    Which internal Lagoon System is responsible for miscellaneous tasks
+    'lagoon_openshiftMisc' or 'lagoon_kubernetesMisc'
+    """
+    activeSystemsMisc: String
     """
     Which branches should be deployed, can be one of:
     - \`true\` - all branches are deployed
@@ -289,6 +445,29 @@ const typeDefs = gql`
     """
     productionEnvironment: String
     """
+    Routes that are attached to the active environment
+    """
+    productionRoutes: String
+    """
+    The drush alias to use for the active production environment
+    *Important:* This is mainly used for drupal, but could be used for other services potentially
+    """
+    productionAlias: String
+    """
+    Which environment(the name) should be marked as the production standby environment.
+    *Important:* This is used to determine which environment should be marked as the standby production environment
+    """
+    standbyProductionEnvironment: String
+    """
+    Routes that are attached to the standby environment
+    """
+    standbyRoutes: String
+    """
+    The drush alias to use for the standby production environment
+    *Important:* This is mainly used for drupal, but could be used for other services potentially
+    """
+    standbyAlias: String
+    """
     Should this project have auto idling enabled (\`1\` or \`0\`)
     """
     autoIdle: Int
@@ -296,6 +475,14 @@ const typeDefs = gql`
     Should storage for this environment be calculated (\`1\` or \`0\`)
     """
     storageCalc: Int
+    """
+    Should the Problems UI be available for this Project (\`1\` or \`0\`)
+    """
+    problemsUi: Int
+    """
+    Should the Facts UI be available for this Project (\`1\` or \`0\`)
+    """
+    factsUi: Int
     """
     Reference to OpenShift Object this Project should be deployed to
     """
@@ -308,6 +495,10 @@ const typeDefs = gql`
     How many environments can be deployed at one timeout
     """
     developmentEnvironmentsLimit: Int
+    """
+    Name of the OpenShift Project/Namespace
+    """
+    openshiftProjectName: String
     """
     Deployed Environments for this Project
     """
@@ -333,6 +524,10 @@ const typeDefs = gql`
     Which groups are directly linked to project
     """
     groups: [GroupInterface]
+    """
+    Metadata key/values stored against a project
+    """
+    metadata: JSON
   }
 
   """
@@ -418,6 +613,8 @@ const typeDefs = gql`
     backups(includeDeleted: Boolean): [Backup]
     tasks(id: Int): [Task]
     services: [EnvironmentService]
+    problems(severity: [ProblemSeverityRating], source: [String]): [Problem]
+    facts: [Fact]
   }
 
   type EnvironmentHitsMonth {
@@ -475,6 +672,10 @@ const typeDefs = gql`
     environment: Environment
     remoteId: String
     buildLog: String
+    """
+    The Lagoon URL
+    """
+    uiLink: String
   }
 
   type EnvKeyValue {
@@ -499,13 +700,49 @@ const typeDefs = gql`
     files: [File]
   }
 
+  type BillingModifier {
+    id: Int
+    group: BillingGroup
+    startDate: String
+    endDate: String
+    discountFixed: Float
+    discountPercentage: Float
+    extraFixed: Float
+    extraPercentage: Float
+    min: Float
+    max: Float
+    customerComments: String
+    adminComments: String
+    weight: Int
+  }
+
   input DeleteEnvironmentInput {
     name: String!
     project: String!
     execute: Boolean
   }
 
+  input MetadataKeyValue {
+    key: String!
+    value: String
+  }
+
+  input UpdateMetadataInput {
+    id: Int!
+    patch: MetadataKeyValue!
+  }
+
+  input RemoveMetadataInput {
+    id: Int!
+    key: String!
+  }
+
+
   type Query {
+    """
+    Returns the current user
+    """
+    me: User
     """
     Returns User Object by a given sshKey
     """
@@ -517,12 +754,13 @@ const typeDefs = gql`
     """
     Returns Group Object by a given name
     """
-    groupByName(name: String!): Group
+    groupByName(name: String!): GroupInterface
     """
     Returns Project Object by a given gitUrl (only the first one if there are multiple)
     """
     projectByGitUrl(gitUrl: String!): Project
     environmentByName(name: String!, project: Int!): Environment
+    environmentById(id: Int!): Environment
     """
     Returns Environment Object by a given openshiftProjectName
     """
@@ -534,10 +772,15 @@ const typeDefs = gql`
     ): Environment
     deploymentByRemoteId(id: String): Deployment
     taskByRemoteId(id: String): Task
+    taskById(id: Int): Task
     """
     Returns all Project Objects matching given filters (all if no filter defined)
     """
     allProjects(createdAfter: String, gitUrl: String, order: ProjectOrderType): [Project]
+    """
+    Returns all Project Objects matching metadata filters
+    """
+    projectsByMetadata(metadata: [MetadataKeyValue]): [Project]
     """
     Returns all OpenShift Objects
     """
@@ -546,6 +789,11 @@ const typeDefs = gql`
     Returns all Environments matching given filter (all if no filter defined)
     """
     allEnvironments(createdAfter: String, type: EnvType, order: EnvOrderType): [Environment]
+    """
+    Returns all Problems matching given filter (all if no filter defined)
+    """
+    allProblems(source: [String], project: Int, environment: Int, envType: [EnvType], identifier: String, severity: [ProblemSeverityRating]): [Problem]
+    problemSources: [String]
     """
     Returns all Groups matching given filter (all if no filter defined)
     """
@@ -562,6 +810,18 @@ const typeDefs = gql`
     Returns the costs for all billing groups
     """
     allBillingGroupsCost(month: String!): JSON
+    """
+    Returns the Billing Group Modifiers for a given Billing Group (all modifiers for the Billing Group will be returned if the month is not provided)
+    """
+    allBillingModifiers(input: GroupInput!, month: String): [BillingModifier]
+    """
+    Returns LAGOON_VERSION
+    """
+    lagoonVersion: JSON
+    """
+    Returns all ProblemHarborScanMatchers
+    """
+    allProblemHarborScanMatchers: [ProblemHarborScanMatch]
   }
 
   # Must provide id OR name
@@ -611,14 +871,22 @@ const typeDefs = gql`
     activeSystemsPromote: String
     activeSystemsRemove: String
     activeSystemsTask: String
+    activeSystemsMisc: String
     branches: String
     pullrequests: String
     productionEnvironment: String!
+    productionRoutes: String
+    productionAlias: String
+    standbyProductionEnvironment: String
+    standbyRoutes: String
+    standbyAlias: String
     availability: ProjectAvailability
     autoIdle: Int
     storageCalc: Int
     developmentEnvironmentsLimit: Int
     privateKey: String
+    problemsUi: Int
+    factsUi: Int
   }
 
   input AddEnvironmentInput {
@@ -750,6 +1018,7 @@ const typeDefs = gql`
     projectUser: String
     sshHost: String
     sshPort: String
+    monitoringConfig: JSON
   }
 
   input DeleteOpenshiftInput {
@@ -796,6 +1065,8 @@ const typeDefs = gql`
     project: String!
     notificationType: NotificationType!
     notificationName: String!
+    contentType: NotificationContentType
+    notificationSeverityThreshold: ProblemSeverityRating
   }
 
   input RemoveNotificationFromProjectInput {
@@ -842,14 +1113,22 @@ const typeDefs = gql`
     activeSystemsDeploy: String
     activeSystemsRemove: String
     activeSystemsTask: String
+    activeSystemsMisc: String
     branches: String
     productionEnvironment: String
+    productionRoutes: String
+    productionAlias: String
+    standbyProductionEnvironment: String
+    standbyRoutes: String
+    standbyAlias: String
     autoIdle: Int
     storageCalc: Int
     pullrequests: String
     openshift: Int
     openshiftProjectPattern: String
     developmentEnvironmentsLimit: Int
+    problemsUi: Int
+    factsUi: Int
   }
 
   input UpdateProjectInput {
@@ -865,6 +1144,7 @@ const typeDefs = gql`
     projectUser: String
     sshHost: String
     sshPort: String
+    monitoringConfig: JSON
   }
 
   input UpdateOpenshiftInput {
@@ -996,6 +1276,10 @@ const typeDefs = gql`
     destinationEnvironment: String!
   }
 
+  input switchActiveStandbyInput {
+    project: ProjectInput!
+  }
+
   input GroupInput {
     id: String
     name: String
@@ -1004,6 +1288,81 @@ const typeDefs = gql`
   input AddGroupInput {
     name: String!
     parentGroup: GroupInput
+  }
+
+  input AddBillingModifierInput {
+    """
+    The existing billing group for this modifier
+    """
+    group: GroupInput!
+    """
+    The date this modifier should start to be applied - Format: YYYY-MM-DD
+    """
+    startDate: String!
+    """
+    The date this modifer will expire - Format: YYYY-MM-DD
+    """
+    endDate: String!
+    """
+    The amount that the total monthly bill should be discounted - Format (Float)
+    """
+    discountFixed: Float
+    """
+    The percentage the total monthly bill should be discounted - Format (0-100)
+    """
+    discountPercentage: Float
+    """
+    The amount of exta cost that should be added to the total- Format (Float)
+    """
+    extraFixed: Float
+    """
+    The percentage the total monthly bill should be added - Format (0-100)
+    """
+    extraPercentage: Float
+    """
+    The minimum amount of the invoice applied to the total- Format (Float)
+    """
+    min: Float
+    """
+    The maximum amount of the invoice applied to the total- Format (Float)
+    """
+    max: Float
+    """
+    Customer comments are visible to the customer
+    """
+    customerComments: String
+    """
+    Admin comments will not be visible to the customer.
+    """
+    adminComments: String!
+    """
+    The order this modifer should be applied
+    """
+    weight: Int
+  }
+
+  input BillingModifierPatchInput {
+    group: GroupInput
+    startDate: String
+    endDate: String
+    discountFixed: Float
+    discountPercentage: Float
+    extraFixed: Float
+    extraPercentage: Float
+    min: Float
+    max: Float
+    customerComments: String
+    adminComments: String
+    weight: Int
+  }
+
+  input UpdateBillingModifierInput {
+    id: Int!
+    patch: BillingModifierPatchInput!
+  }
+
+  input DeleteBillingModifierInput {
+    id: Int!
   }
 
   input UpdateGroupPatchInput {
@@ -1044,6 +1403,7 @@ const typeDefs = gql`
     name: String!
     currency: Currency!
     billingSoftware: String
+    uptimeRobotStatusPageId: String
   }
 
   input ProjectBillingGroupInput {
@@ -1055,6 +1415,7 @@ const typeDefs = gql`
     name: String!
     currency: Currency
     billingSoftware: String
+    uptimeRobotStatusPageId: String
   }
 
   input UpdateBillingGroupInput {
@@ -1143,6 +1504,15 @@ const typeDefs = gql`
     updateDeployment(input: UpdateDeploymentInput): Deployment
     cancelDeployment(input: CancelDeploymentInput!): String
     addBackup(input: AddBackupInput!): Backup
+    addProblem(input: AddProblemInput!): Problem
+    addProblemHarborScanMatch(input: AddProblemHarborScanMatchInput!): ProblemHarborScanMatch
+    deleteProblem(input: DeleteProblemInput!): String
+    deleteProblemsFromSource(input: DeleteProblemsFromSourceInput!): String
+    deleteProblemHarborScanMatch(input: DeleteProblemHarborScanMatchInput!): String
+    addFact(input: AddFactInput!): Fact
+    addFacts(input: AddFactsInput!): [Fact]
+    deleteFact(input: DeleteFactInput!): String
+    deleteFactsFromSource(input: DeleteFactsFromSourceInput!): String
     deleteBackup(input: DeleteBackupInput!): String
     deleteAllBackups: String
     addRestore(input: AddRestoreInput!): Restore
@@ -1162,6 +1532,7 @@ const typeDefs = gql`
       sourceEnvironment: Int!
       destinationEnvironment: Int!
     ): Task
+    taskDrushUserLogin(environment: Int!): Task
     deleteTask(input: DeleteTaskInput!): String
     updateTask(input: UpdateTaskInput): Task
     setEnvironmentServices(input: SetEnvironmentServicesInput!): [EnvironmentService]
@@ -1171,12 +1542,13 @@ const typeDefs = gql`
     deployEnvironmentBranch(input: DeployEnvironmentBranchInput!): String
     deployEnvironmentPullrequest(input: DeployEnvironmentPullrequestInput!): String
     deployEnvironmentPromote(input: DeployEnvironmentPromoteInput!): String
-    addGroup(input: AddGroupInput!): Group
-    updateGroup(input: UpdateGroupInput!): Group
+    switchActiveStandby(input: switchActiveStandbyInput!): Task
+    addGroup(input: AddGroupInput!): GroupInterface
+    updateGroup(input: UpdateGroupInput!): GroupInterface
     deleteGroup(input: DeleteGroupInput!): String
     deleteAllGroups: String
-    addUserToGroup(input: UserGroupRoleInput!): Group
-    removeUserFromGroup(input: UserGroupInput!): Group
+    addUserToGroup(input: UserGroupRoleInput!): GroupInterface
+    removeUserFromGroup(input: UserGroupInput!): GroupInterface
     addGroupsToProject(input: ProjectGroupsInput): Project
     addBillingGroup(input: BillingGroupInput!): BillingGroup
     updateBillingGroup(input: UpdateBillingGroupInput!): BillingGroup
@@ -1185,6 +1557,12 @@ const typeDefs = gql`
     updateProjectBillingGroup(input: ProjectBillingGroupInput): Project
     removeProjectFromBillingGroup(input: ProjectBillingGroupInput): Project
     removeGroupsFromProject(input: ProjectGroupsInput!): Project
+    updateProjectMetadata(input: UpdateMetadataInput!): Project
+    removeProjectMetadataByKey(input: RemoveMetadataInput!): Project
+    addBillingModifier(input: AddBillingModifierInput!): BillingModifier
+    updateBillingModifier(input: UpdateBillingModifierInput!): BillingModifier
+    deleteBillingModifier(input: DeleteBillingModifierInput!): String
+    deleteAllBillingModifiersByBillingGroup(input: GroupInput!): String
   }
 
   type Subscription {

@@ -6,6 +6,10 @@ import giturlparse from 'git-url-parse';
 import Environments from 'components/Environments';
 import { bp, color, fontSize } from 'lib/variables';
 
+import { Mutation } from 'react-apollo';
+
+import ProjectByNameQuery from 'lib/query/ProjectByName';
+
 const Project = ({ project }) => {
   const [copied, setCopied] = useState(false);
   const gitUrlParsed = giturlparse(project.gitUrl);
@@ -86,6 +90,7 @@ const Project = ({ project }) => {
           </div>
         </div>
       </div>
+
       <style jsx>{`
         .details {
           display: inline-table;

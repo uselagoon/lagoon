@@ -3,7 +3,6 @@
     "node8-es6"
   ],
   "plugins": [
-    "transform-flow-strip-types",
     "transform-es2015-modules-commonjs"
   ]
 }

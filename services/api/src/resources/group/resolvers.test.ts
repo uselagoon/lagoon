@@ -75,7 +75,7 @@ const requestConfig = {
 const getJWTToken = async () => {
   try {
     const { stdout: jwtToken, stderr } = await exec(
-      'docker-compose exec -T auto-idler /create_jwt.sh',
+      'docker-compose exec -T auto-idler /create_jwt.py',
     );
     if (stderr) {
       throw stderr;
@@ -278,7 +278,7 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
 
     it('When I add a project with STANDARD availability, the expect STANDARD to be returned. #mutation #addProject', async () => {
       // Arrange
-      const project = { name: fakeName(10) };
+      const project = { name: fakeName(10), gitUrl: `git@github.com:${fakeName(5)}/${fakeName(5)}.git` };
 
       // Act
       const { data } = await addProject(project);
@@ -304,7 +304,7 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
 
     it('When I update a project availability, I expect the updated availability to be returned. #mutation #updateProject #availability', async () => {
       // Arrange
-      const project = { name: fakeName(10) };
+      const project = { name: fakeName(10), gitUrl: `git@github.com:${fakeName(5)}/${fakeName(5)}.git` };
       const { data: addProjectData } = await addProject(project);
 
       // Act
@@ -336,7 +336,7 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
       const project = { name: fakeName(10) };
       const group = { name: fakeName(10) };
 
-      await addProject(project);
+      await addProject({ ...project, gitUrl: `git@github.com:${fakeName(5)}/${fakeName(5)}.git` });
       await addBillingGroup(group);
 
       // Act
@@ -374,7 +374,7 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
       const group = { name: fakeName(10) };
       const group2 = { name: fakeName(10) };
 
-      await addProject(project);
+      await addProject( { ...project, gitUrl: `git@github.com:${fakeName(5)}/${fakeName(5)}.git` });
       await addBillingGroup(group);
       await addBillingGroup(group2);
       await addProjectToBillingGroup(project, group);
@@ -400,7 +400,7 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
       const project = { name: fakeName(10) };
       const group = { name: fakeName(10) };
 
-      await addProject(project);
+      await addProject({ ...project, gitUrl: `git@github.com:${fakeName(5)}/${fakeName(5)}.git` });
       await addBillingGroup(group);
       await addProjectToBillingGroup(project, group);
 
@@ -423,11 +423,11 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
   describe('BillingGroup Related Queries #queries', () => {
     // scenarios and expectation
 
-    it('When I query for all projects, filtered by the "test" gitUrl, I expect the result to match the query signature. #query #allProjects', async () => {
+    it('When I query for all projects, filtered by the "test" gitUrl, I expect the result to match the query signature. #query #allProjects #filter', async () => {
       // Arrange
       const project: Project = {
         name: fakeName(10),
-        gitUrl: `http://github.com/amazeeio/${fakeName(5)}`,
+        gitUrl: `git@github.com:${fakeName(5)}/${fakeName(5)}.git`,
       };
       await addProject(project);
 
@@ -504,102 +504,100 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
 
       // Assert
       const expected = {
-        data: {
-          billingGroupCost: {
-            currency: 'USD',
-            availability: {
-              high: {
-                hitCost: 200,
-                storageCost: 0,
-                environmentCost: {
-                  environmentCost: {
-                    prod: 0,
-                    dev: 0,
-                  },
-                },
-                projects: [
-                  {
-                    id: '18',
-                    name: 'high-cotton',
-                    availability: 'HIGH',
-                    hits: 0,
-                    storageDays: 0,
-                    prodHours: 0,
-                    devHours: 0,
-                    environments: [
-                      {
-                        id: '3',
-                        name: 'Master',
-                        type: 'production',
-                        hits: {
-                          total: 0,
-                        },
-                        storage: {
-                          bytesUsed: null,
-                          month: null,
-                        },
-                        hours: {
-                          month: '2019-08',
-                          hours: 0,
-                        },
-                      },
-                      {
-                        id: '4',
-                        name: 'Staging',
-                        type: 'development',
-                        hits: {
-                          total: 0,
-                        },
-                        storage: {
-                          bytesUsed: null,
-                          month: null,
-                        },
-                        hours: {
-                          month: '2019-08',
-                          hours: 0,
-                        },
-                      },
-                      {
-                        id: '5',
-                        name: 'Development',
-                        type: 'development',
-                        hits: {
-                          total: 0,
-                        },
-                        storage: {
-                          bytesUsed: null,
-                          month: null,
-                        },
-                        hours: {
-                          month: '2019-08',
-                          hours: 0,
-                        },
-                      },
-                      {
-                        id: '6',
-                        name: 'PR-175',
-                        type: 'development',
-                        hits: {
-                          total: 0,
-                        },
-                        storage: {
-                          bytesUsed: null,
-                          month: null,
-                        },
-                        hours: {
-                          month: '2019-08',
-                          hours: 0,
-                        },
-                      },
-                    ],
-                    month: '08',
-                    year: '2019',
-                  },
-                ],
-              },
+        "data": {
+          "billingGroupCost": {
+            "name": "High Cotton Billing Group",
+            "currency": "USD",
+            "availability": "HIGH",
+            "hitCost": 200,
+            "storageCost": 0,
+            "environmentCost": {
+              "prod": 0,
+              "dev": 0
             },
-          },
-        },
+            "total": 200,
+            "modifiers": [],
+            "projects": [
+              {
+                "id": "18",
+                "name": "high-cotton",
+                "availability": "HIGH",
+                "month": "08",
+                "year": "2019",
+                "hits": 0,
+                "storageDays": 0,
+                "prodHours": 0,
+                "devHours": 0,
+                "environments": [
+                  {
+                    "id": "3",
+                    "name": "Master",
+                    "type": "production",
+                    "hits": {
+                      "total": 0
+                    },
+                    "storage": {
+                      "bytesUsed": null,
+                      "month": null
+                    },
+                    "hours": {
+                      "month": "2019-08",
+                      "hours": 0
+                    }
+                  },
+                  {
+                    "id": "4",
+                    "name": "Staging",
+                    "type": "development",
+                    "hits": {
+                      "total": 0
+                    },
+                    "storage": {
+                      "bytesUsed": null,
+                      "month": null
+                    },
+                    "hours": {
+                      "month": "2019-08",
+                      "hours": 0
+                    }
+                  },
+                  {
+                    "id": "5",
+                    "name": "Development",
+                    "type": "development",
+                    "hits": {
+                      "total": 0
+                    },
+                    "storage": {
+                      "bytesUsed": null,
+                      "month": null
+                    },
+                    "hours": {
+                      "month": "2019-08",
+                      "hours": 0
+                    }
+                  },
+                  {
+                    "id": "6",
+                    "name": "PR-175",
+                    "type": "development",
+                    "hits": {
+                      "total": 0
+                    },
+                    "storage": {
+                      "bytesUsed": null,
+                      "month": null
+                    },
+                    "hours": {
+                      "month": "2019-08",
+                      "hours": 0
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
       };
       expect(data).toMatchObject(expected);
     });
