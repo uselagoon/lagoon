@@ -243,13 +243,14 @@ export const getEnvironmentHoursMonthByEnvironmentId: ResolverFn = async (
 };
 
 export const getEnvironmentHitsMonthByEnvironmentId: ResolverFn = async (
-  { openshiftProjectName },
+  { id, openshiftProjectName },
   args,
-  { models, hasPermission },
+  { sqlClient, models, hasPermission },
 ) => {
   await hasPermission('environment', 'storage');
 
-  return models.EnvironmentModel.environmentHitsMonthByEnvironmentId(openshiftProjectName, args.month);
+  const { name: projectName } = await projectHelpers(sqlClient).getProjectByEnvironmentId(id);
+  return models.EnvironmentModel.environmentHitsMonthByEnvironmentId(projectName, openshiftProjectName, args.month);
 };
 
 export const getEnvironmentServicesByEnvironmentId: ResolverFn = async (
