@@ -214,15 +214,7 @@ services :=	api \
 			harborregistryctl \
 			keycloak \
 			keycloak-db \
-			logs-concentrator \
-			logs-db \
-			logs-db-curator \
-			logs-db-ui \
-			logs-dispatcher \
-			logs-forwarder \
-			logs-tee \
 			logs2email \
-			logs2logs-db \
 			logs2microsoftteams \
 			logs2rocketchat \
 			logs2slack \
@@ -261,14 +253,6 @@ build/harborregistry: services/harborregistry/Dockerfile
 build/harborregistryctl: services/harborregistryctl/Dockerfile
 build/keycloak-db: services/keycloak-db/Dockerfile
 build/keycloak: services/keycloak/Dockerfile
-build/logs-concentrator: services/logs-concentrator/Dockerfile
-build/logs-db-curator: build/curator
-build/logs-db-ui: services/logs-db-ui/Dockerfile
-build/logs-db: services/logs-db/Dockerfile
-build/logs-dispatcher: services/logs-dispatcher/Dockerfile
-build/logs-forwarder: services/logs-forwarder/Dockerfile
-build/logs-tee: services/logs-tee/Dockerfile
-build/logs2logs-db: services/logs2logs-db/Dockerfile
 build/storage-calculator: build/oc
 build/tests-controller-kubernetes: build/tests
 build/tests-kubernetes: build/tests
@@ -669,8 +653,6 @@ else
 		IMAGE_REPO=$(CI_BUILD_TAG) \
 		docker-compose -p $(CI_BUILD_TAG) --compatibility up -d
 endif
-	grep -m 1 ".opendistro_security index does not exist yet" <(docker-compose -p $(CI_BUILD_TAG) logs -f logs-db 2>&1)
-	while ! docker exec "$$(docker-compose -p $(CI_BUILD_TAG) ps -q logs-db)" ./securityadmin_demo.sh; do sleep 5; done
 	$(MAKE) wait-for-keycloak
 
 down:
@@ -727,7 +709,7 @@ minishift/login-docker-registry: minishift
 openshift-lagoon-setup:
 # Only use the minishift provided oc if we don't have one yet (allows system engineers to use their own oc)
 	if ! which oc; then eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); fi; \
-	oc -n default set env dc/router -e ROUTER_LOG_LEVEL=info -e ROUTER_SYSLOG_ADDRESS=router-logs.lagoon.svc:5140; \
+	oc -n default set env dc/router -e ROUTER_LOG_LEVEL=info -e ROUTER_SYSLOG_ADDRESS=router-logs.lagoon.svc:5141; \
 	oc new-project lagoon; \
 	oc adm pod-network make-projects-global lagoon; \
 	oc -n lagoon create serviceaccount openshiftbuilddeploy; \
@@ -740,10 +722,6 @@ openshift-lagoon-setup:
 	oc -n lagoon create serviceaccount docker-host; \
 	oc -n lagoon adm policy add-scc-to-user privileged -z docker-host; \
 	oc -n lagoon policy add-role-to-user edit -z docker-host; \
-	oc -n lagoon create serviceaccount logs-collector; \
-	oc -n lagoon adm policy add-cluster-role-to-user cluster-reader -z logs-collector; \
-	oc -n lagoon adm policy add-scc-to-user hostaccess -z logs-collector; \
-	oc -n lagoon adm policy add-scc-to-user privileged -z logs-collector; \
 	oc -n lagoon adm policy add-cluster-role-to-user daemonset-admin -z lagoon-deployer; \
 	oc -n lagoon create serviceaccount lagoon-deployer; \
 	oc -n lagoon policy add-role-to-user edit -z lagoon-deployer; \
