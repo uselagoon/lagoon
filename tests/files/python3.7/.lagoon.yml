@@ -1,0 +1,4 @@
+docker-compose-yaml: docker-compose.yml
+
+environment_variables:
+  git_sha: 'true'
