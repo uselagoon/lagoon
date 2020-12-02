@@ -78,7 +78,7 @@ objects:
         containers:
           - args:
               - sleep
-              - '3600'
+              - infinity
             envFrom:
               - configMapRef:
                   name: lagoon-env
@@ -126,7 +126,7 @@ objects:
         containers:
           - args:
               - sleep
-              - '3600'
+              - infinity
             envFrom:
               - configMapRef:
                   name: lagoon-env
@@ -174,7 +174,7 @@ objects:
         containers:
           - args:
               - sleep
-              - '3600'
+              - infinity
             envFrom:
               - configMapRef:
                   name: lagoon-env
