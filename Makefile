@@ -339,6 +339,7 @@ build-list:
 
 # Define list of all tests
 all-k8s-tests-list:=				nginx \
+														python \
 														drupal \
 														active-standby-kubernetes \
 														features-kubernetes
@@ -363,6 +364,7 @@ $(all-k8s-tests): k3d kubernetes-test-services-up
 # Define list of all tests
 all-controller-k8s-tests-list:=				features-kubernetes \
 														nginx \
+														python \
 														drupal \
 														active-standby-kubernetes
 all-controller-k8s-tests = $(foreach image,$(all-controller-k8s-tests-list),controller-k8s-tests/$(image))
