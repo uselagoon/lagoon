@@ -4,7 +4,7 @@
     testname: "BITBUCKET {{ lookup('env','CLUSTER_TYPE')|upper }} - slash branch"
     node_version: 10
     git_repo_name: bitbucket.git
-    git_repo_url: https://172.17.0.1:2222/git/bitbucket
+    git_repo_url: https://lagoon-test-local-git.lagoon.svc.cluster.local:22/git/bitbucket
     git_repo_full_name: git/bitbucket
     project: ci-bitbucket-{{ lookup('env','CLUSTER_TYPE') }}
     branch: bitbucket/slash/branch
@@ -15,7 +15,7 @@
     testname: "BITBUCKET {{ lookup('env','CLUSTER_TYPE')|upper }} - skip deployment"
     node_version: 10
     git_repo_name: bitbucket.git
-    git_repo_url: https://172.17.0.1:2222/git/bitbucket
+    git_repo_url: https://lagoon-test-local-git.lagoon.svc.cluster.local:22/git/bitbucket
     git_repo_full_name: git/bitbucket
     project: ci-bitbucket-{{ lookup('env','CLUSTER_TYPE') }}
     branch: skip

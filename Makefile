@@ -309,7 +309,9 @@ build-list:
 
 # Define list of all tests
 all-k8s-tests-list:=				nginx \
-														drupal \
+														drupal-php72 \
+														drupal-php73 \
+														drupal-php74 \
 														active-standby-kubernetes \
 														features-kubernetes
 
@@ -352,7 +354,9 @@ $(push-local-registry-images):
 # Define list of all tests
 all-openshift-tests-list:=	features-openshift \
 														node \
-														drupal \
+														drupal-php72 \
+														drupal-php73 \
+														drupal-php74 \
 														drupal-postgres \
 														github \
 														gitlab \
@@ -397,7 +401,7 @@ webhook-tests = github gitlab bitbucket
 api-tests = node features-openshift features-kubernetes nginx elasticsearch active-standby-openshift active-standby-kubernetes
 
 # All drupal tests
-drupal-tests = drupal drupal-postgres
+drupal-tests = drupal-php72 drupal-php73 drupal-php74 drupal-postgres
 
 # These targets are used as dependencies to bring up containers in the right order.
 .PHONY: main-test-services-up
