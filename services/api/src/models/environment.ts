@@ -287,6 +287,13 @@ export const EnvironmentModel = (clients) => {
                       "query": "UptimeRobot"
                     }
                   }
+                },
+                {
+                  "match_phrase": {
+                    "request_uri":  {
+                      "query": "acme-challenge"
+                    }
+                  }
                 }
               ]
             }
@@ -368,6 +375,13 @@ export const EnvironmentModel = (clients) => {
                   "match_phrase": {
                     "request_user_agent": {
                       "query": "UptimeRobot"
+                    }
+                  }
+                },
+                {
+                  "match_phrase": {
+                    "request_uri":  {
+                      "query": "acme-challenge"
                     }
                   }
                 }
