@@ -853,6 +853,15 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
 
   TEMPLATE_PARAMETERS=()
 
+  # Check for custom baas bucket name
+  if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
+    BAAS_BUCKET_NAME=$(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_BAAS_BUCKET_NAME") | "\(.value)"')
+  fi
+  if [ -z $BAAS_BUCKET_NAME ]; then
+    BAAS_BUCKET_NAME=baas-${PROJECT}
+  fi
+  TEMPLATE_PARAMETERS+=(-p BAAS_BUCKET_NAME="${BAAS_BUCKET_NAME}")
+
   # Run Backups every day at 2200-0200
   BACKUP_SCHEDULE=$( /kubectl-build-deploy/scripts/convert-crontab.sh "${NAMESPACE}" "M H(22-2) * * *")
   TEMPLATE_PARAMETERS+=(-p BACKUP_SCHEDULE="${BACKUP_SCHEDULE}")
@@ -870,7 +879,8 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
     -f /kubectl-build-deploy/values.yaml \
     --set backup.schedule="${BACKUP_SCHEDULE}" \
     --set check.schedule="${CHECK_SCHEDULE}" \
-    --set prune.schedule="${PRUNE_SCHEDULE}" "${HELM_ARGUMENTS[@]}"  > $YAML_FOLDER/k8up-lagoon-backup-schedule.yaml
+    --set prune.schedule="${PRUNE_SCHEDULE}" "${HELM_ARGUMENTS[@]}" \
+    --set baasBucketName="${BAAS_BUCKET_NAME}" > $YAML_FOLDER/k8up-lagoon-backup-schedule.yaml
 fi
 
 if [ "$(ls -A $YAML_FOLDER/)" ]; then
@@ -1046,12 +1056,13 @@ elif [ "$BUILD_TYPE" == "pullrequest" ] || [ "$BUILD_TYPE" == "branch" ]; then
     IMAGE_HASHES[${IMAGE_NAME}]=$(docker inspect ${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG:-latest} --format '{{json .RepoDigests}}' | "${JQ_QUERY[@]}")
   done
 
-# elif [ "$BUILD_TYPE" == "promote" ]; then
+elif [ "$BUILD_TYPE" == "promote" ]; then
 
-#   for IMAGE_NAME in "${IMAGES[@]}"
-#   do
-#     .  /kubectl-build-deploy/scripts/exec-kubernetes-tag.sh
-#   done
+  for IMAGE_NAME in "${IMAGES[@]}"
+  do
+    .  /kubectl-build-deploy/scripts/exec-kubernetes-promote.sh
+    IMAGE_HASHES[${IMAGE_NAME}]=$(skopeo inspect docker://${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG:-latest} --tls-verify=false | jq ".Name + \"@\" + .Digest" -r)
+  done
 
 fi
 

@@ -37,7 +37,7 @@
 - include: ../../checks/check-branch-sha.yaml
   vars:
     expected_head: "{{ current_head }}"
-    expected_branch: "{{ promote_environment }}"
+    expected_branch: ""
     expected_branch_buildtime: "{{ source_environment }}"
     project: "{{ project }}"
     url: "{{ check_url_promote }}"
