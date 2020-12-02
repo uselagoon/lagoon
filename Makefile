@@ -370,6 +370,7 @@ all-controller-k8s-tests-list:=				features-kubernetes \
 														nginx \
 														python \
 														drupal \
+														drupal-postgres \
 														active-standby-kubernetes
 all-controller-k8s-tests = $(foreach image,$(all-controller-k8s-tests-list),controller-k8s-tests/$(image))
 
