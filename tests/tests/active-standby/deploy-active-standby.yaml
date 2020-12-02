@@ -24,7 +24,7 @@
         body: '{ "query": "query($id: Int!) {taskById(id: $id){status}}", "variables": {"id":{{ apiresponse.json.data.switchActiveStandby.id }}}}'
       register: taskresult
       until: taskresult.json.data.taskById.status == "succeeded" or taskresult.json.data.taskById.status == "failed"
-      retries: 10
+      retries: 20
       delay: 5
     - name: "{{ testname }} - fail if task fails"
       fail:
