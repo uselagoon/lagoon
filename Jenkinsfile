@@ -153,12 +153,6 @@ node {
           }
         }
 
-        if (env.BRANCH_NAME == 'main' && env.SKIP_IMAGE_PUBLISH != 'true') {
-          stage ('save-images-s3') {
-            sh script: "make -O${SYNC_MAKE_OUTPUT} -j8 s3-save", label: "Saving images to AWS S3"
-          }
-        }
-
       } catch (e) {
         currentBuild.result = 'FAILURE'
         throw e
