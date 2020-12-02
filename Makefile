@@ -749,7 +749,7 @@ openshift-lagoon-setup:
 	oc -n lagoon policy add-role-to-user edit -z lagoon-deployer; \
 	oc -n lagoon create -f openshift-setup/clusterrole-daemonset-admin.yaml; \
 	oc -n lagoon adm policy add-cluster-role-to-user daemonset-admin -z lagoon-deployer; \
-	bash -c "oc process -n lagoon -f services/docker-host/docker-host.yaml | oc -n lagoon apply -f -"; \
+	bash -c "oc process -n lagoon -f openshift-setup/docker-host.yaml | oc -n lagoon apply -f -"; \
 	oc -n lagoon create -f openshift-setup/dbaas-roles.yaml; \
 	oc -n dbaas-operator-system create -f openshift-setup/dbaas-operator.yaml; \
 	oc -n lagoon create -f openshift-setup/dbaas-providers.yaml; \
