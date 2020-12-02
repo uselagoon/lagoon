@@ -924,3 +924,98 @@ ui-development: build/api build/api-db build/local-api-data-watcher-pusher build
 .PHONY: api-development
 api-development: build/api build/api-db build/local-api-data-watcher-pusher build/keycloak build/keycloak-db build/broker build/broker-single build/api-redis
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db local-api-data-watcher-pusher keycloak keycloak-db broker api-redis
+
+## CI targets
+
+KIND_VERSION = v0.9.0
+GOJQ_VERSION = v0.11.2
+KIND_IMAGE = kindest/node:v1.19.1@sha256:98cf5288864662e37115e362b23e4369c8c4a408f99cbc06e58ac30ddc721600
+TESTS = [features-kubernetes,nginx,active-standby-kubernetes,drupal-php72,drupal-php73,drupal-php74]
+CHARTS_TREEISH = lagoon-test-0.8.0
+
+local-dev/kind:
+ifeq ($(KIND_VERSION), $(shell kind version 2>/dev/null | sed -nE 's/kind (v[0-9.]+).*/\1/p'))
+	$(info linking local kind version $(KIND_VERSION))
+	ln -s $(shell command -v kind) ./local-dev/kind
+else
+	$(info downloading kind version $(KIND_VERSION) for $(ARCH))
+	curl -sSLo local-dev/kind https://github.com/kubernetes-sigs/kind/releases/download/$(KIND_VERSION)/kind-$(ARCH)-amd64
+	chmod a+x local-dev/kind
+endif
+
+local-dev/jq:
+ifeq ($(GOJQ_VERSION), $(shell jq -v 2>/dev/null | sed -nE 's/gojq ([0-9.]+).*/v\1/p'))
+	$(info linking local jq version $(KIND_VERSION))
+	ln -s $(shell command -v jq) ./local-dev/jq
+else
+	$(info downloading gojq version $(GOJQ_VERSION) for $(ARCH))
+	curl -sSL https://github.com/itchyny/gojq/releases/download/$(GOJQ_VERSION)/gojq_$(GOJQ_VERSION)_$(ARCH)_amd64.tar.gz | tar -xzC local-dev --strip-components=1 gojq_$(GOJQ_VERSION)_$(ARCH)_amd64/gojq
+	mv ./local-dev/{go,}jq && chmod a+x local-dev/jq
+endif
+
+.PHONY: helm/repos
+helm/repos: local-dev/helm
+	# install repo dependencies required by the charts
+	./local-dev/helm repo add harbor https://helm.goharbor.io
+	./local-dev/helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+	./local-dev/helm repo add stable https://charts.helm.sh/stable
+	./local-dev/helm repo add bitnami https://charts.bitnami.com/bitnami
+
+.PHONY: kind/cluster
+kind/cluster: local-dev/kind
+	# these IPs are a result of the docker config on our build nodes
+	export KUBECONFIG=$$(mktemp) \
+		KINDCONFIG=$$(mktemp -p . kindconfig.XXX) \
+		&& chmod 644 $$KUBECONFIG \
+		&& curl -sSLo $$KINDCONFIG https://raw.githubusercontent.com/uselagoon/lagoon-charts/$(CHARTS_TREEISH)/test-suite.kind-config.yaml \
+		&& echo '  [plugins."io.containerd.grpc.v1.cri".registry.configs."registry.192.168.48.2.nip.io:32443".tls]'  >> $$KINDCONFIG \
+		&& echo '    insecure_skip_verify = true'                                                                    >> $$KINDCONFIG \
+		&& echo '  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."registry.192.168.48.2.nip.io:32080"]'      >> $$KINDCONFIG \
+		&& echo '    endpoint = ["http://registry.192.168.48.2.nip.io:32080"]'                                       >> $$KINDCONFIG \
+		&& echo '  [plugins."io.containerd.grpc.v1.cri".registry.configs."registry.192.168.160.2.nip.io:32443".tls]' >> $$KINDCONFIG \
+		&& echo '    insecure_skip_verify = true'                                                                    >> $$KINDCONFIG \
+		&& echo '  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."registry.192.168.160.2.nip.io:32080"]'     >> $$KINDCONFIG \
+		&& echo '    endpoint = ["http://registry.192.168.160.2.nip.io:32080"]'                                      >> $$KINDCONFIG \
+		&& echo '  [plugins."io.containerd.grpc.v1.cri".registry.configs."registry.172.25.0.2.nip.io:32443".tls]'    >> $$KINDCONFIG \
+		&& echo '    insecure_skip_verify = true'                                                                    >> $$KINDCONFIG \
+		&& echo '  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."registry.172.25.0.2.nip.io:32080"]'        >> $$KINDCONFIG \
+		&& echo '    endpoint = ["http://registry.172.25.0.2.nip.io:32080"]'                                         >> $$KINDCONFIG \
+		&& echo 'nodes:'                                                                                             >> $$KINDCONFIG \
+		&& echo '- role: control-plane'                                                                              >> $$KINDCONFIG \
+		&& echo '  image: $(KIND_IMAGE)'                                                                             >> $$KINDCONFIG \
+		&& echo '  extraMounts:'                                                                                     >> $$KINDCONFIG \
+		&& echo '  - containerPath: /var/lib/kubelet/config.json'                                                    >> $$KINDCONFIG \
+		&& echo '    hostPath: $(HOME)/.docker/config.json'                                                          >> $$KINDCONFIG \
+		&& KIND_CLUSTER_NAME="$(CI_BUILD_TAG)" ./local-dev/kind create cluster --config=$$KINDCONFIG \
+		&& echo -e 'Interact with the cluster during the test run like so:\n' \
+		&& echo "export KUBECONFIG=\$$(mktemp) && scp $$NODE_NAME:$$KUBECONFIG \$$KUBECONFIG && KIND_PORT=\$$(sed -nE 's/.+server:.+:([0-9]+)/\1/p' \$$KUBECONFIG) && ssh -fNL \$$KIND_PORT:127.0.0.1:\$$KIND_PORT $$NODE_NAME" \
+		&& echo -e 'kubectl ...\n'
+
+KIND_SERVICES = api api-db api-redis auth-server broker controllerhandler drush-alias keycloak keycloak-db ssh
+
+.PHONY: kind/preload
+kind/preload: kind/cluster $(addprefix build/,$(KIND_SERVICES))
+	for image in $(KIND_SERVICES); do \
+		KIND_CLUSTER_NAME="$(CI_BUILD_TAG)" ./local-dev/kind load docker-image $(CI_BUILD_TAG)/$$image; \
+		done
+
+.PHONY: kind/test
+kind/test: kind/cluster kind/preload local-dev/helm local-dev/kind local-dev/kubectl local-dev/jq helm/repos
+	export CHARTSDIR=$$(mktemp -dp . lagoon-charts.XXX) \
+		&& git clone https://github.com/uselagoon/lagoon-charts.git "$$CHARTSDIR" \
+		&& cd "$$CHARTSDIR" \
+		&& git checkout $(CHARTS_TREEISH) \
+		&& export KUBECONFIG=$$(mktemp -p .. kubeconfig.XXX) \
+		&& KIND_CLUSTER_NAME="$(CI_BUILD_TAG)" ../local-dev/kind export kubeconfig \
+		&& $(MAKE) -O fill-test-ci-values TESTS=$(TESTS) IMAGE_TAG=$(BRANCH_NAME) HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) JQ=$$(realpath ../local-dev/jq) \
+		&& docker run --rm --network host --name ct-$(CI_BUILD_TAG) \
+			--volume "$$(pwd)/test-suite-run.ct.yaml:/etc/ct/ct.yaml" \
+			--volume "$$(pwd):/workdir" \
+			--volume "$$(realpath $$KUBECONFIG):/root/.kube/config" \
+			--workdir /workdir \
+			"quay.io/helmpack/chart-testing:v3.1.1" \
+			ct install
+
+.PHONY: kind/clean
+kind/clean: local-dev/kind
+	KIND_CLUSTER_NAME="$(CI_BUILD_TAG)" ./local-dev/kind delete cluster
