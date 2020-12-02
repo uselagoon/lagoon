@@ -1,0 +1,27 @@
+
+- name: "{{ testname }} - init git, add files, commit, git push"
+  hosts: localhost
+  serial: 1
+  vars:
+    git_files: "python{{ python_version }}/"
+  tasks:
+  - include: ../../tasks/git-init.yaml
+  - include: ../../tasks/git-add-commit-push.yaml
+
+- name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}, which should deploy the first commit"
+  hosts: localhost
+  serial: 1
+  vars:
+    branch: "{{ branch }}"
+    project: "{{ project }}"
+  tasks:
+  - include: ../../tasks/api/deploy-no-sha.yaml
+
+#- include: ../../checks/check-branch-sha.yaml
+#  #  when:
+#  #    - expected_status != "500"
+#  vars:
+#    expected_head: "{{ current_head }}"
+#    expected_branch: "{{ branch }}"
+#    project: "{{ project }}"
+#    url: "{{ check_url }}"

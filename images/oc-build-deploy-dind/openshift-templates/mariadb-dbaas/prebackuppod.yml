@@ -84,7 +84,7 @@ objects:
         containers:
           - args:
               - sleep
-              - '3600'
+              - infinity
             env:
               - name: BACKUP_DB_HOST
                 valueFrom:
