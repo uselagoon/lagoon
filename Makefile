@@ -443,7 +443,7 @@ openshift-test-services = openshiftremove openshiftbuilddeploy openshiftbuilddep
 kubernetes-test-services = kubernetesbuilddeploy kubernetesdeployqueue kubernetesbuilddeploymonitor kubernetesjobs kubernetesjobsmonitor kubernetesremove kubernetesmisc tests-kubernetes local-registry local-dbaas-provider local-postgresql-dbaas-provider drush-alias
 
 # Define a list of which Lagoon Services are needed for controller kubernetes testing
-controller-k8s-test-services = controllerhandler tests-controller-kubernetes local-registry local-dbaas-provider postgres-local-dbaas-provider drush-alias
+controller-k8s-test-services = controllerhandler tests-controller-kubernetes local-registry local-dbaas-provider local-postgresql-dbaas-provider drush-alias
 
 # List of Lagoon Services needed for webhook endpoint testing
 webhooks-test-services = webhook-handler webhooks2tasks backup-handler
