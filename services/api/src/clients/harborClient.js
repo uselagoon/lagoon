@@ -3,7 +3,7 @@ const R = require('ramda');
 
 const { HARBOR_ADMIN_PASSWORD } = process.env;
 
-const defaultHarborUrl = R.propOr('http://harbor.172.17.0.1.nip.io:18080', 'HARBOR_URL', process.env);
+const defaultHarborUrl = R.propOr('http://harbor-harbor-core.harbor.svc.cluster.local:80', 'HARBOR_URL', process.env);
 
 const lagoonHarborRoute = R.compose(
   R.defaultTo(defaultHarborUrl),

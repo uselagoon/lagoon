@@ -119,7 +119,7 @@ services:
       - ./node-packages:/app/node-packages:delegated
     environment:
       - CI=${CI:-true}
-      - REGISTRY=harbor.172.17.0.1.nip.io:18080 # Docker network bridge and forwarded port for harbor-nginx
+      - REGISTRY=harbor-harbor-core.harbor.svc.cluster.local:80 # Docker network bridge and forwarded port for harbor-nginx
     depends_on:
       - api-db
       - keycloak
