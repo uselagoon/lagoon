@@ -376,7 +376,7 @@ $(all-controller-k8s-tests): k3d controller-k8s-test-services-up
 		$(MAKE) push-local-registry -j6
 		$(eval testname = $(subst controller-k8s-tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility run --rm \
-			tests-controller-kubernetes ansible-playbook --skip-tags="skip-on-kubernetes" \
+			tests-controller-kubernetes ansible-playbook --skip-tags="skip-on-kubernetes,skip-on-kubernetes-controller" \
 			/ansible/tests/$(testname).yaml \
 			--extra-vars \
 			"$$(cat $$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)') | \

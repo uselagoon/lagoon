@@ -35,6 +35,7 @@
     branch: remoteshell
 
 - include: features/promote.yaml
+  tags: skip-on-kubernetes-controller
   vars:
     testname: "PROMOTE {{ lookup('env','CLUSTER_TYPE')|upper }}"
     git_repo_name: features.git
