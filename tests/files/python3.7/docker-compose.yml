@@ -1,6 +1,6 @@
 version: '2'
 services:
-  app:
+  python:
     networks:
       - amazeeio-network
       - default
