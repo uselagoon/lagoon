@@ -573,6 +573,7 @@ mutation PopulateApi {
       activeSystemsTask: "lagoon_kubernetesJob"
       activeSystemsMisc: "lagoon_kubernetesMisc"
       activeSystemsDeploy: "lagoon_kubernetesBuildDeploy"
+      activeSystemsPromote: "lagoon_kubernetesBuildDeploy"
       activeSystemsRemove: "lagoon_kubernetesRemove"
     }
   ) {
