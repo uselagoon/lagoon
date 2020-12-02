@@ -205,15 +205,7 @@ services :=	api \
 			drush-alias \
 			keycloak \
 			keycloak-db \
-			logs-concentrator \
-			logs-db \
-			logs-db-curator \
-			logs-db-ui \
-			logs-dispatcher \
-			logs-forwarder \
-			logs-tee \
 			logs2email \
-			logs2logs-db \
 			logs2microsoftteams \
 			logs2rocketchat \
 			logs2slack \
@@ -243,14 +235,6 @@ build/broker: build/rabbitmq-cluster build/broker-single
 build/drush-alias: services/drush-alias/Dockerfile
 build/keycloak-db: services/keycloak-db/Dockerfile
 build/keycloak: services/keycloak/Dockerfile
-build/logs-concentrator: services/logs-concentrator/Dockerfile
-build/logs-db-curator: build/curator
-build/logs-db-ui: services/logs-db-ui/Dockerfile
-build/logs-db: services/logs-db/Dockerfile
-build/logs-dispatcher: services/logs-dispatcher/Dockerfile
-build/logs-forwarder: services/logs-forwarder/Dockerfile
-build/logs-tee: services/logs-tee/Dockerfile
-build/logs2logs-db: services/logs2logs-db/Dockerfile
 build/storage-calculator: build/oc
 build/tests-controller-kubernetes: build/tests
 build/tests-kubernetes: build/tests
@@ -602,31 +586,6 @@ $(publish-uselagoon-taskimages):
 # 	Publish images with version tag
 		$(call docker_publish_uselagoon,$(image),$(image):$(LAGOON_VERSION))
 
-
-s3-save = $(foreach image,$(s3-images),[s3-save]-$(image))
-# save all images to s3
-.PHONY: s3-save
-s3-save: $(s3-save)
-# tag and push of each image
-.PHONY: $(s3-save)
-$(s3-save):
-#   remove the prefix '[s3-save]-' first
-		$(eval image = $(subst [s3-save]-,,$@))
-		$(eval image = $(subst __,:,$(image)))
-		docker save $(CI_BUILD_TAG)/$(image) $$(docker history -q $(CI_BUILD_TAG)/$(image) | grep -v missing) | gzip -9 | aws s3 cp - s3://lagoon-images/$(image).tar.gz
-
-s3-load = $(foreach image,$(s3-images),[s3-load]-$(image))
-# save all images to s3
-.PHONY: s3-load
-s3-load: $(s3-load)
-# tag and push of each image
-.PHONY: $(s3-load)
-$(s3-load):
-#   remove the prefix '[s3-load]-' first
-		$(eval image = $(subst [s3-load]-,,$@))
-		$(eval image = $(subst __,:,$(image)))
-		curl -s https://s3.us-east-2.amazonaws.com/lagoon-images/$(image).tar.gz | gunzip -c | docker load
-
 # Clean all build touches, which will case make to rebuild the Docker Images (Layer caching is
 # still active, so this is a very safe command)
 clean:
@@ -647,8 +606,6 @@ else
 		IMAGE_REPO=$(CI_BUILD_TAG) \
 		docker-compose -p $(CI_BUILD_TAG) --compatibility up -d
 endif
-	grep -m 1 ".opendistro_security index does not exist yet" <(docker-compose -p $(CI_BUILD_TAG) logs -f logs-db 2>&1)
-	while ! docker exec "$$(docker-compose -p $(CI_BUILD_TAG) ps -q logs-db)" ./securityadmin_demo.sh; do sleep 5; done
 	$(MAKE) wait-for-keycloak
 
 down:
@@ -705,7 +662,7 @@ minishift/login-docker-registry: minishift
 openshift-lagoon-setup:
 # Only use the minishift provided oc if we don't have one yet (allows system engineers to use their own oc)
 	if ! which oc; then eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); fi; \
-	oc -n default set env dc/router -e ROUTER_LOG_LEVEL=info -e ROUTER_SYSLOG_ADDRESS=router-logs.lagoon.svc:5140; \
+	oc -n default set env dc/router -e ROUTER_LOG_LEVEL=info -e ROUTER_SYSLOG_ADDRESS=router-logs.lagoon.svc:5141; \
 	oc new-project lagoon; \
 	oc adm pod-network make-projects-global lagoon; \
 	oc -n lagoon create serviceaccount openshiftbuilddeploy; \
@@ -718,16 +675,12 @@ openshift-lagoon-setup:
 	oc -n lagoon create serviceaccount docker-host; \
 	oc -n lagoon adm policy add-scc-to-user privileged -z docker-host; \
 	oc -n lagoon policy add-role-to-user edit -z docker-host; \
-	oc -n lagoon create serviceaccount logs-collector; \
-	oc -n lagoon adm policy add-cluster-role-to-user cluster-reader -z logs-collector; \
-	oc -n lagoon adm policy add-scc-to-user hostaccess -z logs-collector; \
-	oc -n lagoon adm policy add-scc-to-user privileged -z logs-collector; \
 	oc -n lagoon adm policy add-cluster-role-to-user daemonset-admin -z lagoon-deployer; \
 	oc -n lagoon create serviceaccount lagoon-deployer; \
 	oc -n lagoon policy add-role-to-user edit -z lagoon-deployer; \
 	oc -n lagoon create -f openshift-setup/clusterrole-daemonset-admin.yaml; \
 	oc -n lagoon adm policy add-cluster-role-to-user daemonset-admin -z lagoon-deployer; \
-	bash -c "oc process -n lagoon -f services/docker-host/docker-host.yaml | oc -n lagoon apply -f -"; \
+	bash -c "oc process -n lagoon -f openshift-setup/docker-host.yaml | oc -n lagoon apply -f -"; \
 	oc -n lagoon create -f openshift-setup/dbaas-roles.yaml; \
 	oc -n dbaas-operator-system create -f openshift-setup/dbaas-operator.yaml; \
 	oc -n lagoon create -f openshift-setup/dbaas-providers.yaml; \
