@@ -901,9 +901,9 @@ kubectl -n ${NAMESPACE} create configmap lagoon-env -o yaml --dry-run --from-env
 # the lagoon-env configmap can then be left for persistent changes
 # mounting `lagoon-api-vars` into a pod after `lagoon-env` means that what is in the api-vars configmap
 # should be used instead of whats in lagoon-env, meaning API variables will be used before lagoon-env ones
-if ! kubectl -n ${NAMESPACE} get configmap lagoon-api-vars &> /dev/null; then
+if ! kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap lagoon-api-vars &> /dev/null; then
 # only create the configmap if it doesn't already exist
-cat <<EOF | kubectl apply -n ${NAMESPACE} -f -
+cat <<EOF | kubectl --insecure-skip-tls-verify apply -n ${NAMESPACE} -f -
 kind: ConfigMap
 apiVersion: v1
 metadata:
@@ -914,7 +914,10 @@ fi
 
 set +x # reduce noise in build logs
 # store the existing variables that are in the configmap here
-EXISTING_CONFIGMAP_VARS=$(kubectl -n ${NAMESPACE} get configmap lagoon-api-vars -o json | jq -r '.data | keys[]' 2> /dev/null)
+EXISTING_CONFIGMAP_VARS=""
+if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap lagoon-api-vars -o json | jq -r '.data | keys[]' 2> /dev/null; then
+  EXISTING_CONFIGMAP_VARS=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap lagoon-api-vars -o json | jq -r '.data | keys[]' 2> /dev/null)
+fi
 
 # Add environment variables from lagoon API
 # patch the `lagoon-api-vars` configmap with what is in actually in the lagoon api
@@ -943,7 +946,7 @@ fi
 # work out which ones no longer exist in the API and run patch op remove on them
 if [ ! -z "$EXISTING_CONFIGMAP_VARS" ]; then
   # get what is in the configmap now that the patch operations to add what is in the API has been done already
-  CURRENT_CONFIGMAP_VARS=$(kubectl -n ${NAMESPACE} get configmap lagoon-api-vars -o json | jq -r '.data | keys[]')
+  CURRENT_CONFIGMAP_VARS=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap lagoon-api-vars -o json | jq -r '.data | keys[]')
   # get the keys of the vars that were added from the api
   API_PROJECT_VARS=$(echo $LAGOON_PROJECT_VARIABLES | jq -r 'map( select(.scope == "runtime" or .scope == "global") ) | map( { (.name) : .value } ) | add | keys[]')
   API_ENVIRONMENT_VARS=$(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r 'map( select(.scope == "runtime" or .scope == "global") ) | map( { (.name) : .value } ) | add | keys[]')
