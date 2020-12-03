@@ -839,6 +839,8 @@ oc process --local --insecure-skip-tls-verify \
 # the lagoon-env configmap can then be left for persistent changes
 # mounting `lagoon-api-vars` into a pod after `lagoon-env` means that what is in the api-vars configmap
 # should be used instead of whats in lagoon-env, meaning API variables will be used before lagoon-env ones
+if ! oc -n ${OPENSHIFT_PROJECT} get configmap lagoon-api-vars &> /dev/null; then
+# only create the configmap if it doesn't already exist
 cat <<EOF | oc apply --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} -f -
 kind: ConfigMap
 apiVersion: v1
@@ -846,8 +848,12 @@ metadata:
   name: lagoon-api-vars
 data:
 EOF
+fi
 
 set +x # reduce noise in build logs
+# store the existing variables that are in the configmap here
+EXISTING_CONFIGMAP_VARS=$(oc -n ${OPENSHIFT_PROJECT} get configmap lagoon-api-vars -o json | jq -r '.data | keys[]' 2> /dev/null)
+
 # Add environment variables from lagoon API
 # patch the `lagoon-api-vars` configmap with what is in actually in the lagoon api
 if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
@@ -868,6 +874,34 @@ if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
       -n ${OPENSHIFT_PROJECT} \
       configmap lagoon-api-vars \
       -p "{\"data\":$(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r 'map( select(.scope == "runtime" or .scope == "global") ) | map( { (.name) : .value } ) | add | tostring')}"
+  fi
+fi
+
+# if there were existing vars in the configmap
+# work out which ones no longer exist in the API and run patch op remove on them
+if [ ! -z "$EXISTING_CONFIGMAP_VARS" ]; then
+  # get what is in the configmap now that the patch operations to add what is in the API has been done already
+  CURRENT_CONFIGMAP_VARS=$(oc -n ${OPENSHIFT_PROJECT} get configmap lagoon-api-vars -o json | jq -r '.data | keys[]')
+  # get the keys of the vars that were added from the api
+  API_PROJECT_VARS=$(echo $LAGOON_PROJECT_VARIABLES | jq -r 'map( select(.scope == "runtime" or .scope == "global") ) | map( { (.name) : .value } ) | add | keys[]')
+  API_ENVIRONMENT_VARS=$(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r 'map( select(.scope == "runtime" or .scope == "global") ) | map( { (.name) : .value } ) | add | keys[]')
+  # get all the unique keys from the API and current configmap
+  # and remove anything that isn't in the API anymore from the configmap
+  VARS_TO_REMOVE1=$(comm -23 <(echo $CURRENT_CONFIGMAP_VARS | tr ' ' '\n' | sort) <(echo $API_ENVIRONMENT_VARS | tr ' ' '\n' | sort))
+  VARS_TO_REMOVE2=$(comm -23 <(echo $VARS_TO_REMOVE1 | tr ' ' '\n' | sort) <(echo $API_PROJECT_VARS | tr ' ' '\n' | sort))
+
+  # if there are vars to remove, then craft the remove operation patch
+  REMOVE_OPERATION_JSON=""
+  if [ ! -z "$VARS_TO_REMOVE2" ]; then
+    for VAR_TO_REMOVE in $VARS_TO_REMOVE2
+    do
+      REMOVE_OPERATION_JSON="${REMOVE_OPERATION_JSON:+$REMOVE_OPERATION_JSON, }$(echo -n {\"op\": \"remove\", \"path\": \"/data/$VAR_TO_REMOVE\"})"
+    done
+    # then actually apply the patch to remove the vars from the configmap
+    oc patch --insecure-skip-tls-verify \
+      -n ${OPENSHIFT_PROJECT} \
+      configmap lagoon-api-vars \
+      --type=json -p "[$REMOVE_OPERATION_JSON]"
   fi
 fi
 set -x
