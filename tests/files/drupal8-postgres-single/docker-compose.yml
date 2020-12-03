@@ -1,0 +1,82 @@
+version: '2'
+services:
+  cli:
+    build:
+      context: .
+      dockerfile: builder.dockerfile
+    image: builder
+    labels:
+      lagoon.type: cli-persistent
+      lagoon.persistent: /app/web/sites/default/files/
+      lagoon.persistent.name: nginx
+    environment:
+      LAGOON_PROJECT: ci-drupal
+    volumes:
+      - ./web:/app/web:delegated
+  varnish:
+    networks:
+      - amazeeio-network
+      - default
+    build:
+      context: .
+      dockerfile: varnish.dockerfile
+    labels:
+      lagoon.type: varnish
+      lagoon.name: varnish
+    depends_on:
+      - nginx
+  nginx:
+    networks:
+      - amazeeio-network
+      - default
+    build:
+      context: .
+      dockerfile: nginx.dockerfile
+    labels:
+      lagoon.type: nginx-php-persistent
+      lagoon.persistent: /app/web/sites/default/files/
+      lagoon.name: nginx
+    volumes:
+      - ./web:/app/web:delegated
+    depends_on:
+      - cli
+    expose:
+      - "8080"
+    environment:
+      - AMAZEEIO_URL=drupal.docker.amazee.io
+  php:
+    build:
+      context: .
+      dockerfile: php.dockerfile
+    labels:
+      lagoon.type: nginx-php-persistent
+      lagoon.persistent: /app/web/sites/default/files/
+      lagoon.name: nginx
+    volumes:
+      - ./web:/app/web:delegated
+    depends_on:
+      - cli
+  postgres:
+    build:
+      context: .
+      dockerfile: postgres.dockerfile
+    labels:
+      lagoon.type: postgres-single
+  redis:
+    build:
+      context: .
+      dockerfile: redis.dockerfile
+    labels:
+      lagoon.type: redis
+  solr:
+    networks:
+      - amazeeio-network
+      - default
+    build:
+      context: .
+      dockerfile: solr.dockerfile
+    labels:
+      lagoon.type: solr
+networks:
+  amazeeio-network:
+    external: true

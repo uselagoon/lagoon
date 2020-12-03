@@ -470,6 +470,17 @@ services:
       MYSQL_ROOT_PASSWORD: 'password'
     ports:
       - '3306:3306'
+  local-postgresql-dbaas-provider:
+    image: ${IMAGE_REPO:-lagoon}/local-postgresql-dbaas-provider
+    restart: always
+    labels:
+      lagoon.type: none
+    environment:
+      POSTGRES_DB: 'postgres'
+      POSTGRES_USER: 'postgres'
+      POSTGRES_PASSWORD: 'password'
+    ports:
+      - '5432:5432'
   local-minio:
     image: minio/minio
     entrypoint: sh
@@ -653,7 +664,7 @@ services:
     image: ${IMAGE_REPO:-lagoon}/harbor-database
     hostname: harbor-database
     ports:
-      - '5432:5432'
+      - '5433:5432'
     environment:
       - POSTGRES_PASSWORD=test123
       - POSTGRES_USER=postgres
