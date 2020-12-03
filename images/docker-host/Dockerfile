@@ -34,6 +34,7 @@ ENV DOCKER_HOST=docker-host \
 RUN fix-permissions /home
 
 COPY update-push-images.sh /update-push-images.sh
+COPY update-images.sh /update-images.sh
 COPY prune-images.sh /prune-images.sh
 COPY remove-exited.sh /remove-exited.sh
 
