@@ -412,7 +412,6 @@ $(push-local-registry-images):
 all-openshift-tests-list:=	features-openshift \
 														node \
 														drupal \
-														drupal-postgres \
 														github \
 														gitlab \
 														bitbucket \
