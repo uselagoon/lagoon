@@ -9,7 +9,7 @@ mutation PopulateApi {
       routerPattern: "${project}.${environment}.${INGRESS_IP}.nip.io"
       sshHost: "172.17.0.1"
       sshPort: "2020"
-      token: "eyJhbGciOiJSUzI1NiIsImtpZCI6IndkVEhaM0xqWl9TVDNEcFpmaTZDcEV5X3ZlVnBtdEIxMFpYVTI2SmRaTkUifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJsYWdvb24iLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlY3JldC5uYW1lIjoibGFnb29uLXJlbW90ZS1rdWJlcm5ldGVzLWJ1aWxkLWRlcGxveS10b2tlbi1oY2xsYyIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50Lm5hbWUiOiJsYWdvb24tcmVtb3RlLWt1YmVybmV0ZXMtYnVpbGQtZGVwbG95Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQudWlkIjoiMTM1Mzg5NWQtYzRmNC00NzYxLWEyNjAtYmE5NzY1MDgxYzU5Iiwic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50OmxhZ29vbjpsYWdvb24tcmVtb3RlLWt1YmVybmV0ZXMtYnVpbGQtZGVwbG95In0.FP1roVoZ03GmmSePu6bYBnSNhAocAOZ3xlD0PJ09Km-_3nYQ46RwZzW7bBzZWlJTvRWhqoae3oFt8pLUDyq2Ibg9MBUjVixGsQ58bY7WiF5gyoYNlq79-8rglAdVK_6IzIgrEEBBaMMySEY4jOTOJfsxtgiACi3m-nsf8u2epAXBqX0MaF9AZe4ILsEnhLSOiAuuzCr173rsY-bezrITtBuOdkFmwptB55d1GCiHPvEh5C17GGZtKs6Wyo_yBIQOyEti5bpG2Vc3Bwm1taA2OPox41pApvRlfQSa32_ZtVyFyi_zsZKYTq-fnex7BNmJfPiJG9B9q0Ib3HM3K6bjyQ" # make-kubernetes-token
+      token: "${TOKEN}" # make-kubernetes-token
     }
   ) {
     id
