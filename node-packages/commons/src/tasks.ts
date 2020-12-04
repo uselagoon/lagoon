@@ -537,7 +537,6 @@ export const createDeployTask = async function(deployData: any) {
     case 'lagoon_openshiftBuildDeploy':
     case 'lagoon_kubernetesBuildDeploy':
     case 'lagoon_controllerBuildDeploy':
-    case 'lagoon_osControllerBuildDeploy':
       // we want to limit production environments, without making it configurable currently
       var productionEnvironmentsLimit = 2;
 
