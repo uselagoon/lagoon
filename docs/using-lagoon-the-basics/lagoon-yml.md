@@ -124,7 +124,9 @@ Note: If you would like to temporarily disable pre/post-rollout tasks during a d
 
 ## Routes
 
-{% embed url="https://www.youtube.com/watch?v=un23Vivz\_-Q" caption="How do I add a new route?" %}
+{% embed url="https://www.youtube.com/watch?v=0D8vp55z1qc&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=4" caption="How do i add a new route?" %}
+
+
 
 ### `routes.autogenerate.enabled`
 
@@ -205,7 +207,7 @@ In the `"www.example.com"` example repeated below, we see two more options \(als
 * `hsts` can be set to a value of `max-age=31536000;includeSubDomains;preload`. Ensure there are no spaces and no other parameters included. Only the `max-age` parameter is required. The required `max-age` parameter indicates the length of time, in seconds, the HSTS policy is in effect for.
 
 {% hint style="info" %}
-If you plan to switch from a SSL certificate signed by a Certificate Authority \(CA\) to a Let's Encrypt certificate, it's best get in touch with your Lagoon administrator to oversee the transition. There are [known issues](https://github.com/tnozicka/openshift-acme/issues/68) during the transition. The workaround would be manually removing the CA certificate and then triggering the Let's Encrypt process.
+If you plan to switch from a SSL certificate signed by a Certificate Authority \(CA\) to a Let's Encrypt certificate, it's best to get in touch with your Lagoon administrator to oversee the transition. There are [known issues](https://github.com/tnozicka/openshift-acme/issues/68) during the transition. The workaround would be manually removing the CA certificate and then triggering the Let's Encrypt process.
 {% endhint %}
 
 {% tabs %}

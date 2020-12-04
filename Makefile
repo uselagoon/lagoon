@@ -203,26 +203,9 @@ services :=	api \
 			broker-single \
 			controllerhandler \
 			drush-alias \
-			harbor-core \
-			harbor-database \
-			harbor-jobservice \
-			harbor-nginx \
-			harbor-portal \
-			harbor-redis \
-			harbor-trivy \
-			harborregistry \
-			harborregistryctl \
 			keycloak \
 			keycloak-db \
-			logs-concentrator \
-			logs-db \
-			logs-db-curator \
-			logs-db-ui \
-			logs-dispatcher \
-			logs-forwarder \
-			logs-tee \
 			logs2email \
-			logs2logs-db \
 			logs2microsoftteams \
 			logs2rocketchat \
 			logs2slack \
@@ -250,30 +233,14 @@ build/auto-idler: build/oc
 build/broker-single: build/rabbitmq
 build/broker: build/rabbitmq-cluster build/broker-single
 build/drush-alias: services/drush-alias/Dockerfile
-build/harbor-core: services/harbor-core/Dockerfile
-build/harbor-database: services/harbor-database/Dockerfile
-build/harbor-jobservice: services/harbor-jobservice/Dockerfile
-build/harbor-nginx: services/harbor-nginx/Dockerfile
-build/harbor-portal: services/harbor-portal/Dockerfile
-build/harbor-redis: services/harbor-redis/Dockerfile
-build/harbor-trivy build/local-minio: services/harbor-trivy/Dockerfile
-build/harborregistry: services/harborregistry/Dockerfile
-build/harborregistryctl: services/harborregistryctl/Dockerfile
 build/keycloak-db: services/keycloak-db/Dockerfile
 build/keycloak: services/keycloak/Dockerfile
-build/logs-concentrator: services/logs-concentrator/Dockerfile
-build/logs-db-curator: build/curator
-build/logs-db-ui: services/logs-db-ui/Dockerfile
-build/logs-db: services/logs-db/Dockerfile
-build/logs-dispatcher: services/logs-dispatcher/Dockerfile
-build/logs-forwarder: services/logs-forwarder/Dockerfile
-build/logs-tee: services/logs-tee/Dockerfile
-build/logs2logs-db: services/logs2logs-db/Dockerfile
 build/storage-calculator: build/oc
 build/tests-controller-kubernetes: build/tests
 build/tests-kubernetes: build/tests
 build/tests-openshift: build/tests
 build/tests: tests/Dockerfile
+build/local-minio:
 # Auth SSH needs the context of the root folder, so we have it individually
 build/ssh: services/ssh/Dockerfile
 	$(eval image = $(subst build/,,$@))
@@ -326,7 +293,9 @@ build-list:
 
 # Define list of all tests
 all-k8s-tests-list:=				nginx \
-														drupal \
+														drupal-php72 \
+														drupal-php73 \
+														drupal-php74 \
 														active-standby-kubernetes \
 														features-kubernetes
 
@@ -341,7 +310,7 @@ $(all-k8s-tests): k3d k8s-test-services-up
 		$(MAKE) push-local-registry -j6
 		$(eval testname = $(subst k8s-tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) UPSTREAM_REPO=$(UPSTREAM_REPO) UPSTREAM_TAG=$(UPSTREAM_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility run --rm \
-			tests-kubernetes ansible-playbook --skip-tags="skip-on-kubernetes" \
+			tests-kubernetes ansible-playbook --skip-tags="skip-on-kubernetes,skip-on-jenkins" \
 			/ansible/tests/$(testname).yaml \
 			--extra-vars \
 			"$$(cat $$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)') | \
@@ -369,7 +338,9 @@ $(push-local-registry-images):
 # Define list of all tests
 all-openshift-tests-list:=	features-openshift \
 														node \
-														drupal \
+														drupal-php72 \
+														drupal-php73 \
+														drupal-php74 \
 														drupal-postgres \
 														github \
 														gitlab \
@@ -393,7 +364,7 @@ wait-for-keycloak:
 	grep -m 1 "Config of Keycloak done." <(docker-compose -p $(CI_BUILD_TAG) --compatibility logs -f keycloak 2>&1)
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
-main-test-services = broker logs2email logs2slack logs2rocketchat logs2microsoftteams api api-db keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher harbor-core harbor-database harbor-jobservice harbor-portal harbor-nginx harbor-redis harborregistry harborregistryctl harbor-trivy local-minio
+main-test-services = broker logs2email logs2slack logs2rocketchat logs2microsoftteams api api-db api-redis keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher local-minio
 
 # Define a list of which Lagoon Services are needed for openshift testing
 openshift-test-services = openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor openshiftmisc tests-openshift
@@ -414,7 +385,7 @@ webhook-tests = github gitlab bitbucket
 api-tests = node features-openshift features-kubernetes nginx elasticsearch active-standby-openshift active-standby-kubernetes
 
 # All drupal tests
-drupal-tests = drupal drupal-postgres
+drupal-tests = drupal-php72 drupal-php73 drupal-php74 drupal-postgres
 
 # These targets are used as dependencies to bring up containers in the right order.
 .PHONY: main-test-services-up
@@ -507,11 +478,6 @@ lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build/$(image
 	sleep 90
 	curl -X POST -H "Content-Type: application/json" --data 'mutation { deployEnvironmentBranch(input: { project: { name: "lagoon" }, branchName: "master" } )}' http://localhost:3000/graphql
 	make logs
-
-# Start only the local Harbor for testing purposes
-local-harbor: build/harbor-core build/harbor-database build/harbor-jobservice build/harbor-portal build/harbor-nginx build/harbor-redis build/harborregistry build/harborregistryctl build/harbor-trivy
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d harbor-core harbor-database harbor-jobservice harbor-portal harbor-nginx harbor-redis harborregistry harborregistryctl harbor-trivy local-minio
-
 
 #######
 ####### Publishing Images
@@ -620,31 +586,6 @@ $(publish-uselagoon-taskimages):
 # 	Publish images with version tag
 		$(call docker_publish_uselagoon,$(image),$(image):$(LAGOON_VERSION))
 
-
-s3-save = $(foreach image,$(s3-images),[s3-save]-$(image))
-# save all images to s3
-.PHONY: s3-save
-s3-save: $(s3-save)
-# tag and push of each image
-.PHONY: $(s3-save)
-$(s3-save):
-#   remove the prefix '[s3-save]-' first
-		$(eval image = $(subst [s3-save]-,,$@))
-		$(eval image = $(subst __,:,$(image)))
-		docker save $(CI_BUILD_TAG)/$(image) $$(docker history -q $(CI_BUILD_TAG)/$(image) | grep -v missing) | gzip -9 | aws s3 cp - s3://lagoon-images/$(image).tar.gz
-
-s3-load = $(foreach image,$(s3-images),[s3-load]-$(image))
-# save all images to s3
-.PHONY: s3-load
-s3-load: $(s3-load)
-# tag and push of each image
-.PHONY: $(s3-load)
-$(s3-load):
-#   remove the prefix '[s3-load]-' first
-		$(eval image = $(subst [s3-load]-,,$@))
-		$(eval image = $(subst __,:,$(image)))
-		curl -s https://s3.us-east-2.amazonaws.com/lagoon-images/$(image).tar.gz | gunzip -c | docker load
-
 # Clean all build touches, which will case make to rebuild the Docker Images (Layer caching is
 # still active, so this is a very safe command)
 clean:
@@ -665,8 +606,6 @@ else
 		IMAGE_REPO=$(CI_BUILD_TAG) \
 		docker-compose -p $(CI_BUILD_TAG) --compatibility up -d
 endif
-	grep -m 1 ".opendistro_security index does not exist yet" <(docker-compose -p $(CI_BUILD_TAG) logs -f logs-db 2>&1)
-	while ! docker exec "$$(docker-compose -p $(CI_BUILD_TAG) ps -q logs-db)" ./securityadmin_demo.sh; do sleep 5; done
 	$(MAKE) wait-for-keycloak
 
 down:
@@ -723,7 +662,7 @@ minishift/login-docker-registry: minishift
 openshift-lagoon-setup:
 # Only use the minishift provided oc if we don't have one yet (allows system engineers to use their own oc)
 	if ! which oc; then eval $$(./local-dev/minishift/minishift --profile $(CI_BUILD_TAG) oc-env); fi; \
-	oc -n default set env dc/router -e ROUTER_LOG_LEVEL=info -e ROUTER_SYSLOG_ADDRESS=router-logs.lagoon.svc:5140; \
+	oc -n default set env dc/router -e ROUTER_LOG_LEVEL=info -e ROUTER_SYSLOG_ADDRESS=router-logs.lagoon.svc:5141; \
 	oc new-project lagoon; \
 	oc adm pod-network make-projects-global lagoon; \
 	oc -n lagoon create serviceaccount openshiftbuilddeploy; \
@@ -736,16 +675,12 @@ openshift-lagoon-setup:
 	oc -n lagoon create serviceaccount docker-host; \
 	oc -n lagoon adm policy add-scc-to-user privileged -z docker-host; \
 	oc -n lagoon policy add-role-to-user edit -z docker-host; \
-	oc -n lagoon create serviceaccount logs-collector; \
-	oc -n lagoon adm policy add-cluster-role-to-user cluster-reader -z logs-collector; \
-	oc -n lagoon adm policy add-scc-to-user hostaccess -z logs-collector; \
-	oc -n lagoon adm policy add-scc-to-user privileged -z logs-collector; \
 	oc -n lagoon adm policy add-cluster-role-to-user daemonset-admin -z lagoon-deployer; \
 	oc -n lagoon create serviceaccount lagoon-deployer; \
 	oc -n lagoon policy add-role-to-user edit -z lagoon-deployer; \
 	oc -n lagoon create -f openshift-setup/clusterrole-daemonset-admin.yaml; \
 	oc -n lagoon adm policy add-cluster-role-to-user daemonset-admin -z lagoon-deployer; \
-	bash -c "oc process -n lagoon -f services/docker-host/docker-host.yaml | oc -n lagoon apply -f -"; \
+	bash -c "oc process -n lagoon -f openshift-setup/docker-host.yaml | oc -n lagoon apply -f -"; \
 	oc -n lagoon create -f openshift-setup/dbaas-roles.yaml; \
 	oc -n dbaas-operator-system create -f openshift-setup/dbaas-operator.yaml; \
 	oc -n lagoon create -f openshift-setup/dbaas-providers.yaml; \
@@ -856,13 +791,15 @@ endif
 		--image docker.io/rancher/k3s:$(K3S_VERSION) \
 		--volume $$PWD/local-dev/k3d-registries.yaml:/etc/rancher/k3s/registries.yaml \
 		$(K3D_BTRFS_VOLUME) \
-		-x --no-deploy=traefik \
-		--volume $$PWD/local-dev/k3d-nginx-ingress.yaml:/var/lib/rancher/k3s/server/manifests/k3d-nginx-ingress.yaml
+		-x --no-deploy=traefik
 	echo "$(K3D_NAME)" > $@
 	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; \
 	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" apply -f $$PWD/local-dev/k3d-storageclass-bulk.yaml; \
 	docker tag $(CI_BUILD_TAG)/docker-host localhost:5000/lagoon/docker-host; \
 	docker push localhost:5000/lagoon/docker-host; \
+	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' create namespace nginx-ingress; \
+	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add nginx https://charts.helm.sh/stable; \
+	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n nginx-ingress nginx nginx/nginx-ingress; \
 	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' create namespace k8up; \
 	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add appuio https://charts.appuio.ch; \
 	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n k8up k8up appuio/k8up; \
@@ -873,6 +810,9 @@ endif
 	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add dbaas-operator https://raw.githubusercontent.com/amazeeio/dbaas-operator/master/charts ; \
 	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n dbaas-operator dbaas-operator dbaas-operator/dbaas-operator ; \
 	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n dbaas-operator mariadbprovider dbaas-operator/mariadbprovider -f local-dev/helm-values-mariadbprovider.yml ; \
+	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' create namespace harbor; \
+	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add harbor https://helm.goharbor.io ; \
+	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n harbor harbor harbor/harbor -f local-dev/helm-values-harbor.yml ; \
 	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' create namespace lagoon-builddeploy; \
 	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add lagoon-builddeploy https://raw.githubusercontent.com/amazeeio/lagoon-kbd/main/charts ; \
 	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n lagoon-builddeploy lagoon-builddeploy lagoon-builddeploy/lagoon-builddeploy \
@@ -882,7 +822,7 @@ endif
 		--set vars.rabbitHostname=172.17.0.1:5672; \
 	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' create namespace lagoon; \
 	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add lagoon https://uselagoon.github.io/lagoon-charts/; \
-	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n lagoon lagoon-remote lagoon/lagoon-remote --set dockerHost.image.name=172.17.0.1:5000/lagoon/docker-host --set dockerHost.registry=172.17.0.1:5000; \
+	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n lagoon lagoon-remote lagoon/lagoon-remote --set dockerHost.image.repository=172.17.0.1:5000/lagoon/docker-host --set dockerHost.image.tag=latest --set dockerHost.registry=172.17.0.1:5000; \
 	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n lagoon rollout status deployment lagoon-remote-docker-host -w;
 ifeq ($(ARCH), darwin)
 	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; \
