@@ -21,6 +21,7 @@
     {{ testname }} - check that the ingress has the correct annotations
   hosts: localhost
   serial: 1
+  tags: skip-on-jenkins
   vars:
     expected_annotations:
     - "foo=bar"

@@ -1,0 +1,25 @@
+expose:
+  tls:
+    enabled: false
+  ingress:
+    hosts:
+      core: harbor.172.17.0.1.nip.io
+    annotations:
+      ingress.kubernetes.io/ssl-redirect: "false"
+      ingress.kubernetes.io/proxy-body-size: "0"
+      nginx.ingress.kubernetes.io/ssl-redirect: "false"
+      nginx.ingress.kubernetes.io/proxy-body-size: "0"
+harborAdminPassword: Harbor12345
+secretKey: "not-a-secure-key"
+externalURL: http://harbor.172.17.0.1.nip.io:18080
+persistence:
+  enabled: false
+
+chartmuseum:
+  enabled: false
+clair:
+  enabled: false
+trivy:
+  enabled: true
+notary:
+  enabled: false
