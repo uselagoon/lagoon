@@ -1007,7 +1007,9 @@ kind/test: kind/cluster kind/preload local-dev/helm local-dev/kind local-dev/kub
 		&& git checkout $(CHARTS_TREEISH) \
 		&& export KUBECONFIG=$$(mktemp -p .. kubeconfig.XXX) \
 		&& KIND_CLUSTER_NAME="$(CI_BUILD_TAG)" ../local-dev/kind export kubeconfig \
-		&& $(MAKE) -O fill-test-ci-values TESTS=$(TESTS) IMAGE_TAG=$(BRANCH_NAME) HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) JQ=$$(realpath ../local-dev/jq) \
+		&& $(MAKE) -O fill-test-ci-values TESTS=$(TESTS) IMAGE_TAG=$(BRANCH_NAME) \
+		HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
+		JQ=$$(realpath ../local-dev/jq) OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=testlagoon/kubectl-build-deploy-dind:$(BRANCH_NAME) \
 		&& docker run --rm --network host --name ct-$(CI_BUILD_TAG) \
 			--volume "$$(pwd)/test-suite-run.ct.yaml:/etc/ct/ct.yaml" \
 			--volume "$$(pwd):/workdir" \
