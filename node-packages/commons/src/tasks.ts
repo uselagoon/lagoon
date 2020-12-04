@@ -783,10 +783,11 @@ export const createPromoteTask = async function(promoteData: any) {
   switch (project.activeSystemsPromote) {
     case 'lagoon_openshiftBuildDeploy':
       return sendToLagoonTasks('builddeploy-openshift', promoteData);
+    case 'lagoon_kubernetesBuildDeploy':
+      return sendToLagoonTasks('builddeploy-kubernetes', promoteData);
     case 'lagoon_controllerBuildDeploy':
         const buildDeployData = await getControllerBuildData(promoteData);
         return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
-
     default:
       throw new UnknownActiveSystem(
         `Unknown active system '${project.activeSystemsPromote}' for task 'deploy' in for project ${projectName}`
