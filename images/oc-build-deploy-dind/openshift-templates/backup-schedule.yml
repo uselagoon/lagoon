@@ -40,6 +40,9 @@ parameters:
   - name: PRUNE_SCHEDULE
     description: Schedule of the Backup Prune in Cron format
     required: true
+  - name: BAAS_BUCKET_NAME
+    description: Which bucket the backups for this project should go to
+    required: true
 objects:
 - apiVersion: backup.appuio.ch/v1alpha1
   kind: Schedule
@@ -55,7 +58,7 @@ objects:
         key: repo-pw
         name: baas-repo-pw
       s3:
-        bucket: 'baas-${SAFE_PROJECT}'
+        bucket: '${BAAS_BUCKET_NAME}'
     backup:
       schedule: '${BACKUP_SCHEDULE}'
     check:

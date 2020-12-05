@@ -1,0 +1,5787 @@
+{
+  "took" : 2453,
+  "timed_out" : false,
+  "_shards" : {
+    "total" : 2,
+    "successful" : 2,
+    "skipped" : 0,
+    "failed" : 0
+  },
+  "hits" : {
+    "total" : {
+      "value" : 7200,
+      "relation" : "gte"
+    },
+    "max_score" : 1.0,
+    "hits" : []
+  },
+  "aggregations" : {
+    "hourly" : {
+      "buckets" : [
+        {
+          "key_as_string" : "2020-09-01T00:00:00.000Z",
+          "key" : 1598918400000,
+          "doc_count" : 944,
+          "count" : {
+            "value" : 0
+          }
+        },
+        {
+          "key_as_string" : "2020-09-01T01:00:00.000Z",
+          "key" : 1598922000000,
+          "doc_count" : 2662,
+          "count" : {
+            "value" : 0
+          }
+        },
+        {
+          "key_as_string" : "2020-09-01T02:00:00.000Z",
+          "key" : 1598925600000,
+          "doc_count" : 2924,
+          "count" : {
+            "value" : 0
+          }
+        },
+        {
+          "key_as_string" : "2020-09-01T03:00:00.000Z",
+          "key" : 1598929200000,
+          "doc_count" : 6756,
+          "count" : {
+            "value" : 0
+          }
+        },
+        {
+          "key_as_string" : "2020-09-01T04:00:00.000Z",
+          "key" : 1598932800000,
+          "doc_count" : 4545,
+          "count" : {
+            "value" : 0
+          }
+        },
+        {
+          "key_as_string" : "2020-09-01T05:00:00.000Z",
+          "key" : 1598936400000,
+          "doc_count" : 7131,
+          "count" : {
+            "value" : 0
+          }
+        },
+        {
+          "key_as_string" : "2020-09-01T06:00:00.000Z",
+          "key" : 1598940000000,
+          "doc_count" : 7077,
+          "count" : {
+            "value" : 0
+          }
+        },
+        {
+          "key_as_string" : "2020-09-01T07:00:00.000Z",
+          "key" : 1598943600000,
+          "doc_count" : 13414,
+          "count" : {
+            "value" : 0
+          }
+        },
+        {
+          "key_as_string" : "2020-09-01T08:00:00.000Z",
+          "key" : 1598947200000,
+          "doc_count" : 12588,
+          "count" : {
+            "value" : 0
+          }
+        },
+        {
+          "key_as_string" : "2020-09-01T09:00:00.000Z",
+          "key" : 1598950800000,
+          "doc_count" : 10648,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-01T10:00:00.000Z",
+          "key" : 1598954400000,
+          "doc_count" : 8862,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-01T11:00:00.000Z",
+          "key" : 1598958000000,
+          "doc_count" : 13007,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-01T12:00:00.000Z",
+          "key" : 1598961600000,
+          "doc_count" : 7581,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-01T13:00:00.000Z",
+          "key" : 1598965200000,
+          "doc_count" : 14882,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-01T14:00:00.000Z",
+          "key" : 1598968800000,
+          "doc_count" : 15423,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-01T15:00:00.000Z",
+          "key" : 1598972400000,
+          "doc_count" : 11008,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-01T16:00:00.000Z",
+          "key" : 1598976000000,
+          "doc_count" : 8298,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-01T17:00:00.000Z",
+          "key" : 1598979600000,
+          "doc_count" : 7120,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-01T18:00:00.000Z",
+          "key" : 1598983200000,
+          "doc_count" : 8097,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-01T19:00:00.000Z",
+          "key" : 1598986800000,
+          "doc_count" : 8688,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-01T20:00:00.000Z",
+          "key" : 1598990400000,
+          "doc_count" : 6807,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-01T21:00:00.000Z",
+          "key" : 1598994000000,
+          "doc_count" : 4425,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-01T22:00:00.000Z",
+          "key" : 1598997600000,
+          "doc_count" : 3184,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-01T23:00:00.000Z",
+          "key" : 1599001200000,
+          "doc_count" : 2817,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-02T00:00:00.000Z",
+          "key" : 1599004800000,
+          "doc_count" : 3009,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-02T01:00:00.000Z",
+          "key" : 1599008400000,
+          "doc_count" : 2468,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-02T02:00:00.000Z",
+          "key" : 1599012000000,
+          "doc_count" : 1832,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-02T03:00:00.000Z",
+          "key" : 1599015600000,
+          "doc_count" : 2481,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-02T04:00:00.000Z",
+          "key" : 1599019200000,
+          "doc_count" : 3069,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-02T05:00:00.000Z",
+          "key" : 1599022800000,
+          "doc_count" : 4119,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-02T06:00:00.000Z",
+          "key" : 1599026400000,
+          "doc_count" : 5234,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-02T07:00:00.000Z",
+          "key" : 1599030000000,
+          "doc_count" : 6582,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-02T08:00:00.000Z",
+          "key" : 1599033600000,
+          "doc_count" : 10879,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-02T09:00:00.000Z",
+          "key" : 1599037200000,
+          "doc_count" : 10298,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-02T10:00:00.000Z",
+          "key" : 1599040800000,
+          "doc_count" : 12992,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-02T11:00:00.000Z",
+          "key" : 1599044400000,
+          "doc_count" : 12301,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-02T12:00:00.000Z",
+          "key" : 1599048000000,
+          "doc_count" : 10647,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-02T13:00:00.000Z",
+          "key" : 1599051600000,
+          "doc_count" : 11518,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-02T14:00:00.000Z",
+          "key" : 1599055200000,
+          "doc_count" : 8682,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-02T15:00:00.000Z",
+          "key" : 1599058800000,
+          "doc_count" : 8802,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-02T16:00:00.000Z",
+          "key" : 1599062400000,
+          "doc_count" : 6745,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-02T17:00:00.000Z",
+          "key" : 1599066000000,
+          "doc_count" : 6872,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-02T18:00:00.000Z",
+          "key" : 1599069600000,
+          "doc_count" : 7209,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-02T19:00:00.000Z",
+          "key" : 1599073200000,
+          "doc_count" : 7669,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-02T20:00:00.000Z",
+          "key" : 1599076800000,
+          "doc_count" : 6579,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-02T21:00:00.000Z",
+          "key" : 1599080400000,
+          "doc_count" : 5865,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-02T22:00:00.000Z",
+          "key" : 1599084000000,
+          "doc_count" : 3413,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-02T23:00:00.000Z",
+          "key" : 1599087600000,
+          "doc_count" : 3262,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-03T00:00:00.000Z",
+          "key" : 1599091200000,
+          "doc_count" : 4056,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-03T01:00:00.000Z",
+          "key" : 1599094800000,
+          "doc_count" : 3452,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-03T02:00:00.000Z",
+          "key" : 1599098400000,
+          "doc_count" : 5088,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-03T03:00:00.000Z",
+          "key" : 1599102000000,
+          "doc_count" : 6927,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-03T04:00:00.000Z",
+          "key" : 1599105600000,
+          "doc_count" : 5051,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-03T05:00:00.000Z",
+          "key" : 1599109200000,
+          "doc_count" : 6748,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-03T06:00:00.000Z",
+          "key" : 1599112800000,
+          "doc_count" : 6848,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-03T07:00:00.000Z",
+          "key" : 1599116400000,
+          "doc_count" : 6907,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-03T08:00:00.000Z",
+          "key" : 1599120000000,
+          "doc_count" : 7342,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-03T09:00:00.000Z",
+          "key" : 1599123600000,
+          "doc_count" : 7591,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-03T10:00:00.000Z",
+          "key" : 1599127200000,
+          "doc_count" : 6986,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-03T11:00:00.000Z",
+          "key" : 1599130800000,
+          "doc_count" : 15011,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-03T12:00:00.000Z",
+          "key" : 1599134400000,
+          "doc_count" : 16058,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-03T13:00:00.000Z",
+          "key" : 1599138000000,
+          "doc_count" : 12096,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-03T14:00:00.000Z",
+          "key" : 1599141600000,
+          "doc_count" : 10311,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-03T15:00:00.000Z",
+          "key" : 1599145200000,
+          "doc_count" : 8735,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-03T16:00:00.000Z",
+          "key" : 1599148800000,
+          "doc_count" : 7153,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-03T17:00:00.000Z",
+          "key" : 1599152400000,
+          "doc_count" : 7572,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-03T18:00:00.000Z",
+          "key" : 1599156000000,
+          "doc_count" : 8493,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-03T19:00:00.000Z",
+          "key" : 1599159600000,
+          "doc_count" : 9328,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-03T20:00:00.000Z",
+          "key" : 1599163200000,
+          "doc_count" : 7587,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-03T21:00:00.000Z",
+          "key" : 1599166800000,
+          "doc_count" : 9464,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-03T22:00:00.000Z",
+          "key" : 1599170400000,
+          "doc_count" : 7958,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-03T23:00:00.000Z",
+          "key" : 1599174000000,
+          "doc_count" : 3505,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-04T00:00:00.000Z",
+          "key" : 1599177600000,
+          "doc_count" : 2370,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-04T01:00:00.000Z",
+          "key" : 1599181200000,
+          "doc_count" : 2423,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-04T02:00:00.000Z",
+          "key" : 1599184800000,
+          "doc_count" : 2815,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-04T03:00:00.000Z",
+          "key" : 1599188400000,
+          "doc_count" : 2163,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-04T04:00:00.000Z",
+          "key" : 1599192000000,
+          "doc_count" : 2864,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-04T05:00:00.000Z",
+          "key" : 1599195600000,
+          "doc_count" : 4695,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-04T06:00:00.000Z",
+          "key" : 1599199200000,
+          "doc_count" : 6497,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-04T07:00:00.000Z",
+          "key" : 1599202800000,
+          "doc_count" : 6634,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-04T08:00:00.000Z",
+          "key" : 1599206400000,
+          "doc_count" : 7042,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-04T09:00:00.000Z",
+          "key" : 1599210000000,
+          "doc_count" : 7554,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-04T10:00:00.000Z",
+          "key" : 1599213600000,
+          "doc_count" : 5946,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-04T11:00:00.000Z",
+          "key" : 1599217200000,
+          "doc_count" : 7070,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-04T12:00:00.000Z",
+          "key" : 1599220800000,
+          "doc_count" : 6781,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-04T13:00:00.000Z",
+          "key" : 1599224400000,
+          "doc_count" : 7139,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-04T14:00:00.000Z",
+          "key" : 1599228000000,
+          "doc_count" : 7292,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-04T15:00:00.000Z",
+          "key" : 1599231600000,
+          "doc_count" : 8757,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-04T16:00:00.000Z",
+          "key" : 1599235200000,
+          "doc_count" : 8160,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-04T17:00:00.000Z",
+          "key" : 1599238800000,
+          "doc_count" : 9821,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-04T18:00:00.000Z",
+          "key" : 1599242400000,
+          "doc_count" : 6753,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-04T19:00:00.000Z",
+          "key" : 1599246000000,
+          "doc_count" : 7511,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-04T20:00:00.000Z",
+          "key" : 1599249600000,
+          "doc_count" : 7204,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-04T21:00:00.000Z",
+          "key" : 1599253200000,
+          "doc_count" : 6557,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-04T22:00:00.000Z",
+          "key" : 1599256800000,
+          "doc_count" : 4891,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-04T23:00:00.000Z",
+          "key" : 1599260400000,
+          "doc_count" : 4481,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-05T00:00:00.000Z",
+          "key" : 1599264000000,
+          "doc_count" : 4066,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-05T01:00:00.000Z",
+          "key" : 1599267600000,
+          "doc_count" : 5230,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-05T02:00:00.000Z",
+          "key" : 1599271200000,
+          "doc_count" : 4880,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-05T03:00:00.000Z",
+          "key" : 1599274800000,
+          "doc_count" : 4816,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-05T04:00:00.000Z",
+          "key" : 1599278400000,
+          "doc_count" : 5239,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-05T05:00:00.000Z",
+          "key" : 1599282000000,
+          "doc_count" : 7294,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-05T06:00:00.000Z",
+          "key" : 1599285600000,
+          "doc_count" : 7409,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-05T07:00:00.000Z",
+          "key" : 1599289200000,
+          "doc_count" : 8609,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-05T08:00:00.000Z",
+          "key" : 1599292800000,
+          "doc_count" : 9194,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-05T09:00:00.000Z",
+          "key" : 1599296400000,
+          "doc_count" : 10781,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-05T10:00:00.000Z",
+          "key" : 1599300000000,
+          "doc_count" : 9436,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-05T11:00:00.000Z",
+          "key" : 1599303600000,
+          "doc_count" : 8995,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-05T12:00:00.000Z",
+          "key" : 1599307200000,
+          "doc_count" : 10198,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-05T13:00:00.000Z",
+          "key" : 1599310800000,
+          "doc_count" : 8098,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-05T14:00:00.000Z",
+          "key" : 1599314400000,
+          "doc_count" : 7837,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-05T15:00:00.000Z",
+          "key" : 1599318000000,
+          "doc_count" : 7784,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-05T16:00:00.000Z",
+          "key" : 1599321600000,
+          "doc_count" : 7747,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-05T17:00:00.000Z",
+          "key" : 1599325200000,
+          "doc_count" : 7408,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-05T18:00:00.000Z",
+          "key" : 1599328800000,
+          "doc_count" : 11140,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-05T19:00:00.000Z",
+          "key" : 1599332400000,
+          "doc_count" : 12122,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-05T20:00:00.000Z",
+          "key" : 1599336000000,
+          "doc_count" : 9441,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-05T21:00:00.000Z",
+          "key" : 1599339600000,
+          "doc_count" : 8365,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-05T22:00:00.000Z",
+          "key" : 1599343200000,
+          "doc_count" : 5243,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-05T23:00:00.000Z",
+          "key" : 1599346800000,
+          "doc_count" : 4407,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-06T00:00:00.000Z",
+          "key" : 1599350400000,
+          "doc_count" : 3096,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-06T01:00:00.000Z",
+          "key" : 1599354000000,
+          "doc_count" : 5001,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-06T02:00:00.000Z",
+          "key" : 1599357600000,
+          "doc_count" : 2228,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-06T03:00:00.000Z",
+          "key" : 1599361200000,
+          "doc_count" : 2500,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-06T04:00:00.000Z",
+          "key" : 1599364800000,
+          "doc_count" : 3343,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-06T05:00:00.000Z",
+          "key" : 1599368400000,
+          "doc_count" : 7398,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-06T06:00:00.000Z",
+          "key" : 1599372000000,
+          "doc_count" : 10976,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-06T07:00:00.000Z",
+          "key" : 1599375600000,
+          "doc_count" : 11644,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-06T08:00:00.000Z",
+          "key" : 1599379200000,
+          "doc_count" : 12455,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-06T09:00:00.000Z",
+          "key" : 1599382800000,
+          "doc_count" : 10296,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-06T10:00:00.000Z",
+          "key" : 1599386400000,
+          "doc_count" : 9073,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-06T11:00:00.000Z",
+          "key" : 1599390000000,
+          "doc_count" : 10303,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-06T12:00:00.000Z",
+          "key" : 1599393600000,
+          "doc_count" : 10522,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-06T13:00:00.000Z",
+          "key" : 1599397200000,
+          "doc_count" : 9908,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-06T14:00:00.000Z",
+          "key" : 1599400800000,
+          "doc_count" : 9622,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-06T15:00:00.000Z",
+          "key" : 1599404400000,
+          "doc_count" : 10342,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-06T16:00:00.000Z",
+          "key" : 1599408000000,
+          "doc_count" : 5966,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-06T17:00:00.000Z",
+          "key" : 1599411600000,
+          "doc_count" : 7763,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-06T18:00:00.000Z",
+          "key" : 1599415200000,
+          "doc_count" : 7950,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-06T19:00:00.000Z",
+          "key" : 1599418800000,
+          "doc_count" : 11029,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-06T20:00:00.000Z",
+          "key" : 1599422400000,
+          "doc_count" : 9658,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-06T21:00:00.000Z",
+          "key" : 1599426000000,
+          "doc_count" : 6984,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-06T22:00:00.000Z",
+          "key" : 1599429600000,
+          "doc_count" : 5371,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-06T23:00:00.000Z",
+          "key" : 1599433200000,
+          "doc_count" : 3893,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-07T00:00:00.000Z",
+          "key" : 1599436800000,
+          "doc_count" : 4313,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-07T01:00:00.000Z",
+          "key" : 1599440400000,
+          "doc_count" : 4540,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-07T02:00:00.000Z",
+          "key" : 1599444000000,
+          "doc_count" : 3492,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-07T03:00:00.000Z",
+          "key" : 1599447600000,
+          "doc_count" : 2937,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-07T04:00:00.000Z",
+          "key" : 1599451200000,
+          "doc_count" : 3148,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-07T05:00:00.000Z",
+          "key" : 1599454800000,
+          "doc_count" : 4138,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-07T06:00:00.000Z",
+          "key" : 1599458400000,
+          "doc_count" : 7714,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-07T07:00:00.000Z",
+          "key" : 1599462000000,
+          "doc_count" : 8749,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-07T08:00:00.000Z",
+          "key" : 1599465600000,
+          "doc_count" : 7864,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-07T09:00:00.000Z",
+          "key" : 1599469200000,
+          "doc_count" : 10273,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-07T10:00:00.000Z",
+          "key" : 1599472800000,
+          "doc_count" : 8277,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-07T11:00:00.000Z",
+          "key" : 1599476400000,
+          "doc_count" : 7763,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-07T12:00:00.000Z",
+          "key" : 1599480000000,
+          "doc_count" : 8687,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-07T13:00:00.000Z",
+          "key" : 1599483600000,
+          "doc_count" : 7654,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-07T14:00:00.000Z",
+          "key" : 1599487200000,
+          "doc_count" : 7013,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-07T15:00:00.000Z",
+          "key" : 1599490800000,
+          "doc_count" : 7212,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-07T16:00:00.000Z",
+          "key" : 1599494400000,
+          "doc_count" : 6781,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-07T17:00:00.000Z",
+          "key" : 1599498000000,
+          "doc_count" : 6463,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-07T18:00:00.000Z",
+          "key" : 1599501600000,
+          "doc_count" : 7589,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-07T19:00:00.000Z",
+          "key" : 1599505200000,
+          "doc_count" : 7668,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-07T20:00:00.000Z",
+          "key" : 1599508800000,
+          "doc_count" : 6977,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-07T21:00:00.000Z",
+          "key" : 1599512400000,
+          "doc_count" : 5500,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-07T22:00:00.000Z",
+          "key" : 1599516000000,
+          "doc_count" : 3897,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-07T23:00:00.000Z",
+          "key" : 1599519600000,
+          "doc_count" : 3945,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-08T00:00:00.000Z",
+          "key" : 1599523200000,
+          "doc_count" : 3680,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-08T01:00:00.000Z",
+          "key" : 1599526800000,
+          "doc_count" : 3863,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-08T02:00:00.000Z",
+          "key" : 1599530400000,
+          "doc_count" : 3734,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-08T03:00:00.000Z",
+          "key" : 1599534000000,
+          "doc_count" : 4931,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-08T04:00:00.000Z",
+          "key" : 1599537600000,
+          "doc_count" : 5650,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-08T05:00:00.000Z",
+          "key" : 1599541200000,
+          "doc_count" : 6558,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-08T06:00:00.000Z",
+          "key" : 1599544800000,
+          "doc_count" : 5441,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-08T07:00:00.000Z",
+          "key" : 1599548400000,
+          "doc_count" : 7107,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-08T08:00:00.000Z",
+          "key" : 1599552000000,
+          "doc_count" : 7444,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-08T09:00:00.000Z",
+          "key" : 1599555600000,
+          "doc_count" : 6543,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-08T10:00:00.000Z",
+          "key" : 1599559200000,
+          "doc_count" : 5834,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-08T11:00:00.000Z",
+          "key" : 1599562800000,
+          "doc_count" : 6856,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-08T12:00:00.000Z",
+          "key" : 1599566400000,
+          "doc_count" : 6920,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-08T13:00:00.000Z",
+          "key" : 1599570000000,
+          "doc_count" : 6414,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-08T14:00:00.000Z",
+          "key" : 1599573600000,
+          "doc_count" : 7784,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-08T15:00:00.000Z",
+          "key" : 1599577200000,
+          "doc_count" : 18394,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-08T16:00:00.000Z",
+          "key" : 1599580800000,
+          "doc_count" : 11821,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-08T17:00:00.000Z",
+          "key" : 1599584400000,
+          "doc_count" : 10548,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-08T18:00:00.000Z",
+          "key" : 1599588000000,
+          "doc_count" : 10414,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-08T19:00:00.000Z",
+          "key" : 1599591600000,
+          "doc_count" : 10176,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-08T20:00:00.000Z",
+          "key" : 1599595200000,
+          "doc_count" : 8811,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-08T21:00:00.000Z",
+          "key" : 1599598800000,
+          "doc_count" : 5966,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-08T22:00:00.000Z",
+          "key" : 1599602400000,
+          "doc_count" : 7058,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-08T23:00:00.000Z",
+          "key" : 1599606000000,
+          "doc_count" : 4987,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-09T00:00:00.000Z",
+          "key" : 1599609600000,
+          "doc_count" : 4562,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-09T01:00:00.000Z",
+          "key" : 1599613200000,
+          "doc_count" : 3279,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-09T02:00:00.000Z",
+          "key" : 1599616800000,
+          "doc_count" : 3527,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-09T03:00:00.000Z",
+          "key" : 1599620400000,
+          "doc_count" : 2700,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-09T04:00:00.000Z",
+          "key" : 1599624000000,
+          "doc_count" : 3834,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-09T05:00:00.000Z",
+          "key" : 1599627600000,
+          "doc_count" : 4240,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-09T06:00:00.000Z",
+          "key" : 1599631200000,
+          "doc_count" : 6401,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-09T07:00:00.000Z",
+          "key" : 1599634800000,
+          "doc_count" : 7058,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-09T08:00:00.000Z",
+          "key" : 1599638400000,
+          "doc_count" : 8066,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-09T09:00:00.000Z",
+          "key" : 1599642000000,
+          "doc_count" : 6711,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-09T10:00:00.000Z",
+          "key" : 1599645600000,
+          "doc_count" : 5761,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-09T11:00:00.000Z",
+          "key" : 1599649200000,
+          "doc_count" : 6860,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-09T12:00:00.000Z",
+          "key" : 1599652800000,
+          "doc_count" : 6709,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-09T13:00:00.000Z",
+          "key" : 1599656400000,
+          "doc_count" : 7962,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-09T14:00:00.000Z",
+          "key" : 1599660000000,
+          "doc_count" : 6262,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-09T15:00:00.000Z",
+          "key" : 1599663600000,
+          "doc_count" : 6271,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-09T16:00:00.000Z",
+          "key" : 1599667200000,
+          "doc_count" : 6469,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-09T17:00:00.000Z",
+          "key" : 1599670800000,
+          "doc_count" : 8031,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-09T18:00:00.000Z",
+          "key" : 1599674400000,
+          "doc_count" : 7821,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-09T19:00:00.000Z",
+          "key" : 1599678000000,
+          "doc_count" : 8997,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-09T20:00:00.000Z",
+          "key" : 1599681600000,
+          "doc_count" : 5884,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-09T21:00:00.000Z",
+          "key" : 1599685200000,
+          "doc_count" : 4460,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-09T22:00:00.000Z",
+          "key" : 1599688800000,
+          "doc_count" : 3618,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-09T23:00:00.000Z",
+          "key" : 1599692400000,
+          "doc_count" : 2812,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-10T00:00:00.000Z",
+          "key" : 1599696000000,
+          "doc_count" : 2163,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-10T01:00:00.000Z",
+          "key" : 1599699600000,
+          "doc_count" : 2549,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-10T02:00:00.000Z",
+          "key" : 1599703200000,
+          "doc_count" : 3205,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-10T03:00:00.000Z",
+          "key" : 1599706800000,
+          "doc_count" : 4736,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-10T04:00:00.000Z",
+          "key" : 1599710400000,
+          "doc_count" : 5811,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-10T05:00:00.000Z",
+          "key" : 1599714000000,
+          "doc_count" : 5282,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-10T06:00:00.000Z",
+          "key" : 1599717600000,
+          "doc_count" : 7138,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-10T07:00:00.000Z",
+          "key" : 1599721200000,
+          "doc_count" : 7686,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-10T08:00:00.000Z",
+          "key" : 1599724800000,
+          "doc_count" : 12730,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-10T09:00:00.000Z",
+          "key" : 1599728400000,
+          "doc_count" : 9877,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-10T10:00:00.000Z",
+          "key" : 1599732000000,
+          "doc_count" : 7673,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-10T11:00:00.000Z",
+          "key" : 1599735600000,
+          "doc_count" : 9883,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-10T12:00:00.000Z",
+          "key" : 1599739200000,
+          "doc_count" : 8764,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-10T13:00:00.000Z",
+          "key" : 1599742800000,
+          "doc_count" : 9073,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-10T14:00:00.000Z",
+          "key" : 1599746400000,
+          "doc_count" : 7091,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-10T15:00:00.000Z",
+          "key" : 1599750000000,
+          "doc_count" : 7783,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-10T16:00:00.000Z",
+          "key" : 1599753600000,
+          "doc_count" : 7678,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-10T17:00:00.000Z",
+          "key" : 1599757200000,
+          "doc_count" : 6399,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-10T18:00:00.000Z",
+          "key" : 1599760800000,
+          "doc_count" : 5440,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-10T19:00:00.000Z",
+          "key" : 1599764400000,
+          "doc_count" : 9519,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-10T20:00:00.000Z",
+          "key" : 1599768000000,
+          "doc_count" : 10172,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-10T21:00:00.000Z",
+          "key" : 1599771600000,
+          "doc_count" : 8273,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-10T22:00:00.000Z",
+          "key" : 1599775200000,
+          "doc_count" : 3159,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-10T23:00:00.000Z",
+          "key" : 1599778800000,
+          "doc_count" : 4429,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-11T00:00:00.000Z",
+          "key" : 1599782400000,
+          "doc_count" : 2921,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-11T01:00:00.000Z",
+          "key" : 1599786000000,
+          "doc_count" : 2714,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-11T02:00:00.000Z",
+          "key" : 1599789600000,
+          "doc_count" : 2771,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-11T03:00:00.000Z",
+          "key" : 1599793200000,
+          "doc_count" : 2685,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-11T04:00:00.000Z",
+          "key" : 1599796800000,
+          "doc_count" : 2790,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-11T05:00:00.000Z",
+          "key" : 1599800400000,
+          "doc_count" : 4005,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-11T06:00:00.000Z",
+          "key" : 1599804000000,
+          "doc_count" : 9110,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-11T07:00:00.000Z",
+          "key" : 1599807600000,
+          "doc_count" : 7405,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-11T08:00:00.000Z",
+          "key" : 1599811200000,
+          "doc_count" : 7192,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-11T09:00:00.000Z",
+          "key" : 1599814800000,
+          "doc_count" : 6746,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-11T10:00:00.000Z",
+          "key" : 1599818400000,
+          "doc_count" : 6700,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-11T11:00:00.000Z",
+          "key" : 1599822000000,
+          "doc_count" : 6564,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-11T12:00:00.000Z",
+          "key" : 1599825600000,
+          "doc_count" : 5636,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-11T13:00:00.000Z",
+          "key" : 1599829200000,
+          "doc_count" : 8730,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-11T14:00:00.000Z",
+          "key" : 1599832800000,
+          "doc_count" : 7375,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-11T15:00:00.000Z",
+          "key" : 1599836400000,
+          "doc_count" : 7577,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-11T16:00:00.000Z",
+          "key" : 1599840000000,
+          "doc_count" : 6306,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-11T17:00:00.000Z",
+          "key" : 1599843600000,
+          "doc_count" : 6637,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-11T18:00:00.000Z",
+          "key" : 1599847200000,
+          "doc_count" : 5783,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-11T19:00:00.000Z",
+          "key" : 1599850800000,
+          "doc_count" : 6889,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-11T20:00:00.000Z",
+          "key" : 1599854400000,
+          "doc_count" : 5651,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-11T21:00:00.000Z",
+          "key" : 1599858000000,
+          "doc_count" : 5004,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-11T22:00:00.000Z",
+          "key" : 1599861600000,
+          "doc_count" : 3739,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-11T23:00:00.000Z",
+          "key" : 1599865200000,
+          "doc_count" : 3116,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-12T00:00:00.000Z",
+          "key" : 1599868800000,
+          "doc_count" : 3123,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-12T01:00:00.000Z",
+          "key" : 1599872400000,
+          "doc_count" : 3158,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-12T02:00:00.000Z",
+          "key" : 1599876000000,
+          "doc_count" : 3962,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-12T03:00:00.000Z",
+          "key" : 1599879600000,
+          "doc_count" : 3086,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-12T04:00:00.000Z",
+          "key" : 1599883200000,
+          "doc_count" : 3628,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-12T05:00:00.000Z",
+          "key" : 1599886800000,
+          "doc_count" : 4180,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-12T06:00:00.000Z",
+          "key" : 1599890400000,
+          "doc_count" : 7456,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-12T07:00:00.000Z",
+          "key" : 1599894000000,
+          "doc_count" : 7307,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-12T08:00:00.000Z",
+          "key" : 1599897600000,
+          "doc_count" : 11424,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-12T09:00:00.000Z",
+          "key" : 1599901200000,
+          "doc_count" : 9267,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-12T10:00:00.000Z",
+          "key" : 1599904800000,
+          "doc_count" : 6059,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-12T11:00:00.000Z",
+          "key" : 1599908400000,
+          "doc_count" : 6402,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-12T12:00:00.000Z",
+          "key" : 1599912000000,
+          "doc_count" : 6572,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-12T13:00:00.000Z",
+          "key" : 1599915600000,
+          "doc_count" : 6753,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-12T14:00:00.000Z",
+          "key" : 1599919200000,
+          "doc_count" : 6679,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-12T15:00:00.000Z",
+          "key" : 1599922800000,
+          "doc_count" : 6267,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-12T16:00:00.000Z",
+          "key" : 1599926400000,
+          "doc_count" : 5786,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-12T17:00:00.000Z",
+          "key" : 1599930000000,
+          "doc_count" : 5807,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-12T18:00:00.000Z",
+          "key" : 1599933600000,
+          "doc_count" : 6819,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-12T19:00:00.000Z",
+          "key" : 1599937200000,
+          "doc_count" : 6788,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-12T20:00:00.000Z",
+          "key" : 1599940800000,
+          "doc_count" : 5655,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-12T21:00:00.000Z",
+          "key" : 1599944400000,
+          "doc_count" : 4367,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-12T22:00:00.000Z",
+          "key" : 1599948000000,
+          "doc_count" : 3859,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-12T23:00:00.000Z",
+          "key" : 1599951600000,
+          "doc_count" : 2598,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-13T00:00:00.000Z",
+          "key" : 1599955200000,
+          "doc_count" : 2973,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-13T01:00:00.000Z",
+          "key" : 1599958800000,
+          "doc_count" : 2600,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-13T02:00:00.000Z",
+          "key" : 1599962400000,
+          "doc_count" : 3076,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-13T03:00:00.000Z",
+          "key" : 1599966000000,
+          "doc_count" : 5236,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-13T04:00:00.000Z",
+          "key" : 1599969600000,
+          "doc_count" : 4609,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-13T05:00:00.000Z",
+          "key" : 1599973200000,
+          "doc_count" : 3238,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-13T06:00:00.000Z",
+          "key" : 1599976800000,
+          "doc_count" : 4563,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-13T07:00:00.000Z",
+          "key" : 1599980400000,
+          "doc_count" : 5619,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-13T08:00:00.000Z",
+          "key" : 1599984000000,
+          "doc_count" : 6848,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-13T09:00:00.000Z",
+          "key" : 1599987600000,
+          "doc_count" : 8534,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-13T10:00:00.000Z",
+          "key" : 1599991200000,
+          "doc_count" : 6983,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-13T11:00:00.000Z",
+          "key" : 1599994800000,
+          "doc_count" : 6568,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-13T12:00:00.000Z",
+          "key" : 1599998400000,
+          "doc_count" : 9070,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-13T13:00:00.000Z",
+          "key" : 1600002000000,
+          "doc_count" : 6111,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-13T14:00:00.000Z",
+          "key" : 1600005600000,
+          "doc_count" : 6168,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-13T15:00:00.000Z",
+          "key" : 1600009200000,
+          "doc_count" : 6814,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-13T16:00:00.000Z",
+          "key" : 1600012800000,
+          "doc_count" : 6050,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-13T17:00:00.000Z",
+          "key" : 1600016400000,
+          "doc_count" : 5209,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-13T18:00:00.000Z",
+          "key" : 1600020000000,
+          "doc_count" : 5638,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-13T19:00:00.000Z",
+          "key" : 1600023600000,
+          "doc_count" : 6357,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-13T20:00:00.000Z",
+          "key" : 1600027200000,
+          "doc_count" : 5958,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-13T21:00:00.000Z",
+          "key" : 1600030800000,
+          "doc_count" : 4696,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-13T22:00:00.000Z",
+          "key" : 1600034400000,
+          "doc_count" : 5766,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-13T23:00:00.000Z",
+          "key" : 1600038000000,
+          "doc_count" : 2302,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-14T00:00:00.000Z",
+          "key" : 1600041600000,
+          "doc_count" : 2503,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-14T01:00:00.000Z",
+          "key" : 1600045200000,
+          "doc_count" : 2498,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-14T02:00:00.000Z",
+          "key" : 1600048800000,
+          "doc_count" : 2074,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-14T03:00:00.000Z",
+          "key" : 1600052400000,
+          "doc_count" : 2453,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-14T04:00:00.000Z",
+          "key" : 1600056000000,
+          "doc_count" : 4133,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-14T05:00:00.000Z",
+          "key" : 1600059600000,
+          "doc_count" : 3812,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-14T06:00:00.000Z",
+          "key" : 1600063200000,
+          "doc_count" : 4981,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-14T07:00:00.000Z",
+          "key" : 1600066800000,
+          "doc_count" : 5883,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-14T08:00:00.000Z",
+          "key" : 1600070400000,
+          "doc_count" : 6653,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-14T09:00:00.000Z",
+          "key" : 1600074000000,
+          "doc_count" : 6306,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-14T10:00:00.000Z",
+          "key" : 1600077600000,
+          "doc_count" : 6590,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-14T11:00:00.000Z",
+          "key" : 1600081200000,
+          "doc_count" : 6652,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-14T12:00:00.000Z",
+          "key" : 1600084800000,
+          "doc_count" : 6905,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-14T13:00:00.000Z",
+          "key" : 1600088400000,
+          "doc_count" : 6052,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-14T14:00:00.000Z",
+          "key" : 1600092000000,
+          "doc_count" : 6445,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-14T15:00:00.000Z",
+          "key" : 1600095600000,
+          "doc_count" : 6379,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-14T16:00:00.000Z",
+          "key" : 1600099200000,
+          "doc_count" : 8510,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-14T17:00:00.000Z",
+          "key" : 1600102800000,
+          "doc_count" : 7303,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-14T18:00:00.000Z",
+          "key" : 1600106400000,
+          "doc_count" : 6635,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-14T19:00:00.000Z",
+          "key" : 1600110000000,
+          "doc_count" : 8406,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-14T20:00:00.000Z",
+          "key" : 1600113600000,
+          "doc_count" : 6545,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-14T21:00:00.000Z",
+          "key" : 1600117200000,
+          "doc_count" : 6429,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-14T22:00:00.000Z",
+          "key" : 1600120800000,
+          "doc_count" : 4395,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-14T23:00:00.000Z",
+          "key" : 1600124400000,
+          "doc_count" : 4472,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-15T00:00:00.000Z",
+          "key" : 1600128000000,
+          "doc_count" : 3382,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-15T01:00:00.000Z",
+          "key" : 1600131600000,
+          "doc_count" : 2524,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-15T02:00:00.000Z",
+          "key" : 1600135200000,
+          "doc_count" : 3244,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-15T03:00:00.000Z",
+          "key" : 1600138800000,
+          "doc_count" : 3360,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-15T04:00:00.000Z",
+          "key" : 1600142400000,
+          "doc_count" : 3473,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-15T05:00:00.000Z",
+          "key" : 1600146000000,
+          "doc_count" : 3505,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-15T06:00:00.000Z",
+          "key" : 1600149600000,
+          "doc_count" : 5048,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-15T07:00:00.000Z",
+          "key" : 1600153200000,
+          "doc_count" : 11405,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-15T08:00:00.000Z",
+          "key" : 1600156800000,
+          "doc_count" : 15142,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-15T09:00:00.000Z",
+          "key" : 1600160400000,
+          "doc_count" : 11132,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-15T10:00:00.000Z",
+          "key" : 1600164000000,
+          "doc_count" : 9614,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-15T11:00:00.000Z",
+          "key" : 1600167600000,
+          "doc_count" : 11313,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-15T12:00:00.000Z",
+          "key" : 1600171200000,
+          "doc_count" : 8602,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-15T13:00:00.000Z",
+          "key" : 1600174800000,
+          "doc_count" : 8665,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-15T14:00:00.000Z",
+          "key" : 1600178400000,
+          "doc_count" : 8459,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-15T15:00:00.000Z",
+          "key" : 1600182000000,
+          "doc_count" : 6788,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-15T16:00:00.000Z",
+          "key" : 1600185600000,
+          "doc_count" : 6138,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-15T17:00:00.000Z",
+          "key" : 1600189200000,
+          "doc_count" : 6183,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-15T18:00:00.000Z",
+          "key" : 1600192800000,
+          "doc_count" : 6430,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-15T19:00:00.000Z",
+          "key" : 1600196400000,
+          "doc_count" : 7523,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-15T20:00:00.000Z",
+          "key" : 1600200000000,
+          "doc_count" : 7611,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-15T21:00:00.000Z",
+          "key" : 1600203600000,
+          "doc_count" : 4826,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-15T22:00:00.000Z",
+          "key" : 1600207200000,
+          "doc_count" : 4991,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-15T23:00:00.000Z",
+          "key" : 1600210800000,
+          "doc_count" : 4298,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-16T00:00:00.000Z",
+          "key" : 1600214400000,
+          "doc_count" : 5859,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-16T01:00:00.000Z",
+          "key" : 1600218000000,
+          "doc_count" : 8961,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-16T02:00:00.000Z",
+          "key" : 1600221600000,
+          "doc_count" : 6042,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-16T03:00:00.000Z",
+          "key" : 1600225200000,
+          "doc_count" : 6811,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-16T04:00:00.000Z",
+          "key" : 1600228800000,
+          "doc_count" : 4562,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-16T05:00:00.000Z",
+          "key" : 1600232400000,
+          "doc_count" : 5265,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-16T06:00:00.000Z",
+          "key" : 1600236000000,
+          "doc_count" : 5871,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-16T07:00:00.000Z",
+          "key" : 1600239600000,
+          "doc_count" : 9117,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-16T08:00:00.000Z",
+          "key" : 1600243200000,
+          "doc_count" : 8240,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-16T09:00:00.000Z",
+          "key" : 1600246800000,
+          "doc_count" : 8009,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-16T10:00:00.000Z",
+          "key" : 1600250400000,
+          "doc_count" : 7019,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-16T11:00:00.000Z",
+          "key" : 1600254000000,
+          "doc_count" : 5552,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-16T12:00:00.000Z",
+          "key" : 1600257600000,
+          "doc_count" : 7842,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-16T13:00:00.000Z",
+          "key" : 1600261200000,
+          "doc_count" : 7926,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-16T14:00:00.000Z",
+          "key" : 1600264800000,
+          "doc_count" : 8941,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-16T15:00:00.000Z",
+          "key" : 1600268400000,
+          "doc_count" : 18372,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-16T16:00:00.000Z",
+          "key" : 1600272000000,
+          "doc_count" : 13897,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-16T17:00:00.000Z",
+          "key" : 1600275600000,
+          "doc_count" : 12343,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-16T18:00:00.000Z",
+          "key" : 1600279200000,
+          "doc_count" : 11615,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-16T19:00:00.000Z",
+          "key" : 1600282800000,
+          "doc_count" : 606,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-16T20:00:00.000Z",
+          "key" : 1600286400000,
+          "doc_count" : 0,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-16T21:00:00.000Z",
+          "key" : 1600290000000,
+          "doc_count" : 734,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-16T22:00:00.000Z",
+          "key" : 1600293600000,
+          "doc_count" : 5076,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-16T23:00:00.000Z",
+          "key" : 1600297200000,
+          "doc_count" : 3793,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-17T00:00:00.000Z",
+          "key" : 1600300800000,
+          "doc_count" : 4783,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-17T01:00:00.000Z",
+          "key" : 1600304400000,
+          "doc_count" : 4074,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-17T02:00:00.000Z",
+          "key" : 1600308000000,
+          "doc_count" : 4945,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-17T03:00:00.000Z",
+          "key" : 1600311600000,
+          "doc_count" : 6020,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-17T04:00:00.000Z",
+          "key" : 1600315200000,
+          "doc_count" : 7031,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-17T05:00:00.000Z",
+          "key" : 1600318800000,
+          "doc_count" : 9998,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-17T06:00:00.000Z",
+          "key" : 1600322400000,
+          "doc_count" : 10980,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-17T07:00:00.000Z",
+          "key" : 1600326000000,
+          "doc_count" : 11817,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-17T08:00:00.000Z",
+          "key" : 1600329600000,
+          "doc_count" : 11057,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-17T09:00:00.000Z",
+          "key" : 1600333200000,
+          "doc_count" : 9292,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-17T10:00:00.000Z",
+          "key" : 1600336800000,
+          "doc_count" : 9122,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-17T11:00:00.000Z",
+          "key" : 1600340400000,
+          "doc_count" : 7766,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-17T12:00:00.000Z",
+          "key" : 1600344000000,
+          "doc_count" : 8240,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-17T13:00:00.000Z",
+          "key" : 1600347600000,
+          "doc_count" : 6261,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-17T14:00:00.000Z",
+          "key" : 1600351200000,
+          "doc_count" : 11326,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-17T15:00:00.000Z",
+          "key" : 1600354800000,
+          "doc_count" : 11573,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-17T16:00:00.000Z",
+          "key" : 1600358400000,
+          "doc_count" : 8024,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-17T17:00:00.000Z",
+          "key" : 1600362000000,
+          "doc_count" : 6898,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-17T18:00:00.000Z",
+          "key" : 1600365600000,
+          "doc_count" : 7668,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-17T19:00:00.000Z",
+          "key" : 1600369200000,
+          "doc_count" : 7551,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-17T20:00:00.000Z",
+          "key" : 1600372800000,
+          "doc_count" : 7094,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-17T21:00:00.000Z",
+          "key" : 1600376400000,
+          "doc_count" : 5336,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-17T22:00:00.000Z",
+          "key" : 1600380000000,
+          "doc_count" : 3724,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-17T23:00:00.000Z",
+          "key" : 1600383600000,
+          "doc_count" : 3201,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-18T00:00:00.000Z",
+          "key" : 1600387200000,
+          "doc_count" : 3535,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-18T01:00:00.000Z",
+          "key" : 1600390800000,
+          "doc_count" : 2763,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-18T02:00:00.000Z",
+          "key" : 1600394400000,
+          "doc_count" : 2612,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-18T03:00:00.000Z",
+          "key" : 1600398000000,
+          "doc_count" : 3550,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-18T04:00:00.000Z",
+          "key" : 1600401600000,
+          "doc_count" : 4210,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-18T05:00:00.000Z",
+          "key" : 1600405200000,
+          "doc_count" : 5482,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-18T06:00:00.000Z",
+          "key" : 1600408800000,
+          "doc_count" : 6916,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-18T07:00:00.000Z",
+          "key" : 1600412400000,
+          "doc_count" : 7936,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-18T08:00:00.000Z",
+          "key" : 1600416000000,
+          "doc_count" : 10665,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-18T09:00:00.000Z",
+          "key" : 1600419600000,
+          "doc_count" : 10062,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-18T10:00:00.000Z",
+          "key" : 1600423200000,
+          "doc_count" : 7630,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-18T11:00:00.000Z",
+          "key" : 1600426800000,
+          "doc_count" : 8136,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-18T12:00:00.000Z",
+          "key" : 1600430400000,
+          "doc_count" : 7739,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-18T13:00:00.000Z",
+          "key" : 1600434000000,
+          "doc_count" : 7669,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-18T14:00:00.000Z",
+          "key" : 1600437600000,
+          "doc_count" : 7675,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-18T15:00:00.000Z",
+          "key" : 1600441200000,
+          "doc_count" : 6259,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-18T16:00:00.000Z",
+          "key" : 1600444800000,
+          "doc_count" : 6432,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-18T17:00:00.000Z",
+          "key" : 1600448400000,
+          "doc_count" : 5897,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-18T18:00:00.000Z",
+          "key" : 1600452000000,
+          "doc_count" : 6228,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-18T19:00:00.000Z",
+          "key" : 1600455600000,
+          "doc_count" : 6669,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-18T20:00:00.000Z",
+          "key" : 1600459200000,
+          "doc_count" : 6393,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-18T21:00:00.000Z",
+          "key" : 1600462800000,
+          "doc_count" : 6199,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-18T22:00:00.000Z",
+          "key" : 1600466400000,
+          "doc_count" : 4926,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-18T23:00:00.000Z",
+          "key" : 1600470000000,
+          "doc_count" : 3873,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-19T00:00:00.000Z",
+          "key" : 1600473600000,
+          "doc_count" : 3132,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-19T01:00:00.000Z",
+          "key" : 1600477200000,
+          "doc_count" : 3871,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-19T02:00:00.000Z",
+          "key" : 1600480800000,
+          "doc_count" : 3324,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-19T03:00:00.000Z",
+          "key" : 1600484400000,
+          "doc_count" : 6205,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-19T04:00:00.000Z",
+          "key" : 1600488000000,
+          "doc_count" : 7410,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-19T05:00:00.000Z",
+          "key" : 1600491600000,
+          "doc_count" : 5780,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-19T06:00:00.000Z",
+          "key" : 1600495200000,
+          "doc_count" : 6680,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-19T07:00:00.000Z",
+          "key" : 1600498800000,
+          "doc_count" : 7499,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-19T08:00:00.000Z",
+          "key" : 1600502400000,
+          "doc_count" : 8609,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-19T09:00:00.000Z",
+          "key" : 1600506000000,
+          "doc_count" : 8408,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-19T10:00:00.000Z",
+          "key" : 1600509600000,
+          "doc_count" : 6713,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-19T11:00:00.000Z",
+          "key" : 1600513200000,
+          "doc_count" : 7432,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-19T12:00:00.000Z",
+          "key" : 1600516800000,
+          "doc_count" : 13255,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-19T13:00:00.000Z",
+          "key" : 1600520400000,
+          "doc_count" : 6616,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-19T14:00:00.000Z",
+          "key" : 1600524000000,
+          "doc_count" : 6927,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-19T15:00:00.000Z",
+          "key" : 1600527600000,
+          "doc_count" : 6708,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-19T16:00:00.000Z",
+          "key" : 1600531200000,
+          "doc_count" : 6329,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-19T17:00:00.000Z",
+          "key" : 1600534800000,
+          "doc_count" : 6058,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-19T18:00:00.000Z",
+          "key" : 1600538400000,
+          "doc_count" : 5891,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-19T19:00:00.000Z",
+          "key" : 1600542000000,
+          "doc_count" : 5805,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-19T20:00:00.000Z",
+          "key" : 1600545600000,
+          "doc_count" : 5552,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-19T21:00:00.000Z",
+          "key" : 1600549200000,
+          "doc_count" : 4769,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-19T22:00:00.000Z",
+          "key" : 1600552800000,
+          "doc_count" : 6190,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-19T23:00:00.000Z",
+          "key" : 1600556400000,
+          "doc_count" : 4126,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-20T00:00:00.000Z",
+          "key" : 1600560000000,
+          "doc_count" : 2637,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-20T01:00:00.000Z",
+          "key" : 1600563600000,
+          "doc_count" : 2043,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-20T02:00:00.000Z",
+          "key" : 1600567200000,
+          "doc_count" : 2216,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-20T03:00:00.000Z",
+          "key" : 1600570800000,
+          "doc_count" : 2569,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-20T04:00:00.000Z",
+          "key" : 1600574400000,
+          "doc_count" : 3174,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-20T05:00:00.000Z",
+          "key" : 1600578000000,
+          "doc_count" : 3716,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-20T06:00:00.000Z",
+          "key" : 1600581600000,
+          "doc_count" : 5537,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-20T07:00:00.000Z",
+          "key" : 1600585200000,
+          "doc_count" : 6716,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-20T08:00:00.000Z",
+          "key" : 1600588800000,
+          "doc_count" : 7331,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-20T09:00:00.000Z",
+          "key" : 1600592400000,
+          "doc_count" : 7035,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-20T10:00:00.000Z",
+          "key" : 1600596000000,
+          "doc_count" : 6186,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-20T11:00:00.000Z",
+          "key" : 1600599600000,
+          "doc_count" : 6002,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-20T12:00:00.000Z",
+          "key" : 1600603200000,
+          "doc_count" : 5998,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-20T13:00:00.000Z",
+          "key" : 1600606800000,
+          "doc_count" : 5271,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-20T14:00:00.000Z",
+          "key" : 1600610400000,
+          "doc_count" : 5294,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-20T15:00:00.000Z",
+          "key" : 1600614000000,
+          "doc_count" : 5940,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-20T16:00:00.000Z",
+          "key" : 1600617600000,
+          "doc_count" : 7507,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-20T17:00:00.000Z",
+          "key" : 1600621200000,
+          "doc_count" : 7348,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-20T18:00:00.000Z",
+          "key" : 1600624800000,
+          "doc_count" : 4479,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-20T19:00:00.000Z",
+          "key" : 1600628400000,
+          "doc_count" : 5786,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-20T20:00:00.000Z",
+          "key" : 1600632000000,
+          "doc_count" : 5108,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-20T21:00:00.000Z",
+          "key" : 1600635600000,
+          "doc_count" : 4366,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-20T22:00:00.000Z",
+          "key" : 1600639200000,
+          "doc_count" : 4025,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-20T23:00:00.000Z",
+          "key" : 1600642800000,
+          "doc_count" : 1932,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-21T00:00:00.000Z",
+          "key" : 1600646400000,
+          "doc_count" : 2067,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-21T01:00:00.000Z",
+          "key" : 1600650000000,
+          "doc_count" : 2213,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-21T02:00:00.000Z",
+          "key" : 1600653600000,
+          "doc_count" : 2192,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-21T03:00:00.000Z",
+          "key" : 1600657200000,
+          "doc_count" : 2929,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-21T04:00:00.000Z",
+          "key" : 1600660800000,
+          "doc_count" : 7834,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-21T05:00:00.000Z",
+          "key" : 1600664400000,
+          "doc_count" : 9116,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-21T06:00:00.000Z",
+          "key" : 1600668000000,
+          "doc_count" : 9304,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-21T07:00:00.000Z",
+          "key" : 1600671600000,
+          "doc_count" : 7926,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-21T08:00:00.000Z",
+          "key" : 1600675200000,
+          "doc_count" : 10585,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-21T09:00:00.000Z",
+          "key" : 1600678800000,
+          "doc_count" : 8465,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-21T10:00:00.000Z",
+          "key" : 1600682400000,
+          "doc_count" : 10705,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-21T11:00:00.000Z",
+          "key" : 1600686000000,
+          "doc_count" : 7603,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-21T12:00:00.000Z",
+          "key" : 1600689600000,
+          "doc_count" : 8452,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-21T13:00:00.000Z",
+          "key" : 1600693200000,
+          "doc_count" : 6320,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-21T14:00:00.000Z",
+          "key" : 1600696800000,
+          "doc_count" : 6490,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-21T15:00:00.000Z",
+          "key" : 1600700400000,
+          "doc_count" : 6772,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-21T16:00:00.000Z",
+          "key" : 1600704000000,
+          "doc_count" : 5481,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-21T17:00:00.000Z",
+          "key" : 1600707600000,
+          "doc_count" : 4959,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-21T18:00:00.000Z",
+          "key" : 1600711200000,
+          "doc_count" : 5676,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-21T19:00:00.000Z",
+          "key" : 1600714800000,
+          "doc_count" : 5705,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-21T20:00:00.000Z",
+          "key" : 1600718400000,
+          "doc_count" : 5511,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-21T21:00:00.000Z",
+          "key" : 1600722000000,
+          "doc_count" : 4631,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-21T22:00:00.000Z",
+          "key" : 1600725600000,
+          "doc_count" : 8366,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-21T23:00:00.000Z",
+          "key" : 1600729200000,
+          "doc_count" : 6797,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-22T00:00:00.000Z",
+          "key" : 1600732800000,
+          "doc_count" : 6369,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-22T01:00:00.000Z",
+          "key" : 1600736400000,
+          "doc_count" : 2365,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-22T02:00:00.000Z",
+          "key" : 1600740000000,
+          "doc_count" : 2319,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-22T03:00:00.000Z",
+          "key" : 1600743600000,
+          "doc_count" : 2992,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-22T04:00:00.000Z",
+          "key" : 1600747200000,
+          "doc_count" : 3192,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-22T05:00:00.000Z",
+          "key" : 1600750800000,
+          "doc_count" : 4062,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-22T06:00:00.000Z",
+          "key" : 1600754400000,
+          "doc_count" : 6184,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-22T07:00:00.000Z",
+          "key" : 1600758000000,
+          "doc_count" : 7990,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-22T08:00:00.000Z",
+          "key" : 1600761600000,
+          "doc_count" : 6817,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-22T09:00:00.000Z",
+          "key" : 1600765200000,
+          "doc_count" : 6769,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-22T10:00:00.000Z",
+          "key" : 1600768800000,
+          "doc_count" : 5225,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-22T11:00:00.000Z",
+          "key" : 1600772400000,
+          "doc_count" : 6643,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-22T12:00:00.000Z",
+          "key" : 1600776000000,
+          "doc_count" : 6569,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-22T13:00:00.000Z",
+          "key" : 1600779600000,
+          "doc_count" : 7178,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-22T14:00:00.000Z",
+          "key" : 1600783200000,
+          "doc_count" : 5939,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-22T15:00:00.000Z",
+          "key" : 1600786800000,
+          "doc_count" : 7378,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-22T16:00:00.000Z",
+          "key" : 1600790400000,
+          "doc_count" : 6561,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-22T17:00:00.000Z",
+          "key" : 1600794000000,
+          "doc_count" : 7693,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-22T18:00:00.000Z",
+          "key" : 1600797600000,
+          "doc_count" : 7565,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-22T19:00:00.000Z",
+          "key" : 1600801200000,
+          "doc_count" : 5803,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-22T20:00:00.000Z",
+          "key" : 1600804800000,
+          "doc_count" : 5209,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-22T21:00:00.000Z",
+          "key" : 1600808400000,
+          "doc_count" : 6148,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-22T22:00:00.000Z",
+          "key" : 1600812000000,
+          "doc_count" : 4180,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-22T23:00:00.000Z",
+          "key" : 1600815600000,
+          "doc_count" : 3946,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-23T00:00:00.000Z",
+          "key" : 1600819200000,
+          "doc_count" : 4464,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-23T01:00:00.000Z",
+          "key" : 1600822800000,
+          "doc_count" : 4195,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-23T02:00:00.000Z",
+          "key" : 1600826400000,
+          "doc_count" : 2623,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-23T03:00:00.000Z",
+          "key" : 1600830000000,
+          "doc_count" : 3422,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-23T04:00:00.000Z",
+          "key" : 1600833600000,
+          "doc_count" : 3893,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-23T05:00:00.000Z",
+          "key" : 1600837200000,
+          "doc_count" : 6052,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-23T06:00:00.000Z",
+          "key" : 1600840800000,
+          "doc_count" : 6683,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-23T07:00:00.000Z",
+          "key" : 1600844400000,
+          "doc_count" : 6119,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-23T08:00:00.000Z",
+          "key" : 1600848000000,
+          "doc_count" : 6406,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-23T09:00:00.000Z",
+          "key" : 1600851600000,
+          "doc_count" : 10932,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-23T10:00:00.000Z",
+          "key" : 1600855200000,
+          "doc_count" : 13769,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-23T11:00:00.000Z",
+          "key" : 1600858800000,
+          "doc_count" : 10401,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-23T12:00:00.000Z",
+          "key" : 1600862400000,
+          "doc_count" : 12491,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-23T13:00:00.000Z",
+          "key" : 1600866000000,
+          "doc_count" : 10518,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-23T14:00:00.000Z",
+          "key" : 1600869600000,
+          "doc_count" : 9353,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-23T15:00:00.000Z",
+          "key" : 1600873200000,
+          "doc_count" : 18699,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-23T16:00:00.000Z",
+          "key" : 1600876800000,
+          "doc_count" : 10855,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-23T17:00:00.000Z",
+          "key" : 1600880400000,
+          "doc_count" : 8601,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-23T18:00:00.000Z",
+          "key" : 1600884000000,
+          "doc_count" : 9599,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-23T19:00:00.000Z",
+          "key" : 1600887600000,
+          "doc_count" : 12387,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-23T20:00:00.000Z",
+          "key" : 1600891200000,
+          "doc_count" : 7712,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-23T21:00:00.000Z",
+          "key" : 1600894800000,
+          "doc_count" : 7764,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-23T22:00:00.000Z",
+          "key" : 1600898400000,
+          "doc_count" : 3810,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-23T23:00:00.000Z",
+          "key" : 1600902000000,
+          "doc_count" : 3078,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-24T00:00:00.000Z",
+          "key" : 1600905600000,
+          "doc_count" : 2781,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-24T01:00:00.000Z",
+          "key" : 1600909200000,
+          "doc_count" : 3165,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-24T02:00:00.000Z",
+          "key" : 1600912800000,
+          "doc_count" : 3486,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-24T03:00:00.000Z",
+          "key" : 1600916400000,
+          "doc_count" : 3106,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-24T04:00:00.000Z",
+          "key" : 1600920000000,
+          "doc_count" : 8318,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-24T05:00:00.000Z",
+          "key" : 1600923600000,
+          "doc_count" : 4146,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-24T06:00:00.000Z",
+          "key" : 1600927200000,
+          "doc_count" : 8003,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-24T07:00:00.000Z",
+          "key" : 1600930800000,
+          "doc_count" : 5501,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-24T08:00:00.000Z",
+          "key" : 1600934400000,
+          "doc_count" : 5789,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-24T09:00:00.000Z",
+          "key" : 1600938000000,
+          "doc_count" : 6415,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-24T10:00:00.000Z",
+          "key" : 1600941600000,
+          "doc_count" : 5871,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-24T11:00:00.000Z",
+          "key" : 1600945200000,
+          "doc_count" : 5087,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-24T12:00:00.000Z",
+          "key" : 1600948800000,
+          "doc_count" : 3808,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-24T13:00:00.000Z",
+          "key" : 1600952400000,
+          "doc_count" : 5527,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-24T14:00:00.000Z",
+          "key" : 1600956000000,
+          "doc_count" : 5534,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-24T15:00:00.000Z",
+          "key" : 1600959600000,
+          "doc_count" : 5740,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-24T16:00:00.000Z",
+          "key" : 1600963200000,
+          "doc_count" : 4073,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-24T17:00:00.000Z",
+          "key" : 1600966800000,
+          "doc_count" : 4553,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-24T18:00:00.000Z",
+          "key" : 1600970400000,
+          "doc_count" : 5407,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-24T19:00:00.000Z",
+          "key" : 1600974000000,
+          "doc_count" : 7169,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-24T20:00:00.000Z",
+          "key" : 1600977600000,
+          "doc_count" : 5516,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-24T21:00:00.000Z",
+          "key" : 1600981200000,
+          "doc_count" : 4105,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-24T22:00:00.000Z",
+          "key" : 1600984800000,
+          "doc_count" : 3863,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-24T23:00:00.000Z",
+          "key" : 1600988400000,
+          "doc_count" : 3174,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-25T00:00:00.000Z",
+          "key" : 1600992000000,
+          "doc_count" : 4056,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-25T01:00:00.000Z",
+          "key" : 1600995600000,
+          "doc_count" : 5538,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-25T02:00:00.000Z",
+          "key" : 1600999200000,
+          "doc_count" : 2368,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-25T03:00:00.000Z",
+          "key" : 1601002800000,
+          "doc_count" : 2242,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-25T04:00:00.000Z",
+          "key" : 1601006400000,
+          "doc_count" : 2714,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-25T05:00:00.000Z",
+          "key" : 1601010000000,
+          "doc_count" : 4055,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-25T06:00:00.000Z",
+          "key" : 1601013600000,
+          "doc_count" : 5500,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-25T07:00:00.000Z",
+          "key" : 1601017200000,
+          "doc_count" : 6237,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-25T08:00:00.000Z",
+          "key" : 1601020800000,
+          "doc_count" : 6079,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-25T09:00:00.000Z",
+          "key" : 1601024400000,
+          "doc_count" : 5506,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-25T10:00:00.000Z",
+          "key" : 1601028000000,
+          "doc_count" : 6746,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-25T11:00:00.000Z",
+          "key" : 1601031600000,
+          "doc_count" : 5193,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-25T12:00:00.000Z",
+          "key" : 1601035200000,
+          "doc_count" : 5808,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-25T13:00:00.000Z",
+          "key" : 1601038800000,
+          "doc_count" : 5885,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-25T14:00:00.000Z",
+          "key" : 1601042400000,
+          "doc_count" : 7784,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-25T15:00:00.000Z",
+          "key" : 1601046000000,
+          "doc_count" : 5618,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-25T16:00:00.000Z",
+          "key" : 1601049600000,
+          "doc_count" : 4993,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-25T17:00:00.000Z",
+          "key" : 1601053200000,
+          "doc_count" : 4705,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-25T18:00:00.000Z",
+          "key" : 1601056800000,
+          "doc_count" : 6369,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-25T19:00:00.000Z",
+          "key" : 1601060400000,
+          "doc_count" : 9129,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-25T20:00:00.000Z",
+          "key" : 1601064000000,
+          "doc_count" : 5237,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-25T21:00:00.000Z",
+          "key" : 1601067600000,
+          "doc_count" : 4557,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-25T22:00:00.000Z",
+          "key" : 1601071200000,
+          "doc_count" : 3814,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-25T23:00:00.000Z",
+          "key" : 1601074800000,
+          "doc_count" : 2721,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-26T00:00:00.000Z",
+          "key" : 1601078400000,
+          "doc_count" : 2479,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-26T01:00:00.000Z",
+          "key" : 1601082000000,
+          "doc_count" : 2076,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-26T02:00:00.000Z",
+          "key" : 1601085600000,
+          "doc_count" : 2743,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-26T03:00:00.000Z",
+          "key" : 1601089200000,
+          "doc_count" : 2559,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-26T04:00:00.000Z",
+          "key" : 1601092800000,
+          "doc_count" : 3381,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-26T05:00:00.000Z",
+          "key" : 1601096400000,
+          "doc_count" : 3673,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-26T06:00:00.000Z",
+          "key" : 1601100000000,
+          "doc_count" : 5373,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-26T07:00:00.000Z",
+          "key" : 1601103600000,
+          "doc_count" : 5355,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-26T08:00:00.000Z",
+          "key" : 1601107200000,
+          "doc_count" : 6442,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-26T09:00:00.000Z",
+          "key" : 1601110800000,
+          "doc_count" : 6519,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-26T10:00:00.000Z",
+          "key" : 1601114400000,
+          "doc_count" : 7473,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-26T11:00:00.000Z",
+          "key" : 1601118000000,
+          "doc_count" : 7863,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-26T12:00:00.000Z",
+          "key" : 1601121600000,
+          "doc_count" : 6667,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-26T13:00:00.000Z",
+          "key" : 1601125200000,
+          "doc_count" : 8302,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-26T14:00:00.000Z",
+          "key" : 1601128800000,
+          "doc_count" : 8663,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-26T15:00:00.000Z",
+          "key" : 1601132400000,
+          "doc_count" : 6790,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-26T16:00:00.000Z",
+          "key" : 1601136000000,
+          "doc_count" : 7273,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-26T17:00:00.000Z",
+          "key" : 1601139600000,
+          "doc_count" : 5127,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-26T18:00:00.000Z",
+          "key" : 1601143200000,
+          "doc_count" : 4437,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-26T19:00:00.000Z",
+          "key" : 1601146800000,
+          "doc_count" : 4812,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-26T20:00:00.000Z",
+          "key" : 1601150400000,
+          "doc_count" : 5121,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-26T21:00:00.000Z",
+          "key" : 1601154000000,
+          "doc_count" : 4530,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-26T22:00:00.000Z",
+          "key" : 1601157600000,
+          "doc_count" : 2982,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-26T23:00:00.000Z",
+          "key" : 1601161200000,
+          "doc_count" : 3177,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-27T00:00:00.000Z",
+          "key" : 1601164800000,
+          "doc_count" : 1755,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-27T01:00:00.000Z",
+          "key" : 1601168400000,
+          "doc_count" : 3370,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-27T02:00:00.000Z",
+          "key" : 1601172000000,
+          "doc_count" : 2881,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-27T03:00:00.000Z",
+          "key" : 1601175600000,
+          "doc_count" : 3020,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-27T04:00:00.000Z",
+          "key" : 1601179200000,
+          "doc_count" : 2906,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-27T05:00:00.000Z",
+          "key" : 1601182800000,
+          "doc_count" : 3824,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-27T06:00:00.000Z",
+          "key" : 1601186400000,
+          "doc_count" : 4976,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-27T07:00:00.000Z",
+          "key" : 1601190000000,
+          "doc_count" : 7501,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-27T08:00:00.000Z",
+          "key" : 1601193600000,
+          "doc_count" : 9443,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-27T09:00:00.000Z",
+          "key" : 1601197200000,
+          "doc_count" : 7090,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-27T10:00:00.000Z",
+          "key" : 1601200800000,
+          "doc_count" : 6867,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-27T11:00:00.000Z",
+          "key" : 1601204400000,
+          "doc_count" : 6206,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-27T12:00:00.000Z",
+          "key" : 1601208000000,
+          "doc_count" : 6998,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-27T13:00:00.000Z",
+          "key" : 1601211600000,
+          "doc_count" : 9347,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-27T14:00:00.000Z",
+          "key" : 1601215200000,
+          "doc_count" : 9271,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-27T15:00:00.000Z",
+          "key" : 1601218800000,
+          "doc_count" : 5485,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-27T16:00:00.000Z",
+          "key" : 1601222400000,
+          "doc_count" : 6874,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-27T17:00:00.000Z",
+          "key" : 1601226000000,
+          "doc_count" : 5417,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-27T18:00:00.000Z",
+          "key" : 1601229600000,
+          "doc_count" : 8044,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-27T19:00:00.000Z",
+          "key" : 1601233200000,
+          "doc_count" : 5995,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-27T20:00:00.000Z",
+          "key" : 1601236800000,
+          "doc_count" : 5611,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-27T21:00:00.000Z",
+          "key" : 1601240400000,
+          "doc_count" : 3782,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-27T22:00:00.000Z",
+          "key" : 1601244000000,
+          "doc_count" : 2804,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-27T23:00:00.000Z",
+          "key" : 1601247600000,
+          "doc_count" : 2208,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-28T00:00:00.000Z",
+          "key" : 1601251200000,
+          "doc_count" : 2012,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-28T01:00:00.000Z",
+          "key" : 1601254800000,
+          "doc_count" : 2495,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-28T02:00:00.000Z",
+          "key" : 1601258400000,
+          "doc_count" : 3168,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-28T03:00:00.000Z",
+          "key" : 1601262000000,
+          "doc_count" : 3777,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-28T04:00:00.000Z",
+          "key" : 1601265600000,
+          "doc_count" : 2687,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-28T05:00:00.000Z",
+          "key" : 1601269200000,
+          "doc_count" : 2312,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-28T06:00:00.000Z",
+          "key" : 1601272800000,
+          "doc_count" : 3466,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-28T07:00:00.000Z",
+          "key" : 1601276400000,
+          "doc_count" : 6562,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-28T08:00:00.000Z",
+          "key" : 1601280000000,
+          "doc_count" : 5578,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-28T09:00:00.000Z",
+          "key" : 1601283600000,
+          "doc_count" : 5683,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-28T10:00:00.000Z",
+          "key" : 1601287200000,
+          "doc_count" : 4449,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-28T11:00:00.000Z",
+          "key" : 1601290800000,
+          "doc_count" : 4966,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-28T12:00:00.000Z",
+          "key" : 1601294400000,
+          "doc_count" : 4294,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-28T13:00:00.000Z",
+          "key" : 1601298000000,
+          "doc_count" : 5590,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-28T14:00:00.000Z",
+          "key" : 1601301600000,
+          "doc_count" : 6814,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-28T15:00:00.000Z",
+          "key" : 1601305200000,
+          "doc_count" : 6542,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-28T16:00:00.000Z",
+          "key" : 1601308800000,
+          "doc_count" : 4673,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-28T17:00:00.000Z",
+          "key" : 1601312400000,
+          "doc_count" : 4511,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-28T18:00:00.000Z",
+          "key" : 1601316000000,
+          "doc_count" : 5977,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-28T19:00:00.000Z",
+          "key" : 1601319600000,
+          "doc_count" : 6258,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-28T20:00:00.000Z",
+          "key" : 1601323200000,
+          "doc_count" : 4808,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-28T21:00:00.000Z",
+          "key" : 1601326800000,
+          "doc_count" : 4914,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-28T22:00:00.000Z",
+          "key" : 1601330400000,
+          "doc_count" : 3575,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-28T23:00:00.000Z",
+          "key" : 1601334000000,
+          "doc_count" : 2590,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-29T00:00:00.000Z",
+          "key" : 1601337600000,
+          "doc_count" : 1879,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-29T01:00:00.000Z",
+          "key" : 1601341200000,
+          "doc_count" : 4182,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-29T02:00:00.000Z",
+          "key" : 1601344800000,
+          "doc_count" : 6304,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-29T03:00:00.000Z",
+          "key" : 1601348400000,
+          "doc_count" : 2439,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-29T04:00:00.000Z",
+          "key" : 1601352000000,
+          "doc_count" : 2680,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-29T05:00:00.000Z",
+          "key" : 1601355600000,
+          "doc_count" : 1766,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-29T06:00:00.000Z",
+          "key" : 1601359200000,
+          "doc_count" : 2635,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-29T07:00:00.000Z",
+          "key" : 1601362800000,
+          "doc_count" : 3603,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-29T08:00:00.000Z",
+          "key" : 1601366400000,
+          "doc_count" : 4684,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-29T09:00:00.000Z",
+          "key" : 1601370000000,
+          "doc_count" : 5321,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-29T10:00:00.000Z",
+          "key" : 1601373600000,
+          "doc_count" : 3769,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-29T11:00:00.000Z",
+          "key" : 1601377200000,
+          "doc_count" : 4001,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-29T12:00:00.000Z",
+          "key" : 1601380800000,
+          "doc_count" : 9982,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-29T13:00:00.000Z",
+          "key" : 1601384400000,
+          "doc_count" : 8863,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-29T14:00:00.000Z",
+          "key" : 1601388000000,
+          "doc_count" : 7383,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-29T15:00:00.000Z",
+          "key" : 1601391600000,
+          "doc_count" : 8174,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-29T16:00:00.000Z",
+          "key" : 1601395200000,
+          "doc_count" : 6588,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-29T17:00:00.000Z",
+          "key" : 1601398800000,
+          "doc_count" : 6106,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-29T18:00:00.000Z",
+          "key" : 1601402400000,
+          "doc_count" : 6632,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-29T19:00:00.000Z",
+          "key" : 1601406000000,
+          "doc_count" : 5914,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-29T20:00:00.000Z",
+          "key" : 1601409600000,
+          "doc_count" : 8547,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-29T21:00:00.000Z",
+          "key" : 1601413200000,
+          "doc_count" : 5059,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-29T22:00:00.000Z",
+          "key" : 1601416800000,
+          "doc_count" : 3140,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-29T23:00:00.000Z",
+          "key" : 1601420400000,
+          "doc_count" : 3968,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-30T00:00:00.000Z",
+          "key" : 1601424000000,
+          "doc_count" : 2624,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-30T01:00:00.000Z",
+          "key" : 1601427600000,
+          "doc_count" : 2226,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-30T02:00:00.000Z",
+          "key" : 1601431200000,
+          "doc_count" : 2835,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-30T03:00:00.000Z",
+          "key" : 1601434800000,
+          "doc_count" : 2473,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-30T04:00:00.000Z",
+          "key" : 1601438400000,
+          "doc_count" : 2285,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-30T05:00:00.000Z",
+          "key" : 1601442000000,
+          "doc_count" : 783,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-30T06:00:00.000Z",
+          "key" : 1601445600000,
+          "doc_count" : 0,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-30T07:00:00.000Z",
+          "key" : 1601449200000,
+          "doc_count" : 0,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-30T08:00:00.000Z",
+          "key" : 1601452800000,
+          "doc_count" : 7,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-30T09:00:00.000Z",
+          "key" : 1601456400000,
+          "doc_count" : 0,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-30T10:00:00.000Z",
+          "key" : 1601460000000,
+          "doc_count" : 0,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-30T11:00:00.000Z",
+          "key" : 1601463600000,
+          "doc_count" : 0,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-30T12:00:00.000Z",
+          "key" : 1601467200000,
+          "doc_count" : 0,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-30T13:00:00.000Z",
+          "key" : 1601470800000,
+          "doc_count" : 1,
+          "count" : {
+            "value" : 10
+          }
+        },
+        {
+          "key_as_string" : "2020-09-30T14:00:00.000Z",
+          "key" : 1601474400000,
+          "doc_count" : 3,
+          "count" : {
+            "value" : 0
+          }
+        },
+        {
+          "key_as_string" : "2020-09-30T15:00:00.000Z",
+          "key" : 1601478000000,
+          "doc_count" : 48,
+          "count" : {
+            "value" : 0
+          }
+        },
+        {
+          "key_as_string" : "2020-09-30T16:00:00.000Z",
+          "key" : 1601481600000,
+          "doc_count" : 17,
+          "count" : {
+            "value" : 0
+          }
+        },
+        {
+          "key_as_string" : "2020-09-30T17:00:00.000Z",
+          "key" : 1601485200000,
+          "doc_count" : 0,
+          "count" : {
+            "value" : 0
+          }
+        },
+        {
+          "key_as_string" : "2020-09-30T18:00:00.000Z",
+          "key" : 1601488800000,
+          "doc_count" : 23,
+          "count" : {
+            "value" : 0
+          }
+        },
+        {
+          "key_as_string" : "2020-09-30T19:00:00.000Z",
+          "key" : 1601492400000,
+          "doc_count" : 0,
+          "count" : {
+            "value" : 0
+          }
+        },
+        {
+          "key_as_string" : "2020-09-30T20:00:00.000Z",
+          "key" : 1601496000000,
+          "doc_count" : 0,
+          "count" : {
+            "value" : 0
+          }
+        },
+        {
+          "key_as_string" : "2020-09-30T21:00:00.000Z",
+          "key" : 1601499600000,
+          "doc_count" : 16,
+          "count" : {
+            "value" : 0
+          }
+        },
+        {
+          "key_as_string" : "2020-09-30T22:00:00.000Z",
+          "key" : 1601503200000,
+          "doc_count" : 2,
+          "count" : {
+            "value" : 0
+          }
+        },
+        {
+          "key_as_string" : "2020-09-30T23:00:00.000Z",
+          "key" : 1601506800000,
+          "doc_count" : 3134,
+          "count" : {
+            "value" : 0
+          }
+        }
+      ]
+    },
+    "average" : {
+      "value" : 10
+    }
+  }
+}
