@@ -1,0 +1,11 @@
+### amazee.io Drupal 8 production environment services file.
+#
+# This file should contain service definitions that are needed on production environments
+#
+# It contains some defaults that the amazee.io team suggests, please edit them as required.
+#
+parameters:
+  twig.config: # disabling twig debugging and auto reload, plus enabling twig caching
+    debug: false
+    auto_reload: null
+    cache: true
