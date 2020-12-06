@@ -25,3 +25,6 @@ docs/_build
 yarn-debug.log*
 yarn-error.log*
 site
+kubeconfig.*
+kindconfig.*
+kind

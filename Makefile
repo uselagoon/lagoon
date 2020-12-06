@@ -965,7 +965,7 @@ helm/repos: local-dev/helm
 kind/cluster: local-dev/kind
 	# these IPs are a result of the docker config on our build nodes
 	export KUBECONFIG=$$(mktemp) \
-		KINDCONFIG=$$(mktemp -p . kindconfig.XXX) \
+		KINDCONFIG=$$(mktemp ./kindconfig.XXX) \
 		&& chmod 644 $$KUBECONFIG \
 		&& curl -sSLo $$KINDCONFIG https://raw.githubusercontent.com/uselagoon/lagoon-charts/$(CHARTS_TREEISH)/test-suite.kind-config.yaml \
 		&& echo '  [plugins."io.containerd.grpc.v1.cri".registry.configs."registry.192.168.48.2.nip.io:32443".tls]'  >> $$KINDCONFIG \
@@ -1005,7 +1005,7 @@ kind/test: kind/cluster kind/preload local-dev/helm local-dev/kind local-dev/kub
 		&& git clone https://github.com/uselagoon/lagoon-charts.git "$$CHARTSDIR" \
 		&& cd "$$CHARTSDIR" \
 		&& git checkout $(CHARTS_TREEISH) \
-		&& export KUBECONFIG=$$(mktemp -p .. kubeconfig.XXX) \
+		&& export KUBECONFIG=$$(mktemp ../kubeconfig.XXX) \
 		&& KIND_CLUSTER_NAME="$(CI_BUILD_TAG)" ../local-dev/kind export kubeconfig \
 		&& $(MAKE) -O fill-test-ci-values TESTS=$(TESTS) IMAGE_TAG=$(BRANCH_NAME) \
 		HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
