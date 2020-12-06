@@ -961,8 +961,7 @@ helm/repos: local-dev/helm
 	./local-dev/helm repo add stable https://charts.helm.sh/stable
 	./local-dev/helm repo add bitnami https://charts.bitnami.com/bitnami
 
-.PHONY: kind/cluster
-kind/cluster: local-dev/kind
+kind: local-dev/kind
 	# these IPs are a result of the docker config on our build nodes
 	export KUBECONFIG=$$(mktemp) \
 		KINDCONFIG=$$(mktemp ./kindconfig.XXX) \
@@ -990,18 +989,19 @@ kind/cluster: local-dev/kind
 		&& echo -e 'Interact with the cluster during the test run like so:\n' \
 		&& echo "export KUBECONFIG=\$$(mktemp) && scp $$NODE_NAME:$$KUBECONFIG \$$KUBECONFIG && KIND_PORT=\$$(sed -nE 's/.+server:.+:([0-9]+)/\1/p' \$$KUBECONFIG) && ssh -fNL \$$KIND_PORT:127.0.0.1:\$$KIND_PORT $$NODE_NAME" \
 		&& echo -e 'kubectl ...\n'
+	echo "$(CI_BUILD_TAG)" > $@
 
 KIND_SERVICES = api api-db api-redis auth-server broker controllerhandler drush-alias keycloak keycloak-db ssh
 
 .PHONY: kind/preload
-kind/preload: kind/cluster $(addprefix build/,$(KIND_SERVICES))
+kind/preload: kind $(addprefix build/,$(KIND_SERVICES))
 	for image in $(KIND_SERVICES); do \
 		KIND_CLUSTER_NAME="$(CI_BUILD_TAG)" ./local-dev/kind load docker-image $(CI_BUILD_TAG)/$$image; \
 		done
 
 .PHONY: kind/test
-kind/test: kind/cluster kind/preload local-dev/helm local-dev/kind local-dev/kubectl local-dev/jq helm/repos
-	export CHARTSDIR=$$(mktemp -dp . lagoon-charts.XXX) \
+kind/test: kind kind/preload local-dev/helm local-dev/kind local-dev/kubectl local-dev/jq helm/repos
+	export CHARTSDIR=$$(mktemp -d ./lagoon-charts.XXX) \
 		&& git clone https://github.com/uselagoon/lagoon-charts.git "$$CHARTSDIR" \
 		&& cd "$$CHARTSDIR" \
 		&& git checkout $(CHARTS_TREEISH) \
@@ -1021,3 +1021,4 @@ kind/test: kind/cluster kind/preload local-dev/helm local-dev/kind local-dev/kub
 .PHONY: kind/clean
 kind/clean: local-dev/kind
 	KIND_CLUSTER_NAME="$(CI_BUILD_TAG)" ./local-dev/kind delete cluster
+	rm -f kind
