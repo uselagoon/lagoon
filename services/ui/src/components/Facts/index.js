@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { bp, color, fontSize } from 'lib/variables';
 import useSortableData from '../../lib/withSortedItems';
 
@@ -35,9 +35,6 @@ const Facts = ({ facts }) => {
         });
     };
 
-    console.log(sortedItems);
-
-
     return (
         <div className="facts">
             <div className="filters">
@@ -56,6 +53,13 @@ const Facts = ({ facts }) => {
                 </button>
                 <button
                     type="button"
+                    onClick={() => handleSort('source')}
+                    className={`button-sort value ${getClassNamesFor('source')}`}
+                >
+                    Source
+                </button>
+                <button
+                    type="button"
                     onClick={() => handleSort('value')}
                     className={`button-sort value ${getClassNamesFor('value')}`}
                 >
@@ -67,24 +71,26 @@ const Facts = ({ facts }) => {
                 {sortedItems.filter(fact => filterResults(fact)).map((fact) => {
                     return (
                         <div className="data-row row-heading" key={fact.id}>
-                          <div>{fact.name}</div>
-                          <div>{fact.value}</div>
+                            <div className="col col-1">
+                                <div className="name">{fact.name}</div>
+                                <div className="description">{fact.description}</div>
+                            </div>
+                            <div className="col col-2">{fact.source}</div>
+                            <div className="col col-3">{fact.value}</div>
                         </div>
                     );
                 })}
             </div>
             <style jsx>{`
               .header {
+                @media ${bp.smallOnly} {
+                  flex-wrap: wrap;
+                  margin: 10px;
+                }
                 @media ${bp.wideUp} {
                   align-items: center;
                   display: flex;
-                  margin: 0 0 14px;
-                }
-                @media ${bp.smallOnly} {
-                  flex-wrap: wrap;
-                }
-                @media ${bp.tabletUp} {
-                  margin-top: 20px;
+                  margin: 15px 20px 10px;
                 }
 
                 display: flex;
@@ -104,10 +110,12 @@ const Facts = ({ facts }) => {
                 border: none;
                 padding: 10px 20px;
                 margin: 0;
+                font-style: italic;
               }
 
               .button-sort {
                 color: #5f6f7a;
+                position: relative;
                 font-family: 'source-code-pro',sans-serif;
                 font-size: 13px;
                 font-size: 0.8125rem;
@@ -118,12 +126,24 @@ const Facts = ({ facts }) => {
                 background: none;
                 cursor: pointer;
 
+                &:after {
+                  position: absolute;
+                  right:  -18px;
+                  top: 0;
+                  width: 20px;
+                  height: 20px;
+                }
+
                 &.ascending:after {
                   content: ' \\25B2';
                 }
 
                 &.descending:after {
                   content: ' \\25BC';
+                }
+
+                &:first-child {
+                  padding-left: 0;
                 }
               }
 
@@ -136,22 +156,19 @@ const Facts = ({ facts }) => {
               }
 
               .data-row {
+                display: flex;
+                justify-content: space-between;
                 border: 1px solid ${color.white};
                 border-bottom: 1px solid ${color.lightestGrey};
                 border-radius: 0;
                 line-height: 1.5rem;
-                padding: 8px 0 7px 0;
-                @media ${bp.wideUp} {
-                  display: flex;
-                  justify-content: space-between;
-                  padding-right: 15px;
+
+                @media ${bp.smallOnly} {
+                  padding: 10px;
                 }
 
-                & > div {
-                  padding-left: 20px;
-                  @media ${bp.wideDown} {
-                    padding-right: 40px;
-                  }
+                @media ${bp.wideUp} {
+                  padding: 15px 0;
                 }
 
                 &:hover {
@@ -166,6 +183,26 @@ const Facts = ({ facts }) => {
                 &:last-child {
                   border-bottom-left-radius: 3px;
                   border-bottom-right-radius: 3px;
+                }
+
+                .col {
+                  @media ${bp.wideUp} {
+                    padding: 0 20px;
+                  }
+                  width: 33.33%;
+                }
+
+                .col-2 {
+                  text-align: center;
+                }
+
+                .col-3  {
+                  text-align: end;
+                }
+
+                .description {
+                  font-style: italic;
+                  font-size: 12px;
                 }
               }
 

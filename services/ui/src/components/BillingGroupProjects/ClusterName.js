@@ -4,12 +4,12 @@ import styled from "@emotion/styled";
 import css from 'styled-jsx/css';
 import Button from '../Button';
 
-import ProjectByName from 'lib/query/ProjectByName';
+import BillingProjectByName from 'lib/query/BillingProjectByName';
 
 import { bp, color, fontSize } from 'lib/variables';
 
 function ClusterName({ project }) {
-  const { loading, error, data } = useQuery(ProjectByName, {
+  const { loading, error, data } = useQuery(BillingProjectByName, {
     variables: { name: project },
   });
 

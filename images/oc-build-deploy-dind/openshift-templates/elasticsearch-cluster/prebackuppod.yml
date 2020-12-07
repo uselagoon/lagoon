@@ -78,7 +78,7 @@ objects:
         containers:
           - args:
               - sleep
-              - '3600'
+              - infinity
             envFrom:
               - configMapRef:
                   name: lagoon-env
@@ -126,7 +126,7 @@ objects:
         containers:
           - args:
               - sleep
-              - '3600'
+              - infinity
             envFrom:
               - configMapRef:
                   name: lagoon-env
@@ -174,11 +174,11 @@ objects:
         containers:
           - args:
               - sleep
-              - '3600'
+              - infinity
             envFrom:
               - configMapRef:
                   name: lagoon-env
-            image: alpine
+            image: imagecache.amazeeio.cloud/library/alpine
             imagePullPolicy: Always
             name: ${SERVICE_NAME}-2-prebackuppod
             volumeMounts:

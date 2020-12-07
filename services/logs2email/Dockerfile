@@ -1,10 +1,12 @@
 ARG LAGOON_GIT_BRANCH
 ARG IMAGE_REPO
+ARG UPSTREAM_REPO
+ARG UPSTREAM_TAG
 # STAGE 1: Loading Image lagoon-node-packages-builder which contains node packages shared by all Node Services
-FROM ${IMAGE_REPO:-amazeeiolagoon}/yarn-workspace-builder:${LAGOON_GIT_BRANCH:-latest} as yarn-workspace-builder
+FROM ${IMAGE_REPO:-lagoon}/yarn-workspace-builder as yarn-workspace-builder
 
 # STAGE 2: specific service Image
-FROM ${IMAGE_REPO:-amazeeiolagoon}/node:10
+FROM ${UPSTREAM_REPO:-uselagoon}/node-10:${UPSTREAM_TAG:-latest}
 
 COPY entrypoints/50-ssmtp.sh /lagoon/entrypoints/
 COPY ssmtp.conf /etc/ssmtp/ssmtp.conf

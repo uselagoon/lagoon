@@ -150,7 +150,7 @@ export async function ingressMigration (data) {
     }
     // RouteMigrates are deleted quickly, but we still have to wait before we attempt to create the new one
     try {
-      await retry(10, hasNoRouteMigrate, 2000);
+      await retry(30, hasNoRouteMigrate, 2000);
     } catch (err) {
       throw new Error(
         `${openshiftProject}: IngressMigrate not deleted`
@@ -273,7 +273,7 @@ export async function ingressMigration (data) {
 
   try {
     // actually run the task that updates the task
-    await retry(10, updateActiveStandbyTask, 2000);
+    await retry(30, updateActiveStandbyTask, 2000);
   } catch (err) {
     throw new Error(
       `${openshiftProject}: active/standby task is taking too long ${err}`

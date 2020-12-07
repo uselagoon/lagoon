@@ -1,8 +1,9 @@
 ARG CLI_IMAGE
-ARG IMAGE_REPO
+ARG UPSTREAM_REPO
+ARG UPSTREAM_TAG
 FROM ${CLI_IMAGE:-builder} as builder
 
-FROM ${IMAGE_REPO:-amazeeio}/nginx-drupal
+FROM ${UPSTREAM_REPO:-testlagoon}/nginx-drupal:${UPSTREAM_TAG:-latest}
 
 COPY --from=builder /app /app
 

@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "postgres-single.fullname" . }}
+  labels:
+    {{- include "postgres-single.labels" . | nindent 4 }}
+  annotations:
+    {{- include "postgres-single.annotations" . | nindent 4 }}
+    appuio.ch/backupcommand: /bin/sh -c "/bin/busybox tar -cf - -C /var/lib/postgresql/data ."
+    backup.appuio.ch/file-extension: .{{ include "postgres-single.fullname" . }}.tar
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "postgres-single.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "postgres-single.labels" . | nindent 8 }}
+      annotations:
+        {{- include "postgres-single.annotations" . | nindent 8 }}
+        lagoon.sh/configMapSha: {{ .Values.configMapSha | quote }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      volumes:
+        - name: {{ include "postgres-single.fullname" . }}
+          persistentVolumeClaim:
+            claimName: {{ include "postgres-single.fullname" . }}
+      securityContext:
+        fsGroup: 0
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            runAsGroup: 0
+          image: "{{ .Values.image }}"
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          env:
+            - name: CRONJOBS
+              value: {{ .Values.inPodCronjobs | quote }}
+            - name: LAGOON_GIT_SHA
+              value: {{ .Values.gitSha | quote }}
+          envFrom:
+            - configMapRef:
+                name: lagoon-env
+          ports:
+          - containerPort: 5432
+            protocol: TCP
+          readinessProbe:
+            tcpSocket:
+              port: 5432
+            initialDelaySeconds: 1
+            timeoutSeconds: 1
+          livenessProbe:
+            tcpSocket:
+              port: 5432
+            initialDelaySeconds: 120
+            periodSeconds: 5
+          volumeMounts:
+            - name: {{ include "postgres-single.fullname" . }}
+              mountPath: {{ .Values.persistentStorage.path | quote }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

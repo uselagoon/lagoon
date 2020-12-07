@@ -77,7 +77,10 @@ const Invoice = ({ cost, language }) => {
 
               <div className="projects">
                 Production Environment{cost.projects.count > 1 && 's'}:
-                {cost.environmentCostDescription.prod.description.projects.map(({name, hours}, index) => (<div key={`prod-${name}-${hours}-${index}`}><span>{name}</span> - <span>{hours} { lang === LANGS.ENGLISH ? `h` : `Std.` }</span></div>)) }
+                {
+                  cost.environmentCostDescription.prod.description.projects.map(({name, hours}, index) =>
+                  (<div key={`prod-${name}-${hours}-${index}`}><span>{name}</span> - <span>{hours} { lang === LANGS.ENGLISH ? `h` : `Std.` }</span></div>))
+                }
               </div>
 
               { lang === LANGS.ENGLISH ?
@@ -90,9 +93,11 @@ const Invoice = ({ cost, language }) => {
               </div>
               }
             </div>
-            <div className="data-cell qty">{ cost.availability === 'POLYSITE' && cost.projects.length > 10 ? `${Math.max(Math.round(cost.projects.length / 10), 1)} x ` : '' }{cost.environmentCostDescription.prod.quantity.toFixed(2).toLocaleString()}</div>
+            <div className="data-cell qty">
+              { cost.availability === 'POLYSITE' && cost.projects.length > 10 ? `${Math.max(Math.round(cost.projects.length / 10), 1)} x ` : '' }{cost.environmentCostDescription.prod.quantity.toFixed(2).toLocaleString()}
+            </div>
             <div className="data-cell unitPrice">{cost.environmentCostDescription.prod.unitPrice}</div>
-            <div className="data-cell amt">{cost.environmentCost.prod.toFixed(2)}</div>
+            <div className="data-cell amt">{cost.environmentCost.prod ? cost.environmentCost.prod.toFixed(2): 0.00}</div>
           </div>
 
           <div className="data-row hits">
@@ -211,7 +216,7 @@ const Invoice = ({ cost, language }) => {
             </div>
             <div className="data-cell qty">{cost.environmentCostDescription.dev.quantity.toFixed(2).toLocaleString()}</div>
             <div className="data-cell unitPrice">{cost.environmentCostDescription.dev.unitPrice}</div>
-            <div className="data-cell amt">{cost.environmentCost.dev}</div>
+            <div className="data-cell amt">{cost.environmentCost.dev ? cost.environmentCost.dev: 0}</div>
           </div>
 
           {
@@ -255,7 +260,7 @@ const Invoice = ({ cost, language }) => {
             <div className="data-cell">Total</div>
             <div className="data-cell"></div>
             <div className="data-cell"></div>
-            <div className="data-cell total">{cost.total.toFixed(2)}</div>
+            <div className="data-cell total">{cost.total ? cost.total.toFixed(2) : 0}</div>
           </div>
 
         </div>

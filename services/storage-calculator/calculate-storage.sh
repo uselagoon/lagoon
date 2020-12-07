@@ -74,7 +74,7 @@ do
       ${OC} delete deploymentconfig/storage-calc >/dev/null 2>&1
 
       # Start storage-calc deployment
-      ${OC} run --generator=deploymentconfig/v1 --image amazeeio/alpine-mysql-client storage-calc -- sh -c "while sleep 3600; do :; done"
+      ${OC} run --generator=deploymentconfig/v1 --image imagecache.amazeeio.cloud/amazeeio/alpine-mysql-client storage-calc -- sh -c "while sleep 3600; do :; done"
       ${OC} rollout pause deploymentconfig/storage-calc
 
       # Copy environment variable from lagoon-env configmap.

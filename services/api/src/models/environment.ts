@@ -1,6 +1,5 @@
 import moment from 'moment';
 
-import esClient from '../clients/esClient';
 import { prepare, query } from '../util/db';
 
 import * as logger from '../logger';
@@ -35,13 +34,14 @@ interface EnvironmentData {
 
 type projectEnvWithDataType = (
   pid: string,
+  projectName: string,
   month: string,
 ) => Promise<EnvironmentData[]>;
 
 
 export const EnvironmentModel = (clients) => {
 
-  const { sqlClient } = clients;
+  const { sqlClient, esClient } = clients;
 
   /**
    * Get all environments for a project.
@@ -78,7 +78,7 @@ export const EnvironmentModel = (clients) => {
 
   // Needed for local Dev - Required if not connected to openshift
   const errorCatcherFn = (msg, responseObj) => err => {
-    const errMsg = err && err.status && err.message ? `${err.status} : ${err.message}` : `err undefined`;
+    const errMsg = err && err.status && err.message ? `${err.status} : ${err.message} : ${err.headers} : ${err.url}` : `err undefined`;
     logger.error(`${msg}: ${errMsg}`);
     return { ...responseObj };
   };
@@ -95,9 +95,10 @@ export const EnvironmentModel = (clients) => {
   const environmentData = async (
     eid: number,
     month: string,
+    project: string,
     openshiftProjectName: string,
   ) => {
-    const hits = await environmentHitsMonthByEnvironmentId(openshiftProjectName, month)
+    const hits = await environmentHitsMonthByEnvironmentId(project, openshiftProjectName, month)
       .catch(errorCatcherFn(`getHits - openShiftProjectName: ${openshiftProjectName} month: ${month}`, { total: 0 }));
 
     const storage = await environmentStorageMonthByEnvironmentId(eid, month)
@@ -119,6 +120,7 @@ export const EnvironmentModel = (clients) => {
    */
   const projectEnvironmentsWithData: projectEnvWithDataType = async (
     pid,
+    projectName,
     month,
   ) => {
     const environments = await projectEnvironments(pid, null, true);
@@ -131,7 +133,7 @@ export const EnvironmentModel = (clients) => {
       eid,
       type,
       data: {
-        ...(await environmentData(eid, month, openshift)),
+        ...(await environmentData(eid, month, projectName, openshift)),
       },
     });
     const data = await Promise.all(environments.map(environmentDataFn));
@@ -251,32 +253,10 @@ export const EnvironmentModel = (clients) => {
     return { month, hours };
   };
 
-  const environmentHitsMonthByEnvironmentId = async (
-    openshiftProjectName,
-    yearMonth,
-  ) => {
-    const interested_date = yearMonth ? new Date(yearMonth) : new Date();
-    const year = interested_date.getUTCFullYear();
-    const month = interested_date.getUTCMonth() + 1; // internally months start with 0, we need them with 1
-
-    // This generates YYYY-MM
-    const interested_year_month = `${year}-${month < 10 ? `0${month}` : month}`;
-
-    // generate a string of the date on the very first second of the month
-    const interested_date_begin_string = interested_date.toISOString();
-
-    // generate a string of the date on the very last second of the month
-    const interested_date_end = interested_date;
-    interested_date_end.setUTCMonth(interested_date.getUTCMonth() + 1)
-    interested_date_end.setUTCDate(0); // setting the date to 0 will select 1 day before the actual date
-    interested_date_end.setUTCHours(23);
-    interested_date_end.setUTCMinutes(59);
-    interested_date_end.setUTCSeconds(59);
-    interested_date_end.setUTCMilliseconds(999);
-    const interested_date_end_string = interested_date_end.toISOString();
-
+  const fetchElasticSearchHitsData = async (project, openshiftProjectName, interestedYearMonth, interestedDateBeginString, interestedDateEndString) => {
     try {
-      const result = await esClient.search({
+      // LEGACY LOGGING SYSTEM - REMOVE ONCE WE MIGRATE EVERYTHING TO THE NEW SYSTEM
+      const legacyQuery = {
         index: `router-logs-${openshiftProjectName}-*`,
         body: {
           "size": 0,
@@ -286,8 +266,8 @@ export const EnvironmentModel = (clients) => {
                 {
                   "range": {
                     "@timestamp": {
-                      "gte": `${interested_year_month}||/M`,
-                      "lte": `${interested_year_month}||/M`,
+                      "gte": `${interestedYearMonth}||/M`,
+                      "lte": `${interestedYearMonth}||/M`,
                       "format": "strict_year_month"
                     }
                   }
@@ -298,6 +278,20 @@ export const EnvironmentModel = (clients) => {
                   "match_phrase": {
                     "request_header_useragent": {
                       "query": "StatusCake"
+                    }
+                  }
+                },
+                {
+                  "match_phrase": {
+                    "request_user_agent": {
+                      "query": "UptimeRobot"
+                    }
+                  }
+                },
+                {
+                  "match_phrase": {
+                    "request_uri":  {
+                      "query": "acme-challenge"
                     }
                   }
                 }
@@ -311,8 +305,8 @@ export const EnvironmentModel = (clients) => {
                 "fixed_interval": "1h",
                 "min_doc_count": 0,
                 "extended_bounds": {
-                  "min": interested_date_begin_string,
-                  "max": interested_date_end_string
+                  "min": interestedDateBeginString,
+                  "max": interestedDateEndString
                 }
               },
               "aggs": {
@@ -331,37 +325,207 @@ export const EnvironmentModel = (clients) => {
             }
           }
         },
-      });
+      };
+      const legacyResult = await esClient.search(legacyQuery);
 
-      // 0 hits found in elasticsearch, don't even try to generate monthly counts
-      if (result.hits.total.value === 0) {
-        return { total: 0 };
-      }
+      // NEW LOGGING SYSTEM - K8S openshift/HAProxy && kubernetes Nginx/kubernetes logs
+      const newQuery = {
+        index: `router-logs-${project}-_-*`,
+        body: {
+          "size": 0,
+          "query": {
+            "bool": {
+              "must": [
+                {
+                  "range": {
+                    "@timestamp": {
+                      "gte": `${interestedYearMonth}||/M`,
+                      "lte": `${interestedYearMonth}||/M`,
+                      "format": "strict_year_month"
+                    }
+                  }
+                },
+                {
+                  "match_phrase": { "kubernetes.namespace_name": `${openshiftProjectName}` }
+                }
+              ],
+              "must_not": [
+                {
+                  "match_phrase": {
+                    "request_header_useragent": {
+                      "query": "StatusCake"
+                    }
+                  }
+                },
+                {
+                  "match_phrase": {
+                    "http_user_agent": {
+                      "query": "StatusCake"
+                    }
+                  }
+                },
+                {
+                  "match_phrase": {
+                    "request_user_agent": {
+                      "query": "StatusCake"
+                    }
+                  }
+                },
+                {
+                  "match_phrase": {
+                    "request_user_agent": {
+                      "query": "UptimeRobot"
+                    }
+                  }
+                },
+                {
+                  "match_phrase": {
+                    "request_uri":  {
+                      "query": "acme-challenge"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "aggs": {
+            "hourly": {
+              "date_histogram": {
+                "field": "@timestamp",
+                "fixed_interval": "1h",
+                "min_doc_count": 0,
+                "extended_bounds": {
+                  "min": interestedDateBeginString,
+                  "max": interestedDateEndString
+                }
+              },
+              "aggs": {
+                "count": {
+                  "value_count": {
+                    "field": "@timestamp"
+                  }
+                }
+              }
+            },
+            "average": {
+              "avg_bucket": {
+                "buckets_path": "hourly>count",
+                "gap_policy": "skip" // makes sure that we don't use empty buckets as average calculation
+              }
+            }
+          }
+        },
+      };
+      const newResult = await esClient.search(newQuery);
 
-      var total = 0;
-
-      // loop through all hourly sum counts
-      // if the sum count is empty, this means we have missing data and we use the overall average instead.
-      result.aggregations.hourly.buckets.forEach(bucket => {
-        total += (bucket.count.value === 0 ? parseInt(result.aggregations.average.value) : bucket.count.value);
-      });
-
-      return { total };
+      return {newResult, legacyResult};
 
     } catch (e) {
       logger.error(`Elastic Search Query Error: ${JSON.stringify(e)}`);
-      const noHits = { total: 0 };
+      // const noHits = { total: 0 };
 
-      if(e.body === "Open Distro Security not initialized."){
-        return noHits;
-      }
+      // if(e.body === "Open Distro Security not initialized."){
+      //   return noHits;
+      // }
 
-      if (e.body && e.body.error && e.body.error.type && (e.body.error.type === 'index_not_found_exception' || e.body.error.type === 'security_exception')) {
-        return noHits;
-      }
+      // if (e.body && e.body.error && e.body.error.type && (e.body.error.type === 'index_not_found_exception' || e.body.error.type === 'security_exception')) {
+      //   return noHits;
+      // }
+
+      return { newResult: null, legacyResult: null }
 
       throw e;
     }
+  }
+
+  const calculateHitsFromESData = (legacyResult, newResult)  => {
+
+    // 0 hits found in elasticsearch, don't even try to generate monthly counts
+    if (legacyResult.hits.total.value === 0 && newResult.hits.total.value === 0) {
+      return { total: 0 };
+    }
+
+    var total = 0;
+
+    const legacyBuckets = legacyResult && legacyResult.aggregations && legacyResult.aggregations.hourly && legacyResult.aggregations.hourly.buckets ? legacyResult.aggregations.hourly.buckets : 0;
+    const legacyResultCount = legacyResult && legacyResult.aggregations && legacyResult.aggregations.hourly && legacyResult.aggregations.hourly.buckets && legacyResult.aggregations.hourly.buckets.length ? legacyResult.aggregations.hourly.buckets.length : 0;
+    const legacyAvg = legacyResult && legacyResult.aggregations && legacyResult.aggregations.average && legacyResult.aggregations.average.value ? parseInt(legacyResult.aggregations.average.value) : 0;
+
+    const newBuckets = newResult && newResult.aggregations && newResult.aggregations.hourly && newResult.aggregations.hourly.buckets ? newResult.aggregations.hourly.buckets : 0;
+    const newResultCount = newResult && newResult.aggregations && newResult.aggregations.hourly && newResult.aggregations.hourly.buckets && newResult.aggregations.hourly.buckets.length ? newResult.aggregations.hourly.buckets.length : 0;
+    const newAvg = newResult && newResult.aggregations && newResult.aggregations.average && newResult.aggregations.average.value ? parseInt(newResult.aggregations.average.value) : 0;
+
+
+    /*
+    foreach hourlybucket (#both result buckets should have the exact same amount of buckets)
+    add to total
+        if newResult.bucketcount is not 0 use newResult.bucketcount
+        if legacyResult.bucketcount is not 0 use legacyResult.bucketcount
+        if newResult.bucketcount is 0 and legacyResult.bucketcount is 0
+          --> if newResult.average is not 0, use newResult.average
+          --> if legacyResult.average is not 0, use legacyResult.average
+          --> if both are 0, use newResult.average
+    */
+
+    const count = newResultCount > 0 ? newResultCount : legacyResultCount;
+    for (let i = 0; i < count; i++) {
+      if (newResultCount !== 0 && newBuckets[i] && newBuckets[i].count && newBuckets[i].count.value !== 0){
+        // We have new logging data, use this for total
+        total += newBuckets[i].count.value;
+      }else if (legacyResultCount !== 0 && legacyBuckets[i] && legacyBuckets[i].count && legacyBuckets[i].count.value !== 0){
+        // We have legacy data
+        total += legacyBuckets[i].count.value;
+      }else{
+        // Both legacy and new logging buckets are zero, meaning we have missing data, use the avg
+        if(newAvg !== 0 && newAvg > legacyAvg){
+          total += newAvg;
+        }else if (legacyAvg !== 0){
+          total += legacyAvg;
+        }else{
+          total += newAvg;
+        }
+      }
+    }
+
+    return { total };
+  }
+
+
+  const environmentHitsMonthByEnvironmentId = async (
+    project,
+    openshiftProjectName,
+    yearMonth,
+  ) => {
+
+    const interestedDate = yearMonth ? new Date(yearMonth) : new Date();
+    const year = interestedDate.getUTCFullYear();
+    const month = interestedDate.getUTCMonth() + 1; // internally months start with 0, we need them with 1
+
+    // This generates YYYY-MM
+    const interestedYearMonth = `${year}-${month < 10 ? `0${month}` : month}`;
+
+    // generate a string of the date on the very first second of the month
+    const interestedDateBeginString = interestedDate.toISOString();
+
+    // generate a string of the date on the very last second of the month
+    const interestedDateEnd = interestedDate;
+    interestedDateEnd.setUTCMonth(interestedDate.getUTCMonth() + 1)
+    interestedDateEnd.setUTCDate(0); // setting the date to 0 will select 1 day before the actual date
+    interestedDateEnd.setUTCHours(23);
+    interestedDateEnd.setUTCMinutes(59);
+    interestedDateEnd.setUTCSeconds(59);
+    interestedDateEnd.setUTCMilliseconds(999);
+    const interestedDateEndString = interestedDateEnd.toISOString();
+
+    const {newResult, legacyResult} = await fetchElasticSearchHitsData(project.replace('_', '-'), openshiftProjectName, interestedYearMonth, interestedDateBeginString, interestedDateEndString)
+
+    if ( newResult === null || legacyResult === null ){
+      return { total: 0 }
+    }
+
+    const result = calculateHitsFromESData(legacyResult, newResult);
+
+    return result;
   };
 
   return {
@@ -372,6 +536,7 @@ export const EnvironmentModel = (clients) => {
     environmentStorageMonthByEnvironmentId,
     environmentHoursMonthByEnvironmentId,
     environmentHitsMonthByEnvironmentId,
+    calculateHitsFromESData
   }
 }
 

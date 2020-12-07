@@ -17,6 +17,7 @@ spec:
     metadata:
       labels:
         {{- include "solr.labels" . | nindent 8 }}
+        {{- include "solr.datadogLabels" . | nindent 8 }}
       annotations:
         {{- include "solr.annotations" . | nindent 8 }}
         lagoon.sh/configMapSha: {{ .Values.configMapSha | quote }}

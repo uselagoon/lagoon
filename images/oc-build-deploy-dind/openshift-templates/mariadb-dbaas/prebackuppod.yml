@@ -39,7 +39,6 @@ parameters:
     value: "Recreate"
   - name: SERVICE_IMAGE
     description: Pullable image of service
-    required: true
   - name: CRONJOBS
     description: Oneliner of Cronjobs
     value: ""
@@ -85,29 +84,28 @@ objects:
         containers:
           - args:
               - sleep
-              - '3600'
+              - infinity
             env:
               - name: BACKUP_DB_HOST
                 valueFrom:
                   configMapKeyRef:
-                    key: $${SERVICE_NAME_UPPERCASE}_HOST
+                    key: ${SERVICE_NAME_UPPERCASE}_HOST
                     name: lagoon-env
               - name: BACKUP_DB_USERNAME
                 valueFrom:
                   configMapKeyRef:
-                    key: $${SERVICE_NAME_UPPERCASE}_USERNAME
+                    key: ${SERVICE_NAME_UPPERCASE}_USERNAME
                     name: lagoon-env
               - name: BACKUP_DB_PASSWORD
                 valueFrom:
                   configMapKeyRef:
-                    key: $${SERVICE_NAME_UPPERCASE}_PASSWORD
+                    key: ${SERVICE_NAME_UPPERCASE}_PASSWORD
                     name: lagoon-env
               - name: BACKUP_DB_DATABASE
                 valueFrom:
                   configMapKeyRef:
-                    key: $${SERVICE_NAME_UPPERCASE}_DATABASE
+                    key: ${SERVICE_NAME_UPPERCASE}_DATABASE
                     name: lagoon-env
-            image: amazeeio/alpine-mysql-client
+            image: imagecache.amazeeio.cloud/amazeeio/alpine-mysql-client
             imagePullPolicy: Always
             name: ${SERVICE_NAME}-prebackuppod
-

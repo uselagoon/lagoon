@@ -4,7 +4,8 @@ import Head from 'next/head';
 import { useQuery } from "@apollo/react-hooks";
 import AllProjectsProblemsQuery from 'lib/query/AllProjectsProblems';
 import getSeverityEnumQuery, {getProjectOptions, getSourceOptions} from 'components/Filters/helpers';
-import Honeycomb from "components/ProblemsByProject/Honeycomb";
+import { LoadingPageNoHeader } from 'pages/_loading';
+import Honeycomb from "components/Honeycomb";
 import MainLayout from 'layouts/MainLayout';
 import SelectFilter from 'components/Filters';
 import { bp } from 'lib/variables';
@@ -92,6 +93,7 @@ const ProblemsDashboardByProjectPageHexDisplay = () => {
       </div>
       <div className="content-wrapper">
         <div className="overview">
+          {projectsProblemsLoading && <LoadingPageNoHeader />}
           {!projectsProblemsLoading &&
             <Honeycomb
               data={!R.isNil(projectsProblems) && projectsProblems}

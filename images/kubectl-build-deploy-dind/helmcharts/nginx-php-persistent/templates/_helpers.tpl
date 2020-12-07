@@ -79,6 +79,15 @@ lagoon.sh/buildType: {{ .Values.buildType }}
 {{- end -}}
 
 {{/*
+Datadog Admission Controller label
+*/}}
+{{- define "nginx-php-persistent.datadogLabels" -}}
+{{- if eq .Values.environmentType "production" -}}
+admission.datadoghq.com/enabled: "true"
+{{- end -}}
+{{- end -}}
+
+{{/*
 Annotations
 */}}
 {{- define "nginx-php-persistent.annotations" -}}

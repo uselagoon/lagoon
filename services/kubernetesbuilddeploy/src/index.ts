@@ -85,7 +85,6 @@ const messageConsumer = async msg => {
     var prPullrequestNumber = branch.replace('pr-','')
     var graphqlEnvironmentType = environmentType.toUpperCase()
     var graphqlGitType = buildType.toUpperCase()
-    var openshiftPromoteSourceProject = promoteSourceEnvironment ? `${projectName}-${ocsafety(promoteSourceEnvironment)}` : ""
     // A secret which is the same across all Environments of this Lagoon Project
     var projectSecret = crypto.createHash('sha256').update(`${projectName}-${jwtSecret}`).digest('hex');
     var alertContactHA = ""
@@ -101,7 +100,7 @@ const messageConsumer = async msg => {
     }
     var availability = projectOpenShift.availability || "STANDARD"
     const billingGroup = projectBillingGroup.groups.find(i => i.type == "billing" ) || ""
-    if (billingGroup.uptimeRobotStatusPageId && !R.isEmpty(billingGroup.uptimeRobotStatusPageId)){
+    if (billingGroup.uptimeRobotStatusPageId && billingGroup.uptimeRobotStatusPageId != "null" && !R.isEmpty(billingGroup.uptimeRobotStatusPageId)){
       uptimeRobotStatusPageIds.push(billingGroup.uptimeRobotStatusPageId)
     }
     var uptimeRobotStatusPageId = uptimeRobotStatusPageIds.join('-')
@@ -292,7 +291,6 @@ const messageConsumer = async msg => {
     }
     if (buildType == "promote") {
       jobconfig.spec.template.spec.containers[0].env.push({"name": "PROMOTION_SOURCE_ENVIRONMENT","value": promoteSourceEnvironment})
-      jobconfig.spec.template.spec.containers[0].env.push({"name": "PROMOTION_SOURCE_NAMESPACE","value": openshiftPromoteSourceProject})
     }
     if (!R.isEmpty(projectOpenShift.envVariables)) {
       jobconfig.spec.template.spec.containers[0].env.push({"name": "LAGOON_PROJECT_VARIABLES", "value": JSON.stringify(projectOpenShift.envVariables)})
@@ -339,20 +337,6 @@ const messageConsumer = async msg => {
 
   // kubernetes-client does not know about the OpenShift Resources, let's teach it.
   kubernetes.ns.addResource('rolebindings');
-
-  // // If we should promote, first check if the source project does exist
-  // if (buildType == "promote") {
-  //   try {
-  //     const promotionSourceProjectsGet = promisify(openshift.projects(openshiftPromoteSourceProject).get)
-  //     await promotionSourceProjectsGet()
-  //     logger.info(`${openshiftProject}: Promotion Source Project ${openshiftPromoteSourceProject} exists, continuing`)
-  //   } catch (err) {
-  //     const error = `${openshiftProject}: Promotion Source Project ${openshiftPromoteSourceProject} does not exists, ${err}`
-  //     logger.error(error)
-  //     throw new Error(error)
-  //   }
-  // }
-
 
   // Create a new Namespace if it does not exist
   let namespaceStatus = {}
@@ -415,38 +399,6 @@ const messageConsumer = async msg => {
       throw new Error
     }
   }
-
-  // // Give the ServiceAccount access to the Promotion Source Project, it needs two roles: 'view' and 'system:image-puller'
-  // if (buildType == "promote") {
-  //   try {
-  //     const promotionSourcRolebindingsGet = promisify(openshift.ns(openshiftPromoteSourceProject).rolebindings(`${openshiftProject}-lagoon-deployer-view`).get)
-  //     await promotionSourcRolebindingsGet()
-  //     logger.info(`${openshiftProject}: RoleBinding ${openshiftProject}-lagoon-deployer-view in ${openshiftPromoteSourceProject} does already exist, continuing`)
-  //   } catch (err) {
-  //     if (err.code == 404) {
-  //       logger.info(`${openshiftProject}: RoleBinding ${openshiftProject}-lagoon-deployer-view in ${openshiftPromoteSourceProject} does not exists, creating`)
-  //       const promotionSourceRolebindingsPost = promisify(openshift.ns(openshiftPromoteSourceProject).rolebindings.post)
-  //       await promotionSourceRolebindingsPost({ body: {"kind":"RoleBinding","apiVersion":"v1","metadata":{"name":`${openshiftProject}-lagoon-deployer-view`,"namespace":openshiftPromoteSourceProject},"roleRef":{"name":"view"},"subjects":[{"name":"lagoon-deployer","kind":"ServiceAccount","namespace":openshiftProject}]}})
-  //     } else {
-  //       logger.error(err)
-  //       throw new Error
-  //     }
-  //   }
-  //   try {
-  //     const promotionSourceRolebindingsGet = promisify(openshift.ns(openshiftPromoteSourceProject).rolebindings(`${openshiftProject}-lagoon-deployer-image-puller`).get)
-  //     await promotionSourceRolebindingsGet()
-  //     logger.info(`${openshiftProject}: RoleBinding ${openshiftProject}-lagoon-deployer-image-puller in ${openshiftPromoteSourceProject} does already exist, continuing`)
-  //   } catch (err) {
-  //     if (err.code == 404) {
-  //       logger.info(`${openshiftProject}: RoleBinding ${openshiftProject}-lagoon-deployer-image-puller in ${openshiftPromoteSourceProject} does not exists, creating`)
-  //       const promotionSourceRolebindingsPost = promisify(openshift.ns(openshiftPromoteSourceProject).rolebindings.post)
-  //       await promotionSourceRolebindingsPost({ body: {"kind":"RoleBinding","apiVersion":"v1","metadata":{"name":`${openshiftProject}-lagoon-deployer-image-puller`,"namespace":openshiftPromoteSourceProject},"roleRef":{"name":"system:image-puller"},"subjects":[{"name":"lagoon-deployer","kind":"ServiceAccount","namespace":openshiftProject}]}})
-  //     } else {
-  //       logger.error(err)
-  //       throw new Error
-  //     }
-  //   }
-  // }
 
   // Create SSH Key Secret if not exist yet, if it does update it.
   let sshKey: any = {}

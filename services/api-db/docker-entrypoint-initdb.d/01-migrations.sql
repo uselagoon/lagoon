@@ -1129,6 +1129,26 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
+  add_fact_source_and_description_to_environment_fact()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'environment_fact'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'source'
+    ) THEN
+        ALTER TABLE `environment_fact`
+        ADD `source` varchar(300) NOT NULL default '';
+        ALTER TABLE `environment_fact`
+        ADD `description` TEXT NULL DEFAULT '';
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
   update_user_password()
 
   BEGIN
@@ -1141,10 +1161,19 @@ CREATE OR REPLACE PROCEDURE
   add_metadata_to_project()
 
   BEGIN
-    ALTER TABLE project
-    ADD metadata JSON DEFAULT '{}' CHECK (JSON_VALID(metadata));
-    UPDATE project
-    SET metadata = '{}';
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'metadata'
+    ) THEN
+      ALTER TABLE project
+      ADD metadata JSON DEFAULT '{}' CHECK (JSON_VALID(metadata));
+      UPDATE project
+      SET metadata = '{}';
+    END IF;
   END;
 $$
 
@@ -1182,6 +1211,46 @@ CREATE OR REPLACE PROCEDURE
       ALTER TABLE `billing_modifier`
       ADD `min` FLOAT DEFAULT 0,
       ADD `max` FLOAT DEFAULT 0;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  convert_project_production_routes_to_text()
+
+  BEGIN
+    DECLARE column_type varchar(50);
+
+    SELECT DATA_TYPE INTO column_type
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      table_name = 'project'
+      AND table_schema = 'infrastructure'
+      AND column_name = 'production_routes';
+
+    IF (column_type = 'varchar') THEN
+      ALTER TABLE project
+      MODIFY production_routes text;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  convert_project_standby_routes_to_text()
+
+  BEGIN
+    DECLARE column_type varchar(50);
+
+    SELECT DATA_TYPE INTO column_type
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      table_name = 'project'
+      AND table_schema = 'infrastructure'
+      AND column_name = 'standby_routes';
+
+    IF (column_type = 'varchar') THEN
+      ALTER TABLE project
+      MODIFY standby_routes text;
     END IF;
   END;
 $$
@@ -1239,9 +1308,12 @@ CALL add_additional_harbor_scan_fields_to_environment_problem();
 CALL update_user_password();
 CALL add_problems_ui_to_project();
 CALL add_facts_ui_to_project();
+CALL add_fact_source_and_description_to_environment_fact();
 CALL add_metadata_to_project();
 CALL add_min_max_to_billing_modifier();
 CALL add_content_type_to_project_notification();
+CALL convert_project_production_routes_to_text();
+CALL convert_project_standby_routes_to_text();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;

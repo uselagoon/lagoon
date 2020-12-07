@@ -1,2 +1,3 @@
-ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-amazeeio}/mariadb-drupal
+ARG UPSTREAM_REPO
+ARG UPSTREAM_TAG
+FROM ${UPSTREAM_REPO:-testlagoon}/mariadb-drupal:${UPSTREAM_TAG:-latest}

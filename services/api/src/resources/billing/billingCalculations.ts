@@ -96,7 +96,8 @@ export const getProjectsCosts = (currency, projects, modifiers: BillingModifier[
   const prod = prodCost(billingGroup);
   const dev = devCost(billingGroup);
 
-  const environmentCost = { prod: prod.cost, dev: dev.cost };
+  // ternary null check on prod.cost and dev.cost
+  const environmentCost = { prod: prod.cost ? prod.cost : 0, dev: dev.cost ? dev.cost : 0 };
   const environmentCostDescription = {prod: {...prod }, dev: {...dev} };
 
   const hitCostDescription = { ...hitCost };
@@ -142,7 +143,7 @@ export const getProjectsCosts = (currency, projects, modifiers: BillingModifier[
     return { total, description };
   }
   const sortedModifiers = modifiers.sort(modifiersSortFn);
-  const subTotal = hitCost.cost + storage.cost + prod.cost + dev.cost;
+  const subTotal = (hitCost.cost ? hitCost.cost : 0) + (storage.cost ? storage.cost : 0) + (prod.cost ? prod.cost : 0) + (dev.cost ? dev.cost : 0);
   const { total, description } = sortedModifiers.reduce(reducerFn, {total: subTotal, description: []});
 
   return ({
