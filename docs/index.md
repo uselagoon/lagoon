@@ -5,6 +5,11 @@
 
 Lagoon solves what developers are dreaming about: A system that allows developers to locally develop their code and their services with Docker and run the exact same system in production. The same Docker images, the same service configurations and the same code.
 
+!!!warning
+    **Note:** This documentation relates to the 1.x releases of Lagoon, built from the `master` branch, and is only maintained as required.
+    For the maintained documentation, please visit https://docs.lagoon.sh
+
+
 ## Who are you?
 
 In order to get you started at the right spot, follow one of the links below:

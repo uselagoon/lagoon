@@ -1,3 +1,7 @@
+!!!warning
+    **Note:** This documentation relates to developing the 1.x releases of Lagoon, built from the `master` branch.
+    For documentation on the current development version of Lagoon, 2.x, built from the `main` branch, please visit https://docs.lagoon.sh
+
 # Developing Lagoon
 
 Development of Lagoon happens locally via [Docker](https://docs.docker.com/get-docker/). We are using the new [Docker Multi Stage builds](https://docs.docker.com/engine/userguide/eng-image/multistage-build/) very heavily, so it requires at least Docker version 17.06.1.

@@ -1,3 +1,7 @@
+!!!warning
+    **Note:** This documentation relates to developing the 1.x releases of Lagoon, built from the `master` branch.
+    For documentation on the current development version of Lagoon, 2.x, built from the `main` branch, please visit https://docs.lagoon.sh
+
 # API Debugging
 How to debug Lagoon in VSCode.
 
