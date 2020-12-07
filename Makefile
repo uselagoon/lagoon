@@ -89,7 +89,7 @@ K3D_VERSION := 1.4.0
 K3D_NAME := k3s-$(shell echo $(CI_BUILD_TAG) | sed -E 's/.*(.{31})$$/\1/')
 
 # Name of the Branch we are currently in
-BRANCH_NAME :=
+BRANCH_NAME := $(shell git rev-parse --abbrev-ref HEAD)
 DEFAULT_ALPINE_VERSION := 3.11
 
 #######
@@ -996,25 +996,29 @@ kind/cluster: local-dev/kind
 		&& echo -e './local-dev/kind export kubeconfig --name "$(CI_BUILD_TAG)"\n' \
 		&& echo -e 'kubectl ...\n'
 
-KIND_SERVICES = api api-db api-redis auth-server broker controllerhandler drush-alias keycloak keycloak-db ssh
-
-.PHONY: kind/preload
-kind/preload: kind/cluster $(addprefix build/,$(KIND_SERVICES))
-	for image in $(KIND_SERVICES); do \
-		KIND_CLUSTER_NAME="$(CI_BUILD_TAG)" ./local-dev/kind load docker-image $(CI_BUILD_TAG)/$$image; \
-		done
+KIND_SERVICES = api api-db api-redis auth-server broker controllerhandler docker-host drush-alias keycloak keycloak-db kubectl-build-deploy-dind local-api-data-watcher-pusher local-git ssh tests
+KIND_TOOLS = kind helm kubectl jq
 
 .PHONY: kind/test
-kind/test: kind/cluster kind/preload local-dev/helm local-dev/kind local-dev/kubectl local-dev/jq helm/repos
+kind/test: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addprefix build/,$(KIND_SERVICES))
 	export CHARTSDIR=$$(mktemp -dp . lagoon-charts.XXX) \
 		&& git clone https://github.com/uselagoon/lagoon-charts.git "$$CHARTSDIR" \
 		&& cd "$$CHARTSDIR" \
 		&& git checkout $(CHARTS_TREEISH) \
 		&& export KUBECONFIG=$$(mktemp ../kubeconfig.XXX) \
 		&& KIND_CLUSTER_NAME="$(CI_BUILD_TAG)" ../local-dev/kind export kubeconfig \
+		&& export IMAGE_REGISTRY="registry.$$(../local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
+		&& $(MAKE) install-registry HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
+		&& docker login -u admin -p Harbor12345 $$IMAGE_REGISTRY \
+		&& for image in $(KIND_SERVICES); do \
+		docker tag $(CI_BUILD_TAG)/$$image $$IMAGE_REGISTRY/$$image:$(BRANCH_NAME) \
+		&& docker push $$IMAGE_REGISTRY/$$image:$(BRANCH_NAME); \
+		done \
 		&& $(MAKE) fill-test-ci-values TESTS=$(TESTS) IMAGE_TAG=$(BRANCH_NAME) \
 		HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
-		JQ=$$(realpath ../local-dev/jq) OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=testlagoon/kubectl-build-deploy-dind:$(BRANCH_NAME) \
+		JQ=$$(realpath ../local-dev/jq) \
+		OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=$$IMAGE_REGISTRY/kubectl-build-deploy-dind:$(BRANCH_NAME) \
+		IMAGE_REGISTRY=$$IMAGE_REGISTRY \
 		&& docker run --rm --network host --name ct-$(CI_BUILD_TAG) \
 			--volume "$$(pwd)/test-suite-run.ct.yaml:/etc/ct/ct.yaml" \
 			--volume "$$(pwd):/workdir" \
