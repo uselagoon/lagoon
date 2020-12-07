@@ -384,6 +384,13 @@ export const EnvironmentModel = (clients) => {
                       "query": "acme-challenge"
                     }
                   }
+                },
+                {
+                  "match_phrase": {
+                    "http_request":  {
+                      "query": "acme-challenge"
+                    }
+                  }
                 }
               ]
             }
