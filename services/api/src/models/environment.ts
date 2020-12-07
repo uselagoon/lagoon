@@ -290,7 +290,7 @@ export const EnvironmentModel = (clients) => {
                 },
                 {
                   "match_phrase": {
-                    "request_uri":  {
+                    "http_request":  {
                       "query": "acme-challenge"
                     }
                   }
