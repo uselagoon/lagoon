@@ -981,6 +981,8 @@ kind/cluster: local-dev/kind
 		&& echo '    insecure_skip_verify = true'                                                                    >> $$KINDCONFIG \
 		&& echo '  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."registry.172.25.0.2.nip.io:32080"]'        >> $$KINDCONFIG \
 		&& echo '    endpoint = ["http://registry.172.25.0.2.nip.io:32080"]'                                         >> $$KINDCONFIG \
+		&& echo '  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."docker.io"]'                               >> $$KINDCONFIG \
+		&& echo '    endpoint = ["https://imagecache.amazeeio.cloud", "https://index.docker.io/v1/"]'                >> $$KINDCONFIG \
 		&& echo 'nodes:'                                                                                             >> $$KINDCONFIG \
 		&& echo '- role: control-plane'                                                                              >> $$KINDCONFIG \
 		&& echo '  image: $(KIND_IMAGE)'                                                                             >> $$KINDCONFIG \
