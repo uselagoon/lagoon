@@ -988,8 +988,10 @@ kind/cluster: local-dev/kind
 		&& echo '  - containerPath: /var/lib/kubelet/config.json'                                                    >> $$KINDCONFIG \
 		&& echo '    hostPath: $(HOME)/.docker/config.json'                                                          >> $$KINDCONFIG \
 		&& KIND_CLUSTER_NAME="$(CI_BUILD_TAG)" ./local-dev/kind create cluster --config=$$KINDCONFIG \
-		&& echo -e 'Interact with the cluster during the test run like so:\n' \
+		&& echo -e 'Interact with the cluster during the test run in Jenkins like so:\n' \
 		&& echo "export KUBECONFIG=\$$(mktemp) && scp $$NODE_NAME:$$KUBECONFIG \$$KUBECONFIG && KIND_PORT=\$$(sed -nE 's/.+server:.+:([0-9]+)/\1/p' \$$KUBECONFIG) && ssh -fNL \$$KIND_PORT:127.0.0.1:\$$KIND_PORT $$NODE_NAME" \
+		&& echo -e '\nOr running locally:\n' \
+		&& echo -e './local-dev/kind export kubeconfig --name "$(CI_BUILD_TAG)"\n' \
 		&& echo -e 'kubectl ...\n'
 
 KIND_SERVICES = api api-db api-redis auth-server broker controllerhandler drush-alias keycloak keycloak-db ssh
