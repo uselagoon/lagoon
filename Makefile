@@ -965,30 +965,21 @@ helm/repos: local-dev/helm
 kind/cluster: local-dev/kind
 	# these IPs are a result of the docker config on our build nodes
 	./local-dev/kind get clusters | grep -q "$(CI_BUILD_TAG)" && exit; \
-		export KUBECONFIG=$$(mktemp) \
+		docker network create kind || true \
+		&& export KUBECONFIG=$$(mktemp) \
 		KINDCONFIG=$$(mktemp ./kindconfig.XXX) \
+		KIND_NODE_IP=$$(docker run --rm --network kind alpine ip -o addr show eth0 | sed -nE 's/.* ([0-9.]{7,})\/.*/\1/p') \
 		&& chmod 644 $$KUBECONFIG \
-		&& curl -sSLo $$KINDCONFIG https://raw.githubusercontent.com/uselagoon/lagoon-charts/$(CHARTS_TREEISH)/test-suite.kind-config.yaml \
-		&& echo '  [plugins."io.containerd.grpc.v1.cri".registry.configs."registry.192.168.48.2.nip.io:32443".tls]'  >> $$KINDCONFIG \
-		&& echo '    insecure_skip_verify = true'                                                                    >> $$KINDCONFIG \
-		&& echo '  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."registry.192.168.48.2.nip.io:32080"]'      >> $$KINDCONFIG \
-		&& echo '    endpoint = ["http://registry.192.168.48.2.nip.io:32080"]'                                       >> $$KINDCONFIG \
-		&& echo '  [plugins."io.containerd.grpc.v1.cri".registry.configs."registry.192.168.160.2.nip.io:32443".tls]' >> $$KINDCONFIG \
-		&& echo '    insecure_skip_verify = true'                                                                    >> $$KINDCONFIG \
-		&& echo '  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."registry.192.168.160.2.nip.io:32080"]'     >> $$KINDCONFIG \
-		&& echo '    endpoint = ["http://registry.192.168.160.2.nip.io:32080"]'                                      >> $$KINDCONFIG \
-		&& echo '  [plugins."io.containerd.grpc.v1.cri".registry.configs."registry.172.25.0.2.nip.io:32443".tls]'    >> $$KINDCONFIG \
-		&& echo '    insecure_skip_verify = true'                                                                    >> $$KINDCONFIG \
-		&& echo '  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."registry.172.25.0.2.nip.io:32080"]'        >> $$KINDCONFIG \
-		&& echo '    endpoint = ["http://registry.172.25.0.2.nip.io:32080"]'                                         >> $$KINDCONFIG \
-		&& echo '  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."docker.io"]'                               >> $$KINDCONFIG \
-		&& echo '    endpoint = ["https://imagecache.amazeeio.cloud", "https://index.docker.io/v1/"]'                >> $$KINDCONFIG \
-		&& echo 'nodes:'                                                                                             >> $$KINDCONFIG \
-		&& echo '- role: control-plane'                                                                              >> $$KINDCONFIG \
-		&& echo '  image: $(KIND_IMAGE)'                                                                             >> $$KINDCONFIG \
-		&& echo '  extraMounts:'                                                                                     >> $$KINDCONFIG \
-		&& echo '  - containerPath: /var/lib/kubelet/config.json'                                                    >> $$KINDCONFIG \
-		&& echo '    hostPath: $(HOME)/.docker/config.json'                                                          >> $$KINDCONFIG \
+		&& curl -sSLo $$KINDCONFIG.tpl https://raw.githubusercontent.com/uselagoon/lagoon-charts/$(CHARTS_TREEISH)/test-suite.kind-config.yaml.tpl \
+		&& envsubst < $$KINDCONFIG.tpl > $$KINDCONFIG \
+		&& echo '  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."docker.io"]'                >> $$KINDCONFIG \
+		&& echo '    endpoint = ["https://imagecache.amazeeio.cloud", "https://index.docker.io/v1/"]' >> $$KINDCONFIG \
+		&& echo 'nodes:'                                                                              >> $$KINDCONFIG \
+		&& echo '- role: control-plane'                                                               >> $$KINDCONFIG \
+		&& echo '  image: $(KIND_IMAGE)'                                                              >> $$KINDCONFIG \
+		&& echo '  extraMounts:'                                                                      >> $$KINDCONFIG \
+		&& echo '  - containerPath: /var/lib/kubelet/config.json'                                     >> $$KINDCONFIG \
+		&& echo '    hostPath: $(HOME)/.docker/config.json'                                           >> $$KINDCONFIG \
 		&& KIND_CLUSTER_NAME="$(CI_BUILD_TAG)" ./local-dev/kind create cluster --config=$$KINDCONFIG \
 		&& echo -e 'Interact with the cluster during the test run in Jenkins like so:\n' \
 		&& echo "export KUBECONFIG=\$$(mktemp) && scp $$NODE_NAME:$$KUBECONFIG \$$KUBECONFIG && KIND_PORT=\$$(sed -nE 's/.+server:.+:([0-9]+)/\1/p' \$$KUBECONFIG) && ssh -fNL \$$KIND_PORT:127.0.0.1:\$$KIND_PORT $$NODE_NAME" \
