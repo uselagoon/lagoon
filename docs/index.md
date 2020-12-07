@@ -7,8 +7,7 @@ Lagoon solves what developers are dreaming about: A system that allows developer
 
 !!!warning
     **Note:** This documentation relates to the 1.x releases of Lagoon, built from the `master` branch, and is only maintained as required.
-    For the maintained documentation, please visit https://docs.lagoon.sh
-
+    For the maintained documentation, please visit [docs.lagoon.sh](https://docs.lagoon.sh)
 
 ## Who are you?
 
