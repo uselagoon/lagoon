@@ -964,7 +964,8 @@ helm/repos: local-dev/helm
 .PHONY: kind/cluster
 kind/cluster: local-dev/kind
 	# these IPs are a result of the docker config on our build nodes
-	export KUBECONFIG=$$(mktemp) \
+	./local-dev/kind get clusters | grep -q "$(CI_BUILD_TAG)" && exit; \
+		export KUBECONFIG=$$(mktemp) \
 		KINDCONFIG=$$(mktemp ./kindconfig.XXX) \
 		&& chmod 644 $$KUBECONFIG \
 		&& curl -sSLo $$KINDCONFIG https://raw.githubusercontent.com/uselagoon/lagoon-charts/$(CHARTS_TREEISH)/test-suite.kind-config.yaml \
