@@ -33,7 +33,6 @@ services:
     volumes:
       - ./services/controllerhandler/src:/app/services/controllerhandler/src
       - ./node-packages:/app/node-packages:delegated
-    labels:
   logs2rocketchat:
     image: ${IMAGE_REPO:-lagoon}/logs2rocketchat
     command: yarn run dev
