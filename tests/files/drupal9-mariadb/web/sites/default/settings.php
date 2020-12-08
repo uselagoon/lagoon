@@ -72,7 +72,7 @@ if (getenv('LAGOON')) {
   $varnish_hosts = explode(',', getenv('VARNISH_HOSTS') ?: 'varnish');
   array_walk($varnish_hosts, function(&$value, $key) { $value .= ':6082'; });
 
-  $config['varnish.settings']['varnish_control_terminal'] = implode($varnish_hosts, " ");
+  $config['varnish.settings']['varnish_control_terminal'] = implode(" ", $varnish_hosts);
   $config['varnish.settings']['varnish_control_key'] = getenv('VARNISH_SECRET') ?: 'lagoon_default_secret';
   $config['varnish.settings']['varnish_version'] = 4;
 }
