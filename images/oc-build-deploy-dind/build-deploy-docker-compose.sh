@@ -776,6 +776,15 @@ if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get schedules.backup.ap
 
   TEMPLATE_PARAMETERS=()
 
+  # Check for custom baas bucket name
+  if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
+    BAAS_BUCKET_NAME=$(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_BAAS_BUCKET_NAME") | "\(.value)"')
+  fi
+  if [ -z $BAAS_BUCKET_NAME ]; then
+    BAAS_BUCKET_NAME=baas-${SAFE_PROJECT}
+  fi
+  TEMPLATE_PARAMETERS+=(-p BAAS_BUCKET_NAME="${BAAS_BUCKET_NAME}")
+
   # Run Backups every day at 2200-0200
   BACKUP_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "M H(22-2) * * *")
   TEMPLATE_PARAMETERS+=(-p BACKUP_SCHEDULE="${BACKUP_SCHEDULE}")

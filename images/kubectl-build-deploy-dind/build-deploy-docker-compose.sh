@@ -811,6 +811,15 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
 
   TEMPLATE_PARAMETERS=()
 
+  # Check for custom baas bucket name
+  if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
+    BAAS_BUCKET_NAME=$(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_BAAS_BUCKET_NAME") | "\(.value)"')
+  fi
+  if [ -z $BAAS_BUCKET_NAME ]; then
+    BAAS_BUCKET_NAME=baas-${PROJECT}
+  fi
+  TEMPLATE_PARAMETERS+=(-p BAAS_BUCKET_NAME="${BAAS_BUCKET_NAME}")
+
   # Run Backups every day at 2200-0200
   BACKUP_SCHEDULE=$( /kubectl-build-deploy/scripts/convert-crontab.sh "${NAMESPACE}" "M H(22-2) * * *")
   TEMPLATE_PARAMETERS+=(-p BACKUP_SCHEDULE="${BACKUP_SCHEDULE}")
@@ -828,7 +837,8 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
     -f /kubectl-build-deploy/values.yaml \
     --set backup.schedule="${BACKUP_SCHEDULE}" \
     --set check.schedule="${CHECK_SCHEDULE}" \
-    --set prune.schedule="${PRUNE_SCHEDULE}" "${HELM_ARGUMENTS[@]}"  > $YAML_FOLDER/k8up-lagoon-backup-schedule.yaml
+    --set prune.schedule="${PRUNE_SCHEDULE}" "${HELM_ARGUMENTS[@]}" \
+    --set baasBucketName="${BAAS_BUCKET_NAME}" > $YAML_FOLDER/k8up-lagoon-backup-schedule.yaml
 fi
 
 if [ "$(ls -A $YAML_FOLDER/)" ]; then
