@@ -276,21 +276,21 @@ export const EnvironmentModel = (clients) => {
               "must_not": [
                 {
                   "match_phrase": {
-                    "request_header_useragent": {
+                    "request_header_useragent": { // Legacy Logging - OpenShift Router: Exclude requests from StatusCake
                       "query": "StatusCake"
                     }
                   }
                 },
                 {
                   "match_phrase": {
-                    "request_user_agent": {
+                    "request_header_useragent": { // Legacy Logging - OpenShift Router: Exclude requests from UptimeRobot
                       "query": "UptimeRobot"
                     }
                   }
                 },
                 {
                   "match_phrase": {
-                    "request_uri":  {
+                    "http_request":  { // Legacy Logging - OpenShift Router: Exclude requests to acme challenges
                       "query": "acme-challenge"
                     }
                   }
@@ -351,36 +351,43 @@ export const EnvironmentModel = (clients) => {
               ],
               "must_not": [
                 {
-                  "match_phrase": {
-                    "request_header_useragent": {
+                  "match_phrase": { 
+                    "http_user_agent": { // New Logging - Kubernetes Ingress: Exclude requests from Statuscake
                       "query": "StatusCake"
                     }
                   }
                 },
                 {
                   "match_phrase": {
-                    "http_user_agent": {
+                    "http_user_agent": { // New Logging - Kubernetes Ingress: Exclude requests from UptimeRobot
+                      "query": "UptimeRobot"
+                    }
+                  }
+                },                
+                {
+                  "match_phrase": {
+                    "request_user_agent": { // New Logging - OpenShift Router: Exclude requests from Statuscake
                       "query": "StatusCake"
                     }
                   }
                 },
                 {
                   "match_phrase": {
-                    "request_user_agent": {
-                      "query": "StatusCake"
-                    }
-                  }
-                },
-                {
-                  "match_phrase": {
-                    "request_user_agent": {
+                    "request_user_agent": { // New Logging - OpenShift Router: Exclude requests from UptimeRobot
                       "query": "UptimeRobot"
                     }
                   }
                 },
                 {
                   "match_phrase": {
-                    "request_uri":  {
+                    "request_uri":  { // New Logging - Kubernetes Ingress: Exclude requests to acme challenges
+                      "query": "acme-challenge"
+                    }
+                  }
+                },
+                {
+                  "match_phrase": {
+                    "http_request":  { // New Logging - OpenShift Router: Exclude requests to acme challenges
                       "query": "acme-challenge"
                     }
                   }
