@@ -992,7 +992,7 @@ KIND_TOOLS = kind helm kubectl jq
 
 .PHONY: kind/test
 kind/test: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addprefix build/,$(KIND_SERVICES))
-	export CHARTSDIR=$$(mktemp -dp . lagoon-charts.XXX) \
+	export CHARTSDIR=$$(mktemp -d ./lagoon-charts.XXX) \
 		&& git clone https://github.com/uselagoon/lagoon-charts.git "$$CHARTSDIR" \
 		&& cd "$$CHARTSDIR" \
 		&& git checkout $(CHARTS_TREEISH) \
