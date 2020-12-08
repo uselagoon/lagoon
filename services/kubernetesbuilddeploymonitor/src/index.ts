@@ -181,17 +181,18 @@ ${podLog}`;
       }
     })(jobInfo.status.active ? 'active' : jobInfo.status.conditions[0].type.toLowerCase());
 
+    let completedTime = jobInfo.status.completionTime
     if (status == 'failed') {
       // failed jobs in kubernetes don't have a completionTime in them
       // the status conditions will have a lastTransitionTime in them that will contain the state the job went into
       // since jobs only have 1 attempt, there shouldn't be any other conditions
-      jobInfo.status.completionTime = jobInfo.status.conditions[0].lastTransitionTime
+      completedTime = jobInfo.status.conditions[0].lastTransitionTime
     }
 
     await updateDeployment(deployment.deploymentByRemoteId.id, {
       status: status.toUpperCase(),
       started: dateOrNull(jobInfo.status.startTime),
-      completed: dateOrNull(jobInfo.status.completionTime),
+      completed: dateOrNull(completedTime),
     });
   } catch (error) {
     logger.error(`Could not update deployment ${projectName} ${jobName}. Message: ${error}`);
