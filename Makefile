@@ -428,7 +428,6 @@ openshift-tests: $(all-openshift-tests)
 all-controller-openshift-tests-list:=	features-openshift \
 														node \
 														drupal \
-														drupal-postgres \
 														github \
 														gitlab \
 														bitbucket \
