@@ -28,7 +28,8 @@ RUN apk add --no-cache bash
 ENV DOCKER_HOST=docker-host \
     REGISTRY=docker-registry.default.svc:5000 \
     REPOSITORY_TO_UPDATE=amazeeio \
-    BIP=172.16.0.1/16
+    BIP=172.16.0.1/16 \
+    REGISTRY_MIRROR=https://imagecache.amazeeio.cloud
 
 RUN fix-permissions /home
 
@@ -38,4 +39,4 @@ COPY remove-exited.sh /remove-exited.sh
 
 ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
 
-CMD ["sh", "-c", "sh /usr/local/bin/dind /usr/local/bin/dockerd --host=tcp://0.0.0.0:2375 --host=unix:///var/run/docker.sock --insecure-registry=${REGISTRY} --insecure-registry=172.17.0.1:8084 --bip=${BIP} --storage-driver=overlay2 --storage-opt=overlay2.override_kernel_check=1"]
+CMD ["sh", "-c", "sh /usr/local/bin/dind /usr/local/bin/dockerd --host=tcp://0.0.0.0:2375 --host=unix:///var/run/docker.sock --insecure-registry=${REGISTRY} --insecure-registry=harbor-harbor-core.harbor.svc.cluster.local:80 --bip=${BIP} --storage-driver=overlay2 --storage-opt=overlay2.override_kernel_check=1 --registry-mirror=${REGISTRY_MIRROR}"]

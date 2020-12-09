@@ -21,4 +21,6 @@ COPY scripts /kubectl-build-deploy/scripts
 
 COPY helmcharts  /kubectl-build-deploy/helmcharts
 
+ENV IMAGECACHE_REGISTRY=imagecache.amazeeio.cloud
+
 CMD ["/kubectl-build-deploy/build-deploy.sh"]

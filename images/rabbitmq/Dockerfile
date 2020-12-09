@@ -15,7 +15,7 @@ ENV RABBITMQ_DEFAULT_USER='guest' \
 COPY --from=commons /bin/ep /bin/fix-permissions /bin/
 
 COPY rabbitmq_delayed_message_exchange-3.8.0.ez /plugins
-RUN rabbitmq-plugins enable --offline rabbitmq_delayed_message_exchange;
+RUN rabbitmq-plugins enable --offline rabbitmq_delayed_message_exchange rabbitmq_prometheus;
 
 # Copy startup schema with vhost, users, permissions and policies
 COPY definitions.json /etc/rabbitmq/definitions.json

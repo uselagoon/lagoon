@@ -82,7 +82,7 @@ objects:
             envFrom:
               - configMapRef:
                   name: lagoon-env
-            image: alpine
+            image: imagecache.amazeeio.cloud/library/alpine
             imagePullPolicy: Always
             name: ${SERVICE_NAME}-prebackuppod
             volumeMounts:

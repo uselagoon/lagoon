@@ -20,6 +20,7 @@
     {{ testname }} - check that the namespace is labelled correctly
   hosts: localhost
   serial: 1
+  tags: skip-on-jenkins
   vars:
     expected_labels:
     - "lagoon.sh/project={{ project }}"

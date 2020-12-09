@@ -60,7 +60,7 @@ spec:
                 configMapKeyRef:
                   key: {{ include "mariadb-dbaas.fullnameUppercase" . }}_DATABASE
                   name: lagoon-env
-          image: amazeeio/alpine-mysql-client
+          image: imagecache.amazeeio.cloud/amazeeio/alpine-mysql-client
           imagePullPolicy: Always
           name: {{ include "mariadb-dbaas.fullname" . }}-prebackuppod
 {{ end }}

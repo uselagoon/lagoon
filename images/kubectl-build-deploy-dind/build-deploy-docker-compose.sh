@@ -203,8 +203,13 @@ do
   # The ImageName is the same as the Name of the Docker Compose ServiceName
   IMAGE_NAME=$COMPOSE_SERVICE
 
-  # Generate List of Images to build
-  IMAGES+=("${IMAGE_NAME}")
+  # Do not handle images for shared services
+  if  [[ "$SERVICE_TYPE" != "mariadb-dbaas" ]] &&
+      [[ "$SERVICE_TYPE" != "mariadb-shared" ]] &&
+      [[ "$SERVICE_TYPE" != "mongodb-shared" ]]; then
+    # Generate List of Images to build
+    IMAGES+=("${IMAGE_NAME}")
+  fi
 
   # Map Deployment ServiceType to the ImageName
   MAP_DEPLOYMENT_SERVICETYPE_TO_IMAGENAME["${SERVICE_NAME}:${DEPLOYMENT_SERVICETYPE}"]="${IMAGE_NAME}"
@@ -328,6 +333,12 @@ if [[ ( "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ) && ! $TH
       if [ ! $OVERRIDE_IMAGE == "false" ]; then
         # expand environment variables from ${OVERRIDE_IMAGE}
         PULL_IMAGE=$(echo "${OVERRIDE_IMAGE}" | envsubst)
+      fi
+
+      # if the image just is an image name (like "alpine") we prefix it with `libary/` as the imagecache does not understand
+      # the magic `alpine` images
+      if [[ ! "$PULL_IMAGE" =~ "/" ]]; then
+        PULL_IMAGE="library/$PULL_IMAGE"
       fi
 
       # Add the images we should pull to the IMAGES_PULL array, they will later be tagged from dockerhub
@@ -970,13 +981,13 @@ if [[ $THIS_IS_TUG == "true" ]]; then
 
 elif [ "$BUILD_TYPE" == "pullrequest" ] || [ "$BUILD_TYPE" == "branch" ]; then
 
-  # All images that should be pulled are tagged as Images directly in OpenShift Registry
+  # All images that should be pulled are copied to the harbor registry
   for IMAGE_NAME in "${!IMAGES_PULL[@]}"
   do
     PULL_IMAGE="${IMAGES_PULL[${IMAGE_NAME}]}"
-    # . /kubectl-build-deploy/scripts/exec-kubernetes-tag-dockerhub.sh
-    # TODO: check if we can download and push the images to harbour (e.g. how artifactory does this)
-    IMAGE_HASHES[${IMAGE_NAME}]=$(skopeo inspect docker://${PULL_IMAGE} --tls-verify=false | jq ".Name + \"@\" + .Digest" -r)
+    . /kubectl-build-deploy/scripts/exec-kubernetes-copy-to-registry.sh
+
+    IMAGE_HASHES[${IMAGE_NAME}]=$(skopeo inspect docker://${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG:-latest} --tls-verify=false | jq ".Name + \"@\" + .Digest" -r)
   done
 
   for IMAGE_NAME in "${!IMAGES_BUILD[@]}"
