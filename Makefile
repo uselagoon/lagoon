@@ -76,8 +76,8 @@ MINISHIFT_DISK_SIZE := 30GB
 
 # Version and Hash of the minikube cli that should be downloaded
 K3S_VERSION := v1.17.0-k3s.1
-KUBECTL_VERSION := v1.17.0
-HELM_VERSION := v3.0.3
+KUBECTL_VERSION := v1.19.0
+HELM_VERSION := v3.4.1
 MINIKUBE_VERSION := 1.5.2
 MINIKUBE_PROFILE := $(CI_BUILD_TAG)-minikube
 MINIKUBE_CPUS := $(nproc --ignore 2)
@@ -89,7 +89,7 @@ K3D_VERSION := 1.4.0
 K3D_NAME := k3s-$(shell echo $(CI_BUILD_TAG) | sed -E 's/.*(.{31})$$/\1/')
 
 # Name of the Branch we are currently in
-BRANCH_NAME :=
+BRANCH_NAME := $(shell git rev-parse --abbrev-ref HEAD)
 DEFAULT_ALPINE_VERSION := 3.11
 
 #######
@@ -752,21 +752,20 @@ ifeq ($(KUBECTL_VERSION), $(shell kubectl version --short --client 2>/dev/null |
 	ln -s $(shell command -v kubectl) ./local-dev/kubectl
 else
 	$(info downloading kubectl version $(KUBECTL_VERSION) for $(ARCH))
-	curl -Lo local-dev/kubectl https://storage.googleapis.com/kubernetes-release/release/$(KUBECTL_VERSION)/bin/$(ARCH)/amd64/kubectl
+	curl -sSLo local-dev/kubectl https://storage.googleapis.com/kubernetes-release/release/$(KUBECTL_VERSION)/bin/$(ARCH)/amd64/kubectl
 	chmod a+x local-dev/kubectl
 endif
 
 # Symlink the installed helm client if the correct version is already
 # installed, otherwise downloads it.
-local-dev/helm/helm:
-	@mkdir -p ./local-dev/helm
-ifeq ($(HELM_VERSION), $(shell helm version --short --client 2>/dev/null | sed -E 's/v([0-9.]+).*/\1/'))
+local-dev/helm:
+ifeq ($(HELM_VERSION), $(shell helm version --short --client 2>/dev/null | sed -nE 's/v([0-9.]+).*/\1/p'))
 	$(info linking local helm version $(HELM_VERSION))
 	ln -s $(shell command -v helm) ./local-dev/helm
 else
 	$(info downloading helm version $(HELM_VERSION) for $(ARCH))
-	curl -L https://get.helm.sh/helm-$(HELM_VERSION)-$(ARCH)-amd64.tar.gz | tar xzC local-dev/helm --strip-components=1
-	chmod a+x local-dev/helm/helm
+	curl -sSL https://get.helm.sh/helm-$(HELM_VERSION)-$(ARCH)-amd64.tar.gz | tar -xzC local-dev --strip-components=1 $(ARCH)-amd64/helm
+	chmod a+x local-dev/helm
 endif
 
 ifeq ($(DOCKER_DRIVER), btrfs)
@@ -776,7 +775,7 @@ else
 K3D_BTRFS_VOLUME :=
 endif
 
-k3d: local-dev/k3d local-dev/kubectl local-dev/helm/helm build/docker-host
+k3d: local-dev/k3d local-dev/kubectl local-dev/helm build/docker-host
 	$(MAKE) local-registry-up
 	$(MAKE) broker-up
 	$(info starting k3d with name $(K3D_NAME))
@@ -801,28 +800,28 @@ endif
 	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add stable https://charts.helm.sh/stable; \
 	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n nginx-ingress nginx stable/nginx-ingress; \
 	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' create namespace k8up; \
-	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add appuio https://charts.appuio.ch; \
-	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n k8up k8up appuio/k8up; \
+	local-dev/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add appuio https://charts.appuio.ch; \
+	local-dev/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n k8up k8up appuio/k8up; \
 	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' create namespace dioscuri; \
-	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add dioscuri https://raw.githubusercontent.com/amazeeio/dioscuri/ingress/charts ; \
-	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n dioscuri dioscuri dioscuri/dioscuri ; \
+	local-dev/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add dioscuri https://raw.githubusercontent.com/amazeeio/dioscuri/ingress/charts ; \
+	local-dev/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n dioscuri dioscuri dioscuri/dioscuri ; \
 	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' create namespace dbaas-operator; \
-	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add dbaas-operator https://raw.githubusercontent.com/amazeeio/dbaas-operator/master/charts ; \
-	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n dbaas-operator dbaas-operator dbaas-operator/dbaas-operator ; \
-	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n dbaas-operator mariadbprovider dbaas-operator/mariadbprovider -f local-dev/helm-values-mariadbprovider.yml ; \
+	local-dev/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add dbaas-operator https://raw.githubusercontent.com/amazeeio/dbaas-operator/master/charts ; \
+	local-dev/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n dbaas-operator dbaas-operator dbaas-operator/dbaas-operator ; \
+	local-dev/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n dbaas-operator mariadbprovider dbaas-operator/mariadbprovider -f local-dev/helm-values-mariadbprovider.yml ; \
 	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' create namespace harbor; \
-	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add harbor https://helm.goharbor.io ; \
-	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n harbor harbor harbor/harbor -f local-dev/helm-values-harbor.yml ; \
+	local-dev/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add harbor https://helm.goharbor.io ; \
+	local-dev/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n harbor harbor harbor/harbor -f local-dev/helm-values-harbor.yml ; \
 	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' create namespace lagoon-builddeploy; \
-	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add lagoon-builddeploy https://raw.githubusercontent.com/amazeeio/lagoon-kbd/main/charts ; \
-	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n lagoon-builddeploy lagoon-builddeploy lagoon-builddeploy/lagoon-builddeploy \
+	local-dev/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add lagoon-builddeploy https://raw.githubusercontent.com/amazeeio/lagoon-kbd/main/charts ; \
+	local-dev/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n lagoon-builddeploy lagoon-builddeploy lagoon-builddeploy/lagoon-builddeploy \
 		--set vars.lagoonTargetName=ci-local-control-k8s \
 		--set vars.rabbitPassword=guest \
 		--set vars.rabbitUsername=guest \
 		--set vars.rabbitHostname=172.17.0.1:5672; \
 	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' create namespace lagoon; \
-	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add lagoon https://uselagoon.github.io/lagoon-charts/; \
-	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n lagoon lagoon-remote lagoon/lagoon-remote --set dockerHost.image.repository=172.17.0.1:5000/lagoon/docker-host --set dockerHost.image.tag=latest --set dockerHost.registry=172.17.0.1:5000; \
+	local-dev/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add lagoon https://uselagoon.github.io/lagoon-charts/; \
+	local-dev/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n lagoon lagoon-remote lagoon/lagoon-remote --set dockerHost.image.repository=172.17.0.1:5000/lagoon/docker-host --set dockerHost.image.tag=latest --set dockerHost.registry=172.17.0.1:5000; \
 	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n lagoon rollout status deployment lagoon-remote-docker-host -w;
 ifeq ($(ARCH), darwin)
 	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; \
@@ -902,8 +901,8 @@ k3d/cleanall: k3d/stopall
 .PHONY: kubernetes-lagoon-setup
 kubernetes-lagoon-setup:
 	kubectl create namespace lagoon; \
-	local-dev/helm/helm repo add lagoon https://uselagoon.github.io/lagoon-charts/; \
-	local-dev/helm/helm upgrade --install -n lagoon lagoon-remote lagoon/lagoon-remote; \
+	local-dev/helm repo add lagoon https://uselagoon.github.io/lagoon-charts/; \
+	local-dev/helm upgrade --install -n lagoon lagoon-remote lagoon/lagoon-remote; \
 	echo -e "\n\nAll Setup, use this token as described in the Lagoon Install Documentation:";
 	$(MAKE) kubernetes-get-kubernetesbuilddeploy-token
 
@@ -925,3 +924,108 @@ ui-development: build/api build/api-db build/local-api-data-watcher-pusher build
 .PHONY: api-development
 api-development: build/api build/api-db build/local-api-data-watcher-pusher build/keycloak build/keycloak-db build/broker build/broker-single build/api-redis
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db local-api-data-watcher-pusher keycloak keycloak-db broker api-redis
+
+## CI targets
+
+KIND_VERSION = v0.9.0
+GOJQ_VERSION = v0.11.2
+KIND_IMAGE = kindest/node:v1.19.1@sha256:98cf5288864662e37115e362b23e4369c8c4a408f99cbc06e58ac30ddc721600
+TESTS = [features-kubernetes,nginx,active-standby-kubernetes,drupal-php72,drupal-php73,drupal-php74]
+CHARTS_TREEISH = lagoon-test-0.8.2
+
+local-dev/kind:
+ifeq ($(KIND_VERSION), $(shell kind version 2>/dev/null | sed -nE 's/kind (v[0-9.]+).*/\1/p'))
+	$(info linking local kind version $(KIND_VERSION))
+	ln -s $(shell command -v kind) ./local-dev/kind
+else
+	$(info downloading kind version $(KIND_VERSION) for $(ARCH))
+	curl -sSLo local-dev/kind https://github.com/kubernetes-sigs/kind/releases/download/$(KIND_VERSION)/kind-$(ARCH)-amd64
+	chmod a+x local-dev/kind
+endif
+
+local-dev/jq:
+ifeq ($(GOJQ_VERSION), $(shell jq -v 2>/dev/null | sed -nE 's/gojq ([0-9.]+).*/v\1/p'))
+	$(info linking local jq version $(KIND_VERSION))
+	ln -s $(shell command -v jq) ./local-dev/jq
+else
+	$(info downloading gojq version $(GOJQ_VERSION) for $(ARCH))
+ifeq ($(ARCH), darwin)
+	TMPDIR=$$(mktemp -d) \
+		&& curl -sSL https://github.com/itchyny/gojq/releases/download/$(GOJQ_VERSION)/gojq_$(GOJQ_VERSION)_$(ARCH)_amd64.zip -o $$TMPDIR/gojq.zip \
+		&& (cd $$TMPDIR && unzip gojq.zip) && cp $$TMPDIR/gojq_$(GOJQ_VERSION)_$(ARCH)_amd64/gojq ./local-dev/jq && rm -rf $$TMPDIR
+else
+	curl -sSL https://github.com/itchyny/gojq/releases/download/$(GOJQ_VERSION)/gojq_$(GOJQ_VERSION)_$(ARCH)_amd64.tar.gz | tar -xzC local-dev --strip-components=1 gojq_$(GOJQ_VERSION)_$(ARCH)_amd64/gojq
+	mv ./local-dev/{go,}jq
+endif
+	chmod a+x local-dev/jq
+endif
+
+.PHONY: helm/repos
+helm/repos: local-dev/helm
+	# install repo dependencies required by the charts
+	./local-dev/helm repo add harbor https://helm.goharbor.io
+	./local-dev/helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+	./local-dev/helm repo add stable https://charts.helm.sh/stable
+	./local-dev/helm repo add bitnami https://charts.bitnami.com/bitnami
+
+.PHONY: kind/cluster
+kind/cluster: local-dev/kind
+	# these IPs are a result of the docker config on our build nodes
+	./local-dev/kind get clusters | grep -q "$(CI_BUILD_TAG)" && exit; \
+		docker network create kind || true \
+		&& export KUBECONFIG=$$(mktemp) \
+		KINDCONFIG=$$(mktemp ./kindconfig.XXX) \
+		KIND_NODE_IP=$$(docker run --rm --network kind alpine ip -o addr show eth0 | sed -nE 's/.* ([0-9.]{7,})\/.*/\1/p') \
+		&& chmod 644 $$KUBECONFIG \
+		&& curl -sSLo $$KINDCONFIG.tpl https://raw.githubusercontent.com/uselagoon/lagoon-charts/$(CHARTS_TREEISH)/test-suite.kind-config.yaml.tpl \
+		&& envsubst < $$KINDCONFIG.tpl > $$KINDCONFIG \
+		&& echo '  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."docker.io"]'                >> $$KINDCONFIG \
+		&& echo '    endpoint = ["https://imagecache.amazeeio.cloud", "https://index.docker.io/v1/"]' >> $$KINDCONFIG \
+		&& echo 'nodes:'                                                                              >> $$KINDCONFIG \
+		&& echo '- role: control-plane'                                                               >> $$KINDCONFIG \
+		&& echo '  image: $(KIND_IMAGE)'                                                              >> $$KINDCONFIG \
+		&& echo '  extraMounts:'                                                                      >> $$KINDCONFIG \
+		&& echo '  - containerPath: /var/lib/kubelet/config.json'                                     >> $$KINDCONFIG \
+		&& echo '    hostPath: $(HOME)/.docker/config.json'                                           >> $$KINDCONFIG \
+		&& KIND_CLUSTER_NAME="$(CI_BUILD_TAG)" ./local-dev/kind create cluster --config=$$KINDCONFIG \
+		&& cp $$KUBECONFIG "kubeconfig.kind.$(CI_BUILD_TAG)" \
+		&& echo -e 'Interact with the cluster during the test run in Jenkins like so:\n' \
+		&& echo "export KUBECONFIG=\$$(mktemp) && scp $$NODE_NAME:$$KUBECONFIG \$$KUBECONFIG && KIND_PORT=\$$(sed -nE 's/.+server:.+:([0-9]+)/\1/p' \$$KUBECONFIG) && ssh -fNL \$$KIND_PORT:127.0.0.1:\$$KIND_PORT $$NODE_NAME" \
+		&& echo -e '\nOr running locally:\n' \
+		&& echo -e './local-dev/kind export kubeconfig --name "$(CI_BUILD_TAG)"\n' \
+		&& echo -e 'kubectl ...\n'
+
+KIND_SERVICES = api api-db api-redis auth-server broker controllerhandler docker-host drush-alias keycloak keycloak-db kubectl-build-deploy-dind local-api-data-watcher-pusher local-git ssh tests
+KIND_TOOLS = kind helm kubectl jq
+
+.PHONY: kind/test
+kind/test: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addprefix build/,$(KIND_SERVICES))
+	export CHARTSDIR=$$(mktemp -d ./lagoon-charts.XXX) \
+		&& git clone https://github.com/uselagoon/lagoon-charts.git "$$CHARTSDIR" \
+		&& cd "$$CHARTSDIR" \
+		&& git checkout $(CHARTS_TREEISH) \
+		&& export KUBECONFIG=$$(mktemp ../kubeconfig.XXX) \
+		&& KIND_CLUSTER_NAME="$(CI_BUILD_TAG)" ../local-dev/kind export kubeconfig \
+		&& export IMAGE_REGISTRY="registry.$$(../local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
+		&& $(MAKE) install-registry HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
+		&& docker login -u admin -p Harbor12345 $$IMAGE_REGISTRY \
+		&& for image in $(KIND_SERVICES); do \
+		docker tag $(CI_BUILD_TAG)/$$image $$IMAGE_REGISTRY/$$image:$(BRANCH_NAME) \
+		&& docker push $$IMAGE_REGISTRY/$$image:$(BRANCH_NAME); \
+		done \
+		&& $(MAKE) fill-test-ci-values TESTS=$(TESTS) IMAGE_TAG=$(BRANCH_NAME) \
+		HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
+		JQ=$$(realpath ../local-dev/jq) \
+		OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=$$IMAGE_REGISTRY/kubectl-build-deploy-dind:$(BRANCH_NAME) \
+		IMAGE_REGISTRY=$$IMAGE_REGISTRY \
+		&& docker run --rm --network host --name ct-$(CI_BUILD_TAG) \
+			--volume "$$(pwd)/test-suite-run.ct.yaml:/etc/ct/ct.yaml" \
+			--volume "$$(pwd):/workdir" \
+			--volume "$$(realpath $$KUBECONFIG):/root/.kube/config" \
+			--workdir /workdir \
+			"quay.io/helmpack/chart-testing:v3.1.1" \
+			ct install
+
+.PHONY: kind/clean
+kind/clean: local-dev/kind
+	KIND_CLUSTER_NAME="$(CI_BUILD_TAG)" ./local-dev/kind delete cluster

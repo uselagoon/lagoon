@@ -10,6 +10,7 @@ local-dev/helm
 local-dev/minishift
 local-dev/minikube
 local-dev/k3d
+local-dev/jq
 k3d
 local-dev/kubectl
 **/v8-*
@@ -25,3 +26,6 @@ docs/_build
 yarn-debug.log*
 yarn-error.log*
 site
+kubeconfig.*
+kindconfig.*
+kind
