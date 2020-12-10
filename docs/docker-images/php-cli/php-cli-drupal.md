@@ -1,10 +1,21 @@
 # PHP-CLI-Drupal
 
-The [Lagoon `php-cli-drupal` Docker image](https://github.com/amazeeio/lagoon/blob/master/images/php/cli-drupal/Dockerfile) is optimized to work with Drupal. It is based on the [Lagoon `php-cli` image](./), and has all the command line tools needed for the daily maintenance of a Drupal website:
+The [Lagoon `php-cli-drupal` Docker image](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli-drupal) is optimized to work with Drupal. It is based on the [Lagoon `php-cli` image](./), and has all the command line tools needed for the daily maintenance of a Drupal website:
 
 * `drush`
 * `drupal console`
 * `drush launcher` \(which will fallback to Drush 8 if there is no site installed Drush found\)
+
+## Supported versions
+
+* 5.6 \(available for compatibility, no longer officially supported\)
+* 7.0 \(available for compatibility, no longer officially supported\)
+* 7.2 \(available for compatibility, no longer officially supported\)
+* 7.3 [\[Dockerfile\]](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli-drupal/7.3.Dockerfile)
+* 7.4 [\[Dockerfile\]](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli-drupal/7.4.Dockerfile)
+* 8.0 \(coming soon\)
+
+All PHP versions use their own Dockerfiles.
 
 ## Lagoon adaptions
 
