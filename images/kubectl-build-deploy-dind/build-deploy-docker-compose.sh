@@ -240,6 +240,7 @@ do
   # Do not handle images for shared services
   if  [[ "$SERVICE_TYPE" != "mariadb-dbaas" ]] &&
       [[ "$SERVICE_TYPE" != "mariadb-shared" ]] &&
+      [[ "$SERVICE_TYPE" != "postgres-shared" ]] &&
       [[ "$SERVICE_TYPE" != "mongodb-shared" ]]; then
     # Generate List of Images to build
     IMAGES+=("${IMAGE_NAME}")
