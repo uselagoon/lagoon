@@ -104,6 +104,11 @@ do
     done
   fi
 
+  # Previous versions of Lagoon used "python-ckandatapusher", this should be mapped to "python"
+  if [[ "$SERVICE_TYPE" == "python-ckandatapusher" ]]; then
+    SERVICE_TYPE="python"
+  fi
+
   # "mariadb" is a meta service, which allows lagoon to decide itself which of the services to use:
   # - mariadb-single (a single mariadb pod)
   # - mariadb-dbaas (use the dbaas shared operator)
