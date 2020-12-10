@@ -3,7 +3,7 @@ import Modal from 'components/Modal';
 import Button from 'components/Button';
 import { bp, color } from 'lib/variables';
 // @TODO: add this once the logic exists
-//import withLogic from 'components/ActiveStandbyConfirm/logic';
+import withLogic from 'components/ActiveStandbyConfirm/logic';
 import ActiveStandby from 'components/ActiveStandbyConfirm';
 
 /**
@@ -66,4 +66,4 @@ export const ActiveStandbyConfirm = ({
   );
 };
 
-export default ActiveStandbyConfirm;
+export default withLogic(ActiveStandbyConfirm);
