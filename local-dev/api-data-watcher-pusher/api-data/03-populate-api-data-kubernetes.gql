@@ -573,6 +573,7 @@ mutation PopulateApi {
       activeSystemsTask: "lagoon_controllerJob"
       activeSystemsMisc: "lagoon_controllerMisc"
       activeSystemsDeploy: "lagoon_controllerBuildDeploy"
+      activeSystemsPromote: "lagoon_controllerBuildDeploy"
       activeSystemsRemove: "lagoon_controllerRemove"
     }
   ) {

@@ -332,6 +332,8 @@ const getOperatorBuildData = async function(deployData: any) {
   var pullrequestData: any = {};
   var promoteData: any = {};
 
+  var gitRef = gitSha ? gitSha : `origin/${branchName}`
+
   switch (type) {
     case "branch":
       // if we have a sha given, we use that, if not we fall back to the branch (which needs be prefixed by `origin/`
@@ -449,8 +451,6 @@ const getOperatorBuildData = async function(deployData: any) {
         buildImage = `amazeeiolagoon/kubectl-build-deploy-dind:${lagoonGitSafeBranch}`
     }
   }
-
-  var gitRef = gitSha ? gitSha : `origin/${branchName}`
 
   // encode some values so they get sent to the controllers nicely
   const sshKeyBase64 = new Buffer(deployPrivateKey.replace(/\\n/g, "\n")).toString('base64')
@@ -774,7 +774,10 @@ export const createPromoteTask = async function(promoteData: any) {
   switch (project.activeSystemsPromote) {
     case 'lagoon_openshiftBuildDeploy':
       return sendToLagoonTasks('builddeploy-openshift', promoteData);
-
+    case 'lagoon_controllerBuildDeploy':
+      // controllers uses a different message than the other services, so we need to source it here
+			const buildDeployData = await getOperatorBuildData(promoteData);
+			return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
     default:
       throw new UnknownActiveSystem(
         `Unknown active system '${project.activeSystemsPromote}' for task 'deploy' in for project ${projectName}`
