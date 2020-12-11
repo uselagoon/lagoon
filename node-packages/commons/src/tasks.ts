@@ -774,7 +774,10 @@ export const createPromoteTask = async function(promoteData: any) {
   switch (project.activeSystemsPromote) {
     case 'lagoon_openshiftBuildDeploy':
       return sendToLagoonTasks('builddeploy-openshift', promoteData);
-
+    case 'lagoon_controllerBuildDeploy':
+      // controllers uses a different message than the other services, so we need to source it here
+			const buildDeployData = await getOperatorBuildData(promoteData);
+			return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
     default:
       throw new UnknownActiveSystem(
         `Unknown active system '${project.activeSystemsPromote}' for task 'deploy' in for project ${projectName}`

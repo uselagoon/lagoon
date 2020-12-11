@@ -1056,12 +1056,13 @@ elif [ "$BUILD_TYPE" == "pullrequest" ] || [ "$BUILD_TYPE" == "branch" ]; then
     IMAGE_HASHES[${IMAGE_NAME}]=$(docker inspect ${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG:-latest} --format '{{json .RepoDigests}}' | "${JQ_QUERY[@]}")
   done
 
-# elif [ "$BUILD_TYPE" == "promote" ]; then
+elif [ "$BUILD_TYPE" == "promote" ]; then
 
-#   for IMAGE_NAME in "${IMAGES[@]}"
-#   do
-#     .  /kubectl-build-deploy/scripts/exec-kubernetes-tag.sh
-#   done
+  for IMAGE_NAME in "${IMAGES[@]}"
+  do
+    .  /kubectl-build-deploy/scripts/exec-kubernetes-promote.sh
+    IMAGE_HASHES[${IMAGE_NAME}]=$(skopeo inspect docker://${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG:-latest} --tls-verify=false | jq ".Name + \"@\" + .Digest" -r)
+  done
 
 fi
 
