@@ -332,6 +332,8 @@ const getOperatorBuildData = async function(deployData: any) {
   var pullrequestData: any = {};
   var promoteData: any = {};
 
+  var gitRef = gitSha ? gitSha : `origin/${branchName}`
+
   switch (type) {
     case "branch":
       // if we have a sha given, we use that, if not we fall back to the branch (which needs be prefixed by `origin/`
@@ -449,8 +451,6 @@ const getOperatorBuildData = async function(deployData: any) {
         buildImage = `amazeeiolagoon/kubectl-build-deploy-dind:${lagoonGitSafeBranch}`
     }
   }
-
-  var gitRef = gitSha ? gitSha : `origin/${branchName}`
 
   // encode some values so they get sent to the controllers nicely
   const sshKeyBase64 = new Buffer(deployPrivateKey.replace(/\\n/g, "\n")).toString('base64')
