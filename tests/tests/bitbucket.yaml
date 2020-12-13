@@ -3,9 +3,9 @@
   vars:
     testname: "BITBUCKET {{ lookup('env','CLUSTER_TYPE')|upper }} - slash branch"
     node_version: 10
-    git_repo_name: bitbucket.git
-    git_repo_url: https://172.17.0.1:2222/git/bitbucket
-    git_repo_full_name: git/bitbucket
+    git_repo_name: bitbucket-{{ lookup('env','CLUSTER_TYPE') }}.git
+    git_repo_url: https://172.17.0.1:2222/git/bitbucket-{{ lookup('env','CLUSTER_TYPE') }}
+    git_repo_full_name: git/bitbucket-{{ lookup('env','CLUSTER_TYPE') }}
     project: ci-bitbucket-{{ lookup('env','CLUSTER_TYPE') }}
     branch: bitbucket/slash/branch
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
@@ -14,9 +14,9 @@
   vars:
     testname: "BITBUCKET {{ lookup('env','CLUSTER_TYPE')|upper }} - skip deployment"
     node_version: 10
-    git_repo_name: bitbucket.git
-    git_repo_url: https://172.17.0.1:2222/git/bitbucket
-    git_repo_full_name: git/bitbucket
+    git_repo_name: bitbucket-{{ lookup('env','CLUSTER_TYPE') }}.git
+    git_repo_url: https://172.17.0.1:2222/git/bitbucket-{{ lookup('env','CLUSTER_TYPE') }}
+    git_repo_full_name: git/bitbucket-{{ lookup('env','CLUSTER_TYPE') }}
     project: ci-bitbucket-{{ lookup('env','CLUSTER_TYPE') }}
     branch: skip
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.skip.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
@@ -25,6 +25,7 @@
   vars:
     testname: "BITBUCKET {{ lookup('env','CLUSTER_TYPE')|upper }} - PULLREQUEST"
     node_version: 10
-    git_repo_name: bitbucket.git
+    git_repo_name: bitbucket-{{ lookup('env','CLUSTER_TYPE') }}.git
+    git_repo_full_name: git/bitbucket-{{ lookup('env','CLUSTER_TYPE') }}
     project: ci-bitbucket-{{ lookup('env','CLUSTER_TYPE') }}
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.pr-2.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"

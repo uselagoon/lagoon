@@ -105,3 +105,16 @@ ci-multiproject2-control-k8s:
       routes:
         - node:
           - multiproject2.com
+
+ci-multiproject1-control-os:
+  environments:
+    multiproject:
+      routes:
+        - node:
+          - multiproject1.com
+ci-multiproject2-control-os:
+  environments:
+    multiproject:
+      routes:
+        - node:
+          - multiproject2.com

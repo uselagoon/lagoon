@@ -5,6 +5,7 @@ populate_general_gql_file_path="/api-data/01-populate-api-data-general.gql"
 populate_openshift_gql_file_path="/api-data/02-populate-api-data-openshift.gql"
 populate_kubernetes_gql_file_path="/api-data/03-populate-api-data-kubernetes.gql"
 populate_controller_gql_file_path="/api-data/04-populate-api-data-controller.gql"
+populate_controller_os_gql_file_path="/api-data/05-populate-api-data-controller-os.gql"
 
 send_graphql_query() {
     local file_path=${1}
@@ -28,6 +29,7 @@ watch_apidatafolder() {
     chsum_populate_openshift_prev=""
     chsum_populate_kubernetes_prev=""
     chsum_populate_controller_prev=""
+    chsum_populate_controller_os_prev=""
 
     while [[ true ]]
     do
@@ -36,13 +38,15 @@ watch_apidatafolder() {
         chsum_populate_openshift_curr=`md5sum $populate_openshift_gql_file_path`
         chsum_populate_kubernetes_curr=`md5sum $populate_kubernetes_gql_file_path`
         chsum_populate_controller_curr=`md5sum $populate_controller_gql_file_path`
+        chsum_populate_controller_os_curr=`md5sum $populate_controller_os_gql_file_path`
 
         if
             [[ $chsum_clear_prev != $chsum_clear_curr ]] ||
             [[ $chsum_populate_general_prev != $chsum_populate_general_curr ]] ||
             [[ $chsum_populate_openshift_prev != $chsum_populate_openshift_curr ]] ||
             [[ $chsum_populate_kubernetes_prev != $chsum_populate_kubernetes_curr ]] ||
-            [[ $chsum_populate_controller_prev != $chsum_populate_controller_curr ]];
+            [[ $chsum_populate_controller_prev != $chsum_populate_controller_curr ]] ||
+            [[ $chsum_populate_controller_os_prev != $chsum_populate_controller_os_curr ]];
         then
             echo "******* Found changes in gql files in /api-data/, clearing and re-populating"
 
@@ -84,6 +88,14 @@ watch_apidatafolder() {
                 chsum_populate_controller_prev=$chsum_populate_controller_curr
             else
                 echo "**** ERROR while re-populating $populate_controller_gql_file_path, will try again."
+            fi
+
+            if
+                send_graphql_query $populate_controller_os_gql_file_path;
+            then
+                chsum_populate_controller_os_prev=$chsum_populate_controller_os_curr
+            else
+                echo "**** ERROR while re-populating $populate_controller_os_gql_file_path, will try again."
             fi
 
 

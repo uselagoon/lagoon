@@ -1,0 +1,42 @@
+- name: "{{ testname }} - POST get openshift projectname for url check to {{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+  block:
+    - include: refresh-token.yaml
+    - name: "{{ testname }} - POST api get project by name with target project {{ project }} to {{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+      uri:
+        url: "{{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ token }}"
+        body_format: json
+        body: '{ "query": "query($project: String!) {projectByName(name:$project){id,name,envVariables{id,name}}}", "variables": {"project":"{{ project }}"}}'
+      register: apiresponse
+    - name: "{{ testname }} - POST api get project by name with target project {{ project }} and sha {{ sha }} to {{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+      debug:
+        msg: "api response: {{ apiresponse.json }}"
+    - name: "{{ testname }} - POST api get project by name with target project {{ project }} and sha {{ sha }} to {{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+      debug:
+        msg: "api response: {{ apiresponse.json.data.projectByName.id }}"
+    - name: "{{ testname }} - set project id to fact"
+      set_fact:
+        project_id: "{{ apiresponse.json.data.projectByName.id }}"
+    - name: "{{ testname }} - POST api get openshift projectname for url check to {{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+      uri:
+        url: "{{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ token }}"
+        body_format: json
+        body: '{ "query": "query($name: String!, $project: Int!) {environmentByName(name: $name, project: $project){id,name,openshiftProjectName}}", "variables": {"name":"{{ branch }}", "project":{{ project_id }}}}'
+      register: apiresponse
+    - name: "{{ testname }} - POST api get environment by name with target project {{ project }} and sha {{ sha }} to {{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+      debug:
+        msg: "api response: {{ apiresponse.json }}"
+    - name: "{{ testname }} - set project name to fact"
+      set_fact:
+        project_remove: "{{ project | regex_replace('_', '-') }}-"
+    - name: "{{ testname }} - set openshiftprojectname to fact"
+      set_fact:
+        os_branchname: "{{ ( apiresponse.json.data.environmentByName.openshiftProjectName | regex_replace(project_remove, '')) }}"
+    - name: "{{ testname }} - set branch from openshiftprojectname to fact"
+      set_fact:
+        check_url_branch: "{{ os_branchname }}"
