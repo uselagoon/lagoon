@@ -122,14 +122,14 @@ func main() {
 					if mapval["type"].(string) == "failed" {
 						crdSpec := crd.Object["spec"].(map[string]interface{})
 						if crdSpec != nil {
-							crdIngress := crdSpec["ingress"].(map[string]interface{})
-							if crdIngress != nil {
+							crdHosts := crdSpec["hosts"].(map[string]interface{})
+							if crdHosts != nil {
 								rData := returnData{
 									Status:                      "Failed",
 									ProductionEnvironment:       payloadData["productionEnvironment"].(string),
 									StandbyProdutionEnvironment: payloadData["standbyEnvironment"].(string),
-									ProductionRoutes:            crdIngress["activeIngress"].(string),
-									StandbyRoutes:               crdIngress["standbyIngress"].(string),
+									ProductionRoutes:            crdHosts["activeHosts"].(string),
+									StandbyRoutes:               crdHosts["standbyHosts"].(string),
 								}
 
 								// print the result of the task, it will go back to lagoon-logs to be displayed
@@ -139,7 +139,7 @@ func main() {
 								// exit as the task failed
 								os.Exit(1)
 							}
-							fmt.Printf("Task failed, error was: no ingress found in resource")
+							fmt.Printf("Task failed, error was: no hosts found in resource")
 							os.Exit(1)
 						}
 						fmt.Printf("Task failed, error was: no spec found in resource")
@@ -149,14 +149,14 @@ func main() {
 					if mapval["type"].(string) == "completed" {
 						crdSpec := crd.Object["spec"].(map[string]interface{})
 						if crdSpec != nil {
-							crdIngress := crdSpec["ingress"].(map[string]interface{})
-							if crdIngress != nil {
+							crdHosts := crdSpec["hosts"].(map[string]interface{})
+							if crdHosts != nil {
 								rData := returnData{
 									Status:                      "Completed",
 									ProductionEnvironment:       payloadData["productionEnvironment"].(string),
 									StandbyProdutionEnvironment: payloadData["standbyEnvironment"].(string),
-									ProductionRoutes:            crdIngress["activeIngress"].(string),
-									StandbyRoutes:               crdIngress["standbyIngress"].(string),
+									ProductionRoutes:            crdHosts["activeHosts"].(string),
+									StandbyRoutes:               crdHosts["standbyHosts"].(string),
 								}
 
 								// print the result of the task, it will go back to lagoon-logs to be displayed
@@ -200,7 +200,7 @@ Provide a copy of this entire log to the team.`, err)
 								}
 								os.Exit(0)
 							}
-							fmt.Printf("Task failed, error was: no ingress found in resource")
+							fmt.Printf("Task failed, error was: no hosts found in resource")
 							os.Exit(1)
 						}
 						fmt.Printf("Task failed, error was: no spec found in resource")

@@ -585,11 +585,8 @@ TEMPLATE_PARAMETERS=()
 ### CUSTOM ROUTES FROM .lagoon.yml
 ##############################################
 
-if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
-  MONITORING_ENABLED="true"
-else
-  MONITORING_ENABLED="false"
-fi
+
+MONITORING_ENABLED="false" # monitoring is by default disabled, it will be enabled for the first route again
 MONITORING_INTERVAL=60
 
 ROUTES_SERVICE_COUNTER=0
@@ -625,11 +622,19 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
           # The very first found route is set as MAIN_CUSTOM_ROUTE
           if [ -z "${MAIN_CUSTOM_ROUTE+x}" ]; then
             MAIN_CUSTOM_ROUTE=$ROUTE_DOMAIN
+
+            # if we are in production we enabled monitoring for the main custom route
+            if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
+              MONITORING_ENABLED="true"
+            fi
+
           fi
 
           ROUTE_SERVICE=$ROUTES_SERVICE
 
           .  /oc-build-deploy/scripts/exec-openshift-create-route.sh
+
+          MONITORING_ENABLED="false" # disabling a possible enabled monitoring again
 
           let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
         done
@@ -667,11 +672,19 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
           # The very first found route is set as MAIN_CUSTOM_ROUTE
           if [ -z "${MAIN_CUSTOM_ROUTE+x}" ]; then
             MAIN_CUSTOM_ROUTE=$ROUTE_DOMAIN
+
+            # if we are in production we enabled monitoring for the main custom route
+            if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
+              MONITORING_ENABLED="true"
+            fi
+
           fi
 
           ROUTE_SERVICE=$ROUTES_SERVICE
 
           .  /oc-build-deploy/scripts/exec-openshift-create-route.sh
+
+          MONITORING_ENABLED="false" # disabling a possible enabled monitoring again
 
           let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
         done
@@ -712,11 +725,19 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
       # The very first found route is set as MAIN_CUSTOM_ROUTE
       if [ -z "${MAIN_CUSTOM_ROUTE+x}" ]; then
         MAIN_CUSTOM_ROUTE=$ROUTE_DOMAIN
+
+        # if we are in production we enabled monitoring for the main custom route
+        if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
+          MONITORING_ENABLED="true"
+        fi
+
       fi
 
       ROUTE_SERVICE=$ROUTES_SERVICE
 
       .  /oc-build-deploy/scripts/exec-openshift-create-route.sh
+
+      MONITORING_ENABLED="false" # disabling a possible enabled monitoring again
 
       let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
     done
@@ -751,11 +772,19 @@ else
       # The very first found route is set as MAIN_CUSTOM_ROUTE
       if [ -z "${MAIN_CUSTOM_ROUTE+x}" ]; then
         MAIN_CUSTOM_ROUTE=$ROUTE_DOMAIN
+
+        # if we are in production we enabled monitoring for the main custom route
+        if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
+          MONITORING_ENABLED="true"
+        fi
+
       fi
 
       ROUTE_SERVICE=$ROUTES_SERVICE
 
       .  /oc-build-deploy/scripts/exec-openshift-create-route.sh
+
+      MONITORING_ENABLED="false" # disabling a possible enabled monitoring again
 
       let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
     done
@@ -1390,4 +1419,16 @@ if [ "${LAGOON_POSTROLLOUT_DISABLED}" != "true" ]; then
   done
 else
   echo "post-rollout tasks are currently disabled LAGOON_POSTROLLOUT_DISABLED is set to true"
+fi
+
+##############################################
+### PUSH the latest .lagoon.yml into lagoon-yaml configmap
+##############################################
+
+if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get configmap lagoon-yaml &> /dev/null; then
+  # replace it
+  oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} create configmap lagoon-yaml --from-file=.lagoon.yml -o yaml --dry-run | oc replace -f -
+else
+  # create it
+  oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} create configmap lagoon-yaml --from-file=.lagoon.yml
 fi

@@ -14,7 +14,7 @@ if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
 fi
 
 if [ "$CI" == "true" ]; then
-  CI_OVERRIDE_IMAGE_REPO=${OPENSHIFT_REGISTRY}/lagoon
+  CI_OVERRIDE_IMAGE_REPO=172.17.0.1:5000/lagoon
 else
   CI_OVERRIDE_IMAGE_REPO=""
 fi

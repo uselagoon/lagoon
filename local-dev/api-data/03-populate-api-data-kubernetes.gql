@@ -110,7 +110,7 @@ mutation PopulateApi {
       id: 1003
       name: "ci-github-kubernetes"
       openshift: 1002
-      gitUrl: "ssh://git@172.17.0.1:2222/git/github.git"
+      gitUrl: "ssh://git@172.17.0.1:2222/git/github-kubernetes.git"
       productionEnvironment:"master"
       activeSystemsTask: "lagoon_kubernetesJob"
       activeSystemsMisc: "lagoon_kubernetesMisc"
@@ -172,7 +172,7 @@ mutation PopulateApi {
       id: 1004
       name: "ci-gitlab-kubernetes"
       openshift: 1002
-      gitUrl: "ssh://git@172.17.0.1:2222/git/gitlab.git"
+      gitUrl: "ssh://git@172.17.0.1:2222/git/gitlab-kubernetes.git"
       productionEnvironment:"master"
       activeSystemsTask: "lagoon_kubernetesJob"
       activeSystemsMisc: "lagoon_kubernetesMisc"
@@ -221,7 +221,7 @@ mutation PopulateApi {
       id: 1005
       name: "ci-bitbucket-kubernetes"
       openshift: 1002
-      gitUrl: "ssh://git@172.17.0.1:2222/git/bitbucket.git"
+      gitUrl: "ssh://git@172.17.0.1:2222/git/bitbucket-kubernetes.git"
       productionEnvironment:"master"
       activeSystemsTask: "lagoon_kubernetesJob"
       activeSystemsMisc: "lagoon_kubernetesMisc"

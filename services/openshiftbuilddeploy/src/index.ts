@@ -145,9 +145,8 @@ const messageConsumer = async msg => {
     // During CI we want to use the OpenShift Registry for our build Image and use the OpenShift registry for the base Images
     if (CI == "true") {
       buildFromImage = {
-        "kind": "ImageStreamTag",
-        "namespace": "lagoon",
-        "name": "oc-build-deploy-dind:latest",
+        "kind": "DockerImage",
+        "name": `172.17.0.1:5000/lagoon/oc-build-deploy-dind:latest`,
       }
     } else if (overwriteOcBuildDeployDindImage) {
       // allow to overwrite the image we use via OVERWRITE_OC_BUILD_DEPLOY_DIND_IMAGE env variable

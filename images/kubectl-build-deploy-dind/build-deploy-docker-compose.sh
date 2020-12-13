@@ -165,10 +165,46 @@ do
       for LAGOON_DBAAS_ENVIRONMENT_TYPE in "${LAGOON_DBAAS_ENVIRONMENT_TYPES_SPLIT[@]}"
       do
         IFS=':' read -ra LAGOON_DBAAS_ENVIRONMENT_TYPE_SPLIT <<< "$LAGOON_DBAAS_ENVIRONMENT_TYPE"
-        if [ "${LAGOON_DBAAS_ENVIRONMENT_TYPE[0]}" == "$SERVICE_NAME" ]; then
-          DBAAS_ENVIRONMENT_TYPE=${LAGOON_DBAAS_ENVIRONMENT_TYPE[1]}
+        if [ "${LAGOON_DBAAS_ENVIRONMENT_TYPE_SPLIT[0]}" == "$SERVICE_NAME" ]; then
+          DBAAS_ENVIRONMENT=${LAGOON_DBAAS_ENVIRONMENT_TYPE_SPLIT[1]}
         fi
       done
+    fi
+
+    MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]="${DBAAS_ENVIRONMENT}"
+  fi
+
+  # "postgres" is a meta service, which allows lagoon to decide itself which of the services to use:
+  # - postgres-single (a single postgres pod)
+  # - postgres-dbaas (use the dbaas shared operator)
+  if [ "$SERVICE_TYPE" == "postgres" ]; then
+    # if there is already a service existing with the service_name we assume that for this project there has been a
+    # postgres-single deployed (probably from the past where there was no postgres-shared yet, or postgres-dbaas) and use that one
+    if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get service "$SERVICE_NAME" &> /dev/null; then
+      SERVICE_TYPE="postgres-single"
+    # heck if this cluster supports the default one, if not we assume that this cluster is not capable of shared PostgreSQL and we use a postgres-single
+    # real basic check to see if the postgreSQLConsumer exists as a kind
+    elif [[ "${CAPABILITIES[@]}" =~ "postgres.amazee.io/v1/PostgreSQLConsumer" ]]; then
+      SERVICE_TYPE="postgres-dbaas"
+    else
+      SERVICE_TYPE="postgres-single"
+    fi
+
+  fi
+
+  # Previous versions of Lagoon supported "postgres-shared", this has been superseeded by "postgres-dbaas"
+  if [[ "$SERVICE_TYPE" == "postgres-shared" ]]; then
+    SERVICE_TYPE="postgres-dbaas"
+  fi
+
+  if [[ "$SERVICE_TYPE" == "postgres-dbaas" ]]; then
+    # Default plan is the enviroment type
+    DBAAS_ENVIRONMENT=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.postgres-dbaas\\.environment "${ENVIRONMENT_TYPE}")
+
+    # Allow the dbaas shared servicebroker plan to be overriden by environment in .lagoon.yml
+    ENVIRONMENT_DBAAS_ENVIRONMENT_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.overrides.$SERVICE_NAME.postgres-dbaas\\.environment false)
+    if [ ! $DBAAS_ENVIRONMENT_OVERRIDE == "false" ]; then
+      DBAAS_ENVIRONMENT=$ENVIRONMENT_DBAAS_ENVIRONMENT_OVERRIDE
     fi
 
     MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]="${DBAAS_ENVIRONMENT}"
@@ -204,6 +240,7 @@ do
   # Do not handle images for shared services
   if  [[ "$SERVICE_TYPE" != "mariadb-dbaas" ]] &&
       [[ "$SERVICE_TYPE" != "mariadb-shared" ]] &&
+      [[ "$SERVICE_TYPE" != "postgres-shared" ]] &&
       [[ "$SERVICE_TYPE" != "mongodb-shared" ]]; then
     # Generate List of Images to build
     IMAGES+=("${IMAGE_NAME}")
@@ -582,6 +619,8 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
             ROUTE_MIGRATE=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate true)
             ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
             ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
+            MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring-path "/")
+            ROUTE_ANNOTATIONS=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.annotations {})
           else
             # Only a value given, assuming some defaults
             ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
@@ -589,6 +628,8 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
             ROUTE_MIGRATE=true
             ROUTE_INSECURE=Redirect
             ROUTE_HSTS=null
+            MONITORING_PATH="/"
+            ROUTE_ANNOTATIONS="{}"
           fi
 
           touch /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
@@ -597,6 +638,12 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
           # The very first found route is set as MAIN_CUSTOM_ROUTE
           if [ -z "${MAIN_CUSTOM_ROUTE+x}" ]; then
             MAIN_CUSTOM_ROUTE=$ROUTE_DOMAIN
+
+            # if we are in production we enabled monitoring for the main custom route
+            if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
+              MONITORING_ENABLED="true"
+            fi
+
           fi
 
           ROUTE_SERVICE=$ROUTES_SERVICE
@@ -611,7 +658,13 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
             --set insecure="${ROUTE_INSECURE}" \
             --set hsts="${ROUTE_HSTS}" \
             --set routeMigrate="${ROUTE_MIGRATE}" \
+            --set ingressmonitorcontroller.enabled="${MONITORING_ENABLED}" \
+            --set ingressmonitorcontroller.path="${MONITORING_PATH}" \
+            --set ingressmonitorcontroller.alertContacts="${MONITORING_ALERTCONTACT}" \
+            --set ingressmonitorcontroller.statuspageId="${MONITORING_STATUSPAGEID}" \
             -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${ROUTE_DOMAIN}.yaml
+
+          MONITORING_ENABLED="false" # disabling a possible enabled monitoring again
 
           let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
         done
@@ -636,6 +689,8 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
             ROUTE_MIGRATE=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate true)
             ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
             ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
+            MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring-path "/")
+            ROUTE_ANNOTATIONS=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.annotations {})
           else
             # Only a value given, assuming some defaults
             ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
@@ -643,6 +698,8 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
             ROUTE_MIGRATE=true
             ROUTE_INSECURE=Redirect
             ROUTE_HSTS=null
+            MONITORING_PATH="/"
+            ROUTE_ANNOTATIONS="{}"
           fi
 
           touch /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
@@ -651,6 +708,12 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
           # The very first found route is set as MAIN_CUSTOM_ROUTE
           if [ -z "${MAIN_CUSTOM_ROUTE+x}" ]; then
             MAIN_CUSTOM_ROUTE=$ROUTE_DOMAIN
+
+            # if we are in production we enabled monitoring for the main custom route
+            if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
+              MONITORING_ENABLED="true"
+            fi
+
           fi
 
           ROUTE_SERVICE=$ROUTES_SERVICE
@@ -665,7 +728,13 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
             --set insecure="${ROUTE_INSECURE}" \
             --set hsts="${ROUTE_HSTS}" \
             --set routeMigrate="${ROUTE_MIGRATE}" \
+            --set ingressmonitorcontroller.enabled="${MONITORING_ENABLED}" \
+            --set ingressmonitorcontroller.path="${MONITORING_PATH}" \
+            --set ingressmonitorcontroller.alertContacts="${MONITORING_ALERTCONTACT}" \
+            --set ingressmonitorcontroller.statuspageId="${MONITORING_STATUSPAGEID}" \
             -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${ROUTE_DOMAIN}.yaml
+
+          MONITORING_ENABLED="false" # disabling a possible enabled monitoring again
 
           let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
         done
@@ -676,13 +745,7 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
   fi
 fi
 
-# set some monitoring defaults
-if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
-  MONITORING_ENABLED="true"
-else
-  MONITORING_ENABLED="false"
-
-fi
+MONITORING_ENABLED="false" # monitoring is by default disabled, it will be enabled for the first route again
 
 # Two while loops as we have multiple services that want routes and each service has multiple routes
 ROUTES_SERVICE_COUNTER=0
@@ -710,6 +773,7 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
         ROUTE_MIGRATE=false
         ROUTE_INSECURE=Redirect
         ROUTE_HSTS=null
+        MONITORING_PATH="/"
         ROUTE_ANNOTATIONS="{}"
       fi
 
@@ -719,6 +783,12 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
       # The very first found route is set as MAIN_CUSTOM_ROUTE
       if [ -z "${MAIN_CUSTOM_ROUTE+x}" ]; then
         MAIN_CUSTOM_ROUTE=$ROUTE_DOMAIN
+
+        # if we are in production we enabled monitoring for the main custom route
+        if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
+          MONITORING_ENABLED="true"
+        fi
+
       fi
 
       ROUTE_SERVICE=$ROUTES_SERVICE
@@ -738,6 +808,8 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
         --set ingressmonitorcontroller.alertContacts="${MONITORING_ALERTCONTACT}" \
         --set ingressmonitorcontroller.statuspageId="${MONITORING_STATUSPAGEID}" \
         -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${ROUTE_DOMAIN}.yaml
+
+      MONITORING_ENABLED="false" # disabling a possible enabled monitoring again
 
       let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
     done
@@ -768,6 +840,7 @@ else
         ROUTE_MIGRATE=false
         ROUTE_INSECURE=Redirect
         ROUTE_HSTS=null
+        MONITORING_PATH="/"
         ROUTE_ANNOTATIONS="{}"
       fi
 
@@ -777,6 +850,12 @@ else
       # The very first found route is set as MAIN_CUSTOM_ROUTE
       if [ -z "${MAIN_CUSTOM_ROUTE+x}" ]; then
         MAIN_CUSTOM_ROUTE=$ROUTE_DOMAIN
+
+        # if we are in production we enabled monitoring for the main custom route
+        if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
+          MONITORING_ENABLED="true"
+        fi
+
       fi
 
       ROUTE_SERVICE=$ROUTES_SERVICE
@@ -796,6 +875,8 @@ else
         --set ingressmonitorcontroller.alertContacts="${MONITORING_ALERTCONTACT}" \
         --set ingressmonitorcontroller.statuspageId="${MONITORING_STATUSPAGEID}" \
         -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml  "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${ROUTE_DOMAIN}.yaml
+
+      MONITORING_ENABLED="false" # disabling a possible enabled monitoring again
 
       let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
     done
@@ -994,6 +1075,10 @@ do
 
     mariadb-dbaas)
         . /kubectl-build-deploy/scripts/exec-kubectl-mariadb-dbaas.sh
+        ;;
+
+    postgres-dbaas)
+        . /kubectl-build-deploy/scripts/exec-kubectl-postgres-dbaas.sh
         ;;
 
     *)
@@ -1276,9 +1361,9 @@ do
 
     echo "nothing to monitor for $SERVICE_TYPE"
 
-  elif [ $SERVICE_TYPE == "postgres" ]; then
-    # TODO: Remove
-    echo "nothing to monitor for $SERVICE_TYPE - for now"
+  elif [ $SERVICE_TYPE == "postgres-dbaas" ]; then
+
+    echo "nothing to monitor for $SERVICE_TYPE"
 
   elif [ ! $SERVICE_ROLLOUT_TYPE == "false" ]; then
     . /kubectl-build-deploy/scripts/exec-monitor-deploy.sh
@@ -1335,4 +1420,16 @@ if [ "${LAGOON_POSTROLLOUT_DISABLED}" != "true" ]; then
   done
 else
   echo "post-rollout tasks are currently disabled LAGOON_POSTROLLOUT_DISABLED is set to true"
+fi
+
+##############################################
+### PUSH the latest .lagoon.yml into lagoon-yaml configmap
+##############################################
+
+if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap lagoon-yaml &> /dev/null; then
+  # replace it
+  kubectl --insecure-skip-tls-verify -n ${NAMESPACE} create configmap lagoon-yaml --from-file=.lagoon.yml -o yaml --dry-run | kubectl replace -f -
+else
+  # create it
+  kubectl --insecure-skip-tls-verify -n ${NAMESPACE} create configmap lagoon-yaml --from-file=.lagoon.yml
 fi

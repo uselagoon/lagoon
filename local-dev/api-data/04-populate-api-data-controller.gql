@@ -110,7 +110,7 @@ mutation PopulateApi {
       id: 2003
       name: "ci-github-control-k8s"
       openshift: 2001
-      gitUrl: "ssh://git@172.17.0.1:2222/git/github.git"
+      gitUrl: "ssh://git@172.17.0.1:2222/git/github-control-k8s.git"
       productionEnvironment:"master"
       activeSystemsTask: "lagoon_controllerJob"
       activeSystemsMisc: "lagoon_controllerMisc"
@@ -172,7 +172,7 @@ mutation PopulateApi {
       id: 2004
       name: "ci-gitlab-control-k8s"
       openshift: 2001
-      gitUrl: "ssh://git@172.17.0.1:2222/git/gitlab.git"
+      gitUrl: "ssh://git@172.17.0.1:2222/git/gitlab-control-k8s.git"
       productionEnvironment:"master"
       activeSystemsTask: "lagoon_controllerJob"
       activeSystemsMisc: "lagoon_controllerMisc"
@@ -221,7 +221,7 @@ mutation PopulateApi {
       id: 2005
       name: "ci-bitbucket-control-k8s"
       openshift: 2001
-      gitUrl: "ssh://git@172.17.0.1:2222/git/bitbucket.git"
+      gitUrl: "ssh://git@172.17.0.1:2222/git/bitbucket-control-k8s.git"
       productionEnvironment:"master"
       activeSystemsTask: "lagoon_controllerJob"
       activeSystemsMisc: "lagoon_controllerMisc"
@@ -1125,7 +1125,7 @@ mutation PopulateApi {
         id: 2024
         name: "ci-active-standby-control-k8s"
         openshift: 2001
-        gitUrl: "ssh://git@192.168.42.1:2222/git/active-standby.git"
+        gitUrl: "ssh://git@172.17.0.1:2222/git/active-standby.git"
         productionEnvironment:"master-a"
         standbyProductionEnvironment:"master-b"
         activeSystemsTask: "lagoon_controllerJob"

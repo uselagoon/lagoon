@@ -5,6 +5,6 @@ mirrors:
   172.17.0.1:8084:
     endpoint:
     - http://172.17.0.1:8084
-  imagecache.amazeeio.cloud:
+  docker.io:
     endpoint:
     - https://imagecache.amazeeio.cloud
