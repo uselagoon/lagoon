@@ -13,3 +13,6 @@
     - name: "{{ testname }} - POST api deployEnvironmentBranch with target git branch {{ branch }} and project {{ project }} (no sha) to {{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
       debug:
         msg: "api response: {{ apiresponse.json }}"
+      until: "'success' in apiresponse.json"
+      retries: 10
+      delay: 30
