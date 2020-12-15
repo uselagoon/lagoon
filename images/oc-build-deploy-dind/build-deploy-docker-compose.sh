@@ -223,6 +223,19 @@ do
     fi
   fi
 
+  if [[ "$SERVICE_TYPE" == "mongodb-dbaas" ]]; then
+    # Default plan is the enviroment type
+    DBAAS_ENVIRONMENT=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mongodb-dbaas\\.environment "${ENVIRONMENT_TYPE}")
+
+    # Allow the dbaas shared servicebroker plan to be overriden by environment in .lagoon.yml
+    ENVIRONMENT_DBAAS_ENVIRONMENT_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.overrides.$SERVICE_NAME.mongodb-dbaas\\.environment false)
+    if [ ! $DBAAS_ENVIRONMENT_OVERRIDE == "false" ]; then
+      DBAAS_ENVIRONMENT=$ENVIRONMENT_DBAAS_ENVIRONMENT_OVERRIDE
+    fi
+
+    MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]="${DBAAS_ENVIRONMENT}"
+  fi
+
   if [ "$SERVICE_TYPE" == "none" ]; then
     continue
   fi
@@ -240,7 +253,8 @@ do
   # Do not handle images for shared services
   if  [[ "$SERVICE_TYPE" != "mariadb-dbaas" ]] &&
       [[ "$SERVICE_TYPE" != "mariadb-shared" ]] &&
-      [[ "$SERVICE_TYPE" != "mongodb-shared" ]]; then
+      [[ "$SERVICE_TYPE" != "mongodb-shared" ]] &&
+      [[ "$SERVICE_TYPE" != "mongodb-dbaas" ]]; then
     # Generate List of Images to build
     IMAGES+=("${IMAGE_NAME}")
   fi
@@ -996,6 +1010,10 @@ do
         set -x
         ;;
 
+    mongodb-dbaas)
+        . /oc-build-deploy/scripts/exec-openshift-mongodb-dbaas.sh
+        ;;
+
     *)
         echo "ServiceBroker Type ${SERVICE_TYPE} not implemented"; exit 1;
 
@@ -1305,6 +1323,10 @@ do
     echo "nothing to monitor for $SERVICE_TYPE"
 
   elif [ $SERVICE_TYPE == "mariadb-shared" ]; then
+
+    echo "nothing to monitor for $SERVICE_TYPE"
+
+  elif [ $SERVICE_TYPE == "mongodb-dbaas" ]; then
 
     echo "nothing to monitor for $SERVICE_TYPE"
 
