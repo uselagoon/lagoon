@@ -23,3 +23,37 @@ spec:
   password: password
   port: '3306'
   user: root
+---
+apiVersion: mongodb.amazee.io/v1
+kind: MongoDBProvider
+metadata:
+  name: mongodbprovider-development
+spec:
+  environment: development
+  hostname: 172.17.0.1.nip.io
+  readReplicaHostnames:
+  - 172.17.0.1.nip.io
+  password: password
+  port: '27017'
+  user: root
+  auth:
+    mechanism: SCRAM-SHA-1
+    source: admin
+    tls: true
+---
+apiVersion: mongodb.amazee.io/v1
+kind: MongoDBProvider
+metadata:
+  name: mongodbprovider-production
+spec:
+  environment: production
+  hostname: 172.17.0.1.nip.io
+  readReplicaHostnames:
+  - 172.17.0.1.nip.io
+  password: password
+  port: '27018'
+  user: root
+  auth:
+    mechanism: SCRAM-SHA-1
+    source: admin
+    tls: true

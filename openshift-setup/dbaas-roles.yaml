@@ -24,3 +24,29 @@ rules:
 - apiGroups: ["mariadb.amazee.io"]
   resources: ["mariadbproviders"]
   verbs: ["*"]
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ include "dbaas-operator.fullname" . }}-mongodbconsumer-role
+  labels:
+    # Add these permissions to the "admin" and "edit" default roles.
+    rbac.authorization.k8s.io/aggregate-to-admin: "true"
+    rbac.authorization.k8s.io/aggregate-to-edit: "true"
+rules:
+- apiGroups: ["mongodb.amazee.io"]
+  resources: ["mongodbconsumers"]
+  verbs: ["*"]
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ include "dbaas-operator.fullname" . }}-mongodbprovider-role
+  labels:
+    # Add these permissions to the "admin" and "edit" default roles.
+    rbac.authorization.k8s.io/aggregate-to-admin: "true"
+    rbac.authorization.k8s.io/aggregate-to-edit: "true"
+rules:
+- apiGroups: ["mongodb.amazee.io"]
+  resources: ["mongodbproviders"]
+  verbs: ["*"]

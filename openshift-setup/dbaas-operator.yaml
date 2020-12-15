@@ -164,6 +164,194 @@ status:
   conditions: []
   storedVersions: []
 ---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.2.4
+  creationTimestamp: null
+  name: mongodbproviders.mongodb.amazee.io
+spec:
+  group: mongodb.amazee.io
+  names:
+    kind: MongoDBProvider
+    listKind: MongoDBProviderList
+    plural: mongodbproviders
+    singular: mongodbprovider
+  scope: Namespaced
+  validation:
+    openAPIV3Schema:
+      description: MongoDBProvider is the Schema for the mongodbproviders API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: MongoDBProviderSpec defines the desired state of MongoDBProvider
+          properties:
+            auth:
+              description: MongoDBAuth defines the authorisation mechanisms that mongo
+                can use
+              properties:
+                mechanism:
+                  type: string
+                source:
+                  type: string
+                tls:
+                  type: boolean
+              required:
+              - tls
+              type: object
+            environment:
+              description: These are the spec options for providers
+              type: string
+            hostname:
+              type: string
+            password:
+              type: string
+            port:
+              type: string
+            type:
+              type: string
+            user:
+              type: string
+          type: object
+        status:
+          description: MongoDBProviderStatus defines the observed state of MongoDBProvider
+          type: object
+      type: object
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.2.4
+  creationTimestamp: null
+  name: mongodbconsumers.mongodb.amazee.io
+spec:
+  group: mongodb.amazee.io
+  names:
+    kind: MongoDBConsumer
+    listKind: MongoDBConsumerList
+    plural: mongodbconsumers
+    singular: mongodbconsumer
+  scope: Namespaced
+  validation:
+    openAPIV3Schema:
+      description: MongoDBConsumer is the Schema for the mongodbconsumers API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: MongoDBConsumerSpec defines the desired state of MongoDBConsumer
+          properties:
+            consumer:
+              description: MongoDBConsumerData defines the provider link for this
+                consumer
+              properties:
+                auth:
+                  description: MongoDBAuth defines the authorisation mechanisms that
+                    mongo can use
+                  properties:
+                    mechanism:
+                      type: string
+                    source:
+                      type: string
+                    tls:
+                      type: boolean
+                  required:
+                  - tls
+                  type: object
+                database:
+                  type: string
+                password:
+                  type: string
+                services:
+                  description: MongoDBConsumerServices defines the provider link for
+                    this consumer
+                  properties:
+                    primary:
+                      type: string
+                  type: object
+                username:
+                  type: string
+              type: object
+            environment:
+              description: These are the spec options for consumers
+              type: string
+            provider:
+              description: MongoDBConsumerProvider defines the provider link for this
+                consumer
+              properties:
+                auth:
+                  description: MongoDBAuth defines the authorisation mechanisms that
+                    mongo can use
+                  properties:
+                    mechanism:
+                      type: string
+                    source:
+                      type: string
+                    tls:
+                      type: boolean
+                  required:
+                  - tls
+                  type: object
+                hostname:
+                  type: string
+                name:
+                  type: string
+                namespace:
+                  type: string
+                port:
+                  type: string
+              type: object
+          type: object
+        status:
+          description: MongoDBConsumerStatus defines the observed state of MongoDBConsumer
+          type: object
+      type: object
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -273,6 +461,46 @@ rules:
   - subjectaccessreviews
   verbs:
   - create
+- apiGroups:
+  - mongodb.amazee.io
+  resources:
+  - mongodbconsumers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - mongodb.amazee.io
+  resources:
+  - mongodbconsumers/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - mongodb.amazee.io
+  resources:
+  - mongodbproviders
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - mongodb.amazee.io
+  resources:
+  - mongodbproviders/status
+  verbs:
+  - get
+  - patch
+  - update
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -362,7 +590,7 @@ spec:
         - --enable-leader-election
         command:
         - /manager
-        image: amazeeio/dbaas-operator:testingv1
+        image: amazeeio/dbaas-operator:v0.1.5rc3
         name: manager
         resources:
           limits:
