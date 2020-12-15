@@ -1,0 +1,24 @@
+{
+  "name": "rest2tasks",
+  "version": "1.0.0",
+  "description": "Demo app for react-isomorphic-form",
+  "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
+  "main": "build/index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "flow-node build/index.js",
+    "build": "flow-remove-types --out-dir build/ src/",
+    "dev": "nodemon --ignore build --watch . --watch ../../node-packages --exec 'flow-node src/index.js'"
+  },
+  "dependencies": {
+    "@lagoon/commons": "4.0.0",
+    "body-parser": "^1.18.2",
+    "cors": "^2.8.4",
+    "express": "^4.16.2",
+    "express-validator": "^4.2.1",
+    "flow-remove-types": "^1.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^1.12.1"
+  }
+}
