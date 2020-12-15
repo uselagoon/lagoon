@@ -46,7 +46,7 @@ const getConfig = (url, token) => ({
   }
 });
 
-const restoreConfig = (name, backupId, safeProjectName) => {
+const restoreConfig = (name, backupId, safeProjectName, baasBucketName) => {
   let config = {
     apiVersion: 'backup.appuio.ch/v1alpha1',
     kind: 'Restore',
@@ -60,7 +60,7 @@ const restoreConfig = (name, backupId, safeProjectName) => {
       },
       backend: {
         s3: {
-          bucket: `baas-${safeProjectName}`
+          bucket: `${baasBucketName ? baasBucketName : "baas-".concat(safeProjectName)}`
         },
         repoPasswordSecretRef: {
           key: 'repo-pw',
@@ -75,7 +75,7 @@ const restoreConfig = (name, backupId, safeProjectName) => {
 
 async function resticRestore (data: any) {
   const { backup, restore, project, environment } = data;
-  const { project: projectInfo} = await getOpenShiftInfoForProject(project.name);
+  const { project: projectInfo } = await getOpenShiftInfoForProject(project.name);
   const { url, token } = getUrlTokenFromProjectInfo(projectInfo, project.name);
   const { namespace, safeProjectName, restoreName } = generateSanitizedNames(project, environment, projectInfo, backup);
 
@@ -86,8 +86,16 @@ async function resticRestore (data: any) {
 
   try {
 
+    let baasBucketName = ""
+    for (let variable of project.projectInfo.envVariables) {
+      if (variable.name == "LAGOON_BAAS_BUCKET_NAME") {
+        baasBucketName = variable.value
+      }
+    }
+    // Parse out the baasBucketName for any migrated projects
+
     const config = {
-      body: restoreConfig(restoreName, backup.backupId, safeProjectName)
+      body: restoreConfig(restoreName, backup.backupId, safeProjectName, baasBucketName)
     };
 
     const restoreConfigPost = promisify(
