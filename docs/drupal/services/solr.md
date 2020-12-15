@@ -6,7 +6,7 @@ For Solr 5.5, 6.6 and 7.7, we ship the default schema files provided by the [sea
 
 ## Custom schema
 
-To implement schema customizations for Solr in your project, look to how Lagoon [creates our standard images](https://github.com/amazeeio/lagoon/blob/master/images/solr-drupal/Dockerfile).
+To implement schema customizations for Solr in your project, look to how Lagoon [creates our standard images](https://github.com/uselagoon/lagoon-images/blob/main/images/solr-drupal/7.7.Dockerfile).
 
 * In the `solr` section of your `docker-compose.yml` file, replace `image: amazeeio/solr:7.7` with:
 

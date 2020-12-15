@@ -1,6 +1,6 @@
 # PHP-CLI
 
-The [Lagoon `php-cli` Docker image](https://github.com/amazeeio/lagoon/blob/master/images/php/cli/Dockerfile). Based on [Lagoon `php-fpm` image](../php-fpm.md), it has all the needed command line tools for daily operations.
+The [Lagoon `php-cli` Docker image](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli). Based on [Lagoon `php-fpm` image](../php-fpm.md), it has all the needed command line tools for daily operations.
 
 Containers \(or pods\) started from `cli` images are responsible for building code for Composer or Node.js based projects.
 
@@ -10,6 +10,16 @@ The image also contains database `cli`s for both MariaDB and PostgreSQL.
 This Dockerfile is intended to be used as a base for any `cli` needs within Lagoon.
 {% endhint %}
 
+## Supported versions
+
+* 5.6 \(available for compatibility, no longer officially supported\)
+* 7.0 \(available for compatibility, no longer officially supported\)
+* 7.2 \(available for compatibility, no longer officially supported\)
+* 7.3 [\[Dockerfile\]](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/7.3.Dockerfile)
+* 7.4 [\[Dockerfile\]](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/7.4.Dockerfile)
+* 8.0 \(coming soon\)
+
+All PHP versions use their own Dockerfiles.
 ## Lagoon adaptions
 
 This image is prepared to be used on Lagoon. There are therefore some things already done:
