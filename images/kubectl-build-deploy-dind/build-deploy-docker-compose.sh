@@ -1366,3 +1366,15 @@ if [ "${LAGOON_POSTROLLOUT_DISABLED}" != "true" ]; then
 else
   echo "post-rollout tasks are currently disabled LAGOON_POSTROLLOUT_DISABLED is set to true"
 fi
+
+##############################################
+### PUSH the latest .lagoon.yml into lagoon-yaml configmap
+##############################################
+
+if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap lagoon-yaml &> /dev/null; then
+  # replace it
+  kubectl --insecure-skip-tls-verify -n ${NAMESPACE} create configmap lagoon-yaml --from-file=.lagoon.yml -o yaml --dry-run | kubectl replace -f -
+else
+  # create it
+  kubectl --insecure-skip-tls-verify -n ${NAMESPACE} create configmap lagoon-yaml --from-file=.lagoon.yml
+fi
