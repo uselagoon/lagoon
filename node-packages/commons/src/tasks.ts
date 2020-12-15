@@ -1225,7 +1225,6 @@ export const createMiscTask = async function(taskData: any) {
       }
       switch (updatedKey) {
         case 'kubernetes:restic:backup:restore':
-          const res = await getEnvironmentByName(taskData.data.environment.name, project.id)
           // Handle setting up the configuration for a restic restoration task
           const restoreName = `restore-${R.slice(0, 7, taskData.data.backup.backupId)}`;
           // generate the restore CRD
