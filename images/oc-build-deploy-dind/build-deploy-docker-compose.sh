@@ -1364,3 +1364,15 @@ if [ "${LAGOON_POSTROLLOUT_DISABLED}" != "true" ]; then
 else
   echo "post-rollout tasks are currently disabled LAGOON_POSTROLLOUT_DISABLED is set to true"
 fi
+
+##############################################
+### PUSH the latest .lagoon.yml into lagoon-yaml configmap
+##############################################
+
+if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get configmap lagoon-yaml &> /dev/null; then
+  # replace it
+  oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} create configmap lagoon-yaml --from-file=.lagoon.yml -o yaml --dry-run | oc replace -f -
+else
+  # create it
+  oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} create configmap lagoon-yaml --from-file=.lagoon.yml
+fi
