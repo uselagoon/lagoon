@@ -1,14 +1,12 @@
-// @flow
-
 const bodyParser = require('body-parser');
 const expressValidator = require('express-validator');
 const express = require('express');
 const cors = require('cors');
 const util = require('util');
 
-const { createDeployTask, createPromoteTask, createRemoveTask, initSendToLagoonTasks } = require('@lagoon/commons/src/tasks');
-const { logger } = require('@lagoon/commons/src/local-logging');
-const { sendToLagoonLogs, initSendToLagoonLogs } = require('@lagoon/commons/src/logs');
+import { createDeployTask, createPromoteTask, createRemoveTask, initSendToLagoonTasks } from '@lagoon/commons/dist/tasks';
+import { logger } from '@lagoon/commons/dist/local-logging';
+import { sendToLagoonLogs, initSendToLagoonLogs } from '@lagoon/commons/dist/logs';
 
 initSendToLagoonTasks();
 initSendToLagoonLogs();
@@ -201,7 +199,8 @@ app.post('/deploy', async (req, res) => {
 
     const meta = {
       projectName: data.projectName,
-      branchName: data.branchName
+      branchName: data.branchName,
+      sha: ''
     }
 
     let logMessage = ''

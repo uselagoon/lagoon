@@ -201,7 +201,8 @@ services :=	api \
 			storage-calculator \
 			ui \
 			webhook-handler \
-			webhooks2tasks
+			webhooks2tasks \
+			rest2tasks
 
 
 service-images += $(services)
