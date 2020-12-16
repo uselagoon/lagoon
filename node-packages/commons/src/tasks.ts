@@ -1148,7 +1148,15 @@ export const createMiscTask = async function(taskData: any) {
           // Handle setting up the configuration for a restic restoration task
           const restoreName = `restore-${R.slice(0, 7, taskData.data.backup.backupId)}`;
           // generate the restore CRD
-          const restoreConf = restoreConfig(restoreName, taskData.data.backup.backupId, makeSafe(taskData.data.project.name))
+
+          let baasBucketName = ""
+          for (let variable of result.envVariables) {
+            if (variable.name == "LAGOON_BAAS_BUCKET_NAME") {
+              baasBucketName = variable.value
+            }
+          }
+          // Parse out the baasBucketName for any migrated projects
+          const restoreConf = restoreConfig(restoreName, taskData.data.backup.backupId, makeSafe(taskData.data.project.name), makeSafe(baasBucketName))
           // base64 encode it
           const restoreBytes = new Buffer(JSON.stringify(restoreConf).replace(/\\n/g, "\n")).toString('base64')
           miscTaskData.misc.miscResource = restoreBytes
