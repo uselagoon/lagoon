@@ -1150,7 +1150,7 @@ export const createMiscTask = async function(taskData: any) {
           // generate the restore CRD
 
           let baasBucketName = ""
-          for (let variable of result.envVariables) {
+          for (let variable of osResult.envVariables) {
             if (variable.name == "LAGOON_BAAS_BUCKET_NAME") {
               baasBucketName = variable.value
             }
