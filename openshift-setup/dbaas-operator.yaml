@@ -352,6 +352,161 @@ status:
   conditions: []
   storedVersions: []
 ---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.2.4
+  creationTimestamp: null
+  name: postgresqlproviders.postgres.amazee.io
+spec:
+  group: postgres.amazee.io
+  names:
+    kind: PostgreSQLProvider
+    listKind: PostgreSQLProviderList
+    plural: postgresqlproviders
+    singular: postgresqlprovider
+  scope: Namespaced
+  validation:
+    openAPIV3Schema:
+      description: PostgreSQLProvider is the Schema for the postgresqlproviders API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: PostgreSQLProviderSpec defines the desired state of PostgreSQLProvider
+          properties:
+            environment:
+              description: These are the spec options for providers
+              type: string
+            hostname:
+              type: string
+            name:
+              type: string
+            namespace:
+              type: string
+            password:
+              type: string
+            port:
+              type: string
+            type:
+              type: string
+            user:
+              type: string
+          type: object
+        status:
+          description: PostgreSQLProviderStatus defines the observed state of PostgreSQLProvider
+          type: object
+      type: object
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.2.4
+  creationTimestamp: null
+  name: postgresqlconsumers.postgres.amazee.io
+spec:
+  group: postgres.amazee.io
+  names:
+    kind: PostgreSQLConsumer
+    listKind: PostgreSQLConsumerList
+    plural: postgresqlconsumers
+    singular: postgresqlconsumer
+  scope: Namespaced
+  validation:
+    openAPIV3Schema:
+      description: PostgreSQLConsumer is the Schema for the postgresqlconsumers API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: PostgreSQLConsumerSpec defines the desired state of PostgreSQLConsumer
+          properties:
+            consumer:
+              description: PostgreSQLConsumerData defines the provider link for this
+                consumer
+              properties:
+                database:
+                  type: string
+                password:
+                  type: string
+                services:
+                  description: PostgreSQLConsumerServices defines the provider link
+                    for this consumer
+                  properties:
+                    primary:
+                      type: string
+                  type: object
+                username:
+                  type: string
+              type: object
+            environment:
+              description: These are the spec options for consumers
+              type: string
+            provider:
+              description: PostgreSQLConsumerProvider defines the provider link for
+                this consumer
+              properties:
+                hostname:
+                  type: string
+                name:
+                  type: string
+                namespace:
+                  type: string
+                port:
+                  type: string
+                type:
+                  type: string
+              type: object
+          type: object
+        status:
+          description: PostgreSQLConsumerStatus defines the observed state of PostgreSQLConsumer
+          type: object
+      type: object
+  version: v1
+  versions:
+  - name: v1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
