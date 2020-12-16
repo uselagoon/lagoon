@@ -5,7 +5,7 @@
 OPERATOR_COUNTER=1
 OPERATOR_TIMEOUT=180
 # use the secret name from the consumer to prevent credential clash
-until oc --insecure-skip-tls-verify -n ${NAMESPACE} get mongodbconsumer/${SERVICE_NAME} -o yaml | shyaml get-value spec.consumer.database
+until oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get mongodbconsumer/${SERVICE_NAME} -o yaml | shyaml get-value spec.consumer.database
 do
 if [ $OPERATOR_COUNTER -lt $OPERATOR_TIMEOUT ]; then
     let SERVICE_BROKER_COUNTER=SERVICE_BROKER_COUNTER+1
@@ -18,18 +18,18 @@ fi
 done
 set +x
 # Grab the details from the consumer spec
-DB_HOST=$(oc --insecure-skip-tls-verify -n ${NAMESPACE} get mongodbconsumer/${SERVICE_NAME} -o yaml | shyaml get-value spec.consumer.services.primary)
-DB_USER=$(oc --insecure-skip-tls-verify -n ${NAMESPACE} get mongodbconsumer/${SERVICE_NAME} -o yaml | shyaml get-value spec.consumer.username)
-DB_PASSWORD=$(oc --insecure-skip-tls-verify -n ${NAMESPACE} get mongodbconsumer/${SERVICE_NAME} -o yaml | shyaml get-value spec.consumer.password)
-DB_NAME=$(oc --insecure-skip-tls-verify -n ${NAMESPACE} get mongodbconsumer/${SERVICE_NAME} -o yaml | shyaml get-value spec.consumer.database)
-DB_PORT=$(oc --insecure-skip-tls-verify -n ${NAMESPACE} get mongodbconsumer/${SERVICE_NAME} -o yaml | shyaml get-value spec.provider.port)
-DB_AUTHSOURCE=$(oc --insecure-skip-tls-verify -n ${NAMESPACE} get mongodbconsumer/${SERVICE_NAME} -o yaml | shyaml get-value spec.provider.auth.source)
-DB_AUTHMECHANISM=$(oc --insecure-skip-tls-verify -n ${NAMESPACE} get mongodbconsumer/${SERVICE_NAME} -o yaml | shyaml get-value spec.provider.auth.mechanism)
-DB_AUTHTLS=$(oc --insecure-skip-tls-verify -n ${NAMESPACE} get mongodbconsumer/${SERVICE_NAME} -o yaml | shyaml get-value spec.provider.auth.tls)
+DB_HOST=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get mongodbconsumer/${SERVICE_NAME} -o yaml | shyaml get-value spec.consumer.services.primary)
+DB_USER=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get mongodbconsumer/${SERVICE_NAME} -o yaml | shyaml get-value spec.consumer.username)
+DB_PASSWORD=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get mongodbconsumer/${SERVICE_NAME} -o yaml | shyaml get-value spec.consumer.password)
+DB_NAME=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get mongodbconsumer/${SERVICE_NAME} -o yaml | shyaml get-value spec.consumer.database)
+DB_PORT=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get mongodbconsumer/${SERVICE_NAME} -o yaml | shyaml get-value spec.provider.port)
+DB_AUTHSOURCE=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get mongodbconsumer/${SERVICE_NAME} -o yaml | shyaml get-value spec.provider.auth.source)
+DB_AUTHMECHANISM=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get mongodbconsumer/${SERVICE_NAME} -o yaml | shyaml get-value spec.provider.auth.mechanism)
+DB_AUTHTLS=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get mongodbconsumer/${SERVICE_NAME} -o yaml | shyaml get-value spec.provider.auth.tls)
 
 # Add credentials to our configmap, prefixed with the name of the servicename of this servicebroker
 oc patch --insecure-skip-tls-verify \
-    -n ${NAMESPACE} \
+    -n ${OPENSHIFT_PROJECT} \
     configmap lagoon-env \
     -p "{\"data\":{\"${SERVICE_NAME_UPPERCASE}_HOST\":\"${DB_HOST}\", \"${SERVICE_NAME_UPPERCASE}_USERNAME\":\"${DB_USER}\", \"${SERVICE_NAME_UPPERCASE}_PASSWORD\":\"${DB_PASSWORD}\", \"${SERVICE_NAME_UPPERCASE}_DATABASE\":\"${DB_NAME}\", \"${SERVICE_NAME_UPPERCASE}_PORT\":\"${DB_PORT}\", \"${SERVICE_NAME_UPPERCASE}_AUTHSOURCE\":\"${DB_AUTHSOURCE}\", \"${SERVICE_NAME_UPPERCASE}_AUTHMECHANISM\":\"${DB_AUTHMECHANISM}\", \"${SERVICE_NAME_UPPERCASE}_AUTHTLS\":\"${DB_AUTHTLS}\" }}"
 
