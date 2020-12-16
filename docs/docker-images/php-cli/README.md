@@ -20,6 +20,7 @@ This Dockerfile is intended to be used as a base for any `cli` needs within Lago
 * 8.0 \(coming soon\)
 
 All PHP versions use their own Dockerfiles.
+
 ## Lagoon adaptions
 
 This image is prepared to be used on Lagoon. There are therefore some things already done:

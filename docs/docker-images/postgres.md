@@ -2,7 +2,6 @@
 
 The [Lagoon PostgreSQL Docker image](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres). Based on [the official PostgreSQL Alpine images](https://hub.docker.com/_/postgres).
 
-
 ## Supported versions
 
 * 11 [\[Dockerfile\]](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/11.Dockerfile)
