@@ -89,6 +89,9 @@ async function resticRestore (data: any) {
     let baasBucketName = projectInfo.envVariables.find(obj => {
       return obj.name === "LAGOON_BAAS_BUCKET_NAME"
     })
+    if (baasBucketName) {
+      baasBucketName = baasBucketName.value
+    }
 
     const config = {
       body: restoreConfig(restoreName, backup.backupId, safeProjectName, baasBucketName)
