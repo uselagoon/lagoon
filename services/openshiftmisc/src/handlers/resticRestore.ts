@@ -79,6 +79,9 @@ export async function resticRestore (data) {
     let baasBucketName = projectOpenshift.envVariables.find(obj => {
       return obj.name === "LAGOON_BAAS_BUCKET_NAME"
     })
+    if (baasBucketName) {
+      baasBucketName = baasBucketName.value
+    }
     
     const restoreConfigPost = promisify(
       baas.ns(openshiftProject).restores.post
