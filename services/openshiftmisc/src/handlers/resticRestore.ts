@@ -76,13 +76,10 @@ export async function resticRestore (data) {
 
   try {
     // Parse out the baasBucketName for any migrated projects
-    let baasBucketName = ""
-    for (let variable of projectOpenshift.envVariables) {
-      if (variable.name == "LAGOON_BAAS_BUCKET_NAME") {
-        baasBucketName = variable.value
-      }
-    }
-
+    let baasBucketName = projectOpenshift.envVariables.find(obj => {
+      return obj.name === "LAGOON_BAAS_BUCKET_NAME"
+    })
+    
     const restoreConfigPost = promisify(
       baas.ns(openshiftProject).restores.post
     );
