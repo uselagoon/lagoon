@@ -952,7 +952,6 @@ export const createRemoveTask = async function(removeData: any) {
       break;
 
     // handle removals using the controllers, send the message to our specific target cluster queue
-    case 'lagoon_osControllerRemove':
     case 'lagoon_controllerRemove':
       const result = await getOpenShiftInfoForProject(projectName);
       const deployTarget = result.project.openshift.name
@@ -1091,7 +1090,6 @@ export const createTaskTask = async function(taskData: any) {
     case 'lagoon_kubernetesJob':
       return sendToLagoonTasks('job-kubernetes', taskData);
 
-    case 'lagoon_osControllerJob':
     case 'lagoon_controllerJob':
       // since controllers queues are named, we have to send it to the right tasks queue
       // do that here
