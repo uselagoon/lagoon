@@ -1090,7 +1090,7 @@ mutation PopulateApi {
   CiNodeMongoDB: addProject(
     input: {
       id: 31
-      name: "ci-node-mongodb-kubernetes"
+      name: "ci-node-mongodb-openshift"
       openshift: 1
       gitUrl: "ssh://git@172.17.0.1:2222/git/node-mongodb.git"
       productionEnvironment:"main"
