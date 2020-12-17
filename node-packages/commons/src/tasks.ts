@@ -1146,7 +1146,7 @@ export const createMiscTask = async function(taskData: any) {
       switch (updatedKey) {
         case 'openshift:restic:backup:restore':
           // Handle setting up the configuration for a restic restoration task
-          const restoreName = `restore-${R.slice(0, 7, taskData.data.backup.backupId)}`
+          const restoreName = `restore-${R.slice(0, 7, taskData.data.backup.backupId)}`;
           // Parse out the baasBucketName for any migrated projects
           let baasBucketName = ""
           for (let variable of osResult.project.envVariables) {
