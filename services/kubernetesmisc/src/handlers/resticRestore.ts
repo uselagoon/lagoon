@@ -75,7 +75,7 @@ const restoreConfig = (name, backupId, safeProjectName, baasBucketName) => {
 
 async function resticRestore (data: any) {
   const { backup, restore, project, environment } = data;
-  const { project: projectInfo } = await getOpenShiftInfoForProject(project.name);
+  const { project: projectInfo} = await getOpenShiftInfoForProject(project.name);
   const { url, token } = getUrlTokenFromProjectInfo(projectInfo, project.name);
   const { namespace, safeProjectName, restoreName } = generateSanitizedNames(project, environment, projectInfo, backup);
 
@@ -85,14 +85,13 @@ async function resticRestore (data: any) {
   const baas = new BaaS(config) as any;
 
   try {
-
+    // Parse out the baasBucketName for any migrated projects
     let baasBucketName = ""
-    for (let variable of project.projectInfo.envVariables) {
+    for (let variable of projectInfo.envVariables) {
       if (variable.name == "LAGOON_BAAS_BUCKET_NAME") {
         baasBucketName = variable.value
       }
     }
-    // Parse out the baasBucketName for any migrated projects
 
     const config = {
       body: restoreConfig(restoreName, backup.backupId, safeProjectName, baasBucketName)
