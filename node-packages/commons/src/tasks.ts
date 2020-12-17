@@ -1148,11 +1148,11 @@ export const createMiscTask = async function(taskData: any) {
           // Handle setting up the configuration for a restic restoration task
           const restoreName = `restore-${R.slice(0, 7, taskData.data.backup.backupId)}`;
           // Parse out the baasBucketName for any migrated projects
-          let baasBucketName = ""
-          for (let variable of osResult.project.envVariables) {
-            if (variable.name == "LAGOON_BAAS_BUCKET_NAME") {
-              baasBucketName = variable.value
-            }
+          let baasBucketName = osResult.project.envVariables.find(obj => {
+            return obj.name === "LAGOON_BAAS_BUCKET_NAME"
+          })
+          if (baasBucketName) {
+            baasBucketName = baasBucketName.value
           }
           // generate the restore CRD
           const restoreConf = restoreConfig(restoreName, taskData.data.backup.backupId, makeSafe(taskData.data.project.name), baasBucketName)
@@ -1235,11 +1235,11 @@ export const createMiscTask = async function(taskData: any) {
           // Handle setting up the configuration for a restic restoration task
           const restoreName = `restore-${R.slice(0, 7, taskData.data.backup.backupId)}`;
           // Parse out the baasBucketName for any migrated projects
-          let baasBucketName = ""
-          for (let variable of result.project.envVariables) {
-            if (variable.name == "LAGOON_BAAS_BUCKET_NAME") {
-              baasBucketName = variable.value
-            }
+          let baasBucketName = result.project.envVariables.find(obj => {
+            return obj.name === "LAGOON_BAAS_BUCKET_NAME"
+          })
+          if (baasBucketName) {
+            baasBucketName = baasBucketName.value
           }
           // generate the restore CRD
           const restoreConf = restoreConfig(restoreName, taskData.data.backup.backupId, makeSafe(taskData.data.project.name), baasBucketName)
