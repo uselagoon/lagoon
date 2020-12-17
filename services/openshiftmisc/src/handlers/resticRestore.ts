@@ -51,7 +51,7 @@ export async function resticRestore (data) {
         },
         backend: {
           s3: {
-            bucket: `${baasBucketName ? baasBucketName : "baas-".concat(safeProjectName)}`
+            bucket: baasBucketName ? baasBucketName : `baas-${safeProjectName}`
           },
           repoPasswordSecretRef: {
             key: 'repo-pw',
