@@ -509,6 +509,13 @@ services:
       POSTGRES_PASSWORD: 'password'
     ports:
       - '5432:5432'
+  local-mongodb-dbaas-provider:
+    image: ${IMAGE_REPO:-lagoon}/local-mongodb-dbaas-provider
+    restart: always
+    labels:
+      lagoon.type: none
+    ports:
+      - '27017:27017'
   local-minio:
     image: minio/minio
     entrypoint: sh
