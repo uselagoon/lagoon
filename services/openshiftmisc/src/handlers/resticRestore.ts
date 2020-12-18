@@ -76,7 +76,7 @@ export async function resticRestore (data) {
 
   try {
     // Parse out the baasBucketName for any migrated projects
-    let baasBucketName = projectOpenshift.envVariables.find(obj => {
+    let baasBucketName = projectOpenShift.envVariables.find(obj => {
       return obj.name === "LAGOON_BAAS_BUCKET_NAME"
     })
     if (baasBucketName) {
