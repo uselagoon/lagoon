@@ -46,7 +46,7 @@ const getConfig = (url, token) => ({
   }
 });
 
-const restoreConfig = (name, backupId, safeProjectName) => {
+const restoreConfig = (name, backupId, safeProjectName, baasBucketName) => {
   let config = {
     apiVersion: 'backup.appuio.ch/v1alpha1',
     kind: 'Restore',
@@ -60,7 +60,7 @@ const restoreConfig = (name, backupId, safeProjectName) => {
       },
       backend: {
         s3: {
-          bucket: `baas-${safeProjectName}`
+          bucket: baasBucketName ? baasBucketName : `baas-${safeProjectName}`
         },
         repoPasswordSecretRef: {
           key: 'repo-pw',
@@ -85,9 +85,16 @@ async function resticRestore (data: any) {
   const baas = new BaaS(config) as any;
 
   try {
+    // Parse out the baasBucketName for any migrated projects
+    let baasBucketName = projectInfo.envVariables.find(obj => {
+      return obj.name === "LAGOON_BAAS_BUCKET_NAME"
+    })
+    if (baasBucketName) {
+      baasBucketName = baasBucketName.value
+    }
 
     const config = {
-      body: restoreConfig(restoreName, backup.backupId, safeProjectName)
+      body: restoreConfig(restoreName, backup.backupId, safeProjectName, baasBucketName)
     };
 
     const restoreConfigPost = promisify(
