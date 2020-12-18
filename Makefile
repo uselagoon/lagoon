@@ -206,6 +206,7 @@ services :=	api \
 			keycloak \
 			keycloak-db \
 			logs-concentrator \
+			logs-db-curator \
 			logs-dispatcher \
 			logs-tee \
 			logs2email \
@@ -239,6 +240,7 @@ build/drush-alias: services/drush-alias/Dockerfile
 build/keycloak-db: services/keycloak-db/Dockerfile
 build/keycloak: services/keycloak/Dockerfile
 build/logs-concentrator: services/logs-concentrator/Dockerfile
+build/logs-db-curator: build/curator
 build/logs-dispatcher: services/logs-dispatcher/Dockerfile
 build/logs-tee: services/logs-tee/Dockerfile
 build/storage-calculator: build/oc
