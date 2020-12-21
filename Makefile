@@ -205,6 +205,10 @@ services :=	api \
 			drush-alias \
 			keycloak \
 			keycloak-db \
+			logs-concentrator \
+			logs-db-curator \
+			logs-dispatcher \
+			logs-tee \
 			logs2email \
 			logs2microsoftteams \
 			logs2rocketchat \
@@ -235,6 +239,10 @@ build/broker: build/rabbitmq-cluster build/broker-single
 build/drush-alias: services/drush-alias/Dockerfile
 build/keycloak-db: services/keycloak-db/Dockerfile
 build/keycloak: services/keycloak/Dockerfile
+build/logs-concentrator: services/logs-concentrator/Dockerfile
+build/logs-db-curator: build/curator
+build/logs-dispatcher: services/logs-dispatcher/Dockerfile
+build/logs-tee: services/logs-tee/Dockerfile
 build/storage-calculator: build/oc
 build/tests-controller-kubernetes: build/tests
 build/tests-kubernetes: build/tests
