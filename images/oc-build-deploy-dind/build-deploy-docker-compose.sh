@@ -814,6 +814,18 @@ if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get schedules.backup.ap
   fi
   TEMPLATE_PARAMETERS+=(-p BAAS_BUCKET_NAME="${BAAS_BUCKET_NAME}")
 
+  # Pull in .lagoon.yml variables
+  MONTHLY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml keys backup-retention.monthly)
+  WEEKLY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml keys backup-retention.weekly)
+  DAILY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml keys backup-retention.daily)
+
+  # Pull in Lagoon API variables
+  LAGOON_MONTHLY_BACKUP_RETENTION=${MONTHLY_BACKUP_DEFAULT_RETENTION}
+  LAGOON_WEEKLY_BACKUP_RETENTION=${WEEKLY_BACKUP_DEFAULT_RETENTION}
+  LAGOON_DAILY_BACKUP_RETENTION=${DAILY_BACKUP_DEFAULT_RETENTION}
+  # Backup schedule stays the same?
+  # Checks and Prunes will be automatically generated
+
   # Run Backups every day at 2200-0200
   BACKUP_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "M H(22-2) * * *")
   TEMPLATE_PARAMETERS+=(-p BACKUP_SCHEDULE="${BACKUP_SCHEDULE}")
