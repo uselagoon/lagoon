@@ -785,7 +785,7 @@ spec:
         - --enable-leader-election
         command:
         - /manager
-        image: amazeeio/dbaas-operator:v0.1.5rc3
+        image: amazeeio/dbaas-operator:v0.1.6
         name: manager
         resources:
           limits:
