@@ -7,10 +7,6 @@ services:
       - ./services/api-db/rerun_initdb.sh:/rerun_initdb.sh
     ports:
       - '3366:3306'
-    labels:
-      lagoon.type: custom
-      lagoon.template: services/api-db/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/api-db:v1-9-1
   webhook-handler:
     image: ${IMAGE_REPO:-lagoon}/webhook-handler
     command: yarn run dev
@@ -19,19 +15,11 @@ services:
     volumes:
       - ./services/webhook-handler/src:/app/services/webhook-handler/src
       - ./node-packages:/app/node-packages:delegated
-    labels:
-      lagoon.type: custom
-      lagoon.template: services/webhook-handler/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/webhook-handler:v1-9-1
   backup-handler:
     image: ${IMAGE_REPO:-lagoon}/backup-handler
     restart: on-failure
     ports:
       - '7778:3000'
-    labels:
-      lagoon.type: custom
-      lagoon.template: services/backup-handler/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/backup-handler:v1-9-1
     depends_on:
       - broker
   broker:
@@ -39,60 +27,36 @@ services:
     ports:
       - '15672:15672'
       - '5672:5672'
-    labels:
-      lagoon.type: rabbitmq-cluster
-      lagoon.template: services/broker/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/broker:v1-9-1
   controllerhandler:
     image: ${IMAGE_REPO:-lagoon}/controllerhandler
     command: yarn run dev
     volumes:
       - ./services/controllerhandler/src:/app/services/controllerhandler/src
       - ./node-packages:/app/node-packages:delegated
-    labels:
-      lagoon.type: custom
-      lagoon.template: services/controllerhandler/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/controllerhandler:v1-9-1
   logs2rocketchat:
     image: ${IMAGE_REPO:-lagoon}/logs2rocketchat
     command: yarn run dev
     volumes:
       - ./services/logs2rocketchat/src:/app/services/logs2rocketchat/src
       - ./node-packages:/app/node-packages:delegated
-    labels:
-      lagoon.type: custom
-      lagoon.template: services/logs2rocketchat/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/logs2rocketchat:v1-9-1
   logs2slack:
     image: ${IMAGE_REPO:-lagoon}/logs2slack
     command: yarn run dev
     volumes:
       - ./services/logs2slack/src:/app/services/logs2slack/src
       - ./node-packages:/app/node-packages:delegated
-    labels:
-      lagoon.type: custom
-      lagoon.template: services/logs2slack/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/logs2slack:v1-9-1
   logs2microsoftteams:
     image: ${IMAGE_REPO:-lagoon}/logs2microsoftteams
     command: yarn run dev
     volumes:
       - ./services/logs2microsoftteams/src:/app/services/logs2microsoftteams/src
       - ./node-packages:/app/node-packages:delegated
-    labels:
-      lagoon.type: custom
-      lagoon.template: services/logs2microsoftteams/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/logs2microsoftteams:v1-9-1
   logs2email:
     image: ${IMAGE_REPO:-lagoon}/logs2email
     command: yarn run dev
     volumes:
       - ./services/logs2email/src:/app/services/logs2email/src
       - ./node-packages:/app/node-packages:delegated
-    labels:
-      lagoon.type: custom
-      lagoon.template: services/logs2slack/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/logs2email:v1-9-1
     depends_on:
       - mailhog
   mailhog:
@@ -107,10 +71,6 @@ services:
     volumes:
       - ./services/webhooks2tasks/src:/app/services/webhooks2tasks/src
       - ./node-packages:/app/node-packages:delegated
-    labels:
-      lagoon.type: custom
-      lagoon.template: services/webhooks2tasks/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/webhooks2tasks:v1-9-1
   api:
     image: ${IMAGE_REPO:-lagoon}/api
     command: yarn run dev
@@ -119,7 +79,7 @@ services:
       - ./node-packages:/app/node-packages:delegated
     environment:
       - CI=${CI:-true}
-      - REGISTRY=172.17.0.1:8084 # Docker network bridge and forwarded port for harbor-nginx
+      - REGISTRY=harbor.172.17.0.1.nip.io:18080 # Docker network bridge and forwarded port for harbor-nginx
     depends_on:
       - api-db
       - keycloak
@@ -143,10 +103,6 @@ services:
       - ./services/ui/package.json:/app/services/ui/package.json
     ports:
       - '8888:3000'
-    labels:
-      lagoon.type: custom
-      lagoon.template: services/ui/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/ui:v1-9-1
   ssh:
     image: ${IMAGE_REPO:-lagoon}/ssh
     depends_on:
@@ -164,10 +120,6 @@ services:
     volumes:
       - ./services/ssh/home/command.sh:/home/command.sh
       - ./services/ssh/home/rsh.sh:/home/rsh.sh
-    labels:
-      lagoon.type: custom
-      lagoon.template: services/ssh/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/ssh:v1-9-1
   auth-server:
     image: ${IMAGE_REPO:-lagoon}/auth-server
     command: yarn run dev
@@ -178,10 +130,6 @@ services:
       - ./services/auth-server/src:/app/services/auth-server/src
     ports:
       - '3001:3000'
-    labels:
-      lagoon.type: custom
-      lagoon.template: services/auth-server/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/auth-server:v1-9-1
   keycloak:
     image: ${IMAGE_REPO:-lagoon}/keycloak
     user: '111111111'
@@ -189,10 +137,6 @@ services:
       - keycloak-db
     ports:
       - '8088:8080'
-    labels:
-      lagoon.type: custom
-      lagoon.template: services/keycloak/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/keycloak:v1-9-1
   keycloak-db:
     image: ${IMAGE_REPO:-lagoon}/keycloak-db
     ports:
@@ -224,8 +168,6 @@ services:
       - DELETED_STATUS_CODE=404
     volumes:
       - ./tests:/ansible
-    labels:
-      lagoon.type: none
   tests-openshift:
     image: ${IMAGE_REPO:-lagoon}/tests
     environment:
@@ -249,16 +191,12 @@ services:
       - DELETED_STATUS_CODE=503
     volumes:
       - ./tests:/ansible
-    labels:
-      lagoon.type: none
   local-git:
     image: ${IMAGE_REPO:-lagoon}/local-git
     environment:
       - GIT_AUTHORIZED_KEYS=ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDEZlms5XsiyWjmnnUyhpt93VgHypse9Bl8kNkmZJTiM3Ex/wZAfwogzqd2LrTEiIOWSH1HnQazR+Cc9oHCmMyNxRrLkS/MEl0yZ38Q+GDfn37h/llCIZNVoHlSgYkqD0MQrhfGL5AulDUKIle93dA6qdCUlnZZjDPiR0vEXR36xGuX7QYAhK30aD2SrrBruTtFGvj87IP/0OEOvUZe8dcU9G/pCoqrTzgKqJRpqs/s5xtkqLkTIyR/SzzplO21A+pCKNax6csDDq3snS8zfx6iM8MwVfh8nvBW9seax1zBvZjHAPSTsjzmZXm4z32/ujAn/RhIkZw3ZgRKrxzryttGnWJJ8OFyF31JTJgwWWuPdH53G15PC83ZbmEgSV3win51RZRVppN4uQUuaqZWG9wwk2a6P5aen1RLCSLpTkd2mAEk9PlgmJrf8vITkiU9pF9n68ENCoo556qSdxW2pxnjrzKVPSqmqO1Xg5K4LOX4/9N4n4qkLEOiqnzzJClhFif3O28RW86RPxERGdPT81UI0oDAcU5euQr8Emz+Hd+PY1115UIld3CIHib5PYL9Ee0bFUKiWpR/acSe1fHB64mCoHP7hjFepGsq7inkvg2651wUDKBshGltpNkMj6+aZedNc0/rKYyjl80nT8g8QECgOSRzpmYp0zli2HpFoLOiWw== ansible-testing
     ports:
       - '2222:22'
-    labels:
-      lagoon.type: none
   remotedev:
     image: jhen0409/remotedev-server
     command: node main.js
@@ -267,8 +205,6 @@ services:
       - PORT=9090
     ports:
       - '9090:9090'
-    labels:
-      lagoon.type: none
   local-api-data-watcher-pusher:
     depends_on:
       - api
@@ -276,8 +212,6 @@ services:
     volumes:
       - ./local-dev/api-data:/api-data
       - ./local-dev/api-data-watcher-pusher:/home
-    labels:
-      lagoon.type: none
   local-dbaas-provider:
     image: ${IMAGE_REPO:-lagoon}/local-dbaas-provider
     restart: always
@@ -299,14 +233,10 @@ services:
     environment:
       - MINIO_ACCESS_KEY=minio
       - MINIO_SECRET_KEY=minio123
-    labels:
-      lagoon.type: none
   local-registry:
     image: ${IMAGE_REPO:-lagoon}/local-registry
     ports:
       - '5000:5000'
-    labels:
-      lagoon.type: none
   drush-alias:
     image: ${IMAGE_REPO:-lagoon}/drush-alias
     volumes:
@@ -314,67 +244,7 @@ services:
     ports:
       - '8087:8080'
     labels:
-      lagoon.type: custom
-      lagoon.template: services/drush-alias/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/drush-alias:v1-9-1
       version: '2'
-  logs-db:
-    image: ${IMAGE_REPO:-lagoon}/logs-db
-    user: '111111111'
-    environment:
-      KEYCLOAK_URL: http://keycloak:8080
-    ports:
-      - '9200:9200'
-    networks:
-      default:
-        aliases:
-          - logs-db-service
-    labels:
-      lagoon.type: elasticsearch
-      lagoon.template: services/logs-db/.lagoon.single.yml
-      lagoon.image: amazeeiolagoon/logs-db:v1-9-1
-  logs-forwarder:
-    image: ${IMAGE_REPO:-lagoon}/logs-forwarder
-    user: '111111111'
-    labels:
-      lagoon.type: custom
-      lagoon.template: services/logs-forwarder/.lagoon.single.yml
-      lagoon.image: amazeeiolagoon/logs-forwarder:v1-9-1
-  logs-db-ui:
-    image: ${IMAGE_REPO:-lagoon}/logs-db-ui
-    user: '111111111'
-    ports:
-      - '5601:5601'
-    environment:
-      KEYCLOAK_URL: http://${KEYCLOAK_URL:-localhost:8088}
-      LOGSDB_UI_URL: http://0.0.0.0:5601
-    labels:
-      lagoon.type: kibana
-      lagoon.template: services/logs-db-ui/.lagoon.yml
-      lagoon.image: amazeeiolagoon/logs-db-ui:v1-9-1
-  logs-db-curator:
-    image: ${IMAGE_REPO:-lagoon}/logs-db-curator
-    user: '111111111'
-    labels:
-      lagoon.type: cli
-      lagoon.template: services/logs-db-curator/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/logs-db-curator:v1-9-1
-  logs2logs-db:
-    image: ${IMAGE_REPO:-lagoon}/logs2logs-db
-    user: '111111111'
-    command:
-      - '--config.reload.automatic'
-      - '--config.reload.interval'
-      - '1s'
-    ports:
-      - '5140:5140/udp'
-      - '5141:5141/udp'
-    volumes:
-      - './services/logs2logs-db/pipeline:/usr/share/logstash/pipeline'
-    labels:
-      lagoon.type: logstash
-      lagoon.template: services/logs2logs-db/.lagoon.yml
-      lagoon.image: amazeeiolagoon/logs2logs-db:v1-9-1
   auto-idler:
     image: ${IMAGE_REPO:-lagoon}/auto-idler
     user: '111111111'
@@ -384,242 +254,10 @@ services:
       - './services/auto-idler/openshift-services.sh:/openshift-services.sh'
       - './services/auto-idler/openshift-clis.sh:/openshift-clis.sh'
       - './services/auto-idler/create_jwt.py:/create_jwt.py'
-    labels:
-      lagoon.type: custom
-      lagoon.template: services/auto-idler/.lagoon.yml
-      lagoon.image: amazeeiolagoon/auto-idler:v1-9-1
   storage-calculator:
     image: ${IMAGE_REPO:-lagoon}/storage-calculator
     user: '111111111'
     volumes:
       - './services/storage-calculator/calculate-storage.sh:/calculate-storage.sh'
-    labels:
-      lagoon.type: custom
-      lagoon.template: services/storage-calculator/.lagoon.yml
-      lagoon.image: amazeeiolagoon/storage-calculator:v1-9-1
-  logs-collector:
-    image: openshift/origin-logging-fluentd:v3.6.1
-    labels:
-      lagoon.type: custom
-      lagoon.template: services/logs-collector/.lagoon.yml
-      lagoon.rollout: daemonset
-  harbor-core:
-    image: ${IMAGE_REPO:-lagoon}/harbor-core
-    hostname: harbor-core
-    volumes:
-      - ${PWD}/services/harbor-core/harbor-core_ci.conf.yaml:/etc/core/app.conf
-      - ${PWD}/services/harbor-core/ci-secret.key:/etc/core/key
-      - ${PWD}/services/harbor-core/ci_tls.key:/etc/core/private_key.pem
-      - /etc/core/token
-    depends_on:
-      - harbor-database
-      - harbor-redis
-    ports:
-      - '8081:8080'
-    environment:
-      - DATABASE_TYPE=postgresql
-      - POSTGRESQL_HOST=harbor-database
-      - POSTGRESQL_PORT=5432
-      - POSTGRESQL_USERNAME=postgres
-      - POSTGRESQL_PASSWORD=test123
-      - POSTGRESQL_DATABASE=registry
-      - POSTGRESQL_SSLMODE=disable
-      - POSTGRESQL_MAX_IDLE_CONNS=50
-      - POSTGRESQL_MAX_OPEN_CONNS=100
-      - CORE_URL=http://harbor-core:8080
-      - JOBSERVICE_URL=http://harbor-jobservice:8080
-      - REGISTRY_URL=http://harborregistry:5000
-      - TOKEN_SERVICE_URL=http://harbor-core:8080/service/token
-      - WITH_NOTARY=false
-      - CFG_EXPIRATION=5
-      - ADMIRAL_URL=NA
-      - WITH_CLAIR=true
-      - CLAIR_DB_HOST=harbor-database
-      - CLAIR_DB_PORT=5432
-      - CLAIR_DB_USERNAME=postgres
-      - CLAIR_DB=postgres
-      - CLAIR_DB_SSLMODE=disable
-      - CLAIR_URL=http://harbor-trivy:6060
-      - CLAIR_ADAPTER_URL=http://harbor-trivy:8080
-      - REGISTRY_STORAGE_PROVIDER_NAME=s3
-      - WITH_CHARTMUSEUM=false
-      - LOG_LEVEL=error
-      - CONFIG_PATH=/etc/core/app.conf
-      - SYNC_REGISTRY=false
-      - CHART_CACHE_DRIVER=redis
-      - _REDIS_URL=harbor-redis:6379,100,
-      - _REDIS_URL_REG=redis://harbor-redis:6379/2
-      - PORTAL_URL=http://harbor-portal:8080
-      - REGISTRYCTL_URL=http://harborregistryctl:8080
-      - CLAIR_HEALTH_CHECK_SERVER_URL=http://harbor-trivy:6061
-      - HTTP_PROXY=
-      - HTTPS_PROXY=
-      - NO_PROXY=harbor-core,harbor-jobservice,harbor-database,harborregistry,harbor-portal,harbor-trivy,127.0.0.1,localhost,.local,.internal
-      - HARBOR_NGINX_ENDPOINT=http://harbor-nginx:8080
-      - ROBOT_TOKEN_DURATION=500
-      - CORE_SECRET=secret123
-      - JOBSERVICE_SECRET=secret123
-      - REGISTRY_HTTP_SECRET=secret123
-      - HARBOR_ADMIN_PASSWORD=admin
-      - CLAIR_DB_PASSWORD=test123
-      - WITH_TRIVY=true
-      - TRIVY_ADAPTER_URL=http://harbor-trivy:8080
-    restart: always
-    labels:
-      lagoon.type: custom
-      lagoon.template: services/harbor-core/harbor-core.yml
-      lagoon.image: amazeeiolagoon/harbor-core:v1-9-1
-  harbor-database:
-    image: ${IMAGE_REPO:-lagoon}/harbor-database
-    hostname: harbor-database
-    ports:
-      - '5432:5432'
-    environment:
-      - POSTGRES_PASSWORD=test123
-      - POSTGRES_USER=postgres
-      - POSTGRES_DB=postgres
-    restart: always
-    labels:
-      lagoon.type: custom
-      lagoon.template: services/harbor-database/harbor-database.yml
-      lagoon.image: amazeeiolagoon/harbor-database:v1-9-1
-  harbor-jobservice:
-    image: ${IMAGE_REPO:-lagoon}/harbor-jobservice
-    hostname: harbor-jobservice
-    ports:
-      - '8083:8080'
-    volumes:
-      - /tmp
-      - ${PWD}/services/harbor-jobservice/ci-config.yaml:/etc/jobservice/config.yml
-    depends_on:
-      - harbor-database
-      - harbor-redis
-      - harbor-nginx
-    environment:
-      - CORE_SECRET=secret123
-      - JOBSERVICE_SECRET=secret123
-      - CORE_URL=http://harbor-core:8080
-      - REGISTRY_CONTROLLER_URL=http://harborregistryctl:8080
-      - LOG_LEVEL=error
-      - HTTP_PROXY=
-      - HTTPS_PROXY=
-      - NO_PROXY=harbor-core,harbor-jobservice,harbor-database,harborregistry,harbor-portal,harbor-trivy,127.0.0.1,localhost,.local,.internal
-      - SCANNER_CLAIR_DATABASE_URL=postgres://postgres:test123@harbor-database:5432/postgres?sslmode=disable
-      - SCANNER_STORE_REDIS_URL=redis://harbor-redis:6379/4
-      - SCANNER_LOG_LEVEL=error
-    restart: always
-    labels:
-      lagoon.type: custom
-      lagoon.template: services/harbor-jobservice/harbor-jobservice.yml
-      lagoon.image: amazeeiolagoon/harbor-jobservice:v1-9-1
-  harbor-nginx:
-    image: ${IMAGE_REPO:-lagoon}/harbor-nginx
-    hostname: harbor-nginx
-    ports:
-      - '8084:8080'
-    volumes:
-      - ${PWD}/services/harbor-nginx/ci.nginx.conf:/etc/nginx/nginx.conf
-    depends_on:
-      - harbor-core
-      - harborregistry
-      - harbor-portal
-    restart: always
-    labels:
-      lagoon.type: custom
-      lagoon.template: services/harbor-nginx/harbor-nginx.yml
-      lagoon.image: amazeeiolagoon/harbor-nginx:v1-9-1
-  harbor-portal:
-    image: ${IMAGE_REPO:-lagoon}/harbor-portal
-    hostname: harbor-portal
-    ports:
-      - '8085:8080'
-    restart: always
-    labels:
-      lagoon.type: custom
-      lagoon.template: services/harbor-portal/harbor-portal.yml
-      lagoon.image: amazeeiolagoon/harbor-portal:v1-9-1
-  harbor-redis:
-    image: ${IMAGE_REPO:-lagoon}/harbor-redis
-    hostname: harbor-redis
-    volumes:
-      - /var/lib/redis
-    restart: always
-    labels:
-      lagoon.type: custom
-      lagoon.template: services/harbor-redis/harbor-redis.yml
-      lagoon.image: amazeeiolagoon/harbor-redis:v1-9-1
-  harbor-trivy:
-    image: ${IMAGE_REPO:-lagoon}/harbor-trivy
-    hostname: harbor-trivy
-    volumes:
-      - /tmp
-    depends_on:
-      - harbor-redis
-      - harbor-database
-    environment:
-      - SCANNER_LOG_LEVEL=error
-      - SCANNER_TRIVY_CACHE_DIR=/home/scanner/.cache/trivy
-      - SCANNER_TRIVY_REPORTS_DIR=/home/scanner/.cache/reports
-      - SCANNER_TRIVY_DEBUG_MODE=false
-      - SCANNER_TRIVY_VULN_TYPE=os,library
-      - SCANNER_TRIVY_GITHUB_TOKEN=
-      - SCANNER_TRIVY_SEVERITY=UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
-      - SCANNER_TRIVY_IGNORE_UNFIXED=false
-      - SCANNER_TRIVY_SKIP_UPDATE=false
-      - SCANNER_STORE_REDIS_URL=redis://harbor-redis:6379/5
-      - SCANNER_JOB_QUEUE_REDIS_URL=redis://harbor-redis:6379/5
-      - TRIVY_NON_SSL=true
-    restart: on-failure
-    deploy:
-      resources:
-        limits:
-          cpus: "1"
-          memory: 1g
-    labels:
-      lagoon.type: custom
-      lagoon.template: services/harbor-trivy/harbor-trivy.yml
-      lagoon.name: harbor-trivy
-      lagoon.image: amazeeiolagoon/harbor-trivy:v1-9-1
-  harborregistry:
-    image: ${IMAGE_REPO:-lagoon}/harborregistry
-    hostname: harborregistry
-    volumes:
-      - ${PWD}/services/harborregistry/registry_ci.cfg.yaml:/etc/registry/config.yml
-      - ${PWD}/services/harbor-core/ci_tls.crt:/etc/registry/root.crt
-    depends_on:
-      - harbor-database
-      - harbor-redis
-    environment:
-      - HARBOR_NGINX_ENDPOINT=http://harbor-nginx:8080
-      - REGISTRY_REDIS_PASSWORD=
-      - CORE_SECRET=secret123
-      - JOBSERVICE_SECRET=secret123
-      - REGISTRY_HTTP_SECRET=secret123
-    restart: always
-    command: ["serve", "/etc/registry/config.yml"]
-    labels:
-      lagoon.type: custom
-      lagoon.template: services/harborregistry/harborregistry.yml
-      lagoon.name: harborregistry
-      lagoon.image: amazeeiolagoon/harborregistry:v1-9-1
-  harborregistryctl:
-    image: ${IMAGE_REPO:-lagoon}/harborregistryctl
-    hostname: harborregistryctl
-    volumes:
-      - ${PWD}/services/harborregistryctl/registryctl_ci.cfg.yaml:/etc/registryctl/config.yml
-    environment:
-      - REGISTRY_REDIS_PASSWORD=
-      - CORE_SECRET=secret123
-      - JOBSERVICE_SECRET=secret123
-      - REGISTRY_HTTP_SECRET=secret123
-    labels:
-      lagoon.type: custom
-      lagoon.template: services/harborregistryctl/harborregistry.yml
-      lagoon.name: harborregistry
-      lagoon.image: amazeeiolagoon/harborregistryctl:v1-9-1
   api-redis:
     image: ${IMAGE_REPO:-lagoon}/api-redis
-    labels:
-      lagoon.type: custom
-      lagoon.template: services/api-redis/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/api-redis:v1-9-1

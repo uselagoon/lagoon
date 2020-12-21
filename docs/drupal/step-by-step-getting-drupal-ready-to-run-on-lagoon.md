@@ -22,6 +22,10 @@ Drupal is shipped with `sites/*/settings*.php` and `sites/*/services*.yml` in `.
 
 Unfortunately the Drupal community has not decided on a standardized `WEBROOT` folder name. Some projects put Drupal within `web`, and others within `docroot` or somewhere else. The Lagoon Drupal settings files assume that your Drupal is within `web`, but if this is different for your Drupal, please adapt the files accordingly.
 
+### Note about composer.json 
+
+If you installed Drupal via composer, please check your `composer.json` and make sure that the `name` is NOT `drupal/drupal`, as this could confuse Drush and other tools of the Drupal universe, just rename it to something like `myproject/drupal`
+
 ## 2. Customise `docker-compose.yml`
 
 Don't forget to customize the values in `lagoon-project` & `LAGOON_ROUTE` with your site-specific name & the URL you'd like to access the site with. Here's an example:

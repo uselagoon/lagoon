@@ -1,0 +1,24 @@
+---
+
+- include: features/api-token.yaml
+  vars:
+    testname: "API TOKEN"
+
+- include: drupal/drupal.yaml
+  vars:
+    testname: "Drupal 8 composer PHP 7.3 - MARIADB DBAAAS {{ lookup('env','CLUSTER_TYPE')|upper }}"
+    drupal_version: 8
+    db: mariadb
+    php_version: 7.3
+    git_repo_name: drupal.git
+    project: ci-drupal-{{ lookup('env','CLUSTER_TYPE') }}
+    branch: drupal8-composer-73-mariadb-dbaas
+
+- include: drupal/drush.yaml
+  vars:
+    testname: "DRUSH {{ lookup('env','CLUSTER_TYPE')|upper }}"
+    drupal_version: 8
+    db: mariadb
+    php_version: 7.3
+    git_repo_name: drupal.git
+    project: ci-drupal-{{ lookup('env','CLUSTER_TYPE') }}
