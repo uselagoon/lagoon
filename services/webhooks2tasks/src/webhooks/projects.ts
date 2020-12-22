@@ -8,6 +8,11 @@ import { githubPullRequestOpened } from '../handlers/githubPullRequestOpened';
 import { githubPullRequestSynchronize } from '../handlers/githubPullRequestSynchronize';
 import { githubBranchDeleted } from '../handlers/githubBranchDeleted';
 import { githubPush } from '../handlers/githubPush';
+import { giteaPullRequestClosed } from '../handlers/giteaPullRequestClosed';
+import { giteaPullRequestOpened } from '../handlers/giteaPullRequestOpened';
+import { giteaPullRequestSynchronize } from '../handlers/giteaPullRequestSynchronize';
+import { giteaBranchDeleted } from '../handlers/giteaBranchDeleted';
+import { giteaPush } from '../handlers/giteaPush';
 import { bitbucketPush } from '../handlers/bitbucketPush';
 import { bitbucketBranchDeleted } from '../handlers/bitbucketBranchDeleted';
 import { bitbucketPullRequestUpdated } from '../handlers/bitbucketPullRequestUpdated';
@@ -160,7 +165,49 @@ export async function processProjects(
         }
         break;
 
+      case 'gitea:pull_request':
+        switch (body.action) {
+          case 'closed':
+            await handle(
+              giteaPullRequestClosed,
+              webhook,
+              project,
+              `${webhooktype}:${event}:${body.action}`
+            );
+            break;
+
+          case 'opened':
+          case 'reopened':
+            await handle(
+              giteaPullRequestOpened,
+              webhook,
+              project,
+              `${webhooktype}:${event}:${body.action}`
+            );
+            break;
+
+          case 'synchronize':
+          case 'edited':
+            await handle(
+              giteaPullRequestSynchronize,
+              webhook,
+              project,
+              `${webhooktype}:${event}:${body.action}`
+            );
+            break;
+
+          default:
+            unhandled(
+              webhook,
+              project,
+              `${webhooktype}:${event}:${body.action}`
+            );
+            break;
+        }
+        break;
+
       case 'github:delete':
+      case 'gitea:delete':
         switch (body.ref_type) {
           case 'branch':
             // We do not handle branch deletes via github delete push event, as github also sends a regular push event with 'deleted=true'. It's handled there (see below inside "github:push")
@@ -194,6 +241,21 @@ export async function processProjects(
         }
 
         break;
+
+      case 'gitea:push':
+        if (body.deleted === true) {
+          await handle(
+            giteaBranchDeleted,
+            webhook,
+            project,
+            `${webhooktype}:${event}`
+          );
+        } else {
+          await handle(giteaPush, webhook, project, `${webhooktype}:${event}`);
+        }
+
+        break;
+
       case 'bitbucket:repo:push':
         if (body.push.changes[0].closed === true) {
           await handle(
