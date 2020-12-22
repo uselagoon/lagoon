@@ -74,6 +74,7 @@ objects:
       schedule: '${CHECK_SCHEDULE}'
     prune:
       retention:
-        keepDaily: 7
-        keepWeekly: 6
+        keepDaily: ${DAILY_BACKUP_RETENTION}
+        keepWeekly: ${WEEKLY_BACKUP_RETENTION}
+        keepMonthly: ${MONTHLY_BACKUP_RETENTION}
       schedule: '${PRUNE_SCHEDULE}'
