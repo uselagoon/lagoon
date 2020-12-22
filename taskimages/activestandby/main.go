@@ -180,11 +180,15 @@ Provide a copy of this entire log to the team.`, err)
 									os.Exit(1)
 								}
 								// the job data to send back to lagoon must be base64 encoded
-								pod.ObjectMeta.Annotations = map[string]string{
-									"lagoon.sh/taskData": base64.StdEncoding.EncodeToString(jsonData),
-								}
+								mergePatch, _ := json.Marshal(map[string]interface{}{
+									"metadata": map[string]interface{}{
+										"annotations": map[string]interface{}{
+											"lagoon.sh/taskData": base64.StdEncoding.EncodeToString(jsonData),
+										},
+									},
+								})
 								// update the pod with the annotation
-								if err := c.Update(context.Background(), &pod); err != nil {
+								if err := c.Patch(context.Background(), &pod, client.ConstantPatch(types.MergePatchType, mergePatch)); err != nil {
 									fmt.Printf(`========================================
 Task failed to update pod with return information, error was: %v
 ========================================
