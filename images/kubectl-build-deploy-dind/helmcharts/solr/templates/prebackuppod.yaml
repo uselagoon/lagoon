@@ -39,10 +39,10 @@ spec:
           imagePullPolicy: Always
           name: {{ include "solr.fullname" . }}-prebackuppod
           volumeMounts:
-            - name: {{ .Values.persistentStorage.name }}
+            - name: {{ include "solr.persistentStorageName" . }}
               mountPath: {{ .Values.persistentStorage.path | quote }}
       volumes:
-        - name: {{ .Values.persistentStorage.name }}
+        - name: {{ include "solr.persistentStorageName" . }}
           persistentVolumeClaim:
-            claimName: {{ .Values.persistentStorage.name }}
+            claimName: {{ include "solr.persistentStorageName" . }}
 {{ end }}

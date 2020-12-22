@@ -952,7 +952,6 @@ export const createRemoveTask = async function(removeData: any) {
       break;
 
     // handle removals using the controllers, send the message to our specific target cluster queue
-    case 'lagoon_osControllerRemove':
     case 'lagoon_controllerRemove':
       const result = await getOpenShiftInfoForProject(projectName);
       const deployTarget = result.project.openshift.name
@@ -1024,7 +1023,7 @@ export const createRemoveTask = async function(removeData: any) {
 }
 
 // creates the restore job configuration for use in the misc task
-const restoreConfig = (name, backupId, safeProjectName) => {
+const restoreConfig = (name, backupId, safeProjectName, baasBucketName) => {
   let config = {
     apiVersion: 'backup.appuio.ch/v1alpha1',
     kind: 'Restore',
@@ -1038,7 +1037,7 @@ const restoreConfig = (name, backupId, safeProjectName) => {
       },
       backend: {
         s3: {
-          bucket: `baas-${safeProjectName}`
+          bucket: baasBucketName ? baasBucketName : `baas-${safeProjectName}`
         },
         repoPasswordSecretRef: {
           key: 'repo-pw',
@@ -1091,7 +1090,6 @@ export const createTaskTask = async function(taskData: any) {
     case 'lagoon_kubernetesJob':
       return sendToLagoonTasks('job-kubernetes', taskData);
 
-    case 'lagoon_osControllerJob':
     case 'lagoon_controllerJob':
       // since controllers queues are named, we have to send it to the right tasks queue
       // do that here
@@ -1121,81 +1119,6 @@ export const createMiscTask = async function(taskData: any) {
       updatedKey = `openshift:${key}`;
       taskId = 'misc-openshift';
       break;
-    case 'lagoon_osControllerMisc':
-      updatedKey = `openshift:${key}`;
-      taskId = 'misc-openshift';
-      // determine the deploy target (openshift/kubernetes) for the task to go to
-      const osResult = await getOpenShiftInfoForProject(project.name);
-      const osProjectOpenShift = osResult.project
-      var deployTarget = osProjectOpenShift.openshift.name
-      // this is the json structure for sending a misc task to the controller
-      // there are some additional bits that can be adjusted, and these are done in the switch below on `updatedKey`
-      var miscTaskData: any = {
-        misc: {},
-        key: updatedKey,
-        environment: {
-          name: taskData.data.environment.name,
-          openshiftProjectName: taskData.data.environment.openshiftProjectName
-        },
-        project: {
-          name: taskData.data.project.name
-        },
-        task: taskData.data.task,
-        advancedTask: {}
-      }
-      switch (updatedKey) {
-        case 'openshift:restic:backup:restore':
-          // Handle setting up the configuration for a restic restoration task
-          const restoreName = `restore-${R.slice(0, 7, taskData.data.backup.backupId)}`;
-          // generate the restore CRD
-          const restoreConf = restoreConfig(restoreName, taskData.data.backup.backupId, makeSafe(taskData.data.project.name))
-          // base64 encode it
-          const restoreBytes = new Buffer(JSON.stringify(restoreConf).replace(/\\n/g, "\n")).toString('base64')
-          miscTaskData.misc.miscResource = restoreBytes
-          break;
-        case 'openshift:route:migrate':
-          // handle setting up the task configuration for running the active/standby switch
-          // this uses the `advanced task` system in the controllers
-          // first generate the migration CRD
-          const migrateConf = migrateHosts(
-            makeSafe(taskData.data.productionEnvironment.openshiftProjectName),
-            makeSafe(taskData.data.environment.openshiftProjectName))
-          // generate out custom json payload to send to the advanced task
-          var jsonPayload: any = {
-            productionEnvironment: taskData.data.productionEnvironment.name,
-            standbyEnvironment: taskData.data.environment.name,
-            crd: migrateConf
-          }
-          // encode it
-          const jsonPayloadBytes = new Buffer(JSON.stringify(jsonPayload).replace(/\\n/g, "\n")).toString('base64')
-          // set the task data up
-          miscTaskData.advancedTask.JSONPayload = jsonPayloadBytes
-          // use this image to run the task
-          let taskImage = ""
-          // choose which task image to use
-          if (CI == "true") {
-            taskImage = "172.17.0.1:5000/lagoon/task-activestandby:latest"
-          } else if (overwriteActiveStandbyTaskImage) {
-            // allow to overwrite the image we use via OVERWRITE_ACTIVESTANDBY_TASK_IMAGE env variable
-            taskImage = overwriteActiveStandbyTaskImage
-          } else if (lagoonEnvironmentType == 'production') {
-            taskImage = `amazeeio/task-activestandby:${lagoonVersion}`
-          } else {
-            // we are a development enviornment, use the amazeeiolagoon image with the same branch name
-            taskImage = `amazeeiolagoon/task-activestandby:${lagoonGitSafeBranch}`
-          }
-          miscTaskData.advancedTask.runnerImage = taskImage
-          break;
-        case 'openshift:build:cancel':
-          // build cancellation is just a standard unmodified message
-          miscTaskData.misc = taskData.data.build
-          break;
-        default:
-          miscTaskData.misc = taskData.data.build
-          break;
-      }
-      // send the task to the queue
-      return sendToLagoonTasks(deployTarget+':misc', miscTaskData);
     case 'lagoon_kubernetesMisc':
       updatedKey = `kubernetes:${key}`;
       taskId = 'misc-kubernetes';
@@ -1227,8 +1150,15 @@ export const createMiscTask = async function(taskData: any) {
         case 'kubernetes:restic:backup:restore':
           // Handle setting up the configuration for a restic restoration task
           const restoreName = `restore-${R.slice(0, 7, taskData.data.backup.backupId)}`;
+          // Parse out the baasBucketName for any migrated projects
+          let baasBucketName = result.project.envVariables.find(obj => {
+            return obj.name === "LAGOON_BAAS_BUCKET_NAME"
+          })
+          if (baasBucketName) {
+            baasBucketName = baasBucketName.value
+          }
           // generate the restore CRD
-          const restoreConf = restoreConfig(restoreName, taskData.data.backup.backupId, makeSafe(taskData.data.project.name))
+          const restoreConf = restoreConfig(restoreName, taskData.data.backup.backupId, makeSafe(taskData.data.project.name), baasBucketName)
           // base64 encode it
           const restoreBytes = new Buffer(JSON.stringify(restoreConf).replace(/\\n/g, "\n")).toString('base64')
           miscTaskData.misc.miscResource = restoreBytes
