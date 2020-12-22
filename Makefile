@@ -968,6 +968,7 @@ helm/repos: local-dev/helm
 	./local-dev/helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 	./local-dev/helm repo add stable https://charts.helm.sh/stable
 	./local-dev/helm repo add bitnami https://charts.bitnami.com/bitnami
+	./local-dev/helm repo update
 
 .PHONY: kind/cluster
 kind/cluster: local-dev/kind
