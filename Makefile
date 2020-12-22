@@ -931,7 +931,7 @@ api-development: build/api build/api-db build/local-api-data-watcher-pusher buil
 KIND_VERSION = v0.9.0
 GOJQ_VERSION = v0.11.2
 KIND_IMAGE = kindest/node:v1.19.1@sha256:98cf5288864662e37115e362b23e4369c8c4a408f99cbc06e58ac30ddc721600
-TESTS = [features-kubernetes,nginx,active-standby-kubernetes,drupal-php72,drupal-php73,drupal-php74,drupal-postgres,python]
+TESTS = [features-kubernetes,nginx,drupal-php72,drupal-php73,drupal-php74,drupal-postgres,python]
 CHARTS_TREEISH = main
 
 local-dev/kind:
