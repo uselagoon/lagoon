@@ -39,10 +39,10 @@ spec:
           imagePullPolicy: Always
           name: {{ include "redis-persistent.fullname" . }}-prebackuppod
           volumeMounts:
-            - name: {{ .Values.persistentStorage.name }}
+            - name: {{ include "redis-persistent.persistentStorageName" . }}
               mountPath: {{ .Values.persistentStorage.path | quote }}
       volumes:
-        - name: {{ .Values.persistentStorage.name }}
+        - name: {{ include "redis-persistent.persistentStorageName" . }}
           persistentVolumeClaim:
-            claimName: {{ .Values.persistentStorage.name }}
+            claimName: {{ include "redis-persistent.persistentStorageName" . }}
 {{ end }}
