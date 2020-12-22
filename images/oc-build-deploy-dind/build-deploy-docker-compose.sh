@@ -819,23 +819,42 @@ if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get schedules.backup.ap
   WEEKLY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml keys backup-retention.weekly)
   DAILY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml keys backup-retention.daily)
 
-  # Pull in Lagoon API variables
+  # Pull in Lagoon variables
   LAGOON_MONTHLY_BACKUP_RETENTION=${MONTHLY_BACKUP_DEFAULT_RETENTION}
   LAGOON_WEEKLY_BACKUP_RETENTION=${WEEKLY_BACKUP_DEFAULT_RETENTION}
   LAGOON_DAILY_BACKUP_RETENTION=${DAILY_BACKUP_DEFAULT_RETENTION}
-  # Backup schedule stays the same?
-  # Checks and Prunes will be automatically generated
 
-  # Run Backups every day at 2200-0200
-  BACKUP_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "M H(22-2) * * *")
+  # Pull in environment type (development/production)
+  LAGOON_ENVIRONMENT_TYPE=${LAGOON_ENVIRONMENT_TYPE}
+  #TODO: figure out a default backup retention time for dev branches 
+
+  # Set template parameters for retention values (prefer .lagoon.yml values over supplied defaults)
+  if [ ! -z $MONTHLY_BACKUP_RETENTION ]; then
+    TEMPLATE_PARAMETERS+=(-p MONTHLY_BACKUP_RETENTION="${MONTHLY_BACKUP_RETENTION}")
+  else; then
+    TEMPLATE_PARAMETERS+=(-p MONTHLY_BACKUP_RETENTION="${LAGOON_MONTHLY_BACKUP_RETENTION}")
+  fi
+  if [ ! -z $WEEKLY_BACKUP_RETENTION ]; then
+    TEMPLATE_PARAMETERS+=(-p WEEKLY_BACKUP_RETENTION="${WEEKLY_BACKUP_RETENTION}")
+  else; then
+    TEMPLATE_PARAMETERS+=(-p WEEKLY_BACKUP_RETENTION="${LAGOON_WEEKLY_BACKUP_RETENTION}")
+  fi
+  if [ ! -z $DAILY_BACKUP_RETENTION ]; then
+    TEMPLATE_PARAMETERS+=(-p DAILY_BACKUP_RETENTION="${DAILY_BACKUP_RETENTION}")
+  else; then
+    TEMPLATE_PARAMETERS+=(-p DAILY_BACKUP_RETENTION="${LAGOON_DAILY_BACKUP_RETENTION}")
+  fi
+
+  # Let the controller decide when to run backups
+  BACKUP_SCHEDULE="@daily-random"
   TEMPLATE_PARAMETERS+=(-p BACKUP_SCHEDULE="${BACKUP_SCHEDULE}")
 
-  # Run Checks on Sunday at 0300-0600
-  CHECK_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "M H(3-6) * * 0")
+  # Let the controller decide when to run checks
+  CHECK_SCHEDULE="@weekly-random"
   TEMPLATE_PARAMETERS+=(-p CHECK_SCHEDULE="${CHECK_SCHEDULE}")
 
-  # Run Prune on Saturday at 0300-0600
-  PRUNE_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "M H(3-6) * * 6")
+  # Let the controller decide when to run prunes
+  PRUNE_SCHEDULE="@weekly"
   TEMPLATE_PARAMETERS+=(-p PRUNE_SCHEDULE="${PRUNE_SCHEDULE}")
 
   OPENSHIFT_TEMPLATE="/oc-build-deploy/openshift-templates/backup-schedule.yml"

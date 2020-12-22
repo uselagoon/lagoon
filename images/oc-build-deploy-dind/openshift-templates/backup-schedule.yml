@@ -32,16 +32,25 @@ parameters:
     description: Registry where Images are pushed to
     required: true
   - name: BACKUP_SCHEDULE
-    description: Schedule of the Backup in Cron format
+    description: Schedule of the Backup in Cron format or auto schedule format
     required: true
   - name: CHECK_SCHEDULE
-    description: Schedule of the Backup Check in Cron format
+    description: Schedule of the Backup Check in Cron format or auto schedule format
     required: true
   - name: PRUNE_SCHEDULE
-    description: Schedule of the Backup Prune in Cron format
+    description: Schedule of the Backup Prune in Cron format or auto schedule format
     required: true
   - name: BAAS_BUCKET_NAME
     description: Which bucket the backups for this project should go to
+    required: true
+  - name: MONTHLY_BACKUP_RETENTION
+    description: How many monthly backups should be retained after pruning
+    required: true
+  - name: WEEKLY_BACKUP_RETENTION
+    description: How many weekly backups should be retained after pruning
+    required: true
+  - name: DAILY_BACKUP_RETENTION
+    description: How many monthly backups should be retained after pruning
     required: true
 objects:
 - apiVersion: backup.appuio.ch/v1alpha1
