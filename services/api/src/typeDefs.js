@@ -415,27 +415,27 @@ const typeDefs = gql`
     notifications(type: NotificationType, contentType: NotificationContentType, notificationSeverityThreshold: ProblemSeverityRating): [Notification]
     """
     Which internal Lagoon System is responsible for deploying
-    Currently only 'lagoon_openshiftBuildDeploy' exists
+    Currently only 'lagoon_controllerBuildDeploy' exists
     """
     activeSystemsDeploy: String
     """
     Which internal Lagoon System is responsible for promoting
-    Currently only 'lagoon_openshiftBuildDeploy' exists
+    Currently only 'lagoon_controllerBuildDeploy' exists
     """
     activeSystemsPromote: String
     """
     Which internal Lagoon System is responsible for promoting
-    Currently only 'lagoon_openshiftRemove' exists
+    Currently only 'lagoon_controllerRemove' exists
     """
     activeSystemsRemove: String
     """
     Which internal Lagoon System is responsible for tasks
-    'lagoon_openshiftJob' or 'lagoon_kubernetesJob'
+    Currently only 'lagoon_controllerJob' exists
     """
     activeSystemsTask: String
     """
     Which internal Lagoon System is responsible for miscellaneous tasks
-    'lagoon_openshiftMisc' or 'lagoon_kubernetesMisc'
+    Currently only 'lagoon_controllerMisc' exists
     """
     activeSystemsMisc: String
     """

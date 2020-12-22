@@ -451,22 +451,6 @@ $(openshift-run-webhook-tests): minishift build/oc-build-deploy-dind openshift-t
 		$(eval testname = $(subst openshift-tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility run --rm tests-openshift ansible-playbook /ansible/tests/$(testname).yaml
 
-end2end-all-tests = $(foreach image,$(all-tests-list),end2end-tests/$(image))
-
-.PHONY: end2end-tests
-end2end-tests: $(end2end-all-tests)
-
-.PHONY: start-end2end-ansible
-start-end2end-ansible: build/tests
-		docker-compose -f docker-compose.yaml -f docker-compose.end2end.yaml -p end2end --compatibility up -d tests
-
-$(end2end-all-tests): start-end2end-ansible
-		$(eval testname = $(subst end2end-tests/,,$@))
-		docker exec -i $$(docker-compose -f docker-compose.yaml -f docker-compose.end2end.yaml -p end2end ps -q tests) ansible-playbook /ansible/tests/$(testname).yaml
-
-end2end-tests/clean:
-		docker-compose -f docker-compose.yaml -f docker-compose.end2end.yaml -p end2end --compatibility down -v
-
 # push command of our base images into minishift
 push-minishift-images = $(foreach image,$(base-images),[push-minishift]-$(image))
 # tag and push all images
@@ -948,7 +932,7 @@ api-development: build/api build/api-db build/local-api-data-watcher-pusher buil
 KIND_VERSION = v0.9.0
 GOJQ_VERSION = v0.11.2
 KIND_IMAGE = kindest/node:v1.19.1@sha256:98cf5288864662e37115e362b23e4369c8c4a408f99cbc06e58ac30ddc721600
-TESTS = [features-kubernetes,nginx,active-standby-kubernetes,drupal-php72,drupal-php73,drupal-php74,drupal-postgres,python]
+TESTS = [features-kubernetes,nginx,drupal-php72,drupal-php73,drupal-php74,drupal-postgres,python]
 CHARTS_TREEISH = main
 
 local-dev/kind:
@@ -985,6 +969,7 @@ helm/repos: local-dev/helm
 	./local-dev/helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 	./local-dev/helm repo add stable https://charts.helm.sh/stable
 	./local-dev/helm repo add bitnami https://charts.bitnami.com/bitnami
+	./local-dev/helm repo update
 
 .PHONY: kind/cluster
 kind/cluster: local-dev/kind
