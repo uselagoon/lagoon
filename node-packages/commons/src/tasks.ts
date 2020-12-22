@@ -861,7 +861,6 @@ export const createRemoveTask = async function(removeData: any) {
       break;
 
     // handle removals using the controllers, send the message to our specific target cluster queue
-    case 'lagoon_osControllerRemove':
     case 'lagoon_controllerRemove':
       const result = await getOpenShiftInfoForProject(projectName);
       const deployTarget = result.project.openshift.name
@@ -933,7 +932,7 @@ export const createRemoveTask = async function(removeData: any) {
 }
 
 // creates the restore job configuration for use in the misc task
-const restoreConfig = (name, backupId, safeProjectName) => {
+const restoreConfig = (name, backupId, safeProjectName, baasBucketName) => {
   let config = {
     apiVersion: 'backup.appuio.ch/v1alpha1',
     kind: 'Restore',
@@ -947,7 +946,7 @@ const restoreConfig = (name, backupId, safeProjectName) => {
       },
       backend: {
         s3: {
-          bucket: `baas-${safeProjectName}`
+          bucket: baasBucketName ? baasBucketName : `baas-${safeProjectName}`
         },
         repoPasswordSecretRef: {
           key: 'repo-pw',
@@ -1046,8 +1045,15 @@ export const createMiscTask = async function(taskData: any) {
         case 'kubernetes:restic:backup:restore':
           // Handle setting up the configuration for a restic restoration task
           const restoreName = `restore-${R.slice(0, 7, taskData.data.backup.backupId)}`;
+          // Parse out the baasBucketName for any migrated projects
+          let baasBucketName = result.project.envVariables.find(obj => {
+            return obj.name === "LAGOON_BAAS_BUCKET_NAME"
+          })
+          if (baasBucketName) {
+            baasBucketName = baasBucketName.value
+          }
           // generate the restore CRD
-          const restoreConf = restoreConfig(restoreName, taskData.data.backup.backupId, makeSafe(taskData.data.project.name))
+          const restoreConf = restoreConfig(restoreName, taskData.data.backup.backupId, makeSafe(taskData.data.project.name), baasBucketName)
           // base64 encode it
           const restoreBytes = new Buffer(JSON.stringify(restoreConf).replace(/\\n/g, "\n")).toString('base64')
           miscTaskData.misc.miscResource = restoreBytes
