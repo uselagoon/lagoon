@@ -79,33 +79,35 @@ do
       echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: creating storage-calc pod"
 
       # Cleanup any existing storage-calc deployments
-      ${OC} delete deploymentconfig/storage-calc >/dev/null 2>&1
+      ${OC} delete deployment/storage-calc >/dev/null 2>&1
 
       # Start storage-calc deployment
-      ${OC} run --generator=deploymentconfig/v1 --image imagecache.amazeeio.cloud/amazeeio/alpine-mysql-client storage-calc -- sh -c "while sleep 3600; do :; done"
-      ${OC} rollout pause deploymentconfig/storage-calc
+      deployment_template=$(${OC} create --dry-run=true -o yaml deployment storage-calc --image imagecache.amazeeio.cloud/amazeeio/alpine-mysql-client)
+      deployment=$(echo "$deployment_template" | yq '.spec.template.spec.containers[0].command = ["sh", "-c", "while sleep 3600; do :; done"]')
+      echo "$deployment" | ${OC} create -f -
+      ${OC} rollout pause deployment/storage-calc
 
       # Copy environment variable from lagoon-env configmap.
-      ${OC} set env --from=configmap/lagoon-env deploymentconfig/storage-calc
+      ${OC} set env --from=configmap/lagoon-env deployment/storage-calc
 
       PVCS=($(${OC} get pvc -o name | sed 's/persistentvolumeclaim\///'))
 
       for PVC in "${PVCS[@]}"
       do
         echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: mounting ${PVC} into storage-calc"
-        ${OC} set volume deploymentconfig/storage-calc --add --name=${PVC} --type=persistentVolumeClaim --claim-name=${PVC} --mount-path=/storage/${PVC}
+        ${OC} set volume deployment/storage-calc --add --name=${PVC} --type=persistentVolumeClaim --claim-name=${PVC} --mount-path=/storage/${PVC}
       done
 
-      ${OC} rollout resume deploymentconfig/storage-calc
+      ${OC} rollout resume deployment/storage-calc
       echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: redeploying storage-calc to mount volumes"
-      ${OC} rollout status deploymentconfig/storage-calc --watch
+      ${OC} rollout status deployment/storage-calc --watch
 
-      POD=$(${OC} get pods -l run=storage-calc -o json | jq -r '[.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running")] | first | .metadata.name // empty')
+      POD=$(${OC} get pods -l app=storage-calc -o json | jq -r '[.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running")] | first | .metadata.name // empty')
 
       if [[ ! $POD ]]; then
         echo "No running pod found for storage-calc"
         # Clean up any failed deployments.
-        ${OC} delete deploymentconfig/storage-calc >/dev/null 2>&1
+        ${OC} delete deployment/storage-calc >/dev/null 2>&1
         exit 1
       fi
 
@@ -151,7 +153,7 @@ do
         }"
       fi
 
-      ${OC} delete deploymentconfig/storage-calc
+      ${OC} delete deployment/storage-calc
 
     done
   else
