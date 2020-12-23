@@ -272,8 +272,8 @@ done
 ### BUILD IMAGES
 ##############################################
 
-# we only need to build images for pullrequests and branches, but not during a TUG build
-if [[ ( "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ) && ! $THIS_IS_TUG == "true" ]]; then
+# we only need to build images for pullrequests and branches
+if [[ "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ]]; then
 
   BUILD_ARGS=()
 
@@ -412,18 +412,6 @@ if [[ ( "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ) && ! $TH
 
   done
 
-fi
-
-# if $DEPLOY_TYPE is tug we just push the images to the defined docker registry and create a clone
-# of ourselves and push it into `lagoon-tug` image which is then executed in the destination openshift
-# If though this is the actual tug deployment in the destination openshift, we don't run this
-if [[ $DEPLOY_TYPE == "tug" && ! $THIS_IS_TUG == "true" ]]; then
-echo "TODO: lagoon-tug is not implemented yet in kubernetes"
-exit 1
-  . /kubectl-build-deploy/tug/tug-build-push.sh
-
-  # exit here, we are done
-  exit
 fi
 
 ##############################################
@@ -1046,29 +1034,7 @@ yq write -i -- /kubectl-build-deploy/values.yaml 'configMapSha' $CONFIG_MAP_SHA
 ### PUSH IMAGES TO OPENSHIFT REGISTRY
 ##############################################
 
-if [[ $THIS_IS_TUG == "true" ]]; then
-  # TODO: lagoon-tug is not implemented yet in kubernetes
-  echo "lagoon-tug is not implemented yet in kubernetes"
-  exit 1
-  # Allow to disable registry auth
-  if [ ! "${TUG_SKIP_REGISTRY_AUTH}" == "true" ]; then
-    # This adds the defined credentials to the serviceaccount/default so that the deployments can pull from the remote registry
-    if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get secret tug-registry 2> /dev/null; then
-      kubectl --insecure-skip-tls-verify -n ${NAMESPACE} delete secret tug-registry
-    fi
-
-    kubectl --insecure-skip-tls-verify -n ${NAMESPACE} secrets new-dockercfg tug-registry --docker-server="${TUG_REGISTRY}" --docker-username="${TUG_REGISTRY_USERNAME}" --docker-password="${TUG_REGISTRY_PASSWORD}" --docker-email="${TUG_REGISTRY_USERNAME}"
-    kubectl --insecure-skip-tls-verify -n ${NAMESPACE} secrets add serviceaccount/default secrets/tug-registry --for=pull
-  fi
-
-  # Import all remote Images into ImageStreams
-  readarray -t TUG_IMAGES < /kubectl-build-deploy/tug/images
-  for TUG_IMAGE in "${TUG_IMAGES[@]}"
-  do
-    kubectl --insecure-skip-tls-verify -n ${NAMESPACE} tag --source=docker "${TUG_REGISTRY}/${TUG_REGISTRY_REPOSITORY}/${TUG_IMAGE_PREFIX}${TUG_IMAGE}:${SAFE_BRANCH}" "${TUG_IMAGE}:latest"
-  done
-
-elif [ "$BUILD_TYPE" == "pullrequest" ] || [ "$BUILD_TYPE" == "branch" ]; then
+if [ "$BUILD_TYPE" == "pullrequest" ] || [ "$BUILD_TYPE" == "branch" ]; then
 
   # All images that should be pulled are copied to the harbor registry
   for IMAGE_NAME in "${!IMAGES_PULL[@]}"
@@ -1212,36 +1178,7 @@ do
     yq write -i --tag '!!str' -- /kubectl-build-deploy/${SERVICE_NAME}-values.yaml 'inPodCronjobs' ''
   fi
 
-  #OVERRIDE_TEMPLATE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.template false)
-  #ENVIRONMENT_OVERRIDE_TEMPLATE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.templates.$SERVICE_NAME false)
-  #if [[ "${OVERRIDE_TEMPLATE}" == "false" && "${ENVIRONMENT_OVERRIDE_TEMPLATE}" == "false" ]]; then # No custom template defined in docker-compose or .lagoon.yml,  using the given service ones
-    # Generate deployment if service type defines it
-    . /kubectl-build-deploy/scripts/exec-kubectl-resources-with-images.sh
-
-  #   # Generate statefulset if service type defines it
-  #   OPENSHIFT_STATEFULSET_TEMPLATE="/kubectl-build-deploy/openshift-templates/${SERVICE_TYPE}/statefulset.yml"
-  #   if [ -f $OPENSHIFT_STATEFULSET_TEMPLATE ]; then
-  #     OPENSHIFT_TEMPLATE=$OPENSHIFT_STATEFULSET_TEMPLATE
-  #     . /kubectl-build-deploy/scripts/exec-kubernetes-resources-with-images.sh
-  #   fi
-  # elif [[ "${ENVIRONMENT_OVERRIDE_TEMPLATE}" != "false" ]]; then # custom template defined for this service in .lagoon.yml, trying to use it
-
-  #   OPENSHIFT_TEMPLATE=$ENVIRONMENT_OVERRIDE_TEMPLATE
-  #   if [ ! -f $OPENSHIFT_TEMPLATE ]; then
-  #     echo "defined template $OPENSHIFT_TEMPLATE for service $SERVICE_TYPE in .lagoon.yml not found"; exit 1;
-  #   else
-  #     . /kubectl-build-deploy/scripts/exec-kubernetes-resources-with-images.sh
-  #   fi
-  # elif [[ "${OVERRIDE_TEMPLATE}" != "false" ]]; then # custom template defined for this service in docker-compose, trying to use it
-
-  #   OPENSHIFT_TEMPLATE=$OVERRIDE_TEMPLATE
-  #   if [ ! -f $OPENSHIFT_TEMPLATE ]; then
-  #     echo "defined template $OPENSHIFT_TEMPLATE for service $SERVICE_TYPE in $DOCKER_COMPOSE_YAML not found"; exit 1;
-  #   else
-  #     . /kubectl-build-deploy/scripts/exec-kubernetes-resources-with-images.sh
-  #   fi
-  #fi
-
+  . /kubectl-build-deploy/scripts/exec-kubectl-resources-with-images.sh
 
 done
 
@@ -1282,27 +1219,7 @@ do
     SERVICE_ROLLOUT_TYPE=$ENVIRONMENT_SERVICE_ROLLOUT_TYPE
   fi
 
-  if [ $SERVICE_TYPE == "elasticsearch-cluster" ]; then
-
-    STATEFULSET="${SERVICE_NAME}"
-    . /kubectl-build-deploy/scripts/exec-monitor-statefulset.sh
-
-  elif [ $SERVICE_TYPE == "rabbitmq-cluster" ]; then
-
-    STATEFULSET="${SERVICE_NAME}"
-    . /kubectl-build-deploy/scripts/exec-monitor-statefulset.sh
-
-  elif [ $SERVICE_ROLLOUT_TYPE == "statefulset" ]; then
-
-    STATEFULSET="${SERVICE_NAME}"
-    . /kubectl-build-deploy/scripts/exec-monitor-statefulset.sh
-
-  elif [ $SERVICE_ROLLOUT_TYPE == "deamonset" ]; then
-
-    DAEMONSET="${SERVICE_NAME}"
-    . /kubectl-build-deploy/scripts/exec-monitor-deamonset.sh
-
-  elif [ $SERVICE_TYPE == "mariadb-dbaas" ]; then
+  if [ $SERVICE_TYPE == "mariadb-dbaas" ]; then
 
     echo "nothing to monitor for $SERVICE_TYPE"
 
