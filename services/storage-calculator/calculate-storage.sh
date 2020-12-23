@@ -45,7 +45,7 @@ do
   if [[ $PROJECT_NAME =~ $PROJECT_REGEX ]]; then
     STORAGE_CALC=$(echo "$project" | jq -r '.storageCalc')
     echo "$OPENSHIFT_URL: Handling project $PROJECT_NAME"
-    OPENSHIFT_TOKEN=$(echo "$project" | jq -r '.openshift.token')
+    OPENSHIFT_TOKEN=$(echo "$project" | jq -r '.openshift.token // empty')
     # loop through each environment of the current project
     echo "$project" | jq -c '.environments[]' | while read environment
     do
