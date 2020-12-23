@@ -8,7 +8,7 @@
     jq -er ".metadata.annotations | .\"$annotation\"") = "$value" ]
   loop: "{{ expected_annotations }}"
   register: result
-  retries: 20
+  retries: 30
   delay: 10
   until: result.rc == 0
 - name: "{{ testname }} - Check if {{ingress}} ingress of namespace {{ project }}-{{ branch }} has annotation"
