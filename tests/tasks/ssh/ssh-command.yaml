@@ -2,5 +2,5 @@
   shell: ssh {{username}}@{{ lookup('env','SSH_HOST') }} -p {{ lookup('env','SSH_PORT') }} {{command}}
   register: result
   until: result.stdout | search(expected_content)
-  retries: 20
+  retries: 30
   delay: 10

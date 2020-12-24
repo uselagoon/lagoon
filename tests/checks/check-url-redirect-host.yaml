@@ -8,7 +8,7 @@
     validate_certs: no
   register: result
   until: result.location | default('') | regex_search(expected_redirect_location)
-  retries: 20
+  retries: 30
   delay: 10
 - name: "{{ testname }} - Check if URL {{url}} with sending Host: {{ host }} redirects to the location {{expected_redirect_location}}"
   debug: msg="Success!!!"
