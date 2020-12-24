@@ -211,6 +211,7 @@ Provide a copy of this entire log to the team.`, err)
 		}
 		// sleep for 5 seconds up to a maximum of 60 times (5 minutes) before finally giving up
 		time.Sleep(5 * time.Second)
+		err = fmt.Errorf("checking again")
 		return attempt < 60, err
 	})
 	if err != nil {

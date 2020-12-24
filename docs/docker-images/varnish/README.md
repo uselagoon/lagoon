@@ -1,6 +1,6 @@
 # Varnish
 
-The [Lagoon `Varnish` image Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/varnish/Dockerfile). Based on the [official `varnish` package](https://hub.docker.com/_/varnish) provided by `alpine:3.7` image.
+The [Lagoon `Varnish` image Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/varnish/Dockerfile). Based on the [official `varnish` package](https://hub.docker.com/_/varnish) provided by `alpine:3.7` image.
 
 By default, `vmod-dynamic` and `vmod-bodyaccess` modules are installed.
 

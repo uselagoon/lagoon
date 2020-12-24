@@ -372,6 +372,7 @@ if [[ ( "$TYPE" == "pullrequest"  ||  "$TYPE" == "branch" ) && ! $THIS_IS_TUG ==
   BUILD_ARGS+=(--build-arg LAGOON_GIT_BRANCH="${BRANCH}")
   BUILD_ARGS+=(--build-arg LAGOON_GIT_SAFE_BRANCH="${SAFE_BRANCH}")
   BUILD_ARGS+=(--build-arg LAGOON_PROJECT="${PROJECT}")
+  BUILD_ARGS+=(--build-arg LAGOON_ENVIRONMENT="${SAFE_BRANCH}")
   BUILD_ARGS+=(--build-arg LAGOON_SAFE_PROJECT="${SAFE_PROJECT}")
   BUILD_ARGS+=(--build-arg LAGOON_BUILD_TYPE="${TYPE}")
   BUILD_ARGS+=(--build-arg LAGOON_GIT_SOURCE_REPOSITORY="${SOURCE_REPOSITORY}")
@@ -1363,4 +1364,16 @@ if [ "${LAGOON_POSTROLLOUT_DISABLED}" != "true" ]; then
   done
 else
   echo "post-rollout tasks are currently disabled LAGOON_POSTROLLOUT_DISABLED is set to true"
+fi
+
+##############################################
+### PUSH the latest .lagoon.yml into lagoon-yaml configmap
+##############################################
+
+if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get configmap lagoon-yaml &> /dev/null; then
+  # replace it
+  oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} create configmap lagoon-yaml --from-file=.lagoon.yml -o yaml --dry-run | oc replace -f -
+else
+  # create it
+  oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} create configmap lagoon-yaml --from-file=.lagoon.yml
 fi

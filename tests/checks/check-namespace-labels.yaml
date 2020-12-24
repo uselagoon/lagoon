@@ -8,7 +8,7 @@
     jq -er ".metadata.labels | .\"$label\"") = "$value" ]
   loop: "{{ expected_labels }}"
   register: result
-  retries: 20
+  retries: 30
   delay: 10
   until: result.rc == 0
 - name: "{{ testname }} - Check if {{project}} namespace is labelled"

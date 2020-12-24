@@ -4,7 +4,7 @@
 >
 > * from [mongodb.com](https://www.mongodb.com/)
 
-[Lagoon `MongoDB` image Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/mongo/Dockerfile). Based on the official package `mongodb` provided by the `alpine:3.8` image.
+[Lagoon `MongoDB` image Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mongo/Dockerfile). Based on the official package `mongodb` provided by the `alpine:3.8` image.
 
 This Dockerfile is intended to be used to set up a standalone MongoDB database server.
 
