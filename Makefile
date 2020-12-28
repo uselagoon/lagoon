@@ -1019,6 +1019,10 @@ kind/test: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addpr
 		&& $(MAKE) install-registry HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
 		&& cd .. && $(MAKE) kind/push-images && cd "$$CHARTSDIR" \
 		&& $(MAKE) fill-test-ci-values TESTS=$(TESTS) IMAGE_TAG=$(BRANCH_NAME) \
+			HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
+			JQ=$$(realpath ../local-dev/jq) \
+			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=$$IMAGE_REGISTRY/kubectl-build-deploy-dind:$(BRANCH_NAME) \
+			IMAGE_REGISTRY=$$IMAGE_REGISTRY \
 		&& docker run --rm --network host --name ct-$(CI_BUILD_TAG) \
 			--volume "$$(pwd)/test-suite-run.ct.yaml:/etc/ct/ct.yaml" \
 			--volume "$$(pwd):/workdir" \
