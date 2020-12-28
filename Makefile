@@ -1014,32 +1014,28 @@ kind/test: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addpr
 		&& git clone https://github.com/uselagoon/lagoon-charts.git "$$CHARTSDIR" \
 		&& cd "$$CHARTSDIR" \
 		&& git checkout $(CHARTS_TREEISH) \
-		&& export KUBECONFIG=$$(mktemp ../kubeconfig.XXX) \
-		&& KIND_CLUSTER_NAME="$(CI_BUILD_TAG)" ../local-dev/kind export kubeconfig \
+		&& export KUBECONFIG="$$(realpath ../kubeconfig.kind.$(CI_BUILD_TAG))"
 		&& export IMAGE_REGISTRY="registry.$$(../local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
 		&& $(MAKE) install-registry HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
 		&& cd .. && $(MAKE) kind/push-images && cd "$$CHARTSDIR" \
 		&& $(MAKE) fill-test-ci-values TESTS=$(TESTS) IMAGE_TAG=$(BRANCH_NAME) \
-		&& $(MAKE) kind/run-tests
+		&& docker run --rm --network host --name ct-$(CI_BUILD_TAG) \
+			--volume "$$(pwd)/test-suite-run.ct.yaml:/etc/ct/ct.yaml" \
+			--volume "$$(pwd):/workdir" \
+			--volume "$$(realpath ../kubeconfig.kind.$(CI_BUILD_TAG)):/root/.kube/config" \
+			--workdir /workdir \
+			"quay.io/helmpack/chart-testing:v3.1.1" \
+			ct install
 
 .PHONY: kind/push-images
 kind/push-images:
+		export KUBECONFIG="$$(pwd)/kubeconfig.kind.$(CI_BUILD_TAG)" && \
 		export IMAGE_REGISTRY="registry.$$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
 		&& docker login -u admin -p Harbor12345 $$IMAGE_REGISTRY \
 		&& for image in $(KIND_SERVICES); do \
 			docker tag $(CI_BUILD_TAG)/$$image $$IMAGE_REGISTRY/$$image:$(BRANCH_NAME) \
 			&& docker push $$IMAGE_REGISTRY/$$image:$(BRANCH_NAME); \
 		done
-
-.PHONY: kind/run-tests
-kind/run-tests:
-	docker run --rm --network host --name ct-$(CI_BUILD_TAG) \
-			--volume "$$(pwd)/test-suite-run.ct.yaml:/etc/ct/ct.yaml" \
-			--volume "$$(pwd):/workdir" \
-			--volume "$$(realpath $$KUBECONFIG):/root/.kube/config" \
-			--workdir /workdir \
-			"quay.io/helmpack/chart-testing:v3.1.1" \
-			ct install
 
 .PHONY: kind/clean
 kind/clean: local-dev/kind
