@@ -58,13 +58,7 @@ if [ ! -z ${INTERNAL_REGISTRY_URL} ] && [ ! -z ${INTERNAL_REGISTRY_USERNAME} ] &
   echo "docker login -u '${INTERNAL_REGISTRY_USERNAME}' -p '${INTERNAL_REGISTRY_PASSWORD}' ${INTERNAL_REGISTRY_URL}" | /bin/bash
   kubectl create secret docker-registry lagoon-internal-registry-secret --docker-server=${INTERNAL_REGISTRY_URL} --docker-username=${INTERNAL_REGISTRY_USERNAME} --docker-password=${INTERNAL_REGISTRY_PASSWORD} --dry-run -o yaml | kubectl apply -f -
   REGISTRY_SECRETS+=("lagoon-internal-registry-secret")
-  #docker login "-u '{$INTERNAL_REGISTRY_USERNAME}' -p '{$INTERNAL_REGISTRY_PASSWORD}' '{$INTERNAL_REGISTRY_URL}'"
   REGISTRY=$INTERNAL_REGISTRY_URL # This will handle pointing Lagoon at the correct registry for non local builds
-  #REGISTRY_REPOSITORY=$NAMESPACE
-  # If we go with a different naming scheme, we can inject that here?
-#else
-#  DOCKER_REGISTRY_TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
-#  docker login -u=jenkins -p="${DOCKER_REGISTRY_TOKEN}" ${REGISTRY}
 fi
 
 ##############################################
@@ -127,24 +121,5 @@ do
 done
 
 set -x
-
-ADDITIONAL_YAMLS=($(cat .lagoon.yml | shyaml keys additional-yaml || echo ""))
-
-for ADDITIONAL_YAML in "${ADDITIONAL_YAMLS[@]}"
-do
-  ADDITIONAL_YAML_PATH=$(cat .lagoon.yml | shyaml get-value additional-yaml.$ADDITIONAL_YAML.path false)
-  if [ $ADDITIONAL_YAML_PATH == "false" ]; then
-    echo "No 'path' defined for additional yaml $ADDITIONAL_YAML"; exit 1;
-  fi
-
-  if [ ! -f $ADDITIONAL_YAML_PATH ]; then
-    echo "$ADDITIONAL_YAML_PATH for additional yaml $ADDITIONAL_YAML not found"; exit 1;
-  fi
-
-  ADDITIONAL_YAML_COMMAND=$(cat .lagoon.yml | shyaml get-value additional-yaml.$ADDITIONAL_YAML.command apply)
-  ADDITIONAL_YAML_IGNORE_ERROR=$(cat .lagoon.yml | shyaml get-value additional-yaml.$ADDITIONAL_YAML.ignore_error false)
-  ADDITIONAL_YAML_IGNORE_ERROR="${ADDITIONAL_YAML_IGNORE_ERROR,,}" # convert to lowercase, as shyaml returns "True" if the yaml is set to "true"
-  . /kubectl-build-deploy/scripts/exec-additional-yaml.sh
-done
 
 .  /kubectl-build-deploy/build-deploy-docker-compose.sh

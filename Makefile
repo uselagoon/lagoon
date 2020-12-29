@@ -926,7 +926,7 @@ api-development: build/api build/api-db build/local-api-data-watcher-pusher buil
 KIND_VERSION = v0.9.0
 GOJQ_VERSION = v0.11.2
 KIND_IMAGE = kindest/node:v1.19.1@sha256:98cf5288864662e37115e362b23e4369c8c4a408f99cbc06e58ac30ddc721600
-TESTS = [features-kubernetes,nginx,drupal-php72,drupal-php73,drupal-php74,drupal-postgres,python]
+TESTS = [api,features-kubernetes,nginx,drupal-php72,drupal-php73,drupal-php74,drupal-postgres,python]
 CHARTS_TREEISH = main
 
 local-dev/kind:
@@ -991,6 +991,19 @@ kind/cluster: local-dev/kind
 		&& echo -e '\nOr running locally:\n' \
 		&& echo -e './local-dev/kind export kubeconfig --name "$(CI_BUILD_TAG)"\n' \
 		&& echo -e 'kubectl ...\n'
+		$(MAKE) kind/cluster-osx-ip
+
+kind/cluster-osx-ip:
+ifeq ($(ARCH), darwin)
+	export KUBECONFIG="$$(pwd)/kubeconfig.kind.$(CI_BUILD_TAG)" && \
+	if ! ifconfig lo0 | grep $$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}') -q; then sudo ifconfig lo0 alias $$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}'); fi
+	docker rm --force $(CI_BUILD_TAG)-kind-proxy-32080 || true
+	docker run -d --name $(CI_BUILD_TAG)-kind-proxy-32080 \
+      --publish 32080:32080 \
+      --link $(CI_BUILD_TAG)-control-plane:target --network kind \
+      alpine/socat -dd \
+      tcp-listen:32080,fork,reuseaddr tcp-connect:target:32080
+endif
 
 KIND_SERVICES = api api-db api-redis auth-server broker controllerhandler docker-host drush-alias keycloak keycloak-db kubectl-build-deploy-dind local-api-data-watcher-pusher local-git ssh tests
 KIND_TOOLS = kind helm kubectl jq
@@ -1001,27 +1014,32 @@ kind/test: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addpr
 		&& git clone https://github.com/uselagoon/lagoon-charts.git "$$CHARTSDIR" \
 		&& cd "$$CHARTSDIR" \
 		&& git checkout $(CHARTS_TREEISH) \
-		&& export KUBECONFIG=$$(mktemp ../kubeconfig.XXX) \
-		&& KIND_CLUSTER_NAME="$(CI_BUILD_TAG)" ../local-dev/kind export kubeconfig \
+		&& export KUBECONFIG="$$(realpath ../kubeconfig.kind.$(CI_BUILD_TAG))" \
 		&& export IMAGE_REGISTRY="registry.$$(../local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
 		&& $(MAKE) install-registry HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
-		&& docker login -u admin -p Harbor12345 $$IMAGE_REGISTRY \
-		&& for image in $(KIND_SERVICES); do \
-		docker tag $(CI_BUILD_TAG)/$$image $$IMAGE_REGISTRY/$$image:$(BRANCH_NAME) \
-		&& docker push $$IMAGE_REGISTRY/$$image:$(BRANCH_NAME); \
-		done \
+		&& cd .. && $(MAKE) kind/push-images && cd "$$CHARTSDIR" \
 		&& $(MAKE) fill-test-ci-values TESTS=$(TESTS) IMAGE_TAG=$(BRANCH_NAME) \
-		HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
-		JQ=$$(realpath ../local-dev/jq) \
-		OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=$$IMAGE_REGISTRY/kubectl-build-deploy-dind:$(BRANCH_NAME) \
-		IMAGE_REGISTRY=$$IMAGE_REGISTRY \
+			HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
+			JQ=$$(realpath ../local-dev/jq) \
+			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=$$IMAGE_REGISTRY/kubectl-build-deploy-dind:$(BRANCH_NAME) \
+			IMAGE_REGISTRY=$$IMAGE_REGISTRY \
 		&& docker run --rm --network host --name ct-$(CI_BUILD_TAG) \
 			--volume "$$(pwd)/test-suite-run.ct.yaml:/etc/ct/ct.yaml" \
 			--volume "$$(pwd):/workdir" \
-			--volume "$$(realpath $$KUBECONFIG):/root/.kube/config" \
+			--volume "$$(realpath ../kubeconfig.kind.$(CI_BUILD_TAG)):/root/.kube/config" \
 			--workdir /workdir \
 			"quay.io/helmpack/chart-testing:v3.1.1" \
 			ct install
+
+.PHONY: kind/push-images
+kind/push-images:
+		export KUBECONFIG="$$(pwd)/kubeconfig.kind.$(CI_BUILD_TAG)" && \
+		export IMAGE_REGISTRY="registry.$$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
+		&& docker login -u admin -p Harbor12345 $$IMAGE_REGISTRY \
+		&& for image in $(KIND_SERVICES); do \
+			docker tag $(CI_BUILD_TAG)/$$image $$IMAGE_REGISTRY/$$image:$(BRANCH_NAME) \
+			&& docker push $$IMAGE_REGISTRY/$$image:$(BRANCH_NAME); \
+		done
 
 .PHONY: kind/clean
 kind/clean: local-dev/kind
