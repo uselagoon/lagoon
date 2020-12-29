@@ -1006,11 +1006,13 @@ ifeq ($(ARCH), darwin)
 endif
 
 KIND_SERVICES = api api-db api-redis auth-server broker controllerhandler docker-host drush-alias keycloak keycloak-db kubectl-build-deploy-dind local-api-data-watcher-pusher local-git ssh tests
+KIND_TESTS = local-api-data-watcher-pusher local-git tests
 KIND_TOOLS = kind helm kubectl jq
 
 .PHONY: kind/test
 kind/test: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addprefix build/,$(KIND_SERVICES))
 	export CHARTSDIR=$$(mktemp -d ./lagoon-charts.XXX) \
+		&& ln -sfn "$$CHARTSDIR" lagoon-charts.kind.lagoon \
 		&& git clone https://github.com/uselagoon/lagoon-charts.git "$$CHARTSDIR" \
 		&& cd "$$CHARTSDIR" \
 		&& git checkout $(CHARTS_TREEISH) \
@@ -1040,6 +1042,30 @@ kind/push-images:
 			docker tag $(CI_BUILD_TAG)/$$image $$IMAGE_REGISTRY/$$image:$(BRANCH_NAME) \
 			&& docker push $$IMAGE_REGISTRY/$$image:$(BRANCH_NAME); \
 		done
+
+## Use kind/retest to only perform a push of the local-dev, or test images, and run the tests
+## It preserves the last build lagoon core&remote setup, reducing rebuild time
+.PHONY: kind/retest
+kind/retest:
+		export KUBECONFIG="$$(pwd)/kubeconfig.kind.$(CI_BUILD_TAG)" && \
+		export IMAGE_REGISTRY="registry.$$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
+		&& docker login -u admin -p Harbor12345 $$IMAGE_REGISTRY \
+		&& for image in $(KIND_TESTS); do \
+			docker tag $(CI_BUILD_TAG)/$$image $$IMAGE_REGISTRY/$$image:$(BRANCH_NAME) \
+			&& docker push $$IMAGE_REGISTRY/$$image:$(BRANCH_NAME); \
+		done \
+		&& cd lagoon-charts.kind.lagoon \
+		&& $(MAKE) install-tests TESTS=$(TESTS) IMAGE_TAG=$(BRANCH_NAME) \
+			HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
+			JQ=$$(realpath ../local-dev/jq) \
+			IMAGE_REGISTRY=$$IMAGE_REGISTRY \
+		&& docker run --rm --network host --name ct-$(CI_BUILD_TAG) \
+			--volume "$$(pwd)/test-suite-run.ct.yaml:/etc/ct/ct.yaml" \
+			--volume "$$(pwd):/workdir" \
+			--volume "$$(realpath ../kubeconfig.kind.$(CI_BUILD_TAG)):/root/.kube/config" \
+			--workdir /workdir \
+			"quay.io/helmpack/chart-testing:v3.1.1" \
+			ct install
 
 .PHONY: kind/clean
 kind/clean: local-dev/kind
