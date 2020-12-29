@@ -6,7 +6,7 @@
     HEADER_Host: "{{ host }}"
     validate_certs: no
   register: result
-  until: result.content | search(expected_content)
+  until: result.content is search(expected_content)
   retries: 90
   delay: 10
 - name: "{{ testname }} - Check if URL {{url}} with sending Host: {{ host }} contains content {{expected_content}}"

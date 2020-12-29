@@ -20,7 +20,7 @@ access_token = jwt.decode(grant['access_token'], verify=False)
 current_time = int(time.time())
 
 if current_time < access_token['exp']:
-  print grant_raw
+  print(grant_raw)
 else:
   data = {'client_id': 'auth-server',
           'client_secret': auth_server_client_secret,
@@ -28,5 +28,5 @@ else:
           'refresh_token': grant['refresh_token']}
 
   r = requests.post(url = os.environ['KEYCLOAK_URL'] + "/auth/realms/lagoon/protocol/openid-connect/token", data = data)
-  print r.text
+  print(r.text)
 

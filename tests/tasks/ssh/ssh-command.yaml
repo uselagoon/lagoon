@@ -1,6 +1,6 @@
 - name: "{{ testname }} - running {{command}} on {{username}}@{{ lookup('env','SSH_HOST') }} on port {{ lookup('env','SSH_PORT') }}, searching for '{{ expected_content }}'"
   shell: ssh {{username}}@{{ lookup('env','SSH_HOST') }} -p {{ lookup('env','SSH_PORT') }} {{command}}
   register: result
-  until: result.stdout | search(expected_content)
+  until: result.stdout is search(expected_content)
   retries: 30
   delay: 10
