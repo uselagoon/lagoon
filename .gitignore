@@ -29,3 +29,4 @@ site
 kubeconfig.*
 kindconfig.*
 kind
+lagoon-charts.*
