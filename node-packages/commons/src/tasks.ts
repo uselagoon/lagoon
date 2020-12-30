@@ -316,10 +316,14 @@ const getControllerBuildData = async function(deployData: any) {
   var projectSecret = crypto.createHash('sha256').update(`${projectName}-${jwtSecret}`).digest('hex');
   var alertContactHA = ""
   var alertContactSA = ""
+  var uptimeRobotStatusPageIds = []
   var monitoringConfig = JSON.parse(projectOpenShift.openshift.monitoringConfig) || "invalid"
   if (monitoringConfig != "invalid"){
     alertContactHA = monitoringConfig.uptimerobot.alertContactHA || ""
     alertContactSA = monitoringConfig.uptimerobot.alertContactSA || ""
+    if (monitoringConfig.uptimerobot.statusPageId) {
+      uptimeRobotStatusPageIds.push(monitoringConfig.uptimerobot.statusPageId)
+    }
   }
   var availability = projectOpenShift.availability || "STANDARD"
 
@@ -333,8 +337,12 @@ const getControllerBuildData = async function(deployData: any) {
   } else {
     alertContact = "unconfigured"
   }
+
   const billingGroup = projectBillingGroup.groups.find(i => i.type == "billing" ) || ""
-  var uptimeRobotStatusPageId = billingGroup.uptimeRobotStatusPageId || ""
+  if (billingGroup.uptimeRobotStatusPageId && billingGroup.uptimeRobotStatusPageId != "null" && !R.isEmpty(billingGroup.uptimeRobotStatusPageId)){
+    uptimeRobotStatusPageIds.push(billingGroup.uptimeRobotStatusPageId)
+  }
+  var uptimeRobotStatusPageId = uptimeRobotStatusPageIds.join('-')
 
   var pullrequestData: any = {};
   var promoteData: any = {};
