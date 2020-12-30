@@ -6,7 +6,7 @@
 
 - include: drupal/drupal.yaml
   vars:
-    testname: "Drupal 8 composer PHP 7.4 - MARIADB DBAAAS {{ lookup('env','CLUSTER_TYPE')|upper }}"
+    testname: "Drupal 8 composer PHP 7.4 - MARIADB DBAAS {{ lookup('env','CLUSTER_TYPE')|upper }}"
     drupal_version: 8
     db: mariadb
     php_version: 7.4
@@ -16,7 +16,7 @@
 
 - include: drupal/drupal.yaml
   vars:
-    testname: "Drupal 9 composer PHP 7.4 - MARIADB DBAAAS {{ lookup('env','CLUSTER_TYPE')|upper }}"
+    testname: "Drupal 9 composer PHP 7.4 - MARIADB DBAAS {{ lookup('env','CLUSTER_TYPE')|upper }}"
     drupal_version: 9
     db: mariadb
     php_version: 7.4
