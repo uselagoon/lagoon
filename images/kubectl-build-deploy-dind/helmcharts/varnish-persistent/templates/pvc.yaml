@@ -5,7 +5,7 @@ metadata:
   labels:
     {{- include "varnish-persistent.labels" . | nindent 4 }}
   annotations:
-    appuio.ch/backup: "false"
+    k8up.syn.tools/backup: "false"
     {{- include "varnish-persistent.annotations" . | nindent 4 }}
 spec:
   accessModes:
