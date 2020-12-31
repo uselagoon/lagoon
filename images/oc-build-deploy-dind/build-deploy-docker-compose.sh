@@ -842,9 +842,9 @@ if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get schedules.backup.ap
   TEMPLATE_PARAMETERS+=(-p BAAS_BUCKET_NAME="${BAAS_BUCKET_NAME}")
 
   # Pull in .lagoon.yml variables
-  MONTHLY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml keys backup-retention.monthly)
-  WEEKLY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml keys backup-retention.weekly)
-  DAILY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml keys backup-retention.daily)
+  PRODUCTION_MONTHLY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml keys production-backup-retention.monthly)
+  PRODUCTION_WEEKLY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml keys production-backup-retention.weekly)
+  PRODUCTION_DAILY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml keys production-backup-retention.daily)
 
   # Pull in Lagoon variables
   LAGOON_MONTHLY_BACKUP_RETENTION=${MONTHLY_BACKUP_DEFAULT_RETENTION}
@@ -856,18 +856,18 @@ if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get schedules.backup.ap
   TEMPLATE_PARAMETERS+=(-p LAGOON_ENVIRONMENT_TYPE="${ENVIRONMENT_TYPE}")
 
   # Set template parameters for retention values (prefer .lagoon.yml values over supplied defaults)
-  if [ ! -z $MONTHLY_BACKUP_RETENTION ] && [ "$MONTHLY_BACKUP_RETENTION" -eq "$MONTHLY_BACKUP_RETENTION" ] && [ $LAGOON_ENVIRONMENT_TYPE = 'production'] 2>/dev/null; then
+  if [ ! -z $PRODUCTION_MONTHLY_BACKUP_RETENTION ] && [ "$PRODUCTION_MONTHLY_BACKUP_RETENTION" -eq "$PRODUCTION_MONTHLY_BACKUP_RETENTION" ] && [ $LAGOON_ENVIRONMENT_TYPE = 'production'] 2>/dev/null; then
     TEMPLATE_PARAMETERS+=(-p MONTHLY_BACKUP_RETENTION="${MONTHLY_BACKUP_RETENTION}")
   else; then
     TEMPLATE_PARAMETERS+=(-p MONTHLY_BACKUP_RETENTION="${LAGOON_MONTHLY_BACKUP_RETENTION}")
   fi
-  if [ ! -z $WEEKLY_BACKUP_RETENTION ] && [ "$WEEKLY_BACKUP_RETENTION" -eq "$WEEKLY_BACKUP_RETENTION" ] && [ $LAGOON_ENVIRONMENT_TYPE = 'production'] 2>/dev/null; then
-    TEMPLATE_PARAMETERS+=(-p WEEKLY_BACKUP_RETENTION="${WEEKLY_BACKUP_RETENTION}")
+  if [ ! -z $PRODUCTION_WEEKLY_BACKUP_RETENTION ] && [ "$PRODUCTION_WEEKLY_BACKUP_RETENTION" -eq "$PRODUCTION_WEEKLY_BACKUP_RETENTION" ] && [ $LAGOON_ENVIRONMENT_TYPE = 'production'] 2>/dev/null; then
+    TEMPLATE_PARAMETERS+=(-p WEEKLY_BACKUP_RETENTION="${PRODUCTION_WEEKLY_BACKUP_RETENTION}")
   else; then
     TEMPLATE_PARAMETERS+=(-p WEEKLY_BACKUP_RETENTION="${LAGOON_WEEKLY_BACKUP_RETENTION}")
   fi
-  if [ ! -z $DAILY_BACKUP_RETENTION ] && [ "$DAILY_BACKUP_RETENTION" -eq "$DAILY_BACKUP_RETENTION" ] && [ $LAGOON_ENVIRONMENT_TYPE = 'production'] 2>/dev/null; then
-    TEMPLATE_PARAMETERS+=(-p DAILY_BACKUP_RETENTION="${DAILY_BACKUP_RETENTION}")
+  if [ ! -z $PRODUCTION_DAILY_BACKUP_RETENTION ] && [ "$PRODUCTION_DAILY_BACKUP_RETENTION" -eq "$PRODUCTION_DAILY_BACKUP_RETENTION" ] && [ $LAGOON_ENVIRONMENT_TYPE = 'production'] 2>/dev/null; then
+    TEMPLATE_PARAMETERS+=(-p DAILY_BACKUP_RETENTION="${PRODUCTION_DAILY_BACKUP_RETENTION}")
   else; then
     TEMPLATE_PARAMETERS+=(-p DAILY_BACKUP_RETENTION="${LAGOON_DAILY_BACKUP_RETENTION}")
   fi
