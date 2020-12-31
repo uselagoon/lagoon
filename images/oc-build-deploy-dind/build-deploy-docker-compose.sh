@@ -223,6 +223,31 @@ do
     fi
   fi
 
+  if [[ "$SERVICE_TYPE" == "mongodb-dbaas" ]]; then
+    # Default plan is the enviroment type
+    DBAAS_ENVIRONMENT=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.$SERVICE_TYPE\\.environment "${ENVIRONMENT_TYPE}")
+
+    # Allow the dbaas shared servicebroker plan to be overriden by environment in .lagoon.yml
+    ENVIRONMENT_DBAAS_ENVIRONMENT_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.overrides.$SERVICE_NAME.$SERVICE_TYPE\\.environment false)
+    if [ ! $DBAAS_ENVIRONMENT_OVERRIDE == "false" ]; then
+      DBAAS_ENVIRONMENT=$ENVIRONMENT_DBAAS_ENVIRONMENT_OVERRIDE
+    fi
+
+    # If we have a dbaas environment type override in the api, consume it here
+    if [ ! -z "$LAGOON_DBAAS_ENVIRONMENT_TYPES" ]; then
+      IFS=',' read -ra LAGOON_DBAAS_ENVIRONMENT_TYPES_SPLIT <<< "$LAGOON_DBAAS_ENVIRONMENT_TYPES"
+      for LAGOON_DBAAS_ENVIRONMENT_TYPE in "${LAGOON_DBAAS_ENVIRONMENT_TYPES_SPLIT[@]}"
+      do
+        IFS=':' read -ra LAGOON_DBAAS_ENVIRONMENT_TYPE_SPLIT <<< "$LAGOON_DBAAS_ENVIRONMENT_TYPE"
+        if [ "${LAGOON_DBAAS_ENVIRONMENT_TYPE[0]}" == "$SERVICE_NAME" ]; then
+          DBAAS_ENVIRONMENT_TYPE=${LAGOON_DBAAS_ENVIRONMENT_TYPE[1]}
+        fi
+      done
+    fi
+
+    MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]="$DBAAS_ENVIRONMENT"
+  fi
+
   if [ "$SERVICE_TYPE" == "none" ]; then
     continue
   fi
@@ -240,7 +265,8 @@ do
   # Do not handle images for shared services
   if  [[ "$SERVICE_TYPE" != "mariadb-dbaas" ]] &&
       [[ "$SERVICE_TYPE" != "mariadb-shared" ]] &&
-      [[ "$SERVICE_TYPE" != "mongodb-shared" ]]; then
+      [[ "$SERVICE_TYPE" != "mongodb-shared" ]] &&
+      [[ "$SERVICE_TYPE" != "mongodb-dbaas" ]]; then
     # Generate List of Images to build
     IMAGES+=("${IMAGE_NAME}")
   fi
@@ -372,6 +398,7 @@ if [[ ( "$TYPE" == "pullrequest"  ||  "$TYPE" == "branch" ) && ! $THIS_IS_TUG ==
   BUILD_ARGS+=(--build-arg LAGOON_GIT_BRANCH="${BRANCH}")
   BUILD_ARGS+=(--build-arg LAGOON_GIT_SAFE_BRANCH="${SAFE_BRANCH}")
   BUILD_ARGS+=(--build-arg LAGOON_PROJECT="${PROJECT}")
+  BUILD_ARGS+=(--build-arg LAGOON_ENVIRONMENT="${SAFE_BRANCH}")
   BUILD_ARGS+=(--build-arg LAGOON_SAFE_PROJECT="${SAFE_PROJECT}")
   BUILD_ARGS+=(--build-arg LAGOON_BUILD_TYPE="${TYPE}")
   BUILD_ARGS+=(--build-arg LAGOON_GIT_SOURCE_REPOSITORY="${SOURCE_REPOSITORY}")
@@ -1027,6 +1054,10 @@ do
         set -x
         ;;
 
+    mongodb-dbaas)
+        . /oc-build-deploy/scripts/exec-openshift-mongodb-dbaas.sh
+        ;;
+
     *)
         echo "ServiceBroker Type ${SERVICE_TYPE} not implemented"; exit 1;
 
@@ -1336,6 +1367,10 @@ do
     echo "nothing to monitor for $SERVICE_TYPE"
 
   elif [ $SERVICE_TYPE == "mariadb-shared" ]; then
+
+    echo "nothing to monitor for $SERVICE_TYPE"
+
+  elif [ $SERVICE_TYPE == "mongodb-dbaas" ]; then
 
     echo "nothing to monitor for $SERVICE_TYPE"
 
