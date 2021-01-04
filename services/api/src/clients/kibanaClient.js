@@ -2,8 +2,14 @@ const got = require('got');
 
 const { LOGSDB_ADMIN_PASSWORD } = process.env;
 
+const KIBANA_URL = propOr(
+  'http://logs-db-ui:5601/api/',
+  'KIBANA_URL',
+  process.env
+);
+
 const kibanaClient = got.extend({
-  baseUrl: 'http://logs-db-ui:5601/api/',
+  baseUrl: KIBANA_URL,
   auth: `admin:${LOGSDB_ADMIN_PASSWORD || '<password not set>'}`,
   json: true,
   headers: {
