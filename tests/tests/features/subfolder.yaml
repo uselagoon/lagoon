@@ -37,7 +37,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
     expected_returncode: "{{ lookup('env','DELETED_STATUS_CODE') }}"
   tasks:
   - include: ../../checks/check-url-returncode.yaml
