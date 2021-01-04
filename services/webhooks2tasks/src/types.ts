@@ -6,6 +6,7 @@ export interface removeData {
   projectName: string,
   pullrequestNumber?: number,
   pullrequestTitle?: string,
+  openshiftProjectName?: string,
   forceDeleteProductionEnvironment?: boolean,
   branchName?: string,
   branch?: string,
