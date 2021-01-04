@@ -1026,6 +1026,8 @@ kind/test: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addpr
 			JQ=$$(realpath ../local-dev/jq) \
 			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=$$IMAGE_REGISTRY/kubectl-build-deploy-dind:$(SAFE_BRANCH_NAME) \
 			IMAGE_REGISTRY=$$IMAGE_REGISTRY \
+		&& $(MAKE) install-tests HELM=$$(realpath ../local-dev/helm) \
+			KUBECTL=$$(realpath ../local-dev/kubectl)
 		&& $(MAKE) run-tests HELM=$$(realpath ../local-dev/helm) \
 			KUBECTL=$$(realpath ../local-dev/kubectl)
 
