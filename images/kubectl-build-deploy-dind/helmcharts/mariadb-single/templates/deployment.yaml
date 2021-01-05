@@ -7,7 +7,7 @@ metadata:
   annotations:
     {{- include "mariadb-single.annotations" . | nindent 4 -}}
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ .Values.replicaCount | 1 }}
   strategy:
     type: Recreate
   selector:

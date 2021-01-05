@@ -7,7 +7,7 @@ metadata:
   annotations:
     {{- include "node-persistent.annotations" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ .Values.replicaCount | 1 }}
   selector:
     matchLabels:
       {{- include "node-persistent.selectorLabels" . | nindent 6 }}

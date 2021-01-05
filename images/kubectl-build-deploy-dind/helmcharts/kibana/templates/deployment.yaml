@@ -7,7 +7,7 @@ metadata:
   annotations:
     {{- include "kibana.annotations" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ .Values.replicaCount | 1 }}
   selector:
     matchLabels:
       {{- include "kibana.selectorLabels" . | nindent 6 }}
