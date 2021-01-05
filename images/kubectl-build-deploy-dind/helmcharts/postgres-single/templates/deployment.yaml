@@ -7,7 +7,7 @@ metadata:
   annotations:
     {{- include "postgres-single.annotations" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.replicaCount | 1 }}
+  replicas: {{ .Values.replicaCount }}
   strategy:
     type: Recreate
   selector:
