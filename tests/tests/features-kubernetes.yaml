@@ -18,6 +18,7 @@
     git_repo_name: features.git
     project: ci-features-{{ lookup('env','CLUSTER_TYPE') }}
     branch: ingress-annotations
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
 
 - include: features/namespace-labels.yaml
   vars:
@@ -33,6 +34,7 @@
     git_repo_name: features.git
     project: ci-features-{{ lookup('env','CLUSTER_TYPE') }}
     branch: remoteshell
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
 
 - include: features/promote.yaml
   vars:
