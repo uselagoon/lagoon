@@ -33,7 +33,7 @@ function cronScheduleMoreOftenThanXMinutes() {
   fi
 }
 
-# Taken from https://stackoverflow.com/a/8574392
+# Taken from https://stackoverflow.com/a/8574392, released under Apache licensing
 function containsElement () {
   local e match="$1"
   shift
