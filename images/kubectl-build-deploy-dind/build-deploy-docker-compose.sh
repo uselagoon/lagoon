@@ -21,6 +21,14 @@ function cronScheduleMoreOftenThan30Minutes() {
   fi
 }
 
+# Taken from https://stackoverflow.com/a/8574392
+function containsElement () {
+  local e match="$1"
+  shift
+  for e; do [[ "$e" == "$match" ]] && return 0; done
+  return 1
+}
+
 ##############################################
 ### PREPARATION
 ##############################################
@@ -934,14 +942,32 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
   TEMPLATE_PARAMETERS+=(-p BAAS_BUCKET_NAME="${BAAS_BUCKET_NAME}")
 
   # Pull in .lagoon.yml variables
-  PRODUCTION_MONTHLY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml keys production-backup-retention.monthly)
-  PRODUCTION_WEEKLY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml keys production-backup-retention.weekly)
-  PRODUCTION_DAILY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml keys production-backup-retention.daily)
+  LAGOON_YAML_KEYS=($(cat .lagoon.yml | shyaml keys))
+  if containsElement "production-backup-retention" "${LAGOON_YAML_KEYS[@]}"; then
+    LAGOON_YAML_BACKUP_RETENTION_KEYS=($(cat .lagoon.yml | shyaml keys production-backup-retention))
 
-  # Pull in Lagoon variables
-  LAGOON_MONTHLY_BACKUP_RETENTION=${MONTHLY_BACKUP_DEFAULT_RETENTION}
-  LAGOON_WEEKLY_BACKUP_RETENTION=${WEEKLY_BACKUP_DEFAULT_RETENTION}
-  LAGOON_DAILY_BACKUP_RETENTION=${DAILY_BACKUP_DEFAULT_RETENTION}
+    if containsElement "monthly" "${LAGOON_BACKUP_RETENTION_YAML_KEYS[@]}"; then
+      PRODUCTION_MONTHLY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml keys production-backup-retention.monthly -q)
+    else
+      PRODUCTION_MONTHLY_BACKUP_RETENTION=""
+    fi
+
+    if containsElement "weekly" "${LAGOON_BACKUP_RETENTION_YAML_KEYS[@]}"; then
+      PRODUCTION_WEEKLY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml keys production-backup-retention.weekly -q)
+    else
+      PRODUCTION_WEEKLY_BACKUP_RETENTION=""
+    fi
+
+    if containsElement "daily" "${LAGOON_BACKUP_RETENTION_YAML_KEYS[@]}"; then
+      PRODUCTION_DAILY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml keys production-backup-retention.daily -q)
+    else
+      PRODUCTION_DAILY_BACKUP_RETENTION=""
+    fi
+  else
+    PRODUCTION_MONTHLY_BACKUP_RETENTION=""
+    PRODUCTION_WEEKLY_BACKUP_RETENTION=""
+    PRODUCTION_DAILY_BACKUP_RETENTION=""
+  fi
 
   # Pull in environment type (development/production)
   LAGOON_ENVIRONMENT_TYPE=${ENVIRONMENT_TYPE}
@@ -967,7 +993,7 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
     _DAILY_BACKUP_RETENTION=${PRODUCTION_DAILY_BACKUP_RETENTION}
   else
     TEMPLATE_PARAMETERS+=(-p DAILY_BACKUP_RETENTION="${LAGOON_DAILY_BACKUP_RETENTION}")
-    _DAILY_BACKUP_RETENTION=&{LAGOON_DAILY_BACKUP_RETENTION}
+    _DAILY_BACKUP_RETENTION=${LAGOON_DAILY_BACKUP_RETENTION}
   fi
 
   # Let the controller decide when to run backups

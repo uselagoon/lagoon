@@ -39,6 +39,8 @@ tasks:
         command: es-curl PUT _cluster/settings -d '{"persistent":{"cluster.routing.allocation.enable":null}}'
         service: logs-db
 
+production-backup-retention:
+  monthly: 2
 environments:
   master:
     types:
