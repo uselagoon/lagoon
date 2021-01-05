@@ -968,7 +968,7 @@ helm/repos: local-dev/helm
 
 .PHONY: kind/cluster
 kind/cluster: local-dev/kind
-	# these IPs are a result of the docker config on our build nodes
+	# stand up a kind cluster configured appropriately for lagoon testing
 	./local-dev/kind get clusters | grep -q "$(CI_BUILD_TAG)" && exit; \
 		docker network create kind || true \
 		&& export KUBECONFIG=$$(mktemp) \
@@ -992,9 +992,6 @@ kind/cluster: local-dev/kind
 		&& echo -e '\nOr running locally:\n' \
 		&& echo -e './local-dev/kind export kubeconfig --name "$(CI_BUILD_TAG)"\n' \
 		&& echo -e 'kubectl ...\n'
-		$(MAKE) kind/cluster-osx-ip
-
-kind/cluster-osx-ip:
 ifeq ($(ARCH), darwin)
 	export KUBECONFIG="$$(pwd)/kubeconfig.kind.$(CI_BUILD_TAG)" && \
 	if ! ifconfig lo0 | grep $$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}') -q; then sudo ifconfig lo0 alias $$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}'); fi
@@ -1012,6 +1009,7 @@ KIND_TOOLS = kind helm kubectl jq
 
 .PHONY: kind/test
 kind/test: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addprefix build/,$(KIND_SERVICES))
+	# install lagoon charts and run lagoon test suites in a kind cluster
 	export CHARTSDIR=$$(mktemp -d ./lagoon-charts.XXX) \
 		&& ln -sfn "$$CHARTSDIR" lagoon-charts.kind.lagoon \
 		&& git clone https://github.com/uselagoon/lagoon-charts.git "$$CHARTSDIR" \
