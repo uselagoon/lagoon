@@ -19,13 +19,9 @@ spec:
       - '{{ .Values.lagoonEnvironmentType }}'
   check:
     schedule: '{{ .Values.check.schedule }}'
-    tags:
-      - '{{ .Values.lagoonEnvironmentType }}'
   prune:
     retention:
       keepDaily: '{{ .Values.prune.retention.keepDaily }}'
       keepWeekly: '{{ .Values.prune.retention.keepWeekly }}'
       keepMonthly: '{{ .Values.prune.retention.keepMonthly }}'
-      tags:
-        - '{{ .Values.lagoonEnvironmentType }}'
     schedule: '{{ .Values.prune.schedule }}'

@@ -73,17 +73,11 @@ objects:
         bucket: '${BAAS_BUCKET_NAME}'
     backup:
       schedule: '${BACKUP_SCHEDULE}'
-      tags: 
-          - '${LAGOON_ENVIRONMENT_TYPE}'
     check:
       schedule: '${CHECK_SCHEDULE}'
-      tags: 
-          - '${LAGOON_ENVIRONMENT_TYPE}'
     prune:
       retention:
         keepDaily: ${DAILY_BACKUP_RETENTION}
         keepWeekly: ${WEEKLY_BACKUP_RETENTION}
         keepMonthly: ${MONTHLY_BACKUP_RETENTION}
-        tags: 
-          - '${LAGOON_ENVIRONMENT_TYPE}'
       schedule: '${PRUNE_SCHEDULE}'
