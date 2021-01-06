@@ -9,6 +9,6 @@
   register: result
   until: result.content is search(expected_content)
   retries: 90
-  delay: 10
+  delay: 20
 - name: "{{ testname }} - Check if URL {{ url }} contains content {{ expected_content }}"
   debug: msg="Success!!!"
