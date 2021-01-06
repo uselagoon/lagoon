@@ -15,8 +15,6 @@ spec:
       bucket: '{{ .Values.baasBucketName }}'
   backup:
     schedule: '{{ .Values.backup.schedule }}'
-    tags:
-      - '{{ .Values.lagoonEnvironmentType }}'
   check:
     schedule: '{{ .Values.check.schedule }}'
   prune:
