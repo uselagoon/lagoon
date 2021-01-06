@@ -6,27 +6,27 @@
 
 - include: api/deploy-branch.yaml
   vars:
-    testname: "NODE 14 {{ lookup('env','CLUSTER_TYPE')|upper }}"
+    testname: "NODE 14 {{ cluster_type|upper }}"
     node_version: 14
     git_repo_name: node.git
-    project: ci-node-{{ lookup('env','CLUSTER_TYPE') }}
+    project: ci-node-{{ cluster_type }}
     branch: node14
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
 - include: api/deploy-branch.yaml
   vars:
-    testname: "NODE 12 {{ lookup('env','CLUSTER_TYPE')|upper }}"
+    testname: "NODE 12 {{ cluster_type|upper }}"
     node_version: 12
     git_repo_name: node.git
-    project: ci-node-{{ lookup('env','CLUSTER_TYPE') }}
+    project: ci-node-{{ cluster_type }}
     branch: node12
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
 - include: api/deploy-branch.yaml
   vars:
-    testname: "NODE 10 {{ lookup('env','CLUSTER_TYPE')|upper }}"
+    testname: "NODE 10 {{ cluster_type|upper }}"
     node_version: 10
     git_repo_name: node.git
-    project: ci-node-{{ lookup('env','CLUSTER_TYPE') }}
+    project: ci-node-{{ cluster_type }}
     branch: node10
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"

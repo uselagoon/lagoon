@@ -1,44 +1,44 @@
-- name: "{{ testname }} - create new branch {{ branch }} in {{git_repo_name}}"
+- name: "{{ testname }} - create new branch {{ branch }} in {{ git_repo_name }}"
   shell: git checkout -b {{ branch }} || git checkout {{ branch }}
   args:
-    chdir: /{{git_repo_name}}
+    chdir: /{{ git_repo_name }}
 
-- name: "{{ testname }} - copying all files from {{git_files}} into git repo {{git_repo_name}}"
+- name: "{{ testname }} - copying all files from {{ git_files }} into git repo {{ git_repo_name }}"
   synchronize:
-    src: /ansible/files/{{git_files}}
-    dest: /{{git_repo_name}}/
+    src: /ansible/files/{{ git_files }}
+    dest: /{{ git_repo_name }}/
 
-- name: "{{ testname }} - copying all files from {{docker_files}} into git repo {{git_repo_name}}"
+- name: "{{ testname }} - copying all files from {{ docker_files }} into git repo {{ git_repo_name }}"
   copy:
-    src: /ansible/files/{{docker_files}}
-    dest: /{{git_repo_name}}/
+    src: /ansible/files/{{ docker_files }}
+    dest: /{{ git_repo_name }}/
   when: docker_files is defined
 
 - name: "{{ testname }} - removing cronjobs from .lagoon.yml"
   copy:
-    src: /{{git_repo_name}}/{{overwrite_lagoon_yml}}
-    dest: /{{git_repo_name}}/.lagoon.yml
+    src: /{{ git_repo_name }}/{{ overwrite_lagoon_yml }}
+    dest: /{{ git_repo_name }}/.lagoon.yml
   when: overwrite_lagoon_yml is defined
 
-- name: "{{ testname }} - git adding all files from {{git_files}} to git repo {{git_repo_name}}"
+- name: "{{ testname }} - git adding all files from {{ git_files }} to git repo {{ git_repo_name }}"
   command: git add .
   args:
-    chdir: /{{git_repo_name}}
+    chdir: /{{ git_repo_name }}
 
-- name: "{{ testname }} - git commit to git repo {{git_repo_name}}"
+- name: "{{ testname }} - git commit to git repo {{ git_repo_name }}"
   command: git commit -m "push"
   args:
-    chdir: /{{git_repo_name}}
+    chdir: /{{ git_repo_name }}
 
-- name: "{{ testname }} - force push branch {{ branch }} to remote in git repo {{git_repo_name}}"
+- name: "{{ testname }} - force push branch {{ branch }} to remote in git repo {{ git_repo_name }}"
   command: git push --force origin {{ branch }}
   args:
-    chdir: /{{git_repo_name}}
+    chdir: /{{ git_repo_name }}
 
-- name: "{{ testname }} - getting current head git hash in repo {{git_repo_name}}"
+- name: "{{ testname }} - getting current head git hash in repo {{ git_repo_name }}"
   command: git rev-parse HEAD
   args:
-    chdir: /{{git_repo_name}}
+    chdir: /{{ git_repo_name }}
   register: result
 
 - set_fact:

@@ -44,7 +44,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}/asdf"
+    url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/asdf"
     host: "redirect-to-example.com"
     expected_redirect_location: "https://example.com/asdf$"
   tasks:
@@ -84,6 +84,6 @@
   serial: 1
   vars:
     url: "{{ check_url }}"
-    expected_returncode: "{{ lookup('env','DELETED_STATUS_CODE') }}"
+    expected_returncode: "{{ del_status_code }}"
   tasks:
   - include: ../../checks/check-url-returncode.yaml

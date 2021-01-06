@@ -58,6 +58,6 @@
   serial: 1
   vars:
     url: "{{ check_url }}"
-    expected_returncode: "{{ lookup('env','DELETED_STATUS_CODE') }}"
+    expected_returncode: "{{ del_status_code }}"
   tasks:
   - include: ../../checks/check-url-returncode.yaml

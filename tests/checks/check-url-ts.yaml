@@ -1,5 +1,5 @@
 ---
-- name: "{{ testname }} - Check if URL {{url}} returns a timestamp that is more than 90 seconds less than the current time."
+- name: "{{ testname }} - Check if URL {{ url }} returns a timestamp that is more than 90 seconds less than the current time."
   uri:
     url: "{{ url }}"
     return_content: yes
@@ -9,5 +9,5 @@
   retries: 90
   delay: 10
   failed_when: false
-- name: "{{ testname }} - Check if URL {{url}} returns a timestamp that is more than 90 seconds less than the current time."
+- name: "{{ testname }} - Check if URL {{ url }} returns a timestamp that is more than 90 seconds less than the current time."
   debug: msg="Success!!!"

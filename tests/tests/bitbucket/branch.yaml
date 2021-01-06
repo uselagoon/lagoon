@@ -13,7 +13,7 @@
   serial: 1
   vars:
     git_hash_push: "{{ current_head }}"
-    git_repo_ssh_url: "{{ lookup('env','WEBHOOK_REPO_PREFIX') }}{{ git_repo_name }}"
+    git_repo_ssh_url: "{{ localgit_url }}/{{ git_repo_name }}"
   tasks:
   - include: ../../tasks/webhook-bitbucket/push.yaml
 
@@ -36,7 +36,7 @@
   serial: 1
   vars:
     git_hash_push: "{{ current_head }}"
-    git_repo_ssh_url: "{{ lookup('env','WEBHOOK_REPO_PREFIX') }}{{ git_repo_name }}"
+    git_repo_ssh_url: "{{ localgit_url }}/{{ git_repo_name }}"
   tasks:
   - include: ../../tasks/webhook-bitbucket/push.yaml
 
@@ -67,7 +67,7 @@
   serial: 1
   vars:
     git_hash_push: "{{ third_commit_hash }}"
-    git_repo_ssh_url: "{{ lookup('env','WEBHOOK_REPO_PREFIX') }}{{ git_repo_name }}"
+    git_repo_ssh_url: "{{ localgit_url }}/{{ git_repo_name }}"
   tasks:
   - include: ../../tasks/webhook-bitbucket/push.yaml
 
@@ -82,7 +82,7 @@
   hosts: localhost
   serial: 1
   vars:
-    git_repo_ssh_url: "{{ lookup('env','WEBHOOK_REPO_PREFIX') }}{{ git_repo_name }}"
+    git_repo_ssh_url: "{{ localgit_url }}/{{ git_repo_name }}"
   tasks:
   - include: ../../tasks/webhook-bitbucket/push-delete.yaml
 
@@ -91,6 +91,6 @@
   serial: 1
   vars:
     url: "{{ check_url }}"
-    expected_returncode: "{{ lookup('env','DELETED_STATUS_CODE') }}"
+    expected_returncode: "{{ del_status_code }}"
   tasks:
   - include: ../../checks/check-url-returncode.yaml

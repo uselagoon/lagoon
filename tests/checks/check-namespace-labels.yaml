@@ -1,5 +1,5 @@
 ---
-- name: "{{ testname }} - Check if {{project}} namespace is labelled"
+- name: "{{ testname }} - Check if {{ project }} namespace is labelled"
   shell: |
     set -e
     # create the $label and $value variables from item
@@ -11,5 +11,5 @@
   retries: 30
   delay: 10
   until: result.rc == 0
-- name: "{{ testname }} - Check if {{project}} namespace is labelled"
+- name: "{{ testname }} - Check if {{ project }} namespace is labelled"
   debug: msg="Success!!!"

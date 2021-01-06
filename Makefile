@@ -320,7 +320,7 @@ $(all-k8s-tests): k3d k8s-test-services-up
 		$(MAKE) push-local-registry -j6
 		$(eval testname = $(subst k8s-tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) UPSTREAM_REPO=$(UPSTREAM_REPO) UPSTREAM_TAG=$(UPSTREAM_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility run --rm \
-			tests-kubernetes ansible-playbook --skip-tags="skip-on-kubernetes,skip-on-jenkins" \
+			tests-kubernetes ansible-playbook --skip-tags="skip-on-kubernetes,skip-on-jenkins" --extra-vars="@/ansible/tests/vars/test_vars.yaml" \
 			/ansible/tests/$(testname).yaml \
 			--extra-vars \
 			"$$(cat $$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)') | \
@@ -1026,13 +1026,13 @@ kind/test: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addpr
 			JQ=$$(realpath ../local-dev/jq) \
 			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=$$IMAGE_REGISTRY/kubectl-build-deploy-dind:$(SAFE_BRANCH_NAME) \
 			IMAGE_REGISTRY=$$IMAGE_REGISTRY \
-		&& $(MAKE) install-tests TESTS=$(TESTS) IMAGE_TAG=$(SAFE_BRANCH_NAME) \
-			HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
-			JQ=$$(realpath ../local-dev/jq) \
-			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=$$IMAGE_REGISTRY/kubectl-build-deploy-dind:$(SAFE_BRANCH_NAME) \
-			IMAGE_REGISTRY=$$IMAGE_REGISTRY \
-		&& $(MAKE) run-tests HELM=$$(realpath ../local-dev/helm) \
-			KUBECTL=$$(realpath ../local-dev/kubectl)
+		&& docker run --rm --network host --name ct-$(CI_BUILD_TAG) \
+			--volume "$$(pwd)/test-suite-run.ct.yaml:/etc/ct/ct.yaml" \
+			--volume "$$(pwd):/workdir" \
+			--volume "$$(realpath ../kubeconfig.kind.$(CI_BUILD_TAG)):/root/.kube/config" \
+			--workdir /workdir \
+			"quay.io/helmpack/chart-testing:v3.1.1" \
+			ct install
 
 .PHONY: kind/push-images
 kind/push-images:
@@ -1060,8 +1060,13 @@ kind/retest:
 			HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
 			JQ=$$(realpath ../local-dev/jq) \
 			IMAGE_REGISTRY=$$IMAGE_REGISTRY \
-		&& $(MAKE) run-tests HELM=$$(realpath ../local-dev/helm) \
-			KUBECTL=$$(realpath ../local-dev/kubectl)
+		&& docker run --rm --network host --name ct-$(CI_BUILD_TAG) \
+			--volume "$$(pwd)/test-suite-run.ct.yaml:/etc/ct/ct.yaml" \
+			--volume "$$(pwd):/workdir" \
+			--volume "$$(realpath ../kubeconfig.kind.$(CI_BUILD_TAG)):/root/.kube/config" \
+			--workdir /workdir \
+			"quay.io/helmpack/chart-testing:v3.1.1" \
+			ct install
 
 .PHONY: kind/clean
 kind/clean: local-dev/kind

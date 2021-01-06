@@ -6,9 +6,9 @@
 
 - include: python/deploy-branch.yaml
   vars:
-    testname: "PYTHON 3.7 {{ lookup('env','CLUSTER_TYPE')|upper }}"
+    testname: "PYTHON 3.7 {{ cluster_type|upper }}"
     python_version: 3.7
     git_repo_name: python.git
-    project: ci-python-{{ lookup('env','CLUSTER_TYPE') }}
+    project: ci-python-{{ cluster_type }}
     branch: python37
-    check_url: "http://python.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    check_url: "http://python.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"

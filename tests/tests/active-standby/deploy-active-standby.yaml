@@ -1,9 +1,9 @@
-- name: "{{ testname }} - POST api switchActiveStandby with target project {{ project }} (no sha) to {{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+- name: "{{ testname }} - POST api switchActiveStandby with target project {{ project }} (no sha) to {{ graphql_url }}"
   block:
     - include: ../../tasks/api/refresh-token.yaml
-    - name: "{{ testname }} - POST api switchActiveStandby with target git branch {{ standby_branch }} and project {{ project }} (no sha) to {{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+    - name: "{{ testname }} - POST api switchActiveStandby with target git branch {{ standby_branch }} and project {{ project }} (no sha) to {{ graphql_url }}"
       uri:
-        url: "{{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+        url: "{{ graphql_url }}"
         method: POST
         headers:
           Authorization: "Bearer {{ token }}"
@@ -11,12 +11,12 @@
         body: '{ "query": "mutation($projectName: String!) {switchActiveStandby(input:{project:{name:$projectName}}){id}}", "variables": {"projectName":"{{ project }}"}}'
       register: apiresponse
       until:
-    - name: "{{ testname }} - POST api switchActiveStandby with target project {{ project }} (no sha) to {{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+    - name: "{{ testname }} - POST api switchActiveStandby with target project {{ project }} (no sha) to {{ graphql_url }}"
       debug:
         msg: "api response: {{ apiresponse.json }}"
-    - name: "{{ testname }} - POST api taskById with ID {{ apiresponse.json.data.switchActiveStandby.id }} for migration status to {{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+    - name: "{{ testname }} - POST api taskById with ID {{ apiresponse.json.data.switchActiveStandby.id }} for migration status to {{ graphql_url }}"
       uri:
-        url: "{{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+        url: "{{ graphql_url }}"
         method: POST
         headers:
           Authorization: "Bearer {{ token }}"
@@ -30,9 +30,9 @@
       fail:
         msg: "The route migration failed for some reason"
       when: taskresult.json.data.taskById.status == "failed"
-    - name: "{{ testname }} - POST api projectByName with project {{ project }} for final migration status to {{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+    - name: "{{ testname }} - POST api projectByName with project {{ project }} for final migration status to {{ graphql_url }}"
       uri:
-        url: "{{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+        url: "{{ graphql_url }}"
         method: POST
         headers:
           Authorization: "Bearer {{ token }}"

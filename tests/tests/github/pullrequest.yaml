@@ -40,7 +40,7 @@
     git_pr_branch: "pullrequest_pr"
     git_pr_commit_hash: "{{ pr_commit_hash }}"
     git_pr_number: "1"
-    git_repo_ssh_url: "{{ lookup('env','WEBHOOK_REPO_PREFIX') }}{{ git_repo_name }}"
+    git_repo_ssh_url: "{{ localgit_url }}/{{ git_repo_name }}"
     git_pr_title: PR Title \"quoted\" & [special chars]
   tasks:
   - include: ../../tasks/webhook-github/pullrequest-opened.yaml
@@ -87,7 +87,7 @@
     git_pr_branch: "pullrequest_pr"
     git_pr_commit_hash: "{{ pr_2nd_commit_hash }}"
     git_pr_number: "1"
-    git_repo_ssh_url: "{{ lookup('env','WEBHOOK_REPO_PREFIX') }}{{ git_repo_name }}"
+    git_repo_ssh_url: "{{ localgit_url }}/{{ git_repo_name }}"
     git_pr_title: PR Title \"quoted\" & [special chars] - UPDATE
   tasks:
   - include: ../../tasks/webhook-github/pullrequest-synchronize.yaml
@@ -118,7 +118,7 @@
     git_pr_branch: "pullrequest_pr"
     git_pr_commit_hash: "00000"
     git_pr_number: "1"
-    git_repo_ssh_url: "{{ lookup('env','WEBHOOK_REPO_PREFIX') }}{{ git_repo_name }}"
+    git_repo_ssh_url: "{{ localgit_url }}/{{ git_repo_name }}"
   tasks:
   - include: ../../tasks/webhook-github/pullrequest-closed.yaml
 
@@ -127,6 +127,6 @@
   serial: 1
   vars:
     url: "{{ check_url }}"
-    expected_returncode: "{{ lookup('env','DELETED_STATUS_CODE') }}"
+    expected_returncode: "{{ del_status_code }}"
   tasks:
   - include: ../../checks/check-url-returncode.yaml
