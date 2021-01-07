@@ -55,7 +55,7 @@ Also, `php-fpm` error logging happens in `stderr`.
 **💡 If you don't like any of these configs, you have three possibilities:**
 
 1. If they are changeable via environment variables, use environment variables \(this is the preferred method, see [table of environment variables below](php-fpm.md#environment-variables)\).
-2. Create your own `fpm-pool` config and set via `php_admin_value` and `php_admin_flag`
+2. Create your own `fpm-pool` config and set via `php_admin_value` and `php_admin_flag`.
 
    1. Learn more about them in [`this documentation for Running PHP as an Apache module`](https://www.php.net/manual/en/configuration.changes.php). This documentation refers to Apache, but it is also the case for `php-fpm`\).
 
