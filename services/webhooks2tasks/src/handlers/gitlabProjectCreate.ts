@@ -16,8 +16,8 @@ export async function gitlabProjectCreate(webhook: WebhookRequestData) {
     // TODO: figure out openshift id
     const openshift = 1;
 
-    // set production environment to default master
-    const productionenvironment = "master";
+    // set production environment to default main
+    const productionenvironment = "main";
 
     const meta = {
       data: project,

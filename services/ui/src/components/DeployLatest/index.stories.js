@@ -8,7 +8,7 @@ export default {
 }
 
 seed();
-const environment = mocks.Environment(null, {name: 'master'});
+const environment = mocks.Environment(null, {name: 'main'});
 
 export const Default = () => (
   <DeployLatest pageEnvironment={environment} />

@@ -53,7 +53,7 @@ const defaultProject: Project = {
   name: 'PLACEHOLDER',
   gitUrl: 'http://github.com',
   openshift: 1,
-  productionEnvironment: 'master',
+  productionEnvironment: 'main',
   availability: 'STANDARD',
 };
 
@@ -531,7 +531,7 @@ describe('Billing Group Costs Related Queries & Mutation', () => {
                 "environments": [
                   {
                     "id": "3",
-                    "name": "Master",
+                    "name": "Main",
                     "type": "production",
                     "hits": {
                       "total": 0

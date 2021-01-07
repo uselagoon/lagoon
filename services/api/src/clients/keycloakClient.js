@@ -11,7 +11,7 @@ const ConnectionConfig = {
 };
 
 const Credentials = {
-  realmName: 'master',
+  realmName: 'main',
   username: 'admin',
   password: R.pathOr('<password not set>', ['env', 'KEYCLOAK_ADMIN_PASSWORD'], process),
   grantType: 'password',
@@ -42,7 +42,7 @@ const config = new KeycloakConfig({
 const keycloakGrantManager = new KeycloakGrantManager(config);
 
 // Override the library "validateToken" function because it is very strict about
-// verifiying the ISS, which is the URI of the keycloak server. This will almost
+// verifying the ISS, which is the URI of the keycloak server. This will almost
 // always fail since the URI will be different for end users authenticated via
 // the web console and services communicating via backchannel.
 keycloakGrantManager.validateToken = function validateToken(token, expectedType) {

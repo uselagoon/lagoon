@@ -442,7 +442,7 @@ const typeDefs = gql`
     Which branches should be deployed, can be one of:
     - \`true\` - all branches are deployed
     - \`false\` - no branches are deployed
-    - REGEX - regex of all branches that should be deployed, example: \`^(master|staging)$\`
+    - REGEX - regex of all branches that should be deployed, example: \`^(main|staging)$\`
     """
     branches: String
     """

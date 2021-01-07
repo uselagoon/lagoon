@@ -228,9 +228,9 @@ MIIJKQIBAAKCAgEA+o[...]P0yoL8BoQQG2jCvYfWh6vyglQdrDYx/o6/8ecTwXokKKh6fg1q
     activeSystemsPromote: 'lagoon_controllerBuildDeploy',
     activeSystemsRemove: 'lagoon_controllerRemove',
     activeSystemsTask: 'lagoon_controllerJob',
-    branches: faker.random.arrayElement(['true', 'false', '^(master|staging)$']),
+    branches: faker.random.arrayElement(['true', 'false', '^(main|staging)$']),
     pullrequests: faker.random.arrayElement(['true', 'false', '[BUILD]']),
-    productionEnvironment: 'master',
+    productionEnvironment: 'main',
     autoIdle: faker.random.arrayElement([0, 1]),
     storageCalc: faker.random.arrayElement([0, 1]),
     problemsUi: faker.random.arrayElement([0, 1]),
@@ -252,7 +252,7 @@ MIIJKQIBAAKCAgEA+o[...]P0yoL8BoQQG2jCvYfWh6vyglQdrDYx/o6/8ecTwXokKKh6fg1q
 mocks.Environment = (parent, args = {}, context, info) => {
   const name = args.hasOwnProperty('name')
     ? args.name
-    : faker.random.arrayElement(['master', 'staging', 'development', 'pr-42', 'pr-100', 'pr-175']);
+    : faker.random.arrayElement(['main', 'staging', 'development', 'pr-42', 'pr-100', 'pr-175']);
   let deployType, deployBaseRef, deployHeadRef;
   if (/^pr\-/.test(name)) {
     deployType = 'pullrequest';
@@ -277,7 +277,7 @@ mocks.Environment = (parent, args = {}, context, info) => {
     deployHeadRef,
     deployTitle: name,
     autoIdle: faker.random.arrayElement([0, 1]),
-    environmentType: name === 'master' ? 'production' : 'development',
+    environmentType: name === 'main' ? 'production' : 'development',
     openshiftProjectName: `${project.name}-${name}`.toLowerCase(),
     updated,
     created,
@@ -287,7 +287,7 @@ mocks.Environment = (parent, args = {}, context, info) => {
     storageMonth: mocks.EnvironmentStorageMonth(),
     hitsMonth: mocks.EnvironmentHitsMonth(),
     envVariables: [ mocks.EnvKeyValue() ],
-    route: name === 'master' ? `https://${project.name}.org` : '',
+    route: name === 'main' ? `https://${project.name}.org` : '',
     routes: `https://${project.name}.org,https://varnish-${project.name}-org-prod.us.amazee.io,https://nginx-${project.name}-org-prod.us.amazee.io`,
     monitoringUrls: '',
     deployments: [],
@@ -502,7 +502,7 @@ mocks.Query = () => ({
       ? args.project
       : mocks.Project(null, {environments: []});
     return [
-      mocks.Environment(null, {project, name: 'master'}),
+      mocks.Environment(null, {project, name: 'main'}),
       mocks.Environment(null, {project, name: 'staging'}),
       mocks.Environment(null, {project, name: 'development'}),
       mocks.Environment(null, {project, name: 'pr-' + faker.random.number({min: 1, max: 50})}),
