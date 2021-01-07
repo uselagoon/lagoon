@@ -119,7 +119,7 @@ $databases = [];
  * That is useful for primary/replica replication, as Drupal may try to connect
  * to a replica server when appropriate and if one is not available will simply
  * fall back to the single primary server (The terms primary/replica are
- * traditionally referred to as master/slave in database server documentation).
+ * traditionally referred to as primary/replica in database server documentation).
  *
  * The general format for the $databases array is as follows:
  * @code
