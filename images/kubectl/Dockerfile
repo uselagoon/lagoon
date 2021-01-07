@@ -41,9 +41,9 @@ ENV KUBECTL_VERSION=v1.16.2 \
 
 RUN apk add -U --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing aufs-util \
     && apk add --update openssl curl jq parallel \
-    && apk add --no-cache bash git openssh py-pip skopeo \
+    && apk add --no-cache bash git openssh python3 skopeo \
     && git config --global user.email "lagoon@lagoon.io" && git config --global user.name lagoon \
-    && pip install shyaml yq \
+    && pip3 install shyaml yq \
     && curl -Lo /usr/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl \
     && chmod +x /usr/bin/kubectl \
     && curl -Lo /usr/bin/yq https://github.com/mikefarah/yq/releases/download/3.3.2/yq_linux_amd64 \
