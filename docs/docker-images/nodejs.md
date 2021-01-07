@@ -4,12 +4,12 @@ The [Lagoon `node` Docker image](https://github.com/amazeeio/lagoon/blob/main/im
 
 ## Supported Versions
 
-* 10 - End of Life as of 2021-04-30
+* 10 - End of Life (EOL) as of 2021-04-30
 * 12
 * 14
 
 {% hint style="info" %}
-We stop updating end of life Node.js images usually with the Lagoon release that comes after the officialy communicated End of Life date:  https://nodejs.org/en/about/releases/.
+We stop updating EOL Node.js images usually with the Lagoon release that comes after the officially communicated EOL date: https://nodejs.org/en/about/releases/.
 {% endhint %}
 
 ## Lagoon adaptions
