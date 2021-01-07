@@ -1,16 +1,16 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/amazeeio/lagoon/master/docs/images/lagoon-logo.png" alt="The Lagoon logo is a blue hexagon split in two pieces with an L-shaped cut" width="40%">
+  <img src="https://raw.githubusercontent.com/amazeeio/lagoon/main/docs/images/lagoon-logo.png" alt="The Lagoon logo is a blue hexagon split in two pieces with an L-shaped cut" width="40%">
 </p>
 
 # amazee.io Lagoon - Docker Build and Deploy System for OpenShift & Kubernetes
 
 Lagoon solves what developers are dreaming about: A system that allows developers to locally develop their code and their services with Docker and run the exact same system in production. The same Docker images, the same service configurations and the same code.
 
-Please reference our [documentation](https://lagoon.readthedocs.io/) for detailed information on using, developing, and administering Lagoon.
+Please reference our [documentation](https://docs.lagoon.sh/) for detailed information on using, developing, and administering Lagoon.
 
 ## Contribute
 
-Do you want to contribute to Lagoon? Fabulous! [See our Documentation](https://lagoon.readthedocs.io/en/latest/contributing/) on how to get started.
+Do you want to contribute to Lagoon? Fabulous! [See our Documentation](https://docs.lagoon.sh/contributing-to-lagoon/contributing) on how to get started.
 
 ## Services
 

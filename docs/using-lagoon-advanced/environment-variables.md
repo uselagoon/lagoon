@@ -151,7 +151,7 @@ DB_USER=$DB_USERNAME # Redefine DB_USER with the value of DB_USERNAME e.g. if yo
 
 ### `.lagoon.env.$BRANCHNAME`
 
-If you want to define environment variables different per environment you can create a `.lagoon.env.$BRANCHNAME` e.g. for the master branch `.lagoon.env.master`. This helps you keeping environment variables apart between environments.
+If you want to define environment variables different per environment you can create a `.lagoon.env.$BRANCHNAME` e.g. for the main branch `.lagoon.env.main`. This helps you keeping environment variables apart between environments.
 
 ### `.env` and `.env.defaults`
 

@@ -43,7 +43,7 @@ routes:
   insecure: Redirect
 
 environments:
-  master:
+  main:
     monitoring_urls:
       - "https://www.example.com"
       - "https://www.example.com/special_page"
@@ -62,7 +62,7 @@ environments:
     types:
       mariadb: mariadb
     templates:
-      mariadb: mariadb.master.deployment.yml
+      mariadb: mariadb.main.deployment.yml
     rollouts:
       mariadb: statefulset
     cronjobs:
@@ -117,7 +117,7 @@ Common uses for post-rollout tasks include running `drush updb`, `drush cim`, or
 * `shell`
   * Which shell should be used to run the task in. By default `sh` is used, but if the container also has other shells \(like `bash`, you can define it here\). This is useful if you want to run some small if/else bash scripts within the post-rollouts. \(see the example above how to write a script with multiple lines\).
 
-Note: If you would like to temporarily disable pre/post-rollout tasks during a deployment, you can set either of the following environment variables in the API at the project or environment level \(see how on [Environment Variables](https://github.com/AlannaBurke/lagoon/tree/6615c2080c5f92ec0e38e828ddd4d33f196f62cd/docs/using-lagoon-the-basics/environment_variables.md)\).
+Note: If you would like to temporarily disable pre/post-rollout tasks during a deployment, you can set either of the following environment variables in the API at the project or environment level \(see how on [Environment Variables](https://github.com/amazeeio/lagoon/blob/main/docs/using-lagoon-advanced/environment-variables.md)\).
 
 * `LAGOON_PREROLLOUT_DISABLED=true`
 * `LAGOON_POSTROLLOUT_DISABLED=true`
@@ -171,7 +171,7 @@ routes:
 
 ## Environments
 
-Environment names match your deployed branches or pull requests. This allows for each environment to have a different config. In our example it will apply to the `master` and `staging` environment.
+Environment names match your deployed branches or pull requests. This allows for each environment to have a different config. In our example it will apply to the `main` and `staging` environment.
 
 ### `environments.[name].monitoring_urls`
 
@@ -306,9 +306,9 @@ Sometimes you might want to override the **template** just for a single environm
 {% tab title=".lagoon.yml" %}
 ```yaml
 environments:
-  master:
+  main:
     templates:
-      mariadb: mariadb.master.deployment.yml
+      mariadb: mariadb.main.deployment.yml
 ```
 {% endtab %}
 {% endtabs %}
@@ -330,7 +330,7 @@ Example:
 {% tab title=".lagoon.yml" %}
 ```yaml
 environments:
-  master:
+  main:
     rollouts:
       mariadb: statefulset
 ```
@@ -396,7 +396,7 @@ Example:
 ```yaml
 example-project-name:
   environments:
-    master:
+    main:
       routes:
         - nginx:
           - example.com

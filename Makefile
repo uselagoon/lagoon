@@ -470,7 +470,7 @@ push-docker-host-image: build/docker-host minishift/login-docker-registry
 lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build/$(image))
 	IMAGE_REPO=$(CI_BUILD_TAG) CI=false docker-compose -p $(CI_BUILD_TAG) --compatibility up -d $(deployment-test-services-rest)
 	sleep 90
-	curl -X POST -H "Content-Type: application/json" --data 'mutation { deployEnvironmentBranch(input: { project: { name: "lagoon" }, branchName: "master" } )}' http://localhost:3000/graphql
+	curl -X POST -H "Content-Type: application/json" --data 'mutation { deployEnvironmentBranch(input: { project: { name: "lagoon" }, branchName: "main" } )}' http://localhost:3000/graphql
 	make logs
 
 #######
@@ -495,7 +495,7 @@ $(publish-testlagoon-baseimages):
 		$(call docker_publish_testlagoon,$(image),$(image):$(BRANCH_NAME))
 
 
-# Publish command to amazeeio docker hub, this should probably only be done during a master deployments
+# Publish command to amazeeio docker hub, this should only be done during main deployments
 publish-testlagoon-serviceimages = $(foreach image,$(service-images),[publish-testlagoon-serviceimages]-$(image))
 # tag and push all images
 .PHONY: publish-testlagoon-serviceimages
@@ -510,7 +510,7 @@ $(publish-testlagoon-serviceimages):
 		$(call docker_publish_testlagoon,$(image),$(image):$(BRANCH_NAME))
 
 
-# Publish command to amazeeio docker hub, this should probably only be done during a master deployments
+# Publish command to amazeeio docker hub, this should only be done during main deployments
 publish-testlagoon-taskimages = $(foreach image,$(task-images),[publish-testlagoon-taskimages]-$(image))
 # tag and push all images
 .PHONY: publish-testlagoon-taskimages
@@ -547,7 +547,7 @@ $(publish-uselagoon-baseimages):
 		$(call docker_publish_uselagoon,$(image),$(image):$(LAGOON_VERSION))
 
 
-# Publish command to amazeeio docker hub, this should probably only be done during a master deployments
+# Publish command to amazeeio docker hub, this should only be done during main deployments
 publish-uselagoon-serviceimages = $(foreach image,$(service-images),[publish-uselagoon-serviceimages]-$(image))
 # tag and push all images
 .PHONY: publish-uselagoon-serviceimages
@@ -564,7 +564,7 @@ $(publish-uselagoon-serviceimages):
 		$(call docker_publish_uselagoon,$(image),$(image):$(LAGOON_VERSION))
 
 
-# Publish command to amazeeio docker hub, this should probably only be done during a master deployments
+# Publish command to amazeeio docker hub, this should only be done during main deployments
 publish-uselagoon-taskimages = $(foreach image,$(task-images),[publish-uselagoon-taskimages]-$(image))
 # tag and push all images
 .PHONY: publish-uselagoon-taskimages
@@ -763,7 +763,7 @@ else
 endif
 
 ifeq ($(DOCKER_DRIVER), btrfs)
-# https://github.com/rancher/k3d/blob/master/docs/faq.md
+# https://github.com/rancher/k3d/blob/main/docs/faq/faq.md
 K3D_BTRFS_VOLUME := --volume /dev/mapper:/dev/mapper
 else
 K3D_BTRFS_VOLUME :=
