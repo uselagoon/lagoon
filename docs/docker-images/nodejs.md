@@ -9,15 +9,15 @@ The [Lagoon `node` Docker image](https://github.com/amazeeio/lagoon/blob/main/im
 * 14
 
 {% hint style="info" %}
-We stop updating end of life Node.js images usually with the lagoon release after the officialy communicated End of life date https://nodejs.org/en/about/releases/
+We stop updating end of life Node.js images usually with the Lagoon release that comes after the officialy communicated End of Life date:  https://nodejs.org/en/about/releases/.
 {% endhint %}
 
 ## Lagoon adaptions
-We ship 2 versions of Node.js images the normal node:version image and the node:version-builder
+We ship 2 versions of Node.js images: the normal `node:version` image and the `node:version-builder`.
 
-The builder variant of those images comes with additional tooling that is needed when you run node.js builds for a full list check out the [Dockerfile](https://github.com/amazeeio/lagoon/blob/main/images/node/builder/Dockerfile)
+The builder variant of those images comes with additional tooling that is needed when you run Node.js builds. For a full list check out the [Dockerfile](https://github.com/amazeeio/lagoon/blob/main/images/node/builder/Dockerfile).
 
-The default exposed port of node containers is Port `3000`.
+The default exposed port of node containers is port `3000`.
 
 ## Environment Variables
 Environment variables are meant to contain common information for the PHP container.
