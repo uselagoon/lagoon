@@ -171,7 +171,7 @@ function check_routes() {
 			if [ -z "$ROUTE_HOSTNAME_IP" ]; then
 				DNS_ERROR="No A or CNAME record set"
 			else
-				DNS_ERROR="$ROUTE_HOSTNAME in $ROUTE_NAMESPACE has no DNS record poiting to ${CLUSTER_IPS[*]} and going to disable tls-acme"
+				DNS_ERROR="$ROUTE_HOSTNAME in $ROUTE_NAMESPACE has no DNS record pointing to ${CLUSTER_IPS[*]} therefore we have temporarily disabled the tls-acme process"
 			fi
 
 			# Print the error on stdout
@@ -230,7 +230,7 @@ function notify_customer() {
 		return 0
 	fi
 
-	MESSAGE="Your $ROUTE_HOSTNAME route is configured in the \`.lagoon.yml\` file to issue an TLS certificate from Lets Encrypt. Unfortunately Lagoon is unable to issue a certificate as $DNS_ERROR.\nTo be issued correctly, the DNS records for $ROUTE_HOSTNAME should point to $CLUSTER_HOSTNAME with an CNAME record (preferred) or to ${CLUSTER_IPS[*]} via an A record (also possible but not preferred).\nIf you don't need the SSL certificate or you are using a CDN that provides you with an TLS certificate, please update your .lagoon.yml file by setting the tls-acme parameter to false for $ROUTE_HOSTNAME, as described here:  https://docs.lagoon.sh/using-lagoon-the-basics/lagoon-yml#ssl-configuration-tls-acme.\nWe have now administratively disabled the issuing of Lets Encrypt certificate for $ROUTE_HOSTNAME in order to protect the cluster, this will be reset during the next deployment, therefore we suggest to resolve this issue as soon as possible. Feel free to reach out to us for further information.\nThanks you.\namazee.io team"
+	MESSAGE="The $ROUTE_HOSTNAME route is configured in the \`.lagoon.yml\` file to issue a TLS certificate from Let's Encrypt. Unfortunately Lagoon is unable to issue a certificate as $DNS_ERROR.\n\nTo fix this issue, the DNS records for $ROUTE_HOSTNAME should point to $CLUSTER_HOSTNAME with a CNAME record (preferred) to your provided Lagoon region or \"A record(s)\" to ${CLUSTER_IPS[*]} (tolerable).\n\nIf you don't need the SSL certificate or you are using a CDN that provides you with a TLS certificate, please update your .lagoon.yml file by setting the tls-acme parameter to false for $ROUTE_HOSTNAME, as described here:  https://docs.lagoon.sh/using-lagoon-the-basics/lagoon-yml#ssl-configuration-tls-acme.\n\nWe have now administratively disabled the issuing of the Let's Encrypt certificate for $ROUTE_HOSTNAME in order to protect the cluster. However this will be reset during the next deployment, therefore we suggest that you resolve this issue as soon as possible. Feel free to reach out to us for further information.\n\nThank you,\nthe amazee.io team"
 
 	NOTIFICATION_DATA=($(lagoon list $NOTIFICATION -p "$1" --no-header|awk '{print $3";"$4}'))
 	for notification in ${NOTIFICATION_DATA[@]}
