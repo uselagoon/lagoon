@@ -7,7 +7,7 @@
   register: result
   until: ( lookup('pipe','date +%s')|int - result.content|int ) >= 90
   retries: 90
-  delay: 10
+  delay: 20
   failed_when: false
 - name: "{{ testname }} - Check if URL {{ url }} returns a timestamp that is more than 90 seconds less than the current time."
   debug: msg="Success!!!"
