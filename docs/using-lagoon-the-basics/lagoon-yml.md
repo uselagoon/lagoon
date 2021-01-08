@@ -41,7 +41,7 @@ tasks:
 
 routes:
   autogenerate:
-  insecure: Redirect
+    insecure: Redirect
 
 environments:
   master:
