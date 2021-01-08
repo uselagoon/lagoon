@@ -34,7 +34,7 @@ Instead of an `.amazeeio.yml` file, Lagoon projects now are mostly configured vi
 * Custom routes.
 * and many more!
 
-See [`.lagoon.yml` ](../using-lagoon-the-basics/lagoon-yml.md)for more!
+See [.lagoon.yml](../using-lagoon-the-basics/lagoon-yml.md) for more!
 
 ## Renaming of `before_deploy` and `after_deploy` - plus their location has moved
 

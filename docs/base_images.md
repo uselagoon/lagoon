@@ -200,7 +200,7 @@ With our testing done, we can now tag and build the images.
 
 #### Step 3 - Tagging images
 
-Images are versioned based on their [Git tags](https://git-scm.com/docs/git-tag) - these should follow standard [semantic versioning ](https://semver.org/)\(semver\) practices. All tags should have the structure **vX.Y.Z** where X, Y, and Z are integers \(to be precise the X.Y.Z are themselves the semantic version - the vX.Y.Z is a tag\). This is an assumption that is used to determine the image tags, so it _must_ be adhered to.
+Images are versioned based on their [Git tags](https://git-scm.com/docs/git-tag) - these should follow standard [semantic versioning](https://semver.org/) \(semver\) practices. All tags should have the structure **vX.Y.Z** where X, Y, and Z are integers \(to be precise the X.Y.Z are themselves the semantic version - the vX.Y.Z is a tag\). This is an assumption that is used to determine the image tags, so it _must_ be adhered to.
 
 In this example we will be tagging a new version of the Drupal 8 base image indicating that we have added ClamAV.
 

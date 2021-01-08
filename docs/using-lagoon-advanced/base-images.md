@@ -210,7 +210,7 @@ With our testing done, we can now tag and build the images.
 
 **Step 3 - Tagging images**
 
-Images are versioned based on their [Git tags](https://git-scm.com/docs/git-tag) - these should follow standard [semantic versioning ](https://semver.org/)\(semver\) practices. All tags should have the structure **vX.Y.Z** where X, Y, and Z are integers \(to be precise the X.Y.Z are themselves the semantic version - the vX.Y.Z is a tag\). This is an assumption that is used to determine the image tags, so it _must_ be adhered to.
+Images are versioned based on their [Git tags](https://git-scm.com/docs/git-tag) - these should follow standard [semantic versioning](https://semver.org/) \(semver\) practices. All tags should have the structure **vX.Y.Z** where X, Y, and Z are integers \(to be precise the X.Y.Z are themselves the semantic version - the vX.Y.Z is a tag\). This is an assumption that is used to determine the image tags, so it _must_ be adhered to.
 
 In this example we will be tagging a new version of the Drupal 8 base image indicating that we have added ClamAV.
 
@@ -252,7 +252,7 @@ Images are tagged using the following rules, and images will be built for each o
 **Note:** Generally you will have a trigger strategy set up here for automatic builds, but as that will differ based on your needs and setup, this explains how to build manually.
 {% endhint %}
 
-1. Visit your Lagoon Jenkins instance. 
+1. Visit your Lagoon Jenkins instance.
 2. Select the project you are working on \(in this case, AIOBI Drupal 8 Base\).
 3. Click the branch you would like to build.
 4. Click “Build Now.”
