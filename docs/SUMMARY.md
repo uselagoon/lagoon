@@ -46,23 +46,6 @@
 * [Logging](logging/logging.md)
 * [Kibana Examples](logging/kibana-examples.md)
 
-## Administering Lagoon
-
-* [Install Lagoon 1.x on OpenShift](administering-lagoon/install.md)
-* [OpenShift Requirements](administering-lagoon/openshift_requirements.md)
-* [Install local Kubernetes cluster for Lagoon](administering-lagoon/install-local-kubernetes-cluster-for-lagoon.md)
-* [GraphQL API](administering-lagoon/graphql-queries.md)
-* [Role-Based Access Control \(RBAC\)](administering-lagoon/rbac.md)
-* [Harbor](administering-lagoon/using_harbor/README.md)
-  * [Security Scanning](administering-lagoon/using_harbor/security_scanning.md)
-  * [Harbor Settings](administering-lagoon/using_harbor/harbor-settings/README.md)
-    * [Harbor-Core](administering-lagoon/using_harbor/harbor-settings/harbor-core.md)
-    * [Harbor-Database](administering-lagoon/using_harbor/harbor-settings/harbor-database.md)
-    * [Harbor-Jobservice](administering-lagoon/using_harbor/harbor-settings/harbor-jobservice.md)
-    * [Harbor-Trivy](administering-lagoon/using_harbor/harbor-settings/harbor-trivy.md)
-    * [HarborRegistry](administering-lagoon/using_harbor/harbor-settings/harborregistry.md)
-    * [HarborRegistryCtl](administering-lagoon/using_harbor/harbor-settings/harborregistryctl.md)
-
 ## Docker Images
 
 * [Elasticsearch](docker-images/elasticsearch.md)
@@ -83,11 +66,28 @@
 * [Varnish](docker-images/varnish/README.md)
   * [Varnish-Drupal](docker-images/varnish/varnish-drupal.md)
 
+## Administering Lagoon
+
+* [GraphQL API](administering-lagoon/graphql-queries.md)
+* [Role-Based Access Control \(RBAC\)](administering-lagoon/rbac.md)
+* [Harbor](administering-lagoon/using_harbor/README.md)
+  * [Security Scanning](administering-lagoon/using_harbor/security_scanning.md)
+  * [Harbor Settings](administering-lagoon/using_harbor/harbor-settings/README.md)
+    * [Harbor-Core](administering-lagoon/using_harbor/harbor-settings/harbor-core.md)
+    * [Harbor-Database](administering-lagoon/using_harbor/harbor-settings/harbor-database.md)
+    * [Harbor-Jobservice](administering-lagoon/using_harbor/harbor-settings/harbor-jobservice.md)
+    * [Harbor-Trivy](administering-lagoon/using_harbor/harbor-settings/harbor-trivy.md)
+    * [HarborRegistry](administering-lagoon/using_harbor/harbor-settings/harborregistry.md)
+    * [HarborRegistryCtl](administering-lagoon/using_harbor/harbor-settings/harborregistryctl.md)
+
 ## Contributing to Lagoon
 
+* [Developing Lagoon](contributing-to-lagoon/developing-lagoon.md)
+* [Install local Kubernetes cluster for Lagoon](contributing-to-lagoon/install-local-kubernetes-cluster-for-lagoon.md)
+* [Install Lagoon 1.x on OpenShift](contributing-to-lagoon/install/README.md)
+  * [OpenShift Requirements](contributing-to-lagoon/install/openshift_requirements.md)
 * [Code of Conduct](contributing-to-lagoon/code-of-conduct.md)
 * [Contributing](contributing-to-lagoon/contributing.md)
-* [Developing Lagoon](contributing-to-lagoon/developing-lagoon.md)
 * [Tests](contributing-to-lagoon/tests.md)
 * [API Debugging](contributing-to-lagoon/api-debugging.md)
 

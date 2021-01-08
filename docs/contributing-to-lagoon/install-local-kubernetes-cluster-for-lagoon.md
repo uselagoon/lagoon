@@ -120,7 +120,7 @@ In order to have the best experience we recommend the following:
 
 ## Configure Installed Lagoon
 
-We have a fully running Kubernetes cluster. Now it's time to configure the first project inside of it. Follow the examples in [GraphQL API](graphql-queries.md).
+We have a fully running Kubernetes cluster. Now it's time to configure the first project inside of it. Follow the examples in [GraphQL API](../administering-lagoon/graphql-queries.md).
 
 ## Clean up
 
