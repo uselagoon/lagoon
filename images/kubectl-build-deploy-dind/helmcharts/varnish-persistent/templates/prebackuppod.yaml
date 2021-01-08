@@ -31,19 +31,18 @@ spec:
       containers:
         - args:
             - sleep
-            - '3600'
+            - infinity
           envFrom:
             - configMapRef:
                 name: lagoon-env
-          image: alpine
+          image: imagecache.amazeeio.cloud/library/alpine
           imagePullPolicy: Always
           name: {{ include "varnish-persistent.fullname" . }}-prebackuppod
           volumeMounts:
-            - name: {{ .Values.persistentStorage.name }}
+            - name: {{ include "varnish-persistent.persistentStorageName" . }}
               mountPath: {{ .Values.persistentStorage.path | quote }}
       volumes:
-        - name: {{ .Values.persistentStorage.name }}
+        - name: {{ include "varnish-persistent.persistentStorageName" . }}
           persistentVolumeClaim:
-            claimName: {{ .Values.persistentStorage.name }}
+            claimName: {{ include "varnish-persistent.persistentStorageName" . }}
 {{ end }}
-

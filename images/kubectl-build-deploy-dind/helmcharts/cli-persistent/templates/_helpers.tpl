@@ -29,7 +29,6 @@ helm.sh/chart: {{ include "cli-persistent.chart" . }}
 {{ include "cli-persistent.selectorLabels" . }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{ include "cli-persistent.lagoonLabels" . }}
-
 {{- end -}}
 
 {{/*
@@ -58,6 +57,15 @@ lagoon.sh/project: {{ .Values.project }}
 lagoon.sh/environment: {{ .Values.environment }}
 lagoon.sh/environmentType: {{ .Values.environmentType }}
 lagoon.sh/buildType: {{ .Values.buildType }}
+{{- end -}}
+
+{{/*
+Datadog Admission Controller label
+*/}}
+{{- define "cli-persistent.datadogLabels" -}}
+{{- if eq .Values.environmentType "production" -}}
+admission.datadoghq.com/enabled: "true"
+{{- end -}}
 {{- end -}}
 
 {{/*

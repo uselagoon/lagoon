@@ -31,19 +31,18 @@ spec:
       containers:
         - args:
             - sleep
-            - '3600'
+            - infinity
           envFrom:
             - configMapRef:
                 name: lagoon-env
-          image: alpine
+          image: imagecache.amazeeio.cloud/library/alpine
           imagePullPolicy: Always
           name: {{ include "solr.fullname" . }}-prebackuppod
           volumeMounts:
-            - name: {{ .Values.persistentStorage.name }}
+            - name: {{ include "solr.persistentStorageName" . }}
               mountPath: {{ .Values.persistentStorage.path | quote }}
       volumes:
-        - name: {{ .Values.persistentStorage.name }}
+        - name: {{ include "solr.persistentStorageName" . }}
           persistentVolumeClaim:
-            claimName: {{ .Values.persistentStorage.name }}
+            claimName: {{ include "solr.persistentStorageName" . }}
 {{ end }}
-

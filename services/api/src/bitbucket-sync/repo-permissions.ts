@@ -27,6 +27,8 @@ const BitbucketPermsToLagoonPerms = {
   REPO_ADMIN: 'MAINTAINER'
 };
 
+const isNotEmpty = R.complement(R.isEmpty);
+
 // Returns true if user was added or already exists.
 // Returns false if adding user failed and no user exists.
 const addUser = async (email: string): Promise<boolean> => {
@@ -45,6 +47,20 @@ const addUser = async (email: string): Promise<boolean> => {
   return true;
 }
 
+const getBitbucketRepo = async (gitUrl: string, projectName: string) => {
+  // Find the repo based on gitUrl to properly sync polysite permissions
+  const repoNameFromGitUrl = R.match(/([^/]+)\.git/, gitUrl);
+  if (isNotEmpty(repoNameFromGitUrl)) {
+    const repo = await bitbucketApi.searchReposByName(repoNameFromGitUrl[1]);
+    if (repo) {
+      return repo;
+    }
+  }
+
+  // Fallback to search based on lagoon project name
+  return bitbucketApi.searchReposByName(projectName);
+}
+
 (async () => {
   // Keep track of users we know exist to avoid API calls
   let existingUsers = [];
@@ -58,17 +74,19 @@ const addUser = async (email: string): Promise<boolean> => {
   logger.info(`Syncing users for ${projects.length} project(s)`);
 
   for (const project of projects) {
-    const projectName = R.prop('name', project);
+    const gitUrl = R.prop('gitUrl', project) as string;
+    const projectName = R.prop('name', project) as string;
     const lagoonProjectGroup = `project-${projectName}`;
-    const repo = await bitbucketApi.searchReposByName(projectName);
+
+    const repo = await getBitbucketRepo(gitUrl, projectName);
     if (!repo) {
-      logger.warn(`No bitbuket repo found for: ${projectName}`);
+      logger.warn(`No bitbucket repo found for project "${projectName}", gitUrl "${gitUrl}"`);
       continue;
     }
 
     const bbProject = R.path(['project', 'key'], repo);
     const bbRepo = R.prop('slug', repo);
-    logger.debug(`Processing ${bbRepo}`);
+    logger.debug(`Processing project "${projectName}", bitbucket "${bbRepo}"`);
 
     let userPermissions = [];
     try {

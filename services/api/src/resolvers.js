@@ -17,7 +17,9 @@ const {
 const {
   getFactsByEnvironmentId,
   addFact,
+  addFacts,
   deleteFact,
+  deleteFactsFromSource,
 } = require('./resources/fact/resolvers');
 
 const {
@@ -320,7 +322,9 @@ const resolvers = {
     deleteProblemsFromSource,
     deleteProblemHarborScanMatch,
     addFact,
+    addFacts,
     deleteFact,
+    deleteFactsFromSource,
     addOrUpdateEnvironment,
     updateEnvironment,
     deleteEnvironment,

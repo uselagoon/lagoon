@@ -8,7 +8,7 @@
     validate_certs: no
   register: result
   until: result.content | search(expected_content)
-  retries: 90
+  retries: 120
   delay: 10
 - name: "{{ testname }} - Check if URL {{url}} contains content {{expected_content}}"
   debug: msg="Success!!!"

@@ -1,5 +1,6 @@
-ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-lagoon}/commons as commons
+ARG UPSTREAM_REPO
+ARG UPSTREAM_TAG
+FROM ${UPSTREAM_REPO:-uselagoon}/commons:${UPSTREAM_TAG:-latest} as commons
 FROM docker:19.03.10-dind
 
 LABEL maintainer="amazee.io"
@@ -27,14 +28,16 @@ RUN apk add --no-cache bash
 ENV DOCKER_HOST=docker-host \
     REGISTRY=docker-registry.default.svc:5000 \
     REPOSITORY_TO_UPDATE=amazeeio \
-    BIP=172.16.0.1/16
+    BIP=172.16.0.1/16 \
+    REGISTRY_MIRROR=https://imagecache.amazeeio.cloud
 
 RUN fix-permissions /home
 
 COPY update-push-images.sh /update-push-images.sh
+COPY update-images.sh /update-images.sh
 COPY prune-images.sh /prune-images.sh
 COPY remove-exited.sh /remove-exited.sh
 
 ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
 
-CMD ["sh", "-c", "sh /usr/local/bin/dind /usr/local/bin/dockerd --host=tcp://0.0.0.0:2375 --host=unix:///var/run/docker.sock --insecure-registry=${REGISTRY} --insecure-registry=172.17.0.1:8084 --bip=${BIP} --storage-driver=overlay2 --storage-opt=overlay2.override_kernel_check=1"]
+CMD ["sh", "-c", "sh /usr/local/bin/dind /usr/local/bin/dockerd --host=tcp://0.0.0.0:2375 --host=unix:///var/run/docker.sock --insecure-registry=${REGISTRY} --insecure-registry=172.17.0.1:8084 --bip=${BIP} --storage-driver=overlay2 --storage-opt=overlay2.override_kernel_check=1 --registry-mirror=${REGISTRY_MIRROR}"]

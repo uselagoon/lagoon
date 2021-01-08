@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: "{{ include "postgres-single.fullname" . }}"
+  labels:
+    {{- include "postgres-single.labels" . | nindent 4 }}
+  annotations:
+    {{- include "postgres-single.annotations" . | nindent 4 }}
+  annotations:
+    k8up.syn.tools/backup: "false"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.persistentStorage.size | quote }}

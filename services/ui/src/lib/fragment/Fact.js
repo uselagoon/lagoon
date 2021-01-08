@@ -5,5 +5,7 @@ export default gql`
     id
     name
     value
+    source
+    description
   }
 `;

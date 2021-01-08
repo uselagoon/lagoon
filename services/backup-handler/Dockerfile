@@ -1,6 +1,7 @@
 # build the binary
 ARG GO_VERSION
-ARG IMAGE_REPO
+ARG UPSTREAM_REPO
+ARG UPSTREAM_TAG
 FROM golang:${GO_VERSION:-1.13.8} AS builder
 # bring in all the packages
 # COPY main.go /go/src/github.com/amazeeio/lagoon/services/backup-handler/
@@ -17,7 +18,7 @@ RUN CGO_ENABLED=0  GOOS=linux GOARCH=amd64 go build -a -o backup-handler .
 
 # put the binary into container
 # use the commons image to get entrypoints
-FROM ${IMAGE_REPO:-lagoon}/commons
+FROM ${UPSTREAM_REPO:-uselagoon}/commons:${UPSTREAM_TAG:-latest}
 
 WORKDIR /app/
 

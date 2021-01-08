@@ -1,2 +1,3 @@
-ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-amazeeio}/elasticsearch:6
+ARG UPSTREAM_REPO
+ARG UPSTREAM_TAG
+FROM ${UPSTREAM_REPO:-testlagoon}/elasticsearch-6:${UPSTREAM_TAG:-latest}

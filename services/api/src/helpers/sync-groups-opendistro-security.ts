@@ -10,6 +10,8 @@ import { getKeycloakAdminClient } from '../clients/keycloak-admin';
   const sqlClient = getSqlClient();
   const GroupModel = Group({ keycloakAdminClient });
 
+  const groupRegex = process.env.GROUP_REGEX ? new RegExp(process.env.GROUP_REGEX) : /.*/;
+
   const allGroups = await GroupModel.loadAllGroups();
   let groupsQueue = (allGroups as Group[]).map(group => ({
     group,
@@ -20,6 +22,12 @@ import { getKeycloakAdminClient } from '../clients/keycloak-admin';
 
   while (groupsQueue.length > 0) {
     const { group, retries } = groupsQueue.shift();
+
+    if (!R.test(groupRegex, group.name)) {
+      logger.info(`Skipping ${group.name}`);
+      continue;
+    }
+
     try {
       logger.debug(`Processing ${group.name}`);
       const projectIdsArray = await GroupModel.getProjectsFromGroupAndSubgroups(group)

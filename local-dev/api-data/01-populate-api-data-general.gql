@@ -195,6 +195,39 @@ mutation PopulateApi {
   ) {
     name
   }
+  CiGroup2: addGroup(
+    input: {
+      name: "ci-group2"
+    }
+  ) {
+    id
+  }
+  CiCustomerUserAddRsa2: addUserToGroup(
+    input: {
+      user: {
+        email:"ci-customer-user-rsa@example.com"
+      }
+      group: {
+        name: "ci-group2"
+      }
+      role: OWNER
+    }
+  ) {
+    name
+  }
+  CiCustomerUserAddEd255192: addUserToGroup(
+    input: {
+      user: {
+        email:"ci-customer-user-ed25519@example.com"
+      }
+      group: {
+        name: "ci-group2"
+      }
+      role: OWNER
+    }
+  ) {
+    name
+  }
 
   # Real RocketChat Hook on the amazeeio RocketChat for testing
   CiRocketChat: addNotificationRocketChat(

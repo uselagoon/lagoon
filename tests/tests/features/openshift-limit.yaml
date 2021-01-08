@@ -17,12 +17,21 @@
   tasks:
   - include: ../../tasks/api/deploy-no-sha.yaml
 
+- name: "{{ testname }} - get the shorted url from the project {{ project }}"
+  hosts: localhost
+  serial: 1
+  vars:
+    envName: "LAGOON_SERVICE_TYPES"
+    project: "{{ project }}"
+  tasks:
+  - include: ../../tasks/api/get-openshiftprojectname-for-url.yaml
+
 - include: ../../checks/check-branch-sha.yaml
   vars:
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
     project: "{{ project }}"
-    url: "{{ check_url }}"
+    url: "http://node.{{ project | regex_replace('_', '-') }}.{{ check_url_branch }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
 
 # @TODO: Implement deletion, see https://github.com/amazeeio/lagoon/issues/1100
 # - name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"

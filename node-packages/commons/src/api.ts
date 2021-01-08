@@ -653,6 +653,23 @@ export async function getProjectByName(project: string): Promise<any> {
   return result.project;
 }
 
+export const allProjectsInGroup = (groupInput: {
+  id?: string;
+  name?: string;
+}): Promise<any[]> =>
+  graphqlapi.query(
+    `
+    query($groupInput: GroupInput!) {
+      allProjectsInGroup(input: $groupInput) {
+        ...${projectFragment}
+      }
+    }
+  `,
+    {
+      groupInput
+    }
+  );
+
 export async function getMicrosoftTeamsInfoForProject(
   project: string, contentType = 'DEPLOYMENT'
 ): Promise<any[]> {

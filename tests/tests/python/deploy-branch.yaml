@@ -1,0 +1,108 @@
+
+- name: "{{ testname }} - init git, add files, commit, git push"
+  hosts: localhost
+  serial: 1
+  vars:
+    git_files: "python{{ python_version }}/"
+  tasks:
+  - include: ../../tasks/git-init.yaml
+  - include: ../../tasks/git-add-commit-push.yaml
+
+- name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}, which should deploy the first commit"
+  hosts: localhost
+  serial: 1
+  vars:
+    branch: "{{ branch }}"
+    project: "{{ project }}"
+  tasks:
+  - include: ../../tasks/api/deploy-no-sha.yaml
+
+- include: ../../checks/check-branch-sha.yaml
+  vars:
+    expected_head: "{{ current_head }}"
+    expected_branch: "{{ branch }}"
+    project: "{{ project }}"
+    url: "{{ check_url }}"
+
+- name: "{{ testname }} - second commit (empty) and git push into same git repo"
+  hosts: localhost
+  serial: 1
+  tasks:
+  - include: ../../tasks/git-empty-commit-push.yaml
+  - set_fact:
+      second_commit_hash: "{{ current_head }}"
+
+- name: "{{ testname }} - third commit (empty) and git push into same git repo"
+  hosts: localhost
+  serial: 1
+  tasks:
+  - include: ../../tasks/git-empty-commit-push.yaml
+
+- name: "{{ testname }} - api deployEnvironmentBranch with sha of second commit on {{ project }}, which should deploy the second commit"
+  hosts: localhost
+  serial: 1
+  vars:
+    branch: "{{ branch }}"
+    project: "{{ project }}"
+    sha: "{{ second_commit_hash }}"
+  tasks:
+  - include: ../../tasks/api/deploy-sha.yaml
+
+
+- include: ../../checks/check-branch-sha.yaml
+  vars:
+    expected_head: "{{ second_commit_hash }}"
+    expected_branch: "{{ branch }}"
+    project: "{{ project }}"
+    url: "{{ check_url }}"
+
+- name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}, which should deploy the third commit"
+  hosts: localhost
+  serial: 1
+  vars:
+    branch: "{{ branch }}"
+    project: "{{ project }}"
+  tasks:
+  - include: ../../tasks/api/deploy-no-sha.yaml
+
+- include: ../../checks/check-branch-sha.yaml
+  vars:
+    expected_head: "{{ current_head }}"
+    expected_branch: "{{ branch }}"
+    project: "{{ project }}"
+    url: "{{ check_url }}"
+
+- name: "{{ testname }} - api deployEnvironmentBranch with sha of second commit on {{ project }}, which should deploy again the second commit even we had a deployment of the branch before"
+  hosts: localhost
+  serial: 1
+  vars:
+    branch: "{{ branch }}"
+    project: "{{ project }}"
+    sha: "{{ second_commit_hash }}"
+  tasks:
+  - include: ../../tasks/api/deploy-sha.yaml
+
+- include: ../../checks/check-branch-sha.yaml
+  vars:
+    expected_head: "{{ second_commit_hash }}"
+    expected_branch: "{{ branch }}"
+    project: "{{ project }}"
+    url: "{{ check_url }}"
+
+- name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ project }}"
+    branch: "{{ branch }}"
+  tasks:
+  - include: ../../tasks/api/remove.yaml
+
+- name: "{{ testname }} - check if site for {{ project }} does not exist anymore"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    expected_returncode: "{{ lookup('env','DELETED_STATUS_CODE') }}"
+  tasks:
+  - include: ../../checks/check-url-returncode.yaml

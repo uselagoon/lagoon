@@ -7,8 +7,14 @@ OPENSHIFT_REGISTRY=docker-registry.default.svc:5000
 OPENSHIFT_PROJECT=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
 REGISTRY_REPOSITORY=$OPENSHIFT_PROJECT
 
+if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
+  INTERNAL_REGISTRY_URL=$(jq --argjson data "$LAGOON_PROJECT_VARIABLES" -n -r '$data | .[] | select(.scope == "internal_container_registry") | select(.name == "INTERNAL_REGISTRY_URL") | .value' | sed -e 's#^http://##' | sed -e 's#^https://##')
+  INTERNAL_REGISTRY_USERNAME=$(jq --argjson data "$LAGOON_PROJECT_VARIABLES" -n -r '$data | .[] | select(.scope == "internal_container_registry") | select(.name == "INTERNAL_REGISTRY_USERNAME") | .value')
+  INTERNAL_REGISTRY_PASSWORD=$(jq --argjson data "$LAGOON_PROJECT_VARIABLES" -n -r '$data | .[] | select(.scope == "internal_container_registry") | select(.name == "INTERNAL_REGISTRY_PASSWORD") | .value')
+fi
+
 if [ "$CI" == "true" ]; then
-  CI_OVERRIDE_IMAGE_REPO=${OPENSHIFT_REGISTRY}/lagoon
+  CI_OVERRIDE_IMAGE_REPO=172.17.0.1:5000/lagoon
 else
   CI_OVERRIDE_IMAGE_REPO=""
 fi
@@ -39,6 +45,13 @@ set +x
 DOCKER_REGISTRY_TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
 
 docker login -u=jenkins -p="${DOCKER_REGISTRY_TOKEN}" ${OPENSHIFT_REGISTRY}
+
+INTERNAL_REGISTRY_LOGGED_IN="false"
+if [ ! -z ${INTERNAL_REGISTRY_URL} ] && [ ! -z ${INTERNAL_REGISTRY_USERNAME} ] && [ ! -z ${INTERNAL_REGISTRY_PASSWORD} ] ; then
+  if echo "docker login -u '${INTERNAL_REGISTRY_USERNAME}' -p '${INTERNAL_REGISTRY_PASSWORD}' ${INTERNAL_REGISTRY_URL}" | /bin/bash; then
+    INTERNAL_REGISTRY_LOGGED_IN="true"
+  fi
+fi
 
 DEPLOYER_TOKEN=$(cat /var/run/secrets/lagoon/deployer/token)
 
