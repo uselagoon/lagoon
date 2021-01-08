@@ -6,17 +6,17 @@
 
 - include: api/deploy-pullrequest.yaml
   vars:
-    testname: "API {{ lookup('env','CLUSTER_TYPE')|upper }} - deploy pullrequest"
+    testname: "API {{ cluster_type|upper }} - deploy pullrequest"
     node_version: 10
     git_repo_name: api.git
-    project: ci-api-{{ lookup('env','CLUSTER_TYPE') }}
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.pr-1.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    project: ci-api-{{ cluster_type }}
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.pr-1.{{ route_suffix }}"
 
 - include: api/deploy-branch.yaml
   vars:
-    testname: "API {{ lookup('env','CLUSTER_TYPE')|upper }} - deploy regular branch"
+    testname: "API {{ cluster_type|upper }} - deploy regular branch"
     node_version: 10
     git_repo_name: api.git
-    project: ci-api-{{ lookup('env','CLUSTER_TYPE') }}
+    project: ci-api-{{ cluster_type }}
     branch: api/slash/branch
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"

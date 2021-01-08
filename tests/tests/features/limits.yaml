@@ -7,7 +7,8 @@
     project: ci-env-limit
     branch: master
     expected_status: 200
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    url: "{{ check_url }}"
+
 - include: ../api/push.yaml
   vars:
     testname: "environment limits - allow deployment of existing branch"
@@ -16,7 +17,7 @@
     project: ci-env-limit
     branch: stage
     expected_status: 200
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    url: "{{ check_url }}"
 
 - include: ../api/push.yaml
   vars:
@@ -26,4 +27,4 @@
     project: ci-env-limit
     branch: will-not-deploy
     expected_status: 500
-    # check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    url: "{{ check_url }}"

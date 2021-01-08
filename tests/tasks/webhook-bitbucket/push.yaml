@@ -1,6 +1,6 @@
-- name: "{{ testname }} - POST bitbucket push webhook with target git hash {{ git_hash_push }}, branch {{ branch }} and repo {{ git_repo_ssh_url }} to {{ lookup('env','WEBHOOK_PROTOCOL') }}://{{ lookup('env','WEBHOOK_HOST') }}:{{ lookup('env','WEBHOOK_PORT') }}"
+- name: "{{ testname }} - POST bitbucket push webhook with target git hash {{ git_hash_push }}, branch {{ branch }} and repo {{ git_repo_ssh_url }} to {{ webhook_url }}"
   uri:
-    url: "{{ lookup('env','WEBHOOK_PROTOCOL') }}://{{ lookup('env','WEBHOOK_HOST') }}:{{ lookup('env','WEBHOOK_PORT') }}"
+    url: "{{ webhook_url }}"
     headers:
       User-Agent: Bitbucket-Webhooks/2.0
       X-Event-Key: repo:push

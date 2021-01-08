@@ -1,29 +1,29 @@
 - name: "{{ testname }} - make sure we are on the branch {{ branch }}"
   shell: git checkout -b {{ branch }} || git checkout {{ branch }}
   args:
-    chdir: /{{git_repo_name}}
+    chdir: /{{ git_repo_name }}
 
-- name: "{{ testname }} - create empty commit in {{git_repo_name}}"
+- name: "{{ testname }} - create empty commit in {{ git_repo_name }}"
   command: git commit -m "empty commit but [skip deploy]" --allow-empty
   args:
-    chdir: /{{git_repo_name}}
+    chdir: /{{ git_repo_name }}
 
-- name: "{{ testname }} - getting current head git hash in repo {{git_repo_name}}"
+- name: "{{ testname }} - getting current head git hash in repo {{ git_repo_name }}"
   command: git rev-parse HEAD
   args:
-    chdir: /{{git_repo_name}}
+    chdir: /{{ git_repo_name }}
   register: result
 
-- name: "{{ testname }} - getting current gitbranch in repo {{git_repo_name}}"
+- name: "{{ testname }} - getting current gitbranch in repo {{ git_repo_name }}"
   command: git symbolic-ref --short HEAD
   args:
-    chdir: /{{git_repo_name}}
+    chdir: /{{ git_repo_name }}
   register: gitbranch
 
-- name: "{{ testname }} - force push branch {{ branch }} to remote in git repo {{git_repo_name}}"
+- name: "{{ testname }} - force push branch {{ branch }} to remote in git repo {{ git_repo_name }}"
   command: git push --force origin {{ gitbranch.stdout }}
   args:
-    chdir: /{{git_repo_name}}
+    chdir: /{{ git_repo_name }}
 
 - set_fact:
     current_head: "{{ result.stdout }}"

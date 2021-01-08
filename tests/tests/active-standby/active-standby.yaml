@@ -75,8 +75,8 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
-    expected_returncode: "{{error_code_check}}"
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+    expected_returncode: "{{ error_code_check }}"
   tasks:
   - include: ../../checks/check-url-returncode.yaml
 
@@ -84,7 +84,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ standby_branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
-    expected_returncode: "{{error_code_check}}"
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ standby_branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+    expected_returncode: "{{ error_code_check }}"
   tasks:
   - include: ../../checks/check-url-returncode.yaml

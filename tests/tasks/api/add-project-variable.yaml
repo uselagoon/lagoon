@@ -1,27 +1,27 @@
-- name: "{{ testname }} - POST api add envVariable with target project {{ project }} to {{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+- name: "{{ testname }} - POST api add envVariable with target project {{ project }} to {{ graphql_url }}"
   block:
     - include: refresh-token.yaml
-    - name: "{{ testname }} - POST api get project by name with target project {{ project }} to {{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+    - name: "{{ testname }} - POST api get project by name with target project {{ project }} to {{ graphql_url }}"
       uri:
-        url: "{{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+        url: "{{ graphql_url }}"
         method: POST
         headers:
           Authorization: "Bearer {{ token }}"
         body_format: json
         body: '{ "query": "query($project: String!) {projectByName(name:$project){id,name}}", "variables": {"project":"{{ project }}"}}'
       register: apiresponse
-    - name: "{{ testname }} - POST api get project by name with target project {{ project }} and sha {{ sha }} to {{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+    - name: "{{ testname }} - POST api get project by name with target project {{ project }} and sha {{ sha }} to {{ graphql_url }}"
       debug:
         msg: "api response: {{ apiresponse.json }}"
-    - name: "{{ testname }} - POST api add envVariable with target project {{ project }} to {{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+    - name: "{{ testname }} - POST api add envVariable with target project {{ project }} to {{ graphql_url }}"
       uri:
-        url: "{{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+        url: "{{ graphql_url }}"
         method: POST
         headers:
           Authorization: "Bearer {{ token }}"
         body_format: json
         body: '{ "query": "mutation($projectId: Int!, $name: String!, $value: String!, $scope: EnvVariableScope!) {addEnvVariable(input:{type:PROJECT,typeId:$projectId,name:$name,value:$value,scope:$scope}){id,name,value,scope}}", "variables": {"projectId":{{ apiresponse.json.data.projectByName.id }},"name":"{{ envName }}","value":"{{ envValue }}","scope":"{{ envScope }}"}}'
       register: apiresponse
-    - name: "{{ testname }} - POST api add envVariable with target project {{ project }} to {{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+    - name: "{{ testname }} - POST api add envVariable with target project {{ project }} to {{ graphql_url }}"
       debug:
         msg: "api response: {{ apiresponse.json }}"
