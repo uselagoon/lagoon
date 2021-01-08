@@ -97,7 +97,7 @@ const taskMonitorPrefetch = process.env.TASKMONITOR_PREFETCH_COUNT ? Number(proc
 //    * `webhooks2tasks`
 const CI = process.env.CI || "false"
 const registry = process.env.REGISTRY || "registry.lagoon.svc:5000"
-const lagoonGitSafeBranch = process.env.LAGOON_GIT_SAFE_BRANCH || "main"
+const lagoonGitSafeBranch = process.env.LAGOON_GIT_SAFE_BRANCH || "master"
 const lagoonVersion = process.env.LAGOON_VERSION
 const lagoonEnvironmentType = process.env.LAGOON_ENVIRONMENT_TYPE || "development"
 const overwriteOCBuildDeployDindImage = process.env.OVERWRITE_OC_BUILD_DEPLOY_DIND_IMAGE
@@ -466,7 +466,7 @@ export const createDeployTask = async function(deployData: any) {
   // environments =
   //  { project:
   //     { environment_deployments_limit: 1,
-  //       production_environment: 'main',
+  //       production_environment: 'master',
   //       environments: [ { name: 'develop', environment_type: 'development' }, [Object] ] } }
 
   if (typeof project.activeSystemsDeploy === 'undefined') {

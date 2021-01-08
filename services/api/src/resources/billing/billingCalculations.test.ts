@@ -931,7 +931,7 @@ describe('Billing Calculations #only-billing-calculations', () => {
           }
         },
         {
-          name: 'main',
+          name: 'master',
           type: 'production',
           hits: {
             total: 0

@@ -346,7 +346,7 @@
             },
             {
               "id": "104036",
-              "name": "main",
+              "name": "master",
               "type": "production",
               "hits": {
                 "total": 186470
@@ -407,7 +407,7 @@
             },
             {
               "id": "106035",
-              "name": "main",
+              "name": "master",
               "type": "production",
               "hits": {
                 "total": 25720

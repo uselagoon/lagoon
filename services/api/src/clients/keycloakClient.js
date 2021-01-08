@@ -11,7 +11,7 @@ const ConnectionConfig = {
 };
 
 const Credentials = {
-  realmName: 'main',
+  realmName: 'master',
   username: 'admin',
   password: R.pathOr('<password not set>', ['env', 'KEYCLOAK_ADMIN_PASSWORD'], process),
   grantType: 'password',

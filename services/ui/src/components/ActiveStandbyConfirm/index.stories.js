@@ -22,8 +22,8 @@ export default {
 
 export const Default = ({ onProceedFunction, setInputValueFunction }) => (
   <ActiveStandby
-    activeEnvironment="main-a"
-    standbyEnvironment="main-b"
+    activeEnvironment="Master-a"
+    standbyEnvironment="Master-b"
     onProceed={onProceedFunction}
   />
 );

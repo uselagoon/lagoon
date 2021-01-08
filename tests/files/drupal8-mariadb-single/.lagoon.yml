@@ -30,7 +30,7 @@ tasks:
         service: cli
 
 environments:
-  main:
+  master:
     routes:
         - nginx:
             - "domain.com":

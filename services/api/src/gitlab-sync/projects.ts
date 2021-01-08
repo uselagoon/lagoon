@@ -28,7 +28,7 @@ const syncProject = async (project) => {
   const { id, path, ssh_url_to_repo: gitUrl, namespace } = project;
   const projectName = api.sanitizeProjectName(path);
   const openshift = 1;
-  const productionenvironment = "main";
+  const productionenvironment = "master";
   logger.debug(`Processing ${projectName}`);
 
   if (project.namespace.kind != 'group') {

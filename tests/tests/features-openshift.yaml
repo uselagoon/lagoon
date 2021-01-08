@@ -81,7 +81,7 @@
 
 - include: features/environment-templates.yaml
   vars:
-    testname: "ENVIRONMENT SPECIFIC CUSTOM DEPLOYMENT TEMPLATES {{ lookup('env','CLUSTER_TYPE')|upper }} .lagoon.yml"
+    testname: "ENVIRONMENT SPECIFIC CUSTOM DEPLOYMENT TEMPLATES {{ cluster_type|upper }} .lagoon.yml"
     git_repo_name: features.git
     project: ci-features-{{ cluster_type }}
     branch: branch/env-specific-template

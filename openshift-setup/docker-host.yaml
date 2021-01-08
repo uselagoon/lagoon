@@ -12,16 +12,16 @@ parameters:
     value: docker-host
   - name: SAFE_BRANCH
     description: Which branch this belongs to, special chars replaced with dashes
-    value: main
+    value: master
   - name: SAFE_PROJECT
     description: Which project this belongs to, special chars replaced with dashes
     value: lagoon
   - name: BRANCH
     description: Which branch this belongs to, original value
-    value: main
+    value: master
   - name: PROJECT
     description: Which project this belongs to, original value
-    value: main
+    value: master
   - name: LAGOON_GIT_SHA
     description: git hash sha of the current deployment
     value: '0000000000000000000000000000000000000000'

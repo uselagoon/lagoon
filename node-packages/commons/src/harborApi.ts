@@ -5,7 +5,7 @@ import * as R from 'ramda';
 
 const HARBOR_BASE_API_URL =
   process.env.HARBOR_BASE_API_URL ||
-  'https://harbor-nginx-lagoon-main.ch.amazee.io/api/repositories/';
+  'https://harbor-nginx-lagoon-master.ch.amazee.io/api/repositories/';
 const HARBOR_BASE_URL_POSTFIX = '/tags/latest/scan';
 const HARBOR_ACCEPT_HEADER =
   'application/vnd.scanner.adapter.vuln.report.harbor+json; version=1.0';

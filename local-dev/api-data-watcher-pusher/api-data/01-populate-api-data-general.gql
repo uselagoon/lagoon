@@ -253,7 +253,7 @@ mutation PopulateApi {
       openshift: 3
       gitUrl: "git@github.com:amazeeio/lagoon.git"
       openshiftProjectPattern: "lagoon"
-      productionEnvironment:"main"
+      productionEnvironment:"master"
     }
   ) {
     id
@@ -304,7 +304,7 @@ mutation PopulateApi {
       availability: HIGH
       openshift: 4
       gitUrl: "ssh://git@172.17.0.1:2222/git/project18.git"
-      productionEnvironment: "Main"
+      productionEnvironment: "Master"
     }
   ) {
     id
@@ -339,12 +339,12 @@ mutation PopulateApi {
   UIProject1Environment1: addOrUpdateEnvironment(
     input: {
       id: 3
-      name: "Main"
+      name: "Master"
       project: 18
       deployType: BRANCH
-      deployBaseRef: "main"
+      deployBaseRef: "Master"
       environmentType: PRODUCTION
-      openshiftProjectName: "high-cotton-main"
+      openshiftProjectName: "high-cotton-master"
     }
   ) {
     id
