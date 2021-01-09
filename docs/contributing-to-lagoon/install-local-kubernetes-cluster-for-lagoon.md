@@ -4,7 +4,7 @@ description: >-
   Kubernetes is only supported to deploy projects and environments into.
 ---
 
-# Install local Kubernetes cluster for Lagoon
+# Install Local Kubernetes Cluster for Lagoon
 
 Let's see how to install a local lightweight Kubernetes cluster using k3s by Rancher: [rancher/k3s](https://github.com/rancher/k3s)
 
@@ -116,7 +116,9 @@ In order to have the best experience we recommend the following:
 
 ## Deploy Lagoon on Kubernetes
 
-1. TODO
+{% hint style="info" %}
+Coming Soon!
+{% endhint %}
 
 ## Configure Installed Lagoon
 

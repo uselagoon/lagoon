@@ -37,7 +37,7 @@ Technically, Lagoon can use any Service Account and also needs no admin permissi
 
 In this example we create the Service Account `lagoon` in the OpenShift Project `default`.
 
-1. Make sure you have the `oc cli` tools already installed. If not, please see [here](https://docs.openshift.org/latest/cli_reference/get_started_cli.html#cli-reference-get-started-cli).
+1. Make sure you have the `oc cli` tools already installed. If not, please see documentation [here](https://docs.openshift.org/latest/cli_reference/get_started_cli.html#cli-reference-get-started-cli).
 2. Log into OpenShift as an admin:
 
    ```text

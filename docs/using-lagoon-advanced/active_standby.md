@@ -141,7 +141,7 @@ mutation updateProject {
 
 ## Notes
 
-When the active/standby trigger has been executed, the `productionEnvironment` and `standbyProductionEnvironments` will switch within the Lagoon API. Both environments are still classed as `production` environment types. We use the `productionEnvironment` to determine which one is labelled as `active`. For more information on the differences between environment types, read the [documentation for `environment types`](https://github.com/amazeeio/lagoon/tree/5cd57792f638b841dca84d99b7fcbf06af793817/docs/using-lagoon-advanced/environment_types.md#environment-types)
+When the active/standby trigger has been executed, the `productionEnvironment` and `standbyProductionEnvironments` will switch within the Lagoon API. Both environments are still classed as `production` environment types. We use the `productionEnvironment` to determine which one is labelled as `active`. For more information on the differences between environment types, read the [documentation for `environment types`](environment-types.md)
 
 ```graphql
 query projectByName {

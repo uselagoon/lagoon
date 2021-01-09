@@ -100,11 +100,11 @@ Make sure to run `yarn` in Lagoon's root directory, since some services have com
 
 ⚠ **My builds can't resolve domains**
 
-Some Internet Service Providers \(ISPs\) set up a "search domain" to catch domain name errors. Virtualbox will copy this setting into minishift, which can cause domain resolution errors in the OpenShift pods. To check for this problem, look at the `/etc/resolv.conf` in your failing pod and check for errant search domains.
+Some Internet Service Providers \(ISPs\) set up a "search domain" to catch domain name errors. VirtualBox will copy this setting into MiniShift, which can cause domain resolution errors in the OpenShift pods. To check for this problem, look at the `/etc/resolv.conf` in your failing pod and check for errant search domains.
 
 To fix, you must remove the extra search domain.
 
-* Log in to the minishift vm: `minishift ssh`.
+* Log in to the MiniShift vm: `minishift ssh`.
 * Remove the setting from `/etc/resolv.conf`.
 * Restart openshift docker: `sudo docker restart origin`.
 * Redeploy `docker-host` in the `lagoon` project.

@@ -43,7 +43,7 @@ query allProjects{
 
 ![Running a query in GraphiQL.](../.gitbook/assets/graphiql-2020-01-29-20-10-32%20%281%29%20%281%29.png)
 
-And press the ▶️button \(or press CTRL+ENTER\).
+And press the ▶️ button \(or press CTRL+ENTER\).
 
 If all went well, your first GraphQL response should appear shortly afterwards in the right pane.
 
@@ -220,7 +220,7 @@ Now for every deployment you will receive messages in your defined channel.
 ### Adding a new OpenShift target
 
 {% hint style="info" %}
-In Lagoon 1.x `addOpenshift` is used for both Openshift and Kubernetes targets. In Lagoon 2.x this will change.
+In Lagoon 1.x `addOpenshift` is used for both OpenShift and Kubernetes targets. In Lagoon 2.x this will change.
 {% endhint %}
 
 The OpenShift cluster to which Lagoon should deploy. Lagoon is not only capable of deploying to its own OpenShift, but also to any OpenShift anywhere in the world.
@@ -414,7 +414,7 @@ mutation {
 Update the production environment within a project:
 
 {% hint style="warning" %}
-This required a redeploy in order for the changes to be reflected in the containers.
+This requires a redeploy in order for the changes to be reflected in the containers.
 {% endhint %}
 
 ```graphql
@@ -504,7 +504,7 @@ query search{
 
 ## Maintaining project metadata
 
-Project metadata can be assigned using arbitrary key/value pairs. Projects can then be queried by the associated metadata; for example you may categorise projects by type of software, version number, or any other categorisation you may wish to query on later.
+Project metadata can be assigned using arbitrary key/value pairs. Projects can then be queried by the associated metadata; for example you may categorize projects by type of software, version number, or any other categorization you may wish to query on later.
 
 ### Add/update metadata on a project
 

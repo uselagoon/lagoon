@@ -44,7 +44,7 @@ With full Drush site alias support in Lagoon, you can synchronize a local databa
 {% hint style="warning" %}
 You may have to tell pygmy about your public keys before the next step.
 
-If you get an error like `Permission denied (publickey)`, check out the documentation here: [pygmy - adding ssh keys](https://pygmy.readthedocs.io/en/master/usage/#adding-ssh-keys)
+If you get an error like `Permission denied (publickey)`, check out the documentation here: [pygmy - adding ssh keys](https://docs.lagoon.sh/pygmy/ssh-agent)
 {% endhint %}
 
 First let's make sure that you can see the Drush site aliases:

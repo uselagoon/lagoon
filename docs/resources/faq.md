@@ -85,11 +85,11 @@ I'm unable to SSH into any environment. I'm getting the following message: `Perm
 
 ## **When I run `pygmy status`, no keys are loaded:**
 
-You'll need to load your SSH key into pygmy. Here's how: [https://pygmy.readthedocs.io/en/master/troubleshooting/](https://pygmy.readthedocs.io/en/master/troubleshooting/)
+You'll need to load your SSH key into pygmy. Here's how: [https://docs.lagoon.sh/pygmy/ssh-agent](https://docs.lagoon.sh/pygmy/ssh-agent)
 
 ## **When I run `drush sa` no aliases are returned:**
 
-This typically indicates an issue with Pygmy. You can find our troubleshooting docs for Pygmy here: [https://pygmy.readthedocs.io/en/master/troubleshooting/](https://pygmy.readthedocs.io/en/master/troubleshooting/).
+This typically indicates an issue with Pygmy. You can find our troubleshooting docs for Pygmy here: [https://docs.lagoon.sh/pygmy/troubleshooting](https://docs.lagoon.sh/pygmy/troubleshooting)
 
 ## My deployments fail with a message saying: "drush needs a more functional environment"
 

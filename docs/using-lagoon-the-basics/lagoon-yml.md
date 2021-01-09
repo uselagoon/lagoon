@@ -126,8 +126,6 @@ Note: If you would like to temporarily disable pre/post-rollout tasks during a d
 
 {% embed url="https://www.youtube.com/watch?v=0D8vp55z1qc&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=4" caption="How do i add a new route?" %}
 
-
-
 ### `routes.autogenerate.enabled`
 
 This allows for the disabling of the automatically created routes \(NOT the custom routes per environment, see below for them\) all together.

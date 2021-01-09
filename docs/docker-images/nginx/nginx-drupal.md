@@ -8,7 +8,7 @@ This image is prepared to be used on Lagoon. There are therefore some things alr
 
 * Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/sclorg/s2i-base-container/blob/master/core/root/usr/bin/fix-permissions), so this image will work with a random user.
 * To keep `drupal.conf` 's configuration file as clean and customizable as possible, we added `include` directives in the main sections of the file:`server`, `location /`, `location @drupal` and `location @php`.
-* Further information in the section [Drupal.conf customization](nginx-drupal.md#drupal-conf-customization).
+* Further information in the section [`Drupal.conf` customization](nginx-drupal.md#drupal-conf-customization).
 
 ## Included Drupal configuration \(`drupal.conf`\)
 

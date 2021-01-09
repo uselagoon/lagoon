@@ -83,7 +83,7 @@
 ## Contributing to Lagoon
 
 * [Developing Lagoon](contributing-to-lagoon/developing-lagoon.md)
-* [Install local Kubernetes cluster for Lagoon](contributing-to-lagoon/install-local-kubernetes-cluster-for-lagoon.md)
+* [Install Local Kubernetes Cluster for Lagoon](contributing-to-lagoon/install-local-kubernetes-cluster-for-lagoon.md)
 * [Install Lagoon 1.x on OpenShift](contributing-to-lagoon/install/README.md)
   * [OpenShift Requirements](contributing-to-lagoon/install/openshift_requirements.md)
 * [Code of Conduct](contributing-to-lagoon/code-of-conduct.md)

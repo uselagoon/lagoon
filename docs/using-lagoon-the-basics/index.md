@@ -15,7 +15,7 @@ gem install pygmy
 pygmy up
 ```
 
-[Pygmy](https://pygmy.readthedocs.io/en/master/) is an amazee.io flavored local development system.
+[Pygmy](https://docs.lagoon.sh/pygmy/) is an amazee.io flavored local development system.
 
 Learn more about Lagoon, pygmy, and [Local Development Environments](local-development-environments.md)
 
@@ -31,11 +31,11 @@ Learn more about Lagoon, pygmy, and [Local Development Environments](local-devel
 
 ### `.lagoon.yml`
 
-This is the main file that will be used by Lagoon to understand what should be deployed, as well as many other things. See [Documentation for `.lagoon.yml`](lagoon-yml.md).
+This is the main file that will be used by Lagoon to understand what should be deployed, as well as many other things. See [documentation for `.lagoon.yml`](lagoon-yml.md).
 
 ### `docker-compose.yml`
 
-This file is used by `Docker Compose` to start your local development environment. Lagoon also uses it to understand which of the services should be deployed, which type, and how to build them. This happens via `labels`. See [Documentation for `docker-compose.yml`](docker-compose-yml.md).
+This file is used by `Docker Compose` to start your local development environment. Lagoon also uses it to understand which of the services should be deployed, which type, and how to build them. This happens via `labels`. See [documentation for `docker-compose.yml`](docker-compose-yml.md).
 
 ### Dockerfiles
 

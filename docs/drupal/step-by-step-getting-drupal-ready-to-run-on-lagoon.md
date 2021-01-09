@@ -78,7 +78,7 @@ This might sound weird, as there was already a `composer install` executed durin
 * In order to be able to edit files on the host and have them immediately available in the container, the default `docker-composer.yml` mounts the whole folder into the the containers \(this happens with `.:/app:delegated` in the volumes section\). This also means that all dependencies installed during the Docker build are overwritten with the files on the host.
 * Locally, you probably want dependencies defined as `require-dev` in `composer.json` to exist as well, while on a production deployment they would just use unnecessary space. So we run `composer install --no-dev` in the Dockerfile and `composer install` manually.
 
-If everything went well, open the `LAGOON_ROUTE` defined in `docker-compose.yml` \(for example [http://drupal.docker.amazee.io](http://drupal.docker.amazee.io)\) and you should be greeted by a nice Drupal error. Don't worry - that's ok right now, most important is that it tries to load a Drupal site.
+If everything went well, open the `LAGOON_ROUTE` defined in `docker-compose.yml` \(for example `http://drupal.docker.amazee.io`\) and you should be greeted by a nice Drupal error. Don't worry - that's ok right now, most important is that it tries to load a Drupal site.
 
 If you get a 500 or similar error, make sure everything loaded properly with Composer.
 
@@ -118,7 +118,7 @@ Site path            :  sites/default
 {% hint style="warning" %}
 You may have to tell pygmy about your public key before the next step.
 
-If you get an error like `Permission denied (publickey)`, check out the documentation here: [pygmy - adding ssh keys](https://pygmy.readthedocs.io/en/master/usage/#adding-ssh-keys)
+If you get an error like `Permission denied (publickey)`, check out the documentation here: [pygmy - adding ssh keys](https://docs.lagoon.sh/pygmy/ssh-agent)
 {% endhint %}
 
 Now it is time to install Drupal \(if instead you would like to import an existing SQL file, please [skip to step 7](step-by-step-getting-drupal-ready-to-run-on-lagoon.md#7-import-existing-database-dump), but we suggest you start with a clean Drupal installation in the beginning to be sure everything works\).
