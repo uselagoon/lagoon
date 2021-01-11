@@ -360,6 +360,20 @@ environments:
 
 As most of the time it is not desirable to run the same cron jobs across all environments, you must explicitly define which jobs you want to run for each environment.
 
+Example:
+
+{% tabs %}
+{% tab title=".lagoon.yml" %}
+```yaml
+    cronjobs:
+     - name: drush cron
+       schedule: "H * * * *" # This will run the cron once per hour.
+       command: drush cron
+       service: cli
+```
+{% endtab %}
+{% endtabs %}
+
 * `name:`
   * Just a friendly name for identifying what the cron job will do.
 * `schedule:`
@@ -410,7 +424,7 @@ With the key `ssh` you can define another SSH endpoint that should be used by th
 
 ### `additional-yaml`
 
-The `additional-yaml` has some super powers. Basically, it allows you to define any arbitrary YAML configuration file to be inserted before the build step \(it still needs to be valid Kubernetes/OpenShift YAML , though☺\).
+The `additional-yaml` has some super powers. Basically, it allows you to define any arbitrary YAML configuration file to be inserted before the build step \(it still needs to be valid Kubernetes/OpenShift YAML, though ☺\).
 
 Example:
 
