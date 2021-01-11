@@ -27,6 +27,7 @@
 * [Remote Shell](using-lagoon-advanced/remote-shell.md)
 * [GraphQL](using-lagoon-advanced/graphql.md)
 * [Node.js Graceful Shutdown](using-lagoon-advanced/nodejs.md)
+* [Setting up Xdebug with Lagoon](using-lagoon-advanced/setting-up-xdebug-with-lagoon.md)
 * [Migrations from amazee.io](using-lagoon-advanced/migration.md)
 
 ## Drupal
