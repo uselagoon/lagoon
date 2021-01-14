@@ -63,10 +63,10 @@ description: >-
 | Solr | An open-source enterprise-search platform, written in Java. |
 | SSH | Secure Socket Shell, a network protocol that provides administrators with a secure way to access a remote computer. |
 | SSL | Secure Socket Layer |
-| Symfony |  |
+| Symfony | Symfony is a PHP web application framework and a set of reusable PHP components/libraries, Drupal 8 and up are based on Symfony. |
 | TCP | Transmission Control Protocol, a standard that defines how to establish and maintain a network conversation through which application programs can exchange data. |
 | TLS | Transport Layer Security |
-| Trivy |  |
+| Trivy | A simple and comprehensive vulnerability scanner for containers, suitable for CI. |
 | TTL | Time to live or hop limit is a mechanism that limits the lifespan or lifetime of data in a computer or network. |
 | Varnish | A powerful, open-source HTTP engine/reverse HTTP proxy that can speed up a website by caching \(or storing\) a copy of a webpage the first time a user visits. |
 | VM | Virtual Machine |

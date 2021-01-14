@@ -124,7 +124,7 @@ Note: If you would like to temporarily disable pre/post-rollout tasks during a d
 
 ## Routes
 
-{% embed url="https://www.youtube.com/watch?v=0D8vp55z1qc&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=4" caption="How do i add a new route?" %}
+{% embed url="https://www.youtube.com/watch?v=vQxh87F3fW4&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=4" %}
 
 ### `routes.autogenerate.enabled`
 
@@ -356,7 +356,7 @@ environments:
 
 ### `Cron jobs - environments.[name].cronjobs`
 
-{% embed url="https://www.youtube.com/watch?v=7mtw8wM\_Ntg" caption="How do I add a cron job?" %}
+{% embed url="https://www.youtube.com/watch?v=Yd\_JfDyfbR0&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=2" %}
 
 As most of the time it is not desirable to run the same cron jobs across all environments, you must explicitly define which jobs you want to run for each environment.
 
