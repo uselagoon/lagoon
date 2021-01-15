@@ -842,14 +842,9 @@ if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get schedules.backup.ap
   TEMPLATE_PARAMETERS+=(-p BAAS_BUCKET_NAME="${BAAS_BUCKET_NAME}")
 
   # Pull in .lagoon.yml variables
-  PRODUCTION_MONTHLY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml get-value production-backup-retention.monthly "")
-  PRODUCTION_WEEKLY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml get-value production-backup-retention.weekly "")
-  PRODUCTION_DAILY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml get-value production-backup-retention.daily "")
-
-  # Pull in Lagoon variables
-  LAGOON_MONTHLY_BACKUP_RETENTION=${MONTHLY_BACKUP_DEFAULT_RETENTION}
-  LAGOON_WEEKLY_BACKUP_RETENTION=${WEEKLY_BACKUP_DEFAULT_RETENTION}
-  LAGOON_DAILY_BACKUP_RETENTION=${DAILY_BACKUP_DEFAULT_RETENTION}
+  PRODUCTION_MONTHLY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml get-value backup-retention.production.monthly "")
+  PRODUCTION_WEEKLY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml get-value backup-retention.production.weekly "")
+  PRODUCTION_DAILY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml get-value backup-retention.production.daily "")
 
   # Pull in environment type (development/production)
   TEMPLATE_PARAMETERS+=(-p ENVIRONMENT_TYPE="${ENVIRONMENT_TYPE}")
@@ -858,17 +853,17 @@ if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get schedules.backup.ap
   if [ ! -z $PRODUCTION_MONTHLY_BACKUP_RETENTION ] && [ "$PRODUCTION_MONTHLY_BACKUP_RETENTION" -eq "$PRODUCTION_MONTHLY_BACKUP_RETENTION" ] && [ $ENVIRONMENT_TYPE = 'production']; then
     TEMPLATE_PARAMETERS+=(-p MONTHLY_BACKUP_RETENTION="${PRODUCTION_MONTHLY_BACKUP_RETENTION}")
   else
-    TEMPLATE_PARAMETERS+=(-p MONTHLY_BACKUP_RETENTION="${MONTHLY_BACKUP_RETENTION}")
+    TEMPLATE_PARAMETERS+=(-p MONTHLY_BACKUP_RETENTION="${MONTHLY_BACKUP_DEFAULT_RETENTION}")
   fi
   if [ ! -z $PRODUCTION_WEEKLY_BACKUP_RETENTION ] && [ "$PRODUCTION_WEEKLY_BACKUP_RETENTION" -eq "$PRODUCTION_WEEKLY_BACKUP_RETENTION" ] && [ $ENVIRONMENT_TYPE = 'production']; then
     TEMPLATE_PARAMETERS+=(-p WEEKLY_BACKUP_RETENTION="${PRODUCTION_WEEKLY_BACKUP_RETENTION}")
   else
-    TEMPLATE_PARAMETERS+=(-p WEEKLY_BACKUP_RETENTION="${WEEKLY_BACKUP_RETENTION}")
+    TEMPLATE_PARAMETERS+=(-p WEEKLY_BACKUP_RETENTION="${WEEKLY_BACKUP_DEFAULT_RETENTION}")
   fi
   if [ ! -z $PRODUCTION_DAILY_BACKUP_RETENTION ] && [ "$PRODUCTION_DAILY_BACKUP_RETENTION" -eq "$PRODUCTION_DAILY_BACKUP_RETENTION" ] && [ $ENVIRONMENT_TYPE = 'production']; then
     TEMPLATE_PARAMETERS+=(-p DAILY_BACKUP_RETENTION="${PRODUCTION_DAILY_BACKUP_RETENTION}")
   else
-    TEMPLATE_PARAMETERS+=(-p DAILY_BACKUP_RETENTION="${DAILY_BACKUP_RETENTION}")
+    TEMPLATE_PARAMETERS+=(-p DAILY_BACKUP_RETENTION="${DAILY_BACKUP_DEFAULT_RETENTION}")
   fi
 
   # Let the controller decide when to run backups (will run daily at a random time throughout the day)
@@ -879,8 +874,8 @@ if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get schedules.backup.ap
   CHECK_SCHEDULE="@weekly-random"
   TEMPLATE_PARAMETERS+=(-p CHECK_SCHEDULE="${CHECK_SCHEDULE}")
 
-  # Let the controller deduplicate prunes (will run at 0000 on Sunday morning)
-  PRUNE_SCHEDULE="@weekly"
+  # Let the controller deduplicate prunes (will run weekly at a random time throughout the week)
+  PRUNE_SCHEDULE="@weekly-random"
   TEMPLATE_PARAMETERS+=(-p PRUNE_SCHEDULE="${PRUNE_SCHEDULE}")
 
   OPENSHIFT_TEMPLATE="/oc-build-deploy/openshift-templates/backup-schedule.yml"

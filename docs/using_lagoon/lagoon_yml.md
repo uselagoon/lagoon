@@ -41,10 +41,11 @@ tasks:
 routes:
   insecure: Redirect
 
-production-backup-retention:
-  monthly: 1
-  weekly: 4
-  daily: 7
+backup-retention:
+  production:
+    monthly: 1
+    weekly: 6
+    daily: 7
 
 environments:
   master:
@@ -127,15 +128,15 @@ Note: If you would like to temporarily disable pre/post-rollout tasks during a d
 
 ## Backup Retention
 
-### `production-backup-retention.monthly`
+### `backup-retention.production.monthly`
 
 Specify the number of monthly backups our system should retain for your project's production environment(s). The default is `1` if this value is not specified.
 
-### `production-backup-retention.weekly`
+### `backup-retention.production.weekly`
 
-Specify the number of weekly backups our system should retain for your project's production environment(s). The default is `4` if this value is not specified.
+Specify the number of weekly backups our system should retain for your project's production environment(s). The default is `6` if this value is not specified.
 
-### `production-backup-retention.daily`
+### `backup-retention.production.daily`
 
 Specify the number of daily backups our system should retain for your project's production environment(s). The default is `7` if this value is not specified.
 

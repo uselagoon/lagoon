@@ -52,7 +52,7 @@ parameters:
   - name: DAILY_BACKUP_RETENTION
     description: How many daily backups should be retained after pruning
     required: true
-  - name: LAGOON_ENVIRONMENT_TYPE
+  - name: ENVIRONMENT_TYPE
     description: What type of environment this is (production/development)
     required: true
 objects:
