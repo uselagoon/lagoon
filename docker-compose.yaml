@@ -275,6 +275,7 @@ services:
     volumes:
       - ./services/api/src:/app/services/api/src
       - ./node-packages:/app/node-packages:delegated
+      - /app/node-packages/commons/dist
     environment:
       - CI=${CI:-true}
       - REGISTRY=172.17.0.1:8084 # Docker network bridge and forwarded port for harbor-nginx

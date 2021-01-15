@@ -39,7 +39,8 @@ tasks:
         service: cli
 
 routes:
-  insecure: Redirect
+  autogenerate:
+    insecure: Redirect
 
 backup-retention:
   production:
