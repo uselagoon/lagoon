@@ -21,6 +21,10 @@ function cronScheduleMoreOftenThan30Minutes() {
   fi
 }
 
+function contains() {
+    [[ $1 =~ (^|[[:space:]])$2($|[[:space:]]) ]] && return true || return false
+}
+
 ##############################################
 ### PREPARATION
 ##############################################
@@ -622,6 +626,71 @@ done
 
 TEMPLATE_PARAMETERS=()
 
+
+##############################################
+### CUSTOM FASTLY API SECRETS .lagoon.yml
+##############################################
+
+# if a customer is using their own fastly configuration, then they can define their api token and platform tls configuration ID in the .lagoon.yml file
+# this will get created as a `kind: Secret` in kubernetes so that created ingresses will be able to use this secret to talk to the fastly api.
+# if the customer adds a build envvar called `FASTLY_API_TOKEN` and then populates the .lagoon.yml file with something like this
+#
+# fastly:
+#   api-secrets:
+#     - name: customer
+#       apiToken: FASTLY_API_TOKEN
+#       platformTLSConfiguration: A1bcEdFgH12eD242Sds
+#
+# then the build process will attempt to check the lagoon variables for one called `FASTLY_API_TOKEN` and will use the value of this variable when creating the
+# `kind: Secret` in kubernetes
+
+
+## any fastly api secrets will be prefixed with this, so that we always add this to whatever the customer provides
+FASTLY_API_SECRET_PREFIX="fastly-api-"
+
+FASTLY_API_SECRETS_COUNTER=0
+FASTLY_API_SECRETS=()
+if [ -n "$(cat .lagoon.yml | shyaml keys fastly.api-secrets.$FASTLY_API_SECRETS_COUNTER 2> /dev/null)" ]; then
+  while [ -n "$(cat .lagoon.yml | shyaml get-value fastly.api-secrets.$FASTLY_API_SECRETS_COUNTER 2> /dev/null)" ]; do
+    FASTLY_API_SECRET_NAME=$FASTLY_API_SECRET_PREFIX$(cat .lagoon.yml | shyaml get-value fastly.api-secrets.$FASTLY_API_SECRETS_COUNTER.name 2> /dev/null)
+    FASTLY_API_TOKEN_VALUE=$(cat .lagoon.yml | shyaml get-value fastly.api-secrets.$FASTLY_API_SECRETS_COUNTER.apiToken false)
+    if [[ $FASTLY_API_TOKEN_VALUE == "false" ]]; then
+      echo "No 'apiToken' defined for fastly secret $FASTLY_API_SECRET_NAME"; exit 1;
+    fi
+    # if we have everything we need, we can proceed to logging in
+    if [ $FASTLY_API_TOKEN_VALUE != "false" ]; then
+      FASTLY_API_TOKEN=""
+      # check if we have a password defined anywhere in the api first
+      if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
+        FASTLY_API_TOKEN=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "build" and .name == "'$FASTLY_API_TOKEN_VALUE'") | "\(.value)"'))
+      fi
+      if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
+        TEMP_FASTLY_API_TOKEN=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.scope == "build" and .name == "'$FASTLY_API_TOKEN_VALUE'") | "\(.value)"'))
+        if [ ! -z "$TEMP_FASTLY_API_TOKEN" ]; then
+          FASTLY_API_TOKEN=$TEMP_FASTLY_API_TOKEN
+        fi
+      fi
+      if [ -z $FASTLY_API_TOKEN ]; then
+        #if no password defined in the lagoon api, pass the one in `.lagoon.yml` as a password
+        FASTLY_API_TOKEN=$FASTLY_API_TOKEN_VALUE
+      fi
+      if [ -z "$FASTLY_API_TOKEN" ]; then
+        echo -e "A fastly api token was defined in the .lagoon.yml file, but no token could be found in either the .lagoon.yml or in the Lagoon API\n\nPlease check if the token has been set correctly."
+        exit 1
+      fi
+    fi
+    FASTLY_API_PLATFORMTLS_CONFIGURATION=$(cat .lagoon.yml | shyaml get-value fastly.api-secrets.$FASTLY_API_SECRETS_COUNTER.platformTLSConfiguration 2> /dev/null)
+    helm template ${FASTLY_API_SECRET_NAME} \
+      kubectl-build-deploy/helmcharts/fastly-api-secret \
+      --set fastly.apiToken="${FASTLY_API_TOKEN}" \
+      --set fastly.platformTLSConfiguration="${FASTLY_API_PLATFORMTLS_CONFIGURATION}" \
+      -f /kubectl-build-deploy/values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${FASTLY_API_SECRET_NAME}.yaml
+    FASTLY_API_SECRETS+=(${FASTLY_API_SECRET_NAME})
+    let FASTLY_API_SECRETS_COUNTER=FASTLY_API_SECRETS_COUNTER+1
+  done
+fi
+
+
 ##############################################
 ### CUSTOM ROUTES FROM .lagoon.yml
 ##############################################
@@ -648,6 +717,10 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
             ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
             MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring-path "/")
             ROUTE_ANNOTATIONS=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.annotations {})
+            # get the fastly configuration values from .lagoon.yml
+            ROUTE_FASTLY_SERVICE_ID=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.service-id "")
+            ROUTE_FASTLY_SERVICE_API_SECRET=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.api-secret-name "")
+            ROUTE_FASTLY_SERVICE_WATCH=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.watch false)
           else
             # Only a value given, assuming some defaults
             ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
@@ -657,6 +730,23 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
             ROUTE_HSTS=null
             MONITORING_PATH="/"
             ROUTE_ANNOTATIONS="{}"
+            ROUTE_FASTLY_SERVICE_ID=""
+            ROUTE_FASTLY_SERVICE_API_SECRET=""
+            ROUTE_FASTLY_SERVICE_WATCH=false
+          fi
+
+          # Create the fastly values required
+          FASTLY_ARGS=()
+          if [ "$ROUTE_FASTLY_SERVICE_ID" != "" ]; then
+            FASTLY_ARGS+=(--set fastly.serviceId=${ROUTE_FASTLY_SERVICE_ID})
+            if [ "$ROUTE_FASTLY_SERVICE_API_SECRET" != "" ]; then
+              if contains $FASTLY_API_SECRETS "${FASTLY_API_SECRET_PREFIX}${ROUTE_FASTLY_SERVICE_API_SECRET}"; then
+                FASTLY_ARGS+=(--set fastly.apiSecretName=${FASTLY_API_SECRET_PREFIX}${ROUTE_FASTLY_SERVICE_API_SECRET})
+              else
+                echo "$ROUTE_FASTLY_SERVICE_API_SECRET requested, but not found in .lagoon.yml file"; exit 1;
+              fi
+            fi
+            ROUTE_FASTLY_SERVICE_WATCH=true
           fi
 
           touch /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
@@ -689,6 +779,7 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
             --set ingressmonitorcontroller.path="${MONITORING_PATH}" \
             --set ingressmonitorcontroller.alertContacts="${MONITORING_ALERTCONTACT}" \
             --set ingressmonitorcontroller.statuspageId="${MONITORING_STATUSPAGEID}" \
+            "${FASTLY_ARGS[@]}" --set fastly.watch="${ROUTE_FASTLY_SERVICE_WATCH}" \
             -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${ROUTE_DOMAIN}.yaml
 
           MONITORING_ENABLED="false" # disabling a possible enabled monitoring again
@@ -718,6 +809,10 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
             ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
             MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring-path "/")
             ROUTE_ANNOTATIONS=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.annotations {})
+            # get the fastly configuration values from .lagoon.yml
+            ROUTE_FASTLY_SERVICE_ID=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.service-id "")
+            ROUTE_FASTLY_SERVICE_API_SECRET=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.api-secret-name "")
+            ROUTE_FASTLY_SERVICE_WATCH=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.watch false)
           else
             # Only a value given, assuming some defaults
             ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
@@ -727,6 +822,23 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
             ROUTE_HSTS=null
             MONITORING_PATH="/"
             ROUTE_ANNOTATIONS="{}"
+            ROUTE_FASTLY_SERVICE_ID=""
+            ROUTE_FASTLY_SERVICE_API_SECRET=""
+            ROUTE_FASTLY_SERVICE_WATCH=false
+          fi
+
+          # Create the fastly values required
+          FASTLY_ARGS=()
+          if [ "$ROUTE_FASTLY_SERVICE_ID" != "" ]; then
+            FASTLY_ARGS+=(--set fastly.serviceId=${ROUTE_FASTLY_SERVICE_ID})
+            if [ "$ROUTE_FASTLY_SERVICE_API_SECRET" != "" ]; then
+              if contains $FASTLY_API_SECRETS "${FASTLY_API_SECRET_PREFIX}${ROUTE_FASTLY_SERVICE_API_SECRET}"; then
+                FASTLY_ARGS+=(--set fastly.apiSecretName=${FASTLY_API_SECRET_PREFIX}${ROUTE_FASTLY_SERVICE_API_SECRET})
+              else
+                echo "$ROUTE_FASTLY_SERVICE_API_SECRET requested, but not found in .lagoon.yml file"; exit 1;
+              fi
+            fi
+            ROUTE_FASTLY_SERVICE_WATCH=true
           fi
 
           touch /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
@@ -759,6 +871,7 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
             --set ingressmonitorcontroller.path="${MONITORING_PATH}" \
             --set ingressmonitorcontroller.alertContacts="${MONITORING_ALERTCONTACT}" \
             --set ingressmonitorcontroller.statuspageId="${MONITORING_STATUSPAGEID}" \
+            "${FASTLY_ARGS[@]}" --set fastly.watch="${ROUTE_FASTLY_SERVICE_WATCH}" \
             -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${ROUTE_DOMAIN}.yaml
 
           MONITORING_ENABLED="false" # disabling a possible enabled monitoring again
@@ -793,6 +906,10 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
         ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
         MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring-path "/")
         ROUTE_ANNOTATIONS=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.annotations {})
+        # get the fastly configuration values from .lagoon.yml
+        ROUTE_FASTLY_SERVICE_ID=$(cat .lagoon.yml | shyaml ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.service-id "")
+        ROUTE_FASTLY_SERVICE_API_SECRET=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.api-secret-name "")
+        ROUTE_FASTLY_SERVICE_WATCH=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.watch false)
       else
         # Only a value given, assuming some defaults
         ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
@@ -802,6 +919,23 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
         ROUTE_HSTS=null
         MONITORING_PATH="/"
         ROUTE_ANNOTATIONS="{}"
+        ROUTE_FASTLY_SERVICE_ID=""
+        ROUTE_FASTLY_SERVICE_API_SECRET=""
+        ROUTE_FASTLY_SERVICE_WATCH=false
+      fi
+
+      # Create the fastly values required
+      FASTLY_ARGS=()
+      if [ "$ROUTE_FASTLY_SERVICE_ID" != "" ]; then
+        FASTLY_ARGS+=(--set fastly.serviceId=${ROUTE_FASTLY_SERVICE_ID})
+        if [ "$ROUTE_FASTLY_SERVICE_API_SECRET" != "" ]; then
+          if contains $FASTLY_API_SECRETS "${FASTLY_API_SECRET_PREFIX}${ROUTE_FASTLY_SERVICE_API_SECRET}"; then
+            FASTLY_ARGS+=(--set fastly.apiSecretName=${FASTLY_API_SECRET_PREFIX}${ROUTE_FASTLY_SERVICE_API_SECRET})
+          else
+            echo "$ROUTE_FASTLY_SERVICE_API_SECRET requested, but not found in .lagoon.yml file"; exit 1;
+          fi
+        fi
+        ROUTE_FASTLY_SERVICE_WATCH=true
       fi
 
       touch /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
@@ -834,6 +968,7 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
         --set ingressmonitorcontroller.path="${MONITORING_PATH}" \
         --set ingressmonitorcontroller.alertContacts="${MONITORING_ALERTCONTACT}" \
         --set ingressmonitorcontroller.statuspageId="${MONITORING_STATUSPAGEID}" \
+            "${FASTLY_ARGS[@]}" --set fastly.watch="${ROUTE_FASTLY_SERVICE_WATCH}" \
         -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${ROUTE_DOMAIN}.yaml
 
       MONITORING_ENABLED="false" # disabling a possible enabled monitoring again
@@ -860,6 +995,10 @@ else
         ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
         MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring-path "/")
         ROUTE_ANNOTATIONS=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.annotations {})
+        # get the fastly configuration values from .lagoon.yml
+        ROUTE_FASTLY_SERVICE_ID=$(cat .lagoon.yml | shyaml environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.service-id "")
+        ROUTE_FASTLY_SERVICE_API_SECRET=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.api-secret-name "")
+        ROUTE_FASTLY_SERVICE_WATCH=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.watch false)
       else
         # Only a value given, assuming some defaults
         ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
@@ -869,6 +1008,23 @@ else
         ROUTE_HSTS=null
         MONITORING_PATH="/"
         ROUTE_ANNOTATIONS="{}"
+        ROUTE_FASTLY_SERVICE_ID=""
+        ROUTE_FASTLY_SERVICE_API_SECRET=""
+        ROUTE_FASTLY_SERVICE_WATCH=false
+      fi
+
+      # Create the fastly values required
+      FASTLY_ARGS=()
+      if [ "$ROUTE_FASTLY_SERVICE_ID" != "" ]; then
+        FASTLY_ARGS+=(--set fastly.serviceId=${ROUTE_FASTLY_SERVICE_ID})
+        if [ "$ROUTE_FASTLY_SERVICE_API_SECRET" != "" ]; then
+          if contains $FASTLY_API_SECRETS "${FASTLY_API_SECRET_PREFIX}${ROUTE_FASTLY_SERVICE_API_SECRET}"; then
+            FASTLY_ARGS+=(--set fastly.apiSecretName=${FASTLY_API_SECRET_PREFIX}${ROUTE_FASTLY_SERVICE_API_SECRET})
+          else
+            echo "$ROUTE_FASTLY_SERVICE_API_SECRET requested, but not found in .lagoon.yml file"; exit 1;
+          fi
+        fi
+        ROUTE_FASTLY_SERVICE_WATCH=true
       fi
 
       touch /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
@@ -901,6 +1057,7 @@ else
         --set ingressmonitorcontroller.path="${MONITORING_PATH}" \
         --set ingressmonitorcontroller.alertContacts="${MONITORING_ALERTCONTACT}" \
         --set ingressmonitorcontroller.statuspageId="${MONITORING_STATUSPAGEID}" \
+            "${FASTLY_ARGS[@]}" --set fastly.watch="${ROUTE_FASTLY_SERVICE_WATCH}" \
         -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml  "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${ROUTE_DOMAIN}.yaml
 
       MONITORING_ENABLED="false" # disabling a possible enabled monitoring again
