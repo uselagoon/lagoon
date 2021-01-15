@@ -955,10 +955,10 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
     DAILY_BACKUP_RETENTION=${DAILY_BACKUP_DEFAULT_RETENTION}
   fi
 
-  # Let the controller decide when to run backups (will run at a random time throughout the day)
+  # Let the controller decide when to run backups (will run daily at a random time throughout the day)
   BACKUP_SCHEDULE="@daily-random"
 
-  # Let the controller deduplicate prunes (will run at a random time throughout the week)
+  # Let the controller deduplicate prunes (will run weekly at a random time throughout the week)
   CHECK_SCHEDULE="@weekly-random"
 
   # Let the controller deduplicate prunes (will run at 0000 on Sunday morning)
