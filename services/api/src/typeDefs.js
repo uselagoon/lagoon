@@ -905,6 +905,7 @@ const typeDefs = gql`
     environment: Int!
     persistentStorageClaim: String!
     bytesUsed: Int!
+    updated: String
   }
 
   input AddBackupInput {
