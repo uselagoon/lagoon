@@ -21,14 +21,6 @@ function cronScheduleMoreOftenThan30Minutes() {
   fi
 }
 
-# Taken from https://stackoverflow.com/a/8574392, released under Apache licensing
-function containsElement () {
-  local e match="$1"
-  shift
-  for e; do [[ "$e" == "$match" ]] && return 0; done
-  return 1
-}
-
 ##############################################
 ### PREPARATION
 ##############################################
@@ -942,71 +934,35 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
   TEMPLATE_PARAMETERS+=(-p BAAS_BUCKET_NAME="${BAAS_BUCKET_NAME}")
 
   # Pull in .lagoon.yml variables
-  LAGOON_YAML_KEYS=($(cat .lagoon.yml | shyaml keys))
-  if containsElement "production-backup-retention" "${LAGOON_YAML_KEYS[@]}"; then
-    LAGOON_YAML_BACKUP_RETENTION_KEYS=($(cat .lagoon.yml | shyaml keys production-backup-retention))
+  PRODUCTION_MONTHLY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml get-value production-backup-retention.monthly "")
+  PRODUCTION_WEEKLY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml get-value production-backup-retention.weekly "")
+  PRODUCTION_DAILY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml get-value production-backup-retention.daily "")
 
-    if containsElement "monthly" "${LAGOON_BACKUP_RETENTION_YAML_KEYS[@]}"; then
-      PRODUCTION_MONTHLY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml keys production-backup-retention.monthly -q)
-    else
-      PRODUCTION_MONTHLY_BACKUP_RETENTION=""
-    fi
-
-    if containsElement "weekly" "${LAGOON_BACKUP_RETENTION_YAML_KEYS[@]}"; then
-      PRODUCTION_WEEKLY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml keys production-backup-retention.weekly -q)
-    else
-      PRODUCTION_WEEKLY_BACKUP_RETENTION=""
-    fi
-
-    if containsElement "daily" "${LAGOON_BACKUP_RETENTION_YAML_KEYS[@]}"; then
-      PRODUCTION_DAILY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml keys production-backup-retention.daily -q)
-    else
-      PRODUCTION_DAILY_BACKUP_RETENTION=""
-    fi
+  # Set template parameters for retention values (prefer .lagoon.yml values over supplied defaults after ensuring they are valid integers via "-eq" comparison)
+  if [ ! -z $PRODUCTION_MONTHLY_BACKUP_RETENTION ] && [ "$PRODUCTION_MONTHLY_BACKUP_RETENTION" -eq "$PRODUCTION_MONTHLY_BACKUP_RETENTION" ] && [ $ENVIRONMENT_TYPE = 'production']; then
+    MONTHLY_BACKUP_RETENTION=${PRODUCTION_MONTHLY_BACKUP_RETENTION}
   else
-    PRODUCTION_MONTHLY_BACKUP_RETENTION=""
-    PRODUCTION_WEEKLY_BACKUP_RETENTION=""
-    PRODUCTION_DAILY_BACKUP_RETENTION=""
+    MONTHLY_BACKUP_RETENTION=${MONTHLY_BACKUP_DEFAULT_RETENTION}
+  fi
+  if [ ! -z $PRODUCTION_WEEKLY_BACKUP_RETENTION ] && [ "$PRODUCTION_WEEKLY_BACKUP_RETENTION" -eq "$PRODUCTION_WEEKLY_BACKUP_RETENTION" ] && [ $ENVIRONMENT_TYPE = 'production']; then
+    WEEKLY_BACKUP_RETENTION=${PRODUCTION_WEEKLY_BACKUP_RETENTION}
+  else
+    WEEKLY_BACKUP_RETENTION=${WEEKLY_BACKUP_DEFAULT_RETENTION}
+  fi
+  if [ ! -z $PRODUCTION_DAILY_BACKUP_RETENTION ] && [ "$PRODUCTION_DAILY_BACKUP_RETENTION" -eq "$PRODUCTION_DAILY_BACKUP_RETENTION" ] && [ $ENVIRONMENT_TYPE = 'production']; then
+    DAILY_BACKUP_RETENTION=${PRODUCTION_DAILY_BACKUP_RETENTION}
+  else
+    DAILY_BACKUP_RETENTION=${DAILY_BACKUP_DEFAULT_RETENTION}
   fi
 
-  # Pull in environment type (development/production)
-  LAGOON_ENVIRONMENT_TYPE=${ENVIRONMENT_TYPE}
-  TEMPLATE_PARAMETERS+=(-p LAGOON_ENVIRONMENT_TYPE="${ENVIRONMENT_TYPE}")
-
-  # Set template parameters for retention values (prefer .lagoon.yml values over supplied defaults after ensuring they are valid integers)
-  if [ ! -z $PRODUCTION_MONTHLY_BACKUP_RETENTION ] && [ "$PRODUCTION_MONTHLY_BACKUP_RETENTION" -eq "$PRODUCTION_MONTHLY_BACKUP_RETENTION" ] && [ $LAGOON_ENVIRONMENT_TYPE = 'production'] 2>/dev/null; then
-    TEMPLATE_PARAMETERS+=(-p MONTHLY_BACKUP_RETENTION="${PRODUCTION_MONTHLY_BACKUP_RETENTION}")
-    _MONTHLY_BACKUP_RETENTION=${PRODUCTION_MONTHLY_BACKUP_RETENTION}
-  else
-    TEMPLATE_PARAMETERS+=(-p MONTHLY_BACKUP_RETENTION="${LAGOON_MONTHLY_BACKUP_RETENTION}")
-    _MONTHLY_BACKUP_RETENTION=${LAGOON_MONTHLY_BACKUP_RETENTION}
-  fi
-  if [ ! -z $PRODUCTION_WEEKLY_BACKUP_RETENTION ] && [ "$PRODUCTION_WEEKLY_BACKUP_RETENTION" -eq "$PRODUCTION_WEEKLY_BACKUP_RETENTION" ] && [ $LAGOON_ENVIRONMENT_TYPE = 'production'] 2>/dev/null; then
-    TEMPLATE_PARAMETERS+=(-p WEEKLY_BACKUP_RETENTION="${PRODUCTION_WEEKLY_BACKUP_RETENTION}")
-    _WEEKLY_BACKUP_RETENTION=${PRODUCTION_WEEKLY_BACKUP_RETENTION}
-  else
-    TEMPLATE_PARAMETERS+=(-p WEEKLY_BACKUP_RETENTION="${LAGOON_WEEKLY_BACKUP_RETENTION}")
-    _WEEKLY_BACKUP_RETENTION=${LAGOON_WEEKLY_BACKUP_RETENTION}
-  fi
-  if [ ! -z $PRODUCTION_DAILY_BACKUP_RETENTION ] && [ "$PRODUCTION_DAILY_BACKUP_RETENTION" -eq "$PRODUCTION_DAILY_BACKUP_RETENTION" ] && [ $LAGOON_ENVIRONMENT_TYPE = 'production'] 2>/dev/null; then
-    TEMPLATE_PARAMETERS+=(-p DAILY_BACKUP_RETENTION="${PRODUCTION_DAILY_BACKUP_RETENTION}")
-    _DAILY_BACKUP_RETENTION=${PRODUCTION_DAILY_BACKUP_RETENTION}
-  else
-    TEMPLATE_PARAMETERS+=(-p DAILY_BACKUP_RETENTION="${LAGOON_DAILY_BACKUP_RETENTION}")
-    _DAILY_BACKUP_RETENTION=${LAGOON_DAILY_BACKUP_RETENTION}
-  fi
-
-  # Let the controller decide when to run backups
+  # Let the controller decide when to run backups (will run at a random time throughout the day)
   BACKUP_SCHEDULE="@daily-random"
-  TEMPLATE_PARAMETERS+=(-p BACKUP_SCHEDULE="${BACKUP_SCHEDULE}")
 
-  # Let the controller decide when to run checks
+  # Let the controller deduplicate prunes (will run at a random time throughout the week)
   CHECK_SCHEDULE="@weekly-random"
-  TEMPLATE_PARAMETERS+=(-p CHECK_SCHEDULE="${CHECK_SCHEDULE}")
 
-  # Let the controller decide when to run prunes
+  # Let the controller deduplicate prunes (will run at 0000 on Sunday morning)
   PRUNE_SCHEDULE="@weekly"
-  TEMPLATE_PARAMETERS+=(-p PRUNE_SCHEDULE="${PRUNE_SCHEDULE}")
 
   OPENSHIFT_TEMPLATE="/kubectl-build-deploy/openshift-templates/backup-schedule.yml"
   helm template k8up-lagoon-backup-schedule /kubectl-build-deploy/helmcharts/k8up-schedule \
@@ -1015,9 +971,9 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
     --set check.schedule="${CHECK_SCHEDULE}" \
     --set prune.schedule="${PRUNE_SCHEDULE}" "${HELM_ARGUMENTS[@]}" \
     --set baasBucketName="${BAAS_BUCKET_NAME}" > $YAML_FOLDER/k8up-lagoon-backup-schedule.yaml \
-    --set prune.retention.keepMonthly=$_MONTHLY_BACKUP_RETENTION \
-    --set prune.retention.keepWeekly=$_WEEKLY_BACKUP_RETENTION \
-    --set prune.retention.keepDaily=$_DAILY_BACKUP_RETENTION \
+    --set prune.retention.keepMonthly=$MONTHLY_BACKUP_RETENTION \
+    --set prune.retention.keepWeekly=$WEEKLY_BACKUP_RETENTION \
+    --set prune.retention.keepDaily=$DAILY_BACKUP_RETENTION \
     --set lagoonEnvironmentType=$LAGOON_ENVIRONMENT_TYPE
 fi
 
