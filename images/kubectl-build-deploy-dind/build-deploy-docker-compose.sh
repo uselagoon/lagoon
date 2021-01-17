@@ -633,12 +633,13 @@ TEMPLATE_PARAMETERS=()
 
 # if a customer is using their own fastly configuration, then they can define their api token and platform tls configuration ID in the .lagoon.yml file
 # this will get created as a `kind: Secret` in kubernetes so that created ingresses will be able to use this secret to talk to the fastly api.
-# if the customer adds a build envvar called `FASTLY_API_TOKEN` and then populates the .lagoon.yml file with something like this
+#
+# in this example, the customer needs to add a build envvar called `FASTLY_API_TOKEN` and then populates the .lagoon.yml file with something like this
 #
 # fastly:
 #   api-secrets:
 #     - name: customer
-#       apiToken: FASTLY_API_TOKEN
+#       apiTokenVariableName: FASTLY_API_TOKEN
 #       platformTLSConfiguration: A1bcEdFgH12eD242Sds
 #
 # then the build process will attempt to check the lagoon variables for one called `FASTLY_API_TOKEN` and will use the value of this variable when creating the
@@ -653,9 +654,13 @@ FASTLY_API_SECRETS=()
 if [ -n "$(cat .lagoon.yml | shyaml keys fastly.api-secrets.$FASTLY_API_SECRETS_COUNTER 2> /dev/null)" ]; then
   while [ -n "$(cat .lagoon.yml | shyaml get-value fastly.api-secrets.$FASTLY_API_SECRETS_COUNTER 2> /dev/null)" ]; do
     FASTLY_API_SECRET_NAME=$FASTLY_API_SECRET_PREFIX$(cat .lagoon.yml | shyaml get-value fastly.api-secrets.$FASTLY_API_SECRETS_COUNTER.name 2> /dev/null)
-    FASTLY_API_TOKEN_VALUE=$(cat .lagoon.yml | shyaml get-value fastly.api-secrets.$FASTLY_API_SECRETS_COUNTER.apiToken false)
+    if [ -z "$FASTLY_API_SECRET_NAME" ]; then
+        echo -e "A fastly api secret was defined in the .lagoon.yml file, but no name could be found the .lagoon.yml\n\nPlease check if the name has been set correctly."
+        exit 1
+    fi
+    FASTLY_API_TOKEN_VALUE=$(cat .lagoon.yml | shyaml get-value fastly.api-secrets.$FASTLY_API_SECRETS_COUNTER.apiTokenVariableName false)
     if [[ $FASTLY_API_TOKEN_VALUE == "false" ]]; then
-      echo "No 'apiToken' defined for fastly secret $FASTLY_API_SECRET_NAME"; exit 1;
+      echo "No 'apiTokenVariableName' defined for fastly secret $FASTLY_API_SECRET_NAME"; exit 1;
     fi
     # if we have everything we need, we can proceed to logging in
     if [ $FASTLY_API_TOKEN_VALUE != "false" ]; then
@@ -670,16 +675,16 @@ if [ -n "$(cat .lagoon.yml | shyaml keys fastly.api-secrets.$FASTLY_API_SECRETS_
           FASTLY_API_TOKEN=$TEMP_FASTLY_API_TOKEN
         fi
       fi
-      if [ -z $FASTLY_API_TOKEN ]; then
-        #if no password defined in the lagoon api, pass the one in `.lagoon.yml` as a password
-        FASTLY_API_TOKEN=$FASTLY_API_TOKEN_VALUE
-      fi
       if [ -z "$FASTLY_API_TOKEN" ]; then
-        echo -e "A fastly api token was defined in the .lagoon.yml file, but no token could be found in either the .lagoon.yml or in the Lagoon API\n\nPlease check if the token has been set correctly."
+        echo -e "A fastly api secret was defined in the .lagoon.yml file, but no token could be found in the Lagoon API matching the variable name provided\n\nPlease check if the token has been set correctly."
         exit 1
       fi
     fi
-    FASTLY_API_PLATFORMTLS_CONFIGURATION=$(cat .lagoon.yml | shyaml get-value fastly.api-secrets.$FASTLY_API_SECRETS_COUNTER.platformTLSConfiguration 2> /dev/null)
+    FASTLY_API_PLATFORMTLS_CONFIGURATION=$(cat .lagoon.yml | shyaml get-value fastly.api-secrets.$FASTLY_API_SECRETS_COUNTER.platformTLSConfiguration "")
+    if [ -z "$FASTLY_API_PLATFORMTLS_CONFIGURATION" ]; then
+      echo -e "A fastly api secret was defined in the .lagoon.yml file, but no platform tls configuration id could be found in the .lagoon.yml\n\nPlease check if the platform tls configuration id has been set correctly."
+      exit 1
+    fi
     helm template ${FASTLY_API_SECRET_NAME} \
       kubectl-build-deploy/helmcharts/fastly-api-secret \
       --set fastly.apiToken="${FASTLY_API_TOKEN}" \
