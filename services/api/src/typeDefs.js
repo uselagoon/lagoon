@@ -905,6 +905,9 @@ const typeDefs = gql`
     environment: Int!
     persistentStorageClaim: String!
     bytesUsed: Int!
+    """
+    Date in format 'YYYY-MM-DD'
+    """
     updated: String
   }
 
