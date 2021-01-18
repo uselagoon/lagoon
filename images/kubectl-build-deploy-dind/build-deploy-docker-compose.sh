@@ -644,6 +644,8 @@ TEMPLATE_PARAMETERS=()
 #
 # then the build process will attempt to check the lagoon variables for one called `FASTLY_API_TOKEN` and will use the value of this variable when creating the
 # `kind: Secret` in kubernetes
+#
+# support for multiple api-secrets is possible in the instance that a customer uses 2 separate services in different accounts in the one project
 
 
 ## any fastly api secrets will be prefixed with this, so that we always add this to whatever the customer provides
@@ -689,7 +691,8 @@ if [ -n "$(cat .lagoon.yml | shyaml keys fastly.api-secrets.$FASTLY_API_SECRETS_
       kubectl-build-deploy/helmcharts/fastly-api-secret \
       --set fastly.apiToken="${FASTLY_API_TOKEN}" \
       --set fastly.platformTLSConfiguration="${FASTLY_API_PLATFORMTLS_CONFIGURATION}" \
-      -f /kubectl-build-deploy/values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${FASTLY_API_SECRET_NAME}.yaml
+      -f /kubectl-build-deploy/values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/00-${FASTLY_API_SECRET_NAME}.yaml
+      ## this api secret needs to exist before the ingress is created, so try prioritise it by putting it numerically ahead of any ingresses
     FASTLY_API_SECRETS+=(${FASTLY_API_SECRET_NAME})
     let FASTLY_API_SECRETS_COUNTER=FASTLY_API_SECRETS_COUNTER+1
   done
