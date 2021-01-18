@@ -866,11 +866,11 @@ if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get schedules.backup.ap
     TEMPLATE_PARAMETERS+=(-p DAILY_BACKUP_RETENTION="${DAILY_BACKUP_DEFAULT_RETENTION}")
   fi
 
-  # Let the controller decide when to run backups (will run daily at a random time throughout the day)
-  BACKUP_SCHEDULE="@daily-random"
+  # Run Backups every day at 2200-0200
+  BACKUP_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "M H(22-2) * * *")
   TEMPLATE_PARAMETERS+=(-p BACKUP_SCHEDULE="${BACKUP_SCHEDULE}")
 
-  # Let the controller deduplicate prunes (will run weekly at a random time throughout the week)
+  # Let the controller deduplicate checks (will run weekly at a random time throughout the week)
   CHECK_SCHEDULE="@weekly-random"
   TEMPLATE_PARAMETERS+=(-p CHECK_SCHEDULE="${CHECK_SCHEDULE}")
 
