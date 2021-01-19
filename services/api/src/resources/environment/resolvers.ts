@@ -3,6 +3,7 @@ import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
 import { createRemoveTask } from '@lagoon/commons/dist/tasks';
 import { ResolverFn } from '../';
 import { isPatchEmpty, prepare, query, whereAnd } from '../../util/db';
+import convertDateToMYSQLDateTimeFormat from '../../util/convertDateToMYSQLDateTimeFormat'
 import { Helpers } from './helpers';
 import { Sql } from './sql';
 import { Sql as projectSql } from '../project/sql';
@@ -344,10 +345,15 @@ export const addOrUpdateEnvironment: ResolverFn = async (
 
 export const addOrUpdateEnvironmentStorage: ResolverFn = async (
   root,
-  { input },
+  { input: unformattedInput },
   { sqlClient, hasPermission },
 ) => {
   await hasPermission('environment', 'storage');
+
+  const input = {
+    ...unformattedInput,
+    updated: unformattedInput.updated ? unformattedInput.updated: convertDateToMYSQLDateTimeFormat(new Date().toISOString())
+  };
 
   const prep = prepare(
     sqlClient,
@@ -355,7 +361,8 @@ export const addOrUpdateEnvironmentStorage: ResolverFn = async (
       CALL CreateOrUpdateEnvironmentStorage(
         :environment,
         :persistent_storage_claim,
-        :bytes_used
+        :bytes_used,
+        :updated
       );
     `,
   );
