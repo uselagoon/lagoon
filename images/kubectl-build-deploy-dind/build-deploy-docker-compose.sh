@@ -687,17 +687,70 @@ if [ -n "$(cat .lagoon.yml | shyaml keys fastly.api-secrets.$FASTLY_API_SECRETS_
       echo -e "A fastly api secret was defined in the .lagoon.yml file, but no platform tls configuration id could be found in the .lagoon.yml\n\nPlease check if the platform tls configuration id has been set correctly."
       exit 1
     fi
-    helm template ${FASTLY_API_SECRET_NAME} \
-      kubectl-build-deploy/helmcharts/fastly-api-secret \
-      --set fastly.apiToken="${FASTLY_API_TOKEN}" \
-      --set fastly.platformTLSConfiguration="${FASTLY_API_PLATFORMTLS_CONFIGURATION}" \
-      -f /kubectl-build-deploy/values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/00-${FASTLY_API_SECRET_NAME}.yaml
-      ## this api secret needs to exist before the ingress is created, so try prioritise it by putting it numerically ahead of any ingresses
-    FASTLY_API_SECRETS+=(${FASTLY_API_SECRET_NAME})
+
+    # run the script to create the secrets
+    . /kubectl-build-deploy/scripts/exec-fastly-api-secrets.sh
+
     let FASTLY_API_SECRETS_COUNTER=FASTLY_API_SECRETS_COUNTER+1
   done
 fi
 
+# FASTLY API SECRETS FROM LAGOON API VARIABLE
+# Allow for defining fastly api secrets using lagoon api variables
+# This accepts colon separated values like so `SECRET_NAME:FASTLY_API_TOKEN:FASTLY_PLATFORMTLS_CONFIGURATION_ID`, and multiple overrides
+# separated by commas
+# Example 1: examplecom:x1s8asfafasf7ssf:fa23rsdgsdgas
+# ^^^ will create a kubernetes secret called `$FASTLY_API_SECRET_PREFIX-examplecom` with 2 data fields (one for api token, the other for platform tls id)
+# populated with `x1s8asfafasf7ssf` and `fa23rsdgsdgas` for whichever field it should be
+# and the name will get created with the prefix defined in `FASTLY_API_SECRET_PREFIX`
+# Example 2: examplecom:x1s8asfafasf7ssf:fa23rsdgsdgas,example2com:fa23rsdgsdgas:x1s8asfafasf7ssf,example3com:fa23rsdgsdgas:x1s8asfafasf7ssf:example3com
+if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
+  LAGOON_FASTLY_API_SECRETS=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_FASTLY_API_SECRETS") | "\(.value)"'))
+fi
+if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
+  TEMP_LAGOON_FASTLY_API_SECRETS=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_FASTLY_API_SECRETS") | "\(.value)"'))
+  if [ ! -z $TEMP_LAGOON_FASTLY_API_SECRETS ]; then
+    LAGOON_FASTLY_API_SECRETS=$TEMP_LAGOON_FASTLY_API_SECRETS
+  fi
+fi
+if [ ! -z "$LAGOON_FASTLY_API_SECRETS" ]; then
+  IFS=',' read -ra LAGOON_FASTLY_API_SECRETS_SPLIT <<< "$LAGOON_FASTLY_API_SECRETS"
+  for LAGOON_FASTLY_API_SECRETS_DATA in "${LAGOON_FASTLY_API_SECRETS_SPLIT[@]}"
+  do
+    IFS=':' read -ra LAGOON_FASTLY_API_SECRET_SPLIT <<< "$LAGOON_FASTLY_API_SECRETS_DATA"
+    if [ -z "${LAGOON_FASTLY_API_SECRET_SPLIT[0]}" ] || [ -z "${LAGOON_FASTLY_API_SECRET_SPLIT[1]}" ] || [ -z "${LAGOON_FASTLY_API_SECRET_SPLIT[2]}" ]; then
+      echo -e "An override was defined in the lagoon API with `LAGOON_FASTLY_API_SECRETS` but was not structured correctly, the format should be `NAME:FASTLY_API_TOKEN:FASTLY_PLATFORMTLS_CONFIGURATION_ID` and comma separated for multiples"
+      exit 1
+    fi
+    # the fastly api secret name will be created with the prefix that is defined above
+    FASTLY_API_SECRET_NAME=$FASTLY_API_SECRET_PREFIX${LAGOON_FASTLY_API_SECRET_SPLIT[0]}
+    FASTLY_API_TOKEN_VALUE=${LAGOON_FASTLY_API_SECRET_SPLIT[1]}
+    FASTLY_API_PLATFORMTLS_CONFIGURATION=${LAGOON_FASTLY_API_SECRET_SPLIT[2]}
+    # run the script to create the secrets
+    . /kubectl-build-deploy/scripts/exec-fastly-api-secrets.sh
+  done
+fi
+
+# FASTLY SERVICE ID PER INGRESS OVERRIDE FROM LAGOON API VARIABLE
+# Allow the fastly serviceid for specific ingress to be overridden by the lagoon API
+# This accepts colon separated values like so `INGRESS_DOMAIN:FASTLY_SERVICE_ID:WATCH_STATUS:SECRET_NAME(OPTIONAL)`, and multiple overrides
+# separated by commas
+# Example 1: www.example.com:x1s8asfafasf7ssf:true
+# ^^^ tells the ingress creation to use the service id x1s8asfafasf7ssf for ingress www.example.com, with the watch status of true
+# Example 2: www.example.com:x1s8asfafasf7ssf:true,www.not-example.com:fa23rsdgsdgas:false
+# ^^^ same as above, but also tells the ingress creation to use the service id fa23rsdgsdgas for ingress www.not-example.com, with the watch status of false
+# Example 3: www.example.com:x1s8asfafasf7ssf:true:examplecom
+# ^^^ tells the ingress creation to use the service id x1s8asfafasf7ssf for ingress www.example.com, with the watch status of true
+# but it will also be annotated to be told to use the secret named `examplecom` that could be defined elsewhere
+if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
+  LAGOON_FASTLY_SERVICE_IDS=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_FASTLY_SERVICE_IDS") | "\(.value)"'))
+fi
+if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
+  TEMP_LAGOON_FASTLY_SERVICE_IDS=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_FASTLY_SERVICE_IDS") | "\(.value)"'))
+  if [ ! -z $TEMP_LAGOON_FASTLY_SERVICE_IDS ]; then
+    LAGOON_FASTLY_SERVICE_IDS=$TEMP_LAGOON_FASTLY_SERVICE_IDS
+  fi
+fi
 
 ##############################################
 ### CUSTOM ROUTES FROM .lagoon.yml
@@ -743,18 +796,28 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
             ROUTE_FASTLY_SERVICE_WATCH=false
           fi
 
-          # Create the fastly values required
+          # work out if there are any lagoon api variable overrides for the annotations that are being added
+          . /kubectl-build-deploy/scripts/exec-fastly-annotations.sh
+          # if we get any other populated service id overrides in any of the steps in exec-fastly-annotations.sh
+          # make it available to the ingress creation here by overriding what may be defined in the lagoon.yml
+          if [ ! -z "$LAGOON_FASTLY_SERVICE_ID" ]; then
+            ROUTE_FASTLY_SERVICE_ID=$LAGOON_FASTLY_SERVICE_ID
+            ROUTE_FASTLY_SERVICE_WATCH=$LAGOON_FASTLY_SERVICE_WATCH
+            if [ ! -z $LAGOON_FASTLY_SERVICE_API_SECRET ]; then
+              ROUTE_FASTLY_SERVICE_API_SECRET=$LAGOON_FASTLY_SERVICE_API_SECRET
+            fi
+          fi
+
           FASTLY_ARGS=()
-          if [ "$ROUTE_FASTLY_SERVICE_ID" != "" ]; then
+          if [ ! -z "$ROUTE_FASTLY_SERVICE_ID" ]; then
             FASTLY_ARGS+=(--set fastly.serviceId=${ROUTE_FASTLY_SERVICE_ID})
-            if [ "$ROUTE_FASTLY_SERVICE_API_SECRET" != "" ]; then
+            if [ ! -z "$ROUTE_FASTLY_SERVICE_API_SECRET" ]; then
               if contains $FASTLY_API_SECRETS "${FASTLY_API_SECRET_PREFIX}${ROUTE_FASTLY_SERVICE_API_SECRET}"; then
                 FASTLY_ARGS+=(--set fastly.apiSecretName=${FASTLY_API_SECRET_PREFIX}${ROUTE_FASTLY_SERVICE_API_SECRET})
               else
                 echo "$ROUTE_FASTLY_SERVICE_API_SECRET requested, but not found in .lagoon.yml file"; exit 1;
               fi
             fi
-            ROUTE_FASTLY_SERVICE_WATCH=true
           fi
 
           touch /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
@@ -835,11 +898,23 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
             ROUTE_FASTLY_SERVICE_WATCH=false
           fi
 
+          # work out if there are any lagoon api variable overrides for the annotations that are being added
+          . /kubectl-build-deploy/scripts/exec-fastly-annotations.sh
+          # if we get any other populated service id overrides in any of the steps in exec-fastly-annotations.sh
+          # make it available to the ingress creation here by overriding what may be defined in the lagoon.yml
+          if [ ! -z "$LAGOON_FASTLY_SERVICE_ID" ]; then
+            ROUTE_FASTLY_SERVICE_ID=$LAGOON_FASTLY_SERVICE_ID
+            ROUTE_FASTLY_SERVICE_WATCH=$LAGOON_FASTLY_SERVICE_WATCH
+            if [ ! -z $LAGOON_FASTLY_SERVICE_API_SECRET ]; then
+              ROUTE_FASTLY_SERVICE_API_SECRET=$LAGOON_FASTLY_SERVICE_API_SECRET
+            fi
+          fi
+
           # Create the fastly values required
           FASTLY_ARGS=()
-          if [ "$ROUTE_FASTLY_SERVICE_ID" != "" ]; then
+          if [ ! -z "$ROUTE_FASTLY_SERVICE_ID" ]; then
             FASTLY_ARGS+=(--set fastly.serviceId=${ROUTE_FASTLY_SERVICE_ID})
-            if [ "$ROUTE_FASTLY_SERVICE_API_SECRET" != "" ]; then
+            if [ ! -z "$ROUTE_FASTLY_SERVICE_API_SECRET" ]; then
               if contains $FASTLY_API_SECRETS "${FASTLY_API_SECRET_PREFIX}${ROUTE_FASTLY_SERVICE_API_SECRET}"; then
                 FASTLY_ARGS+=(--set fastly.apiSecretName=${FASTLY_API_SECRET_PREFIX}${ROUTE_FASTLY_SERVICE_API_SECRET})
               else
@@ -932,11 +1007,23 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
         ROUTE_FASTLY_SERVICE_WATCH=false
       fi
 
+      # work out if there are any lagoon api variable overrides for the annotations that are being added
+      . /kubectl-build-deploy/scripts/exec-fastly-annotations.sh
+      # if we get any other populated service id overrides in any of the steps in exec-fastly-annotations.sh
+      # make it available to the ingress creation here by overriding what may be defined in the lagoon.yml
+      if [ ! -z "$LAGOON_FASTLY_SERVICE_ID" ]; then
+        ROUTE_FASTLY_SERVICE_ID=$LAGOON_FASTLY_SERVICE_ID
+        ROUTE_FASTLY_SERVICE_WATCH=$LAGOON_FASTLY_SERVICE_WATCH
+        if [ ! -z $LAGOON_FASTLY_SERVICE_API_SECRET ]; then
+          ROUTE_FASTLY_SERVICE_API_SECRET=$LAGOON_FASTLY_SERVICE_API_SECRET
+        fi
+      fi
+
       # Create the fastly values required
       FASTLY_ARGS=()
-      if [ "$ROUTE_FASTLY_SERVICE_ID" != "" ]; then
+      if [ ! -z "$ROUTE_FASTLY_SERVICE_ID" ]; then
         FASTLY_ARGS+=(--set fastly.serviceId=${ROUTE_FASTLY_SERVICE_ID})
-        if [ "$ROUTE_FASTLY_SERVICE_API_SECRET" != "" ]; then
+        if [ ! -z "$ROUTE_FASTLY_SERVICE_API_SECRET" ]; then
           if contains $FASTLY_API_SECRETS "${FASTLY_API_SECRET_PREFIX}${ROUTE_FASTLY_SERVICE_API_SECRET}"; then
             FASTLY_ARGS+=(--set fastly.apiSecretName=${FASTLY_API_SECRET_PREFIX}${ROUTE_FASTLY_SERVICE_API_SECRET})
           else
@@ -1021,11 +1108,23 @@ else
         ROUTE_FASTLY_SERVICE_WATCH=false
       fi
 
+      # work out if there are any lagoon api variable overrides for the annotations that are being added
+      . /kubectl-build-deploy/scripts/exec-fastly-annotations.sh
+      # if we get any other populated service id overrides in any of the steps in exec-fastly-annotations.sh
+      # make it available to the ingress creation here by overriding what may be defined in the lagoon.yml
+      if [ ! -z "$LAGOON_FASTLY_SERVICE_ID" ]; then
+        ROUTE_FASTLY_SERVICE_ID=$LAGOON_FASTLY_SERVICE_ID
+        ROUTE_FASTLY_SERVICE_WATCH=$LAGOON_FASTLY_SERVICE_WATCH
+        if [ ! -z $LAGOON_FASTLY_SERVICE_API_SECRET ]; then
+          ROUTE_FASTLY_SERVICE_API_SECRET=$LAGOON_FASTLY_SERVICE_API_SECRET
+        fi
+      fi
+
       # Create the fastly values required
       FASTLY_ARGS=()
-      if [ "$ROUTE_FASTLY_SERVICE_ID" != "" ]; then
+      if [ ! -z "$ROUTE_FASTLY_SERVICE_ID" ]; then
         FASTLY_ARGS+=(--set fastly.serviceId=${ROUTE_FASTLY_SERVICE_ID})
-        if [ "$ROUTE_FASTLY_SERVICE_API_SECRET" != "" ]; then
+        if [ ! -z "$ROUTE_FASTLY_SERVICE_API_SECRET" ]; then
           if contains $FASTLY_API_SECRETS "${FASTLY_API_SECRET_PREFIX}${ROUTE_FASTLY_SERVICE_API_SECRET}"; then
             FASTLY_ARGS+=(--set fastly.apiSecretName=${FASTLY_API_SECRET_PREFIX}${ROUTE_FASTLY_SERVICE_API_SECRET})
           else
