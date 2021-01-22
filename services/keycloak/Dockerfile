@@ -3,6 +3,9 @@ ARG UPSTREAM_TAG
 FROM ${UPSTREAM_REPO:-uselagoon}/commons:${UPSTREAM_TAG:-latest} as commons
 FROM jboss/keycloak:7.0.1
 
+ARG LAGOON_VERSION
+ENV LAGOON_VERSION=$LAGOON_VERSION
+
 USER root
 
 RUN microdnf install -y nc python2 \

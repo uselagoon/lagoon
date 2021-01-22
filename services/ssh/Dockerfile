@@ -3,6 +3,9 @@ ARG UPSTREAM_TAG
 FROM ${UPSTREAM_REPO:-uselagoon}/commons:${UPSTREAM_TAG:-latest} as commons
 FROM ubuntu:18.04
 
+ARG LAGOON_VERSION
+ENV LAGOON_VERSION=$LAGOON_VERSION
+
 LABEL maintainer="amazee.io"
 
 # Copy commons files
