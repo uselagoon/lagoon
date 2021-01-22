@@ -324,7 +324,7 @@ const getControllerBuildData = async function(deployData: any) {
     logger.error('Error parsing openshift.monitoringConfig from openshift: %s, continuing with "invalid"', projectOpenShift.openshift.name, { error: e })
     monitoringConfig = "invalid"
   }
-  if (monitoringConfig != "invalid"){
+  if (monitoringConfig != "invalid" && monitoringConfig.uptimerobot){
     alertContactHA = monitoringConfig.uptimerobot.alertContactHA || ""
     alertContactSA = monitoringConfig.uptimerobot.alertContactSA || ""
     if (monitoringConfig.uptimerobot.statusPageId) {
