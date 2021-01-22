@@ -2,6 +2,9 @@ FROM fluent/fluentd:v0.12
 # Note; we are _NOT_ running fluentd v0.12
 # One of the gem commands below is upgrading fluentd to the newest version
 
+ARG LAGOON_VERSION
+ENV LAGOON_VERSION=$LAGOON_VERSION
+
 USER root
 
 RUN apk add --no-cache tini \
