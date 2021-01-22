@@ -15,6 +15,7 @@ RUN apk add --no-cache --update --virtual .build-deps \
       && gem install fluent-plugin-rewrite-tag-filter \
       && gem install fluent-plugin-route \
       && gem install fluent-plugin-s3 --no-document \
+      && gem install fluent-plugin-sumologic_output \
       && gem sources --clear-all \
       && apk del .build-deps \
       && rm -rf /tmp/* /var/tmp/* /usr/lib/ruby/gems/*/cache/*.gem \
