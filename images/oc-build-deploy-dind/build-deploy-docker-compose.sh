@@ -527,14 +527,14 @@ else
   ROUTES_AUTOGENERATE_INSECURE=$(cat .lagoon.yml | shyaml get-value routes.autogenerate.insecure Allow)
 fi
 
-ROUTES_AUTOGENERATE_ENABLED=$(cat .lagoon.yml | shyaml get-value routes.autogenerate.enabled true)
-ROUTES_AUTOGENERATE_ALLOW_PRS=$(cat .lagoon.yml | shyaml get-value routes.autogenerate.allowPullrequests $ROUTES_AUTOGENERATE_ENABLED)
+ROUTES_AUTOGENERATE_ENABLED=$(set -o pipefail; cat .lagoon.yml | shyaml get-value routes.autogenerate.enabled true | tr '[:upper:]' '[:lower:]')
+ROUTES_AUTOGENERATE_ALLOW_PRS=$(cat .lagoon.yml | shyaml get-value routes.autogenerate.allowPullrequests $ROUTES_AUTOGENERATE_ENABLED | tr '[:upper:]' '[:lower:]')
 if [[ "$TYPE" == "pullrequest" && "$ROUTES_AUTOGENERATE_ALLOW_PRS" == "true" ]]; then
   ROUTES_AUTOGENERATE_ENABLED=true
 fi
 ## fail silently if the key autogenerateRoutes doesn't exist and default to whatever ROUTES_AUTOGENERATE_ENABLED is set to
-ROUTES_AUTOGENERATE_BRANCH=$(cat .lagoon.yml | shyaml -q get-value environments.${BRANCH//./\\.}.autogenerateRoutes $ROUTES_AUTOGENERATE_ENABLED)
-if [[ "$ROUTES_AUTOGENERATE_BRANCH" =~ [Tt]rue ]]; then
+ROUTES_AUTOGENERATE_BRANCH=$(set -o pipefail; cat .lagoon.yml | shyaml -q get-value environments.${BRANCH//./\\.}.autogenerateRoutes $ROUTES_AUTOGENERATE_ENABLED | tr '[:upper:]' '[:lower:]')
+if [[ "$ROUTES_AUTOGENERATE_BRANCH" == "true" ]]; then
   ROUTES_AUTOGENERATE_ENABLED=true
 fi
 
@@ -632,8 +632,8 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
             ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml keys production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
             # Route Domains include dots, which need to be esacped via `\.` in order to use them within shyaml
             ROUTE_DOMAIN_ESCAPED=$(cat .lagoon.yml | shyaml keys production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER | sed 's/\./\\./g')
-            ROUTE_TLS_ACME=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true)
-            ROUTE_MIGRATE=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate true)
+            ROUTE_TLS_ACME=$(set -o pipefail; cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true | tr '[:upper:]' '[:lower:]')
+            ROUTE_MIGRATE=$(set -o pipefail; cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate true | tr '[:upper:]' '[:lower:]')
             ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
             ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
             MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring-path "/")
@@ -682,8 +682,8 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
             ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml keys production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
             # Route Domains include dots, which need to be esacped via `\.` in order to use them within shyaml
             ROUTE_DOMAIN_ESCAPED=$(cat .lagoon.yml | shyaml keys production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER | sed 's/\./\\./g')
-            ROUTE_TLS_ACME=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true)
-            ROUTE_MIGRATE=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate true)
+            ROUTE_TLS_ACME=$(set -o pipefail; cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true | tr '[:upper:]' '[:lower:]')
+            ROUTE_MIGRATE=$(set -o pipefail; cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate true | tr '[:upper:]' '[:lower:]')
             ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
             ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
             MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring-path "/")
@@ -735,8 +735,8 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
         ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
         # Route Domains include dots, which need to be esacped via `\.` in order to use them within shyaml
         ROUTE_DOMAIN_ESCAPED=$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER | sed 's/\./\\./g')
-        ROUTE_TLS_ACME=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true)
-        ROUTE_MIGRATE=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate false)
+        ROUTE_TLS_ACME=$(set -o pipefail; cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true | tr '[:upper:]' '[:lower:]')
+        ROUTE_MIGRATE=$(set -o pipefail; cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate false | tr '[:upper:]' '[:lower:]')
         ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
         ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
         MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring-path "/")
@@ -782,8 +782,8 @@ else
         ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
         # Route Domains include dots, which need to be esacped via `\.` in order to use them within shyaml
         ROUTE_DOMAIN_ESCAPED=$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER | sed 's/\./\\./g')
-        ROUTE_TLS_ACME=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true)
-        ROUTE_MIGRATE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate false)
+        ROUTE_TLS_ACME=$(set -o pipefail; cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme  | tr '[:upper:]' '[:lower:]'
+        ROUTE_MIGRATE=$(set -o pipefail; cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate false | tr '[:upper:]' '[:lower:]')
         ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
         ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
         MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring-path "/")
