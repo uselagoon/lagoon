@@ -779,9 +779,15 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
             MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring-path "/")
             ROUTE_ANNOTATIONS=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.annotations {})
             # get the fastly configuration values from .lagoon.yml
-            ROUTE_FASTLY_SERVICE_ID=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.service-id "")
-            ROUTE_FASTLY_SERVICE_API_SECRET=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.api-secret-name "")
-            ROUTE_FASTLY_SERVICE_WATCH=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.watch false)
+            if cat .lagoon.yml | shyaml keys production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly &> /dev/null; then
+              ROUTE_FASTLY_SERVICE_ID=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.service-id "")
+              ROUTE_FASTLY_SERVICE_API_SECRET=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.api-secret-name "")
+              ROUTE_FASTLY_SERVICE_WATCH=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.watch false)
+            else
+              ROUTE_FASTLY_SERVICE_ID=""
+              ROUTE_FASTLY_SERVICE_API_SECRET=""
+              ROUTE_FASTLY_SERVICE_WATCH=false
+            fi
           else
             # Only a value given, assuming some defaults
             ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
@@ -881,9 +887,15 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
             MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring-path "/")
             ROUTE_ANNOTATIONS=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.annotations {})
             # get the fastly configuration values from .lagoon.yml
-            ROUTE_FASTLY_SERVICE_ID=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.service-id "")
-            ROUTE_FASTLY_SERVICE_API_SECRET=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.api-secret-name "")
-            ROUTE_FASTLY_SERVICE_WATCH=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.watch false)
+            if cat .lagoon.yml | shyaml keys production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly &> /dev/null; then
+              ROUTE_FASTLY_SERVICE_ID=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.service-id "")
+              ROUTE_FASTLY_SERVICE_API_SECRET=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.api-secret-name "")
+              ROUTE_FASTLY_SERVICE_WATCH=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.watch false)
+            else
+              ROUTE_FASTLY_SERVICE_ID=""
+              ROUTE_FASTLY_SERVICE_API_SECRET=""
+              ROUTE_FASTLY_SERVICE_WATCH=false
+            fi
           else
             # Only a value given, assuming some defaults
             ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
@@ -990,9 +1002,15 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
         MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring-path "/")
         ROUTE_ANNOTATIONS=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.annotations {})
         # get the fastly configuration values from .lagoon.yml
-        ROUTE_FASTLY_SERVICE_ID=$(cat .lagoon.yml | shyaml ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.service-id "")
-        ROUTE_FASTLY_SERVICE_API_SECRET=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.api-secret-name "")
-        ROUTE_FASTLY_SERVICE_WATCH=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.watch false)
+        if cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly &> /dev/null; then
+          ROUTE_FASTLY_SERVICE_ID=$(cat .lagoon.yml | shyaml ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.service-id "")
+          ROUTE_FASTLY_SERVICE_API_SECRET=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.api-secret-name "")
+          ROUTE_FASTLY_SERVICE_WATCH=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.watch false)
+        else
+          ROUTE_FASTLY_SERVICE_ID=""
+          ROUTE_FASTLY_SERVICE_API_SECRET=""
+          ROUTE_FASTLY_SERVICE_WATCH=false
+        fi
       else
         # Only a value given, assuming some defaults
         ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
@@ -1091,9 +1109,15 @@ else
         MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring-path "/")
         ROUTE_ANNOTATIONS=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.annotations {})
         # get the fastly configuration values from .lagoon.yml
-        ROUTE_FASTLY_SERVICE_ID=$(cat .lagoon.yml | shyaml environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.service-id "")
-        ROUTE_FASTLY_SERVICE_API_SECRET=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.api-secret-name "")
-        ROUTE_FASTLY_SERVICE_WATCH=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.watch false)
+        if cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly &> /dev/null; then
+          ROUTE_FASTLY_SERVICE_ID=$(cat .lagoon.yml | shyaml environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.service-id "")
+          ROUTE_FASTLY_SERVICE_API_SECRET=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.api-secret-name "")
+          ROUTE_FASTLY_SERVICE_WATCH=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.watch false)
+        else
+          ROUTE_FASTLY_SERVICE_ID=""
+          ROUTE_FASTLY_SERVICE_API_SECRET=""
+          ROUTE_FASTLY_SERVICE_WATCH=false
+        fi
       else
         # Only a value given, assuming some defaults
         ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
