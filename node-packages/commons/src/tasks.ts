@@ -317,7 +317,7 @@ const getControllerBuildData = async function(deployData: any) {
   var alertContactHA = ""
   var alertContactSA = ""
   var uptimeRobotStatusPageIds = []
-  var monitoringConfig = ""
+  var monitoringConfig: any = {};
   try {
     monitoringConfig = JSON.parse(projectOpenShift.openshift.monitoringConfig)
   } catch (e) {
