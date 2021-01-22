@@ -19,6 +19,9 @@ const lagoonGitSafeBranch = process.env.LAGOON_GIT_SAFE_BRANCH || "master"
 const lagoonVersion = process.env.LAGOON_VERSION
 const overwriteKubectlBuildDeployDindImage = process.env.OVERWRITE_KUBECTL_BUILD_DEPLOY_DIND_IMAGE
 const registry = process.env.REGISTRY || "registry.lagoon.svc:5000"
+const monthlyBackupRetention = process.env.MONTHLY_BACKUP_DEFAULT_RETENTION || "1"
+const weeklyBackupRetention = process.env.WEEKLY_BACKUP_DEFAULT_RETENTION || "6"
+const dailyBackupRetention = process.env.DAILY_BACKUP_DEFAULT_RETENTION || "7"
 const lagoonEnvironmentType = process.env.LAGOON_ENVIRONMENT_TYPE || "development"
 const jwtSecret = process.env.JWTSECRET || "super-secret-string"
 
@@ -258,6 +261,18 @@ const messageConsumer = async msg => {
                   {
                       "name": "REGISTRY",
                       "value": registry
+                  },
+                  {
+                    "name": "MONTHLY_BACKUP_DEFAULT_RETENTION",
+                    "value": monthlyBackupRetention
+                  },
+                  {
+                    "name": "WEEKLY_BACKUP_DEFAULT_RETENTION",
+                    "value": weeklyBackupRetention
+                  },
+                  {
+                    "name": "DAILY_BACKUP_DEFAULT_RETENTION",
+                    "value": dailyBackupRetention
                   }
                 ],
                 "volumeMounts": [
