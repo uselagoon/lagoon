@@ -93,7 +93,13 @@ const messageConsumer = async msg => {
     var alertContactHA = ""
     var alertContactSA = ""
     var uptimeRobotStatusPageIds = []
-    var monitoringConfig = JSON.parse(projectOpenShift.openshift.monitoringConfig) || "invalid"
+    var monitoringConfig: any = {};
+    try {
+      monitoringConfig = JSON.parse(projectOpenShift.openshift.monitoringConfig) || "invalid"
+    } catch (e) {
+      logger.error('Error parsing openshift.monitoringConfig from openshift: %s, continuing with "invalid"', projectOpenShift.openshift.name, { error: e })
+      monitoringConfig = "invalid"
+    }
     if (monitoringConfig != "invalid"){
       alertContactHA = monitoringConfig.uptimerobot.alertContactHA || ""
       alertContactSA = monitoringConfig.uptimerobot.alertContactSA || ""
