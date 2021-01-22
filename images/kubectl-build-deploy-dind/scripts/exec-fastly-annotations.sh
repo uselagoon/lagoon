@@ -22,8 +22,9 @@ fi
 if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
     LAGOON_FASTLY_SERVICE_ID_DATA=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_FASTLY_SERVICE_ID") | "\(.value)"'))
     IFS=':' read -ra LAGOON_FASTLY_SERVICE_ID_SPLIT <<< "$LAGOON_FASTLY_SERVICE_ID_DATA"
-    if [ ! -z "${LAGOON_FASTLY_SERVICE_ID_SPLIT[0]}" ] || [ ! -z "${LAGOON_FASTLY_SERVICE_ID_SPLIT[1]}" ]; then
-        echo -e "An override was defined in the lagoon API with `LAGOON_FASTLY_SERVICE_ID` but one of the components was missing, the format should be `FASTLY_SERVICE_ID:WATCH_STATUS`"
+    if [ -z "${LAGOON_FASTLY_SERVICE_ID_SPLIT[0]}" ] || [ -z "${LAGOON_FASTLY_SERVICE_ID_SPLIT[1]}" ]; then
+        echo $LAGOON_FASTLY_SERVICE_ID_DATA
+        echo -e "An override was defined in the lagoon API with LAGOON_FASTLY_SERVICE_ID but one of the components was missing, the format should be FASTLY_SERVICE_ID:WATCH_STATUS"
         exit 1
     fi
     LAGOON_FASTLY_SERVICE_ID=${LAGOON_FASTLY_SERVICE_ID_SPLIT[0]}
@@ -34,7 +35,7 @@ if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
     if [ ! -z $TEMP_LAGOON_FASTLY_SERVICE_ID_DATA ]; then
         IFS=':' read -ra LAGOON_FASTLY_SERVICE_ID_SPLIT <<< "$TEMP_LAGOON_FASTLY_SERVICE_ID_DATA"
         if [ -z "${LAGOON_FASTLY_SERVICE_ID_SPLIT[0]}" ] || [ -z "${LAGOON_FASTLY_SERVICE_ID_SPLIT[1]}" ]; then
-            echo -e "An override was defined in the lagoon API with `LAGOON_FASTLY_SERVICE_ID` but one of the components was missing, the format should be `FASTLY_SERVICE_ID:WATCH_STATUS`"
+            echo -e "An override was defined in the lagoon API with LAGOON_FASTLY_SERVICE_ID but one of the components was missing, the format should be FASTLY_SERVICE_ID:WATCH_STATUS"
             exit 1
         fi
         LAGOON_FASTLY_SERVICE_ID=${LAGOON_FASTLY_SERVICE_ID_SPLIT[0]}
@@ -56,7 +57,7 @@ if [ ! -z "$LAGOON_FASTLY_SERVICE_IDS" ]; then
     do
         IFS=':' read -ra LAGOON_FASTLY_SERVICE_ID_SPLIT <<< "$LAGOON_FASTLY_SERVICE_ID_DATA"
         if [ -z "${LAGOON_FASTLY_SERVICE_ID_SPLIT[0]}" ] || [ -z "${LAGOON_FASTLY_SERVICE_ID_SPLIT[1]}" ] || [ -z "${LAGOON_FASTLY_SERVICE_ID_SPLIT[2]}" ]; then
-            echo -e "An override was defined in the lagoon API with `LAGOON_FASTLY_SERVICE_IDS` but was not structured correctly, the format should be `DOMAIN_NAME:FASTLY_SERVICE_ID:WATCH_STATUS` and comma separated for multiples"
+            echo -e "An override was defined in the lagoon API with LAGOON_FASTLY_SERVICE_IDS but was not structured correctly, the format should be DOMAIN_NAME:FASTLY_SERVICE_ID:WATCH_STATUS and comma separated for multiples"
             exit 1
         fi
         if [ "${LAGOON_FASTLY_SERVICE_ID_SPLIT[0]}" == "$ROUTE_DOMAIN" ]; then

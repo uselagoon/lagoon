@@ -22,7 +22,7 @@ function cronScheduleMoreOftenThan30Minutes() {
 }
 
 function contains() {
-    [[ $1 =~ (^|[[:space:]])$2($|[[:space:]]) ]] && return true || return false
+    [[ $1 =~ (^|[[:space:]])$2($|[[:space:]]) ]] && return 0 || return 1
 }
 
 ##############################################
@@ -719,12 +719,12 @@ if [ ! -z "$LAGOON_FASTLY_API_SECRETS" ]; then
   do
     IFS=':' read -ra LAGOON_FASTLY_API_SECRET_SPLIT <<< "$LAGOON_FASTLY_API_SECRETS_DATA"
     if [ -z "${LAGOON_FASTLY_API_SECRET_SPLIT[0]}" ] || [ -z "${LAGOON_FASTLY_API_SECRET_SPLIT[1]}" ] || [ -z "${LAGOON_FASTLY_API_SECRET_SPLIT[2]}" ]; then
-      echo -e "An override was defined in the lagoon API with `LAGOON_FASTLY_API_SECRETS` but was not structured correctly, the format should be `NAME:FASTLY_API_TOKEN:FASTLY_PLATFORMTLS_CONFIGURATION_ID` and comma separated for multiples"
+      echo -e "An override was defined in the lagoon API with LAGOON_FASTLY_API_SECRETS but was not structured correctly, the format should be NAME:FASTLY_API_TOKEN:FASTLY_PLATFORMTLS_CONFIGURATION_ID and comma separated for multiples"
       exit 1
     fi
     # the fastly api secret name will be created with the prefix that is defined above
     FASTLY_API_SECRET_NAME=$FASTLY_API_SECRET_PREFIX${LAGOON_FASTLY_API_SECRET_SPLIT[0]}
-    FASTLY_API_TOKEN_VALUE=${LAGOON_FASTLY_API_SECRET_SPLIT[1]}
+    FASTLY_API_TOKEN=${LAGOON_FASTLY_API_SECRET_SPLIT[1]}
     FASTLY_API_PLATFORMTLS_CONFIGURATION=${LAGOON_FASTLY_API_SECRET_SPLIT[2]}
     # run the script to create the secrets
     . /kubectl-build-deploy/scripts/exec-fastly-api-secrets.sh
