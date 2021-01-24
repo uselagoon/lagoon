@@ -1,6 +1,9 @@
 FROM fluent/fluentd:v1.11-1
 LABEL maintainer="support@amazee.io"
 
+ARG LAGOON_VERSION
+ENV LAGOON_VERSION=$LAGOON_VERSION
+
 USER root
 
 RUN apk add --no-cache --update --virtual .build-deps \
