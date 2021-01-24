@@ -1,6 +1,9 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/curator
 
+ARG LAGOON_VERSION
+ENV LAGOON_VERSION=$LAGOON_VERSION
+
 COPY actions.yml curator.yml /curator/
 COPY 90-generate-http-auth.sh /lagoon/entrypoints/
 
