@@ -45,13 +45,13 @@ parameters:
     required: true
   - name: MONTHLY_BACKUP_RETENTION
     description: How many monthly backups should be retained after pruning
-    required: true
+    value: '1'
   - name: WEEKLY_BACKUP_RETENTION
     description: How many weekly backups should be retained after pruning
-    required: true
+    value: '4'
   - name: DAILY_BACKUP_RETENTION
     description: How many daily backups should be retained after pruning
-    required: true
+    value: '7'
   - name: ENVIRONMENT_TYPE
     description: What type of environment this is (production/development)
     required: true
