@@ -76,7 +76,10 @@ const Facts = ({ facts }) => {
                                 <div className="description">{fact.description}</div>
                             </div>
                             <div className="col col-2">{fact.source}</div>
-                            <div className="col col-3">{fact.value}</div>
+                            <div className="col col-3">{fact.type == "url"
+                            ?<a href="fact.value">{fact.value}</a>
+                            :{fact.value}
+                            }{fact.type}</div>
                         </div>
                     );
                 })}
