@@ -1029,7 +1029,7 @@ kind/test: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addpr
 			--volume "$$(pwd):/workdir" \
 			--volume "$$(realpath ../kubeconfig.kind.$(CI_BUILD_TAG)):/root/.kube/config" \
 			--workdir /workdir \
-			"quay.io/helmpack/chart-testing:v3.1.1" \
+			"quay.io/helmpack/chart-testing:v3.3.1" \
 			ct install
 
 .PHONY: kind/push-images
@@ -1063,7 +1063,7 @@ kind/retest:
 			--volume "$$(pwd):/workdir" \
 			--volume "$$(realpath ../kubeconfig.kind.$(CI_BUILD_TAG)):/root/.kube/config" \
 			--workdir /workdir \
-			"quay.io/helmpack/chart-testing:v3.1.1" \
+			"quay.io/helmpack/chart-testing:v3.3.1" \
 			ct install
 
 .PHONY: kind/clean
