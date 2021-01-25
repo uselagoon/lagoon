@@ -867,23 +867,25 @@ if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get schedules.backup.ap
   BACKUP_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "M H(22-2) * * *")
   TEMPLATE_PARAMETERS+=(-p BACKUP_SCHEDULE="${BACKUP_SCHEDULE}")
 
+  # Checks
   if [ ! -z $K8UP_WEEKLY_RANDOM_FEATURE_FLAG ] && [ $K8UP_WEEKLY_RANDOM_FEATURE_FLAG = 'enabled' ]; then
     # Let the controller deduplicate checks (will run weekly at a random time throughout the week)
     CHECK_SCHEDULE="@weekly-random"
   else
     # Run Checks on Sunday at 0300-0600
-    CHECK_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${NAMESPACE}" "M H(3-6) * * 0")
-    TEMPLATE_PARAMETERS+=(-p CHECK_SCHEDULE="${CHECK_SCHEDULE}")
+    CHECK_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "M H(3-6) * * 0")
   fi
+  TEMPLATE_PARAMETERS+=(-p CHECK_SCHEDULE="${CHECK_SCHEDULE}")
 
+  # Prunes
   if [ ! -z $K8UP_WEEKLY_RANDOM_FEATURE_FLAG ] && [ $K8UP_WEEKLY_RANDOM_FEATURE_FLAG = 'enabled' ]; then
     # Let the controller deduplicate prunes (will run weekly at a random time throughout the week)
     PRUNE_SCHEDULE="@weekly-random"
   else
     # Run Prune on Saturday at 0300-0600
-    PRUNE_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${NAMESPACE}" "M H(3-6) * * 6")
-    TEMPLATE_PARAMETERS+=(-p PRUNE_SCHEDULE="${PRUNE_SCHEDULE}")
+    PRUNE_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "M H(3-6) * * 6")
   fi
+  TEMPLATE_PARAMETERS+=(-p PRUNE_SCHEDULE="${PRUNE_SCHEDULE}")
 
   OPENSHIFT_TEMPLATE="/oc-build-deploy/openshift-templates/backup-schedule.yml"
   .  /oc-build-deploy/scripts/exec-openshift-resources.sh
