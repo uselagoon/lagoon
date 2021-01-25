@@ -23,7 +23,7 @@ const weeklyBackupRetention = process.env.WEEKLY_BACKUP_DEFAULT_RETENTION || "4"
 const dailyBackupRetention = process.env.DAILY_BACKUP_DEFAULT_RETENTION || "7"
 const lagoonEnvironmentType = process.env.LAGOON_ENVIRONMENT_TYPE || "development"
 const jwtSecret = process.env.JWTSECRET || "super-secret-string"
-const k8upFeatureFlag = process.env.K8UP_FEATURE_FLAG || ""
+const k8upWeeklyRandomFeatureFlag = process.env.K8UP_WEEKLY_RANDOM_FEATURE_FLAG || ""
 
 const messageConsumer = async msg => {
   const {
@@ -285,8 +285,8 @@ const messageConsumer = async msg => {
                         "value": dailyBackupRetention
                       },
                       {
-                        "name": "K8UP_FEATURE_FLAG",
-                        "value": k8upFeatureFlag
+                        "name": "K8UP_WEEKLY_RANDOM_FEATURE_FLAG",
+                        "value": k8upWeeklyRandomFeatureFlag
                       }
                   ],
                   "forcePull": true,

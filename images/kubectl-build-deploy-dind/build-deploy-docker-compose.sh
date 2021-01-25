@@ -1245,7 +1245,7 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
   # Run Backups every day at 2200-0200
   BACKUP_SCHEDULE=$( /kubectl-build-deploy/scripts/convert-crontab.sh "${NAMESPACE}" "M H(22-2) * * *")
 
-  if [ ! -z $K8UP_FEATURE_FLAG ] && [ $K8UP_FEATURE_FLAG = 'enabled' ]; then
+  if [ ! -z $K8UP_WEEKLY_RANDOM_FEATURE_FLAG ] && [ $K8UP_WEEKLY_RANDOM_FEATURE_FLAG = 'enabled' ]; then
     # Let the controller deduplicate checks (will run weekly at a random time throughout the week)
     CHECK_SCHEDULE="@weekly-random"
   else
@@ -1253,7 +1253,7 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
     CHECK_SCHEDULE=$( /kubectl-build-deploy/scripts/convert-crontab.sh "${NAMESPACE}" "M H(3-6) * * 0")
   fi
 
-  if [ ! -z $K8UP_FEATURE_FLAG ] && [ $K8UP_FEATURE_FLAG = 'enabled' ]; then
+  if [ ! -z $K8UP_WEEKLY_RANDOM_FEATURE_FLAG ] && [ $K8UP_WEEKLY_RANDOM_FEATURE_FLAG = 'enabled' ]; then
     # Let the controller deduplicate prunes (will run weekly at a random time throughout the week)
     PRUNE_SCHEDULE="@weekly-random"
   else
