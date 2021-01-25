@@ -38,7 +38,6 @@ tasks:
         name: 'enable shard allocation on elasticsearch'
         command: es-curl PUT _cluster/settings -d '{"persistent":{"cluster.routing.allocation.enable":null}}'
         service: logs-db
-
 environments:
   master:
     types:

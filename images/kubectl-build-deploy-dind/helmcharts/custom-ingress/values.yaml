@@ -14,3 +14,9 @@ ingressmonitorcontroller:
   enabled: 'false'
   interval: '60'
   alertContacts: 'unconfigured'
+
+## example fastly block
+fastly:
+  watch: false
+#   serviceId: ''
+#   apiSecretName: ''

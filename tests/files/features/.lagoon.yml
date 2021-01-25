@@ -9,6 +9,10 @@ environments:
     - node:
       - customdomain-will-be-main-domain.com
       - customdomain-will-be-not-be-main-domain.com
+  fastly-annotations:
+    routes:
+    - node:
+      - annotations.com
   ingress-annotations:
     routes:
     - node:

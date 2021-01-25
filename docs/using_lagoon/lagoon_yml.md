@@ -42,6 +42,12 @@ routes:
   autogenerate:
     insecure: Redirect
 
+backup-retention:
+  production:
+    monthly: 1
+    weekly: 6
+    daily: 7
+
 environments:
   master:
     monitoring_urls:
@@ -120,6 +126,20 @@ Note: If you would like to temporarily disable pre/post-rollout tasks during a d
 
 * `LAGOON_PREROLLOUT_DISABLED=true`
 * `LAGOON_POSTROLLOUT_DISABLED=true`
+
+## Backup Retention
+
+### `backup-retention.production.monthly`
+
+Specify the number of monthly backups our system should retain for your project's production environment(s). The default is `1` if this value is not specified.
+
+### `backup-retention.production.weekly`
+
+Specify the number of weekly backups our system should retain for your project's production environment(s). The default is `6` if this value is not specified.
+
+### `backup-retention.production.daily`
+
+Specify the number of daily backups our system should retain for your project's production environment(s). The default is `7` if this value is not specified.
 
 ## Routes
 

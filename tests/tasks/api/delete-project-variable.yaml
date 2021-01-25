@@ -15,10 +15,14 @@
         msg: "api response: {{ apiresponse.json }}"
     - name: "{{ testname }} - POST api get project by name with target project {{ project }} and sha {{ sha }} to {{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
       debug:
-        msg: "api response: {{ apiresponse.json|json_query('data.projectByName.envVariables[?name==`LAGOON_SERVICE_TYPES`].id | [0]') }}"
+        msg: "api response: {{ apiresponse.json|json_query(query) }}"
+      vars:
+        query: 'data.projectByName.envVariables[?name==`{{ envName }}`].id | [0]'
     - name: "{{ testname }} - set envvar id to fact"
       set_fact:
-        env_var_id: "{{ apiresponse.json|json_query('data.projectByName.envVariables[?name==`LAGOON_SERVICE_TYPES`].id | [0]')  }}"
+        env_var_id: "{{ apiresponse.json|json_query(query)  }}"
+      vars:
+        query: 'data.projectByName.envVariables[?name==`{{ envName }}`].id | [0]'
     - name: "{{ testname }} - POST api delete envVariable with target project {{ project }} to {{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
       uri:
         url: "{{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
