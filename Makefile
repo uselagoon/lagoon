@@ -924,9 +924,9 @@ api-development: build/api build/api-db build/local-api-data-watcher-pusher buil
 
 ## CI targets
 
-KIND_VERSION = v0.9.0
+KIND_VERSION = v0.10.0
 GOJQ_VERSION = v0.11.2
-KIND_IMAGE = kindest/node:v1.19.1@sha256:98cf5288864662e37115e362b23e4369c8c4a408f99cbc06e58ac30ddc721600
+KIND_IMAGE = kindest/node:v1.20.2@sha256:8f7ea6e7642c0da54f04a7ee10431549c0257315b3a634f6ef2fecaaedb19bab
 TESTS = [api,features-kubernetes,nginx,drupal-php73,drupal-php74,drupal-postgres,python,gitlab,github,bitbucket]
 CHARTS_TREEISH = main
 
