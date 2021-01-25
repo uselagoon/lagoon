@@ -76,8 +76,8 @@ MINISHIFT_DISK_SIZE := 30GB
 
 # Version and Hash of the minikube cli that should be downloaded
 K3S_VERSION := v1.17.0-k3s.1
-KUBECTL_VERSION := v1.19.0
-HELM_VERSION := v3.4.1
+KUBECTL_VERSION := v1.20.2
+HELM_VERSION := v3.5.0
 MINIKUBE_VERSION := 1.5.2
 MINIKUBE_PROFILE := $(CI_BUILD_TAG)-minikube
 MINIKUBE_CPUS := $(nproc --ignore 2)
