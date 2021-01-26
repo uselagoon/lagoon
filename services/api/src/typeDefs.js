@@ -118,8 +118,8 @@ const typeDefs = gql`
   }
 
   enum FactType {
-    text
-    url
+    TEXT
+    URL
   }
 
   scalar SeverityScore

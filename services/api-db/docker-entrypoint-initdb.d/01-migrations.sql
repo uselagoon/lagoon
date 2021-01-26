@@ -1269,7 +1269,7 @@ CREATE OR REPLACE PROCEDURE
         AND column_name = 'type'
     ) THEN
         ALTER TABLE `environment_fact`
-        ADD `type` ENUM('TEXT', 'URL') NOT NULL DEFAULT 'TEXT',
+        ADD `type` ENUM('TEXT', 'URL') NOT NULL DEFAULT 'TEXT';
     END IF;
   END;
 $$
