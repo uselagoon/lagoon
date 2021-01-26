@@ -1333,7 +1333,7 @@ CALL add_min_max_to_billing_modifier();
 CALL add_content_type_to_project_notification();
 CALL convert_project_production_routes_to_text();
 CALL convert_project_standby_routes_to_text();
--- CALL add_fact_type_to_environment_fact();
+CALL add_fact_type_to_environment_fact();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;
