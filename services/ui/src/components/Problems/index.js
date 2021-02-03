@@ -14,7 +14,7 @@ const getOptionsFromProblems = (problems, key) => {
   return [...uniqueOptions];
 };
 
-const Problems = ({problems, environment}) => {
+const Problems = ({problems}) => {
   const { sortedItems, requestSort, getClassNamesFor } = useSortableProblemsData(problems);
   const [severitySelected, setSeverity] = useState([]);
   const [sourceSelected, setSource] = useState([]);
