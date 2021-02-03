@@ -56,7 +56,7 @@ export const PageProblems = ({ router }) => (
             <div className="content-wrapper">
               <NavTabs activeTab="problems" environment={environment} />
               <div className="content">
-                <Problems problems={problems} />
+                <Problems problems={problems} environment={environment} />
               </div>
             </div>
             <style jsx>{`

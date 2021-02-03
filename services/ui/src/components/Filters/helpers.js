@@ -19,6 +19,12 @@ export const getSourceOptions = gql`
   }
 `;
 
+export const getServiceOptions = gql`
+  query getProblemServices($environment: Int) {
+    services: problemServices(environment: $environment)
+  }
+`;
+
 const getSeverityEnumQuery = gql`
   query severityEnum {
     __type(name: "ProblemSeverityRating") {
