@@ -1,0 +1,26 @@
+{{ if .Capabilities.APIVersions.Has "backup.appuio.ch/v1alpha1/PreBackupPod" }}
+apiVersion: backup.appuio.ch/v1alpha1
+kind: PreBackupPod
+metadata:
+  name: {{ include "mongodb-dbaas.fullname" . }}-prebackuppod
+  labels:
+    {{- include "mongodb-dbaas.labels" . | nindent 4 }}
+  annotations:
+    {{- include "mongodb-dbaas.annotations" . | nindent 4 }}
+spec:
+  backupCommand: /bin/sh -c "/bin/busybox tar -cf - -C /data/db ."
+  fileExtension: .{{ include "mongodb-dbaas.fullname" . }}.tar
+  pod:
+    metadata:
+      labels:
+        prebackuppod: {{ include "mongodb-dbaas.fullname" . }}
+        {{- include "mongodb-dbaas.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - args:
+            - sleep
+            - infinity
+          image: imagecache.amazeeio.cloud/library/alpine
+          imagePullPolicy: Always
+          name: {{ include "mongodb-dbaas.fullname" . }}-prebackuppod
+{{ end }}
