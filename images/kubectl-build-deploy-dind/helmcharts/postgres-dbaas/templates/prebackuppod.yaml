@@ -8,7 +8,7 @@ metadata:
   annotations:
     {{- include "postgres-dbaas.annotations" . | nindent 4 }}
 spec:
-  backupCommand: /bin/sh -c "/bin/busybox tar -cf - -C /var/lib/postgresql/data ."
+  backupCommand: PGPASSWORD={{ include "postgres-dbaas.fullnameUppercase" . }}_PASSWORD pg_dump --host={{ include "postgres-dbaas.fullnameUppercase" . }}_HOST --port={{ include "postgres-dbaas.fullnameUppercase" . }}_PORT --dbname={{ include "postgres-dbaas.fullnameUppercase" . }}_NAME -w
   fileExtension: .{{ include "postgres-dbaas.fullname" . }}.tar
   pod:
     metadata:
@@ -20,6 +20,32 @@ spec:
         - args:
             - sleep
             - infinity
+          env:
+            - name: BACKUP_DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  key: {{ include "postgres-dbaas.fullnameUppercase" . }}_HOST
+                  name: lagoon-env
+            - name: BACKUP_DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: {{ include "postgres-dbaas.fullnameUppercase" . }}_PORT
+                  name: lagoon-env
+            - name: BACKUP_DB_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  key: {{ include "postgres-dbaas.fullnameUppercase" . }}_USERNAME
+                  name: lagoon-env
+            - name: BACKUP_DB_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  key: {{ include "postgres-dbaas.fullnameUppercase" . }}_PASSWORD
+                  name: lagoon-env
+            - name: BACKUP_DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  key: {{ include "postgres-dbaas.fullnameUppercase" . }}_NAME
+                  name: lagoon-env
           image: imagecache.amazeeio.cloud/library/alpine
           imagePullPolicy: Always
           name: {{ include "postgres-dbaas.fullname" . }}-prebackuppod
