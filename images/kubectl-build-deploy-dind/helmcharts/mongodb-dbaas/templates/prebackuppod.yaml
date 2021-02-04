@@ -8,7 +8,7 @@ metadata:
   annotations:
     {{- include "mongodb-dbaas.annotations" . | nindent 4 }}
 spec:
-  backupCommand: mongodump --host $BACKUP_DB_HOST --port $BACKUP_DB_PORT --db $BACKUP_DB_DATABASE --password $BACKUP_DB_PASSWORD --archive
+  backupCommand: mongodump --uri=mongodb://${BACKUP_DB_USER}:${BACKUP_DB_PASSWORD}@${BACKUP_DB_HOST}:${BACKUP_DB_PORT}/${BACKUP_DB_NAME}?ssl=true&sslInsecure=true&tls=true&tlsInsecure=true --archive
   fileExtension: .{{ include "mongodb-dbaas.fullname" . }}.tar
   pod:
     metadata:
@@ -26,20 +26,40 @@ spec:
                 configMapKeyRef:
                   key: {{ include "mongodb-dbaas.fullnameUppercase" . }}_HOST
                   name: lagoon-env
-            - name: BACKUP_DB_USERNAME
+            - name: BACKUP_DB_USER
               valueFrom:
                 configMapKeyRef:
-                  key: {{ include "mongodb-dbaas.fullnameUppercase" . }}_USERNAME
+                  key: {{ include "mongodb-dbaas.fullnameUppercase" . }}_USER
                   name: lagoon-env
             - name: BACKUP_DB_PASSWORD
               valueFrom:
                 configMapKeyRef:
                   key: {{ include "mongodb-dbaas.fullnameUppercase" . }}_PASSWORD
                   name: lagoon-env
-            - name: BACKUP_DB_DATABASE
+            - name: BACKUP_DB_NAME
               valueFrom:
                 configMapKeyRef:
-                  key: {{ include "mongodb-dbaas.fullnameUppercase" . }}_DATABASE
+                  key: {{ include "mongodb-dbaas.fullnameUppercase" . }}_DB_NAME
+                  name: lagoon-env
+            - name: BACKUP_DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: {{ include "mongodb-dbaas.fullnameUppercase" . }}_DB_PORT
+                  name: lagoon-env
+            - name: BACKUP_DB_AUTHSOURCE
+              valueFrom:
+                configMapKeyRef:
+                  key: {{ include "mongodb-dbaas.fullnameUppercase" . }}_DB_AUTHSOURCE
+                  name: lagoon-env
+            - name: BACKUP_DB_AUTHMECHANISM
+              valueFrom:
+                configMapKeyRef:
+                  key: {{ include "mongodb-dbaas.fullnameUppercase" . }}_DB_AUTHMECHANISM
+                  name: lagoon-env
+            - name: BACKUP_DB_AUTHTLS
+              valueFrom:
+                configMapKeyRef:
+                  key: {{ include "mongodb-dbaas.fullnameUppercase" . }}_DB_AUTHTLS
                   name: lagoon-env
           image: imagecache.amazeeio.cloud/library/alpine
           imagePullPolicy: Always
