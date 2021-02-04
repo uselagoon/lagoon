@@ -1,0 +1,26 @@
+{{ if .Capabilities.APIVersions.Has "backup.appuio.ch/v1alpha1/PreBackupPod" }}
+apiVersion: backup.appuio.ch/v1alpha1
+kind: PreBackupPod
+metadata:
+  name: {{ include "postgres-dbaas.fullname" . }}-prebackuppod
+  labels:
+    {{- include "postgres-dbaas.labels" . | nindent 4 }}
+  annotations:
+    {{- include "postgres-dbaas.annotations" . | nindent 4 }}
+spec:
+  backupCommand: /bin/sh -c "/bin/busybox tar -cf - -C /var/lib/postgresql/data ."
+  fileExtension: .{{ include "postgres-dbaas.fullname" . }}.tar
+  pod:
+    metadata:
+      labels:
+        prebackuppod: {{ include "postgres-dbaas.fullname" . }}
+        {{- include "postgres-dbaas.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - args:
+            - sleep
+            - infinity
+          image: imagecache.amazeeio.cloud/library/alpine
+          imagePullPolicy: Always
+          name: {{ include "postgres-dbaas.fullname" . }}-prebackuppod
+{{ end }}
