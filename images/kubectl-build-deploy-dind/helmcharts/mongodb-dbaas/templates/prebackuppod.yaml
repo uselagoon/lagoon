@@ -8,7 +8,7 @@ metadata:
   annotations:
     {{- include "mongodb-dbaas.annotations" . | nindent 4 }}
 spec:
-  backupCommand: /bin/sh -c "/bin/busybox tar -cf - -C /data/db ."
+  backupCommand: mongodump --host $BACKUP_DB_HOST --port $BACKUP_DB_PORT --db $BACKUP_DB_DATABASE --password $BACKUP_DB_PASSWORD --archive
   fileExtension: .{{ include "mongodb-dbaas.fullname" . }}.tar
   pod:
     metadata:
@@ -20,6 +20,27 @@ spec:
         - args:
             - sleep
             - infinity
+          env:
+            - name: BACKUP_DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  key: {{ include "mongodb-dbaas.fullnameUppercase" . }}_HOST
+                  name: lagoon-env
+            - name: BACKUP_DB_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  key: {{ include "mongodb-dbaas.fullnameUppercase" . }}_USERNAME
+                  name: lagoon-env
+            - name: BACKUP_DB_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  key: {{ include "mongodb-dbaas.fullnameUppercase" . }}_PASSWORD
+                  name: lagoon-env
+            - name: BACKUP_DB_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  key: {{ include "mongodb-dbaas.fullnameUppercase" . }}_DATABASE
+                  name: lagoon-env
           image: imagecache.amazeeio.cloud/library/alpine
           imagePullPolicy: Always
           name: {{ include "mongodb-dbaas.fullname" . }}-prebackuppod
