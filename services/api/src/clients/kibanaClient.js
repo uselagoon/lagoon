@@ -3,14 +3,10 @@ const R = require('ramda');
 
 const { LOGSDB_ADMIN_PASSWORD } = process.env;
 
-const KIBANA_URL = r.propOr(
-  'http://logs-db-ui:5601',
-  'KIBANA_URL',
-  process.env
-);
+const defaultKibanaUrl = R.propOr('http://logs-db-ui:5601', 'KIBANA_URL', process.env);
 
 const kibanaClient = got.extend({
-  baseUrl: `${KIBANA_URL}/api/`,
+  baseUrl: `${defaultKibanaUrl}/api/`,
   auth: `admin:${LOGSDB_ADMIN_PASSWORD || '<password not set>'}`,
   json: true,
   headers: {
