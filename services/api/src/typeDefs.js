@@ -1169,6 +1169,7 @@ const typeDefs = gql`
     activeSystemsRemove: String
     activeSystemsTask: String
     activeSystemsMisc: String
+    activeSystemsPromote: String
     branches: String
     productionEnvironment: String
     productionRoutes: String
