@@ -895,17 +895,37 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
   fi
   TEMPLATE_PARAMETERS+=(-p BAAS_BUCKET_NAME="${BAAS_BUCKET_NAME}")
 
+  # Pull in .lagoon.yml variables
+  PRODUCTION_MONTHLY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml get-value backup-retention.production.monthly "")
+  PRODUCTION_WEEKLY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml get-value backup-retention.production.weekly "")
+  PRODUCTION_DAILY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml get-value backup-retention.production.daily "")
+
+  # Set template parameters for retention values (prefer .lagoon.yml values over supplied defaults after ensuring they are valid integers via "-eq" comparison)
+  if [ ! -z $PRODUCTION_MONTHLY_BACKUP_RETENTION ] && [ "$PRODUCTION_MONTHLY_BACKUP_RETENTION" -eq "$PRODUCTION_MONTHLY_BACKUP_RETENTION" ] && [ $ENVIRONMENT_TYPE = 'production']; then
+    MONTHLY_BACKUP_RETENTION=${PRODUCTION_MONTHLY_BACKUP_RETENTION}
+  else
+    MONTHLY_BACKUP_RETENTION=${MONTHLY_BACKUP_DEFAULT_RETENTION}
+  fi
+  if [ ! -z $PRODUCTION_WEEKLY_BACKUP_RETENTION ] && [ "$PRODUCTION_WEEKLY_BACKUP_RETENTION" -eq "$PRODUCTION_WEEKLY_BACKUP_RETENTION" ] && [ $ENVIRONMENT_TYPE = 'production']; then
+    WEEKLY_BACKUP_RETENTION=${PRODUCTION_WEEKLY_BACKUP_RETENTION}
+  else
+    WEEKLY_BACKUP_RETENTION=${WEEKLY_BACKUP_DEFAULT_RETENTION}
+  fi
+  if [ ! -z $PRODUCTION_DAILY_BACKUP_RETENTION ] && [ "$PRODUCTION_DAILY_BACKUP_RETENTION" -eq "$PRODUCTION_DAILY_BACKUP_RETENTION" ] && [ $ENVIRONMENT_TYPE = 'production']; then
+    DAILY_BACKUP_RETENTION=${PRODUCTION_DAILY_BACKUP_RETENTION}
+  else
+    DAILY_BACKUP_RETENTION=${DAILY_BACKUP_DEFAULT_RETENTION}
+  fi
+
   # Run Backups every day at 2200-0200
   BACKUP_SCHEDULE=$( /kubectl-build-deploy/scripts/convert-crontab.sh "${NAMESPACE}" "M H(22-2) * * *")
   TEMPLATE_PARAMETERS+=(-p BACKUP_SCHEDULE="${BACKUP_SCHEDULE}")
-  # TODO: -p == --set in helm
-  # Run Checks on Sunday at 0300-0600
-  CHECK_SCHEDULE=$( /kubectl-build-deploy/scripts/convert-crontab.sh "${NAMESPACE}" "M H(3-6) * * 0")
-  TEMPLATE_PARAMETERS+=(-p CHECK_SCHEDULE="${CHECK_SCHEDULE}")
 
-  # Run Prune on Saturday at 0300-0600
-  PRUNE_SCHEDULE=$( /kubectl-build-deploy/scripts/convert-crontab.sh "${NAMESPACE}" "M H(3-6) * * 6")
-  TEMPLATE_PARAMETERS+=(-p PRUNE_SCHEDULE="${PRUNE_SCHEDULE}")
+  # Let the controller deduplicate checks (will run weekly at a random time throughout the week)
+  CHECK_SCHEDULE="@weekly-random"
+
+  # Let the controller deduplicate prunes (will run weekly at a random time throughout the week)
+  PRUNE_SCHEDULE="@weekly-random"
 
   OPENSHIFT_TEMPLATE="/kubectl-build-deploy/openshift-templates/backup-schedule.yml"
   helm template k8up-lagoon-backup-schedule /kubectl-build-deploy/helmcharts/k8up-schedule \
@@ -913,7 +933,11 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
     --set backup.schedule="${BACKUP_SCHEDULE}" \
     --set check.schedule="${CHECK_SCHEDULE}" \
     --set prune.schedule="${PRUNE_SCHEDULE}" "${HELM_ARGUMENTS[@]}" \
-    --set baasBucketName="${BAAS_BUCKET_NAME}" > $YAML_FOLDER/k8up-lagoon-backup-schedule.yaml
+    --set baasBucketName="${BAAS_BUCKET_NAME}" > $YAML_FOLDER/k8up-lagoon-backup-schedule.yaml \
+    --set prune.retention.keepMonthly=$MONTHLY_BACKUP_RETENTION \
+    --set prune.retention.keepWeekly=$WEEKLY_BACKUP_RETENTION \
+    --set prune.retention.keepDaily=$DAILY_BACKUP_RETENTION \
+    --set lagoonEnvironmentType=$LAGOON_ENVIRONMENT_TYPE
 fi
 
 if [ "$(ls -A $YAML_FOLDER/)" ]; then
