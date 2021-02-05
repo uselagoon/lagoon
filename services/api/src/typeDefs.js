@@ -1295,6 +1295,10 @@ const typeDefs = gql`
     routes: String
     monitoringUrls: String
     autoIdle: Int
+    """
+    Timestamp in format 'YYYY-MM-DD hh:mm:ss'
+    """
+    created: String
   }
 
   input UpdateEnvironmentInput {
