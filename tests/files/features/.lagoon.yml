@@ -43,6 +43,10 @@ environments:
       schedule: "* * * * *"
       command: printf '%s_%s' "CRONJOB" "SINGLE" >> /files/cron.txt
       service: node
+    - name: echo /files/cron.txt pwd
+      schedule: "* * * * *"
+      command: printf '%s_%s_%s' "CRONJOB" "PWD" "$(pwd)" >> /files/cron.txt
+      service: node
     - name: test H/1
       schedule: "H/1 * * * *"
       command: printf '%s_%s' "CRONJOB" "H1" >> /files/cron.txt
