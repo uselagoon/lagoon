@@ -26,9 +26,7 @@ If you ever need to recover or restore a backup feel free to submit a ticket or 
 
 ## How can I download a database dump?
 
-{% embed url="https://www.youtube.com/watch?v=vnr3EITlQys&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=3" %}
-
-
+{% embed url="https://www.youtube.com/watch?v=bluTyxKqLbw&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=3" %}
 
 ## I'm getting an invalid SSL certificate error
 
@@ -60,9 +58,7 @@ Upgrading Drush should fix that for you. We strongly suggest that you use versio
 
 ## I'm seeing an Internal Server Error when trying to access my Kibana logs!
 
-{% embed url="https://www.youtube.com/watch?v=is-mt6oBQs8&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=5" %}
-
-
+{% embed url="https://www.youtube.com/watch?v=BuQo5J0Qc2c&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=5" %}
 
 No need to panic! This usually happens when a tenant has not been selected. To fix this, follow these steps:
 
@@ -77,19 +73,27 @@ You should now be able to see your logs.
 
 I'm unable to SSH into any environment. I'm getting the following message: `Permission denied (publickey)`.
 
-## How can I check the status of a build?
+## How can I check the status of a build
 
-{% embed url="https://www.youtube.com/watch?v=UM6lM12ACK4&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=1" %}
+{% embed url="https://www.youtube.com/watch?v=PyrlZqTjf68&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd" %}
+
+## How do I add a cron job?
+
+{% embed url="https://www.youtube.com/watch?v=Yd\_JfDyfbR0&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=2" %}
+
+## How do I add a new route?
+
+{% embed url="https://www.youtube.com/watch?v=vQxh87F3fW4&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=4" %}
 
 
 
 ## **When I run `pygmy status`, no keys are loaded:**
 
-You'll need to load your SSH key into pygmy. Here's how: [https://pygmy.readthedocs.io/en/master/troubleshooting/](https://pygmy.readthedocs.io/en/master/troubleshooting/)
+You'll need to load your SSH key into pygmy. Here's how: [https://docs.lagoon.sh/pygmy/ssh-agent](https://docs.lagoon.sh/pygmy/ssh-agent)
 
 ## **When I run `drush sa` no aliases are returned:**
 
-This typically indicates an issue with Pygmy. You can find our troubleshooting docs for Pygmy here: [https://pygmy.readthedocs.io/en/master/troubleshooting/](https://pygmy.readthedocs.io/en/master/troubleshooting/).
+This typically indicates an issue with Pygmy. You can find our troubleshooting docs for Pygmy here: [https://docs.lagoon.sh/pygmy/troubleshooting](https://docs.lagoon.sh/pygmy/troubleshooting)
 
 ## My deployments fail with a message saying: "drush needs a more functional environment"
 
@@ -110,6 +114,10 @@ That should list everything running on port 80. Kill the process running on port
 ## How can I change branches/PR environments/production on my project?
 
 You can make that change using the Lagoon API! You can find the documentation for this change [in our GraphQL documentation](../administering-lagoon/graphql-queries.md#updating-objects).
+
+## How do I add a redirect?
+
+{% embed url="https://www.youtube.com/watch?v=rWb-PkRDhY4&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=6" %}
 
 ## How can I add new users \(and SSH keys\) to my project/group?
 

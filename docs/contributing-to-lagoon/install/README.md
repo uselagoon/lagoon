@@ -37,7 +37,7 @@ Technically, Lagoon can use any Service Account and also needs no admin permissi
 
 In this example we create the Service Account `lagoon` in the OpenShift Project `default`.
 
-1. Make sure you have the `oc cli` tools already installed. If not, please see [here](https://docs.openshift.org/latest/cli_reference/get_started_cli.html#cli-reference-get-started-cli).
+1. Make sure you have the `oc cli` tools already installed. If not, please see documentation [here](https://docs.openshift.org/latest/cli_reference/get_started_cli.html#cli-reference-get-started-cli).
 2. Log into OpenShift as an admin:
 
    ```text
@@ -92,5 +92,5 @@ Once Lagoon is install operational, you need to initialize OpendistroSecurity to
 
 ### Configure Installed Lagoon
 
-We have a fully running Lagoon. Now it's time to configure the first project inside of it. Follow the examples in [GraphQL API](graphql-queries.md).
+We have a fully running Lagoon. Now it's time to configure the first project inside of it. Follow the examples in [GraphQL API](../../administering-lagoon/graphql-queries.md).
 

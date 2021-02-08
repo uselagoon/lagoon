@@ -1,15 +1,18 @@
-- name: "{{ testname }} - POST api deployEnvironmentBranch with target git branch {{ branch }} and project {{ project }} (no sha) to {{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+- name: "{{ testname }} - POST api deployEnvironmentBranch with target git branch {{ branch }} and project {{ project }} (no sha) to {{ graphql_url }}"
   block:
     - include: refresh-token.yaml
-    - name: "{{ testname }} - POST api deployEnvironmentBranch with target git branch {{ branch }} and project {{ project }} (no sha) to {{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+    - name: "{{ testname }} - POST api deployEnvironmentBranch with target git branch {{ branch }} and project {{ project }} (no sha) to {{ graphql_url }}"
       uri:
-        url: "{{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+        url: "{{ graphql_url }}"
         method: POST
         headers:
           Authorization: "Bearer {{ token }}"
         body_format: json
         body: '{ "query": "mutation($branchName: String!, $projectName: String!) {deployEnvironmentBranch(input:{branchName:$branchName,project:{name:$projectName}})}", "variables": {"branchName":"{{ branch }}","projectName":"{{ project }}"}}'
       register: apiresponse
-    - name: "{{ testname }} - POST api deployEnvironmentBranch with target git branch {{ branch }} and project {{ project }} (no sha) to {{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+    - name: "{{ testname }} - POST api deployEnvironmentBranch with target git branch {{ branch }} and project {{ project }} (no sha) to {{ graphql_url }}"
       debug:
         msg: "api response: {{ apiresponse.json }}"
+      until: apiresponse.json.data.deployEnvironmentBranch == "success"
+      retries: 10
+      delay: 30

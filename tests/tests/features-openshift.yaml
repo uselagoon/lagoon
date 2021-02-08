@@ -6,137 +6,138 @@
 
 - include: features/lagoon-type-override.yaml
   vars:
-    testname: "LAGOON TYPE OVERRIDE {{ lookup('env','CLUSTER_TYPE')|upper }}"
+    testname: "LAGOON TYPE OVERRIDE {{ cluster_type|upper }}"
     git_repo_name: features.git
-    project: ci-features-{{ lookup('env','CLUSTER_TYPE') }}
+    project: ci-features-{{ cluster_type }}
     branch: lagoon-type-override
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
 - include: features/remote-shell.yaml
   vars:
-    testname: "REMOTE SHELL {{ lookup('env','CLUSTER_TYPE')|upper }}"
+    testname: "REMOTE SHELL {{ cluster_type|upper }}"
     node_version: 10
     git_repo_name: features.git
-    project: ci-features-{{ lookup('env','CLUSTER_TYPE') }}
+    project: ci-features-{{ cluster_type }}
     branch: remoteshell
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
 - include: features/promote.yaml
   vars:
-    testname: "PROMOTE {{ lookup('env','CLUSTER_TYPE')|upper }}"
+    testname: "PROMOTE {{ cluster_type|upper }}"
     git_repo_name: features.git
-    project: ci-features-{{ lookup('env','CLUSTER_TYPE') }}
+    project: ci-features-{{ cluster_type }}
     source_environment: source
     promote_environment: target
-    check_url_source: "https://node.{{ project | regex_replace('_', '-') }}.{{ source_environment | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }}:{{ lookup('env','ROUTE_SUFFIX_HTTPS_PORT') }}"
-    check_url_promote: "https://node.{{ project | regex_replace('_', '-') }}.{{ promote_environment | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }}:{{ lookup('env','ROUTE_SUFFIX_HTTPS_PORT') }}"
+    check_url_source: "https://node.{{ project | regex_replace('_', '-') }}.{{ source_environment | regex_replace('/', '-') }}.{{ route_suffix_https }}"
+    check_url_promote: "https://node.{{ project | regex_replace('_', '-') }}.{{ promote_environment | regex_replace('/', '-') }}.{{ route_suffix_https }}"
 
 - include: features/cronjobs.yaml
   vars:
-    testname: "CRONJOBS {{ lookup('env','CLUSTER_TYPE')|upper }}"
+    testname: "CRONJOBS {{ cluster_type|upper }}"
     git_repo_name: features.git
-    project: ci-features-{{ lookup('env','CLUSTER_TYPE') }}
+    project: ci-features-{{ cluster_type }}
     branch: branch/cronjob
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
 - include: features/multiproject.yaml
   vars:
-    testname: "MULTIPROJECT {{ lookup('env','CLUSTER_TYPE')|upper }} - two projects with same git url"
+    testname: "MULTIPROJECT {{ cluster_type|upper }} - two projects with same git url"
     git_repo_name: multiproject.git
-    project1: ci-multiproject1-{{ lookup('env','CLUSTER_TYPE') }}
-    project2: ci-multiproject2-{{ lookup('env','CLUSTER_TYPE') }}
+    project1: ci-multiproject1-{{ cluster_type }}
+    project2: ci-multiproject2-{{ cluster_type }}
     branch: multiproject
-    check_url1: "https://node.{{ project1 | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }}:{{ lookup('env','ROUTE_SUFFIX_HTTPS_PORT') }}"
-    check_url2: "https://node.{{ project2 | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }}:{{ lookup('env','ROUTE_SUFFIX_HTTPS_PORT') }}"
+    check_url1: "https://node.{{ project1 | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix_https }}"
+    check_url2: "https://node.{{ project2 | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix_https }}"
     custom_domain1: "multiproject1.com"
     custom_domain2: "multiproject2.com"
 
 - include: features/openshift-limit.yaml
   vars:
-    testname: "openshift-character-limit {{ lookup('env','CLUSTER_TYPE')|upper }}"
+    testname: "openshift-character-limit {{ cluster_type|upper }}"
     node_version: 10
     git_repo_name: features.git
-    project: ci-features-{{ lookup('env','CLUSTER_TYPE') }}
+    project: ci-features-{{ cluster_type }}
     branch: very-long-branch-name-what-would-otherwise-overflow-the-sixty-three-limit
     # not going to try hashing something in yaml.
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.very-long-branch-name-what-would-aae9.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.very-long-branch-name-what-would-aae9.{{ route_suffix }}"
 
 - include: features/environment-type.yaml
   vars:
-    testname: "ENVIRONMENT TYPE DEVELOPMENT {{ lookup('env','CLUSTER_TYPE')|upper }}"
+    testname: "ENVIRONMENT TYPE DEVELOPMENT {{ cluster_type|upper }}"
     git_repo_name: features.git
-    project: ci-features-{{ lookup('env','CLUSTER_TYPE') }}
+    project: ci-features-{{ cluster_type }}
     branch: environment-type
     environment_type: development
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
 - include: features/environment-templates.yaml
   vars:
-    testname: "CUSTOM DEPLOYMENT TEMPLATES docker-compose {{ lookup('env','CLUSTER_TYPE')|upper }}"
+    testname: "CUSTOM DEPLOYMENT TEMPLATES docker-compose {{ cluster_type|upper }}"
     git_repo_name: features.git
-    project: ci-features-{{ lookup('env','CLUSTER_TYPE') }}
+    project: ci-features-{{ cluster_type }}
     branch: branch/custom-template
     expected_template_filename: .lagoon.node.yml
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
 - include: features/environment-templates.yaml
   vars:
-    testname: "ENVIRIONMENT SPECIFIC CUSTOM DEPLOYMENT TEMPLATES {{ lookup('env','CLUSTER_TYPE')|upper }} .lagoon.yml"
+    testname: "ENVIRIONMENT SPECIFIC CUSTOM DEPLOYMENT TEMPLATES {{ cluster_type|upper }} .lagoon.yml"
     git_repo_name: features.git
-    project: ci-features-{{ lookup('env','CLUSTER_TYPE') }}
+    project: ci-features-{{ cluster_type }}
     branch: branch/env-specific-template
     expected_template_filename: .lagoon.node-env-specific.yml
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
 - include: features/environment-type.yaml
   vars:
-    testname: "ENVIRONMENT TYPE PRODUCTION {{ lookup('env','CLUSTER_TYPE')|upper }}"
+    testname: "ENVIRONMENT TYPE PRODUCTION {{ cluster_type|upper }}"
     git_repo_name: features.git
-    project: ci-features-{{ lookup('env','CLUSTER_TYPE') }}
+    project: ci-features-{{ cluster_type }}
     branch: master
     environment_type: production
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
 - include: features/route-env-variables.yaml
   vars:
-    testname: "ROUTE ENV VARIABLES {{ lookup('env','CLUSTER_TYPE')|upper }}"
+    testname: "ROUTE ENV VARIABLES {{ cluster_type|upper }}"
     git_repo_name: features.git
-    project: ci-features-{{ lookup('env','CLUSTER_TYPE') }}
+    project: ci-features-{{ cluster_type }}
     branch: branch/routes
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
 - include: features/autogenerated-routes-disabled.yaml
   vars:
-    testname: "AUTOGENERATED ROUTES DISABLED {{ lookup('env','CLUSTER_TYPE')|upper }}"
+    testname: "AUTOGENERATED ROUTES DISABLED {{ cluster_type|upper }}"
     git_repo_name: features.git
-    project: ci-features-{{ lookup('env','CLUSTER_TYPE') }}
+    project: ci-features-{{ cluster_type }}
     branch: autogen-routes-disabled
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
 - include: features/dot-env.yaml
   vars:
-    testname: "DOT-ENV VARIABLES {{ lookup('env','CLUSTER_TYPE')|upper }}"
+    testname: "DOT-ENV VARIABLES {{ cluster_type|upper }}"
     git_repo_name: features.git
-    project: ci-features-{{ lookup('env','CLUSTER_TYPE') }}
+    project: ci-features-{{ cluster_type }}
     branch: slash/branch1
     expected_dot_env: slash/branch1
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
 - include: features/dot-env.yaml
   vars:
-    testname: "DOT-ENV VARIABLES {{ lookup('env','CLUSTER_TYPE')|upper }}"
+    testname: "DOT-ENV VARIABLES {{ cluster_type|upper }}"
     git_repo_name: features.git
-    project: ci-features-{{ lookup('env','CLUSTER_TYPE') }}
+    project: ci-features-{{ cluster_type }}
     branch: branch1
     expected_dot_env: branch1
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
 - include: features/subfolder.yaml
   vars:
-    testname: "SUBFOLDER {{ lookup('env','CLUSTER_TYPE')|upper }}"
+    testname: "SUBFOLDER {{ cluster_type|upper }}"
     git_repo_name: features-subfolder.git
-    project: ci-features-subfolder-{{ lookup('env','CLUSTER_TYPE') }}
+    project: ci-features-subfolder-{{ cluster_type }}
     branch: subfolder
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
 # @TODO: Enable again, see https://github.com/amazeeio/lagoon/issues/1099
 # - include: features/limits.yaml
@@ -144,12 +145,12 @@
 #     testname: "limits"
 #     git_repo_name: node.git
 #     project: ci-env-limit
-#     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+#     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
 - include: features/lagoon-api-variables.yaml
   vars:
-    testname: "LAGOON API VARIABLES {{ lookup('env','CLUSTER_TYPE')|upper }}"
+    testname: "LAGOON API VARIABLES {{ cluster_type|upper }}"
     git_repo_name: features.git
-    project: ci-features-{{ lookup('env','CLUSTER_TYPE') }}
+    project: ci-features-{{ cluster_type }}
     branch: lagoon-api-variables
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"

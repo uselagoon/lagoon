@@ -20,8 +20,6 @@
   hosts: localhost
   serial: 1
   vars:
-    ssh_host: "{{ lookup('env','SSH_HOST') }}"
-    ssh_auth_port: "{{ lookup('env','SSH_PORT') }}"
     username: lagoon
     command: "rsh {{ project }}-remoteshell service=node env"
     expected_content: "LAGOON_PROJECT={{ project }}"
@@ -32,8 +30,6 @@
   hosts: localhost
   serial: 1
   vars:
-    ssh_host: "{{ lookup('env','SSH_HOST') }}"
-    ssh_auth_port: "{{ lookup('env','SSH_PORT') }}"
     username: "{{ project }}-remoteshell"
     command: service=node env
     expected_content: "LAGOON_PROJECT={{ project }}"
@@ -44,8 +40,6 @@
   hosts: localhost
   serial: 1
   vars:
-    ssh_host: "{{ lookup('env','SSH_HOST') }}"
-    ssh_auth_port: "{{ lookup('env','SSH_PORT') }}"
     username: "{{ project }}-remoteshell"
     command: service=node container=node env
     expected_content: "LAGOON_PROJECT={{ project }}"
@@ -56,8 +50,6 @@
   hosts: localhost
   serial: 1
   vars:
-    ssh_host: "{{ lookup('env','SSH_HOST') }}"
-    ssh_auth_port: "{{ lookup('env','SSH_PORT') }}"
     username: "{{ project }}-remoteshell"
     command: service=node env
     expected_content: "LAGOON_GIT_SHA={{ current_head }}"
@@ -68,8 +60,6 @@
   hosts: localhost
   serial: 1
   vars:
-    ssh_host: "{{ lookup('env','SSH_HOST') }}"
-    ssh_auth_port: "{{ lookup('env','SSH_PORT') }}"
     username: "{{ project }}-remoteshell"
     command: service=node env
     expected_content: "LAGOON_GIT_BRANCH={{ branch }}"
@@ -89,7 +79,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
-    expected_returncode: "{{ lookup('env','DELETED_STATUS_CODE') }}"
+    url: "{{ check_url }}"
+    expected_returncode: "{{ del_status_code }}"
   tasks:
   - include: ../../checks/check-url-returncode.yaml

@@ -1,6 +1,9 @@
 FROM fluent/fluentd:v1.11-1
 LABEL maintainer="support@amazee.io"
 
+ARG LAGOON_VERSION
+ENV LAGOON_VERSION=$LAGOON_VERSION
+
 USER root
 
 RUN apk add --no-cache --update --virtual .build-deps \
@@ -15,6 +18,7 @@ RUN apk add --no-cache --update --virtual .build-deps \
       && gem install fluent-plugin-rewrite-tag-filter \
       && gem install fluent-plugin-route \
       && gem install fluent-plugin-s3 --no-document \
+      && gem install fluent-plugin-sumologic_output \
       && gem sources --clear-all \
       && apk del .build-deps \
       && rm -rf /tmp/* /var/tmp/* /usr/lib/ruby/gems/*/cache/*.gem \

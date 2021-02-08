@@ -13,7 +13,7 @@
     "test:watch": "jest --forceExit --detectOpenHandles --maxWorkers=10 --watch",
     "build": "tsc --build",
     "start": "node -r dotenv-extended/config dist/index",
-    "dev": "mkdir -p ../../node-packages/commons/dist && NODE_ENV=development nodemon",
+    "dev": "NODE_ENV=development nodemon",
     "sync:gitlab:users": "node dist/gitlab-sync/users",
     "sync:gitlab:groups": "node dist/gitlab-sync/groups",
     "sync:gitlab:projects": "node dist/gitlab-sync/projects",

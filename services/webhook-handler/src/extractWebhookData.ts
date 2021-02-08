@@ -34,7 +34,12 @@ export function extractWebhookData(req: IncomingMessage, body: string): WebhookR
       throw new Error(`Request body is not parsable as JSON. Are you sure you have enabled application/json as the webhook content type? ${e}.`);
     }
 
-    if ('x-github-event' in req.headers) {
+    if ('x-gitea-event' in req.headers) {
+      webhooktype = 'gitea';
+      event = req.headers['x-gitea-event'];
+      uuid = req.headers['x-gitea-delivery'];
+      giturl = R.path(['repository', 'ssh_url'], bodyObj);
+    } else if ('x-github-event' in req.headers) {
       webhooktype = 'github';
       event = req.headers['x-github-event'];
       uuid = req.headers['x-github-delivery'];

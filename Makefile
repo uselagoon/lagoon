@@ -90,6 +90,7 @@ K3D_NAME := k3s-$(shell echo $(CI_BUILD_TAG) | sed -E 's/.*(.{31})$$/\1/')
 
 # Name of the Branch we are currently in
 BRANCH_NAME := $(shell git rev-parse --abbrev-ref HEAD)
+SAFE_BRANCH_NAME := $(shell echo $(BRANCH_NAME) | sed -E 's:/:_:g')
 DEFAULT_ALPINE_VERSION := 3.11
 
 #######
@@ -323,7 +324,7 @@ $(all-k8s-tests): k3d k8s-test-services-up
 		$(MAKE) push-local-registry -j6
 		$(eval testname = $(subst k8s-tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) UPSTREAM_REPO=$(UPSTREAM_REPO) UPSTREAM_TAG=$(UPSTREAM_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility run --rm \
-			tests-kubernetes ansible-playbook --skip-tags="skip-on-kubernetes,skip-on-jenkins" \
+			tests-kubernetes ansible-playbook --skip-tags="skip-on-kubernetes,skip-on-jenkins" --extra-vars="@/ansible/tests/vars/test_vars.yaml" \
 			/ansible/tests/$(testname).yaml \
 			--extra-vars \
 			"$$(cat $$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)') | \
@@ -822,7 +823,8 @@ endif
 	local-dev/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add lagoon https://uselagoon.github.io/lagoon-charts/; \
 	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n lagoon lagoon-remote lagoon/lagoon-remote \
 		--set dioscuri.enabled=false \
-		--set dockerHost.image.name=172.17.0.1:5000/lagoon/docker-host \
+		--set dockerHost.image.repository=172.17.0.1:5000/lagoon/docker-host \
+		--set dockerHost.image.tag=latest \
 		--set dockerHost.registry=172.17.0.1:5000; \
 	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n lagoon rollout status deployment lagoon-remote-docker-host -w;
 ifeq ($(ARCH), darwin)
@@ -932,7 +934,7 @@ api-development: build/api build/api-db build/local-api-data-watcher-pusher buil
 KIND_VERSION = v0.9.0
 GOJQ_VERSION = v0.11.2
 KIND_IMAGE = kindest/node:v1.19.1@sha256:98cf5288864662e37115e362b23e4369c8c4a408f99cbc06e58ac30ddc721600
-TESTS = [features-kubernetes,nginx,drupal-php72,drupal-php73,drupal-php74,drupal-postgres,python]
+TESTS = [api,features-kubernetes,nginx,drupal-php73,drupal-php74,drupal-postgres,python,gitlab,github,bitbucket]
 CHARTS_TREEISH = main
 
 local-dev/kind:
@@ -973,7 +975,7 @@ helm/repos: local-dev/helm
 
 .PHONY: kind/cluster
 kind/cluster: local-dev/kind
-	# these IPs are a result of the docker config on our build nodes
+	# stand up a kind cluster configured appropriately for lagoon testing
 	./local-dev/kind get clusters | grep -q "$(CI_BUILD_TAG)" && exit; \
 		docker network create kind || true \
 		&& export KUBECONFIG=$$(mktemp) \
@@ -997,34 +999,76 @@ kind/cluster: local-dev/kind
 		&& echo -e '\nOr running locally:\n' \
 		&& echo -e './local-dev/kind export kubeconfig --name "$(CI_BUILD_TAG)"\n' \
 		&& echo -e 'kubectl ...\n'
+ifeq ($(ARCH), darwin)
+	export KUBECONFIG="$$(pwd)/kubeconfig.kind.$(CI_BUILD_TAG)" && \
+	if ! ifconfig lo0 | grep $$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}') -q; then sudo ifconfig lo0 alias $$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}'); fi
+	docker rm --force $(CI_BUILD_TAG)-kind-proxy-32080 || true
+	docker run -d --name $(CI_BUILD_TAG)-kind-proxy-32080 \
+      --publish 32080:32080 \
+      --link $(CI_BUILD_TAG)-control-plane:target --network kind \
+      alpine/socat -dd \
+      tcp-listen:32080,fork,reuseaddr tcp-connect:target:32080
+endif
 
-KIND_SERVICES = api api-db api-redis auth-server broker controllerhandler docker-host drush-alias keycloak keycloak-db kubectl-build-deploy-dind local-api-data-watcher-pusher local-git ssh tests
+KIND_SERVICES = api api-db api-redis auth-server broker controllerhandler docker-host drush-alias keycloak keycloak-db webhook-handler webhooks2tasks kubectl-build-deploy-dind local-api-data-watcher-pusher local-git ssh tests
+KIND_TESTS = local-api-data-watcher-pusher local-git tests
 KIND_TOOLS = kind helm kubectl jq
 
 .PHONY: kind/test
 kind/test: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addprefix build/,$(KIND_SERVICES))
+	# install lagoon charts and run lagoon test suites in a kind cluster
 	export CHARTSDIR=$$(mktemp -d ./lagoon-charts.XXX) \
+		&& ln -sfn "$$CHARTSDIR" lagoon-charts.kind.lagoon \
 		&& git clone https://github.com/uselagoon/lagoon-charts.git "$$CHARTSDIR" \
 		&& cd "$$CHARTSDIR" \
 		&& git checkout $(CHARTS_TREEISH) \
-		&& export KUBECONFIG=$$(mktemp ../kubeconfig.XXX) \
-		&& KIND_CLUSTER_NAME="$(CI_BUILD_TAG)" ../local-dev/kind export kubeconfig \
+		&& export KUBECONFIG="$$(realpath ../kubeconfig.kind.$(CI_BUILD_TAG))" \
 		&& export IMAGE_REGISTRY="registry.$$(../local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
 		&& $(MAKE) install-registry HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
-		&& docker login -u admin -p Harbor12345 $$IMAGE_REGISTRY \
-		&& for image in $(KIND_SERVICES); do \
-		docker tag $(CI_BUILD_TAG)/$$image $$IMAGE_REGISTRY/$$image:$(BRANCH_NAME) \
-		&& docker push $$IMAGE_REGISTRY/$$image:$(BRANCH_NAME); \
-		done \
-		&& $(MAKE) fill-test-ci-values TESTS=$(TESTS) IMAGE_TAG=$(BRANCH_NAME) \
-		HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
-		JQ=$$(realpath ../local-dev/jq) \
-		OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=$$IMAGE_REGISTRY/kubectl-build-deploy-dind:$(BRANCH_NAME) \
-		IMAGE_REGISTRY=$$IMAGE_REGISTRY \
+		&& cd .. && $(MAKE) kind/push-images && cd "$$CHARTSDIR" \
+		&& $(MAKE) fill-test-ci-values TESTS=$(TESTS) IMAGE_TAG=$(SAFE_BRANCH_NAME) \
+			HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
+			JQ=$$(realpath ../local-dev/jq) \
+			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=$$IMAGE_REGISTRY/kubectl-build-deploy-dind:$(SAFE_BRANCH_NAME) \
+			IMAGE_REGISTRY=$$IMAGE_REGISTRY \
 		&& docker run --rm --network host --name ct-$(CI_BUILD_TAG) \
 			--volume "$$(pwd)/test-suite-run.ct.yaml:/etc/ct/ct.yaml" \
 			--volume "$$(pwd):/workdir" \
-			--volume "$$(realpath $$KUBECONFIG):/root/.kube/config" \
+			--volume "$$(realpath ../kubeconfig.kind.$(CI_BUILD_TAG)):/root/.kube/config" \
+			--workdir /workdir \
+			"quay.io/helmpack/chart-testing:v3.1.1" \
+			ct install
+
+.PHONY: kind/push-images
+kind/push-images:
+		export KUBECONFIG="$$(pwd)/kubeconfig.kind.$(CI_BUILD_TAG)" && \
+		export IMAGE_REGISTRY="registry.$$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
+		&& docker login -u admin -p Harbor12345 $$IMAGE_REGISTRY \
+		&& for image in $(KIND_SERVICES); do \
+			docker tag $(CI_BUILD_TAG)/$$image $$IMAGE_REGISTRY/$$image:$(SAFE_BRANCH_NAME) \
+			&& docker push $$IMAGE_REGISTRY/$$image:$(SAFE_BRANCH_NAME); \
+		done
+
+## Use kind/retest to only perform a push of the local-dev, or test images, and run the tests
+## It preserves the last build lagoon core&remote setup, reducing rebuild time
+.PHONY: kind/retest
+kind/retest:
+		export KUBECONFIG="$$(pwd)/kubeconfig.kind.$(CI_BUILD_TAG)" && \
+		export IMAGE_REGISTRY="registry.$$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
+		&& docker login -u admin -p Harbor12345 $$IMAGE_REGISTRY \
+		&& for image in $(KIND_TESTS); do \
+			docker tag $(CI_BUILD_TAG)/$$image $$IMAGE_REGISTRY/$$image:$(SAFE_BRANCH_NAME) \
+			&& docker push $$IMAGE_REGISTRY/$$image:$(SAFE_BRANCH_NAME); \
+		done \
+		&& cd lagoon-charts.kind.lagoon \
+		&& $(MAKE) install-tests TESTS=$(TESTS) IMAGE_TAG=$(SAFE_BRANCH_NAME) \
+			HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
+			JQ=$$(realpath ../local-dev/jq) \
+			IMAGE_REGISTRY=$$IMAGE_REGISTRY \
+		&& docker run --rm --network host --name ct-$(CI_BUILD_TAG) \
+			--volume "$$(pwd)/test-suite-run.ct.yaml:/etc/ct/ct.yaml" \
+			--volume "$$(pwd):/workdir" \
+			--volume "$$(realpath ../kubeconfig.kind.$(CI_BUILD_TAG)):/root/.kube/config" \
 			--workdir /workdir \
 			"quay.io/helmpack/chart-testing:v3.1.1" \
 			ct install

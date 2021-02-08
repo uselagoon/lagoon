@@ -61,7 +61,7 @@
   serial: 1
   vars:
     username: lagoon
-    command: rsh ci-drupal-{{ lookup('env','CLUSTER_TYPE') }}-drush-first env
+    command: rsh ci-drupal-{{ cluster_type }}-drush-first env
     expected_content: LAGOON_PROJECT=ci-drupal
   tasks:
   - include: ../../tasks/ssh/ssh-command.yaml
@@ -70,7 +70,7 @@
   hosts: localhost
   serial: 1
   vars:
-    username: ci-drupal-{{ lookup('env','CLUSTER_TYPE') }}-drush-first
+    username: ci-drupal-{{ cluster_type }}-drush-first
     command: env
     expected_content: LAGOON=cli-drupal
   tasks:
@@ -80,7 +80,7 @@
   hosts: localhost
   serial: 1
   vars:
-    username: ci-drupal-{{ lookup('env','CLUSTER_TYPE') }}-drush-first
+    username: ci-drupal-{{ cluster_type }}-drush-first
     command: service=nginx container=php env
     expected_content: LAGOON=php
   tasks:
@@ -90,7 +90,7 @@
   hosts: localhost
   serial: 1
   vars:
-    username: ci-drupal-{{ lookup('env','CLUSTER_TYPE') }}-drush-first
+    username: ci-drupal-{{ cluster_type }}-drush-first
     command: drush sa
     expected_content: "@drush-second"
   tasks:
@@ -100,7 +100,7 @@
   hosts: localhost
   serial: 1
   vars:
-    username: ci-drupal-{{ lookup('env','CLUSTER_TYPE') }}-drush-first
+    username: ci-drupal-{{ cluster_type }}-drush-first
     command: drush @drush-second -y cset system.site name "CHANGED-{{ random_number }}"
     expected_content: ""
   tasks:
@@ -112,7 +112,7 @@
   hosts: localhost
   serial: 1
   vars:
-    username: ci-drupal-{{ lookup('env','CLUSTER_TYPE') }}-drush-first
+    username: ci-drupal-{{ cluster_type }}-drush-first
     command: drush @drush-second -y cget system.site name
     expected_content: "CHANGED-{{ random_number }}"
   tasks:
@@ -122,7 +122,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://nginx.{{ project | regex_replace('_', '-') }}.drush-second.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.drush-second.{{ route_suffix }}"
     expected_content: "CHANGED-{{ random_number }}"
   tasks:
   - include: ../../checks/check-url-content.yaml
@@ -131,7 +131,7 @@
   hosts: localhost
   serial: 1
   vars:
-    username: ci-drupal-{{ lookup('env','CLUSTER_TYPE') }}-drush-first
+    username: ci-drupal-{{ cluster_type }}-drush-first
     command: drush -y sql-sync @drush-second @self
     expected_content: ""
   tasks:
@@ -141,7 +141,7 @@
   hosts: localhost
   serial: 1
   vars:
-    username: ci-drupal-{{ lookup('env','CLUSTER_TYPE') }}-drush-first
+    username: ci-drupal-{{ cluster_type }}-drush-first
     command: drush -y cget system.site name
     expected_content: "CHANGED-{{ random_number }}"
   tasks:
@@ -151,7 +151,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://nginx.{{ project | regex_replace('_', '-') }}.drush-first.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.drush-first.{{ route_suffix }}"
     expected_content: "CHANGED-{{ random_number }}"
   tasks:
   - include: ../../checks/check-url-content.yaml
@@ -178,8 +178,8 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://nginx.{{ project | regex_replace('_', '-') }}.drush-first.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
-    expected_returncode: "{{ lookup('env','DELETED_STATUS_CODE') }}"
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.drush-first.{{ route_suffix }}"
+    expected_returncode: "{{ del_status_code }}"
   tasks:
   - include: ../../checks/check-url-returncode.yaml
 
@@ -187,8 +187,8 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://nginx.{{ project | regex_replace('_', '-') }}.drush-second.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
-    expected_returncode: "{{ lookup('env','DELETED_STATUS_CODE') }}"
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.drush-second.{{ route_suffix }}"
+    expected_returncode: "{{ del_status_code }}"
   tasks:
   - include: ../../checks/check-url-returncode.yaml
 
@@ -225,7 +225,7 @@
   hosts: localhost
   serial: 1
   vars:
-    username: ci-drupal-{{ lookup('env','CLUSTER_TYPE') }}-foo-bar
+    username: ci-drupal-{{ cluster_type }}-foo-bar
     command: drush @foo-bar ssh echo zzyzx
     expected_content: "zzyzx"
   tasks:
@@ -244,7 +244,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://nginx.{{ project | regex_replace('_', '-') }}.foo-bar.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
-    expected_returncode: "{{ lookup('env','DELETED_STATUS_CODE') }}"
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.foo-bar.{{ route_suffix }}"
+    expected_returncode: "{{ del_status_code }}"
   tasks:
   - include: ../../checks/check-url-returncode.yaml

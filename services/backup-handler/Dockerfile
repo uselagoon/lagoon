@@ -20,6 +20,9 @@ RUN CGO_ENABLED=0  GOOS=linux GOARCH=amd64 go build -a -o backup-handler .
 # use the commons image to get entrypoints
 FROM ${UPSTREAM_REPO:-uselagoon}/commons:${UPSTREAM_TAG:-latest}
 
+ARG LAGOON_VERSION
+ENV LAGOON_VERSION=$LAGOON_VERSION
+
 WORKDIR /app/
 
 # bring the auto-idler binary from the builder

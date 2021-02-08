@@ -196,7 +196,7 @@ func ProcessBackups(backupData Backups, backupsEnv api.Environment) []Webhook {
 	var addBackups []Webhook
 	for _, snapshotData := range backupData.Snapshots {
 		// we want to check that we match the name to the project/environment properly and capture any prebackuppods too
-		matched, _ := regexp.MatchString("^"+backupData.Name+"-mariadb$|^"+backupData.Name+"-.*-prebackuppod$|^"+backupData.Name+"$", snapshotData.Hostname)
+		matched, _ := regexp.MatchString("^"+backupData.Name+"-mariadb$|^"+backupData.Name+"-mariadb-single$|^"+backupData.Name+"-.*-prebackuppod$|^"+backupData.Name+"$", snapshotData.Hostname)
 		if matched {
 			// if the snapshot id is not in already in the api, then we want to add this backup to the webhooks queue
 			// this results in far less messages being sent to the queue as only new snapshots will be added

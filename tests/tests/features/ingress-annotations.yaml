@@ -34,7 +34,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    url: "{{ check_url }}"
     host: "redirect-to-example.com"
     expected_redirect_location: "https://example.com/$"
   tasks:
@@ -44,7 +44,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}/asdf"
+    url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/asdf"
     host: "redirect-to-example.com"
     expected_redirect_location: "https://example.com/asdf$"
   tasks:
@@ -54,7 +54,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    url: "{{ check_url }}"
     host: "redirect-to-www.com"
     expected_redirect_location: "https://www.redirect-to-www.com/$"
   tasks:
@@ -64,7 +64,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    url: "{{ check_url }}"
     host: "www.redirect-from-www.com"
     expected_redirect_location: "https://redirect-from-www.com/$"
   tasks:
@@ -83,7 +83,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
-    expected_returncode: "{{ lookup('env','DELETED_STATUS_CODE') }}"
+    url: "{{ check_url }}"
+    expected_returncode: "{{ del_status_code }}"
   tasks:
   - include: ../../checks/check-url-returncode.yaml

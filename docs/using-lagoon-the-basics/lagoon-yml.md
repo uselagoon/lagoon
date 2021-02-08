@@ -124,9 +124,7 @@ Note: If you would like to temporarily disable pre/post-rollout tasks during a d
 
 ## Routes
 
-{% embed url="https://www.youtube.com/watch?v=0D8vp55z1qc&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=4" caption="How do i add a new route?" %}
-
-
+{% embed url="https://www.youtube.com/watch?v=vQxh87F3fW4&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=4" %}
 
 ### `routes.autogenerate.enabled`
 
@@ -358,9 +356,23 @@ environments:
 
 ### `Cron jobs - environments.[name].cronjobs`
 
-{% embed url="https://www.youtube.com/watch?v=7mtw8wM\_Ntg" caption="How do I add a cron job?" %}
+{% embed url="https://www.youtube.com/watch?v=Yd\_JfDyfbR0&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=2" %}
 
 As most of the time it is not desirable to run the same cron jobs across all environments, you must explicitly define which jobs you want to run for each environment.
+
+Example:
+
+{% tabs %}
+{% tab title=".lagoon.yml" %}
+```yaml
+    cronjobs:
+     - name: drush cron
+       schedule: "H * * * *" # This will run the cron once per hour.
+       command: drush cron
+       service: cli
+```
+{% endtab %}
+{% endtabs %}
 
 * `name:`
   * Just a friendly name for identifying what the cron job will do.
@@ -412,7 +424,7 @@ With the key `ssh` you can define another SSH endpoint that should be used by th
 
 ### `additional-yaml`
 
-The `additional-yaml` has some super powers. Basically, it allows you to define any arbitrary YAML configuration file to be inserted before the build step \(it still needs to be valid Kubernetes/OpenShift YAML , though☺\).
+The `additional-yaml` has some super powers. Basically, it allows you to define any arbitrary YAML configuration file to be inserted before the build step \(it still needs to be valid Kubernetes/OpenShift YAML, though ☺\).
 
 Example:
 

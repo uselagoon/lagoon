@@ -1,9 +1,13 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/oc
 
+ARG LAGOON_VERSION
+ENV LAGOON_VERSION=$LAGOON_VERSION
+
 ENV LAGOON=storage-calculator
 
 RUN apk add --no-cache tini jq bash curl py3-jwt
+RUN pip install yq
 
 COPY create_jwt.py calculate-storage.sh /
 

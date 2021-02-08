@@ -99,5 +99,7 @@ Also note that you can save your visualizations \(and searches\)! That will make
 
 ## Troubleshooting
 
-{% embed url="https://www.youtube.com/watch?v=hyUMRlQTXEA" caption="How do I fix an internal server error in Kibana?" %}
+{% embed url="https://www.youtube.com/watch?v=BuQo5J0Qc2c&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=5" %}
+
+
 

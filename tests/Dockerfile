@@ -5,8 +5,10 @@ FROM ${UPSTREAM_REPO:-uselagoon}/python-2.7:${UPSTREAM_TAG:-latest}
 RUN apk add --no-cache \
       bash \
       curl \
+      gettext \
       git \
       jq \
+      moreutils \
       openssh-client \
       rsync
 

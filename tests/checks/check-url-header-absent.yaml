@@ -1,8 +1,8 @@
 ---
 
 - name: >-
-    {{ testname }} - Check if URL {{url}} returns without Header set to
-    {{expected_header}}
+    {{ testname }} - Check if URL {{ url }} returns without Header set to
+    {{ expected_header }}
   uri:
     url: "{{ url }}"
     validate_certs: no
@@ -11,6 +11,6 @@
   failed_when: result[expected_header] is defined
 
 - name: >-
-    {{ testname }} - Check if URL {{url}} returns without Header set to
-    {{expected_header}}
+    {{ testname }} - Check if URL {{ url }} returns without Header set to
+    {{ expected_header }}
   debug: msg="Success!!!"

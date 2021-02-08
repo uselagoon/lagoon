@@ -82,8 +82,8 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://{{ project1 | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
-    expected_returncode: "{{ lookup('env','DELETED_STATUS_CODE') }}"
+    url: "http://{{ project1 | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+    expected_returncode: "{{ del_status_code }}"
   tasks:
   - include: ../../checks/check-url-returncode.yaml
 
@@ -91,7 +91,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://{{ project2 | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
-    expected_returncode: "{{ lookup('env','DELETED_STATUS_CODE') }}"
+    url: "http://{{ project2 | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+    expected_returncode: "{{ del_status_code }}"
   tasks:
   - include: ../../checks/check-url-returncode.yaml
