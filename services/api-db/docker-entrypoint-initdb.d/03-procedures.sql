@@ -212,7 +212,8 @@ CREATE OR REPLACE PROCEDURE
   (
     IN environment              int,
     IN persistent_storage_claim varchar(100),
-    IN bytes_used               bigint
+    IN bytes_used               bigint,
+    IN updated                  date
   )
   BEGIN
     INSERT INTO environment_storage (
@@ -224,7 +225,7 @@ CREATE OR REPLACE PROCEDURE
         environment,
         persistent_storage_claim,
         bytes_used,
-        DATE(NOW())
+        updated
     )
     ON DUPLICATE KEY UPDATE
         bytes_used=bytes_used;
@@ -234,7 +235,7 @@ CREATE OR REPLACE PROCEDURE
     FROM environment_storage es
     WHERE es.environment = environment AND
           es.persistent_storage_claim = persistent_storage_claim AND
-          es.updated = DATE(NOW());
+          es.updated = updated;
   END;
 $$
 

@@ -4,6 +4,14 @@
   vars:
     testname: "API TOKEN"
 
+- include: features/fastly-annotations.yaml
+  vars:
+    testname: "FASTLY ANNOTATIONS {{ cluster_type|upper }}"
+    git_repo_name: features.git
+    project: ci-features-{{ cluster_type }}
+    branch: fastly-annotations
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+
 - include: features/lagoon-type-override.yaml
   vars:
     testname: "LAGOON TYPE OVERRIDE {{ cluster_type|upper }}"

@@ -1,6 +1,6 @@
 apiVersion: v2
-name: k8up-schedule
-description: A Helm chart for Kubernetes creating k8up backup schedule
+name: fastly-api-secret
+description: A Helm chart for Kubernetes creating fastly-api-secret
 
 # A chart can be either an 'application' or a 'library' chart.
 #
@@ -14,4 +14,4 @@ type: application
 
 # This is the chart version. This version number should be incremented each time you make changes
 # to the chart and its templates, including the app version.
-version: 0.2.0
+version: 0.1.0

@@ -1,11 +1,17 @@
 const { knex } = require('../../util/db');
 
 export const Sql = {
-  updateEnvironment: ({ id, patch }: { id: number, patch: { [key: string]: any } }) =>
-    knex('environment')
-      .where('id', '=', id)
-      .update(patch)
-      .toString(),
+  updateEnvironment: ({ id, patch }: { id: number, patch: { [key: string]: any } }) => {
+    const updatePatch = {
+      ...patch,
+      updated: knex.fn.now(),
+    };
+
+    return knex('environment')
+    .where('id', '=', id)
+    .update(updatePatch)
+    .toString();
+  },
   selectEnvironmentById: (id: number) =>
     knex('environment')
       .where('id', '=', id)
