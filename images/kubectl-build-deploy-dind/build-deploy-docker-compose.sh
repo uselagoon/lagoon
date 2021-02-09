@@ -531,6 +531,7 @@ yq write -i -- /kubectl-build-deploy/values.yaml 'buildType' $BUILD_TYPE
 yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogenerateInsecure' $ROUTES_AUTOGENERATE_INSECURE
 yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogenerateEnabled' $ROUTES_AUTOGENERATE_ENABLED
 yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogenerateSuffix' $ROUTER_URL
+yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogenerateShortSuffix' $SHORT_ROUTER_URL
 for i in $ROUTES_AUTOGENERATE_PREFIXES; do yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogeneratePrefixes[+]' $i; done
 yq write -i -- /kubectl-build-deploy/values.yaml 'kubernetes' $KUBERNETES
 yq write -i -- /kubectl-build-deploy/values.yaml 'lagoonVersion' $LAGOON_VERSION
