@@ -40,7 +40,8 @@ tasks:
         service: cli
 
 routes:
-  insecure: Redirect
+  autogenerate:
+    insecure: Redirect
 
 environments:
   master:
