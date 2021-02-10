@@ -76,8 +76,8 @@ MINISHIFT_DISK_SIZE := 30GB
 
 # Version and Hash of the minikube cli that should be downloaded
 K3S_VERSION := v1.17.0-k3s.1
-KUBECTL_VERSION := v1.19.0
-HELM_VERSION := v3.4.1
+KUBECTL_VERSION := v1.20.2
+HELM_VERSION := v3.5.0
 MINIKUBE_VERSION := 1.5.2
 MINIKUBE_PROFILE := $(CI_BUILD_TAG)-minikube
 MINIKUBE_CPUS := $(nproc --ignore 2)
@@ -925,9 +925,9 @@ api-development: build/api build/api-db build/local-api-data-watcher-pusher buil
 
 ## CI targets
 
-KIND_VERSION = v0.9.0
+KIND_VERSION = v0.10.0
 GOJQ_VERSION = v0.11.2
-KIND_IMAGE = kindest/node:v1.19.1@sha256:98cf5288864662e37115e362b23e4369c8c4a408f99cbc06e58ac30ddc721600
+KIND_IMAGE = kindest/node:v1.20.2@sha256:8f7ea6e7642c0da54f04a7ee10431549c0257315b3a634f6ef2fecaaedb19bab
 TESTS = [api,features-kubernetes,nginx,drupal-php73,drupal-php74,drupal-postgres,python,gitlab,github,bitbucket]
 CHARTS_TREEISH = main
 
@@ -1030,7 +1030,7 @@ kind/test: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addpr
 			--volume "$$(pwd):/workdir" \
 			--volume "$$(realpath ../kubeconfig.kind.$(CI_BUILD_TAG)):/root/.kube/config" \
 			--workdir /workdir \
-			"quay.io/helmpack/chart-testing:v3.1.1" \
+			"quay.io/helmpack/chart-testing:v3.3.1" \
 			ct install
 
 .PHONY: kind/push-images
@@ -1064,7 +1064,7 @@ kind/retest:
 			--volume "$$(pwd):/workdir" \
 			--volume "$$(realpath ../kubeconfig.kind.$(CI_BUILD_TAG)):/root/.kube/config" \
 			--workdir /workdir \
-			"quay.io/helmpack/chart-testing:v3.1.1" \
+			"quay.io/helmpack/chart-testing:v3.3.1" \
 			ct install
 
 .PHONY: kind/clean
