@@ -19,7 +19,7 @@ spec:
         {{- include "mongodb-single.labels" . | nindent 8 }}
       annotations:
         {{- include "mongodb-single.annotations" . | nindent 8 }}
-        k8up.syn.tools/backupcommand: /bin/sh -c "/bin/busybox tar -cf - -C /var/lib/mongodbql/data ."
+        k8up.syn.tools/backupcommand: /bin/sh -c "/bin/busybox tar -cf - -C {{ .Values.persistentStorage.path | quote }} ."
         k8up.syn.tools/file-extension: .{{ include "mongodb-single.fullname" . }}.tar
         lagoon.sh/configMapSha: {{ .Values.configMapSha | quote }}
     spec:
@@ -50,11 +50,11 @@ spec:
           ports:
           - containerPort: 27017
             protocol: TCP
-            readinessProbe:
-              tcpSocket:
-                port: 27017
-              initialDelaySeconds: 1
-              timeoutSeconds: 1
+          readinessProbe:
+            tcpSocket:
+              port: 27017
+            initialDelaySeconds: 1
+            timeoutSeconds: 1
           volumeMounts:
             - name: {{ include "mongodb-single.fullname" . }}
               mountPath: {{ .Values.persistentStorage.path | quote }}
