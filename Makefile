@@ -935,7 +935,7 @@ KIND_VERSION = v0.9.0
 GOJQ_VERSION = v0.11.2
 KIND_IMAGE = kindest/node:v1.19.1@sha256:98cf5288864662e37115e362b23e4369c8c4a408f99cbc06e58ac30ddc721600
 TESTS = [api,features-kubernetes,nginx,drupal-php73,drupal-php74,drupal-postgres,python,gitlab,github,bitbucket,node-mongodb]
-CHARTS_TREEISH = mongodb_dbaas
+CHARTS_TREEISH = main
 
 local-dev/kind:
 ifeq ($(KIND_VERSION), $(shell kind version 2>/dev/null | sed -nE 's/kind (v[0-9.]+).*/\1/p'))
