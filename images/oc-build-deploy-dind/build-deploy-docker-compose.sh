@@ -210,6 +210,10 @@ do
     fi
   fi
 
+  if [ "$SERVICE_TYPE" == "mongodb-single" ]; then
+    SERVICE_TYPE="mongo"
+  fi
+
   if [ "$SERVICE_TYPE" == "mongodb-shared" ]; then
     MONGODB_SHARED_CLASS=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mongo-shared\\.class "${MONGODB_SHARED_DEFAULT_CLASS}")
     MONGODB_SHARED_PLAN=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mongo-shared\\.plan "${ENVIRONMENT_TYPE}")
