@@ -227,6 +227,31 @@ do
     fi
   fi
 
+  if [[ "$SERVICE_TYPE" == "mongodb-dbaas" ]]; then
+    # Default plan is the enviroment type
+    DBAAS_ENVIRONMENT=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mongodb-dbaas\\.environment "${ENVIRONMENT_TYPE}")
+
+    # Allow the dbaas shared servicebroker plan to be overriden by environment in .lagoon.yml
+    ENVIRONMENT_DBAAS_ENVIRONMENT_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.overrides.$SERVICE_NAME.mongodb-dbaas\\.environment false)
+    if [ ! $DBAAS_ENVIRONMENT_OVERRIDE == "false" ]; then
+      DBAAS_ENVIRONMENT=$ENVIRONMENT_DBAAS_ENVIRONMENT_OVERRIDE
+    fi
+
+    # If we have a dbaas environment type override in the api, consume it here
+    if [ ! -z "$LAGOON_DBAAS_ENVIRONMENT_TYPES" ]; then
+      IFS=',' read -ra LAGOON_DBAAS_ENVIRONMENT_TYPES_SPLIT <<< "$LAGOON_DBAAS_ENVIRONMENT_TYPES"
+      for LAGOON_DBAAS_ENVIRONMENT_TYPE in "${LAGOON_DBAAS_ENVIRONMENT_TYPES_SPLIT[@]}"
+      do
+        IFS=':' read -ra LAGOON_DBAAS_ENVIRONMENT_TYPE_SPLIT <<< "$LAGOON_DBAAS_ENVIRONMENT_TYPE"
+        if [ "${LAGOON_DBAAS_ENVIRONMENT_TYPE_SPLIT[0]}" == "$SERVICE_NAME" ]; then
+          DBAAS_ENVIRONMENT=${LAGOON_DBAAS_ENVIRONMENT_TYPE_SPLIT[1]}
+        fi
+      done
+    fi
+
+    MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]="${DBAAS_ENVIRONMENT}"
+  fi
+
   if [ "$SERVICE_TYPE" == "none" ]; then
     continue
   fi
@@ -245,6 +270,8 @@ do
   if  [[ "$SERVICE_TYPE" != "mariadb-dbaas" ]] &&
       [[ "$SERVICE_TYPE" != "mariadb-shared" ]] &&
       [[ "$SERVICE_TYPE" != "postgres-shared" ]] &&
+      [[ "$SERVICE_TYPE" != "postgres-dbaas" ]] &&
+      [[ "$SERVICE_TYPE" != "mongodb-dbaas" ]] &&
       [[ "$SERVICE_TYPE" != "mongodb-shared" ]]; then
     # Generate List of Images to build
     IMAGES+=("${IMAGE_NAME}")
@@ -1336,6 +1363,10 @@ do
         . /kubectl-build-deploy/scripts/exec-kubectl-postgres-dbaas.sh
         ;;
 
+    mongodb-dbaas)
+        . /kubectl-build-deploy/scripts/exec-kubectl-mongodb-dbaas.sh
+        ;;
+
     *)
         echo "DBAAS Type ${SERVICE_TYPE} not implemented"; exit 1;
 
@@ -1545,6 +1576,10 @@ do
     echo "nothing to monitor for $SERVICE_TYPE"
 
   elif [ $SERVICE_TYPE == "postgres-dbaas" ]; then
+
+    echo "nothing to monitor for $SERVICE_TYPE"
+
+  elif [ $SERVICE_TYPE == "mongodb-dbaas" ]; then
 
     echo "nothing to monitor for $SERVICE_TYPE"
 

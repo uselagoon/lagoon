@@ -1,0 +1,14 @@
+---
+
+- include: features/api-token.yaml
+  vars:
+    testname: "API TOKEN"
+
+- include: node-mongodb/node-mongodb.yaml
+  vars:
+    testname: "Node 10 - MONGODB DBAAAS {{ cluster_type|upper }}"
+    node_version: 10
+    db: mongodb
+    git_repo_name: node-mongodb.git
+    project: ci-node-mongodb-{{ cluster_type }}
+    branch: node-mongodb-dbaas
