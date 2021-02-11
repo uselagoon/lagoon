@@ -614,11 +614,22 @@ do
 
   HELM_DBAAS_TEMPLATE="templates/dbaas.yaml"
   if [ -f /kubectl-build-deploy/helmcharts/${SERVICE_TYPE}/$HELM_DBAAS_TEMPLATE ]; then
-    # cat $KUBERNETES_SERVICES_TEMPLATE
-    # Load the requested class and plan for this service
-    DBAAS_ENVIRONMENT="${MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]}"
-    yq write -i -- /kubectl-build-deploy/${SERVICE_NAME}-values.yaml 'environment' $DBAAS_ENVIRONMENT
-    helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -s $HELM_DBAAS_TEMPLATE -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${SERVICE_NAME}-values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${SERVICE_NAME}.yaml
+    # Check if we have a dbaas consumer already created
+    EXISTING_CONSUMER_DB=""
+    if [ "$SERVICE_TYPE" == "mariadb-dbaas" ]; then
+      EXISTING_CONSUMER_DB=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get mariadbconsumer/${SERVICE_NAME} -o yaml 2> /dev/null | shyaml -q get-value spec.consumer.database "")
+    elif [ "$SERVICE_TYPE" == "mongodb-dbaas" ]; then
+      EXISTING_CONSUMER_DB=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get mongodbconsumer/${SERVICE_NAME} -o yaml 2> /dev/null | shyaml -q get-value spec.consumer.database "")
+    elif [ "$SERVICE_TYPE" == "postgres-dbaas" ]; then
+      EXISTING_CONSUMER_DB=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get postgresqlconsumer/${SERVICE_NAME} -o yaml 2> /dev/null | shyaml -q get-value spec.consumer.database "")
+    fi
+    # If we haven't already got an existing dbaas consumer, create one
+    if [ -z "$EXISTING_CONSUMER_DB" ]; then
+      # Load the requested class and plan for this service
+      DBAAS_ENVIRONMENT="${MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]}"
+      yq write -i -- /kubectl-build-deploy/${SERVICE_NAME}-values.yaml 'environment' $DBAAS_ENVIRONMENT
+      helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -s $HELM_DBAAS_TEMPLATE -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${SERVICE_NAME}-values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${SERVICE_NAME}.yaml
+    fi
     DBAAS+=("${SERVICE_NAME}:${SERVICE_TYPE}")
   fi
 

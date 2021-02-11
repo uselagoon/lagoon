@@ -587,20 +587,31 @@ do
     SERVICEBROKERS+=("${SERVICE_NAME}:${SERVICE_TYPE}")
   fi
 
-  # If we have a dbaas consumer, create it
   OPENSHIFT_SERVICES_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/consumer.yml"
   if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
-    OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
-    OPERATOR_ENVIRONMENT="${MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]}"
-    TEMPLATE_ADDITIONAL_PARAMETERS=()
-    oc process  --local -o yaml --insecure-skip-tls-verify \
-      -n ${OPENSHIFT_PROJECT} \
-      -f ${OPENSHIFT_TEMPLATE} \
-      -p SERVICE_NAME="${SERVICE_NAME}" \
-      -p SAFE_BRANCH="${SAFE_BRANCH}" \
-      -p SAFE_PROJECT="${SAFE_PROJECT}" \
-      -p ENVIRONMENT="${OPERATOR_ENVIRONMENT}" \
-      | outputToYaml
+    EXISTING_CONSUMER_DB=""
+    # Check if we have a dbaas consumer already created
+    if [ "$SERVICE_TYPE" == "mariadb-dbaas" ]; then
+      EXISTING_CONSUMER_DB=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get mariadbconsumer/${SERVICE_NAME} -o yaml 2> /dev/null | shyaml -q get-value spec.consumer.database "")
+    elif [ "$SERVICE_TYPE" == "mongodb-dbaas" ]; then
+      EXISTING_CONSUMER_DB=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get mongodbconsumer/${SERVICE_NAME} -o yaml 2> /dev/null | shyaml -q get-value spec.consumer.database "")
+    elif [ "$SERVICE_TYPE" == "postgres-dbaas" ]; then
+      EXISTING_CONSUMER_DB=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get postgresqlconsumer/${SERVICE_NAME} -o yaml 2> /dev/null | shyaml -q get-value spec.consumer.database "")
+    fi
+    # If we haven't already got an existing dbaas consumer, create one
+    if [ -z "$EXISTING_CONSUMER_DB" ]; then
+      OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
+      OPERATOR_ENVIRONMENT="${MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]}"
+      TEMPLATE_ADDITIONAL_PARAMETERS=()
+      oc process  --local -o yaml --insecure-skip-tls-verify \
+        -n ${OPENSHIFT_PROJECT} \
+        -f ${OPENSHIFT_TEMPLATE} \
+        -p SERVICE_NAME="${SERVICE_NAME}" \
+        -p SAFE_BRANCH="${SAFE_BRANCH}" \
+        -p SAFE_PROJECT="${SAFE_PROJECT}" \
+        -p ENVIRONMENT="${OPERATOR_ENVIRONMENT}" \
+        | outputToYaml
+    fi
     SERVICEBROKERS+=("${SERVICE_NAME}:${SERVICE_TYPE}")
   fi
 
