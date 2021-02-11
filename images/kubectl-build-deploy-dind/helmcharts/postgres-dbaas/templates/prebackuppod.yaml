@@ -46,7 +46,7 @@ spec:
                 configMapKeyRef:
                   key: {{ include "postgres-dbaas.fullnameUppercase" . }}_NAME
                   name: lagoon-env
-          image: imagecache.amazeeio.cloud/library/alpine
+          image: imagecache.amazeeio.cloud/library/uselagoon/php-8.0-cli
           imagePullPolicy: Always
           name: {{ include "postgres-dbaas.fullname" . }}-prebackuppod
 {{ end }}

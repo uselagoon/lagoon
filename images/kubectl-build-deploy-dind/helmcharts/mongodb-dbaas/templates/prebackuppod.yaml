@@ -61,7 +61,7 @@ spec:
                 configMapKeyRef:
                   key: {{ include "mongodb-dbaas.fullnameUppercase" . }}_DB_AUTHTLS
                   name: lagoon-env
-          image: imagecache.amazeeio.cloud/library/alpine
+          image: imagecache.amazeeio.cloud/library/uselagoon/php-8.0-cli
           imagePullPolicy: Always
           name: {{ include "mongodb-dbaas.fullname" . }}-prebackuppod
 {{ end }}
