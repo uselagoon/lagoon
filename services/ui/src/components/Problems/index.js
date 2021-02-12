@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from "@apollo/react-hooks";
-import getSeverityEnumQuery, {getProjectOptions, getSourceOptions, getServiceOptions} from 'components/Filters/helpers';
+import getSeverityEnumQuery, {getProjectOptions, getSourceOptions} from 'components/Filters/helpers';
 import { bp, color, fontSize } from 'lib/variables';
 import useSortableProblemsData from './sortedItems';
-import { getFromNowTime } from "components/Dates";
 import Problem from "components/Problem";
 import SelectFilter from 'components/Filters';
 
@@ -68,57 +67,58 @@ const Problems = ({problems}) => {
   };
 
   // Filters
-  const severityFilter = (item) => {
+  const isFilteredBySeverity = (item) => {
     return Object.keys(item).some(key => {
-        if (item[key] !== null) {
-          return severitySelected.indexOf(item['severity'].toString()) > -1;
-        };
+      if (item[key] !== null) {
+        return severitySelected.indexOf(item['severity'].toString()) > -1;
+      };
     });
   }
 
-  const sourceFilter = (item) => {
+  const isFilteredbySource = (item) => {
     return Object.keys(item).some(key => {
-        if (item[key] !== null) {
-          return sourceSelected.indexOf(item['source'].toString()) > -1;
-        };
+      if (item[key] !== null) {
+        return sourceSelected.indexOf(item['source'].toString()) > -1;
+      };
     });
   }
 
-  const serviceFilter = (item) => {
+  const isFilteredByService = (item) => {
     return Object.keys(item).some(key => {
-        if (item[key] !== null) {
-          return servicesSelected.indexOf(item['service'].toString()) > -1;
-        };
+      if (item[key] !== null) {
+        return servicesSelected.indexOf(item['service'].toString()) > -1;
+      };
     });
   }
 
-  // Filter by select fields and text input field.
-  const filterResults = (item) => {
-    let filtered = true;
+  const isFilteredByTextFilter = (item) => {
+    return Object.keys(item).some(key => {
+      if (item[key] !== null) {
+        return item[key].toString().toLowerCase().includes(problemTerm.toLowerCase());
+      }
+    });
+  }
 
-    if (severitySelected.length > 0 && filtered) {
-      filtered = severityFilter(item);
+  const shouldItemBeShown = (item) => {
+    let showItem = true;
+
+    if (severitySelected.length > 0 && showItem) {
+      showItem = isFilteredBySeverity(item);
     }
 
-    if (sourceSelected.length > 0 && filtered) {
-      filtered = sourceFilter(item);
+    if (servicesSelected.length > 0 && showItem) {
+      showItem = showItem && isFilteredByService(item);
     }
 
-    if (servicesSelected.length > 0 && filtered) {
-      filtered = serviceFilter(item);
+    if (sourceSelected.length > 0 && showItem) {
+      showItem = showItem && isFilteredbySource(item);
     }
 
-    // Filter text input
-    const lowercasedFilter = problemTerm.toLowerCase();
-    if (filtered && (problemTerm != null || problemTerm !== '')) {
-      filtered = Object.keys(item).some(key => {
-        if (item[key] !== null) {
-          return item[key].toString().toLowerCase().includes(lowercasedFilter);
-        }
-      });
+    if ((problemTerm != null || problemTerm !== '') && showItem) {
+      showItem = isFilteredByTextFilter(item);
     }
 
-    return filtered;
+    return showItem;
   };
 
   const handleSort = (key) => {
@@ -225,7 +225,7 @@ const Problems = ({problems}) => {
         </button>
       </div>
       <div className="problems-container">
-          {sortedItems.filter(item => filterResults(item)).length == 0 &&
+          {sortedItems.filter(item => shouldItemBeShown(item)).length == 0 &&
             <div className="data-table">
               <div className="data-none">
                 No Problems
@@ -233,7 +233,7 @@ const Problems = ({problems}) => {
             </div>
           }
           {sortedItems
-            .filter(item => filterResults(item))
+            .filter(item => shouldItemBeShown(item))
             .map((problem) => {
               return <Problem key={`${problem.identifier}-${problem.id}`} problem={problem}/>
             })
