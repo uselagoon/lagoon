@@ -18,7 +18,7 @@ services:
       - MONGODB_USERNAME=mongouser
       - MONGODB_PASSWORD=password
       - MONGODB_HOST=mongodb
-      - MONGODB_PORT=27017
+      - MONGODB_HOSTPORT=27017
       - MONGODB_DATABASE=admin
       - MONGODB_AUTHSOURCE=admin
       - MONGODB_AUTHTLS=True
