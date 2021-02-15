@@ -27,15 +27,15 @@
     git_repo_name: drupal.git
     project: ci-drupal-{{ lookup('env','CLUSTER_TYPE') }}
 
-- include: features/api-token.yaml
-  vars:
-    testname: "API TOKEN"
+# - include: features/api-token.yaml
+#   vars:
+#     testname: "API TOKEN"
 
-- include: elasticsearch/elasticsearch.yaml
-  vars:
-    testname: "ELASTICSEARCH SINGLE NODE {{ lookup('env','CLUSTER_TYPE')|upper }}"
-    git_repo_name: elasticsearch.git
-    project: ci-elasticsearch-{{ lookup('env','CLUSTER_TYPE') }}
-    branch: elasticsearch
-    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}/_cluster/health"
-    node_count: 1
+# - include: elasticsearch/elasticsearch.yaml
+#   vars:
+#     testname: "ELASTICSEARCH SINGLE NODE {{ lookup('env','CLUSTER_TYPE')|upper }}"
+#     git_repo_name: elasticsearch.git
+#     project: ci-elasticsearch-{{ lookup('env','CLUSTER_TYPE') }}
+#     branch: elasticsearch
+#     url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}/_cluster/health"
+#     node_count: 1
