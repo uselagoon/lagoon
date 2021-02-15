@@ -344,13 +344,11 @@ build-list:
 	done
 
 # Define list of all tests
-all-k8s-tests-list:=				nginx \
-														python \
-														drupal \
-														drupal-postgres \
+all-k8s-tests-list:=				features-kubernetes \
 														active-standby-kubernetes \
-														features-kubernetes \
-														node-mongodb
+														dbaas \
+														singles \
+														images
 
 all-k8s-tests = $(foreach image,$(all-k8s-tests-list),k8s-tests/$(image))
 
@@ -371,12 +369,10 @@ $(all-k8s-tests): k3d kubernetes-test-services-up
 
 # Define list of all tests
 all-controller-k8s-tests-list:=				features-kubernetes \
-														nginx \
-														python \
-														drupal \
-														drupal-postgres \
 														active-standby-kubernetes \
-														node-mongodb
+														dbaas \
+														singles \
+														images
 all-controller-k8s-tests = $(foreach image,$(all-controller-k8s-tests-list),controller-k8s-tests/$(image))
 
 # Run all k8s tests
@@ -415,15 +411,7 @@ $(push-local-registry-images):
 
 # Define list of all tests
 all-openshift-tests-list:=	features-openshift \
-														node \
-														drupal \
-														github \
-														gitlab \
-														bitbucket \
-														nginx \
-														elasticsearch \
-														active-standby-openshift \
-														node-mongodb
+														active-standby-openshift
 all-openshift-tests = $(foreach image,$(all-openshift-tests-list),openshift-tests/$(image))
 
 .PHONY: openshift-tests
@@ -431,15 +419,13 @@ openshift-tests: $(all-openshift-tests)
 
 # Define list of all tests
 all-controller-openshift-tests-list:=	features-openshift \
-														node \
-														drupal \
+														active-standby-openshift \
+														dbaas \
+														singles \
+														images \
 														github \
 														gitlab \
-														bitbucket \
-														nginx \
-														elasticsearch \
-														active-standby-openshift \
-														node-mongodb
+														bitbucket
 all-controller-openshift-tests = $(foreach image,$(all-controller-openshift-tests-list),controller-openshift-tests/$(image))
 
 .PHONY: controller-openshift-tests
