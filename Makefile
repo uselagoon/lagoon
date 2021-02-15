@@ -445,10 +445,10 @@ wait-for-keycloak:
 main-test-services = broker logs2email logs2slack logs2rocketchat logs2microsoftteams api api-db keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher harbor-core harbor-database harbor-jobservice harbor-portal harbor-nginx harbor-redis harborregistry harborregistryctl harbor-trivy local-minio
 
 # Define a list of which Lagoon Services are needed for openshift testing
-openshift-test-services = openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor openshiftmisc tests-openshift local-dbaas-provider local-mongodb-dbaas-provider
+openshift-test-services = openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor openshiftmisc tests-openshift
 
 # Define a list of which Lagoon Services are needed for controller openshift testing
-controller-openshift-test-services = controllerhandler tests-controller-openshift local-registry local-dbaas-provider local-mongodb-dbaas-provider
+controller-openshift-test-services = controllerhandler tests-controller-openshift local-registry local-dbaas-provider local-postgresql-dbaas-provider local-mongodb-dbaas-provider
 
 # Define a list of which Lagoon Services are needed for kubernetes testing
 kubernetes-test-services = kubernetesbuilddeploy kubernetesdeployqueue kubernetesbuilddeploymonitor kubernetesjobs kubernetesjobsmonitor kubernetesremove kubernetesmisc tests-kubernetes local-registry local-dbaas-provider local-postgresql-dbaas-provider local-mongodb-dbaas-provider drush-alias
@@ -470,6 +470,9 @@ api-tests = node features-openshift features-kubernetes nginx elasticsearch acti
 
 # All drupal tests
 drupal-tests = drupal drupal-postgres
+
+# Other tests
+other-tests = dbaas singles images
 
 # These targets are used as dependencies to bring up containers in the right order.
 .PHONY: main-test-services-up
@@ -532,6 +535,13 @@ $(openshift-run-webhook-tests): minishift build/oc-build-deploy-dind openshift-t
 		$(eval testname = $(subst openshift-tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility run --rm tests-openshift ansible-playbook /ansible/tests/$(testname).yaml
 
+openshift-run-other-tests = $(foreach image,$(other-tests),openshift-tests/$(image))
+.PHONY: $(openshift-run-other-tests)
+$(openshift-run-other-tests): minishift build/oc-build-deploy-dind $(drupal-dependencies) openshift-test-services-up drupaltest-services-up
+		$(MAKE) push-local-registry -j6
+		$(eval testname = $(subst openshift-tests/,,$@))
+		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility run --rm tests-openshift ansible-playbook /ansible/tests/$(testname).yaml
+
 # controller based openshift tests
 controller-openshift-run-api-tests = $(foreach image,$(api-tests),controller-openshift-tests/$(image))
 .PHONY: $(controller-openshift-run-api-tests)
@@ -553,6 +563,14 @@ $(controller-openshift-run-drupal-tests): minishift build/oc-build-deploy-dind $
 		$(MAKE) push-local-registry -j6
 		$(eval testname = $(subst controller-openshift-tests/,,$@))
 		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility run --rm tests-controller-openshift ansible-playbook /ansible/tests/$(testname).yaml
+
+controller-openshift-run-other-tests = $(foreach image,$(other-tests),controller-openshift-tests/$(image))
+.PHONY: $(controller-openshift-run-other-tests)
+$(controller-openshift-run-other-tests): minishift build/oc-build-deploy-dind $(drupal-dependencies) controller-openshift-test-services-up drupaltest-services-up
+		$(MAKE) push-local-registry -j6
+		$(eval testname = $(subst controller-openshift-tests/,,$@))
+		IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility run --rm tests-controller-openshift ansible-playbook /ansible/tests/$(testname).yaml
+
 
 end2end-all-tests = $(foreach image,$(all-tests-list),end2end-tests/$(image))
 
