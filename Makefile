@@ -373,6 +373,7 @@ all-controller-k8s-tests-list:=				features-kubernetes \
 														dbaas \
 														singles \
 														images
+
 all-controller-k8s-tests = $(foreach image,$(all-controller-k8s-tests-list),controller-k8s-tests/$(image))
 
 # Run all k8s tests
