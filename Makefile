@@ -59,8 +59,8 @@ DOCKER_BUILD_PARAMS := --quiet
 # If it's not set we assume that we are running local and just call it lagoon.
 CI_BUILD_TAG ?= lagoon
 # SOURCE_REPO is the repos where the upstream images are found (usually uselagoon, but can substiture for testlagoon)
-UPSTREAM_REPO ?= uselagoon
-UPSTREAM_TAG ?= latest
+UPSTREAM_REPO ?=
+UPSTREAM_TAG ?=
 
 # Local environment
 ARCH := $(shell uname | tr '[:upper:]' '[:lower:]')
@@ -90,7 +90,6 @@ K3D_NAME := k3s-$(shell echo $(CI_BUILD_TAG) | sed -E 's/.*(.{31})$$/\1/')
 
 # Name of the Branch we are currently in
 BRANCH_NAME :=
-DEFAULT_ALPINE_VERSION := 3.11
 
 #######
 ####### Functions
@@ -98,7 +97,7 @@ DEFAULT_ALPINE_VERSION := 3.11
 
 # Builds a docker image. Expects as arguments: name of the image, location of Dockerfile, path of
 # Docker Build Context
-docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg UPSTREAM_REPO=$(UPSTREAM_REPO) --build-arg UPSTREAM_TAG=$(UPSTREAM_TAG) --build-arg ALPINE_VERSION=$(DEFAULT_ALPINE_VERSION) -t $(CI_BUILD_TAG)/$(1) -f $(2) $(3)
+docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg UPSTREAM_REPO=$(UPSTREAM_REPO) --build-arg UPSTREAM_TAG=$(UPSTREAM_TAG) -t $(CI_BUILD_TAG)/$(1) -f $(2) $(3)
 
 # Tags an image with the `amazeeio` repository and pushes it
 docker_publish_amazeeio = docker tag $(CI_BUILD_TAG)/$(1) amazeeio/$(2) && docker push amazeeio/$(2) | cat
