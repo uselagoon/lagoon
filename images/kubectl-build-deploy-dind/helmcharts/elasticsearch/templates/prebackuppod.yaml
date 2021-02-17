@@ -2,19 +2,19 @@
 apiVersion: backup.appuio.ch/v1alpha1
 kind: PreBackupPod
 metadata:
-  name: {{ include "redis-persistent.fullname" . }}-prebackuppod
+  name: {{ include "elasticsearch.fullname" . }}-prebackuppod
   labels:
-    {{- include "redis-persistent.labels" . | nindent 4 }}
+    {{- include "elasticsearch.labels" . | nindent 4 }}
   annotations:
-    {{- include "redis-persistent.annotations" . | nindent 4 }}
+    {{- include "elasticsearch.annotations" . | nindent 4 }}
 spec:
-  backupCommand: /bin/sh -c "/bin/busybox tar -cf - -C {{ .Values.persistentStorage.path }} ."
-  fileExtension: .{{ include "redis-persistent.fullname" . }}.tar
+  backupCommand: /bin/sh -c "tar -cf - -C {{ .Values.persistentStorage.path }} ."
+  fileExtension: .{{ include "elasticsearch.fullname" . }}.tar
   pod:
     metadata:
       labels:
-        prebackuppod: {{ include "redis-persistent.fullname" . }}
-        {{- include "redis-persistent.labels" . | nindent 8 }}
+        prebackuppod: {{ include "elasticsearch.fullname" . }}
+        {{- include "elasticsearch.labels" . | nindent 8 }}
     spec:
       affinity:
         podAffinity:
@@ -25,7 +25,7 @@ spec:
                     - key: lagoon.sh/service
                       operator: In
                       values:
-                        - {{ include "redis-persistent.fullname" . }}
+                        - {{ include "elasticsearch.fullname" . }}
                 topologyKey: kubernetes.io/hostname
               weight: 100
       containers:
@@ -37,12 +37,12 @@ spec:
                 name: lagoon-env
           image: imagecache.amazeeio.cloud/library/alpine
           imagePullPolicy: Always
-          name: {{ include "redis-persistent.fullname" . }}-prebackuppod
+          name: {{ include "elasticsearch.fullname" . }}-prebackuppod
           volumeMounts:
-            - name: {{ include "redis-persistent.persistentStorageName" . }}
+            - name: {{ include "elasticsearch.persistentStorageName" . }}
               mountPath: {{ .Values.persistentStorage.path | quote }}
       volumes:
-        - name: {{ include "redis-persistent.persistentStorageName" . }}
+        - name: {{ include "elasticsearch.persistentStorageName" . }}
           persistentVolumeClaim:
-            claimName: {{ include "redis-persistent.persistentStorageName" . }}
+            claimName: {{ include "elasticsearch.persistentStorageName" . }}
 {{ end }}
