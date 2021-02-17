@@ -20,6 +20,8 @@ spec:
         {{- include "solr.datadogLabels" . | nindent 8 }}
       annotations:
         {{- include "solr.annotations" . | nindent 8 }}
+        k8up.syn.tools/backupcommand: /bin/sh -c "/bin/busybox tar -cf - -C {{ .Values.persistentStorage.path }} ."
+        k8up.syn.tools/file-extension: .{{ include "solr.fullname" . }}.tar
         lagoon.sh/configMapSha: {{ .Values.configMapSha | quote }}
     spec:
     {{- with .Values.imagePullSecrets }}
