@@ -1047,6 +1047,7 @@ kind/test: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addpr
 			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=$$IMAGE_REGISTRY/kubectl-build-deploy-dind:$(SAFE_BRANCH_NAME) \
 			OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY=smlx/lagoon-builddeploy \
 			OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG=rootless \
+			BUILD_DEPLOY_CONTROLLER_ROOTLESS_BUILD_PODS=true \
 			IMAGE_REGISTRY=$$IMAGE_REGISTRY \
 		&& sleep 30 \
 		&& docker run --rm --network host --name ct-$(CI_BUILD_TAG) \
