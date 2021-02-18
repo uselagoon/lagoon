@@ -210,6 +210,9 @@ do
     fi
   fi
 
+  # oc-build-deploy-dind has no `mongodb-single` template like we do in kubectl-build-deploy-dind
+  # so this is a simple alias to allow `mongodb-single` in docker-compose.yml or other locations to be consumed and used
+  # by oc-build-deploy-dind
   if [ "$SERVICE_TYPE" == "mongodb-single" ]; then
     SERVICE_TYPE="mongo"
   fi
