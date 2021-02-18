@@ -1404,7 +1404,7 @@ if [ "$BUILD_TYPE" == "pullrequest" ] || [ "$BUILD_TYPE" == "branch" ]; then
     PULL_IMAGE="${IMAGES_PULL[${IMAGE_NAME}]}"
 
     # Try to handle private registries first
-    if [ $PRIVATE_REGISTRY_COUNTER -gt 0]; then
+    if [ $PRIVATE_REGISTRY_COUNTER -gt 0 ]; then
       if [ $PRIVATE_EXTERNAL_REGISTRY ]; then
         EXTERNAL_REGISTRY=0
         for EXTERNAL_REGISTRY_URL in "${PRIVATE_REGISTRY_URLS[@]}"
