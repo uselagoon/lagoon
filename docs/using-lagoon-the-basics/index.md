@@ -54,6 +54,7 @@ Some Docker images and containers need additional customizations from the provid
 | [MongoDB](../docker-images/mongodb.md) | 3.6 | [mongo/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mongo) |
 | [NGINX](../docker-images/nginx/) | openresty/1.19 | [nginx/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/nginx) |
 | [NGINX \(Drupal\)](../docker-images/nginx/nginx-drupal.md) | openresty/1.19 | [nginx-drupal/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/nginx-drupal) |
+| Node.js | 10, 12, 14 | [node/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/node) |
 | [PHP FPM](../docker-images/php-fpm.md) | 7.2, 7.3, 7.4 | [php/fpm/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm) |
 | [PHP CLI](../docker-images/php-cli/) | 7.2, 7.3, 7.4 | [php/cli/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli) |
 | [PHP CLI \(Drupal\)](../docker-images/php-cli/php-cli-drupal.md) | 7.3, 7.4, 8.0 | [php/cli-drupal/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli-drupal) |
