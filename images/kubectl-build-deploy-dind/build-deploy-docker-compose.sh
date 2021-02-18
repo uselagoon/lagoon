@@ -1402,7 +1402,39 @@ if [ "$BUILD_TYPE" == "pullrequest" ] || [ "$BUILD_TYPE" == "branch" ]; then
   for IMAGE_NAME in "${!IMAGES_PULL[@]}"
   do
     PULL_IMAGE="${IMAGES_PULL[${IMAGE_NAME}]}"
-    . /kubectl-build-deploy/scripts/exec-kubernetes-copy-to-registry.sh
+
+    # Try to handle private registries first
+    if [ $PRIVATE_REGISTRY_COUNTER -gt 0]; then
+      if [ $PRIVATE_EXTERNAL_REGISTRY ]; then
+        EXTERNAL_REGISTRY=0
+        for EXTERNAL_REGISTRY_URL in "${PRIVATE_REGISTRY_URLS[@]}"
+        do
+          # strip off "http://" or "https://" from registry url if present
+          bare_url = "${EXTERNAL_REGISTRY_URL#http://}"
+          bare_url = "${EXTERNAL_REGISTRY_URL#https://}"
+
+          # Test registry to see if image is from an external registry or just private docker hub
+          case $bare_url in
+            "$PULL_IMAGE"*)
+              EXTERNAL_REGISTRY=1
+              ;;
+          esac
+        done
+
+        # If this image is hosted in an external registry, pull it from there
+        if [ $EXTERNAL_REGISTRY -eq 1 ] || ; then
+          skopeo copy --dest-tls-verify=false docker://${PULL_IMAGE} docker://${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG:-latest}
+        # If this image is not from an external registry, but docker hub creds were supplied, pull it straight from Docker Hub
+        elif [ $PRIVATE_DOCKER_HUB_REGISTRY -eq 1 ]; then
+          skopeo copy --dest-tls-verify=false docker://${PULL_IMAGE} docker://${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG:-latest}
+        # If image not from an external registry and no docker hub creds were supplied, pull image from the imagecache
+        else
+          skopeo copy --dest-tls-verify=false docker://${IMAGECACHE_REGISTRY}/${PULL_IMAGE} docker://${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG:-latest}
+        fi
+    # If no private registries, use the imagecache
+    else
+      skopeo copy --dest-tls-verify=false docker://${IMAGECACHE_REGISTRY}/${PULL_IMAGE} docker://${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG:-latest}
+    fi
 
     IMAGE_HASHES[${IMAGE_NAME}]=$(skopeo inspect docker://${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG:-latest} --tls-verify=false | jq ".Name + \"@\" + .Digest" -r)
   done
