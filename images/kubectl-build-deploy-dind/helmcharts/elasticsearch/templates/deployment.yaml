@@ -1,27 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "solr.fullname" . }}
+  name: {{ include "elasticsearch.fullname" . }}
   labels:
-    {{- include "solr.labels" . | nindent 4 }}
+    {{- include "elasticsearch.labels" . | nindent 4 }}
   annotations:
-    {{- include "solr.annotations" . | nindent 4 }}
+    {{- include "elasticsearch.annotations" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      {{- include "solr.selectorLabels" . | nindent 6 }}
+      {{- include "elasticsearch.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "solr.labels" . | nindent 8 }}
-        {{- include "solr.datadogLabels" . | nindent 8 }}
+        {{- include "elasticsearch.labels" . | nindent 8 }}
+        {{- include "elasticsearch.datadogLabels" . | nindent 8 }}
       annotations:
-        {{- include "solr.annotations" . | nindent 8 }}
-        k8up.syn.tools/backupcommand: /bin/sh -c "/bin/busybox tar -cf - -C {{ .Values.persistentStorage.path }} ."
-        k8up.syn.tools/file-extension: .{{ include "solr.fullname" . }}.tar
+        {{- include "elasticsearch.annotations" . | nindent 8 }}
         lagoon.sh/configMapSha: {{ .Values.configMapSha | quote }}
     spec:
     {{- with .Values.imagePullSecrets }}
@@ -29,10 +27,10 @@ spec:
         {{- toYaml . | nindent 8 }}
     {{- end }}
       volumes:
-        - name: {{ include "solr.persistentStorageName" . }}
+        - name: {{ include "elasticsearch.persistentStorageName" . }}
           persistentVolumeClaim:
-            claimName: {{ include "solr.persistentStorageName" . }}
-      priorityClassName: {{ include "solr.lagoonPriority" . }}
+            claimName: {{ include "elasticsearch.persistentStorageName" . }}
+      priorityClassName: {{ include "elasticsearch.lagoonPriority" . }}
       enableServiceLinks: false
       securityContext:
         fsGroup: 0
@@ -41,19 +39,18 @@ spec:
           name: {{ .Chart.Name }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           ports:
-            - containerPort: 8983
+            - containerPort: 9200
               protocol: TCP
           readinessProbe:
-            tcpSocket:
-              port: 8983
-            initialDelaySeconds: 1
-            periodSeconds: 3
+            httpGet:
+              path: /_cluster/health?local=true
+              port: 9200
+            initialDelaySeconds: 20
           livenessProbe:
-            tcpSocket:
-              port: 8983
-            initialDelaySeconds: 90
-            timeoutSeconds: 3
-            failureThreshold: 5
+            httpGet:
+              path: /_cluster/health?local=true
+              port: 9200
+            initialDelaySeconds: 120
           securityContext:
             runAsGroup: 0
           envFrom:
@@ -63,7 +60,7 @@ spec:
             - name: CRONJOBS
               value: {{ .Values.inPodCronjobs | quote }}
           volumeMounts:
-            - name: {{ include "solr.persistentStorageName" . }}
+            - name: {{ include "elasticsearch.persistentStorageName" . }}
               mountPath: {{ .Values.persistentStorage.path | quote }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}

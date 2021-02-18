@@ -88,22 +88,31 @@ const messageConsumer = async function(msg) {
         let deploymentId;
         try {
           // try get the ID from our build UID
-          const deployment = await getDeploymentByRemoteId(meta.remoteId);
-          if (!deployment.deploymentByRemoteId) {
-            // otherwise find it using the build name
+          if (meta.remoteId != null) {
+            // otherwise, get the build directly by the remote id
+            // and fall back again to checking by namespace and build name if that fails
+            const deployment = await getDeploymentByRemoteId(meta.remoteId);
+            if (!deployment.deploymentByRemoteId) {
+              // otherwise find it using the build name
+              const deploymentResult = await getDeploymentByName(namespace, meta.buildName);
+              deploymentId = deploymentResult.environment.deployments[0].id;
+            } else {
+              deploymentId = deployment.deploymentByRemoteId.id
+            }
+          } else {
+            // if there is no remoteId in the message, then we are probably cancelling a build that
+            // was not actually ever started in a lagoon cluster
+            // so get the deployment id based on namespace and build name
             const deploymentResult = await getDeploymentByName(namespace, meta.buildName);
             deploymentId = deploymentResult.environment.deployments[0].id;
-          } else {
-            deploymentId = deployment.deploymentByRemoteId.id
           }
-        }catch(error) {
+        } catch(error) {
           logger.warn(`Error while fetching deployment openshiftproject: ${namespace}: ${error}`)
           throw(error)
         }
 
         const convertDateFormat = R.init;
         const dateOrNull = R.unless(R.isNil, convertDateFormat) as any;
-
         await updateDeployment(deploymentId, {
           remoteId: meta.remoteId,
           status: meta.buildPhase.toUpperCase(),
@@ -153,10 +162,14 @@ const messageConsumer = async function(msg) {
                 project: ${project.id}
               }`
             );
+          } catch (err) {
+            logger.warn(`${namespace} ${meta.buildName}: Error while updating routes in API, Error: ${err}. Continuing without update`)
+          }
+          try {
             // update the environment with the services available
             await setEnvironmentServices(environment.id, meta.services);
           } catch (err) {
-            logger.warn(`${namespace} ${meta.buildName}: Error while updating routes in API, Error: ${err}. Continuing without update`)
+            logger.warn(`${namespace} ${meta.buildName}: Error while updating services in API, Error: ${err}. Continuing without update`)
           }
       }
       break;

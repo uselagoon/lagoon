@@ -1,0 +1,38 @@
+---
+
+- include: features/api-token.yaml
+  vars:
+    testname: "API TOKEN"
+
+- include: nginx/nginx.yaml
+  vars:
+    testname: "NGINX {{ lookup('env','CLUSTER_TYPE')|upper }}"
+    git_repo_name: nginx.git
+    project: ci-nginx-{{ lookup('env','CLUSTER_TYPE') }}
+    branch: nginx
+
+- include: features/api-token.yaml
+  vars:
+    testname: "API TOKEN"
+
+# - include: python/deploy-branch.yaml
+#   vars:
+#     testname: "PYTHON 3.7 {{ lookup('env','CLUSTER_TYPE')|upper }}"
+#     python_version: 3.7
+#     git_repo_name: python.git
+#     project: ci-python-{{ lookup('env','CLUSTER_TYPE') }}
+#     branch: python37
+#     check_url: "http://python.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+
+- include: features/api-token.yaml
+  vars:
+    testname: "API TOKEN"
+
+- include: api/deploy-branch.yaml
+  vars:
+    testname: "NODE 14 {{ lookup('env','CLUSTER_TYPE')|upper }}"
+    node_version: 14
+    git_repo_name: node.git
+    project: ci-node-{{ lookup('env','CLUSTER_TYPE') }}
+    branch: node14
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"

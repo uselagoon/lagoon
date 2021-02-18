@@ -616,15 +616,17 @@ do
     helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -s $HELM_SERVICE_TEMPLATE -f /kubectl-build-deploy/values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${SERVICE_NAME}.yaml
   fi
 
-  HELM_INGRESS_TEMPLATE="templates/ingress.yaml"
-  if [ -f /kubectl-build-deploy/helmcharts/${SERVICE_TYPE}/$HELM_INGRESS_TEMPLATE ]; then
+  if [ $ROUTES_AUTOGENERATE_ENABLED == "true" ]; then
+    HELM_INGRESS_TEMPLATE="templates/ingress.yaml"
+    if [ -f /kubectl-build-deploy/helmcharts/${SERVICE_TYPE}/$HELM_INGRESS_TEMPLATE ]; then
 
-    # The very first generated route is set as MAIN_GENERATED_ROUTE
-    if [ -z "${MAIN_GENERATED_ROUTE+x}" ]; then
-      MAIN_GENERATED_ROUTE=$SERVICE_NAME
+      # The very first generated route is set as MAIN_GENERATED_ROUTE
+      if [ -z "${MAIN_GENERATED_ROUTE+x}" ]; then
+        MAIN_GENERATED_ROUTE=$SERVICE_NAME
+      fi
+
+      helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -s $HELM_INGRESS_TEMPLATE -f /kubectl-build-deploy/values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${SERVICE_NAME}.yaml
     fi
-
-    helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -s $HELM_INGRESS_TEMPLATE -f /kubectl-build-deploy/values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${SERVICE_NAME}.yaml
   fi
 
   HELM_DBAAS_TEMPLATE="templates/dbaas.yaml"

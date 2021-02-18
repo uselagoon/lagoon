@@ -73,6 +73,8 @@ objects:
           branch: ${SAFE_BRANCH}
           project: ${SAFE_PROJECT}
         annotations:
+          appuio.ch/backupCommand: /bin/sh -c "tar -cf - -C /usr/share/elasticsearch/data ."
+          backup.appuio.ch/fileExtension: .${SERVICE_NAME}.tar
           lagoon.sh/configMapSha: ${CONFIG_MAP_SHA}
       spec:
         priorityClassName: lagoon-priority-${ENVIRONMENT_TYPE}
