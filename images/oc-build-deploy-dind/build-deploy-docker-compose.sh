@@ -592,11 +592,17 @@ do
     EXISTING_CONSUMER_DB=""
     # Check if we have a dbaas consumer already created
     if [ "$SERVICE_TYPE" == "mariadb-dbaas" ]; then
-      EXISTING_CONSUMER_DB=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT}get mariadbconsumer/${SERVICE_NAME} -o json 2> /dev/null | jq -r '.spec.consumer.database')
+      if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get mariadbconsumer/${SERVICE_NAME} 2> /dev/null; then
+        EXISTING_CONSUMER_DB=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get mariadbconsumer/${SERVICE_NAME} -o json 2> /dev/null | jq -r '.spec.consumer.database')
+      fi
     elif [ "$SERVICE_TYPE" == "mongodb-dbaas" ]; then
-      EXISTING_CONSUMER_DB=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get mongodbconsumer/${SERVICE_NAME} -o json 2> /dev/null | jq -r '.spec.consumer.database')
+      if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get mongodbconsumer/${SERVICE_NAME} 2> /dev/null; then
+        EXISTING_CONSUMER_DB=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get mongodbconsumer/${SERVICE_NAME} -o json 2> /dev/null | jq -r '.spec.consumer.database')
+      fi
     elif [ "$SERVICE_TYPE" == "postgres-dbaas" ]; then
-      EXISTING_CONSUMER_DB=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get postgresqlconsumer/${SERVICE_NAME} -o json 2> /dev/null | jq -r '.spec.consumer.database')
+      if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get postgresqlconsumer/${SERVICE_NAME} 2> /dev/null; then
+        EXISTING_CONSUMER_DB=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get postgresqlconsumer/${SERVICE_NAME} -o json 2> /dev/null | jq -r '.spec.consumer.database')
+      fi
     fi
     # If we haven't already got an existing dbaas consumer, create one
     if [ -z "$EXISTING_CONSUMER_DB" ]; then

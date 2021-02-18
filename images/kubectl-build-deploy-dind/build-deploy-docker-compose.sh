@@ -619,11 +619,17 @@ do
     # Check if we have a dbaas consumer already created
     EXISTING_CONSUMER_DB=""
     if [ "$SERVICE_TYPE" == "mariadb-dbaas" ]; then
-      EXISTING_CONSUMER_DB=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get mariadbconsumer/${SERVICE_NAME} -o json 2> /dev/null | jq -r '.spec.consumer.database')
+      if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get mariadbconsumer/${SERVICE_NAME} 2> /dev/null; then
+        EXISTING_CONSUMER_DB=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get mariadbconsumer/${SERVICE_NAME} -o json 2> /dev/null | jq -r '.spec.consumer.database')
+      fi
     elif [ "$SERVICE_TYPE" == "mongodb-dbaas" ]; then
-      EXISTING_CONSUMER_DB=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get mongodbconsumer/${SERVICE_NAME} -o json 2> /dev/null | jq -r '.spec.consumer.database')
+      if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get mongodbconsumer/${SERVICE_NAME} 2> /dev/null; then
+        EXISTING_CONSUMER_DB=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get mongodbconsumer/${SERVICE_NAME} -o json 2> /dev/null | jq -r '.spec.consumer.database')
+      fi
     elif [ "$SERVICE_TYPE" == "postgres-dbaas" ]; then
-      EXISTING_CONSUMER_DB=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get postgresqlconsumer/${SERVICE_NAME} -o json 2> /dev/null | jq -r '.spec.consumer.database')
+      if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get postgresqlconsumer/${SERVICE_NAME} 2> /dev/null; then
+        EXISTING_CONSUMER_DB=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get postgresqlconsumer/${SERVICE_NAME} -o json 2> /dev/null | jq -r '.spec.consumer.database')
+      fi
     fi
     # If we haven't already got an existing dbaas consumer, create one
     if [ -z "$EXISTING_CONSUMER_DB" ]; then
