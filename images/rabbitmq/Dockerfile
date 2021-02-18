@@ -1,8 +1,8 @@
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
 FROM ${UPSTREAM_REPO:-uselagoon}/commons:${UPSTREAM_TAG:-latest} as commons
-# alpine 3.11 as per https://github.com/docker-library/rabbitmq/blob/master/3.8/alpine/Dockerfile
-FROM rabbitmq:3.8-management-alpine
+# alpine 3.12 as per https://github.com/docker-library/rabbitmq/blob/master/3.8/alpine/Dockerfile
+FROM rabbitmq:3.8.9-management-alpine
 
 ARG LAGOON_VERSION
 ENV LAGOON_VERSION=$LAGOON_VERSION

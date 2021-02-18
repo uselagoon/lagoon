@@ -70,6 +70,8 @@ objects:
             branch: ${SAFE_BRANCH}
             project: ${SAFE_PROJECT}
           annotations:
+            appuio.ch/backupCommand: /bin/sh -c "/bin/busybox tar -cf - -C /var/cache/varnish ."
+            appuio.ch/fileExtension: .${SERVICE_NAME}.tar
             lagoon.sh/configMapSha: ${CONFIG_MAP_SHA}
         spec:
           tolerations:
