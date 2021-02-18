@@ -1422,7 +1422,7 @@ if [ "$BUILD_TYPE" == "pullrequest" ] || [ "$BUILD_TYPE" == "branch" ]; then
         done
 
         # If this image is hosted in an external registry, pull it from there
-        if [ $EXTERNAL_REGISTRY -eq 1 ] || ; then
+        if [ $EXTERNAL_REGISTRY -eq 1 ]; then
           skopeo copy --dest-tls-verify=false docker://${PULL_IMAGE} docker://${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG:-latest}
         # If this image is not from an external registry, but docker hub creds were supplied, pull it straight from Docker Hub
         elif [ $PRIVATE_DOCKER_HUB_REGISTRY -eq 1 ]; then
