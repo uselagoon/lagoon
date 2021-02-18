@@ -9,7 +9,8 @@ metadata:
     {{- include "node-persistent.annotations" . | nindent 4 }}
 spec:
   accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany
+  storageClassName: bulk
   resources:
     requests:
       storage: {{ .Values.persistentStorage.size | quote }}
