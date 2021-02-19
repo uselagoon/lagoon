@@ -7,9 +7,9 @@ import Problem from "components/Problem";
 import SelectFilter from 'components/Filters';
 
 const getOptionsFromProblems = (problems, key) => {
-  let uniqueOptions= problems && new Set(problems.map(p => {
-    return p[key];
-  }));
+  let uniqueOptions= problems &&
+    new Set(problems.filter(p => p[key]).map(p => p[key]));
+
   return [...uniqueOptions];
 };
 
@@ -29,7 +29,9 @@ const Problems = ({problems}) => {
 
 
   // Handlers
-  const handleProblemFilterChange = (event) => {
+  const handleSort = (key) => requestSort(key);
+
+  const handleTextFilterChange = (event) => {
     setHasFilter(false);
 
     if (event.target.value !== null || event.target.value !== '') {
@@ -66,63 +68,49 @@ const Problems = ({problems}) => {
     return services && services.map(s => ({ value: s, label: s}));
   };
 
-  // Filters
-  const isFilteredBySeverity = (item) => {
-    return Object.keys(item).some(key => {
-      if (item[key] !== null) {
-        return severitySelected.indexOf(item['severity'].toString()) > -1;
-      };
-    });
+  // Selector filtering
+  const matchesSeveritySelector = (item) => {
+    return (severitySelected.length > 0) ?
+      Object.keys(item).some(key => {
+        if (item[key] !== null) {
+          return severitySelected.indexOf(item['severity'].toString()) > -1;
+        };
+      })
+    : true;
   }
 
-  const isFilteredbySource = (item) => {
-    return Object.keys(item).some(key => {
-      if (item[key] !== null) {
-        return sourceSelected.indexOf(item['source'].toString()) > -1;
-      };
-    });
+  const matchesSourceSelector = (item) => {
+    return (sourceSelected.length > 0) ?
+      Object.keys(item).some(key => {
+        if (item[key] !== null) {
+          return sourceSelected.indexOf(item['source'].toString()) > -1;
+        };
+      })
+    : true;
   }
 
-  const isFilteredByService = (item) => {
-    return Object.keys(item).some(key => {
-      if (item[key] !== null) {
-        return servicesSelected.indexOf(item['service'].toString()) > -1;
-      };
-    });
+  const matchesServiceSelector = (item) => {
+    return (servicesSelected.length > 0) ?
+      Object.keys(item).some(key => {
+        if (item[key] !== null) {
+          return servicesSelected.indexOf(item['service'].toString()) > -1;
+        };
+      })
+    : true;
   }
 
-  const isFilteredByTextFilter = (item) => {
-    return Object.keys(item).some(key => {
-      if (item[key] !== null) {
-        return item[key].toString().toLowerCase().includes(problemTerm.toLowerCase());
-      }
-    });
+  const matchesTextFilter = (item) => {
+    return (problemTerm != null || problemTerm !== '') ?
+      Object.keys(item).some(key => {
+        if (item[key] !== null) {
+          return item[key].toString().toLowerCase().includes(problemTerm.toLowerCase());
+        }
+      })
+    : true;
   }
 
   const shouldItemBeShown = (item) => {
-    let showItem = true;
-
-    if (severitySelected.length > 0 && showItem) {
-      showItem = isFilteredBySeverity(item);
-    }
-
-    if (servicesSelected.length > 0 && showItem) {
-      showItem = showItem && isFilteredByService(item);
-    }
-
-    if (sourceSelected.length > 0 && showItem) {
-      showItem = showItem && isFilteredbySource(item);
-    }
-
-    if ((problemTerm != null || problemTerm !== '') && showItem) {
-      showItem = isFilteredByTextFilter(item);
-    }
-
-    return showItem;
-  };
-
-  const handleSort = (key) => {
-    return requestSort(key);
+    return (matchesSeveritySelector(item) && matchesServiceSelector(item) && matchesSourceSelector(item) && matchesTextFilter(item));
   };
 
   useEffect(() => {
@@ -177,7 +165,7 @@ const Problems = ({problems}) => {
       <div className="filters">
           <input type="text" id="filter" placeholder="Filter problems e.g. CVE-2020-2342"
             value={problemTerm}
-            onChange={handleProblemFilterChange}
+            onChange={handleTextFilterChange}
           />
         </div>
       <div className="header">
@@ -225,19 +213,17 @@ const Problems = ({problems}) => {
         </button>
       </div>
       <div className="problems-container">
-          {sortedItems.filter(item => shouldItemBeShown(item)).length == 0 &&
-            <div className="data-table">
-              <div className="data-none">
-                No Problems
-              </div>
+        {sortedItems.filter(item => shouldItemBeShown(item)).length == 0 &&
+          <div className="data-table">
+            <div className="data-none">
+              No Problems
             </div>
-          }
-          {sortedItems
-            .filter(item => shouldItemBeShown(item))
-            .map((problem) => {
-              return <Problem key={`${problem.identifier}-${problem.id}`} problem={problem}/>
-            })
-          }
+          </div>
+        }
+        {sortedItems
+          .filter(item => shouldItemBeShown(item))
+          .map((problem) => <Problem key={`${problem.identifier}-${problem.id}`} problem={problem}/>)
+        }
       </div>
       <style jsx>{`
         .header {
