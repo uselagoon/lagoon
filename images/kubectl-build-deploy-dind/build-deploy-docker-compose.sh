@@ -347,6 +347,7 @@ if [[ ( "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ) && ! $TH
   BUILD_ARGS+=(--build-arg IMAGE_REPO="${CI_OVERRIDE_IMAGE_REPO}")
   BUILD_ARGS+=(--build-arg LAGOON_PROJECT="${PROJECT}")
   BUILD_ARGS+=(--build-arg LAGOON_ENVIRONMENT="${ENVIRONMENT}")
+  BUILD_ARGS+=(--build-arg LAGOON_ENVIRONMENT_TYPE="${ENVIRONMENT_TYPE}")
   BUILD_ARGS+=(--build-arg LAGOON_BUILD_TYPE="${BUILD_TYPE}")
   BUILD_ARGS+=(--build-arg LAGOON_GIT_SOURCE_REPOSITORY="${SOURCE_REPOSITORY}")
 
@@ -1271,8 +1272,7 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
     --set baasBucketName="${BAAS_BUCKET_NAME}" > $YAML_FOLDER/k8up-lagoon-backup-schedule.yaml \
     --set prune.retention.keepMonthly=$MONTHLY_BACKUP_RETENTION \
     --set prune.retention.keepWeekly=$WEEKLY_BACKUP_RETENTION \
-    --set prune.retention.keepDaily=$DAILY_BACKUP_RETENTION \
-    --set lagoonEnvironmentType=$LAGOON_ENVIRONMENT_TYPE
+    --set prune.retention.keepDaily=$DAILY_BACKUP_RETENTION
 fi
 
 if [ "$(ls -A $YAML_FOLDER/)" ]; then
