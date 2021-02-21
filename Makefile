@@ -367,11 +367,15 @@ $(all-k8s-tests): k3d kubernetes-test-services-up
 				jq -rcsR '{kubeconfig: .}')"
 
 # Define list of all tests
-all-controller-k8s-tests-list:=				features-kubernetes \
+all-controller-k8s-tests-list:=				api \
+														features-kubernetes \
 														active-standby-kubernetes \
 														dbaas \
 														singles \
-														images
+														images \
+														github \
+														gitlab \
+														bitbucket
 
 all-controller-k8s-tests = $(foreach image,$(all-controller-k8s-tests-list),controller-k8s-tests/$(image))
 
@@ -418,7 +422,8 @@ all-openshift-tests = $(foreach image,$(all-openshift-tests-list),openshift-test
 openshift-tests: $(all-openshift-tests)
 
 # Define list of all tests
-all-controller-openshift-tests-list:=	features-openshift \
+all-controller-openshift-tests-list:=	api \
+														features-openshift \
 														active-standby-openshift \
 														dbaas \
 														singles \
