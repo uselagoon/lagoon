@@ -422,8 +422,7 @@ all-openshift-tests = $(foreach image,$(all-openshift-tests-list),openshift-test
 openshift-tests: $(all-openshift-tests)
 
 # Define list of all tests
-all-controller-openshift-tests-list:=	api \
-														features-openshift \
+all-controller-openshift-tests-list:=	features-openshift \
 														active-standby-openshift \
 														dbaas \
 														singles \
