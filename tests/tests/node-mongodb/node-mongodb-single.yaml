@@ -3,7 +3,7 @@
   hosts: localhost
   serial: 1
   vars:
-    git_files: "node-mongodb/dbaas/"
+    git_files: "node-mongodb/single/"
   tasks:
   - include: ../../tasks/git-init.yaml
   - include: ../../tasks/git-add-commit-push.yaml
