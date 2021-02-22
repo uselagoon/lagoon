@@ -22,7 +22,7 @@
   # - name: "{{ testname }} - Check if URL http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}/list/additem returns with return code 302"
   #   debug: msg="Success!!!"
 
-- name: "{{ testname }} - check if {{ project }} is deployed with searching for 'Home'"
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for 'TESTDATA'"
   hosts: localhost
   serial: 1
   vars:

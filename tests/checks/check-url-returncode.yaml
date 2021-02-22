@@ -6,7 +6,7 @@
     validate_certs: no
   register: result
   until: result.status is defined and result.status == expected_returncode|int
-  retries: 20
+  retries: "{{ retries | default(20) }}"
   delay: 10
 - name: "{{ testname }} - Check if URL {{url}} returns with return code {{expected_returncode}}"
   debug: msg="Success!!!"
