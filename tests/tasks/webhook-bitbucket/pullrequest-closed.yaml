@@ -1,4 +1,4 @@
-- name: "{{ testname }} - POST bitbucket pull request closed webhook with pr number {{ git_pr_number }} repo {{ git_repo_ssh_url }} to {{ lookup('env','WEBHOOK_PROTOCOL') }}://{{ lookup('env','WEBHOOK_HOST') }}:{{ lookup('env','WEBHOOK_PORT') }}"
+- name: "{{ testname }} - POST bitbucket pull request closed webhook with pr number {{ git_pr_number | int }} repo {{ git_repo_ssh_url }} to {{ lookup('env','WEBHOOK_PROTOCOL') }}://{{ lookup('env','WEBHOOK_HOST') }}:{{ lookup('env','WEBHOOK_PORT') }}"
   uri:
     url: "{{ lookup('env','WEBHOOK_PROTOCOL') }}://{{ lookup('env','WEBHOOK_HOST') }}:{{ lookup('env','WEBHOOK_PORT') }}"
     headers:
