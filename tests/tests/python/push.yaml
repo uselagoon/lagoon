@@ -16,12 +16,3 @@
     project: "{{ project }}"
   tasks:
   - include: ../../tasks/api/deploy-no-sha.yaml
-
-#- include: ../../checks/check-branch-sha.yaml
-#  #  when:
-#  #    - expected_status != "500"
-#  vars:
-#    expected_head: "{{ current_head }}"
-#    expected_branch: "{{ branch }}"
-#    project: "{{ project }}"
-#    url: "{{ check_url }}"

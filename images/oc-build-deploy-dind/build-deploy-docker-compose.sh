@@ -210,6 +210,13 @@ do
     fi
   fi
 
+  # oc-build-deploy-dind has no `mongodb-single` template like we do in kubectl-build-deploy-dind
+  # so this is a simple alias to allow `mongodb-single` in docker-compose.yml or other locations to be consumed and used
+  # by oc-build-deploy-dind
+  if [ "$SERVICE_TYPE" == "mongodb-single" ]; then
+    SERVICE_TYPE="mongo"
+  fi
+
   if [ "$SERVICE_TYPE" == "mongodb-shared" ]; then
     MONGODB_SHARED_CLASS=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mongo-shared\\.class "${MONGODB_SHARED_DEFAULT_CLASS}")
     MONGODB_SHARED_PLAN=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mongo-shared\\.plan "${ENVIRONMENT_TYPE}")
