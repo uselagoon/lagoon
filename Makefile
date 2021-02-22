@@ -367,11 +367,15 @@ $(all-k8s-tests): k3d kubernetes-test-services-up
 				jq -rcsR '{kubeconfig: .}')"
 
 # Define list of all tests
-all-controller-k8s-tests-list:=				features-kubernetes \
+all-controller-k8s-tests-list:=				api \
+														features-kubernetes \
 														active-standby-kubernetes \
 														dbaas \
 														singles \
-														images
+														images \
+														github \
+														gitlab \
+														bitbucket
 
 all-controller-k8s-tests = $(foreach image,$(all-controller-k8s-tests-list),controller-k8s-tests/$(image))
 
@@ -969,13 +973,13 @@ endif
 	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n dbaas-operator postgresqlprovider dbaas-operator/postgresqlprovider -f local-dev/helm-values-postgresqlprovider.yml ; \
 	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n dbaas-operator mongodbprovider dbaas-operator/mongodbprovider -f local-dev/helm-values-mongodbprovider.yml ; \
 	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' create namespace lagoon-builddeploy; \
-	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add lagoon-builddeploy https://raw.githubusercontent.com/amazeeio/lagoon-kbd/main/charts ; \
-	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n lagoon-builddeploy lagoon-builddeploy lagoon-builddeploy/lagoon-builddeploy \
-		--set vars.lagoonTargetName=ci-local-control-k8s \
-		--set vars.rabbitPassword=guest \
-		--set vars.rabbitUsername=guest \
-		--set vars.rabbitHostname=172.17.0.1:5672 \
-		--set vars.overrideBuildDeployImage=172.17.0.1:5000/lagoon/kubectl-build-deploy-dind:latest; \
+	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add lagoon-charts https://uselagoon.github.io/lagoon-charts/ ; \
+	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n lagoon-builddeploy lagoon-builddeploy lagoon-charts/lagoon-build-deploy \
+		--set "lagoonTargetName=ci-local-control-k8s" \
+		--set "rabbitMQPassword=guest" \
+		--set "rabbitMQUsername=guest" \
+		--set "rabbitMQHostname=172.17.0.1:5672" \
+		--set "overrideBuildDeployImage=172.17.0.1:5000/lagoon/kubectl-build-deploy-dind:latest"; \
 	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' create namespace lagoon; \
 	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add lagoon https://uselagoon.github.io/lagoon-charts/; \
 	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n lagoon lagoon-remote lagoon/lagoon-remote \
@@ -983,7 +987,8 @@ endif
 		--set dockerHost.image.repository=172.17.0.1:5000/lagoon/docker-host \
 		--set dockerHost.image.tag=latest \
 		--set dockerHost.registry=172.17.0.1:5000; \
-	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n lagoon rollout status deployment lagoon-remote-docker-host -w;
+	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n lagoon rollout status deployment lagoon-remote-docker-host -w; \
+	local-dev/helm/helm list --all --all-namespaces;
 ifeq ($(ARCH), darwin)
 	export KUBECONFIG="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')"; \
 	KUBERNETESBUILDDEPLOY_TOKEN=$$(local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n lagoon describe secret $$(local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n lagoon get secret | grep lagoon-remote-kubernetes-build-deploy-token | awk '{print $$1}') | grep token: | awk '{print $$2}' | tr -d '\n'); \

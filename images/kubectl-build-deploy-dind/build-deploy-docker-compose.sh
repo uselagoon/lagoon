@@ -214,17 +214,32 @@ do
     MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]="${DBAAS_ENVIRONMENT}"
   fi
 
-  if [ "$SERVICE_TYPE" == "mongodb-shared" ]; then
-    MONGODB_SHARED_CLASS=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mongo-shared\\.class "${MONGODB_SHARED_DEFAULT_CLASS}")
-    MONGODB_SHARED_PLAN=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mongo-shared\\.plan "${ENVIRONMENT_TYPE}")
-
-    # Check if the defined service broker plan  exists
-    if svcat --scope cluster get plan --class "${MONGODB_SHARED_CLASS}" "${MONGODB_SHARED_PLAN}" > /dev/null; then
-        MAP_SERVICE_NAME_TO_SERVICEBROKER_PLAN["${SERVICE_NAME}"]="${MONGODB_SHARED_PLAN}"
+  # "mongo" is a meta service, which allows lagoon to decide itself which of the services to use:
+  # - mongodb-single (a single mongodb pod)
+  # - mongodb-dbaas (use the dbaas shared operator)
+  if [ "$SERVICE_TYPE" == "mongo" ]; then
+    # if there is already a service existing with the service_name we assume that for this project there has been a
+    # mongodb-single deployed (probably from the past where there was no mongodb-shared yet, or mongodb-dbaas) and use that one
+    if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get service "$SERVICE_NAME" &> /dev/null; then
+      SERVICE_TYPE="mongodb-single"
+    # heck if this cluster supports the default one, if not we assume that this cluster is not capable of shared MongoDB and we use a mongodb-single
+    # real basic check to see if the MongoDBConsumer exists as a kind
+    elif [[ "${CAPABILITIES[@]}" =~ "mongodb.amazee.io/v1/MongoDBConsumer" ]]; then
+      SERVICE_TYPE="mongodb-dbaas"
     else
-        echo "defined service broker plan '${MONGODB_SHARED_PLAN}' for service '$SERVICE_NAME' and service broker '$MONGODB_SHARED_CLASS' not found in cluster";
-        exit 1
+      SERVICE_TYPE="mongodb-single"
     fi
+
+  fi
+
+  # Previous versions of Lagoon supported "mongo-shared", this has been superseeded by "mongodb-dbaas"
+  if [[ "$SERVICE_TYPE" == "mongo-shared" ]]; then
+    SERVICE_TYPE="mongodb-dbaas"
+  fi
+
+  # Previous versions of Lagoon supported "mongodb-shared", this has been superseeded by "mongodb-dbaas"
+  if [[ "$SERVICE_TYPE" == "mongodb-shared" ]]; then
+    SERVICE_TYPE="mongodb-dbaas"
   fi
 
   if [[ "$SERVICE_TYPE" == "mongodb-dbaas" ]]; then
@@ -347,6 +362,7 @@ if [[ ( "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ) && ! $TH
   BUILD_ARGS+=(--build-arg IMAGE_REPO="${CI_OVERRIDE_IMAGE_REPO}")
   BUILD_ARGS+=(--build-arg LAGOON_PROJECT="${PROJECT}")
   BUILD_ARGS+=(--build-arg LAGOON_ENVIRONMENT="${ENVIRONMENT}")
+  BUILD_ARGS+=(--build-arg LAGOON_ENVIRONMENT_TYPE="${ENVIRONMENT_TYPE}")
   BUILD_ARGS+=(--build-arg LAGOON_BUILD_TYPE="${BUILD_TYPE}")
   BUILD_ARGS+=(--build-arg LAGOON_GIT_SOURCE_REPOSITORY="${SOURCE_REPOSITORY}")
 
@@ -530,6 +546,7 @@ yq write -i -- /kubectl-build-deploy/values.yaml 'buildType' $BUILD_TYPE
 yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogenerateInsecure' $ROUTES_AUTOGENERATE_INSECURE
 yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogenerateEnabled' $ROUTES_AUTOGENERATE_ENABLED
 yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogenerateSuffix' $ROUTER_URL
+yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogenerateShortSuffix' $SHORT_ROUTER_URL
 for i in $ROUTES_AUTOGENERATE_PREFIXES; do yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogeneratePrefixes[+]' $i; done
 yq write -i -- /kubectl-build-deploy/values.yaml 'kubernetes' $KUBERNETES
 yq write -i -- /kubectl-build-deploy/values.yaml 'lagoonVersion' $LAGOON_VERSION
@@ -616,7 +633,6 @@ do
 
   HELM_DBAAS_TEMPLATE="templates/dbaas.yaml"
   if [ -f /kubectl-build-deploy/helmcharts/${SERVICE_TYPE}/$HELM_DBAAS_TEMPLATE ]; then
-    # cat $KUBERNETES_SERVICES_TEMPLATE
     # Load the requested class and plan for this service
     DBAAS_ENVIRONMENT="${MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]}"
     yq write -i -- /kubectl-build-deploy/${SERVICE_NAME}-values.yaml 'environment' $DBAAS_ENVIRONMENT
@@ -1272,8 +1288,7 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
     --set baasBucketName="${BAAS_BUCKET_NAME}" > $YAML_FOLDER/k8up-lagoon-backup-schedule.yaml \
     --set prune.retention.keepMonthly=$MONTHLY_BACKUP_RETENTION \
     --set prune.retention.keepWeekly=$WEEKLY_BACKUP_RETENTION \
-    --set prune.retention.keepDaily=$DAILY_BACKUP_RETENTION \
-    --set lagoonEnvironmentType=$LAGOON_ENVIRONMENT_TYPE
+    --set prune.retention.keepDaily=$DAILY_BACKUP_RETENTION
 fi
 
 if [ "$(ls -A $YAML_FOLDER/)" ]; then

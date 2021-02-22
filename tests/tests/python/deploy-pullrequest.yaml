@@ -39,18 +39,10 @@
     git_base_commit_hash: "{{ base_commit_hash }}"
     git_pr_branch: "pullrequest_pr"
     git_pr_commit_hash: "{{ pr_commit_hash }}"
-    git_pr_number: "1"
+    git_pr_number: 1
     git_pr_title: "PR Title"
   tasks:
   - include: ../../tasks/api/pullrequest-deploy.yaml
-
-
-- include: ../../checks/check-branch-sha.yaml
-  vars:
-    expected_head: "{{ pr_commit_hash }}"
-    expected_branch: "pr-1"
-    project: "{{ project }}"
-    url: "{{ check_url }}"
 
 - include: ../../checks/check-pullrequest.yaml
   vars:
@@ -85,7 +77,7 @@
     git_base_commit_hash: "{{ base_commit_hash }}"
     git_pr_branch: "pullrequest_pr"
     git_pr_commit_hash: "{{ pr_2nd_commit_hash }}"
-    git_pr_number: "1"
+    git_pr_number: 1
     git_pr_title: "PR Title - UPDATE"
   tasks:
   - include: ../../tasks/api/pullrequest-deploy.yaml
