@@ -122,7 +122,8 @@ fi
 if [[ $($OC get deployment -l "lagoon.sh/service=${SERVICE}" 2> /dev/null) ]]; then
   DEPLOYMENT=$($OC get deployment -l "lagoon.sh/service=${SERVICE}" -o name)
   # If the deployment is scaled to 0, scale to 1
-  if [[ $($OC get ${DEPLOYMENT} -o go-template --template='{{.status.replicas}}') == "0" ]]; then
+  # .status.replicas doesn't exist on a scaled to 0 deployment in k8s so assume it is 0 if nothing is returned
+  if [[ $($OC get ${DEPLOYMENT} -o json | jq -r '.status.replicas // 0') == "0" ]]; then
 
     $OC scale --replicas=1 ${DEPLOYMENT} >/dev/null 2>&1
 
@@ -139,7 +140,8 @@ fi
 if [[ $($OC get deployment -l lagoon/service=${SERVICE} 2> /dev/null) ]]; then
   DEPLOYMENT=$($OC get deployment -l lagoon/service=${SERVICE} -o name)
   # If the deployment is scaled to 0, scale to 1
-  if [[ $($OC get ${DEPLOYMENT} -o go-template --template='{{.status.replicas}}') == "0" ]]; then
+  # .status.replicas doesn't exist on a scaled to 0 deployment in k8s so assume it is 0 if nothing is returned
+  if [[ $($OC get ${DEPLOYMENT} -o json | jq -r '.status.replicas // 0') == "0" ]]; then
 
     $OC scale --replicas=1 ${DEPLOYMENT} >/dev/null 2>&1
 

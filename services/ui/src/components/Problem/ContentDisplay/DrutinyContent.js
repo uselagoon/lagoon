@@ -44,7 +44,7 @@ const DrutinyDisplay = ({ problem }) => {
             </div>)}
             {data.service && (<div className="field-wrapper">
                 <label>Service</label>
-                <div className="severity">{data.service}</div>
+                <div className="service">{data.service}</div>
             </div>)}
             {data.created && (<div className="field-wrapper">
                 <label>Last detected</label>
