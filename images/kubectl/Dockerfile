@@ -35,9 +35,9 @@ ENV TMPDIR=/tmp \
     BASH_ENV=/home/.bashrc
 
 # Defining Versions
-ENV KUBECTL_VERSION=v1.16.2 \
-    HELM_VERSION=v3.0.0-rc.2 \
-    HELM_SHA256=b6fff8e01aa6cd9a4541bd48172bb53b9a0ae38d7e7783a8e0fcc1db63802aaa
+ENV KUBECTL_VERSION=v1.20.4 \
+    HELM_VERSION=v3.5.2 \
+    HELM_SHA256=01b317c506f8b6ad60b11b1dc3f093276bb703281cb1ae01132752253ec706a2
 
 RUN apk add -U --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing aufs-util \
     && apk add --update openssl curl jq parallel \
