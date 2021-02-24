@@ -96,4 +96,5 @@
 * [FAQ](resources/faq.md)
 * [Glossary](resources/glossary.md)
 * [Tutorials, Webinars, and Videos](resources/tutorials-and-webinars.md)
+* [Lagoon Examples](https://github.com/uselagoon/lagoon-examples)
 
