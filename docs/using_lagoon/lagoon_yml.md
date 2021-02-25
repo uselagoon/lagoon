@@ -107,13 +107,15 @@ Here you can specify tasks which need to run against your project, _after_:
 Common uses for post-rollout tasks include running `drush updb`, `drush cim`, or clearing  various caches.
 
 * `name`
-  * The name is an arbitrary label for making it easier to identify each task in the logs.
+    * The name is an arbitrary label for making it easier to identify each task in the logs.
 * `command`
-  * Here you specify what command should run. These are run in the WORKDIR of each container, for Lagoon images this is `/app`, keep this in mind if you need to `cd` into a specific location to run your task.
+    * Here you specify what command should run. These are run in the WORKDIR of each container, for Lagoon images this is `/app`, keep this in mind if you need to `cd` into a specific location to run your task.
 * `service`
-  * The service which to run the task in. If following our drupal-example, this will be the CLI container, as it has all your site code, files, and a connection to the database. Typically you do not need to change this.
+    * The service which to run the task in. If following our drupal-example, this will be the CLI container, as it has all your site code, files, and a connection to the database. Typically you do not need to change this.
+* `container`
+    * The container in the service to target. This should not be used unless the service you're targetting has multiple containers. If following our drupal-example, one could target the php container by specifying `nginx` as the `service` and `php` as the `container`
 * `shell`
-  * Which shell should be used to run the task in. By default `sh` is used, but if the container also has other shells \(like `bash`, you can define it here\). This is useful if you want to run some small if/else bash scripts within the post-rollouts. \(see the example above how to write a script with multiple lines\).
+    * Which shell should be used to run the task in. By default `sh` is used, but if the container also has other shells \(like `bash`, you can define it here\). This is useful if you want to run some small if/else bash scripts within the post-rollouts. \(see the example above how to write a script with multiple lines\).
 
 Note: If you would like to temporarily disable pre/post-rollout tasks during a deployment, you can set either of the following environment variables in the API at the project or environment level \(see how on [Environment Variables](environment_variables.md)\).
 
