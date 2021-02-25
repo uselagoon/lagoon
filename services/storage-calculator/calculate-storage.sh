@@ -136,7 +136,7 @@ do
             }"
 
             # Update namespace labels
-            if [ ! -z "$LAGOON_STORAGE_LABEL_NAMESPACE"]; then
+            if [ ! -z "$LAGOON_STORAGE_LABEL_NAMESPACE" ]; then
               ${OC} label namespace $ENVIRONMENT_OPENSHIFT_PROJECTNAME lagoon/storage-${PVC}=${STORAGE_BYTES} --overwrite
             fi
 
