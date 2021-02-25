@@ -44,6 +44,9 @@ fi
 
 REGISTRY_SECRETS=()
 PRIVATE_REGISTRY_COUNTER=0
+PRIVATE_REGISTRY_URLS=()
+PRIVATE_DOCKER_HUB_REGISTRY=0
+PRIVATE_EXTERNAL_REGISTRY=0
 
 set +x
 
@@ -109,12 +112,16 @@ do
       docker login --username $PRIVATE_CONTAINER_REGISTRY_USERNAME --password $PRIVATE_REGISTRY_CREDENTIAL $PRIVATE_CONTAINER_REGISTRY_URL
       kubectl create secret docker-registry "lagoon-private-registry-${PRIVATE_REGISTRY_COUNTER}-secret" --docker-server=$PRIVATE_CONTAINER_REGISTRY_URL --docker-username=$PRIVATE_CONTAINER_REGISTRY_USERNAME --docker-password=$PRIVATE_REGISTRY_CREDENTIAL --dry-run -o yaml | kubectl apply -f -
       REGISTRY_SECRETS+=("lagoon-private-registry-${PRIVATE_REGISTRY_COUNTER}-secret")
+      PRIVATE_REGISTRY_URLS+=($PRIVATE_CONTAINER_REGISTRY_URL)
+      PRIVATE_EXTERNAL_REGISTRY=1
       let ++PRIVATE_REGISTRY_COUNTER
     else
       echo "Attempting to log in to docker hub with user $PRIVATE_CONTAINER_REGISTRY_USERNAME - $PRIVATE_CONTAINER_REGISTRY_PASSWORD"
       docker login --username $PRIVATE_CONTAINER_REGISTRY_USERNAME --password $PRIVATE_REGISTRY_CREDENTIAL
       kubectl create secret docker-registry "lagoon-private-registry-${PRIVATE_REGISTRY_COUNTER}-secret" --docker-server="https://index.docker.io/v1/" --docker-username=$PRIVATE_CONTAINER_REGISTRY_USERNAME --docker-password=$PRIVATE_REGISTRY_CREDENTIAL --dry-run -o yaml | kubectl apply -f -
       REGISTRY_SECRETS+=("lagoon-private-registry-${PRIVATE_REGISTRY_COUNTER}-secret")
+      PRIVATE_REGISTRY_URLS+=("")
+      PRIVATE_DOCKER_HUB_REGISTRY=1
       let ++PRIVATE_REGISTRY_COUNTER
     fi
   fi
