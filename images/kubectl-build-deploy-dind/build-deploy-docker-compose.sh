@@ -1402,15 +1402,16 @@ if [ "$BUILD_TYPE" == "pullrequest" ] || [ "$BUILD_TYPE" == "branch" ]; then
   for IMAGE_NAME in "${!IMAGES_PULL[@]}"
   do
     PULL_IMAGE="${IMAGES_PULL[${IMAGE_NAME}]}"
+
     # Try to handle private registries first
-    if [ $PRIVATE_REGISTRY_COUNTER -gt 0]; then
+    if [ $PRIVATE_REGISTRY_COUNTER -gt 0 ]; then
       if [ $PRIVATE_EXTERNAL_REGISTRY ]; then
         EXTERNAL_REGISTRY=0
         for EXTERNAL_REGISTRY_URL in "${PRIVATE_REGISTRY_URLS[@]}"
         do
           # strip off "http://" or "https://" from registry url if present
-          bare_url = "${EXTERNAL_REGISTRY_URL#http://}"
-          bare_url = "${EXTERNAL_REGISTRY_URL#https://}"
+          bare_url="${EXTERNAL_REGISTRY_URL#http://}"
+          bare_url="${EXTERNAL_REGISTRY_URL#https://}"
 
           # Test registry to see if image is from an external registry or just private docker hub
           case $bare_url in
