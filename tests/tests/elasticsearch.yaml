@@ -13,11 +13,11 @@
     url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/_cluster/health"
     node_count: 1
 
-- include: elasticsearch/elasticsearch.yaml
-  vars:
-    testname: "ELASTICSEARCH CLUSTER {{ cluster_type|upper }}"
-    git_repo_name: elasticsearch.git
-    project: ci-elasticsearch-{{ cluster_type }}
-    branch: elasticsearch-cluster
-    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/_cluster/health"
-    node_count: 3
+# - include: elasticsearch/elasticsearch.yaml
+#   vars:
+#     testname: "ELASTICSEARCH CLUSTER {{ cluster_type|upper }}"
+#     git_repo_name: elasticsearch.git
+#     project: ci-elasticsearch-{{ cluster_type }}
+#     branch: elasticsearch-cluster
+#     url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/_cluster/health"
+#     node_count: 3
