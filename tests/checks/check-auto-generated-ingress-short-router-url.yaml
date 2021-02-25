@@ -1,0 +1,38 @@
+---
+- name: >
+    {{ testname }} - Check if auto-generated ingress of namespace
+    {{ project }}-{{ lagoon_environment }} has the short-router-url in TLS hosts
+  shell: |
+    set -e
+    set -x
+
+    INGRESS_JSON=$(kubectl -n {{ project }}-{{ lagoon_environment }} get ingress -o json)
+
+    NUM_TLS_HOSTS=$(echo $INGRESS_JSON | jq -er '.items[] | select(.metadata.name == "node") | .spec.tls[0].hosts | length')
+    if [ $NUM_TLS_HOSTS -lt 2 ]; then
+      echo NUM_TLS_HOSTS: $NUM_TLS_HOSTS
+      echo $INGRESS_JSON
+      exit 1
+    fi
+
+    FIRST_HOST_LEN=$(echo $INGRESS_JSON | jq -er '.items[] | select(.metadata.name == "node") | .spec.tls[0].hosts[0] | length')
+    if [ $FIRST_HOST_LEN -gt 63 ]; then
+      echo FIRST_HOST_LEN: $FIRST_HOST_LEN
+      echo $INGRESS_JSON
+      exit 1
+    fi
+
+    SECOND_HOST_LEN=$(echo $INGRESS_JSON | jq -er '.items[] | select(.metadata.name == "node") | .spec.tls[0].hosts[1] | length')
+    if [ $SECOND_HOST_LEN -lt 63 ]; then
+      echo SECOND_HOST_LEN: $SECOND_HOST_LEN
+      echo $INGRESS_JSON
+      exit 1
+    fi
+  register: result
+  retries: 30
+  delay: 10
+  until: result.rc == 0
+- name: >
+    {{ testname }} - Check if {{ ingress }} ingress of namespace
+    {{ project }}-{{ lagoon_environment }} has the short-router-url in TLS hosts
+  debug: msg="Success!!!"
