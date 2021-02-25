@@ -1,6 +1,6 @@
 ---
 
-- include: tasks/pause.yaml
+- include: ../tasks/pause.yaml
   vars:
     seconds: "20"
 
