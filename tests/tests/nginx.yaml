@@ -1,5 +1,9 @@
 ---
 
+- include: tasks/pause.yaml
+  vars:
+    seconds: "20"
+
 - include: features/api-token.yaml
   vars:
     testname: "API TOKEN"
