@@ -132,6 +132,104 @@ spec:
 apiVersion: autoscaling/v1
 kind: HorizontalPodAutoscaler
 metadata:
+  name: openshiftbuilddeploy
+spec:
+  maxReplicas: 1
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: v1
+    kind: DeploymentConfig
+    name: openshiftbuilddeploy
+  targetCPUUtilizationPercentage: 80
+
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: openshiftbuilddeploymonitor
+spec:
+  maxReplicas: 1
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: v1
+    kind: DeploymentConfig
+    name: openshiftbuilddeploymonitor
+  targetCPUUtilizationPercentage: 80
+
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: openshiftjobs
+spec:
+  maxReplicas: 1
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: v1
+    kind: DeploymentConfig
+    name: openshiftjobs
+  targetCPUUtilizationPercentage: 80
+
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: openshiftjobsmonitor
+spec:
+  maxReplicas: 1
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: v1
+    kind: DeploymentConfig
+    name: openshiftjobsmonitor
+  targetCPUUtilizationPercentage: 80
+
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: openshiftmisc
+spec:
+  maxReplicas: 1
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: v1
+    kind: DeploymentConfig
+    name: openshiftmisc
+  targetCPUUtilizationPercentage: 80
+
+---
+  apiVersion: autoscaling/v1
+  kind: HorizontalPodAutoscaler
+  metadata:
+    name: kubernetesmisc
+  spec:
+    maxReplicas: 1
+    minReplicas: 1
+    scaleTargetRef:
+      apiVersion: v1
+      kind: DeploymentConfig
+      name: kubernetesmisc
+    targetCPUUtilizationPercentage: 80
+
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: openshiftremove
+spec:
+  maxReplicas: 1
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: v1
+    kind: DeploymentConfig
+    name: openshiftremove
+  targetCPUUtilizationPercentage: 80
+
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
   name: ssh
 spec:
   maxReplicas: 1
@@ -182,4 +280,88 @@ spec:
     apiVersion: v1
     kind: DeploymentConfig
     name: webhooks2tasks
+  targetCPUUtilizationPercentage: 80
+
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: kubernetesbuilddeploy
+spec:
+  maxReplicas: 1
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: v1
+    kind: DeploymentConfig
+    name: kubernetesbuilddeploy
+  targetCPUUtilizationPercentage: 80
+
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: kubernetesbuilddeploymonitor
+spec:
+  maxReplicas: 1
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: v1
+    kind: DeploymentConfig
+    name: kubernetesbuilddeploymonitor
+  targetCPUUtilizationPercentage: 80
+
+---
+  apiVersion: autoscaling/v1
+  kind: HorizontalPodAutoscaler
+  metadata:
+    name: kubernetesjobs
+  spec:
+    maxReplicas: 1
+    minReplicas: 1
+    scaleTargetRef:
+      apiVersion: v1
+      kind: DeploymentConfig
+      name: kubernetesjobs
+    targetCPUUtilizationPercentage: 80
+
+---
+  apiVersion: autoscaling/v1
+  kind: HorizontalPodAutoscaler
+  metadata:
+    name: kubernetesjobsmonitor
+  spec:
+    maxReplicas: 1
+    minReplicas: 1
+    scaleTargetRef:
+      apiVersion: v1
+      kind: DeploymentConfig
+      name: kubernetesjobsmonitor
+    targetCPUUtilizationPercentage: 80
+
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: kubernetesdeployqueue
+spec:
+  maxReplicas: 1
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: v1
+    kind: DeploymentConfig
+    name: kubernetesdeployqueue
+  targetCPUUtilizationPercentage: 80
+
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: kubernetesremove
+spec:
+  maxReplicas: 1
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: v1
+    kind: DeploymentConfig
+    name: kubernetesremove
   targetCPUUtilizationPercentage: 80
