@@ -8,7 +8,7 @@ metadata:
   annotations:
     {{- include "postgres-dbaas.annotations" . | nindent 4 }}
 spec:
-  backupCommand: PGPASSWORD=$BACKUP_DB_PASSWORD pg_dump --host=$BACKUP_DB_HOST --port=$BACKUP_DB_PORT --dbname=$BACKUP_DB_NAME -w
+  backupCommand: /bin/sh -c "PGPASSWORD=$BACKUP_DB_PASSWORD pg_dump --host=$BACKUP_DB_HOST --port=$BACKUP_DB_PORT --dbname=$BACKUP_DB_NAME --format=t -w"
   fileExtension: .{{ include "postgres-dbaas.fullname" . }}.tar
   pod:
     metadata:

@@ -8,8 +8,8 @@ metadata:
   annotations:
     {{- include "mongodb-dbaas.annotations" . | nindent 4 }}
 spec:
-  backupCommand: mongodump --uri=mongodb://${BACKUP_DB_USER}:${BACKUP_DB_PASSWORD}@${BACKUP_DB_HOST}:${BACKUP_DB_PORT}/${BACKUP_DB_NAME}?ssl=true&sslInsecure=true&tls=true&tlsInsecure=true --archive
-  fileExtension: .{{ include "mongodb-dbaas.fullname" . }}.tar
+  backupCommand: /bin/sh -c "mongodump --uri=mongodb://${BACKUP_DB_USER}:${BACKUP_DB_PASSWORD}@${BACKUP_DB_HOST}:${BACKUP_DB_PORT}/${BACKUP_DB_NAME}?ssl=true&sslInsecure=true&tls=true&tlsInsecure=true --archive"
+  fileExtension: .{{ include "mongodb-dbaas.fullname" . }}.bson
   pod:
     metadata:
       labels:
