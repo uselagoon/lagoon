@@ -1273,8 +1273,7 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
     --set baasBucketName="${BAAS_BUCKET_NAME}" > $YAML_FOLDER/k8up-lagoon-backup-schedule.yaml \
     --set prune.retention.keepMonthly=$MONTHLY_BACKUP_RETENTION \
     --set prune.retention.keepWeekly=$WEEKLY_BACKUP_RETENTION \
-    --set prune.retention.keepDaily=$DAILY_BACKUP_RETENTION \
-    --set lagoonEnvironmentType=$LAGOON_ENVIRONMENT_TYPE
+    --set prune.retention.keepDaily=$DAILY_BACKUP_RETENTION
 fi
 
 if [ "$(ls -A $YAML_FOLDER/)" ]; then
