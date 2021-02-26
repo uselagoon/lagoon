@@ -91,7 +91,10 @@ K3D_NAME := k3s-$(shell echo $(CI_BUILD_TAG) | sed -E 's/.*(.{31})$$/\1/')
 # Name of the Branch we are currently in
 BRANCH_NAME := $(shell git rev-parse --abbrev-ref HEAD)
 SAFE_BRANCH_NAME := $(shell echo $(BRANCH_NAME) | sed -E 's:/:_:g')
-DEFAULT_ALPINE_VERSION := 3.11
+
+# Init the file that is used to hold the image tag cross-reference table
+$(shell >build.txt)
+$(shell >scan.txt)
 
 #######
 ####### Functions
@@ -99,7 +102,9 @@ DEFAULT_ALPINE_VERSION := 3.11
 
 # Builds a docker image. Expects as arguments: name of the image, location of Dockerfile, path of
 # Docker Build Context
-docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg UPSTREAM_REPO=$(UPSTREAM_REPO) --build-arg UPSTREAM_TAG=$(UPSTREAM_TAG) --build-arg ALPINE_VERSION=$(DEFAULT_ALPINE_VERSION) -t $(CI_BUILD_TAG)/$(1) -f $(2) $(3)
+docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg UPSTREAM_REPO=$(UPSTREAM_REPO) --build-arg UPSTREAM_TAG=$(UPSTREAM_TAG) -t $(CI_BUILD_TAG)/$(1) -f $(2) $(3)
+
+scan_image = docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(HOME)/Library/Caches:/root/.cache/ aquasec/trivy --timeout 5m0s $(CI_BUILD_TAG)/$(1) >> scan.txt
 
 # Tags an image with the `testlagoon` repository and pushes it
 docker_publish_testlagoon = docker tag $(CI_BUILD_TAG)/$(1) testlagoon/$(2) && docker push testlagoon/$(2) | cat
@@ -136,6 +141,8 @@ $(build-images):
 	$(eval image = $(subst build/,,$@))
 # Call the docker build
 	$(call docker_build,$(image),images/$(image)/Dockerfile,images/$(image))
+#scan created image with Trivy
+	$(call scan_image,$(image),)
 # Touch an empty file which make itself is using to understand when the image has been last build
 	touch $@
 
@@ -168,6 +175,7 @@ build-images += yarn-workspace-builder
 build/yarn-workspace-builder: images/yarn-workspace-builder/Dockerfile
 	$(eval image = $(subst build/,,$@))
 	$(call docker_build,$(image),images/$(image)/Dockerfile,.)
+	$(call scan_image,$(image),)
 	touch $@
 
 #######
@@ -191,6 +199,7 @@ build-taskimages = $(foreach image,$(taskimages),build/task-$(image))
 $(build-taskimages):
 	$(eval image = $(subst build/task-,,$@))
 	$(call docker_build,task-$(image),taskimages/$(image)/Dockerfile,taskimages/$(image))
+	$(call scan_image,task-$(image),)
 	touch $@
 
 # Variables of service images we manage and build
@@ -228,6 +237,7 @@ build-services = $(foreach image,$(services),build/$(image))
 $(build-services):
 	$(eval image = $(subst build/,,$@))
 	$(call docker_build,$(image),services/$(image)/Dockerfile,services/$(image))
+	$(call scan_image,$(image),)
 	touch $@
 
 # Dependencies of Service Images
@@ -254,6 +264,7 @@ build/local-minio:
 build/ssh: services/ssh/Dockerfile
 	$(eval image = $(subst build/,,$@))
 	$(call docker_build,$(image),services/$(image)/Dockerfile,.)
+	$(call scan_image,$(image),)
 	touch $@
 service-images += ssh
 
@@ -277,12 +288,14 @@ $(build-localdevimages):
 	$(eval folder = $(subst build/local-,,$@))
 	$(eval image = $(subst build/,,$@))
 	$(call docker_build,$(image),local-dev/$(folder)/Dockerfile,local-dev/$(folder))
+	$(call scan_image,$(image),)
 	touch $@
 
 # Image with ansible test
 build/tests:
 	$(eval image = $(subst build/,,$@))
 	$(call docker_build,$(image),$(image)/Dockerfile,$(image))
+	$(call scan_image,$(image),)
 	touch $@
 service-images += tests
 

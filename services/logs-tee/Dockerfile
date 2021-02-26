@@ -1,5 +1,4 @@
-ARG ALPINE_VERSION
-FROM alpine:${ALPINE_VERSION}
+FROM alpine:3.12
 LABEL maintainer="support@amazee.io"
 
 ARG LAGOON_VERSION
