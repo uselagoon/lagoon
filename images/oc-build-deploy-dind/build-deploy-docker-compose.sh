@@ -164,8 +164,8 @@ do
       for LAGOON_DBAAS_ENVIRONMENT_TYPE in "${LAGOON_DBAAS_ENVIRONMENT_TYPES_SPLIT[@]}"
       do
         IFS=':' read -ra LAGOON_DBAAS_ENVIRONMENT_TYPE_SPLIT <<< "$LAGOON_DBAAS_ENVIRONMENT_TYPE"
-        if [ "${LAGOON_DBAAS_ENVIRONMENT_TYPE[0]}" == "$SERVICE_NAME" ]; then
-          DBAAS_ENVIRONMENT_TYPE=${LAGOON_DBAAS_ENVIRONMENT_TYPE[1]}
+        if [ "${LAGOON_DBAAS_ENVIRONMENT_TYPE_SPLIT[0]}" == "$SERVICE_NAME" ]; then
+          DBAAS_ENVIRONMENT=${LAGOON_DBAAS_ENVIRONMENT_TYPE_SPLIT[1]}
         fi
       done
     fi
@@ -243,8 +243,8 @@ do
       for LAGOON_DBAAS_ENVIRONMENT_TYPE in "${LAGOON_DBAAS_ENVIRONMENT_TYPES_SPLIT[@]}"
       do
         IFS=':' read -ra LAGOON_DBAAS_ENVIRONMENT_TYPE_SPLIT <<< "$LAGOON_DBAAS_ENVIRONMENT_TYPE"
-        if [ "${LAGOON_DBAAS_ENVIRONMENT_TYPE[0]}" == "$SERVICE_NAME" ]; then
-          DBAAS_ENVIRONMENT_TYPE=${LAGOON_DBAAS_ENVIRONMENT_TYPE[1]}
+        if [ "${LAGOON_DBAAS_ENVIRONMENT_TYPE_SPLIT[0]}" == "$SERVICE_NAME" ]; then
+          DBAAS_ENVIRONMENT=${LAGOON_DBAAS_ENVIRONMENT_TYPE_SPLIT[1]}
         fi
       done
     fi
@@ -403,6 +403,7 @@ if [[ ( "$TYPE" == "pullrequest"  ||  "$TYPE" == "branch" ) && ! $THIS_IS_TUG ==
   BUILD_ARGS+=(--build-arg LAGOON_GIT_SAFE_BRANCH="${SAFE_BRANCH}")
   BUILD_ARGS+=(--build-arg LAGOON_PROJECT="${PROJECT}")
   BUILD_ARGS+=(--build-arg LAGOON_ENVIRONMENT="${SAFE_BRANCH}")
+  BUILD_ARGS+=(--build-arg LAGOON_ENVIRONMENT_TYPE="${ENVIRONMENT_TYPE}")
   BUILD_ARGS+=(--build-arg LAGOON_SAFE_PROJECT="${SAFE_PROJECT}")
   BUILD_ARGS+=(--build-arg LAGOON_BUILD_TYPE="${TYPE}")
   BUILD_ARGS+=(--build-arg LAGOON_GIT_SOURCE_REPOSITORY="${SOURCE_REPOSITORY}")
@@ -591,20 +592,37 @@ do
     SERVICEBROKERS+=("${SERVICE_NAME}:${SERVICE_TYPE}")
   fi
 
-  # If we have a dbaas consumer, create it
   OPENSHIFT_SERVICES_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/consumer.yml"
   if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
-    OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
-    OPERATOR_ENVIRONMENT="${MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]}"
-    TEMPLATE_ADDITIONAL_PARAMETERS=()
-    oc process  --local -o yaml --insecure-skip-tls-verify \
-      -n ${OPENSHIFT_PROJECT} \
-      -f ${OPENSHIFT_TEMPLATE} \
-      -p SERVICE_NAME="${SERVICE_NAME}" \
-      -p SAFE_BRANCH="${SAFE_BRANCH}" \
-      -p SAFE_PROJECT="${SAFE_PROJECT}" \
-      -p ENVIRONMENT="${OPERATOR_ENVIRONMENT}" \
-      | outputToYaml
+    EXISTING_CONSUMER_DB=""
+    # Check if we have a dbaas consumer already created
+    if [ "$SERVICE_TYPE" == "mariadb-dbaas" ]; then
+      if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get mariadbconsumer/${SERVICE_NAME} 2> /dev/null; then
+        EXISTING_CONSUMER_DB=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get mariadbconsumer/${SERVICE_NAME} -o json 2> /dev/null | jq -r '.spec.consumer.database')
+      fi
+    elif [ "$SERVICE_TYPE" == "mongodb-dbaas" ]; then
+      if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get mongodbconsumer/${SERVICE_NAME} 2> /dev/null; then
+        EXISTING_CONSUMER_DB=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get mongodbconsumer/${SERVICE_NAME} -o json 2> /dev/null | jq -r '.spec.consumer.database')
+      fi
+    elif [ "$SERVICE_TYPE" == "postgres-dbaas" ]; then
+      if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get postgresqlconsumer/${SERVICE_NAME} 2> /dev/null; then
+        EXISTING_CONSUMER_DB=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get postgresqlconsumer/${SERVICE_NAME} -o json 2> /dev/null | jq -r '.spec.consumer.database')
+      fi
+    fi
+    # If we haven't already got an existing dbaas consumer, create one
+    if [ -z "$EXISTING_CONSUMER_DB" ]; then
+      OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
+      OPERATOR_ENVIRONMENT="${MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]}"
+      TEMPLATE_ADDITIONAL_PARAMETERS=()
+      oc process  --local -o yaml --insecure-skip-tls-verify \
+        -n ${OPENSHIFT_PROJECT} \
+        -f ${OPENSHIFT_TEMPLATE} \
+        -p SERVICE_NAME="${SERVICE_NAME}" \
+        -p SAFE_BRANCH="${SAFE_BRANCH}" \
+        -p SAFE_PROJECT="${SAFE_PROJECT}" \
+        -p ENVIRONMENT="${OPERATOR_ENVIRONMENT}" \
+        | outputToYaml
+    fi
     SERVICEBROKERS+=("${SERVICE_NAME}:${SERVICE_TYPE}")
   fi
 
@@ -854,17 +872,17 @@ if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get schedules.backup.ap
   TEMPLATE_PARAMETERS+=(-p ENVIRONMENT_TYPE="${ENVIRONMENT_TYPE}")
 
   # Set template parameters for retention values (prefer .lagoon.yml values over supplied defaults after ensuring they are valid integers via "-eq" comparison)
-  if [ ! -z $PRODUCTION_MONTHLY_BACKUP_RETENTION ] && [ "$PRODUCTION_MONTHLY_BACKUP_RETENTION" -eq "$PRODUCTION_MONTHLY_BACKUP_RETENTION" ] && [ $ENVIRONMENT_TYPE = 'production']; then
+  if [ ! -z $PRODUCTION_MONTHLY_BACKUP_RETENTION ] && [ "$PRODUCTION_MONTHLY_BACKUP_RETENTION" -eq "$PRODUCTION_MONTHLY_BACKUP_RETENTION" ] && [ $ENVIRONMENT_TYPE = 'production' ]; then
     TEMPLATE_PARAMETERS+=(-p MONTHLY_BACKUP_RETENTION="${PRODUCTION_MONTHLY_BACKUP_RETENTION}")
   else
     TEMPLATE_PARAMETERS+=(-p MONTHLY_BACKUP_RETENTION="${MONTHLY_BACKUP_DEFAULT_RETENTION}")
   fi
-  if [ ! -z $PRODUCTION_WEEKLY_BACKUP_RETENTION ] && [ "$PRODUCTION_WEEKLY_BACKUP_RETENTION" -eq "$PRODUCTION_WEEKLY_BACKUP_RETENTION" ] && [ $ENVIRONMENT_TYPE = 'production']; then
+  if [ ! -z $PRODUCTION_WEEKLY_BACKUP_RETENTION ] && [ "$PRODUCTION_WEEKLY_BACKUP_RETENTION" -eq "$PRODUCTION_WEEKLY_BACKUP_RETENTION" ] && [ $ENVIRONMENT_TYPE = 'production' ]; then
     TEMPLATE_PARAMETERS+=(-p WEEKLY_BACKUP_RETENTION="${PRODUCTION_WEEKLY_BACKUP_RETENTION}")
   else
     TEMPLATE_PARAMETERS+=(-p WEEKLY_BACKUP_RETENTION="${WEEKLY_BACKUP_DEFAULT_RETENTION}")
   fi
-  if [ ! -z $PRODUCTION_DAILY_BACKUP_RETENTION ] && [ "$PRODUCTION_DAILY_BACKUP_RETENTION" -eq "$PRODUCTION_DAILY_BACKUP_RETENTION" ] && [ $ENVIRONMENT_TYPE = 'production']; then
+  if [ ! -z $PRODUCTION_DAILY_BACKUP_RETENTION ] && [ "$PRODUCTION_DAILY_BACKUP_RETENTION" -eq "$PRODUCTION_DAILY_BACKUP_RETENTION" ] && [ $ENVIRONMENT_TYPE = 'production' ]; then
     TEMPLATE_PARAMETERS+=(-p DAILY_BACKUP_RETENTION="${PRODUCTION_DAILY_BACKUP_RETENTION}")
   else
     TEMPLATE_PARAMETERS+=(-p DAILY_BACKUP_RETENTION="${DAILY_BACKUP_DEFAULT_RETENTION}")

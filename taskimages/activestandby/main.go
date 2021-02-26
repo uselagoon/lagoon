@@ -100,7 +100,8 @@ func main() {
 	}
 
 	// check the status of the crd until we have the status conditions.
-	// otherwise give up after a few minutes.
+	// otherwise give up after 10 minutes. 60 retries, 10 seconds apart.
+	try.MaxRetries = 60
 	err = try.Do(func(attempt int) (bool, error) {
 		var err error
 		if err := c.Get(context.Background(), types.NamespacedName{
@@ -214,12 +215,12 @@ Provide a copy of this entire log to the team.`, err)
 			}
 		}
 		// sleep for 5 seconds up to a maximum of 60 times (5 minutes) before finally giving up
-		time.Sleep(5 * time.Second)
-		err = fmt.Errorf("checking again")
+		time.Sleep(10 * time.Second)
+		err = fmt.Errorf("status condition not met yet")
 		return attempt < 60, err
 	})
 	if err != nil {
-		fmt.Printf("Task failed, timed out waiting for the job to start: %v", err)
+		fmt.Printf("Task failed, timed out after 10 minutes waiting for the job to start: %v", err)
 		os.Exit(1)
 	}
 }
