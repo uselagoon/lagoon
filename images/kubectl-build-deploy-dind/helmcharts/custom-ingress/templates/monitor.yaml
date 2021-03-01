@@ -1,0 +1,17 @@
+{{ if .Capabilities.APIVersions.Has "endpointmonitor.stakater.com/v1alpha1/EndpointMonitor" }}
+{{- if .Values.ingressmonitorcontroller.enabled }}
+apiVersion: endpointmonitor.stakater.com/v1alpha1
+kind: EndpointMonitor
+metadata:
+  name: {{ include "custom-ingress.fullname" . }}
+spec:
+  forceHttps: true
+  url: "{{ .Values.host }}{{ .Values.ingressmonitorcontroller.path }}"
+  uptimeRobotConfig:
+    alertContacts: "{{ .Values.ingressmonitorcontroller.alertContacts }}"
+    interval: 60
+    monitorType: "http"
+    statusPages: "{{ .Values.ingressmonitorcontroller.statuspageId }}"
+    customHTTPStatuses: "401:1_403:1" #accept 401 and 403 as UP
+{{- end }}
+{{- end }}
