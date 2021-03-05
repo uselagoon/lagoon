@@ -1,7 +1,7 @@
 const R = require('ramda');
 const S3 = require('aws-sdk/clients/s3');
 
-const s3Host = R.propOr('http://docker.for.mac.localhost:9000', 'S3_HOST', process.env);
+const s3Host = R.propOr('http://docker.for.mac.localhost:9000', 'S3_FILES_HOST', process.env);
 const accessKeyId = R.propOr('minio', 'S3_FILES_ACCESS_KEY_ID', process.env);
 const secretAccessKey = R.propOr('minio123', 'S3_FILES_SECRET_ACCESS_KEY', process.env);
 const bucket = R.propOr('lagoon-files', 'S3_FILES_BUCKET', process.env);
