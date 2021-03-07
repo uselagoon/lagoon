@@ -119,6 +119,14 @@ const typeDefs = gql`
 
   scalar SeverityScore
 
+  type TaskDefinition {
+    id: Int
+    name: String
+    description: String
+    image: String
+    created: String
+  }
+
   type Problem {
     id: Int
     environment: Environment
@@ -1031,6 +1039,13 @@ const typeDefs = gql`
     execute: Boolean
   }
 
+  input TaskDefinitionInput {
+    id: Int
+    name: String
+    description: String
+    image: String
+  }
+
   input DeleteTaskInput {
     id: Int!
   }
@@ -1607,6 +1622,7 @@ const typeDefs = gql`
     addEnvVariable(input: EnvVariableInput!): EnvKeyValue
     deleteEnvVariable(input: DeleteEnvVariableInput!): String
     addTask(input: TaskInput!): Task
+    addTaskDefinition(input: TaskDefinitionInput!): TaskDefinition
     taskDrushArchiveDump(environment: Int!): Task
     taskDrushSqlDump(environment: Int!): Task
     taskDrushCacheClear(environment: Int!): Task

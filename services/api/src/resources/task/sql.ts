@@ -59,4 +59,33 @@ export const Sql = {
       .join('project', 'environment.project', '=', 'project.id')
       .where('task.id', id)
       .toString(),
+  insertTaskDefinition: ({
+    id,
+    name,
+    description,
+    image,
+    created,
+    }: {
+      id: number,
+      name: string,
+      description: string,
+      image: string,
+      created: string,
+    }) =>
+    knex('task_definition')
+      .insert({
+        id,
+        name,
+        description,
+        image,
+        created,
+      })
+    .toString(),
+  selectTaskDefinition:(id: number) =>
+    knex('task_definition')
+      .where('task_definition.id', '=', id)
+      .toString(),
+  selectTaskDefinitions:() =>
+    knex('task_definition')
+    .toString(),
 };

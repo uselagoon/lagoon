@@ -286,3 +286,12 @@ CREATE TABLE IF NOT EXISTS environment_fact (
   created                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(environment, name)
 );
+
+
+CREATE TABLE IF NOT EXISTS task_definition (
+  id                       int NOT NULL auto_increment PRIMARY KEY,
+  name                     varchar(300) NOT NULL UNIQUE,
+  description              TEXT NOT NULL DEFAULT '',
+  image                    varchar(2000) NOT NULL,
+  created                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
