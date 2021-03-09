@@ -1008,8 +1008,10 @@ kind/cluster: local-dev/kind
 		&& if [ '$(INSECURE_HOST_MOUNT_SERVICES)' = true ]; then \
 		echo '  - containerPath: /lagoon/services'                                                    >> $$KINDCONFIG \
 		&& echo '    hostPath: ./services'                                                            >> $$KINDCONFIG \
+		&& echo '    readOnly: false'                                                                  >> $$KINDCONFIG \
 		&& echo '  - containerPath: /lagoon/node-packages'                                            >> $$KINDCONFIG \
 		&& echo '    hostPath: ./node-packages'                                                       >> $$KINDCONFIG \
+		&& echo '    readOnly: false'                                                                  >> $$KINDCONFIG \
 		; fi \
 		&& KIND_CLUSTER_NAME="$(CI_BUILD_TAG)" ./local-dev/kind create cluster --config=$$KINDCONFIG \
 		&& cp $$KUBECONFIG "kubeconfig.kind.$(CI_BUILD_TAG)" \
@@ -1060,19 +1062,16 @@ kind/test: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addpr
 			"quay.io/helmpack/chart-testing:v3.3.1" \
 			ct install
 
+
+# kind/dev can only be run once a cluster is up and running (run kind/test first) - it doesn't rebuild the cluster at all, just the lagoon-core helm chart
 .PHONY: kind/dev
-kind/dev: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addprefix build/,$(KIND_SERVICES))
+kind/dev: $(addprefix build/,$(KIND_SERVICES))
 	# install lagoon charts and run lagoon test suites in a kind cluster
-	export CHARTSDIR=$$(mktemp -d ./lagoon-charts.XXX) \
-		&& ln -sfn "$$CHARTSDIR" lagoon-charts.kind.lagoon \
-		&& git clone https://github.com/uselagoon/lagoon-charts.git "$$CHARTSDIR" \
-		&& cd "$$CHARTSDIR" \
-		&& git checkout $(CHARTS_TREEISH) \
-		&& export KUBECONFIG="$$(realpath ../kubeconfig.kind.$(CI_BUILD_TAG))" \
-		&& export IMAGE_REGISTRY="registry.$$(../local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
-		&& $(MAKE) install-registry HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
-		&& cd .. && $(MAKE) kind/push-images && cd "$$CHARTSDIR" \
-		&& $(MAKE) fill-test-ci-values TESTS=$(TESTS) IMAGE_TAG=$(SAFE_BRANCH_NAME) \
+	export INSECURE_HOST_MOUNT_SERVICES=true \
+		&& export KUBECONFIG="$$(realpath ./kubeconfig.kind.$(CI_BUILD_TAG))" \
+		&& export IMAGE_REGISTRY="registry.$$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
+		&& $(MAKE) kind/push-images && cd lagoon-charts.kind.lagoon \
+		&& $(MAKE) install-lagoon-core IMAGE_TAG=$(SAFE_BRANCH_NAME) \
 			HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
 			JQ=$$(realpath ../local-dev/jq) \
 			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=$$IMAGE_REGISTRY/kubectl-build-deploy-dind:$(SAFE_BRANCH_NAME) \
