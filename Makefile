@@ -1005,10 +1005,11 @@ kind/cluster: local-dev/kind
 		&& echo '  extraMounts:'                                                                      >> $$KINDCONFIG \
 		&& echo '  - containerPath: /var/lib/kubelet/config.json'                                     >> $$KINDCONFIG \
 		&& echo '    hostPath: $(HOME)/.docker/config.json'                                           >> $$KINDCONFIG \
-		&& if [ '$(INSECURE_HOST_MOUNT_API_SRC)' = true ]; then \
-		echo '  - containerPath: /lagoon/services/api/src'                                            >> $$KINDCONFIG \
-		&& echo '    hostPath: ./services/api/src'                                                    >> $$KINDCONFIG \
-		&& echo '    readOnly: true'                                                                  >> $$KINDCONFIG \
+		&& if [ '$(INSECURE_HOST_MOUNT_SERVICES)' = true ]; then \
+		echo '  - containerPath: /lagoon/services'                                                    >> $$KINDCONFIG \
+		&& echo '    hostPath: ./services'                                                            >> $$KINDCONFIG \
+		&& echo '  - containerPath: /lagoon/node-packages'                                            >> $$KINDCONFIG \
+		&& echo '    hostPath: ./node-packages'                                                       >> $$KINDCONFIG \
 		; fi \
 		&& KIND_CLUSTER_NAME="$(CI_BUILD_TAG)" ./local-dev/kind create cluster --config=$$KINDCONFIG \
 		&& cp $$KUBECONFIG "kubeconfig.kind.$(CI_BUILD_TAG)" \
@@ -1028,7 +1029,7 @@ ifeq ($(ARCH), darwin)
       tcp-listen:32080,fork,reuseaddr tcp-connect:target:32080
 endif
 
-KIND_SERVICES = api api-db api-redis auth-server broker controllerhandler docker-host drush-alias keycloak keycloak-db webhook-handler webhooks2tasks kubectl-build-deploy-dind local-api-data-watcher-pusher local-git ssh tests
+KIND_SERVICES = api api-db api-redis auth-server broker controllerhandler docker-host drush-alias keycloak keycloak-db webhook-handler webhooks2tasks kubectl-build-deploy-dind local-api-data-watcher-pusher local-git ssh tests ui
 KIND_TESTS = local-api-data-watcher-pusher local-git tests
 KIND_TOOLS = kind helm kubectl jq
 
@@ -1043,13 +1044,13 @@ kind/test: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addpr
 		&& export KUBECONFIG="$$(realpath ../kubeconfig.kind.$(CI_BUILD_TAG))" \
 		&& export IMAGE_REGISTRY="registry.$$(../local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
 		&& $(MAKE) install-registry HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
-		&& cd .. && $(MAKE) kind/push-images && cd "$$CHARTSDIR" \
+		&& cd .. && $(MAKE) -j6 kind/push-images && cd "$$CHARTSDIR" \
 		&& $(MAKE) fill-test-ci-values TESTS=$(TESTS) IMAGE_TAG=$(SAFE_BRANCH_NAME) \
 			HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
 			JQ=$$(realpath ../local-dev/jq) \
 			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=$$IMAGE_REGISTRY/kubectl-build-deploy-dind:$(SAFE_BRANCH_NAME) \
 			IMAGE_REGISTRY=$$IMAGE_REGISTRY \
-			INSECURE_HOST_MOUNT_API_SRC=$(INSECURE_HOST_MOUNT_API_SRC) \
+			INSECURE_HOST_MOUNT_SERVICES=$(INSECURE_HOST_MOUNT_SERVICES) \
 		&& sleep 30 \
 		&& docker run --rm --network host --name ct-$(CI_BUILD_TAG) \
 			--volume "$$(pwd)/test-suite-run.ct.yaml:/etc/ct/ct.yaml" \
@@ -1059,7 +1060,7 @@ kind/test: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addpr
 			"quay.io/helmpack/chart-testing:v3.3.1" \
 			ct install
 
-.PHONY: kind/up
+.PHONY: kind/dev
 kind/up: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addprefix build/,$(KIND_SERVICES))
 	# install lagoon charts and run lagoon test suites in a kind cluster
 	export CHARTSDIR=$$(mktemp -d ./lagoon-charts.XXX) \
@@ -1076,7 +1077,7 @@ kind/up: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addpref
 			JQ=$$(realpath ../local-dev/jq) \
 			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=$$IMAGE_REGISTRY/kubectl-build-deploy-dind:$(SAFE_BRANCH_NAME) \
 			IMAGE_REGISTRY=$$IMAGE_REGISTRY \
-			INSECURE_HOST_MOUNT_API_SRC=$(INSECURE_HOST_MOUNT_API_SRC)
+			INSECURE_HOST_MOUNT_SERVICES=true
 
 .PHONY: kind/push-images
 kind/push-images:
