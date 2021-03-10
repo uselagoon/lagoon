@@ -984,6 +984,8 @@ helm/repos: local-dev/helm
 	./local-dev/helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 	./local-dev/helm repo add stable https://charts.helm.sh/stable
 	./local-dev/helm repo add bitnami https://charts.bitnami.com/bitnami
+	./local-dev/helm repo add amazeeio https://amazeeio.github.io/charts/
+	./local-dev/helm repo add lagoon https://uselagoon.github.io/lagoon-charts/
 	./local-dev/helm repo update
 
 .PHONY: kind/cluster
