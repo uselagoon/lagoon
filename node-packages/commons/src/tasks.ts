@@ -1106,6 +1106,10 @@ export const createMiscTask = async function(taskData: any) {
           miscTaskData.advancedTask.runnerImage = taskImage
           // miscTaskData.advancedTask.runnerImage = "shreddedbacon/runner:latest"
           break;
+        case 'kubernetes:task:advanced':
+          //TODO: to get this working, we're going to rewrite to route:migrate to hack lagoon_kbd to run this arb advanced task
+          updatedKey = "kubernetes:route:migrate" //TODO: remove this when we update lagoon_kdb
+          break;
         case 'kubernetes:build:cancel':
           // build cancellation is just a standard unmodified message
           miscTaskData.misc = taskData.data.build
