@@ -1,0 +1,29 @@
+---
+metadata:
+  annotations:
+    kubernetes.io/change-cause: "Add local-dev volume mounts"
+spec:
+  template:
+    spec:
+      containers:
+      - name: controllerhandler
+        volumeMounts:
+        - mountPath: "/app/services/controllerhandler/src"
+          name: controllerhandler-src
+        - mountPath: "/app/services/controllerhandler/dist"
+          name: controllerhandler-dist
+        - mountPath: "/app/node-packages"
+          name: node-packages
+      volumes:
+      - name: controllerhandler-src
+        hostPath:
+          path: "/lagoon/services/controllerhandler/src"
+          type: Directory
+      - name: controllerhandler-dist
+        hostPath:
+          path: "/lagoon/services/controllerhandler/dist"
+          type: Directory
+      - name: node-packages
+        hostPath:
+          path: "/lagoon/node-packages"
+          type: Directory
