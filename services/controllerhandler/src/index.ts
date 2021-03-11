@@ -159,8 +159,9 @@ const messageConsumer = async function(msg) {
         environment = projectEnv.environment
       } catch (err) {
         // if the project or environment can't be determined, give up trying to do anything for it
-        logger.error(`${namespace} ${meta.buildName}: Error while getting project or environment information, Error: ${err}. Will not continue`)
-        throw new Error
+        logger.error(`${namespace} ${meta.buildName}: Error while getting project or environment information, Error: ${err}. Giving up updating environment`)
+        // break so the controllerhandler doesn't stop processing
+        break;
       }
 
       try {
@@ -209,8 +210,9 @@ const messageConsumer = async function(msg) {
         environment = projectEnv.environment
       } catch (err) {
         // if the project or environment can't be determined, give up trying to do anything for it
-        logger.error(`${namespace} ${meta.buildName}: Error while getting project or environment information, Error: ${err}. Will not continue`)
-        throw new Error
+        logger.error(`${namespace} ${meta.buildName}: Error while getting project or environment information, Error: ${err}. Giving up removing environment`)
+        // break so the controllerhandler doesn't stop processing
+        break;
       }
       try {
         await deleteEnvironment(environment.name, meta.project, false);
@@ -244,8 +246,9 @@ const messageConsumer = async function(msg) {
         environment = projectEnv.environment
       } catch (err) {
         // if the project or environment can't be determined, give up trying to do anything for it
-        logger.error(`${namespace} ${meta.buildName}: Error while getting project or environment information, Error: ${err}. Will not continue`)
-        throw new Error
+        logger.error(`${namespace} ${meta.buildName}: Error while getting project or environment information, Error: ${err}. Giving up updating task result`)
+        // break so the controllerhandler doesn't stop processing
+        break;
       }
       // if we want to be able to do something else when a task result comes through,
       // we can use the task key
