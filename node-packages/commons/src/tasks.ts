@@ -408,69 +408,17 @@ const getControllerBuildData = async function(deployData: any) {
   const buildName = `lagoon-build-${randBuildId}`;
 
   let deployment;
+  let environmentId;
   try {
     const now = moment.utc();
     const apiEnvironment = await getEnvironmentByName(branchName, projectOpenShift.id);
+    environmentId = apiEnvironment.environmentByName.id
     deployment = await addDeployment(buildName, "NEW", now.format('YYYY-MM-DDTHH:mm:ss'), apiEnvironment.environmentByName.id);
   } catch (error) {
     logger.error(`Could not save deployment for project ${projectOpenShift.id}. Message: ${error}`);
   }
 
   let buildImage = {}
-  // @TODO: revise this section around deciding which image to use
-  // it will probably end up being removed as the controller will handle it, but it would still be good to be able to maybe have a per-project
-  // or per-environment build image overwrite
-  // During CI we want to use the OpenShift Registry for our build Image and use the OpenShift registry for the base Images
-  // Since the Operator could eventually support openshift, we can handle which image to supply here
-  // if (CI == "true") {
-  //   switch (project.activeSystemsDeploy) {
-  //     case 'lagoon_openshiftBuildDeploy':
-  //       buildImage = "172.17.0.1:5000/lagoon/oc-build-deploy-dind:latest"
-  //       break;
-  //     default:
-  //       // default to the kubectl builddeploy dind since the controllers and kubernetes use the same underlying process
-  //       buildImage = "172.17.0.1:5000/lagoon/kubectl-build-deploy-dind:latest"
-  //   }
-  // } else if (overwriteOCBuildDeployDindImage) {
-  //   // allow to overwrite the image we use via OVERWRITE_OC_BUILD_DEPLOY_DIND_IMAGE env variable
-  //   // this needs to be added to the `api` deployment/pods to be used
-  //   switch (project.activeSystemsDeploy) {
-  //     case 'lagoon_openshiftBuildDeploy':
-  //       buildImage = overwriteOCBuildDeployDindImage
-  //       break;
-  //   }
-  // } else if (overwriteKubectlBuildDeployDindImage) {
-  //   // allow to overwrite the image we use via OVERWRITE_KUBECTL_BUILD_DEPLOY_DIND_IMAGE env variable
-  //   // this needs to be added to the `api` deployment/pods to be used
-  //   switch (project.activeSystemsDeploy) {
-  //     case 'lagoon_controllerBuildDeploy':
-  //     case 'lagoon_kubernetesBuildDeploy':
-  //       buildImage = overwriteKubectlBuildDeployDindImage
-  //       break;
-  //   }
-  // } else if (lagoonEnvironmentType == 'production') {
-  //   // we are a production environment, use the amazeeio/ image with our current lagoon version
-  //   switch (project.activeSystemsDeploy) {
-  //     case 'lagoon_openshiftBuildDeploy':
-  //       buildImage = `amazeeio/oc-build-deploy-dind:${lagoonVersion}`
-  //       break;
-  //     default:
-  //         // default to the kubectl builddeploy dind since the controllers and kubernetes use the same underlying process
-  //       buildImage = `amazeeio/kubectl-build-deploy-dind:${lagoonVersion}`
-  //   }
-  // } else {
-  //   // we are a development enviornment, use the amazeeiolagoon image with the same branch name
-  //   buildImage = `amazeeiolagoon/kubectl-build-deploy-dind:${lagoonGitSafeBranch}`
-  //   switch (project.activeSystemsDeploy) {
-  //     case 'lagoon_openshiftBuildDeploy':
-  //       buildImage = `amazeeiolagoon/oc-build-deploy-dind:${lagoonGitSafeBranch}`
-  //       break;
-  //     default:
-  //         // default to the kubectl builddeploy dind since the controllers and kubernetes use the same underlying process
-  //       buildImage = `amazeeiolagoon/kubectl-build-deploy-dind:${lagoonGitSafeBranch}`
-  //   }
-  // }
-
 
   // encode some values so they get sent to the controllers nicely
   const sshKeyBase64 = new Buffer(deployPrivateKey.replace(/\\n/g, "\n")).toString('base64')
@@ -496,11 +444,12 @@ const getControllerBuildData = async function(deployData: any) {
       ...promoteData,
       gitReference: gitRef,
       project: {
+        id: projectOpenShift.id,
         name: projectName,
         gitUrl: gitUrl,
         uiLink: deployment.addDeployment.uiLink,
         environment: environmentName,
-        environmentType: environmentType,
+        environmentId: environmentId,
         productionEnvironment: projectProductionEnvironment,
         standbyEnvironment: projectStandbyEnvironment,
         subfolder: subfolder,
