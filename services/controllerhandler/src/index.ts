@@ -12,6 +12,7 @@ import {
 import {
   getOpenShiftInfoForProject,
   getEnvironmentByName,
+  getEnvironmentById,
   updateEnvironment,
   updateDeployment,
   getDeploymentByName,
@@ -129,11 +130,19 @@ const messageConsumer = async function(msg) {
       try {
         const projectResult = await getOpenShiftInfoForProject(meta.project);
         project = projectResult.project
-
-        const environmentResult = await getEnvironmentByName(meta.environment, project.id)
-        environment = environmentResult.environmentByName
+        // check if the payload has an environment id defined to get the environment information
+        if (meta.environmentId != null) {
+          const environmentResult = await getEnvironmentById(meta.environmentId)
+          environment = environmentResult.environmentByName
+        } else {
+          // if no id, use the name that was provided instead
+          const environmentResult = await getEnvironmentByName(meta.environment, project.id)
+          environment = environmentResult.environmentByName
+        }
       } catch (err) {
-        logger.warn(`${namespace} ${meta.buildName}: Error while getting project or environment information, Error: ${err}. Continuing without update`)
+        // if the project or environment can't be determined, give up trying to do anything for it
+        logger.error(`${namespace} ${meta.buildName}: Error while getting project or environment information, Error: ${err}. Will not continue`)
+        throw new Error
       }
 
       try {
@@ -177,11 +186,13 @@ const messageConsumer = async function(msg) {
       logger.verbose(`Received remove task for ${namespace}`);
       // Update GraphQL API that the Environment has been deleted
       try {
-        await deleteEnvironment(meta.environment, meta.project, false);
+        await deleteEnvironment(environment.name, meta.project, false);
         logger.info(
-          `${meta.project}: Deleted Environment '${meta.environment}' in API`
+          `${meta.project}: Deleted Environment '${environment.name}' in API`
         );
-        meta.openshiftProject = meta.environment
+        // @TODO: looking at `meta.openshiftProject`, this seems to only be used by logs2email, logs2rocketchat, and logs2microsoftteams
+        // when notification system is re-written, this can also be removed as it seems kind of a silly name
+        meta.openshiftProject = environment.name
         meta.openshiftProjectName = namespace
         meta.projectName = meta.project
         sendToLagoonLogs(
@@ -190,7 +201,7 @@ const messageConsumer = async function(msg) {
           '',
           'task:remove-kubernetes:finished',
           meta,
-          `*[${meta.project}]* remove \`${meta.environment}\``
+          `*[${meta.project}]* remove \`${environment.name}\``
         );
       } catch (err) {
         logger.warn(`${namespace}: Error while deleting environment, Error: ${err}. Continuing without update`)
@@ -198,7 +209,7 @@ const messageConsumer = async function(msg) {
       break;
     case 'task':
       logger.verbose(
-        `Received task result for ${meta.task.name} from ${meta.project} - ${meta.environment} - ${meta.jobStatus}`
+        `Received task result for ${meta.task.name} from ${meta.project} - ${environment.name} - ${meta.jobStatus}`
       );
       // if we want to be able to do something else when a task result comes through,
       // we can use the task key

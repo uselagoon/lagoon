@@ -449,6 +449,7 @@ const getControllerBuildData = async function(deployData: any) {
         gitUrl: gitUrl,
         uiLink: deployment.addDeployment.uiLink,
         environment: environmentName,
+        environmentType: environmentType,
         environmentId: environmentId,
         productionEnvironment: projectProductionEnvironment,
         standbyEnvironment: projectStandbyEnvironment,
