@@ -119,7 +119,7 @@ const typeDefs = gql`
 
   scalar SeverityScore
 
-  type TaskDefinition {
+  type AdvancedTaskDefinition {
     id: Int
     name: String
     description: String
@@ -742,7 +742,7 @@ const typeDefs = gql`
     completed: String
     environment: Environment
     service: String
-    command: String
+    advancedTask: String
     remoteId: String
     logs: String
     files: [File]
@@ -882,9 +882,13 @@ const typeDefs = gql`
     """
     allProblemHarborScanMatchers: [ProblemHarborScanMatch]
     """
-    Returns all TaskDefinitions
+    Returns all AdvancedTaskDefinitions
     """
-    allTaskDefinitions: [TaskDefinition]
+    allAdvancedTaskDefinitions: [AdvancedTaskDefinition]
+    """
+    Returns a single AdvancedTaskDefinition given a name
+    """
+    advancedTaskDefinitionByName(name: String!) : AdvancedTaskDefinition
 
   }
 
@@ -1068,12 +1072,12 @@ const typeDefs = gql`
     completed: String
     environment: Int!
     service: String
-    command: String
+    advancedTaskId: Int!
     remoteId: String
     execute: Boolean
   }
 
-  input TaskDefinitionInput {
+  input AdvancedTaskDefinitionInput {
     id: Int
     name: String
     description: String
@@ -1657,7 +1661,7 @@ const typeDefs = gql`
     deleteEnvVariable(input: DeleteEnvVariableInput!): String
     addTask(input: TaskInput!): Task
     addAdvancedTask(input: AdvancedTaskInput!): AdvancedTask
-    addTaskDefinition(input: TaskDefinitionInput!): TaskDefinition
+    addAdvancedTaskDefinition(input: AdvancedTaskDefinitionInput!): AdvancedTaskDefinition
     taskDrushArchiveDump(environment: Int!): Task
     taskDrushSqlDump(environment: Int!): Task
     taskDrushCacheClear(environment: Int!): Task

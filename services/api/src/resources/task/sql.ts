@@ -59,7 +59,7 @@ export const Sql = {
       .join('project', 'environment.project', '=', 'project.id')
       .where('task.id', id)
       .toString(),
-  insertTaskDefinition: ({
+  insertAdvancedTaskDefinition: ({
     id,
     name,
     description,
@@ -81,11 +81,15 @@ export const Sql = {
         created,
       })
     .toString(),
-  selectTaskDefinition:(id: number) =>
+  selectAdvancedTaskDefinition:(id: number) =>
     knex('task_definition')
       .where('task_definition.id', '=', id)
       .toString(),
-  selectTaskDefinitions:() =>
+  selectAdvancedTaskDefinitionByName:(name: string) =>
+    knex('task_definition')
+      .where('task_definition.name', '=', name)
+      .toString(),
+  selectAdvancedTaskDefinitions:() =>
     knex('task_definition')
     .toString(),
 };

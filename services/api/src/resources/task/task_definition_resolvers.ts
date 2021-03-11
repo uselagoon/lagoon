@@ -17,7 +17,7 @@ import { Helpers } from './helpers';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Validators as envValidators } from '../environment/validators';
 
-export const addTaskDefinition = async (
+export const addAdvancedTaskDefinition = async (
     root,
     {
       input: {
@@ -39,7 +39,7 @@ export const addTaskDefinition = async (
         info: { insertId },
     } = await query(
       sqlClient,
-      Sql.insertTaskDefinition(
+      Sql.insertAdvancedTaskDefinition(
         {
           id: null,
           name,
@@ -50,7 +50,7 @@ export const addTaskDefinition = async (
       ),
     );
 
-    const rows = await query(sqlClient, Sql.selectTaskDefinition(insertId));
+    const rows = await query(sqlClient, Sql.selectAdvancedTaskDefinition(insertId));
     return R.prop(0, rows);
 }
 
@@ -61,10 +61,6 @@ const taskStatusTypeToString = R.cond([
     [R.equals('FAILED'), R.toLower],
     [R.T, R.identity],
   ]);
-
-//TODO: we don't actually want to keep these separate - but there are separate calls for drush dumps and backups
-// so we can, for the moment, do something similar
-
 
 
 export const addAdvancedTask: ResolverFn = async (
@@ -79,7 +75,7 @@ export const addAdvancedTask: ResolverFn = async (
         completed,
         environment,
         service,
-        command,
+        advancedTaskId,
         remoteId,
         execute: executeRequest,
       },
@@ -104,6 +100,11 @@ export const addAdvancedTask: ResolverFn = async (
     //   execute = true;
     // }
 
+
+    //pull advanced task by ID to get the container name
+    const rows = await query(sqlClient, Sql.selectAdvancedTaskDefinition(advancedTaskId));
+    let addTaskDef = R.prop(0, rows);
+
     // the return data here is basically what gets dropped into the DB.
     // what we can do
     const taskData = await Helpers(sqlClient).addAdvancedTask({
@@ -115,7 +116,7 @@ export const addAdvancedTask: ResolverFn = async (
       completed,
       environment,
       service,
-      image: command,//the return data here is basically what gets dropped into the DB.
+      image: addTaskDef.image,//the return data here is basically what gets dropped into the DB.
       remoteId,
       execute: false,
     });
@@ -125,7 +126,7 @@ export const addAdvancedTask: ResolverFn = async (
   };
 
 
-export const getAllTaskDefinitions = async(
+export const getAllAdvancedTaskDefinitions = async(
   root,
   {
     //   input: {
@@ -136,14 +137,14 @@ export const getAllTaskDefinitions = async(
     //TODO: we'll need to do a lot of work here when it comes to the permissions system
     // essentially we only want to display the definitions a user has access to via their
     // groups, projects, etc.
-    const rows = await query(sqlClient, Sql.selectTaskDefinitions());
+    const rows = await query(sqlClient, Sql.selectAdvancedTaskDefinitions());
     return rows;
 }
 
 // TODO: question - do we actually want to ever update these tasks, or is it a create/delete only story
 // The issue, as I see it, is that if tasks are updated, they may require different arguments - so versioning them makes more sense than updating.
 
-export const taskDefinitionById = async(
+export const advancedTaskDefinitionById = async(
   root,
   {
     input: {
@@ -155,6 +156,17 @@ export const taskDefinitionById = async(
     //TODO: we'll need to do a lot of work here when it comes to the permissions system
     // essentially we only want to display the definitions a user has access to via their
     // groups, projects, etc.
-    const rows = await query(sqlClient, Sql.selectTaskDefinitions());
+    const rows = await query(sqlClient, Sql.selectAdvancedTaskDefinitions());
+    return R.prop(0, rows);
+}
+
+export const getAdvancedTaskDefinitionByName = async(
+  root,
+  {
+    name
+  },
+  { sqlClient, hasPermission },
+  ) => {
+    const rows = await query(sqlClient, Sql.selectAdvancedTaskDefinitionByName(name));
     return R.prop(0, rows);
 }
