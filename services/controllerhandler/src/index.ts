@@ -72,6 +72,33 @@ const updateLagoonTask = async (meta) => {
   }
 }
 
+const getProjectEnvironment = async function(projectEnv: any) {
+  const {
+    meta
+  } = projectEnv;
+
+  let environment;
+  let project;
+
+  const projectBuildResult = await getOpenShiftInfoForProject(meta.project);
+  project = projectBuildResult.project
+  // check if the payload has an environment id defined to get the environment information
+  if (meta.environmentId != null) {
+    const environmentResult = await getEnvironmentById(meta.environmentId);
+    environment = environmentResult.environmentById
+  } else {
+    // if no id, use the name that was provided instead
+    const environmentResult = await getEnvironmentByName(meta.environment, project.id);
+    environment = environmentResult.environmentByName
+  }
+
+  var projectEnvironmentData: any = {
+    project: project,
+    environment: environment,
+  }
+  return projectEnvironmentData;
+}
+
 const messageConsumer = async function(msg) {
   const {
     type,
@@ -79,6 +106,8 @@ const messageConsumer = async function(msg) {
     meta,
    } = JSON.parse(msg.content.toString());
 
+  let environment;
+  let project;
 
   switch (type) {
     case 'build':
@@ -124,21 +153,10 @@ const messageConsumer = async function(msg) {
         logger.error(`Could not update deployment ${meta.project} ${meta.Buildname}. Message: ${error}`);
       }
 
-
-      let environment;
-      let project;
       try {
-        const projectResult = await getOpenShiftInfoForProject(meta.project);
-        project = projectResult.project
-        // check if the payload has an environment id defined to get the environment information
-        if (meta.environmentId != null) {
-          const environmentResult = await getEnvironmentById(meta.environmentId)
-          environment = environmentResult.environmentByName
-        } else {
-          // if no id, use the name that was provided instead
-          const environmentResult = await getEnvironmentByName(meta.environment, project.id)
-          environment = environmentResult.environmentByName
-        }
+        const projectEnv = await getProjectEnvironment({meta});
+        project = projectEnv.project
+        environment = projectEnv.environment
       } catch (err) {
         // if the project or environment can't be determined, give up trying to do anything for it
         logger.error(`${namespace} ${meta.buildName}: Error while getting project or environment information, Error: ${err}. Will not continue`)
@@ -186,6 +204,15 @@ const messageConsumer = async function(msg) {
       logger.verbose(`Received remove task for ${namespace}`);
       // Update GraphQL API that the Environment has been deleted
       try {
+        const projectEnv = await getProjectEnvironment({meta});
+        project = projectEnv.project
+        environment = projectEnv.environment
+      } catch (err) {
+        // if the project or environment can't be determined, give up trying to do anything for it
+        logger.error(`${namespace} ${meta.buildName}: Error while getting project or environment information, Error: ${err}. Will not continue`)
+        throw new Error
+      }
+      try {
         await deleteEnvironment(environment.name, meta.project, false);
         logger.info(
           `${meta.project}: Deleted Environment '${environment.name}' in API`
@@ -209,8 +236,17 @@ const messageConsumer = async function(msg) {
       break;
     case 'task':
       logger.verbose(
-        `Received task result for ${meta.task.name} from ${meta.project} - ${environment.name} - ${meta.jobStatus}`
+        `Received task result for ${meta.task.name} from ${meta.project} - ${meta.environment} - ${meta.jobStatus}`
       );
+      try {
+        const projectEnv = await getProjectEnvironment({meta});
+        project = projectEnv.project
+        environment = projectEnv.environment
+      } catch (err) {
+        // if the project or environment can't be determined, give up trying to do anything for it
+        logger.error(`${namespace} ${meta.buildName}: Error while getting project or environment information, Error: ${err}. Will not continue`)
+        throw new Error
+      }
       // if we want to be able to do something else when a task result comes through,
       // we can use the task key
       switch (meta.key) {
@@ -220,9 +256,6 @@ const messageConsumer = async function(msg) {
           switch (meta.jobStatus) {
             case "succeeded":
               try {
-                // get the project ID
-                const projectResult = await getOpenShiftInfoForProject(meta.project);
-                const project = projectResult.project
                 // since the advanceddata contains a base64 encoded value, we have to decode it first
                 var decodedData = new Buffer(meta.advancedData, 'base64').toString('ascii')
                 const taskResult = JSON.parse(decodedData)

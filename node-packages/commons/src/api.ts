@@ -872,7 +872,7 @@ export async function getEnvironmentById(
 ): Promise<any> {
   const result = await graphqlapi.query(`
     {
-      environmentById(id: ${id}") {
+      environmentById(id: ${id}) {
         id,
         name,
         route,
