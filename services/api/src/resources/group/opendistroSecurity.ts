@@ -103,9 +103,9 @@ export const OpendistroSecurityOperations = (sqlClient: MariaClient, GroupModel)
       } catch (err) {
         // 409 Errors are expected and mean that there is already an index-pattern with that name defined, we ignore them
         if (err.statusCode !== 409) {
-          logger.error(
-            `Kibana Error during setup of index pattern "${indexPattern[0]}": ${err}`,
-          );
+          // logger.error(
+          //   `Kibana Error during setup of index pattern "${indexPattern[0]}": ${err}`,
+          // );
           // Don't fail if we have Kibana Errors, as they are "non-critical"
         } else {
           logger.debug(`${groupName}: index-pattern "${indexPattern[0]}" already existing`);

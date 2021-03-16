@@ -46,11 +46,14 @@ const apolloServer = new ApolloServer({
       const sqlClientKeycloak = getSqlClient();
       try {
         grant = await getGrantForKeycloakToken(sqlClientKeycloak, token);
+
+        console.log(grant);
+
         sqlClientKeycloak.end();
       } catch (e) {
         sqlClientKeycloak.end();
         // It might be a legacy token, so continue on.
-        logger.debug(`Keycloak token auth failed: ${e.message}`);
+        logger.debug(`(apollo Server) Keycloak token auth failed: ${e.message}`);
       }
 
       const sqlClientLegacy = getSqlClient();

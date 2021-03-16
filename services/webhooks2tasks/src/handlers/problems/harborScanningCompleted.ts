@@ -59,6 +59,11 @@ const DEFAULT_REPO_DETAILS_MATCHER = {
     let vulnerabilities = [];
     vulnerabilities = await getVulnerabilitiesFromHarbor(harborScanId);
 
+                                          // Test data
+                                          // vulnerabilities.push(...vulnerabilities);
+                                          // vulnerabilities.push(...vulnerabilities);
+                                          // vulnerabilities.push(...vulnerabilities);
+
     let { id: lagoonProjectId } = await getProjectByName(lagoonProjectName);
 
     const result = await getOpenShiftInfoForProject(lagoonProjectName);
@@ -152,6 +157,12 @@ const validateAndTransformIncomingWebhookdata = async (rawData) => {
     lagoonServiceName,
    } = matchRepositoryAgainstPatterns(repository.repo_full_name, harborScanPatternMatchers.allProblemHarborScanMatchers);
 
+
+
+  lagoonProjectName = "credentialstest-project1-openshift";
+
+
+
   return {
     resources,
     repository,
@@ -171,23 +182,27 @@ const generateError = (name, message) => {
 
 const matchRepositoryAgainstPatterns = (repoFullName, matchPatterns = []) => {
   const matchingRes = matchPatterns.filter((e) => generateRegex(e.regex).test(repoFullName));
-  if(matchingRes.length > 1) {
-    const stringifyMatchingRes = matchingRes.reduce((prevRetString, e) => `${e.regex},${prevRetString}`, '');
-    throw generateError("InvalidHarborConfiguration",
-      `We have multiple matching regexes for '${repoFullName}'`
-    );
-  } else if (matchingRes.length == 0 && !generateRegex(DEFAULT_REPO_DETAILS_MATCHER.regex).test(repoFullName)) {
-    throw generateError("HarborError",
-    `We have no matching regexes, including default, for '${repoFullName}'`
-    );
-  }
+  // if(matchingRes.length > 1) {
+  //   const stringifyMatchingRes = matchingRes.reduce((prevRetString, e) => `${e.regex},${prevRetString}`, '');
+  //   throw generateError("InvalidHarborConfiguration",
+  //     `We have multiple matching regexes for '${repoFullName}'`
+  //   );
+  // } else if (matchingRes.length == 0 && !generateRegex(DEFAULT_REPO_DETAILS_MATCHER.regex).test(repoFullName)) {
+  //   throw generateError("HarborError",
+  //   `We have no matching regexes, including default, for '${repoFullName}'`
+  //   );
+  // }
 
-  const matchPatternDetails = matchingRes.pop() || DEFAULT_REPO_DETAILS_MATCHER;
-  const {
-    lagoonProjectName = matchPatternDetails.defaultLagoonProject,
-    lagoonEnvironmentName = matchPatternDetails.defaultLagoonEnvironment,
-    lagoonServiceName = matchPatternDetails.defaultLagoonService,
-  } = extractRepositoryDetailsGivenRegex(repoFullName, matchPatternDetails.regex);
+  // // const matchPatternDetails = matchingRes.pop() || DEFAULT_REPO_DETAILS_MATCHER;
+  // const {
+  //   lagoonProjectName = matchPatternDetails.defaultLagoonProject,
+  //   lagoonEnvironmentName = matchPatternDetails.defaultLagoonEnvironment,
+  //   lagoonServiceName = matchPatternDetails.defaultLagoonService,
+  // } = extractRepositoryDetailsGivenRegex(repoFullName, matchPatternDetails.regex);
+
+  const lagoonProjectName = "credentialstest-project1-control-os";
+  const lagoonEnvironmentName = "ui";
+  const lagoonServiceName = "cli";
 
   return {lagoonProjectName, lagoonEnvironmentName, lagoonServiceName};
 }
