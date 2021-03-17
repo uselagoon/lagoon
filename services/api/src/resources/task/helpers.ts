@@ -152,6 +152,7 @@ export const Helpers = (sqlClient: MariaClient) => ({
       environment,
       service,
       image,
+      payload,
       remoteId,
       execute,
     }: {
@@ -164,6 +165,7 @@ export const Helpers = (sqlClient: MariaClient) => ({
       environment: number,
       service: string,
       image: string,
+      payload: object,
       remoteId?: string,
       execute: boolean
     },
@@ -229,7 +231,7 @@ export const Helpers = (sqlClient: MariaClient) => ({
       environment: environmentData,
       advancedTask: {
         RunnerImage: image,
-        JSONPayload: '{}'//TODO: stringify when we actually have data -> new Buffer(JSON.stringify(jsonPayload).replace(/\\n/g, "\n")).toString('base64')
+        JSONPayload: new Buffer(JSON.stringify(payload).replace(/\\n/g, "\n")).toString('base64')
       }
     }
 
@@ -262,6 +264,8 @@ export const Helpers = (sqlClient: MariaClient) => ({
       completed,
       environment,
       service,
+      image,
+      payload,
       remoteId,
       execute,
     }

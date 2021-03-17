@@ -295,3 +295,10 @@ CREATE TABLE IF NOT EXISTS task_definition (
   image                    varchar(2000) NOT NULL,
   created                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS task_definition_argument (
+  id                       int NOT NULL auto_increment PRIMARY KEY,
+  task_definition          int REFERENCES task_definition(id),
+  name                     varchar(300) NOT NULL UNIQUE,
+  type                     ENUM('NUMERIC', 'STRING')
+);

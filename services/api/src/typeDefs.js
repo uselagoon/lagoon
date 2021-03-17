@@ -119,12 +119,18 @@ const typeDefs = gql`
 
   scalar SeverityScore
 
+  type AdvancedTaskDefinitionArgument {
+    name: String
+    type: String
+  }
+
   type AdvancedTaskDefinition {
     id: Int
     name: String
     description: String
     image: String
     created: String
+    taskArguments: [AdvancedTaskDefinitionArgument]
   }
 
   type Problem {
@@ -1063,6 +1069,12 @@ const typeDefs = gql`
     execute: Boolean
   }
 
+
+  input AdvancedTaskArgumentInput {
+    name: String
+    value: String
+  }
+
   input AdvancedTaskInput {
     id: Int
     name: String!
@@ -1075,6 +1087,17 @@ const typeDefs = gql`
     advancedTaskId: Int!
     remoteId: String
     execute: Boolean
+    taskArguments: [AdvancedTaskArgumentInput]
+  }
+
+  enum AdvancedTaskDefinitionTypes {
+    NUMERIC
+    STRING
+  }
+
+  input AdvancedTaskDefinitionArgumentInput {
+    name: String
+    type: AdvancedTaskDefinitionTypes
   }
 
   input AdvancedTaskDefinitionInput {
@@ -1082,6 +1105,7 @@ const typeDefs = gql`
     name: String
     description: String
     image: String
+    taskArguments: [AdvancedTaskDefinitionArgumentInput]
   }
 
   input DeleteTaskInput {

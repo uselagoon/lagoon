@@ -81,10 +81,33 @@ export const Sql = {
         created,
       })
     .toString(),
+    insertAdvancedTaskDefinitionArgument: ({
+      id,
+      task_definition,
+      name,
+      type
+      }: {
+        id: number,
+        task_definition: string,
+        name: string,
+        type: string,
+      }) =>
+      knex('task_definition_argument')
+        .insert({
+          id,
+          task_definition,
+          name,
+          type
+        })
+      .toString(),
   selectAdvancedTaskDefinition:(id: number) =>
     knex('task_definition')
       .where('task_definition.id', '=', id)
       .toString(),
+  selectAdvancedTaskDefinitionArguments:(id: number) =>
+      knex('task_definition_argument')
+        .where('task_definition_argument.task_definition', '=', id)
+        .toString(),
   selectAdvancedTaskDefinitionByName:(name: string) =>
     knex('task_definition')
       .where('task_definition.name', '=', name)
