@@ -16,6 +16,11 @@ import EVENTS from './events';
 import { Helpers } from './helpers';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Validators as envValidators } from '../environment/validators';
+import { getSqlClient } from '../../clients/sqlClient';
+import sql from '../user/sql';
+
+
+
 
 export const addAdvancedTaskDefinition = async (
     root,
@@ -50,10 +55,7 @@ export const addAdvancedTaskDefinition = async (
       ),
     );
 
-    //const rows = await query(sqlClient, Sql.selectAdvancedTaskDefinition(insertId));
-
-
-    return await internalAdvancedTaskDefinitionById(root, insertId, sqlClient);
+    return await adTaskFunctions.advancedTaskDefinitionById(root, insertId, sqlClient);
 }
 
 
@@ -87,8 +89,6 @@ export const addAdvancedTask: ResolverFn = async (
     { sqlClient, hasPermission },
   ) => {
 
-    console.log(taskArguments)
-
     const status = taskStatusTypeToString(unformattedStatus);
 
     await envValidators(sqlClient).environmentExists(environment);
@@ -97,19 +97,19 @@ export const addAdvancedTask: ResolverFn = async (
       project: envPerm.project,
     });
 
-    // let execute;
-    // try {
-    //   await hasPermission('task', 'addNoExec', {
-    //     project: envPerm.project,
-    //   });
-    //   execute = executeRequest;
-    // } catch (err) {
-    //   execute = true;
-    // }
+    let execute;
+    try {
+      await hasPermission('task', 'addNoExec', {
+        project: envPerm.project,
+      });
+      execute = executeRequest;
+    } catch (err) {
+      execute = true;
+    }
 
 
     //pull advanced task by ID to get the container name
-    let addTaskDef = await internalAdvancedTaskDefinitionById(root, advancedTaskId, sqlClient)
+    let addTaskDef = await adTaskFunctions.advancedTaskDefinitionById(root, advancedTaskId, sqlClient)
 
     // if(addTaskDef.taskArguments.length > 0) {
     //   console.log(addTaskDef)
@@ -129,7 +129,7 @@ export const addAdvancedTask: ResolverFn = async (
       environment,
       service,
       image: addTaskDef.image,//the return data here is basically what gets dropped into the DB.
-      payload: {},
+      payload: taskArguments,
       remoteId,
       execute: false,
     });
@@ -160,6 +160,17 @@ export const getAllAdvancedTaskDefinitions = async(
 // TODO: question - do we actually want to ever update these tasks, or is it a create/delete only story
 // The issue, as I see it, is that if tasks are updated, they may require different arguments - so versioning them makes more sense than updating.
 
+export const deleteAdvancedTaskDefinition = async(
+  root,
+  {
+    input: {
+      id
+    }
+  },
+  { sqlClient, hasPermission },
+  ) => {
+}
+
 export const advancedTaskDefinitionById = async(
   root,
   {
@@ -172,21 +183,9 @@ export const advancedTaskDefinitionById = async(
     //TODO: we'll need to do a lot of work here when it comes to the permissions system
     // essentially we only want to display the definitions a user has access to via their
     // groups, projects, etc.
-    return await internalAdvancedTaskDefinitionById(root, id, sqlClient);
+    return await adTaskFunctions.advancedTaskDefinitionById(root, id, sqlClient);
 }
 
-const internalAdvancedTaskDefinitionById = async(root, id, sqlClient) => {
-  const rows = await query(sqlClient, Sql.selectAdvancedTaskDefinitions());
-  let taskDef = R.prop(0, rows);
-  taskDef.taskArguments = await internalAdvancedTaskDefinitionArguments(root, taskDef.id, sqlClient)
-  return taskDef
-}
-
-const internalAdvancedTaskDefinitionArguments = async(root, task_definition_id, sqlClient) => {
-  const rows = await query(sqlClient, Sql.selectAdvancedTaskDefinitionArguments(task_definition_id));
-  let taskDefArgs = rows;
-  return taskDefArgs
-}
 
 export const getAdvancedTaskDefinitionByName = async(
   root,
@@ -198,7 +197,21 @@ export const getAdvancedTaskDefinitionByName = async(
     const rows = await query(sqlClient, Sql.selectAdvancedTaskDefinitionByName(name));
     let taskDef = R.prop(0, rows);
 
-    taskDef.taskArguments = await internalAdvancedTaskDefinitionArguments(root, taskDef.id, sqlClient)
+    taskDef.taskArguments = await adTaskFunctions.advancedTaskDefinitionArguments(root, taskDef.id, sqlClient)
     return taskDef
 }
 
+
+const adTaskFunctions = {
+  advancedTaskDefinitionById: async(root, id, sqlClient) => {
+    const rows = await query(sqlClient, Sql.selectAdvancedTaskDefinitions());
+    let taskDef = R.prop(0, rows);
+    taskDef.taskArguments = await adTaskFunctions.advancedTaskDefinitionArguments(root, taskDef.id, sqlClient)
+    return taskDef
+  },
+  advancedTaskDefinitionArguments: async(root, task_definition_id, sqlClient) => {
+    const rows = await query(sqlClient, Sql.selectAdvancedTaskDefinitionArguments(task_definition_id));
+    let taskDefArgs = rows;
+    return taskDefArgs
+  }
+}

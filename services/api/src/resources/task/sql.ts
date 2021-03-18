@@ -16,6 +16,9 @@ export const Sql = {
     service,
     command,
     remoteId,
+    type = null,
+    advanced_image = null,
+    advanced_payload = null,
   }: {
     id: number,
     name: string,
@@ -27,6 +30,9 @@ export const Sql = {
     service: string,
     command: string,
     remoteId: string,
+    type?: string,
+    advanced_image?: string,
+    advanced_payload?: string,
   }) =>
     knex('task')
       .insert({
@@ -40,6 +46,9 @@ export const Sql = {
         service,
         command,
         remoteId,
+        type,
+        advanced_image,
+        advanced_payload,
       })
       .toString(),
   deleteTask: (id: number) =>

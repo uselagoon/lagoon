@@ -1255,6 +1255,27 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+
+CREATE OR REPLACE PROCEDURE
+  add_advanced_task_details_to_task_table()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'task'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'type'
+    ) THEN
+      ALTER TABLE `task`
+      ADD `type` ENUM('standard', 'advanced') default 'standard',
+      ADD `advanced_image` varchar(2000),
+      ADD advanced_payload text;
+    END IF;
+  END;
+$$
+
 DELIMITER ;
 
 -- If adding new procedures, add them to the bottom of this list
@@ -1314,6 +1335,7 @@ CALL add_min_max_to_billing_modifier();
 CALL add_content_type_to_project_notification();
 CALL convert_project_production_routes_to_text();
 CALL convert_project_standby_routes_to_text();
+CALL add_advanced_task_details_to_task_table();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;

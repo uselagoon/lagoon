@@ -192,16 +192,19 @@ CREATE TABLE IF NOT EXISTS environment_service (
 );
 
 CREATE TABLE IF NOT EXISTS task (
-  id           int NOT NULL auto_increment PRIMARY KEY,
-  name         varchar(100) NOT NULL,
-  environment  int NOT NULL REFERENCES environment (id),
-  service      varchar(100) NOT NULL,
-  command      varchar(300) NOT NULL,
-  status       ENUM('active', 'succeeded', 'failed') NOT NULL,
-  created      datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  started      datetime NULL,
-  completed    datetime NULL,
-  remote_id    varchar(50) NULL
+  id                        int NOT NULL auto_increment PRIMARY KEY,
+  name                      varchar(100) NOT NULL,
+  environment               int NOT NULL REFERENCES environment (id),
+  service                   varchar(100) NOT NULL,
+  command                   varchar(300) NOT NULL,
+  status                    ENUM('active', 'succeeded', 'failed') NOT NULL,
+  created                   datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  started                   datetime NULL,
+  completed                 datetime NULL,
+  remote_id                 varchar(50) NULL,
+  type                      ENUM('standard', 'advanced') default 'standard',
+  advanced_image            varchar(2000),
+  advanced_payload          text
 );
 
 CREATE TABLE IF NOT EXISTS s3_file (
@@ -293,7 +296,8 @@ CREATE TABLE IF NOT EXISTS task_definition (
   name                     varchar(300) NOT NULL UNIQUE,
   description              TEXT NOT NULL DEFAULT '',
   image                    varchar(2000) NOT NULL,
-  created                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+  created                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  deleted                timestamp NOT NULL DEFAULT '0000-00-00 00:00:00'
 );
 
 CREATE TABLE IF NOT EXISTS task_definition_argument (

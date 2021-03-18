@@ -97,6 +97,9 @@ export const Helpers = (sqlClient: MariaClient) => ({
         service,
         command,
         remoteId,
+        // type: null,
+        // advanced_image: null,
+        // advanced_payload: null,
       }),
     );
 
@@ -167,29 +170,9 @@ export const Helpers = (sqlClient: MariaClient) => ({
       image: string,
       payload: object,
       remoteId?: string,
-      execute: boolean
+      execute: boolean,
     },
   ) => {
-
-
-
-    // const {
-    //   info: { insertId },
-    // } = await query(
-    //   sqlClient,
-    //   Sql.insertTask({
-    //     id,
-    //     name,
-    //     status,
-    //     created,
-    //     started,
-    //     completed,
-    //     environment,
-    //     service,
-    //     command,
-    //     remoteId,
-    //   }),
-    // );
 
     //TODO: in the first pass I'm going to use the "command" field to store the name of the task we want to run
     // We can change the "task" db going forward to be sensitive to advanced tasks themselves
@@ -204,8 +187,7 @@ export const Helpers = (sqlClient: MariaClient) => ({
     // let rows = await query(sqlClient, Sql.selectTask(insertId));
     // const taskData = await injectLogs(R.prop(0, rows));
 
-    // TODO: uncomment and understand
-    // pubSub.publish(EVENTS.TASK.ADDED, taskData);
+
 
     let rows = await query(
       sqlClient,
@@ -235,7 +217,30 @@ export const Helpers = (sqlClient: MariaClient) => ({
       }
     }
 
-    console.log(jobSpec);
+    // TODO: uncomment and understand
+    // pubSub.publish(EVENTS.TASK.ADDED, jobSpec);
+
+
+    const {
+      info: { insertId },
+    } = await query(
+      sqlClient,
+      Sql.insertTask({
+        id,
+        name,
+        status,
+        created,
+        started,
+        completed,
+        environment,
+        service,
+        command: image,
+        remoteId,
+        type: 'advanced',
+        advanced_image: image,
+        advanced_payload: JSON.stringify(payload),
+      }),
+    );
 
     try {
       await createMiscTask(
