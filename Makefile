@@ -986,9 +986,9 @@ helm/repos: local-dev/helm
 	./local-dev/helm repo add bitnami https://charts.bitnami.com/bitnami
 	./local-dev/helm repo update
 
+# stand up a kind cluster configured appropriately for lagoon testing
 .PHONY: kind/cluster
 kind/cluster: local-dev/kind
-	# stand up a kind cluster configured appropriately for lagoon testing
 	./local-dev/kind get clusters | grep -q "$(CI_BUILD_TAG)" && exit; \
 		docker network create kind || true \
 		&& export KUBECONFIG=$$(mktemp) \
@@ -1033,9 +1033,9 @@ KIND_SERVICES = api api-db api-redis auth-server broker controllerhandler docker
 KIND_TESTS = local-api-data-watcher-pusher local-git tests
 KIND_TOOLS = kind helm kubectl jq
 
+# install lagoon charts and run lagoon test suites in a kind cluster
 .PHONY: kind/test
 kind/test: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addprefix build/,$(KIND_SERVICES))
-	# install lagoon charts and run lagoon test suites in a kind cluster
 	export CHARTSDIR=$$(mktemp -d ./lagoon-charts.XXX) \
 		&& ln -sfn "$$CHARTSDIR" lagoon-charts.kind.lagoon \
 		&& git clone https://github.com/uselagoon/lagoon-charts.git "$$CHARTSDIR" \
@@ -1061,9 +1061,13 @@ kind/test: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addpr
 
 LOCAL_DEV_SERVICES = api auth-server controllerhandler logs2email logs2microsoftteams logs2rocketchat logs2slack ui webhook-handler webhooks2tasks
 
+# kind/local-dev-patch will build the services in LOCAL_DEV_SERVICES on your machine, and then use kubectl patch to mount the folders into Kubernetes
+# the deployments should be restarted to trigger any updated code changes
+# `kubectl rollout undo deployment` can be used to rollback a deployment to before the annotated patch
+# ensure that the correct version of Node to build the services is set on your machine
 .PHONY: kind/local-dev-patch
 kind/local-dev-patch:
-		export KUBECONFIG="$$(pwd)/kubeconfig.kind.$(CI_BUILD_TAG)" && \
+	export KUBECONFIG="$$(pwd)/kubeconfig.kind.$(CI_BUILD_TAG)" && \
 		export IMAGE_REGISTRY="registry.$$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
 		&& for image in $(LOCAL_DEV_SERVICES); do \
 			echo "building $$image" \
@@ -1074,10 +1078,10 @@ kind/local-dev-patch:
 			&& ./local-dev/kubectl --namespace lagoon patch deployment lagoon-core-$$image --patch-file ./local-dev/kubectl-patches/$$image.yaml; \
 		done
 
-# kind/dev can only be run once a cluster is up and running (run kind/test first) - it doesn't rebuild the cluster at all, just the lagoon-core helm chart
+# kind/dev can only be run once a cluster is up and running (run kind/test first) - it doesn't rebuild the cluster at all, just pushes the built images
+# into the image registry and reinstalls the lagoon-core helm chart.
 .PHONY: kind/dev
 kind/dev: $(addprefix build/,$(KIND_SERVICES))
-	# install lagoon charts and run lagoon test suites in a kind cluster
 	export KUBECONFIG="$$(realpath ./kubeconfig.kind.$(CI_BUILD_TAG))" \
 		&& export IMAGE_REGISTRY="registry.$$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
 		&& $(MAKE) kind/push-images && cd lagoon-charts.kind.lagoon \
@@ -1089,7 +1093,7 @@ kind/dev: $(addprefix build/,$(KIND_SERVICES))
 
 .PHONY: kind/push-images
 kind/push-images:
-		export KUBECONFIG="$$(pwd)/kubeconfig.kind.$(CI_BUILD_TAG)" && \
+	export KUBECONFIG="$$(pwd)/kubeconfig.kind.$(CI_BUILD_TAG)" && \
 		export IMAGE_REGISTRY="registry.$$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
 		&& docker login -u admin -p Harbor12345 $$IMAGE_REGISTRY \
 		&& for image in $(KIND_SERVICES); do \
