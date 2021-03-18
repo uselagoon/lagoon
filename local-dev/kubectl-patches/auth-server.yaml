@@ -1,0 +1,29 @@
+---
+metadata:
+  annotations:
+    kubernetes.io/change-cause: "Add local-dev volume mounts"
+spec:
+  template:
+    spec:
+      containers:
+      - name: auth-server
+        volumeMounts:
+        - mountPath: "/app/services/auth-server/src"
+          name: auth-server-src
+        - mountPath: "/app/services/auth-server/dist"
+          name: auth-server-dist
+        - mountPath: "/app/node-packages"
+          name: node-packages
+      volumes:
+      - name: auth-server-src
+        hostPath:
+          path: "/lagoon/services/auth-server/src"
+          type: Directory
+      - name: auth-server-dist
+        hostPath:
+          path: "/lagoon/services/auth-server/dist"
+          type: Directory
+      - name: node-packages
+        hostPath:
+          path: "/lagoon/node-packages"
+          type: Directory
