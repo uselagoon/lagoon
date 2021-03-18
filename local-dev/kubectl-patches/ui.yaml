@@ -1,0 +1,17 @@
+---
+metadata:
+  annotations:
+    kubernetes.io/change-cause: "Add local-dev volume mounts"
+spec:
+  template:
+    spec:
+      containers:
+      - name: ui
+        volumeMounts:
+        - name: services-ui
+          mountPath: /app/services/ui
+      volumes:
+      - name: services-ui
+        hostPath:
+          path: /lagoon/services/ui
+          type: Directory

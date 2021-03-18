@@ -1,0 +1,29 @@
+---
+metadata:
+  annotations:
+    kubernetes.io/change-cause: "Add local-dev volume mounts"
+spec:
+  template:
+    spec:
+      containers:
+      - name: logs2rocketchat
+        volumeMounts:
+        - mountPath: "/app/services/logs2rocketchat/src"
+          name: logs2rocketchat-src
+        - mountPath: "/app/services/logs2rocketchat/dist"
+          name: logs2rocketchat-dist
+        - mountPath: "/app/node-packages"
+          name: node-packages
+      volumes:
+      - name: logs2rocketchat-src
+        hostPath:
+          path: "/lagoon/services/logs2rocketchat/src"
+          type: Directory
+      - name: logs2rocketchat-dist
+        hostPath:
+          path: "/lagoon/services/logs2rocketchat/dist"
+          type: Directory
+      - name: node-packages
+        hostPath:
+          path: "/lagoon/node-packages"
+          type: Directory
