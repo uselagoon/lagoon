@@ -1108,7 +1108,9 @@ export const createMiscTask = async function(taskData: any) {
           break;
         case 'kubernetes:task:advanced':
           //TODO: to get this working, we're going to rewrite to route:migrate to hack lagoon_kbd to run this arb advanced task
-          updatedKey = "kubernetes:route:migrate" //TODO: remove this when we update lagoon_kdb
+          miscTaskData.key = "kubernetes:route:migrate" //TODO: remove this when we update lagoon_kdb
+          //miscTaskData.misc = taskData.data.build
+          miscTaskData.advancedTask = taskData.data.advancedTask
           break;
         case 'kubernetes:build:cancel':
           // build cancellation is just a standard unmodified message
@@ -1119,6 +1121,8 @@ export const createMiscTask = async function(taskData: any) {
           break;
       }
       // send the task to the queue
+      console.log("sending to " + deployTarget);
+      console.log(miscTaskData);
       return sendToLagoonTasks(deployTarget+':misc', miscTaskData);
     default:
       break;

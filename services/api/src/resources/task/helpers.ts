@@ -184,8 +184,7 @@ export const Helpers = (sqlClient: MariaClient) => ({
     // suggestion - add advanced task details to table?
     // short term, hijack 'command' for the image name
 
-    // let rows = await query(sqlClient, Sql.selectTask(insertId));
-    // const taskData = await injectLogs(R.prop(0, rows));
+
 
 
 
@@ -201,21 +200,7 @@ export const Helpers = (sqlClient: MariaClient) => ({
     );
     const projectData = R.prop(0, rows);
 
-    // TODO: this will need to change
-    const ADVANCED_TASK_EVENT_TYPE = "task:advanced"
 
-    // TODO: we might want to move the actual creation of the advanced task to a function
-    // so that we can control the structure in a single place if the schema changes...
-
-    let jobSpec = {
-      //task: taskData, // BMK: I'm not sure this is used in the advanced task ...
-      project: projectData,
-      environment: environmentData,
-      advancedTask: {
-        RunnerImage: image,
-        JSONPayload: new Buffer(JSON.stringify(payload).replace(/\\n/g, "\n")).toString('base64')
-      }
-    }
 
     // TODO: uncomment and understand
     // pubSub.publish(EVENTS.TASK.ADDED, jobSpec);
@@ -241,6 +226,25 @@ export const Helpers = (sqlClient: MariaClient) => ({
         advanced_payload: JSON.stringify(payload),
       }),
     );
+
+    rows = await query(sqlClient, Sql.selectTask(insertId));
+    const taskData = await injectLogs(R.prop(0, rows));
+
+    // TODO: this will need to change
+    const ADVANCED_TASK_EVENT_TYPE = "task:advanced"
+
+    // TODO: we might want to move the actual creation of the advanced task to a function
+    // so that we can control the structure in a single place if the schema changes...
+
+    let jobSpec = {
+      task: taskData, // BMK: I'm not sure this is used in the advanced task ...
+      project: projectData,
+      environment: environmentData,
+      advancedTask: {
+        RunnerImage: image,
+        JSONPayload: new Buffer(JSON.stringify(payload).replace(/\\n/g, "\n")).toString('base64')
+      }
+    }
 
     try {
       await createMiscTask(
