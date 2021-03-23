@@ -47,8 +47,6 @@ const apolloServer = new ApolloServer({
       try {
         grant = await getGrantForKeycloakToken(sqlClientKeycloak, token);
 
-        console.log(grant);
-
         sqlClientKeycloak.end();
       } catch (e) {
         sqlClientKeycloak.end();
