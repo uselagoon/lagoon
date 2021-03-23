@@ -3,7 +3,6 @@ const morgan = require('morgan');
 const compression = require('compression');
 const cors = require('cors');
 const { json } = require('body-parser');
-// const bodyParser = require('body-parser');
 const logger = require('./logger');
 const { createRouter } = require('./routes');
 const { authMiddleware } = require('./authMiddleware');
@@ -16,16 +15,6 @@ app.use(compression());
 
 // Automatically decode json.
 app.use(json());
-
-// app.use(bodyParser.json({
-//   limit: '50mb'
-// }));
-
-// app.use(bodyParser.urlencoded({
-//   limit: '50mb',
-//   parameterLimit: 100000,
-//   extended: true
-// }));
 
 // Add custom configured logger (morgan through winston).
 app.use(

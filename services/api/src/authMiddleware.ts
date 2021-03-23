@@ -80,7 +80,7 @@ const keycloak = async (
     req.kauth = { grant };
   } catch (e) {
     // It might be a legacy token, so continue on.
-    logger.debug(`(authMiddleware) Keycloak token auth failed: ${e.message}`);
+    logger.debug(`Keycloak token auth failed: ${e.message}`);
   }
 
   sqlClient.end();
