@@ -126,14 +126,20 @@ fi
 if [[ $($OC get deployment -l "lagoon.sh/service=${SERVICE}" 2> /dev/null) ]]; then
   # get any other deployments that may have been idled by the idler and unidle them if required
   # this only needs to be done for kubernetes
+  # we do this first to give the services a bit of time to unidle before starting the one that was requested
   DEPLOYMENTS=$($OC get deployments -l "idling.amazee.io/watch=true" -o name)
   if [ ! -z "${DEPLOYMENTS}" ]; then
     # loop over the deployments and unidle them
     for DEP in ${DEPLOYMENTS}
     do
       # if the deployment is idled, unidle it :)
-      if [[ $($OC get ${DEP} -o json | jq -r '.status.replicas // 0') == "0" ]]; then
-        $OC scale --replicas=1 ${DEP} >/dev/null 2>&1
+      DEP_JSON=$($OC get ${DEP} -o json)
+      if [ $(echo "$DEP_JSON" | jq -r '.status.replicas // 0') == "0" ]; then
+        REPLICAS=$(echo "$DEP_JSON" | jq -r '.metadata.annotations."idling.amazee.io/unidle-replicas" // 1')
+        if [ ! -z "$REPLICAS" ]; then
+          REPLICAS=1
+        fi
+        $OC scale --replicas=${REPLICAS} ${DEP} >/dev/null 2>&1
         # for unidling an entire environment and waiting for the number of `readyReplicas`
         # to be 1 for each deployment, could add considerable delays for the ssh connection to establish.
         # WAIT_TO_UNIDLE_SERVICES will default to false so that it just scales the deployments
@@ -168,14 +174,20 @@ fi
 if [[ $($OC get deployment -l lagoon/service=${SERVICE} 2> /dev/null) ]]; then
   # get any other deployments that may have been idled by the idler and unidle them if required
   # this only needs to be done for kubernetes
+  # we do this first to give the services a bit of time to unidle before starting the one that was requested
   DEPLOYMENTS=$($OC get deployments -l "idling.amazee.io/watch=true" -o name)
   if [ ! -z "${DEPLOYMENTS}" ]; then
     # loop over the deployments and unidle them
     for DEP in ${DEPLOYMENTS}
     do
       # if the deployment is idled, unidle it :)
-      if [[ $($OC get ${DEP} -o json | jq -r '.status.replicas // 0') == "0" ]]; then
-        $OC scale --replicas=1 ${DEP} >/dev/null 2>&1
+      DEP_JSON=$($OC get ${DEP} -o json)
+      if [ $(echo "$DEP_JSON" | jq -r '.status.replicas // 0') == "0" ]; then
+        REPLICAS=$(echo "$DEP_JSON" | jq -r '.metadata.annotations."idling.amazee.io/unidle-replicas" // 1')
+        if [ ! -z "$REPLICAS" ]; then
+          REPLICAS=1
+        fi
+        $OC scale --replicas=${REPLICAS} ${DEP} >/dev/null 2>&1
         # for unidling an entire environment and waiting for the number of `readyReplicas`
         # to be 1 for each deployment, could add considerable delays for the ssh connection to establish.
         # WAIT_TO_UNIDLE_SERVICES will default to false so that it just scales the deployments
