@@ -1296,12 +1296,11 @@ export const getGroupMembersByGroupName = groupName =>
   { name: groupName }
 );
 
-
 export const addBulkProblems = async ({
   problems
 }) => {
 
-  let mutation_query_str = `mutation addBulkProbelms {`;
+  let mutation_query_str = `mutation addBulkProblems {`;
 
   problems.map((p, i) => {
     mutation_query_str += `
