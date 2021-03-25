@@ -145,7 +145,7 @@ if [[ $($OC get deployment -l "lagoon.sh/service=${SERVICE}" 2> /dev/null) ]]; t
         # WAIT_TO_UNIDLE_SERVICES will default to false so that it just scales the deployments
         # and won't wait for them to be ready, but if set to true, it will wait for `readyReplicas` to be 1
         if [[ "$WAIT_TO_UNIDLE_SERVICES" =~ [Tt][Rr][Uu][Ee] ]]; then
-          while [[ ! $($OC get ${DEP} -o go-template --template='{{.status.readyReplicas}}') == "1" ]]
+          while [[ $($OC get ${DEP} -o json | jq -r '.status.readyReplicas // 0') -ne "0" ]]
           do
             sleep 1
           done
@@ -162,7 +162,7 @@ if [[ $($OC get deployment -l "lagoon.sh/service=${SERVICE}" 2> /dev/null) ]]; t
     $OC scale --replicas=1 ${DEPLOYMENT} >/dev/null 2>&1
 
     # Wait until the scaling is done
-    while [[ ! $($OC get ${DEPLOYMENT} -o go-template --template='{{.status.readyReplicas}}') == "1" ]]
+    while [[ $($OC get ${DEPLOYMENT} -o json | jq -r '.status.readyReplicas // 0') -ne "0" ]]
     do
       sleep 1
     done
@@ -193,7 +193,7 @@ if [[ $($OC get deployment -l lagoon/service=${SERVICE} 2> /dev/null) ]]; then
         # WAIT_TO_UNIDLE_SERVICES will default to false so that it just scales the deployments
         # and won't wait for them to be ready, but if set to true, it will wait for `readyReplicas` to be 1
         if [[ "$WAIT_TO_UNIDLE_SERVICES" =~ [Tt][Rr][Uu][Ee] ]]; then
-          while [[ ! $($OC get ${DEP} -o go-template --template='{{.status.readyReplicas}}') == "1" ]]
+          while [[ $($OC get ${DEP} -o json | jq -r '.status.readyReplicas // 0') -ne "0" ]]
           do
             sleep 1
           done
@@ -210,7 +210,7 @@ if [[ $($OC get deployment -l lagoon/service=${SERVICE} 2> /dev/null) ]]; then
     $OC scale --replicas=1 ${DEPLOYMENT} >/dev/null 2>&1
 
     # Wait until the scaling is done
-    while [[ ! $($OC get ${DEPLOYMENT} -o go-template --template='{{.status.readyReplicas}}') == "1" ]]
+    while [[ $($OC get ${DEPLOYMENT} -o json | jq -r '.status.readyReplicas // 0') -ne "0" ]]
     do
       sleep 1
     done
