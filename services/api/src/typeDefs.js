@@ -120,17 +120,22 @@ const typeDefs = gql`
   scalar SeverityScore
 
   type AdvancedTaskDefinitionArgument {
+    id: Int
     name: String
     type: String
+    advancedTaskDefinition: AdvancedTaskDefinition
   }
 
   type AdvancedTaskDefinition {
     id: Int
     name: String
     description: String
+    type: AdvancedTaskDefinitionTypes
     image: String
+    service: String
+    command: String
     created: String
-    taskArguments: [AdvancedTaskDefinitionArgument]
+    advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgument]
   }
 
   type Problem {
@@ -754,6 +759,18 @@ const typeDefs = gql`
     files: [File]
   }
 
+  type AdvancedTaskEnvironment {
+    id: Int
+    taskDefinition: AdvancedTaskDefinition
+    environment: Environment
+  }
+
+  type AdvancedTaskProject {
+    id: Int
+    taskDefinition: AdvancedTaskDefinition
+    project: Project
+  }
+
   type BillingModifier {
     id: Int
     group: BillingGroup
@@ -892,9 +909,21 @@ const typeDefs = gql`
     """
     allAdvancedTaskDefinitions: [AdvancedTaskDefinition]
     """
+    Returns a single AdvancedTaskDefinition given an id
+    """
+    advancedTaskDefinitionById(id: Int!) : AdvancedTaskDefinition
+    """
     Returns a single AdvancedTaskDefinition given a name
     """
     advancedTaskDefinitionByName(name: String!) : AdvancedTaskDefinition
+    """
+    Returns a AdvancedTaskDefinitions applicable for an environment
+    """
+    advancedTasksForEnvironment(id: Int!) : [AdvancedTaskDefinition]
+    """
+    Returns a AdvancedTaskDefinitionArgument by Id
+    """
+    advancedTaskDefinitionArgumentById(id: Int!) : [AdvancedTaskDefinitionArgument]
 
   }
 
@@ -1087,17 +1116,32 @@ const typeDefs = gql`
     advancedTaskId: Int!
     remoteId: String
     execute: Boolean
-    taskArguments: [AdvancedTaskArgumentInput]
+    advancedTaskArguments: [AdvancedTaskArgumentInput]
   }
 
-  enum AdvancedTaskDefinitionTypes {
+  input AdvancedTaskToEnvironmentInput {
+    environment: Int,
+    advancedTaskDefinition: Int
+  }
+
+  input AdvancedTaskToProjectInput {
+    project: Int,
+    advancedTaskDefinition: Int
+  }
+
+  enum AdvancedTaskDefinitionArgumentTypes {
     NUMERIC
     STRING
   }
 
   input AdvancedTaskDefinitionArgumentInput {
     name: String
-    type: AdvancedTaskDefinitionTypes
+    type: AdvancedTaskDefinitionArgumentTypes
+  }
+
+  enum AdvancedTaskDefinitionTypes {
+    COMMAND
+    IMAGE
   }
 
   input AdvancedTaskDefinitionInput {
@@ -1105,7 +1149,10 @@ const typeDefs = gql`
     name: String
     description: String
     image: String
-    taskArguments: [AdvancedTaskDefinitionArgumentInput]
+    type: AdvancedTaskDefinitionTypes
+    service: String
+    command: String
+    advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgumentInput]
   }
 
   input DeleteTaskInput {
@@ -1686,6 +1733,8 @@ const typeDefs = gql`
     addTask(input: TaskInput!): Task
     addAdvancedTask(input: AdvancedTaskInput!): AdvancedTask
     addAdvancedTaskDefinition(input: AdvancedTaskDefinitionInput!): AdvancedTaskDefinition
+    addAdvancedTaskDefinitionToEnvironment(input: AdvancedTaskToEnvironmentInput!): AdvancedTaskEnvironment
+    addAdvancedTaskDefinitionToProject(input: AdvancedTaskToProjectInput!): AdvancedTaskProject
     taskDrushArchiveDump(environment: Int!): Task
     taskDrushSqlDump(environment: Int!): Task
     taskDrushCacheClear(environment: Int!): Task

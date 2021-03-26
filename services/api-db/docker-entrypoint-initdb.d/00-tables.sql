@@ -291,18 +291,37 @@ CREATE TABLE IF NOT EXISTS environment_fact (
 );
 
 
-CREATE TABLE IF NOT EXISTS task_definition (
+CREATE TABLE IF NOT EXISTS advanced_task_definition (
   id                       int NOT NULL auto_increment PRIMARY KEY,
   name                     varchar(300) NOT NULL UNIQUE,
   description              TEXT NOT NULL DEFAULT '',
-  image                    varchar(2000) NOT NULL,
+  type                     ENUM('COMMAND', 'IMAGE') DEFAULT 'COMMAND',
+  image                    varchar(2000) DEFAULT '',
+  service                  varchar(100),
+  command                  text DEFAULT '',
   created                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  deleted                timestamp NOT NULL DEFAULT '0000-00-00 00:00:00'
+  deleted                  timestamp NOT NULL DEFAULT '0000-00-00 00:00:00'
 );
 
-CREATE TABLE IF NOT EXISTS task_definition_argument (
-  id                       int NOT NULL auto_increment PRIMARY KEY,
-  task_definition          int REFERENCES task_definition(id),
-  name                     varchar(300) NOT NULL UNIQUE,
-  type                     ENUM('NUMERIC', 'STRING')
+CREATE TABLE IF NOT EXISTS advanced_task_definition_argument (
+  id                                int NOT NULL auto_increment PRIMARY KEY,
+  advanced_task_definition          int REFERENCES advanved_task_definition(id),
+  name                              varchar(300) NOT NULL UNIQUE,
+  type                              ENUM('NUMERIC', 'STRING')
+);
+
+CREATE TABLE IF NOT EXISTS advanced_task_definition_environment (
+  id                                int NOT NULL auto_increment PRIMARY KEY,
+  advanced_task_definition          int REFERENCES advanced_task_definition(id),
+  environment                       int NULL REFERENCES environment(id),
+  created                           timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  deleted                           timestamp NOT NULL DEFAULT '0000-00-00 00:00:00'
+);
+
+CREATE TABLE IF NOT EXISTS advanced_task_definition_project (
+  id                                int NOT NULL auto_increment PRIMARY KEY,
+  advanced_task_definition          int REFERENCES advanced_task_definition(id),
+  project                           int REFERENCES project(id),
+  created                           timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  deleted                           timestamp NOT NULL DEFAULT '0000-00-00 00:00:00'
 );

@@ -246,6 +246,8 @@ export const Helpers = (sqlClient: MariaClient) => ({
       }
     }
 
+    console.log(jobSpec);
+
     try {
       await createMiscTask(
         {

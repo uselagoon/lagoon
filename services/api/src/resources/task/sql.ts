@@ -81,7 +81,7 @@ export const Sql = {
       image: string,
       created: string,
     }) =>
-    knex('task_definition')
+    knex('advanced_task_definition')
       .insert({
         id,
         name,
@@ -92,36 +92,76 @@ export const Sql = {
     .toString(),
     insertAdvancedTaskDefinitionArgument: ({
       id,
-      task_definition,
+      advanced_task_definition,
       name,
       type
       }: {
         id: number,
-        task_definition: string,
+        advanced_task_definition: number,
         name: string,
         type: string,
       }) =>
-      knex('task_definition_argument')
+      knex('advanced_task_definition_argument')
         .insert({
           id,
-          task_definition,
+          advanced_task_definition,
           name,
           type
         })
       .toString(),
+    insertAdvancedTaskDefinitionEnvironmentLink: ({
+        id,
+        advanced_task_definition,
+        environment
+        }: {
+          id: number,
+          advanced_task_definition: string,
+          environment
+        }) =>
+        knex('advanced_task_definition_environment')
+          .insert({
+            id,
+            advanced_task_definition,
+            environment
+          })
+        .toString(),
+    insertAdvancedTaskDefinitionProjectLink: ({
+        id,
+        advanced_task_definition,
+        project
+        }: {
+          id: number,
+          advanced_task_definition: string,
+          project
+        }) =>
+        knex('advanced_task_definition_project')
+          .insert({
+            id,
+            advanced_task_definition,
+            project
+          })
+        .toString(),
+    selectAdvancedTaskDefinitionEnvironmentLinkById: (id: number) =>
+          knex('advanced_task_definition_environment')
+            .where('advanced_task_definition_environment.id', '=', id)
+          .toString(),
   selectAdvancedTaskDefinition:(id: number) =>
-    knex('task_definition')
-      .where('task_definition.id', '=', id)
+    knex('advanced_task_definition')
+      .where('advanced_task_definition.id', '=', id)
       .toString(),
   selectAdvancedTaskDefinitionArguments:(id: number) =>
-      knex('task_definition_argument')
-        .where('task_definition_argument.task_definition', '=', id)
+      knex('advanced_task_definition_argument')
+        .where('advanced_task_definition_argument.advanced_task_definition', '=', id)
+        .toString(),
+  selectAdvancedTaskDefinitionArgumentById:(id: number) =>
+      knex('advanced_task_definition_argument')
+        .where('advanced_task_definition_argument.id', '=', id)
         .toString(),
   selectAdvancedTaskDefinitionByName:(name: string) =>
-    knex('task_definition')
-      .where('task_definition.name', '=', name)
+    knex('advanced_task_definition')
+      .where('advanced_task_definition.name', '=', name)
       .toString(),
   selectAdvancedTaskDefinitions:() =>
-    knex('task_definition')
+    knex('advanced_task_definition')
     .toString(),
 };
