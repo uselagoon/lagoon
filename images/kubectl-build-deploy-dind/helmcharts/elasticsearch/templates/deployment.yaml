@@ -33,7 +33,7 @@ spec:
       priorityClassName: {{ include "elasticsearch.lagoonPriority" . }}
       enableServiceLinks: false
       securityContext:
-        fsGroup: 0
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - image: {{ .Values.image | quote }}
           name: {{ .Chart.Name }}
@@ -51,8 +51,6 @@ spec:
               path: /_cluster/health?local=true
               port: 9200
             initialDelaySeconds: 120
-          securityContext:
-            runAsGroup: 0
           envFrom:
             - configMapRef:
                 name: lagoon-env

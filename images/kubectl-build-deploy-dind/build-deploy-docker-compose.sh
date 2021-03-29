@@ -847,9 +847,19 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
           touch /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
           echo "$ROUTE_ANNOTATIONS" | yq p - annotations > /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
 
+          # ${ROUTE_DOMAIN} is used as a helm release name which be max 53 characters long.
+          # So we need some logic to make sure it's always max 53 characters
+          if [[ ${#ROUTE_DOMAIN} -gt 53 ]] ; then
+            # Trim the route domain to 47 characters, and add an 5 character hash of the domain at the end
+            # this gives a total of 53 characters
+            INGRESS_NAME=${ROUTE_DOMAIN:0:47}-$(echo ${ROUTE_DOMAIN} | md5sum | cut -f 1 -d " " | cut -c 1-5)
+          else
+            INGRESS_NAME=${ROUTE_DOMAIN}
+          fi
+
           # The very first found route is set as MAIN_CUSTOM_ROUTE
           if [ -z "${MAIN_CUSTOM_ROUTE+x}" ]; then
-            MAIN_CUSTOM_ROUTE=$ROUTE_DOMAIN
+            MAIN_CUSTOM_ROUTE=$INGRESS_NAME
 
             # if we are in production we enabled monitoring for the main custom route
             if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
@@ -862,7 +872,7 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
 
           cat /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
 
-          helm template ${ROUTE_DOMAIN} \
+          helm template ${INGRESS_NAME} \
             /kubectl-build-deploy/helmcharts/custom-ingress \
             --set host="${ROUTE_DOMAIN}" \
             --set service="${ROUTE_SERVICE}" \
@@ -957,9 +967,19 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
           touch /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
           echo "$ROUTE_ANNOTATIONS" | yq p - annotations > /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
 
+          # ${ROUTE_DOMAIN} is used as a helm release name which be max 53 characters long.
+          # So we need some logic to make sure it's always max 53 characters
+          if [[ ${#ROUTE_DOMAIN} -gt 53 ]] ; then
+            # Trim the route domain to 47 characters, and add an 5 character hash of the domain at the end
+            # this gives a total of 53 characters
+            INGRESS_NAME=${ROUTE_DOMAIN:0:47}-$(echo ${ROUTE_DOMAIN} | md5sum | cut -f 1 -d " " | cut -c 1-5)
+          else
+            INGRESS_NAME=${ROUTE_DOMAIN}
+          fi
+
           # The very first found route is set as MAIN_CUSTOM_ROUTE
           if [ -z "${MAIN_CUSTOM_ROUTE+x}" ]; then
-            MAIN_CUSTOM_ROUTE=$ROUTE_DOMAIN
+            MAIN_CUSTOM_ROUTE=$INGRESS_NAME
 
             # if we are in production we enabled monitoring for the main custom route
             if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
@@ -972,7 +992,7 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
 
           cat /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
 
-          helm template ${ROUTE_DOMAIN} \
+          helm template ${INGRESS_NAME} \
             /kubectl-build-deploy/helmcharts/custom-ingress \
             --set host="${ROUTE_DOMAIN}" \
             --set service="${ROUTE_SERVICE}" \
@@ -1069,12 +1089,22 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
         ROUTE_FASTLY_SERVICE_WATCH=true
       fi
 
+      # ${ROUTE_DOMAIN} is used as a helm release name which be max 53 characters long.
+      # So we need some logic to make sure it's always max 53 characters
+      if [[ ${#ROUTE_DOMAIN} -gt 53 ]] ; then
+        # Trim the route domain to 47 characters, and add an 5 character hash of the domain at the end
+        # this gives a total of 53 characters
+        INGRESS_NAME=${ROUTE_DOMAIN:0:47}-$(echo ${ROUTE_DOMAIN} | md5sum | cut -f 1 -d " " | cut -c 1-5)
+      else
+        INGRESS_NAME=${ROUTE_DOMAIN}
+      fi
+
       touch /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
       echo "$ROUTE_ANNOTATIONS" | yq p - annotations > /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
 
       # The very first found route is set as MAIN_CUSTOM_ROUTE
       if [ -z "${MAIN_CUSTOM_ROUTE+x}" ]; then
-        MAIN_CUSTOM_ROUTE=$ROUTE_DOMAIN
+        MAIN_CUSTOM_ROUTE=$INGRESS_NAME
 
         # if we are in production we enabled monitoring for the main custom route
         if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
@@ -1087,7 +1117,7 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
 
       cat /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
 
-      helm template ${ROUTE_DOMAIN} \
+      helm template ${INGRESS_NAME} \
         /kubectl-build-deploy/helmcharts/custom-ingress \
         --set host="${ROUTE_DOMAIN}" \
         --set service="${ROUTE_SERVICE}" \
@@ -1179,9 +1209,19 @@ else
       touch /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
       echo "$ROUTE_ANNOTATIONS" | yq p - annotations > /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
 
+      # ${ROUTE_DOMAIN} is used as a helm release name which be max 53 characters long.
+      # So we need some logic to make sure it's always max 53 characters
+      if [[ ${#ROUTE_DOMAIN} -gt 53 ]] ; then
+        # Trim the route domain to 47 characters, and add an 5 character hash of the domain at the end
+        # this gives a total of 53 characters
+        INGRESS_NAME=${ROUTE_DOMAIN:0:47}-$(echo ${ROUTE_DOMAIN} | md5sum | cut -f 1 -d " " | cut -c 1-5)
+      else
+        INGRESS_NAME=${ROUTE_DOMAIN}
+      fi
+
       # The very first found route is set as MAIN_CUSTOM_ROUTE
       if [ -z "${MAIN_CUSTOM_ROUTE+x}" ]; then
-        MAIN_CUSTOM_ROUTE=$ROUTE_DOMAIN
+        MAIN_CUSTOM_ROUTE=$INGRESS_NAME
 
         # if we are in production we enabled monitoring for the main custom route
         if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
@@ -1194,7 +1234,7 @@ else
 
       cat /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
 
-      helm template ${ROUTE_DOMAIN} \
+      helm template ${INGRESS_NAME} \
         /kubectl-build-deploy/helmcharts/custom-ingress \
         --set host="${ROUTE_DOMAIN}" \
         --set service="${ROUTE_SERVICE}" \
