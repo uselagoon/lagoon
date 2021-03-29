@@ -141,9 +141,53 @@ export const Sql = {
             project
           })
         .toString(),
+    insertTaskRegistration: ({
+          id,
+          type,
+          name,
+          description,
+          advanced_task_definition,
+          environment,
+          project,
+          command,
+          service,
+          created,
+          deleted,
+          }: {
+            id: number,
+            type:string,
+            name: string,
+            description: string,
+            advanced_task_definition: number,
+            environment: number,
+            project: number,
+            command: string,
+            service: string,
+            created: string,
+            deleted: string,
+          }) =>
+          knex('task_registration')
+            .insert({
+              id,
+              type,
+              name,
+              description,
+              advanced_task_definition,
+              environment,
+              project,
+              command,
+              service,
+              created,
+              deleted,
+            })
+          .toString(),
     selectAdvancedTaskDefinitionEnvironmentLinkById: (id: number) =>
           knex('advanced_task_definition_environment')
             .where('advanced_task_definition_environment.id', '=', id)
+          .toString(),
+    selectTaskRegistrationById: (id: number) =>
+          knex('task_registration')
+            .where('task_registration.id', '=', id)
           .toString(),
   selectAdvancedTaskDefinition:(id: number) =>
     knex('advanced_task_definition')

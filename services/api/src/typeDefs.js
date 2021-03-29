@@ -138,6 +138,20 @@ const typeDefs = gql`
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgument]
   }
 
+  type TaskRegistration {
+    id: Int,
+    type: String,
+    name: String,
+    description: String,
+    advancedTaskDefinition: Int,
+    environment: Int,
+    project: Int,
+    command: String,
+    service: String,
+    created: String,
+    deleted: String
+  }
+
   type Problem {
     id: Int
     environment: Environment
@@ -1119,6 +1133,19 @@ const typeDefs = gql`
     advancedTaskArguments: [AdvancedTaskArgumentInput]
   }
 
+
+  input TaskRegistrationInput {
+    id: Int,
+    type: String,
+    name: String!,
+    description: String,
+    advancedTaskDefinition: Int,
+    environment: Int,
+    project: Int,
+    command: String,
+    service: String,
+  }
+
   input AdvancedTaskToEnvironmentInput {
     environment: Int,
     advancedTaskDefinition: Int
@@ -1735,6 +1762,8 @@ const typeDefs = gql`
     addAdvancedTaskDefinition(input: AdvancedTaskDefinitionInput!): AdvancedTaskDefinition
     addAdvancedTaskDefinitionToEnvironment(input: AdvancedTaskToEnvironmentInput!): AdvancedTaskEnvironment
     addAdvancedTaskDefinitionToProject(input: AdvancedTaskToProjectInput!): AdvancedTaskProject
+    registerTask(input: TaskRegistrationInput!): TaskRegistration
+    invokeRegisteredTask(taskRegistration: Int!, environment: Int!): Task
     taskDrushArchiveDump(environment: Int!): Task
     taskDrushSqlDump(environment: Int!): Task
     taskDrushCacheClear(environment: Int!): Task

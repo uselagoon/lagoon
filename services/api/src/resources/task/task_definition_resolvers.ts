@@ -137,19 +137,19 @@ export const addAdvancedTaskDefinition = async (
     switch(type) {
       case(AdvancedTaskDefinitionType.image):
         if(!image || 0 === image.length) {
-          // throw new Error("Unable to create Advanced task definition, );
+          throw new Error("Unable to create Advanced task definition");
         }
 
       break;
       case(AdvancedTaskDefinitionType.command):
-
+        if(!command || 0 === command.length) {
+          throw new Error("Unable to create Advanced task definition");
+        }
       break;
       default:
         throw new Error("Undefined Advanced Task Definition type passed at creation time: " + type);
       break;
     }
-
-
 
     const {
         info: { insertId },
@@ -251,6 +251,124 @@ const taskStatusTypeToString = R.cond([
     [R.equals('FAILED'), R.toLower],
     [R.T, R.identity],
   ]);
+
+
+const taskRegistrationType = {
+  standard: "STANDARD",
+  advanced: "ADVANCED"
+}
+
+export const invokeRegisteredTask = async (
+  root,
+    {
+      taskRegistration,
+      environment
+    },
+    { sqlClient, hasPermission },
+) =>
+{
+
+  //selectTaskRegistrationById
+  let rows = await query(sqlClient,Sql.selectTaskRegistrationById(taskRegistration));
+  let task = R.prop(0, rows)
+  console.log(task);
+
+  switch(task.type) {
+    case(taskRegistrationType.standard):
+    const taskData = await Helpers(sqlClient).addTask({
+      id: null,
+      name: task.name,
+      environment: environment,
+      service: task.service,
+      command: task.command,
+      execute: true,
+    });
+    return taskData;
+    break;
+    case(taskRegistrationType.advanced):
+
+    //TODO: DRY THIS OUT ASAP
+
+    //pull advanced task by ID to get the container name
+    let addTaskDef = await adTaskFunctions.advancedTaskDefinitionById(root, task.advanced_task_definition, sqlClient)
+
+
+    // the return data here is basically what gets dropped into the DB.
+    // what we can do
+    const taskData = await Helpers(sqlClient).addAdvancedTask({
+      id,
+      name: task.name,
+      status: null,
+      created: undefined,
+      started: undefined,
+      completed: undefined,
+      environment,
+      service: undefined,
+      image: addTaskDef.image,//the return data here is basically what gets dropped into the DB.
+      payload: [],
+      remoteId: undefined,
+      execute: true,
+    });
+
+    break;
+    default:
+      throw new Error("Cannot find matching task")
+    break;
+  }
+
+  return null
+}
+
+export const registerTask = async (
+  root,
+    {
+      input: {
+        id,
+        type,
+        name,
+        description,
+        advancedTaskDefinition,
+        environment,
+        project,
+        command,
+        service,
+      },
+    },
+    { sqlClient, hasPermission },
+) =>
+{
+
+  // Check - if this is a project linked item, does the person have access to add to projects?
+
+  // Check - if this is an environment linked item, does the client have access to add to this environment?
+
+
+  const {
+    info: { insertId },
+} = await query(
+  sqlClient,
+  Sql.insertTaskRegistration(
+    {
+      id: null,
+      type,
+      name,
+      description,
+      advanced_task_definition: advancedTaskDefinition,
+      environment,
+      project,
+      command,
+      service,
+      created: null,
+      deleted: null,
+    }
+  ),
+);
+
+let rows = await query(sqlClient,Sql.selectTaskRegistrationById(insertId));
+let row = R.prop(0, rows)
+console.log(row)
+return row
+}
 
 
 export const addAdvancedTask: ResolverFn = async (
