@@ -988,9 +988,9 @@ helm/repos: local-dev/helm
 	./local-dev/helm repo add lagoon https://uselagoon.github.io/lagoon-charts/
 	./local-dev/helm repo update
 
+# stand up a kind cluster configured appropriately for lagoon testing
 .PHONY: kind/cluster
 kind/cluster: local-dev/kind
-	# stand up a kind cluster configured appropriately for lagoon testing
 	./local-dev/kind get clusters | grep -q "$(CI_BUILD_TAG)" && exit; \
 		docker network create kind || true \
 		&& export KUBECONFIG=$$(mktemp) \
@@ -1007,6 +1007,12 @@ kind/cluster: local-dev/kind
 		&& echo '  extraMounts:'                                                                      >> $$KINDCONFIG \
 		&& echo '  - containerPath: /var/lib/kubelet/config.json'                                     >> $$KINDCONFIG \
 		&& echo '    hostPath: $(HOME)/.docker/config.json'                                           >> $$KINDCONFIG \
+		&& echo '  - containerPath: /lagoon/services'                                                 >> $$KINDCONFIG \
+		&& echo '    hostPath: ./services'                                                            >> $$KINDCONFIG \
+		&& echo '    readOnly: false'                                                                 >> $$KINDCONFIG \
+		&& echo '  - containerPath: /lagoon/node-packages'                                            >> $$KINDCONFIG \
+		&& echo '    hostPath: ./node-packages'                                                       >> $$KINDCONFIG \
+		&& echo '    readOnly: false'                                                                 >> $$KINDCONFIG \
 		&& KIND_CLUSTER_NAME="$(CI_BUILD_TAG)" ./local-dev/kind create cluster --config=$$KINDCONFIG \
 		&& cp $$KUBECONFIG "kubeconfig.kind.$(CI_BUILD_TAG)" \
 		&& echo -e 'Interact with the cluster during the test run in Jenkins like so:\n' \
@@ -1025,13 +1031,13 @@ ifeq ($(ARCH), darwin)
       tcp-listen:32080,fork,reuseaddr tcp-connect:target:32080
 endif
 
-KIND_SERVICES = api api-db api-redis auth-server broker controllerhandler docker-host drush-alias keycloak keycloak-db webhook-handler webhooks2tasks kubectl-build-deploy-dind local-api-data-watcher-pusher local-git ssh tests
+KIND_SERVICES = api api-db api-redis auth-server broker controllerhandler docker-host drush-alias keycloak keycloak-db webhook-handler webhooks2tasks kubectl-build-deploy-dind local-api-data-watcher-pusher local-git ssh tests ui
 KIND_TESTS = local-api-data-watcher-pusher local-git tests
 KIND_TOOLS = kind helm kubectl jq
 
+# install lagoon charts and run lagoon test suites in a kind cluster
 .PHONY: kind/test
 kind/test: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addprefix build/,$(KIND_SERVICES))
-	# install lagoon charts and run lagoon test suites in a kind cluster
 	export CHARTSDIR=$$(mktemp -d ./lagoon-charts.XXX) \
 		&& ln -sfn "$$CHARTSDIR" lagoon-charts.kind.lagoon \
 		&& git clone https://github.com/uselagoon/lagoon-charts.git "$$CHARTSDIR" \
@@ -1040,7 +1046,7 @@ kind/test: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addpr
 		&& export KUBECONFIG="$$(realpath ../kubeconfig.kind.$(CI_BUILD_TAG))" \
 		&& export IMAGE_REGISTRY="registry.$$(../local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
 		&& $(MAKE) install-registry HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
-		&& cd .. && $(MAKE) kind/push-images && cd "$$CHARTSDIR" \
+		&& cd .. && $(MAKE) -j6 kind/push-images && cd "$$CHARTSDIR" \
 		&& $(MAKE) fill-test-ci-values TESTS=$(TESTS) IMAGE_TAG=$(SAFE_BRANCH_NAME) \
 			HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
 			JQ=$$(realpath ../local-dev/jq) \
@@ -1055,9 +1061,41 @@ kind/test: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addpr
 			"quay.io/helmpack/chart-testing:v3.3.1" \
 			ct install
 
+LOCAL_DEV_SERVICES = api auth-server controllerhandler logs2email logs2microsoftteams logs2rocketchat logs2slack ui webhook-handler webhooks2tasks
+
+# kind/local-dev-patch will build the services in LOCAL_DEV_SERVICES on your machine, and then use kubectl patch to mount the folders into Kubernetes
+# the deployments should be restarted to trigger any updated code changes
+# `kubectl rollout undo deployment` can be used to rollback a deployment to before the annotated patch
+# ensure that the correct version of Node to build the services is set on your machine
+.PHONY: kind/local-dev-patch
+kind/local-dev-patch:
+	export KUBECONFIG="$$(pwd)/kubeconfig.kind.$(CI_BUILD_TAG)" && \
+		export IMAGE_REGISTRY="registry.$$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
+		&& for image in $(LOCAL_DEV_SERVICES); do \
+			echo "building $$image" \
+			&& cd services/$$image && yarn install && yarn build && cd ../..; \
+		done \
+		&& for image in $(LOCAL_DEV_SERVICES); do \
+			echo "patching lagoon-core-$$image" \
+			&& ./local-dev/kubectl --namespace lagoon patch deployment lagoon-core-$$image --patch-file ./local-dev/kubectl-patches/$$image.yaml; \
+		done
+
+# kind/dev can only be run once a cluster is up and running (run kind/test first) - it doesn't rebuild the cluster at all, just pushes the built images
+# into the image registry and reinstalls the lagoon-core helm chart.
+.PHONY: kind/dev
+kind/dev: $(addprefix build/,$(KIND_SERVICES))
+	export KUBECONFIG="$$(realpath ./kubeconfig.kind.$(CI_BUILD_TAG))" \
+		&& export IMAGE_REGISTRY="registry.$$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
+		&& $(MAKE) kind/push-images && cd lagoon-charts.kind.lagoon \
+		&& $(MAKE) install-lagoon-core IMAGE_TAG=$(SAFE_BRANCH_NAME) \
+			HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
+			JQ=$$(realpath ../local-dev/jq) \
+			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=$$IMAGE_REGISTRY/kubectl-build-deploy-dind:$(SAFE_BRANCH_NAME) \
+			IMAGE_REGISTRY=$$IMAGE_REGISTRY
+
 .PHONY: kind/push-images
 kind/push-images:
-		export KUBECONFIG="$$(pwd)/kubeconfig.kind.$(CI_BUILD_TAG)" && \
+	export KUBECONFIG="$$(pwd)/kubeconfig.kind.$(CI_BUILD_TAG)" && \
 		export IMAGE_REGISTRY="registry.$$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
 		&& docker login -u admin -p Harbor12345 $$IMAGE_REGISTRY \
 		&& for image in $(KIND_SERVICES); do \

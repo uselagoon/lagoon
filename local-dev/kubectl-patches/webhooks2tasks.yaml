@@ -1,0 +1,29 @@
+---
+metadata:
+  annotations:
+    kubernetes.io/change-cause: "Add local-dev volume mounts"
+spec:
+  template:
+    spec:
+      containers:
+      - name: webhooks2tasks
+        volumeMounts:
+        - mountPath: "/app/services/webhooks2tasks/src"
+          name: webhooks2tasks-src
+        - mountPath: "/app/services/webhooks2tasks/dist"
+          name: webhooks2tasks-dist
+        - mountPath: "/app/node-packages"
+          name: node-packages
+      volumes:
+      - name: webhooks2tasks-src
+        hostPath:
+          path: "/lagoon/services/webhooks2tasks/src"
+          type: Directory
+      - name: webhooks2tasks-dist
+        hostPath:
+          path: "/lagoon/services/webhooks2tasks/dist"
+          type: Directory
+      - name: node-packages
+        hostPath:
+          path: "/lagoon/node-packages"
+          type: Directory
