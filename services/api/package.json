@@ -74,7 +74,7 @@
     "snakecase-keys": "^1.2.0",
     "sshpk": "^1.14.2",
     "validator": "^10.8.0",
-    "winston": "^2.4.0"
+    "winston": "^3"
   },
   "devDependencies": {
     "@types/express": "^4.17.6",

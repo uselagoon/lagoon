@@ -13,6 +13,7 @@ import { Sql as projectSql } from '../project/sql';
 import { Sql as environmentSql } from '../environment/sql';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import EVENTS from './events';
+const userActivityLogger = require('../../userActivityLogger');
 
 const restoreStatusTypeToString = R.cond([
   [R.equals('PENDING'), R.toLower],
@@ -48,7 +49,7 @@ export const addBackup: ResolverFn = async (
       id, environment: environmentId, source, backupId, created,
     },
   },
-  { sqlClient, hasPermission },
+  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
 ) => {
   const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
   await hasPermission('backup', 'add', {
@@ -72,6 +73,14 @@ export const addBackup: ResolverFn = async (
 
   pubSub.publish(EVENTS.BACKUP.ADDED, backup);
 
+  userActivityLogger.user_action(`User deployed backup '${backupId}' to '${environment.name}' on project '${environment.project}'`, {
+    user: keycloakGrant,
+    headers: requestHeaders,
+    payload: {
+      id, environment, source, backupId, created
+    }
+  });
+
   return backup;
 };
 
@@ -81,12 +90,14 @@ export const deleteBackup: ResolverFn = async (
   {
     sqlClient,
     hasPermission,
+    keycloakGrant,
+    requestHeaders
   },
 ) => {
   const perms = await query(sqlClient, Sql.selectPermsForBackup(backupId));
-
+  const pid = R.path(['0', 'pid'], perms);
   await hasPermission('backup', 'delete', {
-    project: R.path(['0', 'pid'], perms),
+    project: pid,
   });
 
   await query(sqlClient, Sql.deleteBackup(backupId));
@@ -94,17 +105,31 @@ export const deleteBackup: ResolverFn = async (
   const rows = await query(sqlClient, Sql.selectBackupByBackupId(backupId));
   pubSub.publish(EVENTS.BACKUP.DELETED, R.prop(0, rows));
 
+  userActivityLogger.user_action(`User deleted backup '${backupId}' for project ${pid}`, {
+    user: keycloakGrant,
+    headers: requestHeaders,
+    payload: {
+     backupId,
+     project: pid
+    }
+  });
+
   return 'success';
 };
 
 export const deleteAllBackups: ResolverFn = async (
   root,
   args,
-  { sqlClient, hasPermission },
+  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
 ) => {
   await hasPermission('backup', 'deleteAll');
 
   await query(sqlClient, Sql.truncateBackup());
+
+  userActivityLogger.user_action(`User deleted all backups`, {
+    user: keycloakGrant,
+    headers: requestHeaders
+  });
 
   // TODO: Check rows for success
   return 'success';
@@ -122,7 +147,7 @@ export const addRestore: ResolverFn = async (
       execute,
     },
   },
-  { sqlClient, hasPermission },
+  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
 ) => {
   const perms = await query(sqlClient, Sql.selectPermsForBackup(backupId));
 
@@ -195,6 +220,15 @@ export const addRestore: ResolverFn = async (
     );
   }
 
+  userActivityLogger.user_action(`User restored backup '${backupId}' for project ${projectData.project.name}`, {
+    user: keycloakGrant,
+    headers: requestHeaders,
+    payload: {
+      backupId,
+      data
+    }
+  });
+
   return restoreData;
 };
 
@@ -210,6 +244,8 @@ export const updateRestore: ResolverFn = async (
   {
     sqlClient,
     hasPermission,
+    keycloakGrant,
+    requestHeaders
   },
 ) => {
   const status = restoreStatusTypeToString(unformattedStatus);
@@ -249,6 +285,16 @@ export const updateRestore: ResolverFn = async (
   const backupData = R.prop(0, rows);
 
   pubSub.publish(EVENTS.BACKUP.UPDATED, backupData);
+
+  userActivityLogger.user_action(`User updated restore '${backupId}'`, {
+    user: keycloakGrant,
+    headers: requestHeaders,
+    payload: {
+      backupId,
+      patch,
+      backupData
+    }
+  });
 
   return restoreData;
 };

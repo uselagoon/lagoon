@@ -8,6 +8,7 @@ import { Helpers } from './helpers';
 import { Sql } from './sql';
 import { Sql as projectSql } from '../project/sql';
 import { Helpers as projectHelpers } from '../project/helpers';
+const userActivityLogger = require('../../userActivityLogger');
 
 const deployTypeToString = R.cond([
   [R.equals('BRANCH'), R.toLower],
@@ -314,7 +315,7 @@ export const getEnvironmentByKubernetesNamespaceName: ResolverFn = async (
 export const addOrUpdateEnvironment: ResolverFn = async (
   root,
   { input: unformattedInput },
-  { sqlClient, hasPermission },
+  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
 ) => {
   const input = R.compose(
     R.over(R.lensProp('environmentType'), envTypeToString),
@@ -322,10 +323,11 @@ export const addOrUpdateEnvironment: ResolverFn = async (
     R.over(R.lensProp('deployType'), deployTypeToString),
     R.over(R.lensProp('deployHeadRef'), R.defaultTo(null)),
     R.over(R.lensProp('deployTitle'), R.defaultTo(null)),
+    // @ts-ignore
   )(unformattedInput);
 
-  const pid = input.project.toString();
-  const openshiftProjectName = input.kubernetesNamespaceName || input.openshiftProjectName;
+  const pid = input['project'].toString();
+  const openshiftProjectName = input['kubernetesNamespaceName'] || input['openshiftProjectName'];
   if (!openshiftProjectName) {
     throw new Error('Must provide kubernetesNamespaceName or openshiftProjectName');
   }
@@ -358,13 +360,22 @@ export const addOrUpdateEnvironment: ResolverFn = async (
   const withK8s = Helpers(sqlClient).aliasOpenshiftToK8s([R.path([0, 0], rows)]);
   const environment = withK8s[0];
 
+  userActivityLogger.user_action(`User added or updated environment on project '${openshiftProjectName}'`, {
+    user: keycloakGrant,
+    headers: requestHeaders,
+    payload: {
+      input,
+      data: environment
+    }
+  });
+
   return environment;
 };
 
 export const addOrUpdateEnvironmentStorage: ResolverFn = async (
   root,
   { input: unformattedInput },
-  { sqlClient, hasPermission },
+  { sqlClient, hasPermission , keycloakGrant, requestHeaders},
 ) => {
   await hasPermission('environment', 'storage');
 
@@ -387,6 +398,16 @@ export const addOrUpdateEnvironmentStorage: ResolverFn = async (
 
   const rows = await query(sqlClient, prep(input));
   const environment = R.path([0, 0], rows);
+  const { name: projectName } = await projectHelpers(sqlClient).getProjectByEnvironmentId(environment['environment']);
+
+  userActivityLogger.user_action(`User updated environment storage on project '${projectName}'`, {
+    user: keycloakGrant,
+    headers: requestHeaders,
+    payload: {
+      projectName,
+      input
+    }
+  });
 
   return environment;
 };
@@ -394,7 +415,7 @@ export const addOrUpdateEnvironmentStorage: ResolverFn = async (
 export const deleteEnvironment: ResolverFn = async (
   root,
   { input: { project: projectName, name, execute } },
-  { sqlClient, hasPermission },
+  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
 ) => {
   const projectId = await projectHelpers(sqlClient).getProjectIdByName(
     projectName,
@@ -506,13 +527,23 @@ export const deleteEnvironment: ResolverFn = async (
     `*[${data.projectName}]* Deleting environment \`${environment.name}\``,
   );
 
+  userActivityLogger.user_action(`User deleted environment '${environment.name}' on project '${projectName}'`, {
+    user: keycloakGrant,
+    headers: requestHeaders,
+    payload: {
+      projectName,
+      environment,
+      data
+    }
+  });
+
   return 'success';
 };
 
 export const updateEnvironment: ResolverFn = async (
   root,
   { input: unformattedInput },
-  { sqlClient, hasPermission },
+  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
 ) => {
   const input = R.compose(
     R.over(R.lensPath(['patch', 'environmentType']), envTypeToString),
@@ -562,6 +593,28 @@ export const updateEnvironment: ResolverFn = async (
   const rows = await query(sqlClient, Sql.selectEnvironmentById(id));
   const withK8s = Helpers(sqlClient).aliasOpenshiftToK8s(rows);
 
+  userActivityLogger.user_action(`User updated environment '${curEnv.name}' on project '${curEnv.project}'`, {
+    user: keycloakGrant,
+    headers: requestHeaders,
+    payload: {
+      openshiftProjectName,
+      patch: {
+        project: input.patch.project,
+        deployType: input.patch.deployType,
+        deployBaseRef: input.patch.deployBaseRef,
+        deployHeadRef: input.patch.deployHeadRef,
+        deployTitle: input.patch.deployTitle,
+        environmentType: input.patch.environmentType,
+        openshiftProjectName,
+        route: input.patch.route,
+        routes: input.patch.routes,
+        monitoringUrls: input.patch.monitoringUrls,
+        autoIdle: input.patch.autoIdle,
+      },
+      data: withK8s
+    }
+  });
+
   return R.prop(0, withK8s);
 };
 
@@ -593,11 +646,19 @@ export const getAllEnvironments: ResolverFn = async (
 export const deleteAllEnvironments: ResolverFn = async (
   root,
   args,
-  { sqlClient, hasPermission },
+  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
 ) => {
   await hasPermission('environment', 'deleteAll');
 
   await query(sqlClient, Sql.truncateEnvironment());
+
+  userActivityLogger.user_action(`User deleted all environments'`, {
+    user: keycloakGrant,
+    headers: requestHeaders,
+    payload: {
+      args
+    }
+  });
 
   // TODO: Check rows for success
   return 'success';
@@ -606,7 +667,7 @@ export const deleteAllEnvironments: ResolverFn = async (
 export const setEnvironmentServices: ResolverFn = async (
   root,
   { input: { environment: environmentId, services } },
-  { sqlClient, hasPermission },
+  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
 ) => {
   const environment = await Helpers(sqlClient).getEnvironmentById(
     environmentId,
@@ -620,6 +681,15 @@ export const setEnvironmentServices: ResolverFn = async (
   for (const service of services) {
     await query(sqlClient, Sql.insertService(environmentId, service));
   }
+
+  userActivityLogger.user_action(`User set environment services for '${environment.name}'`, {
+    user: keycloakGrant,
+    headers: requestHeaders,
+    payload: {
+      environment,
+      services
+    }
+  });
 
   return query(sqlClient, Sql.selectServicesByEnvironmentId(environmentId));
 };

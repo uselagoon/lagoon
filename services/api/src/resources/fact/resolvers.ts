@@ -1,22 +1,10 @@
 // @flow
 
 import * as R from 'ramda';
-import { sendToLagoonLogs } from '@lagoon/commons/src/logs';
-import { createMiscTask } from '@lagoon/commons/src/tasks';
-import { knex, query, isPatchEmpty } from '../../util/db';
+import { query } from '../../util/db';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Sql } from './sql';
-import validator from 'validator';
-import {ResolverFn} from "../index";
-import {Helpers} from "../task/helpers";
-import {pubSub} from "../../clients/pubSub";
-import EVENTS from "../task/events";
-
-/* ::
-
-import type {ResolversObj} from '../';
-
-*/
+const userActivityLogger = require('../../userActivityLogger');
 
 export const getFactsByEnvironmentId = async (
   { id: environmentId },
@@ -46,7 +34,7 @@ export const addFact = async (
       id, environment: environmentId, name, value, source, description
     },
   },
-  { sqlClient, hasPermission },
+  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
 ) => {
 
   const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
@@ -69,6 +57,21 @@ export const addFact = async (
   );
 
   const rows = await query(sqlClient, Sql.selectFactByDatabaseId(insertId));
+
+  userActivityLogger.user_action(`User added a fact to environment '${environment.name}'`, {
+    user: keycloakGrant,
+    headers: requestHeaders,
+    payload: {
+      data: {
+        environment: environmentId,
+        name,
+        value,
+        source,
+        description
+      }
+    }
+  });
+
   return R.prop(0, rows);
 };
 
@@ -79,7 +82,7 @@ export const addFacts = async (
       facts
     }
   },
-  { sqlClient, hasPermission }
+  { sqlClient, hasPermission, keycloakGrant, requestHeaders }
 ) => {
 
   // We first check that the user has access to all of the environments, so this is an atomic operation.
@@ -109,6 +112,17 @@ export const addFacts = async (
     );
 
     const rows =  await query(sqlClient, Sql.selectFactByDatabaseId(insertId));
+
+    userActivityLogger.user_action(`User added facts to environments'`, {
+      user: keycloakGrant,
+      headers: requestHeaders,
+      payload: {
+        data: {
+          facts
+        }
+      }
+    });
+
     return R.prop(0, rows);
   });
 };
@@ -121,7 +135,7 @@ export const deleteFact = async (
       name,
     }
   },
-  { sqlClient, hasPermission },
+  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
 ) => {
   const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
 
@@ -130,6 +144,17 @@ export const deleteFact = async (
   });
 
   await query(sqlClient, Sql.deleteFact(environmentId, name));
+
+  userActivityLogger.user_action(`User deleted a fact`, {
+    user: keycloakGrant,
+    headers: requestHeaders,
+    payload: {
+      data: {
+        environment: environmentId,
+        name
+      }
+    }
+  });
 
   return 'success';
 };
@@ -142,7 +167,7 @@ export const deleteFactsFromSource = async (
      source,
     }
   },
-  { sqlClient, hasPermission },
+  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
 ) => {
   const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
 
@@ -151,6 +176,17 @@ export const deleteFactsFromSource = async (
   });
 
   await query(sqlClient, Sql.deleteFactsFromSource(environmentId, source));
+
+  userActivityLogger.user_action(`User deleted facts`, {
+    user: keycloakGrant,
+    headers: requestHeaders,
+    payload: {
+      data: {
+        environment: environmentId,
+        source
+      }
+    }
+  });
 
   return 'success';
 };

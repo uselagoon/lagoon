@@ -24,6 +24,7 @@ import {
 } from '@lagoon/commons/dist/api';
 const convertDateFormat = R.init;
 import { Sql as environmentSql } from '../environment/sql';
+const userActivityLogger = require('../../userActivityLogger');
 
 const deploymentStatusTypeToString = R.cond([
   [R.equals('NEW'), R.toLower],
@@ -202,6 +203,8 @@ export const addDeployment: ResolverFn = async (
   {
     sqlClient,
     hasPermission,
+    keycloakGrant,
+    requestHeaders
   },
 ) => {
   const status = deploymentStatusTypeToString(unformattedStatus);
@@ -230,6 +233,21 @@ export const addDeployment: ResolverFn = async (
   const rows = await query(sqlClient, Sql.selectDeployment(insertId));
   const deployment = await injectBuildLog(R.prop(0, rows));
 
+  userActivityLogger.user_action(`User deployed '${name}' to '${environment.project}'`, {
+    user: keycloakGrant,
+    headers: requestHeaders,
+    payload: {
+      id,
+      name,
+      status,
+      created,
+      started,
+      completed,
+      environment,
+      remoteId,
+    }
+  });
+
   pubSub.publish(EVENTS.DEPLOYMENT.ADDED, deployment);
   return deployment;
 };
@@ -240,6 +258,8 @@ export const deleteDeployment: ResolverFn = async (
   {
     sqlClient,
     hasPermission,
+    keycloakGrant,
+    requestHeaders
   },
 ) => {
   const perms = await query(sqlClient, Sql.selectPermsForDeployment(id));
@@ -249,6 +269,14 @@ export const deleteDeployment: ResolverFn = async (
   });
 
   await query(sqlClient, Sql.deleteDeployment(id));
+
+  userActivityLogger.user_action(`User deleted deployment '${id}'`, {
+    user: keycloakGrant,
+    headers: requestHeaders,
+    payload: {
+      deployment: id
+    }
+  });
 
   return 'success';
 };
@@ -271,8 +299,7 @@ export const updateDeployment: ResolverFn = async (
     },
   },
   {
-    sqlClient,
-    hasPermission,
+    sqlClient, hasPermission, keycloakGrant, requestHeaders
   },
 ) => {
   const status = deploymentStatusTypeToString(unformattedStatus);
@@ -317,6 +344,24 @@ export const updateDeployment: ResolverFn = async (
 
   pubSub.publish(EVENTS.DEPLOYMENT.UPDATED, deployment);
 
+  userActivityLogger.user_action(`User updated deployment '${id}'`, {
+    user: keycloakGrant,
+    headers: requestHeaders,
+    payload: {
+      id,
+      deployment,
+      patch: {
+        name,
+        status,
+        created,
+        started,
+        completed,
+        environment,
+        remoteId,
+      }
+    }
+  });
+
   return deployment;
 };
 
@@ -324,8 +369,7 @@ export const cancelDeployment: ResolverFn = async (
   root,
   { input: { deployment: deploymentInput } },
   {
-    sqlClient,
-    hasPermission,
+    sqlClient, hasPermission, keycloakGrant, requestHeaders
   },
 ) => {
   const deployment = await Helpers(sqlClient).getDeploymentByDeploymentInput(deploymentInput);
@@ -346,6 +390,16 @@ export const cancelDeployment: ResolverFn = async (
 
   try {
     await createMiscTask({ key: 'build:cancel', data });
+
+    userActivityLogger.user_action(`User canceled deployment for '${deployment.environment}'`, {
+      user: keycloakGrant,
+      headers: requestHeaders,
+      payload: {
+        deploymentInput,
+        data: data.build
+      }
+    });
+
     return 'success';
   } catch (error) {
     sendToLagoonLogs(
@@ -364,8 +418,7 @@ export const deployEnvironmentLatest: ResolverFn = async (
   root,
   { input: { environment: environmentInput } },
   {
-    sqlClient,
-    hasPermission,
+    sqlClient, hasPermission, keycloakGrant, requestHeaders
   },
 ) => {
   const environments = await environmentHelpers(
@@ -466,7 +519,7 @@ export const deployEnvironmentLatest: ResolverFn = async (
       break;
 
     default:
-      return `Error: Unkown deploy type ${environment.deployType}`;
+      return `Error: Unknown deploy type ${environment.deployType}`;
   }
 
   try {
@@ -482,6 +535,14 @@ export const deployEnvironmentLatest: ResolverFn = async (
         environment.name
       }\``,
     );
+
+    userActivityLogger.user_action(`User triggered deployment on '${deployData.projectName}' for '${environment.name}'`, {
+      user: keycloakGrant,
+      headers: requestHeaders,
+      payload: {
+        deployData
+      }
+    });
 
     return 'success';
   } catch (error) {
@@ -519,8 +580,7 @@ export const deployEnvironmentBranch: ResolverFn = async (
   root,
   { input: { project: projectInput, branchName, branchRef } },
   {
-    sqlClient,
-    hasPermission,
+    sqlClient, hasPermission, keycloakGrant, requestHeaders
   },
 ) => {
   const project = await projectHelpers(sqlClient).getProjectByProjectInput(
@@ -557,6 +617,14 @@ export const deployEnvironmentBranch: ResolverFn = async (
         deployData.branchName
       }\``,
     );
+
+    userActivityLogger.user_action(`User triggered a deployment on '${deployData.projectName}' for '${deployData.branchName}'`, {
+      user: keycloakGrant,
+      headers: requestHeaders,
+      payload: {
+        deployData
+      }
+    });
 
     return 'success';
   } catch (error) {
@@ -605,8 +673,7 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
     },
   },
   {
-    sqlClient,
-    hasPermission,
+    sqlClient, hasPermission, keycloakGrant, requestHeaders
   },
 ) => {
   const branchName = `pr-${number}`;
@@ -650,6 +717,14 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
       }\``,
     );
 
+    userActivityLogger.user_action(`User triggered a pull-request deployment on '${deployData.projectName}' for '${deployData.branchName}'`, {
+      user: keycloakGrant,
+      headers: requestHeaders,
+      payload: {
+        deployData
+      }
+    });
+
     return 'success';
   } catch (error) {
     switch (error.name) {
@@ -692,8 +767,7 @@ export const deployEnvironmentPromote: ResolverFn = async (
     },
   },
   {
-    sqlClient,
-    hasPermission,
+    sqlClient, hasPermission, keycloakGrant, requestHeaders
   },
 ) => {
   const destProject = await projectHelpers(sqlClient).getProjectByProjectInput(
@@ -749,6 +823,14 @@ export const deployEnvironmentPromote: ResolverFn = async (
         deployData.branchName
       }\``,
     );
+
+    userActivityLogger.user_action(`User promoted the environment on '${deployData.projectName}' from '${deployData.promoteSourceEnvironment}' to '${deployData.branchName}'`, {
+      user: keycloakGrant,
+      headers: requestHeaders,
+      payload: {
+        deployData
+      }
+    });
 
     return 'success';
   } catch (error) {

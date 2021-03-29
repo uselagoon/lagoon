@@ -4,6 +4,7 @@ import { s3Client } from '../../clients/aws';
 import { query } from '../../util/db';
 import { Sql } from './sql';
 import { Sql as taskSql } from '../task/sql';
+const userActivityLogger = require('../../userActivityLogger');
 
 const generateDownloadLink = file => {
   const url = s3Client.getSignedUrl('getObject', {

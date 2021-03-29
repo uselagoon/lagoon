@@ -2,7 +2,7 @@ import moment from 'moment';
 
 import { prepare, query } from '../util/db';
 
-import * as logger from '../logger';
+const logger = require('../logger');
 
 export interface Environment {
   id?: number; // int(11) NOT NULL AUTO_INCREMENT,
@@ -351,7 +351,7 @@ export const EnvironmentModel = (clients) => {
               ],
               "must_not": [
                 {
-                  "match_phrase": { 
+                  "match_phrase": {
                     "http_user_agent": { // New Logging - Kubernetes Ingress: Exclude requests from Statuscake
                       "query": "StatusCake"
                     }
@@ -363,7 +363,7 @@ export const EnvironmentModel = (clients) => {
                       "query": "UptimeRobot"
                     }
                   }
-                },                
+                },
                 {
                   "match_phrase": {
                     "request_user_agent": { // New Logging - OpenShift Router: Exclude requests from Statuscake

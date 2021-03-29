@@ -1,7 +1,7 @@
 import * as R from 'ramda';
 import { getRedisCache, saveRedisCache } from '../clients/redisClient';
 import { verify } from 'jsonwebtoken';
-import * as logger from '../logger';
+const logger = require('../logger');
 import { keycloakGrantManager } from'../clients/keycloakClient';
 import { User } from '../models/user';
 import { Group } from '../models/group';
@@ -9,6 +9,9 @@ import { Group } from '../models/group';
 const { JWTSECRET, JWTAUDIENCE } = process.env;
 
 interface ILegacyToken {
+  iat: string,
+  iss: string,
+  sub: string,
   aud: string,
   role: string,
 }
@@ -69,13 +72,17 @@ export const getCredentialsForLegacyToken = async (sqlClient, token) => {
     throw new Error(`Error decoding token: ${e.message}`);
   }
 
-  const { role = 'none' } = decoded;
+  const { role = 'none', aud, sub, iss, iat } = decoded;
 
   if (role !== 'admin') {
     throw new Error('Cannot authenticate non-admin user with legacy token.');
   }
 
   return {
+    iat,
+    sub,
+    iss,
+    aud,
     role,
     permissions: {},
   };
@@ -280,7 +287,7 @@ export const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) 
     } catch (err) {
       // Keycloak library doesn't distinguish between a request error or access
       // denied conditions.
-      logger.debug(`keycloakHasPermission denied for "${scope}" on "${resource}": ${err.message}`);
+      logger.debug(`keycloakHasPermission denied for '${currentUser.username}' trying to "${scope}" on "${resource}": ${err.message}`);
     }
 
     requestCache.set(cacheKey, false);

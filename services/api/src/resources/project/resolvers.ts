@@ -2,7 +2,8 @@ import * as R from 'ramda';
 import validator from 'validator';
 import sshpk from 'sshpk';
 import { ResolverFn } from '../';
-import logger from '../../logger';
+const logger = require('../../logger');
+const userActivityLogger = require('../../userActivityLogger');
 import {
   inClause,
   prepare,
@@ -263,6 +264,7 @@ export const addProject = async (
     sqlClient,
     models,
     keycloakGrant,
+    requestHeaders
   },
 ) => {
   await hasPermission('project', 'add');
@@ -369,7 +371,6 @@ export const addProject = async (
   const withK8s = Helpers(sqlClient).aliasOpenshiftToK8s([R.path([0, 0], rows)]);
   const project = withK8s[0];
 
-
   // Create a default group for this project
   let group;
   try {
@@ -428,7 +429,7 @@ export const addProject = async (
   try {
     await models.GroupModel.addUserToGroup(user, group, 'maintainer');
   } catch (err) {
-    logger.error(`Could not link user to default projet group for ${project.name}: ${err.message}`);
+    logger.error(`Could not link user to default project group for ${project.name}: ${err.message}`);
   }
 
   // Add the user who submitted this request to the project
@@ -448,13 +449,21 @@ export const addProject = async (
     try {
       await models.GroupModel.addUserToGroup(user, group, 'owner');
     } catch (err) {
-      logger.error(`Could not link requesting user to default projet group for ${project.name}: ${err.message}`);
+      logger.error(`Could not link requesting user to default project group for ${project.name}: ${err.message}`);
     }
   }
 
   const harborOperations = createHarborOperations(sqlClient);
-
   const harborResults = await harborOperations.addProject(project.name, project.id)
+
+  userActivityLogger.user_action(`User added a project '${project.name}'`, {
+    user: keycloakGrant,
+    headers: requestHeaders,
+    payload: {
+      input,
+      data: harborResults
+    }
+  });
 
   return project;
 };
@@ -465,6 +474,8 @@ export const deleteProject: ResolverFn = async (
   {
     sqlClient,
     hasPermission,
+    keycloakGrant,
+    requestHeaders,
     models,
   },
 ) => {
@@ -499,6 +510,16 @@ export const deleteProject: ResolverFn = async (
   //const harborOperations = createHarborOperations(sqlClient);
 
   //const harborResults = await harborOperations.deleteProject(project.name)
+
+  userActivityLogger.user_action(`User deleted a project '${project.name}'`, {
+    user: keycloakGrant,
+    headers: requestHeaders,
+    payload: {
+      input: {
+        project
+      },
+    }
+  });
 
   return 'success';
 };
@@ -539,6 +560,8 @@ export const updateProject: ResolverFn = async (
   {
     sqlClient,
     hasPermission,
+    keycloakGrant,
+    requestHeaders,
     models,
   },
 ) => {
@@ -687,13 +710,45 @@ export const updateProject: ResolverFn = async (
   //   );
   // }
 
+  userActivityLogger.user_action(`User updated a project '${oldProject.name}'`, {
+    user: keycloakGrant,
+    headers: requestHeaders,
+    payload: {
+      patch: {
+        name,
+        gitUrl,
+        availability,
+        privateKey,
+        subfolder,
+        activeSystemsDeploy,
+        activeSystemsRemove,
+        activeSystemsTask,
+        activeSystemsMisc,
+        activeSystemsPromote,
+        branches,
+        productionEnvironment,
+        productionRoutes,
+        productionAlias,
+        standbyProductionEnvironment,
+        standbyRoutes,
+        standbyAlias,
+        autoIdle,
+        storageCalc,
+        problemsUi,
+        factsUi,
+        pullrequests,
+        developmentEnvironmentsLimit,
+      }
+    }
+  });
+
   return Helpers(sqlClient).getProjectById(id);
 };
 
 export const deleteAllProjects: ResolverFn = async (
   root,
   args,
-  { sqlClient, hasPermission },
+  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
 ) => {
   await hasPermission('project', 'deleteAll');
 
@@ -705,6 +760,14 @@ export const deleteAllProjects: ResolverFn = async (
     await KeycloakOperations.deleteGroup(name);
   }
 
+  userActivityLogger.user_action(`User deleted all projects`, {
+    user: keycloakGrant,
+    headers: requestHeaders,
+    payload: {
+      ...args
+    }
+  });
+
   // TODO: Check rows for success
   return 'success';
 };
@@ -714,13 +777,10 @@ export const removeProjectMetadataByKey: ResolverFn = async (
   {
     input: {
       id,
-      key,
-    },
+      key
+    }
   },
-  {
-    sqlClient,
-    hasPermission,
-  },
+  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
 ) => {
 
   await hasPermission('project', 'update', {
@@ -743,6 +803,18 @@ export const removeProjectMetadataByKey: ResolverFn = async (
 
   const prep = prepare(sqlClient, str);
   await query(sqlClient, prep({ id, meta_key: `$.${key}` }));
+
+  userActivityLogger.user_action(`User removed project metadata key '${key}'`, {
+    user: keycloakGrant,
+    headers: requestHeaders,
+    payload: {
+      input: {
+        id,
+        key
+      }
+    }
+  });
+
   return Helpers(sqlClient).getProjectById(id);
 };
 
@@ -759,10 +831,7 @@ export const updateProjectMetadata: ResolverFn = async (
       },
     },
   },
-  {
-    sqlClient,
-    hasPermission,
-  },
+  { sqlClient, hasPermission, keycloakGrant, requestHeaders }
 ) => {
 
   await hasPermission('project', 'update', {
@@ -789,5 +858,18 @@ export const updateProjectMetadata: ResolverFn = async (
 
   const prep = prepare(sqlClient, str);
   await query(sqlClient, prep({ id, meta_key: `$.${key}`, meta_value: value }));
+
+  userActivityLogger.user_action(`User updated project metadata`, {
+    user: keycloakGrant,
+    headers: requestHeaders,
+    payload: {
+      patch: {
+        project: id,
+        key,
+        value,
+      }
+    }
+  });
+
   return Helpers(sqlClient).getProjectById(id);
 };

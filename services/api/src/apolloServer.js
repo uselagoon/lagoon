@@ -18,6 +18,7 @@ const esClient = require('./clients/esClient');
 const redisClient = require('./clients/redisClient');
 const { getKeycloakAdminClient } = require('./clients/keycloak-admin');
 const logger = require('./logger');
+const userActivityLogger = require('./userActivityLogger');
 const typeDefs = require('./typeDefs');
 const resolvers = require('./resolvers');
 
@@ -29,6 +30,63 @@ const EnvironmentModel = require('./models/environment');
 
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 
+const getGrantOrLegacyCredsFromToken = async (token) => {
+  let grant, legacyCredentials;
+
+  const sqlClientKeycloak = getSqlClient();
+  try {
+    grant = await getGrantForKeycloakToken(sqlClientKeycloak, token);
+
+    const { sub: currentUserId, azp: source, preferred_username, email, aud } = grant.access_token.content;
+    const username = preferred_username ? preferred_username : 'unknown';
+
+    userActivityLogger.user_auth(`Authentication granted for '${username} (${email ? email : 'unknown'})' from '${source}'`, {
+      id: currentUserId,
+      username: username,
+      email: email,
+      source: source
+    });
+
+    sqlClientKeycloak.end();
+  } catch (e) {
+    // It might be a legacy token, so continue on.
+    sqlClientKeycloak.end();
+    logger.debug(`Keycloak token auth failed: ${e.message}`);
+  }
+
+  const sqlClientLegacy = getSqlClient();
+  try {
+    if (!grant) {
+      legacyCredentials = await getCredentialsForLegacyToken(
+        sqlClientLegacy,
+        token
+      );
+
+      const { sub, iss, iat, role } = legacyCredentials;
+      const username = sub ? sub : 'unknown';
+      const source = iss ? iss : 'unknown';
+
+      userActivityLogger.user_auth(`Authentication granted for '${username}' from '${source}'`, {
+        id: iat,
+        username: username,
+        source: source,
+        role: role
+      });
+
+      sqlClientLegacy.end();
+    }
+  } catch (e) {
+    sqlClientLegacy.end();
+    throw new AuthenticationError(e.message);
+    logger.debug(`Keycloak legacy auth failed: ${e.message}`);
+  }
+
+  return {
+    grant: grant ? grant : null,
+    legacyCredentials: legacyCredentials ? legacyCredentials : null
+  }
+}
+
 const apolloServer = new ApolloServer({
   schema,
   debug: process.env.NODE_ENV === 'development',
@@ -36,37 +94,12 @@ const apolloServer = new ApolloServer({
   subscriptions: {
     onConnect: async (connectionParams, webSocket) => {
       const token = R.prop('authToken', connectionParams);
-      let grant;
-      let legacyCredentials;
 
       if (!token) {
         throw new AuthenticationError('Auth token missing.');
       }
 
-      const sqlClientKeycloak = getSqlClient();
-      try {
-        grant = await getGrantForKeycloakToken(sqlClientKeycloak, token);
-        sqlClientKeycloak.end();
-      } catch (e) {
-        sqlClientKeycloak.end();
-        // It might be a legacy token, so continue on.
-        logger.debug(`Keycloak token auth failed: ${e.message}`);
-      }
-
-      const sqlClientLegacy = getSqlClient();
-      try {
-        if (!grant) {
-          legacyCredentials = await getCredentialsForLegacyToken(
-            sqlClientLegacy,
-            token
-          );
-          sqlClientLegacy.end();
-        }
-      } catch (e) {
-        sqlClientLegacy.end();
-        throw new AuthenticationError(e.message);
-      }
-
+      const { grant, legacyCredentials } = await getGrantOrLegacyCredsFromToken(token);
       const keycloakAdminClient = await getKeycloakAdminClient();
       const requestCache = new NodeCache({
         stdTTL: 0,
@@ -137,7 +170,8 @@ const apolloServer = new ApolloServer({
               keycloakAdminClient
             )
           : legacyHasPermission(req.legacyCredentials),
-        keycloakGrant: req.kauth ? req.kauth.grant : null,
+        keycloakGrant: req.kauth ? req.kauth.grant : req.legacyCredentials ? req.legacyCredentials : null,
+        requestHeaders: req.headers,
         requestCache,
         models: {
           UserModel: User.User({ keycloakAdminClient, redisClient }),

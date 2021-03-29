@@ -10,33 +10,9 @@ const rabbitmqHost = process.env.RABBITMQ_HOST || 'broker';
 const rabbitmqUsername = process.env.RABBITMQ_USERNAME || 'guest';
 const rabbitmqPassword = process.env.RABBITMQ_PASSWORD || 'guest';
 
-/* eslint-disable class-methods-use-this */
-class LoggerConverter {
-  child() {
-    return {
-      debug: logger.debug,
-      trace: logger.silly,
-      error: logger.error,
-    };
-  }
-
-  error(...args) {
-    return logger.error.apply(args);
-  }
-
-  debug(...args) {
-    return logger.debug(args);
-  }
-
-  trace(...args) {
-    return logger.silly(args);
-  }
-}
-/* eslint-enable class-methods-use-this */
-
 const pubSub = new AmqpPubSub({
   config: `amqp://${rabbitmqUsername}:${rabbitmqPassword}@${rabbitmqHost}`,
-  logger: new LoggerConverter(),
+  logger: logger,
 });
 
 const createEnvironmentFilteredSubscriber = (events) => ({

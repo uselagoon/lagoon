@@ -16,6 +16,8 @@ import EVENTS from './events';
 import { Helpers } from './helpers';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Validators as envValidators } from '../environment/validators';
+import { getSshKeyFingerprint } from '../sshKey';
+const userActivityLogger = require('../../userActivityLogger');
 
 const taskStatusTypeToString = R.cond([
   [R.equals('ACTIVE'), R.toLower],
@@ -144,7 +146,7 @@ export const addTask: ResolverFn = async (
       execute: executeRequest,
     },
   },
-  { sqlClient, hasPermission },
+  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
 ) => {
   const status = taskStatusTypeToString(unformattedStatus);
 
@@ -178,16 +180,34 @@ export const addTask: ResolverFn = async (
     execute,
   });
 
+  userActivityLogger.user_action(`User added task '${name}'`, {
+    user: keycloakGrant,
+    headers: requestHeaders,
+    payload: {
+      input: {
+        id,
+        name,
+        status: unformattedStatus,
+        created,
+        started,
+        completed,
+        environment,
+        service,
+        command,
+        remoteId,
+        execute: executeRequest,
+      },
+      data: taskData
+    }
+  });
+
   return taskData;
 };
 
 export const deleteTask: ResolverFn = async (
   root,
   { input: { id } },
-  {
-    sqlClient,
-    hasPermission,
-  },
+  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
 ) => {
   const rows = await query(sqlClient, Sql.selectPermsForTask(id));
   await hasPermission('task', 'delete', {
@@ -195,6 +215,16 @@ export const deleteTask: ResolverFn = async (
   });
 
   await query(sqlClient, Sql.deleteTask(id));
+
+  userActivityLogger.user_action(`User deleted task '${id}'`, {
+    user: keycloakGrant,
+    headers: requestHeaders,
+    payload: {
+      input: {
+        id,
+      }
+    }
+  });
 
   return 'success';
 };
@@ -218,10 +248,7 @@ export const updateTask: ResolverFn = async (
       },
     },
   },
-  {
-    sqlClient,
-    hasPermission,
-  },
+  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
 ) => {
   const status = taskStatusTypeToString(unformattedStatus);
 
@@ -266,13 +293,32 @@ export const updateTask: ResolverFn = async (
 
   pubSub.publish(EVENTS.TASK.UPDATED, taskData);
 
+  userActivityLogger.user_action(`User updated task '${id}'`, {
+    user: keycloakGrant,
+    headers: requestHeaders,
+    payload: {
+      patch: {
+        name,
+        status,
+        created,
+        started,
+        completed,
+        environment,
+        service,
+        command,
+        remoteId
+      },
+      data: taskData
+    }
+  });
+
   return taskData;
 };
 
 export const taskDrushArchiveDump: ResolverFn = async (
   root,
   { environment: environmentId },
-  { sqlClient, hasPermission },
+  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
 ) => {
   await envValidators(sqlClient).environmentExists(environmentId);
   await envValidators(sqlClient).environmentHasService(environmentId, 'cli');
@@ -297,13 +343,21 @@ TOKEN="$(ssh -p $TASK_SSH_PORT -t lagoon@$TASK_SSH_HOST token)" && curl -sS "$TA
     execute: true,
   });
 
+  userActivityLogger.user_action(`User triggered a Drush Archive Dump task on environment '${environmentId}'`, {
+    user: keycloakGrant,
+    headers: requestHeaders,
+    payload: {
+      data: taskData
+    }
+  });
+
   return taskData;
 };
 
 export const taskDrushSqlDump: ResolverFn = async (
   root,
   { environment: environmentId },
-  { sqlClient, hasPermission },
+  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
 ) => {
   await envValidators(sqlClient).environmentExists(environmentId);
   await envValidators(sqlClient).environmentHasService(environmentId, 'cli');
@@ -328,13 +382,21 @@ TOKEN="$(ssh -p $TASK_SSH_PORT -t lagoon@$TASK_SSH_HOST token)" && curl -sS "$TA
     execute: true,
   });
 
+  userActivityLogger.user_action(`User triggered a Drush SQL Dump task on environment '${environmentId}'`, {
+    user: keycloakGrant,
+    headers: requestHeaders,
+    payload: {
+      data: taskData
+    }
+  });
+
   return taskData;
 };
 
 export const taskDrushCacheClear: ResolverFn = async (
   root,
   { environment: environmentId },
-  { sqlClient, hasPermission },
+  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
 ) => {
   await envValidators(sqlClient).environmentExists(environmentId);
   await envValidators(sqlClient).environmentHasService(environmentId, 'cli');
@@ -362,13 +424,21 @@ export const taskDrushCacheClear: ResolverFn = async (
     execute: true,
   });
 
+  userActivityLogger.user_action(`User triggered a Drush cache clear task on environment '${environmentId}'`, {
+    user: keycloakGrant,
+    headers: requestHeaders,
+    payload: {
+      data: taskData
+    }
+  });
+
   return taskData;
 };
 
 export const taskDrushCron: ResolverFn = async (
   root,
   { environment: environmentId },
-  { sqlClient, hasPermission },
+  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
 ) => {
   await envValidators(sqlClient).environmentExists(environmentId);
   await envValidators(sqlClient).environmentHasService(environmentId, 'cli');
@@ -385,6 +455,14 @@ export const taskDrushCron: ResolverFn = async (
     execute: true,
   });
 
+  userActivityLogger.user_action(`User triggered a Drush cron task on environment '${environmentId}'`, {
+    user: keycloakGrant,
+    headers: requestHeaders,
+    payload: {
+      data: taskData
+    }
+  });
+
   return taskData;
 };
 
@@ -394,7 +472,7 @@ export const taskDrushSqlSync: ResolverFn = async (
     sourceEnvironment: sourceEnvironmentId,
     destinationEnvironment: destinationEnvironmentId,
   },
-  { sqlClient, hasPermission },
+  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
 ) => {
   await envValidators(sqlClient).environmentExists(sourceEnvironmentId);
   await envValidators(sqlClient).environmentExists(destinationEnvironmentId);
@@ -429,6 +507,14 @@ export const taskDrushSqlSync: ResolverFn = async (
     execute: true,
   });
 
+  userActivityLogger.user_action(`User triggered a Drush SQL sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`, {
+    user: keycloakGrant,
+    headers: requestHeaders,
+    payload: {
+      data: taskData
+    }
+  });
+
   return taskData;
 };
 
@@ -438,7 +524,7 @@ export const taskDrushRsyncFiles: ResolverFn = async (
     sourceEnvironment: sourceEnvironmentId,
     destinationEnvironment: destinationEnvironmentId,
   },
-  { sqlClient, hasPermission },
+  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
 ) => {
   await envValidators(sqlClient).environmentExists(sourceEnvironmentId);
   await envValidators(sqlClient).environmentExists(destinationEnvironmentId);
@@ -475,13 +561,21 @@ export const taskDrushRsyncFiles: ResolverFn = async (
     execute: true,
   });
 
+  userActivityLogger.user_action(`User triggered an rsync sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`, {
+    user: keycloakGrant,
+    headers: requestHeaders,
+    payload: {
+      data: taskData
+    }
+  });
+
   return taskData;
 };
 
 export const taskDrushUserLogin: ResolverFn = async (
   root,
   { environment: environmentId },
-  { sqlClient, hasPermission },
+  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
 ) => {
   await envValidators(sqlClient).environmentExists(environmentId);
   await envValidators(sqlClient).environmentHasService(environmentId, 'cli');
@@ -496,6 +590,14 @@ export const taskDrushUserLogin: ResolverFn = async (
     service: 'cli',
     command: `drush uli`,
     execute: true,
+  });
+
+  userActivityLogger.user_action(`User triggered a Drush user login task on '${environmentId}'`, {
+    user: keycloakGrant,
+    headers: requestHeaders,
+    payload: {
+      data: taskData
+    }
   });
 
   return taskData;

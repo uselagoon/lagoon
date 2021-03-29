@@ -1,7 +1,7 @@
 import { MariaClient } from 'mariasql';
 import opendistroSecurityClient from '../../clients/opendistroSecurityClient';
 import kibanaClient from '../../clients/kibanaClient';
-import logger from '../../logger';
+const logger = require('../../logger');
 import { Helpers as projectHelpers } from '../project/helpers';
 
 export const OpendistroSecurityOperations = (sqlClient: MariaClient, GroupModel) => ({

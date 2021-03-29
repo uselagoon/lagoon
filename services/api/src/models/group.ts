@@ -1,7 +1,7 @@
 import * as R from 'ramda';
 import { asyncPipe } from '@lagoon/commons/dist/util';
 import pickNonNil from '../util/pickNonNil';
-import * as logger from '../logger';
+const logger = require('../logger');
 import GroupRepresentation from 'keycloak-admin/lib/defs/groupRepresentation';
 import { User } from './user';
 
