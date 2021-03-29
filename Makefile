@@ -947,8 +947,7 @@ api-development: build/api build/api-db build/local-api-data-watcher-pusher buil
 KIND_VERSION = v0.10.0
 GOJQ_VERSION = v0.11.2
 KIND_IMAGE = kindest/node:v1.20.2@sha256:8f7ea6e7642c0da54f04a7ee10431549c0257315b3a634f6ef2fecaaedb19bab
-TESTS = [api,features-kubernetes,nginx,drupal-php73,drupal-php74,drupal-postgres,python,gitlab,github,bitbucket,node-mongodb,elasticsearch]
-CHARTS_TREEISH = main
+CHARTS_TREEISH = logging_replicas
 
 local-dev/kind:
 ifeq ($(KIND_VERSION), $(shell kind version 2>/dev/null | sed -nE 's/kind (v[0-9.]+).*/\1/p'))
@@ -1079,6 +1078,28 @@ kind/local-dev-patch:
 			echo "patching lagoon-core-$$image" \
 			&& ./local-dev/kubectl --namespace lagoon patch deployment lagoon-core-$$image --patch-file ./local-dev/kubectl-patches/$$image.yaml; \
 		done
+
+## Use local-dev-logging to deploy an Elasticsearch/Kibana cluster into docker compose and forward
+## container logs to it
+.PHONY: kind/local-dev-logging
+kind/local-dev-logging:
+	export KUBECONFIG="$$(pwd)/kubeconfig.kind.$(CI_BUILD_TAG)" \
+		&& docker-compose -f local-dev/odfe-docker-compose.yml -p odfe up -d \
+		&& ./local-dev/helm upgrade --install --create-namespace \
+			--namespace lagoon-logs-concentrator \
+			--wait --timeout 15m \
+			--values ./local-dev/lagoon-logs-concentrator.values.yaml \
+			lagoon-logs-concentrator \
+			./lagoon-charts.kind.lagoon/charts/lagoon-logs-concentrator \
+		&& ./local-dev/helm dependency update ./lagoon-charts.kind.lagoon/charts/lagoon-logging \
+		&& ./local-dev/helm upgrade --install --create-namespace --namespace lagoon-logging \
+			--wait --timeout 15m \
+			--values ./local-dev/lagoon-logging.values.yaml \
+			lagoon-logging \
+			./lagoon-charts.kind.lagoon/charts/lagoon-logging \
+		&& echo -e '\n\nInteract with the OpenDistro cluster at http://0.0.0.0:5601 using the default `admin/admin` credentials\n' \
+		&& echo -e 'You will need to create a default index at http://0.0.0.0:5601/app/management/kibana/indexPatterns/create \n' \
+		&& echo -e 'with a default `container-logs-*` pattern'
 
 # kind/dev can only be run once a cluster is up and running (run kind/test first) - it doesn't rebuild the cluster at all, just pushes the built images
 # into the image registry and reinstalls the lagoon-core helm chart.
