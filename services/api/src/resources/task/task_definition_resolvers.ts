@@ -15,10 +15,18 @@ import { Sql } from './sql';
 import EVENTS from './events';
 import { Helpers } from './helpers';
 import { Helpers as environmentHelpers } from '../environment/helpers';
+import { Helpers as projectHelpers } from '../project/helpers';
 import { Validators as envValidators } from '../environment/validators';
 import { getSqlClient } from '../../clients/sqlClient';
 import sql from '../user/sql';
 import { BreakingChangeType } from 'graphql';
+//import { getProjectByEnvironmentId } from '../project/helpers';
+import {TaskRegistration, newTaskRegistrationFromObject} from './models/taskRegistration'
+import { getProjectByEnvironmentId } from '../project/resolvers';
+
+
+// We'll use a couple of classes to ensure that our helper functions are getting the data they require
+
 
 
 // All query resolvers
@@ -34,17 +42,31 @@ export const advancedTaskDefinitionById = async(
     return await adTaskFunctions.advancedTaskDefinitionById(root, id, sqlClient);
 }
 
-// TODO
-// export const getAdvanceTasksForEnvironments
-// export const getAdvancedTasksForProject
-// export const getAdvancedTasksForGroup
 
-export const canAdvancedTaskRunInEnvironment = async(root, input, {sqlClient, hasPermission}) => {
-  //TODO: this should check first is the task is part of the list of environment, then project, then group, and then global tasks
-  // if it can be run, then it should be run.
-  return true
+const canTaskBeRunInEnvironment = async (sqlClient, environmentId: number, task: TaskRegistration) => {
+  //if the task is attached directly to the environment, we're good to go.
+  if(task.environment && task.environment == environmentId) {
+    return true;
+  }
+
+  // grab project for environment
+  try {
+    const proj = await projectHelpers(sqlClient).getProjectByEnvironmentId(environmentId);
+    // //else we have to check the environment against its project
+    console.log(proj)
+    if(task.project && task.project == proj.project) {
+      return true;
+    }
+
+  } catch(ex) {
+    return false
+  }
+
+
+
+
+  return false
 }
-
 
 
 export const resolveTasksForEnvironment = async(
@@ -253,11 +275,6 @@ const taskStatusTypeToString = R.cond([
   ]);
 
 
-const taskRegistrationType = {
-  standard: "STANDARD",
-  advanced: "ADVANCED"
-}
-
 export const invokeRegisteredTask = async (
   root,
     {
@@ -270,11 +287,25 @@ export const invokeRegisteredTask = async (
 
   //selectTaskRegistrationById
   let rows = await query(sqlClient,Sql.selectTaskRegistrationById(taskRegistration));
-  let task = R.prop(0, rows)
-  console.log(task);
+  let task = newTaskRegistrationFromObject(R.prop(0, rows))
+
+
+  //check current user can invoke tasks in this environment ...
+  await envValidators(sqlClient).environmentExists(environment);
+  const envPerm = await environmentHelpers(sqlClient).getEnvironmentById(environment);
+  await hasPermission('task', `add:${envPerm.environmentType}`, {
+    project: envPerm.project,
+  });
+
+  //check this task can _be invoked_ on this environment
+  let taskCanBeRun = await canTaskBeRunInEnvironment(sqlClient, environment, task)
+
+  if(!taskCanBeRun) {
+    throw new Error(`Task "${task.name}" cannot be run in environment`);
+  }
 
   switch(task.type) {
-    case(taskRegistrationType.standard):
+    case(TaskRegistration.TYPE_STANDARD):
     const taskData = await Helpers(sqlClient).addTask({
       id: null,
       name: task.name,
@@ -285,7 +316,7 @@ export const invokeRegisteredTask = async (
     });
     return taskData;
     break;
-    case(taskRegistrationType.advanced):
+    case(TaskRegistration.TYPE_ADVANCED):
 
     //TODO: DRY THIS OUT ASAP
 
@@ -295,8 +326,8 @@ export const invokeRegisteredTask = async (
 
     // the return data here is basically what gets dropped into the DB.
     // what we can do
-    const taskData = await Helpers(sqlClient).addAdvancedTask({
-      id,
+    const advancedTaskData = await Helpers(sqlClient).addAdvancedTask({
+      id: undefined,
       name: task.name,
       status: null,
       created: undefined,
@@ -310,6 +341,7 @@ export const invokeRegisteredTask = async (
       execute: true,
     });
 
+    return advancedTaskData;
     break;
     default:
       throw new Error("Cannot find matching task")
@@ -407,11 +439,13 @@ export const addAdvancedTask: ResolverFn = async (
 
     await envValidators(sqlClient).environmentExists(environment);
     const envPerm = await environmentHelpers(sqlClient).getEnvironmentById(environment);
+
     await hasPermission('task', `add:${envPerm.environmentType}`, {
       project: envPerm.project,
     });
 
     let execute;
+
     try {
       await hasPermission('task', 'addNoExec', {
         project: envPerm.project,
@@ -486,9 +520,6 @@ const adTaskFunctions = {
       console.log(rows[i])
       rows[i].advancedTaskDefinitionArguments = await adTaskFunctions.advancedTaskDefinitionArguments(root, rows[i].id, sqlClient)
     }
-    console.log("printing rows")
-    console.log(rows)
-    console.log("printing rows ends")
     return rows
   },
   advancedTaskDefinitionById: async(root, id, sqlClient) => {
