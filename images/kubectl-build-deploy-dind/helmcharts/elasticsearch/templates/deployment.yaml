@@ -34,6 +34,18 @@ spec:
       enableServiceLinks: false
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        # This init container sets the appropriate limits for mmap counts on the hosting node.
+        # https://www.elastic.co/guide/en/elasticsearch/reference/current/vm-max-map-count.html
+        - name: set-max-map-count
+          image: ubuntu:20.04
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          securityContext:
+            privileged: true
+          command:
+          - /bin/bash
+          - -c
+          - 'if [[ "$(sysctl vm.max_map_count --values)" -lt 262144 ]]; then sysctl -w vm.max_map_count=262144; fi'
       containers:
         - image: {{ .Values.image | quote }}
           name: {{ .Chart.Name }}
