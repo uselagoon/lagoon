@@ -75,18 +75,17 @@ These services are usually installed alongside either Lagoon Core or Lagoon Remo
   - [Trivy](https://github.com/aquasecurity/trivy) (scans images for vulnerability, and can report to Lagoon)
 
 - Lagoon Logging (optional)
-  - [logs-dispatcher](https://github.com/amazeeio/lagoon/tree/main/services/logs-dispatcher) (collects logs from sites and sends them to a central log collector)
-  - [logs-tee](https://github.com/amazeeio/lagoon/tree/main/services/logs-tee) (adds the ability to also direct logs to a third-party - eg SumoLogic, Splunk, DataDog, Cloudwatch)
-  - [lagoon-logs-concentrator](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-logs-concentrator) (collects logs from logs-dispatchers and sends them to Elasticsearch)
-  - [lagoon-logging](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-logging) (utilises [banzaicloud/logging-operator](https://github.com/banzaicloud/logging-operator) to manipulate logs for Lagoon's architecture)
-
+  - [lagoon-logging](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-logging) (utilizes [banzaicloud/logging-operator](https://github.com/banzaicloud/logging-operator) to collect and augment container&router logs from all sites, and sends them to a logs-dispatcher)
+  - [logs-dispatcher](https://github.com/amazeeio/lagoon/tree/main/services/logs-dispatcher) (collects application logs from sites, as well as container&router logs from lagoon-logging, enriches them with additional metadata and sends them to a central log concentrator)
+  - [lagoon-logs-concentrator](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-logs-concentrator) (collects logs from remote logs-dispatchers and sends them to Elasticsearch)
+  
 - Open Policy Agent (optional)
 
   - [lagoon-gatekeeper](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-gatekeeper) (centralized policy library for Lagoon)
 
 - Elasticsearch (optional)
   - [Open Distro for Elasticsearch](https://opendistro.github.io/for-elasticsearch/) (provides centralized log storage, search and analysis)
-  - [Kibana](https://opendistro.github.io/for-elasticsearch-docs/docs/kibana/) (the default user interface for Elasticsearch searching and visualisation)
+  - [Kibana](https://opendistro.github.io/for-elasticsearch-docs/docs/kibana/) (the default user interface for Elasticsearch searching and visualization)
 
 - Managed databases, for use with DBaaS operator (optional)
   - MariaDB (self managed or via [Amazon RDS for MariaDB](https://aws.amazon.com/rds/mariadb/), [Azure Database for MariaDB](https://docs.microsoft.com/en-us/azure/mariadb/#:~:text=Azure Database for MariaDB is,predictable performance and dynamic scalability.))
