@@ -19,7 +19,7 @@ spec:
         {{- include "mongodb-single.labels" . | nindent 8 }}
       annotations:
         {{- include "mongodb-single.annotations" . | nindent 8 }}
-        k8up.syn.tools/backupcommand: /bin/sh -c "/bin/busybox tar -cf - -C {{ .Values.persistentStorage.path | quote }} .  --exclude='lost\+found'"
+        k8up.syn.tools/backupcommand: /bin/sh -c '/bin/busybox tar -cf - -C {{ .Values.persistentStorage.path | quote }} .  --exclude="lost\+found"'
         k8up.syn.tools/file-extension: .{{ include "mongodb-single.fullname" . }}.tar
         lagoon.sh/configMapSha: {{ .Values.configMapSha | quote }}
     spec:
