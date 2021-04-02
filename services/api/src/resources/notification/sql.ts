@@ -114,6 +114,14 @@ export const Sql = {
       .update(patch)
       .toString();
   },
+  updateNotificationWebhook: (input) => {
+    const { name, patch } = input;
+
+    return knex('notification_webhook')
+      .where('name', '=', name)
+      .update(patch)
+      .toString();
+  },
   selectNotificationsByTypeByProjectId: (input) => {
     const { type,
       pid,
@@ -147,6 +155,10 @@ export const Sql = {
     knex('notification_email')
       .where('name', '=', name)
       .toString(),
+  selectNotificationWebhookByName:  (name: string) =>
+      knex('notification_webhook')
+        .where('name', '=', name)
+        .toString(),
   truncateNotificationSlack: () =>
     knex('notification_slack')
       .truncate()
@@ -163,6 +175,10 @@ export const Sql = {
     knex('notification_microsoftteams')
       .truncate()
       .toString(),
+  truncateNotificationWebhook: () =>
+      knex('notification_webhook')
+        .truncate()
+        .toString(),
   truncateProjectNotification: () =>
     knex('project_notification')
       .truncate()

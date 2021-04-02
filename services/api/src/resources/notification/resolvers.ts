@@ -14,6 +14,7 @@ const notificationTypeToString = R.cond([
   [R.equals('ROCKETCHAT'), R.toLower],
   [R.equals('EMAIL'), R.toLower],
   [R.equals('SLACK'), R.toLower],
+  [R.equals('WEBHOOK'), R.toLower],
   [R.T, R.identity],
 ]);
 
@@ -78,6 +79,21 @@ export const addNotificationSlack: ResolverFn = async (root, { input }, { sqlCli
 
   return slack;
 };
+
+export const addNotificationWebhook: ResolverFn = async (root, { input }, { sqlClient, hasPermission }) => {
+  await hasPermission('notification', 'add');
+
+  const prep = prepare(
+    sqlClient,
+    'CALL CreateNotificationWebhook(:name, :webhook)',
+  );
+
+  const rows = await query(sqlClient, prep(input));
+  const slack = R.path([0, 0], rows);
+
+  return slack;
+};
+
 
 export const addNotificationToProject: ResolverFn = async (
   root,
@@ -234,6 +250,37 @@ export const deleteNotificationSlack: ResolverFn = async (
   return 'success';
 };
 
+
+export const deleteNotificationWebhook: ResolverFn = async (
+  root,
+  { input },
+  {
+    sqlClient,
+    hasPermission,
+  },
+) => {
+  await hasPermission('notification', 'delete');
+
+  const { name } = input;
+
+  const nids = await Helpers(sqlClient).getAssignedNotificationIds({
+    name,
+    type: 'webhook',
+  });
+
+  if (R.length(nids) > 0) {
+    throw new Error("Can't delete notification linked to projects");
+  }
+
+  const prep = prepare(sqlClient, 'CALL DeleteNotificationWebhook(:name)');
+  await query(sqlClient, prep(input));
+
+  // TODO: maybe check rows for changed result
+  return 'success';
+};
+
+
+
 export const removeNotificationFromProject: ResolverFn = async (
   root,
   { input: unformattedInput },
@@ -336,6 +383,31 @@ export const updateNotificationMicrosoftTeams: ResolverFn = async (
     const rows = await query(
       sqlClient,
       Sql.selectNotificationMicrosoftTeamsByName(name),
+    );
+
+    return R.prop(0, rows);
+  };
+
+export const updateNotificationWebhook: ResolverFn = async (
+    root,
+    { input },
+    {
+      sqlClient,
+      hasPermission,
+    },
+  ) => {
+    await hasPermission('notification', 'update');
+
+    const { name } = input;
+
+    if (isPatchEmpty(input)) {
+      throw new Error('input.patch requires at least 1 attribute');
+    }
+
+    await query(sqlClient, Sql.updateNotificationWebhook(input));
+    const rows = await query(
+      sqlClient,
+      Sql.selectNotificationWebhookByName(name),
     );
 
     return R.prop(0, rows);
@@ -460,6 +532,19 @@ export const deleteAllNotificationMicrosoftTeams: ResolverFn = async (
   await hasPermission('notification', 'deleteAll');
 
   await query(sqlClient, Sql.truncateNotificationMicrosoftTeams());
+
+  // TODO: Check rows for success
+  return 'success';
+};
+
+export const deleteAllNotificationWebhook: ResolverFn = async (
+  root,
+  args,
+  { sqlClient, hasPermission },
+) => {
+  await hasPermission('notification', 'deleteAll');
+
+  await query(sqlClient, Sql.truncateNotificationWebhook());
 
   // TODO: Check rows for success
   return 'success';

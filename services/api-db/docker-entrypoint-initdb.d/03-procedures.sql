@@ -548,4 +548,48 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  CreateNotificationWebhook
+  (
+    IN name        varchar(50),
+    IN webhook     varchar(300)
+  )
+  BEGIN
+    DECLARE new_whid int;
+
+    INSERT INTO notification_webhook (
+      name,
+      webhook
+    )
+    VALUES (
+      name,
+      webhook
+    );
+
+    SET new_whid = LAST_INSERT_ID();
+
+    SELECT
+      id,
+      name,
+      webhook
+    FROM notification_webhook
+    WHERE id = new_whid;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  DeleteNotificationWebhook
+  (
+    IN name varchar(50)
+  )
+  BEGIN
+    DECLARE whid int;
+
+    SELECT id INTO whid FROM notification_webhook ns WHERE ns.name = name;
+
+    DELETE FROM notification_webhook WHERE id = whid;
+    DELETE FROM project_notification WHERE nid = whid AND type = 'webhook';
+  END;
+$$
+
 DELIMITER ;
