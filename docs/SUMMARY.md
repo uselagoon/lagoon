@@ -28,6 +28,7 @@
 * [GraphQL](using-lagoon-advanced/graphql.md)
 * [Node.js Graceful Shutdown](using-lagoon-advanced/nodejs.md)
 * [Setting up Xdebug with Lagoon](using-lagoon-advanced/setting-up-xdebug-with-lagoon.md)
+* [Environment Idling](using-lagoon-advanced/environment-idling.md)
 
 ## Drupal
 
