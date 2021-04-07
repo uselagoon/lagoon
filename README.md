@@ -1,10 +1,10 @@
 <p align="center">
-  <img src="./Lagoon_OG.png" alt="The Lagoon logo is a blue hexagon split in two pieces with an L-shaped cut" width="40%">
+ <img src="./Lagoon_OG.png" alt="The Lagoon logo is a blue hexagon split in two pieces with an L-shaped cut" width="40%">
 </p>
 
-# Lagoon - the developer-focused application delivery platform
+# Lagoon - the developer-focused application delivery platform for Kubernetes
 
-Lagoon solves what developers are dreaming about: A system that allows developers to locally develop their code and their services with Docker and run the exact same system in production. The same Docker images, the same service configurations and the same code.
+Lagoon solves what developers are dreaming about: A system that allows developers to locally develop their code and their services with Docker and run the exact same system in production. The same container images, the same service configurations and the same code.
 
 > As an application delivery **platform**, the primary focus of Lagoon is as a tool for the deployment, management, security and operation of multiple applications, utilising cloud-native technologies, but with minimal imposition or knowledge expectation on the developers of those applications.
 
@@ -25,15 +25,15 @@ For more information on installing and administering Lagoon, head to https://doc
 
 ## Lagoon architecture
 
-Lagoon is comprised of two main components, Lagoon Core and Lagoon Remote, and a number of other third-party services, Operators and Controllers.  In a full production setting, it is envisaged that Lagoon Core and Remote are installed into different Kubernetes Clusters (one Core can serve many Remotes), but they can also be installed into the same cluster if required.  Additionally, in advanced situations, a Lagoon Remote can contain multiple build-deploy controllers, connected to different Lagoon Cores (but this is only really recommended for testing purposes).
+Lagoon is comprised of two main components, Lagoon Core and Lagoon Remote, and a number of other third-party services, Operators and Controllers. In a full production setting, it is envisaged that Lagoon Core and Remote are installed into different Kubernetes Clusters (one Core can serve many Remotes), but they can also be installed into the same cluster if required.
 
-All communication between Lagoon Core and Lagoon Remote happens via RabbitMQ message queues, GraphQL or REST APIs.  Lagoon Core does not require administrator-level access to Lagoon Remote clusters.
+To enhance security, Lagoon Core does not require administrator-level access to the Kubernetes clusters running Lagoon Remote, and all inter-cluster communication happens exclusively via RabbitMQ, hosted in Lagoon Core, and consumed (and published back to) by Lagoon Remote.  This means that Lagoon Remotes can be managed by different teams, in different locations, and even behind firewalls or inaccessible from the internet.
 
 Lagoon services are mostly built in Node.js, with more recent development in occuring in Go, and most of the automation and scripting components in Bash.
 
 ### Lagoon Core
 
-All the services that handle the API, authentication and external communication are installed here.  Installation is via a [Helm Chart](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-core)
+All the services that handle the API, authentication and external communication are installed here. Installation is via a [Helm Chart](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-core)
 - API
   - [api](https://github.com/amazeeio/lagoon/tree/main/services/api) (the GraphQL API that powers Lagoon)
   - [api-db](https://github.com/amazeeio/lagoon/tree/main/services/api-db) (the MariaDB storage for the API)
@@ -41,7 +41,7 @@ All the services that handle the API, authentication and external communication 
 - Authentication
   - [keycloak](https://github.com/amazeeio/lagoon/tree/main/services/keycloak) (the main authentication application)
   - [keycloak-db](https://github.com/amazeeio/lagoon/tree/main/services/keycloak-db) (the MariaDB storage for Keycloak)
-  - [auth-server](https://github.com/amazeeio/lagoon/tree/main/services/auth-server) (generates authentication tokens for Lagoon services) 
+  - [auth-server](https://github.com/amazeeio/lagoon/tree/main/services/auth-server) (generates authentication tokens for Lagoon services)
   - [ssh](https://github.com/amazeeio/lagoon/tree/main/services/ssh) (provides developers with ssh access to the sites hosted on Lagoon)
 - Messaging
   - [broker](https://github.com/amazeeio/lagoon/tree/main/services/broker) (the RabbitMQ message service used to communicate with Lagoon Remote)
@@ -61,7 +61,7 @@ All the services that handle the API, authentication and external communication 
 
 ### Lagoon Remote
 
-All the services that are used to provision, deploy and maintain sites hosted on Lagoon live here.  These services are mostly comprised of third-party tools, developed external to Lagoon itself.  Installation is via a [Helm Chart](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-remote)
+All the services that are used to provision, deploy and maintain sites hosted by Lagoon on Kubernetes live here. These services are mostly comprised of third-party tools, developed external to Lagoon itself. Installation is via a [Helm Chart](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-remote)
 
 - [Lagoon Build Deploy](https://github.com/amazeeio/lagoon-kbd) (the controllers that handle building and deploying sites onto Lagoon)
 - [kubectl-build-deploy](https://github.com/amazeeio/lagoon/tree/main/images/kubectl-build-deploy-dind) (the service that computes which services, configuration and settings to provision for Kubernetes)
@@ -82,7 +82,7 @@ These services are usually installed alongside either Lagoon Core or Lagoon Remo
   - [lagoon-logging](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-logging) (utilizes [banzaicloud/logging-operator](https://github.com/banzaicloud/logging-operator) to collect and augment container&router logs from all sites, and sends them to a logs-dispatcher)
   - [logs-dispatcher](https://github.com/amazeeio/lagoon/tree/main/services/logs-dispatcher) (collects application logs from sites, as well as container&router logs from lagoon-logging, enriches them with additional metadata and sends them to a central log concentrator)
   - [lagoon-logs-concentrator](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-logs-concentrator) (collects logs from remote logs-dispatchers and sends them to Elasticsearch)
-  
+
 - Open Policy Agent (optional)
 
   - [lagoon-gatekeeper](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-gatekeeper) (centralized policy library for Lagoon)
@@ -94,7 +94,7 @@ These services are usually installed alongside either Lagoon Core or Lagoon Remo
 - Managed databases, for use with DBaaS operator (optional)
   - MariaDB (self managed or via [Amazon RDS for MariaDB](https://aws.amazon.com/rds/mariadb/), [Azure Database for MariaDB](https://docs.microsoft.com/en-us/azure/mariadb/#:~:text=Azure Database for MariaDB is,predictable performance and dynamic scalability.))
 
-  - MySQL (self managed or via  [Amazon RDS for MySQL](https://aws.amazon.com/rds/mysql/), [Amazon Aurora MySQL](https://aws.amazon.com/rds/aurora/mysql-features/), [Azure Database for MySQL](https://azure.microsoft.com/en-au/services/mysql), [Cloud SQL for MySQL](https://cloud.google.com/sql/docs/mysql))
+  - MySQL (self managed or via [Amazon RDS for MySQL](https://aws.amazon.com/rds/mysql/), [Amazon Aurora MySQL](https://aws.amazon.com/rds/aurora/mysql-features/), [Azure Database for MySQL](https://azure.microsoft.com/en-au/services/mysql), [Cloud SQL for MySQL](https://cloud.google.com/sql/docs/mysql))
 
   - PostgreSQL (self managed or via [Amazon RDS for PostgreSQL](https://aws.amazon.com/rds/postgresql/), [Amazon Aurora PostgreSQL](https://aws.amazon.com/rds/aurora/postgresql-features/), [Azure Database for PostgreSQL](https://docs.microsoft.com/en-us/azure/postgresql), [Cloud SQL for PostgreSQL](https://cloud.google.com/sql/docs/postgres) )
 
@@ -102,7 +102,7 @@ These services are usually installed alongside either Lagoon Core or Lagoon Remo
 
 ### Testing
 
-Lagoon has a comprehensive [test suite](https://github.com/amazeeio/lagoon/tree/main/tests/tests), designed to cover most end-user scenarios.  The testing is automated in Ansible, and runs in a Jenkins install, but can also be run locally in a self-contained cluster.  The testing provisions a standalone Lagoon cluster, running on KinD, comprising Lagoon Core, Lagoon Remote, a Registry and a set of Managed Databases, and runs test deployments and scenarios for a range of Node.js, Drupal, Python and NGINX projects, all built using the latest Lagoon Images.
+Lagoon has a comprehensive [test suite](https://github.com/amazeeio/lagoon/tree/main/tests/tests), designed to cover most end-user scenarios. The testing is automated in Ansible, and runs in a Jenkins install, but can also be run locally in a self-contained cluster. The testing provisions a standalone Lagoon cluster, running on KinD, comprising Lagoon Core, Lagoon Remote, a Registry and a set of Managed Databases, and runs test deployments and scenarios for a range of Node.js, Drupal, Python and NGINX projects, all built using the latest Lagoon Images.
 
 
 
@@ -112,19 +112,19 @@ Here are a number of other repositories, tools and components used in Lagoon
 
 ### [Lagoon Images](https://github.com/uselagoon/lagoon-images)
 
-Houses the base images used by projects hosted on Lagoon.  These images are regularly updated, and are not only used in hosted projects, they're used in Lagoon too!
+These images are used by developers to build web applications on, and come preconfigured for running on Lagoon as well as locally.  There are php, NGINX, Node.JS, Python (and more) variants. These images are regularly updated, and are not only used in hosted projects, they're used in Lagoon too!
 
 To browse the full set of images, head to https://hub.docker.com/u/uselagoon
+
+### [Lagoon Examples](https://github.com/uselagoon/lagoon-examples)
+
+A meta-project that houses a wide range of example projects, ready-made for use on Lagoon. These projects also include test suites that are used in the testing of the images. Please request an example via that repository if you want to see a particular one, or even better, have a crack at making one!
 
 ### [Lagoon Charts](https://github.com/uselagoon/lagoon-charts)
 
 Houses all the Helm Charts used to deploy Lagoon, it comes with a built-in test suite.
 
 To add the repository `helm repo add lagoon https://uselagoon.github.io/lagoon-charts/`
-
-### [Lagoon Examples](https://github.com/uselagoon/lagoon-examples)
-
-A meta-project that houses a wide range of example projects, ready-made for use on Lagoon.  These projects also include test suites that are used in the testing of the images.  Please request an example via that repository if you want to see a particular one, or even better, have a crack at making one!
 
 ### [amazee.io Charts](https://github.com/amazeeio/charts)
 
