@@ -6,30 +6,30 @@
 
 Lagoon solves what developers are dreaming about: A system that allows developers to locally develop their code and their services with Docker and run the exact same system in production. The same Docker images, the same service configurations and the same code.
 
+> As an application delivery **platform**, the primary focus of Lagoon is as a tool for the deployment, management, security and operation of multiple applications, utilising cloud-native technologies, but with minimal imposition or knowledge expectation on the developers of those applications.
+
 Lagoon is fully open-source, built on open-source tools, built collaboratively with our users.
-
-
 
 ## Installing Lagoon
 
-Note that is not necessary to install Lagoon on to your local machine if you are looking to maintain websites hosted on Lagoon.
+*Note that is not necessary to install Lagoon on to your local machine if you are looking to maintain websites hosted on Lagoon.*
 
 Lagoon can be installed:
 
-- Locally (for testing, debugging or development) using [Helm](https://helm.sh/) charts and [kind](https://kind.sigs.k8s.io/)
-- Into your managed Kubernetes cloud provider of choice - we've tested it on [Amazon Elastic Kubernetes Service](https://aws.amazon.com/eks/), [Azure Kubernetes Service](https://azure.microsoft.com/en-au/services/kubernetes-service/), [Google Kubernetes Engine](https://cloud.google.com/kubernetes-engine/), but we are confident that it will also run on any other managed Kubernetes service.
+- Locally (for evaluation, testing, debugging or development) using [Helm](https://helm.sh/) charts and [kind](https://kind.sigs.k8s.io/)
+- Into your managed Kubernetes cloud provider of choice - it's running in production on [Amazon Elastic Kubernetes Service](https://aws.amazon.com/eks/), [Azure Kubernetes Service](https://azure.microsoft.com/en-au/services/kubernetes-service/), and [Google Kubernetes Engine](https://cloud.google.com/kubernetes-engine/), but we are confident that it will also run on any other managed Kubernetes service.
 
 For more information on developing or contributing to Lagoon, head to https://docs.lagoon.sh/lagoon/contributing-to-lagoon
 
 For more information on installing and administering Lagoon, head to https://docs.lagoon.sh/lagoon/administering-lagoon
-
-
 
 ## Lagoon architecture
 
 Lagoon is comprised of two main components, Lagoon Core and Lagoon Remote, and a number of other third-party services, Operators and Controllers.  In a full production setting, it is envisaged that Lagoon Core and Remote are installed into different Kubernetes Clusters (one Core can serve many Remotes), but they can also be installed into the same cluster if required.  Additionally, in advanced situations, a Lagoon Remote can contain multiple build-deploy controllers, connected to different Lagoon Cores (but this is only really recommended for testing purposes).
 
 All communication between Lagoon Core and Lagoon Remote happens via RabbitMQ message queues, GraphQL or REST APIs.  Lagoon Core does not require administrator-level access to Lagoon Remote clusters.
+
+Lagoon services are mostly built in Node.js, with more recent development in occuring in Go, and most of the automation and scripting components in Bash.
 
 ### Lagoon Core
 
@@ -41,6 +41,8 @@ All the services that handle the API, authentication and external communication 
 - Authentication
   - [keycloak](https://github.com/amazeeio/lagoon/tree/main/services/keycloak) (the main authentication application)
   - [keycloak-db](https://github.com/amazeeio/lagoon/tree/main/services/keycloak-db) (the MariaDB storage for Keycloak)
+  - [auth-server](https://github.com/amazeeio/lagoon/tree/main/services/auth-server) (generates authentication tokens for Lagoon services) 
+  - [ssh](https://github.com/amazeeio/lagoon/tree/main/services/ssh) (provides developers with ssh access to the sites hosted on Lagoon)
 - Messaging
   - [broker](https://github.com/amazeeio/lagoon/tree/main/services/broker) (the RabbitMQ message service used to communicate with Lagoon Remote)
   - [webhooks2tasks](https://github.com/amazeeio/lagoon/tree/main/services/webhooks2tasks) (the service that converts incoming webhooks to API updates)
@@ -53,16 +55,18 @@ All the services that handle the API, authentication and external communication 
   - [logs2rocketchat](https://github.com/amazeeio/lagoon/tree/main/services/logs2rocketchat) (the service that pushes build notifications to a nominated Rocket Chat channel)
   - [logs2microsoftteams](https://github.com/amazeeio/lagoon/tree/main/services/logs2microsoftteams) (the service that pushes build notifications to a nominated Microsoft Teams channel)
 - Other Services
-  - [ssh](https://github.com/amazeeio/lagoon/tree/main/services/ssh) (provides developers with ssh access to the sites hosted on Lagoon)
-  - [drush-alias](https://github.com/amazeeio/lagoon/tree/main/services/drush-alias) (provides Drupal developers with an automated alias service for Drush)
   - [ui](https://github.com/amazeeio/lagoon/tree/main/services/ui) (the main user interface and dashboard for Lagoon)
+  - [lagoon-cli](https://github.com/amazeeio/lagoon-cli) (the command-line interface for managing sites on Lagoon)
+  - [drush-alias](https://github.com/amazeeio/lagoon/tree/main/services/drush-alias) (provides Drupal developers with an automated alias service for Drush)
 
 ### Lagoon Remote
 
 All the services that are used to provision, deploy and maintain sites hosted on Lagoon live here.  These services are mostly comprised of third-party tools, developed external to Lagoon itself.  Installation is via a [Helm Chart](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-remote)
 
 - [Lagoon Build Deploy](https://github.com/amazeeio/lagoon-kbd) (the controllers that handle building and deploying sites onto Lagoon)
-- [docker-host](https://github.com/amazeeio/lagoon/tree/main/images/docker-host) (the service that stores and caches upstream docker images)
+- [kubectl-build-deploy](https://github.com/amazeeio/lagoon/tree/main/images/kubectl-build-deploy-dind) (the service that computes which services, configuration and settings to provision for Kubernetes)
+- [docker-host](https://github.com/amazeeio/lagoon/tree/main/images/docker-host) (the service that stores and caches upstream docker images for use in builds)
+- [lagoon-idler](https://github.com/amazeeio/lagoon-idler) (optional operator that can idle non-production sites not currently in use to conserve resources)
 - [Dioscuri](https://github.com/amazeeio/dioscuri) (optional operator that provides Active/Standby functionality to Lagoon)
 - [dbaas-operator](https://github.com/amazeeio/dbaas-operator) (optional operator that provisions databases from an underlying managed database)
 
@@ -95,6 +99,10 @@ These services are usually installed alongside either Lagoon Core or Lagoon Remo
   - PostgreSQL (self managed or via [Amazon RDS for PostgreSQL](https://aws.amazon.com/rds/postgresql/), [Amazon Aurora PostgreSQL](https://aws.amazon.com/rds/aurora/postgresql-features/), [Azure Database for PostgreSQL](https://docs.microsoft.com/en-us/azure/postgresql), [Cloud SQL for PostgreSQL](https://cloud.google.com/sql/docs/postgres) )
 
   - MongoDB (self managed, or via [Amazon DocumentDB](https://aws.amazon.com/documentdb/), [Azure Cosmos DB](https://azure.microsoft.com/en-au/services/cosmos-db/) )
+
+### Testing
+
+Lagoon has a comprehensive [test suite](https://github.com/amazeeio/lagoon/tree/main/tests/tests), designed to cover most end-user scenarios.  The testing is automated in Ansible, and runs in a Jenkins install, but can also be run locally in a self-contained cluster.  The testing provisions a standalone Lagoon cluster, running on KinD, comprising Lagoon Core, Lagoon Remote, a Registry and a set of Managed Databases, and runs test deployments and scenarios for a range of Node.js, Drupal, Python and NGINX projects, all built using the latest Lagoon Images.
 
 
 
