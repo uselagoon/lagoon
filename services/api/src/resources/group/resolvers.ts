@@ -1,13 +1,13 @@
 import * as R from 'ramda';
 import { ResolverFn } from '../';
 import validator from 'validator';
-const logger = require('../../logger');
+const logger = require('../../loggers/logger');
 import { isPatchEmpty } from '../../util/db';
 import { GroupNotFoundError } from '../../models/group';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { OpendistroSecurityOperations } from './opendistroSecurity';
 import { KeycloakUnauthorizedError } from '../../util/auth';
-const userActivityLogger = require('../../userActivityLogger');
+const userActivityLogger = require('../../loggers/userActivityLogger');
 
 export const getAllGroups: ResolverFn = async (
   root,

@@ -2,7 +2,7 @@ const R = require('ramda');
 const { withFilter } = require('graphql-subscriptions');
 const { AmqpPubSub } = require('graphql-rabbitmq-subscriptions');
 const { ForbiddenError } = require('apollo-server-express');
-const logger = require('../logger');
+const pubSubLogger = require('../loggers/pubSubLogger');
 const { query } = require('../util/db');
 const { Sql: environmentSql } = require('../resources/environment/sql');
 
@@ -12,7 +12,7 @@ const rabbitmqPassword = process.env.RABBITMQ_PASSWORD || 'guest';
 
 const pubSub = new AmqpPubSub({
   config: `amqp://${rabbitmqUsername}:${rabbitmqPassword}@${rabbitmqHost}`,
-  logger: logger,
+  logger: pubSubLogger,
 });
 
 const createEnvironmentFilteredSubscriber = (events) => ({

@@ -17,8 +17,8 @@ const { getSqlClient } = require('./clients/sqlClient');
 const esClient = require('./clients/esClient');
 const redisClient = require('./clients/redisClient');
 const { getKeycloakAdminClient } = require('./clients/keycloak-admin');
-const logger = require('./logger');
-const userActivityLogger = require('./userActivityLogger');
+const logger = require('./loggers/logger');
+const userActivityLogger = require('./loggers/userActivityLogger');
 const typeDefs = require('./typeDefs');
 const resolvers = require('./resolvers');
 

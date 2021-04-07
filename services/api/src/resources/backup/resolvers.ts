@@ -13,7 +13,7 @@ import { Sql as projectSql } from '../project/sql';
 import { Sql as environmentSql } from '../environment/sql';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import EVENTS from './events';
-const userActivityLogger = require('../../userActivityLogger');
+const userActivityLogger = require('../../loggers/userActivityLogger');
 
 const restoreStatusTypeToString = R.cond([
   [R.equals('PENDING'), R.toLower],

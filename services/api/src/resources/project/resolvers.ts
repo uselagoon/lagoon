@@ -2,8 +2,8 @@ import * as R from 'ramda';
 import validator from 'validator';
 import sshpk from 'sshpk';
 import { ResolverFn } from '../';
-const logger = require('../../logger');
-const userActivityLogger = require('../../userActivityLogger');
+const logger = require('../../loggers/logger');
+const userActivityLogger = require('../../loggers/userActivityLogger');
 import {
   inClause,
   prepare,

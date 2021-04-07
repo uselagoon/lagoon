@@ -1,5 +1,5 @@
 import axios from 'axios';
-const logger = require('../logger');
+const logger = require('../loggers/logger');
 const KeycloakAdmin = require('keycloak-admin').default;
 const { Agent: KeycloakAgent } = require('keycloak-admin/lib/resources/agent');
 const { ConnectionConfig, Credentials, keycloakGrantManager } = require('./keycloakClient');

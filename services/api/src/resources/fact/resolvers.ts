@@ -4,7 +4,7 @@ import * as R from 'ramda';
 import { query } from '../../util/db';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Sql } from './sql';
-const userActivityLogger = require('../../userActivityLogger');
+const userActivityLogger = require('../../loggers/userActivityLogger');
 
 export const getFactsByEnvironmentId = async (
   { id: environmentId },

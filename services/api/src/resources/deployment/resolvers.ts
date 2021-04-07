@@ -24,7 +24,7 @@ import {
 } from '@lagoon/commons/dist/api';
 const convertDateFormat = R.init;
 import { Sql as environmentSql } from '../environment/sql';
-const userActivityLogger = require('../../userActivityLogger');
+const userActivityLogger = require('../../loggers/userActivityLogger');
 
 const deploymentStatusTypeToString = R.cond([
   [R.equals('NEW'), R.toLower],

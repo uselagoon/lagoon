@@ -4,8 +4,8 @@ import { Sql } from './sql';
 import { Helpers as problemHelpers } from './helpers';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { ResolverFn } from '../';
-const logger = require('../../logger');
-const userActivityLogger = require('../../userActivityLogger');
+const logger = require('../../loggers/logger');
+const userActivityLogger = require('../../loggers/userActivityLogger');
 
 export const getAllProblems: ResolverFn = async (
   root,

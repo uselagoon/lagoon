@@ -1,7 +1,7 @@
 import * as R from 'ramda';
 import { getRedisCache, saveRedisCache } from '../clients/redisClient';
 import { verify } from 'jsonwebtoken';
-const logger = require('../logger');
+const logger = require('../loggers/logger');
 import { keycloakGrantManager } from'../clients/keycloakClient';
 import { User } from '../models/user';
 import { Group } from '../models/group';

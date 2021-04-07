@@ -5,6 +5,7 @@ export interface IUserReqHeader {
   host: string,
   origin?: string
 }
+
 interface IUserMetaLogger {
   id?: string,
   user: string,

@@ -6,7 +6,7 @@ import {
 import { Sql } from './sql';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
-const userActivityLogger = require('../../userActivityLogger');
+const userActivityLogger = require('../../loggers/userActivityLogger');
 
 const envVarScopeToString = R.cond([
   [R.equals('GLOBAL'), R.toLower],

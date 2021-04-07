@@ -3,11 +3,11 @@ const morgan = require('morgan');
 const compression = require('compression');
 const cors = require('cors');
 const { json } = require('body-parser');
-const logger = require('./logger');
+const logger = require('./loggers/logger');
 const { createRouter } = require('./routes');
 const { authMiddleware } = require('./authMiddleware');
 const apolloServer = require('./apolloServer');
-const userActivityLogger = require('./userActivityLogger');
+const userActivityLogger = require('./loggers/userActivityLogger');
 
 const app = express();
 

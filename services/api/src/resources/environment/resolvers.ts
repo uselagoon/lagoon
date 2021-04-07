@@ -8,7 +8,7 @@ import { Helpers } from './helpers';
 import { Sql } from './sql';
 import { Sql as projectSql } from '../project/sql';
 import { Helpers as projectHelpers } from '../project/helpers';
-const userActivityLogger = require('../../userActivityLogger');
+const userActivityLogger = require('../../loggers/userActivityLogger');
 
 const deployTypeToString = R.cond([
   [R.equals('BRANCH'), R.toLower],

@@ -2,16 +2,14 @@ const { addColors, createLogger, format, transports } = require('winston');
 
 const config = {
   levels: {
-    fatal: 0,
-    error: 1,
-    warn: 2,
-    info: 3,
-    verbose: 4,
-    debug: 5,
-    trace: 6
+    error: 0,
+    warn: 1,
+    info: 2,
+    verbose: 3,
+    debug: 4,
+    trace: 5
   },
   colors: {
-    fatal: 'red',
     error: 'red',
     warn: 'yellow',
     info: 'magenta',
@@ -23,13 +21,21 @@ const config = {
 
 addColors(config.colors);
 
-const logger = createLogger({
+const pubSubLogger = createLogger({
   exitOnError: false,
   levels: config.levels,
   format: format.combine(
     format.colorize(),
+    format.splat(),
     format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-    format.printf(info => `[${info.timestamp}] [${info.level}]: ${info.message}`)
+    format.printf(info => {
+      let message;
+      if (info.message !== undefined) {
+        message = info.message;
+      }
+      let level = info.level ? `pubsub-${info.level}` : 'pubsub';
+      return `[${info.timestamp}] [${level}]: ${message}`;
+    }),
   ),
   transports: [
     new transports.Console({
@@ -40,4 +46,4 @@ const logger = createLogger({
   ],
 });
 
-module.exports = logger;
+module.exports = pubSubLogger;

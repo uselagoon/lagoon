@@ -3,7 +3,7 @@ import { ResolverFn } from '../';
 import { isPatchEmpty, prepare, query } from '../../util/db';
 import { validateSshKey, getSshKeyFingerprint } from '.';
 import { Sql } from './sql';
-const userActivityLogger = require('../../userActivityLogger');
+const userActivityLogger = require('../../loggers/userActivityLogger');
 
 const formatSshKey = ({ keyType, keyValue }) => `${keyType} ${keyValue}`;
 

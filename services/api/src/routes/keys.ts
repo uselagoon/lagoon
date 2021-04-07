@@ -3,7 +3,7 @@ import sshpk from 'sshpk';
 import bodyParser from 'body-parser';
 import { Request, Response } from 'express';
 import { RequestWithAuthData } from '../authMiddleware';
-const logger = require('../logger');
+const logger = require('../loggers/logger');
 import { knex, query } from '../util/db';
 import { getSqlClient } from '../clients/sqlClient';
 

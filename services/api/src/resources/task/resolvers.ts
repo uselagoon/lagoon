@@ -17,7 +17,7 @@ import { Helpers } from './helpers';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Validators as envValidators } from '../environment/validators';
 import { getSshKeyFingerprint } from '../sshKey';
-const userActivityLogger = require('../../userActivityLogger');
+const userActivityLogger = require('../../loggers/userActivityLogger');
 
 const taskStatusTypeToString = R.cond([
   [R.equals('ACTIVE'), R.toLower],

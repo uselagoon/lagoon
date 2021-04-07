@@ -1,6 +1,6 @@
 import * as R from 'ramda';
 import { getKeycloakAdminClient } from '../../clients/keycloak-admin';
-const logger = require('../../logger');
+const logger = require('../../loggers/logger');
 
 export const KeycloakOperations = {
   findGroupIdByName: async (name: string) => {

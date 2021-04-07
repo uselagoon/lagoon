@@ -1,6 +1,6 @@
 import * as R from 'ramda';
 import { Request, Response, NextFunction } from 'express';
-const logger = require('./logger');
+const logger = require('./loggers/logger');
 import { getSqlClient } from './clients/sqlClient';
 import {
   getGrantForKeycloakToken,

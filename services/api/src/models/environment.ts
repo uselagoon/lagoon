@@ -2,7 +2,7 @@ import moment from 'moment';
 
 import { prepare, query } from '../util/db';
 
-const logger = require('../logger');
+const logger = require('../loggers/logger');
 
 export interface Environment {
   id?: number; // int(11) NOT NULL AUTO_INCREMENT,
