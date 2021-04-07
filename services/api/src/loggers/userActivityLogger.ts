@@ -27,7 +27,7 @@ const { colors, levels } = {
     user_action: 3,
   },
   colors: {
-    user_info: 'gray',
+    user_info: 'cyan',
     user_auth: 'cyan',
     user_action: 'green',
   }
