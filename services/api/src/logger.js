@@ -1,15 +1,17 @@
-const winston = require('winston');
+const { addColors, createLogger, format, transports } = require('winston');
 
 const config = {
   levels: {
-    error: 0,
-    warn: 1,
-    info: 2,
-    verbose: 3,
-    debug: 4,
-    trace: 5
+    fatal: 0,
+    error: 1,
+    warn: 2,
+    info: 3,
+    verbose: 4,
+    debug: 5,
+    trace: 6
   },
   colors: {
+    fatal: 'red',
     error: 'red',
     warn: 'yellow',
     info: 'magenta',
@@ -19,19 +21,19 @@ const config = {
   }
 };
 
-winston.addColors(config.colors);
+addColors(config.colors);
 
-const logger = winston.createLogger({
+const logger = createLogger({
   exitOnError: false,
   levels: config.levels,
-  format: winston.format.combine(
-    winston.format.colorize(),
-    winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-    winston.format.printf(info => `[${info.timestamp}] [${info.level}]: ${info.message}`)
+  format: format.combine(
+    format.colorize(),
+    format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+    format.printf(info => `[${info.timestamp}] [${info.level}]: ${info.message}`)
   ),
   transports: [
-    new winston.transports.Console({
-      level: 'trace',
+    new transports.Console({
+      level: 'debug',
       handleExceptions: true,
       json: false,
     }),

@@ -1,4 +1,4 @@
-const winston = require('winston');
+const { addColors, createLogger, format, transports } = require('winston');
 
 export interface IUserReqHeader {
   user_agent?: string,
@@ -19,7 +19,7 @@ interface IUserMetaLogger {
 }
 
 // Log levels
-const config = {
+const { colors, levels } = {
   levels: {
     user_info: 1,
     user_auth: 2,
@@ -32,7 +32,7 @@ const config = {
   }
 };
 
-winston.addColors(config.colors);
+addColors(colors);
 
 const formatMeta = (meta: IUserMetaLogger) => {
   if (meta) {
@@ -64,18 +64,18 @@ const formatMeta = (meta: IUserMetaLogger) => {
       }
     });
 
-    return JSON.stringify(meta, undefined, 4);
+    return JSON.stringify(meta);
   }
   return '';
 };
 
-const userActivityLogger = winston.createLogger({
+const userActivityLogger = createLogger({
   exitOnError: false,
-  levels: config.levels,
-  format: winston.format.combine(
-    winston.format.colorize(),
-    winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-    winston.format.printf(info => {
+  levels: levels,
+  format: format.combine(
+    format.colorize(),
+    format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+    format.printf(info => {
       let message, level: string;
       let meta: IUserMetaLogger;
       if (info.message !== undefined) {
@@ -92,7 +92,7 @@ const userActivityLogger = winston.createLogger({
     })
   ),
   transports: [
-    new winston.transports.Console({
+    new transports.Console({
       level: 'user_action',
       handleExceptions: true,
       json: false
