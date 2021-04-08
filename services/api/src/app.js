@@ -7,7 +7,6 @@ const logger = require('./loggers/logger');
 const { createRouter } = require('./routes');
 const { authMiddleware } = require('./authMiddleware');
 const apolloServer = require('./apolloServer');
-const userActivityLogger = require('./loggers/userActivityLogger');
 
 const app = express();
 

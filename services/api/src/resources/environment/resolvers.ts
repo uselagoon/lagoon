@@ -1,5 +1,7 @@
 import * as R from 'ramda';
+// @ts-ignore
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+// @ts-ignore
 import { createRemoveTask } from '@lagoon/commons/dist/tasks';
 import { ResolverFn } from '../';
 import { isPatchEmpty, prepare, query, whereAnd } from '../../util/db';
@@ -8,7 +10,7 @@ import { Helpers } from './helpers';
 import { Sql } from './sql';
 import { Sql as projectSql } from '../project/sql';
 import { Helpers as projectHelpers } from '../project/helpers';
-const userActivityLogger = require('../../loggers/userActivityLogger');
+import { userActivityLogger } from '../../loggers/userActivityLogger';
 
 const deployTypeToString = R.cond([
   [R.equals('BRANCH'), R.toLower],
@@ -315,7 +317,7 @@ export const getEnvironmentByKubernetesNamespaceName: ResolverFn = async (
 export const addOrUpdateEnvironment: ResolverFn = async (
   root,
   { input: unformattedInput },
-  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
+  { sqlClient, hasPermission, keycloakGrant, legacyCredentials, requestHeaders },
 ) => {
   const input = R.compose(
     R.over(R.lensProp('environmentType'), envTypeToString),
@@ -326,8 +328,10 @@ export const addOrUpdateEnvironment: ResolverFn = async (
     // @ts-ignore
   )(unformattedInput);
 
-  const pid = input['project'].toString();
-  const openshiftProjectName = input['kubernetesNamespaceName'] || input['openshiftProjectName'];
+  // @ts-ignore
+  const pid = input.project.toString();
+  // @ts-ignore
+  const openshiftProjectName = input.kubernetesNamespaceName || input.openshiftProjectName;
   if (!openshiftProjectName) {
     throw new Error('Must provide kubernetesNamespaceName or openshiftProjectName');
   }
@@ -361,7 +365,7 @@ export const addOrUpdateEnvironment: ResolverFn = async (
   const environment = withK8s[0];
 
   userActivityLogger.user_action(`User added or updated environment on project '${openshiftProjectName}'`, {
-    user: keycloakGrant,
+    user: keycloakGrant || legacyCredentials,
     headers: requestHeaders,
     payload: {
       input,
@@ -375,7 +379,7 @@ export const addOrUpdateEnvironment: ResolverFn = async (
 export const addOrUpdateEnvironmentStorage: ResolverFn = async (
   root,
   { input: unformattedInput },
-  { sqlClient, hasPermission , keycloakGrant, requestHeaders},
+  { sqlClient, hasPermission , keycloakGrant, legacyCredentials, requestHeaders},
 ) => {
   await hasPermission('environment', 'storage');
 
@@ -401,7 +405,7 @@ export const addOrUpdateEnvironmentStorage: ResolverFn = async (
   const { name: projectName } = await projectHelpers(sqlClient).getProjectByEnvironmentId(environment['environment']);
 
   userActivityLogger.user_action(`User updated environment storage on project '${projectName}'`, {
-    user: keycloakGrant,
+    user: keycloakGrant || legacyCredentials,
     headers: requestHeaders,
     payload: {
       projectName,
@@ -415,7 +419,7 @@ export const addOrUpdateEnvironmentStorage: ResolverFn = async (
 export const deleteEnvironment: ResolverFn = async (
   root,
   { input: { project: projectName, name, execute } },
-  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
+  { sqlClient, hasPermission, keycloakGrant, legacyCredentials, requestHeaders },
 ) => {
   const projectId = await projectHelpers(sqlClient).getProjectIdByName(
     projectName,
@@ -528,7 +532,7 @@ export const deleteEnvironment: ResolverFn = async (
   );
 
   userActivityLogger.user_action(`User deleted environment '${environment.name}' on project '${projectName}'`, {
-    user: keycloakGrant,
+    user: keycloakGrant || legacyCredentials,
     headers: requestHeaders,
     payload: {
       projectName,
@@ -543,7 +547,7 @@ export const deleteEnvironment: ResolverFn = async (
 export const updateEnvironment: ResolverFn = async (
   root,
   { input: unformattedInput },
-  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
+  { sqlClient, hasPermission, keycloakGrant, legacyCredentials, requestHeaders },
 ) => {
   const input = R.compose(
     R.over(R.lensPath(['patch', 'environmentType']), envTypeToString),
@@ -594,7 +598,7 @@ export const updateEnvironment: ResolverFn = async (
   const withK8s = Helpers(sqlClient).aliasOpenshiftToK8s(rows);
 
   userActivityLogger.user_action(`User updated environment '${curEnv.name}' on project '${curEnv.project}'`, {
-    user: keycloakGrant,
+    user: keycloakGrant || legacyCredentials,
     headers: requestHeaders,
     payload: {
       openshiftProjectName,
@@ -646,14 +650,14 @@ export const getAllEnvironments: ResolverFn = async (
 export const deleteAllEnvironments: ResolverFn = async (
   root,
   args,
-  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
+  { sqlClient, hasPermission, keycloakGrant, legacyCredentials, requestHeaders },
 ) => {
   await hasPermission('environment', 'deleteAll');
 
   await query(sqlClient, Sql.truncateEnvironment());
 
   userActivityLogger.user_action(`User deleted all environments'`, {
-    user: keycloakGrant,
+    user: keycloakGrant || legacyCredentials,
     headers: requestHeaders,
     payload: {
       args
@@ -667,7 +671,7 @@ export const deleteAllEnvironments: ResolverFn = async (
 export const setEnvironmentServices: ResolverFn = async (
   root,
   { input: { environment: environmentId, services } },
-  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
+  { sqlClient, hasPermission, keycloakGrant, legacyCredentials, requestHeaders },
 ) => {
   const environment = await Helpers(sqlClient).getEnvironmentById(
     environmentId,
@@ -683,7 +687,7 @@ export const setEnvironmentServices: ResolverFn = async (
   }
 
   userActivityLogger.user_action(`User set environment services for '${environment.name}'`, {
-    user: keycloakGrant,
+    user: keycloakGrant || legacyCredentials,
     headers: requestHeaders,
     payload: {
       environment,

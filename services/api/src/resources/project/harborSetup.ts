@@ -1,7 +1,7 @@
 import * as R from 'ramda';
 import { MariaClient } from 'mariasql';
 import harborClient from '../../clients/harborClient';
-const logger = require('../../loggers/logger');
+import logger from '../../loggers/logger';
 import { Sql as PSql } from './sql';
 import { Sql } from '../env-variables/sql';
 import { isPatchEmpty, prepare, query, whereAnd } from '../../util/db';

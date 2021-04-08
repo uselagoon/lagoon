@@ -77,8 +77,8 @@ const getGrantOrLegacyCredsFromToken = async (token) => {
     }
   } catch (e) {
     sqlClientLegacy.end();
-    throw new AuthenticationError(e.message);
     logger.debug(`Keycloak legacy auth failed: ${e.message}`);
+    throw new AuthenticationError(e.message);
   }
 
   return {
@@ -170,7 +170,8 @@ const apolloServer = new ApolloServer({
               keycloakAdminClient
             )
           : legacyHasPermission(req.legacyCredentials),
-        keycloakGrant: req.kauth ? req.kauth.grant : req.legacyCredentials ? req.legacyCredentials : null,
+        keycloakGrant: req.kauth ? req.kauth.grant : null,
+        legacyCredentials: req.legacyCredentials ? req.legacyCredentials : null,
         requestHeaders: req.headers,
         requestCache,
         models: {

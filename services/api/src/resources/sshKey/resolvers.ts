@@ -3,7 +3,7 @@ import { ResolverFn } from '../';
 import { isPatchEmpty, prepare, query } from '../../util/db';
 import { validateSshKey, getSshKeyFingerprint } from '.';
 import { Sql } from './sql';
-const userActivityLogger = require('../../loggers/userActivityLogger');
+import { userActivityLogger } from '../../loggers/userActivityLogger';
 
 const formatSshKey = ({ keyType, keyValue }) => `${keyType} ${keyValue}`;
 
@@ -34,7 +34,7 @@ export const addSshKey: ResolverFn = async (
       id, name, keyValue, keyType: unformattedKeyType, user: userInput
     }
   },
-  { sqlClient, hasPermission, models , keycloakGrant, requestHeaders },
+  { sqlClient, hasPermission, models , keycloakGrant, legacyCredentials, requestHeaders },
 ) => {
   const keyType = sshKeyTypeToString(unformattedKeyType);
   // handle key being sent as "ssh-rsa SSHKEY foo@bar.baz" as well as just the SSHKEY
@@ -70,7 +70,7 @@ export const addSshKey: ResolverFn = async (
   const rows = await query(sqlClient, Sql.selectSshKey(insertId));
 
   userActivityLogger.user_action(`User added ssh key '${name}'`, {
-    user: keycloakGrant,
+    user: keycloakGrant || legacyCredentials,
     headers: requestHeaders,
     payload: {
       input: {
@@ -99,7 +99,7 @@ export const updateSshKey: ResolverFn = async (
       patch: { name, keyType: unformattedKeyType, keyValue },
     },
   },
-  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
+  { sqlClient, hasPermission, keycloakGrant, legacyCredentials, requestHeaders },
 ) => {
   const keyType = sshKeyTypeToString(unformattedKeyType);
 
@@ -139,7 +139,7 @@ export const updateSshKey: ResolverFn = async (
   const rows = await query(sqlClient, Sql.selectSshKey(id));
 
   userActivityLogger.user_action(`User updated ssh key '${id}'`, {
-    user: keycloakGrant,
+    user: keycloakGrant || legacyCredentials,
     headers: requestHeaders,
     payload: {
       patch
@@ -152,7 +152,7 @@ export const updateSshKey: ResolverFn = async (
 export const deleteSshKey: ResolverFn = async (
   root,
   { input: { name } },
-  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
+  { sqlClient, hasPermission, keycloakGrant, legacyCredentials, requestHeaders },
 ) => {
   // Map from sshKey name to id and throw on several error cases
   const skidResult = await query(sqlClient, Sql.selectSshKeyIdByName(name));
@@ -179,7 +179,7 @@ export const deleteSshKey: ResolverFn = async (
   await query(sqlClient, prep({ name }));
 
   userActivityLogger.user_action(`User deleted ssh key '${name}'`, {
-    user: keycloakGrant,
+    user: keycloakGrant || legacyCredentials,
     headers: requestHeaders,
     payload: {
       input: {
@@ -199,7 +199,7 @@ export const deleteSshKey: ResolverFn = async (
 export const deleteSshKeyById: ResolverFn = async (
   root,
   { input: { id } },
-  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
+  { sqlClient, hasPermission, keycloakGrant, legacyCredentials, requestHeaders },
 ) => {
   const perms = await query(sqlClient, Sql.selectUserIdsBySshKeyId(id));
   const userIds = R.map(R.prop('usid'), perms);
@@ -212,7 +212,7 @@ export const deleteSshKeyById: ResolverFn = async (
   await query(sqlClient, prep({ id }));
 
   userActivityLogger.user_action(`User deleted ssh key with id '${id}'`, {
-    user: keycloakGrant,
+    user: keycloakGrant || legacyCredentials,
     headers: requestHeaders,
     payload: {
       input: {

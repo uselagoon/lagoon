@@ -45,7 +45,7 @@ const formatMeta = (meta: IUserMetaLogger) => {
           const { preferred_username, email, sub: id, azp: source, aud, iat, realm_access } = access_token.content;
           meta[key].user = {
             id,
-            user: preferred_username,
+            username: preferred_username,
             email,
             aud,
             accessed: new Date(iat * 1000),
@@ -55,7 +55,7 @@ const formatMeta = (meta: IUserMetaLogger) => {
         }
         else {
           // Legacy token
-          meta[key].user = { id, user: username, email, source, iss, aud, sub, iat, role, permissions }
+          meta[key].user = { id, username, email, source, iss, aud, sub, iat, role, permissions }
         }
       }
 
@@ -70,7 +70,7 @@ const formatMeta = (meta: IUserMetaLogger) => {
   return '';
 };
 
-const userActivityLogger = createLogger({
+export const userActivityLogger = createLogger({
   exitOnError: false,
   levels: levels,
   format: format.combine(
@@ -100,5 +100,3 @@ const userActivityLogger = createLogger({
     })
   ]
 });
-
-module.exports = userActivityLogger;

@@ -4,7 +4,7 @@ import { s3Client } from '../../clients/aws';
 import { query } from '../../util/db';
 import { Sql } from './sql';
 import { Sql as taskSql } from '../task/sql';
-const userActivityLogger = require('../../loggers/userActivityLogger');
+import { userActivityLogger } from '../../loggers/userActivityLogger';
 
 const generateDownloadLink = file => {
   const url = s3Client.getSignedUrl('getObject', {
@@ -49,6 +49,9 @@ export const uploadFilesForTask: ResolverFn = async (
   {
     sqlClient,
     hasPermission,
+    keycloakGrant,
+    legacyCredentials,
+    requestHeaders
   },
 ) => {
   const rowsPerms = await query(sqlClient, taskSql.selectPermsForTask(task));
@@ -92,13 +95,21 @@ export const uploadFilesForTask: ResolverFn = async (
 
   const rows = await query(sqlClient, taskSql.selectTask(task));
 
+  userActivityLogger.user_action(`User uploaded files for task '${task}' on project '${R.path(['0', 'pid'], rowsPerms)}'`, {
+    user: keycloakGrant || legacyCredentials,
+    headers: requestHeaders,
+    data: {
+      rows
+    }
+  });
+
   return R.prop(0, rows);
 };
 
 export const deleteFilesForTask: ResolverFn = async (
   root,
   { input: { id } },
-  { sqlClient, hasPermission },
+  { sqlClient, hasPermission, keycloakGrant, legacyCredentials, requestHeaders },
 ) => {
   const rowsPerms = await query(sqlClient, taskSql.selectPermsForTask(id));
 
@@ -119,6 +130,14 @@ export const deleteFilesForTask: ResolverFn = async (
   await s3Client.deleteObjects(params).promise();
 
   await query(sqlClient, Sql.deleteFileTask(id));
+
+  userActivityLogger.user_action(`User deleted files for task '${id}'`, {
+    user: keycloakGrant || legacyCredentials,
+    headers: requestHeaders,
+    data: {
+      id
+    }
+  });
 
   return 'success';
 };

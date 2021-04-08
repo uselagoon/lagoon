@@ -4,8 +4,8 @@ import { Sql } from './sql';
 import { Helpers as problemHelpers } from './helpers';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { ResolverFn } from '../';
-const logger = require('../../loggers/logger');
-const userActivityLogger = require('../../loggers/userActivityLogger');
+import logger from '../../loggers/logger';
+import { userActivityLogger } from '../../loggers/userActivityLogger';
 
 export const getAllProblems: ResolverFn = async (
   root,
@@ -100,7 +100,7 @@ export const addProblem = async (
         severityScore, associatedPackage, description, version, fixedVersion, links
     },
   },
-  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
+  { sqlClient, hasPermission, keycloakGrant, legacyCredentials, requestHeaders },
 ) => {
   const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
 
@@ -132,7 +132,7 @@ export const addProblem = async (
   const rows = await query(sqlClient, Sql.selectProblemByDatabaseId(insertId));
 
   userActivityLogger.user_action(`User added a problem on environment '${environment.name}' for '${environment.project}'`, {
-    user: keycloakGrant,
+    user: keycloakGrant || legacyCredentials,
     headers: requestHeaders,
     payload: {
       input: {
@@ -164,7 +164,7 @@ export const deleteProblem = async (
       identifier,
     }
   },
-  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
+  { sqlClient, hasPermission, keycloakGrant, legacyCredentials, requestHeaders },
 ) => {
   const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
 
@@ -175,7 +175,7 @@ export const deleteProblem = async (
   await query(sqlClient, Sql.deleteProblem(environmentId, identifier));
 
   userActivityLogger.user_action(`User deleted a problem on environment '${environment.name}' for '${environment.project}'`, {
-    user: keycloakGrant,
+    user: keycloakGrant || legacyCredentials,
     headers: requestHeaders,
     payload: {
       input: { environment, identifier }
@@ -194,7 +194,7 @@ export const deleteProblemsFromSource = async (
       service,
     }
   },
-  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
+  { sqlClient, hasPermission, keycloakGrant, legacyCredentials, requestHeaders },
 ) => {
   const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
 
@@ -205,7 +205,7 @@ export const deleteProblemsFromSource = async (
   await query(sqlClient, Sql.deleteProblemsFromSource(environmentId, source, service));
 
   userActivityLogger.user_action(`User deleted problems on environment '${environment.id}' for source '${source}'`, {
-    user: keycloakGrant,
+    user: keycloakGrant || legacyCredentials,
     headers: requestHeaders,
     payload: {
       input: { environment, source, service }
@@ -243,7 +243,7 @@ export const addProblemHarborScanMatch = async (
       regex
     },
   },
-  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
+  { sqlClient, hasPermission, keycloakGrant, legacyCredentials, requestHeaders },
 ) => {
 
   await hasPermission('harbor_scan_match', 'add', {});
@@ -268,7 +268,7 @@ export const addProblemHarborScanMatch = async (
   const rows = await query(sqlClient, Sql.selectAllProblemHarborScanMatchByDatabaseId(insertId));
 
   userActivityLogger.user_action(`User added harbor scan regex matcher`, {
-    user: keycloakGrant,
+    user: keycloakGrant || legacyCredentials,
     headers: requestHeaders,
     payload: {
       input: {
@@ -293,7 +293,7 @@ export const deleteProblemHarborScanMatch = async (
       id
     }
   },
-  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
+  { sqlClient, hasPermission, keycloakGrant, legacyCredentials, requestHeaders },
 ) => {
 
   await hasPermission('harbor_scan_match', 'delete', {});
@@ -301,7 +301,7 @@ export const deleteProblemHarborScanMatch = async (
   await query(sqlClient, Sql.deleteProblemHarborScanMatch(id));
 
   userActivityLogger.user_action(`User deleted harbor scan regex matcher`, {
-    user: keycloakGrant,
+    user: keycloakGrant || legacyCredentials,
     headers: requestHeaders,
     payload: {
       input: { id }

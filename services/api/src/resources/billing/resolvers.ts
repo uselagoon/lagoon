@@ -1,5 +1,5 @@
 import * as R from 'ramda';
-const logger = require('../../loggers/logger');
+import logger from '../../loggers/logger';
 import convertDateToMYSQLDateTimeFormat from '../../util/convertDateToMYSQLDateTimeFormat';
 import { BillingModifier, BillingModifierBase } from '../../models/billing';
 import { BillingGroup, GroupInput } from '../../models/group';

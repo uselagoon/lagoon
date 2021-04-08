@@ -12,6 +12,7 @@ export interface ResolverFn {
       sqlClient: MariaClient,
       hasPermission: hasPermission,
       keycloakGrant: any | null,
+      legacyCredentials: any | null,
       requestHeaders: any | null,
       models: {
         UserModel,

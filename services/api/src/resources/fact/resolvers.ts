@@ -4,7 +4,7 @@ import * as R from 'ramda';
 import { query } from '../../util/db';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Sql } from './sql';
-const userActivityLogger = require('../../loggers/userActivityLogger');
+import { userActivityLogger } from '../../loggers/userActivityLogger';
 
 export const getFactsByEnvironmentId = async (
   { id: environmentId },
@@ -34,7 +34,7 @@ export const addFact = async (
       id, environment: environmentId, name, value, source, description
     },
   },
-  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
+  { sqlClient, hasPermission, keycloakGrant, legacyCredentials, requestHeaders },
 ) => {
 
   const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
@@ -59,7 +59,7 @@ export const addFact = async (
   const rows = await query(sqlClient, Sql.selectFactByDatabaseId(insertId));
 
   userActivityLogger.user_action(`User added a fact to environment '${environment.name}'`, {
-    user: keycloakGrant,
+    user: keycloakGrant || legacyCredentials,
     headers: requestHeaders,
     payload: {
       data: {
@@ -82,7 +82,7 @@ export const addFacts = async (
       facts
     }
   },
-  { sqlClient, hasPermission, keycloakGrant, requestHeaders }
+  { sqlClient, hasPermission, keycloakGrant, legacyCredentials, requestHeaders }
 ) => {
 
   // We first check that the user has access to all of the environments, so this is an atomic operation.
@@ -114,7 +114,7 @@ export const addFacts = async (
     const rows =  await query(sqlClient, Sql.selectFactByDatabaseId(insertId));
 
     userActivityLogger.user_action(`User added facts to environments'`, {
-      user: keycloakGrant,
+      user: keycloakGrant || legacyCredentials,
       headers: requestHeaders,
       payload: {
         data: {
@@ -135,7 +135,7 @@ export const deleteFact = async (
       name,
     }
   },
-  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
+  { sqlClient, hasPermission, keycloakGrant, legacyCredentials, requestHeaders },
 ) => {
   const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
 
@@ -146,7 +146,7 @@ export const deleteFact = async (
   await query(sqlClient, Sql.deleteFact(environmentId, name));
 
   userActivityLogger.user_action(`User deleted a fact`, {
-    user: keycloakGrant,
+    user: keycloakGrant || legacyCredentials,
     headers: requestHeaders,
     payload: {
       data: {
@@ -167,7 +167,7 @@ export const deleteFactsFromSource = async (
      source,
     }
   },
-  { sqlClient, hasPermission, keycloakGrant, requestHeaders },
+  { sqlClient, hasPermission, keycloakGrant, legacyCredentials, requestHeaders },
 ) => {
   const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
 
@@ -178,7 +178,7 @@ export const deleteFactsFromSource = async (
   await query(sqlClient, Sql.deleteFactsFromSource(environmentId, source));
 
   userActivityLogger.user_action(`User deleted facts`, {
-    user: keycloakGrant,
+    user: keycloakGrant || legacyCredentials,
     headers: requestHeaders,
     payload: {
       data: {
