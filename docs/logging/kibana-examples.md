@@ -13,7 +13,7 @@ Make sure that you have selected your tenant before starting! You can do that by
 Below you'll find examples for two common log requests:
 
 * Viewing the total number of hits/requests to your site.
-* Viewing the number of hits/requests from a specific IP address. 
+* Viewing the number of hits/requests from a specific IP address.
 
 ### Total Number of hits/requests to your site
 

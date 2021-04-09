@@ -40,7 +40,7 @@ Managing the following settings will require you to have a high level of access 
 
 ![Selecting Trigger events in GitLab.](../.gitbook/assets/gitlab_webhook.png)
 
-* Click `Add webhook`to save your configuration. 
+* Click `Add webhook`to save your configuration.
 
 ## Bitbucket
 

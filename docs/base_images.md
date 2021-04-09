@@ -37,7 +37,7 @@ We only require this metapackage, which points to a GitHub repository.
 
 ### `docker-compose.yml`
 
-Other pieces of your project are defined in [`docker-compose.yml`](https://lagoon.readthedocs.io/en/latest/using_lagoon/docker-compose_yml/). For example, if you have a Drupal project, you need the Drupal image, but you also need MariaDB, Solr, Redis, and Varnish. We have versions of these services optimized for Drupal, all of which are included in `docker-compose.yml`.
+Other pieces of your project are defined in [`docker-compose.yml`](https://docs.lagoon.sh/using-lagoon-the-basics/docker-compose-yml). For example, if you have a Drupal project, you need the Drupal image, but you also need MariaDB, Solr, Redis, and Varnish. We have versions of these services optimized for Drupal, all of which are included in `docker-compose.yml`.
 
 ### Drupal
 
@@ -95,7 +95,7 @@ If you're planning on running locally, there are some minimum environment variab
 Variables injected into the base image build process and where to find them.
 
 * `BUILD_NUMBER` - This is injected by Jenkins automatically.
-* `GIT_BRANCH` - This is provided by the Jenkins build process itself. Depends on the branch being built at the time \(develop, master, etc.\).
+* `GIT_BRANCH` - This is provided by the Jenkins build process itself. Depends on the branch being built at the time \(develop, main, etc.\).
 * `DOCKER_REPO`/`DOCKER_HUB` - This is defined inside the Jenkinsfile itself. It points to the Docker project and hub into which the resulting images will be pushed.
 * `DOCKER_USERNAME`/`DOCKER_PASSWORD` - These are used to actually log into the Docker repository early in the build. These variables are stored inside of the Jenkins credentials with an id that will be provided to you by amazee.io. These are used in the Jenkinsfile itself and are not part of the Makefile. This means that if you’re building base images outside of Jenkins \(i.e. locally, to test, etc.\) you have to run a `docker login` manually before running any of the make steps.
 
@@ -200,7 +200,7 @@ With our testing done, we can now tag and build the images.
 
 #### Step 3 - Tagging images
 
-Images are versioned based on their [Git tags](https://git-scm.com/docs/git-tag) - these should follow standard [semantic versioning ](https://semver.org/)\(semver\) practices. All tags should have the structure **vX.Y.Z** where X, Y, and Z are integers \(to be precise the X.Y.Z are themselves the semantic version - the vX.Y.Z is a tag\). This is an assumption that is used to determine the image tags, so it _must_ be adhered to.
+Images are versioned based on their [Git tags](https://git-scm.com/docs/git-tag) - these should follow standard [semantic versioning](https://semver.org/) \(semver\) practices. All tags should have the structure **vX.Y.Z** where X, Y, and Z are integers \(to be precise the X.Y.Z are themselves the semantic version - the vX.Y.Z is a tag\). This is an assumption that is used to determine the image tags, so it _must_ be adhered to.
 
 In this example we will be tagging a new version of the Drupal 8 base image indicating that we have added ClamAV.
 
@@ -223,14 +223,14 @@ We check that we have committed \(but not pushed\) our changes, just as you woul
 #### How Git tags map to image tags
 
 !!!important
-    **Important note:** Depending on the build workflow, you will almost certainly push the changes via the **develop** branch before merging it into the **master** branch.
+    **Important note:** Depending on the build workflow, you will almost certainly push the changes via the **develop** branch before merging it into the **main** branch.
 
 
 An important point to remember here is that the Jenkins base image build process will tag _images_ based on the _most recent commit’s tag_.
 
 Images are tagged using the following rules, and images will be built for each of these that apply:
 
-1. When the **master** branch is built, it is tagged as `latest`.
+1. When the **main** branch is built, it is tagged as `latest`.
 2. When the develop branch is built, it is tagged as `development`.
 3. If the commit being built is _tagged_ then that branch will be built with that commit’s tag.
    1. This is how we release a new version as we demonstrated above. It can also be used to make ad hoc builds with fairly arbitrary tags - be reasonable with the tag names, it has only been tested with _semver_ tags.
@@ -251,7 +251,7 @@ This will kick off the build process which, if successful, will push up the new 
 
 If the build is not successful, you can click into the build itself and read the logs to understand where it failed.
 
-As shown in the screenshot below from Harbor, the image we’ve just built in Jenkins has been uploaded and tagged in Harbor, where it will now be scanned for any vulnerabilities. Since it was tagged as v0.0.9, an image with that tag is present, and because we built the **master** branch, the “latest” image has also been built. At this stage, the v0.0.9 and “latest” images are identical.
+As shown in the screenshot below from Harbor, the image we’ve just built in Jenkins has been uploaded and tagged in Harbor, where it will now be scanned for any vulnerabilities. Since it was tagged as v0.0.9, an image with that tag is present, and because we built the **main** branch, the “latest” image has also been built. At this stage, the v0.0.9 and “latest” images are identical.
 
 ![Screenshot from Harbor showing uploaded and tagged images.](/images/8.png)
 

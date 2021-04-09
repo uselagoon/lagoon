@@ -56,5 +56,5 @@ At amazee.io, we believe in open source. It was always troubling for us that ope
 
 ### License
 
-Lagoon is available under [`an Apache 2.0 License`](https://github.com/amazeeio/lagoon/blob/master/LICENSE).
+Lagoon is available under [`an Apache 2.0 License`](https://github.com/amazeeio/lagoon/blob/main/LICENSE).
 

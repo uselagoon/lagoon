@@ -5,8 +5,12 @@ metadata:
 spec:
   template:
     spec:
+      securityContext:
+        runAsUser: 1000
       containers:
       - name: api
+        command: ["yarn"]
+        args: ["run", "dev"]
         volumeMounts:
         - mountPath: "/app/services/api/src"
           name: api-src

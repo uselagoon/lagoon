@@ -16,6 +16,12 @@ USER_SSH_KEY=$2
 REQUESTED_PROJECT=$3
 shift 3
 
+# get the value from an envvar override (can be added to the ssh deployment)
+# default to false so we don't hold up the ssh for a long time
+WAIT_TO_UNIDLE_SERVICES=${WAIT_TO_UNIDLE_SERVICES:-false}
+# set a timeout of 600 for waiting for a pod to start (the waits are 1 second interval, so 10 minutes timeout)
+SSH_CHECK_TIMEOUT=${SSH_CHECK_TIMEOUT:-600}
+
 # get the graphql endpoint, if set
 eval "$(grep GRAPHQL_ENDPOINT /authorize.env)"
 
@@ -120,37 +126,133 @@ fi
 
 # If there is a deployment for the given service searching for lagoon.sh labels
 if [[ $($OC get deployment -l "lagoon.sh/service=${SERVICE}" 2> /dev/null) ]]; then
+  # get any other deployments that may have been idled by the idler and unidle them if required
+  # this only needs to be done for kubernetes
+  # we do this first to give the services a bit of time to unidle before starting the one that was requested
+  DEPLOYMENTS=$($OC get deployments -l "idling.amazee.io/watch=true" -o name)
+  if [ ! -z "${DEPLOYMENTS}" ]; then
+    # loop over the deployments and unidle them
+    for DEP in ${DEPLOYMENTS}
+    do
+      # if the deployment is idled, unidle it :)
+      DEP_JSON=$($OC get ${DEP} -o json)
+      if [ $(echo "$DEP_JSON" | jq -r '.status.replicas // 0') == "0" ]; then
+        REPLICAS=$(echo "$DEP_JSON" | jq -r '.metadata.annotations."idling.amazee.io/unidle-replicas" // 1')
+        if [ ! -z "$REPLICAS" ]; then
+          REPLICAS=1
+        fi
+        $OC scale --replicas=${REPLICAS} ${DEP} >/dev/null 2>&1
+      fi
+    done
+    # then if we have to wait for them to start, do that here
+    for DEP in ${DEPLOYMENTS}
+    do
+      # for unidling an entire environment and waiting for the number of `readyReplicas`
+      # to be 1 for each deployment, could add considerable delays for the ssh connection to establish.
+      # WAIT_TO_UNIDLE_SERVICES will default to false so that it just scales the deployments
+      # and won't wait for them to be ready, but if set to true, it will wait for `readyReplicas` to be 1
+      if [[ "$WAIT_TO_UNIDLE_SERVICES" =~ [Tt][Rr][Uu][Ee] ]]; then
+        SSH_CHECK_COUNTER=0
+        until [[ $($OC get ${DEP} -o json | jq -r '.status.readyReplicas // 0') -ne "0" ]]
+        do
+          if [ $SSH_CHECK_COUNTER -lt $SSH_CHECK_TIMEOUT ]; then
+            let SSH_CHECK_COUNTER=SSH_CHECK_COUNTER+1
+            sleep 1
+          else
+            echo "Deployment '${DEP}' took too long to start pods"
+            exit 1
+          fi
+        done
+      fi
+    done
+  fi
+  # then actually unidle the service that was requested and wait for it to be ready if it wasn't already captured above
+  # doing this means if the service hasn't been idled with the `idling.amazee.io/watch=true` label
+  # we can still establish a connection
   DEPLOYMENT=$($OC get deployment -l "lagoon.sh/service=${SERVICE}" -o name)
   # If the deployment is scaled to 0, scale to 1
   # .status.replicas doesn't exist on a scaled to 0 deployment in k8s so assume it is 0 if nothing is returned
   if [[ $($OC get ${DEPLOYMENT} -o json | jq -r '.status.replicas // 0') == "0" ]]; then
-
     $OC scale --replicas=1 ${DEPLOYMENT} >/dev/null 2>&1
-
-    # Wait until the scaling is done
-    while [[ ! $($OC get ${DEPLOYMENT} -o go-template --template='{{.status.readyReplicas}}') == "1" ]]
-    do
-      sleep 1
-    done
   fi
+  # Wait until the scaling is done
+  SSH_CHECK_COUNTER=0
+  until [[ $($OC get ${DEPLOYMENT} -o json | jq -r '.status.readyReplicas // 0') -ne "0" ]]
+  do
+    if [ $SSH_CHECK_COUNTER -lt $SSH_CHECK_TIMEOUT ]; then
+      let SSH_CHECK_COUNTER=SSH_CHECK_COUNTER+1
+      sleep 1
+    else
+      echo "Pod for ${SERVICE} took too long to start"
+      exit 1
+    fi
+  done
 fi
 
 # If there is a deployment for the given service search for lagoon labels
 # @DEPRECATED: Remove with Lagoon 2.0.0
 if [[ $($OC get deployment -l lagoon/service=${SERVICE} 2> /dev/null) ]]; then
+  # get any other deployments that may have been idled by the idler and unidle them if required
+  # this only needs to be done for kubernetes
+  # we do this first to give the services a bit of time to unidle before starting the one that was requested
+  DEPLOYMENTS=$($OC get deployments -l "idling.amazee.io/watch=true" -o name)
+  if [ ! -z "${DEPLOYMENTS}" ]; then
+    # loop over the deployments and unidle them
+    for DEP in ${DEPLOYMENTS}
+    do
+      # if the deployment is idled, unidle it :)
+      DEP_JSON=$($OC get ${DEP} -o json)
+      if [ $(echo "$DEP_JSON" | jq -r '.status.replicas // 0') == "0" ]; then
+        REPLICAS=$(echo "$DEP_JSON" | jq -r '.metadata.annotations."idling.amazee.io/unidle-replicas" // 1')
+        if [ ! -z "$REPLICAS" ]; then
+          REPLICAS=1
+        fi
+        $OC scale --replicas=${REPLICAS} ${DEP} >/dev/null 2>&1
+      fi
+    done
+    # then if we have to wait for them to start, do that here
+    for DEP in ${DEPLOYMENTS}
+    do
+      # for unidling an entire environment and waiting for the number of `readyReplicas`
+      # to be 1 for each deployment, could add considerable delays for the ssh connection to establish.
+      # WAIT_TO_UNIDLE_SERVICES will default to false so that it just scales the deployments
+      # and won't wait for them to be ready, but if set to true, it will wait for `readyReplicas` to be 1
+      if [[ "$WAIT_TO_UNIDLE_SERVICES" =~ [Tt][Rr][Uu][Ee] ]]; then
+        SSH_CHECK_COUNTER=0
+        until [[ $($OC get ${DEP} -o json | jq -r '.status.readyReplicas // 0') -ne "0" ]]
+        do
+          if [ $SSH_CHECK_COUNTER -lt $SSH_CHECK_TIMEOUT ]; then
+            let SSH_CHECK_COUNTER=SSH_CHECK_COUNTER+1
+            sleep 1
+          else
+            echo "Deployment '${DEP}' took too long to start pods"
+            exit 1
+          fi
+        done
+      fi
+    done
+  fi
+  # then actually unidle the service that was requested and wait for it to be ready if it wasn't already captured above
+  # doing this means if the service hasn't been idled with the `idling.amazee.io/watch=true` label
+  # we can still establish a connection
   DEPLOYMENT=$($OC get deployment -l lagoon/service=${SERVICE} -o name)
   # If the deployment is scaled to 0, scale to 1
   # .status.replicas doesn't exist on a scaled to 0 deployment in k8s so assume it is 0 if nothing is returned
   if [[ $($OC get ${DEPLOYMENT} -o json | jq -r '.status.replicas // 0') == "0" ]]; then
-
     $OC scale --replicas=1 ${DEPLOYMENT} >/dev/null 2>&1
-
-    # Wait until the scaling is done
-    while [[ ! $($OC get ${DEPLOYMENT} -o go-template --template='{{.status.readyReplicas}}') == "1" ]]
-    do
-      sleep 1
-    done
   fi
+  # Wait until the scaling is done
+  SSH_CHECK_COUNTER=0
+  until [[ $($OC get ${DEPLOYMENT} -o json | jq -r '.status.readyReplicas // 0') -ne "0" ]]
+  do
+    if [ $SSH_CHECK_COUNTER -lt $SSH_CHECK_TIMEOUT ]; then
+      let SSH_CHECK_COUNTER=SSH_CHECK_COUNTER+1
+      sleep 1
+    else
+      echo "Pod for ${SERVICE} took too long to start"
+      exit 1
+    fi
+  done
 fi
 
 

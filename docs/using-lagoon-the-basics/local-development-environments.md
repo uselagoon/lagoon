@@ -17,7 +17,7 @@ Lagoon has traditionally worked best with `pygmy` , which is the amazee.io flavo
 
 `pygmy` is a [Ruby](https://www.ruby-lang.org/en/) gem, so to install it, run: `gem install pygmy`.  For detailed usage info on pygmy, see its [documentation](https://docs.lagoon.sh/pygmy/).
 
-As announced in our[ blog post](https://www.amazee.io/blog/post/announcing-lando-integration-for-lagoon), Lagoon is now also compatible with Lando!  For more information, please see the documentation at [https://docs.lando.dev/config/lagoon.html](https://docs.lando.dev/config/lagoon.html) to get yourself up and running.
+As announced in our [blog post](https://www.amazee.io/blog/post/announcing-lando-integration-for-lagoon), Lagoon is now also compatible with Lando!  For more information, please see the documentation at [https://docs.lando.dev/config/lagoon.html](https://docs.lando.dev/config/lagoon.html) to get yourself up and running.
 
 Lando's workflow for Lagoon will be familiar to users of Lando, and will also be the easiest way for Lagoon newcomers to get up and running.  Pygmy presents a closer integration with Docker, which will lend itself better to more complex scenarios and use cases but will also require a deeper understanding.
 
