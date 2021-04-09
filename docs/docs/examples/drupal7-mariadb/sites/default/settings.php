@@ -58,7 +58,7 @@
 
     $conf['reverse_proxy'] = TRUE;
     $conf['reverse_proxy_addresses'] = array_merge(explode(',', getenv('VARNISH_HOSTS')), array('varnish'));
-    $conf['varnish_control_terminal'] = implode($varnish_hosts, " ");
+    $conf['varnish_control_terminal'] = implode(" ", $varnish_hosts);
     $conf['varnish_control_key'] = getenv('VARNISH_SECRET') ?: 'lagoon_default_secret';
     $conf['varnish_version'] = 4;
   }
