@@ -947,6 +947,7 @@ api-development: build/api build/api-db build/local-api-data-watcher-pusher buil
 KIND_VERSION = v0.10.0
 GOJQ_VERSION = v0.11.2
 KIND_IMAGE = kindest/node:v1.20.2@sha256:8f7ea6e7642c0da54f04a7ee10431549c0257315b3a634f6ef2fecaaedb19bab
+TESTS = [api,features-kubernetes,nginx,drupal-php73,drupal-php74,drupal-postgres,python,gitlab,github,bitbucket,node-mongodb,elasticsearch]
 CHARTS_TREEISH = logging_replicas
 
 local-dev/kind:
