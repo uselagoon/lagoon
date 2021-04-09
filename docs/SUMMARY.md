@@ -54,6 +54,7 @@
 * [MariaDB](docker-images/mariadb/README.md)
   * [MariaDB-Drupal](docker-images/mariadb/mariadb-drupal.md)
 * [MongoDB](docker-images/mongodb.md)
+* [Node.js](docker-images/nodejs.md)
 * [NGINX](docker-images/nginx/README.md)
   * [NGINX-Drupal](docker-images/nginx/nginx-drupal.md)
 * [PHP-CLI](docker-images/php-cli/README.md)
