@@ -114,5 +114,5 @@ If all went well and nothing threw any errors, Lagoon will mark this build as su
 
 ### Push without deploying
 
-There may be a case where you want to push without a deployment. Make sure your commit message contains "`skip deploy`" or "`deploy skip`" and Lagoon will not trigger a deployment from that commit. 
+There may be a case where you want to push without a deployment. Make sure your commit message contains "`[skip deploy]`" or "`[deploy skip]`" and Lagoon will not trigger a deployment from that commit. 
 
