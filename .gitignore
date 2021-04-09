@@ -7,10 +7,12 @@ deploytest
 startVagrant.sh
 local-dev/oc
 local-dev/helm
-minishift
-minikube
+local-dev/minishift
+local-dev/minikube
+local-dev/k3d
+local-dev/jq
 k3d
-kubectl
+local-dev/kubectl
 **/v8-*
 node_modules/
 build/*
@@ -24,3 +26,7 @@ docs/_build
 yarn-debug.log*
 yarn-error.log*
 site
+kubeconfig.*
+kindconfig.*
+kind
+lagoon-charts.*

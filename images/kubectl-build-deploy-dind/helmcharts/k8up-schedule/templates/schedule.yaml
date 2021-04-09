@@ -12,13 +12,14 @@ spec:
       key: repo-pw
       name: baas-repo-pw
     s3:
-      bucket: baas-{{ .Values.project }}
+      bucket: '{{ .Values.baasBucketName }}'
   backup:
     schedule: '{{ .Values.backup.schedule }}'
   check:
     schedule: '{{ .Values.check.schedule }}'
   prune:
     retention:
-      keepDaily: 7
-      keepWeekly: 6
+      keepDaily: {{ .Values.prune.retention.keepDaily }}
+      keepWeekly: {{ .Values.prune.retention.keepWeekly }}
+      keepMonthly: {{ .Values.prune.retention.keepMonthly }}
     schedule: '{{ .Values.prune.schedule }}'

@@ -87,6 +87,14 @@ const taskPrefetch = process.env.TASK_PREFETCH_COUNT ? Number(process.env.TASK_P
 const taskMonitorPrefetch = process.env.TASKMONITOR_PREFETCH_COUNT ? Number(process.env.TASKMONITOR_PREFETCH_COUNT) : 1;
 
 // these are required for the builddeploydata creation
+// they match what are used in the kubernetesbuilddeploy service
+// @TODO: INFO
+// some of these variables will need to be added to webhooks2tasks in the event that overwriting is required
+// deploys received by that webhooks2tasks will use functions exported by tasks, where previously they would be passed to a seperate service
+// this is because there is no single service handling deploy tasks when the controller is used
+// currently the services that may need to use these variables are:
+//    * `api`
+//    * `webhooks2tasks`
 const CI = process.env.CI || "false"
 const registry = process.env.REGISTRY || "registry.lagoon.svc:5000"
 const lagoonGitSafeBranch = process.env.LAGOON_GIT_SAFE_BRANCH || "master"
@@ -245,10 +253,8 @@ export const createTaskMonitor = async function(task: string, payload: any) {
 // makes strings "safe" if it is to be used in something dns related
 const makeSafe = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
 
-// This is used to send the required information directly to the message queue
-// for the controllers to consume
 // @TODO: make sure if it fails, it does so properly
-const getOperatorBuildData = async function(deployData: any) {
+const getControllerBuildData = async function(deployData: any) {
   const {
     projectName,
     branchName,
@@ -294,7 +300,7 @@ const getOperatorBuildData = async function(deployData: any) {
   var projectProductionEnvironment = projectOpenShift.productionEnvironment
   var projectStandbyEnvironment = projectOpenShift.standbyProductionEnvironment
   var subfolder = projectOpenShift.subfolder || ""
-  var routerPattern = projectOpenShift.openshift.routerPattern ? projectOpenShift.openshift.routerPattern.replace('${environment}',environmentName).replace('${project}', projectName) : ""
+  var routerPattern = projectOpenShift.openshift.routerPattern
   var prHeadBranch = headBranch || ""
   var prHeadSha = headSha || ""
   var prBaseBranch = baseBranch || ""
@@ -308,10 +314,20 @@ const getOperatorBuildData = async function(deployData: any) {
   var projectSecret = crypto.createHash('sha256').update(`${projectName}-${jwtSecret}`).digest('hex');
   var alertContactHA = ""
   var alertContactSA = ""
-  var monitoringConfig = JSON.parse(projectOpenShift.openshift.monitoringConfig) || "invalid"
+  var uptimeRobotStatusPageIds = []
+  var monitoringConfig: any = {};
+  try {
+    monitoringConfig = JSON.parse(projectOpenShift.openshift.monitoringConfig) || "invalid"
+  } catch (e) {
+    logger.error('Error parsing openshift.monitoringConfig from openshift: %s, continuing with "invalid"', projectOpenShift.openshift.name, { error: e })
+    monitoringConfig = "invalid"
+  }
   if (monitoringConfig != "invalid"){
     alertContactHA = monitoringConfig.uptimerobot.alertContactHA || ""
     alertContactSA = monitoringConfig.uptimerobot.alertContactSA || ""
+    if (monitoringConfig.uptimerobot.statusPageId) {
+      uptimeRobotStatusPageIds.push(monitoringConfig.uptimerobot.statusPageId)
+    }
   }
   var availability = projectOpenShift.availability || "STANDARD"
 
@@ -325,12 +341,17 @@ const getOperatorBuildData = async function(deployData: any) {
   } else {
     alertContact = "unconfigured"
   }
-  const billingGroup = projectBillingGroup.groups.find(i => i.type == "billing" ) || ""
-  var uptimeRobotStatusPageId = billingGroup.uptimeRobotStatusPageId || ""
 
-  var branchData: any = {};
+  const billingGroup = projectBillingGroup.groups.find(i => i.type == "billing" ) || ""
+  if (billingGroup.uptimeRobotStatusPageId && billingGroup.uptimeRobotStatusPageId != "null" && !R.isEmpty(billingGroup.uptimeRobotStatusPageId)){
+    uptimeRobotStatusPageIds.push(billingGroup.uptimeRobotStatusPageId)
+  }
+  var uptimeRobotStatusPageId = uptimeRobotStatusPageIds.join('-')
+
   var pullrequestData: any = {};
   var promoteData: any = {};
+
+  var gitRef = gitSha ? gitSha : `origin/${branchName}`
 
   switch (type) {
     case "branch":
@@ -339,11 +360,6 @@ const getOperatorBuildData = async function(deployData: any) {
       var deployBaseRef = branchName
       var deployHeadRef = null
       var deployTitle = null
-      branchData = {
-        branch: {
-          name: branchName,
-        },
-      };
       break;
     case "pullrequest":
       var gitRef = gitSha
@@ -390,67 +406,15 @@ const getOperatorBuildData = async function(deployData: any) {
   const buildName = `lagoon-build-${randBuildId}`;
 
   let deployment;
+  let environmentId;
   try {
     const now = moment.utc();
     const apiEnvironment = await getEnvironmentByName(branchName, projectOpenShift.id);
+    environmentId = apiEnvironment.environmentByName.id
     deployment = await addDeployment(buildName, "NEW", now.format('YYYY-MM-DDTHH:mm:ss'), apiEnvironment.environmentByName.id);
   } catch (error) {
     logger.error(`Could not save deployment for project ${projectOpenShift.id}. Message: ${error}`);
   }
-
-  let buildImage = {}
-  // During CI we want to use the OpenShift Registry for our build Image and use the OpenShift registry for the base Images
-  // Since the Operator could eventually support openshift, we can handle which image to supply here
-  if (CI == "true") {
-    switch (project.activeSystemsDeploy) {
-      case 'lagoon_openshiftBuildDeploy':
-        buildImage = "172.17.0.1:5000/lagoon/oc-build-deploy-dind:latest"
-        break;
-      default:
-        // default to the kubectl builddeploy dind since the controllers and kubernetes use the same underlying process
-        buildImage = "172.17.0.1:5000/lagoon/kubectl-build-deploy-dind:latest"
-    }
-  } else if (overwriteOCBuildDeployDindImage) {
-    // allow to overwrite the image we use via OVERWRITE_OC_BUILD_DEPLOY_DIND_IMAGE env variable
-    // this needs to be added to the `api` deployment/pods to be used
-    switch (project.activeSystemsDeploy) {
-      case 'lagoon_openshiftBuildDeploy':
-        buildImage = overwriteOCBuildDeployDindImage
-        break;
-    }
-  } else if (overwriteKubectlBuildDeployDindImage) {
-    // allow to overwrite the image we use via OVERWRITE_KUBECTL_BUILD_DEPLOY_DIND_IMAGE env variable
-    // this needs to be added to the `api` deployment/pods to be used
-    switch (project.activeSystemsDeploy) {
-      case 'lagoon_controllerBuildDeploy':
-      case 'lagoon_kubernetesBuildDeploy':
-        buildImage = overwriteKubectlBuildDeployDindImage
-        break;
-    }
-  } else if (lagoonEnvironmentType == 'production') {
-    // we are a production environment, use the amazeeio/ image with our current lagoon version
-    switch (project.activeSystemsDeploy) {
-      case 'lagoon_openshiftBuildDeploy':
-        buildImage = `amazeeio/oc-build-deploy-dind:${lagoonVersion}`
-        break;
-      default:
-          // default to the kubectl builddeploy dind since the controllers and kubernetes use the same underlying process
-        buildImage = `amazeeio/kubectl-build-deploy-dind:${lagoonVersion}`
-    }
-  } else {
-    // we are a development enviornment, use the amazeeiolagoon image with the same branch name
-    buildImage = `amazeeiolagoon/kubectl-build-deploy-dind:${lagoonGitSafeBranch}`
-    switch (project.activeSystemsDeploy) {
-      case 'lagoon_openshiftBuildDeploy':
-        buildImage = `amazeeiolagoon/oc-build-deploy-dind:${lagoonGitSafeBranch}`
-        break;
-      default:
-          // default to the kubectl builddeploy dind since the controllers and kubernetes use the same underlying process
-        buildImage = `amazeeiolagoon/kubectl-build-deploy-dind:${lagoonGitSafeBranch}`
-    }
-  }
-
-  var gitRef = gitSha ? gitSha : `origin/${branchName}`
 
   // encode some values so they get sent to the controllers nicely
   const sshKeyBase64 = new Buffer(deployPrivateKey.replace(/\\n/g, "\n")).toString('base64')
@@ -466,19 +430,23 @@ const getOperatorBuildData = async function(deployData: any) {
     spec: {
       build: {
         type: type,
-        image: buildImage,
+        image: {}, // the controller will know which image to use
         ci: CI,
       },
-      ...branchData,
+      branch: {
+        name: branchName,
+      },
       ...pullrequestData,
       ...promoteData,
       gitReference: gitRef,
       project: {
+        id: projectOpenShift.id,
         name: projectName,
         gitUrl: gitUrl,
         uiLink: deployment.addDeployment.uiLink,
         environment: environmentName,
         environmentType: environmentType,
+        environmentId: environmentId,
         productionEnvironment: projectProductionEnvironment,
         standbyEnvironment: projectStandbyEnvironment,
         subfolder: subfolder,
@@ -526,8 +494,6 @@ export const createDeployTask = async function(deployData: any) {
   }
 
   switch (project.activeSystemsDeploy) {
-    case 'lagoon_openshiftBuildDeploy':
-    case 'lagoon_kubernetesBuildDeploy':
     case 'lagoon_controllerBuildDeploy':
       // we want to limit production environments, without making it configurable currently
       var productionEnvironmentsLimit = 2;
@@ -592,13 +558,9 @@ export const createDeployTask = async function(deployData: any) {
               `projectName: ${projectName}, branchName: ${branchName}, no branches defined in active system, assuming we want all of them`
             );
             switch (project.activeSystemsDeploy) {
-              case 'lagoon_openshiftBuildDeploy':
-                return sendToLagoonTasks('builddeploy-openshift', deployData);
-              case 'lagoon_kubernetesBuildDeploy':
-                return sendToLagoonTasks('builddeploy-kubernetes', deployData);
               case 'lagoon_controllerBuildDeploy':
                 // controllers uses a different message than the other services, so we need to source it here
-                const buildDeployData = await getOperatorBuildData(deployData);
+                const buildDeployData = await getControllerBuildData(deployData);
                 return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
               default:
                 throw new UnknownActiveSystem(
@@ -610,14 +572,10 @@ export const createDeployTask = async function(deployData: any) {
               `projectName: ${projectName}, branchName: ${branchName}, all branches active, therefore deploying`
             );
             switch (project.activeSystemsDeploy) {
-              case 'lagoon_openshiftBuildDeploy':
-                return sendToLagoonTasks('builddeploy-openshift', deployData);
-              case 'lagoon_kubernetesBuildDeploy':
-                return sendToLagoonTasks('builddeploy-kubernetes', deployData);
               case 'lagoon_controllerBuildDeploy':
-                  // controllers uses a different message than the other services, so we need to source it here
-                  const buildDeployData = await getOperatorBuildData(deployData);
-                  return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
+                // controllers uses a different message than the other services, so we need to source it here
+                const buildDeployData = await getControllerBuildData(deployData);
+                return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
               default:
                 throw new UnknownActiveSystem(
                   `Unknown active system '${project.activeSystemsDeploy}' for task 'deploy' in for project ${projectName}`
@@ -638,17 +596,10 @@ export const createDeployTask = async function(deployData: any) {
                 `projectName: ${projectName}, branchName: ${branchName}, regex ${project.branches} matched branchname, starting deploy`
               );
               switch (project.activeSystemsDeploy) {
-                case 'lagoon_openshiftBuildDeploy':
-                  return sendToLagoonTasks('builddeploy-openshift', deployData);
-                case 'lagoon_kubernetesBuildDeploy':
-                  return sendToLagoonTasks(
-                    'builddeploy-kubernetes',
-                    deployData
-                  );
                 case 'lagoon_controllerBuildDeploy':
-                    // controllers uses a different message than the other services, so we need to source it here
-                    const buildDeployData = await getOperatorBuildData(deployData);
-                    return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
+                  // controllers uses a different message than the other services, so we need to source it here
+                  const buildDeployData = await getControllerBuildData(deployData);
+                  return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
                 default:
                   throw new UnknownActiveSystem(
                     `Unknown active system '${project.activeSystemsDeploy}' for task 'deploy' in for project ${projectName}`
@@ -671,14 +622,10 @@ export const createDeployTask = async function(deployData: any) {
               `projectName: ${projectName}, pullrequest: ${branchName}, no pullrequest defined in active system, assuming we want all of them`
             );
             switch (project.activeSystemsDeploy) {
-              case 'lagoon_openshiftBuildDeploy':
-                return sendToLagoonTasks('builddeploy-openshift', deployData);
-              case 'lagoon_kubernetesBuildDeploy':
-                return sendToLagoonTasks('builddeploy-kubernetes', deployData);
               case 'lagoon_controllerBuildDeploy':
-                  // controllers uses a different message than the other services, so we need to source it here
-                  const buildDeployData = await getOperatorBuildData(deployData);
-                  return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
+                // controllers uses a different message than the other services, so we need to source it here
+                const buildDeployData = await getControllerBuildData(deployData);
+                return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
               default:
                 throw new UnknownActiveSystem(
                   `Unknown active system '${
@@ -691,14 +638,10 @@ export const createDeployTask = async function(deployData: any) {
               `projectName: ${projectName}, pullrequest: ${branchName}, all pullrequest active, therefore deploying`
             );
             switch (project.activeSystemsDeploy) {
-              case 'lagoon_openshiftBuildDeploy':
-                return sendToLagoonTasks('builddeploy-openshift', deployData);
-              case 'lagoon_kubernetesBuildDeploy':
-                return sendToLagoonTasks('builddeploy-kubernetes', deployData);
               case 'lagoon_controllerBuildDeploy':
-                  // controllers uses a different message than the other services, so we need to source it here
-                  const buildDeployData = await getOperatorBuildData(deployData);
-                  return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
+                // controllers uses a different message than the other services, so we need to source it here
+                const buildDeployData = await getControllerBuildData(deployData);
+                return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
               default:
                 throw new UnknownActiveSystem(
                   `Unknown active system '${
@@ -722,14 +665,10 @@ export const createDeployTask = async function(deployData: any) {
                 `projectName: ${projectName}, pullrequest: ${branchName}, regex ${project.pullrequests} matched PR Title '${pullrequestTitle}', starting deploy`
               );
               switch (project.activeSystemsDeploy) {
-                case 'lagoon_openshiftBuildDeploy':
-                  return sendToLagoonTasks('builddeploy-openshift', deployData);
-                case 'lagoon_kubernetesBuildDeploy':
-                  return sendToLagoonTasks('builddeploy-kubernetes', deployData);
                 case 'lagoon_controllerBuildDeploy':
-                    // controllers uses a different message than the other services, so we need to source it here
-                    const buildDeployData = await getOperatorBuildData(deployData);
-                    return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
+                  // controllers uses a different message than the other services, so we need to source it here
+                  const buildDeployData = await getControllerBuildData(deployData);
+                  return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
                 default:
                   throw new UnknownActiveSystem(
                     `Unknown active system '${
@@ -772,9 +711,9 @@ export const createPromoteTask = async function(promoteData: any) {
   }
 
   switch (project.activeSystemsPromote) {
-    case 'lagoon_openshiftBuildDeploy':
-      return sendToLagoonTasks('builddeploy-openshift', promoteData);
-
+    case 'lagoon_controllerBuildDeploy':
+        const buildDeployData = await getControllerBuildData(promoteData);
+        return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
     default:
       throw new UnknownActiveSystem(
         `Unknown active system '${project.activeSystemsPromote}' for task 'deploy' in for project ${projectName}`
@@ -1011,7 +950,7 @@ export const createRemoveTask = async function(removeData: any) {
 }
 
 // creates the restore job configuration for use in the misc task
-const restoreConfig = (name, backupId, safeProjectName) => {
+const restoreConfig = (name, backupId, safeProjectName, baasBucketName) => {
   let config = {
     apiVersion: 'backup.appuio.ch/v1alpha1',
     kind: 'Restore',
@@ -1025,7 +964,7 @@ const restoreConfig = (name, backupId, safeProjectName) => {
       },
       backend: {
         s3: {
-          bucket: `baas-${safeProjectName}`
+          bucket: baasBucketName ? baasBucketName : `baas-${safeProjectName}`
         },
         repoPasswordSecretRef: {
           key: 'repo-pw',
@@ -1039,12 +978,12 @@ const restoreConfig = (name, backupId, safeProjectName) => {
 };
 
 // creates the route/ingress migration config
-const migrateIngress = (destinationNamespace, sourceNamespace) => {
+const migrateHosts = (destinationNamespace, sourceNamespace) => {
   const randId = Math.random().toString(36).substring(7);
-  const migrateName = `ingress-migrate-${randId}`;
+  const migrateName = `host-migration-${randId}`;
   let config = {
     apiVersion: 'dioscuri.amazee.io/v1',
-    kind: 'IngressMigrate',
+    kind: 'HostMigration',
     metadata: {
       name: migrateName,
       annotations: {
@@ -1072,12 +1011,6 @@ export const createTaskTask = async function(taskData: any) {
   }
 
   switch (projectSystem.activeSystemsTask) {
-    case 'lagoon_openshiftJob':
-      return sendToLagoonTasks('job-openshift', taskData);
-
-    case 'lagoon_kubernetesJob':
-      return sendToLagoonTasks('job-kubernetes', taskData);
-
     case 'lagoon_controllerJob':
       // since controllers queues are named, we have to send it to the right tasks queue
       // do that here
@@ -1103,14 +1036,6 @@ export const createMiscTask = async function(taskData: any) {
   let updatedKey = key;
   let taskId = '';
   switch (data.activeSystemsMisc) {
-    case 'lagoon_openshiftMisc':
-      updatedKey = `openshift:${key}`;
-      taskId = 'misc-openshift';
-      break;
-    case 'lagoon_kubernetesMisc':
-      updatedKey = `kubernetes:${key}`;
-      taskId = 'misc-kubernetes';
-      break;
     case 'lagoon_controllerMisc':
       // handle any controller based misc tasks
       updatedKey = `kubernetes:${key}`;
@@ -1138,8 +1063,15 @@ export const createMiscTask = async function(taskData: any) {
         case 'kubernetes:restic:backup:restore':
           // Handle setting up the configuration for a restic restoration task
           const restoreName = `restore-${R.slice(0, 7, taskData.data.backup.backupId)}`;
+          // Parse out the baasBucketName for any migrated projects
+          let baasBucketName = result.project.envVariables.find(obj => {
+            return obj.name === "LAGOON_BAAS_BUCKET_NAME"
+          })
+          if (baasBucketName) {
+            baasBucketName = baasBucketName.value
+          }
           // generate the restore CRD
-          const restoreConf = restoreConfig(restoreName, taskData.data.backup.backupId, makeSafe(taskData.data.project.name))
+          const restoreConf = restoreConfig(restoreName, taskData.data.backup.backupId, makeSafe(taskData.data.project.name), baasBucketName)
           // base64 encode it
           const restoreBytes = new Buffer(JSON.stringify(restoreConf).replace(/\\n/g, "\n")).toString('base64')
           miscTaskData.misc.miscResource = restoreBytes
@@ -1148,7 +1080,7 @@ export const createMiscTask = async function(taskData: any) {
           // handle setting up the task configuration for running the active/standby switch
           // this uses the `advanced task` system in the controllers
           // first generate the migration CRD
-          const migrateConf = migrateIngress(
+          const migrateConf = migrateHosts(
             makeSafe(taskData.data.productionEnvironment.openshiftProjectName),
             makeSafe(taskData.data.environment.openshiftProjectName))
           // generate out custom json payload to send to the advanced task

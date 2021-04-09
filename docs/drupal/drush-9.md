@@ -18,9 +18,9 @@ Drush 9 provides a new command, `drush site:alias-convert` , which can convert D
 
 In order to be able to use `drush site:alias-convert` , you need to do the following:
 
-* Rename the `aliases.drushrc.php` inside the `drush` folder to `lagooncd ...aliases.drushrc.php`.
+* Rename the `aliases.drushrc.php` inside the `drush` folder to `lagoon.aliases.drushrc.php`.
 
-### Generate Site aliases
+### Generate Site Aliases
 
 You can now convert your Drush aliases by running the following command in your project using the `cli` container:
 

@@ -75,7 +75,24 @@ if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
   LAGOON_SERVICE_TYPES=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_SERVICE_TYPES") | "\(.value)"'))
 fi
 if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
-  LAGOON_SERVICE_TYPES=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_SERVICE_TYPES") | "\(.value)"'))
+  TEMP_LAGOON_SERVICE_TYPES=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_SERVICE_TYPES") | "\(.value)"'))
+  if [ ! -z $TEMP_LAGOON_SERVICE_TYPES ]; then
+    LAGOON_SERVICE_TYPES=$TEMP_LAGOON_SERVICE_TYPES
+  fi
+fi
+# Allow the dbaas environment type to be overridden by the lagoon API
+# This accepts colon separated values like so `SERVICE_NAME:DBAAS_ENVIRONMENT_TYPE`, and multiple overrides
+# separated by commas
+# Example 1: mariadb:production < tells any docker-compose services named mariadb to use the production dbaas environment type
+# Example 2: mariadb:production,mariadb-test:development
+if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
+  LAGOON_DBAAS_ENVIRONMENT_TYPES=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_DBAAS_ENVIRONMENT_TYPES") | "\(.value)"'))
+fi
+if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
+  TEMP_LAGOON_DBAAS_ENVIRONMENT_TYPES=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_DBAAS_ENVIRONMENT_TYPES") | "\(.value)"'))
+  if [ ! -z $TEMP_LAGOON_DBAAS_ENVIRONMENT_TYPES ]; then
+    LAGOON_DBAAS_ENVIRONMENT_TYPES=$TEMP_LAGOON_DBAAS_ENVIRONMENT_TYPES
+  fi
 fi
 set -x
 
@@ -121,7 +138,7 @@ do
     # check if we can use the dbaas operator
     elif oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get mariadbconsumer.v1.mariadb.amazee.io &> /dev/null; then
       SERVICE_TYPE="mariadb-dbaas"
-    # heck if this cluster supports the default one, if not we assume that this cluster is not capable of shared mariadbs and we use a mariadb-single
+    # check if this cluster supports the default one, if not we assume that this cluster is not capable of shared mariadbs and we use a mariadb-single
     elif svcat --scope cluster get class $MARIADB_SHARED_DEFAULT_CLASS > /dev/null; then
       SERVICE_TYPE="mariadb-shared"
     else
@@ -139,6 +156,18 @@ do
     ENVIRONMENT_DBAAS_ENVIRONMENT_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.overrides.$SERVICE_NAME.$SERVICE_TYPE\\.environment false)
     if [ ! $DBAAS_ENVIRONMENT_OVERRIDE == "false" ]; then
       DBAAS_ENVIRONMENT=$ENVIRONMENT_DBAAS_ENVIRONMENT_OVERRIDE
+    fi
+
+    # If we have a dbaas environment type override in the api, consume it here
+    if [ ! -z "$LAGOON_DBAAS_ENVIRONMENT_TYPES" ]; then
+      IFS=',' read -ra LAGOON_DBAAS_ENVIRONMENT_TYPES_SPLIT <<< "$LAGOON_DBAAS_ENVIRONMENT_TYPES"
+      for LAGOON_DBAAS_ENVIRONMENT_TYPE in "${LAGOON_DBAAS_ENVIRONMENT_TYPES_SPLIT[@]}"
+      do
+        IFS=':' read -ra LAGOON_DBAAS_ENVIRONMENT_TYPE_SPLIT <<< "$LAGOON_DBAAS_ENVIRONMENT_TYPE"
+        if [ "${LAGOON_DBAAS_ENVIRONMENT_TYPE_SPLIT[0]}" == "$SERVICE_NAME" ]; then
+          DBAAS_ENVIRONMENT=${LAGOON_DBAAS_ENVIRONMENT_TYPE_SPLIT[1]}
+        fi
+      done
     fi
 
     MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]="$DBAAS_ENVIRONMENT"
@@ -181,6 +210,10 @@ do
     fi
   fi
 
+  if [ "$SERVICE_TYPE" == "mongodb-single" ]; then
+    SERVICE_TYPE="mongo"
+  fi
+
   if [ "$SERVICE_TYPE" == "mongodb-shared" ]; then
     MONGODB_SHARED_CLASS=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mongo-shared\\.class "${MONGODB_SHARED_DEFAULT_CLASS}")
     MONGODB_SHARED_PLAN=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mongo-shared\\.plan "${ENVIRONMENT_TYPE}")
@@ -192,6 +225,31 @@ do
         echo "defined service broker plan '${MONGODB_SHARED_PLAN}' for service '$SERVICE_NAME' and service broker '$MONGODB_SHARED_CLASS' not found in cluster";
         exit 1
     fi
+  fi
+
+  if [[ "$SERVICE_TYPE" == "mongodb-dbaas" ]]; then
+    # Default plan is the enviroment type
+    DBAAS_ENVIRONMENT=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.$SERVICE_TYPE\\.environment "${ENVIRONMENT_TYPE}")
+
+    # Allow the dbaas shared servicebroker plan to be overriden by environment in .lagoon.yml
+    ENVIRONMENT_DBAAS_ENVIRONMENT_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH}.overrides.$SERVICE_NAME.$SERVICE_TYPE\\.environment false)
+    if [ ! $DBAAS_ENVIRONMENT_OVERRIDE == "false" ]; then
+      DBAAS_ENVIRONMENT=$ENVIRONMENT_DBAAS_ENVIRONMENT_OVERRIDE
+    fi
+
+    # If we have a dbaas environment type override in the api, consume it here
+    if [ ! -z "$LAGOON_DBAAS_ENVIRONMENT_TYPES" ]; then
+      IFS=',' read -ra LAGOON_DBAAS_ENVIRONMENT_TYPES_SPLIT <<< "$LAGOON_DBAAS_ENVIRONMENT_TYPES"
+      for LAGOON_DBAAS_ENVIRONMENT_TYPE in "${LAGOON_DBAAS_ENVIRONMENT_TYPES_SPLIT[@]}"
+      do
+        IFS=':' read -ra LAGOON_DBAAS_ENVIRONMENT_TYPE_SPLIT <<< "$LAGOON_DBAAS_ENVIRONMENT_TYPE"
+        if [ "${LAGOON_DBAAS_ENVIRONMENT_TYPE_SPLIT[0]}" == "$SERVICE_NAME" ]; then
+          DBAAS_ENVIRONMENT=${LAGOON_DBAAS_ENVIRONMENT_TYPE_SPLIT[1]}
+        fi
+      done
+    fi
+
+    MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]="$DBAAS_ENVIRONMENT"
   fi
 
   if [ "$SERVICE_TYPE" == "none" ]; then
@@ -208,8 +266,14 @@ do
   # The ImageName is the same as the Name of the Docker Compose ServiceName
   IMAGE_NAME=$COMPOSE_SERVICE
 
-  # Generate List of Images to build
-  IMAGES+=("${IMAGE_NAME}")
+  # Do not handle images for shared services
+  if  [[ "$SERVICE_TYPE" != "mariadb-dbaas" ]] &&
+      [[ "$SERVICE_TYPE" != "mariadb-shared" ]] &&
+      [[ "$SERVICE_TYPE" != "mongodb-shared" ]] &&
+      [[ "$SERVICE_TYPE" != "mongodb-dbaas" ]]; then
+    # Generate List of Images to build
+    IMAGES+=("${IMAGE_NAME}")
+  fi
 
   # Map Deployment ServiceType to the ImageName
   MAP_DEPLOYMENT_SERVICETYPE_TO_IMAGENAME["${SERVICE_NAME}:${DEPLOYMENT_SERVICETYPE}"]="${IMAGE_NAME}"
@@ -264,11 +328,18 @@ do
       PRIVATE_REGISTRY_CREDENTIAL=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "container_registry" and .name == "'$PRIVATE_CONTAINER_REGISTRY_PASSWORD'") | "\(.value)"'))
     fi
     if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
-      PRIVATE_REGISTRY_CREDENTIAL=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.scope == "container_registry" and .name == "'$PRIVATE_CONTAINER_REGISTRY_PASSWORD'") | "\(.value)"'))
+      TEMP_PRIVATE_REGISTRY_CREDENTIAL=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.scope == "container_registry" and .name == "'$PRIVATE_CONTAINER_REGISTRY_PASSWORD'") | "\(.value)"'))
+      if [ ! -z "$TEMP_PRIVATE_REGISTRY_CREDENTIAL" ]; then
+        PRIVATE_REGISTRY_CREDENTIAL=$TEMP_PRIVATE_REGISTRY_CREDENTIAL
+      fi
     fi
     if [ -z $PRIVATE_REGISTRY_CREDENTIAL ]; then
       #if no password defined in the lagoon api, pass the one in `.lagoon.yml` as a password
       PRIVATE_REGISTRY_CREDENTIAL=$PRIVATE_CONTAINER_REGISTRY_PASSWORD
+    fi
+    if [ -z "$PRIVATE_REGISTRY_CREDENTIAL" ]; then
+      echo -e "A private container registry was defined in the .lagoon.yml file, but no password could be found in either the .lagoon.yml or in the Lagoon API\n\nPlease check if the password has been set correctly."
+      exit 1
     fi
     if [ $PRIVATE_CONTAINER_REGISTRY_URL != "false" ]; then
       echo "Attempting to log in to $PRIVATE_CONTAINER_REGISTRY_URL with user $PRIVATE_CONTAINER_REGISTRY_USERNAME - $PRIVATE_CONTAINER_REGISTRY_PASSWORD"
@@ -331,6 +402,8 @@ if [[ ( "$TYPE" == "pullrequest"  ||  "$TYPE" == "branch" ) && ! $THIS_IS_TUG ==
   BUILD_ARGS+=(--build-arg LAGOON_GIT_BRANCH="${BRANCH}")
   BUILD_ARGS+=(--build-arg LAGOON_GIT_SAFE_BRANCH="${SAFE_BRANCH}")
   BUILD_ARGS+=(--build-arg LAGOON_PROJECT="${PROJECT}")
+  BUILD_ARGS+=(--build-arg LAGOON_ENVIRONMENT="${SAFE_BRANCH}")
+  BUILD_ARGS+=(--build-arg LAGOON_ENVIRONMENT_TYPE="${ENVIRONMENT_TYPE}")
   BUILD_ARGS+=(--build-arg LAGOON_SAFE_PROJECT="${SAFE_PROJECT}")
   BUILD_ARGS+=(--build-arg LAGOON_BUILD_TYPE="${TYPE}")
   BUILD_ARGS+=(--build-arg LAGOON_GIT_SOURCE_REPOSITORY="${SOURCE_REPOSITORY}")
@@ -364,6 +437,12 @@ if [[ ( "$TYPE" == "pullrequest"  ||  "$TYPE" == "branch" ) && ! $THIS_IS_TUG ==
       if [ ! $OVERRIDE_IMAGE == "false" ]; then
         # expand environment variables from ${OVERRIDE_IMAGE}
         PULL_IMAGE=$(echo "${OVERRIDE_IMAGE}" | envsubst)
+      fi
+
+      # if the image just is an image name (like "alpine") we prefix it with `libary/` as the imagecache does not understand
+      # the magic `alpine` images
+      if [[ ! "$PULL_IMAGE" =~ "/" ]]; then
+        PULL_IMAGE="library/$PULL_IMAGE"
       fi
 
       # Add the images we should pull to the IMAGES_PULL array, they will later be tagged from dockerhub
@@ -453,14 +532,14 @@ else
   ROUTES_AUTOGENERATE_INSECURE=$(cat .lagoon.yml | shyaml get-value routes.autogenerate.insecure Allow)
 fi
 
-ROUTES_AUTOGENERATE_ENABLED=$(cat .lagoon.yml | shyaml get-value routes.autogenerate.enabled true)
-ROUTES_AUTOGENERATE_ALLOW_PRS=$(cat .lagoon.yml | shyaml get-value routes.autogenerate.allowPullrequests $ROUTES_AUTOGENERATE_ENABLED)
+ROUTES_AUTOGENERATE_ENABLED=$(set -o pipefail; cat .lagoon.yml | shyaml get-value routes.autogenerate.enabled true | tr '[:upper:]' '[:lower:]')
+ROUTES_AUTOGENERATE_ALLOW_PRS=$(cat .lagoon.yml | shyaml get-value routes.autogenerate.allowPullrequests $ROUTES_AUTOGENERATE_ENABLED | tr '[:upper:]' '[:lower:]')
 if [[ "$TYPE" == "pullrequest" && "$ROUTES_AUTOGENERATE_ALLOW_PRS" == "true" ]]; then
   ROUTES_AUTOGENERATE_ENABLED=true
 fi
 ## fail silently if the key autogenerateRoutes doesn't exist and default to whatever ROUTES_AUTOGENERATE_ENABLED is set to
-ROUTES_AUTOGENERATE_BRANCH=$(cat .lagoon.yml | shyaml -q get-value environments.${BRANCH//./\\.}.autogenerateRoutes $ROUTES_AUTOGENERATE_ENABLED)
-if [[ "$ROUTES_AUTOGENERATE_BRANCH" =~ [Tt]rue ]]; then
+ROUTES_AUTOGENERATE_BRANCH=$(set -o pipefail; cat .lagoon.yml | shyaml -q get-value environments.${BRANCH//./\\.}.autogenerateRoutes $ROUTES_AUTOGENERATE_ENABLED | tr '[:upper:]' '[:lower:]')
+if [[ "$ROUTES_AUTOGENERATE_BRANCH" == "true" ]]; then
   ROUTES_AUTOGENERATE_ENABLED=true
 fi
 
@@ -513,20 +592,37 @@ do
     SERVICEBROKERS+=("${SERVICE_NAME}:${SERVICE_TYPE}")
   fi
 
-  # If we have a dbaas consumer, create it
   OPENSHIFT_SERVICES_TEMPLATE="/oc-build-deploy/openshift-templates/${SERVICE_TYPE}/consumer.yml"
   if [ -f $OPENSHIFT_SERVICES_TEMPLATE ]; then
-    OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
-    OPERATOR_ENVIRONMENT="${MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]}"
-    TEMPLATE_ADDITIONAL_PARAMETERS=()
-    oc process  --local -o yaml --insecure-skip-tls-verify \
-      -n ${OPENSHIFT_PROJECT} \
-      -f ${OPENSHIFT_TEMPLATE} \
-      -p SERVICE_NAME="${SERVICE_NAME}" \
-      -p SAFE_BRANCH="${SAFE_BRANCH}" \
-      -p SAFE_PROJECT="${SAFE_PROJECT}" \
-      -p ENVIRONMENT="${OPERATOR_ENVIRONMENT}" \
-      | outputToYaml
+    EXISTING_CONSUMER_DB=""
+    # Check if we have a dbaas consumer already created
+    if [ "$SERVICE_TYPE" == "mariadb-dbaas" ]; then
+      if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get mariadbconsumer/${SERVICE_NAME} 2> /dev/null; then
+        EXISTING_CONSUMER_DB=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get mariadbconsumer/${SERVICE_NAME} -o json 2> /dev/null | jq -r '.spec.consumer.database')
+      fi
+    elif [ "$SERVICE_TYPE" == "mongodb-dbaas" ]; then
+      if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get mongodbconsumer/${SERVICE_NAME} 2> /dev/null; then
+        EXISTING_CONSUMER_DB=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get mongodbconsumer/${SERVICE_NAME} -o json 2> /dev/null | jq -r '.spec.consumer.database')
+      fi
+    elif [ "$SERVICE_TYPE" == "postgres-dbaas" ]; then
+      if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get postgresqlconsumer/${SERVICE_NAME} 2> /dev/null; then
+        EXISTING_CONSUMER_DB=$(oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get postgresqlconsumer/${SERVICE_NAME} -o json 2> /dev/null | jq -r '.spec.consumer.database')
+      fi
+    fi
+    # If we haven't already got an existing dbaas consumer, create one
+    if [ -z "$EXISTING_CONSUMER_DB" ]; then
+      OPENSHIFT_TEMPLATE=$OPENSHIFT_SERVICES_TEMPLATE
+      OPERATOR_ENVIRONMENT="${MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]}"
+      TEMPLATE_ADDITIONAL_PARAMETERS=()
+      oc process  --local -o yaml --insecure-skip-tls-verify \
+        -n ${OPENSHIFT_PROJECT} \
+        -f ${OPENSHIFT_TEMPLATE} \
+        -p SERVICE_NAME="${SERVICE_NAME}" \
+        -p SAFE_BRANCH="${SAFE_BRANCH}" \
+        -p SAFE_PROJECT="${SAFE_PROJECT}" \
+        -p ENVIRONMENT="${OPERATOR_ENVIRONMENT}" \
+        | outputToYaml
+    fi
     SERVICEBROKERS+=("${SERVICE_NAME}:${SERVICE_TYPE}")
   fi
 
@@ -538,11 +634,8 @@ TEMPLATE_PARAMETERS=()
 ### CUSTOM ROUTES FROM .lagoon.yml
 ##############################################
 
-if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
-  MONITORING_ENABLED="true"
-else
-  MONITORING_ENABLED="false"
-fi
+
+MONITORING_ENABLED="false" # monitoring is by default disabled, it will be enabled for the first route again
 MONITORING_INTERVAL=60
 
 ROUTES_SERVICE_COUNTER=0
@@ -561,8 +654,8 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
             ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml keys production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
             # Route Domains include dots, which need to be esacped via `\.` in order to use them within shyaml
             ROUTE_DOMAIN_ESCAPED=$(cat .lagoon.yml | shyaml keys production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER | sed 's/\./\\./g')
-            ROUTE_TLS_ACME=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true)
-            ROUTE_MIGRATE=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate true)
+            ROUTE_TLS_ACME=$(set -o pipefail; cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true | tr '[:upper:]' '[:lower:]')
+            ROUTE_MIGRATE=$(set -o pipefail; cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate true | tr '[:upper:]' '[:lower:]')
             ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
             ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
             MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring-path "/")
@@ -578,11 +671,19 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
           # The very first found route is set as MAIN_CUSTOM_ROUTE
           if [ -z "${MAIN_CUSTOM_ROUTE+x}" ]; then
             MAIN_CUSTOM_ROUTE=$ROUTE_DOMAIN
+
+            # if we are in production we enabled monitoring for the main custom route
+            if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
+              MONITORING_ENABLED="true"
+            fi
+
           fi
 
           ROUTE_SERVICE=$ROUTES_SERVICE
 
           .  /oc-build-deploy/scripts/exec-openshift-create-route.sh
+
+          MONITORING_ENABLED="false" # disabling a possible enabled monitoring again
 
           let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
         done
@@ -603,8 +704,8 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
             ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml keys production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
             # Route Domains include dots, which need to be esacped via `\.` in order to use them within shyaml
             ROUTE_DOMAIN_ESCAPED=$(cat .lagoon.yml | shyaml keys production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER | sed 's/\./\\./g')
-            ROUTE_TLS_ACME=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true)
-            ROUTE_MIGRATE=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate true)
+            ROUTE_TLS_ACME=$(set -o pipefail; cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true | tr '[:upper:]' '[:lower:]')
+            ROUTE_MIGRATE=$(set -o pipefail; cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate true | tr '[:upper:]' '[:lower:]')
             ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
             ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
             MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring-path "/")
@@ -620,11 +721,19 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
           # The very first found route is set as MAIN_CUSTOM_ROUTE
           if [ -z "${MAIN_CUSTOM_ROUTE+x}" ]; then
             MAIN_CUSTOM_ROUTE=$ROUTE_DOMAIN
+
+            # if we are in production we enabled monitoring for the main custom route
+            if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
+              MONITORING_ENABLED="true"
+            fi
+
           fi
 
           ROUTE_SERVICE=$ROUTES_SERVICE
 
           .  /oc-build-deploy/scripts/exec-openshift-create-route.sh
+
+          MONITORING_ENABLED="false" # disabling a possible enabled monitoring again
 
           let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
         done
@@ -648,8 +757,8 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
         ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
         # Route Domains include dots, which need to be esacped via `\.` in order to use them within shyaml
         ROUTE_DOMAIN_ESCAPED=$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER | sed 's/\./\\./g')
-        ROUTE_TLS_ACME=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true)
-        ROUTE_MIGRATE=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate false)
+        ROUTE_TLS_ACME=$(set -o pipefail; cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true | tr '[:upper:]' '[:lower:]')
+        ROUTE_MIGRATE=$(set -o pipefail; cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate false | tr '[:upper:]' '[:lower:]')
         ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
         ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
         MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring-path "/")
@@ -665,11 +774,19 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
       # The very first found route is set as MAIN_CUSTOM_ROUTE
       if [ -z "${MAIN_CUSTOM_ROUTE+x}" ]; then
         MAIN_CUSTOM_ROUTE=$ROUTE_DOMAIN
+
+        # if we are in production we enabled monitoring for the main custom route
+        if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
+          MONITORING_ENABLED="true"
+        fi
+
       fi
 
       ROUTE_SERVICE=$ROUTES_SERVICE
 
       .  /oc-build-deploy/scripts/exec-openshift-create-route.sh
+
+      MONITORING_ENABLED="false" # disabling a possible enabled monitoring again
 
       let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
     done
@@ -687,8 +804,8 @@ else
         ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
         # Route Domains include dots, which need to be esacped via `\.` in order to use them within shyaml
         ROUTE_DOMAIN_ESCAPED=$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER | sed 's/\./\\./g')
-        ROUTE_TLS_ACME=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true)
-        ROUTE_MIGRATE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate false)
+        ROUTE_TLS_ACME=$(set -o pipefail; cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true | tr '[:upper:]' '[:lower:]')
+        ROUTE_MIGRATE=$(set -o pipefail; cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate false | tr '[:upper:]' '[:lower:]')
         ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
         ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
         MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring-path "/")
@@ -704,11 +821,19 @@ else
       # The very first found route is set as MAIN_CUSTOM_ROUTE
       if [ -z "${MAIN_CUSTOM_ROUTE+x}" ]; then
         MAIN_CUSTOM_ROUTE=$ROUTE_DOMAIN
+
+        # if we are in production we enabled monitoring for the main custom route
+        if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
+          MONITORING_ENABLED="true"
+        fi
+
       fi
 
       ROUTE_SERVICE=$ROUTES_SERVICE
 
       .  /oc-build-deploy/scripts/exec-openshift-create-route.sh
+
+      MONITORING_ENABLED="false" # disabling a possible enabled monitoring again
 
       let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
     done
@@ -729,16 +854,62 @@ if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get schedules.backup.ap
 
   TEMPLATE_PARAMETERS=()
 
+  # Check for custom baas bucket name
+  if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
+    BAAS_BUCKET_NAME=$(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_BAAS_BUCKET_NAME") | "\(.value)"')
+  fi
+  if [ -z $BAAS_BUCKET_NAME ]; then
+    BAAS_BUCKET_NAME=baas-${SAFE_PROJECT}
+  fi
+  TEMPLATE_PARAMETERS+=(-p BAAS_BUCKET_NAME="${BAAS_BUCKET_NAME}")
+
+  # Pull in .lagoon.yml variables
+  PRODUCTION_MONTHLY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml get-value backup-retention.production.monthly "")
+  PRODUCTION_WEEKLY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml get-value backup-retention.production.weekly "")
+  PRODUCTION_DAILY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml get-value backup-retention.production.daily "")
+
+  # Pull in environment type (development/production)
+  TEMPLATE_PARAMETERS+=(-p ENVIRONMENT_TYPE="${ENVIRONMENT_TYPE}")
+
+  # Set template parameters for retention values (prefer .lagoon.yml values over supplied defaults after ensuring they are valid integers via "-eq" comparison)
+  if [ ! -z $PRODUCTION_MONTHLY_BACKUP_RETENTION ] && [ "$PRODUCTION_MONTHLY_BACKUP_RETENTION" -eq "$PRODUCTION_MONTHLY_BACKUP_RETENTION" ] && [ $ENVIRONMENT_TYPE = 'production' ]; then
+    TEMPLATE_PARAMETERS+=(-p MONTHLY_BACKUP_RETENTION="${PRODUCTION_MONTHLY_BACKUP_RETENTION}")
+  else
+    TEMPLATE_PARAMETERS+=(-p MONTHLY_BACKUP_RETENTION="${MONTHLY_BACKUP_DEFAULT_RETENTION}")
+  fi
+  if [ ! -z $PRODUCTION_WEEKLY_BACKUP_RETENTION ] && [ "$PRODUCTION_WEEKLY_BACKUP_RETENTION" -eq "$PRODUCTION_WEEKLY_BACKUP_RETENTION" ] && [ $ENVIRONMENT_TYPE = 'production' ]; then
+    TEMPLATE_PARAMETERS+=(-p WEEKLY_BACKUP_RETENTION="${PRODUCTION_WEEKLY_BACKUP_RETENTION}")
+  else
+    TEMPLATE_PARAMETERS+=(-p WEEKLY_BACKUP_RETENTION="${WEEKLY_BACKUP_DEFAULT_RETENTION}")
+  fi
+  if [ ! -z $PRODUCTION_DAILY_BACKUP_RETENTION ] && [ "$PRODUCTION_DAILY_BACKUP_RETENTION" -eq "$PRODUCTION_DAILY_BACKUP_RETENTION" ] && [ $ENVIRONMENT_TYPE = 'production' ]; then
+    TEMPLATE_PARAMETERS+=(-p DAILY_BACKUP_RETENTION="${PRODUCTION_DAILY_BACKUP_RETENTION}")
+  else
+    TEMPLATE_PARAMETERS+=(-p DAILY_BACKUP_RETENTION="${DAILY_BACKUP_DEFAULT_RETENTION}")
+  fi
+
   # Run Backups every day at 2200-0200
   BACKUP_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "M H(22-2) * * *")
   TEMPLATE_PARAMETERS+=(-p BACKUP_SCHEDULE="${BACKUP_SCHEDULE}")
 
-  # Run Checks on Sunday at 0300-0600
-  CHECK_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "M H(3-6) * * 0")
+  # Checks
+  if [ ! -z $K8UP_WEEKLY_RANDOM_FEATURE_FLAG ] && [ $K8UP_WEEKLY_RANDOM_FEATURE_FLAG = 'enabled' ]; then
+    # Let the controller deduplicate checks (will run weekly at a random time throughout the week)
+    CHECK_SCHEDULE="@weekly-random"
+  else
+    # Run Checks on Sunday at 0300-0600
+    CHECK_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "M H(3-6) * * 0")
+  fi
   TEMPLATE_PARAMETERS+=(-p CHECK_SCHEDULE="${CHECK_SCHEDULE}")
 
-  # Run Prune on Saturday at 0300-0600
-  PRUNE_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "M H(3-6) * * 6")
+  # Prunes
+  if [ ! -z $K8UP_WEEKLY_RANDOM_FEATURE_FLAG ] && [ $K8UP_WEEKLY_RANDOM_FEATURE_FLAG = 'enabled' ]; then
+    # Let the controller deduplicate prunes (will run weekly at a random time throughout the week)
+    PRUNE_SCHEDULE="@weekly-random"
+  else
+    # Run Prune on Saturday at 0300-0600
+    PRUNE_SCHEDULE=$( /oc-build-deploy/scripts/convert-crontab.sh "${OPENSHIFT_PROJECT}" "M H(3-6) * * 6")
+  fi
   TEMPLATE_PARAMETERS+=(-p PRUNE_SCHEDULE="${PRUNE_SCHEDULE}")
 
   OPENSHIFT_TEMPLATE="/oc-build-deploy/openshift-templates/backup-schedule.yml"
@@ -911,6 +1082,10 @@ do
         set -x
         ;;
 
+    mongodb-dbaas)
+        . /oc-build-deploy/scripts/exec-openshift-mongodb-dbaas.sh
+        ;;
+
     *)
         echo "ServiceBroker Type ${SERVICE_TYPE} not implemented"; exit 1;
 
@@ -940,11 +1115,11 @@ if [[ $THIS_IS_TUG == "true" ]]; then
 
 elif [ "$TYPE" == "pullrequest" ] || [ "$TYPE" == "branch" ]; then
 
-  # All images that should be pulled are tagged as Images directly in OpenShift Registry
+  # All images that should be pulled are copied to the openshift and harbor registry
   for IMAGE_NAME in "${!IMAGES_PULL[@]}"
   do
     PULL_IMAGE="${IMAGES_PULL[${IMAGE_NAME}]}"
-    . /oc-build-deploy/scripts/exec-openshift-tag-dockerhub.sh
+    . /oc-build-deploy/scripts/exec-openshift-copy-to-registry.sh
   done
 
   for IMAGE_NAME in "${!IMAGES_BUILD[@]}"
@@ -1223,6 +1398,10 @@ do
 
     echo "nothing to monitor for $SERVICE_TYPE"
 
+  elif [ $SERVICE_TYPE == "mongodb-dbaas" ]; then
+
+    echo "nothing to monitor for $SERVICE_TYPE"
+
   elif [ ! $SERVICE_ROLLOUT_TYPE == "false" ]; then
     . /oc-build-deploy/scripts/exec-monitor-deploy.sh
   fi
@@ -1278,4 +1457,16 @@ if [ "${LAGOON_POSTROLLOUT_DISABLED}" != "true" ]; then
   done
 else
   echo "post-rollout tasks are currently disabled LAGOON_POSTROLLOUT_DISABLED is set to true"
+fi
+
+##############################################
+### PUSH the latest .lagoon.yml into lagoon-yaml configmap
+##############################################
+
+if oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} get configmap lagoon-yaml &> /dev/null; then
+  # replace it
+  oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} create configmap lagoon-yaml --from-file=.lagoon.yml -o yaml --dry-run | oc replace -f -
+else
+  # create it
+  oc --insecure-skip-tls-verify -n ${OPENSHIFT_PROJECT} create configmap lagoon-yaml --from-file=.lagoon.yml
 fi

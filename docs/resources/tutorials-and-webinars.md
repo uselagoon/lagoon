@@ -38,25 +38,37 @@
 
 ## How do I fix an internal server error in Kibana?
 
-{% embed url="https://www.youtube.com/watch?v=is-mt6oBQs8" caption="" %}
+{% embed url="https://www.youtube.com/watch?v=BuQo5J0Qc2c&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=5" %}
+
+
 
 ## How do I add a new route?
 
-{% embed url="https://www.youtube.com/watch?v=0D8vp55z1qc" caption="" %}
+{% embed url="https://www.youtube.com/watch?v=vQxh87F3fW4&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=4" %}
+
+
 
 ## How do I check the status of a build?
 
-{% embed url="https://www.youtube.com/watch?v=UM6lM12ACK4" caption="" %}
+{% embed url="https://www.youtube.com/watch?v=PyrlZqTjf68&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=1" %}
+
+
 
 ## How do I add a redirect in Lagoon?
 
-{% embed url="https://www.youtube.com/watch?v=zmlfJT1FlL0" caption="" %}
+{% embed url="https://www.youtube.com/watch?v=rWb-PkRDhY4&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=6" %}
+
+
 
 ## How do I download a database dump?
 
-{% embed url="https://www.youtube.com/watch?v=vnr3EITlQys" caption="" %}
+{% embed url="https://www.youtube.com/watch?v=bluTyxKqLbw&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=3" %}
+
+
 
 ## How do I add a cron job?
 
-{% embed url="https://youtube.com/watch?v=7mtw8wM\_Ntg" caption="" %}
+{% embed url="https://www.youtube.com/watch?v=Yd\_JfDyfbR0&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=2" %}
+
+
 

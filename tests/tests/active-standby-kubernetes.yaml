@@ -8,7 +8,7 @@
   vars:
     testname: "ACTIVE_STANDBY"
     git_repo_name: active-standby.git
-    project: ci-active-standby-{{ lookup('env','CLUSTER_TYPE') }}
+    project: ci-active-standby-{{ cluster_type }}
     branch: master-a
     standby_branch: master-b
     error_code_check: 404

@@ -29,8 +29,8 @@ export const projectWithBillingDataFn = (
   yearMonth: string,
   environmentModel: ReturnType<typeof EnvironmentModel>
 ) => async project => {
-  const { id } = project;
-  const envs = await environmentModel.projectEnvironmentsWithData(id, yearMonth);
+  const { id, name } = project;
+  const envs = await environmentModel.projectEnvironmentsWithData(id, name, yearMonth);
   const projectData = calculateProjectEnvironmentsTotalsToBill(envs);
   return { ...project, ...projectData, environments: envs };
 };

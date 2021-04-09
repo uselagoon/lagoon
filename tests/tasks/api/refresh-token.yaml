@@ -3,5 +3,9 @@
     - name: "{{ testname }} - Refresh API token if necessary"
       script: refresh_token.py {{ lookup('env', 'KEYCLOAK_AUTH_SERVER_CLIENT_SECRET') }} {{ grant.stdout | b64encode }}
       register: grant
+    - debug:
+        msg: "refresh token stdout: {{ grant.stdout }}"
+    - debug:
+        msg: "refresh token stderr: {{ grant.stderr }}"
     - set_fact:
         token: "{{ (grant.stdout | from_json).access_token }}"

@@ -35,6 +35,7 @@ services:
     labels:
       lagoon.type: nginx-php-persistent
       lagoon.persistent: /app/web/sites/default/files/
+      lagoon.persistent.size: 1Gi
       lagoon.name: nginx
       lagoon.deployment.servicetype: nginx
     volumes:

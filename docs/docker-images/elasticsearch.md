@@ -6,8 +6,8 @@
 
 ## Supported versions
 
-* 6.8 [\[Dockerfile\]](https://github.com/amazeeio/lagoon/blob/master/images/elasticsearch/Dockerfile6)
-* 7.6 [\[Dockerfile\]](https://github.com/amazeeio/lagoon/blob/master/images/elasticsearch/Dockerfile7)
+* 6 [\[Dockerfile\]](https://github.com/uselagoon/lagoon-images/blob/main/images/elasticsearch/6.Dockerfile)
+* 7 [\[Dockerfile\]](https://github.com/uselagoon/lagoon-images/blob/main/images/elasticsearch/7.Dockerfile)
 
 ## Known issues
 

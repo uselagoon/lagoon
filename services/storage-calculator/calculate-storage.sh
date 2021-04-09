@@ -1,10 +1,25 @@
 #!/bin/bash
 
-API_ADMIN_JWT_TOKEN=$(./create_jwt.py)
-BEARER="Authorization: bearer $API_ADMIN_JWT_TOKEN"
+# Send a GraphQL query to Lagoon API.
+# Accpets query as first param. Usage:
+# ALL_ENVIRONMENTS=$(apiQuery "query {
+#   allProjects {
+#     name
+#   }
+# }")
+apiQuery() {
+  local api_token=$(./create_jwt.py)
+  local authz_header="Authorization: bearer $api_token"
+
+  # Convert GraphQL file into single line (but with still \n existing), turn \n into \\n, esapee the Quotes
+  local query=$(echo $1 | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
+  local result=$(curl -s -XPOST -H 'Content-Type: application/json' -H "$authz_header" "${GRAPHQL_ENDPOINT:-api:3000/graphql}" -d "{\"query\": \"$query\"}")
+
+  echo "$result"
+}
 
 # Load all projects and their environments
-GRAPHQL='query environments {
+ALL_ENVIRONMENTS=$(apiQuery 'query {
   environments:allProjects {
     name
     storageCalc
@@ -19,11 +34,8 @@ GRAPHQL='query environments {
       id
     }
   }
-}'
+}')
 
-# Convert GraphQL file into single line (but with still \n existing), turn \n into \\n, esapee the Quotes
-query=$(echo $GRAPHQL | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
-ALL_ENVIRONMENTS=$(curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" "${GRAPHQL_ENDPOINT:-api:3000/graphql}" -d "{\"query\": \"$query\"}")
 
 echo "$ALL_ENVIRONMENTS" | jq -c '.data.environments[] | select((.environments|length)>=1)' | while read project
 do
@@ -33,7 +45,7 @@ do
   if [[ $PROJECT_NAME =~ $PROJECT_REGEX ]]; then
     STORAGE_CALC=$(echo "$project" | jq -r '.storageCalc')
     echo "$OPENSHIFT_URL: Handling project $PROJECT_NAME"
-    OPENSHIFT_TOKEN=$(echo "$project" | jq -r '.openshift.token')
+    OPENSHIFT_TOKEN=$(echo "$project" | jq -r '.openshift.token // empty')
     # loop through each environment of the current project
     echo "$project" | jq -c '.environments[]' | while read environment
     do
@@ -46,15 +58,11 @@ do
       if [[ $STORAGE_CALC != "1" ]]; then
         echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: storage calculation disabled, skipping"
 
-        MUTATION="mutation addOrUpdateEnvironmentStorage {
+        apiQuery "mutation {
           addOrUpdateEnvironmentStorage(input:{environment:${ENVIRONMENT_ID}, persistentStorageClaim:\"storage-calc-disabled\", bytesUsed:0}) {
             id
           }
         }"
-
-        # Convert GraphQL file into single line (but with still \n existing), turn \n into \\n, esapee the Quotes
-        query=$(echo $MUTATION | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
-        curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" "${GRAPHQL_ENDPOINT:-api:3000/graphql}" -d "{\"query\": \"$query\"}"
 
         continue
 
@@ -71,33 +79,35 @@ do
       echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: creating storage-calc pod"
 
       # Cleanup any existing storage-calc deployments
-      ${OC} delete deploymentconfig/storage-calc >/dev/null 2>&1
+      ${OC} delete deployment/storage-calc >/dev/null 2>&1
 
       # Start storage-calc deployment
-      ${OC} run --generator=deploymentconfig/v1 --image amazeeio/alpine-mysql-client storage-calc -- sh -c "while sleep 3600; do :; done"
-      ${OC} rollout pause deploymentconfig/storage-calc
+      deployment_template=$(${OC} create --dry-run=true -o yaml deployment storage-calc --image imagecache.amazeeio.cloud/amazeeio/alpine-mysql-client)
+      deployment=$(echo "$deployment_template" | yq '.spec.template.spec.containers[0].command = ["sh", "-c", "while sleep 3600; do :; done"]')
+      echo "$deployment" | ${OC} create -f -
+      ${OC} rollout pause deployment/storage-calc
 
       # Copy environment variable from lagoon-env configmap.
-      ${OC} set env --from=configmap/lagoon-env deploymentconfig/storage-calc
+      ${OC} set env --from=configmap/lagoon-env deployment/storage-calc
 
       PVCS=($(${OC} get pvc -o name | sed 's/persistentvolumeclaim\///'))
 
       for PVC in "${PVCS[@]}"
       do
         echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: mounting ${PVC} into storage-calc"
-        ${OC} set volume deploymentconfig/storage-calc --add --name=${PVC} --type=persistentVolumeClaim --claim-name=${PVC} --mount-path=/storage/${PVC}
+        ${OC} set volume deployment/storage-calc --add --name=${PVC} --type=persistentVolumeClaim --claim-name=${PVC} --mount-path=/storage/${PVC}
       done
 
-      ${OC} rollout resume deploymentconfig/storage-calc
+      ${OC} rollout resume deployment/storage-calc
       echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: redeploying storage-calc to mount volumes"
-      ${OC} rollout status deploymentconfig/storage-calc --watch
+      ${OC} rollout status deployment/storage-calc --watch
 
-      POD=$(${OC} get pods -l run=storage-calc -o json | jq -r '[.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running")] | first | .metadata.name // empty')
+      POD=$(${OC} get pods -l app=storage-calc -o json | jq -r '[.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running")] | first | .metadata.name // empty')
 
       if [[ ! $POD ]]; then
         echo "No running pod found for storage-calc"
         # Clean up any failed deployments.
-        ${OC} delete deploymentconfig/storage-calc >/dev/null 2>&1
+        ${OC} delete deployment/storage-calc >/dev/null 2>&1
         exit 1
       fi
 
@@ -106,15 +116,11 @@ do
       if [[ ! ${#PVCS[@]} -gt 0 ]]; then
         echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: no PVCs found writing API with 0 bytes"
 
-        MUTATION="mutation addOrUpdateEnvironmentStorage {
+        apiQuery "mutation {
           addOrUpdateEnvironmentStorage(input:{environment:${ENVIRONMENT_ID}, persistentStorageClaim:\"none\", bytesUsed:0}) {
             id
           }
         }"
-
-        # Convert GraphQL file into single line (but with still \n existing), turn \n into \\n, esapee the Quotes
-        query=$(echo $MUTATION | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
-        curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" "${GRAPHQL_ENDPOINT:-api:3000/graphql}" -d "{\"query\": \"$query\"}"
 
       else
         for PVC in "${PVCS[@]}"
@@ -123,18 +129,14 @@ do
           # STORAGE_BYTES=$(echo "${DF}" | grep /storage/${PVC} | awk '{ print $4 }')
           echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: ${PVC} uses ${STORAGE_BYTES} kilobytes"
 
-            MUTATION="mutation addOrUpdateEnvironmentStorage {
+            apiQuery "mutation {
               addOrUpdateEnvironmentStorage(input:{environment:${ENVIRONMENT_ID}, persistentStorageClaim:\"${PVC}\", bytesUsed:${STORAGE_BYTES}}) {
                 id
               }
             }"
 
-            # Convert GraphQL file into single line (but with still \n existing), turn \n into \\n, esapee the Quotes
-            query=$(echo $MUTATION | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
-            curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" "${GRAPHQL_ENDPOINT:-api:3000/graphql}" -d "{\"query\": \"$query\"}"
-
             # Update namespace labels
-            if [ ! -z "$LAGOON_STORAGE_LABEL_NAMESPACE"]; then
+            if [ ! -z "$LAGOON_STORAGE_LABEL_NAMESPACE" ]; then
               ${OC} label namespace $ENVIRONMENT_OPENSHIFT_PROJECTNAME lagoon/storage-${PVC}=${STORAGE_BYTES} --overwrite
             fi
 
@@ -144,18 +146,14 @@ do
       if mariadb_size=$(${OC} exec ${POD} -- sh -c "if [ \"\$MARIADB_HOST\" ]; then mysql -N -s -h \$MARIADB_HOST -u\$MARIADB_USERNAME -p\$MARIADB_PASSWORD -P\$MARIADB_PORT -e 'SELECT ROUND(SUM(data_length + index_length) / 1024, 0) FROM information_schema.tables'; else exit 1; fi") && [ "$mariadb_size" ]; then
         echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: Database uses ${mariadb_size} kilobytes"
 
-        MUTATION="mutation addOrUpdateEnvironmentStorage {
+        apiQuery "mutation {
           addOrUpdateEnvironmentStorage(input:{environment:${ENVIRONMENT_ID}, persistentStorageClaim:\"mariadb\", bytesUsed:${mariadb_size}}) {
             id
           }
         }"
-
-        # Convert GraphQL file into single line (but with still \n existing), turn \n into \\n, esapee the Quotes
-        query=$(echo $MUTATION | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
-        curl -s -XPOST -H 'Content-Type: application/json' -H "$BEARER" "${GRAPHQL_ENDPOINT:-api:3000/graphql}" -d "{\"query\": \"$query\"}"
       fi
 
-      ${OC} delete deploymentconfig/storage-calc
+      ${OC} delete deployment/storage-calc
 
     done
   else

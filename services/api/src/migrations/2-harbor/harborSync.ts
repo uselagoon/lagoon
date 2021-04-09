@@ -5,7 +5,7 @@ import { createHarborOperations } from '../../resources/project/harborSetup';
 import { Helpers as projectHelpers } from '../../resources/project/helpers';
 import { query, prepare } from '../../util/db';
 
-const defaultHarborUrl = R.propOr('http://172.17.0.1:8084', 'HARBOR_URL', process.env);
+const defaultHarborUrl = R.propOr('http://harbor-harbor-core.harbor.svc.cluster.local:80', 'HARBOR_URL', process.env);
 
 const lagoonHarborRoute = R.compose(
   R.defaultTo(defaultHarborUrl),

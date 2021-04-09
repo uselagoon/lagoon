@@ -1,6 +1,6 @@
 # PHP-FPM
 
-The [Lagoon `php-fpm` Docker image](https://github.com/amazeeio/lagoon/blob/master/images/php/fpm/Dockerfile). Based on [the official PHP Alpine images](https://hub.docker.com/_/php/).
+The [Lagoon `php-fpm` Docker image](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm). Based on [the official PHP Alpine images](https://hub.docker.com/_/php/).
 
 > _PHP-FPM \(FastCGI Process Manager\) is an alternative PHP FastCGI implementation with some additional features useful for sites of any size, especially busier sites._
 >
@@ -12,19 +12,20 @@ The [Lagoon `php-fpm` Docker image](https://github.com/amazeeio/lagoon/blob/mast
 This Dockerfile is intended to be used as a base for any `PHP` needs within Lagoon. This image itself does not create a web server, rather a `php-fpm` fastcgi listener. You may need to adapt the `php-fpm` pool config.
 {% endhint %}
 
-## Supported Versions
+## Supported versions
 
-* 5.6 \(available for compatibility, not officially supported\)
-* 7.0 \(available for compatibility, not officially supported\)
-* 7.2 \(available for compatibility, not officially supported - End of Support by 30 Nov 2020 \)
-* 7.3
-* 7.4
+* 5.6 \(available for compatibility, no longer officially supported\)
+* 7.0 \(available for compatibility, no longer officially supported\)
+* 7.2 \(available for compatibility, no longer officially supported\)
+* 7.3 [\[Dockerfile\]](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/7.3.Dockerfile)
+* 7.4 [\[Dockerfile\]](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/7.4.Dockerfile)
+* 8.0 [\[Dockerfile\]](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/8.0.Dockerfile)
+
+All PHP versions use their own Dockerfiles.
 
 {% hint style="info" %}
 We stop updating End of Life (EOL) PHP images usually with the Lagoon release that comes after the officially communicated EOL date: https://www.php.net/supported-versions.php.
 {% endhint %}
-
-All PHP versions use the same Dockerfile.
 
 ## Lagoon adaptions
 
@@ -32,7 +33,7 @@ This image is prepared to be used on Lagoon. There are therefore some things are
 
 * Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/sclorg/s2i-base-container/blob/master/core/root/usr/bin/fix-permissions), so this image will work with a random user.
 * The `/usr/local/etc/php/php.ini` and `/usr/local/etc/php-fpm.conf`, plus all files within `/usr/local/etc/php-fpm.d/` , are parsed through [`envplate`](https://github.com/kreuzwerker/envplate) with a container-entrypoint.
-* See the [Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/php/fpm/Dockerfile) for installed `PHP` extensions.
+* See the [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/7.4.Dockerfile) for installed `PHP` extensions.
 * To install further extensions, extend your Dockerfile from this image. Install extensions according to the docs, under the heading[ How to install more PHP extensions.](https://github.com/docker-library/docs/blob/master/php/README.md#how-to-install-more-php-extensions)
 
 ## Included PHP config.
@@ -68,7 +69,7 @@ Also, `php-fpm` error logging happens in `stderr`.
 
 ## default fpm-pool
 
-This image is shipped with an `fpm-pool` config \([`php-fpm.d/www.conf`](https://github.com/amazeeio/lagoon/blob/master/images/php/fpm/php-fpm.d/www.conf)\) that creates an `fpm-pool` and listens on port 9000. This is because we try to provide an image which already covers most needs for PHP, so you don't need to create your own. You are welcome to do so if you like, though!
+This image is shipped with an `fpm-pool` config \([`php-fpm.d/www.conf`](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/php-fpm.d/www.conf)\) that creates an `fpm-pool` and listens on port 9000. This is because we try to provide an image which already covers most needs for PHP, so you don't need to create your own. You are welcome to do so if you like, though!
 
 Here a short description of what this file does:
 

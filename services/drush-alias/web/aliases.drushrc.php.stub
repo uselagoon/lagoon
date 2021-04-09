@@ -207,7 +207,7 @@ if (getenv('LAGOON_OVERRIDE_JWT_TOKEN')) {
 } else {
   // if ssh takes too long to get a token, timeout with the same ssh port timeout used to check the port status
   // this could be because the API is unavailable
-  exec("timeout $ssh_port_timeout ssh -p $ssh_port -o ConnectTimeout=5 -o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no lagoon@$ssh_host token 2>&1", $token_array, $rc);
+  exec("timeout $ssh_port_timeout ssh -p $ssh_port -o ConnectTimeout=5 -o LogLevel=FATAL -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no lagoon@$ssh_host token 2>&1", $token_array, $rc);
   if ($rc !== 0) {
     drush_log("Could not load API JWT Token, error was: '" . implode(",", $token_array), 'warning');
     return;
@@ -320,7 +320,7 @@ $aliases = array_reduce($environments, function ($carry, $environment) use ($def
       'remote-user' => "$environment->openshiftProjectName",
       'root' => "$drupal_path",
       'backup-dir' => '/tmp',
-      'ssh-options' => "-o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p $ssh_port",
+      'ssh-options' => "-o LogLevel=FATAL -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p $ssh_port",
     ] + $defaults;
   }
   if ($environment->name == $standbyProductionEnvironment && $standbyProductionEnvironment != NULL) {
@@ -329,7 +329,7 @@ $aliases = array_reduce($environments, function ($carry, $environment) use ($def
       'remote-user' => "$environment->openshiftProjectName",
       'root' => "$drupal_path",
       'backup-dir' => '/tmp',
-      'ssh-options' => "-o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p $ssh_port",
+      'ssh-options' => "-o LogLevel=FATAL -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p $ssh_port",
     ] + $defaults;
   }
   $alias[$site_name] = [
@@ -337,7 +337,7 @@ $aliases = array_reduce($environments, function ($carry, $environment) use ($def
     'remote-user' => "$environment->openshiftProjectName",
     'root' => "$drupal_path",
     'backup-dir' => '/tmp',
-    'ssh-options' => "-o LogLevel=ERROR -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p $ssh_port",
+    'ssh-options' => "-o LogLevel=FATAL -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p $ssh_port",
   ] + $defaults;
 
   return $carry + $alias;

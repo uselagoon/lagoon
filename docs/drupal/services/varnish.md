@@ -1,6 +1,6 @@
 # Varnish
 
-We suggest using Drupal with a Varnish reverse proxy. Lagoon provides a `varnish-drupal` Docker image that has Varnish already configured with a [Drupal Varnish config](https://github.com/amazeeio/lagoon/blob/master/images/varnish-drupal/drupal.vcl).
+We suggest using Drupal with a Varnish reverse proxy. Lagoon provides a `varnish-drupal` Docker image that has Varnish already configured with a [Drupal Varnish config](https://github.com/uselagoon/lagoon-images/blob/main/images/varnish-drupal/drupal.vcl).
 
 This Varnish config does the following:
 
@@ -8,11 +8,13 @@ This Varnish config does the following:
 * It automatically caches any assets \(images, css, js, etc.\) for one month, and also sends this header to the browser, so browser cache the assets as well. This happens for authenticated and non-authenticated requests.
 * It has support for `BAN` and `URIBAN` which is used by the Drupal 8 purge module.
 * It removes `utm_` and `gclid` from the URL parameter to prevent Google Analytics links from creating multiple cache objects.
-* Many other good things - just check out the [drupal.vcl](https://github.com/amazeeio/lagoon/blob/master/images/varnish-drupal/drupal.vcl).
+* Many other good things - just check out the [drupal.vcl](https://github.com/uselagoon/lagoon-images/blob/main/images/varnish-drupal/drupal.vcl).
 
 ## Usage with Drupal 8
 
-TL;DR: Check out the [Drupal 8 Example](https://github.com/amazeeio/drupal-example), it ships with the needed modules and needed Drupal configuration.
+**TL;DR**: [Check out the drupal8-advanced example in our examples repo](https://github.com/uselagoon/lagoon-examples), it ships with the needed modules and needed Drupal configuration. 
+
+**Note**: many of these examples are on the same `drupal-example-simple` repo, but different branches/hashes. Be sure to get the exact branch from the examples list!
 
 ### Install Purge and Varnish Purge modules
 

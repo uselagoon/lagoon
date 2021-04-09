@@ -19,6 +19,7 @@ description: >-
 | DNS | Domain Name System |
 | Docker | A container engine using Linux features and automating application deployment. |
 | Drupal | Open-source Content Management System |
+| Drush |  |
 | EC2 | Amazon Elastic Compute Cloud |
 | Elasticsearch | An open-source search engine. It provides a distributed, multi-tenant-capable full-text search engine with a web interface and schema-free JSON documents. |
 | Galera | A generic synchronous multi-master replication library for transactional databases. |
@@ -50,6 +51,7 @@ description: >-
 | Node.js | An open-source, cross-platform, JavaScript runtime environment that executes JavaScript code outside of a browser. |
 | OpenShift | Container application platform that brings Docker and Kubernetes to the enterprise. |
 | PHP | PHP \(Personal Home Page\) is a general-purpose programming language originally designed for web development. |
+| PHPStorm |  |
 | Pod | A group of containers that are deployed together on the same host. The basic unit that Kubernetes works with. |
 | PostgreSQL | A free and open-source relational database management system emphasizing extensibility and technical standards compliance. |
 | Public/Private Key | Public-key encryption is a cryptographic system that uses two keys -- a public key known to everyone and a private or secret key known only to the recipient of the message. |
@@ -61,10 +63,10 @@ description: >-
 | Solr | An open-source enterprise-search platform, written in Java. |
 | SSH | Secure Socket Shell, a network protocol that provides administrators with a secure way to access a remote computer. |
 | SSL | Secure Socket Layer |
-| Symfony |  |
+| Symfony | Symfony is a PHP web application framework and a set of reusable PHP components/libraries, Drupal 8 and up are based on Symfony. |
 | TCP | Transmission Control Protocol, a standard that defines how to establish and maintain a network conversation through which application programs can exchange data. |
 | TLS | Transport Layer Security |
-| Trivy |  |
+| Trivy | A simple and comprehensive vulnerability scanner for containers, suitable for CI. |
 | TTL | Time to live or hop limit is a mechanism that limits the lifespan or lifetime of data in a computer or network. |
 | Varnish | A powerful, open-source HTTP engine/reverse HTTP proxy that can speed up a website by caching \(or storing\) a copy of a webpage the first time a user visits. |
 | VM | Virtual Machine |

@@ -3,6 +3,7 @@ import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
 import { createRemoveTask } from '@lagoon/commons/dist/tasks';
 import { ResolverFn } from '../';
 import { isPatchEmpty, prepare, query, whereAnd } from '../../util/db';
+import convertDateToMYSQLDateTimeFormat from '../../util/convertDateToMYSQLDateTimeFormat'
 import { Helpers } from './helpers';
 import { Sql } from './sql';
 import { Sql as projectSql } from '../project/sql';
@@ -36,7 +37,8 @@ export const getEnvironmentByName: ResolverFn = async (
   const prep = prepare(sqlClient, str);
 
   const rows = await query(sqlClient, prep(args));
-  const environment = rows[0];
+  const withK8s = Helpers(sqlClient).aliasOpenshiftToK8s(rows);
+  const environment = withK8s[0];
 
   if (!environment) {
     return null;
@@ -64,8 +66,7 @@ export const getEnvironmentById = async (
         project: environment.project,
     });
 
-    const rows = await query(sqlClient, Sql.selectEnvironmentById(args.id));
-    return rows[0];
+    return environment;
 };
 
 export const getEnvironmentsByProjectId: ResolverFn = async (
@@ -101,8 +102,9 @@ export const getEnvironmentsByProjectId: ResolverFn = async (
   );
 
   const rows = await query(sqlClient, prep({ pid, type: args.type }));
+  const withK8s = Helpers(sqlClient).aliasOpenshiftToK8s(rows);
 
-  return rows;
+  return withK8s;
 };
 
 export const getEnvironmentByDeploymentId: ResolverFn = async (
@@ -123,8 +125,8 @@ export const getEnvironmentByDeploymentId: ResolverFn = async (
   );
 
   const rows = await query(sqlClient, prep({ deployment_id }));
-
-  const environment = rows[0];
+  const withK8s = Helpers(sqlClient).aliasOpenshiftToK8s(rows);
+  const environment = withK8s[0];
 
   if (!environment) {
     return null;
@@ -155,8 +157,8 @@ export const getEnvironmentByTaskId: ResolverFn = async (
   );
 
   const rows = await query(sqlClient, prep({ task_id }));
-
-  const environment = rows[0];
+  const withK8s = Helpers(sqlClient).aliasOpenshiftToK8s(rows);
+  const environment = withK8s[0];
 
   if (!environment) {
     return null;
@@ -187,8 +189,8 @@ export const getEnvironmentByBackupId: ResolverFn = async (
   );
 
   const rows = await query(sqlClient, prep({ backup_id }));
-
-  const environment = rows[0];
+  const withK8s = Helpers(sqlClient).aliasOpenshiftToK8s(rows);
+  const environment = withK8s[0];
 
   if (!environment) {
     return null;
@@ -243,13 +245,14 @@ export const getEnvironmentHoursMonthByEnvironmentId: ResolverFn = async (
 };
 
 export const getEnvironmentHitsMonthByEnvironmentId: ResolverFn = async (
-  { openshiftProjectName },
+  { id, openshiftProjectName },
   args,
-  { models, hasPermission },
+  { sqlClient, models, hasPermission },
 ) => {
   await hasPermission('environment', 'storage');
 
-  return models.EnvironmentModel.environmentHitsMonthByEnvironmentId(openshiftProjectName, args.month);
+  const { name: projectName } = await projectHelpers(sqlClient).getProjectByEnvironmentId(id);
+  return models.EnvironmentModel.environmentHitsMonthByEnvironmentId(projectName, openshiftProjectName, args.month);
 };
 
 export const getEnvironmentServicesByEnvironmentId: ResolverFn = async (
@@ -285,8 +288,8 @@ export const getEnvironmentByOpenshiftProjectName: ResolverFn = async (
   const prep = prepare(sqlClient, str);
 
   const rows = await query(sqlClient, prep(args));
-
-  const environment = rows[0];
+  const withK8s = Helpers(sqlClient).aliasOpenshiftToK8s(rows);
+  const environment = withK8s[0];
 
   if (!environment) {
     return null;
@@ -298,6 +301,15 @@ export const getEnvironmentByOpenshiftProjectName: ResolverFn = async (
 
   return environment;
 };
+
+export const getEnvironmentByKubernetesNamespaceName: ResolverFn = async (
+  root,
+  args,
+  ctx,
+) => getEnvironmentByOpenshiftProjectName(root, {
+  ...args,
+  openshiftProjectName: args.kubernetesNamespaceName
+}, ctx);
 
 export const addOrUpdateEnvironment: ResolverFn = async (
   root,
@@ -313,6 +325,10 @@ export const addOrUpdateEnvironment: ResolverFn = async (
   )(unformattedInput);
 
   const pid = input.project.toString();
+  const openshiftProjectName = input.kubernetesNamespaceName || input.openshiftProjectName;
+  if (!openshiftProjectName) {
+    throw new Error('Must provide kubernetesNamespaceName or openshiftProjectName');
+  }
 
   await hasPermission('environment', `addOrUpdate:${input.environmentType}`, {
     project: pid,
@@ -335,18 +351,27 @@ export const addOrUpdateEnvironment: ResolverFn = async (
     `,
   );
 
-  const rows = await query(sqlClient, prep(input));
-  const environment = R.path([0, 0], rows);
+  const rows = await query(sqlClient, prep({
+    ...input,
+    openshiftProjectName,
+  }));
+  const withK8s = Helpers(sqlClient).aliasOpenshiftToK8s([R.path([0, 0], rows)]);
+  const environment = withK8s[0];
 
   return environment;
 };
 
 export const addOrUpdateEnvironmentStorage: ResolverFn = async (
   root,
-  { input },
+  { input: unformattedInput },
   { sqlClient, hasPermission },
 ) => {
   await hasPermission('environment', 'storage');
+
+  const input = {
+    ...unformattedInput,
+    updated: unformattedInput.updated ? unformattedInput.updated: convertDateToMYSQLDateTimeFormat(new Date().toISOString())
+  };
 
   const prep = prepare(
     sqlClient,
@@ -354,7 +379,8 @@ export const addOrUpdateEnvironmentStorage: ResolverFn = async (
       CALL CreateOrUpdateEnvironmentStorage(
         :environment,
         :persistent_storage_claim,
-        :bytes_used
+        :bytes_used,
+        :updated
       );
     `,
   );
@@ -499,6 +525,7 @@ export const updateEnvironment: ResolverFn = async (
 
   const id = input.id;
   const curEnv = await Helpers(sqlClient).getEnvironmentById(id);
+  const openshiftProjectName = input.patch.kubernetesNamespaceName || input.patch.openshiftProjectName;
 
   await hasPermission('environment', `update:${curEnv.environmentType}`, {
     project: curEnv.project,
@@ -515,11 +542,27 @@ export const updateEnvironment: ResolverFn = async (
     project: newProject,
   });
 
-  await query(sqlClient, Sql.updateEnvironment(input));
+  await query(sqlClient, Sql.updateEnvironment({
+    id,
+    patch: {
+      project: input.patch.project,
+      deployType: input.patch.deployType,
+      deployBaseRef: input.patch.deployBaseRef,
+      deployHeadRef: input.patch.deployHeadRef,
+      deployTitle: input.patch.deployTitle,
+      environmentType: input.patch.environmentType,
+      openshiftProjectName,
+      route: input.patch.route,
+      routes: input.patch.routes,
+      monitoringUrls: input.patch.monitoringUrls,
+      autoIdle: input.patch.autoIdle,
+    }
+  }));
 
   const rows = await query(sqlClient, Sql.selectEnvironmentById(id));
+  const withK8s = Helpers(sqlClient).aliasOpenshiftToK8s(rows);
 
-  return R.prop(0, rows);
+  return R.prop(0, withK8s);
 };
 
 export const getAllEnvironments: ResolverFn = async (
@@ -543,8 +586,8 @@ export const getAllEnvironments: ResolverFn = async (
 
   const prep = prepare(sqlClient, `SELECT * FROM environment ${where}${order}`);
   const rows = await query(sqlClient, prep(args));
-
-  return rows;
+  const withK8s = Helpers(sqlClient).aliasOpenshiftToK8s(rows);
+  return withK8s;
 };
 
 export const deleteAllEnvironments: ResolverFn = async (
@@ -586,6 +629,7 @@ export const userCanSshToEnvironment: ResolverFn = async (
   args,
   { sqlClient, hasPermission },
 ) => {
+  const openshiftProjectName = args.kubernetesNamespaceName || args.openshiftProjectName;
   const str = `
     SELECT
       e.*
@@ -597,9 +641,9 @@ export const userCanSshToEnvironment: ResolverFn = async (
 
   const prep = prepare(sqlClient, str);
 
-  const rows = await query(sqlClient, prep(args));
-
-  const environment = rows[0];
+  const rows = await query(sqlClient, prep({ openshiftProjectName }));
+  const withK8s = Helpers(sqlClient).aliasOpenshiftToK8s(rows);
+  const environment = withK8s[0];
 
   if (!environment) {
     return null;

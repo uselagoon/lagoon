@@ -1,8 +1,8 @@
 ---
 
 - name: >-
-    {{testname}} - Check if URL {{url}} returns with Header set to
-    {{expected_header}} with value of '{{expected_header_value}}'
+    {{ testname }} - Check if URL {{ url }} returns with Header set to
+    {{ expected_header }} with value of '{{ expected_header_value }}'
   uri:
     url: "{{ url }}"
     validate_certs: no
@@ -10,10 +10,10 @@
   register: result
   until: result[expected_header] is defined
   failed_when: result[expected_header] != expected_header_value
-  retries: 20
-  delay: 10
+  retries: 90
+  delay: 20
 
 - name: >-
-    {{testname}} - Check if URL {{url}} returns with Header set to
-    {{expected_header}} with value of '{{expected_header_value}}'
+    {{ testname }} - Check if URL {{ url }} returns with Header set to
+    {{ expected_header }} with value of '{{ expected_header_value }}'
   debug: msg="Success!!!"

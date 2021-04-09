@@ -5,7 +5,7 @@
   - name: getting HEAD hash
     command: git rev-parse HEAD
     args:
-      chdir: /{{git_repo_name}}
+      chdir: /{{ git_repo_name }}
     register: result
 
   - set_fact:
@@ -16,7 +16,7 @@
   serial: 1
   vars:
     git_hash_push: "{{ current_head }}"
-    git_repo_ssh_url: "{{ lookup('env','WEBHOOK_REPO_PREFIX') }}{{ git_repo_name }}"
+    git_repo_ssh_url: "{{ localgit_url }}/{{ git_repo_name }}"
   tasks:
   - include: ../../tasks/webhook-github/push.yaml
   - include: ../../tasks/webhook-bitbucket/push.yaml

@@ -2,7 +2,7 @@
 
 MariaDB is the open source successor to MySQL.
 
-The [Lagoon `MariaDB` image Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/mariadb/Dockerfile). Based on the official packages `mariadb` and `mariadb-client` provided by the `alpine:3.8` image.
+The [Lagoon `MariaDB` image Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/Dockerfile). Based on the official packages `mariadb` and `mariadb-client` provided by the `alpine:3.8` image.
 
 This Dockerfile is intended to be used to set up a standalone MariaDB database server.
 
@@ -16,7 +16,7 @@ This image is prepared to be used on Lagoon. There are therefore some things alr
 ## Included tools
 
 * [`mysqltuner.pl`](https://github.com/major/MySQLTuner-perl) - Perl script useful for database parameter tuning.
-* [`mysql-backup.sh`](https://github.com/amazeeio/lagoon/blob/master/images/mariadb/mysql-backup.sh) - Script for automating the daily MySQL backups on development environment.
+* [`mysql-backup.sh`](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/mysql-backup.sh) - Script for automating the daily MySQL backups on development environment.
 * [`pwgen`](https://linux.die.net/man/1/pwgen) - Utility to generate random and complex passwords.
 
 ## Included `my.cnf` configuration file

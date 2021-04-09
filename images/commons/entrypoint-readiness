@@ -1,7 +1,0 @@
-#!/bin/sh
-
-# simple readiness check to see if a late-running entrypoint has completed
-# but only if the entrypoint actually exists
-if [ -f /lagoon/entrypoints/999-readiness.sh ]; then
-  test -f /tmp/ready
-fi

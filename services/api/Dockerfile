@@ -1,10 +1,15 @@
 ARG LAGOON_GIT_BRANCH
 ARG IMAGE_REPO
+ARG UPSTREAM_REPO
+ARG UPSTREAM_TAG
 # STAGE 1: Loading Image lagoon-node-packages-builder which contains node packages shared by all Node Services
-FROM ${IMAGE_REPO:-amazeeiolagoon}/yarn-workspace-builder:${LAGOON_GIT_BRANCH:-latest} as yarn-workspace-builder
+FROM ${IMAGE_REPO:-lagoon}/yarn-workspace-builder as yarn-workspace-builder
 
 # STAGE 2: specific service Image
-FROM ${IMAGE_REPO:-amazeeiolagoon}/node:10
+FROM ${UPSTREAM_REPO:-uselagoon}/node-10:${UPSTREAM_TAG:-latest}
+
+ARG LAGOON_VERSION
+ENV LAGOON_VERSION=$LAGOON_VERSION
 
 # Copying generated node_modules from the first stage
 COPY --from=yarn-workspace-builder /app /app
@@ -28,7 +33,7 @@ ENV NODE_ENV=production \
     ELASTICSEARCH_HOST=logs-db-service:9200 \
     ELASTICSEARCH_URL=http://logs-db-service:9200 \
     KEYCLOAK_API_CLIENT_SECRET=39d5282d-3684-4026-b4ed-04bbc034b61a \
-    HARBOR_ADMIN_PASSWORD=admin \
+    HARBOR_ADMIN_PASSWORD=Harbor12345 \
     REDIS_PASSWORD=admin \
     HARBOR_API_VERSION=v2.0
 

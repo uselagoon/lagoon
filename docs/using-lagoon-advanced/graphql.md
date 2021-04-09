@@ -52,7 +52,7 @@ query whatIsThere {
 }
 ```
 
-And press the ▶️button \(or press CTRL+ENTER\).
+And press the ▶️ button \(or press CTRL+ENTER\).
 
 ![Entering a query in the GraphiQL UI.](../.gitbook/assets/graphiql-2020-01-29-18-07-28.png)
 

@@ -1,6 +1,6 @@
 # RabbitMQ
 
-The [Lagoon RabbitMQ Dockerfile](https://github.com/amazeeio/lagoon/tree/master/images/rabbitmq) with management plugin installed. Based on the official `rabbitmq:3-management` image at [docker-hub](https://hub.docker.com/_/rabbitmq).
+The [Lagoon RabbitMQ Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/rabbitmq) with management plugin installed. Based on the official `rabbitmq:3-management` image at [docker-hub](https://hub.docker.com/_/rabbitmq).
 
 This Dockerfile is intended to be used to set up a standalone RabbitMQ queue broker, as well as a base image to set up a cluster with high availability queue support by default \([Mirrored queues](https://www.rabbitmq.com/ha.html)\).
 

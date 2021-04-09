@@ -1,15 +1,15 @@
-- name: "{{ testname }} - POST api deleteEnvironment with project {{ project }} and branch {{ branch }} to {{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+- name: "{{ testname }} - POST api deleteEnvironment with project {{ project }} and branch {{ branch }} to {{ graphql_url }}"
   block:
     - include: refresh-token.yaml
-    - name: "{{ testname }} - POST api deleteEnvironment with project {{ project }} and branch {{ branch }} to {{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+    - name: "{{ testname }} - POST api deleteEnvironment with project {{ project }} and branch {{ branch }} to {{ graphql_url }}"
       uri:
-        url: "{{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+        url: "{{ graphql_url }}"
         method: POST
         headers:
           Authorization: "Bearer {{ token }}"
         body_format: json
         body: '{ "query": "mutation($name: String!, $project: String!) {deleteEnvironment(input:{name:$name,project:$project})}", "variables": {"name":"{{ branch }}","project":"{{ project }}"}}'
       register: apiresponse
-    - name: "{{ testname }} - POST api deleteEnvironment with project {{ project }} and branch {{ branch }} to {{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+    - name: "{{ testname }} - POST api deleteEnvironment with project {{ project }} and branch {{ branch }} to {{ graphql_url }}"
       debug:
         msg: "api response: {{ apiresponse.json }}"

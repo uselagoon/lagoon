@@ -44,6 +44,9 @@ fi
 
 REGISTRY_SECRETS=()
 PRIVATE_REGISTRY_COUNTER=0
+PRIVATE_REGISTRY_URLS=()
+PRIVATE_DOCKER_HUB_REGISTRY=0
+PRIVATE_EXTERNAL_REGISTRY=0
 
 set +x
 
@@ -58,13 +61,7 @@ if [ ! -z ${INTERNAL_REGISTRY_URL} ] && [ ! -z ${INTERNAL_REGISTRY_USERNAME} ] &
   echo "docker login -u '${INTERNAL_REGISTRY_USERNAME}' -p '${INTERNAL_REGISTRY_PASSWORD}' ${INTERNAL_REGISTRY_URL}" | /bin/bash
   kubectl create secret docker-registry lagoon-internal-registry-secret --docker-server=${INTERNAL_REGISTRY_URL} --docker-username=${INTERNAL_REGISTRY_USERNAME} --docker-password=${INTERNAL_REGISTRY_PASSWORD} --dry-run -o yaml | kubectl apply -f -
   REGISTRY_SECRETS+=("lagoon-internal-registry-secret")
-  #docker login "-u '{$INTERNAL_REGISTRY_USERNAME}' -p '{$INTERNAL_REGISTRY_PASSWORD}' '{$INTERNAL_REGISTRY_URL}'"
   REGISTRY=$INTERNAL_REGISTRY_URL # This will handle pointing Lagoon at the correct registry for non local builds
-  #REGISTRY_REPOSITORY=$NAMESPACE
-  # If we go with a different naming scheme, we can inject that here?
-#else
-#  DOCKER_REGISTRY_TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
-#  docker login -u=jenkins -p="${DOCKER_REGISTRY_TOKEN}" ${REGISTRY}
 fi
 
 ##############################################
@@ -97,47 +94,39 @@ do
       PRIVATE_REGISTRY_CREDENTIAL=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "container_registry" and .name == "'$PRIVATE_CONTAINER_REGISTRY_PASSWORD'") | "\(.value)"'))
     fi
     if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
-      PRIVATE_REGISTRY_CREDENTIAL=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.scope == "container_registry" and .name == "'$PRIVATE_CONTAINER_REGISTRY_PASSWORD'") | "\(.value)"'))
+      TEMP_PRIVATE_REGISTRY_CREDENTIAL=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.scope == "container_registry" and .name == "'$PRIVATE_CONTAINER_REGISTRY_PASSWORD'") | "\(.value)"'))
+      if [ ! -z "$TEMP_PRIVATE_REGISTRY_CREDENTIAL" ]; then
+        PRIVATE_REGISTRY_CREDENTIAL=$TEMP_PRIVATE_REGISTRY_CREDENTIAL
+      fi
     fi
     if [ -z $PRIVATE_REGISTRY_CREDENTIAL ]; then
       #if no password defined in the lagoon api, pass the one in `.lagoon.yml` as a password
       PRIVATE_REGISTRY_CREDENTIAL=$PRIVATE_CONTAINER_REGISTRY_PASSWORD
+    fi
+    if [ -z "$PRIVATE_REGISTRY_CREDENTIAL" ]; then
+      echo -e "A private container registry was defined in the .lagoon.yml file, but no password could be found in either the .lagoon.yml or in the Lagoon API\n\nPlease check if the password has been set correctly."
+      exit 1
     fi
     if [ $PRIVATE_CONTAINER_REGISTRY_URL != "false" ]; then
       echo "Attempting to log in to $PRIVATE_CONTAINER_REGISTRY_URL with user $PRIVATE_CONTAINER_REGISTRY_USERNAME - $PRIVATE_CONTAINER_REGISTRY_PASSWORD"
       docker login --username $PRIVATE_CONTAINER_REGISTRY_USERNAME --password $PRIVATE_REGISTRY_CREDENTIAL $PRIVATE_CONTAINER_REGISTRY_URL
       kubectl create secret docker-registry "lagoon-private-registry-${PRIVATE_REGISTRY_COUNTER}-secret" --docker-server=$PRIVATE_CONTAINER_REGISTRY_URL --docker-username=$PRIVATE_CONTAINER_REGISTRY_USERNAME --docker-password=$PRIVATE_REGISTRY_CREDENTIAL --dry-run -o yaml | kubectl apply -f -
       REGISTRY_SECRETS+=("lagoon-private-registry-${PRIVATE_REGISTRY_COUNTER}-secret")
+      PRIVATE_REGISTRY_URLS+=($PRIVATE_CONTAINER_REGISTRY_URL)
+      PRIVATE_EXTERNAL_REGISTRY=1
       let ++PRIVATE_REGISTRY_COUNTER
     else
       echo "Attempting to log in to docker hub with user $PRIVATE_CONTAINER_REGISTRY_USERNAME - $PRIVATE_CONTAINER_REGISTRY_PASSWORD"
       docker login --username $PRIVATE_CONTAINER_REGISTRY_USERNAME --password $PRIVATE_REGISTRY_CREDENTIAL
       kubectl create secret docker-registry "lagoon-private-registry-${PRIVATE_REGISTRY_COUNTER}-secret" --docker-server="https://index.docker.io/v1/" --docker-username=$PRIVATE_CONTAINER_REGISTRY_USERNAME --docker-password=$PRIVATE_REGISTRY_CREDENTIAL --dry-run -o yaml | kubectl apply -f -
       REGISTRY_SECRETS+=("lagoon-private-registry-${PRIVATE_REGISTRY_COUNTER}-secret")
+      PRIVATE_REGISTRY_URLS+=("")
+      PRIVATE_DOCKER_HUB_REGISTRY=1
       let ++PRIVATE_REGISTRY_COUNTER
     fi
   fi
 done
 
 set -x
-
-ADDITIONAL_YAMLS=($(cat .lagoon.yml | shyaml keys additional-yaml || echo ""))
-
-for ADDITIONAL_YAML in "${ADDITIONAL_YAMLS[@]}"
-do
-  ADDITIONAL_YAML_PATH=$(cat .lagoon.yml | shyaml get-value additional-yaml.$ADDITIONAL_YAML.path false)
-  if [ $ADDITIONAL_YAML_PATH == "false" ]; then
-    echo "No 'path' defined for additional yaml $ADDITIONAL_YAML"; exit 1;
-  fi
-
-  if [ ! -f $ADDITIONAL_YAML_PATH ]; then
-    echo "$ADDITIONAL_YAML_PATH for additional yaml $ADDITIONAL_YAML not found"; exit 1;
-  fi
-
-  ADDITIONAL_YAML_COMMAND=$(cat .lagoon.yml | shyaml get-value additional-yaml.$ADDITIONAL_YAML.command apply)
-  ADDITIONAL_YAML_IGNORE_ERROR=$(cat .lagoon.yml | shyaml get-value additional-yaml.$ADDITIONAL_YAML.ignore_error false)
-  ADDITIONAL_YAML_IGNORE_ERROR="${ADDITIONAL_YAML_IGNORE_ERROR,,}" # convert to lowercase, as shyaml returns "True" if the yaml is set to "true"
-  . /kubectl-build-deploy/scripts/exec-additional-yaml.sh
-done
 
 .  /kubectl-build-deploy/build-deploy-docker-compose.sh

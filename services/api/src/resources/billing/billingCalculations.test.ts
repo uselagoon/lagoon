@@ -702,16 +702,10 @@ const monthNames = [
   'December',
 ];
 
-const hitsCostTestString = (group: ITestBillingGroup) =>
+const hitsCostTestString = (group: ITestBillingGroup, cost) =>
   `Given ${group.projects.length} project(s) with ${
     group.projects[0].availability
-  } availability and hits [${group.projects
-    .map(project => project.hits)
-    .join()}], during ${
-    monthNames[group.projects[0].month - 1]
-  } the cost should be ${group.expectations.hits} #hits #${group.currency} #${
-    group.name
-  }: `;
+  } availability and hits [${group.projects.map(project => project.hits).join()}], during ${monthNames[group.projects[0].month - 1]} the cost should be ${group.expectations.hits} | calculated: ${cost} #hits #${group.currency} #${group.name}:`;
 
 const storageCostTestString = (group: ITestBillingGroup) =>
   `Given the total storage of ${
@@ -776,9 +770,9 @@ describe('Billing Calculations #only-billing-calculations', () => {
   describe('Hit Costs - Customers billed in US Dollars (USD) #Hits #USD', () => {
     // scenarios and expectation
     mockData.billingGroups.filter(currencyFilter(CURRENCIES.USD)).map(group => {
-      it(hitsCostTestString(group), () => {
-        // Act
-        const { cost } = hitsCost(group);
+      // Act
+      const { cost } = hitsCost(group);
+      it(hitsCostTestString(group, cost), () => {
         // Assert
         expect(cost).toBe(group.expectations.hits);
       });
@@ -788,9 +782,9 @@ describe('Billing Calculations #only-billing-calculations', () => {
   describe('Hit Costs - POLY #Hits #POLY', () => {
     // scenarios and expectation
     mockData.billingGroups.filter(availabilityFilter(AVAILABILITY.POLYSITE)).map(group => {
-      it(hitsCostTestString(group), () => {
-        // Act
-        const { cost } = hitsCost(group);
+      // Act
+      const { cost } = hitsCost(group);
+      it(hitsCostTestString(group, cost), () => {
         // Assert
         expect(cost).toBe(group.expectations.hits);
       });
@@ -800,9 +794,9 @@ describe('Billing Calculations #only-billing-calculations', () => {
   describe('Hit Costs - Customers billed in Pounds (GBP) #Hits #GBP', () => {
     // scenarios and expectation
     mockData.billingGroups.filter(currencyFilter(CURRENCIES.GBP)).map(group => {
-      it(hitsCostTestString(group), () => {
-        // Act
-        const { cost } = hitsCost(group);
+      // Act
+      const { cost } = hitsCost(group);
+      it(hitsCostTestString(group, cost), () => {
         // Assert
         expect(cost).toBe(group.expectations.hits);
       });
