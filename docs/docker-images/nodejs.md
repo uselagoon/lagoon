@@ -1,6 +1,6 @@
 # Node.js
 
-The [Lagoon `node` Docker image](https://github.com/amazeeio/lagoon/blob/main/images/node/Dockerfile). Based on [the official PHP Alpine images](https://hub.docker.com/_/php/).
+The [Lagoon `node` Docker image](https://github.com/uselagoon/lagoon-images/tree/main/images/node). Based on [the official PHP Alpine images](https://hub.docker.com/_/php/).
 
 ## Supported Versions
 
@@ -15,7 +15,7 @@ We stop updating EOL Node.js images usually with the Lagoon release that comes a
 ## Lagoon adaptions
 We ship 2 versions of Node.js images: the normal `node:version` image and the `node:version-builder`.
 
-The builder variant of those images comes with additional tooling that is needed when you run Node.js builds. For a full list check out the [Dockerfile](https://github.com/amazeeio/lagoon/blob/main/images/node/builder/Dockerfile).
+The builder variant of those images comes with additional tooling that is needed when you run Node.js builds. For a full list check out the [Dockerfile](https://github.com/uselagoon/lagoon-images/tree/main/images/node-builder).
 
 The default exposed port of node containers is port `3000`.
 
