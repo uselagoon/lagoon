@@ -1080,6 +1080,28 @@ kind/local-dev-patch:
 			&& ./local-dev/kubectl --namespace lagoon patch deployment lagoon-core-$$image --patch-file ./local-dev/kubectl-patches/$$image.yaml; \
 		done
 
+## Use local-dev-logging to deploy an Elasticsearch/Kibana cluster into docker compose and forward
+## container logs to it
+.PHONY: kind/local-dev-logging
+kind/local-dev-logging:
+	export KUBECONFIG="$$(pwd)/kubeconfig.kind.$(CI_BUILD_TAG)" \
+		&& docker-compose -f local-dev/odfe-docker-compose.yml -p odfe up -d \
+		&& ./local-dev/helm upgrade --install --create-namespace \
+			--namespace lagoon-logs-concentrator \
+			--wait --timeout 15m \
+			--values ./local-dev/lagoon-logs-concentrator.values.yaml \
+			lagoon-logs-concentrator \
+			./lagoon-charts.kind.lagoon/charts/lagoon-logs-concentrator \
+		&& ./local-dev/helm dependency update ./lagoon-charts.kind.lagoon/charts/lagoon-logging \
+		&& ./local-dev/helm upgrade --install --create-namespace --namespace lagoon-logging \
+			--wait --timeout 15m \
+			--values ./local-dev/lagoon-logging.values.yaml \
+			lagoon-logging \
+			./lagoon-charts.kind.lagoon/charts/lagoon-logging \
+		&& echo -e '\n\nInteract with the OpenDistro cluster at http://0.0.0.0:5601 using the default `admin/admin` credentials\n' \
+		&& echo -e 'You will need to create a default index at http://0.0.0.0:5601/app/management/kibana/indexPatterns/create \n' \
+		&& echo -e 'with a default `container-logs-*` pattern'
+
 # kind/dev can only be run once a cluster is up and running (run kind/test first) - it doesn't rebuild the cluster at all, just pushes the built images
 # into the image registry and reinstalls the lagoon-core helm chart.
 .PHONY: kind/dev
