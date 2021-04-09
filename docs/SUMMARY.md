@@ -26,6 +26,7 @@
 * [Backups](using-lagoon-advanced/backups.md)
 * [Remote Shell](using-lagoon-advanced/remote-shell.md)
 * [GraphQL](using-lagoon-advanced/graphql.md)
+* [Project Default Users and SSH keys](using-lagoon-advanced/project-default-users-keys.md)
 * [Node.js Graceful Shutdown](using-lagoon-advanced/nodejs.md)
 * [Setting up Xdebug with Lagoon](using-lagoon-advanced/setting-up-xdebug-with-lagoon.md)
 
