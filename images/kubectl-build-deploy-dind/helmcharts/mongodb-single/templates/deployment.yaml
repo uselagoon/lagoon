@@ -19,7 +19,7 @@ spec:
         {{- include "mongodb-single.labels" . | nindent 8 }}
       annotations:
         {{- include "mongodb-single.annotations" . | nindent 8 }}
-        k8up.syn.tools/backupcommand: /bin/sh -c "/bin/busybox tar -cf - -C {{ .Values.persistentStorage.path | quote }} ."
+        k8up.syn.tools/backupcommand: /bin/sh -c '/bin/busybox tar -cf - -C {{ .Values.persistentStorage.path | quote }} .'
         k8up.syn.tools/file-extension: .{{ include "mongodb-single.fullname" . }}.tar
         lagoon.sh/configMapSha: {{ .Values.configMapSha | quote }}
     spec:
@@ -32,11 +32,9 @@ spec:
           persistentVolumeClaim:
             claimName: {{ include "mongodb-single.fullname" . }}
       securityContext:
-        fsGroup: 0
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
-          securityContext:
-            runAsGroup: 0
           image: "{{ .Values.image }}"
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           env:
