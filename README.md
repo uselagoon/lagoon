@@ -6,7 +6,7 @@
 
 Lagoon solves what developers are dreaming about: A system that allows developers to locally develop their code and their services with Docker and run the exact same system in production. The same container images, the same service configurations and the same code.
 
-> As an application delivery **platform**, the primary focus of Lagoon is as a tool for the deployment, management, security and operation of multiple applications, utilising cloud-native technologies, but with minimal imposition or knowledge expectation on the developers of those applications.
+> Lagoon is an application delivery **platform**. Its primary focus is as a cloud-native tool for the deployment, management, security and operation of many applications. Lagoon greatly reduces the requirement on developers of those applications to have cloud-native experience or knowledge.
 
 Lagoon is fully open-source, built on open-source tools, built collaboratively with our users.
 
@@ -25,11 +25,11 @@ For more information on installing and administering Lagoon, head to https://doc
 
 ## Lagoon architecture
 
-Lagoon is comprised of two main components, Lagoon Core and Lagoon Remote, and a number of other third-party services, Operators and Controllers. In a full production setting, it is envisaged that Lagoon Core and Remote are installed into different Kubernetes Clusters (one Core can serve many Remotes), but they can also be installed into the same cluster if required.
+Lagoon comprises two main components: Lagoon Core and Lagoon Remote. It's also built on several other third-party services, Operators and Controllers. In a full production setting, we recommend installing Lagoon Core and Remote into different Kubernetes Clusters. A single Lagoon Core installation is capable of serving multiple Remotes, but they can also be installed into the same cluster if preferred.
 
-To enhance security, Lagoon Core does not require administrator-level access to the Kubernetes clusters running Lagoon Remote, and all inter-cluster communication happens exclusively via RabbitMQ, hosted in Lagoon Core, and consumed (and published back to) by Lagoon Remote.  This means that Lagoon Remotes can be managed by different teams, in different locations, and even behind firewalls or inaccessible from the internet.
+To enhance security, Lagoon Core does not need administrator-level access to the Kubernetes clusters that are running Lagoon Remote. All inter-cluster communication happens only via RabbitMQ. This is hosted in Lagoon Core, and consumed (and published back to) by Lagoon Remote. This allows Lagoon Remotes to be managed by different teams, in different locations - even behind firewalls or inaccessible from the internet.
 
-Lagoon services are mostly built in Node.js, with more recent development in occuring in Go, and most of the automation and scripting components in Bash.
+Lagoon services are mostly built in Node.js. More recent development occurs in Go, and most of the automation and scripting components are in Bash.
 
 ### Lagoon Core
 
@@ -102,8 +102,7 @@ These services are usually installed alongside either Lagoon Core or Lagoon Remo
 
 ### Testing
 
-Lagoon has a comprehensive [test suite](https://github.com/amazeeio/lagoon/tree/main/tests/tests), designed to cover most end-user scenarios. The testing is automated in Ansible, and runs in a Jenkins install, but can also be run locally in a self-contained cluster. The testing provisions a standalone Lagoon cluster, running on KinD, comprising Lagoon Core, Lagoon Remote, a Registry and a set of Managed Databases, and runs test deployments and scenarios for a range of Node.js, Drupal, Python and NGINX projects, all built using the latest Lagoon Images.
-
+Lagoon has a comprehensive [test suite](https://github.com/amazeeio/lagoon/tree/main/tests/tests), designed to cover most end-user scenarios. The testing is automated in Ansible, and runs in Jenkins, but can also be run locally in a self-contained cluster. The testing provisions a standalone Lagoon cluster, running on Kind (Kubernetes in Docker). This cluster is made of Lagoon Core, Lagoon Remote, an image registry and a set of managed databases. It runs test deployments and scenarios for a range of Node.js, Drupal, Python and NGINX projects, all built using the latest Lagoon images.
 
 
 ## Other Lagoon components
