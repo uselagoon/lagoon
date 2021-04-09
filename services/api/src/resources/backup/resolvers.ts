@@ -13,7 +13,7 @@ import { Sql as projectSql } from '../project/sql';
 import { Sql as environmentSql } from '../environment/sql';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import EVENTS from './events';
-import { userActivityLogger } from '../../loggers/userActivityLogger';
+
 
 const restoreStatusTypeToString = R.cond([
   [R.equals('PENDING'), R.toLower],
@@ -49,7 +49,7 @@ export const addBackup: ResolverFn = async (
       id, environment: environmentId, source, backupId, created,
     },
   },
-  { sqlClient, hasPermission, keycloakGrant, legacyCredentials, requestHeaders },
+  { sqlClient, hasPermission, userActivityLogger },
 ) => {
   const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
   await hasPermission('backup', 'add', {
@@ -74,8 +74,6 @@ export const addBackup: ResolverFn = async (
   pubSub.publish(EVENTS.BACKUP.ADDED, backup);
 
   userActivityLogger.user_action(`User deployed backup '${backupId}' to '${environment.name}' on project '${environment.project}'`, {
-    user: keycloakGrant || legacyCredentials,
-    headers: requestHeaders,
     payload: {
       id, environment, source, backupId, created
     }
@@ -90,9 +88,7 @@ export const deleteBackup: ResolverFn = async (
   {
     sqlClient,
     hasPermission,
-    keycloakGrant,
-    legacyCredentials,
-    requestHeaders
+userActivityLogger
   },
 ) => {
   const perms = await query(sqlClient, Sql.selectPermsForBackup(backupId));
@@ -107,8 +103,6 @@ export const deleteBackup: ResolverFn = async (
   pubSub.publish(EVENTS.BACKUP.DELETED, R.prop(0, rows));
 
   userActivityLogger.user_action(`User deleted backup '${backupId}' for project ${pid}`, {
-    user: keycloakGrant || legacyCredentials,
-    headers: requestHeaders,
     payload: {
      backupId,
      project: pid
@@ -121,16 +115,13 @@ export const deleteBackup: ResolverFn = async (
 export const deleteAllBackups: ResolverFn = async (
   root,
   args,
-  { sqlClient, hasPermission, keycloakGrant, legacyCredentials, requestHeaders },
+  { sqlClient, hasPermission, userActivityLogger },
 ) => {
   await hasPermission('backup', 'deleteAll');
 
   await query(sqlClient, Sql.truncateBackup());
 
-  userActivityLogger.user_action(`User deleted all backups`, {
-    user: keycloakGrant || legacyCredentials,
-    headers: requestHeaders
-  });
+  userActivityLogger.user_action(`User deleted all backups`);
 
   // TODO: Check rows for success
   return 'success';
@@ -148,7 +139,7 @@ export const addRestore: ResolverFn = async (
       execute,
     },
   },
-  { sqlClient, hasPermission, keycloakGrant, legacyCredentials, requestHeaders },
+  { sqlClient, hasPermission, userActivityLogger },
 ) => {
   const perms = await query(sqlClient, Sql.selectPermsForBackup(backupId));
 
@@ -222,8 +213,6 @@ export const addRestore: ResolverFn = async (
   }
 
   userActivityLogger.user_action(`User restored backup '${backupId}' for project ${projectData.project.name}`, {
-    user: keycloakGrant || legacyCredentials,
-    headers: requestHeaders,
     payload: {
       backupId,
       data
@@ -245,9 +234,7 @@ export const updateRestore: ResolverFn = async (
   {
     sqlClient,
     hasPermission,
-    keycloakGrant,
-    legacyCredentials,
-    requestHeaders
+userActivityLogger
   },
 ) => {
   const status = restoreStatusTypeToString(unformattedStatus);
@@ -289,8 +276,6 @@ export const updateRestore: ResolverFn = async (
   pubSub.publish(EVENTS.BACKUP.UPDATED, backupData);
 
   userActivityLogger.user_action(`User updated restore '${backupId}'`, {
-    user: keycloakGrant || legacyCredentials,
-    headers: requestHeaders,
     payload: {
       backupId,
       patch,

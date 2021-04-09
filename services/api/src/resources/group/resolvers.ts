@@ -1,13 +1,13 @@
 import * as R from 'ramda';
 import { ResolverFn } from '../';
 import validator from 'validator';
-import logger from '../../loggers/logger';
+import { logger } from '../../loggers/logger';
 import { isPatchEmpty } from '../../util/db';
 import { GroupNotFoundError } from '../../models/group';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { OpendistroSecurityOperations } from './opendistroSecurity';
 import { KeycloakUnauthorizedError } from '../../util/auth';
-import { userActivityLogger } from '../../loggers/userActivityLogger';
+
 
 export const getAllGroups: ResolverFn = async (
   root,
@@ -152,7 +152,7 @@ export const getGroupByName: ResolverFn = async (
   }
 };
 
-export const addGroup = async (_root, { input }, { models, sqlClient, hasPermission, keycloakGrant, legacyCredentials, requestHeaders }) => {
+export const addGroup = async (_root, { input }, { models, sqlClient, hasPermission, userActivityLogger }) => {
   await hasPermission('group', 'add');
 
   if (validator.matches(input.name, /[^0-9a-z-]/)) {
@@ -180,8 +180,6 @@ export const addGroup = async (_root, { input }, { models, sqlClient, hasPermiss
   OpendistroSecurityOperations(sqlClient, models.GroupModel).syncGroup(input.name, '')
 
   userActivityLogger.user_action(`User added a group`, {
-    user: keycloakGrant || legacyCredentials,
-    headers: requestHeaders,
     payload: {
       data: {
         group
@@ -195,7 +193,7 @@ export const addGroup = async (_root, { input }, { models, sqlClient, hasPermiss
 export const updateGroup: ResolverFn = async (
   _root,
   { input: { group: groupInput, patch } },
-  { models, hasPermission, keycloakGrant, legacyCredentials, requestHeaders },
+  { models, hasPermission, userActivityLogger },
 ) => {
   const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
 
@@ -221,8 +219,6 @@ export const updateGroup: ResolverFn = async (
   });
 
   userActivityLogger.user_action(`User updated a group`, {
-    user: keycloakGrant || legacyCredentials,
-    headers: requestHeaders,
     payload: {
       data: {
         patch,
@@ -237,7 +233,7 @@ export const updateGroup: ResolverFn = async (
 export const deleteGroup: ResolverFn = async (
   _root,
   { input: { group: groupInput } },
-  { models, sqlClient, hasPermission, keycloakGrant, legacyCredentials, requestHeaders},
+  { models, sqlClient, hasPermission, userActivityLogger},
 ) => {
   const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
 
@@ -250,8 +246,6 @@ export const deleteGroup: ResolverFn = async (
   OpendistroSecurityOperations(sqlClient, models.GroupModel).deleteGroup(group.name)
 
   userActivityLogger.user_action(`User deleted a group`, {
-    user: keycloakGrant || legacyCredentials,
-    headers: requestHeaders,
     payload: {
       data: {
         group
@@ -288,7 +282,7 @@ export const deleteAllGroups: ResolverFn = async (
 export const addUserToGroup: ResolverFn = async (
   _root,
   { input: { user: userInput, group: groupInput, role } },
-  { models, hasPermission, keycloakGrant, legacyCredentials, requestHeaders },
+  { models, hasPermission, userActivityLogger },
 ) => {
   if (R.isEmpty(userInput)) {
     throw new Error('You must provide a user id or email');
@@ -317,8 +311,6 @@ export const addUserToGroup: ResolverFn = async (
   );
 
   userActivityLogger.user_action(`User added a user to a group`, {
-    user: keycloakGrant || legacyCredentials,
-    headers: requestHeaders,
     payload: {
       input: {
         user: userInput, group: groupInput, role
@@ -333,7 +325,7 @@ export const addUserToGroup: ResolverFn = async (
 export const removeUserFromGroup: ResolverFn = async (
   _root,
   { input: { user: userInput, group: groupInput } },
-  { models, hasPermission, keycloakGrant, legacyCredentials, requestHeaders },
+  { models, hasPermission, userActivityLogger },
 ) => {
   if (R.isEmpty(userInput)) {
     throw new Error('You must provide a user id or email');
@@ -357,8 +349,6 @@ export const removeUserFromGroup: ResolverFn = async (
   const updatedGroup = await models.GroupModel.removeUserFromGroup(user, group);
 
   userActivityLogger.user_action(`User removed a user from a group`, {
-    user: keycloakGrant || legacyCredentials,
-    headers: requestHeaders,
     payload: {
       input: {
         user: userInput, group: groupInput
@@ -373,7 +363,7 @@ export const removeUserFromGroup: ResolverFn = async (
 export const addGroupsToProject: ResolverFn = async (
   _root,
   { input: { project: projectInput, groups: groupsInput } },
-  { models, sqlClient, hasPermission, keycloakGrant, legacyCredentials, requestHeaders },
+  { models, sqlClient, hasPermission, userActivityLogger },
 ) => {
   const project = await projectHelpers(sqlClient).getProjectByProjectInput(
     projectInput,
@@ -421,8 +411,6 @@ export const addGroupsToProject: ResolverFn = async (
   }
 
   userActivityLogger.user_action(`User synced groups to a project`, {
-    user: keycloakGrant || legacyCredentials,
-    headers: requestHeaders,
     payload: {
       input: {
         project: projectInput, groups: groupsInput

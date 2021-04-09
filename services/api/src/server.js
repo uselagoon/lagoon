@@ -1,6 +1,6 @@
 const http = require('http');
 const util = require('util');
-const logger = require('./loggers/logger');
+const { logger } = require('./loggers/logger');
 const app = require('./app');
 const apolloServer = require('./apolloServer');
 

@@ -2,7 +2,7 @@ require('newrelic');
 const { initSendToLagoonLogs } = require('@lagoon/commons/dist/logs');
 const { initSendToLagoonTasks } = require('@lagoon/commons/dist/tasks');
 const waitForKeycloak = require('./util/waitForKeycloak');
-const logger = require('./loggers/logger');
+const { logger } = require('./loggers/logger');
 const createServer = require('./server');
 
 initSendToLagoonLogs();

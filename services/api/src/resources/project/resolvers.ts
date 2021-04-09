@@ -2,8 +2,8 @@ import * as R from 'ramda';
 import validator from 'validator';
 import sshpk from 'sshpk';
 import { ResolverFn } from '../';
-import logger from '../../loggers/logger';
-import { userActivityLogger } from '../../loggers/userActivityLogger';
+import { logger } from '../../loggers/logger';
+
 import {
   inClause,
   prepare,
@@ -264,8 +264,7 @@ export const addProject = async (
     sqlClient,
     models,
     keycloakGrant,
-    legacyCredentials,
-    requestHeaders
+    userActivityLogger
   },
 ) => {
   await hasPermission('project', 'add');
@@ -458,8 +457,6 @@ export const addProject = async (
   const harborResults = await harborOperations.addProject(project.name, project.id)
 
   userActivityLogger.user_action(`User added a project '${project.name}'`, {
-    user: keycloakGrant || legacyCredentials,
-    headers: requestHeaders,
     payload: {
       input,
       data: harborResults
@@ -475,9 +472,7 @@ export const deleteProject: ResolverFn = async (
   {
     sqlClient,
     hasPermission,
-    keycloakGrant,
-    legacyCredentials,
-    requestHeaders,
+    userActivityLogger,
     models,
   },
 ) => {
@@ -514,8 +509,6 @@ export const deleteProject: ResolverFn = async (
   //const harborResults = await harborOperations.deleteProject(project.name)
 
   userActivityLogger.user_action(`User deleted a project '${project.name}'`, {
-    user: keycloakGrant || legacyCredentials,
-    headers: requestHeaders,
     payload: {
       input: {
         project
@@ -562,9 +555,7 @@ export const updateProject: ResolverFn = async (
   {
     sqlClient,
     hasPermission,
-    keycloakGrant,
-    legacyCredentials,
-    requestHeaders,
+    userActivityLogger,
     models,
   },
 ) => {
@@ -714,8 +705,6 @@ export const updateProject: ResolverFn = async (
   // }
 
   userActivityLogger.user_action(`User updated a project '${oldProject.name}'`, {
-    user: keycloakGrant || legacyCredentials,
-    headers: requestHeaders,
     payload: {
       patch: {
         name,
@@ -751,7 +740,7 @@ export const updateProject: ResolverFn = async (
 export const deleteAllProjects: ResolverFn = async (
   root,
   args,
-  { sqlClient, hasPermission, keycloakGrant, legacyCredentials, requestHeaders },
+  { sqlClient, hasPermission, userActivityLogger },
 ) => {
   await hasPermission('project', 'deleteAll');
 
@@ -764,8 +753,6 @@ export const deleteAllProjects: ResolverFn = async (
   }
 
   userActivityLogger.user_action(`User deleted all projects`, {
-    user: keycloakGrant || legacyCredentials,
-    headers: requestHeaders,
     payload: {
       ...args
     }
@@ -783,7 +770,7 @@ export const removeProjectMetadataByKey: ResolverFn = async (
       key
     }
   },
-  { sqlClient, hasPermission, keycloakGrant, legacyCredentials, requestHeaders },
+  { sqlClient, hasPermission, userActivityLogger },
 ) => {
 
   await hasPermission('project', 'update', {
@@ -808,8 +795,6 @@ export const removeProjectMetadataByKey: ResolverFn = async (
   await query(sqlClient, prep({ id, meta_key: `$.${key}` }));
 
   userActivityLogger.user_action(`User removed project metadata key '${key}'`, {
-    user: keycloakGrant || legacyCredentials,
-    headers: requestHeaders,
     payload: {
       input: {
         id,
@@ -834,7 +819,7 @@ export const updateProjectMetadata: ResolverFn = async (
       },
     },
   },
-  { sqlClient, hasPermission, keycloakGrant, legacyCredentials, requestHeaders }
+  { sqlClient, hasPermission, userActivityLogger }
 ) => {
 
   await hasPermission('project', 'update', {
@@ -863,8 +848,6 @@ export const updateProjectMetadata: ResolverFn = async (
   await query(sqlClient, prep({ id, meta_key: `$.${key}`, meta_value: value }));
 
   userActivityLogger.user_action(`User updated project metadata`, {
-    user: keycloakGrant || legacyCredentials,
-    headers: requestHeaders,
     payload: {
       patch: {
         project: id,

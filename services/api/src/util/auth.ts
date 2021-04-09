@@ -1,7 +1,7 @@
 import * as R from 'ramda';
 import { getRedisCache, saveRedisCache } from '../clients/redisClient';
 import { verify } from 'jsonwebtoken';
-import logger from '../loggers/logger';
+import { logger } from '../loggers/logger';
 import { userActivityLogger } from '../loggers/userActivityLogger';
 import { keycloakGrantManager } from'../clients/keycloakClient';
 import { User } from '../models/user';
@@ -127,7 +127,7 @@ export const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) 
       return true;
     } else if (!cachedPermissions === false) {
       userActivityLogger.user_info(`User does not have permission to '${scope}' on '${resource}'`, {
-        user: grant
+        user: grant.access_token.content
       });
       throw new KeycloakUnauthorizedError(`Unauthorized: You don't have permission to "${scope}" on "${resource}".`);
     }
@@ -147,7 +147,7 @@ export const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) 
     } else if (redisCacheResult === 0) {
       logger.debug(`Redis authz cache returned denied for ${JSON.stringify(resourceScope)}`);
       userActivityLogger.user_info(`User does not have permission to '${scope}' on '${resource}'`, {
-        user: grant
+        user: grant.access_token.content
       });
       throw new KeycloakUnauthorizedError(`Unauthorized: You don't have permission to "${scope}" on "${resource}".`);
     }
@@ -281,6 +281,7 @@ export const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) 
     };
 
     try {
+      // @ts-ignore
       const newGrant = await keycloakGrantManager.checkPermissions(authzRequest, request);
 
       if (newGrant.access_token.hasPermission(resource, scope)) {
@@ -296,6 +297,9 @@ export const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) 
     } catch (err) {
       // Keycloak library doesn't distinguish between a request error or access
       // denied conditions.
+      userActivityLogger.user_info(`User does not have permission to '${scope}' on '${resource}'`, {
+        user: currentUser
+      });
       logger.debug(`keycloakHasPermission denied for '${currentUser.username}' trying to "${scope}" on "${resource}": ${err.message}`);
     }
 
@@ -307,7 +311,7 @@ export const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) 
     //   logger.warn(`Could not save authz cache: ${err.message}`);
     // }
     userActivityLogger.user_info(`User does not have permission to '${scope}' on '${resource}'`, {
-      user: grant
+      user: grant.access_token.content
     });
     throw new KeycloakUnauthorizedError(`Unauthorized: You don't have permission to "${scope}" on "${resource}".`);
   };

@@ -1,6 +1,6 @@
 import Client from 'mariasql';
 
-import logger from '../loggers/logger';
+import { logger } from '../loggers/logger';
 
 const { API_DB_PASSWORD, API_DB_HOST, API_DB_PORT, API_DB_USER, API_DB_DATABASE } = process.env;
 

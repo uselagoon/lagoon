@@ -17,8 +17,8 @@ const { getSqlClient } = require('./clients/sqlClient');
 const esClient = require('./clients/esClient');
 const redisClient = require('./clients/redisClient');
 const { getKeycloakAdminClient } = require('./clients/keycloak-admin');
-const logger = require('./loggers/logger');
-const userActivityLogger = require('./loggers/userActivityLogger');
+const { logger } = require('./loggers/logger');
+const { getUserActivityLogger } = require('./loggers/userActivityLogger');
 const typeDefs = require('./typeDefs');
 const resolvers = require('./resolvers');
 
@@ -37,16 +37,16 @@ const getGrantOrLegacyCredsFromToken = async (token) => {
   try {
     grant = await getGrantForKeycloakToken(sqlClientKeycloak, token);
 
-    const { sub: currentUserId, azp: source, preferred_username, email, aud } = grant.access_token.content;
-    const username = preferred_username ? preferred_username : 'unknown';
+    if (grant.access_token) {
+      const userActivityLogger = getUserActivityLogger(
+        grant ? grant.access_token.content : null
+      );
 
-    userActivityLogger.user_auth(`Authentication granted for '${username} (${email ? email : 'unknown'})' from '${source}'`, {
-      id: currentUserId,
-      username: username,
-      email: email,
-      source: source
-    });
+      const { sub: currentUserId, azp: source, preferred_username, email, aud } = grant.access_token.content;
+      const username = preferred_username ? preferred_username : 'unknown';
 
+      userActivityLogger.user_auth(`Authentication granted for '${username} (${email ? email : 'unknown'})' from '${source}'`);
+    }
     sqlClientKeycloak.end();
   } catch (e) {
     // It might be a legacy token, so continue on.
@@ -62,16 +62,11 @@ const getGrantOrLegacyCredsFromToken = async (token) => {
         token
       );
 
-      const { sub, iss, iat, role } = legacyCredentials;
+      const userActivityLogger = getUserActivityLogger(legacyCredentials);
+      const { sub, iss } = legacyCredentials;
       const username = sub ? sub : 'unknown';
       const source = iss ? iss : 'unknown';
-
-      userActivityLogger.user_auth(`Authentication granted for '${username}' from '${source}'`, {
-        id: iat,
-        username: username,
-        source: source,
-        role: role
-      });
+      userActivityLogger.user_auth(`Authentication granted for '${username}' from '${source}'`);
 
       sqlClientLegacy.end();
     }
@@ -171,9 +166,13 @@ const apolloServer = new ApolloServer({
             )
           : legacyHasPermission(req.legacyCredentials),
         keycloakGrant: req.kauth ? req.kauth.grant : null,
-        legacyCredentials: req.legacyCredentials ? req.legacyCredentials : null,
-        requestHeaders: req.headers,
         requestCache,
+        userActivityLogger: getUserActivityLogger(
+          req.kauth ?
+            req.kauth.grant
+            : req.legacyCredentials ? req.legacyCredentials : null,
+          req.headers
+        ),
         models: {
           UserModel: User.User({ keycloakAdminClient, redisClient }),
           GroupModel: Group.Group({ keycloakAdminClient, sqlClient, redisClient, esClient }),

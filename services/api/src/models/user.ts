@@ -1,6 +1,6 @@
 import * as R from 'ramda';
 import pickNonNil from '../util/pickNonNil';
-import logger from '../loggers/logger';
+import { logger } from '../loggers/logger';
 import UserRepresentation from 'keycloak-admin/lib/defs/userRepresentation';
 import { Group, isRoleSubgroup } from './group';
 

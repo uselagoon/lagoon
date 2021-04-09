@@ -24,7 +24,7 @@ import {
 } from '@lagoon/commons/dist/api';
 const convertDateFormat = R.init;
 import { Sql as environmentSql } from '../environment/sql';
-import { userActivityLogger } from '../../loggers/userActivityLogger';
+
 
 const deploymentStatusTypeToString = R.cond([
   [R.equals('NEW'), R.toLower],
@@ -203,9 +203,7 @@ export const addDeployment: ResolverFn = async (
   {
     sqlClient,
     hasPermission,
-    keycloakGrant,
-    legacyCredentials,
-    requestHeaders
+userActivityLogger
   },
 ) => {
   const status = deploymentStatusTypeToString(unformattedStatus);
@@ -235,8 +233,6 @@ export const addDeployment: ResolverFn = async (
   const deployment = await injectBuildLog(R.prop(0, rows));
 
   userActivityLogger.user_action(`User deployed '${name}' to '${environment.project}'`, {
-    user: keycloakGrant || legacyCredentials,
-    headers: requestHeaders,
     payload: {
       id,
       name,
@@ -259,9 +255,7 @@ export const deleteDeployment: ResolverFn = async (
   {
     sqlClient,
     hasPermission,
-    keycloakGrant,
-    legacyCredentials,
-    requestHeaders
+userActivityLogger
   },
 ) => {
   const perms = await query(sqlClient, Sql.selectPermsForDeployment(id));
@@ -273,8 +267,6 @@ export const deleteDeployment: ResolverFn = async (
   await query(sqlClient, Sql.deleteDeployment(id));
 
   userActivityLogger.user_action(`User deleted deployment '${id}'`, {
-    user: keycloakGrant || legacyCredentials,
-    headers: requestHeaders,
     payload: {
       deployment: id
     }
@@ -301,7 +293,7 @@ export const updateDeployment: ResolverFn = async (
     },
   },
   {
-    sqlClient, hasPermission, keycloakGrant, legacyCredentials, requestHeaders
+    sqlClient, hasPermission, userActivityLogger
   },
 ) => {
   const status = deploymentStatusTypeToString(unformattedStatus);
@@ -347,8 +339,6 @@ export const updateDeployment: ResolverFn = async (
   pubSub.publish(EVENTS.DEPLOYMENT.UPDATED, deployment);
 
   userActivityLogger.user_action(`User updated deployment '${id}'`, {
-    user: keycloakGrant || legacyCredentials,
-    headers: requestHeaders,
     payload: {
       id,
       deployment,
@@ -371,7 +361,7 @@ export const cancelDeployment: ResolverFn = async (
   root,
   { input: { deployment: deploymentInput } },
   {
-    sqlClient, hasPermission, keycloakGrant, legacyCredentials, requestHeaders
+    sqlClient, hasPermission, userActivityLogger
   },
 ) => {
   const deployment = await Helpers(sqlClient).getDeploymentByDeploymentInput(deploymentInput);
@@ -394,8 +384,6 @@ export const cancelDeployment: ResolverFn = async (
     await createMiscTask({ key: 'build:cancel', data });
 
     userActivityLogger.user_action(`User canceled deployment for '${deployment.environment}'`, {
-      user: keycloakGrant || legacyCredentials,
-      headers: requestHeaders,
       payload: {
         deploymentInput,
         data: data.build
@@ -420,7 +408,7 @@ export const deployEnvironmentLatest: ResolverFn = async (
   root,
   { input: { environment: environmentInput } },
   {
-    sqlClient, hasPermission, keycloakGrant, legacyCredentials, requestHeaders
+    sqlClient, hasPermission, userActivityLogger
   },
 ) => {
   const environments = await environmentHelpers(
@@ -539,8 +527,6 @@ export const deployEnvironmentLatest: ResolverFn = async (
     );
 
     userActivityLogger.user_action(`User triggered deployment on '${deployData.projectName}' for '${environment.name}'`, {
-      user: keycloakGrant || legacyCredentials,
-      headers: requestHeaders,
       payload: {
         deployData
       }
@@ -582,7 +568,7 @@ export const deployEnvironmentBranch: ResolverFn = async (
   root,
   { input: { project: projectInput, branchName, branchRef } },
   {
-    sqlClient, hasPermission, keycloakGrant, legacyCredentials, requestHeaders
+    sqlClient, hasPermission, userActivityLogger
   },
 ) => {
   const project = await projectHelpers(sqlClient).getProjectByProjectInput(
@@ -621,8 +607,6 @@ export const deployEnvironmentBranch: ResolverFn = async (
     );
 
     userActivityLogger.user_action(`User triggered a deployment on '${deployData.projectName}' for '${deployData.branchName}'`, {
-      user: keycloakGrant || legacyCredentials,
-      headers: requestHeaders,
       payload: {
         deployData
       }
@@ -675,7 +659,7 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
     },
   },
   {
-    sqlClient, hasPermission, keycloakGrant, legacyCredentials, requestHeaders
+    sqlClient, hasPermission, userActivityLogger
   },
 ) => {
   const branchName = `pr-${number}`;
@@ -720,8 +704,6 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
     );
 
     userActivityLogger.user_action(`User triggered a pull-request deployment on '${deployData.projectName}' for '${deployData.branchName}'`, {
-      user: keycloakGrant || legacyCredentials,
-      headers: requestHeaders,
       payload: {
         deployData
       }
@@ -769,7 +751,7 @@ export const deployEnvironmentPromote: ResolverFn = async (
     },
   },
   {
-    sqlClient, hasPermission, keycloakGrant, legacyCredentials, requestHeaders
+    sqlClient, hasPermission, userActivityLogger
   },
 ) => {
   const destProject = await projectHelpers(sqlClient).getProjectByProjectInput(
@@ -827,8 +809,6 @@ export const deployEnvironmentPromote: ResolverFn = async (
     );
 
     userActivityLogger.user_action(`User promoted the environment on '${deployData.projectName}' from '${deployData.promoteSourceEnvironment}' to '${deployData.branchName}'`, {
-      user: keycloakGrant || legacyCredentials,
-      headers: requestHeaders,
       payload: {
         deployData
       }

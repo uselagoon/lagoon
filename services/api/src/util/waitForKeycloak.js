@@ -1,4 +1,4 @@
-import logger from '../loggers/logger';
+import { logger } from '../loggers/logger';
 const { getKeycloakAdminClient } = require('../clients/keycloak-admin');
 
 async function waitForKeycloak() {

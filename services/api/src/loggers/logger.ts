@@ -23,7 +23,8 @@ const config = {
 
 addColors(config.colors);
 
-const logger = createLogger({
+
+export const logger = createLogger({
   exitOnError: false,
   levels: config.levels,
   format: format.combine(
@@ -47,5 +48,3 @@ const logger = createLogger({
     }),
   ],
 });
-
-module.exports = logger;

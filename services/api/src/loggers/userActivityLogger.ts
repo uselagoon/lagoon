@@ -1,25 +1,48 @@
 const { addColors, createLogger, format, transports } = require('winston');
 
-export interface IUserReqHeader {
-  user_agent?: string,
-  host: string,
-  origin?: string
+export interface IUserActivityLogger {
+  getUserActivityLogger: (user: any) => any;
 }
 
-interface IUserMetaLogger {
-  id?: string,
-  user: string,
-  email?: string,
-  group?: string,
-  aud?: string,
-  accessed: string,
-  source?: string,
-  roles?: string,
+export interface IUserReqHeader {
+  'user-agent'?: string,
+  host?: string,
+  origin?: string,
+  referer?: string
+}
+
+interface IMetaLogger {
+  user?: {
+    id?: string
+    user: string,
+    sub?: string,
+    email?: string,
+    group?: string,
+    aud?: string,
+    iss?: string,
+    iat?: string,
+    accessed?: Date,
+    access_token?: any,
+    source?: string,
+    roles?: string,
+  },
   headers?: IUserReqHeader
   payload?: {}
 }
 
-// Log levels
+interface IDefaultMeta {
+  user?: any,
+  headers?: any
+}
+
+export const getUserActivityLogger = (user: any, headers?: any): IDefaultMeta => {
+  if (user) {
+    userActivityLogger.defaultMeta = { user, headers }
+  }
+
+  return userActivityLogger;
+}
+
 const { colors, levels } = {
   levels: {
     user_info: 1,
@@ -35,33 +58,35 @@ const { colors, levels } = {
 
 addColors(colors);
 
-const formatMeta = (meta: IUserMetaLogger) => {
+const formatMeta = (meta: IMetaLogger) => {
   if (meta) {
-    Object.keys({...meta}).map(key => {
-      if (meta[key].user) {
-        const { id, username, email, source, iat, iss, sub, aud, role, permissions, access_token } = meta[key].user;
+    Object.keys(meta).map(key => {
+      if (meta[key] != undefined) {
+        if (key === 'user') {
+          const { user: username, email, source, iat, iss, sub, aud, access_token } = meta[key];
 
-        if (access_token) {
-          const { preferred_username, email, sub: id, azp: source, aud, iat, realm_access } = access_token.content;
-          meta[key].user = {
-            id,
-            username: preferred_username,
-            email,
-            aud,
-            accessed: new Date(iat * 1000),
-            source,
-            roles: realm_access.roles,
+          if (access_token) {
+            const { preferred_username, email, sub, azp: source, aud, iat, realm_access } = access_token.content;
+            meta[key] = {
+              id: sub,
+              user: preferred_username,
+              email,
+              aud,
+              accessed: new Date(iat * 1000),
+              source,
+              roles: realm_access.roles,
+            }
+          }
+          else {
+            // Legacy token
+            meta[key] = { id: sub, user: username, email, source, iss, aud, iat }
           }
         }
-        else {
-          // Legacy token
-          meta[key].user = { id, username, email, source, iss, aud, sub, iat, role, permissions }
-        }
-      }
 
-      if (meta[key].headers) {
-        const { 'user-agent': user_agent, host, origin } = meta[key].headers;
-        meta[key].headers = { user_agent, host, origin }
+        if (key === 'headers') {
+          const { 'user-agent': user_agent, host, origin, referer } = meta[key];
+          meta[key] = { 'user-agent': user_agent, host, origin, referer }
+        }
       }
     });
 
@@ -75,16 +100,17 @@ export const userActivityLogger = createLogger({
   levels: levels,
   format: format.combine(
     format.colorize(),
+    format.splat(),
     format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
     format.printf(info => {
       let message, level: string;
-      let meta: IUserMetaLogger;
+      let meta: IMetaLogger;
       if (info.message !== undefined) {
         message = info.message;
       }
 
-      if (info[Symbol.for('splat')] && Object.keys(info[Symbol.for('splat')]).length) {
-        meta = info[Symbol.for('splat')];
+      if (info.user) {
+        meta = { user: {...info.user}, headers: info.headers, payload: info.payload };
       }
 
       level = info.level ? info.level : 'INFO';

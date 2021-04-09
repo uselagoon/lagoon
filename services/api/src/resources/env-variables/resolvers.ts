@@ -6,7 +6,7 @@ import {
 import { Sql } from './sql';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
-import { userActivityLogger } from '../../loggers/userActivityLogger';
+
 
 const envVarScopeToString = R.cond([
   [R.equals('GLOBAL'), R.toLower],
@@ -94,7 +94,7 @@ const addEnvVariableToProject = async (
     },
   },
   {
-    sqlClient, hasPermission, keycloakGrant, legacyCredentials, requestHeaders
+    sqlClient, hasPermission, userActivityLogger
   },
 ) => {
   await hasPermission('env_var', 'project:add', {
@@ -120,8 +120,6 @@ const addEnvVariableToProject = async (
   const rows = await query(sqlClient, Sql.selectEnvVariable(insertId));
 
   userActivityLogger.user_action(`User added environment variable to project '${project.name}'`, {
-    user: keycloakGrant || legacyCredentials,
-    headers: requestHeaders,
     payload: {
       id,
       name,
@@ -143,7 +141,7 @@ const addEnvVariableToEnvironment = async (
     },
   },
   {
-    sqlClient, hasPermission, keycloakGrant, legacyCredentials, requestHeaders
+    sqlClient, hasPermission, userActivityLogger
   },
 ) => {
   const environment = await environmentHelpers(sqlClient).getEnvironmentById(typeId);
@@ -170,8 +168,6 @@ const addEnvVariableToEnvironment = async (
   const rows = await query(sqlClient, Sql.selectEnvVariable(insertId));
 
   userActivityLogger.user_action(`User added environment variable to environment '${environment.name}' on '${environment.project}'`, {
-    user: keycloakGrant || legacyCredentials,
-    headers: requestHeaders,
     payload: {
       id,
       name,
@@ -189,7 +185,7 @@ export const deleteEnvVariable: ResolverFn = async (
   root,
   { input: { id } },
   {
-    sqlClient, hasPermission, keycloakGrant, legacyCredentials, requestHeaders
+    sqlClient, hasPermission, userActivityLogger
   },
 ) => {
   const perms = await query(sqlClient, Sql.selectPermsForEnvVariable(id));
@@ -201,8 +197,6 @@ export const deleteEnvVariable: ResolverFn = async (
   await query(sqlClient, Sql.deleteEnvVariable(id));
 
   userActivityLogger.user_action(`User deleted environment variable`, {
-    user: keycloakGrant || legacyCredentials,
-    headers: requestHeaders,
     payload: {
       id
     }
