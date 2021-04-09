@@ -1,0 +1,29 @@
+---
+metadata:
+  annotations:
+    kubernetes.io/change-cause: "Add local-dev volume mounts"
+spec:
+  template:
+    spec:
+      containers:
+      - name: api
+        volumeMounts:
+        - mountPath: "/app/services/api/src"
+          name: api-src
+        - mountPath: "/app/services/api/dist"
+          name: api-dist
+        - mountPath: "/app/node-packages"
+          name: node-packages
+      volumes:
+      - name: api-src
+        hostPath:
+          path: "/lagoon/services/api/src"
+          type: Directory
+      - name: api-dist
+        hostPath:
+          path: "/lagoon/services/api/dist"
+          type: Directory
+      - name: node-packages
+        hostPath:
+          path: "/lagoon/node-packages"
+          type: Directory

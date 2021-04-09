@@ -37,8 +37,8 @@ export async function gitlabBranchDeleted(webhook: WebhookRequestData, project: 
       projectName: project.name,
       branch: meta.branch,
       branchName: meta.branchName,
-      forceDeleteProductionEnvironment: false,
       openshiftProjectName: openshiftProjectName,
+      forceDeleteProductionEnvironment: false,
       type: 'branch'
     }
 

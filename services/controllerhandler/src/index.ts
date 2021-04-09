@@ -12,6 +12,7 @@ import {
 import {
   getOpenShiftInfoForProject,
   getEnvironmentByName,
+  getEnvironmentById,
   updateEnvironment,
   updateDeployment,
   getDeploymentByName,
@@ -71,6 +72,33 @@ const updateLagoonTask = async (meta) => {
   }
 }
 
+const getProjectEnvironment = async function(projectEnv: any) {
+  const {
+    meta
+  } = projectEnv;
+
+  let environment;
+  let project;
+
+  const projectBuildResult = await getOpenShiftInfoForProject(meta.project);
+  project = projectBuildResult.project
+  // check if the payload has an environment id defined to get the environment information
+  if (meta.environmentId != null) {
+    const environmentResult = await getEnvironmentById(meta.environmentId);
+    environment = environmentResult.environmentById
+  } else {
+    // if no id, use the name that was provided instead
+    const environmentResult = await getEnvironmentByName(meta.environment, project.id);
+    environment = environmentResult.environmentByName
+  }
+
+  var projectEnvironmentData: any = {
+    project: project,
+    environment: environment,
+  }
+  return projectEnvironmentData;
+}
+
 const messageConsumer = async function(msg) {
   const {
     type,
@@ -78,6 +106,8 @@ const messageConsumer = async function(msg) {
     meta,
    } = JSON.parse(msg.content.toString());
 
+  let environment;
+  let project;
 
   switch (type) {
     case 'build':
@@ -88,22 +118,31 @@ const messageConsumer = async function(msg) {
         let deploymentId;
         try {
           // try get the ID from our build UID
-          const deployment = await getDeploymentByRemoteId(meta.remoteId);
-          if (!deployment.deploymentByRemoteId) {
-            // otherwise find it using the build name
+          if (meta.remoteId != null) {
+            // otherwise, get the build directly by the remote id
+            // and fall back again to checking by namespace and build name if that fails
+            const deployment = await getDeploymentByRemoteId(meta.remoteId);
+            if (!deployment.deploymentByRemoteId) {
+              // otherwise find it using the build name
+              const deploymentResult = await getDeploymentByName(namespace, meta.buildName);
+              deploymentId = deploymentResult.environment.deployments[0].id;
+            } else {
+              deploymentId = deployment.deploymentByRemoteId.id
+            }
+          } else {
+            // if there is no remoteId in the message, then we are probably cancelling a build that
+            // was not actually ever started in a lagoon cluster
+            // so get the deployment id based on namespace and build name
             const deploymentResult = await getDeploymentByName(namespace, meta.buildName);
             deploymentId = deploymentResult.environment.deployments[0].id;
-          } else {
-            deploymentId = deployment.deploymentByRemoteId.id
           }
-        }catch(error) {
+        } catch(error) {
           logger.warn(`Error while fetching deployment openshiftproject: ${namespace}: ${error}`)
           throw(error)
         }
 
         const convertDateFormat = R.init;
         const dateOrNull = R.unless(R.isNil, convertDateFormat) as any;
-
         await updateDeployment(deploymentId, {
           remoteId: meta.remoteId,
           status: meta.buildPhase.toUpperCase(),
@@ -114,17 +153,15 @@ const messageConsumer = async function(msg) {
         logger.error(`Could not update deployment ${meta.project} ${meta.Buildname}. Message: ${error}`);
       }
 
-
-      let environment;
-      let project;
       try {
-        const projectResult = await getOpenShiftInfoForProject(meta.project);
-        project = projectResult.project
-
-        const environmentResult = await getEnvironmentByName(meta.environment, project.id)
-        environment = environmentResult.environmentByName
+        const projectEnv = await getProjectEnvironment({meta});
+        project = projectEnv.project
+        environment = projectEnv.environment
       } catch (err) {
-        logger.warn(`${namespace} ${meta.buildName}: Error while getting project or environment information, Error: ${err}. Continuing without update`)
+        // if the project or environment can't be determined, give up trying to do anything for it
+        logger.error(`${namespace} ${meta.buildName}: Error while getting project or environment information, Error: ${err}. Giving up updating environment`)
+        // break so the controllerhandler doesn't stop processing
+        break;
       }
 
       try {
@@ -153,10 +190,14 @@ const messageConsumer = async function(msg) {
                 project: ${project.id}
               }`
             );
+          } catch (err) {
+            logger.warn(`${namespace} ${meta.buildName}: Error while updating routes in API, Error: ${err}. Continuing without update`)
+          }
+          try {
             // update the environment with the services available
             await setEnvironmentServices(environment.id, meta.services);
           } catch (err) {
-            logger.warn(`${namespace} ${meta.buildName}: Error while updating routes in API, Error: ${err}. Continuing without update`)
+            logger.warn(`${namespace} ${meta.buildName}: Error while updating services in API, Error: ${err}. Continuing without update`)
           }
       }
       break;
@@ -164,11 +205,23 @@ const messageConsumer = async function(msg) {
       logger.verbose(`Received remove task for ${namespace}`);
       // Update GraphQL API that the Environment has been deleted
       try {
-        await deleteEnvironment(meta.environment, meta.project, false);
+        const projectEnv = await getProjectEnvironment({meta});
+        project = projectEnv.project
+        environment = projectEnv.environment
+      } catch (err) {
+        // if the project or environment can't be determined, give up trying to do anything for it
+        logger.error(`${namespace} ${meta.buildName}: Error while getting project or environment information, Error: ${err}. Giving up removing environment`)
+        // break so the controllerhandler doesn't stop processing
+        break;
+      }
+      try {
+        await deleteEnvironment(environment.name, meta.project, false);
         logger.info(
-          `${meta.project}: Deleted Environment '${meta.environment}' in API`
+          `${meta.project}: Deleted Environment '${environment.name}' in API`
         );
-        meta.openshiftProject = meta.environment
+        // @TODO: looking at `meta.openshiftProject`, this seems to only be used by logs2email, logs2rocketchat, and logs2microsoftteams
+        // when notification system is re-written, this can also be removed as it seems kind of a silly name
+        meta.openshiftProject = environment.name
         meta.openshiftProjectName = namespace
         meta.projectName = meta.project
         sendToLagoonLogs(
@@ -177,7 +230,7 @@ const messageConsumer = async function(msg) {
           '',
           'task:remove-kubernetes:finished',
           meta,
-          `*[${meta.project}]* remove \`${meta.environment}\``
+          `*[${meta.project}]* remove \`${environment.name}\``
         );
       } catch (err) {
         logger.warn(`${namespace}: Error while deleting environment, Error: ${err}. Continuing without update`)
@@ -187,6 +240,16 @@ const messageConsumer = async function(msg) {
       logger.verbose(
         `Received task result for ${meta.task.name} from ${meta.project} - ${meta.environment} - ${meta.jobStatus}`
       );
+      try {
+        const projectEnv = await getProjectEnvironment({meta});
+        project = projectEnv.project
+        environment = projectEnv.environment
+      } catch (err) {
+        // if the project or environment can't be determined, give up trying to do anything for it
+        logger.error(`${namespace} ${meta.buildName}: Error while getting project or environment information, Error: ${err}. Giving up updating task result`)
+        // break so the controllerhandler doesn't stop processing
+        break;
+      }
       // if we want to be able to do something else when a task result comes through,
       // we can use the task key
       switch (meta.key) {
@@ -196,9 +259,6 @@ const messageConsumer = async function(msg) {
           switch (meta.jobStatus) {
             case "succeeded":
               try {
-                // get the project ID
-                const projectResult = await getOpenShiftInfoForProject(meta.project);
-                const project = projectResult.project
                 // since the advanceddata contains a base64 encoded value, we have to decode it first
                 var decodedData = new Buffer(meta.advancedData, 'base64').toString('ascii')
                 const taskResult = JSON.parse(decodedData)

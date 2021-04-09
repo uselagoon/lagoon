@@ -11,4 +11,8 @@ check:
   schedule: '0 * * * 0'
 
 prune:
+  retention:
+    keepDaily: 7
+    keepWeekly: 6
+    keepMonthly: 1
   schedule: '0 * * * 6'

@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "elasticsearch.fullname" . }}
+  labels:
+    {{- include "elasticsearch.labels" . | nindent 4 }}
+  annotations:
+    {{- include "elasticsearch.annotations" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "elasticsearch.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "elasticsearch.labels" . | nindent 8 }}
+        {{- include "elasticsearch.datadogLabels" . | nindent 8 }}
+      annotations:
+        {{- include "elasticsearch.annotations" . | nindent 8 }}
+        lagoon.sh/configMapSha: {{ .Values.configMapSha | quote }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      volumes:
+        - name: {{ include "elasticsearch.persistentStorageName" . }}
+          persistentVolumeClaim:
+            claimName: {{ include "elasticsearch.persistentStorageName" . }}
+      priorityClassName: {{ include "elasticsearch.lagoonPriority" . }}
+      enableServiceLinks: false
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        # This init container sets the appropriate limits for mmap counts on the hosting node.
+        # https://www.elastic.co/guide/en/elasticsearch/reference/current/vm-max-map-count.html
+        - name: set-max-map-count
+          image: ubuntu:20.04
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          securityContext:
+            privileged: true
+          command:
+          - /bin/bash
+          - -c
+          - 'if [[ "$(sysctl vm.max_map_count --values)" -lt 262144 ]]; then sysctl -w vm.max_map_count=262144; fi'
+      containers:
+        - image: {{ .Values.image | quote }}
+          name: {{ .Chart.Name }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          ports:
+            - containerPort: 9200
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /_cluster/health?local=true
+              port: 9200
+            initialDelaySeconds: 20
+          livenessProbe:
+            httpGet:
+              path: /_cluster/health?local=true
+              port: 9200
+            initialDelaySeconds: 120
+          envFrom:
+            - configMapRef:
+                name: lagoon-env
+          env:
+            - name: CRONJOBS
+              value: {{ .Values.inPodCronjobs | quote }}
+          volumeMounts:
+            - name: {{ include "elasticsearch.persistentStorageName" . }}
+              mountPath: {{ .Values.persistentStorage.path | quote }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

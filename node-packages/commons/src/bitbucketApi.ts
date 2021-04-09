@@ -1,6 +1,34 @@
 import axios from 'axios';
 import { find, pathOr, propEq, propOr } from 'ramda';
 
+interface ApiResourceLink {
+  href: string;
+  name: string;
+}
+
+// https://docs.atlassian.com/bitbucket-server/rest/5.16.0/bitbucket-rest.html#idm8296923984
+interface ApiProject {
+  key: string;
+  id: number;
+  name: string;
+  description: string;
+  public: boolean
+  links: {
+    [key: string]: ApiResourceLink[]
+  };
+}
+
+// https://docs.atlassian.com/bitbucket-server/rest/5.16.0/bitbucket-rest.html#idm8296923984
+interface ApiRepo {
+  slug: string;
+  id: number;
+  name: string;
+  project: ApiProject;
+  links: {
+    [key: string]: ApiResourceLink[]
+  };
+}
+
 const API_HOST = propOr(
   'https://bitbucket.org',
   'BITBUCKET_API_HOST',
@@ -107,7 +135,7 @@ const getAllPagesRequest = async url => {
   return results;
 };
 
-export const searchReposByName = async name => {
+export const searchReposByName = async (name: string): Promise<ApiRepo> => {
   try {
     const repos = await getAllPagesRequest(
       `repos?name=${name}&permission=REPO_READ`

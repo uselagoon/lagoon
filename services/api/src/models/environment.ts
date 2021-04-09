@@ -524,7 +524,7 @@ export const EnvironmentModel = (clients) => {
     interestedDateEnd.setUTCMilliseconds(999);
     const interestedDateEndString = interestedDateEnd.toISOString();
 
-    const {newResult, legacyResult} = await fetchElasticSearchHitsData(project.replace('_', '-'), openshiftProjectName, interestedYearMonth, interestedDateBeginString, interestedDateEndString)
+    const {newResult, legacyResult} = await fetchElasticSearchHitsData(project.toLocaleLowerCase().replace(/[^0-9a-z-]/g, '-'), openshiftProjectName, interestedYearMonth, interestedDateBeginString, interestedDateEndString)
 
     if ( newResult === null || legacyResult === null ){
       return { total: 0 }

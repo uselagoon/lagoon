@@ -300,7 +300,7 @@ const getControllerBuildData = async function(deployData: any) {
   var projectProductionEnvironment = projectOpenShift.productionEnvironment
   var projectStandbyEnvironment = projectOpenShift.standbyProductionEnvironment
   var subfolder = projectOpenShift.subfolder || ""
-  var routerPattern = projectOpenShift.openshift.routerPattern ? projectOpenShift.openshift.routerPattern.replace('${environment}',environmentName).replace('${project}', projectName) : ""
+  var routerPattern = projectOpenShift.openshift.routerPattern
   var prHeadBranch = headBranch || ""
   var prHeadSha = headSha || ""
   var prBaseBranch = baseBranch || ""
@@ -314,10 +314,20 @@ const getControllerBuildData = async function(deployData: any) {
   var projectSecret = crypto.createHash('sha256').update(`${projectName}-${jwtSecret}`).digest('hex');
   var alertContactHA = ""
   var alertContactSA = ""
-  var monitoringConfig = JSON.parse(projectOpenShift.openshift.monitoringConfig) || "invalid"
+  var uptimeRobotStatusPageIds = []
+  var monitoringConfig: any = {};
+  try {
+    monitoringConfig = JSON.parse(projectOpenShift.openshift.monitoringConfig) || "invalid"
+  } catch (e) {
+    logger.error('Error parsing openshift.monitoringConfig from openshift: %s, continuing with "invalid"', projectOpenShift.openshift.name, { error: e })
+    monitoringConfig = "invalid"
+  }
   if (monitoringConfig != "invalid"){
     alertContactHA = monitoringConfig.uptimerobot.alertContactHA || ""
     alertContactSA = monitoringConfig.uptimerobot.alertContactSA || ""
+    if (monitoringConfig.uptimerobot.statusPageId) {
+      uptimeRobotStatusPageIds.push(monitoringConfig.uptimerobot.statusPageId)
+    }
   }
   var availability = projectOpenShift.availability || "STANDARD"
 
@@ -331,8 +341,12 @@ const getControllerBuildData = async function(deployData: any) {
   } else {
     alertContact = "unconfigured"
   }
+
   const billingGroup = projectBillingGroup.groups.find(i => i.type == "billing" ) || ""
-  var uptimeRobotStatusPageId = billingGroup.uptimeRobotStatusPageId || ""
+  if (billingGroup.uptimeRobotStatusPageId && billingGroup.uptimeRobotStatusPageId != "null" && !R.isEmpty(billingGroup.uptimeRobotStatusPageId)){
+    uptimeRobotStatusPageIds.push(billingGroup.uptimeRobotStatusPageId)
+  }
+  var uptimeRobotStatusPageId = uptimeRobotStatusPageIds.join('-')
 
   var pullrequestData: any = {};
   var promoteData: any = {};
@@ -392,9 +406,11 @@ const getControllerBuildData = async function(deployData: any) {
   const buildName = `lagoon-build-${randBuildId}`;
 
   let deployment;
+  let environmentId;
   try {
     const now = moment.utc();
     const apiEnvironment = await getEnvironmentByName(branchName, projectOpenShift.id);
+    environmentId = apiEnvironment.environmentByName.id
     deployment = await addDeployment(buildName, "NEW", now.format('YYYY-MM-DDTHH:mm:ss'), apiEnvironment.environmentByName.id);
   } catch (error) {
     logger.error(`Could not save deployment for project ${projectOpenShift.id}. Message: ${error}`);
@@ -424,11 +440,13 @@ const getControllerBuildData = async function(deployData: any) {
       ...promoteData,
       gitReference: gitRef,
       project: {
+        id: projectOpenShift.id,
         name: projectName,
         gitUrl: gitUrl,
         uiLink: deployment.addDeployment.uiLink,
         environment: environmentName,
         environmentType: environmentType,
+        environmentId: environmentId,
         productionEnvironment: projectProductionEnvironment,
         standbyEnvironment: projectStandbyEnvironment,
         subfolder: subfolder,

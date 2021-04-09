@@ -77,7 +77,8 @@ I'm unable to SSH into any environment. I'm getting the following message: `Perm
 
 {% embed url="https://www.youtube.com/watch?v=PyrlZqTjf68&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd" %}
 
-## How do I add a cron job?
+## 
+a cron job?
 
 {% embed url="https://www.youtube.com/watch?v=Yd\_JfDyfbR0&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=2" %}
 
@@ -85,6 +86,9 @@ I'm unable to SSH into any environment. I'm getting the following message: `Perm
 
 {% embed url="https://www.youtube.com/watch?v=vQxh87F3fW4&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=4" %}
 
+## How do I remove a route?
+
+You will need to contact your helpful Lagoon administrator should you need to remove a route. You can use either the private RocketChat or Slack channel that was set up for you to communicate - if not, you can always reach us at support@amazee.io.
 
 
 ## **When I run `pygmy status`, no keys are loaded:**

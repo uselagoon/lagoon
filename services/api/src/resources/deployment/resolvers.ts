@@ -583,9 +583,10 @@ export const deployEnvironmentBranch: ResolverFn = async (
           meta,
           `*[${deployData.projectName}]* Error deploying \`${
             deployData.branchName
-          }\`: ${error.message}`,
+          }\`: ${error}`,
         );
-        return `Error: ${error.message}`;
+        console.log(error);
+        return `Error: ${error}`;
     }
   }
 };

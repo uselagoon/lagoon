@@ -76,8 +76,8 @@ MINISHIFT_DISK_SIZE := 30GB
 
 # Version and Hash of the minikube cli that should be downloaded
 K3S_VERSION := v1.17.0-k3s.1
-KUBECTL_VERSION := v1.19.0
-HELM_VERSION := v3.4.1
+KUBECTL_VERSION := v1.20.2
+HELM_VERSION := v3.5.0
 MINIKUBE_VERSION := 1.5.2
 MINIKUBE_PROFILE := $(CI_BUILD_TAG)-minikube
 MINIKUBE_CPUS := $(nproc --ignore 2)
@@ -91,7 +91,10 @@ K3D_NAME := k3s-$(shell echo $(CI_BUILD_TAG) | sed -E 's/.*(.{31})$$/\1/')
 # Name of the Branch we are currently in
 BRANCH_NAME := $(shell git rev-parse --abbrev-ref HEAD)
 SAFE_BRANCH_NAME := $(shell echo $(BRANCH_NAME) | sed -E 's:/:_:g')
-DEFAULT_ALPINE_VERSION := 3.11
+
+# Init the file that is used to hold the image tag cross-reference table
+$(shell >build.txt)
+$(shell >scan.txt)
 
 #######
 ####### Functions
@@ -99,7 +102,9 @@ DEFAULT_ALPINE_VERSION := 3.11
 
 # Builds a docker image. Expects as arguments: name of the image, location of Dockerfile, path of
 # Docker Build Context
-docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg UPSTREAM_REPO=$(UPSTREAM_REPO) --build-arg UPSTREAM_TAG=$(UPSTREAM_TAG) --build-arg ALPINE_VERSION=$(DEFAULT_ALPINE_VERSION) -t $(CI_BUILD_TAG)/$(1) -f $(2) $(3)
+docker_build = docker build $(DOCKER_BUILD_PARAMS) --build-arg LAGOON_VERSION=$(LAGOON_VERSION) --build-arg IMAGE_REPO=$(CI_BUILD_TAG) --build-arg UPSTREAM_REPO=$(UPSTREAM_REPO) --build-arg UPSTREAM_TAG=$(UPSTREAM_TAG) -t $(CI_BUILD_TAG)/$(1) -f $(2) $(3)
+
+scan_image = docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(HOME)/Library/Caches:/root/.cache/ aquasec/trivy --timeout 5m0s $(CI_BUILD_TAG)/$(1) >> scan.txt
 
 # Tags an image with the `testlagoon` repository and pushes it
 docker_publish_testlagoon = docker tag $(CI_BUILD_TAG)/$(1) testlagoon/$(2) && docker push testlagoon/$(2) | cat
@@ -136,6 +141,8 @@ $(build-images):
 	$(eval image = $(subst build/,,$@))
 # Call the docker build
 	$(call docker_build,$(image),images/$(image)/Dockerfile,images/$(image))
+#scan created image with Trivy
+	$(call scan_image,$(image),)
 # Touch an empty file which make itself is using to understand when the image has been last build
 	touch $@
 
@@ -168,6 +175,7 @@ build-images += yarn-workspace-builder
 build/yarn-workspace-builder: images/yarn-workspace-builder/Dockerfile
 	$(eval image = $(subst build/,,$@))
 	$(call docker_build,$(image),images/$(image)/Dockerfile,.)
+	$(call scan_image,$(image),)
 	touch $@
 
 #######
@@ -191,6 +199,7 @@ build-taskimages = $(foreach image,$(taskimages),build/task-$(image))
 $(build-taskimages):
 	$(eval image = $(subst build/task-,,$@))
 	$(call docker_build,task-$(image),taskimages/$(image)/Dockerfile,taskimages/$(image))
+	$(call scan_image,task-$(image),)
 	touch $@
 
 # Variables of service images we manage and build
@@ -228,6 +237,7 @@ build-services = $(foreach image,$(services),build/$(image))
 $(build-services):
 	$(eval image = $(subst build/,,$@))
 	$(call docker_build,$(image),services/$(image)/Dockerfile,services/$(image))
+	$(call scan_image,$(image),)
 	touch $@
 
 # Dependencies of Service Images
@@ -254,6 +264,7 @@ build/local-minio:
 build/ssh: services/ssh/Dockerfile
 	$(eval image = $(subst build/,,$@))
 	$(call docker_build,$(image),services/$(image)/Dockerfile,.)
+	$(call scan_image,$(image),)
 	touch $@
 service-images += ssh
 
@@ -261,12 +272,15 @@ build/local-git: local-dev/git/Dockerfile
 build/local-api-data-watcher-pusher: local-dev/api-data-watcher-pusher/Dockerfile
 build/local-registry: local-dev/registry/Dockerfile
 build/local-dbaas-provider: local-dev/dbaas-provider/Dockerfile
+build/local-mongodb-dbaas-provider: local-dev/mongodb-dbaas-provider/Dockerfile
 
 # Images for local helpers that exist in another folder than the service images
 localdevimages := local-git \
 									local-api-data-watcher-pusher \
 									local-registry \
-									local-dbaas-provider
+									local-dbaas-provider \
+									local-mongodb-dbaas-provider
+
 service-images += $(localdevimages)
 build-localdevimages = $(foreach image,$(localdevimages),build/$(image))
 
@@ -274,12 +288,14 @@ $(build-localdevimages):
 	$(eval folder = $(subst build/local-,,$@))
 	$(eval image = $(subst build/,,$@))
 	$(call docker_build,$(image),local-dev/$(folder)/Dockerfile,local-dev/$(folder))
+	$(call scan_image,$(image),)
 	touch $@
 
 # Image with ansible test
 build/tests:
 	$(eval image = $(subst build/,,$@))
 	$(call docker_build,$(image),$(image)/Dockerfile,$(image))
+	$(call scan_image,$(image),)
 	touch $@
 service-images += tests
 
@@ -307,7 +323,8 @@ all-k8s-tests-list:=				nginx \
 														drupal-php74 \
 														python \
 														active-standby-kubernetes \
-														features-kubernetes
+														features-kubernetes \
+														node-mongodb
 
 all-k8s-tests = $(foreach image,$(all-k8s-tests-list),k8s-tests/$(image))
 
@@ -357,7 +374,8 @@ all-openshift-tests-list:=	features-openshift \
 														bitbucket \
 														nginx \
 														elasticsearch \
-														active-standby-openshift
+														active-standby-openshift \
+														node-mongodb
 all-openshift-tests = $(foreach image,$(all-openshift-tests-list),openshift-tests/$(image))
 
 .PHONY: openshift-tests
@@ -377,10 +395,10 @@ wait-for-keycloak:
 main-test-services = broker logs2email logs2slack logs2rocketchat logs2microsoftteams api api-db api-redis keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher local-minio
 
 # Define a list of which Lagoon Services are needed for openshift testing
-openshift-test-services = openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor openshiftmisc tests-openshift
+openshift-test-services = openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor openshiftmisc tests-openshift local-dbaas-provider local-mongodb-dbaas-provider
 
 # Define a list of which Lagoon Services are needed for kubernetes testing
-k8s-test-services = controllerhandler tests-kubernetes local-registry local-dbaas-provider drush-alias
+k8s-test-services = controllerhandler tests-kubernetes local-registry local-dbaas-provider local-mongodb-dbaas-provider drush-alias
 
 # List of Lagoon Services needed for webhook endpoint testing
 webhooks-test-services = webhook-handler webhooks2tasks backup-handler
@@ -392,7 +410,7 @@ drupal-test-services = drush-alias
 webhook-tests = github gitlab bitbucket
 
 # All Tests that use API endpoints
-api-tests = node features-openshift features-kubernetes nginx elasticsearch active-standby-openshift active-standby-kubernetes
+api-tests = node features-openshift features-kubernetes nginx elasticsearch active-standby-openshift active-standby-kubernetes node-mongodb
 
 # All drupal tests
 drupal-tests = drupal-php72 drupal-php73 drupal-php74 drupal-postgres
@@ -800,9 +818,10 @@ endif
 	local-dev/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add dioscuri https://raw.githubusercontent.com/amazeeio/dioscuri/main/charts ; \
 	local-dev/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n dioscuri dioscuri dioscuri/dioscuri ; \
 	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' create namespace dbaas-operator; \
-	local-dev/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add dbaas-operator https://raw.githubusercontent.com/amazeeio/dbaas-operator/master/charts ; \
+	local-dev/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add dbaas-operator https://raw.githubusercontent.com/amazeeio/dbaas-operator/main/charts ; \
 	local-dev/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n dbaas-operator dbaas-operator dbaas-operator/dbaas-operator ; \
 	local-dev/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n dbaas-operator mariadbprovider dbaas-operator/mariadbprovider -f local-dev/helm-values-mariadbprovider.yml ; \
+	local-dev/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n dbaas-operator mongodbprovider dbaas-operator/mongodbprovider -f local-dev/helm-values-mongodbprovider.yml ; \
 	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' create namespace harbor; \
 	local-dev/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add harbor https://helm.goharbor.io ; \
 	local-dev/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n harbor harbor harbor/harbor -f local-dev/helm-values-harbor.yml ; \
@@ -817,7 +836,8 @@ endif
 	local-dev/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' repo add lagoon https://uselagoon.github.io/lagoon-charts/; \
 	local-dev/helm/helm --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --kube-context='$(K3D_NAME)' upgrade --install -n lagoon lagoon-remote lagoon/lagoon-remote \
 		--set dioscuri.enabled=false \
-		--set dockerHost.image.name=172.17.0.1:5000/lagoon/docker-host \
+		--set dockerHost.image.repository=172.17.0.1:5000/lagoon/docker-host \
+		--set dockerHost.image.tag=latest \
 		--set dockerHost.registry=172.17.0.1:5000; \
 	local-dev/kubectl --kubeconfig="$$(./local-dev/k3d get-kubeconfig --name='$(K3D_NAME)')" --context='$(K3D_NAME)' -n lagoon rollout status deployment lagoon-remote-docker-host -w;
 ifeq ($(ARCH), darwin)
@@ -924,10 +944,10 @@ api-development: build/api build/api-db build/local-api-data-watcher-pusher buil
 
 ## CI targets
 
-KIND_VERSION = v0.9.0
+KIND_VERSION = v0.10.0
 GOJQ_VERSION = v0.11.2
-KIND_IMAGE = kindest/node:v1.19.1@sha256:98cf5288864662e37115e362b23e4369c8c4a408f99cbc06e58ac30ddc721600
-TESTS = [api,features-kubernetes,nginx,drupal-php73,drupal-php74,drupal-postgres,python,gitlab,github,bitbucket]
+KIND_IMAGE = kindest/node:v1.20.2@sha256:8f7ea6e7642c0da54f04a7ee10431549c0257315b3a634f6ef2fecaaedb19bab
+TESTS = [api,features-kubernetes,nginx,drupal-php73,drupal-php74,drupal-postgres,python,gitlab,github,bitbucket,node-mongodb,elasticsearch]
 CHARTS_TREEISH = main
 
 local-dev/kind:
@@ -964,11 +984,13 @@ helm/repos: local-dev/helm
 	./local-dev/helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 	./local-dev/helm repo add stable https://charts.helm.sh/stable
 	./local-dev/helm repo add bitnami https://charts.bitnami.com/bitnami
+	./local-dev/helm repo add amazeeio https://amazeeio.github.io/charts/
+	./local-dev/helm repo add lagoon https://uselagoon.github.io/lagoon-charts/
 	./local-dev/helm repo update
 
+# stand up a kind cluster configured appropriately for lagoon testing
 .PHONY: kind/cluster
 kind/cluster: local-dev/kind
-	# stand up a kind cluster configured appropriately for lagoon testing
 	./local-dev/kind get clusters | grep -q "$(CI_BUILD_TAG)" && exit; \
 		docker network create kind || true \
 		&& export KUBECONFIG=$$(mktemp) \
@@ -985,6 +1007,12 @@ kind/cluster: local-dev/kind
 		&& echo '  extraMounts:'                                                                      >> $$KINDCONFIG \
 		&& echo '  - containerPath: /var/lib/kubelet/config.json'                                     >> $$KINDCONFIG \
 		&& echo '    hostPath: $(HOME)/.docker/config.json'                                           >> $$KINDCONFIG \
+		&& echo '  - containerPath: /lagoon/services'                                                 >> $$KINDCONFIG \
+		&& echo '    hostPath: ./services'                                                            >> $$KINDCONFIG \
+		&& echo '    readOnly: false'                                                                 >> $$KINDCONFIG \
+		&& echo '  - containerPath: /lagoon/node-packages'                                            >> $$KINDCONFIG \
+		&& echo '    hostPath: ./node-packages'                                                       >> $$KINDCONFIG \
+		&& echo '    readOnly: false'                                                                 >> $$KINDCONFIG \
 		&& KIND_CLUSTER_NAME="$(CI_BUILD_TAG)" ./local-dev/kind create cluster --config=$$KINDCONFIG \
 		&& cp $$KUBECONFIG "kubeconfig.kind.$(CI_BUILD_TAG)" \
 		&& echo -e 'Interact with the cluster during the test run in Jenkins like so:\n' \
@@ -1003,13 +1031,13 @@ ifeq ($(ARCH), darwin)
       tcp-listen:32080,fork,reuseaddr tcp-connect:target:32080
 endif
 
-KIND_SERVICES = api api-db api-redis auth-server broker controllerhandler docker-host drush-alias keycloak keycloak-db webhook-handler webhooks2tasks kubectl-build-deploy-dind local-api-data-watcher-pusher local-git ssh tests
+KIND_SERVICES = api api-db api-redis auth-server broker controllerhandler docker-host drush-alias keycloak keycloak-db webhook-handler webhooks2tasks kubectl-build-deploy-dind local-api-data-watcher-pusher local-git ssh tests ui
 KIND_TESTS = local-api-data-watcher-pusher local-git tests
 KIND_TOOLS = kind helm kubectl jq
 
+# install lagoon charts and run lagoon test suites in a kind cluster
 .PHONY: kind/test
 kind/test: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addprefix build/,$(KIND_SERVICES))
-	# install lagoon charts and run lagoon test suites in a kind cluster
 	export CHARTSDIR=$$(mktemp -d ./lagoon-charts.XXX) \
 		&& ln -sfn "$$CHARTSDIR" lagoon-charts.kind.lagoon \
 		&& git clone https://github.com/uselagoon/lagoon-charts.git "$$CHARTSDIR" \
@@ -1018,23 +1046,56 @@ kind/test: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addpr
 		&& export KUBECONFIG="$$(realpath ../kubeconfig.kind.$(CI_BUILD_TAG))" \
 		&& export IMAGE_REGISTRY="registry.$$(../local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
 		&& $(MAKE) install-registry HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
-		&& cd .. && $(MAKE) kind/push-images && cd "$$CHARTSDIR" \
+		&& cd .. && $(MAKE) -j6 kind/push-images && cd "$$CHARTSDIR" \
 		&& $(MAKE) fill-test-ci-values TESTS=$(TESTS) IMAGE_TAG=$(SAFE_BRANCH_NAME) \
 			HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
 			JQ=$$(realpath ../local-dev/jq) \
 			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=$$IMAGE_REGISTRY/kubectl-build-deploy-dind:$(SAFE_BRANCH_NAME) \
 			IMAGE_REGISTRY=$$IMAGE_REGISTRY \
+		&& sleep 30 \
 		&& docker run --rm --network host --name ct-$(CI_BUILD_TAG) \
 			--volume "$$(pwd)/test-suite-run.ct.yaml:/etc/ct/ct.yaml" \
 			--volume "$$(pwd):/workdir" \
 			--volume "$$(realpath ../kubeconfig.kind.$(CI_BUILD_TAG)):/root/.kube/config" \
 			--workdir /workdir \
-			"quay.io/helmpack/chart-testing:v3.1.1" \
+			"quay.io/helmpack/chart-testing:v3.3.1" \
 			ct install
+
+LOCAL_DEV_SERVICES = api auth-server controllerhandler logs2email logs2microsoftteams logs2rocketchat logs2slack ui webhook-handler webhooks2tasks
+
+# kind/local-dev-patch will build the services in LOCAL_DEV_SERVICES on your machine, and then use kubectl patch to mount the folders into Kubernetes
+# the deployments should be restarted to trigger any updated code changes
+# `kubectl rollout undo deployment` can be used to rollback a deployment to before the annotated patch
+# ensure that the correct version of Node to build the services is set on your machine
+.PHONY: kind/local-dev-patch
+kind/local-dev-patch:
+	export KUBECONFIG="$$(pwd)/kubeconfig.kind.$(CI_BUILD_TAG)" && \
+		export IMAGE_REGISTRY="registry.$$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
+		&& for image in $(LOCAL_DEV_SERVICES); do \
+			echo "building $$image" \
+			&& cd services/$$image && yarn install && yarn build && cd ../..; \
+		done \
+		&& for image in $(LOCAL_DEV_SERVICES); do \
+			echo "patching lagoon-core-$$image" \
+			&& ./local-dev/kubectl --namespace lagoon patch deployment lagoon-core-$$image --patch-file ./local-dev/kubectl-patches/$$image.yaml; \
+		done
+
+# kind/dev can only be run once a cluster is up and running (run kind/test first) - it doesn't rebuild the cluster at all, just pushes the built images
+# into the image registry and reinstalls the lagoon-core helm chart.
+.PHONY: kind/dev
+kind/dev: $(addprefix build/,$(KIND_SERVICES))
+	export KUBECONFIG="$$(realpath ./kubeconfig.kind.$(CI_BUILD_TAG))" \
+		&& export IMAGE_REGISTRY="registry.$$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
+		&& $(MAKE) kind/push-images && cd lagoon-charts.kind.lagoon \
+		&& $(MAKE) install-lagoon-core IMAGE_TAG=$(SAFE_BRANCH_NAME) \
+			HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
+			JQ=$$(realpath ../local-dev/jq) \
+			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=$$IMAGE_REGISTRY/kubectl-build-deploy-dind:$(SAFE_BRANCH_NAME) \
+			IMAGE_REGISTRY=$$IMAGE_REGISTRY
 
 .PHONY: kind/push-images
 kind/push-images:
-		export KUBECONFIG="$$(pwd)/kubeconfig.kind.$(CI_BUILD_TAG)" && \
+	export KUBECONFIG="$$(pwd)/kubeconfig.kind.$(CI_BUILD_TAG)" && \
 		export IMAGE_REGISTRY="registry.$$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
 		&& docker login -u admin -p Harbor12345 $$IMAGE_REGISTRY \
 		&& for image in $(KIND_SERVICES); do \
@@ -1063,7 +1124,7 @@ kind/retest:
 			--volume "$$(pwd):/workdir" \
 			--volume "$$(realpath ../kubeconfig.kind.$(CI_BUILD_TAG)):/root/.kube/config" \
 			--workdir /workdir \
-			"quay.io/helmpack/chart-testing:v3.1.1" \
+			"quay.io/helmpack/chart-testing:v3.3.1" \
 			ct install
 
 .PHONY: kind/clean

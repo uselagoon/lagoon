@@ -64,3 +64,16 @@ ssh -p 32222 -t drupal-example-main@ssh.lagoon.amazeeio.cloud service=nginx cont
 
 This will execute `whoami` within the `cli` container.
 
+## Multiple SSH Keys
+
+If you have multiple SSH keys, you can specify which key to use for a given domain by setting this in your `~/.ssh/config` file.
+
+~/.ssh/.config
+```
+Host *
+  AddKeysToAgent yes
+  UseKeychain yes
+  IdentityFile ~/.ssh/[YOUR-DEFAULT-PRIVATE-KEY]
+Host ssh.lagoon.amazeeio.cloud
+  IdentityFile ~/.ssh/[YOUR-PRIVATE-KEY-FOR-USE-ON-LAGOON]
+```
