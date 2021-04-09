@@ -1,10 +1,10 @@
 # Contributing
 
-We gladly welcome any and all contributions to Lagoon! 
+We gladly welcome any and all contributions to Lagoon!
 
 ### What kind of contributions do we need? Examples!
 
-Right now one of our biggest needs is putting together examples of Lagoon working with various content management systems, etc, other than Drupal. 
+Right now one of our biggest needs is putting together examples of Lagoon working with various content management systems, etc, other than Drupal.
 
 If you can spin up an open source CMS or framework that we don’t currently have as a docker-compose stack, send us a PR.  Look at the existing examples at [https://github.com/uselagoon/lagoon-examples](https://github.com/uselagoon/lagoon-examples) for tips, pointers and starter issues.
 

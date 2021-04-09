@@ -51,7 +51,7 @@ The command could not be executed successfully (returned: Array [error]
 [default] =>
 )
 , code: 0)
-Error: no database record could be found for source @master [error]
+Error: no database record could be found for source @main [error]
 ```
 
 Upgrading Drush should fix that for you. We strongly suggest that you use version 8.3 or newer. Once Drush is upgraded the command should work!
