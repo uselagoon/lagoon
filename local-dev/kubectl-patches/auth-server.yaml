@@ -5,8 +5,12 @@ metadata:
 spec:
   template:
     spec:
+      securityContext:
+        runAsUser: 1000
       containers:
       - name: auth-server
+        command: ["yarn"]
+        args: ["run", "dev"]
         volumeMounts:
         - mountPath: "/app/services/auth-server/src"
           name: auth-server-src

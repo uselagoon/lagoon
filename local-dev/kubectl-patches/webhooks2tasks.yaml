@@ -5,8 +5,12 @@ metadata:
 spec:
   template:
     spec:
+      securityContext:
+        runAsUser: 1000
       containers:
       - name: webhooks2tasks
+        command: ["yarn"]
+        args: ["run", "dev"]
         volumeMounts:
         - mountPath: "/app/services/webhooks2tasks/src"
           name: webhooks2tasks-src
