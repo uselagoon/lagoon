@@ -228,7 +228,7 @@ func failOnError(err error, msg string) {
 	}
 }
 
-func removeSnapshot(snapshots []Snapshot, s lagoonv1alpha1.LagoonBuild) []Snapshot {
+func removeSnapshot(snapshots []Snapshot, s int) []Snapshot {
 	result := []Snapshot{}
 	for idx, item := range snapshots {
 		if idx == s {
