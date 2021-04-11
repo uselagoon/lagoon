@@ -228,8 +228,15 @@ func failOnError(err error, msg string) {
 	}
 }
 
-func removeSnapshot(snapshots []Snapshot, s int) []Snapshot {
-	return append(snapshots[:s], snapshots[s+1:]...)
+func removeSnapshot(snapshots []Snapshot, s lagoonv1alpha1.LagoonBuild) []Snapshot {
+	result := []Snapshot{}
+	for idx, item := range snapshots {
+		if idx == s {
+			continue
+		}
+		result = append(result, item)
+	}
+	return result
 }
 
 func apiBackupInWebhook(snaphots []Snapshot, snaphot string) bool {
