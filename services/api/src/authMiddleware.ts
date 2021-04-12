@@ -6,6 +6,7 @@ import {
   getGrantForKeycloakToken,
   getCredentialsForLegacyToken,
 } from './util/auth';
+import { getUserActivityLogger } from './loggers/userActivityLogger';
 
 export type RequestWithAuthData = Request & {
   legacyCredentials: any
@@ -72,12 +73,18 @@ const keycloak = async (
   const sqlClient = getSqlClient();
 
   try {
-    const grant = await getGrantForKeycloakToken(
-      sqlClient,
-      req.authToken,
-    );
+    const grant: any = await getGrantForKeycloakToken(sqlClient, req.authToken);
 
     req.kauth = { grant };
+    const userActivityLogger = getUserActivityLogger(
+      grant ? grant : null
+    );
+
+    const { azp: source, preferred_username, email } = grant.access_token.content;
+    const username = preferred_username ? preferred_username : 'unknown';
+
+    userActivityLogger.user_auth(`Keycloak authentication granted for '${username} (${email ? email : 'unknown'})' from '${source}'`);
+
   } catch (e) {
     // It might be a legacy token, so continue on.
     logger.debug(`Keycloak token auth failed: ${e.message}`);
@@ -114,6 +121,13 @@ const legacy = async (
     );
 
     req.legacyCredentials = legacyCredentials;
+
+    const userActivityLogger = getUserActivityLogger(legacyCredentials ? legacyCredentials : null);
+    const { sub, iss } = legacyCredentials;
+    const username = sub ? sub : 'unknown';
+    const source = iss ? iss : 'unknown';
+    userActivityLogger.user_auth(`Legacy authentication granted for '${username}' from '${source}'`);
+
     sqlClient.end();
 
     next();

@@ -1,7 +1,10 @@
+import winston, { Logger } from 'winston';
 const { addColors, createLogger, format, transports } = require('winston');
 
-export interface IUserActivityLogger {
-  getUserActivityLogger: (user: any) => any;
+export interface IUserActivityLogger extends winston.Logger {
+  user_info: winston.LeveledLogMethod;
+  user_auth: winston.LeveledLogMethod;
+  user_action: winston.LeveledLogMethod;
 }
 
 export interface IUserReqHeader {
@@ -30,12 +33,7 @@ interface IMetaLogger {
   payload?: {}
 }
 
-interface IDefaultMeta {
-  user?: any,
-  headers?: any
-}
-
-export const getUserActivityLogger = (user: any, headers?: any): IDefaultMeta => {
+export const getUserActivityLogger = (user: any, headers?: any): IUserActivityLogger => {
   if (user) {
     userActivityLogger.defaultMeta = { user, headers }
   }
@@ -95,7 +93,7 @@ const formatMeta = (meta: IMetaLogger) => {
   return '';
 };
 
-export const userActivityLogger = createLogger({
+export const userActivityLogger: IUserActivityLogger = createLogger({
   exitOnError: false,
   levels: levels,
   format: format.combine(
