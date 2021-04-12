@@ -502,8 +502,129 @@ else
   echo "pre-rollout tasks are currently disabled LAGOON_PREROLLOUT_DISABLED is set to true"
 fi
 
+##############################################
+### CUSTOM FASTLY API SECRETS .lagoon.yml
+##############################################
 
+# if a customer is using their own fastly configuration, then they can define their api token and platform tls configuration ID in the .lagoon.yml file
+# this will get created as a `kind: Secret` in kubernetes so that created ingresses will be able to use this secret to talk to the fastly api.
+#
+# in this example, the customer needs to add a build envvar called `FASTLY_API_TOKEN` and then populates the .lagoon.yml file with something like this
+#
+# fastly:
+#   api-secrets:
+#     - name: customer
+#       apiTokenVariableName: FASTLY_API_TOKEN
+#       platformTLSConfiguration: A1bcEdFgH12eD242Sds
+#
+# then the build process will attempt to check the lagoon variables for one called `FASTLY_API_TOKEN` and will use the value of this variable when creating the
+# `kind: Secret` in kubernetes
+#
+# support for multiple api-secrets is possible in the instance that a customer uses 2 separate services in different accounts in the one project
 
+## any fastly api secrets will be prefixed with this, so that we always add this to whatever the customer provides
+FASTLY_API_SECRET_PREFIX="fastly-api-"
+
+FASTLY_API_SECRETS_COUNTER=0
+FASTLY_API_SECRETS=()
+if [ -n "$(cat .lagoon.yml | shyaml keys fastly.api-secrets.$FASTLY_API_SECRETS_COUNTER 2> /dev/null)" ]; then
+  while [ -n "$(cat .lagoon.yml | shyaml get-value fastly.api-secrets.$FASTLY_API_SECRETS_COUNTER 2> /dev/null)" ]; do
+    FASTLY_API_SECRET_NAME=$FASTLY_API_SECRET_PREFIX$(cat .lagoon.yml | shyaml get-value fastly.api-secrets.$FASTLY_API_SECRETS_COUNTER.name 2> /dev/null)
+    if [ -z "$FASTLY_API_SECRET_NAME" ]; then
+        echo -e "A fastly api secret was defined in the .lagoon.yml file, but no name could be found the .lagoon.yml\n\nPlease check if the name has been set correctly."
+        exit 1
+    fi
+    FASTLY_API_TOKEN_VALUE=$(cat .lagoon.yml | shyaml get-value fastly.api-secrets.$FASTLY_API_SECRETS_COUNTER.apiTokenVariableName false)
+    if [[ $FASTLY_API_TOKEN_VALUE == "false" ]]; then
+      echo "No 'apiTokenVariableName' defined for fastly secret $FASTLY_API_SECRET_NAME"; exit 1;
+    fi
+    # if we have everything we need, we can proceed to logging in
+    if [ $FASTLY_API_TOKEN_VALUE != "false" ]; then
+      FASTLY_API_TOKEN=""
+      # check if we have a password defined anywhere in the api first
+      if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
+        FASTLY_API_TOKEN=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "build" and .name == "'$FASTLY_API_TOKEN_VALUE'") | "\(.value)"'))
+      fi
+      if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
+        TEMP_FASTLY_API_TOKEN=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.scope == "build" and .name == "'$FASTLY_API_TOKEN_VALUE'") | "\(.value)"'))
+        if [ ! -z "$TEMP_FASTLY_API_TOKEN" ]; then
+          FASTLY_API_TOKEN=$TEMP_FASTLY_API_TOKEN
+        fi
+      fi
+      if [ -z "$FASTLY_API_TOKEN" ]; then
+        echo -e "A fastly api secret was defined in the .lagoon.yml file, but no token could be found in the Lagoon API matching the variable name provided\n\nPlease check if the token has been set correctly."
+        exit 1
+      fi
+    fi
+    FASTLY_API_PLATFORMTLS_CONFIGURATION=$(cat .lagoon.yml | shyaml get-value fastly.api-secrets.$FASTLY_API_SECRETS_COUNTER.platformTLSConfiguration "")
+    if [ -z "$FASTLY_API_PLATFORMTLS_CONFIGURATION" ]; then
+      echo -e "A fastly api secret was defined in the .lagoon.yml file, but no platform tls configuration id could be found in the .lagoon.yml\n\nPlease check if the platform tls configuration id has been set correctly."
+      exit 1
+    fi
+
+    # run the script to create the secrets
+    . /kubectl-build-deploy/scripts/exec-fastly-api-secrets.sh
+
+    let FASTLY_API_SECRETS_COUNTER=FASTLY_API_SECRETS_COUNTER+1
+  done
+fi
+
+# FASTLY API SECRETS FROM LAGOON API VARIABLE
+# Allow for defining fastly api secrets using lagoon api variables
+# This accepts colon separated values like so `SECRET_NAME:FASTLY_API_TOKEN:FASTLY_PLATFORMTLS_CONFIGURATION_ID`, and multiple overrides
+# separated by commas
+# Example 1: examplecom:x1s8asfafasf7ssf:fa23rsdgsdgas
+# ^^^ will create a kubernetes secret called `$FASTLY_API_SECRET_PREFIX-examplecom` with 2 data fields (one for api token, the other for platform tls id)
+# populated with `x1s8asfafasf7ssf` and `fa23rsdgsdgas` for whichever field it should be
+# and the name will get created with the prefix defined in `FASTLY_API_SECRET_PREFIX`
+# Example 2: examplecom:x1s8asfafasf7ssf:fa23rsdgsdgas,example2com:fa23rsdgsdgas:x1s8asfafasf7ssf,example3com:fa23rsdgsdgas:x1s8asfafasf7ssf:example3com
+if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
+  LAGOON_FASTLY_API_SECRETS=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_FASTLY_API_SECRETS") | "\(.value)"'))
+fi
+if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
+  TEMP_LAGOON_FASTLY_API_SECRETS=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_FASTLY_API_SECRETS") | "\(.value)"'))
+  if [ ! -z $TEMP_LAGOON_FASTLY_API_SECRETS ]; then
+    LAGOON_FASTLY_API_SECRETS=$TEMP_LAGOON_FASTLY_API_SECRETS
+  fi
+fi
+if [ ! -z "$LAGOON_FASTLY_API_SECRETS" ]; then
+  IFS=',' read -ra LAGOON_FASTLY_API_SECRETS_SPLIT <<< "$LAGOON_FASTLY_API_SECRETS"
+  for LAGOON_FASTLY_API_SECRETS_DATA in "${LAGOON_FASTLY_API_SECRETS_SPLIT[@]}"
+  do
+    IFS=':' read -ra LAGOON_FASTLY_API_SECRET_SPLIT <<< "$LAGOON_FASTLY_API_SECRETS_DATA"
+    if [ -z "${LAGOON_FASTLY_API_SECRET_SPLIT[0]}" ] || [ -z "${LAGOON_FASTLY_API_SECRET_SPLIT[1]}" ] || [ -z "${LAGOON_FASTLY_API_SECRET_SPLIT[2]}" ]; then
+      echo -e "An override was defined in the lagoon API with LAGOON_FASTLY_API_SECRETS but was not structured correctly, the format should be NAME:FASTLY_API_TOKEN:FASTLY_PLATFORMTLS_CONFIGURATION_ID and comma separated for multiples"
+      exit 1
+    fi
+    # the fastly api secret name will be created with the prefix that is defined above
+    FASTLY_API_SECRET_NAME=$FASTLY_API_SECRET_PREFIX${LAGOON_FASTLY_API_SECRET_SPLIT[0]}
+    FASTLY_API_TOKEN=${LAGOON_FASTLY_API_SECRET_SPLIT[1]}
+    FASTLY_API_PLATFORMTLS_CONFIGURATION=${LAGOON_FASTLY_API_SECRET_SPLIT[2]}
+    # run the script to create the secrets
+    . /kubectl-build-deploy/scripts/exec-fastly-api-secrets.sh
+  done
+fi
+
+# FASTLY SERVICE ID PER INGRESS OVERRIDE FROM LAGOON API VARIABLE
+# Allow the fastly serviceid for specific ingress to be overridden by the lagoon API
+# This accepts colon separated values like so `INGRESS_DOMAIN:FASTLY_SERVICE_ID:WATCH_STATUS:SECRET_NAME(OPTIONAL)`, and multiple overrides
+# separated by commas
+# Example 1: www.example.com:x1s8asfafasf7ssf:true
+# ^^^ tells the ingress creation to use the service id x1s8asfafasf7ssf for ingress www.example.com, with the watch status of true
+# Example 2: www.example.com:x1s8asfafasf7ssf:true,www.not-example.com:fa23rsdgsdgas:false
+# ^^^ same as above, but also tells the ingress creation to use the service id fa23rsdgsdgas for ingress www.not-example.com, with the watch status of false
+# Example 3: www.example.com:x1s8asfafasf7ssf:true:examplecom
+# ^^^ tells the ingress creation to use the service id x1s8asfafasf7ssf for ingress www.example.com, with the watch status of true
+# but it will also be annotated to be told to use the secret named `examplecom` that could be defined elsewhere
+if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
+  LAGOON_FASTLY_SERVICE_IDS=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_FASTLY_SERVICE_IDS") | "\(.value)"'))
+fi
+if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
+  TEMP_LAGOON_FASTLY_SERVICE_IDS=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_FASTLY_SERVICE_IDS") | "\(.value)"'))
+  if [ ! -z $TEMP_LAGOON_FASTLY_SERVICE_IDS ]; then
+    LAGOON_FASTLY_SERVICE_IDS=$TEMP_LAGOON_FASTLY_SERVICE_IDS
+  fi
+fi
 
 ##############################################
 ### CREATE OPENSHIFT SERVICES, ROUTES and SERVICEBROKERS
@@ -627,7 +748,53 @@ do
         MAIN_GENERATED_ROUTE=$SERVICE_NAME
       fi
 
-      helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -s $HELM_INGRESS_TEMPLATE -f /kubectl-build-deploy/values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${SERVICE_NAME}.yaml
+
+      ROUTE_FASTLY_SERVICE_WATCH=false
+      # if the builddeploy controller is injecting a featureflag value, load it in
+      LAGOON_FASTLY_AUTOGENERATED=$LAGOON_FASTLY_AUTOGENERATED_FEATURE_FLAG
+      # if the lagoon api has an envvar override, use it instead
+      if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
+        LAGOON_FASTLY_AUTOGENERATED=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_FASTLY_AUTOGENERATED") | "\(.value)"'))
+      fi
+      if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
+        TEMP_LAGOON_FASTLY_AUTOGENERATED=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_FASTLY_AUTOGENERATED") | "\(.value)"'))
+        if [ ! -z $TEMP_LAGOON_FASTLY_AUTOGENERATED ]; then
+          LAGOON_FASTLY_AUTOGENERATED=$TEMP_LAGOON_FASTLY_AUTOGENERATED
+        fi
+      fi
+      # if the feature is enabled, then do what is required to generated the labels/annotations etc
+      if [ ! -z $LAGOON_FASTLY_AUTOGENERATED ] && [ $LAGOON_FASTLY_AUTOGENERATED = 'enabled' ]
+        # work out if there are any lagoon api variable overrides for the annotations that are being added
+        . /kubectl-build-deploy/scripts/exec-fastly-annotations.sh
+        # if we get any other populated service id overrides in any of the steps in exec-fastly-annotations.sh
+        # make it available to the ingress creation here by overriding what may be defined in the lagoon.yml
+        # `LAGOON_FASTLY_SERVICE_ID` is created in the exec-fastly-annotations.sh script
+        if [ ! -z "$LAGOON_FASTLY_SERVICE_ID" ]; then
+          ROUTE_FASTLY_SERVICE_ID=$LAGOON_FASTLY_SERVICE_ID
+          ROUTE_FASTLY_SERVICE_WATCH=$LAGOON_FASTLY_SERVICE_WATCH
+          if [ ! -z $LAGOON_FASTLY_SERVICE_API_SECRET ]; then
+            ROUTE_FASTLY_SERVICE_API_SECRET=$LAGOON_FASTLY_SERVICE_API_SECRET
+          fi
+        fi
+        # Create the fastly values required
+        FASTLY_ARGS=()
+        if [ ! -z "$ROUTE_FASTLY_SERVICE_ID" ]; then
+          FASTLY_ARGS+=(--set fastly.serviceId=${ROUTE_FASTLY_SERVICE_ID})
+          if [ ! -z "$ROUTE_FASTLY_SERVICE_API_SECRET" ]; then
+            if contains $FASTLY_API_SECRETS "${FASTLY_API_SECRET_PREFIX}${ROUTE_FASTLY_SERVICE_API_SECRET}"; then
+              FASTLY_ARGS+=(--set fastly.apiSecretName=${FASTLY_API_SECRET_PREFIX}${ROUTE_FASTLY_SERVICE_API_SECRET})
+            else
+              echo "$ROUTE_FASTLY_SERVICE_API_SECRET requested, but not found in .lagoon.yml file"; exit 1;
+            fi
+          fi
+          ROUTE_FASTLY_SERVICE_WATCH=true
+        fi
+      fi
+      # finally template the autogenerated route
+      helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} \
+        -s $HELM_INGRESS_TEMPLATE \
+        "${FASTLY_ARGS[@]}" --set fastly.watch="${ROUTE_FASTLY_SERVICE_WATCH}" \
+        -f /kubectl-build-deploy/values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${SERVICE_NAME}.yaml
     fi
   fi
 
@@ -639,136 +806,9 @@ do
     helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -s $HELM_DBAAS_TEMPLATE -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${SERVICE_NAME}-values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${SERVICE_NAME}.yaml
     DBAAS+=("${SERVICE_NAME}:${SERVICE_TYPE}")
   fi
-
 done
 
 TEMPLATE_PARAMETERS=()
-
-
-##############################################
-### CUSTOM FASTLY API SECRETS .lagoon.yml
-##############################################
-
-# if a customer is using their own fastly configuration, then they can define their api token and platform tls configuration ID in the .lagoon.yml file
-# this will get created as a `kind: Secret` in kubernetes so that created ingresses will be able to use this secret to talk to the fastly api.
-#
-# in this example, the customer needs to add a build envvar called `FASTLY_API_TOKEN` and then populates the .lagoon.yml file with something like this
-#
-# fastly:
-#   api-secrets:
-#     - name: customer
-#       apiTokenVariableName: FASTLY_API_TOKEN
-#       platformTLSConfiguration: A1bcEdFgH12eD242Sds
-#
-# then the build process will attempt to check the lagoon variables for one called `FASTLY_API_TOKEN` and will use the value of this variable when creating the
-# `kind: Secret` in kubernetes
-#
-# support for multiple api-secrets is possible in the instance that a customer uses 2 separate services in different accounts in the one project
-
-
-## any fastly api secrets will be prefixed with this, so that we always add this to whatever the customer provides
-FASTLY_API_SECRET_PREFIX="fastly-api-"
-
-FASTLY_API_SECRETS_COUNTER=0
-FASTLY_API_SECRETS=()
-if [ -n "$(cat .lagoon.yml | shyaml keys fastly.api-secrets.$FASTLY_API_SECRETS_COUNTER 2> /dev/null)" ]; then
-  while [ -n "$(cat .lagoon.yml | shyaml get-value fastly.api-secrets.$FASTLY_API_SECRETS_COUNTER 2> /dev/null)" ]; do
-    FASTLY_API_SECRET_NAME=$FASTLY_API_SECRET_PREFIX$(cat .lagoon.yml | shyaml get-value fastly.api-secrets.$FASTLY_API_SECRETS_COUNTER.name 2> /dev/null)
-    if [ -z "$FASTLY_API_SECRET_NAME" ]; then
-        echo -e "A fastly api secret was defined in the .lagoon.yml file, but no name could be found the .lagoon.yml\n\nPlease check if the name has been set correctly."
-        exit 1
-    fi
-    FASTLY_API_TOKEN_VALUE=$(cat .lagoon.yml | shyaml get-value fastly.api-secrets.$FASTLY_API_SECRETS_COUNTER.apiTokenVariableName false)
-    if [[ $FASTLY_API_TOKEN_VALUE == "false" ]]; then
-      echo "No 'apiTokenVariableName' defined for fastly secret $FASTLY_API_SECRET_NAME"; exit 1;
-    fi
-    # if we have everything we need, we can proceed to logging in
-    if [ $FASTLY_API_TOKEN_VALUE != "false" ]; then
-      FASTLY_API_TOKEN=""
-      # check if we have a password defined anywhere in the api first
-      if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
-        FASTLY_API_TOKEN=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "build" and .name == "'$FASTLY_API_TOKEN_VALUE'") | "\(.value)"'))
-      fi
-      if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
-        TEMP_FASTLY_API_TOKEN=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.scope == "build" and .name == "'$FASTLY_API_TOKEN_VALUE'") | "\(.value)"'))
-        if [ ! -z "$TEMP_FASTLY_API_TOKEN" ]; then
-          FASTLY_API_TOKEN=$TEMP_FASTLY_API_TOKEN
-        fi
-      fi
-      if [ -z "$FASTLY_API_TOKEN" ]; then
-        echo -e "A fastly api secret was defined in the .lagoon.yml file, but no token could be found in the Lagoon API matching the variable name provided\n\nPlease check if the token has been set correctly."
-        exit 1
-      fi
-    fi
-    FASTLY_API_PLATFORMTLS_CONFIGURATION=$(cat .lagoon.yml | shyaml get-value fastly.api-secrets.$FASTLY_API_SECRETS_COUNTER.platformTLSConfiguration "")
-    if [ -z "$FASTLY_API_PLATFORMTLS_CONFIGURATION" ]; then
-      echo -e "A fastly api secret was defined in the .lagoon.yml file, but no platform tls configuration id could be found in the .lagoon.yml\n\nPlease check if the platform tls configuration id has been set correctly."
-      exit 1
-    fi
-
-    # run the script to create the secrets
-    . /kubectl-build-deploy/scripts/exec-fastly-api-secrets.sh
-
-    let FASTLY_API_SECRETS_COUNTER=FASTLY_API_SECRETS_COUNTER+1
-  done
-fi
-
-# FASTLY API SECRETS FROM LAGOON API VARIABLE
-# Allow for defining fastly api secrets using lagoon api variables
-# This accepts colon separated values like so `SECRET_NAME:FASTLY_API_TOKEN:FASTLY_PLATFORMTLS_CONFIGURATION_ID`, and multiple overrides
-# separated by commas
-# Example 1: examplecom:x1s8asfafasf7ssf:fa23rsdgsdgas
-# ^^^ will create a kubernetes secret called `$FASTLY_API_SECRET_PREFIX-examplecom` with 2 data fields (one for api token, the other for platform tls id)
-# populated with `x1s8asfafasf7ssf` and `fa23rsdgsdgas` for whichever field it should be
-# and the name will get created with the prefix defined in `FASTLY_API_SECRET_PREFIX`
-# Example 2: examplecom:x1s8asfafasf7ssf:fa23rsdgsdgas,example2com:fa23rsdgsdgas:x1s8asfafasf7ssf,example3com:fa23rsdgsdgas:x1s8asfafasf7ssf:example3com
-if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
-  LAGOON_FASTLY_API_SECRETS=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_FASTLY_API_SECRETS") | "\(.value)"'))
-fi
-if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
-  TEMP_LAGOON_FASTLY_API_SECRETS=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_FASTLY_API_SECRETS") | "\(.value)"'))
-  if [ ! -z $TEMP_LAGOON_FASTLY_API_SECRETS ]; then
-    LAGOON_FASTLY_API_SECRETS=$TEMP_LAGOON_FASTLY_API_SECRETS
-  fi
-fi
-if [ ! -z "$LAGOON_FASTLY_API_SECRETS" ]; then
-  IFS=',' read -ra LAGOON_FASTLY_API_SECRETS_SPLIT <<< "$LAGOON_FASTLY_API_SECRETS"
-  for LAGOON_FASTLY_API_SECRETS_DATA in "${LAGOON_FASTLY_API_SECRETS_SPLIT[@]}"
-  do
-    IFS=':' read -ra LAGOON_FASTLY_API_SECRET_SPLIT <<< "$LAGOON_FASTLY_API_SECRETS_DATA"
-    if [ -z "${LAGOON_FASTLY_API_SECRET_SPLIT[0]}" ] || [ -z "${LAGOON_FASTLY_API_SECRET_SPLIT[1]}" ] || [ -z "${LAGOON_FASTLY_API_SECRET_SPLIT[2]}" ]; then
-      echo -e "An override was defined in the lagoon API with LAGOON_FASTLY_API_SECRETS but was not structured correctly, the format should be NAME:FASTLY_API_TOKEN:FASTLY_PLATFORMTLS_CONFIGURATION_ID and comma separated for multiples"
-      exit 1
-    fi
-    # the fastly api secret name will be created with the prefix that is defined above
-    FASTLY_API_SECRET_NAME=$FASTLY_API_SECRET_PREFIX${LAGOON_FASTLY_API_SECRET_SPLIT[0]}
-    FASTLY_API_TOKEN=${LAGOON_FASTLY_API_SECRET_SPLIT[1]}
-    FASTLY_API_PLATFORMTLS_CONFIGURATION=${LAGOON_FASTLY_API_SECRET_SPLIT[2]}
-    # run the script to create the secrets
-    . /kubectl-build-deploy/scripts/exec-fastly-api-secrets.sh
-  done
-fi
-
-# FASTLY SERVICE ID PER INGRESS OVERRIDE FROM LAGOON API VARIABLE
-# Allow the fastly serviceid for specific ingress to be overridden by the lagoon API
-# This accepts colon separated values like so `INGRESS_DOMAIN:FASTLY_SERVICE_ID:WATCH_STATUS:SECRET_NAME(OPTIONAL)`, and multiple overrides
-# separated by commas
-# Example 1: www.example.com:x1s8asfafasf7ssf:true
-# ^^^ tells the ingress creation to use the service id x1s8asfafasf7ssf for ingress www.example.com, with the watch status of true
-# Example 2: www.example.com:x1s8asfafasf7ssf:true,www.not-example.com:fa23rsdgsdgas:false
-# ^^^ same as above, but also tells the ingress creation to use the service id fa23rsdgsdgas for ingress www.not-example.com, with the watch status of false
-# Example 3: www.example.com:x1s8asfafasf7ssf:true:examplecom
-# ^^^ tells the ingress creation to use the service id x1s8asfafasf7ssf for ingress www.example.com, with the watch status of true
-# but it will also be annotated to be told to use the secret named `examplecom` that could be defined elsewhere
-if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
-  LAGOON_FASTLY_SERVICE_IDS=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_FASTLY_SERVICE_IDS") | "\(.value)"'))
-fi
-if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
-  TEMP_LAGOON_FASTLY_SERVICE_IDS=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_FASTLY_SERVICE_IDS") | "\(.value)"'))
-  if [ ! -z $TEMP_LAGOON_FASTLY_SERVICE_IDS ]; then
-    LAGOON_FASTLY_SERVICE_IDS=$TEMP_LAGOON_FASTLY_SERVICE_IDS
-  fi
-fi
 
 ##############################################
 ### CUSTOM ROUTES FROM .lagoon.yml
@@ -824,6 +864,7 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
           . /kubectl-build-deploy/scripts/exec-fastly-annotations.sh
           # if we get any other populated service id overrides in any of the steps in exec-fastly-annotations.sh
           # make it available to the ingress creation here by overriding what may be defined in the lagoon.yml
+          # `LAGOON_FASTLY_SERVICE_ID` is created in the exec-fastly-annotations.sh script
           if [ ! -z "$LAGOON_FASTLY_SERVICE_ID" ]; then
             ROUTE_FASTLY_SERVICE_ID=$LAGOON_FASTLY_SERVICE_ID
             ROUTE_FASTLY_SERVICE_WATCH=$LAGOON_FASTLY_SERVICE_WATCH
@@ -942,6 +983,7 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
           . /kubectl-build-deploy/scripts/exec-fastly-annotations.sh
           # if we get any other populated service id overrides in any of the steps in exec-fastly-annotations.sh
           # make it available to the ingress creation here by overriding what may be defined in the lagoon.yml
+          # `LAGOON_FASTLY_SERVICE_ID` is created in the exec-fastly-annotations.sh script
           if [ ! -z "$LAGOON_FASTLY_SERVICE_ID" ]; then
             ROUTE_FASTLY_SERVICE_ID=$LAGOON_FASTLY_SERVICE_ID
             ROUTE_FASTLY_SERVICE_WATCH=$LAGOON_FASTLY_SERVICE_WATCH
@@ -1067,6 +1109,7 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
       . /kubectl-build-deploy/scripts/exec-fastly-annotations.sh
       # if we get any other populated service id overrides in any of the steps in exec-fastly-annotations.sh
       # make it available to the ingress creation here by overriding what may be defined in the lagoon.yml
+      # `LAGOON_FASTLY_SERVICE_ID` is created in the exec-fastly-annotations.sh script
       if [ ! -z "$LAGOON_FASTLY_SERVICE_ID" ]; then
         ROUTE_FASTLY_SERVICE_ID=$LAGOON_FASTLY_SERVICE_ID
         ROUTE_FASTLY_SERVICE_WATCH=$LAGOON_FASTLY_SERVICE_WATCH
@@ -1184,6 +1227,7 @@ else
       . /kubectl-build-deploy/scripts/exec-fastly-annotations.sh
       # if we get any other populated service id overrides in any of the steps in exec-fastly-annotations.sh
       # make it available to the ingress creation here by overriding what may be defined in the lagoon.yml
+      # `LAGOON_FASTLY_SERVICE_ID` is created in the exec-fastly-annotations.sh script
       if [ ! -z "$LAGOON_FASTLY_SERVICE_ID" ]; then
         ROUTE_FASTLY_SERVICE_ID=$LAGOON_FASTLY_SERVICE_ID
         ROUTE_FASTLY_SERVICE_WATCH=$LAGOON_FASTLY_SERVICE_WATCH
