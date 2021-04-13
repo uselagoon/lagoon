@@ -503,6 +503,101 @@ else
 fi
 
 ##############################################
+### CREATE OPENSHIFT SERVICES, ROUTES and SERVICEBROKERS  PART 1
+##############################################
+
+YAML_FOLDER="/kubectl-build-deploy/lagoon/services-routes"
+mkdir -p $YAML_FOLDER
+
+# BC for routes.insecure, which is now called routes.autogenerate.insecure
+BC_ROUTES_AUTOGENERATE_INSECURE=$(cat .lagoon.yml | shyaml get-value routes.insecure false)
+if [ ! $BC_ROUTES_AUTOGENERATE_INSECURE == "false" ]; then
+  echo "=== routes.insecure is now defined in routes.autogenerate.insecure, pleae update your .lagoon.yml file"
+  ROUTES_AUTOGENERATE_INSECURE=$BC_ROUTES_AUTOGENERATE_INSECURE
+else
+  # By default we allow insecure traffic on autogenerate routes
+  ROUTES_AUTOGENERATE_INSECURE=$(cat .lagoon.yml | shyaml get-value routes.autogenerate.insecure Allow)
+fi
+
+ROUTES_AUTOGENERATE_ENABLED=$(set -o pipefail; cat .lagoon.yml | shyaml get-value routes.autogenerate.enabled true | tr '[:upper:]' '[:lower:]')
+ROUTES_AUTOGENERATE_ALLOW_PRS=$(set -o pipefail; cat .lagoon.yml | shyaml get-value routes.autogenerate.allowPullrequests $ROUTES_AUTOGENERATE_ENABLED | tr '[:upper:]' '[:lower:]')
+if [[ "$TYPE" == "pullrequest" && "$ROUTES_AUTOGENERATE_ALLOW_PRS" == "true" ]]; then
+  ROUTES_AUTOGENERATE_ENABLED=true
+fi
+## fail silently if the key autogenerateRoutes doesn't exist and default to whatever ROUTES_AUTOGENERATE_ENABLED is set to
+ROUTES_AUTOGENERATE_BRANCH=$(set -o pipefail; cat .lagoon.yml | shyaml -q get-value environments.${BRANCH//./\\.}.autogenerateRoutes $ROUTES_AUTOGENERATE_ENABLED | tr '[:upper:]' '[:lower:]')
+if [[ "$ROUTES_AUTOGENERATE_BRANCH" == "true" ]]; then
+  ROUTES_AUTOGENERATE_ENABLED=true
+fi
+
+ROUTES_AUTOGENERATE_PREFIXES=$(yq r -C .lagoon.yml routes.autogenerate.prefixes.*)
+
+touch /kubectl-build-deploy/values.yaml
+
+yq write -i -- /kubectl-build-deploy/values.yaml 'project' $PROJECT
+yq write -i -- /kubectl-build-deploy/values.yaml 'environment' $ENVIRONMENT
+yq write -i -- /kubectl-build-deploy/values.yaml 'environmentType' $ENVIRONMENT_TYPE
+yq write -i -- /kubectl-build-deploy/values.yaml 'namespace' $NAMESPACE
+yq write -i -- /kubectl-build-deploy/values.yaml 'gitSha' $LAGOON_GIT_SHA
+yq write -i -- /kubectl-build-deploy/values.yaml 'buildType' $BUILD_TYPE
+yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogenerateInsecure' $ROUTES_AUTOGENERATE_INSECURE
+yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogenerateEnabled' $ROUTES_AUTOGENERATE_ENABLED
+yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogenerateSuffix' $ROUTER_URL
+yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogenerateShortSuffix' $SHORT_ROUTER_URL
+for i in $ROUTES_AUTOGENERATE_PREFIXES; do yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogeneratePrefixes[+]' $i; done
+yq write -i -- /kubectl-build-deploy/values.yaml 'kubernetes' $KUBERNETES
+yq write -i -- /kubectl-build-deploy/values.yaml 'lagoonVersion' $LAGOON_VERSION
+
+
+echo -e "\
+imagePullSecrets:\n\
+" >> /kubectl-build-deploy/values.yaml
+
+for REGISTRY_SECRET in "${REGISTRY_SECRETS[@]}"
+do
+  echo -e "\
+  - name: "${REGISTRY_SECRET}"\n\
+" >> /kubectl-build-deploy/values.yaml
+done
+
+echo -e "\
+LAGOON_PROJECT=${PROJECT}\n\
+LAGOON_ENVIRONMENT=${ENVIRONMENT}\n\
+LAGOON_ENVIRONMENT_TYPE=${ENVIRONMENT_TYPE}\n\
+LAGOON_GIT_SHA=${LAGOON_GIT_SHA}\n\
+LAGOON_KUBERNETES=${KUBERNETES}\n\
+" >> /kubectl-build-deploy/values.env
+
+# DEPRECATED: will be removed with Lagoon 3.0.0
+# LAGOON_GIT_SAFE_BRANCH is pointing to the enviornment name, therefore also is filled if this environment
+# is created by a PR or Promote workflow. This technically wrong, therefore will be removed
+echo -e "\
+LAGOON_GIT_SAFE_BRANCH=${ENVIRONMENT}\n\
+" >> /kubectl-build-deploy/values.env
+
+if [ "$BUILD_TYPE" == "branch" ]; then
+  yq write -i -- /kubectl-build-deploy/values.yaml 'branch' $BRANCH
+
+  echo -e "\
+LAGOON_GIT_BRANCH=${BRANCH}\n\
+" >> /kubectl-build-deploy/values.env
+fi
+
+if [ "$BUILD_TYPE" == "pullrequest" ]; then
+  yq write -i -- /kubectl-build-deploy/values.yaml 'prHeadBranch' "$PR_HEAD_BRANCH"
+  yq write -i -- /kubectl-build-deploy/values.yaml 'prBaseBranch' "$PR_BASE_BRANCH"
+  yq write -i -- /kubectl-build-deploy/values.yaml 'prTitle' "$PR_TITLE"
+  yq write -i -- /kubectl-build-deploy/values.yaml 'prNumber' "$PR_NUMBER"
+
+  echo -e "\
+LAGOON_PR_HEAD_BRANCH=${PR_HEAD_BRANCH}\n\
+LAGOON_PR_BASE_BRANCH=${PR_BASE_BRANCH}\n\
+LAGOON_PR_TITLE=${PR_TITLE}\n\
+LAGOON_PR_NUMBER=${PR_NUMBER}\n\
+" >> /kubectl-build-deploy/values.env
+fi
+
+##############################################
 ### CUSTOM FASTLY API SECRETS .lagoon.yml
 ##############################################
 
@@ -627,99 +722,8 @@ if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
 fi
 
 ##############################################
-### CREATE OPENSHIFT SERVICES, ROUTES and SERVICEBROKERS
+### CREATE OPENSHIFT SERVICES, ROUTES and SERVICEBROKERS PART 2
 ##############################################
-
-YAML_FOLDER="/kubectl-build-deploy/lagoon/services-routes"
-mkdir -p $YAML_FOLDER
-
-# BC for routes.insecure, which is now called routes.autogenerate.insecure
-BC_ROUTES_AUTOGENERATE_INSECURE=$(cat .lagoon.yml | shyaml get-value routes.insecure false)
-if [ ! $BC_ROUTES_AUTOGENERATE_INSECURE == "false" ]; then
-  echo "=== routes.insecure is now defined in routes.autogenerate.insecure, pleae update your .lagoon.yml file"
-  ROUTES_AUTOGENERATE_INSECURE=$BC_ROUTES_AUTOGENERATE_INSECURE
-else
-  # By default we allow insecure traffic on autogenerate routes
-  ROUTES_AUTOGENERATE_INSECURE=$(cat .lagoon.yml | shyaml get-value routes.autogenerate.insecure Allow)
-fi
-
-ROUTES_AUTOGENERATE_ENABLED=$(set -o pipefail; cat .lagoon.yml | shyaml get-value routes.autogenerate.enabled true | tr '[:upper:]' '[:lower:]')
-ROUTES_AUTOGENERATE_ALLOW_PRS=$(set -o pipefail; cat .lagoon.yml | shyaml get-value routes.autogenerate.allowPullrequests $ROUTES_AUTOGENERATE_ENABLED | tr '[:upper:]' '[:lower:]')
-if [[ "$TYPE" == "pullrequest" && "$ROUTES_AUTOGENERATE_ALLOW_PRS" == "true" ]]; then
-  ROUTES_AUTOGENERATE_ENABLED=true
-fi
-## fail silently if the key autogenerateRoutes doesn't exist and default to whatever ROUTES_AUTOGENERATE_ENABLED is set to
-ROUTES_AUTOGENERATE_BRANCH=$(set -o pipefail; cat .lagoon.yml | shyaml -q get-value environments.${BRANCH//./\\.}.autogenerateRoutes $ROUTES_AUTOGENERATE_ENABLED | tr '[:upper:]' '[:lower:]')
-if [[ "$ROUTES_AUTOGENERATE_BRANCH" == "true" ]]; then
-  ROUTES_AUTOGENERATE_ENABLED=true
-fi
-
-ROUTES_AUTOGENERATE_PREFIXES=$(yq r -C .lagoon.yml routes.autogenerate.prefixes.*)
-
-touch /kubectl-build-deploy/values.yaml
-
-yq write -i -- /kubectl-build-deploy/values.yaml 'project' $PROJECT
-yq write -i -- /kubectl-build-deploy/values.yaml 'environment' $ENVIRONMENT
-yq write -i -- /kubectl-build-deploy/values.yaml 'environmentType' $ENVIRONMENT_TYPE
-yq write -i -- /kubectl-build-deploy/values.yaml 'namespace' $NAMESPACE
-yq write -i -- /kubectl-build-deploy/values.yaml 'gitSha' $LAGOON_GIT_SHA
-yq write -i -- /kubectl-build-deploy/values.yaml 'buildType' $BUILD_TYPE
-yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogenerateInsecure' $ROUTES_AUTOGENERATE_INSECURE
-yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogenerateEnabled' $ROUTES_AUTOGENERATE_ENABLED
-yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogenerateSuffix' $ROUTER_URL
-yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogenerateShortSuffix' $SHORT_ROUTER_URL
-for i in $ROUTES_AUTOGENERATE_PREFIXES; do yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogeneratePrefixes[+]' $i; done
-yq write -i -- /kubectl-build-deploy/values.yaml 'kubernetes' $KUBERNETES
-yq write -i -- /kubectl-build-deploy/values.yaml 'lagoonVersion' $LAGOON_VERSION
-
-
-echo -e "\
-imagePullSecrets:\n\
-" >> /kubectl-build-deploy/values.yaml
-
-for REGISTRY_SECRET in "${REGISTRY_SECRETS[@]}"
-do
-  echo -e "\
-  - name: "${REGISTRY_SECRET}"\n\
-" >> /kubectl-build-deploy/values.yaml
-done
-
-echo -e "\
-LAGOON_PROJECT=${PROJECT}\n\
-LAGOON_ENVIRONMENT=${ENVIRONMENT}\n\
-LAGOON_ENVIRONMENT_TYPE=${ENVIRONMENT_TYPE}\n\
-LAGOON_GIT_SHA=${LAGOON_GIT_SHA}\n\
-LAGOON_KUBERNETES=${KUBERNETES}\n\
-" >> /kubectl-build-deploy/values.env
-
-# DEPRECATED: will be removed with Lagoon 3.0.0
-# LAGOON_GIT_SAFE_BRANCH is pointing to the enviornment name, therefore also is filled if this environment
-# is created by a PR or Promote workflow. This technically wrong, therefore will be removed
-echo -e "\
-LAGOON_GIT_SAFE_BRANCH=${ENVIRONMENT}\n\
-" >> /kubectl-build-deploy/values.env
-
-if [ "$BUILD_TYPE" == "branch" ]; then
-  yq write -i -- /kubectl-build-deploy/values.yaml 'branch' $BRANCH
-
-  echo -e "\
-LAGOON_GIT_BRANCH=${BRANCH}\n\
-" >> /kubectl-build-deploy/values.env
-fi
-
-if [ "$BUILD_TYPE" == "pullrequest" ]; then
-  yq write -i -- /kubectl-build-deploy/values.yaml 'prHeadBranch' "$PR_HEAD_BRANCH"
-  yq write -i -- /kubectl-build-deploy/values.yaml 'prBaseBranch' "$PR_BASE_BRANCH"
-  yq write -i -- /kubectl-build-deploy/values.yaml 'prTitle' "$PR_TITLE"
-  yq write -i -- /kubectl-build-deploy/values.yaml 'prNumber' "$PR_NUMBER"
-
-  echo -e "\
-LAGOON_PR_HEAD_BRANCH=${PR_HEAD_BRANCH}\n\
-LAGOON_PR_BASE_BRANCH=${PR_BASE_BRANCH}\n\
-LAGOON_PR_TITLE=${PR_TITLE}\n\
-LAGOON_PR_NUMBER=${PR_NUMBER}\n\
-" >> /kubectl-build-deploy/values.env
-fi
 
 for SERVICE_TYPES_ENTRY in "${SERVICE_TYPES[@]}"
 do
