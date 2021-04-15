@@ -138,6 +138,7 @@ export const deleteProblem = async (
     input : {
       environment: environmentId,
       identifier,
+      service
     }
   },
   { sqlClient, hasPermission },
@@ -148,7 +149,15 @@ export const deleteProblem = async (
     project: environment.project,
   });
 
-  await query(sqlClient, Sql.deleteProblem(environmentId, identifier));
+  const rows = await query(sqlClient, Sql.deleteProblem(
+    environmentId,
+    identifier,
+    service
+  ));
+
+  if (rows.info.affectedRows == '0') {
+    throw new Error('Problem does not exist.');
+  }
 
   return 'success';
 };
