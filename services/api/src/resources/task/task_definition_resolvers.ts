@@ -39,7 +39,7 @@ export const advancedTaskDefinitionById = async(
     //TODO: we'll need to do a lot of work here when it comes to the permissions system
     // essentially we only want to display the definitions a user has access to via their
     // groups, projects, etc.
-    return await adTaskFunctions(sqlClient).advancedTaskDefinitionById(id);
+    return await advancedTaskFunctions(sqlClient).advancedTaskDefinitionById(id);
 }
 
 
@@ -77,8 +77,24 @@ export const resolveTasksForEnvironment = async(
     //TODO: we'll need to do a lot of work here when it comes to the permissions system
     // essentially we only want to display the definitions a user has access to via their
     // groups, projects, etc.
+
+    //TODO: Should this not be getting Registered tasks here, not advancedTaskDefinitions?
     const rows = await query(sqlClient, Sql.selectAdvancedTaskDefinitions());
+
     return rows;
+}
+
+export const getRegisteredTasksByEnvironmentId = async(
+  { id },
+  {},
+  { sqlClient, hasPermission },
+) => {
+  let rows;
+  if (!R.isEmpty(id)) {
+    rows = await query(sqlClient, Sql.selectTaskRegistrationsByEnvironmentId(id));
+  }
+
+  return rows;
 }
 
 
@@ -95,7 +111,7 @@ export const getAllAdvancedTaskDefinitions = async(
     // essentially we only want to display the definitions a user has access to via their
     // groups, projects, etc.
     // const rows = await query(sqlClient, Sql.selectAdvancedTaskDefinitions());
-    let rows = await adTaskFunctions(sqlClient).advancedTaskDefinitions(null)
+    let rows = await advancedTaskFunctions(sqlClient).advancedTaskDefinitions(null)
     return rows;
 }
 
@@ -109,7 +125,7 @@ export const getAdvancedTaskDefinitionByName = async(
     const rows = await query(sqlClient, Sql.selectAdvancedTaskDefinitionByName(name));
     let taskDef = R.prop(0, rows);
 
-    taskDef.taskArguments = await adTaskFunctions(sqlClient).advancedTaskDefinitionArguments(taskDef.id)
+    taskDef.taskArguments = await advancedTaskFunctions(sqlClient).advancedTaskDefinitionArguments(taskDef.id)
     return taskDef
 }
 
@@ -183,12 +199,13 @@ export const addAdvancedTaskDefinition = async (
           name,
           description,
           image,
+          command,
           created: null,
         }
       ),
     );
 
-    return await adTaskFunctions(sqlClient).advancedTaskDefinitionById(insertId);
+    return await advancedTaskFunctions(sqlClient).advancedTaskDefinitionById(insertId);
 }
 
 export const addAdvancedTaskDefinitionToProject = async (
@@ -289,6 +306,9 @@ export const invokeRegisteredTask = async (
   let rows = await query(sqlClient,Sql.selectTaskRegistrationById(taskRegistration));
   let task = newTaskRegistrationFromObject(R.prop(0, rows))
 
+  if (R.isEmpty(task)) {
+    throw new Error(`Task '${taskRegistration}' could not be found.`);
+  }
 
   //check current user can invoke tasks in this environment ...
   await envValidators(sqlClient).environmentExists(environment);
@@ -306,40 +326,40 @@ export const invokeRegisteredTask = async (
 
   switch(task.type) {
     case(TaskRegistration.TYPE_STANDARD):
-    const taskData = await Helpers(sqlClient).addTask({
-      id: null,
-      name: task.name,
-      environment: environment,
-      service: task.service,
-      command: task.command,
-      execute: true,
-    });
-    return taskData;
+      const taskData = await Helpers(sqlClient).addTask({
+        id: null,
+        name: task.name,
+        environment: environment,
+        service: task.service,
+        command: task.command,
+        execute: true,
+      });
+      return taskData;
     break;
     case(TaskRegistration.TYPE_ADVANCED):
 
-    //TODO: DRY THIS OUT ASAP
+      //TODO: DRY THIS OUT ASAP
 
-    //pull advanced task by ID to get the container name
-    let addTaskDef = await adTaskFunctions(sqlClient).advancedTaskDefinitionById(task.advanced_task_definition)
+      //pull advanced task by ID to get the container name
+      let addTaskDef = await advancedTaskFunctions(sqlClient).advancedTaskDefinitionById(task.advanced_task_definition)
 
 
-    // the return data here is basically what gets dropped into the DB.
-    // what we can do
-    const advancedTaskData = await Helpers(sqlClient).addAdvancedTask({
-      id: undefined,
-      name: task.name,
-      status: null,
-      created: undefined,
-      started: undefined,
-      completed: undefined,
-      environment,
-      service: undefined,
-      image: addTaskDef.image,//the return data here is basically what gets dropped into the DB.
-      payload: [],
-      remoteId: undefined,
-      execute: true,
-    });
+      // the return data here is basically what gets dropped into the DB.
+      // what we can do
+      const advancedTaskData = await Helpers(sqlClient).addAdvancedTask({
+        id: undefined,
+        name: task.name,
+        status: null,
+        created: undefined,
+        started: undefined,
+        completed: undefined,
+        environment,
+        service: undefined,
+        image: addTaskDef.image,//the return data here is basically what gets dropped into the DB.
+        payload: [],
+        remoteId: undefined,
+        execute: true,
+      });
 
     return advancedTaskData;
     break;
@@ -377,29 +397,29 @@ export const registerTask = async (
 
   const {
     info: { insertId },
-} = await query(
-  sqlClient,
-  Sql.insertTaskRegistration(
-    {
-      id: null,
-      type,
-      name,
-      description,
-      advanced_task_definition: advancedTaskDefinition,
-      environment,
-      project,
-      command,
-      service,
-      created: null,
-      deleted: null,
-    }
-  ),
-);
+  } = await query(
+    sqlClient,
+    Sql.insertTaskRegistration(
+      {
+        id: null,
+        type,
+        name,
+        description,
+        advanced_task_definition: advancedTaskDefinition,
+        environment,
+        project,
+        command,
+        service,
+        created: null,
+        deleted: null,
+      }
+    ),
+  );
 
-let rows = await query(sqlClient,Sql.selectTaskRegistrationById(insertId));
-let row = R.prop(0, rows)
-console.log(row)
-return row
+  let rows = await query(sqlClient,Sql.selectTaskRegistrationById(insertId));
+  let row = R.prop(0, rows)
+  console.log(row)
+  return row
 }
 
 
@@ -457,7 +477,7 @@ export const addAdvancedTask: ResolverFn = async (
 
 
     //pull advanced task by ID to get the container name
-    let addTaskDef = await adTaskFunctions(sqlClient).advancedTaskDefinitionById(advancedTaskId)
+    let addTaskDef = await advancedTaskFunctions(sqlClient).advancedTaskDefinitionById(advancedTaskId)
 
     // if(addTaskDef.taskArguments.length > 0) {
     //   console.log(addTaskDef)
@@ -511,7 +531,7 @@ export const deleteAdvancedTaskDefinition = async(
 
 
 
-const adTaskFunctions = (sqlClient) => {
+const advancedTaskFunctions = (sqlClient) => {
     return {
     advancedTaskDefinitions: async function(id) {
       console.log("here")

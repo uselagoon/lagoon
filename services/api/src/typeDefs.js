@@ -670,6 +670,7 @@ const typeDefs = gql`
     deployments(name: String): [Deployment]
     backups(includeDeleted: Boolean): [Backup]
     tasks(id: Int): [Task]
+    advancedTasks: [TaskRegistration]
     services: [EnvironmentService]
     problems(severity: [ProblemSeverityRating], source: [String]): [Problem]
     facts: [Fact]
@@ -933,7 +934,7 @@ const typeDefs = gql`
     """
     Returns a AdvancedTaskDefinitions applicable for an environment
     """
-    advancedTasksForEnvironment(id: Int!) : [AdvancedTaskDefinition]
+    advancedTasksForEnvironment(environment: Int!) : [TaskRegistration]
     """
     Returns a AdvancedTaskDefinitionArgument by Id
     """
