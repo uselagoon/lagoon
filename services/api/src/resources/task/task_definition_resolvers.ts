@@ -62,22 +62,19 @@ const canTaskBeRunInEnvironment = async (sqlClient, environmentId: number, task:
     return false
   }
 
-
-
-
   return false
 }
 
 
 export const resolveTasksForEnvironment = async(
   root,
-  id,
+  {id},
   { sqlClient, hasPermission },
   ) => {
     //TODO: we'll need to do a lot of work here when it comes to the permissions system
     // essentially we only want to display the definitions a user has access to via their
     // groups, projects, etc.
-    const rows = await query(sqlClient, Sql.selectAdvancedTaskDefinitions());
+    const rows = await query(sqlClient, Sql.selectAdvancedTaskDefinitionsForEnvironment(id));
     return rows;
 }
 
@@ -139,7 +136,7 @@ export const addAdvancedTaskDefinition = async (
         id,
         name,
         description,
-        image,
+        image = '',
         type,
         service,
         command,
@@ -173,6 +170,31 @@ export const addAdvancedTaskDefinition = async (
       break;
     }
 
+    //let's see if there's already an advanced task definition with this name ...
+    const rows = await query(sqlClient, Sql.selectAdvancedTaskDefinitionByName(name));
+    let taskDef = R.prop(0, rows);
+
+    console.log(taskDef);
+
+    let createNewTask = true;
+
+    if(taskDef) {
+
+
+      console.log("service is - " + service)
+      const taskDefMatchesIncoming = taskDef.description == description &&
+      taskDef.image == image &&
+      taskDef.type == type &&
+      // taskDef.service == service &&
+      taskDef.command == command;
+
+      if(!taskDefMatchesIncoming) {
+        throw Error(`Task with name ${name} already exists`);
+      }
+
+      return taskDef;
+    }
+
     const {
         info: { insertId },
     } = await query(
@@ -184,6 +206,8 @@ export const addAdvancedTaskDefinition = async (
           description,
           image,
           created: null,
+          type,
+          command,
         }
       ),
     );
@@ -202,6 +226,9 @@ export const addAdvancedTaskDefinitionToProject = async (
   },
   { sqlClient, hasPermission },
 ) => {
+
+
+
   //TODO: we need to consider who creates these definitions
   // Essentially, we want whoever creates this to determine the overall access permissions to the task
   // This can be done in the iteration that introduces links to environments/groups/etc.
@@ -243,6 +270,24 @@ export const addAdvancedTaskDefinitionToEnvironment = async (
   // Essentially, we want whoever creates this to determine the overall access permissions to the task
   // This can be done in the iteration that introduces links to environments/groups/etc.
 
+  //Check advanced task exists
+  try {
+    const advancedTaskDefinitionDetails = await adTaskFunctions(sqlClient).advancedTaskDefinitionById(advancedTaskDefinition)
+    console.log("*")
+    console.log(advancedTaskDefinitionDetails)
+    console.log("*")
+
+    if(advancedTaskDefinitionDetails == null) {
+      throw Error(`Cannot find advanced task definition with id: ${advancedTaskDefinition}`)
+    }
+  } catch(ex) {
+    throw Error(`Cannot find advanced task definition with id: ${advancedTaskDefinition}`)
+  }
+
+
+
+
+
   const {
       info: { insertId },
   } = await query(
@@ -252,6 +297,8 @@ export const addAdvancedTaskDefinitionToEnvironment = async (
         id: null,
         advanced_task_definition: advancedTaskDefinition,
         environment,
+        name: '',
+
       }
     ),
   );
@@ -299,7 +346,7 @@ export const invokeRegisteredTask = async (
 
   //check this task can _be invoked_ on this environment
   let taskCanBeRun = await canTaskBeRunInEnvironment(sqlClient, environment, task)
-
+  console.log(task);
   if(!taskCanBeRun) {
     throw new Error(`Task "${task.name}" cannot be run in environment`);
   }
@@ -426,10 +473,6 @@ export const addAdvancedTask: ResolverFn = async (
 
     const status = taskStatusTypeToString(unformattedStatus);
 
-    console.log("logging args")
-    console.log(advancedTaskArguments)
-    console.log("end logging args")
-
     //There are two kinds of checks we need to make
     // First, can the person currently connected actually run a task on this particular environment
     // second, does this task even connect to the environment at all?
@@ -484,9 +527,6 @@ export const addAdvancedTask: ResolverFn = async (
 
     return taskData;
   };
-
-
-
 
   const validateIncomingArguments = (argList, incomingArgs) => {
     return argList.reduce((prv,curr) => { return R.contains({"name":curr.name}, incomingArgs) && prv} , true);

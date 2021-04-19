@@ -74,12 +74,16 @@ export const Sql = {
     description,
     image,
     created,
+    type,
+    command,
     }: {
       id: number,
       name: string,
       description: string,
       image: string,
       created: string,
+      type: string,
+      command: string,
     }) =>
     knex('advanced_task_definition')
       .insert({
@@ -88,6 +92,8 @@ export const Sql = {
         description,
         image,
         created,
+        type,
+        command,
       })
     .toString(),
     insertAdvancedTaskDefinitionArgument: ({
@@ -116,13 +122,15 @@ export const Sql = {
         }: {
           id: number,
           advanced_task_definition: string,
-          environment
+          environment: number,
+          name: string,
         }) =>
-        knex('advanced_task_definition_environment')
+        knex('task_registration')
           .insert({
             id,
             advanced_task_definition,
-            environment
+            environment,
+            name: '',
           })
         .toString(),
     insertAdvancedTaskDefinitionProjectLink: ({
@@ -134,7 +142,7 @@ export const Sql = {
           advanced_task_definition: string,
           project
         }) =>
-        knex('advanced_task_definition_project')
+        knex('task_registration')
           .insert({
             id,
             advanced_task_definition,
@@ -182,8 +190,8 @@ export const Sql = {
             })
           .toString(),
     selectAdvancedTaskDefinitionEnvironmentLinkById: (id: number) =>
-          knex('advanced_task_definition_environment')
-            .where('advanced_task_definition_environment.id', '=', id)
+          knex('task_registration')
+            .where('task_registration.id', '=', id)
           .toString(),
     selectTaskRegistrationById: (id: number) =>
           knex('task_registration')
@@ -207,5 +215,11 @@ export const Sql = {
       .toString(),
   selectAdvancedTaskDefinitions:() =>
     knex('advanced_task_definition')
+    .toString(),
+  selectAdvancedTaskDefinitionsForEnvironment:(id: number) =>
+    knex('advanced_task_definition')
+    .select('advanced_task_definition.*')
+    .join('task_registration', 'task_registration.advanced_task_definition', '=', 'advanced_task_definition.id')
+    .where('task_registration.environment', '=', id)
     .toString(),
 };
