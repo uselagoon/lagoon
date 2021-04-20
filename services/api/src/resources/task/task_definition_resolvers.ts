@@ -273,9 +273,6 @@ export const addAdvancedTaskDefinitionToEnvironment = async (
   //Check advanced task exists
   try {
     const advancedTaskDefinitionDetails = await adTaskFunctions(sqlClient).advancedTaskDefinitionById(advancedTaskDefinition)
-    console.log("*")
-    console.log(advancedTaskDefinitionDetails)
-    console.log("*")
 
     if(advancedTaskDefinitionDetails == null) {
       throw Error(`Cannot find advanced task definition with id: ${advancedTaskDefinition}`)
@@ -283,10 +280,6 @@ export const addAdvancedTaskDefinitionToEnvironment = async (
   } catch(ex) {
     throw Error(`Cannot find advanced task definition with id: ${advancedTaskDefinition}`)
   }
-
-
-
-
 
   const {
       info: { insertId },
@@ -296,9 +289,7 @@ export const addAdvancedTaskDefinitionToEnvironment = async (
       {
         id: null,
         advanced_task_definition: advancedTaskDefinition,
-        environment,
-        name: '',
-
+        environment
       }
     ),
   );
@@ -346,7 +337,7 @@ export const invokeRegisteredTask = async (
 
   //check this task can _be invoked_ on this environment
   let taskCanBeRun = await canTaskBeRunInEnvironment(sqlClient, environment, task)
-  console.log(task);
+
   if(!taskCanBeRun) {
     throw new Error(`Task "${task.name}" cannot be run in environment`);
   }
@@ -502,11 +493,6 @@ export const addAdvancedTask: ResolverFn = async (
     //pull advanced task by ID to get the container name
     let addTaskDef = await adTaskFunctions(sqlClient).advancedTaskDefinitionById(advancedTaskId)
 
-    // if(addTaskDef.taskArguments.length > 0) {
-    //   console.log(addTaskDef)
-    //   console.log(validateIncomingArguments(addTaskDef.taskArguments, taskArguments))
-    // }
-
 
     // the return data here is basically what gets dropped into the DB.
     // what we can do
@@ -547,8 +533,6 @@ export const deleteAdvancedTaskDefinition = async(
   { sqlClient, hasPermission },
   ) => {
 }
-
-
 
 
 const adTaskFunctions = (sqlClient) => {

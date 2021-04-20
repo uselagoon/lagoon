@@ -123,14 +123,12 @@ export const Sql = {
           id: number,
           advanced_task_definition: string,
           environment: number,
-          name: string,
         }) =>
         knex('task_registration')
           .insert({
             id,
             advanced_task_definition,
             environment,
-            name: '',
           })
         .toString(),
     insertAdvancedTaskDefinitionProjectLink: ({
