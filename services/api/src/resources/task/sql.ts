@@ -195,9 +195,11 @@ export const Sql = {
       knex('task_registration')
         .where('task_registration.id', '=', id)
         .toString(),
-    selectTaskRegistrationsByEnvironmentId: (environment: number) =>
-      knex('task_registration')
-        .where('task_registration.environment', '=', environment)
+    selectTaskRegistrationsByEnvironmentId:(id: number) =>
+      knex('advanced_task_definition')
+        .select('advanced_task_definition.*', 'task_registration.id')
+        .join('task_registration', 'task_registration.advanced_task_definition', '=', 'advanced_task_definition.id')
+        .where('task_registration.environment', '=', id)
         .toString(),
     selectAdvancedTaskDefinition:(id: number) =>
       knex('advanced_task_definition')
@@ -220,7 +222,14 @@ export const Sql = {
     .toString(),
   selectAdvancedTaskDefinitionsForEnvironment:(id: number) =>
     knex('advanced_task_definition')
-    .select('advanced_task_definition.*')
+    .select(['task_registration.id',
+    'advanced_task_definition.name',
+    'advanced_task_definition.description',
+    'advanced_task_definition.image',
+    'advanced_task_definition.service',
+    'advanced_task_definition.command',
+    'advanced_task_definition.created',
+    ])
     .join('task_registration', 'task_registration.advanced_task_definition', '=', 'advanced_task_definition.id')
     .where('task_registration.environment', '=', id)
     .toString(),

@@ -32,7 +32,7 @@ export interface AdvancedTaskRegistration {
 }
 
 export class TaskRegistration {
-  static TYPE_STANDARD = "STANDARD"
+  static TYPE_STANDARD = "COMMAND"
   static TYPE_ADVANCED = "ADVANCED"
   id: number;
   type: string;

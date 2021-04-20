@@ -68,13 +68,16 @@ const canTaskBeRunInEnvironment = async (sqlClient, environmentId: number, task:
 
 export const resolveTasksForEnvironment = async(
   root,
-  {id},
+  {environment},
   { sqlClient, hasPermission },
   ) => {
     //TODO: we'll need to do a lot of work here when it comes to the permissions system
     // essentially we only want to display the definitions a user has access to via their
     // groups, projects, etc.
-    const rows = await query(sqlClient, Sql.selectAdvancedTaskDefinitionsForEnvironment(id));
+    console.log("RESOLVING")
+    console.log(environment)
+    console.log("RESOLVING")
+    const rows = await query(sqlClient, Sql.selectAdvancedTaskDefinitionsForEnvironment(environment));
     return rows;
 }
 
@@ -85,7 +88,7 @@ export const getRegisteredTasksByEnvironmentId = async(
 ) => {
   let rows;
   if (!R.isEmpty(id)) {
-    rows = await query(sqlClient, Sql.selectTaskRegistrationsByEnvironmentId(id));
+    rows = await query(sqlClient, Sql.selectAdvancedTaskDefinitionsForEnvironment(id));
   }
 
   return rows;
@@ -221,7 +224,6 @@ export const addAdvancedTaskDefinition = async (
           command,
           created: null,
           type,
-          command,
         }
       ),
     );
@@ -286,7 +288,7 @@ export const addAdvancedTaskDefinitionToEnvironment = async (
 
   //Check advanced task exists
   try {
-    const advancedTaskDefinitionDetails = await adTaskFunctions(sqlClient).advancedTaskDefinitionById(advancedTaskDefinition)
+    const advancedTaskDefinitionDetails = await advancedTaskFunctions(sqlClient).advancedTaskDefinitionById(advancedTaskDefinition)
 
     if(advancedTaskDefinitionDetails == null) {
       throw Error(`Cannot find advanced task definition with id: ${advancedTaskDefinition}`)
@@ -338,11 +340,13 @@ export const invokeRegisteredTask = async (
 {
 
   //selectTaskRegistrationById
-  let rows = await query(sqlClient,Sql.selectTaskRegistrationById(taskRegistration));
-  let task = newTaskRegistrationFromObject(R.prop(0, rows))
+  let rows = await query(sqlClient,Sql.selectAdvancedTaskDefinitionEnvironmentLinkById(taskRegistration));
+  let taskRegistrationDetails = R.prop(0, rows)
 
-  if (R.isEmpty(task)) {
-    throw new Error(`Task '${taskRegistration}' could not be found.`);
+
+
+  if (R.isEmpty(taskRegistrationDetails)) {
+    throw new Error(`Task registration '${taskRegistration}' could not be found.`);
   }
 
   //check current user can invoke tasks in this environment ...
@@ -352,12 +356,19 @@ export const invokeRegisteredTask = async (
     project: envPerm.project,
   });
 
-  //check this task can _be invoked_ on this environment
-  let taskCanBeRun = await canTaskBeRunInEnvironment(sqlClient, environment, task)
+  rows = await query(sqlClient,Sql.selectAdvancedTaskDefinition(taskRegistrationDetails.advancedTaskDefinition));
+  let task = newTaskRegistrationFromObject(R.prop(0, rows))
 
-  if(!taskCanBeRun) {
-    throw new Error(`Task "${task.name}" cannot be run in environment`);
-  }
+  console.log("invoke")
+  console.log(task)
+  console.log("invoke")
+  //check this task can _be invoked_ on this environment
+  // let taskCanBeRun = await canTaskBeRunInEnvironment(sqlClient, environment, task)
+
+
+  // if(!taskCanBeRun) {
+  //   throw new Error(`Task "${task.name}" cannot be run in environment`);
+  // }
 
   switch(task.type) {
     case(TaskRegistration.TYPE_STANDARD):
