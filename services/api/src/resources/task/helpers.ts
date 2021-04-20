@@ -155,7 +155,7 @@ export const Helpers = (sqlClient: MariaClient) => ({
       environment,
       service,
       image,
-      payload,
+      payload = {},
       remoteId,
       execute,
     }: {

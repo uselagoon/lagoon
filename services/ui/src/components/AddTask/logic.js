@@ -43,6 +43,16 @@ const withOptions = withProps(({ pageEnvironment }) => {
     }
   ];
 
+  // Add Advanced Task Definitions
+  let advancedTasks = pageEnvironment.advancedTasks.map(task => {
+    return {
+      id: task.id,
+      label: task.description ? `${task.description} [${task.command}]` : '',
+      value: 'InvokeRegisteredTask'
+    }
+  });
+  options = [...options, ...advancedTasks];
+
   // Remove tasks that are blocklisted.
   options = R.reject(
     option =>

@@ -1,5 +1,6 @@
 import gql from 'graphql-tag';
 import TaskFragment from 'lib/fragment/Task';
+import AdvancedTaskFragment from 'lib/fragment/AdvancedTask';
 
 export default gql`
   query getEnvironment($openshiftProjectName: String!) {
@@ -24,10 +25,14 @@ export default gql`
         id
         name
       }
+      advancedTasks {
+        ...advancedTaskFields
+      }
       tasks {
         ...taskFields
       }
     }
   }
+  ${AdvancedTaskFragment}
   ${TaskFragment}
 `;
