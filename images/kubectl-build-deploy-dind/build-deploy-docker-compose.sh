@@ -21,6 +21,10 @@ function cronScheduleMoreOftenThan30Minutes() {
   fi
 }
 
+function contains() {
+    [[ $1 =~ (^|[[:space:]])$2($|[[:space:]]) ]] && return 0 || return 1
+}
+
 ##############################################
 ### PREPARATION
 ##############################################
@@ -72,7 +76,24 @@ if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
   LAGOON_SERVICE_TYPES=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_SERVICE_TYPES") | "\(.value)"'))
 fi
 if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
-  LAGOON_SERVICE_TYPES=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_SERVICE_TYPES") | "\(.value)"'))
+  TEMP_LAGOON_SERVICE_TYPES=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_SERVICE_TYPES") | "\(.value)"'))
+  if [ ! -z $TEMP_LAGOON_SERVICE_TYPES ]; then
+    LAGOON_SERVICE_TYPES=$TEMP_LAGOON_SERVICE_TYPES
+  fi
+fi
+# Allow the dbaas environment type to be overridden by the lagoon API
+# This accepts colon separated values like so `SERVICE_NAME:DBAAS_ENVIRONMENT_TYPE`, and multiple overrides
+# separated by commas
+# Example 1: mariadb:production < tells any docker-compose services named mariadb to use the production dbaas environment type
+# Example 2: mariadb:production,mariadb-test:development
+if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
+  LAGOON_DBAAS_ENVIRONMENT_TYPES=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_DBAAS_ENVIRONMENT_TYPES") | "\(.value)"'))
+fi
+if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
+  TEMP_LAGOON_DBAAS_ENVIRONMENT_TYPES=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_DBAAS_ENVIRONMENT_TYPES") | "\(.value)"'))
+  if [ ! -z $TEMP_LAGOON_DBAAS_ENVIRONMENT_TYPES ]; then
+    LAGOON_DBAAS_ENVIRONMENT_TYPES=$TEMP_LAGOON_DBAAS_ENVIRONMENT_TYPES
+  fi
 fi
 set -x
 
@@ -104,6 +125,11 @@ do
     done
   fi
 
+  # Previous versions of Lagoon used "python-ckandatapusher", this should be mapped to "python"
+  if [[ "$SERVICE_TYPE" == "python-ckandatapusher" ]]; then
+    SERVICE_TYPE="python"
+  fi
+
   # "mariadb" is a meta service, which allows lagoon to decide itself which of the services to use:
   # - mariadb-single (a single mariadb pod)
   # - mariadb-dbaas (use the dbaas shared operator)
@@ -112,7 +138,7 @@ do
     # mariadb-single deployed (probably from the past where there was no mariadb-shared yet, or mariadb-dbaas) and use that one
     if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get service "$SERVICE_NAME" &> /dev/null; then
       SERVICE_TYPE="mariadb-single"
-    # heck if this cluster supports the default one, if not we assume that this cluster is not capable of shared mariadbs and we use a mariadb-single
+    # check if this cluster supports the default one, if not we assume that this cluster is not capable of shared mariadbs and we use a mariadb-single
     # real basic check to see if the mariadbconsumer exists as a kind
     elif [[ "${CAPABILITIES[@]}" =~ "mariadb.amazee.io/v1/MariaDBConsumer" ]]; then
       SERVICE_TYPE="mariadb-dbaas"
@@ -137,20 +163,103 @@ do
       DBAAS_ENVIRONMENT=$ENVIRONMENT_DBAAS_ENVIRONMENT_OVERRIDE
     fi
 
+    # If we have a dbaas environment type override in the api, consume it here
+    if [ ! -z "$LAGOON_DBAAS_ENVIRONMENT_TYPES" ]; then
+      IFS=',' read -ra LAGOON_DBAAS_ENVIRONMENT_TYPES_SPLIT <<< "$LAGOON_DBAAS_ENVIRONMENT_TYPES"
+      for LAGOON_DBAAS_ENVIRONMENT_TYPE in "${LAGOON_DBAAS_ENVIRONMENT_TYPES_SPLIT[@]}"
+      do
+        IFS=':' read -ra LAGOON_DBAAS_ENVIRONMENT_TYPE_SPLIT <<< "$LAGOON_DBAAS_ENVIRONMENT_TYPE"
+        if [ "${LAGOON_DBAAS_ENVIRONMENT_TYPE_SPLIT[0]}" == "$SERVICE_NAME" ]; then
+          DBAAS_ENVIRONMENT=${LAGOON_DBAAS_ENVIRONMENT_TYPE_SPLIT[1]}
+        fi
+      done
+    fi
+
     MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]="${DBAAS_ENVIRONMENT}"
   fi
 
-  if [ "$SERVICE_TYPE" == "mongodb-shared" ]; then
-    MONGODB_SHARED_CLASS=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mongo-shared\\.class "${MONGODB_SHARED_DEFAULT_CLASS}")
-    MONGODB_SHARED_PLAN=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mongo-shared\\.plan "${ENVIRONMENT_TYPE}")
-
-    # Check if the defined service broker plan  exists
-    if svcat --scope cluster get plan --class "${MONGODB_SHARED_CLASS}" "${MONGODB_SHARED_PLAN}" > /dev/null; then
-        MAP_SERVICE_NAME_TO_SERVICEBROKER_PLAN["${SERVICE_NAME}"]="${MONGODB_SHARED_PLAN}"
+  # "postgres" is a meta service, which allows lagoon to decide itself which of the services to use:
+  # - postgres-single (a single postgres pod)
+  # - postgres-dbaas (use the dbaas shared operator)
+  if [ "$SERVICE_TYPE" == "postgres" ]; then
+    # if there is already a service existing with the service_name we assume that for this project there has been a
+    # postgres-single deployed (probably from the past where there was no postgres-shared yet, or postgres-dbaas) and use that one
+    if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get service "$SERVICE_NAME" &> /dev/null; then
+      SERVICE_TYPE="postgres-single"
+    # heck if this cluster supports the default one, if not we assume that this cluster is not capable of shared PostgreSQL and we use a postgres-single
+    # real basic check to see if the postgreSQLConsumer exists as a kind
+    elif [[ "${CAPABILITIES[@]}" =~ "postgres.amazee.io/v1/PostgreSQLConsumer" ]]; then
+      SERVICE_TYPE="postgres-dbaas"
     else
-        echo "defined service broker plan '${MONGODB_SHARED_PLAN}' for service '$SERVICE_NAME' and service broker '$MONGODB_SHARED_CLASS' not found in cluster";
-        exit 1
+      SERVICE_TYPE="postgres-single"
     fi
+
+  fi
+
+  # Previous versions of Lagoon supported "postgres-shared", this has been superseeded by "postgres-dbaas"
+  if [[ "$SERVICE_TYPE" == "postgres-shared" ]]; then
+    SERVICE_TYPE="postgres-dbaas"
+  fi
+
+  if [[ "$SERVICE_TYPE" == "postgres-dbaas" ]]; then
+    # Default plan is the enviroment type
+    DBAAS_ENVIRONMENT=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.postgres-dbaas\\.environment "${ENVIRONMENT_TYPE}")
+
+    # Allow the dbaas shared servicebroker plan to be overriden by environment in .lagoon.yml
+    ENVIRONMENT_DBAAS_ENVIRONMENT_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.overrides.$SERVICE_NAME.postgres-dbaas\\.environment false)
+    if [ ! $DBAAS_ENVIRONMENT_OVERRIDE == "false" ]; then
+      DBAAS_ENVIRONMENT=$ENVIRONMENT_DBAAS_ENVIRONMENT_OVERRIDE
+    fi
+
+    MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]="${DBAAS_ENVIRONMENT}"
+  fi
+
+  # "mongo" is a meta service, which allows lagoon to decide itself which of the services to use:
+  # - mongodb-single (a single mongodb pod)
+  # - mongodb-dbaas (use the dbaas shared operator)
+  if [ "$SERVICE_TYPE" == "mongo" ]; then
+    # if there is already a service existing with the service_name we assume that for this project there has been a
+    # mongodb-single deployed (probably from the past where there was no mongodb-shared yet, or mongodb-dbaas) and use that one
+    if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get service "$SERVICE_NAME" &> /dev/null; then
+      SERVICE_TYPE="mongodb-single"
+    # heck if this cluster supports the default one, if not we assume that this cluster is not capable of shared MongoDB and we use a mongodb-single
+    # real basic check to see if the MongoDBConsumer exists as a kind
+    elif [[ "${CAPABILITIES[@]}" =~ "mongodb.amazee.io/v1/MongoDBConsumer" ]]; then
+      SERVICE_TYPE="mongodb-dbaas"
+    else
+      SERVICE_TYPE="mongodb-single"
+    fi
+
+  fi
+
+  # Previous versions of Lagoon supported "mongo-shared", this has been superseeded by "mongodb-dbaas"
+  if [[ "$SERVICE_TYPE" == "mongo-shared" ]]; then
+    SERVICE_TYPE="mongodb-dbaas"
+  fi
+
+  if [[ "$SERVICE_TYPE" == "mongodb-dbaas" ]]; then
+    # Default plan is the enviroment type
+    DBAAS_ENVIRONMENT=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mongodb-dbaas\\.environment "${ENVIRONMENT_TYPE}")
+
+    # Allow the dbaas shared servicebroker plan to be overriden by environment in .lagoon.yml
+    ENVIRONMENT_DBAAS_ENVIRONMENT_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.overrides.$SERVICE_NAME.mongodb-dbaas\\.environment false)
+    if [ ! $DBAAS_ENVIRONMENT_OVERRIDE == "false" ]; then
+      DBAAS_ENVIRONMENT=$ENVIRONMENT_DBAAS_ENVIRONMENT_OVERRIDE
+    fi
+
+    # If we have a dbaas environment type override in the api, consume it here
+    if [ ! -z "$LAGOON_DBAAS_ENVIRONMENT_TYPES" ]; then
+      IFS=',' read -ra LAGOON_DBAAS_ENVIRONMENT_TYPES_SPLIT <<< "$LAGOON_DBAAS_ENVIRONMENT_TYPES"
+      for LAGOON_DBAAS_ENVIRONMENT_TYPE in "${LAGOON_DBAAS_ENVIRONMENT_TYPES_SPLIT[@]}"
+      do
+        IFS=':' read -ra LAGOON_DBAAS_ENVIRONMENT_TYPE_SPLIT <<< "$LAGOON_DBAAS_ENVIRONMENT_TYPE"
+        if [ "${LAGOON_DBAAS_ENVIRONMENT_TYPE_SPLIT[0]}" == "$SERVICE_NAME" ]; then
+          DBAAS_ENVIRONMENT=${LAGOON_DBAAS_ENVIRONMENT_TYPE_SPLIT[1]}
+        fi
+      done
+    fi
+
+    MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]="${DBAAS_ENVIRONMENT}"
   fi
 
   if [ "$SERVICE_TYPE" == "none" ]; then
@@ -167,8 +276,16 @@ do
   # The ImageName is the same as the Name of the Docker Compose ServiceName
   IMAGE_NAME=$COMPOSE_SERVICE
 
-  # Generate List of Images to build
-  IMAGES+=("${IMAGE_NAME}")
+  # Do not handle images for shared services
+  if  [[ "$SERVICE_TYPE" != "mariadb-dbaas" ]] &&
+      [[ "$SERVICE_TYPE" != "mariadb-shared" ]] &&
+      [[ "$SERVICE_TYPE" != "postgres-shared" ]] &&
+      [[ "$SERVICE_TYPE" != "postgres-dbaas" ]] &&
+      [[ "$SERVICE_TYPE" != "mongodb-dbaas" ]] &&
+      [[ "$SERVICE_TYPE" != "mongodb-shared" ]]; then
+    # Generate List of Images to build
+    IMAGES+=("${IMAGE_NAME}")
+  fi
 
   # Map Deployment ServiceType to the ImageName
   MAP_DEPLOYMENT_SERVICETYPE_TO_IMAGENAME["${SERVICE_NAME}:${DEPLOYMENT_SERVICETYPE}"]="${IMAGE_NAME}"
@@ -196,8 +313,8 @@ done
 ### BUILD IMAGES
 ##############################################
 
-# we only need to build images for pullrequests and branches, but not during a TUG build
-if [[ ( "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ) && ! $THIS_IS_TUG == "true" ]]; then
+# we only need to build images for pullrequests and branches
+if [[ "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ]]; then
 
   BUILD_ARGS=()
 
@@ -240,6 +357,7 @@ if [[ ( "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ) && ! $TH
   BUILD_ARGS+=(--build-arg IMAGE_REPO="${CI_OVERRIDE_IMAGE_REPO}")
   BUILD_ARGS+=(--build-arg LAGOON_PROJECT="${PROJECT}")
   BUILD_ARGS+=(--build-arg LAGOON_ENVIRONMENT="${ENVIRONMENT}")
+  BUILD_ARGS+=(--build-arg LAGOON_ENVIRONMENT_TYPE="${ENVIRONMENT_TYPE}")
   BUILD_ARGS+=(--build-arg LAGOON_BUILD_TYPE="${BUILD_TYPE}")
   BUILD_ARGS+=(--build-arg LAGOON_GIT_SOURCE_REPOSITORY="${SOURCE_REPOSITORY}")
 
@@ -253,6 +371,7 @@ if [[ ( "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ) && ! $TH
   fi
 
   if [ "$BUILD_TYPE" == "pullrequest" ]; then
+    BUILD_ARGS+=(--build-arg LAGOON_GIT_SHA="${LAGOON_GIT_SHA}")
     BUILD_ARGS+=(--build-arg LAGOON_PR_HEAD_BRANCH="${PR_HEAD_BRANCH}")
     BUILD_ARGS+=(--build-arg LAGOON_PR_HEAD_SHA="${PR_HEAD_SHA}")
     BUILD_ARGS+=(--build-arg LAGOON_PR_BASE_BRANCH="${PR_BASE_BRANCH}")
@@ -294,6 +413,12 @@ if [[ ( "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ) && ! $TH
         PULL_IMAGE=$(echo "${OVERRIDE_IMAGE}" | envsubst)
       fi
 
+      # if the image just is an image name (like "alpine") we prefix it with `libary/` as the imagecache does not understand
+      # the magic `alpine` images
+      if [[ ! "$PULL_IMAGE" =~ "/" ]]; then
+        PULL_IMAGE="library/$PULL_IMAGE"
+      fi
+
       # Add the images we should pull to the IMAGES_PULL array, they will later be tagged from dockerhub
       IMAGES_PULL["${IMAGE_NAME}"]="${PULL_IMAGE}"
 
@@ -330,18 +455,6 @@ if [[ ( "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ) && ! $TH
 
   done
 
-fi
-
-# if $DEPLOY_TYPE is tug we just push the images to the defined docker registry and create a clone
-# of ourselves and push it into `lagoon-tug` image which is then executed in the destination openshift
-# If though this is the actual tug deployment in the destination openshift, we don't run this
-if [[ $DEPLOY_TYPE == "tug" && ! $THIS_IS_TUG == "true" ]]; then
-echo "TODO: lagoon-tug is not implemented yet in kubernetes"
-exit 1
-  . /kubectl-build-deploy/tug/tug-build-push.sh
-
-  # exit here, we are done
-  exit
 fi
 
 ##############################################
@@ -393,14 +506,14 @@ else
   ROUTES_AUTOGENERATE_INSECURE=$(cat .lagoon.yml | shyaml get-value routes.autogenerate.insecure Allow)
 fi
 
-ROUTES_AUTOGENERATE_ENABLED=$(cat .lagoon.yml | shyaml get-value routes.autogenerate.enabled true)
-ROUTES_AUTOGENERATE_ALLOW_PRS=$(cat .lagoon.yml | shyaml get-value routes.autogenerate.allowPullrequests $ROUTES_AUTOGENERATE_ENABLED)
+ROUTES_AUTOGENERATE_ENABLED=$(set -o pipefail; cat .lagoon.yml | shyaml get-value routes.autogenerate.enabled true | tr '[:upper:]' '[:lower:]')
+ROUTES_AUTOGENERATE_ALLOW_PRS=$(set -o pipefail; cat .lagoon.yml | shyaml get-value routes.autogenerate.allowPullrequests $ROUTES_AUTOGENERATE_ENABLED | tr '[:upper:]' '[:lower:]')
 if [[ "$TYPE" == "pullrequest" && "$ROUTES_AUTOGENERATE_ALLOW_PRS" == "true" ]]; then
   ROUTES_AUTOGENERATE_ENABLED=true
 fi
 ## fail silently if the key autogenerateRoutes doesn't exist and default to whatever ROUTES_AUTOGENERATE_ENABLED is set to
-ROUTES_AUTOGENERATE_BRANCH=$(cat .lagoon.yml | shyaml -q get-value environments.${BRANCH//./\\.}.autogenerateRoutes $ROUTES_AUTOGENERATE_ENABLED)
-if [ "$ROUTES_AUTOGENERATE_BRANCH" =~ [Tt]rue ]; then
+ROUTES_AUTOGENERATE_BRANCH=$(set -o pipefail; cat .lagoon.yml | shyaml -q get-value environments.${BRANCH//./\\.}.autogenerateRoutes $ROUTES_AUTOGENERATE_ENABLED | tr '[:upper:]' '[:lower:]')
+if [[ "$ROUTES_AUTOGENERATE_BRANCH" == "true" ]]; then
   ROUTES_AUTOGENERATE_ENABLED=true
 fi
 
@@ -408,18 +521,19 @@ ROUTES_AUTOGENERATE_PREFIXES=$(yq r -C .lagoon.yml routes.autogenerate.prefixes.
 
 touch /kubectl-build-deploy/values.yaml
 
-yq write -i /kubectl-build-deploy/values.yaml 'project' $PROJECT
-yq write -i /kubectl-build-deploy/values.yaml 'environment' $ENVIRONMENT
-yq write -i /kubectl-build-deploy/values.yaml 'environmentType' $ENVIRONMENT_TYPE
-yq write -i /kubectl-build-deploy/values.yaml 'namespace' $NAMESPACE
-yq write -i /kubectl-build-deploy/values.yaml 'gitSha' $LAGOON_GIT_SHA
-yq write -i /kubectl-build-deploy/values.yaml 'buildType' $BUILD_TYPE
-yq write -i /kubectl-build-deploy/values.yaml 'routesAutogenerateInsecure' $ROUTES_AUTOGENERATE_INSECURE
-yq write -i /kubectl-build-deploy/values.yaml 'routesAutogenerateEnabled' $ROUTES_AUTOGENERATE_ENABLED
-yq write -i /kubectl-build-deploy/values.yaml 'routesAutogenerateSuffix' $ROUTER_URL
-for i in $ROUTES_AUTOGENERATE_PREFIXES; do yq write -i /kubectl-build-deploy/values.yaml 'routesAutogeneratePrefixes[+]' $i; done
-yq write -i /kubectl-build-deploy/values.yaml 'kubernetes' $KUBERNETES
-yq write -i /kubectl-build-deploy/values.yaml 'lagoonVersion' $LAGOON_VERSION
+yq write -i -- /kubectl-build-deploy/values.yaml 'project' $PROJECT
+yq write -i -- /kubectl-build-deploy/values.yaml 'environment' $ENVIRONMENT
+yq write -i -- /kubectl-build-deploy/values.yaml 'environmentType' $ENVIRONMENT_TYPE
+yq write -i -- /kubectl-build-deploy/values.yaml 'namespace' $NAMESPACE
+yq write -i -- /kubectl-build-deploy/values.yaml 'gitSha' $LAGOON_GIT_SHA
+yq write -i -- /kubectl-build-deploy/values.yaml 'buildType' $BUILD_TYPE
+yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogenerateInsecure' $ROUTES_AUTOGENERATE_INSECURE
+yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogenerateEnabled' $ROUTES_AUTOGENERATE_ENABLED
+yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogenerateSuffix' $ROUTER_URL
+yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogenerateShortSuffix' $SHORT_ROUTER_URL
+for i in $ROUTES_AUTOGENERATE_PREFIXES; do yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogeneratePrefixes[+]' $i; done
+yq write -i -- /kubectl-build-deploy/values.yaml 'kubernetes' $KUBERNETES
+yq write -i -- /kubectl-build-deploy/values.yaml 'lagoonVersion' $LAGOON_VERSION
 
 
 echo -e "\
@@ -449,7 +563,7 @@ LAGOON_GIT_SAFE_BRANCH=${ENVIRONMENT}\n\
 " >> /kubectl-build-deploy/values.env
 
 if [ "$BUILD_TYPE" == "branch" ]; then
-  yq write -i /kubectl-build-deploy/values.yaml 'branch' $BRANCH
+  yq write -i -- /kubectl-build-deploy/values.yaml 'branch' $BRANCH
 
   echo -e "\
 LAGOON_GIT_BRANCH=${BRANCH}\n\
@@ -457,10 +571,10 @@ LAGOON_GIT_BRANCH=${BRANCH}\n\
 fi
 
 if [ "$BUILD_TYPE" == "pullrequest" ]; then
-  yq write -i /kubectl-build-deploy/values.yaml 'prHeadBranch' "$PR_HEAD_BRANCH"
-  yq write -i /kubectl-build-deploy/values.yaml 'prBaseBranch' "$PR_BASE_BRANCH"
-  yq write -i /kubectl-build-deploy/values.yaml 'prTitle' "$PR_TITLE"
-  yq write -i /kubectl-build-deploy/values.yaml 'prNumber' "$PR_NUMBER"
+  yq write -i -- /kubectl-build-deploy/values.yaml 'prHeadBranch' "$PR_HEAD_BRANCH"
+  yq write -i -- /kubectl-build-deploy/values.yaml 'prBaseBranch' "$PR_BASE_BRANCH"
+  yq write -i -- /kubectl-build-deploy/values.yaml 'prTitle' "$PR_TITLE"
+  yq write -i -- /kubectl-build-deploy/values.yaml 'prNumber' "$PR_NUMBER"
 
   echo -e "\
 LAGOON_PR_HEAD_BRANCH=${PR_HEAD_BRANCH}\n\
@@ -488,23 +602,24 @@ do
     helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -s $HELM_SERVICE_TEMPLATE -f /kubectl-build-deploy/values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${SERVICE_NAME}.yaml
   fi
 
-  HELM_INGRESS_TEMPLATE="templates/ingress.yaml"
-  if [ -f /kubectl-build-deploy/helmcharts/${SERVICE_TYPE}/$HELM_INGRESS_TEMPLATE ]; then
+  if [ $ROUTES_AUTOGENERATE_ENABLED == "true" ]; then
+    HELM_INGRESS_TEMPLATE="templates/ingress.yaml"
+    if [ -f /kubectl-build-deploy/helmcharts/${SERVICE_TYPE}/$HELM_INGRESS_TEMPLATE ]; then
 
-    # The very first generated route is set as MAIN_GENERATED_ROUTE
-    if [ -z "${MAIN_GENERATED_ROUTE+x}" ]; then
-      MAIN_GENERATED_ROUTE=$SERVICE_NAME
+      # The very first generated route is set as MAIN_GENERATED_ROUTE
+      if [ -z "${MAIN_GENERATED_ROUTE+x}" ]; then
+        MAIN_GENERATED_ROUTE=$SERVICE_NAME
+      fi
+
+      helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -s $HELM_INGRESS_TEMPLATE -f /kubectl-build-deploy/values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${SERVICE_NAME}.yaml
     fi
-
-    helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -s $HELM_INGRESS_TEMPLATE -f /kubectl-build-deploy/values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${SERVICE_NAME}.yaml
   fi
 
   HELM_DBAAS_TEMPLATE="templates/dbaas.yaml"
   if [ -f /kubectl-build-deploy/helmcharts/${SERVICE_TYPE}/$HELM_DBAAS_TEMPLATE ]; then
-    # cat $KUBERNETES_SERVICES_TEMPLATE
     # Load the requested class and plan for this service
     DBAAS_ENVIRONMENT="${MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]}"
-    yq write -i /kubectl-build-deploy/${SERVICE_NAME}-values.yaml 'environment' $DBAAS_ENVIRONMENT
+    yq write -i -- /kubectl-build-deploy/${SERVICE_NAME}-values.yaml 'environment' $DBAAS_ENVIRONMENT
     helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -s $HELM_DBAAS_TEMPLATE -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${SERVICE_NAME}-values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${SERVICE_NAME}.yaml
     DBAAS+=("${SERVICE_NAME}:${SERVICE_TYPE}")
   fi
@@ -512,6 +627,132 @@ do
 done
 
 TEMPLATE_PARAMETERS=()
+
+
+##############################################
+### CUSTOM FASTLY API SECRETS .lagoon.yml
+##############################################
+
+# if a customer is using their own fastly configuration, then they can define their api token and platform tls configuration ID in the .lagoon.yml file
+# this will get created as a `kind: Secret` in kubernetes so that created ingresses will be able to use this secret to talk to the fastly api.
+#
+# in this example, the customer needs to add a build envvar called `FASTLY_API_TOKEN` and then populates the .lagoon.yml file with something like this
+#
+# fastly:
+#   api-secrets:
+#     - name: customer
+#       apiTokenVariableName: FASTLY_API_TOKEN
+#       platformTLSConfiguration: A1bcEdFgH12eD242Sds
+#
+# then the build process will attempt to check the lagoon variables for one called `FASTLY_API_TOKEN` and will use the value of this variable when creating the
+# `kind: Secret` in kubernetes
+#
+# support for multiple api-secrets is possible in the instance that a customer uses 2 separate services in different accounts in the one project
+
+
+## any fastly api secrets will be prefixed with this, so that we always add this to whatever the customer provides
+FASTLY_API_SECRET_PREFIX="fastly-api-"
+
+FASTLY_API_SECRETS_COUNTER=0
+FASTLY_API_SECRETS=()
+if [ -n "$(cat .lagoon.yml | shyaml keys fastly.api-secrets.$FASTLY_API_SECRETS_COUNTER 2> /dev/null)" ]; then
+  while [ -n "$(cat .lagoon.yml | shyaml get-value fastly.api-secrets.$FASTLY_API_SECRETS_COUNTER 2> /dev/null)" ]; do
+    FASTLY_API_SECRET_NAME=$FASTLY_API_SECRET_PREFIX$(cat .lagoon.yml | shyaml get-value fastly.api-secrets.$FASTLY_API_SECRETS_COUNTER.name 2> /dev/null)
+    if [ -z "$FASTLY_API_SECRET_NAME" ]; then
+        echo -e "A fastly api secret was defined in the .lagoon.yml file, but no name could be found the .lagoon.yml\n\nPlease check if the name has been set correctly."
+        exit 1
+    fi
+    FASTLY_API_TOKEN_VALUE=$(cat .lagoon.yml | shyaml get-value fastly.api-secrets.$FASTLY_API_SECRETS_COUNTER.apiTokenVariableName false)
+    if [[ $FASTLY_API_TOKEN_VALUE == "false" ]]; then
+      echo "No 'apiTokenVariableName' defined for fastly secret $FASTLY_API_SECRET_NAME"; exit 1;
+    fi
+    # if we have everything we need, we can proceed to logging in
+    if [ $FASTLY_API_TOKEN_VALUE != "false" ]; then
+      FASTLY_API_TOKEN=""
+      # check if we have a password defined anywhere in the api first
+      if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
+        FASTLY_API_TOKEN=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "build" and .name == "'$FASTLY_API_TOKEN_VALUE'") | "\(.value)"'))
+      fi
+      if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
+        TEMP_FASTLY_API_TOKEN=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.scope == "build" and .name == "'$FASTLY_API_TOKEN_VALUE'") | "\(.value)"'))
+        if [ ! -z "$TEMP_FASTLY_API_TOKEN" ]; then
+          FASTLY_API_TOKEN=$TEMP_FASTLY_API_TOKEN
+        fi
+      fi
+      if [ -z "$FASTLY_API_TOKEN" ]; then
+        echo -e "A fastly api secret was defined in the .lagoon.yml file, but no token could be found in the Lagoon API matching the variable name provided\n\nPlease check if the token has been set correctly."
+        exit 1
+      fi
+    fi
+    FASTLY_API_PLATFORMTLS_CONFIGURATION=$(cat .lagoon.yml | shyaml get-value fastly.api-secrets.$FASTLY_API_SECRETS_COUNTER.platformTLSConfiguration "")
+    if [ -z "$FASTLY_API_PLATFORMTLS_CONFIGURATION" ]; then
+      echo -e "A fastly api secret was defined in the .lagoon.yml file, but no platform tls configuration id could be found in the .lagoon.yml\n\nPlease check if the platform tls configuration id has been set correctly."
+      exit 1
+    fi
+
+    # run the script to create the secrets
+    . /kubectl-build-deploy/scripts/exec-fastly-api-secrets.sh
+
+    let FASTLY_API_SECRETS_COUNTER=FASTLY_API_SECRETS_COUNTER+1
+  done
+fi
+
+# FASTLY API SECRETS FROM LAGOON API VARIABLE
+# Allow for defining fastly api secrets using lagoon api variables
+# This accepts colon separated values like so `SECRET_NAME:FASTLY_API_TOKEN:FASTLY_PLATFORMTLS_CONFIGURATION_ID`, and multiple overrides
+# separated by commas
+# Example 1: examplecom:x1s8asfafasf7ssf:fa23rsdgsdgas
+# ^^^ will create a kubernetes secret called `$FASTLY_API_SECRET_PREFIX-examplecom` with 2 data fields (one for api token, the other for platform tls id)
+# populated with `x1s8asfafasf7ssf` and `fa23rsdgsdgas` for whichever field it should be
+# and the name will get created with the prefix defined in `FASTLY_API_SECRET_PREFIX`
+# Example 2: examplecom:x1s8asfafasf7ssf:fa23rsdgsdgas,example2com:fa23rsdgsdgas:x1s8asfafasf7ssf,example3com:fa23rsdgsdgas:x1s8asfafasf7ssf:example3com
+if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
+  LAGOON_FASTLY_API_SECRETS=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_FASTLY_API_SECRETS") | "\(.value)"'))
+fi
+if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
+  TEMP_LAGOON_FASTLY_API_SECRETS=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_FASTLY_API_SECRETS") | "\(.value)"'))
+  if [ ! -z $TEMP_LAGOON_FASTLY_API_SECRETS ]; then
+    LAGOON_FASTLY_API_SECRETS=$TEMP_LAGOON_FASTLY_API_SECRETS
+  fi
+fi
+if [ ! -z "$LAGOON_FASTLY_API_SECRETS" ]; then
+  IFS=',' read -ra LAGOON_FASTLY_API_SECRETS_SPLIT <<< "$LAGOON_FASTLY_API_SECRETS"
+  for LAGOON_FASTLY_API_SECRETS_DATA in "${LAGOON_FASTLY_API_SECRETS_SPLIT[@]}"
+  do
+    IFS=':' read -ra LAGOON_FASTLY_API_SECRET_SPLIT <<< "$LAGOON_FASTLY_API_SECRETS_DATA"
+    if [ -z "${LAGOON_FASTLY_API_SECRET_SPLIT[0]}" ] || [ -z "${LAGOON_FASTLY_API_SECRET_SPLIT[1]}" ] || [ -z "${LAGOON_FASTLY_API_SECRET_SPLIT[2]}" ]; then
+      echo -e "An override was defined in the lagoon API with LAGOON_FASTLY_API_SECRETS but was not structured correctly, the format should be NAME:FASTLY_API_TOKEN:FASTLY_PLATFORMTLS_CONFIGURATION_ID and comma separated for multiples"
+      exit 1
+    fi
+    # the fastly api secret name will be created with the prefix that is defined above
+    FASTLY_API_SECRET_NAME=$FASTLY_API_SECRET_PREFIX${LAGOON_FASTLY_API_SECRET_SPLIT[0]}
+    FASTLY_API_TOKEN=${LAGOON_FASTLY_API_SECRET_SPLIT[1]}
+    FASTLY_API_PLATFORMTLS_CONFIGURATION=${LAGOON_FASTLY_API_SECRET_SPLIT[2]}
+    # run the script to create the secrets
+    . /kubectl-build-deploy/scripts/exec-fastly-api-secrets.sh
+  done
+fi
+
+# FASTLY SERVICE ID PER INGRESS OVERRIDE FROM LAGOON API VARIABLE
+# Allow the fastly serviceid for specific ingress to be overridden by the lagoon API
+# This accepts colon separated values like so `INGRESS_DOMAIN:FASTLY_SERVICE_ID:WATCH_STATUS:SECRET_NAME(OPTIONAL)`, and multiple overrides
+# separated by commas
+# Example 1: www.example.com:x1s8asfafasf7ssf:true
+# ^^^ tells the ingress creation to use the service id x1s8asfafasf7ssf for ingress www.example.com, with the watch status of true
+# Example 2: www.example.com:x1s8asfafasf7ssf:true,www.not-example.com:fa23rsdgsdgas:false
+# ^^^ same as above, but also tells the ingress creation to use the service id fa23rsdgsdgas for ingress www.not-example.com, with the watch status of false
+# Example 3: www.example.com:x1s8asfafasf7ssf:true:examplecom
+# ^^^ tells the ingress creation to use the service id x1s8asfafasf7ssf for ingress www.example.com, with the watch status of true
+# but it will also be annotated to be told to use the secret named `examplecom` that could be defined elsewhere
+if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
+  LAGOON_FASTLY_SERVICE_IDS=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_FASTLY_SERVICE_IDS") | "\(.value)"'))
+fi
+if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
+  TEMP_LAGOON_FASTLY_SERVICE_IDS=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_FASTLY_SERVICE_IDS") | "\(.value)"'))
+  if [ ! -z $TEMP_LAGOON_FASTLY_SERVICE_IDS ]; then
+    LAGOON_FASTLY_SERVICE_IDS=$TEMP_LAGOON_FASTLY_SERVICE_IDS
+  fi
+fi
 
 ##############################################
 ### CUSTOM ROUTES FROM .lagoon.yml
@@ -533,10 +774,22 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
             ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml keys production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
             # Route Domains include dots, which need to be esacped via `\.` in order to use them within shyaml
             ROUTE_DOMAIN_ESCAPED=$(cat .lagoon.yml | shyaml keys production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER | sed 's/\./\\./g')
-            ROUTE_TLS_ACME=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true)
-            ROUTE_MIGRATE=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate true)
+            ROUTE_TLS_ACME=$(set -o pipefail; cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true | tr '[:upper:]' '[:lower:]')
+            ROUTE_MIGRATE=$(set -o pipefail; cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate true | tr '[:upper:]' '[:lower:]')
             ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
             ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
+            MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring-path "/")
+            ROUTE_ANNOTATIONS=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.annotations {})
+            # get the fastly configuration values from .lagoon.yml
+            if cat .lagoon.yml | shyaml keys production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly &> /dev/null; then
+              ROUTE_FASTLY_SERVICE_ID=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.service-id "")
+              ROUTE_FASTLY_SERVICE_API_SECRET=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.api-secret-name "")
+              ROUTE_FASTLY_SERVICE_WATCH=$(set -o pipefail; cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.watch false | tr '[:upper:]' '[:lower:]')
+            else
+              ROUTE_FASTLY_SERVICE_ID=""
+              ROUTE_FASTLY_SERVICE_API_SECRET=""
+              ROUTE_FASTLY_SERVICE_WATCH=false
+            fi
           else
             # Only a value given, assuming some defaults
             ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value production_routes.active.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
@@ -544,21 +797,66 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
             ROUTE_MIGRATE=true
             ROUTE_INSECURE=Redirect
             ROUTE_HSTS=null
+            MONITORING_PATH="/"
+            ROUTE_ANNOTATIONS="{}"
+            ROUTE_FASTLY_SERVICE_ID=""
+            ROUTE_FASTLY_SERVICE_API_SECRET=""
+            ROUTE_FASTLY_SERVICE_WATCH=false
+          fi
+
+          # work out if there are any lagoon api variable overrides for the annotations that are being added
+          . /kubectl-build-deploy/scripts/exec-fastly-annotations.sh
+          # if we get any other populated service id overrides in any of the steps in exec-fastly-annotations.sh
+          # make it available to the ingress creation here by overriding what may be defined in the lagoon.yml
+          if [ ! -z "$LAGOON_FASTLY_SERVICE_ID" ]; then
+            ROUTE_FASTLY_SERVICE_ID=$LAGOON_FASTLY_SERVICE_ID
+            ROUTE_FASTLY_SERVICE_WATCH=$LAGOON_FASTLY_SERVICE_WATCH
+            if [ ! -z $LAGOON_FASTLY_SERVICE_API_SECRET ]; then
+              ROUTE_FASTLY_SERVICE_API_SECRET=$LAGOON_FASTLY_SERVICE_API_SECRET
+            fi
+          fi
+
+          FASTLY_ARGS=()
+          if [ ! -z "$ROUTE_FASTLY_SERVICE_ID" ]; then
+            FASTLY_ARGS+=(--set fastly.serviceId=${ROUTE_FASTLY_SERVICE_ID})
+            if [ ! -z "$ROUTE_FASTLY_SERVICE_API_SECRET" ]; then
+              if contains $FASTLY_API_SECRETS "${FASTLY_API_SECRET_PREFIX}${ROUTE_FASTLY_SERVICE_API_SECRET}"; then
+                FASTLY_ARGS+=(--set fastly.apiSecretName=${FASTLY_API_SECRET_PREFIX}${ROUTE_FASTLY_SERVICE_API_SECRET})
+              else
+                echo "$ROUTE_FASTLY_SERVICE_API_SECRET requested, but not found in .lagoon.yml file"; exit 1;
+              fi
+            fi
           fi
 
           touch /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
           echo "$ROUTE_ANNOTATIONS" | yq p - annotations > /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
 
+          # ${ROUTE_DOMAIN} is used as a helm release name which be max 53 characters long.
+          # So we need some logic to make sure it's always max 53 characters
+          if [[ ${#ROUTE_DOMAIN} -gt 53 ]] ; then
+            # Trim the route domain to 47 characters, and add an 5 character hash of the domain at the end
+            # this gives a total of 53 characters
+            INGRESS_NAME=${ROUTE_DOMAIN:0:47}-$(echo ${ROUTE_DOMAIN} | md5sum | cut -f 1 -d " " | cut -c 1-5)
+          else
+            INGRESS_NAME=${ROUTE_DOMAIN}
+          fi
+
           # The very first found route is set as MAIN_CUSTOM_ROUTE
           if [ -z "${MAIN_CUSTOM_ROUTE+x}" ]; then
-            MAIN_CUSTOM_ROUTE=$ROUTE_DOMAIN
+            MAIN_CUSTOM_ROUTE=$INGRESS_NAME
+
+            # if we are in production we enabled monitoring for the main custom route
+            if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
+              MONITORING_ENABLED="true"
+            fi
+
           fi
 
           ROUTE_SERVICE=$ROUTES_SERVICE
 
           cat /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
 
-          helm template ${ROUTE_DOMAIN} \
+          helm template ${INGRESS_NAME} \
             /kubectl-build-deploy/helmcharts/custom-ingress \
             --set host="${ROUTE_DOMAIN}" \
             --set service="${ROUTE_SERVICE}" \
@@ -566,7 +864,14 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
             --set insecure="${ROUTE_INSECURE}" \
             --set hsts="${ROUTE_HSTS}" \
             --set routeMigrate="${ROUTE_MIGRATE}" \
+            --set ingressmonitorcontroller.enabled="${MONITORING_ENABLED}" \
+            --set ingressmonitorcontroller.path="${MONITORING_PATH}" \
+            --set ingressmonitorcontroller.alertContacts="${MONITORING_ALERTCONTACT}" \
+            --set ingressmonitorcontroller.statuspageId="${MONITORING_STATUSPAGEID}" \
+            "${FASTLY_ARGS[@]}" --set fastly.watch="${ROUTE_FASTLY_SERVICE_WATCH}" \
             -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${ROUTE_DOMAIN}.yaml
+
+          MONITORING_ENABLED="false" # disabling a possible enabled monitoring again
 
           let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
         done
@@ -587,10 +892,22 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
             ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml keys production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
             # Route Domains include dots, which need to be esacped via `\.` in order to use them within shyaml
             ROUTE_DOMAIN_ESCAPED=$(cat .lagoon.yml | shyaml keys production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER | sed 's/\./\\./g')
-            ROUTE_TLS_ACME=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true)
-            ROUTE_MIGRATE=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate true)
+            ROUTE_TLS_ACME=$(set -o pipefail; cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true | tr '[:upper:]' '[:lower:]')
+            ROUTE_MIGRATE=$(set -o pipefail; cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate true | tr '[:upper:]' '[:lower:]')
             ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
             ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
+            MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring-path "/")
+            ROUTE_ANNOTATIONS=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.annotations {})
+            # get the fastly configuration values from .lagoon.yml
+            if cat .lagoon.yml | shyaml keys production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly &> /dev/null; then
+              ROUTE_FASTLY_SERVICE_ID=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.service-id "")
+              ROUTE_FASTLY_SERVICE_API_SECRET=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.api-secret-name "")
+              ROUTE_FASTLY_SERVICE_WATCH=$(set -o pipefail; cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.watch false | tr '[:upper:]' '[:lower:]')
+            else
+              ROUTE_FASTLY_SERVICE_ID=""
+              ROUTE_FASTLY_SERVICE_API_SECRET=""
+              ROUTE_FASTLY_SERVICE_WATCH=false
+            fi
           else
             # Only a value given, assuming some defaults
             ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value production_routes.standby.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
@@ -598,21 +915,68 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
             ROUTE_MIGRATE=true
             ROUTE_INSECURE=Redirect
             ROUTE_HSTS=null
+            MONITORING_PATH="/"
+            ROUTE_ANNOTATIONS="{}"
+            ROUTE_FASTLY_SERVICE_ID=""
+            ROUTE_FASTLY_SERVICE_API_SECRET=""
+            ROUTE_FASTLY_SERVICE_WATCH=false
+          fi
+
+          # work out if there are any lagoon api variable overrides for the annotations that are being added
+          . /kubectl-build-deploy/scripts/exec-fastly-annotations.sh
+          # if we get any other populated service id overrides in any of the steps in exec-fastly-annotations.sh
+          # make it available to the ingress creation here by overriding what may be defined in the lagoon.yml
+          if [ ! -z "$LAGOON_FASTLY_SERVICE_ID" ]; then
+            ROUTE_FASTLY_SERVICE_ID=$LAGOON_FASTLY_SERVICE_ID
+            ROUTE_FASTLY_SERVICE_WATCH=$LAGOON_FASTLY_SERVICE_WATCH
+            if [ ! -z $LAGOON_FASTLY_SERVICE_API_SECRET ]; then
+              ROUTE_FASTLY_SERVICE_API_SECRET=$LAGOON_FASTLY_SERVICE_API_SECRET
+            fi
+          fi
+
+          # Create the fastly values required
+          FASTLY_ARGS=()
+          if [ ! -z "$ROUTE_FASTLY_SERVICE_ID" ]; then
+            FASTLY_ARGS+=(--set fastly.serviceId=${ROUTE_FASTLY_SERVICE_ID})
+            if [ ! -z "$ROUTE_FASTLY_SERVICE_API_SECRET" ]; then
+              if contains $FASTLY_API_SECRETS "${FASTLY_API_SECRET_PREFIX}${ROUTE_FASTLY_SERVICE_API_SECRET}"; then
+                FASTLY_ARGS+=(--set fastly.apiSecretName=${FASTLY_API_SECRET_PREFIX}${ROUTE_FASTLY_SERVICE_API_SECRET})
+              else
+                echo "$ROUTE_FASTLY_SERVICE_API_SECRET requested, but not found in .lagoon.yml file"; exit 1;
+              fi
+            fi
+            ROUTE_FASTLY_SERVICE_WATCH=true
           fi
 
           touch /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
           echo "$ROUTE_ANNOTATIONS" | yq p - annotations > /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
 
+          # ${ROUTE_DOMAIN} is used as a helm release name which be max 53 characters long.
+          # So we need some logic to make sure it's always max 53 characters
+          if [[ ${#ROUTE_DOMAIN} -gt 53 ]] ; then
+            # Trim the route domain to 47 characters, and add an 5 character hash of the domain at the end
+            # this gives a total of 53 characters
+            INGRESS_NAME=${ROUTE_DOMAIN:0:47}-$(echo ${ROUTE_DOMAIN} | md5sum | cut -f 1 -d " " | cut -c 1-5)
+          else
+            INGRESS_NAME=${ROUTE_DOMAIN}
+          fi
+
           # The very first found route is set as MAIN_CUSTOM_ROUTE
           if [ -z "${MAIN_CUSTOM_ROUTE+x}" ]; then
-            MAIN_CUSTOM_ROUTE=$ROUTE_DOMAIN
+            MAIN_CUSTOM_ROUTE=$INGRESS_NAME
+
+            # if we are in production we enabled monitoring for the main custom route
+            if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
+              MONITORING_ENABLED="true"
+            fi
+
           fi
 
           ROUTE_SERVICE=$ROUTES_SERVICE
 
           cat /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
 
-          helm template ${ROUTE_DOMAIN} \
+          helm template ${INGRESS_NAME} \
             /kubectl-build-deploy/helmcharts/custom-ingress \
             --set host="${ROUTE_DOMAIN}" \
             --set service="${ROUTE_SERVICE}" \
@@ -620,7 +984,14 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
             --set insecure="${ROUTE_INSECURE}" \
             --set hsts="${ROUTE_HSTS}" \
             --set routeMigrate="${ROUTE_MIGRATE}" \
+            --set ingressmonitorcontroller.enabled="${MONITORING_ENABLED}" \
+            --set ingressmonitorcontroller.path="${MONITORING_PATH}" \
+            --set ingressmonitorcontroller.alertContacts="${MONITORING_ALERTCONTACT}" \
+            --set ingressmonitorcontroller.statuspageId="${MONITORING_STATUSPAGEID}" \
+            "${FASTLY_ARGS[@]}" --set fastly.watch="${ROUTE_FASTLY_SERVICE_WATCH}" \
             -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${ROUTE_DOMAIN}.yaml
+
+          MONITORING_ENABLED="false" # disabling a possible enabled monitoring again
 
           let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
         done
@@ -631,13 +1002,7 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
   fi
 fi
 
-# set some monitoring defaults
-if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
-  MONITORING_ENABLED="true"
-else
-  MONITORING_ENABLED="false"
-
-fi
+MONITORING_ENABLED="false" # monitoring is by default disabled, it will be enabled for the first route again
 
 # Two while loops as we have multiple services that want routes and each service has multiple routes
 ROUTES_SERVICE_COUNTER=0
@@ -652,12 +1017,22 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
         ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
         # Route Domains include dots, which need to be esacped via `\.` in order to use them within shyaml
         ROUTE_DOMAIN_ESCAPED=$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER | sed 's/\./\\./g')
-        ROUTE_TLS_ACME=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true)
-        ROUTE_MIGRATE=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate false)
+        ROUTE_TLS_ACME=$(set -o pipefail; cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true | tr '[:upper:]' '[:lower:]')
+        ROUTE_MIGRATE=$(set -o pipefail; cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate false | tr '[:upper:]' '[:lower:]')
         ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
         ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
-        MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring-path "")
+        MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring-path "/")
         ROUTE_ANNOTATIONS=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.annotations {})
+        # get the fastly configuration values from .lagoon.yml
+        if cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly &> /dev/null; then
+          ROUTE_FASTLY_SERVICE_ID=$(cat .lagoon.yml | shyaml ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.service-id "")
+          ROUTE_FASTLY_SERVICE_API_SECRET=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.api-secret-name "")
+          ROUTE_FASTLY_SERVICE_WATCH=$(set -o pipefail; cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.watch false | tr '[:upper:]' '[:lower:]')
+        else
+          ROUTE_FASTLY_SERVICE_ID=""
+          ROUTE_FASTLY_SERVICE_API_SECRET=""
+          ROUTE_FASTLY_SERVICE_WATCH=false
+        fi
       else
         # Only a value given, assuming some defaults
         ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value ${PROJECT}.environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
@@ -665,7 +1040,47 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
         ROUTE_MIGRATE=false
         ROUTE_INSECURE=Redirect
         ROUTE_HSTS=null
+        MONITORING_PATH="/"
         ROUTE_ANNOTATIONS="{}"
+        ROUTE_FASTLY_SERVICE_ID=""
+        ROUTE_FASTLY_SERVICE_API_SECRET=""
+        ROUTE_FASTLY_SERVICE_WATCH=false
+      fi
+
+      # work out if there are any lagoon api variable overrides for the annotations that are being added
+      . /kubectl-build-deploy/scripts/exec-fastly-annotations.sh
+      # if we get any other populated service id overrides in any of the steps in exec-fastly-annotations.sh
+      # make it available to the ingress creation here by overriding what may be defined in the lagoon.yml
+      if [ ! -z "$LAGOON_FASTLY_SERVICE_ID" ]; then
+        ROUTE_FASTLY_SERVICE_ID=$LAGOON_FASTLY_SERVICE_ID
+        ROUTE_FASTLY_SERVICE_WATCH=$LAGOON_FASTLY_SERVICE_WATCH
+        if [ ! -z $LAGOON_FASTLY_SERVICE_API_SECRET ]; then
+          ROUTE_FASTLY_SERVICE_API_SECRET=$LAGOON_FASTLY_SERVICE_API_SECRET
+        fi
+      fi
+
+      # Create the fastly values required
+      FASTLY_ARGS=()
+      if [ ! -z "$ROUTE_FASTLY_SERVICE_ID" ]; then
+        FASTLY_ARGS+=(--set fastly.serviceId=${ROUTE_FASTLY_SERVICE_ID})
+        if [ ! -z "$ROUTE_FASTLY_SERVICE_API_SECRET" ]; then
+          if contains $FASTLY_API_SECRETS "${FASTLY_API_SECRET_PREFIX}${ROUTE_FASTLY_SERVICE_API_SECRET}"; then
+            FASTLY_ARGS+=(--set fastly.apiSecretName=${FASTLY_API_SECRET_PREFIX}${ROUTE_FASTLY_SERVICE_API_SECRET})
+          else
+            echo "$ROUTE_FASTLY_SERVICE_API_SECRET requested, but not found in .lagoon.yml file"; exit 1;
+          fi
+        fi
+        ROUTE_FASTLY_SERVICE_WATCH=true
+      fi
+
+      # ${ROUTE_DOMAIN} is used as a helm release name which be max 53 characters long.
+      # So we need some logic to make sure it's always max 53 characters
+      if [[ ${#ROUTE_DOMAIN} -gt 53 ]] ; then
+        # Trim the route domain to 47 characters, and add an 5 character hash of the domain at the end
+        # this gives a total of 53 characters
+        INGRESS_NAME=${ROUTE_DOMAIN:0:47}-$(echo ${ROUTE_DOMAIN} | md5sum | cut -f 1 -d " " | cut -c 1-5)
+      else
+        INGRESS_NAME=${ROUTE_DOMAIN}
       fi
 
       touch /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
@@ -673,14 +1088,20 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
 
       # The very first found route is set as MAIN_CUSTOM_ROUTE
       if [ -z "${MAIN_CUSTOM_ROUTE+x}" ]; then
-        MAIN_CUSTOM_ROUTE=$ROUTE_DOMAIN
+        MAIN_CUSTOM_ROUTE=$INGRESS_NAME
+
+        # if we are in production we enabled monitoring for the main custom route
+        if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
+          MONITORING_ENABLED="true"
+        fi
+
       fi
 
       ROUTE_SERVICE=$ROUTES_SERVICE
 
       cat /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
 
-      helm template ${ROUTE_DOMAIN} \
+      helm template ${INGRESS_NAME} \
         /kubectl-build-deploy/helmcharts/custom-ingress \
         --set host="${ROUTE_DOMAIN}" \
         --set service="${ROUTE_SERVICE}" \
@@ -692,7 +1113,10 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
         --set ingressmonitorcontroller.path="${MONITORING_PATH}" \
         --set ingressmonitorcontroller.alertContacts="${MONITORING_ALERTCONTACT}" \
         --set ingressmonitorcontroller.statuspageId="${MONITORING_STATUSPAGEID}" \
+            "${FASTLY_ARGS[@]}" --set fastly.watch="${ROUTE_FASTLY_SERVICE_WATCH}" \
         -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${ROUTE_DOMAIN}.yaml
+
+      MONITORING_ENABLED="false" # disabling a possible enabled monitoring again
 
       let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
     done
@@ -710,12 +1134,22 @@ else
         ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
         # Route Domains include dots, which need to be esacped via `\.` in order to use them within shyaml
         ROUTE_DOMAIN_ESCAPED=$(cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER | sed 's/\./\\./g')
-        ROUTE_TLS_ACME=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true)
-        ROUTE_MIGRATE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate false)
+        ROUTE_TLS_ACME=$(set -o pipefail; cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.tls-acme true | tr '[:upper:]' '[:lower:]')
+        ROUTE_MIGRATE=$(set -o pipefail; cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.migrate false | tr '[:upper:]' '[:lower:]')
         ROUTE_INSECURE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
         ROUTE_HSTS=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
-        MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring-path "")
+        MONITORING_PATH=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring-path "/")
         ROUTE_ANNOTATIONS=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.annotations {})
+        # get the fastly configuration values from .lagoon.yml
+        if cat .lagoon.yml | shyaml keys environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly &> /dev/null; then
+          ROUTE_FASTLY_SERVICE_ID=$(cat .lagoon.yml | shyaml environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.service-id "")
+          ROUTE_FASTLY_SERVICE_API_SECRET=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.api-secret-name "")
+          ROUTE_FASTLY_SERVICE_WATCH=$(set -o pipefail; cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.watch false | tr '[:upper:]' '[:lower:]')
+        else
+          ROUTE_FASTLY_SERVICE_ID=""
+          ROUTE_FASTLY_SERVICE_API_SECRET=""
+          ROUTE_FASTLY_SERVICE_WATCH=false
+        fi
       else
         # Only a value given, assuming some defaults
         ROUTE_DOMAIN=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.routes.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER)
@@ -723,22 +1157,68 @@ else
         ROUTE_MIGRATE=false
         ROUTE_INSECURE=Redirect
         ROUTE_HSTS=null
+        MONITORING_PATH="/"
         ROUTE_ANNOTATIONS="{}"
+        ROUTE_FASTLY_SERVICE_ID=""
+        ROUTE_FASTLY_SERVICE_API_SECRET=""
+        ROUTE_FASTLY_SERVICE_WATCH=false
+      fi
+
+      # work out if there are any lagoon api variable overrides for the annotations that are being added
+      . /kubectl-build-deploy/scripts/exec-fastly-annotations.sh
+      # if we get any other populated service id overrides in any of the steps in exec-fastly-annotations.sh
+      # make it available to the ingress creation here by overriding what may be defined in the lagoon.yml
+      if [ ! -z "$LAGOON_FASTLY_SERVICE_ID" ]; then
+        ROUTE_FASTLY_SERVICE_ID=$LAGOON_FASTLY_SERVICE_ID
+        ROUTE_FASTLY_SERVICE_WATCH=$LAGOON_FASTLY_SERVICE_WATCH
+        if [ ! -z $LAGOON_FASTLY_SERVICE_API_SECRET ]; then
+          ROUTE_FASTLY_SERVICE_API_SECRET=$LAGOON_FASTLY_SERVICE_API_SECRET
+        fi
+      fi
+
+      # Create the fastly values required
+      FASTLY_ARGS=()
+      if [ ! -z "$ROUTE_FASTLY_SERVICE_ID" ]; then
+        FASTLY_ARGS+=(--set fastly.serviceId=${ROUTE_FASTLY_SERVICE_ID})
+        if [ ! -z "$ROUTE_FASTLY_SERVICE_API_SECRET" ]; then
+          if contains $FASTLY_API_SECRETS "${FASTLY_API_SECRET_PREFIX}${ROUTE_FASTLY_SERVICE_API_SECRET}"; then
+            FASTLY_ARGS+=(--set fastly.apiSecretName=${FASTLY_API_SECRET_PREFIX}${ROUTE_FASTLY_SERVICE_API_SECRET})
+          else
+            echo "$ROUTE_FASTLY_SERVICE_API_SECRET requested, but not found in .lagoon.yml file"; exit 1;
+          fi
+        fi
+        ROUTE_FASTLY_SERVICE_WATCH=true
       fi
 
       touch /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
       echo "$ROUTE_ANNOTATIONS" | yq p - annotations > /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
 
+      # ${ROUTE_DOMAIN} is used as a helm release name which be max 53 characters long.
+      # So we need some logic to make sure it's always max 53 characters
+      if [[ ${#ROUTE_DOMAIN} -gt 53 ]] ; then
+        # Trim the route domain to 47 characters, and add an 5 character hash of the domain at the end
+        # this gives a total of 53 characters
+        INGRESS_NAME=${ROUTE_DOMAIN:0:47}-$(echo ${ROUTE_DOMAIN} | md5sum | cut -f 1 -d " " | cut -c 1-5)
+      else
+        INGRESS_NAME=${ROUTE_DOMAIN}
+      fi
+
       # The very first found route is set as MAIN_CUSTOM_ROUTE
       if [ -z "${MAIN_CUSTOM_ROUTE+x}" ]; then
-        MAIN_CUSTOM_ROUTE=$ROUTE_DOMAIN
+        MAIN_CUSTOM_ROUTE=$INGRESS_NAME
+
+        # if we are in production we enabled monitoring for the main custom route
+        if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
+          MONITORING_ENABLED="true"
+        fi
+
       fi
 
       ROUTE_SERVICE=$ROUTES_SERVICE
 
       cat /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
 
-      helm template ${ROUTE_DOMAIN} \
+      helm template ${INGRESS_NAME} \
         /kubectl-build-deploy/helmcharts/custom-ingress \
         --set host="${ROUTE_DOMAIN}" \
         --set service="${ROUTE_SERVICE}" \
@@ -750,7 +1230,10 @@ else
         --set ingressmonitorcontroller.path="${MONITORING_PATH}" \
         --set ingressmonitorcontroller.alertContacts="${MONITORING_ALERTCONTACT}" \
         --set ingressmonitorcontroller.statuspageId="${MONITORING_STATUSPAGEID}" \
+            "${FASTLY_ARGS[@]}" --set fastly.watch="${ROUTE_FASTLY_SERVICE_WATCH}" \
         -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml  "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${ROUTE_DOMAIN}.yaml
+
+      MONITORING_ENABLED="false" # disabling a possible enabled monitoring again
 
       let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
     done
@@ -771,24 +1254,65 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
 
   TEMPLATE_PARAMETERS=()
 
+  # Check for custom baas bucket name
+  if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
+    BAAS_BUCKET_NAME=$(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_BAAS_BUCKET_NAME") | "\(.value)"')
+  fi
+  if [ -z $BAAS_BUCKET_NAME ]; then
+    BAAS_BUCKET_NAME=baas-${PROJECT}
+  fi
+
+  # Pull in .lagoon.yml variables
+  PRODUCTION_MONTHLY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml get-value backup-retention.production.monthly "")
+  PRODUCTION_WEEKLY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml get-value backup-retention.production.weekly "")
+  PRODUCTION_DAILY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml get-value backup-retention.production.daily "")
+
+  # Set template parameters for retention values (prefer .lagoon.yml values over supplied defaults after ensuring they are valid integers via "-eq" comparison)
+  if [ ! -z $PRODUCTION_MONTHLY_BACKUP_RETENTION ] && [ "$PRODUCTION_MONTHLY_BACKUP_RETENTION" -eq "$PRODUCTION_MONTHLY_BACKUP_RETENTION" ] && [ $ENVIRONMENT_TYPE = 'production' ]; then
+    MONTHLY_BACKUP_RETENTION=${PRODUCTION_MONTHLY_BACKUP_RETENTION}
+  else
+    MONTHLY_BACKUP_RETENTION=${MONTHLY_BACKUP_DEFAULT_RETENTION}
+  fi
+  if [ ! -z $PRODUCTION_WEEKLY_BACKUP_RETENTION ] && [ "$PRODUCTION_WEEKLY_BACKUP_RETENTION" -eq "$PRODUCTION_WEEKLY_BACKUP_RETENTION" ] && [ $ENVIRONMENT_TYPE = 'production' ]; then
+    WEEKLY_BACKUP_RETENTION=${PRODUCTION_WEEKLY_BACKUP_RETENTION}
+  else
+    WEEKLY_BACKUP_RETENTION=${WEEKLY_BACKUP_DEFAULT_RETENTION}
+  fi
+  if [ ! -z $PRODUCTION_DAILY_BACKUP_RETENTION ] && [ "$PRODUCTION_DAILY_BACKUP_RETENTION" -eq "$PRODUCTION_DAILY_BACKUP_RETENTION" ] && [ $ENVIRONMENT_TYPE = 'production' ]; then
+    DAILY_BACKUP_RETENTION=${PRODUCTION_DAILY_BACKUP_RETENTION}
+  else
+    DAILY_BACKUP_RETENTION=${DAILY_BACKUP_DEFAULT_RETENTION}
+  fi
+
   # Run Backups every day at 2200-0200
   BACKUP_SCHEDULE=$( /kubectl-build-deploy/scripts/convert-crontab.sh "${NAMESPACE}" "M H(22-2) * * *")
-  TEMPLATE_PARAMETERS+=(-p BACKUP_SCHEDULE="${BACKUP_SCHEDULE}")
-  # TODO: -p == --set in helm
-  # Run Checks on Sunday at 0300-0600
-  CHECK_SCHEDULE=$( /kubectl-build-deploy/scripts/convert-crontab.sh "${NAMESPACE}" "M H(3-6) * * 0")
-  TEMPLATE_PARAMETERS+=(-p CHECK_SCHEDULE="${CHECK_SCHEDULE}")
 
-  # Run Prune on Saturday at 0300-0600
-  PRUNE_SCHEDULE=$( /kubectl-build-deploy/scripts/convert-crontab.sh "${NAMESPACE}" "M H(3-6) * * 6")
-  TEMPLATE_PARAMETERS+=(-p PRUNE_SCHEDULE="${PRUNE_SCHEDULE}")
+  if [ ! -z $K8UP_WEEKLY_RANDOM_FEATURE_FLAG ] && [ $K8UP_WEEKLY_RANDOM_FEATURE_FLAG = 'enabled' ]; then
+    # Let the controller deduplicate checks (will run weekly at a random time throughout the week)
+    CHECK_SCHEDULE="@weekly-random"
+  else
+    # Run Checks on Sunday at 0300-0600
+    CHECK_SCHEDULE=$( /kubectl-build-deploy/scripts/convert-crontab.sh "${NAMESPACE}" "M H(3-6) * * 0")
+  fi
+
+  if [ ! -z $K8UP_WEEKLY_RANDOM_FEATURE_FLAG ] && [ $K8UP_WEEKLY_RANDOM_FEATURE_FLAG = 'enabled' ]; then
+    # Let the controller deduplicate prunes (will run weekly at a random time throughout the week)
+    PRUNE_SCHEDULE="@weekly-random"
+  else
+    # Run Prune on Saturday at 0300-0600
+    PRUNE_SCHEDULE=$( /kubectl-build-deploy/scripts/convert-crontab.sh "${NAMESPACE}" "M H(3-6) * * 6")
+  fi
 
   OPENSHIFT_TEMPLATE="/kubectl-build-deploy/openshift-templates/backup-schedule.yml"
   helm template k8up-lagoon-backup-schedule /kubectl-build-deploy/helmcharts/k8up-schedule \
     -f /kubectl-build-deploy/values.yaml \
     --set backup.schedule="${BACKUP_SCHEDULE}" \
     --set check.schedule="${CHECK_SCHEDULE}" \
-    --set prune.schedule="${PRUNE_SCHEDULE}" "${HELM_ARGUMENTS[@]}"  > $YAML_FOLDER/k8up-lagoon-backup-schedule.yaml
+    --set prune.schedule="${PRUNE_SCHEDULE}" "${HELM_ARGUMENTS[@]}" \
+    --set baasBucketName="${BAAS_BUCKET_NAME}" > $YAML_FOLDER/k8up-lagoon-backup-schedule.yaml \
+    --set prune.retention.keepMonthly=$MONTHLY_BACKUP_RETENTION \
+    --set prune.retention.keepWeekly=$WEEKLY_BACKUP_RETENTION \
+    --set prune.retention.keepDaily=$DAILY_BACKUP_RETENTION
 fi
 
 if [ "$(ls -A $YAML_FOLDER/)" ]; then
@@ -827,9 +1351,9 @@ fi
 # Get list of autogenerated routes
 AUTOGENERATED_ROUTES=$(kubectl -n ${NAMESPACE} get ingress --sort-by='{.metadata.name}' -l "lagoon.sh/autogenerated=true" -o=go-template --template='{{range $indexItems, $ingress := .items}}{{if $indexItems}},{{end}}{{$tls := .spec.tls}}{{range $indexRule, $rule := .spec.rules}}{{if $indexRule}},{{end}}{{if $tls}}https://{{else}}http://{{end}}{{.host}}{{end}}{{end}}')
 
-yq write -i /kubectl-build-deploy/values.yaml 'route' "$ROUTE"
-yq write -i /kubectl-build-deploy/values.yaml 'routes' "$ROUTES"
-yq write -i /kubectl-build-deploy/values.yaml 'autogeneratedRoutes' "$AUTOGENERATED_ROUTES"
+yq write -i -- /kubectl-build-deploy/values.yaml 'route' "$ROUTE"
+yq write -i -- /kubectl-build-deploy/values.yaml 'routes' "$ROUTES"
+yq write -i -- /kubectl-build-deploy/values.yaml 'autogeneratedRoutes' "$AUTOGENERATED_ROUTES"
 
 echo -e "\
 LAGOON_ROUTE=${ROUTE}\n\
@@ -887,6 +1411,14 @@ do
         . /kubectl-build-deploy/scripts/exec-kubectl-mariadb-dbaas.sh
         ;;
 
+    postgres-dbaas)
+        . /kubectl-build-deploy/scripts/exec-kubectl-postgres-dbaas.sh
+        ;;
+
+    mongodb-dbaas)
+        . /kubectl-build-deploy/scripts/exec-kubectl-mongodb-dbaas.sh
+        ;;
+
     *)
         echo "DBAAS Type ${SERVICE_TYPE} not implemented"; exit 1;
 
@@ -900,43 +1432,57 @@ done
 CONFIG_MAP_SHA=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap lagoon-env -o yaml | shyaml get-value data | sha256sum | awk '{print $1}')
 # write the configmap to the values file so when we `exec-kubectl-resources-with-images.sh` the deployments will get the value of the config map
 # which will cause a change in the deployment and trigger a rollout if only the configmap has changed
-yq write -i /kubectl-build-deploy/values.yaml 'configMapSha' $CONFIG_MAP_SHA
+yq write -i -- /kubectl-build-deploy/values.yaml 'configMapSha' $CONFIG_MAP_SHA
 
 ##############################################
 ### PUSH IMAGES TO OPENSHIFT REGISTRY
 ##############################################
 
-if [[ $THIS_IS_TUG == "true" ]]; then
-  # TODO: lagoon-tug is not implemented yet in kubernetes
-  echo "lagoon-tug is not implemented yet in kubernetes"
-  exit 1
-  # Allow to disable registry auth
-  if [ ! "${TUG_SKIP_REGISTRY_AUTH}" == "true" ]; then
-    # This adds the defined credentials to the serviceaccount/default so that the deployments can pull from the remote registry
-    if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get secret tug-registry 2> /dev/null; then
-      kubectl --insecure-skip-tls-verify -n ${NAMESPACE} delete secret tug-registry
-    fi
+if [ "$BUILD_TYPE" == "pullrequest" ] || [ "$BUILD_TYPE" == "branch" ]; then
 
-    kubectl --insecure-skip-tls-verify -n ${NAMESPACE} secrets new-dockercfg tug-registry --docker-server="${TUG_REGISTRY}" --docker-username="${TUG_REGISTRY_USERNAME}" --docker-password="${TUG_REGISTRY_PASSWORD}" --docker-email="${TUG_REGISTRY_USERNAME}"
-    kubectl --insecure-skip-tls-verify -n ${NAMESPACE} secrets add serviceaccount/default secrets/tug-registry --for=pull
-  fi
-
-  # Import all remote Images into ImageStreams
-  readarray -t TUG_IMAGES < /kubectl-build-deploy/tug/images
-  for TUG_IMAGE in "${TUG_IMAGES[@]}"
-  do
-    kubectl --insecure-skip-tls-verify -n ${NAMESPACE} tag --source=docker "${TUG_REGISTRY}/${TUG_REGISTRY_REPOSITORY}/${TUG_IMAGE_PREFIX}${TUG_IMAGE}:${SAFE_BRANCH}" "${TUG_IMAGE}:latest"
-  done
-
-elif [ "$BUILD_TYPE" == "pullrequest" ] || [ "$BUILD_TYPE" == "branch" ]; then
-
-  # All images that should be pulled are tagged as Images directly in OpenShift Registry
+  # All images that should be pulled are copied to the harbor registry
   for IMAGE_NAME in "${!IMAGES_PULL[@]}"
   do
     PULL_IMAGE="${IMAGES_PULL[${IMAGE_NAME}]}"
-    # . /kubectl-build-deploy/scripts/exec-kubernetes-tag-dockerhub.sh
-    # TODO: check if we can download and push the images to harbour (e.g. how artifactory does this)
-    IMAGE_HASHES[${IMAGE_NAME}]=$(skopeo inspect docker://${PULL_IMAGE} --tls-verify=false | jq ".Name + \"@\" + .Digest" -r)
+
+    # Try to handle private registries first
+    if [ $PRIVATE_REGISTRY_COUNTER -gt 0 ]; then
+      if [ $PRIVATE_EXTERNAL_REGISTRY ]; then
+        EXTERNAL_REGISTRY=0
+        for EXTERNAL_REGISTRY_URL in "${PRIVATE_REGISTRY_URLS[@]}"
+        do
+          # strip off "http://" or "https://" from registry url if present
+          bare_url="${EXTERNAL_REGISTRY_URL#http://}"
+          bare_url="${EXTERNAL_REGISTRY_URL#https://}"
+
+          # Test registry to see if image is from an external registry or just private docker hub
+          case $bare_url in
+            "$PULL_IMAGE"*)
+              EXTERNAL_REGISTRY=1
+              ;;
+          esac
+        done
+
+        # If this image is hosted in an external registry, pull it from there
+        if [ $EXTERNAL_REGISTRY -eq 1 ]; then
+          skopeo copy --dest-tls-verify=false docker://${PULL_IMAGE} docker://${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG:-latest}
+        # If this image is not from an external registry, but docker hub creds were supplied, pull it straight from Docker Hub
+        elif [ $PRIVATE_DOCKER_HUB_REGISTRY -eq 1 ]; then
+          skopeo copy --dest-tls-verify=false docker://${PULL_IMAGE} docker://${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG:-latest}
+        # If image not from an external registry and no docker hub creds were supplied, pull image from the imagecache
+        else
+          skopeo copy --dest-tls-verify=false docker://${IMAGECACHE_REGISTRY}/${PULL_IMAGE} docker://${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG:-latest}
+        fi
+      # If the private registry counter is 1 and no external registry was listed, we know a private docker hub was specified
+      else
+        skopeo copy --dest-tls-verify=false docker://${PULL_IMAGE} docker://${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG:-latest}
+      fi
+    # If no private registries, use the imagecache
+    else
+      skopeo copy --dest-tls-verify=false docker://${IMAGECACHE_REGISTRY}/${PULL_IMAGE} docker://${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG:-latest}
+    fi
+
+    IMAGE_HASHES[${IMAGE_NAME}]=$(skopeo inspect docker://${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG:-latest} --tls-verify=false | jq ".Name + \"@\" + .Digest" -r)
   done
 
   for IMAGE_NAME in "${!IMAGES_BUILD[@]}"
@@ -960,12 +1506,13 @@ elif [ "$BUILD_TYPE" == "pullrequest" ] || [ "$BUILD_TYPE" == "branch" ]; then
     IMAGE_HASHES[${IMAGE_NAME}]=$(docker inspect ${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG:-latest} --format '{{json .RepoDigests}}' | "${JQ_QUERY[@]}")
   done
 
-# elif [ "$BUILD_TYPE" == "promote" ]; then
+elif [ "$BUILD_TYPE" == "promote" ]; then
 
-#   for IMAGE_NAME in "${IMAGES[@]}"
-#   do
-#     .  /kubectl-build-deploy/scripts/exec-kubernetes-tag.sh
-#   done
+  for IMAGE_NAME in "${IMAGES[@]}"
+  do
+    .  /kubectl-build-deploy/scripts/exec-kubernetes-promote.sh
+    IMAGE_HASHES[${IMAGE_NAME}]=$(skopeo inspect docker://${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG:-latest} --tls-verify=false | jq ".Name + \"@\" + .Digest" -r)
+  done
 
 fi
 
@@ -1053,8 +1600,8 @@ do
         #   echo "No cronjob support for service '${SERVICE_NAME}' with type '${SERVICE_TYPE}', please contact the Lagoon maintainers to implement cronjob support"; exit 1;
         # else
 
-        yq write -i /kubectl-build-deploy/${SERVICE_NAME}-values.yaml "nativeCronjobs.${CRONJOB_NAME,,}.schedule" "$CRONJOB_SCHEDULE"
-        yq write -i /kubectl-build-deploy/${SERVICE_NAME}-values.yaml "nativeCronjobs.${CRONJOB_NAME,,}.command" "$CRONJOB_COMMAND"
+        yq write -i -- /kubectl-build-deploy/${SERVICE_NAME}-values.yaml "nativeCronjobs.${CRONJOB_NAME,,}.schedule" "$CRONJOB_SCHEDULE"
+        yq write -i -- /kubectl-build-deploy/${SERVICE_NAME}-values.yaml "nativeCronjobs.${CRONJOB_NAME,,}.command" "$CRONJOB_COMMAND"
 
         # fi
       fi
@@ -1066,41 +1613,12 @@ do
 
   # if there are cronjobs running inside pods, add them to the deploymentconfig.
   if [[ ${#CRONJOBS_ARRAY_INSIDE_POD[@]} -ge 1 ]]; then
-    yq write -i /kubectl-build-deploy/${SERVICE_NAME}-values.yaml 'inPodCronjobs' "$(printf '%s\n' "${CRONJOBS_ARRAY_INSIDE_POD[@]}")"
+    yq write -i -- /kubectl-build-deploy/${SERVICE_NAME}-values.yaml 'inPodCronjobs' "$(printf '%s\n' "${CRONJOBS_ARRAY_INSIDE_POD[@]}")"
   else
-    yq write -i /kubectl-build-deploy/${SERVICE_NAME}-values.yaml 'inPodCronjobs' --tag '!!str' ''
+    yq write -i --tag '!!str' -- /kubectl-build-deploy/${SERVICE_NAME}-values.yaml 'inPodCronjobs' ''
   fi
 
-  #OVERRIDE_TEMPLATE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.template false)
-  #ENVIRONMENT_OVERRIDE_TEMPLATE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.templates.$SERVICE_NAME false)
-  #if [[ "${OVERRIDE_TEMPLATE}" == "false" && "${ENVIRONMENT_OVERRIDE_TEMPLATE}" == "false" ]]; then # No custom template defined in docker-compose or .lagoon.yml,  using the given service ones
-    # Generate deployment if service type defines it
-    . /kubectl-build-deploy/scripts/exec-kubectl-resources-with-images.sh
-
-  #   # Generate statefulset if service type defines it
-  #   OPENSHIFT_STATEFULSET_TEMPLATE="/kubectl-build-deploy/openshift-templates/${SERVICE_TYPE}/statefulset.yml"
-  #   if [ -f $OPENSHIFT_STATEFULSET_TEMPLATE ]; then
-  #     OPENSHIFT_TEMPLATE=$OPENSHIFT_STATEFULSET_TEMPLATE
-  #     . /kubectl-build-deploy/scripts/exec-kubernetes-resources-with-images.sh
-  #   fi
-  # elif [[ "${ENVIRONMENT_OVERRIDE_TEMPLATE}" != "false" ]]; then # custom template defined for this service in .lagoon.yml, trying to use it
-
-  #   OPENSHIFT_TEMPLATE=$ENVIRONMENT_OVERRIDE_TEMPLATE
-  #   if [ ! -f $OPENSHIFT_TEMPLATE ]; then
-  #     echo "defined template $OPENSHIFT_TEMPLATE for service $SERVICE_TYPE in .lagoon.yml not found"; exit 1;
-  #   else
-  #     . /kubectl-build-deploy/scripts/exec-kubernetes-resources-with-images.sh
-  #   fi
-  # elif [[ "${OVERRIDE_TEMPLATE}" != "false" ]]; then # custom template defined for this service in docker-compose, trying to use it
-
-  #   OPENSHIFT_TEMPLATE=$OVERRIDE_TEMPLATE
-  #   if [ ! -f $OPENSHIFT_TEMPLATE ]; then
-  #     echo "defined template $OPENSHIFT_TEMPLATE for service $SERVICE_TYPE in $DOCKER_COMPOSE_YAML not found"; exit 1;
-  #   else
-  #     . /kubectl-build-deploy/scripts/exec-kubernetes-resources-with-images.sh
-  #   fi
-  #fi
-
+  . /kubectl-build-deploy/scripts/exec-kubectl-resources-with-images.sh
 
 done
 
@@ -1141,33 +1659,17 @@ do
     SERVICE_ROLLOUT_TYPE=$ENVIRONMENT_SERVICE_ROLLOUT_TYPE
   fi
 
-  if [ $SERVICE_TYPE == "elasticsearch-cluster" ]; then
-
-    STATEFULSET="${SERVICE_NAME}"
-    . /kubectl-build-deploy/scripts/exec-monitor-statefulset.sh
-
-  elif [ $SERVICE_TYPE == "rabbitmq-cluster" ]; then
-
-    STATEFULSET="${SERVICE_NAME}"
-    . /kubectl-build-deploy/scripts/exec-monitor-statefulset.sh
-
-  elif [ $SERVICE_ROLLOUT_TYPE == "statefulset" ]; then
-
-    STATEFULSET="${SERVICE_NAME}"
-    . /kubectl-build-deploy/scripts/exec-monitor-statefulset.sh
-
-  elif [ $SERVICE_ROLLOUT_TYPE == "deamonset" ]; then
-
-    DAEMONSET="${SERVICE_NAME}"
-    . /kubectl-build-deploy/scripts/exec-monitor-deamonset.sh
-
-  elif [ $SERVICE_TYPE == "mariadb-dbaas" ]; then
+  if [ $SERVICE_TYPE == "mariadb-dbaas" ]; then
 
     echo "nothing to monitor for $SERVICE_TYPE"
 
-  elif [ $SERVICE_TYPE == "postgres" ]; then
-    # TODO: Remove
-    echo "nothing to monitor for $SERVICE_TYPE - for now"
+  elif [ $SERVICE_TYPE == "postgres-dbaas" ]; then
+
+    echo "nothing to monitor for $SERVICE_TYPE"
+
+  elif [ $SERVICE_TYPE == "mongodb-dbaas" ]; then
+
+    echo "nothing to monitor for $SERVICE_TYPE"
 
   elif [ ! $SERVICE_ROLLOUT_TYPE == "false" ]; then
     . /kubectl-build-deploy/scripts/exec-monitor-deploy.sh
@@ -1224,4 +1726,16 @@ if [ "${LAGOON_POSTROLLOUT_DISABLED}" != "true" ]; then
   done
 else
   echo "post-rollout tasks are currently disabled LAGOON_POSTROLLOUT_DISABLED is set to true"
+fi
+
+##############################################
+### PUSH the latest .lagoon.yml into lagoon-yaml configmap
+##############################################
+
+if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap lagoon-yaml &> /dev/null; then
+  # replace it
+  kubectl --insecure-skip-tls-verify -n ${NAMESPACE} create configmap lagoon-yaml --from-file=.lagoon.yml -o yaml --dry-run | kubectl replace -f -
+else
+  # create it
+  kubectl --insecure-skip-tls-verify -n ${NAMESPACE} create configmap lagoon-yaml --from-file=.lagoon.yml
 fi

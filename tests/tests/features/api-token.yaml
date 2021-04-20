@@ -1,9 +1,6 @@
 - name: "SSH AUTH - Get Grant via SSH"
   hosts: localhost
   serial: 1
-  vars:
-    ssh_host: "{{ lookup('env','SSH_HOST') }}"
-    ssh_auth_port: "{{ lookup('env','SSH_PORT') }}"
   tasks:
   - include: ../../tasks/ssh/get-keycloak-grant-via-ssh.yaml
 

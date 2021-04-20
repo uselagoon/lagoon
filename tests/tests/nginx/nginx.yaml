@@ -1,4 +1,12 @@
 
+- name: "{{ testname }} - wait for 60 seconds to give an eventual running deployment time to run, after that check again if the first commit is still there"
+  hosts: localhost
+  serial: 1
+  vars:
+    seconds: "60"
+  tasks:
+  - include: ../../tasks/pause.yaml
+
 - name: "{{ testname }} - init git, add files, commit, git push"
   hosts: localhost
   serial: 1
@@ -59,7 +67,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
-    expected_returncode: "{{ lookup('env', 'DELETED_STATUS_CODE') }}"
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+    expected_returncode: "{{ del_status_code }}"
   tasks:
   - include: ../../checks/check-url-returncode.yaml

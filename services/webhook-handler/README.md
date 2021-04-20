@@ -1,5 +1,5 @@
 <p align="center"><img
-src="https://raw.githubusercontent.com/amazeeio/lagoon/master/docs/images/lagoon-logo.png"
+src="https://raw.githubusercontent.com/amazeeio/lagoon/main/docs/images/lagoon-logo.png"
 alt="The Lagoon logo is a blue hexagon split in two pieces with an L-shaped cut"
 width="40%"></p>
 
@@ -13,7 +13,7 @@ The main Lagoon entrypoint for webhooks originating from other services. Every
 incoming webhook is parsed and validated before being queued for processing
 later.
 
-Examples of webhooks Lagoon is interested in: GitHub/Bitbucket/GitLab repository
+Examples of webhooks Lagoon is interested in: GitHub/Gitea/Bitbucket/GitLab repository
 activity, Lagoon project environment backup events.
 
 ## Technology
@@ -42,5 +42,5 @@ You can also run all tests from the CLI via newman
 
         yarn run newman:all
 
-[documentation]: https://lagoon.readthedocs.io/
+[documentation]: https://docs.lagoon.sh/
 [Postman]: https://www.getpostman.com/

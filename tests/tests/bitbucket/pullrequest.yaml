@@ -40,18 +40,17 @@
     git_pr_branch: "pullrequest_pr"
     git_pr_commit_hash: "{{ pr_commit_hash }}"
     git_pr_number: "1"
-    git_repo_ssh_url: "{{ lookup('env','WEBHOOK_REPO_PREFIX') }}{{ git_repo_name }}"
+    git_repo_ssh_url: "{{ localgit_url }}/{{ git_repo_name }}"
     git_pr_title: "pr-2"
   tasks:
   - include: ../../tasks/webhook-bitbucket/pullrequest-opened.yaml
 
-
-- include: ../../checks/check-branch-sha.yaml
-  vars:
-    expected_head: "{{ pr_commit_hash }}"
-    expected_branch: "pr-2"
-    project: "{{ project }}"
-    url: "{{ check_url }}"
+# - include: ../../checks/check-branch-sha.yaml
+#   vars:
+#     expected_head: "{{ pr_commit_hash }}"
+#     expected_branch: "pr-2"
+#     project: "{{ project }}"
+#     url: "{{ check_url }}"
 
 - include: ../../checks/check-pullrequest.yaml
   vars:
@@ -87,17 +86,17 @@
     git_pr_branch: "pullrequest_pr"
     git_pr_commit_hash: "{{ pr_2nd_commit_hash }}"
     git_pr_number: "1"
-    git_repo_ssh_url: "{{ lookup('env','WEBHOOK_REPO_PREFIX') }}{{ git_repo_name }}"
+    git_repo_ssh_url: "{{ localgit_url }}/{{ git_repo_name }}"
     git_pr_title: "PR Title - UPDATE"
   tasks:
   - include: ../../tasks/webhook-bitbucket/pullrequest-updated.yaml
 
-- include: ../../checks/check-branch-sha.yaml
-  vars:
-    expected_head: "{{ pr_2nd_commit_hash }}"
-    expected_branch: "pr-2"
-    project: "{{ project }}"
-    url: "{{ check_url }}"
+# - include: ../../checks/check-branch-sha.yaml
+#   vars:
+#     expected_head: "{{ pr_2nd_commit_hash }}"
+#     expected_branch: "pr-2"
+#     project: "{{ project }}"
+#     url: "{{ check_url }}"
 
 - include: ../../checks/check-pullrequest.yaml
   vars:
@@ -118,7 +117,7 @@
     git_pr_branch: "pullrequest_pr"
     git_pr_commit_hash: "00000"
     git_pr_number: "1"
-    git_repo_ssh_url: "{{ lookup('env','WEBHOOK_REPO_PREFIX') }}{{ git_repo_name }}"
+    git_repo_ssh_url: "{{ localgit_url }}/{{ git_repo_name }}"
   tasks:
   - include: ../../tasks/webhook-bitbucket/pullrequest-closed.yaml
 
@@ -127,6 +126,6 @@
   serial: 1
   vars:
     url: "{{ check_url }}"
-    expected_returncode: "{{ lookup('env','DELETED_STATUS_CODE') }}"
+    expected_returncode: "{{ del_status_code }}"
   tasks:
   - include: ../../checks/check-url-returncode.yaml

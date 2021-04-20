@@ -33,14 +33,14 @@ Managing the following settings will require you to have a high level of access 
 
 * Navigate to Settings -&gt; Integrations in your GitLab repository.
 
-![Go to Settings &amp;gt; Integrations in your GitLab repository.](../.gitbook/assets/screen-shot-2020-01-23-at-1.04.06-pm.png)
+![Go to Settings &amp;gt; Integrations in your GitLab repository.](../.gitbook/assets/gitlab-settings.png)
 
 * The `URL` is the route to the `webhook-handler` of your Lagoon instance, provided by your Lagoon administrator.
 * Select the `Trigger` events which will send a notification to Lagoon. We suggest that you send `Push events` and `Merge request events`, and then filter further in the Lagoon configuration of your project.
 
 ![Selecting Trigger events in GitLab.](../.gitbook/assets/gitlab_webhook.png)
 
-* Click `Add webhook`to save your configuration. 
+* Click `Add webhook`to save your configuration.
 
 ## Bitbucket
 

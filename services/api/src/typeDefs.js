@@ -195,12 +195,13 @@ const typeDefs = gql`
     service: String!
   }
 
-
   type Fact {
     id: Int
     environment: Environment
     name: String
     value: String
+    source: String
+    description: String
   }
 
   input AddFactInput {
@@ -208,11 +209,35 @@ const typeDefs = gql`
     environment: Int!
     name: String!
     value: String!
+    source: String!
+    description: String!
+  }
+
+  input AddFactsInput {
+    facts: [AddFactInput]!
+  }
+
+  input UpdateFactInputValue {
+    environment: Int!
+    name: String!
+    value: String!
+    source: String!
+    description: String
+  }
+
+  input UpdateFactInput {
+    environment: Int!
+    patch: UpdateFactInputValue!
   }
 
   input DeleteFactInput {
     environment: Int!
     name: String!
+  }
+
+  input DeleteFactsFromSourceInput {
+    environment: Int!
+    source: String!
   }
 
   type File {
@@ -279,6 +304,19 @@ const typeDefs = gql`
   }
 
   type Openshift {
+    id: Int
+    name: String
+    consoleUrl: String
+    token: String
+    routerPattern: String
+    projectUser: String
+    sshHost: String
+    sshPort: String
+    created: String
+    monitoringConfig: JSON
+  }
+
+  type Kubernetes {
     id: Int
     name: String
     consoleUrl: String
@@ -377,34 +415,34 @@ const typeDefs = gql`
     notifications(type: NotificationType, contentType: NotificationContentType, notificationSeverityThreshold: ProblemSeverityRating): [Notification]
     """
     Which internal Lagoon System is responsible for deploying
-    Currently only 'lagoon_openshiftBuildDeploy' exists
+    Currently only 'lagoon_controllerBuildDeploy' exists
     """
     activeSystemsDeploy: String
     """
     Which internal Lagoon System is responsible for promoting
-    Currently only 'lagoon_openshiftBuildDeploy' exists
+    Currently only 'lagoon_controllerBuildDeploy' exists
     """
     activeSystemsPromote: String
     """
     Which internal Lagoon System is responsible for promoting
-    Currently only 'lagoon_openshiftRemove' exists
+    Currently only 'lagoon_controllerRemove' exists
     """
     activeSystemsRemove: String
     """
     Which internal Lagoon System is responsible for tasks
-    'lagoon_openshiftJob' or 'lagoon_kubernetesJob'
+    Currently only 'lagoon_controllerJob' exists
     """
     activeSystemsTask: String
     """
     Which internal Lagoon System is responsible for miscellaneous tasks
-    'lagoon_openshiftMisc' or 'lagoon_kubernetesMisc'
+    Currently only 'lagoon_controllerMisc' exists
     """
     activeSystemsMisc: String
     """
     Which branches should be deployed, can be one of:
     - \`true\` - all branches are deployed
     - \`false\` - no branches are deployed
-    - REGEX - regex of all branches that should be deployed, example: \`^(master|staging)$\`
+    - REGEX - regex of all branches that should be deployed, example: \`^(main|staging)$\`
     """
     branches: String
     """
@@ -466,6 +504,14 @@ const typeDefs = gql`
     Pattern of OpenShift Project/Namespace that should be generated, default: \`$\{project}-$\{environmentname}\`
     """
     openshiftProjectPattern: String
+    """
+    Reference to Kubernetes Object this Project should be deployed to
+    """
+    kubernetes: Kubernetes
+    """
+    Pattern of Kubernetes Namespace that should be generated, default: \`$\{project}-$\{environmentname}\`
+    """
+    kubernetesNamespacePattern: String
     """
     How many environments can be deployed at one timeout
     """
@@ -549,6 +595,10 @@ const typeDefs = gql`
     Name of the OpenShift Project/Namespace this environment is deployed into
     """
     openshiftProjectName: String
+    """
+    Name of the Kubernetes Namespace this environment is deployed into
+    """
+    kubernetesNamespaceName: String
     """
     Unix Timestamp of the last time this environment has been updated
     """
@@ -742,8 +792,15 @@ const typeDefs = gql`
     environmentByOpenshiftProjectName(
       openshiftProjectName: String!
     ): Environment
+    """
+    Returns Environment Object by a given kubernetesNamespaceName
+    """
+    environmentByKubernetesNamespaceName(
+      kubernetesNamespaceName: String!
+    ): Environment
     userCanSshToEnvironment(
       openshiftProjectName: String
+      kubernetesNamespaceName: String
     ): Environment
     deploymentByRemoteId(id: String): Deployment
     taskByRemoteId(id: String): Task
@@ -760,6 +817,10 @@ const typeDefs = gql`
     Returns all OpenShift Objects
     """
     allOpenshifts: [Openshift]
+    """
+    Returns all Kubernetes Objects
+    """
+    allKubernetes: [Kubernetes]
     """
     Returns all Environments matching given filter (all if no filter defined)
     """
@@ -840,8 +901,10 @@ const typeDefs = gql`
     name: String!
     gitUrl: String!
     subfolder: String
-    openshift: Int!
+    openshift: Int
     openshiftProjectPattern: String
+    kubernetes: Int
+    kubernetesNamespacePattern: String
     activeSystemsDeploy: String
     activeSystemsPromote: String
     activeSystemsRemove: String
@@ -873,13 +936,18 @@ const typeDefs = gql`
     deployHeadRef: String
     deployTitle: String
     environmentType: EnvType!
-    openshiftProjectName: String!
+    openshiftProjectName: String
+    kubernetesNamespaceName: String
   }
 
   input AddOrUpdateEnvironmentStorageInput {
     environment: Int!
     persistentStorageClaim: String!
     bytesUsed: Int!
+    """
+    Date in format 'YYYY-MM-DD'
+    """
+    updated: String
   }
 
   input AddBackupInput {
@@ -996,7 +1064,23 @@ const typeDefs = gql`
     monitoringConfig: JSON
   }
 
+  input AddKubernetesInput {
+    id: Int
+    name: String!
+    consoleUrl: String!
+    token: String
+    routerPattern: String
+    projectUser: String
+    sshHost: String
+    sshPort: String
+    monitoringConfig: JSON
+  }
+
   input DeleteOpenshiftInput {
+    name: String!
+  }
+
+  input DeleteKubernetesInput {
     name: String!
   }
 
@@ -1089,6 +1173,7 @@ const typeDefs = gql`
     activeSystemsRemove: String
     activeSystemsTask: String
     activeSystemsMisc: String
+    activeSystemsPromote: String
     branches: String
     productionEnvironment: String
     productionRoutes: String
@@ -1101,6 +1186,8 @@ const typeDefs = gql`
     pullrequests: String
     openshift: Int
     openshiftProjectPattern: String
+    kubernetes: Int
+    kubernetesNamespacePattern: String
     developmentEnvironmentsLimit: Int
     problemsUi: Int
     factsUi: Int
@@ -1125,6 +1212,22 @@ const typeDefs = gql`
   input UpdateOpenshiftInput {
     id: Int!
     patch: UpdateOpenshiftPatchInput!
+  }
+
+  input UpdateKubernetesPatchInput {
+    name: String
+    consoleUrl: String
+    token: String
+    routerPattern: String
+    projectUser: String
+    sshHost: String
+    sshPort: String
+    monitoringConfig: JSON
+  }
+
+  input UpdateKubernetesInput {
+    id: Int!
+    patch: UpdateKubernetesPatchInput!
   }
 
   input UpdateNotificationMicrosoftTeamsPatchInput {
@@ -1187,10 +1290,15 @@ const typeDefs = gql`
     deployTitle: String
     environmentType: EnvType
     openshiftProjectName: String
+    kubernetesNamespaceName: String
     route: String
     routes: String
     monitoringUrls: String
     autoIdle: Int
+    """
+    Timestamp in format 'YYYY-MM-DD hh:mm:ss'
+    """
+    created: String
   }
 
   input UpdateEnvironmentInput {
@@ -1460,6 +1568,10 @@ const typeDefs = gql`
     updateOpenshift(input: UpdateOpenshiftInput!): Openshift
     deleteOpenshift(input: DeleteOpenshiftInput!): String
     deleteAllOpenshifts: String
+    addKubernetes(input: AddKubernetesInput!): Kubernetes
+    updateKubernetes(input: UpdateKubernetesInput!): Kubernetes
+    deleteKubernetes(input: DeleteKubernetesInput!): String
+    deleteAllKubernetes: String
     addProject(input: AddProjectInput!): Project
     updateProject(input: UpdateProjectInput!): Project
     deleteProject(input: DeleteProjectInput!): String
@@ -1485,7 +1597,9 @@ const typeDefs = gql`
     deleteProblemsFromSource(input: DeleteProblemsFromSourceInput!): String
     deleteProblemHarborScanMatch(input: DeleteProblemHarborScanMatchInput!): String
     addFact(input: AddFactInput!): Fact
+    addFacts(input: AddFactsInput!): [Fact]
     deleteFact(input: DeleteFactInput!): String
+    deleteFactsFromSource(input: DeleteFactsFromSourceInput!): String
     deleteBackup(input: DeleteBackupInput!): String
     deleteAllBackups: String
     addRestore(input: AddRestoreInput!): Restore

@@ -15,7 +15,7 @@
   serial: 1
   vars:
     git_hash_push: "{{ first_commit_hash }}"
-    git_repo_ssh_url: "{{ lookup('env','WEBHOOK_REPO_PREFIX') }}{{ git_repo_name }}"
+    git_repo_ssh_url: "{{ localgit_url }}/{{ git_repo_name }}"
   tasks:
   - include: ../../tasks/webhook-gitlab/push.yaml
 
@@ -40,7 +40,7 @@
   serial: 1
   vars:
     git_hash_push: "{{ second_commit_hash }}"
-    git_repo_ssh_url: "{{ lookup('env','WEBHOOK_REPO_PREFIX') }}{{ git_repo_name }}"
+    git_repo_ssh_url: "{{ localgit_url }}/{{ git_repo_name }}"
   tasks:
   - include: ../../tasks/webhook-gitlab/push-skipdeploy.yaml
 
@@ -58,3 +58,20 @@
     expected_branch: "{{ branch }}"
     project: "{{ project }}"
     url: "{{ check_url }}"
+
+- name: "{{ testname }} - webhook gitlab delete push"
+  hosts: localhost
+  serial: 1
+  vars:
+    git_repo_ssh_url: "{{ localgit_url }}/{{ git_repo_name }}"
+  tasks:
+  - include: ../../tasks/webhook-gitlab/push-delete.yaml
+
+- name: "{{ testname }} - check if site for project does not exist anymore"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "{{ check_url }}"
+    expected_returncode: "{{ del_status_code }}"
+  tasks:
+  - include: ../../checks/check-url-returncode.yaml

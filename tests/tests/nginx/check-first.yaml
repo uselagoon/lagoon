@@ -2,7 +2,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
     expected_content: "Hello World!"
   tasks:
   - include: ../../checks/check-url-content.yaml
@@ -11,8 +11,8 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "https://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }}:{{ lookup('env','ROUTE_SUFFIX_HTTPS_PORT') }}"
-    host: "nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    url: "https://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix_https }}"
+    host: "nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
     expected_content: "Hello World!"
   tasks:
   - include: ../../checks/check-url-content-host.yaml
@@ -21,7 +21,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
     host: "insecure-allow.com"
     expected_content: "Hello World!"
   tasks:
@@ -31,7 +31,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "https://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }}:{{ lookup('env','ROUTE_SUFFIX_HTTPS_PORT') }}"
+    url: "https://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix_https }}"
     host: "insecure-allow.com"
     expected_content: "Hello World!"
   tasks:
@@ -41,9 +41,9 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
     host: "insecure-redirect.com"
-    expected_redirect_location: "https://insecure-redirect.com/$"
+    expected_redirect_location: "https://insecure-redirect.com/?$"
   tasks:
   - include: ../../checks/check-url-redirect-host.yaml
 
@@ -51,7 +51,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "https://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }}:{{ lookup('env','ROUTE_SUFFIX_HTTPS_PORT') }}"
+    url: "https://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix_https }}"
     host: "insecure-redirect.com"
     expected_content: "Hello World!"
   tasks:
@@ -62,7 +62,7 @@
   serial: 1
   tags: skip-on-kubernetes
   vars:
-    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
     host: "insecure-none.com"
     expected_returncode: 503
   tasks:
@@ -72,7 +72,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "https://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }}:{{ lookup('env','ROUTE_SUFFIX_HTTPS_PORT') }}"
+    url: "https://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix_https }}"
     host: "insecure-none.com"
     expected_content: "Hello World!"
   tasks:
@@ -82,7 +82,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "https://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }}:{{ lookup('env','ROUTE_SUFFIX_HTTPS_PORT') }}"
+    url: "https://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix_https }}"
     host: "moving-route.com"
     expected_content: "Hello World!"
   tasks:
@@ -93,7 +93,7 @@
   serial: 1
   tags: skip-on-kubernetes
   vars:
-    url: "https://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }}:{{ lookup('env','ROUTE_SUFFIX_HTTPS_PORT') }}"
+    url: "https://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix_https }}"
     host: "hsts-header.com"
     expected_returncode: 200
     expected_header: "strict_transport_security"
@@ -106,7 +106,7 @@
   serial: 1
   tags: skip-on-kubernetes
   vars:
-    url: "https://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }}:{{ lookup('env','ROUTE_SUFFIX_HTTPS_PORT') }}"
+    url: "https://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix_https }}"
     host: "hsts-header-null.com"
     expected_returncode: 200
     expected_header: "strict_transport_security"
@@ -117,7 +117,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}/redirect-no-preserve/should/be/missing?arg1"
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/redirect-no-preserve/should/be/missing?arg1"
     expected_redirect_location: "foo.com$"
   tasks:
   - include: ../../checks/check-url-redirect.yaml
@@ -126,7 +126,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}/redirect-preserve/should/be/existing?arg1"
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/redirect-preserve/should/be/existing?arg1"
     expected_redirect_location: "foo.com/redirect-preserve/should/be/existing\\?arg1$"
   tasks:
   - include: ../../checks/check-url-redirect.yaml
@@ -135,7 +135,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}/redirect-preserve-uri-only/should/be/existing?should-be-gone"
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/redirect-preserve-uri-only/should/be/existing?should-be-gone"
     expected_redirect_location: "foo.com/redirect-preserve-uri-only/should/be/existing$"
   tasks:
   - include: ../../checks/check-url-redirect.yaml
@@ -144,7 +144,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}/redirect-strip-args-handling/should/be/existing?arg1"
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/redirect-strip-args-handling/should/be/existing?arg1"
     expected_redirect_location: "foo.com/should/be/existing\\?arg1$"
   tasks:
   - include: ../../checks/check-url-redirect.yaml
@@ -153,7 +153,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://nginx-basic-auth.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    url: "http://nginx-basic-auth.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
     expected_returncode: 401
   tasks:
   - include: ../../checks/check-url-returncode.yaml
@@ -162,7 +162,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://nginx-basic-auth.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    url: "http://nginx-basic-auth.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
     expected_content: "Hello World!"
     user: "username"
     password: "password"
@@ -173,7 +173,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://nginx-basic-auth-disable.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    url: "http://nginx-basic-auth-disable.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
     expected_content: "Hello World!"
   tasks:
   - include: ../../checks/check-url-content.yaml
@@ -182,7 +182,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "https://nginx-basic-auth.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }}:{{ lookup('env','ROUTE_SUFFIX_HTTPS_PORT') }}"
+    url: "https://nginx-basic-auth.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix_https }}"
     expected_content: "Hello World!"
     user: "username"
     password: "password"

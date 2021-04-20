@@ -37,7 +37,7 @@
 - include: ../../checks/check-branch-sha.yaml
   vars:
     expected_head: "{{ current_head }}"
-    expected_branch: "{{ promote_environment }}"
+    expected_branch: ""
     expected_branch_buildtime: "{{ source_environment }}"
     project: "{{ project }}"
     url: "{{ check_url_promote }}"
@@ -65,7 +65,7 @@
   serial: 1
   vars:
     url: "{{ check_url_promote }}"
-    expected_returncode: "{{ lookup('env','DELETED_STATUS_CODE') }}"
+    expected_returncode: "{{ del_status_code }}"
   tasks:
   - include: ../../checks/check-url-returncode.yaml
 
@@ -74,6 +74,6 @@
   serial: 1
   vars:
     url: "{{ check_url_source }}"
-    expected_returncode: "{{ lookup('env','DELETED_STATUS_CODE') }}"
+    expected_returncode: "{{ del_status_code }}"
   tasks:
   - include: ../../checks/check-url-returncode.yaml

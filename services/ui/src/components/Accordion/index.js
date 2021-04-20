@@ -1,5 +1,6 @@
 import React, { useState, Fragment } from "react";
 import PropTypes from "prop-types";
+import { bp, color, fontSize } from 'lib/variables';
 
 const Accordion = ({ children, defaultValue = true, minified = false, className = "", onToggle, columns }) => {
     const [visibility, setVisibility] = useState(defaultValue);
@@ -20,16 +21,17 @@ const Accordion = ({ children, defaultValue = true, minified = false, className 
                 .accordion-meta-heading {
                     display: flex;
                     justify-content: space-between;
-                    background: #f2f2f2;
+                    background: ${color.lightestGrey};
                     padding: 5px 20px;
                 }
                 .accordion-heading {
                     display: flex;
                     justify-content: space-between;
                     padding: 20px 12px;
-                    border: 1px solid #efefef;
-                    background: #fff;
+                    border: 1px solid ${color.lightestGrey};
+                    background: ${color.white};
                     cursor: pointer;
+                    word-break: break-word;
 
                     &.minified {
                       padding: 1em;

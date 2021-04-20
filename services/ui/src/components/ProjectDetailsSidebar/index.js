@@ -201,6 +201,10 @@ const Project = ({ project }) => {
               &::before {
                 background-image: url('/static/images/branches.svg');
               }
+              
+              .field {
+                white-space: break-spaces;
+              }
             }
 
             &.prs {

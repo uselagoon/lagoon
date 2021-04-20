@@ -29,7 +29,7 @@ If all is correct, you will see a notification in your configured chat system \(
 
 ![Slack notification of a deployment starting.](../.gitbook/assets/first_deployment_slack_start.jpg)
 
-This tells you that Lagoon has just started to deploy your code. Depending on the size of the codebase and amount of containers, this will take a couple of seconds. Just relax. If you'd like to know what's happening now, check out the[ Build and Deploy Process of Lagoon](../using-lagoon-the-basics/build-and-deploy-process.md).
+This tells you that Lagoon has just started to deploy your code. Depending on the size of the codebase and amount of containers, this will take a couple of seconds. Just relax. If you'd like to know what's happening now, check out the [Build and Deploy Process of Lagoon](../using-lagoon-the-basics/build-and-deploy-process.md).
 
 You can also check your Lagoon UI to see the progress of any deployment \(your Lagoon administrator has the info\).
 
@@ -44,7 +44,7 @@ With full Drush site alias support in Lagoon, you can synchronize a local databa
 {% hint style="warning" %}
 You may have to tell pygmy about your public keys before the next step.
 
-If you get an error like `Permission denied (publickey)`, check out the documentation here: [pygmy - adding ssh keys](https://pygmy.readthedocs.io/en/master/usage/#adding-ssh-keys)
+If you get an error like `Permission denied (publickey)`, check out the documentation here: [pygmy - adding ssh keys](https://docs.lagoon.sh/pygmy/ssh-agent)
 {% endhint %}
 
 First let's make sure that you can see the Drush site aliases:

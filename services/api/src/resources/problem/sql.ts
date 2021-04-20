@@ -24,7 +24,7 @@ const standardProblemHarborScanMatchReturn = {
     description: 'description',
     default_lagoon_project: 'defaultLagoonProject',
     default_lagoon_environment: 'defaultLagoonEnvironment',
-    default_lagoon_service_name: 'defaultLagoonServiceName',
+    default_lagoon_service: 'defaultLagoonServiceName',
     regex: 'regex'
 };
 
@@ -38,7 +38,7 @@ export const Sql = {
     let q = knex('environment_problem as p')
     .join('environment as e', {environment: 'e.id'}, '=', {environment: 'p.environment'})
     .where('p.deleted', '=', '0000-00-00 00:00:00')
-    .select('p.*', {environment: 'e.id'}, { name: 'e.name', project: 'e.project',
+    .select('p.*', {service: 'p.lagoon_service'}, {environment: 'e.id'}, { name: 'e.name', project: 'e.project',
         environmentType: 'e.environment_type', openshiftProjectName: 'e.openshift_project_name'});
 
     if (environmentType.length > 0) {
@@ -91,15 +91,15 @@ export const Sql = {
       .update({ deleted: knex.fn.now() })
       .toString(),
   deleteProblemsFromSource: (environment, source, service) =>
-      knex('environment_problem')
-        .where({
-          environment: environment,
-          source: source,
-          lagoon_service: service,
-        })
-        .where('deleted', '=', '0000-00-00 00:00:00')
-        .update({ deleted: knex.fn.now() })
-        .toString(),
+    knex('environment_problem')
+      .where({
+        environment: environment,
+        source: source,
+        lagoon_service: service,
+      })
+      .where('deleted', '=', '0000-00-00 00:00:00')
+      .update({ deleted: knex.fn.now() })
+      .toString(),
   selectAllProblemHarborScanMatches: () =>
   knex('problem_harbor_scan_matcher')
   .select(standardProblemHarborScanMatchReturn).toString(),

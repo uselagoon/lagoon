@@ -18,6 +18,26 @@ const options = {
 
 const gitlabapi = axios.create(options);
 
+export const secureGitlabSystemHooks = [
+  'group_create',
+  'group_rename',
+  'group_destroy',
+  'project_create',
+  'project_transfer',
+  'project_rename',
+  'project_update',
+  'project_destroy',
+  'user_create',
+  'user_rename',
+  'user_destroy',
+  'user_add_to_group',
+  'user_remove_from_group',
+  'user_add_to_team',
+  'user_remove_from_team',
+  'key_create',
+  'key_destroy',
+];
+
 class NetworkError extends Error {
   constructor(message: string) {
     super(message);

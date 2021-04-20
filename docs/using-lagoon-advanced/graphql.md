@@ -52,7 +52,7 @@ query whatIsThere {
 }
 ```
 
-And press the ▶️button \(or press CTRL+ENTER\).
+And press the ▶️ button \(or press CTRL+ENTER\).
 
 ![Entering a query in the GraphiQL UI.](../.gitbook/assets/graphiql-2020-01-29-18-07-28.png)
 
@@ -82,7 +82,7 @@ Important: This requires a redeploy in order for all changes to be reflected in 
 
 ```graphql
 mutation editProjectProductionEnvironment {
-  updateProject(input:{id:109, patch:{productionEnvironment:"master"}}) {
+  updateProject(input:{id:109, patch:{productionEnvironment:"prod"}}) {
     id
   }
 }
@@ -92,7 +92,7 @@ You can also combine multiple changes into a single query:
 
 ```graphql
 mutation editProjectProductionEnvironmentAndBranches {
-  updateProject(input:{id:109, patch:{productionEnvironment:"master", branches:"^(prod|stage|dev|update)$"}}) {
+  updateProject(input:{id:109, patch:{productionEnvironment:"prod", branches:"^(prod|stage|dev|update)$"}}) {
     id
   }
 }

@@ -13,7 +13,7 @@ const LAGOON_SYNC_GROUP = R.propOr(
 interface BitbucketUser {
   name: string;
   displayName: string;
-  emailAddress: string;
+  emailAddress?: string;
   id: number;
 }
 
@@ -26,6 +26,8 @@ const BitbucketPermsToLagoonPerms = {
   REPO_WRITE: 'DEVELOPER',
   REPO_ADMIN: 'MAINTAINER'
 };
+
+const isNotEmpty = R.complement(R.isEmpty);
 
 // Returns true if user was added or already exists.
 // Returns false if adding user failed and no user exists.
@@ -45,6 +47,20 @@ const addUser = async (email: string): Promise<boolean> => {
   return true;
 }
 
+const getBitbucketRepo = async (gitUrl: string, projectName: string) => {
+  // Find the repo based on gitUrl to properly sync polysite permissions
+  const repoNameFromGitUrl = R.match(/([^/]+)\.git/, gitUrl);
+  if (isNotEmpty(repoNameFromGitUrl)) {
+    const repo = await bitbucketApi.searchReposByName(repoNameFromGitUrl[1]);
+    if (repo) {
+      return repo;
+    }
+  }
+
+  // Fallback to search based on lagoon project name
+  return bitbucketApi.searchReposByName(projectName);
+}
+
 (async () => {
   // Keep track of users we know exist to avoid API calls
   let existingUsers = [];
@@ -58,23 +74,30 @@ const addUser = async (email: string): Promise<boolean> => {
   logger.info(`Syncing users for ${projects.length} project(s)`);
 
   for (const project of projects) {
-    const projectName = R.prop('name', project);
+    const gitUrl = R.prop('gitUrl', project) as string;
+    const projectName = R.prop('name', project) as string;
     const lagoonProjectGroup = `project-${projectName}`;
-    const repo = await bitbucketApi.searchReposByName(projectName);
+
+    const repo = await getBitbucketRepo(gitUrl, projectName);
     if (!repo) {
-      logger.warn(`No bitbuket repo found for: ${projectName}`);
+      logger.warn(`No bitbucket repo found for project "${projectName}", gitUrl "${gitUrl}"`);
       continue;
     }
 
     const bbProject = R.path(['project', 'key'], repo);
     const bbRepo = R.prop('slug', repo);
-    logger.debug(`Processing ${bbRepo}`);
+    logger.debug(`Processing project "${projectName}", bitbucket "${bbRepo}"`);
 
     let userPermissions = [];
     try {
-      userPermissions = await bitbucketApi.getRepoUsers(bbProject, bbRepo);
+      const permissions = await bitbucketApi.getRepoUsers(bbProject, bbRepo);
+
+      // Useres w/o an email address were deleted/deactivated, but somehow
+      // still returned in the API
+      // @ts-ignore
+      userPermissions = R.filter(R.propSatisfies(R.has('emailAddress'), 'user'), permissions);
     } catch (e) {
-      logger.warn(`Could not load users for repo: ${R.prop('slug', repo)}`);
+      logger.warn(`Could not load users for repo ${R.prop('slug', repo)}: ${e.message}`);
       continue;
     }
 
@@ -83,19 +106,19 @@ const addUser = async (email: string): Promise<boolean> => {
       const bbUser = userPermission.user as BitbucketUser;
       const bbPerm = userPermission.permission;
 
-      const email = bbUser.emailAddress.toLowerCase();
+      try {
+        const email = bbUser.emailAddress.toLowerCase();
 
-      if (!R.contains(email, existingUsers)) {
-        const userAddedOrExists = await addUser(email);
-        if (!userAddedOrExists) {
-          // Errors for this case are logged in addUser
-          continue;
+        if (!R.contains(email, existingUsers)) {
+          const userAddedOrExists = await addUser(email);
+          if (!userAddedOrExists) {
+            // Errors for this case are logged in addUser
+            continue;
+          }
+
+          existingUsers.push(email);
         }
 
-        existingUsers.push(email);
-      }
-
-      try {
         await api.addUserToGroup(
           email,
           lagoonProjectGroup,
@@ -103,7 +126,7 @@ const addUser = async (email: string): Promise<boolean> => {
         );
       } catch (err) {
         logger.error(
-          `Could not add user (${email}) to group (${lagoonProjectGroup}): ${err.message}`
+          `Could not add user (${bbUser.name}) to group (${lagoonProjectGroup}): ${err.message}`
         );
       }
     }

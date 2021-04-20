@@ -1,0 +1,67 @@
+{{ if .Capabilities.APIVersions.Has "backup.appuio.ch/v1alpha1/PreBackupPod" }}
+apiVersion: backup.appuio.ch/v1alpha1
+kind: PreBackupPod
+metadata:
+  name: {{ include "mongodb-dbaas.fullname" . }}-prebackuppod
+  labels:
+    {{- include "mongodb-dbaas.labels" . | nindent 4 }}
+  annotations:
+    {{- include "mongodb-dbaas.annotations" . | nindent 4 }}
+spec:
+  backupCommand: /bin/sh -c "mongodump --uri=mongodb://${BACKUP_DB_USER}:${BACKUP_DB_PASSWORD}@${BACKUP_DB_HOST}:${BACKUP_DB_PORT}/${BACKUP_DB_NAME}?ssl=true&sslInsecure=true&tls=true&tlsInsecure=true --archive"
+  fileExtension: .{{ include "mongodb-dbaas.fullname" . }}.bson
+  pod:
+    metadata:
+      labels:
+        prebackuppod: {{ include "mongodb-dbaas.fullname" . }}
+        {{- include "mongodb-dbaas.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - args:
+            - sleep
+            - infinity
+          env:
+            - name: BACKUP_DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  key: {{ include "mongodb-dbaas.fullnameUppercase" . }}_HOST
+                  name: lagoon-env
+            - name: BACKUP_DB_USER
+              valueFrom:
+                configMapKeyRef:
+                  key: {{ include "mongodb-dbaas.fullnameUppercase" . }}_USER
+                  name: lagoon-env
+            - name: BACKUP_DB_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  key: {{ include "mongodb-dbaas.fullnameUppercase" . }}_PASSWORD
+                  name: lagoon-env
+            - name: BACKUP_DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  key: {{ include "mongodb-dbaas.fullnameUppercase" . }}_DB_NAME
+                  name: lagoon-env
+            - name: BACKUP_DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: {{ include "mongodb-dbaas.fullnameUppercase" . }}_DB_PORT
+                  name: lagoon-env
+            - name: BACKUP_DB_AUTHSOURCE
+              valueFrom:
+                configMapKeyRef:
+                  key: {{ include "mongodb-dbaas.fullnameUppercase" . }}_DB_AUTHSOURCE
+                  name: lagoon-env
+            - name: BACKUP_DB_AUTHMECHANISM
+              valueFrom:
+                configMapKeyRef:
+                  key: {{ include "mongodb-dbaas.fullnameUppercase" . }}_DB_AUTHMECHANISM
+                  name: lagoon-env
+            - name: BACKUP_DB_AUTHTLS
+              valueFrom:
+                configMapKeyRef:
+                  key: {{ include "mongodb-dbaas.fullnameUppercase" . }}_DB_AUTHTLS
+                  name: lagoon-env
+          image: imagecache.amazeeio.cloud/uselagoon/php-8.0-cli
+          imagePullPolicy: Always
+          name: {{ include "mongodb-dbaas.fullname" . }}-prebackuppod
+{{ end }}

@@ -8,16 +8,20 @@ Even though Lagoon has only a hard dependency on Docker and [Docker Compose](htt
 * A system that receives and displays mail locally.
 
 {% hint style="warning" %}
-You do not need to _install_ Lagoon locally in order to _use_ it locally! That sounds confusing, but follow the documentation. Lagoon is the system that **deploys** your local development environment to your production environment, it's **not** the environment itself.
+You do not need to _install_ Lagoon locally to _use_ it locally! That sounds confusing but follow the documentation. Lagoon is the system that **deploys** your local development environment to your production environment, it's **not** the environment itself.
 {% endhint %}
 
-Lagoon currently works best with `pygmy` , which is the amazee.io flavored system of the above tools and works out of the box with Lagoon.
+## pygmy or Lando - the choice is yours
 
-`pygmy` is a [Ruby](https://www.ruby-lang.org/en/) gem, so to install it, run: `gem install pygmy`.
+Lagoon has traditionally worked best with `pygmy` , which is the amazee.io flavored system of the above tools and works out of the box with Lagoon.  It lives at [https://github.com/amazeeio/pygmy](https://github.com/amazeeio/pygmy)
 
-For detailed usage info on `pygmy`, see the [documentation of pygmy](https://pygmy.readthedocs.io/).
+`pygmy` is a [Ruby](https://www.ruby-lang.org/en/) gem, so to install it, run: `gem install pygmy`.  For detailed usage info on pygmy, see its [documentation](https://docs.lagoon.sh/pygmy/).
 
-[Lando integration with Lagoon is coming soon!](https://www.amazee.io/blog/post/announcing-lando-integration-for-lagoon)
+As announced in our [blog post](https://www.amazee.io/blog/post/announcing-lando-integration-for-lagoon), Lagoon is now also compatible with Lando!  For more information, please see the documentation at [https://docs.lando.dev/config/lagoon.html](https://docs.lando.dev/config/lagoon.html) to get yourself up and running.
 
-We are evaluating adding support for other systems like [Docksal](https://docksal.io/), [DDEV](https://www.ddev.com/ddev-local/), and [Docker4Drupal](https://wodby.com/docs/stacks/drupal/local/), and will possibly add full support for these in the future. If you do have Lagoon running with a system like these, we would love for you to submit a [PR on GitHub](https://github.com/amazeeio/pygmy)!
+Lando's workflow for Lagoon will be familiar to users of Lando, and will also be the easiest way for Lagoon newcomers to get up and running.  Pygmy presents a closer integration with Docker, which will lend itself better to more complex scenarios and use cases but will also require a deeper understanding.
+
+There is also a community-built fork of Pygmy, re-written in Go, available at [https://github.com/fubarhouse/pygmy-go](https://github.com/fubarhouse/pygmy-go) that presents even more opportunity for local customisation and control.
+
+We have previously evaluated adding support for other systems like [Docksal](https://docksal.io/), [DDEV](https://www.ddev.com/ddev-local/), and [Docker4Drupal](https://wodby.com/docs/stacks/drupal/local/), and whilst we may add support for these in the future, our current focus is on supporting using Lando and pygmy. If you do have Lagoon running with one of these \(or other\) tools, we would love for you to submit a [PR on GitHub](https://github.com/amazeeio/pygmy)!
 

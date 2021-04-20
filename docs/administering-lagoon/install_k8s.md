@@ -101,11 +101,11 @@ k3s by Rancher: [rancher/k3s](https://github.com/rancher/k3s)
 
     ```plain-text
     NAME             NAMESPACE
-    dbaas-operator 	 dbaas-operator
-    k8up           	 k8up
-    lagoon-remote  	 lagoon
-    mariadbprovider	 dbaas-operator
-    nginx          	 kube-system
+    dbaas-operator   dbaas-operator
+    k8up             k8up
+    lagoon-remote    lagoon
+    mariadbprovider  dbaas-operator
+    nginx            kube-system
     ```
 
 ## Deploy Lagoon on Kubernetes

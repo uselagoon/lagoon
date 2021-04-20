@@ -286,25 +286,6 @@ export const updateRestore = (
     { backupId, patch }
   );
 
-export const getAllEnvironmentBackups = (): Promise<Project[]> =>
-  graphqlapi.query(
-    `
-  {
-    allEnvironments {
-      id
-      name
-      openshiftProjectName
-      project {
-        name
-      }
-      backups {
-        ...${backupFragment}
-      }
-    }
-  }
-`
-  );
-
 export const getEnvironmentBackups = (
   openshiftProjectName: string
 ): Promise<any[]> =>
@@ -653,6 +634,23 @@ export async function getProjectByName(project: string): Promise<any> {
   return result.project;
 }
 
+export const allProjectsInGroup = (groupInput: {
+  id?: string;
+  name?: string;
+}): Promise<any[]> =>
+  graphqlapi.query(
+    `
+    query($groupInput: GroupInput!) {
+      allProjectsInGroup(input: $groupInput) {
+        ...${projectFragment}
+      }
+    }
+  `,
+    {
+      groupInput
+    }
+  );
+
 export async function getMicrosoftTeamsInfoForProject(
   project: string, contentType = 'DEPLOYMENT'
 ): Promise<any[]> {
@@ -843,6 +841,36 @@ export async function getEnvironmentByName(
   if (!result || !result.environmentByName) {
     throw new EnvironmentNotFound(
       `Cannot find environment for projectId ${projectId}, name ${name}\n${result.environmentByName}`
+    );
+  }
+
+  return result;
+}
+
+
+export async function getEnvironmentById(
+  id: number
+): Promise<any> {
+  const result = await graphqlapi.query(`
+    {
+      environmentById(id: ${id}) {
+        id,
+        name,
+        route,
+        routes,
+        deployType,
+        environmentType,
+        openshiftProjectName,
+        updated,
+        created,
+        deleted,
+      }
+    }
+  `);
+
+  if (!result || !result.environmentById) {
+    throw new EnvironmentNotFound(
+      `Cannot find environment for id ${id}\n${result.environmentById}`
     );
   }
 
@@ -1071,17 +1099,6 @@ export const getEnvironmentsForProject = (
       environments(includeDeleted:false) { name, environmentType }
     }
   }
-`);
-
-export const getProductionEnvironmentForProject = (
-  project: string
-): Promise<any> =>
-  graphqlapi.query(`
-    {
-      project:projectByName(name: "${project}"){
-        productionEnvironment
-      }
-    }
 `);
 
 export const setEnvironmentServices = (
@@ -1419,7 +1436,7 @@ fragment on Problem {
   data
   created
   deleted
-} 
+}
 `);
 
 export const getProblemsforProjectEnvironment = async (

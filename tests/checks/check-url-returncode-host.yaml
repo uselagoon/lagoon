@@ -1,5 +1,5 @@
 ---
-- name: "{{ testname }} - Check if URL {{url}} with sending Host: {{ host }} returns with return code {{expected_returncode}}"
+- name: "{{ testname }} - Check if URL {{ url }} with sending Host: {{ host }} returns with return code {{ expected_returncode }}"
   uri:
     url: "{{ url }}"
     status_code: "{{ expected_returncode }}"
@@ -7,8 +7,8 @@
     validate_certs: no
   register: result
   until: result.status is defined and result.status == expected_returncode|int
-  retries: 20
-  delay: 10
-- name: "{{ testname }} - Check if URL {{url}} with sending Host: {{ host }} returns with return code {{expected_returncode}}"
+  retries: 90
+  delay: 20
+- name: "{{ testname }} - Check if URL {{ url }} with sending Host: {{ host }} returns with return code {{ expected_returncode }}"
   debug: msg="Success!!!"
 

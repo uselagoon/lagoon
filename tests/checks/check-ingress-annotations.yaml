@@ -1,19 +1,15 @@
 ---
-- name: "{{ testname }} - Check if {{ingress}} ingress of namespace {{ project }}-{{ branch }} has annotation"
+- name: "{{ testname }} - Check if {{ ingress }} ingress of namespace {{ project }}-{{ branch }} has annotation"
   shell: |
     set -e
-    export KUBECONFIG=$(mktemp)
-    echo "{{ kubeconfig }}" > $KUBECONFIG
-    # replace with the IP of host from within container
-    sed -i "s/localhost/$(ip -4 route list match 0/0 | cut -d' ' -f3)/" $KUBECONFIG
     # create the $annotation and $value variables from item
     eval $(echo "{{ item }}" | awk -F= '{sep=index($0,"="); print "annotation=\"" $1 "\" value=\"" substr($0,sep+1) "\""}')
-    [ $(kubectl --insecure-skip-tls-verify=true -n {{ project }}-{{ branch }} get ingress {{ingress}} -o json |
+    [ $(kubectl -n {{ project }}-{{ branch }} get ingress {{ ingress }} -o json |
     jq -er ".metadata.annotations | .\"$annotation\"") = "$value" ]
   loop: "{{ expected_annotations }}"
   register: result
-  retries: 20
+  retries: 30
   delay: 10
   until: result.rc == 0
-- name: "{{ testname }} - Check if {{ingress}} ingress of namespace {{ project }}-{{ branch }} has annotation"
+- name: "{{ testname }} - Check if {{ ingress }} ingress of namespace {{ project }}-{{ branch }} has annotation"
   debug: msg="Success!!!"

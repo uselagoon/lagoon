@@ -28,6 +28,10 @@ const DefaultDisplay = ({ problem }) => {
                 <label>Associated link (CVE)</label>
                 <div className="links"><a href={problem.links} target="_blank">{problem.links}</a></div>
             </div>)}
+            {problem.service && problem.service.length > 0 && (<div className="field-wrapper">
+                <label>Service</label>
+                <div className="service">{problem.service}</div>
+            </div>)}
             <div className="rawdata">
                 <label>Data</label>
                 <div className="rawdata-elements">
@@ -88,6 +92,7 @@ const DefaultDisplay = ({ problem }) => {
                       font-size: 1em;
                       width: 100%;
                       white-space: pre-wrap;
+                      overflow-y: scroll;
                     }
                     .row-heading {
                       cursor: pointer;

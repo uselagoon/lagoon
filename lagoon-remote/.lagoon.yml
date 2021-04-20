@@ -1,7 +1,0 @@
-docker-compose-yaml: docker-compose.yaml
-
-additional-yaml:
-  harbor-secrets:
-    path: ../.lagoon.harbor-secrets.yaml
-    command: create
-    ignore_error: true

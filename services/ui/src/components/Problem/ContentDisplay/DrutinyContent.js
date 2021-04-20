@@ -1,12 +1,15 @@
 import React from "react";
 import { bp, color, fontSize } from 'lib/variables';
 import { getCreatedDate } from "components/Dates";
+import TableDisplay from "components/TableDisplay";
 
 const DrutinyDisplay = ({ problem }) => {
 
     const createdDate = getCreatedDate(problem.created);
     const data = JSON.parse(problem.data) || "";
     const environment = problem.environment;
+    const source = problem.source || "";
+    const columns = ['Module', 'Version', 'Latest'];
 
     return (
         <div className="content-display-wrapper">
@@ -18,21 +21,30 @@ const DrutinyDisplay = ({ problem }) => {
                 <label>Description</label>
                 <div className="description">{data.description}</div>
             </div>)}
-            {data.failure && (<div className="data-wrapper">
-                <label>{data.type ? data.type : 'Results'}</label>
-                <div className="data"><pre>{data.failure}</pre></div>
-            </div>)}
             {data.remediation && (<div className="field-wrapper">
                 <label>Remediation</label>
                 <div className="remediation">{data.remediation}</div>
             </div>)}
+            {source === "Drutiny-algm:D8ModuleUpdates" ? (
+              <div className="data-wrapper">
+                <label>Module Updates</label>
+                <div className="table">
+                  <TableDisplay columns={columns} data={JSON.parse(data.failure)}/>
+                </div>
+              </div>
+            ) : (
+              <div className="data-wrapper">
+                <label>{data.type ? data.type : 'Results'}</label>
+                <div className="data"><pre>{data.failure}</pre></div>
+              </div>
+            )}
             {data.severity && (<div className="field-wrapper">
                 <label>Severity</label>
                 <div className="severity">{data.severity}</div>
             </div>)}
             {data.service && (<div className="field-wrapper">
                 <label>Service</label>
-                <div className="severity">{data.service}</div>
+                <div className="service">{data.service}</div>
             </div>)}
             {data.created && (<div className="field-wrapper">
                 <label>Last detected</label>
@@ -55,6 +67,10 @@ const DrutinyDisplay = ({ problem }) => {
                 }
                 .data-wrapper {
                     margin-bottom: 30px;
+                }
+                .table {
+                  display: flex;
+                  flex-direction: column;
                 }
                 .data {
                     background: #2d2d2d;

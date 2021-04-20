@@ -1,6 +1,6 @@
 # NGINX
 
-The [Lagoon `nginx` image Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/nginx/Dockerfile). Based on the official [`openresty/openresty` images](https://hub.docker.com/r/openresty/openresty/).
+The [Lagoon `nginx` image Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/nginx/Dockerfile). Based on the official [`openresty/openresty` images](https://hub.docker.com/r/openresty/openresty/).
 
 This Dockerfile is intended to be used as a base for any web servers within Lagoon.
 
@@ -23,8 +23,6 @@ Build the content during the build process and inject it into the `nginx` contai
 
 ## Helpers
 
-{% embed url="https://www.youtube.com/watch?v=xQ7A-e8UPzY" caption="How do I add a redirect in Lagoon?" %}
-
 ### `redirects-map.conf`
 
 In order to create redirects, we have `redirects-map.conf` in place. This helps you to redirect marketing domains to sub-sites or do non-www to www redirects. **If you have a lot of redirects, we suggest having `redirects-map.conf` stored next to your code for easier maintainability.**
@@ -39,7 +37,7 @@ Here's an example showing how to redirect `www.example.com` to `example.com` and
 RUN echo "~^www.example.com http://example.com\$request_uri;" >> /etc/nginx/redirects-map.conf
 ```
 
-To get more details about the various types of redirects that can be achieved, see the documentation within the [`redirects-map.conf`](https://github.com/amazeeio/lagoon/blob/master/images/nginx/redirects-map.conf) directly.
+To get more details about the various types of redirects that can be achieved, see the documentation within the [`redirects-map.conf`](https://github.com/uselagoon/lagoon-images/blob/main/images/nginx/redirects-map.conf) directly.
 
 After you put the `redirects-map.conf` in place, you also need to include it in your `nginx.dockerfile` in order to get the configuration file into your build.
 

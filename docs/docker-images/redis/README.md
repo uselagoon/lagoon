@@ -1,12 +1,13 @@
 # Redis
 
-[Lagoon `Redis` image Dockerfile](https://github.com/amazeeio/lagoon/blob/master/images/redis/Dockerfile), based on [offical `redis:alpine` image](https://hub.docker.com/_/redis/).
+[Lagoon `Redis` image Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/redis), based on [offical `redis:alpine` image](https://hub.docker.com/_/redis/).
 
 This Dockerfile is intended to be used to set up a standalone Redis _ephemeral_ server by default.
 
-## Version
+## Supported versions
 
-Currently supports alpine version 5.x.
+* 5 [\[Dockerfile\]](https://github.com/uselagoon/lagoon-images/blob/main/images/redis/5.Dockerfile)
+* 6 [\[Dockerfile\]](https://github.com/uselagoon/lagoon-images/blob/main/images/redis/6.Dockerfile)
 
 ## Lagoon adaptions
 

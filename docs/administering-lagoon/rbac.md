@@ -52,7 +52,7 @@ Here is a table that lists the roles and the access they have:
 | :--- | :--- | :--- | :--- | ---: | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | addBackup | backup | add | projectID | Yes | Yes | Yes | Yes | Yes | No | No |  |
 | deleteBackup | backup | delete | projectID | Yes | Yes | Yes | Yes | No | No | No |  |
-| deleteAllBackups | backup | deleteAll |  | Yes |  |  |  |  | No | No |  |
+| deleteAllBackups | backup | deleteAll |  | Yes | No | No | No | No | No | No |  |
 | getBackupsByEnvironmentId | backup | view | projectID | Yes | Yes | Yes | Yes | Yes | No | No |  |
 |  | deployment | view | projectID | Yes | Yes | Yes | Yes | Yes | Yes | Yes |  |
 | addEnvVariable \(to Project\) | env\_var | project:add | projectID | Yes | Yes | Yes | No | No | No | No |  |
@@ -64,12 +64,12 @@ Here is a table that lists the roles and the access they have:
 | getEnvVarsByEnvironmentId | env\_var | environment:view:production | projectID | Yes | Yes | Yes | Yes | No | No | No |  |
 | addOrUpdateEnvironment | environment | addOrUpdate:development | projectID | Yes | Yes | Yes | Yes | Yes | No | No |  |
 | addOrUpdateEnvironment | environment | addOrUpdate:production | projectID | Yes | Yes | Yes | Yes | No | No | No |  |
-| updateEnvironment | environment | update:development | projectID | Yes | Yes | Yes | Yes | Yes |  |  |  |
+| updateEnvironment | environment | update:development | projectID | Yes | Yes | Yes | Yes | Yes | No | No |  |
 | updateEnvironment | environment | update:production | projectID | Yes | Yes | Yes | Yes | No | No | No |  |
 | deleteEnvironment | environment | delete:development | projectID | Yes | Yes | Yes | Yes | Yes | No | No |  |
 | deleteEnvironment | environment | delete:production | projectID | Yes | Yes | Yes | No | No | No | No |  |
-| deleteAllEnvironments | environment | deleteAll |  | Yes |  |  |  |  |  |  |  |
-| addOrUpdateEnvironmentStorage | environment | storage |  | Yes | Yes |  |  |  |  |  |  |
+| deleteAllEnvironments | environment | deleteAll |  | Yes | No | No | No | No | No | No |  |
+| addOrUpdateEnvironmentStorage | environment | storage |  | Yes | Yes | No | No | No | No | No |  |
 | addDeployment | environment | deploy:development | projectID | Yes | Yes | Yes | Yes | Yes | No | No |  |
 | addDeployment | environment | deploy:production | projectID | Yes | Yes | Yes | Yes | No | No | No |  |
 | deleteDeployment | deployment | delete | projectID | Yes | Yes | Yes | Yes | No | No | No |  |
@@ -85,52 +85,52 @@ Here is a table that lists the roles and the access they have:
 | deployEnvironmentPromote | environment | deploy:development | projectID | Yes | Yes | Yes | Yes | Yes | No | No |  |
 | deployEnvironmentPromote | environment | deploy:production | projectID | Yes | Yes | Yes | Yes | No | No | No |  |
 | getEnvironmentsByProjectId | environment | view | projectID | Yes | Yes | Yes | Yes | Yes | Yes | Yes |  |
-| getEnvironmentStorageMonthByEnvironmentId | environment | storage |  | Yes |  |  |  |  |  |  |  |
-| getEnvironmentHoursMonthByEnvironmentId | environment | storage |  | Yes |  |  |  |  |  |  |  |
-| getEnvironmentHitsMonthByEnvironmentId | environment | storage |  | Yes |  |  |  |  |  |  |  |
+| getEnvironmentStorageMonthByEnvironmentId | environment | storage |  | Yes | No | No | No | No | No | No |  |
+| getEnvironmentHoursMonthByEnvironmentId | environment | storage |  | Yes | No | No | No | No | No | No |  |
+| getEnvironmentHitsMonthByEnvironmentId | environment | storage |  | Yes | No | No | No | No | No | No |  |
 | getEnvironmentServicesByEnvironmentId | environment | view | projectID | Yes | Yes | Yes | Yes | Yes | Yes | Yes |  |
 | addGroup | group | add |  | Yes | Yes | Yes | Yes | Yes | Yes | Yes |  |
 | updateGroup | group | update | groupID | Yes | Yes | Yes | Yes | No | No | No |  |
 | deleteGroup | group | delete | groupID | Yes | Yes | Yes | Yes | No | No | No |  |
-| deleteAllGroups | group | deleteAll |  | Yes |  |  |  |  |  |  |  |
+| deleteAllGroups | group | deleteAll |  | Yes | No | No | No | No | No | No |  |
 | addUserToGroup | group | addUser | groupID | Yes | Yes | Yes | Yes | No | No | No |  |
 | removeUserFromGroup | group | removeUser | groupID | Yes | Yes | Yes | Yes | No | No | No |  |
-| addNotificationSlack | notification | add |  | Yes | Yes |  |  |  |  |  |  |
-| updateNotificationSlack | notification | update |  | Yes | Yes |  |  |  |  |  |  |
-| deleteNotificationSlack | notification | delete |  | Yes | Yes |  |  |  |  |  |  |
-| deleteAllNotificationSlacks | notification | deleteAll |  | Yes |  |  |  |  |  |  |  |
-| addNotificationRocketChat | notification | add |  | Yes | Yes |  |  |  |  |  |  |
-| updateNotificationRocketChat | notification | update |  | Yes | Yes |  |  |  |  |  |  |
-| deleteNotificationRocketChat | notification | delete |  | Yes | Yes |  |  |  |  |  |  |
-| deleteAllNotificationRocketChats | notification | deleteAll |  | Yes |  |  |  |  |  |  |  |
-| removeAllNotificationsFromAllProjects | notification | removeAll |  | Yes |  |  |  |  |  |  |  |
+| addNotificationSlack | notification | add |  | Yes | Yes | No | No | No | No | No |  |
+| updateNotificationSlack | notification | update |  | Yes | Yes | No | No | No | No | No |  |
+| deleteNotificationSlack | notification | delete |  | Yes | Yes | No | No | No | No | No |  |
+| deleteAllNotificationSlacks | notification | deleteAll |  | Yes | No | No | No | No | No | No |  |
+| addNotificationRocketChat | notification | add |  | Yes | Yes | No | No | No | No | No |  |
+| updateNotificationRocketChat | notification | update |  | Yes | Yes | No | No | No | No | No |  |
+| deleteNotificationRocketChat | notification | delete |  | Yes | Yes | No | No | No | No | No |  |
+| deleteAllNotificationRocketChats | notification | deleteAll |  | Yes | No | No | No | No | No | No |  |
+| removeAllNotificationsFromAllProjects | notification | removeAll |  | Yes | No | No | No | No | No | No |  |
 | getNotificationsByProjectId | notification | view | projectID | Yes | Yes | Yes | Yes | Yes | No | No |  |
-| addOpenshift | openshift | add |  | Yes | Yes |  |  |  |  |  |  |
-| updateOpenshift | openshift | update |  | Yes | Yes |  |  |  |  |  |  |
-| deleteOpenshift | openshift | delete |  | Yes | Yes |  |  |  |  |  |  |
-| deleteAllOpenshifts | openshift | deleteAll |  | Yes | Yes |  |  |  |  |  |  |
-| getAllOpenshifts | openshift | viewAll |  | Yes |  |  |  |  |  |  |  |
+| addOpenshift | openshift | add |  | Yes | Yes | No | No | No | No | No |  |
+| updateOpenshift | openshift | update |  | Yes | Yes | No | No | No | No | No |  |
+| deleteOpenshift | openshift | delete |  | Yes | Yes | No | No | No | No | No |  |
+| deleteAllOpenshifts | openshift | deleteAll |  | Yes | Yes | No | No | No | No | No |  |
+| getAllOpenshifts | openshift | viewAll |  | Yes | No | No | No | No | No | No |  |
 | getOpenshiftByProjectId | openshift | view | projectID | Yes | Yes | Yes | Yes | No | No | No |  |
 | addNotificationToProject | project | addNotification | projectID | Yes | Yes | Yes | Yes | No | No | No |  |
 | removeNotificationFromProject | project | removeNotification | projectID | Yes | Yes | Yes | Yes | No | No | No |  |
 | addProject | project | add |  | Yes | Yes | Yes | Yes | Yes | Yes | Yes |  |
 | updateProject | project | update | projectID | Yes | Yes | Yes | Yes | No | No | No |  |
 | deleteProject | project | delete | projectID | Yes | Yes | Yes | No | No | No | No |  |
-| deleteAllProjects | project | deleteAll |  | Yes |  |  |  |  |  |  |  |
+| deleteAllProjects | project | deleteAll |  | Yes | No | No | No | No | No | No |  |
 | addGroupsToProject | project | addGroup | projectID | Yes | Yes | Yes | Yes | No | No | No |  |
 | removeGroupsFromProject | project | removeGroup | projectID | Yes | Yes | Yes | Yes | No | No | No |  |
-| getAllProjects | project | viewAll |  | Yes | Yes |  |  |  |  |  |  |
+| getAllProjects | project | viewAll |  | Yes | Yes | No | No | No | No | No |  |
 | getProjectByEnvironmentId | project | view | projectID | Yes | Yes | Yes | Yes | Yes | Yes | Yes |  |
 | getProjectByGitUrl | project | view | projectID | Yes | Yes | Yes | Yes | Yes | Yes | Yes |  |
 | getProjectByName | project | view | projectID | Yes | Yes | Yes | Yes | Yes | Yes | Yes |  |
 | addRestore | restore | add | projectID | Yes | Yes | Yes | Yes | Yes | Yes | Yes |  |
 | updateRestore | restore | update | projectID | Yes | Yes | Yes | Yes | Yes | Yes | Yes |  |
-| addSshKey | ssh\_key | add | userId | Yes | Yes |  |  |  |  |  | Yes |
-| updateSshKey | ssh\_key | update | userId | Yes | Yes |  |  |  |  |  | Yes |
-| deleteSshKey | ssh\_key | delete | userId | Yes | Yes |  |  |  |  |  | Yes |
-| deleteAllSshKeys | ssh\_key | deleteAll |  | Yes |  |  |  |  |  |  |  |
-| removeAllSshKeysFromAllUsers | ssh\_key | removeAll |  | Yes |  |  |  |  |  |  |  |
-| getUserSshKeys | ssh\_key | view:user | userID | Yes | Yes |  |  |  |  |  | Yes |
+| addSshKey | ssh\_key | add | userId | Yes | Yes | No | No | No | No | No | Yes |
+| updateSshKey | ssh\_key | update | userId | Yes | Yes | No | No | No | No | No | Yes |
+| deleteSshKey | ssh\_key | delete | userId | Yes | Yes | No | No | No | No | No | Yes |
+| deleteAllSshKeys | ssh\_key | deleteAll |  | Yes | No | No | No | No | No | No | No |
+| removeAllSshKeysFromAllUsers | ssh\_key | removeAll |  | Yes | No | No | No | No | No | No | No |
+| getUserSshKeys | ssh\_key | view:user | userID | Yes | Yes | No | No | No | No | No | Yes |
 | addTask | task | add:development | projectID | Yes | Yes | Yes | Yes | Yes | No | No |  |
 | addTask | task | add:production | projectID | Yes | Yes | Yes | Yes | No | No | No |  |
 | taskDrushArchiveDump | task | drushArchiveDump:development | projectID | Yes | Yes | Yes | Yes | Yes | No | No |  |
@@ -160,9 +160,9 @@ Here is a table that lists the roles and the access they have:
 | getTaskByRemoteId | task | view | projectID | Yes | Yes | Yes | Yes | Yes | Yes | Yes |  |
 | getTaskById | task | view | projectID | Yes | Yes | Yes | Yes | Yes | Yes | Yes |  |
 | addUser | user | add |  | Yes | Yes | Yes | Yes | Yes | Yes | Yes |  |
-| updateUser | user | update | userId | Yes | Yes |  |  |  |  |  | Yes |
-| deleteUser | user | delete | userId | Yes | Yes |  |  |  |  |  | Yes |
-| deleteAllUsers | user | deleteAll |  | Yes |  |  |  |  |  |  |  |
+| updateUser | user | update | userId | Yes | Yes | No | No | No | No | No | Yes |
+| deleteUser | user | delete | userId | Yes | Yes | No | No | No | No | No | Yes |
+| deleteAllUsers | user | deleteAll |  | Yes | No | No | No | No | No | No |  |
 | getProjectByEnvironmentId | project | viewPrivateKey | projectID | Yes | Yes | Yes | No | No | No | No |  |
 | getProjectByGitUrl | project | viewPrivateKey | projectID | Yes | Yes | Yes | No | No | No | No |  |
 | getProjectByName | project | viewPrivateKey | projectID | Yes | Yes | Yes | No | No | No | No |  |

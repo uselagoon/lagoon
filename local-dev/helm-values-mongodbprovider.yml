@@ -1,0 +1,21 @@
+providers:
+  production:
+    environment: production
+    hostname: mongodb.172.17.0.1.nip.io
+    password: password
+    port: '27017'
+    user: root
+    auth:
+      mechanism: SCRAM-SHA-1
+      source: admin
+      tls: true
+  development:
+    environment: development
+    hostname: mongodb.172.17.0.1.nip.io
+    password: password
+    port: '27017'
+    user: root
+    auth:
+      mechanism: SCRAM-SHA-1
+      source: admin
+      tls: true

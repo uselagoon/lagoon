@@ -583,9 +583,10 @@ export const deployEnvironmentBranch: ResolverFn = async (
           meta,
           `*[${deployData.projectName}]* Error deploying \`${
             deployData.branchName
-          }\`: ${error.message}`,
+          }\`: ${error}`,
         );
-        return `Error: ${error.message}`;
+        console.log(error);
+        return `Error: ${error}`;
     }
   }
 };
@@ -878,7 +879,7 @@ export const switchActiveStandby: ResolverFn = async (
     );
     data.task.id = sourceTaskData.addTask.id.toString()
 
-    // then send the task to openshiftmisc to trigger the migration
+    // queue the task to trigger the migration
     await createMiscTask({ key: 'route:migrate', data });
 
     // return the task id and remote id

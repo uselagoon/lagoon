@@ -62,6 +62,7 @@ export const getAllProjects: ResolverFn = async (
 
   const prep = prepare(sqlClient, `SELECT * FROM project ${where}${order}`);
   const rows = await query(sqlClient, prep(args));
+  const withK8s = Helpers(sqlClient).aliasOpenshiftToK8s(rows);
 
   // This resolver is used for the main UI page and is quite slow. Since we've
   // already authorized the user has access to all the projects we are
@@ -71,7 +72,7 @@ export const getAllProjects: ResolverFn = async (
   //
   // @TODO: When this performance issue is fixed for real, remove this hack as
   // it hardcodes a "everyone can view environments" authz rule.
-  return rows.map(row => ({ ...row, environmentAuthz: true }));
+  return withK8s.map(row => ({ ...row, environmentAuthz: true }));
 };
 
 export const getProjectByEnvironmentId: ResolverFn = async (
@@ -94,8 +95,9 @@ export const getProjectByEnvironmentId: ResolverFn = async (
   );
 
   const rows = await query(sqlClient, prep({ eid }));
+  const withK8s = Helpers(sqlClient).aliasOpenshiftToK8s(rows);
 
-  const project = rows[0];
+  const project = withK8s[0];
 
   await hasPermission('project', 'view', {
     project: project.id,
@@ -130,8 +132,9 @@ export const getProjectByGitUrl: ResolverFn = async (
 
   const prep = prepare(sqlClient, str);
   const rows = await query(sqlClient, prep(args));
+  const withK8s = Helpers(sqlClient).aliasOpenshiftToK8s(rows);
 
-  const project = rows[0];
+  const project = withK8s[0];
 
   await hasPermission('project', 'view', {
     project: project.id,
@@ -166,7 +169,8 @@ export const getProjectByName: ResolverFn = async (
   const prep = prepare(sqlClient, str);
 
   const rows = await query(sqlClient, prep(args));
-  const project = rows[0];
+  const withK8s = Helpers(sqlClient).aliasOpenshiftToK8s(rows);
+  const project = withK8s[0];
 
   if (!project) {
     return null;
@@ -248,7 +252,7 @@ export const getProjectsByMetadata: ResolverFn = async (
   const prep = prepare(sqlClient, `SELECT * FROM project ${where}`);
   const rows = await query(sqlClient, prep(queryArgs));
 
-  return rows;
+  return Helpers(sqlClient).aliasOpenshiftToK8s(rows);
 };
 
 export const addProject = async (
@@ -271,6 +275,10 @@ export const addProject = async (
   if (!isValidGitUrl(input.gitUrl)) {
     throw new Error('The provided gitUrl is invalid.',);
   }
+  const openshift = input.kubernetes || input.openshift;
+  if (!openshift) {
+    throw new Error('Must provide keycloak or openshift field');
+  }
 
   let keyPair: any = {};
   try {
@@ -291,6 +299,8 @@ export const addProject = async (
     throw new Error(`There was an error with the privateKey: ${err.message}`);
   }
 
+  const openshiftProjectPattern = input.kubernetesNamespacePattern || input.openshiftProjectPattern;
+
   const prep = prepare(
     sqlClient,
     `CALL CreateProject(
@@ -302,32 +312,32 @@ export const addProject = async (
         ${input.subfolder ? ':subfolder' : 'NULL'},
         :openshift,
         ${
-  input.openshiftProjectPattern ? ':openshift_project_pattern' : 'NULL'
+  openshiftProjectPattern ? ':openshift_project_pattern' : 'NULL'
 },
         ${
   input.activeSystemsDeploy
     ? ':active_systems_deploy'
-    : '"lagoon_openshiftBuildDeploy"'
+    : '"lagoon_controllerBuildDeploy"'
 },
         ${
   input.activeSystemsPromote
     ? ':active_systems_promote'
-    : '"lagoon_openshiftBuildDeploy"'
+    : '"lagoon_controllerBuildDeploy"'
 },
         ${
   input.activeSystemsRemove
     ? ':active_systems_remove'
-    : '"lagoon_openshiftRemove"'
+    : '"lagoon_controllerRemove"'
 },
         ${
   input.activeSystemsTask
     ? ':active_systems_task'
-    : '"lagoon_openshiftJob"'
+    : '"lagoon_controllerJob"'
 },
         ${
   input.activeSystemsMisc
     ? ':active_systems_misc'
-    : '"lagoon_openshiftMisc"'
+    : '"lagoon_controllerMisc"'
 },
         ${input.branches ? ':branches' : '"true"'},
         ${input.pullrequests ? ':pullrequests' : '"true"'},
@@ -339,7 +349,7 @@ export const addProject = async (
         ${input.standbyAlias ? ':standby_alias' : '"lagoon-standby"'},
         ${input.autoIdle ? ':auto_idle' : '1'},
         ${input.storageCalc ? ':storage_calc' : '1'},
-        ${input.factsUi ? ':facts_ui' : '0' }, 
+        ${input.factsUi ? ':facts_ui' : '0' },
         ${input.problemsUi ? ':problems_ui' : '0'},
         ${
   input.developmentEnvironmentsLimit
@@ -352,9 +362,13 @@ export const addProject = async (
 
   const rows = await query(sqlClient, prep({
     ...input,
+    openshift,
+    openshiftProjectPattern,
     privateKey: keyPair.private,
   }));
-  const project = R.path([0, 0], rows) as any;
+  const withK8s = Helpers(sqlClient).aliasOpenshiftToK8s([R.path([0, 0], rows)]);
+  const project = withK8s[0];
+
 
   // Create a default group for this project
   let group;
@@ -505,6 +519,7 @@ export const updateProject: ResolverFn = async (
         activeSystemsRemove,
         activeSystemsTask,
         activeSystemsMisc,
+        activeSystemsPromote,
         branches,
         productionEnvironment,
         productionRoutes,
@@ -517,8 +532,6 @@ export const updateProject: ResolverFn = async (
         problemsUi,
         factsUi,
         pullrequests,
-        openshift,
-        openshiftProjectPattern,
         developmentEnvironmentsLimit,
       },
     },
@@ -548,6 +561,9 @@ export const updateProject: ResolverFn = async (
   if (gitUrl !== undefined && !isValidGitUrl(gitUrl)) {
     throw new Error('The provided gitUrl is invalid.',);
   }
+
+  const openshift = patch.kubernetes || patch.openshift;
+  const openshiftProjectPattern = patch.kubernetesNamespacePattern || patch.openshiftProjectPattern;
 
   const oldProject = await Helpers(sqlClient).getProjectById(id);
 
@@ -595,6 +611,7 @@ export const updateProject: ResolverFn = async (
         activeSystemsRemove,
         activeSystemsTask,
         activeSystemsMisc,
+        activeSystemsPromote,
         branches,
         productionEnvironment,
         productionRoutes,

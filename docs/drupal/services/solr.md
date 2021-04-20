@@ -2,11 +2,11 @@
 
 ## Standard use
 
-For Solr 5.5, 6.6 and 7.7, we ship the default schema files provided by the [search\_api\_solr](https://www.drupal.org/project/search_api_solr) Drupal module. Add the Solr version you would like to use in your `docker-compose.yml` file, following [our example](https://github.com/amazeeio/drupal-example/blob/master/docker-compose.yml#L103-L111).
+For Solr 5.5, 6.6 and 7.7, we ship the default schema files provided by the [search\_api\_solr](https://www.drupal.org/project/search_api_solr) Drupal module. Add the Solr version you would like to use in your `docker-compose.yml` file, following [our example](https://github.com/amazeeio/drupal-example-simple/blob/63b3fc613260d5192b7e2dd0167c6fc85d8d9162/docker-compose.yml#L110).
 
 ## Custom schema
 
-To implement schema customizations for Solr in your project, look to how Lagoon [creates our standard images](https://github.com/amazeeio/lagoon/blob/master/images/solr-drupal/Dockerfile).
+To implement schema customizations for Solr in your project, look to how Lagoon [creates our standard images](https://github.com/uselagoon/lagoon-images/blob/main/images/solr-drupal/7.7.Dockerfile).
 
 * In the `solr` section of your `docker-compose.yml` file, replace `image: amazeeio/solr:7.7` with:
 

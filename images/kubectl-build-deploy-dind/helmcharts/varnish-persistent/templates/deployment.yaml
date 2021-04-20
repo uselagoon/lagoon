@@ -17,8 +17,11 @@ spec:
     metadata:
       labels:
         {{- include "varnish-persistent.labels" . | nindent 8 }}
+        {{- include "varnish-persistent.datadogLabels" . | nindent 8 }}
       annotations:
         {{- include "varnish-persistent.annotations" . | nindent 8 }}
+        k8up.syn.tools/backupCommand: /bin/sh -c "/bin/busybox tar -cf - -C {{ .Values.persistentStorage.path }} ."
+        k8up.syn.tools/fileExtension: .{{ include "varnish-persistent.fullname" . }}.tar
         lagoon.sh/configMapSha: {{ .Values.configMapSha | quote }}
     spec:
     {{- with .Values.imagePullSecrets }}

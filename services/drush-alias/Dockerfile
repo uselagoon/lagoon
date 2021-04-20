@@ -1,4 +1,9 @@
-ARG IMAGE_REPO
-FROM ${IMAGE_REPO:-amazeeiolagoon}/nginx
+ARG UPSTREAM_REPO
+ARG UPSTREAM_TAG
+FROM ${UPSTREAM_REPO:-uselagoon}/nginx:${UPSTREAM_TAG:-latest}
+
+ARG LAGOON_VERSION
+ENV LAGOON_VERSION=$LAGOON_VERSION
+
 ADD nginx.conf /etc/nginx/conf.d/app.conf
 ADD web/ /app/

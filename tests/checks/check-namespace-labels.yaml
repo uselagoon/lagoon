@@ -1,19 +1,15 @@
 ---
-- name: "{{ testname }} - Check if {{project}} namespace is labelled"
+- name: "{{ testname }} - Check if {{ project }} namespace is labelled"
   shell: |
     set -e
-    export KUBECONFIG=$(mktemp)
-    echo "{{ kubeconfig }}" > $KUBECONFIG
-    # replace with the IP of host from within container
-    sed -i "s/localhost/$(ip -4 route list match 0/0 | cut -d' ' -f3)/" $KUBECONFIG
     # create the $label and $value variables from item
     eval $(echo "{{ item }}" | awk -F= '{sep=index($0,"="); print "label=\"" $1 "\" value=\"" substr($0,sep+1) "\""}')
-    [ $(kubectl --insecure-skip-tls-verify=true get namespace {{ project }}-{{ branch }} -o json |
+    [ $(kubectl get namespace {{ project }}-{{ branch }} -o json |
     jq -er ".metadata.labels | .\"$label\"") = "$value" ]
   loop: "{{ expected_labels }}"
   register: result
-  retries: 20
+  retries: 30
   delay: 10
   until: result.rc == 0
-- name: "{{ testname }} - Check if {{project}} namespace is labelled"
+- name: "{{ testname }} - Check if {{ project }} namespace is labelled"
   debug: msg="Success!!!"

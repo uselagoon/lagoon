@@ -11,6 +11,7 @@ import AllBillingGroupsQuery from 'lib/query/AllBillingGroups';
 import AllProjectsAfterDateQuery from 'lib/query/AllProjectsAfterDate';
 import ProjectGroupsByProjectNameQuery from 'lib/query/ProjectGroupsByProjectName';
 import AddProjectToBillingGroupMutation from 'lib/mutation/AddProjectToBillingGroup';
+import UpdateProjectBillingGroupMutation from 'lib/mutation/UpdateProjectBillingGroup';
 
 import Box from 'components/Box';
 import withQueryLoading from 'lib/withQueryLoading';
@@ -24,20 +25,24 @@ import { database } from 'faker';
 
 
 
-const BillingGroupSelect = ({billingGroups, project}) => {
+const BillingGroupSelect = ({billingGroups, project, activeBillingGroup}) => {
 
-  const [values, setValues] = useState({billingGroup: 'UNDEFINED'});
-  const [updateProject, {
-    loading: mutationLoading,
-    error: mutationError
-  }] = useMutation(AddProjectToBillingGroupMutation);
+  const [values, setValues] = useState({billingGroup: activeBillingGroup ? activeBillingGroup : 'UNDEFINED'});
+  const [addProjectToBillingGroup] = useMutation(AddProjectToBillingGroupMutation);
+
+  const [updateProjectBillingGroup] = useMutation(UpdateProjectBillingGroupMutation);
 
   const handleChange = e => {
     const {name, value} = e.target;
     setValues({...values, [name]: value});
 
     const variables = { input: { project: { id: project.id }, group: { name: value } } };
-    updateProject({ variables })
+
+    if (activeBillingGroup){
+      updateProjectBillingGroup({ variables })
+    }else {
+      addProjectToBillingGroup({ variables })
+    }
   }
 
 
@@ -47,20 +52,21 @@ const BillingGroupSelect = ({billingGroups, project}) => {
         {
           billingGroups &&
           <div>
-            <div>Billing Group: {values.billingGroup}</div>
-            <label htmlFor="billingGroups">Select: </label>
-            <select
-              id="billingGroup"
-              name="billingGroup"
-              onChange={handleChange}
-              className="selectBillingGroup"
-              value={values.billingGroup}
-            >
-              <option>No Billing Group</option>
-              { billingGroups && billingGroups.map(g => (
-                <option key={`${g.name}-${g.value}`} value={g.value}>{g.name}</option>
-              ))}
-            </select>
+            <div>
+              Billing Group: &nbsp;
+              <select
+                id="billingGroup"
+                name="billingGroup"
+                onChange={handleChange}
+                className="selectBillingGroup"
+                value={values.billingGroup}
+              >
+                <option>No Billing Group</option>
+                { billingGroups && billingGroups.map(g => (
+                  <option key={`${g.name}-${g.value}`} value={g.value}>{g.name}</option>
+                ))}
+              </select>
+            </div>
           </div>
         }
     </div>
@@ -91,20 +97,16 @@ const Project = ({ project, allBillingGroups }) => {
         <div> Availability: {project.availability} </div>
         <div>Git URL: {data.project.gitUrl}</div>
         {
-          billingGroups.length === 0 &&
-          <div className="noBillingGroup">
-            { billingGroups.length === 0 && <BillingGroupSelect billingGroups={allBillingGroups} project={project} />}
-          </div>
-        }
-        {
-          billingGroups.length > 0 &&
-          <div className="hasBillingGroup">
-            <div>Billing Group: {billingGroups[0].name}</div>
+          <div className={billingGroups.length > 0 ? "hasBillingGroup" : "noBillingGroup"}>
+            { <BillingGroupSelect billingGroups={allBillingGroups} project={project} activeBillingGroup={billingGroups.length > 0 ? billingGroups[0].name : null}/> }
           </div>
         }
       </div>
     </Box>
     <style jsx>{`
+      h2 {
+        margin-bottom: 0.25em;
+      }
       .hasBillingGroup {
         background: lawngreen;
       }
@@ -198,7 +200,6 @@ export const BillingProjectsNotInBillingGroups = ({ router }) => {
 
       </MainLayout>
       <style jsx>{`
-
         .error {
           margin: 1rem;
         }

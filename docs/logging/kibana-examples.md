@@ -13,7 +13,7 @@ Make sure that you have selected your tenant before starting! You can do that by
 Below you'll find examples for two common log requests:
 
 * Viewing the total number of hits/requests to your site.
-* Viewing the number of hits/requests from a specific IP address. 
+* Viewing the number of hits/requests from a specific IP address.
 
 ### Total Number of hits/requests to your site
 
@@ -99,5 +99,7 @@ Also note that you can save your visualizations \(and searches\)! That will make
 
 ## Troubleshooting
 
-{% embed url="https://www.youtube.com/watch?v=hyUMRlQTXEA" caption="How do I fix an internal server error in Kibana?" %}
+{% embed url="https://www.youtube.com/watch?v=BuQo5J0Qc2c&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=5" %}
+
+
 
