@@ -233,7 +233,7 @@ When [UptimeRobot](https://uptimerobot.com/) is configured for your cluster \(Op
 {% endtab %}
 {% endtabs %}
 
-### **Ingress annotations** 
+### **Ingress annotations**
 
 {% hint style="info" %}
 Route/Ingress annotations are only supported by projects that deploy into clusters that run nginx-ingress controllers! Check with your Lagoon administrator if this is supported.
@@ -270,7 +270,7 @@ You can of course also redirect to any other URL not hosted on Lagoon, this will
 
 #### Trusted Reverse Proxies
 
-Some configurations involve a reverse proxy \(like a CDN\) in front of the Kubernetes Clusters. In these configurations the IP of the Reverse Proxy will appear as the `REMOTE_ADDR` `HTTP_X_REAL_IP` `HTTP_X_FORWARDED_FOR` headers field in your applications. While the original IP of the requester can be found in the `HTTP_X_ORIGINAL_FORWARDED_FOR` header. 
+Some configurations involve a reverse proxy \(like a CDN\) in front of the Kubernetes Clusters. In these configurations the IP of the Reverse Proxy will appear as the `REMOTE_ADDR` `HTTP_X_REAL_IP` `HTTP_X_FORWARDED_FOR` headers field in your applications. While the original IP of the requester can be found in the `HTTP_X_ORIGINAL_FORWARDED_FOR` header.
 
 If you like the original IP to appear in the `REMOTE_ADDR` `HTTP_X_REAL_IP` `HTTP_X_FORWARDED_FOR` headers, you need to tell the ingress which reverse proxy IPs you want to trust:
 
@@ -280,12 +280,12 @@ If you like the original IP to appear in the `REMOTE_ADDR` `HTTP_X_REAL_IP` `HTT
     - "example.ch":
         annotations:
           nginx.ingress.kubernetes.io/server-snippet: |
-            set_real_ip_from 1.2.3.4/32;    
+            set_real_ip_from 1.2.3.4/32;
 ```
 {% endtab %}
 {% endtabs %}
 
-This example would trust the CIDR `1.2.3.4/32` \(the IP `1.2.3.4` in this case\). Therefore if there is a request sent to the Kubernetes clustesr from the IP `1.2.3.4` the `X-Forwarded-For` Header is analyzed and it's contents injected into `REMOTE_ADDR` `HTTP_X_REAL_IP` `HTTP_X_FORWARDED_FOR`  headers. 
+This example would trust the CIDR `1.2.3.4/32` \(the IP `1.2.3.4` in this case\). Therefore if there is a request sent to the Kubernetes clustesr from the IP `1.2.3.4` the `X-Forwarded-For` Header is analyzed and it's contents injected into `REMOTE_ADDR` `HTTP_X_REAL_IP` `HTTP_X_FORWARDED_FOR` headers.
 
 ### `Environments.[name].types`
 
