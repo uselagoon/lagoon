@@ -91,15 +91,14 @@ To set a static port, edit your service definition in your `docker-compose.yml`.
 By setting a static port you become responsible for managing port collisions.
 {% endhint %}
 
-### Connect to MySQL
+### Connect to MySQL on Lagoon
 
-Now you can use these details to connect to whatever database management tool you'd like.
+The following environment variables are set in your lagoon pods
 
-|  | Linux | OS X |
-| :--- | :--- | :--- |
-| IP/Host | IP from container | `docker.amazee.io` |
-| Port | Published port from container | Published port from container |
-| Username | `drupal` | `drupal` |
-| Password | `drupal` | `drupal` |
-| Database | `drupal` | `drupal` |
-
+|          | Lagoon |
+| :---     | :---   |
+| IP/Host  | `[SERVICE NAME]_HOST` |
+| Port     | `[SERVICE NAME]_PORT` |
+| Username | `[SERVICE NAME]_USERNAME` |
+| Password | `[SERVICE NAME]_PASSWORD` |
+| Database | `[SERVICE NAME]_DATABASE` |
