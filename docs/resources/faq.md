@@ -77,7 +77,7 @@ I'm unable to SSH into any environment. I'm getting the following message: `Perm
 
 {% embed url="https://www.youtube.com/watch?v=PyrlZqTjf68&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd" %}
 
-## 
+##
 a cron job?
 
 {% embed url="https://www.youtube.com/watch?v=Yd\_JfDyfbR0&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=2" %}
@@ -186,6 +186,7 @@ For amazee.io cloud customers:
 
 ## We installed the Elasticsearch\Solr service on our website. How can we get access to the UI \(port 9200/8983\) from a browser?
 
+<!-- markdown-link-check-disable-next-line -->
 We suggest only exposing web services \(NGINX/Varnish/Node.js\) in your deployed environments. Locally, you can get the ports mapped for these services by checking `docker-compose ps`, and then load [`http://localhost`](http://localhost/)`:<port>` in your browser.
 
 ## Where can I find the amazee.io Status Page?

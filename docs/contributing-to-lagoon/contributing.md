@@ -12,7 +12,7 @@ One small catch  –  wherever possible, we’d like them to be built using our 
 
 Help us improve our existing examples, if you can - are we following best practices, is there something we’re doing that doesn’t make sense?
 
-Bonus points for anyone that helps contribute to tests for any of these examples  –  we’ve got some example tests in a couple of the projects you can use for guidance  –  [https://github.com/amazeeio/drupal-example-simple/blob/8.x/TESTING.md](https://github.com/amazeeio/drupal-example-simple/blob/8.x/TESTING.md).  The testing framework we’re using is [Leia](https://github.com/lando/leia), from the excellent team behind [Lando](https://lando.dev/).
+Bonus points for anyone that helps contribute to tests for any of these examples  –  we’ve got some example tests in a couple of the projects you can use for guidance  –  [https://github.com/amazeeio/drupal-example-simple/blob/8.x/TESTING_dockercompose.md](https://github.com/amazeeio/drupal-example-simple/blob/8.x/TESTING_dockercompose.md).  The testing framework we’re using is [Leia](https://github.com/lando/leia), from the excellent team behind [Lando](https://lando.dev/).
 
 Help us to document our other examples better – we’re not expecting a full manuscript, but tidy-ups, links to helpful resources and clarifying statements are all super-awesome.
 
