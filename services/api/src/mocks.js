@@ -301,6 +301,10 @@ mocks.Environment = (parent, args = {}, context, info) => {
       mocks.Problem(),
       mocks.Problem()
     ],
+    facts: [
+      mocks.Fact(),
+      mocks.Fact()
+    ],
     services: [ mocks.EnvironmentService() ],
   };
   environment.project.environments.push(environment);
@@ -478,6 +482,22 @@ mocks.ProblemMutation = (schema) => {
             `problem${faker.random.number(1000000)}: addProblem(input: ${JSON.stringify(temp, 2, null)}) { identifier }`
         );
     });
+};
+
+mocks.Fact = (parent, args = {}) => {
+  const name = `fact-${faker.random.number({min: 1, max: 100})}`;
+  const value = `${faker.random.number({min: 1, max: 9})}.${faker.random.number({min: 0, max: 9})}.${faker.random.number({min: 0, max: 9})}`;
+  const source = faker.random.arrayElement(['drush_pml', 'drush_status', 'php-details', 'env', 'http_header']);
+  const category = faker.random.arrayElement(['application', 'hosting', 'cms', 'drupal-module', 'drupal-theme']);
+  const description = faker.lorem.paragraph();
+
+  return {
+    name,
+    value,
+    source,
+    category,
+    description
+  };
 };
 
 //

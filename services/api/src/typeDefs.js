@@ -202,6 +202,7 @@ const typeDefs = gql`
     value: String
     source: String
     description: String
+    category: String
   }
 
   input AddFactInput {
@@ -211,6 +212,7 @@ const typeDefs = gql`
     value: String!
     source: String!
     description: String!
+    category: String
   }
 
   input AddFactsInput {
@@ -223,6 +225,7 @@ const typeDefs = gql`
     value: String!
     source: String!
     description: String
+    category: String
   }
 
   input UpdateFactInput {

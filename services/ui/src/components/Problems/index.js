@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useQuery } from "@apollo/react-hooks";
-import getSeverityEnumQuery, {getProjectOptions, getSourceOptions} from 'components/Filters/helpers';
 import { bp, color, fontSize } from 'lib/variables';
 import useSortableProblemsData from './sortedItems';
 import Problem from "components/Problem";
