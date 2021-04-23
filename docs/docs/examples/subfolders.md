@@ -2,12 +2,14 @@
 
 The customizability of Lagoon allows you to run Drupal within a subfolder of another application.
 
+<!-- markdown-link-check-disable-next-line -->
 An example could be: www.example.com points to one Drupal site, while www.example.com/blog loads a blog built in another Drupal.
 
 It would be possible to run both Drupals in a single Git repository and deploy it as a whole, but this workflow might not fit every team, and having separate Git repositories fits some situations better.
 
 ## Modifications of root application
 
+<!-- markdown-link-check-disable-next-line -->
 The root application \(in this example, the Drupal site for www.example.com\), needs a couple of Nginx configs that will configure Nginx to be a reverse proxy to the subfolder applications:
 
 ### `location_prepend.conf`

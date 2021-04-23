@@ -20,6 +20,7 @@ This will return a long string, which is the JWT token.
 
 We also need the URL of the API endpoint. Ask your Lagoon administrator for this.
 
+<!-- markdown-link-check-disable-next-line -->
 On amazee.io this is [`https://api.lagoon.amazeeio.cloud/graphql`](https://api.lagoon.amazeeio.cloud/graphql).
 
 Now we need a GraphQL client! Technically this is just HTTP, but we suggest GraphiQL. It has a nice UI that allows you to write GraphQL requests with autocomplete. Download, install and start it. \[[GraphiQL App](https://github.com/skevy/graphiql-app)\]

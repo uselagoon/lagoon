@@ -12,7 +12,7 @@ This Varnish config does the following:
 
 ## Usage with Drupal 8
 
-**TL;DR**: [Check out the drupal8-advanced example in our examples repo](https://github.com/uselagoon/lagoon-examples), it ships with the needed modules and needed Drupal configuration. 
+**TL;DR**: [Check out the drupal8-advanced example in our examples repo](https://github.com/uselagoon/lagoon-examples), it ships with the needed modules and needed Drupal configuration.
 
 **Note**: many of these examples are on the same `drupal-example-simple` repo, but different branches/hashes. Be sure to get the exact branch from the examples list!
 
@@ -126,6 +126,7 @@ Our Varnish configurations have full support for `Ban Lurker`. Ban Lurker helps 
 Varnish doesn't cache? Or something else not working? Here a couple of ways to debug:
 
 * Run `drush p-debug-en` to enable debug logging of the purge module. This should show you debugging in the Drupal log under `admin/reports/dblog`.
+<!-- markdown-link-check-disable-next-line -->
 * Make sure that Drupal sends proper cache headers. To best test this, use the URL that Lagoon generates for bypassing the Varnish cache, \(locally in our Drupal example this is [http://nginx-drupal-example.docker.amazee.io](http://nginx-drupal-example.docker.amazee.io)\). Check for the `Cache-Control: max-age=900, public` header, where the `900` is what you configured in `$config['system.performance']['cache']['page']['max_age']`.
 * Make sure that the environment variable `VARNISH_BYPASS` is **not** set to `true` \(see `docker-compose.yml` and run `docker-compose up -d varnish` to make sure the environment variable is configured correctly\).
 * If all fails, and before you flip your table \(╯°□°）╯︵ ┻━┻, talk to the Lagoon team, we're happy to help.
