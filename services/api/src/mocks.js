@@ -233,8 +233,8 @@ MIIJKQIBAAKCAgEA+o[...]P0yoL8BoQQG2jCvYfWh6vyglQdrDYx/o6/8ecTwXokKKh6fg1q
     productionEnvironment: 'master',
     autoIdle: faker.random.arrayElement([0, 1]),
     storageCalc: faker.random.arrayElement([0, 1]),
-    problemsUi: faker.random.arrayElement([0, 1]),
-    factsUi: faker.random.arrayElement([0, 1]),
+    problemsUi: 1,
+    factsUi: 1,
     openshift: mocks.Openshift(),
     openshiftProjectPattern: '${project}-${name}',
     developmentEnvironmentsLimit: 10,
@@ -302,6 +302,14 @@ mocks.Environment = (parent, args = {}, context, info) => {
       mocks.Problem()
     ],
     facts: [
+      mocks.Fact(),
+      mocks.Fact(),
+      mocks.Fact(),
+      mocks.Fact(),
+      mocks.Fact(),
+      mocks.Fact(),
+      mocks.Fact(),
+      mocks.Fact(),
       mocks.Fact(),
       mocks.Fact()
     ],
