@@ -525,20 +525,20 @@ mutation PopulateApi {
     input: {
       facts: [
           {
-            name: "fact-1"
+            name: "interesting-package"
             value: "1.0.0"
             environment: 3
             source: "local-dev"
-            description: "Description of fact-1"
-            category: "application"
+            description: "Description of interesting php package"
+            category: "Composer package (php)"
           },
           {
-            name: "fact-2"
+            name: "npm-module"
             value: "2.0.0"
             environment: 3
             source: "local-dev"
-            description: "Description of fact-2"
-            category: "web framework"
+            description: "Description of node module"
+            category: "Node package (npm)"
           }
       ]
     }
