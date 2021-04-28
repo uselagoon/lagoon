@@ -1,0 +1,43 @@
+forwardSharedKey: foo
+elasticsearchAdminPassword: admin
+elasticsearchHost: odfe-node1
+elasticsearchScheme: https
+elasticsearchTLSVerify: false
+users:
+- username: kind
+  password: kind
+serviceMonitor:
+  enabled: false
+tls:
+  caCert: |
+    -----BEGIN CERTIFICATE-----
+    MIIBkTCCATigAwIBAgIUUZ1NBrHhNsLLLfja6LMP23b3PjswCgYIKoZIzj0EAwIw
+    JzElMCMGA1UEAxMcbG9ncy1jYS5jbHVzdGVyMS5leGFtcGxlLmNvbTAeFw0yMTAz
+    MjIxMzM5MDBaFw0zMTAzMjAxMzM5MDBaMCcxJTAjBgNVBAMTHGxvZ3MtY2EuY2x1
+    c3RlcjEuZXhhbXBsZS5jb20wWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAASxEj+o
+    uTro+oD5OfvXqIwlcDJM6ox5eHPjA28H002eEUrkYr7hbh472+79VCXKWF//0CON
+    5g9IKWH90C8a7VE5o0IwQDAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/BAUwAwEB
+    /zAdBgNVHQ4EFgQUL3L2Nlc6vogXMU4JROTPZ1ShYn0wCgYIKoZIzj0EAwIDRwAw
+    RAIgAt499vwxT3DrGnn6/NORb2o1s9766seDrWrBCn5rfxACIHhA10zfER/sJ5Bn
+    I6himFVDQA+1NCKZLmZ/l8PG7gXa
+    -----END CERTIFICATE-----
+  serverCert: |
+    -----BEGIN CERTIFICATE-----
+    MIICAzCCAaqgAwIBAgIUIPJZTfw5Q2LyXmNuLLJN6BTLJDIwCgYIKoZIzj0EAwIw
+    JzElMCMGA1UEAxMcbG9ncy1jYS5jbHVzdGVyMS5leGFtcGxlLmNvbTAeFw0yMTAz
+    MjIxMzQxMDBaFw0zMTAzMjAxMzQxMDBaMDExLzAtBgNVBAMTJmxvZ3MtY29uY2Vu
+    dHJhdG9yLmNsdXN0ZXIxLmV4YW1wbGUuY29tMFkwEwYHKoZIzj0CAQYIKoZIzj0D
+    AQcDQgAEzNi6lRka/zzkSUu4sO8Kzke//vLIKBwh9uQ3i34DyVDb7QzkdyDXRxMF
+    AMhgNdXcuvDYotcuONAg5b87Sf+U8qOBqTCBpjAOBgNVHQ8BAf8EBAMCBaAwEwYD
+    VR0lBAwwCgYIKwYBBQUHAwEwDAYDVR0TAQH/BAIwADAdBgNVHQ4EFgQUcrM7vydT
+    nG2G7yKxm5KJYQSggBEwHwYDVR0jBBgwFoAUL3L2Nlc6vogXMU4JROTPZ1ShYn0w
+    MQYDVR0RBCowKIImbG9ncy1jb25jZW50cmF0b3IuY2x1c3RlcjEuZXhhbXBsZS5j
+    b20wCgYIKoZIzj0EAwIDRwAwRAIgW3Q5TSOoZ2UhC1JVMhwbLLQONPiRgYQw3ab5
+    NVTfp3UCIDY4Rb/UHz0IMJDgelbvW51TRBWVDxAR7o19F6nYwQyr
+    -----END CERTIFICATE-----
+  serverKey: |
+    -----BEGIN EC PRIVATE KEY-----
+    MHcCAQEEIGIQ8eYAOcyR0xdGtLKIAPvtDnwlo3YHzSLZfJkokqVioAoGCCqGSM49
+    AwEHoUQDQgAEzNi6lRka/zzkSUu4sO8Kzke//vLIKBwh9uQ3i34DyVDb7QzkdyDX
+    RxMFAMhgNdXcuvDYotcuONAg5b87Sf+U8g==
+    -----END EC PRIVATE KEY-----

@@ -69,7 +69,8 @@ This will execute `whoami` within the `cli` container.
 If you have multiple SSH keys, you can specify which key to use for a given domain by setting this in your `~/.ssh/config` file.
 
 ~/.ssh/.config
-```
+
+```text
 Host *
   AddKeysToAgent yes
   UseKeychain yes
@@ -77,3 +78,4 @@ Host *
 Host ssh.lagoon.amazeeio.cloud
   IdentityFile ~/.ssh/[YOUR-PRIVATE-KEY-FOR-USE-ON-LAGOON]
 ```
+
