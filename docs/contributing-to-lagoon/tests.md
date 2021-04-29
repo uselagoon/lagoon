@@ -37,7 +37,6 @@ make logs service=webhook-handler
 
 Sometimes you will want to see what is happening inside of [Jenkins](https://jenkins.io/doc/). Your Jenkins instance can be found here:
 
-<!-- markdown-link-check-disable-next-line -->
 [http://localhost:8888/](http://localhost:8888/) \(`admin`:`admin`\)
 
 Sometimes you just want to create another push webhook without having to wait for the Git repository to be initialized and pushed.

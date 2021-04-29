@@ -6,7 +6,6 @@
 When running Lagoon locally, the configuration for Harbor is handled entirely automagically.
 {% endhint %}
 
-<!-- markdown-link-check-disable-next-line -->
 If you are running Lagoon locally, you can access that UI at [localhost:8084](https://localhost:8084/). The username is `admin` and the password is `admin`.
 
 {% hint style="info" %}
