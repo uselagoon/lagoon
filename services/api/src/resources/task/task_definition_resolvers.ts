@@ -25,10 +25,6 @@ import {TaskRegistration, newTaskRegistrationFromObject} from './models/taskRegi
 import { getProjectByEnvironmentId } from '../project/resolvers';
 
 
-// We'll use a couple of classes to ensure that our helper functions are getting the data they require
-
-
-
 // All query resolvers
 
 export const advancedTaskDefinitionById = async(
@@ -36,9 +32,8 @@ export const advancedTaskDefinitionById = async(
   id,
   { sqlClient, hasPermission },
   ) => {
-    //TODO: we'll need to do a lot of work here when it comes to the permissions system
-    // essentially we only want to display the definitions a user has access to via their
-    // groups, projects, etc.
+
+    await hasPermission('task', 'view', {});
     return await advancedTaskFunctions(sqlClient).advancedTaskDefinitionById(id);
 }
 
@@ -71,12 +66,12 @@ export const resolveTasksForEnvironment = async(
   {environment},
   { sqlClient, hasPermission },
   ) => {
-    //TODO: we'll need to do a lot of work here when it comes to the permissions system
-    // essentially we only want to display the definitions a user has access to via their
-    // groups, projects, etc.
-    console.log("RESOLVING")
-    console.log(environment)
-    console.log("RESOLVING")
+
+    const environmentDetails = await environmentHelpers(sqlClient).getEnvironmentById(environment);
+    // await hasPermission('task', 'view', {
+    //   project: environmentDetails.project,
+    // });
+
     const rows = await query(sqlClient, Sql.selectAdvancedTaskDefinitionsForEnvironment(environment));
     return rows;
 }
@@ -196,12 +191,9 @@ export const addAdvancedTaskDefinition = async (
 
     if(taskDef) {
 
-
-      console.log("service is - " + service)
       const taskDefMatchesIncoming = taskDef.description == description &&
       taskDef.image == image &&
       taskDef.type == type &&
-      // taskDef.service == service &&
       taskDef.command == command;
 
       if(!taskDefMatchesIncoming) {
@@ -224,6 +216,7 @@ export const addAdvancedTaskDefinition = async (
           command,
           created: null,
           type,
+          service,
         }
       ),
     );
@@ -244,10 +237,6 @@ export const addAdvancedTaskDefinitionToProject = async (
 ) => {
 
 
-
-  //TODO: we need to consider who creates these definitions
-  // Essentially, we want whoever creates this to determine the overall access permissions to the task
-  // This can be done in the iteration that introduces links to environments/groups/etc.
 
   const {
       info: { insertId },
@@ -319,8 +308,6 @@ export const addAdvancedTaskDefinitionToEnvironment = async (
 }
 
 
-
-//TODO: DRY out into defs file
 const taskStatusTypeToString = R.cond([
     [R.equals('ACTIVE'), R.toLower],
     [R.equals('SUCCEEDED'), R.toLower],
@@ -338,6 +325,12 @@ export const invokeRegisteredTask = async (
     { sqlClient, hasPermission },
 ) =>
 {
+
+  const environmentDetails = await environmentHelpers(sqlClient).getEnvironmentById(environment);
+  await hasPermission('task', 'invoke', {
+    project: environmentDetails.project,
+  });
+
 
   //selectTaskRegistrationById
   let rows = await query(sqlClient,Sql.selectAdvancedTaskDefinitionEnvironmentLinkById(taskRegistration));

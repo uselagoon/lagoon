@@ -76,6 +76,7 @@ export const Sql = {
     command,
     created,
     type,
+    service,
     }: {
       id: number,
       name: string,
@@ -84,6 +85,7 @@ export const Sql = {
       command: string,
       created: string,
       type: string,
+      service: string,
     }) =>
     knex('advanced_task_definition')
       .insert({
@@ -94,6 +96,7 @@ export const Sql = {
         command,
         created,
         type,
+        service,
       })
     .toString(),
     insertAdvancedTaskDefinitionArgument: ({
