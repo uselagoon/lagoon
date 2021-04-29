@@ -1,10 +1,12 @@
 name: 'Publish UI Storybook to Chromatic'
 
 on:
+  # pull_request:
+  #   branches:
+  #     - main
   push:
     branches-ignore:
-      - master
-      - main
+      - "dependabot/**"
 
 jobs:
   chromatic-deployment:
@@ -24,4 +26,6 @@ jobs:
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
           storybookBuildDir: services/ui/storybook-static
           allowConsoleErrors: true
-          exitOnceUploaded: true
+          exitOnceUploaded: true # Exit with status 0 (OK) once the build has been sent to Chromatic
+          # exitZeroOnChanges: true # Prevent workflow fail if there are changes
+          # autoAcceptChanges: true
