@@ -45,4 +45,5 @@ export class TaskRegistration {
   service: string;
   created: string;
   deleted: string;
+  permission: string;
 }

@@ -151,6 +151,7 @@ export const addAdvancedTaskDefinition = async (
         type,
         service,
         command,
+        permission,
         created
       },
     },
@@ -185,12 +186,7 @@ export const addAdvancedTaskDefinition = async (
     const rows = await query(sqlClient, Sql.selectAdvancedTaskDefinitionByName(name));
     let taskDef = R.prop(0, rows);
 
-    console.log(taskDef);
-
-    let createNewTask = true;
-
     if(taskDef) {
-
       const taskDefMatchesIncoming = taskDef.description == description &&
       taskDef.image == image &&
       taskDef.type == type &&
@@ -217,6 +213,7 @@ export const addAdvancedTaskDefinition = async (
           created: null,
           type,
           service,
+          permission,
         }
       ),
     );
@@ -301,9 +298,7 @@ export const addAdvancedTaskDefinitionToEnvironment = async (
 
   let rows = await query(sqlClient,Sql.selectAdvancedTaskDefinitionEnvironmentLinkById(insertId));
   let row = R.prop(0, rows)
-  console.log(row);
   let ret = {id: row.id, advancedTask: row.taskDefinition, environment: row.environment}
-  console.log(ret)
   return ret
 }
 
@@ -314,6 +309,10 @@ const taskStatusTypeToString = R.cond([
     [R.equals('FAILED'), R.toLower],
     [R.T, R.identity],
   ]);
+
+  const PermissionsToRBAC = (permission:string) => {
+    return `invoke:${permission.toLowerCase()}`
+  }
 
 
 export const invokeRegisteredTask = async (
@@ -326,42 +325,28 @@ export const invokeRegisteredTask = async (
 ) =>
 {
 
-  const environmentDetails = await environmentHelpers(sqlClient).getEnvironmentById(environment);
-  await hasPermission('task', 'invoke', {
-    project: environmentDetails.project,
-  });
+
 
 
   //selectTaskRegistrationById
   let rows = await query(sqlClient,Sql.selectAdvancedTaskDefinitionEnvironmentLinkById(taskRegistration));
   let taskRegistrationDetails = R.prop(0, rows)
 
-
-
   if (R.isEmpty(taskRegistrationDetails)) {
     throw new Error(`Task registration '${taskRegistration}' could not be found.`);
   }
 
-  //check current user can invoke tasks in this environment ...
+
   await envValidators(sqlClient).environmentExists(environment);
-  const envPerm = await environmentHelpers(sqlClient).getEnvironmentById(environment);
-  await hasPermission('task', `add:${envPerm.environmentType}`, {
-    project: envPerm.project,
-  });
 
   rows = await query(sqlClient,Sql.selectAdvancedTaskDefinition(taskRegistrationDetails.advancedTaskDefinition));
   let task = newTaskRegistrationFromObject(R.prop(0, rows))
 
-  console.log("invoke")
-  console.log(task)
-  console.log("invoke")
-  //check this task can _be invoked_ on this environment
-  // let taskCanBeRun = await canTaskBeRunInEnvironment(sqlClient, environment, task)
 
-
-  // if(!taskCanBeRun) {
-  //   throw new Error(`Task "${task.name}" cannot be run in environment`);
-  // }
+  const environmentDetails = await environmentHelpers(sqlClient).getEnvironmentById(environment);
+  await hasPermission('task', PermissionsToRBAC(task.permission), {
+    project: environmentDetails.project,
+  });
 
   switch(task.type) {
     case(TaskRegistration.TYPE_STANDARD):
@@ -376,8 +361,6 @@ export const invokeRegisteredTask = async (
       return taskData;
     break;
     case(TaskRegistration.TYPE_ADVANCED):
-
-      //TODO: DRY THIS OUT ASAP
 
       //pull advanced task by ID to get the container name
       let addTaskDef = await advancedTaskFunctions(sqlClient).advancedTaskDefinitionById(task.advanced_task_definition)
@@ -415,24 +398,26 @@ export const registerTask = async (
     {
       input: {
         id,
-        type,
-        name,
-        description,
         advancedTaskDefinition,
         environment,
-        project,
-        command,
-        service,
       },
     },
     { sqlClient, hasPermission },
 ) =>
 {
 
-  // Check - if this is a project linked item, does the person have access to add to projects?
 
-  // Check - if this is an environment linked item, does the client have access to add to this environment?
 
+  await envValidators(sqlClient).environmentExists(environment);
+  const envPerm = await environmentHelpers(sqlClient).getEnvironmentById(environment);
+  await hasPermission('task', `add:${envPerm.environmentType}`, {
+    project: envPerm.project,
+  });
+
+  let rows = await query(sqlClient,Sql.selectTaskRegistrationByEnvironmentIdAndAdvancedTaskId(environment, advancedTaskDefinition));
+  if(rows.length > 0) {
+    return R.prop(0, rows)
+  }
 
   const {
     info: { insertId },
@@ -441,21 +426,15 @@ export const registerTask = async (
     Sql.insertTaskRegistration(
       {
         id: null,
-        type,
-        name,
-        description,
         advanced_task_definition: advancedTaskDefinition,
         environment,
-        project,
-        command,
-        service,
         created: null,
         deleted: null,
       }
     ),
   );
 
-  let rows = await query(sqlClient,Sql.selectTaskRegistrationById(insertId));
+  rows = await query(sqlClient,Sql.selectTaskRegistrationById(insertId));
   let row = R.prop(0, rows)
   console.log(row)
   return row

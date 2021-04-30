@@ -62,11 +62,11 @@ const withOptions = withProps(({ pageEnvironment }) => {
 
   // Currently all tasks require the environment to have a 'cli' service,
   // but this can be made dynamic if that changes.
-  if (
-    pageEnvironment.services.findIndex(service => service.name === 'cli') === -1
-  ) {
-    options = [];
-  }
+  // if (
+  //   pageEnvironment.services.findIndex(service => service.name === 'cli') === -1
+  // ) {
+  //   options = [];
+  // }
 
   return { options };
 });

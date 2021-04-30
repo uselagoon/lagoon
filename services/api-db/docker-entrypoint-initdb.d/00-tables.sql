@@ -298,6 +298,7 @@ CREATE TABLE IF NOT EXISTS advanced_task_definition (
   image                    varchar(2000) DEFAULT '',
   service                  varchar(100),
   type                     varchar(100) NOT NULL,
+  permission               ENUM('GUEST', 'DEVELOPER', 'MAINTAINER') DEFAULT 'GUEST',
   command                  text DEFAULT '',
   created                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   deleted                  timestamp NOT NULL DEFAULT '0000-00-00 00:00:00'

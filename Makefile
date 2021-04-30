@@ -1063,6 +1063,24 @@ kind/test: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addpr
 
 LOCAL_DEV_SERVICES = api auth-server controllerhandler logs2email logs2microsoftteams logs2rocketchat logs2slack ui webhook-handler webhooks2tasks
 
+# install lagoon charts in a Kind cluster
+.PHONY: kind/setup
+kind/setup: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addprefix build/,$(KIND_SERVICES))
+	export CHARTSDIR=$$(mktemp -d ./lagoon-charts.XXX) \
+		&& ln -sfn "$$CHARTSDIR" lagoon-charts.kind.lagoon \
+		&& git clone https://github.com/uselagoon/lagoon-charts.git "$$CHARTSDIR" \
+		&& cd "$$CHARTSDIR" \
+		&& git checkout $(CHARTS_TREEISH) \
+		&& export KUBECONFIG="$$(realpath ../kubeconfig.kind.$(CI_BUILD_TAG))" \
+		&& export IMAGE_REGISTRY="registry.$$(../local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
+		&& $(MAKE) install-registry HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
+		&& cd .. && $(MAKE) -j6 kind/push-images && cd "$$CHARTSDIR" \
+		&& $(MAKE) fill-test-ci-values TESTS=$(TESTS) IMAGE_TAG=$(SAFE_BRANCH_NAME) \
+			HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
+			JQ=$$(realpath ../local-dev/jq) \
+			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=$$IMAGE_REGISTRY/kubectl-build-deploy-dind:$(SAFE_BRANCH_NAME) \
+			IMAGE_REGISTRY=$$IMAGE_REGISTRY 
+
 # kind/local-dev-patch will build the services in LOCAL_DEV_SERVICES on your machine, and then use kubectl patch to mount the folders into Kubernetes
 # the deployments should be restarted to trigger any updated code changes
 # `kubectl rollout undo deployment` can be used to rollback a deployment to before the annotated patch

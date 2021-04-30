@@ -77,6 +77,7 @@ export const Sql = {
     created,
     type,
     service,
+    permission,
     }: {
       id: number,
       name: string,
@@ -86,6 +87,7 @@ export const Sql = {
       created: string,
       type: string,
       service: string,
+      permission: string,
     }) =>
     knex('advanced_task_definition')
       .insert({
@@ -97,6 +99,7 @@ export const Sql = {
         created,
         type,
         service,
+        permission,
       })
     .toString(),
     insertAdvancedTaskDefinitionArgument: ({
@@ -152,40 +155,22 @@ export const Sql = {
         .toString(),
     insertTaskRegistration: ({
           id,
-          type,
-          name,
-          description,
           advanced_task_definition,
           environment,
-          project,
-          command,
-          service,
           created,
           deleted,
           }: {
             id: number,
-            type:string,
-            name: string,
-            description: string,
             advanced_task_definition: number,
             environment: number,
-            project: number,
-            command: string,
-            service: string,
             created: string,
             deleted: string,
           }) =>
           knex('task_registration')
             .insert({
               id,
-              type,
-              name,
-              description,
               advanced_task_definition,
               environment,
-              project,
-              command,
-              service,
               created,
               deleted,
             })
@@ -203,6 +188,11 @@ export const Sql = {
         .select('advanced_task_definition.*', 'task_registration.id')
         .join('task_registration', 'task_registration.advanced_task_definition', '=', 'advanced_task_definition.id')
         .where('task_registration.environment', '=', id)
+        .toString(),
+    selectTaskRegistrationByEnvironmentIdAndAdvancedTaskId: (environmentId: number, task: number) =>
+      knex('task_registration')
+        .where('task_registration.environment', '=', environmentId)
+        .where('task_registration.advanced_task_definition', '=', task)
         .toString(),
     selectAdvancedTaskDefinition:(id: number) =>
       knex('advanced_task_definition')
@@ -226,12 +216,14 @@ export const Sql = {
   selectAdvancedTaskDefinitionsForEnvironment:(id: number) =>
     knex('advanced_task_definition')
     .select(['task_registration.id',
+    'advanced_task_definition.id as advancedTaskDefinition',
     'advanced_task_definition.name',
     'advanced_task_definition.description',
     'advanced_task_definition.image',
     'advanced_task_definition.service',
     'advanced_task_definition.command',
     'advanced_task_definition.created',
+    'advanced_task_definition.permission',
     ])
     .join('task_registration', 'task_registration.advanced_task_definition', '=', 'advanced_task_definition.id')
     .where('task_registration.environment', '=', id)

@@ -117,6 +117,12 @@ const typeDefs = gql`
     CRITICAL
   }
 
+  enum TaskPermission {
+    MAINTAINER
+    DEVELOPER
+    GUEST
+  }
+
   scalar SeverityScore
 
   type AdvancedTaskDefinitionArgument {
@@ -135,20 +141,22 @@ const typeDefs = gql`
     service: String
     command: String
     created: String
+    permission: TaskPermission
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgument]
   }
 
   type TaskRegistration {
-    id: Int,
-    type: String,
-    name: String,
-    description: String,
-    advancedTaskDefinition: Int,
-    environment: Int,
-    project: Int,
-    command: String,
-    service: String,
-    created: String,
+    id: Int
+    type: String
+    name: String
+    description: String
+    advancedTaskDefinition: Int
+    environment: Int
+    project: Int
+    command: String
+    service: String
+    permission: TaskPermission
+    created: String
     deleted: String
   }
 
@@ -1128,6 +1136,7 @@ const typeDefs = gql`
     completed: String
     environment: Int!
     service: String
+    permission: TaskPermission
     advancedTaskId: Int!
     remoteId: String
     execute: Boolean
@@ -1136,15 +1145,9 @@ const typeDefs = gql`
 
 
   input TaskRegistrationInput {
-    id: Int,
-    type: String,
-    name: String!,
-    description: String,
-    advancedTaskDefinition: Int,
-    environment: Int,
-    project: Int,
-    command: String,
-    service: String,
+    id: Int
+    advancedTaskDefinition: Int
+    environment: Int
   }
 
   input AdvancedTaskToEnvironmentInput {
