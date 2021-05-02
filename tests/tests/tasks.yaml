@@ -1,0 +1,13 @@
+---
+
+- include: features/api-token.yaml
+  vars:
+    testname: "API TOKEN"
+
+- include: features/tasks.yaml
+  vars:
+    testname: "TASKS {{ cluster_type|upper }}"
+    git_repo_name: tasks.git
+    project: ci-tasks-{{ cluster_type }}
+    branch: tasks
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
