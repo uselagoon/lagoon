@@ -69,7 +69,7 @@ async function createHarborProject(sqlClient: MariaClient, harborClient, lagoonP
     } else {
       results = res.body
     }
-    
+
     // Search array of objects for correct project
     for (let proj of results) {
       if (proj.name == lagoonProjectName) {
@@ -261,7 +261,7 @@ export const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
     // Set required Lagoon env vars to enable Harbor on this project
     if (! await addEnvVar(sqlClient, lagoonProjectName, "INTERNAL_REGISTRY_URL", lagoonHarborRoute, "INTERNAL_CONTAINER_REGISTRY", projectID)) {return}
     if (! await addEnvVar(sqlClient, lagoonProjectName, "INTERNAL_REGISTRY_USERNAME", harborTokenInfo.name, "INTERNAL_CONTAINER_REGISTRY", projectID)) {return}
-    if (! await addEnvVar(sqlClient, lagoonProjectName, "INTERNAL_REGISTRY_PASSWORD", harborTokenInfo.token, "INTERNAL_CONTAINER_REGISTRY", projectID)) {return}
+    if (! await addEnvVar(sqlClient, lagoonProjectName, "INTERNAL_REGISTRY_PASSWORD", harborTokenInfo.secret, "INTERNAL_CONTAINER_REGISTRY", projectID)) {return}
 
     // Reset harbor project webhook to point to this Lagoon's Harbor
     if (! await resetHarborWebhook(sqlClient, harborClient, lagoonProjectName, lagoonWebhookAddress, harborProjectID)) {return}
