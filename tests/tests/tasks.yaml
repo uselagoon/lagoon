@@ -4,7 +4,7 @@
   vars:
     testname: "API TOKEN"
 
-- include: features/tasks.yaml
+- include: tasks/tasks.yaml
   vars:
     testname: "TASKS {{ cluster_type|upper }}"
     git_repo_name: tasks.git

@@ -1,4 +1,3 @@
-
 - name: "{{ testname }} - init git, add files, commit, git push"
   hosts: localhost
   serial: 1
