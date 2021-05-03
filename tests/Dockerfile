@@ -1,6 +1,6 @@
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
-FROM ${UPSTREAM_REPO:-uselagoon}/python-2.7:${UPSTREAM_TAG:-latest}
+FROM ${UPSTREAM_REPO:-uselagoon}/python-3.8:${UPSTREAM_TAG:-latest}
 
 RUN apk add --no-cache \
       bash \
@@ -12,12 +12,14 @@ RUN apk add --no-cache \
       openssh-client \
       rsync
 
+ENV CRYPTOGRAPHY_DONT_BUILD_RUST=1
+
 RUN apk add --no-cache --virtual .build-deps \
       g++ \
       libffi-dev \
       openssl-dev \
     && pip install \
-      ansible==2.8.13 \
+      ansible-core \
       PyJWT \
       requests \
       jmespath \
@@ -41,6 +43,8 @@ COPY hosts /etc/ansible/hosts
 ENV ANSIBLE_FORCE_COLOR=true
 ENV SSH_AUTH_SOCK=/tmp/ssh-agent
 ENV KEYCLOAK_URL=http://keycloak:8080
+
+RUN ansible-galaxy collection install ansible.posix
 
 COPY entrypoint.sh /
 ENTRYPOINT ["/entrypoint.sh"]
