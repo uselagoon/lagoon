@@ -25,6 +25,8 @@ RUN apk add --no-cache --virtual .build-deps \
       jmespath \
     && apk del .build-deps
 
+RUN ansible-galaxy collection install ansible.posix community.general
+
 # download, extract and install kubectl binary
 # https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.20.md#downloads-for-v1204
 ARG KUBECTL_URL=https://dl.k8s.io/v1.20.4/kubernetes-client-linux-amd64.tar.gz
@@ -44,7 +46,7 @@ ENV ANSIBLE_FORCE_COLOR=true
 ENV SSH_AUTH_SOCK=/tmp/ssh-agent
 ENV KEYCLOAK_URL=http://keycloak:8080
 
-RUN ansible-galaxy collection install ansible.posix
+
 
 COPY entrypoint.sh /
 ENTRYPOINT ["/entrypoint.sh"]
