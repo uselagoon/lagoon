@@ -60,6 +60,7 @@ export const addFact = async (
   } = await query(
     sqlClient,
     Sql.insertFact({
+      id,
       environment: environmentId,
       name,
       value,
@@ -93,13 +94,14 @@ export const addFacts = async (
   });
 
   return await facts.map(async (fact) => {
-    const { environment, name, value, source, description } = fact;
+    const { id, environment, name, value, source, description } = fact;
 
     const {
       info: { insertId },
     } = await query(
       sqlClient,
       Sql.insertFact({
+        id,
         environment,
         name,
         value,
