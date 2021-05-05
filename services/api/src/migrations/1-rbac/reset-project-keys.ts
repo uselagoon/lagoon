@@ -4,13 +4,15 @@ import { logger } from '@lagoon/commons/dist/local-logging';
 import * as api from '@lagoon/commons/dist/api';
 import * as gitlabApi from '@lagoon/commons/dist/gitlabApi';
 import { getKeycloakAdminClient } from '../../clients/keycloak-admin';
-import { getSqlClient } from '../../clients/sqlClient';
-import { query, prepare } from '../../util/db';
+import { sqlClientPool } from '../../clients/sqlClient';
+import { esClient } from '../../clients/esClient';
+import redisClient from '../../clients/redisClient';
+import { mQuery } from '../../util/db';
 import { Group } from '../../models/group';
 import { User } from '../../models/user';
 import {
   generatePrivateKey,
-  getSshKeyFingerprint,
+  getSshKeyFingerprint
 } from '../../resources/sshKey';
 import { Sql as sshKeySql } from '../../resources/sshKey/sql';
 
@@ -30,10 +32,18 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
 (async () => {
   const keycloakAdminClient = await getKeycloakAdminClient();
 
-  const sqlClient = getSqlClient();
-
-  const GroupModel = Group({ keycloakAdminClient });
-  const UserModel = User({ keycloakAdminClient });
+  const GroupModel = Group({
+    sqlClientPool,
+    keycloakAdminClient,
+    esClient,
+    redisClient
+  });
+  const UserModel = User({
+    sqlClientPool,
+    keycloakAdminClient,
+    esClient,
+    redisClient
+  });
 
   const projectArgs = process.argv.slice(2);
   if (projectArgs.length === 0) {
@@ -42,11 +52,12 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
   }
 
   const allGitlabProjects = (await gitlabApi.getAllProjects()) as GitlabProject[];
-  const projectRecords = await query(
-    sqlClient,
-    prepare(sqlClient, 'SELECT * FROM `project` WHERE name IN (:projects)')({
-      projects: projectArgs,
-    }),
+  const projectRecords = await mQuery(
+    sqlClientPool,
+    'SELECT * FROM `project` WHERE name IN (:projects)',
+    {
+      projects: projectArgs
+    }
   );
 
   for (const project of projectRecords) {
@@ -54,7 +65,7 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
 
     const gitlabProject = R.find(
       (findProject: GitlabProject) =>
-        api.sanitizeGroupName(findProject.path) === project.name,
+        api.sanitizeGroupName(findProject.path) === project.name
     )(allGitlabProjects);
 
     // Load default group
@@ -78,19 +89,21 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
         keyPair = {
           ...keyPair,
           private: R.replace(/\n/g, '\n', privateKey.toString('openssh')),
-          public: publicKey.toString(),
+          public: publicKey.toString()
         };
       } catch (err) {
         throw new Error(
-          `There was an error with the privateKey: ${err.message}`,
+          `There was an error with the privateKey: ${err.message}`
         );
       }
       const keyParts = keyPair.public.split(' ');
 
       // Delete users with current key
-      const userRows = await query(
-        sqlClient,
-        sshKeySql.selectUserIdsBySshKeyFingerprint(getSshKeyFingerprint(keyPair.public)),
+      const userRows = await mQuery(
+        sqlClientPool,
+        sshKeySql.selectUserIdsBySshKeyFingerprint(
+          getSshKeyFingerprint(keyPair.public)
+        )
       );
 
       for (const userRow of userRows) {
@@ -105,32 +118,31 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
         }
 
         // Delete public key
-        await query(
-          sqlClient,
-          prepare(sqlClient, 'DELETE FROM ssh_key WHERE key_value = :key')({
-            key: keyParts[1],
-          }),
+        await mQuery(
+          sqlClientPool,
+          'DELETE FROM ssh_key WHERE key_value = :key',
+          {
+            key: keyParts[1]
+          }
         );
 
         // Delete user_ssh_key link
-        await query(
-          sqlClient,
-          prepare(sqlClient, 'DELETE FROM user_ssh_key WHERE usid = :usid')({
-            usid: userId,
-          }),
+        await mQuery(
+          sqlClientPool,
+          'DELETE FROM user_ssh_key WHERE usid = :usid',
+          {
+            usid: userId
+          }
         );
       }
 
       // Delete current private key
-      const nullQuery = prepare(
-        sqlClient,
+      await mQuery(
+        sqlClientPool,
         'UPDATE project p SET private_key = NULL WHERE id = :pid',
-      );
-      await query(
-        sqlClient,
-        nullQuery({
-          pid: project.id,
-        }),
+        {
+          pid: project.id
+        }
       );
     }
 
@@ -144,26 +156,25 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
 
     const keyPair = {
       private: R.replace(/\n/g, '\n', privateKey.toString('openssh')),
-      public: publicKey.toString(),
+      public: publicKey.toString()
     };
 
     // Save the newly generated key
-    const updateQuery = prepare(
-      sqlClient,
+    await mQuery(
+      sqlClientPool,
       'UPDATE project p SET private_key = :pkey WHERE id = :pid',
-    );
-    await query(
-      sqlClient,
-      updateQuery({
+      {
         pkey: keyPair.private,
-        pid: project.id,
-      }),
+        pid: project.id
+      }
     );
 
     // Find or create a user that has the public key linked to them
-    const userRows = await query(
-      sqlClient,
-      sshKeySql.selectUserIdsBySshKeyFingerprint(getSshKeyFingerprint(keyPair.public)),
+    const userRows = await mQuery(
+      sqlClientPool,
+      sshKeySql.selectUserIdsBySshKeyFingerprint(
+        getSshKeyFingerprint(keyPair.public)
+      )
     );
     const userId = R.path([0, 'usid'], userRows);
 
@@ -173,32 +184,28 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
         user = await UserModel.addUser({
           email: `default-user@${project.name}`,
           username: `default-user@${project.name}`,
-          comment: `autogenerated user for project ${project.name}`,
+          comment: `autogenerated user for project ${project.name}`
         });
 
         const keyParts = keyPair.public.split(' ');
 
-        const {
-          info: { insertId },
-        } = await query(
-          sqlClient,
+        const { insertId } = await mQuery(
+          sqlClientPool,
           sshKeySql.insertSshKey({
             id: null,
             name: 'auto-add via reset',
             keyValue: keyParts[1],
             keyType: keyParts[0],
-            keyFingerprint: getSshKeyFingerprint(keyPair.public),
-          }),
+            keyFingerprint: getSshKeyFingerprint(keyPair.public)
+          })
         );
-        await query(
-          sqlClient,
-          sshKeySql.addSshKeyToUser({ sshKeyId: insertId, userId: user.id }),
+        await mQuery(
+          sqlClientPool,
+          sshKeySql.addSshKeyToUser({ sshKeyId: insertId, userId: user.id })
         );
       } catch (err) {
         logger.error(
-          `Could not create default project user for ${project.name}: ${
-            err.message
-          }`,
+          `Could not create default project user for ${project.name}: ${err.message}`
         );
       }
     } else {
@@ -211,9 +218,7 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
       await GroupModel.addUserToGroup(user, keycloakGroup, 'maintainer');
     } catch (err) {
       logger.error(
-        `Could not link user to default projet group for ${project.name}: ${
-          err.message
-        }`,
+        `Could not link user to default projet group for ${project.name}: ${err.message}`
       );
     }
 
@@ -222,15 +227,11 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
     } catch (err) {
       if (!err.message.includes('has already been taken')) {
         throw new Error(
-          `Could not add deploy_key to gitlab project ${
-            gitlabProject.id
-          }, reason: ${err}`,
+          `Could not add deploy_key to gitlab project ${gitlabProject.id}, reason: ${err}`
         );
       }
     }
   }
 
   logger.info('Reset completed');
-
-  sqlClient.destroy();
 })();

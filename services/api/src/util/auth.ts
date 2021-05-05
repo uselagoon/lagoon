@@ -36,7 +36,7 @@ const sortRolesByWeight = (a, b) => {
   return 0;
 };
 
-export const getGrantForKeycloakToken = async (sqlClient, token) => {
+export const getGrantForKeycloakToken = async (_, token) => {
   let grant = '';
   try {
     grant = await keycloakGrantManager.createGrant({
@@ -49,7 +49,7 @@ export const getGrantForKeycloakToken = async (sqlClient, token) => {
   return grant;
 };
 
-export const getCredentialsForLegacyToken = async (sqlClient, token) => {
+export const getCredentialsForLegacyToken = async (_, token) => {
   let decoded: ILegacyToken;
   try {
     decoded = verify(token, getConfigFromEnv('JWTSECRET'));
@@ -98,9 +98,9 @@ export class KeycloakUnauthorizedError extends Error {
   }
 }
 
-export const keycloakHasPermission = (grant, requestCache, keycloakAdminClient) => {
-  const UserModel = User({ keycloakAdminClient });
-  const GroupModel = Group({ keycloakAdminClient });
+export const keycloakHasPermission = (grant, requestCache, modelClients) => {
+  const UserModel = User(modelClients);
+  const GroupModel = Group(modelClients);
 
   return async (resource, scope, attributes: IKeycloakAuthAttributes = {}) => {
     const currentUserId: string = grant.access_token.content.sub;

@@ -1,7 +1,6 @@
 import moment from 'moment';
-
-import { prepare, query } from '../util/db';
-
+import { Pool } from 'mariadb';
+import { mQuery } from '../util/db';
 import * as logger from '../logger';
 
 export interface Environment {
@@ -35,13 +34,14 @@ interface EnvironmentData {
 type projectEnvWithDataType = (
   pid: string,
   projectName: string,
-  month: string,
+  month: string
 ) => Promise<EnvironmentData[]>;
 
-
-export const EnvironmentModel = (clients) => {
-
-  const { sqlClient, esClient } = clients;
+export const EnvironmentModel = (clients: {
+  sqlClientPool: Pool;
+  esClient: any;
+}) => {
+  const { sqlClientPool, esClient } = clients;
 
   /**
    * Get all environments for a project.
@@ -52,23 +52,15 @@ export const EnvironmentModel = (clients) => {
    *
    * @return {Promise<[Environments]>} An array of all project environments
    */
-  const projectEnvironments = async (
-    pid,
-    type,
-    includeDeleted = false,
-  ) => {
-    const prep = prepare(
-      sqlClient,
-      ` SELECT *
-        FROM environment e
-        WHERE e.project = :pid
-        ${includeDeleted ? '' : 'AND deleted = "0000-00-00 00:00:00"'}
-        ${type ? 'AND e.environment_type = :type' : ''}`,
-    );
-
-    const environments: [Environment] = await query(
-      sqlClient,
-      prep({ pid, includeDeleted, type }),
+  const projectEnvironments = async (pid, type, includeDeleted = false) => {
+    const environments: [Environment] = await mQuery(
+      sqlClientPool,
+      `SELECT *
+      FROM environment e
+      WHERE e.project = :pid
+      ${includeDeleted ? '' : 'AND deleted = "0000-00-00 00:00:00"'}
+      ${type ? 'AND e.environment_type = :type' : ''}`,
+      { pid, type }
     );
     return environments;
   };
@@ -78,7 +70,10 @@ export const EnvironmentModel = (clients) => {
 
   // Needed for local Dev - Required if not connected to openshift
   const errorCatcherFn = (msg, responseObj) => err => {
-    const errMsg = err && err.status && err.message ? `${err.status} : ${err.message} : ${err.headers} : ${err.url}` : `err undefined`;
+    const errMsg =
+      err && err.status && err.message
+        ? `${err.status} : ${err.message} : ${err.headers} : ${err.url}`
+        : `err undefined`;
     logger.error(`${msg}: ${errMsg}`);
     return { ...responseObj };
   };
@@ -96,16 +91,27 @@ export const EnvironmentModel = (clients) => {
     eid: number,
     month: string,
     project: string,
-    openshiftProjectName: string,
+    openshiftProjectName: string
   ) => {
-    const hits = await environmentHitsMonthByEnvironmentId(project, openshiftProjectName, month)
-      .catch(errorCatcherFn(`getHits - openShiftProjectName: ${openshiftProjectName} month: ${month}`, { total: 0 }));
+    const hits = await environmentHitsMonthByEnvironmentId(
+      project,
+      openshiftProjectName,
+      month
+    ).catch(
+      errorCatcherFn(
+        `getHits - openShiftProjectName: ${openshiftProjectName} month: ${month}`,
+        { total: 0 }
+      )
+    );
 
-    const storage = await environmentStorageMonthByEnvironmentId(eid, month)
-      .catch(errorCatcherFn('getStorage', { bytesUsed: 0 }));
+    const storage = await environmentStorageMonthByEnvironmentId(
+      eid,
+      month
+    ).catch(errorCatcherFn('getStorage', { bytesUsed: 0 }));
 
-    const hours = await environmentHoursMonthByEnvironmentId(eid, month)
-      .catch(errorCatcherFn('getHours', { hours: 0 }));
+    const hours = await environmentHoursMonthByEnvironmentId(eid, month).catch(
+      errorCatcherFn('getHours', { hours: 0 })
+    );
 
     return { hits, storage, hours };
   };
@@ -121,26 +127,26 @@ export const EnvironmentModel = (clients) => {
   const projectEnvironmentsWithData: projectEnvWithDataType = async (
     pid,
     projectName,
-    month,
+    month
   ) => {
     const environments = await projectEnvironments(pid, null, true);
 
     const environmentDataFn = async ({
       id: eid,
       environmentType: type,
-      openshiftProjectName: openshift,
+      openshiftProjectName: openshift
     }: Environment) => ({
       eid,
       type,
       data: {
-        ...(await environmentData(eid, month, projectName, openshift)),
-      },
+        ...(await environmentData(eid, month, projectName, openshift))
+      }
     });
     const data = await Promise.all(environments.map(environmentDataFn));
 
     const environmentDataReducerFn = (obj, item) => ({
       ...obj,
-      [item.eid]: { ...item.data },
+      [item.eid]: { ...item.data }
     });
     const keyedData = data.reduce(environmentDataReducerFn, {});
 
@@ -148,7 +154,7 @@ export const EnvironmentModel = (clients) => {
       id,
       name,
       type,
-      ...keyedData[id],
+      ...keyedData[id]
     });
     return environments.map(environmentsMapFn);
   };
@@ -165,19 +171,19 @@ export const EnvironmentModel = (clients) => {
         AND MONTH(updated) = MONTH(STR_TO_DATE(:month, '%Y-%m'))
     `;
 
-    const prep = prepare(sqlClient, str);
-    const rows = await query(sqlClient, prep({ eid, month }));
+    const rows = await mQuery(sqlClientPool, str, { eid, month });
     return rows[0];
   };
 
   const environmentHoursMonthByEnvironmentId = async (
     eid: number,
-    yearMonth: string,
+    yearMonth: string
   ) => {
-    const str =
-      'SELECT e.created, e.deleted FROM environment e WHERE e.id = :eid';
-    const prep = prepare(sqlClient, str);
-    const rows = await query(sqlClient, prep({ eid }));
+    const rows = await mQuery(
+      sqlClientPool,
+      'SELECT e.created, e.deleted FROM environment e WHERE e.id = :eid',
+      { eid }
+    );
 
     const { created, deleted } = rows[0];
 
@@ -222,7 +228,8 @@ export const EnvironmentModel = (clients) => {
     // Environment was deleted before the month we are interested in: Ran for 0 hours in the requested month
     if (
       deleted_date < interested_month_start &&
-      moment(deleted_date).format('YYYY-MM-DD HH:mm:ss') !== '0000-00-00 00:00:00'
+      moment(deleted_date).format('YYYY-MM-DD HH:mm:ss') !==
+        '0000-00-00 00:00:00'
     ) {
       return { month, hours: 0 };
     }
@@ -253,78 +260,87 @@ export const EnvironmentModel = (clients) => {
     return { month, hours };
   };
 
-  const fetchElasticSearchHitsData = async (project, openshiftProjectName, interestedYearMonth, interestedDateBeginString, interestedDateEndString) => {
+  const fetchElasticSearchHitsData = async (
+    project,
+    openshiftProjectName,
+    interestedYearMonth,
+    interestedDateBeginString,
+    interestedDateEndString
+  ) => {
     try {
       // LEGACY LOGGING SYSTEM - REMOVE ONCE WE MIGRATE EVERYTHING TO THE NEW SYSTEM
       const legacyQuery = {
         index: `router-logs-${openshiftProjectName}-*`,
         body: {
-          "size": 0,
-          "query": {
-            "bool": {
-              "must": [
+          size: 0,
+          query: {
+            bool: {
+              must: [
                 {
-                  "range": {
-                    "@timestamp": {
-                      "gte": `${interestedYearMonth}||/M`,
-                      "lte": `${interestedYearMonth}||/M`,
-                      "format": "strict_year_month"
+                  range: {
+                    '@timestamp': {
+                      gte: `${interestedYearMonth}||/M`,
+                      lte: `${interestedYearMonth}||/M`,
+                      format: 'strict_year_month'
                     }
                   }
                 }
               ],
-              "must_not": [
+              must_not: [
                 {
-                  "match_phrase": {
-                    "request_header_useragent": { // Legacy Logging - OpenShift Router: Exclude requests from StatusCake
-                      "query": "StatusCake"
+                  match_phrase: {
+                    request_header_useragent: {
+                      // Legacy Logging - OpenShift Router: Exclude requests from StatusCake
+                      query: 'StatusCake'
                     }
                   }
                 },
                 {
-                  "match_phrase": {
-                    "request_header_useragent": { // Legacy Logging - OpenShift Router: Exclude requests from UptimeRobot
-                      "query": "UptimeRobot"
+                  match_phrase: {
+                    request_header_useragent: {
+                      // Legacy Logging - OpenShift Router: Exclude requests from UptimeRobot
+                      query: 'UptimeRobot'
                     }
                   }
                 },
                 {
-                  "match_phrase": {
-                    "http_request":  { // Legacy Logging - OpenShift Router: Exclude requests to acme challenges
-                      "query": "acme-challenge"
+                  match_phrase: {
+                    http_request: {
+                      // Legacy Logging - OpenShift Router: Exclude requests to acme challenges
+                      query: 'acme-challenge'
                     }
                   }
                 }
               ]
             }
           },
-          "aggs": {
-            "hourly": {
-              "date_histogram": {
-                "field": "@timestamp",
-                "fixed_interval": "1h",
-                "min_doc_count": 0,
-                "extended_bounds": {
-                  "min": interestedDateBeginString,
-                  "max": interestedDateEndString
+          aggs: {
+            hourly: {
+              date_histogram: {
+                field: '@timestamp',
+                fixed_interval: '1h',
+                min_doc_count: 0,
+                extended_bounds: {
+                  min: interestedDateBeginString,
+                  max: interestedDateEndString
                 }
               },
-              "aggs": {
-                "count": {
-                  "value_count": {
-                    "field": "@timestamp"
+              aggs: {
+                count: {
+                  value_count: {
+                    field: '@timestamp'
                   }
                 }
               }
             },
-            "average": {
-              "avg_bucket": {
-                "buckets_path": "hourly>count",
-                "gap_policy": "skip" // makes sure that we don't use empty buckets as average calculation
+            average: {
+              avg_bucket: {
+                buckets_path: 'hourly>count',
+                gap_policy: 'skip' // makes sure that we don't use empty buckets as average calculation
               }
             }
           }
-        },
+        }
       };
       const legacyResult = await esClient.search(legacyQuery);
 
@@ -332,101 +348,108 @@ export const EnvironmentModel = (clients) => {
       const newQuery = {
         index: `router-logs-${project}-_-*`,
         body: {
-          "size": 0,
-          "query": {
-            "bool": {
-              "must": [
+          size: 0,
+          query: {
+            bool: {
+              must: [
                 {
-                  "range": {
-                    "@timestamp": {
-                      "gte": `${interestedYearMonth}||/M`,
-                      "lte": `${interestedYearMonth}||/M`,
-                      "format": "strict_year_month"
+                  range: {
+                    '@timestamp': {
+                      gte: `${interestedYearMonth}||/M`,
+                      lte: `${interestedYearMonth}||/M`,
+                      format: 'strict_year_month'
                     }
                   }
                 },
                 {
-                  "match_phrase": { "kubernetes.namespace_name": `${openshiftProjectName}` }
+                  match_phrase: {
+                    'kubernetes.namespace_name': `${openshiftProjectName}`
+                  }
                 }
               ],
-              "must_not": [
+              must_not: [
                 {
-                  "match_phrase": { 
-                    "http_user_agent": { // New Logging - Kubernetes Ingress: Exclude requests from Statuscake
-                      "query": "StatusCake"
+                  match_phrase: {
+                    http_user_agent: {
+                      // New Logging - Kubernetes Ingress: Exclude requests from Statuscake
+                      query: 'StatusCake'
                     }
                   }
                 },
                 {
-                  "match_phrase": {
-                    "http_user_agent": { // New Logging - Kubernetes Ingress: Exclude requests from UptimeRobot
-                      "query": "UptimeRobot"
-                    }
-                  }
-                },                
-                {
-                  "match_phrase": {
-                    "request_user_agent": { // New Logging - OpenShift Router: Exclude requests from Statuscake
-                      "query": "StatusCake"
+                  match_phrase: {
+                    http_user_agent: {
+                      // New Logging - Kubernetes Ingress: Exclude requests from UptimeRobot
+                      query: 'UptimeRobot'
                     }
                   }
                 },
                 {
-                  "match_phrase": {
-                    "request_user_agent": { // New Logging - OpenShift Router: Exclude requests from UptimeRobot
-                      "query": "UptimeRobot"
+                  match_phrase: {
+                    request_user_agent: {
+                      // New Logging - OpenShift Router: Exclude requests from Statuscake
+                      query: 'StatusCake'
                     }
                   }
                 },
                 {
-                  "match_phrase": {
-                    "request_uri":  { // New Logging - Kubernetes Ingress: Exclude requests to acme challenges
-                      "query": "acme-challenge"
+                  match_phrase: {
+                    request_user_agent: {
+                      // New Logging - OpenShift Router: Exclude requests from UptimeRobot
+                      query: 'UptimeRobot'
                     }
                   }
                 },
                 {
-                  "match_phrase": {
-                    "http_request":  { // New Logging - OpenShift Router: Exclude requests to acme challenges
-                      "query": "acme-challenge"
+                  match_phrase: {
+                    request_uri: {
+                      // New Logging - Kubernetes Ingress: Exclude requests to acme challenges
+                      query: 'acme-challenge'
+                    }
+                  }
+                },
+                {
+                  match_phrase: {
+                    http_request: {
+                      // New Logging - OpenShift Router: Exclude requests to acme challenges
+                      query: 'acme-challenge'
                     }
                   }
                 }
               ]
             }
           },
-          "aggs": {
-            "hourly": {
-              "date_histogram": {
-                "field": "@timestamp",
-                "fixed_interval": "1h",
-                "min_doc_count": 0,
-                "extended_bounds": {
-                  "min": interestedDateBeginString,
-                  "max": interestedDateEndString
+          aggs: {
+            hourly: {
+              date_histogram: {
+                field: '@timestamp',
+                fixed_interval: '1h',
+                min_doc_count: 0,
+                extended_bounds: {
+                  min: interestedDateBeginString,
+                  max: interestedDateEndString
                 }
               },
-              "aggs": {
-                "count": {
-                  "value_count": {
-                    "field": "@timestamp"
+              aggs: {
+                count: {
+                  value_count: {
+                    field: '@timestamp'
                   }
                 }
               }
             },
-            "average": {
-              "avg_bucket": {
-                "buckets_path": "hourly>count",
-                "gap_policy": "skip" // makes sure that we don't use empty buckets as average calculation
+            average: {
+              avg_bucket: {
+                buckets_path: 'hourly>count',
+                gap_policy: 'skip' // makes sure that we don't use empty buckets as average calculation
               }
             }
           }
-        },
+        }
       };
       const newResult = await esClient.search(newQuery);
 
-      return {newResult, legacyResult};
-
+      return { newResult, legacyResult };
     } catch (e) {
       logger.error(`Elastic Search Query Error: ${JSON.stringify(e)}`);
       // const noHits = { total: 0 };
@@ -439,29 +462,68 @@ export const EnvironmentModel = (clients) => {
       //   return noHits;
       // }
 
-      return { newResult: null, legacyResult: null }
+      return { newResult: null, legacyResult: null };
 
       throw e;
     }
-  }
+  };
 
-  const calculateHitsFromESData = (legacyResult, newResult)  => {
-
+  const calculateHitsFromESData = (legacyResult, newResult) => {
     // 0 hits found in elasticsearch, don't even try to generate monthly counts
-    if (legacyResult.hits.total.value === 0 && newResult.hits.total.value === 0) {
+    if (
+      legacyResult.hits.total.value === 0 &&
+      newResult.hits.total.value === 0
+    ) {
       return { total: 0 };
     }
 
     var total = 0;
 
-    const legacyBuckets = legacyResult && legacyResult.aggregations && legacyResult.aggregations.hourly && legacyResult.aggregations.hourly.buckets ? legacyResult.aggregations.hourly.buckets : 0;
-    const legacyResultCount = legacyResult && legacyResult.aggregations && legacyResult.aggregations.hourly && legacyResult.aggregations.hourly.buckets && legacyResult.aggregations.hourly.buckets.length ? legacyResult.aggregations.hourly.buckets.length : 0;
-    const legacyAvg = legacyResult && legacyResult.aggregations && legacyResult.aggregations.average && legacyResult.aggregations.average.value ? parseInt(legacyResult.aggregations.average.value) : 0;
+    const legacyBuckets =
+      legacyResult &&
+      legacyResult.aggregations &&
+      legacyResult.aggregations.hourly &&
+      legacyResult.aggregations.hourly.buckets
+        ? legacyResult.aggregations.hourly.buckets
+        : 0;
+    const legacyResultCount =
+      legacyResult &&
+      legacyResult.aggregations &&
+      legacyResult.aggregations.hourly &&
+      legacyResult.aggregations.hourly.buckets &&
+      legacyResult.aggregations.hourly.buckets.length
+        ? legacyResult.aggregations.hourly.buckets.length
+        : 0;
+    const legacyAvg =
+      legacyResult &&
+      legacyResult.aggregations &&
+      legacyResult.aggregations.average &&
+      legacyResult.aggregations.average.value
+        ? parseInt(legacyResult.aggregations.average.value)
+        : 0;
 
-    const newBuckets = newResult && newResult.aggregations && newResult.aggregations.hourly && newResult.aggregations.hourly.buckets ? newResult.aggregations.hourly.buckets : 0;
-    const newResultCount = newResult && newResult.aggregations && newResult.aggregations.hourly && newResult.aggregations.hourly.buckets && newResult.aggregations.hourly.buckets.length ? newResult.aggregations.hourly.buckets.length : 0;
-    const newAvg = newResult && newResult.aggregations && newResult.aggregations.average && newResult.aggregations.average.value ? parseInt(newResult.aggregations.average.value) : 0;
-
+    const newBuckets =
+      newResult &&
+      newResult.aggregations &&
+      newResult.aggregations.hourly &&
+      newResult.aggregations.hourly.buckets
+        ? newResult.aggregations.hourly.buckets
+        : 0;
+    const newResultCount =
+      newResult &&
+      newResult.aggregations &&
+      newResult.aggregations.hourly &&
+      newResult.aggregations.hourly.buckets &&
+      newResult.aggregations.hourly.buckets.length
+        ? newResult.aggregations.hourly.buckets.length
+        : 0;
+    const newAvg =
+      newResult &&
+      newResult.aggregations &&
+      newResult.aggregations.average &&
+      newResult.aggregations.average.value
+        ? parseInt(newResult.aggregations.average.value)
+        : 0;
 
     /*
     foreach hourlybucket (#both result buckets should have the exact same amount of buckets)
@@ -476,34 +538,42 @@ export const EnvironmentModel = (clients) => {
 
     const count = newResultCount > 0 ? newResultCount : legacyResultCount;
     for (let i = 0; i < count; i++) {
-      if (newResultCount !== 0 && newBuckets[i] && newBuckets[i].count && newBuckets[i].count.value !== 0){
+      if (
+        newResultCount !== 0 &&
+        newBuckets[i] &&
+        newBuckets[i].count &&
+        newBuckets[i].count.value !== 0
+      ) {
         // We have new logging data, use this for total
         total += newBuckets[i].count.value;
-      }else if (legacyResultCount !== 0 && legacyBuckets[i] && legacyBuckets[i].count && legacyBuckets[i].count.value !== 0){
+      } else if (
+        legacyResultCount !== 0 &&
+        legacyBuckets[i] &&
+        legacyBuckets[i].count &&
+        legacyBuckets[i].count.value !== 0
+      ) {
         // We have legacy data
         total += legacyBuckets[i].count.value;
-      }else{
+      } else {
         // Both legacy and new logging buckets are zero, meaning we have missing data, use the avg
-        if(newAvg !== 0 && newAvg > legacyAvg){
+        if (newAvg !== 0 && newAvg > legacyAvg) {
           total += newAvg;
-        }else if (legacyAvg !== 0){
+        } else if (legacyAvg !== 0) {
           total += legacyAvg;
-        }else{
+        } else {
           total += newAvg;
         }
       }
     }
 
     return { total };
-  }
-
+  };
 
   const environmentHitsMonthByEnvironmentId = async (
     project,
     openshiftProjectName,
-    yearMonth,
+    yearMonth
   ) => {
-
     const interestedDate = yearMonth ? new Date(yearMonth) : new Date();
     const year = interestedDate.getUTCFullYear();
     const month = interestedDate.getUTCMonth() + 1; // internally months start with 0, we need them with 1
@@ -516,7 +586,7 @@ export const EnvironmentModel = (clients) => {
 
     // generate a string of the date on the very last second of the month
     const interestedDateEnd = interestedDate;
-    interestedDateEnd.setUTCMonth(interestedDate.getUTCMonth() + 1)
+    interestedDateEnd.setUTCMonth(interestedDate.getUTCMonth() + 1);
     interestedDateEnd.setUTCDate(0); // setting the date to 0 will select 1 day before the actual date
     interestedDateEnd.setUTCHours(23);
     interestedDateEnd.setUTCMinutes(59);
@@ -524,10 +594,16 @@ export const EnvironmentModel = (clients) => {
     interestedDateEnd.setUTCMilliseconds(999);
     const interestedDateEndString = interestedDateEnd.toISOString();
 
-    const {newResult, legacyResult} = await fetchElasticSearchHitsData(project.toLocaleLowerCase().replace(/[^0-9a-z-]/g, '-'), openshiftProjectName, interestedYearMonth, interestedDateBeginString, interestedDateEndString)
+    const { newResult, legacyResult } = await fetchElasticSearchHitsData(
+      project.toLocaleLowerCase().replace(/[^0-9a-z-]/g, '-'),
+      openshiftProjectName,
+      interestedYearMonth,
+      interestedDateBeginString,
+      interestedDateEndString
+    );
 
-    if ( newResult === null || legacyResult === null ){
-      return { total: 0 }
+    if (newResult === null || legacyResult === null) {
+      return { total: 0 };
     }
 
     const result = calculateHitsFromESData(legacyResult, newResult);
@@ -544,7 +620,7 @@ export const EnvironmentModel = (clients) => {
     environmentHoursMonthByEnvironmentId,
     environmentHitsMonthByEnvironmentId,
     calculateHitsFromESData
-  }
-}
+  };
+};
 
 export default EnvironmentModel;

@@ -13,7 +13,9 @@
 
 import * as R from 'ramda';
 import { Helpers as projectHelpers } from '../resources/project/helpers';
-import { getSqlClient } from '../clients/sqlClient';
+import { sqlClientPool } from '../clients/sqlClient';
+import { esClient } from '../clients/esClient';
+import redisClient from '../clients/redisClient';
 import { getKeycloakAdminClient } from '../clients/keycloak-admin';
 import { Group, BillingGroup } from '../models/group';
 
@@ -29,8 +31,12 @@ interface IGroup {
 
 export const getAllProjectsNotInBillingGroup = async () => {
   const keycloakAdminClient = await getKeycloakAdminClient();
-  const sqlClient = getSqlClient();
-  const GroupModel = Group({keycloakAdminClient });
+  const GroupModel = Group({
+    sqlClientPool,
+    keycloakAdminClient,
+    esClient,
+    redisClient
+  });
 
   // GET ALL GROUPS
   const groups = await GroupModel.loadAllGroups();
@@ -43,26 +49,31 @@ export const getAllProjectsNotInBillingGroup = async () => {
   // GET ALL PROJECT IDS FOR ALL PROJECTS IN BILLING GROUPS
   const allProjPids = await Promise.all(
     billingGroups.map(group =>
-      GroupModel.getProjectsFromGroupAndSubgroups(group),
-    ),
+      GroupModel.getProjectsFromGroupAndSubgroups(group)
+    )
   );
   const reducerFn = (acc, arr) => [...acc, ...arr];
   const pids = allProjPids.reduce(reducerFn, []);
 
   // SQL QUERY FOR ALL PROJECTS NOT IN ID
-  const projects = await projectHelpers(sqlClient).getAllProjectsNotIn(pids);
-
-  sqlClient.destroy()
+  const projects = await projectHelpers(sqlClientPool).getAllProjectsNotIn(
+    pids
+  );
 
   return projects.map(project => ({
     id: project.id,
-    name: project.name,
+    name: project.name
   }));
 };
 
 export const getAllBillingGroupsWithoutProjects = async () => {
   const keycloakAdminClient = await getKeycloakAdminClient();
-  const GroupModel = Group({keycloakAdminClient });
+  const GroupModel = Group({
+    sqlClientPool,
+    keycloakAdminClient,
+    esClient,
+    redisClient
+  });
 
   // Get All Billing Groups
   const groupTypeFilterFn = ({ name, value }) => {
@@ -75,7 +86,7 @@ export const getAllBillingGroupsWithoutProjects = async () => {
     (groups as [BillingGroup]).map(async group => {
       const projects = await GroupModel.getProjectsFromGroupAndSubgroups(group);
       return { ...group, projects };
-    }),
+    })
   );
 
   // Filter only Billing Groups that have zero projects
@@ -85,18 +96,23 @@ export const getAllBillingGroupsWithoutProjects = async () => {
 
   return groupsWithoutProjects.map(group => ({
     id: group.id,
-    name: group.name,
+    name: group.name
   }));
 };
 
 export const deleteAllBillingGroupsWithoutProjects = async () => {
   const keycloakAdminClient = await getKeycloakAdminClient();
-  const GroupModel = Group({keycloakAdminClient });
+  const GroupModel = Group({
+    sqlClientPool,
+    keycloakAdminClient,
+    esClient,
+    redisClient
+  });
   const groups = await getAllBillingGroupsWithoutProjects();
   await Promise.all(
     groups.map(async group => {
       await GroupModel.deleteGroup(group.id);
-    }),
+    })
   );
   return getAllBillingGroupsWithoutProjects();
 };
@@ -116,7 +132,7 @@ const main = async arg => {
       break;
     default:
       console.log(
-        'Sorry, you need to send along an argument with this command. \r\n getAllProjectsNotInBillingGroup, getAllBillingGroupsWithoutProjects, deleteAllBillingGroupsWithoutProjects',
+        'Sorry, you need to send along an argument with this command. \r\n getAllProjectsNotInBillingGroup, getAllBillingGroupsWithoutProjects, deleteAllBillingGroupsWithoutProjects'
       );
   }
 

@@ -1,8 +1,9 @@
 import moment from 'moment';
 import R from 'ramda';
-import { query } from '../util/db';
+import { Pool } from 'mariadb';
+import { mQuery } from '../util/db';
 import Sql from '../resources/billing/sql';
-import { GroupInput, Group, BillingGroup } from "./group";
+import { GroupInput, Group, BillingGroup } from './group';
 
 export interface BillingModifierBase {
   id?: number;
@@ -13,19 +14,23 @@ export interface BillingModifierBase {
   discountPercentage?: number;
   extraFixed?: number;
   extraPercentage?: number;
-  min?:number;
-  max?:number;
+  min?: number;
+  max?: number;
   customerComments?: string;
   adminComments?: string;
   weight?: number;
 }
-export interface BillingModifier extends BillingModifierBase{
+export interface BillingModifier extends BillingModifierBase {
   group?: Group;
 }
 
-export const BillingModel = (clients) => {
-
-  const { sqlClient, keycloakAdminClient } = clients;
+export const BillingModel = (clients: {
+  sqlClientPool: Pool;
+  keycloakAdminClient: any;
+  redisClient: any;
+  esClient: any
+}) => {
+  const { sqlClientPool } = clients;
 
   /**
    * Create/Add Billing Modifier
@@ -35,9 +40,12 @@ export const BillingModel = (clients) => {
    * @return {BillingModifier} The created modifier
    */
   const addBillingModifier = async (modifier: BillingModifier) => {
-    const { info: { insertId } } = await query(sqlClient, Sql.addBillingModifier(modifier));
-    const rows = await query(
-      sqlClient,
+    const { insertId } = await mQuery(
+      sqlClientPool,
+      Sql.addBillingModifier(modifier)
+    );
+    const rows = await mQuery(
+      sqlClientPool,
       Sql.selectBillingModifier(parseInt(insertId, 10))
     );
     return R.prop(0, rows) as BillingModifier;
@@ -50,18 +58,18 @@ export const BillingModel = (clients) => {
    *
    * @return {BillingModifier} The modifier
    */
-  const getBillingModifier = async (
-    id: number,
-  ) => {
-    const GroupModel = Group({ keycloakAdminClient });
-    const rows = await query(sqlClient, Sql.selectBillingModifier(id));
+  const getBillingModifier = async (id: number) => {
+    const GroupModel = Group(clients);
+    const rows = await mQuery(sqlClientPool, Sql.selectBillingModifier(id));
     if (rows.length === 0) {
       throw new Error('Billing modifier does not exist.');
     }
 
-    const {groupId, ...rest} = R.prop(0, rows) as BillingModifier;
-    const group: BillingGroup = await GroupModel.loadGroupByIdOrName({id: groupId});
-    return {...rest, group};
+    const { groupId, ...rest } = R.prop(0, rows) as BillingModifier;
+    const group: BillingGroup = await GroupModel.loadGroupByIdOrName({
+      id: groupId
+    });
+    return { ...rest, group };
   };
 
   /**
@@ -75,31 +83,51 @@ export const BillingModel = (clients) => {
     groupNameOrId: GroupInput,
     month: string
   ) => {
-    const GroupModel = Group({ keycloakAdminClient });
+    const GroupModel = Group(clients);
     const group = await GroupModel.loadGroupByIdOrName(groupNameOrId);
 
     const YEAR_MONTH = 'YYYY-MM-DD HH:mm:ss';
     const monthStart = month
-      ? moment(new Date(month).toISOString()).startOf('month').format(YEAR_MONTH).toString()
+      ? moment(new Date(month).toISOString())
+          .startOf('month')
+          .format(YEAR_MONTH)
+          .toString()
       : undefined;
     const monthEnd = month
-      ? moment(new Date(month).toISOString()).endOf('month').format(YEAR_MONTH).toString()
+      ? moment(new Date(month).toISOString())
+          .endOf('month')
+          .format(YEAR_MONTH)
+          .toString()
       : undefined;
 
-    const sql = Sql.getAllBillingModifierByBillingGroup(group.id, monthStart, monthEnd );
-    const result = (await query(sqlClient, sql));
-    return result.map(({weight, discountFixed, discountPercentage, extraFixed, extraPercentage, min, max, ...rest}) => 
-      ({ 
-        ...rest, 
-        group, 
+    const sql = Sql.getAllBillingModifierByBillingGroup(
+      group.id,
+      monthStart,
+      monthEnd
+    );
+    const result = await mQuery(sqlClientPool, sql);
+    return result.map(
+      ({
+        weight,
+        discountFixed,
+        discountPercentage,
+        extraFixed,
+        extraPercentage,
+        min,
+        max,
+        ...rest
+      }) => ({
+        ...rest,
+        group,
         weight: parseInt(weight, 10),
-        discountFixed: parseFloat(discountFixed), 
-        discountPercentage: parseFloat(discountPercentage), 
-        extraFixed: parseFloat(extraFixed), 
+        discountFixed: parseFloat(discountFixed),
+        discountPercentage: parseFloat(discountPercentage),
+        extraFixed: parseFloat(extraFixed),
         extraPercentage: parseFloat(extraPercentage),
         min: parseFloat(min),
         max: parseFloat(max)
-      }));
+      })
+    );
   };
 
   /**
@@ -109,8 +137,11 @@ export const BillingModel = (clients) => {
    *
    * @return {BillingModifier} The created modifier
    */
-  const updateBillingModifier = async (modifier: BillingModifier ) => {
-    await query(sqlClient, Sql.updateBillingModifier(modifier.id, modifier));
+  const updateBillingModifier = async (modifier: BillingModifier) => {
+    await mQuery(
+      sqlClientPool,
+      Sql.updateBillingModifier(modifier.id, modifier)
+    );
     return getBillingModifier(modifier.id);
   };
 
@@ -122,9 +153,9 @@ export const BillingModel = (clients) => {
    * @return {BillingModifier} The created modifier
    */
   const deleteBillingModifier = async (id: number) => {
-    await query(sqlClient, Sql.deleteBillingModifier(id));
+    await mQuery(sqlClientPool, Sql.deleteBillingModifier(id));
     return 'success';
-  }
+  };
 
   /**
    * Delete All Billing Modifiers for a Billing Group
@@ -133,13 +164,11 @@ export const BillingModel = (clients) => {
    *
    * @return {Boolean} Success
    */
-  const deleteAllBillingGroupModifiers = async (
-    groupNameOrId: GroupInput
-  ) => {
-    const GroupModel = Group({ keycloakAdminClient });
+  const deleteAllBillingGroupModifiers = async (groupNameOrId: GroupInput) => {
+    const GroupModel = Group(clients);
     const group = await GroupModel.loadGroupByIdOrName(groupNameOrId);
     const sql = Sql.deleteAllBillingModifiersByBillingGroup(group.id);
-    await query(sqlClient, sql);
+    await mQuery(sqlClientPool, sql);
     return 'success';
   };
 
@@ -150,7 +179,7 @@ export const BillingModel = (clients) => {
     updateBillingModifier,
     deleteBillingModifier,
     deleteAllBillingGroupModifiers
-  }
-}
+  };
+};
 
 export default BillingModel;

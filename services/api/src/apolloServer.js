@@ -76,28 +76,23 @@ const apolloServer = new ApolloServer({
 
       const sqlClient = getSqlClient();
 
+      const modelClients = { sqlClientPool, keycloakAdminClient, esClient, redisClient };
+
       return {
         keycloakAdminClient,
         sqlClient,
         sqlClientPool,
         hasPermission: grant
-          ? keycloakHasPermission(grant, requestCache, keycloakAdminClient)
+          ? keycloakHasPermission(grant, requestCache, modelClients)
           : legacyHasPermission(legacyCredentials),
         keycloakGrant: grant,
         requestCache,
         models: {
-          UserModel: User.User({ keycloakAdminClient, redisClient }),
-          GroupModel: Group.Group({ keycloakAdminClient, sqlClient, redisClient, esClient }),
-          BillingModel: BillingModel.BillingModel({
-            keycloakAdminClient,
-            sqlClient,
-            esClient
-          }),
-          ProjectModel: ProjectModel.ProjectModel({
-            keycloakAdminClient,
-            sqlClient
-          }),
-          EnvironmentModel: EnvironmentModel.EnvironmentModel({ sqlClient, esClient })
+          UserModel: User.User(modelClients),
+          GroupModel: Group.Group(modelClients),
+          BillingModel: BillingModel.BillingModel(modelClients),
+          ProjectModel: ProjectModel.ProjectModel(modelClients),
+          EnvironmentModel: EnvironmentModel.EnvironmentModel(modelClients)
         }
       };
     },
@@ -129,6 +124,8 @@ const apolloServer = new ApolloServer({
 
       const sqlClient = getSqlClient();
 
+      const modelClients = { sqlClientPool, keycloakAdminClient, esClient, redisClient };
+
       return {
         keycloakAdminClient,
         sqlClient,
@@ -137,28 +134,17 @@ const apolloServer = new ApolloServer({
           ? keycloakHasPermission(
               req.kauth.grant,
               requestCache,
-              keycloakAdminClient
+              modelClients
             )
           : legacyHasPermission(req.legacyCredentials),
         keycloakGrant: req.kauth ? req.kauth.grant : null,
         requestCache,
         models: {
-          UserModel: User.User({ keycloakAdminClient, redisClient }),
-          GroupModel: Group.Group({ keycloakAdminClient, sqlClient, redisClient, esClient }),
-          BillingModel: BillingModel.BillingModel({
-            keycloakAdminClient,
-            sqlClient,
-            esClient
-          }),
-          ProjectModel: ProjectModel.ProjectModel({
-            keycloakAdminClient,
-            sqlClient
-          }),
-          EnvironmentModel: EnvironmentModel.EnvironmentModel({
-            keycloakAdminClient,
-            sqlClient,
-            esClient
-          })
+          UserModel: User.User(modelClients),
+          GroupModel: Group.Group(modelClients),
+          BillingModel: BillingModel.BillingModel(modelClients),
+          ProjectModel: ProjectModel.ProjectModel(modelClients),
+          EnvironmentModel: EnvironmentModel.EnvironmentModel(modelClients)
         }
       };
     }

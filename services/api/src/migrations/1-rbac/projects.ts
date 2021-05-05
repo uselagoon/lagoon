@@ -2,13 +2,15 @@ import * as R from 'ramda';
 import { parsePrivateKey } from 'sshpk';
 import { logger } from '@lagoon/commons/dist/local-logging';
 import { getKeycloakAdminClient } from '../../clients/keycloak-admin';
-import { getSqlClient } from '../../clients/sqlClient';
-import { query, prepare } from '../../util/db';
+import { sqlClientPool } from '../../clients/sqlClient';
+import { esClient } from '../../clients/esClient';
+import redisClient from '../../clients/redisClient';
+import { mQuery } from '../../util/db';
 import { Group, GroupNotFoundError } from '../../models/group';
 import { User } from '../../models/user';
 import {
   generatePrivateKey,
-  getSshKeyFingerprint,
+  getSshKeyFingerprint
 } from '../../resources/sshKey';
 import { Sql as sshKeySql } from '../../resources/sshKey/sql';
 
@@ -17,21 +19,29 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
 (async () => {
   const keycloakAdminClient = await getKeycloakAdminClient();
 
-  const sqlClient = getSqlClient();
-
   // Copy private keys from customer to projects if the project has no private key
-  await query(
-    sqlClient,
+  await mQuery(
+    sqlClientPool,
     `UPDATE project p
     INNER JOIN customer c ON p.customer = c.id
     SET p.private_key = c.private_key
-    WHERE p.private_key IS NULL`,
+    WHERE p.private_key IS NULL`
   );
 
-  const GroupModel = Group({ keycloakAdminClient });
-  const UserModel = User({ keycloakAdminClient });
+  const GroupModel = Group({
+    sqlClientPool,
+    keycloakAdminClient,
+    esClient,
+    redisClient
+  });
+  const UserModel = User({
+    sqlClientPool,
+    keycloakAdminClient,
+    esClient,
+    redisClient
+  });
 
-  const projectRecords = await query(sqlClient, 'SELECT * FROM `project`');
+  const projectRecords = await mQuery(sqlClientPool, 'SELECT * FROM `project`');
 
   for (const project of projectRecords) {
     logger.debug(`Processing ${project.name}`);
@@ -47,8 +57,8 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
         attributes: {
           ...existingGroup.attributes,
           type: ['project-default-group'],
-          'lagoon-projects': [project.id],
-        },
+          'lagoon-projects': [project.id]
+        }
       });
     } catch (err) {
       if (err instanceof GroupNotFoundError) {
@@ -57,32 +67,29 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
             name: projectGroupName,
             attributes: {
               type: ['project-default-group'],
-              'lagoon-projects': [project.id],
-            },
+              'lagoon-projects': [project.id]
+            }
           });
         } catch (err) {
           logger.error(
-            `Could not add group ${projectGroupName}: ${err.message}`,
+            `Could not add group ${projectGroupName}: ${err.message}`
           );
           continue;
         }
       } else {
         logger.error(
-          `Could not update group ${projectGroupName}: ${err.message}`,
+          `Could not update group ${projectGroupName}: ${err.message}`
         );
       }
     }
 
     // Add project users to group
-    const projectUserQuery = prepare(
-      sqlClient,
+    const projectUserRecords = await mQuery(
+      sqlClientPool,
       'SELECT u.email FROM project_user pu INNER JOIN user u on pu.usid = u.id WHERE pu.pid = :pid',
-    );
-    const projectUserRecords = await query(
-      sqlClient,
-      projectUserQuery({
-        pid: project.id,
-      }),
+      {
+        pid: project.id
+      }
     );
 
     for (const projectUser of projectUserRecords) {
@@ -91,9 +98,7 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
         await GroupModel.addUserToGroup(user, keycloakGroup, 'owner');
       } catch (err) {
         logger.error(
-          `Could not add user (${projectUser.email}) to group (${
-            keycloakGroup.name
-          }): ${err.message}`,
+          `Could not add user (${projectUser.email}) to group (${keycloakGroup.name}): ${err.message}`
         );
       }
     }
@@ -103,7 +108,7 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
       const privateKey = R.cond([
         [R.isNil, generatePrivateKeyEd25519],
         [R.isEmpty, generatePrivateKeyEd25519],
-        [R.T, parsePrivateKey],
+        [R.T, parsePrivateKey]
       ])(R.prop('privateKey', project));
 
       const publicKey = privateKey.toPublic();
@@ -111,41 +116,36 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
       keyPair = {
         ...keyPair,
         private: R.replace(/\n/g, '\n', privateKey.toString('openssh')),
-        public: publicKey.toString(),
+        public: publicKey.toString()
       };
     } catch (err) {
       logger.error(
-        `There was an error with the project (${project.name}) privateKey: ${
-          err.message
-        }`,
+        `There was an error with the project (${project.name}) privateKey: ${err.message}`
       );
       logger.error(
-        `Skipping adding default user with associated project public key for project ${
-          project.name
-        }`,
+        `Skipping adding default user with associated project public key for project ${project.name}`
       );
       continue;
     }
 
     // Save the newly generated key
     if (!R.prop('privateKey', project)) {
-      const updateQuery = prepare(
-        sqlClient,
+      await mQuery(
+        sqlClientPool,
         'UPDATE project p SET private_key = :pkey WHERE id = :pid',
-      );
-      await query(
-        sqlClient,
-        updateQuery({
+        {
           pkey: keyPair.private,
-          pid: project.id,
-        }),
+          pid: project.id
+        }
       );
     }
 
     // Find or create a user that has the public key linked to them
-    const userRows = await query(
-      sqlClient,
-      sshKeySql.selectUserIdsBySshKeyFingerprint(getSshKeyFingerprint(keyPair.public)),
+    const userRows = await mQuery(
+      sqlClientPool,
+      sshKeySql.selectUserIdsBySshKeyFingerprint(
+        getSshKeyFingerprint(keyPair.public)
+      )
     );
     const userId = R.path([0, 'usid'], userRows);
 
@@ -155,32 +155,28 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
         user = await UserModel.addUser({
           email: `default-user@${project.name}`,
           username: `default-user@${project.name}`,
-          comment: `autogenerated user for project ${project.name}`,
+          comment: `autogenerated user for project ${project.name}`
         });
 
         const keyParts = keyPair.public.split(' ');
 
-        const {
-          info: { insertId },
-        } = await query(
-          sqlClient,
+        const { insertId } = await mQuery(
+          sqlClientPool,
           sshKeySql.insertSshKey({
             id: null,
             name: 'auto-add via migration',
             keyValue: keyParts[1],
             keyType: keyParts[0],
-            keyFingerprint: getSshKeyFingerprint(keyPair.public),
-          }),
+            keyFingerprint: getSshKeyFingerprint(keyPair.public)
+          })
         );
-        await query(
-          sqlClient,
-          sshKeySql.addSshKeyToUser({ sshKeyId: insertId, userId: user.id }),
+        await mQuery(
+          sqlClientPool,
+          sshKeySql.addSshKeyToUser({ sshKeyId: insertId, userId: user.id })
         );
       } catch (err) {
         logger.error(
-          `Could not create default project user for ${project.name}: ${
-            err.message
-          }`,
+          `Could not create default project user for ${project.name}: ${err.message}`
         );
       }
     } else {
@@ -193,14 +189,10 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
       await GroupModel.addUserToGroup(user, keycloakGroup, 'maintainer');
     } catch (err) {
       logger.error(
-        `Could not link user to default projet group for ${project.name}: ${
-          err.message
-        }`,
+        `Could not link user to default projet group for ${project.name}: ${err.message}`
       );
     }
   }
 
   logger.info('Migration completed');
-
-  sqlClient.destroy();
 })();

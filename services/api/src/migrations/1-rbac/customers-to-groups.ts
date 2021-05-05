@@ -1,17 +1,28 @@
 import * as R from 'ramda';
 import { logger } from '@lagoon/commons/dist/local-logging';
 import { getKeycloakAdminClient } from '../../clients/keycloak-admin';
-import { getSqlClient } from '../../clients/sqlClient';
-import { query, prepare } from '../../util/db';
+import { sqlClientPool } from '../../clients/sqlClient';
+import { esClient } from '../../clients/esClient';
+import redisClient from '../../clients/redisClient';
+import { mQuery } from '../../util/db';
 import { Group, GroupNotFoundError } from '../../models/group';
 import { User } from '../../models/user';
 
 (async () => {
   const keycloakAdminClient = await getKeycloakAdminClient();
 
-  const sqlClient = getSqlClient();
-  const GroupModel = Group({ keycloakAdminClient });
-  const UserModel = User({ keycloakAdminClient });
+  const GroupModel = Group({
+    sqlClientPool,
+    keycloakAdminClient,
+    esClient,
+    redisClient
+  });
+  const UserModel = User({
+    sqlClientPool,
+    keycloakAdminClient,
+    esClient,
+    redisClient
+  });
 
   try {
     logger.debug('Removing current keycloak groups');
@@ -22,11 +33,16 @@ import { User } from '../../models/user';
       await GroupModel.deleteGroup(currentGroupId);
     }
   } catch (err) {
-    logger.error('Could not delete current keycloak groups. Due to group/sub-group hiearchy, this could be normal. Please try again.')
+    logger.error(
+      'Could not delete current keycloak groups. Due to group/sub-group hiearchy, this could be normal. Please try again.'
+    );
     throw new Error(err);
   }
 
-  const customerRecords = await query(sqlClient, 'SELECT * FROM `customer`');
+  const customerRecords = await mQuery(
+    sqlClientPool,
+    'SELECT * FROM `customer`'
+  );
 
   for (const customer of customerRecords) {
     logger.debug(`Processing ${customer.name}`);
@@ -44,10 +60,10 @@ import { User } from '../../models/user';
             R.propOr(
               R.path(['attributes', 'comment', 0], existingGroup),
               'comment',
-              customer,
-            ),
-          ],
-        },
+              customer
+            )
+          ]
+        }
       });
     } catch (err) {
       if (err instanceof GroupNotFoundError) {
@@ -55,8 +71,8 @@ import { User } from '../../models/user';
           keycloakGroup = await GroupModel.addGroup({
             name: R.prop('name', customer),
             attributes: {
-              comment: [R.prop('comment', customer)],
-            },
+              comment: [R.prop('comment', customer)]
+            }
           });
         } catch (err) {
           logger.error(`Could not add group ${customer.name}: ${err.message}`);
@@ -68,15 +84,12 @@ import { User } from '../../models/user';
     }
 
     // Add customer users to group
-    const customerUserQuery = prepare(
-      sqlClient,
+    const customerUserRecords = await mQuery(
+      sqlClientPool,
       'SELECT u.email FROM customer_user cu INNER JOIN user u on cu.usid = u.id WHERE cu.cid = :cid',
-    );
-    const customerUserRecords = await query(
-      sqlClient,
-      customerUserQuery({
-        cid: customer.id,
-      }),
+      {
+        cid: customer.id
+      }
     );
 
     for (const customerUser of customerUserRecords) {
@@ -85,23 +98,18 @@ import { User } from '../../models/user';
         await GroupModel.addUserToGroup(user, keycloakGroup, 'owner');
       } catch (err) {
         logger.error(
-          `Could not add user (${customerUser.email}) to group (${
-            keycloakGroup.name
-          }): ${err.message}`,
+          `Could not add user (${customerUser.email}) to group (${keycloakGroup.name}): ${err.message}`
         );
       }
     }
 
     // Add customer projects to group
-    const customerProjectQuery = prepare(
-      sqlClient,
+    const customerProjectRecords = await mQuery(
+      sqlClientPool,
       'SELECT id, name FROM project WHERE customer = :cid',
-    );
-    const customerProjectRecords = await query(
-      sqlClient,
-      customerProjectQuery({
-        cid: customer.id,
-      }),
+      {
+        cid: customer.id
+      }
     );
 
     for (const customerProject of customerProjectRecords) {
@@ -109,15 +117,11 @@ import { User } from '../../models/user';
         await GroupModel.addProjectToGroup(customerProject.id, keycloakGroup);
       } catch (err) {
         logger.error(
-          `Could not add project (${customerProject.name}) to group (${
-            keycloakGroup.name
-          }): ${err.message}`,
+          `Could not add project (${customerProject.name}) to group (${keycloakGroup.name}): ${err.message}`
         );
       }
     }
   }
 
   logger.info('Migration completed');
-
-  sqlClient.destroy();
 })();
