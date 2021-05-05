@@ -1,6 +1,7 @@
 import * as R from 'ramda';
 import { MariaClient } from 'mariasql';
 import { asyncPipe } from '@lagoon/commons/dist/util';
+import { sqlClientPool } from '../../clients/sqlClient';
 import { query } from '../../util/db';
 import { Sql } from './sql';
 import { Helpers as environmentHelpers } from '../environment/helpers';
@@ -38,7 +39,7 @@ export const Helpers = (sqlClient: MariaClient) => {
 
       const deploymentFromNameEnv = async input => {
         const environments = await environmentHelpers(
-          sqlClient,
+          sqlClientPool,
         ).getEnvironmentsByEnvironmentInput(R.prop('environment', input));
         const activeEnvironments = R.filter(
           R.propEq('deleted', '0000-00-00 00:00:00'),

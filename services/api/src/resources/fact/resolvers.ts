@@ -18,12 +18,12 @@ import type {ResolversObj} from '../';
 
 */
 
-export const getFactsByEnvironmentId = async (
+export const getFactsByEnvironmentId: ResolverFn = async (
   { id: environmentId },
   {severity},
-  { sqlClient, hasPermission },
+  { sqlClient, sqlClientPool, hasPermission },
 ) => {
-  const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+  const environment = await environmentHelpers(sqlClientPool).getEnvironmentById(environmentId);
 
   await hasPermission('fact', 'view', {
     project: environment.project,
@@ -39,17 +39,17 @@ export const getFactsByEnvironmentId = async (
   return  R.sort(R.descend(R.prop('created')), rows);
 };
 
-export const addFact = async (
+export const addFact: ResolverFn = async (
   root,
   {
     input: {
       id, environment: environmentId, name, value, source, description
     },
   },
-  { sqlClient, hasPermission },
+  { sqlClient, sqlClientPool, hasPermission },
 ) => {
 
-  const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+  const environment = await environmentHelpers(sqlClientPool).getEnvironmentById(environmentId);
 
   await hasPermission('fact', 'add', {
     project: environment.project,
@@ -72,20 +72,20 @@ export const addFact = async (
   return R.prop(0, rows);
 };
 
-export const addFacts = async (
+export const addFacts: ResolverFn = async (
   root,
   {
     input: {
       facts
     }
   },
-  { sqlClient, hasPermission }
+  { sqlClient, sqlClientPool, hasPermission }
 ) => {
 
   // We first check that the user has access to all of the environments, so this is an atomic operation.
   await facts.map(async (fact) => {
     const { environment } = fact;
-    const env = await environmentHelpers(sqlClient).getEnvironmentById(environment);
+    const env = await environmentHelpers(sqlClientPool).getEnvironmentById(environment);
 
     await hasPermission('fact', 'add', {
       project: env.project,
@@ -113,7 +113,7 @@ export const addFacts = async (
   });
 };
 
-export const deleteFact = async (
+export const deleteFact: ResolverFn = async (
   root,
   {
     input : {
@@ -121,9 +121,9 @@ export const deleteFact = async (
       name,
     }
   },
-  { sqlClient, hasPermission },
+  { sqlClient, sqlClientPool, hasPermission },
 ) => {
-  const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+  const environment = await environmentHelpers(sqlClientPool).getEnvironmentById(environmentId);
 
   await hasPermission('fact', 'delete', {
     project: environment.project,
@@ -134,7 +134,7 @@ export const deleteFact = async (
   return 'success';
 };
 
-export const deleteFactsFromSource = async (
+export const deleteFactsFromSource: ResolverFn = async (
   root,
   {
     input : {
@@ -142,9 +142,9 @@ export const deleteFactsFromSource = async (
      source,
     }
   },
-  { sqlClient, hasPermission },
+  { sqlClient, sqlClientPool, hasPermission },
 ) => {
-  const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+  const environment = await environmentHelpers(sqlClientPool).getEnvironmentById(environmentId);
 
   await hasPermission('fact', 'delete', {
     project: environment.project,

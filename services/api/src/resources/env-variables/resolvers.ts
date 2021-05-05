@@ -47,10 +47,11 @@ export const getEnvVarsByEnvironmentId: ResolverFn = async (
   args,
   {
     sqlClient,
+    sqlClientPool,
     hasPermission,
   },
 ) => {
-  const environment = await environmentHelpers(sqlClient).getEnvironmentById(eid);
+  const environment = await environmentHelpers(sqlClientPool).getEnvironmentById(eid);
 
   await hasPermission('env_var', `environment:view:${environment.environmentType}`, {
     project: environment.project,
@@ -129,10 +130,11 @@ const addEnvVariableToEnvironment = async (
   },
   {
     sqlClient,
+    sqlClientPool,
     hasPermission,
   },
 ) => {
-  const environment = await environmentHelpers(sqlClient).getEnvironmentById(typeId);
+  const environment = await environmentHelpers(sqlClientPool).getEnvironmentById(typeId);
 
   await hasPermission('env_var', `environment:add:${environment.environmentType}`, {
     project: environment.project,

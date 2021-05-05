@@ -85,11 +85,12 @@ export const getDeploymentsByEnvironmentId: ResolverFn = async (
   { name },
   {
     sqlClient,
+    sqlClientPool,
     hasPermission,
   },
   info,
 ) => {
-  const environment = await environmentHelpers(sqlClient).getEnvironmentById(eid);
+  const environment = await environmentHelpers(sqlClientPool).getEnvironmentById(eid);
   await hasPermission('deployment', 'view', {
     project: environment.project,
   });
@@ -195,12 +196,13 @@ export const addDeployment: ResolverFn = async (
   },
   {
     sqlClient,
+    sqlClientPool,
     hasPermission,
   },
 ) => {
   const status = deploymentStatusTypeToString(unformattedStatus);
 
-  const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+  const environment = await environmentHelpers(sqlClientPool).getEnvironmentById(environmentId);
   await hasPermission('environment', `deploy:${environment.environmentType}`, {
     project: environment.project,
   });
@@ -266,6 +268,7 @@ export const updateDeployment: ResolverFn = async (
   },
   {
     sqlClient,
+    sqlClientPool,
     hasPermission,
   },
 ) => {
@@ -283,7 +286,7 @@ export const updateDeployment: ResolverFn = async (
   });
 
   if (environment) {
-    const permsEnv = await environmentHelpers(sqlClient).getEnvironmentById(environment);
+    const permsEnv = await environmentHelpers(sqlClientPool).getEnvironmentById(environment);
     // Check access to modify deployment as it will be updated
     await hasPermission('environment', 'view', {
       project: permsEnv.project,
@@ -324,7 +327,7 @@ export const cancelDeployment: ResolverFn = async (
   },
 ) => {
   const deployment = await Helpers(sqlClient).getDeploymentByDeploymentInput(deploymentInput);
-  const environment = await environmentHelpers(sqlClient).getEnvironmentById(deployment.environment);
+  const environment = await environmentHelpers(sqlClientPool).getEnvironmentById(deployment.environment);
   const project = await projectHelpers(sqlClientPool).getProjectById(
     environment.project,
   );
@@ -365,7 +368,7 @@ export const deployEnvironmentLatest: ResolverFn = async (
   },
 ) => {
   const environments = await environmentHelpers(
-    sqlClient,
+    sqlClientPool,
   ).getEnvironmentsByEnvironmentInput(environmentInput);
   const activeEnvironments = R.filter(
     R.propEq('deleted', '0000-00-00 00:00:00'),
@@ -705,7 +708,7 @@ export const deployEnvironmentPromote: ResolverFn = async (
   });
 
   const sourceEnvironments = await environmentHelpers(
-    sqlClient,
+    sqlClientPool,
   ).getEnvironmentsByEnvironmentInput(sourceEnvironmentInput);
   const activeEnvironments = R.filter(
     R.propEq('deleted', '0000-00-00 00:00:00'),

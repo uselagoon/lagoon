@@ -29,11 +29,12 @@ export const getTasksByEnvironmentId: ResolverFn = async (
   { id: filterId },
   {
     sqlClient,
+    sqlClientPool,
     hasPermission,
   },
   info,
 ) => {
-  const environment = await environmentHelpers(sqlClient).getEnvironmentById(eid);
+  const environment = await environmentHelpers(sqlClientPool).getEnvironmentById(eid);
   await hasPermission('task', 'view', {
     project: environment.project,
   });
@@ -144,12 +145,12 @@ export const addTask: ResolverFn = async (
       execute: executeRequest,
     },
   },
-  { sqlClient, hasPermission },
+  { sqlClient, sqlClientPool, hasPermission },
 ) => {
   const status = taskStatusTypeToString(unformattedStatus);
 
-  await envValidators(sqlClient).environmentExists(environment);
-  const envPerm = await environmentHelpers(sqlClient).getEnvironmentById(environment);
+  await envValidators(sqlClientPool).environmentExists(environment);
+  const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(environment);
   await hasPermission('task', `add:${envPerm.environmentType}`, {
     project: envPerm.project,
   });
@@ -220,6 +221,7 @@ export const updateTask: ResolverFn = async (
   },
   {
     sqlClient,
+    sqlClientPool,
     hasPermission,
   },
 ) => {
@@ -233,7 +235,7 @@ export const updateTask: ResolverFn = async (
 
   if (environment) {
     // Check access to modify task as it will be updated
-    const envPerm = await environmentHelpers(sqlClient).getEnvironmentById(environment);
+    const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(environment);
     await hasPermission('task', 'update', {
       project: envPerm.project,
     });
@@ -272,11 +274,11 @@ export const updateTask: ResolverFn = async (
 export const taskDrushArchiveDump: ResolverFn = async (
   root,
   { environment: environmentId },
-  { sqlClient, hasPermission },
+  { sqlClient, sqlClientPool, hasPermission },
 ) => {
-  await envValidators(sqlClient).environmentExists(environmentId);
-  await envValidators(sqlClient).environmentHasService(environmentId, 'cli');
-  const envPerm = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+  await envValidators(sqlClientPool).environmentExists(environmentId);
+  await envValidators(sqlClientPool).environmentHasService(environmentId, 'cli');
+  const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(environmentId);
   await hasPermission('task', `drushArchiveDump:${envPerm.environmentType}`, {
     project: envPerm.project,
   });
@@ -303,11 +305,11 @@ TOKEN="$(ssh -p $TASK_SSH_PORT -t lagoon@$TASK_SSH_HOST token)" && curl -sS "$TA
 export const taskDrushSqlDump: ResolverFn = async (
   root,
   { environment: environmentId },
-  { sqlClient, hasPermission },
+  { sqlClient, sqlClientPool, hasPermission },
 ) => {
-  await envValidators(sqlClient).environmentExists(environmentId);
-  await envValidators(sqlClient).environmentHasService(environmentId, 'cli');
-  const envPerm = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+  await envValidators(sqlClientPool).environmentExists(environmentId);
+  await envValidators(sqlClientPool).environmentHasService(environmentId, 'cli');
+  const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(environmentId);
   await hasPermission('task', `drushSqlDump:${envPerm.environmentType}`, {
     project: envPerm.project,
   });
@@ -334,11 +336,11 @@ TOKEN="$(ssh -p $TASK_SSH_PORT -t lagoon@$TASK_SSH_HOST token)" && curl -sS "$TA
 export const taskDrushCacheClear: ResolverFn = async (
   root,
   { environment: environmentId },
-  { sqlClient, hasPermission },
+  { sqlClient, sqlClientPool, hasPermission },
 ) => {
-  await envValidators(sqlClient).environmentExists(environmentId);
-  await envValidators(sqlClient).environmentHasService(environmentId, 'cli');
-  const envPerm = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+  await envValidators(sqlClientPool).environmentExists(environmentId);
+  await envValidators(sqlClientPool).environmentHasService(environmentId, 'cli');
+  const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(environmentId);
   await hasPermission('task', `drushCacheClear:${envPerm.environmentType}`, {
     project: envPerm.project,
   });
@@ -368,11 +370,11 @@ export const taskDrushCacheClear: ResolverFn = async (
 export const taskDrushCron: ResolverFn = async (
   root,
   { environment: environmentId },
-  { sqlClient, hasPermission },
+  { sqlClient, sqlClientPool, hasPermission },
 ) => {
-  await envValidators(sqlClient).environmentExists(environmentId);
-  await envValidators(sqlClient).environmentHasService(environmentId, 'cli');
-  const envPerm = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+  await envValidators(sqlClientPool).environmentExists(environmentId);
+  await envValidators(sqlClientPool).environmentHasService(environmentId, 'cli');
+  const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(environmentId);
   await hasPermission('task', `drushCron:${envPerm.environmentType}`, {
     project: envPerm.project,
   });
@@ -394,24 +396,24 @@ export const taskDrushSqlSync: ResolverFn = async (
     sourceEnvironment: sourceEnvironmentId,
     destinationEnvironment: destinationEnvironmentId,
   },
-  { sqlClient, hasPermission },
+  { sqlClient, sqlClientPool, hasPermission },
 ) => {
-  await envValidators(sqlClient).environmentExists(sourceEnvironmentId);
-  await envValidators(sqlClient).environmentExists(destinationEnvironmentId);
-  await envValidators(sqlClient).environmentsHaveSameProject([
+  await envValidators(sqlClientPool).environmentExists(sourceEnvironmentId);
+  await envValidators(sqlClientPool).environmentExists(destinationEnvironmentId);
+  await envValidators(sqlClientPool).environmentsHaveSameProject([
     sourceEnvironmentId,
     destinationEnvironmentId,
   ]);
-  await envValidators(sqlClient).environmentHasService(
+  await envValidators(sqlClientPool).environmentHasService(
     sourceEnvironmentId,
     'cli',
   );
 
   const sourceEnvironment = await environmentHelpers(
-    sqlClient,
+    sqlClientPool,
   ).getEnvironmentById(sourceEnvironmentId);
   const destinationEnvironment = await environmentHelpers(
-    sqlClient,
+    sqlClientPool,
   ).getEnvironmentById(destinationEnvironmentId);
 
   await hasPermission('task', `drushSqlSync:source:${sourceEnvironment.environmentType}`, {
@@ -438,24 +440,24 @@ export const taskDrushRsyncFiles: ResolverFn = async (
     sourceEnvironment: sourceEnvironmentId,
     destinationEnvironment: destinationEnvironmentId,
   },
-  { sqlClient, hasPermission },
+  { sqlClient, sqlClientPool, hasPermission },
 ) => {
-  await envValidators(sqlClient).environmentExists(sourceEnvironmentId);
-  await envValidators(sqlClient).environmentExists(destinationEnvironmentId);
-  await envValidators(sqlClient).environmentsHaveSameProject([
+  await envValidators(sqlClientPool).environmentExists(sourceEnvironmentId);
+  await envValidators(sqlClientPool).environmentExists(destinationEnvironmentId);
+  await envValidators(sqlClientPool).environmentsHaveSameProject([
     sourceEnvironmentId,
     destinationEnvironmentId,
   ]);
-  await envValidators(sqlClient).environmentHasService(
+  await envValidators(sqlClientPool).environmentHasService(
     sourceEnvironmentId,
     'cli',
   );
 
   const sourceEnvironment = await environmentHelpers(
-    sqlClient,
+    sqlClientPool,
   ).getEnvironmentById(sourceEnvironmentId);
   const destinationEnvironment = await environmentHelpers(
-    sqlClient,
+    sqlClientPool,
   ).getEnvironmentById(destinationEnvironmentId);
 
   await hasPermission('task', `drushRsync:source:${sourceEnvironment.environmentType}`, {
@@ -481,11 +483,11 @@ export const taskDrushRsyncFiles: ResolverFn = async (
 export const taskDrushUserLogin: ResolverFn = async (
   root,
   { environment: environmentId },
-  { sqlClient, hasPermission },
+  { sqlClient, sqlClientPool, hasPermission },
 ) => {
-  await envValidators(sqlClient).environmentExists(environmentId);
-  await envValidators(sqlClient).environmentHasService(environmentId, 'cli');
-  const envPerm = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+  await envValidators(sqlClientPool).environmentExists(environmentId);
+  await envValidators(sqlClientPool).environmentHasService(environmentId, 'cli');
+  const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(environmentId);
   await hasPermission('task', `drushUserLogin:${envPerm.environmentType}`, {
     project: envPerm.project,
   });

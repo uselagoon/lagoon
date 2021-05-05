@@ -24,9 +24,9 @@ const restoreStatusTypeToString = R.cond([
 export const getBackupsByEnvironmentId: ResolverFn = async (
   { id: environmentId },
   { includeDeleted },
-  { sqlClient, hasPermission },
+  { sqlClient, sqlClientPool, hasPermission },
 ) => {
-  const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+  const environment = await environmentHelpers(sqlClientPool).getEnvironmentById(environmentId);
   await hasPermission('backup', 'view', {
     project: environment.project,
   });
@@ -48,9 +48,9 @@ export const addBackup: ResolverFn = async (
       id, environment: environmentId, source, backupId, created,
     },
   },
-  { sqlClient, hasPermission },
+  { sqlClient, sqlClientPool, hasPermission },
 ) => {
-  const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+  const environment = await environmentHelpers(sqlClientPool).getEnvironmentById(environmentId);
   await hasPermission('backup', 'add', {
     project: environment.project,
   });

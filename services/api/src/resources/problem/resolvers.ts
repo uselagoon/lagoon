@@ -44,7 +44,7 @@ export const getAllProblems: ResolverFn = async (
   });
 };
 
-export const getSeverityOptions = async (
+export const getSeverityOptions: ResolverFn = async (
   root,
   args,
   { sqlClient },
@@ -52,7 +52,7 @@ export const getSeverityOptions = async (
   return await problemHelpers(sqlClient).getSeverityOptions();
 };
 
-export const getProblemSources = async (
+export const getProblemSources: ResolverFn = async (
   root,
   args,
   { sqlClient },
@@ -68,12 +68,12 @@ export const getProblemSources = async (
     );
 };
 
-export const getProblemsByEnvironmentId = async (
+export const getProblemsByEnvironmentId: ResolverFn = async (
   { id: environmentId },
   {severity, source},
-  { sqlClient, hasPermission },
+  { sqlClient, sqlClientPool, hasPermission },
 ) => {
-  const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+  const environment = await environmentHelpers(sqlClientPool).getEnvironmentById(environmentId);
 
   await hasPermission('problem', 'view', {
     project: environment.project,
@@ -91,7 +91,7 @@ export const getProblemsByEnvironmentId = async (
   return  R.sort(R.descend(R.prop('created')), rows);
 };
 
-export const addProblem = async (
+export const addProblem: ResolverFn = async (
   root,
   {
     input: {
@@ -99,9 +99,9 @@ export const addProblem = async (
         severityScore, associatedPackage, description, version, fixedVersion, links
     },
   },
-  { sqlClient, hasPermission },
+  { sqlClient, sqlClientPool, hasPermission },
 ) => {
-  const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+  const environment = await environmentHelpers(sqlClientPool).getEnvironmentById(environmentId);
 
   await hasPermission('problem', 'add', {
     project: environment.project,
@@ -132,7 +132,7 @@ export const addProblem = async (
   return R.prop(0, rows);
 };
 
-export const deleteProblem = async (
+export const deleteProblem: ResolverFn = async (
   root,
   {
     input : {
@@ -140,9 +140,9 @@ export const deleteProblem = async (
       identifier,
     }
   },
-  { sqlClient, hasPermission },
+  { sqlClient, sqlClientPool, hasPermission },
 ) => {
-  const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+  const environment = await environmentHelpers(sqlClientPool).getEnvironmentById(environmentId);
 
   await hasPermission('problem', 'delete', {
     project: environment.project,
@@ -153,7 +153,7 @@ export const deleteProblem = async (
   return 'success';
 };
 
-export const deleteProblemsFromSource = async (
+export const deleteProblemsFromSource: ResolverFn = async (
   root,
   {
     input : {
@@ -162,9 +162,9 @@ export const deleteProblemsFromSource = async (
       service,
     }
   },
-  { sqlClient, hasPermission },
+  { sqlClient, sqlClientPool, hasPermission },
 ) => {
-  const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+  const environment = await environmentHelpers(sqlClientPool).getEnvironmentById(environmentId);
 
   await hasPermission('problem', 'delete', {
     project: environment.project,
@@ -175,7 +175,7 @@ export const deleteProblemsFromSource = async (
   return 'success';
 }
 
-export const getProblemHarborScanMatches = async (
+export const getProblemHarborScanMatches: ResolverFn = async (
   root,
   args,
   { sqlClient, hasPermission },
@@ -191,7 +191,7 @@ export const getProblemHarborScanMatches = async (
   return rows;
 };
 
-export const addProblemHarborScanMatch = async (
+export const addProblemHarborScanMatch: ResolverFn = async (
   root,
   {
     input: {
@@ -230,7 +230,7 @@ export const addProblemHarborScanMatch = async (
 };
 
 
-export const deleteProblemHarborScanMatch = async (
+export const deleteProblemHarborScanMatch: ResolverFn = async (
   root,
   {
     input : {

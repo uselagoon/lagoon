@@ -223,6 +223,19 @@ const resolvers = {
     NAME: 'name',
     CREATED: 'created',
   },
+  EnvOrderType: {
+    NAME: 'name',
+    UPDATED: 'updated',
+  },
+  DeployType: {
+    BRANCH: 'branch',
+    PULLREQUEST: 'pullrequest',
+    PROMOTE: 'promote',
+  },
+  EnvType: {
+    PRODUCTION: 'production',
+    DEVELOPMENT: 'development',
+  },
   Project: {
     notifications: getNotificationsByProjectId,
     openshift: getOpenshiftByProjectId,
