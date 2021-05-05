@@ -59,8 +59,8 @@ DOCKER_BUILD_PARAMS := --quiet
 # If it's not set we assume that we are running local and just call it lagoon.
 CI_BUILD_TAG ?= lagoon
 # SOURCE_REPO is the repos where the upstream images are found (usually uselagoon, but can substiture for testlagoon)
-UPSTREAM_REPO ?= uselagoon
-UPSTREAM_TAG ?= latest
+UPSTREAM_REPO ?= testlagoon
+UPSTREAM_TAG ?= pr-167
 
 # Local environment
 ARCH := $(shell uname | tr '[:upper:]' '[:lower:]')
