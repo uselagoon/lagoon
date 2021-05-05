@@ -11,3 +11,4 @@
     project: ci-tasks-{{ cluster_type }}
     branch: tasks
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+    openshift_project_name: ci-tasks-{{ cluster_type }}-tasks

@@ -1,0 +1,44 @@
+- name: "{{ testname }} - POST api deployEnvironmentBranch with target git branch {{ branch }} and project {{ project }} (no sha) to {{ graphql_url }}"
+  block:
+    - include: ../../tasks/api/refresh-token.yaml
+    # - name: "{{ testname }} - POST api deployEnvironmentBranch with target git branch {{ branch }} and project {{ project }} (no sha) to {{ graphql_url }}"
+    #   uri:
+    #     url: "{{ graphql_url }}"
+    #     method: POST
+    #     headers:
+    #       Authorization: "Bearer {{ token }}"
+    #     body_format: json
+    #     body: '{ "query": "mutation($branchName: String!, $projectName: String!) {deployEnvironmentBranch(input:{branchName:$branchName,project:{name:$projectName}})}", "variables": {"branchName":"{{ branch }}","projectName":"{{ project }}"}}'
+    #   register: apiresponse
+    # - name: "{{ testname }} - POST api deployEnvironmentBranch with target git branch {{ branch }} and project {{ project }} (no sha) to {{ graphql_url }}"
+    #   debug:
+    #     msg: "api response: {{ apiresponse.json }}"
+    #   until: apiresponse.json.data.deployEnvironmentBranch == "success"
+    #   retries: 10
+    #   delay: 30
+    - name: "{{ testname }} - POST api register task for project {{ project }} (no sha) to {{ graphql_url }}"
+      uri:
+        url: "{{ graphql_url }}"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ token }}"
+        body_format: json
+        body: '{ "query": "mutation($taskName: String!, $description: String!, $service: String!, $command: String!) {addAdvancedTaskDefinition(input: {name:$taskName, type:COMMAND, description: $description, service: $service, command: $command}){id}}", "variables": {"taskName":"testing-echo","description":"echos to file", "service":"node", "command":"echo ''REPLACED BY TASK'' > /app/files/testoutput.txt"}}'
+      register: taskCreateApiResponse
+      until:
+    - name: "{{ testname }} - POST api addAdvancedTaskDefinition to {{ graphql_url }}"
+      debug:
+        msg: "api response: {{ taskCreateApiResponse.json }}"
+    - name: "{{ testname }} - POST api register task for project {{ project }} (no sha) to {{ graphql_url }}"
+      uri:
+        url: "{{ graphql_url }}"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ token }}"
+        body_format: json
+        body: '{ "query": "query($openshiftProjectName: String!) {environmentByOpenshiftProjectName(openshiftProjectName:$openshiftProjectName) {id}}", "variables": {"openshiftProjectName":"ci-tasks-control-k8s-tasks"}}'
+      register: apiresponse
+      until:
+    - name: "{{ testname }} - POST api environmentByOpenshiftProjectName to {{ graphql_url }}"
+      debug:
+        msg: "api response: {{ apiresponse.json }}"

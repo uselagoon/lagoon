@@ -1,19 +1,14 @@
 const express = require('express')
 const app = express()
+const fs = require('fs')
 
 // Adds a 1 sec delay for all requests
 app.use((req, res, next) => setTimeout(next, 1000))
 
 app.get('/', function (req, res) {
   let result = []
-  // Object.keys(process.env).map(key => {
-  //   result.push(`${key}=${process.env[key]}`)
-  // })
-  // Object.keys(req.headers).map(key => {
-  //   result.push(`${key}=${req.headers[key]}`)
-  // })
-  // result.sort()
-  result.push("hello world");
+  const data = fs.readFileSync('./testoutput.txt', 'utf8')
+  result.push(data)
   res.send(result.join("<br />"))
 })
 
