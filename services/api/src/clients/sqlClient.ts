@@ -1,17 +1,37 @@
 import Client from 'mariasql';
-
+import * as mariadb from 'mariadb';
 import * as logger from '../logger';
+import { toNumber } from '../util/func';
+import { getConfigFromEnv } from '../util/config';
 
-const { API_DB_PASSWORD, API_DB_HOST, API_DB_PORT, API_DB_USER, API_DB_DATABASE } = process.env;
+export interface ConfigFromEnv {
+  host: string;
+  port: number;
+  user: string;
+  password: string;
+  database: string;
+  connectionLimit: number;
+}
+
+export const config: ConfigFromEnv = {
+  host: getConfigFromEnv('API_DB_HOST', 'api-db'),
+  port: toNumber(getConfigFromEnv('API_DB_PORT', '3306')),
+  user: getConfigFromEnv('API_DB_USER', 'api'),
+  password: getConfigFromEnv('API_DB_PASSWORD', 'api'),
+  database: getConfigFromEnv('API_DB_DATABASE', 'infrastructure'),
+  connectionLimit: toNumber(getConfigFromEnv('API_DB_CONN_LIMIT', '80'))
+};
+
+export const sqlClientPool = mariadb.createPool(config);
 
 export const getSqlClient = () => {
   // @ts-ignore
   const sqlClient = new Client({
-    host: API_DB_HOST || 'api-db',
-    port: API_DB_PORT || 3306,
-    user: API_DB_USER || 'api',
-    password: API_DB_PASSWORD || 'api',
-    db: API_DB_DATABASE || 'infrastructure',
+    host: config.host,
+    port: config.port,
+    user: config.user,
+    password: config.password,
+    db: config.database
   });
 
   sqlClient.on('error', error => {
@@ -23,4 +43,5 @@ export const getSqlClient = () => {
 
 module.exports = {
   getSqlClient,
+  sqlClientPool
 };

@@ -13,7 +13,7 @@ const {
   legacyHasPermission,
   keycloakHasPermission
 } = require('./util/auth');
-const { getSqlClient } = require('./clients/sqlClient');
+const { getSqlClient, sqlClientPool } = require('./clients/sqlClient');
 const esClient = require('./clients/esClient');
 const redisClient = require('./clients/redisClient');
 const { getKeycloakAdminClient } = require('./clients/keycloak-admin');
@@ -78,6 +78,7 @@ const apolloServer = new ApolloServer({
       return {
         keycloakAdminClient,
         sqlClient,
+        sqlClientPool,
         hasPermission: grant
           ? keycloakHasPermission(grant, requestCache, keycloakAdminClient)
           : legacyHasPermission(legacyCredentials),
@@ -130,6 +131,7 @@ const apolloServer = new ApolloServer({
       return {
         keycloakAdminClient,
         sqlClient,
+        sqlClientPool,
         hasPermission: req.kauth
           ? keycloakHasPermission(
               req.kauth.grant,

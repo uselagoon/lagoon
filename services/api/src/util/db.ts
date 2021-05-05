@@ -1,8 +1,10 @@
 import camelcaseKeys from 'camelcase-keys';
+import snakecaseKeys from 'snakecase-keys';
 import * as R from 'ramda';
 import { MariaClient, MariaResult, MariaInfo } from 'mariasql';
+import { Pool, Connection } from 'mariadb';
+import { notArray } from '../util/func';
 import snakecase from './snakeCase';
-import snakecaseKeys from 'snakecase-keys';
 
 export const knex = require('knex')({
   client: 'mysql',
@@ -17,7 +19,7 @@ export const knex = require('knex')({
       return R.map(camelcaseKeys, response);
     }
     return camelcaseKeys(response);
-  },
+  }
 });
 
 // Useful for creating extra if-conditions for non-admins
@@ -43,10 +45,10 @@ export const whereAnd = (whereConds: string[]) =>
     R.filter(
       R.compose(
         R.not,
-        R.isEmpty,
-      ),
-    ),
-  // @ts-ignore
+        R.isEmpty
+      )
+    )
+    // @ts-ignore
   )(whereConds);
 
 // Creates an IN clause like this: $field IN (val1,val2,val3)
@@ -56,8 +58,8 @@ export const inClause = (field: string, values: string[]) =>
     str => `${field} IN (${str})`,
     R.ifElse(R.isEmpty, R.always('NULL'), R.identity),
     R.join(','),
-    R.defaultTo([]),
-  // @ts-ignore
+    R.defaultTo([])
+    // @ts-ignore
   )(values);
 
 export const inClauseOr = (conds: any[]) =>
@@ -77,9 +79,50 @@ export const inClauseOr = (conds: any[]) =>
       string[],
     ]) =>
       inClause(field, values),
-    ),
-  // @ts-ignore
+    )
+    // @ts-ignore
   )(conds);
+
+/**
+ * "Temporary" query utility for mariadb to replace mariasql. Intended to
+ * reduce the pain of switching, not to markedly improve anything.
+ *
+ * Automatically converts snake_case <> camelCase as needed.
+ *
+ * @conn:
+ *  - If passing a connection pool, a connection will be acquired and released
+ *    automatically
+ *  - If passing a connection, the caller is expected to acquire and release
+ *    appropriately
+ * @sql: A string with optional :placeholders for value escaping
+ * @values: An optional parameter of values to escape
+ *  - object where keys match the :placeholders
+ *  - array when ? placeholders are used
+ *
+ * Example:
+ *   const rows = await mQuery(sqlClientPool,
+ *     'select * from project where git_url = :git_url',
+ *     {
+ *       gitUrl: 'ssh://git@172.17.0.1:2222/git/project18.git',
+ *     });
+ */
+export const mQuery = async (
+  conn: Pool | Connection,
+  sql: string,
+  values: Object | any[] = {}
+): Promise<any> => {
+  const preparedValues = R.when(notArray, snakecaseKeys);
+  const rows = await conn.query(
+    {
+      dateStrings: true,
+      namedPlaceholders: notArray(values),
+      rowsAsArray: false,
+      sql
+    },
+    preparedValues(values)
+  );
+  return R.length(rows) > 0 ? R.map(camelcaseKeys, rows) : rows;
+};
 
 // Promise wrapper for doing SQL queries, also camelcases any responses
 export const query = (sqlClient: MariaClient, sql: string): Promise<any> =>
@@ -103,5 +146,5 @@ export const prepare = (sqlClient: MariaClient, sql: string) => {
 
 export const isPatchEmpty = R.compose(
   R.isEmpty,
-  R.propOr({}, 'patch'),
+  R.propOr({}, 'patch')
 );
