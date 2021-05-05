@@ -4,7 +4,7 @@ import { getKeycloakAdminClient } from '../../clients/keycloak-admin';
 import { sqlClientPool } from '../../clients/sqlClient';
 import { esClient } from '../../clients/esClient';
 import redisClient from '../../clients/redisClient';
-import { mQuery } from '../../util/db';
+import { query } from '../../util/db';
 import { Group, GroupNotFoundError } from '../../models/group';
 import { User } from '../../models/user';
 
@@ -39,7 +39,7 @@ import { User } from '../../models/user';
     throw new Error(err);
   }
 
-  const customerRecords = await mQuery(
+  const customerRecords = await query(
     sqlClientPool,
     'SELECT * FROM `customer`'
   );
@@ -84,7 +84,7 @@ import { User } from '../../models/user';
     }
 
     // Add customer users to group
-    const customerUserRecords = await mQuery(
+    const customerUserRecords = await query(
       sqlClientPool,
       'SELECT u.email FROM customer_user cu INNER JOIN user u on cu.usid = u.id WHERE cu.cid = :cid',
       {
@@ -104,7 +104,7 @@ import { User } from '../../models/user';
     }
 
     // Add customer projects to group
-    const customerProjectRecords = await mQuery(
+    const customerProjectRecords = await query(
       sqlClientPool,
       'SELECT id, name FROM project WHERE customer = :cid',
       {

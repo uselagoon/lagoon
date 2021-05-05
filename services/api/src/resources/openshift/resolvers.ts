@@ -1,6 +1,6 @@
 import * as R from 'ramda';
 import { ResolverFn } from '../';
-import { mQuery, isPatchEmpty } from '../../util/db';
+import { query, isPatchEmpty } from '../../util/db';
 import { Sql } from './sql';
 
 const attrFilter = async (hasPermission, entity) => {
@@ -19,7 +19,7 @@ export const addOpenshift: ResolverFn = async (
 ) => {
   await hasPermission('openshift', 'add');
 
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     `CALL CreateOpenshift(
       :id,
@@ -46,7 +46,7 @@ export const deleteOpenshift: ResolverFn = async (
 ) => {
   await hasPermission('openshift', 'delete');
 
-  await mQuery(sqlClientPool, 'CALL deleteOpenshift(:name)', input);
+  await query(sqlClientPool, 'CALL deleteOpenshift(:name)', input);
 
   // TODO: maybe check rows for changed result
   return 'success';
@@ -59,7 +59,7 @@ export const getAllOpenshifts: ResolverFn = async (
 ) => {
   await hasPermission('openshift', 'viewAll');
 
-  return mQuery(sqlClientPool, 'SELECT * FROM openshift');
+  return query(sqlClientPool, 'SELECT * FROM openshift');
 };
 
 export const getOpenshiftByProjectId: ResolverFn = async (
@@ -71,7 +71,7 @@ export const getOpenshiftByProjectId: ResolverFn = async (
     project: pid,
   });
 
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     `SELECT o.*
     FROM project p
@@ -99,8 +99,8 @@ export const updateOpenshift: ResolverFn = async (
     throw new Error('input.patch requires at least 1 attribute');
   }
 
-  await mQuery(sqlClientPool, Sql.updateOpenshift(input));
-  const rows = await mQuery(sqlClientPool, Sql.selectOpenshift(oid));
+  await query(sqlClientPool, Sql.updateOpenshift(input));
+  const rows = await query(sqlClientPool, Sql.selectOpenshift(oid));
 
   return R.prop(0, rows);
 };
@@ -112,7 +112,7 @@ export const deleteAllOpenshifts: ResolverFn = async (
 ) => {
   await hasPermission('openshift', 'deleteAll');
 
-  await mQuery(sqlClientPool, Sql.truncateOpenshift());
+  await query(sqlClientPool, Sql.truncateOpenshift());
 
   // TODO: Check rows for success
   return 'success';

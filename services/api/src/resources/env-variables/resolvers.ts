@@ -1,6 +1,6 @@
 import * as R from 'ramda';
 import { ResolverFn } from '../';
-import { mQuery } from '../../util/db';
+import { query } from '../../util/db';
 import { Sql } from './sql';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 
@@ -13,7 +13,7 @@ export const getEnvVarsByProjectId: ResolverFn = async (
     project: pid
   });
 
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     `SELECT ev.*
     FROM env_vars ev
@@ -42,7 +42,7 @@ export const getEnvVarsByEnvironmentId: ResolverFn = async (
     }
   );
 
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     `SELECT ev.*
     FROM env_vars ev
@@ -76,7 +76,7 @@ const addEnvVariableToProject = async (
     project: `${typeId}`
   });
 
-  const { insertId } = await mQuery(
+  const { insertId } = await query(
     sqlClientPool,
     Sql.insertEnvVariable({
       id,
@@ -87,7 +87,7 @@ const addEnvVariableToProject = async (
     })
   );
 
-  const rows = await mQuery(sqlClientPool, Sql.selectEnvVariable(insertId));
+  const rows = await query(sqlClientPool, Sql.selectEnvVariable(insertId));
 
   return R.prop(0, rows);
 };
@@ -109,7 +109,7 @@ const addEnvVariableToEnvironment = async (
     }
   );
 
-  const { insertId } = await mQuery(
+  const { insertId } = await query(
     sqlClientPool,
     Sql.insertEnvVariable({
       id,
@@ -120,7 +120,7 @@ const addEnvVariableToEnvironment = async (
     })
   );
 
-  const rows = await mQuery(sqlClientPool, Sql.selectEnvVariable(insertId));
+  const rows = await query(sqlClientPool, Sql.selectEnvVariable(insertId));
 
   return R.prop(0, rows);
 };
@@ -130,13 +130,13 @@ export const deleteEnvVariable: ResolverFn = async (
   { input: { id } },
   { sqlClientPool, hasPermission }
 ) => {
-  const perms = await mQuery(sqlClientPool, Sql.selectPermsForEnvVariable(id));
+  const perms = await query(sqlClientPool, Sql.selectPermsForEnvVariable(id));
 
   await hasPermission('env_var', 'delete', {
     project: R.path(['0', 'pid'], perms)
   });
 
-  await mQuery(sqlClientPool, Sql.deleteEnvVariable(id));
+  await query(sqlClientPool, Sql.deleteEnvVariable(id));
 
   return 'success';
 };

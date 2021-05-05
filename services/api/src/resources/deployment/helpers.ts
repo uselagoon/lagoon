@@ -1,13 +1,13 @@
 import * as R from 'ramda';
 import { asyncPipe } from '@lagoon/commons/dist/util';
 import { Pool } from 'mariadb';
-import { mQuery } from '../../util/db';
+import { query } from '../../util/db';
 import { Sql } from './sql';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 
 export const Helpers = (sqlClientPool: Pool) => {
   const getDeploymentById = async (deploymentID: number) => {
-    const rows = await mQuery(
+    const rows = await query(
       sqlClientPool,
       Sql.selectDeployment(deploymentID)
     );
@@ -54,7 +54,7 @@ export const Helpers = (sqlClientPool: Pool) => {
 
         const environment = R.prop(0, activeEnvironments);
 
-        const rows = await mQuery(
+        const rows = await query(
           sqlClientPool,
           Sql.selectDeploymentByNameAndEnvironment(
             R.prop('name', input),

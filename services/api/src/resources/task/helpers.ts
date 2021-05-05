@@ -2,7 +2,7 @@ import * as R from 'ramda';
 import { Pool } from 'mariadb';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
 import { createTaskTask } from '@lagoon/commons/dist/tasks';
-import { mQuery } from '../../util/db';
+import { query } from '../../util/db';
 import { pubSub } from '../../clients/pubSub';
 import { esClient } from '../../clients/esClient';
 import { Sql } from './sql';
@@ -79,7 +79,7 @@ export const Helpers = (sqlClientPool: Pool) => ({
     remoteId?: string;
     execute: boolean;
   }) => {
-    const { insertId } = await mQuery(
+    const { insertId } = await query(
       sqlClientPool,
       Sql.insertTask({
         id,
@@ -95,7 +95,7 @@ export const Helpers = (sqlClientPool: Pool) => ({
       })
     );
 
-    let rows = await mQuery(sqlClientPool, Sql.selectTask(insertId));
+    let rows = await query(sqlClientPool, Sql.selectTask(insertId));
     const taskData = await injectLogs(R.prop(0, rows));
 
     pubSub.publish(EVENTS.TASK.ADDED, taskData);
@@ -105,13 +105,13 @@ export const Helpers = (sqlClientPool: Pool) => ({
       return taskData;
     }
 
-    rows = await mQuery(
+    rows = await query(
       sqlClientPool,
       environmentSql.selectEnvironmentById(taskData.environment)
     );
     const environmentData = R.prop(0, rows);
 
-    rows = await mQuery(
+    rows = await query(
       sqlClientPool,
       projectSql.selectProject(environmentData.project)
     );

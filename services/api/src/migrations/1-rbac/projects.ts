@@ -5,7 +5,7 @@ import { getKeycloakAdminClient } from '../../clients/keycloak-admin';
 import { sqlClientPool } from '../../clients/sqlClient';
 import { esClient } from '../../clients/esClient';
 import redisClient from '../../clients/redisClient';
-import { mQuery } from '../../util/db';
+import { query } from '../../util/db';
 import { Group, GroupNotFoundError } from '../../models/group';
 import { User } from '../../models/user';
 import {
@@ -20,7 +20,7 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
   const keycloakAdminClient = await getKeycloakAdminClient();
 
   // Copy private keys from customer to projects if the project has no private key
-  await mQuery(
+  await query(
     sqlClientPool,
     `UPDATE project p
     INNER JOIN customer c ON p.customer = c.id
@@ -41,7 +41,7 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
     redisClient
   });
 
-  const projectRecords = await mQuery(sqlClientPool, 'SELECT * FROM `project`');
+  const projectRecords = await query(sqlClientPool, 'SELECT * FROM `project`');
 
   for (const project of projectRecords) {
     logger.debug(`Processing ${project.name}`);
@@ -84,7 +84,7 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
     }
 
     // Add project users to group
-    const projectUserRecords = await mQuery(
+    const projectUserRecords = await query(
       sqlClientPool,
       'SELECT u.email FROM project_user pu INNER JOIN user u on pu.usid = u.id WHERE pu.pid = :pid',
       {
@@ -130,7 +130,7 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
 
     // Save the newly generated key
     if (!R.prop('privateKey', project)) {
-      await mQuery(
+      await query(
         sqlClientPool,
         'UPDATE project p SET private_key = :pkey WHERE id = :pid',
         {
@@ -141,7 +141,7 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
     }
 
     // Find or create a user that has the public key linked to them
-    const userRows = await mQuery(
+    const userRows = await query(
       sqlClientPool,
       sshKeySql.selectUserIdsBySshKeyFingerprint(
         getSshKeyFingerprint(keyPair.public)
@@ -160,7 +160,7 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
 
         const keyParts = keyPair.public.split(' ');
 
-        const { insertId } = await mQuery(
+        const { insertId } = await query(
           sqlClientPool,
           sshKeySql.insertSshKey({
             id: null,
@@ -170,7 +170,7 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
             keyFingerprint: getSshKeyFingerprint(keyPair.public)
           })
         );
-        await mQuery(
+        await query(
           sqlClientPool,
           sshKeySql.addSshKeyToUser({ sshKeyId: insertId, userId: user.id })
         );

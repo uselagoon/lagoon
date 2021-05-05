@@ -13,7 +13,7 @@ import {
   createEnvironmentFilteredSubscriber
 } from '../../clients/pubSub';
 import { getConfigFromEnv, getLagoonRouteFromEnv } from '../../util/config';
-import { knex, mQuery, isPatchEmpty } from '../../util/db';
+import { knex, query, isPatchEmpty } from '../../util/db';
 import { Sql } from './sql';
 import { Helpers } from './helpers';
 import { EVENTS } from './events';
@@ -80,7 +80,7 @@ export const getDeploymentsByEnvironmentId: ResolverFn = async (
     project: environment.project
   });
 
-  const rows = (await mQuery(
+  const rows = (await query(
     sqlClientPool,
     `SELECT d.*
     FROM environment e
@@ -122,14 +122,14 @@ export const getDeploymentByRemoteId: ResolverFn = async (
     .where('remote_id', '=', id)
     .toString();
 
-  const rows = await mQuery(sqlClientPool, queryString);
+  const rows = await query(sqlClientPool, queryString);
   const deployment = R.prop(0, rows);
 
   if (!deployment) {
     return null;
   }
 
-  const perms = await mQuery(
+  const perms = await query(
     sqlClientPool,
     Sql.selectPermsForDeployment(deployment.id)
   );
@@ -155,7 +155,7 @@ export const getDeploymentUrl: ResolverFn = async (
     sqlClientPool
   ).getProjectByEnvironmentId(environment);
 
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     knex('deployment')
       .where('id', '=', id)
@@ -191,7 +191,7 @@ export const addDeployment: ResolverFn = async (
 
   const {
     insertId
-  } = await mQuery(
+  } = await query(
     sqlClientPool,
     Sql.insertDeployment({
       id,
@@ -205,7 +205,7 @@ export const addDeployment: ResolverFn = async (
     })
   );
 
-  const rows = await mQuery(sqlClientPool, Sql.selectDeployment(insertId));
+  const rows = await query(sqlClientPool, Sql.selectDeployment(insertId));
   const deployment = await injectBuildLog(R.prop(0, rows));
 
   pubSub.publish(EVENTS.DEPLOYMENT.ADDED, deployment);
@@ -217,13 +217,13 @@ export const deleteDeployment: ResolverFn = async (
   { input: { id } },
   { sqlClientPool, hasPermission }
 ) => {
-  const perms = await mQuery(sqlClientPool, Sql.selectPermsForDeployment(id));
+  const perms = await query(sqlClientPool, Sql.selectPermsForDeployment(id));
 
   await hasPermission('deployment', 'delete', {
     project: R.path(['0', 'pid'], perms)
   });
 
-  await mQuery(sqlClientPool, Sql.deleteDeployment(id));
+  await query(sqlClientPool, Sql.deleteDeployment(id));
 
   return 'success';
 };
@@ -251,7 +251,7 @@ export const updateDeployment: ResolverFn = async (
     throw new Error('Input patch requires at least 1 attribute');
   }
 
-  const permsDeployment = await mQuery(
+  const permsDeployment = await query(
     sqlClientPool,
     Sql.selectPermsForDeployment(id)
   );
@@ -271,7 +271,7 @@ export const updateDeployment: ResolverFn = async (
     });
   }
 
-  await mQuery(
+  await query(
     sqlClientPool,
     Sql.updateDeployment({
       id,
@@ -287,7 +287,7 @@ export const updateDeployment: ResolverFn = async (
     })
   );
 
-  const rows = await mQuery(sqlClientPool, Sql.selectDeployment(id));
+  const rows = await query(sqlClientPool, Sql.selectDeployment(id));
   const deployment = await injectBuildLog(R.prop(0, rows));
 
   pubSub.publish(EVENTS.DEPLOYMENT.UPDATED, deployment);
@@ -758,7 +758,7 @@ export const switchActiveStandby: ResolverFn = async (
   }
 
   // we want the task to show in the standby environment, as this is where the task will be initiated.
-  const environmentRows = await mQuery(
+  const environmentRows = await query(
     sqlClientPool,
     environmentSql.selectEnvironmentByNameAndProject(
       project.standbyProductionEnvironment,
@@ -768,7 +768,7 @@ export const switchActiveStandby: ResolverFn = async (
   const environment = environmentRows[0];
   var environmentId = parseInt(environment.id);
   // we need to pass some additional information about the production environment
-  const environmentRowsProd = await mQuery(
+  const environmentRowsProd = await query(
     sqlClientPool,
     environmentSql.selectEnvironmentByNameAndProject(
       project.productionEnvironment,

@@ -3,7 +3,7 @@ import validator from 'validator';
 import sshpk from 'sshpk';
 import { ResolverFn } from '../';
 import logger from '../../logger';
-import { knex, mQuery, isPatchEmpty } from '../../util/db';
+import { knex, query, isPatchEmpty } from '../../util/db';
 import { Helpers } from './helpers';
 import { KeycloakOperations } from './keycloak';
 import { OpendistroSecurityOperations } from '../group/opendistroSecurity';
@@ -38,25 +38,25 @@ export const getAllProjects: ResolverFn = async (
     });
   }
 
-  let query = knex('project');
+  let queryBuilder = knex('project');
 
   if (createdAfter) {
-    query = query.andWhere('created', '>=', createdAfter);
+    queryBuilder = queryBuilder.andWhere('created', '>=', createdAfter);
   }
 
   if (gitUrl) {
-    query = query.andWhere('git_url', gitUrl);
+    queryBuilder = queryBuilder.andWhere('git_url', gitUrl);
   }
 
   if (userProjectIds) {
-    query = query.whereIn('id', userProjectIds);
+    queryBuilder = queryBuilder.whereIn('id', userProjectIds);
   }
 
   if (order) {
-    query = query.orderBy(order);
+    queryBuilder = queryBuilder.orderBy(order);
   }
 
-  const rows = await mQuery(sqlClientPool, query.toString());
+  const rows = await query(sqlClientPool, queryBuilder.toString());
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
   // This resolver is used for the main UI page and is quite slow. Since we've
@@ -75,7 +75,7 @@ export const getProjectByEnvironmentId: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission }
 ) => {
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     `SELECT p.*
     FROM environment e
@@ -108,7 +108,7 @@ export const getProjectByGitUrl: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission }
 ) => {
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     `SELECT *
     FROM project
@@ -140,7 +140,7 @@ export const getProjectByName: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission }
 ) => {
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     `SELECT *
     FROM project
@@ -188,26 +188,26 @@ export const getProjectsByMetadata: ResolverFn = async (
     });
   }
 
-  let query = knex('project');
+  let queryBuilder = knex('project');
 
   if (userProjectIds) {
-    query = query.whereIn('id', userProjectIds);
+    queryBuilder = queryBuilder.whereIn('id', userProjectIds);
   }
 
   let queryArgs = [];
   for (const { key: meta_key, value: meta_value } of metadata) {
     if (meta_value) {
-      query = query.whereRaw('JSON_CONTAINS(metadata, ?, ?)');
+      queryBuilder = queryBuilder.whereRaw('JSON_CONTAINS(metadata, ?, ?)');
       queryArgs = [...queryArgs, `"${meta_value}"`, `$.${meta_key}`];
     }
     // Support key-only queries.
     else {
-      query = query.whereRaw("JSON_CONTAINS_PATH(metadata, 'one', ?)");
+      queryBuilder = queryBuilder.whereRaw("JSON_CONTAINS_PATH(metadata, 'one', ?)");
       queryArgs = [...queryArgs, `$.${meta_key}`];
     }
   }
 
-  const rows = await mQuery(sqlClientPool, query.toString(), queryArgs);
+  const rows = await query(sqlClientPool, queryBuilder.toString(), queryArgs);
   return Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 };
 
@@ -253,7 +253,7 @@ export const addProject = async (
   const openshiftProjectPattern =
     input.kubernetesNamespacePattern || input.openshiftProjectPattern;
 
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     `CALL CreateProject(
       ${input.id ? ':id' : 'NULL'},
@@ -345,7 +345,7 @@ export const addProject = async (
   );
 
   // Find or create a user that has the public key linked to them
-  const userRows = await mQuery(
+  const userRows = await query(
     sqlClientPool,
     sshKeySql.selectUserIdsBySshKeyFingerprint(
       getSshKeyFingerprint(keyPair.public)
@@ -364,7 +364,7 @@ export const addProject = async (
 
       const keyParts = keyPair.public.split(' ');
 
-      const { insertId } = await mQuery(
+      const { insertId } = await query(
         sqlClientPool,
         sshKeySql.insertSshKey({
           id: null,
@@ -374,7 +374,7 @@ export const addProject = async (
           keyFingerprint: getSshKeyFingerprint(keyPair.public)
         })
       );
-      await mQuery(
+      await query(
         sqlClientPool,
         sshKeySql.addSshKeyToUser({ sshKeyId: insertId, userId: user.id })
       );
@@ -439,7 +439,7 @@ export const deleteProject: ResolverFn = async (
     project: pid
   });
 
-  await mQuery(sqlClientPool, 'CALL DeleteProject(:name)', project);
+  await query(sqlClientPool, 'CALL DeleteProject(:name)', project);
 
   // Remove the default group and user
   try {
@@ -566,7 +566,7 @@ export const updateProject: ResolverFn = async (
   //   );
   // }
 
-  await mQuery(
+  await query(
     sqlClientPool,
     Sql.updateProject({
       id,
@@ -676,7 +676,7 @@ export const deleteAllProjects: ResolverFn = async (
 
   const projectNames = await Helpers(sqlClientPool).getAllProjectNames();
 
-  await mQuery(sqlClientPool, Sql.truncateProject());
+  await query(sqlClientPool, Sql.truncateProject());
 
   for (const name of projectNames) {
     await KeycloakOperations.deleteGroup(name);
@@ -707,7 +707,7 @@ export const removeProjectMetadataByKey: ResolverFn = async (
     }
   }
 
-  await mQuery(
+  await query(
     sqlClientPool,
     `UPDATE project
     SET metadata = JSON_REMOVE(metadata, :meta_key)
@@ -748,7 +748,7 @@ export const updateProjectMetadata: ResolverFn = async (
     }
   }
 
-  await mQuery(
+  await query(
     sqlClientPool,
     `UPDATE project
     SET metadata = JSON_SET(metadata, :meta_key, :meta_value)

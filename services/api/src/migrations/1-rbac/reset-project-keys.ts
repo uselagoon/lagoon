@@ -7,7 +7,7 @@ import { getKeycloakAdminClient } from '../../clients/keycloak-admin';
 import { sqlClientPool } from '../../clients/sqlClient';
 import { esClient } from '../../clients/esClient';
 import redisClient from '../../clients/redisClient';
-import { mQuery } from '../../util/db';
+import { query } from '../../util/db';
 import { Group } from '../../models/group';
 import { User } from '../../models/user';
 import {
@@ -52,7 +52,7 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
   }
 
   const allGitlabProjects = (await gitlabApi.getAllProjects()) as GitlabProject[];
-  const projectRecords = await mQuery(
+  const projectRecords = await query(
     sqlClientPool,
     'SELECT * FROM `project` WHERE name IN (:projects)',
     {
@@ -99,7 +99,7 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
       const keyParts = keyPair.public.split(' ');
 
       // Delete users with current key
-      const userRows = await mQuery(
+      const userRows = await query(
         sqlClientPool,
         sshKeySql.selectUserIdsBySshKeyFingerprint(
           getSshKeyFingerprint(keyPair.public)
@@ -118,7 +118,7 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
         }
 
         // Delete public key
-        await mQuery(
+        await query(
           sqlClientPool,
           'DELETE FROM ssh_key WHERE key_value = :key',
           {
@@ -127,7 +127,7 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
         );
 
         // Delete user_ssh_key link
-        await mQuery(
+        await query(
           sqlClientPool,
           'DELETE FROM user_ssh_key WHERE usid = :usid',
           {
@@ -137,7 +137,7 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
       }
 
       // Delete current private key
-      await mQuery(
+      await query(
         sqlClientPool,
         'UPDATE project p SET private_key = NULL WHERE id = :pid',
         {
@@ -160,7 +160,7 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
     };
 
     // Save the newly generated key
-    await mQuery(
+    await query(
       sqlClientPool,
       'UPDATE project p SET private_key = :pkey WHERE id = :pid',
       {
@@ -170,7 +170,7 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
     );
 
     // Find or create a user that has the public key linked to them
-    const userRows = await mQuery(
+    const userRows = await query(
       sqlClientPool,
       sshKeySql.selectUserIdsBySshKeyFingerprint(
         getSshKeyFingerprint(keyPair.public)
@@ -189,7 +189,7 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
 
         const keyParts = keyPair.public.split(' ');
 
-        const { insertId } = await mQuery(
+        const { insertId } = await query(
           sqlClientPool,
           sshKeySql.insertSshKey({
             id: null,
@@ -199,7 +199,7 @@ const generatePrivateKeyEd25519 = R.partial(generatePrivateKey, ['ed25519']);
             keyFingerprint: getSshKeyFingerprint(keyPair.public)
           })
         );
-        await mQuery(
+        await query(
           sqlClientPool,
           sshKeySql.addSshKeyToUser({ sshKeyId: insertId, userId: user.id })
         );

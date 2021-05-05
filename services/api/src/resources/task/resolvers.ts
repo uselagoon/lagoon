@@ -5,7 +5,7 @@ import {
   pubSub,
   createEnvironmentFilteredSubscriber
 } from '../../clients/pubSub';
-import { knex, mQuery, isPatchEmpty } from '../../util/db';
+import { knex, query, isPatchEmpty } from '../../util/db';
 import { Sql } from './sql';
 import { EVENTS } from './events';
 import { Helpers } from './helpers';
@@ -25,7 +25,7 @@ export const getTasksByEnvironmentId: ResolverFn = async (
     project: environment.project
   });
 
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     `SELECT t.*, e.project
     FROM environment e
@@ -66,14 +66,14 @@ export const getTaskByRemoteId: ResolverFn = async (
     .where('remote_id', '=', id)
     .toString();
 
-  const rows = await mQuery(sqlClientPool, queryString);
+  const rows = await query(sqlClientPool, queryString);
   const task = R.prop(0, rows);
 
   if (!task) {
     return null;
   }
 
-  const rowsPerms = await mQuery(
+  const rowsPerms = await query(
     sqlClientPool,
     Sql.selectPermsForTask(task.id)
   );
@@ -93,14 +93,14 @@ export const getTaskById: ResolverFn = async (
     .where('id', '=', id)
     .toString();
 
-  const rows = await mQuery(sqlClientPool, queryString);
+  const rows = await query(sqlClientPool, queryString);
   const task = R.prop(0, rows);
 
   if (!task) {
     return null;
   }
 
-  const rowsPerms = await mQuery(
+  const rowsPerms = await query(
     sqlClientPool,
     Sql.selectPermsForTask(task.id)
   );
@@ -170,12 +170,12 @@ export const deleteTask: ResolverFn = async (
   { input: { id } },
   { sqlClientPool, hasPermission }
 ) => {
-  const rows = await mQuery(sqlClientPool, Sql.selectPermsForTask(id));
+  const rows = await query(sqlClientPool, Sql.selectPermsForTask(id));
   await hasPermission('task', 'delete', {
     project: R.path(['0', 'pid'], rows)
   });
 
-  await mQuery(sqlClientPool, Sql.deleteTask(id));
+  await query(sqlClientPool, Sql.deleteTask(id));
 
   return 'success';
 };
@@ -202,7 +202,7 @@ export const updateTask: ResolverFn = async (
   { sqlClientPool, hasPermission }
 ) => {
   // Check access to modify task as it currently stands
-  const curPerms = await mQuery(sqlClientPool, Sql.selectPermsForTask(id));
+  const curPerms = await query(sqlClientPool, Sql.selectPermsForTask(id));
   await hasPermission('task', 'update', {
     project: R.path(['0', 'pid'], curPerms)
   });
@@ -221,7 +221,7 @@ export const updateTask: ResolverFn = async (
     throw new Error('Input patch requires at least 1 attribute');
   }
 
-  await mQuery(
+  await query(
     sqlClientPool,
     Sql.updateTask({
       id,
@@ -239,7 +239,7 @@ export const updateTask: ResolverFn = async (
     })
   );
 
-  const rows = await mQuery(sqlClientPool, Sql.selectTask(id));
+  const rows = await query(sqlClientPool, Sql.selectTask(id));
   const taskData = await Helpers(sqlClientPool).injectLogs(R.prop(0, rows));
 
   pubSub.publish(EVENTS.TASK.UPDATED, taskData);

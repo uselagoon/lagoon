@@ -1,7 +1,7 @@
 const R = require('ramda');
 import { Pool } from 'mariadb';
 const { asyncPipe } = require('@lagoon/commons/dist/util');
-const { mQuery } = require('../../util/db');
+const { query } = require('../../util/db');
 const { Sql } = require('./sql');
 
 export const Helpers = (sqlClientPool: Pool) => {
@@ -16,13 +16,13 @@ export const Helpers = (sqlClientPool: Pool) => {
   };
 
   const getProjectById = async (id: number) => {
-    const rows = await mQuery(sqlClientPool, Sql.selectProject(id));
+    const rows = await query(sqlClientPool, Sql.selectProject(id));
     const withK8s = aliasOpenshiftToK8s(rows);
     return R.prop(0, withK8s);
   };
 
   const getProjectByName = async (name: string) => {
-    const rows = await mQuery(sqlClientPool, Sql.selectProjectByName(name));
+    const rows = await query(sqlClientPool, Sql.selectProjectByName(name));
     return R.prop(0, rows);
   };
 
@@ -30,7 +30,7 @@ export const Helpers = (sqlClientPool: Pool) => {
     environmentId: number,
     environmentType = null
   ) => {
-    const rows = await mQuery(
+    const rows = await query(
       sqlClientPool,
       Sql.selectProjectByEnvironmentId(environmentId, environmentType)
     );
@@ -38,7 +38,7 @@ export const Helpers = (sqlClientPool: Pool) => {
   };
 
   const getProjectsByIds = (projectIds: number[]) =>
-    mQuery(sqlClientPool, Sql.selectProjectsByIds(projectIds));
+    query(sqlClientPool, Sql.selectProjectsByIds(projectIds));
 
   return {
     aliasOpenshiftToK8s,
@@ -46,7 +46,7 @@ export const Helpers = (sqlClientPool: Pool) => {
     getProjectsByIds,
     getProjectByEnvironmentId,
     getProjectIdByName: async (name: string): Promise<number> => {
-      const pidResult = await mQuery(
+      const pidResult = await query(
         sqlClientPool,
         Sql.selectProjectIdByName(name)
       );
@@ -80,7 +80,7 @@ export const Helpers = (sqlClientPool: Pool) => {
       });
 
       const projectFromName = asyncPipe(R.prop('name'), async name => {
-        const rows = await mQuery(sqlClientPool, Sql.selectProjectByName(name));
+        const rows = await query(sqlClientPool, Sql.selectProjectByName(name));
         const project = R.prop(0, rows);
 
         if (!project) {
@@ -101,13 +101,13 @@ export const Helpers = (sqlClientPool: Pool) => {
         ]
       ])(projectInput);
     },
-    getAllProjects: async () => mQuery(sqlClientPool, Sql.selectAllProjects()),
+    getAllProjects: async () => query(sqlClientPool, Sql.selectAllProjects()),
     getAllProjectsNotIn: async ids =>
-      mQuery(sqlClientPool, Sql.selectAllProjectNotIn(ids)),
+      query(sqlClientPool, Sql.selectAllProjectNotIn(ids)),
     getAllProjectNames: async () =>
       R.map(
         R.prop('name'),
-        await mQuery(sqlClientPool, Sql.selectAllProjectNames())
+        await query(sqlClientPool, Sql.selectAllProjectNames())
       )
   };
 };

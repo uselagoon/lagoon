@@ -8,7 +8,7 @@ import logger from '../../logger';
 import { Sql as PSql } from './sql';
 import { Sql } from '../env-variables/sql';
 import { getConfigFromEnv, getLagoonRouteFromEnv } from '../../util/config';
-import { mQuery } from '../../util/db';
+import { query } from '../../util/db';
 
 const lagoonWebhookAddress = getLagoonRouteFromEnv(
   /webhook-handler/,
@@ -149,11 +149,11 @@ async function removeHarborEnvVars(
   // Find any currently set env vars
   var old_env_vars = [];
   try {
-    const result = await mQuery(
+    const result = await query(
       sqlClientPool,
       PSql.selectProjectByName(lagoonProjectName)
     );
-    const env_vars = await mQuery(
+    const env_vars = await query(
       sqlClientPool,
       `SELECT *
       FROM env_vars
@@ -177,7 +177,7 @@ async function removeHarborEnvVars(
   // Remove any previously set internal_container_registry env vars
   try {
     for (var j = 0; j < old_env_vars.length; j++) {
-      await mQuery(sqlClientPool, Sql.deleteEnvVariable(old_env_vars[j].id));
+      await query(sqlClientPool, Sql.deleteEnvVariable(old_env_vars[j].id));
       logger.debug(
         `Removed ${old_env_vars[j].name} env var from project ${lagoonProjectName}`
       );
@@ -203,7 +203,7 @@ async function addEnvVar(
 ) {
   // Returns false on an error and true on a success
   try {
-    await mQuery(
+    await query(
       sqlClientPool,
       Sql.insertEnvVariable({
         name: name,

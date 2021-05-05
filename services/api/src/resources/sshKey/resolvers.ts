@@ -1,6 +1,6 @@
 import * as R from 'ramda';
 import { ResolverFn } from '../';
-import { mQuery, isPatchEmpty } from '../../util/db';
+import { query, isPatchEmpty } from '../../util/db';
 import { validateSshKey, getSshKeyFingerprint } from '.';
 import { Sql } from './sql';
 
@@ -21,7 +21,7 @@ export const getUserSshKeys: ResolverFn = async (
     users: [userId]
   });
 
-  return mQuery(sqlClientPool, Sql.selectSshKeysByUserId(userId));
+  return query(sqlClientPool, Sql.selectSshKeysByUserId(userId));
 };
 
 export const addSshKey: ResolverFn = async (
@@ -52,7 +52,7 @@ export const addSshKey: ResolverFn = async (
     users: [user.id]
   });
 
-  const { insertId } = await mQuery(
+  const { insertId } = await query(
     sqlClientPool,
     Sql.insertSshKey({
       id,
@@ -62,11 +62,11 @@ export const addSshKey: ResolverFn = async (
       keyFingerprint: getSshKeyFingerprint(keyFormatted)
     })
   );
-  await mQuery(
+  await query(
     sqlClientPool,
     Sql.addSshKeyToUser({ sshKeyId: insertId, userId: user.id })
   );
-  const rows = await mQuery(sqlClientPool, Sql.selectSshKey(insertId));
+  const rows = await query(sqlClientPool, Sql.selectSshKey(insertId));
 
   return R.prop(0, rows);
 };
@@ -84,7 +84,7 @@ export const updateSshKey: ResolverFn = async (
 ) => {
   const keyType = sshKeyTypeToString(unformattedKeyType);
 
-  const perms = await mQuery(sqlClientPool, Sql.selectUserIdsBySshKeyId(id));
+  const perms = await query(sqlClientPool, Sql.selectUserIdsBySshKeyId(id));
   const userIds = R.map(R.prop('usid'), perms);
 
   await hasPermission('ssh_key', 'update', {
@@ -108,7 +108,7 @@ export const updateSshKey: ResolverFn = async (
     keyFingerprint = getSshKeyFingerprint(keyFormatted);
   }
 
-  await mQuery(
+  await query(
     sqlClientPool,
     Sql.updateSshKey({
       id,
@@ -120,7 +120,7 @@ export const updateSshKey: ResolverFn = async (
       }
     })
   );
-  const rows = await mQuery(sqlClientPool, Sql.selectSshKey(id));
+  const rows = await query(sqlClientPool, Sql.selectSshKey(id));
 
   return R.prop(0, rows);
 };
@@ -131,7 +131,7 @@ export const deleteSshKey: ResolverFn = async (
   { sqlClientPool, hasPermission }
 ) => {
   // Map from sshKey name to id and throw on several error cases
-  const skidResult = await mQuery(
+  const skidResult = await query(
     sqlClientPool,
     Sql.selectSshKeyIdByName(name)
   );
@@ -147,7 +147,7 @@ export const deleteSshKey: ResolverFn = async (
     throw new Error(`Not found: '${name}'`);
   }
 
-  const perms = await mQuery(
+  const perms = await query(
     sqlClientPool,
     Sql.selectUserIdsBySshKeyId(R.path(['0', 'id'], skidResult))
   );
@@ -157,7 +157,7 @@ export const deleteSshKey: ResolverFn = async (
     users: userIds
   });
 
-  await mQuery(sqlClientPool, 'CALL DeleteSshKey(:name)', { name });
+  await query(sqlClientPool, 'CALL DeleteSshKey(:name)', { name });
 
   return 'success';
 };
@@ -167,14 +167,14 @@ export const deleteSshKeyById: ResolverFn = async (
   { input: { id } },
   { sqlClientPool, hasPermission }
 ) => {
-  const perms = await mQuery(sqlClientPool, Sql.selectUserIdsBySshKeyId(id));
+  const perms = await query(sqlClientPool, Sql.selectUserIdsBySshKeyId(id));
   const userIds = R.map(R.prop('usid'), perms);
 
   await hasPermission('ssh_key', 'delete', {
     users: userIds
   });
 
-  await mQuery(sqlClientPool, 'CALL DeleteSshKeyById(:id)', { id });
+  await query(sqlClientPool, 'CALL DeleteSshKeyById(:id)', { id });
 
   // TODO: Check rows for success
   return 'success';
@@ -187,7 +187,7 @@ export const deleteAllSshKeys: ResolverFn = async (
 ) => {
   await hasPermission('ssh_key', 'deleteAll');
 
-  await mQuery(sqlClientPool, Sql.truncateSshKey());
+  await query(sqlClientPool, Sql.truncateSshKey());
 
   // TODO: Check rows for success
   return 'success';
@@ -200,7 +200,7 @@ export const removeAllSshKeysFromAllUsers: ResolverFn = async (
 ) => {
   await hasPermission('ssh_key', 'removeAll');
 
-  await mQuery(sqlClientPool, Sql.truncateUserSshKey());
+  await query(sqlClientPool, Sql.truncateUserSshKey());
 
   // TODO: Check rows for success
   return 'success';

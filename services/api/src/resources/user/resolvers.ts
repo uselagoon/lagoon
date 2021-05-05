@@ -1,6 +1,6 @@
 import * as R from 'ramda';
 import { ResolverFn } from '../';
-import { mQuery, isPatchEmpty } from '../../util/db';
+import { query, isPatchEmpty } from '../../util/db';
 import Sql from './sql';
 
 export const getMe: ResolverFn = async (_root, args, { models, keycloakGrant: grant }) => {
@@ -21,7 +21,7 @@ export const getUserBySshKey: ResolverFn = async (
     // @ts-ignore
   )(sshKey);
 
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     Sql.selectUserIdBySshKey({ keyType, keyValue }),
   );

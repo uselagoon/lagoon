@@ -3,7 +3,7 @@ import { logger } from '@lagoon/commons/dist/local-logging';
 import { sqlClientPool } from '../../clients/sqlClient';
 import { createHarborOperations } from '../../resources/project/harborSetup';
 import { Helpers as projectHelpers } from '../../resources/project/helpers';
-import { mQuery } from '../../util/db';
+import { query } from '../../util/db';
 
 const defaultHarborUrl = R.propOr(
   'http://harbor-harbor-core.harbor.svc.cluster.local:80',
@@ -39,7 +39,7 @@ const projectRegex = process.env.PROJECT_REGEX
     }
 
     // Get project's env vars from db
-    var envVars = await mQuery(
+    var envVars = await query(
       sqlClientPool,
       `SELECT *
       FROM env_vars

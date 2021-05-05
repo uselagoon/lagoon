@@ -1,7 +1,7 @@
 import * as R from 'ramda';
 import { ResolverFn } from '../';
 import { s3Client } from '../../clients/aws';
-import { mQuery } from '../../util/db';
+import { query } from '../../util/db';
 import { Sql } from './sql';
 import { Sql as taskSql } from '../task/sql';
 
@@ -24,7 +24,7 @@ export const getFilesByTaskId: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission }
 ) => {
-  const rowsPerms = await mQuery(
+  const rowsPerms = await query(
     sqlClientPool,
     taskSql.selectPermsForTask(tid)
   );
@@ -33,7 +33,7 @@ export const getFilesByTaskId: ResolverFn = async (
     project: R.path(['0', 'pid'], rowsPerms)
   });
 
-  const rows = await mQuery(sqlClientPool, Sql.selectTaskFiles(tid));
+  const rows = await query(sqlClientPool, Sql.selectTaskFiles(tid));
 
   return R.pipe(
     R.sort(R.descend(R.prop('created'))),
@@ -47,7 +47,7 @@ export const uploadFilesForTask: ResolverFn = async (
   { input: { task, files } },
   { sqlClientPool, hasPermission }
 ) => {
-  const rowsPerms = await mQuery(
+  const rowsPerms = await query(
     sqlClientPool,
     taskSql.selectPermsForTask(task)
   );
@@ -67,7 +67,7 @@ export const uploadFilesForTask: ResolverFn = async (
     // @ts-ignore
     await s3Client.upload(params).promise();
 
-    const { insertId } = await mQuery(
+    const { insertId } = await query(
       sqlClientPool,
       Sql.insertFile({
         filename: newFile.filename,
@@ -76,7 +76,7 @@ export const uploadFilesForTask: ResolverFn = async (
       })
     );
 
-    await mQuery(
+    await query(
       sqlClientPool,
       Sql.insertFileTask({
         tid: task,
@@ -87,7 +87,7 @@ export const uploadFilesForTask: ResolverFn = async (
 
   await Promise.all(uploadAndTrackFiles);
 
-  const rows = await mQuery(sqlClientPool, taskSql.selectTask(task));
+  const rows = await query(sqlClientPool, taskSql.selectTask(task));
 
   return R.prop(0, rows);
 };
@@ -97,13 +97,13 @@ export const deleteFilesForTask: ResolverFn = async (
   { input: { id } },
   { sqlClientPool, hasPermission }
 ) => {
-  const rowsPerms = await mQuery(sqlClientPool, taskSql.selectPermsForTask(id));
+  const rowsPerms = await query(sqlClientPool, taskSql.selectPermsForTask(id));
 
   await hasPermission('task', 'delete', {
     project: R.path(['0', 'pid'], rowsPerms)
   });
 
-  const rows = await mQuery(sqlClientPool, Sql.selectTaskFiles(id));
+  const rows = await query(sqlClientPool, Sql.selectTaskFiles(id));
   const deleteObjects = R.map((file: any) => ({ Key: file.s3Key }), rows);
 
   const params = {
@@ -115,7 +115,7 @@ export const deleteFilesForTask: ResolverFn = async (
   // @ts-ignore
   await s3Client.deleteObjects(params).promise();
 
-  await mQuery(sqlClientPool, Sql.deleteFileTask(id));
+  await query(sqlClientPool, Sql.deleteFileTask(id));
 
   return 'success';
 };

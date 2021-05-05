@@ -4,7 +4,7 @@ import { AmqpPubSub } from 'graphql-rabbitmq-subscriptions';
 import { ForbiddenError } from 'apollo-server-express';
 import logger from '../logger';
 import { getConfigFromEnv } from '../util/config';
-import { mQuery } from '../util/db';
+import { query } from '../util/db';
 import { Sql as environmentSql } from '../resources/environment/sql';
 import { ResolverFn } from '../resources';
 
@@ -58,7 +58,7 @@ const createSubscribe = (events): ResolverFn => async (
   const { environment } = args;
   const { sqlClientPool, hasPermission } = context;
 
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     environmentSql.selectEnvironmentById(environment)
   );

@@ -1,6 +1,6 @@
 import * as R from 'ramda';
 import { Pool } from 'mariadb';
-import { mQuery } from '../../util/db';
+import { query } from '../../util/db';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { Sql } from './sql';
 
@@ -15,7 +15,7 @@ export const Helpers = (sqlClientPool: Pool) => {
   const getAllProblems = async (source, environment, envType, severity) => {
     const environmentType = envType && envType.map(t => t.toLowerCase() || []);
 
-    return await mQuery(
+    return await query(
       sqlClientPool,
       Sql.selectAllProblems({
         source,
@@ -29,7 +29,7 @@ export const Helpers = (sqlClientPool: Pool) => {
   const getSeverityOptions = async () =>
     R.map(
       R.prop('severity'),
-      await mQuery(sqlClientPool, Sql.selectSeverityOptions())
+      await query(sqlClientPool, Sql.selectSeverityOptions())
     );
 
   const getProblemsWithProjects = async (

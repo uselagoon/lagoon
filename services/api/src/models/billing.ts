@@ -1,7 +1,7 @@
 import moment from 'moment';
 import R from 'ramda';
 import { Pool } from 'mariadb';
-import { mQuery } from '../util/db';
+import { query } from '../util/db';
 import Sql from '../resources/billing/sql';
 import { GroupInput, Group, BillingGroup } from './group';
 
@@ -28,7 +28,7 @@ export const BillingModel = (clients: {
   sqlClientPool: Pool;
   keycloakAdminClient: any;
   redisClient: any;
-  esClient: any
+  esClient: any;
 }) => {
   const { sqlClientPool } = clients;
 
@@ -40,11 +40,11 @@ export const BillingModel = (clients: {
    * @return {BillingModifier} The created modifier
    */
   const addBillingModifier = async (modifier: BillingModifier) => {
-    const { insertId } = await mQuery(
+    const { insertId } = await query(
       sqlClientPool,
       Sql.addBillingModifier(modifier)
     );
-    const rows = await mQuery(
+    const rows = await query(
       sqlClientPool,
       Sql.selectBillingModifier(parseInt(insertId, 10))
     );
@@ -60,7 +60,7 @@ export const BillingModel = (clients: {
    */
   const getBillingModifier = async (id: number) => {
     const GroupModel = Group(clients);
-    const rows = await mQuery(sqlClientPool, Sql.selectBillingModifier(id));
+    const rows = await query(sqlClientPool, Sql.selectBillingModifier(id));
     if (rows.length === 0) {
       throw new Error('Billing modifier does not exist.');
     }
@@ -105,7 +105,7 @@ export const BillingModel = (clients: {
       monthStart,
       monthEnd
     );
-    const result = await mQuery(sqlClientPool, sql);
+    const result = await query(sqlClientPool, sql);
     return result.map(
       ({
         weight,
@@ -138,7 +138,7 @@ export const BillingModel = (clients: {
    * @return {BillingModifier} The created modifier
    */
   const updateBillingModifier = async (modifier: BillingModifier) => {
-    await mQuery(
+    await query(
       sqlClientPool,
       Sql.updateBillingModifier(modifier.id, modifier)
     );
@@ -153,7 +153,7 @@ export const BillingModel = (clients: {
    * @return {BillingModifier} The created modifier
    */
   const deleteBillingModifier = async (id: number) => {
-    await mQuery(sqlClientPool, Sql.deleteBillingModifier(id));
+    await query(sqlClientPool, Sql.deleteBillingModifier(id));
     return 'success';
   };
 
@@ -168,7 +168,7 @@ export const BillingModel = (clients: {
     const GroupModel = Group(clients);
     const group = await GroupModel.loadGroupByIdOrName(groupNameOrId);
     const sql = Sql.deleteAllBillingModifiersByBillingGroup(group.id);
-    await mQuery(sqlClientPool, sql);
+    await query(sqlClientPool, sql);
     return 'success';
   };
 

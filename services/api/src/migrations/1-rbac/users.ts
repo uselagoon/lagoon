@@ -4,7 +4,7 @@ import { getKeycloakAdminClient } from '../../clients/keycloak-admin';
 import { sqlClientPool } from '../../clients/sqlClient';
 import { esClient } from '../../clients/esClient';
 import redisClient from '../../clients/redisClient';
-import { mQuery } from '../../util/db';
+import { query } from '../../util/db';
 import { User, UserNotFoundError } from '../../models/user';
 
 (async () => {
@@ -17,7 +17,7 @@ import { User, UserNotFoundError } from '../../models/user';
     redisClient
   });
 
-  const userRecords = await mQuery(sqlClientPool, 'SELECT * FROM `user`');
+  const userRecords = await query(sqlClientPool, 'SELECT * FROM `user`');
 
   for (const user of userRecords) {
     logger.debug(`Processing ${user.email}`);
@@ -59,7 +59,7 @@ import { User, UserNotFoundError } from '../../models/user';
       }
     }
 
-    await mQuery(
+    await query(
       sqlClientPool,
       'UPDATE `user_ssh_key` SET `usid` = :new_usid WHERE `usid` = :old_usid',
       {

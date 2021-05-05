@@ -1,5 +1,5 @@
 import * as R from 'ramda';
-import { mQuery } from '../../util/db';
+import { query } from '../../util/db';
 import { Sql } from './sql';
 import { Helpers as problemHelpers } from './helpers';
 import { Helpers as environmentHelpers } from '../environment/helpers';
@@ -22,7 +22,7 @@ export const getAllProblems: ResolverFn = async (
         args.severity
       );
     } else {
-      rows = await mQuery(
+      rows = await query(
         sqlClientPool,
         Sql.selectAllProblems({
           source: [],
@@ -88,7 +88,7 @@ export const getProblemSources: ResolverFn = async (
 ) => {
   return R.map(
     R.prop('source'),
-    await mQuery(
+    await query(
       sqlClientPool,
       'SELECT DISTINCT source FROM environment_problem'
     )
@@ -108,7 +108,7 @@ export const getProblemsByEnvironmentId: ResolverFn = async (
     project: environment.project
   });
 
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     Sql.selectProblemsByEnvironmentId({
       environmentId,
@@ -149,7 +149,7 @@ export const addProblem: ResolverFn = async (
     project: environment.project
   });
 
-  const { insertId } = await mQuery(
+  const { insertId } = await query(
     sqlClientPool,
     Sql.insertProblem({
       severity,
@@ -168,7 +168,7 @@ export const addProblem: ResolverFn = async (
     })
   );
 
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     Sql.selectProblemByDatabaseId(insertId)
   );
@@ -188,7 +188,7 @@ export const deleteProblem: ResolverFn = async (
     project: environment.project
   });
 
-  await mQuery(sqlClientPool, Sql.deleteProblem(environmentId, identifier));
+  await query(sqlClientPool, Sql.deleteProblem(environmentId, identifier));
 
   return 'success';
 };
@@ -206,7 +206,7 @@ export const deleteProblemsFromSource: ResolverFn = async (
     project: environment.project
   });
 
-  await mQuery(
+  await query(
     sqlClientPool,
     Sql.deleteProblemsFromSource(environmentId, source, service)
   );
@@ -221,7 +221,7 @@ export const getProblemHarborScanMatches: ResolverFn = async (
 ) => {
   await hasPermission('harbor_scan_match', 'view', {});
 
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     Sql.selectAllProblemHarborScanMatches()
   );
@@ -245,7 +245,7 @@ export const addProblemHarborScanMatch: ResolverFn = async (
 ) => {
   await hasPermission('harbor_scan_match', 'add', {});
 
-  const { insertId } = await mQuery(
+  const { insertId } = await query(
     sqlClientPool,
     Sql.insertProblemHarborScanMatch({
       id: null,
@@ -258,7 +258,7 @@ export const addProblemHarborScanMatch: ResolverFn = async (
     })
   );
 
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     Sql.selectAllProblemHarborScanMatchByDatabaseId(insertId)
   );
@@ -272,7 +272,7 @@ export const deleteProblemHarborScanMatch: ResolverFn = async (
 ) => {
   await hasPermission('harbor_scan_match', 'delete', {});
 
-  await mQuery(sqlClientPool, Sql.deleteProblemHarborScanMatch(id));
+  await query(sqlClientPool, Sql.deleteProblemHarborScanMatch(id));
 
   return 'success';
 };

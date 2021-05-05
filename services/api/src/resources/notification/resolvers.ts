@@ -1,6 +1,6 @@
 import * as R from 'ramda';
 import { ResolverFn } from '../';
-import { mQuery, isPatchEmpty } from '../../util/db';
+import { query, isPatchEmpty } from '../../util/db';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { Helpers } from './helpers';
 import { Sql } from './sql';
@@ -21,7 +21,7 @@ export const addNotificationMicrosoftTeams: ResolverFn = async (
 ) => {
   await hasPermission('notification', 'add');
 
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     'CALL CreateNotificationMicrosoftTeams(:name, :webhook)',
     input
@@ -38,7 +38,7 @@ export const addNotificationEmail: ResolverFn = async (
 ) => {
   await hasPermission('notification', 'add');
 
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     'CALL CreateNotificationEmail(:name, :email_address)',
     input
@@ -55,7 +55,7 @@ export const addNotificationRocketChat: ResolverFn = async (
 ) => {
   await hasPermission('notification', 'add');
 
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     'CALL CreateNotificationRocketChat(:name, :webhook, :channel)',
     input
@@ -72,7 +72,7 @@ export const addNotificationSlack: ResolverFn = async (
 ) => {
   await hasPermission('notification', 'add');
 
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     'CALL CreateNotificationSlack(:name, :webhook, :channel)',
     input
@@ -105,7 +105,7 @@ export const addNotificationToProject: ResolverFn = async (
     project: pid
   });
 
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     Sql.selectProjectNotification(input)
   );
@@ -121,11 +121,11 @@ export const addNotificationToProject: ResolverFn = async (
   projectNotification.notificationSeverityThreshold =
     input.notificationSeverityThreshold || NOTIFICATION_SEVERITY_THRESHOLD;
 
-  await mQuery(
+  await query(
     sqlClientPool,
     Sql.createProjectNotification(projectNotification)
   );
-  const select = await mQuery(
+  const select = await query(
     sqlClientPool,
     Sql.selectProjectById(projectNotification.pid)
   );
@@ -151,7 +151,7 @@ export const deleteNotificationMicrosoftTeams: ResolverFn = async (
     throw new Error("Can't delete notification linked to projects");
   }
 
-  await mQuery(
+  await query(
     sqlClientPool,
     'CALL DeleteNotificationMicrosoftTeams(:name)',
     input
@@ -179,7 +179,7 @@ export const deleteNotificationEmail: ResolverFn = async (
     throw new Error("Can't delete notification linked to projects");
   }
 
-  await mQuery(sqlClientPool, 'CALL DeleteNotificationEmail(:name)', input);
+  await query(sqlClientPool, 'CALL DeleteNotificationEmail(:name)', input);
 
   // TODO: maybe check rows for changed result
   return 'success';
@@ -203,7 +203,7 @@ export const deleteNotificationRocketChat: ResolverFn = async (
     throw new Error("Can't delete notification linked to projects");
   }
 
-  await mQuery(
+  await query(
     sqlClientPool,
     'CALL DeleteNotificationRocketChat(:name)',
     input
@@ -231,7 +231,7 @@ export const deleteNotificationSlack: ResolverFn = async (
     throw new Error("Can't delete notification linked to projects");
   }
 
-  await mQuery(sqlClientPool, 'CALL DeleteNotificationSlack(:name)', input);
+  await query(sqlClientPool, 'CALL DeleteNotificationSlack(:name)', input);
 
   // TODO: maybe check rows for changed result
   return 'success';
@@ -242,7 +242,7 @@ export const removeNotificationFromProject: ResolverFn = async (
   { input },
   { sqlClientPool, hasPermission }
 ) => {
-  const select = await mQuery(
+  const select = await query(
     sqlClientPool,
     projectSql.selectProjectByName(input.project)
   );
@@ -252,7 +252,7 @@ export const removeNotificationFromProject: ResolverFn = async (
     project: project.id
   });
 
-  await mQuery(sqlClientPool, Sql.deleteProjectNotification(input));
+  await query(sqlClientPool, Sql.deleteProjectNotification(input));
 
   return project;
 };
@@ -291,7 +291,7 @@ export const getNotificationsByProjectId: ResolverFn = async (
 
   const results = await Promise.all(
     types.map(type =>
-      mQuery(
+      query(
         sqlClientPool,
         Sql.selectNotificationsByTypeByProjectId({
           type,
@@ -332,8 +332,8 @@ export const updateNotificationMicrosoftTeams: ResolverFn = async (
     throw new Error('input.patch requires at least 1 attribute');
   }
 
-  await mQuery(sqlClientPool, Sql.updateNotificationMicrosoftTeams(input));
-  const rows = await mQuery(
+  await query(sqlClientPool, Sql.updateNotificationMicrosoftTeams(input));
+  const rows = await query(
     sqlClientPool,
     Sql.selectNotificationMicrosoftTeamsByName(name)
   );
@@ -354,8 +354,8 @@ export const updateNotificationEmail: ResolverFn = async (
     throw new Error('input.patch requires at least 1 attribute');
   }
 
-  await mQuery(sqlClientPool, Sql.updateNotificationEmail(input));
-  const rows = await mQuery(
+  await query(sqlClientPool, Sql.updateNotificationEmail(input));
+  const rows = await query(
     sqlClientPool,
     Sql.selectNotificationEmailByName(name)
   );
@@ -376,8 +376,8 @@ export const updateNotificationRocketChat: ResolverFn = async (
     throw new Error('input.patch requires at least 1 attribute');
   }
 
-  await mQuery(sqlClientPool, Sql.updateNotificationRocketChat(input));
-  const rows = await mQuery(
+  await query(sqlClientPool, Sql.updateNotificationRocketChat(input));
+  const rows = await query(
     sqlClientPool,
     Sql.selectNotificationRocketChatByName(name)
   );
@@ -398,8 +398,8 @@ export const updateNotificationSlack: ResolverFn = async (
     throw new Error('input.patch requires at least 1 attribute');
   }
 
-  await mQuery(sqlClientPool, Sql.updateNotificationSlack(input));
-  const rows = await mQuery(
+  await query(sqlClientPool, Sql.updateNotificationSlack(input));
+  const rows = await query(
     sqlClientPool,
     Sql.selectNotificationSlackByName(name)
   );
@@ -414,7 +414,7 @@ export const deleteAllNotificationSlacks: ResolverFn = async (
 ) => {
   await hasPermission('notification', 'deleteAll');
 
-  await mQuery(sqlClientPool, Sql.truncateNotificationSlack());
+  await query(sqlClientPool, Sql.truncateNotificationSlack());
 
   // TODO: Check rows for success
   return 'success';
@@ -427,7 +427,7 @@ export const deleteAllNotificationEmails: ResolverFn = async (
 ) => {
   await hasPermission('notification', 'deleteAll');
 
-  await mQuery(sqlClientPool, Sql.truncateNotificationEmail());
+  await query(sqlClientPool, Sql.truncateNotificationEmail());
 
   // TODO: Check rows for success
   return 'success';
@@ -440,7 +440,7 @@ export const deleteAllNotificationRocketChats: ResolverFn = async (
 ) => {
   await hasPermission('notification', 'deleteAll');
 
-  await mQuery(sqlClientPool, Sql.truncateNotificationRocketchat());
+  await query(sqlClientPool, Sql.truncateNotificationRocketchat());
 
   // TODO: Check rows for success
   return 'success';
@@ -453,7 +453,7 @@ export const deleteAllNotificationMicrosoftTeams: ResolverFn = async (
 ) => {
   await hasPermission('notification', 'deleteAll');
 
-  await mQuery(sqlClientPool, Sql.truncateNotificationMicrosoftTeams());
+  await query(sqlClientPool, Sql.truncateNotificationMicrosoftTeams());
 
   // TODO: Check rows for success
   return 'success';
@@ -466,7 +466,7 @@ export const removeAllNotificationsFromAllProjects: ResolverFn = async (
 ) => {
   await hasPermission('notification', 'removeAll');
 
-  await mQuery(sqlClientPool, Sql.truncateProjectNotification());
+  await query(sqlClientPool, Sql.truncateProjectNotification());
 
   // TODO: Check rows for success
   return 'success';

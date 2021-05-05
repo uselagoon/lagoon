@@ -1,5 +1,5 @@
 import * as R from 'ramda';
-import { mQuery } from '../../util/db';
+import { query } from '../../util/db';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Sql } from './sql';
 import { ResolverFn } from '../index';
@@ -17,7 +17,7 @@ export const getFactsByEnvironmentId: ResolverFn = async (
     project: environment.project
   });
 
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     Sql.selectFactsByEnvironmentId({
       environmentId
@@ -40,7 +40,7 @@ export const addFact: ResolverFn = async (
     project: environment.project
   });
 
-  const { insertId } = await mQuery(
+  const { insertId } = await query(
     sqlClientPool,
     Sql.insertFact({
       environment: environmentId,
@@ -51,7 +51,7 @@ export const addFact: ResolverFn = async (
     })
   );
 
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     Sql.selectFactByDatabaseId(insertId)
   );
@@ -78,7 +78,7 @@ export const addFacts: ResolverFn = async (
   return await facts.map(async fact => {
     const { environment, name, value, source, description } = fact;
 
-    const { insertId } = await mQuery(
+    const { insertId } = await query(
       sqlClientPool,
       Sql.insertFact({
         environment,
@@ -89,7 +89,7 @@ export const addFacts: ResolverFn = async (
       })
     );
 
-    const rows = await mQuery(
+    const rows = await query(
       sqlClientPool,
       Sql.selectFactByDatabaseId(insertId)
     );
@@ -110,7 +110,7 @@ export const deleteFact: ResolverFn = async (
     project: environment.project
   });
 
-  await mQuery(sqlClientPool, Sql.deleteFact(environmentId, name));
+  await query(sqlClientPool, Sql.deleteFact(environmentId, name));
 
   return 'success';
 };
@@ -128,7 +128,7 @@ export const deleteFactsFromSource: ResolverFn = async (
     project: environment.project
   });
 
-  await mQuery(sqlClientPool, Sql.deleteFactsFromSource(environmentId, source));
+  await query(sqlClientPool, Sql.deleteFactsFromSource(environmentId, source));
 
   return 'success';
 };

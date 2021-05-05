@@ -4,7 +4,7 @@ import bodyParser from 'body-parser';
 import { Request, Response } from 'express';
 import { RequestWithAuthData } from '../authMiddleware';
 import logger from '../logger';
-import { knex, mQuery } from '../util/db';
+import { knex, query } from '../util/db';
 import { sqlClientPool } from '../clients/sqlClient';
 
 const toFingerprint = sshKey => {
@@ -32,7 +32,7 @@ const keysRoute = async (
 
   logger.debug(`Accessing keys with fingerprint: ${fingerprint}`);
 
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     knex('ssh_key AS sk')
       .select(knex.raw("CONCAT(sk.key_type, ' ', sk.key_value) as sshKey"))

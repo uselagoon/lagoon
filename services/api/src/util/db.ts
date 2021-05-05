@@ -38,13 +38,13 @@ export const knex = require('knex')({
  *  - array when ? placeholders are used
  *
  * Example:
- *   const rows = await mQuery(sqlClientPool,
+ *   const rows = await query(sqlClientPool,
  *     'select * from project where git_url = :git_url',
  *     {
  *       gitUrl: 'ssh://git@172.17.0.1:2222/git/project18.git',
  *     });
  */
-export const mQuery = async (
+export const query = async (
   conn: Pool | Connection,
   sql: string,
   values: Object | any[] = {}

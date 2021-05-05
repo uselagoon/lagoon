@@ -1,11 +1,11 @@
 import * as R from 'ramda';
 import { Pool } from 'mariadb';
-import { mQuery } from '../../util/db';
+import { query } from '../../util/db';
 import { Sql } from './sql';
 
 export const Validators = (sqlClientPool: Pool) => ({
   environmentExists: async (environmentId: number) => {
-    const env = await mQuery(
+    const env = await query(
       sqlClientPool,
       Sql.selectEnvironmentById(environmentId)
     );
@@ -15,7 +15,7 @@ export const Validators = (sqlClientPool: Pool) => ({
     }
   },
   environmentsHaveSameProject: async (environmentIds: number[]) => {
-    const rows = await mQuery(
+    const rows = await query(
       sqlClientPool,
       'SELECT DISTINCT project FROM environment WHERE id in (?)',
       [environmentIds]
@@ -32,7 +32,7 @@ export const Validators = (sqlClientPool: Pool) => ({
     }
   },
   environmentHasService: async (environmentId: number, service: string) => {
-    const rows = await mQuery(
+    const rows = await query(
       sqlClientPool,
       Sql.selectServicesByEnvironmentId(environmentId)
     );

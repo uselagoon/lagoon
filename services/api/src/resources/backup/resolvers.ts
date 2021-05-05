@@ -2,7 +2,7 @@ import * as R from 'ramda';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
 import { createMiscTask } from '@lagoon/commons/dist/tasks';
 import { ResolverFn } from '../';
-import { mQuery, isPatchEmpty } from '../../util/db';
+import { query, isPatchEmpty } from '../../util/db';
 import {
   pubSub,
   createEnvironmentFilteredSubscriber
@@ -26,7 +26,7 @@ export const getBackupsByEnvironmentId: ResolverFn = async (
     project: environment.project
   });
 
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     Sql.selectBackupsByEnvironmentId({ environmentId, includeDeleted })
   );
@@ -48,7 +48,7 @@ export const addBackup: ResolverFn = async (
     project: environment.project
   });
 
-  const { insertId } = await mQuery(
+  const { insertId } = await query(
     sqlClientPool,
     Sql.insertBackup({
       id,
@@ -58,7 +58,7 @@ export const addBackup: ResolverFn = async (
       created
     })
   );
-  const rows = await mQuery(sqlClientPool, Sql.selectBackup(insertId));
+  const rows = await query(sqlClientPool, Sql.selectBackup(insertId));
   const backup = R.prop(0, rows);
 
   pubSub.publish(EVENTS.BACKUP.ADDED, backup);
@@ -71,15 +71,15 @@ export const deleteBackup: ResolverFn = async (
   { input: { backupId } },
   { sqlClientPool, hasPermission }
 ) => {
-  const perms = await mQuery(sqlClientPool, Sql.selectPermsForBackup(backupId));
+  const perms = await query(sqlClientPool, Sql.selectPermsForBackup(backupId));
 
   await hasPermission('backup', 'delete', {
     project: R.path(['0', 'pid'], perms)
   });
 
-  await mQuery(sqlClientPool, Sql.deleteBackup(backupId));
+  await query(sqlClientPool, Sql.deleteBackup(backupId));
 
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     Sql.selectBackupByBackupId(backupId)
   );
@@ -95,7 +95,7 @@ export const deleteAllBackups: ResolverFn = async (
 ) => {
   await hasPermission('backup', 'deleteAll');
 
-  await mQuery(sqlClientPool, Sql.truncateBackup());
+  await query(sqlClientPool, Sql.truncateBackup());
 
   // TODO: Check rows for success
   return 'success';
@@ -106,13 +106,13 @@ export const addRestore: ResolverFn = async (
   { input: { id, backupId, status, restoreLocation, created, execute } },
   { sqlClientPool, hasPermission }
 ) => {
-  const perms = await mQuery(sqlClientPool, Sql.selectPermsForBackup(backupId));
+  const perms = await query(sqlClientPool, Sql.selectPermsForBackup(backupId));
 
   await hasPermission('restore', 'add', {
     project: R.path(['0', 'pid'], perms)
   });
 
-  const { insertId } = await mQuery(
+  const { insertId } = await query(
     sqlClientPool,
     Sql.insertRestore({
       id,
@@ -122,10 +122,10 @@ export const addRestore: ResolverFn = async (
       created
     })
   );
-  let rows = await mQuery(sqlClientPool, Sql.selectRestore(insertId));
+  let rows = await query(sqlClientPool, Sql.selectRestore(insertId));
   const restoreData = await Helpers.makeS3TempLink(R.prop(0, rows));
 
-  rows = await mQuery(sqlClientPool, Sql.selectBackupByBackupId(backupId));
+  rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
   const backupData = R.prop(0, rows);
 
   pubSub.publish(EVENTS.BACKUP.UPDATED, backupData);
@@ -142,13 +142,13 @@ export const addRestore: ResolverFn = async (
     }
   }
 
-  rows = await mQuery(
+  rows = await query(
     sqlClientPool,
     environmentSql.selectEnvironmentById(backupData.environment)
   );
   const environmentData = R.prop(0, rows);
 
-  rows = await mQuery(
+  rows = await query(
     sqlClientPool,
     projectSql.selectProject(environmentData.project)
   );
@@ -192,11 +192,11 @@ export const updateRestore: ResolverFn = async (
     throw new Error('Input patch requires at least 1 attribute');
   }
 
-  const permsRestore = await mQuery(
+  const permsRestore = await query(
     sqlClientPool,
     Sql.selectPermsForRestore(backupId)
   );
-  const permsBackup = await mQuery(
+  const permsBackup = await query(
     sqlClientPool,
     Sql.selectPermsForBackup(backupId)
   );
@@ -210,7 +210,7 @@ export const updateRestore: ResolverFn = async (
     project: R.path(['0', 'pid'], permsBackup)
   });
 
-  await mQuery(
+  await query(
     sqlClientPool,
     Sql.updateRestore({
       backupId,
@@ -222,10 +222,10 @@ export const updateRestore: ResolverFn = async (
     })
   );
 
-  let rows = await mQuery(sqlClientPool, Sql.selectRestoreByBackupId(backupId));
+  let rows = await query(sqlClientPool, Sql.selectRestoreByBackupId(backupId));
   const restoreData = Helpers.makeS3TempLink(R.prop(0, rows));
 
-  rows = await mQuery(sqlClientPool, Sql.selectBackupByBackupId(backupId));
+  rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
   const backupData = R.prop(0, rows);
 
   pubSub.publish(EVENTS.BACKUP.UPDATED, backupData);
@@ -238,7 +238,7 @@ export const getRestoreByBackupId: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission }
 ) => {
-  const permsBackup = await mQuery(
+  const permsBackup = await query(
     sqlClientPool,
     Sql.selectPermsForBackup(backupId)
   );
@@ -247,7 +247,7 @@ export const getRestoreByBackupId: ResolverFn = async (
     project: R.path(['0', 'pid'], permsBackup)
   });
 
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     Sql.selectRestoreByBackupId(backupId)
   );

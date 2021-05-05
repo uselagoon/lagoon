@@ -2,7 +2,7 @@ import * as R from 'ramda';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
 import { createRemoveTask } from '@lagoon/commons/dist/tasks';
 import { ResolverFn } from '../';
-import { isPatchEmpty, mQuery, knex } from '../../util/db';
+import { isPatchEmpty, query, knex } from '../../util/db';
 import convertDateToMYSQLDateTimeFormat from '../../util/convertDateToMYSQLDateTimeFormat';
 import { Helpers } from './helpers';
 import { Sql } from './sql';
@@ -14,7 +14,7 @@ export const getEnvironmentByName: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission }
 ) => {
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     `SELECT *
     FROM environment
@@ -72,7 +72,7 @@ export const getEnvironmentsByProjectId: ResolverFn = async (
     });
   }
 
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     `SELECT *
     FROM environment e
@@ -91,7 +91,7 @@ export const getEnvironmentByDeploymentId: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission }
 ) => {
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     `SELECT e.*
     FROM deployment d
@@ -120,7 +120,7 @@ export const getEnvironmentByTaskId: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission }
 ) => {
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     `SELECT e.*
     FROM task t
@@ -149,7 +149,7 @@ export const getEnvironmentByBackupId: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission }
 ) => {
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     `SELECT e.*
     FROM environment_backup eb
@@ -180,7 +180,7 @@ export const getEnvironmentStorageByEnvironmentId: ResolverFn = async (
 ) => {
   await hasPermission('environment', 'storage');
 
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     `SELECT *
     FROM environment_storage es
@@ -244,7 +244,7 @@ export const getEnvironmentServicesByEnvironmentId: ResolverFn = async (
     project: environment.project
   });
 
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     Sql.selectServicesByEnvironmentId(eid)
   );
@@ -257,7 +257,7 @@ export const getEnvironmentByOpenshiftProjectName: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission }
 ) => {
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     `SELECT e.*
     FROM
@@ -318,7 +318,7 @@ export const addOrUpdateEnvironment: ResolverFn = async (
     project: pid
   });
 
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     `CALL CreateOrUpdateEnvironment(
       ${input.id ? ':id' : 'NULL'},
@@ -359,7 +359,7 @@ export const addOrUpdateEnvironmentStorage: ResolverFn = async (
       : convertDateToMYSQLDateTimeFormat(new Date().toISOString())
   };
 
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     `CALL CreateOrUpdateEnvironmentStorage(
       :environment,
@@ -383,13 +383,13 @@ export const deleteEnvironment: ResolverFn = async (
     projectName
   );
 
-  const projectRows = await mQuery(
+  const projectRows = await query(
     sqlClientPool,
     projectSql.selectProject(projectId)
   );
   const project = projectRows[0];
 
-  const environmentRows = await mQuery(
+  const environmentRows = await query(
     sqlClientPool,
     Sql.selectEnvironmentByNameAndProject(name, projectId)
   );
@@ -413,7 +413,7 @@ export const deleteEnvironment: ResolverFn = async (
         project: projectId
       });
 
-      await mQuery(sqlClientPool, 'CALL DeleteEnvironment(:name, :project)', {
+      await query(sqlClientPool, 'CALL DeleteEnvironment(:name, :project)', {
         name,
         project: projectId
       });
@@ -520,7 +520,7 @@ export const updateEnvironment: ResolverFn = async (
     project: newProject
   });
 
-  await mQuery(
+  await query(
     sqlClientPool,
     Sql.updateEnvironment({
       id,
@@ -540,7 +540,7 @@ export const updateEnvironment: ResolverFn = async (
     })
   );
 
-  const rows = await mQuery(sqlClientPool, Sql.selectEnvironmentById(id));
+  const rows = await query(sqlClientPool, Sql.selectEnvironmentById(id));
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
   return R.prop(0, withK8s);
@@ -553,21 +553,21 @@ export const getAllEnvironments: ResolverFn = async (
 ) => {
   await hasPermission('environment', 'viewAll');
 
-  let query = knex('environment').where('deleted', '0000-00-00 00:00:00');
+  let queryBuilder = knex('environment').where('deleted', '0000-00-00 00:00:00');
 
   if (createdAfter) {
-    query = query.andWhere('created', '>=', createdAfter);
+    queryBuilder = queryBuilder.andWhere('created', '>=', createdAfter);
   }
 
   if (type) {
-    query = query.andWhere('environment_type', type);
+    queryBuilder = queryBuilder.andWhere('environment_type', type);
   }
 
   if (order) {
-    query = query.orderBy(order);
+    queryBuilder = queryBuilder.orderBy(order);
   }
 
-  const rows = await mQuery(sqlClientPool, query.toString());
+  const rows = await query(sqlClientPool, queryBuilder.toString());
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   return withK8s;
 };
@@ -579,7 +579,7 @@ export const deleteAllEnvironments: ResolverFn = async (
 ) => {
   await hasPermission('environment', 'deleteAll');
 
-  await mQuery(sqlClientPool, Sql.truncateEnvironment());
+  await query(sqlClientPool, Sql.truncateEnvironment());
 
   // TODO: Check rows for success
   return 'success';
@@ -597,13 +597,13 @@ export const setEnvironmentServices: ResolverFn = async (
     project: environment.project
   });
 
-  await mQuery(sqlClientPool, Sql.deleteServices(environmentId));
+  await query(sqlClientPool, Sql.deleteServices(environmentId));
 
   for (const service of services) {
-    await mQuery(sqlClientPool, Sql.insertService(environmentId, service));
+    await query(sqlClientPool, Sql.insertService(environmentId, service));
   }
 
-  return mQuery(
+  return query(
     sqlClientPool,
     Sql.selectServicesByEnvironmentId(environmentId)
   );
@@ -617,7 +617,7 @@ export const userCanSshToEnvironment: ResolverFn = async (
   const openshiftProjectName =
     args.kubernetesNamespaceName || args.openshiftProjectName;
 
-  const rows = await mQuery(
+  const rows = await query(
     sqlClientPool,
     `SELECT e.*
     FROM

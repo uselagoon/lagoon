@@ -1,7 +1,7 @@
 import * as R from 'ramda';
 import { Pool } from 'mariadb';
 import { asyncPipe } from '@lagoon/commons/dist/util';
-import { mQuery } from '../../util/db';
+import { query } from '../../util/db';
 import { Sql } from './sql';
 import { Helpers as projectHelpers } from '../project/helpers';
 
@@ -16,7 +16,7 @@ export const Helpers = (sqlClientPool: Pool) => {
   };
 
   const getEnvironmentById = async (environmentID: number) => {
-    const rows = await mQuery(
+    const rows = await query(
       sqlClientPool,
       Sql.selectEnvironmentById(environmentID)
     );
@@ -54,7 +54,7 @@ export const Helpers = (sqlClientPool: Pool) => {
         const project = await projectHelpers(
           sqlClientPool
         ).getProjectByProjectInput(R.prop('project', input));
-        const rows = await mQuery(
+        const rows = await query(
           sqlClientPool,
           Sql.selectEnvironmentByNameAndProject(
             R.prop('name', input),

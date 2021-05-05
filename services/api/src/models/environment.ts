@@ -1,6 +1,6 @@
 import moment from 'moment';
 import { Pool } from 'mariadb';
-import { mQuery } from '../util/db';
+import { query } from '../util/db';
 import * as logger from '../logger';
 
 export interface Environment {
@@ -53,7 +53,7 @@ export const EnvironmentModel = (clients: {
    * @return {Promise<[Environments]>} An array of all project environments
    */
   const projectEnvironments = async (pid, type, includeDeleted = false) => {
-    const environments: [Environment] = await mQuery(
+    const environments: [Environment] = await query(
       sqlClientPool,
       `SELECT *
       FROM environment e
@@ -171,7 +171,7 @@ export const EnvironmentModel = (clients: {
         AND MONTH(updated) = MONTH(STR_TO_DATE(:month, '%Y-%m'))
     `;
 
-    const rows = await mQuery(sqlClientPool, str, { eid, month });
+    const rows = await query(sqlClientPool, str, { eid, month });
     return rows[0];
   };
 
@@ -179,7 +179,7 @@ export const EnvironmentModel = (clients: {
     eid: number,
     yearMonth: string
   ) => {
-    const rows = await mQuery(
+    const rows = await query(
       sqlClientPool,
       'SELECT e.created, e.deleted FROM environment e WHERE e.id = :eid',
       { eid }
