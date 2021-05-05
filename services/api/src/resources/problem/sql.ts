@@ -1,4 +1,4 @@
-const { knex } = require('../../util/db');
+import { knex } from '../../util/db';
 
 const standardEnvironmentReturn = {
   id: 'id',

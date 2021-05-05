@@ -1,8 +1,8 @@
-const R = require('ramda');
+import * as R from 'ramda';
 import { Pool } from 'mariadb';
-const { asyncPipe } = require('@lagoon/commons/dist/util');
-const { query } = require('../../util/db');
-const { Sql } = require('./sql');
+import { asyncPipe } from '@lagoon/commons/dist/util';
+import { query } from '../../util/db';
+import { Sql } from './sql';
 
 export const Helpers = (sqlClientPool: Pool) => {
   const aliasOpenshiftToK8s = (projects: any[]) => {

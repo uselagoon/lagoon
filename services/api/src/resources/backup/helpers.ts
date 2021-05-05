@@ -1,6 +1,6 @@
 import * as R from 'ramda';
 import S3 from 'aws-sdk/clients/s3';
-const { getConfigFromEnv } = require('../../util/config');
+import { getConfigFromEnv } from '../../util/config';
 
 const makeS3TempLink = async restore => {
   const restoreLocation = R.prop('restoreLocation', restore);
