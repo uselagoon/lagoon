@@ -77,9 +77,9 @@ export const Sql = {
     }
     return q.toString()
   },
-  insertProblem: ({environment, severity, severity_score, identifier, lagoon_service, source,
+  insertProblem: ({id, environment, severity, severity_score, identifier, lagoon_service, source,
                       associated_package, description, version, fixed_version, links, data, created}) =>
-    knex('environment_problem').insert({environment, severity, severity_score, identifier, lagoon_service, source,
+    knex('environment_problem').insert({id, environment, severity, severity_score, identifier, lagoon_service, source,
         associated_package, description, version, fixed_version, links, data, created}).toString(),
   deleteProblem: (environment, identifier) =>
     knex('environment_problem')
