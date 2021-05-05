@@ -5,9 +5,15 @@ const fs = require('fs')
 // Adds a 1 sec delay for all requests
 app.use((req, res, next) => setTimeout(next, 1000))
 
+let testFile = './files/testoutput.txt'
+
 app.get('/', function (req, res) {
   let result = []
-  const data = fs.readFileSync('./testoutput.txt', 'utf8')
+  let data = 'TO BE REPLACED'
+  if (fs.existsSync(testFile)) {
+    data = fs.readFileSync(testFile, 'utf8')
+  }
+
   result.push(data)
   res.send(result.join("<br />"))
 })
