@@ -252,6 +252,15 @@ const resolvers = {
     SUCCESSFUL: 'successful',
     FAILED: 'failed',
   },
+  DeploymentStatusType: {
+    NEW: 'new',
+    PENDING: 'pending',
+    RUNNING: 'running',
+    CANCELLED: 'cancelled',
+    ERROR: 'error',
+    FAILED: 'failed',
+    COMPLETE: 'complete',
+  },
   Project: {
     notifications: getNotificationsByProjectId,
     openshift: getOpenshiftByProjectId,

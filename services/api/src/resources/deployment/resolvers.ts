@@ -1,47 +1,34 @@
 import * as R from 'ramda';
 import getFieldNames from 'graphql-list-fields';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
-import { createDeployTask, createMiscTask, createPromoteTask } from '@lagoon/commons/dist/tasks';
+import {
+  createDeployTask,
+  createMiscTask,
+  createPromoteTask
+} from '@lagoon/commons/dist/tasks';
 import { ResolverFn } from '../';
 import { esClient } from '../../clients/esClient';
 import {
   pubSub,
-  createEnvironmentFilteredSubscriber,
+  createEnvironmentFilteredSubscriber
 } from '../../clients/pubSub';
 import { getConfigFromEnv, getLagoonRouteFromEnv } from '../../util/config';
-import {
-  knex,
-  prepare,
-  query,
-  isPatchEmpty,
-} from '../../util/db';
+import { knex, mQuery, isPatchEmpty } from '../../util/db';
 import { Sql } from './sql';
 import { Helpers } from './helpers';
-import EVENTS from './events';
+import { EVENTS } from './events';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
-import {
-  addTask,
-} from '@lagoon/commons/dist/api';
-const convertDateFormat = R.init;
+import { addTask } from '@lagoon/commons/dist/api';
 import { Sql as environmentSql } from '../environment/sql';
 
-const deploymentStatusTypeToString = R.cond([
-  [R.equals('NEW'), R.toLower],
-  [R.equals('PENDING'), R.toLower],
-  [R.equals('RUNNING'), R.toLower],
-  [R.equals('CANCELLED'), R.toLower],
-  [R.equals('ERROR'), R.toLower],
-  [R.equals('FAILED'), R.toLower],
-  [R.equals('COMPLETE'), R.toLower],
-  [R.T, R.identity],
-]);
+const convertDateFormat = R.init;
 
 const injectBuildLog = async deployment => {
   if (!deployment.remoteId) {
     return {
       ...deployment,
-      buildLog: null,
+      buildLog: null
     };
   }
 
@@ -54,28 +41,28 @@ const injectBuildLog = async deployment => {
           bool: {
             must: [
               { match_phrase: { 'meta.remoteId': deployment.remoteId } },
-              { match_phrase: { 'meta.buildPhase': deployment.status } },
-            ],
-          },
-        },
-      },
+              { match_phrase: { 'meta.buildPhase': deployment.status } }
+            ]
+          }
+        }
+      }
     });
 
     if (!result.hits.total) {
       return {
         ...deployment,
-        buildLog: null,
+        buildLog: null
       };
     }
 
     return {
       ...deployment,
-      buildLog: R.path(['hits', 'hits', 0, '_source', 'message'], result),
+      buildLog: R.path(['hits', 'hits', 0, '_source', 'message'], result)
     };
   } catch (e) {
     return {
       ...deployment,
-      buildLog: `There was an error loading the logs: ${e.message}`,
+      buildLog: `There was an error loading the logs: ${e.message}`
     };
   }
 };
@@ -83,30 +70,25 @@ const injectBuildLog = async deployment => {
 export const getDeploymentsByEnvironmentId: ResolverFn = async (
   { id: eid },
   { name },
-  {
-    sqlClient,
-    sqlClientPool,
-    hasPermission,
-  },
-  info,
+  { sqlClientPool, hasPermission },
+  info
 ) => {
-  const environment = await environmentHelpers(sqlClientPool).getEnvironmentById(eid);
+  const environment = await environmentHelpers(
+    sqlClientPool
+  ).getEnvironmentById(eid);
   await hasPermission('deployment', 'view', {
-    project: environment.project,
+    project: environment.project
   });
 
-  const prep = prepare(
-    sqlClient,
-    `SELECT
-        d.*
-      FROM environment e
-      JOIN deployment d on e.id = d.environment
-      JOIN project p ON e.project = p.id
-      WHERE e.id = :eid
-    `,
-  );
-
-  const rows = await query(sqlClient, prep({ eid })) as any[];
+  const rows = (await mQuery(
+    sqlClientPool,
+    `SELECT d.*
+    FROM environment e
+    JOIN deployment d on e.id = d.environment
+    JOIN project p ON e.project = p.id
+    WHERE e.id = :eid`,
+    { eid }
+  )) as any[];
   const newestFirst = R.sort(R.descend(R.prop('created')), rows);
 
   const requestedFields = getFieldNames(info);
@@ -126,7 +108,7 @@ export const getDeploymentsByEnvironmentId: ResolverFn = async (
 
       return {
         ...row,
-        buildLog: null,
+        buildLog: null
       };
     });
 };
@@ -134,29 +116,26 @@ export const getDeploymentsByEnvironmentId: ResolverFn = async (
 export const getDeploymentByRemoteId: ResolverFn = async (
   root,
   { id },
-  {
-    sqlClient,
-    hasPermission,
-  },
+  { sqlClientPool, hasPermission }
 ) => {
   const queryString = knex('deployment')
     .where('remote_id', '=', id)
     .toString();
 
-  const rows = await query(sqlClient, queryString);
+  const rows = await mQuery(sqlClientPool, queryString);
   const deployment = R.prop(0, rows);
 
   if (!deployment) {
     return null;
   }
 
-  const perms = await query(
-    sqlClient,
-    Sql.selectPermsForDeployment(deployment.id),
+  const perms = await mQuery(
+    sqlClientPool,
+    Sql.selectPermsForDeployment(deployment.id)
   );
 
   await hasPermission('deployment', 'view', {
-    project: R.path(['0', 'pid'], perms),
+    project: R.path(['0', 'pid'], perms)
   });
 
   return injectBuildLog(deployment);
@@ -165,16 +144,23 @@ export const getDeploymentByRemoteId: ResolverFn = async (
 export const getDeploymentUrl: ResolverFn = async (
   { id, environment },
   args,
-  { sqlClient, sqlClientPool, hasPermission },
+  { sqlClientPool, hasPermission }
 ) => {
-
-  const lagoonUiRoute = getLagoonRouteFromEnv(/\/ui-/, getConfigFromEnv('UI_URL', 'http://localhost:8888'));
-
-  const { name: project, openshiftProjectName  } = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(
-    environment,
+  const lagoonUiRoute = getLagoonRouteFromEnv(
+    /\/ui-/,
+    getConfigFromEnv('UI_URL', 'http://localhost:8888')
   );
 
-  const rows = await query(sqlClient, knex('deployment').where('id', '=', id).toString());
+  const { name: project, openshiftProjectName } = await projectHelpers(
+    sqlClientPool
+  ).getProjectByEnvironmentId(environment);
+
+  const rows = await mQuery(
+    sqlClientPool,
+    knex('deployment')
+      .where('id', '=', id)
+      .toString()
+  );
   const deployment = R.prop(0, rows);
 
   return `${lagoonUiRoute}/projects/${project}/${openshiftProjectName}/deployments/${deployment.name}`;
@@ -186,31 +172,27 @@ export const addDeployment: ResolverFn = async (
     input: {
       id,
       name,
-      status: unformattedStatus,
+      status,
       created,
       started,
       completed,
       environment: environmentId,
-      remoteId,
-    },
+      remoteId
+    }
   },
-  {
-    sqlClient,
-    sqlClientPool,
-    hasPermission,
-  },
+  { sqlClientPool, hasPermission }
 ) => {
-  const status = deploymentStatusTypeToString(unformattedStatus);
-
-  const environment = await environmentHelpers(sqlClientPool).getEnvironmentById(environmentId);
+  const environment = await environmentHelpers(
+    sqlClientPool
+  ).getEnvironmentById(environmentId);
   await hasPermission('environment', `deploy:${environment.environmentType}`, {
-    project: environment.project,
+    project: environment.project
   });
 
   const {
-    info: { insertId },
-  } = await query(
-    sqlClient,
+    insertId
+  } = await mQuery(
+    sqlClientPool,
     Sql.insertDeployment({
       id,
       name,
@@ -219,11 +201,11 @@ export const addDeployment: ResolverFn = async (
       started,
       completed,
       environment: environmentId,
-      remoteId,
-    }),
+      remoteId
+    })
   );
 
-  const rows = await query(sqlClient, Sql.selectDeployment(insertId));
+  const rows = await mQuery(sqlClientPool, Sql.selectDeployment(insertId));
   const deployment = await injectBuildLog(R.prop(0, rows));
 
   pubSub.publish(EVENTS.DEPLOYMENT.ADDED, deployment);
@@ -233,18 +215,15 @@ export const addDeployment: ResolverFn = async (
 export const deleteDeployment: ResolverFn = async (
   root,
   { input: { id } },
-  {
-    sqlClient,
-    hasPermission,
-  },
+  { sqlClientPool, hasPermission }
 ) => {
-  const perms = await query(sqlClient, Sql.selectPermsForDeployment(id));
+  const perms = await mQuery(sqlClientPool, Sql.selectPermsForDeployment(id));
 
   await hasPermission('deployment', 'delete', {
-    project: R.path(['0', 'pid'], perms),
+    project: R.path(['0', 'pid'], perms)
   });
 
-  await query(sqlClient, Sql.deleteDeployment(id));
+  await mQuery(sqlClientPool, Sql.deleteDeployment(id));
 
   return 'success';
 };
@@ -257,44 +236,43 @@ export const updateDeployment: ResolverFn = async (
       patch,
       patch: {
         name,
-        status: unformattedStatus,
+        status,
         created,
         started,
         completed,
         environment,
-        remoteId,
-      },
-    },
+        remoteId
+      }
+    }
   },
-  {
-    sqlClient,
-    sqlClientPool,
-    hasPermission,
-  },
+  { sqlClientPool, hasPermission }
 ) => {
-  const status = deploymentStatusTypeToString(unformattedStatus);
-
   if (isPatchEmpty({ patch })) {
     throw new Error('Input patch requires at least 1 attribute');
   }
 
-  const permsDeployment = await query(sqlClient, Sql.selectPermsForDeployment(id));
+  const permsDeployment = await mQuery(
+    sqlClientPool,
+    Sql.selectPermsForDeployment(id)
+  );
 
   // Check access to modify deployment as it currently stands
   await hasPermission('deployment', 'update', {
-    project: R.path(['0', 'pid'], permsDeployment),
+    project: R.path(['0', 'pid'], permsDeployment)
   });
 
   if (environment) {
-    const permsEnv = await environmentHelpers(sqlClientPool).getEnvironmentById(environment);
+    const permsEnv = await environmentHelpers(sqlClientPool).getEnvironmentById(
+      environment
+    );
     // Check access to modify deployment as it will be updated
     await hasPermission('environment', 'view', {
-      project: permsEnv.project,
+      project: permsEnv.project
     });
   }
 
-  await query(
-    sqlClient,
+  await mQuery(
+    sqlClientPool,
     Sql.updateDeployment({
       id,
       patch: {
@@ -304,12 +282,12 @@ export const updateDeployment: ResolverFn = async (
         started,
         completed,
         environment,
-        remoteId,
-      },
-    }),
+        remoteId
+      }
+    })
   );
 
-  const rows = await query(sqlClient, Sql.selectDeployment(id));
+  const rows = await mQuery(sqlClientPool, Sql.selectDeployment(id));
   const deployment = await injectBuildLog(R.prop(0, rows));
 
   pubSub.publish(EVENTS.DEPLOYMENT.UPDATED, deployment);
@@ -320,26 +298,26 @@ export const updateDeployment: ResolverFn = async (
 export const cancelDeployment: ResolverFn = async (
   root,
   { input: { deployment: deploymentInput } },
-  {
-    sqlClient,
-    sqlClientPool,
-    hasPermission,
-  },
+  { sqlClientPool, hasPermission }
 ) => {
-  const deployment = await Helpers(sqlClient).getDeploymentByDeploymentInput(deploymentInput);
-  const environment = await environmentHelpers(sqlClientPool).getEnvironmentById(deployment.environment);
+  const deployment = await Helpers(
+    sqlClientPool
+  ).getDeploymentByDeploymentInput(deploymentInput);
+  const environment = await environmentHelpers(
+    sqlClientPool
+  ).getEnvironmentById(deployment.environment);
   const project = await projectHelpers(sqlClientPool).getProjectById(
-    environment.project,
+    environment.project
   );
 
   await hasPermission('deployment', 'cancel', {
-    project: project.id,
+    project: project.id
   });
 
   const data = {
     build: deployment,
     environment,
-    project,
+    project
   };
 
   try {
@@ -352,7 +330,7 @@ export const cancelDeployment: ResolverFn = async (
       '',
       'api:cancelDeployment',
       { deploymentId: deployment.id },
-      `Deployment not cancelled, reason: ${error}`,
+      `Deployment not cancelled, reason: ${error}`
     );
     return `Error: ${error.message}`;
   }
@@ -361,18 +339,14 @@ export const cancelDeployment: ResolverFn = async (
 export const deployEnvironmentLatest: ResolverFn = async (
   root,
   { input: { environment: environmentInput } },
-  {
-    sqlClient,
-    sqlClientPool,
-    hasPermission,
-  },
+  { sqlClientPool, hasPermission }
 ) => {
   const environments = await environmentHelpers(
-    sqlClientPool,
+    sqlClientPool
   ).getEnvironmentsByEnvironmentInput(environmentInput);
   const activeEnvironments = R.filter(
     R.propEq('deleted', '0000-00-00 00:00:00'),
-    environments,
+    environments
   );
 
   if (activeEnvironments.length < 1 || activeEnvironments.length > 1) {
@@ -381,11 +355,11 @@ export const deployEnvironmentLatest: ResolverFn = async (
 
   const environment = R.prop(0, activeEnvironments);
   const project = await projectHelpers(sqlClientPool).getProjectById(
-    environment.project,
+    environment.project
   );
 
   await hasPermission('environment', `deploy:${environment.environmentType}`, {
-    project: project.id,
+    project: project.id
   });
 
   if (
@@ -402,32 +376,32 @@ export const deployEnvironmentLatest: ResolverFn = async (
       !environment.deployTitle
     ) {
       throw new Error(
-        'Cannot deploy: deployBaseRef, deployHeadRef or deployTitle is empty',
+        'Cannot deploy: deployBaseRef, deployHeadRef or deployTitle is empty'
       );
     }
   }
 
   let deployData: {
-    [key: string]: any
+    [key: string]: any;
   } = {
     projectName: project.name,
-    type: environment.deployType,
+    type: environment.deployType
   };
   let meta: {
-    [key: string]: any
+    [key: string]: any;
   } = {
-    projectName: project.name,
+    projectName: project.name
   };
   let taskFunction;
   switch (environment.deployType) {
     case 'branch':
       deployData = {
         ...deployData,
-        branchName: environment.deployBaseRef,
+        branchName: environment.deployBaseRef
       };
       meta = {
         ...meta,
-        branchName: deployData.branchName,
+        branchName: deployData.branchName
       };
       taskFunction = createDeployTask;
       break;
@@ -441,11 +415,11 @@ export const deployEnvironmentLatest: ResolverFn = async (
         headSha: `origin/${environment.deployHeadRef}`,
         baseBranchName: environment.deployBaseRef,
         baseSha: `origin/${environment.deployBaseRef}`,
-        branchName: environment.name,
+        branchName: environment.name
       };
       meta = {
         ...meta,
-        pullrequestTitle: deployData.pullrequestTitle,
+        pullrequestTitle: deployData.pullrequestTitle
       };
       taskFunction = createDeployTask;
       break;
@@ -454,12 +428,12 @@ export const deployEnvironmentLatest: ResolverFn = async (
       deployData = {
         ...deployData,
         branchName: environment.name,
-        promoteSourceEnvironment: environment.deployBaseRef,
+        promoteSourceEnvironment: environment.deployBaseRef
       };
       meta = {
         ...meta,
         branchName: deployData.branchName,
-        promoteSourceEnvironment: deployData.promoteSourceEnvironment,
+        promoteSourceEnvironment: deployData.promoteSourceEnvironment
       };
       taskFunction = createPromoteTask;
       break;
@@ -477,9 +451,7 @@ export const deployEnvironmentLatest: ResolverFn = async (
       '',
       'api:deployEnvironmentLatest',
       meta,
-      `*[${deployData.projectName}]* Deployment triggered \`${
-        environment.name
-      }\``,
+      `*[${deployData.projectName}]* Deployment triggered \`${environment.name}\``
     );
 
     return 'success';
@@ -492,9 +464,7 @@ export const deployEnvironmentLatest: ResolverFn = async (
           '',
           'api:deployEnvironmentLatest',
           meta,
-          `*[${deployData.projectName}]* Deployment skipped \`${
-            environment.name
-          }\`: ${error.message}`,
+          `*[${deployData.projectName}]* Deployment skipped \`${environment.name}\`: ${error.message}`
         );
         return `Skipped: ${error.message}`;
 
@@ -505,9 +475,7 @@ export const deployEnvironmentLatest: ResolverFn = async (
           '',
           'api:deployEnvironmentLatest:error',
           meta,
-          `*[${deployData.projectName}]* Error deploying \`${
-            environment.name
-          }\`: ${error.message}`,
+          `*[${deployData.projectName}]* Error deploying \`${environment.name}\`: ${error.message}`
         );
         return `Error: ${error.message}`;
     }
@@ -517,31 +485,28 @@ export const deployEnvironmentLatest: ResolverFn = async (
 export const deployEnvironmentBranch: ResolverFn = async (
   root,
   { input: { project: projectInput, branchName, branchRef } },
-  {
-    sqlClient,
-    sqlClientPool,
-    hasPermission,
-  },
+  { sqlClientPool, hasPermission }
 ) => {
   const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
-    projectInput,
+    projectInput
   );
-  const envType = branchName === project.productionEnvironment ? 'production' : 'development';
+  const envType =
+    branchName === project.productionEnvironment ? 'production' : 'development';
 
   await hasPermission('environment', `deploy:${envType}`, {
-    project: project.id,
+    project: project.id
   });
 
   const deployData = {
     type: 'branch',
     projectName: project.name,
     branchName,
-    sha: branchRef,
+    sha: branchRef
   };
 
   const meta = {
     projectName: project.name,
-    branchName: deployData.branchName,
+    branchName: deployData.branchName
   };
 
   try {
@@ -553,9 +518,7 @@ export const deployEnvironmentBranch: ResolverFn = async (
       '',
       'api:deployEnvironmentBranch',
       meta,
-      `*[${deployData.projectName}]* Deployment triggered \`${
-        deployData.branchName
-      }\``,
+      `*[${deployData.projectName}]* Deployment triggered \`${deployData.branchName}\``
     );
 
     return 'success';
@@ -568,9 +531,7 @@ export const deployEnvironmentBranch: ResolverFn = async (
           '',
           'api:deployEnvironmentBranch',
           meta,
-          `*[${deployData.projectName}]* Deployment skipped \`${
-            deployData.branchName
-          }\`: ${error.message}`,
+          `*[${deployData.projectName}]* Deployment skipped \`${deployData.branchName}\`: ${error.message}`
         );
         return `Skipped: ${error.message}`;
 
@@ -581,9 +542,7 @@ export const deployEnvironmentBranch: ResolverFn = async (
           '',
           'api:deployEnvironmentBranch:error',
           meta,
-          `*[${deployData.projectName}]* Error deploying \`${
-            deployData.branchName
-          }\`: ${error}`,
+          `*[${deployData.projectName}]* Error deploying \`${deployData.branchName}\`: ${error}`
         );
         console.log(error);
         return `Error: ${error}`;
@@ -601,23 +560,20 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
       baseBranchName,
       baseBranchRef,
       headBranchName,
-      headBranchRef,
-    },
+      headBranchRef
+    }
   },
-  {
-    sqlClient,
-    sqlClientPool,
-    hasPermission,
-  },
+  { sqlClientPool, hasPermission }
 ) => {
   const branchName = `pr-${number}`;
   const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
-    projectInput,
+    projectInput
   );
-  const envType = branchName === project.productionEnvironment ? 'production' : 'development';
+  const envType =
+    branchName === project.productionEnvironment ? 'production' : 'development';
 
   await hasPermission('environment', `deploy:${envType}`, {
-    project: project.id,
+    project: project.id
   });
 
   const deployData = {
@@ -629,12 +585,12 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
     headSha: headBranchRef,
     baseBranchName,
     baseSha: baseBranchRef,
-    branchName,
+    branchName
   };
 
   const meta = {
     projectName: project.name,
-    pullrequestTitle: deployData.pullrequestTitle,
+    pullrequestTitle: deployData.pullrequestTitle
   };
 
   try {
@@ -646,9 +602,7 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
       '',
       'api:deployEnvironmentPullrequest',
       meta,
-      `*[${deployData.projectName}]* Deployment triggered \`${
-        deployData.branchName
-      }\``,
+      `*[${deployData.projectName}]* Deployment triggered \`${deployData.branchName}\``
     );
 
     return 'success';
@@ -661,9 +615,7 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
           '',
           'api:deployEnvironmentPullrequest',
           meta,
-          `*[${deployData.projectName}]* Deployment skipped \`${
-            deployData.branchName
-          }\`: ${error.message}`,
+          `*[${deployData.projectName}]* Deployment skipped \`${deployData.branchName}\`: ${error.message}`
         );
         return `Skipped: ${error.message}`;
 
@@ -674,9 +626,7 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
           '',
           'api:deployEnvironmentPullrequest:error',
           meta,
-          `*[${deployData.projectName}]* Error deploying \`${
-            deployData.branchName
-          }\`: ${error.message}`,
+          `*[${deployData.projectName}]* Error deploying \`${deployData.branchName}\`: ${error.message}`
         );
         return `Error: ${error.message}`;
     }
@@ -689,30 +639,29 @@ export const deployEnvironmentPromote: ResolverFn = async (
     input: {
       sourceEnvironment: sourceEnvironmentInput,
       project: projectInput,
-      destinationEnvironment,
-    },
+      destinationEnvironment
+    }
   },
-  {
-    sqlClient,
-    sqlClientPool,
-    hasPermission,
-  },
+  { sqlClientPool, hasPermission }
 ) => {
-  const destProject = await projectHelpers(sqlClientPool).getProjectByProjectInput(
-    projectInput,
-  );
-  const envType = destinationEnvironment === destProject.productionEnvironment ? 'production' : 'development';
+  const destProject = await projectHelpers(
+    sqlClientPool
+  ).getProjectByProjectInput(projectInput);
+  const envType =
+    destinationEnvironment === destProject.productionEnvironment
+      ? 'production'
+      : 'development';
 
   await hasPermission('environment', `deploy:${envType}`, {
-    project: destProject.id,
+    project: destProject.id
   });
 
   const sourceEnvironments = await environmentHelpers(
-    sqlClientPool,
+    sqlClientPool
   ).getEnvironmentsByEnvironmentInput(sourceEnvironmentInput);
   const activeEnvironments = R.filter(
     R.propEq('deleted', '0000-00-00 00:00:00'),
-    sourceEnvironments,
+    sourceEnvironments
   );
 
   if (activeEnvironments.length < 1 || activeEnvironments.length > 1) {
@@ -729,13 +678,13 @@ export const deployEnvironmentPromote: ResolverFn = async (
     type: 'promote',
     projectName: destProject.name,
     branchName: destinationEnvironment,
-    promoteSourceEnvironment: sourceEnvironment.name,
+    promoteSourceEnvironment: sourceEnvironment.name
   };
 
   const meta = {
     projectName: deployData.projectName,
     branchName: deployData.branchName,
-    promoteSourceEnvironment: deployData.promoteSourceEnvironment,
+    promoteSourceEnvironment: deployData.promoteSourceEnvironment
   };
 
   try {
@@ -747,9 +696,7 @@ export const deployEnvironmentPromote: ResolverFn = async (
       '',
       'api:deployEnvironmentPromote',
       meta,
-      `*[${deployData.projectName}]* Deployment triggered \`${
-        deployData.branchName
-      }\``,
+      `*[${deployData.projectName}]* Deployment triggered \`${deployData.branchName}\``
     );
 
     return 'success';
@@ -762,9 +709,7 @@ export const deployEnvironmentPromote: ResolverFn = async (
           '',
           'api:deployEnvironmentPromote',
           meta,
-          `*[${deployData.projectName}]* Deployment skipped \`${
-            deployData.branchName
-          }\`: ${error.message}`,
+          `*[${deployData.projectName}]* Deployment skipped \`${deployData.branchName}\`: ${error.message}`
         );
         return `Skipped: ${error.message}`;
 
@@ -775,9 +720,7 @@ export const deployEnvironmentPromote: ResolverFn = async (
           '',
           'api:deployEnvironmentPromote:error',
           meta,
-          `*[${deployData.projectName}]* Error deploying \`${
-            deployData.branchName
-          }\`: ${error.message}`,
+          `*[${deployData.projectName}]* Error deploying \`${deployData.branchName}\`: ${error.message}`
         );
         return `Error: ${error.message}`;
     }
@@ -786,28 +729,20 @@ export const deployEnvironmentPromote: ResolverFn = async (
 
 export const switchActiveStandby: ResolverFn = async (
   root,
-  {
-    input: {
-      project: projectInput,
-    },
-  },
-  {
-    sqlClient,
-    sqlClientPool,
-    hasPermission,
-  },
+  { input: { project: projectInput } },
+  { sqlClientPool, hasPermission }
 ) => {
   const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
-    projectInput,
+    projectInput
   );
 
   // active/standby really only should be between production environments
   await hasPermission('environment', `deploy:production`, {
-    project: project.id,
+    project: project.id
   });
 
   await hasPermission('task', 'view', {
-    project: project.id,
+    project: project.id
   });
 
   if (project.standbyProductionEnvironment == null) {
@@ -817,22 +752,28 @@ export const switchActiveStandby: ResolverFn = async (
       '',
       'api:switchActiveStandby',
       '',
-      `Failed to create active to standby task, reason: no standbyProductionEnvironment configured`,
+      `Failed to create active to standby task, reason: no standbyProductionEnvironment configured`
     );
     return `Error: no standbyProductionEnvironment configured`;
   }
 
   // we want the task to show in the standby environment, as this is where the task will be initiated.
-  const environmentRows = await query(
-    sqlClient,
-    environmentSql.selectEnvironmentByNameAndProject(project.standbyProductionEnvironment, project.id),
+  const environmentRows = await mQuery(
+    sqlClientPool,
+    environmentSql.selectEnvironmentByNameAndProject(
+      project.standbyProductionEnvironment,
+      project.id
+    )
   );
   const environment = environmentRows[0];
   var environmentId = parseInt(environment.id);
   // we need to pass some additional information about the production environment
-  const environmentRowsProd = await query(
-    sqlClient,
-    environmentSql.selectEnvironmentByNameAndProject(project.productionEnvironment, project.id),
+  const environmentRowsProd = await mQuery(
+    sqlClientPool,
+    environmentSql.selectEnvironmentByNameAndProject(
+      project.productionEnvironment,
+      project.id
+    )
   );
   const environmentProd = environmentRowsProd[0];
   var environmentProdId = parseInt(environmentProd.id);
@@ -844,29 +785,29 @@ export const switchActiveStandby: ResolverFn = async (
       id: project.id,
       name: project.name,
       productionEnvironment: project.productionEnvironment,
-      standbyProductionEnvironment: project.standbyProductionEnvironment,
+      standbyProductionEnvironment: project.standbyProductionEnvironment
     },
     productionEnvironment: {
       id: environmentProdId,
       name: environmentProd.name,
-      openshiftProjectName: environmentProd.openshiftProjectName,
+      openshiftProjectName: environmentProd.openshiftProjectName
     },
     environment: {
       id: environmentId,
       name: environment.name,
-      openshiftProjectName: environment.openshiftProjectName,
+      openshiftProjectName: environment.openshiftProjectName
     },
     task: {
-      id: "0",
-      name: "Active/Standby Switch",
+      id: '0',
+      name: 'Active/Standby Switch'
     }
   };
 
   // try it now
   try {
     // add a task into the environment
-    var date = new Date()
-    var created = convertDateFormat(date.toISOString())
+    var date = new Date();
+    var created = convertDateFormat(date.toISOString());
     const sourceTaskData = await addTask(
       'Active/Standby Switch',
       'ACTIVE',
@@ -878,9 +819,9 @@ export const switchActiveStandby: ResolverFn = async (
       null,
       '',
       '',
-      false,
+      false
     );
-    data.task.id = sourceTaskData.addTask.id.toString()
+    data.task.id = sourceTaskData.addTask.id.toString();
 
     // queue the task to trigger the migration
     await createMiscTask({ key: 'route:migrate', data });
@@ -888,8 +829,8 @@ export const switchActiveStandby: ResolverFn = async (
     // return the task id and remote id
     var retData = {
       id: data.task.id,
-      environment: environmentId,
-    }
+      environment: environmentId
+    };
     return retData;
   } catch (error) {
     sendToLagoonLogs(
@@ -898,7 +839,7 @@ export const switchActiveStandby: ResolverFn = async (
       '',
       'api:switchActiveStandby',
       data,
-      `Failed to create active to standby task, reason: ${error}`,
+      `Failed to create active to standby task, reason: ${error}`
     );
     return `Error: ${error.message}`;
   }
@@ -906,5 +847,5 @@ export const switchActiveStandby: ResolverFn = async (
 
 export const deploymentSubscriber = createEnvironmentFilteredSubscriber([
   EVENTS.DEPLOYMENT.ADDED,
-  EVENTS.DEPLOYMENT.UPDATED,
+  EVENTS.DEPLOYMENT.UPDATED
 ]);
