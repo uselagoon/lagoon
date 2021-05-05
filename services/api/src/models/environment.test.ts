@@ -11,7 +11,7 @@ import cNewPartial from "./mockHitDataNew-project-c.json"
 import legacyData from "./legacy.json";
 import newData from "./new.json";
 
-import esClient from '../clients/esClient';
+import { esClient } from '../clients/esClient';
 
 const zeroOutBuckets = (mockResult) => {
   return {

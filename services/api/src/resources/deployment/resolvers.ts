@@ -3,11 +3,12 @@ import getFieldNames from 'graphql-list-fields';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
 import { createDeployTask, createMiscTask, createPromoteTask } from '@lagoon/commons/dist/tasks';
 import { ResolverFn } from '../';
-import esClient from '../../clients/esClient';
+import { esClient } from '../../clients/esClient';
 import {
   pubSub,
   createEnvironmentFilteredSubscriber,
 } from '../../clients/pubSub';
+import { getConfigFromEnv, getLagoonRouteFromEnv } from '../../util/config';
 import {
   knex,
   prepare,
@@ -166,14 +167,7 @@ export const getDeploymentUrl: ResolverFn = async (
   { sqlClient, hasPermission },
 ) => {
 
-  const defaultUiUrl = R.propOr('http://localhost:8888', 'UI_URL', process.env);
-
-  const lagoonUiRoute = R.compose(
-    R.defaultTo(defaultUiUrl),
-    R.find(R.test(/\/ui-/)),
-    R.split(','),
-    R.propOr('', 'LAGOON_ROUTES'),
-  )(process.env);
+  const lagoonUiRoute = getLagoonRouteFromEnv(/\/ui-/, getConfigFromEnv('UI_URL', 'http://localhost:8888'));
 
   const { name: project, openshiftProjectName  } = await projectHelpers(sqlClient).getProjectByEnvironmentId(
     environment,

@@ -4,16 +4,7 @@ import * as logger from '../logger';
 import { toNumber } from '../util/func';
 import { getConfigFromEnv } from '../util/config';
 
-export interface ConfigFromEnv {
-  host: string;
-  port: number;
-  user: string;
-  password: string;
-  database: string;
-  connectionLimit: number;
-}
-
-export const config: ConfigFromEnv = {
+export const config = {
   host: getConfigFromEnv('API_DB_HOST', 'api-db'),
   port: toNumber(getConfigFromEnv('API_DB_PORT', '3306')),
   user: getConfigFromEnv('API_DB_USER', 'api'),

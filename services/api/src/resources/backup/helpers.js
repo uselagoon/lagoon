@@ -1,5 +1,6 @@
 const R = require('ramda');
 const S3 = require('aws-sdk/clients/s3');
+const { getConfigFromEnv } = require('../../util/config');
 
 const makeS3TempLink = async (restore) => {
   const restoreLocation = R.prop('restoreLocation', restore);
@@ -10,16 +11,8 @@ const makeS3TempLink = async (restore) => {
   if (R.test(s3LinkMatch, restoreLocation)) {
     const s3Parts = R.match(s3LinkMatch, restoreLocation);
 
-    const accessKeyId = R.propOr(
-      'XXXXXXXXXXXXXXXXXXXX',
-      'S3_BAAS_ACCESS_KEY_ID',
-      process.env,
-    );
-    const secretAccessKey = R.propOr(
-      'XXXXXXXXXXXXXXXXXXXX',
-      'S3_BAAS_SECRET_ACCESS_KEY',
-      process.env,
-    );
+    const accessKeyId = getConfigFromEnv('S3_BAAS_ACCESS_KEY_ID', 'XXXXXXXXXXXXXXXXXXXX');
+    const secretAccessKey = getConfigFromEnv('S3_BAAS_SECRET_ACCESS_KEY', 'XXXXXXXXXXXXXXXXXXXX');
 
     let awsS3Parts = '';
     const awsLinkMatch = /s3\.([^.]+)\.amazonaws\.com\//;

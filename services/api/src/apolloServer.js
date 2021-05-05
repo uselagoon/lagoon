@@ -7,6 +7,7 @@ const {
 const NodeCache = require('node-cache');
 const gql = require('graphql-tag');
 const newrelic = require('newrelic');
+const { getConfigFromEnv } = require('./util/config');
 const {
   getCredentialsForLegacyToken,
   getGrantForKeycloakToken,
@@ -31,7 +32,7 @@ const schema = makeExecutableSchema({ typeDefs, resolvers });
 
 const apolloServer = new ApolloServer({
   schema,
-  debug: process.env.NODE_ENV === 'development',
+  debug: getConfigFromEnv('NODE_ENV') === 'development',
   introspection: true,
   subscriptions: {
     onConnect: async (connectionParams, webSocket) => {
@@ -168,7 +169,7 @@ const apolloServer = new ApolloServer({
       message: error.message,
       locations: error.locations,
       path: error.path,
-      ...(process.env.NODE_ENV === 'development'
+      ...(getConfigFromEnv('NODE_ENV') === 'development'
         ? { extensions: error.extensions }
         : {})
     };

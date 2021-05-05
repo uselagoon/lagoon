@@ -1,23 +1,15 @@
 const http = require('http');
 const util = require('util');
 const logger = require('./logger');
+const { toNumber } = require('./util/func');
+const { getConfigFromEnv } = require('./util/config');
 const app = require('./app');
 const apolloServer = require('./apolloServer');
-
-const normalizePort = value => {
-  const port = parseInt(value, 10);
-
-  if (!isNaN(port) && port > 0) {
-    return port;
-  }
-
-  return false;
-};
 
 const createServer = async () => {
   logger.debug('Starting to boot the server.');
 
-  const port = normalizePort(process.env.PORT || '3000');
+  const port = toNumber(getConfigFromEnv('PORT', '3000'));
   const server = http.createServer(app);
   server.setTimeout(900000) // higher Server timeout: 15min instead of default 2min
 

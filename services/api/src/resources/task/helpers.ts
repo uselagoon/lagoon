@@ -4,7 +4,7 @@ import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
 import { createTaskTask } from '@lagoon/commons/dist/tasks';
 import { query } from '../../util/db';
 import { pubSub } from '../../clients/pubSub';
-import esClient from '../../clients/esClient';
+import { esClient } from '../../clients/esClient';
 import { Sql } from './sql';
 import EVENTS from './events';
 import { Sql as projectSql } from '../project/sql';

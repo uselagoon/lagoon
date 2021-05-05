@@ -2,11 +2,10 @@ import * as R from 'ramda';
 import { getRedisCache, saveRedisCache } from '../clients/redisClient';
 import { verify } from 'jsonwebtoken';
 import * as logger from '../logger';
+import { getConfigFromEnv } from '../util/config';
 import { keycloakGrantManager } from'../clients/keycloakClient';
 import { User } from '../models/user';
 import { Group } from '../models/group';
-
-const { JWTSECRET, JWTAUDIENCE } = process.env;
 
 interface ILegacyToken {
   aud: string,
@@ -53,7 +52,7 @@ export const getGrantForKeycloakToken = async (sqlClient, token) => {
 export const getCredentialsForLegacyToken = async (sqlClient, token) => {
   let decoded: ILegacyToken;
   try {
-    decoded = verify(token, JWTSECRET);
+    decoded = verify(token, getConfigFromEnv('JWTSECRET'));
 
     if (decoded == null) {
       throw new Error('Decoding token resulted in "null" or "undefined".');
@@ -61,7 +60,7 @@ export const getCredentialsForLegacyToken = async (sqlClient, token) => {
 
     const { aud } = decoded;
 
-    if (JWTAUDIENCE && aud !== JWTAUDIENCE) {
+    if (aud !== getConfigFromEnv('JWTAUDIENCE')) {
       logger.info(`Invalid token with aud attribute: "${aud || ''}"`);
       throw new Error('Token audience mismatch.');
     }

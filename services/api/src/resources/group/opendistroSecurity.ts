@@ -1,6 +1,6 @@
 import { MariaClient } from 'mariasql';
-import opendistroSecurityClient from '../../clients/opendistroSecurityClient';
-import kibanaClient from '../../clients/kibanaClient';
+import { opendistroSecurityClient } from '../../clients/opendistroSecurityClient';
+import { kibanaClient } from '../../clients/kibanaClient';
 import logger from '../../logger';
 import { Helpers as projectHelpers } from '../project/helpers';
 

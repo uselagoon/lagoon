@@ -1,28 +1,13 @@
 import * as R from 'ramda';
 import { MariaClient } from 'mariasql';
-import harborClient from '../../clients/harborClient';
+import { config as harborConfig, harborClient } from '../../clients/harborClient';
 import logger from '../../logger';
 import { Sql as PSql } from './sql';
 import { Sql } from '../env-variables/sql';
+import { getConfigFromEnv, getLagoonRouteFromEnv } from '../../util/config';
 import { isPatchEmpty, prepare, query, whereAnd } from '../../util/db';
 
-const defaultHarborUrl = R.propOr('http://harbor-harbor-core.harbor.svc.cluster.local:80', 'HARBOR_URL', process.env);
-
-const lagoonHarborRoute = R.compose(
-  R.defaultTo(defaultHarborUrl),
-  R.find(R.test(/harbor-nginx/)),
-  R.split(','),
-  R.propOr('', 'LAGOON_ROUTES'),
-)(process.env) as string;
-
-const defaultWebhookUrl = R.propOr('http://webhook-handler:3000', 'WEBHOOK_URL', process.env);
-
-const lagoonWebhookAddress = R.compose(
-  R.defaultTo(defaultWebhookUrl),
-  R.find(R.test(/webhook-handler/)),
-  R.split(','),
-  R.propOr('', 'LAGOON_ROUTES'),
-)(process.env) as string;
+const lagoonWebhookAddress = getLagoonRouteFromEnv(/webhook-handler/, getConfigFromEnv('WEBHOOK_URL', 'http://webhook-handler:3000'));
 
 async function createHarborProject(sqlClient: MariaClient, harborClient, lagoonProjectName: string) {
   // Returns an empty string on an error and a string on a success
@@ -69,7 +54,7 @@ async function createHarborProject(sqlClient: MariaClient, harborClient, lagoonP
     } else {
       results = res.body
     }
-    
+
     // Search array of objects for correct project
     for (let proj of results) {
       if (proj.name == lagoonProjectName) {
@@ -259,7 +244,7 @@ export const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
     if (! await removeHarborEnvVars(sqlClient, lagoonProjectName)) {return}
 
     // Set required Lagoon env vars to enable Harbor on this project
-    if (! await addEnvVar(sqlClient, lagoonProjectName, "INTERNAL_REGISTRY_URL", lagoonHarborRoute, "INTERNAL_CONTAINER_REGISTRY", projectID)) {return}
+    if (! await addEnvVar(sqlClient, lagoonProjectName, "INTERNAL_REGISTRY_URL", harborConfig.publicRoute, "INTERNAL_CONTAINER_REGISTRY", projectID)) {return}
     if (! await addEnvVar(sqlClient, lagoonProjectName, "INTERNAL_REGISTRY_USERNAME", harborTokenInfo.name, "INTERNAL_CONTAINER_REGISTRY", projectID)) {return}
     if (! await addEnvVar(sqlClient, lagoonProjectName, "INTERNAL_REGISTRY_PASSWORD", harborTokenInfo.token, "INTERNAL_CONTAINER_REGISTRY", projectID)) {return}
 
