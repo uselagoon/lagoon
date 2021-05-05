@@ -14,7 +14,7 @@ const {
   legacyHasPermission,
   keycloakHasPermission
 } = require('./util/auth');
-const { getSqlClient, sqlClientPool } = require('./clients/sqlClient');
+const { sqlClientPool } = require('./clients/sqlClient');
 const esClient = require('./clients/esClient');
 const redisClient = require('./clients/redisClient');
 const { getKeycloakAdminClient } = require('./clients/keycloak-admin');
@@ -44,27 +44,18 @@ const apolloServer = new ApolloServer({
         throw new AuthenticationError('Auth token missing.');
       }
 
-      const sqlClientKeycloak = getSqlClient();
       try {
-        grant = await getGrantForKeycloakToken(sqlClientKeycloak, token);
-        sqlClientKeycloak.end();
+        grant = await getGrantForKeycloakToken(token);
       } catch (e) {
-        sqlClientKeycloak.end();
         // It might be a legacy token, so continue on.
         logger.debug(`Keycloak token auth failed: ${e.message}`);
       }
 
-      const sqlClientLegacy = getSqlClient();
       try {
         if (!grant) {
-          legacyCredentials = await getCredentialsForLegacyToken(
-            sqlClientLegacy,
-            token
-          );
-          sqlClientLegacy.end();
+          legacyCredentials = await getCredentialsForLegacyToken(token);
         }
       } catch (e) {
-        sqlClientLegacy.end();
         throw new AuthenticationError(e.message);
       }
 
@@ -74,13 +65,15 @@ const apolloServer = new ApolloServer({
         checkperiod: 0
       });
 
-      const sqlClient = getSqlClient();
-
-      const modelClients = { sqlClientPool, keycloakAdminClient, esClient, redisClient };
+      const modelClients = {
+        sqlClientPool,
+        keycloakAdminClient,
+        esClient,
+        redisClient
+      };
 
       return {
         keycloakAdminClient,
-        sqlClient,
         sqlClientPool,
         hasPermission: grant
           ? keycloakHasPermission(grant, requestCache, modelClients)
@@ -97,9 +90,6 @@ const apolloServer = new ApolloServer({
       };
     },
     onDisconnect: (websocket, context) => {
-      if (context.sqlClient) {
-        context.sqlClient.end();
-      }
       if (context.requestCache) {
         context.requestCache.flushAll();
       }
@@ -122,20 +112,18 @@ const apolloServer = new ApolloServer({
         checkperiod: 0
       });
 
-      const sqlClient = getSqlClient();
-
-      const modelClients = { sqlClientPool, keycloakAdminClient, esClient, redisClient };
+      const modelClients = {
+        sqlClientPool,
+        keycloakAdminClient,
+        esClient,
+        redisClient
+      };
 
       return {
         keycloakAdminClient,
-        sqlClient,
         sqlClientPool,
         hasPermission: req.kauth
-          ? keycloakHasPermission(
-              req.kauth.grant,
-              requestCache,
-              modelClients
-            )
+          ? keycloakHasPermission(req.kauth.grant, requestCache, modelClients)
           : legacyHasPermission(req.legacyCredentials),
         keycloakGrant: req.kauth ? req.kauth.grant : null,
         requestCache,
@@ -161,13 +149,9 @@ const apolloServer = new ApolloServer({
     };
   },
   plugins: [
-    // mariasql client closer plugin
     {
       requestDidStart: () => ({
         willSendResponse: response => {
-          if (response.context.sqlClient) {
-            response.context.sqlClient.end();
-          }
           if (response.context.requestCache) {
             response.context.requestCache.flushAll();
           }

@@ -1,4 +1,3 @@
-import { MariaClient } from 'mariasql';
 import { Pool } from 'mariadb';
 
 interface hasPermission {
@@ -10,7 +9,6 @@ export interface ResolverFn {
     parent,
     args,
     context: {
-      sqlClient: MariaClient,
       sqlClientPool: Pool,
       hasPermission: hasPermission,
       keycloakGrant: any | null,
