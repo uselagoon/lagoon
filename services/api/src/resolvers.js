@@ -236,6 +236,17 @@ const resolvers = {
     PRODUCTION: 'production',
     DEVELOPMENT: 'development',
   },
+  EnvVariableType: {
+    PROJECT: 'project',
+    ENVIRONMENT: 'environment',
+  },
+  EnvVariableScope: {
+    BUILD: 'build',
+    RUNTIME: 'runtime',
+    GLOBAL: 'global',
+    CONTAINER_REGISTRY: 'container_registry',
+    INTERNAL_CONTAINER_REGISTRY: 'internal_container_registry',
+  },
   Project: {
     notifications: getNotificationsByProjectId,
     openshift: getOpenshiftByProjectId,
