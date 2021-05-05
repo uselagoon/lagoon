@@ -1,6 +1,4 @@
-import Client from 'mariasql';
 import * as mariadb from 'mariadb';
-import * as logger from '../logger';
 import { toNumber } from '../util/func';
 import { getConfigFromEnv } from '../util/config';
 
@@ -14,25 +12,3 @@ export const config = {
 };
 
 export const sqlClientPool = mariadb.createPool(config);
-
-export const getSqlClient = () => {
-  // @ts-ignore
-  const sqlClient = new Client({
-    host: config.host,
-    port: config.port,
-    user: config.user,
-    password: config.password,
-    db: config.database
-  });
-
-  sqlClient.on('error', error => {
-    logger.error(error.message);
-  });
-
-  return sqlClient;
-};
-
-module.exports = {
-  getSqlClient,
-  sqlClientPool
-};
