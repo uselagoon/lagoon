@@ -319,9 +319,9 @@ export const removeUserFromGroup: ResolverFn = async (
 export const addGroupsToProject: ResolverFn = async (
   _root,
   { input: { project: projectInput, groups: groupsInput } },
-  { models, sqlClient, hasPermission },
+  { models, sqlClient, sqlClientPool, hasPermission },
 ) => {
-  const project = await projectHelpers(sqlClient).getProjectByProjectInput(
+  const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
     projectInput,
   );
 
@@ -366,7 +366,7 @@ export const addGroupsToProject: ResolverFn = async (
     );
   }
 
-  return await projectHelpers(sqlClient).getProjectById(project.id);
+  return await projectHelpers(sqlClientPool).getProjectById(project.id);
 };
 
 export const addBillingGroup: ResolverFn = async (
@@ -427,9 +427,9 @@ export const updateBillingGroup: ResolverFn = async (
 export const addProjectToBillingGroup: ResolverFn = async (
   _root,
   { input: { project: projectInput, group: groupInput } },
-  { models, sqlClient, hasPermission },
+  { models, sqlClient, sqlClientPool, hasPermission },
 ) => {
-  const project = await projectHelpers(sqlClient).getProjectByProjectInput(
+  const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
     projectInput,
   );
 
@@ -470,9 +470,9 @@ export const addProjectToBillingGroup: ResolverFn = async (
 export const updateProjectBillingGroup: ResolverFn = async (
   _root,
   { input: { project: projectInput, group: groupInput } },
-  { models, sqlClient, hasPermission },
+  { models, sqlClient, sqlClientPool, hasPermission },
 ) => {
-  const project = await projectHelpers(sqlClient).getProjectByProjectInput(
+  const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
     projectInput,
   );
 
@@ -502,7 +502,7 @@ export const updateProjectBillingGroup: ResolverFn = async (
 
   const group = await loadGroupByIdOrName(groupInput);
   await addProjectToGroup(project.id, group);
-  return projectHelpers(sqlClient).getProjectById(project.id);
+  return projectHelpers(sqlClientPool).getProjectById(project.id);
 };
 
 export const removeProjectFromBillingGroup: ResolverFn = async (
@@ -522,7 +522,7 @@ export const getAllProjectsByGroupId: ResolverFn = async (root, input, context) 
 export const getAllProjectsInGroup: ResolverFn = async (
   _root,
   { input: groupInput },
-  { models, sqlClient, hasPermission, keycloakGrant },
+  { models, sqlClient, sqlClientPool, hasPermission, keycloakGrant },
 ) => {
   const {
     GroupModel: { loadGroupByIdOrName, getProjectsFromGroupAndSubgroups },
@@ -534,7 +534,7 @@ export const getAllProjectsInGroup: ResolverFn = async (
     const group = await loadGroupByIdOrName(groupInput);
     const projectIdsArray = await getProjectsFromGroupAndSubgroups(group);
     return projectIdsArray.map(async id =>
-      projectHelpers(sqlClient).getProjectByProjectInput({ id }),
+      projectHelpers(sqlClientPool).getProjectByProjectInput({ id }),
     );
   } catch (err) {
     if (err instanceof GroupNotFoundError) {
@@ -566,7 +566,7 @@ export const getAllProjectsInGroup: ResolverFn = async (
 
     const projectIdsArray = await getProjectsFromGroupAndSubgroups(group);
     return projectIdsArray.map(async id =>
-      projectHelpers(sqlClient).getProjectByProjectInput({ id }),
+      projectHelpers(sqlClientPool).getProjectByProjectInput({ id }),
     );
   }
 };
@@ -621,9 +621,9 @@ export const getAllBillingGroupsCost: ResolverFn = async (root, args, context) =
 export const removeGroupsFromProject: ResolverFn = async (
   _root,
   { input: { project: projectInput, groups: groupsInput } },
-  { models, sqlClient, hasPermission },
+  { models, sqlClient, sqlClientPool, hasPermission },
 ) => {
-  const project = await projectHelpers(sqlClient).getProjectByProjectInput(
+  const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
     projectInput,
   );
 
@@ -669,5 +669,5 @@ export const removeGroupsFromProject: ResolverFn = async (
     );
   }
 
-  return await projectHelpers(sqlClient).getProjectById(project.id);
+  return await projectHelpers(sqlClientPool).getProjectById(project.id);
 };

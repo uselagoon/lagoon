@@ -247,11 +247,11 @@ export const getEnvironmentHoursMonthByEnvironmentId: ResolverFn = async (
 export const getEnvironmentHitsMonthByEnvironmentId: ResolverFn = async (
   { id, openshiftProjectName },
   args,
-  { sqlClient, models, hasPermission },
+  { sqlClient, sqlClientPool, models, hasPermission },
 ) => {
   await hasPermission('environment', 'storage');
 
-  const { name: projectName } = await projectHelpers(sqlClient).getProjectByEnvironmentId(id);
+  const { name: projectName } = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(id);
   return models.EnvironmentModel.environmentHitsMonthByEnvironmentId(projectName, openshiftProjectName, args.month);
 };
 
@@ -394,9 +394,9 @@ export const addOrUpdateEnvironmentStorage: ResolverFn = async (
 export const deleteEnvironment: ResolverFn = async (
   root,
   { input: { project: projectName, name, execute } },
-  { sqlClient, hasPermission },
+  { sqlClient, sqlClientPool, hasPermission },
 ) => {
-  const projectId = await projectHelpers(sqlClient).getProjectIdByName(
+  const projectId = await projectHelpers(sqlClientPool).getProjectIdByName(
     projectName,
   );
 

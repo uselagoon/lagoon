@@ -84,6 +84,7 @@ export const addNotificationToProject: ResolverFn = async (
   { input: unformattedInput },
   {
     sqlClient,
+    sqlClientPool,
     hasPermission,
   },
 ) => {
@@ -95,7 +96,7 @@ export const addNotificationToProject: ResolverFn = async (
   ].reduce((argumentsToProcess, functionToApply) => functionToApply(argumentsToProcess), unformattedInput);
 
 
-  const pid = await projectHelpers(sqlClient).getProjectIdByName(input.project);
+  const pid = await projectHelpers(sqlClientPool).getProjectIdByName(input.project);
   await hasPermission('project', 'addNotification', {
     project: pid,
   });

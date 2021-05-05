@@ -1,4 +1,5 @@
 import { MariaClient } from 'mariasql';
+import { sqlClientPool } from '../../clients/sqlClient';
 import { opendistroSecurityClient } from '../../clients/opendistroSecurityClient';
 import { kibanaClient } from '../../clients/kibanaClient';
 import logger from '../../logger';
@@ -13,7 +14,7 @@ export const OpendistroSecurityOperations = (sqlClient: MariaClient, GroupModel)
     // Load project name by ID and add to groupProjectNames array
     for (const groupProjectID of groupProjectIDsArray) {
       try {
-        const project = await projectHelpers(sqlClient).getProjectById(groupProjectID);
+        const project = await projectHelpers(sqlClientPool).getProjectById(groupProjectID);
         const projectName = project.name;
         // Within elasticsearch we don't support any special characters, except dashes, convert all special characters to them and make it lowercase
         const openshiftProjectNameStyle = projectName

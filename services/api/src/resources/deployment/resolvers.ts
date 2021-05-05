@@ -164,12 +164,12 @@ export const getDeploymentByRemoteId: ResolverFn = async (
 export const getDeploymentUrl: ResolverFn = async (
   { id, environment },
   args,
-  { sqlClient, hasPermission },
+  { sqlClient, sqlClientPool, hasPermission },
 ) => {
 
   const lagoonUiRoute = getLagoonRouteFromEnv(/\/ui-/, getConfigFromEnv('UI_URL', 'http://localhost:8888'));
 
-  const { name: project, openshiftProjectName  } = await projectHelpers(sqlClient).getProjectByEnvironmentId(
+  const { name: project, openshiftProjectName  } = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(
     environment,
   );
 
@@ -319,12 +319,13 @@ export const cancelDeployment: ResolverFn = async (
   { input: { deployment: deploymentInput } },
   {
     sqlClient,
+    sqlClientPool,
     hasPermission,
   },
 ) => {
   const deployment = await Helpers(sqlClient).getDeploymentByDeploymentInput(deploymentInput);
   const environment = await environmentHelpers(sqlClient).getEnvironmentById(deployment.environment);
-  const project = await projectHelpers(sqlClient).getProjectById(
+  const project = await projectHelpers(sqlClientPool).getProjectById(
     environment.project,
   );
 
@@ -359,6 +360,7 @@ export const deployEnvironmentLatest: ResolverFn = async (
   { input: { environment: environmentInput } },
   {
     sqlClient,
+    sqlClientPool,
     hasPermission,
   },
 ) => {
@@ -375,7 +377,7 @@ export const deployEnvironmentLatest: ResolverFn = async (
   }
 
   const environment = R.prop(0, activeEnvironments);
-  const project = await projectHelpers(sqlClient).getProjectById(
+  const project = await projectHelpers(sqlClientPool).getProjectById(
     environment.project,
   );
 
@@ -514,10 +516,11 @@ export const deployEnvironmentBranch: ResolverFn = async (
   { input: { project: projectInput, branchName, branchRef } },
   {
     sqlClient,
+    sqlClientPool,
     hasPermission,
   },
 ) => {
-  const project = await projectHelpers(sqlClient).getProjectByProjectInput(
+  const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
     projectInput,
   );
   const envType = branchName === project.productionEnvironment ? 'production' : 'development';
@@ -600,11 +603,12 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
   },
   {
     sqlClient,
+    sqlClientPool,
     hasPermission,
   },
 ) => {
   const branchName = `pr-${number}`;
-  const project = await projectHelpers(sqlClient).getProjectByProjectInput(
+  const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
     projectInput,
   );
   const envType = branchName === project.productionEnvironment ? 'production' : 'development';
@@ -687,10 +691,11 @@ export const deployEnvironmentPromote: ResolverFn = async (
   },
   {
     sqlClient,
+    sqlClientPool,
     hasPermission,
   },
 ) => {
-  const destProject = await projectHelpers(sqlClient).getProjectByProjectInput(
+  const destProject = await projectHelpers(sqlClientPool).getProjectByProjectInput(
     projectInput,
   );
   const envType = destinationEnvironment === destProject.productionEnvironment ? 'production' : 'development';
@@ -785,10 +790,11 @@ export const switchActiveStandby: ResolverFn = async (
   },
   {
     sqlClient,
+    sqlClientPool,
     hasPermission,
   },
 ) => {
-  const project = await projectHelpers(sqlClient).getProjectByProjectInput(
+  const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
     projectInput,
   );
 

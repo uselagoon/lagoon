@@ -219,6 +219,10 @@ const resolvers = {
     MAINTAINER: 'maintainer',
     OWNER: 'owner',
   },
+  ProjectOrderType: {
+    NAME: 'name',
+    CREATED: 'created',
+  },
   Project: {
     notifications: getNotificationsByProjectId,
     openshift: getOpenshiftByProjectId,

@@ -1,5 +1,6 @@
 import * as R from 'ramda';
 import { MariaClient } from 'mariasql';
+import { sqlClientPool } from '../../clients/sqlClient';
 import { query } from '../../util/db';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { Sql } from './sql';
@@ -37,7 +38,7 @@ export const Helpers = (sqlClient: MariaClient) => {
             let projects = problems[key].map(async (problem) => {
                 const envType =  !R.isEmpty(args.envType) && args.envType;
                 const {id, project, openshiftProjectName, name, envName, environmentType}: any =
-                    await projectHelpers(sqlClient).getProjectByEnvironmentId(problem.environment, envType) || {};
+                    await projectHelpers(sqlClientPool).getProjectByEnvironmentId(problem.environment, envType) || {};
 
                 hasPermission('project', 'view', {
                     project: !R.isNil(project) && project,

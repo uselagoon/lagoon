@@ -1,6 +1,7 @@
 import * as R from 'ramda';
 import { MariaClient } from 'mariasql';
 import { asyncPipe } from '@lagoon/commons/dist/util';
+import { sqlClientPool } from '../../clients/sqlClient';
 import { query } from '../../util/db';
 import { Sql } from './sql';
 import { Helpers as projectHelpers } from '../project/helpers';
@@ -51,7 +52,7 @@ export const Helpers = (sqlClient: MariaClient) => {
       );
 
       const envFromNameProject = async input => {
-        const project = await projectHelpers(sqlClient).getProjectByProjectInput(
+        const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
           R.prop('project', input),
         );
         const rows = await query(

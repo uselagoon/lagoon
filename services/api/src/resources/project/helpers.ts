@@ -1,38 +1,44 @@
 const R = require('ramda');
-import { MariaClient } from 'mariasql';
+import { Pool } from 'mariadb';
 const { asyncPipe } = require('@lagoon/commons/dist/util');
-const { query } = require('../../util/db');
+const { mQuery } = require('../../util/db');
 const { Sql } = require('./sql');
 
-export const Helpers = (sqlClient: MariaClient) => {
+export const Helpers = (sqlClientPool: Pool) => {
   const aliasOpenshiftToK8s = (projects: any[]) => {
     return projects.map(project => {
       return {
         ...project,
         kubernetes: project.openshift,
-        kubernetesNamespacePattern: project.openshiftProjectPattern,
-      }
+        kubernetesNamespacePattern: project.openshiftProjectPattern
+      };
     });
   };
 
   const getProjectById = async (id: number) => {
-    const rows = await query(sqlClient, Sql.selectProject(id));
+    const rows = await mQuery(sqlClientPool, Sql.selectProject(id));
     const withK8s = aliasOpenshiftToK8s(rows);
     return R.prop(0, withK8s);
   };
 
   const getProjectByName = async (name: string) => {
-    const rows = await query(sqlClient, Sql.selectProjectByName(name));
+    const rows = await mQuery(sqlClientPool, Sql.selectProjectByName(name));
     return R.prop(0, rows);
   };
 
-  const getProjectByEnvironmentId = async (environmentId: number, environmentType = null) => {
-    const rows = await query(sqlClient, Sql.selectProjectByEnvironmentId(environmentId, environmentType));
+  const getProjectByEnvironmentId = async (
+    environmentId: number,
+    environmentType = null
+  ) => {
+    const rows = await mQuery(
+      sqlClientPool,
+      Sql.selectProjectByEnvironmentId(environmentId, environmentType)
+    );
     return R.prop(0, rows);
   };
 
   const getProjectsByIds = (projectIds: number[]) =>
-    query(sqlClient, Sql.selectProjectsByIds(projectIds));
+    mQuery(sqlClientPool, Sql.selectProjectsByIds(projectIds));
 
   return {
     aliasOpenshiftToK8s,
@@ -40,12 +46,15 @@ export const Helpers = (sqlClient: MariaClient) => {
     getProjectsByIds,
     getProjectByEnvironmentId,
     getProjectIdByName: async (name: string): Promise<number> => {
-      const pidResult = await query(sqlClient, Sql.selectProjectIdByName(name));
+      const pidResult = await mQuery(
+        sqlClientPool,
+        Sql.selectProjectIdByName(name)
+      );
 
       const amount = R.length(pidResult);
       if (amount > 1) {
         throw new Error(
-          `Multiple project candidates for '${name}' (${amount} found). Do nothing.`,
+          `Multiple project candidates for '${name}' (${amount} found). Do nothing.`
         );
       }
 
@@ -71,7 +80,7 @@ export const Helpers = (sqlClient: MariaClient) => {
       });
 
       const projectFromName = asyncPipe(R.prop('name'), async name => {
-        const rows = await query(sqlClient, Sql.selectProjectByName(name));
+        const rows = await mQuery(sqlClientPool, Sql.selectProjectByName(name));
         const project = R.prop(0, rows);
 
         if (!project) {
@@ -88,17 +97,17 @@ export const Helpers = (sqlClient: MariaClient) => {
           R.T,
           () => {
             throw new Error('Must provide project "id" or "name"');
-          },
-        ],
+          }
+        ]
       ])(projectInput);
     },
-    getAllProjects: async () => query(sqlClient, Sql.selectAllProjects()),
+    getAllProjects: async () => mQuery(sqlClientPool, Sql.selectAllProjects()),
     getAllProjectsNotIn: async ids =>
-      query(sqlClient, Sql.selectAllProjectNotIn(ids)),
+      mQuery(sqlClientPool, Sql.selectAllProjectNotIn(ids)),
     getAllProjectNames: async () =>
       R.map(
         R.prop('name'),
-        await query(sqlClient, Sql.selectAllProjectNames()),
-      ),
+        await mQuery(sqlClientPool, Sql.selectAllProjectNames())
+      )
   };
 };

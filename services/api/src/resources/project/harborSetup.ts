@@ -1,15 +1,21 @@
 import * as R from 'ramda';
-import { MariaClient } from 'mariasql';
-import { config as harborConfig, harborClient } from '../../clients/harborClient';
+import { Pool } from 'mariadb';
+import {
+  config as harborConfig,
+  harborClient
+} from '../../clients/harborClient';
 import logger from '../../logger';
 import { Sql as PSql } from './sql';
 import { Sql } from '../env-variables/sql';
 import { getConfigFromEnv, getLagoonRouteFromEnv } from '../../util/config';
-import { isPatchEmpty, prepare, query, whereAnd } from '../../util/db';
+import { mQuery } from '../../util/db';
 
-const lagoonWebhookAddress = getLagoonRouteFromEnv(/webhook-handler/, getConfigFromEnv('WEBHOOK_URL', 'http://webhook-handler:3000'));
+const lagoonWebhookAddress = getLagoonRouteFromEnv(
+  /webhook-handler/,
+  getConfigFromEnv('WEBHOOK_URL', 'http://webhook-handler:3000')
+);
 
-async function createHarborProject(sqlClient: MariaClient, harborClient, lagoonProjectName: string) {
+async function createHarborProject(harborClient, lagoonProjectName: string) {
   // Returns an empty string on an error and a string on a success
 
   // Create harbor project
@@ -20,69 +26,87 @@ async function createHarborProject(sqlClient: MariaClient, harborClient, lagoonP
         project_name: lagoonProjectName,
         storage_limit: -1,
         metadata: {
-          auto_scan: "true",
-          reuse_sys_cve_whitelist: "true",
-          public: "false"
+          auto_scan: 'true',
+          reuse_sys_cve_whitelist: 'true',
+          public: 'false'
         }
       }
     });
-    logger.debug(`Harbor project ${lagoonProjectName} created!`)
+    logger.debug(`Harbor project ${lagoonProjectName} created!`);
   } catch (err) {
     if (err.statusCode == 409) {
       // 409 means project already exists
-      logger.info(`Unable to create the harbor project "${lagoonProjectName}", as it already exists in harbor; continuing with existing project`)
+      logger.info(
+        `Unable to create the harbor project "${lagoonProjectName}", as it already exists in harbor; continuing with existing project`
+      );
     } else {
-      logger.error(`Unable to create the harbor project "${lagoonProjectName}", error: ${err}`)
-      return ""
+      logger.error(
+        `Unable to create the harbor project "${lagoonProjectName}", error: ${err}`
+      );
+      return '';
     }
   }
 
   // Get new harbor project's id
   try {
     // Grab paginated project list results
-    const pageSize = 100
-    let results = []
-    let res = await harborClient.get(`projects?name=${lagoonProjectName}&page_size=${pageSize}`)
+    const pageSize = 100;
+    let results = [];
+    let res = await harborClient.get(
+      `projects?name=${lagoonProjectName}&page_size=${pageSize}`
+    );
 
     if (parseInt(res.headers['x-total-count']) > pageSize) {
-      let i = 1
+      let i = 1;
       while (res.body != null) {
-        results = results.concat(res.body)
-        i++
-        res = await harborClient.get(`projects?name=${lagoonProjectName}&page_size=${pageSize}&page=${i}`)
+        results = results.concat(res.body);
+        i++;
+        res = await harborClient.get(
+          `projects?name=${lagoonProjectName}&page_size=${pageSize}&page=${i}`
+        );
       }
     } else {
-      results = res.body
+      results = res.body;
     }
 
     // Search array of objects for correct project
     for (let proj of results) {
       if (proj.name == lagoonProjectName) {
-        var harborProjectID = proj.project_id
-        break
+        var harborProjectID = proj.project_id;
+        break;
       }
     }
 
-    logger.debug(`Harbor project id for ${lagoonProjectName} is: ${harborProjectID}`)
+    logger.debug(
+      `Harbor project id for ${lagoonProjectName} is: ${harborProjectID}`
+    );
   } catch (err) {
     if (err.statusCode == 404) {
-      logger.error(`Unable to get the harbor project id of "${lagoonProjectName}", as it does not exist in harbor!`)
-      return
+      logger.error(
+        `Unable to get the harbor project id of "${lagoonProjectName}", as it does not exist in harbor!`
+      );
+      return;
     } else {
-      logger.error(`Unable to get the harbor project id of "${lagoonProjectName}", error: ${err}`)
-      return ""
+      logger.error(
+        `Unable to get the harbor project id of "${lagoonProjectName}", error: ${err}`
+      );
+      return '';
     }
   }
-  return harborProjectID
+  return harborProjectID;
 }
 
-async function createRobot(sqlClient: MariaClient, harborClient, lagoonProjectName: string, harborProjectID: string) {
+async function createRobot(
+  harborClient,
+  lagoonProjectName: string,
+  harborProjectID: string
+) {
   // Returns false on an error and a token object on a success
 
   // Create robot account for new harbor project
   try {
-    const timestamp = Math.floor(Date.now() / 1000)
-    var robotName = `${lagoonProjectName}-${timestamp}`
+    const timestamp = Math.floor(Date.now() / 1000);
+    var robotName = `${lagoonProjectName}-${timestamp}`;
 
     const res = await harborClient.post(`projects/${harborProjectID}/robots`, {
       body: {
@@ -90,219 +114,340 @@ async function createRobot(sqlClient: MariaClient, harborClient, lagoonProjectNa
         access: [
           {
             resource: `/project/${harborProjectID}/repository`,
-            action: "push"
+            action: 'push'
           }
         ]
       }
-    })
-    var harborTokenInfo = res.body
-    logger.debug(`Robot ${robotName} was created for Harbor project ${lagoonProjectName} !`)
+    });
+    var harborTokenInfo = res.body;
+    logger.debug(
+      `Robot ${robotName} was created for Harbor project ${lagoonProjectName} !`
+    );
   } catch (err) {
     // 409 means project already exists
     // 201 means project created successfully
     if (err.statusCode == 409) {
-      logger.warn(`Unable to create a robot account for harbor project "${lagoonProjectName}", as a robot account of the same name already exists!`)
+      logger.warn(
+        `Unable to create a robot account for harbor project "${lagoonProjectName}", as a robot account of the same name already exists!`
+      );
     } else {
-      logger.error(`Unable to create a robot account for harbor project "${lagoonProjectName}", error: ${err}`)
-      return false
+      logger.error(
+        `Unable to create a robot account for harbor project "${lagoonProjectName}", error: ${err}`
+      );
+      return false;
     }
   }
-  return harborTokenInfo
+  return harborTokenInfo;
 }
 
-async function removeHarborEnvVars(sqlClient: MariaClient, lagoonProjectName: string) {
+async function removeHarborEnvVars(
+  sqlClientPool: Pool,
+  lagoonProjectName: string
+) {
   // Returns false on an error and true on a success
 
   // Find any currently set env vars
   var old_env_vars = [];
   try {
-    const result = await query(
-      sqlClient,
-      PSql.selectProjectByName(lagoonProjectName),
+    const result = await mQuery(
+      sqlClientPool,
+      PSql.selectProjectByName(lagoonProjectName)
     );
-    const env_vars = await query(
-      sqlClient,
+    const env_vars = await mQuery(
+      sqlClientPool,
       `SELECT *
       FROM env_vars
-      WHERE project = '${result[0].id}'
-      AND scope = 'internal_container_registry'`
+      WHERE project = :id
+      AND scope = 'internal_container_registry'`,
+      {
+        id: result[0].id
+      }
     );
 
-    for (var i=0; i < env_vars.length; i++) {
-      old_env_vars.push(env_vars[i])
+    for (var i = 0; i < env_vars.length; i++) {
+      old_env_vars.push(env_vars[i]);
     }
   } catch (err) {
-    logger.info(`Unable to get current env vars for project: ${lagoonProjectName}`, err)
+    logger.info(
+      `Unable to get current env vars for project: ${lagoonProjectName}`,
+      err
+    );
   }
 
   // Remove any previously set internal_container_registry env vars
   try {
-    for (var j=0; j < old_env_vars.length; j++) {
-      await query(
-        sqlClient,
-        Sql.deleteEnvVariable (old_env_vars[j].id)
+    for (var j = 0; j < old_env_vars.length; j++) {
+      await mQuery(sqlClientPool, Sql.deleteEnvVariable(old_env_vars[j].id));
+      logger.debug(
+        `Removed ${old_env_vars[j].name} env var from project ${lagoonProjectName}`
       );
-      logger.debug(`Removed ${old_env_vars[j].name} env var from project ${lagoonProjectName}`)
     }
   } catch (err) {
-    logger.error(`Unable to remove ${old_env_vars[j].name} env var from project ${lagoonProjectName}`, err)
-    return false
+    logger.error(
+      `Unable to remove ${old_env_vars[j].name} env var from project ${lagoonProjectName}`,
+      err
+    );
+    return false;
   }
 
-  return true
+  return true;
 }
 
-async function addEnvVar(sqlClient: MariaClient, lagoonProjectName: string, name: string, value: string, scope: string, project: string) {
+async function addEnvVar(
+  sqlClientPool: Pool,
+  lagoonProjectName: string,
+  name: string,
+  value: string,
+  scope: string,
+  project: string
+) {
   // Returns false on an error and true on a success
   try {
-    await query(
-      sqlClient,
+    await mQuery(
+      sqlClientPool,
       Sql.insertEnvVariable({
-        "name": name,
-        "value": value,
-        "scope": scope,
-        "project": parseInt(project, 10),
-      }),
+        name: name,
+        value: value,
+        scope: scope,
+        project: parseInt(project, 10)
+      })
     );
-    logger.debug(`Environment variable ${name} for ${lagoonProjectName} created!`)
+    logger.debug(
+      `Environment variable ${name} for ${lagoonProjectName} created!`
+    );
   } catch (err) {
-    logger.error(`Error while setting ${name} variable for ${lagoonProjectName}, error: ${err}`)
-    return false
+    logger.error(
+      `Error while setting ${name} variable for ${lagoonProjectName}, error: ${err}`
+    );
+    return false;
   }
-  return true
+  return true;
 }
 
-async function resetHarborWebhook(sqlClient: MariaClient, harborClient, lagoonProjectName: string, lagoonWebhookAddress: string, harborProjectID: string) {
+async function resetHarborWebhook(
+  harborClient,
+  lagoonProjectName: string,
+  lagoonWebhookAddress: string,
+  harborProjectID: string
+) {
   // Returns false on an error and true on a success
 
   // Get current webhooks for Harbor project
-  let old_webhooks = []
+  let old_webhooks = [];
   try {
-    const res = await harborClient.get(`projects/${harborProjectID}/webhook/policies`);
+    const res = await harborClient.get(
+      `projects/${harborProjectID}/webhook/policies`
+    );
 
     for (var i = 0; i < res.body.length; i++) {
-      old_webhooks.push(res.body[i])
+      old_webhooks.push(res.body[i]);
     }
   } catch (err) {
-    logger.info(`Unable to retrieve list of current webhooks for Harbor Project: ${lagoonProjectName}`, err)
+    logger.info(
+      `Unable to retrieve list of current webhooks for Harbor Project: ${lagoonProjectName}`,
+      err
+    );
   }
 
   // Remove old webhooks from Harbor project
   try {
-    for (var j=0; j < old_webhooks.length; j++) {
-      var result = await harborClient.delete(`projects/${harborProjectID}/webhook/policies/${old_webhooks[j].id}`, {
-        body: {
-          project_id: harborProjectID,
-          policy_id: old_webhooks[j].id
+    for (var j = 0; j < old_webhooks.length; j++) {
+      var result = await harborClient.delete(
+        `projects/${harborProjectID}/webhook/policies/${old_webhooks[j].id}`,
+        {
+          body: {
+            project_id: harborProjectID,
+            policy_id: old_webhooks[j].id
+          }
         }
-      });
-      logger.debug(`Removed ${old_webhooks[j].name} webhook from Harbor project ${lagoonProjectName}`)
+      );
+      logger.debug(
+        `Removed ${old_webhooks[j].name} webhook from Harbor project ${lagoonProjectName}`
+      );
     }
   } catch (err) {
-    logger.error(`Unable to remove ${old_webhooks[j].name} webhook from Harbor project ${lagoonProjectName}`, err)
-    return false
+    logger.error(
+      `Unable to remove ${old_webhooks[j].name} webhook from Harbor project ${lagoonProjectName}`,
+      err
+    );
+    return false;
   }
 
   // Set webhook for Harbor Project
   try {
-    var res = await harborClient.post(`projects/${harborProjectID}/webhook/policies`, {
-      body: {
-        targets: [
-          {
-            type: "http",
-            skip_cert_verify: true,
-            address: lagoonWebhookAddress
-          }
-        ],
-        event_types: [
-          "scanningFailed",
-          "scanningCompleted"
-        ],
-        name: "Lagoon Default Webhook",
-        enabled: true
+    var res = await harborClient.post(
+      `projects/${harborProjectID}/webhook/policies`,
+      {
+        body: {
+          targets: [
+            {
+              type: 'http',
+              skip_cert_verify: true,
+              address: lagoonWebhookAddress
+            }
+          ],
+          event_types: ['scanningFailed', 'scanningCompleted'],
+          name: 'Lagoon Default Webhook',
+          enabled: true
+        }
       }
-    });
-    logger.debug(`Created Lagoon default webhook for Harbor project: ${lagoonProjectName}`)
+    );
+    logger.debug(
+      `Created Lagoon default webhook for Harbor project: ${lagoonProjectName}`
+    );
   } catch (err) {
-    logger.error(`Error while creating a webhook in the Harbor project for ${lagoonProjectName}, error: ${err}`)
-    return false
+    logger.error(
+      `Error while creating a webhook in the Harbor project for ${lagoonProjectName}, error: ${err}`
+    );
+    return false;
   }
-  return true
+  return true;
 }
 
-export const createHarborOperations = (sqlClient /* : MariaSQL */) => ({
+export const createHarborOperations = (sqlClientPool: Pool) => ({
   addProject: async (lagoonProjectName, projectID) => {
     // Create harbor project
-    const harborProjectID = await createHarborProject(sqlClient, harborClient, lagoonProjectName)
-    if (harborProjectID == "") {return}
+    const harborProjectID = await createHarborProject(
+      harborClient,
+      lagoonProjectName
+    );
+    if (harborProjectID == '') {
+      return;
+    }
 
     // Create robot account for new harbor project
-    var harborTokenInfo = await createRobot(sqlClient, harborClient, lagoonProjectName, harborProjectID)
-    if (harborTokenInfo == false) {return}
+    var harborTokenInfo = await createRobot(
+      harborClient,
+      lagoonProjectName,
+      harborProjectID
+    );
+    if (harborTokenInfo == false) {
+      return;
+    }
 
     // Remove previously set internal registry env vars
-    if (! await removeHarborEnvVars(sqlClient, lagoonProjectName)) {return}
+    if (!(await removeHarborEnvVars(sqlClientPool, lagoonProjectName))) {
+      return;
+    }
 
     // Set required Lagoon env vars to enable Harbor on this project
-    if (! await addEnvVar(sqlClient, lagoonProjectName, "INTERNAL_REGISTRY_URL", harborConfig.publicRoute, "INTERNAL_CONTAINER_REGISTRY", projectID)) {return}
-    if (! await addEnvVar(sqlClient, lagoonProjectName, "INTERNAL_REGISTRY_USERNAME", harborTokenInfo.name, "INTERNAL_CONTAINER_REGISTRY", projectID)) {return}
-    if (! await addEnvVar(sqlClient, lagoonProjectName, "INTERNAL_REGISTRY_PASSWORD", harborTokenInfo.token, "INTERNAL_CONTAINER_REGISTRY", projectID)) {return}
+    if (
+      !(await addEnvVar(
+        sqlClientPool,
+        lagoonProjectName,
+        'INTERNAL_REGISTRY_URL',
+        harborConfig.publicRoute,
+        'INTERNAL_CONTAINER_REGISTRY',
+        projectID
+      ))
+    ) {
+      return;
+    }
+    if (
+      !(await addEnvVar(
+        sqlClientPool,
+        lagoonProjectName,
+        'INTERNAL_REGISTRY_USERNAME',
+        harborTokenInfo.name,
+        'INTERNAL_CONTAINER_REGISTRY',
+        projectID
+      ))
+    ) {
+      return;
+    }
+    if (
+      !(await addEnvVar(
+        sqlClientPool,
+        lagoonProjectName,
+        'INTERNAL_REGISTRY_PASSWORD',
+        harborTokenInfo.token,
+        'INTERNAL_CONTAINER_REGISTRY',
+        projectID
+      ))
+    ) {
+      return;
+    }
 
     // Reset harbor project webhook to point to this Lagoon's Harbor
-    if (! await resetHarborWebhook(sqlClient, harborClient, lagoonProjectName, lagoonWebhookAddress, harborProjectID)) {return}
+    if (
+      !(await resetHarborWebhook(
+        harborClient,
+        lagoonProjectName,
+        lagoonWebhookAddress,
+        harborProjectID
+      ))
+    ) {
+      return;
+    }
   },
 
-  deleteProject: async (lagoonProjectName) => {
-    const harborRepos = []
+  deleteProject: async lagoonProjectName => {
+    const harborRepos = [];
 
     // Get existing harbor project's id
     try {
-      const res = await harborClient.get(`projects?name=${lagoonProjectName}`)
-      var harborProjectID = res.body[0].project_id
-      logger.debug(`Got the harbor project id for project ${lagoonProjectName} successfully!`)
+      const res = await harborClient.get(`projects?name=${lagoonProjectName}`);
+      var harborProjectID = res.body[0].project_id;
+      logger.debug(
+        `Got the harbor project id for project ${lagoonProjectName} successfully!`
+      );
     } catch (err) {
       if (err.statusCode == 404) {
         // This case could come to pass if a project was created
         // before we began using Harbor as our container registry
-        logger.warn(`Unable to get the harbor project id of "${lagoonProjectName}", as it does not exist in harbor!`)
-        return
+        logger.warn(
+          `Unable to get the harbor project id of "${lagoonProjectName}", as it does not exist in harbor!`
+        );
+        return;
       } else {
-        logger.error(`Unable to get the harbor project id of "${lagoonProjectName}", error: ${err}`)
-        return
+        logger.error(
+          `Unable to get the harbor project id of "${lagoonProjectName}", error: ${err}`
+        );
+        return;
       }
     }
-    logger.debug(`Harbor project id for ${lagoonProjectName}: ${harborProjectID}`)
+    logger.debug(
+      `Harbor project id for ${lagoonProjectName}: ${harborProjectID}`
+    );
 
     // Check for existing repositories within the project
     try {
-      const res = await harborClient.get(`search?name=${lagoonProjectName}`)
+      const res = await harborClient.get(`search?name=${lagoonProjectName}`);
       for (var i = 0; i < res.repository.length; i++) {
-        if (res.repository[i].project_name == lagoonProjectName){
-          harborRepos.push(res.repository[i])
+        if (res.repository[i].project_name == lagoonProjectName) {
+          harborRepos.push(res.repository[i]);
         }
       }
     } catch (err) {
-      logger.error(`Unable to search for repositories within the harbor project "${lagoonProjectName}", error: ${err}`)
+      logger.error(
+        `Unable to search for repositories within the harbor project "${lagoonProjectName}", error: ${err}`
+      );
     }
 
     // Delete any repositories within this project
     try {
       for (var i = 0; i < harborRepos.length; i++) {
-        var res = await harborClient.delete(`repositories/${harborRepos[i].repository_name}`)
+        var res = await harborClient.delete(
+          `repositories/${harborRepos[i].repository_name}`
+        );
       }
     } catch (err) {
-      logger.error(`Unable to delete repositories within the harbor project "${lagoonProjectName}", error: ${err}`)
+      logger.error(
+        `Unable to delete repositories within the harbor project "${lagoonProjectName}", error: ${err}`
+      );
     }
 
     // Delete harbor project
     try {
       var res = await harborClient.delete(`projects/${harborProjectID}`);
-      logger.debug(`Harbor project ${lagoonProjectName} deleted!`)
+      logger.debug(`Harbor project ${lagoonProjectName} deleted!`);
     } catch (err) {
       // 400 means the project id is invalid
       // 404 means project doesn't exist
       // 412 means project still contains repositories
-      logger.info(`Unable to delete the harbor project "${lagoonProjectName}", error: ${err}`)
+      logger.info(
+        `Unable to delete the harbor project "${lagoonProjectName}", error: ${err}`
+      );
     }
   }
-})
+});
