@@ -271,6 +271,11 @@ const resolvers = {
     DEPLOYMENT: 'deployment',
     PROBLEM: 'problem',
   },
+  TaskStatusType: {
+    ACTIVE: 'active',
+    SUCCEEDED: 'succeeded',
+    FAILED: 'failed',
+  },
   Project: {
     notifications: getNotificationsByProjectId,
     openshift: getOpenshiftByProjectId,
