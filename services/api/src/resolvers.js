@@ -261,6 +261,16 @@ const resolvers = {
     FAILED: 'failed',
     COMPLETE: 'complete',
   },
+  NotificationType: {
+    SLACK: 'slack',
+    ROCKETCHAT: 'rocketchat',
+    MICROSOFTTEAMS: 'microsoftteams',
+    EMAIL: 'email',
+  },
+  NotificationContentType: {
+    DEPLOYMENT: 'deployment',
+    PROBLEM: 'problem',
+  },
   Project: {
     notifications: getNotificationsByProjectId,
     openshift: getOpenshiftByProjectId,

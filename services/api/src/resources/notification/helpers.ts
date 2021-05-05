@@ -1,14 +1,14 @@
 import * as R from 'ramda';
-import { MariaClient } from 'mariasql';
-import { query } from '../../util/db';
+import { Pool } from 'mariadb';
+import { mQuery } from '../../util/db';
 import { Sql } from './sql';
 
-export const Helpers = (sqlClient: MariaClient) => ({
+export const Helpers = (sqlClientPool: Pool) => ({
   getAssignedNotificationIds: async (
     { name, type }: { name: string, type: string },
   ) => {
-    const result = await query(
-      sqlClient,
+    const result = await mQuery(
+      sqlClientPool,
       Sql.selectProjectNotificationByNotificationName({ name, type }),
     );
 
