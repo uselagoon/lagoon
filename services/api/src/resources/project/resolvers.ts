@@ -214,7 +214,7 @@ export const getProjectsByMetadata: ResolverFn = async (
 export const addProject = async (
   root,
   { input },
-  { hasPermission, sqlClient, sqlClientPool, models, keycloakGrant }
+  { hasPermission, sqlClientPool, models, keycloakGrant }
 ) => {
   await hasPermission('project', 'add');
 
@@ -339,7 +339,7 @@ export const addProject = async (
     );
   }
 
-  OpendistroSecurityOperations(sqlClient, models.GroupModel).syncGroup(
+  OpendistroSecurityOperations(sqlClientPool, models.GroupModel).syncGroup(
     `project-${project.name}`,
     project.id
   );
@@ -429,7 +429,7 @@ export const addProject = async (
 export const deleteProject: ResolverFn = async (
   root,
   { input: { project: projectName } },
-  { sqlClient, sqlClientPool, hasPermission, models }
+  { sqlClientPool, hasPermission, models }
 ) => {
   // Will throw on invalid conditions
   const pid = await Helpers(sqlClientPool).getProjectIdByName(projectName);
@@ -447,7 +447,7 @@ export const deleteProject: ResolverFn = async (
       `project-${project.name}`
     );
     await models.GroupModel.deleteGroup(group.id);
-    OpendistroSecurityOperations(sqlClient, models.GroupModel).deleteGroup(
+    OpendistroSecurityOperations(sqlClientPool, models.GroupModel).deleteGroup(
       group.name
     );
   } catch (err) {
