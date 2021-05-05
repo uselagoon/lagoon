@@ -247,6 +247,11 @@ const resolvers = {
     CONTAINER_REGISTRY: 'container_registry',
     INTERNAL_CONTAINER_REGISTRY: 'internal_container_registry',
   },
+  RestoreStatusType: {
+    PENDING: 'pending',
+    SUCCESSFUL: 'successful',
+    FAILED: 'failed',
+  },
   Project: {
     notifications: getNotificationsByProjectId,
     openshift: getOpenshiftByProjectId,
