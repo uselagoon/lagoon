@@ -51,7 +51,6 @@ export const generator = (schema, min = 1, max) => {
 // 'scalar' and 'enum' mocks from typeDefs.
 //
 const mocks = {
-  // Upload: () => null; // Not used anywhere in schema.
   Date: () => faker.date.between('2018-11-01T00:00:00', '2019-10-31T23:59:59').toISOString(),
   JSON: () => ({ id: faker.random.number(), currency: 'usd' }),
   SshKeyType: () => faker.random.arrayElement(['ssh_rsa', 'ssh_ed25519']),
@@ -514,7 +513,53 @@ mocks.Query = () => ({
   allProjectsInGroup: () => new MockList(5),
   billingGroupCost: mockCost,
   allBillingGroupsCost: mockCost,
+  allBillingModifiers: mockModifier
 });
+
+const mockModifier = () => {
+  return [
+    {
+      "id": 18,
+      "group": {
+        "id": "6bd89c43-abdd-47e6-bda0-d2c598792d4c",
+        "name": "Lorem Ipsum",
+        "__typename": "BillingGroup"
+      },
+      "startDate": "2020-03-01 00:00:00",
+      "endDate": "2999-03-02 00:00:00",
+      "discountFixed": 0,
+      "discountPercentage": 0,
+      "extraFixed": 540,
+      "extraPercentage": 0,
+      "min": 0,
+      "max": 0,
+      "customerComments": "Rocket Chat",
+      "adminComments": "Rocket Chat",
+      "weight": 0,
+      "__typename": "BillingModifier"
+    },
+    {
+      "id": 25,
+      "group": {
+        "id": "6bd89c43-abdd-47e6-bda0-d2c598792d4c",
+        "name": "Accruent",
+        "__typename": "BillingGroup"
+      },
+      "startDate": "2020-04-01 00:00:00",
+      "endDate": "2020-04-30 00:00:00",
+      "discountFixed": 0,
+      "discountPercentage": 0,
+      "extraFixed": 1517,
+      "extraPercentage": 0,
+      "min": 0,
+      "max": 0,
+      "customerComments": "Per email with Alex and Jennifer, correction for Jan/Feb/Mar hits calculation",
+      "adminComments": "Back-billing for incorrect hits calculation",
+      "weight": 0,
+      "__typename": "BillingModifier"
+    }
+  ]
+}
 
 const mockCost = () => {
   const availability = mocks.ProjectAvailability();
