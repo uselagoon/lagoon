@@ -1118,8 +1118,6 @@ export const createMiscTask = async function(taskData: any) {
           break;
       }
       // send the task to the queue
-      console.log("sending to " + deployTarget);
-      console.log(miscTaskData);
       return sendToLagoonTasks(deployTarget+':misc', miscTaskData);
     default:
       break;

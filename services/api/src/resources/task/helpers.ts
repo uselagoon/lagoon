@@ -173,21 +173,6 @@ export const Helpers = (sqlClient: MariaClient) => ({
       execute: boolean,
     },
   ) => {
-
-    //TODO: in the first pass I'm going to use the "command" field to store the name of the task we want to run
-    // We can change the "task" db going forward to be sensitive to advanced tasks themselves
-    // in the first
-
-
-
-    // TODO: we need to write this into the DB in some format
-    // suggestion - add advanced task details to table?
-    // short term, hijack 'command' for the image name
-
-
-
-
-
     let rows = await query(
       sqlClient,
       environmentSql.selectEnvironmentById(environment),
@@ -199,8 +184,6 @@ export const Helpers = (sqlClient: MariaClient) => ({
       projectSql.selectProject(environmentData.project),
     );
     const projectData = R.prop(0, rows);
-
-
 
     // TODO: uncomment and understand
     // pubSub.publish(EVENTS.TASK.ADDED, jobSpec);
@@ -246,8 +229,6 @@ export const Helpers = (sqlClient: MariaClient) => ({
       }
     }
 
-    console.log(jobSpec);
-
     try {
       await createMiscTask(
         {
@@ -256,14 +237,14 @@ export const Helpers = (sqlClient: MariaClient) => ({
         }
       )
     } catch (error) {
-      // sendToLagoonLogs(
-      //   'error',
-      //   projectData.name,
-      //   '',
-      //   'api:addTask',
-      //   // { taskId: taskData.id },
-      //   `*[${projectData.name}]* Task not initiated, reason: ${error}`,
-      // );
+      sendToLagoonLogs(
+        'error',
+        projectData.name,
+        '',
+        'api:addTask',
+        // { taskId: taskData.id },
+        `*[${projectData.name}]* Task not initiated, reason: ${error}`,
+      );
     }
 
     return {
