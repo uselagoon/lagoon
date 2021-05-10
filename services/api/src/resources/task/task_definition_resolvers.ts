@@ -40,7 +40,6 @@ const PermissionsToRBAC = (permission:string) => {
 return `invoke:${permission.toLowerCase()}`
 }
 
-
 // All query resolvers
 
 export const advancedTaskDefinitionById = async(
