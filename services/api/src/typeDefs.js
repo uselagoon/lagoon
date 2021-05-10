@@ -1143,23 +1143,6 @@ const typeDefs = gql`
     advancedTaskArguments: [AdvancedTaskArgumentInput]
   }
 
-
-  input TaskRegistrationInput {
-    id: Int
-    advancedTaskDefinition: Int
-    environment: Int
-  }
-
-  input AdvancedTaskToEnvironmentInput {
-    environment: Int,
-    advancedTaskDefinition: Int
-  }
-
-  input AdvancedTaskToProjectInput {
-    project: Int,
-    advancedTaskDefinition: Int
-  }
-
   enum AdvancedTaskDefinitionArgumentTypes {
     NUMERIC
     STRING
@@ -1183,6 +1166,9 @@ const typeDefs = gql`
     type: AdvancedTaskDefinitionTypes
     service: String
     command: String
+    environment: Int
+    project: Int
+    permission: TaskPermission
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgumentInput]
   }
 
@@ -1764,10 +1750,7 @@ const typeDefs = gql`
     addTask(input: TaskInput!): Task
     addAdvancedTask(input: AdvancedTaskInput!): AdvancedTask
     addAdvancedTaskDefinition(input: AdvancedTaskDefinitionInput!): AdvancedTaskDefinition
-    addAdvancedTaskDefinitionToEnvironment(input: AdvancedTaskToEnvironmentInput!): AdvancedTaskEnvironment
-    addAdvancedTaskDefinitionToProject(input: AdvancedTaskToProjectInput!): AdvancedTaskProject
-    registerTask(input: TaskRegistrationInput!): TaskRegistration
-    invokeRegisteredTask(taskRegistration: Int!, environment: Int!): Task
+    invokeRegisteredTask(advancedTaskDefinition: Int!, environment: Int!): Task
     taskDrushArchiveDump(environment: Int!): Task
     taskDrushSqlDump(environment: Int!): Task
     taskDrushCacheClear(environment: Int!): Task

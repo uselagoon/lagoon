@@ -65,16 +65,12 @@ const {
 
 const {
   addAdvancedTaskDefinition,
-  getAllAdvancedTaskDefinitions,
   addAdvancedTask,
   advancedTaskDefinitionById,
   resolveTasksForEnvironment,
   getRegisteredTasksByEnvironmentId,
   getAdvancedTaskDefinitionByName,
-  addAdvancedTaskDefinitionToEnvironment,
-  addAdvancedTaskDefinitionToProject,
   advancedTaskDefinitionArgumentById,
-  registerTask,
   invokeRegisteredTask,
 } = require('./resources/task/task_definition_resolvers');
 
@@ -322,7 +318,6 @@ const resolvers = {
     deploymentByRemoteId: getDeploymentByRemoteId,
     taskByRemoteId: getTaskByRemoteId,
     taskById: getTaskById,
-    allAdvancedTaskDefinitions: getAllAdvancedTaskDefinitions,
     advancedTaskDefinitionById,
     advancedTaskDefinitionByName: getAdvancedTaskDefinitionByName,
     advancedTasksForEnvironment: resolveTasksForEnvironment,
@@ -412,9 +407,6 @@ const resolvers = {
     addTask,
     addAdvancedTask,
     addAdvancedTaskDefinition,
-    addAdvancedTaskDefinitionToEnvironment,
-    addAdvancedTaskDefinitionToProject,
-    registerTask,
     invokeRegisteredTask,
     taskDrushArchiveDump,
     taskDrushSqlDump,

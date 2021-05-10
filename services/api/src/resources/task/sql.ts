@@ -77,6 +77,8 @@ export const Sql = {
     created,
     type,
     service,
+    project,
+    environment,
     permission,
     }: {
       id: number,
@@ -87,6 +89,8 @@ export const Sql = {
       created: string,
       type: string,
       service: string,
+      project: number,
+      environment: number,
       permission: string,
     }) =>
     knex('advanced_task_definition')
@@ -99,6 +103,8 @@ export const Sql = {
         created,
         type,
         service,
+        project,
+        environment,
         permission,
       })
     .toString(),
@@ -121,38 +127,6 @@ export const Sql = {
           type
         })
       .toString(),
-    insertAdvancedTaskDefinitionEnvironmentLink: ({
-        id,
-        advanced_task_definition,
-        environment
-        }: {
-          id: number,
-          advanced_task_definition: string,
-          environment: number,
-        }) =>
-        knex('task_registration')
-          .insert({
-            id,
-            advanced_task_definition,
-            environment,
-          })
-        .toString(),
-    insertAdvancedTaskDefinitionProjectLink: ({
-        id,
-        advanced_task_definition,
-        project
-        }: {
-          id: number,
-          advanced_task_definition: string,
-          project
-        }) =>
-        knex('task_registration')
-          .insert({
-            id,
-            advanced_task_definition,
-            project
-          })
-        .toString(),
     insertTaskRegistration: ({
           id,
           advanced_task_definition,
@@ -210,22 +184,26 @@ export const Sql = {
       knex('advanced_task_definition')
         .where('advanced_task_definition.name', '=', name)
         .toString(),
+    selectAdvancedTaskDefinitionByNameProjectAndEnvironment:(name: string, project: number, environment: number) => {
+      let query = knex('advanced_task_definition')
+        .where('advanced_task_definition.name', '=', name);
+        if(project) {
+          query = query.where('advanced_task_definition.project', '=', project)
+        }
+        if(environment) {
+          query = query.where('advanced_task_definition.environment', '=', environment)
+        }
+        return query.toString()
+    },
   selectAdvancedTaskDefinitions:() =>
     knex('advanced_task_definition')
     .toString(),
   selectAdvancedTaskDefinitionsForEnvironment:(id: number) =>
     knex('advanced_task_definition')
-    .select(['task_registration.id',
-    'advanced_task_definition.id as advancedTaskDefinition',
-    'advanced_task_definition.name',
-    'advanced_task_definition.description',
-    'advanced_task_definition.image',
-    'advanced_task_definition.service',
-    'advanced_task_definition.command',
-    'advanced_task_definition.created',
-    'advanced_task_definition.permission',
-    ])
-    .join('task_registration', 'task_registration.advanced_task_definition', '=', 'advanced_task_definition.id')
-    .where('task_registration.environment', '=', id)
+    .where('environment', '=', id)
+    .toString(),
+    selectAdvancedTaskDefinitionsForProject:(id: number) =>
+    knex('advanced_task_definition')
+    .where('project', '=', id)
     .toString(),
 };

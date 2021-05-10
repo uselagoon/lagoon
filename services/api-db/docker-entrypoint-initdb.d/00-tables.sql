@@ -293,15 +293,18 @@ CREATE TABLE IF NOT EXISTS environment_fact (
 
 CREATE TABLE IF NOT EXISTS advanced_task_definition (
   id                       int NOT NULL auto_increment PRIMARY KEY,
-  name                     varchar(300) NOT NULL UNIQUE,
+  name                     varchar(300) NOT NULL,
   description              TEXT NOT NULL DEFAULT '',
   image                    varchar(2000) DEFAULT '',
   service                  varchar(100),
   type                     varchar(100) NOT NULL,
+  environment              int NULL REFERENCES environment(id),
+  project                  int NULL REFERENCES project(id),
   permission               ENUM('GUEST', 'DEVELOPER', 'MAINTAINER') DEFAULT 'GUEST',
   command                  text DEFAULT '',
   created                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  deleted                  timestamp NOT NULL DEFAULT '0000-00-00 00:00:00'
+  deleted                  timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  UNIQUE(name, environment, project)
 );
 
 CREATE TABLE IF NOT EXISTS advanced_task_definition_argument (
@@ -311,13 +314,13 @@ CREATE TABLE IF NOT EXISTS advanced_task_definition_argument (
   type                              ENUM('NUMERIC', 'STRING')
 );
 
-CREATE TABLE IF NOT EXISTS task_registration (
-  id                                int NOT NULL auto_increment PRIMARY KEY,
-  type                              ENUM('STANDARD', 'ADVANCED') default 'STANDARD',
-  advanced_task_definition          int NULL REFERENCES advanced_task_definition(id),
-  environment                       int NULL REFERENCES environment(id),
-  project                           int NULL REFERENCES project(id),
-  created                           timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  deleted                           timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  UNIQUE(environment, project, advanced_task_definition)
-);
+-- CREATE TABLE IF NOT EXISTS task_registration (
+--   id                                int NOT NULL auto_increment PRIMARY KEY,
+--   type                              ENUM('STANDARD', 'ADVANCED') default 'STANDARD',
+--   advanced_task_definition          int NULL REFERENCES advanced_task_definition(id),
+--   environment                       int NULL REFERENCES environment(id),
+--   project                           int NULL REFERENCES project(id),
+--   created                           timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+--   deleted                           timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+--   UNIQUE(environment, project, advanced_task_definition)
+-- );

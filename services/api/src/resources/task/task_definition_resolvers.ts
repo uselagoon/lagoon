@@ -20,9 +20,25 @@ import { Validators as envValidators } from '../environment/validators';
 import { getSqlClient } from '../../clients/sqlClient';
 import sql from '../user/sql';
 import { BreakingChangeType } from 'graphql';
-//import { getProjectByEnvironmentId } from '../project/helpers';
 import {TaskRegistration, newTaskRegistrationFromObject} from './models/taskRegistration'
 import { getProjectByEnvironmentId } from '../project/resolvers';
+
+
+const AdvancedTaskDefinitionType = {
+  command: "COMMAND",
+  image: "IMAGE",
+}
+
+const taskStatusTypeToString = R.cond([
+  [R.equals('ACTIVE'), R.toLower],
+  [R.equals('SUCCEEDED'), R.toLower],
+  [R.equals('FAILED'), R.toLower],
+  [R.T, R.identity],
+]);
+
+const PermissionsToRBAC = (permission:string) => {
+return `invoke:${permission.toLowerCase()}`
+}
 
 
 // All query resolvers
@@ -37,29 +53,19 @@ export const advancedTaskDefinitionById = async(
     return await advancedTaskFunctions(sqlClient).advancedTaskDefinitionById(id);
 }
 
+export const getRegisteredTasksByEnvironmentId = async(
+  { id },
+  {},
+  { sqlClient, hasPermission },
+) => {
+  let rows;
 
-const canTaskBeRunInEnvironment = async (sqlClient, environmentId: number, task: TaskRegistration) => {
-  //if the task is attached directly to the environment, we're good to go.
-  if(task.environment && task.environment == environmentId) {
-    return true;
+  if (!R.isEmpty(id)) {
+    rows = await resolveTasksForEnvironment({}, {environment: id}, {sqlClient, hasPermission})
   }
 
-  // grab project for environment
-  try {
-    const proj = await projectHelpers(sqlClient).getProjectByEnvironmentId(environmentId);
-    // //else we have to check the environment against its project
-    console.log(proj)
-    if(task.project && task.project == proj.project) {
-      return true;
-    }
-
-  } catch(ex) {
-    return false
-  }
-
-  return false
+  return rows;
 }
-
 
 export const resolveTasksForEnvironment = async(
   root,
@@ -68,44 +74,20 @@ export const resolveTasksForEnvironment = async(
   ) => {
 
     const environmentDetails = await environmentHelpers(sqlClient).getEnvironmentById(environment);
-    // await hasPermission('task', 'view', {
-    //   project: environmentDetails.project,
-    // });
+    await hasPermission('task', 'view', {
+      project: environmentDetails.project,
+    });
 
-    const rows = await query(sqlClient, Sql.selectAdvancedTaskDefinitionsForEnvironment(environment));
+    let environmentRows = await query(sqlClient, Sql.selectAdvancedTaskDefinitionsForEnvironment(environment));
+
+    const proj = await projectHelpers(sqlClient).getProjectByEnvironmentId(environment);
+    let projectRows = await query(sqlClient, Sql.selectAdvancedTaskDefinitionsForProject(proj.project));
+    //@ts-ignore
+    let rows = R.uniqBy((o) => o.name, R.concat(environmentRows, projectRows))
+    //TODO: drop in system level tasks when we have them
     return rows;
 }
 
-export const getRegisteredTasksByEnvironmentId = async(
-  { id },
-  {},
-  { sqlClient, hasPermission },
-) => {
-  let rows;
-  if (!R.isEmpty(id)) {
-    rows = await query(sqlClient, Sql.selectAdvancedTaskDefinitionsForEnvironment(id));
-  }
-
-  return rows;
-}
-
-
-
-export const getAllAdvancedTaskDefinitions = async(
-  root,
-  {
-    //   input: {
-    //   }
-  },
-  { sqlClient, hasPermission },
-  ) => {
-    //TODO: we'll need to do a lot of work here when it comes to the permissions system
-    // essentially we only want to display the definitions a user has access to via their
-    // groups, projects, etc.
-    // const rows = await query(sqlClient, Sql.selectAdvancedTaskDefinitions());
-    let rows = await advancedTaskFunctions(sqlClient).advancedTaskDefinitions(null)
-    return rows;
-}
 
 export const getAdvancedTaskDefinitionByName = async(
   root,
@@ -131,15 +113,6 @@ export const advancedTaskDefinitionArgumentById = async(
     return R.prop(0, rows);
 }
 
-
-
-//Mutation resolvers
-
-const AdvancedTaskDefinitionType = {
-  command: "COMMAND",
-  image: "IMAGE",
-}
-
 export const addAdvancedTaskDefinition = async (
     root,
     {
@@ -151,16 +124,30 @@ export const addAdvancedTaskDefinition = async (
         type,
         service,
         command,
+        project,
+        environment,
         permission,
         created
       },
     },
     { sqlClient, hasPermission },
   ) => {
-    //TODO: we need to consider who creates these definitions
-    // Essentially, we want whoever creates this to determine the overall access permissions to the task
-    // This can be done in the iteration that introduces links to environments/groups/etc.
 
+
+    const needsAdminRightsToCreate = (project == null && environment == null || type == AdvancedTaskDefinitionType.image);
+
+    let projectObj = await getProjectByEnvironmentIdOrProjectId(sqlClient, environment, project)
+
+    if(needsAdminRightsToCreate) { //if they pass this, they can do basically anything
+      //In the first release, we're not actually supporting this
+      //TODO: add checks once images are officially supported - for now, throw an error
+      throw Error("Adding Images and System Wide Tasks are not yet supported")
+    } else if(projectObj) { //does the user have permission to actually add to this?
+      //i.e. are they a maintainer?
+        await hasPermission('task', `add:production`, {
+          project: projectObj.id,
+        });
+    }
 
     // There are two cases, either it's a command, in which case the command + service needs to be part of the definition
     // or it's a legit advanced task and we need an image.
@@ -183,7 +170,7 @@ export const addAdvancedTaskDefinition = async (
     }
 
     //let's see if there's already an advanced task definition with this name ...
-    const rows = await query(sqlClient, Sql.selectAdvancedTaskDefinitionByName(name));
+    const rows = await query(sqlClient, Sql.selectAdvancedTaskDefinitionByNameProjectAndEnvironment(name, project, environment));
     let taskDef = R.prop(0, rows);
 
     if(taskDef) {
@@ -193,7 +180,14 @@ export const addAdvancedTaskDefinition = async (
       taskDef.command == command;
 
       if(!taskDefMatchesIncoming) {
-        throw Error(`Task with name ${name} already exists`);
+        let errorMessage = `Task '${name}' with different definition already exists `
+        if(projectObj) {
+          errorMessage += ` for Project ${projectObj.name}`
+        }
+        if(environment) {
+          errorMessage += ` on environment number ${environment}`
+        }
+        throw Error(errorMessage);
       }
 
       return taskDef;
@@ -213,6 +207,8 @@ export const addAdvancedTaskDefinition = async (
           created: null,
           type,
           service,
+          project,
+          environment,
           permission,
         }
       ),
@@ -221,127 +217,28 @@ export const addAdvancedTaskDefinition = async (
     return await advancedTaskFunctions(sqlClient).advancedTaskDefinitionById(insertId);
 }
 
-export const addAdvancedTaskDefinitionToProject = async (
-  root,
-  {
-    input: {
-      id,
-      advancedTaskDefinition,
-      project
-    },
-  },
-  { sqlClient, hasPermission },
-) => {
-
-
-
-  const {
-      info: { insertId },
-  } = await query(
-    sqlClient,
-    Sql.insertAdvancedTaskDefinitionProjectLink(
-      {
-        id: null,
-        advanced_task_definition: advancedTaskDefinition,
-        project,
-      }
-    ),
-  );
-
-  // let rows = await query(sqlClient,Sql.selectAdvancedTaskDefinitionEnvironmentLinkById(insertId));
-  // let row = R.prop(0, rows)
-  // console.log(row);
-  // let ret = {id: row.id, advancedTask: row.taskDefinition, environment: row.environment}
-  // console.log(ret)
-  return {id: insertId}
-}
-
-
-export const addAdvancedTaskDefinitionToEnvironment = async (
-  root,
-  {
-    input: {
-      id,
-      advancedTaskDefinition,
-      environment,
-    },
-  },
-  { sqlClient, hasPermission },
-) => {
-  //TODO: we need to consider who creates these definitions
-  // Essentially, we want whoever creates this to determine the overall access permissions to the task
-  // This can be done in the iteration that introduces links to environments/groups/etc.
-
-  //Check advanced task exists
-  try {
-    const advancedTaskDefinitionDetails = await advancedTaskFunctions(sqlClient).advancedTaskDefinitionById(advancedTaskDefinition)
-
-    if(advancedTaskDefinitionDetails == null) {
-      throw Error(`Cannot find advanced task definition with id: ${advancedTaskDefinition}`)
-    }
-  } catch(ex) {
-    throw Error(`Cannot find advanced task definition with id: ${advancedTaskDefinition}`)
+const getProjectByEnvironmentIdOrProjectId = async (sqlClient, environment, project) => {
+  if(environment) {
+    return await projectHelpers(sqlClient).getProjectByEnvironmentId(environment);
   }
-
-  const {
-      info: { insertId },
-  } = await query(
-    sqlClient,
-    Sql.insertAdvancedTaskDefinitionEnvironmentLink(
-      {
-        id: null,
-        advanced_task_definition: advancedTaskDefinition,
-        environment
-      }
-    ),
-  );
-
-  let rows = await query(sqlClient,Sql.selectAdvancedTaskDefinitionEnvironmentLinkById(insertId));
-  let row = R.prop(0, rows)
-  let ret = {id: row.id, advancedTask: row.taskDefinition, environment: row.environment}
-  return ret
-}
-
-
-const taskStatusTypeToString = R.cond([
-    [R.equals('ACTIVE'), R.toLower],
-    [R.equals('SUCCEEDED'), R.toLower],
-    [R.equals('FAILED'), R.toLower],
-    [R.T, R.identity],
-  ]);
-
-  const PermissionsToRBAC = (permission:string) => {
-    return `invoke:${permission.toLowerCase()}`
+  if(project) {
+    return await projectHelpers(sqlClient).getProjectById(project);
   }
-
+  return null;
+}
 
 export const invokeRegisteredTask = async (
   root,
     {
-      taskRegistration,
+      advancedTaskDefinition,
       environment
     },
     { sqlClient, hasPermission },
 ) =>
 {
-
-
-
-
-  //selectTaskRegistrationById
-  let rows = await query(sqlClient,Sql.selectAdvancedTaskDefinitionEnvironmentLinkById(taskRegistration));
-  let taskRegistrationDetails = R.prop(0, rows)
-
-  if (R.isEmpty(taskRegistrationDetails)) {
-    throw new Error(`Task registration '${taskRegistration}' could not be found.`);
-  }
-
-
   await envValidators(sqlClient).environmentExists(environment);
 
-  rows = await query(sqlClient,Sql.selectAdvancedTaskDefinition(taskRegistrationDetails.advancedTaskDefinition));
-  let task = newTaskRegistrationFromObject(R.prop(0, rows))
-
+  let task = await getNamedTaskForEnvironment(sqlClient, hasPermission, advancedTaskDefinition, environment)
 
   const environmentDetails = await environmentHelpers(sqlClient).getEnvironmentById(environment);
   await hasPermission('task', PermissionsToRBAC(task.permission), {
@@ -362,10 +259,6 @@ export const invokeRegisteredTask = async (
     break;
     case(TaskRegistration.TYPE_ADVANCED):
 
-      //pull advanced task by ID to get the container name
-      let addTaskDef = await advancedTaskFunctions(sqlClient).advancedTaskDefinitionById(task.advanced_task_definition)
-
-
       // the return data here is basically what gets dropped into the DB.
       // what we can do
       const advancedTaskData = await Helpers(sqlClient).addAdvancedTask({
@@ -377,7 +270,7 @@ export const invokeRegisteredTask = async (
         completed: undefined,
         environment,
         service: undefined,
-        image: addTaskDef.image,//the return data here is basically what gets dropped into the DB.
+        image: task.image,//the return data here is basically what gets dropped into the DB.
         payload: [],
         remoteId: undefined,
         execute: true,
@@ -393,53 +286,15 @@ export const invokeRegisteredTask = async (
   return null
 }
 
-export const registerTask = async (
-  root,
-    {
-      input: {
-        id,
-        advancedTaskDefinition,
-        environment,
-      },
-    },
-    { sqlClient, hasPermission },
-) =>
-{
-
-
-
-  await envValidators(sqlClient).environmentExists(environment);
-  const envPerm = await environmentHelpers(sqlClient).getEnvironmentById(environment);
-  await hasPermission('task', `add:${envPerm.environmentType}`, {
-    project: envPerm.project,
-  });
-
-  let rows = await query(sqlClient,Sql.selectTaskRegistrationByEnvironmentIdAndAdvancedTaskId(environment, advancedTaskDefinition));
-  if(rows.length > 0) {
-    return R.prop(0, rows)
+const getNamedTaskForEnvironment = async (sqlClient, hasPermission, advancedTaskDefinition, environment) => {
+  let rows = await resolveTasksForEnvironment({}, {environment}, {sqlClient, hasPermission})
+  //@ts-ignore
+  const taskDef = R.find((o) => o.id == advancedTaskDefinition, rows)
+  if(taskDef == undefined) {
+    throw new Error(`Task registration '${advancedTaskDefinition}' could not be found.`);
   }
-
-  const {
-    info: { insertId },
-  } = await query(
-    sqlClient,
-    Sql.insertTaskRegistration(
-      {
-        id: null,
-        advanced_task_definition: advancedTaskDefinition,
-        environment,
-        created: null,
-        deleted: null,
-      }
-    ),
-  );
-
-  rows = await query(sqlClient,Sql.selectTaskRegistrationById(insertId));
-  let row = R.prop(0, rows)
-  console.log(row)
-  return row
+  return newTaskRegistrationFromObject(taskDef)
 }
-
 
 export const addAdvancedTask: ResolverFn = async (
     root,
@@ -518,11 +373,7 @@ export const addAdvancedTask: ResolverFn = async (
     return argList.reduce((prv,curr) => { return R.contains({"name":curr.name}, incomingArgs) && prv} , true);
   }
 
-
-
-// TODO: question - do we actually want to ever update these tasks, or is it a create/delete only story
-// The issue, as I see it, is that if tasks are updated, they may require different arguments - so versioning them makes more sense than updating.
-
+//TODO: this
 export const deleteAdvancedTaskDefinition = async(
   root,
   {
@@ -535,20 +386,15 @@ export const deleteAdvancedTaskDefinition = async(
 }
 
 
-
-
 const advancedTaskFunctions = (sqlClient) => {
     return {
-    advancedTaskDefinitions: async function(id) {
-      console.log("here")
-      let rows = await query(sqlClient, Sql.selectAdvancedTaskDefinitions());
-      console.log(rows.length)
-      for(let i = 0; i < rows.length; i++) {
-        console.log(rows[i])
-        rows[i].advancedTaskDefinitionArguments = await this.advancedTaskDefinitionArguments(rows[i].id)
-      }
-      return rows
-    },
+    // advancedTaskDefinitions: async function(id) {
+    //   let rows = await query(sqlClient, Sql.selectAdvancedTaskDefinitions());
+    //   for(let i = 0; i < rows.length; i++) {
+    //     rows[i].advancedTaskDefinitionArguments = await this.advancedTaskDefinitionArguments(rows[i].id)
+    //   }
+    //   return rows
+    // },
     advancedTaskDefinitionById: async function(id) {
       const rows = await query(sqlClient, Sql.selectAdvancedTaskDefinition(id));
       let taskDef = R.prop(0, rows);
@@ -556,11 +402,6 @@ const advancedTaskFunctions = (sqlClient) => {
       return taskDef
     },
     advancedTaskDefinitionArguments: async function(task_definition_id) {
-      const rows = await query(sqlClient, Sql.selectAdvancedTaskDefinitionArguments(task_definition_id));
-      let taskDefArgs = rows;
-      return taskDefArgs
-    },
-    addAdvancedTaskToEnvironment: async function(root, task_definition_id) {
       const rows = await query(sqlClient, Sql.selectAdvancedTaskDefinitionArguments(task_definition_id));
       let taskDefArgs = rows;
       return taskDefArgs

@@ -5,32 +5,6 @@ export const newTaskRegistrationFromObject = (
   return { ...obj, ...payload };
 };
 
-export interface StandardTaskRegistration {
-  id: number;
-  type: string;
-  name: string;
-  description: string;
-  environment: number;
-  project: number;
-  command: string;
-  service: string;
-  created: string;
-  deleted: string;
-}
-
-export interface AdvancedTaskRegistration {
-  id: number;
-  type: string;
-  name: string;
-  description: string;
-  advanced_task_definition: number;
-  environment: number;
-  project: number;
-  service: string;
-  created: string;
-  deleted: string;
-}
-
 export class TaskRegistration {
   static TYPE_STANDARD = "COMMAND"
   static TYPE_ADVANCED = "ADVANCED"
@@ -45,5 +19,6 @@ export class TaskRegistration {
   service: string;
   created: string;
   deleted: string;
+  image: string;
   permission: string;
 }
