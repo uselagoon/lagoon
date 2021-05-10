@@ -69,7 +69,6 @@ const {
   advancedTaskDefinitionById,
   resolveTasksForEnvironment,
   getRegisteredTasksByEnvironmentId,
-  getAdvancedTaskDefinitionByName,
   advancedTaskDefinitionArgumentById,
   invokeRegisteredTask,
 } = require('./resources/task/task_definition_resolvers');
@@ -319,7 +318,6 @@ const resolvers = {
     taskByRemoteId: getTaskByRemoteId,
     taskById: getTaskById,
     advancedTaskDefinitionById,
-    advancedTaskDefinitionByName: getAdvancedTaskDefinitionByName,
     advancedTasksForEnvironment: resolveTasksForEnvironment,
     advancedTaskDefinitionArgumentById,
     allProjects: getAllProjects,

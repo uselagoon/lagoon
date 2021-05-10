@@ -82,27 +82,14 @@ export const resolveTasksForEnvironment = async(
 
     const proj = await projectHelpers(sqlClient).getProjectByEnvironmentId(environment);
     let projectRows = await query(sqlClient, Sql.selectAdvancedTaskDefinitionsForProject(proj.project));
+
+    //TODO: drop in system level tasks when we have them
+
     //@ts-ignore
     let rows = R.uniqBy((o) => o.name, R.concat(environmentRows, projectRows))
-    //TODO: drop in system level tasks when we have them
+
     return rows;
 }
-
-
-export const getAdvancedTaskDefinitionByName = async(
-  root,
-  {
-    name
-  },
-  { sqlClient, hasPermission },
-  ) => {
-    const rows = await query(sqlClient, Sql.selectAdvancedTaskDefinitionByName(name));
-    let taskDef = R.prop(0, rows);
-
-    taskDef.taskArguments = await advancedTaskFunctions(sqlClient).advancedTaskDefinitionArguments(taskDef.id)
-    return taskDef
-}
-
 
 export const advancedTaskDefinitionArgumentById = async(
   root,
@@ -110,6 +97,10 @@ export const advancedTaskDefinitionArgumentById = async(
   { sqlClient, hasPermission },
   ) => {
     const rows = await query(sqlClient, Sql.selectAdvancedTaskDefinitionArgumentById(id));
+    await hasPermission('environment', 'view', {
+      project: id,
+    });
+
     return R.prop(0, rows);
 }
 
@@ -238,7 +229,7 @@ export const invokeRegisteredTask = async (
 {
   await envValidators(sqlClient).environmentExists(environment);
 
-  let task = await getNamedTaskForEnvironment(sqlClient, hasPermission, advancedTaskDefinition, environment)
+  let task = await getNamedAdvancedTaskForEnvironment(sqlClient, hasPermission, advancedTaskDefinition, environment)
 
   const environmentDetails = await environmentHelpers(sqlClient).getEnvironmentById(environment);
   await hasPermission('task', PermissionsToRBAC(task.permission), {
@@ -286,7 +277,7 @@ export const invokeRegisteredTask = async (
   return null
 }
 
-const getNamedTaskForEnvironment = async (sqlClient, hasPermission, advancedTaskDefinition, environment) => {
+const getNamedAdvancedTaskForEnvironment = async (sqlClient, hasPermission, advancedTaskDefinition, environment) => {
   let rows = await resolveTasksForEnvironment({}, {environment}, {sqlClient, hasPermission})
   //@ts-ignore
   const taskDef = R.find((o) => o.id == advancedTaskDefinition, rows)
@@ -388,13 +379,6 @@ export const deleteAdvancedTaskDefinition = async(
 
 const advancedTaskFunctions = (sqlClient) => {
     return {
-    // advancedTaskDefinitions: async function(id) {
-    //   let rows = await query(sqlClient, Sql.selectAdvancedTaskDefinitions());
-    //   for(let i = 0; i < rows.length; i++) {
-    //     rows[i].advancedTaskDefinitionArguments = await this.advancedTaskDefinitionArguments(rows[i].id)
-    //   }
-    //   return rows
-    // },
     advancedTaskDefinitionById: async function(id) {
       const rows = await query(sqlClient, Sql.selectAdvancedTaskDefinition(id));
       let taskDef = R.prop(0, rows);

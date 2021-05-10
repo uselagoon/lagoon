@@ -936,10 +936,6 @@ const typeDefs = gql`
     """
     advancedTaskDefinitionById(id: Int!) : AdvancedTaskDefinition
     """
-    Returns a single AdvancedTaskDefinition given a name
-    """
-    advancedTaskDefinitionByName(name: String!) : AdvancedTaskDefinition
-    """
     Returns a AdvancedTaskDefinitions applicable for an environment
     """
     advancedTasksForEnvironment(environment: Int!) : [TaskRegistration]
