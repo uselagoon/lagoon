@@ -313,14 +313,3 @@ CREATE TABLE IF NOT EXISTS advanced_task_definition_argument (
   name                              varchar(300) NOT NULL UNIQUE,
   type                              ENUM('NUMERIC', 'STRING')
 );
-
--- CREATE TABLE IF NOT EXISTS task_registration (
---   id                                int NOT NULL auto_increment PRIMARY KEY,
---   type                              ENUM('STANDARD', 'ADVANCED') default 'STANDARD',
---   advanced_task_definition          int NULL REFERENCES advanced_task_definition(id),
---   environment                       int NULL REFERENCES environment(id),
---   project                           int NULL REFERENCES project(id),
---   created                           timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
---   deleted                           timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
---   UNIQUE(environment, project, advanced_task_definition)
--- );
