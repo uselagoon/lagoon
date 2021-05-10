@@ -1,7 +1,8 @@
-const R = require('ramda');
-const S3 = require('aws-sdk/clients/s3');
+import * as R from 'ramda';
+import S3 from 'aws-sdk/clients/s3';
+import { getConfigFromEnv } from '../../util/config';
 
-const makeS3TempLink = async (restore) => {
+const makeS3TempLink = async restore => {
   const restoreLocation = R.prop('restoreLocation', restore);
 
   // https://{endpoint}/{bucket}/{key}
@@ -10,18 +11,16 @@ const makeS3TempLink = async (restore) => {
   if (R.test(s3LinkMatch, restoreLocation)) {
     const s3Parts = R.match(s3LinkMatch, restoreLocation);
 
-    const accessKeyId = R.propOr(
-      'XXXXXXXXXXXXXXXXXXXX',
+    const accessKeyId = getConfigFromEnv(
       'S3_BAAS_ACCESS_KEY_ID',
-      process.env,
+      'XXXXXXXXXXXXXXXXXXXX'
     );
-    const secretAccessKey = R.propOr(
-      'XXXXXXXXXXXXXXXXXXXX',
+    const secretAccessKey = getConfigFromEnv(
       'S3_BAAS_SECRET_ACCESS_KEY',
-      process.env,
+      'XXXXXXXXXXXXXXXXXXXX'
     );
 
-    let awsS3Parts = '';
+    let awsS3Parts;
     const awsLinkMatch = /s3\.([^.]+)\.amazonaws\.com\//;
 
     if (R.test(awsLinkMatch, restoreLocation)) {
@@ -36,26 +35,24 @@ const makeS3TempLink = async (restore) => {
       s3ForcePathStyle: true,
       signatureVersion: 'v4',
       endpoint: `https://${R.prop(1, s3Parts)}`,
-      region: (awsS3Parts ? R.prop(1, awsS3Parts) : ''),
+      region: awsS3Parts ? R.prop(1, awsS3Parts) : ''
     });
 
     const tempUrl = s3Client.getSignedUrl('getObject', {
       Bucket: R.prop(2, s3Parts),
       Key: R.prop(3, s3Parts),
-      Expires: 300, // 5 minutes
+      Expires: 300 // 5 minutes
     });
 
     return {
       ...restore,
-      restoreLocation: tempUrl,
+      restoreLocation: tempUrl
     };
   }
 
   return restore;
 };
 
-const Helpers = {
-  makeS3TempLink,
+export const Helpers = {
+  makeS3TempLink
 };
-
-module.exports = Helpers;
