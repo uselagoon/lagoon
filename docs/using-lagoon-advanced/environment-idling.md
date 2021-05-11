@@ -6,7 +6,7 @@ Lagoon automatically idles environments if they have been unused for a couple of
 
 ### How does an environment get idled?
 
-The Environment Idler has many different configuration capabilities, here are the defaults of a standard Lagoon installation \(these could be quite different in your Lagoon, check with your Lagoon administrator!\)
+The Environment Idler has many different configuration capabilities. Here are the defaults of a standard Lagoon installation \(these could be quite different in your Lagoon, check with your Lagoon administrator!\)
 
 * Idling is tried every 4 hours.
 * Production environments are never idled.
