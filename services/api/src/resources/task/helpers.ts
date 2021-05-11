@@ -237,14 +237,14 @@ export const Helpers = (sqlClient: MariaClient) => ({
         }
       )
     } catch (error) {
-      sendToLagoonLogs(
-        'error',
-        projectData.name,
-        '',
-        'api:addTask',
-        // { taskId: taskData.id },
-        `*[${projectData.name}]* Task not initiated, reason: ${error}`,
-      );
+      // sendToLagoonLogs(
+      //   'error',
+      //   projectData.name,
+      //   '',
+      //   'api:addTask',
+      //   // { taskId: taskData.id },
+      //   `*[${projectData.name}]* Task not initiated, reason: ${error}`,
+      // );
     }
 
     return {
