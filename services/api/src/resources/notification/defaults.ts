@@ -1,0 +1,2 @@
+export const NOTIFICATION_CONTENT_TYPE = 'deployment';
+export const NOTIFICATION_SEVERITY_THRESHOLD = 0;

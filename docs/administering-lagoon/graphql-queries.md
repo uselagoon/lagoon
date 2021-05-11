@@ -41,7 +41,7 @@ query allProjects{
 }
 ```
 
-![Running a query in GraphiQL.](../.gitbook/assets/graphiql-2020-01-29-20-10-32%20%281%29%20%281%29.png)
+![Running a query in GraphiQL.](../.gitbook/assets/graphiql-2020-01-29-20-10-32.png)
 
 And press the ▶️ button \(or press CTRL+ENTER\).
 
