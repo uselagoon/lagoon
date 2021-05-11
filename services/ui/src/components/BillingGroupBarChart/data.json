@@ -30,11 +30,11 @@
             "adminComments": "Back-billing for incorrect hits calculation",
             "group": {
               "id": "6bd89c43-abdd-47e6-bda0-d2c598792d4c",
-              "name": "Accruent",
+              "name": "Company",
               "type": "billing",
               "currency": "USD",
               "billingSoftware": "null",
-              "path": "/Accruent",
+              "path": "/company",
               "attributes": {
                 "currency": [
                   "USD"
@@ -67,11 +67,11 @@
             "adminComments": "Rocket Chat",
             "group": {
               "id": "6bd89c43-abdd-47e6-bda0-d2c598792d4c",
-              "name": "Accruent",
+              "name": "Company",
               "type": "billing",
               "currency": "USD",
               "billingSoftware": "null",
-              "path": "/Accruent",
+              "path": "/company",
               "attributes": {
                 "currency": [
                   "USD"
@@ -99,7 +99,7 @@
         "projects": [
           {
             "id": "580",
-            "name": "accruent-com",
+            "name": "company-com",
             "availability": "HIGH",
             "month": "04",
             "year": "2020",
@@ -471,11 +471,11 @@
             "adminComments": "Back-billing for incorrect hits calculation",
             "group": {
               "id": "6bd89c43-abdd-47e6-bda0-d2c598792d4c",
-              "name": "Accruent",
+              "name": "Company",
               "type": "billing",
               "currency": "USD",
               "billingSoftware": "null",
-              "path": "/Accruent",
+              "path": "/company",
               "attributes": {
                 "currency": [
                   "USD"
@@ -508,11 +508,11 @@
             "adminComments": "Rocket Chat",
             "group": {
               "id": "6bd89c43-abdd-47e6-bda0-d2c598792d4c",
-              "name": "Accruent",
+              "name": "Company",
               "type": "billing",
               "currency": "USD",
               "billingSoftware": "null",
-              "path": "/Accruent",
+              "path": "/company",
               "attributes": {
                 "currency": [
                   "USD"
@@ -540,7 +540,7 @@
         "projects": [
           {
             "id": "580",
-            "name": "accruent-com",
+            "name": "company-com",
             "availability": "HIGH",
             "month": "04",
             "year": "2020",

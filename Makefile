@@ -513,7 +513,7 @@ $(publish-testlagoon-baseimages):
 		$(call docker_publish_testlagoon,$(image),$(image):$(BRANCH_NAME))
 
 
-# Publish command to amazeeio docker hub, this should probably only be done during a master deployments
+# Publish command to amazeeio docker hub, this should only be done during main deployments
 publish-testlagoon-serviceimages = $(foreach image,$(service-images),[publish-testlagoon-serviceimages]-$(image))
 # tag and push all images
 .PHONY: publish-testlagoon-serviceimages
@@ -528,7 +528,7 @@ $(publish-testlagoon-serviceimages):
 		$(call docker_publish_testlagoon,$(image),$(image):$(BRANCH_NAME))
 
 
-# Publish command to amazeeio docker hub, this should probably only be done during a master deployments
+# Publish command to amazeeio docker hub, this should only be done during main deployments
 publish-testlagoon-taskimages = $(foreach image,$(task-images),[publish-testlagoon-taskimages]-$(image))
 # tag and push all images
 .PHONY: publish-testlagoon-taskimages
@@ -565,7 +565,7 @@ $(publish-uselagoon-baseimages):
 		$(call docker_publish_uselagoon,$(image),$(image):$(LAGOON_VERSION))
 
 
-# Publish command to amazeeio docker hub, this should probably only be done during a master deployments
+# Publish command to amazeeio docker hub, this should only be done during main deployments
 publish-uselagoon-serviceimages = $(foreach image,$(service-images),[publish-uselagoon-serviceimages]-$(image))
 # tag and push all images
 .PHONY: publish-uselagoon-serviceimages
@@ -582,7 +582,7 @@ $(publish-uselagoon-serviceimages):
 		$(call docker_publish_uselagoon,$(image),$(image):$(LAGOON_VERSION))
 
 
-# Publish command to amazeeio docker hub, this should probably only be done during a master deployments
+# Publish command to amazeeio docker hub, this should only be done during main deployments
 publish-uselagoon-taskimages = $(foreach image,$(task-images),[publish-uselagoon-taskimages]-$(image))
 # tag and push all images
 .PHONY: publish-uselagoon-taskimages
@@ -781,7 +781,7 @@ else
 endif
 
 ifeq ($(DOCKER_DRIVER), btrfs)
-# https://github.com/rancher/k3d/blob/master/docs/faq.md
+# https://github.com/rancher/k3d/blob/main/docs/faq/faq.md
 K3D_BTRFS_VOLUME := --volume /dev/mapper:/dev/mapper
 else
 K3D_BTRFS_VOLUME :=
@@ -1097,6 +1097,28 @@ kind/local-dev-patch:
 			echo "patching lagoon-core-$$image" \
 			&& ./local-dev/kubectl --namespace lagoon patch deployment lagoon-core-$$image --patch-file ./local-dev/kubectl-patches/$$image.yaml; \
 		done
+
+## Use local-dev-logging to deploy an Elasticsearch/Kibana cluster into docker compose and forward
+## container logs to it
+.PHONY: kind/local-dev-logging
+kind/local-dev-logging:
+	export KUBECONFIG="$$(pwd)/kubeconfig.kind.$(CI_BUILD_TAG)" \
+		&& docker-compose -f local-dev/odfe-docker-compose.yml -p odfe up -d \
+		&& ./local-dev/helm upgrade --install --create-namespace \
+			--namespace lagoon-logs-concentrator \
+			--wait --timeout 15m \
+			--values ./local-dev/lagoon-logs-concentrator.values.yaml \
+			lagoon-logs-concentrator \
+			./lagoon-charts.kind.lagoon/charts/lagoon-logs-concentrator \
+		&& ./local-dev/helm dependency update ./lagoon-charts.kind.lagoon/charts/lagoon-logging \
+		&& ./local-dev/helm upgrade --install --create-namespace --namespace lagoon-logging \
+			--wait --timeout 15m \
+			--values ./local-dev/lagoon-logging.values.yaml \
+			lagoon-logging \
+			./lagoon-charts.kind.lagoon/charts/lagoon-logging \
+		&& echo -e '\n\nInteract with the OpenDistro cluster at http://0.0.0.0:5601 using the default `admin/admin` credentials\n' \
+		&& echo -e 'You will need to create a default index at http://0.0.0.0:5601/app/management/kibana/indexPatterns/create \n' \
+		&& echo -e 'with a default `container-logs-*` pattern'
 
 # kind/dev can only be run once a cluster is up and running (run kind/test first) - it doesn't rebuild the cluster at all, just pushes the built images
 # into the image registry and reinstalls the lagoon-core helm chart.

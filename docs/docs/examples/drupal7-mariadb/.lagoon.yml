@@ -16,7 +16,7 @@ tasks:
         service: cli
 
 environments:
-  master:
+  main:
     cronjobs:
       - name: drush cron
         schedule: "H * * * *" # this will run the cron once per Hour

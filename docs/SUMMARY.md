@@ -26,8 +26,10 @@
 * [Backups](using-lagoon-advanced/backups.md)
 * [Remote Shell](using-lagoon-advanced/remote-shell.md)
 * [GraphQL](using-lagoon-advanced/graphql.md)
+* [Project Default Users and SSH keys](using-lagoon-advanced/project-default-users-keys.md)
 * [Node.js Graceful Shutdown](using-lagoon-advanced/nodejs.md)
 * [Setting up Xdebug with Lagoon](using-lagoon-advanced/setting-up-xdebug-with-lagoon.md)
+* [Environment Idling](using-lagoon-advanced/environment-idling.md)
 
 ## Drupal
 
@@ -52,6 +54,7 @@
 * [MariaDB](docker-images/mariadb/README.md)
   * [MariaDB-Drupal](docker-images/mariadb/mariadb-drupal.md)
 * [MongoDB](docker-images/mongodb.md)
+* [Node.js](docker-images/nodejs.md)
 * [NGINX](docker-images/nginx/README.md)
   * [NGINX-Drupal](docker-images/nginx/nginx-drupal.md)
 * [PHP-CLI](docker-images/php-cli/README.md)
@@ -84,8 +87,6 @@
 
 * [Developing Lagoon](contributing-to-lagoon/developing-lagoon.md)
 * [Install Local Kubernetes Cluster for Lagoon](contributing-to-lagoon/install-local-kubernetes-cluster-for-lagoon.md)
-* [Install Lagoon 1.x on OpenShift](contributing-to-lagoon/install/README.md)
-  * [OpenShift Requirements](contributing-to-lagoon/install/openshift_requirements.md)
 * [Code of Conduct](contributing-to-lagoon/code-of-conduct.md)
 * [Contributing](contributing-to-lagoon/contributing.md)
 * [Tests](contributing-to-lagoon/tests.md)

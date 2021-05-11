@@ -82,7 +82,7 @@ Important: This requires a redeploy in order for all changes to be reflected in 
 
 ```graphql
 mutation editProjectProductionEnvironment {
-  updateProject(input:{id:109, patch:{productionEnvironment:"master"}}) {
+  updateProject(input:{id:109, patch:{productionEnvironment:"prod"}}) {
     id
   }
 }
@@ -92,7 +92,7 @@ You can also combine multiple changes into a single query:
 
 ```graphql
 mutation editProjectProductionEnvironmentAndBranches {
-  updateProject(input:{id:109, patch:{productionEnvironment:"master", branches:"^(prod|stage|dev|update)$"}}) {
+  updateProject(input:{id:109, patch:{productionEnvironment:"prod", branches:"^(prod|stage|dev|update)$"}}) {
     id
   }
 }

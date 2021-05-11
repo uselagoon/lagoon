@@ -25,7 +25,7 @@
         "id": 25,
         "group": {
           "id": "6bd89c43-abdd-47e6-bda0-d2c598792d4c",
-          "name": "Accruent",
+          "name": "Company",
           "__typename": "BillingGroup"
         },
         "startDate": "2020-04-01 00:00:00",

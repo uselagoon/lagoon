@@ -13,7 +13,7 @@ In order to authenticate with the API, we need a JWT \(JSON Web Token\) that all
 This can also be done with the `oc` command:
 
 ```bash
-oc -n lagoon-master rsh dc/auto-idler ./create_jwt.sh
+oc -n lagoon-main rsh dc/auto-idler ./create_jwt.sh
 ```
 
 This will return a long string which is the JWT token. Make a note of this, as we will need it to send queries.
@@ -49,7 +49,7 @@ If all went well, your first GraphQL response should appear shortly afterwards i
 
 ## Creating the first project
 
-Let's create the first project for Lagoon to deploy! For this we'll use the queries from the GraphQL query template in [`create-project.gql`](https://github.com/amazeeio/lagoon/blob/master/docs/administering_lagoon/create-project.gql).
+Let's create the first project for Lagoon to deploy! For this we'll use the queries from the GraphQL query template in [`create-project.gql`](https://github.com/amazeeio/lagoon/tree/2ad44d8d193ef68357474ad5382afae14a320967/docs/administering-lagoon/create-project.gql).
 
 For each of the queries \(the blocks starting with `mutation {`\), fill in all of the empty fields marked by TODO comments and run the queries in GraphiQL.app. This will create one of each of the following two objects:
 
@@ -420,7 +420,7 @@ This requires a redeploy in order for the changes to be reflected in the contain
 ```graphql
  mutation {
    updateProject(
-    input: { id: 109, patch: { productionEnvironment: "master" } }
+    input: { id: 109, patch: { productionEnvironment: "main" } }
   ) {
     id
   }
@@ -435,7 +435,7 @@ mutation {
     input: {
       id: 109
       patch: {
-        productionEnvironment: "master"
+        productionEnvironment: "main"
         branches: "^(prod|stage|dev|update)$"
       }
     }

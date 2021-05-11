@@ -14,7 +14,7 @@ If you use Certificate Authority \(CA\) signed certificates, you can set `tls-ac
 {% tab title=".lagoon.yml" %}
 ```yaml
 environments:
-  master:
+  main:
     routes:
       - nginx:
         - example.com:
@@ -33,7 +33,7 @@ As soon as the DNS entries point towards your Lagoon installation, you can switc
 {% tab title=".lagoon.yml" %}
 ```yaml
 environments:
-  master:
+  main:
     routes:
       - nginx:
         - example.com:

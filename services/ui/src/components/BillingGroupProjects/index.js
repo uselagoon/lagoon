@@ -1,12 +1,9 @@
-import React, { useState }  from 'react';
-import css from 'styled-jsx/css';
-import { bp, color, fontSize } from 'lib/variables';
+import React from 'react';
+import { color } from 'lib/variables';
 
 import ClusterName from "./ClusterName";
 
-
 const projectsDataReducer = (projects, objKey) => projects.reduce((acc, obj) => acc + obj[objKey], 0);
-
 
 const BillingGroupProjects = ({ projects }) => {
 

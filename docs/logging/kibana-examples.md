@@ -13,7 +13,7 @@ Make sure that you have selected your tenant before starting! You can do that by
 Below you'll find examples for two common log requests:
 
 * Viewing the total number of hits/requests to your site.
-* Viewing the number of hits/requests from a specific IP address. 
+* Viewing the number of hits/requests from a specific IP address.
 
 ### Total Number of hits/requests to your site
 
@@ -41,7 +41,7 @@ We are going to start off with the same query as above, but we are going to add 
 * First, add the following fields: `client_ip` and `http_request`.
 * This will show you a list of all IP addresses and the page they requested. Here is what we see for the Amazee.io page:
 
-![All IP addresses and the page they requested.](../.gitbook/assets/kibana_example2.png)
+![All IP addresses and the page they requested.](../.gitbook/assets/kibana_example2%20%281%29.png)
 
 That looks good, but what if we wanted to just show requests from a specific IP address? You can filter for the address by adding it to your search criteria.
 
@@ -99,7 +99,5 @@ Also note that you can save your visualizations \(and searches\)! That will make
 
 ## Troubleshooting
 
-{% embed url="https://www.youtube.com/watch?v=BuQo5J0Qc2c&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=5" %}
-
-
+{% embed url="https://www.youtube.com/watch?v=BuQo5J0Qc2c&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=5" caption="" %}
 
