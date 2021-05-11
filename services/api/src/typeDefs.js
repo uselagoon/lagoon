@@ -48,6 +48,12 @@ const typeDefs = gql`
     FAILED
     COMPLETE
   }
+  
+  enum SiteStatusType {
+    OPERATIONAL
+    ISSUES
+    UNAVAILABLE
+  }
 
   enum EnvVariableType {
     PROJECT
@@ -202,6 +208,8 @@ const typeDefs = gql`
     value: String
     source: String
     description: String
+    reference: [String]
+    category: String
   }
 
   input AddFactInput {
@@ -211,6 +219,8 @@ const typeDefs = gql`
     value: String!
     source: String!
     description: String!
+    reference: [String]
+    category: String
   }
 
   input AddFactsInput {
@@ -640,6 +650,7 @@ const typeDefs = gql`
     services: [EnvironmentService]
     problems(severity: [ProblemSeverityRating], source: [String]): [Problem]
     facts: [Fact]
+    status: SiteStatusType
   }
 
   type EnvironmentHitsMonth {

@@ -6,6 +6,8 @@ export default gql`
     name
     value
     source
+    category
+    reference
     description
   }
 `;

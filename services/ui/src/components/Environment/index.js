@@ -1,5 +1,4 @@
 import React from 'react';
-import Link from 'next/link';
 import moment from 'moment';
 import giturlparse from 'git-url-parse';
 import { Mutation } from 'react-apollo';
@@ -9,6 +8,8 @@ import { bp, color } from 'lib/variables';
 import Router from 'next/router';
 import ActiveStandbyConfirm from 'components/ActiveStandbyConfirm';
 import SwitchActiveStandbyMutation from 'lib/mutation/SwitchActiveStandby';
+import RouteLink from 'components/link/Route';
+import FactsLink from 'components/link/Facts';
 
 /**
  * Displays the environment information.
@@ -73,6 +74,21 @@ const Environment = ({ environment }) => {
           </div>
         </div>
       </div>
+      <div className="field-wrapper services">
+        {environment.services && (
+        <div>
+          <label>Services</label>
+          <div className="field">
+            {environment.services
+              ? environment.services.map(service => (
+                <div key={service.id}>
+                    {service.name}
+                </div>
+              ))
+              : ''}
+          </div>
+        </div>)}
+      </div>
       <div className="field-wrapper routes">
         {environment.project.productionEnvironment && environment.project.standbyProductionEnvironment && environment.environmentType == 'production' && environment.project.productionEnvironment == environment.name && (
         <div>
@@ -104,6 +120,22 @@ const Environment = ({ environment }) => {
               : ''}
           </div>
         </div>)}
+        {environment.route &&
+          <div>
+            <label>Route</label>
+            <div className="field">
+                <div key={environment.route}>
+                  <RouteLink
+                    environmentSlug={environment.openshiftProjectName}
+                    projectSlug={environment.project.name}
+                    routeSlug={environment.route.replace(/(^\w+:|^)\/\//, '')}
+                  >
+                    {environment.route}
+                  </RouteLink>
+                </div>
+            </div>
+          </div>
+        }
         <div>
           <label>Routes</label>
           <div className="field">
@@ -118,6 +150,28 @@ const Environment = ({ environment }) => {
               : ''}
           </div>
         </div>
+      </div>
+      <div className="field-wrapper facts">
+        {environment.facts &&
+          <div className="facts-wrapper">
+            <label>Facts</label>
+            <div className="field">
+              {environment.facts.map(fact => (
+                <div className="fact">
+                  <div className="fact-name">{fact.name}</div>
+                  <div className="fact-value">{fact.value}</div>
+                </div>
+              ))}
+            </div>
+            <FactsLink
+              environmentSlug={environment.openshiftProjectName}
+              projectSlug={environment.project.name}
+              className="facts-link"
+            >
+              more...
+            </FactsLink>
+          </div>
+        }
       </div>
       {environment.project.productionEnvironment && environment.project.standbyProductionEnvironment && environment.environmentType == 'production' && environment.project.standbyProductionEnvironment == environment.name && (
       <Mutation mutation={SwitchActiveStandbyMutation}>
@@ -234,10 +288,34 @@ const Environment = ({ environment }) => {
               }
             }
 
+            &.route {
+              width: 100%;
+              &::before {
+                background-image: url('/static/images/url.svg');
+                background-size: 19px 19px;
+              }
+            }
+
             &.routes {
               width: 100%;
               &::before {
                 background-image: url('/static/images/url.svg');
+                background-size: 19px 19px;
+              }
+            }
+
+            &.services {
+              width: 100%;
+              &::before {
+                background-image: url('/static/images/service.svg');
+                background-size: 19px 19px;
+              }
+            }
+
+            &.facts {
+              width: 100%;
+              &::before {
+                background-image: url('/static/images/facts.svg');
                 background-size: 19px 19px;
               }
             }
@@ -271,6 +349,13 @@ const Environment = ({ environment }) => {
 
             .field {
               padding-right: calc((100vw / 16) * 1);
+            }
+            
+            .facts-wrapper {
+              .fact {
+                display: flex;
+                justify-content: space-between;
+              }
             }
           }
         }

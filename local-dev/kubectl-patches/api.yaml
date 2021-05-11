@@ -12,6 +12,8 @@ spec:
         command: ["yarn"]
         args: ["run", "dev"]
         volumeMounts:
+        - mountPath: "/app/services/api/lagoon-facts-linux"
+          name: lagoon-facts-linux
         - mountPath: "/app/services/api/src"
           name: api-src
         - mountPath: "/app/services/api/dist"
@@ -19,6 +21,10 @@ spec:
         - mountPath: "/app/node-packages"
           name: node-packages
       volumes:
+      - name: lagoon-facts-linux
+        hostPath:
+          path: "/lagoon/services/api/lagoon-facts-linux"
+          type: File
       - name: api-src
         hostPath:
           path: "/lagoon/services/api/src"
