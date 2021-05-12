@@ -29,7 +29,7 @@ export const getFactsByEnvironmentId: ResolverFn = async (
 
 export const addFact: ResolverFn = async (
   root,
-  { input: { environment: environmentId, name, value, source, description } },
+  { input: { id, environment: environmentId, name, value, source, description } },
   { sqlClientPool, hasPermission }
 ) => {
   const environment = await environmentHelpers(

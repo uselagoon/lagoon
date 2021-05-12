@@ -124,6 +124,7 @@ export const addProblem: ResolverFn = async (
   root,
   {
     input: {
+      id,
       severity,
       environment: environmentId,
       identifier,
