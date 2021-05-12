@@ -2,7 +2,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
     expected_content: "Hello World!"
   tasks:
   - include: ../../checks/check-url-content.yaml
@@ -11,7 +11,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ standby_branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ standby_branch | regex_replace('/', '-') }}.{{ route_suffix }}"
     expected_content: "Standby Hello World!"
   tasks:
   - include: ../../checks/check-url-content.yaml
@@ -20,7 +20,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "https://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }}:{{ lookup('env','ROUTE_SUFFIX_HTTPS_PORT') }}"
+    url: "https://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix_https }}"
     host: "active-moving-route.com"
     expected_content: "Standby Hello World!"
   tasks:
@@ -30,7 +30,7 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "https://nginx.{{ project | regex_replace('_', '-') }}.{{ standby_branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }}:{{ lookup('env','ROUTE_SUFFIX_HTTPS_PORT') }}"
+    url: "https://nginx.{{ project | regex_replace('_', '-') }}.{{ standby_branch | regex_replace('/', '-') }}.{{ route_suffix_https }}"
     host: "standby-moving-route.com"
     expected_content: "Hello World!"
   tasks:

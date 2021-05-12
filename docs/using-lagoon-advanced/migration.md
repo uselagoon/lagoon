@@ -23,7 +23,7 @@ Make sure that you have all local code committed and all local databases and fil
 
 ## New services/containers in `docker-compose.yml`
 
-If you look at a `docker-compose.yml` file, which is shipped with a Lagoon project, you will see that it grew a bit in size. This is because Lagoon uses containers for each service individually, which is much better for extensibility and future proofing. If you want to have a look, [see this example file.](https://github.com/AlannaBurke/lagoon/blob/master/docs/docs/examples/drupal8-composer-mariadb/docker-compose.yml)
+If you look at a `docker-compose.yml` file, which is shipped with a Lagoon project, you will see that it grew a bit in size. This is because Lagoon uses containers for each service individually, which is much better for extensibility and future proofing. If you want to have a look, [see this example file.](https://github.com/amazeeio/lagoon/blob/main/docs/docs/examples/drupal8-composer-mariadb/docker-compose.yml)
 
 ## New `.lagoon.yml` file
 
@@ -34,7 +34,7 @@ Instead of an `.amazeeio.yml` file, Lagoon projects now are mostly configured vi
 * Custom routes.
 * and many more!
 
-See [`.lagoon.yml` ](../using-lagoon-the-basics/lagoon-yml.md)for more!
+See [.lagoon.yml](../using-lagoon-the-basics/lagoon-yml.md) for more!
 
 ## Renaming of `before_deploy` and `after_deploy` - plus their location has moved
 
@@ -50,13 +50,13 @@ You can use `drush sql-sync @remote @self` like you are used to, also `drush @re
 
 ## Everything is always in `/app`
 
-With the legacy system, the absolute path of the files was different for every environment, like `/var/www/drupal-example_master/public_html` and `/var/www/drupal-example_develop/public_html`.
+With the legacy system, the absolute path of the files was different for every environment, like `/var/www/drupal-example_main/public_html` and `/var/www/drupal-example_develop/public_html`.
 
 This is now resolved and your files will always be in `/app` no matter which server or environment you are in!
 
 ## New Environment Variables
 
-Lagoon is a fully open-source project and does not want too many ties to amazee.io, so we renamed all environment variables. The new `settings.php` files will automatically reflect that, but if you are interested, have a look at the settings in [this example `settings.php` file](https://github.com/AlannaBurke/lagoon/blob/master/docs/docs/examples/drupal8-composer-mariadb/web/sites/default/settings.php).
+Lagoon is a fully open-source project and does not want too many ties to amazee.io, so we renamed all environment variables. The new `settings.php` files will automatically reflect that, but if you are interested, have a look at the settings in [this example `settings.php` file](https://github.com/amazeeio/lagoon/blob/main/docs/docs/examples/drupal8-composer-mariadb/web/sites/default/settings.php).
 
 ## Non-predictable user ids
 

@@ -5,8 +5,10 @@ FROM ${UPSTREAM_REPO:-uselagoon}/python-2.7:${UPSTREAM_TAG:-latest}
 RUN apk add --no-cache \
       bash \
       curl \
+      gettext \
       git \
       jq \
+      moreutils \
       openssh-client \
       rsync
 
@@ -22,9 +24,9 @@ RUN apk add --no-cache --virtual .build-deps \
     && apk del .build-deps
 
 # download, extract and install kubectl binary
-# https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.18.md#downloads-for-v1182
-ARG KUBECTL_URL=https://dl.k8s.io/v1.18.2/kubernetes-client-linux-amd64.tar.gz
-ARG KUBECTL_SHA512=ed36f49e19d8e0a98add7f10f981feda8e59d32a8cb41a3ac6abdfb2491b3b5b3b6e0b00087525aa8473ed07c0e8a171ad43f311ab041dcc40f72b36fa78af95
+# https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.20.md#downloads-for-v1204
+ARG KUBECTL_URL=https://dl.k8s.io/v1.20.4/kubernetes-client-linux-amd64.tar.gz
+ARG KUBECTL_SHA512=daf1ec0cbd14885170a51d2a09bf652bfaa4d26925c1b4babdc427d2a2903b1a295403320229cde2b415fee65a5af22671afa926f184cf198df7f17a27f19394
 # curl -> tee -> sha512sum -> grep
 #            `-> tar
 RUN { { curl -sSL $KUBECTL_URL | tee /dev/fd/3 | sha512sum >&4; } 3>&1 | tar -xz --strip-components=3 -C /usr/local/bin kubernetes/client/bin/kubectl; } 4>&1 | grep -q $KUBECTL_SHA512

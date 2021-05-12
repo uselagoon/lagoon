@@ -36,6 +36,11 @@ pipeline {
         sh script: "make -O -j$NPROC build", label: "Building images"
       }
     }
+    stage ('show trivy scan results') {
+      steps {
+        sh script: "cat scan.txt", label: "Display scan results"
+      }
+    }
     stage ('push images to testlagoon/*') {
       when {
         not {

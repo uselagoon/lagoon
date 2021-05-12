@@ -1,24 +1,24 @@
 import * as R from 'ramda';
-import { MariaClient } from 'mariasql';
+import { Pool } from 'mariadb';
 import { asyncPipe } from '@lagoon/commons/dist/util';
 import { query } from '../../util/db';
 import { Sql } from './sql';
 import { Helpers as projectHelpers } from '../project/helpers';
 
-export const Helpers = (sqlClient: MariaClient) => {
+export const Helpers = (sqlClientPool: Pool) => {
   const aliasOpenshiftToK8s = (environments: any[]) => {
     return environments.map(environment => {
       return {
         ...environment,
-        kubernetesNamespaceName: environment.openshiftProjectName,
-      }
+        kubernetesNamespaceName: environment.openshiftProjectName
+      };
     });
   };
 
   const getEnvironmentById = async (environmentID: number) => {
     const rows = await query(
-      sqlClient,
-      Sql.selectEnvironmentById(environmentID),
+      sqlClientPool,
+      Sql.selectEnvironmentById(environmentID)
     );
     const withK8s = aliasOpenshiftToK8s(rows);
     return R.prop(0, withK8s);
@@ -33,7 +33,7 @@ export const Helpers = (sqlClient: MariaClient) => {
       const hasName = R.both(R.has('name'), R.propSatisfies(notEmpty, 'name'));
       const hasProject = R.both(
         R.has('project'),
-        R.propSatisfies(notEmpty, 'project'),
+        R.propSatisfies(notEmpty, 'project')
       );
       // @ts-ignore
       const hasNameAndProject = R.both(hasName, hasProject);
@@ -47,19 +47,19 @@ export const Helpers = (sqlClient: MariaClient) => {
           }
 
           return [environment];
-        },
+        }
       );
 
       const envFromNameProject = async input => {
-        const project = await projectHelpers(sqlClient).getProjectByProjectInput(
-          R.prop('project', input),
-        );
+        const project = await projectHelpers(
+          sqlClientPool
+        ).getProjectByProjectInput(R.prop('project', input));
         const rows = await query(
-          sqlClient,
+          sqlClientPool,
           Sql.selectEnvironmentByNameAndProject(
             R.prop('name', input),
-            project.id,
-          ),
+            project.id
+          )
         );
 
         if (!R.prop(0, rows)) {
@@ -76,11 +76,11 @@ export const Helpers = (sqlClient: MariaClient) => {
           R.T,
           () => {
             throw new Error(
-              'Must provide environment (id) or (name and project)',
+              'Must provide environment (id) or (name and project)'
             );
-          },
-        ],
+          }
+        ]
       ])(environmentInput);
-    },
+    }
   };
 };

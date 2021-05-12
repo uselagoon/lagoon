@@ -1,5 +1,6 @@
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
 import { createRemoveTask } from '@lagoon/commons/dist/tasks';
+import { getOpenShiftInfoForProject } from '@lagoon/commons/dist/api';
 
 import { WebhookRequestData, removeData, Project } from '../types';
 
@@ -18,10 +19,23 @@ export async function giteaBranchDeleted(webhook: WebhookRequestData, project: P
       branchName: body.ref.replace('refs/heads/','')
     }
 
+    const result = await getOpenShiftInfoForProject(project.name);
+    const projectOpenShift = result.project;
+
+    const ocsafety = string =>
+    string.toLocaleLowerCase().replace(/[^0-9a-z-]/g, '-');
+
+    let openshiftProjectName = projectOpenShift.openshiftProjectPattern
+    ? projectOpenShift.openshiftProjectPattern
+        .replace('${branch}', ocsafety(meta.branch))
+        .replace('${project}', ocsafety(project.name))
+    : ocsafety(`${project.name}-${meta.branch}`);
+
     const data: removeData = {
       projectName: project.name,
       branch: meta.branch,
       branchName: meta.branchName,
+      openshiftProjectName: openshiftProjectName,
       forceDeleteProductionEnvironment: false,
       type: 'branch'
     }

@@ -1,6 +1,6 @@
-- name: "{{ testname }} - POST github pull request open webhook with pr number {{ git_pr_number }}, git base branch {{ git_base_branch }}, base commit hash {{ git_base_commit_hash }}, pr branch {{ git_pr_branch }}, pr commit hash {{ git_pr_commit_hash }} and repo {{ git_repo_ssh_url }} to {{ lookup('env','WEBHOOK_PROTOCOL') }}://{{ lookup('env','WEBHOOK_HOST') }}:{{ lookup('env','WEBHOOK_PORT') }}"
+- name: "{{ testname }} - POST github pull request open webhook with pr number {{ git_pr_number }}, git base branch {{ git_base_branch }}, base commit hash {{ git_base_commit_hash }}, pr branch {{ git_pr_branch }}, pr commit hash {{ git_pr_commit_hash }} and repo {{ git_repo_ssh_url }} to {{ webhook_url }}"
   uri:
-    url: "{{ lookup('env','WEBHOOK_PROTOCOL') }}://{{ lookup('env','WEBHOOK_HOST') }}:{{ lookup('env','WEBHOOK_PORT') }}"
+    url: "{{ webhook_url }}"
     headers:
       User-Agent: GitHub-Hookshot/eb03e36
       X-GitHub-Event: pull_request

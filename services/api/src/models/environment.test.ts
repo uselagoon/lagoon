@@ -11,7 +11,10 @@ import cNewPartial from "./mockHitDataNew-project-c.json"
 import legacyData from "./legacy.json";
 import newData from "./new.json";
 
-import esClient from '../clients/esClient';
+import { sqlClientPool } from '../clients/sqlClient';
+import { esClient } from '../clients/esClient';
+
+const clients = { sqlClientPool, esClient };
 
 const zeroOutBuckets = (mockResult) => {
   return {
@@ -59,7 +62,7 @@ describe('Environment Data', () => {
 
     it('When calculating hits, it should match legacy numbers #calculations', async () => {
 
-      const environmentModel = EnvironmentModel({esClient});
+      const environmentModel = EnvironmentModel(clients);
 
       const legacyCalculations = legacyHitsMonthByEnvironmentId(legacyData);
       const newCalculations = environmentModel.calculateHitsFromESData(legacyData, newData)
@@ -72,7 +75,7 @@ describe('Environment Data', () => {
     // scenarios and expectation
     it('When using the legacy logging system, with all Sept hourly buckets total set to 10, then the hits should be 7200 #legacy #logging', async () => {
       // Arrange
-      const environmentModel = EnvironmentModel({esClient});
+      const environmentModel = EnvironmentModel(clients);
       const openshiftProjectName = "test-legacy-prod";
       const month = "2020-09"
       const projectName = "test-legacy"
@@ -94,7 +97,7 @@ describe('Environment Data', () => {
     // scenarios and expectation
     it('When using the legacy logging system, with missing data (20 Sept hourly buckets set to zero) (720 total buckets set to 10), then the hits should be 7200 #legacy #logging #missing-data', async () => {
       // Arrange
-      const environmentModel = EnvironmentModel({esClient});
+      const environmentModel = EnvironmentModel(clients);
       const openshiftProjectName = "test-legacy-prod";
       const month = "2020-09"
       const projectName = "test-legacy"
@@ -116,7 +119,7 @@ describe('Environment Data', () => {
     // scenarios and expectation
     it('When using the new logging system, with all Sept 2020 hourly buckets total set to 2, then the hits should be 1440 #new #logging', async () => {
       // Arrange
-      const environmentModel = EnvironmentModel({esClient});
+      const environmentModel = EnvironmentModel(clients);
       const openshiftProjectName = "test-prod";
       const month = "2020-09"
       const projectName = "test"
@@ -138,7 +141,7 @@ describe('Environment Data', () => {
     // scenarios and expectation
     it('When using the new logging system, with missing data,  (20 Sept hourly buckets set to zero) (720 total buckets set to 2), then the hits should be 1440 #new #logging #missing-data', async () => {
       // Arrange
-      const environmentModel = EnvironmentModel({esClient});
+      const environmentModel = EnvironmentModel(clients);
       const openshiftProjectName = "test-prod";
       const month = "2020-09"
       const projectName = "test"
@@ -171,7 +174,7 @@ describe('Environment Data', () => {
         }
         return {}
       }
-      const environmentModel = EnvironmentModel({esClient});
+      const environmentModel = EnvironmentModel(clients);
       const month = "2020-09"
       const projectName = "test"
 

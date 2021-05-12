@@ -77,6 +77,7 @@ services:
     volumes:
       - ./services/api/src:/app/services/api/src
       - ./node-packages:/app/node-packages:delegated
+      - /app/node-packages/commons/dist
     environment:
       - CI=${CI:-true}
       - REGISTRY=harbor.172.17.0.1.nip.io:18080 # Docker network bridge and forwarded port for harbor-nginx
@@ -224,6 +225,13 @@ services:
       MYSQL_ROOT_PASSWORD: 'password'
     ports:
       - '3306:3306'
+  local-mongodb-dbaas-provider:
+    image: ${IMAGE_REPO:-lagoon}/local-mongodb-dbaas-provider
+    restart: always
+    labels:
+      lagoon.type: none
+    ports:
+      - '27017:27017'
   local-minio:
     image: minio/minio
     entrypoint: sh

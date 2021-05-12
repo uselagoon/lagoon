@@ -4,17 +4,17 @@ description: >-
   Kubernetes is only supported to deploy projects and environments into.
 ---
 
-# Install local Kubernetes cluster for Lagoon
+# Install Local Kubernetes Cluster for Lagoon
 
 Let's see how to install a local lightweight Kubernetes cluster using k3s by Rancher: [rancher/k3s](https://github.com/rancher/k3s)
 
 {% hint style="info" %}
 In order to have the best experience we recommend the following:
 
-* Linux or Mac OSX 
-* 32 GB+ RAM total 
-* 12 GB+ RAM allocated to Docker 
-* 6+ cores allocated to Docker 
+* Linux or Mac OSX
+* 32 GB+ RAM total
+* 12 GB+ RAM allocated to Docker
+* 6+ cores allocated to Docker
 * SSD disk with 25GB+ free
 {% endhint %}
 
@@ -83,13 +83,9 @@ In order to have the best experience we recommend the following:
     a7960981caaa        lagoon/local-registry       "/entrypoint.sh /etc…"   30 minutes ago      Up 30 minutes       0.0.0.0:5000->5000/tcp                                                    lagoon_local-registry_1
    ```
 
-3. `make k3d-kubeconfig` will print the `KUBECONFIG` env var you need to start using the cluster. 
-   1. Execute `export KUBECONFIG="$(./local-dev/k3d get-kubeconfig --name=$(cat k3d))"` inside the terminal.
-   2. Now you should be able to use the cluster via an already installed `kubectl` or making a symbolic link to `/usr/local/bin/kubectl -> /your/path/amazee/lagoon/local-dev/kubectl` 
-   3. If you prefer to use something more visual you could install [k9s](https://k9scli.io/topics/install/) cli tool.
-   4. Here is the complete list of pods you should see with `kubectl get pod -A` :
+3. `make k3d-kubeconfig` will print the `KUBECONFIG` env var you need to start using the cluster. 1. Execute `export KUBECONFIG="$(./local-dev/k3d get-kubeconfig --name=$(cat k3d))"` inside the terminal. 2. Now you should be able to use the cluster via an already installed `kubectl` or making a symbolic link to `/usr/local/bin/kubectl -> /your/path/amazee/lagoon/local-dev/kubectl` 3. If you prefer to use something more visual you could install [k9s](https://k9scli.io/topics/install/) cli tool. 4. Here is the complete list of pods you should see with `kubectl get pod -A` :
 
-      ```text
+   ```text
          NAMESPACE        NAME
          kube-system      local-path-provisioner
          kube-system      metrics-server
@@ -101,9 +97,9 @@ In order to have the best experience we recommend the following:
          kube-system      nginx-ingress-default-backend
          kube-system      lb-port-80,lb-port-443
          kube-system      nginx-ingress-controller
-      ```
+   ```
 
-   5. Here is the complete list of deployed Helm [releases](https://helm.sh/docs/helm/helm_list/) you should see with `local-dev/helm/helm ls --all-namespaces`:
+   1. Here is the complete list of deployed Helm [releases](https://helm.sh/docs/helm/helm_list/) you should see with `local-dev/helm/helm ls --all-namespaces`:
 
       ```text
       NAME             NAMESPACE
@@ -116,7 +112,9 @@ In order to have the best experience we recommend the following:
 
 ## Deploy Lagoon on Kubernetes
 
-1. TODO
+{% hint style="info" %}
+Coming Soon!
+{% endhint %}
 
 ## Configure Installed Lagoon
 

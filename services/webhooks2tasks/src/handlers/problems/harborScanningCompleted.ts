@@ -14,6 +14,8 @@ import {
   getOpenShiftInfoForProject,
 } from '@lagoon/commons/dist/api';
 
+const PROBLEMS_HARBOR_FILTER_FLAG = process.env.PROBLEMS_HARBOR_FILTER_FLAG || null;
+
 const HARBOR_WEBHOOK_SUCCESSFUL_SCAN = "Success";
 
 const DEFAULT_REPO_DETAILS_REGEX = "^(?<lagoonProjectName>.+)\/(?<lagoonEnvironmentName>.+)\/(?<lagoonServiceName>.+)$";
@@ -59,7 +61,14 @@ const DEFAULT_REPO_DETAILS_MATCHER = {
     let vulnerabilities = [];
     vulnerabilities = await getVulnerabilitiesFromHarbor(harborScanId);
 
-    let { id: lagoonProjectId } = await getProjectByName(lagoonProjectName);
+    let { id: lagoonProjectId, problemsUi } = await getProjectByName(lagoonProjectName);
+
+    //Here, before we get any further, we only let through projects that have the problemsUI enabled
+    if(PROBLEMS_HARBOR_FILTER_FLAG && problemsUi == 0) {
+      console.log(`Filter enabled: skipping harbor processing for ${lagoonProjectName}:${lagoonEnvironmentName}:${lagoonServiceName}`)
+      return;
+    }
+
 
     const result = await getOpenShiftInfoForProject(lagoonProjectName);
     const projectOpenShift = result.project;

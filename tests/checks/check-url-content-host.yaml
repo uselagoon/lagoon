@@ -1,5 +1,5 @@
 ---
-- name: "{{ testname }} - Check if URL {{url}} with sending Host: {{ host }} contains content {{expected_content}}"
+- name: "{{ testname }} - Check if URL {{ url }} with sending Host: {{ host }} contains content {{ expected_content }}"
   uri:
     url: "{{ url }}"
     return_content: yes
@@ -8,6 +8,6 @@
   register: result
   until: result.content is search(expected_content)
   retries: 90
-  delay: 10
-- name: "{{ testname }} - Check if URL {{url}} with sending Host: {{ host }} contains content {{expected_content}}"
+  delay: 20
+- name: "{{ testname }} - Check if URL {{ url }} with sending Host: {{ host }} contains content {{ expected_content }}"
   debug: msg="Success!!!"

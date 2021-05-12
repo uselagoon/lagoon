@@ -1,4 +1,4 @@
-const { knex } = require('../../util/db');
+import { knex } from '../../util/db';
 
 export const Sql = {
   selectTask: (id: number) =>
@@ -15,18 +15,18 @@ export const Sql = {
     environment,
     service,
     command,
-    remoteId,
+    remoteId
   }: {
-    id: number,
-    name: string,
-    status: string,
-    created: string,
-    started: string,
-    completed: string,
-    environment: number,
-    service: string,
-    command: string,
-    remoteId: string,
+    id: number;
+    name: string;
+    status: string;
+    created: string;
+    started: string;
+    completed: string;
+    environment: number;
+    service: string;
+    command: string;
+    remoteId: string;
   }) =>
     knex('task')
       .insert({
@@ -39,7 +39,7 @@ export const Sql = {
         environment,
         service,
         command,
-        remoteId,
+        remoteId
       })
       .toString(),
   deleteTask: (id: number) =>
@@ -47,7 +47,7 @@ export const Sql = {
       .where('id', id)
       .del()
       .toString(),
-  updateTask: ({ id, patch }: { id: number, patch: { [key: string]: any } }) =>
+  updateTask: ({ id, patch }: { id: number; patch: { [key: string]: any } }) =>
     knex('task')
       .where('id', id)
       .update(patch)
@@ -58,5 +58,5 @@ export const Sql = {
       .join('environment', 'task.environment', '=', 'environment.id')
       .join('project', 'environment.project', '=', 'project.id')
       .where('task.id', id)
-      .toString(),
+      .toString()
 };

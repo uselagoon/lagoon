@@ -103,10 +103,10 @@ export async function resticbackupSnapshotFinished(webhook: WebhookRequestData) 
     // called `bar`). This logic is made slightly more complex by the fact that
     // there was a bug in the k8up system that produced filenames like
     //
-    // * drupal-example-site-master-solr-prebackuppod.solr.tar
-    // * drupal-example-site-master-solr-prebackuppod
-    // * drupal-example-site-master-mariadb-prebackuppod
-    // * drupal-example-site-master-mariadb-prebackuppod.mariadb.sql
+    // * drupal-example-site-main-solr-prebackuppod.solr.tar
+    // * drupal-example-site-main-solr-prebackuppod
+    // * drupal-example-site-main-mariadb-prebackuppod
+    // * drupal-example-site-main-mariadb-prebackuppod.mariadb.sql
     //
     // So we need to cater for these additional filenames.
     let source;

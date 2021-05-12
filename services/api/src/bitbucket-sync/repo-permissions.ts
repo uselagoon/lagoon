@@ -13,7 +13,7 @@ const LAGOON_SYNC_GROUP = R.propOr(
 interface BitbucketUser {
   name: string;
   displayName: string;
-  emailAddress: string;
+  emailAddress?: string;
   id: number;
 }
 
@@ -90,9 +90,14 @@ const getBitbucketRepo = async (gitUrl: string, projectName: string) => {
 
     let userPermissions = [];
     try {
-      userPermissions = await bitbucketApi.getRepoUsers(bbProject, bbRepo);
+      const permissions = await bitbucketApi.getRepoUsers(bbProject, bbRepo);
+
+      // Useres w/o an email address were deleted/deactivated, but somehow
+      // still returned in the API
+      // @ts-ignore
+      userPermissions = R.filter(R.propSatisfies(R.has('emailAddress'), 'user'), permissions);
     } catch (e) {
-      logger.warn(`Could not load users for repo: ${R.prop('slug', repo)}`);
+      logger.warn(`Could not load users for repo ${R.prop('slug', repo)}: ${e.message}`);
       continue;
     }
 
@@ -101,19 +106,19 @@ const getBitbucketRepo = async (gitUrl: string, projectName: string) => {
       const bbUser = userPermission.user as BitbucketUser;
       const bbPerm = userPermission.permission;
 
-      const email = bbUser.emailAddress.toLowerCase();
+      try {
+        const email = bbUser.emailAddress.toLowerCase();
 
-      if (!R.contains(email, existingUsers)) {
-        const userAddedOrExists = await addUser(email);
-        if (!userAddedOrExists) {
-          // Errors for this case are logged in addUser
-          continue;
+        if (!R.contains(email, existingUsers)) {
+          const userAddedOrExists = await addUser(email);
+          if (!userAddedOrExists) {
+            // Errors for this case are logged in addUser
+            continue;
+          }
+
+          existingUsers.push(email);
         }
 
-        existingUsers.push(email);
-      }
-
-      try {
         await api.addUserToGroup(
           email,
           lagoonProjectGroup,
@@ -121,7 +126,7 @@ const getBitbucketRepo = async (gitUrl: string, projectName: string) => {
         );
       } catch (err) {
         logger.error(
-          `Could not add user (${email}) to group (${lagoonProjectGroup}): ${err.message}`
+          `Could not add user (${bbUser.name}) to group (${lagoonProjectGroup}): ${err.message}`
         );
       }
     }
