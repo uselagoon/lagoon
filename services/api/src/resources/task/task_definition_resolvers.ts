@@ -7,21 +7,16 @@ import {
 } from '../../clients/pubSub';
 import {
   knex,
-  prepare,
   query,
   isPatchEmpty,
 } from '../../util/db';
 import { Sql } from './sql';
-import EVENTS from './events';
+import { EVENTS } from './events';
 import { Helpers } from './helpers';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { Validators as envValidators } from '../environment/validators';
-import { getSqlClient } from '../../clients/sqlClient';
-import sql from '../user/sql';
-import { BreakingChangeType } from 'graphql';
 import {TaskRegistration, newTaskRegistrationFromObject} from './models/taskRegistration'
-import { getProjectByEnvironmentId } from '../project/resolvers';
 
 
 const AdvancedTaskDefinitionType = {
@@ -45,22 +40,22 @@ return `invoke:${permission.toLowerCase()}`
 export const advancedTaskDefinitionById = async(
   root,
   id,
-  { sqlClient, hasPermission },
+  { sqlClientPool, hasPermission },
   ) => {
 
     await hasPermission('task', 'view', {});
-    return await advancedTaskFunctions(sqlClient).advancedTaskDefinitionById(id);
+    return await advancedTaskFunctions(sqlClientPool).advancedTaskDefinitionById(id);
 }
 
 export const getRegisteredTasksByEnvironmentId = async(
   { id },
   {},
-  { sqlClient, hasPermission },
+  { sqlClientPool, hasPermission },
 ) => {
   let rows;
 
   if (!R.isEmpty(id)) {
-    rows = await resolveTasksForEnvironment({}, {environment: id}, {sqlClient, hasPermission})
+    rows = await resolveTasksForEnvironment({}, {environment: id}, {sqlClientPool, hasPermission})
   }
 
   return rows;
@@ -69,18 +64,18 @@ export const getRegisteredTasksByEnvironmentId = async(
 export const resolveTasksForEnvironment = async(
   root,
   {environment},
-  { sqlClient, hasPermission },
+  { sqlClientPool, hasPermission },
   ) => {
 
-    const environmentDetails = await environmentHelpers(sqlClient).getEnvironmentById(environment);
+    const environmentDetails = await environmentHelpers(sqlClientPool).getEnvironmentById(environment);
     await hasPermission('task', 'view', {
       project: environmentDetails.project,
     });
 
-    let environmentRows = await query(sqlClient, Sql.selectAdvancedTaskDefinitionsForEnvironment(environment));
+    let environmentRows = await query(sqlClientPool, Sql.selectAdvancedTaskDefinitionsForEnvironment(environment));
 
-    const proj = await projectHelpers(sqlClient).getProjectByEnvironmentId(environment);
-    let projectRows = await query(sqlClient, Sql.selectAdvancedTaskDefinitionsForProject(proj.project));
+    const proj = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environment);
+    let projectRows = await query(sqlClientPool, Sql.selectAdvancedTaskDefinitionsForProject(proj.project));
 
     //TODO: drop in system level tasks when we have them
 
@@ -93,9 +88,9 @@ export const resolveTasksForEnvironment = async(
 export const advancedTaskDefinitionArgumentById = async(
   root,
   id,
-  { sqlClient, hasPermission },
+  { sqlClientPool, hasPermission },
   ) => {
-    const rows = await query(sqlClient, Sql.selectAdvancedTaskDefinitionArgumentById(id));
+    const rows = await query(sqlClientPool, Sql.selectAdvancedTaskDefinitionArgumentById(id));
     await hasPermission('environment', 'view', {
       project: id,
     });
@@ -120,13 +115,13 @@ export const addAdvancedTaskDefinition = async (
         created
       },
     },
-    { sqlClient, hasPermission },
+    { sqlClientPool, hasPermission },
   ) => {
 
 
     const needsAdminRightsToCreate = (project == null && environment == null || type == AdvancedTaskDefinitionType.image);
 
-    let projectObj = await getProjectByEnvironmentIdOrProjectId(sqlClient, environment, project)
+    let projectObj = await getProjectByEnvironmentIdOrProjectId(sqlClientPool, environment, project)
 
     if(needsAdminRightsToCreate) { //if they pass this, they can do basically anything
       //In the first release, we're not actually supporting this
@@ -160,7 +155,7 @@ export const addAdvancedTaskDefinition = async (
     }
 
     //let's see if there's already an advanced task definition with this name ...
-    const rows = await query(sqlClient, Sql.selectAdvancedTaskDefinitionByNameProjectAndEnvironment(name, project, environment));
+    const rows = await query(sqlClientPool, Sql.selectAdvancedTaskDefinitionByNameProjectAndEnvironment(name, project, environment));
     let taskDef = R.prop(0, rows);
 
     if(taskDef) {
@@ -186,7 +181,7 @@ export const addAdvancedTaskDefinition = async (
     const {
         info: { insertId },
     } = await query(
-      sqlClient,
+      sqlClientPool,
       Sql.insertAdvancedTaskDefinition(
         {
           id: null,
@@ -204,15 +199,15 @@ export const addAdvancedTaskDefinition = async (
       ),
     );
 
-    return await advancedTaskFunctions(sqlClient).advancedTaskDefinitionById(insertId);
+    return await advancedTaskFunctions(sqlClientPool).advancedTaskDefinitionById(insertId);
 }
 
-const getProjectByEnvironmentIdOrProjectId = async (sqlClient, environment, project) => {
+const getProjectByEnvironmentIdOrProjectId = async (sqlClientPool, environment, project) => {
   if(environment) {
-    return await projectHelpers(sqlClient).getProjectByEnvironmentId(environment);
+    return await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environment);
   }
   if(project) {
-    return await projectHelpers(sqlClient).getProjectById(project);
+    return await projectHelpers(sqlClientPool).getProjectById(project);
   }
   return null;
 }
@@ -223,21 +218,21 @@ export const invokeRegisteredTask = async (
       advancedTaskDefinition,
       environment
     },
-    { sqlClient, hasPermission },
+    { sqlClientPool, hasPermission },
 ) =>
 {
-  await envValidators(sqlClient).environmentExists(environment);
+  await envValidators(sqlClientPool).environmentExists(environment);
 
-  let task = await getNamedAdvancedTaskForEnvironment(sqlClient, hasPermission, advancedTaskDefinition, environment)
+  let task = await getNamedAdvancedTaskForEnvironment(sqlClientPool, hasPermission, advancedTaskDefinition, environment)
 
-  const environmentDetails = await environmentHelpers(sqlClient).getEnvironmentById(environment);
+  const environmentDetails = await environmentHelpers(sqlClientPool).getEnvironmentById(environment);
   await hasPermission('task', PermissionsToRBAC(task.permission), {
     project: environmentDetails.project,
   });
 
   switch(task.type) {
     case(TaskRegistration.TYPE_STANDARD):
-      const taskData = await Helpers(sqlClient).addTask({
+      const taskData = await Helpers(sqlClientPool).addTask({
         id: null,
         name: task.name,
         environment: environment,
@@ -251,7 +246,7 @@ export const invokeRegisteredTask = async (
 
       // the return data here is basically what gets dropped into the DB.
       // what we can do
-      const advancedTaskData = await Helpers(sqlClient).addAdvancedTask({
+      const advancedTaskData = await Helpers(sqlClientPool).addAdvancedTask({
         id: undefined,
         name: task.name,
         status: null,
@@ -276,8 +271,8 @@ export const invokeRegisteredTask = async (
   return null
 }
 
-const getNamedAdvancedTaskForEnvironment = async (sqlClient, hasPermission, advancedTaskDefinition, environment) => {
-  let rows = await resolveTasksForEnvironment({}, {environment}, {sqlClient, hasPermission})
+const getNamedAdvancedTaskForEnvironment = async (sqlClientPool, hasPermission, advancedTaskDefinition, environment) => {
+  let rows = await resolveTasksForEnvironment({}, {environment}, {sqlClientPool, hasPermission})
   //@ts-ignore
   const taskDef = R.find((o) => o.id == advancedTaskDefinition, rows)
   if(taskDef == undefined) {
@@ -304,7 +299,7 @@ export const addAdvancedTask: ResolverFn = async (
         advancedTaskArguments,
       },
     },
-    { sqlClient, hasPermission },
+    { sqlClientPool, hasPermission },
   ) => {
 
     const status = taskStatusTypeToString(unformattedStatus);
@@ -316,8 +311,8 @@ export const addAdvancedTask: ResolverFn = async (
     // A task is _either_ attached globally, at a group level, at a project level
     // or at an environment level
 
-    await envValidators(sqlClient).environmentExists(environment);
-    const envPerm = await environmentHelpers(sqlClient).getEnvironmentById(environment);
+    await envValidators(sqlClientPool).environmentExists(environment);
+    const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(environment);
 
     await hasPermission('task', `add:${envPerm.environmentType}`, {
       project: envPerm.project,
@@ -336,12 +331,12 @@ export const addAdvancedTask: ResolverFn = async (
 
 
     //pull advanced task by ID to get the container name
-    let addTaskDef = await advancedTaskFunctions(sqlClient).advancedTaskDefinitionById(advancedTaskId)
+    let addTaskDef = await advancedTaskFunctions(sqlClientPool).advancedTaskDefinitionById(advancedTaskId)
 
 
     // the return data here is basically what gets dropped into the DB.
     // what we can do
-    const taskData = await Helpers(sqlClient).addAdvancedTask({
+    const taskData = await Helpers(sqlClientPool).addAdvancedTask({
       id,
       name,
       status,
@@ -371,21 +366,21 @@ export const deleteAdvancedTaskDefinition = async(
       id
     }
   },
-  { sqlClient, hasPermission },
+  { sqlClientPool, hasPermission },
   ) => {
 }
 
 
-const advancedTaskFunctions = (sqlClient) => {
+const advancedTaskFunctions = (sqlClientPool) => {
     return {
     advancedTaskDefinitionById: async function(id) {
-      const rows = await query(sqlClient, Sql.selectAdvancedTaskDefinition(id));
+      const rows = await query(sqlClientPool, Sql.selectAdvancedTaskDefinition(id));
       let taskDef = R.prop(0, rows);
       taskDef.advancedTaskDefinitionArguments = await this.advancedTaskDefinitionArguments(taskDef.id)
       return taskDef
     },
     advancedTaskDefinitionArguments: async function(task_definition_id) {
-      const rows = await query(sqlClient, Sql.selectAdvancedTaskDefinitionArguments(task_definition_id));
+      const rows = await query(sqlClientPool, Sql.selectAdvancedTaskDefinitionArguments(task_definition_id));
       let taskDefArgs = rows;
       return taskDefArgs
     },
