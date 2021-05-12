@@ -1,4 +1,4 @@
-const { knex } = require('../../util/db');
+import { knex } from '../../util/db';
 
 export const Sql = {
   selectTask: (id: number) =>
@@ -20,19 +20,19 @@ export const Sql = {
     advanced_image = null,
     advanced_payload = null,
   }: {
-    id: number,
-    name: string,
-    status: string,
-    created: string,
-    started: string,
-    completed: string,
-    environment: number,
-    service: string,
-    command: string,
-    remoteId: string,
-    type?: string,
-    advanced_image?: string,
-    advanced_payload?: string,
+    id: number;
+    name: string;
+    status: string;
+    created: string;
+    started: string;
+    completed: string;
+    environment: number;
+    service: string;
+    command: string;
+    remoteId: string;
+    type?: string;
+    advanced_image?: string;
+    advanced_payload?: string;
   }) =>
     knex('task')
       .insert({
@@ -56,7 +56,7 @@ export const Sql = {
       .where('id', id)
       .del()
       .toString(),
-  updateTask: ({ id, patch }: { id: number, patch: { [key: string]: any } }) =>
+  updateTask: ({ id, patch }: { id: number; patch: { [key: string]: any } }) =>
     knex('task')
       .where('id', id)
       .update(patch)

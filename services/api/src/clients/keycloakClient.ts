@@ -1,51 +1,42 @@
-const crypto = require('crypto');
-const R = require('ramda');
-const KeycloakConfig = require('keycloak-connect/middleware/auth-utils/config');
-const KeycloakGrantManager = require('../lib/keycloak-grant-manager');
+import crypto from 'crypto';
+import KeycloakConfig from 'keycloak-connect/middleware/auth-utils/config';
+import KeycloakGrantManager from '../lib/keycloak-grant-manager';
+import { getConfigFromEnv, getLagoonRouteFromEnv } from '../util/config';
 
-const defaultKeycloakUrl = R.propOr( 'http://keycloak:8080', 'KEYCLOAK_URL', process.env);
-
-const ConnectionConfig = {
-  baseUrl: `${defaultKeycloakUrl}/auth`,
-  realmName: 'lagoon',
-};
-
-const Credentials = {
-  realmName: 'master',
-  username: 'admin',
-  password: R.pathOr('<password not set>', ['env', 'KEYCLOAK_ADMIN_PASSWORD'], process),
-  grantType: 'password',
-  clientId: 'admin-cli',
-};
-
-const lagoonKeycloakRoute = R.compose(
-  R.defaultTo(defaultKeycloakUrl),
-  R.find(R.test(/keycloak-/)),
-  R.split(','),
-  R.propOr('', 'LAGOON_ROUTES'),
-)(process.env);
-
-const config = new KeycloakConfig({
-  authServerUrl: `${lagoonKeycloakRoute}/auth`,
+export const config = {
+  origin: getConfigFromEnv('KEYCLOAK_URL', 'http://keycloak:8080'),
+  user: 'admin',
+  pass: getConfigFromEnv('KEYCLOAK_ADMIN_PASSWORD', '<password not set>'),
   realm: 'lagoon',
+  apiClientSecret: getConfigFromEnv(
+    'KEYCLOAK_API_CLIENT_SECRET',
+    '<secret not set>'
+  ),
+  get publicRoute() {
+    return getLagoonRouteFromEnv(/keycloak-/, this.origin);
+  }
+};
+
+const keycloakConfig = new KeycloakConfig({
+  authServerUrl: `${config.publicRoute}/auth`,
+  realm: config.realm,
   clientId: 'api',
   bearerOnly: true,
   credentials: {
-    secret: R.propOr(
-      'no-client-secret-configured',
-      'KEYCLOAK_API_CLIENT_SECRET',
-      process.env,
-    ),
-  },
+    secret: config.apiClientSecret
+  }
 });
 
-const keycloakGrantManager = new KeycloakGrantManager(config);
+export const keycloakGrantManager = new KeycloakGrantManager(keycloakConfig);
 
 // Override the library "validateToken" function because it is very strict about
 // verifying the ISS, which is the URI of the keycloak server. This will almost
 // always fail since the URI will be different for end users authenticated via
 // the web console and services communicating via backchannel.
-keycloakGrantManager.validateToken = function validateToken(token, expectedType) {
+keycloakGrantManager.validateToken = function validateToken(
+  token,
+  expectedType
+) {
   return new Promise((resolve, reject) => {
     if (!token) {
       reject(new Error('invalid token (missing)'));
@@ -73,8 +64,8 @@ keycloakGrantManager.validateToken = function validateToken(token, expectedType)
         } catch (err) {
           reject(
             new Error(
-              'Misconfigured parameters while validating token. Check your keycloak.json file!',
-            ),
+              'Misconfigured parameters while validating token. Check your keycloak.json file!'
+            )
           );
         }
       } else {
@@ -92,18 +83,11 @@ keycloakGrantManager.validateToken = function validateToken(token, expectedType)
           .catch(err => {
             reject(
               new Error(
-                `failed to load public key to verify token. Reason: ${
-                  err.message}`,
-              ),
+                `failed to load public key to verify token. Reason: ${err.message}`
+              )
             );
           });
       }
     }
   });
-};
-
-module.exports = {
-  keycloakGrantManager,
-  ConnectionConfig,
-  Credentials,
 };

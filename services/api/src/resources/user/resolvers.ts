@@ -11,7 +11,7 @@ export const getMe: ResolverFn = async (_root, args, { models, keycloakGrant: gr
 export const getUserBySshKey: ResolverFn = async (
   _root,
   { sshKey },
-  { sqlClient, models, hasPermission },
+  { sqlClientPool, models, hasPermission },
 ) => {
   await hasPermission('user', 'getBySshKey');
 
@@ -22,7 +22,7 @@ export const getUserBySshKey: ResolverFn = async (
   )(sshKey);
 
   const rows = await query(
-    sqlClient,
+    sqlClientPool,
     Sql.selectUserIdBySshKey({ keyType, keyValue }),
   );
   const userId = R.map(R.prop('usid'), rows);
