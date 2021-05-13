@@ -42,7 +42,7 @@
     git_pr_number: 1
     git_pr_title: "PR Title"
   tasks:
-  - include: ../../tasks/api/pullrequest-deploy.yaml
+  - include: ../../tasks/api/deploy-pullrequest.yaml
 
 
 - include: ../../checks/check-pullrequest.yaml
@@ -81,7 +81,7 @@
     git_pr_number: 1
     git_pr_title: "PR Title - UPDATE"
   tasks:
-  - include: ../../tasks/api/pullrequest-deploy.yaml
+  - include: ../../tasks/api/deploy-pullrequest.yaml
 
 - include: ../../checks/check-pullrequest.yaml
   vars:

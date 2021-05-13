@@ -1,0 +1,11 @@
+
+- name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}, which should deploy the first commit"
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ project }}"
+    project_id: "{{ project_id }}"
+    git_url: "{{ git_url }}"
+    openshift: 2001
+  tasks:
+  - include: ../../tasks/api/add-project.yaml

@@ -1,0 +1,3 @@
+mutation deploy {
+  deployEnvironmentPullrequest(input:{project:{name: "{{ project }}" },number: {{ git_pr_number | int }}, title: "{{ git_pr_title }}", baseBranchName: "{{ git_base_branch }}", baseBranchRef: "{{ git_base_commit_hash }}", headBranchName: "{{ git_pr_branch }}", headBranchRef: "{{ git_pr_commit_hash }}" })
+}

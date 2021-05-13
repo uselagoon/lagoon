@@ -4,6 +4,13 @@
   vars:
     testname: "API TOKEN"
 
+- include: api/add-project.yaml
+  vars:
+    project_id: 31
+    project: ci-python-{{ cluster_type }}
+    git_repo_name: python.git
+    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
+
 - include: python/deploy-branch.yaml
   vars:
     testname: "PYTHON 3.7 {{ cluster_type|upper }}"
