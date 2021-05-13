@@ -48,7 +48,7 @@ const typeDefs = gql`
     FAILED
     COMPLETE
   }
-  
+
   enum SiteStatusType {
     OPERATIONAL
     ISSUES
@@ -121,6 +121,11 @@ const typeDefs = gql`
     MEDIUM
     HIGH
     CRITICAL
+  }
+
+  enum FactType {
+    TEXT
+    URL
   }
 
   scalar SeverityScore
@@ -209,6 +214,7 @@ const typeDefs = gql`
     source: String
     description: String
     reference: [String]
+    type: FactType
     category: String
   }
 
@@ -220,6 +226,7 @@ const typeDefs = gql`
     source: String!
     description: String!
     reference: [String]
+    type: FactType
     category: String
   }
 
@@ -233,6 +240,8 @@ const typeDefs = gql`
     value: String!
     source: String!
     description: String
+    type: FactType
+    category: String
   }
 
   input UpdateFactInput {

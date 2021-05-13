@@ -1,116 +1,156 @@
 import * as R from 'ramda';
-import { query, prepare } from '../../util/db';
+import { query } from '../../util/db';
 import { Sql } from './sql';
 import { Helpers as problemHelpers } from './helpers';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { ResolverFn } from '../';
-const logger = require('../../logger');
+import logger from '../../logger';
 
 export const getAllProblems: ResolverFn = async (
   root,
   args,
-  { sqlClient, hasPermission }
+  { sqlClientPool, hasPermission }
 ) => {
   let rows = [];
 
   try {
     if (!R.isEmpty(args)) {
-      rows = await problemHelpers(sqlClient).getAllProblems(args.source, args.environment, args.envType, args.severity);
+      rows = await problemHelpers(sqlClientPool).getAllProblems(
+        args.source,
+        args.environment,
+        args.envType,
+        args.severity
+      );
+    } else {
+      rows = await query(
+        sqlClientPool,
+        Sql.selectAllProblems({
+          source: [],
+          environmentId: 0,
+          environmentType: [],
+          severity: []
+        })
+      );
     }
-    else {
-      rows = await query(sqlClient, Sql.selectAllProblems({source: [], environmentId: 0, environmentType: [], severity: []}));
-    }
-  }
-  catch (err) {
+  } catch (err) {
     if (err) {
       logger.warn(err);
       return [];
     }
   }
 
-  const problems: any = rows && rows.map(async problem => {
-     const { environment: envId, name, project, environmentType, openshiftProjectName, ...rest} = problem;
+  const problems: any =
+    rows &&
+    rows.map(async problem => {
+      const {
+        environment: envId,
+        name,
+        project,
+        environmentType,
+        openshiftProjectName,
+        ...rest
+      } = problem;
 
       await hasPermission('problem', 'view', {
-          project: project,
+        project: project
       });
 
-      return { ...rest, environment: { id: envId, name, project, environmentType, openshiftProjectName }};
-  });
+      return {
+        ...rest,
+        environment: {
+          id: envId,
+          name,
+          project,
+          environmentType,
+          openshiftProjectName
+        }
+      };
+    });
 
-  return Promise.all(problems).then((completed) => {
-      const sorted = R.sort(R.descend(R.prop('severity')), completed);
-      return sorted.map((row: any) => ({ ...(row as Object) }));
+  return Promise.all(problems).then(completed => {
+    const sorted = R.sort(R.descend(R.prop('severity')), completed);
+    return sorted.map((row: any) => ({ ...(row as Object) }));
   });
 };
 
-export const getSeverityOptions = async (
+export const getSeverityOptions: ResolverFn = async (
   root,
   args,
-  { sqlClient },
+  { sqlClientPool }
 ) => {
-  return await problemHelpers(sqlClient).getSeverityOptions();
+  return await problemHelpers(sqlClientPool).getSeverityOptions();
 };
 
-export const getProblemSources = async (
+export const getProblemSources: ResolverFn = async (
   root,
   args,
-  { sqlClient },
+  { sqlClientPool }
 ) => {
-  const preparedQuery = prepare(
-    sqlClient,
-    `SELECT DISTINCT source FROM environment_problem`,
-  );
-
   return R.map(
     R.prop('source'),
-      await query(sqlClient, preparedQuery(args))
-    );
+    await query(
+      sqlClientPool,
+      'SELECT DISTINCT source FROM environment_problem'
+    )
+  );
 };
 
-export const getProblemsByEnvironmentId = async (
+export const getProblemsByEnvironmentId: ResolverFn = async (
   { id: environmentId },
-  {severity, source},
-  { sqlClient, hasPermission },
+  { severity, source },
+  { sqlClientPool, hasPermission }
 ) => {
-  const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+  const environment = await environmentHelpers(
+    sqlClientPool
+  ).getEnvironmentById(environmentId);
 
   await hasPermission('problem', 'view', {
-    project: environment.project,
+    project: environment.project
   });
 
   const rows = await query(
-    sqlClient,
+    sqlClientPool,
     Sql.selectProblemsByEnvironmentId({
       environmentId,
       severity,
-      source,
-    }),
+      source
+    })
   );
 
-  return  R.sort(R.descend(R.prop('created')), rows);
+  return R.sort(R.descend(R.prop('created')), rows);
 };
 
-export const addProblem = async (
+export const addProblem: ResolverFn = async (
   root,
   {
     input: {
-      id, severity, environment: environmentId, identifier, service, source, data, created,
-        severityScore, associatedPackage, description, version, fixedVersion, links
-    },
+      severity,
+      environment: environmentId,
+      identifier,
+      service,
+      source,
+      data,
+      created,
+      severityScore,
+      associatedPackage,
+      description,
+      version,
+      fixedVersion,
+      links
+    }
   },
-  { sqlClient, hasPermission },
+  { sqlClientPool, hasPermission }
 ) => {
-  const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+  const environment = await environmentHelpers(
+    sqlClientPool
+  ).getEnvironmentById(environmentId);
 
   await hasPermission('problem', 'add', {
-    project: environment.project,
+    project: environment.project
   });
 
-  const {
-    info: { insertId },
-  } = await query(
-    sqlClient,
+  const { insertId } = await query(
+    sqlClientPool,
     Sql.insertProblem({
       severity,
       severity_score: severityScore,
@@ -124,74 +164,72 @@ export const addProblem = async (
       fixed_version: fixedVersion,
       links: links,
       data,
-      created,
-    }),
+      created
+    })
   );
 
-  const rows = await query(sqlClient, Sql.selectProblemByDatabaseId(insertId));
+  const rows = await query(
+    sqlClientPool,
+    Sql.selectProblemByDatabaseId(insertId)
+  );
   return R.prop(0, rows);
 };
 
-export const deleteProblem = async (
+export const deleteProblem: ResolverFn = async (
   root,
-  {
-    input : {
-      environment: environmentId,
-      identifier,
-    }
-  },
-  { sqlClient, hasPermission },
+  { input: { environment: environmentId, identifier } },
+  { sqlClientPool, hasPermission }
 ) => {
-  const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+  const environment = await environmentHelpers(
+    sqlClientPool
+  ).getEnvironmentById(environmentId);
 
   await hasPermission('problem', 'delete', {
-    project: environment.project,
+    project: environment.project
   });
 
-  await query(sqlClient, Sql.deleteProblem(environmentId, identifier));
+  await query(sqlClientPool, Sql.deleteProblem(environmentId, identifier));
 
   return 'success';
 };
 
-export const deleteProblemsFromSource = async (
+export const deleteProblemsFromSource: ResolverFn = async (
   root,
-  {
-    input : {
-      environment: environmentId,
-      source,
-      service,
-    }
-  },
-  { sqlClient, hasPermission },
+  { input: { environment: environmentId, source, service } },
+  { sqlClientPool, hasPermission }
 ) => {
-  const environment = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+  const environment = await environmentHelpers(
+    sqlClientPool
+  ).getEnvironmentById(environmentId);
 
   await hasPermission('problem', 'delete', {
-    project: environment.project,
+    project: environment.project
   });
 
-  await query(sqlClient, Sql.deleteProblemsFromSource(environmentId, source, service));
+  await query(
+    sqlClientPool,
+    Sql.deleteProblemsFromSource(environmentId, source, service)
+  );
 
   return 'success';
-}
+};
 
-export const getProblemHarborScanMatches = async (
+export const getProblemHarborScanMatches: ResolverFn = async (
   root,
   args,
-  { sqlClient, hasPermission },
+  { sqlClientPool, hasPermission }
 ) => {
-
   await hasPermission('harbor_scan_match', 'view', {});
 
   const rows = await query(
-    sqlClient,
-    Sql.selectAllProblemHarborScanMatches(),
+    sqlClientPool,
+    Sql.selectAllProblemHarborScanMatches()
   );
 
   return rows;
 };
 
-export const addProblemHarborScanMatch = async (
+export const addProblemHarborScanMatch: ResolverFn = async (
   root,
   {
     input: {
@@ -201,48 +239,40 @@ export const addProblemHarborScanMatch = async (
       defaultLagoonEnvironment,
       defaultLagoonService,
       regex
-    },
+    }
   },
-  { sqlClient, hasPermission },
+  { sqlClientPool, hasPermission }
 ) => {
-
   await hasPermission('harbor_scan_match', 'add', {});
 
-  const {
-    info: { insertId },
-  } = await query(
-    sqlClient,
-    Sql.insertProblemHarborScanMatch(
-      {
-        id: null,
-        name,
-        description,
-        default_lagoon_project: defaultLagoonProject,
-        default_lagoon_environment: defaultLagoonEnvironment,
-        default_lagoon_service_name: defaultLagoonService,
-        regex
-      }
-    ),
+  const { insertId } = await query(
+    sqlClientPool,
+    Sql.insertProblemHarborScanMatch({
+      id: null,
+      name,
+      description,
+      default_lagoon_project: defaultLagoonProject,
+      default_lagoon_environment: defaultLagoonEnvironment,
+      default_lagoon_service_name: defaultLagoonService,
+      regex
+    })
   );
 
-  const rows = await query(sqlClient, Sql.selectAllProblemHarborScanMatchByDatabaseId(insertId));
+  const rows = await query(
+    sqlClientPool,
+    Sql.selectAllProblemHarborScanMatchByDatabaseId(insertId)
+  );
   return R.prop(0, rows);
 };
 
-
-export const deleteProblemHarborScanMatch = async (
+export const deleteProblemHarborScanMatch: ResolverFn = async (
   root,
-  {
-    input : {
-      id
-    }
-  },
-  { sqlClient, hasPermission },
+  { input: { id } },
+  { sqlClientPool, hasPermission }
 ) => {
-
   await hasPermission('harbor_scan_match', 'delete', {});
 
-  await query(sqlClient, Sql.deleteProblemHarborScanMatch(id));
+  await query(sqlClientPool, Sql.deleteProblemHarborScanMatch(id));
 
   return 'success';
 };

@@ -233,8 +233,8 @@ MIIJKQIBAAKCAgEA+o[...]P0yoL8BoQQG2jCvYfWh6vyglQdrDYx/o6/8ecTwXokKKh6fg1q
     productionEnvironment: 'master',
     autoIdle: faker.random.arrayElement([0, 1]),
     storageCalc: faker.random.arrayElement([0, 1]),
-    problemsUi: faker.random.arrayElement([0, 1]),
-    factsUi: faker.random.arrayElement([0, 1]),
+    problemsUi: 1,
+    factsUi: 1,
     openshift: mocks.Openshift(),
     openshiftProjectPattern: '${project}-${name}',
     developmentEnvironmentsLimit: 10,
@@ -515,6 +515,22 @@ mocks.ProblemMutation = (schema) => {
             `problem${faker.random.number(1000000)}: addProblem(input: ${JSON.stringify(temp, 2, null)}) { identifier }`
         );
     });
+};
+
+mocks.Fact = (parent, args = {}) => {
+  const name = `fact-${faker.random.number({min: 1, max: 100})}`;
+  const value = `${faker.random.number({min: 1, max: 9})}.${faker.random.number({min: 0, max: 9})}.${faker.random.number({min: 0, max: 9})}`;
+  const source = faker.random.arrayElement(['drush_pml', 'drush_status', 'php-details', 'env', 'http_header']);
+  const category = faker.random.arrayElement(['application', 'hosting', 'cms', 'drupal-module', 'drupal-theme']);
+  const description = faker.lorem.paragraph();
+
+  return {
+    name,
+    value,
+    source,
+    category,
+    description
+  };
 };
 
 //

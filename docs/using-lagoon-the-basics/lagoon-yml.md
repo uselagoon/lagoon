@@ -285,7 +285,7 @@ If you like the original IP to appear in the `REMOTE_ADDR` `HTTP_X_REAL_IP` `HTT
 {% endtab %}
 {% endtabs %}
 
-This example would trust the CIDR `1.2.3.4/32` \(the IP `1.2.3.4` in this case\). Therefore if there is a request sent to the Kubernetes clustesr from the IP `1.2.3.4` the `X-Forwarded-For` Header is analyzed and it's contents injected into `REMOTE_ADDR` `HTTP_X_REAL_IP` `HTTP_X_FORWARDED_FOR` headers.
+This example would trust the CIDR `1.2.3.4/32` \(the IP `1.2.3.4` in this case\). Therefore if there is a request sent to the Kubernetes cluster from the IP `1.2.3.4` the `X-Forwarded-For` Header is analyzed and it's contents injected into `REMOTE_ADDR` `HTTP_X_REAL_IP` `HTTP_X_FORWARDED_FOR` headers.
 
 ### `Environments.[name].types`
 
@@ -389,7 +389,7 @@ Example:
 ```yaml
     cronjobs:
      - name: drush cron
-       schedule: "H * * * *" # This will run the cron once per hour.
+       schedule: "M * * * *" # This will run the cron once per hour.
        command: drush cron
        service: cli
 ```
@@ -400,10 +400,10 @@ Example:
   * Just a friendly name for identifying what the cron job will do.
 * `schedule:`
   * The schedule for executing the cron job. This follows the standard convention of cron. If you're not sure about the syntax, [Crontab Generator](https://crontab-generator.org/) can help.
-  * You can specify `M` for the minute, and your cron job will run once per hour at a random minute \(the same minute each hour\), or `M/15` to run it every 15 mins, but with a random offset from the hour \(like `6,21,36,51`\).
+  * You can specify `M` for the minute, and your cron job will run once per hour at a random minute \(the same minute each hour\), or `M/15` to run it every 15 mins, but with a random offset from the hour \(like `6,21,36,51`\). It is a good idea to spread out your cron jobs using this feature, rather than have them all fire off on minute `0`.
   * You can specify `H` for the hour, and your cron job will run once per day at a random hour \(the same hour every day\), or `H(2-4)` to run it once per day within the hours of 2-4.
 * `command:`
-  * The command to execute. Like the tasks, this executes in the WORKDIR of the service. For Lagoon images, this is `/app`.
+  * The command to execute. Like the tasks, this executes in the `WORKDIR` of the service. For Lagoon images, this is `/app`.
 * `service:`
   * Which service of your project to run the command in. For most projects, this is the `CLI` service.
 

@@ -9,5 +9,7 @@ export default gql`
     category
     reference
     description
+    type
+    category
   }
 `;

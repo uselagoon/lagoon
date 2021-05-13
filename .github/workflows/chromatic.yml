@@ -5,6 +5,8 @@ on:
   #   branches:
   #     - main
   push:
+    paths:
+      - "services/ui/**"
     branches-ignore:
       - "dependabot/**"
 

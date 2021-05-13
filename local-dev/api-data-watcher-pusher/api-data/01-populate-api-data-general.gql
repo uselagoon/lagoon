@@ -305,6 +305,8 @@ mutation PopulateApi {
       openshift: 4
       gitUrl: "ssh://git@172.17.0.1:2222/git/project18.git"
       productionEnvironment: "Master"
+      problemsUi: 1
+      factsUi: 1
     }
   ) {
     id
@@ -499,7 +501,6 @@ mutation PopulateApi {
     id
   }
 
-
   UIProject1Environment1addTask3: addTask(
     input: {
       name: "Drupal Archive"
@@ -517,6 +518,31 @@ mutation PopulateApi {
   }
 
   UIProject1Environment1addServices: setEnvironmentServices(input:{environment:3, services:["cli", "nginx", "mariadb"]}) {
+    id
+  }
+
+  UIProject1Environment1addFacts: addFacts(
+    input: {
+      facts: [
+          {
+            name: "interesting-package"
+            value: "1.0.0"
+            environment: 3
+            source: "local-dev"
+            description: "Description of interesting php package"
+            category: "Composer package (php)"
+          },
+          {
+            name: "npm-module"
+            value: "2.0.0"
+            environment: 3
+            source: "local-dev"
+            description: "Description of node module"
+            category: "Node package (npm)"
+          }
+      ]
+    }
+  ) {
     id
   }
 

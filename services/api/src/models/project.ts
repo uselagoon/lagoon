@@ -1,4 +1,4 @@
-import * as R from 'ramda';
+import { Pool } from 'mariadb';
 import { Group } from './group';
 import { Helpers } from '../resources/project/helpers';
 
@@ -32,20 +32,24 @@ export interface Project {
   metadata: JSON; // JSON DEFAULT NULL,
 }
 
-export const ProjectModel = (clients) => {
-
-  const { sqlClient, keycloakAdminClient } = clients;
+export const ProjectModel = (clients: {
+  sqlClientPool: Pool;
+  keycloakAdminClient: any;
+  redisClient: any;
+  esClient: any;
+}) => {
+  const { sqlClientPool } = clients;
 
   const projectsByGroup = async (group: Group) => {
-    const GroupModel = Group({keycloakAdminClient});
+    const GroupModel = Group(clients);
     const projectIds = await GroupModel.getProjectsFromGroupAndSubgroups(group);
-    const projects = await Helpers(sqlClient).getProjectsByIds(projectIds);
+    const projects = await Helpers(sqlClientPool).getProjectsByIds(projectIds);
     return projects;
   };
 
   return {
     projectsByGroup
-  }
-}
+  };
+};
 
-export default ProjectModel
+export default ProjectModel;

@@ -7,13 +7,14 @@ const {
 const NodeCache = require('node-cache');
 const gql = require('graphql-tag');
 const newrelic = require('newrelic');
+const { getConfigFromEnv } = require('./util/config');
 const {
   getCredentialsForLegacyToken,
   getGrantForKeycloakToken,
   legacyHasPermission,
   keycloakHasPermission
 } = require('./util/auth');
-const { getSqlClient } = require('./clients/sqlClient');
+const { sqlClientPool } = require('./clients/sqlClient');
 const esClient = require('./clients/esClient');
 const redisClient = require('./clients/redisClient');
 const { getKeycloakAdminClient } = require('./clients/keycloak-admin');
@@ -31,7 +32,7 @@ const schema = makeExecutableSchema({ typeDefs, resolvers });
 
 const apolloServer = new ApolloServer({
   schema,
-  debug: process.env.NODE_ENV === 'development',
+  debug: getConfigFromEnv('NODE_ENV') === 'development',
   introspection: true,
   subscriptions: {
     onConnect: async (connectionParams, webSocket) => {
@@ -43,27 +44,18 @@ const apolloServer = new ApolloServer({
         throw new AuthenticationError('Auth token missing.');
       }
 
-      const sqlClientKeycloak = getSqlClient();
       try {
-        grant = await getGrantForKeycloakToken(sqlClientKeycloak, token);
-        sqlClientKeycloak.end();
+        grant = await getGrantForKeycloakToken(token);
       } catch (e) {
-        sqlClientKeycloak.end();
         // It might be a legacy token, so continue on.
         logger.debug(`Keycloak token auth failed: ${e.message}`);
       }
 
-      const sqlClientLegacy = getSqlClient();
       try {
         if (!grant) {
-          legacyCredentials = await getCredentialsForLegacyToken(
-            sqlClientLegacy,
-            token
-          );
-          sqlClientLegacy.end();
+          legacyCredentials = await getCredentialsForLegacyToken(token);
         }
       } catch (e) {
-        sqlClientLegacy.end();
         throw new AuthenticationError(e.message);
       }
 
@@ -73,36 +65,31 @@ const apolloServer = new ApolloServer({
         checkperiod: 0
       });
 
-      const sqlClient = getSqlClient();
+      const modelClients = {
+        sqlClientPool,
+        keycloakAdminClient,
+        esClient,
+        redisClient
+      };
 
       return {
         keycloakAdminClient,
-        sqlClient,
+        sqlClientPool,
         hasPermission: grant
-          ? keycloakHasPermission(grant, requestCache, keycloakAdminClient)
+          ? keycloakHasPermission(grant, requestCache, modelClients)
           : legacyHasPermission(legacyCredentials),
         keycloakGrant: grant,
         requestCache,
         models: {
-          UserModel: User.User({ keycloakAdminClient, redisClient }),
-          GroupModel: Group.Group({ keycloakAdminClient, sqlClient, redisClient, esClient }),
-          BillingModel: BillingModel.BillingModel({
-            keycloakAdminClient,
-            sqlClient,
-            esClient
-          }),
-          ProjectModel: ProjectModel.ProjectModel({
-            keycloakAdminClient,
-            sqlClient
-          }),
-          EnvironmentModel: EnvironmentModel.EnvironmentModel({ sqlClient, esClient })
+          UserModel: User.User(modelClients),
+          GroupModel: Group.Group(modelClients),
+          BillingModel: BillingModel.BillingModel(modelClients),
+          ProjectModel: ProjectModel.ProjectModel(modelClients),
+          EnvironmentModel: EnvironmentModel.EnvironmentModel(modelClients)
         }
       };
     },
     onDisconnect: (websocket, context) => {
-      if (context.sqlClient) {
-        context.sqlClient.end();
-      }
       if (context.requestCache) {
         context.requestCache.flushAll();
       }
@@ -125,37 +112,27 @@ const apolloServer = new ApolloServer({
         checkperiod: 0
       });
 
-      const sqlClient = getSqlClient();
+      const modelClients = {
+        sqlClientPool,
+        keycloakAdminClient,
+        esClient,
+        redisClient
+      };
 
       return {
         keycloakAdminClient,
-        sqlClient,
+        sqlClientPool,
         hasPermission: req.kauth
-          ? keycloakHasPermission(
-              req.kauth.grant,
-              requestCache,
-              keycloakAdminClient
-            )
+          ? keycloakHasPermission(req.kauth.grant, requestCache, modelClients)
           : legacyHasPermission(req.legacyCredentials),
         keycloakGrant: req.kauth ? req.kauth.grant : null,
         requestCache,
         models: {
-          UserModel: User.User({ keycloakAdminClient, redisClient }),
-          GroupModel: Group.Group({ keycloakAdminClient, sqlClient, redisClient, esClient }),
-          BillingModel: BillingModel.BillingModel({
-            keycloakAdminClient,
-            sqlClient,
-            esClient
-          }),
-          ProjectModel: ProjectModel.ProjectModel({
-            keycloakAdminClient,
-            sqlClient
-          }),
-          EnvironmentModel: EnvironmentModel.EnvironmentModel({
-            keycloakAdminClient,
-            sqlClient,
-            esClient
-          })
+          UserModel: User.User(modelClients),
+          GroupModel: Group.Group(modelClients),
+          BillingModel: BillingModel.BillingModel(modelClients),
+          ProjectModel: ProjectModel.ProjectModel(modelClients),
+          EnvironmentModel: EnvironmentModel.EnvironmentModel(modelClients)
         }
       };
     }
@@ -166,19 +143,15 @@ const apolloServer = new ApolloServer({
       message: error.message,
       locations: error.locations,
       path: error.path,
-      ...(process.env.NODE_ENV === 'development'
+      ...(getConfigFromEnv('NODE_ENV') === 'development'
         ? { extensions: error.extensions }
         : {})
     };
   },
   plugins: [
-    // mariasql client closer plugin
     {
       requestDidStart: () => ({
         willSendResponse: response => {
-          if (response.context.sqlClient) {
-            response.context.sqlClient.end();
-          }
           if (response.context.requestCache) {
             response.context.requestCache.flushAll();
           }

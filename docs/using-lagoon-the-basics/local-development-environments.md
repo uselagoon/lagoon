@@ -21,7 +21,7 @@ As announced in our [blog post](https://www.amazee.io/blog/post/announcing-lando
 
 Lando's workflow for Lagoon will be familiar to users of Lando, and will also be the easiest way for Lagoon newcomers to get up and running. Pygmy presents a closer integration with Docker, which will lend itself better to more complex scenarios and use cases but will also require a deeper understanding.
 
-There is also a community-built fork of Pygmy, re-written in Go, available at [https://github.com/fubarhouse/pygmy-go](https://github.com/fubarhouse/pygmy-go) that presents even more opportunity for local customisation and control.
+There is also a community-built fork of Pygmy, re-written in Go, available at [https://github.com/fubarhouse/pygmy-go](https://github.com/fubarhouse/pygmy-go) that presents even more opportunity for local customization and control.
 
-We have previously evaluated adding support for other systems like [Docksal](https://docksal.io/), [DDEV](https://www.ddev.com/ddev-local/), and [Docker4Drupal](https://wodby.com/docs/stacks/drupal/local/), and whilst we may add support for these in the future, our current focus is on supporting using Lando and pygmy. If you do have Lagoon running with one of these \(or other\) tools, we would love for you to submit a [PR on GitHub](https://github.com/amazeeio/pygmy)!
+We have previously evaluated adding support for other systems like [Docksal](https://docksal.io/) and [Docker4Drupal](https://wodby.com/docs/stacks/drupal/local/), and while we may add support for these in the future, our current focus is on supporting using Lando and pygmy. If you do have Lagoon running with one of these \(or other\) tools, we would love for you to submit a [PR on GitHub](https://github.com/amazeeio/pygmy)!
 
