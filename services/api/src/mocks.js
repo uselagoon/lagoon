@@ -232,8 +232,8 @@ MIIJKQIBAAKCAgEA+o[...]P0yoL8BoQQG2jCvYfWh6vyglQdrDYx/o6/8ecTwXokKKh6fg1q
     productionEnvironment: 'master',
     autoIdle: faker.random.arrayElement([0, 1]),
     storageCalc: faker.random.arrayElement([0, 1]),
-    problemsUi: faker.random.arrayElement([0, 1]),
-    factsUi: faker.random.arrayElement([0, 1]),
+    problemsUi: 1,
+    factsUi: 1,
     openshift: mocks.Openshift(),
     openshiftProjectPattern: '${project}-${name}',
     developmentEnvironmentsLimit: 10,
@@ -299,6 +299,18 @@ mocks.Environment = (parent, args = {}, context, info) => {
       mocks.Problem(null, {source: "OWASP ZAP", severity: "LOW"}),
       mocks.Problem(),
       mocks.Problem()
+    ],
+    facts: [
+      mocks.Fact(),
+      mocks.Fact(),
+      mocks.Fact(),
+      mocks.Fact(),
+      mocks.Fact(),
+      mocks.Fact(),
+      mocks.Fact(),
+      mocks.Fact(),
+      mocks.Fact(),
+      mocks.Fact()
     ],
     services: [ mocks.EnvironmentService() ],
   };
@@ -479,6 +491,22 @@ mocks.ProblemMutation = (schema) => {
     });
 };
 
+mocks.Fact = (parent, args = {}) => {
+  const name = `fact-${faker.random.number({min: 1, max: 100})}`;
+  const value = `${faker.random.number({min: 1, max: 9})}.${faker.random.number({min: 0, max: 9})}.${faker.random.number({min: 0, max: 9})}`;
+  const source = faker.random.arrayElement(['drush_pml', 'drush_status', 'php-details', 'env', 'http_header']);
+  const category = faker.random.arrayElement(['application', 'hosting', 'cms', 'drupal-module', 'drupal-theme']);
+  const description = faker.lorem.paragraph();
+
+  return {
+    name,
+    value,
+    source,
+    category,
+    description
+  };
+};
+
 //
 // Query 'type' mock from typeDefs.
 //
@@ -493,7 +521,7 @@ mocks.Query = () => ({
   userCanSshToEnvironment: () => mocks.Environment(),
   deploymentByRemoteId: () => mocks.Deployment(),
   taskByRemoteId: () => mocks.Task(),
-  allProjects: () => new MockList(100),
+  allProjects: () => new MockList(50),
   allOpenshifts: () => new MockList(9),
   allProblems: () => new MockList(20),
   allEnvironments: (parent, args = {}, context, info) => {

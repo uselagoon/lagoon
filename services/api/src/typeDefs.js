@@ -208,6 +208,7 @@ const typeDefs = gql`
     source: String
     description: String
     type: FactType
+    category: String
   }
 
   input AddFactInput {
@@ -218,6 +219,7 @@ const typeDefs = gql`
     source: String!
     description: String!
     type: FactType
+    category: String
   }
 
   input AddFactsInput {
@@ -231,6 +233,7 @@ const typeDefs = gql`
     source: String!
     description: String
     type: FactType
+    category: String
   }
 
   input UpdateFactInput {

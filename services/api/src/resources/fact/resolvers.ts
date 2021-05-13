@@ -31,7 +31,7 @@ export const addFact: ResolverFn = async (
   root,
   {
     input: {
-      id, environment: environmentId, name, value, source, description, type
+      id, environment: environmentId, name, value, source, description, type, category
     },
   },
   { sqlClient, hasPermission },
@@ -52,7 +52,8 @@ export const addFact: ResolverFn = async (
       value,
       source,
       description,
-      type
+      type,
+      category
     }),
   );
 
@@ -81,7 +82,7 @@ export const addFacts: ResolverFn = async (
   });
 
   return await facts.map(async (fact) => {
-    const { environment, name, value, source, description, type } = fact;
+    const { environment, name, value, source, description, type, category } = fact;
 
     const { insertId } = await query(
       sqlClientPool,
@@ -91,7 +92,8 @@ export const addFacts: ResolverFn = async (
         value,
         source,
         description,
-        type
+        type,
+        category
       }),
     );
 

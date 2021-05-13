@@ -8,5 +8,6 @@ export default gql`
     source
     description
     type
+    category
   }
 `;
