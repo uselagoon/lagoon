@@ -34,7 +34,7 @@ export const addFact: ResolverFn = async (
       id, environment: environmentId, name, value, source, description, type, category
     },
   },
-  { sqlClient, hasPermission },
+  { sqlClientPool, hasPermission },
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
