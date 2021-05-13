@@ -10,6 +10,7 @@ export default gql`
         name
         route
         routes
+        environmentType
         facts {
           ...factFields
         }

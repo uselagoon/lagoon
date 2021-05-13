@@ -44,8 +44,6 @@ const Projects = ({ projects = [] }) => {
   };
 
   const handleCategoryChange = (category) => {
-    console.log(category);
-
     let values = category && category.value;
     setCategory(values);
   };
@@ -84,7 +82,8 @@ const Projects = ({ projects = [] }) => {
             defaultValue={{value: 'name', label: 'Project name'}}
             options={[
               {value: 'name', label: 'Project name'},
-              {value: 'created', label: 'Recently created'}
+              {value: 'created', label: 'Recently created'},
+              {value: 'id', label: 'Project ID'}
             ]}
             onFilterChange={handleSort}
           />
@@ -131,6 +130,7 @@ const Projects = ({ projects = [] }) => {
       )}
       {filteredProjects.map(project => (
         <ProjectLink projectSlug={project.name} key={project.id}>
+          ID: {project.id}
           {toggleDisplay === 'list' && (
             <Box className={boxClassName} >
               <div className="project">
@@ -142,20 +142,24 @@ const Projects = ({ projects = [] }) => {
                   />
                 </h4>
                 <div>Created: {new moment(project.created).format('YYYY-MM-DD')}</div>
-                <div className="route">
-                  {project.environments && project.environments.map((environment, index) => (
-                    <Highlighter
-                      key={index}
-                      searchWords={[searchInput]}
-                      autoEscape={true}
-                      textToHighlight={
-                        environment.route
-                          ? environment.route.replace(/^https?\:\/\//i, '')
-                          : ''
-                      }
-                    />
-                  ))}
-                </div>
+                {project.environments && project.environments.map((environment, index) => {
+                  if (environment.environmentType === "production") {
+                    return (
+                      <div className="route">
+                        <Highlighter
+                          key={index}
+                          searchWords={[searchInput]}
+                          autoEscape={true}
+                          textToHighlight={
+                            environment.route
+                              ? environment.route.replace(/^https?\:\/\//i, '')
+                              : ''
+                          }
+                        />
+                      </div>
+                    )
+                  }
+                })}
                 {project.environments && project.environments.map((environment, index) => {
                   if (environment.environmentType === "production" && environment.status) {
                     return (<div className="environments">

@@ -29,8 +29,12 @@ const { className: boxClassName, styles: boxStyles } = css.resolve`
       background-position: right 32px bottom -6px;
       background-repeat: no-repeat;
       background-size: 40px 50px;
-      min-height: 270px;
+      min-height: 150px;
       padding: 19px 20px;
+      
+      &.detailed {
+        min-height: 270px;
+      }
     }
   }
 `;
