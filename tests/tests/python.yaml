@@ -6,7 +6,6 @@
 
 - include: api/add-project.yaml
   vars:
-    project_id: 31
     project: ci-python-{{ cluster_type }}
     git_repo_name: python.git
     git_url: "{{ localgit_url }}/{{ git_repo_name }}"
@@ -19,3 +18,7 @@
     project: ci-python-{{ cluster_type }}
     branch: python37
     check_url: "http://python.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+
+- include: api/delete-project.yaml
+  vars:
+    project: ci-python-{{ cluster_type }}

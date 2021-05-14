@@ -1,7 +1,6 @@
-mutation deploy {
-  addProject(
+mutation addProject {
+  CiAddProject: addProject(
     input: {
-      id: {{ project_id }}
       name: "{{ project }}"
       openshift: 2001
       gitUrl: "{{ git_url }}"
@@ -11,7 +10,8 @@ mutation deploy {
   ) {
     id
   }
-  addGroupsToProject(
+
+  CiAddGroup: addGroupsToProject(
     input: {
       project: {
         name: "{{ project }}"
@@ -25,7 +25,8 @@ mutation deploy {
   ) {
     id
   }
-  CiPythonRocketChat: addNotificationToProject(
+
+  CiAddRocketChat: addNotificationToProject(
     input: {
       project: "{{ project }}"
       notificationType: ROCKETCHAT
@@ -34,7 +35,8 @@ mutation deploy {
   ) {
     id
   }
-  CiPythonEmail: addNotificationToProject(
+
+  CiAddEmail: addNotificationToProject(
     input: {
       project: "{{ project }}"
       notificationType: EMAIL

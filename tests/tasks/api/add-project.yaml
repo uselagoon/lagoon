@@ -1,12 +1,12 @@
 - name: "Add project {{ project }} to openshift {{ openshift }}"
   block:
-    - include: refresh-token.yaml
+    - include: admin-token.yaml
     - name: "Add project {{ project }} to openshift {{ openshift }}"
       uri:
         url: "{{ graphql_url }}"
         method: POST
         headers:
-          Authorization: "Bearer {{ token }}"
+          Authorization: "Bearer {{ admin_token }}"
         body_format: json
         body:
           query: '{{ lookup("template", "./add-project.gql") }}'
@@ -14,6 +14,6 @@
     - name: "Add project {{ project }} to openshift {{ openshift }}"
       debug:
         msg: "api response: {{ apiresponse.json }}"
-      until: apiresponse.json.data.addProject.id == 31
+#      until: apiresponse.json.data.addProject.id > 0
       retries: 10
       delay: 30

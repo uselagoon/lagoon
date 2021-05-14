@@ -1,0 +1,11 @@
+- name: "{{ testname }} - Create admin token"
+  block:
+    - name: "{{ testname }} - Create admin token"
+      script: admin_token.py
+      register: admin_grant
+    - debug:
+        msg: "refresh token stdout: {{ admin_grant.stdout }}"
+    - debug:
+        msg: "refresh token stderr: {{ admin_grant.stderr }}"
+    - set_fact:
+        admin_token: "{{ admin_grant.stdout | trim }}"
