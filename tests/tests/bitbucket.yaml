@@ -1,4 +1,11 @@
 ---
+
+- include: api/add-project.yaml
+  vars:
+    project: ci-bitbucket-{{ cluster_type }}
+    git_repo_name: bitbucket.git
+    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
+
 - include: bitbucket/branch.yaml
   vars:
     testname: "BITBUCKET {{ cluster_type|upper }} - slash branch"
@@ -33,3 +40,7 @@
     bitbucket_git_repo: "http://{{ lookup('env','GIT_HOST') }}:{{ lookup('env','GIT_PORT') }}/2.0/repositories/git/bitbucket"
     project: ci-bitbucket-{{ cluster_type }}
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.pr-2.{{ route_suffix }}"
+
+- include: api/delete-project.yaml
+  vars:
+    project: ci-bitbucket-{{ cluster_type }}

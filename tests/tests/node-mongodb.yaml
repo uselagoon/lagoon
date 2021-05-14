@@ -4,6 +4,12 @@
   vars:
     testname: "API TOKEN"
 
+- include: api/add-project.yaml
+  vars:
+    project: ci-node-mongodb-{{ cluster_type }}
+    git_repo_name: node-mongodb.git
+    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
+
 - include: node-mongodb/node-mongodb-single.yaml
   vars:
     testname: "Node 10 - MONGODB SINGLE {{ cluster_type|upper }}"
@@ -25,3 +31,7 @@
     git_repo_name: node-mongodb.git
     project: ci-node-mongodb-{{ cluster_type }}
     branch: node-mongodb-dbaas
+
+- include: api/delete-project.yaml
+  vars:
+    project: ci-node-mongodb-{{ cluster_type }}

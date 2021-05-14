@@ -1,4 +1,11 @@
 ---
+
+- include: api/add-project.yaml
+  vars:
+    project: ci-gitlab-{{ cluster_type }}
+    git_repo_name: gitlab.git
+    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
+
 - include: gitlab/skip-deployment.yaml
   vars:
     testname: "GITLAB {{ cluster_type|upper }} - skip deployment"
@@ -24,3 +31,7 @@
     git_repo_name: gitlab.git
     project: ci-gitlab-{{ cluster_type }}
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.pr-1.{{ route_suffix }}"
+
+- include: api/delete-project.yaml
+  vars:
+    project: ci-gitlab-{{ cluster_type }}

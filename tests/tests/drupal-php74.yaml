@@ -4,6 +4,12 @@
   vars:
     testname: "API TOKEN"
 
+- include: api/add-project.yaml
+  vars:
+    project: ci-drupal-{{ cluster_type }}
+    git_repo_name: drupal.git
+    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
+
 - include: drupal/drupal.yaml
   vars:
     testname: "Drupal 8 composer PHP 7.4 - MARIADB DBAAS {{ cluster_type|upper }}"
@@ -23,3 +29,7 @@
     git_repo_name: drupal.git
     project: ci-drupal-{{ cluster_type }}
     branch: drupal9-composer-74-mariadb-dbaas
+
+- include: api/delete-project.yaml
+  vars:
+    project: ci-drupal-{{ cluster_type }}

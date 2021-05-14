@@ -4,6 +4,12 @@
   vars:
     testname: "API TOKEN"
 
+- include: api/add-project.yaml
+  vars:
+    project: ci-node-{{ cluster_type }}
+    git_repo_name: node.git
+    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
+
 - include: api/deploy-branch.yaml
   vars:
     testname: "NODE 14 {{ cluster_type|upper }}"
@@ -30,3 +36,7 @@
     project: ci-node-{{ cluster_type }}
     branch: node10
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+
+- include: api/delete-project.yaml
+  vars:
+    project: ci-node-{{ cluster_type }}
