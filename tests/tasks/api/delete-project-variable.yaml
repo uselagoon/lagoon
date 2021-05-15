@@ -30,7 +30,8 @@
         headers:
           Authorization: "Bearer {{ token }}"
         body_format: json
-        body: '{ "query": "mutation($id: Int!) {deleteEnvVariable(input:{id:$id})}", "variables": {"id":{{ env_var_id }}}}'
+        body:
+          query: '{{ lookup("template", "./delete-variable.gql") }}'
       register: apiresponse
       when: env_var_id != ""
     - name: "{{ testname }} - POST api delete envVariable with target project {{ project }} to {{ graphql_url }}"

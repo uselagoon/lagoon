@@ -1,0 +1,12 @@
+
+- name: "Add environment {{ name }} to project {{ project }}"
+  hosts: localhost
+  serial: 1
+  vars:
+    name: "{{ name }}"
+    project: "{{ project }}"
+    deployType: BRANCH
+    deployBaseRef: "{{ name }}"
+    environmentType: "{{ environmentType }}"
+  tasks:
+  - include: ../../tasks/api/add-environment.yaml
