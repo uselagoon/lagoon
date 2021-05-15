@@ -3,7 +3,8 @@
   uri:
     url: "{{ url }}"
     return_content: yes
-    HEADER_Host: "{{ host }}"
+    headers:
+      Host: "{{ host }}"
     validate_certs: no
   register: result
   until: result.content is search(expected_content)

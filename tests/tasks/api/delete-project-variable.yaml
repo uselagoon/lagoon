@@ -15,12 +15,12 @@
         msg: "api response: {{ apiresponse.json }}"
     - name: "{{ testname }} - POST api get project by name with target project {{ project }} and sha {{ sha }} to {{ graphql_url }}"
       debug:
-        msg: "api response: {{ apiresponse.json|json_query(query) }}"
+        msg: "api response: {{ apiresponse.json | community.general.json_query(query) }}"
       vars:
         query: 'data.projectByName.envVariables[?name==`{{ envName }}`].id | [0]'
     - name: "{{ testname }} - set envvar id to fact"
       set_fact:
-        env_var_id: "{{ apiresponse.json|json_query(query)  }}"
+        env_var_id: "{{ apiresponse.json | community.general.json_query(query) }}"
       vars:
         query: 'data.projectByName.envVariables[?name==`{{ envName }}`].id | [0]'
     - name: "{{ testname }} - POST api delete envVariable with target project {{ project }} to {{ graphql_url }}"
