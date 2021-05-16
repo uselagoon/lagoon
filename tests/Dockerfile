@@ -39,7 +39,6 @@ RUN git config --global user.email "deploytest@amazee.io" && git config --global
 
 WORKDIR /ansible
 COPY . /ansible
-
 COPY hosts /etc/ansible/hosts
 
 ENV ANSIBLE_FORCE_COLOR=true
@@ -47,8 +46,6 @@ ENV SSH_AUTH_SOCK=/tmp/ssh-agent
 ENV KEYCLOAK_URL=http://keycloak:8080
 ENV JWTSECRET=super-secret-string
 ENV JWTAUDIENCE=api.dev
-
-
 
 COPY entrypoint.sh /
 ENTRYPOINT ["/entrypoint.sh"]
