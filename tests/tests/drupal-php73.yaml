@@ -20,14 +20,15 @@
     project: ci-drupal-73-{{ cluster_type }}
     branch: drupal8-composer-73-mariadb-single
 
-- include: drupal/drush.yaml
+- include: drupal/drupal.yaml
   vars:
-    testname: "DRUSH {{ cluster_type|upper }}"
+    testname: "Drupal 8 composer PHP 7.3 - MARIADB DBAAS {{ cluster_type|upper }}"
     drupal_version: 8
     db: mariadb
     php_version: 7.3
     git_repo_name: drupal-73.git
     project: ci-drupal-73-{{ cluster_type }}
+    branch: drupal8-composer-73-mariadb-dbaas
 
 - include: api/delete-project.yaml
   vars:

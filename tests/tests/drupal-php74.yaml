@@ -12,13 +12,13 @@
 
 - include: drupal/drupal.yaml
   vars:
-    testname: "Drupal 8 composer PHP 7.4 - MARIADB DBAAS {{ cluster_type|upper }}"
+    testname: "Drupal 8 composer PHP 7.4 - MARIADB SINGLE {{ cluster_type|upper }}"
     drupal_version: 8
-    db: mariadb
+    db: mariadb-single
     php_version: 7.4
     git_repo_name: drupal-74.git
     project: ci-drupal-74-{{ cluster_type }}
-    branch: drupal8-composer-74-mariadb-dbaas
+    branch: drupal8-composer-74-mariadb-single
 
 - include: drupal/drupal.yaml
   vars:
@@ -29,6 +29,15 @@
     git_repo_name: drupal-74.git
     project: ci-drupal-74-{{ cluster_type }}
     branch: drupal9-composer-74-mariadb-dbaas
+
+- include: drupal/drush.yaml
+  vars:
+    testname: "DRUSH {{ cluster_type|upper }}"
+    drupal_version: 8
+    db: mariadb
+    php_version: 7.4
+    git_repo_name: drupal-74.git
+    project: ci-drupal-74-{{ cluster_type }}
 
 - include: api/delete-project.yaml
   vars:
