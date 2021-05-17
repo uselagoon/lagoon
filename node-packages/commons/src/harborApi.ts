@@ -4,7 +4,7 @@ import axios from 'axios';
 
 const HARBOR_BASE_API_URL =
   process.env.HARBOR_BASE_API_URL ||
-  'https://lagoon-core-harbor.test6.amazee.io';
+  'https://harbor-nginx-lagoon-master.ch.amazee.io';
 const HARBOR_BASE_URL_POSTFIX = '/tags/latest/scan';
 const HARBOR_ACCEPT_HEADER =
   'application/vnd.scanner.adapter.vuln.report.harbor+json; version=1.0';

@@ -1,10 +1,5 @@
 // @flow
 
-//TODO:
-// 1 - replace console.logs with actual lagoon log errors
-// 2 - add Jest tests for Harbor v1 and v2 for validateAndTransformIncomingWebhookdata - this is where the rubber hits the road.
-// 3 - add Jest tests for extractVulnerabilities
-
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
 import {
   getVulnerabilitiesPayloadFromHarbor,
@@ -59,13 +54,28 @@ const PROBLEMS_HARBOR_FILTER_FLAG = process.env.PROBLEMS_HARBOR_FILTER_FLAG || n
     let { id: lagoonProjectId, problemsUi } = await getProjectByName(lagoonProjectName);
 
     //Here, before we get any further, we only let through projects that have the problemsUI enabled
-    if(PROBLEMS_HARBOR_FILTER_FLAG && problemsUi == 0) {
-      console.log(`Filter enabled: skipping harbor processing for ${lagoonProjectName}:${lagoonEnvironmentName}:${lagoonServiceName}`)
+    if(PROBLEMS_HARBOR_FILTER_FLAG && problemsUi != 1) {
+      sendToLagoonLogs(
+        'info',
+        lagoonProjectName,
+        '',
+        '',
+        '',
+        `Filter enabled: skipping harbor processing for ${lagoonProjectName}:${lagoonEnvironmentName}:${lagoonServiceName}`
+      );
       return;
     }
 
     let vulnerabilities = [];
     vulnerabilities = await getVulnerabilitiesFromHarbor(repository);
+    sendToLagoonLogs(
+      'info',
+      lagoonProjectName,
+      '',
+      '',
+      '',
+      `Found ${vulnerabilities.length} vulnerabilities for ${lagoonProjectName}:${lagoonEnvironmentName}:${lagoonServiceName}`
+    );
 
     const result = await getOpenShiftInfoForProject(lagoonProjectName);
     const projectOpenShift = result.project;
