@@ -6,8 +6,8 @@
 
 - include: api/add-project.yaml
   vars:
-    project: ci-drupal-{{ cluster_type }}
-    git_repo_name: drupal.git
+    project: ci-drupal-74-{{ cluster_type }}
+    git_repo_name: drupal-74.git
     git_url: "{{ localgit_url }}/{{ git_repo_name }}"
 
 - include: drupal/drupal.yaml
@@ -16,8 +16,8 @@
     drupal_version: 8
     db: mariadb
     php_version: 7.4
-    git_repo_name: drupal.git
-    project: ci-drupal-{{ cluster_type }}
+    git_repo_name: drupal-74.git
+    project: ci-drupal-74-{{ cluster_type }}
     branch: drupal8-composer-74-mariadb-dbaas
 
 - include: drupal/drupal.yaml
@@ -26,10 +26,10 @@
     drupal_version: 9
     db: mariadb
     php_version: 7.4
-    git_repo_name: drupal.git
-    project: ci-drupal-{{ cluster_type }}
+    git_repo_name: drupal-74.git
+    project: ci-drupal-74-{{ cluster_type }}
     branch: drupal9-composer-74-mariadb-dbaas
 
 - include: api/delete-project.yaml
   vars:
-    project: ci-drupal-{{ cluster_type }}
+    project: ci-drupal-74-{{ cluster_type }}
