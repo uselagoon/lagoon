@@ -38,8 +38,8 @@
         }
       ],
       "repository": {
-        "name": "java",
-        "namespace": "library",
+        "name": "environmentname-here/servicename-here",
+        "namespace": "projectname-here",
         "repo_full_name": "projectname-here/environmentname-here/servicename-here",
         "repo_type": "public"
       }

@@ -90,13 +90,13 @@ export const matchRepositoryAgainstPatterns = (repoFullName, matchPatterns = [])
     return {lagoonProjectName, lagoonEnvironmentName, lagoonServiceName};
   }
 
-  const extractRepositoryDetailsGivenRegex = (repoFullName, pattern = DEFAULT_REPO_DETAILS_REGEX) => {
+const extractRepositoryDetailsGivenRegex = (repoFullName, pattern = DEFAULT_REPO_DETAILS_REGEX) => {
     const re = generateRegex(pattern);
     const match = re.exec(repoFullName);
     return match.groups || {};
   }
 
-  const generateRegex = R.memoizeWith(R.identity, re => new RegExp(re));
+const generateRegex = R.memoizeWith(R.identity, re => new RegExp(re));
 
 
 export const generateError = (name, message) => {
@@ -104,4 +104,3 @@ export const generateError = (name, message) => {
     e.name = name;
     return e;
   };
-

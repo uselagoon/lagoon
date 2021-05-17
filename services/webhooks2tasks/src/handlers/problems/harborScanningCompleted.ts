@@ -22,8 +22,6 @@ import {
 
 const PROBLEMS_HARBOR_FILTER_FLAG = process.env.PROBLEMS_HARBOR_FILTER_FLAG || null;
 
-const HARBOR_WEBHOOK_SUCCESSFUL_SCAN = "Success";
-
  export async function harborScanningCompleted(
   WebhookRequestData,
   channelWrapperWebhooks
@@ -57,8 +55,6 @@ const HARBOR_WEBHOOK_SUCCESSFUL_SCAN = "Success";
       return;
     }
 
-    let vulnerabilities = [];
-    vulnerabilities = await getVulnerabilitiesFromHarbor(harborScanId);
 
     let { id: lagoonProjectId, problemsUi } = await getProjectByName(lagoonProjectName);
 
@@ -68,6 +64,8 @@ const HARBOR_WEBHOOK_SUCCESSFUL_SCAN = "Success";
       return;
     }
 
+    let vulnerabilities = [];
+    vulnerabilities = await getVulnerabilitiesFromHarbor(repository);
 
     const result = await getOpenShiftInfoForProject(lagoonProjectName);
     const projectOpenShift = result.project;
@@ -139,11 +137,11 @@ const generateWebhookData = (
 
 
 
-const getVulnerabilitiesFromHarbor = async (scanId) => {
+const getVulnerabilitiesFromHarbor = async (repository) => {
   let harborPayload = null;
   try {
     harborPayload = await getVulnerabilitiesPayloadFromHarbor(
-      scanId
+      repository, {}
     );
   } catch (error) {
     throw error;
