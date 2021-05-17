@@ -116,15 +116,15 @@
     branch: remoteshell
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
-- include: features/promote.yaml
-  vars:
-    testname: "PROMOTE {{ cluster_type|upper }}"
-    git_repo_name: features.git
-    project: ci-features-{{ cluster_type }}
-    source_environment: source
-    promote_environment: target
-    check_url_source: "https://node.{{ project | regex_replace('_', '-') }}.{{ source_environment | regex_replace('/', '-') }}.{{ route_suffix_https }}"
-    check_url_promote: "https://node.{{ project | regex_replace('_', '-') }}.{{ promote_environment | regex_replace('/', '-') }}.{{ route_suffix_https }}"
+# - include: features/promote.yaml
+#   vars:
+#     testname: "PROMOTE {{ cluster_type|upper }}"
+#     git_repo_name: features.git
+#     project: ci-features-{{ cluster_type }}
+#     source_environment: source
+#     promote_environment: target
+#     check_url_source: "https://node.{{ project | regex_replace('_', '-') }}.{{ source_environment | regex_replace('/', '-') }}.{{ route_suffix_https }}"
+#     check_url_promote: "https://node.{{ project | regex_replace('_', '-') }}.{{ promote_environment | regex_replace('/', '-') }}.{{ route_suffix_https }}"
 
 - include: features/cronjobs.yaml
   vars:
