@@ -179,7 +179,7 @@ export const addAdvancedTaskDefinition = async (
     }
 
     const {
-        info: { insertId },
+         insertId,
     } = await query(
       sqlClientPool,
       Sql.insertAdvancedTaskDefinition(

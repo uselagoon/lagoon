@@ -6,7 +6,7 @@ import Button from 'components/Button';
 
 const mutationInvokeRegisteredTask = gql`
   mutation invokeRegisteredTask($environment: Int!, $taskRegistration: Int!) {
-    invokeRegisteredTask(environment: $environment, taskRegistration: $taskRegistration) {
+    invokeRegisteredTask(environment: $environment, advancedTaskDefinition: $taskRegistration) {
       id
       name
       status
