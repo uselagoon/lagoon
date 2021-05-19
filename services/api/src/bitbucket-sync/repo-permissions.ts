@@ -32,6 +32,7 @@ const isNotEmpty = R.complement(R.isEmpty);
 // Returns true if user was added or already exists.
 // Returns false if adding user failed and no user exists.
 const addUser = async (email: string): Promise<boolean> => {
+  // try {
   try {
     await api.addUser(email);
   } catch (err) {
@@ -61,108 +62,123 @@ const getBitbucketRepo = async (gitUrl: string, projectName: string) => {
   return bitbucketApi.searchReposByName(projectName);
 }
 
-(async () => {
-  // Keep track of users we know exist to avoid API calls
-  let existingUsers = [];
+const LIMIT_SYNCING_PROJECTS = 5
 
+const syncUsersForProjects = async (projects) => {
+    // Keep track of users we know exist to avoid API calls
+    let existingUsers = [];
+
+    logger.info(`Syncing users for ${projects.length} project(s)`);
+    while(projects.length > 0) {
+      let limitedProjects = projects.slice(0, LIMIT_SYNCING_PROJECTS)
+      projects = projects.slice(LIMIT_SYNCING_PROJECTS);
+      console.log(limitedProjects);
+      await Promise.all(limitedProjects.map(async (project) => {
+        try {
+        const gitUrl = R.prop('gitUrl', project) as string;
+        const projectName = R.prop('name', project) as string;
+        const lagoonProjectGroup = `project-${projectName}`;
+
+        const repo = await getBitbucketRepo(gitUrl, projectName);
+        if (!repo) {
+          logger.warn(`No bitbucket repo found for project "${projectName}", gitUrl "${gitUrl}"`);
+          return;
+        }
+
+        const bbProject = R.path(['project', 'key'], repo);
+        const bbRepo = R.prop('slug', repo);
+        logger.debug(`Processing project "${projectName}", bitbucket "${bbRepo}"`);
+
+        let userPermissions = [];
+        try {
+          const permissions = await bitbucketApi.getRepoUsers(bbProject, bbRepo);
+
+          // Useres w/o an email address were deleted/deactivated, but somehow
+          // still returned in the API
+          // @ts-ignore
+          userPermissions = R.filter(R.propSatisfies(R.has('emailAddress'), 'user'), permissions);
+        } catch (e) {
+          logger.warn(`Could not load users for repo ${R.prop('slug', repo)}: ${e.message}`);
+          return;
+        }
+
+        // Sync user/permissions from bitbucket to lagoon
+        for (const userPermission of userPermissions) {
+          const bbUser = userPermission.user as BitbucketUser;
+          const bbPerm = userPermission.permission;
+
+          try {
+            const email = bbUser.emailAddress.toLowerCase();
+
+            if (!R.contains(email, existingUsers)) {
+              const userAddedOrExists = await addUser(email);
+              if (!userAddedOrExists) {
+                // Errors for this case are logged in addUser
+                continue;
+              }
+
+              existingUsers.push(email);
+            }
+
+            await api.addUserToGroup(
+              email,
+              lagoonProjectGroup,
+              BitbucketPermsToLagoonPerms[bbPerm]
+            );
+          } catch (err) {
+            logger.error(
+              `Could not add user (${bbUser.name}) to group (${lagoonProjectGroup}): ${err.message}`
+            );
+          }
+        }
+
+        // Get current lagoon users
+        const currentMembersQuery = await api.getGroupMembersByGroupName(lagoonProjectGroup);
+        const lagoonUsers = R.pipe(
+          R.pathOr([], ['groupByName', 'members']),
+          // @ts-ignore
+          R.pluck('user'),
+          // @ts-ignore
+          R.pluck('email'),
+          // @ts-ignore
+          R.map(R.toLower),
+          )(currentMembersQuery) as [string];
+
+        // Get current bitbucket uers
+        const bitbucketUsers = R.pipe(
+          // @ts-ignore
+          R.pluck('user'),
+          // @ts-ignore
+          R.pluck('emailAddress'),
+          // @ts-ignore
+          R.map(R.toLower),
+        )(userPermissions) as [string];
+
+        // Remove users from lagoon project that are removed in bitbucket repo
+        const deleteUsers = R.difference(lagoonUsers, bitbucketUsers);
+        for (const user of deleteUsers) {
+          try {
+            await api.removeUserFromGroup(user, lagoonProjectGroup);
+          } catch (err) {
+            logger.error(`Could not remove user (${user}) from group (${lagoonProjectGroup}): ${err.message}`);
+          }
+        }
+      }catch(err) {
+        console.log(err)
+      }
+      }
+      ))
+  }
+}
+
+(async () => {
   // Get all bitbucket related lagoon projects
   const groupQuery = await api.getProjectsByGroupName(LAGOON_SYNC_GROUP);
   const projects = R.pathOr([], ['groupByName', 'projects'], groupQuery) as [
     object
   ];
 
-  logger.info(`Syncing users for ${projects.length} project(s)`);
-
-  for (const project of projects) {
-    const gitUrl = R.prop('gitUrl', project) as string;
-    const projectName = R.prop('name', project) as string;
-    const lagoonProjectGroup = `project-${projectName}`;
-
-    const repo = await getBitbucketRepo(gitUrl, projectName);
-    if (!repo) {
-      logger.warn(`No bitbucket repo found for project "${projectName}", gitUrl "${gitUrl}"`);
-      continue;
-    }
-
-    const bbProject = R.path(['project', 'key'], repo);
-    const bbRepo = R.prop('slug', repo);
-    logger.debug(`Processing project "${projectName}", bitbucket "${bbRepo}"`);
-
-    let userPermissions = [];
-    try {
-      const permissions = await bitbucketApi.getRepoUsers(bbProject, bbRepo);
-
-      // Useres w/o an email address were deleted/deactivated, but somehow
-      // still returned in the API
-      // @ts-ignore
-      userPermissions = R.filter(R.propSatisfies(R.has('emailAddress'), 'user'), permissions);
-    } catch (e) {
-      logger.warn(`Could not load users for repo ${R.prop('slug', repo)}: ${e.message}`);
-      continue;
-    }
-
-    // Sync user/permissions from bitbucket to lagoon
-    for (const userPermission of userPermissions) {
-      const bbUser = userPermission.user as BitbucketUser;
-      const bbPerm = userPermission.permission;
-
-      try {
-        const email = bbUser.emailAddress.toLowerCase();
-
-        if (!R.contains(email, existingUsers)) {
-          const userAddedOrExists = await addUser(email);
-          if (!userAddedOrExists) {
-            // Errors for this case are logged in addUser
-            continue;
-          }
-
-          existingUsers.push(email);
-        }
-
-        await api.addUserToGroup(
-          email,
-          lagoonProjectGroup,
-          BitbucketPermsToLagoonPerms[bbPerm]
-        );
-      } catch (err) {
-        logger.error(
-          `Could not add user (${bbUser.name}) to group (${lagoonProjectGroup}): ${err.message}`
-        );
-      }
-    }
-
-    // Get current lagoon users
-    const currentMembersQuery = await api.getGroupMembersByGroupName(lagoonProjectGroup);
-    const lagoonUsers = R.pipe(
-      R.pathOr([], ['groupByName', 'members']),
-      // @ts-ignore
-      R.pluck('user'),
-      // @ts-ignore
-      R.pluck('email'),
-      // @ts-ignore
-      R.map(R.toLower),
-      )(currentMembersQuery) as [string];
-
-    // Get current bitbucket uers
-    const bitbucketUsers = R.pipe(
-      // @ts-ignore
-      R.pluck('user'),
-      // @ts-ignore
-      R.pluck('emailAddress'),
-      // @ts-ignore
-      R.map(R.toLower),
-    )(userPermissions) as [string];
-
-    // Remove users from lagoon project that are removed in bitbucket repo
-    const deleteUsers = R.difference(lagoonUsers, bitbucketUsers);
-    for (const user of deleteUsers) {
-      try {
-        await api.removeUserFromGroup(user, lagoonProjectGroup);
-      } catch (err) {
-        logger.error(`Could not remove user (${user}) from group (${lagoonProjectGroup}): ${err.message}`);
-      }
-    }
-  }
+  const syncResponse = await syncUsersForProjects(projects);
 
   logger.info('Sync completed');
 })();
