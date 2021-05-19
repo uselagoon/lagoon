@@ -13,7 +13,7 @@ Please have the following information ready for your Lagoon administrator:
 * The name of the Git branch you would like to use for your production environment \(see [Environment Types](../using-lagoon-advanced/environment-types.md) for details about the environments\).
 * Which branches and pull requests you would like to deploy to your additional environments. With Lagoon, you can filter branches and pull requests by name with regular expressions, and your Lagoon administrator can get this set up for you.
 
-We suggest deploying specific important branches \(like `develop` and `master`\) and pull requests. But that's all up to you! \(see [Workflows](../using-lagoon-advanced/workflows.md) for some more information\)
+We suggest deploying specific important branches \(like `develop` and `main`\) and pull requests. But that's all up to you! \(see [Workflows](../using-lagoon-advanced/workflows.md) for some more information\)
 
 ## 1. Make sure your project is Lagoonized
 

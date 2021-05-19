@@ -1,5 +1,5 @@
 <p align="center"><img
-src="https://raw.githubusercontent.com/amazeeio/lagoon/master/docs/images/lagoon-logo.png"
+src="https://raw.githubusercontent.com/amazeeio/lagoon/main/docs/images/lagoon-logo.png"
 alt="The Lagoon logo is a blue hexagon split in two pieces with an L-shaped cut"
 width="40%"></p>
 
@@ -14,7 +14,7 @@ Microsoft Teams message. Each log message is tied to a Lagoon project, and
 channel configuration for that project is retrieved from the Lagoon API.
 
 Examples of events that might trigger a message: GitHub pull request opened, a
-new build for a Lagoon project environent has started, a task was completed.
+new build for a Lagoon project environment has started, a task was completed.
 
 ## Technology
 
@@ -31,4 +31,4 @@ new build for a Lagoon project environent has started, a task was completed.
 * Consumes: `lagoon-logs`, `lagoon-logs:microsoftTeams`
 * Produces: `lagoon-logs:microsoftTeams`
 
-[documentation]: https://lagoon.readthedocs.io/
+[documentation]: https://docs.lagoon.sh/

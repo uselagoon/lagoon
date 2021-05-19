@@ -1,0 +1,33 @@
+---
+metadata:
+  annotations:
+    kubernetes.io/change-cause: "Add local-dev volume mounts"
+spec:
+  template:
+    spec:
+      securityContext:
+        runAsUser: 1000
+      containers:
+      - name: logs2microsoftteams
+        command: ["yarn"]
+        args: ["run", "dev"]
+        volumeMounts:
+        - mountPath: "/app/services/logs2microsoftteams/src"
+          name: logs2microsoftteams-src
+        - mountPath: "/app/services/logs2microsoftteams/dist"
+          name: logs2microsoftteams-dist
+        - mountPath: "/app/node-packages"
+          name: node-packages
+      volumes:
+      - name: logs2microsoftteams-src
+        hostPath:
+          path: "/lagoon/services/logs2microsoftteams/src"
+          type: Directory
+      - name: logs2microsoftteams-dist
+        hostPath:
+          path: "/lagoon/services/logs2microsoftteams/dist"
+          type: Directory
+      - name: node-packages
+        hostPath:
+          path: "/lagoon/node-packages"
+          type: Directory

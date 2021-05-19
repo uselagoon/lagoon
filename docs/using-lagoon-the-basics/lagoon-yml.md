@@ -44,7 +44,7 @@ routes:
     insecure: Redirect
 
 environments:
-  master:
+  main:
     monitoring_urls:
       - "https://www.example.com"
       - "https://www.example.com/special_page"
@@ -63,7 +63,7 @@ environments:
     types:
       mariadb: mariadb
     templates:
-      mariadb: mariadb.master.deployment.yml
+      mariadb: mariadb.main.deployment.yml
     rollouts:
       mariadb: statefulset
     cronjobs:
@@ -118,7 +118,7 @@ Common uses for post-rollout tasks include running `drush updb`, `drush cim`, or
 * `shell`
   * Which shell should be used to run the task in. By default `sh` is used, but if the container also has other shells \(like `bash`, you can define it here\). This is useful if you want to run some small if/else bash scripts within the post-rollouts. \(see the example above how to write a script with multiple lines\).
 
-Note: If you would like to temporarily disable pre/post-rollout tasks during a deployment, you can set either of the following environment variables in the API at the project or environment level \(see how on [Environment Variables](https://github.com/AlannaBurke/lagoon/tree/6615c2080c5f92ec0e38e828ddd4d33f196f62cd/docs/using-lagoon-the-basics/environment_variables.md)\).
+Note: If you would like to temporarily disable pre/post-rollout tasks during a deployment, you can set either of the following environment variables in the API at the project or environment level \(see how on [Environment Variables](https://github.com/amazeeio/lagoon/blob/main/docs/using-lagoon-advanced/environment-variables.md)\).
 
 * `LAGOON_PREROLLOUT_DISABLED=true`
 * `LAGOON_POSTROLLOUT_DISABLED=true`
@@ -172,7 +172,7 @@ routes:
 
 ## Environments
 
-Environment names match your deployed branches or pull requests. This allows for each environment to have a different config. In our example it will apply to the `master` and `staging` environment.
+Environment names match your deployed branches or pull requests. This allows for each environment to have a different config. In our example it will apply to the `main` and `staging` environment.
 
 ### `environments.[name].monitoring_urls`
 
@@ -233,7 +233,7 @@ When [UptimeRobot](https://uptimerobot.com/) is configured for your cluster \(Op
 {% endtab %}
 {% endtabs %}
 
-### **Ingress annotations** 
+### **Ingress annotations**
 
 {% hint style="info" %}
 Route/Ingress annotations are only supported by projects that deploy into clusters that run nginx-ingress controllers! Check with your Lagoon administrator if this is supported.
@@ -270,7 +270,7 @@ You can of course also redirect to any other URL not hosted on Lagoon, this will
 
 #### Trusted Reverse Proxies
 
-Some configurations involve a reverse proxy \(like a CDN\) in front of the Kubernetes Clusters. In these configurations the IP of the Reverse Proxy will appear as the `REMOTE_ADDR` `HTTP_X_REAL_IP` `HTTP_X_FORWARDED_FOR` headers field in your applications. While the original IP of the requester can be found in the `HTTP_X_ORIGINAL_FORWARDED_FOR` header. 
+Some configurations involve a reverse proxy \(like a CDN\) in front of the Kubernetes Clusters. In these configurations the IP of the Reverse Proxy will appear as the `REMOTE_ADDR` `HTTP_X_REAL_IP` `HTTP_X_FORWARDED_FOR` headers field in your applications. While the original IP of the requester can be found in the `HTTP_X_ORIGINAL_FORWARDED_FOR` header.
 
 If you like the original IP to appear in the `REMOTE_ADDR` `HTTP_X_REAL_IP` `HTTP_X_FORWARDED_FOR` headers, you need to tell the ingress which reverse proxy IPs you want to trust:
 
@@ -280,12 +280,12 @@ If you like the original IP to appear in the `REMOTE_ADDR` `HTTP_X_REAL_IP` `HTT
     - "example.ch":
         annotations:
           nginx.ingress.kubernetes.io/server-snippet: |
-            set_real_ip_from 1.2.3.4/32;    
+            set_real_ip_from 1.2.3.4/32;
 ```
 {% endtab %}
 {% endtabs %}
 
-This example would trust the CIDR `1.2.3.4/32` \(the IP `1.2.3.4` in this case\). Therefore if there is a request sent to the Kubernetes clustesr from the IP `1.2.3.4` the `X-Forwarded-For` Header is analyzed and it's contents injected into `REMOTE_ADDR` `HTTP_X_REAL_IP` `HTTP_X_FORWARDED_FOR`  headers. 
+This example would trust the CIDR `1.2.3.4/32` \(the IP `1.2.3.4` in this case\). Therefore if there is a request sent to the Kubernetes cluster from the IP `1.2.3.4` the `X-Forwarded-For` Header is analyzed and it's contents injected into `REMOTE_ADDR` `HTTP_X_REAL_IP` `HTTP_X_FORWARDED_FOR` headers.
 
 ### `Environments.[name].types`
 
@@ -328,9 +328,9 @@ Sometimes you might want to override the **template** just for a single environm
 {% tab title=".lagoon.yml" %}
 ```yaml
 environments:
-  master:
+  main:
     templates:
-      mariadb: mariadb.master.deployment.yml
+      mariadb: mariadb.main.deployment.yml
 ```
 {% endtab %}
 {% endtabs %}
@@ -352,7 +352,7 @@ Example:
 {% tab title=".lagoon.yml" %}
 ```yaml
 environments:
-  master:
+  main:
     rollouts:
       mariadb: statefulset
 ```
@@ -389,7 +389,7 @@ Example:
 ```yaml
     cronjobs:
      - name: drush cron
-       schedule: "H * * * *" # This will run the cron once per hour.
+       schedule: "M * * * *" # This will run the cron once per hour.
        command: drush cron
        service: cli
 ```
@@ -400,10 +400,10 @@ Example:
   * Just a friendly name for identifying what the cron job will do.
 * `schedule:`
   * The schedule for executing the cron job. This follows the standard convention of cron. If you're not sure about the syntax, [Crontab Generator](https://crontab-generator.org/) can help.
-  * You can specify `M` for the minute, and your cron job will run once per hour at a random minute \(the same minute each hour\), or `M/15` to run it every 15 mins, but with a random offset from the hour \(like `6,21,36,51`\).
+  * You can specify `M` for the minute, and your cron job will run once per hour at a random minute \(the same minute each hour\), or `M/15` to run it every 15 mins, but with a random offset from the hour \(like `6,21,36,51`\). It is a good idea to spread out your cron jobs using this feature, rather than have them all fire off on minute `0`.
   * You can specify `H` for the hour, and your cron job will run once per day at a random hour \(the same hour every day\), or `H(2-4)` to run it once per day within the hours of 2-4.
 * `command:`
-  * The command to execute. Like the tasks, this executes in the WORKDIR of the service. For Lagoon images, this is `/app`.
+  * The command to execute. Like the tasks, this executes in the `WORKDIR` of the service. For Lagoon images, this is `/app`.
 * `service:`
   * Which service of your project to run the command in. For most projects, this is the `CLI` service.
 
@@ -418,7 +418,7 @@ Example:
 ```yaml
 example-project-name:
   environments:
-    master:
+    main:
       routes:
         - nginx:
           - example.com

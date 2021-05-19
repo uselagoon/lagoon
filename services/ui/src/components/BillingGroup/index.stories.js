@@ -1,6 +1,5 @@
 import React from 'react';
-import BillingGroup from './index'
-
+import BillingGroup from './index';
 import { data } from './data.json';
 
 export default {

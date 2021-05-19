@@ -12,7 +12,7 @@ This Varnish config does the following:
 
 ## Usage with Drupal 8
 
-**TL;DR**: [Check out the drupal8-advanced example in our examples repo](https://github.com/uselagoon/lagoon-examples), it ships with the needed modules and needed Drupal configuration. 
+**TL;DR**: [Check out the drupal8-advanced example in our examples repo](https://github.com/uselagoon/lagoon-examples), it ships with the needed modules and needed Drupal configuration.
 
 **Note**: many of these examples are on the same `drupal-example-simple` repo, but different branches/hashes. Be sure to get the exact branch from the examples list!
 

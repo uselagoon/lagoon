@@ -223,6 +223,63 @@ const resolvers = {
     MAINTAINER: 'maintainer',
     OWNER: 'owner',
   },
+  ProjectOrderType: {
+    NAME: 'name',
+    CREATED: 'created',
+  },
+  EnvOrderType: {
+    NAME: 'name',
+    UPDATED: 'updated',
+  },
+  DeployType: {
+    BRANCH: 'branch',
+    PULLREQUEST: 'pullrequest',
+    PROMOTE: 'promote',
+  },
+  EnvType: {
+    PRODUCTION: 'production',
+    DEVELOPMENT: 'development',
+  },
+  EnvVariableType: {
+    PROJECT: 'project',
+    ENVIRONMENT: 'environment',
+  },
+  EnvVariableScope: {
+    BUILD: 'build',
+    RUNTIME: 'runtime',
+    GLOBAL: 'global',
+    CONTAINER_REGISTRY: 'container_registry',
+    INTERNAL_CONTAINER_REGISTRY: 'internal_container_registry',
+  },
+  RestoreStatusType: {
+    PENDING: 'pending',
+    SUCCESSFUL: 'successful',
+    FAILED: 'failed',
+  },
+  DeploymentStatusType: {
+    NEW: 'new',
+    PENDING: 'pending',
+    RUNNING: 'running',
+    CANCELLED: 'cancelled',
+    ERROR: 'error',
+    FAILED: 'failed',
+    COMPLETE: 'complete',
+  },
+  NotificationType: {
+    SLACK: 'slack',
+    ROCKETCHAT: 'rocketchat',
+    MICROSOFTTEAMS: 'microsoftteams',
+    EMAIL: 'email',
+  },
+  NotificationContentType: {
+    DEPLOYMENT: 'deployment',
+    PROBLEM: 'problem',
+  },
+  TaskStatusType: {
+    ACTIVE: 'active',
+    SUCCEEDED: 'succeeded',
+    FAILED: 'failed',
+  },
   Project: {
     notifications: getNotificationsByProjectId,
     openshift: getOpenshiftByProjectId,
