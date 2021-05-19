@@ -4,6 +4,7 @@ import css from 'styled-jsx/css';
 import EnvironmentLink from 'components/link/Environment';
 import Box from 'components/Box';
 import { bp, color, fontSize } from 'lib/variables';
+import moment from 'moment';
 
 const bgImages = {
   branch: {
@@ -28,13 +29,17 @@ const { className: boxClassName, styles: boxStyles } = css.resolve`
       background-position: right 32px bottom -6px;
       background-repeat: no-repeat;
       background-size: 40px 50px;
-      min-height: 122px;
+      min-height: 150px;
       padding: 19px 20px;
+      
+      &.detailed {
+        min-height: 270px;
+      }
     }
   }
 `;
 
-const Environments = ({ environments = [] }) => {
+const Environments = ({ environments = [], display }) => {
   if (environments.length === 0) {
     return null;
   }
@@ -63,7 +68,33 @@ const Environments = ({ environments = [] }) => {
               environmentSlug={environment.openshiftProjectName}
               projectSlug={environment.project.name}
             >
-              <Box className={`${boxClassName} ${bgClassName}`}>
+              {display === 'list' && (
+                <Box className={`${boxClassName} ${bgClassName} ${display}`}>
+                  {environment.environmentType == 'production' && (
+                    <div className="productionLabel">
+                      <span>Production</span>
+                    </div>
+                  )}
+                  {environment.project.productionEnvironment && environment.project.standbyProductionEnvironment && environment.project.productionEnvironment == environment.name && (
+                    <div className="activeLabel">
+                      <span>Active</span>
+                    </div>
+                  )}
+                  {environment.project.productionEnvironment && environment.project.standbyProductionEnvironment && environment.project.standbyProductionEnvironment == environment.name && (
+                    <div className="standbyLabel">
+                      <span>Standby</span>
+                    </div>
+                  )}
+                  <label>
+                    {environment.deployType === 'pullrequest'
+                      ? 'PR'
+                      : environment.deployType}
+                  </label>
+                  <h4>{environment.name}</h4>
+                </Box>
+              )}
+              {display === 'detailed' && (
+              <Box className={`${boxClassName} ${bgClassName} ${display}`}>
                 {environment.environmentType == 'production' && (
                   <div className="productionLabel">
                     <span>Production</span>
@@ -85,7 +116,29 @@ const Environments = ({ environments = [] }) => {
                     : environment.deployType}
                 </label>
                 <h4>{environment.name}</h4>
+                {environment.deployments && environment.deployments
+                  .sort((a, b) => Date.parse(a.completed) > Date.parse(b.completed))
+                  .slice(0,1)
+                  .map((d, index) => {
+                    return (
+                      <div className="last-deployed">
+                        <div>Last deployed:</div>
+                        {moment.utc(d.completed).local().format('HH:mm:ss (DD-MM-YYYY)')}
+                      </div>
+                    )
+                })}
+                {environment.facts && environment.facts.map((f, index) => {
+                  if (f.reference && f.reference.includes('key')) {
+                   return (
+                     <div className="facts">
+                       <div className="fact-name">{f.name}</div>
+                       <div className="fact-value">{f.value}</div>
+                     </div>
+                   )
+                  }
+                })}
               </Box>
+              )}
             </EnvironmentLink>
             {bgStyles}
           </div>
@@ -141,7 +194,7 @@ const Environments = ({ environments = [] }) => {
             }
           }
         }
-
+        
         .productionLabel {
           color: ${color.green};
           ${fontSize(13)};
@@ -221,6 +274,12 @@ const Environments = ({ environments = [] }) => {
             padding: 0 16px;
             z-index: 0;
           }
+        }
+        
+        .facts {
+          display: flex;
+          font-size: 0.8em;
+          justify-content: space-between;
         }
 
         label {

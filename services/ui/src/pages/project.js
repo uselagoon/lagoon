@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import * as R from 'ramda';
 import { withRouter } from 'next/router';
 import Head from 'next/head';
@@ -13,6 +13,7 @@ import withQueryLoading from 'lib/withQueryLoading';
 import withQueryError from 'lib/withQueryError';
 import { withProjectRequired } from 'lib/withDataRequired';
 import { bp, color } from 'lib/variables';
+import ToggleDisplay from '../components/ToggleDisplay';
 
 /**
  * Displays a project page, given the project name.
@@ -31,6 +32,8 @@ export const PageProject = ({ router }) => (
         withQueryError,
         withProjectRequired
       )(({ data: { project } }) => {
+        const [toggleDisplay, setToggleDisplay] = useState('list');
+
         // Sort alphabetically by environmentType and then deployType
         const environments = R.sortWith(
           [
@@ -39,6 +42,15 @@ export const PageProject = ({ router }) => (
           ],
           project.environments
         );
+
+        const changeDisplay = () => {
+          if (toggleDisplay == 'list') {
+            setToggleDisplay('detailed')
+          }
+          if (toggleDisplay == 'detailed') {
+            setToggleDisplay('list')
+          }
+        };
 
         return (
           <MainLayout>
@@ -50,9 +62,28 @@ export const PageProject = ({ router }) => (
                 <ProjectDetailsSidebar project={project} />
               </div>
               <div className="environments-wrapper">
-                <h3>Environments</h3>
+                <div className="environments-header">
+                  <div className="title">
+                    <h3>Environments</h3>
+                  </div>
+                  <div className="toggle">
+                    <label>Toggle</label>
+                    <ToggleDisplay
+                      action={changeDisplay}
+                      disabled={toggleDisplay === 'list'}
+                    >
+                      List view
+                    </ToggleDisplay>
+                    <ToggleDisplay
+                      action={changeDisplay}
+                      disabled={toggleDisplay === 'detailed'}
+                    >
+                      Detailed view
+                    </ToggleDisplay>
+                  </div>
+                </div>
                 {!environments.length && <p>No Environments</p>}
-                <Environments environments={environments} />
+                <Environments environments={environments} display={toggleDisplay} />
               </div>
             </div>
             <style jsx>{`
@@ -93,6 +124,11 @@ export const PageProject = ({ router }) => (
               .environments-wrapper {
                 flex-grow: 1;
                 padding: 40px calc((100vw / 16) * 1);
+              }
+              
+              .environments-header {
+                display: flex;
+                justify-content: space-between;
               }
             `}</style>
           </MainLayout>

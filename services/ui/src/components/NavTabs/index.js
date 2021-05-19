@@ -6,6 +6,7 @@ import DeploymentsLink from 'components/link/Deployments';
 import TasksLink from 'components/link/Tasks';
 import ProblemsLink from 'components/link/Problems';
 import FactsLink from 'components/link/Facts';
+import RouteLink from 'components/link/Route';
 import { bp, color } from 'lib/variables';
 import problems from '../../pages/problems';
 
@@ -100,6 +101,16 @@ const NavTabs = ({ activeTab, environment }) => (
       </FactsLink>
     </li>
     }
+    <li className={`route ${activeTab == 'route' ? 'active' : ''} ${aClassName}`}>
+      <RouteLink
+        environmentSlug={environment.openshiftProjectName}
+        projectSlug={environment.project.name}
+        routeSlug={environment.route}
+        className={aClassName}
+      >
+        Route
+      </RouteLink>
+    </li>
     <style jsx>{`
       .navigation {
         background: ${color.lightestGrey};
@@ -224,6 +235,17 @@ const NavTabs = ({ activeTab, environment }) => (
 
             &.active::before {
               background-image: url('/static/images/facts-active.svg');
+            }
+          }
+          
+          &.route {
+            &::before {
+              background-image: url('/static/images/route.svg');
+              background-size: 16px;
+            }
+
+            &.active::before {
+              background-image: url('/static/images/route-active.svg');
             }
           }
         }

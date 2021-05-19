@@ -305,6 +305,8 @@ mutation PopulateApi {
       openshift: 4
       gitUrl: "ssh://git@172.17.0.1:2222/git/project18.git"
       productionEnvironment: "Master"
+      problemsUi: 1
+      factsUi: 1
     }
   ) {
     id
@@ -499,7 +501,6 @@ mutation PopulateApi {
     id
   }
 
-
   UIProject1Environment1addTask3: addTask(
     input: {
       name: "Drupal Archive"
@@ -517,6 +518,69 @@ mutation PopulateApi {
   }
 
   UIProject1Environment1addServices: setEnvironmentServices(input:{environment:3, services:["cli", "nginx", "mariadb"]}) {
+    id
+  }
+
+  UIProject1Environment1addFacts: addFacts(
+    input: {
+      facts: [
+          {
+            name: "drupal-core"
+            value: "9.0.1"
+            environment: 3
+            source: "drush-pml"
+            description: "Drupal CMS version found on environment"
+            category: "Framework"
+            reference: "key, cli"
+          },
+          {
+            name: "php-version"
+            value: "8.0.3"
+            environment: 3
+            source: "php-version"
+            description: "PHP version found on environment"
+            category: "Programming language"
+            reference: "key, php"
+          },
+          {
+            name: "Lagoon"
+            value: "21.3.0"
+            environment: 3
+            source: "env"
+            description: "Lagoon version"
+            category: "Platform"
+            reference: "key, platform"
+          },
+          {
+            name: "interesting-package"
+            value: "1.0.0"
+            environment: 3
+            source: "local-dev"
+            description: "Description of interesting php package"
+            category: "Composer package"
+            reference: "cli"
+          },
+          {
+            name: "npm-module"
+            value: "2.0.0"
+            environment: 3
+            source: "local-dev"
+            description: "Description of node module"
+            category: "Node package"
+            reference: "node"
+          },
+          {
+            name: "site-code-status"
+            value: "200"
+            environment: 3
+            source: "curl"
+            description: "Health check of site"
+            category: "Performance"
+            reference: "key"
+          }
+      ]
+    }
+  ) {
     id
   }
 
@@ -568,6 +632,34 @@ mutation PopulateApi {
   ) {
     id
   }
+
+  UIProject1Environment3addFacts: addFacts(
+    input: {
+        facts: [
+          {
+            name: "Lagoon"
+            value: "21.3.0"
+            environment: 5
+            source: "env"
+            description: "Lagoon version"
+            category: "Platform"
+            reference: "key, platform"
+          },
+          {
+            name: "site-code-status"
+            value: "403"
+            environment: 5
+            source: "curl"
+            description: "Health check of site"
+            category: "Performance"
+            reference: "key"
+          }
+        ]
+    }
+  ) {
+    id
+  }
+
   UIProject1Environment4: addOrUpdateEnvironment(
     input: {
       id: 6

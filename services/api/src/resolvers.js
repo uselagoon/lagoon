@@ -91,7 +91,7 @@ const {
   getAllEnvironments,
   deleteAllEnvironments,
   userCanSshToEnvironment,
-  getEnvironmentUrl
+  getEnvironmentUrl,
 } = require('./resources/environment/resolvers');
 
 const {

@@ -1,4 +1,5 @@
 import gql from 'graphql-tag';
+import FactsFragment from 'lib/fragment/Fact';
 
 export default gql`
   query getProject($name: String!){
@@ -20,6 +21,10 @@ export default gql`
         deployType
         environmentType
         openshiftProjectName
+        route
+        facts {
+          ...factFields
+        }
         project {
           id
           name
@@ -31,4 +36,5 @@ export default gql`
       }
     }
   }
+  ${FactsFragment}
 `;

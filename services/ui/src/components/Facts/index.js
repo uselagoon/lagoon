@@ -1,13 +1,29 @@
 import React, { useState } from 'react';
 import { bp, color, fontSize } from 'lib/variables';
 import useSortableData from '../../lib/withSortedItems';
+import SelectFilter from 'components/Filters';
+
+const getOptionsFromFacts = (facts, key) => {
+    let uniqueOptions= facts &&
+      new Set(facts.filter(f => f[key]).map(f => f[key]));
+
+    return [...uniqueOptions].sort();
+};
 
 const Facts = ({ facts }) => {
     const { sortedItems, getClassNamesFor, requestSort } = useSortableData(facts, {key: 'name', direction: 'ascending'});
+    const [nameSelected, setName] = useState([]);
+    const [sourceSelected, setSource] = useState([]);
+    const [categorySelected, setCategory] = useState([]);
 
     const [factTerm, setFactTerm] = useState('');
     const [hasFilter, setHasFilter] = React.useState(false);
 
+    const names = getOptionsFromFacts(facts, 'name');
+    const sources = getOptionsFromFacts(facts, 'source');
+    const categories = getOptionsFromFacts(facts, 'category');
+
+    // Handlers
     const handleFactFilterChange = (event) => {
         setHasFilter(false);
 
@@ -21,22 +37,111 @@ const Facts = ({ facts }) => {
         return requestSort(key);
     };
 
-    const filterResults = (item) => {
-        const lowercasedFilter = factTerm.toLowerCase();
+    const handleNameChange = (name) => {
+        let values = name && name.map(n => n.value) || [];
+        setName(values);
+    };
 
-        if (factTerm == null || factTerm === '') {
-            return facts;
-        }
+    const handleSourceChange = (source) => {
+        let values = source && source.map(s => s.value) || [];
+        setSource(values);
+    };
 
-        return Object.keys(item).some(key => {
-            if (item[key] !== null) {
-                return item[key].toString().toLowerCase().includes(lowercasedFilter);
-            }
-        });
+    const handleCategoryChange = (category) => {
+        let values = category && category.map(c => c.value) || [];
+        setCategory(values);
+    };
+
+    // Options
+    const nameOptions = (name) => {
+        return name && name.map(n => ({ value: n, label: n}));
+    };
+
+    const sourceOptions = (sources) => {
+        return sources && sources.map(s => ({ value: s, label: s}));
+    };
+
+    const categoryOptions = (category) => {
+        return category && category.map(c => ({ value: c, label: c}));
+    };
+
+    // Selector filtering
+    const matchesNameSelector = (item) => {
+        return (nameSelected.length > 0) ?
+          Object.keys(item).some(key => {
+              if (item[key] !== null) {
+                  return nameSelected.indexOf(item['name'].toString()) > -1;
+              };
+          })
+          : true;
+    }
+
+    const matchesSourceSelector = (item) => {
+        return (sourceSelected.length > 0) ?
+          Object.keys(item).some(key => {
+              if (item[key] !== null) {
+                  return sourceSelected.indexOf(item['source'].toString()) > -1;
+              };
+          })
+          : true;
+    }
+
+    const matchesCategorySelector = (item) => {
+        return (categorySelected.length > 0) ?
+          Object.keys(item).some(key => {
+              if (item[key] !== null) {
+                  return categorySelected.indexOf(item['category'].toString()) > -1;
+              };
+          })
+          : true;
+    }
+
+    const matchesTextFilter = (item) => {
+        return (factTerm != null || factTerm !== '') ?
+          Object.keys(item).some(key => {
+              if (item[key] !== null) {
+                  return item[key].toString().toLowerCase().includes(factTerm.toLowerCase());
+              }
+          })
+          : true;
+    }
+
+    const shouldItemBeShown = (item) => {
+        return (matchesNameSelector(item) && matchesSourceSelector(item) && matchesCategorySelector(item)  && matchesTextFilter(item));
     };
 
     return (
         <div className="facts">
+            <div className="overview">
+                <ul className="overview-list">
+                    <li className="result"><label>Facts </label><span className="text-large">{Object.keys(sortedItems).length}</span></li>
+                </ul>
+            </div>
+            <div className="filters-wrapper">
+                <div className="select-filters">
+                    <SelectFilter
+                      title="Name"
+                      loading={!names}
+                      options={names && nameOptions(names)}
+                      onFilterChange={handleNameChange}
+                      isMulti
+                    />
+                    <SelectFilter
+                      title="Source"
+                      loading={!sources}
+                      options={sources && sourceOptions(sources)}
+                      onFilterChange={handleSourceChange}
+                      isMulti
+                    />
+                    <SelectFilter
+                      title="Category"
+                      loading={!categories}
+                      options={categories && categoryOptions(categories)}
+                      onFilterChange={handleCategoryChange}
+                      isMulti
+                    />
+                </div>
+            </div>
             <div className="filters">
                 <input type="text" id="filter" placeholder="Filter facts e.g. PHP version"
                        value={factTerm}
@@ -59,6 +164,13 @@ const Facts = ({ facts }) => {
                     Source
                 </button>
                 <button
+                  type="button"
+                  onClick={() => handleSort('category')}
+                  className={`button-sort value ${getClassNamesFor('category')}`}
+                >
+                    Category
+                </button>
+                <button
                     type="button"
                     onClick={() => handleSort('value')}
                     className={`button-sort value ${getClassNamesFor('value')}`}
@@ -66,9 +178,17 @@ const Facts = ({ facts }) => {
                     Value
                 </button>
             </div>
-            <div className="data-table">
-                {!sortedItems.filter(fact => filterResults(fact)).length && <div className="data-none">No Facts</div>}
-                {sortedItems.filter(fact => filterResults(fact)).map((fact) => {
+            <div className="facts-container">
+                {sortedItems.filter(item => shouldItemBeShown(item)).length == 0 &&
+                <div className="data-table">
+                    <div className="data-none">
+                        No Facts
+                    </div>
+                </div>
+                }
+                {sortedItems
+                  .filter(item => shouldItemBeShown(item))
+                  .map((fact) => {
                     return (
                         <div className="data-row row-heading" key={fact.id}>
                             <div className="col col-1">
@@ -76,6 +196,11 @@ const Facts = ({ facts }) => {
                                 <div className="description">{fact.description}</div>
                             </div>
                             <div className="col col-2">{fact.source}</div>
+                            { fact.type == "URL"
+                              ? <div className="col col-3"><a className="external-link" href={fact.value} target="_blank">{fact.value}</a></div>
+                              : <div className="col col-3">{fact.value}</div>
+                            }
+                            <div className="col col-2">{fact.category}</div>
                             <div className="col col-3">{fact.value}</div>
                         </div>
                     );
@@ -101,6 +226,40 @@ const Facts = ({ facts }) => {
                   padding-left: 20px;
                   @media ${bp.wideUp} {
                     display: block;
+                  }
+                }
+              }
+
+              .text-large {
+                font-size: 1.4em;
+              }
+
+              .overview {
+                .overview-list {
+                  display: flex;
+                  justify-content: space-between;
+                  padding: 10px 20px;
+                  margin: 0 0 20px;
+                  background: #f3f3f3;
+
+                  li.result {
+                    display: flex;
+                    flex-direction: column;
+                    margin: 0;
+                  }
+                }
+              }
+
+              .filters-wrapper {
+                .select-filters {
+                  display: flex;
+                  flex-direction: column;
+                  @media ${bp.wideUp} {
+                    flex-flow: row;
+                  }
+
+                  &:first-child {
+                    padding-bottom: 1em;
                   }
                 }
               }
@@ -204,6 +363,21 @@ const Facts = ({ facts }) => {
                   font-style: italic;
                   font-size: 12px;
                 }
+
+                a.external-link {
+                  color: ${color.brightBlue};
+                  text-decoration: underline;
+                  font-style: italic;
+                }
+              }
+
+              .data-none {
+                border: 1px solid ${color.white};
+                border-bottom: 1px solid ${color.lightestGrey};
+                border-radius: 3px;
+                line-height: 1.5rem;
+                padding: 8px 0 7px 0;
+                text-align: center;
               }
 
               .row-heading {

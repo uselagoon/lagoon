@@ -29,8 +29,12 @@ export const getFactsByEnvironmentId: ResolverFn = async (
 
 export const addFact: ResolverFn = async (
   root,
-  { input: { environment: environmentId, name, value, source, description } },
-  { sqlClientPool, hasPermission }
+  {
+    input: {
+      id, environment: environmentId, name, value, source, description, type, category, reference
+    },
+  },
+  { sqlClientPool, hasPermission },
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
@@ -47,14 +51,18 @@ export const addFact: ResolverFn = async (
       name,
       value,
       source,
-      description
-    })
+      description,
+      type,
+      reference,
+      category
+    }),
   );
 
   const rows = await query(
     sqlClientPool,
     Sql.selectFactByDatabaseId(insertId)
   );
+
   return R.prop(0, rows);
 };
 
@@ -75,8 +83,8 @@ export const addFacts: ResolverFn = async (
     });
   });
 
-  return await facts.map(async fact => {
-    const { environment, name, value, source, description } = fact;
+  return await facts.map(async (fact) => {
+    const { environment, name, value, source, description, type, category, reference } = fact;
 
     const { insertId } = await query(
       sqlClientPool,
@@ -85,8 +93,11 @@ export const addFacts: ResolverFn = async (
         name,
         value,
         source,
-        description
-      })
+        description,
+        type,
+        reference,
+        category
+      }),
     );
 
     const rows = await query(
