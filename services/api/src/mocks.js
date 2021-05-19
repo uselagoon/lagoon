@@ -62,7 +62,6 @@ const mocks = {
   EnvVariableScope: () => faker.random.arrayElement(['build', 'runtime', 'global', 'container_registry']),
   TaskStatusType: () => faker.random.arrayElement(['active', 'succeeded', 'failed']),
   RestoreStatusType: () => faker.random.arrayElement(['pending', 'successful', 'failed']),
-  SiteStatusType: () => faker.random.arrayElement(["OPERATIONAL", "ISSUES", "UNAVAILABLE"]),
   EnvOrderType: () => faker.random.arrayElement(['name', 'updated']),
   ProjectOrderType: () => faker.random.arrayElement(['name', 'created']),
   ProjectAvailability: () => faker.random.arrayElement(['standard', 'high']),
@@ -312,7 +311,6 @@ mocks.Environment = (parent, args = {}, context, info) => {
       mocks.Fact(),
       mocks.Fact()
     ],
-    status: mocks.SiteStatusType(),
     services: [ mocks.EnvironmentService(), mocks.EnvironmentService(), mocks.EnvironmentService() ],
   };
   environment.project.environments.push(environment);
@@ -547,7 +545,7 @@ mocks.Query = () => ({
   userCanSshToEnvironment: () => mocks.Environment(),
   deploymentByRemoteId: () => mocks.Deployment(),
   taskByRemoteId: () => mocks.Task(),
-  allProjects: () => new MockList(10),
+  allProjects: () => new MockList(250),
   allOpenshifts: () => new MockList(9),
   allProblems: () => new MockList(20),
   allEnvironments: (parent, args = {}, context, info) => {

@@ -286,5 +286,6 @@ CREATE TABLE IF NOT EXISTS environment_fact (
   description              TEXT NULL    DEFAULT '',
   created                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   category                 TEXT NULL    DEFAULT '',
+  reference                TEXT NULL    DEFAULT '',
   UNIQUE(environment, name)
 );

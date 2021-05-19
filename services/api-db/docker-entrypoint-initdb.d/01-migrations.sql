@@ -1167,6 +1167,24 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
+  add_fact_reference_to_environment_fact()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'environment_fact'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'reference'
+    ) THEN
+        ALTER TABLE `environment_fact`
+        ADD `reference` TEXT NULL DEFAULT '';
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
   update_user_password()
 
   BEGIN
@@ -1346,13 +1364,14 @@ CALL update_user_password();
 CALL add_problems_ui_to_project();
 CALL add_facts_ui_to_project();
 CALL add_fact_source_and_description_to_environment_fact();
+CALL add_fact_type_to_environment_fact();
 CALL add_fact_category_to_environment_fact();
+CALL add_fact_reference_to_environment_fact();
 CALL add_metadata_to_project();
 CALL add_min_max_to_billing_modifier();
 CALL add_content_type_to_project_notification();
 CALL convert_project_production_routes_to_text();
 CALL convert_project_standby_routes_to_text();
-CALL add_fact_type_to_environment_fact();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;

@@ -8,7 +8,8 @@ const standardFactReturn = {
     source: 'source',
     description: 'description',
     type: 'type',
-    category: 'category'
+    category: 'category',
+    reference: 'reference'
 };
 
 export const Sql = {
@@ -22,8 +23,8 @@ export const Sql = {
       .where('environment', environmentId)
       .toString();
   },
-  insertFact: ({ environment, name, value, source, description, type, category }) =>
-    knex('environment_fact').insert({environment, name, value, source, description, type, category}).toString(),
+  insertFact: ({ environment, name, value, source, description, type, category, reference }) =>
+    knex('environment_fact').insert({ environment, name, value, source, description, type, category, reference }).toString(),
   deleteFact: (environment, name) =>
     knex('environment_fact')
       .where({

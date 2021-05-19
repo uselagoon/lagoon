@@ -6,7 +6,7 @@ export default gql`
     allProjects {
       id
       name
-      environments(type: PRODUCTION) {
+      environments {
         name
         route
         routes
@@ -14,7 +14,6 @@ export default gql`
         facts {
           ...factFields
         }
-        status
       }
     }
   }

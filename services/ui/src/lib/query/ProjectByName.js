@@ -25,7 +25,6 @@ export default gql`
         facts {
           ...factFields
         }
-        status
         project {
           id
           name

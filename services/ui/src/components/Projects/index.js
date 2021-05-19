@@ -9,6 +9,7 @@ import SelectFilter from '../Filters';
 import ToggleDisplay from '../ToggleDisplay';
 import useSortableProjectsData from './sortedItems';
 import moment from 'moment';
+import SiteStatus from '../SiteStatus';
 
 const { className: boxClassName, styles: boxStyles } = css.resolve`
   .box {
@@ -114,7 +115,7 @@ const Projects = ({ projects = [] }) => {
           disabled={projects.length === 0}
         />
       </div>
-      {!filteredProjects.length && (
+      {!filteredProjects.length && !searchInput && (
         <Box>
           <div className="project">
             <h4>No projects</h4>
@@ -196,41 +197,42 @@ const Projects = ({ projects = [] }) => {
                       }
                     />
                   ))}
-                  <h6><label>Environments</label></h6>
-                  {project.environments.map((environment, index) => (
+                </div>
+                <div className="environments">
+                  {project.environments && (
                     <div className="environments">
-                      {environment.status &&
-                        <div className={`status ${environment.status.toLowerCase()}`}>
-                          <label>{environment.name}:</label><i className="status-icon"></i><span
-                          className="status-text">({environment.status})</span>
-                        </div>
-                      }
+                      <h6><label>Environments</label></h6>
+                      {project.environments.map((environment, index) => (
+                        <SiteStatus environment={environment} />
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
               <div className="facts">
-                <h6><label>Key Facts</label></h6>
-                {project.environments[0].facts && project.environments[0].facts.map((fact, index) => {
-
-                  console.log('fact:', fact);
-
-                  if (fact.reference && fact.reference.includes('key')) {
-                    return (
-                      <div className="fact-wrapper">
-                        <div className="fact-name">{fact.name}</div>
-                        <Highlighter
-                          key={index}
-                          searchWords={[searchInput]}
-                          autoEscape={true}
-                          textToHighlight={fact.value ? fact.value : ''}
-                        />
-                        <div className="fact-reference">{fact.reference}</div>
-                        {/*<div className="fact-category">{fact.category}</div>*/}
-                      </div>
-                    )
-                  }
-                })}
+                {project.environments && project.environments.map((e, index) => (
+                  e.environmentType === 'production' && e.facts.length > 0 &&
+                  <>
+                    <h6><label>Key Facts</label></h6>
+                    {e.facts.map(fact => {
+                      if (fact.reference && fact.reference.includes('key')) {
+                        return (
+                          <div className="fact-wrapper">
+                            <div className="fact-name">{fact.name}</div>
+                            <Highlighter
+                              key={index}
+                              searchWords={[searchInput]}
+                              autoEscape={true}
+                              textToHighlight={fact.value ? fact.value : ''}
+                            />
+                            <div className="fact-reference">{fact.reference}</div>
+                            <div className="fact-category">{fact.category}</div>
+                          </div>
+                        )
+                      }
+                    })}
+                  </>
+                ))}
               </div>
             </Box>
           )}
@@ -311,36 +313,6 @@ const Projects = ({ projects = [] }) => {
           color: ${color.linkBlue};
           line-height: 24px;
           margin-bottom: 0.8em;
-        }
-        .status {
-          color: #222222;
-          font-size: 0.7em;
-        }
-        .status-icon {
-          width: 7px;
-          height: 7px;
-          border-radius: 50%;
-          display: inline-block;
-          margin: 0 5px;
-          
-          .operational & {
-            background: mediumseagreen;
-          }
-          .issues & {
-            background: orange;
-          }
-          .unavailable & {
-            background: indianred;
-          }
-        }
-        .operational {
-          color: mediumseagreen;
-        }
-        .issues {
-          color: orange;
-        }
-        .unavailable {
-          color: indianred;
         }
         .facts {
           color: ${color.darkGrey};
