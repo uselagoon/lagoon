@@ -164,6 +164,7 @@ fragment on Project {
   name
   gitUrl
   privateKey
+  problemsUi
 }
 `);
 
