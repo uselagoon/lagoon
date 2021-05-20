@@ -66,21 +66,23 @@ export const addFacts: ResolverFn = async (
 
   const environments = facts.reduce((environmentList, fact) => {
     let { environment } = fact;
-    if(!environmentList.includes(environment)) {
-      environmentList.push(environment)
+    if (!environmentList.includes(environment)) {
+      environmentList.push(environment);
     }
-    return environmentList
+    return environmentList;
   }, []);
 
-  for(let i = 0; i < environments.length; i++) {
-    const env = await environmentHelpers(sqlClientPool).getEnvironmentById(environments[i]);
+  for (let i = 0; i < environments.length; i++) {
+    const env = await environmentHelpers(sqlClientPool).getEnvironmentById(
+      environments[i]
+    );
     await hasPermission('fact', 'add', {
       project: env.project
     });
   }
 
-  const returnFacts = []
-  for(let i = 0; i < facts.length; i++) {
+  const returnFacts = [];
+  for (let i = 0; i < facts.length; i++) {
     const { environment, name, value, source, description } = facts[i];
     const {
       insertId
