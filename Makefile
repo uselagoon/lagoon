@@ -1152,3 +1152,6 @@ kind/retest:
 .PHONY: kind/clean
 kind/clean: local-dev/kind
 	KIND_CLUSTER_NAME="$(CI_BUILD_TAG)" ./local-dev/kind delete cluster
+ifeq ($(ARCH), darwin)
+	docker rm --force $(CI_BUILD_TAG)-kind-proxy-32080
+endif
