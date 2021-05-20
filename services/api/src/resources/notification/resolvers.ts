@@ -82,15 +82,14 @@ export const addNotificationSlack: ResolverFn = async (
   return slack;
 };
 
-export const addNotificationWebhook: ResolverFn = async (root, { input }, { sqlClient, hasPermission }) => {
+export const addNotificationWebhook: ResolverFn = async (root, { input }, { sqlClientPool, hasPermission }) => {
   await hasPermission('notification', 'add');
 
-  const prep = prepare(
-    sqlClient,
+  const rows = await query(
+    sqlClientPool,
     'CALL CreateNotificationWebhook(:name, :webhook)',
+    input
   );
-
-  const rows = await query(sqlClient, prep(input));
   const slack = R.path([0, 0], rows);
 
   return slack;
@@ -257,7 +256,7 @@ export const deleteNotificationWebhook: ResolverFn = async (
   root,
   { input },
   {
-    sqlClient,
+    sqlClientPool,
     hasPermission,
   },
 ) => {
@@ -265,7 +264,7 @@ export const deleteNotificationWebhook: ResolverFn = async (
 
   const { name } = input;
 
-  const nids = await Helpers(sqlClient).getAssignedNotificationIds({
+  const nids = await Helpers(sqlClientPool).getAssignedNotificationIds({
     name,
     type: 'webhook',
   });
@@ -274,8 +273,7 @@ export const deleteNotificationWebhook: ResolverFn = async (
     throw new Error("Can't delete notification linked to projects");
   }
 
-  const prep = prepare(sqlClient, 'CALL DeleteNotificationWebhook(:name)');
-  await query(sqlClient, prep(input));
+  await query(sqlClientPool, 'CALL DeleteNotificationWebhook(:name)', input);
 
   // TODO: maybe check rows for changed result
   return 'success';
@@ -391,7 +389,7 @@ export const updateNotificationWebhook: ResolverFn = async (
     root,
     { input },
     {
-      sqlClient,
+      sqlClientPool,
       hasPermission,
     },
   ) => {
@@ -403,9 +401,9 @@ export const updateNotificationWebhook: ResolverFn = async (
       throw new Error('input.patch requires at least 1 attribute');
     }
 
-    await query(sqlClient, Sql.updateNotificationWebhook(input));
+    await query(sqlClientPool, Sql.updateNotificationWebhook(input));
     const rows = await query(
-      sqlClient,
+      sqlClientPool,
       Sql.selectNotificationWebhookByName(name),
     );
 
