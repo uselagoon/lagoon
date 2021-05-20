@@ -84,24 +84,26 @@ export const addFacts = async (
 
   const environments = facts.reduce((environmentList, fact) => {
     let { environment } = fact;
-    if(!environmentList.includes(environment)) {
-      environmentList.push(environment)
+    if (!environmentList.includes(environment)) {
+      environmentList.push(environment);
     }
-    return environmentList
+    return environmentList;
   }, []);
 
-  for(let i = 0; i < environments.length; i++) {
-    const env = await environmentHelpers(sqlClient).getEnvironmentById(environments[i]);
+  for (let i = 0; i < environments.length; i++) {
+    const env = await environmentHelpers(sqlClient).getEnvironmentById(
+      environments[i]
+    );
     await hasPermission('fact', 'add', {
-      project: env.project,
+      project: env.project
     });
   }
 
-  const returnFacts = []
-  for(let i = 0; i < facts.length; i++) {
+  const returnFacts = [];
+  for (let i = 0; i < facts.length; i++) {
     const { environment, name, value, source, description } = facts[i];
     const {
-      info: { insertId },
+      info: { insertId }
     } = await query(
       sqlClient,
       Sql.insertFact({
@@ -110,10 +112,10 @@ export const addFacts = async (
         value,
         source,
         description
-      }),
+      })
     );
 
-    const rows =  await query(sqlClient, Sql.selectFactByDatabaseId(insertId));
+    const rows = await query(sqlClient, Sql.selectFactByDatabaseId(insertId));
     returnFacts.push(R.prop(0, rows));
   }
 
