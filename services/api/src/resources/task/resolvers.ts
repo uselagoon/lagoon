@@ -345,7 +345,7 @@ export const taskDrushCacheClear: ResolverFn = async (
 
   const command =
     'drupal_version=$(drush status drupal-version --format=list) && \
-  if [ ${drupal_version%.*.*} == "8" ]; then \
+  if [ ${drupal_version%.*.*} == "8" ] || [ ${drupal_version%.*.*} == "9" ]; then \
     drush cr; \
   elif [ ${drupal_version%.*} == "7" ]; then \
     drush cc all; \
