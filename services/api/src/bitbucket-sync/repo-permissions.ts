@@ -32,7 +32,6 @@ const isNotEmpty = R.complement(R.isEmpty);
 // Returns true if user was added or already exists.
 // Returns false if adding user failed and no user exists.
 const addUser = async (email: string): Promise<boolean> => {
-  // try {
   try {
     await api.addUser(email);
   } catch (err) {
@@ -72,7 +71,6 @@ const syncUsersForProjects = async (projects) => {
     while(projects.length > 0) {
       let limitedProjects = projects.slice(0, LIMIT_SYNCING_PROJECTS)
       projects = projects.slice(LIMIT_SYNCING_PROJECTS);
-      console.log(limitedProjects);
       await Promise.all(limitedProjects.map(async (project) => {
         try {
         const gitUrl = R.prop('gitUrl', project) as string;
