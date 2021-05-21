@@ -98,7 +98,7 @@ echo "$DEVELOPMENT_ENVIRONMENTS" | jq -c '.data.developmentEnvironments[] | sele
 
                 if [ ! $? -eq 0 ]; then
                   echo "$PROJECT_NAME: $ENVIRONMENT_NAME error checking hits"
-                  IDLE_PODS=true
+                  IDLE_PODS=false
                   # continue
                 elif [ "$HITS" == "null"  ]; then
                   echo "$PROJECT_NAME: $ENVIRONMENT_NAME no data found, skipping"
