@@ -94,7 +94,7 @@ const syncUsersForProjects = async projects => {
 
           let userPermissions = [];
 
-          const lagoonUsersInGroup = await getLagoonUsersForGroup(
+          let lagoonUsersInGroup = await getLagoonUsersForGroup(
             lagoonProjectGroup
           );
 
@@ -145,15 +145,12 @@ const syncUsersForProjects = async projects => {
 
                 existingUsers.push(email);
               }
-              if (!userExistsInGroupAlready) {
+
                 await api.addUserToGroup(
                   email,
                   lagoonProjectGroup,
                   BitbucketPermsToLagoonPerms[bbPerm]
                 );
-                lagoonUsersInGroup.push(email); //Adding the user here, we don't need to re-call the group membership
-                // to calculate who we need to remove from the Lagoon group
-              }
             } catch (err) {
               logger.error(
                 `Could not add user (${bbUser.name}) to group (${lagoonProjectGroup}): ${err.message}`
@@ -170,6 +167,11 @@ const syncUsersForProjects = async projects => {
             // @ts-ignore
             R.map(R.toLower)
           )(userPermissions) as [string];
+
+          //Refresh users in group for difference calculation
+          lagoonUsersInGroup = await getLagoonUsersForGroup(
+            lagoonProjectGroup
+          );
 
           // Remove users from lagoon project that are removed in bitbucket repo
           const deleteUsers = R.difference(lagoonUsersInGroup, bitbucketUsers);
