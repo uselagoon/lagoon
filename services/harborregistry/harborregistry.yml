@@ -188,6 +188,12 @@ objects:
             initialDelaySeconds: 1
             periodSeconds: 10
           args: ["serve", "/etc/registry/config.yml"]
+          env:
+            - name: REGISTRY_HTTP_SECRET
+              valueFrom:
+                secretKeyRef:
+                  key: HARBOR_REGISTRY_SECRET
+                  name: harborregistry-secret
           envFrom:
           - secretRef:
               name: ${SERVICE_NAME} # harborregistry
@@ -199,7 +205,7 @@ objects:
           volumeMounts:
           - name: registry-data
             mountPath: /storage
-            subPath: 
+            subPath:
           - name: registry-root-certificate
             mountPath: /etc/registry/root.crt
             subPath: tls.crt
@@ -248,7 +254,7 @@ objects:
           volumeMounts:
           - name: registry-data
             mountPath: /storage
-            subPath: 
+            subPath:
           - name: registry-config
             mountPath: /etc/registry/pre_config.yml
             subPath: config.yml
