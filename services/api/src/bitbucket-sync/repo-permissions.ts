@@ -62,7 +62,7 @@ const getBitbucketRepo = async (gitUrl: string, projectName: string) => {
   return bitbucketApi.searchReposByName(projectName);
 }
 
-const LIMIT_SYNCING_PROJECTS = 5
+const LIMIT_SYNCING_PROJECTS = 10;
 
 const syncUsersForProjects = async (projects) => {
     // Keep track of users we know exist to avoid API calls
