@@ -226,7 +226,7 @@ export const invokeRegisteredTask = async (
   let task = await getNamedAdvancedTaskForEnvironment(sqlClientPool, hasPermission, advancedTaskDefinition, environment)
 
   const environmentDetails = await environmentHelpers(sqlClientPool).getEnvironmentById(environment);
-  await hasPermission('task', PermissionsToRBAC(task.permission), {
+  await hasPermission('advanced_task', PermissionsToRBAC(task.permission), {
     project: environmentDetails.project,
   });
 
