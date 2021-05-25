@@ -261,18 +261,29 @@ const typeDefs = gql`
     EQUALS
     CONTAINS
   }
+
   enum FactFilterConnective {
     OR
     AND
   }
+
+  enum FactFilterLHSTarget {
+    FACT
+    ENVIRONMENT
+    PROJECT
+  }
+
   input FactFilterAtom {
+    lhsTarget: FactFilterLHSTarget
     lhs: String!
-    predicate: FactFilterPredicate
+    predicate: FactFilterPredicate!
     rhs: String!
   }
   input FactFilterInput {
     filterConnective: FactFilterConnective
     filters: [FactFilterAtom]
+    skip: Int
+    take: Int
   }
 
   type File {
