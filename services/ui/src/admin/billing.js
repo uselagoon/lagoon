@@ -22,7 +22,7 @@ import Breadcrumbs from 'components/Breadcrumbs';
 import withQueryLoading from 'lib/withQueryLoading';
 import withQueryError from 'lib/withQueryError';
 
-import { AuthContext, adminAuthChecker } from '../../lib/Authenticator';
+import { AuthContext, adminAuthChecker } from 'lib/Authenticator';
 
 import { bp, color } from 'lib/variables';
 import Button from 'components/Button';
@@ -52,7 +52,7 @@ const months = [
 
 export const AvailabilityError = ({group}) => {
   const {loading, error, data} = useQuery(GroupByName, {variables: {name: group}});
-  
+
   if (loading) {
     return <div>Loading...</div>
   }
@@ -119,7 +119,7 @@ export const AvailabilityError = ({group}) => {
             font-weight: bold;
             margin-left: 15px;
             white-space: nowrap;
-          }  
+          }
 
         }
         .content-wrapper {
@@ -153,7 +153,7 @@ export const PageBillingGroup = ({ router }) => {
   const [editModifier, setEditModifier] = useState({ });
 
   useEffect(() => {
-    const result = queries.map(({loading, error, data}) => { 
+    const result = queries.map(({loading, error, data}) => {
       if (error) {
         return {error};
       }
@@ -161,7 +161,7 @@ export const PageBillingGroup = ({ router }) => {
       if (loading){
         return {loading};
       }
-      
+
       if (data && data.costs) {
         return (data.costs)
       }
@@ -207,7 +207,7 @@ export const PageBillingGroup = ({ router }) => {
   const editModifierHandler = (modifier) => {
     setEditModifier(modifier)
   }
-  
+
   return(
   <>
     <Head>
@@ -231,10 +231,10 @@ export const PageBillingGroup = ({ router }) => {
             }
 
             if (costs[0].error.message.includes("Cannot read property 'availability' of undefined")){
-              return (<div className="content-wrapper"><div className="content"><div>This billing group does not seem to have any projedcts.</div></div></div>); 
+              return (<div className="content-wrapper"><div className="content"><div>This billing group does not seem to have any projedcts.</div></div></div>);
             }
 
-            return (<div className="content-wrapper"><div className="content"><div>{costs[0].error.message}</div></div></div>); 
+            return (<div className="content-wrapper"><div className="content"><div>{costs[0].error.message}</div></div></div>);
           }
 
           const selectedMonthCosts = costs.find(o => o.yearMonth === `${values.year}-${values.month}`);
@@ -244,7 +244,7 @@ export const PageBillingGroup = ({ router }) => {
                 <div className="barChart-wrapper">
                   { selectedMonthCosts && <BarChart data={costs} /> }
                 </div>
-          
+
                 <div className="monthYear-wrapper">
                   <div className="month">
                     <label htmlFor="month">Month</label>
@@ -283,7 +283,7 @@ export const PageBillingGroup = ({ router }) => {
                     </select>
                   </div>
                 </div>
-                  
+
                 <div className="content-wrapper">
                   <div className="leftColumn">
                     <div>
@@ -313,7 +313,7 @@ export const PageBillingGroup = ({ router }) => {
 
               </div>
             );
-          
+
         }}
       </AuthContext.Consumer>
 

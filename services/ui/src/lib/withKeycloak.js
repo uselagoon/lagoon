@@ -4,7 +4,7 @@ import { queryStringToObject } from 'lib/util';
 
 const { serverRuntimeConfig, publicRuntimeConfig } = getConfig();
 
-export default (App, initialAuth) => {
+const withKeycloak = (App, initialAuth) => {
   return class withKeycloak extends React.Component {
     static getInitialProps(ctx) {
       return App.getInitialProps(ctx);
@@ -62,3 +62,5 @@ export default (App, initialAuth) => {
     }
   };
 };
+
+export default withKeycloak;

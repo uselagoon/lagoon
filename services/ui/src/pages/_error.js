@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import Head from 'next-server/head';
+// import Head from 'next-server/head';
 import StatusLayout from 'layouts/StatusLayout';
 
 const statusCodes = {
@@ -29,11 +29,11 @@ export default class Error extends React.Component {
 
     return (
       <StatusLayout>
-        <Head>
+        {/* <Head>
           <title>
             {statusCode}: {title}
           </title>
-        </Head>
+        </Head> */}
         <h2>{title}</h2>
         {errorMessage && <p>{errorMessage}</p>}
       </StatusLayout>

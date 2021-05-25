@@ -231,22 +231,16 @@ const Environment = ({ environment }) => {
       </Mutation>
       <style jsx>{`
         .details {
-          padding: 32px calc((100vw / 16) * 1);
           width: 100%;
           @media ${bp.xs_smallUp} {
             display: flex;
             flex-wrap: wrap;
             min-width: 100%;
-            padding-left: calc(((100vw / 16) * 1.5) + 28px);
-            padding-top: 48px;
             width: 100%;
           }
           @media ${bp.tabletUp} {
-            padding: 48px calc((100vw / 16) * 1) 48px
-              calc(((100vw / 16) * 1.5) + 28px);
           }
           @media ${bp.extraWideUp} {
-            padding-left: calc(((100vw / 16) * 1) + 28px);
           }
 
           .field-wrapper {
@@ -350,7 +344,7 @@ const Environment = ({ environment }) => {
             .field {
               padding-right: calc((100vw / 16) * 1);
             }
-            
+
             .facts-wrapper {
               .fact {
                 display: flex;

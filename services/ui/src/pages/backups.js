@@ -83,6 +83,7 @@ export const PageBackups = ({ router }) => (
 
         return (
           <MainLayout>
+            <div className="content-wrapper">
             <Breadcrumbs>
               <ProjectBreadcrumb projectSlug={environment.project.name} />
               <EnvironmentBreadcrumb
@@ -90,7 +91,6 @@ export const PageBackups = ({ router }) => (
                 projectSlug={environment.project.name}
               />
             </Breadcrumbs>
-            <div className="content-wrapper">
               <NavTabs activeTab="backups" environment={environment} />
               <div className="content">
                 <div className="notification">

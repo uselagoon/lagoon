@@ -37,6 +37,7 @@ export const PageRoute = ({ router }) => (
 
         return (
           <MainLayout>
+            <div className="content-wrapper">
             <Breadcrumbs>
               <ProjectBreadcrumb projectSlug={environment.project.name} />
               <EnvironmentBreadcrumb
@@ -44,7 +45,6 @@ export const PageRoute = ({ router }) => (
                 projectSlug={environment.project.name}
               />
             </Breadcrumbs>
-            <div className="content-wrapper">
               <NavTabs activeTab="route" environment={environment} />
               <div className="content">
                 <Route environment={environment} />

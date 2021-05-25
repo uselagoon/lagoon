@@ -1,13 +1,13 @@
 import React from 'react';
-import { PageTask as Task } from '../task';
+import { PageFacts as Facts } from '../pages/facts';
 
 export default {
-  component: Task,
-  title: 'Pages/Task',
+  component: Facts,
+  title: 'Pages/Facts',
 }
 
 export const Default = () => (
-  <Task
+  <Facts
     router={{
       query: {
         openshiftProjectName: 'Example',

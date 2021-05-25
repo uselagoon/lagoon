@@ -1,5 +1,5 @@
 import React from 'react';
-import Loading from '../_loading';
+import Loading from '../pages/_loading';
 
 export default {
   component: Loading,

@@ -12,7 +12,15 @@ import { bp } from 'lib/variables';
 /**
  * Displays the projects page.
  */
-const ProjectsPage = () => (
+const ProjectsPage = () => {
+  // const [projectSelected, setProjectSelected] = useState('');
+
+  // const handleProjectChange = (selectedProject) => {
+  //   setProjectSelected(selectedProject);
+  // };
+
+
+  return (
   <>
     <Head>
       <title>Projects</title>
@@ -21,40 +29,22 @@ const ProjectsPage = () => (
       {R.compose(
         withQueryLoading,
         withQueryError
-      )(({ data }) => (
+      )(({ data, loading, error }) => {
+
+        // payload
+        console.log(data);
+        const size = Buffer.byteLength(JSON.stringify(data));
+
+        // console.log('bytes', size);
+        // console.log('mbs', (Math.round(size / 125000) / 10).toFixed(2));
+
+        return (
         <MainLayout>
-          <div className="content-wrapper">
-            <h2>Projects</h2>
-            <div className="content">
-              <Projects projects={data.allProjects || []} />
-            </div>
-          </div>
-          <style jsx>{`
-            .content-wrapper {
-              h2 {
-                margin: 38px calc((100vw / 16) * 1) 0;
-                @media ${bp.wideUp} {
-                  margin: 62px calc((100vw / 16) * 2) 0;
-                }
-                @media ${bp.extraWideUp} {
-                  margin: 62px calc((100vw / 16) * 3) 0;
-                }
-              }
-              .content {
-                margin: 38px calc((100vw / 16) * 1);
-                @media ${bp.wideUp} {
-                  margin: 38px calc((100vw / 16) * 2);
-                }
-                @media ${bp.extraWideUp} {
-                  margin: 38px calc((100vw / 16) * 3);
-                }
-              }
-            }
-          `}</style>
+          <Projects projects={data.allProjects || []} loading={loading} />
         </MainLayout>
-      ))}
+    )})}
     </Query>
   </>
-);
+)};
 
 export default ProjectsPage;

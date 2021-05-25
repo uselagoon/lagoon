@@ -2,21 +2,21 @@ import React from 'react';
 import * as R from 'ramda';
 import Head from 'next/head';
 import { Query } from 'react-apollo';
-import MainLayout from '../../layouts/MainLayout';
-import GlobalStlyes from '../../layouts/GlobalStyles';
+import MainLayout from 'layouts/MainLayout';
+import GlobalStlyes from 'layouts/GlobalStyles';
 
-import renderWhile from '../../lib/renderWhile';
+import renderWhile from 'lib/renderWhile';
 
-import AllBillingGroupsQuery from '../../lib/query/AllBillingGroups';
-import BillingGroups from '../../components/BillingGroups';
+import AllBillingGroupsQuery from 'lib/query/AllBillingGroups';
+import BillingGroups from 'components/BillingGroups';
 
-import withQueryLoading from '../../lib/withQueryLoading';
-import withQueryError from '../../lib/withQueryError';
+import withQueryLoading from 'lib/withQueryLoading';
+import withQueryError from 'lib/withQueryError';
 
-import { AuthContext, adminAuthChecker } from '../../lib/Authenticator';
+import { AuthContext, adminAuthChecker } from 'lib/Authenticator';
 
-import { bp, color } from '../../lib/variables';
-import { LoadingPageNoHeader } from '../_loading';
+import { bp, color } from 'lib/variables';
+import { LoadingPageNoHeader } from 'pages/_loading';
 
 /**
  * Displays the backups page, given the name of an openshift project.
@@ -49,7 +49,7 @@ export const PageAdmin = () => {
                     </Query>
                   );
                 }
-                
+
                 return (<div>Seems that you do not have permissions to access this resource.</div>);
               }}
             </AuthContext.Consumer>

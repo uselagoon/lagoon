@@ -1,10 +1,15 @@
-export const filteredItems = (projects, categorySelected, searchInput) => projects.filter(key => {
-  const filterByCategory = key.category && key.category.toLowerCase().includes(categorySelected.toLowerCase())
+export const filteredItems = (projects, statusSelected, frameworkSelected, languageSelected, searchInput) => projects.filter(key => {
 
-  const filterByName = key.name
+  // Select / tag filters
+  const filterByStatus= key.status && key.status.toLowerCase().includes(statusSelected.toLowerCase());
+
+
+
+  let filterByName = '';
+  filterByName = key.name && key.name
     .toLowerCase()
     .includes(searchInput.toLowerCase());
-
+  // }
   let filterByUrl = '';
   if (key.environments[0] !== void 0) {
     if (key.environments[0].route !== null) {
@@ -27,6 +32,6 @@ export const filteredItems = (projects, categorySelected, searchInput) => projec
 
   return ['name', 'environments', 'facts', '__typename'].includes(key)
     ? false
-    : (true && filterByName) || filterByCategory || filterByUrl || factChecker(filterByFact);
+    : (true && filterByName) || filterByStatus || filterByUrl || factChecker(filterByFact);
 });
 

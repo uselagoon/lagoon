@@ -73,6 +73,7 @@ export const PageTasks = ({ router }) => (
 
         return (
           <MainLayout>
+            <div className="content-wrapper">
             <Breadcrumbs>
               <ProjectBreadcrumb projectSlug={environment.project.name} />
               <EnvironmentBreadcrumb
@@ -80,7 +81,6 @@ export const PageTasks = ({ router }) => (
                 projectSlug={environment.project.name}
               />
             </Breadcrumbs>
-            <div className="content-wrapper">
               <NavTabs activeTab="tasks" environment={environment} />
               <div className="content">
                 <AddTask pageEnvironment={environment} />

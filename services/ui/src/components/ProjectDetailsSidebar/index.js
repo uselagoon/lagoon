@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import * as R from 'ramda';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import moment from 'moment';
@@ -93,7 +93,7 @@ const Project = ({ project }) => {
 
       <style jsx>{`
         .details {
-          display: inline-table;
+          // display: flex;
 
           .field-wrapper {
             overflow: hidden;
@@ -201,7 +201,7 @@ const Project = ({ project }) => {
               &::before {
                 background-image: url('/static/images/branches.svg');
               }
-              
+
               .field {
                 white-space: break-spaces;
               }
@@ -255,4 +255,4 @@ const Project = ({ project }) => {
   );
 };
 
-export default Project;
+export default memo(Project);

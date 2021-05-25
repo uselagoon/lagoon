@@ -17,7 +17,7 @@ import Box from 'components/Box';
 import withQueryLoading from 'lib/withQueryLoading';
 import withQueryError from 'lib/withQueryError';
 
-import { AuthContext, adminAuthChecker } from '../../lib/Authenticator';
+import { AuthContext, adminAuthChecker } from 'lib/Authenticator';
 
 import { bp, color } from 'lib/variables';
 import Button from 'components/Button';

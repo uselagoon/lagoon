@@ -1,5 +1,5 @@
 import React from 'react';
-import Error from '../_error';
+import Error from '../pages/_error';
 
 export default {
   component: Error,

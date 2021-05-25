@@ -1,5 +1,5 @@
 import React from 'react';
-import ProblemsDashboardByProjectPageHexDisplay from '../problems-dashboard-by-project-hex';
+import ProblemsDashboardByProjectPageHexDisplay from '../pages/problems-dashboard-by-project-hex';
 import { Query } from "react-apollo";
 import AllProjectsProblemsQuery from 'lib/query/AllProjectsProblems';
 import ApiConnection from "lib/ApiConnection";

@@ -1,5 +1,5 @@
 import React from 'react';
-import { PageProject as Project } from '../project';
+import { PageProject as Project } from '../pages/project';
 
 export default {
   component: Project,

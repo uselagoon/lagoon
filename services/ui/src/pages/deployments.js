@@ -6,9 +6,7 @@ import { Query } from 'react-apollo';
 import MainLayout from 'layouts/MainLayout';
 import EnvironmentWithDeploymentsQuery from 'lib/query/EnvironmentWithDeployments';
 import DeploymentsSubscription from 'lib/subscription/Deployments';
-import Breadcrumbs from 'components/Breadcrumbs';
-import ProjectBreadcrumb from 'components/Breadcrumbs/Project';
-import EnvironmentBreadcrumb from 'components/Breadcrumbs/Environment';
+import EnvironmentHeader from 'components/EnvironmentHeader';
 import NavTabs from 'components/NavTabs';
 import DeployLatest from 'components/DeployLatest';
 import Deployments from 'components/Deployments';
@@ -16,6 +14,7 @@ import withQueryLoading from 'lib/withQueryLoading';
 import withQueryError from 'lib/withQueryError';
 import { withEnvironmentRequired } from 'lib/withDataRequired';
 import { bp } from 'lib/variables';
+import LoadingContent from 'pages/_loading';
 
 /**
  * Displays the deployments page, given the openshift project name.
@@ -31,11 +30,11 @@ export const PageDeployments = ({ router }) => {
         variables={{ openshiftProjectName: router.query.openshiftProjectName }}
       >
         {R.compose(
-          withQueryLoading,
+          // withQueryLoading,
           withQueryError,
-          withEnvironmentRequired
-        )(({ data: { environment }, subscribeToMore }) => {
-          subscribeToMore({
+          // withEnvironmentRequired
+        )(({ data: { environment }, loading, subscribeToMore }) => {
+          environment && subscribeToMore({
             document: DeploymentsSubscription,
             variables: { environment: environment.id },
             updateQuery: (prevStore, { subscriptionData }) => {
@@ -74,22 +73,20 @@ export const PageDeployments = ({ router }) => {
 
           return (
             <MainLayout>
-              <Breadcrumbs>
-                <ProjectBreadcrumb projectSlug={environment.project.name} />
-                <EnvironmentBreadcrumb
-                  environmentSlug={environment.openshiftProjectName}
-                  projectSlug={environment.project.name}
-                />
-              </Breadcrumbs>
               <div className="content-wrapper">
-                <NavTabs activeTab="deployments" environment={environment} />
-                <div className="content">
-                  <DeployLatest pageEnvironment={environment} />
-                  <Deployments
-                    deployments={environment.deployments}
-                    projectName={environment.openshiftProjectName}
-                  />
-                </div>
+                {!loading ? <EnvironmentHeader environment={environment}/> : <>Loading...</>}
+                {!loading ?
+                <>
+                  <NavTabs activeTab="deployments" environment={environment} />
+                  <div className="content">
+                    <DeployLatest pageEnvironment={environment} />
+                    <Deployments
+                      deployments={environment.deployments}
+                      projectName={environment.openshiftProjectName}
+                    />
+                  </div>
+                </>
+                : <>Loading...</>}
               </div>
               <style jsx>{`
                 .content-wrapper {

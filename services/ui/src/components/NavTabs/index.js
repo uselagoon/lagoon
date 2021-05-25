@@ -152,9 +152,9 @@ const NavTabs = ({ activeTab, environment }) => (
           a {
             color: ${color.darkGrey};
             display: block;
-            padding: 20px 20px 19px 60px;
+            padding: 20px;
             @media ${bp.wideUp} {
-              padding-left: calc((100vw / 16) * 1);
+              padding-left: 20px;
             }
           }
 
@@ -237,7 +237,7 @@ const NavTabs = ({ activeTab, environment }) => (
               background-image: url('/static/images/facts-active.svg');
             }
           }
-          
+
           &.route {
             &::before {
               background-image: url('/static/images/route.svg');

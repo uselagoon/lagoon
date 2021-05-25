@@ -20,6 +20,7 @@ const {
   addFacts,
   deleteFact,
   deleteFactsFromSource,
+  getEnvironmentsByFactSearch,
 } = require('./resources/fact/resolvers');
 
 const {
@@ -359,6 +360,7 @@ const resolvers = {
     environmentById: getEnvironmentById,
     environmentByOpenshiftProjectName: getEnvironmentByOpenshiftProjectName,
     environmentByKubernetesNamespaceName: getEnvironmentByKubernetesNamespaceName,
+    environmentsByFactSearch: getEnvironmentsByFactSearch,
     userCanSshToEnvironment,
     deploymentByRemoteId: getDeploymentByRemoteId,
     taskByRemoteId: getTaskByRemoteId,

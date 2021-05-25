@@ -16,6 +16,7 @@ const StatusLayout = ({ children }) => (
       .content-wrapper {
         display: flex;
         justify-content: center;
+        text-align: center;
 
         .content {
           margin-top: 38px;

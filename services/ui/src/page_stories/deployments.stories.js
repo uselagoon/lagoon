@@ -1,14 +1,14 @@
 import React from 'react';
-import { PageTasks as Tasks } from '../tasks';
+import { PageDeployments as Deployments } from '../pages/deployments';
 
 export default {
-  component: Tasks,
-  title: 'Pages/Tasks',
+  component: Deployments,
+  title: 'Pages/Deployments',
 }
 
 export const Default = () => (
   <>@TODO: Doesn't work yet. subscribeToMore() causes browser to freeze.
-  {/*<Tasks*/}
+  {/*<Deployments*/}
   {/*  router={{*/}
   {/*    query: {*/}
   {/*      openshiftProjectName: 'Example',*/}

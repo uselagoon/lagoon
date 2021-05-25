@@ -12,7 +12,6 @@ import { enGB } from 'date-fns/locale'
 import { DatePicker, useDateInput } from 'react-nice-dates'
 
 import 'react-nice-dates/build/style.css'
-import './overrides.css'
 
 import AllProjectsAfterDateQuery from 'lib/query/AllProjectsAfterDate';
 
@@ -21,15 +20,15 @@ import Highlighter from 'react-highlight-words';
 import Box from 'components/Box';
 import Breadcrumbs from 'components/Breadcrumbs';
 
-import renderWhile from '../../lib/renderWhile';
+import renderWhile from 'lib/renderWhile';
 
 import withQueryLoading from 'lib/withQueryLoading';
 import withQueryError from 'lib/withQueryError';
 
-import { AuthContext, adminAuthChecker } from '../../lib/Authenticator';
+import { AuthContext, adminAuthChecker } from 'lib/Authenticator';
 
 import { bp, color } from 'lib/variables';
-import { LoadingPageNoHeader } from '../_loading';
+import { LoadingPageNoHeader } from 'pages/_loading';
 import Button from 'components/Button';
 
 const { className: boxClassName, styles: boxStyles } = css.resolve`
@@ -84,7 +83,7 @@ export const PageProjects = ({ router }) => {
                         ), withQueryError)(
                         ({data: { allProjects: projects}} ) => {
 
-            
+
                           return(
                             <div className="projects">
 
@@ -96,7 +95,7 @@ export const PageProjects = ({ router }) => {
                               </Box>
                             )}
                             {projects.map((project, index) => {
-                              
+
                               // const billingGroup = project.groups.find(group => group.type === "billing");
 
                               return(
@@ -114,7 +113,7 @@ export const PageProjects = ({ router }) => {
                                     </div>
                                   </div>
                                 </Box>
-                              
+
                             )}
                             )}
 
@@ -128,7 +127,7 @@ export const PageProjects = ({ router }) => {
                   </div>
                 );
               }
-              
+
               return (<div className="content-wrapper"><div className="content">Seems that you do not have permissions to access this resource.</div></div>);
             }}
       </AuthContext.Consumer>

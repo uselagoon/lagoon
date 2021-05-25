@@ -21,16 +21,36 @@ const GlobalStyles = ({ children }) => (
         overflow-x: hidden;
       }
 
+      .main {
+        display: flex;
+        min-height: 100vh;
+        flex: 1;
+      }
+
+      .navigation {
+        display: flex;
+        min-width: 10%;
+      }
+
       .content-wrapper {
         background-color: ${color.almostWhite};
-        flex: 1 0 auto;
-        width: 100%;
+        flex: 1;
+        flex-direction: column;
+        max-width: 75%;
+        padding: 0 10em;
+      }
+
+      .sidebar {
+        display: flex;
+        flex-direction: column;
+        width: 20%;
+        padding: 20px;
       }
 
       #__next {
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
+        //display: flex;
+        //flex-direction: column;
+        //min-height: 100vh;
       }
 
       a {
@@ -171,11 +191,16 @@ const GlobalStyles = ({ children }) => (
             content: '';
             display: block;
             height: 60px;
-            left: 0;
+
+            // left: 0;
             margin-left: calc(((100vw / 16) * 1.5) - 25px);
+
+
             margin-right: 14px;
             padding-right: 14px;
-            position: absolute;
+
+            // position: absolute;
+
             width: 25px;
           }
         }

@@ -1,6 +1,9 @@
 import 'isomorphic-unfetch';
-import App, { Container, createUrl } from 'next/app';
+import App, { createUrl } from 'next/app';
 import React from 'react';
+import Router from 'next/router';
+import NProgress from 'nprogress';
+// import '../static/nprogress.css';
 import Head from 'next/head';
 import getConfig from 'next/config';
 import Typekit from 'react-typekit';
@@ -8,7 +11,13 @@ import Favicon from 'components/Favicon';
 import Authenticator, { AuthContext } from 'lib/Authenticator';
 import ApiConnection from 'lib/ApiConnection';
 
+
+import 'components/Honeycomb/styling.css';
+import '../admin/overrides.css';
+
 const { serverRuntimeConfig, publicRuntimeConfig } = getConfig();
+
+Router.events.on('routeChangeStart', () => NProgress.start()); Router.events.on('routeChangeComplete', () => NProgress.done()); Router.events.on('routeChangeError', () => NProgress.done());
 
 class MyApp extends App {
   render() {
@@ -19,19 +28,19 @@ class MyApp extends App {
     // infinite auth > error > auth > error loops.
     if (err) {
       return (
-        <Container>
+        <>
           <Head>
             <link rel="stylesheet" href="/static/normalize.css" />
             <Typekit kitId="ggo2pml" />
           </Head>
           <Component {...pageProps} errorMessage={err.toString()} url={url} />
           <Favicon />
-        </Container>
+        </>
       );
     }
 
     return (
-      <Container>
+      <>
         <Head>
           <link rel="stylesheet" href="/static/normalize.css" />
           <Typekit kitId="ggo2pml" />
@@ -46,7 +55,7 @@ class MyApp extends App {
           </ApiConnection>
         </Authenticator>
         <Favicon />
-      </Container>
+      </>
     );
   }
 }

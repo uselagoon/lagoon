@@ -18,8 +18,6 @@ const getSiteStatusForEnvironment = (environment) => {
     if (facts) {
       facts.map(fact => {
         if (fact.name === 'site-code-status') {
-          console.log(fact.name, fact);
-
           switch (fact.value) {
             case "500":
               setStatus(SITE_STATUSES.server_issues);

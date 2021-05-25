@@ -35,6 +35,7 @@ export const PageFacts = ({ router }) => (
 
         return (
           <MainLayout>
+            <div className="content-wrapper">
             <Breadcrumbs>
               <ProjectBreadcrumb projectSlug={environment.project.name} />
               <EnvironmentBreadcrumb
@@ -42,7 +43,6 @@ export const PageFacts = ({ router }) => (
                 projectSlug={environment.project.name}
               />
             </Breadcrumbs>
-            <div className="content-wrapper">
               <NavTabs activeTab="facts" environment={environment} />
               <div className="content">
                 <Facts facts={environment.facts} />

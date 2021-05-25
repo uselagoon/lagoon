@@ -54,10 +54,11 @@ export const PageProject = ({ router }) => (
 
         return (
           <MainLayout>
-            <Breadcrumbs>
-              <ProjectBreadcrumb projectSlug={project.name} />
-            </Breadcrumbs>
             <div className="content-wrapper">
+              <Breadcrumbs>
+                <ProjectBreadcrumb projectSlug={project.name} />
+              </Breadcrumbs>
+
               <div className="project-details-sidebar">
                 <ProjectDetailsSidebar project={project} />
               </div>
@@ -97,35 +98,14 @@ export const PageProject = ({ router }) => (
               .project-details-sidebar {
                 background-color: ${color.lightestGrey};
                 border-right: 1px solid ${color.midGrey};
-                padding: 32px calc((100vw / 16) * 1);
                 width: 100%;
-                @media ${bp.xs_smallUp} {
-                  padding: 24px calc((100vw / 16) * 1) 24px
-                    calc(((100vw / 16) * 1.5) + 28px);
-                }
-                @media ${bp.tabletUp} {
-                  min-width: 50%;
-                  padding: 48px calc(((100vw / 16) * 1) + 28px);
-                  width: 50%;
-                }
-                @media ${bp.desktopUp} {
-                  min-width: 40%;
-                  padding: 48px calc((100vw / 16) * 1);
-                  width: 40%;
-                }
-                @media ${bp.wideUp} {
-                  min-width: 33.33%;
-                  min-width: calc((100vw / 16) * 5);
-                  width: 33.33%;
-                  width: calc((100vw / 16) * 5);
-                }
               }
 
               .environments-wrapper {
                 flex-grow: 1;
                 padding: 40px calc((100vw / 16) * 1);
               }
-              
+
               .environments-header {
                 display: flex;
                 justify-content: space-between;

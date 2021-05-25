@@ -1,21 +1,27 @@
 import gql from 'graphql-tag';
-import FactsFragment from 'lib/fragment/Fact';
 
 export default gql`
   {
     allProjects {
       id
       name
+      created
+      gitUrl
       environments {
         name
         route
-        routes
         environmentType
         facts {
-          ...factFields
+          id
+          name
+          value
+          source
+          category
+          reference
+          type
+          category
         }
       }
     }
   }
-  ${FactsFragment}
 `;

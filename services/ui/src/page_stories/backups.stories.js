@@ -1,17 +1,16 @@
 import React from 'react';
-import { PageDeployment as Deployment } from '../deployment';
+import { PageBackups as Backups } from '../pages/backups';
 
 export default {
-  component: Deployment,
-  title: 'Pages/Deployment',
+  component: Backups,
+  title: 'Pages/Backups',
 }
 
 export const Default = () => (
-  <Deployment
+  <Backups
     router={{
       query: {
         openshiftProjectName: 'Example',
-        deploymentName: 'example',
       },
     }}
   />

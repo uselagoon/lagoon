@@ -7,8 +7,8 @@ import Me from 'lib/query/Me';
 import withQueryLoading from 'lib/withQueryLoading';
 import withQueryError from 'lib/withQueryError';
 import { bp } from 'lib/variables';
-import SshKeys from '../../components/SshKeys';
-import AddSshKey from '../../components/SshKeys/AddSshKey';
+import SshKeys from 'components/SshKeys';
+import AddSshKey from 'components/SshKeys/AddSshKey';
 
 /**
  * Displays the user settings page.
