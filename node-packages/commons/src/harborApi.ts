@@ -10,7 +10,7 @@ const HARBOR_ACCEPT_HEADER =
   'application/vnd.scanner.adapter.vuln.report.harbor+json; version=1.0';
 const HARBOR_USERNAME = process.env.HARBOR_USERNAME || 'admin';
 const HARBOR_PASSWORD = process.env.HARBOR_ADMIN_PASSWORD;
-const HARBOR_API_VERSION = process.env.HARBOR_API_VERSION || 'v1.0';
+const HARBOR_API_VERSION = process.env.HARBOR_API_VERSION || 'v2.0';
 
 export const getVulnerabilitiesPayloadFromHarbor = async (repository, configOverrides) => {
 
