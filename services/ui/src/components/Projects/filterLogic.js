@@ -1,7 +1,7 @@
-export const filteredItems = (projects, statusSelected, frameworkSelected, languageSelected, searchInput) => projects.filter(key => {
+const stringInputFilter = (projects, searchInput) => projects.filter(key => {
 
   // Select / tag filters
-  const filterByStatus= key.status && key.status.toLowerCase().includes(statusSelected.toLowerCase());
+  //const filterByStatus= key.status && key.status.toLowerCase().includes(statusSelected.toLowerCase());
 
 
 
@@ -32,6 +32,7 @@ export const filteredItems = (projects, statusSelected, frameworkSelected, langu
 
   return ['name', 'environments', 'facts', '__typename'].includes(key)
     ? false
-    : (true && filterByName) || filterByStatus || filterByUrl || factChecker(filterByFact);
+    : (true && filterByName) || filterByUrl || factChecker(filterByFact);
 });
 
+export default stringInputFilter;

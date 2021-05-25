@@ -12,7 +12,7 @@ import ProjectByNameQuery from 'lib/query/ProjectByName';
 
 const ProjectsSidbar = ({ project }) => {
   const [copied, setCopied] = useState(false);
-  const gitUrlParsed = giturlparse(project.gitUrl);
+  const gitUrlParsed = project.gitUrl && giturlparse(project.gitUrl);
   const gitLink = `${gitUrlParsed.resource}/${gitUrlParsed.full_name}`;
   const environmentCount = R.countBy(R.prop('environmentType'))(
     project.environments
@@ -94,6 +94,11 @@ const ProjectsSidbar = ({ project }) => {
     </div>
     <div className="environments">
       <label>{project.environments.length} Environments</label>
+      {project.environments && project.environments.map((e => {
+        return (
+          <div>{e.name}</div>
+        )
+      }))}
     </div>
     <style jsx>{`
       .projects-sidebar-wrapper {

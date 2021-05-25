@@ -4,6 +4,7 @@ import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Sql } from './sql';
 import { ResolverFn } from '../index';
 import { knex } from '../../util/db';
+import logger from '../../logger';
 
 export const getFactsByEnvironmentId: ResolverFn = async (
   { id: environmentId },
@@ -51,22 +52,26 @@ export const getEnvironmentsByFactSearch: ResolverFn = async (
 
   //Do we get a list of projects first to pass into this? Might make sense to make it super fast.
 
-  //TODO TIM: All projects permission will break this whole thing ...
-  const projectIds = await models.UserModel.getAllProjectsIdsForUser({
-    id: keycloakGrant.access_token.content.sub
-  });
+  let userProjectIds: number[];
+  try {
+    await hasPermission('project', 'viewAll');
+  } catch (err) {
+    if (!keycloakGrant) {
+      logger.warn('No grant available for getAllProjects');
+      return [];
+    }
 
-  console.log(projectIds);
+    userProjectIds = await models.UserModel.getAllProjectsIdsForUser({
+      id: keycloakGrant.access_token.content.sub
+    });
+  }
 
   //to begin we link environments and facts
-
   let factQuery = knex('environment').distinct('environment.*');
 
-
-  //DEAR TIM: IS THE FOREACH'S INDEX TRUSTWORTH????
   input.filters.forEach((e, i) => {
     let tabName = `env${i}`;
-    if(input.filterConnective == 'AND') {
+    if (input.filterConnective == 'AND') {
       factQuery = factQuery.innerJoin(`environment_fact as ${tabName}`, 'environment.id', `${tabName}.environment`)
     } else {
       factQuery = factQuery.leftJoin(`environment_fact as ${tabName}`, 'environment.id', `${tabName}.environment`)
@@ -76,7 +81,7 @@ export const getEnvironmentsByFactSearch: ResolverFn = async (
   factQuery.where((builder) => {
     input.filters.forEach((e, i) => {
       let tabName = `env${i}`;
-      if(input.filterConnective == 'AND') {
+      if (input.filterConnective == 'AND') {
         builder = builder.innerJoin(`environment_fact as ${tabName}`, 'environment.id', `${tabName}.environment`)
         builder = builder.andWhere(`${tabName}.name`, '=', `${e.lhs}`)
         builder = builder.andWhere(`${tabName}.value`, getSqlPredicate(e.predicate), predicateRHSProcess(e.predicate, e.rhs))
@@ -89,15 +94,12 @@ export const getEnvironmentsByFactSearch: ResolverFn = async (
     });
   })
 
-  //TODO: admin doesn't need this ...
-  factQuery = factQuery.andWhere('environment.project', 'IN', projectIds);
+  if (userProjectIds) {
+    factQuery = factQuery.andWhere('environment.project', 'IN', userProjectIds);
+  }
 
-
-  const rows = await query(
-    sqlClientPool,
-    factQuery.toString());
-
-    return rows;
+  const rows = await query(sqlClientPool, factQuery.toString());
+  return rows;
 }
 
 export const addFact: ResolverFn = async (

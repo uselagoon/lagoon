@@ -19,7 +19,6 @@ const ProjectsPage = () => {
   //   setProjectSelected(selectedProject);
   // };
 
-
   return (
   <>
     <Head>
@@ -40,7 +39,8 @@ const ProjectsPage = () => {
 
         return (
         <MainLayout>
-          <Projects projects={data.allProjects || []} loading={loading} />
+              <Projects projects={data.allProjects || []} loading={loading} />
+              {/* <Projects /> */}
         </MainLayout>
     )})}
     </Query>

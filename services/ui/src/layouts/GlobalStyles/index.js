@@ -53,6 +53,11 @@ const GlobalStyles = ({ children }) => (
         //min-height: 100vh;
       }
 
+      .loading {
+          background: red;
+          font-size: 24px;
+      }
+
       a {
         color: ${color.black};
         text-decoration: none;
