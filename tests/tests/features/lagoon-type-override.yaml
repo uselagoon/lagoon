@@ -65,6 +65,7 @@
   vars:
     url: "{{ check_url }}"
     expected_returncode: 200
+    retries: 60
   tasks:
   - include: ../../checks/check-url-returncode.yaml
 

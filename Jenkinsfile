@@ -66,11 +66,14 @@ node {
               kubernetes_versions.each { kubernetes_version ->
                 stage ("kubernetes ${kubernetes_version['kubernetes']} tests") {
                   try {
-                    sh script: "make k3d/clean K3S_VERSION=${kubernetes_version['k3s']} KUBECTL_VERSION=${kubernetes_version['kubectl']}", label: "Removing any previous k3d versions"
-                    sh script: "make k3d K3S_VERSION=${kubernetes_version['k3s']} KUBECTL_VERSION=${kubernetes_version['kubectl']}", label: "Making k3d"
-                    sh script: "make -O${SYNC_MAKE_OUTPUT} k8s-tests -j2", label: "Making kubernetes tests"
-                    sh script: "make -O${SYNC_MAKE_OUTPUT} controller-k8s-tests -j2", label: "Making controller based kubernetes tests"
-                    sh script: "make k3d/cleanall", label: "Removing kubernetes install"
+                    if (env.CHANGE_ID && pullRequest.labels.contains("skip-kubernetes-tests")) {
+                      sh script: 'echo "PR identified as not needing Kubernetes testing."', label: "Skipping Kubernetes testing stage"
+                    } else {
+                      sh script: "make k3d/clean K3S_VERSION=${kubernetes_version['k3s']} KUBECTL_VERSION=${kubernetes_version['kubectl']}", label: "Removing any previous k3d versions"
+                      sh script: "make k3d K3S_VERSION=${kubernetes_version['k3s']} KUBECTL_VERSION=${kubernetes_version['kubectl']}", label: "Making k3d"
+                      sh script: "make -O${SYNC_MAKE_OUTPUT} controller-k8s-tests -j2", label: "Making controller based kubernetes tests"
+                      sh script: "make k3d/cleanall", label: "Removing kubernetes install"
+                    }
                   } catch (e) {
                     echo "Something went wrong, trying to cleanup"
                     cleanup()
@@ -86,7 +89,7 @@ node {
                     } else {
                       sh 'make minishift/cleanall || echo'
                       sh script: "make minishift MINISHIFT_GITHUB_API_TOKEN=$MINISHIFT_GITHUB_API_TOKEN MINISHIFT_CPUS=\$(nproc --ignore 3) MINISHIFT_MEMORY=24GB MINISHIFT_DISK_SIZE=70GB MINISHIFT_VERSION=${minishift_version} OPENSHIFT_VERSION=${openshift_version}", label: "Making openshift"
-                      sh script: "make -O${SYNC_MAKE_OUTPUT} push-minishift -j5", label: "Pushing built images into openshift"
+                      sh script: "make -O${SYNC_MAKE_OUTPUT} controller-openshift-tests -j1", label: "Making controller based openshift tests"
                       sh script: "make -O${SYNC_MAKE_OUTPUT} openshift-tests -j1", label: "Making openshift tests"
                     }
                   } catch (e) {

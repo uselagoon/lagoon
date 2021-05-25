@@ -1,5 +1,7 @@
+import R from 'ramda';
 import { ChannelWrapper } from 'amqp-connection-manager';
 import { ConsumeMessage } from 'amqplib';
+import { secureGitlabSystemHooks } from '@lagoon/commons/dist/gitlabApi';
 import { processProjects } from './webhooks/projects';
 import { processDataSync } from './webhooks/dataSync';
 import { processBackup } from './webhooks/backup';
@@ -11,13 +13,14 @@ export async function processQueue (rabbitMsg: ConsumeMessage, channelWrapperWeb
 
   const {
     webhooktype,
+    event,
     giturl,
   } = webhook;
 
   // GitLab supports System Hooks which trigger on changes like creating new
   // organizations or users. Since these don't have associated projects, they
   // must be handled separately.
-  if (webhooktype == 'gitlab' && !giturl) {
+  if (webhooktype == 'gitlab' && R.contains(event, secureGitlabSystemHooks)) {
     processDataSync(rabbitMsg, channelWrapperWebhooks);
   } else if (webhooktype == 'resticbackup') {
     processBackup(rabbitMsg, channelWrapperWebhooks);

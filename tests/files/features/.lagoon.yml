@@ -9,6 +9,10 @@ environments:
     - node:
       - customdomain-will-be-main-domain.com
       - customdomain-will-be-not-be-main-domain.com
+  fastly-annotations:
+    routes:
+    - node:
+      - annotations.com
   ingress-annotations:
     routes:
     - node:
@@ -100,6 +104,19 @@ ci-multiproject1-control-k8s:
         - node:
           - multiproject1.com
 ci-multiproject2-control-k8s:
+  environments:
+    multiproject:
+      routes:
+        - node:
+          - multiproject2.com
+
+ci-multiproject1-control-os:
+  environments:
+    multiproject:
+      routes:
+        - node:
+          - multiproject1.com
+ci-multiproject2-control-os:
   environments:
     multiproject:
       routes:

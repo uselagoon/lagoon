@@ -2,6 +2,7 @@ import uuid4 from 'uuid4';
 import url from 'url';
 import R from 'ramda';
 import { IncomingMessage } from 'http';
+import { secureGitlabSystemHooks } from '@lagoon/commons/dist/gitlabApi';
 
 import type { RawData, WebhookRequestData } from './types';
 
@@ -45,7 +46,7 @@ export function extractWebhookData(req: IncomingMessage, body: string): WebhookR
       giturl = R.path(['project', 'git_ssh_url'], bodyObj);
 
       // This is a system webhook
-      if (!giturl) {
+      if (R.contains(event, secureGitlabSystemHooks)) {
         // Ensure the system hook came from gitlab
         if (!('x-gitlab-token' in req.headers) || req.headers['x-gitlab-token'] !== process.env.GITLAB_SYSTEM_HOOK_TOKEN) {
           throw new Error('Gitlab system hook secret verification failed');
@@ -84,7 +85,7 @@ export function extractWebhookData(req: IncomingMessage, body: string): WebhookR
       webhooktype = 'resticbackup';
       event = 'restore:finished';
       uuid = uuid4();
-    } else if (bodyObj.type && bodyObj.type == 'scanningCompleted') {
+    } else if (bodyObj.type && (bodyObj.type == 'scanningCompleted' || bodyObj.type == 'SCANNING_COMPLETED')) {
       webhooktype = 'problems';
       event = 'harbor:scanningcompleted';
       uuid = uuid4();

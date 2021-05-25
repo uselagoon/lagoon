@@ -909,6 +909,10 @@ const typeDefs = gql`
     environment: Int!
     persistentStorageClaim: String!
     bytesUsed: Int!
+    """
+    Date in format 'YYYY-MM-DD'
+    """
+    updated: String
   }
 
   input AddBackupInput {
@@ -1118,6 +1122,7 @@ const typeDefs = gql`
     activeSystemsRemove: String
     activeSystemsTask: String
     activeSystemsMisc: String
+    activeSystemsPromote: String
     branches: String
     productionEnvironment: String
     productionRoutes: String
@@ -1220,6 +1225,10 @@ const typeDefs = gql`
     routes: String
     monitoringUrls: String
     autoIdle: Int
+    """
+    Timestamp in format 'YYYY-MM-DD hh:mm:ss'
+    """
+    created: String
   }
 
   input UpdateEnvironmentInput {

@@ -100,7 +100,8 @@ func main() {
 	}
 
 	// check the status of the crd until we have the status conditions.
-	// otherwise give up after a few minutes.
+	// otherwise give up after 10 minutes. 60 retries, 10 seconds apart.
+	try.MaxRetries = 60
 	err = try.Do(func(attempt int) (bool, error) {
 		var err error
 		if err := c.Get(context.Background(), types.NamespacedName{
@@ -122,14 +123,14 @@ func main() {
 					if mapval["type"].(string) == "failed" {
 						crdSpec := crd.Object["spec"].(map[string]interface{})
 						if crdSpec != nil {
-							crdIngress := crdSpec["ingress"].(map[string]interface{})
-							if crdIngress != nil {
+							crdHosts := crdSpec["hosts"].(map[string]interface{})
+							if crdHosts != nil {
 								rData := returnData{
 									Status:                      "Failed",
 									ProductionEnvironment:       payloadData["productionEnvironment"].(string),
 									StandbyProdutionEnvironment: payloadData["standbyEnvironment"].(string),
-									ProductionRoutes:            crdIngress["activeIngress"].(string),
-									StandbyRoutes:               crdIngress["standbyIngress"].(string),
+									ProductionRoutes:            crdHosts["activeHosts"].(string),
+									StandbyRoutes:               crdHosts["standbyHosts"].(string),
 								}
 
 								// print the result of the task, it will go back to lagoon-logs to be displayed
@@ -139,7 +140,7 @@ func main() {
 								// exit as the task failed
 								os.Exit(1)
 							}
-							fmt.Printf("Task failed, error was: no ingress found in resource")
+							fmt.Printf("Task failed, error was: no hosts found in resource")
 							os.Exit(1)
 						}
 						fmt.Printf("Task failed, error was: no spec found in resource")
@@ -149,14 +150,14 @@ func main() {
 					if mapval["type"].(string) == "completed" {
 						crdSpec := crd.Object["spec"].(map[string]interface{})
 						if crdSpec != nil {
-							crdIngress := crdSpec["ingress"].(map[string]interface{})
-							if crdIngress != nil {
+							crdHosts := crdSpec["hosts"].(map[string]interface{})
+							if crdHosts != nil {
 								rData := returnData{
 									Status:                      "Completed",
 									ProductionEnvironment:       payloadData["productionEnvironment"].(string),
 									StandbyProdutionEnvironment: payloadData["standbyEnvironment"].(string),
-									ProductionRoutes:            crdIngress["activeIngress"].(string),
-									StandbyRoutes:               crdIngress["standbyIngress"].(string),
+									ProductionRoutes:            crdHosts["activeHosts"].(string),
+									StandbyRoutes:               crdHosts["standbyHosts"].(string),
 								}
 
 								// print the result of the task, it will go back to lagoon-logs to be displayed
@@ -180,11 +181,15 @@ Provide a copy of this entire log to the team.`, err)
 									os.Exit(1)
 								}
 								// the job data to send back to lagoon must be base64 encoded
-								pod.ObjectMeta.Annotations = map[string]string{
-									"lagoon.sh/taskData": base64.StdEncoding.EncodeToString(jsonData),
-								}
+								mergePatch, _ := json.Marshal(map[string]interface{}{
+									"metadata": map[string]interface{}{
+										"annotations": map[string]interface{}{
+											"lagoon.sh/taskData": base64.StdEncoding.EncodeToString(jsonData),
+										},
+									},
+								})
 								// update the pod with the annotation
-								if err := c.Update(context.Background(), &pod); err != nil {
+								if err := c.Patch(context.Background(), &pod, client.ConstantPatch(types.MergePatchType, mergePatch)); err != nil {
 									fmt.Printf(`========================================
 Task failed to update pod with return information, error was: %v
 ========================================
@@ -200,7 +205,7 @@ Provide a copy of this entire log to the team.`, err)
 								}
 								os.Exit(0)
 							}
-							fmt.Printf("Task failed, error was: no ingress found in resource")
+							fmt.Printf("Task failed, error was: no hosts found in resource")
 							os.Exit(1)
 						}
 						fmt.Printf("Task failed, error was: no spec found in resource")
@@ -210,11 +215,12 @@ Provide a copy of this entire log to the team.`, err)
 			}
 		}
 		// sleep for 5 seconds up to a maximum of 60 times (5 minutes) before finally giving up
-		time.Sleep(5 * time.Second)
+		time.Sleep(10 * time.Second)
+		err = fmt.Errorf("status condition not met yet")
 		return attempt < 60, err
 	})
 	if err != nil {
-		fmt.Printf("Task failed, timed out waiting for the job to start: %v", err)
+		fmt.Printf("Task failed, timed out after 10 minutes waiting for the job to start: %v", err)
 		os.Exit(1)
 	}
 }

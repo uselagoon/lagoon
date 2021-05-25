@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Add</title>
+</head>
+<nav class="navbar navbar-dark navbar-static-top navbar-expand-md">
+    <div class="container">
+        <ul class="nav navbar-nav mr-auto">
+            <li class="nav-item"><a href="/" class="nav-link">Home</a></li>
+            <li class="active nav-item"><a href="/list" class="nav-link">Add</a></li>
+            <li class="nav-item"><a href="/list/getlist" class="nav-link">ListAll</a></li>
+        </ul>
+    </div>
+</nav>
+<div class="jumbotron text-center">
+    <h1>Add</h1>
+</div>
+<div class="container">
+    <div class="row">
+	    <div class="col-lg-4">
+            <p>
+                <form action="/list/additem" method="post">
+                    <div class="caption">Enter Your Item</div>
+                    <input type="text" placeholder="Name" name="name" <%=list[i].name; %>
+                    <input type="text" placeholder="Character" name="character" <%=list[i].character; %>
+                    <button type="submit">Submit</button>
+                </form>
+            </p>
+        </div>
+    </div>
+</div>
+</html>

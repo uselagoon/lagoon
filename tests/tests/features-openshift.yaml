@@ -57,8 +57,6 @@
     git_repo_name: features.git
     project: ci-features-{{ lookup('env','CLUSTER_TYPE') }}
     branch: very-long-branch-name-what-would-otherwise-overflow-the-sixty-three-limit
-    # not going to try hashing something in yaml.
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.very-long-branch-name-what-would-aae9.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
 
 - include: features/environment-type.yaml
   vars:

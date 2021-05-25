@@ -1,8 +1,8 @@
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
 FROM ${UPSTREAM_REPO:-uselagoon}/commons:${UPSTREAM_TAG:-latest} as commons
-# alpine 3.11 as per https://github.com/docker-library/rabbitmq/blob/master/3.8/alpine/Dockerfile
-FROM rabbitmq:3.8-management-alpine
+# alpine 3.12 as per https://github.com/docker-library/rabbitmq/blob/master/3.8/alpine/Dockerfile
+FROM rabbitmq:3.8.9-management-alpine
 
 ARG LAGOON_VERSION
 ENV LAGOON_VERSION=$LAGOON_VERSION
@@ -14,7 +14,7 @@ ENV RABBITMQ_DEFAULT_USER='guest' \
 
 COPY --from=commons /bin/ep /bin/fix-permissions /bin/
 
-COPY rabbitmq_delayed_message_exchange-3.8.0.ez /plugins
+COPY rabbitmq_delayed_message_exchange-3.8.9.ez /plugins
 RUN rabbitmq-plugins enable --offline rabbitmq_delayed_message_exchange;
 
 # Copy startup schema with vhost, users, permissions and policies

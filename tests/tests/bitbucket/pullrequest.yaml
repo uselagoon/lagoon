@@ -39,19 +39,12 @@
     git_base_commit_hash: "{{ base_commit_hash }}"
     git_pr_branch: "pullrequest_pr"
     git_pr_commit_hash: "{{ pr_commit_hash }}"
-    git_pr_number: "1"
+    git_pr_number: 1
     git_repo_ssh_url: "{{ lookup('env','WEBHOOK_REPO_PREFIX') }}{{ git_repo_name }}"
     git_pr_title: "pr-2"
   tasks:
   - include: ../../tasks/webhook-bitbucket/pullrequest-opened.yaml
 
-
-- include: ../../checks/check-branch-sha.yaml
-  vars:
-    expected_head: "{{ pr_commit_hash }}"
-    expected_branch: "pr-2"
-    project: "{{ project }}"
-    url: "{{ check_url }}"
 
 - include: ../../checks/check-pullrequest.yaml
   vars:
@@ -86,18 +79,11 @@
     git_base_commit_hash: "{{ base_commit_hash }}"
     git_pr_branch: "pullrequest_pr"
     git_pr_commit_hash: "{{ pr_2nd_commit_hash }}"
-    git_pr_number: "1"
+    git_pr_number: 1
     git_repo_ssh_url: "{{ lookup('env','WEBHOOK_REPO_PREFIX') }}{{ git_repo_name }}"
     git_pr_title: "PR Title - UPDATE"
   tasks:
   - include: ../../tasks/webhook-bitbucket/pullrequest-updated.yaml
-
-- include: ../../checks/check-branch-sha.yaml
-  vars:
-    expected_head: "{{ pr_2nd_commit_hash }}"
-    expected_branch: "pr-2"
-    project: "{{ project }}"
-    url: "{{ check_url }}"
 
 - include: ../../checks/check-pullrequest.yaml
   vars:
@@ -117,7 +103,7 @@
     git_base_commit_hash: "00000"
     git_pr_branch: "pullrequest_pr"
     git_pr_commit_hash: "00000"
-    git_pr_number: "1"
+    git_pr_number: 1
     git_repo_ssh_url: "{{ lookup('env','WEBHOOK_REPO_PREFIX') }}{{ git_repo_name }}"
   tasks:
   - include: ../../tasks/webhook-bitbucket/pullrequest-closed.yaml

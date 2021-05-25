@@ -1,0 +1,42 @@
+
+- name: "{{ testname }} - init git, add files, commit, git push"
+  hosts: localhost
+  serial: 1
+  vars:
+    git_files: "node-mongodb/dbaas/"
+  tasks:
+  - include: ../../tasks/git-init.yaml
+  - include: ../../tasks/git-add-commit-push.yaml
+
+- name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}, which should deploy the first commit"
+  hosts: localhost
+  serial: 1
+  vars:
+    branch: "{{ branch }}"
+    project: "{{ project }}"
+  tasks:
+  - include: ../../tasks/api/deploy-no-sha.yaml
+
+- include: check-deployed.yaml
+  vars:
+    expected_head: "{{ current_head }}"
+    expected_branch: "{{ branch }}"
+    project: "{{ project }}"
+
+- name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ project }}"
+    branch: "{{ branch }}"
+  tasks:
+  - include: ../../tasks/api/remove.yaml
+
+- name: "{{ testname }} - check if site for {{ project }} does not exist anymore"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    expected_returncode: "{{ lookup('env','DELETED_STATUS_CODE') }}"
+  tasks:
+  - include: ../../checks/check-url-returncode.yaml
