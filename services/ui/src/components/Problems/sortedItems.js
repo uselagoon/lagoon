@@ -41,10 +41,10 @@ const useSortableProblemsData = (initialItems) => {
     }
 
     const requestSort = (key) => {
-        let direction = 'ascending';
+        let direction = key !== 'created' ? 'ascending' : 'descending';
 
-        if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
-            direction = 'descending';
+        if (sortConfig && sortConfig.key === key && sortConfig.direction === direction) {
+            direction = direction === 'ascending' ? 'descending' : 'ascending';
         }
 
        setCurrentItems(sortedItems);

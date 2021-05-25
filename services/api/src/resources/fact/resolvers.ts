@@ -82,21 +82,28 @@ export const addFacts = async (
   { sqlClient, hasPermission }
 ) => {
 
-  // We first check that the user has access to all of the environments, so this is an atomic operation.
-  await facts.map(async (fact) => {
-    const { environment } = fact;
-    const env = await environmentHelpers(sqlClient).getEnvironmentById(environment);
+  const environments = facts.reduce((environmentList, fact) => {
+    let { environment } = fact;
+    if (!environmentList.includes(environment)) {
+      environmentList.push(environment);
+    }
+    return environmentList;
+  }, []);
 
+  for (let i = 0; i < environments.length; i++) {
+    const env = await environmentHelpers(sqlClient).getEnvironmentById(
+      environments[i]
+    );
     await hasPermission('fact', 'add', {
-      project: env.project,
+      project: env.project
     });
-  });
+  }
 
-  return await facts.map(async (fact) => {
-    const { environment, name, value, source, description } = fact;
-
+  const returnFacts = [];
+  for (let i = 0; i < facts.length; i++) {
+    const { environment, name, value, source, description } = facts[i];
     const {
-      info: { insertId },
+      info: { insertId }
     } = await query(
       sqlClient,
       Sql.insertFact({
@@ -105,12 +112,14 @@ export const addFacts = async (
         value,
         source,
         description
-      }),
+      })
     );
 
-    const rows =  await query(sqlClient, Sql.selectFactByDatabaseId(insertId));
-    return R.prop(0, rows);
-  });
+    const rows = await query(sqlClient, Sql.selectFactByDatabaseId(insertId));
+    returnFacts.push(R.prop(0, rows));
+  }
+
+  return returnFacts;
 };
 
 export const deleteFact = async (

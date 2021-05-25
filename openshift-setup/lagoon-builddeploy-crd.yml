@@ -139,7 +139,7 @@ spec:
                 headSha:
                   type: string
                 number:
-                  type: integer
+                  type: string
                 title:
                   type: string
               type: object

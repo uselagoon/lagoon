@@ -1,0 +1,54 @@
+---
+
+- include: features/api-token.yaml
+  vars:
+    testname: "API TOKEN"
+
+- include: drupal/drupal.yaml
+  vars:
+    testname: "Drupal 8 composer PHP 7.3 - MARIADB SINGLE {{ lookup('env','CLUSTER_TYPE')|upper }}"
+    drupal_version: 8
+    db: mariadb-single
+    php_version: 7.3
+    git_repo_name: drupal.git
+    project: ci-drupal-{{ lookup('env','CLUSTER_TYPE') }}
+    branch: drupal8-composer-73-mariadb-single
+
+- include: features/api-token.yaml
+  vars:
+    testname: "API TOKEN"
+
+- include: drupal/drush.yaml
+  vars:
+    testname: "DRUSH {{ lookup('env','CLUSTER_TYPE')|upper }}"
+    drupal_version: 8
+    db: mariadb-single
+    php_version: 7.3
+    git_repo_name: drupal.git
+    project: ci-drupal-{{ lookup('env','CLUSTER_TYPE') }}
+
+# - include: features/api-token.yaml
+#   vars:
+#     testname: "API TOKEN"
+
+# - include: elasticsearch/elasticsearch.yaml
+#   vars:
+#     testname: "ELASTICSEARCH SINGLE NODE {{ lookup('env','CLUSTER_TYPE')|upper }}"
+#     git_repo_name: elasticsearch.git
+#     project: ci-elasticsearch-{{ lookup('env','CLUSTER_TYPE') }}
+#     branch: elasticsearch
+#     url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}/_cluster/health"
+#     node_count: 1
+
+- include: features/api-token.yaml
+  vars:
+    testname: "API TOKEN"
+
+- include: node-mongodb/node-mongodb-single.yaml
+  vars:
+    testname: "Node 10 - MONGODB SINGLE {{ lookup('env','CLUSTER_TYPE')|upper }}"
+    node_version: 10
+    db: mongodb
+    git_repo_name: node-mongodb.git
+    project: ci-node-mongodb-{{ lookup('env','CLUSTER_TYPE') }}
+    branch: node-mongodb-single

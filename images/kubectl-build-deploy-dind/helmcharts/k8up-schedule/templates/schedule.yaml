@@ -15,17 +15,15 @@ spec:
       bucket: '{{ .Values.baasBucketName }}'
   backup:
     schedule: '{{ .Values.backup.schedule }}'
-    tags:
-      - '{{ .Values.lagoonEnvironmentType }}'
   check:
     schedule: '{{ .Values.check.schedule }}'
     tags:
       - '{{ .Values.lagoonEnvironmentType }}'
   prune:
     retention:
-      keepDaily: '{{ .Values.prune.retention.keepDaily }}'
-      keepWeekly: '{{ .Values.prune.retention.keepWeekly }}'
-      keepMonthly: '{{ .Values.prune.retention.keepMonthly }}'
+      keepDaily: {{ .Values.prune.retention.keepDaily }}
+      keepWeekly: {{ .Values.prune.retention.keepWeekly }}
+      keepMonthly: {{ .Values.prune.retention.keepMonthly }}
       tags:
-        - '{{ .Values.lagoonEnvironmentType }}'
+        - {{ .Values.lagoonEnvironmentType }}
     schedule: '{{ .Values.prune.schedule }}'

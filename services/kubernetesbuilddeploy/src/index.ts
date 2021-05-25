@@ -20,10 +20,11 @@ const lagoonVersion = process.env.LAGOON_VERSION
 const overwriteKubectlBuildDeployDindImage = process.env.OVERWRITE_KUBECTL_BUILD_DEPLOY_DIND_IMAGE
 const registry = process.env.REGISTRY || "registry.lagoon.svc:5000"
 const monthlyBackupRetention = process.env.MONTHLY_BACKUP_DEFAULT_RETENTION || "1"
-const weeklyBackupRetention = process.env.WEEKLY_BACKUP_DEFAULT_RETENTION || "4"
+const weeklyBackupRetention = process.env.WEEKLY_BACKUP_DEFAULT_RETENTION || "6"
 const dailyBackupRetention = process.env.DAILY_BACKUP_DEFAULT_RETENTION || "7"
 const lagoonEnvironmentType = process.env.LAGOON_ENVIRONMENT_TYPE || "development"
 const jwtSecret = process.env.JWTSECRET || "super-secret-string"
+const k8upWeeklyRandomFeatureFlag = process.env.K8UP_WEEKLY_RANDOM_FEATURE_FLAG || ""
 
 const messageConsumer = async msg => {
   const {
@@ -93,7 +94,13 @@ const messageConsumer = async msg => {
     var alertContactHA = ""
     var alertContactSA = ""
     var uptimeRobotStatusPageIds = []
-    var monitoringConfig = JSON.parse(projectOpenShift.openshift.monitoringConfig) || "invalid"
+    var monitoringConfig: any = {};
+    try {
+      monitoringConfig = JSON.parse(projectOpenShift.openshift.monitoringConfig) || "invalid"
+    } catch (e) {
+      logger.error('Error parsing openshift.monitoringConfig from openshift: %s, continuing with "invalid"', projectOpenShift.openshift.name, { error: e })
+      monitoringConfig = "invalid"
+    }
     if (monitoringConfig != "invalid"){
       alertContactHA = monitoringConfig.uptimerobot.alertContactHA || ""
       alertContactSA = monitoringConfig.uptimerobot.alertContactSA || ""
@@ -273,6 +280,10 @@ const messageConsumer = async msg => {
                   {
                     "name": "DAILY_BACKUP_DEFAULT_RETENTION",
                     "value": dailyBackupRetention
+                  },
+                  {
+                    "name": "K8UP_WEEKLY_RANDOM_FEATURE_FLAG",
+                    "value": k8upWeeklyRandomFeatureFlag
                   }
                 ],
                 "volumeMounts": [
