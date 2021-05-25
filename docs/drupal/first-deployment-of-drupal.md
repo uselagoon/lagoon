@@ -27,7 +27,7 @@ This will trigger a push, and the Git hosting will inform Lagoon about this push
 
 If all is correct, you will see a notification in your configured chat system \(this is configured by your friendly Lagoon administrator\):
 
-![Slack notification of a deployment starting.](../.gitbook/assets/first_deployment_slack_start.jpg)
+![Slack notification of a deployment starting.](../.gitbook/assets/first_deployment_slack_start%20%282%29.jpg)
 
 This tells you that Lagoon has just started to deploy your code. Depending on the size of the codebase and amount of containers, this will take a couple of seconds. Just relax. If you'd like to know what's happening now, check out the [Build and Deploy Process of Lagoon](../using-lagoon-the-basics/build-and-deploy-process.md).
 
@@ -92,7 +92,7 @@ git push
 
 This time all should be green:
 
-![Deployment Success!](../.gitbook/assets/first_deployment_slack_success.jpg)
+![Deployment Success!](../.gitbook/assets/first_deployment_slack_success%20%282%29%20%282%29.jpg)
 
 Click on the links in the notification, and you should see your Drupal site loaded in all its beauty! It will probably not have images yet, which we will handle in [Step 6](first-deployment-of-drupal.md#6-synchronize-local-files-to-the-remote-lagoon-environment).
 

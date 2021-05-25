@@ -1,17 +1,16 @@
 import * as R from 'ramda';
 import { Request, Response, NextFunction } from 'express';
 import logger from './logger';
-import { getSqlClient } from './clients/sqlClient';
 import {
   getGrantForKeycloakToken,
-  getCredentialsForLegacyToken,
+  getCredentialsForLegacyToken
 } from './util/auth';
 
 export type RequestWithAuthData = Request & {
-  legacyCredentials: any
-  authToken: string
-  kauth: any
-}
+  legacyCredentials: any;
+  authToken: string;
+  kauth: any;
+};
 
 const parseBearerToken = R.compose(
   R.ifElse(
@@ -21,20 +20,20 @@ const parseBearerToken = R.compose(
       R.compose(
         R.toLower,
         R.defaultTo(''),
-        R.head,
-      // @ts-ignore
+        R.head
+        // @ts-ignore
       )(splits) === 'bearer',
     R.nth(1),
-    R.always(null),
+    R.always(null)
   ),
   R.split(' '),
-  R.defaultTo(''),
+  R.defaultTo('')
 );
 
 const prepareToken = async (
   req: RequestWithAuthData,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   // Allow access to status without auth.
   if (req.url === '/status') {
@@ -61,7 +60,7 @@ const prepareToken = async (
 const keycloak = async (
   req: RequestWithAuthData,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   // Allow access to status without auth.
   if (req.url === '/status') {
@@ -69,13 +68,8 @@ const keycloak = async (
     return;
   }
 
-  const sqlClient = getSqlClient();
-
   try {
-    const grant = await getGrantForKeycloakToken(
-      sqlClient,
-      req.authToken,
-    );
+    const grant = await getGrantForKeycloakToken(req.authToken);
 
     req.kauth = { grant };
   } catch (e) {
@@ -83,15 +77,13 @@ const keycloak = async (
     logger.debug(`Keycloak token auth failed: ${e.message}`);
   }
 
-  sqlClient.end();
-
   next();
 };
 
 const legacy = async (
   req: RequestWithAuthData,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   // Allow access to status without auth.
   if (req.url === '/status') {
@@ -105,22 +97,15 @@ const legacy = async (
     return;
   }
 
-  const sqlClient = getSqlClient();
-
   try {
-    const legacyCredentials = await getCredentialsForLegacyToken(
-      sqlClient,
-      req.authToken,
-    );
+    const legacyCredentials = await getCredentialsForLegacyToken(req.authToken);
 
     req.legacyCredentials = legacyCredentials;
-    sqlClient.end();
 
     next();
   } catch (e) {
-    sqlClient.end();
     res.status(403).send({
-      errors: [{ message: `Forbidden - Invalid Auth Token: ${e.message}` }],
+      errors: [{ message: `Forbidden - Invalid Auth Token: ${e.message}` }]
     });
   }
 };
@@ -130,5 +115,5 @@ export const authMiddleware = [
   // First attempt to validate token with keycloak.
   keycloak,
   // Then validate legacy token.
-  legacy,
+  legacy
 ];

@@ -114,7 +114,7 @@ k3s by Rancher: [rancher/k3s](https://github.com/rancher/k3s)
 
 ## Configure Installed Lagoon
 
-We have a fully running Kubernetes cluster. Now it's time to configure the first project inside of it. Follow the examples in [GraphQL API](graphql_api.md).
+We have a fully running Kubernetes cluster. Now it's time to configure the first project inside of it. Follow the examples in [GraphQL API](graphql-queries.md).
 
 ## Clean up
 
