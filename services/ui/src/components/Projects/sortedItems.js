@@ -11,8 +11,9 @@ const useSortableProjectsData = (initialItems) => {
     return sortConfig.key === name && sortConfig.direction || 'no-sort';
   };
 
+
   const sortedItems = React.useMemo(() => {
-    let sortableItems = [...currentItems];
+    let sortableItems = [...initialItems];
 
     sortableItems.sort((a, b) => {
       let aParsed = (a[sortConfig.key] ? a[sortConfig.key].toString().toLowerCase().trim() : null);

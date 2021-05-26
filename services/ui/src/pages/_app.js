@@ -11,7 +11,7 @@ import Favicon from 'components/Favicon';
 import Authenticator, { AuthContext } from 'lib/Authenticator';
 import ApiConnection from 'lib/ApiConnection';
 
-
+import 'semantic-ui-css/semantic.min.css';
 import 'components/Honeycomb/styling.css';
 import '../admin/overrides.css';
 

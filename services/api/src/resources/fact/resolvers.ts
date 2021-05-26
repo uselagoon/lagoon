@@ -44,13 +44,11 @@ const getSqlPredicate = (predicate) => {
   return predicateMap[predicate];
 }
 
-export const getEnvironmentsByFactSearch: ResolverFn = async (
+export const getProjectsByFactSearch: ResolverFn = async (
   root,
   { input },
   { sqlClientPool, hasPermission, keycloakGrant, models }
 ) => {
-
-  //Do we get a list of projects first to pass into this? Might make sense to make it super fast.
 
   let userProjectIds: number[];
   try {
@@ -66,68 +64,168 @@ export const getEnvironmentsByFactSearch: ResolverFn = async (
     });
   }
 
-  //to begin we link environments and facts
-  let factQuery = knex('environment').distinct('environment.*').innerJoin('project', 'environment.project', 'project.id');
+  let factQuery = knex('project').distinct('project.*').innerJoin('environment', 'environment.project', 'project.id');
 
   const filters = {};
 
-  input.filters.forEach((e, i) => {
-
-    let { lhsTarget, lhs } = e;
-
-    let tabName = `env${i}`;
-    if(lhsTarget == "project") {
-      switch(lhs) {
-        case("name"):
-        break;
-        default:
-          throw Error(`lhsTarget "${lhs}" unsupported`)
-      }
-    } else {
-      if (input.filterConnective == 'AND') {
-        factQuery = factQuery.innerJoin(`environment_fact as ${tabName}`, 'environment.id', `${tabName}.environment`)
-      } else {
-        factQuery = factQuery.leftJoin(`environment_fact as ${tabName}`, 'environment.id', `${tabName}.environment`)
-      }
-    }
-  });
-
-  factQuery.where((builder) => {
+  if (input.filters.length > 0) {
     input.filters.forEach((e, i) => {
 
       let { lhsTarget, lhs } = e;
 
-      if(lhsTarget == "PROJECT") {
-        if (input.filterConnective == 'AND') {
-          builder = builder.andWhere(`${lhsTarget}.${lhs}`, getSqlPredicate(e.predicate), predicateRHSProcess(e.predicate, e.rhs))
-        } else {
-          builder = builder.orWhere(`${lhsTarget}.${lhs}`, getSqlPredicate(e.predicate), predicateRHSProcess(e.predicate, e.rhs))
-        }
-      } else {
-        let tabName = `env${i}`;
-        if (input.filterConnective == 'AND') {
-          builder = builder.andWhere(`${tabName}.name`, '=', `${e.lhs}`)
-          builder = builder.andWhere(`${tabName}.value`, getSqlPredicate(e.predicate), predicateRHSProcess(e.predicate, e.rhs))
-        } else {
-          builder = builder.orWhere(`${tabName}.name`, '=', `${e.lhs}`)
-          builder = builder.orWhere(`${tabName}.value`, getSqlPredicate(e.predicate), predicateRHSProcess(e.predicate, e.rhs))
+      let tabName = `env${i}`;
+      if (lhsTarget == "project" || lhsTarget == 'environment') {
+        switch(lhs) {
+          case("name"):
+            break;
+          case("environmentType"):
+            break;
+          default:
+            throw Error(`lhsTarget "${lhs}" unsupported`)
         }
       }
-      return builder;
+      else {
+        if (input.filterConnective == 'AND') {
+          factQuery = factQuery.innerJoin(`environment_fact as ${tabName}`, 'environment.id', `${tabName}.environment`)
+        } else {
+          factQuery = factQuery.leftJoin(`environment_fact as ${tabName}`, 'environment.id', `${tabName}.environment`)
+        }
+      }
     });
-  })
+
+    factQuery.where((builder) => {
+      input.filters.forEach((e, i) => {
+        let { lhsTarget, lhs } = e;
+        if (lhsTarget == "PROJECT" || lhsTarget == "ENVIRONMENT") {
+          if (input.filterConnective == 'AND') {
+            builder = builder.andWhere(`${lhsTarget}.${lhs}`, getSqlPredicate(e.predicate), predicateRHSProcess(e.predicate, e.rhs))
+          } else {
+            builder = builder.orWhere(`${lhsTarget}.${lhs}`, getSqlPredicate(e.predicate), predicateRHSProcess(e.predicate, e.rhs))
+          }
+        } else {
+          let tabName = `env${i}`;
+          if (input.filterConnective == 'AND') {
+            builder = builder.andWhere(`${tabName}.name`, '=', `${e.lhs}`)
+            builder = builder.andWhere(`${tabName}.value`, getSqlPredicate(e.predicate), predicateRHSProcess(e.predicate, e.rhs))
+          } else {
+            builder = builder.orWhere(`${tabName}.name`, '=', `${e.lhs}`)
+            builder = builder.orWhere(`${tabName}.value`, getSqlPredicate(e.predicate), predicateRHSProcess(e.predicate, e.rhs))
+          }
+        }
+        return builder;
+      });
+    });
+  }
+  else {
+    factQuery = factQuery.innerJoin(`environment_fact`, 'environment.id', `environment_fact.environment`);
+  }
 
   if (userProjectIds) {
     factQuery = factQuery.andWhere('environment.project', 'IN', userProjectIds);
   }
 
-  const DEFAULT_RESULTSET_SIZE = 2
+  const DEFAULT_RESULTSET_SIZE = 50;
 
   //skip and take logic
-  let { skip=0, take=DEFAULT_RESULTSET_SIZE } = input;
+  let { skip = 0, take=DEFAULT_RESULTSET_SIZE } = input;
   factQuery = factQuery.limit(take).offset(skip);
 
+
   console.log(factQuery.toString());
+  // console.log(await query(sqlClientPool, factQuery.toString()));
+
+  const rows = await query(sqlClientPool, factQuery.toString());
+  return rows;
+}
+
+export const getEnvironmentsByFactSearch: ResolverFn = async (
+  root,
+  { input },
+  { sqlClientPool, hasPermission, keycloakGrant, models }
+) => {
+
+  let userProjectIds: number[];
+  try {
+    await hasPermission('project', 'viewAll');
+  } catch (err) {
+    if (!keycloakGrant) {
+      logger.warn('No grant available for getAllProjects');
+      return [];
+    }
+
+    userProjectIds = await models.UserModel.getAllProjectsIdsForUser({
+      id: keycloakGrant.access_token.content.sub
+    });
+  }
+
+  let factQuery = knex('environment').distinct('environment.*').innerJoin('project', 'environment.project', 'project.id');
+
+  const filters = {};
+
+  if (input.filters.length > 0) {
+    input.filters.forEach((e, i) => {
+
+      let { lhsTarget, lhs } = e;
+
+      let tabName = `env${i}`;
+      if(lhsTarget == "project") {
+        switch(lhs) {
+          case("name"):
+          break;
+          default:
+            throw Error(`lhsTarget "${lhs}" unsupported`)
+        }
+      } else {
+        if (input.filterConnective == 'AND') {
+          factQuery = factQuery.innerJoin(`environment_fact as ${tabName}`, 'environment.id', `${tabName}.environment`)
+        } else {
+          factQuery = factQuery.leftJoin(`environment_fact as ${tabName}`, 'environment.id', `${tabName}.environment`)
+        }
+      }
+    });
+
+    factQuery.where((builder) => {
+      input.filters.forEach((e, i) => {
+
+        let { lhsTarget, lhs } = e;
+
+        if(lhsTarget == "PROJECT") {
+          if (input.filterConnective == 'AND') {
+            builder = builder.andWhere(`${lhsTarget}.${lhs}`, getSqlPredicate(e.predicate), predicateRHSProcess(e.predicate, e.rhs))
+          } else {
+            builder = builder.orWhere(`${lhsTarget}.${lhs}`, getSqlPredicate(e.predicate), predicateRHSProcess(e.predicate, e.rhs))
+          }
+        } else {
+          let tabName = `env${i}`;
+          if (input.filterConnective == 'AND') {
+            builder = builder.andWhere(`${tabName}.name`, '=', `${e.lhs}`)
+            builder = builder.andWhere(`${tabName}.value`, getSqlPredicate(e.predicate), predicateRHSProcess(e.predicate, e.rhs))
+          } else {
+            builder = builder.orWhere(`${tabName}.name`, '=', `${e.lhs}`)
+            builder = builder.orWhere(`${tabName}.value`, getSqlPredicate(e.predicate), predicateRHSProcess(e.predicate, e.rhs))
+          }
+        }
+        return builder;
+      });
+    });
+  }
+  else {
+    factQuery = factQuery.innerJoin(`environment_fact`, 'environment.id', `environment_fact.environment`);
+  }
+
+  if (userProjectIds) {
+    factQuery = factQuery.andWhere('environment.project', 'IN', userProjectIds);
+  }
+
+  const DEFAULT_RESULTSET_SIZE = 25
+
+  //skip and take logic
+  let { skip = 0, take = DEFAULT_RESULTSET_SIZE } = input;
+  factQuery = factQuery.limit(take).offset(skip);
+
+
+  console.log(factQuery.toString());
+
 
   const rows = await query(sqlClientPool, factQuery.toString());
   return rows;

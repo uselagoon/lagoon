@@ -4,17 +4,14 @@ import css from 'styled-jsx/css';
 import Highlighter from 'react-highlight-words';
 import ProjectLink from 'components/link/Project';
 import { bp, color, fontSize } from 'lib/variables';
+import moment from 'moment';
+import hash from 'object-hash';
+
 import stringInputFilter from './filterLogic';
 import SelectFilter from 'components/Filters';
 import ToggleDisplay from 'components/ToggleDisplay';
 import useSortableProjectsData from './sortedItems';
-import moment from 'moment';
 import SiteStatus from 'components/SiteStatus';
-
-import Tabs from 'components/Tabs';
-import Sidebar from 'layouts/Sidebar';
-import FactsSearch from 'components/FactsSearch';
-import ProjectSummary from 'components/ProjectSummary';
 
 const { className: boxClassName, styles: boxStyles } = css.resolve`
   .box {
@@ -33,14 +30,12 @@ const { className: boxClassName, styles: boxStyles } = css.resolve`
 /**
  * The primary list of projects.
  */
-const Projects = ({ projects = [], loading }) => {
+const Projects = ({ projects = [], loading, onProjectSelectChange }) => {
   const { sortedItems, requestSort } = useSortableProjectsData(projects);
   const [toggleDisplay, setToggleDisplay] = useState('list');
 
   const [sortSelected, setSort] = useState('name');
   const [searchInput, setSearchInput] = useState('');
-
-  const [projectSelected, setProjectSelected] = useState('');
 
   const [loadingProjects, setLoadingProjects] = useState(false);
   const [filteredProjects, setFilteredProjects] = useState([]);
@@ -54,10 +49,11 @@ const Projects = ({ projects = [], loading }) => {
     }
   };
 
-  // Project selection
-  const handleProjectChange = (project) => {
-    setProjectSelected(project);
+  // Project select change callback
+  const handleProjectChangeCallback = (project) => {
+    onProjectSelectChange(project);
   };
+
 
   // Display
   const changeDisplay = () => {
@@ -71,15 +67,12 @@ const Projects = ({ projects = [], loading }) => {
 
   // Lazy load components
   const Box = React.lazy(() => import('components/Box'));
-  const ProjectsSidebar = React.lazy(() => import('components/ProjectsSidebar'));
 
   useEffect(() => {
     const filterItems = async () => {
       setLoadingProjects(true);
 
-      const filteredProjects = stringInputFilter(sortedItems, searchInput);
-
-      setFilteredProjects(filteredProjects);
+      setFilteredProjects(stringInputFilter(sortedItems, searchInput));
       setLoadingProjects(false);
     };
     filterItems();
@@ -87,145 +80,101 @@ const Projects = ({ projects = [], loading }) => {
 
 
 
+  console.log('filteredProjects', filteredProjects);
+
       // const [startTransition, isPending] = unstable_useTransition(false);
 
 
 
   return (
     <Suspense fallback={<div className="loading">Loading...</div>}>
-      <div className="content-wrapper">
-        <div className="content">
-          <Tabs />
-          <ProjectSummary />
-          <FactsSearch resultsCallback={() => {}} />
-          <div className="header">
-            <SelectFilter
-              title="Filter"
-              defaultValue={{value: 'name', label: 'Project name'}}
-              options={[
-                {value: 'name', label: 'Project name'},
-                {value: 'created', label: 'Recently created'},
-                {value: 'id', label: 'Project ID'}
-              ]}
-              onFilterChange={handleSort}
-            />
-            <SelectFilter
-              title="Sort"
-              defaultValue={{value: 'name', label: 'Project name'}}
-              options={[
-                {value: 'name', label: 'Project name'},
-                {value: 'created', label: 'Recently created'},
-                {value: 'id', label: 'Project ID'}
-              ]}
-              onFilterChange={handleSort}
-            />
-            <label></label>
-            <ToggleDisplay
-              action={changeDisplay}
-              disabled={toggleDisplay === 'list'}
-            >
-              L
-            </ToggleDisplay>
-            <ToggleDisplay
-              action={changeDisplay}
-              disabled={toggleDisplay === 'detailed'}
-            >
-              D
-            </ToggleDisplay>
-            <input
-              aria-labelledby="search"
-              className="searchInput"
-              type="text"
-              value={searchInput}
-              onChange={e => setSearchInput(e.target.value)}
-              placeholder="Type to search"
-              disabled={projects.length === 0}
-            />
-            <label>Showing {projects.length} project{projects.length == 1 ? "" : "s"}</label>
+      <div className="header">
+        <SelectFilter
+          title="Filter"
+          defaultValue={{value: 'name', label: 'Project name'}}
+          options={[
+            {value: 'name', label: 'Project name'},
+            {value: 'created', label: 'Recently created'},
+            {value: 'id', label: 'Project ID'}
+          ]}
+          onFilterChange={handleSort}
+        />
+        <SelectFilter
+          title="Sort"
+          defaultValue={{value: 'name', label: 'Project name'}}
+          options={[
+            {value: 'name', label: 'Project name'},
+            {value: 'created', label: 'Recently created'},
+            {value: 'id', label: 'Project ID'}
+          ]}
+          onFilterChange={handleSort}
+        />
+        <label></label>
+        <ToggleDisplay
+          action={changeDisplay}
+          disabled={toggleDisplay === 'list'}
+        >
+          L
+        </ToggleDisplay>
+        <ToggleDisplay
+          action={changeDisplay}
+          disabled={toggleDisplay === 'detailed'}
+        >
+          D
+        </ToggleDisplay>
+        <input
+          aria-labelledby="search"
+          className="searchInput"
+          type="text"
+          value={searchInput}
+          onChange={e => setSearchInput(e.target.value)}
+          placeholder="Type to search"
+          disabled={projects.length === 0}
+        />
+        <label>Showing {projects.length} project{projects.length == 1 ? "" : "s"}</label>
+      </div>
+      {!projects.length && !searchInput && (
+        <Box>
+          <div className="project">
+            <h4>No projects</h4>
           </div>
-          {!filteredProjects.length && !searchInput && (
-            <Box>
-              <div className="project">
-                <h4>No projects</h4>
-              </div>
-            </Box>
-          )}
-          {(searchInput && !filteredProjects.length) && (
-            <Box>
-              <div className="project">
-                <h4>No projects matching "{searchInput}"</h4>
-              </div>
-            </Box>
-          )}
-              {loadingProjects && <>Loading (useEffect)...</>}
+        </Box>
+      )}
+      {(searchInput && !projects.length) && (
+        <Box>
+          <div className="project">
+            <h4>No projects matching "{searchInput}"</h4>
+          </div>
+        </Box>
+      )}
 
-          <Suspense fallback={<div className="loading">Loading projects ...</div>}>
-            <div className="projects">
-              {filteredProjects.map((project, index) => (
+          {loadingProjects && <>Loading (useEffect)...</>}
 
-                <div key={project.name.toLowerCase()} className="project-wrapper"
-                    value={project.name}
-                    // disabled={isPending}
-                    onClick={() => handleProjectChange(project.name) }
-                    // onClick={() => { startTransition(() => { handleProjectChange(project.name) }) }}
-                >
-                  {toggleDisplay === 'list' && (
-                      <Box className={boxClassName}>
-                        <div className="project">
-                          <h4>
-                            <Highlighter
-                              searchWords={[searchInput]}
-                              autoEscape={true}
-                              textToHighlight={project.name}
-                            />
-                          </h4>
-                          <div>Created: {new moment(project.created).format('YYYY-MM-DD')}</div>
-                          {project.environments && project.environments.map((environment, index) => {
-                            if (environment.environmentType === "production") {
-                              return (
-                                <div key={environment.name.toLowerCase()} className="route">
-                                  <Highlighter
-                                    key={index}
-                                    searchWords={[searchInput]}
-                                    autoEscape={true}
-                                    textToHighlight={
-                                      environment.route
-                                        ? environment.route.replace(/^https?\:\/\//i, '')
-                                        : ''
-                                    }
-                                  />
-                                </div>
-                              )
-                            }
-                          })}
-                          {project.environments && project.environments.map((environment, index) => {
-                            if (environment.environmentType === "production" && environment.status) {
-                              return (<div key={envionment.name.toLowerCase()} className="environments">
-                                <div className={`status ${environment.status.toLowerCase()}`}>
-                                  <label>{environment.name}:</label><i className="status-icon"></i><span className="status-text">({environment.status && environment.status})</span>
-                                </div>
-                              </div>)
-                            }
-                          })}
-                        </div>
-                        <div className="project-link">
-                          <ProjectLink projectSlug={project.name} key={project.id}> > </ProjectLink>
-                        </div>
-                      </Box>
-                  )}
-                  {toggleDisplay === 'detailed' && (
-                      <Box className={boxClassName} >
-                        <div className="project">
-                          <h4>
-                            <Highlighter
-                              searchWords={[searchInput]}
-                              autoEscape={true}
-                              textToHighlight={project.name}
-                            />
-                          </h4>
-                          <div>Created: {new moment(project.created).format('YYYY-MM-DD')}</div>
-                          <div className="route">
-                            {project.environments.map((environment, index) => (
+      <Suspense fallback={<div className="loading">Loading projects ...</div>}>
+        <div className="projects">
+          {projects.map((project, index) => (
+
+            <div key={project.name.toLowerCase()} className="project-wrapper"
+                value={project.name}
+                // disabled={isPending}
+                onClick={() => handleProjectChangeCallback(project.name) }
+                // onClick={() => { startTransition(() => { handleProjectChange(project.name) }) }}
+            >
+              {toggleDisplay === 'list' && (
+                  <Box className={boxClassName}>
+                    <div className="project">
+                      <h4>
+                        <Highlighter
+                          searchWords={[searchInput]}
+                          autoEscape={true}
+                          textToHighlight={project.name}
+                        />
+                      </h4>
+                      <div>Created: {new moment(project.created).format('YYYY-MM-DD')}</div>
+                      {project.environments && project.environments.map((environment, index) => {
+                        if (environment.environmentType === "production") {
+                          return (
+                            <div key={environment.name.toLowerCase()} className="route">
                               <Highlighter
                                 key={index}
                                 searchWords={[searchInput]}
@@ -236,69 +185,95 @@ const Projects = ({ projects = [], loading }) => {
                                     : ''
                                 }
                               />
+                            </div>
+                          )
+                        }
+                      })}
+                      {project.environments && project.environments.map((environment, index) => {
+                        if (environment.environmentType === "production" && environment.status) {
+                          return (<div key={envionment.name.toLowerCase()} className="environments">
+                            <div className={`status ${environment.status.toLowerCase()}`}>
+                              <label>{environment.name}:</label><i className="status-icon"></i><span className="status-text">({environment.status && environment.status})</span>
+                            </div>
+                          </div>)
+                        }
+                      })}
+                    </div>
+                    <div className="project-link">
+                      <ProjectLink projectSlug={project.name} key={project.id}> > </ProjectLink>
+                    </div>
+                  </Box>
+              )}
+              {toggleDisplay === 'detailed' && (
+                  <Box className={boxClassName} >
+                    <div className="project">
+                      <h4>
+                        <Highlighter
+                          searchWords={[searchInput]}
+                          autoEscape={true}
+                          textToHighlight={project.name}
+                        />
+                      </h4>
+                      <div>Created: {new moment(project.created).format('YYYY-MM-DD')}</div>
+                      <div className="route">
+                        {project.environments.map((environment, index) => (
+                          <Highlighter
+                            key={index}
+                            searchWords={[searchInput]}
+                            autoEscape={true}
+                            textToHighlight={
+                              environment.route
+                                ? environment.route.replace(/^https?\:\/\//i, '')
+                                : ''
+                            }
+                          />
+                        ))}
+                      </div>
+                      <div className="environments">
+                        {project.environments && (
+                          <div className="environments">
+                            <h6><label>Environments</label></h6>
+                            {project.environments.map((environment, index) => (
+                              <SiteStatus key={environment.name.toLowerCase()} environment={environment} />
                             ))}
                           </div>
-                          <div className="environments">
-                            {project.environments && (
-                              <div className="environments">
-                                <h6><label>Environments</label></h6>
-                                {project.environments.map((environment, index) => (
-                                  <SiteStatus key={environment.name.toLowerCase()} environment={environment} />
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        <div className="facts">
-                          {project.environments && project.environments.map((e, index) => (
-                            e.environmentType === 'production' && e.facts.length > 0 &&
-                            <>
-                              <h6><label>Key Facts</label></h6>
-                              {e.facts.map(fact => {
-                                if (fact.reference && fact.reference.includes('key')) {
-                                  return (
-                                    <div key={fact.name.toLowerCase()} className="fact-wrapper">
-                                      <div className="fact-name">{fact.name}</div>
-                                      <Highlighter
-                                        key={index}
-                                        searchWords={[searchInput]}
-                                        autoEscape={true}
-                                        textToHighlight={fact.value ? fact.value : ''}
-                                      />
-                                      <div className="fact-reference">{fact.reference}</div>
-                                      <div className="fact-category">{fact.category}</div>
-                                    </div>
-                                  )
-                                }
-                              })}
-                            </>
-                          ))}
-                        </div>
-                      </Box>
-                  )}
-                </div>
-
-              ))}
+                        )}
+                      </div>
+                    </div>
+                    <div className="facts">
+                      {project.environments && project.environments.map((e, index) => (
+                        e.environmentType === 'production' && e.facts.length > 0 &&
+                        <>
+                          <h6><label>Key Facts</label></h6>
+                          {e.facts.map(fact => {
+                            if (fact.reference && fact.reference.includes('key')) {
+                              return (
+                                <div key={fact.name.toLowerCase()} className="fact-wrapper">
+                                  <div className="fact-name">{fact.name}</div>
+                                  <Highlighter
+                                    key={index}
+                                    searchWords={[searchInput]}
+                                    autoEscape={true}
+                                    textToHighlight={fact.value ? fact.value : ''}
+                                  />
+                                  <div className="fact-reference">{fact.reference}</div>
+                                  <div className="fact-category">{fact.category}</div>
+                                </div>
+                              )
+                            }
+                          })}
+                        </>
+                      ))}
+                    </div>
+                  </Box>
+              )}
             </div>
-          </Suspense>
+
+          ))}
         </div>
-      </div>
-      <Sidebar className="sidebar">
-        <div className="project-details-sidebar">
-          {!projectSelected && <div>Select a project to see its details.</div>}
-          {/* {projectSelected && filteredProjects.map(project => (project.name === projectSelected) && ( */}
-            <Suspense key={projectSelected} fallback={<div className="loading">Loading project ...</div>}>
-              <h3>Project: {projectSelected}</h3>
-              <Suspense fallback={<div className="loading">Loading details ...</div>}>
-                {/* <ProjectsSidebar key={project.name.toLowerCase()} project={project}/> */}
-                {projectSelected &&
-                  <ProjectsSidebar project={filteredProjects.find(project => project.name === projectSelected)}/>
-                }
-              </Suspense>
-            </Suspense>
-          {/* ))} */}
-        </div>
-      </Sidebar>
+      </Suspense>
+
+
       <style jsx>{`
           .header {
             position: relative;

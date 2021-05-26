@@ -20,6 +20,7 @@ const {
   addFacts,
   deleteFact,
   deleteFactsFromSource,
+  getProjectsByFactSearch,
   getEnvironmentsByFactSearch,
 } = require('./resources/fact/resolvers');
 
@@ -376,7 +377,8 @@ const resolvers = {
     allBillingGroupsCost: getAllBillingGroupsCost,
     allBillingModifiers: getBillingModifiers,
     allProblemHarborScanMatchers: getProblemHarborScanMatches,
-    projectsByMetadata: getProjectsByMetadata
+    projectsByMetadata: getProjectsByMetadata,
+    projectsByFactSearch: getProjectsByFactSearch,
   },
   Mutation: {
     addProblem,

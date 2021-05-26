@@ -1,24 +1,41 @@
-import React from 'react';
+import React, { useState } from "react";
 import { bp, color } from 'lib/variables';
 
-const Tabs = ({ tabs }) => (
-  <div className="tabs-wrapper">
-    <ul className="tabs">
-      <li>All Projects</li>
-      <li>Environments</li>
-      <li>Routes</li>
-    </ul>
-    <style jsx>{`
-      .tabs-wrapper {
-        .tabs {
-          @media ${bp.tabletUp} {
-            display: flex;
-            // justify-content: space-between;
+import { Segment, Tab } from 'semantic-ui-react';
+
+
+
+const Tabs = ({ children }) => {
+  const [tabSelected, setTabSelected] = useState([]);
+
+  const handleChange = (data) => setTabSelected(data);
+
+  const panes = children.map(child => {
+    return (
+      { menuItem: 'All Projects', render: () => <Tab.Pane>{children}</Tab.Pane> }
+    );
+  });
+
+
+  // console.log(children);
+
+
+  return (
+    <div className="tabs-wrapper">
+      <Tab panes={panes} onTabChange={handleChange} />
+
+      <style jsx>{`
+        .tabs-wrapper {
+          .tabs {
+            @media ${bp.tabletUp} {
+              display: flex;
+              // justify-content: space-between;
+            }
           }
         }
-      }
-    `}</style>
-  </div>
-);
+      `}</style>
+    </div>
+  )
+};
 
 export default Tabs;

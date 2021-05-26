@@ -845,7 +845,14 @@ const typeDefs = gql`
       kubernetesNamespaceName: String!
     ): Environment
     """
-    Return environments fact-based search filter
+    Return projects from a fact-based search
+    """
+    projectsByFactSearch(
+      input: FactFilterInput
+    ): [Project]
+
+    """
+    Return environments from a fact-based search
     """
     environmentsByFactSearch(
       input: FactFilterInput

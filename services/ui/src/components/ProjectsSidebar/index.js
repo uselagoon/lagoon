@@ -12,21 +12,23 @@ import ProjectByNameQuery from 'lib/query/ProjectByName';
 
 const ProjectsSidbar = ({ project }) => {
   const [copied, setCopied] = useState(false);
-  const gitUrlParsed = project.gitUrl && giturlparse(project.gitUrl);
-  const gitLink = `${gitUrlParsed.resource}/${gitUrlParsed.full_name}`;
-  const environmentCount = R.countBy(R.prop('environmentType'))(
+  const gitUrlParsed = project && giturlparse(project.gitUrl);
+  const gitLink = gitUrlParsed && `${gitUrlParsed.resource}/${gitUrlParsed.full_name}`;
+  const environmentCount = project && R.countBy(R.prop('environmentType'))(
     project.environments
   );
   const developEnvironmentCount = R.propOr(0, 'development', environmentCount);
 
   return (
   <div className="projects-sidebar-wrapper">
+  {project &&
+  <>
     <div className="details">
       <div className="created">
         <div>
           <label>Created</label>
           <div className="field">
-            {moment
+            {project && moment
               .utc(project.created)
               .local()
               .format('DD MMM YYYY, HH:mm:ss (Z)')}
@@ -93,7 +95,7 @@ const ProjectsSidbar = ({ project }) => {
       </div>
     </div>
     <div className="environments">
-      <label>{project.environments.length} Environments</label>
+      <label>{project.environments && project.environments.length} Environments</label>
       {project.environments && project.environments.map((e => {
         return (
           <div>{e.name}</div>
@@ -113,6 +115,8 @@ const ProjectsSidbar = ({ project }) => {
 
       }
     `}</style>
+  </>
+  }
   </div>
   );
 };

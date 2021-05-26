@@ -1,49 +1,45 @@
-import React from 'react';
+import React, { useState, useEffect, memo, Suspense } from "react";
 import * as R from 'ramda';
 import Head from 'next/head';
-import { Query } from 'react-apollo';
+import MainNavigation from 'layouts/MainNavigation';
 import MainLayout from 'layouts/MainLayout';
-import AllProjectsQuery from 'lib/query/AllProjects';
 import Projects from 'components/Projects';
+import { bp } from 'lib/variables';
+
+import { Query } from 'react-apollo';
+import AllProjectsQuery from 'lib/query/AllProjects';
 import withQueryLoading from 'lib/withQueryLoading';
 import withQueryError from 'lib/withQueryError';
-import { bp } from 'lib/variables';
+
+
+import FactsSearch from 'components/FactsSearch';
+
 
 /**
  * Displays the projects page.
  */
 const ProjectsPage = () => {
-  // const [projectSelected, setProjectSelected] = useState('');
 
-  // const handleProjectChange = (selectedProject) => {
-  //   setProjectSelected(selectedProject);
-  // };
+        // payload
+        // console.log(data);
+        // const size = Buffer.byteLength(JSON.stringify(data));
+
+        // console.log('bytes', size);
+        // console.log('mbs', (Math.round(size / 125000) / 10).toFixed(2));
 
   return (
   <>
     <Head>
       <title>Projects</title>
     </Head>
-    <Query query={AllProjectsQuery} displayName="AllProjectsQuery">
-      {R.compose(
-        withQueryLoading,
-        withQueryError
-      )(({ data, loading, error }) => {
+    <MainLayout>
+        <MainNavigation>
+          All Projects
+        </MainNavigation>
 
-        // payload
-        console.log(data);
-        const size = Buffer.byteLength(JSON.stringify(data));
+        <FactsSearch />
 
-        // console.log('bytes', size);
-        // console.log('mbs', (Math.round(size / 125000) / 10).toFixed(2));
-
-        return (
-        <MainLayout>
-              <Projects projects={data.allProjects || []} loading={loading} />
-              {/* <Projects /> */}
-        </MainLayout>
-    )})}
-    </Query>
+    </MainLayout>
   </>
 )};
 

@@ -5,9 +5,9 @@ import Navigation from 'components/Navigation';
 /**
  * The main navigation that sits to the left of all pages.
  */
-const MainNavigation = ({ navigation }) => (
+const MainNavigation = ({ children }) => (
   <GlobalStyles>
-    <Navigation>All projects</Navigation>
+    <Navigation>{children}</Navigation>
   </GlobalStyles>
 );
 
