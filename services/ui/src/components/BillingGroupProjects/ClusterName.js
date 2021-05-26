@@ -1,4 +1,4 @@
-import { useQuery } from '@apollo/react-hooks';
+import { useQuery } from '@apollo/client';
 
 import BillingProjectByName from 'lib/query/BillingProjectByName';
 

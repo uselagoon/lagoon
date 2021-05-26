@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import * as R from 'ramda';
 import { withRouter } from 'next/router';
 import Head from 'next/head';
-import { Query } from 'react-apollo';
+import { Query } from '@apollo/client';
 import MainLayout from 'layouts/MainLayout';
 import ProjectByNameQuery from 'lib/query/ProjectByName';
 import Breadcrumbs from 'components/Breadcrumbs';

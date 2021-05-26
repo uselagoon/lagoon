@@ -1,6 +1,6 @@
 import React, { useState, useEffect, memo, Suspense } from "react";
 import { bp, color } from 'lib/variables';
-import { useQuery } from "@apollo/react-hooks";
+import { useQuery } from "@apollo/client";
 import { NetworkStatus } from '@apollo/client';
 import AllProjectsAndEnvironmentsFromFacts from 'lib/query/AllProjectsAndEnvironmentsFromFacts';
 

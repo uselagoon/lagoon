@@ -6,7 +6,7 @@ import giturlparse from 'git-url-parse';
 import Environments from 'components/Environments';
 import { bp, color, fontSize } from 'lib/variables';
 
-import { Mutation } from 'react-apollo';
+import { Mutation } from '@apollo/client';
 
 import ProjectByNameQuery from 'lib/query/ProjectByName';
 

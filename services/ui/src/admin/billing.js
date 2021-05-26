@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useQuery } from '@apollo/react-hooks';
+import { Query, useQuery } from '@apollo/client';
 import * as R from 'ramda';
 import moment from 'moment';
 import { withRouter } from 'next/router';
 import Head from 'next/head';
-import { Query } from 'react-apollo';
 import MainLayout from 'layouts/MainLayout';
 
 import BillingGroupCostsQuery from 'lib/query/BillingGroupCosts';

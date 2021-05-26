@@ -1,7 +1,7 @@
 import React from 'react';
 import moment from 'moment';
 import giturlparse from 'git-url-parse';
-import { Mutation } from 'react-apollo';
+import { Mutation } from '@apollo/client';
 import DeleteEnvironmentMutation from 'lib/mutation/DeleteEnvironment';
 import DeleteConfirm from 'components/DeleteConfirm';
 import { bp, color } from 'lib/variables';

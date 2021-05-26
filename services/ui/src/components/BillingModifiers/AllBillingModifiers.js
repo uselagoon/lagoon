@@ -1,9 +1,9 @@
 import * as R from 'ramda';
 import React, { useState }  from 'react';
-import { graphql, compose, Mutation, Query } from 'react-apollo';
-import { useMutation } from '@apollo/react-hooks';
+import { graphql, compose, Mutation, Query } from '@apollo/client';
+import { useMutation } from '@apollo/client';
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-import { useApolloClient } from "@apollo/react-hooks";
+import { useApolloClient } from "@apollo/client";
 
 import styled from "@emotion/styled";
 import css from 'styled-jsx/css';
