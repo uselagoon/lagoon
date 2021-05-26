@@ -111,7 +111,7 @@ docker_build = DOCKER_SCAN_SUGGEST=false docker build $(DOCKER_BUILD_PARAMS) --b
 scan_cmd = docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(HOME)/Library/Caches:/root/.cache/ aquasec/trivy --timeout 5m0s $(CI_BUILD_TAG)/$(1) >> scan.txt
 
 ifeq ($(SKIP_SCAN),false)
-    scan_image = $(scan_cmd)
+	scan_image = $(scan_cmd)
 else
 	scan_image =
 endif
