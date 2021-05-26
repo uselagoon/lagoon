@@ -8,6 +8,7 @@ import { Helpers } from './helpers';
 import { Sql } from './sql';
 import { Sql as projectSql } from '../project/sql';
 import { Helpers as projectHelpers } from '../project/helpers';
+import { getFactFilteredEnvironmentIds } from '../fact/resolvers';
 
 export const getEnvironmentByName: ResolverFn = async (
   root,
@@ -57,7 +58,7 @@ export const getEnvironmentById = async (
 export const getEnvironmentsByProjectId: ResolverFn = async (
   project,
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, keycloakGrant, models }
 ) => {
   const { id: pid } = project;
 
@@ -72,14 +73,23 @@ export const getEnvironmentsByProjectId: ResolverFn = async (
     });
   }
 
+
+  let filterEnvironments = false;
+  let filteredEnvironments = [];
+  if(args.factFilter) {
+    filterEnvironments = true;
+    filteredEnvironments = await getFactFilteredEnvironmentIds(args.factFilter, [project.id],sqlClientPool);
+  }
+
   const rows = await query(
     sqlClientPool,
     `SELECT *
     FROM environment e
     WHERE e.project = :pid
     ${args.includeDeleted ? '' : 'AND deleted = "0000-00-00 00:00:00"'}
-    ${args.type ? 'AND e.environment_type = :type' : ''}`,
-    { pid, type: args.type }
+    ${args.type ? 'AND e.environment_type = :type' : ''}
+    ${filterEnvironments ? ' AND e.id in (:filteredenvs)' : ''}`,
+    { pid, type: args.type, filteredenvs: filteredEnvironments.join(",")}
   );
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
