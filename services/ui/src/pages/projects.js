@@ -6,7 +6,7 @@ import MainLayout from 'layouts/MainLayout';
 import Projects from 'components/Projects';
 import { bp } from 'lib/variables';
 
-import { Query } from 'react-apollo';
+import { Query } from '@apollo/client';
 import AllProjectsQuery from 'lib/query/AllProjects';
 import withQueryLoading from 'lib/withQueryLoading';
 import withQueryError from 'lib/withQueryError';

@@ -1,9 +1,9 @@
 import React, { useState, useEffect, Suspense } from "react";
 import * as R from 'ramda';
 import { withRouter } from 'next/router';
-import { useQuery } from "@apollo/react-hooks";
+import { useQuery } from "@apollo/client";
 import Head from 'next/head';
-import { Query } from 'react-apollo';
+import { Query } from '@apollo/client';
 import MainLayout from 'layouts/MainLayout';
 import EnvironmentByOpenshiftProjectNameQuery from 'lib/query/EnvironmentByOpenshiftProjectName';
 import EnvironmentHeader from 'components/EnvironmentHeader';

@@ -2,7 +2,7 @@ import React from 'react';
 import css from 'styled-jsx/css';
 import moment from 'moment';
 import Button from 'components/Button';
-import { Mutation } from 'react-apollo';
+import { Mutation } from '@apollo/client';
 import DeleteSshKeyById from 'lib/mutation/DeleteSshKeyById';
 import Me from 'lib/query/Me';
 import { bp, color, fontSize } from 'lib/variables';

@@ -1,8 +1,8 @@
 import React, {useState} from 'react';
 import * as R from 'ramda';
 import Head from 'next/head';
-import { Query } from 'react-apollo';
-import {useQuery} from "@apollo/react-hooks";
+import { Query } from '@apollo/client';
+import {useQuery} from "@apollo/client";
 import AllProblemsQuery from 'lib/query/AllProblems';
 import getSeverityEnumQuery, {getSourceOptions} from 'components/Filters/helpers';
 import withQueryLoadingNoHeader from 'lib/withQueryLoadingNoHeader';

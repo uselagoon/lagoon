@@ -1,7 +1,7 @@
 import React from 'react';
 import * as R from 'ramda';
 import Head from 'next/head';
-import { Query } from 'react-apollo';
+import { Query } from '@apollo/client';
 import MainLayout from 'layouts/MainLayout';
 import GlobalStlyes from 'layouts/GlobalStyles';
 

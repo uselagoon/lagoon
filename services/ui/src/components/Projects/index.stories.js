@@ -1,5 +1,5 @@
 import React from 'react';
-import { Query } from 'react-apollo';
+import { Query } from '@apollo/client';
 import AllProjectsQuery from 'lib/query/AllProjects';
 import Projects from './index';
 

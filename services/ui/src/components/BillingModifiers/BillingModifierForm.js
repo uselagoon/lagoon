@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import css from 'styled-jsx/css';
 import Button from 'components/Button';
 
-import { useMutation } from '@apollo/react-hooks';
+import { useMutation } from '@apollo/client';
 
 import AddBillingModifierMutation from '../../lib/mutation/AddBillingModifier';
 import UpdateBillingModifierMutation from 'lib/mutation/UpdateBillingModifier';
@@ -27,7 +27,7 @@ const BillingModifierForm = ({group, editBillingModifier, editHandler}) => {
     if (discountPercentage !== 0) {
       return 'discountPercentage'
     }
-    
+
     if(extraFixed !== 0){
       return 'extraFixed'
     }
@@ -55,7 +55,7 @@ const BillingModifierForm = ({group, editBillingModifier, editHandler}) => {
     if (discountPercentage !== 0) {
       return discountPercentage
     }
-    
+
     if(extraFixed !== 0){
       return extraFixed
     }
@@ -99,12 +99,12 @@ const BillingModifierForm = ({group, editBillingModifier, editHandler}) => {
     AddBillingModifierMutation,
     {
       update(cache, { data: { addBillingModifier } }){
-        
+
         const variables = { input: { name: group } };
         const { allBillingModifiers } = cache.readQuery({ query: AllBillingModifiersQuery, variables});
         const data = { allBillingModifiers: [...allBillingModifiers, {...addBillingModifier}] };
 
-        cache.writeQuery({ query: AllBillingModifiersQuery, variables, data });    
+        cache.writeQuery({ query: AllBillingModifiersQuery, variables, data });
       }
     }
   );
@@ -118,12 +118,12 @@ const BillingModifierForm = ({group, editBillingModifier, editHandler}) => {
         const { id, weight } = updateBillingModifier;
 
         const idx = allBillingModifiers.findIndex(({id}) => id === id );
-        
+
         if(allBillingModifiers[idx].weight !== weight){
           const data = { allBillingModifiers: allBillingModifiers.map(obj => id === obj.id ? updateBillingModifier : obj) };
           cache.writeQuery({ query: AllBillingModifiersQuery, variables, data });
         }
-        
+
         if(updateBillingModifier){
           editHandler({})
         }
@@ -134,12 +134,12 @@ const BillingModifierForm = ({group, editBillingModifier, editHandler}) => {
   const isFormValid = values.startDate !== '' && values.endDate !== '' && values.modifierType && values.modifierValue && values.adminComments !== '';
 
   const formSubmitHandler = () => {
-    const variables = { 
+    const variables = {
       group: { name: group},
-      startDate: values.startDate, 
-      endDate: values.endDate, 
-      discountFixed: values.modifierType === 'discountFixed' ? parseFloat(values.modifierValue) : 0, 
-      discountPercentage: values.modifierType === 'discountPercentage' ? parseFloat(values.modifierValue) : 0, 
+      startDate: values.startDate,
+      endDate: values.endDate,
+      discountFixed: values.modifierType === 'discountFixed' ? parseFloat(values.modifierValue) : 0,
+      discountPercentage: values.modifierType === 'discountPercentage' ? parseFloat(values.modifierValue) : 0,
       extraFixed: values.modifierType === 'extraFixed' ? parseFloat(values.modifierValue) : 0,
       extraPercentage: values.modifierType === 'extraPercentage' ? parseFloat(values.modifierValue) : 0,
       min: values.modifierType === 'min' ? parseFloat(values.modifierValue) : 0,
@@ -182,7 +182,7 @@ const BillingModifierForm = ({group, editBillingModifier, editHandler}) => {
 
   return (
     <div>
-        
+
       <div>
         <label htmlFor="startDate">Date Range</label>
         <div className='date-range modifierInput'>
@@ -205,7 +205,7 @@ const BillingModifierForm = ({group, editBillingModifier, editHandler}) => {
           />
         </div>
       </div>
-  
+
       <div>
         <label htmlFor="ModifierType">Type</label>
         <select
@@ -218,9 +218,9 @@ const BillingModifierForm = ({group, editBillingModifier, editHandler}) => {
           value={values.modifierType}
         >
           {[
-            {name: 'Discount: Fixed', value: 'discountFixed'}, 
+            {name: 'Discount: Fixed', value: 'discountFixed'},
             {name: 'Discount: Percentage (0-100)', value: 'discountPercentage'},
-            {name: 'Extra: Fixed', value: 'extraFixed'}, 
+            {name: 'Extra: Fixed', value: 'extraFixed'},
             {name: 'Extra: Percentage (0-100)', value: 'extraPercentage'},
             {name: 'Minimum Amount', value: 'min'},
             {name: 'Maximum Amount', value: 'max'}
@@ -231,7 +231,7 @@ const BillingModifierForm = ({group, editBillingModifier, editHandler}) => {
           ))}
         </select>
       </div>
-  
+
       <div>
         <label>Value</label>
         <input
@@ -245,7 +245,7 @@ const BillingModifierForm = ({group, editBillingModifier, editHandler}) => {
           onChange={handleChange}
         />
       </div>
-  
+
       <div>
         <label>Admin Comments</label>
         <textarea
@@ -259,7 +259,7 @@ const BillingModifierForm = ({group, editBillingModifier, editHandler}) => {
           value={values.adminComments}
           placeholder="AIO Internal Messaging"/>
       </div>
-  
+
       <div>
         <label>Customer Comments</label>
         <textarea
@@ -287,7 +287,7 @@ const BillingModifierForm = ({group, editBillingModifier, editHandler}) => {
           value={values.weight}
           placeholder="0"/>
       </div>
-  
+
       <div className="btnContainer">
         <Button disabled={!isFormValid} action={formSubmitHandler}>{R.isEmpty(editBillingModifier) ? 'Add' : 'Submit Changes' } </Button>
       </div>

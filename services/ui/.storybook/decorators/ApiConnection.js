@@ -1,9 +1,8 @@
 import React from 'react';
 import { action } from '@storybook/addon-actions';
 import { AuthContext } from 'lib/Authenticator';
-import { ApolloClient, InMemoryCache } from '@apollo/client';
+import { ApolloProvider, ApolloClient, InMemoryCache } from '@apollo/client';
 import { SchemaLink } from 'apollo-link-schema';
-import { ApolloProvider } from 'react-apollo';
 import { makeExecutableSchema, addMockFunctionsToSchema } from 'graphql-tools';
 import typeDefs from 'api/dist/typeDefs';
 import mocks, { seed } from 'api/src/mocks';

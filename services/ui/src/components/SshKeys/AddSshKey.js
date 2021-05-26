@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import css from 'styled-jsx/css';
 import Button from 'components/Button';
-import { Mutation } from 'react-apollo';
+import { Mutation } from '@apollo/client';
 import Me from 'lib/query/Me';
 import { bp, color, fontSize } from 'lib/variables';
 import AddSshKeyMutation from '../../lib/mutation/AddSshKey';
@@ -18,7 +18,7 @@ const AddSshKey = ({me: { id, email }}) => {
 
   const isFormValid = values.sshKeyName !== '' && !values.sshKey.includes('\n') &&
   (
-    values.sshKey.trim().startsWith('ssh-rsa') || 
+    values.sshKey.trim().startsWith('ssh-rsa') ||
     values.sshKey.trim().startsWith('ssh-ed25519')
   );
 
@@ -33,7 +33,7 @@ const AddSshKey = ({me: { id, email }}) => {
       <Mutation mutation={AddSshKeyMutation} refetchQueries={[{ query: Me }]}>
         {(addSshKey, { loading, called, error, data }) => {
 
-          const addSshKeyHandler = () => { 
+          const addSshKeyHandler = () => {
             addSshKey({
               variables: {
                 input: {
@@ -57,7 +57,7 @@ const AddSshKey = ({me: { id, email }}) => {
           return (
             <div className="addNew">
 
-              { error ? <div className="error">{error.message.replace('GraphQL error:', '').trim()}</div> : "" } 
+              { error ? <div className="error">{error.message.replace('GraphQL error:', '').trim()}</div> : "" }
 
               <div>
                 <label htmlFor="sshKeyName">SSH Key Name</label>
