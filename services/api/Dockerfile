@@ -35,7 +35,7 @@ ENV NODE_ENV=production \
     KEYCLOAK_API_CLIENT_SECRET=39d5282d-3684-4026-b4ed-04bbc034b61a \
     HARBOR_ADMIN_PASSWORD=admin \
     REDIS_PASSWORD=admin\
-    HARBOR_API_VERSION=v2.0
+    HARBOR_API_VERSION=""
 
 # The API is not very resilient to sudden mariadb restarts which can happen when the api and mariadb are starting
 # at the same time. So we have a small entrypoint which waits for mariadb to be fully ready.
