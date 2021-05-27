@@ -43,6 +43,7 @@
 * [First Deployment of Drupal](drupal/first-deployment-of-drupal.md)
 * [Drush 9](drupal/drush-9.md)
 * [Subfolders](drupal/subfolders.md)
+* [Integrate Drupal & Fastly](drupal/integrate-drupal-and-fastly.md)
 * [PHPUnit and PhpStorm](drupal/phpunit-and-phpstorm.md)
 
 ## Logging
