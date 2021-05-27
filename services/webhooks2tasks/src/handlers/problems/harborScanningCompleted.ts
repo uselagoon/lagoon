@@ -37,20 +37,6 @@ const PROBLEMS_HARBOR_FILTER_FLAG = process.env.PROBLEMS_HARBOR_FILTER_FLAG || n
       harborScanId,
     } = await validateAndTransformIncomingWebhookdata(harborScanPatternMatchers.allProblemHarborScanMatchers, body);
 
-    if(scanOverview.scan_status !== HARBOR_WEBHOOK_SUCCESSFUL_SCAN) {
-      sendToLagoonLogs(
-        'error',
-        '',
-        uuid,
-        `${webhooktype}:${event}:unhandled`,
-        { data: body },
-        `Received a scan report of status "${scanOverview.scan_status}" - ignoring`
-      );
-
-      return;
-    }
-
-
     let { id: lagoonProjectId, problemsUi } = await getProjectByName(lagoonProjectName);
 
     //Here, before we get any further, we only let through projects that have the problemsUI enabled
