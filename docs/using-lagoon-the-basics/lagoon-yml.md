@@ -114,7 +114,7 @@ Common uses for post-rollout tasks include running `drush updb`, `drush cim`, or
 * `command`
   * Here you specify what command should run. These are run in the WORKDIR of each container, for Lagoon images this is `/app`, keep this in mind if you need to `cd` into a specific location to run your task.
 * `service`
-  * The service which to run the task in. If following our drupal example, this will be the CLI container, as it has all your site code, files, and a connection to the database. Typically you do not need to change this.
+  * The service which to run the task in. If following our Drupal example, this will be the CLI container, as it has all your site code, files, and a connection to the database. Typically you do not need to change this.
 * `shell`
   * Which shell should be used to run the task in. By default `sh` is used, but if the container also has other shells \(like `bash`, you can define it here\). This is useful if you want to run some small if/else bash scripts within the post-rollouts. \(see the example above how to write a script with multiple lines\).
 
@@ -122,6 +122,62 @@ Note: If you would like to temporarily disable pre/post-rollout tasks during a d
 
 * `LAGOON_PREROLLOUT_DISABLED=true`
 * `LAGOON_POSTROLLOUT_DISABLED=true`
+
+#### Example post-rollout tasks
+
+Here are some useful examples of post-rollout tasks that you may want to use or adapt for your projects. 
+
+Run only if Drupal not installed:
+
+```text
+    - run:
+        name: IF no Drupal installed
+        command: |
+            if tables=$(drush sqlq "show tables like 'node';") && [ -z "$tables" ]; then
+                #### whatever you like
+            fi
+        service: cli
+        shell: bash
+```
+
+Different tasks based on branch name:
+
+```text
+    - run:
+        name: Different tasks based on Branch Name
+        command: |
+          if [[ "$LAGOON_GIT_BRANCH" != "production" ]]; then
+            ### Runs if current branch is not 'production'
+          else
+            ### Runs if current branch is 'production'
+          fi
+        service: cli
+```
+
+Run shell script:
+
+```text
+    - run:
+        name: Run Script
+        command: './scripts/script.sh'
+        service: cli
+```
+
+Drupal & Drush 9: Sync database & files from master environment:
+
+```text
+    - run:
+        name: Sync DB and Files from master if we are not on master
+        command: |
+          if [[ "$LAGOON_GIT_BRANCH" != "master" ]]; then
+            # Only if we don't have a database yet
+            if tables=$(drush sqlq 'show tables;') && [ -z "$tables" ]; then
+                drush sql-sync @lagoon.master @self 
+                drush rsync @lagoon.master:%files @self:%files -- --omit-dir-times --no-perms --no-group --no-owner --chmod=ugo=rwX
+            fi
+          fi
+        service: cli
+```
 
 ## Routes
 
