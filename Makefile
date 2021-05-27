@@ -90,7 +90,7 @@ K3D_NAME := k3s-$(shell echo $(CI_BUILD_TAG) | sed -E 's/.*(.{31})$$/\1/')
 
 # Name of the Branch we are currently in
 BRANCH_NAME := $(shell git rev-parse --abbrev-ref HEAD)
-SAFE_BRANCH_NAME := $(shell echo $(BRANCH_NAME) | sed -E 's:/:_:g')
+SAFE_BRANCH_NAME := $(shell echo $(BRANCH_NAME) | sed -E 's/[^[:alnum:]_.-]//g' | cut -c 1-128)
 
 # Skip image scanning to make building images substantially faster
 SKIP_SCAN := false
@@ -1161,3 +1161,6 @@ kind/retest:
 .PHONY: kind/clean
 kind/clean: local-dev/kind
 	KIND_CLUSTER_NAME="$(CI_BUILD_TAG)" ./local-dev/kind delete cluster
+ifeq ($(ARCH), darwin)
+	docker rm --force $(CI_BUILD_TAG)-kind-proxy-32080
+endif
