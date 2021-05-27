@@ -23,6 +23,7 @@
 * [Base Images](using-lagoon-advanced/base-images.md)
 * [Workflows](using-lagoon-advanced/workflows.md)
 * [Active/Standby](using-lagoon-advanced/active_standby.md)
+* [Triggering Deployments](using-lagoon-advanced/triggering-deployments.md)
 * [Backups](using-lagoon-advanced/backups.md)
 * [Remote Shell](using-lagoon-advanced/remote-shell.md)
 * [GraphQL](using-lagoon-advanced/graphql.md)
