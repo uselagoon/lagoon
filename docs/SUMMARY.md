@@ -27,6 +27,8 @@
 * [Backups](using-lagoon-advanced/backups.md)
 * [Remote Shell](using-lagoon-advanced/remote-shell.md)
 * [GraphQL](using-lagoon-advanced/graphql.md)
+* [Private Repositories](using-lagoon-advanced/private-repositories.md)
+* [SimpleSAML](using-lagoon-advanced/simplesaml.md)
 * [Project Default Users and SSH keys](using-lagoon-advanced/project-default-users-keys.md)
 * [Node.js Graceful Shutdown](using-lagoon-advanced/nodejs.md)
 * [Setting up Xdebug with Lagoon](using-lagoon-advanced/setting-up-xdebug-with-lagoon.md)
@@ -35,6 +37,7 @@
 ## Drupal
 
 * [Services](drupal/services/README.md)
+  * [Untitled](drupal/services/untitled.md)
   * [MariaDB](drupal/services/mariadb.md)
   * [Redis](drupal/services/redis.md)
   * [Solr](drupal/services/solr.md)
