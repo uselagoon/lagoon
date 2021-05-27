@@ -92,6 +92,7 @@
 * [Contributing](contributing-to-lagoon/contributing.md)
 * [Tests](contributing-to-lagoon/tests.md)
 * [API Debugging](contributing-to-lagoon/api-debugging.md)
+* [Installation inside k8s](contributing-to-lagoon/installation-inside-k8s.md)
 
 ## Resources
 
