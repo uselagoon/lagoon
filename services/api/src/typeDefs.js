@@ -253,15 +253,6 @@ const typeDefs = gql`
     source: String!
   }
 
-  enum FactFilterPredicate {
-    LESS_THAN
-    LESS_THAN_OR_EQUALS
-    GREATER_THAN
-    GREATER_THAN_OR_EQUALS
-    EQUALS
-    CONTAINS
-  }
-
   enum FactFilterConnective {
     OR
     AND
@@ -275,9 +266,8 @@ const typeDefs = gql`
 
   input FactFilterAtom {
     lhsTarget: FactFilterLHSTarget
-    lhs: String!
-    predicate: FactFilterPredicate!
-    rhs: String!
+    name: String!
+    contains: String!
   }
   input FactFilterInput {
     filterConnective: FactFilterConnective
@@ -578,6 +568,10 @@ const typeDefs = gql`
       Include deleted Environments (by default deleted environment are hidden)
       """
       includeDeleted: Boolean
+      """
+      Filter environments by fact matching
+      """
+      factFilter: FactFilterInput
     ): [Environment]
     """
     Creation Timestamp of Project
