@@ -20,6 +20,9 @@ const lagoonWebhookAddress = R.compose(
   R.propOr('', 'LAGOON_ROUTES'),
 )(process.env) as string;
 
+const apiVersion = R.propOr('v2.0', 'HARBOR_API_VERSION', process.env);
+// Use an empty string for backwards compatibility with Harbor version 1.x.x
+
 async function createHarborProject(sqlClient: MariaClient, harborClient, lagoonProjectName: string) {
   // Returns an empty string on an error and a string on a success
 
@@ -225,10 +228,7 @@ async function resetHarborWebhook(sqlClient: MariaClient, harborClient, lagoonPr
             address: lagoonWebhookAddress
           }
         ],
-        event_types: [
-          "SCANNING_FAILED",
-          "SCANNING_COMPLETED"
-        ],
+        event_types: (apiVersion == "v2.0") ? ["SCANNING_FAILED","SCANNING_COMPLETED"] : ["scanningFailed","scanningCompleted"],
         name: "Lagoon Default Webhook",
         enabled: true
       }
