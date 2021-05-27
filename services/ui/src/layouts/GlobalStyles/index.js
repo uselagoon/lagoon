@@ -53,9 +53,39 @@ const GlobalStyles = ({ children }) => (
         //min-height: 100vh;
       }
 
-      .loading {
-          background: red;
-          font-size: 24px;
+                      .loading {
+                        background: red;
+                        font-size: 24px;
+                      }
+
+
+      .tab-pane {
+        min-height: 100vH;
+      }
+
+      .box {
+        visibility: hidden;
+        animation: fadein 0.25s;
+        animation-fill-mode: forwards;
+        // animation-delay: 0.25s;
+      }
+
+      .fallback-fadein {
+        visibility: hidden;
+        animation: fadein 0.5s;
+        animation-fill-mode: forwards;
+        animation-delay: 0.25s;
+      }
+
+      @keyframes fadein {
+        from {
+          visibility: visible;
+          opacity: 0;
+        }
+        to {
+          visibility: visible;
+          opacity: 1;
+        }
       }
 
       a {

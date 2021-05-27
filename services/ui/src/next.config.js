@@ -38,7 +38,7 @@ module.exports = (phase, { defaultConfig }) => {
       webpack5: true,
     },
     // experimental: {
-    //   reactMode: 'concurrent'
+    //   reactRoot: 'concurrent'
     // },
     webpack(config, options) {
       // Add aliases from shared config file.

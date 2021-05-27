@@ -5,13 +5,15 @@ import Highlighter from 'react-highlight-words';
 import ProjectLink from 'components/link/Project';
 import { bp, color, fontSize } from 'lib/variables';
 import moment from 'moment';
-import hash from 'object-hash';
 
 import stringInputFilter from './filterLogic';
-import SelectFilter from 'components/Filters';
-import ToggleDisplay from 'components/ToggleDisplay';
 import useSortableProjectsData from './sortedItems';
 import SiteStatus from 'components/SiteStatus';
+
+import Box from 'components/Box';
+import ProjectsHeader from './ProjectsHeader';
+
+import { LoadingRowsContent, LazyLoadingContent } from 'components/Loading';
 
 const { className: boxClassName, styles: boxStyles } = css.resolve`
   .box {
@@ -37,8 +39,29 @@ const Projects = ({ projects = [], loading, onProjectSelectChange }) => {
   const [sortSelected, setSort] = useState('name');
   const [searchInput, setSearchInput] = useState('');
 
-  const [loadingProjects, setLoadingProjects] = useState(false);
+  const [filterLoadingProjects, setFilterLoadingProjects] = useState(false);
   const [filteredProjects, setFilteredProjects] = useState([]);
+
+  //
+  // const [startTransition, isPending] = unstable_useTransition(false);
+
+  const handleSearchInputChange = (input) => {
+
+    console.log('input', input);
+
+    setSearchInput(input);
+  };
+
+  // Display
+  const changeDisplay = () => {
+    if (toggleDisplay == 'list') {
+      setToggleDisplay('detailed')
+    }
+    if (toggleDisplay == 'detailed') {
+      setToggleDisplay('list')
+    }
+  };
+
 
   // Sorting
   const handleSort = (key) => {
@@ -54,282 +77,174 @@ const Projects = ({ projects = [], loading, onProjectSelectChange }) => {
     onProjectSelectChange(project);
   };
 
-
-  // Display
-  const changeDisplay = () => {
-    if (toggleDisplay == 'list') {
-      setToggleDisplay('detailed')
-    }
-    if (toggleDisplay == 'detailed') {
-      setToggleDisplay('list')
-    }
-  };
-
   // Lazy load components
-  const Box = React.lazy(() => import('components/Box'));
+  // const Box = React.lazy(() => import('components/Box'));
+  // const ProjectsHeader = React.lazy(() => import('./ProjectsHeader'));
+
 
   useEffect(() => {
     const filterItems = async () => {
-      setLoadingProjects(true);
+      setFilterLoadingProjects(true);
 
       setFilteredProjects(stringInputFilter(sortedItems, searchInput));
-      setLoadingProjects(false);
+      setFilterLoadingProjects(false);
     };
     filterItems();
   }, [sortedItems, searchInput]);
 
 
 
-  console.log('filteredProjects', filteredProjects);
-
-      // const [startTransition, isPending] = unstable_useTransition(false);
-
-
+           console.log('filteredProjects', filteredProjects);
 
   return (
-    <Suspense fallback={<div className="loading">Loading...</div>}>
-      <div className="header">
-        <SelectFilter
-          title="Filter"
-          defaultValue={{value: 'name', label: 'Project name'}}
-          options={[
-            {value: 'name', label: 'Project name'},
-            {value: 'created', label: 'Recently created'},
-            {value: 'id', label: 'Project ID'}
-          ]}
-          onFilterChange={handleSort}
-        />
-        <SelectFilter
-          title="Sort"
-          defaultValue={{value: 'name', label: 'Project name'}}
-          options={[
-            {value: 'name', label: 'Project name'},
-            {value: 'created', label: 'Recently created'},
-            {value: 'id', label: 'Project ID'}
-          ]}
-          onFilterChange={handleSort}
-        />
-        <label></label>
-        <ToggleDisplay
-          action={changeDisplay}
-          disabled={toggleDisplay === 'list'}
-        >
-          L
-        </ToggleDisplay>
-        <ToggleDisplay
-          action={changeDisplay}
-          disabled={toggleDisplay === 'detailed'}
-        >
-          D
-        </ToggleDisplay>
-        <input
-          aria-labelledby="search"
-          className="searchInput"
-          type="text"
-          value={searchInput}
-          onChange={e => setSearchInput(e.target.value)}
-          placeholder="Type to search"
-          disabled={projects.length === 0}
-        />
-        <label>Showing {projects.length} project{projects.length == 1 ? "" : "s"}</label>
-      </div>
-      {!projects.length && !searchInput && (
+    <>
+     {/* <Suspense fallback={<LazyLoadingContent delay={250} rows="25"/>}> */}
+      <ProjectsHeader searchInput={searchInput} onSearchInputChange={handleSearchInputChange} onToggleChange={changeDisplay} display={toggleDisplay} />
+
+
+      {/* {filterLoadingProjects && <div className="loading">Loading (useEffect)...</div>} */}
+
+      {loading && <LoadingRowsContent delay={250} rows="25"/>}
+
+      {!loading &&
+        // <Suspense fallback={<LazyLoadingContent delay={250} rows="25"/>}>
+          <div className="projects">
+            {projects.map((project, index) => (
+
+              <div key={project.name.toLowerCase()} className="project-wrapper"
+                  value={project.name}
+                  // disabled={isPending}
+                  onClick={() => handleProjectChangeCallback(project.name) }
+                  // onClick={() => { startTransition(() => { handleProjectChange(project.name) }) }}
+              >
+                {toggleDisplay === 'list' && (
+                    <Box className={boxClassName}>
+                      <div className="project">
+                        <h4>
+                          <Highlighter
+                            searchWords={[searchInput]}
+                            autoEscape={true}
+                            textToHighlight={project.name}
+                          />
+                        </h4>
+                        <div>Created: {new moment(project.created).format('YYYY-MM-DD')}</div>
+                        {project.environments && project.environments.map((environment, index) => {
+                          if (environment.environmentType === "production") {
+                            return (
+                              <div key={environment.name.toLowerCase()} className="route">
+                                <Highlighter
+                                  key={index}
+                                  searchWords={[searchInput]}
+                                  autoEscape={true}
+                                  textToHighlight={
+                                    environment.route
+                                      ? environment.route.replace(/^https?\:\/\//i, '')
+                                      : ''
+                                  }
+                                />
+                              </div>
+                            )
+                          }
+                        })}
+                        {project.environments && project.environments.map((environment, index) => {
+                          if (environment.environmentType === "production" && environment.status) {
+                            return (<div key={envionment.name.toLowerCase()} className="environments">
+                              <div className={`status ${environment.status.toLowerCase()}`}>
+                                <label>{environment.name}:</label><i className="status-icon"></i><span className="status-text">({environment.status && environment.status})</span>
+                              </div>
+                            </div>)
+                          }
+                        })}
+                      </div>
+                      <div className="project-link">
+                        <ProjectLink projectSlug={project.name} key={project.id}> > </ProjectLink>
+                      </div>
+                    </Box>
+                )}
+                {toggleDisplay === 'detailed' && (
+                    <Box className={boxClassName} >
+                      <div className="project">
+                        <h4>
+                          <Highlighter
+                            searchWords={[searchInput]}
+                            autoEscape={true}
+                            textToHighlight={project.name}
+                          />
+                        </h4>
+                        <div>Created: {new moment(project.created).format('YYYY-MM-DD')}</div>
+                        <div className="route">
+                          {project.environments.map((environment, index) => (
+                            <Highlighter
+                              key={index}
+                              searchWords={[searchInput]}
+                              autoEscape={true}
+                              textToHighlight={
+                                environment.route
+                                  ? environment.route.replace(/^https?\:\/\//i, '')
+                                  : ''
+                              }
+                            />
+                          ))}
+                        </div>
+                        <div className="environments">
+                          {project.environments && (
+                            <div className="environments">
+                              <h6><label>Environments</label></h6>
+                              {project.environments.map((environment, index) => (
+                                <SiteStatus key={environment.name.toLowerCase()} environment={environment} />
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="facts">
+                        {project.environments && project.environments.map((e, index) => (
+                          e.environmentType === 'production' && e.facts.length > 0 &&
+                          <>
+                            <h6><label>Key Facts</label></h6>
+                            {e.facts.map(fact => {
+                              if (fact.reference && fact.reference.includes('key')) {
+                                return (
+                                  <div key={fact.name.toLowerCase()} className="fact-wrapper">
+                                    <div className="fact-name">{fact.name}</div>
+                                    <Highlighter
+                                      key={index}
+                                      searchWords={[searchInput]}
+                                      autoEscape={true}
+                                      textToHighlight={fact.value ? fact.value : ''}
+                                    />
+                                    <div className="fact-reference">{fact.reference}</div>
+                                    <div className="fact-category">{fact.category}</div>
+                                  </div>
+                                )
+                              }
+                            })}
+                          </>
+                        ))}
+                      </div>
+                    </Box>
+                )}
+              </div>
+
+            ))}
+          </div>
+        // </Suspense>
+      }
+      {!projects.length && !loading && !searchInput && (
         <Box>
           <div className="project">
             <h4>No projects</h4>
           </div>
         </Box>
       )}
-      {(searchInput && !projects.length) && (
+      {(searchInput && !loading && !projects.length) && (
         <Box>
           <div className="project">
             <h4>No projects matching "{searchInput}"</h4>
           </div>
         </Box>
       )}
-
-          {loadingProjects && <>Loading (useEffect)...</>}
-
-      <Suspense fallback={<div className="loading">Loading projects ...</div>}>
-        <div className="projects">
-          {projects.map((project, index) => (
-
-            <div key={project.name.toLowerCase()} className="project-wrapper"
-                value={project.name}
-                // disabled={isPending}
-                onClick={() => handleProjectChangeCallback(project.name) }
-                // onClick={() => { startTransition(() => { handleProjectChange(project.name) }) }}
-            >
-              {toggleDisplay === 'list' && (
-                  <Box className={boxClassName}>
-                    <div className="project">
-                      <h4>
-                        <Highlighter
-                          searchWords={[searchInput]}
-                          autoEscape={true}
-                          textToHighlight={project.name}
-                        />
-                      </h4>
-                      <div>Created: {new moment(project.created).format('YYYY-MM-DD')}</div>
-                      {project.environments && project.environments.map((environment, index) => {
-                        if (environment.environmentType === "production") {
-                          return (
-                            <div key={environment.name.toLowerCase()} className="route">
-                              <Highlighter
-                                key={index}
-                                searchWords={[searchInput]}
-                                autoEscape={true}
-                                textToHighlight={
-                                  environment.route
-                                    ? environment.route.replace(/^https?\:\/\//i, '')
-                                    : ''
-                                }
-                              />
-                            </div>
-                          )
-                        }
-                      })}
-                      {project.environments && project.environments.map((environment, index) => {
-                        if (environment.environmentType === "production" && environment.status) {
-                          return (<div key={envionment.name.toLowerCase()} className="environments">
-                            <div className={`status ${environment.status.toLowerCase()}`}>
-                              <label>{environment.name}:</label><i className="status-icon"></i><span className="status-text">({environment.status && environment.status})</span>
-                            </div>
-                          </div>)
-                        }
-                      })}
-                    </div>
-                    <div className="project-link">
-                      <ProjectLink projectSlug={project.name} key={project.id}> > </ProjectLink>
-                    </div>
-                  </Box>
-              )}
-              {toggleDisplay === 'detailed' && (
-                  <Box className={boxClassName} >
-                    <div className="project">
-                      <h4>
-                        <Highlighter
-                          searchWords={[searchInput]}
-                          autoEscape={true}
-                          textToHighlight={project.name}
-                        />
-                      </h4>
-                      <div>Created: {new moment(project.created).format('YYYY-MM-DD')}</div>
-                      <div className="route">
-                        {project.environments.map((environment, index) => (
-                          <Highlighter
-                            key={index}
-                            searchWords={[searchInput]}
-                            autoEscape={true}
-                            textToHighlight={
-                              environment.route
-                                ? environment.route.replace(/^https?\:\/\//i, '')
-                                : ''
-                            }
-                          />
-                        ))}
-                      </div>
-                      <div className="environments">
-                        {project.environments && (
-                          <div className="environments">
-                            <h6><label>Environments</label></h6>
-                            {project.environments.map((environment, index) => (
-                              <SiteStatus key={environment.name.toLowerCase()} environment={environment} />
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="facts">
-                      {project.environments && project.environments.map((e, index) => (
-                        e.environmentType === 'production' && e.facts.length > 0 &&
-                        <>
-                          <h6><label>Key Facts</label></h6>
-                          {e.facts.map(fact => {
-                            if (fact.reference && fact.reference.includes('key')) {
-                              return (
-                                <div key={fact.name.toLowerCase()} className="fact-wrapper">
-                                  <div className="fact-name">{fact.name}</div>
-                                  <Highlighter
-                                    key={index}
-                                    searchWords={[searchInput]}
-                                    autoEscape={true}
-                                    textToHighlight={fact.value ? fact.value : ''}
-                                  />
-                                  <div className="fact-reference">{fact.reference}</div>
-                                  <div className="fact-category">{fact.category}</div>
-                                </div>
-                              )
-                            }
-                          })}
-                        </>
-                      ))}
-                    </div>
-                  </Box>
-              )}
-            </div>
-
-          ))}
-        </div>
-      </Suspense>
-
-
       <style jsx>{`
-          .header {
-            position: relative;
-            z-index: 15;
-
-            @media ${bp.tinyUp} {
-              align-items: center;
-              display: flex;
-              justify-content: flex-end;
-              margin: 0 0 14px;
-            }
-            @media ${bp.smallOnly} {
-              flex-wrap: wrap;
-            }
-            @media ${bp.tabletUp} {
-              margin-top: 40px;
-            }
-            .searchInput {
-              background: url('/static/images/search.png') 12px center no-repeat ${color.white};
-              background-size: 14px;
-              border: 1px solid ${color.midGrey};
-              height: 40px;
-              padding: 0 12px 0 34px;
-              transition: border 0.5s ease;
-              @media ${bp.smallOnly} {
-                margin-bottom: 20px;
-                order: -1;
-                width: 100%;
-              }
-              @media ${bp.tabletUp} {
-                width: 30%;
-              }
-              &::placeholder {
-                color: ${color.midGrey};
-              }
-              &:focus {
-                border: 1px solid ${color.brightBlue};
-                outline: none;
-              }
-            }
-            label {
-              display: none;
-              padding-left: 20px;
-              // width: 50%;
-              font-size: 12px;
-
-              @media ${bp.tinyUp} {
-                display: block;
-              }
-              &:nth-child(2) {
-                @media ${bp.tabletUp} {
-                  // width: 20%;
-                }
-              }
-            }
-          }
           .project {
             font-weight: normal;
 
@@ -378,7 +293,8 @@ const Projects = ({ projects = [], loading, onProjectSelectChange }) => {
           }
       `}</style>
       {boxStyles}
-  </Suspense>
+    {/* </Suspense> */}
+    </>
  );
 };
 

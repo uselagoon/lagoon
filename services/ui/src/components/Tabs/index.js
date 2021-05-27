@@ -10,11 +10,13 @@ const Tabs = ({ children }) => {
 
   const handleChange = (data) => setTabSelected(data);
 
-  const panes = children.map(child => {
-    return (
-      { menuItem: 'All Projects', render: () => <Tab.Pane>{children}</Tab.Pane> }
-    );
-  });
+  // const panes = children.map(child => {
+  //   return (
+  //     { menuItem: 'All Projects', render: () => <Tab.Pane>{children}</Tab.Pane> }
+  //   );
+  // });
+
+  const panes = [{ menuItem: 'All Projects', render: () => <Tab.Pane className="tab-pane">{children}</Tab.Pane> }];
 
 
   // console.log(children);

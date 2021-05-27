@@ -11,9 +11,7 @@ import AllProjectsQuery from 'lib/query/AllProjects';
 import withQueryLoading from 'lib/withQueryLoading';
 import withQueryError from 'lib/withQueryError';
 
-
-import FactsSearch from 'components/FactsSearch';
-
+import { LoadingRowsWithSpinner } from 'components/Loading';
 
 /**
  * Displays the projects page.
@@ -27,6 +25,9 @@ const ProjectsPage = () => {
         // console.log('bytes', size);
         // console.log('mbs', (Math.round(size / 125000) / 10).toFixed(2));
 
+
+  const FactsSearch = React.lazy(() => import('components/FactsSearch'));
+
   return (
   <>
     <Head>
@@ -37,7 +38,9 @@ const ProjectsPage = () => {
           All Projects
         </MainNavigation>
 
-        <FactsSearch />
+        <Suspense fallback={<LoadingRowsWithSpinner rows="25"/>}>
+          <FactsSearch />
+        </Suspense>
 
     </MainLayout>
   </>

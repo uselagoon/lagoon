@@ -3,13 +3,17 @@ import { bp, color } from 'lib/variables';
 import { useQuery } from "@apollo/client";
 import { NetworkStatus } from '@apollo/client';
 import AllProjectsAndEnvironmentsFromFacts from 'lib/query/AllProjectsAndEnvironmentsFromFacts';
+import SelectFilter, { MultiSelectFilter } from 'components/Filters';
 
 import Tabs from 'components/Tabs';
 import ProjectSummary from 'components/ProjectSummary';
-import Projects from 'components/Projects';
 import Sidebar from 'layouts/Sidebar';
+import Projects from 'components/Projects';
+// import ProjectsSidebar from 'components/ProjectsSidebar';
 
-import SelectFilter, { MultiSelectFilter } from 'components/Filters';
+import { LoadingRowsContent } from 'components/Loading';
+import { Placeholder } from 'semantic-ui-react';
+
 
 const FactsSearch = ({ resultsCallback, children }) => {
     const [projects, setProjects] = useState([]);
@@ -19,6 +23,7 @@ const FactsSearch = ({ resultsCallback, children }) => {
     const [connectiveSelected, setConnective] = useState('AND');
 
     // Lazy load components
+    // const Projects = React.lazy(() => import('components/Projects'));
     const ProjectsSidebar = React.lazy(() => import('components/ProjectsSidebar'));
 
     // Fetch results
@@ -78,6 +83,7 @@ const FactsSearch = ({ resultsCallback, children }) => {
             });
         });
         setFactFilters(factFilters);
+        setProjectSelected(null);
     };
     const frameworkOptions = (framework) => {
         return framework && framework.map(f => ({ value: f, label: f }));
@@ -107,7 +113,7 @@ const FactsSearch = ({ resultsCallback, children }) => {
     }, [projectsByFactSearch, error, loading]);
 
 
-                                console.log('projectsByFactSearch d', projectsByFactSearch);
+                                console.log('projectsByFactSearch', projectsByFactSearch);
 
     return (
     <>
@@ -145,8 +151,7 @@ const FactsSearch = ({ resultsCallback, children }) => {
                             onFilterChange={handleConnectiveChange}
                         />
                     </div>
-                    {loading && <div className="loading">Loading</div>}
-                    {/* {projectsByFactSearch && projectsByFactSearch.projectsByFactSearch.map(e => {
+                       {/* {projectsByFactSearch && projectsByFactSearch.projectsByFactSearch.map(e => {
                             return (
                                 <>
                                 <h4>{e.facts.length > 0 && e.project.name}</h4>
@@ -163,41 +168,46 @@ const FactsSearch = ({ resultsCallback, children }) => {
                         })} */}
                 </div>
                 {/* <Projects projects={data.allProjects || []} loading={loading} onProjectSelectChange={handleProjectSelectChange} /> */}
-                <Projects projects={projects} onProjectSelectChange={handleProjectSelectChange} />
+                {/* <Suspense fallback={<LazyLoadingContent delay={250} rows="25"/>}> */}
+                    <Projects projects={projects} onProjectSelectChange={handleProjectSelectChange} loading={loading} />
+                {/* </Suspense> */}
             </Tabs>
         </div>
     </div>
     <Sidebar className="sidebar">
         <div className="project-details-sidebar">
             {!projectSelected && <div>Select a project to see its details.</div>}
+            {loading && <LoadingRowsContent rows="25"/>}
             {/* {projectSelected && projects.map(project => (project.name === projectSelected) && ( */}
-            <Suspense key={projectSelected} fallback={<div className="loading">Loading project ...</div>}>
-                <h3>Project: {projectSelected}</h3>
-                <Suspense fallback={<div className="loading">Loading details ...</div>}>
-                {/* <ProjectsSidebar key={project.name.toLowerCase()} project={project}/> */}
-                {projectSelected &&
-                    <ProjectsSidebar project={projects.find(project => project.name === projectSelected)}/>
-                }
+            {/* <Suspense key={projectSelected} fallback={<div className="loading">Loading project ...</div>}> */}
+                <Suspense fallback={<LoadingRowsContent rows="25"/>}>
+                    {/* <ProjectsSidebar key={project.name.toLowerCase()} project={project}/> */}
+                    {projectSelected &&
+                    <>
+                        <h3>Project: {projectSelected}</h3>
+                        <ProjectsSidebar project={projects.find(project => project.name === projectSelected)}/>
+                    </>
+                    }
                 </Suspense>
-            </Suspense>
+            {/* </Suspense> */}
             {/* ))} */}
         </div>
     </Sidebar>
     <style jsx>{`
       .filters-wrapper {
         position: relative;
-        z-index: 20;
+        // z-index: 20;
 
         .select-filters {
             display: flex;
             flex-direction: column;
 
             @media ${bp.wideUp} {
-            flex-flow: row;
+                flex-flow: row;
             }
 
             &:first-child {
-            padding-bottom: 1em;
+                padding-bottom: 1em;
             }
         }
       }

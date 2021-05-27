@@ -16,11 +16,4 @@ export const LoadingPageNoHeader = () => (
   </StatusLayoutNoHeader>
 );
 
-export const LoadingContent = () => (
-  <div>
-    <h4>Loading</h4>
-  </div>
-);
-
-
 export default LoadingPage;
