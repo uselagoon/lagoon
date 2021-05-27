@@ -70,7 +70,7 @@ const projectRegex = process.env.PROJECT_REGEX ? new RegExp(process.env.PROJECT_
     }
     // Project not using the Harbor local to this Lagoon; do nothing
     else {
-      logger.info('Skipping processing of Lagoon project ', project.name, ", as it is setup to use another Harbor: ", lagoonHarborRoute);
+      logger.info('Skipping processing of Lagoon project ', project.name, ", as it is setup to use another Harbor: ", localLagoonURL);
     }
   };
 
