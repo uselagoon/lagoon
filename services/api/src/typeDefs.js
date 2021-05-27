@@ -274,6 +274,7 @@ const typeDefs = gql`
     filters: [FactFilterAtom]
     skip: Int
     take: Int
+    orderBy: String
   }
 
   type File {

@@ -281,10 +281,10 @@ function buildContitionsForFactSearchQuery(filterDetails: any, factQuery: any, p
     factQuery = factQuery.andWhere('environment.project', 'IN', projectIdSubset);
   }
   const DEFAULT_RESULTSET_SIZE = 25;
+
   //skip and take logic
   let { skip = 0, take = DEFAULT_RESULTSET_SIZE } = filterDetails;
   factQuery = factQuery.limit(take).offset(skip);
-  console.log(factQuery.toString());
+
   return factQuery;
 }
-
