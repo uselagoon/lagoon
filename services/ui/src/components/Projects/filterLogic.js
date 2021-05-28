@@ -1,10 +1,4 @@
 const stringInputFilter = (projects, searchInput) => projects.filter(key => {
-
-  // Select / tag filters
-  //const filterByStatus= key.status && key.status.toLowerCase().includes(statusSelected.toLowerCase());
-
-  console.log('key', key);
-
   let filterByName = '';
   filterByName = key.name && key.name
     .toLowerCase()

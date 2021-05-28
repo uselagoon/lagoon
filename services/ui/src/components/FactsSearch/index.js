@@ -3,31 +3,59 @@ import { bp, color } from 'lib/variables';
 import { useQuery } from "@apollo/client";
 import { NetworkStatus } from '@apollo/client';
 import AllProjectsAndEnvironmentsFromFacts from 'lib/query/AllProjectsAndEnvironmentsFromFacts';
+import AllProjectsAndEnvironmentsFromFactsEmpty from 'lib/query/AllProjectsAndEnvironmentsFromFactsEmpty';
 import SelectFilter, { MultiSelectFilter } from 'components/Filters';
 
 import Tabs from 'components/Tabs';
 import ProjectSummary from 'components/ProjectSummary';
 import Sidebar from 'layouts/Sidebar';
-import Projects from 'components/Projects';
+// import Projects from 'components/Projects';
 // import ProjectsSidebar from 'components/ProjectsSidebar';
-
-import { LoadingRowsContent } from 'components/Loading';
+import { LoadingRowsContent, LazyLoadingContent } from 'components/Loading';
 import { Placeholder } from 'semantic-ui-react';
 
 
-const FactsSearch = ({ resultsCallback, children }) => {
-    const [projects, setProjects] = useState([]);
-    const [projectSelected, setProjectSelected] = useState('');
+// Filters
+// temp:
+const statuses = [
+    { value: '200', label: 'Live' },
+    { value: '403', label: 'Down' }
+];
 
+const frameworks = [
+    { value: 'drupal-core', label: 'Drupal' },
+    { value: 'laravel', label: 'Laravel' },
+    { value: 'nodejs', label: 'NodeJS' },
+    { value: 'wordpress', label: 'Wordpress' },
+    { value: 'symfony', label: 'Symfony' }
+];
+
+const languages = [
+    { value: 'php-version', label: 'PHP' },
+    { value: 'nodejs', label: 'NodeJS' },
+    { value: 'python', label: 'Python' },
+    { value: 'go', label: 'Go' }
+];
+
+const FactsSearch = ({ resultsCallback, children }) => {
+    const [projectQuery, setProjectQuery] = useState(AllProjectsAndEnvironmentsFromFactsEmpty);
+    const [projects, setProjects] = useState([]);
+    // const [projectSelected, setProjectSelected] = useState('');
+
+    let projectSelected = '';
+
+    const [statusesSelected, setStatusesSelected] = useState([]);
+    const [frameworksSelected, setFrameworksSelected] = useState([]);
+    const [languagesSelected, setLanguagesSelected] = useState([]);
     const [factFilters, setFactFilters] = useState([]);
     const [connectiveSelected, setConnective] = useState('AND');
 
     // Lazy load components
-    // const Projects = React.lazy(() => import('components/Projects'));
+    const Projects = React.lazy(() => import('components/Projects'));
     const ProjectsSidebar = React.lazy(() => import('components/ProjectsSidebar'));
 
     // Fetch results
-    const { data: projectsByFactSearch, loading, error, refetch, networkStatus } = useQuery(AllProjectsAndEnvironmentsFromFacts, {
+    const { data: projectsByFactSearch, loading, error, refetch, networkStatus } = useQuery(projectQuery, {
         variables: {
             input: {
                 filters: factFilters || [],
@@ -35,7 +63,6 @@ const FactsSearch = ({ resultsCallback, children }) => {
             }
         },
         notifyOnNetworkStatusChange: true,
-        // pollInterval: 500
     });
 
     if (networkStatus === NetworkStatus.refetch) return 'Refetching!';
@@ -44,60 +71,54 @@ const FactsSearch = ({ resultsCallback, children }) => {
 
     // Project selection
     const handleProjectSelectChange = (project) => {
-        setProjectSelected(project);
+        // setProjectSelected(project);
+        projectSelected = project;
     };
 
-
-            // Filters
-            // temp:
-            const statuses = [
-                { value: '200', label: 'Live' },
-                { value: '403', label: 'Down' }
-            ];
-
-            const frameworks = [
-                { value: 'drupal-core', label: 'Drupal' },
-                { value: 'laravel', label: 'Laravel' },
-                { value: 'nodejs', label: 'NodeJS' },
-                { value: 'wordpress', label: 'Wordpress' },
-                { value: 'symfony', label: 'Symfony' }
-            ];
-
-            const languages = [
-                { value: 'php-version', label: 'PHP' },
-                { value: 'nodejs', label: 'NodeJS' },
-                { value: 'python', label: 'Python' },
-                { value: 'go', label: 'Go' }
-            ];
-
-
-    const statusOptions = (status) => {
-        return status && status.map(s => ({ value: s.value, label: s.label }));
+    const statusOptions = (statuses) => {
+        return statuses && statuses.map(s => ({ value: s.value, label: s.label }));
     };
     const handleStatusChange = (status) => {
-        let factFilters = status && status.map(s => {
+        let nextFactFilter = status && status.map(s => {
             return ({
-                lhs: "site-code-status",
-                predicate: "CONTAINS",
-                rhs: s.value
+                lhsTarget: "FACT",
+                name: "site-code-status",
+                contains: s.value
             });
         });
-        setFactFilters(factFilters);
+        factFilters !== null  ? setProjectQuery(AllProjectsAndEnvironmentsFromFacts) : setProjectQuery(AllProjectsAndEnvironmentsFromFactsEmpty);
+        setStatusesSelected(nextFactFilter || []);
         setProjectSelected(null);
     };
-    const frameworkOptions = (framework) => {
-        return framework && framework.map(f => ({ value: f, label: f }));
+    const frameworkOptions = (frameworks) => {
+        return frameworks && frameworks.map(f => ({ value: f.value, label: f.label }));
     };
     const handleFrameworkChange = (framework) => {
-        let values = framework && framework.value;
-        setFramework(values);
+        let nextFactFilter = framework && framework.map(f => {
+            return ({
+                lhsTarget: "FACT",
+                name: f.value,
+                contains: ""
+            });
+        });
+        factFilters !== null ? setProjectQuery(AllProjectsAndEnvironmentsFromFacts) : setProjectQuery(AllProjectsAndEnvironmentsFromFactsEmpty);
+        setFrameworksSelected(nextFactFilter || []);
+        setProjectSelected(null);
     };
     const languageOptions = (language) => {
-        return language && language.map(l => ({ value: l, label: l }));
+        return language && language.map(l => ({ value: l.value, label: l.label }));
     };
     const handleLanguageChange = (language) => {
-        let values = language && language.value;
-        setLanguage(values);
+        let nextFactFilter = language && language.map(f => {
+            return ({
+                lhsTarget: "FACT",
+                name: f.value,
+                contains: ""
+            });
+        });
+        factFilters !== null  ? setProjectQuery(AllProjectsAndEnvironmentsFromFacts) : setProjectQuery(AllProjectsAndEnvironmentsFromFactsEmpty);
+        setLanguagesSelected(nextFactFilter || []);
+        setProjectSelected(null);
     };
     const connectiveOptions = (connective) => {
         return connective && connective.map(c => ({ value: c, label: c }));
@@ -110,17 +131,17 @@ const FactsSearch = ({ resultsCallback, children }) => {
         if (!error && !loading) {
             setProjects(projectsByFactSearch.projectsByFactSearch);
         }
-    }, [projectsByFactSearch, error, loading]);
 
+        setFactFilters(() => [...statusesSelected, ...frameworksSelected, ...languagesSelected]);
 
-                                console.log('projectsByFactSearch', projectsByFactSearch);
+    },[projectsByFactSearch, statusesSelected, frameworksSelected, languagesSelected, error, loading]);
 
     return (
     <>
     <div className="content-wrapper">
         <div className="content">
             <Tabs>
-                 <ProjectSummary />
+                <ProjectSummary />
                 <div className="filters-wrapper">
                     <div className="select-filters">
                         <MultiSelectFilter
@@ -132,14 +153,12 @@ const FactsSearch = ({ resultsCallback, children }) => {
                         />
                         <MultiSelectFilter
                             title="Frameworks"
-                            defaultValue={{value: '', label: ''}}
                             options={frameworks}
                             isMulti={true}
                             onFilterChange={handleFrameworkChange}
                         />
                         <MultiSelectFilter
                             title="Languages"
-                            defaultValue={{value: '', label: ''}}
                             options={languages}
                             isMulti={true}
                             onFilterChange={handleLanguageChange}
@@ -168,9 +187,9 @@ const FactsSearch = ({ resultsCallback, children }) => {
                         })} */}
                 </div>
                 {/* <Projects projects={data.allProjects || []} loading={loading} onProjectSelectChange={handleProjectSelectChange} /> */}
-                {/* <Suspense fallback={<LazyLoadingContent delay={250} rows="25"/>}> */}
+                 <Suspense fallback={<LazyLoadingContent delay={250} rows="25"/>}>
                     <Projects projects={projects} onProjectSelectChange={handleProjectSelectChange} loading={loading} />
-                {/* </Suspense> */}
+                 </Suspense>
             </Tabs>
         </div>
     </div>

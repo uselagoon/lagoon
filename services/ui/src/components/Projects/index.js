@@ -40,7 +40,7 @@ const Projects = ({ projects = [], loading, onProjectSelectChange }) => {
   const [searchInput, setSearchInput] = useState('');
 
   const [filterLoadingProjects, setFilterLoadingProjects] = useState(false);
-  const [filteredProjects, setFilteredProjects] = useState([]);
+  const [filteredProjects, setFilteredProjects] = useState(projects);
 
   //
   // const [startTransition, isPending] = unstable_useTransition(false);
@@ -85,37 +85,37 @@ const Projects = ({ projects = [], loading, onProjectSelectChange }) => {
   useEffect(() => {
     const filterItems = async () => {
       setFilterLoadingProjects(true);
-
       setFilteredProjects(stringInputFilter(sortedItems, searchInput));
       setFilterLoadingProjects(false);
     };
+
+    // add 500ms delay to string input
+    // const timeout = setTimeout(() => filterItems(), 500);
+    // return () => clearTimeout(timeout);
+
     filterItems();
   }, [sortedItems, searchInput]);
 
 
-
-           console.log('filteredProjects', filteredProjects);
-
   return (
     <>
-     {/* <Suspense fallback={<LazyLoadingContent delay={250} rows="25"/>}> */}
-      <ProjectsHeader searchInput={searchInput} onSearchInputChange={handleSearchInputChange} onToggleChange={changeDisplay} display={toggleDisplay} />
+    <Suspense fallback={<LazyLoadingContent delay={250} rows="25"/>}>
+      <ProjectsHeader searchInput={searchInput} onSearchInputChange={handleSearchInputChange} onToggleChange={changeDisplay} onSort={handleSort} display={toggleDisplay} />
 
 
-      {/* {filterLoadingProjects && <div className="loading">Loading (useEffect)...</div>} */}
+              {filterLoadingProjects && <div className="loading">Loading...</div>}
 
       {loading && <LoadingRowsContent delay={250} rows="25"/>}
 
       {!loading &&
         // <Suspense fallback={<LazyLoadingContent delay={250} rows="25"/>}>
           <div className="projects">
-            {projects.map((project, index) => (
+            {filteredProjects.map((project, index) => (
 
               <div key={project.name.toLowerCase()} className="project-wrapper"
                   value={project.name}
                   // disabled={isPending}
                   onClick={() => handleProjectChangeCallback(project.name) }
-                  // onClick={() => { startTransition(() => { handleProjectChange(project.name) }) }}
               >
                 {toggleDisplay === 'list' && (
                     <Box className={boxClassName}>
@@ -228,16 +228,16 @@ const Projects = ({ projects = [], loading, onProjectSelectChange }) => {
 
             ))}
           </div>
-        // </Suspense>
+      // </Suspense>
       }
-      {!projects.length && !loading && !searchInput && (
+      {!projects.length && !filteredProjects.length && !loading && !searchInput && (
         <Box>
           <div className="project">
             <h4>No projects</h4>
           </div>
         </Box>
       )}
-      {(searchInput && !loading && !projects.length) && (
+      {(searchInput && !loading && !filteredProjects.length) && (
         <Box>
           <div className="project">
             <h4>No projects matching "{searchInput}"</h4>
@@ -293,7 +293,7 @@ const Projects = ({ projects = [], loading, onProjectSelectChange }) => {
           }
       `}</style>
       {boxStyles}
-    {/* </Suspense> */}
+     </Suspense>
     </>
  );
 };

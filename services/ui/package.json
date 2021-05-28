@@ -34,6 +34,7 @@
     "moment-duration-format": "^2.2.2",
     "next": "^10.2.2",
     "nprogress": "^0.2.0",
+    "object-hash": "^2.2.0",
     "postcss-nested": "^3.0.0",
     "ramda": "^0.25.0",
     "react": "17.0.0",

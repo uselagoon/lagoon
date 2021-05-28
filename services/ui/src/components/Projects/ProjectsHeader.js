@@ -12,6 +12,7 @@ const ProjectsHeader = ({
     searchInput,
     onSearchInputChange,
     onToggleChange,
+    onSort,
     display
 }) => {
 
@@ -23,8 +24,8 @@ const ProjectsHeader = ({
     onToggleChange();
   };
 
-  const handleSort = () => {
-
+  const handleSort = (values) => {
+    onSort(values);
   }
 
   return (
