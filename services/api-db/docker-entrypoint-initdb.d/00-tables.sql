@@ -300,11 +300,12 @@ CREATE TABLE IF NOT EXISTS advanced_task_definition (
   type                     varchar(100) NOT NULL,
   environment              int NULL REFERENCES environment(id),
   project                  int NULL REFERENCES project(id),
+  group_name               varchar(2000) NULL,
   permission               ENUM('GUEST', 'DEVELOPER', 'MAINTAINER') DEFAULT 'GUEST',
   command                  text DEFAULT '',
   created                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   deleted                  timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  UNIQUE(name, environment, project)
+  UNIQUE(name, environment, project, group_name)
 );
 
 CREATE TABLE IF NOT EXISTS advanced_task_definition_argument (

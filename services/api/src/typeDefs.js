@@ -1164,6 +1164,7 @@ const typeDefs = gql`
     command: String
     environment: Int
     project: Int
+    groupName: String
     permission: TaskPermission
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgumentInput]
   }

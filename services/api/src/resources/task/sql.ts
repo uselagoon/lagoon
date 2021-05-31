@@ -78,6 +78,7 @@ export const Sql = {
     type,
     service,
     project,
+    group_name,
     environment,
     permission,
     }: {
@@ -90,6 +91,7 @@ export const Sql = {
       type: string,
       service: string,
       project: number,
+      group_name: string,
       environment: number,
       permission: string,
     }) =>
@@ -104,6 +106,7 @@ export const Sql = {
         type,
         service,
         project,
+        group_name,
         environment,
         permission,
       })
@@ -184,7 +187,7 @@ export const Sql = {
       knex('advanced_task_definition')
         .where('advanced_task_definition.name', '=', name)
         .toString(),
-    selectAdvancedTaskDefinitionByNameProjectAndEnvironment:(name: string, project: number, environment: number) => {
+    selectAdvancedTaskDefinitionByNameProjectEnvironmentAndGroup:(name: string, project: number, environment: number, group: string) => {
       let query = knex('advanced_task_definition')
         .where('advanced_task_definition.name', '=', name);
         if(project) {
@@ -192,6 +195,9 @@ export const Sql = {
         }
         if(environment) {
           query = query.where('advanced_task_definition.environment', '=', environment)
+        }
+        if(group) {
+          query = query.where('advanced_task_definition.group_name', '=', group)
         }
         return query.toString()
     },
@@ -202,8 +208,12 @@ export const Sql = {
     knex('advanced_task_definition')
     .where('environment', '=', id)
     .toString(),
-    selectAdvancedTaskDefinitionsForProject:(id: number) =>
+  selectAdvancedTaskDefinitionsForProject:(id: number) =>
     knex('advanced_task_definition')
     .where('project', '=', id)
+    .toString(),
+  selectAdvancedTaskDefinitionsForGroups:(groups) =>
+    knex('advanced_task_definition')
+    .where('group_name', 'in', groups)
     .toString(),
 };
