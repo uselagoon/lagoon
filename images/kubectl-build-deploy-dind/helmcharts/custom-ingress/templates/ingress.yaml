@@ -34,7 +34,7 @@ metadata:
     # HSTS Handling
     {{- if .Values.hsts}}
     # haproxy.router.openshift.io/hsts_header: {{ .Values.route_hsts }}
-    {{ end -}}
+    {{- end }}
     kubernetes.io/tls-acme: {{ .Values.tls_acme | quote }}
     # use a specific fastly service
     {{- if .Values.fastly.serviceId }}

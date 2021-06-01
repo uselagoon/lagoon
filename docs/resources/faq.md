@@ -147,6 +147,8 @@ For cloud hosting customers, you can SFTP to your Lagoon environment by using th
 
 Your username is going to be the name of the environment you are connecting to, most commonly in the pattern _**`PROJECTNAME-ENVIRONMENT`**_.
 
+You may also be interested in checking out our new Lagoon Sync tool, which you can read about here: [https://github.com/amazeeio/lagoon-sync](https://github.com/amazeeio/lagoon-sync)
+
 Authentication also happens automatically via SSH Public & Private Key Authentication.
 
 ## I don't want to use Let's Encrypt. I have an SSL certificate I would like to install
