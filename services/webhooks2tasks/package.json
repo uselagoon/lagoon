@@ -4,9 +4,6 @@
   "description": "lagoon handler for webhooks",
   "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
   "main": "dist/index.js",
-  "engines": {
-    "node": ">=10.16.3"
-  },
   "scripts": {
     "build": "tsc --build",
     "start": "node dist/index",
