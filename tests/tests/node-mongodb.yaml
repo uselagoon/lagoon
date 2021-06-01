@@ -1,4 +1,5 @@
 ---
+- include: features/random-wait.yaml
 
 - include: features/api-token.yaml
   vars:
@@ -18,10 +19,6 @@
     git_repo_name: node-mongodb.git
     project: ci-node-mongodb-{{ cluster_type }}
     branch: node-mongodb-single
-
-- include: features/api-token.yaml
-  vars:
-    testname: "API TOKEN"
 
 - include: node-mongodb/node-mongodb.yaml
   vars:

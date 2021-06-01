@@ -1,12 +1,4 @@
 
-- name: "{{ testname }} - wait for 60 seconds to give an eventual running deployment time to run, after that check again if the first commit is still there"
-  hosts: localhost
-  serial: 1
-  vars:
-    seconds: "60"
-  tasks:
-  - include: ../../tasks/pause.yaml
-
 - name: "{{ testname }} - init git, add files, commit, git push"
   hosts: localhost
   serial: 1
