@@ -9,22 +9,24 @@ import { bp } from 'lib/variables';
 const StatusLayout = ({ children }) => (
   <GlobalStlyes>
     <Header />
-    <div className="content-wrapper">
-      <div className="content">{children}</div>
+    <div className="main">
+      <div className="content-wrapper-full-width">
+        <div className="content">{children}</div>
+      </div>
     </div>
     <style jsx>{`
-      .content-wrapper {
+      .content-wrapper-full-width {
         display: flex;
-        justify-content: center;
+        justify-content: flex-start;
         text-align: center;
 
         .content {
-          margin-top: 38px;
+          margin-top: 50px;
           @media ${bp.wideUp} {
-            margin: 62px;
+            margin: 100px;
           }
           @media ${bp.extraWideUp} {
-            margin: 62px;
+            margin: 100px;
           }
         }
       }
@@ -35,21 +37,24 @@ const StatusLayout = ({ children }) => (
 
 export const StatusLayoutNoHeader = ({ children }) => (
   <GlobalStlyes>
-    <div className="content-wrapper">
-      <div className="content">{children}</div>
+    <div className="main">
+      <div className="content-wrapper-full-width">
+        <div className="content">{children}</div>
+      </div>
     </div>
     <style jsx>{`
-      .content-wrapper {
+      .content-wrapper-full-width {
         display: flex;
-        justify-content: center;
+        justify-content: flex-start;
+        text-align: center;
 
         .content {
-          margin-top: 38px;
+          margin-top: 50px;
           @media ${bp.wideUp} {
-            margin: 62px;
+            margin: 100px;
           }
           @media ${bp.extraWideUp} {
-            margin: 62px;
+            margin: 100px;
           }
         }
       }

@@ -50,9 +50,11 @@ export const getProjectsByFactSearch: ResolverFn = async (
   { sqlClientPool, hasPermission, keycloakGrant, models }
 ) => {
 
+  let isAdmin = false;
   let userProjectIds: number[];
   try {
     await hasPermission('project', 'viewAll');
+    isAdmin = true;
   } catch (err) {
     if (!keycloakGrant) {
       logger.warn('No grant available for getAllProjects');
@@ -64,7 +66,7 @@ export const getProjectsByFactSearch: ResolverFn = async (
     });
   }
 
-  return await getFactFilteredProjects(input, userProjectIds, sqlClientPool);
+  return await getFactFilteredProjects(input, userProjectIds, sqlClientPool, isAdmin);
 }
 
 export const getEnvironmentsByFactSearch: ResolverFn = async (
@@ -211,9 +213,9 @@ export const getFactFilteredEnvironmentIds = async (filterDetails: any, projectI
   return R.map(p => R.prop("id", p), await getFactFilteredEnvironments(filterDetails, projectIdSubset, sqlClientPool));
 };
 
-const getFactFilteredProjects = async (filterDetails: any, projectIdSubset: number[], sqlClientPool) => {
+const getFactFilteredProjects = async (filterDetails: any, projectIdSubset: number[], sqlClientPool, isAdmin: boolean) => {
   let factQuery = knex('project').distinct('project.*').innerJoin('environment', 'environment.project', 'project.id');
-  factQuery = buildContitionsForFactSearchQuery(filterDetails, factQuery, projectIdSubset);
+  factQuery = buildContitionsForFactSearchQuery(filterDetails, factQuery, projectIdSubset, isAdmin);
   const rows = await query(sqlClientPool, factQuery.toString());
   return rows;
 }
@@ -225,10 +227,12 @@ const getFactFilteredEnvironments = async (filterDetails: any, projectIdSubset: 
   return rows;
 }
 
-function buildContitionsForFactSearchQuery(filterDetails: any, factQuery: any, projectIdSubset: number[]) {
+const buildContitionsForFactSearchQuery = (filterDetails: any, factQuery: any, projectIdSubset: number[], isAdmin: boolean = false) => {
   const filters = {};
 
-  if (filterDetails.filters.length > 0) {
+  // if (!filterDetails.filters) throw Error(`No filters given in factFilter`);
+
+  if (filterDetails.filters && filterDetails.filters.length > 0) {
     filterDetails.filters.forEach((e, i) => {
 
       let { lhsTarget, name } = e;
@@ -236,6 +240,8 @@ function buildContitionsForFactSearchQuery(filterDetails: any, factQuery: any, p
       let tabName = `env${i}`;
       if (lhsTarget == "project") {
         switch (name) {
+          case ("id"):
+            break;
           case ("name"):
             break;
           default:
@@ -274,11 +280,13 @@ function buildContitionsForFactSearchQuery(filterDetails: any, factQuery: any, p
     })
   }
   else {
-    factQuery = factQuery.innerJoin(`environment_fact`, 'environment.id', `environment_fact.environment`);
+    if (!isAdmin) {
+      factQuery = factQuery.innerJoin(`environment_fact`, 'environment.id', `environment_fact.environment`);
+    }
   }
 
-  if (projectIdSubset) {
-    factQuery = factQuery.andWhere('environment.project', 'IN', projectIdSubset);
+  if (projectIdSubset && !isAdmin) {
+    factQuery = factQuery.andWhere('project', 'IN', projectIdSubset);
   }
   const DEFAULT_RESULTSET_SIZE = 25;
 

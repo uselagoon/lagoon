@@ -24,7 +24,7 @@ export const LoadingRowsContent = (numRows) => {
 
   for (let i = 0; i < rows; i++) {
     items.push(
-        <Item>
+        <Item key={`item-${i}`}>
             <Item.Content verticalAlign='middle'>
                 <Segment>
                     <Placeholder>
@@ -57,6 +57,12 @@ export const LoadingRowsWithSpinner = (numRows) => {
     </Item.Group>
   )
 };
+
+export const LoadingSpinner = () => {
+    return(
+     <Loader size='tiny' active inline='centered' />
+  )
+}
 
 
 //TODO: This can be replaced with React's useTransition method when concurrent mode is out of experimental.

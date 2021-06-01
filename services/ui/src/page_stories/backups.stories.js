@@ -1,5 +1,5 @@
 import React from 'react';
-import { PageBackups as Backups } from '../pages/backups';
+import { PageBackups as Backups } from 'pages/backups';
 
 export default {
   component: Backups,

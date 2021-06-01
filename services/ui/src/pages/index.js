@@ -1,7 +1,6 @@
 import React from 'react';
 import Router from 'next/router';
 import { queryStringToObject } from 'lib/util';
-
 export default class IndexPage extends React.Component {
   static async getInitialProps({ req, res }) {
     if (res) {

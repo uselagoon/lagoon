@@ -6,7 +6,7 @@ import withState from 'recompose/withState';
 import withProps from 'recompose/withProps';
 import compose from 'recompose/compose';
 import gql from 'graphql-tag';
-import { Query } from '@apollo/client';
+import { Query } from '@apollo/client/react/components';
 
 const { publicRuntimeConfig } = getConfig();
 

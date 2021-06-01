@@ -1,21 +1,26 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import getConfig from 'next/config';
 import { queryStringToObject } from 'lib/util';
 
 const { serverRuntimeConfig, publicRuntimeConfig } = getConfig();
 
-const withKeycloak = (App, initialAuth) => {
-  return class withKeycloak extends React.Component {
-    static getInitialProps(ctx) {
-      return App.getInitialProps(ctx);
+const withKeycloak = (App, initialAuth) => (props) => {
+    const [auth, setAuth] = useState(initialAuth);
+
+    const updateAuth = (keycloak) => {
+      setAuth({
+        apiToken: keycloak.token,
+        authenticated: keycloak.authenticated,
+        logout: keycloak.logout,
+        provider: 'keycloak',
+        providerData: keycloak,
+        user: {
+          username: keycloak.tokenParsed ? keycloak.tokenParsed.preferred_username : 'unauthenticated',
+        }
+      });
     }
 
-    constructor(props) {
-      super(props);
-      this.state = { auth: initialAuth };
-    }
-
-    async componentDidMount() {
+    useEffect(async () => {
       const keycloak = Keycloak({
         url: publicRuntimeConfig.KEYCLOAK_API,
         realm: 'lagoon',
@@ -24,7 +29,7 @@ const withKeycloak = (App, initialAuth) => {
 
       keycloak.onTokenExpired = async () => {
         await keycloak.updateToken();
-        this.setAuth(keycloak);
+        updateAuth(keycloak);
       };
 
       await keycloak.init({
@@ -39,28 +44,19 @@ const withKeycloak = (App, initialAuth) => {
         await keycloak.login(options);
       }
 
-      this.setAuth(keycloak);
-    }
+      updateAuth(keycloak);
+    }, []);
 
-    setAuth(keycloak) {
-      this.setState({
-        auth: {
-          apiToken: keycloak.token,
-          authenticated: keycloak.authenticated,
-          logout: keycloak.logout,
-          provider: 'keycloak',
-          providerData: keycloak,
-          user: {
-            username: keycloak.tokenParsed ? keycloak.tokenParsed.preferred_username : 'unauthenticated',
-          },
-        }
-      });
-    }
 
-    render() {
-      return <App {...this.props} auth={this.state.auth} />;
-    }
-  };
+
+    console.log('auth: ', auth)
+
+
+    return <App {...props} auth={auth} />;
 };
+
+withKeycloak.getInitialProps = ({ ctx }) => {
+  return App.getInitialProps(ctx);
+}
 
 export default withKeycloak;

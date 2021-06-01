@@ -1,5 +1,5 @@
 import React from 'react';
-import Projects from '../pages/projects';
+import Projects from 'pages/projects';
 
 export default {
   component: Projects,

@@ -2,7 +2,7 @@ import React from 'react';
 import * as R from 'ramda';
 import { withRouter } from 'next/router';
 import Head from 'next/head';
-import { Query } from '@apollo/client';
+import { Query } from '@apollo/client/react/components';
 import MainLayout from 'layouts/MainLayout';
 import EnvironmentWithTaskQuery from 'lib/query/EnvironmentWithTask';
 import Breadcrumbs from 'components/Breadcrumbs';
@@ -21,7 +21,11 @@ import { bp } from 'lib/variables';
 /**
  * Displays a task page, given the openshift project and task ID.
  */
-export const PageTask = ({ router }) => (
+export const PageTask = ({ router }) => {
+
+console.log(router);
+
+  return (
   <>
     <Head>
       <title>{`${router.query.taskId} | Task`}</title>
@@ -29,8 +33,8 @@ export const PageTask = ({ router }) => (
     <Query
       query={EnvironmentWithTaskQuery}
       variables={{
-        openshiftProjectName: router.query.openshiftProjectName,
-        taskId: parseInt(router.query.taskId, 10)
+        openshiftProjectName: router.query.environmentSlug,
+        taskId: parseInt(router.query.taskId)
       }}
     >
       {R.compose(
@@ -43,7 +47,7 @@ export const PageTask = ({ router }) => (
           <Breadcrumbs>
             <ProjectBreadcrumb projectSlug={environment.project.name} />
             <EnvironmentBreadcrumb
-              environmentSlug={environment.openshiftProjectName}
+              environmentSlug={environment.environmentSlug}
               projectSlug={environment.project.name}
             />
           </Breadcrumbs>
@@ -69,6 +73,6 @@ export const PageTask = ({ router }) => (
       ))}
     </Query>
   </>
-);
+)};
 
 export default withRouter(PageTask);

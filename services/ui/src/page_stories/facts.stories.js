@@ -1,5 +1,5 @@
 import React from 'react';
-import { PageFacts as Facts } from '../pages/facts';
+import { PageFacts as Facts } from 'pages/facts';
 
 export default {
   component: Facts,

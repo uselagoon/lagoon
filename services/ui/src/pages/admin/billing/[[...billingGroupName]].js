@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Query, useQuery } from '@apollo/client';
+import { useQuery } from '@apollo/client';
+import { Query } from '@apollo/client/react/components';
 import * as R from 'ramda';
 import moment from 'moment';
 import { withRouter } from 'next/router';
@@ -141,9 +142,18 @@ export const AvailabilityError = ({group}) => {
  */
 export const PageBillingGroup = ({ router }) => {
 
-  const { billingGroupName: group, year: yearSlug, month: monthSlug, lang } = router.query;
+  // http://localhost:3003/admin/billing/High%20Cotton%20Billing%20Group?lang=de&year=2021&month=04
+
+  const { billingGroupName, year: yearSlug, month: monthSlug, lang } = router.query || [];
   const [costs, setCosts] = useState([]);
 
+  console.log(billingGroupName);
+  console.log(yearSlug);
+  console.log(monthSlug);
+  console.log(lang);
+
+
+  const group = billingGroupName && billingGroupName.toString();
   const queries = [];
   for (let i = monthsToGraph; i >= 0; i--) {
     queries.push(useQuery(BillingGroupCostsQuery, { variables: { input: { name: group }, month: moment().subtract(i, 'M').format('YYYY-MM').toString() } }))
@@ -207,7 +217,7 @@ export const PageBillingGroup = ({ router }) => {
     setEditModifier(modifier)
   }
 
-  return(
+  return (
   <>
     <Head>
       <title>{`${router.query.billingGroupName} | Project`}</title>
@@ -296,14 +306,12 @@ export const PageBillingGroup = ({ router }) => {
                     </div>
                   </div>
                   <div className="rightColumn">
-                    {
-                      <Query query={AllBillingModifiersQuery} variables={{ input: { name: group } }} >
-                        {R.compose(withQueryLoading, withQueryError)(
-                          ({ data: { allBillingModifiers: modifiers } }) => <AllBillingModifiers group={group} modifiers={modifiers} month={`${year}-${month}`} editHandler={editModifierHandler} />
-                        )}
-                      </Query>
-                    }
-                    <AddBillingModifier group={group} month={`${year}-${month}`} editBillingModifier={editModifier} editHandler={editModifierHandler} />
+                    <Query query={AllBillingModifiersQuery} variables={{ input: { name: group } }} >
+                      {R.compose(withQueryLoading, withQueryError)(
+                        ({ data: { allBillingModifiers: modifiers } }) => <AllBillingModifiers group={group} modifiers={modifiers} month={`${year}-${month}`} editHandler={editModifierHandler} />
+                      )}
+                    </Query>
+                    <AddBillingModifier group={group} month={`${values.year}-${values.month}`} editBillingModifier={editModifier} editHandler={editModifierHandler} />
                   </div>
                 </div>
                 <div className="content-wrapper">

@@ -3,7 +3,7 @@ import * as R from 'ramda';
 import { withRouter } from 'next/router';
 import { useQuery } from "@apollo/client";
 import Head from 'next/head';
-import { Query } from '@apollo/client';
+import { Query } from '@apollo/client/react/components';
 import MainLayout from 'layouts/MainLayout';
 import EnvironmentByOpenshiftProjectNameQuery from 'lib/query/EnvironmentByOpenshiftProjectName';
 import EnvironmentHeader from 'components/EnvironmentHeader';
@@ -21,7 +21,7 @@ import LoadingContent from 'pages/_loading';
  */
 export const PageEnvironment = ({ router }) => {
   const { loading, error, data } = useQuery(EnvironmentByOpenshiftProjectNameQuery, {
-    variables: { openshiftProjectName: router.query.openshiftProjectName }
+    variables: { openshiftProjectName: router.query.environmentSlug }
   });
 
   if (error) {
@@ -34,7 +34,7 @@ export const PageEnvironment = ({ router }) => {
   return (
   <>
     <Head>
-      <title>{`${router.query.openshiftProjectName} | Environment`}</title>
+      <title>{`${router.query.environmentSlug} | Environment`}</title>
     </Head>
     <MainLayout>
       <div className="content-wrapper">

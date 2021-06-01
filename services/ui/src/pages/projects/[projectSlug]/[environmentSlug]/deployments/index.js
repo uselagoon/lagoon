@@ -2,7 +2,7 @@ import React from 'react';
 import * as R from 'ramda';
 import { withRouter } from 'next/router';
 import Head from 'next/head';
-import { Query } from '@apollo/client';
+import { Query } from '@apollo/client/react/components';
 import MainLayout from 'layouts/MainLayout';
 import EnvironmentWithDeploymentsQuery from 'lib/query/EnvironmentWithDeployments';
 import DeploymentsSubscription from 'lib/subscription/Deployments';
@@ -23,18 +23,18 @@ export const PageDeployments = ({ router }) => {
   return (
     <>
       <Head>
-        <title>{`${router.query.openshiftProjectName} | Deployments`}</title>
+        <title>{`${router.query.environmentSlug} | Deployments`}</title>
       </Head>
       <Query
         query={EnvironmentWithDeploymentsQuery}
-        variables={{ openshiftProjectName: router.query.openshiftProjectName }}
+        variables={{ openshiftProjectName: router.query.environmentSlug }}
       >
         {R.compose(
-          // withQueryLoading,
+          withQueryLoading,
           withQueryError,
-          // withEnvironmentRequired
-        )(({ data: { environment }, loading, subscribeToMore }) => {
-          environment && subscribeToMore({
+          withEnvironmentRequired
+        )(({ data: { environment }, loading, error, subscribeToMore }) => {
+          subscribeToMore({
             document: DeploymentsSubscription,
             variables: { environment: environment.id },
             updateQuery: (prevStore, { subscriptionData }) => {

@@ -3,7 +3,7 @@ import * as R from 'ramda';
 import moment from 'moment';
 import { withRouter } from 'next/router';
 import Head from 'next/head';
-import { Query } from '@apollo/client';
+import { Query } from '@apollo/client/react/components';
 import MainLayout from 'layouts/MainLayout';
 import css from 'styled-jsx/css';
 

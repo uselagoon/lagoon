@@ -199,7 +199,7 @@ const Projects = ({ projects = [], loading, onProjectSelectChange }) => {
                       </div>
                       <div className="facts">
                         {project.environments && project.environments.map((e, index) => (
-                          e.environmentType === 'production' && e.facts.length > 0 &&
+                          // e.environmentType === 'production' && e.facts.length > 0 &&
                           <>
                             <h6><label>Key Facts</label></h6>
                             {e.facts.map(fact => {

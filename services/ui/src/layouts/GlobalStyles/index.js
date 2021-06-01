@@ -30,6 +30,15 @@ const GlobalStyles = ({ children }) => (
       .navigation {
         display: flex;
         min-width: 10%;
+        padding: 20px;
+      }
+
+      .content-wrapper-full-width {
+        background-color: ${color.almostWhite};
+        flex: 1;
+        flex-direction: column;
+        padding: 0 10em;
+        width: 100%;
       }
 
       .content-wrapper {

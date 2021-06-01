@@ -7,12 +7,6 @@ import { makeExecutableSchema, addMockFunctionsToSchema } from 'graphql-tools';
 import typeDefs from 'api/dist/typeDefs';
 import mocks, { seed } from 'api/src/mocks';
 
-import introspectionQueryResultData from 'api/src/fragmentTypes.json';
-
-const fragmentMatcher = new IntrospectionFragmentMatcher({
-  introspectionQueryResultData
-});
-
 // Make a GraphQL schema without resolvers.
 const schema = makeExecutableSchema({ typeDefs });
 
@@ -21,7 +15,7 @@ addMockFunctionsToSchema({ schema, mocks });
 
 // Create a mocked Apollo client for the ApolloProvider.
 const client = new ApolloClient({
-  cache: new InMemoryCache({fragmentMatcher}),
+  cache: new InMemoryCache(),
   link: new SchemaLink({ schema })
 });
 

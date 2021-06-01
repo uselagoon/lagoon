@@ -7,7 +7,7 @@ export default gql`
       name
       created
       gitUrl
-      environments(factFilter: $input) {
+      environments {
         id
         name
         route

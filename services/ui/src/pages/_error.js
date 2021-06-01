@@ -1,7 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-// import Head from 'next-server/head';
+import Head from 'next/head';
 import StatusLayout from 'layouts/StatusLayout';
+import { LoadingSpinner } from 'components/Loading';
 
 const statusCodes = {
   400: 'Bad Request',
@@ -14,40 +15,28 @@ const statusCodes = {
 /**
  * Displays an error page, given a status code and optional error message.
  */
-export default class Error extends React.Component {
-  static displayName = 'ErrorPage';
+export const Error = ({ statusCode, errorMessage }) => {
+  const displayName = 'ErrorPage';
+  const title = statusCodes[statusCode] || 'An unexpected error has occurred';
 
-  static getInitialProps({ res, err }) {
-    const statusCode =
-      res && res.statusCode ? res.statusCode : err ? err.statusCode : 404;
-    return { statusCode };
-  }
+  return (
+    <StatusLayout>
+      <Head>
+        <title>
+          {statusCode}: {title}
+        </title>
+      </Head>
+      <h2>{title}</h2>
+      <LoadingSpinner />
+      {errorMessage && <p>{errorMessage}</p>}
+    </StatusLayout>
+  );
 
-  render() {
-    const { statusCode, errorMessage } = this.props;
-    const title = statusCodes[statusCode] || 'An unexpected error has occurred';
-
-    return (
-      <StatusLayout>
-        {/* <Head>
-          <title>
-            {statusCode}: {title}
-          </title>
-        </Head> */}
-        <h2>{title}</h2>
-        {errorMessage && <p>{errorMessage}</p>}
-      </StatusLayout>
-    );
-  }
 }
 
-export class ErrorNoHeader extends React.Component {
-    static displayName = 'ErrorNoHeader';
-
-    render() {
-        const { errorMessage } = this.props;
-        return (errorMessage && <p>{errorMessage}</p>);
-    }
+export const ErrorNoHeader = ({ statusCode, errorMessage }) => {
+  const displayName = 'ErrorNoHeader';
+  return (errorMessage && <p>{errorMessage}</p>);
 }
 
 if (process.env.NODE_ENV !== 'production') {
@@ -55,3 +44,10 @@ if (process.env.NODE_ENV !== 'production') {
     errorMessage: PropTypes.string,
   };
 }
+
+Error.getInitialProps = ({ res, err }) => {
+  const statusCode = res ? res.statusCode : err ? err.statusCode : 404
+  return { statusCode }
+}
+
+export default Error;

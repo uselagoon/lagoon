@@ -1,5 +1,5 @@
 import React from 'react';
-import { PageEnvironment as Environment } from '../pages/environment';
+import { PageEnvironment as Environment } from 'pages/environment';
 
 export default {
   component: Environment,

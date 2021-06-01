@@ -2,7 +2,7 @@ import React from 'react';
 import * as R from 'ramda';
 import { withRouter } from 'next/router';
 import Head from 'next/head';
-import { Query } from '@apollo/client';
+import { Query } from '@apollo/client/react/components';
 import MainLayout from 'layouts/MainLayout';
 import EnvironmentWithBackupsQuery from 'lib/query/EnvironmentWithBackups';
 import BackupsSubscription from 'lib/subscription/Backups';
@@ -22,15 +22,15 @@ import { bp, color } from 'lib/variables';
 export const PageBackups = ({ router }) => (
   <>
     <Head>
-      <title>{`${router.query.openshiftProjectName} | Backups`}</title>
+      <title>{`${router.query.environmentSlug} | Backups`}</title>
     </Head>
     <Query
       query={EnvironmentWithBackupsQuery}
-      variables={{ openshiftProjectName: router.query.openshiftProjectName }}
+      variables={{ openshiftProjectName: router.query.environmentSlug }}
     >
       {R.compose(
-        withQueryLoading,
-        withQueryError,
+        // withQueryLoading,
+        // withQueryError,
         withEnvironmentRequired
       )(({ data: { environment }, subscribeToMore }) => {
         subscribeToMore({
@@ -87,7 +87,7 @@ export const PageBackups = ({ router }) => (
             <Breadcrumbs>
               <ProjectBreadcrumb projectSlug={environment.project.name} />
               <EnvironmentBreadcrumb
-                environmentSlug={environment.openshiftProjectName}
+                environmentSlug={environment.environmentSlug}
                 projectSlug={environment.project.name}
               />
             </Breadcrumbs>

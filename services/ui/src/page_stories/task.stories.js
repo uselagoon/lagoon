@@ -1,5 +1,5 @@
 import React from 'react';
-import { PageTask as Task } from '../pages/task';
+import { PageTask as Task } from 'pages/task';
 
 export default {
   component: Task,

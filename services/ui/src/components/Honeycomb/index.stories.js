@@ -1,6 +1,6 @@
 import React from 'react';
 import Honeycomb from './index';
-import { Query } from '@apollo/client';
+import { Query } from '@apollo/client/react/components';
 import AllProjectsProblemsQuery from 'lib/query/AllProjectsProblems';
 import mocks, { seed } from "api/src/mocks";
 

@@ -2,7 +2,7 @@ import React from 'react';
 import * as R from 'ramda';
 import { withRouter } from 'next/router';
 import Head from 'next/head';
-import { Query } from '@apollo/client';
+import { Query } from '@apollo/client/react/components';
 import MainLayout from 'layouts/MainLayout';
 import EnvironmentWithProblemsQuery from 'lib/query/EnvironmentWithProblems';
 import Breadcrumbs from 'components/Breadcrumbs';
@@ -21,11 +21,11 @@ import { bp, color } from 'lib/variables';
 export const PageProblems = ({ router }) => (
   <>
     <Head>
-      <title>{`${router.query.openshiftProjectName} | Problems`}</title>
+      <title>{`${router.query.environmentSlug} | Problems`}</title>
     </Head>
     <Query
       query={EnvironmentWithProblemsQuery}
-      variables={{ openshiftProjectName: router.query.openshiftProjectName }}
+      variables={{ openshiftProjectName: router.query.environmentSlug }}
     >
       {R.compose(
         withQueryLoading,
@@ -50,7 +50,7 @@ export const PageProblems = ({ router }) => (
             <Breadcrumbs>
               <ProjectBreadcrumb projectSlug={environment.project.name} />
               <EnvironmentBreadcrumb
-                environmentSlug={environment.openshiftProjectName}
+                environmentSlug={environment.environmentSlug}
                 projectSlug={environment.project.name}
               />
             </Breadcrumbs>

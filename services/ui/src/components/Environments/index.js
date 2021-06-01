@@ -31,7 +31,7 @@ const { className: boxClassName, styles: boxStyles } = css.resolve`
       background-size: 40px 50px;
       min-height: 150px;
       padding: 19px 20px;
-      
+
       &.detailed {
         min-height: 270px;
       }
@@ -194,7 +194,7 @@ const Environments = ({ environments = [], display }) => {
             }
           }
         }
-        
+
         .productionLabel {
           color: ${color.green};
           ${fontSize(13)};
@@ -275,7 +275,7 @@ const Environments = ({ environments = [], display }) => {
             z-index: 0;
           }
         }
-        
+
         .facts {
           display: flex;
           font-size: 0.8em;

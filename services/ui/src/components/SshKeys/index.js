@@ -2,12 +2,16 @@ import React from 'react';
 import css from 'styled-jsx/css';
 import moment from 'moment';
 import Button from 'components/Button';
-import { Mutation } from '@apollo/client';
+import { useMutation } from '@apollo/client';
 import DeleteSshKeyById from 'lib/mutation/DeleteSshKeyById';
 import Me from 'lib/query/Me';
 import { bp, color, fontSize } from 'lib/variables';
 
 const SshKeys = ({me: { id, email, sshKeys: keys }}) => {
+
+  const [deleteSshKeyById, { data, loading, error, called }] = useMutation(DeleteSshKeyById, {
+    refetchQueries: [{ query: Me }]
+  });
 
   return(
     <div className="keys">
@@ -29,28 +33,15 @@ const SshKeys = ({me: { id, email, sshKeys: keys }}) => {
                 .local()
                 .format('DD MMM YYYY, HH:mm:ss (Z)')}</div>
             <div className="delete">
-              <Mutation mutation={DeleteSshKeyById} refetchQueries={[{ query: Me}]}>
-                {(deleteSshKeyById, { loading, called, error, data }) => {
-
-                  if (error) {
-                    return <div>{error.message}</div>;
+              {error && <div>{error.message}</div>}
+              {called && <div>Deleting SSH Key...</div>}
+              <Button variant='red' action={() => deleteSshKeyById({
+                variables: {
+                  input: {
+                    id: key.id,
                   }
-
-                  if (called) {
-                    return <div>Deleting SSH Key...</div>;
-                  }
-
-                  return (
-                    <Button variant='red' action={() => deleteSshKeyById({
-                      variables: {
-                        input: {
-                          id: key.id,
-                        }
-                      }
-                    })}>Delete</Button>
-                  );
-                }}
-              </Mutation>
+                }
+              })}>Delete</Button>
             </div>
           </div>
         ))}

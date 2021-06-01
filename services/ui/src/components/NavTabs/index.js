@@ -8,7 +8,6 @@ import ProblemsLink from 'components/link/Problems';
 import FactsLink from 'components/link/Facts';
 import RouteLink from 'components/link/Route';
 import { bp, color } from 'lib/variables';
-import problems from '../../pages/problems';
 
 const { className: aClassName, styles: aStyles } = css.resolve`
   a {

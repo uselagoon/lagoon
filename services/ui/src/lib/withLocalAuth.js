@@ -3,7 +3,7 @@ import getConfig from 'next/config';
 
 const { serverRuntimeConfig, publicRuntimeConfig } = getConfig();
 
- const withLocalAuth = (App, initialAuth) => {
+const withLocalAuth = (App, initialAuth) => {
   return class withLocalAuth extends React.Component {
     static getInitialProps(ctx) {
       return App.getInitialProps(ctx);

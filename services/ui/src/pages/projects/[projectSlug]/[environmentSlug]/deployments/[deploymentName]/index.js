@@ -2,7 +2,7 @@ import React from 'react';
 import * as R from 'ramda';
 import { withRouter } from 'next/router';
 import Head from 'next/head';
-import { Query } from '@apollo/client';
+import { Query } from '@apollo/client/react/components';
 import MainLayout from 'layouts/MainLayout';
 import EnvironmentWithDeploymentQuery from 'lib/query/EnvironmentWithDeployment';
 import Breadcrumbs from 'components/Breadcrumbs';
@@ -22,6 +22,9 @@ import { bp } from 'lib/variables';
  * Displays a deployment page, given the openshift project and deployment name.
  */
 export const PageDeployment = ({ router }) => {
+
+  console.log(router);
+
   return (
     <>
       <Head>
@@ -30,7 +33,7 @@ export const PageDeployment = ({ router }) => {
       <Query
         query={EnvironmentWithDeploymentQuery}
         variables={{
-          openshiftProjectName: router.query.openshiftProjectName,
+          openshiftProjectName: router.query.environmentSlug,
           deploymentName: router.query.deploymentName
         }}
       >
@@ -44,7 +47,7 @@ export const PageDeployment = ({ router }) => {
             <Breadcrumbs>
               <ProjectBreadcrumb projectSlug={environment.project.name} />
               <EnvironmentBreadcrumb
-                environmentSlug={environment.openshiftProjectName}
+                environmentSlug={environment.environmentSlug}
                 projectSlug={environment.project.name}
               />
             </Breadcrumbs>

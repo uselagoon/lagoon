@@ -6,18 +6,18 @@ import giturlparse from 'git-url-parse';
 import Environments from 'components/Environments';
 import { bp, color, fontSize } from 'lib/variables';
 
-import { Mutation } from '@apollo/client';
+import { Mutation } from '@apollo/client/react/components';
 
 import ProjectByNameQuery from 'lib/query/ProjectByName';
 
 const Project = ({ project }) => {
   const [copied, setCopied] = useState(false);
-  const gitUrlParsed = giturlparse(project.gitUrl);
-  const gitLink = `${gitUrlParsed.resource}/${gitUrlParsed.full_name}`;
-  const environmentCount = R.countBy(R.prop('environmentType'))(
+  const gitUrlParsed = project && giturlparse(project.gitUrl);
+  const gitLink = gitUrlParsed && `${gitUrlParsed.resource}/${gitUrlParsed.full_name}`;
+  const environmentCount = project && R.countBy(R.prop('environmentType'))(
     project.environments
   );
-  const developEnvironmentCount = R.propOr(0, 'development', environmentCount);
+  const developEnvironmentCount = environmentCount && R.propOr(0, 'development', environmentCount);
 
   return (
     <div className="details">

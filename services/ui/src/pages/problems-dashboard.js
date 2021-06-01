@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import * as R from 'ramda';
 import Head from 'next/head';
-import { Query } from '@apollo/client';
+import { Query } from '@apollo/client/react/components';
 import {useQuery} from "@apollo/client";
 import AllProblemsQuery from 'lib/query/AllProblems';
 import getSeverityEnumQuery, {getSourceOptions} from 'components/Filters/helpers';

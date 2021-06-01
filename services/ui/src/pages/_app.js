@@ -3,7 +3,6 @@ import App, { createUrl } from 'next/app';
 import React from 'react';
 import Router from 'next/router';
 import NProgress from 'nprogress';
-// import '../static/nprogress.css';
 import Head from 'next/head';
 import getConfig from 'next/config';
 import Typekit from 'react-typekit';
@@ -11,9 +10,10 @@ import Favicon from 'components/Favicon';
 import Authenticator, { AuthContext } from 'lib/Authenticator';
 import ApiConnection from 'lib/ApiConnection';
 
+import '../static/nprogress.css';
 import 'semantic-ui-css/semantic.min.css';
 import 'components/Honeycomb/styling.css';
-import '../admin/overrides.css';
+import 'pages/admin/overrides.css';
 
 const { serverRuntimeConfig, publicRuntimeConfig } = getConfig();
 

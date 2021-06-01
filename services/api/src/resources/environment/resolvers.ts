@@ -73,7 +73,6 @@ export const getEnvironmentsByProjectId: ResolverFn = async (
     });
   }
 
-
   let filterEnvironments = false;
   let filteredEnvironments = [];
   if(args.factFilter) {

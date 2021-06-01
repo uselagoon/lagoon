@@ -1,7 +1,7 @@
 import React from 'react';
 import getConfig from 'next/config';
 import { ApolloClient, InMemoryCache } from '@apollo/client';
-import { ApolloProvider as ApolloHooksProvider } from '@apollo/client'
+import { ApolloProvider as ApolloHooksProvider } from '@apollo/client';
 import { HttpLink } from 'apollo-link-http';
 import { WebSocketLink } from 'apollo-link-ws';
 import { onError } from 'apollo-link-error';

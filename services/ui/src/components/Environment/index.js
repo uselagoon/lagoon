@@ -1,7 +1,7 @@
 import React from 'react';
 import moment from 'moment';
 import giturlparse from 'git-url-parse';
-import { Mutation } from '@apollo/client';
+import { useMutation } from '@apollo/client';
 import DeleteEnvironmentMutation from 'lib/mutation/DeleteEnvironment';
 import DeleteConfirm from 'components/DeleteConfirm';
 import { bp, color } from 'lib/variables';
@@ -15,10 +15,38 @@ import FactsLink from 'components/link/Facts';
  * Displays the environment information.
  */
 const Environment = ({ environment }) => {
+
+  const [switchActiveStandby, {
+    data: switchActiveStandbyResult,
+    loading: loadingSwitchActiveStandbyResult,
+    error: errorSwitchActiveStandby,
+    called: calledSwitchActiveStandby
+  }] = useMutation(SwitchActiveStandbyMutation);
+
+  const [deleteEnvironment, {
+    data: deleteEnvironmentResult,
+    loading: deleteEnvironmentLoading,
+    error: deleteEnvironmentError,
+    called: calledDeleteEnvironment
+  }] = useMutation(DeleteEnvironmentMutation);
+
   const gitUrlParsed = giturlparse(environment.project.gitUrl);
   const gitBranchLink = `${gitUrlParsed.resource}/${
     gitUrlParsed.full_name
   }/tree/${environment.name}`;
+
+  const switchActiveBranch = () => {
+    const input = {
+      project: {
+        name: environment.project.name
+      }
+    }
+
+    switchActiveStandby({ variables: { input } });
+    Router.push(`/projects/${environment.project.name}/${environment.openshiftProjectName}/tasks`)
+  }
+
+  console.log(environment);
 
   return (
     <div className="details">
@@ -126,7 +154,7 @@ const Environment = ({ environment }) => {
             <div className="field">
                 <div key={environment.route}>
                   <RouteLink
-                    environmentSlug={environment.openshiftProjectName}
+                    environmentSlug={environment.environmentSlug}
                     projectSlug={environment.project.name}
                     routeSlug={environment.route.replace(/(^\w+:|^)\/\//, '')}
                   >
@@ -164,7 +192,7 @@ const Environment = ({ environment }) => {
               ))}
             </div>
             <FactsLink
-              environmentSlug={environment.openshiftProjectName}
+              environmentSlug={environment.environmentSlug}
               projectSlug={environment.project.name}
               className="facts-link"
             >
@@ -173,62 +201,35 @@ const Environment = ({ environment }) => {
           </div>
         }
       </div>
-      {environment.project.productionEnvironment && environment.project.standbyProductionEnvironment && environment.environmentType == 'production' && environment.project.standbyProductionEnvironment == environment.name && (
-      <Mutation mutation={SwitchActiveStandbyMutation}>
-        {(switchActiveStandby, { loading, called, error, data }) => {
-          const switchActiveBranch = () => {
-            const input = {
-              project:{
-                name: environment.project.name
-              }
-            }
-
-            switchActiveStandby({ variables: { input } });
-            Router.push(`/projects/${environment.project.name}/${environment.openshiftProjectName}/tasks`)
-          }
-
-          if (!error && called && loading) {
-            return <div>Switching Standby Environment to Active...</div>;
-          }
-
-          return (
+      {environment.project.productionEnvironment && environment.project.standbyProductionEnvironment && environment.environmentType == 'production' && environment.project.standbyProductionEnvironment == environment.name &&
+          <>
+            {!errorSwitchActiveStandby && calledSwitchActiveStandby && loadingSwitchActiveStandbyResult && <div>Switching Standby Environment to Active...</div>}
             <ActiveStandbyConfirm
               activeEnvironment={environment.project.productionEnvironment}
               standbyEnvironment={environment.project.standbyProductionEnvironment}
               onProceed={switchActiveBranch}
             />
-          );
-        }}
-      </Mutation>
-      )}
-      <Mutation mutation={DeleteEnvironmentMutation}>
-        {(deleteEnvironment, { loading, called, error, data }) => {
-          if (error) {
-            return <div>{error.message}</div>;
-          }
+          </>
+        }
 
-          if (called) {
-            return <div>Delete queued</div>;
-          }
-
-          return (
-            <DeleteConfirm
-              deleteType="environment"
-              deleteName={environment.name}
-              onDelete={() =>
-                deleteEnvironment({
-                  variables: {
-                    input: {
-                      name: environment.name,
-                      project: environment.project.name
-                    }
-                  }
-                })
+      {deleteEnvironmentError && <div>{deleteEnvironmentError.message}</div>}
+      {calledDeleteEnvironment && !deleteEnvironmentError && <div>Delete queued</div>}
+      {!deleteEnvironmentLoading && !deleteEnvironmentError &&
+        <DeleteConfirm
+          deleteType="environment"
+          deleteName={environment.name}
+          onDelete={() =>
+            deleteEnvironment({
+              variables: {
+                input: {
+                  name: environment.name,
+                  project: environment.project.name
+                }
               }
-            />
-          );
-        }}
-      </Mutation>
+            })
+          }
+        />
+      }
       <style jsx>{`
         .details {
           width: 100%;

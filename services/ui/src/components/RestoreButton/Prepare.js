@@ -1,6 +1,6 @@
 import React from 'react';
 import gql from 'graphql-tag';
-import { Mutation } from '@apollo/client';
+import { Mutation } from '@apollo/client/react/components';
 import Button from 'components/Button';
 
 const addRestore = gql`

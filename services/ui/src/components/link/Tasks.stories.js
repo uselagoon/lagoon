@@ -12,7 +12,7 @@ const environment = mocks.Environment();
 
 export const Default = () => (
   <TasksLink
-    environmentSlug={environment.openshiftProjectName}
+    environmentSlug={environment.environmentSlug}
     projectSlug={environment.project.name}
   >
     Tasks link

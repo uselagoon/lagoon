@@ -1,5 +1,5 @@
 import React from 'react';
-import { Mutation } from '@apollo/client';
+import { Mutation } from '@apollo/client/react/components';
 import gql from 'graphql-tag';
 import ReactSelect from 'react-select';
 import Button from 'components/Button';

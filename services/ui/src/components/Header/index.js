@@ -14,7 +14,7 @@ const Header = ({ logo }) => (
   <div className='header'>
     <Link href="/">
       <a className="home">
-	<img
+	    <img
           alt="Home"
           src={logo ? logo : `data:image/svg+xml;utf8,${
             publicRuntimeConfig.LAGOON_UI_ICON

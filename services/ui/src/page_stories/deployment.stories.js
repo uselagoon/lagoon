@@ -1,5 +1,5 @@
 import React from 'react';
-import { PageDeployment as Deployment } from '../pages/deployment';
+import { PageDeployment as Deployment } from 'pages/deployment';
 
 export default {
   component: Deployment,
