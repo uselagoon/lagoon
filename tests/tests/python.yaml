@@ -12,8 +12,8 @@
 
 - include: python/deploy-branch.yaml
   vars:
-    testname: "PYTHON 3.7 {{ cluster_type|upper }}"
-    python_version: 3.7
+    testname: "PYTHON 3.9 {{ cluster_type|upper }}"
+    python_version: 3.9
     git_repo_name: python.git
     project: ci-python-{{ cluster_type }}
     branch: python37
