@@ -5,6 +5,7 @@ import { query } from '../../util/db';
 import { Sql } from './sql';
 import { Sql as taskSql } from '../task/sql';
 
+
 const generateDownloadLink = file => {
   const url = s3Client.getSignedUrl('getObject', {
     Key: file.s3Key,
@@ -45,7 +46,7 @@ export const getFilesByTaskId: ResolverFn = async (
 export const uploadFilesForTask: ResolverFn = async (
   root,
   { input: { task, files } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const rowsPerms = await query(
     sqlClientPool,
@@ -89,13 +90,19 @@ export const uploadFilesForTask: ResolverFn = async (
 
   const rows = await query(sqlClientPool, taskSql.selectTask(task));
 
+  userActivityLogger.user_action(`User uploaded files for task '${task}' on project '${R.path(['0', 'pid'], rowsPerms)}'`, {
+    data: {
+      rows
+    }
+  });
+
   return R.prop(0, rows);
 };
 
 export const deleteFilesForTask: ResolverFn = async (
   root,
   { input: { id } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const rowsPerms = await query(sqlClientPool, taskSql.selectPermsForTask(id));
 
@@ -116,6 +123,12 @@ export const deleteFilesForTask: ResolverFn = async (
   await s3Client.deleteObjects(params).promise();
 
   await query(sqlClientPool, Sql.deleteFileTask(id));
+
+  userActivityLogger.user_action(`User deleted files for task '${id}'`, {
+    data: {
+      id
+    }
+  });
 
   return 'success';
 };

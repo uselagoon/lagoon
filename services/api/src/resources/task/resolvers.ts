@@ -128,7 +128,7 @@ export const addTask: ResolverFn = async (
       execute: executeRequest
     }
   },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   await envValidators(sqlClientPool).environmentExists(environment);
   const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(
@@ -162,13 +162,32 @@ export const addTask: ResolverFn = async (
     execute
   });
 
+  userActivityLogger.user_action(`User added task '${name}'`, {
+    payload: {
+      input: {
+        id,
+        name,
+        status,
+        created,
+        started,
+        completed,
+        environment,
+        service,
+        command,
+        remoteId,
+        execute: executeRequest,
+      },
+      data: taskData
+    }
+  });
+
   return taskData;
 };
 
 export const deleteTask: ResolverFn = async (
   root,
   { input: { id } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const rows = await query(sqlClientPool, Sql.selectPermsForTask(id));
   await hasPermission('task', 'delete', {
@@ -176,6 +195,14 @@ export const deleteTask: ResolverFn = async (
   });
 
   await query(sqlClientPool, Sql.deleteTask(id));
+
+  userActivityLogger.user_action(`User deleted task '${id}'`, {
+    payload: {
+      input: {
+        id,
+      }
+    }
+  });
 
   return 'success';
 };
@@ -199,7 +226,7 @@ export const updateTask: ResolverFn = async (
       }
     }
   },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   // Check access to modify task as it currently stands
   const curPerms = await query(sqlClientPool, Sql.selectPermsForTask(id));
@@ -244,13 +271,30 @@ export const updateTask: ResolverFn = async (
 
   pubSub.publish(EVENTS.TASK.UPDATED, taskData);
 
+  userActivityLogger.user_action(`User updated task '${id}'`, {
+    payload: {
+      patch: {
+        name,
+        status,
+        created,
+        started,
+        completed,
+        environment,
+        service,
+        command,
+        remoteId
+      },
+      data: taskData
+    }
+  });
+
   return taskData;
 };
 
 export const taskDrushArchiveDump: ResolverFn = async (
   root,
   { environment: environmentId },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   await envValidators(sqlClientPool).environmentExists(environmentId);
   await envValidators(sqlClientPool).environmentHasService(
@@ -280,13 +324,19 @@ TOKEN="$(ssh -p $TASK_SSH_PORT -t lagoon@$TASK_SSH_HOST token)" && curl -sS "$TA
     execute: true
   });
 
+  userActivityLogger.user_action(`User triggered a Drush Archive Dump task on environment '${environmentId}'`, {
+    payload: {
+      data: taskData
+    }
+  });
+
   return taskData;
 };
 
 export const taskDrushSqlDump: ResolverFn = async (
   root,
   { environment: environmentId },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   await envValidators(sqlClientPool).environmentExists(environmentId);
   await envValidators(sqlClientPool).environmentHasService(
@@ -316,13 +366,19 @@ TOKEN="$(ssh -p $TASK_SSH_PORT -t lagoon@$TASK_SSH_HOST token)" && curl -sS "$TA
     execute: true
   });
 
+  userActivityLogger.user_action(`User triggered a Drush SQL Dump task on environment '${environmentId}'`, {
+    payload: {
+      data: taskData
+    }
+  });
+
   return taskData;
 };
 
 export const taskDrushCacheClear: ResolverFn = async (
   root,
   { environment: environmentId },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   await envValidators(sqlClientPool).environmentExists(environmentId);
   await envValidators(sqlClientPool).environmentHasService(
@@ -355,13 +411,19 @@ export const taskDrushCacheClear: ResolverFn = async (
     execute: true
   });
 
+  userActivityLogger.user_action(`User triggered a Drush cache clear task on environment '${environmentId}'`, {
+    payload: {
+      data: taskData
+    }
+  });
+
   return taskData;
 };
 
 export const taskDrushCron: ResolverFn = async (
   root,
   { environment: environmentId },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   await envValidators(sqlClientPool).environmentExists(environmentId);
   await envValidators(sqlClientPool).environmentHasService(
@@ -383,6 +445,12 @@ export const taskDrushCron: ResolverFn = async (
     execute: true
   });
 
+  userActivityLogger.user_action(`User triggered a Drush cron task on environment '${environmentId}'`, {
+    payload: {
+      data: taskData
+    }
+  });
+
   return taskData;
 };
 
@@ -392,7 +460,7 @@ export const taskDrushSqlSync: ResolverFn = async (
     sourceEnvironment: sourceEnvironmentId,
     destinationEnvironment: destinationEnvironmentId
   },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   await envValidators(sqlClientPool).environmentExists(sourceEnvironmentId);
   await envValidators(sqlClientPool).environmentExists(
@@ -437,6 +505,12 @@ export const taskDrushSqlSync: ResolverFn = async (
     execute: true
   });
 
+  userActivityLogger.user_action(`User triggered a Drush SQL sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`, {
+    payload: {
+      data: taskData
+    }
+  });
+
   return taskData;
 };
 
@@ -446,7 +520,7 @@ export const taskDrushRsyncFiles: ResolverFn = async (
     sourceEnvironment: sourceEnvironmentId,
     destinationEnvironment: destinationEnvironmentId
   },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   await envValidators(sqlClientPool).environmentExists(sourceEnvironmentId);
   await envValidators(sqlClientPool).environmentExists(
@@ -491,13 +565,19 @@ export const taskDrushRsyncFiles: ResolverFn = async (
     execute: true
   });
 
+  userActivityLogger.user_action(`User triggered an rsync sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`, {
+    payload: {
+      data: taskData
+    }
+  });
+
   return taskData;
 };
 
 export const taskDrushUserLogin: ResolverFn = async (
   root,
   { environment: environmentId },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   await envValidators(sqlClientPool).environmentExists(environmentId);
   await envValidators(sqlClientPool).environmentHasService(
@@ -517,6 +597,12 @@ export const taskDrushUserLogin: ResolverFn = async (
     service: 'cli',
     command: `drush uli`,
     execute: true
+  });
+
+  userActivityLogger.user_action(`User triggered a Drush user login task on '${environmentId}'`, {
+    payload: {
+      data: taskData
+    }
   });
 
   return taskData;

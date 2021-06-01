@@ -1,5 +1,7 @@
 import * as R from 'ramda';
+// @ts-ignore
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+// @ts-ignore
 import { createRemoveTask } from '@lagoon/commons/dist/tasks';
 import { ResolverFn } from '../';
 import { isPatchEmpty, query, knex } from '../../util/db';
@@ -298,13 +300,14 @@ export const getEnvironmentByKubernetesNamespaceName: ResolverFn = async (
 export const addOrUpdateEnvironment: ResolverFn = async (
   root,
   { input },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const inputDefaults = {
     deployHeadRef: null,
     deployTitle: null
   };
 
+  // @ts-ignore
   const pid = input.project.toString();
   const openshiftProjectName =
     input.kubernetesNamespaceName || input.openshiftProjectName;
@@ -342,13 +345,20 @@ export const addOrUpdateEnvironment: ResolverFn = async (
   ]);
   const environment = withK8s[0];
 
+  userActivityLogger.user_action(`User added or updated environment on project '${openshiftProjectName}'`, {
+    payload: {
+      input,
+      data: environment
+    }
+  });
+
   return environment;
 };
 
 export const addOrUpdateEnvironmentStorage: ResolverFn = async (
   root,
   { input: unformattedInput },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   await hasPermission('environment', 'storage');
 
@@ -370,6 +380,14 @@ export const addOrUpdateEnvironmentStorage: ResolverFn = async (
     input
   );
   const environment = R.path([0, 0], rows);
+  const { name: projectName } = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environment['environment']);
+
+  userActivityLogger.user_action(`User updated environment storage on project '${projectName}'`, {
+    payload: {
+      projectName,
+      input
+    }
+  });
 
   return environment;
 };
@@ -377,7 +395,7 @@ export const addOrUpdateEnvironmentStorage: ResolverFn = async (
 export const deleteEnvironment: ResolverFn = async (
   root,
   { input: { project: projectName, name, execute } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const projectId = await projectHelpers(sqlClientPool).getProjectIdByName(
     projectName
@@ -488,13 +506,21 @@ export const deleteEnvironment: ResolverFn = async (
     `*[${data.projectName}]* Deleting environment \`${environment.name}\``
   );
 
+  userActivityLogger.user_action(`User deleted environment '${environment.name}' on project '${projectName}'`, {
+    payload: {
+      projectName,
+      environment,
+      data
+    }
+  });
+
   return 'success';
 };
 
 export const updateEnvironment: ResolverFn = async (
   root,
   { input },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   if (isPatchEmpty(input)) {
     throw new Error('input.patch requires at least 1 attribute');
@@ -543,6 +569,26 @@ export const updateEnvironment: ResolverFn = async (
   const rows = await query(sqlClientPool, Sql.selectEnvironmentById(id));
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
+  userActivityLogger.user_action(`User updated environment '${curEnv.name}' on project '${curEnv.project}'`, {
+    payload: {
+      openshiftProjectName,
+      patch: {
+        project: input.patch.project,
+        deployType: input.patch.deployType,
+        deployBaseRef: input.patch.deployBaseRef,
+        deployHeadRef: input.patch.deployHeadRef,
+        deployTitle: input.patch.deployTitle,
+        environmentType: input.patch.environmentType,
+        openshiftProjectName,
+        route: input.patch.route,
+        routes: input.patch.routes,
+        monitoringUrls: input.patch.monitoringUrls,
+        autoIdle: input.patch.autoIdle,
+      },
+      data: withK8s
+    }
+  });
+
   return R.prop(0, withK8s);
 };
 
@@ -575,11 +621,17 @@ export const getAllEnvironments: ResolverFn = async (
 export const deleteAllEnvironments: ResolverFn = async (
   root,
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   await hasPermission('environment', 'deleteAll');
 
   await query(sqlClientPool, Sql.truncateEnvironment());
+
+  userActivityLogger.user_action(`User deleted all environments'`, {
+    payload: {
+      args
+    }
+  });
 
   // TODO: Check rows for success
   return 'success';
@@ -588,7 +640,7 @@ export const deleteAllEnvironments: ResolverFn = async (
 export const setEnvironmentServices: ResolverFn = async (
   root,
   { input: { environment: environmentId, services } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const environment = await Helpers(sqlClientPool).getEnvironmentById(
     environmentId
@@ -602,6 +654,13 @@ export const setEnvironmentServices: ResolverFn = async (
   for (const service of services) {
     await query(sqlClientPool, Sql.insertService(environmentId, service));
   }
+
+  userActivityLogger.user_action(`User set environment services for '${environment.name}'`, {
+    payload: {
+      environment,
+      services
+    }
+  });
 
   return query(
     sqlClientPool,

@@ -1,10 +1,11 @@
 import * as R from 'ramda';
 import { Request, Response, NextFunction } from 'express';
-import logger from './logger';
+import { logger } from './loggers/logger';
 import {
   getGrantForKeycloakToken,
   getCredentialsForLegacyToken
 } from './util/auth';
+import { getUserActivityLogger } from './loggers/userActivityLogger';
 
 export type RequestWithAuthData = Request & {
   legacyCredentials: any;
@@ -69,9 +70,18 @@ const keycloak = async (
   }
 
   try {
-    const grant = await getGrantForKeycloakToken(req.authToken);
+    const grant: any = await getGrantForKeycloakToken(req.authToken);
 
     req.kauth = { grant };
+    const userActivityLogger = getUserActivityLogger(
+      grant ? grant : null
+    );
+
+    const { azp: source, preferred_username, email } = grant.access_token.content;
+    const username = preferred_username ? preferred_username : 'unknown';
+
+    userActivityLogger.user_auth(`Keycloak authentication granted for '${username} (${email ? email : 'unknown'})' from '${source}'`);
+
   } catch (e) {
     // It might be a legacy token, so continue on.
     logger.debug(`Keycloak token auth failed: ${e.message}`);
@@ -101,6 +111,12 @@ const legacy = async (
     const legacyCredentials = await getCredentialsForLegacyToken(req.authToken);
 
     req.legacyCredentials = legacyCredentials;
+
+    const userActivityLogger = getUserActivityLogger(legacyCredentials ? legacyCredentials : null);
+    const { sub, iss } = legacyCredentials;
+    const username = sub ? sub : 'unknown';
+    const source = iss ? iss : 'unknown';
+    userActivityLogger.user_auth(`Legacy authentication granted for '${username}' from '${source}'`);
 
     next();
   } catch (e) {

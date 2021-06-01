@@ -1,7 +1,7 @@
 import moment from 'moment';
 import { Pool } from 'mariadb';
 import { query } from '../util/db';
-import * as logger from '../logger';
+import { logger } from '../loggers/logger';
 
 export interface Environment {
   id?: number; // int(11) NOT NULL AUTO_INCREMENT,

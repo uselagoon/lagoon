@@ -33,7 +33,7 @@
     "nano": "^6.4.3",
     "ramda": "^0.25.0",
     "sshpk": "^1.14.1",
-    "winston": "^2.4.1"
+    "winston": "^3"
   },
   "devDependencies": {
     "nodemon": "^1.12.1",

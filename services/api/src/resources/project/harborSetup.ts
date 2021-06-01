@@ -4,7 +4,7 @@ import {
   config as harborConfig,
   harborClient
 } from '../../clients/harborClient';
-import logger from '../../logger';
+import { logger } from '../../loggers/logger';
 import { Sql as PSql } from './sql';
 import { Sql } from '../env-variables/sql';
 import { getConfigFromEnv, getLagoonRouteFromEnv } from '../../util/config';
