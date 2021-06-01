@@ -68,13 +68,13 @@ environments:
       mariadb: statefulset
     cronjobs:
      - name: drush cron
-       schedule: "H * * * *" # This will run the cron once per hour.
+       schedule: "M * * * *" # This will run the cron once per hour.
        command: drush cron
        service: cli
   staging:
     cronjobs:
      - name: drush cron
-       schedule: "H * * * *" # This will run the cron once per hour.
+       schedule: "M * * * *" # This will run the cron once per hour.
        command: drush cron
        service: cli
 ```
