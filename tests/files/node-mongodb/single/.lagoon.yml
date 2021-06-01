@@ -4,7 +4,7 @@ environment_variables:
   git_sha: 'true'
 
 environments:
-  node10:
+  node16:
     routes:
     - node:
       - customdomain-will-be-main-domain.com

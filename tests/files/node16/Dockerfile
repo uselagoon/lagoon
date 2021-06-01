@@ -1,10 +1,10 @@
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
-FROM ${UPSTREAM_REPO:-testlagoon}/node-10-builder:${UPSTREAM_TAG:-latest} as builder
+FROM ${UPSTREAM_REPO:-testlagoon}/node-16-builder:${UPSTREAM_TAG:-latest} as builder
 COPY package.json yarn.lock /app/
 RUN yarn install
 
-FROM ${UPSTREAM_REPO:-testlagoon}/node-10:${UPSTREAM_TAG:-latest}
+FROM ${UPSTREAM_REPO:-testlagoon}/node-16:${UPSTREAM_TAG:-latest}
 COPY --from=builder /app/node_modules /app/node_modules
 COPY . /app/
 

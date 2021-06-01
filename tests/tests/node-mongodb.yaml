@@ -13,7 +13,7 @@
 - include: node-mongodb/node-mongodb-single.yaml
   vars:
     testname: "Node 10 - MONGODB SINGLE {{ cluster_type|upper }}"
-    node_version: 10
+    node_version: 16
     db: mongodb
     git_repo_name: node-mongodb.git
     project: ci-node-mongodb-{{ cluster_type }}
@@ -26,7 +26,7 @@
 - include: node-mongodb/node-mongodb.yaml
   vars:
     testname: "Node 10 - MONGODB DBAAAS {{ cluster_type|upper }}"
-    node_version: 10
+    node_version: 16
     db: mongodb
     git_repo_name: node-mongodb.git
     project: ci-node-mongodb-{{ cluster_type }}

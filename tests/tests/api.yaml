@@ -13,7 +13,7 @@
 - include: api/deploy-pullrequest.yaml
   vars:
     testname: "API {{ cluster_type|upper }} - deploy pullrequest"
-    node_version: 10
+    node_version: 16
     git_repo_name: api.git
     project: ci-api-{{ cluster_type }}
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.pr-1.{{ route_suffix }}"
@@ -21,7 +21,7 @@
 - include: api/deploy-branch.yaml
   vars:
     testname: "API {{ cluster_type|upper }} - deploy regular branch"
-    node_version: 10
+    node_version: 16
     git_repo_name: api.git
     project: ci-api-{{ cluster_type }}
     branch: api/slash/branch
@@ -30,7 +30,7 @@
 - include: api/promote.yaml
   vars:
     testname: "API {{ cluster_type|upper }} - promote branch"
-    node_version: 10
+    node_version: 16
     git_repo_name: api.git
     project: ci-api-{{ cluster_type }}
     source_environment: source
