@@ -74,7 +74,7 @@ const keycloak = async (
 
     req.kauth = { grant };
     const userActivityLogger = getUserActivityLogger(
-      grant ? grant : null
+      grant ? grant.access_token.content : null
     );
 
     const { azp: source, preferred_username, email } = grant.access_token.content;
