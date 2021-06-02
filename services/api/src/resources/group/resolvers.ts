@@ -11,7 +11,7 @@ import { KeycloakUnauthorizedError } from '../../util/auth';
 export const getAllGroups: ResolverFn = async (
   root,
   { name, type },
-  { hasPermission, models, keycloakGrant },
+  { hasPermission, models, keycloakGrant }
 ) => {
   try {
     await hasPermission('group', 'viewAll');
@@ -37,7 +37,7 @@ export const getAllGroups: ResolverFn = async (
         return [];
       } else {
         const user = await models.UserModel.loadUserById(
-          keycloakGrant.access_token.content.sub,
+          keycloakGrant.access_token.content.sub
         );
         const userGroups = await models.UserModel.getAllGroupsForUser(user);
 
@@ -57,7 +57,7 @@ export const getAllGroups: ResolverFn = async (
 export const getGroupsByProjectId: ResolverFn = async (
   { id: pid },
   _input,
-  { hasPermission, models, keycloakGrant },
+  { hasPermission, models, keycloakGrant }
 ) => {
   const projectGroups = await models.GroupModel.loadGroupsByProjectId(pid);
 
@@ -72,7 +72,7 @@ export const getGroupsByProjectId: ResolverFn = async (
     }
 
     const user = await models.UserModel.loadUserById(
-      keycloakGrant.access_token.content.sub,
+      keycloakGrant.access_token.content.sub
     );
     const userGroups = await models.UserModel.getAllGroupsForUser(user);
     const userProjectGroups = R.intersection(projectGroups, userGroups);
@@ -84,7 +84,7 @@ export const getGroupsByProjectId: ResolverFn = async (
 export const getGroupsByUserId: ResolverFn = async (
   { id: uid },
   _input,
-  { hasPermission, models, keycloakGrant },
+  { hasPermission, models, keycloakGrant }
 ) => {
   const queryUser = await models.UserModel.loadUserById(uid);
   const queryUserGroups = await models.UserModel.getAllGroupsForUser(queryUser);
@@ -100,10 +100,10 @@ export const getGroupsByUserId: ResolverFn = async (
     }
 
     const currentUser = await models.UserModel.loadUserById(
-      keycloakGrant.access_token.content.sub,
+      keycloakGrant.access_token.content.sub
     );
     const currentUserGroups = await models.UserModel.getAllGroupsForUser(
-      currentUser,
+      currentUser
     );
     const bothUserGroups = R.intersection(queryUserGroups, currentUserGroups);
 
@@ -114,7 +114,7 @@ export const getGroupsByUserId: ResolverFn = async (
 export const getGroupByName: ResolverFn = async (
   root,
   { name },
-  { models, hasPermission, keycloakGrant },
+  { models, hasPermission, keycloakGrant }
 ) => {
   try {
     await hasPermission('group', 'viewAll');
@@ -132,7 +132,7 @@ export const getGroupByName: ResolverFn = async (
         throw new GroupNotFoundError(`Group not found: ${name}`);
       } else {
         const user = await models.UserModel.loadUserById(
-          keycloakGrant.access_token.content.sub,
+          keycloakGrant.access_token.content.sub
         );
         const userGroups = await models.UserModel.getAllGroupsForUser(user);
 
@@ -151,12 +151,16 @@ export const getGroupByName: ResolverFn = async (
   }
 };
 
-export const addGroup = async (_root, { input }, { models, sqlClient, hasPermission }) => {
+export const addGroup: ResolverFn = async (
+  _root,
+  { input },
+  { models, sqlClientPool, hasPermission }
+) => {
   await hasPermission('group', 'add');
 
   if (validator.matches(input.name, /[^0-9a-z-]/)) {
     throw new Error(
-      'Only lowercase characters, numbers and dashes allowed for name!',
+      'Only lowercase characters, numbers and dashes allowed for name!'
     );
   }
 
@@ -166,17 +170,22 @@ export const addGroup = async (_root, { input }, { models, sqlClient, hasPermiss
       throw new Error('You must provide a group id or name');
     }
 
-    const parentGroup = await models.GroupModel.loadGroupByIdOrName(input.parentGroup);
+    const parentGroup = await models.GroupModel.loadGroupByIdOrName(
+      input.parentGroup
+    );
     parentGroupId = parentGroup.id;
   }
 
   const group = await models.GroupModel.addGroup({
     name: input.name,
-    parentGroupId,
+    parentGroupId
   });
 
   // We don't have any projects yet. So just an empty string
-  OpendistroSecurityOperations(sqlClient, models.GroupModel).syncGroup(input.name, '')
+  OpendistroSecurityOperations(sqlClientPool, models.GroupModel).syncGroup(
+    input.name,
+    ''
+  );
 
   return group;
 };
@@ -184,12 +193,12 @@ export const addGroup = async (_root, { input }, { models, sqlClient, hasPermiss
 export const updateGroup: ResolverFn = async (
   _root,
   { input: { group: groupInput, patch } },
-  { models, hasPermission },
+  { models, hasPermission }
 ) => {
   const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
 
   await hasPermission('group', 'update', {
-    group: group.id,
+    group: group.id
   });
 
   if (isPatchEmpty({ patch })) {
@@ -199,14 +208,14 @@ export const updateGroup: ResolverFn = async (
   if (typeof patch.name === 'string') {
     if (validator.matches(patch.name, /[^0-9a-z-]/)) {
       throw new Error(
-        'Only lowercase characters, numbers and dashes allowed for name!',
+        'Only lowercase characters, numbers and dashes allowed for name!'
       );
     }
   }
 
   const updatedGroup = await models.GroupModel.updateGroup({
     id: group.id,
-    name: patch.name,
+    name: patch.name
   });
 
   return updatedGroup;
@@ -215,17 +224,19 @@ export const updateGroup: ResolverFn = async (
 export const deleteGroup: ResolverFn = async (
   _root,
   { input: { group: groupInput } },
-  { models, sqlClient, hasPermission },
+  { models, sqlClientPool, hasPermission }
 ) => {
   const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
 
   await hasPermission('group', 'delete', {
-    group: group.id,
+    group: group.id
   });
 
   await models.GroupModel.deleteGroup(group.id);
 
-  OpendistroSecurityOperations(sqlClient, models.GroupModel).deleteGroup(group.name)
+  OpendistroSecurityOperations(sqlClientPool, models.GroupModel).deleteGroup(
+    group.name
+  );
 
   return 'success';
 };
@@ -233,7 +244,7 @@ export const deleteGroup: ResolverFn = async (
 export const deleteAllGroups: ResolverFn = async (
   _root,
   _args,
-  { models, hasPermission },
+  { models, hasPermission }
 ) => {
   await hasPermission('group', 'deleteAll');
 
@@ -256,7 +267,7 @@ export const deleteAllGroups: ResolverFn = async (
 export const addUserToGroup: ResolverFn = async (
   _root,
   { input: { user: userInput, group: groupInput, role } },
-  { models, hasPermission },
+  { models, hasPermission }
 ) => {
   if (R.isEmpty(userInput)) {
     throw new Error('You must provide a user id or email');
@@ -264,7 +275,7 @@ export const addUserToGroup: ResolverFn = async (
 
   const user = await models.UserModel.loadUserByIdOrUsername({
     id: R.prop('id', userInput),
-    username: R.prop('email', userInput),
+    username: R.prop('email', userInput)
   });
 
   if (R.isEmpty(groupInput)) {
@@ -274,14 +285,14 @@ export const addUserToGroup: ResolverFn = async (
   const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
 
   await hasPermission('group', 'addUser', {
-    group: group.id,
+    group: group.id
   });
 
   await models.GroupModel.removeUserFromGroup(user, group);
   const updatedGroup = await models.GroupModel.addUserToGroup(
     user,
     group,
-    role,
+    role
   );
 
   return updatedGroup;
@@ -290,7 +301,7 @@ export const addUserToGroup: ResolverFn = async (
 export const removeUserFromGroup: ResolverFn = async (
   _root,
   { input: { user: userInput, group: groupInput } },
-  { models, hasPermission },
+  { models, hasPermission }
 ) => {
   if (R.isEmpty(userInput)) {
     throw new Error('You must provide a user id or email');
@@ -298,7 +309,7 @@ export const removeUserFromGroup: ResolverFn = async (
 
   const user = await models.UserModel.loadUserByIdOrUsername({
     id: R.prop('id', userInput),
-    username: R.prop('email', userInput),
+    username: R.prop('email', userInput)
   });
 
   if (R.isEmpty(groupInput)) {
@@ -308,7 +319,7 @@ export const removeUserFromGroup: ResolverFn = async (
   const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
 
   await hasPermission('group', 'removeUser', {
-    group: group.id,
+    group: group.id
   });
 
   const updatedGroup = await models.GroupModel.removeUserFromGroup(user, group);
@@ -319,14 +330,14 @@ export const removeUserFromGroup: ResolverFn = async (
 export const addGroupsToProject: ResolverFn = async (
   _root,
   { input: { project: projectInput, groups: groupsInput } },
-  { models, sqlClient, hasPermission },
+  { models, sqlClientPool, hasPermission }
 ) => {
-  const project = await projectHelpers(sqlClient).getProjectByProjectInput(
-    projectInput,
+  const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
+    projectInput
   );
 
   await hasPermission('project', 'addGroup', {
-    project: project.id,
+    project: project.id
   });
 
   if (R.isEmpty(groupsInput)) {
@@ -346,15 +357,15 @@ export const addGroupsToProject: ResolverFn = async (
 
   const syncGroups = groupsInput.map(async groupInput => {
     const updatedGroup = await models.GroupModel.loadGroupByIdOrName(
-      groupInput,
+      groupInput
     );
     const projectIdsArray = await models.GroupModel.getProjectsFromGroupAndSubgroups(
-      updatedGroup,
+      updatedGroup
     );
     const projectIds = R.join(',')(projectIdsArray);
-    OpendistroSecurityOperations(sqlClient, models.GroupModel).syncGroup(
+    OpendistroSecurityOperations(sqlClientPool, models.GroupModel).syncGroup(
       updatedGroup.name,
-      projectIds,
+      projectIds
     );
   });
 
@@ -362,17 +373,17 @@ export const addGroupsToProject: ResolverFn = async (
     await Promise.all(syncGroups);
   } catch (err) {
     throw new Error(
-      `Could not sync groups with opendistro-security: ${err.message}`,
+      `Could not sync groups with opendistro-security: ${err.message}`
     );
   }
 
-  return await projectHelpers(sqlClient).getProjectById(project.id);
+  return await projectHelpers(sqlClientPool).getProjectById(project.id);
 };
 
 export const addBillingGroup: ResolverFn = async (
   _root,
   { input: { name, currency, billingSoftware, uptimeRobotStatusPageId } },
-  { models, hasPermission },
+  { models, hasPermission }
 ) => {
   await hasPermission('group', 'add');
 
@@ -390,15 +401,15 @@ export const addBillingGroup: ResolverFn = async (
       type: ['billing'],
       currency: [currency],
       uptimeRobotStatusPageId: [uptimeRobotStatusPageId],
-      ...(billingSoftware ? { billingSoftware: [billingSoftware] } : {}),
-    },
+      ...(billingSoftware ? { billingSoftware: [billingSoftware] } : {})
+    }
   });
 };
 
 export const updateBillingGroup: ResolverFn = async (
   _root,
   { input: { group: groupInput, patch } },
-  { models, hasPermission },
+  { models, hasPermission }
 ) => {
   const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
   const { id, attributes } = group;
@@ -414,8 +425,10 @@ export const updateBillingGroup: ResolverFn = async (
     ...attributes,
     type: ['billing'],
     ...(currency ? { currency: [currency] } : {}),
-    ...(R.is(String, uptimeRobotStatusPageId) ? {uptimeRobotStatusPageId: [uptimeRobotStatusPageId] }: {}),
-    ...(billingSoftware ? { billingSoftware: [billingSoftware] } : {}),
+    ...(R.is(String, uptimeRobotStatusPageId)
+      ? { uptimeRobotStatusPageId: [uptimeRobotStatusPageId] }
+      : {}),
+    ...(billingSoftware ? { billingSoftware: [billingSoftware] } : {})
   };
 
   const groupPatch = { ...group, name, attributes: updatedAttributes };
@@ -427,14 +440,14 @@ export const updateBillingGroup: ResolverFn = async (
 export const addProjectToBillingGroup: ResolverFn = async (
   _root,
   { input: { project: projectInput, group: groupInput } },
-  { models, sqlClient, hasPermission },
+  { models, sqlClientPool, hasPermission }
 ) => {
-  const project = await projectHelpers(sqlClient).getProjectByProjectInput(
-    projectInput,
+  const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
+    projectInput
   );
 
   await hasPermission('project', 'addGroup', {
-    project: project.id,
+    project: project.id
   });
 
   if (R.isEmpty(groupInput)) {
@@ -444,7 +457,7 @@ export const addProjectToBillingGroup: ResolverFn = async (
   const {
     loadGroupsByProjectId,
     loadGroupByIdOrName,
-    addProjectToGroup,
+    addProjectToGroup
   } = models.GroupModel;
 
   // Billing groups for this project
@@ -458,26 +471,26 @@ export const addProjectToBillingGroup: ResolverFn = async (
   // A project can only be added to a single billing group.
   if (projectBillingGroups.length > 0) {
     throw new Error(
-      `Project already added to billing group: ${projectBillingGroups[0].id}`,
+      `Project already added to billing group: ${projectBillingGroups[0].id}`
     );
   }
 
   const group = await loadGroupByIdOrName(groupInput);
-  await addProjectToGroup(project.id, {id: group.id});
+  await addProjectToGroup(project.id, { id: group.id });
   return project;
 };
 
 export const updateProjectBillingGroup: ResolverFn = async (
   _root,
   { input: { project: projectInput, group: groupInput } },
-  { models, sqlClient, hasPermission },
+  { models, sqlClientPool, hasPermission }
 ) => {
-  const project = await projectHelpers(sqlClient).getProjectByProjectInput(
-    projectInput,
+  const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
+    projectInput
   );
 
   await hasPermission('project', 'addGroup', {
-    project: project.id,
+    project: project.id
   });
 
   if (R.isEmpty(groupInput)) {
@@ -487,7 +500,7 @@ export const updateProjectBillingGroup: ResolverFn = async (
   const {
     loadGroupsByProjectId,
     loadGroupByIdOrName,
-    addProjectToGroup,
+    addProjectToGroup
   } = models.GroupModel;
 
   // Get all billing groups for this project
@@ -502,30 +515,33 @@ export const updateProjectBillingGroup: ResolverFn = async (
 
   const group = await loadGroupByIdOrName(groupInput);
   await addProjectToGroup(project.id, group);
-  return projectHelpers(sqlClient).getProjectById(project.id);
+  return projectHelpers(sqlClientPool).getProjectById(project.id);
 };
 
 export const removeProjectFromBillingGroup: ResolverFn = async (
   root,
   { input: { project, group } },
-  context,
+  context
 ) =>
   removeGroupsFromProject(
     root,
     { input: { project, groups: [group] } },
-    context,
+    context
   );
 
-export const getAllProjectsByGroupId: ResolverFn = async (root, input, context) =>
-  getAllProjectsInGroup(root, { input: { id: root.id } }, { ...context });
+export const getAllProjectsByGroupId: ResolverFn = async (
+  root,
+  input,
+  context
+) => getAllProjectsInGroup(root, { input: { id: root.id } }, { ...context });
 
 export const getAllProjectsInGroup: ResolverFn = async (
   _root,
   { input: groupInput },
-  { models, sqlClient, hasPermission, keycloakGrant },
+  { models, sqlClientPool, hasPermission, keycloakGrant }
 ) => {
   const {
-    GroupModel: { loadGroupByIdOrName, getProjectsFromGroupAndSubgroups },
+    GroupModel: { loadGroupByIdOrName, getProjectsFromGroupAndSubgroups }
   } = models;
 
   try {
@@ -534,7 +550,7 @@ export const getAllProjectsInGroup: ResolverFn = async (
     const group = await loadGroupByIdOrName(groupInput);
     const projectIdsArray = await getProjectsFromGroupAndSubgroups(group);
     return projectIdsArray.map(async id =>
-      projectHelpers(sqlClient).getProjectByProjectInput({ id }),
+      projectHelpers(sqlClientPool).getProjectByProjectInput({ id })
     );
   } catch (err) {
     if (err instanceof GroupNotFoundError) {
@@ -548,25 +564,29 @@ export const getAllProjectsInGroup: ResolverFn = async (
   }
 
   if (!keycloakGrant) {
-    logger.warn('Access denied to user for getAllProjectsInGroup: no keycloakGrant');
+    logger.warn(
+      'Access denied to user for getAllProjectsInGroup: no keycloakGrant'
+    );
     return [];
   } else {
     const group = await loadGroupByIdOrName(groupInput);
 
     const user = await models.UserModel.loadUserById(
-      keycloakGrant.access_token.content.sub,
+      keycloakGrant.access_token.content.sub
     );
     const userGroups = await models.UserModel.getAllGroupsForUser(user);
 
     // @ts-ignore
     if (!R.contains(group.name, R.pluck('name', userGroups))) {
-      logger.warn('Access denied to user for getAllProjectsInGroup: user not in group');
+      logger.warn(
+        'Access denied to user for getAllProjectsInGroup: user not in group'
+      );
       return [];
     }
 
     const projectIdsArray = await getProjectsFromGroupAndSubgroups(group);
     return projectIdsArray.map(async id =>
-      projectHelpers(sqlClient).getProjectByProjectInput({ id }),
+      projectHelpers(sqlClientPool).getProjectByProjectInput({ id })
     );
   }
 };
@@ -583,7 +603,7 @@ export const getAllProjectsInGroup: ResolverFn = async (
  * @return {JSON} A JSON object that includes the billing costs, projects, and environments
  */
 export const getBillingGroupCost: ResolverFn = async (root, args, context) => {
-  const { models, hasPermission, sqlClient } = context;
+  const { models, hasPermission } = context;
   const { input: groupInput, month: yearMonth } = args;
 
   if (R.isEmpty(groupInput)) {
@@ -605,7 +625,11 @@ export const getBillingGroupCost: ResolverFn = async (root, args, context) => {
  *
  * @return {JSON} A JSON object
  */
-export const getAllBillingGroupsCost: ResolverFn = async (root, args, context) => {
+export const getAllBillingGroupsCost: ResolverFn = async (
+  root,
+  args,
+  context
+) => {
   const { models, hasPermission } = context;
   const { input: groupInput, month: yearMonth } = args;
 
@@ -621,14 +645,14 @@ export const getAllBillingGroupsCost: ResolverFn = async (root, args, context) =
 export const removeGroupsFromProject: ResolverFn = async (
   _root,
   { input: { project: projectInput, groups: groupsInput } },
-  { models, sqlClient, hasPermission },
+  { models, sqlClientPool, hasPermission }
 ) => {
-  const project = await projectHelpers(sqlClient).getProjectByProjectInput(
-    projectInput,
+  const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
+    projectInput
   );
 
   await hasPermission('project', 'removeGroup', {
-    project: project.id,
+    project: project.id
   });
 
   if (R.isEmpty(groupsInput)) {
@@ -648,16 +672,16 @@ export const removeGroupsFromProject: ResolverFn = async (
 
   const syncGroups = groupsInput.map(async groupInput => {
     const updatedGroup = await models.GroupModel.loadGroupByIdOrName(
-      groupInput,
+      groupInput
     );
     // @TODO: Load ProjectIDs of subgroups as well
     const projectIdsArray = await models.GroupModel.getProjectsFromGroupAndSubgroups(
-      updatedGroup,
+      updatedGroup
     );
     const projectIds = R.join(',')(projectIdsArray);
-    OpendistroSecurityOperations(sqlClient, models.GroupModel).syncGroup(
+    OpendistroSecurityOperations(sqlClientPool, models.GroupModel).syncGroup(
       updatedGroup.name,
-      projectIds,
+      projectIds
     );
   });
 
@@ -665,9 +689,9 @@ export const removeGroupsFromProject: ResolverFn = async (
     await Promise.all(syncGroups);
   } catch (err) {
     throw new Error(
-      `Could not sync groups with opendistro-security: ${err.message}`,
+      `Could not sync groups with opendistro-security: ${err.message}`
     );
   }
 
-  return await projectHelpers(sqlClient).getProjectById(project.id);
+  return await projectHelpers(sqlClientPool).getProjectById(project.id);
 };

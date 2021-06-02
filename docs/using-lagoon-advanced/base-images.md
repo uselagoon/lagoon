@@ -257,7 +257,7 @@ Images are tagged using the following rules, and images will be built for each o
 3. Click the branch you would like to build.
 4. Click “Build Now.”
 
-![Showing how to build a base image in the Jenkins UI.](../.gitbook/assets/7%20%281%29.gif)
+![Showing how to build a base image in the Jenkins UI.](../.gitbook/assets/7%20%282%29.gif)
 
 This will kick off the build process which, if successful, will push up the new images to Harbor.
 

@@ -218,7 +218,7 @@ You can also overwrite the rollout for just one specific environment. This is do
 
 Feeling adventurous and want to do something completely customized? Welcome to the Danger Zone!
 
-![Welcome to the Danger Zone](../.gitbook/assets/topgun%20%281%29.gif)
+![Welcome to the Danger Zone](../.gitbook/assets/topgun%20%282%29.gif)
 
 When defining a service as `lagoon.type: custom`, you can tell Lagoon to not use any pre-defined service type templates and pass your full own custom YAML file.
 

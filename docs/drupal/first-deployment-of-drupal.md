@@ -92,7 +92,7 @@ git push
 
 This time all should be green:
 
-![Deployment Success!](../.gitbook/assets/first_deployment_slack_success%20%281%29.jpg)
+![Deployment Success!](../.gitbook/assets/first_deployment_slack_success%20%282%29.jpg)
 
 Click on the links in the notification, and you should see your Drupal site loaded in all its beauty! It will probably not have images yet, which we will handle in [Step 6](first-deployment-of-drupal.md#6-synchronize-local-files-to-the-remote-lagoon-environment).
 

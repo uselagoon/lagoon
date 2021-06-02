@@ -1,4 +1,4 @@
-const { knex } = require('../../util/db');
+import { knex } from '../../util/db';
 
 export const Sql = {
   updateEnvironment: ({ id, patch }: { id: number, patch: { [key: string]: any } }) => {

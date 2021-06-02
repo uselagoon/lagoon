@@ -375,6 +375,7 @@ mutation PopulateApi {
   UIProject1Environment1Backup1Restore: addRestore(
     input: {
       backupId: "e2e1d31b4a7dfc1687f469b6673f6bf2c0aabee0cc6b3f1bdbde710a9bc6280d"
+      execute: false
     }
   ) {
     id
@@ -396,6 +397,7 @@ mutation PopulateApi {
       backupId: "e2e1d31b4a7dfc1687f469b6673f6bf2c0aabee0cc6b3f1bdbde710a9bc6280f"
       status: SUCCESSFUL
       restoreLocation: "/restore/e2e1d31b4a7dfc1687f469b6673f6bf2c0aabee0cc6b3f1bdbde710a9bc6280f/files.gz"
+      execute: false
     }
   ) {
     id
@@ -416,6 +418,7 @@ mutation PopulateApi {
     input: {
       backupId: "e260f07c374e4a3319c5d46e688dab6f1eb23c3e61c166a37609d55762d2ee0b"
       status: FAILED
+      execute: false
     }
   ) {
     id

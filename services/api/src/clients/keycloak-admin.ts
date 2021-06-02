@@ -2,7 +2,7 @@ import axios from 'axios';
 import * as logger from '../logger';
 const KeycloakAdmin = require('keycloak-admin').default;
 const { Agent: KeycloakAgent } = require('keycloak-admin/lib/resources/agent');
-const { ConnectionConfig, Credentials, keycloakGrantManager } = require('./keycloakClient');
+import { config } from './keycloakClient';
 
 /**
  * Everytime an API request is made, check if the access_token is (or will soon
@@ -28,7 +28,7 @@ class RetryAgent extends KeycloakAgent {
       }
 
       return parentRequest(payload);
-    }
+    };
   }
 }
 
@@ -38,11 +38,11 @@ class RetryAgent extends KeycloakAgent {
 export class RetryKeycloakAdmin extends KeycloakAdmin {
   constructor(connectionConfig, credentials) {
     const agent = new RetryAgent({
-      getUrlParams: (client) => ({
-        realm: client.realmName,
+      getUrlParams: client => ({
+        realm: client.realmName
       }),
-      getBaseUrl: (client) => client.baseUrl,
-      axios,
+      getBaseUrl: client => client.baseUrl,
+      axios
     });
 
     super(connectionConfig, agent);
@@ -59,8 +59,20 @@ export class RetryKeycloakAdmin extends KeycloakAdmin {
 }
 
 export const getKeycloakAdminClient = async () => {
-  const keycloakAdminClient = new RetryKeycloakAdmin(ConnectionConfig, Credentials);
+  const keycloakAdminClient = new RetryKeycloakAdmin(
+    {
+      baseUrl: `${config.origin}/auth`,
+      realmName: config.realm
+    },
+    {
+      realmName: 'master',
+      username: config.user,
+      password: config.pass,
+      grantType: 'password',
+      clientId: 'admin-cli'
+    }
+  );
   await keycloakAdminClient.auth();
 
   return keycloakAdminClient;
-}
+};

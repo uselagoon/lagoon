@@ -1,13 +1,16 @@
 import * as R from 'ramda';
-import { MariaClient } from 'mariasql';
 import { asyncPipe } from '@lagoon/commons/dist/util';
+import { Pool } from 'mariadb';
 import { query } from '../../util/db';
 import { Sql } from './sql';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 
-export const Helpers = (sqlClient: MariaClient) => {
+export const Helpers = (sqlClientPool: Pool) => {
   const getDeploymentById = async (deploymentID: number) => {
-    const rows = await query(sqlClient, Sql.selectDeployment(deploymentID));
+    const rows = await query(
+      sqlClientPool,
+      Sql.selectDeployment(deploymentID)
+    );
     return R.prop(0, rows);
   };
 
@@ -19,7 +22,7 @@ export const Helpers = (sqlClient: MariaClient) => {
       const hasName = R.both(R.has('name'), R.propSatisfies(notEmpty, 'name'));
       const hasEnvironment = R.both(
         R.has('environment'),
-        R.propSatisfies(notEmpty, 'environment'),
+        R.propSatisfies(notEmpty, 'environment')
       );
       // @ts-ignore
       const hasNameAndEnvironment = R.both(hasName, hasEnvironment);
@@ -33,16 +36,16 @@ export const Helpers = (sqlClient: MariaClient) => {
           }
 
           return deployment;
-        },
+        }
       );
 
       const deploymentFromNameEnv = async input => {
         const environments = await environmentHelpers(
-          sqlClient,
+          sqlClientPool
         ).getEnvironmentsByEnvironmentInput(R.prop('environment', input));
         const activeEnvironments = R.filter(
           R.propEq('deleted', '0000-00-00 00:00:00'),
-          environments,
+          environments
         );
 
         if (activeEnvironments.length < 1 || activeEnvironments.length > 1) {
@@ -52,11 +55,11 @@ export const Helpers = (sqlClient: MariaClient) => {
         const environment = R.prop(0, activeEnvironments);
 
         const rows = await query(
-          sqlClient,
+          sqlClientPool,
           Sql.selectDeploymentByNameAndEnvironment(
             R.prop('name', input),
-            environment.id,
-          ),
+            environment.id
+          )
         );
 
         if (!R.prop(0, rows)) {
@@ -73,11 +76,11 @@ export const Helpers = (sqlClient: MariaClient) => {
           R.T,
           () => {
             throw new Error(
-              'Must provide deployment (id) or (name and environment)',
+              'Must provide deployment (id) or (name and environment)'
             );
-          },
-        ],
+          }
+        ]
       ])(deploymentInput);
-    },
+    }
   };
 };
