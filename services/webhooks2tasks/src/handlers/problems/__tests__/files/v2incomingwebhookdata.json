@@ -1,0 +1,44 @@
+{
+    "type": "SCANNING_COMPLETED",
+    "occur_at": 1620079844,
+    "operator": "auto",
+    "event_data": {
+      "resources": [
+        {
+          "digest": "sha256:3daae0de1eb3dfb3742ac3c5aeff782eb0232fa8d063d471915f3e04ff6de6ec",
+          "tag": "",
+          "resource_url": "registry.172.27.0.2.nip.io:32080/nothing/morenothing/node:",
+          "scan_overview": {
+            "application/vnd.scanner.adapter.vuln.report.harbor+json; version=1.0": {
+              "report_id": "55be3e6f-d596-4cb2-a94c-0f2d712c9dfd",
+              "scan_status": "Success",
+              "severity": "High",
+              "duration": 14,
+              "summary": {
+                "total": 4,
+                "fixable": 4,
+                "summary": {
+                  "High": 3,
+                  "Medium": 1
+                }
+              },
+              "start_time": "2021-05-03T22:10:30.632281Z",
+              "end_time": "2021-05-03T22:10:44.341565Z",
+              "scanner": {
+                "name": "Trivy",
+                "vendor": "Aqua Security",
+                "version": "v0.9.2"
+              },
+              "complete_percent": 100
+            }
+          }
+        }
+      ],
+      "repository": {
+        "name": "environmentname-here/servicename-here",
+        "namespace": "projectname-here",
+        "repo_full_name": "projectname-here/environmentname-here/servicename-here",
+        "repo_type": "private"
+      }
+    }
+  }
