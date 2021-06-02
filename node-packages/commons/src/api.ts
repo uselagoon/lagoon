@@ -164,6 +164,7 @@ fragment on Project {
   name
   gitUrl
   privateKey
+  problemsUi
 }
 `);
 
@@ -1127,6 +1128,7 @@ export const getEnvironmentsForProject = (
     project:projectByName(name: "${project}"){
       developmentEnvironmentsLimit
       productionEnvironment
+      standbyProductionEnvironment
       environments(includeDeleted:false) { name, environmentType }
     }
   }
