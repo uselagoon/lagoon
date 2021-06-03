@@ -131,8 +131,6 @@ images :=     oc \
 							kubectl \
 							oc-build-deploy-dind \
 							kubectl-build-deploy-dind \
-							rabbitmq \
-							rabbitmq-cluster \
 							athenapdf-service \
 							curator \
 							docker-host
@@ -161,8 +159,6 @@ $(build-images):
 #    if the parent has been built
 # 2. Dockerfiles of the Images itself, will cause make to rebuild the images if something has
 #    changed on the Dockerfiles
-build/rabbitmq: images/rabbitmq/Dockerfile
-build/rabbitmq-cluster: build/rabbitmq images/rabbitmq-cluster/Dockerfile
 build/docker-host: images/docker-host/Dockerfile
 build/oc: images/oc/Dockerfile
 build/kubectl: images/kubectl/Dockerfile
@@ -254,8 +250,8 @@ build/auth-server build/logs2email build/logs2slack build/logs2rocketchat build/
 build/api-db: services/api-db/Dockerfile
 build/api-redis: services/api-redis/Dockerfile
 build/auto-idler: build/oc
-build/broker-single: build/rabbitmq
-build/broker: build/rabbitmq-cluster build/broker-single
+build/broker-single: services/broker/Dockerfile
+build/broker: build/broker-single
 build/drush-alias: services/drush-alias/Dockerfile
 build/keycloak-db: services/keycloak-db/Dockerfile
 build/keycloak: services/keycloak/Dockerfile
@@ -453,7 +449,7 @@ local-registry-up: build/local-registry
 # broker-up is used to ensure the broker is running before the lagoon-builddeploy operator is installed
 # when running kubernetes tests
 .PHONY: broker-up
-broker-up: build/broker
+broker-up: build/broker-single
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d broker
 
 openshift-run-api-tests = $(foreach image,$(api-tests),openshift-tests/$(image))
@@ -944,11 +940,11 @@ rebuild-push-oc-build-deploy-dind:
 
 
 .PHONY: ui-development
-ui-development: build/api build/api-db build/local-api-data-watcher-pusher build/ui build/keycloak build/keycloak-db build/broker build/broker-single build/api-redis
+ui-development: build/api build/api-db build/local-api-data-watcher-pusher build/ui build/keycloak build/keycloak-db build/broker-single build/api-redis
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis
 
 .PHONY: api-development
-api-development: build/api build/api-db build/local-api-data-watcher-pusher build/keycloak build/keycloak-db build/broker build/broker-single build/api-redis
+api-development: build/api build/api-db build/local-api-data-watcher-pusher build/keycloak build/keycloak-db build/broker-single build/api-redis
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db local-api-data-watcher-pusher keycloak keycloak-db broker api-redis
 
 ## CI targets
