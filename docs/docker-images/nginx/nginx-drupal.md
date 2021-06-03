@@ -69,3 +69,47 @@ RUN fix-permissions /etc/nginx/conf.d/drupal/location_drupal_prepend.conf
 {% endtab %}
 {% endtabs %}
 
+## Drupal Core Statistics Module Configuration
+
+If you're using the core Statistics module, you may run into an issue that needs a quick configuration change. 
+
+With the default NGINX configuration, the request to the tracking endpoint `/core/modules/statistics/statistics.php` is denied \(404\).
+
+This is related to the default Nginx configuration:
+
+{% tabs %}
+{% tab title="drupal.conf" %}
+```text
+location ~* ^.+\.php$ {
+    try_files /dev/null @drupal;
+}
+```
+{% endtab %}
+{% endtabs %}
+
+To fix the issue, we instead define a specific location rule and inject this as a location prepend configuration:
+
+{% tabs %}
+{% tab title="drupal.conf" %}
+```text
+## Allow access to to the statistics endpoint.
+location ~* ^(/core/modules/statistics/statistics.php) {
+      try_files /dev/null @php;
+}
+```
+{% endtab %}
+{% endtabs %}
+
+And copy this during the NGINX container build:
+
+{% tabs %}
+{% tab title="dockerfile.nginx" %}
+```text
+# Add specific Drupal statistics module NGINX configuration.
+COPY .lagoon/nginx/location_prepend_allow_statistics.conf /etc/nginx/conf.d/drupal/location_prepend_allow_statistics.conf
+```
+{% endtab %}
+{% endtabs %}
+
+
+

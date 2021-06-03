@@ -112,7 +112,5 @@ If any of them fail, Lagoon will immediately stop and notify you.
 
 If all went well and nothing threw any errors, Lagoon will mark this build as successful and inform you via defined notifications. ✅
 
-## Push without deploying
 
-There may be a case where you want to push without a deployment. Make sure your commit message contains "`[skip deploy]`" or "`[deploy skip]`" and Lagoon will not trigger a deployment from that commit.
 
