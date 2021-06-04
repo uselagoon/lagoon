@@ -29,6 +29,19 @@ export const getFactsByEnvironmentId: ResolverFn = async (
   return R.sort(R.descend(R.prop('created')), rows);
 };
 
+export const getFactReferencesByFactId: ResolverFn = async (
+  { id: fid },
+  args,
+  { sqlClientPool }
+) => {
+  const rows = await query(
+    sqlClientPool,
+    Sql.selectFactReferencesByFactId(fid)
+  );
+
+  return R.sort(R.descend(R.prop('name')), rows);
+};
+
 const predicateRHSProcess = (predicate, targetValue) => predicate == 'CONTAINS' ? `%${targetValue}%` : targetValue
 
 const getSqlPredicate = (predicate) => {
@@ -96,7 +109,7 @@ export const addFact: ResolverFn = async (
   root,
   {
     input: {
-      id, environment: environmentId, name, value, source, description, type, category, reference
+      id, environment: environmentId, name, value, source, description, type, category, keyFact
     },
   },
   { sqlClientPool, hasPermission },
@@ -118,7 +131,7 @@ export const addFact: ResolverFn = async (
       source,
       description,
       type,
-      reference,
+      keyFact,
       category
     }),
   );
@@ -152,12 +165,14 @@ export const addFacts: ResolverFn = async (
     await hasPermission('fact', 'add', {
       project: env.project
     });
-  });
+  };
 
-  return await facts.map(async (fact) => {
-    const { environment, name, value, source, description, type, category, reference } = fact;
-
-    const { insertId } = await query(
+  const returnFacts = [];
+  for (let i = 0; i < facts.length; i++) {
+    const { environment, name, value, source, description, type, category, keyFact } = facts[i];
+    const {
+      insertId
+    } = await query(
       sqlClientPool,
       Sql.insertFact({
         environment,
@@ -166,7 +181,7 @@ export const addFacts: ResolverFn = async (
         source,
         description,
         type,
-        reference,
+        keyFact,
         category
       }),
     );
@@ -214,6 +229,64 @@ export const deleteFactsFromSource: ResolverFn = async (
   return 'success';
 };
 
+export const addFactReference: ResolverFn = async (
+  root,
+  { input: { eid, fid, name } },
+  { sqlClientPool, hasPermission }
+) => {
+  // const fact = await query(
+  //   sqlClientPool,
+  //   Sql.selectFactByDatabaseId(fid)
+  // );
+
+  const environment = await environmentHelpers(sqlClientPool).getEnvironmentById(eid);
+
+
+  await hasPermission('fact', 'add', {
+    project: environment.project
+  });
+
+  const { insertId } = await query(
+    sqlClientPool,
+    Sql.insertFactReference({
+      eid,
+      fid,
+      name
+    })
+  );
+
+  const rows = await query(
+    sqlClientPool,
+    Sql.selectFactReferenceByDatabaseId(insertId)
+  );
+
+  return R.prop(0, rows);
+};
+
+export const deleteFactReference: ResolverFn = async (
+  root,
+  { input: { fid } },
+  { sqlClientPool, hasPermission }
+) => {
+  const fact = await query(
+    sqlClientPool,
+    Sql.selectFactByDatabaseId(fid)
+  );
+
+  const environment = await environmentHelpers(
+    sqlClientPool
+  ).getEnvironmentById(fact.environment);
+
+  await hasPermission('fact', 'add', {
+    project: environment.project
+  });
+
+  await query(sqlClientPool, Sql.deleteFactReference(fid));
+
+  return 'success';
+};
+
+
 export const getFactFilteredEnvironmentIds = async (filterDetails: any, projectIdSubset: number[], sqlClientPool) => {
   return R.map(p => R.prop("id", p), await getFactFilteredEnvironments(filterDetails, projectIdSubset, sqlClientPool));
 };
@@ -234,8 +307,6 @@ const getFactFilteredEnvironments = async (filterDetails: any, projectIdSubset: 
 
 const buildContitionsForFactSearchQuery = (filterDetails: any, factQuery: any, projectIdSubset: number[], isAdmin: boolean = false) => {
   const filters = {};
-
-  // if (!filterDetails.filters) throw Error(`No filters given in factFilter`);
 
   if (filterDetails.filters && filterDetails.filters.length > 0) {
     filterDetails.filters.forEach((e, i) => {

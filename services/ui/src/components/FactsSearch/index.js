@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo, Suspense } from "react";
+import React, { useState, useEffect, memo, Suspense, useRef } from "react";
 import { bp, color } from 'lib/variables';
 import { useQuery } from "@apollo/client";
 import { NetworkStatus } from '@apollo/client';
@@ -6,15 +6,13 @@ import AllEnvironmentsFromFacts from 'lib/query/AllEnvironmentsFromFacts';
 import AllProjectsAndEnvironmentsFromFacts from 'lib/query/AllProjectsAndEnvironmentsFromFacts';
 import SelectFilter, { MultiSelectFilter } from 'components/Filters';
 
-import Tabs from 'components/Tabs';
+import ProjectsMenu from 'components/ProjectsMenu';
 import ProjectSummary from 'components/ProjectSummary';
 import Sidebar from 'layouts/Sidebar';
-import { Pagination } from 'semantic-ui-react';
+import { Pagination, Button, Placeholder } from 'semantic-ui-react';
 // import Projects from 'components/Projects';
 // import ProjectsSidebar from 'components/ProjectsSidebar';
 import { LoadingRowsContent, LazyLoadingContent } from 'components/Loading';
-import { Placeholder } from 'semantic-ui-react';
-
 
 // Filters
 // temp:
@@ -38,7 +36,7 @@ const languages = [
     { value: 'go', label: 'Go' }
 ];
 
-const FactsSearch = ({ activeCategory, children }) => {
+const FactsSearch = (activeCategory, { children }) => {
     const [projectQuery, setProjectQuery] = useState(AllProjectsAndEnvironmentsFromFacts);
     const [projects, setProjects] = useState([]);
     const [projectSelected, setProjectSelected] = useState('');
@@ -50,7 +48,6 @@ const FactsSearch = ({ activeCategory, children }) => {
     const [languagesSelected, setLanguagesSelected] = useState([]);
     const [factFilters, setFactFilters] = useState([]);
     const [connectiveSelected, setConnective] = useState('AND');
-
 
 		// payload
 		// console.log(data);
@@ -91,6 +88,17 @@ const FactsSearch = ({ activeCategory, children }) => {
     const handleProjectSelectChange = (project) => {
         setProjectSelected(project);
     };
+
+    // Clear filters
+    const handleFilterClear = (event, data) => {
+      event.preventDefault();
+
+      setStatusesSelected([]);
+      setFrameworksSelected([]);
+      setLanguagesSelected([]);
+      setFactFilters([]);
+      // refetch();
+    }
 
     const statusOptions = (statuses) => {
         return statuses && statuses.map(s => ({ value: s.value, label: s.label }));
@@ -149,6 +157,19 @@ const FactsSearch = ({ activeCategory, children }) => {
             setProjects(projectsByFactSearch.projectsByFactSearch);
         }
 
+        let categoryFilter = [];
+        if (activeCategory.category) {
+          categoryFilter = [{
+            lhsTarget: "FACT",
+            name: 'lagoon-category',
+            contains: activeCategory.category
+          }];
+        }
+
+        if (categoryFilter.length) {
+          setFactFilters([...categoryFilter]);
+        }
+
         if (statusesSelected.length || frameworksSelected.length || languagesSelected.length) {
             setFactFilters(() => [...statusesSelected, ...frameworksSelected, ...languagesSelected]);
         }
@@ -160,74 +181,86 @@ const FactsSearch = ({ activeCategory, children }) => {
 
 
 console.log('projects: ', projects);
+// console.log('factFilters: ', factFilters);
+// console.log('statusesSelected: ', statusesSelected);
+// console.log('frameworksSelected: ', frameworksSelected);
+// console.log('languagesSelected: ', languagesSelected);
 
     return (
     <>
 			<div className="content-wrapper">
 				<div className="content">
-						<Tabs>
-							<ProjectSummary />
-							<div className="filters-wrapper">
-								<div className="select-filters">
-									<MultiSelectFilter
-											title="Project Status"
-											loading={!statuses}
-											options={statuses && statusOptions(statuses)}
-											isMulti={true}
-											onFilterChange={handleStatusChange}
-									/>
-									<MultiSelectFilter
-											title="Frameworks"
-											options={frameworks}
-											isMulti={true}
-											onFilterChange={handleFrameworkChange}
-									/>
-									<MultiSelectFilter
-											title="Languages"
-											options={languages}
-											isMulti={true}
-											onFilterChange={handleLanguageChange}
-									/>
-									<MultiSelectFilter
-											title="Connective"
-											defaultValue={{value: connectiveSelected, label: "AND"}}
-											options={connectiveOptions(["AND", "OR"])}
-											onFilterChange={handleConnectiveChange}
-									/>
-								</div>
-								{/* {projectsByFactSearch && projectsByFactSearch.projectsByFactSearch.map(e => {
-												return (
-														<>
-														<h4>{e.facts.length > 0 && e.project.name}</h4>
-														<h5>{e.facts.length > 0 && e.name}</h5>
-														{e.facts.map(f => {
-																return (
-																		<>
-																		<p>{f.name}: {f.value}</p>
-																		</>
-																)
-														})}
-														</>
-												)
-										})} */}
-							</div>
-							{networkStatus === NetworkStatus.refetch && <div>{`Refetching...`}</div>}
-							{error && <div>{`Error! ${error.message}`}</div>}
-							<Suspense fallback={<LazyLoadingContent delay={250} rows="25"/>}>
-									{projects && <div>{`Showing ${projects.length} projects`}</div>}
-									<Projects projects={projects} onProjectSelectChange={handleProjectSelectChange} loading={loading} />
-											<Pagination
-												boundaryRange={0}
-												defaultActivePage={1}
-												ellipsisItem={null}
-												firstItem={null}
-												lastItem={null}
-												onPageChange={onPaginationChange}
-												siblingRange={1}
-												totalPages={projects.length}
-											/>
-							</Suspense>
-						</Tabs>
+          <ProjectsMenu />
+          <ProjectSummary />
+                <Button
+                  content="Clear"
+                  size="tiny"
+                  // disabled={factFilters != []}
+                  onClick={(e, data) => handleFilterClear(e, data)}
+                />
+          <div className="filters-wrapper">
+            <Suspense fallback={<LazyLoadingContent delay={250} rows="25"/>}>
+              <div className="select-filters">
+                <MultiSelectFilter
+                    title="Project Status"
+                    loading={!statuses}
+                    options={statuses && statusOptions(statuses)}
+                    isMulti={true}
+                    onFilterChange={handleStatusChange}
+                />
+                <MultiSelectFilter
+                    title="Frameworks"
+                    options={frameworks}
+                    isMulti={true}
+                    onFilterChange={handleFrameworkChange}
+                />
+                <MultiSelectFilter
+                    title="Languages"
+                    options={languages}
+                    isMulti={true}
+                    onFilterChange={handleLanguageChange}
+                />
+                <MultiSelectFilter
+                    title="Connective"
+                    defaultValue={{value: connectiveSelected, label: "AND"}}
+                    options={connectiveOptions(["AND", "OR"])}
+                    onFilterChange={handleConnectiveChange}
+                />
+              </div>
+            </Suspense>
+            {/* {projectsByFactSearch && projectsByFactSearch.projectsByFactSearch.map(e => {
+                    return (
+                        <>
+                        <h4>{e.facts.length > 0 && e.project.name}</h4>
+                        <h5>{e.facts.length > 0 && e.name}</h5>
+                        {e.facts.map(f => {
+                            return (
+                                <>
+                                <p>{f.name}: {f.value}</p>
+                                </>
+                            )
+                        })}
+                        </>
+                    )
+                })} */}
+          </div>
+            {networkStatus === NetworkStatus.refetch && <div>{`Refetching...`}</div>}
+            {/* {error && <Error {...error}/>} */}
+            {error && <div>{`Error! ${error.message}`}</div>}
+            <Suspense fallback={<LazyLoadingContent delay={250} rows="25"/>}>
+                {projects && <div>{`Showing ${projects.length} projects`}</div>}
+                <Projects projects={projects} onProjectSelectChange={handleProjectSelectChange} loading={loading} />
+                    <Pagination
+                      boundaryRange={0}
+                      defaultActivePage={1}
+                      ellipsisItem={null}
+                      firstItem={null}
+                      lastItem={null}
+                      onPageChange={onPaginationChange}
+                      siblingRange={1}
+                      totalPages={projects.length}
+                    />
+            </Suspense>
 					</div>
 			</div>
 			<Sidebar className="sidebar">

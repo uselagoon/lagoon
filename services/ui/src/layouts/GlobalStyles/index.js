@@ -37,7 +37,7 @@ const GlobalStyles = ({ children }) => (
         background-color: ${color.almostWhite};
         flex: 1;
         flex-direction: column;
-        padding: 0 10em;
+        padding: 1em 4em;
         width: 100%;
       }
 
@@ -46,7 +46,7 @@ const GlobalStyles = ({ children }) => (
         flex: 1;
         flex-direction: column;
         max-width: 75%;
-        padding: 0 10em;
+        padding: 1em 4em;
       }
 
       .sidebar {
@@ -62,9 +62,24 @@ const GlobalStyles = ({ children }) => (
         //min-height: 100vh;
       }
 
+                      // TEMP
                       .loading {
                         background: red;
                         font-size: 24px;
+                      }
+
+                      .category-item .ui.label {
+                        width: 100%;
+                        display: flex;
+                        justify-content: space-between;
+                      }
+
+                      .ui.pointing.secondary.menu {
+                        align-items: center;
+                      }
+
+                      a.project-menu-link {
+                        padding: 0 10px;
                       }
 
 

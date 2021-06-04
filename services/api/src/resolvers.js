@@ -20,6 +20,9 @@ const {
   addFacts,
   deleteFact,
   deleteFactsFromSource,
+  addFactReference,
+  deleteFactReference,
+  getFactReferencesByFactId,
   getProjectsByFactSearch,
   getEnvironmentsByFactSearch,
 } = require('./resources/fact/resolvers');
@@ -317,6 +320,9 @@ const resolvers = {
     problems: getProblemsByEnvironmentId,
     facts: getFactsByEnvironmentId,
   },
+  Fact: {
+    references: getFactReferencesByFactId,
+  },
   Deployment: {
     environment: getEnvironmentByDeploymentId,
     uiLink: getDeploymentUrl,
@@ -390,6 +396,8 @@ const resolvers = {
     addFacts,
     deleteFact,
     deleteFactsFromSource,
+    addFactReference,
+    deleteFactReference,
     addOrUpdateEnvironment,
     updateEnvironment,
     deleteEnvironment,

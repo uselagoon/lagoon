@@ -207,9 +207,10 @@ const typeDefs = gql`
     value: String
     source: String
     description: String
-    reference: String
+    keyFact: Boolean
     type: FactType
     category: String
+    references: [FactReference]
   }
 
   input AddFactInput {
@@ -219,7 +220,7 @@ const typeDefs = gql`
     value: String!
     source: String!
     description: String!
-    reference: String
+    keyFact: Boolean
     type: FactType
     category: String
   }
@@ -234,6 +235,7 @@ const typeDefs = gql`
     value: String!
     source: String!
     description: String
+    keyFact: Boolean
     type: FactType
     category: String
   }
@@ -251,6 +253,34 @@ const typeDefs = gql`
   input DeleteFactsFromSourceInput {
     environment: Int!
     source: String!
+  }
+
+  type FactReference {
+    id: Int
+    eid: Int
+    fid: Int
+    name: String
+  }
+
+  input AddFactReferenceInput {
+    eid: Int!
+    fid: Int!
+    name: String!
+  }
+
+  input UpdateFactReferenceInputValue {
+    eid: Int!
+    fid: Int!
+    name: String
+  }
+
+  input UpdateFactReferenceInput {
+    fid: Int!
+    patch: UpdateFactReferenceInputValue!
+  }
+
+  input DeleteFactReferenceInput {
+    fid: Int!
   }
 
   enum FactFilterConnective {
@@ -1654,6 +1684,8 @@ const typeDefs = gql`
     addFacts(input: AddFactsInput!): [Fact]
     deleteFact(input: DeleteFactInput!): String
     deleteFactsFromSource(input: DeleteFactsFromSourceInput!): String
+    addFactReference(input: AddFactReferenceInput!): FactReference
+    deleteFactReference(input: DeleteFactReferenceInput!): String
     deleteBackup(input: DeleteBackupInput!): String
     deleteAllBackups: String
     addRestore(input: AddRestoreInput!): Restore

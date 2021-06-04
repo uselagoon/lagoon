@@ -102,9 +102,7 @@ const Projects = ({ projects = [], loading, onProjectSelectChange }) => {
     <Suspense fallback={<LazyLoadingContent delay={250} rows="25"/>}>
       <ProjectsHeader searchInput={searchInput} onSearchInputChange={handleSearchInputChange} onToggleChange={changeDisplay} onSort={handleSort} display={toggleDisplay} />
 
-
-              {filterLoadingProjects && <div className="loading">Loading...</div>}
-
+      {filterLoadingProjects && <div className="loading">Filtering...</div>}
       {loading && <LoadingRowsContent delay={250} rows="25"/>}
 
       {!loading &&
@@ -129,7 +127,7 @@ const Projects = ({ projects = [], loading, onProjectSelectChange }) => {
                         </h4>
                         <div>Created: {new moment(project.created).format('YYYY-MM-DD')}</div>
                         {project.environments && project.environments.map((environment, index) => {
-                          if (environment.environmentType === "production") {
+                          // if (environment.environmentType === "production") {
                             return (
                               <div key={environment.name.toLowerCase()} className="route">
                                 <Highlighter
@@ -144,15 +142,15 @@ const Projects = ({ projects = [], loading, onProjectSelectChange }) => {
                                 />
                               </div>
                             )
-                          }
+                          // }
                         })}
                         {project.environments && project.environments.map((environment, index) => {
                           if (environment.environmentType === "production" && environment.status) {
-                            return (<div key={envionment.name.toLowerCase()} className="environments">
-                              <div className={`status ${environment.status.toLowerCase()}`}>
-                                <label>{environment.name}:</label><i className="status-icon"></i><span className="status-text">({environment.status && environment.status})</span>
-                              </div>
-                            </div>)
+                            return (
+                              <>
+                                 <SiteStatus key={environment.name.toLowerCase()} environment={environment} />
+                              </>
+                            )
                           }
                         })}
                       </div>
@@ -198,29 +196,30 @@ const Projects = ({ projects = [], loading, onProjectSelectChange }) => {
                         </div>
                       </div>
                       <div className="facts">
-                        {project.environments && project.environments.map((e, index) => (
-                          // e.environmentType === 'production' && e.facts.length > 0 &&
-                          <>
-                            <h6><label>Key Facts</label></h6>
-                            {e.facts.map(fact => {
-                              if (fact.reference && fact.reference.includes('key')) {
-                                return (
-                                  <div key={fact.name.toLowerCase()} className="fact-wrapper">
-                                    <div className="fact-name">{fact.name}</div>
-                                    <Highlighter
-                                      key={index}
-                                      searchWords={[searchInput]}
-                                      autoEscape={true}
-                                      textToHighlight={fact.value ? fact.value : ''}
-                                    />
-                                    <div className="fact-reference">{fact.reference}</div>
-                                    <div className="fact-category">{fact.category}</div>
-                                  </div>
-                                )
-                              }
-                            })}
-                          </>
-                        ))}
+                        {project.environments && project.environments.map((e, index) => {
+                          if (e.environmentType === 'production' && e.facts.length > 0) {
+                            return <>
+                              <h6><label>Key Facts (PRODUCTION)</label></h6>
+                              {e.facts.map(fact => {
+                                if (fact.keyFact) {
+                                  return (
+                                    <div key={fact.name.toLowerCase()} className="fact-wrapper">
+                                      <div className="fact-name">{fact.name}</div>
+                                      <Highlighter
+                                        key={index}
+                                        searchWords={[searchInput]}
+                                        autoEscape={true}
+                                        textToHighlight={fact.value ? fact.value : ''}
+                                      />
+                                      {/* <div className="fact-reference">{fact.reference}</div> */}
+                                      <div className="fact-category">{fact.category}</div>
+                                    </div>
+                                  )
+                                }
+                              })}
+                            </>
+                          }
+                        })}
                       </div>
                     </Box>
                 )}

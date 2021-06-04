@@ -70,7 +70,7 @@ const SelectFilter = ({ title, options, onFilterChange, loading, defaultValue, i
     );
 };
 
-export const MultiSelectFilter = ({ title, options, onFilterChange, loading, defaultValue, isMulti}) => {
+export const MultiSelectFilter = ({ title, options, onFilterChange, loading, defaultValue, isMulti, ref}) => {
 
     const handleChange = (values) => {
       onFilterChange(values);
@@ -97,16 +97,17 @@ export const MultiSelectFilter = ({ title, options, onFilterChange, loading, def
       <div className="multi-filter">
         <label id={`${title.toLowerCase()}-label`} className="title">{title}</label>
         <Select
-            instanceId={title.toLowerCase()}
-            aria-label={title}
-            name={title.toLowerCase()}
-            styles={selectStyles}
-            closeMenuOnSelect={false}
-            components={animatedComponents}
-            defaultValue={defaultValue}
-            options={options}
-            isMulti={isMulti}
-            onChange={handleChange}
+          ref={ref}
+          instanceId={title.toLowerCase()}
+          aria-label={title}
+          name={title.toLowerCase()}
+          styles={selectStyles}
+          closeMenuOnSelect={false}
+          components={animatedComponents}
+          defaultValue={defaultValue}
+          options={options}
+          isMulti={isMulti}
+          onChange={handleChange}
         />
         <style jsx>{`
             .title {

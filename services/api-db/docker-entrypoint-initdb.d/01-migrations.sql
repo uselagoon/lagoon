@@ -1167,7 +1167,7 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
-  add_fact_reference_to_environment_fact()
+  add_fact_key_to_environment_fact()
 
   BEGIN
     IF NOT EXISTS(
@@ -1176,10 +1176,10 @@ CREATE OR REPLACE PROCEDURE
       WHERE
         table_name = 'environment_fact'
         AND table_schema = 'infrastructure'
-        AND column_name = 'reference'
+        AND column_name = 'key_fact'
     ) THEN
         ALTER TABLE `environment_fact`
-        ADD `reference` TEXT NULL DEFAULT '';
+        ADD `key_fact` TINYINT(1) NOT NULL DEFAULT(0);
     END IF;
   END;
 $$
@@ -1366,7 +1366,7 @@ CALL add_facts_ui_to_project();
 CALL add_fact_source_and_description_to_environment_fact();
 CALL add_fact_type_to_environment_fact();
 CALL add_fact_category_to_environment_fact();
-CALL add_fact_reference_to_environment_fact();
+CALL add_fact_key_to_environment_fact();
 CALL add_metadata_to_project();
 CALL add_min_max_to_billing_modifier();
 CALL add_content_type_to_project_notification();

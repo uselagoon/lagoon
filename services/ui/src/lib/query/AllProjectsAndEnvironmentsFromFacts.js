@@ -17,7 +17,7 @@ export default gql`
           name
           value
           source
-          reference
+          keyFact
           category
           type
         }
