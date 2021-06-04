@@ -528,13 +528,22 @@ mutation PopulateApi {
     input: {
       facts: [
           {
+            name: "lagoon-category"
+            value: "saas"
+            environment: 3
+            source: ""
+            description: "Category of the site"
+            category: "Lagoon"
+            keyFact: true
+          },
+          {
             name: "drupal-core"
             value: "9.0.1"
             environment: 3
             source: "drush-pml"
             description: "Drupal CMS version found on environment"
             category: "Framework"
-            reference: "key, cli"
+            keyFact: true
           },
           {
             name: "php-version"
@@ -543,7 +552,7 @@ mutation PopulateApi {
             source: "php-version"
             description: "PHP version found on environment"
             category: "Programming language"
-            reference: "key, php"
+            keyFact: true
           },
           {
             name: "Lagoon"
@@ -552,7 +561,7 @@ mutation PopulateApi {
             source: "env"
             description: "Lagoon version"
             category: "Platform"
-            reference: "key, platform"
+            keyFact: true
           },
           {
             name: "interesting-package"
@@ -561,7 +570,6 @@ mutation PopulateApi {
             source: "local-dev"
             description: "Description of interesting php package"
             category: "Composer package"
-            reference: "cli"
           },
           {
             name: "npm-module"
@@ -570,7 +578,6 @@ mutation PopulateApi {
             source: "local-dev"
             description: "Description of node module"
             category: "Node package"
-            reference: "node"
           },
           {
             name: "site-code-status"
@@ -579,9 +586,29 @@ mutation PopulateApi {
             source: "curl"
             description: "Health check of site"
             category: "Performance"
-            reference: "key"
+            keyFact: true
           }
       ]
+    }
+  ) {
+    id
+  }
+
+  UIProject1Environment1addFactReference1: addFactReference(
+    input: {
+        eid: 3
+        fid: 2
+        name: "nginx.high-cotton.org"
+    }
+  ) {
+    id
+  }
+
+  UIProject1Environment1addFactReference2: addFactReference(
+    input: {
+        eid: 3
+        fid: 2
+        name: "cli"
     }
   ) {
     id
@@ -638,7 +665,34 @@ mutation PopulateApi {
 
   UIProject1Environment3addFacts: addFacts(
     input: {
-        facts: [
+       facts: [
+          {
+            name: "lagoon-category"
+            value: "saas"
+            environment: 5
+            source: ""
+            description: "Category of the site"
+            category: "Lagoon"
+            keyFact: true
+          },
+          {
+            name: "drupal-core"
+            value: "9.0.1"
+            environment: 5
+            source: "drush-pml"
+            description: "Drupal CMS version found on environment"
+            category: "Framework"
+            keyFact: true
+          },
+          {
+            name: "php-version"
+            value: "8.0.3"
+            environment: 5
+            source: "php-version"
+            description: "PHP version found on environment"
+            category: "Programming language"
+            keyFact: true
+          },
           {
             name: "Lagoon"
             value: "21.3.0"
@@ -646,7 +700,23 @@ mutation PopulateApi {
             source: "env"
             description: "Lagoon version"
             category: "Platform"
-            reference: "key, platform"
+            keyFact: true
+          },
+          {
+            name: "interesting-package"
+            value: "1.0.0"
+            environment: 5
+            source: "local-dev"
+            description: "Description of interesting php package"
+            category: "Composer package"
+          },
+          {
+            name: "npm-module"
+            value: "2.0.0"
+            environment: 5
+            source: "local-dev"
+            description: "Description of node module"
+            category: "Node package"
           },
           {
             name: "site-code-status"
@@ -655,9 +725,9 @@ mutation PopulateApi {
             source: "curl"
             description: "Health check of site"
             category: "Performance"
-            reference: "key"
+            keyFact: true
           }
-        ]
+      ]
     }
   ) {
     id
