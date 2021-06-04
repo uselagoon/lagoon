@@ -274,7 +274,11 @@ const typeDefs = gql`
     patch: UpdateFactReferenceInputValue!
   }
 
-  input DeleteFactReferenceInput {
+  input DeleteFactReferenceByIdInput {
+    id: Int!
+  }
+
+  input DeleteFactReferencesByFactIdInput {
     fid: Int!
   }
 
@@ -1680,7 +1684,8 @@ const typeDefs = gql`
     deleteFact(input: DeleteFactInput!): String
     deleteFactsFromSource(input: DeleteFactsFromSourceInput!): String
     addFactReference(input: AddFactReferenceInput!): FactReference
-    deleteFactReference(input: DeleteFactReferenceInput!): String
+    deleteFactReferenceById(input: DeleteFactReferenceByIdInput!): String
+    deleteAllFactReferencesByFactId(input: DeleteFactReferencesByFactIdInput!): String
     deleteBackup(input: DeleteBackupInput!): String
     deleteAllBackups: String
     addRestore(input: AddRestoreInput!): Restore

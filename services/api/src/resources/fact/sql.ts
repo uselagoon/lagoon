@@ -14,10 +14,11 @@ const standardFactReturn = {
 };
 
 export const Sql = {
-  selectFactByDatabaseId: id =>
+  selectFactByDatabaseId: (fid: number) =>
     knex('environment_fact as f')
+      .select(standardFactReturn)
       .leftJoin('environment_fact_reference as r', 'r.fid', '=', 'f.id')
-      .where('f.id', id)
+      .where('f.id', fid)
       .toString(),
   selectFactsByEnvironmentId: ({ environmentId }) =>
     knex('environment_fact as f')
@@ -40,9 +41,9 @@ export const Sql = {
       .where({ environment, source })
       .del()
       .toString(),
-  selectFactReferenceByDatabaseId: (id) =>
+  selectFactReferenceByDatabaseId: (id: number) =>
     knex('environment_fact_reference')
-      .where('id', id)
+      .where({ id })
       .toString(),
   selectFactReferencesByFactId: (fid: number) =>
     knex('environment_fact_reference')
@@ -51,7 +52,12 @@ export const Sql = {
   insertFactReference: ({ eid, fid, name }) =>
       knex('environment_fact_reference')
         .insert({ eid, fid, name }).toString(),
-  deleteFactReference: (fid) =>
+  deleteFactReferenceByDatabaseId: (id) =>
+    knex('environment_fact_reference')
+      .where({ id })
+      .del()
+      .toString(),
+  deleteFactReferencesByFactId: (fid) =>
     knex('environment_fact_reference')
       .where({ fid })
       .del()

@@ -234,13 +234,7 @@ export const addFactReference: ResolverFn = async (
   { input: { eid, fid, name } },
   { sqlClientPool, hasPermission }
 ) => {
-  // const fact = await query(
-  //   sqlClientPool,
-  //   Sql.selectFactByDatabaseId(fid)
-  // );
-
   const environment = await environmentHelpers(sqlClientPool).getEnvironmentById(eid);
-
 
   await hasPermission('fact', 'add', {
     project: environment.project
@@ -263,7 +257,33 @@ export const addFactReference: ResolverFn = async (
   return R.prop(0, rows);
 };
 
-export const deleteFactReference: ResolverFn = async (
+export const deleteFactReferenceById: ResolverFn = async (
+  root,
+  { input: { id } },
+  { sqlClientPool, hasPermission }
+) => {
+  const factReference = await query(
+    sqlClientPool,
+    Sql.selectFactReferenceByDatabaseId(id)
+  );
+
+  if (!R.prop(0, factReference)) {
+    throw new Error('Fact reference ID could not be found');
+  }
+
+  const environment = await environmentHelpers(
+    sqlClientPool
+  ).getEnvironmentById(R.prop(0, factReference).eid);
+
+  await hasPermission('fact', 'delete', {
+    project: environment.project
+  });
+
+  await query(sqlClientPool, Sql.deleteFactReferenceByDatabaseId(id));
+  return 'success';
+};
+
+export const deleteAllFactReferencesByFactId: ResolverFn = async (
   root,
   { input: { fid } },
   { sqlClientPool, hasPermission }
@@ -275,15 +295,17 @@ export const deleteFactReference: ResolverFn = async (
 
   const environment = await environmentHelpers(
     sqlClientPool
-  ).getEnvironmentById(fact.environment);
+  ).getEnvironmentById(R.prop(0, fact).environment);
 
-  await hasPermission('fact', 'add', {
+  await hasPermission('fact', 'delete', {
     project: environment.project
   });
 
-  await query(sqlClientPool, Sql.deleteFactReference(fid));
-
-  return 'success';
+  const { affectedRows } = await query(sqlClientPool, Sql.deleteFactReferencesByFactId(fid));
+  if (affectedRows === 0) {
+    throw new Error('Fact reference ID could not be found');
+  }
+  return `Success: ${affectedRows} fact reference/s deleted`;
 };
 
 
