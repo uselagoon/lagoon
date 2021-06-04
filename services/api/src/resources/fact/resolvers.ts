@@ -69,22 +69,30 @@ export const addFacts: ResolverFn = async (
   { input: { facts } },
   { sqlClientPool, hasPermission }
 ) => {
-  // We first check that the user has access to all of the environments, so this is an atomic operation.
-  await facts.map(async fact => {
-    const { environment } = fact;
-    const env = await environmentHelpers(sqlClientPool).getEnvironmentById(
-      environment
-    );
 
+  const environments = facts.reduce((environmentList, fact) => {
+    let { environment } = fact;
+    if (!environmentList.includes(environment)) {
+      environmentList.push(environment);
+    }
+    return environmentList;
+  }, []);
+
+  for (let i = 0; i < environments.length; i++) {
+    const env = await environmentHelpers(sqlClientPool).getEnvironmentById(
+      environments[i]
+    );
     await hasPermission('fact', 'add', {
       project: env.project
     });
-  });
+  }
 
-  return await facts.map(async (fact) => {
-    const { environment, name, value, source, description, type, category } = fact;
-
-    const { insertId } = await query(
+  const returnFacts = [];
+  for (let i = 0; i < facts.length; i++) {
+    const { environment, name, value, source, description, type, category } = facts[i];
+    const {
+      insertId
+    } = await query(
       sqlClientPool,
       Sql.insertFact({
         environment,
@@ -97,12 +105,11 @@ export const addFacts: ResolverFn = async (
       }),
     );
 
-    const rows = await query(
-      sqlClientPool,
-      Sql.selectFactByDatabaseId(insertId)
-    );
-    return R.prop(0, rows);
-  });
+    const rows =  await query(sqlClientPool, Sql.selectFactByDatabaseId(insertId));
+    returnFacts.push(R.prop(0, rows));
+  }
+
+  return returnFacts;
 };
 
 export const deleteFact: ResolverFn = async (
