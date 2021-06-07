@@ -954,7 +954,7 @@ GOJQ_VERSION = v0.12.3
 CHART_TESTING_VERSION = v3.4.0
 KIND_IMAGE = kindest/node:v1.21.1@sha256:69860bda5563ac81e3c0057d654b5253219618a22ec3a346306239bba8cfa1a6
 TESTS = [api,features-kubernetes,features-kubernetes-2,nginx,drupal-php73,drupal-php74,drupal-postgres,python,gitlab,github,bitbucket,node-mongodb,elasticsearch]
-CHARTS_TREEISH = tests_adminJWT
+CHARTS_TREEISH = main
 
 local-dev/kind:
 ifeq ($(KIND_VERSION), $(shell kind version 2>/dev/null | sed -nE 's/kind (v[0-9.]+).*/\1/p'))
@@ -1147,7 +1147,13 @@ kind/retest:
 			HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
 			JQ=$$(realpath ../local-dev/jq) \
 			IMAGE_REGISTRY=$$IMAGE_REGISTRY \
-		&& $(MAKE) run-tests TESTS=$(TESTS) HELM=$$(realpath ../local-dev/helm)
+		&& docker run --rm --network host --name ct-$(CI_BUILD_TAG) \
+			--volume "$$(pwd)/test-suite-run.ct.yaml:/etc/ct/ct.yaml" \
+			--volume "$$(pwd):/workdir" \
+			--volume "$$(realpath ../kubeconfig.kind.$(CI_BUILD_TAG)):/root/.kube/config" \
+			--workdir /workdir \
+			"quay.io/helmpack/chart-testing:v3.3.1" \
+			ct install
 
 .PHONY: kind/clean
 kind/clean: local-dev/kind
