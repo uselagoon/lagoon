@@ -1,4 +1,4 @@
-FROM alpine:3.12
+FROM alpine:3.13.5
 LABEL maintainer="support@amazee.io"
 
 ARG LAGOON_VERSION

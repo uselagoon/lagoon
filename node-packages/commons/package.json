@@ -4,9 +4,6 @@
   "description": "lagoon node commons",
   "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
   "license": "MIT",
-  "engines": {
-    "node": ">=10.16.3"
-  },
   "scripts": {
     "build": "tsc",
     "format": "prettier-eslint --write '**/*.js'",
