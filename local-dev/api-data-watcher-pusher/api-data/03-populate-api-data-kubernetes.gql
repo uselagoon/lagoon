@@ -1,9 +1,6 @@
 mutation PopulateApi {
 
-    #### Delete all configured Openshifts
-  DeleteAllOpenshifts: deleteAllOpenshifts
-
-    #### Populate API with lagoon-remote Openshift
+  #### Populate API with lagoon-remote Openshift
   CiLocalKubernetes: addOpenshift(
     input: {
       id: 2001
