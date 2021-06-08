@@ -3,9 +3,9 @@
 # inject variables from environment into the GQL template
 envsubst '$GIT_HOST $GIT_PORT $INGRESS_IP $CONSOLE_URL $TOKEN' < /api-data/03-populate-api-data-kubernetes.gql | sponge /api-data/03-populate-api-data-kubernetes.gql
 
-# clear_gql_file_path="/api-data/00-clear-api-data.gql"
-# populate_general_gql_file_path="/api-data/01-populate-api-data-general.gql"
-# populate_openshift_gql_file_path="/api-data/02-populate-api-data-openshift.gql"
+clear_gql_file_path="/api-data/00-clear-api-data.gql"
+populate_general_gql_file_path="/api-data/01-populate-api-data-general.gql"
+populate_openshift_gql_file_path="/api-data/02-populate-api-data-openshift.gql"
 populate_kubernetes_gql_file_path="/api-data/03-populate-api-data-kubernetes.gql"
 
 send_graphql_query() {
