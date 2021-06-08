@@ -60,7 +60,7 @@
     project: "{{ project }}"
     branch: "{{ branch }}"
   tasks:
-  - include: ../../tasks/api/remove.yaml
+  - include: ../../tasks/api/delete-environment.yaml
 
 - name: "{{ testname }} - standby branch api deleteEnvironment on {{ project }}, which should remove all resources"
   hosts: localhost
