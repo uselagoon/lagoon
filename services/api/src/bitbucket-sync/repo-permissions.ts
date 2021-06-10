@@ -10,6 +10,12 @@ const LAGOON_SYNC_GROUP = R.propOr(
   process.env
 );
 
+const LIMIT_SYNCING_PROJECTS = parseInt(R.propOr(
+  '10',
+  'LIMIT_SYNCING_PROJECTS',
+  process.env
+));
+
 interface BitbucketUser {
   name: string;
   displayName: string;
@@ -61,7 +67,7 @@ const getBitbucketRepo = async (gitUrl: string, projectName: string) => {
   return bitbucketApi.searchReposByName(projectName);
 }
 
-const LIMIT_SYNCING_PROJECTS = 10;
+
 
 const syncUsersForProjects = async projects => {
   // Keep track of users we know exist to avoid API calls
@@ -94,9 +100,11 @@ const syncUsersForProjects = async projects => {
 
           let userPermissions = [];
 
-          let lagoonUsersInGroup = await getLagoonUsersForGroup(
+          let lagoonUsersInGroupTotal = await getLagoonUsersForGroup(
             lagoonProjectGroup
           );
+
+          let lagoonUsersInGroup = getUsersEmails(lagoonUsersInGroupTotal)
 
           try {
             const permissions = await bitbucketApi.getRepoUsers(
@@ -104,7 +112,7 @@ const syncUsersForProjects = async projects => {
               bbRepo
             );
 
-            // Useres w/o an email address were deleted/deactivated, but somehow
+            // Users w/o an email address were deleted/deactivated, but somehow
             // still returned in the API
             // @ts-ignore
             userPermissions = R.filter(
@@ -128,15 +136,14 @@ const syncUsersForProjects = async projects => {
             try {
               const email = bbUser.emailAddress.toLowerCase();
 
-              const userExistsInGroupAlready = !R.contains(
+              const userExistsInGroupAlready = R.contains(
                 email,
                 lagoonUsersInGroup
               );
 
-              if (
-                !R.contains(email, existingUsers) &&
-                !userExistsInGroupAlready
-              ) {
+              let userShouldBeAdded = !R.contains(email, existingUsers) && !userExistsInGroupAlready;
+
+              if (userShouldBeAdded) {
                 const userAddedOrExists = await addUser(email);
                 if (!userAddedOrExists) {
                   // Errors for this case are logged in addUser
@@ -146,11 +153,14 @@ const syncUsersForProjects = async projects => {
                 existingUsers.push(email);
               }
 
+              //Now we check if we need to change this users' permissions
+              if(getUsersCurrentPermission(lagoonUsersInGroupTotal, email) != BitbucketPermsToLagoonPerms[bbPerm]) {
                 await api.addUserToGroup(
                   email,
                   lagoonProjectGroup,
                   BitbucketPermsToLagoonPerms[bbPerm]
                 );
+              }
             } catch (err) {
               logger.error(
                 `Could not add user (${bbUser.name}) to group (${lagoonProjectGroup}): ${err.message}`
@@ -169,9 +179,10 @@ const syncUsersForProjects = async projects => {
           )(userPermissions) as [string];
 
           //Refresh users in group for difference calculation
-          lagoonUsersInGroup = await getLagoonUsersForGroup(
+          lagoonUsersInGroupTotal = await getLagoonUsersForGroup(
             lagoonProjectGroup
           );
+          lagoonUsersInGroup = getUsersEmails(lagoonUsersInGroupTotal)
 
           // Remove users from lagoon project that are removed in bitbucket repo
           const deleteUsers = R.difference(lagoonUsersInGroup, bitbucketUsers);
@@ -195,6 +206,26 @@ const syncUsersForProjects = async projects => {
   }
 };
 
+function getUsersEmails(lagoonUsers) {
+  // @ts-ignore
+  return R.pipe(R.pluck('user'), R.pluck('email'), R.map(R.toLower))(lagoonUsers) as [string]
+}
+
+function getUsersCurrentPermission(lagoonUsers, email) {
+  for(let i = 0; i < lagoonUsers.length; i++) {
+    if(R.toLower(lagoonUsers[i].user.email) == R.toLower(email)) {
+      return lagoonUsers[i].role;
+    }
+  }
+  return false;
+}
+
+async function getLagoonUsersForGroup(lagoonProjectGroup: string) {
+  const currentMembersQuery = await api.getGroupMembersByGroupName(lagoonProjectGroup);
+  const lagoonUsers = R.pipe(R.pathOr([], ['groupByName','members']))(currentMembersQuery);
+  return lagoonUsers;
+}
+
 (async () => {
   // Get all bitbucket related lagoon projects
   const groupQuery = await api.getProjectsByGroupName(LAGOON_SYNC_GROUP);
@@ -202,20 +233,5 @@ const syncUsersForProjects = async projects => {
     object
   ];
   const syncResponse = await syncUsersForProjects(projects);
-
   logger.info('Sync completed');
 })();
-
-async function getLagoonUsersForGroup(lagoonProjectGroup: string) {
-  const currentMembersQuery = await api.getGroupMembersByGroupName(lagoonProjectGroup);
-  const lagoonUsers = R.pipe(
-    R.pathOr([], ['groupByName', 'members']),
-    // @ts-ignore
-    R.pluck('user'),
-    // @ts-ignore
-    R.pluck('email'),
-    // @ts-ignore
-    R.map(R.toLower)
-  )(currentMembersQuery) as [string];
-  return lagoonUsers;
-}
