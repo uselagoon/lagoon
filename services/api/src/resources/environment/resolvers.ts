@@ -300,7 +300,7 @@ export const getEnvironmentByKubernetesNamespaceName: ResolverFn = async (
 export const addOrUpdateEnvironment: ResolverFn = async (
   root,
   { input },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const inputDefaults = {
     deployHeadRef: null,
@@ -340,6 +340,12 @@ export const addOrUpdateEnvironment: ResolverFn = async (
       openshiftProjectName
     }
   );
+
+  userActivityLogger.user_action(`User attempted to update environment`, {
+    payload: {
+      ...input
+    }
+  });
 
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s([
     R.path([0, 0], rows)
