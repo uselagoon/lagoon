@@ -1,0 +1,9 @@
+
+- name: "Delete project {{ project }}"
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ project }}"
+    openshift: 2001
+  tasks:
+  - include: ../../tasks/api/delete-project.yaml

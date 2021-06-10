@@ -3,7 +3,8 @@
   uri:
     url: "{{ url }}"
     status_code: "{{ expected_returncode }}"
-    HEADER_Host: "{{ host }}"
+    headers:
+      Host: "{{ host }}"
     validate_certs: no
   register: result
   until: result.status is defined and result.status == expected_returncode|int
