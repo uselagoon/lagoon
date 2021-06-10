@@ -76,11 +76,12 @@ export const Sql = {
       notificationName,
       contentType = NOTIFICATION_CONTENT_TYPE
     } = input;
-    return knex({ p: 'project', nt: `notification_${notificationType}` })
-      .where({ 'p.name': project })
-      .andWhere({ 'nt.name': notificationName })
-      .select({ pid: 'p.id', nid: 'nt.id' })
-      .toString();
+    let ret = knex({ p: 'project', nt: `notification_${notificationType}` })
+    .where({ 'p.name': project })
+    .andWhere({ 'nt.name': notificationName })
+    .select({ pid: 'p.id', nid: 'nt.id' })
+    .toString();
+    return ret;
   },
   updateNotificationMicrosoftTeams: input => {
     const { name, patch } = input;

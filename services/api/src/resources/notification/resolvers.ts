@@ -112,6 +112,9 @@ export const addNotificationToProject: ResolverFn = async (
     unformattedInput
   );
 
+    console.log(unformattedInput);
+    console.log(input);
+
   const pid = await projectHelpers(sqlClientPool).getProjectIdByName(
     input.project
   );
@@ -301,7 +304,7 @@ export const removeNotificationFromProject: ResolverFn = async (
   return project;
 };
 
-const NOTIFICATION_TYPES = ['slack', 'rocketchat', 'microsoftteams', 'email'];
+const NOTIFICATION_TYPES = ['slack', 'rocketchat', 'microsoftteams', 'email', 'webhook'];
 
 export const getNotificationsByProjectId: ResolverFn = async (
   { id: pid },
@@ -331,7 +334,7 @@ export const getNotificationsByProjectId: ResolverFn = async (
 
   // Types to collect notifications from all different
   // notification type tables
-  const types = argsType == null ? NOTIFICATION_TYPES : [argsType];
+  const types = argsType == null ? NOTIFICATION_TYPES : [argsType.toLowerCase()];
 
   const results = await Promise.all(
     types.map(type =>
