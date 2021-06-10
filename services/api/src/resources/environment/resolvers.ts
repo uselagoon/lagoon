@@ -300,7 +300,7 @@ export const getEnvironmentByKubernetesNamespaceName: ResolverFn = async (
 export const addOrUpdateEnvironment: ResolverFn = async (
   root,
   { input },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission }
 ) => {
   const inputDefaults = {
     deployHeadRef: null,
@@ -340,17 +340,11 @@ export const addOrUpdateEnvironment: ResolverFn = async (
       openshiftProjectName
     }
   );
+
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s([
     R.path([0, 0], rows)
   ]);
   const environment = withK8s[0];
-
-  userActivityLogger.user_action(`User added or updated environment on project '${openshiftProjectName}'`, {
-    payload: {
-      input,
-      data: environment
-    }
-  });
 
   return environment;
 };
@@ -496,6 +490,14 @@ export const deleteEnvironment: ResolverFn = async (
       return `Error: unknown deploy type ${environment.deployType}`;
   }
 
+  userActivityLogger.user_action(`User attempted to delete environment '${environment.name}' on project '${projectName}'`, {
+    payload: {
+      projectName,
+      environment,
+      data
+    }
+  });
+
   await createRemoveTask(data);
   sendToLagoonLogs(
     'info',
@@ -505,14 +507,6 @@ export const deleteEnvironment: ResolverFn = async (
     meta,
     `*[${data.projectName}]* Deleting environment \`${environment.name}\``
   );
-
-  userActivityLogger.user_action(`User deleted environment '${environment.name}' on project '${projectName}'`, {
-    payload: {
-      projectName,
-      environment,
-      data
-    }
-  });
 
   return 'success';
 };

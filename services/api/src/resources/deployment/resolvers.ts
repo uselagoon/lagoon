@@ -208,19 +208,6 @@ export const addDeployment: ResolverFn = async (
   const rows = await query(sqlClientPool, Sql.selectDeployment(insertId));
   const deployment = await injectBuildLog(R.prop(0, rows));
 
-  userActivityLogger.user_action(`User deployed '${name}' to '${environment.project}'`, {
-    payload: {
-      id,
-      name,
-      status,
-      created,
-      started,
-      completed,
-      environment,
-      remoteId,
-    }
-  });
-
   pubSub.publish(EVENTS.DEPLOYMENT.ADDED, deployment);
   return deployment;
 };
@@ -355,16 +342,15 @@ export const cancelDeployment: ResolverFn = async (
     project
   };
 
+  userActivityLogger.user_action(`User attempted to cancel deployment for '${deployment.environment}'`, {
+    payload: {
+      deploymentInput,
+      data: data.build
+    }
+  });
+
   try {
     await createMiscTask({ key: 'build:cancel', data });
-
-    userActivityLogger.user_action(`User canceled deployment for '${deployment.environment}'`, {
-      payload: {
-        deploymentInput,
-        data: data.build
-      }
-    });
-
     return 'success';
   } catch (error) {
     sendToLagoonLogs(
@@ -485,6 +471,12 @@ export const deployEnvironmentLatest: ResolverFn = async (
       return `Error: Unknown deploy type ${environment.deployType}`;
   }
 
+  userActivityLogger.user_action(`User attempted to trigger a deployment on '${deployData.projectName}' for '${environment.name}'`, {
+    payload: {
+      deployData
+    }
+  });
+
   try {
     await taskFunction(deployData);
 
@@ -496,12 +488,6 @@ export const deployEnvironmentLatest: ResolverFn = async (
       meta,
       `*[${deployData.projectName}]* Deployment triggered \`${environment.name}\``
     );
-
-    userActivityLogger.user_action(`User triggered deployment on '${deployData.projectName}' for '${environment.name}'`, {
-      payload: {
-        deployData
-      }
-    });
 
     return 'success';
   } catch (error) {
@@ -558,6 +544,12 @@ export const deployEnvironmentBranch: ResolverFn = async (
     branchName: deployData.branchName
   };
 
+  userActivityLogger.user_action(`User attempted to trigger a deployment on '${deployData.projectName}' for '${deployData.branchName}'`, {
+    payload: {
+      deployData
+    }
+  });
+
   try {
     await createDeployTask(deployData);
 
@@ -569,12 +561,6 @@ export const deployEnvironmentBranch: ResolverFn = async (
       meta,
       `*[${deployData.projectName}]* Deployment triggered \`${deployData.branchName}\``
     );
-
-    userActivityLogger.user_action(`User triggered a deployment on '${deployData.projectName}' for '${deployData.branchName}'`, {
-      payload: {
-        deployData
-      }
-    });
 
     return 'success';
   } catch (error) {
@@ -648,6 +634,12 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
     pullrequestTitle: deployData.pullrequestTitle
   };
 
+  userActivityLogger.user_action(`User attempted to trigger a pull-request deployment on '${deployData.projectName}' for '${deployData.branchName}'`, {
+    payload: {
+      deployData
+    }
+  });
+
   try {
     await createDeployTask(deployData);
 
@@ -659,12 +651,6 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
       meta,
       `*[${deployData.projectName}]* Deployment triggered \`${deployData.branchName}\``
     );
-
-    userActivityLogger.user_action(`User triggered a pull-request deployment on '${deployData.projectName}' for '${deployData.branchName}'`, {
-      payload: {
-        deployData
-      }
-    });
 
     return 'success';
   } catch (error) {
@@ -748,6 +734,12 @@ export const deployEnvironmentPromote: ResolverFn = async (
     promoteSourceEnvironment: deployData.promoteSourceEnvironment
   };
 
+  userActivityLogger.user_action(`User promoted the environment on '${deployData.projectName}' from '${deployData.promoteSourceEnvironment}' to '${deployData.branchName}'`, {
+    payload: {
+      deployData
+    }
+  });
+
   try {
     await createPromoteTask(deployData);
 
@@ -759,12 +751,6 @@ export const deployEnvironmentPromote: ResolverFn = async (
       meta,
       `*[${deployData.projectName}]* Deployment triggered \`${deployData.branchName}\``
     );
-
-    userActivityLogger.user_action(`User promoted the environment on '${deployData.projectName}' from '${deployData.promoteSourceEnvironment}' to '${deployData.branchName}'`, {
-      payload: {
-        deployData
-      }
-    });
 
     return 'success';
   } catch (error) {

@@ -148,21 +148,7 @@ export const addTask: ResolverFn = async (
     execute = true;
   }
 
-  const taskData = await Helpers(sqlClientPool).addTask({
-    id,
-    name,
-    status,
-    created,
-    started,
-    completed,
-    environment,
-    service,
-    command,
-    remoteId,
-    execute
-  });
-
-  userActivityLogger.user_action(`User added task '${name}'`, {
+  userActivityLogger.user_action(`User attempted to add task '${name}'`, {
     payload: {
       input: {
         id,
@@ -176,9 +162,22 @@ export const addTask: ResolverFn = async (
         command,
         remoteId,
         execute: executeRequest,
-      },
-      data: taskData
+      }
     }
+  });
+
+  const taskData = await Helpers(sqlClientPool).addTask({
+    id,
+    name,
+    status,
+    created,
+    started,
+    completed,
+    environment,
+    service,
+    command,
+    remoteId,
+    execute
   });
 
   return taskData;
@@ -283,8 +282,7 @@ export const updateTask: ResolverFn = async (
         service,
         command,
         remoteId
-      },
-      data: taskData
+      }
     }
   });
 
@@ -316,18 +314,18 @@ TOKEN="$(ssh -p $TASK_SSH_PORT -t lagoon@$TASK_SSH_HOST token)" && curl -sS "$TA
 -F 0=@$file; rm -rf $file;
 `;
 
+  userActivityLogger.user_action(`User attempted to trigger a Drush Archive Dump task on environment '${environmentId}'`, {
+    payload: {
+      environment: environmentId
+    }
+  });
+
   const taskData = await Helpers(sqlClientPool).addTask({
     name: 'Drush archive-dump',
     environment: environmentId,
     service: 'cli',
     command,
     execute: true
-  });
-
-  userActivityLogger.user_action(`User triggered a Drush Archive Dump task on environment '${environmentId}'`, {
-    payload: {
-      data: taskData
-    }
   });
 
   return taskData;
@@ -358,18 +356,18 @@ TOKEN="$(ssh -p $TASK_SSH_PORT -t lagoon@$TASK_SSH_HOST token)" && curl -sS "$TA
 -F 0=@$file.gz; rm -rf $file.gz
 `;
 
+  userActivityLogger.user_action(`User attempted to trigger a Drush SQL Dump task on environment '${environmentId}'`, {
+    payload: {
+      environment: environmentId
+    }
+  });
+
   const taskData = await Helpers(sqlClientPool).addTask({
     name: 'Drush sql-dump',
     environment: environmentId,
     service: 'cli',
     command,
     execute: true
-  });
-
-  userActivityLogger.user_action(`User triggered a Drush SQL Dump task on environment '${environmentId}'`, {
-    payload: {
-      data: taskData
-    }
   });
 
   return taskData;
@@ -403,18 +401,18 @@ export const taskDrushCacheClear: ResolverFn = async (
     exit 1; \
   fi';
 
+  userActivityLogger.user_action(`User attempted to trigger a Drush cache clear task on environment '${environmentId}'`, {
+    payload: {
+      environment: environmentId
+    }
+  });
+
   const taskData = await Helpers(sqlClientPool).addTask({
     name: 'Drush cache-clear',
     environment: environmentId,
     service: 'cli',
     command,
     execute: true
-  });
-
-  userActivityLogger.user_action(`User triggered a Drush cache clear task on environment '${environmentId}'`, {
-    payload: {
-      data: taskData
-    }
   });
 
   return taskData;
@@ -437,18 +435,18 @@ export const taskDrushCron: ResolverFn = async (
     project: envPerm.project
   });
 
+  userActivityLogger.user_action(`User attempted to trigger a Drush cron task on environment '${environmentId}'`, {
+    payload: {
+      environment: environmentId
+    }
+  });
+
   const taskData = await Helpers(sqlClientPool).addTask({
     name: 'Drush cron',
     environment: environmentId,
     service: 'cli',
     command: `drush cron`,
     execute: true
-  });
-
-  userActivityLogger.user_action(`User triggered a Drush cron task on environment '${environmentId}'`, {
-    payload: {
-      data: taskData
-    }
   });
 
   return taskData;
@@ -497,18 +495,19 @@ export const taskDrushSqlSync: ResolverFn = async (
     }
   );
 
+  userActivityLogger.user_action(`User attempted to trigger a Drush SQL sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`, {
+    payload: {
+      sourceEnvironment: sourceEnvironmentId,
+      destinationEnvironment: destinationEnvironmentId
+    }
+  });
+
   const taskData = await Helpers(sqlClientPool).addTask({
     name: `Sync DB ${sourceEnvironment.name} -> ${destinationEnvironment.name}`,
     environment: destinationEnvironmentId,
     service: 'cli',
     command: `drush -y sql-sync @${sourceEnvironment.name} @self`,
     execute: true
-  });
-
-  userActivityLogger.user_action(`User triggered a Drush SQL sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`, {
-    payload: {
-      data: taskData
-    }
   });
 
   return taskData;
@@ -557,18 +556,19 @@ export const taskDrushRsyncFiles: ResolverFn = async (
     }
   );
 
+  userActivityLogger.user_action(`User attempted to trigger an rsync sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`, {
+    payload: {
+      sourceEnvironment: sourceEnvironmentId,
+      destinationEnvironment: destinationEnvironmentId
+    }
+  });
+
   const taskData = await Helpers(sqlClientPool).addTask({
     name: `Sync files ${sourceEnvironment.name} -> ${destinationEnvironment.name}`,
     environment: destinationEnvironmentId,
     service: 'cli',
     command: `drush -y rsync @${sourceEnvironment.name}:%files @self:%files`,
     execute: true
-  });
-
-  userActivityLogger.user_action(`User triggered an rsync sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`, {
-    payload: {
-      data: taskData
-    }
   });
 
   return taskData;
@@ -591,18 +591,18 @@ export const taskDrushUserLogin: ResolverFn = async (
     project: envPerm.project
   });
 
+  userActivityLogger.user_action(`User attempted to trigger a Drush user login task on '${environmentId}'`, {
+    payload: {
+      environment: environmentId
+    }
+  });
+
   const taskData = await Helpers(sqlClientPool).addTask({
     name: 'Drush uli',
     environment: environmentId,
     service: 'cli',
     command: `drush uli`,
     execute: true
-  });
-
-  userActivityLogger.user_action(`User triggered a Drush user login task on '${environmentId}'`, {
-    payload: {
-      data: taskData
-    }
   });
 
   return taskData;

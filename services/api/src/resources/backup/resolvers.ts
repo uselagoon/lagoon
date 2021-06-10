@@ -175,6 +175,13 @@ export const addRestore: ResolverFn = async (
     project: projectData
   };
 
+  userActivityLogger.user_action(`User attempted to restore a backup '${backupId}' for project ${projectData.project.name}`, {
+    payload: {
+      backupId,
+      data
+    }
+  });
+
   try {
     await createMiscTask({ key: 'restic:backup:restore', data });
   } catch (error) {
@@ -187,13 +194,6 @@ export const addRestore: ResolverFn = async (
       `Restore not initiated, reason: ${error}`
     );
   }
-
-  userActivityLogger.user_action(`User restored backup '${backupId}' for project ${projectData.project.name}`, {
-    payload: {
-      backupId,
-      data
-    }
-  });
 
   return restoreData;
 };
