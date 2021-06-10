@@ -96,7 +96,7 @@ const projectRegex = process.env.PROJECT_REGEX
         'Skipping processing of Lagoon project ',
         project.name,
         ', as it is setup to use another Harbor: ',
-        lagoonHarborRoute
+        localLagoonURL
       );
     }
   }

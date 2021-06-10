@@ -338,10 +338,10 @@ export const taskDrushCacheClear: ResolverFn = async (
 
   const command =
     'drupal_version=$(drush status drupal-version --format=list) && \
-  if [ ${drupal_version%.*.*} == "8" ]; then \
-    drush cr; \
-  elif [ ${drupal_version%.*} == "7" ]; then \
+  if [ ${drupal_version%.*} == "7" ]; then \
     drush cc all; \
+  elif [ ${drupal_version%.*.*} -ge "8" ] ; then \
+    drush cr; \
   else \
     echo "could not clear cache for found Drupal Version ${drupal_version}"; \
     exit 1; \
