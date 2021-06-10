@@ -1,26 +1,31 @@
 - name: "{{ testname }} - POST api add envVariable with target project {{ project }} to {{ graphql_url }}"
   block:
-    - include: refresh-token.yaml
+    - include: admin-token.yaml
     - name: "{{ testname }} - POST api get project by name with target project {{ project }} to {{ graphql_url }}"
       uri:
         url: "{{ graphql_url }}"
         method: POST
         headers:
-          Authorization: "Bearer {{ token }}"
+          Authorization: "Bearer {{ admin_token }}"
         body_format: json
         body: '{ "query": "query($project: String!) {projectByName(name:$project){id,name}}", "variables": {"project":"{{ project }}"}}'
       register: apiresponse
     - name: "{{ testname }} - POST api get project by name with target project {{ project }} and sha {{ sha }} to {{ graphql_url }}"
       debug:
         msg: "api response: {{ apiresponse.json }}"
+    - name: "{{ testname }} - save project id as fact"
+      set_fact:
+        project_id: "{{ apiresponse.json.data.projectByName.id }}"
+        envType: PROJECT
     - name: "{{ testname }} - POST api add envVariable with target project {{ project }} to {{ graphql_url }}"
       uri:
         url: "{{ graphql_url }}"
         method: POST
         headers:
-          Authorization: "Bearer {{ token }}"
+          Authorization: "Bearer {{ admin_token }}"
         body_format: json
-        body: '{ "query": "mutation($projectId: Int!, $name: String!, $value: String!, $scope: EnvVariableScope!) {addEnvVariable(input:{type:PROJECT,typeId:$projectId,name:$name,value:$value,scope:$scope}){id,name,value,scope}}", "variables": {"projectId":{{ apiresponse.json.data.projectByName.id }},"name":"{{ envName }}","value":"{{ envValue }}","scope":"{{ envScope }}"}}'
+        body:
+          query: '{{ lookup("template", "./add-variable.gql") }}'
       register: apiresponse
     - name: "{{ testname }} - POST api add envVariable with target project {{ project }} to {{ graphql_url }}"
       debug:
