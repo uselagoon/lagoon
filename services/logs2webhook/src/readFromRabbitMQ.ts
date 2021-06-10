@@ -1,49 +1,51 @@
 import { ChannelWrapper } from 'amqp-connection-manager';
 import { ConsumeMessage } from 'amqplib';
 import { logger } from '@lagoon/commons/dist/local-logging';
-import { getWebhookNotificationInfoForProject, getEnvironmentById } from '@lagoon/commons/dist/api';
-import { notificationIntToContentType, notificationContentTypeToInt, parseProblemNotification } from '@lagoon/commons/dist/notificationCommons';
+import {
+  getWebhookNotificationInfoForProject,
+  getEnvironmentById
+} from '@lagoon/commons/dist/api';
+import {
+  notificationIntToContentType,
+  notificationContentTypeToInt,
+  parseProblemNotification
+} from '@lagoon/commons/dist/notificationCommons';
 import { URL } from 'url';
 import http from 'https';
 
-export async function readFromRabbitMQ (msg: ConsumeMessage, channelWrapperLogs: ChannelWrapper): Promise<void> {
-  const logMessage = JSON.parse(msg.content.toString())
+export async function readFromRabbitMQ(
+  msg: ConsumeMessage,
+  channelWrapperLogs: ChannelWrapper
+): Promise<void> {
+  const logMessage = JSON.parse(msg.content.toString());
 
-  const {
-    severity,
-    project,
-    uuid,
-    event,
-    meta,
-    message
-  } = logMessage
+  const { severity, project, uuid, event, meta, message } = logMessage;
 
-  const appId = msg.properties.appId || ""
+  const appId = msg.properties.appId || '';
 
- logger.verbose(`received ${event} for project ${project}`)
+  logger.verbose(`received ${event} for project ${project}`);
 
   switch (event) {
-    case "task:deploy-openshift:finished":
-    case "task:remove-openshift:finished":
-    case "task:remove-kubernetes:finished":
-    case "task:remove-openshift-resources:finished":
-    case "task:builddeploy-openshift:complete":
-    case "task:builddeploy-kubernetes:complete":
-    case "task:deploy-openshift:error":
-    case "task:remove-openshift:error":
-    case "task:remove-kubernetes:error":
-    case "task:remove-openshift-resources:error":
-    case "task:builddeploy-openshift:failed":
-    case "task:builddeploy-kubernetes:failed":
-
+    case 'task:deploy-openshift:finished':
+    case 'task:remove-openshift:finished':
+    case 'task:remove-kubernetes:finished':
+    case 'task:remove-openshift-resources:finished':
+    case 'task:builddeploy-openshift:complete':
+    case 'task:builddeploy-kubernetes:complete':
+    case 'task:deploy-openshift:error':
+    case 'task:remove-openshift:error':
+    case 'task:remove-kubernetes:error':
+    case 'task:remove-openshift-resources:error':
+    case 'task:builddeploy-openshift:failed':
+    case 'task:builddeploy-kubernetes:failed':
       let payload = {
-        type: "DEPLOYMENT",
-        event: event.split(":").pop(),
+        type: 'DEPLOYMENT',
+        event: event.split(':').pop(),
         project,
-        environment: "",
+        environment: ''
       };
-      if(meta && meta.environmentId) {
-        const environmentDetails = await getEnvironmentById(meta.environmentId)
+      if (meta && meta.environmentId) {
+        const environmentDetails = await getEnvironmentById(meta.environmentId);
         payload.environment = environmentDetails.environmentById.name;
       }
       sendToWebhook(event, project, payload, channelWrapperLogs, msg);
@@ -53,17 +55,23 @@ export async function readFromRabbitMQ (msg: ConsumeMessage, channelWrapperLogs:
   }
 }
 
-const sendToWebhook = async (event, project, payload, channelWrapperLogs, msg) => {
-
+const sendToWebhook = async (
+  event,
+  project,
+  payload,
+  channelWrapperLogs,
+  msg
+) => {
   let projectWebhooks;
   try {
-    projectWebhooks = await getWebhookNotificationInfoForProject(project, "DEPLOYMENT")
+    projectWebhooks = await getWebhookNotificationInfoForProject(
+      project,
+      'DEPLOYMENT'
+    );
+  } catch (error) {
+    logger.error(`No Webhook information found, error: ${error}`);
+    return channelWrapperLogs.ack(msg);
   }
-  catch (error) {
-    logger.error(`No Webhook information found, error: ${error}`)
-    return channelWrapperLogs.ack(msg)
-  }
-
 
   projectWebhooks.forEach(projectWebhook => {
     const { webhook } = projectWebhook;
@@ -77,7 +85,7 @@ const sendToWebhook = async (event, project, payload, channelWrapperLogs, msg) =
       path: webhookUrl.pathname,
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       }
     };
 
@@ -91,6 +99,6 @@ const sendToWebhook = async (event, project, payload, channelWrapperLogs, msg) =
     req.end(data);
   });
 
-  channelWrapperLogs.ack(msg)
-  return
-}
+  channelWrapperLogs.ack(msg);
+  return;
+};
