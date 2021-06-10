@@ -16,15 +16,17 @@ const standardFactReturn = {
 export const Sql = {
   selectFactByDatabaseId: (fid: number) =>
     knex('environment_fact as f')
-      .select(standardFactReturn)
+      .distinct(standardFactReturn)
       .leftJoin('environment_fact_reference as r', 'r.fid', '=', 'f.id')
       .where('f.id', fid)
+      .orderBy('f.id', 'asc')
       .toString(),
   selectFactsByEnvironmentId: ({ environmentId }) =>
     knex('environment_fact as f')
-      .select(standardFactReturn)
+      .distinct(standardFactReturn)
       .leftJoin('environment_fact_reference as r', 'r.fid', '=', 'f.id')
       .where('environment', environmentId)
+      .orderBy('f.id', 'asc')
       .toString(),
   insertFact: ({ environment, name, value, source, description, type, category, keyFact }) =>
     knex('environment_fact').insert({ environment, name, value, source, description, type, category, keyFact }).toString(),
