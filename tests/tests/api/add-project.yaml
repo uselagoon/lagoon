@@ -1,0 +1,11 @@
+
+- name: "Add project {{ project }}"
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ project }}"
+    git_url: "{{ git_url }}"
+    subfolder: "{{ sub_folder | default('') }}"
+    openshift: 2001
+  tasks:
+  - include: ../../tasks/api/add-project.yaml

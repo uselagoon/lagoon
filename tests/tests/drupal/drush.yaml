@@ -61,7 +61,7 @@
   serial: 1
   vars:
     username: lagoon
-    command: rsh ci-drupal-{{ cluster_type }}-drush-first env
+    command: rsh {{ project }}-drush-first env
     expected_content: LAGOON_PROJECT=ci-drupal
   tasks:
   - include: ../../tasks/ssh/ssh-command.yaml
@@ -70,7 +70,7 @@
   hosts: localhost
   serial: 1
   vars:
-    username: ci-drupal-{{ cluster_type }}-drush-first
+    username: "{{ project }}-drush-first"
     command: env
     expected_content: LAGOON=cli-drupal
   tasks:
@@ -80,7 +80,7 @@
   hosts: localhost
   serial: 1
   vars:
-    username: ci-drupal-{{ cluster_type }}-drush-first
+    username: "{{ project }}-drush-first"
     command: service=nginx container=php env
     expected_content: LAGOON=php
   tasks:
@@ -90,7 +90,7 @@
   hosts: localhost
   serial: 1
   vars:
-    username: ci-drupal-{{ cluster_type }}-drush-first
+    username: "{{ project }}-drush-first"
     command: drush sa
     expected_content: "@drush-second"
   tasks:
@@ -100,7 +100,7 @@
   hosts: localhost
   serial: 1
   vars:
-    username: ci-drupal-{{ cluster_type }}-drush-first
+    username: "{{ project }}-drush-first"
     command: drush @drush-second -y cset system.site name "CHANGED-{{ random_number }}"
     expected_content: ""
   tasks:
@@ -112,7 +112,7 @@
   hosts: localhost
   serial: 1
   vars:
-    username: ci-drupal-{{ cluster_type }}-drush-first
+    username: "{{ project }}-drush-first"
     command: drush @drush-second -y cget system.site name
     expected_content: "CHANGED-{{ random_number }}"
   tasks:
@@ -131,7 +131,7 @@
   hosts: localhost
   serial: 1
   vars:
-    username: ci-drupal-{{ cluster_type }}-drush-first
+    username: "{{ project }}-drush-first"
     command: drush -y sql-sync @drush-second @self
     expected_content: ""
   tasks:
@@ -141,7 +141,7 @@
   hosts: localhost
   serial: 1
   vars:
-    username: ci-drupal-{{ cluster_type }}-drush-first
+    username: "{{ project }}-drush-first"
     command: drush -y cget system.site name
     expected_content: "CHANGED-{{ random_number }}"
   tasks:
@@ -163,7 +163,7 @@
     project: "{{ project }}"
     branch: "drush-first"
   tasks:
-  - include: ../../tasks/api/remove.yaml
+  - include: ../../tasks/api/delete-environment.yaml
 
 - name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
   hosts: localhost
@@ -172,7 +172,7 @@
     project: "{{ project }}"
     branch: "drush-second"
   tasks:
-  - include: ../../tasks/api/remove.yaml
+  - include: ../../tasks/api/delete-environment.yaml
 
 - name: "{{ testname }} - check if site for {{ project }} does not exist anymore"
   hosts: localhost
@@ -225,7 +225,7 @@
   hosts: localhost
   serial: 1
   vars:
-    username: ci-drupal-{{ cluster_type }}-foo-bar
+    username: "{{ project }}-foo-bar"
     command: drush @foo-bar ssh echo zzyzx
     expected_content: "zzyzx"
   tasks:
@@ -238,7 +238,7 @@
     project: "{{ project }}"
     branch: "foo/bar"
   tasks:
-  - include: ../../tasks/api/remove.yaml
+  - include: ../../tasks/api/delete-environment.yaml
 
 - name: "{{ testname }} - check if site for {{ project }} does not exist anymore"
   hosts: localhost

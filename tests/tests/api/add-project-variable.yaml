@@ -1,0 +1,11 @@
+
+- name: "Add project variable {{ envName }} to {{ project }}"
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ project }}"
+    envName: "LAGOON_FASTLY_SERVICE_ID"
+    envValue: "newlagoon:true"
+    envScope: "BUILD"
+  tasks:
+  - include: ../../tasks/api/add-project-variable.yaml

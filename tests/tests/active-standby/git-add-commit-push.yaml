@@ -4,7 +4,7 @@
     chdir: /{{ git_repo_name }}
 
 - name: "{{ testname }} - copying all files from {{ git_files }} into git repo {{ git_repo_name }}"
-  synchronize:
+  ansible.posix.synchronize:
     src: /ansible/files/{{ git_files }}
     dest: /{{ git_repo_name }}/
 
