@@ -1130,6 +1130,7 @@ kind/push-images:
 		&& for image in $(KIND_SERVICES); do \
 			docker tag $(CI_BUILD_TAG)/$$image $$IMAGE_REGISTRY/$$image:$(SAFE_BRANCH_NAME) \
 			&& docker push $$IMAGE_REGISTRY/$$image:$(SAFE_BRANCH_NAME); \
+		done \
 		&& for image in $(LOCAL_DEV_SERVICES); do \
 			docker tag $(CI_BUILD_TAG)/$$image $$IMAGE_REGISTRY/$$image:$(SAFE_BRANCH_NAME) \
 			&& docker push $$IMAGE_REGISTRY/$$image:$(SAFE_BRANCH_NAME); \
