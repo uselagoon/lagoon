@@ -15,6 +15,9 @@ const lagoonWebhookAddress = getLagoonRouteFromEnv(
   getConfigFromEnv('WEBHOOK_URL', 'http://webhook-handler:3000')
 );
 
+const apiVersion = R.propOr('v2.0', 'HARBOR_API_VERSION', process.env);
+// Use an empty string for backwards compatibility with Harbor version 1.x.x
+
 async function createHarborProject(harborClient, lagoonProjectName: string) {
   // Returns an empty string on an error and a string on a success
 
@@ -286,7 +289,7 @@ async function resetHarborWebhook(
               address: lagoonWebhookAddress
             }
           ],
-          event_types: ['scanningFailed', 'scanningCompleted'],
+          event_types: (apiVersion == "v2.0") ? ["SCANNING_FAILED","SCANNING_COMPLETED"] : ["scanningFailed","scanningCompleted"],
           name: 'Lagoon Default Webhook',
           enabled: true
         }

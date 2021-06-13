@@ -8,9 +8,6 @@
     "Michael Schmid <michael@amazee.io> (https://amazee.io)"
   ],
   "main": "dist/index.js",
-  "engines": {
-    "node": ">=10.16.3"
-  },
   "scripts": {
     "clean": "rimraf dist && rimraf logs",
     "build": "tsc",

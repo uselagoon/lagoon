@@ -6,7 +6,7 @@ ARG UPSTREAM_TAG
 FROM ${IMAGE_REPO:-lagoon}/yarn-workspace-builder as yarn-workspace-builder
 
 # STAGE 2: specific service Image
-FROM ${UPSTREAM_REPO:-uselagoon}/node-10:${UPSTREAM_TAG:-latest}
+FROM ${UPSTREAM_REPO:-uselagoon}/node-16:${UPSTREAM_TAG:-latest}
 
 ARG LAGOON_VERSION
 ENV LAGOON_VERSION=$LAGOON_VERSION
