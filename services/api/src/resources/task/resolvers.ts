@@ -148,7 +148,7 @@ export const addTask: ResolverFn = async (
     execute = true;
   }
 
-  userActivityLogger.user_action(`User attempted to add task '${name}'`, {
+  userActivityLogger.user_action(`User added task '${name}'`, {
     payload: {
       input: {
         id,
@@ -314,7 +314,7 @@ TOKEN="$(ssh -p $TASK_SSH_PORT -t lagoon@$TASK_SSH_HOST token)" && curl -sS "$TA
 -F 0=@$file; rm -rf $file;
 `;
 
-  userActivityLogger.user_action(`User attempted to trigger a Drush Archive Dump task on environment '${environmentId}'`, {
+  userActivityLogger.user_action(`User triggered a Drush Archive Dump task on environment '${environmentId}'`, {
     payload: {
       environment: environmentId
     }
@@ -356,7 +356,7 @@ TOKEN="$(ssh -p $TASK_SSH_PORT -t lagoon@$TASK_SSH_HOST token)" && curl -sS "$TA
 -F 0=@$file.gz; rm -rf $file.gz
 `;
 
-  userActivityLogger.user_action(`User attempted to trigger a Drush SQL Dump task on environment '${environmentId}'`, {
+  userActivityLogger.user_action(`User triggered a Drush SQL Dump task on environment '${environmentId}'`, {
     payload: {
       environment: environmentId
     }
@@ -401,7 +401,7 @@ export const taskDrushCacheClear: ResolverFn = async (
     exit 1; \
   fi';
 
-  userActivityLogger.user_action(`User attempted to trigger a Drush cache clear task on environment '${environmentId}'`, {
+  userActivityLogger.user_action(`User triggered a Drush cache clear task on environment '${environmentId}'`, {
     payload: {
       environment: environmentId
     }
@@ -435,7 +435,7 @@ export const taskDrushCron: ResolverFn = async (
     project: envPerm.project
   });
 
-  userActivityLogger.user_action(`User attempted to trigger a Drush cron task on environment '${environmentId}'`, {
+  userActivityLogger.user_action(`User triggered a Drush cron task on environment '${environmentId}'`, {
     payload: {
       environment: environmentId
     }
@@ -495,7 +495,7 @@ export const taskDrushSqlSync: ResolverFn = async (
     }
   );
 
-  userActivityLogger.user_action(`User attempted to trigger a Drush SQL sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`, {
+  userActivityLogger.user_action(`User triggered a Drush SQL sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`, {
     payload: {
       sourceEnvironment: sourceEnvironmentId,
       destinationEnvironment: destinationEnvironmentId
@@ -556,7 +556,7 @@ export const taskDrushRsyncFiles: ResolverFn = async (
     }
   );
 
-  userActivityLogger.user_action(`User attempted to trigger an rsync sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`, {
+  userActivityLogger.user_action(`User triggered an rsync sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`, {
     payload: {
       sourceEnvironment: sourceEnvironmentId,
       destinationEnvironment: destinationEnvironmentId
@@ -591,7 +591,7 @@ export const taskDrushUserLogin: ResolverFn = async (
     project: envPerm.project
   });
 
-  userActivityLogger.user_action(`User attempted to trigger a Drush user login task on '${environmentId}'`, {
+  userActivityLogger.user_action(`User triggered a Drush user login task on '${environmentId}'`, {
     payload: {
       environment: environmentId
     }

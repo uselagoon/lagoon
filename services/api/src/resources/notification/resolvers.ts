@@ -122,7 +122,7 @@ export const addNotificationToProject: ResolverFn = async (
     input.notificationSeverityThreshold || NOTIFICATION_SEVERITY_THRESHOLD;
 
 
-  userActivityLogger.user_action(`User attempted to add a notification to project '${pid}'`, {
+  userActivityLogger.user_action(`User added a notification to project '${pid}'`, {
     payload: {
      projectNotification
     }

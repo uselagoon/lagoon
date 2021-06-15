@@ -341,7 +341,7 @@ export const addOrUpdateEnvironment: ResolverFn = async (
     }
   );
 
-  userActivityLogger.user_action(`User attempted to update environment`, {
+  userActivityLogger.user_action(`User updated environment`, {
     payload: {
       ...input
     }
@@ -496,7 +496,7 @@ export const deleteEnvironment: ResolverFn = async (
       return `Error: unknown deploy type ${environment.deployType}`;
   }
 
-  userActivityLogger.user_action(`User attempted to delete environment '${environment.name}' on project '${projectName}'`, {
+  userActivityLogger.user_action(`User deleted environment '${environment.name}' on project '${projectName}'`, {
     payload: {
       projectName,
       environment,

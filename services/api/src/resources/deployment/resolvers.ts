@@ -342,7 +342,7 @@ export const cancelDeployment: ResolverFn = async (
     project
   };
 
-  userActivityLogger.user_action(`User attempted to cancel deployment for '${deployment.environment}'`, {
+  userActivityLogger.user_action(`User cancelled deployment for '${deployment.environment}'`, {
     payload: {
       deploymentInput,
       data: data.build
@@ -471,7 +471,7 @@ export const deployEnvironmentLatest: ResolverFn = async (
       return `Error: Unknown deploy type ${environment.deployType}`;
   }
 
-  userActivityLogger.user_action(`User attempted to trigger a deployment on '${deployData.projectName}' for '${environment.name}'`, {
+  userActivityLogger.user_action(`User triggered a deployment on '${deployData.projectName}' for '${environment.name}'`, {
     payload: {
       deployData
     }
@@ -544,7 +544,7 @@ export const deployEnvironmentBranch: ResolverFn = async (
     branchName: deployData.branchName
   };
 
-  userActivityLogger.user_action(`User attempted to trigger a deployment on '${deployData.projectName}' for '${deployData.branchName}'`, {
+  userActivityLogger.user_action(`User triggered a deployment on '${deployData.projectName}' for '${deployData.branchName}'`, {
     payload: {
       deployData
     }
@@ -634,7 +634,7 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
     pullrequestTitle: deployData.pullrequestTitle
   };
 
-  userActivityLogger.user_action(`User attempted to trigger a pull-request deployment on '${deployData.projectName}' for '${deployData.branchName}'`, {
+  userActivityLogger.user_action(`User triggered a pull-request deployment on '${deployData.projectName}' for '${deployData.branchName}'`, {
     payload: {
       deployData
     }
