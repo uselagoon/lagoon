@@ -120,6 +120,7 @@ const typeDefs = gql`
   enum FactType {
     TEXT
     URL
+    SEMVER
   }
 
   scalar SeverityScore
@@ -257,7 +258,6 @@ const typeDefs = gql`
 
   type FactReference {
     id: Int
-    eid: Int
     fid: Int
     name: String
   }
