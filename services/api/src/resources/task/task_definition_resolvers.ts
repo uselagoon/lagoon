@@ -23,6 +23,13 @@ const AdvancedTaskDefinitionType = {
   image: 'IMAGE'
 };
 
+enum AdvancedTaskDefinitionTarget {
+  Group,
+  Project,
+  Environment,
+  SystemWide,
+};
+
 const taskStatusTypeToString = R.cond([
   [R.equals('ACTIVE'), R.toLower],
   [R.equals('SUCCEEDED'), R.toLower],
@@ -145,7 +152,7 @@ export const addAdvancedTaskDefinition = async (
       created
     }
   },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, models }
 ) => {
   const systemLevelTask =
     project == null && environment == null && groupName == null;
@@ -165,8 +172,11 @@ export const addAdvancedTaskDefinition = async (
     //TODO: add checks once images are officially supported - for now, throw an error
     throw Error('AdAding Images and System Wide Tasks are not yet supported');
   } else if (groupName) {
-    //TODO: is the user an admin?
-    console.log('TODO: IMPLEMENT - group level tasks test');
+    console.log(`Checking group name for ${groupName}`)
+    const group = await models.GroupModel.loadGroupByIdOrName({name: groupName});
+    await hasPermission('group', 'update', {
+      group: group.id
+    });
   } else if (projectObj) {
     //does the user have permission to actually add to this?
     //i.e. are they a maintainer?
@@ -434,7 +444,40 @@ export const deleteAdvancedTaskDefinition = async (
   root,
   { input: { id } },
   { sqlClientPool, hasPermission }
-) => {};
+) => {
+  //load up advanced task definition ...
+  const adTaskDef = await advancedTaskFunctions(sqlClientPool).advancedTaskDefinitionById(id);
+
+  //determine type and check user perms ...
+  switch(getAdvancedTaskTarget(adTaskDef)) {
+    case(AdvancedTaskDefinitionTarget.Environment):
+
+    break;
+    case(AdvancedTaskDefinitionTarget.Project):
+
+    break;
+    case(AdvancedTaskDefinitionTarget.Group):
+
+    break;
+    default:
+      throw Error('Images and System Wide Tasks are not yet supported');
+  }
+
+};
+
+const getAdvancedTaskTarget = advancedTask => {
+  if(advancedTask.environment != null) {
+    return AdvancedTaskDefinitionTarget.Environment;
+  } else if (advancedTask.project != null) {
+    return AdvancedTaskDefinitionTarget.Project;
+  } else if (advancedTask.group_name != null) {
+    return AdvancedTaskDefinitionTarget.Group
+  } else {
+    //Currently, we don't support environment level tasks
+    throw Error('Images and System Wide Tasks are not yet supported');
+    // return AdvancedTaskDefinitionTarget.Environment
+  }
+}
 
 const advancedTaskFunctions = sqlClientPool => {
   return {
