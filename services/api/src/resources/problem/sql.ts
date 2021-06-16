@@ -128,7 +128,7 @@ export const Sql = {
         created
       })
       .toString(),
-  deleteProblem: (environment, identifier, service) =>
+  deleteProblem: (environment, identifier, service) => {
     let q = knex('environment_problem')
       .where({
         environment: environment,
