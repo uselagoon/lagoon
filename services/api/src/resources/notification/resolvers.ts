@@ -85,7 +85,7 @@ export const addNotificationSlack: ResolverFn = async (
 export const addNotificationToProject: ResolverFn = async (
   root,
   { input: unformattedInput },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const input = [
     R.over(
@@ -120,6 +120,13 @@ export const addNotificationToProject: ResolverFn = async (
     input.contentType || NOTIFICATION_CONTENT_TYPE;
   projectNotification.notificationSeverityThreshold =
     input.notificationSeverityThreshold || NOTIFICATION_SEVERITY_THRESHOLD;
+
+
+  userActivityLogger.user_action(`User added a notification to project '${pid}'`, {
+    payload: {
+     projectNotification
+    }
+  });
 
   await query(
     sqlClientPool,

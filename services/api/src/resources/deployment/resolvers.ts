@@ -180,7 +180,7 @@ export const addDeployment: ResolverFn = async (
       remoteId
     }
   },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
@@ -215,7 +215,7 @@ export const addDeployment: ResolverFn = async (
 export const deleteDeployment: ResolverFn = async (
   root,
   { input: { id } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const perms = await query(sqlClientPool, Sql.selectPermsForDeployment(id));
 
@@ -224,6 +224,12 @@ export const deleteDeployment: ResolverFn = async (
   });
 
   await query(sqlClientPool, Sql.deleteDeployment(id));
+
+  userActivityLogger.user_action(`User deleted deployment '${id}'`, {
+    payload: {
+      deployment: id
+    }
+  });
 
   return 'success';
 };
@@ -245,7 +251,7 @@ export const updateDeployment: ResolverFn = async (
       }
     }
   },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   if (isPatchEmpty({ patch })) {
     throw new Error('Input patch requires at least 1 attribute');
@@ -292,13 +298,29 @@ export const updateDeployment: ResolverFn = async (
 
   pubSub.publish(EVENTS.DEPLOYMENT.UPDATED, deployment);
 
+  userActivityLogger.user_action(`User updated deployment '${id}'`, {
+    payload: {
+      id,
+      deployment,
+      patch: {
+        name,
+        status,
+        created,
+        started,
+        completed,
+        environment,
+        remoteId,
+      }
+    }
+  });
+
   return deployment;
 };
 
 export const cancelDeployment: ResolverFn = async (
   root,
   { input: { deployment: deploymentInput } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const deployment = await Helpers(
     sqlClientPool
@@ -320,6 +342,13 @@ export const cancelDeployment: ResolverFn = async (
     project
   };
 
+  userActivityLogger.user_action(`User cancelled deployment for '${deployment.environment}'`, {
+    payload: {
+      deploymentInput,
+      data: data.build
+    }
+  });
+
   try {
     await createMiscTask({ key: 'build:cancel', data });
     return 'success';
@@ -339,7 +368,7 @@ export const cancelDeployment: ResolverFn = async (
 export const deployEnvironmentLatest: ResolverFn = async (
   root,
   { input: { environment: environmentInput } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const environments = await environmentHelpers(
     sqlClientPool
@@ -439,8 +468,14 @@ export const deployEnvironmentLatest: ResolverFn = async (
       break;
 
     default:
-      return `Error: Unkown deploy type ${environment.deployType}`;
+      return `Error: Unknown deploy type ${environment.deployType}`;
   }
+
+  userActivityLogger.user_action(`User triggered a deployment on '${deployData.projectName}' for '${environment.name}'`, {
+    payload: {
+      deployData
+    }
+  });
 
   try {
     await taskFunction(deployData);
@@ -485,7 +520,7 @@ export const deployEnvironmentLatest: ResolverFn = async (
 export const deployEnvironmentBranch: ResolverFn = async (
   root,
   { input: { project: projectInput, branchName, branchRef } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
     projectInput
@@ -508,6 +543,12 @@ export const deployEnvironmentBranch: ResolverFn = async (
     projectName: project.name,
     branchName: deployData.branchName
   };
+
+  userActivityLogger.user_action(`User triggered a deployment on '${deployData.projectName}' for '${deployData.branchName}'`, {
+    payload: {
+      deployData
+    }
+  });
 
   try {
     await createDeployTask(deployData);
@@ -563,7 +604,7 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
       headBranchRef
     }
   },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const branchName = `pr-${number}`;
   const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
@@ -592,6 +633,12 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
     projectName: project.name,
     pullrequestTitle: deployData.pullrequestTitle
   };
+
+  userActivityLogger.user_action(`User triggered a pull-request deployment on '${deployData.projectName}' for '${deployData.branchName}'`, {
+    payload: {
+      deployData
+    }
+  });
 
   try {
     await createDeployTask(deployData);
@@ -642,7 +689,7 @@ export const deployEnvironmentPromote: ResolverFn = async (
       destinationEnvironment
     }
   },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const destProject = await projectHelpers(
     sqlClientPool
@@ -686,6 +733,12 @@ export const deployEnvironmentPromote: ResolverFn = async (
     branchName: deployData.branchName,
     promoteSourceEnvironment: deployData.promoteSourceEnvironment
   };
+
+  userActivityLogger.user_action(`User promoted the environment on '${deployData.projectName}' from '${deployData.promoteSourceEnvironment}' to '${deployData.branchName}'`, {
+    payload: {
+      deployData
+    }
+  });
 
   try {
     await createPromoteTask(deployData);

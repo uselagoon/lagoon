@@ -1,7 +1,7 @@
 import { Pool } from 'mariadb';
 import { opendistroSecurityClient } from '../../clients/opendistroSecurityClient';
 import { kibanaClient } from '../../clients/kibanaClient';
-import logger from '../../logger';
+import { logger } from '../../loggers/logger';
 import { Helpers as projectHelpers } from '../project/helpers';
 
 export const OpendistroSecurityOperations = (

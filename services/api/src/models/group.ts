@@ -2,7 +2,7 @@ import * as R from 'ramda';
 import { Pool } from 'mariadb';
 import { asyncPipe } from '@lagoon/commons/dist/util';
 import pickNonNil from '../util/pickNonNil';
-import * as logger from '../logger';
+import { logger } from '../loggers/logger';
 import GroupRepresentation from 'keycloak-admin/lib/defs/groupRepresentation';
 import { User } from './user';
 
