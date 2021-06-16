@@ -47,17 +47,22 @@ export const Sql = {
     knex('environment_fact_reference')
       .where({ id })
       .toString(),
+  selectFactReferenceByNameAndEnvironmentId: (name: string, environmentId: number) =>
+    knex('environment_fact_reference as r')
+      .select('r.*', 'f.environment')
+      .leftJoin('environment_fact as f', 'f.id', '=', 'r.fid')
+      .where('r.name', '=', name)
+      .andWhere('f.environment', '=', environmentId)
+      .toString(),
   selectFactReferencesByFactId: (fid: number) =>
     knex('environment_fact_reference')
       .where('fid', '=', fid)
       .toString(),
-  insertFactReference: ({ eid, fid, name }) =>
-      knex('environment_fact_reference')
-        .insert({ eid, fid, name }).toString(),
-  deleteFactReferenceByDatabaseId: (id) =>
+  insertFactReference: ({ fid, name }) =>
     knex('environment_fact_reference')
-      .where({ id })
-      .del()
+      .insert({ fid, name })
+      .onConflict(['name', 'fid'])
+      .merge()
       .toString(),
   deleteFactReferencesByFactId: (fid) =>
     knex('environment_fact_reference')

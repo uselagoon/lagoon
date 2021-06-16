@@ -231,10 +231,17 @@ export const deleteFactsFromSource: ResolverFn = async (
 
 export const addFactReference: ResolverFn = async (
   root,
-  { input: { eid, fid, name } },
+  { input: { fid, name } },
   { sqlClientPool, hasPermission }
 ) => {
-  const environment = await environmentHelpers(sqlClientPool).getEnvironmentById(eid);
+
+  const fact = await query(sqlClientPool, Sql.selectFactByDatabaseId(fid));
+
+  if (!R.prop(0, fact)) {
+    throw new Error('No fact could be found with that ID');
+  }
+
+  const environment = await environmentHelpers(sqlClientPool).getEnvironmentById((R.prop(0, fact)).environment);
 
   await hasPermission('fact', 'add', {
     project: environment.project
@@ -243,7 +250,6 @@ export const addFactReference: ResolverFn = async (
   const { insertId } = await query(
     sqlClientPool,
     Sql.insertFactReference({
-      eid,
       fid,
       name
     })
@@ -257,29 +263,34 @@ export const addFactReference: ResolverFn = async (
   return R.prop(0, rows);
 };
 
-export const deleteFactReferenceById: ResolverFn = async (
+export const deleteFactReference: ResolverFn = async (
   root,
-  { input: { id } },
+  { input: { factName, referenceName, eid } },
   { sqlClientPool, hasPermission }
 ) => {
-  const factReference = await query(
-    sqlClientPool,
-    Sql.selectFactReferenceByDatabaseId(id)
-  );
-
-  if (!R.prop(0, factReference)) {
-    throw new Error('Fact reference ID could not be found');
-  }
 
   const environment = await environmentHelpers(
     sqlClientPool
-  ).getEnvironmentById(R.prop(0, factReference).eid);
+  ).getEnvironmentById(eid);
 
   await hasPermission('fact', 'delete', {
     project: environment.project
   });
 
-  await query(sqlClientPool, Sql.deleteFactReferenceByDatabaseId(id));
+  await query(
+    sqlClientPool,
+    `DELETE r FROM environment_fact_reference as r
+     WHERE r.name = :r_name
+     AND r.fid IN (
+      SELECT f.id FROM environment_fact as f WHERE f.environment = :eid AND f.name = :f_name
+     )`,
+    {
+      fName: factName,
+      rName: referenceName,
+      eid
+    }
+  );
+
   return 'success';
 };
 

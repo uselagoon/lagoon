@@ -117,6 +117,11 @@ const typeDefs = gql`
     CRITICAL
   }
 
+  enum FactType {
+    TEXT
+    URL
+  }
+
   scalar SeverityScore
 
   type Problem {
@@ -258,13 +263,11 @@ const typeDefs = gql`
   }
 
   input AddFactReferenceInput {
-    eid: Int!
     fid: Int!
     name: String!
   }
 
   input UpdateFactReferenceInputValue {
-    eid: Int!
     fid: Int!
     name: String
   }
@@ -274,8 +277,10 @@ const typeDefs = gql`
     patch: UpdateFactReferenceInputValue!
   }
 
-  input DeleteFactReferenceByIdInput {
-    id: Int!
+  input DeleteFactReferenceInput {
+    factName: String!
+    referenceName: String!
+    eid: Int!
   }
 
   input DeleteFactReferencesByFactIdInput {
@@ -1684,7 +1689,7 @@ const typeDefs = gql`
     deleteFact(input: DeleteFactInput!): String
     deleteFactsFromSource(input: DeleteFactsFromSourceInput!): String
     addFactReference(input: AddFactReferenceInput!): FactReference
-    deleteFactReferenceById(input: DeleteFactReferenceByIdInput!): String
+    deleteFactReference(input: DeleteFactReferenceInput!): String
     deleteAllFactReferencesByFactId(input: DeleteFactReferencesByFactIdInput!): String
     deleteBackup(input: DeleteBackupInput!): String
     deleteAllBackups: String
