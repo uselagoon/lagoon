@@ -215,7 +215,7 @@
     expected_dot_env: branch1
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
-# # @TODO: Enable again, see https://github.com/amazeeio/lagoon/issues/1099
+# # @TODO: Enable again, see https://github.com/uselagoon/lagoon/issues/1099
 # # - include: features/limits.yaml
 # #   vars:
 # #     testname: "limits"

@@ -5,7 +5,7 @@ USE infrastructure;
 -- Since these proved to be awkward to work with and
 -- prone to errors, we will write any further queries
 -- in the API service using knex.
--- Example using knex: https://github.com/amazeeio/lagoon/blob/3c5da25fe9caa442a4443c73b1dc00eb4afb411e/services/api/src/dao/project.js#L14-L24
+-- Example using knex: https://github.com/uselagoon/lagoon/blob/main/services/api/src/dao/project.js#L14-L24
 
 DELIMITER $$
 
