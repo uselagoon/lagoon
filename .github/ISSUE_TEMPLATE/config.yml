@@ -1,11 +1,11 @@
 blank_issues_enabled: true
 contact_links:
   - name: Bug Report
-    url: https://github.com/amazeeio/lagoon/issues/new?template=bug_report.md
+    url: https://github.com/uselagoon/lagoon/issues/new?template=bug_report.md
     about: Report a bug
   - name: Feature Request
-    url: https://github.com/amazeeio/lagoon/issues/new
+    url: https://github.com/uselagoon/lagoon/issues/new
     about: Request a feature to be added
   - name: Ask a Question
-    url: https://github.com/amazeeio/lagoon/discussions/new
+    url: https://github.com/uselagoon/lagoon/discussions/new
     about: Ask questions and discuss with other community members

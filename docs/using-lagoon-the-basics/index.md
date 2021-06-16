@@ -59,7 +59,7 @@ Some Docker images and containers need additional customizations from the provid
 | [PHP CLI](../docker-images/php-cli/) | 7.2, 7.3, 7.4 | [php/cli/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli) |
 | [PHP CLI \(Drupal\)](../docker-images/php-cli/php-cli-drupal.md) | 7.3, 7.4, 8.0 | [php/cli-drupal/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli-drupal) |
 | Python | 2.7, 3.7, 3.8 | [python/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/python) |
-| [Redis](https://github.com/amazeeio/lagoon/tree/2ad44d8d193ef68357474ad5382afae14a320967/docs/docker-images/redis.md) | 5, 6 | [redis/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/redis) |
+| [Redis](../docs/docker-images/redis.md) | 5, 6 | [redis/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/redis) |
 | [Redis-persistent](../docker-images/redis/redis-persistent.md) | 5, 6 | [redis-persistent/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/redis-persistent) |
 | [Solr](../docker-images/solr/) | 5.5, 6.6, 7.7 | [solr/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/solr) |
 | [Solr \(Drupal\)](../docker-images/solr/solr-drupal.md) | 5.5, 6.6, 7.7 | [solr-drupal/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/solr-drupal) |
@@ -68,9 +68,8 @@ Some Docker images and containers need additional customizations from the provid
 | [Elasticsearch](../docker-images/elasticsearch.md) | 6, 7 | [elasticsearch/Dockerfiles](https://github.com/uselagoon/lagoon-images/blob/main/images/elasticsearch) |
 | [Logstash](../docker-images/elasticsearch.md) | 6, 7 | [logstash/Dockerfiles](https://github.com/uselagoon/lagoon-images/blob/main/images/logstash) |
 | [Kibana](../docker-images/elasticsearch.md) | 6, 7 | [kibana/Dockerfiles](https://github.com/uselagoon/lagoon-images/blob/main/images/kibana) |
-| [RabbitMQ](../docker-images/rabbitmq.md) | 3.8 | [rabbitmq/Dockerfile](https://github.com/amazeeio/lagoon/blob/main/images/rabbitmq) |
+| [RabbitMQ](../docker-images/rabbitmq.md) | 3.8 | [rabbitmq/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/rabbitmq) |
 
 All images are pushed to [https://hub.docker.com/u/uselagoon](https://hub.docker.com/u/uselagoon). We suggest always using the latest tag \(like `uselagoon/nginx:latest`\) or unsuffixed images \(like `amazeeio/node:14`\), as they are kept up to date in terms of features and security.
 
 If you choose to use a specific Lagoon version of an image like `uselagoon/nginx:20.10.0` or `uselagoon/node-10:20.10.0` it is your own responsibility to upgrade the version of the images as soon as a new Lagoon version is released!
-

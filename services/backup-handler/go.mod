@@ -1,4 +1,4 @@
-module github.com/amazeeio/lagoon/services/backup-handler
+module github.com/uselagoon/lagoon/services/backup-handler
 
 go 1.14
 

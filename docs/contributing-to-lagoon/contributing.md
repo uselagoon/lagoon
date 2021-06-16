@@ -30,11 +30,11 @@ Security reports are greatly appreciated and will receive public karma and swag!
 
 ## I found an issue
 
-We're always interested in fixing issues, therefore issue reports are very welcome. Please make sure to check that your issue does not already exist in the [issue queue](https://github.com/amazeeio/lagoon/issues).
+We're always interested in fixing issues, therefore issue reports are very welcome. Please make sure to check that your issue does not already exist in the [issue queue](https://github.com/uselagoon/lagoon/issues).
 
 ## I have a feature request or idea
 
-Cool! Create an [issue](https://github.com/amazeeio/lagoon/issues) and we're happy to look over it. We can't guarantee that it will be implemented. But we are always interested in hearing ideas of what we could bring to Lagoon.
+Cool! Create an [issue](https://github.com/uselagoon/lagoon/issues) and we're happy to look over it. We can't guarantee that it will be implemented. But we are always interested in hearing ideas of what we could bring to Lagoon.
 
 Another good way is also to talk to us via RocketChat about your idea. [Join today](https://amazeeio.rocket.chat/) in the channel \#lagoon.
 
