@@ -68,9 +68,8 @@ Some Docker images and containers need additional customizations from the provid
 | [Elasticsearch](../docker-images/elasticsearch.md) | 6, 7 | [elasticsearch/Dockerfiles](https://github.com/uselagoon/lagoon-images/blob/main/images/elasticsearch) |
 | [Logstash](../docker-images/elasticsearch.md) | 6, 7 | [logstash/Dockerfiles](https://github.com/uselagoon/lagoon-images/blob/main/images/logstash) |
 | [Kibana](../docker-images/elasticsearch.md) | 6, 7 | [kibana/Dockerfiles](https://github.com/uselagoon/lagoon-images/blob/main/images/kibana) |
-| [RabbitMQ](../docker-images/rabbitmq.md) | 3.8 | [rabbitmq/Dockerfile](https://github.com/uselagoon/lagoon/blob/main/images/rabbitmq) |
+| [RabbitMQ](../docker-images/rabbitmq.md) | 3.8 | [rabbitmq/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/rabbitmq) |
 
 All images are pushed to [https://hub.docker.com/u/uselagoon](https://hub.docker.com/u/uselagoon). We suggest always using the latest tag \(like `uselagoon/nginx:latest`\) or unsuffixed images \(like `amazeeio/node:14`\), as they are kept up to date in terms of features and security.
 
 If you choose to use a specific Lagoon version of an image like `uselagoon/nginx:20.10.0` or `uselagoon/node-10:20.10.0` it is your own responsibility to upgrade the version of the images as soon as a new Lagoon version is released!
-
