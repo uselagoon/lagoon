@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "rabbitmq.persistentStorageName" . }}
+  labels:
+    {{- include "rabbitmq.labels" . | nindent 4 }}
+  annotations:
+    k8up.syn.tools/backup: "false"
+    {{- include "rabbitmq.annotations" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.persistentStorage.size | quote }}

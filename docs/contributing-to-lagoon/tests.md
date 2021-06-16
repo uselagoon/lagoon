@@ -53,16 +53,6 @@ In order to test pull requests that are created against Lagoon, we have a fully 
 
 This will build all images, start an OpenShift and run all tests.
 
-## 3. Real World Testing
-
-To make sure that our services also work in the real world \(for example, deployed on OpenShift with real URLs, real Git repositories, etc.\), we also have tests for this. Currently we only deploy the `develop` and `main` branches to a real OpenShift infrastructure.
-
-For these tests, we use the exact same Ansible scripts, and just like the local and automated testing, we push to an actual GitHub repository \([https://github.com/amazeeio-ci-testing](https://github.com/amazeeio-ci-testing)\), and send webhooks to webhook handlers that are running OpenShift.
-
-These tests are defined in `Jenkinsfile.testing-develop` and `Jenkinsfile.testing-main`. They get their testing infrastructure \(endpoints, etc.\) from a `docker-compose.yml` file within the `tests` folder.
-
-Besides that, it's exactly the same as the automated integration testing.
-
 The tests can be found here:
 
 * `develop` branch: [https://lagoon-ci.amazeeio.cloud/blue/organizations/jenkins/lagoon/activity/?branch=develop](https://lagoon-ci.amazeeio.cloud/blue/organizations/jenkins/lagoon/activity/?branch=develop)

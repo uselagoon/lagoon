@@ -8,12 +8,12 @@ import { Sql as taskSql } from '../task/sql';
 const generateDownloadLink = file => {
   const url = s3Client.getSignedUrl('getObject', {
     Key: file.s3Key,
-    Expires: 300, // 5 minutes
+    Expires: 300 // 5 minutes
   });
 
   return {
     ...file,
-    download: url,
+    download: url
   };
 };
 
@@ -22,38 +22,38 @@ const fileIsDeleted = file => file.deleted !== '0000-00-00 00:00:00';
 export const getFilesByTaskId: ResolverFn = async (
   { id: tid },
   args,
-  {
-    sqlClient,
-    hasPermission,
-  },
+  { sqlClientPool, hasPermission }
 ) => {
-  const rowsPerms = await query(sqlClient, taskSql.selectPermsForTask(tid));
+  const rowsPerms = await query(
+    sqlClientPool,
+    taskSql.selectPermsForTask(tid)
+  );
 
   await hasPermission('task', 'view', {
-    project: R.path(['0', 'pid'], rowsPerms),
+    project: R.path(['0', 'pid'], rowsPerms)
   });
 
-  const rows = await query(sqlClient, Sql.selectTaskFiles(tid));
+  const rows = await query(sqlClientPool, Sql.selectTaskFiles(tid));
 
   return R.pipe(
     R.sort(R.descend(R.prop('created'))),
     R.reject(fileIsDeleted),
-    R.map(generateDownloadLink),
+    R.map(generateDownloadLink)
   )(rows);
 };
 
 export const uploadFilesForTask: ResolverFn = async (
   root,
   { input: { task, files } },
-  {
-    sqlClient,
-    hasPermission,
-  },
+  { sqlClientPool, hasPermission }
 ) => {
-  const rowsPerms = await query(sqlClient, taskSql.selectPermsForTask(task));
+  const rowsPerms = await query(
+    sqlClientPool,
+    taskSql.selectPermsForTask(task)
+  );
 
   await hasPermission('task', 'update', {
-    project: R.path(['0', 'pid'], rowsPerms),
+    project: R.path(['0', 'pid'], rowsPerms)
   });
 
   const resolvedFiles = await Promise.all(files);
@@ -62,34 +62,32 @@ export const uploadFilesForTask: ResolverFn = async (
     const params = {
       Key: s3_key,
       Body: newFile.stream,
-      ACL: 'private',
+      ACL: 'private'
     };
     // @ts-ignore
     await s3Client.upload(params).promise();
 
-    const {
-      info: { insertId },
-    } = await query(
-      sqlClient,
+    const { insertId } = await query(
+      sqlClientPool,
       Sql.insertFile({
         filename: newFile.filename,
         s3_key,
-        created: '2010-01-01 00:00:00',
-      }),
+        created: '2010-01-01 00:00:00'
+      })
     );
 
     await query(
-      sqlClient,
+      sqlClientPool,
       Sql.insertFileTask({
         tid: task,
-        fid: insertId,
-      }),
+        fid: insertId
+      })
     );
   });
 
   await Promise.all(uploadAndTrackFiles);
 
-  const rows = await query(sqlClient, taskSql.selectTask(task));
+  const rows = await query(sqlClientPool, taskSql.selectTask(task));
 
   return R.prop(0, rows);
 };
@@ -97,27 +95,27 @@ export const uploadFilesForTask: ResolverFn = async (
 export const deleteFilesForTask: ResolverFn = async (
   root,
   { input: { id } },
-  { sqlClient, hasPermission },
+  { sqlClientPool, hasPermission }
 ) => {
-  const rowsPerms = await query(sqlClient, taskSql.selectPermsForTask(id));
+  const rowsPerms = await query(sqlClientPool, taskSql.selectPermsForTask(id));
 
   await hasPermission('task', 'delete', {
-    project: R.path(['0', 'pid'], rowsPerms),
+    project: R.path(['0', 'pid'], rowsPerms)
   });
 
-  const rows = await query(sqlClient, Sql.selectTaskFiles(id));
+  const rows = await query(sqlClientPool, Sql.selectTaskFiles(id));
   const deleteObjects = R.map((file: any) => ({ Key: file.s3Key }), rows);
 
   const params = {
     Delete: {
       Objects: deleteObjects,
-      Quiet: false,
-    },
+      Quiet: false
+    }
   };
   // @ts-ignore
   await s3Client.deleteObjects(params).promise();
 
-  await query(sqlClient, Sql.deleteFileTask(id));
+  await query(sqlClientPool, Sql.deleteFileTask(id));
 
   return 'success';
 };

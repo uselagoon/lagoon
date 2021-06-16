@@ -6,13 +6,13 @@ We gladly welcome any and all contributions to Lagoon!
 
 Right now one of our biggest needs is putting together examples of Lagoon working with various content management systems, etc, other than Drupal.
 
-If you can spin up an open source CMS or framework that we don’t currently have as a docker-compose stack, send us a PR.  Look at the existing examples at [https://github.com/uselagoon/lagoon-examples](https://github.com/uselagoon/lagoon-examples) for tips, pointers and starter issues.
+If you can spin up an open source CMS or framework that we don’t currently have as a docker-compose stack, send us a PR. Look at the existing examples at [https://github.com/uselagoon/lagoon-examples](https://github.com/uselagoon/lagoon-examples) for tips, pointers and starter issues.
 
-One small catch  –  wherever possible, we’d like them to be built using our base Docker hub images [https://hub.docker.com/u/uselagoon](https://hub.docker.com/u/uselagoon) –  if we don’t have a suitable image, or our images need modifying  –  throw us a PR \(if you can\) or create an issue \(so someone else can\) at [https://github.com/uselagoon/lagoon-images](https://github.com/uselagoon/lagoon-images).
+One small catch – wherever possible, we’d like them to be built using our base Docker hub images [https://hub.docker.com/u/uselagoon](https://hub.docker.com/u/uselagoon) – if we don’t have a suitable image, or our images need modifying – throw us a PR \(if you can\) or create an issue \(so someone else can\) at [https://github.com/uselagoon/lagoon-images](https://github.com/uselagoon/lagoon-images).
 
 Help us improve our existing examples, if you can - are we following best practices, is there something we’re doing that doesn’t make sense?
 
-Bonus points for anyone that helps contribute to tests for any of these examples  –  we’ve got some example tests in a couple of the projects you can use for guidance  –  [https://github.com/amazeeio/drupal-example-simple/blob/8.x/TESTING.md](https://github.com/amazeeio/drupal-example-simple/blob/8.x/TESTING.md).  The testing framework we’re using is [Leia](https://github.com/lando/leia), from the excellent team behind [Lando](https://lando.dev/).
+Bonus points for anyone that helps contribute to tests for any of these examples – we’ve got some example tests in a couple of the projects you can use for guidance – [https://github.com/amazeeio/drupal-example-simple/blob/8.x/TESTING\_dockercompose.md](https://github.com/amazeeio/drupal-example-simple/blob/8.x/TESTING_dockercompose.md). The testing framework we’re using is [Leia](https://github.com/lando/leia), from the excellent team behind [Lando](https://lando.dev/).
 
 Help us to document our other examples better – we’re not expecting a full manuscript, but tidy-ups, links to helpful resources and clarifying statements are all super-awesome.
 

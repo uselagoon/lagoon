@@ -4,7 +4,9 @@
 
 In order for Drupal to work with Lagoon, we need to teach Drupal about Lagoon and Lagoon about Drupal. This happens by copying specific YAML and PHP files into your Git repository.
 
-You can find [these files in our GitHub repository](https://github.com/amazeeio/lagoon/tree/main/docs/using_lagoon/drupal). The best way to get them is to [download these files as a ZIP file](https://minhaskamal.github.io/DownGit/#/home?url=https://github.com/amazeeio/lagoon/tree/main/docs/using_lagoon/drupal) and copy them into your Git repository. For each Drupal version and database type you will find an individual folder. A short overview of what they are:
+If you're working on a Drupal project, you can check out one of the various Drupal example projects [in our examples repository](https://github.com/uselagoon/lagoon-examples). We have Drupal 8 and 9 and some variants of each depending on your needs, such as database types. Clone the repo that best suits your needs to get started!
+
+Here is a summary of the Lagoon- and Drupal-specific files you will find:
 
 * `.lagoon.yml` - The main file that will be used by Lagoon to understand what should be deployed and many more things. This file has some sensible Drupal defaults. If you would like to edit or modify, please check the [documentation for `.lagoon.yml`](../using-lagoon-the-basics/lagoon-yml.md).
 * `docker-compose.yml`, `.dockerignore`, and `*.dockerfile` \(or `Dockerfile`\) - These files are used to run your local Drupal development environment, they tell Docker which services to start and how to build them. They contain sensible defaults and many commented lines. We hope that it's well-commented enough to be self-describing. If you would like to find out more, see [documentation for `docker-compose.yml`](../using-lagoon-the-basics/docker-compose-yml.md).

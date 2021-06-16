@@ -4,5 +4,5 @@ Harbor comes with a built-in security scanning solution provided by the Trivy se
 
 An example of a security scan in Harbor, showing applicable vulnerabilities for a scanned container:
 
-![Harbor Security Scanning Example Image](../../.gitbook/assets/scanning_image_1%20%281%29.png)
+![Harbor Security Scanning Example Image](../../.gitbook/assets/scanning_image_1%20%282%29.png)
 

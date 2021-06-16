@@ -24,8 +24,8 @@ const SshKeys = ({me: { id, email, sshKeys: keys }}) => {
             <div className="name">{key.id} - {key.name}</div>
             <div className="type">{key.keyType}</div>
             <div className="fingerprint">{key.keyFingerprint}</div>
-            <div className="created">{moment
-                .utc(key.create)
+            <div className="created chromatic-ignore">{moment
+                .utc(key.created)
                 .local()
                 .format('DD MMM YYYY, HH:mm:ss (Z)')}</div>
             <div className="delete">

@@ -59,7 +59,7 @@ Some Docker images and containers need additional customizations from the provid
 | [PHP CLI](../docker-images/php-cli/) | 7.2, 7.3, 7.4 | [php/cli/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli) |
 | [PHP CLI \(Drupal\)](../docker-images/php-cli/php-cli-drupal.md) | 7.3, 7.4, 8.0 | [php/cli-drupal/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli-drupal) |
 | Python | 2.7, 3.7, 3.8 | [python/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/python) |
-| [Redis](https://github.com/amazeeio/lagoon/tree/0ea0472705f825feb5fe0b946a8f4c9fc0bba707/docs/docker-images/redis.md) | 5, 6 | [redis/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/redis) |
+| [Redis](https://github.com/amazeeio/lagoon/tree/2ad44d8d193ef68357474ad5382afae14a320967/docs/docker-images/redis.md) | 5, 6 | [redis/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/redis) |
 | [Redis-persistent](../docker-images/redis/redis-persistent.md) | 5, 6 | [redis-persistent/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/redis-persistent) |
 | [Solr](../docker-images/solr/) | 5.5, 6.6, 7.7 | [solr/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/solr) |
 | [Solr \(Drupal\)](../docker-images/solr/solr-drupal.md) | 5.5, 6.6, 7.7 | [solr-drupal/Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/solr-drupal) |

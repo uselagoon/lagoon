@@ -41,14 +41,14 @@ We are going to start off with the same query as above, but we are going to add 
 * First, add the following fields: `client_ip` and `http_request`.
 * This will show you a list of all IP addresses and the page they requested. Here is what we see for the Amazee.io page:
 
-![All IP addresses and the page they requested.](../.gitbook/assets/kibana_example2.png)
+![All IP addresses and the page they requested.](../.gitbook/assets/kibana_example2%20%282%29.png)
 
 That looks good, but what if we wanted to just show requests from a specific IP address? You can filter for the address by adding it to your search criteria.
 
 * We are going to add: `AND client_ip: "IP address"`.
 * That will filter the results to just show you hits from that specific IP address, and the page they were requesting. Here is what it looks like for our Amazee.io website:
 
-![Hits from a specific IP address.](../.gitbook/assets/kibana_example3.png)
+![Hits from a specific IP address.](../.gitbook/assets/kibana_example3%20%281%29.png)
 
 ## Container Logs
 
@@ -93,13 +93,11 @@ Make sure that you select an appropriate time frame for the data in the upper ri
 
 Here is an example of a daily hits visualization chart:
 
-![Daily hits visualization chart.](../.gitbook/assets/kibana_example5.png)
+![Daily hits visualization chart.](../.gitbook/assets/kibana_example5%20%281%29.png)
 
 Also note that you can save your visualizations \(and searches\)! That will make it even faster to access them in the future. And because each account has their own Kibana Tenant, no searches or visualizations are shared with another account.
 
 ## Troubleshooting
 
-{% embed url="https://www.youtube.com/watch?v=BuQo5J0Qc2c&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=5" %}
-
-
+{% embed url="https://www.youtube.com/watch?v=BuQo5J0Qc2c&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=5" caption="" %}
 

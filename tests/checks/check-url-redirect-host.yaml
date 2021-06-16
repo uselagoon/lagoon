@@ -4,7 +4,8 @@
     url: "{{ url }}"
     follow_redirects: none
     status_code: "301,302,308"
-    HEADER_Host: "{{ host }}"
+    headers:
+      Host: "{{ host }}"
     validate_certs: no
   register: result
   until: result.location | default('') | regex_search(expected_redirect_location)

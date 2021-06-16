@@ -1,0 +1,13 @@
+- name: "{{ testname }} - Create admin token"
+  block:
+    - name: "{{ testname }} - Create admin token"
+      ansible.builtin.script: admin_token.py
+      args:
+        executable: python3
+      register: admin_grant
+    - debug:
+        msg: "admin token stdout: {{ admin_grant.stdout }}"
+    - debug:
+        msg: "admin token stderr: {{ admin_grant.stderr }}"
+    - set_fact:
+        admin_token: "{{ admin_grant.stdout | trim }}"
