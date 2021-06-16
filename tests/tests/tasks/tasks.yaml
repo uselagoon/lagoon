@@ -1,3 +1,4 @@
+
 - name: "{{ testname }} - init git, add files, commit, git push"
   hosts: localhost
   serial: 1
@@ -48,7 +49,7 @@
     project: "{{ project }}"
     branch: "{{ branch }}"
   tasks:
-  - include: ../../tasks/api/remove.yaml
+  - include: ../../tasks/api/delete-environment.yaml
 
 - name: "{{ testname }} - check if site for {{ project }} does not exist anymore"
   hosts: localhost

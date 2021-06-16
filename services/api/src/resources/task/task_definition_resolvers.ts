@@ -107,10 +107,7 @@ export const resolveTasksForEnvironment = async (
   //TODO: drop in system level tasks when we have them
 
   //@ts-ignore
-  let rows = R.uniqBy(
-    o => o.name,
-    R.concat(R.concat(environmentRows, projectRows), groupRows)
-  );
+  let rows = R.uniqBy(o => o.name, R.concat(R.concat(environmentRows, projectRows), groupRows));
   return rows;
 };
 
