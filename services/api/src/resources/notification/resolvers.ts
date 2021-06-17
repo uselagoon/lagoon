@@ -112,9 +112,6 @@ export const addNotificationToProject: ResolverFn = async (
     unformattedInput
   );
 
-    console.log(unformattedInput);
-    console.log(input);
-
   const pid = await projectHelpers(sqlClientPool).getProjectIdByName(
     input.project
   );
