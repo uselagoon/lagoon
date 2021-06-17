@@ -30,4 +30,4 @@ new build for a Lagoon project environent has started, a task was completed.
 * Consumes: `lagoon-logs`, `lagoon-logs:webhook`
 * Produces: `lagoon-logs:webhook`
 
-[documentation]: https://lagoon.readthedocs.io/
+[documentation]: https://docs.lagoon.sh/
