@@ -51,7 +51,8 @@ export async function readFromRabbitMQ(
       sendToWebhook(event, project, payload, channelWrapperLogs, msg);
       break;
     default:
-      break;
+      return channelWrapperLogs.ack(msg);
+    break;
   }
 }
 
