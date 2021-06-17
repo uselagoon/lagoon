@@ -39,6 +39,6 @@
         body_format: json
         body: '{ "query": "query($projectName: String!) {projectByName(name:$projectName){productionEnvironment,standbyProductionEnvironment}}", "variables": {"projectName":"{{ project }}"}}'
       register: switchresult
-      until: switchresult.json.data.projectByName.productionEnvironment == standby_branch or switchresult.json.data.projectByName.standbyProductionEnvironment == branch
+      until: switchresult.json.data.projectByName.productionEnvironment == standby_branch or switchresult.json.data.projectByName.standbyProductionEnvironment == prod_branch
       retries: 30
       delay: 10

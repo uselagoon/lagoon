@@ -6,6 +6,8 @@
     project: "{{ project }}"
     git_url: "{{ git_url }}"
     subfolder: "{{ sub_folder | default('') }}"
+    prodenv: "{{ prod_env | default('master') }}"
+    standbyenv: "{{ standby_env | default('') }}"
     openshift: 2001
   tasks:
   - include: ../../tasks/api/add-project.yaml
