@@ -270,6 +270,7 @@ const resolvers = {
     ROCKETCHAT: 'rocketchat',
     MICROSOFTTEAMS: 'microsoftteams',
     EMAIL: 'email',
+    WEBHOOK: 'webhook',
   },
   NotificationContentType: {
     DEPLOYMENT: 'deployment',
