@@ -5,11 +5,23 @@
   vars:
     testname: "API TOKEN"
 
+- include: api/add-project.yaml
+  vars:
+    project: ci-active-standby-{{ cluster_type }}
+    git_repo_name: active-standby.git
+    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
+    prod_env: master-a
+    standby_env: master-b
+
 - include: active-standby/active-standby.yaml
   vars:
     testname: "ACTIVE_STANDBY"
     git_repo_name: active-standby.git
     project: ci-active-standby-{{ cluster_type }}
-    branch: master-a
+    prod_branch: master-a
     standby_branch: master-b
     error_code_check: 404
+
+- include: api/delete-project.yaml
+  vars:
+    project: ci-active-standby-{{ cluster_type }}
