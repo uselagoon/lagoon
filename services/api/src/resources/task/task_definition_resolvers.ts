@@ -1,13 +1,7 @@
 import * as R from 'ramda';
-import getFieldNames from 'graphql-list-fields';
 import { ResolverFn } from '../';
-import {
-  pubSub,
-  createEnvironmentFilteredSubscriber
-} from '../../clients/pubSub';
-import { knex, query, isPatchEmpty } from '../../util/db';
+import { query } from '../../util/db';
 import { Sql } from './sql';
-import { EVENTS } from './events';
 import { Helpers } from './helpers';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
@@ -16,7 +10,7 @@ import {
   TaskRegistration,
   newTaskRegistrationFromObject
 } from './models/taskRegistration';
-import { system } from 'faker';
+
 
 const AdvancedTaskDefinitionType = {
   command: 'COMMAND',
