@@ -37,6 +37,10 @@ const PermissionsToRBAC = (permission: string) => {
 
 // All query resolvers
 
+//TODO: This may expose issues - we need to implement some kind of filtering
+// based on the current user _given_ a task - this will let us refactor a
+// whole load of this code
+
 export const advancedTaskDefinitionById = async (
   root,
   id,
@@ -112,6 +116,8 @@ export const resolveTasksForEnvironment = async (
   return rows;
 };
 
+
+//TODO: these aren't really a concern right now - but they will be - we need to revisit security in them
 export const advancedTaskDefinitionArgumentById = async (
   root,
   id,
@@ -127,6 +133,7 @@ export const advancedTaskDefinitionArgumentById = async (
 
   return R.prop(0, rows);
 };
+
 
 export const addAdvancedTaskDefinition = async (
   root,
@@ -164,9 +171,8 @@ export const addAdvancedTaskDefinition = async (
     //if they pass this, they can do basically anything
     //In the first release, we're not actually supporting this
     //TODO: add checks once images are officially supported - for now, throw an error
-    throw Error('AdAding Images and System Wide Tasks are not yet supported');
+    throw Error('Adding Images and System Wide Tasks are not yet supported');
   } else if (groupName) {
-    console.log(`Checking group name for ${groupName}`)
     const group = await models.GroupModel.loadGroupByIdOrName({name: groupName});
     await hasPermission('group', 'update', {
       group: group.id
@@ -293,6 +299,7 @@ export const invokeRegisteredTask = async (
   const environmentDetails = await environmentHelpers(
     sqlClientPool
   ).getEnvironmentById(environment);
+
   await hasPermission('advanced_task', PermissionsToRBAC(task.permission), {
     project: environmentDetails.project
   });
@@ -333,8 +340,6 @@ export const invokeRegisteredTask = async (
       throw new Error('Cannot find matching task');
       break;
   }
-
-  return null;
 };
 
 const getNamedAdvancedTaskForEnvironment = async (
@@ -359,104 +364,53 @@ const getNamedAdvancedTaskForEnvironment = async (
   return newTaskRegistrationFromObject(taskDef);
 };
 
-export const addAdvancedTask: ResolverFn = async (
-  root,
-  {
-    input: {
-      id,
-      name,
-      status: unformattedStatus,
-      created,
-      started,
-      completed,
-      environment,
-      service,
-      advancedTaskId,
-      remoteId,
-      execute: executeRequest,
-      advancedTaskArguments
-    }
-  },
-  { sqlClientPool, hasPermission }
-) => {
-  const status = taskStatusTypeToString(unformattedStatus);
-
-  //There are two kinds of checks we need to make
-  // First, can the person currently connected actually run a task on this particular environment
-  // second, does this task even connect to the environment at all?
-  // This second bit is going to be written now - we resolve tasks at several levels
-  // A task is _either_ attached globally, at a group level, at a project level
-  // or at an environment level
-
-  await envValidators(sqlClientPool).environmentExists(environment);
-  const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(
-    environment
-  );
-
-  await hasPermission('task', `add:${envPerm.environmentType}`, {
-    project: envPerm.project
-  });
-
-  let execute;
-
-  try {
-    await hasPermission('task', 'addNoExec', {
-      project: envPerm.project
-    });
-    execute = executeRequest;
-  } catch (err) {
-    execute = true;
-  }
-
-  //pull advanced task by ID to get the container name
-  let addTaskDef = await advancedTaskFunctions(
-    sqlClientPool
-  ).advancedTaskDefinitionById(advancedTaskId);
-
-  // the return data here is basically what gets dropped into the DB.
-  // what we can do
-  const taskData = await Helpers(sqlClientPool).addAdvancedTask({
-    id,
-    name,
-    status,
-    created,
-    started,
-    completed,
-    environment,
-    service,
-    image: addTaskDef.image, //the return data here is basically what gets dropped into the DB.
-    payload: advancedTaskArguments,
-    remoteId,
-    execute: false
-  });
-
-  return taskData;
-};
-
 //TODO: this
 export const deleteAdvancedTaskDefinition = async (
   root,
-  { input: { id } },
-  { sqlClientPool, hasPermission }
+  { advancedTaskDefinition },
+  { sqlClientPool, hasPermission, models }
 ) => {
   //load up advanced task definition ...
-  const adTaskDef = await advancedTaskFunctions(sqlClientPool).advancedTaskDefinitionById(id);
+  const adTaskDef = await advancedTaskFunctions(sqlClientPool).advancedTaskDefinitionById(advancedTaskDefinition);
+
+  if(!adTaskDef) {
+    throw new Error(`Advanced Task ID ${addAdvancedTaskDefinition} cannot be loaded`);
+  }
 
   //determine type and check user perms ...
   switch(getAdvancedTaskTarget(adTaskDef)) {
     case(AdvancedTaskDefinitionTarget.Environment):
-
-    break;
     case(AdvancedTaskDefinitionTarget.Project):
+
+    let projectObj = await getProjectByEnvironmentIdOrProjectId(
+      sqlClientPool,
+      adTaskDef.environment,
+      adTaskDef.project
+    );
+
+    await hasPermission('task', `add:production`, {
+      project: projectObj.id
+    });
 
     break;
     case(AdvancedTaskDefinitionTarget.Group):
-
+    const group = await models.GroupModel.loadGroupByIdOrName({name: adTaskDef.groupName});
+    await hasPermission('group', 'update', {
+      group: group.id
+    });
     break;
     default:
       throw Error('Images and System Wide Tasks are not yet supported');
   }
 
+  const rows = await query(sqlClientPool, Sql.selectPermsForTask(advancedTaskDefinition));
+  await hasPermission('task', 'delete', {
+    project: R.path(['0', 'pid'], rows)
+  });
+
+  await query(sqlClientPool, Sql.deleteAdvancedTaskDefinition(advancedTaskDefinition));
+
+  return 'success';
 };
 
 const getAdvancedTaskTarget = advancedTask => {
@@ -464,7 +418,7 @@ const getAdvancedTaskTarget = advancedTask => {
     return AdvancedTaskDefinitionTarget.Environment;
   } else if (advancedTask.project != null) {
     return AdvancedTaskDefinitionTarget.Project;
-  } else if (advancedTask.group_name != null) {
+  } else if (advancedTask.groupName != null) {
     return AdvancedTaskDefinitionTarget.Group
   } else {
     //Currently, we don't support environment level tasks
