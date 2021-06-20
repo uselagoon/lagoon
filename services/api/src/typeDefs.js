@@ -151,6 +151,7 @@ const typeDefs = gql`
     name: String
     description: String
     advancedTaskDefinition: Int
+    groupName: String
     environment: Int
     project: Int
     command: String
@@ -1123,22 +1124,6 @@ const typeDefs = gql`
     value: String
   }
 
-  input AdvancedTaskInput {
-    id: Int
-    name: String!
-    status: TaskStatusType
-    created: String
-    started: String
-    completed: String
-    environment: Int!
-    service: String
-    permission: TaskPermission
-    advancedTaskId: Int!
-    remoteId: String
-    execute: Boolean
-    advancedTaskArguments: [AdvancedTaskArgumentInput]
-  }
-
   enum AdvancedTaskDefinitionArgumentTypes {
     NUMERIC
     STRING
@@ -1745,9 +1730,9 @@ const typeDefs = gql`
     addEnvVariable(input: EnvVariableInput!): EnvKeyValue
     deleteEnvVariable(input: DeleteEnvVariableInput!): String
     addTask(input: TaskInput!): Task
-    addAdvancedTask(input: AdvancedTaskInput!): AdvancedTask
     addAdvancedTaskDefinition(input: AdvancedTaskDefinitionInput!): AdvancedTaskDefinition
     invokeRegisteredTask(advancedTaskDefinition: Int!, environment: Int!): Task
+    deleteAdvancedTaskDefinition(advancedTaskDefinition: Int!): String
     taskDrushArchiveDump(environment: Int!): Task
     taskDrushSqlDump(environment: Int!): Task
     taskDrushCacheClear(environment: Int!): Task

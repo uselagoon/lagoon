@@ -65,12 +65,12 @@ const {
 
 const {
   addAdvancedTaskDefinition,
-  addAdvancedTask,
   advancedTaskDefinitionById,
   resolveTasksForEnvironment,
   getRegisteredTasksByEnvironmentId,
   advancedTaskDefinitionArgumentById,
   invokeRegisteredTask,
+  deleteAdvancedTaskDefinition,
 } = require('./resources/task/task_definition_resolvers');
 
 const {
@@ -460,8 +460,8 @@ const resolvers = {
     addEnvVariable,
     deleteEnvVariable,
     addTask,
-    addAdvancedTask,
     addAdvancedTaskDefinition,
+    deleteAdvancedTaskDefinition,
     invokeRegisteredTask,
     taskDrushArchiveDump,
     taskDrushSqlDump,
