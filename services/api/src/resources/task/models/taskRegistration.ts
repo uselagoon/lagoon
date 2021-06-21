@@ -15,6 +15,7 @@ export class TaskRegistration {
   advanced_task_definition: number;
   environment: number;
   project: number;
+  groupName: string;
   command: string;
   service: string;
   created: string;

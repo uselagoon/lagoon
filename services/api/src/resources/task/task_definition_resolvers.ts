@@ -10,6 +10,7 @@ import {
   TaskRegistration,
   newTaskRegistrationFromObject
 } from './models/taskRegistration';
+import { input } from '../../logger';
 
 
 const AdvancedTaskDefinitionType = {
@@ -107,14 +108,41 @@ export const resolveTasksForEnvironment = async (
     sqlClientPool,
     Sql.selectAdvancedTaskDefinitionsForGroups(projectGroupsFiltered)
   );
-  //see if there are any matching tasks based on group membership
 
   //TODO: drop in system level tasks when we have them
 
   //@ts-ignore
   let rows = R.uniqBy(o => o.name, R.concat(R.concat(environmentRows, projectRows), groupRows));
+
+  //now we filter the permissions
+  const currentUsersPermissionForProject = await currentUsersAdvancedTaskRBACRolesForProject(hasPermission, proj.projectId);
+  console.log(currentUsersPermissionForProject);
+  console.log(rows);
+
+  //@ts-ignore
+  rows = R.filter(e => currentUsersPermissionForProject.includes(e.permission), rows);
+
   return rows;
 };
+
+const TASK_PERMISSION_LEVELS = ['GUEST', 'MAINTAINER', 'DEVELOPER'];
+
+const currentUsersAdvancedTaskRBACRolesForProject = async (hasPermission, projectId:number) => {
+
+  const rbacPermissions = TASK_PERMISSION_LEVELS;
+  let effectivePermissions = [];
+  for(let i = 0; i < rbacPermissions.length; i++) {
+    try {
+      await hasPermission('advanced_task', PermissionsToRBAC(rbacPermissions[i]), {
+        project: projectId,
+      });
+      effectivePermissions.push(rbacPermissions[i]);
+    } catch(ex) {
+      //we do nothing if this fails ...
+    }
+  }
+  return effectivePermissions;
+}
 
 
 //TODO: these aren't really a concern right now - but they will be - we need to revisit security in them
@@ -133,6 +161,39 @@ export const advancedTaskDefinitionArgumentById = async (
 
   return R.prop(0, rows);
 };
+
+// const checkUserPermissionOnAdvancedTask = (advancedTask: TaskRegistration, operation: string) => {
+//   const systemLevelTask =
+//   advancedTask.project == null && advancedTask.environment == null && advancedTask.groupName == null;
+// const advancedTaskWithImage = advancedTask.type == AdvancedTaskDefinitionType.image;
+// const needsAdminRightsToCreate =
+//   systemLevelTask || advancedTaskWithImage || advancedTask.groupName;
+
+//   let projectObj = await getProjectByEnvironmentIdOrProjectId(
+//     sqlClientPool,
+//     environment,
+//     project
+//   );
+
+
+// if (systemLevelTask || advancedTaskWithImage) {
+//   //if they pass this, they can do basically anything
+//   //In the first release, we're not actually supporting this
+//   //TODO: add checks once images are officially supported - for now, throw an error
+//   throw Error('Adding Images and System Wide Tasks are not yet supported');
+// } else if (advancedTask.groupName) {
+//   const group = await models.GroupModel.loadGroupByIdOrName({name: advancedTask.groupName});
+//   await hasPermission('group', 'update', {
+//     group: group.id
+//   });
+// } else if (projectObj) {
+//   //does the user have permission to actually add to this?
+//   //i.e. are they a maintainer?
+//   await hasPermission('task', `add:production`, {
+//     project: projectObj.id
+//   });
+// }
+// }
 
 
 export const addAdvancedTaskDefinition = async (
@@ -155,17 +216,19 @@ export const addAdvancedTaskDefinition = async (
   },
   { sqlClientPool, hasPermission, models }
 ) => {
-  const systemLevelTask =
-    project == null && environment == null && groupName == null;
-  const advancedTaskWithImage = type == AdvancedTaskDefinitionType.image;
-  const needsAdminRightsToCreate =
-    systemLevelTask || advancedTaskWithImage || groupName;
 
   let projectObj = await getProjectByEnvironmentIdOrProjectId(
     sqlClientPool,
     environment,
     project
   );
+
+
+  const systemLevelTask =
+    project == null && environment == null && groupName == null;
+  const advancedTaskWithImage = type == AdvancedTaskDefinitionType.image;
+  const needsAdminRightsToCreate =
+    systemLevelTask || advancedTaskWithImage || groupName;
 
   if (systemLevelTask || advancedTaskWithImage) {
     //if they pass this, they can do basically anything
