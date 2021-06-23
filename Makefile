@@ -1136,6 +1136,16 @@ kind/push-images:
 			&& docker push $$IMAGE_REGISTRY/$$image:$(SAFE_BRANCH_NAME); \
 		done
 
+.PHONY: kind/admin-jwt
+kind/admin-jwt:
+	export KUBECONFIG="$$(pwd)/kubeconfig.kind.$(CI_BUILD_TAG)" && \
+		docker run \
+		-e JWTSECRET="$$(./local-dev/kubectl get secret -n lagoon lagoon-core-jwtsecret -o jsonpath="{.data.JWTSECRET}" | base64 --decode)" \
+		-e JWTAUDIENCE=api.dev \
+		-e JWTUSER=localadmin \
+		$(CI_BUILD_TAG)/tests \
+		python3 /ansible/tasks/api/admin_token.py
+
 ## Use kind/retest to only perform a push of the local-dev, or test images, and run the tests
 ## It preserves the last build lagoon core&remote setup, reducing rebuild time
 .PHONY: kind/retest
