@@ -75,9 +75,10 @@ export const getEnvironmentsByProjectId: ResolverFn = async (
 
   let filterEnvironments = false;
   let filteredEnvironments = [];
-  if(args.factFilter) {
+
+  if (args.factFilter && args.factFilter.filters && args.factFilter.filters.length !== 0) {
     filterEnvironments = true;
-    filteredEnvironments = await getFactFilteredEnvironmentIds(args.factFilter, [project.id],sqlClientPool);
+    filteredEnvironments = await getFactFilteredEnvironmentIds(args.factFilter, [project.id], sqlClientPool);
   }
 
   const rows = await query(
@@ -87,8 +88,8 @@ export const getEnvironmentsByProjectId: ResolverFn = async (
     WHERE e.project = :pid
     ${args.includeDeleted ? '' : 'AND deleted = "0000-00-00 00:00:00"'}
     ${args.type ? 'AND e.environment_type = :type' : ''}
-    ${filterEnvironments ? ' AND e.id in (:filteredenvs)' : ''}`,
-    { pid, type: args.type, filteredenvs: filteredEnvironments.join(",")}
+    ${filterEnvironments && filteredEnvironments.length !== 0 ? `AND e.id in (${filteredEnvironments.join(",")})` : ''}`,
+    { pid, type: args.type }
   );
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 

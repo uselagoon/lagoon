@@ -234,7 +234,6 @@ export const addFactReference: ResolverFn = async (
   { input: { fid, name } },
   { sqlClientPool, hasPermission }
 ) => {
-
   const fact = await query(sqlClientPool, Sql.selectFactByDatabaseId(fid));
 
   if (!R.prop(0, fact)) {
@@ -242,7 +241,6 @@ export const addFactReference: ResolverFn = async (
   }
 
   const environment = await environmentHelpers(sqlClientPool).getEnvironmentById((R.prop(0, fact)).environment);
-
   await hasPermission('fact', 'add', {
     project: environment.project
   });
@@ -368,7 +366,7 @@ const buildContitionsForFactSearchQuery = (filterDetails: any, factQuery: any, p
     const builderFactory = (e, i) => (builder) => {
       let { lhsTarget, lhs } = e;
       if (lhsTarget == "PROJECT") {
-        builder = builder.andWhere(`${lhsTarget}.${lhs}`, getSqlPredicate(e.predicate), predicateRHSProcess(e.predicate, e.rhs));
+        builder = builder.andWhere(`project.${e.name}`, '=', `${e.contains}`);
       } else {
         let tabName = `env${i}`;
         builder = builder.andWhere(`${tabName}.name`, '=', `${e.name}`);
@@ -402,6 +400,5 @@ const buildContitionsForFactSearchQuery = (filterDetails: any, factQuery: any, p
   //skip and take logic
   let { skip = 0, take = DEFAULT_RESULTSET_SIZE } = filterDetails;
   factQuery = factQuery.limit(take).offset(skip);
-
   return factQuery;
 }
