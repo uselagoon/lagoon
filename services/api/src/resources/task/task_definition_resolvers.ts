@@ -192,11 +192,14 @@ export const addAdvancedTaskDefinition = async (
   const needsAdminRightsToCreate =
     systemLevelTask || advancedTaskWithImage || groupName;
 
-  if (systemLevelTask || advancedTaskWithImage) {
+  if (systemLevelTask) {
     //if they pass this, they can do basically anything
     //In the first release, we're not actually supporting this
     //TODO: add checks once images are officially supported - for now, throw an error
     throw Error('Adding Images and System Wide Tasks are not yet supported');
+  } else if (advancedTaskWithImage) {
+    //We're only going to allow administrators to add these for now ...
+    // await hasPermission('advanced_task','create:advanced');
   } else if (groupName) {
     const group = await models.GroupModel.loadGroupByIdOrName({name: groupName});
     await hasPermission('group', 'update', {
@@ -216,7 +219,8 @@ export const addAdvancedTaskDefinition = async (
   switch (type) {
     case AdvancedTaskDefinitionType.image:
       if (!image || 0 === image.length) {
-        throw new Error('Unable to create Advanced task definition');
+        console.log(image)
+        throw new Error('Unable to create image based task with no image supplied');
       }
       break;
     case AdvancedTaskDefinitionType.command:
@@ -249,7 +253,11 @@ export const addAdvancedTaskDefinition = async (
       taskDef.description == description &&
       taskDef.image == image &&
       taskDef.type == type &&
-      taskDef.command == command;
+      (taskDef.type == AdvancedTaskDefinitionType.image || taskDef.command == command);
+
+      console.log(taskDef);
+      console.log({description, image, type, command});
+
 
     if (!taskDefMatchesIncoming) {
       let errorMessage = `Task '${name}' with different definition already exists `;
@@ -332,7 +340,6 @@ export const invokeRegisteredTask = async (
   switch (task.type) {
     case TaskRegistration.TYPE_STANDARD:
       const taskData = await Helpers(sqlClientPool).addTask({
-        id: null,
         name: task.name,
         environment: environment,
         service: task.service,
@@ -345,14 +352,12 @@ export const invokeRegisteredTask = async (
       // the return data here is basically what gets dropped into the DB.
       // what we can do
       const advancedTaskData = await Helpers(sqlClientPool).addAdvancedTask({
-        id: undefined,
         name: task.name,
-        status: null,
         created: undefined,
         started: undefined,
         completed: undefined,
         environment,
-        service: undefined,
+        service: (task.service || 'cli'),
         image: task.image, //the return data here is basically what gets dropped into the DB.
         payload: [],
         remoteId: undefined,

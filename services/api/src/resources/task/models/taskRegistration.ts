@@ -7,7 +7,7 @@ export const newTaskRegistrationFromObject = (
 
 export class TaskRegistration {
   static TYPE_STANDARD = "COMMAND"
-  static TYPE_ADVANCED = "ADVANCED"
+  static TYPE_ADVANCED = "IMAGE"
   id: number;
   type: string;
   name: string;

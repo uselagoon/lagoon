@@ -181,13 +181,8 @@ export const Helpers = (sqlClientPool: Pool) => ({
     );
     const projectData = R.prop(0, rows);
 
-    // TODO: uncomment and understand
-    // pubSub.publish(EVENTS.TASK.ADDED, jobSpec);
 
-
-    const {
-      info: { insertId },
-    } = await query(
+    const  queryresp = await query(
       sqlClientPool,
       Sql.insertTask({
         id,
@@ -205,10 +200,13 @@ export const Helpers = (sqlClientPool: Pool) => ({
         advanced_payload: JSON.stringify(payload),
       }),
     );
-
+    console.log(queryresp);
+    const { insertId } = queryresp;
     rows = await query(sqlClientPool, Sql.selectTask(insertId));
     const taskData = await injectLogs(R.prop(0, rows));
-
+    console.log("*** START ADVANCED TASK DATA OUTPUT ***")
+    console.log(taskData);
+    console.log("*** END ADVANCED TASK DATA OUTPUT ***")
     // TODO: this will need to change
     const ADVANCED_TASK_EVENT_TYPE = "task:advanced"
 
@@ -224,6 +222,9 @@ export const Helpers = (sqlClientPool: Pool) => ({
         JSONPayload: new Buffer(JSON.stringify(payload).replace(/\\n/g, "\n")).toString('base64')
       }
     }
+
+    // TODO: uncomment and understand
+    pubSub.publish(EVENTS.TASK.ADDED, jobSpec);
 
     try {
       await createMiscTask(
@@ -243,20 +244,7 @@ export const Helpers = (sqlClientPool: Pool) => ({
       // );
     }
 
-    return {
-      id: 1,
-      name,
-      status,
-      created,
-      started,
-      completed,
-      environment,
-      service,
-      image,
-      payload,
-      remoteId,
-      execute,
-    }
+    return taskData;
   },
   injectLogs,
 });
