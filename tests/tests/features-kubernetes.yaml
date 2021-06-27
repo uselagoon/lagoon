@@ -11,61 +11,6 @@
     git_repo_name: features.git
     git_url: "{{ localgit_url }}/{{ git_repo_name }}"
 
-- include: api/add-environment.yaml
-  vars:
-    name: lagoon-api-variables
-    project: ci-features-{{ cluster_type }}
-    environmentType: PRODUCTION
-
-- include: api/add-project-variable.yaml
-  vars:
-    project: ci-features-{{ cluster_type }}
-    envName: "LAGOON_API_VARIABLE_PROJECT"
-    envValue: "4A65DC68F2"
-    envScope: "GLOBAL"
-
-- include: api/add-project-variable.yaml
-  vars:
-    project: ci-features-{{ cluster_type }}
-    envName: "LAGOON_API_VARIABLE_OVERRIDE"
-    envValue: "74B3E42B54"
-    envScope: "GLOBAL"
-
-- include: api/add-project-variable.yaml
-  vars:
-    project: ci-features-{{ cluster_type }}
-    envName: "LAGOON_API_VARIABLE_BUILD"
-    envValue: "AEF177FCF4"
-    envScope: "BUILD"
-
-- include: api/add-project-variable.yaml
-  vars:
-    project: ci-features-{{ cluster_type }}
-    envName: "LAGOON_API_VARIABLE_RUNTIME"
-    envValue: "90AEC657F8"
-    envScope: "RUNTIME"
-
-# - include: api/add-project-variable.yaml
-#   vars:
-#     project: ci-features-{{ cluster_type }}
-#     envName: "LAGOON_API_VARIABLE_MULTILINE_SPACED"
-#     envValue: "-----BEGIN PUBLIC KEY-----\\\\nB10B03D8DB7F\\\\n-----END PUBLIC KEY-----"
-#     envScope: "GLOBAL"
-
-# - include: api/add-environment-variable.yaml
-#   vars:
-#     project: ci-features-{{ cluster_type }}
-#     envName:"LAGOON_API_VARIABLE_ENVIRONMENT"
-#     envValue: "EA2AFAE09B"
-#     envScope: "GLOBAL"
-
-# - include: api/add-environment-variable.yaml
-#   vars:
-#     project: ci-features-{{ cluster_type }}
-#     envName: "LAGOON_API_VARIABLE_OVERRIDE"
-#     envValue: "D0CE76D4C9"
-#     envScope: "GLOBAL"
-
 - include: features/fastly-annotations.yaml
   vars:
     testname: "FASTLY ANNOTATIONS {{ cluster_type|upper }}"
@@ -222,14 +167,6 @@
 # #     git_repo_name: node.git
 # #     project: ci-env-limit
 # #     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
-
-- include: features/lagoon-api-variables.yaml
-  vars:
-    testname: "LAGOON API VARIABLES {{ cluster_type|upper }}"
-    git_repo_name: features.git
-    project: ci-features-{{ cluster_type }}
-    branch: lagoon-api-variables
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
 - include: api/delete-project.yaml
   vars:

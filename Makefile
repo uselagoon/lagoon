@@ -954,7 +954,7 @@ KIND_VERSION = v0.11.1
 GOJQ_VERSION = v0.12.3
 CHART_TESTING_VERSION = v3.4.0
 KIND_IMAGE = kindest/node:v1.21.1@sha256:69860bda5563ac81e3c0057d654b5253219618a22ec3a346306239bba8cfa1a6
-TESTS = [api,features-kubernetes,features-kubernetes-2,active-standby-kubernetes,nginx,drupal-php73,drupal-php74,drupal-postgres,python,gitlab,github,bitbucket,node-mongodb,elasticsearch]
+TESTS = [api,features-kubernetes,features-kubernetes-2,features-api-variables,active-standby-kubernetes,nginx,drupal-php73,drupal-php74,drupal-postgres,python,gitlab,github,bitbucket,node-mongodb,elasticsearch]
 CHARTS_TREEISH = main
 
 local-dev/kind:
@@ -1020,7 +1020,7 @@ kind/cluster: local-dev/kind
 		&& echo '  - containerPath: /lagoon/node-packages'                                            >> $$KINDCONFIG \
 		&& echo '    hostPath: ./node-packages'                                                       >> $$KINDCONFIG \
 		&& echo '    readOnly: false'                                                                 >> $$KINDCONFIG \
-		&& KIND_CLUSTER_NAME="$(CI_BUILD_TAG)" ./local-dev/kind create cluster --config=$$KINDCONFIG \
+		&& KIND_CLUSTER_NAME="$(CI_BUILD_TAG)" ./local-dev/kind create cluster --wait=120s --config=$$KINDCONFIG \
 		&& cp $$KUBECONFIG "kubeconfig.kind.$(CI_BUILD_TAG)" \
 		&& echo -e 'Interact with the cluster during the test run in Jenkins like so:\n' \
 		&& echo "export KUBECONFIG=\$$(mktemp) && scp $$NODE_NAME:$$KUBECONFIG \$$KUBECONFIG && KIND_PORT=\$$(sed -nE 's/.+server:.+:([0-9]+)/\1/p' \$$KUBECONFIG) && ssh -fNL \$$KIND_PORT:127.0.0.1:\$$KIND_PORT $$NODE_NAME" \
@@ -1059,6 +1059,7 @@ kind/test: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addpr
 			JQ=$$(realpath ../local-dev/jq) \
 			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=$$IMAGE_REGISTRY/kubectl-build-deploy-dind:$(SAFE_BRANCH_NAME) \
 			IMAGE_REGISTRY=$$IMAGE_REGISTRY \
+			SKIP_INSTALL_REGISTRY=true \
 		&& sleep 30 \
 		&& docker run --rm --network host --name ct-$(CI_BUILD_TAG) \
 			--volume "$$(pwd)/test-suite-run.ct.yaml:/etc/ct/ct.yaml" \
@@ -1136,6 +1137,8 @@ kind/push-images:
 			&& docker push $$IMAGE_REGISTRY/$$image:$(SAFE_BRANCH_NAME); \
 		done
 
+# Use kind/admin-jwt to generate an admin-scoped JWT for use in local GraphQL
+# Depending on the version of Python/PyJWT you may need to strip the b'...' tag
 .PHONY: kind/admin-jwt
 kind/admin-jwt:
 	export KUBECONFIG="$$(pwd)/kubeconfig.kind.$(CI_BUILD_TAG)" && \
@@ -1146,8 +1149,9 @@ kind/admin-jwt:
 		$(CI_BUILD_TAG)/tests \
 		python3 /ansible/tasks/api/admin_token.py
 
-## Use kind/retest to only perform a push of the local-dev, or test images, and run the tests
-## It preserves the last build lagoon core&remote setup, reducing rebuild time
+# Use kind/retest to only perform a push of the local-dev and test images, and
+# run the tests. It preserves the last build lagoon core & remote setup, reducing
+# rebuild time.
 .PHONY: kind/retest
 kind/retest:
 		export KUBECONFIG="$$(pwd)/kubeconfig.kind.$(CI_BUILD_TAG)" && \
@@ -1158,16 +1162,12 @@ kind/retest:
 			&& docker push $$IMAGE_REGISTRY/$$image:$(SAFE_BRANCH_NAME); \
 		done \
 		&& cd lagoon-charts.kind.lagoon \
-		&& $(MAKE) install-tests TESTS=$(TESTS) IMAGE_TAG=$(SAFE_BRANCH_NAME) \
-			HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
-			JQ=$$(realpath ../local-dev/jq) \
-			IMAGE_REGISTRY=$$IMAGE_REGISTRY \
 		&& docker run --rm --network host --name ct-$(CI_BUILD_TAG) \
 			--volume "$$(pwd)/test-suite-run.ct.yaml:/etc/ct/ct.yaml" \
 			--volume "$$(pwd):/workdir" \
 			--volume "$$(realpath ../kubeconfig.kind.$(CI_BUILD_TAG)):/root/.kube/config" \
 			--workdir /workdir \
-			"quay.io/helmpack/chart-testing:v3.3.1" \
+			"quay.io/helmpack/chart-testing:$(CHART_TESTING_VERSION)" \
 			ct install
 
 .PHONY: kind/clean
