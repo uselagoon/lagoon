@@ -1,6 +1,6 @@
-import winston from 'winston';
+const winston = require('winston');
 
-export const logger = new winston.Logger({
+export const logger = winston.createLogger({
   exitOnError: false,
   transports: [
     new winston.transports.Console({

@@ -76,11 +76,12 @@ export const Sql = {
       notificationName,
       contentType = NOTIFICATION_CONTENT_TYPE
     } = input;
-    return knex({ p: 'project', nt: `notification_${notificationType}` })
-      .where({ 'p.name': project })
-      .andWhere({ 'nt.name': notificationName })
-      .select({ pid: 'p.id', nid: 'nt.id' })
-      .toString();
+    let ret = knex({ p: 'project', nt: `notification_${notificationType}` })
+    .where({ 'p.name': project })
+    .andWhere({ 'nt.name': notificationName })
+    .select({ pid: 'p.id', nid: 'nt.id' })
+    .toString();
+    return ret;
   },
   updateNotificationMicrosoftTeams: input => {
     const { name, patch } = input;
@@ -114,7 +115,15 @@ export const Sql = {
       .update(patch)
       .toString();
   },
-  selectNotificationsByTypeByProjectId: input => {
+  updateNotificationWebhook: (input) => {
+    const { name, patch } = input;
+
+    return knex('notification_webhook')
+      .where('name', '=', name)
+      .update(patch)
+      .toString();
+  },
+  selectNotificationsByTypeByProjectId: (input) => {
     const {
       type,
       pid,
@@ -157,6 +166,10 @@ export const Sql = {
     knex('notification_email')
       .where('name', '=', name)
       .toString(),
+  selectNotificationWebhookByName:  (name: string) =>
+      knex('notification_webhook')
+        .where('name', '=', name)
+        .toString(),
   truncateNotificationSlack: () =>
     knex('notification_slack')
       .truncate()
@@ -173,6 +186,10 @@ export const Sql = {
     knex('notification_microsoftteams')
       .truncate()
       .toString(),
+  truncateNotificationWebhook: () =>
+      knex('notification_webhook')
+        .truncate()
+        .toString(),
   truncateProjectNotification: () =>
     knex('project_notification')
       .truncate()

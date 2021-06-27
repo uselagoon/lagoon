@@ -1274,6 +1274,29 @@ CREATE OR REPLACE PROCEDURE
       ADD advanced_payload text;
     END IF;
   END;
+
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_enum_webhook_to_type_in_project_notification()
+
+  BEGIN
+    DECLARE column_type_project_notification_type varchar(74);
+
+    SELECT COLUMN_TYPE INTO column_type_project_notification_type
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      table_name = 'project_notification'
+      AND table_schema = 'infrastructure'
+      AND column_name = 'type';
+
+    IF (
+      column_type_project_notification_type = "enum('slack','rocketchat','microsoftteams','email')"
+    ) THEN
+      ALTER TABLE project_notification
+      MODIFY type ENUM('slack','rocketchat','microsoftteams','email', 'webhook');
+    END IF;
+  END;
 $$
 
 DELIMITER ;
@@ -1336,6 +1359,7 @@ CALL add_content_type_to_project_notification();
 CALL convert_project_production_routes_to_text();
 CALL convert_project_standby_routes_to_text();
 CALL add_advanced_task_details_to_task_table();
+CALL add_enum_webhook_to_type_in_project_notification();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;

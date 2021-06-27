@@ -32,7 +32,7 @@ For hosts other than GNU/Linux, we are using VirtualBox to run the Openshift Min
 {% hint style="warning" %}
 Lagoon consists of a lot of services and Docker images. Building and running them locally might not even be necessary.
 
-We're using `make` \(see the [Makefile](https://github.com/amazeeio/lagoon/blob/main/Makefile)\) in order to only build the needed Docker images specifically for a part of Lagoon.
+We're using `make` \(see the [Makefile](https://github.com/uselagoon/lagoon/blob/main/Makefile)\) in order to only build the needed Docker images specifically for a part of Lagoon.
 {% endhint %}
 
 All of this is based around tests. So if you want to only build the part that is needed to work on the Node.js deployment, for example, you can run the tests with `make tests/node`, and this will then set up all the needed stuff for the Node.js deployment part \(OpenShift, building images, services\).

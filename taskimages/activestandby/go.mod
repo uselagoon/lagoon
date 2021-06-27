@@ -1,4 +1,4 @@
-module github.com/amazeeio/lagoon/images/tasks/activestandby
+module github.com/uselagoon/lagoon/images/tasks/activestandby
 
 go 1.13
 

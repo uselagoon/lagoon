@@ -1,4 +1,4 @@
-import winston from 'winston';
+const { addColors, createLogger, format, transports } = require('winston');
 require('winston-logstash');
 
 export interface LogFn {
@@ -15,13 +15,41 @@ export interface Logger {
   log: LogFn;
 }
 
-// const packageName = process.env.npm_package_name || '';
+const { colors, levels } = {
+  levels: {
+    error: 0,
+    debug: 1,
+    warn: 2,
+    data: 3,
+    info: 4,
+    verbose: 5,
+    silly: 6
+  },
+  colors: {
+    error: 'red',
+    debug: 'blue',
+    warn: 'yellow',
+    data: 'grey',
+    info: 'green',
+    verbose: 'cyan',
+    silly: 'magenta'
+  }
+};
 
 // @ts-ignore
-export let logger = new winston.Logger({
+addColors(colors);
+
+export const logger = createLogger({
+  exitOnError: false,
+  levels: levels,
+  format: format.combine(
+    format.colorize(),
+    format.splat(),
+    format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+    format.printf(info => `[${info.timestamp}] [${info.level}]: ${info.message}`)
+  ),
   transports: [
-    // @ts-ignore
-    new winston.transports.Console({
+    new transports.Console({
       level: 'silly',
       colorize: true,
       timestamp: true,
@@ -37,6 +65,3 @@ export let logger = new winston.Logger({
     // }),
   ]
 });
-
-// @ts-ignore
-logger.exitOnError = false;

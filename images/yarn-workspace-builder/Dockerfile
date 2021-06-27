@@ -17,6 +17,7 @@ COPY services/logs2email/package.json /app/services/logs2email/
 COPY services/logs2microsoftteams/package.json /app/services/logs2microsoftteams/
 COPY services/logs2rocketchat/package.json /app/services/logs2rocketchat/
 COPY services/logs2slack/package.json /app/services/logs2slack/
+COPY services/logs2webhook/package.json /app/services/logs2webhook/
 COPY services/controllerhandler/package.json /app/services/controllerhandler/
 COPY services/webhook-handler/package.json /app/services/webhook-handler/
 COPY services/webhooks2tasks/package.json /app/services/webhooks2tasks/

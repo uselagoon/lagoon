@@ -108,15 +108,18 @@ const {
   addNotificationMicrosoftTeams,
   addNotificationRocketChat,
   addNotificationSlack,
+  addNotificationWebhook,
   addNotificationToProject,
   deleteNotificationMicrosoftTeams,
   deleteNotificationRocketChat,
   deleteNotificationSlack,
+  deleteNotificationWebhook,
   getNotificationsByProjectId,
   removeNotificationFromProject,
   updateNotificationMicrosoftTeams,
   updateNotificationRocketChat,
   updateNotificationSlack,
+  updateNotificationWebhook,
   addNotificationEmail,
   updateNotificationEmail,
   deleteNotificationEmail,
@@ -124,6 +127,7 @@ const {
   deleteAllNotificationSlacks,
   deleteAllNotificationMicrosoftTeams,
   deleteAllNotificationRocketChats,
+  deleteAllNotificationWebhook,
   removeAllNotificationsFromAllProjects,
 } = require('./resources/notification/resolvers');
 
@@ -276,6 +280,7 @@ const resolvers = {
     ROCKETCHAT: 'rocketchat',
     MICROSOFTTEAMS: 'microsoftteams',
     EMAIL: 'email',
+    WEBHOOK: 'webhook',
   },
   NotificationContentType: {
     DEPLOYMENT: 'deployment',
@@ -345,6 +350,8 @@ const resolvers = {
           return 'NotificationMicrosoftTeams';
         case 'email':
           return 'NotificationEmail';
+        case 'webhook':
+          return 'NotificationWebhook';
         default:
           return null;
       }
@@ -408,7 +415,11 @@ const resolvers = {
     addNotificationSlack,
     updateNotificationSlack,
     deleteNotificationSlack,
+    addNotificationWebhook,
+    updateNotificationWebhook,
+    deleteNotificationWebhook,
     deleteAllNotificationSlacks,
+    deleteAllNotificationWebhook,
     addNotificationRocketChat,
     updateNotificationRocketChat,
     deleteNotificationRocketChat,

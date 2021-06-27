@@ -24,7 +24,7 @@
     project: "{{ project }}"
     url: "{{ check_url }}"
 
-# @TODO: Implement deletion, see https://github.com/amazeeio/lagoon/issues/1100
+# @TODO: Implement deletion, see https://github.com/uselagoon/lagoon/issues/1100
 # - name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
 #   hosts: localhost
 #   serial: 1
