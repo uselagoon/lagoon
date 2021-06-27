@@ -1137,8 +1137,9 @@ kind/push-images:
 			&& docker push $$IMAGE_REGISTRY/$$image:$(SAFE_BRANCH_NAME); \
 		done
 
-## Use kind/retest to only perform a push of the local-dev, or test images, and run the tests
-## It preserves the last build lagoon core&remote setup, reducing rebuild time
+# Use kind/retest to only perform a push of the local-dev and test images, and
+# run the tests. It preserves the last build lagoon core & remote setup, reducing
+# rebuild time.
 .PHONY: kind/retest
 kind/retest:
 		export KUBECONFIG="$$(pwd)/kubeconfig.kind.$(CI_BUILD_TAG)" && \
@@ -1149,16 +1150,12 @@ kind/retest:
 			&& docker push $$IMAGE_REGISTRY/$$image:$(SAFE_BRANCH_NAME); \
 		done \
 		&& cd lagoon-charts.kind.lagoon \
-		&& $(MAKE) install-tests TESTS=$(TESTS) IMAGE_TAG=$(SAFE_BRANCH_NAME) \
-			HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
-			JQ=$$(realpath ../local-dev/jq) \
-			IMAGE_REGISTRY=$$IMAGE_REGISTRY \
 		&& docker run --rm --network host --name ct-$(CI_BUILD_TAG) \
 			--volume "$$(pwd)/test-suite-run.ct.yaml:/etc/ct/ct.yaml" \
 			--volume "$$(pwd):/workdir" \
 			--volume "$$(realpath ../kubeconfig.kind.$(CI_BUILD_TAG)):/root/.kube/config" \
 			--workdir /workdir \
-			"quay.io/helmpack/chart-testing:v3.3.1" \
+			"quay.io/helmpack/chart-testing:$(CHART_TESTING_VERSION)" \
 			ct install
 
 .PHONY: kind/clean
