@@ -2,8 +2,6 @@
 
 Development of Lagoon locally can now be performed on a local Kubernetes Cluster, or via Docker Compose (as a fallback)
 
-
-
 ## Install Docker and Docker Compose
 
 Please check the [official Docs of Docker](https://docs.docker.com/engine/installation/) for how to install Docker.
@@ -23,9 +21,7 @@ e.g. ` "insecure-registries" : ["172.16.0.0/12","192.168.0.0/16"],`
 
 ### Allocate Enough Docker Resources
 
-Running a Lagoon, Kubernetes or Docker Cluster on your local machine consumes a lot of resources. We recommend that you give your Docker host a minimum of 8 CPUs and 12GB RAM.
-
-
+Running a Lagoon, Kubernetes or Docker Cluster on your local machine consumes a lot of resources. We recommend that you give your Docker host a minimum of 8 CPU cores and 12GB RAM.
 
 ## Building Lagoon Locally
 
@@ -73,39 +69,66 @@ This process will:
 
 Hopefully, all the tests passed successfully and it's just that easy, right?
 
-### Viewing the test progress / local cluster
+### Viewing the test progress and your local cluster
 
 The test routine creates a local Kubeconfig file (called `kubeconfig.kind.lagoon` in the root of the project, that can be used with a Kubernetes dashboard, viewer or CLI tool to access the local cluster. We use tools like [Lens](https://k8slens.dev/), [Octant](https://octant.dev/), [kubectl](https://kubernetes.io/docs/reference/kubectl/cheatsheet/) or [Portainer](https://www.portainer.io/) in our workflows. Lagoon Core, Remote and Tests all build in the `Lagoon` namespace, and each environment creates its own namespace to run, so make sure to use the correct context when inspecting.
 
 In order to use kubectl with the local cluster, you will need to use the correct Kubeconfig. This can be done for every command thus:
 
-`KUBECONFIG=./kubeconfig.kind.lagoon kubectl get pods -n lagoon` or added you you preferred tool.
+```bash
+KUBECONFIG=./kubeconfig.kind.lagoon kubectl get pods -n lagoon
+```
+or added it to your preferred tool.
 
-The helmfiles used to build the local Lagoon are cloned into a local folder and symlinked to `lagoon-charts.kind.lagoon` where you can see the configuration. We'll cover how to make easy modifications in a bit. 
+The helmfiles used to build the local Lagoon are cloned into a local folder and symlinked to `lagoon-charts.kind.lagoon` where you can see the configuration. We'll cover how to make easy modifications in a bit.
 
 ### Interacting with your local Lagoon cluster
 
 The Makefile includes a few simple routines that will make interacting with the installed Lagoon simpler:
 
-`make kind/port-forwards` will create local ports to expose the UI (6060), API (7070) and Keycloak (8080). Note that this logs to stdout, so should be performed in a secondary terminal/window
+```bash
+make kind/port-forwards
+```
+will create local ports to expose the UI (6060), API (7070) and Keycloak (8080). Note that this logs to stdout, so should be performed in a secondary terminal/window
 
-`make kind/get-admin-creds` will retrieve the necessary credentials to interact with the Lagoon.
+```bash
+make kind/get-admin-creds
+```
+will retrieve the necessary credentials to interact with the Lagoon.
 
 * The JWT is an admin-scoped token for use as a bearer token with your local GraphQL client
 * There is a token for use with the "admin" user in Keycloak, who can access all users, groups, roles etc
 * There is also a token for use with the "lagoonadmin" user in Lagoon, which can be allocated default groups & permissions etc.
 
-`make kind/dev` will re-push the images listed in $KIND_SERVICES with the correct tag and redeploy the lagoon-core chart. This is useful for testing small changes to Lagoon services, but does not support "live" development. You will need to rebuild these images locally first, e.g `rm build/api && make build/api`
+```bash
+make kind/dev
+```
+will re-push the images listed in $KIND_SERVICES with the correct tag and redeploy the lagoon-core chart. This is useful for testing small changes to Lagoon services, but does not support "live" development. You will need to rebuild these images locally first, e.g `rm build/api && make build/api`
 
-`make kind/local-dev-patch` will mount the "dist" folders from the Lagoon services into the correct lagoon-core pods in Kubernetes, and redeploy the lagoon-core chart with the services running with `nodemon`watching the code for changes. This will facilitate "live" development on Lagoon - note that occasionally the pod in Kubernetes may require redeployment for a change to show. 
+```bash
+make kind/local-dev-patch
+```
+will build the typescript services, using your locally installed node.js (it should be >16.0), then mount the "dist" folders from the Lagoon services into the correct lagoon-core pods in Kubernetes, and redeploy the lagoon-core chart with the services running with `nodemon`watching the code for changes. This will facilitate "live" development on Lagoon - note that occasionally the pod in Kubernetes may require redeployment for a change to show. Clean any build artifacts from those services if you're rebuilding different branches with `git clean -dfx` as the dist folders are ignored by git.
 
-`make kind/local-dev-logging` will create a standalone OpenDistro for Elasticsearch cluster in your local Docker, and configure Lagoon to dispatch all logs (Lagoon and project) to it, using the configuration in [lagoon-logging](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-logging)
+```bash
+make kind/local-dev-logging
+```
+will create a standalone OpenDistro for Elasticsearch cluster in your local Docker, and configure Lagoon to dispatch all logs (Lagoon and project) to it, using the configuration in [lagoon-logging](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-logging)
 
-`make kind/retest ` will re-run a suite of tests (defined in the $TESTS variable) against the existing cluster. It will re-push the images needed for tests (tests, local-git, and the data-watcher-pusher). If updating a test configuration, the tests image will need to be rebuilt first e.g `rm build/tests && make build/tests && make kind/retest`
+```bash
+make kind/retest
+```
+will re-run a suite of tests (defined in the $TESTS variable) against the existing cluster. It will re-push the images needed for tests (tests, local-git, and the data-watcher-pusher). If updating a test configuration, the tests image will need to be rebuilt first e.g `rm build/tests && make build/tests && make kind/retest`
 
-`make kind/push-images` is a subroutine used to push a range of images up to the image registry.
+```bash
+make kind/push-images
+```
+is a subroutine used to push a range of images up to the image registry.
 
-`make kind/clean` will remove the Kind Lagoon cluster from your local Docker.
+```bash
+make kind/clean
+```
+will remove the Kind Lagoon cluster from your local Docker.
 
 ### Ansible
 
@@ -113,7 +136,7 @@ The Lagoon test uses Ansible to run the test suite.  Each range of tests for a s
 
 The configuration for these tests is held in three services
 
-* `tests` is the Ansible test services themselves.  The local testing routine runs each individual test as a separate container within a test-suite pod.  These are listed below. 
+* `tests` is the Ansible test services themselves.  The local testing routine runs each individual test as a separate container within a test-suite pod.  These are listed below.
 * `local-git` is a git server hosted in the cluster that holds the source files for the tests.  Ansible pulls and pushes to this repository throughout the tests
 * `api-data-watcher-pusher` is a set of GraphQL mutations that pre-populates local Lagoon with the necessary Kubernetes configuration, test user accounts and SSH keys, and the necessary groups and notifications.  **Note that this will wipe local projects and environments on each run**
 
@@ -125,7 +148,7 @@ The individual routines relevant to Kubernetes are:
 * `drupal-php74` runs a single-pod MariaDB, MariaDB DBaaS and a Drush-specific test for a Drupal 8&9 project (`drupal-php73` doesn't do the Drush test)
 * `drupal-postgres` runs a single-pod PostgreSQL and a PostgreSQL DBaaS test for a Drupal 8 project
 * `elasticsearch` runs a simple nginx proxy to an Elasticsearch single-pod
-* `features-api-variables` runs tests that utilise variables in Lagoon 
+* `features-api-variables` runs tests that utilise variables in Lagoon
 * `features-kubernetes` runs a range of standard Lagoon tests, specific to Kubernetes
 * `features-kubernetes-2` runs more advanced kubernetes-specific tests - covering multiproject and subfolder configurations
 * `nginx`, `node` and `python` run basic tests against those project types
@@ -135,7 +158,7 @@ There are a few other legacy Openshift-specific tests in there that may or may n
 
 ## Local Development
 
-Most services are written in [Node.js](https://nodejs.org/en/docs/). As many of these services share similar Node.js code and Node.js packages, we're using a new feature of [Yarn](https://yarnpkg.com/en/docs), called [Yarn workspaces](https://yarnpkg.com/en/docs/workspaces). Yarn workspaces need a `package.json` in the project's root directory that defines the workspaces.
+Most services are written in [Node.js](https://nodejs.org/en/docs/). As many of these services share similar Node.js code and Node.js packages, we're using a feature of [Yarn](https://yarnpkg.com/en/docs), called [Yarn workspaces](https://yarnpkg.com/en/docs/workspaces). Yarn workspaces need a `package.json` in the project's root directory that defines the workspaces.
 
 The development of the services can happen directly within Docker. Each container for each service is set up in a way that its source code is mounted into the running container \([see `docker-compose.yml`](../using-lagoon-the-basics/docker-compose-yml.md)\). Node.js itself is watching the code via `nodemon` , and restarts the Node.js process automatically on a change.
 
