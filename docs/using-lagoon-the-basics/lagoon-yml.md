@@ -183,21 +183,35 @@ Drupal & Drush 9: Sync database & files from master environment:
 
 ### `backup-retention.production.monthly`
 
-Specify the number of monthly backups our system should retain for your project's production environment(s). The default is `1` if this value is not specified.
+Specify the number of monthly backups our system should retain for your project's production environment(s).
+
+The global default is `1` if this value is not specified.
 
 ### `backup-retention.production.weekly`
 
-Specify the number of weekly backups our system should retain for your project's production environment(s). The default is `6` if this value is not specified.
+Specify the number of weekly backups our system should retain for your project's production environment(s).
+
+The global default is `6` if this value is not specified.
 
 ### `backup-retention.production.daily`
 
-Specify the number of daily backups our system should retain for your project's production environment(s). The default is `7` if this value is not specified.
+Specify the number of daily backups our system should retain for your project's production environment(s).
+
+The global default is `7` if this value is not specified.
+
+### `backup-retention.production.hourly`
+
+Specify the number of hourly backups our system should retain for your project's production environment(s).
+
+The global default is `0` if this value is not specified.
 
 ## Backup Schedule
 
 ### `backup-schedule.production`
 
-Specify the schedule for which backups will be ran for this project. Accepts cron compatible syntax with the notable exception that the `Minute` block must be the letter `M`. This allows Lagoon to randomly choose a specific minute for these backups to happen, while users can specify the remainder of the schedule down to the hour.
+Specify the schedule for which backups will be ran for this project. Accepts cron compatible syntax with the notable exception that the `Minute` block must be the letter `M`. Any other value in the `Minute` block will cause the Lagoon build to fail. This allows Lagoon to randomly choose a specific minute for these backups to happen, while users can specify the remainder of the schedule down to the hour.
+
+The global default is `M H(22-2) * * *` if this value is not specified. Take note that these backups will use the cluster's local timezone.
 
 ## Routes
 
