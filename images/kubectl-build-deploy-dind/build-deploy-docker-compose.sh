@@ -1331,9 +1331,6 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
     BACKUP_SCHEDULE=$( /kubectl-build-deploy/scripts/convert-crontab.sh "${NAMESPACE}" "${DEFAULT_BACKUP_SCHEDULE}")
   fi
 
-  # Convert magic cron definition to crontab
-  BACKUP_SCHEDULE=$( /kubectl-build-deploy/scripts/convert-crontab.sh "${NAMESPACE}" "${DEFAULT_BACKUP_SCHEDULE}")
-
   if [ ! -z $K8UP_WEEKLY_RANDOM_FEATURE_FLAG ] && [ $K8UP_WEEKLY_RANDOM_FEATURE_FLAG = 'enabled' ]; then
     # Let the controller deduplicate checks (will run weekly at a random time throughout the week)
     CHECK_SCHEDULE="@weekly-random"
