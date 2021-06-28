@@ -1149,6 +1149,18 @@ kind/admin-jwt:
 		$(CI_BUILD_TAG)/tests \
 		python3 /ansible/tasks/api/admin_token.py
 
+.PHONY: kind/get-admin-creds
+kind/get-admin-creds:
+	export KUBECONFIG="$$(realpath ./kubeconfig.kind.$(CI_BUILD_TAG))" \
+		&& cd lagoon-charts.kind.lagoon \
+		&& $(MAKE) get-admin-creds
+
+.PHONY: kind/port-forwards
+kind/port-forwards:
+	export KUBECONFIG="$$(realpath ./kubeconfig.kind.$(CI_BUILD_TAG))" \
+		&& cd lagoon-charts.kind.lagoon \
+		&& $(MAKE) port-forwards
+
 # Use kind/retest to only perform a push of the local-dev and test images, and
 # run the tests. It preserves the last build lagoon core & remote setup, reducing
 # rebuild time.
