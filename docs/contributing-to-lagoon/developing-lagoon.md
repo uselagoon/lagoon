@@ -183,3 +183,94 @@ make build
 
 Make sure to run `yarn` in Lagoon's root directory, since some services have common dependencies managed by `yarn` workspaces.
 
+⚠ **I get an error resolving the nip.io domains**
+
+```
+Error response from daemon: Get https://registry.172.18.0.2.nip.io:32080/v2/: dial tcp: lookup registry.172.18.0.2.nip.io: no such host
+```
+
+This can happen if your local resolver filters private IPs from results. You can work around this by editing `/etc/resolv.conf` and adding a line like `nameserver 8.8.8.8` at the top to use a public resolver that doesn't filter results.
+
+## Example workflows
+
+Here are some development scenarios and useful workflows for getting things done.
+
+### Hacking on kubectl-build-deploy-dind
+
+This example shows a workflow for hacking on the Lagoon deploy logic.
+
+#### Edit kubectl-build-deploy-dind
+
+In this example we want to add some functionality to the Lagoon deploy logic in the `kubectl-build-deploy-dind` image.
+
+1. Start a local kind cluster with Lagoon installed from locally built images, and smoke-test it by running a single test suite.
+
+```bash
+make -j8 kind/test TESTS='[features-api-variables]' SKIP_SCAN=true
+```
+
+2. Edit `images/kubectl-build-deploy-dind/build-deploy-docker-compose.sh`.
+
+```diff
+--- a/images/kubectl-build-deploy-dind/build-deploy-docker-compose.sh
++++ b/images/kubectl-build-deploy-dind/build-deploy-docker-compose.sh
+@@ -1,5 +1,7 @@
+ #!/bin/bash
+ 
++echo HELLO WORLD
++
+ function cronScheduleMoreOftenThan30Minutes() {
+   #takes a unexpanded cron schedule, returns 0 if it's more often that 30 minutes
+   MINUTE=$(echo $1 | (read -a ARRAY; echo ${ARRAY[0]}) )
+```
+
+3. Now rebuild the `kubectl-build-deploy-dind` image with the edits included.
+
+```bash
+rm build/kubectl-build-deploy-dind
+make -j8 build/kubectl-build-deploy-dind SKIP_SCAN=true
+```
+
+4. Push the newly built image into the cluster registry. It will now be used for future deploys.
+
+``` bash
+make kind/push-images IMAGES=kubectl-build-deploy-dind
+```
+
+5. Rerun the tests.
+
+```bash
+make kind/retest TESTS='[features-api-variables]'
+```
+
+6. See the edits have been applied.
+
+```bash
+$ kubectl -n ci-features-api-variables-control-k8s-lagoon-api-variables logs lagoon-build-lat2b | grep -A2 build-deploy-docker-compose.sh
++ . /kubectl-build-deploy/build-deploy-docker-compose.sh
+++ echo HELLO WORLD
+HELLO WORLD
+```
+
+#### Add tests
+
+1. As per step `1.` above.
+2. Edit `tests/tests/features-api-variables.yaml` and add a test case.
+3. Rebuild the `tests` image.
+
+```bash
+rm build/tests
+make -j8 build/tests SKIP_SCAN=true
+```
+
+4. Push the new `tests` image into the cluster registry.
+
+``` bash
+make kind/push-images IMAGES=tests
+```
+
+5. Rerun the tests.
+
+```bash
+make kind/retest TESTS='[features-api-variables]'
+```
