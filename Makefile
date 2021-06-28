@@ -1137,24 +1137,16 @@ kind/push-images:
 			&& docker push $$IMAGE_REGISTRY/$$image:$(SAFE_BRANCH_NAME); \
 		done
 
-# Use kind/admin-jwt to generate an admin-scoped JWT for use in local GraphQL
-# Depending on the version of Python/PyJWT you may need to strip the b'...' tag
-.PHONY: kind/admin-jwt
-kind/admin-jwt:
-	export KUBECONFIG="$$(pwd)/kubeconfig.kind.$(CI_BUILD_TAG)" && \
-		docker run \
-		-e JWTSECRET="$$(./local-dev/kubectl get secret -n lagoon lagoon-core-jwtsecret -o jsonpath="{.data.JWTSECRET}" | base64 --decode)" \
-		-e JWTAUDIENCE=api.dev \
-		-e JWTUSER=localadmin \
-		$(CI_BUILD_TAG)/tests \
-		python3 /ansible/tasks/api/admin_token.py
-
+# Use kind/get-admin-creds to retrieve the admin JWT, Lagoon admin password, and the password for the lagoonadmin user.
+# These credentials are re-created on every re-install of Lagoon Core.
 .PHONY: kind/get-admin-creds
 kind/get-admin-creds:
 	export KUBECONFIG="$$(realpath ./kubeconfig.kind.$(CI_BUILD_TAG))" \
 		&& cd lagoon-charts.kind.lagoon \
 		&& $(MAKE) get-admin-creds
 
+# Use kind/port-forwards to create local ports for the UI (6060), API (7070) and Keycloak (8080). These ports will always
+# log in the foreground, so perform this command in a separate window/terminal.
 .PHONY: kind/port-forwards
 kind/port-forwards:
 	export KUBECONFIG="$$(realpath ./kubeconfig.kind.$(CI_BUILD_TAG))" \
