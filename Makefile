@@ -1151,18 +1151,12 @@ kind/port-forwards:
 		&& cd lagoon-charts.kind.lagoon \
 		&& $(MAKE) port-forwards
 
-# Use kind/retest to only perform a push of the local-dev and test images, and
-# run the tests. It preserves the last build lagoon core & remote setup, reducing
-# rebuild time.
+# kind/retest re-runs tests in the local cluster. It preserves the last build
+# lagoon core & remote setup, reducing rebuild time.
 .PHONY: kind/retest
 kind/retest:
-		export KUBECONFIG="$$(pwd)/kubeconfig.kind.$(CI_BUILD_TAG)" && \
-		export IMAGE_REGISTRY="registry.$$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
-		&& docker login -u admin -p Harbor12345 $$IMAGE_REGISTRY \
-		&& for image in $(KIND_TESTS); do \
-			docker tag $(CI_BUILD_TAG)/$$image $$IMAGE_REGISTRY/$$image:$(SAFE_BRANCH_NAME) \
-			&& docker push $$IMAGE_REGISTRY/$$image:$(SAFE_BRANCH_NAME); \
-		done \
+	export KUBECONFIG="$$(pwd)/kubeconfig.kind.$(CI_BUILD_TAG)" \
+		&& export IMAGE_REGISTRY="registry.$$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
 		&& cd lagoon-charts.kind.lagoon \
 		&& $(MAKE) install-tests TESTS=$(TESTS) IMAGE_TAG=$(SAFE_BRANCH_NAME) \
 			HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
