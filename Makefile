@@ -1166,10 +1166,12 @@ kind/retest:
 			&& docker push $$IMAGE_REGISTRY/$$image:$(SAFE_BRANCH_NAME); \
 		done \
 		&& cd lagoon-charts.kind.lagoon \
-		&& $(MAKE) install-tests TESTS=$(TESTS) IMAGE_TAG=$(SAFE_BRANCH_NAME) \
+		&& $(MAKE) fill-test-ci-values TESTS=$(TESTS) IMAGE_TAG=$(SAFE_BRANCH_NAME) \
 			HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
 			JQ=$$(realpath ../local-dev/jq) \
+			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=$$IMAGE_REGISTRY/kubectl-build-deploy-dind:$(SAFE_BRANCH_NAME) \
 			IMAGE_REGISTRY=$$IMAGE_REGISTRY \
+			SKIP_ALL_DEPS=true \
 		&& docker run --rm --network host --name ct-$(CI_BUILD_TAG) \
 			--volume "$$(pwd)/test-suite-run.ct.yaml:/etc/ct/ct.yaml" \
 			--volume "$$(pwd):/workdir" \
