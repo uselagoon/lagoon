@@ -1123,16 +1123,14 @@ kind/dev: $(addprefix build/,$(KIND_SERVICES))
 			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=$$IMAGE_REGISTRY/kubectl-build-deploy-dind:$(SAFE_BRANCH_NAME) \
 			IMAGE_REGISTRY=$$IMAGE_REGISTRY
 
+# kind/push-images pushes locally build images into the kind cluster registry.
+IMAGES = $(KIND_SERVICES) $(LOCAL_DEV_SERVICES)
 .PHONY: kind/push-images
 kind/push-images:
 	export KUBECONFIG="$$(pwd)/kubeconfig.kind.$(CI_BUILD_TAG)" && \
 		export IMAGE_REGISTRY="registry.$$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
 		&& docker login -u admin -p Harbor12345 $$IMAGE_REGISTRY \
-		&& for image in $(KIND_SERVICES); do \
-			docker tag $(CI_BUILD_TAG)/$$image $$IMAGE_REGISTRY/$$image:$(SAFE_BRANCH_NAME) \
-			&& docker push $$IMAGE_REGISTRY/$$image:$(SAFE_BRANCH_NAME); \
-		done \
-		&& for image in $(LOCAL_DEV_SERVICES); do \
+		&& for image in $(IMAGES); do \
 			docker tag $(CI_BUILD_TAG)/$$image $$IMAGE_REGISTRY/$$image:$(SAFE_BRANCH_NAME) \
 			&& docker push $$IMAGE_REGISTRY/$$image:$(SAFE_BRANCH_NAME); \
 		done
