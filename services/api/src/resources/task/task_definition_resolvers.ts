@@ -10,7 +10,6 @@ import {
   TaskRegistration,
   newTaskRegistrationFromObject
 } from './models/taskRegistration';
-import { input } from '../../logger';
 
 
 const AdvancedTaskDefinitionType = {
@@ -394,7 +393,7 @@ const getNamedAdvancedTaskForEnvironment = async (
   return newTaskRegistrationFromObject(taskDef);
 };
 
-//TODO: this
+
 export const deleteAdvancedTaskDefinition = async (
   root,
   { advancedTaskDefinition },
