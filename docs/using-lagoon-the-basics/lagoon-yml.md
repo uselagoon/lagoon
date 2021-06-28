@@ -183,25 +183,25 @@ Drupal & Drush 9: Sync database & files from master environment:
 
 ### `backup-retention.production.monthly`
 
-Specify the number of monthly backups our system should retain for your project's production environment(s).
+Specify the number of monthly backups Lagoon should retain for your project's production environment(s).
 
 The global default is `1` if this value is not specified.
 
 ### `backup-retention.production.weekly`
 
-Specify the number of weekly backups our system should retain for your project's production environment(s).
+Specify the number of weekly backups Lagoon should retain for your project's production environment(s).
 
 The global default is `6` if this value is not specified.
 
 ### `backup-retention.production.daily`
 
-Specify the number of daily backups our system should retain for your project's production environment(s).
+Specify the number of daily backups Lagoon should retain for your project's production environment(s).
 
 The global default is `7` if this value is not specified.
 
 ### `backup-retention.production.hourly`
 
-Specify the number of hourly backups our system should retain for your project's production environment(s).
+Specify the number of hourly backups Lagoon should retain for your project's production environment(s).
 
 The global default is `0` if this value is not specified.
 
