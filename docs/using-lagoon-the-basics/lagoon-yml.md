@@ -179,6 +179,26 @@ Drupal & Drush 9: Sync database & files from master environment:
         service: cli
 ```
 
+## Backup Retention
+
+### `backup-retention.production.monthly`
+
+Specify the number of monthly backups our system should retain for your project's production environment(s). The default is `1` if this value is not specified.
+
+### `backup-retention.production.weekly`
+
+Specify the number of weekly backups our system should retain for your project's production environment(s). The default is `6` if this value is not specified.
+
+### `backup-retention.production.daily`
+
+Specify the number of daily backups our system should retain for your project's production environment(s). The default is `7` if this value is not specified.
+
+## Backup Schedule
+
+### `backup-schedule.production`
+
+Specify the schedule for which backups will be ran for this project. Accepts cron compatible syntax with the notable exception that the `Minute` block must be the letter `M`. This allows Lagoon to randomly choose a specific minute for these backups to happen, while users can specify the remainder of the schedule down to the hour.
+
 ## Routes
 
 {% embed url="https://www.youtube.com/watch?v=vQxh87F3fW4&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=4" caption="" %}
