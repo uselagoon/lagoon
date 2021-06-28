@@ -1137,6 +1137,22 @@ kind/push-images:
 			&& docker push $$IMAGE_REGISTRY/$$image:$(SAFE_BRANCH_NAME); \
 		done
 
+# Use kind/get-admin-creds to retrieve the admin JWT, Lagoon admin password, and the password for the lagoonadmin user.
+# These credentials are re-created on every re-install of Lagoon Core.
+.PHONY: kind/get-admin-creds
+kind/get-admin-creds:
+	export KUBECONFIG="$$(realpath ./kubeconfig.kind.$(CI_BUILD_TAG))" \
+		&& cd lagoon-charts.kind.lagoon \
+		&& $(MAKE) get-admin-creds
+
+# Use kind/port-forwards to create local ports for the UI (6060), API (7070) and Keycloak (8080). These ports will always
+# log in the foreground, so perform this command in a separate window/terminal.
+.PHONY: kind/port-forwards
+kind/port-forwards:
+	export KUBECONFIG="$$(realpath ./kubeconfig.kind.$(CI_BUILD_TAG))" \
+		&& cd lagoon-charts.kind.lagoon \
+		&& $(MAKE) port-forwards
+
 # Use kind/retest to only perform a push of the local-dev and test images, and
 # run the tests. It preserves the last build lagoon core & remote setup, reducing
 # rebuild time.
