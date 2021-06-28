@@ -2,17 +2,15 @@
 
 Development of Lagoon locally can now be performed on a local Kubernetes Cluster, or via Docker Compose (as a fallback)
 
-## Install Docker and Docker Compose
+## Docker
 
-Please check the [official Docs of Docker](https://docs.docker.com/engine/installation/) for how to install Docker.
+Docker must be installed to build and run Lagoon locally.
 
-### Docker for Mac
+### Install Docker and Docker Compose
 
-Docker Compose is included in Docker for Mac installations.
+Please check the [official docs](https://docs.docker.com/engine/installation/) for how to install Docker.
 
-### On Linux - Install Docker Compose
-
-For Linux installations, [see the directions here](https://docs.docker.com/compose/install/).
+Docker Compose is included in Docker for Mac installations. For Linux installations [see the directions here](https://docs.docker.com/compose/install/).
 
 ### Configure Docker
 
@@ -33,39 +31,39 @@ We're using `make` \(see the [Makefile](https://github.com/uselagoon/lagoon/blob
 
 We have provided a number of routines in the [Makefile](https://github.com/uselagoon/lagoon/blob/main/Makefile) to cover most local development scenarios. Here we will run through a complete process.
 
-1. Build images. Here -j8 sets make to use 8 cores parallelisation to speed the build up - adjust as necessary, and we have set SKIP_SCAN=true to not scan the built images for vulnerabilities. If set to false (or not passed), a `scan.txt` file will be created in the project root with the scan output.
+1. Build images. Here `-j8` tells make to run 8 tasks in parallel to speed the build up - adjust as necessary, and we have set `SKIP_SCAN=true` to not scan the built images for vulnerabilities. If set to false (or not passed), a `scan.txt` file will be created in the project root with the scan output.
 
 ```bash
 make -j8 build make SKIP_SCAN=true
 ```
 
-2. Start Lagoon test routine using the defaults in the makefile (all tests)
+2. Start Lagoon test routine using the defaults in the Makefile (all tests).
 
 ```bash
 make kind/test
 ```
 
 {% hint style="warning" %}
-There are a lot of tests configured to run by default - please consider only testing locally the minimum that you need to ensure functionality. This is done by specifying or removing tests from the TESTS variable in the Makefile.
+There are a lot of tests configured to run by default - please consider only testing locally the minimum that you need to ensure functionality. This is done by specifying or removing tests from the `TESTS` variable in the Makefile.
 {% endhint %}
 
 This process will:
 
-1. Add in the correct versions of the local development tools if not installed - kind, kubectl, Helm, JQ
-2. Update the necessary Helm repositories for Lagoon to function
-3. Ensure all the correct images have been built in the previous step
+1. Download the correct versions of the local development tools if not installed - `kind`, `kubectl`, `helm`, `jq`.
+2. Update the necessary Helm repositories for Lagoon to function.
+3. Ensure all the correct images have been built in the previous step.
 4. Create a local [KinD](https://kind.sigs.k8s.io/) cluster, which provisions an entire running Kubernetes Cluster in a local Docker container. This cluster has been configured to talk to a provisioned image registry that we will be pushing the built Lagoon images to. It has also been configured to allow access to the host filesystem for local development.
-5. Clone Lagoon from https://github.com/uselagoon/lagoon-charts (use the `$CHARTS_TREEISH` variable in the Makefile to control which branch if needed)
-6. Install the Harbor Image registry into the KinD cluster and configure it's ingress and access properly
-7. Docker push the built images for Lagoon into the Harbor image registry
-8. It then uses the [Makefile from lagoon-charts](https://github.com/uselagoon/lagoon-charts/blob/main/Makefile) to perform the rest of the setup steps
-9. A suitable ingress controller is installed - we use the [NGINX Ingress Controller](https://kubernetes.github.io/ingress-nginx/)
-10. A local NFS server provisioner is installed to handle specific volume requests - we use one that handles Read-Write-Many operations (RWX)
+5. Clone Lagoon from https://github.com/uselagoon/lagoon-charts (use the `CHARTS_TREEISH` variable in the Makefile to control which branch if needed).
+6. Install the Harbor Image registry into the KinD cluster and configure it's ingress and access properly.
+7. Docker push the built images for Lagoon into the Harbor image registry.
+8. It then uses the [Makefile from lagoon-charts](https://github.com/uselagoon/lagoon-charts/blob/main/Makefile) to perform the rest of the setup steps.
+9. A suitable ingress controller is installed - we use the [NGINX Ingress Controller](https://kubernetes.github.io/ingress-nginx/).
+10. A local NFS server provisioner is installed to handle specific volume requests - we use one that handles Read-Write-Many operations (RWX).
 11. Lagoon Core is then installed, using the locally built images pushed to the cluster-local Image Registry, and using the default configuration, which may exclude some services not needed for local testing. The installation will wait for the API and Keycloak to come online.
-12. The DBaaS providers are installed - MariaDB, PostgreSQL and MongoDB. This step provisions standalone databases to be used by projects running locally, and emulates the Managed services available via cloud providers (e.g. Cloud SQL, RDS or Azure Database)
+12. The DBaaS providers are installed - MariaDB, PostgreSQL and MongoDB. This step provisions standalone databases to be used by projects running locally, and emulates the Managed services available via cloud providers (e.g. Cloud SQL, RDS or Azure Database).
 13. Lagoon Remote is then installed, and configured to talk to the Lagoon Core, Databases and local storage. The installation will wait for this to complete before continuing.
-14. To provision the tests, the Lagoon Test chart is then installed, which provisions a local git server to host the test repositories, and preconfigures the Lagoon API database with the default TEST users, accounts and configuration, then performs readiness checks before starting tests.
-15. Lagoon will run all the tests specified in the TESTS variable in the Makefile. Each test creates its own project & environments, performs the tests, then removes the environments & projects. The test runs are output to the console log in the lagoon-test-suite-* pod, and can be accessed one test per-container.
+14. To provision the tests, the Lagoon Test chart is then installed, which provisions a local git server to host the test repositories, and preconfigures the Lagoon API database with the default test users, accounts and configuration, then performs readiness checks before starting tests.
+15. Lagoon will run all the tests specified in the TESTS variable in the Makefile. Each test creates its own project & environments, performs the tests, then removes the environments & projects. The test runs are output to the console log in the `lagoon-test-suite-*` pod, and can be accessed one test per-container.
 
 Hopefully, all the tests passed successfully and it's just that easy, right?
 
@@ -78,9 +76,9 @@ In order to use kubectl with the local cluster, you will need to use the correct
 ```bash
 KUBECONFIG=./kubeconfig.kind.lagoon kubectl get pods -n lagoon
 ```
-or added it to your preferred tool.
+or added to your preferred tool.
 
-The helmfiles used to build the local Lagoon are cloned into a local folder and symlinked to `lagoon-charts.kind.lagoon` where you can see the configuration. We'll cover how to make easy modifications in a bit.
+The Helm charts used to build the local Lagoon are cloned into a local folder and symlinked to `lagoon-charts.kind.lagoon` where you can see the configuration. We'll cover how to make easy modifications in a bit.
 
 ### Interacting with your local Lagoon cluster
 
@@ -89,7 +87,7 @@ The Makefile includes a few simple routines that will make interacting with the 
 ```bash
 make kind/port-forwards
 ```
-will create local ports to expose the UI (6060), API (7070) and Keycloak (8080). Note that this logs to stdout, so should be performed in a secondary terminal/window
+will create local ports to expose the UI (6060), API (7070) and Keycloak (8080). Note that this logs to stdout, so should be performed in a secondary terminal/window.
 
 ```bash
 make kind/get-admin-creds
@@ -103,7 +101,7 @@ will retrieve the necessary credentials to interact with the Lagoon.
 ```bash
 make kind/dev
 ```
-will re-push the images listed in $KIND_SERVICES with the correct tag and redeploy the lagoon-core chart. This is useful for testing small changes to Lagoon services, but does not support "live" development. You will need to rebuild these images locally first, e.g `rm build/api && make build/api`
+will re-push the images listed in `KIND_SERVICES` with the correct tag and redeploy the lagoon-core chart. This is useful for testing small changes to Lagoon services, but does not support "live" development. You will need to rebuild these images locally first, e.g `rm build/api && make build/api`
 
 ```bash
 make kind/local-dev-patch
@@ -117,13 +115,17 @@ will create a standalone OpenDistro for Elasticsearch cluster in your local Dock
 
 ```bash
 make kind/retest
+# OR
+make kind/retest TESTS='[features-kubernetes]'
 ```
-will re-run a suite of tests (defined in the $TESTS variable) against the existing cluster. It will re-push the images needed for tests (tests, local-git, and the data-watcher-pusher). If updating a test configuration, the tests image will need to be rebuilt first e.g `rm build/tests && make build/tests && make kind/retest`
+will re-run a suite of tests (defined in the `TESTS` variable) against the existing cluster. It will re-push the images needed for tests (tests, local-git, and the data-watcher-pusher). If updating a test configuration, the tests image will need to be rebuilt first e.g `rm build/tests && make build/tests && make kind/retest`
 
 ```bash
 make kind/push-images
+# OR
+make kind/push-images IMAGES='tests local-git'
 ```
-is a subroutine used to push a range of images up to the image registry.
+will push a range of images up to the image registry.
 
 ```bash
 make kind/clean
