@@ -368,6 +368,8 @@ export const getFactFilteredEnvironmentIds = async (filterDetails: any, projectI
 const getFactFilteredProjects = async (filterDetails: any, projectIdSubset: number[], sqlClientPool, isAdmin: boolean) => {
   let factQuery = knex('project').distinct('project.*').innerJoin('environment', 'environment.project', 'project.id');
   factQuery = buildContitionsForFactSearchQuery(filterDetails, factQuery, projectIdSubset, isAdmin);
+  factQuery = setQueryLimit(filterDetails, factQuery);
+
   const rows = await query(sqlClientPool, factQuery.toString());
   return rows;
 }
