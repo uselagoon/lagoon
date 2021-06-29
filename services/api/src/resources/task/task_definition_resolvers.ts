@@ -1,5 +1,4 @@
 import * as R from 'ramda';
-import { ResolverFn } from '../';
 import { query } from '../../util/db';
 import { Sql } from './sql';
 import { Helpers } from './helpers';
