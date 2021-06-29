@@ -8,7 +8,7 @@ import logger from '../../logger';
 
 export const getFactsByEnvironmentId: ResolverFn = async (
   { id: environmentId },
-  args,
+  { keyFacts },
   { sqlClientPool, hasPermission }
 ) => {
   const environment = await environmentHelpers(
@@ -22,7 +22,8 @@ export const getFactsByEnvironmentId: ResolverFn = async (
   const rows = await query(
     sqlClientPool,
     Sql.selectFactsByEnvironmentId({
-      environmentId
+      environmentId,
+      keyFacts
     })
   );
 
@@ -79,7 +80,10 @@ export const getProjectsByFactSearch: ResolverFn = async (
     });
   }
 
-  return await getFactFilteredProjects(input, userProjectIds, sqlClientPool, isAdmin);
+  const count = await getFactFilteredProjectsCount(input, userProjectIds, sqlClientPool, isAdmin);
+  const rows = await getFactFilteredProjects(input, userProjectIds, sqlClientPool, isAdmin);
+
+  return { projects: rows, count };
 }
 
 export const getEnvironmentsByFactSearch: ResolverFn = async (
@@ -88,9 +92,11 @@ export const getEnvironmentsByFactSearch: ResolverFn = async (
   { sqlClientPool, hasPermission, keycloakGrant, models }
 ) => {
 
-  let userProjectIds: number[];
+  let isAdmin = false;
+  let userProjectIds  : number[];
   try {
     await hasPermission('project', 'viewAll');
+    isAdmin = true;
   } catch (err) {
     if (!keycloakGrant) {
       logger.warn('No grant available for getAllProjects');
@@ -102,7 +108,10 @@ export const getEnvironmentsByFactSearch: ResolverFn = async (
     });
   }
 
-  return await getFactFilteredEnvironments(input, userProjectIds, sqlClientPool);
+  const count = await getFactFilteredEnvironmentsCount(input, userProjectIds, sqlClientPool, isAdmin);
+  const rows = await getFactFilteredEnvironments(input, userProjectIds, sqlClientPool, isAdmin);
+
+  return { environments: rows, count };
 }
 
 export const addFact: ResolverFn = async (
@@ -318,8 +327,8 @@ export const deleteAllFactReferencesByFactId: ResolverFn = async (
 };
 
 
-export const getFactFilteredEnvironmentIds = async (filterDetails: any, projectIdSubset: number[], sqlClientPool) => {
-  return R.map(p => R.prop("id", p), await getFactFilteredEnvironments(filterDetails, projectIdSubset, sqlClientPool));
+export const getFactFilteredEnvironmentIds = async (filterDetails: any, projectIdSubset: number[], sqlClientPool, isAdmin) => {
+  return R.map(p => R.prop("id", p), await getFactFilteredEnvironments(filterDetails, projectIdSubset, sqlClientPool, isAdmin));
 };
 
 const getFactFilteredProjects = async (filterDetails: any, projectIdSubset: number[], sqlClientPool, isAdmin: boolean) => {
@@ -329,14 +338,33 @@ const getFactFilteredProjects = async (filterDetails: any, projectIdSubset: numb
   return rows;
 }
 
-const getFactFilteredEnvironments = async (filterDetails: any, projectIdSubset: number[], sqlClientPool) => {
+const getFactFilteredProjectsCount = async (filterDetails: any, projectIdSubset: number[], sqlClientPool, isAdmin: boolean) => {
+  let factQuery = knex('project').countDistinct({ count: 'project.id'}).innerJoin('environment', 'environment.project', 'project.id');
+  factQuery = buildContitionsForFactSearchQuery(filterDetails, factQuery, projectIdSubset, isAdmin);
+
+  const rows = await query(sqlClientPool, factQuery.toString());
+  return rows[0].count;
+}
+
+
+const getFactFilteredEnvironments = async (filterDetails: any, projectIdSubset: number[], sqlClientPool, isAdmin: boolean) => {
   let factQuery = knex('environment').distinct('environment.*').innerJoin('project', 'environment.project', 'project.id');
-  factQuery = buildContitionsForFactSearchQuery(filterDetails, factQuery, projectIdSubset);
+  factQuery = buildContitionsForFactSearchQuery(filterDetails, factQuery, projectIdSubset, isAdmin);
+  factQuery = setQueryLimit(filterDetails, factQuery);
+
   const rows = await query(sqlClientPool, factQuery.toString());
   return rows;
 }
 
-const buildContitionsForFactSearchQuery = (filterDetails: any, factQuery: any, projectIdSubset: number[], isAdmin: boolean = false) => {
+const getFactFilteredEnvironmentsCount = async (filterDetails: any, projectIdSubset: number[], sqlClientPool, isAdmin: boolean) => {
+  let factQuery = knex('environment').countDistinct({ count: 'environment.id'}).innerJoin('project', 'environment.project', 'project.id');
+  factQuery = buildContitionsForFactSearchQuery(filterDetails, factQuery, projectIdSubset, isAdmin);
+
+  const rows = await query(sqlClientPool, factQuery.toString());
+  return rows[0].count;
+}
+
+const buildContitionsForFactSearchQuery = (filterDetails: any, factQuery: any, projectIdSubset: number[], isAdmin: boolean = false, byPassLimits: boolean = false) => {
   const filters = {};
 
   if (filterDetails.filters && filterDetails.filters.length > 0) {
@@ -395,6 +423,14 @@ const buildContitionsForFactSearchQuery = (filterDetails: any, factQuery: any, p
   if (projectIdSubset && !isAdmin) {
     factQuery = factQuery.andWhere('project', 'IN', projectIdSubset);
   }
+
+  //orderBy name ascending
+  factQuery = factQuery.orderBy('project.name', 'asc');
+
+  return factQuery;
+}
+
+function setQueryLimit(filterDetails: any, factQuery: any) {
   const DEFAULT_RESULTSET_SIZE = 25;
 
   //skip and take logic

@@ -170,6 +170,8 @@ function configure_api_client {
     echo '{"name":"env_var","displayName":"env_var","scopes":[{"name":"project:view"},{"name":"project:add"},{"name":"environment:view:production"},{"name":"environment:view:development"},{"name":"environment:add:production"},{"name":"environment:add:development"},{"name":"delete"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating resource task
     echo '{"name":"task","displayName":"task","scopes":[{"name":"view"},{"name":"update"},{"name":"delete"},{"name":"add:production"},{"name":"add:development"},{"name":"addNoExec"},{"name":"drushArchiveDump:development"},{"name":"drushArchiveDump:production"},{"name":"drushSqlDump:development"},{"name":"drushSqlDump:production"},{"name":"drushCacheClear:development"},{"name":"drushCacheClear:production"},{"name":"drushSqlSync:source:development"},{"name":"drushSqlSync:source:production"},{"name":"drushSqlSync:destination:development"},{"name":"drushSqlSync:destination:production"},{"name":"drushRsync:source:development"},{"name":"drushRsync:source:production"},{"name":"drushRsync:destination:development"},{"name":"drushRsync:destination:production"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+    echo Creating resource fact
+    echo '{"name":"fact","displayName":"fact","scopes":[{"name":"view"},{"name":"delete"},{"name":"add"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating resource openshift
     echo '{"name":"openshift","displayName":"openshift","scopes":[{"name":"add"},{"name":"delete"},{"name":"update"},{"name":"deleteAll"},{"name":"view"},{"name":"viewAll"},{"name":"view:token"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating resource user
@@ -1605,10 +1607,6 @@ function configure_facts_system {
 
   echo Configuring Facts Permissions
 
-  echo Creating resource fact
-
-  echo '{"name":"fact","displayName":"fact","scopes":[{"name":"view"},{"name":"add"},{"name":"delete"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
-
   # Create new permissions
     /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
@@ -1618,7 +1616,7 @@ function configure_facts_system {
   "decisionStrategy": "UNANIMOUS",
   "resources": ["fact"],
   "scopes": ["view"],
-  "policies": ["Users role for project is Developer","User has access to project"]
+  "policies": ["Users role for project is Guest","User has access to project"]
 }
 EOF
 

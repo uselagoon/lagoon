@@ -714,7 +714,7 @@ const typeDefs = gql`
     tasks(id: Int): [Task]
     services: [EnvironmentService]
     problems(severity: [ProblemSeverityRating], source: [String]): [Problem]
-    facts: [Fact]
+    facts(keyFacts: Boolean): [Fact]
   }
 
   type EnvironmentHitsMonth {
@@ -816,6 +816,16 @@ const typeDefs = gql`
     weight: Int
   }
 
+  type ProjectFactSearchResults {
+    count: Int
+    projects: [Project]
+  }
+
+  type EnvironmentFactSearchResults {
+    count: Int
+    environments: [Environment]
+  }
+
   input DeleteEnvironmentInput {
     name: String!
     project: String!
@@ -878,14 +888,14 @@ const typeDefs = gql`
     """
     projectsByFactSearch(
       input: FactFilterInput
-    ): [Project]
+    ): ProjectFactSearchResults
 
     """
     Return environments from a fact-based search
     """
     environmentsByFactSearch(
       input: FactFilterInput
-    ): [Environment]
+    ): EnvironmentFactSearchResults
     userCanSshToEnvironment(
       openshiftProjectName: String
       kubernetesNamespaceName: String
