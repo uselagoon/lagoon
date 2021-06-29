@@ -92,8 +92,8 @@ K3D_NAME := k3s-$(shell echo $(CI_BUILD_TAG) | sed -E 's/.*(.{31})$$/\1/')
 BRANCH_NAME := $(shell git rev-parse --abbrev-ref HEAD)
 SAFE_BRANCH_NAME := $(shell echo $(BRANCH_NAME) | sed -E 's/[^[:alnum:]_.-]//g' | cut -c 1-128)
 
-# Skip image scanning to make building images substantially faster
-SKIP_SCAN := false
+# Skip image scanning by default to make building images substantially faster
+SCAN_IMAGES := false
 
 # Init the file that is used to hold the image tag cross-reference table
 $(shell >build.txt)
@@ -109,7 +109,7 @@ docker_build = DOCKER_SCAN_SUGGEST=false docker build $(DOCKER_BUILD_PARAMS) --b
 
 scan_cmd = docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(HOME)/Library/Caches:/root/.cache/ aquasec/trivy --timeout 5m0s $(CI_BUILD_TAG)/$(1) >> scan.txt
 
-ifeq ($(SKIP_SCAN),false)
+ifeq ($(SCAN_IMAGES),true)
 	scan_image = $(scan_cmd)
 else
 	scan_image =
