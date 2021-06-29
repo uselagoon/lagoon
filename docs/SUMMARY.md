@@ -29,10 +29,11 @@
 * [GraphQL](using-lagoon-advanced/graphql.md)
 * [Private Repositories](using-lagoon-advanced/private-repositories.md)
 * [SimpleSAML](using-lagoon-advanced/simplesaml.md)
-* [Project Default Users and SSH keys](using-lagoon-advanced/project-default-users-keys.md)
+* [Project Default Users and SSH Keys](using-lagoon-advanced/project-default-users-keys.md)
 * [Node.js Graceful Shutdown](using-lagoon-advanced/nodejs.md)
 * [Setting up Xdebug with Lagoon](using-lagoon-advanced/setting-up-xdebug-with-lagoon.md)
 * [Environment Idling](using-lagoon-advanced/environment-idling.md)
+* [Installing Lagoon Into Existing Kubernetes Cluster](using-lagoon-advanced/installing-lagoon-into-existing-kubernetes-cluster.md)
 
 ## Drupal
 
@@ -92,7 +93,6 @@
 ## Contributing to Lagoon
 
 * [Developing Lagoon](contributing-to-lagoon/developing-lagoon.md)
-* [Install Local Kubernetes Cluster for Lagoon](contributing-to-lagoon/install-local-kubernetes-cluster-for-lagoon.md)
 * [Code of Conduct](contributing-to-lagoon/code-of-conduct.md)
 * [Contributing](contributing-to-lagoon/contributing.md)
 * [Tests](contributing-to-lagoon/tests.md)
