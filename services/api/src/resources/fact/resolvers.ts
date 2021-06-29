@@ -369,6 +369,7 @@ const getFactFilteredProjects = async (filterDetails: any, projectIdSubset: numb
   let factQuery = knex('project').distinct('project.*').innerJoin('environment', 'environment.project', 'project.id');
   factQuery = buildContitionsForFactSearchQuery(filterDetails, factQuery, projectIdSubset, isAdmin);
   factQuery = setQueryLimit(filterDetails, factQuery);
+  factQuery = factQuery.orderBy('project.name', 'asc');
 
   const rows = await query(sqlClientPool, factQuery.toString());
   return rows;
@@ -387,6 +388,7 @@ const getFactFilteredEnvironments = async (filterDetails: any, projectIdSubset: 
   let factQuery = knex('environment').distinct('environment.*').innerJoin('project', 'environment.project', 'project.id');
   factQuery = buildContitionsForFactSearchQuery(filterDetails, factQuery, projectIdSubset, isAdmin);
   factQuery = setQueryLimit(filterDetails, factQuery);
+  factQuery = factQuery.orderBy('project.name', 'asc');
 
   const rows = await query(sqlClientPool, factQuery.toString());
   return rows;
@@ -459,9 +461,6 @@ const buildContitionsForFactSearchQuery = (filterDetails: any, factQuery: any, p
   if (projectIdSubset && !isAdmin) {
     factQuery = factQuery.andWhere('project', 'IN', projectIdSubset);
   }
-
-  //orderBy name ascending
-  factQuery = factQuery.orderBy('project.name', 'asc');
 
   return factQuery;
 }
