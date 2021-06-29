@@ -30,7 +30,7 @@
     "node-fetch": "^2.6.0",
     "ramda": "^0.25.0",
     "sha1": "^1.1.1",
-    "winston": "^2.4.0",
+    "winston": "^3",
     "winston-logstash": "^0.4.0"
   }
 }

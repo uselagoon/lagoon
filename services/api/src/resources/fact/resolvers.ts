@@ -116,12 +116,8 @@ export const getEnvironmentsByFactSearch: ResolverFn = async (
 
 export const addFact: ResolverFn = async (
   root,
-  {
-    input: {
-      id, environment: environmentId, name, value, source, description, type, category, keyFact
-    },
-  },
-  { sqlClientPool, hasPermission },
+  { input: { id, environment: environmentId, name, value, source, description, type, category, keyFact } },
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
@@ -150,13 +146,25 @@ export const addFact: ResolverFn = async (
     Sql.selectFactByDatabaseId(insertId)
   );
 
+  userActivityLogger.user_action(`User added a fact to environment '${environment.name}'`, {
+    payload: {
+      data: {
+        environment: environmentId,
+        name,
+        value,
+        source,
+        description
+      }
+    }
+  });
+
   return R.prop(0, rows);
 };
 
 export const addFacts: ResolverFn = async (
   root,
   { input: { facts } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
 
   const environments = facts.reduce((environmentList, fact) => {
@@ -199,13 +207,21 @@ export const addFacts: ResolverFn = async (
     returnFacts.push(R.prop(0, rows));
   }
 
+  userActivityLogger.user_action(`User added facts to environments'`, {
+    payload: {
+      data: {
+        returnFacts
+      }
+    }
+  });
+
   return returnFacts;
 };
 
 export const deleteFact: ResolverFn = async (
   root,
   { input: { environment: environmentId, name } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
@@ -217,13 +233,22 @@ export const deleteFact: ResolverFn = async (
 
   await query(sqlClientPool, Sql.deleteFact(environmentId, name));
 
+  userActivityLogger.user_action(`User deleted a fact`, {
+    payload: {
+      data: {
+        environment: environmentId,
+        name
+      }
+    }
+  });
+
   return 'success';
 };
 
 export const deleteFactsFromSource: ResolverFn = async (
   root,
   { input: { environment: environmentId, source } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
@@ -234,6 +259,15 @@ export const deleteFactsFromSource: ResolverFn = async (
   });
 
   await query(sqlClientPool, Sql.deleteFactsFromSource(environmentId, source));
+
+  userActivityLogger.user_action(`User deleted facts`, {
+    payload: {
+      data: {
+        environment: environmentId,
+        source
+      }
+    }
+  });
 
   return 'success';
 };

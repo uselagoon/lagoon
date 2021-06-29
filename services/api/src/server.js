@@ -1,6 +1,6 @@
 const http = require('http');
 const util = require('util');
-const logger = require('./logger');
+const { logger } = require('./loggers/logger');
 const { toNumber } = require('./util/func');
 const { getConfigFromEnv } = require('./util/config');
 const app = require('./app');

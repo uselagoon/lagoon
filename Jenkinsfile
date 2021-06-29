@@ -33,7 +33,7 @@ pipeline {
     }
     stage ('build images') {
       steps {
-        sh script: "make -O -j$NPROC build", label: "Building images"
+        sh script: "make -O -j$NPROC build SCAN_IMAGES=true", label: "Building images"
       }
     }
     stage ('show trivy scan results') {

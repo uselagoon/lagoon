@@ -18,7 +18,8 @@ const { sqlClientPool } = require('./clients/sqlClient');
 const esClient = require('./clients/esClient');
 const redisClient = require('./clients/redisClient');
 const { getKeycloakAdminClient } = require('./clients/keycloak-admin');
-const logger = require('./logger');
+const { logger } = require('./loggers/logger');
+const { getUserActivityLogger } = require('./loggers/userActivityLogger');
 const typeDefs = require('./typeDefs');
 const resolvers = require('./resolvers');
 
@@ -30,6 +31,60 @@ const EnvironmentModel = require('./models/environment');
 
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 
+const getGrantOrLegacyCredsFromToken = async token => {
+  let grant, legacyCredentials;
+
+  try {
+    grant = await getGrantForKeycloakToken(token);
+
+    if (grant.access_token) {
+      const userActivityLogger = getUserActivityLogger(
+        grant ? grant.access_token.content : null
+      );
+
+      const {
+        sub: currentUserId,
+        azp: source,
+        preferred_username,
+        email,
+        aud
+      } = grant.access_token.content;
+      const username = preferred_username ? preferred_username : 'unknown';
+
+      userActivityLogger.user_auth(
+        `Authentication granted for '${username} (${
+          email ? email : 'unknown'
+        })' from '${source}'`
+      );
+    }
+  } catch (e) {
+    // It might be a legacy token, so continue on.
+    logger.debug(`Keycloak token auth failed: ${e.message}`);
+  }
+
+  try {
+    if (!grant) {
+      legacyCredentials = await getCredentialsForLegacyToken(token);
+
+      const userActivityLogger = getUserActivityLogger(legacyCredentials);
+      const { sub, iss } = legacyCredentials;
+      const username = sub ? sub : 'unknown';
+      const source = iss ? iss : 'unknown';
+      userActivityLogger.user_auth(
+        `Authentication granted for '${username}' from '${source}'`
+      );
+    }
+  } catch (e) {
+    logger.debug(`Keycloak legacy auth failed: ${e.message}`);
+    throw new AuthenticationError(e.message);
+  }
+
+  return {
+    grant: grant ? grant : null,
+    legacyCredentials: legacyCredentials ? legacyCredentials : null
+  };
+};
+
 const apolloServer = new ApolloServer({
   schema,
   debug: getConfigFromEnv('NODE_ENV') === 'development',
@@ -37,28 +92,14 @@ const apolloServer = new ApolloServer({
   subscriptions: {
     onConnect: async (connectionParams, webSocket) => {
       const token = R.prop('authToken', connectionParams);
-      let grant;
-      let legacyCredentials;
 
       if (!token) {
         throw new AuthenticationError('Auth token missing.');
       }
 
-      try {
-        grant = await getGrantForKeycloakToken(token);
-      } catch (e) {
-        // It might be a legacy token, so continue on.
-        logger.debug(`Keycloak token auth failed: ${e.message}`);
-      }
-
-      try {
-        if (!grant) {
-          legacyCredentials = await getCredentialsForLegacyToken(token);
-        }
-      } catch (e) {
-        throw new AuthenticationError(e.message);
-      }
-
+      const { grant, legacyCredentials } = await getGrantOrLegacyCredsFromToken(
+        token
+      );
       const keycloakAdminClient = await getKeycloakAdminClient();
       const requestCache = new NodeCache({
         stdTTL: 0,
@@ -127,6 +168,14 @@ const apolloServer = new ApolloServer({
           : legacyHasPermission(req.legacyCredentials),
         keycloakGrant: req.kauth ? req.kauth.grant : null,
         requestCache,
+        userActivityLogger: getUserActivityLogger(
+          req.kauth
+            ? req.kauth.grant
+            : req.legacyCredentials
+            ? req.legacyCredentials
+            : null,
+          req.headers
+        ),
         models: {
           UserModel: User.User(modelClients),
           GroupModel: Group.Group(modelClients),

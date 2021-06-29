@@ -39,7 +39,7 @@ export const getBackupsByEnvironmentId: ResolverFn = async (
 export const addBackup: ResolverFn = async (
   root,
   { input: { id, environment: environmentId, source, backupId, created } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
@@ -63,13 +63,19 @@ export const addBackup: ResolverFn = async (
 
   pubSub.publish(EVENTS.BACKUP.ADDED, backup);
 
+  userActivityLogger.user_action(`User deployed backup '${backupId}' to '${environment.name}' on project '${environment.project}'`, {
+    payload: {
+      id, environment, source, backupId, created
+    }
+  });
+
   return backup;
 };
 
 export const deleteBackup: ResolverFn = async (
   root,
   { input: { backupId } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const perms = await query(sqlClientPool, Sql.selectPermsForBackup(backupId));
 
@@ -85,17 +91,25 @@ export const deleteBackup: ResolverFn = async (
   );
   pubSub.publish(EVENTS.BACKUP.DELETED, R.prop(0, rows));
 
+  userActivityLogger.user_action(`User deleted backup '${backupId}'`, {
+    payload: {
+     backupId
+    }
+  });
+
   return 'success';
 };
 
 export const deleteAllBackups: ResolverFn = async (
   root,
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   await hasPermission('backup', 'deleteAll');
 
   await query(sqlClientPool, Sql.truncateBackup());
+
+  userActivityLogger.user_action(`User deleted all backups`);
 
   // TODO: Check rows for success
   return 'success';
@@ -104,7 +118,7 @@ export const deleteAllBackups: ResolverFn = async (
 export const addRestore: ResolverFn = async (
   root,
   { input: { id, backupId, status, restoreLocation, created, execute } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const perms = await query(sqlClientPool, Sql.selectPermsForBackup(backupId));
 
@@ -161,6 +175,13 @@ export const addRestore: ResolverFn = async (
     project: projectData
   };
 
+  userActivityLogger.user_action(`User restored a backup '${backupId}' for project ${projectData.project.name}`, {
+    payload: {
+      backupId,
+      data
+    }
+  });
+
   try {
     await createMiscTask({ key: 'restic:backup:restore', data });
   } catch (error) {
@@ -186,7 +207,7 @@ export const updateRestore: ResolverFn = async (
       patch: { status, created, restoreLocation }
     }
   },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   if (isPatchEmpty({ patch })) {
     throw new Error('Input patch requires at least 1 attribute');
@@ -229,6 +250,14 @@ export const updateRestore: ResolverFn = async (
   const backupData = R.prop(0, rows);
 
   pubSub.publish(EVENTS.BACKUP.UPDATED, backupData);
+
+  userActivityLogger.user_action(`User updated restore '${backupId}'`, {
+    payload: {
+      backupId,
+      patch,
+      backupData
+    }
+  });
 
   return restoreData;
 };

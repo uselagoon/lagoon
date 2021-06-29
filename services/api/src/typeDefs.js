@@ -32,6 +32,7 @@ const typeDefs = gql`
     ROCKETCHAT
     MICROSOFTTEAMS
     EMAIL
+    WEBHOOK
   }
 
   enum NotificationContentType {
@@ -434,6 +435,14 @@ const typeDefs = gql`
     notificationSeverityThreshold: ProblemSeverityRating
   }
 
+  type NotificationWebhook {
+    id: Int
+    name: String
+    webhook: String
+    contentType: String
+    notificationSeverityThreshold: ProblemSeverityRating
+  }
+
   type UnassignedNotification {
     id: Int
     name: String
@@ -442,7 +451,7 @@ const typeDefs = gql`
     notificationSeverityThreshold: ProblemSeverityRating
   }
 
-  union Notification = NotificationRocketChat | NotificationSlack | NotificationMicrosoftTeams | NotificationEmail
+  union Notification = NotificationRocketChat | NotificationSlack | NotificationMicrosoftTeams | NotificationEmail | NotificationWebhook
 
   """
   Lagoon Project (like a git repository)
@@ -1197,6 +1206,11 @@ const typeDefs = gql`
     channel: String!
   }
 
+  input AddNotificationWebhookInput {
+    name: String!
+    webhook: String!
+  }
+
   input AddNotificationSlackInput {
     name: String!
     webhook: String!
@@ -1215,6 +1229,10 @@ const typeDefs = gql`
   }
 
   input DeleteNotificationSlackInput {
+    name: String!
+  }
+
+  input DeleteNotificationWebhookInput {
     name: String!
   }
 
@@ -1350,6 +1368,11 @@ const typeDefs = gql`
     channel: String
   }
 
+  input UpdateNotificationWebhookPatchInput {
+    name: String
+    webhook: String
+  }
+
   input UpdateNotificationMicrosoftTeamsInput {
     name: String!
     patch: UpdateNotificationMicrosoftTeamsPatchInput
@@ -1367,6 +1390,11 @@ const typeDefs = gql`
   input UpdateNotificationSlackInput {
     name: String!
     patch: UpdateNotificationSlackPatchInput
+  }
+
+  input UpdateNotificationWebhookInput {
+    name: String!
+    patch: UpdateNotificationWebhookPatchInput
   }
 
   input UpdateSshKeyPatchInput {
@@ -1644,6 +1672,16 @@ const typeDefs = gql`
       input: DeleteNotificationMicrosoftTeamsInput!
     ): String
     deleteAllNotificationMicrosoftTeams: String
+    addNotificationWebhook(
+      input: AddNotificationWebhookInput!
+    ): NotificationWebhook
+    updateNotificationWebhook(
+      input: UpdateNotificationWebhookInput!
+    ): NotificationWebhook
+    deleteNotificationWebhook(
+      input: DeleteNotificationWebhookInput!
+    ): String
+    deleteAllNotificationWebhook: String
     addNotificationEmail(
       input: AddNotificationEmailInput!
     ): NotificationEmail
