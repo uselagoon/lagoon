@@ -31,7 +31,7 @@ This will trigger a push, and your Git hosting will inform Lagoon about this pus
 
 If all is correct, you should see a notification in your configured chat system \(this has been configured by your friendly Lagoon administrator\):
 
-![Slack notification that a push has been made in a Lagoonized repository.](../.gitbook/assets/first_deployment_slack_start%20%282%29%20%282%29.jpg)
+![Slack notification that a push has been made in a Lagoonized repository.](../.gitbook/assets/first_deployment_slack_start%20%282%29%20%282%29%20%283%29.jpg)
 
 This informs you that Lagoon has just started to deploy your code. Depending on the size of the code and amount of containers, this will take a couple of seconds. Just relax. If you want to know what's happening now, check out the [Build and Deploy Process of Lagoon](build-and-deploy-process.md).
 
