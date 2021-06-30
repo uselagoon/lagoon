@@ -12,6 +12,7 @@ COPY create_jwt.py idle-services.sh idle-clis.sh openshift-clis.sh openshift-ser
 ENV JWTSECRET=super-secret-string \
     JWTAUDIENCE=api.dev \
     PROJECT_REGEX=".+"  \
+    OPENSHIFT_REGEX=".+"  \
     ROUTER_LOG_INTERVAL=4h \
     POD_RUN_INTERVAL=14400 \
     ELASTICSEARCH_URL="http://logs-db-service:9200"
