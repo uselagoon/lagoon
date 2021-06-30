@@ -39,7 +39,7 @@ We have provided a number of routines in the [Makefile](https://github.com/usela
 make -j8 build
 ```
 
-1. Start Lagoon test routine using the defaults in the Makefile \(all tests\).
+3. Start Lagoon test routine using the defaults in the Makefile \(all tests\).
 
 ```bash
 make kind/test
@@ -279,13 +279,13 @@ rm build/tests
 make -j8 build/tests
 ```
 
-1. Push the new `tests` image into the cluster registry.
+4. Push the new `tests` image into the cluster registry.
 
 ```bash
 make kind/push-images IMAGES=tests
 ```
 
-1. Rerun the tests.
+5. Rerun the tests.
 
 ```bash
 make kind/retest TESTS='[features-api-variables]'
