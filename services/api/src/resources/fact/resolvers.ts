@@ -406,9 +406,9 @@ const buildContitionsForFactSearchQuery = (filterDetails: any, factQuery: any, p
   const filters = {};
 
   if (filterDetails.filters && filterDetails.filters.length > 0) {
-    filterDetails.filters.forEach((e, i) => {
+    filterDetails.filters.forEach((filter, i) => {
 
-      let { lhsTarget, name } = e;
+      let { lhsTarget, name } = filter;
 
       let tabName = `env${i}`;
       if (lhsTarget == "project") {
@@ -429,24 +429,24 @@ const buildContitionsForFactSearchQuery = (filterDetails: any, factQuery: any, p
       }
     });
 
-    const builderFactory = (e, i) => (builder) => {
-      let { lhsTarget, lhs } = e;
+    const builderFactory = (filter, i) => (builder) => {
+      let { lhsTarget, name, contains } = filter;
       if (lhsTarget == "PROJECT") {
-        builder = builder.andWhere(`project.${e.name}`, '=', `${e.contains}`);
+        builder = builder.andWhere(`project.${name}`, '=', `${contains}`);
       } else {
         let tabName = `env${i}`;
-        builder = builder.andWhere(`${tabName}.name`, '=', `${e.name}`);
-        builder = builder.andWhere(`${tabName}.value`, 'like', `%${e.contains}%`);
+        builder = builder.andWhere(`${tabName}.name`, '=', `${name}`);
+        builder = builder.andWhere(`${tabName}.value`, 'like', `%${contains}%`);
       }
       return builder;
     };
 
     factQuery.andWhere(innerBuilder => {
-      filterDetails.filters.forEach((e, i) => {
+      filterDetails.filters.forEach((filter, i) => {
         if (filterDetails.filterConnective == 'AND') {
-          innerBuilder = innerBuilder.andWhere(builderFactory(e, i));
+          innerBuilder = innerBuilder.andWhere(builderFactory(filter, i));
         } else {
-          innerBuilder = innerBuilder.orWhere(builderFactory(e, i));
+          innerBuilder = innerBuilder.orWhere(builderFactory(filter, i));
         }
       });
       return innerBuilder;
@@ -468,7 +468,6 @@ const buildContitionsForFactSearchQuery = (filterDetails: any, factQuery: any, p
 function setQueryLimit(filterDetails: any, factQuery: any) {
   const DEFAULT_RESULTSET_SIZE = 25;
 
-  //skip and take logic
   let { skip = 0, take = DEFAULT_RESULTSET_SIZE } = filterDetails;
   factQuery = factQuery.limit(take).offset(skip);
   return factQuery;
