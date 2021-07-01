@@ -71,7 +71,7 @@ objects:
           branch: ${SAFE_BRANCH}
           project: ${SAFE_PROJECT}
         annotations:
-          appuio.ch/backupCommand: /bin/sh -c "/bin/busybox tar -cf - -C /data/db ."
+          appuio.ch/backupCommand: /bin/sh -c "tar -cf - -C /data/db ."
           backup.appuio.ch/fileExtension: .${SERVICE_NAME}.tar
           lagoon.sh/configMapSha: ${CONFIG_MAP_SHA}
       spec:

@@ -53,7 +53,7 @@ objects:
       branch: ${SAFE_BRANCH}
       project: ${SAFE_PROJECT}
   spec:
-    backupCommand: /bin/sh -c "/bin/busybox tar -cf - -C /var/lib/rabbitmq ."
+    backupCommand: /bin/sh -c "tar -cf - -C /var/lib/rabbitmq ."
     fileExtension: .${SERVICE_NAME}-0.tar
     pod:
       metadata:
@@ -101,7 +101,7 @@ objects:
       branch: ${SAFE_BRANCH}
       project: ${SAFE_PROJECT}
   spec:
-    backupCommand: /bin/sh -c "/bin/busybox tar -cf - -C /var/lib/rabbitmq ."
+    backupCommand: /bin/sh -c "tar -cf - -C /var/lib/rabbitmq ."
     fileExtension: .${SERVICE_NAME}-1.tar
     pod:
       metadata:
@@ -149,7 +149,7 @@ objects:
       branch: ${SAFE_BRANCH}
       project: ${SAFE_PROJECT}
   spec:
-    backupCommand: /bin/sh -c "/bin/busybox tar -cf - -C /var/lib/rabbitmq ."
+    backupCommand: /bin/sh -c "tar -cf - -C /var/lib/rabbitmq ."
     fileExtension: .${SERVICE_NAME}-2.tar
     pod:
       metadata:
