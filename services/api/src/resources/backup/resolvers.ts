@@ -175,7 +175,7 @@ export const addRestore: ResolverFn = async (
     project: projectData
   };
 
-  userActivityLogger.user_action(`User restored a backup '${backupId}' for project ${projectData.project.name}`, {
+  userActivityLogger.user_action(`User restored a backup '${backupId}' for project ${projectData.name}`, {
     payload: {
       backupId,
       data
