@@ -12,6 +12,7 @@ check:
 
 prune:
   retention:
+    keepHourly: 0
     keepDaily: 7
     keepWeekly: 6
     keepMonthly: 1
