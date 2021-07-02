@@ -2,6 +2,7 @@ import moment from 'moment';
 import { Pool } from 'mariadb';
 import { query } from '../util/db';
 import { logger } from '../loggers/logger';
+import { esClient } from '../clients/esClient';
 
 export interface Environment {
   id?: number; // int(11) NOT NULL AUTO_INCREMENT,
@@ -39,9 +40,8 @@ type projectEnvWithDataType = (
 
 export const EnvironmentModel = (clients: {
   sqlClientPool: Pool;
-  esClient: any;
 }) => {
-  const { sqlClientPool, esClient } = clients;
+  const { sqlClientPool } = clients;
 
   /**
    * Get all environments for a project.
@@ -451,7 +451,7 @@ export const EnvironmentModel = (clients: {
 
       return { newResult, legacyResult };
     } catch (e) {
-      logger.error(`Elastic Search Query Error: ${JSON.stringify(e)}`);
+      logger.error(`Elastic Search Query Error: ${JSON.stringify(e) != '{}' ? JSON.stringify(e) : e}`);
       // const noHits = { total: 0 };
 
       // if(e.body === "Open Distro Security not initialized."){
