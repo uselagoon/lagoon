@@ -3,6 +3,7 @@ const morgan = require('morgan');
 const compression = require('compression');
 const cors = require('cors');
 const { json } = require('body-parser');
+const { graphqlUploadExpress } = require('graphql-upload');
 const { logger } = require('./loggers/logger');
 const { createRouter } = require('./routes');
 const { authMiddleware } = require('./authMiddleware');
@@ -32,6 +33,8 @@ app.use(authMiddleware);
 
 // Add routes.
 app.use('/', createRouter());
+
+app.use(graphqlUploadExpress());
 
 apolloServer.applyMiddleware({ app });
 

@@ -1,5 +1,6 @@
 const GraphQLDate = require('graphql-iso-date');
 const GraphQLJSON = require('graphql-type-json');
+const { GraphQLUpload } = require('graphql-upload');
 
 const {
   getAllProblems,
@@ -216,6 +217,7 @@ const {
 } = require('./resources/env-variables/resolvers');
 
 const resolvers = {
+  Upload: GraphQLUpload,
   GroupRole: {
     GUEST: 'guest',
     REPORTER: 'reporter',
