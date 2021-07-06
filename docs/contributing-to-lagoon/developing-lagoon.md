@@ -39,7 +39,7 @@ We have provided a number of routines in the [Makefile](https://github.com/usela
 make -j8 build
 ```
 
-3. Start Lagoon test routine using the defaults in the Makefile \(all tests\).
+1. Start Lagoon test routine using the defaults in the Makefile \(all tests\).
 
 ```bash
 make kind/test
@@ -130,7 +130,7 @@ make kind/retest
 make kind/retest TESTS='[features-kubernetes]'
 ```
 
-This will re-run a suite of tests \(defined in the `TESTS` variable\) against the existing cluster. It will re-push the images needed for tests \(tests, local-git, and the data-watcher-pusher\).  You can specify tests to run by passing the TESTS variable inline.
+This will re-run a suite of tests \(defined in the `TESTS` variable\) against the existing cluster. It will re-push the images needed for tests \(tests, local-git, and the data-watcher-pusher\). You can specify tests to run by passing the TESTS variable inline.
 
 If updating a test configuration, the tests image will need to be rebuilt and pushed, e.g `rm build/tests && make build/tests && make kind/push-images IMAGES='tests' && make kind/retest TESTS='[api]'`
 
@@ -140,7 +140,7 @@ make kind/push-images
 make kind/push-images IMAGES='tests local-git'
 ```
 
-This will push all the images up to the image registry.  Specifying `IMAGES` will tag and push specific images.
+This will push all the images up to the image registry. Specifying `IMAGES` will tag and push specific images.
 
 ```bash
 make kind/clean
@@ -225,7 +225,7 @@ In this example we want to add some functionality to the Lagoon deploy logic in 
 make -j8 kind/test TESTS='[features-api-variables]'
 ```
 
-2. Edit `images/kubectl-build-deploy-dind/build-deploy-docker-compose.sh`.
+1. Edit `images/kubectl-build-deploy-dind/build-deploy-docker-compose.sh`.
 
 ```diff
 --- a/images/kubectl-build-deploy-dind/build-deploy-docker-compose.sh
@@ -240,26 +240,26 @@ make -j8 kind/test TESTS='[features-api-variables]'
    MINUTE=$(echo $1 | (read -a ARRAY; echo ${ARRAY[0]}) )
 ```
 
-3. Now rebuild the `kubectl-build-deploy-dind` image with the edits included.
+1. Now rebuild the `kubectl-build-deploy-dind` image with the edits included.
 
 ```bash
 rm build/kubectl-build-deploy-dind
 make -j8 build/kubectl-build-deploy-dind
 ```
 
-4. Push the newly built image into the cluster registry. It will now be used for future deploys.
+1. Push the newly built image into the cluster registry. It will now be used for future deploys.
 
 ```bash
 make kind/push-images IMAGES=kubectl-build-deploy-dind
 ```
 
-5. Rerun the tests.
+1. Rerun the tests.
 
 ```bash
 make kind/retest TESTS='[features-api-variables]'
 ```
 
-6. See the edits have been applied.
+1. See the edits have been applied.
 
 ```bash
 $ kubectl -n ci-features-api-variables-control-k8s-lagoon-api-variables logs lagoon-build-lat2b | grep -A2 build-deploy-docker-compose.sh
@@ -279,13 +279,13 @@ rm build/tests
 make -j8 build/tests
 ```
 
-4. Push the new `tests` image into the cluster registry.
+1. Push the new `tests` image into the cluster registry.
 
 ```bash
 make kind/push-images IMAGES=tests
 ```
 
-5. Rerun the tests.
+1. Rerun the tests.
 
 ```bash
 make kind/retest TESTS='[features-api-variables]'

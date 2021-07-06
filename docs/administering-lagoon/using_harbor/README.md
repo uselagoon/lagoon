@@ -14,13 +14,13 @@ If you are hosting a site with amazee.io, we do not allow customer access to the
 
 Once logged in, the first screen is a list of all repositories your user has access to. Each "repository" in Harbor correlates to a project in Lagoon.
 
-![Harbor Projects Overview](../../.gitbook/assets/projects_overview%20%282%29%20%282%29%20%281%29.png)
+![Harbor Projects Overview](../../.gitbook/assets/projects_overview%20%282%29%20%282%29%20%283%29%20%282%29.png)
 
 Within each Harbor repository, you'll see a list of container images from all environments with a single Lagoon project.
 
-![Harbor Repositories Overview](../../.gitbook/assets/repositories_overview%20%282%29%20%282%29%20%282%29.png)
+![Harbor Repositories Overview](../../.gitbook/assets/repositories_overview%20%282%29%20%282%29%20%282%29%20%282%29.png)
 
 From here, you can drill down into an individual container in order to see its details, including an overview of its security scan results.
 
-![Harbor Container Overview](../../.gitbook/assets/container_overview%20%282%29.png)
+![Harbor Container Overview](../../.gitbook/assets/container_overview%20%283%29%20%284%29.png)
 
