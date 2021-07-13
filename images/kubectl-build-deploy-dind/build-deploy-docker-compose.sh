@@ -227,7 +227,7 @@ do
     # DISABLED until https://github.com/amazeeio/dbaas-operator/issues/38 is implemented
     # elif [[ "${CAPABILITIES[@]}" =~ "mongodb.amazee.io/v1/MongoDBConsumer" ]]; then
     #   SERVICE_TYPE="mongodb-dbaas"
-    # else
+    else
       SERVICE_TYPE="mongodb-single"
     fi
 
