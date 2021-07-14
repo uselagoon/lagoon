@@ -43,7 +43,8 @@ const {
   deployEnvironmentPromote,
   switchActiveStandby,
   deploymentSubscriber,
-  getDeploymentUrl
+  getDeploymentUrl,
+  getBuildLog,
 } = require('./resources/deployment/resolvers');
 
 const {
@@ -323,6 +324,7 @@ const resolvers = {
   Deployment: {
     environment: getEnvironmentByDeploymentId,
     uiLink: getDeploymentUrl,
+    buildLog: getBuildLog,
   },
   Task: {
     environment: getEnvironmentByTaskId,
