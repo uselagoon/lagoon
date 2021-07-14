@@ -120,7 +120,7 @@ Environment variables are meant to store some common information about Redis.
 
 Here is a snippet to implement a Redis failover in case of the Redis container not being available \(for example, during maintenance\)
 
-The following is inserted into Drupal 7's active `settings.php` file. 
+The following is inserted into Drupal 7's active `settings.php` file.
 
 {% tabs %}
 {% tab title="settings.php" %}
@@ -157,7 +157,6 @@ if (getenv('LAGOON')) {
     }
   }
 }
-
 ```
 {% endtab %}
 {% endtabs %}
