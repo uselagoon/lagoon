@@ -9,8 +9,6 @@
     "test": "jest --forceExit --detectOpenHandles --maxWorkers=10",
     "test:watch": "jest --forceExit --detectOpenHandles --maxWorkers=10 --watch",
     "build": "tsc --build",
-    "start": "node -r dotenv-extended/config dist/index",
-    "dev": "NODE_ENV=development nodemon",
     "sync:gitlab:users": "node dist/gitlab-sync/users",
     "sync:gitlab:groups": "node dist/gitlab-sync/groups",
     "sync:gitlab:projects": "node dist/gitlab-sync/projects",
@@ -18,18 +16,6 @@
     "sync:opendistro-security": "node --max-http-header-size=80000 dist/helpers/sync-groups-opendistro-security",
     "sync:bitbucket:repo-permissions": "node dist/bitbucket-sync/repo-permissions",
     "sync:harbor:projects": "node dist/migrations/2-harbor/harborSync.js"
-  },
-  "nodemonConfig": {
-    "ignore": [
-      "*.test.js",
-      "../../node-packages/commons/dist/"
-    ],
-    "watch": [
-      "src",
-      "../../node-packages/"
-    ],
-    "ext": "js,ts,json",
-    "exec": "yarn build --incremental && yarn start --inspect=0.0.0.0:9229"
   },
   "keywords": [],
   "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
@@ -81,10 +67,10 @@
     "axios": "^0.19.0",
     "faker": "^4.1.0",
     "jest": "^24.9.0",
-    "nodemon": "^1.12.1",
     "prettier": "^1.14.2",
     "prettier-eslint-cli": "^4.7.1",
     "ts-jest": "^24.0.2",
+    "tsc-watch": "^4.4.0",
     "typescript": "^3.4.4"
   }
 }

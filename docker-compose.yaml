@@ -79,12 +79,13 @@ services:
       - ./node-packages:/app/node-packages:delegated
   api:
     image: ${IMAGE_REPO:-lagoon}/api
-    command: yarn run dev
+    command: ./node_modules/.bin/tsc-watch --build --incremental --onSuccess "node -r dotenv-extended/config dist/index"
     volumes:
       - ./services/api/src:/app/services/api/src
       - ./node-packages:/app/node-packages:delegated
       - /app/node-packages/commons/dist
     environment:
+      - NODE_ENV=development
       - CI=${CI:-true}
       - REGISTRY=harbor.172.17.0.1.nip.io:18080 # Docker network bridge and forwarded port for harbor-nginx
     depends_on:

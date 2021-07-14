@@ -43,4 +43,4 @@ COPY wait-for-mariadb.sh /lagoon/entrypoints/99-wait-for-mariadb.sh
 
 RUN yarn build
 
-CMD ["yarn", "start"]
+CMD ["node", "-r", "dotenv-extended/config", "dist/index"]
