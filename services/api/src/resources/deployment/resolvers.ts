@@ -70,28 +70,19 @@ export const getDeploymentsByEnvironmentId: ResolverFn = async (
     project: environment.project
   });
 
-  const rows = (await query(
-    sqlClientPool,
-    `SELECT d.*
-    FROM environment e
-    JOIN deployment d on e.id = d.environment
-    JOIN project p ON e.project = p.id
-    WHERE e.id = :eid`,
-    { eid }
-  )) as any[];
-  const newestFirst = R.sort(R.descend(R.prop('created')), rows);
+  let queryBuilder = knex('deployment')
+  .where('environment', eid)
+  .orderBy('created', 'desc');
 
-  return newestFirst.filter(row => {
-    if (R.isNil(name) || R.isEmpty(name)) {
-      return true;
-    }
+  if (name) {
+    queryBuilder = queryBuilder.andWhere('name', name);
+  }
 
-    return row.name === name;
-  });
+  return query(sqlClientPool, queryBuilder.toString());
 };
 
 export const getDeploymentByRemoteId: ResolverFn = async (
-  root,
+  _root,
   { id },
   { sqlClientPool, hasPermission }
 ) => {
@@ -120,8 +111,8 @@ export const getDeploymentByRemoteId: ResolverFn = async (
 
 export const getDeploymentUrl: ResolverFn = async (
   { id, environment },
-  args,
-  { sqlClientPool, hasPermission }
+  _args,
+  { sqlClientPool }
 ) => {
   const lagoonUiRoute = getLagoonRouteFromEnv(
     /\/ui-/,
@@ -132,13 +123,7 @@ export const getDeploymentUrl: ResolverFn = async (
     sqlClientPool
   ).getProjectByEnvironmentId(environment);
 
-  const rows = await query(
-    sqlClientPool,
-    knex('deployment')
-      .where('id', '=', id)
-      .toString()
-  );
-  const deployment = R.prop(0, rows);
+  const deployment = await Helpers(sqlClientPool).getDeploymentById(id);
 
   return `${lagoonUiRoute}/projects/${project}/${openshiftProjectName}/deployments/${deployment.name}`;
 };
