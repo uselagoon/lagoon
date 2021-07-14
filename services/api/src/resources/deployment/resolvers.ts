@@ -60,7 +60,7 @@ export const getBuildLog: ResolverFn = async (
 
 export const getDeploymentsByEnvironmentId: ResolverFn = async (
   { id: eid },
-  { name },
+  { name, limit },
   { sqlClientPool, hasPermission }
 ) => {
   const environment = await environmentHelpers(
@@ -72,10 +72,15 @@ export const getDeploymentsByEnvironmentId: ResolverFn = async (
 
   let queryBuilder = knex('deployment')
   .where('environment', eid)
-  .orderBy('created', 'desc');
+  .orderBy('created', 'desc')
+  .orderBy('id', 'desc');
 
   if (name) {
     queryBuilder = queryBuilder.andWhere('name', name);
+  }
+
+  if (limit) {
+    queryBuilder = queryBuilder.limit(limit);
   }
 
   return query(sqlClientPool, queryBuilder.toString());
