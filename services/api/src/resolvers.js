@@ -1,5 +1,6 @@
 const GraphQLDate = require('graphql-iso-date');
 const GraphQLJSON = require('graphql-type-json');
+const { GraphQLUpload } = require('graphql-upload');
 
 const {
   getAllProblems,
@@ -43,7 +44,8 @@ const {
   deployEnvironmentPromote,
   switchActiveStandby,
   deploymentSubscriber,
-  getDeploymentUrl
+  getDeploymentUrl,
+  getBuildLog,
 } = require('./resources/deployment/resolvers');
 
 const {
@@ -226,6 +228,7 @@ const {
 } = require('./resources/env-variables/resolvers');
 
 const resolvers = {
+  Upload: GraphQLUpload,
   GroupRole: {
     GUEST: 'guest',
     REPORTER: 'reporter',
@@ -334,6 +337,7 @@ const resolvers = {
   Deployment: {
     environment: getEnvironmentByDeploymentId,
     uiLink: getDeploymentUrl,
+    buildLog: getBuildLog,
   },
   Task: {
     environment: getEnvironmentByTaskId,

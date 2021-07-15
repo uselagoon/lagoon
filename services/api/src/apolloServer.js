@@ -31,48 +31,50 @@ const EnvironmentModel = require('./models/environment');
 
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 
-const getGrantOrLegacyCredsFromToken = async (token) => {
+const getGrantOrLegacyCredsFromToken = async token => {
   let grant, legacyCredentials;
 
-  const sqlClientKeycloak = getSqlClient();
   try {
-    grant = await getGrantForKeycloakToken(sqlClientKeycloak, token);
+    grant = await getGrantForKeycloakToken(token);
 
     if (grant.access_token) {
       const userActivityLogger = getUserActivityLogger(
         grant ? grant.access_token.content : null
       );
 
-      const { sub: currentUserId, azp: source, preferred_username, email, aud } = grant.access_token.content;
+      const {
+        sub: currentUserId,
+        azp: source,
+        preferred_username,
+        email,
+        aud
+      } = grant.access_token.content;
       const username = preferred_username ? preferred_username : 'unknown';
 
-      userActivityLogger.user_auth(`Authentication granted for '${username} (${email ? email : 'unknown'})' from '${source}'`);
+      userActivityLogger.user_auth(
+        `Authentication granted for '${username} (${
+          email ? email : 'unknown'
+        })' from '${source}'`
+      );
     }
-    sqlClientKeycloak.end();
   } catch (e) {
     // It might be a legacy token, so continue on.
-    sqlClientKeycloak.end();
     logger.debug(`Keycloak token auth failed: ${e.message}`);
   }
 
-  const sqlClientLegacy = getSqlClient();
   try {
     if (!grant) {
-      legacyCredentials = await getCredentialsForLegacyToken(
-        sqlClientLegacy,
-        token
-      );
+      legacyCredentials = await getCredentialsForLegacyToken(token);
 
       const userActivityLogger = getUserActivityLogger(legacyCredentials);
       const { sub, iss } = legacyCredentials;
       const username = sub ? sub : 'unknown';
       const source = iss ? iss : 'unknown';
-      userActivityLogger.user_auth(`Authentication granted for '${username}' from '${source}'`);
-
-      sqlClientLegacy.end();
+      userActivityLogger.user_auth(
+        `Authentication granted for '${username}' from '${source}'`
+      );
     }
   } catch (e) {
-    sqlClientLegacy.end();
     logger.debug(`Keycloak legacy auth failed: ${e.message}`);
     throw new AuthenticationError(e.message);
   }
@@ -80,13 +82,14 @@ const getGrantOrLegacyCredsFromToken = async (token) => {
   return {
     grant: grant ? grant : null,
     legacyCredentials: legacyCredentials ? legacyCredentials : null
-  }
-}
+  };
+};
 
 const apolloServer = new ApolloServer({
   schema,
   debug: getConfigFromEnv('NODE_ENV') === 'development',
   introspection: true,
+  uploads: false, // Disable built in support for file uploads and configure it manually
   subscriptions: {
     onConnect: async (connectionParams, webSocket) => {
       const token = R.prop('authToken', connectionParams);
@@ -95,7 +98,9 @@ const apolloServer = new ApolloServer({
         throw new AuthenticationError('Auth token missing.');
       }
 
-      const { grant, legacyCredentials } = await getGrantOrLegacyCredsFromToken(token);
+      const { grant, legacyCredentials } = await getGrantOrLegacyCredsFromToken(
+        token
+      );
       const keycloakAdminClient = await getKeycloakAdminClient();
       const requestCache = new NodeCache({
         stdTTL: 0,
@@ -165,9 +170,11 @@ const apolloServer = new ApolloServer({
         keycloakGrant: req.kauth ? req.kauth.grant : null,
         requestCache,
         userActivityLogger: getUserActivityLogger(
-          req.kauth ?
-            req.kauth.grant
-            : req.legacyCredentials ? req.legacyCredentials : null,
+          req.kauth
+            ? req.kauth.grant
+            : req.legacyCredentials
+            ? req.legacyCredentials
+            : null,
           req.headers
         ),
         models: {

@@ -64,6 +64,30 @@ for CAPABILITIES in "${CAPABILITIES[@]}"; do
   HELM_ARGUMENTS+=(-a "${CAPABILITIES}")
 done
 
+# Implement global default values for backup retention periods
+if [ -z "$MONTHLY_BACKUP_DEFAULT_RETENTION" ]
+then
+  MONTHLY_BACKUP_DEFAULT_RETENTION=1
+fi
+if [ -z "$WEEKLY_BACKUP_DEFAULT_RETENTION" ]
+then
+  WEEKLY_BACKUP_DEFAULT_RETENTION=6
+fi
+if [ -z "$DAILY_BACKUP_DEFAULT_RETENTION" ]
+then
+  DAILY_BACKUP_DEFAULT_RETENTION=7
+fi
+if [ -z "$HOURLY_BACKUP_DEFAULT_RETENTION" ]
+then
+  HOURLY_BACKUP_DEFAULT_RETENTION=0
+fi
+
+# Implement global default value for backup schedule
+if [ -z "$DEFAULT_BACKUP_SCHEDULE" ]
+then
+  DEFAULT_BACKUP_SCHEDULE="M H(22-2) * * *"
+fi
+
 set -x
 
 set +x # reduce noise in build logs
@@ -1242,6 +1266,10 @@ else
   done
 fi
 
+##############################################
+### Backup Settings
+##############################################
+
 # If k8up is supported by this cluster we create the schedule definition
 if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
 
@@ -1266,26 +1294,42 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
   PRODUCTION_MONTHLY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml get-value backup-retention.production.monthly "")
   PRODUCTION_WEEKLY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml get-value backup-retention.production.weekly "")
   PRODUCTION_DAILY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml get-value backup-retention.production.daily "")
+  PRODUCTION_HOURLY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml get-value backup-retention.production.hourly "")
 
   # Set template parameters for retention values (prefer .lagoon.yml values over supplied defaults after ensuring they are valid integers via "-eq" comparison)
-  if [ ! -z $PRODUCTION_MONTHLY_BACKUP_RETENTION ] && [ "$PRODUCTION_MONTHLY_BACKUP_RETENTION" -eq "$PRODUCTION_MONTHLY_BACKUP_RETENTION" ] && [ $ENVIRONMENT_TYPE = 'production' ]; then
+  if [[ ! -z $PRODUCTION_MONTHLY_BACKUP_RETENTION ]] && [[ "$PRODUCTION_MONTHLY_BACKUP_RETENTION" -eq "$PRODUCTION_MONTHLY_BACKUP_RETENTION" ]] && [[ $ENVIRONMENT_TYPE = 'production' ]]; then
     MONTHLY_BACKUP_RETENTION=${PRODUCTION_MONTHLY_BACKUP_RETENTION}
   else
     MONTHLY_BACKUP_RETENTION=${MONTHLY_BACKUP_DEFAULT_RETENTION}
   fi
-  if [ ! -z $PRODUCTION_WEEKLY_BACKUP_RETENTION ] && [ "$PRODUCTION_WEEKLY_BACKUP_RETENTION" -eq "$PRODUCTION_WEEKLY_BACKUP_RETENTION" ] && [ $ENVIRONMENT_TYPE = 'production' ]; then
+  if [[ ! -z $PRODUCTION_WEEKLY_BACKUP_RETENTION ]] && [[ "$PRODUCTION_WEEKLY_BACKUP_RETENTION" -eq "$PRODUCTION_WEEKLY_BACKUP_RETENTION" ]] && [[ $ENVIRONMENT_TYPE = 'production' ]]; then
     WEEKLY_BACKUP_RETENTION=${PRODUCTION_WEEKLY_BACKUP_RETENTION}
   else
     WEEKLY_BACKUP_RETENTION=${WEEKLY_BACKUP_DEFAULT_RETENTION}
   fi
-  if [ ! -z $PRODUCTION_DAILY_BACKUP_RETENTION ] && [ "$PRODUCTION_DAILY_BACKUP_RETENTION" -eq "$PRODUCTION_DAILY_BACKUP_RETENTION" ] && [ $ENVIRONMENT_TYPE = 'production' ]; then
+  if [[ ! -z $PRODUCTION_DAILY_BACKUP_RETENTION ]] && [[ "$PRODUCTION_DAILY_BACKUP_RETENTION" -eq "$PRODUCTION_DAILY_BACKUP_RETENTION" ]] && [[ $ENVIRONMENT_TYPE = 'production' ]]; then
     DAILY_BACKUP_RETENTION=${PRODUCTION_DAILY_BACKUP_RETENTION}
   else
     DAILY_BACKUP_RETENTION=${DAILY_BACKUP_DEFAULT_RETENTION}
   fi
+  if [[ ! -z $PRODUCTION_HOURLY_BACKUP_RETENTION ]] && [[ "$PRODUCTION_HOURLY_BACKUP_RETENTION" -eq "$PRODUCTION_HOURLY_BACKUP_RETENTION" ]] && [[ $ENVIRONMENT_TYPE = 'production' ]]; then
+    HOURLY_BACKUP_RETENTION=${PRODUCTION_HOURLY_BACKUP_RETENTION}
+  else
+    HOURLY_BACKUP_RETENTION=${HOURLY_BACKUP_DEFAULT_RETENTION}
+  fi
 
-  # Run Backups every day at 2200-0200
-  BACKUP_SCHEDULE=$( /kubectl-build-deploy/scripts/convert-crontab.sh "${NAMESPACE}" "M H(22-2) * * *")
+  # Set template parameters for backup schedule value (prefer .lagoon.yml values over supplied defaults after ensuring they are valid)
+  PRODUCTION_BACKUP_SCHEDULE=$(cat .lagoon.yml | shyaml get-value backup-schedule.production "")
+
+  if [[ ! -z $PRODUCTION_BACKUP_SCHEDULE ]] && [[ $ENVIRONMENT_TYPE = 'production' ]]; then
+    if [[ "$PRODUCTION_BACKUP_SCHEDULE" =~ ^M\  ]]; then
+      BACKUP_SCHEDULE=$( /kubectl-build-deploy/scripts/convert-crontab.sh "${NAMESPACE}" "${PRODUCTION_BACKUP_SCHEDULE}")
+    else
+      echo "Error parsing custom backup schedule: '$PRODUCTION_BACKUP_SCHEDULE'"; exit 1
+    fi
+  else
+    BACKUP_SCHEDULE=$( /kubectl-build-deploy/scripts/convert-crontab.sh "${NAMESPACE}" "${DEFAULT_BACKUP_SCHEDULE}")
+  fi
 
   if [ ! -z $K8UP_WEEKLY_RANDOM_FEATURE_FLAG ] && [ $K8UP_WEEKLY_RANDOM_FEATURE_FLAG = 'enabled' ]; then
     # Let the controller deduplicate checks (will run weekly at a random time throughout the week)
@@ -1312,7 +1356,8 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
     --set baasBucketName="${BAAS_BUCKET_NAME}" > $YAML_FOLDER/k8up-lagoon-backup-schedule.yaml \
     --set prune.retention.keepMonthly=$MONTHLY_BACKUP_RETENTION \
     --set prune.retention.keepWeekly=$WEEKLY_BACKUP_RETENTION \
-    --set prune.retention.keepDaily=$DAILY_BACKUP_RETENTION
+    --set prune.retention.keepDaily=$DAILY_BACKUP_RETENTION \
+    --set prune.retention.keepHourly=$HOURLY_BACKUP_RETENTION
 fi
 
 if [ "$(ls -A $YAML_FOLDER/)" ]; then

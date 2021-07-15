@@ -121,6 +121,8 @@ export const Helpers = (sqlClientPool: Pool) => ({
     );
     const projectData = R.prop(0, rows);
 
+    taskData.id = taskData.id.toString();
+
     try {
       await createTaskTask({
         task: taskData,

@@ -12,7 +12,7 @@ It would be possible to run both Drupals in a single Git repository and deploy i
 
 ## Modifications of root application
 
-The root application \(in this example, the Drupal site for `www.example.com`\), needs a couple of Nginx configs that will configure Nginx to be a reverse proxy to the subfolder applications:
+The root application \(in this example, the Drupal site for `www.example.com`\), needs a couple of Nginx configs that will configure NGINX to be a reverse proxy to the subfolder applications:
 
 ### `location_prepend.conf`
 
@@ -58,9 +58,9 @@ Replace the following strings:
 * `nginx` with the service that you want to point too in the subfolder project.
 * `lagoonproject` with the Lagoon projectname of the subfolder project.
 
-### Nginx Dockerfile
+### NGINX Dockerfile
 
-Add the following to your Nginx Dockerfile \(`nginx.dockerfile` or `Dockerfile.nginx`\):
+Add the following to your NGINX Dockerfile \(`nginx.dockerfile` or `Dockerfile.nginx`\):
 
 {% tabs %}
 {% tab title="nginx.dockerfile" %}
@@ -140,9 +140,9 @@ Replace `/subfolder` with the name of the subfolder you want to use. For example
 
 ### Nginx Dockerfile
 
-We also need to modify the Nginx Dockerfile.
+We also need to modify the NGINX Dockerfile.
 
-Add the following to your Nginx Dockerfile \(`nginx.dockerfile` or `Dockerfile.nginx`\):
+Add the following to your NGINX Dockerfile \(`nginx.dockerfile` or `Dockerfile.nginx`\):
 
 {% tabs %}
 {% tab title="nginx.dockerfile" %}

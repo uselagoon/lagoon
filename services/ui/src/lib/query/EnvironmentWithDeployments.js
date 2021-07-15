@@ -1,28 +1,29 @@
 import gql from 'graphql-tag';
-import DeploymentFragment from 'lib/fragment/Deployment';
 
 export default gql`
-  query getEnvironment($openshiftProjectName: String!) {
+  query getEnvironment($openshiftProjectName: String!, $limit: Int) {
     environment: environmentByOpenshiftProjectName(
       openshiftProjectName: $openshiftProjectName
     ) {
       id
-      name
       openshiftProjectName
-      project {
-        id
-        name
-        problemsUi
-        factsUi
-      }
       deployType
       deployBaseRef
       deployHeadRef
       deployTitle
-      deployments {
-        ...deploymentFields
+      project {
+        name
+        problemsUi
+        factsUi
+      }
+      deployments(limit: $limit) {
+        id
+        name
+        status
+        created
+        started
+        completed
       }
     }
   }
-  ${DeploymentFragment}
 `;
