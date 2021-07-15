@@ -4,8 +4,6 @@ import { s3Client } from '../../clients/aws';
 import { query } from '../../util/db';
 import { Sql } from './sql';
 import { Sql as taskSql } from '../task/sql';
-import fs from "fs";
-
 
 const generateDownloadLink = file => {
   const url = s3Client.getSignedUrl('getObject', {
@@ -26,10 +24,7 @@ export const getFilesByTaskId: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission }
 ) => {
-  const rowsPerms = await query(
-    sqlClientPool,
-    taskSql.selectPermsForTask(tid)
-  );
+  const rowsPerms = await query(sqlClientPool, taskSql.selectPermsForTask(tid));
 
   await hasPermission('task', 'view', {
     project: R.path(['0', 'pid'], rowsPerms)
@@ -60,11 +55,10 @@ export const uploadFilesForTask: ResolverFn = async (
 
   const resolvedFiles = await Promise.all(files);
   const uploadAndTrackFiles = resolvedFiles.map(async (newFile: any) => {
-    const readStream = newFile.createReadStream()
     const s3_key = `tasks/${task}/${newFile.filename}`;
     const params = {
       Key: s3_key,
-      Body: fs.createReadStream(readStream.path),
+      Body: newFile.createReadStream(),
       ACL: 'private'
     };
     // @ts-ignore
@@ -92,11 +86,17 @@ export const uploadFilesForTask: ResolverFn = async (
 
   const rows = await query(sqlClientPool, taskSql.selectTask(task));
 
-  userActivityLogger.user_action(`User uploaded files for task '${task}' on project '${R.path(['0', 'pid'], rowsPerms)}'`, {
-    data: {
-      rows
+  userActivityLogger.user_action(
+    `User uploaded files for task '${task}' on project '${R.path(
+      ['0', 'pid'],
+      rowsPerms
+    )}'`,
+    {
+      data: {
+        rows
+      }
     }
-  });
+  );
 
   return R.prop(0, rows);
 };
