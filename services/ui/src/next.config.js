@@ -30,7 +30,8 @@ module.exports = withCSS({
       : envKeycloakRoute,
     LAGOON_UI_ICON: process.env.LAGOON_UI_ICON,
     LAGOON_UI_TASK_BLOCKLIST: taskBlocklist,
-    LAGOON_VERSION: lagoonVersion
+    LAGOON_VERSION: lagoonVersion,
+    LAGOON_UI_DEPLOYMENTS_LIMIT: process.env.LAGOON_UI_DEPLOYMENTS_LIMIT,
   },
   distDir: '../build',
   webpack(config, options) {
