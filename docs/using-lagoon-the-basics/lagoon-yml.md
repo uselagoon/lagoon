@@ -10,77 +10,6 @@ The `.lagoon.yml` file is the central file to set up your project. It contains c
 
 The `.lagoon.yml` file must be placed at the root of your Git repository.
 
-## Example `.lagoon.yml`
-
-This is an example `.lagoon.yml` which showcases all possible settings. You will need to adapt it to your project.
-
-{% tabs %}
-{% tab title=".lagoon.yml" %}
-```yaml
-docker-compose-yaml: docker-compose.yml
-
-environment_variables:
-  git_sha: 'true'
-
-tasks:
-  pre-rollout:
-    - run:
-        name: drush sql-dump
-        command: mkdir -p /app/web/sites/default/files/private/ && drush sql-dump --ordered-dump --gzip --result-file=/app/web/sites/default/files/private/pre-deploy-dump.sql.gz
-        service: cli
-  post-rollout:
-    - run:
-        name: drush cim
-        command: drush -y cim
-        service: cli
-        shell: bash
-    - run:
-        name: drush cr
-        command: drush -y cr
-        service: cli
-
-routes:
-  autogenerate:
-    insecure: Redirect
-
-environments:
-  main:
-    monitoring_urls:
-      - "https://www.example.com"
-      - "https://www.example.com/special_page"
-    routes:
-      - nginx:
-        - example.com
-        - example.net
-        - "www.example.com":
-            tls-acme: 'true'
-            insecure: Redirect
-            hsts: max-age=31536000
-        - "example.ch":
-            annotations:
-              nginx.ingress.kubernetes.io/permanent-redirect: https://www.example.ch$request_uri
-        - www.example.ch
-    types:
-      mariadb: mariadb
-    templates:
-      mariadb: mariadb.main.deployment.yml
-    rollouts:
-      mariadb: statefulset
-    cronjobs:
-     - name: drush cron
-       schedule: "M * * * *" # This will run the cron once per hour.
-       command: drush cron
-       service: cli
-  staging:
-    cronjobs:
-     - name: drush cron
-       schedule: "M * * * *" # This will run the cron once per hour.
-       command: drush cron
-       service: cli
-```
-{% endtab %}
-{% endtabs %}
-
 ## General Settings
 
 ### `docker-compose-yaml`
@@ -183,25 +112,25 @@ Drupal & Drush 9: Sync database & files from master environment:
 
 ### `backup-retention.production.monthly`
 
-Specify the number of monthly backups Lagoon should retain for your project's production environment(s).
+Specify the number of monthly backups Lagoon should retain for your project's production environment\(s\).
 
 The global default is `1` if this value is not specified.
 
 ### `backup-retention.production.weekly`
 
-Specify the number of weekly backups Lagoon should retain for your project's production environment(s).
+Specify the number of weekly backups Lagoon should retain for your project's production environment\(s\).
 
 The global default is `6` if this value is not specified.
 
 ### `backup-retention.production.daily`
 
-Specify the number of daily backups Lagoon should retain for your project's production environment(s).
+Specify the number of daily backups Lagoon should retain for your project's production environment\(s\).
 
 The global default is `7` if this value is not specified.
 
 ### `backup-retention.production.hourly`
 
-Specify the number of hourly backups Lagoon should retain for your project's production environment(s).
+Specify the number of hourly backups Lagoon should retain for your project's production environment\(s\).
 
 The global default is `0` if this value is not specified.
 
@@ -311,6 +240,10 @@ If you plan to switch from a SSL certificate signed by a Certificate Authority \
 {% endtabs %}
 
 ### **Monitoring a specific path**
+
+{% hint style="info" %}
+Please note, Lagoon does not provide any direct integration to a monitoring service, this just adds the URLs to the API. On amazee.io, we take the `monitoring_urls` and add them to our StatusCake account.
+{% endhint %}
 
 When [UptimeRobot](https://uptimerobot.com/) is configured for your cluster \(OpenShift or Kubernetes\), Lagoon will inject annotations to each route/ingress for use by the `stakater/IngressControllerMonitor`. The default action is to monitor the homepage of the route. If you have a specific route to be monitored, this can be overridden by adding a `monitoring-path` to your route specification. A common use is to set up a path for monitoring which bypasses caching to give a more real-time monitoring of your site.
 
@@ -436,7 +369,7 @@ Sometimes you might want to override the **rollout type** just for a single envi
 * `service-name` is the name of the service from `docker-compose.yml` you would like to override.
 * `rollout-type` is the type of rollout. See [documentation of `docker-compose.yml`](docker-compose-yml.md#custom-rollout-monitor-types)\) for possible values.
 
-Example:
+**Example:**
 
 {% tabs %}
 {% tab title=".lagoon.yml" %}
@@ -472,7 +405,7 @@ environments:
 
 As most of the time it is not desirable to run the same cron jobs across all environments, you must explicitly define which jobs you want to run for each environment.
 
-Example:
+**Example:**
 
 {% tabs %}
 {% tab title=".lagoon.yml" %}
@@ -501,7 +434,7 @@ Example:
 
 In Lagoon, the same Git repository can be added to multiple projects, creating what is called a polysite. This allows you to run the same codebase, but allow for different, isolated, databases and persistent files. In `.lagoon.yml` , we currently only support specifying custom routes for a polysite project. The key difference from a standard project is that the `environments` becomes the second-level element, and the project name the top level.
 
-Example:
+**Example:**
 
 {% tabs %}
 {% tab title=".lagoon.yml" %}
@@ -612,4 +545,75 @@ Once the `docker-compose.yml` file has been updated to use a build, you need to 
 ```text
 FROM dockerhubuser/my-private-database:tag
 ```
+
+## Example `.lagoon.yml`
+
+This is an example `.lagoon.yml` which showcases all possible settings. You will need to adapt it to your project.
+
+{% tabs %}
+{% tab title=".lagoon.yml" %}
+```yaml
+docker-compose-yaml: docker-compose.yml
+
+environment_variables:
+  git_sha: 'true'
+
+tasks:
+  pre-rollout:
+    - run:
+        name: drush sql-dump
+        command: mkdir -p /app/web/sites/default/files/private/ && drush sql-dump --ordered-dump --gzip --result-file=/app/web/sites/default/files/private/pre-deploy-dump.sql.gz
+        service: cli
+  post-rollout:
+    - run:
+        name: drush cim
+        command: drush -y cim
+        service: cli
+        shell: bash
+    - run:
+        name: drush cr
+        command: drush -y cr
+        service: cli
+
+routes:
+  autogenerate:
+    insecure: Redirect
+
+environments:
+  main:
+    monitoring_urls:
+      - "https://www.example.com"
+      - "https://www.example.com/special_page"
+    routes:
+      - nginx:
+        - example.com
+        - example.net
+        - "www.example.com":
+            tls-acme: 'true'
+            insecure: Redirect
+            hsts: max-age=31536000
+        - "example.ch":
+            annotations:
+              nginx.ingress.kubernetes.io/permanent-redirect: https://www.example.ch$request_uri
+        - www.example.ch
+    types:
+      mariadb: mariadb
+    templates:
+      mariadb: mariadb.main.deployment.yml
+    rollouts:
+      mariadb: statefulset
+    cronjobs:
+     - name: drush cron
+       schedule: "M * * * *" # This will run the cron once per hour.
+       command: drush cron
+       service: cli
+  staging:
+    cronjobs:
+     - name: drush cron
+       schedule: "M * * * *" # This will run the cron once per hour.
+       command: drush cron
+       service: cli
+```
+{% endtab %}
+{% endtabs %}
 

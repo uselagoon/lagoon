@@ -214,17 +214,3 @@ By default , Lagoon expects that services from custom templates are rolled out v
 
 You can also overwrite the rollout for just one specific environment. This is done in [`.lagoon.yml`](lagoon-yml.md#environments-name-rollouts).
 
-## **Custom Type**
-
-Feeling adventurous and want to do something completely customized? Welcome to the Danger Zone!
-
-![Welcome to the Danger Zone](../.gitbook/assets/topgun%20%282%29%20%282%29.gif)
-
-When defining a service as `lagoon.type: custom`, you can tell Lagoon to not use any pre-defined service type templates and pass your full own custom YAML file.
-
-This also expects the label `lagoon.template` to be defined with the path to the YAML file where you define all the needed Kubernetes objects to be executed. In here you can define your own OpenShift templates like the ones in the [templates folder of `oc-build-deploy-dind`](https://github.com/uselagoon/lagoon/tree/main/images/oc-build-deploy-dind/openshift-templates).
-
-{% hint style="info" %}
-The template is called with `oc process`, so you should define the same parameters as in the default templates.
-{% endhint %}
-

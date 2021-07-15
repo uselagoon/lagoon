@@ -1,7 +1,7 @@
 import { logger } from '../loggers/logger';
-const { getKeycloakAdminClient } = require('../clients/keycloak-admin');
+import { getKeycloakAdminClient } from '../clients/keycloak-admin';
 
-async function waitForKeycloak() {
+export const waitForKeycloak = async () => {
   let keycloakReady = false;
   let keycloakAdminClient;
 
@@ -13,7 +13,9 @@ async function waitForKeycloak() {
         throw new Error('The "lagoon" realm has not been created yet.');
       }
 
-      const clients = await keycloakAdminClient.clients.find({ clientId: 'api' });
+      const clients = await keycloakAdminClient.clients.find({
+        clientId: 'api'
+      });
       if (!clients.length) {
         throw new Error('The "api" client has not been created yet.');
       }
@@ -30,6 +32,4 @@ async function waitForKeycloak() {
   }
 
   logger.debug('Connected to Keycloak');
-}
-
-module.exports = waitForKeycloak;
+};
