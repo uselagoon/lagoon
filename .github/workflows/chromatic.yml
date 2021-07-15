@@ -19,7 +19,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v2
         with:
-          node-version: '10'
+          node-version: '16'
       - name: Install dependencies
         run: yarn && yarn --cwd services/api install && yarn --cwd services/api build
       - name: Build storybook
