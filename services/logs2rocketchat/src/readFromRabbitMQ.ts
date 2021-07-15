@@ -124,7 +124,10 @@ export async function readFromRabbitMQ (msg: ConsumeMessage, channelWrapperLogs:
       if (meta.logLink){
         text = `${text} [Logs](${meta.logLink})\n`
       }
-      text = `\n${text}${meta.route}\n ${meta.routes.join("\n")}`
+      text = `${text}\n ${meta.route}\n`
+      if (meta.routes) {
+       text = `${text}\n ${meta.routes.join("\n")}`
+      }
       sendToRocketChat(project, text, 'lawngreen', ':white_check_mark:', channelWrapperLogs, msg, appId)
       break;
 
