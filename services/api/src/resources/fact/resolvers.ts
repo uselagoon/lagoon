@@ -83,7 +83,11 @@ export const getProjectsByFactSearch: ResolverFn = async (
   const count = await getFactFilteredProjectsCount(input, userProjectIds, sqlClientPool, isAdmin);
   const rows = await getFactFilteredProjects(input, userProjectIds, sqlClientPool, isAdmin);
 
-  return { projects: rows, count };
+  // Just like the getAllProjects resolver, we can pass a 'environmentAuthz' prop to bypass extra
+  // keycloak checks at the environments level.
+  const rowsWithEnvironmentAuthz = rows && rows.map(row => ({ ...row, environmentAuthz: true }));
+
+  return { projects: rowsWithEnvironmentAuthz, count };
 }
 
 export const getEnvironmentsByFactSearch: ResolverFn = async (
@@ -111,7 +115,11 @@ export const getEnvironmentsByFactSearch: ResolverFn = async (
   const count = await getFactFilteredEnvironmentsCount(input, userProjectIds, sqlClientPool, isAdmin);
   const rows = await getFactFilteredEnvironments(input, userProjectIds, sqlClientPool, isAdmin);
 
-  return { environments: rows, count };
+  // Just like the getAllProjects resolver, we can pass a 'environmentAuthz' prop to bypass extra
+  // keycloak checks at the environments level.
+  const rowsWithEnvironmentAuthz = rows && rows.map(row => ({ ...row, environmentAuthz: true }));
+
+  return { environments: rowsWithEnvironmentAuthz, count };
 }
 
 export const addFact: ResolverFn = async (
