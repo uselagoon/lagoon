@@ -346,8 +346,9 @@ export const addProject = async (
 
   //We also want to create a second group corresponding directly to the project-id
   // This is what'll be used for
-  OpendistroSecurityOperations(sqlClientPool, models.GroupModel).syncGroup(
+  OpendistroSecurityOperations(sqlClientPool, models.GroupModel).syncGroupWithExistingTenant(
     `p-${project.id}`,
+    `project-${project.name}`,
     project.id
   );
 
