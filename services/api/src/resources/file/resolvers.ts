@@ -5,19 +5,13 @@ import { query } from '../../util/db';
 import { Sql } from './sql';
 import { Sql as taskSql } from '../task/sql';
 
-const generateDownloadLink = file => {
-  const url = s3Client.getSignedUrl('getObject', {
-    Key: file.s3Key,
+const fileIsDeleted = file => file.deleted !== '0000-00-00 00:00:00';
+
+export const getDownloadLink: ResolverFn = async ({ s3Key }) =>
+  s3Client.getSignedUrl('getObject', {
+    Key: s3Key,
     Expires: 300 // 5 minutes
   });
-
-  return {
-    ...file,
-    download: url
-  };
-};
-
-const fileIsDeleted = file => file.deleted !== '0000-00-00 00:00:00';
 
 export const getFilesByTaskId: ResolverFn = async (
   { id: tid },
@@ -34,8 +28,7 @@ export const getFilesByTaskId: ResolverFn = async (
 
   return R.pipe(
     R.sort(R.descend(R.prop('created'))),
-    R.reject(fileIsDeleted),
-    R.map(generateDownloadLink)
+    R.reject(fileIsDeleted)
   )(rows);
 };
 

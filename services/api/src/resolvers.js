@@ -70,6 +70,7 @@ const {
   getFilesByTaskId,
   uploadFilesForTask,
   deleteFilesForTask,
+  getDownloadLink,
 } = require('./resources/file/resolvers');
 
 const {
@@ -333,6 +334,9 @@ const resolvers = {
     environment: getEnvironmentByTaskId,
     files: getFilesByTaskId,
     logs: getTaskLog
+  },
+  File: {
+    download: getDownloadLink
   },
   Notification: {
     __resolveType(obj) {
