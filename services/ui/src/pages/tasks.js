@@ -2,6 +2,7 @@ import React from 'react';
 import * as R from 'ramda';
 import { withRouter } from 'next/router';
 import Head from 'next/head';
+import getConfig from 'next/config';
 import { Query } from 'react-apollo';
 import MainLayout from 'layouts/MainLayout';
 import EnvironmentWithTasksQuery from 'lib/query/EnvironmentWithTasks';
@@ -17,6 +18,10 @@ import withQueryError from 'lib/withQueryError';
 import { withEnvironmentRequired } from 'lib/withDataRequired';
 import { bp } from 'lib/variables';
 
+const { publicRuntimeConfig } = getConfig();
+const envLimit = parseInt(publicRuntimeConfig.LAGOON_UI_TASKS_LIMIT, 10);
+const tasksLimit = envLimit === -1 ? null : envLimit;
+
 /**
  * Displays the tasks page, given the openshift project name.
  */
@@ -28,7 +33,8 @@ export const PageTasks = ({ router }) => (
     <Query
       query={EnvironmentWithTasksQuery}
       variables={{
-        openshiftProjectName: router.query.openshiftProjectName
+        openshiftProjectName: router.query.openshiftProjectName,
+        limit: tasksLimit
       }}
     >
       {R.compose(
@@ -84,7 +90,11 @@ export const PageTasks = ({ router }) => (
               <NavTabs activeTab="tasks" environment={environment} />
               <div className="content">
                 <AddTask pageEnvironment={environment} />
-                <Tasks tasks={environment.tasks} />
+                <Tasks
+                  tasks={environment.tasks}
+                  environmentSlug={environment.openshiftProjectName}
+                  projectSlug={environment.project.name}
+                />
               </div>
             </div>
             <style jsx>{`
