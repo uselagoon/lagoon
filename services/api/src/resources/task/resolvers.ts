@@ -59,24 +59,16 @@ export const getTasksByEnvironmentId: ResolverFn = async (
     project: environment.project
   });
 
-  const rows = await query(
-    sqlClientPool,
-    `SELECT t.*, e.project
-    FROM environment e
-    JOIN task t on e.id = t.environment
-    WHERE e.id = :eid`,
-    { eid }
-  );
-  const newestFirst = R.sort(R.descend(R.prop('created')), rows);
+  let queryBuilder = knex('task')
+    .where('environment', eid)
+    .orderBy('created', 'desc')
+    .orderBy('id', 'desc');
 
-  return newestFirst
-    .filter((row: any) => {
-      if (R.isNil(filterId) || R.isEmpty(filterId)) {
-        return true;
-      }
+  if (filterId) {
+    queryBuilder = queryBuilder.andWhere('id', filterId);
+  }
 
-      return row.id === filterId;
-    });
+  return query(sqlClientPool, queryBuilder.toString());
 };
 
 export const getTaskByRemoteId: ResolverFn = async (
