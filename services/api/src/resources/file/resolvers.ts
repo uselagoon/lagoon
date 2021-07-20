@@ -15,15 +15,9 @@ export const getDownloadLink: ResolverFn = async ({ s3Key }) =>
 
 export const getFilesByTaskId: ResolverFn = async (
   { id: tid },
-  args,
-  { sqlClientPool, hasPermission }
+  _args,
+  { sqlClientPool }
 ) => {
-  const rowsPerms = await query(sqlClientPool, taskSql.selectPermsForTask(tid));
-
-  await hasPermission('task', 'view', {
-    project: R.path(['0', 'pid'], rowsPerms)
-  });
-
   const rows = await query(sqlClientPool, Sql.selectTaskFiles(tid));
 
   return R.pipe(
