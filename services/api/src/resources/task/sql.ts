@@ -54,9 +54,8 @@ export const Sql = {
       .toString(),
   selectPermsForTask: (id: number) =>
     knex('task')
-      .select({ pid: 'project.id' })
+      .select({ pid: 'environment.project' })
       .join('environment', 'task.environment', '=', 'environment.id')
-      .join('project', 'environment.project', '=', 'project.id')
       .where('task.id', id)
       .toString()
 };
