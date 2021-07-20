@@ -339,19 +339,11 @@ export const addProject = async (
     );
   }
 
-  OpendistroSecurityOperations(sqlClientPool, models.GroupModel).syncGroup(
+  OpendistroSecurityOperations(sqlClientPool, models.GroupModel).syncGroupWithSpecificTenant(
+    `p${project.id}`,
     `project-${project.name}`,
     project.id
   );
-
-  //We also want to create a second group corresponding directly to the project-id
-  // This is what'll be used for
-  OpendistroSecurityOperations(sqlClientPool, models.GroupModel).syncGroupWithExistingTenant(
-    `p-${project.id}`,
-    `project-${project.name}`,
-    project.id
-  );
-
 
   // Find or create a user that has the public key linked to them
   const userRows = await query(

@@ -9,9 +9,9 @@ export const OpendistroSecurityOperations = (
   GroupModel
 ) => ({
   syncGroup: async function(groupName, groupProjectIDs) {
-    return this.syncGroupWithExistingTenant(groupName, groupName, groupProjectIDs);
+    return this.syncGroupWithSpecificTenant(groupName, groupName, groupProjectIDs);
   },
-  syncGroupWithExistingTenant: async (groupName, tenantName, groupProjectIDs) => {
+  syncGroupWithSpecificTenant: async (groupName, tenantName, groupProjectIDs) => {
     const groupProjectNames = [];
     // groupProjectIDs is a comma separated string of IDs, split it up and remove any entries with `''`
     const groupProjectIDsArray = groupProjectIDs

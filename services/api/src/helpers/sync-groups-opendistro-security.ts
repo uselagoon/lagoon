@@ -42,7 +42,14 @@ import { getKeycloakAdminClient } from '../clients/keycloak-admin';
         group
       );
       const projectIds = R.join(',')(projectIdsArray);
-      await OpendistroSecurityOperations(sqlClientPool, GroupModel).syncGroup(
+
+      let roleName = group.name;
+      if(group.type && group.type == 'project-default-group') {
+        roleName = "p" + projectIds;
+      }
+
+      await OpendistroSecurityOperations(sqlClientPool, GroupModel).syncGroupWithSpecificTenant(
+        roleName,
         group.name,
         projectIds
       );
