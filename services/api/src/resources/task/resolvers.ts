@@ -1,10 +1,10 @@
 import * as R from 'ramda';
-import getFieldNames from 'graphql-list-fields';
 import { ResolverFn } from '../';
 import {
   pubSub,
   createEnvironmentFilteredSubscriber
 } from '../../clients/pubSub';
+import { esClient } from '../../clients/esClient';
 import { knex, query, isPatchEmpty } from '../../util/db';
 import { Sql } from './sql';
 import { EVENTS } from './events';
@@ -12,11 +12,45 @@ import { Helpers } from './helpers';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Validators as envValidators } from '../environment/validators';
 
+export const getTaskLog: ResolverFn = async (
+  { remoteId, status },
+  _args,
+  _context
+) => {
+  if (!remoteId) {
+    return null;
+  }
+
+  try {
+    const result = await esClient.search({
+      index: 'lagoon-logs-*',
+      sort: '@timestamp:desc',
+      body: {
+        query: {
+          bool: {
+            must: [
+              { match_phrase: { 'meta.remoteId': remoteId } },
+              { match_phrase: { 'meta.jobStatus': status } }
+            ]
+          }
+        }
+      }
+    });
+
+    if (!result.hits.total) {
+      return null;
+    }
+
+    return R.path(['hits', 'hits', 0, '_source', 'message'], result);
+  } catch (e) {
+    return `There was an error loading the logs: ${e.message}`;
+  }
+};
+
 export const getTasksByEnvironmentId: ResolverFn = async (
   { id: eid },
-  { id: filterId },
-  { sqlClientPool, hasPermission },
-  info
+  { id: filterId, limit },
+  { sqlClientPool, hasPermission }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
@@ -25,36 +59,20 @@ export const getTasksByEnvironmentId: ResolverFn = async (
     project: environment.project
   });
 
-  const rows = await query(
-    sqlClientPool,
-    `SELECT t.*, e.project
-    FROM environment e
-    JOIN task t on e.id = t.environment
-    WHERE e.id = :eid`,
-    { eid }
-  );
-  const newestFirst = R.sort(R.descend(R.prop('created')), rows);
+  let queryBuilder = knex('task')
+    .where('environment', eid)
+    .orderBy('created', 'desc')
+    .orderBy('id', 'desc');
 
-  const requestedFields = getFieldNames(info);
+  if (filterId) {
+    queryBuilder = queryBuilder.andWhere('id', filterId);
+  }
 
-  return newestFirst
-    .filter((row: any) => {
-      if (R.isNil(filterId) || R.isEmpty(filterId)) {
-        return true;
-      }
+  if (limit) {
+    queryBuilder = queryBuilder.limit(limit);
+  }
 
-      return row.id === filterId;
-    })
-    .map((row: any) => {
-      if (R.contains('logs', requestedFields)) {
-        return Helpers(sqlClientPool).injectLogs(row);
-      }
-
-      return {
-        ...row,
-        logs: null
-      };
-    });
+  return query(sqlClientPool, queryBuilder.toString());
 };
 
 export const getTaskByRemoteId: ResolverFn = async (
@@ -78,7 +96,7 @@ export const getTaskByRemoteId: ResolverFn = async (
     project: R.path(['0', 'pid'], rowsPerms)
   });
 
-  return Helpers(sqlClientPool).injectLogs(task);
+  return task;
 };
 
 export const getTaskById: ResolverFn = async (
@@ -102,7 +120,7 @@ export const getTaskById: ResolverFn = async (
     project: R.path(['0', 'pid'], rowsPerms)
   });
 
-  return Helpers(sqlClientPool).injectLogs(task);
+  return task;
 };
 
 export const addTask: ResolverFn = async (
@@ -260,7 +278,7 @@ export const updateTask: ResolverFn = async (
   );
 
   const rows = await query(sqlClientPool, Sql.selectTask(id));
-  const taskData = await Helpers(sqlClientPool).injectLogs(R.prop(0, rows));
+  const taskData = R.prop(0, rows);
 
   pubSub.publish(EVENTS.TASK.UPDATED, taskData);
 

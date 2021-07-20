@@ -32,6 +32,8 @@ module.exports = withCSS({
     LAGOON_UI_TASK_BLOCKLIST: taskBlocklist,
     LAGOON_VERSION: lagoonVersion,
     LAGOON_UI_DEPLOYMENTS_LIMIT: process.env.LAGOON_UI_DEPLOYMENTS_LIMIT,
+    LAGOON_UI_TASKS_LIMIT: process.env.LAGOON_UI_TASKS_LIMIT,
+    LAGOON_UI_BACKUPS_LIMIT: process.env.LAGOON_UI_BACKUPS_LIMIT,
   },
   distDir: '../build',
   webpack(config, options) {

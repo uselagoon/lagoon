@@ -63,6 +63,7 @@ const {
   taskDrushRsyncFiles,
   taskDrushUserLogin,
   taskSubscriber,
+  getTaskLog,
 } = require('./resources/task/resolvers');
 
 const {
@@ -79,6 +80,7 @@ const {
   getFilesByTaskId,
   uploadFilesForTask,
   deleteFilesForTask,
+  getDownloadLink,
 } = require('./resources/file/resolvers');
 
 const {
@@ -218,6 +220,7 @@ const {
   getRestoreByBackupId,
   updateRestore,
   backupSubscriber,
+  getRestoreLocation,
 } = require('./resources/backup/resolvers');
 
 const {
@@ -342,6 +345,10 @@ const resolvers = {
   Task: {
     environment: getEnvironmentByTaskId,
     files: getFilesByTaskId,
+    logs: getTaskLog
+  },
+  File: {
+    download: getDownloadLink
   },
   Notification: {
     __resolveType(obj) {
@@ -368,6 +375,9 @@ const resolvers = {
   Backup: {
     restore: getRestoreByBackupId,
     environment: getEnvironmentByBackupId,
+  },
+  Restore: {
+    restoreLocation: getRestoreLocation,
   },
   Query: {
     me: getMe,

@@ -44,7 +44,12 @@ fi
 set +x
 DOCKER_REGISTRY_TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
 
-docker login -u=jenkins -p="${DOCKER_REGISTRY_TOKEN}" ${OPENSHIFT_REGISTRY}
+DEPLOY_TYPE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.deploy-type default)
+
+# Do not run if this a DEPLOY_TYPE=tug which means we just push images to an external registry, we don't need to be logged into the OpenShift Registry
+if [[ ! $DEPLOY_TYPE == "tug" ]]; then
+  docker login -u=jenkins -p="${DOCKER_REGISTRY_TOKEN}" ${OPENSHIFT_REGISTRY}
+fi
 
 INTERNAL_REGISTRY_LOGGED_IN="false"
 if [ ! -z ${INTERNAL_REGISTRY_URL} ] && [ ! -z ${INTERNAL_REGISTRY_USERNAME} ] && [ ! -z ${INTERNAL_REGISTRY_PASSWORD} ] ; then

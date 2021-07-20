@@ -1317,6 +1317,24 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  add_index_for_task_environment()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.STATISTICS
+      WHERE
+        table_name = 'task'
+        AND table_schema = 'infrastructure'
+        AND index_name='task_environment'
+    ) THEN
+      ALTER TABLE `task`
+      ADD INDEX `task_environment` (`environment`);
+    END IF;
+  END;
+$$
+
 DELIMITER ;
 
 -- If adding new procedures, add them to the bottom of this list
@@ -1379,6 +1397,7 @@ CALL convert_project_standby_routes_to_text();
 CALL add_advanced_task_details_to_task_table();
 CALL add_enum_webhook_to_type_in_project_notification();
 CALL add_index_for_deployment_environment();
+CALL add_index_for_task_environment();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;

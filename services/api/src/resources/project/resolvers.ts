@@ -339,7 +339,8 @@ export const addProject = async (
     );
   }
 
-  OpendistroSecurityOperations(sqlClientPool, models.GroupModel).syncGroup(
+  OpendistroSecurityOperations(sqlClientPool, models.GroupModel).syncGroupWithSpecificTenant(
+    `p${project.id}`,
     `project-${project.name}`,
     project.id
   );
