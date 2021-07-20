@@ -63,6 +63,7 @@ const {
   taskDrushRsyncFiles,
   taskDrushUserLogin,
   taskSubscriber,
+  getTaskLog,
 } = require('./resources/task/resolvers');
 
 const {
@@ -331,6 +332,7 @@ const resolvers = {
   Task: {
     environment: getEnvironmentByTaskId,
     files: getFilesByTaskId,
+    logs: getTaskLog
   },
   Notification: {
     __resolveType(obj) {
