@@ -5,8 +5,6 @@ import { query } from '../../util/db';
 import { Sql } from './sql';
 import { Sql as taskSql } from '../task/sql';
 
-const fileIsDeleted = file => file.deleted !== '0000-00-00 00:00:00';
-
 export const getDownloadLink: ResolverFn = async ({ s3Key }) =>
   s3Client.getSignedUrl('getObject', {
     Key: s3Key,
@@ -17,14 +15,7 @@ export const getFilesByTaskId: ResolverFn = async (
   { id: tid },
   _args,
   { sqlClientPool }
-) => {
-  const rows = await query(sqlClientPool, Sql.selectTaskFiles(tid));
-
-  return R.pipe(
-    R.sort(R.descend(R.prop('created'))),
-    R.reject(fileIsDeleted)
-  )(rows);
-};
+) => query(sqlClientPool, Sql.selectTaskFiles(tid));
 
 export const uploadFilesForTask: ResolverFn = async (
   root,
