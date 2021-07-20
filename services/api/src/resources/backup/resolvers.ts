@@ -317,17 +317,8 @@ export const updateRestore: ResolverFn = async (
 export const getRestoreByBackupId: ResolverFn = async (
   { backupId },
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool }
 ) => {
-  const permsBackup = await query(
-    sqlClientPool,
-    Sql.selectPermsForBackup(backupId)
-  );
-
-  await hasPermission('backup', 'view', {
-    project: R.path(['0', 'pid'], permsBackup)
-  });
-
   const rows = await query(
     sqlClientPool,
     Sql.selectRestoreByBackupId(backupId)
