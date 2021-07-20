@@ -3,7 +3,7 @@ import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
 import { createMiscTask } from '@lagoon/commons/dist/tasks';
 import { ResolverFn } from '../';
 import { getConfigFromEnv } from '../../util/config';
-import { query, isPatchEmpty } from '../../util/db';
+import { query, isPatchEmpty, knex } from '../../util/db';
 import {
   pubSub,
   createEnvironmentFilteredSubscriber
@@ -65,7 +65,7 @@ export const getRestoreLocation: ResolverFn = async (
 
 export const getBackupsByEnvironmentId: ResolverFn = async (
   { id: environmentId },
-  { includeDeleted },
+  { includeDeleted, limit },
   { sqlClientPool, hasPermission }
 ) => {
   const environment = await environmentHelpers(
@@ -75,10 +75,20 @@ export const getBackupsByEnvironmentId: ResolverFn = async (
     project: environment.project
   });
 
-  return query(
-    sqlClientPool,
-    Sql.selectBackupsByEnvironmentId({ environmentId, includeDeleted })
-  );
+  let queryBuilder = knex('environment_backup')
+    .where('environment', environmentId)
+    .orderBy('created', 'desc')
+    .orderBy('id', 'desc');
+
+  if (!includeDeleted) {
+    queryBuilder = queryBuilder.where('deleted', '0000-00-00 00:00:00');
+  }
+
+  if (limit) {
+    queryBuilder = queryBuilder.limit(limit);
+  }
+
+  return query(sqlClientPool, queryBuilder.toString());
 };
 
 export const addBackup: ResolverFn = async (
