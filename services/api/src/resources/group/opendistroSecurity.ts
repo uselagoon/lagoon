@@ -8,7 +8,10 @@ export const OpendistroSecurityOperations = (
   sqlClientPool: Pool,
   GroupModel
 ) => ({
-  syncGroup: async (groupName, groupProjectIDs) => {
+  syncGroup: async function(groupName, groupProjectIDs) {
+    return this.syncGroupWithSpecificTenant(groupName, groupName, groupProjectIDs);
+  },
+  syncGroupWithSpecificTenant: async (groupName, tenantName, groupProjectIDs) => {
     const groupProjectNames = [];
     // groupProjectIDs is a comma separated string of IDs, split it up and remove any entries with `''`
     const groupProjectIDsArray = groupProjectIDs
@@ -44,7 +47,7 @@ export const OpendistroSecurityOperations = (
         ],
         tenant_permissions: [
           {
-            tenant_patterns: [groupName],
+            tenant_patterns: [tenantName],
             allowed_actions: ['kibana_all_write']
           }
         ]
@@ -80,8 +83,8 @@ export const OpendistroSecurityOperations = (
 
     try {
       // Create a new Tenant for this Group
-      await opendistroSecurityClient.put(`tenants/${groupName}`, { body: {} });
-      logger.debug(`${groupName}: Created Tentant "${groupName}"`);
+      await opendistroSecurityClient.put(`tenants/${tenantName}`, { body: {} });
+      logger.debug(`${groupName}: Created Tentant "${tenantName}"`);
     } catch (err) {
       logger.error(`Opendistro-Security create tenant error: ${err}`);
     }
@@ -129,7 +132,7 @@ export const OpendistroSecurityOperations = (
               }
             },
             headers: {
-              securitytenant: groupName
+              securitytenant: tenantName
             }
           }
         );
@@ -154,7 +157,7 @@ export const OpendistroSecurityOperations = (
     try {
       const currentSettings = await kibanaClient.get('kibana/settings', {
         headers: {
-          securitytenant: groupName
+          securitytenant: tenantName
         }
       });
 
@@ -170,15 +173,15 @@ export const OpendistroSecurityOperations = (
             }
           },
           headers: {
-            securitytenant: groupName
+            securitytenant: tenantName
           }
         });
         logger.debug(
-          `${groupName}: Configured default index for tenant "${groupName}" to  "${defaultIndexPattern}"`
+          `${groupName}: Configured default index for tenant "${tenantName}" to  "${defaultIndexPattern}"`
         );
       } else {
         logger.debug(
-          `${groupName}: Configured default index for tenant "${groupName}" was already set to "${currentSettings.body.settings.defaultIndex.userValue}"`
+          `${groupName}: Configured default index for tenant "${tenantName}" was already set to "${currentSettings.body.settings.defaultIndex.userValue}"`
         );
       }
     } catch (err) {
@@ -186,7 +189,27 @@ export const OpendistroSecurityOperations = (
       // Don't fail if we have Kibana Errors, as they are "non-critical"
     }
   },
-  deleteGroup: async groupName => {
+  deleteTenant: async tenantName => {
+    try {
+      // Delete the Tenant for this Group
+      await opendistroSecurityClient.delete(`tenants/${tenantName}`);
+      logger.debug(
+        `${tenantName}: Deleted Opendistro-Security Tentant "${tenantName}"`
+      );
+    } catch (err) {
+      // 404 Errors are expected and mean that the role does not exist
+      if (err.statusCode !== 404) {
+        logger.error(
+          `Opendistro-Security Error during deletion of tenant "${tenantName}": ${err}`
+        );
+      } else {
+        logger.debug(
+          `Opendistro-Security tenant "${tenantName}" did not exist, skipping deletion`
+        );
+      }
+    }
+  },
+  deleteGroup: async function(groupName) {
     // delete groups that have no Projects assigned to them
     try {
       await opendistroSecurityClient.delete(`roles/${groupName}`);
@@ -206,23 +229,6 @@ export const OpendistroSecurityOperations = (
       }
     }
 
-    try {
-      // Create a new Tenant for this Group
-      await opendistroSecurityClient.delete(`tenants/${groupName}`);
-      logger.debug(
-        `${groupName}: Deleted Opendistro-Security Tentant "${groupName}"`
-      );
-    } catch (err) {
-      // 404 Errors are expected and mean that the role does not exist
-      if (err.statusCode !== 404) {
-        logger.error(
-          `Opendistro-Security Error during deletion of tenant "${groupName}": ${err}`
-        );
-      } else {
-        logger.debug(
-          `Opendistro-Security tenant "${groupName}" did not exist, skipping deletion`
-        );
-      }
-    }
+    await this.deleteTenant(groupName);
   }
 });
