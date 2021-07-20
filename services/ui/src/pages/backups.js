@@ -2,6 +2,7 @@ import React from 'react';
 import * as R from 'ramda';
 import { withRouter } from 'next/router';
 import Head from 'next/head';
+import getConfig from 'next/config';
 import { Query } from 'react-apollo';
 import MainLayout from 'layouts/MainLayout';
 import EnvironmentWithBackupsQuery from 'lib/query/EnvironmentWithBackups';
@@ -16,6 +17,10 @@ import withQueryError from 'lib/withQueryError';
 import { withEnvironmentRequired } from 'lib/withDataRequired';
 import { bp, color } from 'lib/variables';
 
+const { publicRuntimeConfig } = getConfig();
+const envLimit = parseInt(publicRuntimeConfig.LAGOON_UI_BACKUPS_LIMIT, 10);
+const backupsLimit = envLimit === -1 ? null : envLimit;
+
 /**
  * Displays the backups page, given the name of an openshift project.
  */
@@ -26,7 +31,10 @@ export const PageBackups = ({ router }) => (
     </Head>
     <Query
       query={EnvironmentWithBackupsQuery}
-      variables={{ openshiftProjectName: router.query.openshiftProjectName }}
+      variables={{
+        openshiftProjectName: router.query.openshiftProjectName,
+        limit: backupsLimit
+      }}
     >
       {R.compose(
         withQueryLoading,
@@ -38,8 +46,7 @@ export const PageBackups = ({ router }) => (
           variables: { environment: environment.id },
           updateQuery: (prevStore, { subscriptionData }) => {
             if (!subscriptionData.data) return prevStore;
-            const prevBackups =
-              prevStore.environment.backups;
+            const prevBackups = prevStore.environment.backups;
             const incomingBackup = subscriptionData.data.backupChanged;
             const existingIndex = prevBackups.findIndex(
               prevBackup => prevBackup.id === incomingBackup.id

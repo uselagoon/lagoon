@@ -4,54 +4,10 @@ import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
 import { createTaskTask } from '@lagoon/commons/dist/tasks';
 import { query } from '../../util/db';
 import { pubSub } from '../../clients/pubSub';
-import { esClient } from '../../clients/esClient';
 import { Sql } from './sql';
 import { EVENTS } from './events';
 import { Sql as projectSql } from '../project/sql';
 import { Sql as environmentSql } from '../environment/sql';
-
-const injectLogs = async task => {
-  if (!task.remoteId) {
-    return {
-      ...task,
-      logs: null
-    };
-  }
-
-  try {
-    const result = await esClient.search({
-      index: 'lagoon-logs-*',
-      sort: '@timestamp:desc',
-      body: {
-        query: {
-          bool: {
-            must: [
-              { match_phrase: { 'meta.remoteId': task.remoteId } },
-              { match_phrase: { 'meta.jobStatus': task.status } }
-            ]
-          }
-        }
-      }
-    });
-
-    if (!result.hits.total) {
-      return {
-        ...task,
-        logs: null
-      };
-    }
-
-    return {
-      ...task,
-      logs: R.path(['hits', 'hits', 0, '_source', 'message'], result)
-    };
-  } catch (e) {
-    return {
-      ...task,
-      logs: `There was an error loading the logs: ${e.message}`
-    };
-  }
-};
 
 export const Helpers = (sqlClientPool: Pool) => ({
   addTask: async ({
@@ -96,7 +52,7 @@ export const Helpers = (sqlClientPool: Pool) => ({
     );
 
     let rows = await query(sqlClientPool, Sql.selectTask(insertId));
-    const taskData = await injectLogs(R.prop(0, rows));
+    const taskData = R.prop(0, rows);
 
     pubSub.publish(EVENTS.TASK.ADDED, taskData);
 
@@ -137,6 +93,5 @@ export const Helpers = (sqlClientPool: Pool) => ({
     }
 
     return taskData;
-  },
-  injectLogs
+  }
 });
