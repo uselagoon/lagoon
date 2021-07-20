@@ -49,7 +49,7 @@ export const getTaskLog: ResolverFn = async (
 
 export const getTasksByEnvironmentId: ResolverFn = async (
   { id: eid },
-  { id: filterId },
+  { id: filterId, limit },
   { sqlClientPool, hasPermission }
 ) => {
   const environment = await environmentHelpers(
@@ -66,6 +66,10 @@ export const getTasksByEnvironmentId: ResolverFn = async (
 
   if (filterId) {
     queryBuilder = queryBuilder.andWhere('id', filterId);
+  }
+
+  if (limit) {
+    queryBuilder = queryBuilder.limit(limit);
   }
 
   return query(sqlClientPool, queryBuilder.toString());
