@@ -2,17 +2,67 @@ import * as R from 'ramda';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
 import { createMiscTask } from '@lagoon/commons/dist/tasks';
 import { ResolverFn } from '../';
+import { getConfigFromEnv } from '../../util/config';
 import { query, isPatchEmpty } from '../../util/db';
 import {
   pubSub,
   createEnvironmentFilteredSubscriber
 } from '../../clients/pubSub';
+import S3 from 'aws-sdk/clients/s3';
 import { Sql } from './sql';
-import { Helpers } from './helpers';
 import { Sql as projectSql } from '../project/sql';
 import { Sql as environmentSql } from '../environment/sql';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { EVENTS } from './events';
+
+
+export const getRestoreLocation: ResolverFn = async (
+  { restoreLocation },
+  _args,
+  _context
+) => {
+  // https://{endpoint}/{bucket}/{key}
+  const s3LinkMatch = /([^/]+)\/([^/]+)\/([^/]+)/;
+
+  if (R.test(s3LinkMatch, restoreLocation)) {
+    const s3Parts = R.match(s3LinkMatch, restoreLocation);
+
+    const accessKeyId = getConfigFromEnv(
+      'S3_BAAS_ACCESS_KEY_ID',
+      'XXXXXXXXXXXXXXXXXXXX'
+    );
+    const secretAccessKey = getConfigFromEnv(
+      'S3_BAAS_SECRET_ACCESS_KEY',
+      'XXXXXXXXXXXXXXXXXXXX'
+    );
+
+    let awsS3Parts;
+    const awsLinkMatch = /s3\.([^.]+)\.amazonaws\.com\//;
+
+    if (R.test(awsLinkMatch, restoreLocation)) {
+      awsS3Parts = R.match(awsLinkMatch, restoreLocation);
+    }
+
+    // We have to generate a new client every time because the endpoint is parsed
+    // from the s3 url.
+    const s3Client = new S3({
+      accessKeyId,
+      secretAccessKey,
+      s3ForcePathStyle: true,
+      signatureVersion: 'v4',
+      endpoint: `https://${R.prop(1, s3Parts)}`,
+      region: awsS3Parts ? R.prop(1, awsS3Parts) : ''
+    });
+
+    return s3Client.getSignedUrl('getObject', {
+      Bucket: R.prop(2, s3Parts),
+      Key: R.prop(3, s3Parts),
+      Expires: 300 // 5 minutes
+    });
+  }
+
+  return restoreLocation;
+}
 
 export const getBackupsByEnvironmentId: ResolverFn = async (
   { id: environmentId },
@@ -137,7 +187,7 @@ export const addRestore: ResolverFn = async (
     })
   );
   let rows = await query(sqlClientPool, Sql.selectRestore(insertId));
-  const restoreData = await Helpers.makeS3TempLink(R.prop(0, rows));
+  const restoreData = R.prop(0, rows);
 
   rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
   const backupData = R.prop(0, rows);
@@ -244,7 +294,7 @@ export const updateRestore: ResolverFn = async (
   );
 
   let rows = await query(sqlClientPool, Sql.selectRestoreByBackupId(backupId));
-  const restoreData = Helpers.makeS3TempLink(R.prop(0, rows));
+  const restoreData = R.prop(0, rows);
 
   rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
   const backupData = R.prop(0, rows);
@@ -281,7 +331,7 @@ export const getRestoreByBackupId: ResolverFn = async (
     Sql.selectRestoreByBackupId(backupId)
   );
 
-  return Helpers.makeS3TempLink(R.prop(0, rows));
+  return R.prop(0, rows);
 };
 
 export const backupSubscriber = createEnvironmentFilteredSubscriber([

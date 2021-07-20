@@ -210,6 +210,7 @@ const {
   getRestoreByBackupId,
   updateRestore,
   backupSubscriber,
+  getRestoreLocation,
 } = require('./resources/backup/resolvers');
 
 const {
@@ -363,6 +364,9 @@ const resolvers = {
   Backup: {
     restore: getRestoreByBackupId,
     environment: getEnvironmentByBackupId,
+  },
+  Restore: {
+    restoreLocation: getRestoreLocation,
   },
   Query: {
     me: getMe,
