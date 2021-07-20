@@ -161,7 +161,7 @@ export const Helpers = (sqlClientPool: Pool) => ({
     console.log(queryresp);
     const { insertId } = queryresp;
     rows = await query(sqlClientPool, Sql.selectTask(insertId));
-    const taskData = await injectLogs(R.prop(0, rows));
+    const taskData = R.prop(0, rows);
     console.log("*** START ADVANCED TASK DATA OUTPUT ***")
     console.log(taskData);
     console.log("*** END ADVANCED TASK DATA OUTPUT ***")
