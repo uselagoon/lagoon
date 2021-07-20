@@ -15,7 +15,6 @@ import { Sql as environmentSql } from '../environment/sql';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { EVENTS } from './events';
 
-
 export const getRestoreLocation: ResolverFn = async (
   { restoreLocation },
   _args,
@@ -62,7 +61,7 @@ export const getRestoreLocation: ResolverFn = async (
   }
 
   return restoreLocation;
-}
+};
 
 export const getBackupsByEnvironmentId: ResolverFn = async (
   { id: environmentId },
@@ -76,14 +75,10 @@ export const getBackupsByEnvironmentId: ResolverFn = async (
     project: environment.project
   });
 
-  const rows = await query(
+  return query(
     sqlClientPool,
     Sql.selectBackupsByEnvironmentId({ environmentId, includeDeleted })
   );
-
-  const newestFirst = R.sort(R.descend(R.prop('created')), rows);
-
-  return newestFirst;
 };
 
 export const addBackup: ResolverFn = async (
@@ -113,11 +108,18 @@ export const addBackup: ResolverFn = async (
 
   pubSub.publish(EVENTS.BACKUP.ADDED, backup);
 
-  userActivityLogger.user_action(`User deployed backup '${backupId}' to '${environment.name}' on project '${environment.project}'`, {
-    payload: {
-      id, environment, source, backupId, created
+  userActivityLogger.user_action(
+    `User deployed backup '${backupId}' to '${environment.name}' on project '${environment.project}'`,
+    {
+      payload: {
+        id,
+        environment,
+        source,
+        backupId,
+        created
+      }
     }
-  });
+  );
 
   return backup;
 };
@@ -135,15 +137,12 @@ export const deleteBackup: ResolverFn = async (
 
   await query(sqlClientPool, Sql.deleteBackup(backupId));
 
-  const rows = await query(
-    sqlClientPool,
-    Sql.selectBackupByBackupId(backupId)
-  );
+  const rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
   pubSub.publish(EVENTS.BACKUP.DELETED, R.prop(0, rows));
 
   userActivityLogger.user_action(`User deleted backup '${backupId}'`, {
     payload: {
-     backupId
+      backupId
     }
   });
 
@@ -225,12 +224,15 @@ export const addRestore: ResolverFn = async (
     project: projectData
   };
 
-  userActivityLogger.user_action(`User restored a backup '${backupId}' for project ${projectData.name}`, {
-    payload: {
-      backupId,
-      data
+  userActivityLogger.user_action(
+    `User restored a backup '${backupId}' for project ${projectData.name}`,
+    {
+      payload: {
+        backupId,
+        data
+      }
     }
-  });
+  );
 
   try {
     await createMiscTask({ key: 'restic:backup:restore', data });
