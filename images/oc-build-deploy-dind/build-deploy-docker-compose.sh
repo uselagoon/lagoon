@@ -37,11 +37,34 @@ function cronScheduleMoreOftenThanXMinutes() {
 ### PREPARATION
 ##############################################
 
+DEPLOY_TYPE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.deploy-type default)
+
+### Compatibility for new Lagoon 2.0 variables
+
+# Only if TYPE is not set and BUILD_TYPE is set
+if [[ -z ${TYPE+x} && ! -z ${BUILD_TYPE+x} ]]; then
+  TYPE=${BUILD_TYPE}
+fi
+
+# Only if SAFE_BRANCH is not set and BRANCH is set
+if [[ -z ${SAFE_BRANCH+x} && ! -z ${BRANCH+x} ]]; then
+  SAFE_BRANCH=${BRANCH}
+fi
+
+# Only if SAFE_PROJECT is not set and PROJECT is set
+if [[ -z ${SAFE_PROJECT+x} && ! -z ${PROJECT+x} ]]; then
+  SAFE_PROJECT=${PROJECT}
+fi
+
+
+# Only if OPENSHIFT_NAME is not set and KUBERNETES is set
+if [[ -z ${OPENSHIFT_NAME+x} && ! -z ${KUBERNETES+x} ]]; then
+  OPENSHIFT_NAME=${KUBERNETES}
+fi
+
 # Load path of docker-compose that should be used
 set +x # reduce noise in build logs
 DOCKER_COMPOSE_YAML=($(cat .lagoon.yml | shyaml get-value docker-compose-yaml))
-
-DEPLOY_TYPE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.deploy-type default)
 
 # Load all Services that are defined
 COMPOSE_SERVICES=($(cat $DOCKER_COMPOSE_YAML | shyaml keys services))
