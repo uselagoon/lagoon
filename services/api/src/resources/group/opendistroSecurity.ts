@@ -83,7 +83,7 @@ export const OpendistroSecurityOperations = (
 
     try {
       // Create a new Tenant for this Group
-      await opendistroSecurityClient.put(`tenants/${tenantName}`, { body: {} });
+      await opendistroSecurityClient.put(`tenants/${tenantName}`, { body: { description: `${tenantName}` } });
       logger.debug(`${groupName}: Created Tentant "${tenantName}"`);
     } catch (err) {
       logger.error(`Opendistro-Security create tenant error: ${err}`);
