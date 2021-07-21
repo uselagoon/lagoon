@@ -87,7 +87,7 @@ export const OpendistroSecurityOperations = (
     try {
       // Create a new Tenant for this Group
       await opendistroSecurityClient.put(`tenants/${tenantName}`, { body: { description: `${tenantName}` } });
-      logger.debug(`${groupName}: Created Tentant "${tenantName}"`);
+      logger.debug(`${groupName}: Created Tenant "${tenantName}"`);
     } catch (err) {
       logger.error(`Opendistro-Security create tenant error: ${err}`);
     }
@@ -199,7 +199,7 @@ export const OpendistroSecurityOperations = (
       // Delete the Tenant for this Group
       await opendistroSecurityClient.delete(`tenants/${tenantName}`);
       logger.debug(
-        `${tenantName}: Deleted Opendistro-Security Tentant "${tenantName}"`
+        `${tenantName}: Deleted Opendistro-Security Tenant "${tenantName}"`
       );
     } catch (err) {
       // 404 Errors are expected and mean that the role does not exist
