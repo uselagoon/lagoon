@@ -451,7 +451,8 @@ export const deleteProject: ResolverFn = async (
       `project-${project.name}`
     );
     await models.GroupModel.deleteGroup(group.id);
-    OpendistroSecurityOperations(sqlClientPool, models.GroupModel).deleteGroup(
+    OpendistroSecurityOperations(sqlClientPool, models.GroupModel).deleteGroupWithSpecificTenant(
+      `p${pid}`,
       group.name
     );
   } catch (err) {

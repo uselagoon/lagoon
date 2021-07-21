@@ -215,6 +215,9 @@ export const OpendistroSecurityOperations = (
     }
   },
   deleteGroup: async function(groupName) {
+    await this.deleteGroupWithSpecificTenant(groupName, groupName);
+  },
+  deleteGroupWithSpecificTenant: async function(groupName, tenantName) {
     // delete groups that have no Projects assigned to them
     try {
       await opendistroSecurityClient.delete(`roles/${groupName}`);
@@ -234,6 +237,6 @@ export const OpendistroSecurityOperations = (
       }
     }
 
-    await this.deleteTenant(groupName);
+    await this.deleteTenant(tenantName);
   }
 });
