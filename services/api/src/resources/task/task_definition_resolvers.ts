@@ -138,7 +138,6 @@ const currentUsersAdvancedTaskRBACRolesForProject = async (hasPermission, projec
   return effectivePermissions;
 }
 
-//TODO: these aren't really a concern right now - but they will be - we need to revisit security in them
 export const advancedTaskDefinitionArgumentById = async (
   root,
   id,
@@ -154,7 +153,6 @@ export const advancedTaskDefinitionArgumentById = async (
 
   return R.prop(0, rows);
 };
-
 
 export const addAdvancedTaskDefinition = async (
   root,

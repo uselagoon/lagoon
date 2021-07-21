@@ -49,9 +49,6 @@ export const Helpers = (sqlClientPool: Pool) => ({
         service,
         command,
         remoteId,
-        // type: null,
-        // advanced_image: null,
-        // advanced_payload: null,
       }),
     );
 
@@ -162,17 +159,10 @@ export const Helpers = (sqlClientPool: Pool) => ({
     const { insertId } = queryresp;
     rows = await query(sqlClientPool, Sql.selectTask(insertId));
     const taskData = R.prop(0, rows);
-    console.log("*** START ADVANCED TASK DATA OUTPUT ***")
-    console.log(taskData);
-    console.log("*** END ADVANCED TASK DATA OUTPUT ***")
-    // TODO: this will need to change
     const ADVANCED_TASK_EVENT_TYPE = "task:advanced"
 
-    // TODO: we might want to move the actual creation of the advanced task to a function
-    // so that we can control the structure in a single place if the schema changes...
-
     let jobSpec = {
-      task: taskData, // BMK: I'm not sure this is used in the advanced task ...
+      task: taskData,
       project: projectData,
       environment: environmentData,
       advancedTask: {
@@ -181,7 +171,6 @@ export const Helpers = (sqlClientPool: Pool) => ({
       }
     }
 
-    // TODO: uncomment and understand
     pubSub.publish(EVENTS.TASK.ADDED, jobSpec);
 
     try {
@@ -192,14 +181,14 @@ export const Helpers = (sqlClientPool: Pool) => ({
         }
       )
     } catch (error) {
-      // sendToLagoonLogs(
-      //   'error',
-      //   projectData.name,
-      //   '',
-      //   'api:addTask',
-      //   // { taskId: taskData.id },
-      //   `*[${projectData.name}]* Task not initiated, reason: ${error}`,
-      // );
+      sendToLagoonLogs(
+        'error',
+        projectData.name,
+        '',
+        'api:addTask',
+         { taskId: taskData.id },
+        `*[${projectData.name}]* Task not initiated, reason: ${error}`,
+      );
     }
 
     return taskData;
