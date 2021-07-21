@@ -342,7 +342,7 @@ export const addProject = async (
   OpendistroSecurityOperations(sqlClientPool, models.GroupModel).syncGroupWithSpecificTenant(
     `p${project.id}`,
     `project-${project.name}`,
-    project.id
+    `${project.id}`
   );
 
   // Find or create a user that has the public key linked to them
