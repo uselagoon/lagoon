@@ -21,12 +21,18 @@ import { getKeycloakAdminClient } from '../clients/keycloak-admin';
     : /.*/;
 
   const allGroups = await GroupModel.loadAllGroups();
-  let groupsQueue = (allGroups as Group[]).map(group => ({
+
+  // This filters out Billing Groups that we don't need to create in Opendistro/Kibana
+  const userGroups = allGroups.filter(
+    ({ type }) => type === ''
+  );
+
+  let groupsQueue = (userGroups as Group[]).map(group => ({
     group,
     retries: 0
   }));
 
-  logger.info(`Syncing ${allGroups.length} groups`);
+  logger.info(`Syncing ${userGroups.length} groups`);
 
   while (groupsQueue.length > 0) {
     const { group, retries } = groupsQueue.shift();
