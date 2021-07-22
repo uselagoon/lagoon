@@ -155,7 +155,7 @@ export const Helpers = (sqlClientPool: Pool) => ({
         advanced_payload: JSON.stringify(payload),
       }),
     );
-    console.log(queryresp);
+
     const { insertId } = queryresp;
     rows = await query(sqlClientPool, Sql.selectTask(insertId));
     const taskData = R.prop(0, rows);
