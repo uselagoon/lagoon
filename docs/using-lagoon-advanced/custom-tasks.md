@@ -107,3 +107,5 @@ This, then, will define our task for our project (42).
 When we run this, we will get the id of the task definition back (for argument's sake, let's say it's `9`)
 
 This task will now be available to run from the UI for anyone with the `DEVELOPER` or `MAINTAINER` role.
+
+![Task List](../images/task-yarn-audit.png)
