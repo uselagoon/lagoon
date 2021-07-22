@@ -158,7 +158,6 @@ export const addAdvancedTaskDefinition = async (
   root,
   {
     input: {
-      id,
       name,
       description,
       image = '',
@@ -250,9 +249,6 @@ export const addAdvancedTaskDefinition = async (
       taskDef.image == image &&
       taskDef.type == type &&
       (taskDef.type == AdvancedTaskDefinitionType.image || taskDef.command == command);
-
-      console.log(taskDef);
-      console.log({description, image, type, command});
 
 
     if (!taskDefMatchesIncoming) {

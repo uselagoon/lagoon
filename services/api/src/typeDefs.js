@@ -1149,7 +1149,6 @@ const typeDefs = gql`
   }
 
   input AdvancedTaskDefinitionInput {
-    id: Int
     name: String
     description: String
     image: String
