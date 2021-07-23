@@ -56,7 +56,7 @@ import { getKeycloakAdminClient } from '../clients/keycloak-admin';
 
       let tenantName = group.name;
       if(group.type && group.type == 'project-default-group') {
-        tenantName = 'global_tentant';
+        tenantName = 'global_tenant';
       }
 
       await OpendistroSecurityOperations(sqlClientPool, GroupModel).syncGroupWithSpecificTenant(
