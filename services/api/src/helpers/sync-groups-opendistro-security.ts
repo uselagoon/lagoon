@@ -24,7 +24,7 @@ import { getKeycloakAdminClient } from '../clients/keycloak-admin';
 
   // This filters out Billing Groups that we don't need to create in Opendistro/Kibana
   const userGroups = allGroups.filter(
-    ({ type }) => type === ''
+    ({ type }) => type !== 'billing' && type !== 'billing-poly'
   );
 
   let groupsQueue = (userGroups as Group[]).map(group => ({
