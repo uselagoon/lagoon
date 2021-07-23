@@ -51,7 +51,7 @@ export const OpendistroSecurityOperations = (
         tenant_permissions: [
           {
             tenant_patterns: [tenantName],
-            allowed_actions: ['kibana_all_write']
+            allowed_actions: [tenantName == 'global_tenant' ? 'kibana_all_read' : 'kibana_all_write'] // ReadOnly Access for Global Tenant
           }
         ]
       }
@@ -84,12 +84,14 @@ export const OpendistroSecurityOperations = (
       logger.error(`OpendistroSecurity create role error: ${err}`);
     }
 
-    try {
-      // Create a new Tenant for this Group
-      await opendistroSecurityClient.put(`tenants/${tenantName}`, { body: { description: `${tenantName}` } });
-      logger.debug(`${groupName}: Created Tenant "${tenantName}"`);
-    } catch (err) {
-      logger.error(`Opendistro-Security create tenant error: ${err}`);
+    if (tenantName != 'global_tenant') {
+      try {
+        // Create a new Tenant for this Group
+        await opendistroSecurityClient.put(`tenants/${tenantName}`, { body: { description: `${tenantName}` } });
+        logger.debug(`${groupName}: Created Tenant "${tenantName}"`);
+      } catch (err) {
+        logger.error(`Opendistro-Security create tenant error: ${err}`);
+      }
     }
 
     // Create index-patterns for this group
