@@ -118,14 +118,14 @@ export const OpendistroSecurityOperations = (
     // if we are on the global_tenant, we don't create project specific index patterns as they could be seen by everybody
     // (everybody has access to the global tenant)
     if (tenantName != 'global_tenant') {
-    groupProjectNames.forEach(projectName =>
-      indexPatterns.push(
-        [`application-logs-${projectName}-*`, applicationLogs],
-        [`router-logs-${projectName}-*`, routerLogs],
-        [`container-logs-${projectName}-*`, containerLogs],
-        [`lagoon-logs-${projectName}-*`, lagoonLogs]
-      )
-    );
+      groupProjectNames.forEach(projectName =>
+        indexPatterns.push(
+          [`application-logs-${projectName}-*`, applicationLogs],
+          [`router-logs-${projectName}-*`, routerLogs],
+          [`container-logs-${projectName}-*`, containerLogs],
+          [`lagoon-logs-${projectName}-*`, lagoonLogs]
+        )
+      );
     }
 
     const queryParameter = overwriteKibanaIndexPattern == 'true' ? '?overwrite=true' : '';
@@ -143,7 +143,7 @@ export const OpendistroSecurityOperations = (
               }
             },
             headers: {
-              securitytenant: tenantName
+              securitytenant: tenantName == 'global_tenant' ? '' : tenantName // global tenant is an empty string when working with the kibana api
             }
           }
         );
@@ -168,7 +168,7 @@ export const OpendistroSecurityOperations = (
     try {
       const currentSettings = await kibanaClient.get('kibana/settings', {
         headers: {
-          securitytenant: tenantName
+          securitytenant: tenantName == 'global_tenant' ? '' : tenantName // global tenant is an empty string when working with the kibana api
         }
       });
 
@@ -184,7 +184,7 @@ export const OpendistroSecurityOperations = (
             }
           },
           headers: {
-            securitytenant: tenantName
+            securitytenant: tenantName == 'global_tenant' ? '' : tenantName // global tenant is an empty string when working with the kibana api
           }
         });
         logger.debug(
