@@ -109,10 +109,7 @@ export const resolveTasksForEnvironment = async (
   );
 
   //@ts-ignore
-  let rows = R.uniqBy(
-    o => o.name,
-    R.concat(R.concat(environmentRows, projectRows), groupRows)
-  );
+  let rows = R.uniqBy(o => o.name, R.concat(R.concat(environmentRows, projectRows), groupRows));
 
   //now we filter the permissions
   const currentUsersPermissionForProject = await currentUsersAdvancedTaskRBACRolesForProject(
@@ -121,10 +118,7 @@ export const resolveTasksForEnvironment = async (
   );
 
   //@ts-ignore
-  rows = R.filter(
-    e => currentUsersPermissionForProject.includes(e.permission),
-    rows
-  );
+  rows = R.filter(e => currentUsersPermissionForProject.includes(e.permission), rows);
 
   return rows;
 };
