@@ -63,6 +63,7 @@ export const getDeploymentsByEnvironmentId: ResolverFn = async (
   { name, limit },
   { sqlClientPool, hasPermission }
 ) => {
+
   const environment = await environmentHelpers(
     sqlClientPool
   ).getEnvironmentById(eid);

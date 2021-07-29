@@ -4,11 +4,12 @@ import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Sql } from './sql';
 import { ResolverFn } from '../index';
 import { knex } from '../../util/db';
-import logger from '../../logger';
+import { logger } from '../../loggers/logger';
+import { loggers } from 'winston';
 
 export const getFactsByEnvironmentId: ResolverFn = async (
   { id: environmentId },
-  args,
+  { keyFacts },
   { sqlClientPool, hasPermission }
 ) => {
   const environment = await environmentHelpers(
@@ -22,7 +23,8 @@ export const getFactsByEnvironmentId: ResolverFn = async (
   const rows = await query(
     sqlClientPool,
     Sql.selectFactsByEnvironmentId({
-      environmentId
+      environmentId,
+      keyFacts
     })
   );
 
@@ -79,7 +81,14 @@ export const getProjectsByFactSearch: ResolverFn = async (
     });
   }
 
-  return await getFactFilteredProjects(input, userProjectIds, sqlClientPool, isAdmin);
+  const count = await getFactFilteredProjectsCount(input, userProjectIds, sqlClientPool, isAdmin);
+  const rows = await getFactFilteredProjects(input, userProjectIds, sqlClientPool, isAdmin);
+
+  // Just like the getAllProjects resolver, we can pass a 'environmentAuthz' prop to bypass extra
+  // keycloak checks at the environments level.
+  const rowsWithEnvironmentAuthz = rows && rows.map(row => ({ ...row, environmentAuthz: true }));
+
+  return { projects: rowsWithEnvironmentAuthz, count };
 }
 
 export const getEnvironmentsByFactSearch: ResolverFn = async (
@@ -88,9 +97,11 @@ export const getEnvironmentsByFactSearch: ResolverFn = async (
   { sqlClientPool, hasPermission, keycloakGrant, models }
 ) => {
 
-  let userProjectIds: number[];
+  let isAdmin = false;
+  let userProjectIds  : number[];
   try {
     await hasPermission('project', 'viewAll');
+    isAdmin = true;
   } catch (err) {
     if (!keycloakGrant) {
       logger.warn('No grant available for getAllProjects');
@@ -102,7 +113,14 @@ export const getEnvironmentsByFactSearch: ResolverFn = async (
     });
   }
 
-  return await getFactFilteredEnvironments(input, userProjectIds, sqlClientPool);
+  const count = await getFactFilteredEnvironmentsCount(input, userProjectIds, sqlClientPool, isAdmin);
+  const rows = await getFactFilteredEnvironments(input, userProjectIds, sqlClientPool, isAdmin);
+
+  // Just like the getAllProjects resolver, we can pass a 'environmentAuthz' prop to bypass extra
+  // keycloak checks at the environments level.
+  const rowsWithEnvironmentAuthz = rows && rows.map(row => ({ ...row, environmentAuthz: true }));
+
+  return { environments: rowsWithEnvironmentAuthz, count };
 }
 
 export const addFact: ResolverFn = async (
@@ -112,7 +130,7 @@ export const addFact: ResolverFn = async (
       id, environment: environmentId, name, value, source, description, type, category, keyFact
     },
   },
-  { sqlClientPool, hasPermission },
+  { sqlClientPool, hasPermission, userActivityLogger },
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
@@ -266,11 +284,16 @@ export const deleteFactsFromSource: ResolverFn = async (
 
 export const addFactReference: ResolverFn = async (
   root,
-  { input: { eid, fid, name } },
+  { input: { fid, name } },
   { sqlClientPool, hasPermission }
 ) => {
-  const environment = await environmentHelpers(sqlClientPool).getEnvironmentById(eid);
+  const fact = await query(sqlClientPool, Sql.selectFactByDatabaseId(fid));
 
+  if (!R.prop(0, fact)) {
+    throw new Error('No fact could be found with that ID');
+  }
+
+  const environment = await environmentHelpers(sqlClientPool).getEnvironmentById((R.prop(0, fact)).environment);
   await hasPermission('fact', 'add', {
     project: environment.project
   });
@@ -278,7 +301,6 @@ export const addFactReference: ResolverFn = async (
   const { insertId } = await query(
     sqlClientPool,
     Sql.insertFactReference({
-      eid,
       fid,
       name
     })
@@ -292,29 +314,34 @@ export const addFactReference: ResolverFn = async (
   return R.prop(0, rows);
 };
 
-export const deleteFactReferenceById: ResolverFn = async (
+export const deleteFactReference: ResolverFn = async (
   root,
-  { input: { id } },
+  { input: { factName, referenceName, eid } },
   { sqlClientPool, hasPermission }
 ) => {
-  const factReference = await query(
-    sqlClientPool,
-    Sql.selectFactReferenceByDatabaseId(id)
-  );
-
-  if (!R.prop(0, factReference)) {
-    throw new Error('Fact reference ID could not be found');
-  }
 
   const environment = await environmentHelpers(
     sqlClientPool
-  ).getEnvironmentById(R.prop(0, factReference).eid);
+  ).getEnvironmentById(eid);
 
   await hasPermission('fact', 'delete', {
     project: environment.project
   });
 
-  await query(sqlClientPool, Sql.deleteFactReferenceByDatabaseId(id));
+  await query(
+    sqlClientPool,
+    `DELETE r FROM environment_fact_reference as r
+     WHERE r.name = :r_name
+     AND r.fid IN (
+      SELECT f.id FROM environment_fact as f WHERE f.environment = :eid AND f.name = :f_name
+     )`,
+    {
+      fName: factName,
+      rName: referenceName,
+      eid
+    }
+  );
+
   return 'success';
 };
 
@@ -344,31 +371,54 @@ export const deleteAllFactReferencesByFactId: ResolverFn = async (
 };
 
 
-export const getFactFilteredEnvironmentIds = async (filterDetails: any, projectIdSubset: number[], sqlClientPool) => {
-  return R.map(p => R.prop("id", p), await getFactFilteredEnvironments(filterDetails, projectIdSubset, sqlClientPool));
+export const getFactFilteredEnvironmentIds = async (filterDetails: any, projectIdSubset: number[], sqlClientPool, isAdmin) => {
+  return R.map(p => R.prop("id", p), await getFactFilteredEnvironments(filterDetails, projectIdSubset, sqlClientPool, isAdmin));
 };
 
 const getFactFilteredProjects = async (filterDetails: any, projectIdSubset: number[], sqlClientPool, isAdmin: boolean) => {
   let factQuery = knex('project').distinct('project.*').innerJoin('environment', 'environment.project', 'project.id');
   factQuery = buildContitionsForFactSearchQuery(filterDetails, factQuery, projectIdSubset, isAdmin);
+  factQuery = setQueryLimit(filterDetails, factQuery);
+  factQuery = factQuery.orderBy('project.name', 'asc');
+
   const rows = await query(sqlClientPool, factQuery.toString());
   return rows;
 }
 
-const getFactFilteredEnvironments = async (filterDetails: any, projectIdSubset: number[], sqlClientPool) => {
+const getFactFilteredProjectsCount = async (filterDetails: any, projectIdSubset: number[], sqlClientPool, isAdmin: boolean) => {
+  let factQuery = knex('project').countDistinct({ count: 'project.id'}).innerJoin('environment', 'environment.project', 'project.id');
+  factQuery = buildContitionsForFactSearchQuery(filterDetails, factQuery, projectIdSubset, isAdmin);
+
+  const rows = await query(sqlClientPool, factQuery.toString());
+  return rows[0].count;
+}
+
+
+const getFactFilteredEnvironments = async (filterDetails: any, projectIdSubset: number[], sqlClientPool, isAdmin: boolean) => {
   let factQuery = knex('environment').distinct('environment.*').innerJoin('project', 'environment.project', 'project.id');
-  factQuery = buildContitionsForFactSearchQuery(filterDetails, factQuery, projectIdSubset);
+  factQuery = buildContitionsForFactSearchQuery(filterDetails, factQuery, projectIdSubset, isAdmin);
+  factQuery = setQueryLimit(filterDetails, factQuery);
+  factQuery = factQuery.orderBy('project.name', 'asc');
+
   const rows = await query(sqlClientPool, factQuery.toString());
   return rows;
 }
 
-const buildContitionsForFactSearchQuery = (filterDetails: any, factQuery: any, projectIdSubset: number[], isAdmin: boolean = false) => {
+const getFactFilteredEnvironmentsCount = async (filterDetails: any, projectIdSubset: number[], sqlClientPool, isAdmin: boolean) => {
+  let factQuery = knex('environment').countDistinct({ count: 'environment.id'}).innerJoin('project', 'environment.project', 'project.id');
+  factQuery = buildContitionsForFactSearchQuery(filterDetails, factQuery, projectIdSubset, isAdmin);
+
+  const rows = await query(sqlClientPool, factQuery.toString());
+  return rows[0].count;
+}
+
+const buildContitionsForFactSearchQuery = (filterDetails: any, factQuery: any, projectIdSubset: number[], isAdmin: boolean = false, byPassLimits: boolean = false) => {
   const filters = {};
 
   if (filterDetails.filters && filterDetails.filters.length > 0) {
-    filterDetails.filters.forEach((e, i) => {
+    filterDetails.filters.forEach((filter, i) => {
 
-      let { lhsTarget, name } = e;
+      let { lhsTarget, name } = filter;
 
       let tabName = `env${i}`;
       if (lhsTarget == "project") {
@@ -389,24 +439,24 @@ const buildContitionsForFactSearchQuery = (filterDetails: any, factQuery: any, p
       }
     });
 
-    const builderFactory = (e, i) => (builder) => {
-      let { lhsTarget, lhs } = e;
+    const builderFactory = (filter, i) => (builder) => {
+      let { lhsTarget, name, contains } = filter;
       if (lhsTarget == "PROJECT") {
-        builder = builder.andWhere(`${lhsTarget}.${lhs}`, getSqlPredicate(e.predicate), predicateRHSProcess(e.predicate, e.rhs));
+        builder = builder.andWhere(`project.${name}`, '=', `${contains}`);
       } else {
         let tabName = `env${i}`;
-        builder = builder.andWhere(`${tabName}.name`, '=', `${e.name}`);
-        builder = builder.andWhere(`${tabName}.value`, 'like', `%${e.contains}%`);
+        builder = builder.andWhere(`${tabName}.name`, '=', `${name}`);
+        builder = builder.andWhere(`${tabName}.value`, 'like', `%${contains}%`);
       }
       return builder;
     };
 
     factQuery.andWhere(innerBuilder => {
-      filterDetails.filters.forEach((e, i) => {
+      filterDetails.filters.forEach((filter, i) => {
         if (filterDetails.filterConnective == 'AND') {
-          innerBuilder = innerBuilder.andWhere(builderFactory(e, i));
+          innerBuilder = innerBuilder.andWhere(builderFactory(filter, i));
         } else {
-          innerBuilder = innerBuilder.orWhere(builderFactory(e, i));
+          innerBuilder = innerBuilder.orWhere(builderFactory(filter, i));
         }
       });
       return innerBuilder;
@@ -421,11 +471,14 @@ const buildContitionsForFactSearchQuery = (filterDetails: any, factQuery: any, p
   if (projectIdSubset && !isAdmin) {
     factQuery = factQuery.andWhere('project', 'IN', projectIdSubset);
   }
+
+  return factQuery;
+}
+
+function setQueryLimit(filterDetails: any, factQuery: any) {
   const DEFAULT_RESULTSET_SIZE = 25;
 
-  //skip and take logic
   let { skip = 0, take = DEFAULT_RESULTSET_SIZE } = filterDetails;
   factQuery = factQuery.limit(take).offset(skip);
-
   return factQuery;
 }

@@ -121,6 +121,7 @@ const typeDefs = gql`
   enum FactType {
     TEXT
     URL
+    SEMVER
   }
 
   scalar SeverityScore
@@ -258,19 +259,16 @@ const typeDefs = gql`
 
   type FactReference {
     id: Int
-    eid: Int
     fid: Int
     name: String
   }
 
   input AddFactReferenceInput {
-    eid: Int!
     fid: Int!
     name: String!
   }
 
   input UpdateFactReferenceInputValue {
-    eid: Int!
     fid: Int!
     name: String
   }
@@ -280,8 +278,10 @@ const typeDefs = gql`
     patch: UpdateFactReferenceInputValue!
   }
 
-  input DeleteFactReferenceByIdInput {
-    id: Int!
+  input DeleteFactReferenceInput {
+    factName: String!
+    referenceName: String!
+    eid: Int!
   }
 
   input DeleteFactReferencesByFactIdInput {
@@ -723,7 +723,7 @@ const typeDefs = gql`
     tasks(id: Int, limit: Int): [Task]
     services: [EnvironmentService]
     problems(severity: [ProblemSeverityRating], source: [String]): [Problem]
-    facts: [Fact]
+    facts(keyFacts: Boolean): [Fact]
   }
 
   type EnvironmentHitsMonth {
@@ -825,6 +825,16 @@ const typeDefs = gql`
     weight: Int
   }
 
+  type ProjectFactSearchResults {
+    count: Int
+    projects: [Project]
+  }
+
+  type EnvironmentFactSearchResults {
+    count: Int
+    environments: [Environment]
+  }
+
   input DeleteEnvironmentInput {
     name: String!
     project: String!
@@ -887,14 +897,14 @@ const typeDefs = gql`
     """
     projectsByFactSearch(
       input: FactFilterInput
-    ): [Project]
+    ): ProjectFactSearchResults
 
     """
     Return environments from a fact-based search
     """
     environmentsByFactSearch(
       input: FactFilterInput
-    ): [Environment]
+    ): EnvironmentFactSearchResults
     userCanSshToEnvironment(
       openshiftProjectName: String
       kubernetesNamespaceName: String
@@ -1727,7 +1737,7 @@ const typeDefs = gql`
     deleteFact(input: DeleteFactInput!): String
     deleteFactsFromSource(input: DeleteFactsFromSourceInput!): String
     addFactReference(input: AddFactReferenceInput!): FactReference
-    deleteFactReferenceById(input: DeleteFactReferenceByIdInput!): String
+    deleteFactReference(input: DeleteFactReferenceInput!): String
     deleteAllFactReferencesByFactId(input: DeleteFactReferencesByFactIdInput!): String
     deleteBackup(input: DeleteBackupInput!): String
     deleteAllBackups: String

@@ -21,13 +21,18 @@ export const Sql = {
       .where('f.id', fid)
       .orderBy('f.id', 'asc')
       .toString(),
-  selectFactsByEnvironmentId: ({ environmentId }) =>
-    knex('environment_fact as f')
+  selectFactsByEnvironmentId: ({ environmentId, keyFacts }) => {
+    let q = knex('environment_fact as f')
       .distinct(standardFactReturn)
       .leftJoin('environment_fact_reference as r', 'r.fid', '=', 'f.id')
-      .where('environment', environmentId)
-      .orderBy('f.id', 'asc')
-      .toString(),
+      .where('environment', environmentId);
+
+    if (keyFacts) {
+      q.where('f.keyFact', keyFacts);
+    }
+
+    return q.orderBy('f.id', 'asc').toString()
+  },
   insertFact: ({ environment, name, value, source, description, type, category, keyFact }) =>
     knex('environment_fact').insert({ environment, name, value, source, description, type, category, keyFact }).toString(),
   deleteFact: (environment, name) =>
@@ -47,17 +52,22 @@ export const Sql = {
     knex('environment_fact_reference')
       .where({ id })
       .toString(),
+  selectFactReferenceByNameAndEnvironmentId: (name: string, environmentId: number) =>
+    knex('environment_fact_reference as r')
+      .select('r.*', 'f.environment')
+      .leftJoin('environment_fact as f', 'f.id', '=', 'r.fid')
+      .where('r.name', '=', name)
+      .andWhere('f.environment', '=', environmentId)
+      .toString(),
   selectFactReferencesByFactId: (fid: number) =>
     knex('environment_fact_reference')
       .where('fid', '=', fid)
       .toString(),
-  insertFactReference: ({ eid, fid, name }) =>
-      knex('environment_fact_reference')
-        .insert({ eid, fid, name }).toString(),
-  deleteFactReferenceByDatabaseId: (id) =>
+  insertFactReference: ({ fid, name }) =>
     knex('environment_fact_reference')
-      .where({ id })
-      .del()
+      .insert({ fid, name })
+      .onConflict(['name', 'fid'])
+      .merge()
       .toString(),
   deleteFactReferencesByFactId: (fid) =>
     knex('environment_fact_reference')

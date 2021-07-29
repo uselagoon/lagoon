@@ -60,10 +60,11 @@ export const getEnvironmentById = async (
 export const getEnvironmentsByProjectId: ResolverFn = async (
   project,
   args,
-  { sqlClientPool, hasPermission, keycloakGrant, models }
+  { sqlClientPool, hasPermission, keycloakGrant, models },
 ) => {
   const { id: pid } = project;
 
+  let isAdmin = false;
   // The getAllProjects resolver will authorize environment access already,
   // so we can skip the request to keycloak.
   //
@@ -73,13 +74,15 @@ export const getEnvironmentsByProjectId: ResolverFn = async (
     await hasPermission('environment', 'view', {
       project: pid
     });
+    isAdmin = true;
   }
 
   let filterEnvironments = false;
   let filteredEnvironments = [];
-  if(args.factFilter) {
+
+  if (args.factFilter && args.factFilter.filters && args.factFilter.filters.length !== 0) {
     filterEnvironments = true;
-    filteredEnvironments = await getFactFilteredEnvironmentIds(args.factFilter, [project.id],sqlClientPool);
+    filteredEnvironments = await getFactFilteredEnvironmentIds(args.factFilter, [project.id], sqlClientPool, isAdmin);
   }
 
   const rows = await query(
@@ -89,8 +92,8 @@ export const getEnvironmentsByProjectId: ResolverFn = async (
     WHERE e.project = :pid
     ${args.includeDeleted ? '' : 'AND deleted = "0000-00-00 00:00:00"'}
     ${args.type ? 'AND e.environment_type = :type' : ''}
-    ${filterEnvironments ? ' AND e.id in (:filteredenvs)' : ''}`,
-    { pid, type: args.type, filteredenvs: filteredEnvironments.join(",")}
+    ${filterEnvironments && filteredEnvironments.length !== 0 ? `AND e.id in (${filteredEnvironments.join(",")})` : ''}`,
+    { pid, type: args.type }
   );
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 

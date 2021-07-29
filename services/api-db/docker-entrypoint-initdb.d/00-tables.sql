@@ -292,9 +292,9 @@ CREATE TABLE IF NOT EXISTS environment_fact (
 
 CREATE TABLE IF NOT EXISTS environment_fact_reference (
   id      int NOT NULL auto_increment PRIMARY KEY,
-  eid     int NOT NULL REFERENCES environment (id),
   fid     int NOT NULL REFERENCES environment_fact (id),
-  name    varchar(300) NOT NULL
+  name    varchar(300) NOT NULL,
+  UNIQUE(fid, name)
 );
 
 CREATE TABLE IF NOT EXISTS notification_webhook (
