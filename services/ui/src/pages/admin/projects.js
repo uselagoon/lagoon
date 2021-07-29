@@ -83,7 +83,6 @@ export const PageProjects = ({ router }) => {
                         ), withQueryError)(
                         ({data: { allProjects: projects}} ) => {
 
-
                           return(
                             <div className="projects">
 

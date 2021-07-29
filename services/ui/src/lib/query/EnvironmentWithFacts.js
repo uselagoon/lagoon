@@ -3,8 +3,7 @@ import FactsFragment from 'lib/fragment/Fact';
 
 export default gql`
   query getEnvironment($openshiftProjectName: String!) {
-    environment: 
-    environmentByOpenshiftProjectName(
+    environment: environmentByOpenshiftProjectName(
       openshiftProjectName: $openshiftProjectName
     ) {
       id

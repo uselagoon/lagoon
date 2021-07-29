@@ -6,6 +6,9 @@ import faker from "faker/locale/en";
 export default {
   component: ProblemsByIdentifier,
   title: 'Components/ProblemsByIdentifier',
+  parameters: {
+    layout: 'fullscreen',
+  }
 }
 
 export const Default = () => <ProblemsByIdentifier problems={

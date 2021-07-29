@@ -1,77 +1,81 @@
-import React from 'react';
+import React, { useState, useEffect, Suspense } from "react";
 import * as R from 'ramda';
 import { withRouter } from 'next/router';
+import { useQuery } from "@apollo/client";
 import Head from 'next/head';
-import { Query } from '@apollo/client/react/components';
+
 import MainLayout from 'layouts/MainLayout';
-import EnvironmentWithDeploymentQuery from 'lib/query/EnvironmentWithDeployment';
-import Breadcrumbs from 'components/Breadcrumbs';
-import ProjectBreadcrumb from 'components/Breadcrumbs/Project';
-import EnvironmentBreadcrumb from 'components/Breadcrumbs/Environment';
+import MainNavigation from 'layouts/MainNavigation';
+import Navigation from 'components/Navigation';
 import NavTabs from 'components/NavTabs';
+import EnvironmentHeader from 'components/EnvironmentHeader';
 import Deployment from 'components/Deployment';
+
+import { Grid, Message } from 'semantic-ui-react';
+import { bp } from 'lib/variables';
+
+import EnvironmentWithDeploymentQuery from 'lib/query/EnvironmentWithDeployment';
+import { LoadingRowsContent, LazyLoadingContent } from 'components/Loading';
+
 import withQueryLoading from 'lib/withQueryLoading';
 import withQueryError from 'lib/withQueryError';
 import {
   withEnvironmentRequired,
   withDeploymentRequired
 } from 'lib/withDataRequired';
-import { bp } from 'lib/variables';
 
 /**
  * Displays a deployment page, given the openshift project and deployment name.
  */
 export const PageDeployment = ({ router }) => {
-
-  console.log(router);
+  const { loading, error, data: { environment } = {}, subscribeToMore, fetchMore } = useQuery(EnvironmentWithDeploymentQuery, {
+    variables: {
+      openshiftProjectName: router.query.environmentSlug,
+      deploymentName: router.query.deploymentName
+    }
+  });
 
   return (
     <>
       <Head>
         <title>{`${router.query.deploymentName} | Deployment`}</title>
       </Head>
-      <Query
-        query={EnvironmentWithDeploymentQuery}
-        variables={{
-          openshiftProjectName: router.query.environmentSlug,
-          deploymentName: router.query.deploymentName
-        }}
-      >
-        {R.compose(
-          withQueryLoading,
-          withQueryError,
-          withEnvironmentRequired,
-          withDeploymentRequired
-        )(({ data: { environment } }) => (
-          <MainLayout>
-            <Breadcrumbs>
-              <ProjectBreadcrumb projectSlug={environment.project.name} />
-              <EnvironmentBreadcrumb
-                environmentSlug={environment.environmentSlug}
-                projectSlug={environment.project.name}
-              />
-            </Breadcrumbs>
-            <div className="content-wrapper">
-              <NavTabs activeTab="deployments" environment={environment} />
-              <div className="content">
-                <Deployment deployment={environment.deployments[0]} />
-              </div>
-            </div>
-            <style jsx>{`
-              .content-wrapper {
-                @media ${bp.tabletUp} {
-                  display: flex;
-                  padding: 0;
-                }
+      <MainLayout>
+        <Grid centered padded>
+          <Grid.Row>
+            <Grid.Column width={2}>
+              <MainNavigation>
+                <Navigation />
+              </MainNavigation>
+            </Grid.Column>
+            <Grid.Column width={14} style={{ padding: "1em 4em" }}>
+              {error &&
+                <Message negative>
+                  <Message.Header>Error: Unable to load deployment</Message.Header>
+                  <p>{`${error}`}</p>
+                </Message>
               }
-
-              .content {
-                width: 100%;
+              {!loading && environment && !environment.deployments.length && !error &&
+                <Message>
+                  <Message.Header>No deployment found</Message.Header>
+                  <p>{`No deployment found for '${router.query.deploymentName}'`}</p>
+                </Message>
               }
-            `}</style>
-          </MainLayout>
-        ))}
-      </Query>
+              {!loading && environment && environment.deployments.length > 0 &&
+                <div className="content-wrapper">
+                  <EnvironmentHeader environment={environment}/>
+                  <NavTabs activeTab="deployments" environment={environment} />
+                  <div className="content">
+                    <Suspense fallback={<LazyLoadingContent delay={250} rows="15"/>}>
+                      <Deployment deployment={environment.deployments[0]} />
+                    </Suspense>
+                  </div>
+                </div>
+              }
+            </Grid.Column>
+          </Grid.Row>
+        </Grid>
+      </MainLayout>
     </>
   );
 };

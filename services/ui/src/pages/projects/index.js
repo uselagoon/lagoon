@@ -1,26 +1,24 @@
-import React, { useState, useEffect, memo, Suspense } from "react";
+import React, { useState, useEffect, memo, Suspense, lazy } from "react";
 import * as R from 'ramda';
 import Head from 'next/head';
 import Link from 'next/link';
-import { Label, Menu, Icon } from 'semantic-ui-react'
+
+import { Grid, Placeholder, Label, Menu, Icon, Sidebar, Header, Divider } from 'semantic-ui-react';
 import MainNavigation from 'layouts/MainNavigation';
 import MainLayout from 'layouts/MainLayout';
-import Projects from 'components/Projects';
+import Navigation from 'components/Navigation';
 import { bp } from 'lib/variables';
+import { MultiSelectFilter } from 'components/Filters';
 
 import AllProjectsQuery from 'lib/query/AllProjects';
-// import { Query } from '@apollo/client/react/components';
-// import withQueryLoading from 'lib/withQueryLoading';
-// import withQueryError from 'lib/withQueryError';
-
 import { LoadingRowsWithSpinner } from 'components/Loading';
 
 /**
  * Displays the projects page.
  */
 const ProjectsPage = () => {
-  const [activeCategory, setActiveCategory] = useState('');
   const [factCategories, setFactCategories] = useState(categories);
+  const [categoriesSelected, setCategoriesSelected] = useState([]);
 
   //@TODO categories will be fetched from getFactCategories query.
   const categories = [
@@ -35,9 +33,20 @@ const ProjectsPage = () => {
     }
   ];
 
-  const handleCategoryClick = (e, { name }) => {
-    e.preventDefault();
-    setActiveCategory(name);
+  const categoryOptions = (categories) => {
+    return categories && categories.map(c => ({ value: c.name, label: c.name }));
+  };
+
+  const handleCategories = (category) => {
+    let addCategoryFilter = category && category.map(c => {
+      return ({
+        lhsTarget: "FACT",
+        name: "lagoon-category",
+        contains: c.value
+      });
+    });
+
+    setCategoriesSelected(addCategoryFilter || []);
   }
 
   const FactsSearch = React.lazy(() => import('components/FactsSearch'));
@@ -49,46 +58,48 @@ const ProjectsPage = () => {
   }, []);
 
   return (
-    <>
-      <Head>
-        <title>Projects</title>
-      </Head>
-      <MainLayout>
-        <MainNavigation>
-          <Menu text vertical>
-            <Menu.Item header>
-              <Link href="/projects">
-                <a>All Projects</a>
-              </Link>
-            </Menu.Item>
-            {factCategories && factCategories.map((category, key) => (
-              <Menu.Item
-                name={category.name}
-                // className="category-item"
-                active={activeCategory === category.name}
-                onClick={(e, data) => handleCategoryClick(e, data)}
-                // color="gray"
-              >
-                <div className="category-item">
-                  <Label
-                    // color='gray'
-                  >
-                    {category.name}
-                    {activeCategory === category.name &&
-                      <Icon link name='close'/>
-                    }
-                  </Label>
-                </div>
-              </Menu.Item>
-            ))}
-          </Menu>
-        </MainNavigation>
-        <Suspense fallback={<LoadingRowsWithSpinner rows="25"/>}>
-          <FactsSearch category={activeCategory}/>
-        </Suspense>
-
-      </MainLayout>
-    </>
+  <>
+    <Head>
+      <title>Projects</title>
+    </Head>
+    <MainLayout>
+      <Grid padded>
+        <Grid.Row>
+          <Grid.Column width={2}>
+            <MainNavigation>
+              <Navigation>
+                {factCategories &&
+                  <div className="category-filter">
+                    <Header size="small">Projects Filter</Header>
+                    <MultiSelectFilter
+                      title="Categories"
+                      loading={!factCategories}
+                      options={factCategories && categoryOptions(factCategories)}
+                      isMulti={true}
+                      onFilterChange={handleCategories}
+                    />
+                  </div>
+                }
+                <Divider />
+              </Navigation>
+            </MainNavigation>
+          </Grid.Column>
+          <Grid.Column width={14} style={{ padding: '0 4em' }}>
+            <Sidebar.Pusher>
+              <Suspense fallback={<LoadingRowsWithSpinner rows="25"/>}>
+                <FactsSearch categoriesSelected={categoriesSelected} />
+              </Suspense>
+            </Sidebar.Pusher>
+          </Grid.Column>
+        </Grid.Row>
+      </Grid>
+      <style jsx>{`
+        .category-filter {
+          padding: 0 0 1em;
+        }
+      `}</style>
+    </MainLayout>
+  </>
   )};
 
 export default ProjectsPage;

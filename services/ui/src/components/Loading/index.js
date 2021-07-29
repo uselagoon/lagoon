@@ -1,21 +1,53 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Item, Dimmer, Loader, Placeholder, Segment } from 'semantic-ui-react';
+import { Grid, Item, Dimmer, Loader, Placeholder, Segment } from 'semantic-ui-react';
 
 export const LoadingContent = () => (
-  <div>
-    <Placeholder>
-        <Placeholder.Header>
-            <Placeholder.Line />
-            <Placeholder.Line />
-        </Placeholder.Header>
-        <Placeholder.Paragraph>
-            <Placeholder.Line />
-            <Placeholder.Line />
-            <Placeholder.Line />
-            <Placeholder.Line />
-        </Placeholder.Paragraph>
-    </Placeholder>
-  </div>
+  <Grid columns={3} stackable>
+    <Grid.Column>
+      <Segment raised>
+        <Placeholder>
+          <Placeholder.Header>
+              <Placeholder.Line />
+              <Placeholder.Line />
+          </Placeholder.Header>
+          <Placeholder.Paragraph>
+              <Placeholder.Line />
+              <Placeholder.Line />
+          </Placeholder.Paragraph>
+        </Placeholder>
+      </Segment>
+    </Grid.Column>
+
+    <Grid.Column>
+      <Segment raised>
+        <Placeholder>
+          <Placeholder.Header>
+              <Placeholder.Line />
+              <Placeholder.Line />
+          </Placeholder.Header>
+          <Placeholder.Paragraph>
+              <Placeholder.Line />
+              <Placeholder.Line />
+          </Placeholder.Paragraph>
+        </Placeholder>
+      </Segment>
+    </Grid.Column>
+
+    <Grid.Column>
+      <Segment raised>
+        <Placeholder>
+          <Placeholder.Header>
+              <Placeholder.Line />
+              <Placeholder.Line />
+          </Placeholder.Header>
+          <Placeholder.Paragraph>
+              <Placeholder.Line />
+              <Placeholder.Line />
+          </Placeholder.Paragraph>
+        </Placeholder>
+      </Segment>
+    </Grid.Column>
+  </Grid>
 );
 
 export const LoadingRowsContent = (numRows) => {

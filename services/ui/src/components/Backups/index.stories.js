@@ -4,6 +4,9 @@ import Backups from './index';
 export default {
   component: Backups,
   title: 'Components/Backups',
+  parameters: {
+    layout: 'fullscreen',
+  }
 }
 
 const backupsData = [

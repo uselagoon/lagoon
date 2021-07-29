@@ -56,7 +56,7 @@ const Honeycomb = ({ data, filter }) => {
     };
 
     const sortByProjects = (projects) => {
-        return projects && projects.sort((a, b) => {
+        return projects && [...projects].sort((a, b) => {
             const aProblems = flattenProblems(a);
             const bProblems = flattenProblems(b);
 
@@ -91,10 +91,8 @@ const Honeycomb = ({ data, filter }) => {
     return (
         <div className="honeycomb-display chromatic-ignore">
             {projects &&
-            <div className="content-wrapper results">
-                <div className="content">
-                    <label>Projects: {projects.length}</label>
-                </div>
+            <div className="results">
+                <label>Projects: {projects.length}</label>
             </div>
             }
             {projects &&

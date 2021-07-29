@@ -6,6 +6,9 @@ import newLogo from './amazeeio.svg';
 export default {
   component: Header,
   title: 'Components/Header',
+  parameters: {
+    layout: 'fullscreen',
+  }
 }
 
 export const Default = () => <Header />;

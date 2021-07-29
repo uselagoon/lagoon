@@ -3,13 +3,16 @@ import * as R from 'ramda';
 import { withRouter } from 'next/router';
 import Head from 'next/head';
 import { Query } from '@apollo/client/react/components';
+import MainNavigation from 'layouts/MainNavigation';
 import MainLayout from 'layouts/MainLayout';
-import EnvironmentByOpenshiftProjectNameQuery from 'lib/query/EnvironmentByOpenshiftProjectName';
+import Navigation from 'components/Navigation';
 import Breadcrumbs from 'components/Breadcrumbs';
 import ProjectBreadcrumb from 'components/Breadcrumbs/Project';
 import EnvironmentBreadcrumb from 'components/Breadcrumbs/Environment';
 import NavTabs from 'components/NavTabs';
 import Route from 'components/Route';
+
+import EnvironmentByOpenshiftProjectNameQuery from 'lib/query/EnvironmentByOpenshiftProjectName';
 import withQueryLoading from 'lib/withQueryLoading';
 import withQueryError from 'lib/withQueryError';
 import { withEnvironmentRequired } from 'lib/withDataRequired';
@@ -37,11 +40,14 @@ export const PageRoute = ({ router }) => (
 
         return (
           <MainLayout>
+            <MainNavigation>
+              <Navigation></Navigation>
+            </MainNavigation>
             <div className="content-wrapper">
             <Breadcrumbs>
               <ProjectBreadcrumb projectSlug={environment.project.name} />
               <EnvironmentBreadcrumb
-                environmentSlug={environment.environmentSlug}
+                environmentSlug={environment.openshiftProjectName}
                 projectSlug={environment.project.name}
               />
             </Breadcrumbs>

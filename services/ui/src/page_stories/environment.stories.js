@@ -1,14 +1,33 @@
 import React from 'react';
-import { PageEnvironment as Environment } from 'pages/environment';
+import PageEnvironment from 'pages/projects/[projectSlug]/[environmentSlug]/index.js';
+import EnvironmentByOpenshiftProjectNameQuery from 'lib/query/EnvironmentByOpenshiftProjectName';
+import mocks from "api/src/mocks";
 
 export default {
-  component: Environment,
+  component: PageEnvironment,
   title: 'Pages/Environment',
+  parameters: {
+    layout: 'fullscreen',
+  }
 }
 
-// @TODO Fix Internal Server Error on initial load.
-export const Default = () => (
-  <Environment
+const environment = mocks.Query().environmentByOpenshiftProjectName();
+const environmentByOpenshiftProjectName = [
+  {
+    request: {
+      query: EnvironmentByOpenshiftProjectNameQuery,
+      // variables: { openshiftProjectName: 'enhancedinfomediaries-pr-100' }
+    },
+    result: {
+      data: {
+        environment: environment,
+      },
+    },
+  },
+];
+
+export const environment_page = () => (
+  <PageEnvironment
     router={{
       query: {
         openshiftProjectName: 'enhancedinfomediaries-pr-100',
@@ -17,13 +36,9 @@ export const Default = () => (
   />
 );
 
-export const TODO = () => (
-  <p>
-    The <code>Environment</code> component shows an "Internal Server Error" the
-    first time it is loaded in StoryBook. Reload the page and it will appear
-    properly.
-  </p>
-);
-TODO.story = {
-  name: '@TODO',
+environment_page.parameters = {
+  apolloClient: {
+    mocks: environmentByOpenshiftProjectName,
+    addTypename: false
+  },
 };

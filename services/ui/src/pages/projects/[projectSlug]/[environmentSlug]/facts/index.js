@@ -1,77 +1,74 @@
-import React from 'react';
+import React, { useState, useEffect, Suspense } from "react";
 import * as R from 'ramda';
 import { withRouter } from 'next/router';
+import { useQuery } from "@apollo/client";
 import Head from 'next/head';
-import { Query } from '@apollo/client/react/components';
+
 import MainLayout from 'layouts/MainLayout';
-import EnvironmentWithFactsQuery from 'lib/query/EnvironmentWithFacts';
-import Breadcrumbs from 'components/Breadcrumbs';
-import ProjectBreadcrumb from 'components/Breadcrumbs/Project';
-import EnvironmentBreadcrumb from 'components/Breadcrumbs/Environment';
+import MainNavigation from 'layouts/MainNavigation';
+import Navigation from 'components/Navigation';
 import NavTabs from 'components/NavTabs';
+import EnvironmentHeader from 'components/EnvironmentHeader';
+
 import Facts from 'components/Facts';
-import withQueryLoading from 'lib/withQueryLoading';
-import withQueryError from 'lib/withQueryError';
-import { withEnvironmentRequired } from 'lib/withDataRequired';
-import { bp, color } from 'lib/variables';
+import { bp } from 'lib/variables';
+import { Grid, Message } from 'semantic-ui-react';
+
+import EnvironmentWithFactsQuery from 'lib/query/EnvironmentWithFacts';
+import { LoadingRowsContent, LazyLoadingContent } from 'components/Loading';
 
 /**
  * Displays the facts page, given the name of an openshift project.
  */
-export const PageFacts = ({ router }) => (
+export const PageFacts = ({ router }) => {
+  const { loading, error, data: { environment } = {} } = useQuery(EnvironmentWithFactsQuery, {
+    variables: { openshiftProjectName: router.query.environmentSlug }
+  });
+
+  return (
   <>
     <Head>
       <title>{`${router.query.environmentSlug} | Facts`}</title>
     </Head>
-    <Query
-      query={EnvironmentWithFactsQuery}
-      variables={{ openshiftProjectName: router.query.environmentSlug }}
-    >
-      {R.compose(
-        withQueryLoading,
-        withQueryError,
-        withEnvironmentRequired
-      )(({ data: { environment } }) => {
-
-        return (
-          <MainLayout>
-            <div className="content-wrapper">
-            <Breadcrumbs>
-              <ProjectBreadcrumb projectSlug={environment.project.name} />
-              <EnvironmentBreadcrumb
-                environmentSlug={environment.environmentSlug}
-                projectSlug={environment.project.name}
-              />
-            </Breadcrumbs>
-              <NavTabs activeTab="facts" environment={environment} />
-              <div className="content">
-                <Facts facts={environment.facts} />
-              </div>
-            </div>
-            <style jsx>{`
-              .content-wrapper {
-                @media ${bp.tabletUp} {
-                  display: flex;
-                  padding: 0;
-                }
+      <MainLayout>
+        <Grid centered padded>
+          <Grid.Row>
+            <Grid.Column width={2}>
+              <MainNavigation>
+                <Navigation />
+              </MainNavigation>
+            </Grid.Column>
+             <Grid.Column width={14} style={{ padding: "1em 4em" }}>
+              {error &&
+                <Message negative>
+                  <Message.Header>Error: Unable to load facts</Message.Header>
+                  <p>{`${error}`}</p>
+                </Message>
               }
-
-              .content {
-                padding: 32px calc((100vw / 16) * 1);
-                width: 100%;
+              {!loading && !environment && !error &&
+                <Message>
+                  <Message.Header>No facts found</Message.Header>
+                  <p>{`No facts found for '${router.query.environmentSlug}'`}</p>
+                </Message>
               }
-
-              .notification {
-                background-color: ${color.lightBlue};
-                color: ${color.white};
-                padding: 10px 20px;
+              {loading && <LoadingRowsContent delay={250} rows="15"/>}
+              {!loading && environment &&
+              <>
+                <EnvironmentHeader environment={environment}/>
+                <NavTabs activeTab="facts" environment={environment} />
+                <div className="content">
+                  <Suspense fallback={<LazyLoadingContent delay={250} rows="15"/>}>
+                    <Facts facts={environment.facts} />
+                  </Suspense>
+                </div>
+              </>
               }
-            `}</style>
-          </MainLayout>
-        );
-      })}
-    </Query>
-  </>
-);
+            </Grid.Column>
+          </Grid.Row>
+        </Grid>
+      </MainLayout>
+    </>
+  );
+};
 
 export default withRouter(PageFacts);

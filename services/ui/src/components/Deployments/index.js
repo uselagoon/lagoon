@@ -15,6 +15,10 @@ const Deployments = ({ deployments }) => (
       <label>Status</label>
       <label>Duration</label>
     </div>
+
+        {console.log(deployments)}
+
+
     <div className="data-table">
       {!deployments.length && <div className="data-none">No Deployments</div>}
       {deployments.map(deployment => (

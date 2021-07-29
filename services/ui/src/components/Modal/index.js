@@ -25,18 +25,19 @@ const Modal = ({ isOpen, onRequestClose, contentLabel, children, ...rest }) => {
       >
         {children}
       </ReactModal>
-      <style jsx>{`
-        :global(.modal__overlay) {
+      <style jsx global>{`
+        .modal__overlay {
           position: fixed;
           top: 0;
           left: 0;
           right: 0;
           bottom: 0;
           /* color.almostWhite, 0.75 opacity */
-          background-color: rgb(250, 250, 252, 0.75);
+          background-color: rgba(250, 250, 252, 0.75);
           z-index: 100;
         }
-        :global(.modal__content) {
+
+        .modal__content {
           position: absolute;
           top: 50%;
           left: 50%;

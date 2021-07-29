@@ -1,17 +1,17 @@
 import React from 'react';
 import mocks, { seed } from 'api/src/mocks';
-import ProjectDetailsSidebar from './index';
+import ProjectDetailsHeader from './index';
 
 export default {
-  component: ProjectDetailsSidebar,
-  title: 'Components/ProjectDetailsSidebar',
+  component: ProjectDetailsHeader,
+  title: 'Components/ProjectDetailsHeader',
 }
 
 seed();
 const project = mocks.Project();
 
 export const Default = () => (
-  <ProjectDetailsSidebar
+  <ProjectDetailsHeader
     project={project}
   />
 );

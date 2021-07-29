@@ -1,28 +1,40 @@
 import React from 'react';
 import ProblemsDashboardByProjectPageHexDisplay from 'pages/problems-dashboard-by-project-hex';
-import { Query } from "@apollo/client";
 import AllProjectsProblemsQuery from 'lib/query/AllProjectsProblems';
-import ApiConnection from "lib/ApiConnection";
+import mocks from "api/src/mocks";
 
 export default {
   component: ProblemsDashboardByProjectPageHexDisplay,
-  title: 'Pages/HexDashboard',
+  title: 'Pages/ProblemsDashboard',
+  parameters: {
+    layout: 'fullscreen',
+  }
 }
 
-export const Default = (projects) => {
-  return (projects &&
-    <ApiConnection>
-        <ProblemsDashboardByProjectPageHexDisplay data={projects} />
-    </ApiConnection>
-  );
-};
+const projects_problems = mocks.Query().allProjects();
+const projectsProblems = [
+  {
+    request: {
+      query: AllProjectsProblemsQuery,
+      variables: {
+        severity: ['CRITICAL'],
+        source: [],
+        envType: 'PRODUCTION'
+      }
+    },
+    result: {
+      data: {
+        projectsProblems: projects_problems,
+      },
+    },
+  },
+];
 
-Default.story = {
-  decorators: [
-    storyFn => (
-      <Query query={AllProjectsProblemsQuery} displayName="AllProjectsProblemsQuery">
-        {({data: projectsProblems}) => projectsProblems && storyFn({projects: projectsProblems})}
-      </Query>
-    ),
-  ],
+//@TODO: Temp remove
+export const all_problems = () => <ProblemsDashboardByProjectPageHexDisplay />;
+all_problems.parameters = {
+  apolloClient: {
+    mocks: projectsProblems,
+    addTypename: false
+  },
 };

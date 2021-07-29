@@ -8,17 +8,12 @@ const { createRouter } = require('./routes');
 const { authMiddleware } = require('./authMiddleware');
 const apolloServer = require('./apolloServer');
 
-// var bodyParser = require('body-parser');
-
-
 const app = express();
 
 // Use compression (gzip) for responses.
 app.use(compression());
 
 // Automatically decode json.
-// app.use(json());
-
 app.use(express.json({limit: '50mb'}));
 app.use(express.urlencoded({limit: '50mb'}));
 

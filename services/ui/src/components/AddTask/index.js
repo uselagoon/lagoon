@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import ReactSelect from 'react-select';
 import withLogic from './logic';
 import DrushArchiveDump from './components/DrushArchiveDump';
@@ -19,6 +19,7 @@ import { bp, color } from 'lib/variables';
 const AddTask = ({
   pageEnvironment,
   projectEnvironments,
+  fetchMore,
   selectedTask,
   setSelectedTask,
   onCompleted,
@@ -42,6 +43,11 @@ const AddTask = ({
     ? newTaskComponents[selectedTask]
     : newTaskComponents[Empty];
 
+  const onNewTaskCompleted = () => {
+    fetchMore();
+    onCompleted();
+  }
+
   return (
     <React.Fragment>
       <div className="newTaskWrapper">
@@ -62,7 +68,7 @@ const AddTask = ({
               <NewTask
                 pageEnvironment={pageEnvironment}
                 projectEnvironments={projectEnvironments}
-                onCompleted={onCompleted}
+                onCompleted={() => onNewTaskCompleted()}
                 onError={onError}
               />
             </div>

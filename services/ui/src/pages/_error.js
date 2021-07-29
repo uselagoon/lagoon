@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Head from 'next/head';
 import StatusLayout from 'layouts/StatusLayout';
-import { LoadingSpinner } from 'components/Loading';
 
 const statusCodes = {
   400: 'Bad Request',
@@ -27,11 +26,9 @@ export const Error = ({ statusCode, errorMessage }) => {
         </title>
       </Head>
       <h2>{title}</h2>
-      <LoadingSpinner />
       {errorMessage && <p>{errorMessage}</p>}
     </StatusLayout>
   );
-
 }
 
 export const ErrorNoHeader = ({ statusCode, errorMessage }) => {
@@ -39,15 +36,15 @@ export const ErrorNoHeader = ({ statusCode, errorMessage }) => {
   return (errorMessage && <p>{errorMessage}</p>);
 }
 
+Error.getInitialProps = ({ res, err }) => {
+  const statusCode = res ? res.statusCode : err ? err.statusCode : 404
+  return { statusCode }
+}
+
 if (process.env.NODE_ENV !== 'production') {
   Error.propTypes = {
     errorMessage: PropTypes.string,
   };
-}
-
-Error.getInitialProps = ({ res, err }) => {
-  const statusCode = res ? res.statusCode : err ? err.statusCode : 404
-  return { statusCode }
 }
 
 export default Error;

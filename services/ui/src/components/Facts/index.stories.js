@@ -5,6 +5,9 @@ import mocks, { generator } from 'api/src/mocks';
 export default {
     component: Facts,
     title: 'Components/Facts',
+    parameters: {
+      layout: 'fullscreen',
+    }
 }
 
 export const Default = () => (

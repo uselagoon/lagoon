@@ -1,91 +1,67 @@
-import React from 'react';
+import React, { useState, Suspense } from "react";
 import * as R from 'ramda';
 import { withRouter } from 'next/router';
+import { useQuery } from "@apollo/client";
 import Head from 'next/head';
-import { Query } from '@apollo/client/react/components';
+
+import MainNavigation from 'layouts/MainNavigation';
 import MainLayout from 'layouts/MainLayout';
-import EnvironmentWithProblemsQuery from 'lib/query/EnvironmentWithProblems';
-import Breadcrumbs from 'components/Breadcrumbs';
-import ProjectBreadcrumb from 'components/Breadcrumbs/Project';
-import EnvironmentBreadcrumb from 'components/Breadcrumbs/Environment';
+import Navigation from 'components/Navigation';
 import NavTabs from 'components/NavTabs';
-import Problems from 'components/Problems';
-import withQueryLoading from 'lib/withQueryLoading';
-import withQueryError from 'lib/withQueryError';
-import { withEnvironmentRequired } from 'lib/withDataRequired';
+import EnvironmentHeader from 'components/EnvironmentHeader';
+
+const Problems = React.lazy(() => import('components/Problems'));
+
 import { bp, color } from 'lib/variables';
+import { Grid, Message } from 'semantic-ui-react';
+
+import EnvironmentWithProblemsQuery from 'lib/query/EnvironmentWithProblems';
+import { LoadingRowsContent, LazyLoadingContent } from 'components/Loading';
+
 
 /**
  * Displays the problems page, given the name of an openshift project.
  */
-export const PageProblems = ({ router }) => (
+export const PageProblems = ({ router }) => {
+  const { loading, error, data: { environment } = {}, subscribeToMore, fetchMore } = useQuery(EnvironmentWithProblemsQuery, {
+    variables: { openshiftProjectName: router.query.environmentSlug },
+    fetchPolicy: 'network-only'
+  });
+
+  return (
   <>
     <Head>
       <title>{`${router.query.environmentSlug} | Problems`}</title>
     </Head>
-    <Query
-      query={EnvironmentWithProblemsQuery}
-      variables={{ openshiftProjectName: router.query.environmentSlug }}
-    >
-      {R.compose(
-        withQueryLoading,
-        withQueryError,
-        withEnvironmentRequired
-      )(({ data: { environment } }) => {
-
-        const problems = environment.problems && environment.problems.map(problem => {
-          return {
-            ...problem,
-            environment: {
-              id: environment.id,
-              openshiftProjectName: environment.openshiftProjectName,
-              project: environment.project
-            }
-          }
-        });
-
-        return (
-          <MainLayout>
-            <div className="content-wrapper">
-            <Breadcrumbs>
-              <ProjectBreadcrumb projectSlug={environment.project.name} />
-              <EnvironmentBreadcrumb
-                environmentSlug={environment.environmentSlug}
-                projectSlug={environment.project.name}
-              />
-            </Breadcrumbs>
+    <MainLayout>
+      <Grid centered padded>
+        <Grid.Row>
+          <Grid.Column width={2}>
+            <MainNavigation>
+              <Navigation />
+            </MainNavigation>
+          </Grid.Column>
+          <Grid.Column width={14} style={{ padding: "1em 4em" }}>
+            {loading && <LoadingRowsContent delay={250} rows="15"/>}
+            {!loading && environment &&
+            <>
+              <EnvironmentHeader environment={environment}/>
               <NavTabs activeTab="problems" environment={environment} />
               <div className="content">
-                <Problems problems={problems} />
+                <Suspense fallback={<LazyLoadingContent delay={250} rows="15"/>}>
+                  <Problems problems={environment.problems} />
+                </Suspense>
               </div>
-            </div>
-            <style jsx>{`
-              .content-wrapper {
-                @media ${bp.tabletUp} {
-                  display: flex;
-                  padding: 0;
-                }
-              }
-
-              .content {
-                padding: 32px calc((100vw / 16) * 1);
-                width: 100%;
-                @media ${bp.tabletUp} {
-                  max-width: 75%;
-                }
-              }
-
-              .notification {
-                background-color: ${color.lightBlue};
-                color: ${color.white};
-                padding: 10px 20px;
-              }
-            `}</style>
-          </MainLayout>
-        );
-      })}
-    </Query>
-  </>
-);
+            </>
+            }
+          </Grid.Column>
+        </Grid.Row>
+      </Grid>
+      <style jsx>{`
+        .content {}
+      `}</style>
+    </MainLayout>
+  </>);
+};
 
 export default withRouter(PageProblems);

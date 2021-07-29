@@ -13,7 +13,7 @@ const DEPLOY_ENVIRONMENT_LATEST_MUTATION = gql`
 /**
  * Button that deploys the latest environment.
  */
-const DeployLatest = ({ pageEnvironment: environment, ...rest }) => {
+const DeployLatest = ({ pageEnvironment: environment, fetchMore, ...rest }) => {
   let deploymentsEnabled = true;
 
   if (
@@ -61,6 +61,7 @@ const DeployLatest = ({ pageEnvironment: environment, ...rest }) => {
           </div>
           <Mutation
             mutation={DEPLOY_ENVIRONMENT_LATEST_MUTATION}
+            onCompleted={() => fetchMore()}
             variables={{
               environmentId: environment.id
             }}

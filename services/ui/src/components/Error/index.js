@@ -1,14 +1,9 @@
-import React from 'react';
-import ErrorPage from 'pages/_error';
+import { Segment } from 'semantic-ui-react';
 
-const Error = ({ error }) => {
-
-  console.log(error);
-
-
+const Error = ({ ...error }) => {
   return (
     <div>
-      {`Error! "${error.message}"`}
+       <Segment inverted color='red' secondary>{`Error! ${error.message}`}</Segment>
     </div>
   )
 };

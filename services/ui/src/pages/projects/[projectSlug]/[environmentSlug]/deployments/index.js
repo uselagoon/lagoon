@@ -1,110 +1,127 @@
-import React from 'react';
+import React, { useState, useEffect, Suspense } from "react";
 import * as R from 'ramda';
 import { withRouter } from 'next/router';
+import { useQuery } from "@apollo/client";
 import Head from 'next/head';
-import { Query } from '@apollo/client/react/components';
+
 import MainLayout from 'layouts/MainLayout';
+import MainNavigation from 'layouts/MainNavigation';
+import Navigation from 'components/Navigation';
+import NavTabs from 'components/NavTabs';
+import EnvironmentHeader from 'components/EnvironmentHeader';
+import DeployLatest from 'components/DeployLatest';
+
+import { bp } from 'lib/variables';
+import { Grid, Message } from 'semantic-ui-react';
+
+const Deployments = React.lazy(() => import('components/Deployments'));
+
 import EnvironmentWithDeploymentsQuery from 'lib/query/EnvironmentWithDeployments';
 import DeploymentsSubscription from 'lib/subscription/Deployments';
-import EnvironmentHeader from 'components/EnvironmentHeader';
-import NavTabs from 'components/NavTabs';
-import DeployLatest from 'components/DeployLatest';
-import Deployments from 'components/Deployments';
-import withQueryLoading from 'lib/withQueryLoading';
-import withQueryError from 'lib/withQueryError';
-import { withEnvironmentRequired } from 'lib/withDataRequired';
-import { bp } from 'lib/variables';
-import LoadingContent from 'pages/_loading';
+import { LoadingRowsContent, LazyLoadingContent } from 'components/Loading';
+
 
 /**
  * Displays the deployments page, given the openshift project name.
  */
 export const PageDeployments = ({ router }) => {
+  const { loading, error, data: { environment } = {}, subscribeToMore, fetchMore } = useQuery(EnvironmentWithDeploymentsQuery, {
+    variables: { openshiftProjectName: router.query.environmentSlug },
+    fetchPolicy: 'network-only'
+  });
+
+  useEffect(() => {
+    const unsubscribe = environment && subscribeToMore({
+      document: DeploymentsSubscription,
+      variables: { environment: environment && environment.id },
+      updateQuery: (prevStore, { subscriptionData }) => {
+        if (!subscriptionData.data) return prevStore;
+        const prevDeployments =
+          prevStore.environment.deployments;
+        const incomingDeployment =
+          subscriptionData.data.deploymentChanged;
+        const existingIndex = prevDeployments.findIndex(
+          prevDeployment => prevDeployment.id === incomingDeployment.id
+        );
+        let newDeployments;
+
+        // New deployment.
+        if (existingIndex === -1) {
+          newDeployments = [incomingDeployment, ...prevDeployments];
+        }
+        // Updated deployment
+        else {
+          newDeployments = Object.assign([...prevDeployments], {
+            [existingIndex]: incomingDeployment
+          });
+        }
+
+        const newStore = {
+          ...prevStore,
+          environment: {
+            ...prevStore.environment,
+            deployments: newDeployments
+          }
+        };
+
+        return newStore;
+      }
+    });
+
+    return () => environment && unsubscribe();
+  }, [environment, subscribeToMore]);
+
   return (
     <>
       <Head>
         <title>{`${router.query.environmentSlug} | Deployments`}</title>
       </Head>
-      <Query
-        query={EnvironmentWithDeploymentsQuery}
-        variables={{ openshiftProjectName: router.query.environmentSlug }}
-      >
-        {R.compose(
-          withQueryLoading,
-          withQueryError,
-          withEnvironmentRequired
-        )(({ data: { environment }, loading, error, subscribeToMore }) => {
-          subscribeToMore({
-            document: DeploymentsSubscription,
-            variables: { environment: environment.id },
-            updateQuery: (prevStore, { subscriptionData }) => {
-              if (!subscriptionData.data) return prevStore;
-              const prevDeployments =
-                prevStore.environment.deployments;
-              const incomingDeployment =
-                subscriptionData.data.deploymentChanged;
-              const existingIndex = prevDeployments.findIndex(
-                prevDeployment => prevDeployment.id === incomingDeployment.id
-              );
-              let newDeployments;
-
-              // New deployment.
-              if (existingIndex === -1) {
-                newDeployments = [incomingDeployment, ...prevDeployments];
+      <MainLayout>
+        <Grid centered padded>
+          <Grid.Row>
+            <Grid.Column width={2}>
+              <MainNavigation>
+                <Navigation />
+              </MainNavigation>
+            </Grid.Column>
+            <Grid.Column width={14} style={{ padding: "1em 4em" }}>
+              {error &&
+                <Message negative>
+                  <Message.Header>Error: Unable to load deployments</Message.Header>
+                  <p>{`${error}`}</p>
+                </Message>
               }
-              // Updated deployment
-              else {
-                newDeployments = Object.assign([...prevDeployments], {
-                  [existingIndex]: incomingDeployment
-                });
+              {!loading && !environment && !error &&
+                <Message>
+                  <Message.Header>No deployments found</Message.Header>
+                  <p>{`No deployments found for '${router.query.environmentSlug}'`}</p>
+                </Message>
               }
-
-              const newStore = {
-                ...prevStore,
-                environment: {
-                  ...prevStore.environment,
-                  deployments: newDeployments
-                }
-              };
-
-              return newStore;
-            }
-          });
-
-          return (
-            <MainLayout>
-              <div className="content-wrapper">
-                {!loading ? <EnvironmentHeader environment={environment}/> : <>Loading...</>}
-                {!loading ?
-                <>
-                  <NavTabs activeTab="deployments" environment={environment} />
-                  <div className="content">
-                    <DeployLatest pageEnvironment={environment} />
+              {loading && <LoadingRowsContent delay={250} rows="15"/>}
+              {!loading && environment &&
+              <>
+                <EnvironmentHeader environment={environment}/>
+                <NavTabs activeTab="deployments" environment={environment} />
+                <div className="content">
+                  <DeployLatest pageEnvironment={environment} fetchMore={() => fetchMore({
+                    variables: {
+                      environment,
+                      after: environment,
+                    }
+                  })} />
+                  <Suspense fallback={<LazyLoadingContent delay={250} rows="15"/>}>
                     <Deployments
                       deployments={environment.deployments}
                       projectName={environment.openshiftProjectName}
                     />
-                  </div>
-                </>
-                : <>Loading...</>}
-              </div>
-              <style jsx>{`
-                .content-wrapper {
-                  @media ${bp.tabletUp} {
-                    display: flex;
-                    padding: 0;
-                  }
-                }
-
-                .content {
-                  padding: 32px calc((100vw / 16) * 1);
-                  width: 100%;
-                }
-              `}</style>
-            </MainLayout>
-          );
-        })}
-      </Query>
+                  </Suspense>
+                </div>
+              </>
+              }
+            </Grid.Column>
+          </Grid.Row>
+        </Grid>
+      </MainLayout>
     </>
   );
 };

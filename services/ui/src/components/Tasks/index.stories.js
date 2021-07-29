@@ -1,13 +1,15 @@
 import React from 'react';
-import mocks, { seed } from 'api/src/mocks';
 import Tasks from './index';
+import mocks from 'api/src/mocks';
 
 export default {
   component: Tasks,
   title: 'Components/Tasks',
+  parameters: {
+    layout: 'fullscreen'
+  }
 };
 
-seed();
 const environment = mocks.Environment();
 const tasks = [
   mocks.Task(null, {environment}),

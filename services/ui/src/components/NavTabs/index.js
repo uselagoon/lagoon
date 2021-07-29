@@ -7,16 +7,15 @@ import TasksLink from 'components/link/Tasks';
 import ProblemsLink from 'components/link/Problems';
 import FactsLink from 'components/link/Facts';
 import RouteLink from 'components/link/Route';
+
 import { bp, color } from 'lib/variables';
+import { Icon } from 'semantic-ui-react';
 
 const { className: aClassName, styles: aStyles } = css.resolve`
   a {
     color: ${color.darkGrey};
     display: block;
-    padding: 20px 20px 19px 60px;
-    @media ${bp.wideUp} {
-      padding-left: calc((100vw / 16) * 1);
-    }
+    padding: 20px;
   }
 
   .active a {
@@ -36,7 +35,7 @@ const NavTabs = ({ activeTab, environment }) => (
         projectSlug={environment.project.name}
         className={aClassName}
       >
-        Overview
+      <Icon link name='bullseye'/> Overview
       </EnvironmentLink>
     </li>
     <li
@@ -49,7 +48,7 @@ const NavTabs = ({ activeTab, environment }) => (
         projectSlug={environment.project.name}
         className={aClassName}
       >
-        Deployments
+      <Icon link name='bell outline'/> Deployments
       </DeploymentsLink>
     </li>
     <li
@@ -62,9 +61,19 @@ const NavTabs = ({ activeTab, environment }) => (
         projectSlug={environment.project.name}
         className={aClassName}
       >
-        Backups
+      <Icon link name='history'/> Backups
       </BackupsLink>
     </li>
+    {/* <li className={`route ${activeTab == 'route' ? 'active' : ''} ${aClassName}`}>
+      <RouteLink
+        environmentSlug={environment.openshiftProjectName}
+        projectSlug={environment.project.name}
+        routeSlug={environment.route}
+        className={aClassName}
+      >
+      <Icon link name='external'/> Route
+      </RouteLink>
+    </li> */}
     <li
       className={`tasks ${activeTab == 'tasks' ? 'active' : ''} ${aClassName}`}
     >
@@ -73,7 +82,7 @@ const NavTabs = ({ activeTab, environment }) => (
         projectSlug={environment.project.name}
         className={aClassName}
       >
-        Tasks
+      <Icon link name='check circle outline'/> Tasks
       </TasksLink>
     </li>
     {(environment.project.problemsUi == 1) && <li
@@ -84,7 +93,7 @@ const NavTabs = ({ activeTab, environment }) => (
           projectSlug={environment.project.name}
           className={aClassName}
       >
-        Problems
+      <Icon link name='exclamation'/> Problems
       </ProblemsLink>
     </li>
     }
@@ -96,33 +105,19 @@ const NavTabs = ({ activeTab, environment }) => (
         projectSlug={environment.project.name}
         className={aClassName}
       >
-        Facts
+      <Icon link name='info'/> Facts
       </FactsLink>
     </li>
     }
-    <li className={`route ${activeTab == 'route' ? 'active' : ''} ${aClassName}`}>
-      <RouteLink
-        environmentSlug={environment.openshiftProjectName}
-        projectSlug={environment.project.name}
-        routeSlug={environment.route}
-        className={aClassName}
-      >
-        Route
-      </RouteLink>
-    </li>
     <style jsx>{`
       .navigation {
+        display: flex;
+        justify-content: flex-start;
+
         background: ${color.lightestGrey};
         border-right: 1px solid ${color.midGrey};
         margin: 0;
         z-index: 10;
-        @media ${bp.tabletUp} {
-          min-width: 30%;
-          padding-bottom: 60px;
-        }
-        @media ${bp.wideUp} {
-          min-width: 25%;
-        }
 
         li {
           border-bottom: 1px solid ${color.midGrey};
@@ -134,27 +129,10 @@ const NavTabs = ({ activeTab, environment }) => (
             background-color: ${color.white};
           }
 
-          &::before {
-            background-color: ${color.linkBlue};
-            background-position: center center;
-            background-repeat: no-repeat;
-            content: '';
-            display: block;
-            height: 59px;
-            left: 0;
-            position: absolute;
-            top: 0;
-            transition: all 0.3s ease-in-out;
-            width: 45px;
-          }
-
           a {
             color: ${color.darkGrey};
             display: block;
             padding: 20px;
-            @media ${bp.wideUp} {
-              padding-left: 20px;
-            }
           }
 
           &.active {
@@ -164,89 +142,88 @@ const NavTabs = ({ activeTab, environment }) => (
 
             background-color: ${color.almostWhite};
             border-right: 1px solid ${color.almostWhite};
-            width: calc(100% + 1px);
 
             a {
               color: ${color.black};
             }
           }
 
-          &.overview {
-            &::before {
-              background-image: url('/static/images/overview.svg');
-              background-size: 18px;
-            }
+          // &.overview {
+          //   &::before {
+          //     background-image: url('/static/images/overview.svg');
+          //     background-size: 18px;
+          //   }
 
-            &.active::before {
-              background-image: url('/static/images/overview-active.svg');
-            }
-          }
+          //   &.active::before {
+          //     background-image: url('/static/images/overview-active.svg');
+          //   }
+          // }
 
-          &.deployments {
-            &::before {
-              background-image: url('/static/images/deployments.svg');
-              background-size: 21px 16px;
-            }
+          // &.deployments {
+          //   &::before {
+          //     background-image: url('/static/images/deployments.svg');
+          //     background-size: 21px 16px;
+          //   }
 
-            &.active::before {
-              background-image: url('/static/images/deployments-active.svg');
-            }
-          }
+          //   &.active::before {
+          //     background-image: url('/static/images/deployments-active.svg');
+          //   }
+          // }
 
-          &.backups {
-            &::before {
-              background-image: url('/static/images/backups.svg');
-              background-size: 19px;
-            }
+          // &.backups {
+          //   &::before {
+          //     background-image: url('/static/images/backups.svg');
+          //     background-size: 19px;
+          //   }
 
-            &.active::before {
-              background-image: url('/static/images/backups-active.svg');
-            }
-          }
+          //   &.active::before {
+          //     background-image: url('/static/images/backups-active.svg');
+          //   }
+          // }
 
-          &.tasks {
-            &::before {
-              background-image: url('/static/images/tasks.svg');
-              background-size: 16px;
-            }
+          // &.tasks {
+          //   &::before {
+          //     background-image: url('/static/images/tasks.svg');
+          //     background-size: 16px;
+          //   }
 
-            &.active::before {
-              background-image: url('/static/images/tasks-active.svg');
-            }
-          }
+          //   &.active::before {
+          //     background-image: url('/static/images/tasks-active.svg');
+          //   }
+          // }
 
-          &.problems {
-            &::before {
-              background-image: url('/static/images/problems.svg');
-              background-size: 16px;
-            }
+          // &.problems {
+          //   &::before {
+          //     background-image: url('/static/images/problems.svg');
+          //     background-size: 16px;
+          //   }
 
-            &.active::before {
-              background-image: url('/static/images/problems-active.svg');
-            }
-          }
+          //   &.active::before {
+          //     background-image: url('/static/images/problems-active.svg');
+          //   }
+          // }
 
-          &.facts {
-            &::before {
-              background-image: url('/static/images/facts.svg');
-              background-size: 16px;
-            }
+          // &.facts {
+          //   &::before {
+          //     background-image: url('/static/images/facts.svg');
+          //     background-size: 16px;
+          //   }
 
-            &.active::before {
-              background-image: url('/static/images/facts-active.svg');
-            }
-          }
+          //   &.active::before {
+          //     background-image: url('/static/images/facts-active.svg');
+          //   }
+          // }
 
-          &.route {
-            &::before {
-              background-image: url('/static/images/route.svg');
-              background-size: 16px;
-            }
+          // &.route {
+          //   &::before {
+          //     background-image: url('/static/images/route.svg');
+          //     background-size: 16px;
+          //   }
 
-            &.active::before {
-              background-image: url('/static/images/route-active.svg');
-            }
-          }
+          //   &.active::before {
+          //     background-image: url('/static/images/route-active.svg');
+          //   }
+          // }
         }
       }
     `}</style>

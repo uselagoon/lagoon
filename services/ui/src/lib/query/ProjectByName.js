@@ -22,6 +22,9 @@ export default gql`
         environmentType
         openshiftProjectName
         route
+        deployments {
+          completed
+        }
         facts {
           ...factFields
         }

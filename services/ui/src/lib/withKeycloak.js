@@ -47,11 +47,6 @@ const withKeycloak = (App, initialAuth) => (props) => {
       updateAuth(keycloak);
     }, []);
 
-
-
-    console.log('auth: ', auth)
-
-
     return <App {...props} auth={auth} />;
 };
 

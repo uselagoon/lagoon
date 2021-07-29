@@ -1,113 +1,126 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from "react";
 import * as R from 'ramda';
 import { withRouter } from 'next/router';
+import { useQuery } from "@apollo/client";
 import Head from 'next/head';
-import { Query } from '@apollo/client/react/components';
+
 import MainLayout from 'layouts/MainLayout';
+import MainNavigation from 'layouts/MainNavigation';
+import Navigation from 'components/Navigation';
+import NavTabs from 'components/NavTabs';
+import EnvironmentHeader from 'components/EnvironmentHeader';
+
+import AddTask from 'components/AddTask';
+const Tasks = React.lazy(() => import('components/Tasks'));
+
+import { bp } from 'lib/variables';
+import { Grid, Message } from 'semantic-ui-react';
+
 import EnvironmentWithTasksQuery from 'lib/query/EnvironmentWithTasks';
 import TasksSubscription from 'lib/subscription/Tasks';
-import Breadcrumbs from 'components/Breadcrumbs';
-import ProjectBreadcrumb from 'components/Breadcrumbs/Project';
-import EnvironmentBreadcrumb from 'components/Breadcrumbs/Environment';
-import NavTabs from 'components/NavTabs';
-import AddTask from 'components/AddTask';
-import Tasks from 'components/Tasks';
-import withQueryLoading from 'lib/withQueryLoading';
-import withQueryError from 'lib/withQueryError';
-import { withEnvironmentRequired } from 'lib/withDataRequired';
-import { bp } from 'lib/variables';
+import { LoadingRowsContent, LazyLoadingContent } from 'components/Loading';
+
 
 /**
  * Displays the tasks page, given the openshift project name.
  */
 export const PageTasks = ({ router }) => {
+  const { loading, error, data: { environment } = {}, subscribeToMore, fetchMore } = useQuery(EnvironmentWithTasksQuery, {
+    variables: { openshiftProjectName: router.query.environmentSlug },
+    fetchPolicy: 'network-only'
+  });
+
+  useEffect(() => {
+    const unsubscribe = environment && subscribeToMore({
+      document: TasksSubscription,
+      variables: { environment: environment && environment.id },
+      updateQuery: (prevStore, { subscriptionData }) => {
+        if (!subscriptionData.data) return prevStore;
+
+        const prevTasks = prevStore.environment.tasks;
+        const incomingTask = subscriptionData.data.taskChanged;
+        const existingIndex = prevTasks.findIndex(
+          prevTask => prevTask.id === incomingTask.id
+        );
+        let newTasks;
+
+        // New task.
+        if (existingIndex === -1) {
+          newTasks = [incomingTask, ...prevTasks];
+        }
+        // Updated task
+        else {
+          newTasks = Object.assign([...prevTasks], {
+            [existingIndex]: incomingTask
+          });
+        }
+
+        const newStore = {
+          ...prevStore,
+          environment: {
+            ...prevStore.environment,
+            tasks: newTasks
+          }
+        };
+
+        return newStore;
+      }
+    });
+
+    return () => environment && unsubscribe();
+  }, [environment, subscribeToMore]);
+
+
   return (
   <>
     <Head>
       <title>{`${router.query.environmentSlug} | Tasks`}</title>
     </Head>
     <MainLayout>
-     <Query
-        query={EnvironmentWithTasksQuery}
-        variables={{
-          openshiftProjectName: router.query.environmentSlug
-        }}
-      >
-        {R.compose(
-          withQueryLoading,
-          withQueryError,
-          withEnvironmentRequired
-        )(({ data: { environment }, subscribeToMore }) => {
-          subscribeToMore({
-            document: TasksSubscription,
-            variables: { environment: environment.id },
-            updateQuery: (prevStore, { subscriptionData }) => {
-              if (!subscriptionData.data) return prevStore;
-              const prevTasks = prevStore.environment.tasks;
-              const incomingTask = subscriptionData.data.taskChanged;
-              const existingIndex = prevTasks.findIndex(
-                prevTask => prevTask.id === incomingTask.id
-              );
-              let newTasks;
-
-              // New task.
-              if (existingIndex === -1) {
-                newTasks = [incomingTask, ...prevTasks];
-              }
-              // Updated task
-              else {
-                newTasks = Object.assign([...prevTasks], {
-                  [existingIndex]: incomingTask
-                });
-              }
-
-              const newStore = {
-                ...prevStore,
-                environment: {
-                  ...prevStore.environment,
-                  tasks: newTasks
-                }
-              };
-
-              return newStore;
+      <Grid centered padded>
+        <Grid.Row>
+          <Grid.Column width={2}>
+            <MainNavigation>
+              <Navigation />
+            </MainNavigation>
+          </Grid.Column>
+          <Grid.Column width={14}>
+            {error &&
+              <Message negative>
+                <Message.Header>Error: Unable to load tasks</Message.Header>
+                <p>{`${error}`}</p>
+              </Message>
             }
-          });
-
-          return (
-            <div className="content-wrapper">
-              <Breadcrumbs>
-                <ProjectBreadcrumb projectSlug={environment.project.name} />
-                <EnvironmentBreadcrumb
-                  environmentSlug={environment.environmentSlug}
-                  projectSlug={environment.project.name}
-                />
-              </Breadcrumbs>
-              <div className="content-wrapper">
-                <NavTabs activeTab="tasks" environment={environment} />
+            {!loading && !environment && !error &&
+              <Message>
+                <Message.Header>No tasks found</Message.Header>
+                <p>{`No tasks found for '${router.query.environmentSlug}'`}</p>
+              </Message>
+            }
+            {loading && <LoadingRowsContent delay={250} rows="15"/>}
+            {!loading && environment &&
+            <>
+              <EnvironmentHeader environment={environment}/>
+              <NavTabs activeTab="tasks" environment={environment} />
                 <div className="content">
-                  <AddTask pageEnvironment={environment} />
-                  <Tasks tasks={environment.tasks} />
+                  <AddTask pageEnvironment={environment} fetchMore={() => fetchMore({
+                    variables: {
+                      environment,
+                      after: environment,
+                    }
+                  })} />
+                  <Suspense fallback={<LazyLoadingContent delay={250} rows="15"/>}>
+                    <Tasks tasks={environment.tasks} />
+                  </Suspense>
                 </div>
-              </div>
-              <style jsx>{`
-                .content-wrapper {
-                  @media ${bp.tabletUp} {
-                    display: flex;
-                    padding: 0;
-                  }
-                }
-                .content {
-                  padding: 32px calc((100vw / 16) * 1);
-                  width: 100%;
-                }
-              `}</style>
-            </div>
-          );
-        })}
-      </Query>
-    </MainLayout>
-  </>
+              </>
+            }
+          </Grid.Column>
+        </Grid.Row>
+      </Grid>
+      </MainLayout>
+    </>
   );
-}
+};
 
 export default withRouter(PageTasks);

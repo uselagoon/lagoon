@@ -4,6 +4,9 @@ import Error from 'pages/_error';
 export default {
   component: Error,
   title: 'Pages/Error',
+  parameters: {
+    layout: 'fullscreen',
+  }
 }
 
 export const Error404 = () => (

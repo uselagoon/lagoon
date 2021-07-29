@@ -14,7 +14,7 @@ const Breadcrumbs = ({ children }) => (
       }
       .breadcrumbs {
         display: flex;
-        margin: 0 calc((100vw / 16) * 1);
+        margin: 0 2em;
       }
     `}</style>
   </div>

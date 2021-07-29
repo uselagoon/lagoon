@@ -5,98 +5,103 @@ import { AuthContext } from 'lib/Authenticator';
 import { color } from 'lib/variables';
 import lagoonLogo from '!svg-inline-loader?classPrefix!./lagoon.svg';
 
+import { Grid, Button, Icon, Menu, Input, Dropdown } from 'semantic-ui-react';
+
 const { publicRuntimeConfig } = getConfig();
 
 /**
  * Displays the header using the provided logo.
  */
-const Header = ({ logo }) => (
-  <div className='header'>
-    <Link href="/">
-      <a className="home">
-	    <img
-          alt="Home"
-          src={logo ? logo : `data:image/svg+xml;utf8,${
-            publicRuntimeConfig.LAGOON_UI_ICON
-              ? publicRuntimeConfig.LAGOON_UI_ICON
-              : encodeURIComponent(lagoonLogo)
-          }`}
-        />
-      </a>
-    </Link>
-    <AuthContext.Consumer>
-      {auth => {
-        if (auth.authenticated) {
-          return (<div className="authContainer"><a className="settings" href="/settings">settings</a> <a className="logout" onClick={auth.logout}>{auth.user.username} - logout</a></div>);
-        }
+const Header = ({ logo }) => {
+  return (
+    <div className="header">
+      <Grid columns={3} stretched verticalAlign='middle'>
+        <Grid.Column className="no-padding-bottom" width={1}>
+          <Link href="/">
+            <a className="home">
+              <img
+                  alt="Home"
+                  src={logo ? logo : `data:image/svg+xml;utf8,${
+                    publicRuntimeConfig.LAGOON_UI_ICON
+                      ? publicRuntimeConfig.LAGOON_UI_ICON
+                      : encodeURIComponent(lagoonLogo)
+                  }`}
+                />
+            </a>
+          </Link>
+        </Grid.Column>
+        <Grid.Column className="no-padding-bottom" width={11}></Grid.Column>
+        <Grid.Column className="no-padding-bottom" width={4}>
+          <AuthContext.Consumer>
+            {auth => {
+              const trigger = (auth.authenticated &&
+                <span>
+                  <Icon name='user outline' /> Hello, {auth.user.username}
+                </span>
+              );
 
-        return null;
-      }}
-    </AuthContext.Consumer>
-    <style jsx>{`
-      .header {
-        background: ${color.brightBlue} ${color.lightBlue};
-        background: ${color.lightBlue};
-        background: -moz-linear-gradient(left, ${color.brightBlue} 0%, ${color.lightBlue} 25%);
-        background: -webkit-linear-gradient(left, ${color.brightBlue} 0%,${color.lightBlue} 25%);
-        background: linear-gradient(to right, ${color.brightBlue} 0%,${color.lightBlue} 25%);
-        filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='${color.brightBlue}', endColorstr='${color.lightBlue}',GradientType=1 );
-        display: flex;
-        justify-content: space-between;
+              const options = [
+                {
+                  key: 'user',
+                  text: (
+                    <span>
+                      Signed in as <strong>{auth.authenticated && auth.user.username}</strong>
+                    </span>
+                  ),
+                  disabled: true,
+                },
+                { key: 'logout', onClick: () => auth.logout(), text: 'Sign Out' },
+              ];
 
-        .authContainer {
-          display: flex;
-        }
+              if (auth.authenticated) {
+                return (
+                  <Menu secondary>
+                    <Menu.Item
+                      name="settings"
+                      className="settings"
+                      href="/settings"
+                      icon="cogs"
+                    />
+                    <Dropdown item trigger={trigger} options={options} />
+                  </Menu>
+                );
+              }
+              return null;
+            }}
+          </AuthContext.Consumer>
+        </Grid.Column>
+      </Grid>
+      <style jsx>{`
+        .header {
+          position: fixed;
+          z-index: 110;
+          height: 50px;
+          width: 100%;
+          justify-content: space-between;
 
-        a {
-          color: ${color.almostWhite};
-          padding: 10px 20px;
-          &.home {
-            background: ${color.blue};
-            position: relative;
-            img {
-              display: block;
-              height: 28px;
-              width: auto;
+          background: ${color.white};
+          border-bottom: 1px solid #D3DAE6;
+
+          a {
+            padding: 7px 0;
+            margin: auto;
+
+            &.home {
+              position: relative;
+              img {
+                display: block;
+                height: 36px;
+                width: auto;
+              }
             }
-            &::after {
-              background: ${color.blue};
-              clip-path: polygon(0 0,100% 0,0 105%,0 100%);
-              content: '';
-              display: block;
-              height: 100%;
-              position: absolute;
-              right: -13px;
-              top: 0;
-              width: 14px;
+            &.settings, .logout {
+              cursor: pointer;
             }
           }
-          &.settings {
-            align-items: center;
-            border-left: 1px solid ${color.blue};
-            cursor: pointer;
-            display: flex;
-            &::before {
-              background-position: center center;
-              background-repeat: no-repeat;
-              content: '';
-              display: block;
-              height: 35px;
-              transition: all 0.3s ease-in-out;
-              width: 35px;
-              background-image: url('/static/images/cog.svg');
-              background-size: 18px;
-            }
-          }
-          &.logout {
-            align-items: center;
-            cursor: pointer;
-            display: flex;
-          }
         }
-      }
-    `}</style>
-  </div>
-);
+      `}</style>
+    </div>
+  );
+};
 
 export default Header;

@@ -5,16 +5,18 @@ import Deployments from './index';
 export default {
   component: Deployments,
   title: 'Components/Deployments',
+  parameters: {
+    layout: 'fullscreen'
+  }
 }
 
-seed();
 const data = [
   {
-    ...mocks.Deployment(),
+    ...mocks.Deployment(null, mocks.Project()),
     status: 'complete',
   },
   {
-    ...mocks.Deployment(),
+    ...mocks.Deployment(null, mocks.Project()),
     status: 'complete',
   },
   {

@@ -20,15 +20,15 @@ const useSortableData = (initialItems, initialConfig) => {
         let aParsed, bParsed = '';
 
         if (sortConfig.key === 'identifier') {
-          aParsed = a[sortConfig.key].toString().toLowerCase().trim();
-          bParsed = b[sortConfig.key].toString().toLowerCase().trim();
+          aParsed = a[sortConfig.key] && a[sortConfig.key].toString().toLowerCase().trim();
+          bParsed = b[sortConfig.key] && b[sortConfig.key].toString().toLowerCase().trim();
         }
         else {
           let aProblem = a[sortConfig.key];
-          aParsed = aProblem.toString().toLowerCase().trim();
+          aParsed = aProblem && aProblem.toString().toLowerCase().trim();
 
           let bProblem = b[sortConfig.key];
-          bParsed = bProblem.toString().toLowerCase().trim();
+          bParsed = bProblem && bProblem.toString().toLowerCase().trim();
         }
 
         if (aParsed < bParsed) return sortConfig.direction === 'ascending' ? -1 : 1;

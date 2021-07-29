@@ -15,6 +15,7 @@ export const color = {
   midGrey: '#ebecf0',
   grey: '#a8b4bc',
   darkGrey: '#5f6f7a',
+  lagoon2Grey: "#3a3e47",
   green: '#4fda9d',
   lightestBlue: '#6fb3ff',
   linkBlue: '#497ffa',
@@ -52,19 +53,5 @@ export const bp = {
 
 export const pxToRem = pxValue => `${pxValue / 16}rem`;
 
-export const fontSize = (sizeInPx, lineHeight) => `
-  font-size: ${sizeInPx}px;
-  font-size: ${pxToRem(sizeInPx)};
-
-  ${!lineHeight &&
-    `
-    line-height: ${sizeInPx * 1.66666667}px;
-    line-height: ${pxToRem(sizeInPx * 1.66666667)};
-  `}
-
-  ${lineHeight ?
-    `
-    line-height: ${lineHeight}px;
-    line-height: ${pxToRem(lineHeight)};
-  ` : ''}
-`;
+export const fontSize = (sizeInPx) => `${pxToRem(sizeInPx)}`;
+export const lineHeight = (sizeInPx) => `${pxToRem(sizeInPx * 1.66666667)}`;

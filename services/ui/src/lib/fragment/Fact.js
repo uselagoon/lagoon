@@ -10,6 +10,5 @@ export default gql`
     keyFact
     description
     type
-    category
   }
 `;

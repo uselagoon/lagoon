@@ -1,25 +1,27 @@
 import React from 'react';
-import mocks, { seed } from 'api/src/mocks';
+import mocks from 'api/src/mocks';
 import AddTask from './index';
 
 export default {
   component: AddTask,
   title: 'Components/AddTask',
+  parameters: {
+    layout: 'fullscreen',
+  }
 }
 
-seed();
-const pageEnvironment = mocks.Environment();
+const environment = mocks.Environment();
 
 export const Default = () => (
   <AddTask
-    pageEnvironment={pageEnvironment}
+    pageEnvironment={environment}
   />
 );
 
 export const NoCLIService = () => (
   <AddTask
     pageEnvironment={{
-      ...pageEnvironment,
+      ...environment,
       services: [],
     }}
   />

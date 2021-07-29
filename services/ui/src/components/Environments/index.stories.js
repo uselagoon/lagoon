@@ -1,17 +1,27 @@
 import React from 'react';
-import mocks, { seed } from 'api/src/mocks';
 import Environments from './index';
+import mocks from 'api/src/mocks';
 
 export default {
   component: Environments,
   title: 'Components/Environments',
+  parameters: {
+    layout: 'fullscreen',
+  }
 }
 
-seed();
-const data = mocks.Query().allEnvironments();
+const environments = mocks.Query().allEnvironments();
 
 export const Default = () => (
   <Environments
-    environments={data}
+    environments={environments}
+    display={'list'}
+  />
+);
+
+export const DetailedDisplayEnvironments = () => (
+  <Environments
+    environments={environments}
+    display={'detailed'}
   />
 );

@@ -1,18 +1,29 @@
 import gql from 'graphql-tag';
 
 export default gql`
-  query projectsByFactSearch($input: FactFilterInput) {
-    projectsByFactSearch(input: $input) {
-      id
-      name
-      created
-      gitUrl
-      environments(factFilter: $input) {
+  query environmentsByFactSearch($input: FactFilterInput) {
+    environmentsByFactSearch(input: $input) {
+      count
+      environments {
         id
         name
         route
         environmentType
-        facts {
+        openshiftProjectName
+        project {
+          id
+          name
+          created
+          gitUrl
+        }
+        deployments {
+          id
+          name
+          status
+          created
+          completed
+        }
+        facts(keyFacts: true) {
           id
           name
           value
@@ -20,6 +31,11 @@ export default gql`
           keyFact
           category
           type
+          references {
+            id
+            fid
+            name
+          }
         }
       }
     }

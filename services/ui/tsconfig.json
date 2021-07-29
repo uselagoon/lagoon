@@ -26,7 +26,7 @@
     "resolveJsonModule": true
   },
   "exclude": ["node_modules", "build", "scripts", "../api"],
-  "include": ["./src"],
+  "include": ["./src", ".storybook/*"],
   "references": [
     { "path": "../../node-packages/commons" }
   ]

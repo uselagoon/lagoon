@@ -6,6 +6,8 @@ import Box from 'components/Box';
 import { bp, color, fontSize } from 'lib/variables';
 import moment from 'moment';
 
+import { getLastCompletedDeployment } from 'lib/util';
+
 const bgImages = {
   branch: {
     normal: "url('/static/images/environment-branch.svg')",
@@ -30,7 +32,11 @@ const { className: boxClassName, styles: boxStyles } = css.resolve`
       background-repeat: no-repeat;
       background-size: 40px 50px;
       min-height: 150px;
-      padding: 19px 20px;
+      padding: 20px 20px;
+
+      &.label {
+        padding: 20px 40px 20px 20px;
+      }
 
       &.detailed {
         min-height: 270px;
@@ -61,6 +67,11 @@ const Environments = ({ environments = [], display }) => {
             }
           }
         `;
+        const isProduction = environment.environmentType == 'production' && true || false;
+        const isActive = (environment.project.productionEnvironment && environment.project.standbyProductionEnvironment && environment.project.productionEnvironment == environment.name) && true || false;
+        const isStandby = (environment.project.productionEnvironment && environment.project.standbyProductionEnvironment && environment.project.standbyProductionEnvironment == environment.name) && true || false;
+        const isPullRequest = (environment.deployType === 'pullrequest') && true;
+        const hasLabel = isProduction || isActive || isStandby || false;
 
         return (
           <div className="environment" key={environment.id}>
@@ -69,24 +80,24 @@ const Environments = ({ environments = [], display }) => {
               projectSlug={environment.project.name}
             >
               {display === 'list' && (
-                <Box className={`${boxClassName} ${bgClassName} ${display}`}>
-                  {environment.environmentType == 'production' && (
+                <Box className={`${boxClassName} ${bgClassName} ${display} ${hasLabel ? 'label' : 'no-label'}`}>
+                  {isProduction && (
                     <div className="productionLabel">
                       <span>Production</span>
                     </div>
                   )}
-                  {environment.project.productionEnvironment && environment.project.standbyProductionEnvironment && environment.project.productionEnvironment == environment.name && (
+                  {isActive && (
                     <div className="activeLabel">
                       <span>Active</span>
                     </div>
                   )}
-                  {environment.project.productionEnvironment && environment.project.standbyProductionEnvironment && environment.project.standbyProductionEnvironment == environment.name && (
+                  {isStandby && (
                     <div className="standbyLabel">
                       <span>Standby</span>
                     </div>
                   )}
                   <label>
-                    {environment.deployType === 'pullrequest'
+                    {isPullRequest
                       ? 'PR'
                       : environment.deployType}
                   </label>
@@ -94,43 +105,38 @@ const Environments = ({ environments = [], display }) => {
                 </Box>
               )}
               {display === 'detailed' && (
-              <Box className={`${boxClassName} ${bgClassName} ${display}`}>
-                {environment.environmentType == 'production' && (
+              <Box className={`${boxClassName} ${bgClassName} ${display} ${hasLabel ? 'label' : 'no-label'}`}>
+                 {isProduction && (
                   <div className="productionLabel">
                     <span>Production</span>
                   </div>
                 )}
-                {environment.project.productionEnvironment && environment.project.standbyProductionEnvironment && environment.project.productionEnvironment == environment.name && (
+                {isActive && (
                   <div className="activeLabel">
                     <span>Active</span>
                   </div>
                 )}
-                {environment.project.productionEnvironment && environment.project.standbyProductionEnvironment && environment.project.standbyProductionEnvironment == environment.name && (
+                {isStandby && (
                   <div className="standbyLabel">
                     <span>Standby</span>
                   </div>
                 )}
                 <label>
-                  {environment.deployType === 'pullrequest'
+                  {isPullRequest
                     ? 'PR'
                     : environment.deployType}
                 </label>
                 <h4>{environment.name}</h4>
-                {environment.deployments && environment.deployments
-                  .sort((a, b) => Date.parse(a.completed) > Date.parse(b.completed))
-                  .slice(0,1)
-                  .map((d, index) => {
-                    return (
-                      <div className="last-deployed">
-                        <div>Last deployed:</div>
-                        {moment.utc(d.completed).local().format('HH:mm:ss (DD-MM-YYYY)')}
-                      </div>
-                    )
-                })}
+                {environment.deployments.length !== 0 &&
+                  <div className="last-deployed">
+                    <div>Last deployed:</div>
+                    {getLastCompletedDeployment(environment.deployments)}
+                  </div>
+                }
                 {environment.facts && environment.facts.map((f, index) => {
-                  if (f.reference && f.reference.includes('key')) {
+                  if (f.keyFact) {
                    return (
-                     <div className="facts">
+                     <div key={`${f.name}-${index}`} className="fact">
                        <div className="fact-name">{f.name}</div>
                        <div className="fact-value">{f.value}</div>
                      </div>
@@ -197,7 +203,7 @@ const Environments = ({ environments = [], display }) => {
 
         .productionLabel {
           color: ${color.green};
-          ${fontSize(13)};
+          font-size: ${fontSize(13)};
           position: absolute;
           right: -38px;
           text-transform: uppercase;
@@ -224,7 +230,7 @@ const Environments = ({ environments = [], display }) => {
 
         .standbyLabel {
           color: ${color.blue};
-          ${fontSize(13)};
+          font-size: ${fontSize(13)};
           position: absolute;
           right: 0px;
           text-transform: uppercase;
@@ -251,7 +257,7 @@ const Environments = ({ environments = [], display }) => {
 
         .activeLabel {
           color: ${color.green};
-          ${fontSize(13)};
+          font-size: ${fontSize(13)};
           position: absolute;
           right: 0px;
           text-transform: uppercase;
@@ -276,7 +282,7 @@ const Environments = ({ environments = [], display }) => {
           }
         }
 
-        .facts {
+        .last-deployed, .fact {
           display: flex;
           font-size: 0.8em;
           justify-content: space-between;

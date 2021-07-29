@@ -18,10 +18,6 @@ const EnvironmentLink = ({
   className = null,
   prefetch = false
 }) => {
-
-  console.log(environmentSlug);
-  console.log(projectSlug);
-
   const linkData = getLinkData(environmentSlug, projectSlug);
 
   return (

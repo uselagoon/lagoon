@@ -40,14 +40,15 @@ const Breadcrumb = ({ header, title, urlObject, asPath }) => (
         }
 
         h2 {
-          ${fontSize(28)};
+          font-size: ${fontSize(28)};
           margin-bottom: 24px;
           @media ${bp.tabletUp} {
-            ${fontSize(36)};
+            font-size: ${fontSize(36)};
             margin-bottom: 38px;
           }
         }
       }
+
       a:first-child {
         .breadcrumb {
           padding-left: 0;
