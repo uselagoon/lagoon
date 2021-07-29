@@ -9,8 +9,10 @@ spec:
         runAsUser: 1000
       containers:
       - name: api
-        command: ["yarn"]
-        args: ["run", "dev"]
+        command:
+          - sh
+          - -c
+          - './node_modules/.bin/tsc-watch --build --incremental --onSuccess "node -r dotenv-extended/config dist/index"'
         volumeMounts:
         - mountPath: "/app/services/api/src"
           name: api-src

@@ -1,0 +1,42 @@
+mutation deleteProject {
+  CiRemoveGroup: removeGroupsFromProject(
+    input: {
+      project: {
+        name: "{{ project }}"
+      }
+      groups: [
+        {
+          name: "ci-group"
+        }
+      ]
+    }
+  ) {
+    id
+  }
+
+  CiRemoveRocketChat: removeNotificationFromProject(
+    input: {
+      project: "{{ project }}"
+      notificationType: ROCKETCHAT
+      notificationName: "amazeeio--lagoon-local-ci"
+    }
+  ) {
+    id
+  }
+
+  CiRemoveEmail: removeNotificationFromProject(
+    input: {
+      project: "{{ project }}"
+      notificationType: EMAIL
+      notificationName: "local-email-testing"
+    }
+  ) {
+    id
+  }
+
+  CiDeleteProject: deleteProject(
+    input: {
+      project: "{{ project }}"
+    }
+  )
+}

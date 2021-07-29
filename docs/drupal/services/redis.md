@@ -120,12 +120,13 @@ Environment variables are meant to store some common information about Redis.
 
 Here is a snippet to implement a Redis failover in case of the Redis container not being available \(for example, during maintenance\)
 
-The following is inserted into Drupal's active `settings.php` file. 
+The following is inserted into Drupal 7's active `settings.php` file.
 
 {% tabs %}
 {% tab title="settings.php" %}
 ```text
-if (getenv('LAGOON') {
+if (getenv('LAGOON')) {
+  $contrib_path = is_dir('sites/all/modules/contrib') ? 'sites/all/modules/contrib' : 'sites/all/modules';
   $redis = DRUPAL_ROOT . '/sites/all/modules/contrib/redis';
 
   if (file_exists("$redis/redis.module")) {
@@ -156,7 +157,6 @@ if (getenv('LAGOON') {
     }
   }
 }
-
 ```
 {% endtab %}
 {% endtabs %}

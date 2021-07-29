@@ -9,11 +9,17 @@ export const Sql = {
     knex('environment_backup')
       .where('backup_id', '=', backupId)
       .toString(),
-  selectBackupsByEnvironmentId: (
-    { environmentId, includeDeleted }: { environmentId: number, includeDeleted: boolean },
-  ) => {
+  selectBackupsByEnvironmentId: ({
+    environmentId,
+    includeDeleted
+  }: {
+    environmentId: number;
+    includeDeleted: boolean;
+  }) => {
     const query = knex('environment_backup')
-      .where('environment', environmentId);
+      .where('environment', environmentId)
+      .orderBy('created', 'desc')
+      .orderBy('id', 'desc');
 
     if (includeDeleted) {
       return query.toString();
@@ -21,28 +27,26 @@ export const Sql = {
 
     return query.where('deleted', '=', '0000-00-00 00:00:00').toString();
   },
-  insertBackup: (
-    {
-      id,
-      environment,
-      source,
-      backupId,
-      created,
-    }: {
-      id: number,
-      environment: number,
-      source: string,
-      backupId: string,
-      created: string
-    },
-  ) =>
+  insertBackup: ({
+    id,
+    environment,
+    source,
+    backupId,
+    created
+  }: {
+    id: number;
+    environment: number;
+    source: string;
+    backupId: string;
+    created: string;
+  }) =>
     knex('environment_backup')
       .insert({
         id,
         environment,
         source,
         backup_id: backupId,
-        created,
+        created
       })
       .toString(),
   deleteBackup: (backupId: string) =>
@@ -63,9 +67,17 @@ export const Sql = {
       .where('backup_id', backupId)
       .toString(),
   insertRestore: ({
-    id, backupId, status, restoreLocation, created,
+    id,
+    backupId,
+    status,
+    restoreLocation,
+    created
   }: {
-    id: number, backupId: string, status: string, restoreLocation: string, created: string
+    id: number;
+    backupId: string;
+    status: string;
+    restoreLocation: string;
+    created: string;
   }) =>
     knex('backup_restore')
       .insert({
@@ -73,32 +85,46 @@ export const Sql = {
         backupId,
         status,
         restoreLocation,
-        created,
+        created
       })
       .toString(),
-  updateRestore: ({ backupId, patch }: { backupId: string, patch: { [key: string]: any } }) =>
+  updateRestore: ({
+    backupId,
+    patch
+  }: {
+    backupId: string;
+    patch: { [key: string]: any };
+  }) =>
     knex('backup_restore')
       .where('backup_id', backupId)
       .update(patch)
       .toString(),
   selectPermsForRestore: (backupId: string) =>
     knex('backup_restore')
-      .select({ pid: 'project.id' })
-      .join('environment_backup', 'backup_restore.backup_id', '=', 'environment_backup.id')
-      .join('environment', 'environment_backup.environment', '=', 'environment.id')
-      .join('project', 'environment.project', '=', 'project.id')
-      .where('backup_restore.backup_id', backupId)
-      .toString(),
-  selectPermsForBackup: (backupId: string) =>
-    knex('environment_backup')
-      .select({ pid: 'project.id' })
+      .select({ pid: 'environment.project' })
+      .join(
+        'environment_backup',
+        'backup_restore.backup_id',
+        '=',
+        'environment_backup.id'
+      )
       .join(
         'environment',
         'environment_backup.environment',
         '=',
-        'environment.id',
+        'environment.id'
       )
-      .join('project', 'environment.project', '=', 'project.id')
-      .where('environment_backup.backup_id', backupId)
+      .where('backup_restore.backup_id', backupId)
       .toString(),
+  selectPermsForBackup: (backupId: string) =>
+    knex('environment_backup')
+      .select({ pid: 'environment.project' })
+      .join(
+        'environment',
+        'environment_backup.environment',
+        '=',
+        'environment.id'
+      )
+      .where('environment_backup.backup_id', backupId)
+      .toString()
 };

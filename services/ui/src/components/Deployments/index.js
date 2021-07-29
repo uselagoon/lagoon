@@ -7,7 +7,7 @@ import { bp, color } from 'lib/variables';
 /**
  * Displays a list of deployments.
  */
-const Deployments = ({ deployments }) => (
+const Deployments = ({ deployments, environmentSlug, projectSlug }) => (
   <div className="deployments">
     <div className="header">
       <label>Name</label>
@@ -24,8 +24,8 @@ const Deployments = ({ deployments }) => (
       {deployments.map(deployment => (
         <DeploymentLink
           deploymentSlug={deployment.name}
-          environmentSlug={deployment.environment.openshiftProjectName}
-          projectSlug={deployment.environment.project.name}
+          environmentSlug={environmentSlug}
+          projectSlug={projectSlug}
           key={deployment.id}
         >
           <div className="data-row" deployment={deployment.id}>

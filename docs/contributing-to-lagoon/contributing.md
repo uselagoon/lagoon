@@ -2,7 +2,19 @@
 
 We gladly welcome any and all contributions to Lagoon!
 
-### What kind of contributions do we need? Examples!
+### What kind of contributions do we need?
+
+Lagoon benefits from any kind of contribution - whether it's a bugfix, new feature, documentation update, or simply some queue maintenance - we're happy that you want to help
+
+### Developing for Lagoon
+
+There's a whole section on how to get Lagoon running on your local machine using KinD over at [Developing Lagoon](developing-lagoon.md).  This documentation is still very WIP - but there are a lot of Makefile routines to help you out.
+
+### Installing Lagoon
+
+We've got another section that outlines how to install Lagoon from Helm charts at [Installing Lagoon Into Existing Kubernetes Cluster](../using-lagoon-advanced/installing-lagoon-into-existing-kubernetes-cluster.md) - we'd love to get this process as slick as possible!
+
+### Help us with our examples
 
 Right now one of our biggest needs is putting together examples of Lagoon working with various content management systems, etc, other than Drupal.
 
@@ -30,11 +42,11 @@ Security reports are greatly appreciated and will receive public karma and swag!
 
 ## I found an issue
 
-We're always interested in fixing issues, therefore issue reports are very welcome. Please make sure to check that your issue does not already exist in the [issue queue](https://github.com/amazeeio/lagoon/issues).
+We're always interested in fixing issues, therefore issue reports are very welcome. Please make sure to check that your issue does not already exist in the [issue queue](https://github.com/uselagoon/lagoon/issues).
 
 ## I have a feature request or idea
 
-Cool! Create an [issue](https://github.com/amazeeio/lagoon/issues) and we're happy to look over it. We can't guarantee that it will be implemented. But we are always interested in hearing ideas of what we could bring to Lagoon.
+Cool! Create an [issue](https://github.com/uselagoon/lagoon/issues) and we're happy to look over it. We can't guarantee that it will be implemented. But we are always interested in hearing ideas of what we could bring to Lagoon.
 
 Another good way is also to talk to us via RocketChat about your idea. [Join today](https://amazeeio.rocket.chat/) in the channel \#lagoon.
 

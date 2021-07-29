@@ -1,13 +1,11 @@
 import gql from 'graphql-tag';
-import BackupsFragment from 'lib/fragment/Backup';
 
 export default gql`
-  query getEnvironment($openshiftProjectName: String!) {
+  query getEnvironment($openshiftProjectName: String!, $limit: Int) {
     environment: environmentByOpenshiftProjectName(
       openshiftProjectName: $openshiftProjectName
     ) {
       id
-      name
       openshiftProjectName
       project {
         id
@@ -15,10 +13,17 @@ export default gql`
         problemsUi
         factsUi
       }
-      backups {
-        ...backupFields
+      backups(limit: $limit) {
+        id
+        source
+        backupId
+        created
+        restore {
+          id
+          status
+          restoreLocation
+        }
       }
     }
   }
-  ${BackupsFragment}
 `;

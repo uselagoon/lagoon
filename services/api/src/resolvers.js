@@ -1,5 +1,6 @@
 const GraphQLDate = require('graphql-iso-date');
 const GraphQLJSON = require('graphql-type-json');
+const { GraphQLUpload } = require('graphql-upload');
 
 const {
   getAllProblems,
@@ -49,7 +50,8 @@ const {
   deployEnvironmentPromote,
   switchActiveStandby,
   deploymentSubscriber,
-  getDeploymentUrl
+  getDeploymentUrl,
+  getBuildLog,
 } = require('./resources/deployment/resolvers');
 
 const {
@@ -67,12 +69,14 @@ const {
   taskDrushRsyncFiles,
   taskDrushUserLogin,
   taskSubscriber,
+  getTaskLog,
 } = require('./resources/task/resolvers');
 
 const {
   getFilesByTaskId,
   uploadFilesForTask,
   deleteFilesForTask,
+  getDownloadLink,
 } = require('./resources/file/resolvers');
 
 const {
@@ -104,15 +108,18 @@ const {
   addNotificationMicrosoftTeams,
   addNotificationRocketChat,
   addNotificationSlack,
+  addNotificationWebhook,
   addNotificationToProject,
   deleteNotificationMicrosoftTeams,
   deleteNotificationRocketChat,
   deleteNotificationSlack,
+  deleteNotificationWebhook,
   getNotificationsByProjectId,
   removeNotificationFromProject,
   updateNotificationMicrosoftTeams,
   updateNotificationRocketChat,
   updateNotificationSlack,
+  updateNotificationWebhook,
   addNotificationEmail,
   updateNotificationEmail,
   deleteNotificationEmail,
@@ -120,6 +127,7 @@ const {
   deleteAllNotificationSlacks,
   deleteAllNotificationMicrosoftTeams,
   deleteAllNotificationRocketChats,
+  deleteAllNotificationWebhook,
   removeAllNotificationsFromAllProjects,
 } = require('./resources/notification/resolvers');
 
@@ -208,6 +216,7 @@ const {
   getRestoreByBackupId,
   updateRestore,
   backupSubscriber,
+  getRestoreLocation,
 } = require('./resources/backup/resolvers');
 
 const {
@@ -218,6 +227,7 @@ const {
 } = require('./resources/env-variables/resolvers');
 
 const resolvers = {
+  Upload: GraphQLUpload,
   GroupRole: {
     GUEST: 'guest',
     REPORTER: 'reporter',
@@ -272,6 +282,7 @@ const resolvers = {
     ROCKETCHAT: 'rocketchat',
     MICROSOFTTEAMS: 'microsoftteams',
     EMAIL: 'email',
+    WEBHOOK: 'webhook',
   },
   NotificationContentType: {
     DEPLOYMENT: 'deployment',
@@ -327,10 +338,15 @@ const resolvers = {
   Deployment: {
     environment: getEnvironmentByDeploymentId,
     uiLink: getDeploymentUrl,
+    buildLog: getBuildLog,
   },
   Task: {
     environment: getEnvironmentByTaskId,
     files: getFilesByTaskId,
+    logs: getTaskLog
+  },
+  File: {
+    download: getDownloadLink
   },
   Notification: {
     __resolveType(obj) {
@@ -343,6 +359,8 @@ const resolvers = {
           return 'NotificationMicrosoftTeams';
         case 'email':
           return 'NotificationEmail';
+        case 'webhook':
+          return 'NotificationWebhook';
         default:
           return null;
       }
@@ -355,6 +373,9 @@ const resolvers = {
   Backup: {
     restore: getRestoreByBackupId,
     environment: getEnvironmentByBackupId,
+  },
+  Restore: {
+    restoreLocation: getRestoreLocation,
   },
   Query: {
     me: getMe,
@@ -408,7 +429,11 @@ const resolvers = {
     addNotificationSlack,
     updateNotificationSlack,
     deleteNotificationSlack,
+    addNotificationWebhook,
+    updateNotificationWebhook,
+    deleteNotificationWebhook,
     deleteAllNotificationSlacks,
+    deleteAllNotificationWebhook,
     addNotificationRocketChat,
     updateNotificationRocketChat,
     deleteNotificationRocketChat,

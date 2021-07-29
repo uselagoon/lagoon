@@ -1,5 +1,4 @@
 import * as R from 'ramda';
-import getFieldNames from 'graphql-list-fields';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
 import {
   createDeployTask,
@@ -24,12 +23,13 @@ import { Sql as environmentSql } from '../environment/sql';
 
 const convertDateFormat = R.init;
 
-const injectBuildLog = async deployment => {
-  if (!deployment.remoteId) {
-    return {
-      ...deployment,
-      buildLog: null
-    };
+export const getBuildLog: ResolverFn = async (
+  { remoteId, status },
+  _args,
+  _context
+) => {
+  if (!remoteId) {
+    return null;
   }
 
   try {
@@ -40,8 +40,8 @@ const injectBuildLog = async deployment => {
         query: {
           bool: {
             must: [
-              { match_phrase: { 'meta.remoteId': deployment.remoteId } },
-              { match_phrase: { 'meta.buildPhase': deployment.status } }
+              { match_phrase: { 'meta.remoteId': remoteId } },
+              { match_phrase: { 'meta.buildPhase': status } }
             ]
           }
         }
@@ -49,29 +49,19 @@ const injectBuildLog = async deployment => {
     });
 
     if (!result.hits.total) {
-      return {
-        ...deployment,
-        buildLog: null
-      };
+      return null;
     }
 
-    return {
-      ...deployment,
-      buildLog: R.path(['hits', 'hits', 0, '_source', 'message'], result)
-    };
+    return R.path(['hits', 'hits', 0, '_source', 'message'], result);
   } catch (e) {
-    return {
-      ...deployment,
-      buildLog: `There was an error loading the logs: ${e.message}`
-    };
+    return `There was an error loading the logs: ${e.message}`;
   }
 };
 
 export const getDeploymentsByEnvironmentId: ResolverFn = async (
   { id: eid },
-  { name },
-  { sqlClientPool, hasPermission },
-  info
+  { name, limit },
+  { sqlClientPool, hasPermission }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
@@ -80,41 +70,24 @@ export const getDeploymentsByEnvironmentId: ResolverFn = async (
     project: environment.project
   });
 
-  const rows = (await query(
-    sqlClientPool,
-    `SELECT d.*
-    FROM environment e
-    JOIN deployment d on e.id = d.environment
-    JOIN project p ON e.project = p.id
-    WHERE e.id = :eid`,
-    { eid }
-  )) as any[];
-  const newestFirst = R.sort(R.descend(R.prop('created')), rows);
+  let queryBuilder = knex('deployment')
+  .where('environment', eid)
+  .orderBy('created', 'desc')
+  .orderBy('id', 'desc');
 
-  const requestedFields = getFieldNames(info);
+  if (name) {
+    queryBuilder = queryBuilder.andWhere('name', name);
+  }
 
-  return newestFirst
-    .filter(row => {
-      if (R.isNil(name) || R.isEmpty(name)) {
-        return true;
-      }
+  if (limit) {
+    queryBuilder = queryBuilder.limit(limit);
+  }
 
-      return row.name === name;
-    })
-    .map(row => {
-      if (R.contains('buildLog', requestedFields)) {
-        return injectBuildLog(row);
-      }
-
-      return {
-        ...row,
-        buildLog: null
-      };
-    });
+  return query(sqlClientPool, queryBuilder.toString());
 };
 
 export const getDeploymentByRemoteId: ResolverFn = async (
-  root,
+  _root,
   { id },
   { sqlClientPool, hasPermission }
 ) => {
@@ -138,13 +111,13 @@ export const getDeploymentByRemoteId: ResolverFn = async (
     project: R.path(['0', 'pid'], perms)
   });
 
-  return injectBuildLog(deployment);
+  return deployment;
 };
 
 export const getDeploymentUrl: ResolverFn = async (
   { id, environment },
-  args,
-  { sqlClientPool, hasPermission }
+  _args,
+  { sqlClientPool }
 ) => {
   const lagoonUiRoute = getLagoonRouteFromEnv(
     /\/ui-/,
@@ -155,13 +128,7 @@ export const getDeploymentUrl: ResolverFn = async (
     sqlClientPool
   ).getProjectByEnvironmentId(environment);
 
-  const rows = await query(
-    sqlClientPool,
-    knex('deployment')
-      .where('id', '=', id)
-      .toString()
-  );
-  const deployment = R.prop(0, rows);
+  const deployment = await Helpers(sqlClientPool).getDeploymentById(id);
 
   return `${lagoonUiRoute}/projects/${project}/${openshiftProjectName}/deployments/${deployment.name}`;
 };
@@ -180,7 +147,7 @@ export const addDeployment: ResolverFn = async (
       remoteId
     }
   },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
@@ -189,9 +156,7 @@ export const addDeployment: ResolverFn = async (
     project: environment.project
   });
 
-  const {
-    insertId
-  } = await query(
+  const { insertId } = await query(
     sqlClientPool,
     Sql.insertDeployment({
       id,
@@ -206,7 +171,7 @@ export const addDeployment: ResolverFn = async (
   );
 
   const rows = await query(sqlClientPool, Sql.selectDeployment(insertId));
-  const deployment = await injectBuildLog(R.prop(0, rows));
+  const deployment = R.prop(0, rows);
 
   pubSub.publish(EVENTS.DEPLOYMENT.ADDED, deployment);
   return deployment;
@@ -215,7 +180,7 @@ export const addDeployment: ResolverFn = async (
 export const deleteDeployment: ResolverFn = async (
   root,
   { input: { id } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const perms = await query(sqlClientPool, Sql.selectPermsForDeployment(id));
 
@@ -224,6 +189,12 @@ export const deleteDeployment: ResolverFn = async (
   });
 
   await query(sqlClientPool, Sql.deleteDeployment(id));
+
+  userActivityLogger.user_action(`User deleted deployment '${id}'`, {
+    payload: {
+      deployment: id
+    }
+  });
 
   return 'success';
 };
@@ -245,7 +216,7 @@ export const updateDeployment: ResolverFn = async (
       }
     }
   },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   if (isPatchEmpty({ patch })) {
     throw new Error('Input patch requires at least 1 attribute');
@@ -288,9 +259,25 @@ export const updateDeployment: ResolverFn = async (
   );
 
   const rows = await query(sqlClientPool, Sql.selectDeployment(id));
-  const deployment = await injectBuildLog(R.prop(0, rows));
+  const deployment = R.prop(0, rows);
 
   pubSub.publish(EVENTS.DEPLOYMENT.UPDATED, deployment);
+
+  userActivityLogger.user_action(`User updated deployment '${id}'`, {
+    payload: {
+      id,
+      deployment,
+      patch: {
+        name,
+        status,
+        created,
+        started,
+        completed,
+        environment,
+        remoteId
+      }
+    }
+  });
 
   return deployment;
 };
@@ -298,7 +285,7 @@ export const updateDeployment: ResolverFn = async (
 export const cancelDeployment: ResolverFn = async (
   root,
   { input: { deployment: deploymentInput } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const deployment = await Helpers(
     sqlClientPool
@@ -320,6 +307,16 @@ export const cancelDeployment: ResolverFn = async (
     project
   };
 
+  userActivityLogger.user_action(
+    `User cancelled deployment for '${deployment.environment}'`,
+    {
+      payload: {
+        deploymentInput,
+        data: data.build
+      }
+    }
+  );
+
   try {
     await createMiscTask({ key: 'build:cancel', data });
     return 'success';
@@ -339,7 +336,7 @@ export const cancelDeployment: ResolverFn = async (
 export const deployEnvironmentLatest: ResolverFn = async (
   root,
   { input: { environment: environmentInput } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const environments = await environmentHelpers(
     sqlClientPool
@@ -439,8 +436,17 @@ export const deployEnvironmentLatest: ResolverFn = async (
       break;
 
     default:
-      return `Error: Unkown deploy type ${environment.deployType}`;
+      return `Error: Unknown deploy type ${environment.deployType}`;
   }
+
+  userActivityLogger.user_action(
+    `User triggered a deployment on '${deployData.projectName}' for '${environment.name}'`,
+    {
+      payload: {
+        deployData
+      }
+    }
+  );
 
   try {
     await taskFunction(deployData);
@@ -485,7 +491,7 @@ export const deployEnvironmentLatest: ResolverFn = async (
 export const deployEnvironmentBranch: ResolverFn = async (
   root,
   { input: { project: projectInput, branchName, branchRef } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
     projectInput
@@ -508,6 +514,15 @@ export const deployEnvironmentBranch: ResolverFn = async (
     projectName: project.name,
     branchName: deployData.branchName
   };
+
+  userActivityLogger.user_action(
+    `User triggered a deployment on '${deployData.projectName}' for '${deployData.branchName}'`,
+    {
+      payload: {
+        deployData
+      }
+    }
+  );
 
   try {
     await createDeployTask(deployData);
@@ -563,7 +578,7 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
       headBranchRef
     }
   },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const branchName = `pr-${number}`;
   const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
@@ -592,6 +607,15 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
     projectName: project.name,
     pullrequestTitle: deployData.pullrequestTitle
   };
+
+  userActivityLogger.user_action(
+    `User triggered a pull-request deployment on '${deployData.projectName}' for '${deployData.branchName}'`,
+    {
+      payload: {
+        deployData
+      }
+    }
+  );
 
   try {
     await createDeployTask(deployData);
@@ -642,7 +666,7 @@ export const deployEnvironmentPromote: ResolverFn = async (
       destinationEnvironment
     }
   },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const destProject = await projectHelpers(
     sqlClientPool
@@ -686,6 +710,15 @@ export const deployEnvironmentPromote: ResolverFn = async (
     branchName: deployData.branchName,
     promoteSourceEnvironment: deployData.promoteSourceEnvironment
   };
+
+  userActivityLogger.user_action(
+    `User promoted the environment on '${deployData.projectName}' from '${deployData.promoteSourceEnvironment}' to '${deployData.branchName}'`,
+    {
+      payload: {
+        deployData
+      }
+    }
+  );
 
   try {
     await createPromoteTask(deployData);

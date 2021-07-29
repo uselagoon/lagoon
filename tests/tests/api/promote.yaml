@@ -1,0 +1,79 @@
+- name: "{{ testname }} - init git, add files, commit, git push"
+  hosts: localhost
+  serial: 1
+  vars:
+    git_files: "node{{ node_version }}/"
+    branch: "{{ source_environment }}"
+  tasks:
+  - include: ../../tasks/git-init.yaml
+  - include: ../../tasks/git-add-commit-push.yaml
+
+- name: "{{ testname }} - api deployEnvironmentBranch on {{ project }} for branch {{ source_environment }}, which will deploy our source environment"
+  hosts: localhost
+  serial: 1
+  vars:
+    branch: "{{ source_environment }}"
+    project: "{{ project }}"
+  tasks:
+  - include: ../../tasks/api/deploy-no-sha.yaml
+
+- include: ../../checks/check-branch-sha.yaml
+  vars:
+    expected_head: "{{ current_head }}"
+    expected_branch: "{{ source_environment }}"
+    project: "{{ project }}"
+    url: "{{ check_url_source }}"
+
+- name: "{{ testname }} - api deployEnvironmentPromote for target environment {{ promote_environment }} with source environment {{ source_environment }} on {{ project }}"
+  hosts: localhost
+  serial: 1
+  vars:
+    to_promote_environment: "{{ promote_environment }}"
+    source_environment: "{{ source_environment }}"
+    project: "{{ project }}"
+  tasks:
+  - include: ../../tasks/api/promote.yaml
+
+- include: ../../checks/check-branch-sha.yaml
+  vars:
+    expected_head: "{{ current_head }}"
+    expected_branch: ""
+    expected_branch_buildtime: "{{ source_environment }}"
+    project: "{{ project }}"
+    url: "{{ check_url_promote }}"
+
+- name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ project }}"
+    branch: "{{ promote_environment }}"
+  tasks:
+  - include: ../../tasks/api/delete-environment.yaml
+
+- name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ project }}"
+    branch: "{{ source_environment }}"
+  tasks:
+  - include: ../../tasks/api/delete-environment.yaml
+
+- name: "{{ testname }} - check if site for {{ project }} does not exist anymore"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "{{ check_url_promote }}"
+    expected_returncode: "{{ del_status_code }}"
+  tasks:
+  - include: ../../checks/check-url-returncode.yaml
+
+- name: "{{ testname }} - check if site for {{ project }} does not exist anymore"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "{{ check_url_source }}"
+    expected_returncode: "{{ del_status_code }}"
+  tasks:
+  - include: ../../checks/check-url-returncode.yaml

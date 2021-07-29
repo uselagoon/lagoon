@@ -6,7 +6,7 @@ import { bp, color } from 'lib/variables';
 /**
  * Displays an environment's list of tasks.
  */
-const Tasks = ({ tasks }) => (
+const Tasks = ({ tasks, environmentSlug, projectSlug }) => (
   <div className="tasks">
     <div className="header">
       <label>Name</label>
@@ -19,8 +19,8 @@ const Tasks = ({ tasks }) => (
       {tasks.map(task => (
         <TaskLink
           taskSlug={task.id}
-          environmentSlug={task.environment.openshiftProjectName}
-          projectSlug={task.environment.project.name}
+          environmentSlug={environmentSlug}
+          projectSlug={projectSlug}
           key={task.id}
         >
           <div className="data-row" task={task.id}>

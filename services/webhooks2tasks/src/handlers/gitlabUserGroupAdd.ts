@@ -1,4 +1,4 @@
-import { retry } from 'async-retry';
+import retry from 'async-retry';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
 import { addUserToGroup, sanitizeGroupName } from '@lagoon/commons/dist/api';
 import { getGroup } from '@lagoon/commons/dist/gitlabApi';

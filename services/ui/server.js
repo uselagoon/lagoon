@@ -15,9 +15,13 @@ app
     const server = express();
 
     // Handle favicon requests that ignore our HTML meta tags.
-    server.get('/favicon.ico', (req, res) => (
-      res.status(200).sendFile('favicon.ico', {root: __dirname + '/src/static/images/favicons/'})
-    ));
+    server.get('/favicon.ico', (req, res) =>
+      res
+        .status(200)
+        .sendFile('favicon.ico', {
+          root: __dirname + '/src/static/images/favicons/'
+        })
+    );
 
     server.get(
       '/problems/project',
@@ -33,12 +37,9 @@ app
       }
     );
 
-    server.get(
-      '/problems/identifier',
-      (req, res) => {
-          app.render(req, res, '/problems-dashboard');
-      }
-    );
+    server.get('/problems', (req, res) => {
+      app.render(req, res, '/problems-dashboard-by-project-hex');
+    });
 
     server.get('*', (req, res) => {
       return handle(req, res);

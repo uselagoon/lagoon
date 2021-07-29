@@ -17,11 +17,4 @@ const Authenticator = publicRuntimeConfig.GRAPHQL_API_TOKEN
   ? withLocalAuth(ContextProvider, initialAuth)
   : withKeycloak(ContextProvider, initialAuth);
 
-const ROLES_WITH_ADMIN_ACCESS = ["platform-owner", "admin"];
-export const adminAuthChecker = auth =>
-  auth &&
-  auth.providerData &&
-  auth.providerData.realmAccess &&
-  auth.providerData.realmAccess.roles.some(r => ROLES_WITH_ADMIN_ACCESS.includes(r));
-
 export default Authenticator;

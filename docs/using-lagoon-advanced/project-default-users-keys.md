@@ -1,4 +1,4 @@
-# Project Default Users and SSH keys
+# Project Default Users and SSH Keys
 
 When a Lagoon project is created, by default an associated SSH "project key" is generated and the private key made available inside the CLI pods of the project. A service account `default-user@project` is also created and given `MAINTAINER` access to the project. The SSH "project key" is attached to that `default-user@project`.
 

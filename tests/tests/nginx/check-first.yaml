@@ -12,7 +12,7 @@
   serial: 1
   vars:
     url: "https://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix_https }}"
-    host: "nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+    host: "nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix_https }}"
     expected_content: "Hello World!"
   tasks:
   - include: ../../checks/check-url-content-host.yaml

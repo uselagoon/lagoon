@@ -5,7 +5,6 @@ USE infrastructure;
 -- Since these proved to be awkward to work with and
 -- prone to errors, we will write any further queries
 -- in the API service using knex.
--- Example using knex: https://github.com/amazeeio/lagoon/blob/3c5da25fe9caa442a4443c73b1dc00eb4afb411e/services/api/src/dao/project.js#L14-L24
 
 DELIMITER $$
 
@@ -545,6 +544,50 @@ CREATE OR REPLACE PROCEDURE
 
     DELETE FROM notification_email WHERE id = nsid;
     DELETE FROM project_notification WHERE nid = nsid AND type = 'email';
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  CreateNotificationWebhook
+  (
+    IN name        varchar(50),
+    IN webhook     varchar(300)
+  )
+  BEGIN
+    DECLARE new_whid int;
+
+    INSERT INTO notification_webhook (
+      name,
+      webhook
+    )
+    VALUES (
+      name,
+      webhook
+    );
+
+    SET new_whid = LAST_INSERT_ID();
+
+    SELECT
+      id,
+      name,
+      webhook
+    FROM notification_webhook
+    WHERE id = new_whid;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  DeleteNotificationWebhook
+  (
+    IN name varchar(50)
+  )
+  BEGIN
+    DECLARE whid int;
+
+    SELECT id INTO whid FROM notification_webhook ns WHERE ns.name = name;
+
+    DELETE FROM notification_webhook WHERE id = whid;
+    DELETE FROM project_notification WHERE nid = whid AND type = 'webhook';
   END;
 $$
 

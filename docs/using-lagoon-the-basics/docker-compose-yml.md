@@ -189,7 +189,7 @@ OpenShift defines templates as follows:
 
 > A template describes a set of objects that can be parameterized and processed to produce a list of objects for creation by OpenShift Container Platform. A template can be processed to create anything you have permission to create within a project, for example services, build configurations, and DeploymentConfigs. A template may also define a set of labels to apply to every object defined in the template.
 
-Lagoon comes with a variety of pre-defined templates, which set all kinds of needed configuration in YAML files. Check out the shipped templates from the [templates folder of `oc-build-deploy-dind`](https://github.com/amazeeio/lagoon/tree/main/images/oc-build-deploy-dind/openshift-templates).
+Lagoon comes with a variety of pre-defined templates, which set all kinds of needed configuration in YAML files. Check out the shipped templates from the [templates folder of `oc-build-deploy-dind`](https://github.com/uselagoon/lagoon/tree/main/images/oc-build-deploy-dind/openshift-templates).
 
 If you need to make changes to the OpenShift templates, you can define your own template via `lagoon.template`.
 
@@ -201,7 +201,7 @@ You can also overwrite the templates for a specific environment. This is done in
 
 ## Helm Templates \(Kubernetes only\)
 
-Lagoon uses [Helm](https://helm.sh/) for templating on Kubernetes. To do this, a series of [Charts](https://github.com/amazeeio/lagoon/tree/main/images/kubectl-build-deploy-dind/helmcharts) are included with the `kubectl-build-deploy-dind` service.
+Lagoon uses [Helm](https://helm.sh/) for templating on Kubernetes. To do this, a series of [Charts](https://github.com/uselagoon/lagoon/tree/main/images/kubectl-build-deploy-dind/helmcharts) are included with the `kubectl-build-deploy-dind` service.
 
 ## **Custom Rollout Monitor Types**
 
@@ -213,18 +213,4 @@ By default , Lagoon expects that services from custom templates are rolled out v
 * `false` - Will not monitor any rollouts, and will just be happy if the template applies and does not throw any errors.
 
 You can also overwrite the rollout for just one specific environment. This is done in [`.lagoon.yml`](lagoon-yml.md#environments-name-rollouts).
-
-## **Custom Type**
-
-Feeling adventurous and want to do something completely customized? Welcome to the Danger Zone!
-
-![Welcome to the Danger Zone](../.gitbook/assets/topgun%20%282%29.gif)
-
-When defining a service as `lagoon.type: custom`, you can tell Lagoon to not use any pre-defined service type templates and pass your full own custom YAML file.
-
-This also expects the label `lagoon.template` to be defined with the path to the YAML file where you define all the needed Kubernetes objects to be executed. In here you can define your own OpenShift templates like the ones in the [templates folder of `oc-build-deploy-dind`](https://github.com/amazeeio/lagoon/tree/main/images/oc-build-deploy-dind/openshift-templates).
-
-{% hint style="info" %}
-The template is called with `oc process`, so you should define the same parameters as in the default templates.
-{% endhint %}
 
