@@ -5,6 +5,9 @@ import withAnonymousUser from 'storybook/decorators/AnonymousUser';
 
 export default {
   title: 'Home/Welcome',
+  parameters: {
+    layout: 'fullscreen',
+  }
 };
 
 export const toLagoon = () => (
