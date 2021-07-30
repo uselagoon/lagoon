@@ -967,31 +967,29 @@ export async function getEnvironmentByOpenshiftProjectName(
   return result;
 }
 
-export async function getBackupEnvironment( backupEnvironmentInput: {
-  openshiftProjectName?: string;
-  baas_bucket_name?: string;
-}): Promise<any[]> {
+export async function getBackupEnvironment(
+  openshiftProjectName: string,
+  baas_bucket_name: string
+): Promise<any[]> {
   const result = await graphqlapi.query(`
-    {
-      query($backupEnvironmentInput: backupEnvironmentInput!){
-        backupEnvironment(openshiftProjectName(input: $backupEnvironmentInput) {
-          id,
-          name,
-          project {
-            name
-          }
-        }
+  query($openshiftProjectName: string!, $baas_bucket_name: string!) {
+    backupEnvironment(openshiftProjectName: $openshiftProjectName, baas_bucket_name: $baas_bucket_name) {
+      id,
+      name,
+      project {
+        name
       }
     }
-  `,
-  {
-    backupEnvironmentInput
   }
-);
+`,
+{
+  openshiftProjectName,
+  baas_bucket_name,
+});
 
   if (!result || !result.backupEnvironment) {
     throw new EnvironmentNotFound(
-      `Cannot find backupEnvironment for OpenshiftProjectName ${backupEnvironmentInput.openshiftProjectName}\n${result.environmentByOpenshiftProjectName}`
+      `Cannot find backupEnvironment for OpenshiftProjectName ${openshiftProjectName}\n${result.environmentByOpenshiftProjectName}`
     );
   }
 
