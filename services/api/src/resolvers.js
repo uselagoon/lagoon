@@ -76,6 +76,7 @@ const {
 const {
   addOrUpdateEnvironment,
   addOrUpdateEnvironmentStorage,
+  getBackupEnvironment,
   getEnvironmentByName,
   getEnvironmentById,
   getEnvironmentByOpenshiftProjectName,
@@ -376,6 +377,7 @@ const resolvers = {
     projectByName: getProjectByName,
     groupByName: getGroupByName,
     problemSources: getProblemSources,
+    backupEnvrionment: getBackupEnvironment,
     environmentByName: getEnvironmentByName,
     environmentById: getEnvironmentById,
     environmentByOpenshiftProjectName: getEnvironmentByOpenshiftProjectName,

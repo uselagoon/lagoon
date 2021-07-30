@@ -283,6 +283,63 @@ export const getEnvironmentByOpenshiftProjectName: ResolverFn = async (
   return environment;
 };
 
+export const getBackupEnvironment: ResolverFn = async (
+  root,
+  args,
+  { sqlClientPool, hasPermission }
+) => {
+  const rows = await query(
+    sqlClientPool,
+    `SELECT e.*
+    FROM
+    environment e
+    JOIN project p ON e.project = p.id
+    WHERE e.openshift_project_name = :openshift_project_name
+    AND e.deleted = "0000-00-00 00:00:00"`,
+    args
+  );
+
+  const env_var_rows = await query(
+    sqlClientPool,
+    `SELECT ev.name, ev.value, ev.project
+    FROM
+    environment e
+    JOIN project p ON e.project = p.id
+    JOIN env_vars ev on p.id = ev.project
+    WHERE e.openshift_project_name = :openshift_project_name
+    AND e.deleted = "0000-00-00 00:00:00"
+    AND ev.name = 'LAGOON_BAAS_BUCKET_NAME'
+    AND ev.scope = 'build'`,
+    args
+  );
+
+  const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
+
+  for (const env of withK8s) {
+    const env_var = env_var_rows.find(env_var => env_var.project == env.project)
+
+    if (env_var) {
+      if (args.baas_bucket_name == env_var.value) {
+        var environment = env
+      }
+    } else {
+      var no_bucket_env = env
+    }
+  }
+
+  if (!environment && no_bucket_env) {
+    var environment = no_bucket_env
+  } else if (!environment) {
+    return null;
+  }
+
+  await hasPermission('environment', 'view', {
+    project: environment.project
+  });
+
+  return environment;
+};
+
 export const getEnvironmentByKubernetesNamespaceName: ResolverFn = async (
   root,
   args,

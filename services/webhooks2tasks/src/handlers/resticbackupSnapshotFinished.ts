@@ -2,7 +2,7 @@ import R from 'ramda';
 import moment from 'moment';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
 import { logger } from '@lagoon/commons/dist/local-logging';
-import { addBackup, getEnvironmentByOpenshiftProjectName } from '@lagoon/commons/dist/api';
+import { addBackup, getBackupEnvironment } from '@lagoon/commons/dist/api';
 
 import { WebhookRequestData } from '../types';
 
@@ -73,7 +73,7 @@ export async function resticbackupSnapshotFinished(webhook: WebhookRequestData) 
 
   try {
     const { name, bucket_name, snapshots } = body;
-    const environmentResult = await getEnvironmentByOpenshiftProjectName(name);
+    const environmentResult = await getBackupEnvironment(name, bucket_name);
     const environment: any = R.prop('environmentByOpenshiftProjectName', environmentResult)
 
     if (!environment) {

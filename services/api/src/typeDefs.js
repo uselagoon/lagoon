@@ -802,6 +802,13 @@ const typeDefs = gql`
       openshiftProjectName: String!
     ): Environment
     """
+    Returns Environment Object by a given openshiftProjectName and baas_bucket_name
+    """
+    backupEnvironment(
+      openshiftProjectName: String!
+      baas_bucket_name: String!
+    ): Environment
+    """
     Returns Environment Object by a given kubernetesNamespaceName
     """
     environmentByKubernetesNamespaceName(
