@@ -161,6 +161,8 @@ export const Helpers = (sqlClientPool: Pool) => ({
     const taskData = R.prop(0, rows);
     const ADVANCED_TASK_EVENT_TYPE = "task:advanced"
 
+    taskData.id = taskData.id.toString();
+
     let jobSpec = {
       task: taskData,
       project: projectData,
