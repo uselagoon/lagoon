@@ -7,6 +7,14 @@ app.use((req, res, next) => setTimeout(next, 1000))
 
 let testFile = './files/testoutput.txt'
 
+// clear out file if it already exists
+try {
+  fs.unlinkSync(testFile);
+  //file removed
+} catch(err) {
+  console.error(err)
+}
+
 app.get('/', function (req, res) {
   let result = []
   let data = 'TO BE REPLACED'

@@ -26,13 +26,6 @@
   tasks:
   - include: ../../checks/check-url-content.yaml
 
-- name: "{{ testname }} - POST api Add Image task to {{ project }} via {{ graphql_url }}"
-  hosts: localhost
-  tasks:
-    - include: ../../tasks/api/refresh-token.yaml
-    - include: ./create-and-register-image-task.yaml
-
-
 - name: "{{ testname }} - POST api Add task to {{ project }} via {{ graphql_url }}"
   hosts: localhost
   tasks:
@@ -48,6 +41,11 @@
   tasks:
   - include: ../../checks/check-url-content.yaml
 
+- name: "{{ testname }} - POST api Add Image task to {{ project }} via {{ graphql_url }}"
+  hosts: localhost
+  tasks:
+    - include: ../../tasks/api/refresh-token.yaml
+    - include: ./create-register-and-test-image-task.yaml
 
 - name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
   hosts: localhost

@@ -46,3 +46,15 @@
     - name: "{{ testname }} - POST api invokeRegisteredTask to {{ graphql_url }}"
       debug:
         msg: "api response: {{ invokeRegisteredTaskApiResponse.json }}"
+    - name: "{{ testname }} - Wait for success of invoked advanced Image task {{ graphql_url }}"
+      uri:
+        url: "{{ graphql_url }}"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ token }}"
+        body_format: json
+        body: '{ "query": "query($taskId: Int!) {taskById(id:$taskId){status}}", "variables": {"taskId": {{ invokeRegisteredTaskApiResponse.json.data.invokeRegisteredTask.id }}}}'
+      register: result
+      until: result.json.data.taskById.status == "succeeded"
+      retries: 90
+      delay: 20
