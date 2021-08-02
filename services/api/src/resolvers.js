@@ -12,7 +12,7 @@ const {
   getProblemSources,
   getProblemHarborScanMatches,
   addProblemHarborScanMatch,
-  deleteProblemHarborScanMatch
+  deleteProblemHarborScanMatch,
 } = require('./resources/problem/resolvers');
 
 const {
@@ -20,7 +20,7 @@ const {
   addFact,
   addFacts,
   deleteFact,
-  deleteFactsFromSource
+  deleteFactsFromSource,
 } = require('./resources/fact/resolvers');
 
 const { SeverityScoreType } = require('./resources/problem/types');
@@ -41,7 +41,7 @@ const {
   switchActiveStandby,
   deploymentSubscriber,
   getDeploymentUrl,
-  getBuildLog
+  getBuildLog,
 } = require('./resources/deployment/resolvers');
 
 const {
@@ -59,14 +59,14 @@ const {
   taskDrushRsyncFiles,
   taskDrushUserLogin,
   taskSubscriber,
-  getTaskLog
+  getTaskLog,
 } = require('./resources/task/resolvers');
 
 const {
   getFilesByTaskId,
   uploadFilesForTask,
   deleteFilesForTask,
-  getDownloadLink
+  getDownloadLink,
 } = require('./resources/file/resolvers');
 
 const {
@@ -91,7 +91,7 @@ const {
   getAllEnvironments,
   deleteAllEnvironments,
   userCanSshToEnvironment,
-  getEnvironmentUrl
+  getEnvironmentUrl,
 } = require('./resources/environment/resolvers');
 
 const {
@@ -118,7 +118,7 @@ const {
   deleteAllNotificationMicrosoftTeams,
   deleteAllNotificationRocketChats,
   deleteAllNotificationWebhook,
-  removeAllNotificationsFromAllProjects
+  removeAllNotificationsFromAllProjects,
 } = require('./resources/notification/resolvers');
 
 const {
@@ -127,7 +127,7 @@ const {
   getAllOpenshifts,
   getOpenshiftByProjectId,
   updateOpenshift,
-  deleteAllOpenshifts
+  deleteAllOpenshifts,
 } = require('./resources/openshift/resolvers');
 
 const {
@@ -142,7 +142,7 @@ const {
   deleteAllProjects,
   getProjectUrl,
   updateProjectMetadata,
-  removeProjectMetadataByKey
+  removeProjectMetadataByKey,
 } = require('./resources/project/resolvers');
 
 const {
@@ -152,7 +152,7 @@ const {
   deleteSshKey,
   deleteSshKeyById,
   deleteAllSshKeys,
-  removeAllSshKeysFromAllUsers
+  removeAllSshKeysFromAllUsers,
 } = require('./resources/sshKey/resolvers');
 
 const {
@@ -161,7 +161,7 @@ const {
   addUser,
   updateUser,
   deleteUser,
-  deleteAllUsers
+  deleteAllUsers,
 } = require('./resources/user/resolvers');
 
 const {
@@ -178,7 +178,7 @@ const {
   addUserToGroup,
   removeUserFromGroup,
   addGroupsToProject,
-  removeGroupsFromProject
+  removeGroupsFromProject,
 } = require('./resources/group/resolvers');
 
 const {
@@ -190,14 +190,14 @@ const {
   getRestoreByBackupId,
   updateRestore,
   backupSubscriber,
-  getRestoreLocation
+  getRestoreLocation,
 } = require('./resources/backup/resolvers');
 
 const {
   getEnvVarsByProjectId,
   getEnvVarsByEnvironmentId,
   addEnvVariable,
-  deleteEnvVariable
+  deleteEnvVariable,
 } = require('./resources/env-variables/resolvers');
 
 const resolvers = {
@@ -273,7 +273,7 @@ const resolvers = {
     kubernetes: getOpenshiftByProjectId,
     environments: getEnvironmentsByProjectId,
     envVariables: getEnvVarsByProjectId,
-    groups: getGroupsByProjectId
+    groups: getGroupsByProjectId,
   },
   Group: {
     projects: getAllProjectsByGroupId
@@ -290,17 +290,17 @@ const resolvers = {
     envVariables: getEnvVarsByEnvironmentId,
     services: getEnvironmentServicesByEnvironmentId,
     problems: getProblemsByEnvironmentId,
-    facts: getFactsByEnvironmentId
+    facts: getFactsByEnvironmentId,
   },
   Deployment: {
     environment: getEnvironmentByDeploymentId,
     uiLink: getDeploymentUrl,
-    buildLog: getBuildLog
+    buildLog: getBuildLog,
   },
   Task: {
     environment: getEnvironmentByTaskId,
     files: getFilesByTaskId,
-    logs: getTaskLog
+    logs: getTaskLog,
   },
   File: {
     download: getDownloadLink
@@ -325,11 +325,11 @@ const resolvers = {
   },
   User: {
     sshKeys: getUserSshKeys,
-    groups: getGroupsByUserId
+    groups: getGroupsByUserId,
   },
   Backup: {
     restore: getRestoreByBackupId,
-    environment: getEnvironmentByBackupId
+    environment: getEnvironmentByBackupId,
   },
   Restore: {
     restoreLocation: getRestoreLocation
@@ -358,7 +358,7 @@ const resolvers = {
     allGroups: getAllGroups,
     allProjectsInGroup: getAllProjectsInGroup,
     allProblemHarborScanMatchers: getProblemHarborScanMatches,
-    projectsByMetadata: getProjectsByMetadata
+    projectsByMetadata: getProjectsByMetadata,
   },
   Mutation: {
     addProblem,
@@ -458,16 +458,16 @@ const resolvers = {
     addUserToGroup,
     removeUserFromGroup,
     addGroupsToProject,
-    removeGroupsFromProject
+    removeGroupsFromProject,
   },
   Subscription: {
     backupChanged: backupSubscriber,
     deploymentChanged: deploymentSubscriber,
-    taskChanged: taskSubscriber
+    taskChanged: taskSubscriber,
   },
   Date: GraphQLDate,
   JSON: GraphQLJSON,
-  SeverityScore: SeverityScoreType
+  SeverityScore: SeverityScoreType,
 };
 
 module.exports = resolvers;
