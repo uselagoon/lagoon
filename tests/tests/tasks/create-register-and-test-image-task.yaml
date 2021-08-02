@@ -1,6 +1,6 @@
 - name: "{{ testname }} - POST api deployEnvironmentBranch with target git branch {{ branch }} and project {{ project }} (no sha) to {{ graphql_url }}"
   block:
-    - include: ../../tasks/api/refresh-token.yaml
+    - include: ../../tasks/api/admin-token.yaml
     - name: "{{ testname }} - print openshift variable debug inside subtask"
       debug:
         msg: "openshift id {{ openshift_project_name }}"
@@ -9,7 +9,7 @@
         url: "{{ graphql_url }}"
         method: POST
         headers:
-          Authorization: "Bearer {{ token }}"
+          Authorization: "Bearer {{ admin_token }}"
         body_format: json
         body: '{ "query": "query($openshiftProjectName: String!) {environmentByOpenshiftProjectName(openshiftProjectName:$openshiftProjectName) {id}}", "variables": {"openshiftProjectName":"{{ openshift_project_name }}"}}'
       register: environmentByOSProjectNameApiResponse
@@ -22,7 +22,7 @@
         url: "{{ graphql_url }}"
         method: POST
         headers:
-          Authorization: "Bearer {{ token }}"
+          Authorization: "Bearer {{ admin_token }}"
         body_format: json
         body: '{ "query": "mutation($environmentId: Int!, $taskName: String!, $description: String!, $service: String!, $image: String!) {addAdvancedTaskDefinition(input: {environment:$environmentId, name:$taskName, type:IMAGE, description: $description, service: $service, image: $image}){id}}", "variables": {"environmentId": {{ environmentByOSProjectNameApiResponse.json.data.environmentByOpenshiftProjectName.id }}, "taskName":"testing-image","description":"Runs a hello world task", "service":"node", "image":"hello-world"}}'
       register: taskCreateApiResponse
@@ -38,7 +38,7 @@
         url: "{{ graphql_url }}"
         method: POST
         headers:
-          Authorization: "Bearer {{ token }}"
+          Authorization: "Bearer {{ admin_token }}"
         body_format: json
         body: '{ "query": "mutation($environment: Int!, $advancedTaskDefinition: Int!) {invokeRegisteredTask(environment:$environment, advancedTaskDefinition: $advancedTaskDefinition) {id}}", "variables": {"environment":{{ environmentByOSProjectNameApiResponse.json.data.environmentByOpenshiftProjectName.id }}, "advancedTaskDefinition":{{ taskCreateApiResponse.json.data.addAdvancedTaskDefinition.id }}}}'
       register: invokeRegisteredTaskApiResponse
@@ -51,7 +51,7 @@
         url: "{{ graphql_url }}"
         method: POST
         headers:
-          Authorization: "Bearer {{ token }}"
+          Authorization: "Bearer {{ admin_token }}"
         body_format: json
         body: '{ "query": "query($taskId: Int!) {taskById(id:$taskId){status}}", "variables": {"taskId": {{ invokeRegisteredTaskApiResponse.json.data.invokeRegisteredTask.id }}}}'
       register: result

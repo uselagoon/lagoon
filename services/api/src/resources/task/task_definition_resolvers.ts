@@ -200,7 +200,7 @@ export const addAdvancedTaskDefinition = async (
     throw Error('Adding Images and System Wide Tasks are not yet supported');
   } else if (advancedTaskWithImage) {
     //We're only going to allow administrators to add these for now ...
-    // await hasPermission('advanced_task','create:advanced');
+    await hasPermission('advanced_task','create:advanced');
   } else if (groupName) {
     const group = await models.GroupModel.loadGroupByIdOrName({
       name: groupName
