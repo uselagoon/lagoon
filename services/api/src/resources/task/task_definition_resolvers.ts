@@ -87,7 +87,6 @@ export const resolveTasksForEnvironment = async (
     Sql.selectAdvancedTaskDefinitionsForEnvironment(environment)
   );
 
-  //grab group names ...
   const proj = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(
     environment
   );
