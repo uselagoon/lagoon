@@ -323,9 +323,7 @@ export const addUserToGroup: ResolverFn = async (
   userActivityLogger.user_action(`User added a user to a group`, {
     payload: {
       input: {
-        user: userInput,
-        group: groupInput,
-        role
+        user: userInput, group: groupInput, role
       },
       data: updatedGroup
     }
@@ -363,8 +361,7 @@ export const removeUserFromGroup: ResolverFn = async (
   userActivityLogger.user_action(`User removed a user from a group`, {
     payload: {
       input: {
-        user: userInput,
-        group: groupInput
+        user: userInput, group: groupInput
       },
       data: updatedGroup
     }
@@ -426,8 +423,7 @@ export const addGroupsToProject: ResolverFn = async (
   userActivityLogger.user_action(`User synced groups to a project`, {
     payload: {
       input: {
-        project: projectInput,
-        groups: groupsInput
+        project: projectInput, groups: groupsInput
       }
     }
   });
