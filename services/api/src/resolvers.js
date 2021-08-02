@@ -91,7 +91,7 @@ const {
   getAllEnvironments,
   deleteAllEnvironments,
   userCanSshToEnvironment,
-  getEnvironmentUrl,
+  getEnvironmentUrl
 } = require('./resources/environment/resolvers');
 
 const {
@@ -142,7 +142,7 @@ const {
   deleteAllProjects,
   getProjectUrl,
   updateProjectMetadata,
-  removeProjectMetadataByKey,
+  removeProjectMetadataByKey
 } = require('./resources/project/resolvers');
 
 const {
@@ -207,40 +207,40 @@ const resolvers = {
     REPORTER: 'reporter',
     DEVELOPER: 'developer',
     MAINTAINER: 'maintainer',
-    OWNER: 'owner'
+    OWNER: 'owner',
   },
   ProjectOrderType: {
     NAME: 'name',
-    CREATED: 'created'
+    CREATED: 'created',
   },
   EnvOrderType: {
     NAME: 'name',
-    UPDATED: 'updated'
+    UPDATED: 'updated',
   },
   DeployType: {
     BRANCH: 'branch',
     PULLREQUEST: 'pullrequest',
-    PROMOTE: 'promote'
+    PROMOTE: 'promote',
   },
   EnvType: {
     PRODUCTION: 'production',
-    DEVELOPMENT: 'development'
+    DEVELOPMENT: 'development',
   },
   EnvVariableType: {
     PROJECT: 'project',
-    ENVIRONMENT: 'environment'
+    ENVIRONMENT: 'environment',
   },
   EnvVariableScope: {
     BUILD: 'build',
     RUNTIME: 'runtime',
     GLOBAL: 'global',
     CONTAINER_REGISTRY: 'container_registry',
-    INTERNAL_CONTAINER_REGISTRY: 'internal_container_registry'
+    INTERNAL_CONTAINER_REGISTRY: 'internal_container_registry',
   },
   RestoreStatusType: {
     PENDING: 'pending',
     SUCCESSFUL: 'successful',
-    FAILED: 'failed'
+    FAILED: 'failed',
   },
   DeploymentStatusType: {
     NEW: 'new',
@@ -249,23 +249,23 @@ const resolvers = {
     CANCELLED: 'cancelled',
     ERROR: 'error',
     FAILED: 'failed',
-    COMPLETE: 'complete'
+    COMPLETE: 'complete',
   },
   NotificationType: {
     SLACK: 'slack',
     ROCKETCHAT: 'rocketchat',
     MICROSOFTTEAMS: 'microsoftteams',
     EMAIL: 'email',
-    WEBHOOK: 'webhook'
+    WEBHOOK: 'webhook',
   },
   NotificationContentType: {
     DEPLOYMENT: 'deployment',
-    PROBLEM: 'problem'
+    PROBLEM: 'problem',
   },
   TaskStatusType: {
     ACTIVE: 'active',
     SUCCEEDED: 'succeeded',
-    FAILED: 'failed'
+    FAILED: 'failed',
   },
   Project: {
     notifications: getNotificationsByProjectId,
