@@ -9,17 +9,16 @@ export interface ResolverFn {
     parent,
     args,
     context: {
-      sqlClientPool: Pool,
-      hasPermission: hasPermission,
-      keycloakGrant: any | null,
-      userActivityLogger: any | null,
+      sqlClientPool: Pool;
+      hasPermission: hasPermission;
+      keycloakGrant: any | null;
+      userActivityLogger: any | null;
       models: {
-        UserModel,
-        GroupModel
-        BillingModel,
-        ProjectModel,
-        EnvironmentModel,
-      },
+        UserModel;
+        GroupModel;
+        ProjectModel;
+        EnvironmentModel;
+      };
     },
     info?
   ): any;

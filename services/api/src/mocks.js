@@ -18,8 +18,7 @@ export const seed = (value = 123) => faker.seed(value);
 const addTime = (originalDate, hoursLimit) => {
   const date = new Date(originalDate);
   date.setTime(
-    date.getTime()
-    + faker.random.number(hoursLimit*60*60*1000)
+    date.getTime() + faker.random.number(hoursLimit * 60 * 60 * 1000)
   );
   return date.toISOString();
 };
@@ -30,18 +29,21 @@ export const generator = (schema, min = 1, max) => {
   return Array.from({
     length: faker.random.number({
       min,
-      max,
-    }),
+      max
+    })
   }).map(() => {
-    const innerGen = (anySchema) => Object.keys(anySchema).reduce((entity, key) => {
-      if (Object.prototype.toString.call(anySchema[key]) === '[object Object]') {
-        entity[key] = innerGen(anySchema[key]);
-        return entity;
-      }
-      entity[key] = faker.fake(anySchema[key]);
+    const innerGen = anySchema =>
+      Object.keys(anySchema).reduce((entity, key) => {
+        if (
+          Object.prototype.toString.call(anySchema[key]) === '[object Object]'
+        ) {
+          entity[key] = innerGen(anySchema[key]);
+          return entity;
+        }
+        entity[key] = faker.fake(anySchema[key]);
 
-      return entity;
-    }, {});
+        return entity;
+      }, {});
 
     return innerGen(schema());
   });
@@ -51,22 +53,55 @@ export const generator = (schema, min = 1, max) => {
 // 'scalar' and 'enum' mocks from typeDefs.
 //
 const mocks = {
-  Date: () => faker.date.between('2018-11-01T00:00:00', '2019-10-31T23:59:59').toISOString(),
+  Date: () =>
+    faker.date
+      .between('2018-11-01T00:00:00', '2019-10-31T23:59:59')
+      .toISOString(),
   JSON: () => ({ id: faker.random.number(), currency: 'usd' }),
   SshKeyType: () => faker.random.arrayElement(['ssh_rsa', 'ssh_ed25519']),
-  DeployType: () => faker.random.arrayElement(['branch', 'pullrequest', 'promote']),
+  DeployType: () =>
+    faker.random.arrayElement(['branch', 'pullrequest', 'promote']),
   EnvType: () => faker.random.arrayElement(['production', 'development']),
-  NotificationType: () => faker.random.arrayElement(['slack', 'rocketchat', 'microsoftteams', 'email']),
-  DeploymentStatusType: () => faker.random.arrayElement(['new', 'pending', 'running', 'cancelled', 'error', 'failed', 'complete']),
+  NotificationType: () =>
+    faker.random.arrayElement([
+      'slack',
+      'rocketchat',
+      'microsoftteams',
+      'email'
+    ]),
+  DeploymentStatusType: () =>
+    faker.random.arrayElement([
+      'new',
+      'pending',
+      'running',
+      'cancelled',
+      'error',
+      'failed',
+      'complete'
+    ]),
   EnvVariableType: () => faker.random.arrayElement(['project', 'environment']),
-  EnvVariableScope: () => faker.random.arrayElement(['build', 'runtime', 'global', 'container_registry']),
-  TaskStatusType: () => faker.random.arrayElement(['active', 'succeeded', 'failed']),
-  RestoreStatusType: () => faker.random.arrayElement(['pending', 'successful', 'failed']),
+  EnvVariableScope: () =>
+    faker.random.arrayElement([
+      'build',
+      'runtime',
+      'global',
+      'container_registry'
+    ]),
+  TaskStatusType: () =>
+    faker.random.arrayElement(['active', 'succeeded', 'failed']),
+  RestoreStatusType: () =>
+    faker.random.arrayElement(['pending', 'successful', 'failed']),
   EnvOrderType: () => faker.random.arrayElement(['name', 'updated']),
   ProjectOrderType: () => faker.random.arrayElement(['name', 'created']),
   ProjectAvailability: () => faker.random.arrayElement(['standard', 'high']),
-  GroupRole: () => faker.random.arrayElement(['guest', 'reporter', 'developer', 'maintainer', 'owner']),
-  Currency: () => faker.random.arrayElement(['AUD', 'EUR', 'GBP', 'USD', 'CHF', 'ZAR']),
+  GroupRole: () =>
+    faker.random.arrayElement([
+      'guest',
+      'reporter',
+      'developer',
+      'maintainer',
+      'owner'
+    ])
 };
 
 //
@@ -79,7 +114,7 @@ mocks.File = () => {
     id: faker.random.number(),
     filename: name,
     download: `/download/${name}`,
-    created: mocks.Date(),
+    created: mocks.Date()
   };
 };
 
@@ -89,7 +124,7 @@ mocks.SshKey = () => ({
   keyValue: faker.random.uuid(),
   keyType: mocks.SshKeyType(),
   keyFingerprint: faker.random.uuid(),
-  created: mocks.Date(),
+  created: mocks.Date()
 });
 
 mocks.User = (parent, args = {}, context, info) => {
@@ -102,41 +137,41 @@ mocks.User = (parent, args = {}, context, info) => {
     lastName,
     comment: faker.lorem.words(5),
     gitlabId: faker.random.number(),
-    sshKeys: [ mocks.SshKey() ],
-    groups: [],
+    sshKeys: [mocks.SshKey()],
+    groups: []
   };
   return {
     ...user,
     groups: args.hasOwnProperty('groups')
       ? args.groups
-      : [mocks.Group(null, {user})],
-  }
+      : [mocks.Group(null, { user })]
+  };
 };
 
 mocks.GroupMembership = (parent, args = {}, context, info) => ({
   user: args.hasOwnProperty('user')
     ? args.user
-    : mocks.User(null, {groups: []}),
-  role: mocks.GroupRole(),
+    : mocks.User(null, { groups: [] }),
+  role: mocks.GroupRole()
 });
 
 mocks.Group = (parent, args = {}, context, info) => {
   const user = args.hasOwnProperty('user')
     ? args.user
-    : mocks.User(null, {groups: []});
-  const user2 = mocks.User(null, {groups: []});
+    : mocks.User(null, { groups: [] });
+  const user2 = mocks.User(null, { groups: [] });
 
   const group = {
     id: faker.random.number(),
     name: faker.random.word(),
     // Only mock nested groups when not asked for a user-specific group.
     groups: !args.hasOwnProperty('user')
-      ? [mocks.Group(null, {user: mocks.User(null, {groups: []})})]
+      ? [mocks.Group(null, { user: mocks.User(null, { groups: [] }) })]
       : [],
     members: [
-      mocks.GroupMembership(null, {user}),
-      mocks.GroupMembership(null, {user: user2}),
-    ],
+      mocks.GroupMembership(null, { user }),
+      mocks.GroupMembership(null, { user: user2 })
+    ]
   };
 
   // Add a reference to the group to all of its members.
@@ -145,14 +180,6 @@ mocks.Group = (parent, args = {}, context, info) => {
 
   return group;
 };
-
-// mocks.Group = mocks.GroupInterface;
-
-mocks.BillingGroup = (parent, args = {}, context, info) => ({
-  ...mocks.Group(parent, args, context, info),
-  currency: mocks.Currency(),
-  billingSoftware: faker.random.arrayElement(['Xero', 'Bexio', 'Clay tablets']),
-});
 
 mocks.Openshift = () => ({
   id: faker.random.number(),
@@ -163,39 +190,42 @@ mocks.Openshift = () => ({
   projectUser: faker.internet.userName(),
   sshHost: '192.168.99.1',
   sshPort: '22',
-  created: mocks.Date(),
+  created: mocks.Date()
 });
 
 mocks.NotificationMicrosoftTeams = () => ({
   id: faker.random.number(),
   name: 'amazeeio--lagoon-local-ci',
-  webhook: 'https://amazeeio.teams.microsoft.com/hooks/ikF5XMohDZK7KpsZf/c9BFBt2ch8oMMuycoERJQMSLTPo8nmZhg2Hf2ny68ZpuD4Kn',
+  webhook:
+    'https://amazeeio.teams.microsoft.com/hooks/ikF5XMohDZK7KpsZf/c9BFBt2ch8oMMuycoERJQMSLTPo8nmZhg2Hf2ny68ZpuD4Kn'
 });
 
 mocks.NotificationRocketChat = () => ({
   id: faker.random.number(),
   name: 'amazeeio--lagoon-local-ci',
-  webhook: 'https://amazeeio.rocket.chat/hooks/ikF5XMohDZK7KpsZf/c9BFBt2ch8oMMuycoERJQMSLTPo8nmZhg2Hf2ny68ZpuD4Kn',
+  webhook:
+    'https://amazeeio.rocket.chat/hooks/ikF5XMohDZK7KpsZf/c9BFBt2ch8oMMuycoERJQMSLTPo8nmZhg2Hf2ny68ZpuD4Kn',
   channel: 'lagoon-local-ci'
 });
 
 mocks.NotificationSlack = () => ({
   id: faker.random.number(),
   name: 'amazeeio--lagoon-local-ci',
-  webhook: 'https://amazeeio.slack.com/hooks/ikF5XMohDZK7KpsZf/c9BFBt2ch8oMMuycoERJQMSLTPo8nmZhg2Hf2ny68ZpuD4Kn',
+  webhook:
+    'https://amazeeio.slack.com/hooks/ikF5XMohDZK7KpsZf/c9BFBt2ch8oMMuycoERJQMSLTPo8nmZhg2Hf2ny68ZpuD4Kn',
   channel: 'lagoon-local-ci'
 });
 
 mocks.NotificationEmail = () => ({
   id: faker.random.number(),
   name: 'amazeeio--lagoon-local-ci',
-  emailAddress: faker.internet.email(),
+  emailAddress: faker.internet.email()
 });
 
 mocks.UnassignedNotification = () => ({
   id: faker.random.number(),
   name: 'unassigned--local-ci',
-  type: mocks.NotificationType(),
+  type: mocks.NotificationType()
 });
 
 mocks.Notification = () => {
@@ -212,11 +242,16 @@ mocks.Notification = () => {
 };
 
 mocks.Project = (parent, args = {}, context, info) => {
-  const name = `${faker.company.catchPhraseAdjective()} ${faker.company.bsNoun()}`.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+  const name = `${faker.company.catchPhraseAdjective()} ${faker.company.bsNoun()}`
+    .replace(/[^a-zA-Z0-9]/g, '')
+    .toLowerCase();
   const project = {
     id: faker.random.number(),
     name,
-    gitUrl: faker.random.arrayElement([`git@example.com/${name}/${faker.company.bsNoun()}.git`, `https://example.com/${name}/${faker.company.bsNoun()}.git`]),
+    gitUrl: faker.random.arrayElement([
+      `git@example.com/${name}/${faker.company.bsNoun()}.git`,
+      `https://example.com/${name}/${faker.company.bsNoun()}.git`
+    ]),
     availability: mocks.ProjectAvailability(),
     privateKey: `-----BEGIN RSA PRIVATE KEY-----
 MIIJKQIBAAKCAgEA+o[...]P0yoL8BoQQG2jCvYfWh6vyglQdrDYx/o6/8ecTwXokKKh6fg1q
@@ -227,7 +262,11 @@ MIIJKQIBAAKCAgEA+o[...]P0yoL8BoQQG2jCvYfWh6vyglQdrDYx/o6/8ecTwXokKKh6fg1q
     activeSystemsPromote: 'lagoon_controllerBuildDeploy',
     activeSystemsRemove: 'lagoon_controllerRemove',
     activeSystemsTask: 'lagoon_controllerJob',
-    branches: faker.random.arrayElement(['true', 'false', '^(master|staging)$']),
+    branches: faker.random.arrayElement([
+      'true',
+      'false',
+      '^(master|staging)$'
+    ]),
     pullrequests: faker.random.arrayElement(['true', 'false', '[BUILD]']),
     productionEnvironment: 'master',
     autoIdle: faker.random.arrayElement([0, 1]),
@@ -239,19 +278,28 @@ MIIJKQIBAAKCAgEA+o[...]P0yoL8BoQQG2jCvYfWh6vyglQdrDYx/o6/8ecTwXokKKh6fg1q
     developmentEnvironmentsLimit: 10,
     environments: [],
     created: mocks.Date(),
-    envVariables: [ mocks.EnvKeyValue() ],
-    groups: [ mocks.Group() ],
+    envVariables: [mocks.EnvKeyValue()],
+    groups: [mocks.Group()]
   };
   return {
     ...project,
-    environments: args.hasOwnProperty('environments') ? args.environments : mocks.Query().allEnvironments(project),
+    environments: args.hasOwnProperty('environments')
+      ? args.environments
+      : mocks.Query().allEnvironments(project)
   };
 };
 
 mocks.Environment = (parent, args = {}, context, info) => {
   const name = args.hasOwnProperty('name')
     ? args.name
-    : faker.random.arrayElement(['master', 'staging', 'development', 'pr-42', 'pr-100', 'pr-175']);
+    : faker.random.arrayElement([
+        'master',
+        'staging',
+        'development',
+        'pr-42',
+        'pr-100',
+        'pr-175'
+      ]);
   let deployType, deployBaseRef, deployHeadRef;
   if (/^pr\-/.test(name)) {
     deployType = 'pullrequest';
@@ -265,7 +313,9 @@ mocks.Environment = (parent, args = {}, context, info) => {
   const created = mocks.Date();
   const updated = addTime(created, 48);
   const deleted = addTime(updated, 24);
-  const project = args.hasOwnProperty('project') ? args.project : mocks.Project(null, {environments: []});
+  const project = args.hasOwnProperty('project')
+    ? args.project
+    : mocks.Project(null, { environments: [] });
 
   const environment = {
     id: faker.random.number(),
@@ -285,7 +335,7 @@ mocks.Environment = (parent, args = {}, context, info) => {
     storages: [],
     storageMonth: mocks.EnvironmentStorageMonth(),
     hitsMonth: mocks.EnvironmentHitsMonth(),
-    envVariables: [ mocks.EnvKeyValue() ],
+    envVariables: [mocks.EnvKeyValue()],
     route: name === 'master' ? `https://${project.name}.org` : '',
     routes: `https://${project.name}.org,https://varnish-${project.name}-org-prod.us.amazee.io,https://nginx-${project.name}-org-prod.us.amazee.io`,
     monitoringUrls: '',
@@ -293,42 +343,44 @@ mocks.Environment = (parent, args = {}, context, info) => {
     backups: [],
     tasks: [],
     problems: [
-      mocks.Problem(null, {source: "Drutiny", severity: "CRITICAL"}),
-      mocks.Problem(null, {source: "Trivy", severity: "MEDIUM"}),
-      mocks.Problem(null, {source: "Drutiny", severity: "HIGH"}),
-      mocks.Problem(null, {source: "OWASP ZAP", severity: "LOW"}),
+      mocks.Problem(null, { source: 'Drutiny', severity: 'CRITICAL' }),
+      mocks.Problem(null, { source: 'Trivy', severity: 'MEDIUM' }),
+      mocks.Problem(null, { source: 'Drutiny', severity: 'HIGH' }),
+      mocks.Problem(null, { source: 'OWASP ZAP', severity: 'LOW' }),
       mocks.Problem(),
       mocks.Problem()
     ],
-    services: [ mocks.EnvironmentService() ],
+    services: [mocks.EnvironmentService()]
   };
   environment.project.environments.push(environment);
   return {
     ...environment,
-    storages: [ mocks.EnvironmentStorage(null, {environment}) ],
-    deployments: [ mocks.Deployment(null, {environment}) ],
-    backups: [ mocks.Backup(null, {environment}) ],
-    tasks: [ mocks.Task(null, {environment}) ],
+    storages: [mocks.EnvironmentStorage(null, { environment })],
+    deployments: [mocks.Deployment(null, { environment })],
+    backups: [mocks.Backup(null, { environment })],
+    tasks: [mocks.Task(null, { environment })]
   };
 };
 
 mocks.EnvironmentHitsMonth = () => ({
-  total: faker.random.number(),
+  total: faker.random.number()
 });
 
 mocks.EnvironmentStorage = (parent, args = {}, context, info) => ({
   id: faker.random.number(),
-  environment: args.hasOwnProperty('environment') ? args.environment : mocks.Environment(),
+  environment: args.hasOwnProperty('environment')
+    ? args.environment
+    : mocks.Environment(),
   persistentStorageClaim: '',
   bytesUsed: faker.random.number({ precision: 0.001 }), // Float
-  updated: mocks.Date(),
+  updated: mocks.Date()
 });
 
 mocks.EnvironmentStorageMonth = () => {
   const date = new Date(mocks.Date());
   return {
     month: `${date.getFullYear()}-${date.getMonth() + 1}`,
-    bytesUsed: faker.random.number({ precision: 0.001 }),
+    bytesUsed: faker.random.number({ precision: 0.001 })
   };
 };
 
@@ -336,13 +388,13 @@ mocks.EnvironmentHoursMonth = () => {
   const date = new Date(mocks.Date());
   return {
     month: `${date.getFullYear()}-${date.getMonth() + 1}`,
-    hours: faker.random.number({ max: 24*30 }),
+    hours: faker.random.number({ max: 24 * 30 })
   };
 };
 
 mocks.EnvironmentService = () => ({
   id: faker.random.number(),
-  name: faker.random.arrayElement(['cli', 'nginx', 'mariadb']),
+  name: faker.random.arrayElement(['cli', 'nginx', 'mariadb'])
 });
 
 mocks.Backup = (parent, args = {}, context, info) => {
@@ -350,12 +402,14 @@ mocks.Backup = (parent, args = {}, context, info) => {
   const backupId = faker.random.uuid();
   return {
     id: faker.random.number(),
-    environment: args.hasOwnProperty('environment') ? args.environment : mocks.Environment(),
+    environment: args.hasOwnProperty('environment')
+      ? args.environment
+      : mocks.Environment(),
     source: faker.random.arrayElement(['files', 'mariadb']),
     backupId,
     created: date,
     deleted: addTime(date, 24),
-    restore: mocks.Restore(null, {backupId}),
+    restore: mocks.Restore(null, { backupId })
   };
 };
 
@@ -368,15 +422,15 @@ mocks.Restore = (parent, args = {}, context, info) => {
     backupId,
     status: mocks.RestoreStatusType(),
     restoreLocation: `/restore/${backupId}`,
-    created: mocks.Date(),
+    created: mocks.Date()
   };
 };
 
 mocks.Deployment = (parent, args = {}, context, info) => {
   const id = faker.random.number();
   const created = mocks.Date();
-  const started = addTime(created, .5);
-  const completed = addTime(started, .75);
+  const started = addTime(created, 0.5);
+  const completed = addTime(started, 0.75);
   return {
     id,
     name: `build-${id}`,
@@ -384,9 +438,11 @@ mocks.Deployment = (parent, args = {}, context, info) => {
     created,
     started,
     completed,
-    environment: args.hasOwnProperty('environment') ? args.environment : mocks.Environment(),
+    environment: args.hasOwnProperty('environment')
+      ? args.environment
+      : mocks.Environment(),
     remoteId: faker.random.number(),
-    buildLog: 'Buildem logem ipsum.',
+    buildLog: 'Buildem logem ipsum.'
   };
 };
 
@@ -394,7 +450,7 @@ mocks.EnvKeyValue = () => ({
   id: faker.random.number(),
   scope: mocks.EnvVariableScope(),
   name: 'LAGOON_API_VARIABLE_PROJECT',
-  value: '4A65DC68F2',
+  value: '4A65DC68F2'
 });
 
 mocks.Task = (parent, args = {}, context, info) => {
@@ -409,19 +465,31 @@ mocks.Task = (parent, args = {}, context, info) => {
     created,
     started,
     completed,
-    environment: args.hasOwnProperty('environment') ? args.environment : mocks.Environment(),
+    environment: args.hasOwnProperty('environment')
+      ? args.environment
+      : mocks.Environment(),
     service: 'cli',
     command: name === 'Site Status' ? 'drush status' : 'drush archive-dump',
     remoteId: faker.random.uuid(),
     logs: 'Taskem logem ipsum.',
-    files: [ mocks.File() ],
+    files: [mocks.File()]
   };
 };
 
 mocks.ProblemIdentifier = () => {
   const recentYear = faker.random.arrayElement(['2019', '2020']);
-  const vuln_id = `CVE-${recentYear}-${faker.random.number({min: 1000, max: 99999})}`;
-  const severity = faker.random.arrayElement(['UNKNOWN', 'NEGLIGIBLE', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL']);
+  const vuln_id = `CVE-${recentYear}-${faker.random.number({
+    min: 1000,
+    max: 99999
+  })}`;
+  const severity = faker.random.arrayElement([
+    'UNKNOWN',
+    'NEGLIGIBLE',
+    'LOW',
+    'MEDIUM',
+    'HIGH',
+    'CRITICAL'
+  ]);
   const source = faker.random.arrayElement(['Harbor', 'Drutiny']);
 
   return {
@@ -429,54 +497,74 @@ mocks.ProblemIdentifier = () => {
     severity: severity,
     source: source,
     problems: Array.from({
-        length: faker.random.number({
-            min: 1,
-            max: 20,
-        }),
+      length: faker.random.number({
+        min: 1,
+        max: 20
+      })
     }).map(() => {
-        return mocks.Problem()
+      return mocks.Problem();
     })
-  }
+  };
 };
 
 mocks.Problem = (parent, args = {}, context, info) => {
-    const recentYear = faker.random.arrayElement(['2019', '2020']);
-    const vuln_id = `CVE-${recentYear}-${faker.random.number({min: 1000, max: 99999})}`;
-    const source = faker.random.arrayElement(['Lighthouse', 'Drutiny', 'Trivy', 'OWASP ZAP', 'Script']);
-    // const created = faker.date.between('2019-10-01 00:00:00', '2020-03-31 23:59:59').toUTCString();
-    const associatedPackage = faker.random.arrayElement(packages);
-    // const version = `${faker.random.number(4)}.${faker.random.number(9)}.${faker.random.number(49)}`;
-    // const fixedVersion = `${version}+deb8u${faker.random.number(9)}`;
-    const severity = faker.random.arrayElement(['UNKNOWN', 'NEGLIGIBLE', 'LOW', 'MEDIUM', 'HIGH', 'CRITICAL']);
-    const description = faker.lorem.paragraph();
-    const links = `https://security-tracker.debian.org/tracker/${vuln_id}`;
-    const severityScore = `0.${faker.random.number({min:1, max:9})}`;
-    const data =  JSON.stringify({id: `${faker.random.number({min:1, max:100})}`}, null, '\t');
+  const recentYear = faker.random.arrayElement(['2019', '2020']);
+  const vuln_id = `CVE-${recentYear}-${faker.random.number({
+    min: 1000,
+    max: 99999
+  })}`;
+  const source = faker.random.arrayElement([
+    'Lighthouse',
+    'Drutiny',
+    'Trivy',
+    'OWASP ZAP',
+    'Script'
+  ]);
+  // const created = faker.date.between('2019-10-01 00:00:00', '2020-03-31 23:59:59').toUTCString();
+  const associatedPackage = faker.random.arrayElement(packages);
+  // const version = `${faker.random.number(4)}.${faker.random.number(9)}.${faker.random.number(49)}`;
+  // const fixedVersion = `${version}+deb8u${faker.random.number(9)}`;
+  const severity = faker.random.arrayElement([
+    'UNKNOWN',
+    'NEGLIGIBLE',
+    'LOW',
+    'MEDIUM',
+    'HIGH',
+    'CRITICAL'
+  ]);
+  const description = faker.lorem.paragraph();
+  const links = `https://security-tracker.debian.org/tracker/${vuln_id}`;
+  const severityScore = `0.${faker.random.number({ min: 1, max: 9 })}`;
+  const data = JSON.stringify(
+    { id: `${faker.random.number({ min: 1, max: 100 })}` },
+    null,
+    '\t'
+  );
 
-    return {
-      identifier: vuln_id,
-      severity: args.hasOwnProperty('severity') ? args.severity : severity,
-      source: args.hasOwnProperty('source') ? args.source : source,
-      severityScore: severityScore,
-      associatedPackage: associatedPackage,
-      description,
-      links,
-      data
-    };
+  return {
+    identifier: vuln_id,
+    severity: args.hasOwnProperty('severity') ? args.severity : severity,
+    source: args.hasOwnProperty('source') ? args.source : source,
+    severityScore: severityScore,
+    associatedPackage: associatedPackage,
+    description,
+    links,
+    data
+  };
 };
 
-mocks.ProblemMutation = (schema) => {
-    return Array.from({
-        length: faker.random.number({
-            min: 1,
-            max: 500,
-        }),
-    }).map(() => {
-        let temp = schema();
-        return (
-            `problem${faker.random.number(1000000)}: addProblem(input: ${JSON.stringify(temp, 2, null)}) { identifier }`
-        );
-    });
+mocks.ProblemMutation = schema => {
+  return Array.from({
+    length: faker.random.number({
+      min: 1,
+      max: 500
+    })
+  }).map(() => {
+    let temp = schema();
+    return `problem${faker.random.number(
+      1000000
+    )}: addProblem(input: ${JSON.stringify(temp, 2, null)}) { identifier }`;
+  });
 };
 
 //
@@ -499,87 +587,28 @@ mocks.Query = () => ({
   allEnvironments: (parent, args = {}, context, info) => {
     const project = args.hasOwnProperty('project')
       ? args.project
-      : mocks.Project(null, {environments: []});
+      : mocks.Project(null, { environments: [] });
     return [
-      mocks.Environment(null, {project, name: 'master'}),
-      mocks.Environment(null, {project, name: 'staging'}),
-      mocks.Environment(null, {project, name: 'development'}),
-      mocks.Environment(null, {project, name: 'pr-' + faker.random.number({min: 1, max: 50})}),
-      mocks.Environment(null, {project, name: 'pr-' + faker.random.number({min: 51, max: 100})}),
-      mocks.Environment(null, {project, name: 'pr-' + faker.random.number({min: 101, max: 150})}),
+      mocks.Environment(null, { project, name: 'master' }),
+      mocks.Environment(null, { project, name: 'staging' }),
+      mocks.Environment(null, { project, name: 'development' }),
+      mocks.Environment(null, {
+        project,
+        name: 'pr-' + faker.random.number({ min: 1, max: 50 })
+      }),
+      mocks.Environment(null, {
+        project,
+        name: 'pr-' + faker.random.number({ min: 51, max: 100 })
+      }),
+      mocks.Environment(null, {
+        project,
+        name: 'pr-' + faker.random.number({ min: 101, max: 150 })
+      })
     ];
   },
   allGroups: () => new MockList(9),
-  allProjectsInGroup: () => new MockList(5),
-  billingGroupCost: mockCost,
-  allBillingGroupsCost: mockCost,
-  allBillingModifiers: mockModifier
+  allProjectsInGroup: () => new MockList(5)
 });
-
-const mockModifier = () => {
-  return [
-    {
-      "id": 18,
-      "group": {
-        "id": "6bd89c43-abdd-47e6-bda0-d2c598792d4c",
-        "name": "Lorem Ipsum",
-        "__typename": "BillingGroup"
-      },
-      "startDate": "2020-03-01 00:00:00",
-      "endDate": "2999-03-02 00:00:00",
-      "discountFixed": 0,
-      "discountPercentage": 0,
-      "extraFixed": 540,
-      "extraPercentage": 0,
-      "min": 0,
-      "max": 0,
-      "customerComments": "Rocket Chat",
-      "adminComments": "Rocket Chat",
-      "weight": 0,
-      "__typename": "BillingModifier"
-    },
-    {
-      "id": 25,
-      "group": {
-        "id": "6bd89c43-abdd-47e6-bda0-d2c598792d4c",
-        "name": "Accruent",
-        "__typename": "BillingGroup"
-      },
-      "startDate": "2020-04-01 00:00:00",
-      "endDate": "2020-04-30 00:00:00",
-      "discountFixed": 0,
-      "discountPercentage": 0,
-      "extraFixed": 1517,
-      "extraPercentage": 0,
-      "min": 0,
-      "max": 0,
-      "customerComments": "Per email with Alex and Jennifer, correction for Jan/Feb/Mar hits calculation",
-      "adminComments": "Back-billing for incorrect hits calculation",
-      "weight": 0,
-      "__typename": "BillingModifier"
-    }
-  ]
-}
-
-const mockCost = () => {
-  const availability = mocks.ProjectAvailability();
-  return {
-    currency: mocks.Currency(),
-    availability: {
-      [availability]: {
-        hitCost: 200,
-        storageCost: 0,
-        environmentCost: {
-          environmentCost: {
-            prod: 0,
-            dev: 0,
-          },
-        },
-        projects: [mocks.Project(null, { environments: [] })],
-      },
-    },
-  };
-};
 
 //
 // Mutation 'type' mock from typeDefs.
@@ -588,24 +617,44 @@ const mockCost = () => {
 mocks.Mutation = () => ({
   addOrUpdateEnvironment: () => mocks.Environment(),
   updateEnvironment: () => mocks.Environment(),
-  deleteEnvironment: () => faker.random.arrayElement(['success', `Error: unknown deploy type ${mocks.DeployType()}`]),
+  deleteEnvironment: () =>
+    faker.random.arrayElement([
+      'success',
+      `Error: unknown deploy type ${mocks.DeployType()}`
+    ]),
   deleteAllEnvironments: () => 'success',
   addOrUpdateEnvironmentStorage: () => mocks.EnvironmentStorage(),
   addNotificationSlack: () => mocks.NotificationSlack(),
   updateNotificationSlack: () => mocks.NotificationSlack(),
-  deleteNotificationSlack: () => faker.random.arrayElement(['success', "Can't delete notification linked to projects"]),
+  deleteNotificationSlack: () =>
+    faker.random.arrayElement([
+      'success',
+      "Can't delete notification linked to projects"
+    ]),
   deleteAllNotificationSlacks: () => 'success',
   addNotificationRocketChat: () => mocks.NotificationRocketChat(),
   updateNotificationRocketChat: () => mocks.NotificationRocketChat(),
-  deleteNotificationRocketChat: () => faker.random.arrayElement(['success', "Can't delete notification linked to projects"]),
+  deleteNotificationRocketChat: () =>
+    faker.random.arrayElement([
+      'success',
+      "Can't delete notification linked to projects"
+    ]),
   deleteAllNotificationRocketChats: () => 'success',
   addNotificationMicrosoftTeams: () => mocks.NotificationMicrosoftTeams(),
   updateNotificationMicrosoftTeams: () => mocks.NotificationMicrosoftTeams(),
-  deleteNotificationMicrosoftTeams: () => faker.random.arrayElement(['success', "Can't delete notification linked to projects"]),
+  deleteNotificationMicrosoftTeams: () =>
+    faker.random.arrayElement([
+      'success',
+      "Can't delete notification linked to projects"
+    ]),
   deleteAllNotificationMicrosoftTeams: () => 'success',
   addNotificationEmail: () => mocks.NotificationEmail(),
   updateNotificationEmail: () => mocks.NotificationEmail(),
-  deleteNotificationEmail: () => faker.random.arrayElement(['success', "Can't delete notification linked to projects"]),
+  deleteNotificationEmail: () =>
+    faker.random.arrayElement([
+      'success',
+      "Can't delete notification linked to projects"
+    ]),
   deleteAllNotificationEmails: () => 'success',
   addNotificationToProject: () => mocks.Project(),
   removeNotificationFromProject: () => mocks.Project(),
@@ -631,7 +680,11 @@ mocks.Mutation = () => ({
   addDeployment: () => mocks.Deployment(),
   deleteDeployment: () => 'success',
   updateDeployment: () => mocks.Deployment(),
-  cancelDeployment: () => faker.random.arrayElement(['success', 'Deployment not cancelled, reason: Too slow.']),
+  cancelDeployment: () =>
+    faker.random.arrayElement([
+      'success',
+      'Deployment not cancelled, reason: Too slow.'
+    ]),
   addBackup: () => mocks.Backup(),
   deleteBackup: () => 'success',
   deleteAllBackups: () => 'success',
@@ -648,7 +701,7 @@ mocks.Mutation = () => ({
   taskDrushRsyncFiles: () => mocks.Task(),
   deleteTask: () => 'success',
   updateTask: () => mocks.Task(),
-  setEnvironmentServices: () => [ mocks.EnvironmentService() ],
+  setEnvironmentServices: () => [mocks.EnvironmentService()],
   uploadFilesForTask: () => mocks.Task(),
   deleteFilesForTask: () => 'success',
   deployEnvironmentLatest: () => 'success',
@@ -663,13 +716,7 @@ mocks.Mutation = () => ({
   addUserToGroup: () => mocks.Group(),
   removeUserFromGroup: () => mocks.Group(),
   addGroupsToProject: () => mocks.Project(),
-  addBillingGroup: () => mocks.BillingGroup(),
-  updateBillingGroup: () => mocks.BillingGroup(),
-  deleteBillingGroup: () => 'success',
-  addProjectToBillingGroup: () => mocks.Project(),
-  updateProjectBillingGroup: () => mocks.Project(),
-  removeProjectFromBillingGroup: () => mocks.Project(),
-  removeGroupsFromProject: () => mocks.Project(),
+  removeGroupsFromProject: () => mocks.Project()
 });
 
 //
@@ -682,7 +729,7 @@ mocks.Mutation = () => ({
 mocks.Subscription = () => ({
   backupChanged: () => mocks.Backup(),
   deploymentChanged: () => mocks.Deployment(),
-  taskChanged: () => mocks.Task(),
+  taskChanged: () => mocks.Task()
 });
 
 export default mocks;
