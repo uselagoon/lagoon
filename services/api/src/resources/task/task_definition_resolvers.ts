@@ -241,6 +241,8 @@ export const addAdvancedTaskDefinition = async (
   }
 
   //let's see if there's already an advanced task definition with this name ...
+  // Note: this will all be scoped to either System, group, project, or environment
+  // hence the filters below.
   const rows = await query(
     sqlClientPool,
     Sql.selectAdvancedTaskDefinitionByNameProjectEnvironmentAndGroup(
@@ -253,6 +255,11 @@ export const addAdvancedTaskDefinition = async (
   let taskDef = R.prop(0, rows);
 
   if (taskDef) {
+
+    // At this point, `taskDefMatchedIncoming` will indicate
+    // whether the incoming details for a similarly named
+    // task _scoped to the system/group/project/environment_
+    // exists. If it does, we return its id instead of creating it.
     const taskDefMatchesIncoming =
       taskDef.description == description &&
       taskDef.image == image &&
@@ -260,6 +267,10 @@ export const addAdvancedTaskDefinition = async (
       (taskDef.type == AdvancedTaskDefinitionType.image ||
         taskDef.command == command);
 
+    // if the similarly named task (scoped to system/group/project/environment) does
+    // not match the existing definition, we have to reject this request.
+    // A user should delete the task before creating a similarly named, identically scoped
+    // task
     if (!taskDefMatchesIncoming) {
       let errorMessage = `Task '${name}' with different definition already exists `;
       if (projectObj) {
