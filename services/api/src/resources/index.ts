@@ -18,7 +18,7 @@ export interface ResolverFn {
         GroupModel,
         ProjectModel,
         EnvironmentModel,
-      };
+      },
     },
     info?
   ): any;
