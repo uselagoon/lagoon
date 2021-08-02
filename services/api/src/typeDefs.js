@@ -133,25 +133,44 @@ const typeDefs = gql`
     advancedTaskDefinition: AdvancedTaskDefinition
   }
 
-  type AdvancedTaskDefinition {
+  type AdvancedTaskDefinitionImage {
     id: Int
     name: String
     description: String
     type: AdvancedTaskDefinitionTypes
     image: String
     service: String
-    command: String
-    created: String
+    groupName: String
+    environment: Int
+    project: Int
     permission: TaskPermission
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgument]
+    created: String
+    deleted: String
   }
+
+  type AdvancedTaskDefinitionCommand {
+    id: Int
+    name: String
+    description: String
+    type: AdvancedTaskDefinitionTypes
+    service: String
+    command: String
+    groupName: String
+    environment: Int
+    project: Int
+    permission: TaskPermission
+    created: String
+    deleted: String
+  }
+
+  union AdvancedTaskDefinition = AdvancedTaskDefinitionImage | AdvancedTaskDefinitionCommand
 
   type TaskRegistration {
     id: Int
     type: String
     name: String
     description: String
-    advancedTaskDefinition: Int
     groupName: String
     environment: Int
     project: Int
@@ -688,7 +707,7 @@ const typeDefs = gql`
     deployments(name: String, limit: Int): [Deployment]
     backups(includeDeleted: Boolean, limit: Int): [Backup]
     tasks(id: Int, limit: Int): [Task]
-    advancedTasks: [TaskRegistration]
+    advancedTasks: [AdvancedTaskDefinition]
     services: [EnvironmentService]
     problems(severity: [ProblemSeverityRating], source: [String]): [Problem]
     facts: [Fact]
@@ -790,18 +809,6 @@ const typeDefs = gql`
     remoteId: String
     logs: String
     files: [File]
-  }
-
-  type AdvancedTaskEnvironment {
-    id: Int
-    taskDefinition: AdvancedTaskDefinition
-    environment: Environment
-  }
-
-  type AdvancedTaskProject {
-    id: Int
-    taskDefinition: AdvancedTaskDefinition
-    project: Project
   }
 
   type BillingModifier {
@@ -948,7 +955,7 @@ const typeDefs = gql`
     """
     Returns a AdvancedTaskDefinitions applicable for an environment
     """
-    advancedTasksForEnvironment(environment: Int!) : [TaskRegistration]
+    advancedTasksForEnvironment(environment: Int!) : [AdvancedTaskDefinition]
     """
     Returns a AdvancedTaskDefinitionArgument by Id
     """

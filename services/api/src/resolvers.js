@@ -368,6 +368,18 @@ const resolvers = {
       }
     },
   },
+  AdvancedTaskDefinition: {
+    __resolveType (obj) {
+      switch(obj.type) {
+        case 'IMAGE':
+          return 'AdvancedTaskDefinitionImage';
+        case 'COMMAND':
+          return 'AdvancedTaskDefinitionCommand';
+        default:
+          return null;
+      }
+    },
+  },
   User: {
     sshKeys: getUserSshKeys,
     groups: getGroupsByUserId,

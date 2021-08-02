@@ -48,12 +48,22 @@ mutation addAdvancedTask {
     service: string,
     command: string
   }) {
-    id
-    name
-    description
-    service
-    command
-    ...
+    ... on AdvancedTaskDefinitionImage {
+      id
+      name
+      description
+      service
+      image
+      ...
+    }
+    ... on AdvancedTaskDefinitionCommand {
+      id
+      name
+      description
+      service
+      command
+      ...
+    }
   }
 }
 ```

@@ -24,7 +24,7 @@
         headers:
           Authorization: "Bearer {{ admin_token }}"
         body_format: json
-        body: '{ "query": "mutation($environmentId: Int!, $taskName: String!, $description: String!, $service: String!, $image: String!) {addAdvancedTaskDefinition(input: {environment:$environmentId, name:$taskName, type:IMAGE, description: $description, service: $service, image: $image}){id}}", "variables": {"environmentId": {{ environmentByOSProjectNameApiResponse.json.data.environmentByOpenshiftProjectName.id }}, "taskName":"testing-image","description":"Runs a hello world task", "service":"node", "image":"hello-world"}}'
+        body: '{ "query": "mutation($environmentId: Int!, $taskName: String!, $description: String!, $service: String!, $image: String!) {addAdvancedTaskDefinition(input: {environment:$environmentId, name:$taskName, type:IMAGE, description: $description, service: $service, image: $image}){... on AdvancedTaskDefinitionImage {id}}}", "variables": {"environmentId": {{ environmentByOSProjectNameApiResponse.json.data.environmentByOpenshiftProjectName.id }}, "taskName":"testing-image","description":"Runs a hello world task", "service":"node", "image":"hello-world"}}'
       register: taskCreateApiResponse
       until:
     - name: "{{ testname }} - DEBUG taskCreateApiResponse"
