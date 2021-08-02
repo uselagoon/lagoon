@@ -300,7 +300,7 @@ const resolvers = {
   Task: {
     environment: getEnvironmentByTaskId,
     files: getFilesByTaskId,
-    logs: getTaskLog,
+    logs: getTaskLog
   },
   File: {
     download: getDownloadLink
@@ -332,7 +332,7 @@ const resolvers = {
     environment: getEnvironmentByBackupId,
   },
   Restore: {
-    restoreLocation: getRestoreLocation
+    restoreLocation: getRestoreLocation,
   },
   Query: {
     me: getMe,
@@ -358,7 +358,7 @@ const resolvers = {
     allGroups: getAllGroups,
     allProjectsInGroup: getAllProjectsInGroup,
     allProblemHarborScanMatchers: getProblemHarborScanMatches,
-    projectsByMetadata: getProjectsByMetadata,
+    projectsByMetadata: getProjectsByMetadata
   },
   Mutation: {
     addProblem,
