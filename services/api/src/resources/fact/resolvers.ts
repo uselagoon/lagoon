@@ -125,12 +125,8 @@ export const getEnvironmentsByFactSearch: ResolverFn = async (
 
 export const addFact: ResolverFn = async (
   root,
-  {
-    input: {
-      id, environment: environmentId, name, value, source, description, type, category, keyFact
-    },
-  },
-  { sqlClientPool, hasPermission, userActivityLogger },
+  { input: { id, environment: environmentId, name, value, source, description, type, category, keyFact } },
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
@@ -154,7 +150,10 @@ export const addFact: ResolverFn = async (
     }),
   );
 
-  const rows = await query(sqlClientPool, Sql.selectFactByDatabaseId(insertId));
+  const rows = await query(
+    sqlClientPool,
+    Sql.selectFactByDatabaseId(insertId)
+  );
 
   userActivityLogger.user_action(`User added a fact to environment '${environment.name}'`, {
     payload: {

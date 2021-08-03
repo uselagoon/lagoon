@@ -60,7 +60,7 @@ export const getEnvironmentById = async (
 export const getEnvironmentsByProjectId: ResolverFn = async (
   project,
   args,
-  { sqlClientPool, hasPermission, keycloakGrant, models },
+  { sqlClientPool, hasPermission, keycloakGrant, models }
 ) => {
   const { id: pid } = project;
 
