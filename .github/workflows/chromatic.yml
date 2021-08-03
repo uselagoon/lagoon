@@ -18,7 +18,7 @@ jobs:
         with:
           node-version: '16'
       - name: Install dependencies
-        run: yarn && yarn --cwd services/api install && yarn --cwd services/api build
+        run: yarn && yarn --cwd services/api install && yarn --cwd services/api build && yarn --cwd services/ui install && yarn --cwd services/ui build
       - name: Build storybook
         run: yarn workspace ui run build-storybook --loglevel silly
       - name: Publish to Chromatic
@@ -26,6 +26,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          workingDir: services/ui
           storybookBuildDir: services/ui/storybook-static
           allowConsoleErrors: true
           exitOnceUploaded: true # Exit with status 0 (OK) once the build has been sent to Chromatic
