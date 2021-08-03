@@ -10,7 +10,6 @@ module.exports = {
     '@storybook/addon-knobs',
     '@storybook/addon-viewport',
     '@storybook/addon-postcss',
-    '@storybook/preset-typescript',
     'storybook-addon-apollo-client',
   ],
   webpackFinal: async (config, { isServer }) => {
