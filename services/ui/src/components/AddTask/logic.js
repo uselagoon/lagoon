@@ -45,9 +45,11 @@ const withOptions = withProps(({ pageEnvironment }) => {
 
   // Add Advanced Task Definitions
   let advancedTasks = pageEnvironment.advancedTasks.map(task => {
+    let commandstring = task.command ? `[${task.command}]` : '';
+    let label = task.description ? `${task.description} ${commandstring}` :'';
     return {
       id: task.id,
-      label: task.description ? `${task.description} [${task.command}]` : '',
+      label: label,
       value: 'InvokeRegisteredTask'
     }
   });
