@@ -27,7 +27,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
           workingDir: services/ui
-          storybookBuildDir: services/ui/storybook-static
+          storybookBuildDir: storybook-static
           allowConsoleErrors: true
           exitOnceUploaded: true # Exit with status 0 (OK) once the build has been sent to Chromatic
           # exitZeroOnChanges: true # Prevent workflow fail if there are changes
