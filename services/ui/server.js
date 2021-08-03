@@ -23,24 +23,6 @@ app
         })
     );
 
-    server.get(
-      '/problems/project',
-      (req, res) => {
-          app.render(req, res, '/problems-dashboard-by-project');
-      }
-    );
-
-    server.get(
-      '/problems',
-      (req, res) => {
-          app.render(req, res, '/problems-dashboard-by-project-hex');
-      }
-    );
-
-    server.get('/problems', (req, res) => {
-      app.render(req, res, '/problems-dashboard-by-project-hex');
-    });
-
     server.get('*', (req, res) => {
       return handle(req, res);
     });

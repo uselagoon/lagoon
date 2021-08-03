@@ -13,7 +13,6 @@ import ApiConnection from 'lib/ApiConnection';
 import '../static/nprogress.css';
 import 'semantic-ui-css/semantic.min.css';
 import 'components/Honeycomb/styling.css';
-import 'pages/admin/overrides.css';
 
 const { serverRuntimeConfig, publicRuntimeConfig } = getConfig();
 

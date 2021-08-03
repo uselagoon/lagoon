@@ -11,7 +11,8 @@
     "start": "NODE_ENV=production node server.js",
     "storybook": "start-storybook -s ./src -p 6006",
     "build-storybook": "build-storybook -s ./src",
-    "serve-storybook": "storybook-server -s ./src"
+    "serve-storybook": "storybook-server -s ./src",
+    "chromatic": "npx chromatic --allow-console-errors"
   },
   "dependencies": {
     "@apollo/client": "^3.3.19",
@@ -39,7 +40,6 @@
     "postcss-nested": "^3.0.0",
     "ramda": "^0.25.0",
     "react": "17.0.0",
-    "react-apollo": "^2.1.11",
     "react-beautiful-dnd": "^13.0.0",
     "react-copy-to-clipboard": "^5.0.1",
     "react-dom": "17.0.0",
@@ -72,7 +72,7 @@
     "apollo-link-schema": "^1.2.4",
     "babel-loader": "^8.0.6",
     "babel-plugin-macros": "^2.7.1",
-    "chromatic": "^5.6.2",
+    "chromatic": "^5.10.0-canary.0",
     "faker": "^4.1.0",
     "node-sass": "^6.0.0",
     "prop-types": "^15.7.2",

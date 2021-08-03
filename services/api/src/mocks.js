@@ -288,15 +288,6 @@ mocks.Environment = (parent, args = {}, context, info) => {
   const updated = addTime(created, 48);
   const deleted = addTime(updated, 24);
   const project = args.hasOwnProperty('project') ? args.project : mocks.Project(null, { environment: {} });
-  const facts = args.hasOwnProperty('facts') ? args.facts : [
-    mocks.Fact(null, { name: "php-version", value: faker.random.arrayElement(['7.4.1', '7.2.1', '7.1.1', '8.1.0']), source: "php-version", category: "Programming language", keyFact: true} ),
-    mocks.Fact(null, { name: "drupal-core", value: "9.0.12", source: "drupal-version", category: "Framework", keyFact: true} ),
-    mocks.Fact(null, { name: "Lagoon", value: " 21.3.0", source: "env", category: "Platform", keyFact: true} ),
-    mocks.Fact(null, { name: "site-code-status", value: faker.random.arrayElement(['200', '404', '403', '301', '504', '503']), source: "curl", category: "Performance", keyFact: true} ),
-    mocks.Fact(null, { name: "lagoon-category", value: "saas", source: "saas", category: "Lagoon", keyFact: true} ),
-    mocks.Fact(),
-    mocks.Fact()
-  ];
 
   const environment = {
     id: faker.random.number(),
@@ -323,7 +314,19 @@ mocks.Environment = (parent, args = {}, context, info) => {
     deployments: [],
     backups: [],
     tasks: [],
-    problems: [
+    problems: [],
+    facts: [],
+    services: [ mocks.EnvironmentService(), mocks.EnvironmentService(), mocks.EnvironmentService() ],
+  };
+
+  return {
+    ...environment,
+    storages: [ mocks.EnvironmentStorage(null, {environment}) ],
+    deployments: args.hasOwnProperty('deployments') ? args.deployments : [
+      mocks.Deployment(null, {environment} ),
+      mocks.Deployment(null, {environment} )
+    ],
+    problems: args.hasOwnProperty('problems') ? args.problems : [
       mocks.Problem(null, {source: "Drutiny", severity: "CRITICAL"}),
       mocks.Problem(null, {source: "Trivy", severity: "MEDIUM"}),
       mocks.Problem(null, {source: "Drutiny", severity: "HIGH"}),
@@ -331,19 +334,17 @@ mocks.Environment = (parent, args = {}, context, info) => {
       mocks.Problem(),
       mocks.Problem()
     ],
-    facts,
-    services: [ mocks.EnvironmentService(), mocks.EnvironmentService(), mocks.EnvironmentService() ],
-  };
-
-  return {
-    ...environment,
-    storages: [ mocks.EnvironmentStorage(null, {environment}) ],
-    deployments: [
-      mocks.Deployment(null, {environment} ),
-      mocks.Deployment(null, {environment} )
+    facts: args.hasOwnProperty('facts') ? args.facts : [
+      mocks.Fact(null, { name: "php-version", value: faker.random.arrayElement(['7.4.1', '7.2.1', '7.1.1', '8.1.0']), source: "php-version", category: "Programming language", keyFact: true} ),
+      mocks.Fact(null, { name: "drupal-core", value: "9.0.12", source: "drupal-version", category: "Framework", keyFact: true} ),
+      mocks.Fact(null, { name: "Lagoon", value: " 21.3.0", source: "env", category: "Platform", keyFact: true} ),
+      mocks.Fact(null, { name: "site-code-status", value: faker.random.arrayElement(['200', '404', '403', '301', '504', '503']), source: "curl", category: "Performance", keyFact: true} ),
+      mocks.Fact(null, { name: "lagoon-category", value: "saas", source: "saas", category: "Lagoon", keyFact: true} ),
+      mocks.Fact(),
+      mocks.Fact()
     ],
-    backups: [ mocks.Backup(null, {environment}) ],
-    tasks: [ mocks.Task(null, {environment}) ],
+    backups: args.hasOwnProperty('backups') ? args.backups : [ mocks.Backup(null, {environment}) ],
+    tasks: args.hasOwnProperty('tasks') ? args.tasks : [ mocks.Task(null, {environment}) ],
   };
 };
 
@@ -472,7 +473,7 @@ mocks.Task = (parent, args = {}, context, info) => {
   const started = addTime(created, 0.125);
   const completed = addTime(created, 1.7);
   return {
-    id: faker.random.number(),
+    id: args.hasOwnProperty('id') ? args.id : faker.random.number(),
     name,
     status: mocks.TaskStatusType(),
     created,
@@ -560,10 +561,37 @@ mocks.Query = () => ({
   projectsByMetadata: () => mocks.Project(),
   environmentByName: () => mocks.Environment(),
   environmentByOpenshiftProjectName: () => mocks.Environment(),
+  environmentWithBackup: () => () => mocks.Environment(null, { backups: [
+    mocks.Backup(null, { environment: {} }),
+  ]}),
   environmentWithBackups: () => mocks.Environment(null, { project: mocks.Project()}),
+  environmentWithFacts: () => mocks.Environment(),
+  environmentWithTask: ({projectName, envName}) => mocks.Environment(null, {
+    name: envName,
+    project: {
+      name: projectName,
+      problemsUi: true,
+      factsUi: true
+    },
+    deployments: {}, problems: {}, facts: {}, environment: {},
+    tasks: [ mocks.Task(null, { id: 1, environment: {} }) ]
+  }),
+  environmentWithTasks: () => mocks.Environment(null, {
+    deployments: {}, problems: {}, facts: {}, environment: {}
+  }),
+  environmentWithDeployment: ({projectName, envName}) => mocks.Environment(null, {
+    name: envName,
+    project: {
+      name: projectName,
+      problemsUi: true,
+      factsUi: true
+    },
+    tasks: {}, problems: {}, facts: {}, environment: {},
+    deployments: [ mocks.Deployment() ]
+  }),
   environmentWithDeployments: () => mocks.Environment(null, { deployments: [
-    mocks.Deployment(null, { environment: { openshiftProjectName: "high-cotton" }}),
-    mocks.Deployment(null, { environment: { openshiftProjectName: "high-cotton" }})
+    mocks.Deployment(null, { environment: { openshiftProjectName: "high-cotton-master" }}),
+    mocks.Deployment(null, { environment: { openshiftProjectName: "high-cotton-master" }})
   ]}),
   deploymentByRemoteId: () => mocks.Deployment(),
   taskByRemoteId: () => mocks.Task(),

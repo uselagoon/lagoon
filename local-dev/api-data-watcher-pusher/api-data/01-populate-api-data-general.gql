@@ -596,7 +596,6 @@ mutation PopulateApi {
 
   UIProject1Environment1addFactReference1: addFactReference(
     input: {
-        eid: 3
         fid: 2
         name: "nginx.high-cotton.org"
     }
@@ -606,7 +605,6 @@ mutation PopulateApi {
 
   UIProject1Environment1addFactReference2: addFactReference(
     input: {
-        eid: 3
         fid: 2
         name: "cli"
     }

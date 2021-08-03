@@ -5,6 +5,7 @@ node_modules
 .next
 build
 storybook-static
+build-storybook.log
 
 #environment
 .env

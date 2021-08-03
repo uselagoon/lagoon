@@ -166,6 +166,11 @@ const Honeycomb = ({ data, filter }) => {
             </>
             }
             <style jsx>{`
+              .honeycomb-display {
+                .results {
+                     margin: 62px calc((100vw / 16) * 2.5) 0;
+                }
+              }
               .content-wrapper {
                  &.results {
                    background: #f1f1f1;

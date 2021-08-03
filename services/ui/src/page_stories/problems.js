@@ -1,5 +1,5 @@
 import React from 'react';
-import ProblemsDashboardByProjectPageHexDisplay from 'pages/problems-dashboard-by-project-hex';
+import ProblemsDashboardByProjectPageHexDisplay from 'pages/problems';
 import AllProjectsProblemsQuery from 'lib/query/AllProjectsProblems';
 import mocks from "api/src/mocks";
 
@@ -30,7 +30,6 @@ const projectsProblems = [
   },
 ];
 
-//@TODO: Temp remove
 export const all_problems = () => <ProblemsDashboardByProjectPageHexDisplay />;
 all_problems.parameters = {
   apolloClient: {
