@@ -15,8 +15,7 @@ const environment = mocks.Query().environmentWithDeployments();
 const environmentWithDeploymentsQuery = [
   {
     request: {
-      query: EnvironmentWithDeploymentsQuery,
-      // variables: { openshiftProjectName: 'Example' }
+      query: EnvironmentWithDeploymentsQuery
     },
     result: {
       data: {
