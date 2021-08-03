@@ -15,8 +15,7 @@ const environment = mocks.Query().environmentWithFacts();
 const environmentWithFactsQuery = [
   {
     request: {
-      query: EnvironmentWithFactsQuery,
-      // variables: { openshiftProjectName: 'Example' }
+      query: EnvironmentWithFactsQuery
     },
     result: {
       data: {
