@@ -143,7 +143,7 @@ export const OpendistroSecurityOperations = (
               }
             },
             headers: {
-              securitytenant: tenantName == 'global_tenant' ? '' : tenantName // global tenant is an empty string when working with the kibana api
+              securitytenant: tenantName == 'global_tenant' ? 'global' : tenantName // global_tenant is `global` when working with the kibana api
             }
           }
         );
@@ -168,7 +168,7 @@ export const OpendistroSecurityOperations = (
     try {
       const currentSettings = await kibanaClient.get('kibana/settings', {
         headers: {
-          securitytenant: tenantName == 'global_tenant' ? '' : tenantName // global tenant is an empty string when working with the kibana api
+          securitytenant: tenantName == 'global_tenant' ? 'global' : tenantName // global_tenant is `global` when working with the kibana api
         }
       });
 
@@ -184,7 +184,7 @@ export const OpendistroSecurityOperations = (
             }
           },
           headers: {
-            securitytenant: tenantName == 'global_tenant' ? '' : tenantName // global tenant is an empty string when working with the kibana api
+            securitytenant: tenantName == 'global_tenant' ? 'global' : tenantName // global_tenant is `global` when working with the kibana api
           }
         });
         logger.debug(
