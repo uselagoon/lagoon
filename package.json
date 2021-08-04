@@ -9,7 +9,8 @@
   "private": true,
   "workspaces": [
     "node-packages/*",
-    "services/*"
+    "services/*",
+    "!services/uiv2"
   ],
   "devDependencies": {
     "glow": "^1.2.2",

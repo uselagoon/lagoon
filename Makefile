@@ -231,6 +231,7 @@ services :=	api \
 			logs2webhook \
 			storage-calculator \
 			ui \
+			uiv2 \
 			webhook-handler \
 			webhooks2tasks
 
@@ -941,8 +942,8 @@ rebuild-push-oc-build-deploy-dind:
 
 
 .PHONY: ui-development
-ui-development: build/api build/api-db build/local-api-data-watcher-pusher build/ui build/keycloak build/keycloak-db build/broker-single build/api-redis
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis
+ui-development: build/api build/api-db build/local-api-data-watcher-pusher build/ui build/uiv2 build/keycloak build/keycloak-db build/broker-single build/api-redis
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db local-api-data-watcher-pusher ui uiv2 keycloak keycloak-db broker api-redis
 
 .PHONY: api-development
 api-development: build/api build/api-db build/local-api-data-watcher-pusher build/keycloak build/keycloak-db build/broker-single build/api-redis

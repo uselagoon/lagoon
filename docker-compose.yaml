@@ -111,6 +111,16 @@ services:
       - ./services/ui/package.json:/app/services/ui/package.json
     ports:
       - '8888:3000'
+  uiv2:
+    image: ${IMAGE_REPO:-lagoon}/uiv2
+    command: yarn run dev
+    volumes:
+      - ./services/uiv2/src:/app/services/uiv2/src
+      - ./services/uiv2/.env.defaults:/app/services/uiv2/.env.defaults
+      - ./services/uiv2/.env.schema:/app/services/uiv2/.env.schema
+      - ./services/uiv2/package.json:/app/services/uiv2/package.json
+    ports:
+      - '8889:3000'
   ssh:
     image: ${IMAGE_REPO:-lagoon}/ssh
     depends_on:

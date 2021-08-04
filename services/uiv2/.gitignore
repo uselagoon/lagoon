@@ -1,0 +1,12 @@
+#dependencies
+node_modules
+
+#artifacts
+.next
+build
+storybook-static
+build-storybook.log
+
+#environment
+.env
+.python-version
