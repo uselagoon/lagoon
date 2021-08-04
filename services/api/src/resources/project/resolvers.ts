@@ -339,9 +339,10 @@ export const addProject = async (
     );
   }
 
-  OpendistroSecurityOperations(sqlClientPool, models.GroupModel).syncGroup(
+  OpendistroSecurityOperations(sqlClientPool, models.GroupModel).syncGroupWithSpecificTenant(
+    `p${project.id}`,
     `project-${project.name}`,
-    project.id
+    `${project.id}`
   );
 
   // Find or create a user that has the public key linked to them
@@ -450,7 +451,8 @@ export const deleteProject: ResolverFn = async (
       `project-${project.name}`
     );
     await models.GroupModel.deleteGroup(group.id);
-    OpendistroSecurityOperations(sqlClientPool, models.GroupModel).deleteGroup(
+    OpendistroSecurityOperations(sqlClientPool, models.GroupModel).deleteGroupWithSpecificTenant(
+      `p${pid}`,
       group.name
     );
   } catch (err) {

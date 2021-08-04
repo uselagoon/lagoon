@@ -18,7 +18,7 @@ export async function bitbucketPush(webhook: WebhookRequestData, project: Projec
     var skip_deploy = false
 
     if (body.push.commits) {
-      skip_deploy = body.push.commits[0].message.match(/\[skip deploy\]|\[deploy skip\]/i)
+      skip_deploy = body.push.changes[0].commits[0].message.match(/\[skip deploy\]|\[deploy skip\]/i)
     }
 
     const meta = {

@@ -1,6 +1,6 @@
 # Lagoon
 
-![](.gitbook/assets/lagoon-logo.png)
+![](.gitbook/assets/lagoon-logo%20%283%29.png)
 
 ## Lagoon - Docker Build and Deploy System for OpenShift & Kubernetes
 

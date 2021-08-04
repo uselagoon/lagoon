@@ -2,7 +2,19 @@
 
 We gladly welcome any and all contributions to Lagoon!
 
-### What kind of contributions do we need? Examples!
+### What kind of contributions do we need?
+
+Lagoon benefits from any kind of contribution - whether it's a bugfix, new feature, documentation update, or simply some queue maintenance - we're happy that you want to help
+
+### Developing for Lagoon
+
+There's a whole section on how to get Lagoon running on your local machine using KinD over at [Developing Lagoon](developing-lagoon.md).  This documentation is still very WIP - but there are a lot of Makefile routines to help you out.
+
+### Installing Lagoon
+
+We've got another section that outlines how to install Lagoon from Helm charts at [Installing Lagoon Into Existing Kubernetes Cluster](../using-lagoon-advanced/installing-lagoon-into-existing-kubernetes-cluster.md) - we'd love to get this process as slick as possible!
+
+### Help us with our examples
 
 Right now one of our biggest needs is putting together examples of Lagoon working with various content management systems, etc, other than Drupal.
 

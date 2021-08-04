@@ -89,6 +89,7 @@ const apolloServer = new ApolloServer({
   schema,
   debug: getConfigFromEnv('NODE_ENV') === 'development',
   introspection: true,
+  uploads: false, // Disable built in support for file uploads and configure it manually
   subscriptions: {
     onConnect: async (connectionParams, webSocket) => {
       const token = R.prop('authToken', connectionParams);

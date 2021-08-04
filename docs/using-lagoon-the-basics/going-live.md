@@ -91,5 +91,5 @@ Lagoon understands the concept of development and production environments. Devel
 
 During project setup, the production environment should already be defined. If that's omitted, your environment will run in development mode. You can check if the environment is set as production environment in the Lagoon user interface. If the production environment is not set, let your Lagoon administrator know, and they will configure the system accordingly.
 
-![The production environment is labelled in green on the left. ](../.gitbook/assets/lagoon-ui-production%20%282%29.png)
+![The production environment is labelled in green on the left. ](../.gitbook/assets/lagoon-ui-production%20%282%29%20%282%29%20%283%29%20%284%29.png)
 

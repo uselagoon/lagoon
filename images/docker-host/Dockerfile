@@ -1,7 +1,7 @@
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
 FROM ${UPSTREAM_REPO:-uselagoon}/commons:${UPSTREAM_TAG:-latest} as commons
-FROM docker:19.03.15-dind
+FROM docker:20.10.7-dind
 
 LABEL maintainer="amazee.io"
 ENV LAGOON=docker-host

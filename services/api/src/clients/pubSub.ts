@@ -49,8 +49,7 @@ const createSubscribe = (events): ResolverFn => async (
 
   const filtered = withFilter(
     () => pubSub.asyncIterator(events),
-    (payload, variables) =>
-      payload.environment === String(variables.environment)
+    (payload, variables) => payload.environment === variables.environment
   );
 
   return filtered(rootValue, args, context, info);

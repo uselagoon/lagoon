@@ -19,6 +19,7 @@ spec:
     schedule: '{{ .Values.check.schedule }}'
   prune:
     retention:
+      keepHourly: {{ .Values.prune.retention.keepHourly }}
       keepDaily: {{ .Values.prune.retention.keepDaily }}
       keepWeekly: {{ .Values.prune.retention.keepWeekly }}
       keepMonthly: {{ .Values.prune.retention.keepMonthly }}

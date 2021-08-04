@@ -1,10 +1,10 @@
 import * as R from 'ramda';
-import getFieldNames from 'graphql-list-fields';
 import { ResolverFn } from '../';
 import {
   pubSub,
   createEnvironmentFilteredSubscriber
 } from '../../clients/pubSub';
+import { esClient } from '../../clients/esClient';
 import { knex, query, isPatchEmpty } from '../../util/db';
 import { Sql } from './sql';
 import { EVENTS } from './events';
@@ -12,11 +12,45 @@ import { Helpers } from './helpers';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Validators as envValidators } from '../environment/validators';
 
+export const getTaskLog: ResolverFn = async (
+  { remoteId, status },
+  _args,
+  _context
+) => {
+  if (!remoteId) {
+    return null;
+  }
+
+  try {
+    const result = await esClient.search({
+      index: 'lagoon-logs-*',
+      sort: '@timestamp:desc',
+      body: {
+        query: {
+          bool: {
+            must: [
+              { match_phrase: { 'meta.remoteId': remoteId } },
+              { match_phrase: { 'meta.jobStatus': status } }
+            ]
+          }
+        }
+      }
+    });
+
+    if (!result.hits.total) {
+      return null;
+    }
+
+    return R.path(['hits', 'hits', 0, '_source', 'message'], result);
+  } catch (e) {
+    return `There was an error loading the logs: ${e.message}`;
+  }
+};
+
 export const getTasksByEnvironmentId: ResolverFn = async (
   { id: eid },
-  { id: filterId },
-  { sqlClientPool, hasPermission },
-  info
+  { id: filterId, limit },
+  { sqlClientPool, hasPermission }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
@@ -25,36 +59,20 @@ export const getTasksByEnvironmentId: ResolverFn = async (
     project: environment.project
   });
 
-  const rows = await query(
-    sqlClientPool,
-    `SELECT t.*, e.project
-    FROM environment e
-    JOIN task t on e.id = t.environment
-    WHERE e.id = :eid`,
-    { eid }
-  );
-  const newestFirst = R.sort(R.descend(R.prop('created')), rows);
+  let queryBuilder = knex('task')
+    .where('environment', eid)
+    .orderBy('created', 'desc')
+    .orderBy('id', 'desc');
 
-  const requestedFields = getFieldNames(info);
+  if (filterId) {
+    queryBuilder = queryBuilder.andWhere('id', filterId);
+  }
 
-  return newestFirst
-    .filter((row: any) => {
-      if (R.isNil(filterId) || R.isEmpty(filterId)) {
-        return true;
-      }
+  if (limit) {
+    queryBuilder = queryBuilder.limit(limit);
+  }
 
-      return row.id === String(filterId);
-    })
-    .map((row: any) => {
-      if (R.contains('logs', requestedFields)) {
-        return Helpers(sqlClientPool).injectLogs(row);
-      }
-
-      return {
-        ...row,
-        logs: null
-      };
-    });
+  return query(sqlClientPool, queryBuilder.toString());
 };
 
 export const getTaskByRemoteId: ResolverFn = async (
@@ -73,15 +91,12 @@ export const getTaskByRemoteId: ResolverFn = async (
     return null;
   }
 
-  const rowsPerms = await query(
-    sqlClientPool,
-    Sql.selectPermsForTask(task.id)
-  );
+  const rowsPerms = await query(sqlClientPool, Sql.selectPermsForTask(task.id));
   await hasPermission('task', 'view', {
     project: R.path(['0', 'pid'], rowsPerms)
   });
 
-  return Helpers(sqlClientPool).injectLogs(task);
+  return task;
 };
 
 export const getTaskById: ResolverFn = async (
@@ -100,15 +115,12 @@ export const getTaskById: ResolverFn = async (
     return null;
   }
 
-  const rowsPerms = await query(
-    sqlClientPool,
-    Sql.selectPermsForTask(task.id)
-  );
+  const rowsPerms = await query(sqlClientPool, Sql.selectPermsForTask(task.id));
   await hasPermission('task', 'view', {
     project: R.path(['0', 'pid'], rowsPerms)
   });
 
-  return Helpers(sqlClientPool).injectLogs(task);
+  return task;
 };
 
 export const addTask: ResolverFn = async (
@@ -161,7 +173,7 @@ export const addTask: ResolverFn = async (
         service,
         command,
         remoteId,
-        execute: executeRequest,
+        execute: executeRequest
       }
     }
   });
@@ -198,7 +210,7 @@ export const deleteTask: ResolverFn = async (
   userActivityLogger.user_action(`User deleted task '${id}'`, {
     payload: {
       input: {
-        id,
+        id
       }
     }
   });
@@ -266,7 +278,7 @@ export const updateTask: ResolverFn = async (
   );
 
   const rows = await query(sqlClientPool, Sql.selectTask(id));
-  const taskData = await Helpers(sqlClientPool).injectLogs(R.prop(0, rows));
+  const taskData = R.prop(0, rows);
 
   pubSub.publish(EVENTS.TASK.UPDATED, taskData);
 
@@ -306,7 +318,7 @@ export const taskDrushArchiveDump: ResolverFn = async (
     project: envPerm.project
   });
 
-  const command = String.raw`file="/tmp/$LAGOON_SAFE_PROJECT-$LAGOON_GIT_SAFE_BRANCH-$(date --iso-8601=seconds).tar" && drush ard --destination=$file && \
+  const command = String.raw`file="/tmp/$LAGOON_PROJECT-$LAGOON_GIT_SAFE_BRANCH-$(date --iso-8601=seconds).tar" && drush ard --destination=$file && \
 TOKEN="$(ssh -p $TASK_SSH_PORT -t lagoon@$TASK_SSH_HOST token)" && curl -sS "$TASK_API_HOST"/graphql \
 -H "Authorization: Bearer $TOKEN" \
 -F operations='{ "query": "mutation ($task: Int!, $files: [Upload!]!) { uploadFilesForTask(input:{task:$task, files:$files}) { id files { filename } } }", "variables": { "task": '"$TASK_DATA_ID"', "files": [null] } }' \
@@ -314,11 +326,14 @@ TOKEN="$(ssh -p $TASK_SSH_PORT -t lagoon@$TASK_SSH_HOST token)" && curl -sS "$TA
 -F 0=@$file; rm -rf $file;
 `;
 
-  userActivityLogger.user_action(`User triggered a Drush Archive Dump task on environment '${environmentId}'`, {
-    payload: {
-      environment: environmentId
+  userActivityLogger.user_action(
+    `User triggered a Drush Archive Dump task on environment '${environmentId}'`,
+    {
+      payload: {
+        environment: environmentId
+      }
     }
-  });
+  );
 
   const taskData = await Helpers(sqlClientPool).addTask({
     name: 'Drush archive-dump',
@@ -348,7 +363,7 @@ export const taskDrushSqlDump: ResolverFn = async (
     project: envPerm.project
   });
 
-  const command = String.raw`file="/tmp/$LAGOON_SAFE_PROJECT-$LAGOON_GIT_SAFE_BRANCH-$(date --iso-8601=seconds).sql" && drush sql-dump --result-file=$file --gzip && \
+  const command = String.raw`file="/tmp/$LAGOON_PROJECT-$LAGOON_GIT_SAFE_BRANCH-$(date --iso-8601=seconds).sql" && drush sql-dump --result-file=$file --gzip && \
 TOKEN="$(ssh -p $TASK_SSH_PORT -t lagoon@$TASK_SSH_HOST token)" && curl -sS "$TASK_API_HOST"/graphql \
 -H "Authorization: Bearer $TOKEN" \
 -F operations='{ "query": "mutation ($task: Int!, $files: [Upload!]!) { uploadFilesForTask(input:{task:$task, files:$files}) { id files { filename } } }", "variables": { "task": '"$TASK_DATA_ID"', "files": [null] } }' \
@@ -356,11 +371,14 @@ TOKEN="$(ssh -p $TASK_SSH_PORT -t lagoon@$TASK_SSH_HOST token)" && curl -sS "$TA
 -F 0=@$file.gz; rm -rf $file.gz
 `;
 
-  userActivityLogger.user_action(`User triggered a Drush SQL Dump task on environment '${environmentId}'`, {
-    payload: {
-      environment: environmentId
+  userActivityLogger.user_action(
+    `User triggered a Drush SQL Dump task on environment '${environmentId}'`,
+    {
+      payload: {
+        environment: environmentId
+      }
     }
-  });
+  );
 
   const taskData = await Helpers(sqlClientPool).addTask({
     name: 'Drush sql-dump',
@@ -401,11 +419,14 @@ export const taskDrushCacheClear: ResolverFn = async (
     exit 1; \
   fi';
 
-  userActivityLogger.user_action(`User triggered a Drush cache clear task on environment '${environmentId}'`, {
-    payload: {
-      environment: environmentId
+  userActivityLogger.user_action(
+    `User triggered a Drush cache clear task on environment '${environmentId}'`,
+    {
+      payload: {
+        environment: environmentId
+      }
     }
-  });
+  );
 
   const taskData = await Helpers(sqlClientPool).addTask({
     name: 'Drush cache-clear',
@@ -435,11 +456,14 @@ export const taskDrushCron: ResolverFn = async (
     project: envPerm.project
   });
 
-  userActivityLogger.user_action(`User triggered a Drush cron task on environment '${environmentId}'`, {
-    payload: {
-      environment: environmentId
+  userActivityLogger.user_action(
+    `User triggered a Drush cron task on environment '${environmentId}'`,
+    {
+      payload: {
+        environment: environmentId
+      }
     }
-  });
+  );
 
   const taskData = await Helpers(sqlClientPool).addTask({
     name: 'Drush cron',
@@ -495,12 +519,15 @@ export const taskDrushSqlSync: ResolverFn = async (
     }
   );
 
-  userActivityLogger.user_action(`User triggered a Drush SQL sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`, {
-    payload: {
-      sourceEnvironment: sourceEnvironmentId,
-      destinationEnvironment: destinationEnvironmentId
+  userActivityLogger.user_action(
+    `User triggered a Drush SQL sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`,
+    {
+      payload: {
+        sourceEnvironment: sourceEnvironmentId,
+        destinationEnvironment: destinationEnvironmentId
+      }
     }
-  });
+  );
 
   const taskData = await Helpers(sqlClientPool).addTask({
     name: `Sync DB ${sourceEnvironment.name} -> ${destinationEnvironment.name}`,
@@ -556,12 +583,15 @@ export const taskDrushRsyncFiles: ResolverFn = async (
     }
   );
 
-  userActivityLogger.user_action(`User triggered an rsync sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`, {
-    payload: {
-      sourceEnvironment: sourceEnvironmentId,
-      destinationEnvironment: destinationEnvironmentId
+  userActivityLogger.user_action(
+    `User triggered an rsync sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`,
+    {
+      payload: {
+        sourceEnvironment: sourceEnvironmentId,
+        destinationEnvironment: destinationEnvironmentId
+      }
     }
-  });
+  );
 
   const taskData = await Helpers(sqlClientPool).addTask({
     name: `Sync files ${sourceEnvironment.name} -> ${destinationEnvironment.name}`,
@@ -591,11 +621,14 @@ export const taskDrushUserLogin: ResolverFn = async (
     project: envPerm.project
   });
 
-  userActivityLogger.user_action(`User triggered a Drush user login task on '${environmentId}'`, {
-    payload: {
-      environment: environmentId
+  userActivityLogger.user_action(
+    `User triggered a Drush user login task on '${environmentId}'`,
+    {
+      payload: {
+        environment: environmentId
+      }
     }
-  });
+  );
 
   const taskData = await Helpers(sqlClientPool).addTask({
     name: 'Drush uli',
