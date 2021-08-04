@@ -718,9 +718,9 @@ const typeDefs = gql`
     route: String
     routes: String
     monitoringUrls: String
-    deployments(name: String): [Deployment]
-    backups(includeDeleted: Boolean): [Backup]
-    tasks(id: Int): [Task]
+    deployments(name: String, limit: Int): [Deployment]
+    backups(includeDeleted: Boolean, limit: Int): [Backup]
+    tasks(id: Int, limit: Int): [Task]
     services: [EnvironmentService]
     problems(severity: [ProblemSeverityRating], source: [String]): [Problem]
     facts(keyFacts: Boolean): [Fact]

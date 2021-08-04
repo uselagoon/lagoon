@@ -1292,6 +1292,24 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
+  add_fact_type_to_environment_fact()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'environment_fact'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'type'
+    ) THEN
+        ALTER TABLE `environment_fact`
+        ADD `type` ENUM('TEXT', 'URL') NOT NULL DEFAULT 'TEXT';
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
   add_enum_webhook_to_type_in_project_notification()
 
   BEGIN
@@ -1309,6 +1327,42 @@ CREATE OR REPLACE PROCEDURE
     ) THEN
       ALTER TABLE project_notification
       MODIFY type ENUM('slack','rocketchat','microsoftteams','email', 'webhook');
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_index_for_deployment_environment()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.STATISTICS
+      WHERE
+        table_name = 'deployment'
+        AND table_schema = 'infrastructure'
+        AND index_name='deployment_environment'
+    ) THEN
+      ALTER TABLE `deployment`
+      ADD INDEX `deployment_environment` (`environment`);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_index_for_task_environment()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.STATISTICS
+      WHERE
+        table_name = 'task'
+        AND table_schema = 'infrastructure'
+        AND index_name='task_environment'
+    ) THEN
+      ALTER TABLE `task`
+      ADD INDEX `task_environment` (`environment`);
     END IF;
   END;
 $$
@@ -1376,6 +1430,8 @@ CALL add_content_type_to_project_notification();
 CALL convert_project_production_routes_to_text();
 CALL convert_project_standby_routes_to_text();
 CALL add_enum_webhook_to_type_in_project_notification();
+CALL add_index_for_deployment_environment();
+CALL add_index_for_task_environment();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;

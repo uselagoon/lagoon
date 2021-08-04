@@ -4,7 +4,8 @@ import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Sql } from './sql';
 import { ResolverFn } from '../index';
 import { knex } from '../../util/db';
-import logger from '../../logger';
+import { logger } from '../../loggers/logger';
+import { loggers } from 'winston';
 
 export const getFactsByEnvironmentId: ResolverFn = async (
   { id: environmentId },
@@ -163,7 +164,7 @@ export const addFact: ResolverFn = async (
         source,
         description
       }
-    }
+      }
   });
 
   return R.prop(0, rows);

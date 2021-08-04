@@ -1,5 +1,6 @@
 const GraphQLDate = require('graphql-iso-date');
 const GraphQLJSON = require('graphql-type-json');
+const { GraphQLUpload } = require('graphql-upload');
 
 const {
   getAllProblems,
@@ -49,7 +50,8 @@ const {
   deployEnvironmentPromote,
   switchActiveStandby,
   deploymentSubscriber,
-  getDeploymentUrl
+  getDeploymentUrl,
+  getBuildLog,
 } = require('./resources/deployment/resolvers');
 
 const {
@@ -67,12 +69,14 @@ const {
   taskDrushRsyncFiles,
   taskDrushUserLogin,
   taskSubscriber,
+  getTaskLog,
 } = require('./resources/task/resolvers');
 
 const {
   getFilesByTaskId,
   uploadFilesForTask,
   deleteFilesForTask,
+  getDownloadLink,
 } = require('./resources/file/resolvers');
 
 const {
@@ -212,6 +216,7 @@ const {
   getRestoreByBackupId,
   updateRestore,
   backupSubscriber,
+  getRestoreLocation,
 } = require('./resources/backup/resolvers');
 
 const {
@@ -222,6 +227,7 @@ const {
 } = require('./resources/env-variables/resolvers');
 
 const resolvers = {
+  Upload: GraphQLUpload,
   GroupRole: {
     GUEST: 'guest',
     REPORTER: 'reporter',
@@ -332,10 +338,15 @@ const resolvers = {
   Deployment: {
     environment: getEnvironmentByDeploymentId,
     uiLink: getDeploymentUrl,
+    buildLog: getBuildLog,
   },
   Task: {
     environment: getEnvironmentByTaskId,
     files: getFilesByTaskId,
+    logs: getTaskLog
+  },
+  File: {
+    download: getDownloadLink
   },
   Notification: {
     __resolveType(obj) {
@@ -362,6 +373,9 @@ const resolvers = {
   Backup: {
     restore: getRestoreByBackupId,
     environment: getEnvironmentByBackupId,
+  },
+  Restore: {
+    restoreLocation: getRestoreLocation,
   },
   Query: {
     me: getMe,
