@@ -128,7 +128,8 @@ export const OpendistroSecurityOperations = (
       );
     }
 
-    const queryParameter = overwriteKibanaIndexPattern == 'true' ? '?overwrite=true' : '';
+    const kibanaTenantName = tenantName == 'global_tenant' ? 'global' : tenantName // global_tenant is `global` when working with the kibana api
+    const queryParameter = overwriteKibanaIndexPattern == 'true' ? `?overwrite=true` : '';
 
     for (const indexPattern of indexPatterns) {
       try {
@@ -143,7 +144,7 @@ export const OpendistroSecurityOperations = (
               }
             },
             headers: {
-              securitytenant: tenantName == 'global_tenant' ? 'global' : tenantName // global_tenant is `global` when working with the kibana api
+              securitytenant: kibanaTenantName
             }
           }
         );
@@ -168,7 +169,7 @@ export const OpendistroSecurityOperations = (
     try {
       const currentSettings = await kibanaClient.get('kibana/settings', {
         headers: {
-          securitytenant: tenantName == 'global_tenant' ? 'global' : tenantName // global_tenant is `global` when working with the kibana api
+          securitytenant: kibanaTenantName
         }
       });
 
@@ -184,7 +185,7 @@ export const OpendistroSecurityOperations = (
             }
           },
           headers: {
-            securitytenant: tenantName == 'global_tenant' ? 'global' : tenantName // global_tenant is `global` when working with the kibana api
+            securitytenant: kibanaTenantName
           }
         });
         logger.debug(
