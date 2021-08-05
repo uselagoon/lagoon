@@ -30,6 +30,9 @@
         body: '{ "query": "mutation($environmentId: Int!, $taskName: String!, $description: String!, $service: String!, $command: String!) {addAdvancedTaskDefinition(input: {environment:$environmentId, name:$taskName, type:COMMAND, description: $description, service: $service, command: $command}){... on AdvancedTaskDefinitionCommand {id}}}", "variables": {"environmentId": {{ environmentByOSProjectNameApiResponse.json.data.environmentByOpenshiftProjectName.id }}, "taskName":"testing-echo","description":"echos to file", "service":"node", "command":"echo ''REPLACED BY TASK'' > /app/files/testoutput.txt"}}'
       register: taskCreateApiResponse
       until:
+    - name: "{{ testname }} - DEBUG taskCreateApiResponse"
+      debug:
+        msg: "api response: {{ taskCreateApiResponse }}"
     - name: "{{ testname }} - POST api addAdvancedTaskDefinition to {{ graphql_url }}"
       debug:
         msg: "api response: {{ taskCreateApiResponse.json.data.addAdvancedTaskDefinition.id }}"
