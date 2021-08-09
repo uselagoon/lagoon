@@ -191,6 +191,8 @@ export const deleteDeployment: ResolverFn = async (
   await query(sqlClientPool, Sql.deleteDeployment(id));
 
   userActivityLogger.user_action(`User deleted deployment '${id}'`, {
+    project: '',
+    event: 'api:deleteDeployment',
     payload: {
       deployment: id
     }
@@ -264,6 +266,8 @@ export const updateDeployment: ResolverFn = async (
   pubSub.publish(EVENTS.DEPLOYMENT.UPDATED, deployment);
 
   userActivityLogger.user_action(`User updated deployment '${id}'`, {
+    project: environment.project || '',
+    event: 'api:updateDeployment',
     payload: {
       id,
       deployment,
@@ -310,6 +314,8 @@ export const cancelDeployment: ResolverFn = async (
   userActivityLogger.user_action(
     `User cancelled deployment for '${deployment.environment}'`,
     {
+      project: environment.project || '',
+      event: 'api:cancelDeployment',
       payload: {
         deploymentInput,
         data: data.build
@@ -442,6 +448,8 @@ export const deployEnvironmentLatest: ResolverFn = async (
   userActivityLogger.user_action(
     `User triggered a deployment on '${deployData.projectName}' for '${environment.name}'`,
     {
+      project: deployData.projectName || '',
+      event: 'api:deployEnvironmentLatest',
       payload: {
         deployData
       }
@@ -518,6 +526,8 @@ export const deployEnvironmentBranch: ResolverFn = async (
   userActivityLogger.user_action(
     `User triggered a deployment on '${deployData.projectName}' for '${deployData.branchName}'`,
     {
+      project: deployData.projectName || '',
+      event: 'api:deployEnvironmentBranch',
       payload: {
         deployData
       }
@@ -611,6 +621,8 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
   userActivityLogger.user_action(
     `User triggered a pull-request deployment on '${deployData.projectName}' for '${deployData.branchName}'`,
     {
+      project: deployData.projectName || '',
+      event: 'api:deployEnvironmentPullrequest',
       payload: {
         deployData
       }
@@ -714,6 +726,8 @@ export const deployEnvironmentPromote: ResolverFn = async (
   userActivityLogger.user_action(
     `User promoted the environment on '${deployData.projectName}' from '${deployData.promoteSourceEnvironment}' to '${deployData.branchName}'`,
     {
+      project: deployData.projectName || '',
+      event: 'api:deployEnvironmentPromote',
       payload: {
         deployData
       }

@@ -1,6 +1,11 @@
 import winston, { Logger } from 'winston';
 const { addColors, createLogger, format, transports } = require('winston');
+import { RabbitMQTransport } from '../util/winston-rabbitmq';
 
+const rabbitmqHost = process.env.RABBITMQ_HOST || 'broker';
+const rabbitmqUsername = process.env.RABBITMQ_USERNAME || 'guest';
+const rabbitmqPassword = process.env.RABBITMQ_PASSWORD || 'guest';
+const packageName = process.env.npm_package_name || '';
 export interface IUserActivityLogger extends winston.Logger {
   user_info: winston.LeveledLogMethod;
   user_auth: winston.LeveledLogMethod;
@@ -14,7 +19,10 @@ export interface IUserReqHeader {
   referer?: string
 }
 
-interface IMetaLogger {
+export interface IMetaLogger {
+  project?: string,
+  uuid?: string,
+  event?: string,
   user?: {
     id?: string
     user: string,
@@ -56,7 +64,7 @@ const { colors, levels } = {
 
 addColors(colors);
 
-const formatMeta = (meta: IMetaLogger) => {
+const parseMeta = (meta: IMetaLogger) => {
   if (meta) {
     Object.keys(meta).map(key => {
       if (meta[key] != undefined) {
@@ -93,34 +101,56 @@ const formatMeta = (meta: IMetaLogger) => {
   return '';
 };
 
+const transportOptions = {
+  appId: packageName || 'lagoon-user-amqp-transport',
+  protocol: 'amqp',
+  username: rabbitmqUsername,
+  password: rabbitmqPassword,
+  host: rabbitmqHost,
+  port: 5672,
+  //debug set to false
+  silent: false,
+  exchangeName: "lagoon-logs",
+  exchangeType: 'direct',
+  routingKey: "",
+  durable: true,
+  level: 'user_action',
+  handleError: function(ex) {
+		console.error('lagoon-logs: Error send to rabbitmq lagoon-logs exchange: ', ex.stack);
+	}
+}
+
+const parseMessage = (info) => {
+  let message, level: string;
+  let meta: IMetaLogger;
+  if (info.message !== undefined) {
+    message = info.message;
+  }
+
+  if (info.user) {
+    meta = { user: {...info.user}, headers: info.headers, payload: info.payload };
+  }
+
+  level = info.level ? info.level : 'info';
+
+  return `[${info.timestamp}] [${level}]: ${message}: ${meta ? parseMeta(meta) : ''}`
+}
+
 export const userActivityLogger: IUserActivityLogger = createLogger({
   exitOnError: false,
   levels: levels,
   format: format.combine(
-    format.colorize(),
+    // format.colorize(),
     format.splat(),
     format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-    format.printf(info => {
-      let message, level: string;
-      let meta: IMetaLogger;
-      if (info.message !== undefined) {
-        message = info.message;
-      }
-
-      if (info.user) {
-        meta = { user: {...info.user}, headers: info.headers, payload: info.payload };
-      }
-
-      level = info.level ? info.level : 'INFO';
-
-      return `[${info.timestamp}] [${level}]: ${message}: ${meta ? formatMeta(meta) : ''}`
-    })
+    format.printf(info => parseMessage(info))
   ),
   transports: [
     new transports.Console({
       level: 'user_action',
       handleExceptions: true,
-      json: false
-    })
+      json: true
+    }),
+    new RabbitMQTransport(transportOptions)
   ]
 });

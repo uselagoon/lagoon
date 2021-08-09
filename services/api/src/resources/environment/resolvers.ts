@@ -342,6 +342,8 @@ export const addOrUpdateEnvironment: ResolverFn = async (
   );
 
   userActivityLogger.user_action(`User updated environment`, {
+    project: input.name || '',
+    event: 'api:addOrUpdateEnvironment',
     payload: {
       ...input
     }
@@ -383,6 +385,8 @@ export const addOrUpdateEnvironmentStorage: ResolverFn = async (
   const { name: projectName } = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environment['environment']);
 
   userActivityLogger.user_action(`User updated environment storage on project '${projectName}'`, {
+    project: projectName || '',
+    event: 'api:addOrUpdateEnvironmentStorage',
     payload: {
       projectName,
       input
@@ -497,6 +501,8 @@ export const deleteEnvironment: ResolverFn = async (
   }
 
   userActivityLogger.user_action(`User deleted environment '${environment.name}' on project '${projectName}'`, {
+    project: data.projectName || '',
+    event: 'api:deleteEnvironment',
     payload: {
       projectName,
       environment,
@@ -570,6 +576,8 @@ export const updateEnvironment: ResolverFn = async (
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
   userActivityLogger.user_action(`User updated environment '${curEnv.name}' on project '${curEnv.project}'`, {
+    project: curEnv.project || '',
+    event: 'api:updateEnvironment',
     payload: {
       openshiftProjectName,
       patch: {
@@ -628,6 +636,8 @@ export const deleteAllEnvironments: ResolverFn = async (
   await query(sqlClientPool, Sql.truncateEnvironment());
 
   userActivityLogger.user_action(`User deleted all environments'`, {
+    project: '',
+    event: 'api:deleteAllEnvironments',
     payload: {
       args
     }
@@ -656,6 +666,8 @@ export const setEnvironmentServices: ResolverFn = async (
   }
 
   userActivityLogger.user_action(`User set environment services for '${environment.name}'`, {
+    project: environment.project || '',
+    event: 'api:setEnvironmentServices',
     payload: {
       environment,
       services

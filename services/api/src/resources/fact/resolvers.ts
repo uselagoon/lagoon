@@ -54,6 +54,8 @@ export const addFact: ResolverFn = async (
   const rows = await query(sqlClientPool, Sql.selectFactByDatabaseId(insertId));
 
   userActivityLogger.user_action(`User added a fact to environment '${environment.name}'`, {
+    project: '',
+    event: 'api:addFact',
     payload: {
       data: {
         environment: environmentId,
@@ -112,6 +114,8 @@ export const addFacts: ResolverFn = async (
   }
 
   userActivityLogger.user_action(`User added facts to environments'`, {
+    project: '',
+    event: 'api:addFacts',
     payload: {
       data: {
         returnFacts
@@ -138,6 +142,8 @@ export const deleteFact: ResolverFn = async (
   await query(sqlClientPool, Sql.deleteFact(environmentId, name));
 
   userActivityLogger.user_action(`User deleted a fact`, {
+    project: '',
+    event: 'api:deleteFact',
     payload: {
       data: {
         environment: environmentId,
@@ -165,6 +171,8 @@ export const deleteFactsFromSource: ResolverFn = async (
   await query(sqlClientPool, Sql.deleteFactsFromSource(environmentId, source));
 
   userActivityLogger.user_action(`User deleted facts`, {
+    project: '',
+    event: 'api:deleteFactsFromSource',
     payload: {
       data: {
         environment: environmentId,

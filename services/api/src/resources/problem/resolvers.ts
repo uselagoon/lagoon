@@ -174,6 +174,8 @@ export const addProblem: ResolverFn = async (
   );
 
   userActivityLogger.user_action(`User added a problem to environment '${environment.name}' for '${environment.project}'`, {
+    project: environment.project || '',
+    event: 'api:addProblem',
     payload: {
       input: {
         severity,
@@ -212,6 +214,8 @@ export const deleteProblem: ResolverFn = async (
   await query(sqlClientPool, Sql.deleteProblem(environmentId, identifier));
 
   userActivityLogger.user_action(`User deleted a problem on environment '${environment.name}' for '${environment.project}'`, {
+    project: environment.project || '',
+    event: 'api:deleteProblem',
     payload: {
       input: { environment, identifier }
     }
@@ -239,6 +243,8 @@ export const deleteProblemsFromSource: ResolverFn = async (
   );
 
   userActivityLogger.user_action(`User deleted problems on environment '${environment.id}' for source '${source}'`, {
+    project: environment.project || '',
+    event: 'api:deleteProblemsFromSource',
     payload: {
       input: { environment, source, service }
     }
@@ -297,6 +303,8 @@ export const addProblemHarborScanMatch: ResolverFn = async (
   );
 
   userActivityLogger.user_action(`User added harbor scan regex matcher`, {
+    project: defaultLagoonProject || '',
+    event: 'api:addProblemHarborScanMatch',
     payload: {
       input: {
         name,
@@ -322,6 +330,8 @@ export const deleteProblemHarborScanMatch: ResolverFn = async (
   await query(sqlClientPool, Sql.deleteProblemHarborScanMatch(id));
 
   userActivityLogger.user_action(`User deleted harbor scan regex matcher`, {
+    project: '',
+    event: 'api:deleteProblemHarborScanMatch',
     payload: {
       input: { id }
     }
