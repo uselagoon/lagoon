@@ -133,14 +133,13 @@ const syncUsersForProjects = async (redis, projects) => {
 
           let userPermissionCacheHash = userPermissionsToCacheHash(userPermissions);
           let cachedUserPermissionCacheHash = await redis.get(lagoonProjectGroupCacheName);
-          console.log(cachedUserPermissionCacheHash);
           if(cachedUserPermissionCacheHash == userPermissionCacheHash) {
-            console.log(`Cache entry found for ${lagoonProjectGroupCacheName} - skipping`);
+            logger.warn(`Cache entry found for ${lagoonProjectGroupCacheName} - skipping`);
             return;
           }
-          console.log(`Didnt match ${lagoonProjectGroupCacheName}'s hash ${cachedUserPermissionCacheHash} with ${userPermissionCacheHash} - caching for 24 hours`);
+          logger.info(`Didnt match ${lagoonProjectGroupCacheName}'s hash ${cachedUserPermissionCacheHash} with ${userPermissionCacheHash} - caching for 24 hours`);
           await redis.set(lagoonProjectGroupCacheName, userPermissionCacheHash, 'EX', 60 * 60 * 24);
-          console.log(`cache hash: ${userPermissionCacheHash} for ${lagoonProjectGroupCacheName} added`);
+          logger.info(`cache hash: ${userPermissionCacheHash} for ${lagoonProjectGroupCacheName} added`);
           let lagoonUsersInGroupTotal = await getLagoonUsersForGroup(
             lagoonProjectGroup
           );
@@ -266,7 +265,6 @@ const getRedisClient = () => {
       : undefined
   };
 
-  console.log(config);
   const redisClient = redis.createClient({
     host: config.hostname,
     port: config.port,
