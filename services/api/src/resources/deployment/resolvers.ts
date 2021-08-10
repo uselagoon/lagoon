@@ -266,7 +266,7 @@ export const updateDeployment: ResolverFn = async (
   pubSub.publish(EVENTS.DEPLOYMENT.UPDATED, deployment);
 
   userActivityLogger.user_action(`User updated deployment '${id}'`, {
-    project: environment.project || '',
+    project: '',
     event: 'api:updateDeployment',
     payload: {
       id,
@@ -314,7 +314,7 @@ export const cancelDeployment: ResolverFn = async (
   userActivityLogger.user_action(
     `User cancelled deployment for '${deployment.environment}'`,
     {
-      project: environment.project || '',
+      project: '',
       event: 'api:cancelDeployment',
       payload: {
         deploymentInput,

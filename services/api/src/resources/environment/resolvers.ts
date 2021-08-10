@@ -666,7 +666,7 @@ export const setEnvironmentServices: ResolverFn = async (
   }
 
   userActivityLogger.user_action(`User set environment services for '${environment.name}'`, {
-    project: environment.project || '',
+    project: '',
     event: 'api:setEnvironmentServices',
     payload: {
       environment,

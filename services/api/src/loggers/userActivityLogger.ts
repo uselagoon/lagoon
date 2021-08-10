@@ -1,11 +1,7 @@
 import winston, { Logger } from 'winston';
 const { addColors, createLogger, format, transports } = require('winston');
-import { RabbitMQTransport } from '../util/winston-rabbitmq';
+import { RabbitMQTransport } from '../util/winstonRabbitmqTransport';
 
-const rabbitmqHost = process.env.RABBITMQ_HOST || 'broker';
-const rabbitmqUsername = process.env.RABBITMQ_USERNAME || 'guest';
-const rabbitmqPassword = process.env.RABBITMQ_PASSWORD || 'guest';
-const packageName = process.env.npm_package_name || '';
 export interface IUserActivityLogger extends winston.Logger {
   user_info: winston.LeveledLogMethod;
   user_auth: winston.LeveledLogMethod;
@@ -101,25 +97,6 @@ const parseMeta = (meta: IMetaLogger) => {
   return '';
 };
 
-const transportOptions = {
-  appId: packageName || 'lagoon-user-amqp-transport',
-  protocol: 'amqp',
-  username: rabbitmqUsername,
-  password: rabbitmqPassword,
-  host: rabbitmqHost,
-  port: 5672,
-  //debug set to false
-  silent: false,
-  exchangeName: "lagoon-logs",
-  exchangeType: 'direct',
-  routingKey: "",
-  durable: true,
-  level: 'user_action',
-  handleError: function(ex) {
-		console.error('lagoon-logs: Error send to rabbitmq lagoon-logs exchange: ', ex.stack);
-	}
-}
-
 const parseMessage = (info) => {
   let message, level: string;
   let meta: IMetaLogger;
@@ -132,25 +109,31 @@ const parseMessage = (info) => {
   }
 
   level = info.level ? info.level : 'info';
-
   return `[${info.timestamp}] [${level}]: ${message}: ${meta ? parseMeta(meta) : ''}`
 }
 
-export const userActivityLogger: IUserActivityLogger = createLogger({
+const userActivityLogger: IUserActivityLogger = createLogger({
   exitOnError: false,
   levels: levels,
   format: format.combine(
-    // format.colorize(),
     format.splat(),
     format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-    format.printf(info => parseMessage(info))
   ),
   transports: [
     new transports.Console({
       level: 'user_action',
+      format: format.combine(
+        format.colorize(),
+        format.printf(info => parseMessage(info))
+      ),
       handleExceptions: true,
       json: true
     }),
-    new RabbitMQTransport(transportOptions)
+    new RabbitMQTransport({
+      level: 'user_action',
+      json: true
+    })
   ]
 });
+
+export default userActivityLogger;
