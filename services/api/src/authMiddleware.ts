@@ -6,11 +6,13 @@ import {
   getCredentialsForLegacyToken
 } from './util/auth';
 import { getUserActivityLogger } from './loggers/userActivityLogger';
+const { getClientIp } = require('@supercharge/request-ip');
 
 export type RequestWithAuthData = Request & {
   legacyCredentials: any;
   authToken: string;
   kauth: any;
+  ipAddress?: any;
 };
 
 const parseBearerToken = R.compose(
@@ -72,9 +74,13 @@ const keycloak = async (
   try {
     const grant: any = await getGrantForKeycloakToken(req.authToken);
 
+    const ipAddress = getClientIp(req);
+    req.headers.ipAddress = ipAddress;
+
     req.kauth = { grant };
     const userActivityLogger = getUserActivityLogger(
-      grant ? grant.access_token.content : null
+      grant ? grant.access_token.content : null,
+      req.headers
     );
 
     const { azp: source, preferred_username, email } = grant.access_token.content;
@@ -109,10 +115,12 @@ const legacy = async (
 
   try {
     const legacyCredentials = await getCredentialsForLegacyToken(req.authToken);
-
     req.legacyCredentials = legacyCredentials;
 
-    const userActivityLogger = getUserActivityLogger(legacyCredentials ? legacyCredentials : null);
+    const ipAddress = getClientIp(req);
+    req.headers.ipAddress = ipAddress;
+
+    const userActivityLogger = getUserActivityLogger(legacyCredentials ? legacyCredentials : null, req.headers);
     const { sub, iss } = legacyCredentials;
     const username = sub ? sub : 'unknown';
     const source = iss ? iss : 'unknown';

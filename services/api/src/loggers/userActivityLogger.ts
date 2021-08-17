@@ -7,14 +7,13 @@ export interface IUserActivityLogger extends winston.Logger {
   user_auth: winston.LeveledLogMethod;
   user_action: winston.LeveledLogMethod;
 }
-
 export interface IUserReqHeader {
   'user-agent'?: string,
   host?: string,
+  ipAddress?: string,
   origin?: string,
   referer?: string
 }
-
 export interface IMetaLogger {
   project?: string,
   uuid?: string,
@@ -33,7 +32,7 @@ export interface IMetaLogger {
     source?: string,
     roles?: string,
   },
-  headers?: IUserReqHeader
+  headers?: IUserReqHeader,
   payload?: {}
 }
 
@@ -86,8 +85,8 @@ const parseMeta = (meta: IMetaLogger) => {
         }
 
         if (key === 'headers') {
-          const { 'user-agent': user_agent, host, origin, referer } = meta[key];
-          meta[key] = { 'user-agent': user_agent, host, origin, referer }
+          const { 'user-agent': user_agent, host, origin, referer, ipAddress } = meta[key];
+          meta[key] = { 'user-agent': user_agent, host, origin, referer, ipAddress }
         }
       }
     });
