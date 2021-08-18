@@ -201,24 +201,24 @@ Lagoon can support custom restore locations and credentials for any project when
 
 #### `BAAS_CUSTOM_RESTORE_ENDPOINT`
 
-Specify the S3 compatible endpoint where any Lagoon initiated backups should be stored.
+Specify the S3 compatible endpoint where any Lagoon initiated restores should be stored.
 
 An example custom setting would be: `http://10.144.1.224:9000`
 
 #### `BAAS_CUSTOM_RESTORE_BUCKET`
 
-Specify the bucket name where any Lagoon initiated backups should be stored.
+Specify the bucket name where any Lagoon initiated restores should be stored.
 
 An example custom setting would be: `example-restore-bucket`
 
 #### `BAAS_CUSTOM_RESTORE_ACCESS_KEY`
 
-Specify the access key Lagoon should use to access the custom backup bucket.
+Specify the access key Lagoon should use to access the custom restore bucket.
 
 An example custom setting would be: `AAAAAAAAAAAA12345`
 
 #### `BAAS_CUSTOM_RESTORE_SECRET_KEY`
 
-Specify the secret key Lagoon should use to access the custom backup bucket.
+Specify the secret key Lagoon should use to access the custom restore bucket.
 
 An example custom setting would be: `12345AAAAAAAAAAAA`
