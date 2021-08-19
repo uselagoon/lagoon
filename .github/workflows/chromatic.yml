@@ -1,9 +1,6 @@
 name: 'Publish UI Storybook to Chromatic'
 
 on:
-  # pull_request:
-  #   branches:
-  #     - main
   push:
     paths:
       - "services/ui/**"

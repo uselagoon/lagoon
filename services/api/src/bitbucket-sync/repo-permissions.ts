@@ -195,6 +195,7 @@ const syncUsersForProjects = async (redis, projects) => {
             R.pluck('emailAddress'),
             // @ts-ignore
             R.map(R.toLower)
+            // @ts-ignore
           )(userPermissions) as [string];
 
           //Refresh users in group for difference calculation
@@ -292,7 +293,6 @@ const getRedisClient = () => {
   const redisObj = getRedisClient();
   // @ts-ignore
   redisObj.redisClient.on("ready", async function() {
-
       // Get all bitbucket related lagoon projects
       const groupQuery = await api.getProjectsByGroupName(LAGOON_SYNC_GROUP);
       const projects = R.pathOr([], ['groupByName', 'projects'], groupQuery) as [
@@ -301,10 +301,7 @@ const getRedisClient = () => {
 
       const syncResponse = await syncUsersForProjects(redisObj, projects);
       logger.info('Sync completed');
-
       // @ts-ignore
       redisObj.redisClient.quit();
     });
-
-
 })();

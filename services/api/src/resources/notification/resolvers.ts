@@ -137,6 +137,8 @@ export const addNotificationToProject: ResolverFn = async (
 
 
   userActivityLogger.user_action(`User added a notification to project '${pid}'`, {
+    project: input.project || '',
+    event: 'api:addNotificationToProject',
     payload: {
      projectNotification
     }
