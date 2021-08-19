@@ -176,6 +176,7 @@ const syncUsersForProjects = async projects => {
             R.pluck('emailAddress'),
             // @ts-ignore
             R.map(R.toLower)
+            // @ts-ignore
           )(userPermissions) as [string];
 
           //Refresh users in group for difference calculation

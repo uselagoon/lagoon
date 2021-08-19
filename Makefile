@@ -132,7 +132,6 @@ images :=     oc \
 							oc-build-deploy-dind \
 							kubectl-build-deploy-dind \
 							athenapdf-service \
-							curator \
 							docker-host
 
 # base-images is a variable that will be constantly filled with all base image there are
@@ -162,7 +161,6 @@ $(build-images):
 build/docker-host: images/docker-host/Dockerfile
 build/oc: images/oc/Dockerfile
 build/kubectl: images/kubectl/Dockerfile
-build/curator: images/curator/Dockerfile
 build/oc-build-deploy-dind: build/oc images/oc-build-deploy-dind
 build/athenapdf-service:images/athenapdf-service/Dockerfile
 build/kubectl-build-deploy-dind: build/kubectl images/kubectl-build-deploy-dind
@@ -221,7 +219,6 @@ services :=	api \
 			keycloak \
 			keycloak-db \
 			logs-concentrator \
-			logs-db-curator \
 			logs-dispatcher \
 			logs-tee \
 			logs2email \
@@ -257,7 +254,6 @@ build/drush-alias: services/drush-alias/Dockerfile
 build/keycloak-db: services/keycloak-db/Dockerfile
 build/keycloak: services/keycloak/Dockerfile
 build/logs-concentrator: services/logs-concentrator/Dockerfile
-build/logs-db-curator: build/curator
 build/logs-dispatcher: services/logs-dispatcher/Dockerfile
 build/logs-tee: services/logs-tee/Dockerfile
 build/storage-calculator: build/oc

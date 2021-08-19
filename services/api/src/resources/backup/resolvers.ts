@@ -121,6 +121,8 @@ export const addBackup: ResolverFn = async (
   userActivityLogger.user_action(
     `User deployed backup '${backupId}' to '${environment.name}' on project '${environment.project}'`,
     {
+      project: environment.project,
+      event: 'api:addBackup',
       payload: {
         id,
         environment,
@@ -151,6 +153,8 @@ export const deleteBackup: ResolverFn = async (
   pubSub.publish(EVENTS.BACKUP.DELETED, R.prop(0, rows));
 
   userActivityLogger.user_action(`User deleted backup '${backupId}'`, {
+    project: '',
+    event: 'api:deleteBackup',
     payload: {
       backupId
     }
@@ -237,7 +241,10 @@ export const addRestore: ResolverFn = async (
   userActivityLogger.user_action(
     `User restored a backup '${backupId}' for project ${projectData.name}`,
     {
+      project: projectData.name,
+      event: 'api:addRestore',
       payload: {
+        restoreId: restoreData.id,
         backupId,
         data
       }
@@ -314,6 +321,8 @@ export const updateRestore: ResolverFn = async (
   pubSub.publish(EVENTS.BACKUP.UPDATED, backupData);
 
   userActivityLogger.user_action(`User updated restore '${backupId}'`, {
+    project: '',
+    event: 'api:updateRestore',
     payload: {
       backupId,
       patch,
