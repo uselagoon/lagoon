@@ -341,7 +341,7 @@ export const addProject = async (
 
   OpendistroSecurityOperations(sqlClientPool, models.GroupModel).syncGroupWithSpecificTenant(
     `p${project.id}`,
-    `project-${project.name}`,
+    'global_tenant',
     `${project.id}`
   );
 
