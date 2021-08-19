@@ -71,6 +71,7 @@ export const Helpers = (sqlClientPool: Pool) => {
 
       return R.cond([
         [hasId, envFromId],
+        // @ts-ignore
         [hasNameAndProject, envFromNameProject],
         [
           R.T,
@@ -80,6 +81,7 @@ export const Helpers = (sqlClientPool: Pool) => {
             );
           }
         ]
+      // @ts-ignore
       ])(environmentInput);
     }
   };

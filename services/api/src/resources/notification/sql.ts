@@ -110,7 +110,7 @@ export const Sql = {
   updateNotificationSlack: input => {
     const { name, patch } = input;
 
-    return knex('notification_email')
+    return knex('notification_slack')
       .where('name', '=', name)
       .update(patch)
       .toString();

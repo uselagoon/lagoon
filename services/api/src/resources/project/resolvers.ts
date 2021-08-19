@@ -262,6 +262,7 @@ export const addProject = async (
       ${input.availability ? ':availability' : '"STANDARD"'},
       :private_key,
       ${input.subfolder ? ':subfolder' : 'NULL'},
+      ${input.routerPattern ? ':router_pattern' : 'NULL'},
       :openshift,
       ${openshiftProjectPattern ? ':openshift_project_pattern' : 'NULL'},
       ${
@@ -341,7 +342,7 @@ export const addProject = async (
 
   OpendistroSecurityOperations(sqlClientPool, models.GroupModel).syncGroupWithSpecificTenant(
     `p${project.id}`,
-    `project-${project.name}`,
+    'global_tenant',
     `${project.id}`
   );
 
@@ -421,6 +422,8 @@ export const addProject = async (
   await harborOperations.addProject(project.name, project.id);
 
   userActivityLogger.user_action(`User added a project '${project.name}'`, {
+    project: project.name,
+    event: 'api:addProject',
     payload: {
       input,
       data: project
@@ -478,6 +481,8 @@ export const deleteProject: ResolverFn = async (
   //const harborResults = await harborOperations.deleteProject(project.name)
 
   userActivityLogger.user_action(`User deleted a project '${project.name}'`, {
+    project: project.name,
+    event: 'api:deleteProject',
     payload: {
       input: {
         project
@@ -500,6 +505,7 @@ export const updateProject: ResolverFn = async (
         availability,
         privateKey,
         subfolder,
+        routerPattern,
         activeSystemsDeploy,
         activeSystemsRemove,
         activeSystemsTask,
@@ -589,6 +595,7 @@ export const updateProject: ResolverFn = async (
         availability,
         privateKey,
         subfolder,
+        routerPattern,
         activeSystemsDeploy,
         activeSystemsRemove,
         activeSystemsTask,
@@ -678,6 +685,8 @@ export const updateProject: ResolverFn = async (
   // }
 
   userActivityLogger.user_action(`User updated project '${oldProject.name}'`, {
+    project: oldProject.name,
+    event: 'api:updateProject',
     payload: {
       patch: {
         name,
@@ -685,6 +694,7 @@ export const updateProject: ResolverFn = async (
         availability,
         privateKey,
         subfolder,
+        routerPattern,
         activeSystemsDeploy,
         activeSystemsRemove,
         activeSystemsTask,
@@ -726,6 +736,8 @@ export const deleteAllProjects: ResolverFn = async (
   }
 
   userActivityLogger.user_action(`User deleted all projects`, {
+    project: '',
+    event: 'api:deleteAllProjects',
     payload: {
       ...args
     }
@@ -765,6 +777,8 @@ export const removeProjectMetadataByKey: ResolverFn = async (
   );
 
   userActivityLogger.user_action(`User removed project metadata key '${key}'`, {
+    project: '',
+    event: 'api:removeProjectMetadataByKey',
     payload: {
       input: {
         id,
@@ -820,6 +834,8 @@ export const updateProjectMetadata: ResolverFn = async (
   );
 
   userActivityLogger.user_action(`User updated project metadata`, {
+    project: '',
+    event: 'api:updateProjectMetadata',
     payload: {
       patch: {
         project: id,

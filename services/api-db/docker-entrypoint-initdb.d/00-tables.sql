@@ -75,6 +75,7 @@ CREATE TABLE IF NOT EXISTS project (
   git_url                          varchar(300),
   availability                     varchar(50) NOT NULL DEFAULT 'STANDARD',
   subfolder                        varchar(300),
+  routerpattern                    varchar(300),
   active_systems_deploy            varchar(300),
   active_systems_promote           varchar(300),
   active_systems_remove            varchar(300),
@@ -281,12 +282,21 @@ CREATE TABLE IF NOT EXISTS environment_fact (
   environment              int REFERENCES environment (id),
   name                     varchar(300) NOT NULL,
   value                    varchar(300) NOT NULL,
+  type                     ENUM('TEXT', 'URL', 'SEMVER') DEFAULT 'TEXT',
   source                   varchar(300) DEFAULT '',
   description              TEXT NULL    DEFAULT '',
   created                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  category                 TEXT NULL    DEFAULT '',
+  key_fact                 TINYINT(1) NOT NULL DEFAULT(0),
   UNIQUE(environment, name)
 );
 
+CREATE TABLE IF NOT EXISTS environment_fact_reference (
+  id      int NOT NULL auto_increment PRIMARY KEY,
+  fid     int NOT NULL REFERENCES environment_fact (id),
+  name    varchar(300) NOT NULL,
+  UNIQUE(fid, name)
+);
 
 CREATE TABLE IF NOT EXISTS notification_webhook (
   id          int NOT NULL auto_increment PRIMARY KEY,

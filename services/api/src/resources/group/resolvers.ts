@@ -188,6 +188,8 @@ export const addGroup: ResolverFn = async (
   );
 
   userActivityLogger.user_action(`User added a group`, {
+    project: '',
+    event: 'api:addGroup',
     payload: {
       data: {
         group
@@ -227,6 +229,8 @@ export const updateGroup: ResolverFn = async (
   });
 
   userActivityLogger.user_action(`User updated a group`, {
+    project: '',
+    event: 'api:updateGroup',
     payload: {
       data: {
         patch,
@@ -256,6 +260,8 @@ export const deleteGroup: ResolverFn = async (
   );
 
   userActivityLogger.user_action(`User deleted a group`, {
+    project: '',
+    event: 'api:deleteGroup',
     payload: {
       data: {
         group
@@ -321,6 +327,8 @@ export const addUserToGroup: ResolverFn = async (
   );
 
   userActivityLogger.user_action(`User added a user to a group`, {
+    project: '',
+    event: 'api:addUserToGroup',
     payload: {
       input: {
         user: userInput, group: groupInput, role
@@ -359,6 +367,8 @@ export const removeUserFromGroup: ResolverFn = async (
   const updatedGroup = await models.GroupModel.removeUserFromGroup(user, group);
 
   userActivityLogger.user_action(`User removed a user from a group`, {
+    project: '',
+    event: 'api:removeUserFromGroup',
     payload: {
       input: {
         user: userInput, group: groupInput
@@ -421,6 +431,8 @@ export const addGroupsToProject: ResolverFn = async (
   }
 
   userActivityLogger.user_action(`User synced groups to a project`, {
+    project: project.name || '',
+    event: 'api:addGroupsToProject',
     payload: {
       input: {
         project: projectInput, groups: groupsInput

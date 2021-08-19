@@ -10,7 +10,7 @@
 
 ## Reporting a Vulnerability
 
-We ask that all suspected vulnerabilities be privately and responsibly disclosed by [contacting our maintainers](mailto:uselagoon@amazee.io).
+We ask that all suspected vulnerabilities be privately and responsibly disclosed by [contacting our security team](mailto:security@amazee.io).
 
 ## Communication
 

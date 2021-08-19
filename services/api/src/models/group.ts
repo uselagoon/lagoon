@@ -597,6 +597,7 @@ export const Group = (clients: {
   ): Promise<void> => {
     const group = await loadGroupById(groupInput.id);
     const newGroupProjects = R.pipe(
+      // @ts-ignore
       R.view(attrLagoonProjectsLens),
       R.defaultTo(`${projectId}`),
       R.split(','),
@@ -646,6 +647,7 @@ export const Group = (clients: {
     group: Group
   ): Promise<void> => {
     const newGroupProjects = R.pipe(
+      // @ts-ignore
       R.view(attrLagoonProjectsLens),
       R.defaultTo(''),
       R.split(','),

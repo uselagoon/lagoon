@@ -7,6 +7,7 @@ import { graphqlUploadExpress } from 'graphql-upload';
 import { logger } from './loggers/logger';
 import { createRouter } from './routes';
 import { authMiddleware } from './authMiddleware';
+import { requestMiddleware } from './requestMiddleware';
 import apolloServer from './apolloServer';
 
 export const app = express();
@@ -30,6 +31,7 @@ app.use(
 app.use(cors());
 
 app.use(authMiddleware);
+app.use(requestMiddleware);
 
 // Add routes.
 app.use('/', createRouter());

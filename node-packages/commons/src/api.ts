@@ -26,6 +26,7 @@ interface ProjectPatch {
   name?: string;
   gitUrl?: string;
   subfolder?: string;
+  routerPattern?: string;
   activesystemsdeploy?: string;
   activesystemsremove?: string;
   branches?: string;
@@ -1074,6 +1075,7 @@ export const getOpenShiftInfoForProject = (project: string): Promise<any> =>
         gitUrl
         privateKey
         subfolder
+        routerPattern
         openshiftProjectPattern
         productionEnvironment
         productionRoutes
