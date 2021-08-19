@@ -490,6 +490,10 @@ const typeDefs = gql`
     """
     subfolder: String
     """
+    Set if the project should use a routerPattern that is different from the deploy target default
+    """
+    routerPattern: String
+    """
     Notifications that should be sent for this project
     """
     notifications(type: NotificationType, contentType: NotificationContentType, notificationSeverityThreshold: ProblemSeverityRating): [Notification]
@@ -1008,6 +1012,7 @@ const typeDefs = gql`
     name: String!
     gitUrl: String!
     subfolder: String
+    routerPattern: String
     openshift: Int
     openshiftProjectPattern: String
     kubernetes: Int
@@ -1285,6 +1290,7 @@ const typeDefs = gql`
     availability: ProjectAvailability
     privateKey: String
     subfolder: String
+    routerPattern: String
     activeSystemsDeploy: String
     activeSystemsRemove: String
     activeSystemsTask: String

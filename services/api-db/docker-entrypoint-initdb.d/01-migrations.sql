@@ -13,6 +13,7 @@ CREATE OR REPLACE PROCEDURE
     IN availability                      varchar(50),
     IN private_key                     varchar(5000),
     IN subfolder                       varchar(300),
+    IN router_pattern                  varchar(300),
     IN openshift                       int,
     IN openshift_project_pattern       varchar(300),
     IN active_systems_deploy           varchar(300),
@@ -61,6 +62,7 @@ CREATE OR REPLACE PROCEDURE
         availability,
         private_key,
         subfolder,
+        router_pattern,
         active_systems_deploy,
         active_systems_promote,
         active_systems_remove,
@@ -89,6 +91,7 @@ CREATE OR REPLACE PROCEDURE
         availability,
         private_key,
         subfolder,
+        router_pattern,
         active_systems_deploy,
         active_systems_promote,
         active_systems_remove,
@@ -1367,6 +1370,24 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  add_router_pattern_to_project()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'router_pattern'
+    ) THEN
+      ALTER TABLE `project`
+      ADD `router_pattern` varchar(300);
+    END IF;
+  END;
+$$
+
 DELIMITER ;
 
 -- If adding new procedures, add them to the bottom of this list
@@ -1432,6 +1453,7 @@ CALL convert_project_standby_routes_to_text();
 CALL add_enum_webhook_to_type_in_project_notification();
 CALL add_index_for_deployment_environment();
 CALL add_index_for_task_environment();
+CALL add_router_pattern_to_project();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;
