@@ -3554,6 +3554,11 @@
     telejson "^3.2.0"
     util-deprecate "^1.0.2"
 
+"@supercharge/request-ip@^1.1.2":
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/@supercharge/request-ip/-/request-ip-1.1.2.tgz#be9083aa50d3c6fc200f3ed5919e0b9c13fc8842"
+  integrity sha512-mtryG/uiSIVT0ga8A/F9hNEuBSbDxW7/m9PEtxIHqdkE/vr766m17mtLPhrXA4q4T+Qw44+33mg3Rtkl7o+OvQ==
+
 "@svgr/babel-plugin-add-jsx-attribute@^4.2.0":
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/@svgr/babel-plugin-add-jsx-attribute/-/babel-plugin-add-jsx-attribute-4.2.0.tgz#dadcb6218503532d6884b210e7f3c502caaa44b1"
@@ -4847,6 +4852,16 @@ amqp-connection-manager@^1.3.5:
     promise-breaker "^4.1.2"
     when "^3.7.3"
 
+amqplib@^0.4.2:
+  version "0.4.2"
+  resolved "https://registry.yarnpkg.com/amqplib/-/amqplib-0.4.2.tgz#5e4a2a914ccb3125f9cb91f6da07c97aa4cb13a6"
+  integrity sha1-XkoqkUzLMSX5y5H22gfJeqTLE6Y=
+  dependencies:
+    bitsyntax "~0.0.4"
+    buffer-more-ints "0.0.2"
+    readable-stream "1.x >=1.1.9"
+    when "~3.6.2"
+
 amqplib@^0.5.1:
   version "0.5.5"
   resolved "https://registry.yarnpkg.com/amqplib/-/amqplib-0.5.5.tgz#698f0cb577e0591954a90572fcb3b8998a76fd40"
@@ -6123,6 +6138,13 @@ bindings@~1.2.1:
   resolved "https://registry.yarnpkg.com/bindings/-/bindings-1.2.1.tgz#14ad6113812d2d37d72e67b4cacb4bb726505f11"
   integrity sha1-FK1hE4EtLTfXLme0ystLtyZQXxE=
 
+bitsyntax@~0.0.4:
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/bitsyntax/-/bitsyntax-0.0.4.tgz#eb10cc6f82b8c490e3e85698f07e83d46e0cba82"
+  integrity sha1-6xDMb4K4xJDj6FaY8H6D1G4MuoI=
+  dependencies:
+    buffer-more-ints "0.0.2"
+
 bitsyntax@~0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/bitsyntax/-/bitsyntax-0.1.0.tgz#b0c59acef03505de5a2ed62a2f763c56ae1d6205"
@@ -6387,6 +6409,11 @@ buffer-from@1.x, buffer-from@^1.0.0:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/buffer-from/-/buffer-from-1.1.1.tgz#32713bc028f75c02fdb710d7c7bcec1f2c6070ef"
   integrity sha512-MQcXEUbCKtEo7bhqEs6560Hyd4XaovZlO/k9V3hjVUF/zwW7KBVdSK4gIt/bzwS9MbR5qob+F5jusZsb0YQK2A==
+
+buffer-more-ints@0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/buffer-more-ints/-/buffer-more-ints-0.0.2.tgz#26b3885d10fa13db7fc01aae3aab870199e0124c"
+  integrity sha1-JrOIXRD6E9t/wBquOquHAZngEkw=
 
 buffer-more-ints@~1.0.0:
   version "1.0.0"
@@ -8437,6 +8464,11 @@ domutils@^1.5.1, domutils@^1.7.0:
   dependencies:
     dom-serializer "0"
     domelementtype "1"
+
+dont-collide@^1.0.0:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/dont-collide/-/dont-collide-1.0.1.tgz#77e716834109f92e70a9f361b544da7fd955029f"
+  integrity sha1-d+cWg0EJ+S5wqfNhtUTaf9lVAp8=
 
 dot-prop@^4.1.0, dot-prop@^4.1.1:
   version "4.2.0"
@@ -16015,6 +16047,15 @@ quick-lru@^4.0.1:
   resolved "https://registry.yarnpkg.com/quick-lru/-/quick-lru-4.0.1.tgz#5b8878f113a58217848c6482026c73e1ba57727f"
   integrity sha512-ARhCpm70fzdcvNQfPoy49IaanKkTlRWF2JMzqhcJbhSFRZv7nPTvZJdcY7301IPmvW+/p0RgIWnQDLJxifsQ7g==
 
+rabbit-chatter@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/rabbit-chatter/-/rabbit-chatter-2.0.0.tgz#c11c7273d26c839204c97c026f73c2d19ac8c25d"
+  integrity sha1-wRxyc9Jsg5IEyXwCb3PC0ZrIwl0=
+  dependencies:
+    amqplib "^0.4.2"
+    dont-collide "^1.0.0"
+    uuid "^3.0.0"
+
 rabbitmq-pub-sub@^0.2.5:
   version "0.2.5"
   resolved "https://registry.yarnpkg.com/rabbitmq-pub-sub/-/rabbitmq-pub-sub-0.2.5.tgz#87ebfdf34eed72b763afd969c3ce47c576823129"
@@ -20007,6 +20048,11 @@ when@^3.7.3:
   version "3.7.8"
   resolved "https://registry.yarnpkg.com/when/-/when-3.7.8.tgz#c7130b6a7ea04693e842cdc9e7a1f2aa39a39f82"
   integrity sha1-xxMLan6gRpPoQs3J56Hyqjmjn4I=
+
+when@~3.6.2:
+  version "3.6.4"
+  resolved "https://registry.yarnpkg.com/when/-/when-3.6.4.tgz#473b517ec159e2b85005497a13983f095412e34e"
+  integrity sha1-RztRfsFZ4rhQBUl6E5g/CVQS404=
 
 which-module@^1.0.0:
   version "1.0.0"
