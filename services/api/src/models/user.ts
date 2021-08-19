@@ -95,6 +95,7 @@ export const User = (clients: {
         // @ts-ignore
         R.pipe(
           R.pick(['id', 'email', 'username', 'firstName', 'lastName']),
+          // @ts-ignore
           R.set(commentLens, R.view(attrCommentLens, keycloakUser))
         )(keycloakUser)
     );
