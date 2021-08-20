@@ -16,6 +16,30 @@ export default gql`
       services {
         name
       }
+      advancedTasks {
+        ... on AdvancedTaskDefinitionCommand {
+          id
+          type
+          name
+          description
+          environment
+          project
+          service
+          created
+          deleted
+        }
+        ... on AdvancedTaskDefinitionImage {
+          id
+          type
+          name
+          description
+          environment
+          project
+          service
+          created
+          deleted
+        }
+      }
       tasks(limit: $limit) {
         id
         name

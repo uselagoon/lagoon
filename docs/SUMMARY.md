@@ -34,6 +34,7 @@
 * [Setting up Xdebug with Lagoon](using-lagoon-advanced/setting-up-xdebug-with-lagoon.md)
 * [Environment Idling](using-lagoon-advanced/environment-idling.md)
 * [Installing Lagoon Into Existing Kubernetes Cluster](using-lagoon-advanced/installing-lagoon-into-existing-kubernetes-cluster.md)
+* [Custom Tasks](using-lagoon-advanced/custom-tasks.md)
 
 ## Drupal
 
