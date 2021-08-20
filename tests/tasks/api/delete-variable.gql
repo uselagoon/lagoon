@@ -1,0 +1,7 @@
+mutation deleteEnvVariable {
+  deleteEnvVariable: deleteEnvVariable(
+    input:{
+      id:{{ env_var_id }}
+    }
+  )
+}

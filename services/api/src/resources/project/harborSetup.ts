@@ -4,7 +4,7 @@ import {
   config as harborConfig,
   harborClient
 } from '../../clients/harborClient';
-import logger from '../../logger';
+import { logger } from '../../loggers/logger';
 import { Sql as PSql } from './sql';
 import { Sql } from '../env-variables/sql';
 import { getConfigFromEnv, getLagoonRouteFromEnv } from '../../util/config';
@@ -14,6 +14,9 @@ const lagoonWebhookAddress = getLagoonRouteFromEnv(
   /webhook-handler/,
   getConfigFromEnv('WEBHOOK_URL', 'http://webhook-handler:3000')
 );
+
+const apiVersion = R.propOr('v2.0', 'HARBOR_API_VERSION', process.env);
+// Use an empty string for backwards compatibility with Harbor version 1.x.x
 
 async function createHarborProject(harborClient, lagoonProjectName: string) {
   // Returns an empty string on an error and a string on a success
@@ -286,7 +289,7 @@ async function resetHarborWebhook(
               address: lagoonWebhookAddress
             }
           ],
-          event_types: ['scanningFailed', 'scanningCompleted'],
+          event_types: (apiVersion == "v2.0") ? ["SCANNING_FAILED","SCANNING_COMPLETED"] : ["scanningFailed","scanningCompleted"],
           name: 'Lagoon Default Webhook',
           enabled: true
         }

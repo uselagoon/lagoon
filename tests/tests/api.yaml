@@ -1,13 +1,20 @@
 ---
+- include: features/random-wait.yaml
 
 - include: features/api-token.yaml
   vars:
     testname: "API TOKEN"
 
+- include: api/add-project.yaml
+  vars:
+    project: ci-api-{{ cluster_type }}
+    git_repo_name: api.git
+    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
+
 - include: api/deploy-pullrequest.yaml
   vars:
     testname: "API {{ cluster_type|upper }} - deploy pullrequest"
-    node_version: 10
+    node_version: 16
     git_repo_name: api.git
     project: ci-api-{{ cluster_type }}
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.pr-1.{{ route_suffix }}"
@@ -15,8 +22,23 @@
 - include: api/deploy-branch.yaml
   vars:
     testname: "API {{ cluster_type|upper }} - deploy regular branch"
-    node_version: 10
+    node_version: 16
     git_repo_name: api.git
     project: ci-api-{{ cluster_type }}
     branch: api/slash/branch
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+
+- include: api/promote.yaml
+  vars:
+    testname: "API {{ cluster_type|upper }} - promote branch"
+    node_version: 16
+    git_repo_name: api.git
+    project: ci-api-{{ cluster_type }}
+    source_environment: source
+    promote_environment: target
+    check_url_source: "https://node.{{ project | regex_replace('_', '-') }}.{{ source_environment | regex_replace('/', '-') }}.{{ route_suffix_https }}"
+    check_url_promote: "https://node.{{ project | regex_replace('_', '-') }}.{{ promote_environment | regex_replace('/', '-') }}.{{ route_suffix_https }}"
+
+- include: api/delete-project.yaml
+  vars:
+    project: ci-api-{{ cluster_type }}

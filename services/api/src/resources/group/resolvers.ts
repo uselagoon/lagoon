@@ -1,12 +1,13 @@
 import * as R from 'ramda';
 import { ResolverFn } from '../';
 import validator from 'validator';
-import * as logger from '../../logger';
+import { logger } from '../../loggers/logger';
 import { isPatchEmpty } from '../../util/db';
 import { GroupNotFoundError } from '../../models/group';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { OpendistroSecurityOperations } from './opendistroSecurity';
 import { KeycloakUnauthorizedError } from '../../util/auth';
+
 
 export const getAllGroups: ResolverFn = async (
   root,
@@ -154,7 +155,7 @@ export const getGroupByName: ResolverFn = async (
 export const addGroup: ResolverFn = async (
   _root,
   { input },
-  { models, sqlClientPool, hasPermission }
+  { models, sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   await hasPermission('group', 'add');
 
@@ -187,13 +188,23 @@ export const addGroup: ResolverFn = async (
     ''
   );
 
+  userActivityLogger.user_action(`User added a group`, {
+    project: '',
+    event: 'api:addGroup',
+    payload: {
+      data: {
+        group
+      }
+    }
+  });
+
   return group;
 };
 
 export const updateGroup: ResolverFn = async (
   _root,
   { input: { group: groupInput, patch } },
-  { models, hasPermission }
+  { models, hasPermission, userActivityLogger }
 ) => {
   const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
 
@@ -218,13 +229,24 @@ export const updateGroup: ResolverFn = async (
     name: patch.name
   });
 
+  userActivityLogger.user_action(`User updated a group`, {
+    project: '',
+    event: 'api:updateGroup',
+    payload: {
+      data: {
+        patch,
+        updatedGroup
+      }
+    }
+  });
+
   return updatedGroup;
 };
 
 export const deleteGroup: ResolverFn = async (
   _root,
   { input: { group: groupInput } },
-  { models, sqlClientPool, hasPermission }
+  { models, sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const group = await models.GroupModel.loadGroupByIdOrName(groupInput);
 
@@ -237,6 +259,16 @@ export const deleteGroup: ResolverFn = async (
   OpendistroSecurityOperations(sqlClientPool, models.GroupModel).deleteGroup(
     group.name
   );
+
+  userActivityLogger.user_action(`User deleted a group`, {
+    project: '',
+    event: 'api:deleteGroup',
+    payload: {
+      data: {
+        group
+      }
+    }
+  });
 
   return 'success';
 };
@@ -267,7 +299,7 @@ export const deleteAllGroups: ResolverFn = async (
 export const addUserToGroup: ResolverFn = async (
   _root,
   { input: { user: userInput, group: groupInput, role } },
-  { models, hasPermission }
+  { models, hasPermission, userActivityLogger }
 ) => {
   if (R.isEmpty(userInput)) {
     throw new Error('You must provide a user id or email');
@@ -295,13 +327,24 @@ export const addUserToGroup: ResolverFn = async (
     role
   );
 
+  userActivityLogger.user_action(`User added a user to a group`, {
+    project: '',
+    event: 'api:addUserToGroup',
+    payload: {
+      input: {
+        user: userInput, group: groupInput, role
+      },
+      data: updatedGroup
+    }
+  });
+
   return updatedGroup;
 };
 
 export const removeUserFromGroup: ResolverFn = async (
   _root,
   { input: { user: userInput, group: groupInput } },
-  { models, hasPermission }
+  { models, hasPermission, userActivityLogger }
 ) => {
   if (R.isEmpty(userInput)) {
     throw new Error('You must provide a user id or email');
@@ -324,13 +367,24 @@ export const removeUserFromGroup: ResolverFn = async (
 
   const updatedGroup = await models.GroupModel.removeUserFromGroup(user, group);
 
+  userActivityLogger.user_action(`User removed a user from a group`, {
+    project: '',
+    event: 'api:removeUserFromGroup',
+    payload: {
+      input: {
+        user: userInput, group: groupInput
+      },
+      data: updatedGroup
+    }
+  });
+
   return updatedGroup;
 };
 
 export const addGroupsToProject: ResolverFn = async (
   _root,
   { input: { project: projectInput, groups: groupsInput } },
-  { models, sqlClientPool, hasPermission }
+  { models, sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
     projectInput
@@ -376,6 +430,16 @@ export const addGroupsToProject: ResolverFn = async (
       `Could not sync groups with opendistro-security: ${err.message}`
     );
   }
+
+  userActivityLogger.user_action(`User synced groups to a project`, {
+    project: project.name || '',
+    event: 'api:addGroupsToProject',
+    payload: {
+      input: {
+        project: projectInput, groups: groupsInput
+      }
+    }
+  });
 
   return await projectHelpers(sqlClientPool).getProjectById(project.id);
 };

@@ -4,17 +4,20 @@
   "description": "lagoon handler for webhooks",
   "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
   "main": "dist/index.js",
-  "engines": {
-    "node": ">=10.16.3"
-  },
   "scripts": {
     "build": "tsc --build",
     "start": "node dist/index",
-    "dev": "mkdir -p ../../node-packages/commons/dist && NODE_ENV=development nodemon"
+    "dev": "mkdir -p ../../node-packages/commons/dist && NODE_ENV=development nodemon",
+    "test": "jest"
   },
   "nodemonConfig": {
-    "ignore": ["../../node-packages/commons/dist/"],
-    "watch": ["src", "../../node-packages/"],
+    "ignore": [
+      "../../node-packages/commons/dist/"
+    ],
+    "watch": [
+      "src",
+      "../../node-packages/"
+    ],
     "ext": "js,ts,json",
     "exec": "yarn build --incremental && yarn start --inspect=0.0.0.0:9229"
   },
@@ -28,7 +31,9 @@
     "sshpk": "^1.16.1"
   },
   "devDependencies": {
+    "@babel/preset-typescript": "^7.13.0",
     "@types/amqp-connection-manager": "^2.0.10",
+    "jest": "^26.6.3",
     "nodemon": "^1.12.1",
     "typescript": "^3.9.3"
   }

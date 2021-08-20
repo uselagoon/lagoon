@@ -82,10 +82,24 @@ export const addNotificationSlack: ResolverFn = async (
   return slack;
 };
 
+export const addNotificationWebhook: ResolverFn = async (root, { input }, { sqlClientPool, hasPermission }) => {
+  await hasPermission('notification', 'add');
+
+  const rows = await query(
+    sqlClientPool,
+    'CALL CreateNotificationWebhook(:name, :webhook)',
+    input
+  );
+  const slack = R.path([0, 0], rows);
+
+  return slack;
+};
+
+
 export const addNotificationToProject: ResolverFn = async (
   root,
   { input: unformattedInput },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const input = [
     R.over(
@@ -120,6 +134,15 @@ export const addNotificationToProject: ResolverFn = async (
     input.contentType || NOTIFICATION_CONTENT_TYPE;
   projectNotification.notificationSeverityThreshold =
     input.notificationSeverityThreshold || NOTIFICATION_SEVERITY_THRESHOLD;
+
+
+  userActivityLogger.user_action(`User added a notification to project '${pid}'`, {
+    project: input.project || '',
+    event: 'api:addNotificationToProject',
+    payload: {
+     projectNotification
+    }
+  });
 
   await query(
     sqlClientPool,
@@ -237,6 +260,36 @@ export const deleteNotificationSlack: ResolverFn = async (
   return 'success';
 };
 
+
+export const deleteNotificationWebhook: ResolverFn = async (
+  root,
+  { input },
+  {
+    sqlClientPool,
+    hasPermission,
+  },
+) => {
+  await hasPermission('notification', 'delete');
+
+  const { name } = input;
+
+  const nids = await Helpers(sqlClientPool).getAssignedNotificationIds({
+    name,
+    type: 'webhook',
+  });
+
+  if (R.length(nids) > 0) {
+    throw new Error("Can't delete notification linked to projects");
+  }
+
+  await query(sqlClientPool, 'CALL DeleteNotificationWebhook(:name)', input);
+
+  // TODO: maybe check rows for changed result
+  return 'success';
+};
+
+
+
 export const removeNotificationFromProject: ResolverFn = async (
   root,
   { input },
@@ -257,7 +310,7 @@ export const removeNotificationFromProject: ResolverFn = async (
   return project;
 };
 
-const NOTIFICATION_TYPES = ['slack', 'rocketchat', 'microsoftteams', 'email'];
+const NOTIFICATION_TYPES = ['slack', 'rocketchat', 'microsoftteams', 'email', 'webhook'];
 
 export const getNotificationsByProjectId: ResolverFn = async (
   { id: pid },
@@ -287,7 +340,7 @@ export const getNotificationsByProjectId: ResolverFn = async (
 
   // Types to collect notifications from all different
   // notification type tables
-  const types = argsType == null ? NOTIFICATION_TYPES : [argsType];
+  const types = argsType == null ? NOTIFICATION_TYPES : [argsType.toLowerCase()];
 
   const results = await Promise.all(
     types.map(type =>
@@ -340,6 +393,31 @@ export const updateNotificationMicrosoftTeams: ResolverFn = async (
 
   return R.prop(0, rows);
 };
+
+export const updateNotificationWebhook: ResolverFn = async (
+    root,
+    { input },
+    {
+      sqlClientPool,
+      hasPermission,
+    },
+  ) => {
+    await hasPermission('notification', 'update');
+
+    const { name } = input;
+
+    if (isPatchEmpty(input)) {
+      throw new Error('input.patch requires at least 1 attribute');
+    }
+
+    await query(sqlClientPool, Sql.updateNotificationWebhook(input));
+    const rows = await query(
+      sqlClientPool,
+      Sql.selectNotificationWebhookByName(name),
+    );
+
+    return R.prop(0, rows);
+  };
 
 export const updateNotificationEmail: ResolverFn = async (
   root,
@@ -454,6 +532,19 @@ export const deleteAllNotificationMicrosoftTeams: ResolverFn = async (
   await hasPermission('notification', 'deleteAll');
 
   await query(sqlClientPool, Sql.truncateNotificationMicrosoftTeams());
+
+  // TODO: Check rows for success
+  return 'success';
+};
+
+export const deleteAllNotificationWebhook: ResolverFn = async (
+  root,
+  args,
+  { sqlClientPool, hasPermission },
+) => {
+  await hasPermission('notification', 'deleteAll');
+
+  await query(sqlClientPool, Sql.truncateNotificationWebhook());
 
   // TODO: Check rows for success
   return 'success';

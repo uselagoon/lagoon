@@ -1,0 +1,7 @@
+[mysqld]
+
+# This enables the query cache, by default query cache is disabled in lagoon-images
+# but for keycloak it actually makes sense to have it enabled, as there are so many thousand read queries and just
+# a few inserts
+query_cache_size = 20000000
+query_cache_type = 1

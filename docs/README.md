@@ -1,6 +1,6 @@
 # Lagoon
 
-![](.gitbook/assets/lagoon-logo%20%282%29.png)
+![](.gitbook/assets/lagoon-logo%20%283%29.png)
 
 ## Lagoon - Docker Build and Deploy System for OpenShift & Kubernetes
 
@@ -56,5 +56,5 @@ At amazee.io, we believe in open source. It was always troubling for us that ope
 
 ### License
 
-Lagoon is available under [`an Apache 2.0 License`](https://github.com/amazeeio/lagoon/blob/main/LICENSE).
+Lagoon is available under [`an Apache 2.0 License`](https://github.com/uselagoon/lagoon/blob/main/LICENSE).
 

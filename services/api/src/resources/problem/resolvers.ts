@@ -4,7 +4,7 @@ import { Sql } from './sql';
 import { Helpers as problemHelpers } from './helpers';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { ResolverFn } from '../';
-import logger from '../../logger';
+import { logger } from '../../loggers/logger';
 
 export const getAllProblems: ResolverFn = async (
   root,
@@ -139,7 +139,7 @@ export const addProblem: ResolverFn = async (
       links
     }
   },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger },
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
@@ -172,13 +172,36 @@ export const addProblem: ResolverFn = async (
     sqlClientPool,
     Sql.selectProblemByDatabaseId(insertId)
   );
+
+  userActivityLogger.user_action(`User added a problem to environment '${environment.name}' for '${environment.project}'`, {
+    project: '',
+    event: 'api:addProblem',
+    payload: {
+      input: {
+        severity,
+        severity_score: severityScore,
+        lagoon_service: service || '',
+        identifier,
+        environment: environmentId,
+        source,
+        associated_package: associatedPackage,
+        description,
+        version: version || '',
+        fixed_version: fixedVersion,
+        links: links,
+        data,
+        created,
+      }
+    }
+  });
+
   return R.prop(0, rows);
 };
 
 export const deleteProblem: ResolverFn = async (
   root,
   { input: { environment: environmentId, identifier } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
@@ -190,13 +213,21 @@ export const deleteProblem: ResolverFn = async (
 
   await query(sqlClientPool, Sql.deleteProblem(environmentId, identifier));
 
+  userActivityLogger.user_action(`User deleted a problem on environment '${environment.name}' for '${environment.project}'`, {
+    project: '',
+    event: 'api:deleteProblem',
+    payload: {
+      input: { environment, identifier }
+    }
+  });
+
   return 'success';
 };
 
 export const deleteProblemsFromSource: ResolverFn = async (
   root,
   { input: { environment: environmentId, source, service } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
@@ -210,6 +241,14 @@ export const deleteProblemsFromSource: ResolverFn = async (
     sqlClientPool,
     Sql.deleteProblemsFromSource(environmentId, source, service)
   );
+
+  userActivityLogger.user_action(`User deleted problems on environment '${environment.id}' for source '${source}'`, {
+    project: '',
+    event: 'api:deleteProblemsFromSource',
+    payload: {
+      input: { environment, source, service }
+    }
+  });
 
   return 'success';
 };
@@ -241,7 +280,7 @@ export const addProblemHarborScanMatch: ResolverFn = async (
       regex
     }
   },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   await hasPermission('harbor_scan_match', 'add', {});
 
@@ -262,17 +301,41 @@ export const addProblemHarborScanMatch: ResolverFn = async (
     sqlClientPool,
     Sql.selectAllProblemHarborScanMatchByDatabaseId(insertId)
   );
+
+  userActivityLogger.user_action(`User added harbor scan regex matcher`, {
+    project: defaultLagoonProject || '',
+    event: 'api:addProblemHarborScanMatch',
+    payload: {
+      input: {
+        name,
+        description,
+        defaultLagoonProject,
+        defaultLagoonEnvironment,
+        defaultLagoonService,
+        regex
+      }
+    }
+  });
+
   return R.prop(0, rows);
 };
 
 export const deleteProblemHarborScanMatch: ResolverFn = async (
   root,
   { input: { id } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   await hasPermission('harbor_scan_match', 'delete', {});
 
   await query(sqlClientPool, Sql.deleteProblemHarborScanMatch(id));
+
+  userActivityLogger.user_action(`User deleted harbor scan regex matcher`, {
+    project: '',
+    event: 'api:deleteProblemHarborScanMatch',
+    payload: {
+      input: { id }
+    }
+  });
 
   return 'success';
 };

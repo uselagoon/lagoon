@@ -1,0 +1,8 @@
+mutation deleteProject {
+  deleteEnvironment(
+    input:{
+      name: "{{ branch }}",
+      project: "{{ project }}"
+    }
+  )
+}

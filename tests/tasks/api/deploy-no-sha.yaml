@@ -8,7 +8,9 @@
         headers:
           Authorization: "Bearer {{ token }}"
         body_format: json
-        body: '{ "query": "mutation($branchName: String!, $projectName: String!) {deployEnvironmentBranch(input:{branchName:$branchName,project:{name:$projectName}})}", "variables": {"branchName":"{{ branch }}","projectName":"{{ project }}"}}'
+        body:
+          query: '{{ lookup("template", "./deploy-no-sha.gql") }}'
+        #body: '{ "query": "mutation($branchName: String!, $projectName: String!) {deployEnvironmentBranch(input:{branchName:$branchName,project:{name:$projectName}})}", "variables": {"branchName":"{{ branch }}","projectName":"{{ project }}"}}'
       register: apiresponse
     - name: "{{ testname }} - POST api deployEnvironmentBranch with target git branch {{ branch }} and project {{ project }} (no sha) to {{ graphql_url }}"
       debug:

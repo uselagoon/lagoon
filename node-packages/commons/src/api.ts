@@ -26,6 +26,7 @@ interface ProjectPatch {
   name?: string;
   gitUrl?: string;
   subfolder?: string;
+  routerPattern?: string;
   activesystemsdeploy?: string;
   activesystemsremove?: string;
   branches?: string;
@@ -164,6 +165,7 @@ fragment on Project {
   name
   gitUrl
   privateKey
+  problemsUi
 }
 `);
 
@@ -743,6 +745,37 @@ export async function getSlackinfoForProject(
   return result.project.slacks;
 }
 
+export async function getWebhookNotificationInfoForProject(
+  project: string, contentType = 'DEPLOYMENT'
+): Promise<any[]> {
+  const notificationsFragment = graphqlapi.createFragment(`
+    fragment on NotificationWebhook {
+      webhook
+      contentType
+      notificationSeverityThreshold
+    }
+  `);
+
+  const result = await graphqlapi.query(`
+    {
+      project:projectByName(name: "${project}") {
+        webhook: notifications(type: WEBHOOK, contentType: ${contentType}) {
+          ...${notificationsFragment}
+        }
+      }
+    }
+  `);
+
+  if (!result || !result.project || !result.project.webhook) {
+    throw new ProjectNotFound(
+      `Cannot find Webhook Notification information for project ${project}`
+    );
+  }
+
+  return result.project.webhook;
+}
+
+
 export async function getEmailInfoForProject(
   project: string, contentType = 'DEPLOYMENT'
 ): Promise<any[]> {
@@ -1042,6 +1075,7 @@ export const getOpenShiftInfoForProject = (project: string): Promise<any> =>
         gitUrl
         privateKey
         subfolder
+        routerPattern
         openshiftProjectPattern
         productionEnvironment
         productionRoutes
@@ -1096,6 +1130,7 @@ export const getEnvironmentsForProject = (
     project:projectByName(name: "${project}"){
       developmentEnvironmentsLimit
       productionEnvironment
+      standbyProductionEnvironment
       environments(includeDeleted:false) { name, environmentType }
     }
   }

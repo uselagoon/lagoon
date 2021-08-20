@@ -35,37 +35,37 @@ Lagoon services are mostly built in Node.js. More recent development occurs in G
 
 All the services that handle the API, authentication and external communication are installed here. Installation is via a [Helm Chart](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-core)
 - API
-  - [api](https://github.com/amazeeio/lagoon/tree/main/services/api) (the GraphQL API that powers Lagoon)
-  - [api-db](https://github.com/amazeeio/lagoon/tree/main/services/api-db) (the MariaDB storage for the API)
-  - [api-redis](https://github.com/amazeeio/lagoon/tree/main/services/api-redis) (the cache layer for API queries)
+  - [api](https://github.com/uselagoon/lagoon/tree/main/services/api) (the GraphQL API that powers Lagoon)
+  - [api-db](https://github.com/uselagoon/lagoon/tree/main/services/api-db) (the MariaDB storage for the API)
+  - [api-redis](https://github.com/uselagoon/lagoon/tree/main/services/api-redis) (the cache layer for API queries)
 - Authentication
-  - [keycloak](https://github.com/amazeeio/lagoon/tree/main/services/keycloak) (the main authentication application)
-  - [keycloak-db](https://github.com/amazeeio/lagoon/tree/main/services/keycloak-db) (the MariaDB storage for Keycloak)
-  - [auth-server](https://github.com/amazeeio/lagoon/tree/main/services/auth-server) (generates authentication tokens for Lagoon services)
-  - [ssh](https://github.com/amazeeio/lagoon/tree/main/services/ssh) (provides developers with ssh access to the sites hosted on Lagoon)
+  - [keycloak](https://github.com/uselagoon/lagoon/tree/main/services/keycloak) (the main authentication application)
+  - [keycloak-db](https://github.com/uselagoon/lagoon/tree/main/services/keycloak-db) (the MariaDB storage for Keycloak)
+  - [auth-server](https://github.com/uselagoon/lagoon/tree/main/services/auth-server) (generates authentication tokens for Lagoon services)
+  - [ssh](https://github.com/uselagoon/lagoon/tree/main/services/ssh) (provides developers with ssh access to the sites hosted on Lagoon)
 - Messaging
-  - [broker](https://github.com/amazeeio/lagoon/tree/main/services/broker) (the RabbitMQ message service used to communicate with Lagoon Remote)
-  - [webhooks2tasks](https://github.com/amazeeio/lagoon/tree/main/services/webhooks2tasks) (the service that converts incoming webhooks to API updates)
-  - [controllerhandler](https://github.com/amazeeio/lagoon/tree/main/services/controllerhandler) (the service that relays build progress from the controllers)
+  - [broker](https://github.com/uselagoon/lagoon/tree/main/services/broker) (the RabbitMQ message service used to communicate with Lagoon Remote)
+  - [webhooks2tasks](https://github.com/uselagoon/lagoon/tree/main/services/webhooks2tasks) (the service that converts incoming webhooks to API updates)
+  - [controllerhandler](https://github.com/uselagoon/lagoon/tree/main/services/controllerhandler) (the service that relays build progress from the controllers)
 - Webhooks
-  - [webhook-handler](https://github.com/amazeeio/lagoon/tree/main/services/webhook-handler) (the external service that Git Repositories and Registries communicate with)
+  - [webhook-handler](https://github.com/uselagoon/lagoon/tree/main/services/webhook-handler) (the external service that Git Repositories and Registries communicate with)
 - Notifications
-  - [logs2email](https://github.com/amazeeio/lagoon/tree/main/services/logs2email) (the service that pushes build notifications to a nominated email address)
-  - [logs2slack](https://github.com/amazeeio/lagoon/tree/main/services/logs2slack) (the service that pushes build notifications to a nominated Slack (or Discord) channel)
-  - [logs2rocketchat](https://github.com/amazeeio/lagoon/tree/main/services/logs2rocketchat) (the service that pushes build notifications to a nominated Rocket Chat channel)
-  - [logs2microsoftteams](https://github.com/amazeeio/lagoon/tree/main/services/logs2microsoftteams) (the service that pushes build notifications to a nominated Microsoft Teams channel)
+  - [logs2email](https://github.com/uselagoon/lagoon/tree/main/services/logs2email) (the service that pushes build notifications to a nominated email address)
+  - [logs2slack](https://github.com/uselagoon/lagoon/tree/main/services/logs2slack) (the service that pushes build notifications to a nominated Slack (or Discord) channel)
+  - [logs2rocketchat](https://github.com/uselagoon/lagoon/tree/main/services/logs2rocketchat) (the service that pushes build notifications to a nominated Rocket Chat channel)
+  - [logs2microsoftteams](https://github.com/uselagoon/lagoon/tree/main/services/logs2microsoftteams) (the service that pushes build notifications to a nominated Microsoft Teams channel)
 - Other Services
-  - [ui](https://github.com/amazeeio/lagoon/tree/main/services/ui) (the main user interface and dashboard for Lagoon)
+  - [ui](https://github.com/uselagoon/lagoon/tree/main/services/ui) (the main user interface and dashboard for Lagoon)
   - [lagoon-cli](https://github.com/amazeeio/lagoon-cli) (the command-line interface for managing sites on Lagoon)
-  - [drush-alias](https://github.com/amazeeio/lagoon/tree/main/services/drush-alias) (provides Drupal developers with an automated alias service for Drush)
+  - [drush-alias](https://github.com/uselagoon/lagoon/tree/main/services/drush-alias) (provides Drupal developers with an automated alias service for Drush)
 
 ### Lagoon Remote
 
 All the services that are used to provision, deploy and maintain sites hosted by Lagoon on Kubernetes live here. These services are mostly comprised of third-party tools, developed external to Lagoon itself. Installation is via a [Helm Chart](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-remote)
 
 - [Lagoon Build Deploy](https://github.com/amazeeio/lagoon-kbd) (the controllers that handle building and deploying sites onto Lagoon)
-- [kubectl-build-deploy](https://github.com/amazeeio/lagoon/tree/main/images/kubectl-build-deploy-dind) (the service that computes which services, configuration and settings to provision for Kubernetes)
-- [docker-host](https://github.com/amazeeio/lagoon/tree/main/images/docker-host) (the service that stores and caches upstream docker images for use in builds)
+- [kubectl-build-deploy](https://github.com/uselagoon/lagoon/tree/main/images/kubectl-build-deploy-dind) (the service that computes which services, configuration and settings to provision for Kubernetes)
+- [docker-host](https://github.com/uselagoon/lagoon/tree/main/images/docker-host) (the service that stores and caches upstream docker images for use in builds)
 - [lagoon-idler](https://github.com/amazeeio/lagoon-idler) (optional operator that can idle non-production sites not currently in use to conserve resources)
 - [Dioscuri](https://github.com/amazeeio/dioscuri) (optional operator that provides Active/Standby functionality to Lagoon)
 - [dbaas-operator](https://github.com/amazeeio/dbaas-operator) (optional operator that provisions databases from an underlying managed database)
@@ -80,7 +80,7 @@ These services are usually installed alongside either Lagoon Core or Lagoon Remo
 
 - Lagoon Logging (optional)
   - [lagoon-logging](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-logging) (utilizes [banzaicloud/logging-operator](https://github.com/banzaicloud/logging-operator) to collect and augment container&router logs from all sites, and sends them to a logs-dispatcher)
-  - [logs-dispatcher](https://github.com/amazeeio/lagoon/tree/main/services/logs-dispatcher) (collects application logs from sites, as well as container&router logs from lagoon-logging, enriches them with additional metadata and sends them to a central log concentrator)
+  - [logs-dispatcher](https://github.com/uselagoon/lagoon/tree/main/services/logs-dispatcher) (collects application logs from sites, as well as container&router logs from lagoon-logging, enriches them with additional metadata and sends them to a central log concentrator)
   - [lagoon-logs-concentrator](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-logs-concentrator) (collects logs from remote logs-dispatchers and sends them to Elasticsearch)
 
 - Open Policy Agent (optional)
@@ -102,7 +102,7 @@ These services are usually installed alongside either Lagoon Core or Lagoon Remo
 
 ### Testing
 
-Lagoon has a comprehensive [test suite](https://github.com/amazeeio/lagoon/tree/main/tests/tests), designed to cover most end-user scenarios. The testing is automated in Ansible, and runs in Jenkins, but can also be run locally in a self-contained cluster. The testing provisions a standalone Lagoon cluster, running on Kind (Kubernetes in Docker). This cluster is made of Lagoon Core, Lagoon Remote, an image registry and a set of managed databases. It runs test deployments and scenarios for a range of Node.js, Drupal, Python and NGINX projects, all built using the latest Lagoon images.
+Lagoon has a comprehensive [test suite](https://github.com/uselagoon/lagoon/tree/main/tests/tests), designed to cover most end-user scenarios. The testing is automated in Ansible, and runs in Jenkins, but can also be run locally in a self-contained cluster. The testing provisions a standalone Lagoon cluster, running on Kind (Kubernetes in Docker). This cluster is made of Lagoon Core, Lagoon Remote, an image registry and a set of managed databases. It runs test deployments and scenarios for a range of Node.js, Drupal, Python and NGINX projects, all built using the latest Lagoon images.
 
 
 ## Other Lagoon components

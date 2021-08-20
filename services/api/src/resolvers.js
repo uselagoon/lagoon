@@ -1,5 +1,6 @@
 const GraphQLDate = require('graphql-iso-date');
 const GraphQLJSON = require('graphql-type-json');
+const { GraphQLUpload } = require('graphql-upload');
 
 const {
   getAllProblems,
@@ -20,6 +21,12 @@ const {
   addFacts,
   deleteFact,
   deleteFactsFromSource,
+  addFactReference,
+  deleteFactReference,
+  deleteAllFactReferencesByFactId,
+  getFactReferencesByFactId,
+  getProjectsByFactSearch,
+  getEnvironmentsByFactSearch,
 } = require('./resources/fact/resolvers');
 
 const {
@@ -43,7 +50,8 @@ const {
   deployEnvironmentPromote,
   switchActiveStandby,
   deploymentSubscriber,
-  getDeploymentUrl
+  getDeploymentUrl,
+  getBuildLog,
 } = require('./resources/deployment/resolvers');
 
 const {
@@ -61,12 +69,24 @@ const {
   taskDrushRsyncFiles,
   taskDrushUserLogin,
   taskSubscriber,
+  getTaskLog,
 } = require('./resources/task/resolvers');
+
+const {
+  addAdvancedTaskDefinition,
+  advancedTaskDefinitionById,
+  resolveTasksForEnvironment,
+  getRegisteredTasksByEnvironmentId,
+  advancedTaskDefinitionArgumentById,
+  invokeRegisteredTask,
+  deleteAdvancedTaskDefinition,
+} = require('./resources/task/task_definition_resolvers');
 
 const {
   getFilesByTaskId,
   uploadFilesForTask,
   deleteFilesForTask,
+  getDownloadLink,
 } = require('./resources/file/resolvers');
 
 const {
@@ -91,22 +111,25 @@ const {
   getAllEnvironments,
   deleteAllEnvironments,
   userCanSshToEnvironment,
-  getEnvironmentUrl
+  getEnvironmentUrl,
 } = require('./resources/environment/resolvers');
 
 const {
   addNotificationMicrosoftTeams,
   addNotificationRocketChat,
   addNotificationSlack,
+  addNotificationWebhook,
   addNotificationToProject,
   deleteNotificationMicrosoftTeams,
   deleteNotificationRocketChat,
   deleteNotificationSlack,
+  deleteNotificationWebhook,
   getNotificationsByProjectId,
   removeNotificationFromProject,
   updateNotificationMicrosoftTeams,
   updateNotificationRocketChat,
   updateNotificationSlack,
+  updateNotificationWebhook,
   addNotificationEmail,
   updateNotificationEmail,
   deleteNotificationEmail,
@@ -114,6 +137,7 @@ const {
   deleteAllNotificationSlacks,
   deleteAllNotificationMicrosoftTeams,
   deleteAllNotificationRocketChats,
+  deleteAllNotificationWebhook,
   removeAllNotificationsFromAllProjects,
 } = require('./resources/notification/resolvers');
 
@@ -202,6 +226,7 @@ const {
   getRestoreByBackupId,
   updateRestore,
   backupSubscriber,
+  getRestoreLocation,
 } = require('./resources/backup/resolvers');
 
 const {
@@ -212,6 +237,7 @@ const {
 } = require('./resources/env-variables/resolvers');
 
 const resolvers = {
+  Upload: GraphQLUpload,
   GroupRole: {
     GUEST: 'guest',
     REPORTER: 'reporter',
@@ -266,6 +292,7 @@ const resolvers = {
     ROCKETCHAT: 'rocketchat',
     MICROSOFTTEAMS: 'microsoftteams',
     EMAIL: 'email',
+    WEBHOOK: 'webhook',
   },
   NotificationContentType: {
     DEPLOYMENT: 'deployment',
@@ -305,6 +332,7 @@ const resolvers = {
     project: getProjectByEnvironmentId,
     deployments: getDeploymentsByEnvironmentId,
     tasks: getTasksByEnvironmentId,
+    advancedTasks: getRegisteredTasksByEnvironmentId,
     hoursMonth: getEnvironmentHoursMonthByEnvironmentId,
     storages: getEnvironmentStorageByEnvironmentId,
     storageMonth: getEnvironmentStorageMonthByEnvironmentId,
@@ -315,13 +343,21 @@ const resolvers = {
     problems: getProblemsByEnvironmentId,
     facts: getFactsByEnvironmentId,
   },
+  Fact: {
+    references: getFactReferencesByFactId,
+  },
   Deployment: {
     environment: getEnvironmentByDeploymentId,
     uiLink: getDeploymentUrl,
+    buildLog: getBuildLog,
   },
   Task: {
     environment: getEnvironmentByTaskId,
     files: getFilesByTaskId,
+    logs: getTaskLog
+  },
+  File: {
+    download: getDownloadLink
   },
   Notification: {
     __resolveType(obj) {
@@ -334,6 +370,20 @@ const resolvers = {
           return 'NotificationMicrosoftTeams';
         case 'email':
           return 'NotificationEmail';
+        case 'webhook':
+          return 'NotificationWebhook';
+        default:
+          return null;
+      }
+    },
+  },
+  AdvancedTaskDefinition: {
+    __resolveType (obj) {
+      switch(obj.type) {
+        case 'IMAGE':
+          return 'AdvancedTaskDefinitionImage';
+        case 'COMMAND':
+          return 'AdvancedTaskDefinitionCommand';
         default:
           return null;
       }
@@ -347,6 +397,9 @@ const resolvers = {
     restore: getRestoreByBackupId,
     environment: getEnvironmentByBackupId,
   },
+  Restore: {
+    restoreLocation: getRestoreLocation,
+  },
   Query: {
     me: getMe,
     lagoonVersion: getLagoonVersion,
@@ -359,10 +412,14 @@ const resolvers = {
     environmentById: getEnvironmentById,
     environmentByOpenshiftProjectName: getEnvironmentByOpenshiftProjectName,
     environmentByKubernetesNamespaceName: getEnvironmentByKubernetesNamespaceName,
+    environmentsByFactSearch: getEnvironmentsByFactSearch,
     userCanSshToEnvironment,
     deploymentByRemoteId: getDeploymentByRemoteId,
     taskByRemoteId: getTaskByRemoteId,
     taskById: getTaskById,
+    advancedTaskDefinitionById,
+    advancedTasksForEnvironment: resolveTasksForEnvironment,
+    advancedTaskDefinitionArgumentById,
     allProjects: getAllProjects,
     allOpenshifts: getAllOpenshifts,
     allKubernetes: getAllOpenshifts,
@@ -374,7 +431,8 @@ const resolvers = {
     allBillingGroupsCost: getAllBillingGroupsCost,
     allBillingModifiers: getBillingModifiers,
     allProblemHarborScanMatchers: getProblemHarborScanMatches,
-    projectsByMetadata: getProjectsByMetadata
+    projectsByMetadata: getProjectsByMetadata,
+    projectsByFactSearch: getProjectsByFactSearch,
   },
   Mutation: {
     addProblem,
@@ -386,6 +444,9 @@ const resolvers = {
     addFacts,
     deleteFact,
     deleteFactsFromSource,
+    addFactReference,
+    deleteFactReference,
+    deleteAllFactReferencesByFactId,
     addOrUpdateEnvironment,
     updateEnvironment,
     deleteEnvironment,
@@ -394,7 +455,11 @@ const resolvers = {
     addNotificationSlack,
     updateNotificationSlack,
     deleteNotificationSlack,
+    addNotificationWebhook,
+    updateNotificationWebhook,
+    deleteNotificationWebhook,
     deleteAllNotificationSlacks,
+    deleteAllNotificationWebhook,
     addNotificationRocketChat,
     updateNotificationRocketChat,
     deleteNotificationRocketChat,
@@ -446,6 +511,9 @@ const resolvers = {
     addEnvVariable,
     deleteEnvVariable,
     addTask,
+    addAdvancedTaskDefinition,
+    deleteAdvancedTaskDefinition,
+    invokeRegisteredTask,
     taskDrushArchiveDump,
     taskDrushSqlDump,
     taskDrushCacheClear,

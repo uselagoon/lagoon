@@ -21,12 +21,18 @@ import { getKeycloakAdminClient } from '../clients/keycloak-admin';
     : /.*/;
 
   const allGroups = await GroupModel.loadAllGroups();
-  let groupsQueue = (allGroups as Group[]).map(group => ({
+
+  // This filters out Billing Groups that we don't need to create in Opendistro/Kibana
+  const userGroups = allGroups.filter(
+    ({ type }) => type !== 'billing' && type !== 'billing-poly'
+  );
+
+  let groupsQueue = (userGroups as Group[]).map(group => ({
     group,
     retries: 0
   }));
 
-  logger.info(`Syncing ${allGroups.length} groups`);
+  logger.info(`Syncing ${userGroups.length} groups`);
 
   while (groupsQueue.length > 0) {
     const { group, retries } = groupsQueue.shift();
@@ -42,8 +48,20 @@ import { getKeycloakAdminClient } from '../clients/keycloak-admin';
         group
       );
       const projectIds = R.join(',')(projectIdsArray);
-      await OpendistroSecurityOperations(sqlClientPool, GroupModel).syncGroup(
-        group.name,
+
+      let roleName = group.name;
+      if(group.type && group.type == 'project-default-group') {
+        roleName = "p" + projectIds;
+      }
+
+      let tenantName = group.name;
+      if(group.type && group.type == 'project-default-group') {
+        tenantName = 'global_tenant';
+      }
+
+      await OpendistroSecurityOperations(sqlClientPool, GroupModel).syncGroupWithSpecificTenant(
+        roleName,
+        tenantName,
         projectIds
       );
     } catch (err) {

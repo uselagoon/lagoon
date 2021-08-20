@@ -300,7 +300,7 @@ const getControllerBuildData = async function(deployData: any) {
   var projectProductionEnvironment = projectOpenShift.productionEnvironment
   var projectStandbyEnvironment = projectOpenShift.standbyProductionEnvironment
   var subfolder = projectOpenShift.subfolder || ""
-  var routerPattern = projectOpenShift.openshift.routerPattern
+  var routerPattern = projectOpenShift.routerPattern || projectOpenShift.openshift.routerPattern
   var prHeadBranch = headBranch || ""
   var prHeadSha = headSha || ""
   var prBaseBranch = baseBranch || ""
@@ -1109,6 +1109,9 @@ export const createMiscTask = async function(taskData: any) {
           }
           miscTaskData.advancedTask.runnerImage = taskImage
           // miscTaskData.advancedTask.runnerImage = "shreddedbacon/runner:latest"
+          break;
+        case 'kubernetes:task:advanced':
+          miscTaskData.advancedTask = taskData.data.advancedTask
           break;
         case 'kubernetes:build:cancel':
           // build cancellation is just a standard unmodified message

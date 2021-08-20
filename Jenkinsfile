@@ -1,5 +1,5 @@
 pipeline {
-  agent any
+  agent { label 'lagoon' }
   environment {
     // configure build params
     CI_BUILD_TAG = env.BUILD_TAG.replaceAll('%2f','').replaceAll('[^A-Za-z0-9]+', '').toLowerCase()
@@ -33,7 +33,7 @@ pipeline {
     }
     stage ('build images') {
       steps {
-        sh script: "make -O -j$NPROC build", label: "Building images"
+        sh script: "make -O -j$NPROC build SCAN_IMAGES=true", label: "Building images"
       }
     }
     stage ('show trivy scan results') {

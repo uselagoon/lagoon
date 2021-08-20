@@ -2,6 +2,7 @@ import React from 'react';
 import * as R from 'ramda';
 import { withRouter } from 'next/router';
 import Head from 'next/head';
+import getConfig from 'next/config';
 import { Query } from 'react-apollo';
 import MainLayout from 'layouts/MainLayout';
 import EnvironmentWithDeploymentsQuery from 'lib/query/EnvironmentWithDeployments';
@@ -17,6 +18,10 @@ import withQueryError from 'lib/withQueryError';
 import { withEnvironmentRequired } from 'lib/withDataRequired';
 import { bp } from 'lib/variables';
 
+const { publicRuntimeConfig } = getConfig();
+const envLimit = parseInt(publicRuntimeConfig.LAGOON_UI_DEPLOYMENTS_LIMIT, 10);
+const deploymentsLimit = envLimit === -1 ? null : envLimit;
+
 /**
  * Displays the deployments page, given the openshift project name.
  */
@@ -28,7 +33,10 @@ export const PageDeployments = ({ router }) => {
       </Head>
       <Query
         query={EnvironmentWithDeploymentsQuery}
-        variables={{ openshiftProjectName: router.query.openshiftProjectName }}
+        variables={{
+          openshiftProjectName: router.query.openshiftProjectName,
+          limit: deploymentsLimit
+        }}
       >
         {R.compose(
           withQueryLoading,
@@ -40,8 +48,7 @@ export const PageDeployments = ({ router }) => {
             variables: { environment: environment.id },
             updateQuery: (prevStore, { subscriptionData }) => {
               if (!subscriptionData.data) return prevStore;
-              const prevDeployments =
-                prevStore.environment.deployments;
+              const prevDeployments = prevStore.environment.deployments;
               const incomingDeployment =
                 subscriptionData.data.deploymentChanged;
               const existingIndex = prevDeployments.findIndex(
@@ -87,7 +94,8 @@ export const PageDeployments = ({ router }) => {
                   <DeployLatest pageEnvironment={environment} />
                   <Deployments
                     deployments={environment.deployments}
-                    projectName={environment.openshiftProjectName}
+                    environmentSlug={environment.openshiftProjectName}
+                    projectSlug={environment.project.name}
                   />
                 </div>
               </div>

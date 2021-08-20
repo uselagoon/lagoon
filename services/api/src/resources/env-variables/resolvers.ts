@@ -3,6 +3,8 @@ import { ResolverFn } from '../';
 import { query } from '../../util/db';
 import { Sql } from './sql';
 import { Helpers as environmentHelpers } from '../environment/helpers';
+import { Helpers as projectHelpers } from '../project/helpers';
+
 
 export const getEnvVarsByProjectId: ResolverFn = async (
   { id: pid },
@@ -70,7 +72,7 @@ export const addEnvVariable: ResolverFn = async (obj, args, context) => {
 const addEnvVariableToProject = async (
   root,
   { input: { id, typeId, name, value, scope } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   await hasPermission('env_var', 'project:add', {
     project: `${typeId}`
@@ -89,13 +91,25 @@ const addEnvVariableToProject = async (
 
   const rows = await query(sqlClientPool, Sql.selectEnvVariable(insertId));
 
+  userActivityLogger.user_action(`User added environment variable to project '${typeId}'`, {
+    project: '',
+    event: 'api:addEnvVariableToProject',
+    payload: {
+      id,
+      name,
+      value,
+      scope,
+      typeId
+    }
+  });
+
   return R.prop(0, rows);
 };
 
 const addEnvVariableToEnvironment = async (
   root,
   { input: { id, typeId, name, value, scope } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
@@ -122,13 +136,26 @@ const addEnvVariableToEnvironment = async (
 
   const rows = await query(sqlClientPool, Sql.selectEnvVariable(insertId));
 
+  userActivityLogger.user_action(`User added environment variable to environment '${environment.name}' on '${environment.project}'`, {
+    project: '',
+    event: 'api:addEnvVariableToEnvironment',
+    payload: {
+      id,
+      name,
+      value,
+      scope,
+      typeId,
+      environment
+    }
+  });
+
   return R.prop(0, rows);
 };
 
 export const deleteEnvVariable: ResolverFn = async (
   root,
   { input: { id } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const perms = await query(sqlClientPool, Sql.selectPermsForEnvVariable(id));
 
@@ -137,6 +164,14 @@ export const deleteEnvVariable: ResolverFn = async (
   });
 
   await query(sqlClientPool, Sql.deleteEnvVariable(id));
+
+  userActivityLogger.user_action(`User deleted environment variable`, {
+    project: '',
+    event: 'api:deleteEnvVariable',
+    payload: {
+      id
+    }
+  });
 
   return 'success';
 };

@@ -2,7 +2,7 @@ import * as R from 'ramda';
 import { Pool } from 'mariadb';
 import { asyncPipe } from '@lagoon/commons/dist/util';
 import pickNonNil from '../util/pickNonNil';
-import * as logger from '../logger';
+import { logger } from '../loggers/logger';
 import GroupRepresentation from 'keycloak-admin/lib/defs/groupRepresentation';
 import { User } from './user';
 
@@ -629,6 +629,7 @@ export const Group = (clients: {
   ): Promise<void> => {
     const group = await loadGroupById(groupInput.id);
     const newGroupProjects = R.pipe(
+      // @ts-ignore
       R.view(attrLagoonProjectsLens),
       R.defaultTo(`${projectId}`),
       R.split(','),
@@ -678,6 +679,7 @@ export const Group = (clients: {
     group: Group
   ): Promise<void> => {
     const newGroupProjects = R.pipe(
+      // @ts-ignore
       R.view(attrLagoonProjectsLens),
       R.defaultTo(''),
       R.split(','),

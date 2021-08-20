@@ -2,7 +2,7 @@ import * as R from 'ramda';
 import validator from 'validator';
 import sshpk from 'sshpk';
 import { ResolverFn } from '../';
-import logger from '../../logger';
+import { logger } from '../../loggers/logger';
 import { knex, query, isPatchEmpty } from '../../util/db';
 import { Helpers } from './helpers';
 import { KeycloakOperations } from './keycloak';
@@ -214,7 +214,7 @@ export const getProjectsByMetadata: ResolverFn = async (
 export const addProject = async (
   root,
   { input },
-  { hasPermission, sqlClientPool, models, keycloakGrant }
+  { hasPermission, sqlClientPool, models, keycloakGrant, userActivityLogger }
 ) => {
   await hasPermission('project', 'add');
 
@@ -262,6 +262,7 @@ export const addProject = async (
       ${input.availability ? ':availability' : '"STANDARD"'},
       :private_key,
       ${input.subfolder ? ':subfolder' : 'NULL'},
+      ${input.routerPattern ? ':router_pattern' : 'NULL'},
       :openshift,
       ${openshiftProjectPattern ? ':openshift_project_pattern' : 'NULL'},
       ${
@@ -339,9 +340,10 @@ export const addProject = async (
     );
   }
 
-  OpendistroSecurityOperations(sqlClientPool, models.GroupModel).syncGroup(
-    `project-${project.name}`,
-    project.id
+  OpendistroSecurityOperations(sqlClientPool, models.GroupModel).syncGroupWithSpecificTenant(
+    `p${project.id}`,
+    'global_tenant',
+    `${project.id}`
   );
 
   // Find or create a user that has the public key linked to them
@@ -391,9 +393,7 @@ export const addProject = async (
   try {
     await models.GroupModel.addUserToGroup(user, group, 'maintainer');
   } catch (err) {
-    logger.error(
-      `Could not link user to default projet group for ${project.name}: ${err.message}`
-    );
+    logger.error(`Could not link user to default project group for ${project.name}: ${err.message}`);
   }
 
   // Add the user who submitted this request to the project
@@ -413,9 +413,7 @@ export const addProject = async (
     try {
       await models.GroupModel.addUserToGroup(user, group, 'owner');
     } catch (err) {
-      logger.error(
-        `Could not link requesting user to default projet group for ${project.name}: ${err.message}`
-      );
+      logger.error(`Could not link requesting user to default project group for ${project.name}: ${err.message}`);
     }
   }
 
@@ -423,13 +421,22 @@ export const addProject = async (
 
   await harborOperations.addProject(project.name, project.id);
 
+  userActivityLogger.user_action(`User added a project '${project.name}'`, {
+    project: project.name,
+    event: 'api:addProject',
+    payload: {
+      input,
+      data: project
+    }
+  });
+
   return project;
 };
 
 export const deleteProject: ResolverFn = async (
   root,
   { input: { project: projectName } },
-  { sqlClientPool, hasPermission, models }
+  { sqlClientPool, hasPermission, userActivityLogger, models }
 ) => {
   // Will throw on invalid conditions
   const pid = await Helpers(sqlClientPool).getProjectIdByName(projectName);
@@ -447,7 +454,8 @@ export const deleteProject: ResolverFn = async (
       `project-${project.name}`
     );
     await models.GroupModel.deleteGroup(group.id);
-    OpendistroSecurityOperations(sqlClientPool, models.GroupModel).deleteGroup(
+    OpendistroSecurityOperations(sqlClientPool, models.GroupModel).deleteGroupWithSpecificTenant(
+      `p${pid}`,
       group.name
     );
   } catch (err) {
@@ -472,6 +480,16 @@ export const deleteProject: ResolverFn = async (
 
   //const harborResults = await harborOperations.deleteProject(project.name)
 
+  userActivityLogger.user_action(`User deleted a project '${project.name}'`, {
+    project: project.name,
+    event: 'api:deleteProject',
+    payload: {
+      input: {
+        project
+      },
+    }
+  });
+
   return 'success';
 };
 
@@ -487,6 +505,7 @@ export const updateProject: ResolverFn = async (
         availability,
         privateKey,
         subfolder,
+        routerPattern,
         activeSystemsDeploy,
         activeSystemsRemove,
         activeSystemsTask,
@@ -508,7 +527,7 @@ export const updateProject: ResolverFn = async (
       }
     }
   },
-  { sqlClientPool, hasPermission, models }
+  { sqlClientPool, hasPermission, userActivityLogger, models }
 ) => {
   await hasPermission('project', 'update', {
     project: id
@@ -576,6 +595,7 @@ export const updateProject: ResolverFn = async (
         availability,
         privateKey,
         subfolder,
+        routerPattern,
         activeSystemsDeploy,
         activeSystemsRemove,
         activeSystemsTask,
@@ -664,13 +684,46 @@ export const updateProject: ResolverFn = async (
   //   );
   // }
 
+  userActivityLogger.user_action(`User updated project '${oldProject.name}'`, {
+    project: oldProject.name,
+    event: 'api:updateProject',
+    payload: {
+      patch: {
+        name,
+        gitUrl,
+        availability,
+        privateKey,
+        subfolder,
+        routerPattern,
+        activeSystemsDeploy,
+        activeSystemsRemove,
+        activeSystemsTask,
+        activeSystemsMisc,
+        activeSystemsPromote,
+        branches,
+        productionEnvironment,
+        productionRoutes,
+        productionAlias,
+        standbyProductionEnvironment,
+        standbyRoutes,
+        standbyAlias,
+        autoIdle,
+        storageCalc,
+        problemsUi,
+        factsUi,
+        pullrequests,
+        developmentEnvironmentsLimit,
+      }
+    }
+  });
+
   return Helpers(sqlClientPool).getProjectById(id);
 };
 
 export const deleteAllProjects: ResolverFn = async (
   root,
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   await hasPermission('project', 'deleteAll');
 
@@ -682,6 +735,14 @@ export const deleteAllProjects: ResolverFn = async (
     await KeycloakOperations.deleteGroup(name);
   }
 
+  userActivityLogger.user_action(`User deleted all projects`, {
+    project: '',
+    event: 'api:deleteAllProjects',
+    payload: {
+      ...args
+    }
+  });
+
   // TODO: Check rows for success
   return 'success';
 };
@@ -689,7 +750,7 @@ export const deleteAllProjects: ResolverFn = async (
 export const removeProjectMetadataByKey: ResolverFn = async (
   root,
   { input: { id, key } },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   await hasPermission('project', 'update', {
     project: id
@@ -714,6 +775,18 @@ export const removeProjectMetadataByKey: ResolverFn = async (
     WHERE id = :id`,
     { id, meta_key: `$.${key}` }
   );
+
+  userActivityLogger.user_action(`User removed project metadata key '${key}'`, {
+    project: '',
+    event: 'api:removeProjectMetadataByKey',
+    payload: {
+      input: {
+        id,
+        key
+      }
+    }
+  });
+
   return Helpers(sqlClientPool).getProjectById(id);
 };
 
@@ -726,7 +799,7 @@ export const updateProjectMetadata: ResolverFn = async (
       patch: { key, value }
     }
   },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   await hasPermission('project', 'update', {
     project: id
@@ -759,5 +832,18 @@ export const updateProjectMetadata: ResolverFn = async (
       meta_value: value
     }
   );
+
+  userActivityLogger.user_action(`User updated project metadata`, {
+    project: '',
+    event: 'api:updateProjectMetadata',
+    payload: {
+      patch: {
+        project: id,
+        key,
+        value,
+      }
+    }
+  });
+
   return Helpers(sqlClientPool).getProjectById(id);
 };

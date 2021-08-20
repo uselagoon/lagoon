@@ -1,6 +1,6 @@
 import * as R from 'ramda';
 import pickNonNil from '../util/pickNonNil';
-import * as logger from '../logger';
+import { logger } from '../loggers/logger';
 import UserRepresentation from 'keycloak-admin/lib/defs/userRepresentation';
 import { Group, isRoleSubgroup } from './group';
 
@@ -95,6 +95,7 @@ export const User = (clients: {
         // @ts-ignore
         R.pipe(
           R.pick(['id', 'email', 'username', 'firstName', 'lastName']),
+          // @ts-ignore
           R.set(commentLens, R.view(attrCommentLens, keycloakUser))
         )(keycloakUser)
     );
