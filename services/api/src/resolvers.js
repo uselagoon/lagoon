@@ -69,6 +69,16 @@ const {
 } = require('./resources/task/resolvers');
 
 const {
+  addAdvancedTaskDefinition,
+  advancedTaskDefinitionById,
+  resolveTasksForEnvironment,
+  getRegisteredTasksByEnvironmentId,
+  advancedTaskDefinitionArgumentById,
+  invokeRegisteredTask,
+  deleteAdvancedTaskDefinition,
+} = require('./resources/task/task_definition_resolvers');
+
+const {
   getFilesByTaskId,
   uploadFilesForTask,
   deleteFilesForTask,
@@ -288,6 +298,7 @@ const resolvers = {
     project: getProjectByEnvironmentId,
     deployments: getDeploymentsByEnvironmentId,
     tasks: getTasksByEnvironmentId,
+    advancedTasks: getRegisteredTasksByEnvironmentId,
     hoursMonth: getEnvironmentHoursMonthByEnvironmentId,
     storages: getEnvironmentStorageByEnvironmentId,
     storageMonth: getEnvironmentStorageMonthByEnvironmentId,
@@ -332,6 +343,18 @@ const resolvers = {
       }
     }
   },
+  AdvancedTaskDefinition: {
+    __resolveType (obj) {
+      switch(obj.type) {
+        case 'IMAGE':
+          return 'AdvancedTaskDefinitionImage';
+        case 'COMMAND':
+          return 'AdvancedTaskDefinitionCommand';
+        default:
+          return null;
+      }
+    },
+  },
   User: {
     sshKeys: getUserSshKeys,
     groups: getGroupsByUserId,
@@ -360,6 +383,9 @@ const resolvers = {
     deploymentByRemoteId: getDeploymentByRemoteId,
     taskByRemoteId: getTaskByRemoteId,
     taskById: getTaskById,
+    advancedTaskDefinitionById,
+    advancedTasksForEnvironment: resolveTasksForEnvironment,
+    advancedTaskDefinitionArgumentById,
     allProjects: getAllProjects,
     allOpenshifts: getAllOpenshifts,
     allKubernetes: getAllOpenshifts,
@@ -448,6 +474,9 @@ const resolvers = {
     addEnvVariable,
     deleteEnvVariable,
     addTask,
+    addAdvancedTaskDefinition,
+    deleteAdvancedTaskDefinition,
+    invokeRegisteredTask,
     taskDrushArchiveDump,
     taskDrushSqlDump,
     taskDrushCacheClear,

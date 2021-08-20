@@ -114,8 +114,69 @@ const typeDefs = gql`
     URL
     SEMVER
   }
-
+  
+  enum TaskPermission {
+    MAINTAINER
+    DEVELOPER
+    GUEST
+  }
+  
   scalar SeverityScore
+
+  type AdvancedTaskDefinitionArgument {
+    id: Int
+    name: String
+    type: String
+    advancedTaskDefinition: AdvancedTaskDefinition
+  }
+
+  type AdvancedTaskDefinitionImage {
+    id: Int
+    name: String
+    description: String
+    type: AdvancedTaskDefinitionTypes
+    image: String
+    service: String
+    groupName: String
+    environment: Int
+    project: Int
+    permission: TaskPermission
+    advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgument]
+    created: String
+    deleted: String
+  }
+
+  type AdvancedTaskDefinitionCommand {
+    id: Int
+    name: String
+    description: String
+    type: AdvancedTaskDefinitionTypes
+    service: String
+    command: String
+    groupName: String
+    environment: Int
+    project: Int
+    permission: TaskPermission
+    created: String
+    deleted: String
+  }
+
+  union AdvancedTaskDefinition = AdvancedTaskDefinitionImage | AdvancedTaskDefinitionCommand
+
+  type TaskRegistration {
+    id: Int
+    type: String
+    name: String
+    description: String
+    groupName: String
+    environment: Int
+    project: Int
+    command: String
+    service: String
+    permission: TaskPermission
+    created: String
+    deleted: String
+  }
 
   type Problem {
     id: Int
@@ -694,6 +755,7 @@ const typeDefs = gql`
     deployments(name: String, limit: Int): [Deployment]
     backups(includeDeleted: Boolean, limit: Int): [Backup]
     tasks(id: Int, limit: Int): [Task]
+    advancedTasks: [AdvancedTaskDefinition]
     services: [EnvironmentService]
     problems(severity: [ProblemSeverityRating], source: [String]): [Problem]
     facts(keyFacts: Boolean): [Fact]
@@ -777,6 +839,21 @@ const typeDefs = gql`
     environment: Environment
     service: String
     command: String
+    remoteId: String
+    logs: String
+    files: [File]
+  }
+
+  type AdvancedTask {
+    id: Int
+    name: String
+    status: String
+    created: String
+    started: String
+    completed: String
+    environment: Environment
+    service: String
+    advancedTask: String
     remoteId: String
     logs: String
     files: [File]
@@ -910,6 +987,23 @@ const typeDefs = gql`
     Returns all ProblemHarborScanMatchers
     """
     allProblemHarborScanMatchers: [ProblemHarborScanMatch]
+    """
+    Returns all AdvancedTaskDefinitions
+    """
+    allAdvancedTaskDefinitions: [AdvancedTaskDefinition]
+    """
+    Returns a single AdvancedTaskDefinition given an id
+    """
+    advancedTaskDefinitionById(id: Int!) : AdvancedTaskDefinition
+    """
+    Returns a AdvancedTaskDefinitions applicable for an environment
+    """
+    advancedTasksForEnvironment(environment: Int!) : [AdvancedTaskDefinition]
+    """
+    Returns a AdvancedTaskDefinitionArgument by Id
+    """
+    advancedTaskDefinitionArgumentById(id: Int!) : [AdvancedTaskDefinitionArgument]
+
   }
 
   # Must provide id OR name
@@ -1082,6 +1176,41 @@ const typeDefs = gql`
     command: String
     remoteId: String
     execute: Boolean
+  }
+
+
+  input AdvancedTaskArgumentInput {
+    name: String
+    value: String
+  }
+
+  enum AdvancedTaskDefinitionArgumentTypes {
+    NUMERIC
+    STRING
+  }
+
+  input AdvancedTaskDefinitionArgumentInput {
+    name: String
+    type: AdvancedTaskDefinitionArgumentTypes
+  }
+
+  enum AdvancedTaskDefinitionTypes {
+    COMMAND
+    IMAGE
+  }
+
+  input AdvancedTaskDefinitionInput {
+    name: String
+    description: String
+    image: String
+    type: AdvancedTaskDefinitionTypes
+    service: String
+    command: String
+    environment: Int
+    project: Int
+    groupName: String
+    permission: TaskPermission
+    advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgumentInput]
   }
 
   input DeleteTaskInput {
@@ -1594,6 +1723,9 @@ const typeDefs = gql`
     addEnvVariable(input: EnvVariableInput!): EnvKeyValue
     deleteEnvVariable(input: DeleteEnvVariableInput!): String
     addTask(input: TaskInput!): Task
+    addAdvancedTaskDefinition(input: AdvancedTaskDefinitionInput!): AdvancedTaskDefinition
+    invokeRegisteredTask(advancedTaskDefinition: Int!, environment: Int!): Task
+    deleteAdvancedTaskDefinition(advancedTaskDefinition: Int!): String
     taskDrushArchiveDump(environment: Int!): Task
     taskDrushSqlDump(environment: Int!): Task
     taskDrushCacheClear(environment: Int!): Task
