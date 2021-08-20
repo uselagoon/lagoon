@@ -223,6 +223,11 @@ export const addProject = async (
       'Only lowercase characters, numbers and dashes allowed for name!'
     );
   }
+  if (validator.matches(input.name, /--/)) {
+    throw new Error(
+      'Multiple consecutive dashes are not allowed for name!'
+    );
+  }
   if (!isValidGitUrl(input.gitUrl)) {
     throw new Error('The provided gitUrl is invalid.');
   }
