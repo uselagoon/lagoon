@@ -309,15 +309,9 @@ MIIJKQIBAAKCAgEA+o[...]P0yoL8BoQQG2jCvYfWh6vyglQdrDYx/o6/8ecTwXokKKh6fg1q
     ...project,
     environments: args.hasOwnProperty('environments')
       ? args.environments
-      : mocks.Query().allEnvironments(project)
-    envVariables: [mocks.EnvKeyValue()],
-    // groups: [ mocks.Group() ]
-  };
-  return {
-    ...project,
-    environments: args.hasOwnProperty('environments')
-      ? args.environments
       : mocks.Query().allEnvironments(null, { project })
+  };
+};
 
 mocks.Environment = (parent, args = {}, context, info) => {
   const name = args.hasOwnProperty('name')
