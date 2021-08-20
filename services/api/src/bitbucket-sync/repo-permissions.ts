@@ -2,6 +2,13 @@ import * as R from 'ramda';
 import * as bitbucketApi from '@lagoon/commons/dist/bitbucketApi';
 import * as api from '@lagoon/commons/dist/api';
 import { logger } from '@lagoon/commons/dist/local-logging';
+import redis, { ClientOpts } from 'redis';
+import { promisify } from 'util';
+import { toNumber } from '../util/func';
+import { getConfigFromEnv, envHasConfig } from '../util/config';
+var crypto = require('crypto');
+
+
 
 // The lagoon group that has all of the projects needing to be synced
 const LAGOON_SYNC_GROUP = R.propOr(
@@ -69,7 +76,7 @@ const getBitbucketRepo = async (gitUrl: string, projectName: string) => {
 
 
 
-const syncUsersForProjects = async projects => {
+const syncUsersForProjects = async (redis, projects) => {
   // Keep track of users we know exist to avoid API calls
   let existingUsers = [];
 
@@ -83,6 +90,7 @@ const syncUsersForProjects = async projects => {
           const gitUrl = R.prop('gitUrl', project) as string;
           const projectName = R.prop('name', project) as string;
           const lagoonProjectGroup = `project-${projectName}`;
+          const lagoonProjectGroupCacheName = `bbsynccache-${lagoonProjectGroup}`;
 
           const repo = await getBitbucketRepo(gitUrl, projectName);
           if (!repo) {
@@ -100,11 +108,6 @@ const syncUsersForProjects = async projects => {
 
           let userPermissions = [];
 
-          let lagoonUsersInGroupTotal = await getLagoonUsersForGroup(
-            lagoonProjectGroup
-          );
-
-          let lagoonUsersInGroup = getUsersEmails(lagoonUsersInGroupTotal)
 
           try {
             const permissions = await bitbucketApi.getRepoUsers(
@@ -127,6 +130,22 @@ const syncUsersForProjects = async projects => {
             );
             return;
           }
+
+          let userPermissionCacheHash = userPermissionsToCacheHash(userPermissions);
+          let cachedUserPermissionCacheHash = await redis.get(lagoonProjectGroupCacheName);
+          if(cachedUserPermissionCacheHash == userPermissionCacheHash) {
+            logger.warn(`Cache entry found for ${lagoonProjectGroupCacheName} - skipping`);
+            return;
+          }
+          logger.info(`Didnt match ${lagoonProjectGroupCacheName}'s hash ${cachedUserPermissionCacheHash} with ${userPermissionCacheHash} - caching for 24 hours`);
+          await redis.set(lagoonProjectGroupCacheName, userPermissionCacheHash, 'EX', 60 * 60 * 24);
+          logger.info(`cache hash: ${userPermissionCacheHash} for ${lagoonProjectGroupCacheName} added`);
+          let lagoonUsersInGroupTotal = await getLagoonUsersForGroup(
+            lagoonProjectGroup
+          );
+
+          let lagoonUsersInGroup = getUsersEmails(lagoonUsersInGroupTotal)
+
 
           // Sync user/permissions from bitbucket to lagoon
           for (const userPermission of userPermissions) {
@@ -207,6 +226,13 @@ const syncUsersForProjects = async projects => {
   }
 };
 
+function userPermissionsToCacheHash(userPermissions: any[]) {
+  let sortfunc = R.sortBy(R.compose(R.toLower, R.prop('emailAddress')));
+  let userPermissionCacheData = sortfunc(userPermissions.map((e) => { return { emailAddress: e.user.emailAddress, permission: e.permission }; }));
+  let userPermissionCache = crypto.createHash('md5').update(JSON.stringify(userPermissionCacheData)).digest('hex');
+  return userPermissionCache;
+}
+
 function getUsersEmails(lagoonUsers) {
   // @ts-ignore
   return R.pipe(R.pluck('user'), R.pluck('email'), R.map(R.toLower))(lagoonUsers) as [string]
@@ -227,12 +253,55 @@ async function getLagoonUsersForGroup(lagoonProjectGroup: string) {
   return lagoonUsers;
 }
 
+const getRedisClient = () => {
+  const config: {
+    hostname: string;
+    port: number;
+    pass?: string;
+  } = {
+    hostname: getConfigFromEnv('REDIS_HOST', 'api-redis'),
+    port: toNumber(getConfigFromEnv('REDIS_PORT', '6379')),
+    pass: envHasConfig('REDIS_PASSWORD')
+      ? getConfigFromEnv('REDIS_PASSWORD')
+      : undefined
+  };
+
+  const redisClient = redis.createClient({
+    host: config.hostname,
+    port: config.port,
+    password: config.pass,
+    enable_offline_queue: true
+  });
+
+  redisClient.on('error', function(error) {
+    console.error(error);
+  });
+
+  const retRedis = {
+    redisClient: redisClient,
+    get: promisify(redisClient.get).bind(redisClient),
+    set: promisify(redisClient.set).bind(redisClient),
+  }
+
+
+  return retRedis;
+}
+
+
+
 (async () => {
-  // Get all bitbucket related lagoon projects
-  const groupQuery = await api.getProjectsByGroupName(LAGOON_SYNC_GROUP);
-  const projects = R.pathOr([], ['groupByName', 'projects'], groupQuery) as [
-    object
-  ];
-  const syncResponse = await syncUsersForProjects(projects);
-  logger.info('Sync completed');
+  const redisObj = getRedisClient();
+  // @ts-ignore
+  redisObj.redisClient.on("ready", async function() {
+      // Get all bitbucket related lagoon projects
+      const groupQuery = await api.getProjectsByGroupName(LAGOON_SYNC_GROUP);
+      const projects = R.pathOr([], ['groupByName', 'projects'], groupQuery) as [
+        object
+      ];
+
+      const syncResponse = await syncUsersForProjects(redisObj, projects);
+      logger.info('Sync completed');
+      // @ts-ignore
+      redisObj.redisClient.quit();
+    });
 })();
