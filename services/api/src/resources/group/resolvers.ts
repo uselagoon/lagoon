@@ -443,6 +443,69 @@ export const addGroupsToProject: ResolverFn = async (
   return await projectHelpers(sqlClientPool).getProjectById(project.id);
 };
 
+
+export const getAllProjectsByGroupId: ResolverFn = async (
+  root,
+  input,
+  context
+) => getAllProjectsInGroup(root, { input: { id: root.id } }, { ...context });
+
+export const getAllProjectsInGroup: ResolverFn = async (
+  _root,
+  { input: groupInput },
+  { models, sqlClientPool, hasPermission, keycloakGrant }
+) => {
+  const {
+    GroupModel: { loadGroupByIdOrName, getProjectsFromGroupAndSubgroups }
+  } = models;
+
+  try {
+    await hasPermission('group', 'viewAll');
+
+    const group = await loadGroupByIdOrName(groupInput);
+    const projectIdsArray = await getProjectsFromGroupAndSubgroups(group);
+    return projectIdsArray.map(async id =>
+      projectHelpers(sqlClientPool).getProjectByProjectInput({ id })
+    );
+  } catch (err) {
+    if (err instanceof GroupNotFoundError) {
+      throw err;
+    }
+
+    if (!(err instanceof KeycloakUnauthorizedError)) {
+      logger.warn(`getAllGroups failed unexpectedly: ${err.message}`);
+      throw err;
+    }
+  }
+
+  if (!keycloakGrant) {
+    logger.warn(
+      'Access denied to user for getAllProjectsInGroup: no keycloakGrant'
+    );
+    return [];
+  } else {
+    const group = await loadGroupByIdOrName(groupInput);
+
+    const user = await models.UserModel.loadUserById(
+      keycloakGrant.access_token.content.sub
+    );
+    const userGroups = await models.UserModel.getAllGroupsForUser(user);
+
+    // @ts-ignore
+    if (!R.contains(group.name, R.pluck('name', userGroups))) {
+      logger.warn(
+        'Access denied to user for getAllProjectsInGroup: user not in group'
+      );
+      return [];
+    }
+
+    const projectIdsArray = await getProjectsFromGroupAndSubgroups(group);
+    return projectIdsArray.map(async id =>
+      projectHelpers(sqlClientPool).getProjectByProjectInput({ id })
+    );
+  }
+};
+
 export const removeGroupsFromProject: ResolverFn = async (
   _root,
   { input: { project: projectInput, groups: groupsInput } },
