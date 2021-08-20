@@ -252,21 +252,20 @@ This query will add a group to a project. Users of that group will be able to ac
 
 ```graphql
 mutation {
-  mutation {
-    addGroupsToProject (
-      input: {
-        project: {
-          #TODO: Enter the name of the project.
-          name: ""
-        }
-        groups: {
-          #TODO: Enter the name of the group that will be added to the project.
-          name: ""
-        }
+  addGroupsToProject (
+    input: {
+      project: {
+        #TODO: Enter the name of the project.
+        name: ""
       }
-    ) {
-      id
+      groups: {
+        #TODO: Enter the name of the group that will be added to the project.
+        name: ""
+      }
     }
+  ) {
+    id
+  }
 }
 ```
 
