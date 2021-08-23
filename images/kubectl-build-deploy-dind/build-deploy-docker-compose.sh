@@ -1273,6 +1273,40 @@ fi
 # If k8up is supported by this cluster we create the schedule definition
 if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
 
+  # Parse out custom baas backup location variables
+  if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
+    BAAS_CUSTOM_BACKUP_ENDPOINT=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "build" and .name == "BAAS_CUSTOM_BACKUP_ENDPOINT") | "\(.value)"'))
+    BAAS_CUSTOM_BACKUP_BUCKET=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "build" and .name == "BAAS_CUSTOM_BACKUP_BUCKET") | "\(.value)"'))
+    BAAS_CUSTOM_BACKUP_ACCESS_KEY=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "build" and .name == "BAAS_CUSTOM_BACKUP_ACCESS_KEY") | "\(.value)"'))
+    BAAS_CUSTOM_BACKUP_SECRET_KEY=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "build" and .name == "BAAS_CUSTOM_BACKUP_SECRET_KEY") | "\(.value)"'))
+
+    if [ ! -z $BAAS_CUSTOM_BACKUP_ENDPOINT && ! -z $BAAS_CUSTOM_BACKUP_BUCKET && ! -z $BAAS_CUSTOM_BACKUP_ACCESS_KEY && ! -z $BAAS_CUSTOM_BACKUP_SECRET_KEY ]; then
+      CUSTOM_BAAS_BACKUP_ENABLED=1
+
+      # Remove and recreate the current custom baas backup config secret with current data
+      set +x
+      kubectl --insecure-skip-tls-verify -n ${NAMESPACE} delete secret baas-custom-backup-credentials --ignore-not-found
+      kubectl --insecure-skip-tls-verify -n ${NAMESPACE} create secret generic baas-custom-backup-credentials --from-literal=access-key=$BAAS_CUSTOM_BACKUP_ACCESS_KEY --from-literal=secret-key=$BAAS_CUSTOM_BACKUP_SECRET_KEY
+      set -x
+    fi
+  fi
+
+  # Parse out custom baas restore location variables
+  if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
+    BAAS_CUSTOM_RESTORE_ENDPOINT=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "build" and .name == "BAAS_CUSTOM_RESTORE_ENDPOINT") | "\(.value)"'))
+    BAAS_CUSTOM_RESTORE_BUCKET=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "build" and .name == "BAAS_CUSTOM_RESTORE_BUCKET") | "\(.value)"'))
+    BAAS_CUSTOM_RESTORE_ACCESS_KEY=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "build" and .name == "BAAS_CUSTOM_RESTORE_ACCESS_KEY") | "\(.value)"'))
+    BAAS_CUSTOM_RESTORE_SECRET_KEY=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "build" and .name == "BAAS_CUSTOM_RESTORE_SECRET_KEY") | "\(.value)"'))
+
+    if [ ! -z $BAAS_CUSTOM_RESTORE_ENDPOINT && ! -z $BAAS_CUSTOM_RESTORE_BUCKET && ! -z $BAAS_CUSTOM_RESTORE_ACCESS_KEY && ! -z $BAAS_CUSTOM_RESTORE_SECRET_KEY ]; then
+      # Remove and recreate the current custom baas restore config secret with current data
+      set +x
+      kubectl --insecure-skip-tls-verify -n ${NAMESPACE} delete secret baas-custom-restore-credentials --ignore-not-found
+      kubectl --insecure-skip-tls-verify -n ${NAMESPACE} create secret generic baas-custom-restore-credentials --from-literal=access-key=$BAAS_CUSTOM_RESTORE_ACCESS_KEY --from-literal=secret-key=$BAAS_CUSTOM_RESTORE_SECRET_KEY
+      set -x
+    fi
+  fi
+
   if ! kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get secret baas-repo-pw &> /dev/null; then
     # Create baas-repo-pw secret based on the project secret
     set +x
@@ -1347,6 +1381,17 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
     PRUNE_SCHEDULE=$( /kubectl-build-deploy/scripts/convert-crontab.sh "${NAMESPACE}" "M H(3-6) * * 6")
   fi
 
+  # Set the S3 variables which should be passed to the helm chart
+  if [ $CUSTOM_BAAS_BACKUP_ENABLED -eq 1 ]; then
+    BAAS_BACKUP_ENDPOINT=${BAAS_CUSTOM_BACKUP_ENDPOINT}
+    BAAS_BACKUP_BUCKET=${BAAS_CUSTOM_BACKUP_BUCKET}
+    BAAS_BACKUP_SECRET_NAME='baas-custom-backup-credentials'
+  else
+    BAAS_BACKUP_ENDPOINT=''
+    BAAS_BACKUP_BUCKET=''
+    BAAS_BACKUP_SECRET_NAME=''
+  fi
+
   OPENSHIFT_TEMPLATE="/kubectl-build-deploy/openshift-templates/backup-schedule.yml"
   helm template k8up-lagoon-backup-schedule /kubectl-build-deploy/helmcharts/k8up-schedule \
     -f /kubectl-build-deploy/values.yaml \
@@ -1357,7 +1402,10 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
     --set prune.retention.keepMonthly=$MONTHLY_BACKUP_RETENTION \
     --set prune.retention.keepWeekly=$WEEKLY_BACKUP_RETENTION \
     --set prune.retention.keepDaily=$DAILY_BACKUP_RETENTION \
-    --set prune.retention.keepHourly=$HOURLY_BACKUP_RETENTION
+    --set prune.retention.keepHourly=$HOURLY_BACKUP_RETENTION \
+    --set s3.endpoint=$BAAS_BACKUP_ENDPOINT \
+    --set s3.bucket=$BAAS_BACKUP_BUCKET \
+    --set s3.secret-name=$BAAS_BACKUP_SECRET_NAME
 fi
 
 if [ "$(ls -A $YAML_FOLDER/)" ]; then

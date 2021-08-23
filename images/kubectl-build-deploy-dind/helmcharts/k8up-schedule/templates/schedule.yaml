@@ -12,7 +12,22 @@ spec:
       key: repo-pw
       name: baas-repo-pw
     s3:
+      {{ if .Values.s3.endpoint }}
+      endpoint: '{{ .Values.s3.endpoint }}'
+      {{ end }}
+      {{ if .Values.s3.bucket }}
+      bucket: '{{ .Values.s3.bucket }}'
+      {{ else }}
       bucket: '{{ .Values.baasBucketName }}'
+      {{ end }}
+      {{ if .Values.s3.secret-name }}
+      accessKeyIDSecretRef:
+        name: '{{ .Values.s3.secret-name }}'
+        key: access-key
+      secretAccessKeySecretRef:
+        name: '{{ .Values.s3.secret-name }}'
+        key: secret-key
+      {{ end }}
   backup:
     schedule: '{{ .Values.backup.schedule }}'
   check:

@@ -17,3 +17,8 @@ prune:
     keepWeekly: 6
     keepMonthly: 1
   schedule: '0 * * * 6'
+
+s3:
+  endpoint: ''
+  bucket: ''
+  secret-name: ''

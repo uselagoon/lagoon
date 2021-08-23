@@ -950,7 +950,7 @@ export const createRemoveTask = async function(removeData: any) {
 }
 
 // creates the restore job configuration for use in the misc task
-const restoreConfig = (name, backupId, safeProjectName, baasBucketName) => {
+const restoreConfig = (name, backupId, safeProjectName, baasBucketName, backupS3Config, restoreS3Config) => {
   let config = {
     apiVersion: 'backup.appuio.ch/v1alpha1',
     kind: 'Restore',
@@ -960,10 +960,10 @@ const restoreConfig = (name, backupId, safeProjectName, baasBucketName) => {
     spec: {
       snapshot: backupId,
       restoreMethod: {
-        s3: {},
+        s3: restoreS3Config ? restoreS3Config : {},
       },
       backend: {
-        s3: {
+        s3: backupS3Config ? backupS3Config : {
           bucket: baasBucketName ? baasBucketName : `baas-${safeProjectName}`
         },
         repoPasswordSecretRef: {
@@ -1070,8 +1070,93 @@ export const createMiscTask = async function(taskData: any) {
           if (baasBucketName) {
             baasBucketName = baasBucketName.value
           }
+
+          // Handle custom backup configurations
+          let baasCustomBackupEndpoint = result.project.envVariables.find(obj => {
+            return obj.name === "BAAS_CUSTOM_BACKUP_ENDPOINT"
+          })
+          if (baasCustomBackupEndpoint) {
+            baasCustomBackupEndpoint = baasCustomBackupEndpoint.value
+          }
+          let baasCustomBackupBucket = result.project.envVariables.find(obj => {
+            return obj.name === "BAAS_CUSTOM_BACKUP_BUCKET"
+          })
+          if (baasCustomBackupBucket) {
+            baasCustomBackupBucket = baasCustomBackupBucket.value
+          }
+          let baasCustomBackupAccessKey = result.project.envVariables.find(obj => {
+            return obj.name === "BAAS_CUSTOM_BACKUP_ACCESS_KEY"
+          })
+          if (baasCustomBackupAccessKey) {
+            baasCustomBackupAccessKey = baasCustomBackupAccessKey.value
+          }
+          let baasCustomBackupSecretKey = result.project.envVariables.find(obj => {
+            return obj.name === "BAAS_CUSTOM_BACKUP_SECRET_KEY"
+          })
+          if (baasCustomBackupSecretKey) {
+            baasCustomBackupSecretKey = baasCustomBackupSecretKey.value
+          }
+
+          let backupS3Config = {}
+          if (baasCustomBackupEndpoint && baasCustomBackupBucket && baasCustomBackupAccessKey && baasCustomBackupSecretKey) {
+            backupS3Config = {
+              endpoint: baasCustomBackupEndpoint,
+              bucket: baasCustomBackupBucket,
+              accessKeyIDSecretRef: {
+                name: "baas-custom-backup-credentials",
+                key: "access-key"
+              },
+              secretAccessKeySecretRef: {
+                name: "baas-custom-backup-credentials",
+                key: "secret-key"
+              }
+            }
+          }
+
+          // Handle custom restore configurations
+          let baasCustomRestoreEndpoint = result.project.envVariables.find(obj => {
+            return obj.name === "BAAS_CUSTOM_RESTORE_ENDPOINT"
+          })
+          if (baasCustomRestoreEndpoint) {
+            baasCustomRestoreEndpoint = baasCustomRestoreEndpoint.value
+          }
+          let baasCustomRestoreBucket = result.project.envVariables.find(obj => {
+            return obj.name === "BAAS_CUSTOM_RESTORE_BUCKET"
+          })
+          if (baasCustomRestoreBucket) {
+            baasCustomRestoreBucket = baasCustomRestoreBucket.value
+          }
+          let baasCustomRestoreAccessKey = result.project.envVariables.find(obj => {
+            return obj.name === "BAAS_CUSTOM_RESTORE_ACCESS_KEY"
+          })
+          if (baasCustomRestoreAccessKey) {
+            baasCustomRestoreAccessKey = baasCustomRestoreAccessKey.value
+          }
+          let baasCustomRestoreSecretKey = result.project.envVariables.find(obj => {
+            return obj.name === "BAAS_CUSTOM_RESTORE_SECRET_KEY"
+          })
+          if (baasCustomRestoreSecretKey) {
+            baasCustomRestoreSecretKey = baasCustomRestoreSecretKey.value
+          }
+
+          let restoreS3Config = {}
+          if (baasCustomRestoreEndpoint && baasCustomRestoreBucket && baasCustomRestoreAccessKey && baasCustomRestoreSecretKey) {
+            restoreS3Config = {
+              endpoint: baasCustomRestoreEndpoint,
+              bucket: baasCustomRestoreBucket,
+              accessKeyIDSecretRef: {
+                name: "baas-custom-restore-credentials",
+                key: "access-key"
+              },
+              secretAccessKeySecretRef: {
+                name: "baas-custom-restore-credentials",
+                key: "secret-key"
+              }
+            }
+          }
+
           // generate the restore CRD
-          const restoreConf = restoreConfig(restoreName, taskData.data.backup.backupId, makeSafe(taskData.data.project.name), baasBucketName)
+          const restoreConf = restoreConfig(restoreName, taskData.data.backup.backupId, makeSafe(taskData.data.project.name), baasBucketName, backupS3Config, restoreS3Config)
           // base64 encode it
           const restoreBytes = new Buffer(JSON.stringify(restoreConf).replace(/\\n/g, "\n")).toString('base64')
           miscTaskData.misc.miscResource = restoreBytes
