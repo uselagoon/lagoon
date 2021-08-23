@@ -1,4 +1,4 @@
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 # data:
 #   hsts: {{ .Values.route_hsts }}
@@ -58,6 +58,10 @@ spec:
     - host: {{ .Values.host }}
       http:
         paths:
-          - backend:
-              serviceName: {{ .Values.service }}
-              servicePort: http
+          - path: "/"
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.service }}
+                port:
+                  name: http
