@@ -1,0 +1,42 @@
+
+- name: "{{ testname }} - init git, add files, commit, git push"
+  hosts: localhost
+  serial: 1
+  vars:
+    git_files: "drupal{{ drupal_version }}-{{ db }}/"
+    docker_files: "drupal{{ drupal_version }}-dockerfiles/php{{ php_version }}/"
+  tasks:
+  - include: ../../tasks/git-init.yaml
+  - include: ../../tasks/git-add-commit-push.yaml
+
+- name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}, which should deploy the first commit"
+  hosts: localhost
+  serial: 1
+  vars:
+    branch: "{{ branch }}"
+    project: "{{ project }}"
+  tasks:
+  - include: ../../tasks/api/deploy-no-sha.yaml
+
+- include: check-deployed.yaml
+  vars:
+    expected_head: "{{ current_head }}"
+    expected_branch: "{{ branch }}"
+    project: "{{ project }}"
+
+- name: "{{ testname }} - second commit (empty) and git push into same git repo"
+  hosts: localhost
+  serial: 1
+  tasks:
+  - include: ../../tasks/git-empty-commit-push.yaml
+  - set_fact:
+      second_commit_hash: "{{ current_head }}"
+
+- name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}, which should deploy the second commit"
+  hosts: localhost
+  serial: 1
+  vars:
+    branch: "{{ branch }}"
+    project: "{{ project }}"
+  tasks:
+  - include: ../../tasks/api/deploy-no-sha.yaml

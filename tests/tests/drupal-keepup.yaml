@@ -1,0 +1,22 @@
+---
+- include: features/random-wait.yaml
+
+- include: features/api-token.yaml
+  vars:
+    testname: "API TOKEN"
+
+- include: api/add-project.yaml
+  vars:
+    project: drupal-keepup
+    git_repo_name: drupal-74.git
+    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
+
+- include: drupal/drupal-keepup.yaml
+  vars:
+    testname: "Drupal 8 composer PHP 7.4 - MARIADB SINGLE {{ cluster_type|upper }}"
+    drupal_version: 8
+    db: mariadb-single
+    php_version: 7.4
+    git_repo_name: drupal-74.git
+    project: drupal-keepup
+    branch: main
