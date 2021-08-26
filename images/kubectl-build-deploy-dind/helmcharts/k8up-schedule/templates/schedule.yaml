@@ -17,8 +17,6 @@ spec:
       {{ end }}
       {{ if .Values.s3.bucket }}
       bucket: '{{ .Values.s3.bucket }}'
-      {{ else }}
-      bucket: '{{ .Values.baasBucketName }}'
       {{ end }}
       {{ if .Values.s3.secret-name }}
       accessKeyIDSecretRef:

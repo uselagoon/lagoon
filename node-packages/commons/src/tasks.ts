@@ -1072,84 +1072,84 @@ export const createMiscTask = async function(taskData: any) {
           }
 
           // Handle custom backup configurations
-          let baasCustomBackupEndpoint = result.project.envVariables.find(obj => {
-            return obj.name === "BAAS_CUSTOM_BACKUP_ENDPOINT"
+          let lagoonBaasCustomBackupEndpoint = result.project.envVariables.find(obj => {
+            return obj.name === "LAGOON_BAAS_CUSTOM_BACKUP_ENDPOINT"
           })
-          if (baasCustomBackupEndpoint) {
-            baasCustomBackupEndpoint = baasCustomBackupEndpoint.value
+          if (lagoonBaasCustomBackupEndpoint) {
+            lagoonBaasCustomBackupEndpoint = lagoonBaasCustomBackupEndpoint.value
           }
-          let baasCustomBackupBucket = result.project.envVariables.find(obj => {
-            return obj.name === "BAAS_CUSTOM_BACKUP_BUCKET"
+          let lagoonBaasCustomBackupBucket = result.project.envVariables.find(obj => {
+            return obj.name === "LAGOON_BAAS_CUSTOM_BACKUP_BUCKET"
           })
-          if (baasCustomBackupBucket) {
-            baasCustomBackupBucket = baasCustomBackupBucket.value
+          if (lagoonBaasCustomBackupBucket) {
+            lagoonBaasCustomBackupBucket = lagoonBaasCustomBackupBucket.value
           }
-          let baasCustomBackupAccessKey = result.project.envVariables.find(obj => {
-            return obj.name === "BAAS_CUSTOM_BACKUP_ACCESS_KEY"
+          let lagoonBaasCustomBackupAccessKey = result.project.envVariables.find(obj => {
+            return obj.name === "LAGOON_BAAS_CUSTOM_BACKUP_ACCESS_KEY"
           })
-          if (baasCustomBackupAccessKey) {
-            baasCustomBackupAccessKey = baasCustomBackupAccessKey.value
+          if (lagoonBaasCustomBackupAccessKey) {
+            lagoonBaasCustomBackupAccessKey = lagoonBaasCustomBackupAccessKey.value
           }
-          let baasCustomBackupSecretKey = result.project.envVariables.find(obj => {
-            return obj.name === "BAAS_CUSTOM_BACKUP_SECRET_KEY"
+          let lagoonBaasCustomBackupSecretKey = result.project.envVariables.find(obj => {
+            return obj.name === "LAGOON_BAAS_CUSTOM_BACKUP_SECRET_KEY"
           })
-          if (baasCustomBackupSecretKey) {
-            baasCustomBackupSecretKey = baasCustomBackupSecretKey.value
+          if (lagoonBaasCustomBackupSecretKey) {
+            lagoonBaasCustomBackupSecretKey = lagoonBaasCustomBackupSecretKey.value
           }
 
           let backupS3Config = {}
-          if (baasCustomBackupEndpoint && baasCustomBackupBucket && baasCustomBackupAccessKey && baasCustomBackupSecretKey) {
+          if (lagoonBaasCustomBackupEndpoint && lagoonBaasCustomBackupBucket && lagoonBaasCustomBackupAccessKey && lagoonBaasCustomBackupSecretKey) {
             backupS3Config = {
-              endpoint: baasCustomBackupEndpoint,
-              bucket: baasCustomBackupBucket,
+              endpoint: lagoonBaasCustomBackupEndpoint,
+              bucket: lagoonBaasCustomBackupBucket,
               accessKeyIDSecretRef: {
-                name: "baas-custom-backup-credentials",
+                name: "lagoon-baas-custom-backup-credentials",
                 key: "access-key"
               },
               secretAccessKeySecretRef: {
-                name: "baas-custom-backup-credentials",
+                name: "lagoon-baas-custom-backup-credentials",
                 key: "secret-key"
               }
             }
           }
 
           // Handle custom restore configurations
-          let baasCustomRestoreEndpoint = result.project.envVariables.find(obj => {
-            return obj.name === "BAAS_CUSTOM_RESTORE_ENDPOINT"
+          let lagoonBaasCustomRestoreEndpoint = result.project.envVariables.find(obj => {
+            return obj.name === "LAGOON_BAAS_CUSTOM_RESTORE_ENDPOINT"
           })
-          if (baasCustomRestoreEndpoint) {
-            baasCustomRestoreEndpoint = baasCustomRestoreEndpoint.value
+          if (lagoonBaasCustomRestoreEndpoint) {
+            lagoonBaasCustomRestoreEndpoint = lagoonBaasCustomRestoreEndpoint.value
           }
-          let baasCustomRestoreBucket = result.project.envVariables.find(obj => {
-            return obj.name === "BAAS_CUSTOM_RESTORE_BUCKET"
+          let lagoonBaasCustomRestoreBucket = result.project.envVariables.find(obj => {
+            return obj.name === "LAGOON_BAAS_CUSTOM_RESTORE_BUCKET"
           })
-          if (baasCustomRestoreBucket) {
-            baasCustomRestoreBucket = baasCustomRestoreBucket.value
+          if (lagoonBaasCustomRestoreBucket) {
+            lagoonBaasCustomRestoreBucket = lagoonBaasCustomRestoreBucket.value
           }
-          let baasCustomRestoreAccessKey = result.project.envVariables.find(obj => {
-            return obj.name === "BAAS_CUSTOM_RESTORE_ACCESS_KEY"
+          let lagoonBaasCustomRestoreAccessKey = result.project.envVariables.find(obj => {
+            return obj.name === "LAGOON_BAAS_CUSTOM_RESTORE_ACCESS_KEY"
           })
-          if (baasCustomRestoreAccessKey) {
-            baasCustomRestoreAccessKey = baasCustomRestoreAccessKey.value
+          if (lagoonBaasCustomRestoreAccessKey) {
+            lagoonBaasCustomRestoreAccessKey = lagoonBaasCustomRestoreAccessKey.value
           }
-          let baasCustomRestoreSecretKey = result.project.envVariables.find(obj => {
-            return obj.name === "BAAS_CUSTOM_RESTORE_SECRET_KEY"
+          let lagoonBaasCustomRestoreSecretKey = result.project.envVariables.find(obj => {
+            return obj.name === "LAGOON_BAAS_CUSTOM_RESTORE_SECRET_KEY"
           })
-          if (baasCustomRestoreSecretKey) {
-            baasCustomRestoreSecretKey = baasCustomRestoreSecretKey.value
+          if (lagoonBaasCustomRestoreSecretKey) {
+            lagoonBaasCustomRestoreSecretKey = lagoonBaasCustomRestoreSecretKey.value
           }
 
           let restoreS3Config = {}
-          if (baasCustomRestoreEndpoint && baasCustomRestoreBucket && baasCustomRestoreAccessKey && baasCustomRestoreSecretKey) {
+          if (lagoonBaasCustomRestoreEndpoint && lagoonBaasCustomRestoreBucket && lagoonBaasCustomRestoreAccessKey && lagoonBaasCustomRestoreSecretKey) {
             restoreS3Config = {
-              endpoint: baasCustomRestoreEndpoint,
-              bucket: baasCustomRestoreBucket,
+              endpoint: lagoonBaasCustomRestoreEndpoint,
+              bucket: lagoonBaasCustomRestoreBucket,
               accessKeyIDSecretRef: {
-                name: "baas-custom-restore-credentials",
+                name: "lagoon-baas-custom-restore-credentials",
                 key: "access-key"
               },
               secretAccessKeySecretRef: {
-                name: "baas-custom-restore-credentials",
+                name: "lagoon-baas-custom-restore-credentials",
                 key: "secret-key"
               }
             }
