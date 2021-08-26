@@ -51,7 +51,7 @@ export const OpendistroSecurityOperations = (
         tenant_permissions: [
           {
             tenant_patterns: [tenantName],
-            allowed_actions: ['kibana_all_write']
+            allowed_actions: [tenantName == 'global_tenant' ? 'kibana_all_read' : 'kibana_all_write'] // ReadOnly Access for Global Tenant
           }
         ]
       }
@@ -84,12 +84,14 @@ export const OpendistroSecurityOperations = (
       logger.error(`OpendistroSecurity create role error: ${err}`);
     }
 
-    try {
-      // Create a new Tenant for this Group
-      await opendistroSecurityClient.put(`tenants/${tenantName}`, { body: { description: `${tenantName}` } });
-      logger.debug(`${groupName}: Created Tenant "${tenantName}"`);
-    } catch (err) {
-      logger.error(`Opendistro-Security create tenant error: ${err}`);
+    if (tenantName != 'global_tenant') {
+      try {
+        // Create a new Tenant for this Group
+        await opendistroSecurityClient.put(`tenants/${tenantName}`, { body: { description: `${tenantName}` } });
+        logger.debug(`${groupName}: Created Tenant "${tenantName}"`);
+      } catch (err) {
+        logger.error(`Opendistro-Security create tenant error: ${err}`);
+      }
     }
 
     // Create index-patterns for this group
@@ -113,16 +115,21 @@ export const OpendistroSecurityOperations = (
       ['lagoon-logs-*', lagoonLogs]
     );
 
-    groupProjectNames.forEach(projectName =>
-      indexPatterns.push(
-        [`application-logs-${projectName}-*`, applicationLogs],
-        [`router-logs-${projectName}-*`, routerLogs],
-        [`container-logs-${projectName}-*`, containerLogs],
-        [`lagoon-logs-${projectName}-*`, lagoonLogs]
-      )
-    );
+    // if we are on the global_tenant, we don't create project specific index patterns as they could be seen by everybody
+    // (everybody has access to the global tenant)
+    if (tenantName != 'global_tenant') {
+      groupProjectNames.forEach(projectName =>
+        indexPatterns.push(
+          [`application-logs-${projectName}-*`, applicationLogs],
+          [`router-logs-${projectName}-*`, routerLogs],
+          [`container-logs-${projectName}-*`, containerLogs],
+          [`lagoon-logs-${projectName}-*`, lagoonLogs]
+        )
+      );
+    }
 
-    const queryParameter = overwriteKibanaIndexPattern == 'true' ? '?overwrite=true' : '';
+    const kibanaTenantName = tenantName == 'global_tenant' ? 'global' : tenantName // global_tenant is `global` when working with the kibana api
+    const queryParameter = overwriteKibanaIndexPattern == 'true' ? `?overwrite=true` : '';
 
     for (const indexPattern of indexPatterns) {
       try {
@@ -137,7 +144,7 @@ export const OpendistroSecurityOperations = (
               }
             },
             headers: {
-              securitytenant: tenantName
+              securitytenant: kibanaTenantName
             }
           }
         );
@@ -162,7 +169,7 @@ export const OpendistroSecurityOperations = (
     try {
       const currentSettings = await kibanaClient.get('kibana/settings', {
         headers: {
-          securitytenant: tenantName
+          securitytenant: kibanaTenantName
         }
       });
 
@@ -178,7 +185,7 @@ export const OpendistroSecurityOperations = (
             }
           },
           headers: {
-            securitytenant: tenantName
+            securitytenant: kibanaTenantName
           }
         });
         logger.debug(

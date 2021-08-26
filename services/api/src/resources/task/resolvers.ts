@@ -161,6 +161,8 @@ export const addTask: ResolverFn = async (
   }
 
   userActivityLogger.user_action(`User added task '${name}'`, {
+    project: '',
+    event: 'api:addTask',
     payload: {
       input: {
         id,
@@ -208,6 +210,8 @@ export const deleteTask: ResolverFn = async (
   await query(sqlClientPool, Sql.deleteTask(id));
 
   userActivityLogger.user_action(`User deleted task '${id}'`, {
+    project: '',
+    event: 'api:deleteTask',
     payload: {
       input: {
         id
@@ -283,6 +287,8 @@ export const updateTask: ResolverFn = async (
   pubSub.publish(EVENTS.TASK.UPDATED, taskData);
 
   userActivityLogger.user_action(`User updated task '${id}'`, {
+    project: '',
+    event: 'api:updateTask',
     payload: {
       patch: {
         name,
@@ -329,6 +335,8 @@ TOKEN="$(ssh -p $TASK_SSH_PORT -t lagoon@$TASK_SSH_HOST token)" && curl -sS "$TA
   userActivityLogger.user_action(
     `User triggered a Drush Archive Dump task on environment '${environmentId}'`,
     {
+      project: '',
+      event: 'api:taskDrushArchiveDump',
       payload: {
         environment: environmentId
       }
@@ -374,6 +382,8 @@ TOKEN="$(ssh -p $TASK_SSH_PORT -t lagoon@$TASK_SSH_HOST token)" && curl -sS "$TA
   userActivityLogger.user_action(
     `User triggered a Drush SQL Dump task on environment '${environmentId}'`,
     {
+      project: '',
+      event: 'api:taskDrushSqlDump',
       payload: {
         environment: environmentId
       }
@@ -422,6 +432,8 @@ export const taskDrushCacheClear: ResolverFn = async (
   userActivityLogger.user_action(
     `User triggered a Drush cache clear task on environment '${environmentId}'`,
     {
+      project: '',
+      event: 'api:taskDrushCacheClear',
       payload: {
         environment: environmentId
       }
@@ -459,6 +471,8 @@ export const taskDrushCron: ResolverFn = async (
   userActivityLogger.user_action(
     `User triggered a Drush cron task on environment '${environmentId}'`,
     {
+      project: '',
+      event: 'api:taskDrushCron',
       payload: {
         environment: environmentId
       }
@@ -522,6 +536,8 @@ export const taskDrushSqlSync: ResolverFn = async (
   userActivityLogger.user_action(
     `User triggered a Drush SQL sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`,
     {
+      project: '',
+      event: 'api:taskDrushSqlSync',
       payload: {
         sourceEnvironment: sourceEnvironmentId,
         destinationEnvironment: destinationEnvironmentId
@@ -586,6 +602,8 @@ export const taskDrushRsyncFiles: ResolverFn = async (
   userActivityLogger.user_action(
     `User triggered an rsync sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`,
     {
+      project: '',
+      event: 'api:taskDrushRsyncFiles',
       payload: {
         sourceEnvironment: sourceEnvironmentId,
         destinationEnvironment: destinationEnvironmentId
@@ -624,6 +642,8 @@ export const taskDrushUserLogin: ResolverFn = async (
   userActivityLogger.user_action(
     `User triggered a Drush user login task on '${environmentId}'`,
     {
+      project: '',
+      event: 'api:taskDrushUserLogin',
       payload: {
         environment: environmentId
       }

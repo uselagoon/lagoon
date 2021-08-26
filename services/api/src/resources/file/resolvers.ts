@@ -70,6 +70,8 @@ export const uploadFilesForTask: ResolverFn = async (
       rowsPerms
     )}'`,
     {
+      project: '',
+      event: 'api:uploadFilesForTask',
       data: {
         rows
       }
@@ -105,6 +107,8 @@ export const deleteFilesForTask: ResolverFn = async (
   await query(sqlClientPool, Sql.deleteFileTask(id));
 
   userActivityLogger.user_action(`User deleted files for task '${id}'`, {
+    project: '',
+    event: 'api:deleteFilesForTask',
     data: {
       id
     }

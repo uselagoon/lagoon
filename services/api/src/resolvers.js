@@ -21,6 +21,12 @@ const {
   addFacts,
   deleteFact,
   deleteFactsFromSource,
+  addFactReference,
+  deleteFactReference,
+  deleteAllFactReferencesByFactId,
+  getFactReferencesByFactId,
+  getProjectsByFactSearch,
+  getEnvironmentsByFactSearch,
 } = require('./resources/fact/resolvers');
 
 const {
@@ -67,6 +73,16 @@ const {
 } = require('./resources/task/resolvers');
 
 const {
+  addAdvancedTaskDefinition,
+  advancedTaskDefinitionById,
+  resolveTasksForEnvironment,
+  getRegisteredTasksByEnvironmentId,
+  advancedTaskDefinitionArgumentById,
+  invokeRegisteredTask,
+  deleteAdvancedTaskDefinition,
+} = require('./resources/task/task_definition_resolvers');
+
+const {
   getFilesByTaskId,
   uploadFilesForTask,
   deleteFilesForTask,
@@ -95,7 +111,7 @@ const {
   getAllEnvironments,
   deleteAllEnvironments,
   userCanSshToEnvironment,
-  getEnvironmentUrl
+  getEnvironmentUrl,
 } = require('./resources/environment/resolvers');
 
 const {
@@ -316,6 +332,7 @@ const resolvers = {
     project: getProjectByEnvironmentId,
     deployments: getDeploymentsByEnvironmentId,
     tasks: getTasksByEnvironmentId,
+    advancedTasks: getRegisteredTasksByEnvironmentId,
     hoursMonth: getEnvironmentHoursMonthByEnvironmentId,
     storages: getEnvironmentStorageByEnvironmentId,
     storageMonth: getEnvironmentStorageMonthByEnvironmentId,
@@ -325,6 +342,9 @@ const resolvers = {
     services: getEnvironmentServicesByEnvironmentId,
     problems: getProblemsByEnvironmentId,
     facts: getFactsByEnvironmentId,
+  },
+  Fact: {
+    references: getFactReferencesByFactId,
   },
   Deployment: {
     environment: getEnvironmentByDeploymentId,
@@ -357,6 +377,18 @@ const resolvers = {
       }
     },
   },
+  AdvancedTaskDefinition: {
+    __resolveType (obj) {
+      switch(obj.type) {
+        case 'IMAGE':
+          return 'AdvancedTaskDefinitionImage';
+        case 'COMMAND':
+          return 'AdvancedTaskDefinitionCommand';
+        default:
+          return null;
+      }
+    },
+  },
   User: {
     sshKeys: getUserSshKeys,
     groups: getGroupsByUserId,
@@ -380,10 +412,14 @@ const resolvers = {
     environmentById: getEnvironmentById,
     environmentByOpenshiftProjectName: getEnvironmentByOpenshiftProjectName,
     environmentByKubernetesNamespaceName: getEnvironmentByKubernetesNamespaceName,
+    environmentsByFactSearch: getEnvironmentsByFactSearch,
     userCanSshToEnvironment,
     deploymentByRemoteId: getDeploymentByRemoteId,
     taskByRemoteId: getTaskByRemoteId,
     taskById: getTaskById,
+    advancedTaskDefinitionById,
+    advancedTasksForEnvironment: resolveTasksForEnvironment,
+    advancedTaskDefinitionArgumentById,
     allProjects: getAllProjects,
     allOpenshifts: getAllOpenshifts,
     allKubernetes: getAllOpenshifts,
@@ -395,7 +431,8 @@ const resolvers = {
     allBillingGroupsCost: getAllBillingGroupsCost,
     allBillingModifiers: getBillingModifiers,
     allProblemHarborScanMatchers: getProblemHarborScanMatches,
-    projectsByMetadata: getProjectsByMetadata
+    projectsByMetadata: getProjectsByMetadata,
+    projectsByFactSearch: getProjectsByFactSearch,
   },
   Mutation: {
     addProblem,
@@ -407,6 +444,9 @@ const resolvers = {
     addFacts,
     deleteFact,
     deleteFactsFromSource,
+    addFactReference,
+    deleteFactReference,
+    deleteAllFactReferencesByFactId,
     addOrUpdateEnvironment,
     updateEnvironment,
     deleteEnvironment,
@@ -471,6 +511,9 @@ const resolvers = {
     addEnvVariable,
     deleteEnvVariable,
     addTask,
+    addAdvancedTaskDefinition,
+    deleteAdvancedTaskDefinition,
+    invokeRegisteredTask,
     taskDrushArchiveDump,
     taskDrushSqlDump,
     taskDrushCacheClear,

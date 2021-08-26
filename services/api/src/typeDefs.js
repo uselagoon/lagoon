@@ -118,7 +118,74 @@ const typeDefs = gql`
     CRITICAL
   }
 
+  enum FactType {
+    TEXT
+    URL
+    SEMVER
+  }
+  
+  enum TaskPermission {
+    MAINTAINER
+    DEVELOPER
+    GUEST
+  }
+  
   scalar SeverityScore
+
+  type AdvancedTaskDefinitionArgument {
+    id: Int
+    name: String
+    type: String
+    advancedTaskDefinition: AdvancedTaskDefinition
+  }
+
+  type AdvancedTaskDefinitionImage {
+    id: Int
+    name: String
+    description: String
+    type: AdvancedTaskDefinitionTypes
+    image: String
+    service: String
+    groupName: String
+    environment: Int
+    project: Int
+    permission: TaskPermission
+    advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgument]
+    created: String
+    deleted: String
+  }
+
+  type AdvancedTaskDefinitionCommand {
+    id: Int
+    name: String
+    description: String
+    type: AdvancedTaskDefinitionTypes
+    service: String
+    command: String
+    groupName: String
+    environment: Int
+    project: Int
+    permission: TaskPermission
+    created: String
+    deleted: String
+  }
+
+  union AdvancedTaskDefinition = AdvancedTaskDefinitionImage | AdvancedTaskDefinitionCommand
+
+  type TaskRegistration {
+    id: Int
+    type: String
+    name: String
+    description: String
+    groupName: String
+    environment: Int
+    project: Int
+    command: String
+    service: String
+    permission: TaskPermission
+    created: String
+    deleted: String
+  }
 
   type Problem {
     id: Int
@@ -203,6 +270,10 @@ const typeDefs = gql`
     value: String
     source: String
     description: String
+    keyFact: Boolean
+    type: FactType
+    category: String
+    references: [FactReference]
   }
 
   input AddFactInput {
@@ -212,6 +283,9 @@ const typeDefs = gql`
     value: String!
     source: String!
     description: String!
+    keyFact: Boolean
+    type: FactType
+    category: String
   }
 
   input AddFactsInput {
@@ -224,6 +298,9 @@ const typeDefs = gql`
     value: String!
     source: String!
     description: String
+    keyFact: Boolean
+    type: FactType
+    category: String
   }
 
   input UpdateFactInput {
@@ -239,6 +316,61 @@ const typeDefs = gql`
   input DeleteFactsFromSourceInput {
     environment: Int!
     source: String!
+  }
+
+  type FactReference {
+    id: Int
+    fid: Int
+    name: String
+  }
+
+  input AddFactReferenceInput {
+    fid: Int!
+    name: String!
+  }
+
+  input UpdateFactReferenceInputValue {
+    fid: Int!
+    name: String
+  }
+
+  input UpdateFactReferenceInput {
+    fid: Int!
+    patch: UpdateFactReferenceInputValue!
+  }
+
+  input DeleteFactReferenceInput {
+    factName: String!
+    referenceName: String!
+    eid: Int!
+  }
+
+  input DeleteFactReferencesByFactIdInput {
+    fid: Int!
+  }
+
+  enum FactFilterConnective {
+    OR
+    AND
+  }
+
+  enum FactFilterLHSTarget {
+    FACT
+    ENVIRONMENT
+    PROJECT
+  }
+
+  input FactFilterAtom {
+    lhsTarget: FactFilterLHSTarget
+    name: String!
+    contains: String!
+  }
+  input FactFilterInput {
+    filterConnective: FactFilterConnective
+    filters: [FactFilterAtom]
+    skip: Int
+    take: Int
+    orderBy: String
   }
 
   type File {
@@ -419,6 +551,10 @@ const typeDefs = gql`
     """
     subfolder: String
     """
+    Set if the project should use a routerPattern that is different from the deploy target default
+    """
+    routerPattern: String
+    """
     Notifications that should be sent for this project
     """
     notifications(type: NotificationType, contentType: NotificationContentType, notificationSeverityThreshold: ProblemSeverityRating): [Notification]
@@ -541,6 +677,10 @@ const typeDefs = gql`
       Include deleted Environments (by default deleted environment are hidden)
       """
       includeDeleted: Boolean
+      """
+      Filter environments by fact matching
+      """
+      factFilter: FactFilterInput
     ): [Environment]
     """
     Creation Timestamp of Project
@@ -646,9 +786,10 @@ const typeDefs = gql`
     deployments(name: String, limit: Int): [Deployment]
     backups(includeDeleted: Boolean, limit: Int): [Backup]
     tasks(id: Int, limit: Int): [Task]
+    advancedTasks: [AdvancedTaskDefinition]
     services: [EnvironmentService]
     problems(severity: [ProblemSeverityRating], source: [String]): [Problem]
-    facts: [Fact]
+    facts(keyFacts: Boolean): [Fact]
   }
 
   type EnvironmentHitsMonth {
@@ -734,6 +875,21 @@ const typeDefs = gql`
     files: [File]
   }
 
+  type AdvancedTask {
+    id: Int
+    name: String
+    status: String
+    created: String
+    started: String
+    completed: String
+    environment: Environment
+    service: String
+    advancedTask: String
+    remoteId: String
+    logs: String
+    files: [File]
+  }
+
   type BillingModifier {
     id: Int
     group: BillingGroup
@@ -748,6 +904,16 @@ const typeDefs = gql`
     customerComments: String
     adminComments: String
     weight: Int
+  }
+
+  type ProjectFactSearchResults {
+    count: Int
+    projects: [Project]
+  }
+
+  type EnvironmentFactSearchResults {
+    count: Int
+    environments: [Environment]
   }
 
   input DeleteEnvironmentInput {
@@ -807,6 +973,19 @@ const typeDefs = gql`
     environmentByKubernetesNamespaceName(
       kubernetesNamespaceName: String!
     ): Environment
+    """
+    Return projects from a fact-based search
+    """
+    projectsByFactSearch(
+      input: FactFilterInput
+    ): ProjectFactSearchResults
+
+    """
+    Return environments from a fact-based search
+    """
+    environmentsByFactSearch(
+      input: FactFilterInput
+    ): EnvironmentFactSearchResults
     userCanSshToEnvironment(
       openshiftProjectName: String
       kubernetesNamespaceName: String
@@ -867,6 +1046,23 @@ const typeDefs = gql`
     Returns all ProblemHarborScanMatchers
     """
     allProblemHarborScanMatchers: [ProblemHarborScanMatch]
+    """
+    Returns all AdvancedTaskDefinitions
+    """
+    allAdvancedTaskDefinitions: [AdvancedTaskDefinition]
+    """
+    Returns a single AdvancedTaskDefinition given an id
+    """
+    advancedTaskDefinitionById(id: Int!) : AdvancedTaskDefinition
+    """
+    Returns a AdvancedTaskDefinitions applicable for an environment
+    """
+    advancedTasksForEnvironment(environment: Int!) : [AdvancedTaskDefinition]
+    """
+    Returns a AdvancedTaskDefinitionArgument by Id
+    """
+    advancedTaskDefinitionArgumentById(id: Int!) : [AdvancedTaskDefinitionArgument]
+
   }
 
   # Must provide id OR name
@@ -910,6 +1106,7 @@ const typeDefs = gql`
     name: String!
     gitUrl: String!
     subfolder: String
+    routerPattern: String
     openshift: Int
     openshiftProjectPattern: String
     kubernetes: Int
@@ -1038,6 +1235,41 @@ const typeDefs = gql`
     command: String
     remoteId: String
     execute: Boolean
+  }
+
+
+  input AdvancedTaskArgumentInput {
+    name: String
+    value: String
+  }
+
+  enum AdvancedTaskDefinitionArgumentTypes {
+    NUMERIC
+    STRING
+  }
+
+  input AdvancedTaskDefinitionArgumentInput {
+    name: String
+    type: AdvancedTaskDefinitionArgumentTypes
+  }
+
+  enum AdvancedTaskDefinitionTypes {
+    COMMAND
+    IMAGE
+  }
+
+  input AdvancedTaskDefinitionInput {
+    name: String
+    description: String
+    image: String
+    type: AdvancedTaskDefinitionTypes
+    service: String
+    command: String
+    environment: Int
+    project: Int
+    groupName: String
+    permission: TaskPermission
+    advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgumentInput]
   }
 
   input DeleteTaskInput {
@@ -1187,6 +1419,7 @@ const typeDefs = gql`
     availability: ProjectAvailability
     privateKey: String
     subfolder: String
+    routerPattern: String
     activeSystemsDeploy: String
     activeSystemsRemove: String
     activeSystemsTask: String
@@ -1638,6 +1871,9 @@ const typeDefs = gql`
     addFacts(input: AddFactsInput!): [Fact]
     deleteFact(input: DeleteFactInput!): String
     deleteFactsFromSource(input: DeleteFactsFromSourceInput!): String
+    addFactReference(input: AddFactReferenceInput!): FactReference
+    deleteFactReference(input: DeleteFactReferenceInput!): String
+    deleteAllFactReferencesByFactId(input: DeleteFactReferencesByFactIdInput!): String
     deleteBackup(input: DeleteBackupInput!): String
     deleteAllBackups: String
     addRestore(input: AddRestoreInput!): Restore
@@ -1645,6 +1881,9 @@ const typeDefs = gql`
     addEnvVariable(input: EnvVariableInput!): EnvKeyValue
     deleteEnvVariable(input: DeleteEnvVariableInput!): String
     addTask(input: TaskInput!): Task
+    addAdvancedTaskDefinition(input: AdvancedTaskDefinitionInput!): AdvancedTaskDefinition
+    invokeRegisteredTask(advancedTaskDefinition: Int!, environment: Int!): Task
+    deleteAdvancedTaskDefinition(advancedTaskDefinition: Int!): String
     taskDrushArchiveDump(environment: Int!): Task
     taskDrushSqlDump(environment: Int!): Task
     taskDrushCacheClear(environment: Int!): Task
