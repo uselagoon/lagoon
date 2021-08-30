@@ -8,6 +8,7 @@ USER root
 
 RUN apk add --no-cache --update --virtual .build-deps \
       build-base ruby-dev \
+      && gem install elasticsearch -v '< 7.14' \
       && gem install fluent-plugin-elasticsearch \
       && gem install fluent-plugin-prometheus \
       && gem sources --clear-all \
