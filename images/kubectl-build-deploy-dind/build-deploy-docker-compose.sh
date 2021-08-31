@@ -1275,12 +1275,12 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
 
   # Parse out custom baas backup location variables
   if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
-    BAAS_CUSTOM_BACKUP_ENDPOINT=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "build" and .name == "BAAS_CUSTOM_BACKUP_ENDPOINT") | "\(.value)"'))
-    BAAS_CUSTOM_BACKUP_BUCKET=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "build" and .name == "BAAS_CUSTOM_BACKUP_BUCKET") | "\(.value)"'))
-    BAAS_CUSTOM_BACKUP_ACCESS_KEY=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "build" and .name == "BAAS_CUSTOM_BACKUP_ACCESS_KEY") | "\(.value)"'))
-    BAAS_CUSTOM_BACKUP_SECRET_KEY=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.scope == "build" and .name == "BAAS_CUSTOM_BACKUP_SECRET_KEY") | "\(.value)"'))
+    BAAS_CUSTOM_BACKUP_ENDPOINT=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_BAAS_CUSTOM_BACKUP_ENDPOINT") | "\(.value)"'))
+    BAAS_CUSTOM_BACKUP_BUCKET=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_BAAS_CUSTOM_BACKUP_BUCKET") | "\(.value)"'))
+    BAAS_CUSTOM_BACKUP_ACCESS_KEY=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_BAAS_CUSTOM_BACKUP_ACCESS_KEY") | "\(.value)"'))
+    BAAS_CUSTOM_BACKUP_SECRET_KEY=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_BAAS_CUSTOM_BACKUP_SECRET_KEY") | "\(.value)"'))
 
-    if [ ! -z $BAAS_CUSTOM_BACKUP_ENDPOINT && ! -z $BAAS_CUSTOM_BACKUP_BUCKET && ! -z $BAAS_CUSTOM_BACKUP_ACCESS_KEY && ! -z $BAAS_CUSTOM_BACKUP_SECRET_KEY ]; then
+    if [ ! -z $BAAS_CUSTOM_BACKUP_ENDPOINT ] && [ ! -z $BAAS_CUSTOM_BACKUP_BUCKET ] && [ ! -z $BAAS_CUSTOM_BACKUP_ACCESS_KEY ] && [ ! -z $BAAS_CUSTOM_BACKUP_SECRET_KEY ]; then
       CUSTOM_BAAS_BACKUP_ENABLED=1
 
       HELM_CUSTOM_BAAS_BACKUP_ACCESS_KEY=${BAAS_CUSTOM_BACKUP_ACCESS_KEY}
@@ -1295,7 +1295,7 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
     BAAS_CUSTOM_RESTORE_ACCESS_KEY=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_BAAS_CUSTOM_RESTORE_ACCESS_KEY") | "\(.value)"'))
     BAAS_CUSTOM_RESTORE_SECRET_KEY=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_BAAS_CUSTOM_RESTORE_SECRET_KEY") | "\(.value)"'))
 
-    if [ ! -z $BAAS_CUSTOM_RESTORE_ENDPOINT && ! -z $BAAS_CUSTOM_RESTORE_BUCKET && ! -z $BAAS_CUSTOM_RESTORE_ACCESS_KEY && ! -z $BAAS_CUSTOM_RESTORE_SECRET_KEY ]; then
+    if [ ! -z $BAAS_CUSTOM_RESTORE_ENDPOINT ] && [ ! -z $BAAS_CUSTOM_RESTORE_BUCKET ] && [ ! -z $BAAS_CUSTOM_RESTORE_ACCESS_KEY ] && [ ! -z $BAAS_CUSTOM_RESTORE_SECRET_KEY ]; then
       HELM_CUSTOM_BAAS_RESTORE_ACCESS_KEY=${BAAS_CUSTOM_RESTORE_ACCESS_KEY}
       HELM_CUSTOM_BAAS_RESTORE_SECRET_KEY=${BAAS_CUSTOM_RESTORE_SECRET_KEY}
     fi
@@ -1376,10 +1376,10 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
   fi
 
   # Set the S3 variables which should be passed to the helm chart
-  if [ $CUSTOM_BAAS_BACKUP_ENABLED -eq 1 ]; then
+  if [ ! -z $CUSTOM_BAAS_BACKUP_ENABLED ]; then
     BAAS_BACKUP_ENDPOINT=${BAAS_CUSTOM_BACKUP_ENDPOINT}
     BAAS_BACKUP_BUCKET=${BAAS_CUSTOM_BACKUP_BUCKET}
-    BAAS_BACKUP_SECRET_NAME='baas-custom-backup-credentials'
+    BAAS_BACKUP_SECRET_NAME='lagoon-baas-custom-backup-credentials'
   else
     BAAS_BACKUP_ENDPOINT=''
     BAAS_BACKUP_BUCKET=${BAAS_BUCKET_NAME}
@@ -1391,18 +1391,18 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
     -f /kubectl-build-deploy/values.yaml \
     --set backup.schedule="${BACKUP_SCHEDULE}" \
     --set check.schedule="${CHECK_SCHEDULE}" \
-    --set prune.schedule="${PRUNE_SCHEDULE}" "${HELM_ARGUMENTS[@]}" \
-    --set prune.retention.keepMonthly=$MONTHLY_BACKUP_RETENTION \
-    --set prune.retention.keepWeekly=$WEEKLY_BACKUP_RETENTION \
-    --set prune.retention.keepDaily=$DAILY_BACKUP_RETENTION \
-    --set prune.retention.keepHourly=$HOURLY_BACKUP_RETENTION \
-    --set s3.endpoint="$BAAS_BACKUP_ENDPOINT" \
-    --set s3.bucket="$BAAS_BACKUP_BUCKET" \
-    --set s3.secret-name="$BAAS_BACKUP_SECRET_NAME" \
-    --set customRestoreLocation.access-key="${BAAS_CUSTOM_RESTORE_ACCESS_KEY}" \
-    --set customRestoreLocation.secret-key="${BAAS_CUSTOM_RESTORE_SECRET_KEY}" \
-    --set customBackupLocation.access-key="${BAAS_CUSTOM_BACKUP_ACCESS_KEY}" \
-    --set customBackupLocation.secret-key="${BAAS_CUSTOM_BACKUP_SECRET_KEY}" > $YAML_FOLDER/k8up-lagoon-backup-schedule.yaml
+    --set prune.schedule="${PRUNE_SCHEDULE}" \
+    --set prune.retention.keepMonthly=${MONTHLY_BACKUP_RETENTION} \
+    --set prune.retention.keepWeekly=${WEEKLY_BACKUP_RETENTION} \
+    --set prune.retention.keepDaily=${DAILY_BACKUP_RETENTION} \
+    --set prune.retention.keepHourly=${HOURLY_BACKUP_RETENTION} \
+    --set s3.endpoint="${BAAS_BACKUP_ENDPOINT}" \
+    --set s3.bucket="${BAAS_BACKUP_BUCKET}" \
+    --set s3.secretName="${BAAS_BACKUP_SECRET_NAME}" \
+    --set customRestoreLocation.accessKey="${BAAS_CUSTOM_RESTORE_ACCESS_KEY}" \
+    --set customRestoreLocation.secretKey="${BAAS_CUSTOM_RESTORE_SECRET_KEY}" \
+    --set customBackupLocation.accessKey="${BAAS_CUSTOM_BACKUP_ACCESS_KEY}" \
+    --set customBackupLocation.secretKey="${BAAS_CUSTOM_BACKUP_SECRET_KEY}" "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/k8up-lagoon-backup-schedule.yaml
 fi
 
 if [ "$(ls -A $YAML_FOLDER/)" ]; then

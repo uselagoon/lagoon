@@ -21,4 +21,4 @@ prune:
 s3:
   endpoint: ''
   bucket: ''
-  secret-name: ''
+  secretName: ''

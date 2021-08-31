@@ -12,20 +12,20 @@ spec:
       key: repo-pw
       name: baas-repo-pw
     s3:
-      {{ if .Values.s3.endpoint }}
+      {{- if .Values.s3.endpoint }}
       endpoint: '{{ .Values.s3.endpoint }}'
-      {{ end }}
-      {{ if .Values.s3.bucket }}
+      {{- end }}
+      {{- if .Values.s3.bucket }}
       bucket: '{{ .Values.s3.bucket }}'
-      {{ end }}
-      {{ if .Values.s3.secret-name }}
+      {{- end }}
+      {{- if .Values.s3.secretName }}
       accessKeyIDSecretRef:
-        name: '{{ .Values.s3.secret-name }}'
+        name: '{{ .Values.s3.secretName }}'
         key: access-key
       secretAccessKeySecretRef:
-        name: '{{ .Values.s3.secret-name }}'
+        name: '{{ .Values.s3.secretName }}'
         key: secret-key
-      {{ end }}
+      {{- end }}
   backup:
     schedule: '{{ .Values.backup.schedule }}'
   check:
