@@ -33,6 +33,7 @@ pipeline {
     }
     stage ('build images') {
       steps {
+        sh script: "make -O -j$NPROC docker_pull", label: "Ensuring fresh upstream images"
         sh script: "make -O -j$NPROC build SCAN_IMAGES=true", label: "Building images"
       }
     }

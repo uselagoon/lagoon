@@ -121,6 +121,9 @@ docker_publish_testlagoon = docker tag $(CI_BUILD_TAG)/$(1) testlagoon/$(2) && d
 # Tags an image with the `uselagoon` repository and pushes it
 docker_publish_uselagoon = docker tag $(CI_BUILD_TAG)/$(1) uselagoon/$(2) && docker push uselagoon/$(2) | cat
 
+.PHONY: docker_pull
+docker_pull:
+	docker images --format "{{.Repository}}:{{.Tag}}" | grep -E '$(UPSTREAM_REPO)' | grep -E '$(UPSTREAM_TAG)' | xargs -L1 docker pull;
 
 #######
 ####### Base Images
