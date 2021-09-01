@@ -58,6 +58,8 @@ DOCKER_BUILD_PARAMS := --quiet
 # CI systems to define an Environment variable CI_BUILD_TAG which uniquely identifies each build.
 # If it's not set we assume that we are running local and just call it lagoon.
 CI_BUILD_TAG ?= lagoon
+CT_BUILD_TAG ?= $(CI_BUILD_TAG)
+
 # SOURCE_REPO is the repos where the upstream images are found (usually uselagoon, but can substiture for testlagoon)
 UPSTREAM_REPO ?= uselagoon
 UPSTREAM_TAG ?= latest
@@ -1177,7 +1179,7 @@ kind/retest:
 			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=$$IMAGE_REGISTRY/kubectl-build-deploy-dind:$(SAFE_BRANCH_NAME) \
 			IMAGE_REGISTRY=$$IMAGE_REGISTRY \
 			SKIP_ALL_DEPS=true \
-		&& docker run --rm --network host --name ct-$(CI_BUILD_TAG) \
+		&& docker run --rm --network host --name ct-$(CT_BUILD_TAG) \
 			--volume "$$(pwd)/test-suite-run.ct.yaml:/etc/ct/ct.yaml" \
 			--volume "$$(pwd):/workdir" \
 			--volume "$$(realpath ../kubeconfig.kind.$(CI_BUILD_TAG)):/root/.kube/config" \
