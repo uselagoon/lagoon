@@ -55,10 +55,12 @@ pipeline {
         sh script: "make -O -j$NPROC publish-testlagoon-baseimages publish-testlagoon-serviceimages publish-testlagoon-taskimages BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Publishing built images"
       }
     }
-    stage ('run test suite') {
+    stage ('Setup test cluster') {
       steps {
         sh script: "make -j$NPROC kind/test TESTS=[nginx] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running tests on kind cluster"
       }
+    }
+    stage ('run test suite') {
       parallel {
         stage('API tests') {
           steps {
