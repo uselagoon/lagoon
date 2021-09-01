@@ -56,30 +56,33 @@ pipeline {
       }
     }
     stage ('run test suite') {
+      steps {
+        sh script: "make -j$NPROC kind/test TESTS=[nginx] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running tests on kind cluster"
+      }
       parallel {
         stage('API tests') {
           steps {
-            sh script: "make -j$NPROC kind/test TESTS=[api,tasks,active-standby-kubernetes] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running tests on kind cluster"
+            sh script: "make -j$NPROC kind/retest TESTS=[api,tasks,active-standby-kubernetes] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running tests on kind cluster"
           }
         }
         stage('k8s features 1') {
           steps {
-            sh script: "make -j$NPROC kind/test TESTS=[features-kubernetes,features-kubernetes-2,features-api-variables,] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running tests on kind cluster"
+            sh script: "make -j$NPROC kind/retest TESTS=[features-kubernetes,features-kubernetes-2,features-api-variables,] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running tests on kind cluster"
           }
         }
         stage('git scm') {
           steps {
-            sh script: "make -j$NPROC kind/test TESTS=[gitlab,github,bitbucket] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running tests on kind cluster"
+            sh script: "make -j$NPROC kind/retest TESTS=[gitlab,github,bitbucket] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running tests on kind cluster"
           }
         }
         stage('Drupal') {
           steps {
-            sh script: "make -j$NPROC kind/test TESTS=[drupal-74,drupal-postgres] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running tests on kind cluster"
+            sh script: "make -j$NPROC kind/retest TESTS=[drupal-74,drupal-postgres] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running tests on kind cluster"
           }
         }
         stage('others') {
           steps {
-            sh script: "make -j$NPROC kind/test TESTS=[python,nginx,node-mongodb,elasticsearch] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running tests on kind cluster"
+            sh script: "make -j$NPROC kind/retest TESTS=[python,node-mongodb,elasticsearch] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running tests on kind cluster"
           }
         }
       }
