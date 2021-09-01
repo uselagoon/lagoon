@@ -55,44 +55,57 @@ pipeline {
         sh script: "make -O -j$NPROC publish-testlagoon-baseimages publish-testlagoon-serviceimages publish-testlagoon-taskimages BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Publishing built images"
       }
     }
-    stage ('Setup test cluster') {
-      steps {
-        sh script: "make -j$NPROC kind/test TESTS=[nginx] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running tests on kind cluster"
-      }
-    }
     stage ('run test suite') {
-      parallel {
-        stage('API tests') {
-          steps {
-            sh script: "make -j$NPROC kind/retest TESTS=[api,tasks,active-standby-kubernetes] BRANCH_NAME=${SAFEBRANCH_NAME} CT_BUILD_TAG=${CI_BUILD_TAG}-1", label: "Running tests on kind cluster"
-          }
-        }
-        stage('k8s features') {
-          steps {
-            sleep 60
-            sh script: "make -j$NPROC kind/retest TESTS=[features-kubernetes,features-kubernetes-2,features-api-variables] BRANCH_NAME=${SAFEBRANCH_NAME} CT_BUILD_TAG=${CI_BUILD_TAG}-2", label: "Running tests on kind cluster"
-          }
-        }
-        stage('Drupal') {
-          steps {
-            sleep 120
-            sh script: "make -j$NPROC kind/retest TESTS=[drupal-php74,drupal-postgres] BRANCH_NAME=${SAFEBRANCH_NAME} CT_BUILD_TAG=${CI_BUILD_TAG}-4", label: "Running tests on kind cluster"
-          }
-        }
-        stage('git scm') {
-          steps {
-            sleep 180
-            sh script: "make -j$NPROC kind/retest TESTS=[gitlab,github,bitbucket] BRANCH_NAME=${SAFEBRANCH_NAME} CT_BUILD_TAG=${CI_BUILD_TAG}-3", label: "Running tests on kind cluster"
-          }
-        }
-        stage('others') {
-          steps {
-            sleep 240
-            sh script: "make -j$NPROC kind/retest TESTS=[python,node-mongodb,elasticsearch] BRANCH_NAME=${SAFEBRANCH_NAME} CT_BUILD_TAG=${CI_BUILD_TAG}-5", label: "Running tests on kind cluster"
-          }
-        }
+      steps {
+        sh script: "make -j$NPROC kind/test TESTS=[nginx,api,tasks,active-standby-kubernetes,features-kubernetes,features-kubernetes-2,features-api-variables] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running tests on kind cluster"
       }
     }
+
+    stage ('run additional tests suite') {
+      steps {
+        sleep 120
+        sh script: "make -j$NPROC kind/retest TESTS=[drupal-php74,drupal-postgres,gitlab,github,bitbucket,python,node-mongodb,elasticsearch] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running tests on kind cluster"
+      }
+    }
+
+    // stage ('Setup test cluster') {
+    //   steps {
+    //     sh script: "make -j$NPROC kind/test TESTS=[nginx] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running tests on kind cluster"
+    //   }
+    // }
+    // stage ('run test suite') {
+    //   parallel {
+    //     stage('API tests') {
+    //       steps {
+    //         sh script: "make -j$NPROC kind/retest TESTS=[api,tasks,active-standby-kubernetes] BRANCH_NAME=${SAFEBRANCH_NAME} CT_BUILD_TAG=${CI_BUILD_TAG}-1", label: "Running tests on kind cluster"
+    //       }
+    //     }
+    //     stage('k8s features') {
+    //       steps {
+    //         sleep 60
+    //         sh script: "make -j$NPROC kind/retest TESTS=[features-kubernetes,features-kubernetes-2,features-api-variables] BRANCH_NAME=${SAFEBRANCH_NAME} CT_BUILD_TAG=${CI_BUILD_TAG}-2", label: "Running tests on kind cluster"
+    //       }
+    //     }
+    //     stage('Drupal') {
+    //       steps {
+    //         sleep 120
+    //         sh script: "make -j$NPROC kind/retest TESTS=[drupal-php74,drupal-postgres] BRANCH_NAME=${SAFEBRANCH_NAME} CT_BUILD_TAG=${CI_BUILD_TAG}-4", label: "Running tests on kind cluster"
+    //       }
+    //     }
+    //     stage('git scm') {
+    //       steps {
+    //         sleep 180
+    //         sh script: "make -j$NPROC kind/retest TESTS=[gitlab,github,bitbucket] BRANCH_NAME=${SAFEBRANCH_NAME} CT_BUILD_TAG=${CI_BUILD_TAG}-3", label: "Running tests on kind cluster"
+    //       }
+    //     }
+    //     stage('others') {
+    //       steps {
+    //         sleep 240
+    //         sh script: "make -j$NPROC kind/retest TESTS=[python,node-mongodb,elasticsearch] BRANCH_NAME=${SAFEBRANCH_NAME} CT_BUILD_TAG=${CI_BUILD_TAG}-5", label: "Running tests on kind cluster"
+    //       }
+    //     }
+    //   }
+    // }
     stage ('push images to testlagoon/* with :latest tag') {
       when {
         branch 'main'
