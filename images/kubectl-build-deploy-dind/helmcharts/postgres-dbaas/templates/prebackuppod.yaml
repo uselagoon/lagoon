@@ -8,7 +8,7 @@ metadata:
   annotations:
     {{- include "postgres-dbaas.annotations" . | nindent 4 }}
 spec:
-  backupCommand: /bin/sh -c "PGPASSWORD=$BACKUP_DB_PASSWORD pg_dump --host=$BACKUP_DB_HOST --port=$BACKUP_DB_PORT --dbname=$BACKUP_DB_NAME --format=t -w"
+  backupCommand: /bin/sh -c "PGPASSWORD=$BACKUP_DB_PASSWORD pg_dump --host=$BACKUP_DB_HOST --port=$BACKUP_DB_PORT --dbname=$BACKUP_DB_NAME --username=$BACKUP_DB_USERNAME --format=t -w"
   fileExtension: .{{ include "postgres-dbaas.fullname" . }}.tar
   pod:
     metadata:
@@ -44,7 +44,7 @@ spec:
             - name: BACKUP_DB_NAME
               valueFrom:
                 configMapKeyRef:
-                  key: {{ include "postgres-dbaas.fullnameUppercase" . }}_NAME
+                  key: {{ include "postgres-dbaas.fullnameUppercase" . }}_DATABASE
                   name: lagoon-env
           image: imagecache.amazeeio.cloud/uselagoon/php-8.0-cli
           imagePullPolicy: Always

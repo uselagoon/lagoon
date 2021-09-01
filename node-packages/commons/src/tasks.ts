@@ -1157,6 +1157,7 @@ export const createMiscTask = async function(taskData: any) {
 
           // generate the restore CRD
           const restoreConf = restoreConfig(restoreName, taskData.data.backup.backupId, makeSafe(taskData.data.project.name), baasBucketName, backupS3Config, restoreS3Config)
+          //logger.info(restoreConf)
           // base64 encode it
           const restoreBytes = new Buffer(JSON.stringify(restoreConf).replace(/\\n/g, "\n")).toString('base64')
           miscTaskData.misc.miscResource = restoreBytes
