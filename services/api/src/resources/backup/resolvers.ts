@@ -14,19 +14,20 @@ import { Sql as projectSql } from '../project/sql';
 import { Sql as environmentSql } from '../environment/sql';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
+import { getEnvVarsByProjectId } from '../env-variables/resolvers';
 import { EVENTS } from './events';
 import { logger } from '../../loggers/logger';
 
 export const getRestoreLocation: ResolverFn = async (
-  { restoreLocation, backupId },
+  _root,
   _args,
-  _context
+  _context,
 ) => {
-
+  const { restoreLocation, backupId } = _root;
   const { sqlClientPool, hasPermission } = _context;
   const rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
   const project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(rows[0].environment);
-  //logger.info(project)
+  const projectEnvVars = await getEnvVarsByProjectId({ id: project.projectId }, _args, _context);
 
   // https://{endpoint}/{bucket}/{key}
   const s3LinkMatch = /([^/]+)\/([^/]+)\/([^/]+)/;
@@ -35,25 +36,25 @@ export const getRestoreLocation: ResolverFn = async (
     const s3Parts = R.match(s3LinkMatch, restoreLocation);
 
     // Handle custom restore configurations
-    let lagoonBaasCustomRestoreEndpoint = project.envVariables.find(obj => {
+    let lagoonBaasCustomRestoreEndpoint = projectEnvVars.find(obj => {
       return obj.name === "LAGOON_BAAS_CUSTOM_RESTORE_ENDPOINT"
     })
     if (lagoonBaasCustomRestoreEndpoint) {
       lagoonBaasCustomRestoreEndpoint = lagoonBaasCustomRestoreEndpoint.value
     }
-    let lagoonBaasCustomRestoreBucket = project.envVariables.find(obj => {
+    let lagoonBaasCustomRestoreBucket = projectEnvVars.find(obj => {
       return obj.name === "LAGOON_BAAS_CUSTOM_RESTORE_BUCKET"
     })
     if (lagoonBaasCustomRestoreBucket) {
       lagoonBaasCustomRestoreBucket = lagoonBaasCustomRestoreBucket.value
     }
-    let lagoonBaasCustomRestoreAccessKey = project.envVariables.find(obj => {
+    let lagoonBaasCustomRestoreAccessKey = projectEnvVars.find(obj => {
       return obj.name === "LAGOON_BAAS_CUSTOM_RESTORE_ACCESS_KEY"
     })
     if (lagoonBaasCustomRestoreAccessKey) {
       lagoonBaasCustomRestoreAccessKey = lagoonBaasCustomRestoreAccessKey.value
     }
-    let lagoonBaasCustomRestoreSecretKey = project.envVariables.find(obj => {
+    let lagoonBaasCustomRestoreSecretKey = projectEnvVars.find(obj => {
       return obj.name === "LAGOON_BAAS_CUSTOM_RESTORE_SECRET_KEY"
     })
     if (lagoonBaasCustomRestoreSecretKey) {
