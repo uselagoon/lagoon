@@ -59,102 +59,57 @@ pipeline {
       parallel {
         stage ('Setup test cluster') {
           steps {
-            sh script: "make -j$NPROC kind/test TESTS=[nginx] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running tests on kind cluster"
-            sh script: "pkill -f './local-dev/stern'", label: "Closing log collection"
+            sh script: "make -j$NPROC kind/test TESTS=[nginx] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Setup cluster and run nginx smoketest"
+            sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-0 log after test completion"
           }
         }
-        stage ('collect logs') {
+        stage ('collect test-suite-0 logs') {
           steps {
-            sh script: "while [ ! -f ./kubeconfig.kind.${CI_BUILD_TAG} ]; do sleep 1; done", label: "Check for kubeconfig"
-            sh script: "./local-dev/stern --kubeconfig ./kubeconfig.kind.${CI_BUILD_TAG} --all-namespaces '^[a-z]' -t > test-suite-0.txt || true", label: "Collecting Logs"
-            sh script: "cat test-suite-0.txt", label: "Viewing collected logs"
+            sh script: "while [ ! -f ./kubeconfig.kind.${CI_BUILD_TAG} ]; do sleep 1; done", label: "Check for kubeconfig created"
+            timeout(time: 30, unit: 'MINUTES') {
+              sh script: "./local-dev/stern --kubeconfig ./kubeconfig.kind.${CI_BUILD_TAG} --all-namespaces '^[a-z]' -t > test-suite-0.txt || true", label: "Collecting test-suite-0 logs"
+            }
+            sh script: "cat test-suite-0.txt", label: "View collected logs, or download from ${NODE_NAME} at ${WORKSPACE}/test-suite-0.txt"
           }
         }
       }
     }
-    stage ('view logs0') {
-      steps {
-        sh script: "cat test-suite-0.txt", label: "Viewing collected logs"
-      }
-    }
-    stage ('run test suite') {
+    stage ('run first test suite') {
       parallel {
-        stage ('run test suite') {
+        stage ('run first test suite') {
           steps {
-            sh script: "make -j$NPROC kind/retest TESTS=[api,active-standby-kubernetes,features-kubernetes,features-kubernetes-2,features-api-variables] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running tests on kind cluster"
-            sh script: "pkill -f './local-dev/stern'", label: "Closing log collection"
+            sh script: "make -j$NPROC kind/retest TESTS=[api,active-standby-kubernetes,features-kubernetes,features-kubernetes-2,features-api-variables] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running first test suite on kind cluster"
+            sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-1 log after test completion"
           }
         }
         stage ('collect logs') {
           steps {
-            sh script: "./local-dev/stern --kubeconfig ./kubeconfig.kind.${CI_BUILD_TAG} --all-namespaces '^[a-z]' -t > test-suite-1.txt || true", label: "Collecting Logs"
+            timeout(time: 30, unit: 'MINUTES') {
+              sh script: "./local-dev/stern --kubeconfig ./kubeconfig.kind.${CI_BUILD_TAG} --all-namespaces '^[a-z]' --since 1s -t > test-suite-1.txt || true", label: "Collecting Logs"
+            }
+            sh script: "cat test-suite-1.txt", label: "View collected logs, or download from ${NODE_NAME} at ${WORKSPACE}/test-suite-1.txt"
           }
         }
       }
     }
-    stage ('view logs1') {
-      steps {
-        sh script: "cat test-suite-1.txt", label: "Viewing collected logs"
-      }
-    }
-    stage ('run additional test suite') {
+    stage ('run second test suite') {
       parallel {
-        stage ('run test suite') {
+        stage ('run second test suite') {
           steps {
-            sh script: "make -j$NPROC kind/retest TESTS=[drupal-php74,drupal-postgres,gitlab,github,bitbucket,python,node-mongodb,elasticsearch] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running tests on kind cluster"
-            sh script: "pkill -f './local-dev/stern'", label: "Closing log collection"
+            sh script: "make -j$NPROC kind/retest TESTS=[drupal-php74,drupal-postgres,gitlab,github,bitbucket,python,node-mongodb,elasticsearch] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running second test suite on kind cluster"
+            sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-2 log after test completion"
           }
         }
         stage ('collect logs') {
           steps {
-            sh script: "./local-dev/stern --kubeconfig ./kubeconfig.kind.${CI_BUILD_TAG} --all-namespaces '^[a-z]' -t > test-suite-2.txt || true", label: "Collecting Logs"
+            timeout(time: 45, unit: 'MINUTES') {
+              sh script: "./local-dev/stern --kubeconfig ./kubeconfig.kind.${CI_BUILD_TAG} --all-namespaces '^[a-z]' --since 1s -t > test-suite-2.txt || true", label: "Collecting Logs"
+            }
+            sh script: "cat test-suite-2.txt", label: "View collected logs, or download from ${NODE_NAME} at ${WORKSPACE}/test-suite-2.txt"
           }
         }
       }
     }
-    stage ('view logs2') {
-      steps {
-        sh script: "cat test-suite-2.txt", label: "Viewing collected logs"
-      }
-    }
-    // stage ('Setup test cluster') {
-    //   steps {
-    //     sh script: "make -j$NPROC kind/test TESTS=[nginx] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running tests on kind cluster"
-    //   }
-    // }
-    // stage ('run test suite') {
-    //   parallel {
-    //     stage('API tests') {
-    //       steps {
-    //         sh script: "make -j$NPROC kind/retest TESTS=[api,tasks,active-standby-kubernetes] BRANCH_NAME=${SAFEBRANCH_NAME} CT_BUILD_TAG=${CI_BUILD_TAG}-1", label: "Running tests on kind cluster"
-    //       }
-    //     }
-    //     stage('k8s features') {
-    //       steps {
-    //         sleep 60
-    //         sh script: "make -j$NPROC kind/retest TESTS=[features-kubernetes,features-kubernetes-2,features-api-variables] BRANCH_NAME=${SAFEBRANCH_NAME} CT_BUILD_TAG=${CI_BUILD_TAG}-2", label: "Running tests on kind cluster"
-    //       }
-    //     }
-    //     stage('Drupal') {
-    //       steps {
-    //         sleep 120
-    //         sh script: "make -j$NPROC kind/retest TESTS=[drupal-php74,drupal-postgres] BRANCH_NAME=${SAFEBRANCH_NAME} CT_BUILD_TAG=${CI_BUILD_TAG}-4", label: "Running tests on kind cluster"
-    //       }
-    //     }
-    //     stage('git scm') {
-    //       steps {
-    //         sleep 180
-    //         sh script: "make -j$NPROC kind/retest TESTS=[gitlab,github,bitbucket] BRANCH_NAME=${SAFEBRANCH_NAME} CT_BUILD_TAG=${CI_BUILD_TAG}-3", label: "Running tests on kind cluster"
-    //       }
-    //     }
-    //     stage('others') {
-    //       steps {
-    //         sleep 240
-    //         sh script: "make -j$NPROC kind/retest TESTS=[python,node-mongodb,elasticsearch] BRANCH_NAME=${SAFEBRANCH_NAME} CT_BUILD_TAG=${CI_BUILD_TAG}-5", label: "Running tests on kind cluster"
-    //       }
-    //     }
-    //   }
-    // }
     stage ('push images to testlagoon/* with :latest tag') {
       when {
         branch 'main'
