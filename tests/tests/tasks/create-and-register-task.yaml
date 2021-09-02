@@ -13,6 +13,7 @@
         body_format: json
         body: '{ "query": "query($openshiftProjectName: String!) {environmentByOpenshiftProjectName(openshiftProjectName:$openshiftProjectName) {id}}", "variables": {"openshiftProjectName":"{{ openshift_project_name }}"}}'
       register: environmentByOSProjectNameApiResponse
+      until:
     - name: "{{ testname }} - environmentByOSProjectNameApiResponse"
       debug:
         msg: "api response: {{ environmentByOSProjectNameApiResponse.json.data.environmentByOpenshiftProjectName.id }}"
