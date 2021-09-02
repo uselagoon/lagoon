@@ -55,19 +55,66 @@ pipeline {
         sh script: "make -O -j$NPROC publish-testlagoon-baseimages publish-testlagoon-serviceimages publish-testlagoon-taskimages BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Publishing built images"
       }
     }
+    stage ('Setup test cluster') {
+      parallel {
+        stage ('Setup test cluster') {
+          steps {
+            sh script: "make -j$NPROC kind/test TESTS=[nginx] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running tests on kind cluster"
+            sh script: "pkill -f './local-dev/stern'", label: "Closing log collection"
+          }
+        }
+        stage ('collect logs') {
+          steps {
+            sh script: "./local-dev/stern --kubeconfig ./kubeconfig.kind.lagoon --all-namespaces '^[a-z]' -t > test-suite-0.txt || true", label: "Collecting Logs"
+          }
+        }
+      }
+    }
+    stage ('view logs0') {
+      steps {
+        sh script: "cat test-suite-0.txt", label: "Viewing collected logs"
+      }
+    }
     stage ('run test suite') {
-      steps {
-        sh script: "make -j$NPROC kind/test TESTS=[nginx,api,active-standby-kubernetes,features-kubernetes,features-kubernetes-2,features-api-variables] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running tests on kind cluster"
+      parallel {
+        stage ('run test suite') {
+          steps {
+            sh script: "make -j$NPROC kind/retest TESTS=[api,active-standby-kubernetes,features-kubernetes,features-kubernetes-2,features-api-variables] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running tests on kind cluster"
+            sh script: "pkill -f './local-dev/stern'", label: "Closing log collection"
+          }
+        }
+        stage ('collect logs') {
+          steps {
+            sh script: "./local-dev/stern --kubeconfig ./kubeconfig.kind.lagoon --all-namespaces '^[a-z]' -t > test-suite-1.txt || true", label: "Collecting Logs"
+          }
+        }
       }
     }
-
-    stage ('run additional tests suite') {
+    stage ('view logs1') {
       steps {
-        sleep 120
-        sh script: "make -j$NPROC kind/retest TESTS=[drupal-php74,drupal-postgres,gitlab,github,bitbucket,python,node-mongodb,elasticsearch] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running tests on kind cluster"
+        sh script: "cat test-suite-1.txt", label: "Viewing collected logs"
       }
     }
-
+    stage ('run additional test suite') {
+      parallel {
+        stage ('run test suite') {
+          steps {
+            sh script: "make -j$NPROC kind/retest TESTS=[drupal-php74,drupal-postgres,gitlab,github,bitbucket,python,node-mongodb,elasticsearch] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running tests on kind cluster"
+            sh script: "pkill -f './local-dev/stern'", label: "Closing log collection"
+          }
+        }
+        stage ('collect logs') {
+          steps {
+            sh script: "./local-dev/stern --kubeconfig ./kubeconfig.kind.lagoon --all-namespaces '^[a-z]' -t > test-suite-2.txt || true", label: "Collecting Logs"
+          }
+        }
+      }
+    }
+    stage ('view logs2') {
+      steps {
+        sh script: "cat test-suite-2.txt", label: "Viewing collected logs"
+      }
+    }
     // stage ('Setup test cluster') {
     //   steps {
     //     sh script: "make -j$NPROC kind/test TESTS=[nginx] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running tests on kind cluster"
