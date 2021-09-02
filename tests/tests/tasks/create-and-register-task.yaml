@@ -3,7 +3,7 @@
     - include: ../../tasks/api/refresh-token.yaml
     - name: "{{ testname }} - print openshift variable debug inside subtask"
       debug:
-        msg: "openshift id {{ openshift_project_name }}"
+        msg: "openshift id {{ openshift_project_name }}\nenvironmentByOSProjectNameApiResponse {{ environmentByOSProjectNameApiResponse }}"
     - name: "{{ testname }} - POST Get environment id for {{ openshift_project_name }} to {{ graphql_url }}"
       uri:
         url: "{{ graphql_url }}"
