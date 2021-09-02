@@ -236,6 +236,11 @@ const {
   deleteEnvVariable,
 } = require('./resources/env-variables/resolvers');
 
+const {
+  addWorkflow,
+  resolveWorkflowsForEnvironment,
+} = require("./resources/workflow/resolvers");
+
 const resolvers = {
   Upload: GraphQLUpload,
   GroupRole: {
@@ -433,6 +438,7 @@ const resolvers = {
     allProblemHarborScanMatchers: getProblemHarborScanMatches,
     projectsByMetadata: getProjectsByMetadata,
     projectsByFactSearch: getProjectsByFactSearch,
+    workflowsForEnvironment: resolveWorkflowsForEnvironment,
   },
   Mutation: {
     addProblem,
@@ -549,6 +555,7 @@ const resolvers = {
     updateBillingModifier,
     deleteBillingModifier,
     deleteAllBillingModifiersByBillingGroup,
+    addWorkflow,
   },
   Subscription: {
     backupChanged: backupSubscriber,

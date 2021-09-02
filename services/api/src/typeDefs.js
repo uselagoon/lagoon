@@ -123,13 +123,13 @@ const typeDefs = gql`
     URL
     SEMVER
   }
-  
+
   enum TaskPermission {
     MAINTAINER
     DEVELOPER
     GUEST
   }
-  
+
   scalar SeverityScore
 
   type AdvancedTaskDefinitionArgument {
@@ -185,6 +185,20 @@ const typeDefs = gql`
     permission: TaskPermission
     created: String
     deleted: String
+  }
+
+
+  type Workflow {
+    id: Int
+    event: String
+    project: Int
+    advancedTaskDefinition: Int
+  }
+
+  input AddWorkflowInput {
+    event: String
+    project: Int
+    advancedTaskDefinition: Int
   }
 
   type Problem {
@@ -1063,6 +1077,11 @@ const typeDefs = gql`
     """
     advancedTaskDefinitionArgumentById(id: Int!) : [AdvancedTaskDefinitionArgument]
 
+    """
+    Returns all Workflows for an environment
+    """
+    workflowsForEnvironment(environment: Int!) : [Workflow]
+
   }
 
   # Must provide id OR name
@@ -1884,6 +1903,7 @@ const typeDefs = gql`
     addAdvancedTaskDefinition(input: AdvancedTaskDefinitionInput!): AdvancedTaskDefinition
     invokeRegisteredTask(advancedTaskDefinition: Int!, environment: Int!): Task
     deleteAdvancedTaskDefinition(advancedTaskDefinition: Int!): String
+    addWorkflow(input: AddWorkflowInput!): Workflow
     taskDrushArchiveDump(environment: Int!): Task
     taskDrushSqlDump(environment: Int!): Task
     taskDrushCacheClear(environment: Int!): Task
