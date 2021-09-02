@@ -1285,6 +1285,10 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
 
       HELM_CUSTOM_BAAS_BACKUP_ACCESS_KEY=${BAAS_CUSTOM_BACKUP_ACCESS_KEY}
       HELM_CUSTOM_BAAS_BACKUP_SECRET_KEY=${BAAS_CUSTOM_BACKUP_SECRET_KEY}
+    else
+      set +x
+      kubectl --insecure-skip-tls-verify -n ${NAMESPACE} delete secret baas-custom-backup-credentials --ignore-not-found
+      set -x
     fi
   fi
 
@@ -1298,6 +1302,10 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
     if [ ! -z $BAAS_CUSTOM_RESTORE_ENDPOINT ] && [ ! -z $BAAS_CUSTOM_RESTORE_BUCKET ] && [ ! -z $BAAS_CUSTOM_RESTORE_ACCESS_KEY ] && [ ! -z $BAAS_CUSTOM_RESTORE_SECRET_KEY ]; then
       HELM_CUSTOM_BAAS_RESTORE_ACCESS_KEY=${BAAS_CUSTOM_RESTORE_ACCESS_KEY}
       HELM_CUSTOM_BAAS_RESTORE_SECRET_KEY=${BAAS_CUSTOM_RESTORE_SECRET_KEY}
+    else
+      set +x
+      kubectl --insecure-skip-tls-verify -n ${NAMESPACE} delete secret baas-custom-restore-credentials --ignore-not-found
+      set -x
     fi
   fi
 
