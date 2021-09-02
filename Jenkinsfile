@@ -66,7 +66,8 @@ pipeline {
         stage ('collect logs') {
           steps {
             sleep 30
-            sh script: "./local-dev/stern --kubeconfig ./kubeconfig.kind.lagoon --all-namespaces '^[a-z]' -t > test-suite-0.txt || true", label: "Collecting Logs"
+            sh script: "./local-dev/stern --kubeconfig ./kubeconfig.kind.${CI_BUILD_TAG} --all-namespaces '^[a-z]' -t > test-suite-0.txt || true", label: "Collecting Logs"
+            sh script: "cat test-suite-0.txt", label: "Viewing collected logs"
           }
         }
       }
@@ -86,7 +87,7 @@ pipeline {
         }
         stage ('collect logs') {
           steps {
-            sh script: "./local-dev/stern --kubeconfig ./kubeconfig.kind.lagoon --all-namespaces '^[a-z]' -t > test-suite-1.txt || true", label: "Collecting Logs"
+            sh script: "./local-dev/stern --kubeconfig ./kubeconfig.kind.${CI_BUILD_TAG} --all-namespaces '^[a-z]' -t > test-suite-1.txt || true", label: "Collecting Logs"
           }
         }
       }
@@ -106,7 +107,7 @@ pipeline {
         }
         stage ('collect logs') {
           steps {
-            sh script: "./local-dev/stern --kubeconfig ./kubeconfig.kind.lagoon --all-namespaces '^[a-z]' -t > test-suite-2.txt || true", label: "Collecting Logs"
+            sh script: "./local-dev/stern --kubeconfig ./kubeconfig.kind.${CI_BUILD_TAG} --all-namespaces '^[a-z]' -t > test-suite-2.txt || true", label: "Collecting Logs"
           }
         }
       }
