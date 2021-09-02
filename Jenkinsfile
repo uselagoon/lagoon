@@ -65,6 +65,7 @@ pipeline {
         }
         stage ('collect logs') {
           steps {
+            sleep 30
             sh script: "./local-dev/stern --kubeconfig ./kubeconfig.kind.lagoon --all-namespaces '^[a-z]' -t > test-suite-0.txt || true", label: "Collecting Logs"
           }
         }
