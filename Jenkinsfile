@@ -57,7 +57,7 @@ pipeline {
     }
     stage ('run test suite') {
       steps {
-        sh script: "make -j$NPROC kind/test TESTS=[nginx,api,tasks,active-standby-kubernetes,features-kubernetes,features-kubernetes-2,features-api-variables] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running tests on kind cluster"
+        sh script: "make -j$NPROC kind/test TESTS=[nginx,api,active-standby-kubernetes,features-kubernetes,features-kubernetes-2,features-api-variables] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running tests on kind cluster"
       }
     }
 

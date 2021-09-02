@@ -950,6 +950,7 @@ api-development: build/api build/api-db build/local-api-data-watcher-pusher buil
 
 KIND_VERSION = v0.11.1
 GOJQ_VERSION = v0.12.3
+STERN_VERSION = 2.1.17
 CHART_TESTING_VERSION = v3.4.0
 KIND_IMAGE = kindest/node:v1.21.1@sha256:69860bda5563ac81e3c0057d654b5253219618a22ec3a346306239bba8cfa1a6
 TESTS = [api,features-kubernetes,features-kubernetes-2,features-api-variables,active-standby-kubernetes,nginx,drupal-php73,drupal-php74,drupal-postgres,python,gitlab,github,bitbucket,node-mongodb,elasticsearch,tasks]
@@ -980,6 +981,16 @@ else
 	mv ./local-dev/{go,}jq
 endif
 	chmod a+x local-dev/jq
+endif
+
+local-dev/stern:
+ifeq ($(STERN_VERSION), $(shell stern --version 2>/dev/null | sed -nE 's/stern version //p'))
+	$(info linking local stern version $(KIND_VERSION))
+	ln -s $(shell command -v stern) ./local-dev/stern
+else
+	$(info downloading stern version $(STERN_VERSION) for $(ARCH))
+	curl -sSLo local-dev/stern https://github.com/derdanne/stern/releases/download/$(STERN_VERSION)/stern_$(ARCH)_amd64
+	chmod a+x local-dev/stern
 endif
 
 .PHONY: helm/repos
@@ -1038,7 +1049,7 @@ endif
 
 KIND_SERVICES = api api-db api-redis auth-server broker controllerhandler docker-host drush-alias keycloak keycloak-db webhook-handler webhooks2tasks kubectl-build-deploy-dind local-api-data-watcher-pusher local-git ssh tests ui
 KIND_TESTS = local-api-data-watcher-pusher local-git tests
-KIND_TOOLS = kind helm kubectl jq
+KIND_TOOLS = kind helm kubectl jq stern
 
 # install lagoon charts and run lagoon test suites in a kind cluster
 .PHONY: kind/test
