@@ -103,6 +103,38 @@ export const getProjectByEnvironmentId: ResolverFn = async (
   }
 };
 
+export const getProjectById: ResolverFn = async (
+  { project: pid },
+  args,
+  { sqlClientPool, hasPermission }
+) => {
+  const rows = await query(
+    sqlClientPool,
+    `SELECT p.*
+    FROM project p
+    WHERE p.id = :pid
+    LIMIT 1`,
+    { pid }
+  );
+  const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
+
+  const project = withK8s[0];
+
+  await hasPermission('project', 'view', {
+    project: project.id
+  });
+
+  try {
+    await hasPermission('project', 'viewPrivateKey', {
+      project: project.id
+    });
+
+    return project;
+  } catch (err) {
+    return removePrivateKey(project);
+  }
+};
+
 export const getProjectByGitUrl: ResolverFn = async (
   root,
   args,

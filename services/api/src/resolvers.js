@@ -115,6 +115,18 @@ const {
 } = require('./resources/environment/resolvers');
 
 const {
+  getDeployTargetConfigById,
+  getDeployTargetConfigsByProjectId,
+  getDeployTargetConfigsByDeployTarget,
+  // getDeployTargetConfigsByKubernetes,
+  addDeployTargetConfig,
+  deleteDeployTargetConfig,
+  updateDeployTargetConfig,
+  getAllDeployTargetConfigs,
+  deleteAllDeployTargetConfigs,
+} = require('./resources/deploytargetconfig/resolvers');
+
+const {
   addNotificationMicrosoftTeams,
   addNotificationRocketChat,
   addNotificationSlack,
@@ -146,6 +158,8 @@ const {
   deleteOpenshift,
   getAllOpenshifts,
   getOpenshiftByProjectId,
+  getOpenshiftByDeployTargetId,
+  getOpenshiftByEnvironmentId,
   updateOpenshift,
   deleteAllOpenshifts,
 } = require('./resources/openshift/resolvers');
@@ -154,6 +168,7 @@ const {
   deleteProject,
   addProject,
   getProjectByName,
+  getProjectById,
   getProjectByGitUrl,
   getProjectByEnvironmentId,
   getProjectsByMetadata,
@@ -308,6 +323,7 @@ const resolvers = {
     openshift: getOpenshiftByProjectId,
     kubernetes: getOpenshiftByProjectId,
     environments: getEnvironmentsByProjectId,
+    deployTargetConfigs: getDeployTargetConfigsByProjectId,
     envVariables: getEnvVarsByProjectId,
     groups: getGroupsByProjectId,
   },
@@ -328,6 +344,10 @@ const resolvers = {
     projects: getAllProjectsByGroupId,
     modifiers: getAllModifiersByGroupId,
   },
+  DeployTargetConfig: {
+    project: getProjectById,
+    deployTarget: getOpenshiftByDeployTargetId,
+  },
   Environment: {
     project: getProjectByEnvironmentId,
     deployments: getDeploymentsByEnvironmentId,
@@ -342,6 +362,8 @@ const resolvers = {
     services: getEnvironmentServicesByEnvironmentId,
     problems: getProblemsByEnvironmentId,
     facts: getFactsByEnvironmentId,
+    openshift: getOpenshiftByEnvironmentId,
+    kubernetes: getOpenshiftByEnvironmentId,
   },
   Fact: {
     references: getFactReferencesByFactId,
@@ -433,6 +455,11 @@ const resolvers = {
     allProblemHarborScanMatchers: getProblemHarborScanMatches,
     projectsByMetadata: getProjectsByMetadata,
     projectsByFactSearch: getProjectsByFactSearch,
+    deployTargetConfigById: getDeployTargetConfigById,
+    deployTargetConfigsByProjectId: getDeployTargetConfigsByProjectId,
+    deployTargetConfigsByDeployTarget: getDeployTargetConfigsByDeployTarget,
+    // deployTargetConfigsByKubernetes: getDeployTargetConfigsByKubernetes,
+    allDeployTargetConfigs: getAllDeployTargetConfigs,
   },
   Mutation: {
     addProblem,
@@ -549,6 +576,10 @@ const resolvers = {
     updateBillingModifier,
     deleteBillingModifier,
     deleteAllBillingModifiersByBillingGroup,
+    deleteAllDeployTargetConfigs,
+    addDeployTargetConfig,
+    deleteDeployTargetConfig,
+    updateDeployTargetConfig,
   },
   Subscription: {
     backupChanged: backupSubscriber,

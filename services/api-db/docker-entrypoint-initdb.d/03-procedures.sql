@@ -152,15 +152,17 @@ $$
 CREATE OR REPLACE PROCEDURE
   CreateOrUpdateEnvironment
   (
-    IN id                     int,
-    IN name                   varchar(100),
-    IN pid                    int,
-    IN deploy_type            ENUM('branch', 'pullrequest', 'promote'),
-    IN deploy_base_ref        varchar(100),
-    IN deploy_head_ref        varchar(100),
-    IN deploy_title           varchar(300),
-    IN environment_type       ENUM('production', 'development'),
-    IN openshift_project_name varchar(100)
+    IN id                         int,
+    IN name                       varchar(100),
+    IN pid                        int,
+    IN deploy_type                ENUM('branch', 'pullrequest', 'promote'),
+    IN deploy_base_ref            varchar(100),
+    IN deploy_head_ref            varchar(100),
+    IN deploy_title               varchar(300),
+    IN environment_type           ENUM('production', 'development'),
+    IN openshift_project_name     varchar(100),
+    IN openshift                  int,
+    IN openshift_project_pattern  varchar(300)
   )
   BEGIN
     INSERT INTO environment (
@@ -173,6 +175,8 @@ CREATE OR REPLACE PROCEDURE
         deploy_title,
         environment_type,
         openshift_project_name,
+        openshift,
+        openshift_project_pattern,
         deleted
     )
     SELECT
@@ -185,6 +189,8 @@ CREATE OR REPLACE PROCEDURE
         deploy_title,
         environment_type,
         openshift_project_name,
+        openshift,
+        openshift_project_pattern,
         '0000-00-00 00:00:00'
     FROM
         project AS p

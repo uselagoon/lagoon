@@ -1410,6 +1410,42 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  add_openshift_to_environment()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'environment'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'openshift'
+    ) THEN
+      ALTER TABLE `environment`
+      ADD `openshift` int;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_openshift_project_pattern_to_environment()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'environment'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'openshift_project_pattern'
+    ) THEN
+      ALTER TABLE `environment`
+      ADD `openshift_project_pattern` varchar(300);
+    END IF;
+  END;
+$$
+
 DELIMITER ;
 
 -- If adding new procedures, add them to the bottom of this list
@@ -1477,6 +1513,8 @@ CALL add_enum_webhook_to_type_in_project_notification();
 CALL add_index_for_deployment_environment();
 CALL add_index_for_task_environment();
 CALL add_router_pattern_to_project();
+CALL add_openshift_to_environment();
+CALL add_openshift_project_pattern_to_environment();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;

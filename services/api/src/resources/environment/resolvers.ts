@@ -333,6 +333,29 @@ export const addOrUpdateEnvironment: ResolverFn = async (
     project: pid
   });
 
+  /*
+    check if an openshift is provided (this should be provided by any functions that call this within lagoon)
+    otherwise source the one from the project as a fall back
+    (should also check if one already exists from the environment and use that as a first preference)
+  */
+  let openshift = input.kubernetes || input.openshift;
+  let openshiftProjectPattern = input.kubernetesNamespacePattern || input.openshiftProjectPattern;
+
+  try {
+    const curEnv = await Helpers(sqlClientPool).getEnvironmentById(input.id);
+    openshift = curEnv.openshift
+    openshiftProjectPattern = curEnv.openshiftProjectPattern
+  } catch (err) {
+    // do nothing
+  }
+  const projectOpenshift = await projectHelpers(sqlClientPool).getProjectById(input.project);
+  if (!openshift) {
+    openshift = projectOpenshift.openshift
+  }
+  if (!openshiftProjectPattern) {
+    openshiftProjectPattern = projectOpenshift.openshiftProjectPattern
+  }
+
   const rows = await query(
     sqlClientPool,
     `CALL CreateOrUpdateEnvironment(
@@ -344,12 +367,16 @@ export const addOrUpdateEnvironment: ResolverFn = async (
       :deploy_head_ref,
       :deploy_title,
       :environment_type,
-      :openshift_project_name
+      :openshift_project_name,
+      ${openshift ? ':openshift' : 'NULL'},
+      ${openshiftProjectPattern ? ':openshift_project_pattern' : 'NULL'}
     );`,
     {
       ...inputDefaults,
       ...input,
-      openshiftProjectName
+      openshift,
+      openshiftProjectName,
+      openshiftProjectPattern
     }
   );
 
@@ -575,6 +602,7 @@ export const updateEnvironment: ResolverFn = async (
         deployHeadRef: input.patch.deployHeadRef,
         deployTitle: input.patch.deployTitle,
         environmentType: input.patch.environmentType,
+        openshift: input.patch.openshift,
         openshiftProjectName,
         route: input.patch.route,
         routes: input.patch.routes,
@@ -599,6 +627,7 @@ export const updateEnvironment: ResolverFn = async (
         deployHeadRef: input.patch.deployHeadRef,
         deployTitle: input.patch.deployTitle,
         environmentType: input.patch.environmentType,
+        openshift: input.patch.openshift,
         openshiftProjectName,
         route: input.patch.route,
         routes: input.patch.routes,
