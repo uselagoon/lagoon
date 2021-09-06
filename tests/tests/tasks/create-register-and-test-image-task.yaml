@@ -17,22 +17,7 @@
     - name: "{{ testname }} - environmentByOSProjectNameApiResponse"
       debug:
         msg: "api response: {{ environmentByOSProjectNameApiResponse.json.data.environmentByOpenshiftProjectName.id }}"
-<<<<<<< HEAD
     - include: ./post-api-register-task.yaml
-=======
-    - name: "{{ testname }} - POST api register task definition to {{ graphql_url }}"
-      uri:
-        url: "{{ graphql_url }}"
-        method: POST
-        headers:
-          Authorization: "Bearer {{ admin_token }}"
-        body_format: json
-        body: '{ "query": "mutation($environmentId: Int!, $taskName: String!, $description: String!, $service: String!, $image: String!) {addAdvancedTaskDefinition(input: {environment:$environmentId, name:$taskName, type:IMAGE, description: $description, service: $service, image: $image}){... on AdvancedTaskDefinitionImage {id}}}", "variables": {"environmentId": {{ environmentByOSProjectNameApiResponse.json.data.environmentByOpenshiftProjectName.id }}, "taskName":"testing-image","description":"Runs a hello world task", "service":"node", "image":"hello-world"}}'
-      register: taskCreateApiResponse
-      until: taskCreateApiResponse.json.data.addAdvancedTaskDefinition.id is defined
-      retries: 20
-      delay: 10
->>>>>>> main
     - name: "{{ testname }} - DEBUG taskCreateApiResponse"
       debug:
         msg: "api response: {{ taskCreateApiResponse }}"
