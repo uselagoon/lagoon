@@ -1,6 +1,6 @@
 - name: 'Wait until success'
   block:
-  - include: ../../tasks/api/refresh-token.yaml
+  - include: ../../tasks/api/admin-token.yaml
   - name: Set the retry count
     set_fact:
       retry_count: "{{ 0 if retry_count is undefined else retry_count|int + 1 }}"
@@ -9,7 +9,7 @@
       url: "{{ graphql_url }}"
       method: POST
       headers:
-        Authorization: "Bearer {{ token }}"
+        Authorization: "Bearer {{ admin_token }}"
       body_format: json
       body: '{ "query": "mutation($environmentId: Int!, $taskName: String!, $description: String!, $service: String!, $command: String!) {addAdvancedTaskDefinition(input: {environment:$environmentId, name:$taskName, type:COMMAND, description: $description, service: $service, command: $command}){... on AdvancedTaskDefinitionCommand {id}}}", "variables": {"environmentId": {{ environmentByOSProjectNameApiResponse.json.data.environmentByOpenshiftProjectName.id }}, "taskName":"testing-echo","description":"echos to file", "service":"node", "command":"echo ''REPLACED BY TASK'' > /app/files/testoutput.txt"}}'
     register: taskCreateApiResponse
