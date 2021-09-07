@@ -19,15 +19,15 @@ import { EVENTS } from './events';
 import { logger } from '../../loggers/logger';
 
 export const getRestoreLocation: ResolverFn = async (
-  _root,
-  _args,
-  _context,
+  restore,
+  args,
+  context,
 ) => {
-  const { restoreLocation, backupId } = _root;
-  const { sqlClientPool, hasPermission } = _context;
+  const { restoreLocation, backupId } = restore;
+  const { sqlClientPool, hasPermission } = context;
   const rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
   const project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(rows[0].environment);
-  const projectEnvVars = await getEnvVarsByProjectId({ id: project.projectId }, _args, _context);
+  const projectEnvVars = await getEnvVarsByProjectId({ id: project.projectId }, args, context);
 
   // https://{endpoint}/{bucket}/{key}
   const s3LinkMatch = /([^/]+)\/([^/]+)\/([^/]+)/;
