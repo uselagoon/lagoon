@@ -93,6 +93,7 @@ CREATE TABLE IF NOT EXISTS project (
   storage_calc                     int(1) NOT NULL default 1,
   problems_ui                      int(1) NOT NULL default 0,
   facts_ui                         int(1) NOT NULL default 0,
+  deployments_disabled             int(1) NOT NULL default 0,
   openshift                        int REFERENCES openshift (id),
   openshift_project_pattern        varchar(300),
   development_environments_limit   int DEFAULT NULL,

@@ -24,8 +24,12 @@ export const getDeployTargetConfigById = async (
     return null;
   }
 
-  // only admin can add deployment targets for now
-  await hasPermission('project', `viewAll`);
+  // since deploytargetconfigs are associated to a project
+  // re-use the existing `project:view` permissions check, since the same sorts of fields
+  // are viewable by the same permissions at the project scope
+  await hasPermission('project', 'view', {
+    project: deployTargetConfig.project
+  });
 
   return deployTargetConfig;
 };
@@ -41,8 +45,12 @@ export const getDeployTargetConfigsByProjectId: ResolverFn = async (
     pid = project.id;
   }
 
-  // only admin can add deployment targets for now
-  await hasPermission('project', `viewAll`);
+  // since deploytargetconfigs are associated to a project
+  // re-use the existing `project:view` permissions check, since the same sorts of fields
+  // are viewable by the same permissions at the project scope
+  await hasPermission('project', 'view', {
+    project: pid
+  });
 
   const rows = await query(
     sqlClientPool,
@@ -63,7 +71,7 @@ export const getDeployTargetConfigsByDeployTarget: ResolverFn = async (
 ) => {
   let oid = args.deployTarget;
 
-  // only admin can add deployment targets for now
+  // only admin can view all deployment targetconfigs for a specfic deploy target
   await hasPermission('project', `viewAll`);
 
   const rows = await query(
@@ -79,19 +87,6 @@ export const getDeployTargetConfigsByDeployTarget: ResolverFn = async (
   return withK8s;
 };
 
-// export const getDeployTargetConfigsByKubernetes: ResolverFn = async (
-//   root,
-//   args,
-//   ctx
-// ) =>
-// getDeployTargetConfigsByDeployTarget(
-//     root,
-//     {
-//       ...args,
-//       openshift: args.kubernetes
-//     },
-//     ctx
-//   );
 
 export const addDeployTargetConfig: ResolverFn = async (
   root,
@@ -105,14 +100,19 @@ export const addDeployTargetConfig: ResolverFn = async (
   }
   const deployTargetProjectPattern = input.deployTargetProjectPattern;
 
-  // only admin can add deployment targets for now
-  await hasPermission('project', `viewAll`);
 
   let id = input.id
   let project = input.project
   let weight = input.weight || 1
   let branches = input.branches || "true"
   let pullrequests = input.pullrequests || "true"
+
+  // since deploytargetconfigs are associated to a project
+  // re-use the existing `project:update` permissions check, since the same sorts of fields
+  // are updateable by the same permissions at the project scope
+  await hasPermission('project', 'update', {
+    project: project
+  });
 
   const { insertId } = await query(
     sqlClientPool,
@@ -137,9 +137,6 @@ export const addDeployTargetConfig: ResolverFn = async (
     }
   });
 
-//   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s([
-//     R.path([0, 0], rows)
-//   ]);
   const deployTargetConfig = rows[0];
   logger.info(`${JSON.stringify(deployTargetConfig)}`)
 
@@ -152,9 +149,14 @@ export const deleteDeployTargetConfig: ResolverFn = async (
   { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
 
-  // only admin can delete deployment targets for now
-  await hasPermission('project', `viewAll`);
-  logger.info(`${id} ${project}`)
+  // since deploytargetconfigs are associated to a project
+  // re-use the existing `project:update` permissions check, since the same sorts of fields
+  // are updateable by the same permissions at the project scope
+  // deleting a deploytargetconfig from a project is classed as updating the project
+  await hasPermission('project', 'update', {
+    project: project
+  });
+
   try {
     await query(sqlClientPool, 'DELETE FROM deploy_target_config WHERE id = :id', {
       id,
@@ -189,8 +191,17 @@ export const updateDeployTargetConfig: ResolverFn = async (
   const deployTarget = input.patch.deployTarget;
   const deployTargetProjectPattern = input.patch.deployTargetNamespacePattern;
 
-  // only admin can update deployment targets for now
-  await hasPermission('project', `viewAll`);
+  // get the projected id for a deploy config so permissions can be checked
+  const deployTargetConfig = await Helpers(sqlClientPool).getDeployTargetConfigById(id);
+  if (!deployTargetConfig) {
+    return null;
+  }
+  // since deploytargetconfigs are associated to a project
+  // re-use the existing `project:update` permissions check, since the same sorts of fields
+  // are updateable by the same permissions at the project scope
+  await hasPermission('project', 'update', {
+    project: deployTargetConfig.project
+  });
 
   await query(
     sqlClientPool,
@@ -224,6 +235,8 @@ export const getAllDeployTargetConfigs: ResolverFn = async (
   { order },
   { sqlClientPool, hasPermission }
 ) => {
+
+  // only admin can view all deployment targetconfigs for a specfic deploy target
   await hasPermission('project', 'viewAll');
 
   let queryBuilder = knex('deploy_target_config');
@@ -238,6 +251,8 @@ export const deleteAllDeployTargetConfigs: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
+
+  // only admin can delete all deployment targetconfigs for a specfic deploy target
   await hasPermission('project', 'deleteAll');
 
   await query(sqlClientPool, Sql.truncateDeployTargetConfigs());

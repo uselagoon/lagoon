@@ -642,6 +642,10 @@ const typeDefs = gql`
     """
     factsUi: Int
     """
+    Should the ability to deploy environments be disabled for this Project (\`1\` or \`0\`)
+    """
+    deploymentsDisabled: Int
+    """
     Reference to OpenShift Object this Project should be deployed to
     """
     openshift: Openshift
@@ -1109,8 +1113,17 @@ const typeDefs = gql`
     Returns a AdvancedTaskDefinitionArgument by Id
     """
     advancedTaskDefinitionArgumentById(id: Int!) : [AdvancedTaskDefinitionArgument]
+    """
+    Returns the DeployTargetConfig by a deployTargetConfig Id
+    """
     deployTargetConfigById(id: Int!) : DeployTargetConfig
+    """
+    Returns all DeployTargetConfig by a project Id
+    """
     deployTargetConfigsByProjectId(project: Int!) : [DeployTargetConfig]
+    """
+    Returns all DeployTargetConfig by a deployTarget Id (aka: Openshift Id)
+    """
     deployTargetConfigsByDeployTarget(deployTarget: Int!) : [DeployTargetConfig]
     allDeployTargetConfigs: [DeployTargetConfig]
   }
@@ -1181,6 +1194,7 @@ const typeDefs = gql`
     privateKey: String
     problemsUi: Int
     factsUi: Int
+    deploymentsDisabled: Int
   }
 
   input AddEnvironmentInput {
@@ -1496,6 +1510,7 @@ const typeDefs = gql`
     developmentEnvironmentsLimit: Int
     problemsUi: Int
     factsUi: Int
+    deploymentsDisabled: Int
   }
 
   input UpdateProjectInput {
