@@ -224,12 +224,13 @@ export const deployTargetBranches = async function(data: any) {
         if (deployTarget.openshift.id === activeStandby.environment.openshift.id) {
             // if the deployed environment matches the opposite active/standby environment target
             // then we allow the deployment to continue
-            logger.debug(`TODO: THEY MATCH ${deployTarget.openshift.id} - ${activeStandby.environment.openshift.id}`)
+            // logger.debug(`TODO: THEY MATCH ${deployTarget.openshift.id} - ${activeStandby.environment.openshift.id}`)
         } else {
             // but if the deployed environment is on a different target
             // we cannot allow the deployment to proceed as active/standby is not cross cluster compatable at the moment
             throw new NoNeedToDeployBranch(
-                `TODO: THEY DON'T MATCH, NOT DEPLOYING`
+                // @TODO: if active/standby ever supports different targets, then this error can probably be removed
+                `the two environments would be deployed to different targets, active/standby does not currently support this`
             );
         }
     }
@@ -238,7 +239,7 @@ export const deployTargetBranches = async function(data: any) {
     if (deployTarget) {
         data.deployTarget = deployTarget
         let deploy = await deployBranch(data)
-        logger.info(`TODO: EXISTING DEPLOY VIA ENVIRONMENT OPENSHIFT`)
+        // EXISTING DEPLOY VIA ENVIRONMENT OPENSHIFT
         return deploy
     }
 
@@ -256,7 +257,7 @@ export const deployTargetBranches = async function(data: any) {
                 openshift: deployTargetConfigs.targets[i].deployTarget
             }
             data.deployTarget = deployTarget
-            logger.info(`TODO: NEW DEPLOY VIA DEPLOYTARGETCONFIG OPENSHIFT ${JSON.stringify(deployTarget)}`)
+            // NEW DEPLOY VIA DEPLOYTARGETCONFIG OPENSHIFT
             deploy = await deployBranch(data)
             if (deploy) {
                 // if the deploy is successful, then return
@@ -273,7 +274,6 @@ export const deployTargetBranches = async function(data: any) {
         let deployTarget
         try {
             const projectOpenshift = await getOpenShiftInfoForProject(projectName);
-            logger.info(`TODO: PROJECT ${projectId} ${JSON.stringify(projectOpenshift)}`)
             deployTarget = {
                 openshiftProjectPattern: projectOpenshift.project.openshiftProjectPattern,
                 branches: projectOpenshift.project.branches,
@@ -284,7 +284,7 @@ export const deployTargetBranches = async function(data: any) {
         }
         data.deployTarget = deployTarget
         let deploy = await deployBranch(data)
-        logger.info(`TODO: NEW DEPLOY VIA PROJECT OPENSHIFT`)
+        // NEW DEPLOY VIA PROJECT OPENSHIFT
         return deploy
     }
     throw new NoNeedToDeployBranch(
@@ -325,7 +325,7 @@ export const deployTargetPullrequest = async function(data: any) {
     if (deployTarget) {
         data.deployTarget = deployTarget
         let deploy = await deployPullrquest(data)
-        logger.info(`TODO: EXISTING DEPLOY VIA ENVIRONMENT OPENSHIFT`)
+        // EXISTING DEPLOY VIA ENVIRONMENT OPENSHIFT
         return deploy
     }
 
@@ -343,7 +343,7 @@ export const deployTargetPullrequest = async function(data: any) {
                 openshift: deployTargetConfigs.targets[i].deployTarget
             }
             data.deployTarget = deployTarget
-            logger.info(`TODO: NEW DEPLOY VIA DEPLOYTARGETCONFIG OPENSHIFT ${JSON.stringify(deployTarget)}`)
+            // NEW DEPLOY VIA DEPLOYTARGETCONFIG OPENSHIFT
             deploy = await deployPullrquest(data)
             if (deploy) {
                 // if the deploy is successful, then return
@@ -370,7 +370,7 @@ export const deployTargetPullrequest = async function(data: any) {
         }
         data.deployTarget = deployTarget
         let deploy = await deployPullrquest(data)
-        logger.info(`TODO: NEW DEPLOY VIA PROJECT OPENSHIFT`)
+        // NEW DEPLOY VIA PROJECT OPENSHIFT
         return deploy
     }
     throw new NoNeedToDeployBranch(
@@ -405,7 +405,7 @@ export const deployTargetPromote = async function(data: any) {
         }
       } else {
         throw new NoNeedToDeployBranch(
-          `TODO: NO EXISTING ENVIRONMENT TO PROMOTE FROM WITH A VALID TARGET`
+          `There is no existing environment to promote from that contains a valid deploytarget`
         );
       }
     }
