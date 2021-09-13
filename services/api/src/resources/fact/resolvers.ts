@@ -5,7 +5,6 @@ import { Sql } from './sql';
 import { ResolverFn } from '../index';
 import { knex } from '../../util/db';
 import { logger } from '../../loggers/logger';
-import { loggers } from 'winston';
 
 export const getFactsByEnvironmentId: ResolverFn = async (
   { id: environmentId },
@@ -449,12 +448,13 @@ const buildContitionsForFactSearchQuery = (filterDetails: any, factQuery: any, p
     const builderFactory = (filter, i) => (builder) => {
       let { lhsTarget, name, contains } = filter;
       if (lhsTarget == "PROJECT") {
-        builder = builder.andWhere(`project.${name}`, '=', `${contains}`);
+        builder = builder.andWhere(`project.${name}`, 'like', `${predicateRHSProcess('CONTAINS', contains)}`);
       } else {
         let tabName = `env${i}`;
         builder = builder.andWhere(`${tabName}.name`, '=', `${name}`);
-        builder = builder.andWhere(`${tabName}.value`, 'like', `%${contains}%`);
+        builder = builder.andWhere(`${tabName}.value`, 'like', `${predicateRHSProcess('CONTAINS', contains)}`);
       }
+
       return builder;
     };
 
