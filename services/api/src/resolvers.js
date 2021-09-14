@@ -118,7 +118,6 @@ const {
   getDeployTargetConfigById,
   getDeployTargetConfigsByProjectId,
   getDeployTargetConfigsByDeployTarget,
-  // getDeployTargetConfigsByKubernetes,
   addDeployTargetConfig,
   deleteDeployTargetConfig,
   updateDeployTargetConfig,
@@ -458,7 +457,6 @@ const resolvers = {
     deployTargetConfigById: getDeployTargetConfigById,
     deployTargetConfigsByProjectId: getDeployTargetConfigsByProjectId,
     deployTargetConfigsByDeployTarget: getDeployTargetConfigsByDeployTarget,
-    // deployTargetConfigsByKubernetes: getDeployTargetConfigsByKubernetes,
     allDeployTargetConfigs: getAllDeployTargetConfigs,
   },
   Mutation: {

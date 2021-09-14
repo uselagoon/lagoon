@@ -91,7 +91,22 @@ export const getOpenshiftByDeployTargetId: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission }
 ) => {
-  await hasPermission('openshift', 'viewAll');
+  // get the project id for the deploytarget
+  const projectrows = await query(
+    sqlClientPool,
+    `SELECT d.project
+    FROM deploy_target_config d
+    WHERE d.id = :did
+    `,
+    {
+      did
+    }
+  );
+
+  // check permissions on the project
+  await hasPermission('openshift', 'view', {
+    project: projectrows[0].project,
+  });
 
   const rows = await query(
     sqlClientPool,

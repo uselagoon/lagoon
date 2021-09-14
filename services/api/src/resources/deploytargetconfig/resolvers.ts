@@ -1,16 +1,8 @@
 import * as R from 'ramda';
-// @ts-ignore
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
-// @ts-ignore
-import { createRemoveTask } from '@lagoon/commons/dist/tasks';
 import { ResolverFn } from '../';
 import { isPatchEmpty, query, knex } from '../../util/db';
-import convertDateToMYSQLDateTimeFormat from '../../util/convertDateToMYSQLDateTimeFormat';
 import { Helpers } from './helpers';
 import { Sql } from './sql';
-import { Sql as projectSql } from '../project/sql';
-import { Helpers as projectHelpers } from '../project/helpers';
-import { logger } from '../../loggers/logger';
 
 
 export const getDeployTargetConfigById = async (
@@ -138,7 +130,6 @@ export const addDeployTargetConfig: ResolverFn = async (
   });
 
   const deployTargetConfig = rows[0];
-  logger.info(`${JSON.stringify(deployTargetConfig)}`)
 
   return deployTargetConfig;
 };
