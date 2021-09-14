@@ -400,7 +400,7 @@ export const getControllerBuildData = async function(deployData: any) {
 
   var openshiftProject = openshiftProjectPattern ? openshiftProjectPattern.replace('${environment}',environmentName).replace('${project}', projectName) : `${projectName}-${environmentName}`
 
-  var routerPattern = lagoonProjectData.routerPattern || deployTarget.routerPattern
+  var routerPattern = lagoonProjectData.openshift.routerPattern || deployTarget.openshift.routerPattern
   var deployTargetName = deployTarget.openshift.name
   var monitoringConfig: any = {};
   try {
