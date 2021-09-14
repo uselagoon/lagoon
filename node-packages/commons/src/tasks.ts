@@ -693,7 +693,6 @@ export const createRemoveTask = async function(removeData: any) {
     // removed `openshift` and `kubernetes` remove functionality, these services no longer exist in Lagoon
     // handle removals using the controllers, send the message to our specific target cluster queue
     case 'lagoon_controllerRemove':
-      // @TODO: use `deployTargetConfigs`
       if (type === 'branch') {
         let environmentId = 0;
         // Check to ensure the environment actually exists.
@@ -716,6 +715,7 @@ export const createRemoveTask = async function(removeData: any) {
             'Branch environment does not exist, no need to remove anything.'
           );
         }
+        // consume the deploytarget from the environment now
         const result = await getOpenShiftInfoForEnvironment(environmentId);
         const deployTarget = result.environment.openshift.name
         logger.debug(
@@ -749,6 +749,7 @@ export const createRemoveTask = async function(removeData: any) {
             'Pull Request environment does not exist, no need to remove anything.'
           );
         }
+        // consume the deploytarget from the environment now
         const result = await getOpenShiftInfoForEnvironment(environmentId);
         const deployTarget = result.environment.openshift.name
         logger.debug(
@@ -756,9 +757,30 @@ export const createRemoveTask = async function(removeData: any) {
         );
         return sendToLagoonTasks(deployTarget+":remove", removeData);
       } else if (type === 'promote') {
-        // promote cannot be used for deploytargetconfig configured environments
-        const result = await getOpenShiftInfoForProject(projectName);
-        const deployTarget = result.project.openshift.name
+        let environmentId = 0;
+        // Check to ensure the environment actually exists.
+        let foundEnvironment = false;
+        allEnvironments.project.environments.forEach(function(
+          environment,
+          index
+        ) {
+          if (environment.name === branch) {
+            foundEnvironment = true;
+            environmentId = environment.id;
+          }
+        });
+
+        if (!foundEnvironment) {
+          logger.debug(
+            `projectName: ${projectName}, branchName: ${branch}, no environment found.`
+          );
+          throw new NoNeedToRemoveBranch(
+            'Branch environment does not exist, no need to remove anything.'
+          );
+        }
+        // consume the deploytarget from the environment now
+        const result = await getOpenShiftInfoForEnvironment(environmentId);
+        const deployTarget = result.environment.openshift.name
         return sendToLagoonTasks(deployTarget+":remove", removeData);
       }
       break;
