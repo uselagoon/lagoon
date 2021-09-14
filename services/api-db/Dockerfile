@@ -7,8 +7,6 @@ ENV LAGOON_VERSION=$LAGOON_VERSION
 
 USER root
 RUN apk add --no-cache openssh-keygen
-# COPY my.cnf /etc/mysql/my.cnf
-# RUN /bin/fix-permissions /etc/mysql
 USER mysql
 
 ENV MARIADB_DATABASE=infrastructure \
