@@ -42,66 +42,66 @@ const deployBranch = async function(data: any) {
     switch (branchesRegex) {
         case undefined:
         case null:
-        logger.debug(
-            `projectName: ${projectName}, branchName: ${branchName}, no branches defined in active system, assuming we want all of them`
-        );
-        switch (project.activeSystemsDeploy) {
-            case 'lagoon_controllerBuildDeploy':
-            deployData.deployTarget = deployTarget
-            const buildDeployData = await getControllerBuildData(deployData);
-            const sendTasks = await sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
-            return true
-            default:
-            throw new UnknownActiveSystem(
-                `Unknown active system '${project.activeSystemsDeploy}' for task 'deploy' in for project ${projectName}`
-            );
-        }
-        case 'true':
-        logger.debug(
-            `projectName: ${projectName}, branchName: ${branchName}, all branches active, therefore deploying`
-        );
-        switch (project.activeSystemsDeploy) {
-            case 'lagoon_controllerBuildDeploy':
-            deployData.deployTarget = deployTarget
-            const buildDeployData = await getControllerBuildData(deployData);
-            const sendTasks = await sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
-            return true
-            default:
-            throw new UnknownActiveSystem(
-                `Unknown active system '${project.activeSystemsDeploy}' for task 'deploy' in for project ${projectName}`
-            );
-        }
-        case 'false':
-        logger.debug(
-            `projectName: ${projectName}, branchName: ${branchName}, branch deployments disabled`
-        );
-        return false
-        default: {
-        logger.debug(
-            `projectName: ${projectName}, branchName: ${branchName}, regex ${branchesRegex}, testing if it matches`
-        );
-        const branchRegex = new RegExp(branchesRegex);
-        if (branchRegex.test(branchName)) {
             logger.debug(
-            `projectName: ${projectName}, branchName: ${branchName}, regex ${branchesRegex} matched branchname, starting deploy`
+                `projectName: ${projectName}, branchName: ${branchName}, no branches defined in active system, assuming we want all of them`
             );
             switch (project.activeSystemsDeploy) {
-            case 'lagoon_controllerBuildDeploy':
-                // controllers uses a different message than the other services, so we need to source it here
-                deployData.deployTarget = deployTarget
-                const buildDeployData = await getControllerBuildData(deployData);
-                const sendTasks = await sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
-                return true
-            default:
-                throw new UnknownActiveSystem(
-                `Unknown active system '${project.activeSystemsDeploy}' for task 'deploy' in for project ${projectName}`
-                );
+                case 'lagoon_controllerBuildDeploy':
+                    deployData.deployTarget = deployTarget
+                    const buildDeployData = await getControllerBuildData(deployData);
+                    const sendTasks = await sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
+                    return true
+                default:
+                    throw new UnknownActiveSystem(
+                        `Unknown active system '${project.activeSystemsDeploy}' for task 'deploy' in for project ${projectName}`
+                    );
             }
-        }
-        logger.debug(
-            `projectName: ${projectName}, branchName: ${branchName}, regex ${branchesRegex} did not match branchname, not deploying`
-        );
-        return false
+        case 'true':
+            logger.debug(
+                `projectName: ${projectName}, branchName: ${branchName}, all branches active, therefore deploying`
+            );
+            switch (project.activeSystemsDeploy) {
+                case 'lagoon_controllerBuildDeploy':
+                    deployData.deployTarget = deployTarget
+                    const buildDeployData = await getControllerBuildData(deployData);
+                    const sendTasks = await sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
+                    return true
+                default:
+                    throw new UnknownActiveSystem(
+                        `Unknown active system '${project.activeSystemsDeploy}' for task 'deploy' in for project ${projectName}`
+                    );
+            }
+        case 'false':
+            logger.debug(
+                `projectName: ${projectName}, branchName: ${branchName}, branch deployments disabled`
+            );
+            return false
+        default: {
+            logger.debug(
+                `projectName: ${projectName}, branchName: ${branchName}, regex ${branchesRegex}, testing if it matches`
+            );
+            const branchRegex = new RegExp(branchesRegex);
+            if (branchRegex.test(branchName)) {
+                logger.debug(
+                `projectName: ${projectName}, branchName: ${branchName}, regex ${branchesRegex} matched branchname, starting deploy`
+                );
+                switch (project.activeSystemsDeploy) {
+                case 'lagoon_controllerBuildDeploy':
+                    // controllers uses a different message than the other services, so we need to source it here
+                    deployData.deployTarget = deployTarget
+                    const buildDeployData = await getControllerBuildData(deployData);
+                    const sendTasks = await sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
+                    return true
+                default:
+                    throw new UnknownActiveSystem(
+                    `Unknown active system '${project.activeSystemsDeploy}' for task 'deploy' in for project ${projectName}`
+                    );
+                }
+            }
+            logger.debug(
+                `projectName: ${projectName}, branchName: ${branchName}, regex ${branchesRegex} did not match branchname, not deploying`
+            );
+            return false
         }
     }
 }
@@ -109,7 +109,7 @@ const deployBranch = async function(data: any) {
 /*
 this function handles deploying a pullrequest
 */
-const deployPullrquest = async function(data: any) {
+const deployPullrequest = async function(data: any) {
     const {
         projectId,
         projectName,
@@ -124,66 +124,66 @@ const deployPullrquest = async function(data: any) {
     switch (pullrequestRegex) {
         case undefined:
         case null:
-        logger.debug(
-            `projectName: ${projectName}, pullrequest: ${branchName}, no pullrequest defined in active system, assuming we want all of them`
-        );
-        switch (project.activeSystemsDeploy) {
-            case 'lagoon_controllerBuildDeploy':
-            deployData.deployTarget = deployTarget
-            const buildDeployData = await getControllerBuildData(deployData);
-            const sendTasks = await sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
-            return true
-            default:
-            throw new UnknownActiveSystem(
-                `Unknown active system '${project.activeSystemsDeploy}' for task 'deploy' in for project ${projectName}`
-            );
-        }
-        case 'true':
-        logger.debug(
-            `projectName: ${projectName}, pullrequest: ${branchName}, all pullrequest active, therefore deploying`
-        );
-        switch (project.activeSystemsDeploy) {
-            case 'lagoon_controllerBuildDeploy':
-            deployData.deployTarget = deployTarget
-            const buildDeployData = await getControllerBuildData(deployData);
-            const sendTasks = await sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
-            return true
-            default:
-            throw new UnknownActiveSystem(
-                `Unknown active system '${project.activeSystemsDeploy}' for task 'deploy' in for project ${projectName}`
-            );
-        }
-        case 'false':
-        logger.debug(
-            `projectName: ${projectName}, pullrequest: ${branchName}, pullrequest deployments disabled`
-        );
-        return false
-        default: {
-        logger.debug(
-            `projectName: ${projectName}, pullrequest: ${branchName}, regex ${pullrequestRegex}, testing if it matches PR title '${pullrequestTitle}'`
-        );
-        const branchRegex = new RegExp(pullrequestRegex);
-        if (branchRegex.test(pullrequestTitle)) {
             logger.debug(
-            `projectName: ${projectName}, pullrequest: ${branchName}, regex ${pullrequestRegex} matched PR title '${pullrequestTitle}', starting deploy`
+                `projectName: ${projectName}, pullrequest: ${branchName}, no pullrequest defined in active system, assuming we want all of them`
             );
             switch (project.activeSystemsDeploy) {
-            case 'lagoon_controllerBuildDeploy':
-                // controllers uses a different message than the other services, so we need to source it here
-                deployData.deployTarget = deployTarget
-                const buildDeployData = await getControllerBuildData(deployData);
-                const sendTasks = await sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
-                return true
-            default:
-                throw new UnknownActiveSystem(
-                `Unknown active system '${project.activeSystemsDeploy}' for task 'deploy' in for project ${projectName}`
-                );
+                case 'lagoon_controllerBuildDeploy':
+                    deployData.deployTarget = deployTarget
+                    const buildDeployData = await getControllerBuildData(deployData);
+                    const sendTasks = await sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
+                    return true
+                default:
+                    throw new UnknownActiveSystem(
+                        `Unknown active system '${project.activeSystemsDeploy}' for task 'deploy' in for project ${projectName}`
+                    );
             }
-        }
-        logger.debug(
-            `projectName: ${projectName}, branchName: ${branchName}, regex ${pullrequestRegex} did not match PR title, not deploying`
-        );
-        return false
+        case 'true':
+            logger.debug(
+                `projectName: ${projectName}, pullrequest: ${branchName}, all pullrequest active, therefore deploying`
+            );
+            switch (project.activeSystemsDeploy) {
+                case 'lagoon_controllerBuildDeploy':
+                    deployData.deployTarget = deployTarget
+                    const buildDeployData = await getControllerBuildData(deployData);
+                    const sendTasks = await sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
+                    return true
+                default:
+                    throw new UnknownActiveSystem(
+                        `Unknown active system '${project.activeSystemsDeploy}' for task 'deploy' in for project ${projectName}`
+                    );
+            }
+        case 'false':
+            logger.debug(
+                `projectName: ${projectName}, pullrequest: ${branchName}, pullrequest deployments disabled`
+            );
+            return false
+        default: {
+            logger.debug(
+                `projectName: ${projectName}, pullrequest: ${branchName}, regex ${pullrequestRegex}, testing if it matches PR title '${pullrequestTitle}'`
+            );
+            const branchRegex = new RegExp(pullrequestRegex);
+            if (branchRegex.test(pullrequestTitle)) {
+                logger.debug(
+                `projectName: ${projectName}, pullrequest: ${branchName}, regex ${pullrequestRegex} matched PR title '${pullrequestTitle}', starting deploy`
+                );
+                switch (project.activeSystemsDeploy) {
+                case 'lagoon_controllerBuildDeploy':
+                    // controllers uses a different message than the other services, so we need to source it here
+                    deployData.deployTarget = deployTarget
+                    const buildDeployData = await getControllerBuildData(deployData);
+                    const sendTasks = await sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
+                    return true
+                default:
+                    throw new UnknownActiveSystem(
+                    `Unknown active system '${project.activeSystemsDeploy}' for task 'deploy' in for project ${projectName}`
+                    );
+                }
+            }
+            logger.debug(
+                `projectName: ${projectName}, branchName: ${branchName}, regex ${pullrequestRegex} did not match PR title, not deploying`
+            );
+            return false
         }
     }
 }
@@ -315,7 +315,13 @@ export const deployTargetPullrequest = async function(data: any) {
         const environmentOpenshift = await getOpenShiftInfoForEnvironment(envId);
         deployTarget = {
             openshiftProjectPattern: environmentOpenshift.environment.openshiftProjectPattern,
-            pullrequests: branchName,
+            /*
+            this `pullrequests: branchName,` breaks deploying an existing environment as it makes the pullrequest
+            attempt to do a regex check that fails. so just don't do it, the environment already exists so
+            just don't set pullrequests so it sends as a null value and just deploys the environment again without
+            testing any regex
+            // pullrequests: branchName,
+            */
             openshift: environmentOpenshift.environment.openshift
         }
     } catch (err) {
@@ -324,7 +330,7 @@ export const deployTargetPullrequest = async function(data: any) {
     // if there is an openshift attached to the environment, then deploy deploy the environment using this deploytarget
     if (deployTarget) {
         data.deployTarget = deployTarget
-        let deploy = await deployPullrquest(data)
+        let deploy = await deployPullrequest(data)
         // EXISTING DEPLOY VIA ENVIRONMENT OPENSHIFT
         return deploy
     }
@@ -344,7 +350,7 @@ export const deployTargetPullrequest = async function(data: any) {
             }
             data.deployTarget = deployTarget
             // NEW DEPLOY VIA DEPLOYTARGETCONFIG OPENSHIFT
-            deploy = await deployPullrquest(data)
+            deploy = await deployPullrequest(data)
             if (deploy) {
                 // if the deploy is successful, then return
                 return deploy
@@ -369,7 +375,7 @@ export const deployTargetPullrequest = async function(data: any) {
         //do nothing if there is an error, likely means that the environment hasn't been deployed before
         }
         data.deployTarget = deployTarget
-        let deploy = await deployPullrquest(data)
+        let deploy = await deployPullrequest(data)
         // NEW DEPLOY VIA PROJECT OPENSHIFT
         return deploy
     }
