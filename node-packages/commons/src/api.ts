@@ -1155,20 +1155,6 @@ export const getOpenShiftInfoForEnvironment = (environment: number): Promise<any
     }
 `);
 
-export const getBillingGroupForProject = (project: string): Promise<any> =>
-  graphqlapi.query(`
-    {
-      project:projectByName(name: "${project}"){
-        groups {
-          ... on BillingGroup {
-            type
-            uptimeRobotStatusPageId
-          }
-        }
-      }
-    }
-`);
-
 interface GetEnvironentsForProjectEnvironmentResult {
   name: string;
   id: number;
