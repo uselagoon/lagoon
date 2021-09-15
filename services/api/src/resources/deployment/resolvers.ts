@@ -59,7 +59,7 @@ export const getBuildLog: ResolverFn = async (
 };
 
 export const getDeploymentsByEnvironmentId: ResolverFn = async (
-  { id: eid, environmentAuthz },
+  { id: eid },
   { name, limit },
   { sqlClientPool, hasPermission }
 ) => {
@@ -67,11 +67,9 @@ export const getDeploymentsByEnvironmentId: ResolverFn = async (
     sqlClientPool
   ).getEnvironmentById(eid);
 
-  if (!environmentAuthz) {
-    await hasPermission('deployment', 'view', {
-      project: environment.project
-    });
-  }
+  await hasPermission('deployment', 'view', {
+    project: environment.project
+  });
 
   let queryBuilder = knex('deployment')
   .where('environment', eid)

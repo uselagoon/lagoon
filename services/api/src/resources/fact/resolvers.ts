@@ -7,7 +7,7 @@ import { knex } from '../../util/db';
 import { logger } from '../../loggers/logger';
 
 export const getFactsByEnvironmentId: ResolverFn = async (
-  { id: environmentId, environmentAuthz },
+  { id: environmentId },
   { keyFacts },
   { sqlClientPool, hasPermission }
 ) => {
@@ -15,11 +15,9 @@ export const getFactsByEnvironmentId: ResolverFn = async (
     sqlClientPool
   ).getEnvironmentById(environmentId);
 
-  if (!environmentAuthz) {
-    await hasPermission('fact', 'view', {
-      project: environment.project
-    });
-  }
+  await hasPermission('fact', 'view', {
+    project: environment.project
+  });
 
   const rows = await query(
     sqlClientPool,
