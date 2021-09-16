@@ -1,0 +1,85 @@
+{{- range $cronjobName, $cronjobConfig := .Values.nativeCronjobs }}
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: cronjob-{{ $.Release.Name }}-{{ $cronjobName }}
+  labels:
+    {{- include "worker.labels" $ | nindent 4 }}
+  annotations:
+    {{- include "worker.annotations" $ | nindent 4 }}
+spec:
+  schedule: {{ $cronjobConfig.schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 0
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    metadata:
+      labels:
+        {{- include "worker.labels" $ | nindent 8 }}
+      annotations:
+        {{- include "worker.annotations" $ | nindent 8 }}
+    spec:
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            {{- include "worker.labels" $ | nindent 12 }}
+          annotations:
+            {{- include "worker.annotations" $ | nindent 12 }}
+        spec:
+        {{- with $.Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 12 }}
+        {{- end }}
+          priorityClassName: {{ include "worker.lagoonPriority" $ }}
+          enableServiceLinks: false
+          securityContext:
+            {{- toYaml $.Values.podSecurityContext | nindent 12 }}
+          volumes:
+            - name: lagoon-sshkey
+              secret:
+                defaultMode: 420
+                secretName: lagoon-sshkey
+            - name: {{ $.Values.persistentStorage.name }}
+              persistentVolumeClaim:
+                claimName: {{ $.Values.persistentStorage.name }}
+          containers:
+            - image: {{ $.Values.image | quote }}
+              name: cronjob-{{ $.Release.Name }}-{{ $cronjobName }}
+              securityContext:
+                {{- toYaml $.Values.securityContext | nindent 16 }}
+              imagePullPolicy: {{ $.Values.imagePullPolicy }}
+              command:
+                - /lagoon/cronjob.sh
+                - {{ $cronjobConfig.command }}
+              env:
+                - name: LAGOON_GIT_SHA
+                  value: {{ $.Values.gitSha | quote }}
+                - name: SERVICE_NAME
+                  value: {{ $.Release.Name | quote }}
+              envFrom:
+                - configMapRef:
+                    name: lagoon-env
+              resources:
+                {{- toYaml $.Values.resources | nindent 16 }}
+              volumeMounts:
+                - mountPath: /var/run/secrets/lagoon/sshkey/
+                  name: lagoon-sshkey
+                  readOnly: true
+                - name: {{ $.Values.persistentStorage.name }}
+                  mountPath: {{ $.Values.persistentStorage.path | quote }}
+          restartPolicy: Never
+          {{- with $.Values.nodeSelector }}
+          nodeSelector:
+            {{- toYaml $ | nindent 12 }}
+          {{- end }}
+        {{- with $.Values.affinity }}
+          affinity:
+            {{- toYaml $ | nindent 12 }}
+        {{- end }}
+        {{- with $.Values.tolerations }}
+          tolerations:
+            {{- toYaml $ | nindent 12 }}
+        {{- end }}
+{{- end }}
