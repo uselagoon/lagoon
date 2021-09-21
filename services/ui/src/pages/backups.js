@@ -108,6 +108,9 @@ export const PageBackups = ({ router }) => (
                 <Backups backups={environment.backups} />
               </div>
             </div>
+            <div className="message-wrapper">
+              <div className="content">Number of results displayed is limited to {backupsLimit}</div>
+            </div>
             <style jsx>{`
               .content-wrapper {
                 @media ${bp.tabletUp} {
@@ -125,6 +128,18 @@ export const PageBackups = ({ router }) => (
                 background-color: ${color.lightBlue};
                 color: ${color.white};
                 padding: 10px 20px;
+              }
+
+              .message-wrapper {
+                border-top: 1px solid #f5f6fa;
+                border-radius: 3px;
+                box-shadow: 0px 4px 8px 0px rgb(0 0 0 / 3%);
+
+                .content {
+                  padding: 9px calc((100vw / 16) * 1);
+                  text-align: center;
+                  color: ${color.darkGrey};
+                }
               }
             `}</style>
           </MainLayout>

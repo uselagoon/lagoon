@@ -16,7 +16,7 @@ import Deployments from 'components/Deployments';
 import withQueryLoading from 'lib/withQueryLoading';
 import withQueryError from 'lib/withQueryError';
 import { withEnvironmentRequired } from 'lib/withDataRequired';
-import { bp } from 'lib/variables';
+import { bp, color } from 'lib/variables';
 
 const { publicRuntimeConfig } = getConfig();
 const envLimit = parseInt(publicRuntimeConfig.LAGOON_UI_DEPLOYMENTS_LIMIT, 10);
@@ -99,6 +99,9 @@ export const PageDeployments = ({ router }) => {
                   />
                 </div>
               </div>
+              <div className="message-wrapper">
+                <div className="content">Number of results displayed is limited to {deploymentsLimit}</div>
+              </div>
               <style jsx>{`
                 .content-wrapper {
                   @media ${bp.tabletUp} {
@@ -110,6 +113,18 @@ export const PageDeployments = ({ router }) => {
                 .content {
                   padding: 32px calc((100vw / 16) * 1);
                   width: 100%;
+                }
+
+                .message-wrapper {
+                  border-top: 1px solid #f5f6fa;
+                  border-radius: 3px;
+                  box-shadow: 0px 4px 8px 0px rgb(0 0 0 / 3%);
+
+                  .content {
+                    padding: 9px calc((100vw / 16) * 1);
+                    text-align: center;
+                    color: ${color.darkGrey};
+                  }
                 }
               `}</style>
             </MainLayout>
