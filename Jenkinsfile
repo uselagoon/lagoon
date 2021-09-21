@@ -5,6 +5,7 @@ pipeline {
     CI_BUILD_TAG = env.BUILD_TAG.replaceAll('%2f','').replaceAll('[^A-Za-z0-9]+', '').toLowerCase()
     SAFEBRANCH_NAME = env.BRANCH_NAME.replaceAll('%2f','-').replaceAll('[^A-Za-z0-9]+', '-').toLowerCase()
     NPROC = "${sh(script:'getconf _NPROCESSORS_ONLN', returnStdout: true).trim()}"
+    SKIP_IMAGE_PUBLISH = credentials('SKIP_IMAGE_PUBLISH')
   }
 
   stages {
@@ -116,6 +117,9 @@ pipeline {
     stage ('push images to testlagoon/* with :latest tag') {
       when {
         branch 'main'
+        not {
+          environment name: 'SKIP_IMAGE_PUBLISH', value: 'true'
+        }
       }
       environment {
         PASSWORD = credentials('amazeeiojenkins-dockerhub-password')
@@ -128,6 +132,9 @@ pipeline {
     stage ('deploy to test environment') {
       when {
         branch 'main'
+        not {
+          environment name: 'SKIP_IMAGE_PUBLISH', value: 'true'
+        }
       }
       environment {
         TOKEN = credentials('vshn-gitlab-helmfile-ci-trigger')
