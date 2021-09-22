@@ -21,7 +21,7 @@ import { bp } from 'lib/variables';
 
 const { publicRuntimeConfig } = getConfig();
 const envLimit = parseInt(publicRuntimeConfig.LAGOON_UI_DEPLOYMENTS_LIMIT, 10);
-const customMessage = publicRuntimeConfig.LAGOON_UI_LIMIT_MESSAGE;
+const customMessage = publicRuntimeConfig.LAGOON_UI_DEPLOYMENTS_LIMIT_MESSAGE;
 const deploymentsLimit = envLimit === -1 ? null : envLimit;
 
 /**

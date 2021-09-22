@@ -20,7 +20,7 @@ import { bp, color } from 'lib/variables';
 
 const { publicRuntimeConfig } = getConfig();
 const envLimit = parseInt(publicRuntimeConfig.LAGOON_UI_BACKUPS_LIMIT, 10);
-const customMessage = publicRuntimeConfig.LAGOON_UI_LIMIT_MESSAGE;
+const customMessage = publicRuntimeConfig.LAGOON_UI_BACKUPS_LIMIT_MESSAGE;
 const backupsLimit = envLimit === -1 ? null : envLimit;
 
 /**

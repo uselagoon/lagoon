@@ -21,7 +21,7 @@ import { bp } from 'lib/variables';
 
 const { publicRuntimeConfig } = getConfig();
 const envLimit = parseInt(publicRuntimeConfig.LAGOON_UI_TASKS_LIMIT, 10);
-const customMessage = publicRuntimeConfig.LAGOON_UI_LIMIT_MESSAGE;
+const customMessage = publicRuntimeConfig.AGOON_UI_TASKS_LIMIT_MESSAGE;
 const tasksLimit = envLimit === -1 ? null : envLimit;
 
 /**
