@@ -100,7 +100,7 @@ export const PageTasks = ({ router }) => (
                 <ResultsLimited
                   limit={tasksLimit}
                   results={environment.tasks.length}
-                  message={customMessage.replace(/['"]+/g, '')}
+                  message={(!customMessage && "") || (customMessage && customMessage.replace(/['"]+/g, ''))}
                 />
               </div>
             </div>

@@ -111,7 +111,7 @@ export const PageBackups = ({ router }) => (
                 <ResultsLimited
                   limit={backupsLimit}
                   results={environment.backups.length}
-                  message={customMessage.replace(/['"]+/g, '')}
+                  message={(!customMessage && "") || (customMessage && customMessage.replace(/['"]+/g, ''))}
                 />
               </div>
             </div>
