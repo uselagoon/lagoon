@@ -13,6 +13,7 @@ import EnvironmentBreadcrumb from 'components/Breadcrumbs/Environment';
 import NavTabs from 'components/NavTabs';
 import AddTask from 'components/AddTask';
 import Tasks from 'components/Tasks';
+import ResultsLimited from 'components/ResultsLimited';
 import withQueryLoading from 'lib/withQueryLoading';
 import withQueryError from 'lib/withQueryError';
 import { withEnvironmentRequired } from 'lib/withDataRequired';
@@ -20,6 +21,7 @@ import { bp } from 'lib/variables';
 
 const { publicRuntimeConfig } = getConfig();
 const envLimit = parseInt(publicRuntimeConfig.LAGOON_UI_TASKS_LIMIT, 10);
+const customMessage = publicRuntimeConfig.LAGOON_UI_LIMIT_MESSAGE;
 const tasksLimit = envLimit === -1 ? null : envLimit;
 
 /**
@@ -94,6 +96,11 @@ export const PageTasks = ({ router }) => (
                   tasks={environment.tasks}
                   environmentSlug={environment.openshiftProjectName}
                   projectSlug={environment.project.name}
+                />
+                <ResultsLimited
+                  limit={tasksLimit}
+                  results={environment.tasks.length}
+                  message={customMessage.replace(/['"]+/g, '')}
                 />
               </div>
             </div>

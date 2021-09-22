@@ -12,6 +12,7 @@ import ProjectBreadcrumb from 'components/Breadcrumbs/Project';
 import EnvironmentBreadcrumb from 'components/Breadcrumbs/Environment';
 import NavTabs from 'components/NavTabs';
 import DeployLatest from 'components/DeployLatest';
+import ResultsLimited from 'components/ResultsLimited';
 import Deployments from 'components/Deployments';
 import withQueryLoading from 'lib/withQueryLoading';
 import withQueryError from 'lib/withQueryError';
@@ -20,6 +21,7 @@ import { bp } from 'lib/variables';
 
 const { publicRuntimeConfig } = getConfig();
 const envLimit = parseInt(publicRuntimeConfig.LAGOON_UI_DEPLOYMENTS_LIMIT, 10);
+const customMessage = publicRuntimeConfig.LAGOON_UI_LIMIT_MESSAGE;
 const deploymentsLimit = envLimit === -1 ? null : envLimit;
 
 /**
@@ -96,6 +98,11 @@ export const PageDeployments = ({ router }) => {
                     deployments={environment.deployments}
                     environmentSlug={environment.openshiftProjectName}
                     projectSlug={environment.project.name}
+                  />
+                  <ResultsLimited
+                    limit={deploymentsLimit}
+                    results={environment.deployments.length}
+                    message={customMessage.replace(/['"]+/g, '')}
                   />
                 </div>
               </div>

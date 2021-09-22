@@ -12,6 +12,7 @@ import ProjectBreadcrumb from 'components/Breadcrumbs/Project';
 import EnvironmentBreadcrumb from 'components/Breadcrumbs/Environment';
 import NavTabs from 'components/NavTabs';
 import Backups from 'components/Backups';
+import ResultsLimited from 'components/ResultsLimited';
 import withQueryLoading from 'lib/withQueryLoading';
 import withQueryError from 'lib/withQueryError';
 import { withEnvironmentRequired } from 'lib/withDataRequired';
@@ -19,6 +20,7 @@ import { bp, color } from 'lib/variables';
 
 const { publicRuntimeConfig } = getConfig();
 const envLimit = parseInt(publicRuntimeConfig.LAGOON_UI_BACKUPS_LIMIT, 10);
+const customMessage = publicRuntimeConfig.LAGOON_UI_LIMIT_MESSAGE;
 const backupsLimit = envLimit === -1 ? null : envLimit;
 
 /**
@@ -106,6 +108,11 @@ export const PageBackups = ({ router }) => (
                   section!
                 </div>
                 <Backups backups={environment.backups} />
+                <ResultsLimited
+                  limit={backupsLimit}
+                  results={environment.backups.length}
+                  message={customMessage.replace(/['"]+/g, '')}
+                />
               </div>
             </div>
             <style jsx>{`
