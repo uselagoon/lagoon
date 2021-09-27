@@ -11,7 +11,7 @@
 Use Composer to get the latest version of the module:
 
 ```text
-composer require drupal/fastly drupal/http_cache_control
+composer require drupal/fastly drupal/http_cache_control drupal/purge
 ```
 
 You will need to enable the following modules:
