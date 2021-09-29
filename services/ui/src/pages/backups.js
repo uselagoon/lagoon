@@ -28,7 +28,9 @@ if (typeof window !== "undefined") {
   let params = new URLSearchParams(search);
   let limit = params.get('limit');
   if (limit) {
-    urlResultLimit = parseInt(limit.trim(), 10);
+    if (parseInt(limit.trim(), 10)) {
+      urlResultLimit = parseInt(limit.trim(), 10);
+    }
   }
 }
 const resultLimit = urlResultLimit === -1 ? null : urlResultLimit;
