@@ -22,8 +22,17 @@ import { bp } from 'lib/variables';
 const { publicRuntimeConfig } = getConfig();
 const envLimit = parseInt(publicRuntimeConfig.LAGOON_UI_TASKS_LIMIT, 10);
 const customMessage = publicRuntimeConfig.AGOON_UI_TASKS_LIMIT_MESSAGE;
-const tasksLimit = envLimit === -1 ? null : envLimit;
 
+let urlResultLimit = envLimit;
+if (typeof window !== "undefined") {
+  let search = window.location.search;
+  let params = new URLSearchParams(search);
+  let limit = params.get('limit');
+  if (limit) {
+    urlResultLimit = parseInt(limit.trim(), 10);
+  }
+}
+const resultLimit = urlResultLimit === -1 ? null : urlResultLimit;
 /**
  * Displays the tasks page, given the openshift project name.
  */
@@ -36,7 +45,7 @@ export const PageTasks = ({ router }) => (
       query={EnvironmentWithTasksQuery}
       variables={{
         openshiftProjectName: router.query.openshiftProjectName,
-        limit: tasksLimit
+        limit: resultLimit
       }}
     >
       {R.compose(
@@ -98,7 +107,7 @@ export const PageTasks = ({ router }) => (
                   projectSlug={environment.project.name}
                 />
                 <ResultsLimited
-                  limit={tasksLimit}
+                  limit={resultLimit}
                   results={environment.tasks.length}
                   message={(!customMessage && "") || (customMessage && customMessage.replace(/['"]+/g, ''))}
                 />

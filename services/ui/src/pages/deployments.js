@@ -22,7 +22,17 @@ import { bp } from 'lib/variables';
 const { publicRuntimeConfig } = getConfig();
 const envLimit = parseInt(publicRuntimeConfig.LAGOON_UI_DEPLOYMENTS_LIMIT, 10);
 const customMessage = publicRuntimeConfig.LAGOON_UI_DEPLOYMENTS_LIMIT_MESSAGE;
-const deploymentsLimit = envLimit === -1 ? null : envLimit;
+
+let urlResultLimit = envLimit;
+if (typeof window !== "undefined") {
+  let search = window.location.search;
+  let params = new URLSearchParams(search);
+  let limit = params.get('limit');
+  if (limit) {
+    urlResultLimit = parseInt(limit.trim(), 10);
+  }
+}
+const resultLimit = urlResultLimit === -1 ? null : urlResultLimit;
 
 /**
  * Displays the deployments page, given the openshift project name.
@@ -37,7 +47,7 @@ export const PageDeployments = ({ router }) => {
         query={EnvironmentWithDeploymentsQuery}
         variables={{
           openshiftProjectName: router.query.openshiftProjectName,
-          limit: deploymentsLimit
+          limit: resultLimit
         }}
       >
         {R.compose(
@@ -100,7 +110,7 @@ export const PageDeployments = ({ router }) => {
                     projectSlug={environment.project.name}
                   />
                   <ResultsLimited
-                    limit={deploymentsLimit}
+                    limit={resultLimit}
                     results={environment.deployments.length}
                     message={(!customMessage && "") || (customMessage && customMessage.replace(/['"]+/g, ''))}
                   />

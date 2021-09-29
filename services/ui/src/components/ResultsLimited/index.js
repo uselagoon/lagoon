@@ -8,7 +8,7 @@ import { color } from 'lib/variables';
 const ResultsLimited = ({ limit, results, message }) => {
 
   return (
-    (limit < results) && (
+    (
     <div className="resultsLimited">
       {
         <React.Fragment>

@@ -21,7 +21,17 @@ import { bp, color } from 'lib/variables';
 const { publicRuntimeConfig } = getConfig();
 const envLimit = parseInt(publicRuntimeConfig.LAGOON_UI_BACKUPS_LIMIT, 10);
 const customMessage = publicRuntimeConfig.LAGOON_UI_BACKUPS_LIMIT_MESSAGE;
-const backupsLimit = envLimit === -1 ? null : envLimit;
+
+let urlResultLimit = envLimit;
+if (typeof window !== "undefined") {
+  let search = window.location.search;
+  let params = new URLSearchParams(search);
+  let limit = params.get('limit');
+  if (limit) {
+    urlResultLimit = parseInt(limit.trim(), 10);
+  }
+}
+const resultLimit = urlResultLimit === -1 ? null : urlResultLimit;
 
 /**
  * Displays the backups page, given the name of an openshift project.
@@ -35,7 +45,7 @@ export const PageBackups = ({ router }) => (
       query={EnvironmentWithBackupsQuery}
       variables={{
         openshiftProjectName: router.query.openshiftProjectName,
-        limit: backupsLimit
+        limit: resultLimit
       }}
     >
       {R.compose(
@@ -109,7 +119,7 @@ export const PageBackups = ({ router }) => (
                 </div>
                 <Backups backups={environment.backups} />
                 <ResultsLimited
-                  limit={backupsLimit}
+                  limit={resultLimit}
                   results={environment.backups.length}
                   message={(!customMessage && "") || (customMessage && customMessage.replace(/['"]+/g, ''))}
                 />
