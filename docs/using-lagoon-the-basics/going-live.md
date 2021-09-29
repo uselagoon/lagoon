@@ -66,6 +66,14 @@ To make it as smooth as possible for you to get your site pointing to our server
 
 Before you switch over your domain to Lagoon, make sure you lower the Time-to-Live \(TTL\) before you go live. This will ensure that the switch from the old to the new servers will go quickly. We usually advise a TTL of 300-600 seconds prior to the DNS switch. [More information about TTL](https://en.wikipedia.org/wiki/Time_to_live#DNS_records).
 
+### Recommended settings for Fastly:
+
+CNAME: [cdn.amazee.io](http://cdn.amazee.io/)  
+A 151.101.2.191  
+A 151.101.66.191  
+A 151.101.130.191  
+A 151.101.194.191
+
 {% hint style="info" %}
 We do not suggest configuring any static IP addresses in your DNS zones. The Lagoon load balancer infrastructure may change over time which can have impact on your site availability if you configure a static IP address.
 {% endhint %}
