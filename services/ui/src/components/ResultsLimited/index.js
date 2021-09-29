@@ -8,7 +8,11 @@ import { color } from 'lib/variables';
 const ResultsLimited = ({ limit, results, message }) => {
 
   return (
-    (
+    // if the number of results = the limit, then display a message that the results are limited
+    // if the number of results is less than the limit, the message won't be displayed
+    // the number of results will never be more than the limit (see deployments.js, backups.js, and tasks.js)
+    // as the limit is set here and the results returned will either be less than or equal to this limit, never more
+    (limit == results) && (
     <div className="resultsLimited">
       {
         <React.Fragment>
