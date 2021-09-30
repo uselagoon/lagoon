@@ -32,6 +32,9 @@ if (typeof window !== "undefined") {
     if (parseInt(limit.trim(), 10)) {
       urlResultLimit = parseInt(limit.trim(), 10);
     }
+    if (limit == "all") {
+      urlResultLimit = -1
+    }
   }
 }
 const resultLimit = urlResultLimit === -1 ? null : urlResultLimit;
