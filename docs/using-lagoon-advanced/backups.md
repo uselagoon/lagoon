@@ -29,4 +29,4 @@ Backups of development environments are attempted nightly and are strictly a bes
 
 Lagoon supports custom backup and restore locations via the use of the "[Custom Backup Settings](https://github.com/uselagoon/lagoon/blob/main/docs/using-lagoon-advanced/environment-variables.md#custom-backup-settings)" and/or "[Custom Restore Settings](https://github.com/uselagoon/lagoon/blob/main/docs/using-lagoon-advanced/environment-variables.md#custom-restore-settings)" variables stored in the Lagoon API for each project.
 
-***Note that using these variables may affect any SLAs in effect for Lagoon managed backups***
+***Proceed with caution: Setting these variables will override backup/restore storage locations that may be configured at a cluster level. Any misconfiguration will cause backup/restore failures.***
