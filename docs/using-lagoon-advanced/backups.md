@@ -25,3 +25,8 @@ Backups stored in Restic will be tracked within Lagoon, and can be recovered via
 
 Backups of development environments are attempted nightly and are strictly a best effort service.
 
+## Custom Backup and/or Restore Locations
+
+Lagoon supports custom backup and restore locations via the use of the "[Custom Backup Settings](https://github.com/uselagoon/lagoon/blob/main/docs/using-lagoon-advanced/environment-variables.md#custom-backup-settings)" and/or "[Custom Restore Settings](https://github.com/uselagoon/lagoon/blob/main/docs/using-lagoon-advanced/environment-variables.md#custom-restore-settings)" variables stored in the Lagoon API for each project.
+
+***Proceed with caution: Setting these variables will override backup/restore storage locations that may be configured at a cluster level. Any misconfiguration will cause backup/restore failures.***
