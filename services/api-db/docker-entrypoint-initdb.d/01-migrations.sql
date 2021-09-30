@@ -1477,6 +1477,7 @@ CALL add_enum_webhook_to_type_in_project_notification();
 CALL add_index_for_deployment_environment();
 CALL add_index_for_task_environment();
 CALL add_router_pattern_to_project();
+CALL update_openshift_varchar_length();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;
