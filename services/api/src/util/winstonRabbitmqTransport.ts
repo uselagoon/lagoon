@@ -1,5 +1,6 @@
 import Transport = require('winston-transport');
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { parseAndCleanMeta } from '../loggers/userActivityLogger';
 
 export class RabbitMQTransport extends Transport {
     constructor(options) {
@@ -23,7 +24,7 @@ export class RabbitMQTransport extends Transport {
         project: info.project ? info.project : "",
         uuid: info.uuid ? info.uuid : "",
         event: info.event ? info.event : "api:unknownEvent",
-        meta: meta ? meta : {},
+        meta: meta ? parseAndCleanMeta(meta) : {},
         message: formattedMessage ? formattedMessage : message,
         level: level ? level : ""
       };
@@ -44,6 +45,3 @@ export class RabbitMQTransport extends Transport {
       next();
     }
 }
-
-// @ts-ignore
-// winston.transports.RabbitMQ = RabbitMQTransport;

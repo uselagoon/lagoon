@@ -6,9 +6,13 @@ export interface IUserActivityLogger extends winston.Logger {
   user_info: winston.LeveledLogMethod;
   user_auth: winston.LeveledLogMethod;
   user_action: winston.LeveledLogMethod;
+  defaultMeta: Object
 }
 export interface IUserReqHeader {
   'user-agent'?: string,
+  'accept-language'?: string,
+  'content-type'?: string,
+  'content-length'?: string,
   host?: string,
   ipAddress?: string,
   origin?: string,
@@ -59,7 +63,7 @@ const { colors, levels } = {
 
 addColors(colors);
 
-const parseMeta = (meta: IMetaLogger) => {
+export const parseAndCleanMeta = (meta: IMetaLogger) => {
   if (meta) {
     Object.keys(meta).map(key => {
       if (meta[key] != undefined) {
@@ -84,9 +88,14 @@ const parseMeta = (meta: IMetaLogger) => {
           }
         }
 
+        if (key === 'payload') {
+          const sensitive_fields = ['privateKey', 'token', 'access_token', 'authorization'];
+          meta[key] = findAndRemoveSensitiveFieldsFromNestedObj(meta[key], sensitive_fields);
+        }
+
         if (key === 'headers') {
-          const { 'user-agent': user_agent, host, origin, referer, ipAddress } = meta[key];
-          meta[key] = { 'user-agent': user_agent, host, origin, referer, ipAddress }
+          const { 'user-agent': user_agent, 'accept-language': accept_language, 'content-type': content_type, 'content-length': content_length, host, origin, referer, ipAddress } = meta[key];
+          meta[key] = { 'user-agent': user_agent, 'accept-language': accept_language, 'content-type': content_type, 'content-length': content_length, host, origin, referer, ipAddress }
         }
       }
     });
@@ -94,6 +103,20 @@ const parseMeta = (meta: IMetaLogger) => {
     return JSON.stringify(meta);
   }
   return '';
+};
+
+export const findAndRemoveSensitiveFieldsFromNestedObj = (obj, keys) =>  {
+  return (obj !== Object(obj)
+    ? obj
+    : Array.isArray(obj)
+    ? obj.map((item) => findAndRemoveSensitiveFieldsFromNestedObj(item, keys))
+    : Object.keys(obj)
+      .filter((k) => !keys.includes(k))
+      .reduce(
+        (acc, x) => Object.assign(acc, { [x]: findAndRemoveSensitiveFieldsFromNestedObj(obj[x], keys) }),
+        {}
+      )
+  )
 };
 
 const parseMessage = (info) => {
@@ -104,11 +127,15 @@ const parseMessage = (info) => {
   }
 
   if (info.user) {
-    meta = { user: {...info.user}, headers: info.headers, payload: info.payload };
+    meta = {
+      user: { ...info.user },
+      headers: info.headers ? info.headers : null,
+      payload: info.payload ? info.payload : null
+    };
   }
 
   level = info.level ? info.level : 'info';
-  return `[${info.timestamp}] [${level}]: ${message}: ${meta ? parseMeta(meta) : ''}`
+  return `[${info.timestamp}] [${level}]: ${message}: ${meta ? parseAndCleanMeta(meta) : ''}`
 }
 
 const userActivityLogger: IUserActivityLogger = createLogger({
