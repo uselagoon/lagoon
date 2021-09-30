@@ -425,6 +425,10 @@ As most of the time it is not desirable to run the same cron jobs across all env
   * The schedule for executing the cron job. This follows the standard convention of cron. If you're not sure about the syntax, [Crontab Generator](https://crontab-generator.org/) can help.
   * You can specify `M` for the minute, and your cron job will run once per hour at a random minute \(the same minute each hour\), or `M/15` to run it every 15 mins, but with a random offset from the hour \(like `6,21,36,51`\). It is a good idea to spread out your cron jobs using this feature, rather than have them all fire off on minute `0`.
   * You can specify `H` for the hour, and your cron job will run once per day at a random hour \(the same hour every day\), or `H(2-4)` to run it once per day within the hours of 2-4.
+    * Notes on timezones:
+      * The default timezone for cron jobs is UTC. 
+      * Native cron jobs will run in timezone of the node, which is UTC.
+      * In-pod cron jobs == timezone of the pod it is running in, which defaults to UTC but may be different if you have configured it.
 * `command:`
   * The command to execute. Like the tasks, this executes in the `WORKDIR` of the service. For Lagoon images, this is `/app`.
 * `service:`
