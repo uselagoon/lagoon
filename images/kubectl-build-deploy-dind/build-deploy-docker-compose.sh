@@ -87,7 +87,6 @@ if [ -z "$DEFAULT_BACKUP_SCHEDULE" ]
 then
   DEFAULT_BACKUP_SCHEDULE="M H(22-2) * * *"
 fi
-
 set -x
 
 set +x # reduce noise in build logs
@@ -673,12 +672,12 @@ TEMPLATE_PARAMETERS=()
 #
 # support for multiple api-secrets is possible in the instance that a customer uses 2 separate services in different accounts in the one project
 
-
 ## any fastly api secrets will be prefixed with this, so that we always add this to whatever the customer provides
 FASTLY_API_SECRET_PREFIX="fastly-api-"
 
 FASTLY_API_SECRETS_COUNTER=0
 FASTLY_API_SECRETS=()
+set +x # reduce noise in build logs
 if [ -n "$(cat .lagoon.yml | shyaml keys fastly.api-secrets.$FASTLY_API_SECRETS_COUNTER 2> /dev/null)" ]; then
   while [ -n "$(cat .lagoon.yml | shyaml get-value fastly.api-secrets.$FASTLY_API_SECRETS_COUNTER 2> /dev/null)" ]; do
     FASTLY_API_SECRET_NAME=$FASTLY_API_SECRET_PREFIX$(cat .lagoon.yml | shyaml get-value fastly.api-secrets.$FASTLY_API_SECRETS_COUNTER.name 2> /dev/null)
@@ -720,7 +719,9 @@ if [ -n "$(cat .lagoon.yml | shyaml keys fastly.api-secrets.$FASTLY_API_SECRETS_
     let FASTLY_API_SECRETS_COUNTER=FASTLY_API_SECRETS_COUNTER+1
   done
 fi
+set -x
 
+set +x # reduce noise in build logs
 # FASTLY API SECRETS FROM LAGOON API VARIABLE
 # Allow for defining fastly api secrets using lagoon api variables
 # This accepts colon separated values like so `SECRET_NAME:FASTLY_API_TOKEN:FASTLY_PLATFORMTLS_CONFIGURATION_ID`, and multiple overrides
@@ -756,7 +757,9 @@ if [ ! -z "$LAGOON_FASTLY_API_SECRETS" ]; then
     . /kubectl-build-deploy/scripts/exec-fastly-api-secrets.sh
   done
 fi
+set -x
 
+set +x # reduce noise in build logs
 # FASTLY SERVICE ID PER INGRESS OVERRIDE FROM LAGOON API VARIABLE
 # Allow the fastly serviceid for specific ingress to be overridden by the lagoon API
 # This accepts colon separated values like so `INGRESS_DOMAIN:FASTLY_SERVICE_ID:WATCH_STATUS:SECRET_NAME(OPTIONAL)`, and multiple overrides
@@ -777,6 +780,7 @@ if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
     LAGOON_FASTLY_SERVICE_IDS=$TEMP_LAGOON_FASTLY_SERVICE_IDS
   fi
 fi
+set -x
 
 ##############################################
 ### CUSTOM ROUTES FROM .lagoon.yml
@@ -1318,6 +1322,7 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
 
   TEMPLATE_PARAMETERS=()
 
+  set +x # reduce noise in build logs
   # Check for custom baas bucket name
   if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
     BAAS_BUCKET_NAME=$(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_BAAS_BUCKET_NAME") | "\(.value)"')
@@ -1325,6 +1330,7 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
   if [ -z $BAAS_BUCKET_NAME ]; then
     BAAS_BUCKET_NAME=baas-${PROJECT}
   fi
+  set -x
 
   # Pull in .lagoon.yml variables
   PRODUCTION_MONTHLY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml get-value backup-retention.production.monthly "")
