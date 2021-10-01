@@ -64,7 +64,6 @@ export const getEnvironmentsByProjectId: ResolverFn = async (
 ) => {
   const { id: pid } = project;
 
-  let isAdmin = false;
   // The getAllProjects resolver will authorize environment access already,
   // so we can skip the request to keycloak.
   //
@@ -74,7 +73,6 @@ export const getEnvironmentsByProjectId: ResolverFn = async (
     await hasPermission('environment', 'view', {
       project: pid
     });
-    isAdmin = true;
   }
 
   let filterEnvironments = false;
@@ -82,7 +80,7 @@ export const getEnvironmentsByProjectId: ResolverFn = async (
 
   if (args.factFilter && args.factFilter.filters && args.factFilter.filters.length !== 0) {
     filterEnvironments = true;
-    filteredEnvironments = await getFactFilteredEnvironmentIds(args.factFilter, [project.id], sqlClientPool, isAdmin);
+    filteredEnvironments = await getFactFilteredEnvironmentIds(args.factFilter, [project.id], sqlClientPool, false);
   }
 
   const rows = await query(
@@ -97,7 +95,7 @@ export const getEnvironmentsByProjectId: ResolverFn = async (
   );
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
-  return withK8s;
+  return withK8s.map(row => ({ ...row, environmentAuthz: true }));
 };
 
 export const getEnvironmentByDeploymentId: ResolverFn = async (

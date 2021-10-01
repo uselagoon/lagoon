@@ -5,10 +5,9 @@ import { Sql } from './sql';
 import { ResolverFn } from '../index';
 import { knex } from '../../util/db';
 import { logger } from '../../loggers/logger';
-import { loggers } from 'winston';
 
 export const getFactsByEnvironmentId: ResolverFn = async (
-  { id: environmentId },
+  { id: environmentId, environmentAuthz },
   { keyFacts },
   { sqlClientPool, hasPermission }
 ) => {
@@ -16,9 +15,11 @@ export const getFactsByEnvironmentId: ResolverFn = async (
     sqlClientPool
   ).getEnvironmentById(environmentId);
 
-  await hasPermission('fact', 'view', {
-    project: environment.project
-  });
+  if (!environmentAuthz) {
+    await hasPermission('fact', 'view', {
+      project: environment.project
+    });
+  }
 
   const rows = await query(
     sqlClientPool,
@@ -98,7 +99,7 @@ export const getEnvironmentsByFactSearch: ResolverFn = async (
 ) => {
 
   let isAdmin = false;
-  let userProjectIds  : number[];
+  let userProjectIds: number[];
   try {
     await hasPermission('project', 'viewAll');
     isAdmin = true;
@@ -420,8 +421,6 @@ const getFactFilteredEnvironmentsCount = async (filterDetails: any, projectIdSub
 }
 
 const buildContitionsForFactSearchQuery = (filterDetails: any, factQuery: any, projectIdSubset: number[], isAdmin: boolean = false, byPassLimits: boolean = false) => {
-  const filters = {};
-
   if (filterDetails.filters && filterDetails.filters.length > 0) {
     filterDetails.filters.forEach((filter, i) => {
 
@@ -449,11 +448,11 @@ const buildContitionsForFactSearchQuery = (filterDetails: any, factQuery: any, p
     const builderFactory = (filter, i) => (builder) => {
       let { lhsTarget, name, contains } = filter;
       if (lhsTarget == "PROJECT") {
-        builder = builder.andWhere(`project.${name}`, '=', `${contains}`);
+        builder = builder.andWhere(`project.${name}`, 'like', `${predicateRHSProcess('CONTAINS', contains)}`);
       } else {
         let tabName = `env${i}`;
         builder = builder.andWhere(`${tabName}.name`, '=', `${name}`);
-        builder = builder.andWhere(`${tabName}.value`, 'like', `%${contains}%`);
+        builder = builder.andWhere(`${tabName}.value`, 'like', `${predicateRHSProcess('CONTAINS', contains)}`);
       }
       return builder;
     };
@@ -468,11 +467,6 @@ const buildContitionsForFactSearchQuery = (filterDetails: any, factQuery: any, p
       });
       return innerBuilder;
     })
-  }
-  else {
-    if (!isAdmin) {
-      factQuery = factQuery.innerJoin(`environment_fact`, 'environment.id', `environment_fact.environment`);
-    }
   }
 
   if (projectIdSubset && !isAdmin) {
