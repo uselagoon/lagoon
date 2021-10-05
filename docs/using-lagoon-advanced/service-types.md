@@ -25,10 +25,11 @@ This table lists all service types that can be defined via `lagoon.type` within 
 | `none` | Instructs Lagoon to completely ignore this service. | - | - | - | - | - |
 | `postgres` | A meta-service which will tell Lagoon to automatically decide between `postgres-single` and `postgres-dbaas`. | - | - | - | - | - |
 | `postgres-single` | Postgres container. Creates cron job for backups running every 24h executing `/lagoon/postgres-backup.sh localhost`. | TCP connection on `5432` | `5432` | No | Yes | `lagoon.persistent.size` |
-| `postgres-dbaas` | Uses a shared PostgreSQL server via the DBaaS Operator.  | Not Needed | `5432` | No | - | - |
+| `postgres-dbaas` | Uses a shared PostgreSQL server via the DBaaS Operator. | Not Needed | `5432` | No | - | - |
 | `python` | Python container. No persistent storage. | TCP connection on `8800` | `8800` | Yes | No | - |
 | `redis` | Redis container. | TCP connection on `6379` | `6379` | No | No | - |
 | `redis-persistent` | Redis container with auto-generated persistent storage mounted under `/data`. | TCP connection on `6379` | `6379` | No | Yes | `lagoon.persistent.size` |
 | `solr` | Solr container with auto-generated persistent storage mounted under `/var/solr`. | TCP connection on `8983` | `8983` | No | Yes | `lagoon.persistent.size` |
 | `varnish` | Varnish container. | HTTP request `localhost:8080/varnish_status` | `8080` | Yes | No | - |
 | `varnish-persistent` | Varnish container with auto-generated persistent storage mounted under `/var/cache/varnish`. | HTTP request `localhost:8080/varnish_status` | `8080` | Yes | Yes | `lagoon.persistent.size` |
+

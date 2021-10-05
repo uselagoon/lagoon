@@ -222,3 +222,4 @@ An example custom setting would be: `AAAAAAAAAAAA12345`
 Specify the secret key Lagoon should use to access the custom restore bucket.
 
 An example custom setting would be: `12345AAAAAAAAAAAA`
+
