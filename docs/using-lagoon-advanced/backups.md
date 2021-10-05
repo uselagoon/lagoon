@@ -15,7 +15,7 @@ Backups of databases and containers' persistent storage volumes happens nightly 
 * Monthly: 1
 * Hourly: 0
 
-If a different retention period for production backups is required, this can be specified at a project level via setting the "Backup Retention" variables in the project's [.lagoon.yml](https://github.com/uselagoon/lagoon/tree/0f3527412262bf7cadf909019fca52726ed1a7c4/docs/using-lagoon-advanced/lagoon_yml.md) file.
+If a different retention period for production backups is required, this can be specified at a project level via setting the "Backup Retention" variables in the project's [.lagoon.yml](../using-lagoon-the-basics/lagoon-yml.md#backup-retention) file.
 
 ### Retrieving Backups
 
@@ -25,3 +25,8 @@ Backups stored in Restic will be tracked within Lagoon, and can be recovered via
 
 Backups of development environments are attempted nightly and are strictly a best effort service.
 
+## Custom Backup and/or Restore Locations
+
+Lagoon supports custom backup and restore locations via the use of the "[Custom Backup Settings](https://github.com/uselagoon/lagoon/blob/main/docs/using-lagoon-advanced/environment-variables.md#custom-backup-settings)" and/or "[Custom Restore Settings](https://github.com/uselagoon/lagoon/blob/main/docs/using-lagoon-advanced/environment-variables.md#custom-restore-settings)" variables stored in the Lagoon API for each project.
+
+***Proceed with caution: Setting these variables will override backup/restore storage locations that may be configured at a cluster level. Any misconfiguration will cause backup/restore failures.***
