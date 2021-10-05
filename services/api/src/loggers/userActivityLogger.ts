@@ -6,7 +6,6 @@ export interface IUserActivityLogger extends winston.Logger {
   user_info: winston.LeveledLogMethod;
   user_auth: winston.LeveledLogMethod;
   user_action: winston.LeveledLogMethod;
-  defaultMeta: Object
 }
 export interface IUserReqHeader {
   'user-agent'?: string,
@@ -23,29 +22,29 @@ export interface IMetaLogger {
   uuid?: string,
   event?: string,
   user?: {
-    id?: string
-    user: string,
+    id?: string,
+    jti?: string,
     sub?: string,
+    username?: string,
     email?: string,
+    email_verified?: string,
+    preferred_username?: string,
     group?: string,
     aud?: string,
+    azp?: string,
     iss?: string,
+    typ?: string,
+    auth_time?: string,
     iat?: string,
     accessed?: Date,
-    access_token?: any,
+    realm_access? : any,
     source?: string,
     roles?: string,
+    comment?: string,
+    gitlabId?: string
   },
   headers?: IUserReqHeader,
   payload?: {}
-}
-
-export const getUserActivityLogger = (user: any, headers?: any): IUserActivityLogger => {
-  if (user) {
-    userActivityLogger.defaultMeta = { user, headers }
-  }
-
-  return userActivityLogger;
 }
 
 const { colors, levels } = {
@@ -68,23 +67,26 @@ export const parseAndCleanMeta = (meta: IMetaLogger) => {
     Object.keys(meta).map(key => {
       if (meta[key] != undefined) {
         if (key === 'user') {
-          const { user: username, email, source, iat, iss, sub, aud, access_token } = meta[key];
-
-          if (access_token) {
-            const { preferred_username, email, sub, azp: source, aud, iat, realm_access } = access_token.content;
-            meta[key] = {
-              id: sub,
-              user: preferred_username,
-              email,
-              aud,
-              accessed: new Date(iat * 1000),
-              source,
-              roles: realm_access.roles,
-            }
-          }
-          else {
-            // Legacy token
-            meta[key] = { id: sub, user: username, email, source, iss, aud, iat }
+          const { username, jti, email,email_verified, preferred_username, group, azp, typ, auth_time, iat, iss, sub, aud, realm_access, source, comment, gitlabId } = meta[key];
+          
+          meta[key] = {
+            sub,
+            preferred_username,
+            email,
+            aud,
+            source,
+            username,
+            jti,
+            email_verified,
+            group,
+            azp,
+            typ,
+            auth_time,
+            iat,
+            iss,
+            comment,
+            gitlabId,
+            ...(realm_access && { roles: realm_access.roles }),
           }
         }
 
@@ -138,7 +140,7 @@ const parseMessage = (info) => {
   return `[${info.timestamp}] [${level}]: ${message}: ${meta ? parseAndCleanMeta(meta) : ''}`
 }
 
-const userActivityLogger: IUserActivityLogger = createLogger({
+export const userActivityLogger: IUserActivityLogger = createLogger({
   exitOnError: false,
   levels: levels,
   format: format.combine(
@@ -161,5 +163,3 @@ const userActivityLogger: IUserActivityLogger = createLogger({
     })
   ]
 });
-
-export default userActivityLogger;

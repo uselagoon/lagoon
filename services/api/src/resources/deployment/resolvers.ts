@@ -193,7 +193,7 @@ export const deleteDeployment: ResolverFn = async (
 
   await query(sqlClientPool, Sql.deleteDeployment(id));
 
-  userActivityLogger.user_action(`User deleted deployment '${id}'`, {
+  userActivityLogger(`User deleted deployment '${id}'`, {
     project: '',
     event: 'api:deleteDeployment',
     payload: {
@@ -268,7 +268,7 @@ export const updateDeployment: ResolverFn = async (
 
   pubSub.publish(EVENTS.DEPLOYMENT.UPDATED, deployment);
 
-  userActivityLogger.user_action(`User updated deployment '${id}'`, {
+  userActivityLogger(`User updated deployment '${id}'`, {
     project: '',
     event: 'api:updateDeployment',
     payload: {
@@ -314,7 +314,7 @@ export const cancelDeployment: ResolverFn = async (
     project
   };
 
-  userActivityLogger.user_action(
+  userActivityLogger(
     `User cancelled deployment for '${deployment.environment}'`,
     {
       project: '',
@@ -448,7 +448,7 @@ export const deployEnvironmentLatest: ResolverFn = async (
       return `Error: Unknown deploy type ${environment.deployType}`;
   }
 
-  userActivityLogger.user_action(
+  userActivityLogger(
     `User triggered a deployment on '${deployData.projectName}' for '${environment.name}'`,
     {
       project: deployData.projectName || '',
@@ -526,7 +526,7 @@ export const deployEnvironmentBranch: ResolverFn = async (
     branchName: deployData.branchName
   };
 
-  userActivityLogger.user_action(
+  userActivityLogger(
     `User triggered a deployment on '${deployData.projectName}' for '${deployData.branchName}'`,
     {
       project: deployData.projectName || '',
@@ -621,7 +621,7 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
     pullrequestTitle: deployData.pullrequestTitle
   };
 
-  userActivityLogger.user_action(
+  userActivityLogger(
     `User triggered a pull-request deployment on '${deployData.projectName}' for '${deployData.branchName}'`,
     {
       project: deployData.projectName || '',
@@ -726,7 +726,7 @@ export const deployEnvironmentPromote: ResolverFn = async (
     promoteSourceEnvironment: deployData.promoteSourceEnvironment
   };
 
-  userActivityLogger.user_action(
+  userActivityLogger(
     `User promoted the environment on '${deployData.projectName}' from '${deployData.promoteSourceEnvironment}' to '${deployData.branchName}'`,
     {
       project: deployData.projectName || '',

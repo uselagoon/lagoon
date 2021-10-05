@@ -4,7 +4,7 @@ import { verify } from 'jsonwebtoken';
 import { logger } from '../loggers/logger';
 import { getConfigFromEnv } from '../util/config';
 import { keycloakGrantManager } from '../clients/keycloakClient';
-const { getUserActivityLogger } = require('../loggers/userActivityLogger');
+const { userActivityLogger } = require('../loggers/userActivityLogger');
 import { User } from '../models/user';
 import { Group } from '../models/group';
 
@@ -92,14 +92,10 @@ export const getCredentialsForLegacyToken = async token => {
 export const legacyHasPermission = legacyCredentials => {
   const { role } = legacyCredentials;
 
-  const userActivityLogger = getUserActivityLogger(
-    legacyCredentials ? legacyCredentials : null
-  );
-
   return async (resource, scope) => {
     if (role !== 'admin') {
       userActivityLogger.user_info(`User does not have permission to '${scope}' on '${resource}'`, {
-        user: legacyCredentials
+        user: legacyCredentials ? legacyCredentials : null
       });
       throw new Error('Unauthorized');
     }
@@ -117,10 +113,6 @@ export const keycloakHasPermission = (grant, requestCache, modelClients) => {
   const UserModel = User(modelClients);
   const GroupModel = Group(modelClients);
 
-  const userActivityLogger = getUserActivityLogger(
-    grant ? grant.access_token.content : null
-  );
-
   return async (resource, scope, attributes: IKeycloakAuthAttributes = {}) => {
     const currentUserId: string = grant.access_token.content.sub;
 
@@ -136,7 +128,7 @@ export const keycloakHasPermission = (grant, requestCache, modelClients) => {
       return true;
     } else if (!cachedPermissions === false) {
       userActivityLogger.user_info(`User does not have permission to '${scope}' on '${resource}'`, {
-        user: grant.access_token.content
+        user: grant ? grant.access_token.content : null
       });
       throw new KeycloakUnauthorizedError(`Unauthorized: You don't have permission to "${scope}" on "${resource}".`);
     }
