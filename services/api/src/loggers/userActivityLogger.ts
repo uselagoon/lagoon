@@ -23,6 +23,7 @@ export interface IMetaLogger {
   event?: string,
   user?: {
     id?: string,
+    access_token?: any,
     jti?: string,
     sub?: string,
     username?: string,
@@ -35,11 +36,14 @@ export interface IMetaLogger {
     iss?: string,
     typ?: string,
     auth_time?: string,
+    scope?: string,
     iat?: string,
     accessed?: Date,
     realm_access? : any,
     source?: string,
+    role?: string,
     roles?: string,
+    permissions?: any,
     comment?: string,
     gitlabId?: string
   },
@@ -67,26 +71,31 @@ export const parseAndCleanMeta = (meta: IMetaLogger) => {
     Object.keys(meta).map(key => {
       if (meta[key] != undefined) {
         if (key === 'user') {
-          const { username, jti, email,email_verified, preferred_username, group, azp, typ, auth_time, iat, iss, sub, aud, realm_access, source, comment, gitlabId } = meta[key];
-          
-          meta[key] = {
-            sub,
-            preferred_username,
-            email,
-            aud,
-            source,
-            username,
-            jti,
-            email_verified,
-            group,
-            azp,
-            typ,
-            auth_time,
-            iat,
-            iss,
-            comment,
-            gitlabId,
-            ...(realm_access && { roles: realm_access.roles }),
+          const { access_token, username, email, iat, iss, sub, aud, source, gitlabId, role, permissions } = meta[key];
+
+          if (access_token) {
+            const { jti, email, email_verified, preferred_username, azp, typ, auth_time, iat, iss, sub, aud, realm_access, scope } = access_token.content;
+            meta[key] = {
+              ...(sub && { id: sub }),
+              ...(jti && { jti: jti }),
+              ...(preferred_username && { preferred_username: preferred_username }),
+              ...(email && { email: email }),
+              ...(email_verified && { email_verified: email_verified }),
+              ...(azp && { azp: azp }),
+              ...(typ && { typ: typ }),
+              ...(auth_time && { auth_time: auth_time }),
+              ...(iat && { iat: iat }),
+              ...(iss && { iss: iss }),
+              ...(scope && { scope: scope }),
+              ...(aud && { aud: aud }),
+              ...(source && { source: source }),
+              ...(realm_access && { roles: realm_access.roles }),
+              ...(gitlabId && { gitlabId: gitlabId })
+            }
+          }
+          else {
+            // Legacy token
+            meta[key] = { id: sub, username, email, role, source, iss, aud, iat, permissions }
           }
         }
 
@@ -102,9 +111,9 @@ export const parseAndCleanMeta = (meta: IMetaLogger) => {
       }
     });
 
-    return JSON.stringify(meta);
+    return meta;
   }
-  return '';
+  return {};
 };
 
 export const findAndRemoveSensitiveFieldsFromNestedObj = (obj, keys) =>  {
@@ -137,7 +146,7 @@ const parseMessage = (info) => {
   }
 
   level = info.level ? info.level : 'info';
-  return `[${info.timestamp}] [${level}]: ${message}: ${meta ? parseAndCleanMeta(meta) : ''}`
+  return `[${info.timestamp}] [${level}]: ${message}: ${meta ? JSON.stringify(parseAndCleanMeta(meta)) : ''}`
 }
 
 export const userActivityLogger: IUserActivityLogger = createLogger({
