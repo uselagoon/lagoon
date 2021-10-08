@@ -1470,10 +1470,12 @@ CREATE OR REPLACE PROCEDURE
   BEGIN
     UPDATE environment e
     LEFT JOIN project p ON
-      e.project= p.id
+      e.project = p.id
     SET
       e.openshift = p.openshift,
-      e.openshift_project_pattern = p.openshift_project_pattern;
+      e.openshift_project_pattern = p.openshift_project_pattern
+    WHERE
+      e.openshift = NULL;
   END;
 $$
 
