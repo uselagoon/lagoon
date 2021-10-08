@@ -17,21 +17,7 @@
     - name: "{{ testname }} - environmentByOSProjectNameApiResponse"
       debug:
         msg: "api response: {{ environmentByOSProjectNameApiResponse.json.data.environmentByOpenshiftProjectName.id }}"
-    - name: "{{ testname }} -- this will be posted"
-      debug:
-        msg: '{ "query": "mutation($environmentId: Int!, $taskName: String!, $description: String!, $service: String!, $command: String!) {addAdvancedTaskDefinition(input: {environment:$environmentId, name:$taskName, type:COMMAND, description: $description, service: $service, command: $command}){id}}", "variables": {"environmentId": {{ environmentByOSProjectNameApiResponse.json.data.environmentByOpenshiftProjectName.id }}, "taskName":"testing-echo","description":"echos to file", "service":"node", "command":"echo ''REPLACED BY TASK'' > /app/files/testoutput.txt"}}'
-    - name: "{{ testname }} - POST api register task definition to {{ graphql_url }}"
-      uri:
-        url: "{{ graphql_url }}"
-        method: POST
-        headers:
-          Authorization: "Bearer {{ token }}"
-        body_format: json
-        body: '{ "query": "mutation($environmentId: Int!, $taskName: String!, $description: String!, $service: String!, $command: String!) {addAdvancedTaskDefinition(input: {environment:$environmentId, name:$taskName, type:COMMAND, description: $description, service: $service, command: $command}){... on AdvancedTaskDefinitionCommand {id}}}", "variables": {"environmentId": {{ environmentByOSProjectNameApiResponse.json.data.environmentByOpenshiftProjectName.id }}, "taskName":"testing-echo","description":"echos to file", "service":"node", "command":"echo ''REPLACED BY TASK'' > /app/files/testoutput.txt"}}'
-      register: taskCreateApiResponse
-      until: taskCreateApiResponse.json.data.addAdvancedTaskDefinition.id is defined
-      retries: 20
-      delay: 10
+    - include: ./post-api-register-task-command.yaml
     - name: "{{ testname }} - DEBUG taskCreateApiResponse"
       debug:
         msg: "api response: {{ taskCreateApiResponse }}"

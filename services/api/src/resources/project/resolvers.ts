@@ -35,6 +35,7 @@ export const getAllProjects: ResolverFn = async (
   { sqlClientPool, hasPermission, models, keycloakGrant }
 ) => {
   let userProjectIds: number[];
+
   try {
     await hasPermission('project', 'viewAll');
   } catch (err) {

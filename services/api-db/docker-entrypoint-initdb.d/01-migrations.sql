@@ -1534,6 +1534,7 @@ CALL add_router_pattern_to_project();
 CALL add_openshift_to_environment();
 CALL add_openshift_project_pattern_to_environment();
 CALL add_deployments_disabled_to_project();
+CALL update_openshift_varchar_length();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;

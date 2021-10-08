@@ -13,27 +13,70 @@ import { Sql } from './sql';
 import { Sql as projectSql } from '../project/sql';
 import { Sql as environmentSql } from '../environment/sql';
 import { Helpers as environmentHelpers } from '../environment/helpers';
+import { Helpers as projectHelpers } from '../project/helpers';
+import { getEnvVarsByProjectId } from '../env-variables/resolvers';
 import { EVENTS } from './events';
+import { logger } from '../../loggers/logger';
 
 export const getRestoreLocation: ResolverFn = async (
-  { restoreLocation },
-  _args,
-  _context
+  restore,
+  args,
+  context,
 ) => {
+  const { restoreLocation, backupId } = restore;
+  const { sqlClientPool, hasPermission } = context;
+  const rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
+  const project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(rows[0].environment);
+  const projectEnvVars = await getEnvVarsByProjectId({ id: project.projectId }, args, context);
+
   // https://{endpoint}/{bucket}/{key}
   const s3LinkMatch = /([^/]+)\/([^/]+)\/([^/]+)/;
 
   if (R.test(s3LinkMatch, restoreLocation)) {
     const s3Parts = R.match(s3LinkMatch, restoreLocation);
 
-    const accessKeyId = getConfigFromEnv(
-      'S3_BAAS_ACCESS_KEY_ID',
-      'XXXXXXXXXXXXXXXXXXXX'
-    );
-    const secretAccessKey = getConfigFromEnv(
-      'S3_BAAS_SECRET_ACCESS_KEY',
-      'XXXXXXXXXXXXXXXXXXXX'
-    );
+    // Handle custom restore configurations
+    let lagoonBaasCustomRestoreEndpoint = projectEnvVars.find(obj => {
+      return obj.name === "LAGOON_BAAS_CUSTOM_RESTORE_ENDPOINT"
+    })
+    if (lagoonBaasCustomRestoreEndpoint) {
+      lagoonBaasCustomRestoreEndpoint = lagoonBaasCustomRestoreEndpoint.value
+    }
+    let lagoonBaasCustomRestoreBucket = projectEnvVars.find(obj => {
+      return obj.name === "LAGOON_BAAS_CUSTOM_RESTORE_BUCKET"
+    })
+    if (lagoonBaasCustomRestoreBucket) {
+      lagoonBaasCustomRestoreBucket = lagoonBaasCustomRestoreBucket.value
+    }
+    let lagoonBaasCustomRestoreAccessKey = projectEnvVars.find(obj => {
+      return obj.name === "LAGOON_BAAS_CUSTOM_RESTORE_ACCESS_KEY"
+    })
+    if (lagoonBaasCustomRestoreAccessKey) {
+      lagoonBaasCustomRestoreAccessKey = lagoonBaasCustomRestoreAccessKey.value
+    }
+    let lagoonBaasCustomRestoreSecretKey = projectEnvVars.find(obj => {
+      return obj.name === "LAGOON_BAAS_CUSTOM_RESTORE_SECRET_KEY"
+    })
+    if (lagoonBaasCustomRestoreSecretKey) {
+      lagoonBaasCustomRestoreSecretKey = lagoonBaasCustomRestoreSecretKey.value
+    }
+
+    let accessKeyId, secretAccessKey
+    if (lagoonBaasCustomRestoreEndpoint && lagoonBaasCustomRestoreBucket && lagoonBaasCustomRestoreAccessKey && lagoonBaasCustomRestoreSecretKey) {
+      // Custom Restore location exists, use these credentials instead
+      accessKeyId = lagoonBaasCustomRestoreAccessKey
+      secretAccessKey = lagoonBaasCustomRestoreSecretKey
+    } else {
+      // No Custom Restore location exists, use default credentials
+      accessKeyId = getConfigFromEnv(
+        'S3_BAAS_ACCESS_KEY_ID',
+        'XXXXXXXXXXXXXXXXXXXX'
+      );
+      secretAccessKey = getConfigFromEnv(
+        'S3_BAAS_SECRET_ACCESS_KEY',
+        'XXXXXXXXXXXXXXXXXXXX'
+      );
+    }
 
     let awsS3Parts;
     const awsLinkMatch = /s3\.([^.]+)\.amazonaws\.com\//;

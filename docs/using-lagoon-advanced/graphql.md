@@ -29,7 +29,7 @@ Enter the API endpoint URL. Then click on "Edit HTTP Headers" and add a new Head
 * "Header name": `Authorization`
 * "Header value": `Bearer [jwt token]` \(make sure that the JWT token has no spaces, that won't work\)
 
-![Editing HTTP Headers in the GraphiQL UI.](../.gitbook/assets/graphiql-2020-01-29-18-05-54%20%285%29%20%285%29%20%287%29%20%281%29%20%288%29.png)
+![Editing HTTP Headers in the GraphiQL UI.](../.gitbook/assets/graphiql-2020-01-29-18-05-54%20%285%29%20%285%29%20%287%29%20%281%29%20%289%29.png)
 
 Close the HTTP Header overlay \(press ESC\) and now you are ready to make your first GraphQL Request!
 

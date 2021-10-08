@@ -29,7 +29,7 @@ Under "GraphQL Endpoint", enter the API endpoint URL with `/graphql` on the end.
 
 Press ESC to close the HTTP header overlay and now we are ready to send the first GraphQL request!
 
-![Editing HTTP Headers in GraphiQL.](../.gitbook/assets/graphiql-2020-01-29-18-05-54%20%285%29%20%285%29%20%287%29%20%281%29%20%282%29.png)
+![Editing HTTP Headers in GraphiQL.](../.gitbook/assets/graphiql-2020-01-29-18-05-54%20%285%29%20%285%29%20%287%29%20%281%29%20%284%29.png)
 
 Enter this in the left panel
 
@@ -252,21 +252,20 @@ This query will add a group to a project. Users of that group will be able to ac
 
 ```graphql
 mutation {
-  mutation {
-    addGroupsToProject (
-      input: {
-        project: {
-          #TODO: Enter the name of the project.
-          name: ""
-        }
-        groups: {
-          #TODO: Enter the name of the group that will be added to the project.
-          name: ""
-        }
+  addGroupsToProject (
+    input: {
+      project: {
+        #TODO: Enter the name of the project.
+        name: ""
       }
-    ) {
-      id
+      groups: {
+        #TODO: Enter the name of the group that will be added to the project.
+        name: ""
+      }
     }
+  ) {
+    id
+  }
 }
 ```
 
