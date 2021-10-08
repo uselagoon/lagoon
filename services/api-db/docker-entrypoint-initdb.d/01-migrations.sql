@@ -1464,6 +1464,19 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  migrate_project_openshift_to_environment()
+
+  BEGIN
+    UPDATE environment e
+    LEFT JOIN project p ON
+      e.project= p.id
+    SET
+      e.openshift = p.openshift,
+      e.openshift_project_pattern = p.openshift_project_pattern;
+  END;
+$$
+
 DELIMITER ;
 
 -- If adding new procedures, add them to the bottom of this list
