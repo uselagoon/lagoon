@@ -92,7 +92,7 @@ These services are usually installed alongside either Lagoon Core or Lagoon Remo
   - [Kibana](https://opendistro.github.io/for-elasticsearch-docs/docs/kibana/) (the default user interface for Elasticsearch searching and visualization)
 
 - Managed databases, for use with DBaaS operator (optional)
-  - MariaDB (self managed or via [Amazon RDS for MariaDB](https://aws.amazon.com/rds/mariadb/), [Azure Database for MariaDB](https://docs.microsoft.com/en-us/azure/mariadb/#:~:text=Azure Database for MariaDB is,predictable performance and dynamic scalability.))
+  - MariaDB (self managed or via [Amazon RDS for MariaDB](https://aws.amazon.com/rds/mariadb/), [Azure Database for MariaDB](https://docs.microsoft.com/en-us/azure/mariadb/#:~:text=Azure%20Database%20for%20MariaDB%20is,predictable%20performance%20and%20dynamic%20scalability.))
 
   - MySQL (self managed or via [Amazon RDS for MySQL](https://aws.amazon.com/rds/mysql/), [Amazon Aurora MySQL](https://aws.amazon.com/rds/aurora/mysql-features/), [Azure Database for MySQL](https://azure.microsoft.com/en-au/services/mysql), [Cloud SQL for MySQL](https://cloud.google.com/sql/docs/mysql))
 
