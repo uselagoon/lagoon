@@ -1550,6 +1550,7 @@ CALL add_openshift_to_environment();
 CALL add_openshift_project_pattern_to_environment();
 CALL add_deployments_disabled_to_project();
 CALL update_openshift_varchar_length();
+CALL migrate_project_openshift_to_environment();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;
