@@ -6,7 +6,6 @@ import {
   createPromoteTask
 } from '@lagoon/commons/dist/tasks';
 import { ResolverFn } from '../';
-import { esClient } from '../../clients/esClient';
 import {
   pubSub,
   createEnvironmentFilteredSubscriber
@@ -20,6 +19,33 @@ import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { addTask } from '@lagoon/commons/dist/api';
 import { Sql as environmentSql } from '../environment/sql';
+import S3 from 'aws-sdk/clients/s3';
+
+const accessKeyId =  process.env.S3_FILES_ACCESS_KEY_ID || 'minio'
+const secretAccessKey =  process.env.S3_FILES_SECRET_ACCESS_KEY || 'minio123'
+const bucket = process.env.S3_FILES_BUCKET || 'lagoon-files'
+const region = process.env.S3_FILES_REGION
+const s3Origin = process.env.S3_FILES_HOST || 'http://docker.for.mac.localhost:9000'
+
+const config = {
+  origin: s3Origin,
+  accessKeyId: accessKeyId,
+  secretAccessKey: secretAccessKey,
+  region: region,
+  bucket: bucket
+};
+
+const s3Client = new S3({
+  endpoint: config.origin,
+  accessKeyId: config.accessKeyId,
+  secretAccessKey: config.secretAccessKey,
+  region: config.region,
+  params: {
+    Bucket: config.bucket
+  },
+  s3ForcePathStyle: true,
+  signatureVersion: 'v4'
+});
 
 const convertDateFormat = R.init;
 
@@ -33,26 +59,13 @@ export const getBuildLog: ResolverFn = async (
   }
 
   try {
-    const result = await esClient.search({
-      index: 'lagoon-logs-*',
-      sort: '@timestamp:desc',
-      body: {
-        query: {
-          bool: {
-            must: [
-              { match_phrase: { 'meta.remoteId': remoteId } },
-              { match_phrase: { 'meta.buildPhase': status } }
-            ]
-          }
-        }
-      }
-    });
+    const data = await s3Client.getObject({Bucket: bucket, Key: 'buildlogs/'+remoteId+'.txt'}).promise();
 
-    if (!result.hits.total) {
+    if (!data) {
       return null;
     }
-
-    return R.path(['hits', 'hits', 0, '_source', 'message'], result);
+    let logMsg = new Buffer(JSON.parse(JSON.stringify(data.Body)).data).toString('ascii');
+    return logMsg;
   } catch (e) {
     return `There was an error loading the logs: ${e.message}`;
   }
