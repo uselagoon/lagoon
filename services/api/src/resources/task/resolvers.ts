@@ -9,6 +9,7 @@ import { Sql } from './sql';
 import { EVENTS } from './events';
 import { Helpers } from './helpers';
 import { Helpers as environmentHelpers } from '../environment/helpers';
+import { Helpers as projectHelpers } from '../project/helpers';
 import { Validators as envValidators } from '../environment/validators';
 import S3 from 'aws-sdk/clients/s3';
 
@@ -39,16 +40,24 @@ const s3Client = new S3({
 });
 
 export const getTaskLog: ResolverFn = async (
-  { remoteId, status },
+  { remoteId, environment, id, status },
   _args,
-  _context
+  { sqlClientPool }
 ) => {
   if (!remoteId) {
     return null;
   }
 
+  const environmentData = await environmentHelpers(
+    sqlClientPool
+  ).getEnvironmentById(parseInt(environment));
+  const projectData = await projectHelpers(sqlClientPool).getProjectById(
+    environmentData.project
+  );
+
   try {
-    const data = await s3Client.getObject({Bucket: bucket, Key: 'tasklogs/'+remoteId+'.txt'}).promise();
+    // where it should be, check `tasklogs/projectName/environmentName/taskId-remoteId.txt`
+    const data = await s3Client.getObject({Bucket: bucket, Key: 'tasklogs/'+projectData.name+'/'+environmentData.name+'/'+id+'-'+remoteId+'.txt'}).promise();
 
     if (!data) {
       return null;
@@ -56,7 +65,19 @@ export const getTaskLog: ResolverFn = async (
     let logMsg = new Buffer(JSON.parse(JSON.stringify(data.Body)).data).toString('ascii');
     return logMsg;
   } catch (e) {
-    return `There was an error loading the logs: ${e.message}`;
+    // if it isn't where it should be, check the fallback location which will be `tasklogs/projectName/taskId-remoteId.txt`
+    try {
+      const data = await s3Client.getObject({Bucket: bucket, Key: 'tasklogs/'+projectData.name+'/'+id+'-'+remoteId+'.txt'}).promise();
+
+      if (!data) {
+        return null;
+      }
+      let logMsg = new Buffer(JSON.parse(JSON.stringify(data.Body)).data).toString('ascii');
+      return logMsg;
+    } catch (e) {
+      // otherwise there is no log to show the user
+      return `There was an error loading the logs: ${e.message}\nIf this error persists, contact your Lagoon support team.`;
+    }
   }
 };
 

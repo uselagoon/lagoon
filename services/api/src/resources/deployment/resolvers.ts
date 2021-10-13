@@ -50,16 +50,24 @@ const s3Client = new S3({
 const convertDateFormat = R.init;
 
 export const getBuildLog: ResolverFn = async (
-  { remoteId, status },
+  { remoteId, environment, name, status },
   _args,
-  _context
+  { sqlClientPool }
 ) => {
   if (!remoteId) {
     return null;
   }
 
+  const environmentData = await environmentHelpers(
+    sqlClientPool
+  ).getEnvironmentById(parseInt(environment));
+  const projectData = await projectHelpers(sqlClientPool).getProjectById(
+    environmentData.project
+  );
+
   try {
-    const data = await s3Client.getObject({Bucket: bucket, Key: 'buildlogs/'+remoteId+'.txt'}).promise();
+    // where it should be, check `buildlogs/projectName/environmentName/buildName-remoteId.txt`
+    const data = await s3Client.getObject({Bucket: bucket, Key: 'buildlogs/'+projectData.name+'/'+environmentData.name+'/'+name+'-'+remoteId+'.txt'}).promise();
 
     if (!data) {
       return null;
@@ -67,7 +75,8 @@ export const getBuildLog: ResolverFn = async (
     let logMsg = new Buffer(JSON.parse(JSON.stringify(data.Body)).data).toString('ascii');
     return logMsg;
   } catch (e) {
-    return `There was an error loading the logs: ${e.message}`;
+    // there is no fallback location for build logs, so there is no log to show the user
+    return `There was an error loading the logs: ${e.message}\nIf this error persists, contact your Lagoon support team.`;
   }
 };
 

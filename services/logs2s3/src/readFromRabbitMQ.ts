@@ -41,10 +41,10 @@ export async function readFromRabbitMQ(
   switch (event) {
     // handle builddeploy build logs from lagoon builds
     case String(event.match(/^build-logs:builddeploy-kubernetes:.*/)):
-      logger.verbose(`received ${event} for project ${project} - ${meta.remoteId}`);
+      logger.verbose(`received ${event} for project ${project} environment ${meta.branchName} - name:${meta.jobName}, remoteId:${meta.remoteId}`);
       await s3Client.putObject({
         Bucket: bucket,
-        Key: 'buildlogs/'+meta.remoteId+'.txt',
+        Key: 'buildlogs/'+project+'/'+meta.branchName+'/'+meta.jobName+'-'+meta.remoteId+'.txt',
         ContentType: 'text/plain',
         Body: Buffer.from(message, 'binary')
       }).promise();
@@ -56,14 +56,26 @@ export async function readFromRabbitMQ(
     // the build-logs is a flow on from days past
     case String(event.match(/^build-logs:job-kubernetes:.*/)):
     case String(event.match(/^task-logs:job-kubernetes:.*/)):
-      logger.verbose(`received ${event} for project ${project} - ${meta.remoteId}`);
-      await s3Client.putObject({
-        Bucket: bucket,
-        Key: 'tasklogs/'+meta.remoteId+'.txt',
-        ContentType: 'text/plain',
-        Body: Buffer.from(message, 'binary')
-      }).promise();
-
+      if (meta.environment) {
+        // if the environment is in the data, then save the log to the environments directory
+        // some versions of the controller don't send this value in the log meta
+        // the resolver in the api also knows to check in both locations when trying to load logs
+        logger.verbose(`received ${event} for project ${project} environment ${meta.environment} - id:${meta.task.id}, remoteId:${meta.remoteId}`);
+        await s3Client.putObject({
+          Bucket: bucket,
+          Key: 'tasklogs/'+project+'/'+meta.environment+'/'+meta.task.id+'-'+meta.remoteId+'.txt',
+          ContentType: 'text/plain',
+          Body: Buffer.from(message, 'binary')
+        }).promise();
+      } else {
+        logger.verbose(`received ${event} for project ${project} - id:${meta.task.id}, remoteId:${meta.remoteId}`);
+        await s3Client.putObject({
+          Bucket: bucket,
+          Key: 'tasklogs/'+project+'/'+meta.task.id+'-'+meta.remoteId+'.txt',
+          ContentType: 'text/plain',
+          Body: Buffer.from(message, 'binary')
+        }).promise();
+      }
       channelWrapperLogs.ack(msg);
       break;
     default:
