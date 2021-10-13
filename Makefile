@@ -229,6 +229,7 @@ services :=	api \
 			logs2microsoftteams \
 			logs2rocketchat \
 			logs2slack \
+			logs2s3 \
 			logs2webhook \
 			storage-calculator \
 			ui \
@@ -248,7 +249,7 @@ $(build-services):
 	touch $@
 
 # Dependencies of Service Images
-build/auth-server build/logs2email build/logs2slack build/logs2rocketchat build/logs2webhook build/logs2microsoftteams build/backup-handler build/controllerhandler build/webhook-handler build/webhooks2tasks build/api build/ui: build/yarn-workspace-builder
+build/auth-server build/logs2email build/logs2slack build/logs2rocketchat build/logs2s3 build/logs2webhook build/logs2microsoftteams build/backup-handler build/controllerhandler build/webhook-handler build/webhooks2tasks build/api build/ui: build/yarn-workspace-builder
 build/api-db: services/api-db/Dockerfile
 build/api-redis: services/api-redis/Dockerfile
 build/auto-idler: build/oc
@@ -398,7 +399,7 @@ wait-for-keycloak:
 	grep -m 1 "Config of Keycloak done." <(docker-compose -p $(CI_BUILD_TAG) --compatibility logs -f keycloak 2>&1)
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
-main-test-services = broker logs2email logs2slack logs2rocketchat logs2microsoftteams logs2webhook api api-db api-redis keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher local-minio
+main-test-services = broker logs2email logs2slack logs2rocketchat logs2microsoftteams logs2s3 logs2webhook api api-db api-redis keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher local-minio
 
 # Define a list of which Lagoon Services are needed for openshift testing
 openshift-test-services = openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor openshiftmisc tests-openshift local-dbaas-provider local-mongodb-dbaas-provider
@@ -948,6 +949,10 @@ ui-development: build/api build/api-db build/local-api-data-watcher-pusher build
 api-development: build/api build/api-db build/local-api-data-watcher-pusher build/keycloak build/keycloak-db build/broker-single build/api-redis
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db local-api-data-watcher-pusher keycloak keycloak-db broker api-redis
 
+.PHONY: ui-logs-development
+ui-logs-development: build/api build/api-db build/local-api-data-watcher-pusher build/ui build/keycloak build/keycloak-db build/broker-single build/api-redis build/logs2s3 build/local-minio
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis logs2s3 local-minio
+
 ## CI targets
 
 KIND_VERSION = v0.11.1
@@ -956,7 +961,7 @@ STERN_VERSION = 2.1.17
 CHART_TESTING_VERSION = v3.4.0
 KIND_IMAGE = kindest/node:v1.21.1@sha256:69860bda5563ac81e3c0057d654b5253219618a22ec3a346306239bba8cfa1a6
 TESTS = [api,features-kubernetes,features-kubernetes-2,features-api-variables,active-standby-kubernetes,nginx,drupal-php73,drupal-php74,drupal-postgres,python,gitlab,github,bitbucket,node-mongodb,elasticsearch,tasks]
-CHARTS_TREEISH = main
+CHARTS_TREEISH = logs2s3
 
 local-dev/kind:
 ifeq ($(KIND_VERSION), $(shell kind version 2>/dev/null | sed -nE 's/kind (v[0-9.]+).*/\1/p'))
@@ -1004,6 +1009,7 @@ helm/repos: local-dev/helm
 	./local-dev/helm repo add bitnami https://charts.bitnami.com/bitnami
 	./local-dev/helm repo add amazeeio https://amazeeio.github.io/charts/
 	./local-dev/helm repo add lagoon https://uselagoon.github.io/lagoon-charts/
+	./local-dev/helm repo add minio https://helm.min.io/
 	./local-dev/helm repo update
 
 # stand up a kind cluster configured appropriately for lagoon testing
@@ -1049,7 +1055,7 @@ ifeq ($(ARCH), darwin)
       tcp-listen:32080,fork,reuseaddr tcp-connect:target:32080
 endif
 
-KIND_SERVICES = api api-db api-redis auth-server broker controllerhandler docker-host drush-alias keycloak keycloak-db webhook-handler webhooks2tasks kubectl-build-deploy-dind local-api-data-watcher-pusher local-git ssh tests ui
+KIND_SERVICES = api api-db api-redis auth-server broker controllerhandler docker-host drush-alias keycloak keycloak-db logs2s3 webhook-handler webhooks2tasks kubectl-build-deploy-dind local-api-data-watcher-pusher local-git ssh tests ui
 KIND_TESTS = local-api-data-watcher-pusher local-git tests
 KIND_TOOLS = kind helm kubectl jq stern
 
@@ -1079,7 +1085,7 @@ kind/test: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addpr
 			"quay.io/helmpack/chart-testing:$(CHART_TESTING_VERSION)" \
 			ct install
 
-LOCAL_DEV_SERVICES = api auth-server controllerhandler logs2email logs2microsoftteams logs2rocketchat logs2slack logs2webhook ui webhook-handler webhooks2tasks
+LOCAL_DEV_SERVICES = api auth-server controllerhandler logs2email logs2microsoftteams logs2rocketchat logs2slack logs2s3 logs2webhook ui webhook-handler webhooks2tasks
 
 # install lagoon charts in a Kind cluster
 .PHONY: kind/setup
