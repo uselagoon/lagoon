@@ -248,9 +248,10 @@ services:
   local-minio:
     image: minio/minio
     entrypoint: sh
-    command: -c 'mkdir -p /export/lagoon-files && mkdir -p /export/harbor-images && /usr/bin/minio server /export'
+    command: -c 'mkdir -p /export/lagoon-files && mkdir -p /export/harbor-images && minio server /export --console-address ":9001" '
     ports:
       - '9000:9000'
+      - '9001:9001'
     environment:
       - MINIO_ACCESS_KEY=minio
       - MINIO_SECRET_KEY=minio123
