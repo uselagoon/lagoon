@@ -64,7 +64,7 @@ export const uploadFilesForTask: ResolverFn = async (
 
   const rows = await query(sqlClientPool, taskSql.selectTask(task));
 
-  userActivityLogger.user_action(
+  userActivityLogger(
     `User uploaded files for task '${task}' on project '${R.path(
       ['0', 'pid'],
       rowsPerms
@@ -106,7 +106,7 @@ export const deleteFilesForTask: ResolverFn = async (
 
   await query(sqlClientPool, Sql.deleteFileTask(id));
 
-  userActivityLogger.user_action(`User deleted files for task '${id}'`, {
+  userActivityLogger(`User deleted files for task '${id}'`, {
     project: '',
     event: 'api:deleteFilesForTask',
     data: {
