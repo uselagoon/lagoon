@@ -121,7 +121,7 @@ export const addDeployTargetConfig: ResolverFn = async (
 
   const rows = await query(sqlClientPool, Sql.selectDeployTargetConfigById(insertId));
 
-  userActivityLogger.user_action(`User added DeployTargetConfig`, {
+  userActivityLogger(`User added DeployTargetConfig`, {
     project: input.name || '',
     event: 'api:addDeployTargetConfig',
     payload: {
@@ -157,7 +157,7 @@ export const deleteDeployTargetConfig: ResolverFn = async (
      // Not allowed to stop execution.
   }
 
-  userActivityLogger.user_action(`User deleted DeployTargetConfig'`, {
+  userActivityLogger(`User deleted DeployTargetConfig'`, {
     project: project || '',
     event: 'api:deleteEnvironment',
     payload: {
@@ -211,7 +211,7 @@ export const updateDeployTargetConfig: ResolverFn = async (
   const rows = await query(sqlClientPool, Sql.selectDeployTargetConfigById(id));
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
-  userActivityLogger.user_action(`User updated DeployTargetConfig`, {
+  userActivityLogger(`User updated DeployTargetConfig`, {
     event: 'api:updateDeployTargetConfig',
     payload: {
       data: withK8s
@@ -248,7 +248,7 @@ export const deleteAllDeployTargetConfigs: ResolverFn = async (
 
   await query(sqlClientPool, Sql.truncateDeployTargetConfigs());
 
-  userActivityLogger.user_action(`User deleted all deployTargetConfigs'`, {
+  userActivityLogger(`User deleted all deployTargetConfigs'`, {
     project: '',
     event: 'api:deleteAllDeployTargetConfigs',
     payload: {
