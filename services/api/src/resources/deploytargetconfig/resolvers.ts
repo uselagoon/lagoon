@@ -119,6 +119,11 @@ export const addDeployTargetConfig: ResolverFn = async (
     })
   );
 
+  // patch the project with the message to inform a user that their project is now using deploytarget configurations
+  // this is an alpha feature with no UI support, so we do this for now
+  // @TODO: if this feature comes out of alpha, a UI update will need to be done to show the changes properly
+  const projectRegex = await query(sqlClientPool, Sql.updateProjectBranchPullrequestRegex(project));
+
   const rows = await query(sqlClientPool, Sql.selectDeployTargetConfigById(insertId));
 
   userActivityLogger(`User added DeployTargetConfig`, {
@@ -219,43 +224,4 @@ export const updateDeployTargetConfig: ResolverFn = async (
   });
 
   return R.prop(0, withK8s);
-};
-
-export const getAllDeployTargetConfigs: ResolverFn = async (
-  root,
-  { order },
-  { sqlClientPool, hasPermission }
-) => {
-
-  // only admin can view all deployment targetconfigs for a specfic deploy target
-  await hasPermission('project', 'viewAll');
-
-  let queryBuilder = knex('deploy_target_config');
-
-  const rows = await query(sqlClientPool, queryBuilder.toString());
-  const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
-  return withK8s;
-};
-
-export const deleteAllDeployTargetConfigs: ResolverFn = async (
-  root,
-  args,
-  { sqlClientPool, hasPermission, userActivityLogger }
-) => {
-
-  // only admin can delete all deployment targetconfigs for a specfic deploy target
-  await hasPermission('project', 'deleteAll');
-
-  await query(sqlClientPool, Sql.truncateDeployTargetConfigs());
-
-  userActivityLogger(`User deleted all deployTargetConfigs'`, {
-    project: '',
-    event: 'api:deleteAllDeployTargetConfigs',
-    payload: {
-      args
-    }
-  });
-
-  // TODO: Check rows for success
-  return 'success';
 };

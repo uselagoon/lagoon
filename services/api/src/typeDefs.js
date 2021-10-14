@@ -703,7 +703,9 @@ const typeDefs = gql`
     """
     metadata: JSON
     """
-    DeployTargetConfigs are a way to define which deploy targets are used for a project
+    DeployTargetConfigs are a way to define which deploy targets are used for a project\n
+    *Important:* This is an alpha feature, and is subject to change in any release. Use this at your own risk\n
+    Ensure you stay up to date on changes that may occur with this feature
     """
     deployTargetConfigs: [DeployTargetConfig]
   }

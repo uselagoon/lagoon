@@ -19,6 +19,12 @@ export const Sql = {
     knex('deploy_target_config')
       .truncate()
       .toString(),
+  updateProjectBranchPullrequestRegex: (id: number) =>
+    knex('project')
+      .update('branches', 'This project is configured with DeployTargets')
+      .update('pullrequests', 'This project is configured with DeployTargets')
+      .where('id', '=', id)
+      .toString(),
   insertDeployTargetConfig: ({
     id,
     project,

@@ -121,8 +121,6 @@ const {
   addDeployTargetConfig,
   deleteDeployTargetConfig,
   updateDeployTargetConfig,
-  getAllDeployTargetConfigs,
-  deleteAllDeployTargetConfigs,
 } = require('./resources/deploytargetconfig/resolvers');
 
 const {
@@ -457,7 +455,6 @@ const resolvers = {
     deployTargetConfigById: getDeployTargetConfigById,
     deployTargetConfigsByProjectId: getDeployTargetConfigsByProjectId,
     deployTargetConfigsByDeployTarget: getDeployTargetConfigsByDeployTarget,
-    allDeployTargetConfigs: getAllDeployTargetConfigs,
   },
   Mutation: {
     addProblem,
@@ -574,7 +571,6 @@ const resolvers = {
     updateBillingModifier,
     deleteBillingModifier,
     deleteAllBillingModifiersByBillingGroup,
-    deleteAllDeployTargetConfigs,
     addDeployTargetConfig,
     deleteDeployTargetConfig,
     updateDeployTargetConfig,
