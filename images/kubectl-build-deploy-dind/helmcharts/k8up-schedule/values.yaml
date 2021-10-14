@@ -11,4 +11,14 @@ check:
   schedule: '0 * * * 0'
 
 prune:
+  retention:
+    keepHourly: 0
+    keepDaily: 7
+    keepWeekly: 6
+    keepMonthly: 1
   schedule: '0 * * * 6'
+
+s3:
+  endpoint: ''
+  bucket: ''
+  secretName: ''

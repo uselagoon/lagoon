@@ -13,7 +13,7 @@ In order to authenticate with the API, we need a JWT \(JSON Web Token\) that all
 This can also be done with the `oc` command:
 
 ```bash
-oc -n lagoon-master rsh dc/auto-idler ./create_jwt.sh
+oc -n lagoon-main rsh dc/auto-idler ./create_jwt.sh
 ```
 
 This will return a long string which is the JWT token. Make a note of this, as we will need it to send queries.
@@ -29,7 +29,7 @@ Under "GraphQL Endpoint", enter the API endpoint URL with `/graphql` on the end.
 
 Press ESC to close the HTTP header overlay and now we are ready to send the first GraphQL request!
 
-![Editing HTTP Headers in GraphiQL.](../.gitbook/assets/graphiql-2020-01-29-18-05-54%20%281%29.png)
+![Editing HTTP Headers in GraphiQL.](../.gitbook/assets/graphiql-2020-01-29-18-05-54%20%285%29%20%285%29%20%287%29%20%281%29%20%284%29.png)
 
 Enter this in the left panel
 
@@ -41,7 +41,7 @@ query allProjects{
 }
 ```
 
-![Running a query in GraphiQL.](../.gitbook/assets/graphiql-2020-01-29-20-10-32%20%281%29%20%281%29.png)
+![Running a query in GraphiQL.](../.gitbook/assets/graphiql-2020-01-29-20-10-32.png)
 
 And press the ▶️ button \(or press CTRL+ENTER\).
 
@@ -49,7 +49,7 @@ If all went well, your first GraphQL response should appear shortly afterwards i
 
 ## Creating the first project
 
-Let's create the first project for Lagoon to deploy! For this we'll use the queries from the GraphQL query template in [`create-project.gql`](https://github.com/amazeeio/lagoon/blob/master/docs/administering_lagoon/create-project.gql).
+Let's create the first project for Lagoon to deploy! For this we'll use the queries from the GraphQL query template in [`create-project.gql`](https://github.com/uselagoon/lagoon/blob/main/docs/administering-lagoon/create-project.gql).
 
 For each of the queries \(the blocks starting with `mutation {`\), fill in all of the empty fields marked by TODO comments and run the queries in GraphiQL.app. This will create one of each of the following two objects:
 
@@ -252,21 +252,20 @@ This query will add a group to a project. Users of that group will be able to ac
 
 ```graphql
 mutation {
-  mutation {
-    addGroupsToProject (
-      input: {
-        project: {
-          #TODO: Enter the name of the project.
-          name: ""
-        }
-        groups: {
-          #TODO: Enter the name of the group that will be added to the project.
-          name: ""
-        }
+  addGroupsToProject (
+    input: {
+      project: {
+        #TODO: Enter the name of the project.
+        name: ""
       }
-    ) {
-      id
+      groups: {
+        #TODO: Enter the name of the group that will be added to the project.
+        name: ""
+      }
     }
+  ) {
+    id
+  }
 }
 ```
 
@@ -420,7 +419,7 @@ This requires a redeploy in order for the changes to be reflected in the contain
 ```graphql
  mutation {
    updateProject(
-    input: { id: 109, patch: { productionEnvironment: "master" } }
+    input: { id: 109, patch: { productionEnvironment: "main" } }
   ) {
     id
   }
@@ -435,7 +434,7 @@ mutation {
     input: {
       id: 109
       patch: {
-        productionEnvironment: "master"
+        productionEnvironment: "main"
         branches: "^(prod|stage|dev|update)$"
       }
     }

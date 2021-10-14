@@ -20,6 +20,8 @@ spec:
         {{- include "solr.datadogLabels" . | nindent 8 }}
       annotations:
         {{- include "solr.annotations" . | nindent 8 }}
+        k8up.syn.tools/backupcommand: /bin/sh -c 'tar -cf - -C {{ .Values.persistentStorage.path | quote }} --exclude="lost\+found" . || [ $? -eq 1 ]'
+        k8up.syn.tools/file-extension: .{{ include "solr.fullname" . }}.tar
         lagoon.sh/configMapSha: {{ .Values.configMapSha | quote }}
     spec:
     {{- with .Values.imagePullSecrets }}
@@ -33,7 +35,7 @@ spec:
       priorityClassName: {{ include "solr.lagoonPriority" . }}
       enableServiceLinks: false
       securityContext:
-        fsGroup: 0
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - image: {{ .Values.image | quote }}
           name: {{ .Chart.Name }}
@@ -52,8 +54,6 @@ spec:
             initialDelaySeconds: 90
             timeoutSeconds: 3
             failureThreshold: 5
-          securityContext:
-            runAsGroup: 0
           envFrom:
             - configMapRef:
                 name: lagoon-env

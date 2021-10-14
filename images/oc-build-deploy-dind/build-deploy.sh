@@ -44,7 +44,12 @@ fi
 set +x
 DOCKER_REGISTRY_TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
 
-docker login -u=jenkins -p="${DOCKER_REGISTRY_TOKEN}" ${OPENSHIFT_REGISTRY}
+DEPLOY_TYPE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.deploy-type default)
+
+# Do not run if this a DEPLOY_TYPE=tug which means we just push images to an external registry, we don't need to be logged into the OpenShift Registry
+if [[ ! $DEPLOY_TYPE == "tug" ]]; then
+  docker login -u=jenkins -p="${DOCKER_REGISTRY_TOKEN}" ${OPENSHIFT_REGISTRY}
+fi
 
 INTERNAL_REGISTRY_LOGGED_IN="false"
 if [ ! -z ${INTERNAL_REGISTRY_URL} ] && [ ! -z ${INTERNAL_REGISTRY_USERNAME} ] && [ ! -z ${INTERNAL_REGISTRY_PASSWORD} ] ; then
@@ -74,8 +79,7 @@ do
   fi
 
   ADDITIONAL_YAML_COMMAND=$(cat .lagoon.yml | shyaml get-value additional-yaml.$ADDITIONAL_YAML.command apply)
-  ADDITIONAL_YAML_IGNORE_ERROR=$(cat .lagoon.yml | shyaml get-value additional-yaml.$ADDITIONAL_YAML.ignore_error false)
-  ADDITIONAL_YAML_IGNORE_ERROR="${ADDITIONAL_YAML_IGNORE_ERROR,,}" # convert to lowercase, as shyaml returns "True" if the yaml is set to "true"
+  ADDITIONAL_YAML_IGNORE_ERROR=$(set -o pipefail; cat .lagoon.yml | shyaml get-value additional-yaml.$ADDITIONAL_YAML.ignore_error false | tr '[:upper:]' '[:lower:]')
   . /oc-build-deploy/scripts/exec-additional-yaml.sh
 done
 

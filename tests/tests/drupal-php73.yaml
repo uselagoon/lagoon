@@ -1,8 +1,15 @@
 ---
+- include: features/random-wait.yaml
 
 - include: features/api-token.yaml
   vars:
     testname: "API TOKEN"
+
+- include: api/add-project.yaml
+  vars:
+    project: ci-drupal-73-{{ cluster_type }}
+    git_repo_name: drupal-73.git
+    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
 
 - include: drupal/drupal.yaml
   vars:
@@ -10,15 +17,20 @@
     drupal_version: 8
     db: mariadb-single
     php_version: 7.3
-    git_repo_name: drupal.git
-    project: ci-drupal-{{ cluster_type }}
+    git_repo_name: drupal-73.git
+    project: ci-drupal-73-{{ cluster_type }}
     branch: drupal8-composer-73-mariadb-single
 
-- include: drupal/drush.yaml
+- include: drupal/drupal.yaml
   vars:
-    testname: "DRUSH {{ cluster_type|upper }}"
+    testname: "Drupal 8 composer PHP 7.3 - MARIADB DBAAS {{ cluster_type|upper }}"
     drupal_version: 8
     db: mariadb
     php_version: 7.3
-    git_repo_name: drupal.git
-    project: ci-drupal-{{ cluster_type }}
+    git_repo_name: drupal-73.git
+    project: ci-drupal-73-{{ cluster_type }}
+    branch: drupal8-composer-73-mariadb-dbaas
+
+- include: api/delete-project.yaml
+  vars:
+    project: ci-drupal-73-{{ cluster_type }}

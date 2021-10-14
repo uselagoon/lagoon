@@ -1,11 +1,15 @@
 import gql from 'graphql-tag';
-import DeploymentFragment from 'lib/fragment/Deployment';
 
 export default gql`
   subscription subscribeToDeployments($environment: Int!) {
     deploymentChanged(environment: $environment) {
-      ...deploymentFields
+      id
+      name
+      status
+      created
+      started
+      completed
+      buildLog
     }
   }
-  ${DeploymentFragment}
 `;

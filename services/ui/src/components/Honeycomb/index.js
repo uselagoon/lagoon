@@ -90,7 +90,7 @@ const Honeycomb = ({ data, filter }) => {
     }, [projectsProblems, filter]);
 
     return (
-        <div className="honeycomb-display">
+        <div className="honeycomb-display chromatic-ignore">
             {projects &&
             <div className="content-wrapper results">
                 <div className="content">

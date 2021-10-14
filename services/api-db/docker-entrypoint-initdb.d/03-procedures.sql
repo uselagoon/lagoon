@@ -5,7 +5,6 @@ USE infrastructure;
 -- Since these proved to be awkward to work with and
 -- prone to errors, we will write any further queries
 -- in the API service using knex.
--- Example using knex: https://github.com/amazeeio/lagoon/blob/3c5da25fe9caa442a4443c73b1dc00eb4afb411e/services/api/src/dao/project.js#L14-L24
 
 DELIMITER $$
 
@@ -18,6 +17,7 @@ CREATE OR REPLACE PROCEDURE
     IN availability                      varchar(50),
     IN private_key                     varchar(5000),
     IN subfolder                       varchar(300),
+    IN router_pattern                  varchar(300),
     IN openshift                       int,
     IN openshift_project_pattern       varchar(300),
     IN active_systems_deploy           varchar(300),
@@ -62,6 +62,7 @@ CREATE OR REPLACE PROCEDURE
         availability,
         private_key,
         subfolder,
+        router_pattern,
         active_systems_deploy,
         active_systems_promote,
         active_systems_remove,
@@ -90,6 +91,7 @@ CREATE OR REPLACE PROCEDURE
         availability,
         private_key,
         subfolder,
+        router_pattern,
         active_systems_deploy,
         active_systems_promote,
         active_systems_remove,
@@ -212,7 +214,8 @@ CREATE OR REPLACE PROCEDURE
   (
     IN environment              int,
     IN persistent_storage_claim varchar(100),
-    IN bytes_used               bigint
+    IN bytes_used               bigint,
+    IN updated                  date
   )
   BEGIN
     INSERT INTO environment_storage (
@@ -224,7 +227,7 @@ CREATE OR REPLACE PROCEDURE
         environment,
         persistent_storage_claim,
         bytes_used,
-        DATE(NOW())
+        updated
     )
     ON DUPLICATE KEY UPDATE
         bytes_used=bytes_used;
@@ -234,7 +237,7 @@ CREATE OR REPLACE PROCEDURE
     FROM environment_storage es
     WHERE es.environment = environment AND
           es.persistent_storage_claim = persistent_storage_claim AND
-          es.updated = DATE(NOW());
+          es.updated = updated;
   END;
 $$
 
@@ -354,7 +357,7 @@ CREATE OR REPLACE PROCEDURE
       WHERE o.name = o_name;
 
     IF count > 0 THEN
-      SET @message_text = concat('Openshift: "', name, '" still in use, can not delete');
+      SET @message_text = concat('Openshift: "', o_name, '" still in use, can not delete');
       SIGNAL SQLSTATE '02000'
       SET MESSAGE_TEXT = @message_text;
     END IF;
@@ -544,6 +547,50 @@ CREATE OR REPLACE PROCEDURE
 
     DELETE FROM notification_email WHERE id = nsid;
     DELETE FROM project_notification WHERE nid = nsid AND type = 'email';
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  CreateNotificationWebhook
+  (
+    IN name        varchar(50),
+    IN webhook     varchar(300)
+  )
+  BEGIN
+    DECLARE new_whid int;
+
+    INSERT INTO notification_webhook (
+      name,
+      webhook
+    )
+    VALUES (
+      name,
+      webhook
+    );
+
+    SET new_whid = LAST_INSERT_ID();
+
+    SELECT
+      id,
+      name,
+      webhook
+    FROM notification_webhook
+    WHERE id = new_whid;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  DeleteNotificationWebhook
+  (
+    IN name varchar(50)
+  )
+  BEGIN
+    DECLARE whid int;
+
+    SELECT id INTO whid FROM notification_webhook ns WHERE ns.name = name;
+
+    DELETE FROM notification_webhook WHERE id = whid;
+    DELETE FROM project_notification WHERE nid = whid AND type = 'webhook';
   END;
 $$
 

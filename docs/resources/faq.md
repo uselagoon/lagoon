@@ -26,9 +26,7 @@ If you ever need to recover or restore a backup feel free to submit a ticket or 
 
 ## How can I download a database dump?
 
-{% embed url="https://www.youtube.com/watch?v=vnr3EITlQys&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=3" %}
-
-
+{% embed url="https://www.youtube.com/watch?v=bluTyxKqLbw&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=3" caption="" %}
 
 ## I'm getting an invalid SSL certificate error
 
@@ -53,16 +51,14 @@ The command could not be executed successfully (returned: Array [error]
 [default] =>
 )
 , code: 0)
-Error: no database record could be found for source @master [error]
+Error: no database record could be found for source @main [error]
 ```
 
 Upgrading Drush should fix that for you. We strongly suggest that you use version 8.3 or newer. Once Drush is upgraded the command should work!
 
 ## I'm seeing an Internal Server Error when trying to access my Kibana logs!
 
-{% embed url="https://www.youtube.com/watch?v=is-mt6oBQs8&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=5" %}
-
-
+{% embed url="https://www.youtube.com/watch?v=BuQo5J0Qc2c&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=5" caption="" %}
 
 No need to panic! This usually happens when a tenant has not been selected. To fix this, follow these steps:
 
@@ -75,13 +71,25 @@ You should now be able to see your logs.
 
 ## I'm unable to SSH into any environment!
 
-I'm unable to SSH into any environment. I'm getting the following message: `Permission denied (publickey)`.
+I'm unable to SSH into any environment. I'm getting the following message: `Permission denied (publickey)`. When I run `drush sa` no aliases are returned.
 
-## How can I check the status of a build?
+This typically indicates an issue with Pygmy. You can find our troubleshooting docs for Pygmy here: [https://docs.lagoon.sh/pygmy/troubleshooting](https://docs.lagoon.sh/pygmy/troubleshooting)
 
-{% embed url="https://www.youtube.com/watch?v=UM6lM12ACK4&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=1" %}
+## How can I check the status of a build
 
+{% embed url="https://www.youtube.com/watch?v=PyrlZqTjf68&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd" caption="" %}
 
+## How do I add a cron job?
+
+{% embed url="https://www.youtube.com/watch?v=Yd\_JfDyfbR0&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=2" caption="" %}
+
+## How do I add a new route?
+
+{% embed url="https://www.youtube.com/watch?v=vQxh87F3fW4&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=4" caption="" %}
+
+## How do I remove a route?
+
+You will need to contact your helpful Lagoon administrator should you need to remove a route. You can use either the private RocketChat or Slack channel that was set up for you to communicate - if not, you can always reach us at support@amazee.io.
 
 ## **When I run `pygmy status`, no keys are loaded:**
 
@@ -111,6 +119,10 @@ That should list everything running on port 80. Kill the process running on port
 
 You can make that change using the Lagoon API! You can find the documentation for this change [in our GraphQL documentation](../administering-lagoon/graphql-queries.md#updating-objects).
 
+## How do I add a redirect?
+
+{% embed url="https://www.youtube.com/watch?v=rWb-PkRDhY4&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=6" caption="" %}
+
 ## How can I add new users \(and SSH keys\) to my project/group?
 
 This can be done via the Lagoon API. You can find the steps documentation for this change [in our GraphQL documentation](../administering-lagoon/graphql-queries.md#allowing-access-to-the-project).
@@ -134,6 +146,8 @@ For cloud hosting customers, you can SFTP to your Lagoon environment by using th
 * **Username**: &lt;Project-Environment-Name&gt;
 
 Your username is going to be the name of the environment you are connecting to, most commonly in the pattern _**`PROJECTNAME-ENVIRONMENT`**_.
+
+You may also be interested in checking out our new Lagoon Sync tool, which you can read about here: [https://github.com/amazeeio/lagoon-sync](https://github.com/amazeeio/lagoon-sync)
 
 Authentication also happens automatically via SSH Public & Private Key Authentication.
 

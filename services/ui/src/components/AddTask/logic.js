@@ -43,6 +43,18 @@ const withOptions = withProps(({ pageEnvironment }) => {
     }
   ];
 
+  // Add Advanced Task Definitions
+  let advancedTasks = pageEnvironment.advancedTasks.map(task => {
+    let commandstring = task.command ? `[${task.command}]` : '';
+    let label = task.description ? `${task.description} ${commandstring}` :'';
+    return {
+      id: task.id,
+      label: label,
+      value: 'InvokeRegisteredTask'
+    }
+  });
+  options = [...options, ...advancedTasks];
+
   // Remove tasks that are blocklisted.
   options = R.reject(
     option =>
@@ -52,11 +64,11 @@ const withOptions = withProps(({ pageEnvironment }) => {
 
   // Currently all tasks require the environment to have a 'cli' service,
   // but this can be made dynamic if that changes.
-  if (
-    pageEnvironment.services.findIndex(service => service.name === 'cli') === -1
-  ) {
-    options = [];
-  }
+  // if (
+  //   pageEnvironment.services.findIndex(service => service.name === 'cli') === -1
+  // ) {
+  //   options = [];
+  // }
 
   return { options };
 });

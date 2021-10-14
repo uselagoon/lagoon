@@ -2,6 +2,7 @@
 
 **Note** When running Lagoon locally, the configuration for Harbor is handled entirely automagically.
 
+<!-- markdown-link-check-disable-next-line -->
 If you are running Lagoon locally, you can access that UI at [localhost:8084](https://localhost:8084/). The username is `admin` and the password is `admin`
 
 **Note:** If you are hosting a site with amazee.io, we do not allow customer access to the Harbor UI within amazee.io's Lagoon.

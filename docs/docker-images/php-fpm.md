@@ -19,9 +19,13 @@ This Dockerfile is intended to be used as a base for any `PHP` needs within Lago
 * 7.2 \(available for compatibility, no longer officially supported\)
 * 7.3 [\[Dockerfile\]](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/7.3.Dockerfile)
 * 7.4 [\[Dockerfile\]](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/7.4.Dockerfile)
-* 8.0 \(coming soon\)
+* 8.0 [\[Dockerfile\]](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/8.0.Dockerfile)
 
 All PHP versions use their own Dockerfiles.
+
+{% hint style="info" %}
+We stop updating End of Life \(EOL\) PHP images usually with the Lagoon release that comes after the officially communicated EOL date: [https://www.php.net/supported-versions.php](https://www.php.net/supported-versions.php).
+{% endhint %}
 
 ## Lagoon adaptions
 
@@ -30,7 +34,7 @@ This image is prepared to be used on Lagoon. There are therefore some things are
 * Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/sclorg/s2i-base-container/blob/master/core/root/usr/bin/fix-permissions), so this image will work with a random user.
 * The `/usr/local/etc/php/php.ini` and `/usr/local/etc/php-fpm.conf`, plus all files within `/usr/local/etc/php-fpm.d/` , are parsed through [`envplate`](https://github.com/kreuzwerker/envplate) with a container-entrypoint.
 * See the [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/7.4.Dockerfile) for installed `PHP` extensions.
-* To install further extensions, extend your Dockerfile from this image. Install extensions according to the docs, under the heading[ How to install more PHP extensions.](https://github.com/docker-library/docs/blob/master/php/README.md#how-to-install-more-php-extensions)
+* To install further extensions, extend your Dockerfile from this image. Install extensions according to the docs, under the heading [How to install more PHP extensions.](https://github.com/docker-library/docs/blob/master/php/README.md#how-to-install-more-php-extensions)
 
 ## Included PHP config.
 
@@ -52,17 +56,13 @@ Also, `php-fpm` error logging happens in `stderr`.
 **💡 If you don't like any of these configs, you have three possibilities:**
 
 1. If they are changeable via environment variables, use environment variables \(this is the preferred method, see [table of environment variables below](php-fpm.md#environment-variables)\).
-2. Create your own `fpm-pool` config and set via `php_admin_value` and
-
-   `php_admin_flag`
-
+2. Create your own `fpm-pool` config and set via `php_admin_value` and `php_admin_flag`.
    1. Learn more about them in [`this documentation for Running PHP as an Apache module`](https://www.php.net/manual/en/configuration.changes.php). This documentation refers to Apache, but it is also the case for `php-fpm`\).
 
       _Important:_
 
       1. If you want to provide your own `php-fpm` pool, overwrite the file `/usr/local/etc/php-fpm.d/www.conf` with your own config, or rename this file if you want it to have another name. If you don't do that, the provided pool will be started!
       2. PHP values with the [`PHP_INI_SYSTEM` changeable mode](http://php.net/manual/en/configuration.changes.modes.php) cannot be changed via an `fpm-pool` config. They need to be changed either via already provided environment variables or:
-
 3. Provide your own `php.ini` or `php-fpm.conf` file \(this is the least preferred method\).
 
 ## default fpm-pool

@@ -1,6 +1,8 @@
-ARG ALPINE_VERSION
-FROM alpine:${ALPINE_VERSION}
+FROM alpine:3.13.5
 LABEL maintainer="support@amazee.io"
+
+ARG LAGOON_VERSION
+ENV LAGOON_VERSION=$LAGOON_VERSION
 
 RUN addgroup -g 1000 -S socat && \
       adduser -u 1000 -S socat -G socat && \

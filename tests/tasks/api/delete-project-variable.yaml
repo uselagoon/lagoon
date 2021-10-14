@@ -15,10 +15,14 @@
         msg: "api response: {{ apiresponse.json }}"
     - name: "{{ testname }} - POST api get project by name with target project {{ project }} and sha {{ sha }} to {{ graphql_url }}"
       debug:
-        msg: "api response: {{ apiresponse.json|json_query('data.projectByName.envVariables[?name==`LAGOON_SERVICE_TYPES`].id | [0]') }}"
+        msg: "api response: {{ apiresponse.json | community.general.json_query(query) }}"
+      vars:
+        query: 'data.projectByName.envVariables[?name==`{{ envName }}`].id | [0]'
     - name: "{{ testname }} - set envvar id to fact"
       set_fact:
-        env_var_id: "{{ apiresponse.json|json_query('data.projectByName.envVariables[?name==`LAGOON_SERVICE_TYPES`].id | [0]')  }}"
+        env_var_id: "{{ apiresponse.json | community.general.json_query(query) }}"
+      vars:
+        query: 'data.projectByName.envVariables[?name==`{{ envName }}`].id | [0]'
     - name: "{{ testname }} - POST api delete envVariable with target project {{ project }} to {{ graphql_url }}"
       uri:
         url: "{{ graphql_url }}"
@@ -26,7 +30,8 @@
         headers:
           Authorization: "Bearer {{ token }}"
         body_format: json
-        body: '{ "query": "mutation($id: Int!) {deleteEnvVariable(input:{id:$id})}", "variables": {"id":{{ env_var_id }}}}'
+        body:
+          query: '{{ lookup("template", "./delete-variable.gql") }}'
       register: apiresponse
       when: env_var_id != ""
     - name: "{{ testname }} - POST api delete envVariable with target project {{ project }} to {{ graphql_url }}"

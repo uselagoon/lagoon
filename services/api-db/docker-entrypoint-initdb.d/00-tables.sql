@@ -75,6 +75,7 @@ CREATE TABLE IF NOT EXISTS project (
   git_url                          varchar(300),
   availability                     varchar(50) NOT NULL DEFAULT 'STANDARD',
   subfolder                        varchar(300),
+  routerpattern                    varchar(300),
   active_systems_deploy            varchar(300),
   active_systems_promote           varchar(300),
   active_systems_remove            varchar(300),
@@ -192,16 +193,19 @@ CREATE TABLE IF NOT EXISTS environment_service (
 );
 
 CREATE TABLE IF NOT EXISTS task (
-  id           int NOT NULL auto_increment PRIMARY KEY,
-  name         varchar(100) NOT NULL,
-  environment  int NOT NULL REFERENCES environment (id),
-  service      varchar(100) NOT NULL,
-  command      varchar(300) NOT NULL,
-  status       ENUM('active', 'succeeded', 'failed') NOT NULL,
-  created      datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  started      datetime NULL,
-  completed    datetime NULL,
-  remote_id    varchar(50) NULL
+  id                        int NOT NULL auto_increment PRIMARY KEY,
+  name                      varchar(100) NOT NULL,
+  environment               int NOT NULL REFERENCES environment (id),
+  service                   varchar(100) NOT NULL,
+  command                   varchar(300) NOT NULL,
+  status                    ENUM('active', 'succeeded', 'failed') NOT NULL,
+  created                   datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  started                   datetime NULL,
+  completed                 datetime NULL,
+  remote_id                 varchar(50) NULL,
+  type                      ENUM('standard', 'advanced') default 'standard',
+  advanced_image            varchar(2000),
+  advanced_payload          text
 );
 
 CREATE TABLE IF NOT EXISTS s3_file (
@@ -246,7 +250,7 @@ CREATE TABLE IF NOT EXISTS problem_harbor_scan_matcher (
 CREATE TABLE IF NOT EXISTS project_notification (
   nid      int,
   pid      int REFERENCES project (id),
-  type     ENUM('slack','rocketchat','microsoftteams','email') NOT NULL,
+  type     ENUM('slack','rocketchat','microsoftteams','email', 'webhook') NOT NULL,
   content_type ENUM('deployment', 'problem') NOT NULL,
   notification_severity_threshold int NOT NULL default 0,
   CONSTRAINT project_notification_pkey PRIMARY KEY (nid, pid, type)
@@ -281,8 +285,48 @@ CREATE TABLE IF NOT EXISTS environment_fact (
   environment              int REFERENCES environment (id),
   name                     varchar(300) NOT NULL,
   value                    varchar(300) NOT NULL,
+  type                     ENUM('TEXT', 'URL', 'SEMVER') DEFAULT 'TEXT',
   source                   varchar(300) DEFAULT '',
   description              TEXT NULL    DEFAULT '',
   created                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  category                 TEXT NULL    DEFAULT '',
+  key_fact                 TINYINT(1) NOT NULL DEFAULT(0),
   UNIQUE(environment, name)
+);
+
+CREATE TABLE IF NOT EXISTS environment_fact_reference (
+  id      int NOT NULL auto_increment PRIMARY KEY,
+  fid     int NOT NULL REFERENCES environment_fact (id),
+  name    varchar(300) NOT NULL,
+  UNIQUE(fid, name)
+);
+
+CREATE TABLE IF NOT EXISTS advanced_task_definition (
+  id                       int NOT NULL auto_increment PRIMARY KEY,
+  name                     varchar(300) NOT NULL,
+  description              TEXT NOT NULL DEFAULT '',
+  image                    varchar(2000) DEFAULT '',
+  service                  varchar(100),
+  type                     varchar(100) NOT NULL,
+  environment              int NULL REFERENCES environment(id),
+  project                  int NULL REFERENCES project(id),
+  group_name               varchar(2000) NULL,
+  permission               ENUM('GUEST', 'DEVELOPER', 'MAINTAINER') DEFAULT 'GUEST',
+  command                  text DEFAULT '',
+  created                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  deleted                  timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  UNIQUE(name, environment, project, group_name)
+);
+
+CREATE TABLE IF NOT EXISTS advanced_task_definition_argument (
+  id                                int NOT NULL auto_increment PRIMARY KEY,
+  advanced_task_definition          int REFERENCES advanved_task_definition(id),
+  name                              varchar(300) NOT NULL UNIQUE,
+  type                              ENUM('NUMERIC', 'STRING')
+);
+
+CREATE TABLE IF NOT EXISTS notification_webhook (
+  id          int NOT NULL auto_increment PRIMARY KEY,
+  name        varchar(50) UNIQUE,
+  webhook     varchar(2000)
 );

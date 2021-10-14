@@ -11,6 +11,7 @@ import DrushUserLogin from './components/DrushUserLogin';
 import Empty from './components/Empty';
 import Completed from './components/Completed';
 import Error from './components/Error';
+import InvokeRegisteredTask from './components/InvokeRegisteredTask';
 import { bp, color } from 'lib/variables';
 
 /**
@@ -25,6 +26,7 @@ const AddTask = ({
   onError,
   options
 }) => {
+
   const newTaskComponents = {
     DrushArchiveDump,
     DrushSqlDump,
@@ -35,11 +37,12 @@ const AddTask = ({
     DrushUserLogin,
     Empty,
     Completed,
-    Error
+    Error,
+    InvokeRegisteredTask
   };
 
   const NewTask = selectedTask
-    ? newTaskComponents[selectedTask]
+    ? selectedTask.value ? newTaskComponents[selectedTask.value] : newTaskComponents[selectedTask]
     : newTaskComponents[Empty];
 
   return (
@@ -52,7 +55,7 @@ const AddTask = ({
               placeholder="Select a task..."
               name="task"
               value={options.find(o => o.value === selectedTask)}
-              onChange={selectedOption => setSelectedTask(selectedOption.value)}
+              onChange={selectedOption => setSelectedTask({id: selectedOption.id, value: selectedOption.value})}
               options={options}
               required
             />
@@ -62,6 +65,7 @@ const AddTask = ({
               <NewTask
                 pageEnvironment={pageEnvironment}
                 projectEnvironments={projectEnvironments}
+                selectedTask={selectedTask}
                 onCompleted={onCompleted}
                 onError={onError}
               />
@@ -92,11 +96,9 @@ const AddTask = ({
             flex-flow: column;
             margin-bottom: 32px;
             padding: 32px 20px;
+            width: 100%;
             @media ${bp.tabletUp} {
               margin-bottom: 0;
-            }
-            @media ${bp.wideUp} {
-              min-width: 52%;
             }
             .selectTask {
               flex-grow: 1;

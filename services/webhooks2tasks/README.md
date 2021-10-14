@@ -1,5 +1,5 @@
 <p align="center"><img
-src="https://raw.githubusercontent.com/amazeeio/lagoon/master/docs/images/lagoon-logo.png"
+src="https://raw.githubusercontent.com/amazeeio/lagoon/main/docs/images/lagoon-logo.png"
 alt="The Lagoon logo is a blue hexagon split in two pieces with an L-shaped cut"
 width="40%"></p>
 
@@ -31,4 +31,4 @@ Examples of tasks: trigger a new build, record a new backup.
 * Consumes: `lagoon-webhooks`, `lagoon-webhooks:queue`
 * Produces: `lagoon-webhooks-delay`
 
-[documentation]: https://lagoon.readthedocs.io/
+[documentation]: https://docs.lagoon.sh/

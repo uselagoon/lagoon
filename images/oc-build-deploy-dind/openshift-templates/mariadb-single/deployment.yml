@@ -68,8 +68,8 @@ objects:
     template:
       metadata:
         annotations:
-          appuio.ch/backupcommand: /bin/sh -c "mysqldump --max-allowed-packet=500M --events --routines --quick --add-locks --no-autocommit --single-transaction --all-databases"
-          backup.appuio.ch/file-extension: .${SERVICE_NAME}.sql
+          appuio.ch/backupCommand: /bin/sh -c "mysqldump --max-allowed-packet=500M --events --routines --quick --add-locks --no-autocommit --single-transaction --all-databases"
+          backup.appuio.ch/fileExtension: .${SERVICE_NAME}.sql
           lagoon.sh/configMapSha: ${CONFIG_MAP_SHA}
         creationTimestamp: null
         labels:

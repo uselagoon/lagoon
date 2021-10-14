@@ -1,8 +1,23 @@
 ---
+- include: features/random-wait.yaml
 
 - include: features/api-token.yaml
   vars:
     testname: "API TOKEN"
+
+- include: api/add-project.yaml
+  vars:
+    project: ci-features-{{ cluster_type }}
+    git_repo_name: features.git
+    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
+
+- include: features/fastly-annotations.yaml
+  vars:
+    testname: "FASTLY ANNOTATIONS {{ cluster_type|upper }}"
+    git_repo_name: features.git
+    project: ci-features-{{ cluster_type }}
+    branch: fastly-annotations
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
 - include: features/lagoon-type-override.yaml
   vars:
@@ -20,6 +35,17 @@
     branch: ingress-annotations
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
+- include: features/short-router-url.yaml
+  vars:
+    testname: "SHORT ROUTER URL {{ cluster_type|upper }}"
+    git_repo_name: features.git
+    project: ci-features-{{ cluster_type }}
+    branch: short-router-url-from-a-very-long-environment-name-like-this
+    # lagoon_environment is truncated for very long branches.
+    # See commons/src/tasks.ts
+    lagoon_environment: short-router-url-from-a-very-l-ebe8
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+
 - include: features/namespace-labels.yaml
   vars:
     testname: "NAMESPACE LABELS {{ cluster_type|upper }}"
@@ -30,21 +56,21 @@
 - include: features/remote-shell.yaml
   vars:
     testname: "REMOTE SHELL {{ cluster_type|upper }}"
-    node_version: 10
+    node_version: 16
     git_repo_name: features.git
     project: ci-features-{{ cluster_type }}
     branch: remoteshell
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
-- include: features/promote.yaml
-  vars:
-    testname: "PROMOTE {{ cluster_type|upper }}"
-    git_repo_name: features.git
-    project: ci-features-{{ cluster_type }}
-    source_environment: source
-    promote_environment: target
-    check_url_source: "https://node.{{ project | regex_replace('_', '-') }}.{{ source_environment | regex_replace('/', '-') }}.{{ route_suffix_https }}"
-    check_url_promote: "https://node.{{ project | regex_replace('_', '-') }}.{{ promote_environment | regex_replace('/', '-') }}.{{ route_suffix_https }}"
+# - include: features/promote.yaml
+#   vars:
+#     testname: "PROMOTE {{ cluster_type|upper }}"
+#     git_repo_name: features.git
+#     project: ci-features-{{ cluster_type }}
+#     source_environment: source
+#     promote_environment: target
+#     check_url_source: "https://node.{{ project | regex_replace('_', '-') }}.{{ source_environment | regex_replace('/', '-') }}.{{ route_suffix_https }}"
+#     check_url_promote: "https://node.{{ project | regex_replace('_', '-') }}.{{ promote_environment | regex_replace('/', '-') }}.{{ route_suffix_https }}"
 
 - include: features/cronjobs.yaml
   vars:
@@ -54,22 +80,10 @@
     branch: branch/cronjob
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
-- include: features/multiproject.yaml
-  vars:
-    testname: "MULTIPROJECT {{ cluster_type|upper }} - two projects with same git url"
-    git_repo_name: multiproject.git
-    project1: ci-multiproject1-{{ cluster_type }}
-    project2: ci-multiproject2-{{ cluster_type }}
-    branch: multiproject
-    check_url1: "https://node.{{ project1 | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix_https }}"
-    check_url2: "https://node.{{ project2 | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix_https }}"
-    custom_domain1: "multiproject1.com"
-    custom_domain2: "multiproject2.com"
-
 # - include: features/openshift-limit.yaml
 #   vars:
 #     testname: "openshift-character-limit {{ cluster_type|upper }}"
-#     node_version: 10
+#     node_version: 16
 #     git_repo_name: features.git
 #     project: ci-features-{{ cluster_type }}
 #     branch: very-long-branch-name-what-would-otherwise-overflow-the-sixty-three-limit
@@ -146,15 +160,7 @@
     expected_dot_env: branch1
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
-- include: features/subfolder.yaml
-  vars:
-    testname: "SUBFOLDER {{ cluster_type|upper }}"
-    git_repo_name: features-subfolder.git
-    project: ci-features-subfolder-{{ cluster_type }}
-    branch: subfolder
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
-
-# # @TODO: Enable again, see https://github.com/amazeeio/lagoon/issues/1099
+# # @TODO: Enable again, see https://github.com/uselagoon/lagoon/issues/1099
 # # - include: features/limits.yaml
 # #   vars:
 # #     testname: "limits"
@@ -162,10 +168,6 @@
 # #     project: ci-env-limit
 # #     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
-- include: features/lagoon-api-variables.yaml
+- include: api/delete-project.yaml
   vars:
-    testname: "LAGOON API VARIABLES {{ cluster_type|upper }}"
-    git_repo_name: features.git
     project: ci-features-{{ cluster_type }}
-    branch: lagoon-api-variables
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"

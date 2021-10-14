@@ -1,0 +1,3 @@
+mutation deploy {
+  deployEnvironmentBranch(input:{project:{name: "{{ project }}" }, branchName: "{{ branch }}", branchRef: "{{ sha }}" })
+}
