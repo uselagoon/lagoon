@@ -4,46 +4,80 @@ import {
   pubSub,
   createEnvironmentFilteredSubscriber
 } from '../../clients/pubSub';
-import { esClient } from '../../clients/esClient';
 import { knex, query, isPatchEmpty } from '../../util/db';
 import { Sql } from './sql';
 import { EVENTS } from './events';
 import { Helpers } from './helpers';
 import { Helpers as environmentHelpers } from '../environment/helpers';
+import { Helpers as projectHelpers } from '../project/helpers';
 import { Validators as envValidators } from '../environment/validators';
+import S3 from 'aws-sdk/clients/s3';
+
+const accessKeyId =  process.env.S3_FILES_ACCESS_KEY_ID || 'minio'
+const secretAccessKey =  process.env.S3_FILES_SECRET_ACCESS_KEY || 'minio123'
+const bucket = process.env.S3_FILES_BUCKET || 'lagoon-files'
+const region = process.env.S3_FILES_REGION
+const s3Origin = process.env.S3_FILES_HOST || 'http://docker.for.mac.localhost:9000'
+
+const config = {
+  origin: s3Origin,
+  accessKeyId: accessKeyId,
+  secretAccessKey: secretAccessKey,
+  region: region,
+  bucket: bucket
+};
+
+const s3Client = new S3({
+  endpoint: config.origin,
+  accessKeyId: config.accessKeyId,
+  secretAccessKey: config.secretAccessKey,
+  region: config.region,
+  params: {
+    Bucket: config.bucket
+  },
+  s3ForcePathStyle: true,
+  signatureVersion: 'v4'
+});
 
 export const getTaskLog: ResolverFn = async (
-  { remoteId, status },
+  { remoteId, environment, id, status },
   _args,
-  _context
+  { sqlClientPool }
 ) => {
   if (!remoteId) {
     return null;
   }
 
-  try {
-    const result = await esClient.search({
-      index: 'lagoon-logs-*',
-      sort: '@timestamp:desc',
-      body: {
-        query: {
-          bool: {
-            must: [
-              { match_phrase: { 'meta.remoteId': remoteId } },
-              { match_phrase: { 'meta.jobStatus': status } }
-            ]
-          }
-        }
-      }
-    });
+  const environmentData = await environmentHelpers(
+    sqlClientPool
+  ).getEnvironmentById(parseInt(environment));
+  const projectData = await projectHelpers(sqlClientPool).getProjectById(
+    environmentData.project
+  );
 
-    if (!result.hits.total) {
+  try {
+    // where it should be, check `tasklogs/projectName/environmentName/taskId-remoteId.txt`
+    const data = await s3Client.getObject({Bucket: bucket, Key: 'tasklogs/'+projectData.name+'/'+environmentData.name+'/'+id+'-'+remoteId+'.txt'}).promise();
+
+    if (!data) {
       return null;
     }
-
-    return R.path(['hits', 'hits', 0, '_source', 'message'], result);
+    let logMsg = new Buffer(JSON.parse(JSON.stringify(data.Body)).data).toString('ascii');
+    return logMsg;
   } catch (e) {
-    return `There was an error loading the logs: ${e.message}`;
+    // if it isn't where it should be, check the fallback location which will be `tasklogs/projectName/taskId-remoteId.txt`
+    try {
+      const data = await s3Client.getObject({Bucket: bucket, Key: 'tasklogs/'+projectData.name+'/'+id+'-'+remoteId+'.txt'}).promise();
+
+      if (!data) {
+        return null;
+      }
+      let logMsg = new Buffer(JSON.parse(JSON.stringify(data.Body)).data).toString('ascii');
+      return logMsg;
+    } catch (e) {
+      // otherwise there is no log to show the user
+      return `There was an error loading the logs: ${e.message}\nIf this error persists, contact your Lagoon support team.`;
+    }
   }
 };
 
