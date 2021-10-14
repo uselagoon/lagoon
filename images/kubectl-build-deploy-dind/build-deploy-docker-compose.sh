@@ -864,7 +864,8 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
           if [[ ${#ROUTE_DOMAIN} -gt 53 ]] ; then
             # Trim the route domain to 47 characters, and add an 5 character hash of the domain at the end
             # this gives a total of 53 characters
-            INGRESS_NAME=${ROUTE_DOMAIN:0:47}-$(echo ${ROUTE_DOMAIN} | md5sum | cut -f 1 -d " " | cut -c 1-5)
+            INGRESS_NAME="${ROUTE_DOMAIN:0:47}"
+            INGRESS_NAME="${INGRESS_NAME%%.*}-$(echo "${ROUTE_DOMAIN}" | md5sum | cut -f 1 -d " " | cut -c 1-5)"
           else
             INGRESS_NAME=${ROUTE_DOMAIN}
           fi
@@ -984,7 +985,8 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
           if [[ ${#ROUTE_DOMAIN} -gt 53 ]] ; then
             # Trim the route domain to 47 characters, and add an 5 character hash of the domain at the end
             # this gives a total of 53 characters
-            INGRESS_NAME=${ROUTE_DOMAIN:0:47}-$(echo ${ROUTE_DOMAIN} | md5sum | cut -f 1 -d " " | cut -c 1-5)
+            INGRESS_NAME="${ROUTE_DOMAIN:0:47}"
+            INGRESS_NAME="${INGRESS_NAME%%.*}-$(echo "${ROUTE_DOMAIN}" | md5sum | cut -f 1 -d " " | cut -c 1-5)"
           else
             INGRESS_NAME=${ROUTE_DOMAIN}
           fi
@@ -1106,7 +1108,8 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
       if [[ ${#ROUTE_DOMAIN} -gt 53 ]] ; then
         # Trim the route domain to 47 characters, and add an 5 character hash of the domain at the end
         # this gives a total of 53 characters
-        INGRESS_NAME=${ROUTE_DOMAIN:0:47}-$(echo ${ROUTE_DOMAIN} | md5sum | cut -f 1 -d " " | cut -c 1-5)
+        INGRESS_NAME="${ROUTE_DOMAIN:0:47}"
+        INGRESS_NAME="${INGRESS_NAME%%.*}-$(echo "${ROUTE_DOMAIN}" | md5sum | cut -f 1 -d " " | cut -c 1-5)"
       else
         INGRESS_NAME=${ROUTE_DOMAIN}
       fi
@@ -1226,7 +1229,8 @@ else
       if [[ ${#ROUTE_DOMAIN} -gt 53 ]] ; then
         # Trim the route domain to 47 characters, and add an 5 character hash of the domain at the end
         # this gives a total of 53 characters
-        INGRESS_NAME=${ROUTE_DOMAIN:0:47}-$(echo ${ROUTE_DOMAIN} | md5sum | cut -f 1 -d " " | cut -c 1-5)
+        INGRESS_NAME="${ROUTE_DOMAIN:0:47}"
+        INGRESS_NAME="${INGRESS_NAME%%.*}-$(echo "${ROUTE_DOMAIN}" | md5sum | cut -f 1 -d " " | cut -c 1-5)"
       else
         INGRESS_NAME=${ROUTE_DOMAIN}
       fi

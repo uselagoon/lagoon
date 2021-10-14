@@ -378,7 +378,7 @@ export const addOrUpdateEnvironment: ResolverFn = async (
     }
   );
 
-  userActivityLogger.user_action(`User updated environment`, {
+  userActivityLogger(`User updated environment`, {
     project: input.name || '',
     event: 'api:addOrUpdateEnvironment',
     payload: {
@@ -421,7 +421,7 @@ export const addOrUpdateEnvironmentStorage: ResolverFn = async (
   const environment = R.path([0, 0], rows);
   const { name: projectName } = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environment['environment']);
 
-  userActivityLogger.user_action(`User updated environment storage on project '${projectName}'`, {
+  userActivityLogger(`User updated environment storage on project '${projectName}'`, {
     project: projectName || '',
     event: 'api:addOrUpdateEnvironmentStorage',
     payload: {
@@ -537,7 +537,7 @@ export const deleteEnvironment: ResolverFn = async (
       return `Error: unknown deploy type ${environment.deployType}`;
   }
 
-  userActivityLogger.user_action(`User deleted environment '${environment.name}' on project '${projectName}'`, {
+  userActivityLogger(`User deleted environment '${environment.name}' on project '${projectName}'`, {
     project: data.projectName || '',
     event: 'api:deleteEnvironment',
     payload: {
@@ -613,7 +613,7 @@ export const updateEnvironment: ResolverFn = async (
   const rows = await query(sqlClientPool, Sql.selectEnvironmentById(id));
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
-  userActivityLogger.user_action(`User updated environment '${curEnv.name}' on project '${curEnv.project}'`, {
+  userActivityLogger(`User updated environment '${curEnv.name}' on project '${curEnv.project}'`, {
     project: curEnv.project || '',
     event: 'api:updateEnvironment',
     payload: {
@@ -674,7 +674,7 @@ export const deleteAllEnvironments: ResolverFn = async (
 
   await query(sqlClientPool, Sql.truncateEnvironment());
 
-  userActivityLogger.user_action(`User deleted all environments'`, {
+  userActivityLogger(`User deleted all environments'`, {
     project: '',
     event: 'api:deleteAllEnvironments',
     payload: {
@@ -704,7 +704,7 @@ export const setEnvironmentServices: ResolverFn = async (
     await query(sqlClientPool, Sql.insertService(environmentId, service));
   }
 
-  userActivityLogger.user_action(`User set environment services for '${environment.name}'`, {
+  userActivityLogger(`User set environment services for '${environment.name}'`, {
     project: '',
     event: 'api:setEnvironmentServices',
     payload: {

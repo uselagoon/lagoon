@@ -161,7 +161,7 @@ export const addBackup: ResolverFn = async (
 
   pubSub.publish(EVENTS.BACKUP.ADDED, backup);
 
-  userActivityLogger.user_action(
+  userActivityLogger(
     `User deployed backup '${backupId}' to '${environment.name}' on project '${environment.project}'`,
     {
       project: environment.project,
@@ -195,7 +195,7 @@ export const deleteBackup: ResolverFn = async (
   const rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
   pubSub.publish(EVENTS.BACKUP.DELETED, R.prop(0, rows));
 
-  userActivityLogger.user_action(`User deleted backup '${backupId}'`, {
+  userActivityLogger(`User deleted backup '${backupId}'`, {
     project: '',
     event: 'api:deleteBackup',
     payload: {
@@ -215,7 +215,7 @@ export const deleteAllBackups: ResolverFn = async (
 
   await query(sqlClientPool, Sql.truncateBackup());
 
-  userActivityLogger.user_action(`User deleted all backups`);
+  userActivityLogger(`User deleted all backups`);
 
   // TODO: Check rows for success
   return 'success';
@@ -281,7 +281,7 @@ export const addRestore: ResolverFn = async (
     project: projectData
   };
 
-  userActivityLogger.user_action(
+  userActivityLogger(
     `User restored a backup '${backupId}' for project ${projectData.name}`,
     {
       project: projectData.name,
@@ -363,7 +363,7 @@ export const updateRestore: ResolverFn = async (
 
   pubSub.publish(EVENTS.BACKUP.UPDATED, backupData);
 
-  userActivityLogger.user_action(`User updated restore '${backupId}'`, {
+  userActivityLogger(`User updated restore '${backupId}'`, {
     project: '',
     event: 'api:updateRestore',
     payload: {

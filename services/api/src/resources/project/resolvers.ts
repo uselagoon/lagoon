@@ -479,7 +479,7 @@ export const addProject = async (
 
   await harborOperations.addProject(project.name, project.id);
 
-  userActivityLogger.user_action(`User added a project '${project.name}'`, {
+  userActivityLogger(`User added a project '${project.name}'`, {
     project: project.name,
     event: 'api:addProject',
     payload: {
@@ -538,7 +538,7 @@ export const deleteProject: ResolverFn = async (
 
   //const harborResults = await harborOperations.deleteProject(project.name)
 
-  userActivityLogger.user_action(`User deleted a project '${project.name}'`, {
+  userActivityLogger(`User deleted a project '${project.name}'`, {
     project: project.name,
     event: 'api:deleteProject',
     payload: {
@@ -752,7 +752,7 @@ export const updateProject: ResolverFn = async (
   //   );
   // }
 
-  userActivityLogger.user_action(`User updated project '${oldProject.name}'`, {
+  userActivityLogger(`User updated project '${oldProject.name}'`, {
     project: oldProject.name,
     event: 'api:updateProject',
     payload: {
@@ -804,7 +804,7 @@ export const deleteAllProjects: ResolverFn = async (
     await KeycloakOperations.deleteGroup(name);
   }
 
-  userActivityLogger.user_action(`User deleted all projects`, {
+  userActivityLogger(`User deleted all projects`, {
     project: '',
     event: 'api:deleteAllProjects',
     payload: {
@@ -845,7 +845,7 @@ export const removeProjectMetadataByKey: ResolverFn = async (
     { id, meta_key: `$.${key}` }
   );
 
-  userActivityLogger.user_action(`User removed project metadata key '${key}'`, {
+  userActivityLogger(`User removed project metadata key '${key}'`, {
     project: '',
     event: 'api:removeProjectMetadataByKey',
     payload: {
@@ -902,7 +902,7 @@ export const updateProjectMetadata: ResolverFn = async (
     }
   );
 
-  userActivityLogger.user_action(`User updated project metadata`, {
+  userActivityLogger(`User updated project metadata`, {
     project: '',
     event: 'api:updateProjectMetadata',
     payload: {
