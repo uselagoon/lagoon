@@ -103,7 +103,8 @@ const lagoonEnvironmentType = process.env.LAGOON_ENVIRONMENT_TYPE || "developmen
 const overwriteOCBuildDeployDindImage = process.env.OVERWRITE_OC_BUILD_DEPLOY_DIND_IMAGE
 const overwriteKubectlBuildDeployDindImage = process.env.OVERWRITE_KUBECTL_BUILD_DEPLOY_DIND_IMAGE
 const overwriteActiveStandbyTaskImage = process.env.OVERWRITE_ACTIVESTANDBY_TASK_IMAGE
-const jwtSecret = process.env.JWTSECRET || "super-secret-string"
+const jwtSecretString = process.env.JWTSECRET || "super-secret-string"
+const projectSeedString = process.env.PROJECTSEED || "super-secret-string"
 
 class UnknownActiveSystem extends Error {
   constructor(message) {
@@ -310,8 +311,9 @@ const getControllerBuildData = async function(deployData: any) {
   var graphqlEnvironmentType = environmentType.toUpperCase()
   var graphqlGitType = type.toUpperCase()
   var openshiftPromoteSourceProject = promoteSourceEnvironment ? `${projectName}-${makeSafe(promoteSourceEnvironment)}` : ""
-  // A secret which is the same across all Environments of this Lagoon Project
-  var projectSecret = crypto.createHash('sha256').update(`${projectName}-${jwtSecret}`).digest('hex');
+  // A secret seed which is the same across all Environments of this Lagoon Project
+  var projectSeedVal = projectSeedString || jwtSecretString
+  var projectSecret = crypto.createHash('sha256').update(`${projectName}-${projectSeedVal}`).digest('hex');
   var alertContactHA = ""
   var alertContactSA = ""
   var uptimeRobotStatusPageIds = []
