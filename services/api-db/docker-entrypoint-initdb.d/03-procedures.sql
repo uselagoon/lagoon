@@ -133,20 +133,7 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
-CREATE OR REPLACE PROCEDURE
-  DeleteProject
-  (
-    IN name varchar(50)
-  )
-  BEGIN
-    DECLARE v_pid int;
-
-    SELECT id INTO v_pid FROM project WHERE project.name = name;
-
-    DELETE FROM project_user WHERE pid = v_pid;
-    DELETE FROM project_notification WHERE pid = v_pid;
-    DELETE FROM project WHERE id = v_pid;
-  END;
+DROP PROCEDURE IF EXISTS DeleteProject;
 $$
 
 CREATE OR REPLACE PROCEDURE

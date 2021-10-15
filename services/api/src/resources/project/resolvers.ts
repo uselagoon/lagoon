@@ -203,7 +203,9 @@ export const getProjectsByMetadata: ResolverFn = async (
     }
     // Support key-only queries.
     else {
-      queryBuilder = queryBuilder.whereRaw("JSON_CONTAINS_PATH(metadata, 'one', ?)");
+      queryBuilder = queryBuilder.whereRaw(
+        "JSON_CONTAINS_PATH(metadata, 'one', ?)"
+      );
       queryArgs = [...queryArgs, `$.${meta_key}`];
     }
   }
@@ -225,9 +227,7 @@ export const addProject = async (
     );
   }
   if (validator.matches(input.name, /--/)) {
-    throw new Error(
-      'Multiple consecutive dashes are not allowed for name!'
-    );
+    throw new Error('Multiple consecutive dashes are not allowed for name!');
   }
   if (!isValidGitUrl(input.gitUrl)) {
     throw new Error('The provided gitUrl is invalid.');
@@ -346,7 +346,10 @@ export const addProject = async (
     );
   }
 
-  OpendistroSecurityOperations(sqlClientPool, models.GroupModel).syncGroupWithSpecificTenant(
+  OpendistroSecurityOperations(
+    sqlClientPool,
+    models.GroupModel
+  ).syncGroupWithSpecificTenant(
     `p${project.id}`,
     'global_tenant',
     `${project.id}`
@@ -399,7 +402,9 @@ export const addProject = async (
   try {
     await models.GroupModel.addUserToGroup(user, group, 'maintainer');
   } catch (err) {
-    logger.error(`Could not link user to default project group for ${project.name}: ${err.message}`);
+    logger.error(
+      `Could not link user to default project group for ${project.name}: ${err.message}`
+    );
   }
 
   // Add the user who submitted this request to the project
@@ -419,7 +424,9 @@ export const addProject = async (
     try {
       await models.GroupModel.addUserToGroup(user, group, 'owner');
     } catch (err) {
-      logger.error(`Could not link requesting user to default project group for ${project.name}: ${err.message}`);
+      logger.error(
+        `Could not link requesting user to default project group for ${project.name}: ${err.message}`
+      );
     }
   }
 
@@ -440,7 +447,7 @@ export const addProject = async (
 };
 
 export const deleteProject: ResolverFn = async (
-  root,
+  _root,
   { input: { project: projectName } },
   { sqlClientPool, hasPermission, userActivityLogger, models }
 ) => {
@@ -452,7 +459,7 @@ export const deleteProject: ResolverFn = async (
     project: pid
   });
 
-  await query(sqlClientPool, 'CALL DeleteProject(:name)', project);
+  await Helpers(sqlClientPool).deleteProjectById(pid);
 
   // Remove the default group and user
   try {
@@ -460,10 +467,10 @@ export const deleteProject: ResolverFn = async (
       `project-${project.name}`
     );
     await models.GroupModel.deleteGroup(group.id);
-    OpendistroSecurityOperations(sqlClientPool, models.GroupModel).deleteGroupWithSpecificTenant(
-      `p${pid}`,
-      group.name
-    );
+    OpendistroSecurityOperations(
+      sqlClientPool,
+      models.GroupModel
+    ).deleteGroupWithSpecificTenant(`p${pid}`, group.name);
   } catch (err) {
     logger.error(
       `Could not delete default group for project ${project.name}: ${err.message}`
@@ -492,7 +499,7 @@ export const deleteProject: ResolverFn = async (
     payload: {
       input: {
         project
-      },
+      }
     }
   });
 
@@ -718,7 +725,7 @@ export const updateProject: ResolverFn = async (
         problemsUi,
         factsUi,
         pullrequests,
-        developmentEnvironmentsLimit,
+        developmentEnvironmentsLimit
       }
     }
   });
@@ -846,7 +853,7 @@ export const updateProjectMetadata: ResolverFn = async (
       patch: {
         project: id,
         key,
-        value,
+        value
       }
     }
   });
