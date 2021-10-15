@@ -293,6 +293,10 @@ You can of course also redirect to any other URL not hosted on Lagoon, this will
 
 #### Trusted Reverse Proxies
 
+{% hint style="warning" %}
+Kubernetes will only process a single `nginx.ingress.kubernetes.io/server-snippet` annotation. Please ensure that if you use this annotation on a non-production environment route that you also include the `add_header X-Robots-Tag "noindex, nofollow";` annotation as part of your server-snippet. This is needed to stop robots from crawling development environments as the default server-snippet set to prevent this in development environments in the ingress templates will get overwritten with any `server-snippets` set in .lagoon.yml.
+{% endhint %}
+
 Some configurations involve a reverse proxy \(like a CDN\) in front of the Kubernetes Clusters. In these configurations the IP of the Reverse Proxy will appear as the `REMOTE_ADDR` `HTTP_X_REAL_IP` `HTTP_X_FORWARDED_FOR` headers field in your applications. While the original IP of the requester can be found in the `HTTP_X_ORIGINAL_FORWARDED_FOR` header.
 
 If you like the original IP to appear in the `REMOTE_ADDR` `HTTP_X_REAL_IP` `HTTP_X_FORWARDED_FOR` headers, you need to tell the ingress which reverse proxy IPs you want to trust:
@@ -426,7 +430,7 @@ As most of the time it is not desirable to run the same cron jobs across all env
   * You can specify `M` for the minute, and your cron job will run once per hour at a random minute \(the same minute each hour\), or `M/15` to run it every 15 mins, but with a random offset from the hour \(like `6,21,36,51`\). It is a good idea to spread out your cron jobs using this feature, rather than have them all fire off on minute `0`.
   * You can specify `H` for the hour, and your cron job will run once per day at a random hour \(the same hour every day\), or `H(2-4)` to run it once per day within the hours of 2-4.
     * Notes on timezones:
-      * The default timezone for cron jobs is UTC. 
+      * The default timezone for cron jobs is UTC.
       * Native cron jobs will run in timezone of the node, which is UTC.
       * In-pod cron jobs == timezone of the pod it is running in, which defaults to UTC but may be different if you have configured it.
 * `command:`
