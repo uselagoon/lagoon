@@ -69,12 +69,10 @@ fi
 ADMIN_BEARER="Authorization: bearer $API_ADMIN_TOKEN"
 ADMIN_GRAPHQL="query getEnvironmentByOpenshiftProjectName {
   environmentByOpenshiftProjectName(openshiftProjectName: \"$PROJECT\") {
-    project {
-      openshift {
-        consoleUrl
-        token
-        name
-      }
+    openshift {
+      consoleUrl
+      token
+      name
     }
   }
 }"
@@ -82,9 +80,9 @@ ADMIN_GRAPHQL="query getEnvironmentByOpenshiftProjectName {
 ADMIN_QUERY=$(echo $ADMIN_GRAPHQL | sed 's/"/\\"/g' | sed 's/\\n/\\\\n/g' | awk -F'\n' '{if(NR == 1) {printf $0} else {printf "\\n"$0}}')
 ADMIN_ENVIRONMENT=$(curl -s -XPOST -H 'Content-Type: application/json' -H "$ADMIN_BEARER" "${GRAPHQL_ENDPOINT:-api:3000/graphql}" -d "{\"query\": \"$ADMIN_QUERY\"}")
 
-OPENSHIFT_CONSOLE=$(echo $ADMIN_ENVIRONMENT | jq --raw-output '.data.environmentByOpenshiftProjectName.project.openshift.consoleUrl')
-OPENSHIFT_TOKEN=$(echo $ADMIN_ENVIRONMENT | jq --raw-output '.data.environmentByOpenshiftProjectName.project.openshift.token')
-OPENSHIFT_NAME=$(echo $ADMIN_ENVIRONMENT | jq --raw-output '.data.environmentByOpenshiftProjectName.project.openshift.name')
+OPENSHIFT_CONSOLE=$(echo $ADMIN_ENVIRONMENT | jq --raw-output '.data.environmentByOpenshiftProjectName.openshift.consoleUrl')
+OPENSHIFT_TOKEN=$(echo $ADMIN_ENVIRONMENT | jq --raw-output '.data.environmentByOpenshiftProjectName.openshift.token')
+OPENSHIFT_NAME=$(echo $ADMIN_ENVIRONMENT | jq --raw-output '.data.environmentByOpenshiftProjectName.openshift.name')
 
 ##
 ## Check if we have a service and container given, if yes use them.

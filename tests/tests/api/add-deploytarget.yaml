@@ -1,0 +1,10 @@
+
+- name: "Add deploytarget to project {{ project }}"
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ project }}"
+    branches_regex: "{{ branches_regex }}"
+    pullrequests_regex: "{{ pullrequests_regex }}"
+  tasks:
+  - include: ../../tasks/api/add-deploytarget.yaml
