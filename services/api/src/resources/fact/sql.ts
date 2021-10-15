@@ -21,7 +21,7 @@ export const Sql = {
       .where('f.id', fid)
       .orderBy('f.id', 'asc')
       .toString(),
-  selectFactsByEnvironmentId: ({ environmentId, keyFacts }) => {
+  selectFactsByEnvironmentId: ({ environmentId, keyFacts, limit }) => {
     let q = knex('environment_fact as f')
       .distinct(standardFactReturn)
       .leftJoin('environment_fact_reference as r', 'r.fid', '=', 'f.id')
@@ -29,6 +29,10 @@ export const Sql = {
 
     if (keyFacts) {
       q.where('f.keyFact', keyFacts);
+    }
+
+    if (limit) {
+      q.limit(limit);
     }
 
     return q.orderBy('f.id', 'asc').toString()
