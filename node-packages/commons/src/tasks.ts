@@ -859,7 +859,7 @@ export const createTaskTask = async function(taskData: any) {
     case 'lagoon_controllerJob':
       // since controllers queues are named, we have to send it to the right tasks queue
       // do that here by querying which deploytarget the environment uses
-      const result = await getOpenShiftInfoForEnvironment(taskData.data.environment.id);
+      const result = await getOpenShiftInfoForEnvironment(taskData.environment.id);
       const deployTarget = result.environment.openshift.name
       return sendToLagoonTasks(deployTarget+":jobs", taskData);
 
