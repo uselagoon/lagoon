@@ -9,6 +9,7 @@ import {
   TaskRegistration,
   newTaskRegistrationFromObject
 } from './models/taskRegistration';
+import sql from '../user/sql';
 
 const AdvancedTaskDefinitionType = {
   command: 'COMMAND',
@@ -164,22 +165,27 @@ export const advancedTaskDefinitionArgumentById = async (
 export const addAdvancedTaskDefinition = async (
   root,
   {
-    input: {
-      name,
-      description,
-      image = '',
-      type,
-      service,
-      command,
-      project,
-      groupName,
-      environment,
-      permission,
-      created
-    }
+    input
   },
   { sqlClientPool, hasPermission, models }
 ) => {
+
+
+  let {
+    name,
+    description,
+    image = '',
+    type,
+    service,
+    command,
+    project,
+    groupName,
+    environment,
+    permission,
+    advancedTaskDefinitionArguments,
+    created
+  } = input;
+
   let projectObj = await getProjectByEnvironmentIdOrProjectId(
     sqlClientPool,
     environment,
@@ -304,6 +310,19 @@ export const addAdvancedTaskDefinition = async (
     })
   );
 
+  //now attach arguments
+  for(let i = 0; i < advancedTaskDefinitionArguments.length; i++) {
+    await query(
+      sqlClientPool,
+      Sql.insertAdvancedTaskDefinitionArgument({
+        id: null,
+        advanced_task_definition: insertId,
+        name: advancedTaskDefinitionArguments[0].name,
+        type: advancedTaskDefinitionArguments[0].type
+      })
+    );
+  }
+
   return await advancedTaskFunctions(sqlClientPool).advancedTaskDefinitionById(
     insertId
   );
@@ -327,11 +346,11 @@ const getProjectByEnvironmentIdOrProjectId = async (
 
 export const invokeRegisteredTask = async (
   root,
-  { advancedTaskDefinition, environment },
+  { advancedTaskDefinition, environment, argumentValues },
   { sqlClientPool, hasPermission, models }
 ) => {
   await envValidators(sqlClientPool).environmentExists(environment);
-
+  // console.log(argumentValues);
   let task = await getNamedAdvancedTaskForEnvironment(
     sqlClientPool,
     hasPermission,
@@ -339,6 +358,11 @@ export const invokeRegisteredTask = async (
     environment,
     models
   );
+
+
+  //here we want to validate the incoming arguments
+  let taskArgs = await advancedTaskFunctions(sqlClientPool).advancedTaskDefinitionArguments(task.id);
+  console.log(taskArgs);
 
   const environmentDetails = await environmentHelpers(
     sqlClientPool
@@ -455,6 +479,11 @@ export const deleteAdvancedTaskDefinition = async (
   await hasPermission('task', 'delete', {
     project: R.path(['0', 'pid'], rows)
   });
+
+  await query(
+    sqlClientPool,
+    Sql.deleteAdvancedTaskDefinitionArgumentsForTask(advancedTaskDefinition)
+  );
 
   await query(
     sqlClientPool,
