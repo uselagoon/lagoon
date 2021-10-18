@@ -907,7 +907,8 @@ export const createMiscTask = async function(taskData: any) {
       switch (updatedKey) {
         case 'kubernetes:restic:backup:restore':
           // Handle setting up the configuration for a restic restoration task
-          const restoreName = `restore-${R.slice(0, 7, taskData.data.backup.backupId)}`;
+          const randRestoreId = Math.random().toString(36).substring(7);
+          const restoreName = `restore-${R.slice(0, 7, taskData.data.backup.backupId)}-${randRestoreId}`;
           // Parse out the baasBucketName for any migrated projects
           let baasBucketName = result.project.envVariables.find(obj => {
             return obj.name === "LAGOON_BAAS_BUCKET_NAME"
