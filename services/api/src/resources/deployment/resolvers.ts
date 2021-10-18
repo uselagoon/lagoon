@@ -390,6 +390,10 @@ export const deployEnvironmentLatest: ResolverFn = async (
     project: project.id
   });
 
+  if (project.deploymentsDisabled == 1){
+    throw new Error('Deployments have been disabled for this project');
+  }
+
   if (
     environment.deployType === 'branch' ||
     environment.deployType === 'promote'
@@ -536,6 +540,10 @@ export const deployEnvironmentBranch: ResolverFn = async (
     project: project.id
   });
 
+  if (project.deploymentsDisabled == 1){
+    throw new Error('Deployments have been disabled for this project');
+  }
+
   const deployData = {
     type: 'branch',
     projectName: project.name,
@@ -625,6 +633,10 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
   await hasPermission('environment', `deploy:${envType}`, {
     project: project.id
   });
+
+  if (project.deploymentsDisabled == 1){
+    throw new Error('Deployments have been disabled for this project');
+  }
 
   const deployData = {
     type: 'pullrequest',
@@ -716,6 +728,10 @@ export const deployEnvironmentPromote: ResolverFn = async (
   await hasPermission('environment', `deploy:${envType}`, {
     project: destProject.id
   });
+
+  if (destProject.deploymentsDisabled == 1){
+    throw new Error('Deployments have been disabled for this project');
+  }
 
   const sourceEnvironments = await environmentHelpers(
     sqlClientPool
