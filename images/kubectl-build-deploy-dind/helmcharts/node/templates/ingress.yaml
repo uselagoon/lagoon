@@ -19,6 +19,8 @@ metadata:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     ingress.kubernetes.io/ssl-redirect: "true"
     {{- end }}
+    nginx.ingress.kubernetes.io/server-snippet: |-
+       add_header X-Robots-Tag "noindex, nofollow";
     kubernetes.io/tls-acme: "true"
     {{- include "node.annotations" . | nindent 4 }}
 spec:
