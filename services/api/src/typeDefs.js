@@ -704,10 +704,8 @@ const typeDefs = gql`
     metadata: JSON
     """
     DeployTargetConfigs are a way to define which deploy targets are used for a project\n
-    *Important:* This is an alpha feature, and is subject to change in any release. Use this at your own risk\n
-    Ensure you stay up to date on changes that may occur with this feature
     """
-    deployTargetConfigs: [DeployTargetConfig]
+    deployTargetConfigs: [DeployTargetConfig] @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
   }
 
   """
@@ -1118,16 +1116,16 @@ const typeDefs = gql`
     """
     Returns the DeployTargetConfig by a deployTargetConfig Id
     """
-    deployTargetConfigById(id: Int!) : DeployTargetConfig
+    deployTargetConfigById(id: Int!) : DeployTargetConfig  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
     """
     Returns all DeployTargetConfig by a project Id
     """
-    deployTargetConfigsByProjectId(project: Int!) : [DeployTargetConfig]
+    deployTargetConfigsByProjectId(project: Int!) : [DeployTargetConfig]  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
     """
     Returns all DeployTargetConfig by a deployTarget Id (aka: Openshift Id)
     """
-    deployTargetConfigsByDeployTarget(deployTarget: Int!) : [DeployTargetConfig]
-    allDeployTargetConfigs: [DeployTargetConfig]
+    deployTargetConfigsByDeployTarget(deployTarget: Int!) : [DeployTargetConfig]  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    allDeployTargetConfigs: [DeployTargetConfig]  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
   }
 
   # Must provide id OR name
@@ -2002,10 +2000,10 @@ const typeDefs = gql`
     updateBillingModifier(input: UpdateBillingModifierInput!): BillingModifier
     deleteBillingModifier(input: DeleteBillingModifierInput!): String
     deleteAllBillingModifiersByBillingGroup(input: GroupInput!): String
-    addDeployTargetConfig(input: AddDeployTargetConfigInput!): DeployTargetConfig
-    updateDeployTargetConfig(input: UpdateDeployTargetConfigInput!): DeployTargetConfig
-    deleteDeployTargetConfig(input: DeleteDeployTargetConfigInput!): String
-    deleteAllDeployTargetConfigs: String
+    addDeployTargetConfig(input: AddDeployTargetConfigInput!): DeployTargetConfig  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    updateDeployTargetConfig(input: UpdateDeployTargetConfigInput!): DeployTargetConfig  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    deleteDeployTargetConfig(input: DeleteDeployTargetConfigInput!): String  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    deleteAllDeployTargetConfigs: String  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
   }
 
   type Subscription {
