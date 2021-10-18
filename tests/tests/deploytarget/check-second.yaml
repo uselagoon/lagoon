@@ -1,0 +1,84 @@
+- name: "{{ testname }} - SECOND TEST: check if auto generated domain now redirects to https"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+    expected_redirect_location: "https://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }}"
+  tasks:
+  - include: ../../checks/check-url-redirect.yaml
+
+- name: "{{ testname }} - SECOND TEST: check if auto generated domain redirects insecure traffic"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+    host: "nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+    expected_redirect_location: "https://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTPS') }}"
+  tasks:
+  - include: ../../checks/check-url-redirect.yaml
+
+- name: "{{ testname }} - SECOND TEST: check if custom domain 'insecure-allow.com' now does not allow insecure anymore"
+  hosts: localhost
+  tags: skip-on-kubernetes
+  serial: 1
+  vars:
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+    host: "insecure-allow.com"
+    expected_returncode: 503
+  tasks:
+  - include: ../../checks/check-url-returncode-host.yaml
+
+- name: "{{ testname }} - SECOND TEST: check if custom domain 'insecure-redirect.com' is created and still redirects to https"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+    host: "insecure-redirect.com"
+    expected_redirect_location: "https://insecure-redirect.com/?$"
+  tasks:
+  - include: ../../checks/check-url-redirect-host.yaml
+
+- name: "{{ testname }} - SECOND TEST: check if custom domain 'insecure-none.com' now allows http"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+    host: "insecure-none.com"
+    expected_content: "Hello World!"
+  tasks:
+  - include: ../../checks/check-url-content-host.yaml
+
+- name: "{{ testname }} - SECOND TEST: check if custom domain 'moving-route.com' is moved and now requests basic auth"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "https://nginx-basic-auth.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix_https }}"
+    host: "moving-route.com"
+    expected_returncode: 401
+  tasks:
+  - include: ../../checks/check-url-returncode-host.yaml
+
+- name: "{{ testname }} - SECOND TEST: check if custom domain 'hsts-header-null.com' now has HSTS header set"
+  hosts: localhost
+  serial: 1
+  tags: skip-on-kubernetes
+  vars:
+    url: "https://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix_https }}"
+    host: "hsts-header-null.com"
+    expected_returncode: 200
+    expected_header: "strict_transport_security"
+    expected_header_value: "max-age=15768000"
+  tasks:
+  - include: ../../checks/check-url-header.yaml
+
+- name: "{{ testname }} - SECOND TEST: check if custom domain 'hsts-header.com' is created and does not have HSTS header set"
+  hosts: localhost
+  serial: 1
+  tags: skip-on-kubernetes
+  vars:
+    url: "https://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix_https }}"
+    host: "hsts-header.com"
+    expected_returncode: 200
+    expected_header: "strict_transport_security"
+  tasks:
+  - include: ../../checks/check-url-header-absent.yaml

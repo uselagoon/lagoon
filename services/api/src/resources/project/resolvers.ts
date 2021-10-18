@@ -14,6 +14,16 @@ import { createHarborOperations } from './harborSetup';
 
 const removePrivateKey = R.assoc('privateKey', null);
 
+const isAdminCheck = async (hasPermission) => {
+  try {
+    // check user is admin
+    await hasPermission('project', 'viewAll');
+    return true;
+  } catch (err) {
+    return false;
+  }
+};
+
 const isValidGitUrl = value =>
   /(?:git|ssh|https?|git@[-\w.]+):(\/\/)?(.*?)(\.git)(\/?|\#[-\d\w._]+?)$/.test(
     value
@@ -84,6 +94,38 @@ export const getProjectByEnvironmentId: ResolverFn = async (
     WHERE e.id = :eid
     LIMIT 1`,
     { eid }
+  );
+  const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
+
+  const project = withK8s[0];
+
+  await hasPermission('project', 'view', {
+    project: project.id
+  });
+
+  try {
+    await hasPermission('project', 'viewPrivateKey', {
+      project: project.id
+    });
+
+    return project;
+  } catch (err) {
+    return removePrivateKey(project);
+  }
+};
+
+export const getProjectById: ResolverFn = async (
+  { project: pid },
+  args,
+  { sqlClientPool, hasPermission }
+) => {
+  const rows = await query(
+    sqlClientPool,
+    `SELECT p.*
+    FROM project p
+    WHERE p.id = :pid
+    LIMIT 1`,
+    { pid }
   );
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
@@ -259,6 +301,15 @@ export const addProject = async (
   const openshiftProjectPattern =
     input.kubernetesNamespacePattern || input.openshiftProjectPattern;
 
+  // check if a user has permission to disable deployments of a project or not
+  let deploymentsDisabled = 0;
+  if (input.deploymentsDisabled) {
+    const canDisableProject = await isAdminCheck(hasPermission);
+    if (canDisableProject) {
+      deploymentsDisabled = input.deploymentsDisabled
+    }
+  }
+
   const rows = await query(
     sqlClientPool,
     `CALL CreateProject(
@@ -312,6 +363,7 @@ export const addProject = async (
       ${input.storageCalc ? ':storage_calc' : '1'},
       ${input.factsUi ? ':facts_ui' : '0'},
       ${input.problemsUi ? ':problems_ui' : '0'},
+      ${deploymentsDisabled ? ':deployments_disabled' : '0'},
       ${
         input.developmentEnvironmentsLimit
           ? ':development_environments_limit'
@@ -488,6 +540,15 @@ export const deleteProject: ResolverFn = async (
     );
   }
 
+  // clean up deploytarget configurations for this project
+  try {
+    await query(sqlClientPool, 'DELETE FROM deploy_target_config WHERE project = :pid', {
+      pid
+    });
+  } catch (err) {
+     // Not allowed to stop execution.
+  }
+
   // @TODO discuss if we want to delete projects in harbor or not
   //const harborOperations = createHarborOperations(sqlClientPool);
 
@@ -535,6 +596,7 @@ export const updateProject: ResolverFn = async (
         storageCalc,
         problemsUi,
         factsUi,
+        deploymentsDisabled,
         pullrequests,
         developmentEnvironmentsLimit
       }
@@ -545,6 +607,14 @@ export const updateProject: ResolverFn = async (
   await hasPermission('project', 'update', {
     project: id
   });
+
+  // check if a user has permission to disable deployments of a project or not
+  if (deploymentsDisabled) {
+    const canDisableProject = await isAdminCheck(hasPermission);
+    if (canDisableProject == false) {
+      deploymentsDisabled = 0;
+    }
+  }
 
   if (isPatchEmpty({ patch })) {
     throw new Error('input.patch requires at least 1 attribute');
@@ -625,6 +695,7 @@ export const updateProject: ResolverFn = async (
         storageCalc,
         problemsUi,
         factsUi,
+        deploymentsDisabled,
         pullrequests,
         openshift,
         openshiftProjectPattern,
@@ -724,6 +795,7 @@ export const updateProject: ResolverFn = async (
         storageCalc,
         problemsUi,
         factsUi,
+        deploymentsDisabled,
         pullrequests,
         developmentEnvironmentsLimit
       }

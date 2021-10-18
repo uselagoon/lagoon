@@ -1,0 +1,22 @@
+mutation addDeployTargetConfig{
+  addDeployTargetConfig(input:{
+    project: {{ project_id }}
+    branches: "{{ branches_regex }}"
+    pullrequests: "{{ pullrequests_regex }}"
+    deployTarget: {{ openshift_id }}
+    weight: 1
+  }){
+    id
+    weight
+    branches
+    pullrequests
+    deployTargetProjectPattern
+    deployTarget{
+        name
+        id
+    }
+    project{
+        name
+    }
+  }
+}

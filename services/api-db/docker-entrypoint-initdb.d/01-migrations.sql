@@ -1410,6 +1410,75 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  add_openshift_to_environment()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'environment'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'openshift'
+    ) THEN
+      ALTER TABLE `environment`
+      ADD `openshift` int;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_openshift_project_pattern_to_environment()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'environment'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'openshift_project_pattern'
+    ) THEN
+      ALTER TABLE `environment`
+      ADD `openshift_project_pattern` varchar(300);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_deployments_disabled_to_project()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'deployments_disabled'
+    ) THEN
+      ALTER TABLE `project`
+      ADD `deployments_disabled` int(1) NOT NULL default '0';
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  migrate_project_openshift_to_environment()
+
+  BEGIN
+    UPDATE environment e
+    LEFT JOIN project p ON
+      e.project = p.id
+    SET
+      e.openshift = p.openshift,
+      e.openshift_project_pattern = p.openshift_project_pattern
+    WHERE
+      e.openshift = NULL;
+  END;
+$$
+
 DELIMITER ;
 
 -- If adding new procedures, add them to the bottom of this list
@@ -1477,7 +1546,11 @@ CALL add_enum_webhook_to_type_in_project_notification();
 CALL add_index_for_deployment_environment();
 CALL add_index_for_task_environment();
 CALL add_router_pattern_to_project();
+CALL add_openshift_to_environment();
+CALL add_openshift_project_pattern_to_environment();
+CALL add_deployments_disabled_to_project();
 CALL update_openshift_varchar_length();
+CALL migrate_project_openshift_to_environment();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;

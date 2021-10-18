@@ -93,6 +93,7 @@ CREATE TABLE IF NOT EXISTS project (
   storage_calc                     int(1) NOT NULL default 1,
   problems_ui                      int(1) NOT NULL default 0,
   facts_ui                         int(1) NOT NULL default 0,
+  deployments_disabled             int(1) NOT NULL default 0,
   openshift                        int REFERENCES openshift (id),
   openshift_project_pattern        varchar(300),
   development_environments_limit   int DEFAULT NULL,
@@ -117,23 +118,37 @@ CREATE TABLE IF NOT EXISTS billing_modifier (
 );
 
 CREATE TABLE IF NOT EXISTS environment (
-  id                     int NOT NULL auto_increment PRIMARY KEY,
-  name                   varchar(100),
-  project                int REFERENCES project (id),
-  deploy_type            ENUM('branch', 'pullrequest', 'promote') NOT NULL,
-  deploy_base_ref        varchar(100),
-  deploy_head_ref        varchar(100),
-  deploy_title           varchar(300),
-  environment_type       ENUM('production', 'development') NOT NULL,
-  auto_idle              int(1) NOT NULL default 1,
-  openshift_project_name varchar(100),
-  route                  varchar(300),
-  routes                 text,
-  monitoring_urls        text,
-  updated                timestamp DEFAULT CURRENT_TIMESTAMP,
-  created                timestamp DEFAULT CURRENT_TIMESTAMP,
-  deleted                timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  id                        int NOT NULL auto_increment PRIMARY KEY,
+  name                      varchar(100),
+  project                   int REFERENCES project (id),
+  deploy_type               ENUM('branch', 'pullrequest', 'promote') NOT NULL,
+  deploy_base_ref           varchar(100),
+  deploy_head_ref           varchar(100),
+  deploy_title              varchar(300),
+  environment_type          ENUM('production', 'development') NOT NULL,
+  auto_idle                 int(1) NOT NULL default 1,
+  openshift_project_name    varchar(100),
+  route                     varchar(300),
+  routes                    text,
+  monitoring_urls           text,
+  openshift                 int REFERENCES openshift (id),
+  openshift_project_pattern varchar(300),
+  updated                   timestamp DEFAULT CURRENT_TIMESTAMP,
+  created                   timestamp DEFAULT CURRENT_TIMESTAMP,
+  deleted                   timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   UNIQUE KEY `project_name_deleted` (`project`,`name`, `deleted`)
+);
+
+-- add table for holding deploy_target configurations
+-- these are used in replacement of the default project openshift target
+CREATE TABLE IF NOT EXISTS deploy_target_config (
+  id                            int NOT NULL auto_increment PRIMARY KEY,
+  project                       int REFERENCES project (id),
+  weight                        int NOT NULL DEFAULT 0,
+  branches                      varchar(300),
+  pullrequests                  varchar(300),
+  deploy_target                  int REFERENCES openshift (id),
+  deploy_target_project_pattern  varchar(300)
 );
 
 CREATE TABLE IF NOT EXISTS environment_storage (
