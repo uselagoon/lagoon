@@ -540,15 +540,6 @@ export const deleteProject: ResolverFn = async (
     );
   }
 
-  // clean up deploytarget configurations for this project
-  try {
-    await query(sqlClientPool, 'DELETE FROM deploy_target_config WHERE project = :pid', {
-      pid
-    });
-  } catch (err) {
-     // Not allowed to stop execution.
-  }
-
   // @TODO discuss if we want to delete projects in harbor or not
   //const harborOperations = createHarborOperations(sqlClientPool);
 
