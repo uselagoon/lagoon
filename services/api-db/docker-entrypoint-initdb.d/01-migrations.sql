@@ -1475,7 +1475,7 @@ CREATE OR REPLACE PROCEDURE
       e.openshift = p.openshift,
       e.openshift_project_pattern = p.openshift_project_pattern
     WHERE
-      e.openshift = NULL;
+      e.openshift IS NULL;
   END;
 $$
 
