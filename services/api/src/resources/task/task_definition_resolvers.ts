@@ -9,6 +9,7 @@ import {
   TaskRegistration,
   newTaskRegistrationFromObject
 } from './models/taskRegistration';
+import * as advancedTaskArgument from './models/advancedTaskDefinitionArgument'
 import sql from '../user/sql';
 
 const AdvancedTaskDefinitionType = {
@@ -119,6 +120,15 @@ export const resolveTasksForEnvironment = async (
 
   //@ts-ignore
   rows = R.filter(e => currentUsersPermissionForProject.includes(e.permission), rows);
+
+  // TODO: this needs to be somehow refactored into all lookups.
+  // we might need a "load task" function or something.
+  for(let i = 0; i < rows.length; i++ ) {
+    //@ts-ignore
+    let argsForTask = await advancedTaskFunctions(sqlClientPool).advancedTaskDefinitionArguments(rows[i].id);
+    //@ts-ignore
+    rows[0].advancedTaskDefinitionArguments = argsForTask;
+  }
 
   return rows;
 };
@@ -362,7 +372,28 @@ export const invokeRegisteredTask = async (
 
   //here we want to validate the incoming arguments
   let taskArgs = await advancedTaskFunctions(sqlClientPool).advancedTaskDefinitionArguments(task.id);
-  console.log(taskArgs);
+
+  //let's grab something that'll be able to tell us whether our arguments
+  //are valid
+  const typeValidatorFactory = advancedTaskArgument.advancedTaskDefinitionTypeFactory(sqlClientPool, task, environment);
+
+  argumentValues.forEach(element => {
+    //grab the type for this one
+    let {advancedTaskDefinitionArgumentName, value} = element;
+    let taskArgDef = R.find(R.propEq('name', advancedTaskDefinitionArgumentName))(taskArgs);
+    if(!taskArgDef) {
+      throw new Error(`Cannot find argument type named ${advancedTaskDefinitionArgumentName}`);
+    }
+
+    //@ts-ignore
+    let validator: advancedTaskArgument.ArgumentBase = typeValidatorFactory(taskArgDef.type);
+
+    if(!validator.validateInput(value)) {
+      //@ts-ignore
+      throw new Error(`Invalid input "${value}" for type "${taskArgDef.type}" given for argument "${advancedTaskDefinitionArgumentName}"`);
+    }
+  });
+
 
   const environmentDetails = await environmentHelpers(
     sqlClientPool

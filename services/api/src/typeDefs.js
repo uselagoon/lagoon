@@ -123,13 +123,13 @@ const typeDefs = gql`
     URL
     SEMVER
   }
-  
+
   enum TaskPermission {
     MAINTAINER
     DEVELOPER
     GUEST
   }
-  
+
   scalar SeverityScore
 
   type AdvancedTaskDefinitionArgument {
@@ -166,6 +166,7 @@ const typeDefs = gql`
     environment: Int
     project: Int
     permission: TaskPermission
+    advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgument]
     created: String
     deleted: String
   }
@@ -1253,6 +1254,11 @@ const typeDefs = gql`
     type: AdvancedTaskDefinitionArgumentTypes
   }
 
+  input AdvancedTaskDefinitionArgumentValueInput {
+    advancedTaskDefinitionArgumentName: String
+    value: String
+  }
+
   enum AdvancedTaskDefinitionTypes {
     COMMAND
     IMAGE
@@ -1882,7 +1888,7 @@ const typeDefs = gql`
     deleteEnvVariable(input: DeleteEnvVariableInput!): String
     addTask(input: TaskInput!): Task
     addAdvancedTaskDefinition(input: AdvancedTaskDefinitionInput!): AdvancedTaskDefinition
-    invokeRegisteredTask(advancedTaskDefinition: Int!, environment: Int!): Task
+    invokeRegisteredTask(advancedTaskDefinition: Int!, environment: Int!, argumentValues: [AdvancedTaskDefinitionArgumentValueInput]): Task
     deleteAdvancedTaskDefinition(advancedTaskDefinition: Int!): String
     taskDrushArchiveDump(environment: Int!): Task
     taskDrushSqlDump(environment: Int!): Task
