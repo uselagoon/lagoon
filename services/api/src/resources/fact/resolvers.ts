@@ -8,7 +8,7 @@ import { logger } from '../../loggers/logger';
 
 export const getFactsByEnvironmentId: ResolverFn = async (
   { id: environmentId, environmentAuthz },
-  { keyFacts },
+  { keyFacts, limit },
   { sqlClientPool, hasPermission }
 ) => {
   const environment = await environmentHelpers(
@@ -25,7 +25,8 @@ export const getFactsByEnvironmentId: ResolverFn = async (
     sqlClientPool,
     Sql.selectFactsByEnvironmentId({
       environmentId,
-      keyFacts
+      keyFacts,
+      limit
     })
   );
 

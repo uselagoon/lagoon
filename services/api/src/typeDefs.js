@@ -797,7 +797,7 @@ const typeDefs = gql`
     advancedTasks: [AdvancedTaskDefinition]
     services: [EnvironmentService]
     problems(severity: [ProblemSeverityRating], source: [String]): [Problem]
-    facts(keyFacts: Boolean): [Fact]
+    facts(keyFacts: Boolean, limit: Int): [Fact]
     openshift: Openshift
     openshiftProjectPattern: String
     kubernetes: Kubernetes
