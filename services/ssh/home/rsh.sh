@@ -69,6 +69,13 @@ fi
 ADMIN_BEARER="Authorization: bearer $API_ADMIN_TOKEN"
 ADMIN_GRAPHQL="query getEnvironmentByOpenshiftProjectName {
   environmentByOpenshiftProjectName(openshiftProjectName: \"$PROJECT\") {
+    project {
+      openshift {
+        consoleUrl
+        token
+        name
+      }
+    }
     openshift {
       consoleUrl
       token
@@ -83,6 +90,12 @@ ADMIN_ENVIRONMENT=$(curl -s -XPOST -H 'Content-Type: application/json' -H "$ADMI
 CLUSTER_CONSOLE=$(echo $ADMIN_ENVIRONMENT | jq --raw-output '.data.environmentByOpenshiftProjectName.openshift.consoleUrl')
 CLUSTER_TOKEN=$(echo $ADMIN_ENVIRONMENT | jq --raw-output '.data.environmentByOpenshiftProjectName.openshift.token')
 CLUSTER_NAME=$(echo $ADMIN_ENVIRONMENT | jq --raw-output '.data.environmentByOpenshiftProjectName.openshift.name')
+# if no cluster is found at the environment level (introduced in lagoon2.1) then grab what is at the project level
+if [[ -z ${CLUSTER_NAME} ]]; then
+  CLUSTER_CONSOLE=$(echo $ADMIN_ENVIRONMENT | jq --raw-output '.data.environmentByOpenshiftProjectName.project.openshift.consoleUrl')
+  CLUSTER_TOKEN=$(echo $ADMIN_ENVIRONMENT | jq --raw-output '.data.environmentByOpenshiftProjectName.project.openshift.token')
+  CLUSTER_NAME=$(echo $ADMIN_ENVIRONMENT | jq --raw-output '.data.environmentByOpenshiftProjectName.project.openshift.name')
+fi
 
 ##
 ## Check if we have a service and container given, if yes use them.
