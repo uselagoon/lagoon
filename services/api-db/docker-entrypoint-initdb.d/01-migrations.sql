@@ -1410,6 +1410,29 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+
+CREATE OR REPLACE PROCEDURE
+  add_environment_type_to_advanced_task_argument()
+
+  BEGIN
+    DECLARE column_type_argument_type varchar(74);
+
+    SELECT COLUMN_TYPE INTO column_type_argument_type
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      table_name = 'advanced_task_definition_argument'
+      AND table_schema = 'infrastructure'
+      AND column_name = 'type';
+
+    IF (
+      column_type_argument_type = "enum('NUMERIC','STRING')"
+    ) THEN
+      ALTER TABLE advanced_task_definition_argument
+      MODIFY type ENUM('NUMERIC', 'STRING', 'ENVIRONMENT_SOURCE_NAME');
+    END IF;
+  END;
+$$
+
 DELIMITER ;
 
 -- If adding new procedures, add them to the bottom of this list
@@ -1477,6 +1500,7 @@ CALL add_enum_webhook_to_type_in_project_notification();
 CALL add_index_for_deployment_environment();
 CALL add_index_for_task_environment();
 CALL add_router_pattern_to_project();
+CALL add_environment_type_to_advanced_task_argument();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;

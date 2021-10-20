@@ -377,9 +377,9 @@ export const invokeRegisteredTask = async (
   //are valid
   const typeValidatorFactory = advancedTaskArgument.advancedTaskDefinitionTypeFactory(sqlClientPool, task, environment);
 
-  argumentValues.forEach(element => {
+  for(let i = 0; i < argumentValues.length; i++) {
     //grab the type for this one
-    let {advancedTaskDefinitionArgumentName, value} = element;
+    let {advancedTaskDefinitionArgumentName, value} = argumentValues[i];
     let taskArgDef = R.find(R.propEq('name', advancedTaskDefinitionArgumentName))(taskArgs);
     if(!taskArgDef) {
       throw new Error(`Cannot find argument type named ${advancedTaskDefinitionArgumentName}`);
@@ -388,11 +388,11 @@ export const invokeRegisteredTask = async (
     //@ts-ignore
     let validator: advancedTaskArgument.ArgumentBase = typeValidatorFactory(taskArgDef.type);
 
-    if(!validator.validateInput(value)) {
+    if(!(await validator.validateInput(value))) {
       //@ts-ignore
       throw new Error(`Invalid input "${value}" for type "${taskArgDef.type}" given for argument "${advancedTaskDefinitionArgumentName}"`);
     }
-  });
+  };
 
 
   const environmentDetails = await environmentHelpers(
