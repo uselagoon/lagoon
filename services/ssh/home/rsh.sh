@@ -123,23 +123,24 @@ if [[ $CLUSTER_TOKEN == "null" ]]; then
 fi
 
 OC="/usr/bin/oc --insecure-skip-tls-verify -n ${PROJECT} --token=${CLUSTER_TOKEN} --server=${CLUSTER_CONSOLE} "
+KUBECTL="/usr/bin/kubectl --insecure-skip-tls-verify -n ${PROJECT} --token=${CLUSTER_TOKEN} --server=${CLUSTER_CONSOLE} "
 
 IS_KUBERNETES=false
 
 # If there is a deployment for the given service searching for lagoon.sh labels
-if [[ $($OC get deployment -l "lagoon.sh/service=${SERVICE}" 2> /dev/null) ]]; then
+if [[ $($KUBECTL get deployment -l "lagoon.sh/service=${SERVICE}" 2> /dev/null) ]]; then
   IS_KUBERNETES=true
   # get any other deployments that may have been idled by the idler and unidle them if required
   # this only needs to be done for kubernetes
   # we do this first to give the services a bit of time to unidle before starting the one that was requested
-  DEPLOYMENTS=$($OC get deployments -l "idling.amazee.io/watch=true" -o name)
+  DEPLOYMENTS=$($KUBECTL get deployments -l "idling.amazee.io/watch=true" -o name)
   if [ ! -z "${DEPLOYMENTS}" ]; then
     echo "${UUID}: Environment is idled attempting to scale up for project='${PROJECT}' cluster='${CLUSTER_NAME}' service='${SERVICE}'"  >> /proc/1/fd/1
     # loop over the deployments and unidle them
     for DEP in ${DEPLOYMENTS}
     do
       # if the deployment is idled, unidle it :)
-      DEP_JSON=$($OC get ${DEP} -o json)
+      DEP_JSON=$($KUBECTL get ${DEP} -o json)
       if [ $(echo "$DEP_JSON" | jq -r '.status.replicas // 0') == "0" ]; then
         REPLICAS=$(echo "$DEP_JSON" | jq -r '.metadata.annotations."idling.amazee.io/unidle-replicas" // 1')
         if [ ! -z "$REPLICAS" ]; then
@@ -159,7 +160,7 @@ if [[ $($OC get deployment -l "lagoon.sh/service=${SERVICE}" 2> /dev/null) ]]; t
       if [[ "$WAIT_TO_UNIDLE_SERVICES" =~ [Tt][Rr][Uu][Ee] ]]; then
         echo "${UUID}: Environment is idled waiting for scale up for project='${PROJECT}' cluster='${CLUSTER_NAME}' service='${SERVICE}'"  >> /proc/1/fd/1
         SSH_CHECK_COUNTER=0
-        until [[ $($OC get ${DEP} -o json | jq -r '.status.readyReplicas // 0') -ne "0" ]]
+        until [[ $($KUBECTL get ${DEP} -o json | jq -r '.status.readyReplicas // 0') -ne "0" ]]
         do
           if [ $SSH_CHECK_COUNTER -lt $SSH_CHECK_TIMEOUT ]; then
             let SSH_CHECK_COUNTER=SSH_CHECK_COUNTER+1
@@ -176,16 +177,16 @@ if [[ $($OC get deployment -l "lagoon.sh/service=${SERVICE}" 2> /dev/null) ]]; t
   # then actually unidle the service that was requested and wait for it to be ready if it wasn't already captured above
   # doing this means if the service hasn't been idled with the `idling.amazee.io/watch=true` label
   # we can still establish a connection
-  DEPLOYMENT=$($OC get deployment -l "lagoon.sh/service=${SERVICE}" -o name)
+  DEPLOYMENT=$($KUBECTL get deployment -l "lagoon.sh/service=${SERVICE}" -o name)
   # If the deployment is scaled to 0, scale to 1
   # .status.replicas doesn't exist on a scaled to 0 deployment in k8s so assume it is 0 if nothing is returned
-  if [[ $($OC get ${DEPLOYMENT} -o json | jq -r '.status.replicas // 0') == "0" ]]; then
+  if [[ $($KUBECTL get ${DEPLOYMENT} -o json | jq -r '.status.replicas // 0') == "0" ]]; then
     echo "${UUID}: Attempting to scale deployment='${DEPLOYMENT}' for project='${PROJECT}' cluster='${CLUSTER_NAME}' service='${SERVICE}'"  >> /proc/1/fd/1
     $OC scale --replicas=1 ${DEPLOYMENT} >/dev/null 2>&1
   fi
   # Wait until the scaling is done
   SSH_CHECK_COUNTER=0
-  until [[ $($OC get ${DEPLOYMENT} -o json | jq -r '.status.readyReplicas // 0') -ne "0" ]]
+  until [[ $($KUBECTL get ${DEPLOYMENT} -o json | jq -r '.status.readyReplicas // 0') -ne "0" ]]
   do
     if [ $SSH_CHECK_COUNTER -lt $SSH_CHECK_TIMEOUT ]; then
       let SSH_CHECK_COUNTER=SSH_CHECK_COUNTER+1
@@ -220,7 +221,7 @@ fi
 # Check for newer Helm chart "lagoon.sh" labels
 echo "${UUID}: Getting pod name for exec for project='${PROJECT}' cluster='${CLUSTER_NAME}' service='${SERVICE}'"  >> /proc/1/fd/1
 if [[ "${IS_KUBERNETES}" == "true" ]]; then
-  POD=$($OC get pods -l "lagoon.sh/service=${SERVICE}" -o json | jq -r '[.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running")] | first | .metadata.name // empty')
+  POD=$($KUBECTL get pods -l "lagoon.sh/service=${SERVICE}" -o json | jq -r '[.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running")] | first | .metadata.name // empty')
 else
   POD=$($OC get pods -l service=${SERVICE} -o json | jq -r '[.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running")] | first | .metadata.name // empty')
 fi
@@ -232,7 +233,11 @@ fi
 
 # If no container defined, load the name of the first container
 if [[ -z ${CONTAINER} ]]; then
-  CONTAINER=$($OC get pod ${POD} -o json | jq --raw-output '.spec.containers[0].name')
+  if [[ "${IS_KUBERNETES}" == "true" ]]; then
+    CONTAINER=$($KUBECTL get pod ${POD} -o json | jq --raw-output '.spec.containers[0].name')
+  else
+    CONTAINER=$($OC get pod ${POD} -o json | jq --raw-output '.spec.containers[0].name')
+  fi
 fi
 
 if [ -t 1 ]; then
@@ -242,8 +247,18 @@ else
 fi
 
 echo "${UUID}: Exec to pod='${POD}' for project='${PROJECT}' cluster='${CLUSTER_NAME}' service='${SERVICE}'"  >> /proc/1/fd/1
-if [[ -z "$*" ]]; then
-  exec $OC exec ${POD} -c ${CONTAINER} -i ${TTY_PARAMETER} -- sh
+
+if [[ "${IS_KUBERNETES}" == "true" ]]; then
+  if [[ -z "$*" ]]; then
+    exec $KUBECTL exec ${POD} -c ${CONTAINER} -i ${TTY_PARAMETER} -- sh
+  else
+    exec $KUBECTL exec ${POD} -c ${CONTAINER} -i ${TTY_PARAMETER} -- sh -c "$*"
+  fi
 else
-  exec $OC exec ${POD} -c ${CONTAINER} -i ${TTY_PARAMETER} -- sh -c "$*"
+  if [[ -z "$*" ]]; then
+    exec $OC exec ${POD} -c ${CONTAINER} -i ${TTY_PARAMETER} -- sh
+  else
+    exec $OC exec ${POD} -c ${CONTAINER} -i ${TTY_PARAMETER} -- sh -c "$*"
+  fi
+
 fi
