@@ -1247,6 +1247,7 @@ const typeDefs = gql`
   enum AdvancedTaskDefinitionArgumentTypes {
     NUMERIC
     STRING
+    ENVIRONMENT_SOURCE_NAME
   }
 
   input AdvancedTaskDefinitionArgumentInput {

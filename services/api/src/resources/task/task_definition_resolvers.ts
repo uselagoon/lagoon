@@ -327,8 +327,8 @@ export const addAdvancedTaskDefinition = async (
       Sql.insertAdvancedTaskDefinitionArgument({
         id: null,
         advanced_task_definition: insertId,
-        name: advancedTaskDefinitionArguments[0].name,
-        type: advancedTaskDefinitionArguments[0].type
+        name: advancedTaskDefinitionArguments[i].name,
+        type: advancedTaskDefinitionArguments[i].type
       })
     );
   }
@@ -360,7 +360,7 @@ export const invokeRegisteredTask = async (
   { sqlClientPool, hasPermission, models }
 ) => {
   await envValidators(sqlClientPool).environmentExists(environment);
-  // console.log(argumentValues);
+
   let task = await getNamedAdvancedTaskForEnvironment(
     sqlClientPool,
     hasPermission,
@@ -395,6 +395,7 @@ export const invokeRegisteredTask = async (
   };
 
 
+
   const environmentDetails = await environmentHelpers(
     sqlClientPool
   ).getEnvironmentById(environment);
@@ -405,6 +406,18 @@ export const invokeRegisteredTask = async (
 
   switch (task.type) {
     case TaskRegistration.TYPE_STANDARD:
+
+      let taskCommandEnvs = '';
+
+      taskCommandEnvs = R.reduce((acc, val) => {
+        //@ts-ignore
+        return `${acc} ${val.advancedTaskDefinitionArgumentName}="${val.value}"`
+      }, taskCommandEnvs, argumentValues);
+
+      let taskCommand = `${taskCommandEnvs} ${task.command}`;
+
+      console.log(taskCommand);
+
       const taskData = await Helpers(sqlClientPool).addTask({
         name: task.name,
         environment: environment,
