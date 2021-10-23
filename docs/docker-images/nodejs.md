@@ -1,6 +1,6 @@
 # Node.js
 
-The [Lagoon `node` Docker image](https://github.com/uselagoon/lagoon-images/tree/main/images/node). Based on [the official PHP Alpine images](https://hub.docker.com/_/php/).
+The [Lagoon `node` Docker image](https://github.com/uselagoon/lagoon-images/tree/main/images/node). Based on [the official Node Alpine images](https://hub.docker.com/_/node/).
 
 ## Supported Versions
 
