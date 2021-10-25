@@ -956,12 +956,12 @@ ui-logs-development: build/api build/api-db build/local-api-data-watcher-pusher 
 ## CI targets
 
 KIND_VERSION = v0.11.1
-GOJQ_VERSION = v0.12.3
+GOJQ_VERSION = v0.12.5
 STERN_VERSION = 2.1.17
 CHART_TESTING_VERSION = v3.4.0
 KIND_IMAGE = kindest/node:v1.21.1@sha256:69860bda5563ac81e3c0057d654b5253219618a22ec3a346306239bba8cfa1a6
 TESTS = [api,features-kubernetes,features-kubernetes-2,features-api-variables,active-standby-kubernetes,nginx,drupal-php73,drupal-php74,drupal-postgres,python,gitlab,github,bitbucket,node-mongodb,elasticsearch,tasks]
-CHARTS_TREEISH = logs2s3
+CHARTS_TREEISH = main
 
 local-dev/kind:
 ifeq ($(KIND_VERSION), $(shell kind version 2>/dev/null | sed -nE 's/kind (v[0-9.]+).*/\1/p'))
