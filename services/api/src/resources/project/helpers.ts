@@ -108,6 +108,22 @@ export const Helpers = (sqlClientPool: Pool) => {
       R.map(
         R.prop('name'),
         await query(sqlClientPool, Sql.selectAllProjectNames())
-      )
+      ),
+    deleteProjectById: async (id: number) => {
+      await query(
+        sqlClientPool,
+        'DELETE FROM `project_notification` WHERE `pid` = :id',
+        { id }
+      );
+      // clean up deploytarget configurations
+      await query(
+        sqlClientPool,
+        'DELETE FROM `deploy_target_config` WHERE `project` = :id',
+        { id }
+      );
+      await query(sqlClientPool, 'DELETE FROM `project` WHERE `id` = :id', {
+        id
+      });
+    }
   };
 };

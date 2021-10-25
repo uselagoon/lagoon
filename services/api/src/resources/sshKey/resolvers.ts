@@ -69,7 +69,7 @@ export const addSshKey: ResolverFn = async (
   );
   const rows = await query(sqlClientPool, Sql.selectSshKey(insertId));
 
-  userActivityLogger.user_action(`User added ssh key '${name}'`, {
+  userActivityLogger(`User added ssh key '${name}'`, {
     project: '',
     event: 'api:addSshKey',
     payload: {
@@ -141,7 +141,7 @@ export const updateSshKey: ResolverFn = async (
   );
   const rows = await query(sqlClientPool, Sql.selectSshKey(id));
 
-  userActivityLogger.user_action(`User updated ssh key '${id}'`, {
+  userActivityLogger(`User updated ssh key '${id}'`, {
     project: '',
     event: 'api:updateSshKey',
     payload: {
@@ -186,7 +186,7 @@ export const deleteSshKey: ResolverFn = async (
 
   await query(sqlClientPool, 'CALL DeleteSshKey(:name)', { name });
 
-  userActivityLogger.user_action(`User deleted ssh key '${name}'`, {
+  userActivityLogger(`User deleted ssh key '${name}'`, {
     project: '',
     event: 'api:deleteSshKey',
     payload: {
@@ -220,7 +220,7 @@ export const deleteSshKeyById: ResolverFn = async (
 
   // TODO: Check rows for success
 
-  userActivityLogger.user_action(`User deleted ssh key with id '${id}'`, {
+  userActivityLogger(`User deleted ssh key with id '${id}'`, {
     project: '',
     event: 'api:deleteSshKeyById',
     payload: {

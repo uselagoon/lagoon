@@ -1,5 +1,6 @@
 import Transport = require('winston-transport');
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { parseAndCleanMeta } from '../loggers/userActivityLogger';
 
 export class RabbitMQTransport extends Transport {
     constructor(options) {
@@ -15,8 +16,8 @@ export class RabbitMQTransport extends Transport {
       const level = info[Symbol.for('level')] || info.level;
       const formattedMessage = info[Symbol.for('message')];
 
-      const meta = Object.fromEntries(
-        Object.entries(info).filter(([key]) => typeof key !== 'symbol'))
+      const meta = parseAndCleanMeta(Object.fromEntries(
+        Object.entries(info).filter(([key]) => typeof key !== 'symbol')))
 
       return {
         severity: 'info',
@@ -44,6 +45,3 @@ export class RabbitMQTransport extends Transport {
       next();
     }
 }
-
-// @ts-ignore
-// winston.transports.RabbitMQ = RabbitMQTransport;

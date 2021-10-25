@@ -5,26 +5,28 @@ import { Sql } from './sql';
 import { ResolverFn } from '../index';
 import { knex } from '../../util/db';
 import { logger } from '../../loggers/logger';
-import { loggers } from 'winston';
 
 export const getFactsByEnvironmentId: ResolverFn = async (
-  { id: environmentId },
-  { keyFacts },
+  { id: environmentId, environmentAuthz },
+  { keyFacts, limit },
   { sqlClientPool, hasPermission }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
   ).getEnvironmentById(environmentId);
 
-  await hasPermission('fact', 'view', {
-    project: environment.project
-  });
+  if (!environmentAuthz) {
+    await hasPermission('fact', 'view', {
+      project: environment.project
+    });
+  }
 
   const rows = await query(
     sqlClientPool,
     Sql.selectFactsByEnvironmentId({
       environmentId,
-      keyFacts
+      keyFacts,
+      limit
     })
   );
 
@@ -98,7 +100,7 @@ export const getEnvironmentsByFactSearch: ResolverFn = async (
 ) => {
 
   let isAdmin = false;
-  let userProjectIds  : number[];
+  let userProjectIds: number[];
   try {
     await hasPermission('project', 'viewAll');
     isAdmin = true;
@@ -155,7 +157,7 @@ export const addFact: ResolverFn = async (
     Sql.selectFactByDatabaseId(insertId)
   );
 
-  userActivityLogger.user_action(`User added a fact to environment '${environment.name}'`, {
+  userActivityLogger(`User added a fact to environment '${environment.name}'`, {
     project: '',
     event: 'api:addFact',
     payload: {
@@ -218,7 +220,7 @@ export const addFacts: ResolverFn = async (
     returnFacts.push(R.prop(0, rows));
   }
 
-  userActivityLogger.user_action(`User added facts to environments'`, {
+  userActivityLogger(`User added facts to environments'`, {
     project: '',
     event: 'api:addFacts',
     payload: {
@@ -246,7 +248,7 @@ export const deleteFact: ResolverFn = async (
 
   await query(sqlClientPool, Sql.deleteFact(environmentId, name));
 
-  userActivityLogger.user_action(`User deleted a fact`, {
+  userActivityLogger(`User deleted a fact`, {
     project: '',
     event: 'api:deleteFact',
     payload: {
@@ -275,7 +277,7 @@ export const deleteFactsFromSource: ResolverFn = async (
 
   await query(sqlClientPool, Sql.deleteFactsFromSource(environmentId, source));
 
-  userActivityLogger.user_action(`User deleted facts`, {
+  userActivityLogger(`User deleted facts`, {
     project: '',
     event: 'api:deleteFactsFromSource',
     payload: {
@@ -420,8 +422,6 @@ const getFactFilteredEnvironmentsCount = async (filterDetails: any, projectIdSub
 }
 
 const buildContitionsForFactSearchQuery = (filterDetails: any, factQuery: any, projectIdSubset: number[], isAdmin: boolean = false, byPassLimits: boolean = false) => {
-  const filters = {};
-
   if (filterDetails.filters && filterDetails.filters.length > 0) {
     filterDetails.filters.forEach((filter, i) => {
 
@@ -449,11 +449,11 @@ const buildContitionsForFactSearchQuery = (filterDetails: any, factQuery: any, p
     const builderFactory = (filter, i) => (builder) => {
       let { lhsTarget, name, contains } = filter;
       if (lhsTarget == "PROJECT") {
-        builder = builder.andWhere(`project.${name}`, '=', `${contains}`);
+        builder = builder.andWhere(`project.${name}`, 'like', `${predicateRHSProcess('CONTAINS', contains)}`);
       } else {
         let tabName = `env${i}`;
         builder = builder.andWhere(`${tabName}.name`, '=', `${name}`);
-        builder = builder.andWhere(`${tabName}.value`, 'like', `%${contains}%`);
+        builder = builder.andWhere(`${tabName}.value`, 'like', `${predicateRHSProcess('CONTAINS', contains)}`);
       }
       return builder;
     };
@@ -468,11 +468,6 @@ const buildContitionsForFactSearchQuery = (filterDetails: any, factQuery: any, p
       });
       return innerBuilder;
     })
-  }
-  else {
-    if (!isAdmin) {
-      factQuery = factQuery.innerJoin(`environment_fact`, 'environment.id', `environment_fact.environment`);
-    }
   }
 
   if (projectIdSubset && !isAdmin) {

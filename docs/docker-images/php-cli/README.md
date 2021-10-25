@@ -17,7 +17,7 @@ This Dockerfile is intended to be used as a base for any `cli` needs within Lago
 * 7.2 \(available for compatibility, no longer officially supported\)
 * 7.3 [\[Dockerfile\]](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/7.3.Dockerfile)
 * 7.4 [\[Dockerfile\]](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/7.4.Dockerfile)
-* 8.0 \(coming soon\)
+* 8.0 [\[Dockerfile\]](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/8.0.Dockerfile)
 
 All PHP versions use their own Dockerfiles.
 
