@@ -14,7 +14,7 @@ As there can be environment variables defined in either the Dockerfile or during
 6. Environment variables defined in `.env`.
 7. Environment variables defined in `.env.defaults`.
 
-`.lagoon.env.$BRANCHNAME`, `.lagoon.env.$BRANCHNAME`, `.env`, and `.env.defaults` are all sourced by the individual containers themselves as part of running their entrypoint scripts. They are not read by Lagoon, but by the containers `ENTRYPOINT` scripts, which look for them in the containers working directory. If environment variables don't appear as expected, check if your container has a `WORKDIR` setting that that points to somewhere else.
+`.lagoon.env.$BRANCHNAME`, `.lagoon.env.$BRANCHNAME`, `.env`, and `.env.defaults` are all sourced by the individual containers themselves as part of running their entrypoint scripts. They are not read by Lagoon, but by the containers `ENTRYPOINT` scripts, which look for them in the containers working directory. If environment variables don't appear as expected, check if your container has a `WORKDIR` setting that points to somewhere else.
 
 ## Environment Variables \(Lagoon API\)
 
