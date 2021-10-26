@@ -19,6 +19,11 @@ export class ArgumentBase {
     public static typeName() {
         return "BASE";
     }
+
+    public async getArgumentRange() {
+        return [];
+    }
+
 }
 
 export class EnvironmentSourceArgument extends ArgumentBase {
@@ -35,6 +40,11 @@ export class EnvironmentSourceArgument extends ArgumentBase {
 
     public static typeName() {
         return "ENVIRONMENT_SOURCE_NAME";
+    }
+
+    public async getArgumentRange() {
+        await this.loadEnvNames();
+        return this.environmentNameList;
     }
 
     protected async loadEnvNames() {
@@ -65,6 +75,10 @@ export class StringArgument extends ArgumentBase {
     async validateInput(input): Promise<boolean>  {
         return true;
     }
+
+    public async getArgumentRange() {
+        return null;
+    }
 }
 
 
@@ -76,6 +90,10 @@ export class NumberArgument {
 
     async validateInput(input): Promise<boolean>  {
         return true;
+    }
+
+    public async getArgumentRange() {
+        return null;
     }
 }
 

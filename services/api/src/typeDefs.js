@@ -136,6 +136,7 @@ const typeDefs = gql`
     id: Int
     name: String
     type: String
+    range: [String]
     advancedTaskDefinition: AdvancedTaskDefinition
   }
 
