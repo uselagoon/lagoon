@@ -3,10 +3,12 @@ import { Mutation } from 'react-apollo';
 import gql from 'graphql-tag';
 import ReactSelect from 'react-select';
 import Button from 'components/Button';
+import withState from 'recompose/withState';
+import * as R from "ramda";
 
 const mutationInvokeRegisteredTask = gql`
-  mutation invokeRegisteredTask($environment: Int!, $taskRegistration: Int!) {
-    invokeRegisteredTask(environment: $environment, advancedTaskDefinition: $taskRegistration) {
+  mutation invokeRegisteredTask($environment: Int!, $taskRegistration: Int!, $argumentValues: [AdvancedTaskDefinitionArgumentValueInput]) {
+    invokeRegisteredTask(environment: $environment, advancedTaskDefinition: $taskRegistration, argumentValues: $argumentValues) {
       id
       name
       status
@@ -20,19 +22,43 @@ const mutationInvokeRegisteredTask = gql`
   }
 `;
 
-const InvokeRegisteredTask = ({ pageEnvironment, selectedTask, onCompleted, onError }) => {
+const InvokeRegisteredTask = ({ pageEnvironment, selectedTask, advancedTaskArguments, setAdvancedTaskArguments,  onCompleted, onError }) => {
+  console.log(selectedTask);
   return <Mutation
     mutation={mutationInvokeRegisteredTask}
     onCompleted={onCompleted}
     onError={onError}
     variables={{
       environment: pageEnvironment.id,
-      taskRegistration: selectedTask.id
+      taskRegistration: selectedTask.id,
+      argumentValues: [{advancedTaskDefinitionArgumentName:"ENV_VAR_NAME_SOURCE", value:"Master"}],
     }}
   >
     {(mutationInvokeRegisteredTask, { loading, called, error, data }) => {
       return (
         <React.Fragment>
+          <div className="taskArguments">
+          {selectedTask.arguments.map( d => {
+            if(d.type == "ENVIRONMENT_SOURCE_NAME") {
+            return (<ReactSelect
+            aria-labelledby="{d.name}"
+            name="{d.name}"
+            placeholder="Select environment..."
+            value={{
+              label: R.prop(d.name, advancedTaskArguments),
+              value: R.prop(d.name, advancedTaskArguments)}}
+            onChange={selectedOption => {
+              console.log(selectedOption)
+              console.log(advancedTaskArguments)
+              setAdvancedTaskArguments({ ... advancedTaskArguments, [d.name]: selectedOption.value})
+            }
+            }
+            options={ d.range.map(opt => ({label: opt, value: opt}))}
+          />)
+            }
+            return null;
+          })}
+          </div>
           <div className="envSelect">
             <label id="dest-env">Environment:</label>
             <ReactSelect
@@ -65,4 +91,7 @@ const InvokeRegisteredTask = ({ pageEnvironment, selectedTask, onCompleted, onEr
 
 };
 
-export default InvokeRegisteredTask;
+//here we attempt to deal with dynamic options
+const withAdtaskArgs = withState('advancedTaskArguments', 'setAdvancedTaskArguments', {});
+
+export default withAdtaskArgs(InvokeRegisteredTask);
