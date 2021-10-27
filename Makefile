@@ -96,6 +96,9 @@ SAFE_BRANCH_NAME := $(shell echo $(BRANCH_NAME) | sed -E 's/[^[:alnum:]_.-]//g' 
 # Skip image scanning by default to make building images substantially faster
 SCAN_IMAGES := false
 
+
+USE_CALICO_CNI := true
+
 # Init the file that is used to hold the image tag cross-reference table
 $(shell >build.txt)
 $(shell >scan.txt)
@@ -1014,15 +1017,23 @@ helm/repos: local-dev/helm
 
 # stand up a kind cluster configured appropriately for lagoon testing
 .PHONY: kind/cluster
-kind/cluster: local-dev/kind
+kind/cluster: local-dev/kind local-dev/kubectl
 	./local-dev/kind get clusters | grep -q "$(CI_BUILD_TAG)" && exit; \
-		docker network create kind || true \
-		&& export KUBECONFIG=$$(mktemp) \
-		KINDCONFIG=$$(mktemp ./kindconfig.XXX) \
-		KIND_NODE_IP=$$(docker run --rm --network kind alpine ip -o addr show eth0 | sed -nE 's/.* ([0-9.]{7,})\/.*/\1/p') \
+		docker network create kind || true
+ifeq ($(USE_CALICO_CNI),true)
+		KINDCONFIGTPL=$$(mktemp ./kindconfig.XXX.tpl) \
+		&& curl -sSLo $$KINDCONFIGTPL https://raw.githubusercontent.com/uselagoon/lagoon-charts/$(CHARTS_TREEISH)/test-suite.kind-config.calico.yaml.tpl \
+		&& export KIND_NODE_IP=$$(docker run --rm --network kind alpine ip -o addr show eth0 | sed -nE 's/.* ([0-9.]{7,})\/.*/\1/p') \
+		&& envsubst < $$KINDCONFIGTPL > kindconfig.kind.$(CI_BUILD_TAG)
+else
+		KINDCONFIGTPL=$$(mktemp ./kindconfigXXX.tpl) \
+		&& curl -sSLo $$KINDCONFIGTPL https://raw.githubusercontent.com/uselagoon/lagoon-charts/$(CHARTS_TREEISH)/test-suite.kind-config.yaml.tpl \
+		&& KIND_NODE_IP=$$(docker run --rm --network kind alpine ip -o addr show eth0 | sed -nE 's/.* ([0-9.]{7,})\/.*/\1/p') \
+		&& envsubst < $$KINDCONFIGTPL > kindconfig.kind.$(CI_BUILD_TAG)
+endif
+		export KUBECONFIG=$$(mktemp) \
 		&& chmod 644 $$KUBECONFIG \
-		&& curl -sSLo $$KINDCONFIG.tpl https://raw.githubusercontent.com/uselagoon/lagoon-charts/$(CHARTS_TREEISH)/test-suite.kind-config.yaml.tpl \
-		&& envsubst < $$KINDCONFIG.tpl > $$KINDCONFIG \
+		&& export KINDCONFIG="$$(pwd)/kindconfig.kind.$(CI_BUILD_TAG)" \
 		&& echo '  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."docker.io"]'                >> $$KINDCONFIG \
 		&& echo '    endpoint = ["https://imagecache.amazeeio.cloud", "https://index.docker.io/v1/"]' >> $$KINDCONFIG \
 		&& echo 'nodes:'                                                                              >> $$KINDCONFIG \
@@ -1037,7 +1048,7 @@ kind/cluster: local-dev/kind
 		&& echo '  - containerPath: /lagoon/node-packages'                                            >> $$KINDCONFIG \
 		&& echo '    hostPath: ./node-packages'                                                       >> $$KINDCONFIG \
 		&& echo '    readOnly: false'                                                                 >> $$KINDCONFIG \
-		&& KIND_CLUSTER_NAME="$(CI_BUILD_TAG)" ./local-dev/kind create cluster --wait=120s --config=$$KINDCONFIG \
+		&& KIND_CLUSTER_NAME="$(CI_BUILD_TAG)" ./local-dev/kind create cluster --wait=60s --config=$$KINDCONFIG \
 		&& cp $$KUBECONFIG "kubeconfig.kind.$(CI_BUILD_TAG)" \
 		&& echo -e 'Interact with the cluster during the test run in Jenkins like so:\n' \
 		&& echo "export KUBECONFIG=\$$(mktemp) && scp $$NODE_NAME:$$KUBECONFIG \$$KUBECONFIG && KIND_PORT=\$$(sed -nE 's/.+server:.+:([0-9]+)/\1/p' \$$KUBECONFIG) && ssh -fNL \$$KIND_PORT:127.0.0.1:\$$KIND_PORT $$NODE_NAME" \
@@ -1053,6 +1064,11 @@ ifeq ($(ARCH), darwin)
       --link $(CI_BUILD_TAG)-control-plane:target --network kind \
       alpine/socat -dd \
       tcp-listen:32080,fork,reuseaddr tcp-connect:target:32080
+endif
+ifeq ($(USE_CALICO_CNI),true)
+		export KUBECONFIG="$$(pwd)/kubeconfig.kind.$(CI_BUILD_TAG)" \
+		&& ./local-dev/kubectl apply -f https://raw.githubusercontent.com/uselagoon/lagoon-charts/$(CHARTS_TREEISH)/ci/calico/tigera-operator.yaml \
+		&& ./local-dev/kubectl apply -f https://raw.githubusercontent.com/uselagoon/lagoon-charts/$(CHARTS_TREEISH)/ci/calico/custom-resources.yaml
 endif
 
 KIND_SERVICES = api api-db api-redis auth-server broker controllerhandler docker-host drush-alias keycloak keycloak-db logs2s3 webhook-handler webhooks2tasks kubectl-build-deploy-dind local-api-data-watcher-pusher local-git ssh tests ui
