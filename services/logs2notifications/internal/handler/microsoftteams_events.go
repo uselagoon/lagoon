@@ -8,30 +8,26 @@ import (
 	"net/http"
 )
 
-// RocketChatData .
-type RocketChatData struct {
-	Channel     string                 `json:"channel"`
-	Attachments []RocketChatAttachment `json:"attachments"`
+// MicrosoftTeamsData .
+type MicrosoftTeamsData struct {
+	Type       string                  `json:"@type"`
+	Context    string                  `json:"@context"`
+	Summary    string                  `json:"summary"`
+	Title      string                  `json:"title"`
+	ThemeColor string                  `json:"themeColor"`
+	Sections   []MicrosoftTeamsSection `json:"sections"`
 }
 
-// RocketChatAttachment .
-type RocketChatAttachment struct {
-	Text   string                      `json:"text"`
-	Color  string                      `json:"color"`
-	Fields []RocketChatAttachmentField `json:"fields"`
+// MicrosoftTeamsSection .
+type MicrosoftTeamsSection struct {
+	ActivityText  string `json:"activityText"`
+	ActivityImage string `json:"activityImage"`
 }
 
-// RocketChatAttachmentField .
-type RocketChatAttachmentField struct {
-	Short bool   `json:"short"`
-	Title string `json:"title"`
-	Value string `json:"value"`
-}
+// SendToMicrosoftTeams .
+func SendToMicrosoftTeams(notification *Notification, webhook, appID string) {
 
-// SendToRocketChat .
-func SendToRocketChat(notification *Notification, channel, webhook, appID string) {
-
-	emoji, color, template, err := getRocketChatEvent(notification.Event)
+	emoji, color, template, err := getMicrosoftTeamsEvent(notification.Event)
 	if err != nil {
 		return
 	}
@@ -39,8 +35,7 @@ func SendToRocketChat(notification *Notification, channel, webhook, appID string
 	var text string
 	switch template {
 	case "mergeRequestOpened":
-		text = fmt.Sprintf("*[%s]* PR [#%s (%s)](%s) opened in [%s](%s)",
-			notification.Meta.ProjectName,
+		text = fmt.Sprintf("PR [#%s (%s)](%s) opened in [%s](%s)",
 			notification.Meta.PullrequestNumber,
 			notification.Meta.PullrequestTitle,
 			notification.Meta.PullrequestURL,
@@ -48,8 +43,7 @@ func SendToRocketChat(notification *Notification, channel, webhook, appID string
 			notification.Meta.RepoURL,
 		)
 	case "mergeRequestUpdated":
-		text = fmt.Sprintf("*[%s]* PR [#%s (%s)](%s) updated in [%s](%s)",
-			notification.Meta.ProjectName,
+		text = fmt.Sprintf("PR [#%s (%s)](%s) updated in [%s](%s)",
 			notification.Meta.PullrequestNumber,
 			notification.Meta.PullrequestTitle,
 			notification.Meta.PullrequestURL,
@@ -57,8 +51,7 @@ func SendToRocketChat(notification *Notification, channel, webhook, appID string
 			notification.Meta.RepoURL,
 		)
 	case "mergeRequestClosed":
-		text = fmt.Sprintf("*[%s]* PR [#%s (%s)](%s) closed in [%s](%s)",
-			notification.Meta.ProjectName,
+		text = fmt.Sprintf("PR [#%s (%s)](%s) closed in [%s](%s)",
 			notification.Meta.PullrequestNumber,
 			notification.Meta.PullrequestTitle,
 			notification.Meta.PullrequestURL,
@@ -66,13 +59,11 @@ func SendToRocketChat(notification *Notification, channel, webhook, appID string
 			notification.Meta.RepoURL,
 		)
 	case "deleteEnvironment":
-		text = fmt.Sprintf("*[%s]* Deleting environment `%s`",
-			notification.Meta.ProjectName,
+		text = fmt.Sprintf("Deleting environment `%s`",
 			notification.Meta.EnvironmentName,
 		)
 	case "repoPushHandled":
-		text = fmt.Sprintf("*[%s]* [%s](%s/tree/%s)",
-			notification.Meta.ProjectName,
+		text = fmt.Sprintf("[%s](%s/tree/%s)",
 			notification.Meta.BranchName,
 			notification.Meta.RepoURL,
 			notification.Meta.BranchName,
@@ -90,8 +81,7 @@ func SendToRocketChat(notification *Notification, channel, webhook, appID string
 			notification.Meta.RepoURL,
 		)
 	case "repoPushSkipped":
-		text = fmt.Sprintf("*[%s]* [%s](%s/tree/%s)",
-			notification.Meta.ProjectName,
+		text = fmt.Sprintf("[%s](%s/tree/%s)",
 			notification.Meta.BranchName,
 			notification.Meta.RepoURL,
 			notification.Meta.BranchName,
@@ -109,8 +99,7 @@ func SendToRocketChat(notification *Notification, channel, webhook, appID string
 			notification.Meta.RepoURL,
 		)
 	case "deployEnvironment":
-		text = fmt.Sprintf("*[%s]* Deployment triggered `%s`",
-			notification.Meta.ProjectName,
+		text = fmt.Sprintf("Deployment triggered `%s`",
 			notification.Meta.BranchName,
 		)
 		if notification.Meta.ShortSha != "" {
@@ -120,27 +109,21 @@ func SendToRocketChat(notification *Notification, channel, webhook, appID string
 			)
 		}
 	case "removeFinished":
-		text = fmt.Sprintf("*[%s]* Removed `%s`",
-			notification.Meta.ProjectName,
+		text = fmt.Sprintf("Removed `%s`",
 			notification.Meta.OpenshiftProject,
 		)
 	case "removeRetry":
-		text = fmt.Sprintf("*[%s]* Removed `%s`",
-			notification.Meta.ProjectName,
+		text = fmt.Sprintf("Removed `%s`",
 			notification.Meta.OpenshiftProject,
 		)
 	case "notDeleted":
-		text = fmt.Sprintf("*[%s]* `%s` not deleted. %s",
-			notification.Meta.ProjectName,
+		text = fmt.Sprintf("`%s` not deleted. %s",
 			notification.Meta.BranchName,
 			notification.Meta.Error,
 		)
 	case "deployError":
-		text = fmt.Sprintf("*[%s]*",
-			notification.Meta.ProjectName,
-		)
 		if notification.Meta.ShortSha != "" {
-			text += fmt.Sprintf(" `%s` %s",
+			text += fmt.Sprintf("`%s` %s",
 				notification.Meta.BranchName,
 				notification.Meta.ShortSha,
 			)
@@ -158,16 +141,13 @@ func SendToRocketChat(notification *Notification, channel, webhook, appID string
 			)
 		}
 	case "deployFinished":
-		text = fmt.Sprintf("*[%s]*",
-			notification.Meta.ProjectName,
-		)
 		if notification.Meta.ShortSha != "" {
-			text += fmt.Sprintf(" `%s` %s",
+			text += fmt.Sprintf("`%s` %s",
 				notification.Meta.BranchName,
 				notification.Meta.ShortSha,
 			)
 		} else {
-			text += fmt.Sprintf(" `%s`",
+			text += fmt.Sprintf("`%s`",
 				notification.Meta.BranchName,
 			)
 		}
@@ -194,20 +174,16 @@ func SendToRocketChat(notification *Notification, channel, webhook, appID string
 		return
 	}
 
-	data := RocketChatData{
-		Channel: channel,
-		Attachments: []RocketChatAttachment{
+	data := MicrosoftTeamsData{
+		Type:       "MessageCard",
+		Context:    "http://schema.org/extensions",
+		Summary:    text,
+		Title:      notification.Meta.ProjectName,
+		ThemeColor: color,
+		Sections: []MicrosoftTeamsSection{
 			{
-				// Text:  fmt.Sprintf("%s %s", emoji, notification.Message),
-				Text:  fmt.Sprintf("%s %s", emoji, text),
-				Color: color,
-				Fields: []RocketChatAttachmentField{
-					{
-						Short: true,
-						Title: "Source",
-						Value: appID,
-					},
-				},
+				ActivityText:  text,
+				ActivityImage: emoji,
 			},
 		},
 	}
@@ -215,7 +191,6 @@ func SendToRocketChat(notification *Notification, channel, webhook, appID string
 	jsonBytes, _ := json.Marshal(data)
 	req, err := http.NewRequest("POST", webhook, bytes.NewBuffer(jsonBytes))
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Content-Length", fmt.Sprintf("%d", len(jsonBytes)))
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -227,14 +202,14 @@ func SendToRocketChat(notification *Notification, channel, webhook, appID string
 	log.Println(fmt.Sprintf("Sent %s message to rocketchat", notification.Event))
 }
 
-func getRocketChatEvent(msgEvent string) (string, string, string, error) {
-	if val, ok := rocketChatEventTypeMap[msgEvent]; ok {
+func getMicrosoftTeamsEvent(msgEvent string) (string, string, string, error) {
+	if val, ok := microsoftTeamsEvent[msgEvent]; ok {
 		return val.Emoji, val.Color, val.Template, nil
 	}
 	return "", "", "", fmt.Errorf("no matching event source")
 }
 
-var rocketChatEventTypeMap = map[string]EventMap{
+var microsoftTeamsEvent = map[string]EventMap{
 	"github:pull_request:opened:handled":           {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestOpened"},
 	"gitlab:merge_request:opened:handled":          {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestOpened"},
 	"bitbucket:pullrequest:created:opened:handled": {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestOpened"}, //not in slack

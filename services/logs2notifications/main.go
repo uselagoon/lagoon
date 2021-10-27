@@ -26,10 +26,19 @@ var (
 	lagoonAppID                  string
 	jwtTokenSigningKey           string
 	jwtAudience                  string
-	actionsQueueName             string
-	actionsExchange              string
 	jwtSubject                   string
 	jwtIssuer                    string
+	s3FilesAccessKeyID           string
+	s3FilesSecretAccessKey       string
+	s3FilesBucket                string
+	s3FilesRegion                string
+	s3FilesOrigin                string
+	disableSlack                 bool
+	disableRocketChat            bool
+	disableMicrosoftTeams        bool
+	disableEmail                 bool
+	disableWebhooks              bool
+	disableS3                    bool
 )
 
 func main() {
@@ -61,10 +70,28 @@ func main() {
 		"The jwt audience.")
 	flag.StringVar(&jwtIssuer, "jwt-issuer", "logs2notifications",
 		"The jwt audience.")
-	flag.StringVar(&actionsQueueName, "actions-queue-name", "lagoon-actions:items",
-		"The name of the queue in rabbitmq to use.")
-	flag.StringVar(&actionsExchange, "actions-exchange", "lagoon-actions",
-		"The name of the exchange in rabbitmq to use.")
+	flag.StringVar(&s3FilesAccessKeyID, "s3-files-access-key", "minio",
+		"The jwt audience.")
+	flag.StringVar(&s3FilesSecretAccessKey, "s3-files-secret-access-key", "minio123",
+		"The jwt audience.")
+	flag.StringVar(&s3FilesBucket, "s3-files-bucket", "lagoon-files",
+		"The jwt audience.")
+	flag.StringVar(&s3FilesRegion, "s3-files-region", "",
+		"The jwt audience.")
+	flag.StringVar(&s3FilesOrigin, "s3-files-origin", "http://docker.for.mac.localhost:9000",
+		"The jwt audience.")
+	flag.BoolVar(&disableSlack, "disable-slack", false,
+		"Disable the logs2slack feature.")
+	flag.BoolVar(&disableRocketChat, "disable-rocketchat", false,
+		"Disable the logs2rocketchat feature.")
+	flag.BoolVar(&disableMicrosoftTeams, "disable-microsoft-teams", false,
+		"Disable the logs2microsoftteams feature.")
+	flag.BoolVar(&disableEmail, "disable-email", false,
+		"Disable the logs2email feature.")
+	flag.BoolVar(&disableWebhooks, "disable-webhooks", false,
+		"Disable the logs2webhooks feature.")
+	flag.BoolVar(&disableS3, "disable-s3", false,
+		"Disable the logs2s3 feature.")
 	flag.Parse()
 
 	// get overrides from environment variables
@@ -77,18 +104,20 @@ func main() {
 	jwtAudience = getEnv("JWT_AUDIENCE", jwtAudience)
 	jwtSubject = getEnv("JWT_SUBJECT", jwtSubject)
 	jwtIssuer = getEnv("JWT_ISSUER", jwtIssuer)
-	actionsQueueName = getEnv("ACTIONS_QUEUE_NAME", actionsQueueName)
-	actionsExchange = getEnv("ACTIONS_EXCHANGE", actionsExchange)
+
+	s3FilesAccessKeyID = getEnv("S3_FILES_ACCESS_KEY_ID", s3FilesAccessKeyID)
+	s3FilesSecretAccessKey = getEnv("S3_FILES_SECRET_ACCESS_KEY", s3FilesSecretAccessKey)
+	s3FilesBucket = getEnv("S3_FILES_BUCKET", s3FilesBucket)
+	s3FilesRegion = getEnv("S3_FILES_REGION", s3FilesRegion)
+	s3FilesOrigin = getEnv("S3_FILES_HOST", s3FilesOrigin)
 
 	enableDebug := true
 
 	// configure the backup handler settings
 	broker := handler.RabbitBroker{
-		Hostname:     fmt.Sprintf("%s:%s", mqHost, mqPort),
-		Username:     mqUser,
-		Password:     mqPass,
-		QueueName:    actionsQueueName,
-		ExchangeName: actionsExchange,
+		Hostname: fmt.Sprintf("%s:%s", mqHost, mqPort),
+		Username: mqUser,
+		Password: mqPass,
 	}
 	graphQLConfig := handler.LagoonAPI{
 		Endpoint:        lagoonAPIHost,
@@ -160,6 +189,12 @@ func main() {
 		startupConnectionInterval,
 		enableDebug,
 		lagoonAppID,
+		disableSlack,
+		disableRocketChat,
+		disableMicrosoftTeams,
+		disableEmail,
+		disableWebhooks,
+		disableS3,
 	)
 
 	// start the consumer

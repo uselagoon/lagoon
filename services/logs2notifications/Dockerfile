@@ -33,6 +33,4 @@ ENV JWT_SECRET=super-secret-string \
     RABBITMQ_PORT=5672 \
     RABBITMQ_USERNAME=guest \
     RABBITMQ_PASSWORD=guest
-
-ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
 CMD ["/app/logs2notifications"]

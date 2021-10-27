@@ -12,17 +12,14 @@ import (
 	"github.com/uselagoon/lagoon/services/logs2notifications/internal/lagoon"
 	lclient "github.com/uselagoon/lagoon/services/logs2notifications/internal/lagoon/client"
 	"github.com/uselagoon/lagoon/services/logs2notifications/internal/lagoon/jwt"
-	// "github.com/uselagoon/lagoon/services/logs2notifications/internal/schema"
 )
 
 // RabbitBroker .
 type RabbitBroker struct {
-	Hostname     string `json:"hostname"`
-	Port         string `json:"port"`
-	Username     string `json:"username,omitempty"`
-	Password     string `json:"password,omitempty"`
-	QueueName    string `json:"queueName"`
-	ExchangeName string `json:"exchangeName"`
+	Hostname string `json:"hostname"`
+	Port     string `json:"port"`
+	Username string `json:"username,omitempty"`
+	Password string `json:"password,omitempty"`
 }
 
 // LagoonAPI .
@@ -54,6 +51,12 @@ type Messaging struct {
 	ConnectionRetryInterval int
 	EnableDebug             bool
 	LagoonAppID             string
+	DisableSlack            bool
+	DisableRocketChat       bool
+	DisableMicrosoftTeams   bool
+	DisableEmail            bool
+	DisableWebhooks         bool
+	DisableS3               bool
 }
 
 // Notification .
@@ -75,41 +78,48 @@ type Notification struct {
 			Host          string `json:"host"`
 			IPAddress     string `json:"ipAddress"`
 		} `json:"headers"`
-		Project                  string `json:"project"`
-		ProjectName              string `json:"projectName"`
-		BranchName               string `json:"branchName`
-		Event                    string `json:"event"`
-		Level                    string `json:"level"`
-		Message                  string `json:"message"`
-		Timestamp                string `json:"timestamp"`
-		ShortSha                 string `json:"shortSha"`
-		BuildName                string `json:"buildName"`
-		CommitURL                string `json:"commitUrl"`
-		Environment              string `json:"environment"`
-		EnvironmentID            string `json:"environmentId"`
-		EnvironmentName          string `json:"environmentName"`
-		Error                    string `json:"error"`
-		JobName                  string `json:"jobName"`
-		LogLink                  string `json:"logLink"`
-		Name                     string `json:"name"`
-		OpenshiftProject         string `json:"openshiftProject"`
-		PromoteSourceEnvironment string `json:"promoteSourceEnvironment"`
-		PullrequestNumber        string `json:"pullrequestNumber"`
-		PullrequestTitle         string `json:"pullrequestTitle"`
-		PullrequestURL           string `json:"pullrequestUrl"`
-		RemoteID                 string `json:"remoteId"`
-		RepoFullName             string `json:"repoFullName"`
-		RepoName                 string `json:"repoName"`
-		RepoURL                  string `json:"repoUrl"`
-		Route                    string `json:"route"`
-		Routes                   string `json:"routes"`
-		Task                     string `json:"task"`
+		Project                  string   `json:"project"`
+		ProjectName              string   `json:"projectName"`
+		BranchName               string   `json:"branchName`
+		Event                    string   `json:"event"`
+		Level                    string   `json:"level"`
+		Message                  string   `json:"message"`
+		Timestamp                string   `json:"timestamp"`
+		ShortSha                 string   `json:"shortSha"`
+		BuildName                string   `json:"buildName"`
+		CommitURL                string   `json:"commitUrl"`
+		Environment              string   `json:"environment"`
+		EnvironmentID            string   `json:"environmentId"`
+		EnvironmentName          string   `json:"environmentName"`
+		Error                    string   `json:"error"`
+		JobName                  string   `json:"jobName"`
+		LogLink                  string   `json:"logLink"`
+		Name                     string   `json:"name"`
+		OpenshiftProject         string   `json:"openshiftProject"`
+		PromoteSourceEnvironment string   `json:"promoteSourceEnvironment"`
+		PullrequestNumber        string   `json:"pullrequestNumber"`
+		PullrequestTitle         string   `json:"pullrequestTitle"`
+		PullrequestURL           string   `json:"pullrequestUrl"`
+		RemoteID                 string   `json:"remoteId"`
+		RepoFullName             string   `json:"repoFullName"`
+		RepoName                 string   `json:"repoName"`
+		RepoURL                  string   `json:"repoUrl"`
+		Route                    string   `json:"route"`
+		Routes                   []string `json:"routes"`
+		Task                     string   `json:"task"`
 	} `json:"meta"`
 	Message string `json:"message"`
 }
 
+// EventMap .
+type EventMap struct {
+	Emoji    string `json:"emoji"`
+	Color    string `json:"color"`
+	Template string `json:"template"`
+}
+
 // NewMessaging returns a messaging with config
-func NewMessaging(config mq.Config, lagoonAPI LagoonAPI, startupAttempts int, startupInterval int, enableDebug bool, appID string) *Messaging {
+func NewMessaging(config mq.Config, lagoonAPI LagoonAPI, startupAttempts int, startupInterval int, enableDebug bool, appID string, disableSlack, disableRocketChat, disableMicrosoftTeams, disableEmail, disableWebhooks, disableS3 bool) *Messaging {
 	return &Messaging{
 		Config:                  config,
 		LagoonAPI:               lagoonAPI,
@@ -117,6 +127,12 @@ func NewMessaging(config mq.Config, lagoonAPI LagoonAPI, startupAttempts int, st
 		ConnectionRetryInterval: startupInterval,
 		EnableDebug:             enableDebug,
 		LagoonAppID:             appID,
+		DisableSlack:            disableSlack,
+		DisableRocketChat:       disableRocketChat,
+		DisableMicrosoftTeams:   disableMicrosoftTeams,
+		DisableEmail:            disableEmail,
+		DisableWebhooks:         disableWebhooks,
+		DisableS3:               disableS3,
 	}
 }
 
@@ -182,23 +198,31 @@ func (h *Messaging) Consumer() {
 				log.Println(err)
 				break
 			}
-			// if len(projectNotifications.Notifications.Slack) > 0 {
-			// 	fmt.Println(projectNotifications.Notifications.Slack)
-			// }
-			if len(projectNotifications.Notifications.RocketChat) > 0 {
-				for _, rc := range projectNotifications.Notifications.RocketChat {
-					SendToRocketChat(notification, rc.Channel, rc.Webhook, h.LagoonAppID)
+			if projectNotifications.Notifications != nil {
+				if len(projectNotifications.Notifications.Slack) > 0 && !h.DisableSlack {
+					for _, slack := range projectNotifications.Notifications.Slack {
+						SendToSlack(notification, slack.Channel, slack.Webhook, message.AppId())
+					}
 				}
+				if len(projectNotifications.Notifications.RocketChat) > 0 && !h.DisableRocketChat {
+					for _, rc := range projectNotifications.Notifications.RocketChat {
+						SendToRocketChat(notification, rc.Channel, rc.Webhook, message.AppId())
+					}
+				}
+				if len(projectNotifications.Notifications.Email) > 0 && !h.DisableEmail {
+					for _, email := range projectNotifications.Notifications.Email {
+						SendToEmail(notification, email.EmailAddress, message.AppId())
+					}
+				}
+				if len(projectNotifications.Notifications.MicrosoftTeams) > 0 && !h.DisableMicrosoftTeams {
+					for _, teams := range projectNotifications.Notifications.MicrosoftTeams {
+						SendToMicrosoftTeams(notification, teams.Webhook, message.AppId())
+					}
+				}
+				// if len(projectNotifications.Notifications.Webhook) > 0 {
+				// 	fmt.Println(projectNotifications.Notifications.Webhook)
+				// }
 			}
-			// if len(projectNotifications.Notifications.Email) > 0 {
-			// 	fmt.Println(projectNotifications.Notifications.Email)
-			// }
-			// if len(projectNotifications.Notifications.MicrosoftTeams) > 0 {
-			// 	fmt.Println(projectNotifications.Notifications.MicrosoftTeams)
-			// }
-			// if len(projectNotifications.Notifications.Webhook) > 0 {
-			// 	fmt.Println(projectNotifications.Notifications.Webhook)
-			// }
 		}
 		message.Ack(false) // ack to remove from queue
 	})
