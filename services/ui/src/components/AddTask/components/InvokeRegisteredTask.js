@@ -31,7 +31,14 @@ const InvokeRegisteredTask = ({ pageEnvironment, selectedTask, advancedTaskArgum
     variables={{
       environment: pageEnvironment.id,
       taskRegistration: selectedTask.id,
-      argumentValues: [{advancedTaskDefinitionArgumentName:"ENV_VAR_NAME_SOURCE", value:"Master"}],
+      argumentValues: (() => {
+        let taskArgs = [];
+        console.log(advancedTaskArguments);
+        R.forEachObjIndexed((value, key) => {
+          taskArgs.push({advancedTaskDefinitionArgumentName: key, value: value});
+        }, advancedTaskArguments);
+        return taskArgs;
+      })(),
     }}
   >
     {(mutationInvokeRegisteredTask, { loading, called, error, data }) => {
@@ -39,8 +46,13 @@ const InvokeRegisteredTask = ({ pageEnvironment, selectedTask, advancedTaskArgum
         <React.Fragment>
           <div className="taskArguments">
           {selectedTask.arguments.map( d => {
-            if(d.type == "ENVIRONMENT_SOURCE_NAME") {
-            return (<ReactSelect
+            switch(d.type) {
+
+            case("ENVIRONMENT_SOURCE_NAME"):
+            return (
+              <div className="envSelect">
+              <label id="source-env">{d.name} :</label>
+            <ReactSelect
             aria-labelledby="{d.name}"
             name="{d.name}"
             placeholder="Select environment..."
@@ -48,40 +60,51 @@ const InvokeRegisteredTask = ({ pageEnvironment, selectedTask, advancedTaskArgum
               label: R.prop(d.name, advancedTaskArguments),
               value: R.prop(d.name, advancedTaskArguments)}}
             onChange={selectedOption => {
-              console.log(selectedOption)
-              console.log(advancedTaskArguments)
               setAdvancedTaskArguments({ ... advancedTaskArguments, [d.name]: selectedOption.value})
             }
             }
             options={ d.range.map(opt => ({label: opt, value: opt}))}
-          />)
+          />
+          </div>
+          )
+            break;
+            default:
+              return (
+                <div className="envText">
+                <label id="source-env">{d.name} :</label>
+              <input type="text" name="{d.name}"
+                value={R.prop(d.name, advancedTaskArguments)}
+                onChange={event => {
+                  setAdvancedTaskArguments({ ... advancedTaskArguments, [d.name]: event.target.value})
+                }
+                }
+              /></div>)
+
+                break;
             }
             return null;
           })}
-          </div>
-          <div className="envSelect">
-            <label id="dest-env">Environment:</label>
-            <ReactSelect
-              aria-labelledby="dest-env"
-              name="dest-environment"
-              value={{
-                label: pageEnvironment.name,
-                value: pageEnvironment.id
-              }}
-              options={[
-                {
-                  label: pageEnvironment.name,
-                  value: pageEnvironment.id
-                }
-              ]}
-              isDisabled
-              required
-            />
           </div>
           <Button action={mutationInvokeRegisteredTask}>Add task</Button>
           <style jsx>{`
             .envSelect {
               margin: 10px 0;
+            }
+            .envText {
+              display: block;
+              margin: 10px 0;
+            }
+            .envText label {
+              display: block;
+            }
+            .envText input {
+              width: 100%;
+              margin-bottom: 15px;
+              padding: 8px 2px;
+              border-color: rgb(204, 204, 204);
+              border-radius: 4px;
+              border-style: solid;
+              border-width: 1px;
             }
           `}</style>
         </React.Fragment>
