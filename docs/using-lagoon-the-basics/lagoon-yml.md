@@ -262,7 +262,21 @@ When [UptimeRobot](https://uptimerobot.com/) is configured for your cluster \(Op
 Route/Ingress annotations are only supported by projects that deploy into clusters that run nginx-ingress controllers! Check with your Lagoon administrator if this is supported.
 {% endhint %}
 
-* `annotations` can be a yaml map of [annotations supported by the nginx-ingress controller](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/), this is specifically useful for easy redirects and other configurations
+* `annotations` can be a yaml map of [annotations supported by the nginx-ingress controller](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/), this is specifically useful for easy redirects and other configurations.
+
+#### **Restrictions**
+
+Some annotations are disallowed or partially restricted in Lagoon.
+The table below describes these rules.
+
+If your `.lagoon.yml` contains one of these annotations it will cause a build failure.
+
+| Annotation                                          | Notes                                                                                    |
+| ---                                                 | ---                                                                                      |
+| `nginx.ingress.kubernetes.io/auth-snippet`          | Disallowed                                                                               |
+| `nginx.ingress.kubernetes.io/configuration-snippet` | Restricted to `rewrite`, `add_header`, `set_real_ip`, and `more_set_headers` directives. |
+| `nginx.ingress.kubernetes.io/modsecurity-snippet`   | Disallowed                                                                               |
+| `nginx.ingress.kubernetes.io/server-snippet`        | Restricted to `rewrite`, `add_header`, `set_real_ip`, and `more_set_headers` directives. |
 
 #### **Ingress annotations redirects**
 
