@@ -22,6 +22,15 @@ metadata:
     nginx.ingress.kubernetes.io/server-snippet: |-
        add_header X-Robots-Tag "noindex, nofollow";
     kubernetes.io/tls-acme: "true"
+    # use a specific fastly service
+    {{- if .Values.fastly.serviceId }}
+    fastly.amazee.io/service-id: "{{ .Values.fastly.serviceId }}"
+    {{- end }}
+    fastly.amazee.io/watch: "{{ .Values.fastly.watch }}"
+    # use a custom secret for this ingress (customer supplied fastly integration)
+    {{- if .Values.fastly.apiSecretName }}
+    fastly.amazee.io/api-secret-name: "{{ .Values.fastly.apiSecretName }}"
+    {{- end }}
     {{- include "nginx-php-persistent.annotations" . | nindent 4 }}
 spec:
   tls:
