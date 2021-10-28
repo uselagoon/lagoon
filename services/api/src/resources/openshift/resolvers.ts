@@ -86,6 +86,65 @@ export const getOpenshiftByProjectId: ResolverFn = async (
   return rows ? attrFilter(hasPermission, rows[0]) : null;
 };
 
+export const getOpenshiftByDeployTargetId: ResolverFn = async (
+  { id: did },
+  args,
+  { sqlClientPool, hasPermission }
+) => {
+  // get the project id for the deploytarget
+  const projectrows = await query(
+    sqlClientPool,
+    `SELECT d.project
+    FROM deploy_target_config d
+    WHERE d.id = :did
+    `,
+    {
+      did
+    }
+  );
+
+  // check permissions on the project
+  await hasPermission('openshift', 'view', {
+    project: projectrows[0].project,
+  });
+
+  const rows = await query(
+    sqlClientPool,
+    `SELECT o.*
+    FROM deploy_target_config d
+    JOIN openshift o ON o.id = d.deploy_target
+    WHERE d.id = :did
+    `,
+    {
+      did
+    }
+  );
+
+  return rows ? attrFilter(hasPermission, rows[0]) : null;
+};
+
+export const getOpenshiftByEnvironmentId: ResolverFn = async (
+  { id: eid },
+  args,
+  { sqlClientPool, hasPermission }
+) => {
+  await hasPermission('openshift', 'viewAll');
+
+  const rows = await query(
+    sqlClientPool,
+    `SELECT o.*
+    FROM environment e
+    JOIN openshift o ON o.id = e.openshift
+    WHERE e.id = :eid
+    `,
+    {
+      eid
+    }
+  );
+
+  return rows ? attrFilter(hasPermission, rows[0]) : null;
+};
+
 export const updateOpenshift: ResolverFn = async (
   root,
   { input },

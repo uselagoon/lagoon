@@ -13,5 +13,5 @@ ENV MARIADB_DATABASE=keycloak \
 
 COPY my_query-cache.cnf /etc/mysql/conf.d/my_query-cache.cnf
 USER root
-RUN chown -R mysql /etc/mysql/conf.d/
+RUN fix-permissions /etc/mysql/conf.d/
 USER mysql

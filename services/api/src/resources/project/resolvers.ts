@@ -14,6 +14,16 @@ import { createHarborOperations } from './harborSetup';
 
 const removePrivateKey = R.assoc('privateKey', null);
 
+const isAdminCheck = async (hasPermission) => {
+  try {
+    // check user is admin
+    await hasPermission('project', 'viewAll');
+    return true;
+  } catch (err) {
+    return false;
+  }
+};
+
 const isValidGitUrl = value =>
   /(?:git|ssh|https?|git@[-\w.]+):(\/\/)?(.*?)(\.git)(\/?|\#[-\d\w._]+?)$/.test(
     value
@@ -25,6 +35,7 @@ export const getAllProjects: ResolverFn = async (
   { sqlClientPool, hasPermission, models, keycloakGrant }
 ) => {
   let userProjectIds: number[];
+
   try {
     await hasPermission('project', 'viewAll');
   } catch (err) {
@@ -83,6 +94,38 @@ export const getProjectByEnvironmentId: ResolverFn = async (
     WHERE e.id = :eid
     LIMIT 1`,
     { eid }
+  );
+  const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
+
+  const project = withK8s[0];
+
+  await hasPermission('project', 'view', {
+    project: project.id
+  });
+
+  try {
+    await hasPermission('project', 'viewPrivateKey', {
+      project: project.id
+    });
+
+    return project;
+  } catch (err) {
+    return removePrivateKey(project);
+  }
+};
+
+export const getProjectById: ResolverFn = async (
+  { project: pid },
+  args,
+  { sqlClientPool, hasPermission }
+) => {
+  const rows = await query(
+    sqlClientPool,
+    `SELECT p.*
+    FROM project p
+    WHERE p.id = :pid
+    LIMIT 1`,
+    { pid }
   );
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
@@ -202,7 +245,9 @@ export const getProjectsByMetadata: ResolverFn = async (
     }
     // Support key-only queries.
     else {
-      queryBuilder = queryBuilder.whereRaw("JSON_CONTAINS_PATH(metadata, 'one', ?)");
+      queryBuilder = queryBuilder.whereRaw(
+        "JSON_CONTAINS_PATH(metadata, 'one', ?)"
+      );
       queryArgs = [...queryArgs, `$.${meta_key}`];
     }
   }
@@ -224,9 +269,7 @@ export const addProject = async (
     );
   }
   if (validator.matches(input.name, /--/)) {
-    throw new Error(
-      'Multiple consecutive dashes are not allowed for name!'
-    );
+    throw new Error('Multiple consecutive dashes are not allowed for name!');
   }
   if (!isValidGitUrl(input.gitUrl)) {
     throw new Error('The provided gitUrl is invalid.');
@@ -257,6 +300,15 @@ export const addProject = async (
 
   const openshiftProjectPattern =
     input.kubernetesNamespacePattern || input.openshiftProjectPattern;
+
+  // check if a user has permission to disable deployments of a project or not
+  let deploymentsDisabled = 0;
+  if (input.deploymentsDisabled) {
+    const canDisableProject = await isAdminCheck(hasPermission);
+    if (canDisableProject) {
+      deploymentsDisabled = input.deploymentsDisabled
+    }
+  }
 
   const rows = await query(
     sqlClientPool,
@@ -311,6 +363,7 @@ export const addProject = async (
       ${input.storageCalc ? ':storage_calc' : '1'},
       ${input.factsUi ? ':facts_ui' : '0'},
       ${input.problemsUi ? ':problems_ui' : '0'},
+      ${deploymentsDisabled ? ':deployments_disabled' : '0'},
       ${
         input.developmentEnvironmentsLimit
           ? ':development_environments_limit'
@@ -345,7 +398,10 @@ export const addProject = async (
     );
   }
 
-  OpendistroSecurityOperations(sqlClientPool, models.GroupModel).syncGroupWithSpecificTenant(
+  OpendistroSecurityOperations(
+    sqlClientPool,
+    models.GroupModel
+  ).syncGroupWithSpecificTenant(
     `p${project.id}`,
     'global_tenant',
     `${project.id}`
@@ -398,7 +454,9 @@ export const addProject = async (
   try {
     await models.GroupModel.addUserToGroup(user, group, 'maintainer');
   } catch (err) {
-    logger.error(`Could not link user to default project group for ${project.name}: ${err.message}`);
+    logger.error(
+      `Could not link user to default project group for ${project.name}: ${err.message}`
+    );
   }
 
   // Add the user who submitted this request to the project
@@ -418,7 +476,9 @@ export const addProject = async (
     try {
       await models.GroupModel.addUserToGroup(user, group, 'owner');
     } catch (err) {
-      logger.error(`Could not link requesting user to default project group for ${project.name}: ${err.message}`);
+      logger.error(
+        `Could not link requesting user to default project group for ${project.name}: ${err.message}`
+      );
     }
   }
 
@@ -426,7 +486,7 @@ export const addProject = async (
 
   await harborOperations.addProject(project.name, project.id);
 
-  userActivityLogger.user_action(`User added a project '${project.name}'`, {
+  userActivityLogger(`User added a project '${project.name}'`, {
     project: project.name,
     event: 'api:addProject',
     payload: {
@@ -439,7 +499,7 @@ export const addProject = async (
 };
 
 export const deleteProject: ResolverFn = async (
-  root,
+  _root,
   { input: { project: projectName } },
   { sqlClientPool, hasPermission, userActivityLogger, models }
 ) => {
@@ -451,7 +511,7 @@ export const deleteProject: ResolverFn = async (
     project: pid
   });
 
-  await query(sqlClientPool, 'CALL DeleteProject(:name)', project);
+  await Helpers(sqlClientPool).deleteProjectById(pid);
 
   // Remove the default group and user
   try {
@@ -459,10 +519,10 @@ export const deleteProject: ResolverFn = async (
       `project-${project.name}`
     );
     await models.GroupModel.deleteGroup(group.id);
-    OpendistroSecurityOperations(sqlClientPool, models.GroupModel).deleteGroupWithSpecificTenant(
-      `p${pid}`,
-      group.name
-    );
+    OpendistroSecurityOperations(
+      sqlClientPool,
+      models.GroupModel
+    ).deleteGroupWithSpecificTenant(`p${pid}`, group.name);
   } catch (err) {
     logger.error(
       `Could not delete default group for project ${project.name}: ${err.message}`
@@ -485,13 +545,13 @@ export const deleteProject: ResolverFn = async (
 
   //const harborResults = await harborOperations.deleteProject(project.name)
 
-  userActivityLogger.user_action(`User deleted a project '${project.name}'`, {
+  userActivityLogger(`User deleted a project '${project.name}'`, {
     project: project.name,
     event: 'api:deleteProject',
     payload: {
       input: {
         project
-      },
+      }
     }
   });
 
@@ -527,6 +587,7 @@ export const updateProject: ResolverFn = async (
         storageCalc,
         problemsUi,
         factsUi,
+        deploymentsDisabled,
         pullrequests,
         developmentEnvironmentsLimit
       }
@@ -537,6 +598,14 @@ export const updateProject: ResolverFn = async (
   await hasPermission('project', 'update', {
     project: id
   });
+
+  // check if a user has permission to disable deployments of a project or not
+  if (deploymentsDisabled) {
+    const canDisableProject = await isAdminCheck(hasPermission);
+    if (canDisableProject == false) {
+      deploymentsDisabled = 0;
+    }
+  }
 
   if (isPatchEmpty({ patch })) {
     throw new Error('input.patch requires at least 1 attribute');
@@ -617,6 +686,7 @@ export const updateProject: ResolverFn = async (
         storageCalc,
         problemsUi,
         factsUi,
+        deploymentsDisabled,
         pullrequests,
         openshift,
         openshiftProjectPattern,
@@ -689,7 +759,7 @@ export const updateProject: ResolverFn = async (
   //   );
   // }
 
-  userActivityLogger.user_action(`User updated project '${oldProject.name}'`, {
+  userActivityLogger(`User updated project '${oldProject.name}'`, {
     project: oldProject.name,
     event: 'api:updateProject',
     payload: {
@@ -716,8 +786,9 @@ export const updateProject: ResolverFn = async (
         storageCalc,
         problemsUi,
         factsUi,
+        deploymentsDisabled,
         pullrequests,
-        developmentEnvironmentsLimit,
+        developmentEnvironmentsLimit
       }
     }
   });
@@ -740,7 +811,7 @@ export const deleteAllProjects: ResolverFn = async (
     await KeycloakOperations.deleteGroup(name);
   }
 
-  userActivityLogger.user_action(`User deleted all projects`, {
+  userActivityLogger(`User deleted all projects`, {
     project: '',
     event: 'api:deleteAllProjects',
     payload: {
@@ -781,7 +852,7 @@ export const removeProjectMetadataByKey: ResolverFn = async (
     { id, meta_key: `$.${key}` }
   );
 
-  userActivityLogger.user_action(`User removed project metadata key '${key}'`, {
+  userActivityLogger(`User removed project metadata key '${key}'`, {
     project: '',
     event: 'api:removeProjectMetadataByKey',
     payload: {
@@ -838,14 +909,14 @@ export const updateProjectMetadata: ResolverFn = async (
     }
   );
 
-  userActivityLogger.user_action(`User updated project metadata`, {
+  userActivityLogger(`User updated project metadata`, {
     project: '',
     event: 'api:updateProjectMetadata',
     payload: {
       patch: {
         project: id,
         key,
-        value,
+        value
       }
     }
   });

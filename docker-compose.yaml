@@ -51,6 +51,12 @@ services:
     volumes:
       - ./services/logs2webhook/src:/app/services/logs2webhook/src
       - ./node-packages:/app/node-packages:delegated
+  logs2s3:
+    image: ${IMAGE_REPO:-lagoon}/logs2s3
+    command: yarn run dev
+    volumes:
+      - ./services/logs2s3/src:/app/services/logs2s3/src
+      - ./node-packages:/app/node-packages:delegated
   logs2microsoftteams:
     image: ${IMAGE_REPO:-lagoon}/logs2microsoftteams
     command: yarn run dev
@@ -242,9 +248,10 @@ services:
   local-minio:
     image: minio/minio
     entrypoint: sh
-    command: -c 'mkdir -p /export/lagoon-files && mkdir -p /export/harbor-images && /usr/bin/minio server /export'
+    command: -c 'mkdir -p /export/lagoon-files && mkdir -p /export/harbor-images && minio server /export --console-address ":9001" '
     ports:
       - '9000:9000'
+      - '9001:9001'
     environment:
       - MINIO_ACCESS_KEY=minio
       - MINIO_SECRET_KEY=minio123

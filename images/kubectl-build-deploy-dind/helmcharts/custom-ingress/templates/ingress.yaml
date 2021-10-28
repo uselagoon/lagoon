@@ -22,6 +22,10 @@ metadata:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     ingress.kubernetes.io/ssl-redirect: "true"
     {{- end }}
+    {{- if eq .Values.environmentType "development"}}
+    nginx.ingress.kubernetes.io/server-snippet: |-
+       add_header X-Robots-Tag "noindex, nofollow";
+    {{- end }}
     monitor.stakater.com/enabled: "{{ .Values.ingressmonitorcontroller.enabled }}"
     uptimerobot.monitor.stakater.com/interval: "{{ .Values.ingressmonitorcontroller.interval }}"
     uptimerobot.monitor.stakater.com/alert-contacts: "{{ .Values.ingressmonitorcontroller.alertContacts }}"

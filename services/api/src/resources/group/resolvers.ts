@@ -188,7 +188,7 @@ export const addGroup: ResolverFn = async (
     ''
   );
 
-  userActivityLogger.user_action(`User added a group`, {
+  userActivityLogger(`User added a group`, {
     project: '',
     event: 'api:addGroup',
     payload: {
@@ -229,7 +229,7 @@ export const updateGroup: ResolverFn = async (
     name: patch.name
   });
 
-  userActivityLogger.user_action(`User updated a group`, {
+  userActivityLogger(`User updated a group`, {
     project: '',
     event: 'api:updateGroup',
     payload: {
@@ -260,7 +260,7 @@ export const deleteGroup: ResolverFn = async (
     group.name
   );
 
-  userActivityLogger.user_action(`User deleted a group`, {
+  userActivityLogger(`User deleted a group`, {
     project: '',
     event: 'api:deleteGroup',
     payload: {
@@ -327,7 +327,7 @@ export const addUserToGroup: ResolverFn = async (
     role
   );
 
-  userActivityLogger.user_action(`User added a user to a group`, {
+  userActivityLogger(`User added a user to a group`, {
     project: '',
     event: 'api:addUserToGroup',
     payload: {
@@ -367,7 +367,7 @@ export const removeUserFromGroup: ResolverFn = async (
 
   const updatedGroup = await models.GroupModel.removeUserFromGroup(user, group);
 
-  userActivityLogger.user_action(`User removed a user from a group`, {
+  userActivityLogger(`User removed a user from a group`, {
     project: '',
     event: 'api:removeUserFromGroup',
     payload: {
@@ -431,7 +431,7 @@ export const addGroupsToProject: ResolverFn = async (
     );
   }
 
-  userActivityLogger.user_action(`User synced groups to a project`, {
+  userActivityLogger(`User synced groups to a project`, {
     project: project.name || '',
     event: 'api:addGroupsToProject',
     payload: {

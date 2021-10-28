@@ -644,6 +644,10 @@ const typeDefs = gql`
     """
     factsUi: Int
     """
+    Should the ability to deploy environments be disabled for this Project (\`1\` or \`0\`)
+    """
+    deploymentsDisabled: Int
+    """
     Reference to OpenShift Object this Project should be deployed to
     """
     openshift: Openshift
@@ -700,6 +704,10 @@ const typeDefs = gql`
     Metadata key/values stored against a project
     """
     metadata: JSON
+    """
+    DeployTargetConfigs are a way to define which deploy targets are used for a project\n
+    """
+    deployTargetConfigs: [DeployTargetConfig] @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
   }
 
   """
@@ -791,7 +799,11 @@ const typeDefs = gql`
     advancedTasks: [AdvancedTaskDefinition]
     services: [EnvironmentService]
     problems(severity: [ProblemSeverityRating], source: [String]): [Problem]
-    facts(keyFacts: Boolean): [Fact]
+    facts(keyFacts: Boolean, limit: Int): [Fact]
+    openshift: Openshift
+    openshiftProjectPattern: String
+    kubernetes: Kubernetes
+    kubernetesNamespacePattern: String
   }
 
   type EnvironmentHitsMonth {
@@ -916,6 +928,45 @@ const typeDefs = gql`
   type EnvironmentFactSearchResults {
     count: Int
     environments: [Environment]
+  }
+
+  type DeployTargetConfig {
+    id: Int
+    project: Project
+    weight: Int
+    branches: String
+    pullrequests: String
+    deployTarget: Openshift
+    deployTargetProjectPattern: String
+  }
+
+  input AddDeployTargetConfigInput {
+    id: Int
+    project: Int!
+    weight: Int
+    branches: String
+    pullrequests: String
+    deployTarget: Int
+    deployTargetProjectPattern: String
+  }
+
+  input UpdateDeployTargetConfigPatchInput {
+    weight: Int
+    branches: String
+    pullrequests: String
+    deployTarget: Int
+    deployTargetProjectPattern: String
+  }
+
+  input UpdateDeployTargetConfigInput {
+    id: Int!
+    patch: UpdateDeployTargetConfigPatchInput
+  }
+
+  input DeleteDeployTargetConfigInput {
+    id: Int!
+    project: Int!
+    execute: Boolean
   }
 
   input DeleteEnvironmentInput {
@@ -1064,7 +1115,19 @@ const typeDefs = gql`
     Returns a AdvancedTaskDefinitionArgument by Id
     """
     advancedTaskDefinitionArgumentById(id: Int!) : [AdvancedTaskDefinitionArgument]
-
+    """
+    Returns the DeployTargetConfig by a deployTargetConfig Id
+    """
+    deployTargetConfigById(id: Int!) : DeployTargetConfig  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    """
+    Returns all DeployTargetConfig by a project Id
+    """
+    deployTargetConfigsByProjectId(project: Int!) : [DeployTargetConfig]  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    """
+    Returns all DeployTargetConfig by a deployTarget Id (aka: Openshift Id)
+    """
+    deployTargetConfigsByDeployTarget(deployTarget: Int!) : [DeployTargetConfig]  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    allDeployTargetConfigs: [DeployTargetConfig]  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
   }
 
   # Must provide id OR name
@@ -1133,6 +1196,7 @@ const typeDefs = gql`
     privateKey: String
     problemsUi: Int
     factsUi: Int
+    deploymentsDisabled: Int
   }
 
   input AddEnvironmentInput {
@@ -1146,6 +1210,10 @@ const typeDefs = gql`
     environmentType: EnvType!
     openshiftProjectName: String
     kubernetesNamespaceName: String
+    openshift: Int
+    openshiftProjectPattern: String
+    kubernetes: Int
+    kubernetesNamespacePattern: String
   }
 
   input AddOrUpdateEnvironmentStorageInput {
@@ -1450,6 +1518,7 @@ const typeDefs = gql`
     developmentEnvironmentsLimit: Int
     problemsUi: Int
     factsUi: Int
+    deploymentsDisabled: Int
   }
 
   input UpdateProjectInput {
@@ -1564,6 +1633,10 @@ const typeDefs = gql`
     routes: String
     monitoringUrls: String
     autoIdle: Int
+    openshift: Int
+    openshiftProjectPattern: String
+    kubernetes: Int
+    kubernetesNamespacePattern: String
     """
     Timestamp in format 'YYYY-MM-DD hh:mm:ss'
     """
@@ -1935,6 +2008,10 @@ const typeDefs = gql`
     updateBillingModifier(input: UpdateBillingModifierInput!): BillingModifier
     deleteBillingModifier(input: DeleteBillingModifierInput!): String
     deleteAllBillingModifiersByBillingGroup(input: GroupInput!): String
+    addDeployTargetConfig(input: AddDeployTargetConfigInput!): DeployTargetConfig  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    updateDeployTargetConfig(input: UpdateDeployTargetConfigInput!): DeployTargetConfig  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    deleteDeployTargetConfig(input: DeleteDeployTargetConfigInput!): String  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    deleteAllDeployTargetConfigs: String  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
   }
 
   type Subscription {

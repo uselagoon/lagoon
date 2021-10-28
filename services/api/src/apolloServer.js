@@ -19,7 +19,7 @@ const esClient = require('./clients/esClient');
 const redisClient = require('./clients/redisClient');
 const { getKeycloakAdminClient } = require('./clients/keycloak-admin');
 const { logger } = require('./loggers/logger');
-const { getUserActivityLogger } = require('./loggers/userActivityLogger');
+const { userActivityLogger } = require('./loggers/userActivityLogger');
 const typeDefs = require('./typeDefs');
 const resolvers = require('./resolvers');
 
@@ -38,23 +38,16 @@ const getGrantOrLegacyCredsFromToken = async token => {
     grant = await getGrantForKeycloakToken(token);
 
     if (grant.access_token) {
-      const userActivityLogger = getUserActivityLogger(
-        grant ? grant.access_token.content : null
-      );
-
       const {
-        sub: currentUserId,
         azp: source,
         preferred_username,
-        email,
-        aud
+        email
       } = grant.access_token.content;
       const username = preferred_username ? preferred_username : 'unknown';
 
       userActivityLogger.user_auth(
-        `Authentication granted for '${username} (${
-          email ? email : 'unknown'
-        })' from '${source}'`
+        `Authentication granted for '${username} (${email ? email : 'unknown'})' from '${source}'`,
+        { user: grant ? grant.access_token.content : null }
       );
     }
   } catch (e) {
@@ -66,12 +59,11 @@ const getGrantOrLegacyCredsFromToken = async token => {
     if (!grant) {
       legacyCredentials = await getCredentialsForLegacyToken(token);
 
-      const userActivityLogger = getUserActivityLogger(legacyCredentials);
       const { sub, iss } = legacyCredentials;
       const username = sub ? sub : 'unknown';
       const source = iss ? iss : 'unknown';
       userActivityLogger.user_auth(
-        `Authentication granted for '${username}' from '${source}'`
+        `Authentication granted for '${username}' from '${source}'`, { user: legacyCredentials }
       );
     }
   } catch (e) {
@@ -169,14 +161,17 @@ const apolloServer = new ApolloServer({
           : legacyHasPermission(req.legacyCredentials),
         keycloakGrant: req.kauth ? req.kauth.grant : null,
         requestCache,
-        userActivityLogger: getUserActivityLogger(
-          req.kauth
-            ? req.kauth.grant
-            : req.legacyCredentials
-            ? req.legacyCredentials
-            : null,
-          req.headers
-        ),
+        userActivityLogger: (message, meta) => {
+          let defaultMeta = {
+            user: req.kauth
+              ? req.kauth.grant
+              : req.legacyCredentials
+              ? req.legacyCredentials
+              : null,
+            headers: req.headers
+          }
+          return userActivityLogger.user_action(message, { ...defaultMeta, ...meta });
+        },
         models: {
           UserModel: User.User(modelClients),
           GroupModel: Group.Group(modelClients),
