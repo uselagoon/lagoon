@@ -34,6 +34,32 @@ spec:
       enableServiceLinks: false
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{/* This is a test for "rootless" configuration. It will be true if the ROOTLESS_WORKLOAD feature flag is enabled. */}}
+      {{- if eq (int .Values.podSecurityContext.fsGroup) 10001 }}
+      # This initContainer sets permissions on the RWX storage compatible with
+      # the pod securityContext.
+      initContainers:
+        - command:
+            - "sh"
+            - "-c"
+            - |
+              set -e
+              SENTINEL="/storage/.lagoon-rootless-migration-complete"
+              if ! [ -f "$SENTINEL" ]; then
+                find /storage -mindepth 1 -exec chgrp $(stat -c "%g" /storage) {} +
+                find /storage -mindepth 1 -exec chmod g+rw {} +
+                find /storage -mindepth 1 -type d -exec chmod g+x {} +
+              fi
+              touch "$SENTINEL"
+          image: busybox:musl
+          imagePullPolicy: IfNotPresent
+          name: fix-storage-permissions
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - mountPath: /storage
+              name: {{ include "nginx-php-persistent.persistentStorageName" . }}
+      {{- end }}
       containers:
         - image: {{ .Values.images.nginx | quote }}
           name: "nginx"
