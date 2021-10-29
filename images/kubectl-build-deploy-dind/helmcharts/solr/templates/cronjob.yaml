@@ -35,7 +35,7 @@ spec:
           priorityClassName: {{ include "solr.lagoonPriority" $ }}
           enableServiceLinks: false
           securityContext:
-            {{- toYaml $.Values.podSecurityContext | nindent 12 }}
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
           containers:
             - image: {{ $.Values.image | quote }}
               name: cronjob-{{ $.Release.Name }}-{{ $cronjobName }}
