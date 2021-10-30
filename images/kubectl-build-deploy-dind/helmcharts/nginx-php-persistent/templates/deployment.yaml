@@ -49,8 +49,8 @@ spec:
                 find /storage -mindepth 1 -exec chgrp $(stat -c "%g" /storage) {} +
                 find /storage -mindepth 1 -exec chmod g+rw {} +
                 find /storage -mindepth 1 -type d -exec chmod g+x {} +
+                touch "$SENTINEL"
               fi
-              touch "$SENTINEL"
           image: busybox:musl
           imagePullPolicy: IfNotPresent
           name: fix-storage-permissions
