@@ -605,7 +605,8 @@ export const updateEnvironment: ResolverFn = async (
         route: input.patch.route,
         routes: input.patch.routes,
         monitoringUrls: input.patch.monitoringUrls,
-        autoIdle: input.patch.autoIdle
+        autoIdle: input.patch.autoIdle,
+        created: input.patch.created
       }
     })
   );
@@ -631,6 +632,7 @@ export const updateEnvironment: ResolverFn = async (
         routes: input.patch.routes,
         monitoringUrls: input.patch.monitoringUrls,
         autoIdle: input.patch.autoIdle,
+        created: input.patch.created
       },
       data: withK8s
     }
