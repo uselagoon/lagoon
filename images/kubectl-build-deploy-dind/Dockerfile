@@ -13,6 +13,7 @@ WORKDIR /kubectl-build-deploy/git
 COPY docker-entrypoint.sh /lagoon/entrypoints/100-docker-entrypoint.sh
 COPY build-deploy.sh /kubectl-build-deploy/build-deploy.sh
 COPY build-deploy-docker-compose.sh /kubectl-build-deploy/build-deploy-docker-compose.sh
+COPY rootless.values.yaml /kubectl-build-deploy/rootless.values.yaml
 
 COPY scripts /kubectl-build-deploy/scripts
 
@@ -20,7 +21,7 @@ COPY helmcharts  /kubectl-build-deploy/helmcharts
 
 ENV IMAGECACHE_REGISTRY=imagecache.amazeeio.cloud
 
-RUN curl -sSL https://github.com/uselagoon/lagoon-linter/releases/download/v0.3.0/lagoon-linter_0.3.0_linux_amd64.tar.gz \
+RUN curl -sSL https://github.com/uselagoon/lagoon-linter/releases/download/v0.3.1/lagoon-linter_0.3.1_linux_amd64.tar.gz \
     | tar -xz -C /usr/local/bin lagoon-linter
 
 CMD ["/kubectl-build-deploy/build-deploy.sh"]

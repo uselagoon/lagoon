@@ -29,22 +29,23 @@ function contains() {
 # and order:
 #
 # 1. The cluster-force feature flag, prefixed with LAGOON_FEATURE_FLAG_FORCE_,
-#    in the build environment. This is set via a flag on the build-deploy
-#    controller. This overrides the other variables and allows policy
-#    enforcement at the cluster level.
+#    as a build pod environment variable. This is set via a flag on the
+#    build-deploy controller. This overrides the other variables and allows
+#    policy enforcement at the cluster level.
 #
 # 2. The regular feature flag, prefixed with LAGOON_FEATURE_FLAG_, in the
-#    Lagoon environment env-vars. This allows policy control at the environment
-#    level.
+#    Lagoon environment global scoped env-vars. This allows policy control at
+#    the environment level.
 #
 # 3. The regular feature flag, prefixed with LAGOON_FEATURE_FLAG_, in the
-#    Lagoon project env-vars. This allows policy control at the project level.
+#    Lagoon project global scoped env-vars. This allows policy control at the
+#    project level.
 #
 # 4. The cluster-default feature flag, prefixed with
-#    LAGOON_FEATURE_FLAG_DEFAULT_, in the build environment. This is set via a
-#    flag on the build-deploy controller. This allows default policy to be set
-#    at the cluster level, but maintains the ability to selectively override at
-#    the project or environment level.
+#    LAGOON_FEATURE_FLAG_DEFAULT_, as a build pod environment variable. This is
+#    set via a flag on the build-deploy controller. This allows default policy
+#    to be set at the cluster level, but maintains the ability to selectively
+#    override at the project or environment level.
 #
 # The value of the first variable found is printed to stdout. If the variable
 # is not found, print an empty string. Additional arguments are ignored.
@@ -54,16 +55,16 @@ function featureFlag() {
 
 	local forceFlagVar defaultFlagVar flagVar
 
-	# check build environment for the force policy first
+	# check build pod environment for the force policy first
 	forceFlagVar="LAGOON_FEATURE_FLAG_FORCE_$1"
 	[ "${!forceFlagVar}" ] && echo "${!forceFlagVar}" && return
 
 	flagVar="LAGOON_FEATURE_FLAG_$1"
 	# check Lagoon environment variables
-	flagValue=$(jq -r '.[] | select((.scope as $scope | ["build", "global"] | index($scope)) and .name == "'"$flagVar"'") | .value' <<<"$LAGOON_ENVIRONMENT_VARIABLES")
+	flagValue=$(jq -r '.[] | select(.scope == "global" and .name == "'"$flagVar"'") | .value' <<<"$LAGOON_ENVIRONMENT_VARIABLES")
 	[ "$flagValue" ] && echo "$flagValue" && return
 	# check Lagoon project variables
-	flagValue=$(jq -r '.[] | select((.scope as $scope | ["build", "global"] | index($scope)) and .name == "'"$flagVar"'") | .value' <<<"$LAGOON_PROJECT_VARIABLES")
+	flagValue=$(jq -r '.[] | select(.scope == "global" and .name == "'"$flagVar"'") | .value' <<<"$LAGOON_PROJECT_VARIABLES")
 	[ "$flagValue" ] && echo "$flagValue" && return
 
 	# fall back to the default, if set.
@@ -610,6 +611,10 @@ yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogenerateShortSuffix'
 for i in $ROUTES_AUTOGENERATE_PREFIXES; do yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogeneratePrefixes[+]' $i; done
 yq write -i -- /kubectl-build-deploy/values.yaml 'kubernetes' $KUBERNETES
 yq write -i -- /kubectl-build-deploy/values.yaml 'lagoonVersion' $LAGOON_VERSION
+# check for ROOTLESS_WORKLOAD feature flag, disabled by default
+if [ "$(featureFlag ROOTLESS_WORKLOAD)" = enabled ]; then
+	yq merge -ix -- /kubectl-build-deploy/values.yaml /kubectl-build-deploy/rootless.values.yaml
+fi
 
 
 echo -e "\

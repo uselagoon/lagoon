@@ -35,7 +35,7 @@ spec:
           priorityClassName: {{ include "mongodb-single.lagoonPriority" $ }}
           enableServiceLinks: false
           securityContext:
-            {{- toYaml $.Values.podSecurityContext | nindent 12 }}
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
           volumes:
             - name: {{ include "mongodb-single.fullname" $ }}
               persistentVolumeClaim:
