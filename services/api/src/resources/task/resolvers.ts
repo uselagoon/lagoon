@@ -12,6 +12,7 @@ import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { Validators as envValidators } from '../environment/validators';
 import S3 from 'aws-sdk/clients/s3';
+import sha1 from 'sha1';
 
 const accessKeyId =  process.env.S3_FILES_ACCESS_KEY_ID || 'minio'
 const secretAccessKey =  process.env.S3_FILES_SECRET_ACCESS_KEY || 'minio123'
@@ -55,9 +56,21 @@ export const getTaskLog: ResolverFn = async (
     environmentData.project
   );
 
+  // we need to get the safename of the environment from when it was created
+  const makeSafe = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
+  var environmentName = makeSafe(environmentData.name)
+  var overlength = 58 - projectData.name.length;
+  if ( environmentName.length > overlength ) {
+    var hash = sha1(environmentName).substring(0,4)
+    environmentName = environmentName.substring(0, overlength-5)
+    environmentName = environmentName.concat('-' + hash)
+  }
+
+
   try {
     // where it should be, check `tasklogs/projectName/environmentName/taskId-remoteId.txt`
-    const data = await s3Client.getObject({Bucket: bucket, Key: 'tasklogs/'+projectData.name+'/'+environmentData.name+'/'+id+'-'+remoteId+'.txt'}).promise();
+  let taskLog = 'tasklogs/'+projectData.name+'/'+environmentName+'/'+id+'-'+remoteId+'.txt'
+    const data = await s3Client.getObject({Bucket: bucket, Key: taskLog}).promise();
 
     if (!data) {
       return null;
@@ -67,7 +80,8 @@ export const getTaskLog: ResolverFn = async (
   } catch (e) {
     // if it isn't where it should be, check the fallback location which will be `tasklogs/projectName/taskId-remoteId.txt`
     try {
-      const data = await s3Client.getObject({Bucket: bucket, Key: 'tasklogs/'+projectData.name+'/'+id+'-'+remoteId+'.txt'}).promise();
+      let taskLog = 'tasklogs/'+projectData.name+'/'+id+'-'+remoteId+'.txt'
+      const data = await s3Client.getObject({Bucket: bucket, Key: taskLog}).promise();
 
       if (!data) {
         return null;
