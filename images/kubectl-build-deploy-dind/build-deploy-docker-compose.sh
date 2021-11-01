@@ -76,6 +76,8 @@ function featureFlag() {
 ### PREPARATION
 ##############################################
 
+set +x # reduce noise in build logs
+
 # validate .lagoon.yml
 if ! lagoon-linter; then
 	echo "https://docs.lagoon.sh/lagoon/using-lagoon-the-basics/lagoon-yml#restrictions describes some possible reasons for this build failure."
@@ -84,7 +86,6 @@ if ! lagoon-linter; then
 fi
 
 # Load path of docker-compose that should be used
-set +x # reduce noise in build logs
 DOCKER_COMPOSE_YAML=($(cat .lagoon.yml | shyaml get-value docker-compose-yaml))
 
 DEPLOY_TYPE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.deploy-type default)
