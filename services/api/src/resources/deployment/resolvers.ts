@@ -20,6 +20,7 @@ import { Helpers as projectHelpers } from '../project/helpers';
 import { addTask } from '@lagoon/commons/dist/api';
 import { Sql as environmentSql } from '../environment/sql';
 import S3 from 'aws-sdk/clients/s3';
+import sha1 from 'sha1';
 
 const accessKeyId =  process.env.S3_FILES_ACCESS_KEY_ID || 'minio'
 const secretAccessKey =  process.env.S3_FILES_SECRET_ACCESS_KEY || 'minio123'
@@ -65,9 +66,20 @@ export const getBuildLog: ResolverFn = async (
     environmentData.project
   );
 
+  // we need to get the safename of the environment from when it was created
+  const makeSafe = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
+  var environmentName = makeSafe(environmentData.name)
+  var overlength = 58 - projectData.name.length;
+  if ( environmentName.length > overlength ) {
+    var hash = sha1(environmentName).substring(0,4)
+    environmentName = environmentName.substring(0, overlength-5)
+    environmentName = environmentName.concat('-' + hash)
+  }
+
   try {
     // where it should be, check `buildlogs/projectName/environmentName/buildName-remoteId.txt`
-    const data = await s3Client.getObject({Bucket: bucket, Key: 'buildlogs/'+projectData.name+'/'+environmentData.name+'/'+name+'-'+remoteId+'.txt'}).promise();
+    let buildLog = 'buildlogs/'+projectData.name+'/'+environmentName+'/'+name+'-'+remoteId+'.txt'
+    const data = await s3Client.getObject({Bucket: bucket, Key: buildLog}).promise();
 
     if (!data) {
       return null;
