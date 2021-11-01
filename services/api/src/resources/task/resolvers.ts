@@ -13,6 +13,7 @@ import { Helpers as projectHelpers } from '../project/helpers';
 import { Validators as envValidators } from '../environment/validators';
 import S3 from 'aws-sdk/clients/s3';
 import sha1 from 'sha1';
+import { esClient } from '../../clients/esClient';
 
 const accessKeyId =  process.env.S3_FILES_ACCESS_KEY_ID || 'minio'
 const secretAccessKey =  process.env.S3_FILES_SECRET_ACCESS_KEY || 'minio123'
@@ -89,8 +90,32 @@ export const getTaskLog: ResolverFn = async (
       let logMsg = new Buffer(JSON.parse(JSON.stringify(data.Body)).data).toString('ascii');
       return logMsg;
     } catch (e) {
-      // otherwise there is no log to show the user
-      return `There was an error loading the logs: ${e.message}\nIf this error persists, contact your Lagoon support team.`;
+      // fallback to checking elasticsearch
+      try {
+        const result = await esClient.search({
+          index: 'lagoon-logs-*',
+          sort: '@timestamp:desc',
+          body: {
+            query: {
+              bool: {
+                must: [
+                  { match_phrase: { 'meta.remoteId': remoteId } },
+                  { match_phrase: { 'meta.jobStatus': status } }
+                ]
+              }
+            }
+          }
+        });
+
+        if (!result.hits.total) {
+          return null;
+        }
+
+        return R.path(['hits', 'hits', 0, '_source', 'message'], result);
+      } catch (e) {
+        // there is no fallback location for build logs, so there is no log to show the user
+        return `There was an error loading the logs: ${e.message}\nIf this error persists, contact your Lagoon support team.`;
+      }
     }
   }
 };
