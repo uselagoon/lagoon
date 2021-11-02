@@ -73,6 +73,30 @@ function featureFlag() {
 }
 
 ##############################################
+### PUSH the latest .lagoon.yml into lagoon-yaml configmap as a pre-deploy field
+##############################################
+
+set +x
+echo "Updating lagoon-yaml configmap with a pre-deploy version of the .lagoon.yml file"
+if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap lagoon-yaml &> /dev/null; then
+  # replace it
+  # if the environment has already been deployed with an existing configmap that had the file in the key `.lagoon.yml`
+  # just nuke the entire configmap and replace it with our new key and file
+  LAGOON_YML_CM=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap lagoon-yaml -o json)
+  if [ $(echo ${LAGOON_YML_CM} | jq -r '.data.".lagoon.yml" // false') == false ]; then
+    # if the key doesn't exist, then just update the pre-deploy yaml only
+    kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap lagoon-yaml -o json | jq --arg add "`cat .lagoon.yml`" '.data."pre-deploy" = $add' | kubectl apply -f -
+  else
+    # if the key does exist, then nuke it and put the new key
+    kubectl --insecure-skip-tls-verify -n ${NAMESPACE} create configmap lagoon-yaml --from-file=pre-deploy=.lagoon.yml -o yaml --dry-run | kubectl replace -f -
+  fi
+ else
+  # create it
+  kubectl --insecure-skip-tls-verify -n ${NAMESPACE} create configmap lagoon-yaml --from-file=pre-deploy=.lagoon.yml
+fi
+set -x
+
+##############################################
 ### PREPARATION
 ##############################################
 
@@ -1960,10 +1984,13 @@ fi
 ### PUSH the latest .lagoon.yml into lagoon-yaml configmap
 ##############################################
 
+set +x
+echo "Updating lagoon-yaml configmap with a post-deploy version of the .lagoon.yml file"
 if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap lagoon-yaml &> /dev/null; then
-  # replace it
-  kubectl --insecure-skip-tls-verify -n ${NAMESPACE} create configmap lagoon-yaml --from-file=.lagoon.yml -o yaml --dry-run | kubectl replace -f -
-else
+  # replace it, no need to check if the key is different, as that will happen in the pre-deploy phase
+  kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap lagoon-yaml -o json | jq --arg add "`cat .lagoon.yml`" '.data."post-deploy" = $add' | kubectl apply -f -
+ else
   # create it
-  kubectl --insecure-skip-tls-verify -n ${NAMESPACE} create configmap lagoon-yaml --from-file=.lagoon.yml
+  kubectl --insecure-skip-tls-verify -n ${NAMESPACE} create configmap lagoon-yaml --from-file=post-deploy=.lagoon.yml
 fi
+set -x
