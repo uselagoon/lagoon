@@ -107,6 +107,8 @@ if ! lagoon-linter; then
 	echo "https://docs.lagoon.sh/lagoon/using-lagoon-the-basics/lagoon-yml#restrictions describes some possible reasons for this build failure."
 	echo "If you require assistance to fix this error, please contact support."
 	exit 1
+else
+	echo "lagoon-linter found no issues with the .lagoon.yml file"
 fi
 
 # Load path of docker-compose that should be used
