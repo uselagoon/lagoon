@@ -83,7 +83,7 @@ if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap lagoon-yaml 
   # if the environment has already been deployed with an existing configmap that had the file in the key `.lagoon.yml`
   # just nuke the entire configmap and replace it with our new key and file
   LAGOON_YML_CM=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap lagoon-yaml -o json)
-  if [ $(echo ${LAGOON_YML_CM} | jq -r '.data.".lagoon.yml" // false') == false ]; then
+  if [ "$(echo ${LAGOON_YML_CM} | jq -r '.data.".lagoon.yml" // false')" == "false" ]; then
     # if the key doesn't exist, then just update the pre-deploy yaml only
     kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap lagoon-yaml -o json | jq --arg add "`cat .lagoon.yml`" '.data."pre-deploy" = $add' | kubectl apply -f -
   else
