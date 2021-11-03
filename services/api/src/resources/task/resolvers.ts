@@ -659,7 +659,7 @@ export const taskDrushRsyncFiles: ResolverFn = async (
     name: `Sync files ${sourceEnvironment.name} -> ${destinationEnvironment.name}`,
     environment: destinationEnvironmentId,
     service: 'cli',
-    command: `drush -y rsync @${sourceEnvironment.name}:%files @self:%files`,
+    command: command,
     execute: true
   });
 
