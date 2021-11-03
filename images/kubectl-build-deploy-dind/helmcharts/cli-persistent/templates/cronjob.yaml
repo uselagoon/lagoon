@@ -74,11 +74,11 @@ spec:
           nodeSelector:
             {{- toYaml $ | nindent 12 }}
           {{- end }}
-        {{- with $.Values.affinity }}
+        {{- with (coalesce $.Values.affinity $.Values.cronjobAffinity) }}
           affinity:
             {{- toYaml $ | nindent 12 }}
         {{- end }}
-        {{- with $.Values.tolerations }}
+        {{- with (coalesce $.Values.tolerations $.Values.cronjobTolerations) }}
           tolerations:
             {{- toYaml $ | nindent 12 }}
         {{- end }}

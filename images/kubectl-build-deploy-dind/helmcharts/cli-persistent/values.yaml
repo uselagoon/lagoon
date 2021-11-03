@@ -49,3 +49,18 @@ inPodCronjobs: ""
 nativeinPodCronjobs: ""
 
 configMapSha: ""
+
+# cronjobs prefer spot instances by default
+
+cronjobTolerations:
+- key: "lagoon.sh/spot"
+  operator: "Exists"
+
+cronjobAffinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      preference:
+        matchExpressions:
+        - key: "lagoon.sh/spot"
+          operator: "Exists"
