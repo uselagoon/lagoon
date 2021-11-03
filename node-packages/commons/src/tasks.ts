@@ -910,7 +910,7 @@ export const createMiscTask = async function(taskData: any) {
           const randRestoreId = Math.random().toString(36).substring(7);
           const restoreName = `restore-${R.slice(0, 7, taskData.data.backup.backupId)}-${randRestoreId}`;
           // Parse out the baasBucketName for any migrated projects
-          let baasBucketName = result.project.envVariables.find(obj => {
+          let baasBucketName = result.environment.project.envVariables.find(obj => {
             return obj.name === "LAGOON_BAAS_BUCKET_NAME"
           })
           if (baasBucketName) {
@@ -918,25 +918,25 @@ export const createMiscTask = async function(taskData: any) {
           }
 
           // Handle custom backup configurations
-          let lagoonBaasCustomBackupEndpoint = result.project.envVariables.find(obj => {
+          let lagoonBaasCustomBackupEndpoint = result.environment.project.envVariables.find(obj => {
             return obj.name === "LAGOON_BAAS_CUSTOM_BACKUP_ENDPOINT"
           })
           if (lagoonBaasCustomBackupEndpoint) {
             lagoonBaasCustomBackupEndpoint = lagoonBaasCustomBackupEndpoint.value
           }
-          let lagoonBaasCustomBackupBucket = result.project.envVariables.find(obj => {
+          let lagoonBaasCustomBackupBucket = result.environment.project.envVariables.find(obj => {
             return obj.name === "LAGOON_BAAS_CUSTOM_BACKUP_BUCKET"
           })
           if (lagoonBaasCustomBackupBucket) {
             lagoonBaasCustomBackupBucket = lagoonBaasCustomBackupBucket.value
           }
-          let lagoonBaasCustomBackupAccessKey = result.project.envVariables.find(obj => {
+          let lagoonBaasCustomBackupAccessKey = result.environment.project.envVariables.find(obj => {
             return obj.name === "LAGOON_BAAS_CUSTOM_BACKUP_ACCESS_KEY"
           })
           if (lagoonBaasCustomBackupAccessKey) {
             lagoonBaasCustomBackupAccessKey = lagoonBaasCustomBackupAccessKey.value
           }
-          let lagoonBaasCustomBackupSecretKey = result.project.envVariables.find(obj => {
+          let lagoonBaasCustomBackupSecretKey = result.environment.project.envVariables.find(obj => {
             return obj.name === "LAGOON_BAAS_CUSTOM_BACKUP_SECRET_KEY"
           })
           if (lagoonBaasCustomBackupSecretKey) {
@@ -960,25 +960,25 @@ export const createMiscTask = async function(taskData: any) {
           }
 
           // Handle custom restore configurations
-          let lagoonBaasCustomRestoreEndpoint = result.project.envVariables.find(obj => {
+          let lagoonBaasCustomRestoreEndpoint = result.environment.project.envVariables.find(obj => {
             return obj.name === "LAGOON_BAAS_CUSTOM_RESTORE_ENDPOINT"
           })
           if (lagoonBaasCustomRestoreEndpoint) {
             lagoonBaasCustomRestoreEndpoint = lagoonBaasCustomRestoreEndpoint.value
           }
-          let lagoonBaasCustomRestoreBucket = result.project.envVariables.find(obj => {
+          let lagoonBaasCustomRestoreBucket = result.environment.project.envVariables.find(obj => {
             return obj.name === "LAGOON_BAAS_CUSTOM_RESTORE_BUCKET"
           })
           if (lagoonBaasCustomRestoreBucket) {
             lagoonBaasCustomRestoreBucket = lagoonBaasCustomRestoreBucket.value
           }
-          let lagoonBaasCustomRestoreAccessKey = result.project.envVariables.find(obj => {
+          let lagoonBaasCustomRestoreAccessKey = result.environment.project.envVariables.find(obj => {
             return obj.name === "LAGOON_BAAS_CUSTOM_RESTORE_ACCESS_KEY"
           })
           if (lagoonBaasCustomRestoreAccessKey) {
             lagoonBaasCustomRestoreAccessKey = lagoonBaasCustomRestoreAccessKey.value
           }
-          let lagoonBaasCustomRestoreSecretKey = result.project.envVariables.find(obj => {
+          let lagoonBaasCustomRestoreSecretKey = result.environment.project.envVariables.find(obj => {
             return obj.name === "LAGOON_BAAS_CUSTOM_RESTORE_SECRET_KEY"
           })
           if (lagoonBaasCustomRestoreSecretKey) {

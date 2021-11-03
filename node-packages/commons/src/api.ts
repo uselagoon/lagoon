@@ -1144,6 +1144,13 @@ export const getOpenShiftInfoForEnvironment = (environment: number): Promise<any
           routerPattern
           monitoringConfig
         }
+        project {
+          envVariables {
+            name
+            value
+            scope
+          }
+        }
       }
     }
 `);
