@@ -22,7 +22,8 @@ export const getEnvironmentByName: ResolverFn = async (
     `SELECT *
     FROM environment
     WHERE name = :name AND
-    project = :project`,
+    project = :project
+    ${args.excludeDeleted ? 'AND deleted = "0000-00-00 00:00:00"' : ''}`,
     args
   );
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);

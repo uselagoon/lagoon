@@ -1010,7 +1010,7 @@ const typeDefs = gql`
     Returns Project Object by a given gitUrl (only the first one if there are multiple)
     """
     projectByGitUrl(gitUrl: String!): Project
-    environmentByName(name: String!, project: Int!): Environment
+    environmentByName(name: String!, project: Int!, excludeDeleted: Boolean): Environment
     environmentById(id: Int!): Environment
     """
     Returns Environment Object by a given openshiftProjectName
