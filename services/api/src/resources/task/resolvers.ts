@@ -579,11 +579,16 @@ export const taskDrushSqlSync: ResolverFn = async (
     }
   );
 
+  const command =
+  `LAGOON_ALIAS_PREFIX="" && \
+  if [[ ! "" = "$(drush | grep lagoon:aliases)" ]]; then LAGOON_ALIAS_PREFIX="lagoon.\${LAGOON_PROJECT}-"; fi && \
+  drush -y sql-sync @\${PREFIX}${sourceEnvironment.name} @self`;
+
   const taskData = await Helpers(sqlClientPool).addTask({
     name: `Sync DB ${sourceEnvironment.name} -> ${destinationEnvironment.name}`,
     environment: destinationEnvironmentId,
     service: 'cli',
-    command: `drush -y sql-sync @${sourceEnvironment.name} @self`,
+    command: command,
     execute: true
   });
 
@@ -644,6 +649,11 @@ export const taskDrushRsyncFiles: ResolverFn = async (
       }
     }
   );
+
+  const command =
+  `LAGOON_ALIAS_PREFIX="" && \
+  if [[ ! "" = "$(drush | grep lagoon:aliases)" ]]; then LAGOON_ALIAS_PREFIX="lagoon.\${LAGOON_PROJECT}-"; fi && \
+  drush -y rsync @\${LAGOON_ALIAS_PREFIX}${sourceEnvironment.name}:%files @self:%files`;
 
   const taskData = await Helpers(sqlClientPool).addTask({
     name: `Sync files ${sourceEnvironment.name} -> ${destinationEnvironment.name}`,
