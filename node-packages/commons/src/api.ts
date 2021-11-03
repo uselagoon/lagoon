@@ -855,11 +855,11 @@ export async function getActiveSystemForProject(
 export async function getEnvironmentByName(
   name: string,
   projectId: number,
-  excludeDeleted: boolean = false
+  includeDeleted: boolean = true
 ): Promise<any> {
   const result = await graphqlapi.query(`
     {
-      environmentByName(name: "${name}", project:${projectId}, excludeDeleted:${excludeDeleted}) {
+      environmentByName(name: "${name}", project:${projectId}, includeDeleted:${includeDeleted}) {
         id,
         name,
         route,

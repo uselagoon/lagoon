@@ -389,7 +389,7 @@ export const getControllerBuildData = async function(deployData: any) {
   // check if this environment already exists in the API so we can get the openshift target it is using
   // this is even valid for promotes if it isn't the first time time it is being deployed
   try {
-    const apiEnvironment = await getEnvironmentByName(branchName, lagoonProjectData.id, true);
+    const apiEnvironment = await getEnvironmentByName(branchName, lagoonProjectData.id, false);
     let envId = apiEnvironment.environmentByName.id
     const environmentOpenshift = await getOpenShiftInfoForEnvironment(envId);
     deployTarget.openshift = environmentOpenshift.environment.openshift
@@ -448,7 +448,7 @@ export const getControllerBuildData = async function(deployData: any) {
   let environmentId;
   try {
     const now = moment.utc();
-    const apiEnvironment = await getEnvironmentByName(branchName, lagoonProjectData.id, true);
+    const apiEnvironment = await getEnvironmentByName(branchName, lagoonProjectData.id, false);
     environmentId = apiEnvironment.environmentByName.id
     deployment = await addDeployment(buildName, "NEW", now.format('YYYY-MM-DDTHH:mm:ss'), apiEnvironment.environmentByName.id);
   } catch (error) {

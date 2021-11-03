@@ -17,14 +17,18 @@ export const getEnvironmentByName: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission }
 ) => {
+
+  if (args.includeDeleted == undefined) {
+    args.includeDeleted = true
+  }
   const rows = await query(
     sqlClientPool,
     `SELECT *
     FROM environment
     WHERE name = :name AND
     project = :project
-    ${args.excludeDeleted ? 'AND deleted = "0000-00-00 00:00:00"' : ''}`,
-    args
+    ${args.includeDeleted ? '' : 'AND deleted = "0000-00-00 00:00:00"'}`,
+    args,
   );
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   const environment = withK8s[0];

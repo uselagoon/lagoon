@@ -207,7 +207,7 @@ export const deployTargetBranches = async function(data: any) {
 
     // see if the environment has already been created/deployed and get the openshift and projectpattern out of it
     try {
-        const apiEnvironment = await getEnvironmentByName(branchName, projectId, true);
+        const apiEnvironment = await getEnvironmentByName(branchName, projectId, false);
         let envId = apiEnvironment.environmentByName.id
         const environmentOpenshift = await getOpenShiftInfoForEnvironment(envId);
         deployTarget = {
@@ -310,7 +310,7 @@ export const deployTargetPullrequest = async function(data: any) {
     let deployTarget
     // see if the environment has already been created/deployed and get the openshift and projectpattern out of it
     try {
-        const apiEnvironment = await getEnvironmentByName(branchName, projectId, true);
+        const apiEnvironment = await getEnvironmentByName(branchName, projectId, false);
         let envId = apiEnvironment.environmentByName.id
         const environmentOpenshift = await getOpenShiftInfoForEnvironment(envId);
         deployTarget = {
