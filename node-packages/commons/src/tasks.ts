@@ -552,8 +552,7 @@ export const createDeployTask = async function(deployData: any) {
           .filter(e => e.environmentType === 'production')
           .map(e => e.name);
         logger.debug(
-          `projectName: ${projectName}, branchName: ${branchName}, existing environments are `,
-          prod_environments
+          `projectName: ${projectName}, branchName: ${branchName}, existing environments are ${prod_environments}`
         );
 
         if (prod_environments.length >= productionEnvironmentsLimit) {
@@ -573,8 +572,7 @@ export const createDeployTask = async function(deployData: any) {
           .filter(e => e.environmentType === 'development')
           .map(e => e.name);
         logger.debug(
-          `projectName: ${projectName}, branchName: ${branchName}, existing environments are `,
-          dev_environments
+          `projectName: ${projectName}, branchName: ${branchName}, existing environments are ${dev_environments}`
         );
 
         if (
