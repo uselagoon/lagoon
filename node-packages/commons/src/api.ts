@@ -854,11 +854,12 @@ export async function getActiveSystemForProject(
 
 export async function getEnvironmentByName(
   name: string,
-  projectId: number
+  projectId: number,
+  includeDeleted: boolean = true
 ): Promise<any> {
   const result = await graphqlapi.query(`
     {
-      environmentByName(name: "${name}", project:${projectId}) {
+      environmentByName(name: "${name}", project:${projectId}, includeDeleted:${includeDeleted}) {
         id,
         name,
         route,
@@ -1142,6 +1143,13 @@ export const getOpenShiftInfoForEnvironment = (environment: number): Promise<any
           projectUser
           routerPattern
           monitoringConfig
+        }
+        project {
+          envVariables {
+            name
+            value
+            scope
+          }
         }
       }
     }
