@@ -803,10 +803,10 @@ const restoreConfig = (name, backupId, safeProjectName, baasBucketName, backupS3
     spec: {
       snapshot: backupId,
       restoreMethod: {
-        s3: restoreS3Config ? restoreS3Config : {},
+        s3: restoreS3Config ? restoreS3Config != {} : {},
       },
       backend: {
-        s3: backupS3Config ? backupS3Config : {
+        s3: backupS3Config ? backupS3Config != {} : {
           bucket: baasBucketName ? baasBucketName : `baas-${safeProjectName}`
         },
         repoPasswordSecretRef: {
