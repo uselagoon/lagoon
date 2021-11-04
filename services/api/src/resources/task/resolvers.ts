@@ -596,7 +596,7 @@ export const taskDrushSqlSync: ResolverFn = async (
   const command =
   `LAGOON_ALIAS_PREFIX="" && \
   if [[ ! "" = "$(drush | grep 'lagoon:aliases')" ]]; then LAGOON_ALIAS_PREFIX="lagoon.\${LAGOON_PROJECT}-"; fi && \
-  drush -y sql-sync @\${PREFIX}${sourceEnvironment.name} @self`;
+  drush -y sql-sync @\${LAGOON_ALIAS_PREFIX}${sourceEnvironment.name} @self`;
 
   const taskData = await Helpers(sqlClientPool).addTask({
     name: `Sync DB ${sourceEnvironment.name} -> ${destinationEnvironment.name}`,
