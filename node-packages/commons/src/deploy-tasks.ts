@@ -344,7 +344,7 @@ export const deployTargetPullrequest = async function(data: any) {
         for (let i = 0; i < deployTargetConfigs.targets.length; i++) {
             deployTarget = {
                 openshiftProjectPattern: deployTargetConfigs.targets[i].deployTargetProjectPattern,
-                branches: deployTargetConfigs.targets[i].branches,
+                pullrequests: deployTargetConfigs.targets[i].pullrequests,
                 // since deploytarget configs reference a deploytarget instead of an openshift, convert that here to be what it needs to be
                 openshift: deployTargetConfigs.targets[i].deployTarget
             }
@@ -368,7 +368,7 @@ export const deployTargetPullrequest = async function(data: any) {
             const projectOpenshift = await getOpenShiftInfoForProject(projectName);
             deployTarget = {
                 openshiftProjectPattern: projectOpenshift.project.openshiftProjectPattern,
-                branches: projectOpenshift.project.branches,
+                pullrequests: projectOpenshift.project.pullrequests,
                 openshift: projectOpenshift.project.openshift
             }
         } catch (err) {
