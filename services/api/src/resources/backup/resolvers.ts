@@ -27,7 +27,7 @@ export const getRestoreLocation: ResolverFn = async (
   const { sqlClientPool, hasPermission } = context;
   const rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
   const project = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(rows[0].environment);
-  const projectEnvVars = await getEnvVarsByProjectId({ id: project.projectId }, args, context);
+  const projectEnvVars = await query(sqlClientPool, Sql.selectEnvVariablesByProjectsById(project.projectId));
 
   // https://{endpoint}/{bucket}/{key}
   const s3LinkMatch = /([^/]+)\/([^/]+)\/([^/]+)/;
