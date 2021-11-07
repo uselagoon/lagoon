@@ -333,16 +333,18 @@ export const addAdvancedTaskDefinition = async (
   );
 
   //now attach arguments
-  for(let i = 0; i < advancedTaskDefinitionArguments.length; i++) {
-    await query(
-      sqlClientPool,
-      Sql.insertAdvancedTaskDefinitionArgument({
-        id: null,
-        advanced_task_definition: insertId,
-        name: advancedTaskDefinitionArguments[i].name,
-        type: advancedTaskDefinitionArguments[i].type
-      })
-    );
+  if(advancedTaskDefinitionArguments) {
+    for(let i = 0; i < advancedTaskDefinitionArguments.length; i++) {
+      await query(
+        sqlClientPool,
+        Sql.insertAdvancedTaskDefinitionArgument({
+          id: null,
+          advanced_task_definition: insertId,
+          name: advancedTaskDefinitionArguments[i].name,
+          type: advancedTaskDefinitionArguments[i].type
+        })
+      );
+    }
   }
 
   return await advancedTaskFunctions(sqlClientPool).advancedTaskDefinitionById(
