@@ -391,23 +391,24 @@ export const invokeRegisteredTask = async (
   //are valid
   const typeValidatorFactory = advancedTaskArgument.advancedTaskDefinitionTypeFactory(sqlClientPool, task, environment);
 
-  for(let i = 0; i < argumentValues.length; i++) {
-    //grab the type for this one
-    let {advancedTaskDefinitionArgumentName, value} = argumentValues[i];
-    let taskArgDef = R.find(R.propEq('name', advancedTaskDefinitionArgumentName))(taskArgs);
-    if(!taskArgDef) {
-      throw new Error(`Cannot find argument type named ${advancedTaskDefinitionArgumentName}`);
-    }
+  if(argumentValues) {
+    for(let i = 0; i < argumentValues.length; i++) {
+      //grab the type for this one
+      let {advancedTaskDefinitionArgumentName, value} = argumentValues[i];
+      let taskArgDef = R.find(R.propEq('name', advancedTaskDefinitionArgumentName))(taskArgs);
+      if(!taskArgDef) {
+        throw new Error(`Cannot find argument type named ${advancedTaskDefinitionArgumentName}`);
+      }
 
-    //@ts-ignore
-    let validator: advancedTaskArgument.ArgumentBase = typeValidatorFactory(taskArgDef.type);
-
-    if(!(await validator.validateInput(value))) {
       //@ts-ignore
-      throw new Error(`Invalid input "${value}" for type "${taskArgDef.type}" given for argument "${advancedTaskDefinitionArgumentName}"`);
-    }
-  };
+      let validator: advancedTaskArgument.ArgumentBase = typeValidatorFactory(taskArgDef.type);
 
+      if(!(await validator.validateInput(value))) {
+        //@ts-ignore
+        throw new Error(`Invalid input "${value}" for type "${taskArgDef.type}" given for argument "${advancedTaskDefinitionArgumentName}"`);
+      }
+    };
+  }
 
 
   const environmentDetails = await environmentHelpers(
@@ -423,10 +424,13 @@ export const invokeRegisteredTask = async (
 
       let taskCommandEnvs = '';
 
-      taskCommandEnvs = R.reduce((acc, val) => {
-        //@ts-ignore
-        return `${acc} ${val.advancedTaskDefinitionArgumentName}="${val.value}"`
-      }, taskCommandEnvs, argumentValues);
+      if(argumentValues) {
+        taskCommandEnvs = R.reduce((acc, val) => {
+          //@ts-ignore
+          return `${acc} ${val.advancedTaskDefinitionArgumentName}="${val.value}"`
+        }, taskCommandEnvs, argumentValues);
+      }
+
 
       let taskCommand = `${taskCommandEnvs} ${task.command}`;
 
@@ -436,7 +440,7 @@ export const invokeRegisteredTask = async (
         name: task.name,
         environment: environment,
         service: task.service,
-        command: task.command,
+        command: taskCommand,
         execute: true
       });
       return taskData;
