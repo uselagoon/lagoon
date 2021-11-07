@@ -138,7 +138,7 @@ export const resolveTasksForEnvironment = async (
     }
 
     //@ts-ignore
-    rows[0].advancedTaskDefinitionArguments = processedArgs;
+    rows[i].advancedTaskDefinitionArguments = processedArgs;
   }
 
   return rows;

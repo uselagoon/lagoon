@@ -45,7 +45,7 @@ const InvokeRegisteredTask = ({ pageEnvironment, selectedTask, advancedTaskArgum
       return (
         <React.Fragment>
           <div className="taskArguments">
-          {selectedTask.arguments.map( d => {
+          {selectedTask.arguments && selectedTask.arguments.map( d => {
             switch(d.type) {
 
             case("ENVIRONMENT_SOURCE_NAME"):
