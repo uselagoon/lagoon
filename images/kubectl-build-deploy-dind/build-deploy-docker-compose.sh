@@ -419,7 +419,7 @@ done
 
 LAGOON_CACHE_BUILD_ARGS=()
 readarray LAGOON_CACHE_BUILD_ARGS < <(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get deployments -y yaml | yq e '.items[].spec.template.spec.containers[].image | capture("^(?P<image>.+\/.+\/.+\/(?P<name>.+)\@.*)$") | "LAGOON_CACHE_" + .name + "=\"" + .image + "\""' -)
-LAGOON_CACHE_BUILD_ARGS+=(LAGOON_CACHE_test=alpine)
+
 
 
 ##############################################
