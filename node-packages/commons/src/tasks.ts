@@ -402,7 +402,11 @@ export const getControllerBuildData = async function(deployData: any) {
 
   var openshiftProject = openshiftProjectPattern ? openshiftProjectPattern.replace('${environment}',environmentName).replace('${project}', projectName) : `${projectName}-${environmentName}`
 
-  var routerPattern = lagoonProjectData.openshift.routerPattern || deployTarget.openshift.routerPattern
+  var routerPattern = lagoonProjectData.openshift.routerPattern
+  if (typeof deployTarget.openshift.routerPattern !== 'undefined') {
+    // null is a valid value for routerPatterns...
+    routerPattern = deployTarget.openshift.routerPattern
+  }
   var deployTargetName = deployTarget.openshift.name
   var monitoringConfig: any = {};
   try {
@@ -793,7 +797,7 @@ export const createRemoveTask = async function(removeData: any) {
 }
 
 // creates the restore job configuration for use in the misc task
-const restoreConfig = (name, backupId, safeProjectName, baasBucketName, backupS3Config, restoreS3Config) => {
+const restoreConfig = (name, backupId, backupS3Config, restoreS3Config) => {
   let config = {
     apiVersion: 'backup.appuio.ch/v1alpha1',
     kind: 'Restore',
@@ -806,9 +810,7 @@ const restoreConfig = (name, backupId, safeProjectName, baasBucketName, backupS3
         s3: restoreS3Config ? restoreS3Config : {},
       },
       backend: {
-        s3: backupS3Config ? backupS3Config : {
-          bucket: baasBucketName ? baasBucketName : `baas-${safeProjectName}`
-        },
+        s3: backupS3Config,
         repoPasswordSecretRef: {
           key: 'repo-pw',
           name: 'baas-repo-pw'
@@ -955,6 +957,10 @@ export const createMiscTask = async function(taskData: any) {
                 key: "secret-key"
               }
             }
+          } else {
+            backupS3Config = {
+              bucket: baasBucketName ? baasBucketName : `baas-${makeSafe(taskData.data.project.name)}`
+            }
           }
 
           // Handle custom restore configurations
@@ -1000,7 +1006,7 @@ export const createMiscTask = async function(taskData: any) {
           }
 
           // generate the restore CRD
-          const restoreConf = restoreConfig(restoreName, taskData.data.backup.backupId, makeSafe(taskData.data.project.name), baasBucketName, backupS3Config, restoreS3Config)
+          const restoreConf = restoreConfig(restoreName, taskData.data.backup.backupId, backupS3Config, restoreS3Config)
           //logger.info(restoreConf)
           // base64 encode it
           const restoreBytes = new Buffer(JSON.stringify(restoreConf).replace(/\\n/g, "\n")).toString('base64')
