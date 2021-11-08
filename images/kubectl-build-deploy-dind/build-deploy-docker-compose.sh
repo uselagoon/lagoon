@@ -414,6 +414,15 @@ do
 done
 
 ##############################################
+### CACHE IMAGE LIST GENERATION
+##############################################
+
+LAGOON_CACHE_BUILD_ARGS=()
+readarray LAGOON_CACHE_BUILD_ARGS < <(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get deployments -y yaml | yq e '.items[].spec.template.spec.containers[].image | capture("^(?P<image>.+\/.+\/.+\/(?P<name>.+)\@.*)$") | "LAGOON_CACHE_" + .name + "=\"" + .image + "\""' -)
+LAGOON_CACHE_BUILD_ARGS+=(LAGOON_CACHE_test=alpine)
+
+
+##############################################
 ### BUILD IMAGES
 ##############################################
 
@@ -464,6 +473,12 @@ if [[ "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ]]; then
   BUILD_ARGS+=(--build-arg LAGOON_ENVIRONMENT_TYPE="${ENVIRONMENT_TYPE}")
   BUILD_ARGS+=(--build-arg LAGOON_BUILD_TYPE="${BUILD_TYPE}")
   BUILD_ARGS+=(--build-arg LAGOON_GIT_SOURCE_REPOSITORY="${SOURCE_REPOSITORY}")
+
+  # Add in the cache args
+  for value in "${LAGOON_CACHE_BUILD_ARGS[@]}"
+  do
+        BUILD_ARGS+=(--build-arg $value)
+  done
 
   set +x
   BUILD_ARGS+=(--build-arg LAGOON_SSH_PRIVATE_KEY="${SSH_PRIVATE_KEY}")
