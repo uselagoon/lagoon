@@ -23,7 +23,6 @@ const mutationInvokeRegisteredTask = gql`
 `;
 
 const InvokeRegisteredTask = ({ pageEnvironment, selectedTask, advancedTaskArguments, setAdvancedTaskArguments,  onCompleted, onError }) => {
-  console.log(selectedTask);
   return <Mutation
     mutation={mutationInvokeRegisteredTask}
     onCompleted={onCompleted}
@@ -33,7 +32,6 @@ const InvokeRegisteredTask = ({ pageEnvironment, selectedTask, advancedTaskArgum
       taskRegistration: selectedTask.id,
       argumentValues: (() => {
         let taskArgs = [];
-        console.log(advancedTaskArguments);
         R.forEachObjIndexed((value, key) => {
           taskArgs.push({advancedTaskDefinitionArgumentName: key, value: value});
         }, advancedTaskArguments);
