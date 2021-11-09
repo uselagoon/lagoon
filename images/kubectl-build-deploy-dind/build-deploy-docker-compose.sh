@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# get the buildname from the pod, $HOSTNAME contains this in the running pod, so we can use this
+# set it to something usable here
+LAGOON_BUILD_NAME=$HOSTNAME
+
 function cronScheduleMoreOftenThan30Minutes() {
   #takes a unexpanded cron schedule, returns 0 if it's more often that 30 minutes
   MINUTE=$(echo $1 | (read -a ARRAY; echo ${ARRAY[0]}) )
@@ -72,6 +76,30 @@ function featureFlag() {
 	echo "${!defaultFlagVar}"
 }
 
+function patchBuildStep() {
+  [ "$1" ] || return #total start time
+  [ "$2" ] || return #step start time
+  [ "$3" ] || return #previous step end time
+  [ "$4" ] || return #namespace
+  [ "$5" ] || return #buildstep
+  totalStartTime=$(date -d "${1}" +%s)
+  startTime=$(date -d "${2}" +%s)
+  endTime=$(date -d "${3}" +%s)
+
+  diffSeconds="$(($endTime-$startTime))"
+  diffTime=$(date -d @${diffSeconds} +"%H:%M:%S" -u)
+
+  diffTotalSeconds="$(($endTime-$totalStartTime))"
+  diffTotalTime=$(date -d @${diffTotalSeconds} +"%H:%M:%S" -u)
+
+  echo "STEP: Ended at ${3}"
+  echo "STEP: Duration ${diffTime}(H:M:S)"
+  echo "STEP: Total Duration ${diffTotalTime}(H:M:S)"
+  # patch the buildpod with the buildstep
+  kubectl patch --insecure-skip-tls-verify -n ${4} pod ${LAGOON_BUILD_NAME} \
+    -p "{\"metadata\":{\"labels\":{\"lagoon.sh/buildStep\":\"${5}\"}}}"
+}
+
 ##############################################
 ### PUSH the latest .lagoon.yml into lagoon-yaml configmap as a pre-deploy field
 ##############################################
@@ -100,7 +128,10 @@ set -x
 ### PREPARATION
 ##############################################
 
-set +x # reduce noise in build logs
+set +x
+buildStartTime="$(date +"%Y-%m-%d %H:%M:%S")"
+echo "STEP: Preparation started ${buildStartTime}"
+set -x
 
 # validate .lagoon.yml
 if ! lagoon-linter; then
@@ -413,6 +444,12 @@ do
 
 done
 
+set +x
+currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
+patchBuildStep "${buildStartTime}" "${buildStartTime}" "${currentStepEnd}" "${NAMESPACE}" "preparationComplete"
+previousStepEnd=${currentStepEnd}
+set -x
+
 ##############################################
 ### BUILD IMAGES
 ##############################################
@@ -561,6 +598,12 @@ if [[ "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ]]; then
 
 fi
 
+set +x
+currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
+patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "imageBuildComplete"
+previousStepEnd=${currentStepEnd}
+set -x
+
 ##############################################
 ### RUN PRE-ROLLOUT tasks defined in .lagoon.yml
 ##############################################
@@ -590,7 +633,11 @@ else
   echo "pre-rollout tasks are currently disabled LAGOON_PREROLLOUT_DISABLED is set to true"
 fi
 
-
+set +x
+currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
+patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "preRolloutsCompleted"
+previousStepEnd=${currentStepEnd}
+set -x
 
 
 ##############################################
@@ -691,6 +738,12 @@ LAGOON_PR_TITLE=${PR_TITLE}\n\
 LAGOON_PR_NUMBER=${PR_NUMBER}\n\
 " >> /kubectl-build-deploy/values.env
 fi
+
+set +x
+currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
+patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "serviceConfigurationComplete"
+previousStepEnd=${currentStepEnd}
+set -x
 
 ##############################################
 ### CUSTOM FASTLY API SECRETS .lagoon.yml
@@ -914,6 +967,12 @@ do
     DBAAS+=("${SERVICE_NAME}:${SERVICE_TYPE}")
   fi
 done
+
+set +x
+currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
+patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "serviceConfiguration2Complete"
+previousStepEnd=${currentStepEnd}
+set -x
 
 TEMPLATE_PARAMETERS=()
 
@@ -1413,6 +1472,12 @@ else
   done
 fi
 
+set +x
+currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
+patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "routeConfigurationComplete"
+previousStepEnd=${currentStepEnd}
+set -x
+
 ##############################################
 ### Backup Settings
 ##############################################
@@ -1574,6 +1639,12 @@ if [ "$(ls -A $YAML_FOLDER/)" ]; then
   find $YAML_FOLDER -type f -exec cat {} \;
   kubectl apply --insecure-skip-tls-verify -n ${NAMESPACE} -f $YAML_FOLDER/
 fi
+
+set +x
+currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
+patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "backupConfigurationComplete"
+previousStepEnd=${currentStepEnd}
+set -x
 
 ##############################################
 ### PROJECT WIDE ENV VARIABLES
@@ -1771,6 +1842,12 @@ elif [ "$BUILD_TYPE" == "promote" ]; then
 
 fi
 
+set +x
+currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
+patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "imagePushComplete"
+previousStepEnd=${currentStepEnd}
+set -x
+
 ##############################################
 ### CREATE PVC, DEPLOYMENTS AND CRONJOBS
 ##############################################
@@ -1877,6 +1954,12 @@ do
 
 done
 
+set +x
+currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
+patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "deploymentTemplatingComplete"
+previousStepEnd=${currentStepEnd}
+set -x
+
 ##############################################
 ### APPLY RESOURCES
 ##############################################
@@ -1931,6 +2014,11 @@ do
   fi
 done
 
+set +x
+currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
+patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "deploymentApplyComplete"
+previousStepEnd=${currentStepEnd}
+set -x
 
 ##############################################
 ### CLEANUP NATIVE CRONJOBS which have been removed from .lagoon.yml or modified to run more frequently than every 15 minutes
@@ -1952,6 +2040,12 @@ do
     kubectl --insecure-skip-tls-verify -n ${NAMESPACE} delete cronjob ${SINGLE_NATIVE_CRONJOB}
   fi
 done
+
+set +x
+currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
+patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "cronjobCleanupComplete"
+previousStepEnd=${currentStepEnd}
+set -x
 
 ##############################################
 ### RUN POST-ROLLOUT tasks defined in .lagoon.yml
@@ -1982,6 +2076,12 @@ if [ "${LAGOON_POSTROLLOUT_DISABLED}" != "true" ]; then
 else
   echo "post-rollout tasks are currently disabled LAGOON_POSTROLLOUT_DISABLED is set to true"
 fi
+
+set +x
+currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
+patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "postRolloutsCompleted"
+previousStepEnd=${currentStepEnd}
+set -x
 
 ##############################################
 ### PUSH the latest .lagoon.yml into lagoon-yaml configmap
