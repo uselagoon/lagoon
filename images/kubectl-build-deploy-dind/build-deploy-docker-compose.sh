@@ -82,6 +82,7 @@ function patchBuildStep() {
   [ "$3" ] || return #previous step end time
   [ "$4" ] || return #namespace
   [ "$5" ] || return #buildstep
+  [ "$6" ] || return #buildstep
   totalStartTime=$(date -d "${1}" +%s)
   startTime=$(date -d "${2}" +%s)
   endTime=$(date -d "${3}" +%s)
@@ -92,9 +93,12 @@ function patchBuildStep() {
   diffTotalSeconds="$(($endTime-$totalStartTime))"
   diffTotalTime=$(date -d @${diffTotalSeconds} +"%H:%M:%S" -u)
 
+  echo "##############################################"
+  echo "STEP: ${6}"
   echo "STEP: Ended at ${3}"
   echo "STEP: Duration ${diffTime}(H:M:S)"
   echo "STEP: Total Duration ${diffTotalTime}(H:M:S)"
+  echo "##############################################"
   # patch the buildpod with the buildstep
   kubectl patch --insecure-skip-tls-verify -n ${4} pod ${LAGOON_BUILD_NAME} \
     -p "{\"metadata\":{\"labels\":{\"lagoon.sh/buildStep\":\"${5}\"}}}"
@@ -446,7 +450,7 @@ done
 
 set +x
 currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
-patchBuildStep "${buildStartTime}" "${buildStartTime}" "${currentStepEnd}" "${NAMESPACE}" "preparationComplete"
+patchBuildStep "${buildStartTime}" "${buildStartTime}" "${currentStepEnd}" "${NAMESPACE}" "preparationComplete" "Preparation Complete"
 previousStepEnd=${currentStepEnd}
 set -x
 
@@ -600,7 +604,7 @@ fi
 
 set +x
 currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
-patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "imageBuildComplete"
+patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "imageBuildComplete" "Image Builds Complete"
 previousStepEnd=${currentStepEnd}
 set -x
 
@@ -635,7 +639,7 @@ fi
 
 set +x
 currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
-patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "preRolloutsCompleted"
+patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "preRolloutsCompleted" "Pre-Rollout Tasks Complete"
 previousStepEnd=${currentStepEnd}
 set -x
 
@@ -741,7 +745,7 @@ fi
 
 set +x
 currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
-patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "serviceConfigurationComplete"
+patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "serviceConfigurationComplete" "Service Configuration Phase 1 Complete"
 previousStepEnd=${currentStepEnd}
 set -x
 
@@ -970,7 +974,7 @@ done
 
 set +x
 currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
-patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "serviceConfiguration2Complete"
+patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "serviceConfiguration2Complete" "Service Configuration Phase 2 Complete"
 previousStepEnd=${currentStepEnd}
 set -x
 
@@ -1474,7 +1478,7 @@ fi
 
 set +x
 currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
-patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "routeConfigurationComplete"
+patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "routeConfigurationComplete" "Route/Ingress Configuration Complete"
 previousStepEnd=${currentStepEnd}
 set -x
 
@@ -1642,7 +1646,7 @@ fi
 
 set +x
 currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
-patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "backupConfigurationComplete"
+patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "backupConfigurationComplete" "Backup Configuration Complete"
 previousStepEnd=${currentStepEnd}
 set -x
 
@@ -1844,7 +1848,7 @@ fi
 
 set +x
 currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
-patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "imagePushComplete"
+patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "imagePushComplete" "Image Push Complete"
 previousStepEnd=${currentStepEnd}
 set -x
 
@@ -1956,7 +1960,7 @@ done
 
 set +x
 currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
-patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "deploymentTemplatingComplete"
+patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "deploymentTemplatingComplete" "Deployment Templating Complete"
 previousStepEnd=${currentStepEnd}
 set -x
 
@@ -2016,7 +2020,7 @@ done
 
 set +x
 currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
-patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "deploymentApplyComplete"
+patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "deploymentApplyComplete" "Applying Deployments Complete"
 previousStepEnd=${currentStepEnd}
 set -x
 
@@ -2043,7 +2047,7 @@ done
 
 set +x
 currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
-patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "cronjobCleanupComplete"
+patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "cronjobCleanupComplete" "Cronjob Cleanup Complete"
 previousStepEnd=${currentStepEnd}
 set -x
 
@@ -2079,7 +2083,7 @@ fi
 
 set +x
 currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
-patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "postRolloutsCompleted"
+patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "postRolloutsCompleted" "Post-Rollout Tasks Complete"
 previousStepEnd=${currentStepEnd}
 set -x
 
