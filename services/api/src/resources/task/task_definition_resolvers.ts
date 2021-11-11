@@ -445,7 +445,17 @@ export const invokeRegisteredTask = async (
       break;
     case TaskRegistration.TYPE_ADVANCED:
       // the return data here is basically what gets dropped into the DB.
-      // what we can do
+
+      // get any arguments ready for payload
+      let payload = {};
+      if(argumentValues) {
+        for(let i = 0; i < argumentValues.length; i++) {
+          //@ts-ignore
+          payload[argumentValues[i].advancedTaskDefinitionArgumentName] = argumentValues[i].value;
+        }
+      }
+
+
       const advancedTaskData = await Helpers(sqlClientPool).addAdvancedTask({
         name: task.name,
         created: undefined,
@@ -454,7 +464,7 @@ export const invokeRegisteredTask = async (
         environment,
         service: task.service || 'cli',
         image: task.image, //the return data here is basically what gets dropped into the DB.
-        payload: [],
+        payload: payload,
         remoteId: undefined,
         execute: true
       });
