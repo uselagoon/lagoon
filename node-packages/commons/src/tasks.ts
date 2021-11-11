@@ -402,10 +402,17 @@ export const getControllerBuildData = async function(deployData: any) {
 
   var openshiftProject = openshiftProjectPattern ? openshiftProjectPattern.replace('${environment}',environmentName).replace('${project}', projectName) : `${projectName}-${environmentName}`
 
+  // set routerpattern to the routerpattern of what is defined in the project scope openshift
   var routerPattern = lagoonProjectData.openshift.routerPattern
   if (typeof deployTarget.openshift.routerPattern !== 'undefined') {
-    // null is a valid value for routerPatterns...
+    // if deploytargets are being provided, then use what is defined in the deploytarget
+    // null is a valid value for routerPatterns here...
     routerPattern = deployTarget.openshift.routerPattern
+  }
+  // but if the project itself has a routerpattern defined, then this should be used
+  if (lagoonProjectData.routerPattern) {
+    // if a project has a routerpattern defined, use it. `null` is not valid here
+    routerPattern = lagoonProjectData.routerPattern
   }
   var deployTargetName = deployTarget.openshift.name
   var monitoringConfig: any = {};
