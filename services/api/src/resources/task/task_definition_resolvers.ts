@@ -432,7 +432,7 @@ export const invokeRegisteredTask = async (
       }
 
 
-      let taskCommand = `${taskCommandEnvs} ${task.command}`;
+      let taskCommand = `${taskCommandEnvs}; ${task.command}`;
 
       const taskData = await Helpers(sqlClientPool).addTask({
         name: task.name,
