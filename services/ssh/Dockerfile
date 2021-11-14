@@ -27,7 +27,8 @@ ENV TMPDIR=/tmp \
 ENV LAGOON=ssh \
     OC_VERSION=v3.11.0 \
     OC_HASH=0cbc58b \
-    OC_SHA256=4b0f07428ba854174c58d2e38287e5402964c9a9355f6c359d1242efd0990da3
+    OC_SHA256=4b0f07428ba854174c58d2e38287e5402964c9a9355f6c359d1242efd0990da3 \
+    KUBECTL_VERSION=v1.20.0
 
 COPY services/ssh/libnss-mysql-1.5.tar.gz /tmp/libnss-mysql-1.5.tar.gz
 
@@ -50,6 +51,10 @@ RUN mkdir -p /openshift-origin-client-tools && \
     mkdir /tmp/openshift-origin-client-tools && \
     tar -xzf /tmp/openshift-origin-client-tools.tar -C /tmp/openshift-origin-client-tools --strip-components=1 && \
     install /tmp/openshift-origin-client-tools/oc /usr/bin/oc && rm -rf /tmp/openshift-origin-client-tools  && rm -rf /tmp/openshift-origin-client-tools.tar
+
+RUN curl -Lo kubectl "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" && \
+    chmod +x kubectl && \
+    mv kubectl /usr/bin/kubectl
 
 RUN curl -L https://github.com/krallin/tini/releases/download/v0.18.0/tini -o /sbin/tini && chmod a+x /sbin/tini
 

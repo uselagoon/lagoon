@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# get the buildname from the pod, $HOSTNAME contains this in the running pod, so we can use this
+# set it to something usable here
+LAGOON_BUILD_NAME=$HOSTNAME
+
 function cronScheduleMoreOftenThan30Minutes() {
   #takes a unexpanded cron schedule, returns 0 if it's more often that 30 minutes
   MINUTE=$(echo $1 | (read -a ARRAY; echo ${ARRAY[0]}) )
@@ -25,12 +29,132 @@ function contains() {
     [[ $1 =~ (^|[[:space:]])$2($|[[:space:]]) ]] && return 0 || return 1
 }
 
+# featureFlag searches for feature flag variables in the following locations
+# and order:
+#
+# 1. The cluster-force feature flag, prefixed with LAGOON_FEATURE_FLAG_FORCE_,
+#    as a build pod environment variable. This is set via a flag on the
+#    build-deploy controller. This overrides the other variables and allows
+#    policy enforcement at the cluster level.
+#
+# 2. The regular feature flag, prefixed with LAGOON_FEATURE_FLAG_, in the
+#    Lagoon environment global scoped env-vars. This allows policy control at
+#    the environment level.
+#
+# 3. The regular feature flag, prefixed with LAGOON_FEATURE_FLAG_, in the
+#    Lagoon project global scoped env-vars. This allows policy control at the
+#    project level.
+#
+# 4. The cluster-default feature flag, prefixed with
+#    LAGOON_FEATURE_FLAG_DEFAULT_, as a build pod environment variable. This is
+#    set via a flag on the build-deploy controller. This allows default policy
+#    to be set at the cluster level, but maintains the ability to selectively
+#    override at the project or environment level.
+#
+# The value of the first variable found is printed to stdout. If the variable
+# is not found, print an empty string. Additional arguments are ignored.
+function featureFlag() {
+	# check for argument
+	[ "$1" ] || return
+
+	local forceFlagVar defaultFlagVar flagVar
+
+	# check build pod environment for the force policy first
+	forceFlagVar="LAGOON_FEATURE_FLAG_FORCE_$1"
+	[ "${!forceFlagVar}" ] && echo "${!forceFlagVar}" && return
+
+	flagVar="LAGOON_FEATURE_FLAG_$1"
+	# check Lagoon environment variables
+	flagValue=$(jq -r '.[] | select(.scope == "global" and .name == "'"$flagVar"'") | .value' <<<"$LAGOON_ENVIRONMENT_VARIABLES")
+	[ "$flagValue" ] && echo "$flagValue" && return
+	# check Lagoon project variables
+	flagValue=$(jq -r '.[] | select(.scope == "global" and .name == "'"$flagVar"'") | .value' <<<"$LAGOON_PROJECT_VARIABLES")
+	[ "$flagValue" ] && echo "$flagValue" && return
+
+	# fall back to the default, if set.
+	defaultFlagVar="LAGOON_FEATURE_FLAG_DEFAULT_$1"
+	echo "${!defaultFlagVar}"
+}
+
+function patchBuildStep() {
+  [ "$1" ] || return #total start time
+  [ "$2" ] || return #step start time
+  [ "$3" ] || return #previous step end time
+  [ "$4" ] || return #namespace
+  [ "$5" ] || return #buildstep
+  [ "$6" ] || return #buildstep
+  totalStartTime=$(date -d "${1}" +%s)
+  startTime=$(date -d "${2}" +%s)
+  endTime=$(date -d "${3}" +%s)
+  timeZone=$(date +"%Z")
+
+  diffSeconds="$(($endTime-$startTime))"
+  diffTime=$(date -d @${diffSeconds} +"%H:%M:%S" -u)
+
+  diffTotalSeconds="$(($endTime-$totalStartTime))"
+  diffTotalTime=$(date -d @${diffTotalSeconds} +"%H:%M:%S" -u)
+
+  echo "##############################################"
+  echo "STEP ${6}: Completed at ${3} (${timeZone}) Duration ${diffTime} Elapsed ${diffTotalTime}"
+  echo "##############################################"
+
+  # patch the buildpod with the buildstep
+  kubectl patch --insecure-skip-tls-verify -n ${4} pod ${LAGOON_BUILD_NAME} \
+    -p "{\"metadata\":{\"labels\":{\"lagoon.sh/buildStep\":\"${5}\"}}}"
+
+  # tiny sleep to allow patch to complete before logs roll again
+  sleep 0.5s
+}
+
 ##############################################
 ### PREPARATION
 ##############################################
 
+set +x
+buildStartTime="$(date +"%Y-%m-%d %H:%M:%S")"
+echo "STEP: Preparation started ${buildStartTime}"
+set -x
+
+##############################################
+### PUSH the latest .lagoon.yml into lagoon-yaml configmap as a pre-deploy field
+##############################################
+
+set +x
+echo "Updating lagoon-yaml configmap with a pre-deploy version of the .lagoon.yml file"
+if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap lagoon-yaml &> /dev/null; then
+  # replace it
+  # if the environment has already been deployed with an existing configmap that had the file in the key `.lagoon.yml`
+  # just nuke the entire configmap and replace it with our new key and file
+  LAGOON_YML_CM=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap lagoon-yaml -o json)
+  if [ "$(echo ${LAGOON_YML_CM} | jq -r '.data.".lagoon.yml" // false')" == "false" ]; then
+    # if the key doesn't exist, then just update the pre-deploy yaml only
+    kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap lagoon-yaml -o json | jq --arg add "`cat .lagoon.yml`" '.data."pre-deploy" = $add' | kubectl apply -f -
+  else
+    # if the key does exist, then nuke it and put the new key
+    kubectl --insecure-skip-tls-verify -n ${NAMESPACE} create configmap lagoon-yaml --from-file=pre-deploy=.lagoon.yml -o yaml --dry-run=client | kubectl replace -f -
+  fi
+ else
+  # create it
+  kubectl --insecure-skip-tls-verify -n ${NAMESPACE} create configmap lagoon-yaml --from-file=pre-deploy=.lagoon.yml
+fi
+set -x
+
+# validate .lagoon.yml
+if ! lagoon-linter; then
+	echo "https://docs.lagoon.sh/lagoon/using-lagoon-the-basics/lagoon-yml#restrictions describes some possible reasons for this build failure."
+	echo "If you require assistance to fix this error, please contact support."
+	exit 1
+else
+	echo "lagoon-linter found no issues with the .lagoon.yml file"
+fi
+
+set +x
+currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
+patchBuildStep "${buildStartTime}" "${buildStartTime}" "${currentStepEnd}" "${NAMESPACE}" "initialSetup" "Initial Environment Setup"
+previousStepEnd=${currentStepEnd}
+set -x
+
 # Load path of docker-compose that should be used
-set +x # reduce noise in build logs
 DOCKER_COMPOSE_YAML=($(cat .lagoon.yml | shyaml get-value docker-compose-yaml))
 
 DEPLOY_TYPE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.deploy-type default)
@@ -87,7 +211,6 @@ if [ -z "$DEFAULT_BACKUP_SCHEDULE" ]
 then
   DEFAULT_BACKUP_SCHEDULE="M H(22-2) * * *"
 fi
-
 set -x
 
 set +x # reduce noise in build logs
@@ -333,6 +456,12 @@ do
 
 done
 
+set +x
+currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
+patchBuildStep "${buildStartTime}" "${buildStartTime}" "${currentStepEnd}" "${NAMESPACE}" "configureVars" "Configured Variables"
+previousStepEnd=${currentStepEnd}
+set -x
+
 ##############################################
 ### BUILD IMAGES
 ##############################################
@@ -481,6 +610,12 @@ if [[ "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ]]; then
 
 fi
 
+set +x
+currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
+patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "imageBuildComplete" "Image Builds"
+previousStepEnd=${currentStepEnd}
+set -x
+
 ##############################################
 ### RUN PRE-ROLLOUT tasks defined in .lagoon.yml
 ##############################################
@@ -510,11 +645,15 @@ else
   echo "pre-rollout tasks are currently disabled LAGOON_PREROLLOUT_DISABLED is set to true"
 fi
 
-
+set +x
+currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
+patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "preRolloutsCompleted" "Pre-Rollout Tasks"
+previousStepEnd=${currentStepEnd}
+set -x
 
 
 ##############################################
-### CREATE OPENSHIFT SERVICES, ROUTES and SERVICEBROKERS
+### CONFIGURE SERVICES, AUTOGENERATED ROUTES AND DBAAS CONFIG
 ##############################################
 
 YAML_FOLDER="/kubectl-build-deploy/lagoon/services-routes"
@@ -558,6 +697,10 @@ yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogenerateShortSuffix'
 for i in $ROUTES_AUTOGENERATE_PREFIXES; do yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogeneratePrefixes[+]' $i; done
 yq write -i -- /kubectl-build-deploy/values.yaml 'kubernetes' $KUBERNETES
 yq write -i -- /kubectl-build-deploy/values.yaml 'lagoonVersion' $LAGOON_VERSION
+# check for ROOTLESS_WORKLOAD feature flag, disabled by default
+if [ "$(featureFlag ROOTLESS_WORKLOAD)" = enabled ]; then
+	yq merge -ix -- /kubectl-build-deploy/values.yaml /kubectl-build-deploy/rootless.values.yaml
+fi
 
 
 echo -e "\
@@ -608,50 +751,11 @@ LAGOON_PR_NUMBER=${PR_NUMBER}\n\
 " >> /kubectl-build-deploy/values.env
 fi
 
-for SERVICE_TYPES_ENTRY in "${SERVICE_TYPES[@]}"
-do
-  echo "=== BEGIN route processing for service ${SERVICE_TYPES_ENTRY} ==="
-  IFS=':' read -ra SERVICE_TYPES_ENTRY_SPLIT <<< "$SERVICE_TYPES_ENTRY"
-
-  TEMPLATE_PARAMETERS=()
-
-  SERVICE_NAME=${SERVICE_TYPES_ENTRY_SPLIT[0]}
-  SERVICE_TYPE=${SERVICE_TYPES_ENTRY_SPLIT[1]}
-
-  touch /kubectl-build-deploy/${SERVICE_NAME}-values.yaml
-
-  HELM_SERVICE_TEMPLATE="templates/service.yaml"
-  if [ -f /kubectl-build-deploy/helmcharts/${SERVICE_TYPE}/$HELM_SERVICE_TEMPLATE ]; then
-    cat /kubectl-build-deploy/values.yaml
-    helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -s $HELM_SERVICE_TEMPLATE -f /kubectl-build-deploy/values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${SERVICE_NAME}.yaml
-  fi
-
-  if [ $ROUTES_AUTOGENERATE_ENABLED == "true" ]; then
-    HELM_INGRESS_TEMPLATE="templates/ingress.yaml"
-    if [ -f /kubectl-build-deploy/helmcharts/${SERVICE_TYPE}/$HELM_INGRESS_TEMPLATE ]; then
-
-      # The very first generated route is set as MAIN_GENERATED_ROUTE
-      if [ -z "${MAIN_GENERATED_ROUTE+x}" ]; then
-        MAIN_GENERATED_ROUTE=$SERVICE_NAME
-      fi
-
-      helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -s $HELM_INGRESS_TEMPLATE -f /kubectl-build-deploy/values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${SERVICE_NAME}.yaml
-    fi
-  fi
-
-  HELM_DBAAS_TEMPLATE="templates/dbaas.yaml"
-  if [ -f /kubectl-build-deploy/helmcharts/${SERVICE_TYPE}/$HELM_DBAAS_TEMPLATE ]; then
-    # Load the requested class and plan for this service
-    DBAAS_ENVIRONMENT="${MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]}"
-    yq write -i -- /kubectl-build-deploy/${SERVICE_NAME}-values.yaml 'environment' $DBAAS_ENVIRONMENT
-    helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -s $HELM_DBAAS_TEMPLATE -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${SERVICE_NAME}-values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${SERVICE_NAME}.yaml
-    DBAAS+=("${SERVICE_NAME}:${SERVICE_TYPE}")
-  fi
-
-done
-
-TEMPLATE_PARAMETERS=()
-
+set +x
+currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
+patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "serviceConfigurationComplete" "Service Configuration Phase 1"
+previousStepEnd=${currentStepEnd}
+set -x
 
 ##############################################
 ### CUSTOM FASTLY API SECRETS .lagoon.yml
@@ -673,12 +777,12 @@ TEMPLATE_PARAMETERS=()
 #
 # support for multiple api-secrets is possible in the instance that a customer uses 2 separate services in different accounts in the one project
 
-
 ## any fastly api secrets will be prefixed with this, so that we always add this to whatever the customer provides
 FASTLY_API_SECRET_PREFIX="fastly-api-"
 
 FASTLY_API_SECRETS_COUNTER=0
 FASTLY_API_SECRETS=()
+set +x # reduce noise in build logs
 if [ -n "$(cat .lagoon.yml | shyaml keys fastly.api-secrets.$FASTLY_API_SECRETS_COUNTER 2> /dev/null)" ]; then
   while [ -n "$(cat .lagoon.yml | shyaml get-value fastly.api-secrets.$FASTLY_API_SECRETS_COUNTER 2> /dev/null)" ]; do
     FASTLY_API_SECRET_NAME=$FASTLY_API_SECRET_PREFIX$(cat .lagoon.yml | shyaml get-value fastly.api-secrets.$FASTLY_API_SECRETS_COUNTER.name 2> /dev/null)
@@ -720,7 +824,9 @@ if [ -n "$(cat .lagoon.yml | shyaml keys fastly.api-secrets.$FASTLY_API_SECRETS_
     let FASTLY_API_SECRETS_COUNTER=FASTLY_API_SECRETS_COUNTER+1
   done
 fi
+set -x
 
+set +x # reduce noise in build logs
 # FASTLY API SECRETS FROM LAGOON API VARIABLE
 # Allow for defining fastly api secrets using lagoon api variables
 # This accepts colon separated values like so `SECRET_NAME:FASTLY_API_TOKEN:FASTLY_PLATFORMTLS_CONFIGURATION_ID`, and multiple overrides
@@ -756,7 +862,9 @@ if [ ! -z "$LAGOON_FASTLY_API_SECRETS" ]; then
     . /kubectl-build-deploy/scripts/exec-fastly-api-secrets.sh
   done
 fi
+set -x
 
+set +x # reduce noise in build logs
 # FASTLY SERVICE ID PER INGRESS OVERRIDE FROM LAGOON API VARIABLE
 # Allow the fastly serviceid for specific ingress to be overridden by the lagoon API
 # This accepts colon separated values like so `INGRESS_DOMAIN:FASTLY_SERVICE_ID:WATCH_STATUS:SECRET_NAME(OPTIONAL)`, and multiple overrides
@@ -777,6 +885,112 @@ if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
     LAGOON_FASTLY_SERVICE_IDS=$TEMP_LAGOON_FASTLY_SERVICE_IDS
   fi
 fi
+set -x
+
+##############################################
+### CREATE SERVICES, AUTOGENERATED ROUTES AND DBAAS CONFIG
+##############################################
+
+for SERVICE_TYPES_ENTRY in "${SERVICE_TYPES[@]}"
+do
+  echo "=== BEGIN route processing for service ${SERVICE_TYPES_ENTRY} ==="
+  IFS=':' read -ra SERVICE_TYPES_ENTRY_SPLIT <<< "$SERVICE_TYPES_ENTRY"
+
+  TEMPLATE_PARAMETERS=()
+
+  SERVICE_NAME=${SERVICE_TYPES_ENTRY_SPLIT[0]}
+  SERVICE_TYPE=${SERVICE_TYPES_ENTRY_SPLIT[1]}
+
+  touch /kubectl-build-deploy/${SERVICE_NAME}-values.yaml
+
+  HELM_SERVICE_TEMPLATE="templates/service.yaml"
+  if [ -f /kubectl-build-deploy/helmcharts/${SERVICE_TYPE}/$HELM_SERVICE_TEMPLATE ]; then
+    cat /kubectl-build-deploy/values.yaml
+    helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -s $HELM_SERVICE_TEMPLATE -f /kubectl-build-deploy/values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${SERVICE_NAME}.yaml
+  fi
+
+  if [ $ROUTES_AUTOGENERATE_ENABLED == "true" ]; then
+    HELM_INGRESS_TEMPLATE="templates/ingress.yaml"
+    if [ -f /kubectl-build-deploy/helmcharts/${SERVICE_TYPE}/$HELM_INGRESS_TEMPLATE ]; then
+
+      # The very first generated route is set as MAIN_GENERATED_ROUTE
+      if [ -z "${MAIN_GENERATED_ROUTE+x}" ]; then
+        MAIN_GENERATED_ROUTE=$SERVICE_NAME
+      fi
+
+      set +x
+      ROUTE_FASTLY_SERVICE_WATCH=false
+      # if the builddeploy controller is injecting a featureflag value, load it in
+      if [ -z $LAGOON_FASTLY_AUTOGENERATED_FEATURE_FLAG ]; then
+        LAGOON_FASTLY_AUTOGENERATED=$LAGOON_FASTLY_AUTOGENERATED_FEATURE_FLAG
+      fi
+      # if the lagoon api has an envvar override, use it instead
+      if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
+        LAGOON_FASTLY_AUTOGENERATED=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_FASTLY_AUTOGENERATED") | "\(.value)"'))
+      fi
+      if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
+        TEMP_LAGOON_FASTLY_AUTOGENERATED=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_FASTLY_AUTOGENERATED") | "\(.value)"'))
+        if [ ! -z $TEMP_LAGOON_FASTLY_AUTOGENERATED ]; then
+          LAGOON_FASTLY_AUTOGENERATED=$TEMP_LAGOON_FASTLY_AUTOGENERATED
+        fi
+      fi
+      set -x
+      # Create the fastly values required
+      FASTLY_ARGS=()
+      # if the feature is enabled, then do what is required to generated the labels/annotations etc
+      if [ ! -z $LAGOON_FASTLY_AUTOGENERATED ] && [ "$LAGOON_FASTLY_AUTOGENERATED" == "enabled" ]; then
+        # work out if there are any lagoon api variable overrides for the annotations that are being added
+        . /kubectl-build-deploy/scripts/exec-fastly-annotations.sh
+        # if we get any other populated service id overrides in any of the steps in exec-fastly-annotations.sh
+        # make it available to the ingress creation here by overriding what may be defined in the lagoon.yml
+        # `LAGOON_FASTLY_SERVICE_ID` is created in the exec-fastly-annotations.sh script
+        if [ ! -z "$LAGOON_FASTLY_SERVICE_ID" ]; then
+          ROUTE_FASTLY_SERVICE_ID=$LAGOON_FASTLY_SERVICE_ID
+          ROUTE_FASTLY_SERVICE_WATCH=$LAGOON_FASTLY_SERVICE_WATCH
+          if [ ! -z $LAGOON_FASTLY_SERVICE_API_SECRET ]; then
+            ROUTE_FASTLY_SERVICE_API_SECRET=$LAGOON_FASTLY_SERVICE_API_SECRET
+          fi
+        fi
+        if [ ! -z "$ROUTE_FASTLY_SERVICE_ID" ]; then
+          yq write -i -- /kubectl-build-deploy/values.yaml 'fastly.serviceId' $ROUTE_FASTLY_SERVICE_ID
+          FASTLY_ARGS+=(--set fastly.serviceId=${ROUTE_FASTLY_SERVICE_ID})
+          if [ ! -z "$ROUTE_FASTLY_SERVICE_API_SECRET" ]; then
+            if contains $FASTLY_API_SECRETS "${FASTLY_API_SECRET_PREFIX}${ROUTE_FASTLY_SERVICE_API_SECRET}"; then
+              yq write -i -- /kubectl-build-deploy/values.yaml 'fastly.apiSecretName' ${FASTLY_API_SECRET_PREFIX}${ROUTE_FASTLY_SERVICE_API_SECRET}
+              FASTLY_ARGS+=(--set fastly.apiSecretName=${FASTLY_API_SECRET_PREFIX}${ROUTE_FASTLY_SERVICE_API_SECRET})
+            else
+              echo "$ROUTE_FASTLY_SERVICE_API_SECRET requested, but not found in .lagoon.yml file"; exit 1;
+            fi
+          fi
+          ROUTE_FASTLY_SERVICE_WATCH=true
+        fi
+      fi
+      # finally template the autogenerated route
+      yq write -i -- /kubectl-build-deploy/values.yaml 'fastly.watch' ${ROUTE_FASTLY_SERVICE_WATCH}
+      helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} \
+        -s $HELM_INGRESS_TEMPLATE \
+        "${FASTLY_ARGS[@]}" --set fastly.watch="${ROUTE_FASTLY_SERVICE_WATCH}" \
+        -f /kubectl-build-deploy/values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${SERVICE_NAME}.yaml
+    fi
+  fi
+
+  HELM_DBAAS_TEMPLATE="templates/dbaas.yaml"
+  if [ -f /kubectl-build-deploy/helmcharts/${SERVICE_TYPE}/$HELM_DBAAS_TEMPLATE ]; then
+    # Load the requested class and plan for this service
+    DBAAS_ENVIRONMENT="${MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]}"
+    yq write -i -- /kubectl-build-deploy/${SERVICE_NAME}-values.yaml 'environment' $DBAAS_ENVIRONMENT
+    helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -s $HELM_DBAAS_TEMPLATE -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${SERVICE_NAME}-values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${SERVICE_NAME}.yaml
+    DBAAS+=("${SERVICE_NAME}:${SERVICE_TYPE}")
+  fi
+done
+
+set +x
+currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
+patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "serviceConfiguration2Complete" "Service Configuration Phase 2"
+previousStepEnd=${currentStepEnd}
+set -x
+
+TEMPLATE_PARAMETERS=()
 
 ##############################################
 ### CUSTOM ROUTES FROM .lagoon.yml
@@ -832,6 +1046,7 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
           . /kubectl-build-deploy/scripts/exec-fastly-annotations.sh
           # if we get any other populated service id overrides in any of the steps in exec-fastly-annotations.sh
           # make it available to the ingress creation here by overriding what may be defined in the lagoon.yml
+          # `LAGOON_FASTLY_SERVICE_ID` is created in the exec-fastly-annotations.sh script
           if [ ! -z "$LAGOON_FASTLY_SERVICE_ID" ]; then
             ROUTE_FASTLY_SERVICE_ID=$LAGOON_FASTLY_SERVICE_ID
             ROUTE_FASTLY_SERVICE_WATCH=$LAGOON_FASTLY_SERVICE_WATCH
@@ -860,7 +1075,8 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
           if [[ ${#ROUTE_DOMAIN} -gt 53 ]] ; then
             # Trim the route domain to 47 characters, and add an 5 character hash of the domain at the end
             # this gives a total of 53 characters
-            INGRESS_NAME=${ROUTE_DOMAIN:0:47}-$(echo ${ROUTE_DOMAIN} | md5sum | cut -f 1 -d " " | cut -c 1-5)
+            INGRESS_NAME="${ROUTE_DOMAIN:0:47}"
+            INGRESS_NAME="${INGRESS_NAME%%.*}-$(echo "${ROUTE_DOMAIN}" | md5sum | cut -f 1 -d " " | cut -c 1-5)"
           else
             INGRESS_NAME=${ROUTE_DOMAIN}
           fi
@@ -950,6 +1166,7 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
           . /kubectl-build-deploy/scripts/exec-fastly-annotations.sh
           # if we get any other populated service id overrides in any of the steps in exec-fastly-annotations.sh
           # make it available to the ingress creation here by overriding what may be defined in the lagoon.yml
+          # `LAGOON_FASTLY_SERVICE_ID` is created in the exec-fastly-annotations.sh script
           if [ ! -z "$LAGOON_FASTLY_SERVICE_ID" ]; then
             ROUTE_FASTLY_SERVICE_ID=$LAGOON_FASTLY_SERVICE_ID
             ROUTE_FASTLY_SERVICE_WATCH=$LAGOON_FASTLY_SERVICE_WATCH
@@ -980,7 +1197,8 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
           if [[ ${#ROUTE_DOMAIN} -gt 53 ]] ; then
             # Trim the route domain to 47 characters, and add an 5 character hash of the domain at the end
             # this gives a total of 53 characters
-            INGRESS_NAME=${ROUTE_DOMAIN:0:47}-$(echo ${ROUTE_DOMAIN} | md5sum | cut -f 1 -d " " | cut -c 1-5)
+            INGRESS_NAME="${ROUTE_DOMAIN:0:47}"
+            INGRESS_NAME="${INGRESS_NAME%%.*}-$(echo "${ROUTE_DOMAIN}" | md5sum | cut -f 1 -d " " | cut -c 1-5)"
           else
             INGRESS_NAME=${ROUTE_DOMAIN}
           fi
@@ -1075,6 +1293,7 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
       . /kubectl-build-deploy/scripts/exec-fastly-annotations.sh
       # if we get any other populated service id overrides in any of the steps in exec-fastly-annotations.sh
       # make it available to the ingress creation here by overriding what may be defined in the lagoon.yml
+      # `LAGOON_FASTLY_SERVICE_ID` is created in the exec-fastly-annotations.sh script
       if [ ! -z "$LAGOON_FASTLY_SERVICE_ID" ]; then
         ROUTE_FASTLY_SERVICE_ID=$LAGOON_FASTLY_SERVICE_ID
         ROUTE_FASTLY_SERVICE_WATCH=$LAGOON_FASTLY_SERVICE_WATCH
@@ -1102,7 +1321,8 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
       if [[ ${#ROUTE_DOMAIN} -gt 53 ]] ; then
         # Trim the route domain to 47 characters, and add an 5 character hash of the domain at the end
         # this gives a total of 53 characters
-        INGRESS_NAME=${ROUTE_DOMAIN:0:47}-$(echo ${ROUTE_DOMAIN} | md5sum | cut -f 1 -d " " | cut -c 1-5)
+        INGRESS_NAME="${ROUTE_DOMAIN:0:47}"
+        INGRESS_NAME="${INGRESS_NAME%%.*}-$(echo "${ROUTE_DOMAIN}" | md5sum | cut -f 1 -d " " | cut -c 1-5)"
       else
         INGRESS_NAME=${ROUTE_DOMAIN}
       fi
@@ -1192,6 +1412,7 @@ else
       . /kubectl-build-deploy/scripts/exec-fastly-annotations.sh
       # if we get any other populated service id overrides in any of the steps in exec-fastly-annotations.sh
       # make it available to the ingress creation here by overriding what may be defined in the lagoon.yml
+      # `LAGOON_FASTLY_SERVICE_ID` is created in the exec-fastly-annotations.sh script
       if [ ! -z "$LAGOON_FASTLY_SERVICE_ID" ]; then
         ROUTE_FASTLY_SERVICE_ID=$LAGOON_FASTLY_SERVICE_ID
         ROUTE_FASTLY_SERVICE_WATCH=$LAGOON_FASTLY_SERVICE_WATCH
@@ -1222,7 +1443,8 @@ else
       if [[ ${#ROUTE_DOMAIN} -gt 53 ]] ; then
         # Trim the route domain to 47 characters, and add an 5 character hash of the domain at the end
         # this gives a total of 53 characters
-        INGRESS_NAME=${ROUTE_DOMAIN:0:47}-$(echo ${ROUTE_DOMAIN} | md5sum | cut -f 1 -d " " | cut -c 1-5)
+        INGRESS_NAME="${ROUTE_DOMAIN:0:47}"
+        INGRESS_NAME="${INGRESS_NAME%%.*}-$(echo "${ROUTE_DOMAIN}" | md5sum | cut -f 1 -d " " | cut -c 1-5)"
       else
         INGRESS_NAME=${ROUTE_DOMAIN}
       fi
@@ -1266,12 +1488,54 @@ else
   done
 fi
 
+set +x
+currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
+patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "routeConfigurationComplete" "Route/Ingress Configuration"
+previousStepEnd=${currentStepEnd}
+set -x
+
 ##############################################
 ### Backup Settings
 ##############################################
 
 # If k8up is supported by this cluster we create the schedule definition
 if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
+
+  # Parse out custom baas backup location variables
+  if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
+    BAAS_CUSTOM_BACKUP_ENDPOINT=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_BAAS_CUSTOM_BACKUP_ENDPOINT") | "\(.value)"'))
+    BAAS_CUSTOM_BACKUP_BUCKET=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_BAAS_CUSTOM_BACKUP_BUCKET") | "\(.value)"'))
+    BAAS_CUSTOM_BACKUP_ACCESS_KEY=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_BAAS_CUSTOM_BACKUP_ACCESS_KEY") | "\(.value)"'))
+    BAAS_CUSTOM_BACKUP_SECRET_KEY=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_BAAS_CUSTOM_BACKUP_SECRET_KEY") | "\(.value)"'))
+
+    if [ ! -z $BAAS_CUSTOM_BACKUP_ENDPOINT ] && [ ! -z $BAAS_CUSTOM_BACKUP_BUCKET ] && [ ! -z $BAAS_CUSTOM_BACKUP_ACCESS_KEY ] && [ ! -z $BAAS_CUSTOM_BACKUP_SECRET_KEY ]; then
+      CUSTOM_BAAS_BACKUP_ENABLED=1
+
+      HELM_CUSTOM_BAAS_BACKUP_ACCESS_KEY=${BAAS_CUSTOM_BACKUP_ACCESS_KEY}
+      HELM_CUSTOM_BAAS_BACKUP_SECRET_KEY=${BAAS_CUSTOM_BACKUP_SECRET_KEY}
+    else
+      set +x
+      kubectl --insecure-skip-tls-verify -n ${NAMESPACE} delete secret baas-custom-backup-credentials --ignore-not-found
+      set -x
+    fi
+  fi
+
+  # Parse out custom baas restore location variables
+  if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
+    BAAS_CUSTOM_RESTORE_ENDPOINT=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_BAAS_CUSTOM_RESTORE_ENDPOINT") | "\(.value)"'))
+    BAAS_CUSTOM_RESTORE_BUCKET=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_BAAS_CUSTOM_RESTORE_BUCKET") | "\(.value)"'))
+    BAAS_CUSTOM_RESTORE_ACCESS_KEY=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_BAAS_CUSTOM_RESTORE_ACCESS_KEY") | "\(.value)"'))
+    BAAS_CUSTOM_RESTORE_SECRET_KEY=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_BAAS_CUSTOM_RESTORE_SECRET_KEY") | "\(.value)"'))
+
+    if [ ! -z $BAAS_CUSTOM_RESTORE_ENDPOINT ] && [ ! -z $BAAS_CUSTOM_RESTORE_BUCKET ] && [ ! -z $BAAS_CUSTOM_RESTORE_ACCESS_KEY ] && [ ! -z $BAAS_CUSTOM_RESTORE_SECRET_KEY ]; then
+      HELM_CUSTOM_BAAS_RESTORE_ACCESS_KEY=${BAAS_CUSTOM_RESTORE_ACCESS_KEY}
+      HELM_CUSTOM_BAAS_RESTORE_SECRET_KEY=${BAAS_CUSTOM_RESTORE_SECRET_KEY}
+    else
+      set +x
+      kubectl --insecure-skip-tls-verify -n ${NAMESPACE} delete secret baas-custom-restore-credentials --ignore-not-found
+      set -x
+    fi
+  fi
 
   if ! kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get secret baas-repo-pw &> /dev/null; then
     # Create baas-repo-pw secret based on the project secret
@@ -1282,6 +1546,7 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
 
   TEMPLATE_PARAMETERS=()
 
+  set +x # reduce noise in build logs
   # Check for custom baas bucket name
   if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
     BAAS_BUCKET_NAME=$(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_BAAS_BUCKET_NAME") | "\(.value)"')
@@ -1289,6 +1554,7 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
   if [ -z $BAAS_BUCKET_NAME ]; then
     BAAS_BUCKET_NAME=baas-${PROJECT}
   fi
+  set -x
 
   # Pull in .lagoon.yml variables
   PRODUCTION_MONTHLY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml get-value backup-retention.production.monthly "")
@@ -1347,23 +1613,54 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
     PRUNE_SCHEDULE=$( /kubectl-build-deploy/scripts/convert-crontab.sh "${NAMESPACE}" "M H(3-6) * * 6")
   fi
 
+  # Set the S3 variables which should be passed to the helm chart
+  if [ ! -z $CUSTOM_BAAS_BACKUP_ENABLED ]; then
+    BAAS_BACKUP_ENDPOINT=${BAAS_CUSTOM_BACKUP_ENDPOINT}
+    BAAS_BACKUP_BUCKET=${BAAS_CUSTOM_BACKUP_BUCKET}
+    BAAS_BACKUP_SECRET_NAME='lagoon-baas-custom-backup-credentials'
+  else
+    BAAS_BACKUP_ENDPOINT=''
+    BAAS_BACKUP_BUCKET=${BAAS_BUCKET_NAME}
+    BAAS_BACKUP_SECRET_NAME=''
+  fi
+
   OPENSHIFT_TEMPLATE="/kubectl-build-deploy/openshift-templates/backup-schedule.yml"
   helm template k8up-lagoon-backup-schedule /kubectl-build-deploy/helmcharts/k8up-schedule \
     -f /kubectl-build-deploy/values.yaml \
     --set backup.schedule="${BACKUP_SCHEDULE}" \
     --set check.schedule="${CHECK_SCHEDULE}" \
-    --set prune.schedule="${PRUNE_SCHEDULE}" "${HELM_ARGUMENTS[@]}" \
-    --set baasBucketName="${BAAS_BUCKET_NAME}" > $YAML_FOLDER/k8up-lagoon-backup-schedule.yaml \
-    --set prune.retention.keepMonthly=$MONTHLY_BACKUP_RETENTION \
-    --set prune.retention.keepWeekly=$WEEKLY_BACKUP_RETENTION \
-    --set prune.retention.keepDaily=$DAILY_BACKUP_RETENTION \
-    --set prune.retention.keepHourly=$HOURLY_BACKUP_RETENTION
+    --set prune.schedule="${PRUNE_SCHEDULE}" \
+    --set prune.retention.keepMonthly=${MONTHLY_BACKUP_RETENTION} \
+    --set prune.retention.keepWeekly=${WEEKLY_BACKUP_RETENTION} \
+    --set prune.retention.keepDaily=${DAILY_BACKUP_RETENTION} \
+    --set prune.retention.keepHourly=${HOURLY_BACKUP_RETENTION} \
+    --set s3.endpoint="${BAAS_BACKUP_ENDPOINT}" \
+    --set s3.bucket="${BAAS_BACKUP_BUCKET}" \
+    --set s3.secretName="${BAAS_BACKUP_SECRET_NAME}" \
+    --set customRestoreLocation.accessKey="${BAAS_CUSTOM_RESTORE_ACCESS_KEY}" \
+    --set customRestoreLocation.secretKey="${BAAS_CUSTOM_RESTORE_SECRET_KEY}" \
+    --set customBackupLocation.accessKey="${BAAS_CUSTOM_BACKUP_ACCESS_KEY}" \
+    --set customBackupLocation.secretKey="${BAAS_CUSTOM_BACKUP_SECRET_KEY}" "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/k8up-lagoon-backup-schedule.yaml
+fi
+
+# check for ISOLATION_NETWORK_POLICY feature flag, disabled by default
+if [ "$(featureFlag ISOLATION_NETWORK_POLICY)" = enabled ]; then
+	# add namespace isolation network policy to deployment
+	helm template isolation-network-policy /kubectl-build-deploy/helmcharts/isolation-network-policy \
+		-f /kubectl-build-deploy/values.yaml \
+		> $YAML_FOLDER/isolation-network-policy.yaml
 fi
 
 if [ "$(ls -A $YAML_FOLDER/)" ]; then
   find $YAML_FOLDER -type f -exec cat {} \;
   kubectl apply --insecure-skip-tls-verify -n ${NAMESPACE} -f $YAML_FOLDER/
 fi
+
+set +x
+currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
+patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "backupConfigurationComplete" "Backup Configuration"
+previousStepEnd=${currentStepEnd}
+set -x
 
 ##############################################
 ### PROJECT WIDE ENV VARIABLES
@@ -1407,7 +1704,7 @@ LAGOON_AUTOGENERATED_ROUTES=${AUTOGENERATED_ROUTES}\n\
 " >> /kubectl-build-deploy/values.env
 
 # Generate a Config Map with project wide env variables
-kubectl -n ${NAMESPACE} create configmap lagoon-env -o yaml --dry-run --from-env-file=/kubectl-build-deploy/values.env | kubectl apply -n ${NAMESPACE} -f -
+kubectl -n ${NAMESPACE} create configmap lagoon-env -o yaml --dry-run=client --from-env-file=/kubectl-build-deploy/values.env | kubectl apply -n ${NAMESPACE} -f -
 
 set +x # reduce noise in build logs
 # Add environment variables from lagoon API
@@ -1561,6 +1858,12 @@ elif [ "$BUILD_TYPE" == "promote" ]; then
 
 fi
 
+set +x
+currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
+patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "imagePushComplete" "Image Push to Registry"
+previousStepEnd=${currentStepEnd}
+set -x
+
 ##############################################
 ### CREATE PVC, DEPLOYMENTS AND CRONJOBS
 ##############################################
@@ -1667,6 +1970,12 @@ do
 
 done
 
+set +x
+currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
+patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "deploymentTemplatingComplete" "Deployment Templating"
+previousStepEnd=${currentStepEnd}
+set -x
+
 ##############################################
 ### APPLY RESOURCES
 ##############################################
@@ -1721,6 +2030,11 @@ do
   fi
 done
 
+set +x
+currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
+patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "deploymentApplyComplete" "Applying Deployments"
+previousStepEnd=${currentStepEnd}
+set -x
 
 ##############################################
 ### CLEANUP NATIVE CRONJOBS which have been removed from .lagoon.yml or modified to run more frequently than every 15 minutes
@@ -1742,6 +2056,12 @@ do
     kubectl --insecure-skip-tls-verify -n ${NAMESPACE} delete cronjob ${SINGLE_NATIVE_CRONJOB}
   fi
 done
+
+set +x
+currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
+patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "cronjobCleanupComplete" "Cronjob Cleanup"
+previousStepEnd=${currentStepEnd}
+set -x
 
 ##############################################
 ### RUN POST-ROLLOUT tasks defined in .lagoon.yml
@@ -1773,14 +2093,29 @@ else
   echo "post-rollout tasks are currently disabled LAGOON_POSTROLLOUT_DISABLED is set to true"
 fi
 
+set +x
+currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
+patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "postRolloutsCompleted" "Post-Rollout Tasks"
+previousStepEnd=${currentStepEnd}
+set -x
+
 ##############################################
 ### PUSH the latest .lagoon.yml into lagoon-yaml configmap
 ##############################################
 
+set +x
+echo "Updating lagoon-yaml configmap with a post-deploy version of the .lagoon.yml file"
 if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap lagoon-yaml &> /dev/null; then
-  # replace it
-  kubectl --insecure-skip-tls-verify -n ${NAMESPACE} create configmap lagoon-yaml --from-file=.lagoon.yml -o yaml --dry-run | kubectl replace -f -
-else
+  # replace it, no need to check if the key is different, as that will happen in the pre-deploy phase
+  kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap lagoon-yaml -o json | jq --arg add "`cat .lagoon.yml`" '.data."post-deploy" = $add' | kubectl apply -f -
+ else
   # create it
-  kubectl --insecure-skip-tls-verify -n ${NAMESPACE} create configmap lagoon-yaml --from-file=.lagoon.yml
+  kubectl --insecure-skip-tls-verify -n ${NAMESPACE} create configmap lagoon-yaml --from-file=post-deploy=.lagoon.yml
 fi
+set -x
+
+set +x
+currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
+patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "deployCompleted" "Build and Deploy"
+previousStepEnd=${currentStepEnd}
+set -x

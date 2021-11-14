@@ -12,6 +12,7 @@ import ProjectBreadcrumb from 'components/Breadcrumbs/Project';
 import EnvironmentBreadcrumb from 'components/Breadcrumbs/Environment';
 import NavTabs from 'components/NavTabs';
 import DeployLatest from 'components/DeployLatest';
+import ResultsLimited from 'components/ResultsLimited';
 import Deployments from 'components/Deployments';
 import withQueryLoading from 'lib/withQueryLoading';
 import withQueryError from 'lib/withQueryError';
@@ -20,7 +21,20 @@ import { bp } from 'lib/variables';
 
 const { publicRuntimeConfig } = getConfig();
 const envLimit = parseInt(publicRuntimeConfig.LAGOON_UI_DEPLOYMENTS_LIMIT, 10);
-const deploymentsLimit = envLimit === -1 ? null : envLimit;
+const customMessage = publicRuntimeConfig.LAGOON_UI_DEPLOYMENTS_LIMIT_MESSAGE;
+
+let urlResultLimit = envLimit;
+if (typeof window !== "undefined") {
+  let search = window.location.search;
+  let params = new URLSearchParams(search);
+  let limit = params.get('limit');
+  if (limit) {
+    if (parseInt(limit.trim(), 10)) {
+      urlResultLimit = parseInt(limit.trim(), 10);
+    }
+  }
+}
+const resultLimit = urlResultLimit === -1 ? null : urlResultLimit;
 
 /**
  * Displays the deployments page, given the openshift project name.
@@ -35,7 +49,7 @@ export const PageDeployments = ({ router }) => {
         query={EnvironmentWithDeploymentsQuery}
         variables={{
           openshiftProjectName: router.query.openshiftProjectName,
-          limit: deploymentsLimit
+          limit: resultLimit
         }}
       >
         {R.compose(
@@ -96,6 +110,11 @@ export const PageDeployments = ({ router }) => {
                     deployments={environment.deployments}
                     environmentSlug={environment.openshiftProjectName}
                     projectSlug={environment.project.name}
+                  />
+                  <ResultsLimited
+                    limit={resultLimit}
+                    results={environment.deployments.length}
+                    message={(!customMessage && "") || (customMessage && customMessage.replace(/['"]+/g, ''))}
                   />
                 </div>
               </div>

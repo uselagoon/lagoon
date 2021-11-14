@@ -6,7 +6,6 @@ import {
   createPromoteTask
 } from '@lagoon/commons/dist/tasks';
 import { ResolverFn } from '../';
-import { esClient } from '../../clients/esClient';
 import {
   pubSub,
   createEnvironmentFilteredSubscriber
@@ -20,55 +19,93 @@ import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { addTask } from '@lagoon/commons/dist/api';
 import { Sql as environmentSql } from '../environment/sql';
+import S3 from 'aws-sdk/clients/s3';
+import sha1 from 'sha1';
+
+const accessKeyId =  process.env.S3_FILES_ACCESS_KEY_ID || 'minio'
+const secretAccessKey =  process.env.S3_FILES_SECRET_ACCESS_KEY || 'minio123'
+const bucket = process.env.S3_FILES_BUCKET || 'lagoon-files'
+const region = process.env.S3_FILES_REGION
+const s3Origin = process.env.S3_FILES_HOST || 'http://docker.for.mac.localhost:9000'
+
+const config = {
+  origin: s3Origin,
+  accessKeyId: accessKeyId,
+  secretAccessKey: secretAccessKey,
+  region: region,
+  bucket: bucket
+};
+
+const s3Client = new S3({
+  endpoint: config.origin,
+  accessKeyId: config.accessKeyId,
+  secretAccessKey: config.secretAccessKey,
+  region: config.region,
+  params: {
+    Bucket: config.bucket
+  },
+  s3ForcePathStyle: true,
+  signatureVersion: 'v4'
+});
 
 const convertDateFormat = R.init;
 
 export const getBuildLog: ResolverFn = async (
-  { remoteId, status },
+  { remoteId, environment, name, status },
   _args,
-  _context
+  { sqlClientPool }
 ) => {
   if (!remoteId) {
     return null;
   }
 
-  try {
-    const result = await esClient.search({
-      index: 'lagoon-logs-*',
-      sort: '@timestamp:desc',
-      body: {
-        query: {
-          bool: {
-            must: [
-              { match_phrase: { 'meta.remoteId': remoteId } },
-              { match_phrase: { 'meta.buildPhase': status } }
-            ]
-          }
-        }
-      }
-    });
+  const environmentData = await environmentHelpers(
+    sqlClientPool
+  ).getEnvironmentById(parseInt(environment));
+  const projectData = await projectHelpers(sqlClientPool).getProjectById(
+    environmentData.project
+  );
 
-    if (!result.hits.total) {
+  // we need to get the safename of the environment from when it was created
+  const makeSafe = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
+  var environmentName = makeSafe(environmentData.name)
+  var overlength = 58 - projectData.name.length;
+  if ( environmentName.length > overlength ) {
+    var hash = sha1(environmentName).substring(0,4)
+    environmentName = environmentName.substring(0, overlength-5)
+    environmentName = environmentName.concat('-' + hash)
+  }
+
+  try {
+    // where it should be, check `buildlogs/projectName/environmentName/buildName-remoteId.txt`
+    let buildLog = 'buildlogs/'+projectData.name+'/'+environmentName+'/'+name+'-'+remoteId+'.txt'
+    const data = await s3Client.getObject({Bucket: bucket, Key: buildLog}).promise();
+
+    if (!data) {
       return null;
     }
-
-    return R.path(['hits', 'hits', 0, '_source', 'message'], result);
+    let logMsg = new Buffer(JSON.parse(JSON.stringify(data.Body)).data).toString('ascii');
+    return logMsg;
   } catch (e) {
-    return `There was an error loading the logs: ${e.message}`;
+    // there is no fallback location for build logs, so there is no log to show the user
+    return `There was an error loading the logs: ${e.message}\nIf this error persists, contact your Lagoon support team.`;
   }
 };
 
 export const getDeploymentsByEnvironmentId: ResolverFn = async (
-  { id: eid },
+  { id: eid, environmentAuthz },
   { name, limit },
   { sqlClientPool, hasPermission }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
   ).getEnvironmentById(eid);
-  await hasPermission('deployment', 'view', {
-    project: environment.project
-  });
+
+  if (!environmentAuthz) {
+    await hasPermission('deployment', 'view', {
+      project: environment.project
+    });
+  }
 
   let queryBuilder = knex('deployment')
   .where('environment', eid)
@@ -190,7 +227,7 @@ export const deleteDeployment: ResolverFn = async (
 
   await query(sqlClientPool, Sql.deleteDeployment(id));
 
-  userActivityLogger.user_action(`User deleted deployment '${id}'`, {
+  userActivityLogger(`User deleted deployment '${id}'`, {
     project: '',
     event: 'api:deleteDeployment',
     payload: {
@@ -265,7 +302,7 @@ export const updateDeployment: ResolverFn = async (
 
   pubSub.publish(EVENTS.DEPLOYMENT.UPDATED, deployment);
 
-  userActivityLogger.user_action(`User updated deployment '${id}'`, {
+  userActivityLogger(`User updated deployment '${id}'`, {
     project: '',
     event: 'api:updateDeployment',
     payload: {
@@ -311,7 +348,7 @@ export const cancelDeployment: ResolverFn = async (
     project
   };
 
-  userActivityLogger.user_action(
+  userActivityLogger(
     `User cancelled deployment for '${deployment.environment}'`,
     {
       project: '',
@@ -364,6 +401,10 @@ export const deployEnvironmentLatest: ResolverFn = async (
   await hasPermission('environment', `deploy:${environment.environmentType}`, {
     project: project.id
   });
+
+  if (project.deploymentsDisabled == 1){
+    throw new Error('Deployments have been disabled for this project');
+  }
 
   if (
     environment.deployType === 'branch' ||
@@ -445,7 +486,7 @@ export const deployEnvironmentLatest: ResolverFn = async (
       return `Error: Unknown deploy type ${environment.deployType}`;
   }
 
-  userActivityLogger.user_action(
+  userActivityLogger(
     `User triggered a deployment on '${deployData.projectName}' for '${environment.name}'`,
     {
       project: deployData.projectName || '',
@@ -511,6 +552,10 @@ export const deployEnvironmentBranch: ResolverFn = async (
     project: project.id
   });
 
+  if (project.deploymentsDisabled == 1){
+    throw new Error('Deployments have been disabled for this project');
+  }
+
   const deployData = {
     type: 'branch',
     projectName: project.name,
@@ -523,7 +568,7 @@ export const deployEnvironmentBranch: ResolverFn = async (
     branchName: deployData.branchName
   };
 
-  userActivityLogger.user_action(
+  userActivityLogger(
     `User triggered a deployment on '${deployData.projectName}' for '${deployData.branchName}'`,
     {
       project: deployData.projectName || '',
@@ -601,6 +646,10 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
     project: project.id
   });
 
+  if (project.deploymentsDisabled == 1){
+    throw new Error('Deployments have been disabled for this project');
+  }
+
   const deployData = {
     type: 'pullrequest',
     projectName: project.name,
@@ -618,7 +667,7 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
     pullrequestTitle: deployData.pullrequestTitle
   };
 
-  userActivityLogger.user_action(
+  userActivityLogger(
     `User triggered a pull-request deployment on '${deployData.projectName}' for '${deployData.branchName}'`,
     {
       project: deployData.projectName || '',
@@ -692,6 +741,10 @@ export const deployEnvironmentPromote: ResolverFn = async (
     project: destProject.id
   });
 
+  if (destProject.deploymentsDisabled == 1){
+    throw new Error('Deployments have been disabled for this project');
+  }
+
   const sourceEnvironments = await environmentHelpers(
     sqlClientPool
   ).getEnvironmentsByEnvironmentInput(sourceEnvironmentInput);
@@ -723,7 +776,7 @@ export const deployEnvironmentPromote: ResolverFn = async (
     promoteSourceEnvironment: deployData.promoteSourceEnvironment
   };
 
-  userActivityLogger.user_action(
+  userActivityLogger(
     `User promoted the environment on '${deployData.projectName}' from '${deployData.promoteSourceEnvironment}' to '${deployData.branchName}'`,
     {
       project: deployData.projectName || '',

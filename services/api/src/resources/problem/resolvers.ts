@@ -173,7 +173,7 @@ export const addProblem: ResolverFn = async (
     Sql.selectProblemByDatabaseId(insertId)
   );
 
-  userActivityLogger.user_action(`User added a problem to environment '${environment.name}' for '${environment.project}'`, {
+  userActivityLogger(`User added a problem to environment '${environment.name}' for '${environment.project}'`, {
     project: '',
     event: 'api:addProblem',
     payload: {
@@ -213,7 +213,7 @@ export const deleteProblem: ResolverFn = async (
 
   await query(sqlClientPool, Sql.deleteProblem(environmentId, identifier));
 
-  userActivityLogger.user_action(`User deleted a problem on environment '${environment.name}' for '${environment.project}'`, {
+  userActivityLogger(`User deleted a problem on environment '${environment.name}' for '${environment.project}'`, {
     project: '',
     event: 'api:deleteProblem',
     payload: {
@@ -242,7 +242,7 @@ export const deleteProblemsFromSource: ResolverFn = async (
     Sql.deleteProblemsFromSource(environmentId, source, service)
   );
 
-  userActivityLogger.user_action(`User deleted problems on environment '${environment.id}' for source '${source}'`, {
+  userActivityLogger(`User deleted problems on environment '${environment.id}' for source '${source}'`, {
     project: '',
     event: 'api:deleteProblemsFromSource',
     payload: {
@@ -302,7 +302,7 @@ export const addProblemHarborScanMatch: ResolverFn = async (
     Sql.selectAllProblemHarborScanMatchByDatabaseId(insertId)
   );
 
-  userActivityLogger.user_action(`User added harbor scan regex matcher`, {
+  userActivityLogger(`User added harbor scan regex matcher`, {
     project: defaultLagoonProject || '',
     event: 'api:addProblemHarborScanMatch',
     payload: {
@@ -329,7 +329,7 @@ export const deleteProblemHarborScanMatch: ResolverFn = async (
 
   await query(sqlClientPool, Sql.deleteProblemHarborScanMatch(id));
 
-  userActivityLogger.user_action(`User deleted harbor scan regex matcher`, {
+  userActivityLogger(`User deleted harbor scan regex matcher`, {
     project: '',
     event: 'api:deleteProblemHarborScanMatch',
     payload: {

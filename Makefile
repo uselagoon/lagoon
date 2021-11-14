@@ -58,6 +58,7 @@ DOCKER_BUILD_PARAMS := --quiet
 # CI systems to define an Environment variable CI_BUILD_TAG which uniquely identifies each build.
 # If it's not set we assume that we are running local and just call it lagoon.
 CI_BUILD_TAG ?= lagoon
+
 # SOURCE_REPO is the repos where the upstream images are found (usually uselagoon, but can substiture for testlagoon)
 UPSTREAM_REPO ?= uselagoon
 UPSTREAM_TAG ?= latest
@@ -121,6 +122,9 @@ docker_publish_testlagoon = docker tag $(CI_BUILD_TAG)/$(1) testlagoon/$(2) && d
 # Tags an image with the `uselagoon` repository and pushes it
 docker_publish_uselagoon = docker tag $(CI_BUILD_TAG)/$(1) uselagoon/$(2) && docker push uselagoon/$(2) | cat
 
+.PHONY: docker_pull
+docker_pull:
+	docker images --format "{{.Repository}}:{{.Tag}}" | grep -E '$(UPSTREAM_REPO)' | grep -E '$(UPSTREAM_TAG)' | xargs -L1 docker pull;
 
 #######
 ####### Base Images
@@ -225,6 +229,7 @@ services :=	api \
 			logs2microsoftteams \
 			logs2rocketchat \
 			logs2slack \
+			logs2s3 \
 			logs2webhook \
 			storage-calculator \
 			ui \
@@ -244,7 +249,7 @@ $(build-services):
 	touch $@
 
 # Dependencies of Service Images
-build/auth-server build/logs2email build/logs2slack build/logs2rocketchat build/logs2webhook build/logs2microsoftteams build/backup-handler build/controllerhandler build/webhook-handler build/webhooks2tasks build/api build/ui: build/yarn-workspace-builder
+build/auth-server build/logs2email build/logs2slack build/logs2rocketchat build/logs2s3 build/logs2webhook build/logs2microsoftteams build/backup-handler build/controllerhandler build/webhook-handler build/webhooks2tasks build/api build/ui: build/yarn-workspace-builder
 build/api-db: services/api-db/Dockerfile
 build/api-redis: services/api-redis/Dockerfile
 build/auto-idler: build/oc
@@ -394,7 +399,7 @@ wait-for-keycloak:
 	grep -m 1 "Config of Keycloak done." <(docker-compose -p $(CI_BUILD_TAG) --compatibility logs -f keycloak 2>&1)
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
-main-test-services = broker logs2email logs2slack logs2rocketchat logs2microsoftteams logs2webhook api api-db api-redis keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher local-minio
+main-test-services = broker logs2email logs2slack logs2rocketchat logs2microsoftteams logs2s3 logs2webhook api api-db api-redis keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher local-minio
 
 # Define a list of which Lagoon Services are needed for openshift testing
 openshift-test-services = openshiftremove openshiftbuilddeploy openshiftbuilddeploymonitor openshiftmisc tests-openshift local-dbaas-provider local-mongodb-dbaas-provider
@@ -944,10 +949,15 @@ ui-development: build/api build/api-db build/local-api-data-watcher-pusher build
 api-development: build/api build/api-db build/local-api-data-watcher-pusher build/keycloak build/keycloak-db build/broker-single build/api-redis
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db local-api-data-watcher-pusher keycloak keycloak-db broker api-redis
 
+.PHONY: ui-logs-development
+ui-logs-development: build/api build/api-db build/local-api-data-watcher-pusher build/ui build/keycloak build/keycloak-db build/broker-single build/api-redis build/logs2s3 build/local-minio
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis logs2s3 local-minio
+
 ## CI targets
 
 KIND_VERSION = v0.11.1
-GOJQ_VERSION = v0.12.3
+GOJQ_VERSION = v0.12.5
+STERN_VERSION = 2.1.17
 CHART_TESTING_VERSION = v3.4.0
 KIND_IMAGE = kindest/node:v1.21.1@sha256:69860bda5563ac81e3c0057d654b5253219618a22ec3a346306239bba8cfa1a6
 TESTS = [api,features-kubernetes,features-kubernetes-2,features-api-variables,active-standby-kubernetes,nginx,drupal-php73,drupal-php74,drupal-postgres,python,gitlab,github,bitbucket,node-mongodb,elasticsearch,tasks]
@@ -980,6 +990,16 @@ endif
 	chmod a+x local-dev/jq
 endif
 
+local-dev/stern:
+ifeq ($(STERN_VERSION), $(shell stern --version 2>/dev/null | sed -nE 's/stern version //p'))
+	$(info linking local stern version $(KIND_VERSION))
+	ln -s $(shell command -v stern) ./local-dev/stern
+else
+	$(info downloading stern version $(STERN_VERSION) for $(ARCH))
+	curl -sSLo local-dev/stern https://github.com/derdanne/stern/releases/download/$(STERN_VERSION)/stern_$(ARCH)_amd64
+	chmod a+x local-dev/stern
+endif
+
 .PHONY: helm/repos
 helm/repos: local-dev/helm
 	# install repo dependencies required by the charts
@@ -989,6 +1009,7 @@ helm/repos: local-dev/helm
 	./local-dev/helm repo add bitnami https://charts.bitnami.com/bitnami
 	./local-dev/helm repo add amazeeio https://amazeeio.github.io/charts/
 	./local-dev/helm repo add lagoon https://uselagoon.github.io/lagoon-charts/
+	./local-dev/helm repo add minio https://helm.min.io/
 	./local-dev/helm repo update
 
 # stand up a kind cluster configured appropriately for lagoon testing
@@ -1034,9 +1055,9 @@ ifeq ($(ARCH), darwin)
       tcp-listen:32080,fork,reuseaddr tcp-connect:target:32080
 endif
 
-KIND_SERVICES = api api-db api-redis auth-server broker controllerhandler docker-host drush-alias keycloak keycloak-db webhook-handler webhooks2tasks kubectl-build-deploy-dind local-api-data-watcher-pusher local-git ssh tests ui
+KIND_SERVICES = api api-db api-redis auth-server broker controllerhandler docker-host drush-alias keycloak keycloak-db logs2s3 webhook-handler webhooks2tasks kubectl-build-deploy-dind local-api-data-watcher-pusher local-git ssh tests ui
 KIND_TESTS = local-api-data-watcher-pusher local-git tests
-KIND_TOOLS = kind helm kubectl jq
+KIND_TOOLS = kind helm kubectl jq stern
 
 # install lagoon charts and run lagoon test suites in a kind cluster
 .PHONY: kind/test
@@ -1056,6 +1077,9 @@ kind/test: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addpr
 			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=$$IMAGE_REGISTRY/kubectl-build-deploy-dind:$(SAFE_BRANCH_NAME) \
 			IMAGE_REGISTRY=$$IMAGE_REGISTRY \
 			SKIP_INSTALL_REGISTRY=true \
+			LAGOON_FEATURE_FLAG_DEFAULT_ISOLATION_NETWORK_POLICY=enabled \
+			USE_CALICO_CNI=true \
+			LAGOON_FEATURE_FLAG_DEFAULT_ROOTLESS_WORKLOAD=enabled \
 		&& docker run --rm --network host --name ct-$(CI_BUILD_TAG) \
 			--volume "$$(pwd)/test-suite-run.ct.yaml:/etc/ct/ct.yaml" \
 			--volume "$$(pwd):/workdir" \
@@ -1064,7 +1088,7 @@ kind/test: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addpr
 			"quay.io/helmpack/chart-testing:$(CHART_TESTING_VERSION)" \
 			ct install
 
-LOCAL_DEV_SERVICES = api auth-server controllerhandler logs2email logs2microsoftteams logs2rocketchat logs2slack logs2webhook ui webhook-handler webhooks2tasks
+LOCAL_DEV_SERVICES = api auth-server controllerhandler logs2email logs2microsoftteams logs2rocketchat logs2slack logs2s3 logs2webhook ui webhook-handler webhooks2tasks
 
 # install lagoon charts in a Kind cluster
 .PHONY: kind/setup
@@ -1177,6 +1201,9 @@ kind/retest:
 			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=$$IMAGE_REGISTRY/kubectl-build-deploy-dind:$(SAFE_BRANCH_NAME) \
 			IMAGE_REGISTRY=$$IMAGE_REGISTRY \
 			SKIP_ALL_DEPS=true \
+			LAGOON_FEATURE_FLAG_DEFAULT_ISOLATION_NETWORK_POLICY=enabled \
+			USE_CALICO_CNI=true \
+			LAGOON_FEATURE_FLAG_DEFAULT_ROOTLESS_WORKLOAD=enabled \
 		&& docker run --rm --network host --name ct-$(CI_BUILD_TAG) \
 			--volume "$$(pwd)/test-suite-run.ct.yaml:/etc/ct/ct.yaml" \
 			--volume "$$(pwd):/workdir" \

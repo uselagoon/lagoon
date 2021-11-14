@@ -5,7 +5,7 @@ import {
   getGrantForKeycloakToken,
   getCredentialsForLegacyToken
 } from './util/auth';
-import { getUserActivityLogger } from './loggers/userActivityLogger';
+import { userActivityLogger } from './loggers/userActivityLogger';
 const { getClientIp } = require('@supercharge/request-ip');
 
 export type RequestWithAuthData = Request & {
@@ -78,15 +78,12 @@ const keycloak = async (
     req.headers.ipAddress = ipAddress;
 
     req.kauth = { grant };
-    const userActivityLogger = getUserActivityLogger(
-      grant ? grant.access_token.content : null,
-      req.headers
-    );
 
     const { azp: source, preferred_username, email } = grant.access_token.content;
     const username = preferred_username ? preferred_username : 'unknown';
 
-    userActivityLogger.user_auth(`Keycloak authentication granted for '${username} (${email ? email : 'unknown'})' from '${source}'`);
+    userActivityLogger.user_auth(`Keycloak authentication granted for '${username} (${email ? email : 'unknown'})' from '${source}'`,
+      { user: grant ? grant.access_token.content : null, headers: req.headers });
 
   } catch (e) {
     // It might be a legacy token, so continue on.
@@ -120,11 +117,11 @@ const legacy = async (
     const ipAddress = getClientIp(req);
     req.headers.ipAddress = ipAddress;
 
-    const userActivityLogger = getUserActivityLogger(legacyCredentials ? legacyCredentials : null, req.headers);
     const { sub, iss } = legacyCredentials;
     const username = sub ? sub : 'unknown';
     const source = iss ? iss : 'unknown';
-    userActivityLogger.user_auth(`Legacy authentication granted for '${username}' from '${source}'`);
+    userActivityLogger.user_auth(`Legacy authentication granted for '${username}' from '${source}'`, 
+      { user: legacyCredentials ? legacyCredentials : null, headers: req.headers });
 
     next();
   } catch (e) {

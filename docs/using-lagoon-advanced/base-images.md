@@ -182,7 +182,7 @@ For any modules now added to the base image, we need to ensure that they’re en
 
 Here we open `web/modules/contrib/lagoon/lagoon_bundle/lagoon_bundle.info.yml` and add `clamav:clamav` as a dependency:
 
-![Adding ClamAV as a dependency of Lagoon Bundle.](../.gitbook/assets/3%20%282%29%20%282%29%20%283%29%20%284%29.png)
+![Adding ClamAV as a dependency of Lagoon Bundle.](../.gitbook/assets/3%20%282%29%20%282%29%20%283%29%20%284%29%20%284%29%20%284%29%20%284%29.png)
 
 Adding a dependency to this will ensure that whenever the Lagoon Bundle module is enabled on the derived image, its dependencies \(in this case, the just-added ClamAV module\) will also be enabled. This is enforced by a post-rollout script which enables `lagoon_bundle` on the derived images when they are rolled out.
 
@@ -192,7 +192,7 @@ This will depend on what you’re testing. In the case of adding the ClamAV modu
 
 Here we check that the module is downloaded to `/app/web/modules/contrib`:
 
-![Checking /app/web/modules/contrib to make sure ClamAV is downloaded. ](../.gitbook/assets/4%20%282%29%20%282%29%20%283%29%20%285%29%20%283%29.gif)
+![Checking /app/web/modules/contrib to make sure ClamAV is downloaded. ](../.gitbook/assets/4%20%282%29%20%282%29%20%283%29%20%285%29%20%285%29%20%281%29%20%281%29%20%283%29.gif)
 
 And then we check that when we enable the `lagoon_bundle` module, it enables `clamav` by running:
 
@@ -200,7 +200,7 @@ And then we check that when we enable the `lagoon_bundle` module, it enables `cl
 drush pm-enable lagoon_bundle -y
 ```
 
-![Running \`drush pm-enable lagoon\_bundle -y\` and seeing that it also enables ClamAV](../.gitbook/assets/5%20%282%29%20%282%29%20%283%29%20%285%29%20%284%29.gif)
+![Running \`drush pm-enable lagoon\_bundle -y\` and seeing that it also enables ClamAV](../.gitbook/assets/5%20%282%29%20%282%29%20%283%29%20%285%29%20%285%29%20%282%29%20%281%29%20%284%29.gif)
 
 {% hint style="warning" %}
 **Note:** You’ll see that there is a JWT error in the container above. You can safely ignore this in the demonstration above - but, for background, you will see this error when there is no Lagoon environment for the site you’re working on.
@@ -229,7 +229,7 @@ We check that we have committed \(but not pushed\) our changes, just as you woul
 **Note:** The tags must be pushed explicitly in their own step!
 {% endhint %}
 
-![Demonstrating how to tag and push a base image.](../.gitbook/assets/6%20%282%29%20%282%29%20%283%29%20%285%29.gif)
+![Demonstrating how to tag and push a base image.](../.gitbook/assets/6%20%282%29%20%282%29%20%283%29%20%285%29%20%285%29%20%283%29%20%281%29.gif)
 
 #### How Git tags map to image tags
 
@@ -257,7 +257,7 @@ Images are tagged using the following rules, and images will be built for each o
 3. Click the branch you would like to build.
 4. Click “Build Now.”
 
-![Showing how to build a base image in the Jenkins UI.](../.gitbook/assets/7%20%282%29%20%282%29%20%282%29%20%282%29%20%282%29.gif)
+![Showing how to build a base image in the Jenkins UI.](../.gitbook/assets/7%20%282%29%20%282%29%20%282%29%20%282%29%20%282%29%20%282%29%20%282%29%20%282%29.gif)
 
 This will kick off the build process which, if successful, will push up the new images to Harbor.
 
@@ -265,7 +265,7 @@ If the build is not successful, you can click into the build itself and read the
 
 As shown in the screenshot below from Harbor, the image we’ve just built in Jenkins has been uploaded and tagged in Harbor, where it will now be scanned for any vulnerabilities. Since it was tagged as v0.0.9, an image with that tag is present, and because we built the **main** branch, the “latest” image has also been built. At this stage, the v0.0.9 and “latest” images are identical.
 
-![Screenshot from Harbor showing uploaded and tagged images.](../.gitbook/assets/8%20%282%29%20%282%29%20%283%29%20%284%29%20%281%29.png)
+![Screenshot from Harbor showing uploaded and tagged images.](../.gitbook/assets/8%20%282%29%20%282%29%20%283%29%20%284%29%20%284%29%20%284%29%20%284%29%20%281%29.png)
 
 ## Acknowledgement
 

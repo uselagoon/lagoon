@@ -262,7 +262,21 @@ When [UptimeRobot](https://uptimerobot.com/) is configured for your cluster \(Op
 Route/Ingress annotations are only supported by projects that deploy into clusters that run nginx-ingress controllers! Check with your Lagoon administrator if this is supported.
 {% endhint %}
 
-* `annotations` can be a yaml map of [annotations supported by the nginx-ingress controller](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/), this is specifically useful for easy redirects and other configurations
+* `annotations` can be a yaml map of [annotations supported by the nginx-ingress controller](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/), this is specifically useful for easy redirects and other configurations.
+
+#### **Restrictions**
+
+Some annotations are disallowed or partially restricted in Lagoon.
+The table below describes these rules.
+
+If your `.lagoon.yml` contains one of these annotations it will cause a build failure.
+
+| Annotation                                          | Notes                                                                                    |
+| ---                                                 | ---                                                                                      |
+| `nginx.ingress.kubernetes.io/auth-snippet`          | Disallowed                                                                               |
+| `nginx.ingress.kubernetes.io/configuration-snippet` | Restricted to `rewrite`, `add_header`, `set_real_ip`, and `more_set_headers` directives. |
+| `nginx.ingress.kubernetes.io/modsecurity-snippet`   | Disallowed                                                                               |
+| `nginx.ingress.kubernetes.io/server-snippet`        | Restricted to `rewrite`, `add_header`, `set_real_ip`, and `more_set_headers` directives. |
 
 #### **Ingress annotations redirects**
 
@@ -292,6 +306,10 @@ You can of course also redirect to any other URL not hosted on Lagoon, this will
 {% endtabs %}
 
 #### Trusted Reverse Proxies
+
+{% hint style="warning" %}
+Kubernetes will only process a single `nginx.ingress.kubernetes.io/server-snippet` annotation. Please ensure that if you use this annotation on a non-production environment route that you also include the `add_header X-Robots-Tag "noindex, nofollow";` annotation as part of your server-snippet. This is needed to stop robots from crawling development environments as the default server-snippet set to prevent this in development environments in the ingress templates will get overwritten with any `server-snippets` set in .lagoon.yml.
+{% endhint %}
 
 Some configurations involve a reverse proxy \(like a CDN\) in front of the Kubernetes Clusters. In these configurations the IP of the Reverse Proxy will appear as the `REMOTE_ADDR` `HTTP_X_REAL_IP` `HTTP_X_FORWARDED_FOR` headers field in your applications. While the original IP of the requester can be found in the `HTTP_X_ORIGINAL_FORWARDED_FOR` header.
 
@@ -425,6 +443,10 @@ As most of the time it is not desirable to run the same cron jobs across all env
   * The schedule for executing the cron job. This follows the standard convention of cron. If you're not sure about the syntax, [Crontab Generator](https://crontab-generator.org/) can help.
   * You can specify `M` for the minute, and your cron job will run once per hour at a random minute \(the same minute each hour\), or `M/15` to run it every 15 mins, but with a random offset from the hour \(like `6,21,36,51`\). It is a good idea to spread out your cron jobs using this feature, rather than have them all fire off on minute `0`.
   * You can specify `H` for the hour, and your cron job will run once per day at a random hour \(the same hour every day\), or `H(2-4)` to run it once per day within the hours of 2-4.
+    * Notes on timezones:
+      * The default timezone for cron jobs is UTC.
+      * Native cron jobs will run in timezone of the node, which is UTC.
+      * In-pod cron jobs == timezone of the pod it is running in, which defaults to UTC but may be different if you have configured it.
 * `command:`
   * The command to execute. Like the tasks, this executes in the `WORKDIR` of the service. For Lagoon images, this is `/app`.
 * `service:`

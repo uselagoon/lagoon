@@ -17,13 +17,18 @@ export const getEnvironmentByName: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission }
 ) => {
+
+  if (args.includeDeleted == undefined) {
+    args.includeDeleted = true
+  }
   const rows = await query(
     sqlClientPool,
     `SELECT *
     FROM environment
     WHERE name = :name AND
-    project = :project`,
-    args
+    project = :project
+    ${args.includeDeleted ? '' : 'AND deleted = "0000-00-00 00:00:00"'}`,
+    args,
   );
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   const environment = withK8s[0];
@@ -64,7 +69,6 @@ export const getEnvironmentsByProjectId: ResolverFn = async (
 ) => {
   const { id: pid } = project;
 
-  let isAdmin = false;
   // The getAllProjects resolver will authorize environment access already,
   // so we can skip the request to keycloak.
   //
@@ -74,7 +78,6 @@ export const getEnvironmentsByProjectId: ResolverFn = async (
     await hasPermission('environment', 'view', {
       project: pid
     });
-    isAdmin = true;
   }
 
   let filterEnvironments = false;
@@ -82,7 +85,7 @@ export const getEnvironmentsByProjectId: ResolverFn = async (
 
   if (args.factFilter && args.factFilter.filters && args.factFilter.filters.length !== 0) {
     filterEnvironments = true;
-    filteredEnvironments = await getFactFilteredEnvironmentIds(args.factFilter, [project.id], sqlClientPool, isAdmin);
+    filteredEnvironments = await getFactFilteredEnvironmentIds(args.factFilter, [project.id], sqlClientPool, false);
   }
 
   const rows = await query(
@@ -97,7 +100,7 @@ export const getEnvironmentsByProjectId: ResolverFn = async (
   );
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
-  return withK8s;
+  return withK8s.map(row => ({ ...row, environmentAuthz: true }));
 };
 
 export const getEnvironmentByDeploymentId: ResolverFn = async (
@@ -333,6 +336,29 @@ export const addOrUpdateEnvironment: ResolverFn = async (
     project: pid
   });
 
+  /*
+    check if an openshift is provided (this should be provided by any functions that call this within lagoon)
+    otherwise source the one from the project as a fall back
+    (should also check if one already exists from the environment and use that as a first preference)
+  */
+  let openshift = input.kubernetes || input.openshift;
+  let openshiftProjectPattern = input.kubernetesNamespacePattern || input.openshiftProjectPattern;
+
+  try {
+    const curEnv = await Helpers(sqlClientPool).getEnvironmentById(input.id);
+    openshift = curEnv.openshift
+    openshiftProjectPattern = curEnv.openshiftProjectPattern
+  } catch (err) {
+    // do nothing
+  }
+  const projectOpenshift = await projectHelpers(sqlClientPool).getProjectById(input.project);
+  if (!openshift) {
+    openshift = projectOpenshift.openshift
+  }
+  if (!openshiftProjectPattern) {
+    openshiftProjectPattern = projectOpenshift.openshiftProjectPattern
+  }
+
   const rows = await query(
     sqlClientPool,
     `CALL CreateOrUpdateEnvironment(
@@ -344,16 +370,20 @@ export const addOrUpdateEnvironment: ResolverFn = async (
       :deploy_head_ref,
       :deploy_title,
       :environment_type,
-      :openshift_project_name
+      :openshift_project_name,
+      ${openshift ? ':openshift' : 'NULL'},
+      ${openshiftProjectPattern ? ':openshift_project_pattern' : 'NULL'}
     );`,
     {
       ...inputDefaults,
       ...input,
-      openshiftProjectName
+      openshift,
+      openshiftProjectName,
+      openshiftProjectPattern
     }
   );
 
-  userActivityLogger.user_action(`User updated environment`, {
+  userActivityLogger(`User updated environment`, {
     project: input.name || '',
     event: 'api:addOrUpdateEnvironment',
     payload: {
@@ -396,7 +426,7 @@ export const addOrUpdateEnvironmentStorage: ResolverFn = async (
   const environment = R.path([0, 0], rows);
   const { name: projectName } = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environment['environment']);
 
-  userActivityLogger.user_action(`User updated environment storage on project '${projectName}'`, {
+  userActivityLogger(`User updated environment storage on project '${projectName}'`, {
     project: projectName || '',
     event: 'api:addOrUpdateEnvironmentStorage',
     payload: {
@@ -512,7 +542,7 @@ export const deleteEnvironment: ResolverFn = async (
       return `Error: unknown deploy type ${environment.deployType}`;
   }
 
-  userActivityLogger.user_action(`User deleted environment '${environment.name}' on project '${projectName}'`, {
+  userActivityLogger(`User deleted environment '${environment.name}' on project '${projectName}'`, {
     project: data.projectName || '',
     event: 'api:deleteEnvironment',
     payload: {
@@ -575,11 +605,13 @@ export const updateEnvironment: ResolverFn = async (
         deployHeadRef: input.patch.deployHeadRef,
         deployTitle: input.patch.deployTitle,
         environmentType: input.patch.environmentType,
+        openshift: input.patch.openshift,
         openshiftProjectName,
         route: input.patch.route,
         routes: input.patch.routes,
         monitoringUrls: input.patch.monitoringUrls,
-        autoIdle: input.patch.autoIdle
+        autoIdle: input.patch.autoIdle,
+        created: input.patch.created
       }
     })
   );
@@ -587,7 +619,7 @@ export const updateEnvironment: ResolverFn = async (
   const rows = await query(sqlClientPool, Sql.selectEnvironmentById(id));
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
-  userActivityLogger.user_action(`User updated environment '${curEnv.name}' on project '${curEnv.project}'`, {
+  userActivityLogger(`User updated environment '${curEnv.name}' on project '${curEnv.project}'`, {
     project: curEnv.project || '',
     event: 'api:updateEnvironment',
     payload: {
@@ -599,11 +631,13 @@ export const updateEnvironment: ResolverFn = async (
         deployHeadRef: input.patch.deployHeadRef,
         deployTitle: input.patch.deployTitle,
         environmentType: input.patch.environmentType,
+        openshift: input.patch.openshift,
         openshiftProjectName,
         route: input.patch.route,
         routes: input.patch.routes,
         monitoringUrls: input.patch.monitoringUrls,
         autoIdle: input.patch.autoIdle,
+        created: input.patch.created
       },
       data: withK8s
     }
@@ -647,7 +681,7 @@ export const deleteAllEnvironments: ResolverFn = async (
 
   await query(sqlClientPool, Sql.truncateEnvironment());
 
-  userActivityLogger.user_action(`User deleted all environments'`, {
+  userActivityLogger(`User deleted all environments'`, {
     project: '',
     event: 'api:deleteAllEnvironments',
     payload: {
@@ -677,7 +711,7 @@ export const setEnvironmentServices: ResolverFn = async (
     await query(sqlClientPool, Sql.insertService(environmentId, service));
   }
 
-  userActivityLogger.user_action(`User set environment services for '${environment.name}'`, {
+  userActivityLogger(`User set environment services for '${environment.name}'`, {
     project: '',
     event: 'api:setEnvironmentServices',
     payload: {

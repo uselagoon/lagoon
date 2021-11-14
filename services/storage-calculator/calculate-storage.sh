@@ -23,15 +23,15 @@ ALL_ENVIRONMENTS=$(apiQuery 'query {
   environments:allProjects {
     name
     storageCalc
-    openshift {
-      consoleUrl
-      token
-      name
-    }
     environments {
       openshiftProjectName
       name
       id
+      openshift {
+        consoleUrl
+        token
+        name
+      }
     }
   }
 }')
@@ -40,15 +40,15 @@ ALL_ENVIRONMENTS=$(apiQuery 'query {
 echo "$ALL_ENVIRONMENTS" | jq -c '.data.environments[] | select((.environments|length)>=1)' | while read project
 do
   PROJECT_NAME=$(echo "$project" | jq -r '.name')
-  OPENSHIFT_URL=$(echo "$project" | jq -r '.openshift.consoleUrl')
   # Match the Project name to the Project Regex
   if [[ $PROJECT_NAME =~ $PROJECT_REGEX ]]; then
     STORAGE_CALC=$(echo "$project" | jq -r '.storageCalc')
-    echo "$OPENSHIFT_URL: Handling project $PROJECT_NAME"
-    OPENSHIFT_TOKEN=$(echo "$project" | jq -r '.openshift.token // empty')
+    echo "Handling project: $PROJECT_NAME"
     # loop through each environment of the current project
     echo "$project" | jq -c '.environments[]' | while read environment
     do
+      OPENSHIFT_URL=$(echo "$environment" | jq -r '.openshift.consoleUrl')
+      OPENSHIFT_TOKEN=$(echo "$environment" | jq -r '.openshift.token // empty')
       ENVIRONMENT_OPENSHIFT_PROJECTNAME=$(echo "$environment" | jq -r '.openshiftProjectName')
       ENVIRONMENT_NAME=$(echo "$environment" | jq -r '.name')
       ENVIRONMENT_ID=$(echo "$environment" | jq -r '.id')
@@ -157,6 +157,6 @@ do
 
     done
   else
-    echo "$OPENSHIFT_URL - $PROJECT_NAME: SKIP, does not match Regex: $PROJECT_REGEX"
+    echo "$PROJECT_NAME: SKIP, does not match Regex: $PROJECT_REGEX"
   fi
 done

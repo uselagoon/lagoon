@@ -11,7 +11,7 @@
 Use Composer to get the latest version of the module:
 
 ```text
-composer require drupal/fastly drupal/http_cache_control
+composer require drupal/fastly drupal/http_cache_control drupal/purge
 ```
 
 You will need to enable the following modules:
@@ -179,7 +179,7 @@ $settings['reverse_proxy_header'] = 'HTTP_TRUE_CLIENT_IP';
  fastly:                                                                                                                             
    fastly:purge:all (fpall)                                                    Purge whole service.                                  
    fastly:purge:key (fpkey)                                                    Purge cache by key.                                   
-   fastly:purge:url (fpurl)                                                    Purge cache by Url.     
+   fastly:purge:url (fpurl)                                                    Purge cache by Url.
 ```
 
 ## Drupal 7 with URL based purging

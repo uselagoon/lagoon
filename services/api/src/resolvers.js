@@ -115,6 +115,15 @@ const {
 } = require('./resources/environment/resolvers');
 
 const {
+  getDeployTargetConfigById,
+  getDeployTargetConfigsByProjectId,
+  getDeployTargetConfigsByDeployTarget,
+  addDeployTargetConfig,
+  deleteDeployTargetConfig,
+  updateDeployTargetConfig,
+} = require('./resources/deploytargetconfig/resolvers');
+
+const {
   addNotificationMicrosoftTeams,
   addNotificationRocketChat,
   addNotificationSlack,
@@ -146,6 +155,8 @@ const {
   deleteOpenshift,
   getAllOpenshifts,
   getOpenshiftByProjectId,
+  getOpenshiftByDeployTargetId,
+  getOpenshiftByEnvironmentId,
   updateOpenshift,
   deleteAllOpenshifts,
 } = require('./resources/openshift/resolvers');
@@ -154,6 +165,7 @@ const {
   deleteProject,
   addProject,
   getProjectByName,
+  getProjectById,
   getProjectByGitUrl,
   getProjectByEnvironmentId,
   getProjectsByMetadata,
@@ -313,6 +325,7 @@ const resolvers = {
     openshift: getOpenshiftByProjectId,
     kubernetes: getOpenshiftByProjectId,
     environments: getEnvironmentsByProjectId,
+    deployTargetConfigs: getDeployTargetConfigsByProjectId,
     envVariables: getEnvVarsByProjectId,
     groups: getGroupsByProjectId,
   },
@@ -333,6 +346,10 @@ const resolvers = {
     projects: getAllProjectsByGroupId,
     modifiers: getAllModifiersByGroupId,
   },
+  DeployTargetConfig: {
+    project: getProjectById,
+    deployTarget: getOpenshiftByDeployTargetId,
+  },
   Environment: {
     project: getProjectByEnvironmentId,
     deployments: getDeploymentsByEnvironmentId,
@@ -347,6 +364,8 @@ const resolvers = {
     services: getEnvironmentServicesByEnvironmentId,
     problems: getProblemsByEnvironmentId,
     facts: getFactsByEnvironmentId,
+    openshift: getOpenshiftByEnvironmentId,
+    kubernetes: getOpenshiftByEnvironmentId,
   },
   Fact: {
     references: getFactReferencesByFactId,
@@ -439,6 +458,9 @@ const resolvers = {
     projectsByMetadata: getProjectsByMetadata,
     projectsByFactSearch: getProjectsByFactSearch,
     workflowsForEnvironment: resolveWorkflowsForEnvironment,
+    deployTargetConfigById: getDeployTargetConfigById,
+    deployTargetConfigsByProjectId: getDeployTargetConfigsByProjectId,
+    deployTargetConfigsByDeployTarget: getDeployTargetConfigsByDeployTarget,
   },
   Mutation: {
     addProblem,
@@ -556,6 +578,9 @@ const resolvers = {
     deleteBillingModifier,
     deleteAllBillingModifiersByBillingGroup,
     addWorkflow,
+    addDeployTargetConfig,
+    deleteDeployTargetConfig,
+    updateDeployTargetConfig,
   },
   Subscription: {
     backupChanged: backupSubscriber,

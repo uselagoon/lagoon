@@ -12,6 +12,7 @@ import ProjectBreadcrumb from 'components/Breadcrumbs/Project';
 import EnvironmentBreadcrumb from 'components/Breadcrumbs/Environment';
 import NavTabs from 'components/NavTabs';
 import Backups from 'components/Backups';
+import ResultsLimited from 'components/ResultsLimited';
 import withQueryLoading from 'lib/withQueryLoading';
 import withQueryError from 'lib/withQueryError';
 import { withEnvironmentRequired } from 'lib/withDataRequired';
@@ -19,7 +20,20 @@ import { bp, color } from 'lib/variables';
 
 const { publicRuntimeConfig } = getConfig();
 const envLimit = parseInt(publicRuntimeConfig.LAGOON_UI_BACKUPS_LIMIT, 10);
-const backupsLimit = envLimit === -1 ? null : envLimit;
+const customMessage = publicRuntimeConfig.LAGOON_UI_BACKUPS_LIMIT_MESSAGE;
+
+let urlResultLimit = envLimit;
+if (typeof window !== "undefined") {
+  let search = window.location.search;
+  let params = new URLSearchParams(search);
+  let limit = params.get('limit');
+  if (limit) {
+    if (parseInt(limit.trim(), 10)) {
+      urlResultLimit = parseInt(limit.trim(), 10);
+    }
+  }
+}
+const resultLimit = urlResultLimit === -1 ? null : urlResultLimit;
 
 /**
  * Displays the backups page, given the name of an openshift project.
@@ -33,7 +47,7 @@ export const PageBackups = ({ router }) => (
       query={EnvironmentWithBackupsQuery}
       variables={{
         openshiftProjectName: router.query.openshiftProjectName,
-        limit: backupsLimit
+        limit: resultLimit
       }}
     >
       {R.compose(
@@ -106,6 +120,11 @@ export const PageBackups = ({ router }) => (
                   section!
                 </div>
                 <Backups backups={environment.backups} />
+                <ResultsLimited
+                  limit={resultLimit}
+                  results={environment.backups.length}
+                  message={(!customMessage && "") || (customMessage && customMessage.replace(/['"]+/g, ''))}
+                />
               </div>
             </div>
             <style jsx>{`

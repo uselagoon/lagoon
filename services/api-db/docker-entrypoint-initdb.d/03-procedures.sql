@@ -37,6 +37,7 @@ CREATE OR REPLACE PROCEDURE
     IN storage_calc                    int(1),
     IN problems_ui                     int(1),
     IN facts_ui                        int(1),
+    IN deployments_disabled            int(1),
     IN development_environments_limit  int
   )
   BEGIN
@@ -78,6 +79,7 @@ CREATE OR REPLACE PROCEDURE
         auto_idle,
         problems_ui,
         facts_ui,
+        deployments_disabled,
         storage_calc,
         pullrequests,
         openshift,
@@ -107,6 +109,7 @@ CREATE OR REPLACE PROCEDURE
         auto_idle,
         problems_ui,
         facts_ui,
+        deployments_disabled,
         storage_calc,
         pullrequests,
         os.id,
@@ -133,34 +136,23 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
-CREATE OR REPLACE PROCEDURE
-  DeleteProject
-  (
-    IN name varchar(50)
-  )
-  BEGIN
-    DECLARE v_pid int;
-
-    SELECT id INTO v_pid FROM project WHERE project.name = name;
-
-    DELETE FROM project_user WHERE pid = v_pid;
-    DELETE FROM project_notification WHERE pid = v_pid;
-    DELETE FROM project WHERE id = v_pid;
-  END;
+DROP PROCEDURE IF EXISTS DeleteProject;
 $$
 
 CREATE OR REPLACE PROCEDURE
   CreateOrUpdateEnvironment
   (
-    IN id                     int,
-    IN name                   varchar(100),
-    IN pid                    int,
-    IN deploy_type            ENUM('branch', 'pullrequest', 'promote'),
-    IN deploy_base_ref        varchar(100),
-    IN deploy_head_ref        varchar(100),
-    IN deploy_title           varchar(300),
-    IN environment_type       ENUM('production', 'development'),
-    IN openshift_project_name varchar(100)
+    IN id                         int,
+    IN name                       varchar(100),
+    IN pid                        int,
+    IN deploy_type                ENUM('branch', 'pullrequest', 'promote'),
+    IN deploy_base_ref            varchar(100),
+    IN deploy_head_ref            varchar(100),
+    IN deploy_title               varchar(300),
+    IN environment_type           ENUM('production', 'development'),
+    IN openshift_project_name     varchar(100),
+    IN openshift                  int,
+    IN openshift_project_pattern  varchar(300)
   )
   BEGIN
     INSERT INTO environment (
@@ -173,6 +165,8 @@ CREATE OR REPLACE PROCEDURE
         deploy_title,
         environment_type,
         openshift_project_name,
+        openshift,
+        openshift_project_pattern,
         deleted
     )
     SELECT
@@ -185,6 +179,8 @@ CREATE OR REPLACE PROCEDURE
         deploy_title,
         environment_type,
         openshift_project_name,
+        openshift,
+        openshift_project_pattern,
         '0000-00-00 00:00:00'
     FROM
         project AS p
