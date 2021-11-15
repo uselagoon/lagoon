@@ -234,7 +234,8 @@ services :=	api \
 			storage-calculator \
 			ui \
 			webhook-handler \
-			webhooks2tasks
+			webhooks2tasks \
+			workflows
 
 
 service-images += $(services)
@@ -280,6 +281,7 @@ build/local-api-data-watcher-pusher: local-dev/api-data-watcher-pusher/Dockerfil
 build/local-registry: local-dev/registry/Dockerfile
 build/local-dbaas-provider: local-dev/dbaas-provider/Dockerfile
 build/local-mongodb-dbaas-provider: local-dev/mongodb-dbaas-provider/Dockerfile
+build/workflows: services/workflows/Dockerfile
 
 # Images for local helpers that exist in another folder than the service images
 localdevimages := local-git \
@@ -1055,7 +1057,7 @@ ifeq ($(ARCH), darwin)
       tcp-listen:32080,fork,reuseaddr tcp-connect:target:32080
 endif
 
-KIND_SERVICES = api api-db api-redis auth-server broker controllerhandler docker-host drush-alias keycloak keycloak-db logs2s3 webhook-handler webhooks2tasks kubectl-build-deploy-dind local-api-data-watcher-pusher local-git ssh tests ui
+KIND_SERVICES = api api-db api-redis auth-server broker controllerhandler docker-host drush-alias keycloak keycloak-db logs2s3 webhook-handler webhooks2tasks kubectl-build-deploy-dind local-api-data-watcher-pusher local-git ssh tests ui workflows
 KIND_TESTS = local-api-data-watcher-pusher local-git tests
 KIND_TOOLS = kind helm kubectl jq stern
 
