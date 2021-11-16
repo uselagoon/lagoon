@@ -24,7 +24,7 @@
   "dependencies": {
     "@lagoon/commons": "4.0.0",
     "@slack/client": "^4.12.0",
-    "aws-sdk": "^2.378.0",
+    "aws-sdk": "^2.814.0",
     "amqp-connection-manager": "^1.3.5"
   },
   "devDependencies": {
