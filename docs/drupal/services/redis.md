@@ -6,7 +6,7 @@ We recommend using [Redis](https://redis.io/) for internal caching. Add the Redi
 {% tab title="docker-compose.yml" %}
 ```yaml
   redis:
-    image: amazeeio/redis
+    image: uselagoon/redis
     labels:
       lagoon.type: redis
     << : *default-user # Uses the defined user from top.
@@ -97,7 +97,7 @@ Redis can also be configured as a persistent backend.
 {% tab title="docker-compose.yml" %}
 ```yaml
 redis:
-  image: amazeeio/redis-persistent
+  image: uselagoon/redis-persistent
   labels:
     lagoon.type: redis-persistent
   environment:
