@@ -1,0 +1,169 @@
+# Any values defined here are not used anywhere other than lint/CI.
+
+# used in api
+elasticsearchURL: http://opendistro-es-client-service.opendistro-es.svc.cluster.local:9200
+harborURL: http://registry.192.168.224.2.nip.io:32080
+harborAdminPassword: Harbor12345
+kibanaURL: http://opendistro-es-kibana-svc.opendistro-es.svc.cluster.local:443
+logsDBAdminPassword: admin
+registry: registry.192.168.224.2.nip.io:32080"
+s3FilesAccessKeyID: lagoonFilesAccessKey
+s3FilesBucket: lagoon-files
+s3FilesHost: http://minio.minio.svc:9000
+s3FilesSecretAccessKey: lagoonFilesSecretKey
+s3BAASAccessKeyID: baas
+s3BAASSecretAccessKey: baas123
+lagoonUIURL: http://ui:9101
+lagoonWebhookURL: http://webhook:11213
+
+overwriteKubectlBuildDeployDindImage:
+
+# used in ui
+lagoonAPIURL: http://lagoon-api.192.168.224.2.nip.io:32080/graphql"
+keycloakAPIURL: http://lagoon-keycloak.192.168.224.2.nip.io:32080/auth"
+
+
+api:
+  replicaCount: 1
+  image:
+    repository: uselagoon/api
+  ingress:
+    enabled: true
+    hosts:
+    - host: lagoon-api.192.168.224.2.nip.io
+      paths:
+      - /
+
+apiDB:
+  replicaCount: 1
+  image:
+    repository: uselagoon/api-db
+  storageSize: 16Gi
+
+apiRedis:
+  replicaCount: 1
+  image:
+    repository: uselagoon/api-redis
+
+authServer:
+  replicaCount: 1
+  image:
+    repository: uselagoon/auth-server
+
+autoIdler:
+  replicaCount: 1
+  image:
+    repository: uselagoon/auto-idler
+  enabled: false
+
+backupHandler:
+  replicaCount: 1
+  image:
+    repository: uselagoon/backup-handler
+  enabled: false
+
+broker:
+  replicaCount: 1
+  serviceMonitor:
+    enabled: false
+  image:
+    repository: uselagoon/broker
+  ingress:
+    enabled: true
+    hosts:
+    - host: lagoon-broker.192.168.224.2.nip.io
+      paths:
+      - /
+
+controllerhandler:
+  replicaCount: 1
+  image:
+    repository: uselagoon/controllerhandler
+
+drushAlias:
+  replicaCount: 1
+  image:
+    repository: uselagoon/drush-alias
+
+keycloak:
+  replicaCount: 1
+  image:
+    repository: uselagoon/keycloak
+  ingress:
+    enabled: true
+    hosts:
+    - host: lagoon-keycloak.192.168.224.2.nip.io
+      paths:
+      - /
+
+keycloakDB:
+  replicaCount: 1
+  image:
+    repository: uselagoon/keycloak-db
+
+logs2s3:
+  replicaCount: 1
+  image:
+    repository: uselagoon/logs2s3
+
+logs2email:
+  replicaCount: 1
+  image:
+    repository: uselagoon/logs2email
+  enabled: false
+
+logs2microsoftteams:
+  replicaCount: 1
+  image:
+    repository: uselagoon/logs2microsoftteams
+  enabled: false
+
+logs2rocketchat:
+  replicaCount: 1
+  image:
+    repository: uselagoon/logs2rocketchat
+  enabled: false
+
+logs2slack:
+  replicaCount: 1
+  image:
+    repository: uselagoon/logs2slack
+  enabled: false
+
+logs2webhook:
+  replicaCount: 1
+  image:
+    repository: uselagoon/logs2webhook
+  enabled: false
+
+ssh:
+  replicaCount: 1
+  image:
+    repository: uselagoon/ssh
+
+storageCalculator:
+  replicaCount: 1
+  image:
+    repository: uselagoon/storage-calculator
+  enabled: false
+
+ui:
+  replicaCount: 1
+  image:
+    repository: uselagoon/ui
+  ingress:
+    enabled: true
+    hosts:
+    - host: lagoon-ui.192.168.224.2.nip.io
+      paths:
+      - /
+
+webhookHandler:
+  replicaCount: 1
+  image:
+    repository: uselagoon/webhook-handler
+
+webhooks2tasks:
+  replicaCount: 1
+  image:
+    repository: uselagoon/webhooks2tasks
