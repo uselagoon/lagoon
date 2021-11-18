@@ -9,6 +9,14 @@
 * 6 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/elasticsearch/6.Dockerfile) - `uselagoon/elasticsearch-6`
 * 7 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/elasticsearch/7.Dockerfile) - `uselagoon/elasticsearch-7`
 
+
+## Environment Variables
+
+| Environment Variable |      Default      |                                                           Description                                                            |
+| :------------------- | :---------------- | :------------------------------------------------------------------------------------------------------------------------------- |
+| `ES_JAVA_OPTS`       | -Xms400m -Xmx400m | Sets the memory usage of the Elasticsearch container. Both values need be the same value or Elasticsearch will not start cleanly |
+
+
 ## Known issues
 
 On Linux-based systems, the start of the Elasticsearch container may fail due to a low `vm.max_map_count` setting.
