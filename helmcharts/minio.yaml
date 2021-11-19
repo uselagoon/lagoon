@@ -1,5 +1,0 @@
-accessKey:
-  password: lagoonFilesAccessKey
-secretKey:
-  password: lagoonFilesSecretKey
-defaultBuckets: lagoon-files
