@@ -7,8 +7,7 @@ webhookHost: lagoon-core-webhook-handler
 
 localGit:
   image:
-    repository: registry.192.168.224.2.nip.io:32080/library/lagoon/local-git
-    tag: latest
+    repository: uselagoon/local-git
 
 localAPIDataWatcherPusher:
   image:
@@ -16,10 +15,10 @@ localAPIDataWatcherPusher:
 
 tests:
   image:
-    # repository: uselagoon/tests
-    repository: registry.192.168.224.2.nip.io:32080/library/lagoon/tests
-    tag: latest
+    repository: uselagoon/tests
   tests:
-    - drush
+    - features-kubernetes-2
+    - features-kubernetes
+    - tasks
 
 imageTag: ""
