@@ -53,7 +53,7 @@ services:
       context: .
       dockerfile: mariadb.dockerfile
     labels:
-      lagoon.type: mariadb
+      lagoon.type: mariadb-single
 networks:
   amazeeio-network:
     external: true

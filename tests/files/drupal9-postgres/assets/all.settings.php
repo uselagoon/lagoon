@@ -13,8 +13,20 @@
 // via the browser. If your Drupal root is inside a subfolder (like 'web') you can put the config
 // folder outside this subfolder for an advanced security measure: '../config/sync'.
 use Drupal\Core\Installer\InstallerKernel;
-
 $settings['config_sync_directory'] = '../config/sync';
+
+// Adds in a postgres default database - this overrides the mariadb set in settings.lagoon.php
+if(getenv('LAGOON')){
+    $databases['default']['default'] = array(
+      'driver' => 'pgsql',
+      'database' => getenv('POSTGRES_DATABASE') ?: 'drupal',
+      'username' => getenv('POSTGRES_USERNAME') ?: 'drupal',
+      'password' => getenv('POSTGRES_PASSWORD') ?: 'drupal',
+      'host' => getenv('POSTGRES_HOST') ?: 'postgres',
+      'port' => 5432,
+      'prefix' => '',
+    );
+  }
 
 if (getenv('LAGOON_ENVIRONMENT_TYPE') !== 'production') {
     /**
@@ -53,7 +65,7 @@ if (getenv('LAGOON')) {
     $config['search_api.server.solr']['backend_config']['connector_config']['http']['http_pass'] = (getenv('SOLR_PASSWORD') ?: '');
     $config['search_api.server.solr']['name'] = 'Lagoon Solr - Environment: ' . getenv('LAGOON_PROJECT');
   }
-  
+
 // Redis configuration.
 if (getenv('LAGOON')) {
 $redis = new \Redis();
