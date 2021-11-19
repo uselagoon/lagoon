@@ -19,8 +19,8 @@ lagoonWebhookURL: http://webhook:11213
 overwriteKubectlBuildDeployDindImage:
 
 # used in ui
-lagoonAPIURL: http://lagoon-api.192.168.224.2.nip.io:32080/graphql"
-keycloakAPIURL: http://lagoon-keycloak.192.168.224.2.nip.io:32080/auth"
+lagoonAPIURL: http://lagoon-api.192.168.224.2.nip.io:32080/graphql
+keycloakAPIURL: http://lagoon-keycloak.192.168.224.2.nip.io:32080/auth
 
 
 api:
@@ -140,6 +140,12 @@ ssh:
   replicaCount: 1
   image:
     repository: uselagoon/ssh
+  ingress:
+    enabled: true
+    hosts:
+    - host: lagoon-ssh.192.168.224.2.nip.io
+      paths:
+      - /
 
 storageCalculator:
   replicaCount: 1

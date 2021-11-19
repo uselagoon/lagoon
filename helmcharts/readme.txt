@@ -14,6 +14,9 @@ helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 30
 helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 30m lagoon-build-deploy lagoon/lagoon-build-deploy -f helmcharts/lagoon-build-deploy.yaml
 helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 30m lagoon-remote lagoon/lagoon-remote -f helmcharts/lagoon-remote.yaml
 
-# Install the testing components and run the tests
+# Install the testing components and run the tests - if you change the tests, you need to run both helm commands
 helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 30m lagoon-test lagoon/lagoon-test -f helmcharts/lagoon-test.yaml
 helm test lagoon-test --namespace lagoon
+
+
+DOCKER_SCAN_SUGGEST=false docker buildx build --quiet --build-arg LAGOON_VERSION=development --build-arg IMAGE_REPO=lagoon  --build-arg UPSTREAM_REPO=uselagoon --build-arg UPSTREAM_TAG=latest --output=type=image,push=true,registry.insecure=true -t registry.192.168.224.2.nip.io:32080/library/lagoon/tests:latest -f tests/Dockerfile tests
