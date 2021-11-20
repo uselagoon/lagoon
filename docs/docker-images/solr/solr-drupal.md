@@ -10,7 +10,7 @@ For each Solr version, there is a specific `solr-drupal:<version>` Docker image.
 
 ## Supported Versions
 
-* 5.5 [\[Dockerfile\]](https://github.com/uselagoon/lagoon-images/blob/main/images/solr-drupal/5.5.Dockerfile)
-* 6.6 [\[Dockerfile\]](https://github.com/uselagoon/lagoon-images/blob/main/images/solr-drupal/6.6.Dockerfile)
-* 7.7 [\[Dockerfile\]](https://github.com/uselagoon/lagoon-images/blob/main/images/solr-drupal/7.7.Dockerfile)
+* 5.5 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/solr-drupal/5.5.Dockerfile) - `uselagoon/solr-5.5-drupal`
+* 6.6 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/solr-drupal/6.6.Dockerfile) - `uselagoon/solr-6.6-drupal`
+* 7.7 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/solr-drupal/7.7.Dockerfile) - `uselagoon/solr-7.7-drupal`
 

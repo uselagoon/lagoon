@@ -17,9 +17,9 @@ This Dockerfile is intended to be used as a base for any `PHP` needs within Lago
 * 5.6 \(available for compatibility, no longer officially supported\)
 * 7.0 \(available for compatibility, no longer officially supported\)
 * 7.2 \(available for compatibility, no longer officially supported\)
-* 7.3 [\[Dockerfile\]](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/7.3.Dockerfile)
-* 7.4 [\[Dockerfile\]](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/7.4.Dockerfile)
-* 8.0 [\[Dockerfile\]](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/8.0.Dockerfile)
+* 7.3 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/7.3.Dockerfile) (End of Life 6 December 2020)
+* 7.4 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/7.4.Dockerfile) (End of Life 28 November 2021)  - `uselagoon/php-7.4-fpm`
+* 8.0 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/8.0.Dockerfile) - `uselagoon/php-8.0-fpm`
 
 All PHP versions use their own Dockerfiles.
 
