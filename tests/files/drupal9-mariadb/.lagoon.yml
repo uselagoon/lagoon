@@ -44,7 +44,14 @@ environments:
           command: drush cron
           service: cli
 
-  drupal8-composer-70-mariadb:
+  drupal9-php80-mariadb-dbaas:
+    cronjobs:
+        - name: drush cron
+          schedule: "1 * * * *"
+          command: drush cron
+          service: cli
+
+  drupal9-php80-mariadb-single:
     cronjobs:
         - name: drush cron
           schedule: "1 * * * *"

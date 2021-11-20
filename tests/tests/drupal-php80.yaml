@@ -19,7 +19,7 @@
     php_version: 8.0
     git_repo_name: drupal-80.git
     project: ci-drupal-80-{{ cluster_type }}
-    branch: drupal9-composer-80-mariadb-dbaas
+    branch: drupal9-php80-mariadb-dbaas
 
 - include: drupal/drupal.yaml
   vars:
@@ -30,7 +30,7 @@
     overwrite_docker_compose: docker-compose.single.yml
     git_repo_name: drupal-80.git
     project: ci-drupal-80-{{ cluster_type }}
-    branch: drupal9-composer-80-mariadb-single
+    branch: drupal9-php80-mariadb-single
 
 - include: api/delete-project.yaml
   vars:
