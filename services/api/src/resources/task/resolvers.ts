@@ -419,8 +419,9 @@ export const taskDrushSqlDump: ResolverFn = async (
     project: envPerm.project
   });
 
-  const command = String.raw`file="/tmp/$LAGOON_PROJECT-$LAGOON_GIT_SAFE_BRANCH-$(date --iso-8601=seconds).sql" && drush sql-dump --result-file=$file --gzip && \
-TOKEN="$(ssh -p $TASK_SSH_PORT -t lagoon@$TASK_SSH_HOST token)" && curl -sS "$TASK_API_HOST"/graphql \
+  const command = String.raw`file="/tmp/$LAGOON_PROJECT-$LAGOON_GIT_SAFE_BRANCH-$(date --iso-8601=seconds).sql" && DRUSH_MAJOR_VERSION=$(drush status | grep 'Drupal version' | sed 's/[^:]*: *//; s/,.*//' | grep -oE '^\s*[0-9]+') && \
+   if [[ $DRUSH_VERSION -gt 9* ]]; then  drush sql-dump --extra-dump=--no-tablespaces --result-file=$file --gzip; else drush sql-dump --extra=--no-tablespaces --result-file=$file --gzip; fi && \
+  TOKEN="$(ssh -p $TASK_SSH_PORT -t lagoon@$TASK_SSH_HOST token)" && curl -sS "$TASK_API_HOST"/graphql \
 -H "Authorization: Bearer $TOKEN" \
 -F operations='{ "query": "mutation ($task: Int!, $files: [Upload!]!) { uploadFilesForTask(input:{task:$task, files:$files}) { id files { filename } } }", "variables": { "task": '"$TASK_DATA_ID"', "files": [null] } }' \
 -F map='{ "0": ["variables.files.0"] }' \
