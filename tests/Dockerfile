@@ -19,10 +19,10 @@ RUN apk add --no-cache --virtual .build-deps \
       libffi-dev \
       openssl-dev \
     && pip install \
-      ansible-core \
-      PyJWT \
-      requests \
-      jmespath \
+      ansible-core==2.11.* \
+      PyJWT==2.3.* \
+      requests==2.26.* \
+      jmespath==0.10.* \
     && apk del .build-deps
 
 RUN ansible-galaxy collection install ansible.posix community.general
