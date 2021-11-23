@@ -298,20 +298,20 @@ LAGOON_YML_ROUTES=$(echo "${ROUTES_JSON_FMT}" | jq -r '.routes | .[] | @base64')
 
 # these are routes that are in the api as "environment" environment variables (not project)
 if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
-    LAGOON_ROUTES_JSON=$(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_ROUTES_JSON") | "\(.value)"' | base64 --decode)
+    LAGOON_ROUTES_JSON=$(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_ROUTES_JSON") | "\(.value)"' | base64 -d)
 fi
 
 MERGE_ROUTES=$(echo "${LAGOON_ROUTES_JSON}" | jq -r '.routes | .[] | @base64')
 
 for YAML_ROUTE in $(echo "${LAGOON_YML_ROUTES}"); do
     _jq() {
-        echo ${YAML_ROUTE} | base64 --decode | jq -r ${1}
+        echo ${YAML_ROUTE} | base64 -d | jq -r ${1}
     }
     found=false
     if [ ! -z "${LAGOON_ROUTES_JSON}" ]; then
         for MERGE_ROUTE in $(echo "${MERGE_ROUTES}"); do
             _jq2() {
-                echo ${MERGE_ROUTE} | base64 --decode | jq -r ${1}
+                echo ${MERGE_ROUTE} | base64 -d | jq -r ${1}
             }
             D1=$(echo $(_jq '.domain'))
             D2=$(echo $(_jq2 '.domain'))
