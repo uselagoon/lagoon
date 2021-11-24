@@ -187,6 +187,20 @@ const typeDefs = gql`
     deleted: String
   }
 
+
+  type Workflow {
+    id: Int
+    event: String
+    project: Int
+    advancedTaskDefinition: Int
+  }
+
+  input AddWorkflowInput {
+    event: String
+    project: Int
+    advancedTaskDefinition: Int
+  }
+
   type Problem {
     id: Int
     environment: Environment
@@ -1113,6 +1127,12 @@ const typeDefs = gql`
     Returns a AdvancedTaskDefinitionArgument by Id
     """
     advancedTaskDefinitionArgumentById(id: Int!) : [AdvancedTaskDefinitionArgument]
+
+    """
+    Returns all Workflows for an environment
+    """
+    workflowsForEnvironment(environment: Int!) : [Workflow]
+
     """
     Returns the DeployTargetConfig by a deployTargetConfig Id
     """
@@ -1957,6 +1977,7 @@ const typeDefs = gql`
     addAdvancedTaskDefinition(input: AdvancedTaskDefinitionInput!): AdvancedTaskDefinition
     invokeRegisteredTask(advancedTaskDefinition: Int!, environment: Int!): Task
     deleteAdvancedTaskDefinition(advancedTaskDefinition: Int!): String
+    addWorkflow(input: AddWorkflowInput!): Workflow
     taskDrushArchiveDump(environment: Int!): Task
     taskDrushSqlDump(environment: Int!): Task
     taskDrushCacheClear(environment: Int!): Task

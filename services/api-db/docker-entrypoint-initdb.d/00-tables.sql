@@ -345,3 +345,31 @@ CREATE TABLE IF NOT EXISTS notification_webhook (
   name        varchar(50) UNIQUE,
   webhook     varchar(2000)
 );
+
+
+CREATE TABLE IF NOT EXISTS workflow (
+  id                       int NOT NULL auto_increment PRIMARY KEY,
+  event                    varchar(300) NOT NULL,
+  project                  int NOT NULL REFERENCES project(id),
+  advanced_task_definition int NOT NULL REFERENCES advanced_task_definition(id),
+  created                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  deleted                  timestamp NOT NULL DEFAULT '0000-00-00 00:00:00'
+);
+
+-- CREATE TABLE IF NOT EXISTS workflow_target (
+--   id                       int NOT NULL auto_increment PRIMARY KEY,
+--   workflow                 int NOT NULL REFERENCES workflow(id),
+--   type                     ENUM('PROJECT', 'GROUP', 'ENVIRONMENT'),
+--   target_name              varchar(500),
+--   target_id                int,
+--   created                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+--   deleted                  timestamp NOT NULL DEFAULT '0000-00-00 00:00:00'
+-- );
+
+-- CREATE TABLE IF NOT EXISTS workflow_job (
+--   id                       int NOT NULL auto_increment PRIMARY KEY,
+--   workflow                 int NOT NULL REFERENCES workflow(id),
+--   created                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+--   deleted                  timestamp NOT NULL DEFAULT '0000-00-00 00:00:00'
+-- );
+
