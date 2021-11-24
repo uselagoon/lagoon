@@ -49,6 +49,16 @@ LAGOONYML=.lagoon.yml
 #    --value $(cat routes.json | jq -c | base64) \
 #    --scope build`
 
+function containsElement () {
+    local e match="$1"
+    shift
+    for e
+    do
+        [[ "$(echo $e | base64 -d | jq -r '.domain')" == "$match" ]] && echo $e && return 0
+    done
+    return 1
+}
+
 ##############################################
 ### Function to convert existing route data from .lagoon.yml into newer
 ### JSON format used by the merging function and the route generator
@@ -294,35 +304,41 @@ fi
 ##############################################
 NEW_ROUTES_JSON_FMT='{"routes": []}'
 # these are routes from the .lagoon.yml file
-LAGOON_YML_ROUTES=$(echo "${ROUTES_JSON_FMT}" | jq -r '.routes | .[] | @base64')
+LAGOON_YML_ROUTES=($(echo "${ROUTES_JSON_FMT}" | jq -r '.routes | .[] | @base64'))
 
 # these are routes that are in the api as "environment" environment variables (not project)
 if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
     LAGOON_ROUTES_JSON=$(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_ROUTES_JSON") | "\(.value)"' | base64 -d)
 fi
 
-MERGE_ROUTES=$(echo "${LAGOON_ROUTES_JSON}" | jq -r '.routes | .[] | @base64')
+MERGE_ROUTES=($(echo "${LAGOON_ROUTES_JSON}" | jq -r '.routes | .[] | @base64'))
 
-for YAML_ROUTE in $(echo "${LAGOON_YML_ROUTES}"); do
+# check if any of the routes in the merge routes array exist in the existing routes
+# if they don't, then add them to the new routes format so that the ingress is created
+for MERGE_ROUTE in "${MERGE_ROUTES[@]}"; do
+    _jq() {
+        echo ${MERGE_ROUTE} | base64 -d | jq -r ${1}
+    }
+    if ! containsElement "$(_jq '.domain')" "${LAGOON_YML_ROUTES[@]}" > /dev/null; then
+        # add the domain to the new routes format
+        echo "ADD $(_jq '.domain')"
+        NEW_ROUTES_JSON_FMT=$(echo $NEW_ROUTES_JSON_FMT | jq -r --argjson LAGOON_ROUTE "$(echo $(_jq))" '.routes |= . + [$LAGOON_ROUTE]')
+    fi
+done
+
+# now check if the routes contain any of the ones to merge
+# if they do, then merge whats in the merging json over the top of the existing json
+for YAML_ROUTE in "${LAGOON_YML_ROUTES[@]}"; do
     _jq() {
         echo ${YAML_ROUTE} | base64 -d | jq -r ${1}
     }
-    found=false
-    if [ ! -z "${LAGOON_ROUTES_JSON}" ]; then
-        for MERGE_ROUTE in $(echo "${MERGE_ROUTES}"); do
-            _jq2() {
-                echo ${MERGE_ROUTE} | base64 -d | jq -r ${1}
-            }
-            D1=$(echo $(_jq '.domain'))
-            D2=$(echo $(_jq2 '.domain'))
-            if [ "$D1" == "$D2" ]; then
-                MERGED_JSON=$(jq -s '.[0] * .[1]' <(_jq) <(_jq2))
-                NEW_ROUTES_JSON_FMT=$(echo $NEW_ROUTES_JSON_FMT | jq -r --argjson LAGOON_ROUTE "$(echo ${MERGED_JSON})" '.routes |= . + [$LAGOON_ROUTE]')
-                found=true
-            fi
-        done
+    if containsElement "$(_jq '.domain')" "${MERGE_ROUTES[@]}" > /dev/null; then
+        # merge the domain over the existing one
+        MERGED_JSON=$(jq -s '.[0] * .[1]' <(_jq) <(containsElement "$(_jq '.domain')" "${MERGE_ROUTES[@]}" | base64 -d | jq -r))
+        NEW_ROUTES_JSON_FMT=$(echo $NEW_ROUTES_JSON_FMT | jq -r --argjson LAGOON_ROUTE "$(echo ${MERGED_JSON})" '.routes |= . + [$LAGOON_ROUTE]')
     fi
-    if [ "${found}" == "false" ]; then
+    if ! containsElement "$(_jq '.domain')" "${MERGE_ROUTES[@]}" > /dev/null; then
+        # add the domain to the new routes format
         NEW_ROUTES_JSON_FMT=$(echo $NEW_ROUTES_JSON_FMT | jq -r --argjson LAGOON_ROUTE "$(echo $(_jq))" '.routes |= . + [$LAGOON_ROUTE]')
     fi
 done
