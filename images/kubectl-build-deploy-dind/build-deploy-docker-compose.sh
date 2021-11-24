@@ -181,12 +181,13 @@ declare -A IMAGES_PULL
 declare -A IMAGES_BUILD
 declare -A IMAGE_HASHES
 
-
+set +x
 HELM_ARGUMENTS=()
 . /kubectl-build-deploy/scripts/kubectl-get-cluster-capabilities.sh
 for CAPABILITIES in "${CAPABILITIES[@]}"; do
   HELM_ARGUMENTS+=(-a "${CAPABILITIES}")
 done
+set -x
 
 # Implement global default values for backup retention periods
 if [ -z "$MONTHLY_BACKUP_DEFAULT_RETENTION" ]
