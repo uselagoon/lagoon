@@ -1,0 +1,20 @@
+rabbitMQUsername: lagoon
+rabbitMQPassword: kYabjpKQYdsGdMiDlvannWHwMnsQdrlg
+rabbitMQHostname: lagoon-core-broker
+lagoonTargetName: ci-local-control-k8s
+taskSSHHost: lagoon-core-ssh.lagoon.svc
+taskSSHPort: 2020
+taskAPIHost: http://lagoon-core-api.lagoon.svc:80
+
+image:
+  repository: amazeeio/lagoon-builddeploy
+  tag: v0.1.15
+
+overrideBuildDeployImage: registry.192.168.224.2.nip.io:32080/library/lagoon/kubectl-build-deploy-dind:latest
+
+# image:
+#   tag: $(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG)
+#   repository: $(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY)
+# rootlessBuildPods: true
+# lagoonFeatureFlagDefaultRootlessWorkload: $(LAGOON_FEATURE_FLAG_DEFAULT_ROOTLESS_WORKLOAD)
+# lagoonFeatureFlagDefaultIsolationNetworkPolicy: $(LAGOON_FEATURE_FLAG_DEFAULT_ISOLATION_NETWORK_POLICY)
