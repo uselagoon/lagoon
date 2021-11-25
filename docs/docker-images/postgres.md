@@ -4,8 +4,8 @@ The [Lagoon PostgreSQL Docker image](https://github.com/uselagoon/lagoon-images/
 
 ## Supported versions
 
-* 11 [\[Dockerfile\]](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/11.Dockerfile)
-* 12 [\[Dockerfile\]](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/12.Dockerfile)
+* 11 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/11.Dockerfile) - `uselagoon/postgres-11`
+* 12 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/12.Dockerfile) - `uselagoon/postgres-12`
 
 ## Tips & Tricks
 
