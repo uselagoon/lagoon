@@ -89,7 +89,7 @@ pipeline {
       parallel {
         stage ('1: run first test suite') {
           steps {
-            sh script: "make -j$NPROC kind/retest TESTS=[api,deploytarget,active-standby-kubernetes,features-kubernetes,features-kubernetes-2,features-api-variables] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running first test suite on kind cluster"
+            sh script: "make -j$NPROC kind/retest TESTS=[api,deploytarget,active-standby-kubernetes,features-kubernetes,features-kubernetes-2,features-api-variables,tasks] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running first test suite on kind cluster"
             sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-1 log after test completion"
           }
         }
@@ -108,7 +108,7 @@ pipeline {
         stage ('2: run second test suite') {
           steps {
             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                sh script: "make -j$NPROC kind/retest TESTS=[tasks,drupal-php74,drupal-postgres,gitlab,github,bitbucket,python,node-mongodb,elasticsearch] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running second test suite on kind cluster"
+                sh script: "make -j$NPROC kind/retest TESTS=[drupal-php80,drupal-postgres,drush,gitlab,github,bitbucket,python,node-mongodb,elasticsearch] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running second test suite on kind cluster"
             }
             sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-2 log after test completion"
           }

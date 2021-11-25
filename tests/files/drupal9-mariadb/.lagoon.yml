@@ -1,7 +1,7 @@
 docker-compose-yaml: docker-compose.yml
 
-endpoint: lagoon-core-ssh.lagoon.svc.cluster.local:2020
-api: lagoon-core-api.lagoon.svc.cluster.local:80
+ssh: lagoon-core-ssh.lagoon.svc:2020
+api: http://lagoon-core-api.lagoon.svc:80/graphql
 
 environment_variables:
   git_sha: 'true'
@@ -44,7 +44,14 @@ environments:
           command: drush cron
           service: cli
 
-  drupal8-composer-70-mariadb:
+  drupal9-php80-mariadb-dbaas:
+    cronjobs:
+        - name: drush cron
+          schedule: "1 * * * *"
+          command: drush cron
+          service: cli
+
+  drupal9-php80-mariadb-single:
     cronjobs:
         - name: drush cron
           schedule: "1 * * * *"
