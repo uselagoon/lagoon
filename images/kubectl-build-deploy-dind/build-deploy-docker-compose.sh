@@ -695,26 +695,26 @@ if [[ "$ROUTES_AUTOGENERATE_BRANCH" == "true" ]]; then
   ROUTES_AUTOGENERATE_ENABLED=true
 fi
 
-ROUTES_AUTOGENERATE_PREFIXES=$(yq r -C .lagoon.yml routes.autogenerate.prefixes.*)
+ROUTES_AUTOGENERATE_PREFIXES=$(yq3 r -C .lagoon.yml routes.autogenerate.prefixes.*)
 
 touch /kubectl-build-deploy/values.yaml
 
-yq write -i -- /kubectl-build-deploy/values.yaml 'project' $PROJECT
-yq write -i -- /kubectl-build-deploy/values.yaml 'environment' $ENVIRONMENT
-yq write -i -- /kubectl-build-deploy/values.yaml 'environmentType' $ENVIRONMENT_TYPE
-yq write -i -- /kubectl-build-deploy/values.yaml 'namespace' $NAMESPACE
-yq write -i -- /kubectl-build-deploy/values.yaml 'gitSha' $LAGOON_GIT_SHA
-yq write -i -- /kubectl-build-deploy/values.yaml 'buildType' $BUILD_TYPE
-yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogenerateInsecure' $ROUTES_AUTOGENERATE_INSECURE
-yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogenerateEnabled' $ROUTES_AUTOGENERATE_ENABLED
-yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogenerateSuffix' $ROUTER_URL
-yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogenerateShortSuffix' $SHORT_ROUTER_URL
-for i in $ROUTES_AUTOGENERATE_PREFIXES; do yq write -i -- /kubectl-build-deploy/values.yaml 'routesAutogeneratePrefixes[+]' $i; done
-yq write -i -- /kubectl-build-deploy/values.yaml 'kubernetes' $KUBERNETES
-yq write -i -- /kubectl-build-deploy/values.yaml 'lagoonVersion' $LAGOON_VERSION
+yq3 write -i -- /kubectl-build-deploy/values.yaml 'project' $PROJECT
+yq3 write -i -- /kubectl-build-deploy/values.yaml 'environment' $ENVIRONMENT
+yq3 write -i -- /kubectl-build-deploy/values.yaml 'environmentType' $ENVIRONMENT_TYPE
+yq3 write -i -- /kubectl-build-deploy/values.yaml 'namespace' $NAMESPACE
+yq3 write -i -- /kubectl-build-deploy/values.yaml 'gitSha' $LAGOON_GIT_SHA
+yq3 write -i -- /kubectl-build-deploy/values.yaml 'buildType' $BUILD_TYPE
+yq3 write -i -- /kubectl-build-deploy/values.yaml 'routesAutogenerateInsecure' $ROUTES_AUTOGENERATE_INSECURE
+yq3 write -i -- /kubectl-build-deploy/values.yaml 'routesAutogenerateEnabled' $ROUTES_AUTOGENERATE_ENABLED
+yq3 write -i -- /kubectl-build-deploy/values.yaml 'routesAutogenerateSuffix' $ROUTER_URL
+yq3 write -i -- /kubectl-build-deploy/values.yaml 'routesAutogenerateShortSuffix' $SHORT_ROUTER_URL
+for i in $ROUTES_AUTOGENERATE_PREFIXES; do yq3 write -i -- /kubectl-build-deploy/values.yaml 'routesAutogeneratePrefixes[+]' $i; done
+yq3 write -i -- /kubectl-build-deploy/values.yaml 'kubernetes' $KUBERNETES
+yq3 write -i -- /kubectl-build-deploy/values.yaml 'lagoonVersion' $LAGOON_VERSION
 # check for ROOTLESS_WORKLOAD feature flag, disabled by default
 if [ "$(featureFlag ROOTLESS_WORKLOAD)" = enabled ]; then
-	yq merge -ix -- /kubectl-build-deploy/values.yaml /kubectl-build-deploy/rootless.values.yaml
+	yq3 merge -ix -- /kubectl-build-deploy/values.yaml /kubectl-build-deploy/rootless.values.yaml
 fi
 
 
@@ -745,7 +745,7 @@ LAGOON_GIT_SAFE_BRANCH=${ENVIRONMENT}\n\
 " >> /kubectl-build-deploy/values.env
 
 if [ "$BUILD_TYPE" == "branch" ]; then
-  yq write -i -- /kubectl-build-deploy/values.yaml 'branch' $BRANCH
+  yq3 write -i -- /kubectl-build-deploy/values.yaml 'branch' $BRANCH
 
   echo -e "\
 LAGOON_GIT_BRANCH=${BRANCH}\n\
@@ -753,10 +753,10 @@ LAGOON_GIT_BRANCH=${BRANCH}\n\
 fi
 
 if [ "$BUILD_TYPE" == "pullrequest" ]; then
-  yq write -i -- /kubectl-build-deploy/values.yaml 'prHeadBranch' "$PR_HEAD_BRANCH"
-  yq write -i -- /kubectl-build-deploy/values.yaml 'prBaseBranch' "$PR_BASE_BRANCH"
-  yq write -i -- /kubectl-build-deploy/values.yaml 'prTitle' "$PR_TITLE"
-  yq write -i -- /kubectl-build-deploy/values.yaml 'prNumber' "$PR_NUMBER"
+  yq3 write -i -- /kubectl-build-deploy/values.yaml 'prHeadBranch' "$PR_HEAD_BRANCH"
+  yq3 write -i -- /kubectl-build-deploy/values.yaml 'prBaseBranch' "$PR_BASE_BRANCH"
+  yq3 write -i -- /kubectl-build-deploy/values.yaml 'prTitle' "$PR_TITLE"
+  yq3 write -i -- /kubectl-build-deploy/values.yaml 'prNumber' "$PR_NUMBER"
 
   echo -e "\
 LAGOON_PR_HEAD_BRANCH=${PR_HEAD_BRANCH}\n\
@@ -967,11 +967,11 @@ do
           fi
         fi
         if [ ! -z "$ROUTE_FASTLY_SERVICE_ID" ]; then
-          yq write -i -- /kubectl-build-deploy/values.yaml 'fastly.serviceId' $ROUTE_FASTLY_SERVICE_ID
+          yq3 write -i -- /kubectl-build-deploy/values.yaml 'fastly.serviceId' $ROUTE_FASTLY_SERVICE_ID
           FASTLY_ARGS+=(--set fastly.serviceId=${ROUTE_FASTLY_SERVICE_ID})
           if [ ! -z "$ROUTE_FASTLY_SERVICE_API_SECRET" ]; then
             if contains $FASTLY_API_SECRETS "${FASTLY_API_SECRET_PREFIX}${ROUTE_FASTLY_SERVICE_API_SECRET}"; then
-              yq write -i -- /kubectl-build-deploy/values.yaml 'fastly.apiSecretName' ${FASTLY_API_SECRET_PREFIX}${ROUTE_FASTLY_SERVICE_API_SECRET}
+              yq3 write -i -- /kubectl-build-deploy/values.yaml 'fastly.apiSecretName' ${FASTLY_API_SECRET_PREFIX}${ROUTE_FASTLY_SERVICE_API_SECRET}
               FASTLY_ARGS+=(--set fastly.apiSecretName=${FASTLY_API_SECRET_PREFIX}${ROUTE_FASTLY_SERVICE_API_SECRET})
             else
               echo "$ROUTE_FASTLY_SERVICE_API_SECRET requested, but not found in .lagoon.yml file"; exit 1;
@@ -981,7 +981,7 @@ do
         fi
       fi
       # finally template the autogenerated route
-      yq write -i -- /kubectl-build-deploy/values.yaml 'fastly.watch' ${ROUTE_FASTLY_SERVICE_WATCH}
+      yq3 write -i -- /kubectl-build-deploy/values.yaml 'fastly.watch' ${ROUTE_FASTLY_SERVICE_WATCH}
       helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} \
         -s $HELM_INGRESS_TEMPLATE \
         "${FASTLY_ARGS[@]}" --set fastly.watch="${ROUTE_FASTLY_SERVICE_WATCH}" \
@@ -993,7 +993,7 @@ do
   if [ -f /kubectl-build-deploy/helmcharts/${SERVICE_TYPE}/$HELM_DBAAS_TEMPLATE ]; then
     # Load the requested class and plan for this service
     DBAAS_ENVIRONMENT="${MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]}"
-    yq write -i -- /kubectl-build-deploy/${SERVICE_NAME}-values.yaml 'environment' $DBAAS_ENVIRONMENT
+    yq3 write -i -- /kubectl-build-deploy/${SERVICE_NAME}-values.yaml 'environment' $DBAAS_ENVIRONMENT
     helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -s $HELM_DBAAS_TEMPLATE -f /kubectl-build-deploy/values.yaml -f /kubectl-build-deploy/${SERVICE_NAME}-values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/${SERVICE_NAME}.yaml
     DBAAS+=("${SERVICE_NAME}:${SERVICE_TYPE}")
   fi
@@ -1083,7 +1083,7 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
           fi
 
           touch /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
-          echo "$ROUTE_ANNOTATIONS" | yq p - annotations > /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
+          echo "$ROUTE_ANNOTATIONS" | yq3 p - annotations > /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
 
           # ${ROUTE_DOMAIN} is used as a helm release name which be max 53 characters long.
           # So we need some logic to make sure it's always max 53 characters
@@ -1205,7 +1205,7 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
           fi
 
           touch /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
-          echo "$ROUTE_ANNOTATIONS" | yq p - annotations > /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
+          echo "$ROUTE_ANNOTATIONS" | yq3 p - annotations > /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
 
           # ${ROUTE_DOMAIN} is used as a helm release name which be max 53 characters long.
           # So we need some logic to make sure it's always max 53 characters
@@ -1343,7 +1343,7 @@ if [ -n "$(cat .lagoon.yml | shyaml keys ${PROJECT}.environments.${BRANCH//./\\.
       fi
 
       touch /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
-      echo "$ROUTE_ANNOTATIONS" | yq p - annotations > /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
+      echo "$ROUTE_ANNOTATIONS" | yq3 p - annotations > /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
 
       # The very first found route is set as MAIN_CUSTOM_ROUTE
       if [ -z "${MAIN_CUSTOM_ROUTE+x}" ]; then
@@ -1451,7 +1451,7 @@ else
       fi
 
       touch /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
-      echo "$ROUTE_ANNOTATIONS" | yq p - annotations > /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
+      echo "$ROUTE_ANNOTATIONS" | yq3 p - annotations > /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
 
       # ${ROUTE_DOMAIN} is used as a helm release name which be max 53 characters long.
       # So we need some logic to make sure it's always max 53 characters
@@ -1708,9 +1708,9 @@ fi
 # Get list of autogenerated routes
 AUTOGENERATED_ROUTES=$(kubectl -n ${NAMESPACE} get ingress --sort-by='{.metadata.name}' -l "lagoon.sh/autogenerated=true" -o=go-template --template='{{range $indexItems, $ingress := .items}}{{if $indexItems}},{{end}}{{$tls := .spec.tls}}{{range $indexRule, $rule := .spec.rules}}{{if $indexRule}},{{end}}{{if $tls}}https://{{else}}http://{{end}}{{.host}}{{end}}{{end}}')
 
-yq write -i -- /kubectl-build-deploy/values.yaml 'route' "$ROUTE"
-yq write -i -- /kubectl-build-deploy/values.yaml 'routes' "$ROUTES"
-yq write -i -- /kubectl-build-deploy/values.yaml 'autogeneratedRoutes' "$AUTOGENERATED_ROUTES"
+yq3 write -i -- /kubectl-build-deploy/values.yaml 'route' "$ROUTE"
+yq3 write -i -- /kubectl-build-deploy/values.yaml 'routes' "$ROUTES"
+yq3 write -i -- /kubectl-build-deploy/values.yaml 'autogeneratedRoutes' "$AUTOGENERATED_ROUTES"
 
 echo -e "\
 LAGOON_ROUTE=${ROUTE}\n\
@@ -1789,7 +1789,7 @@ done
 CONFIG_MAP_SHA=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap lagoon-env -o yaml | shyaml get-value data | sha256sum | awk '{print $1}')
 # write the configmap to the values file so when we `exec-kubectl-resources-with-images.sh` the deployments will get the value of the config map
 # which will cause a change in the deployment and trigger a rollout if only the configmap has changed
-yq write -i -- /kubectl-build-deploy/values.yaml 'configMapSha' $CONFIG_MAP_SHA
+yq3 write -i -- /kubectl-build-deploy/values.yaml 'configMapSha' $CONFIG_MAP_SHA
 
 ##############################################
 ### PUSH IMAGES TO OPENSHIFT REGISTRY
@@ -1963,8 +1963,8 @@ do
         #   echo "No cronjob support for service '${SERVICE_NAME}' with type '${SERVICE_TYPE}', please contact the Lagoon maintainers to implement cronjob support"; exit 1;
         # else
 
-        yq write -i -- /kubectl-build-deploy/${SERVICE_NAME}-values.yaml "nativeCronjobs.${CRONJOB_NAME,,}.schedule" "$CRONJOB_SCHEDULE"
-        yq write -i -- /kubectl-build-deploy/${SERVICE_NAME}-values.yaml "nativeCronjobs.${CRONJOB_NAME,,}.command" "$CRONJOB_COMMAND"
+        yq3 write -i -- /kubectl-build-deploy/${SERVICE_NAME}-values.yaml "nativeCronjobs.${CRONJOB_NAME,,}.schedule" "$CRONJOB_SCHEDULE"
+        yq3 write -i -- /kubectl-build-deploy/${SERVICE_NAME}-values.yaml "nativeCronjobs.${CRONJOB_NAME,,}.command" "$CRONJOB_COMMAND"
 
         # fi
       fi
@@ -1976,9 +1976,9 @@ do
 
   # if there are cronjobs running inside pods, add them to the deploymentconfig.
   if [[ ${#CRONJOBS_ARRAY_INSIDE_POD[@]} -ge 1 ]]; then
-    yq write -i -- /kubectl-build-deploy/${SERVICE_NAME}-values.yaml 'inPodCronjobs' "$(printf '%s\n' "${CRONJOBS_ARRAY_INSIDE_POD[@]}")"
+    yq3 write -i -- /kubectl-build-deploy/${SERVICE_NAME}-values.yaml 'inPodCronjobs' "$(printf '%s\n' "${CRONJOBS_ARRAY_INSIDE_POD[@]}")"
   else
-    yq write -i --tag '!!str' -- /kubectl-build-deploy/${SERVICE_NAME}-values.yaml 'inPodCronjobs' ''
+    yq3 write -i --tag '!!str' -- /kubectl-build-deploy/${SERVICE_NAME}-values.yaml 'inPodCronjobs' ''
   fi
 
   . /kubectl-build-deploy/scripts/exec-kubectl-resources-with-images.sh
