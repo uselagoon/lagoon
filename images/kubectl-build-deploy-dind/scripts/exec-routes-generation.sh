@@ -1,6 +1,6 @@
 #!/bin/bash
 
-YQ=yq3
+YQ=yq
 LAGOONYML=.lagoon.yml
 
 ##############################################
@@ -78,7 +78,7 @@ function routeDataCollection() {
         ROUTE_INSECURE=$(cat ${LAGOONYML} | shyaml get-value ${YMLPREFIX}.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.insecure Redirect)
         ROUTE_HSTS=$(cat ${LAGOONYML} | shyaml get-value ${YMLPREFIX}.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.hsts null)
         MONITORING_PATH=$(cat ${LAGOONYML} | shyaml get-value ${YMLPREFIX}.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.monitoring-path "/")
-        ROUTE_ANNOTATIONS=$(${YQ} -j r <(cat ${LAGOONYML} | shyaml get-value ${YMLPREFIX}.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.annotations {}))
+        ROUTE_ANNOTATIONS=$(${YQ} -o=json --prettyPrint eval <(cat ${LAGOONYML} | shyaml get-value ${YMLPREFIX}.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.annotations {}))
         # get the fastly configuration values from ${LAGOONYML}
         if cat ${LAGOONYML} | shyaml keys ${YMLPREFIX}.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly &> /dev/null; then
             ROUTE_FASTLY_SERVICE_ID=$(cat ${LAGOONYML} | shyaml ${YMLPREFIX}.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER.$ROUTE_DOMAIN_ESCAPED.fastly.service-id "")
@@ -119,7 +119,7 @@ function routeDataCollection() {
 function generateRoutes() {
     LAGOON_FINAL_ROUTES=${1}
     ACTIVE_STANDBY=${2}
-    ROUTE_DATA=$(${YQ} r --prettyPrint <(echo ${LAGOON_FINAL_ROUTES}))
+    ROUTE_DATA=$(${YQ} eval <(echo ${LAGOON_FINAL_ROUTES}))
 
     MONITORING_ENABLED="false"
     ROUTES_SERVICE_COUNTER=0
@@ -174,7 +174,7 @@ function generateRoutes() {
         fi
 
         touch /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
-        echo "$ROUTE_ANNOTATIONS" | ${YQ} p - annotations > /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
+        ${YQ} eval '{"annotations": .}' <(echo "$ROUTE_ANNOTATIONS") > ${KUBECTL_BUILDDEPLOY_VALUES_PATH}/${ROUTE_DOMAIN}-values.yaml
 
         # ${ROUTE_DOMAIN} is used as a helm release name which be max 53 characters long.
         # So we need some logic to make sure it's always max 53 characters
