@@ -1,6 +1,6 @@
 #!/bin/bash
 
-YQ=yq
+YQ=yq3
 LAGOONYML=.lagoon.yml
 
 ##############################################
