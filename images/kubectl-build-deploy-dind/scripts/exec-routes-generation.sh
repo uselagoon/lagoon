@@ -174,7 +174,7 @@ function generateRoutes() {
         fi
 
         touch /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
-        ${YQ} eval '{"annotations": .}' <(echo "$ROUTE_ANNOTATIONS") > ${KUBECTL_BUILDDEPLOY_VALUES_PATH}/${ROUTE_DOMAIN}-values.yaml
+        ${YQ} eval '{"annotations": .}' <(echo "$ROUTE_ANNOTATIONS") > /kubectl-build-deploy/${ROUTE_DOMAIN}-values.yaml
 
         # ${ROUTE_DOMAIN} is used as a helm release name which be max 53 characters long.
         # So we need some logic to make sure it's always max 53 characters
