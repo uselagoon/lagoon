@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set +x
+
 YQ=yq
 LAGOONYML=.lagoon.yml
 
@@ -238,8 +240,8 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
             ROUTES_SERVICE=$(cat ${LAGOONYML} | shyaml keys ${YMLPREFIX}.$ROUTES_SERVICE_COUNTER)
             ROUTE_DOMAIN_COUNTER=0
             while [ -n "$(cat ${LAGOONYML} | shyaml get-value ${YMLPREFIX}.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER 2> /dev/null)" ]; do
-                LAGOON_ROUTE=$(routeDataCollection "${YAMLPREFIX}" "${ROUTES_SERVICE}" "${ROUTES_SERVICE_COUNTER}" "${ROUTE_DOMAIN_COUNTER}" true)
-                PRODUCTION_ROUTES_JSON_FMT=$(echo $PRODUCTION_ROUTES_JSON_FMT | jq -r --argjson LAGOON_ROUTE "$LAGOON_ROUTE" '.routes |= . + [$LAGOON_ROUTE]')
+                LAGOON_ROUTE_JSON=$(routeDataCollection "${YAMLPREFIX}" "${ROUTES_SERVICE}" "${ROUTES_SERVICE_COUNTER}" "${ROUTE_DOMAIN_COUNTER}" true)
+                PRODUCTION_ROUTES_JSON_FMT=$(echo $PRODUCTION_ROUTES_JSON_FMT | jq -r --argjson LAGOON_ROUTE_JSON "$LAGOON_ROUTE_JSON" '.routes |= . + [$LAGOON_ROUTE_JSON]')
                 let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
             done
             let ROUTES_SERVICE_COUNTER=ROUTES_SERVICE_COUNTER+1
@@ -253,17 +255,20 @@ if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
             ROUTES_SERVICE=$(cat ${LAGOONYML} | shyaml keys ${YMLPREFIX}.$ROUTES_SERVICE_COUNTER)
             ROUTE_DOMAIN_COUNTER=0
             while [ -n "$(cat ${LAGOONYML} | shyaml get-value ${YMLPREFIX}.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER 2> /dev/null)" ]; do
-                LAGOON_ROUTE=$(routeDataCollection "${YAMLPREFIX}" "${ROUTES_SERVICE}" "${ROUTES_SERVICE_COUNTER}" "${ROUTE_DOMAIN_COUNTER}" true)
-                PRODUCTION_ROUTES_JSON_FMT=$(echo $PRODUCTION_ROUTES_JSON_FMT | jq -r --argjson LAGOON_ROUTE "$LAGOON_ROUTE" '.routes |= . + [$LAGOON_ROUTE]')
+                LAGOON_ROUTE_JSON=$(routeDataCollection "${YAMLPREFIX}" "${ROUTES_SERVICE}" "${ROUTES_SERVICE_COUNTER}" "${ROUTE_DOMAIN_COUNTER}" true)
+                PRODUCTION_ROUTES_JSON_FMT=$(echo $PRODUCTION_ROUTES_JSON_FMT | jq -r --argjson LAGOON_ROUTE_JSON "$LAGOON_ROUTE_JSON" '.routes |= . + [$LAGOON_ROUTE_JSON]')
                 let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
             done
             let ROUTES_SERVICE_COUNTER=ROUTES_SERVICE_COUNTER+1
         done
         fi
     fi
-    ### Run the generation function to create all the kubernetes resources etc
-    ### Merging of active/standby routes with environment variabled defined routes is not currently supported
-    generateRoutes "$(echo "${PRODUCTION_ROUTES_JSON_FMT}" | jq -r)" true
+    if [ "${ROUTES_SERVICE_COUNTER}" != "0" ]; then
+        ### Run the generation function to create all the kubernetes resources etc
+        ### Merging of active/standby routes with environment variabled defined routes is not currently supported
+        echo "Generating the production_routes templates"
+        generateRoutes "$(echo "${PRODUCTION_ROUTES_JSON_FMT}" | jq -r)" true
+    fi
 fi
 
 ##############################################
@@ -278,8 +283,8 @@ if [ -n "$(cat ${LAGOONYML} | shyaml keys ${YMLPREFIX}.$ROUTES_SERVICE_COUNTER 2
         ROUTES_SERVICE=$(cat ${LAGOONYML} | shyaml keys ${YMLPREFIX}.$ROUTES_SERVICE_COUNTER)
         ROUTE_DOMAIN_COUNTER=0
         while [ -n "$(cat ${LAGOONYML} | shyaml get-value ${YMLPREFIX}.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER 2> /dev/null)" ]; do
-            LAGOON_ROUTE=$(routeDataCollection "${YAMLPREFIX}" "${ROUTES_SERVICE}" "${ROUTES_SERVICE_COUNTER}" "${ROUTE_DOMAIN_COUNTER}" false)
-            ROUTES_JSON_FMT=$(echo $ROUTES_JSON_FMT | jq -r --argjson LAGOON_ROUTE "$LAGOON_ROUTE" '.routes |= . + [$LAGOON_ROUTE]')
+            LAGOON_ROUTE_JSON=$(routeDataCollection "${YAMLPREFIX}" "${ROUTES_SERVICE}" "${ROUTES_SERVICE_COUNTER}" "${ROUTE_DOMAIN_COUNTER}" false)
+            ROUTES_JSON_FMT=$(echo $ROUTES_JSON_FMT | jq -r --argjson LAGOON_ROUTE_JSON "$LAGOON_ROUTE_JSON" '.routes |= . + [$LAGOON_ROUTE_JSON]')
             let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
         done
         let ROUTES_SERVICE_COUNTER=ROUTES_SERVICE_COUNTER+1
@@ -290,8 +295,8 @@ else
         ROUTES_SERVICE=$(cat ${LAGOONYML} | shyaml keys ${YMLPREFIX}.$ROUTES_SERVICE_COUNTER)
         ROUTE_DOMAIN_COUNTER=0
         while [ -n "$(cat ${LAGOONYML} | shyaml get-value ${YMLPREFIX}.$ROUTES_SERVICE_COUNTER.$ROUTES_SERVICE.$ROUTE_DOMAIN_COUNTER 2> /dev/null)" ]; do
-            LAGOON_ROUTE=$(routeDataCollection "${YAMLPREFIX}" "${ROUTES_SERVICE}" "${ROUTES_SERVICE_COUNTER}" "${ROUTE_DOMAIN_COUNTER}" false)
-            ROUTES_JSON_FMT=$(echo $ROUTES_JSON_FMT | jq -r --argjson LAGOON_ROUTE "$LAGOON_ROUTE" '.routes |= . + [$LAGOON_ROUTE]')
+            LAGOON_ROUTE_JSON=$(routeDataCollection "${YAMLPREFIX}" "${ROUTES_SERVICE}" "${ROUTES_SERVICE_COUNTER}" "${ROUTE_DOMAIN_COUNTER}" false)
+            ROUTES_JSON_FMT=$(echo $ROUTES_JSON_FMT | jq -r --argjson LAGOON_ROUTE_JSON "$LAGOON_ROUTE_JSON" '.routes |= . + [$LAGOON_ROUTE_JSON]')
             let ROUTE_DOMAIN_COUNTER=ROUTE_DOMAIN_COUNTER+1
         done
         let ROUTES_SERVICE_COUNTER=ROUTES_SERVICE_COUNTER+1
@@ -302,7 +307,7 @@ fi
 ### Merge any routes that have been defined in the API/EnvVar
 ### over the top of what is in the `.lagoon.yml` file
 ##############################################
-NEW_ROUTES_JSON_FMT='{"routes": []}'
+FINAL_ROUTES_JSON='{"routes": []}'
 # these are routes from the .lagoon.yml file
 LAGOON_YML_ROUTES=($(echo "${ROUTES_JSON_FMT}" | jq -r '.routes | .[] | @base64'))
 
@@ -311,18 +316,18 @@ if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
     LAGOON_ROUTES_JSON=$(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_ROUTES_JSON") | "\(.value)"' | base64 -d)
 fi
 
-MERGE_ROUTES=($(echo "${LAGOON_ROUTES_JSON}" | jq -r '.routes | .[] | @base64'))
+MERGE_ROUTES_ARR=($(echo "${LAGOON_ROUTES_JSON}" | jq -r '.routes | .[] | @base64'))
 
 # check if any of the routes in the merge routes array exist in the existing routes
 # if they don't, then add them to the new routes format so that the ingress is created
-for MERGE_ROUTE in "${MERGE_ROUTES[@]}"; do
+for MERGE_ROUTE in "${MERGE_ROUTES_ARR[@]}"; do
     _jq() {
         echo ${MERGE_ROUTE} | base64 -d | jq -r ${1}
     }
     if ! containsElement "$(_jq '.domain')" "${LAGOON_YML_ROUTES[@]}" > /dev/null; then
         # add the domain to the new routes format
-        echo "ADD $(_jq '.domain')"
-        NEW_ROUTES_JSON_FMT=$(echo $NEW_ROUTES_JSON_FMT | jq -r --argjson LAGOON_ROUTE "$(echo $(_jq))" '.routes |= . + [$LAGOON_ROUTE]')
+        echo "Adding route $(_jq '.domain') from LAGOON_ROUTES_JSON to processing list"
+        FINAL_ROUTES_JSON=$(echo $FINAL_ROUTES_JSON | jq -r --argjson LAGOON_ROUTE_JSON "$(echo $(_jq))" '.routes |= . + [$LAGOON_ROUTE_JSON]')
     fi
 done
 
@@ -332,20 +337,21 @@ for YAML_ROUTE in "${LAGOON_YML_ROUTES[@]}"; do
     _jq() {
         echo ${YAML_ROUTE} | base64 -d | jq -r ${1}
     }
-    if containsElement "$(_jq '.domain')" "${MERGE_ROUTES[@]}" > /dev/null; then
+    if containsElement "$(_jq '.domain')" "${MERGE_ROUTES_ARR[@]}" > /dev/null; then
         # merge the domain over the existing one
-        MERGED_JSON=$(jq -s '.[0] * .[1]' <(_jq) <(containsElement "$(_jq '.domain')" "${MERGE_ROUTES[@]}" | base64 -d | jq -r))
-        NEW_ROUTES_JSON_FMT=$(echo $NEW_ROUTES_JSON_FMT | jq -r --argjson LAGOON_ROUTE "$(echo ${MERGED_JSON})" '.routes |= . + [$LAGOON_ROUTE]')
+        echo "Merging route $(_jq '.domain') from LAGOON_ROUTES_JSON on top of the `.lagoon.yml`, adding to processing list"
+        MERGED_JSON=$(jq -s '.[0] * .[1]' <(_jq) <(containsElement "$(_jq '.domain')" "${MERGE_ROUTES_ARR[@]}" | base64 -d | jq -r))
+        FINAL_ROUTES_JSON=$(echo $FINAL_ROUTES_JSON | jq -r --argjson LAGOON_ROUTE_JSON "$(echo ${MERGED_JSON})" '.routes |= . + [$LAGOON_ROUTE_JSON]')
     fi
-    if ! containsElement "$(_jq '.domain')" "${MERGE_ROUTES[@]}" > /dev/null; then
+    if ! containsElement "$(_jq '.domain')" "${MERGE_ROUTES_ARR[@]}" > /dev/null; then
         # add the domain to the new routes format
-        NEW_ROUTES_JSON_FMT=$(echo $NEW_ROUTES_JSON_FMT | jq -r --argjson LAGOON_ROUTE "$(echo $(_jq))" '.routes |= . + [$LAGOON_ROUTE]')
+        echo "Adding route $(_jq '.domain') from `.lagoon.yml` to processing list"
+        FINAL_ROUTES_JSON=$(echo $FINAL_ROUTES_JSON | jq -r --argjson LAGOON_ROUTE_JSON "$(echo $(_jq))" '.routes |= . + [$LAGOON_ROUTE_JSON]')
     fi
 done
 
-set +x
 ### Add the merged or to be created routes into a configmap
-echo "${NEW_ROUTES_JSON_FMT}" | jq -r > /kubectl-build-deploy/routes.json
+echo "${FINAL_ROUTES_JSON}" | jq -r > /kubectl-build-deploy/routes.json
 echo "Updating lagoon-routes configmap with the newly generated routes JSON"
 if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap lagoon-routes &> /dev/null; then
     # if the key does exist, then nuke it and put the new key
@@ -354,7 +360,8 @@ else
     # create it
     kubectl --insecure-skip-tls-verify -n ${NAMESPACE} create configmap lagoon-routes --from-file=lagoon-routes=/kubectl-build-deploy/routes.json
 fi
-set -x
 
 ### Run the generation function to create all the kubernetes resources etc
+echo "Generating the routes templates"
 generateRoutes "$(cat /kubectl-build-deploy/routes.json | jq -r)" false
+set -x
