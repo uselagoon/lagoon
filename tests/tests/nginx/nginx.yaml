@@ -15,6 +15,7 @@
   vars:
     envName: "LAGOON_ROUTES_JSON"
     project: "{{ project }}"
+    branch: "{{ branch }}"
   tasks:
   - include: ../../tasks/api/delete-environment-variable.yaml
 
@@ -82,6 +83,17 @@
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
     project: "{{ project }}"
+
+# delete the LAGOON_ROUTES_JSON envvar if it exists already
+- name: "{{ testname }} - api delete envVariable on {{ project }}"
+  hosts: localhost
+  serial: 1
+  vars:
+    envName: "LAGOON_ROUTES_JSON"
+    project: "{{ project }}"
+    branch: "{{ branch }}"
+  tasks:
+  - include: ../../tasks/api/delete-environment-variable.yaml
 
 - name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
   hosts: localhost
