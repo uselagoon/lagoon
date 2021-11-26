@@ -115,6 +115,12 @@ export const Helpers = (sqlClientPool: Pool) => {
         'DELETE FROM `project_notification` WHERE `pid` = :id',
         { id }
       );
+      // clean up environment variables for project
+      await query(
+        sqlClientPool,
+        'DELETE FROM `env_vars` WHERE `project` = :id',
+        { id }
+      );
       // clean up deploytarget configurations
       await query(
         sqlClientPool,

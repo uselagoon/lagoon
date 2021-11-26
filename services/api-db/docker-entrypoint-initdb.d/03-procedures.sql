@@ -237,25 +237,7 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
-
-CREATE OR REPLACE PROCEDURE
-  DeleteEnvironment
-  (
-    IN name      varchar(100),
-    IN project   int
-  )
-  BEGIN
-
-    UPDATE
-      environment e
-    SET
-      e.deleted=NOW()
-    WHERE
-      e.name = name AND
-      e.project = project AND
-      e.deleted = '0000-00-00 00:00:00';
-
-  END;
+DROP PROCEDURE IF EXISTS DeleteEnvironment;
 $$
 
 CREATE OR REPLACE PROCEDURE

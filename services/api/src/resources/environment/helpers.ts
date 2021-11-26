@@ -27,6 +27,19 @@ export const Helpers = (sqlClientPool: Pool) => {
   return {
     aliasOpenshiftToK8s,
     getEnvironmentById,
+    deleteEnvironment: async (name: string, pid: number) => {
+      // clean up environment variables
+      await query(
+        sqlClientPool,
+        'DELETE FROM `env_vars` WHERE `environment` = :pid',
+        { pid }
+      );
+      await query(
+        sqlClientPool,
+        'UPDATE `environment` SET `deleted` = NOW() WHERE `name` = :name AND `project` = :pid AND `deleted` = `0000-00-00 00:00:00`',
+        { name, pid }
+      );
+    },
     getEnvironmentsByEnvironmentInput: async environmentInput => {
       const notEmpty = R.complement(R.anyPass([R.isNil, R.isEmpty]));
       const hasId = R.both(R.has('id'), R.propSatisfies(notEmpty, 'id'));
