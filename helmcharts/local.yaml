@@ -1,0 +1,43 @@
+#lagoon-core
+api:
+  replicaCount: 1
+  image:
+    repository: registry.192.168.224.2.nip.io:32080/library/lagoon/api
+    tag: latest
+
+broker:
+  image:
+    repository: registry.192.168.224.2.nip.io:32080/library/lagoon/broker
+    tag: latest
+
+# ssh:
+#   replicaCount: 1
+#   image:
+#     repository: registry.192.168.224.2.nip.io:32080/library/lagoon/ssh
+#     tag: latest
+
+#lagoon-build-deploy
+overrideBuildDeployImage: registry.192.168.224.2.nip.io:32080/library/lagoon/kubectl-build-deploy-dind:latest
+
+#lagoon-remote
+lagoon-build-deploy:
+  enabled: false
+
+dockerHost:
+  image:
+    repository: registry.192.168.224.2.nip.io:32080/library/lagoon/docker-host
+    tag: latest
+
+#lagoon-test
+localGit:
+  image:
+    repository: registry.192.168.224.2.nip.io:32080/library/lagoon/local-git
+    tag: latest
+
+tests:
+  image:
+    repository: registry.192.168.224.2.nip.io:32080/library/lagoon/tests
+    tag: latest
+  tests:
+    - features-kubernetes-2
+    - api

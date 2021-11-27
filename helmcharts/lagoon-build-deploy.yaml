@@ -10,11 +10,8 @@ image:
   repository: amazeeio/lagoon-builddeploy
   tag: v0.1.15
 
-overrideBuildDeployImage: registry.192.168.224.2.nip.io:32080/library/lagoon/kubectl-build-deploy-dind:latest
+overrideBuildDeployImage: uselagoon/kubectl-build-deploy-dind:latest
 
-# image:
-#   tag: $(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGETAG)
-#   repository: $(OVERRIDE_BUILD_DEPLOY_CONTROLLER_IMAGE_REPOSITORY)
 # rootlessBuildPods: true
 # lagoonFeatureFlagDefaultRootlessWorkload: $(LAGOON_FEATURE_FLAG_DEFAULT_ROOTLESS_WORKLOAD)
 # lagoonFeatureFlagDefaultIsolationNetworkPolicy: $(LAGOON_FEATURE_FLAG_DEFAULT_ISOLATION_NETWORK_POLICY)

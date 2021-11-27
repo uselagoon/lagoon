@@ -10,12 +10,12 @@ helm upgrade --install --create-namespace --namespace postgresql --wait --timeou
 helm upgrade --install --create-namespace --namespace mongodb --wait --timeout 30m $(kubectl get ns mongodb > /dev/null 2>&1 && echo --set auth.rootPassword=$(kubectl get secret --namespace mongodb mongodb -o json | jq -r '.data."mongodb-root-password" | @base64d')) --version=10.16.4 mongodb bitnami/mongodb
 
 # Install the Lagoon components
-helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 30m lagoon-core lagoon/lagoon-core -f helmcharts/lagoon-core.yaml
-helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 30m lagoon-build-deploy lagoon/lagoon-build-deploy -f helmcharts/lagoon-build-deploy.yaml
-helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 30m lagoon-remote lagoon/lagoon-remote -f helmcharts/lagoon-remote.yaml
+helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 30m lagoon-core lagoon/lagoon-core -f helmcharts/lagoon-core.yaml -f helmcharts/local.yaml
+helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 30m lagoon-build-deploy lagoon/lagoon-build-deploy -f helmcharts/lagoon-build-deploy.yaml -f helmcharts/local.yaml
+helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 30m lagoon-remote lagoon/lagoon-remote -f helmcharts/lagoon-remote.yaml -f helmcharts/local.yaml
 
 # Install the testing components and run the tests - if you change the tests, you need to run both helm commands
-helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 30m lagoon-test lagoon/lagoon-test -f helmcharts/lagoon-test.yaml
+helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 30m lagoon-test lagoon/lagoon-test -f helmcharts/lagoon-test.yaml -f helmcharts/local.yaml
 helm test lagoon-test --namespace lagoon
 
 

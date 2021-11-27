@@ -11,8 +11,7 @@ lagoon-build-deploy:
 dockerHost:
   registry: registry.192.168.224.2.nip.io:32080
   image:
-    repository: registry.192.168.224.2.nip.io:32080/library/lagoon/docker-host
-    tag: latest
+    repository: uselagoon/docker-host
   storage:
     size: 50Gi
 
