@@ -101,7 +101,7 @@ echo "$ALL_ENVIRONMENTS" | jq -c '.data.environments[] | select((.environments |
 
     ${OC} rollout resume deployment/storage-calc
     echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: redeploying storage-calc to mount volumes"
-    ${OC} rollout status deployment/storage-calc --watch
+    ${OC} rollout status deployment/storage-calc --watch --timeout=1m
 
     POD=$(${OC} get pods -l app=storage-calc -o json | jq -r '[.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running")] | first | .metadata.name // empty')
 
