@@ -128,7 +128,13 @@ echo "$ALL_ENVIRONMENTS" | jq -c '.data.environments[] | select((.environments |
       }"
 
     else
+      # Loop through all PVCs, and calculate their usage, so long as they are not in the ignore list.
       for PVC in "${PVCS[@]}" ; do
+        if [ ! -z "$LAGOON_STORAGE_IGNORE_REGEX" ] ; then
+          if [[ $PVC =~ $LAGOON_STORAGE_IGNORE_REGEX ]]; then
+            continue
+          fi
+        fi
         STORAGE_BYTES=$(${OC} exec ${POD} -- sh -c "du -s /storage/${PVC} | cut -f1")
         echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: ${PVC} uses ${STORAGE_BYTES} kilobytes"
         apiQuery "mutation {
