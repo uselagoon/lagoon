@@ -41,7 +41,7 @@ echo "$ALL_ENVIRONMENTS" | jq -c '.data.environments[] | select((.environments |
   PROJECT_NAME=$(echo "$PROJECT" | jq -r '.name')
 
   # Guard statement, to ensure the project regex is respected.
-  if ! [[ $PROJECT_NAME =~ $PROJECT_REGEX ]]; then
+  if ! [[ $PROJECT_NAME =~ $PROJECT_REGEX ]] ; then
     echo "Project: $PROJECT_NAME [skip, does not match regex: ${PROJECT_REGEX}]"
     continue
   fi
@@ -59,13 +59,13 @@ echo "$ALL_ENVIRONMENTS" | jq -c '.data.environments[] | select((.environments |
 
     echo " > $OPENSHIFT_URL - $PROJECT_NAME: environment $ENVIRONMENT_NAME"
 
-    if [[ $STORAGE_CALC != "1" ]]; then
+    if [[ $STORAGE_CALC != "1" ]] ; then
       echo " > $OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: storage calculation disabled, skipping"
-        apiQuery "mutation {
-          addOrUpdateEnvironmentStorage(input:{environment:${ENVIRONMENT_ID}, persistentStorageClaim:\"storage-calc-disabled\", bytesUsed:0}) {
-            id
-          }
-        }"
+      apiQuery "mutation {
+        addOrUpdateEnvironmentStorage(input:{environment:${ENVIRONMENT_ID}, persistentStorageClaim:\"storage-calc-disabled\", bytesUsed:0}) {
+          id
+        }
+      }"
       continue
     fi
 
@@ -73,7 +73,7 @@ echo "$ALL_ENVIRONMENTS" | jq -c '.data.environments[] | select((.environments |
 
     # Skip if namespace doesn't exist.
     NAMESPACE=$(${OC} get namespace ${ENVIRONMENT_OPENSHIFT_PROJECTNAME} --ignore-not-found=true);
-    if ! [[ "$NAMESPACE" ]]; then
+    if ! [[ "$NAMESPACE" ]] ; then
       echo " > $OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: no valid namespace found"
       continue
     fi
@@ -92,20 +92,26 @@ echo "$ALL_ENVIRONMENTS" | jq -c '.data.environments[] | select((.environments |
     # Copy environment variable from lagoon-env configmap.
     ${OC} set env --from=configmap/lagoon-env deployment/storage-calc
 
+    # Loop through all PVCs, and attempt to attach them, so long as they are not in the ignore list.
     PVCS=($(${OC} get pvc -o name | sed 's/persistentvolumeclaim\///'))
-
     for PVC in "${PVCS[@]}" ; do
-      echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: mounting ${PVC} into storage-calc"
+      if [ ! -z "$LAGOON_STORAGE_IGNORE_REGEX" ] ; then
+        if [[ $PVC =~ $LAGOON_STORAGE_IGNORE_REGEX ]]; then
+          echo "> PVC: ${PVC} [skip mounting, it matches the skip regex: ${LAGOON_STORAGE_IGNORE_REGEX}]"
+          continue
+        fi
+      fi
+      echo "> PVC: ${PVC} [mounting ${PVC} into storage-calc]"
       ${OC} set volume deployment/storage-calc --add --name=${PVC} --type=persistentVolumeClaim --claim-name=${PVC} --mount-path=/storage/${PVC}
     done
 
     ${OC} rollout resume deployment/storage-calc
     echo "$OPENSHIFT_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: redeploying storage-calc to mount volumes"
-    ${OC} rollout status deployment/storage-calc --watch --timeout=1m
+    ${OC} rollout status deployment/storage-calc --watch --timeout=30s
 
     POD=$(${OC} get pods -l app=storage-calc -o json | jq -r '[.items[] | select(.metadata.deletionTimestamp == null) | select(.status.phase == "Running")] | first | .metadata.name // empty')
 
-    if [[ ! $POD ]]; then
+    if [[ ! $POD ]] ; then
       echo "No running pod found for storage-calc"
       ${OC} delete deployment/storage-calc --ignore-not-found=true
       continue
@@ -130,12 +136,10 @@ echo "$ALL_ENVIRONMENTS" | jq -c '.data.environments[] | select((.environments |
             id
           }
         }"
-
         # Update namespace labels.
-        if [ ! -z "$LAGOON_STORAGE_LABEL_NAMESPACE" ]; then
+        if [ ! -z "$LAGOON_STORAGE_LABEL_NAMESPACE" ] ; then
           ${OC} label namespace $ENVIRONMENT_OPENSHIFT_PROJECTNAME lagoon/storage-${PVC}=${STORAGE_BYTES} --overwrite
         fi
-
       done
     fi
 
