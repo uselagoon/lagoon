@@ -150,6 +150,10 @@ echo "$ALL_ENVIRONMENTS" | jq -c '.data.environments[] | select((.environments |
           id
         }
       }"
+      # Update namespace labels.
+      if [ ! -z "$LAGOON_STORAGE_LABEL_NAMESPACE" ] ; then
+        ${OC} label namespace $ENVIRONMENT_OPENSHIFT_PROJECTNAME lagoon/storage-mariadb=${mariadb_size} --overwrite
+      fi
     fi
 
     ${OC} delete deployment/storage-calc  --ignore-not-found=true
