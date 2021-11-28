@@ -11,7 +11,7 @@ services:
       lagoon.persistent.name: nginx
     environment:
       LAGOON_PROJECT: ci-drupal
-      LAGOON_ROUTE: drupal8-mariadb.docker.amazee.io
+      LAGOON_ROUTE: drupal9-mariadb.docker.amazee.io
     volumes:
       - ./web:/app/web:delegated
   nginx:
@@ -54,12 +54,6 @@ services:
       dockerfile: mariadb.dockerfile
     labels:
       lagoon.type: mariadb-single
-  redis:
-    build:
-      context: .
-      dockerfile: redis.dockerfile
-    labels:
-      lagoon.type: redis
 networks:
   amazeeio-network:
     external: true

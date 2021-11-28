@@ -4,7 +4,7 @@
   serial: 1
   vars:
     git_files: "drupal{{ drupal_version }}-{{ db }}/"
-    docker_files: "drupal{{ drupal_version }}-dockerfiles/php{{ php_version }}/"
+    docker_files: "drupal-dockerfiles/php{{ php_version }}/"
   tasks:
   - include: ../../tasks/git-init.yaml
   - include: ../../tasks/git-add-commit-push.yaml
