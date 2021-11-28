@@ -816,6 +816,7 @@ const typeDefs = gql`
     openshiftProjectPattern: String
     kubernetes: Kubernetes
     kubernetesNamespacePattern: String
+    workflows: [Workflow]
   }
 
   type EnvironmentHitsMonth {

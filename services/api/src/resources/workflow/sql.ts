@@ -3,12 +3,6 @@ import { knex } from '../../util/db';
 
 export default {
     insertWorkflow: (workflow: WorkflowInterface): string => {
-        console.log(workflow);
-        console.log({
-            event: workflow.event,
-            advanced_task_definition: workflow.advancedTaskDefinition,
-            project: workflow.project
-        });
         return knex("workflow").insert({
             event: workflow.event,
             advanced_task_definition: workflow.advancedTaskDefinition,
@@ -24,6 +18,4 @@ export default {
     selectWorkflowsForProject: (project: number): string => {
         return knex("workflow").select("*").where("project", project).toString();
     }
-
-
 };

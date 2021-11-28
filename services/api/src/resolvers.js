@@ -251,6 +251,7 @@ const {
 const {
   addWorkflow,
   resolveWorkflowsForEnvironment,
+  getWorkflowsByEnvironmentId,
 } = require("./resources/workflow/resolvers");
 
 const resolvers = {
@@ -366,6 +367,7 @@ const resolvers = {
     facts: getFactsByEnvironmentId,
     openshift: getOpenshiftByEnvironmentId,
     kubernetes: getOpenshiftByEnvironmentId,
+    workflows: getWorkflowsByEnvironmentId,
   },
   Fact: {
     references: getFactReferencesByFactId,
