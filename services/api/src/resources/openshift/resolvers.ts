@@ -19,24 +19,10 @@ export const addOpenshift: ResolverFn = async (
 ) => {
   await hasPermission('openshift', 'add');
 
-  const rows = await query(
-    sqlClientPool,
-    `CALL CreateOpenshift(
-      :id,
-      :name,
-      :console_url,
-      ${input.token ? ':token' : 'NULL'},
-      ${input.routerPattern ? ':router_pattern' : 'NULL'},
-      ${input.projectUser ? ':project_user' : 'NULL'},
-      ${input.sshHost ? ':ssh_host' : 'NULL'},
-      ${input.sshPort ? ':ssh_port' : 'NULL'},
-      ${input.monitoringConfig ? ':monitoring_config' : 'NULL'}
-    );`,
-    input
-  );
-  const openshift = R.path([0, 0], rows);
+  const { insertId } = await query(sqlClientPool, Sql.insertOpenshift(input));
 
-  return openshift;
+  const rows = await query(sqlClientPool, Sql.selectOpenshift(insertId));
+  return R.prop(0, rows);
 };
 
 export const deleteOpenshift: ResolverFn = async (
@@ -68,7 +54,7 @@ export const getOpenshiftByProjectId: ResolverFn = async (
   { sqlClientPool, hasPermission }
 ) => {
   await hasPermission('openshift', 'view', {
-    project: pid,
+    project: pid
   });
 
   const rows = await query(
@@ -105,7 +91,7 @@ export const getOpenshiftByDeployTargetId: ResolverFn = async (
 
   // check permissions on the project
   await hasPermission('openshift', 'view', {
-    project: projectrows[0].project,
+    project: projectrows[0].project
   });
 
   const rows = await query(
