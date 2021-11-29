@@ -5,10 +5,10 @@ api:
     repository: registry.192.168.224.2.nip.io:32080/library/lagoon/api
     tag: latest
 
-broker:
-  image:
-    repository: registry.192.168.224.2.nip.io:32080/library/lagoon/broker
-    tag: latest
+# broker:
+#   image:
+#     repository: registry.192.168.224.2.nip.io:32080/library/lagoon/broker
+#     tag: latest
 
 # ssh:
 #   replicaCount: 1
@@ -23,16 +23,16 @@ overrideBuildDeployImage: registry.192.168.224.2.nip.io:32080/library/lagoon/kub
 lagoon-build-deploy:
   enabled: false
 
-dockerHost:
-  image:
-    repository: registry.192.168.224.2.nip.io:32080/library/lagoon/docker-host
-    tag: latest
+# dockerHost:
+#   image:
+#     repository: registry.192.168.224.2.nip.io:32080/library/lagoon/docker-host
+#     tag: latest
 
 #lagoon-test
-localGit:
-  image:
-    repository: registry.192.168.224.2.nip.io:32080/library/lagoon/local-git
-    tag: latest
+# localGit:
+#   image:
+#     repository: registry.192.168.224.2.nip.io:32080/library/lagoon/local-git
+#     tag: latest
 
 tests:
   image:

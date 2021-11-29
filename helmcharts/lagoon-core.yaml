@@ -1,20 +1,25 @@
 # Any values defined here are not used anywhere other than lint/CI.
 
 # used in api
-elasticsearchURL: http://opendistro-es-client-service.opendistro-es.svc.cluster.local:9200
+
 harborURL: http://registry.192.168.224.2.nip.io:32080
 harborAdminPassword: Harbor12345
+registry: registry.192.168.224.2.nip.io:32080
+
+elasticsearchURL: http://opendistro-es-client-service.opendistro-es.svc.cluster.local:9200
 kibanaURL: http://opendistro-es-kibana-svc.opendistro-es.svc.cluster.local:443
 logsDBAdminPassword: admin
-registry: registry.192.168.224.2.nip.io:32080"
+
 s3FilesAccessKeyID: lagoonFilesAccessKey
+s3FilesSecretAccessKey: lagoonFilesSecretKey
 s3FilesBucket: lagoon-files
 s3FilesHost: http://minio-api.192.168.224.2.nip.io:32080
-s3FilesSecretAccessKey: lagoonFilesSecretKey
-s3BAASAccessKeyID: baas
-s3BAASSecretAccessKey: baas123
-lagoonUIURL: http://ui:9101
-lagoonWebhookURL: http://webhook:11213
+
+s3BAASAccessKeyID: baas #sets S3_BAAS_ACCESS_KEY_ID in api.secret for custom restores
+s3BAASSecretAccessKey: baas123 #sets s3BAASSecretAccessKey in api.secret for custom restores
+
+lagoonUIURL: http://lagoon-ui.192.168.224.2.nip.io:32080 #sets UI_URL in api.deployment
+lagoonWebhookURL: http://lagoon-webhook.192.168.224.2.nip.io:32080 #sets WEBHOOK_URL in api.deployment
 
 overwriteKubectlBuildDeployDindImage:
 
@@ -167,6 +172,12 @@ webhookHandler:
   replicaCount: 1
   image:
     repository: uselagoon/webhook-handler
+  ingress:
+    enabled: true
+    hosts:
+    - host: lagoon-webhook.192.168.224.2.nip.io
+      paths:
+      - /
 
 webhooks2tasks:
   replicaCount: 1
