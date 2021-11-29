@@ -192,7 +192,7 @@ const typeDefs = gql`
     id: Int
     event: String
     project: Int
-    advancedTaskDefinition: Int
+    advancedTaskDefinition: AdvancedTaskDefinition
   }
 
   input AddWorkflowInput {

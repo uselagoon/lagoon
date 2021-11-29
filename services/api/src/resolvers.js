@@ -252,6 +252,7 @@ const {
   addWorkflow,
   resolveWorkflowsForEnvironment,
   getWorkflowsByEnvironmentId,
+  resolveAdvancedTaskDefinitionsForWorkflow,
 } = require("./resources/workflow/resolvers");
 
 const resolvers = {
@@ -425,6 +426,9 @@ const resolvers = {
   },
   Restore: {
     restoreLocation: getRestoreLocation,
+  },
+  Workflow: {
+    advancedTaskDefinition: resolveAdvancedTaskDefinitionsForWorkflow,
   },
   Query: {
     me: getMe,

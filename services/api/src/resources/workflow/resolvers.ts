@@ -50,6 +50,14 @@ export const addWorkflow = async (
 }
 
 
+export const resolveAdvancedTaskDefinitionsForWorkflow = async(root, parameters, meta) => {
+  const { id: workflowId } = root;
+  const { sqlClientPool, hasPermission, models } = meta;
+  const perms = new WorkflowPermissionHandler(hasPermission);
+  let tasks = await query(sqlClientPool, Sql.selectTaskForWorkflow(workflowId));
+  return tasks[0];
+}
+
 export const resolveWorkflowsForEnvironment = async (
     root,
     { environment },
