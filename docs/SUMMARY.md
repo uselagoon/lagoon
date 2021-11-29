@@ -7,7 +7,7 @@
 
 * [Overview](using-lagoon-the-basics/index.md)
 * [Local Development Environments](using-lagoon-the-basics/local-development-environments.md)
-* [Set Up a New Project](using-lagoon-the-basics/setup_project.md)
+* [Set Up a New Project](using-lagoon-the-basics/setup\_project.md)
 * [Configure Webhooks](using-lagoon-the-basics/configure-webhooks.md)
 * [First Deployment](using-lagoon-the-basics/first-deployment.md)
 * [.lagoon.yml](using-lagoon-the-basics/lagoon-yml.md)
@@ -22,10 +22,11 @@
 * [Environment Variables](using-lagoon-advanced/environment-variables.md)
 * [Base Images](using-lagoon-advanced/base-images.md)
 * [Workflows](using-lagoon-advanced/workflows.md)
-* [Active/Standby](using-lagoon-advanced/active_standby.md)
+* [Active/Standby](using-lagoon-advanced/active\_standby.md)
 * [Triggering Deployments](using-lagoon-advanced/triggering-deployments.md)
 * [Backups](using-lagoon-advanced/backups.md)
 * [Remote Shell](using-lagoon-advanced/remote-shell.md)
+* [SSH](using-lagoon-advanced/ssh.md)
 * [GraphQL](using-lagoon-advanced/graphql.md)
 * [Private Repositories](using-lagoon-advanced/private-repositories.md)
 * [SimpleSAML](using-lagoon-advanced/simplesaml.md)
@@ -80,17 +81,17 @@
 ## Administering Lagoon
 
 * [GraphQL API](administering-lagoon/graphql-queries.md)
-* [Role-Based Access Control \(RBAC\)](administering-lagoon/rbac.md)
+* [Role-Based Access Control (RBAC)](administering-lagoon/rbac.md)
 * [Feature Flags](administering-lagoon/feature-flags.md)
-* [Harbor](administering-lagoon/using_harbor/README.md)
-  * [Security Scanning](administering-lagoon/using_harbor/security_scanning.md)
-  * [Harbor Settings](administering-lagoon/using_harbor/harbor-settings/README.md)
-    * [Harbor-Core](administering-lagoon/using_harbor/harbor-settings/harbor-core.md)
-    * [Harbor-Database](administering-lagoon/using_harbor/harbor-settings/harbor-database.md)
-    * [Harbor-Jobservice](administering-lagoon/using_harbor/harbor-settings/harbor-jobservice.md)
-    * [Harbor-Trivy](administering-lagoon/using_harbor/harbor-settings/harbor-trivy.md)
-    * [HarborRegistry](administering-lagoon/using_harbor/harbor-settings/harborregistry.md)
-    * [HarborRegistryCtl](administering-lagoon/using_harbor/harbor-settings/harborregistryctl.md)
+* [Harbor](administering-lagoon/using\_harbor/README.md)
+  * [Security Scanning](administering-lagoon/using\_harbor/security\_scanning.md)
+  * [Harbor Settings](administering-lagoon/using\_harbor/harbor-settings/README.md)
+    * [Harbor-Core](administering-lagoon/using\_harbor/harbor-settings/harbor-core.md)
+    * [Harbor-Database](administering-lagoon/using\_harbor/harbor-settings/harbor-database.md)
+    * [Harbor-Jobservice](administering-lagoon/using\_harbor/harbor-settings/harbor-jobservice.md)
+    * [Harbor-Trivy](administering-lagoon/using\_harbor/harbor-settings/harbor-trivy.md)
+    * [HarborRegistry](administering-lagoon/using\_harbor/harbor-settings/harborregistry.md)
+    * [HarborRegistryCtl](administering-lagoon/using\_harbor/harbor-settings/harborregistryctl.md)
 
 ## Contributing to Lagoon
 
@@ -106,4 +107,3 @@
 * [Glossary](resources/glossary.md)
 * [Tutorials, Webinars, and Videos](resources/tutorials-and-webinars.md)
 * [Lagoon Examples](https://github.com/uselagoon/lagoon-examples)
-
