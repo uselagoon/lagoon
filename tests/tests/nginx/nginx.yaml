@@ -8,6 +8,17 @@
   - include: ../../tasks/git-init.yaml
   - include: ../../tasks/git-add-commit-push.yaml
 
+# delete the LAGOON_ROUTES_JSON envvar if it exists already
+- name: "{{ testname }} - api delete envVariable on {{ project }}"
+  hosts: localhost
+  serial: 1
+  vars:
+    envName: "LAGOON_ROUTES_JSON"
+    project: "{{ project }}"
+    branch: "{{ branch }}"
+  tasks:
+  - include: ../../tasks/api/delete-environment-variable.yaml
+
 - name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}, which should deploy the first commit"
   hosts: localhost
   serial: 1
@@ -45,6 +56,44 @@
     expected_head: "{{ current_head }}"
     expected_branch: "{{ branch }}"
     project: "{{ project }}"
+
+- name: "{{ testname }} - api add envVariable on {{ project }} environment {{ branch }}"
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ project }}"
+    branch: "{{ branch }}"
+    envName: "LAGOON_ROUTES_JSON"
+    envValue: "eyJyb3V0ZXMiOlt7ImRvbWFpbiI6InRlc3QxLmV4YW1wbGUuY29tIiwic2VydmljZSI6Im5naW54IiwidGxzLWFjbWUiOmZhbHNlLCJtb25pdG9yaW5nLXBhdGgiOiIvYnlwYXNzLWNhY2hlIn1dfQo="
+    envScope: "BUILD"
+  tasks:
+  - include: ../../tasks/api/add-environment-variable.yaml
+
+- name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}, which should deploy the second commit again but with the LAGOON_ROUTES_JSON override"
+  hosts: localhost
+  serial: 1
+  vars:
+    branch: "{{ branch }}"
+    project: "{{ project }}"
+  tasks:
+  - include: ../../tasks/api/deploy-no-sha.yaml
+
+- include: check-third.yaml
+  vars:
+    expected_head: "{{ current_head }}"
+    expected_branch: "{{ branch }}"
+    project: "{{ project }}"
+
+# delete the LAGOON_ROUTES_JSON envvar if it exists already
+- name: "{{ testname }} - api delete envVariable on {{ project }}"
+  hosts: localhost
+  serial: 1
+  vars:
+    envName: "LAGOON_ROUTES_JSON"
+    project: "{{ project }}"
+    branch: "{{ branch }}"
+  tasks:
+  - include: ../../tasks/api/delete-environment-variable.yaml
 
 - name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
   hosts: localhost
