@@ -4,7 +4,12 @@ type Workflow struct {
 	Id int `json:"id"`
 	Event string `json:"event"`
 	Project int `json:"project"`
-	AdvancedTaskDefinition int `json:"advanced_task_definition"`
+	AdvancedTaskDefinition AdvancedTaskDefinition `json:"AdvancedTaskDefinition"`
+}
+
+type AdvancedTaskDefinition struct {
+	Id int `json:"id"`
+	Name string `json:"name"`
 }
 
 
