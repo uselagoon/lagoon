@@ -12,6 +12,7 @@ import {
 } from '@lagoon/commons/dist/notificationCommons';
 import { URL } from 'url';
 import http from 'https';
+import { GetTypeEventMap } from '@lagoon/commons/dist/event-types';
 
 export async function readFromRabbitMQ(
   msg: ConsumeMessage,
@@ -25,19 +26,12 @@ export async function readFromRabbitMQ(
 
   logger.verbose(`received ${event} for project ${project}`);
 
-  switch (event) {
-    case 'task:deploy-openshift:finished':
-    case 'task:remove-openshift:finished':
-    case 'task:remove-kubernetes:finished':
-    case 'task:remove-openshift-resources:finished':
-    case 'task:builddeploy-openshift:complete':
-    case 'task:builddeploy-kubernetes:complete':
-    case 'task:deploy-openshift:error':
-    case 'task:remove-openshift:error':
-    case 'task:remove-kubernetes:error':
-    case 'task:remove-openshift-resources:error':
-    case 'task:builddeploy-openshift:failed':
-    case 'task:builddeploy-kubernetes:failed':
+  const eventTypes = GetTypeEventMap();
+
+  switch (eventTypes.get(event)) {
+    case 'deployFinished':
+    case 'removeFinished':
+    case 'deployError':
       let payload = {
         type: 'DEPLOYMENT',
         event: event.split(':').pop(),
