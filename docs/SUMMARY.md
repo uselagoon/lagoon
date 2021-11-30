@@ -25,7 +25,6 @@
 * [Active/Standby](using-lagoon-advanced/active\_standby.md)
 * [Triggering Deployments](using-lagoon-advanced/triggering-deployments.md)
 * [Backups](using-lagoon-advanced/backups.md)
-* [Remote Shell](using-lagoon-advanced/remote-shell.md)
 * [SSH](using-lagoon-advanced/ssh.md)
 * [GraphQL](using-lagoon-advanced/graphql.md)
 * [Private Repositories](using-lagoon-advanced/private-repositories.md)
