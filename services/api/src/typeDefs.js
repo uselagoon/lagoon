@@ -1132,6 +1132,7 @@ const typeDefs = gql`
     deployTargetConfigsByDeployTarget(deployTarget: Int!) : [DeployTargetConfig]  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
     allDeployTargetConfigs: [DeployTargetConfig]  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
     """
+    Returns all event type classifications
     """
     allRegisteredEventTypes: [EventType]
   }
