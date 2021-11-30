@@ -35,6 +35,7 @@ const {
 
 const {
   getLagoonVersion,
+  getRegisteredLagoonEventTypes,
 } = require('./resources/lagoon/resolvers');
 
 const {
@@ -455,6 +456,7 @@ const resolvers = {
     deployTargetConfigById: getDeployTargetConfigById,
     deployTargetConfigsByProjectId: getDeployTargetConfigsByProjectId,
     deployTargetConfigsByDeployTarget: getDeployTargetConfigsByDeployTarget,
+    allRegisteredEventTypes: getRegisteredLagoonEventTypes,
   },
   Mutation: {
     addProblem,
