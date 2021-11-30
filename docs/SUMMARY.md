@@ -1,7 +1,6 @@
 # Table of contents
 
 * [Lagoon](README.md)
-* [Getting Started](getting-started.md)
 
 ## Using Lagoon - The Basics
 
