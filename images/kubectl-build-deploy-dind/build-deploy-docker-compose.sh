@@ -708,8 +708,7 @@ yq3 write -i -- /kubectl-build-deploy/values.yaml 'gitSha' $LAGOON_GIT_SHA
 yq3 write -i -- /kubectl-build-deploy/values.yaml 'buildType' $BUILD_TYPE
 yq3 write -i -- /kubectl-build-deploy/values.yaml 'routesAutogenerateInsecure' $ROUTES_AUTOGENERATE_INSECURE
 yq3 write -i -- /kubectl-build-deploy/values.yaml 'routesAutogenerateEnabled' $ROUTES_AUTOGENERATE_ENABLED
-# yq3 write -i -- /kubectl-build-deploy/values.yaml 'routesAutogenerateSuffix' $ROUTER_URL
-# yq3 write -i -- /kubectl-build-deploy/values.yaml 'routesAutogenerateShortSuffix' $SHORT_ROUTER_URL
+
 for i in $ROUTES_AUTOGENERATE_PREFIXES; do yq3 write -i -- /kubectl-build-deploy/values.yaml 'routesAutogeneratePrefixes[+]' $i; done
 yq3 write -i -- /kubectl-build-deploy/values.yaml 'kubernetes' $KUBERNETES
 yq3 write -i -- /kubectl-build-deploy/values.yaml 'lagoonVersion' $LAGOON_VERSION
