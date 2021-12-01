@@ -466,6 +466,12 @@ export const getControllerBuildData = async function(deployData: any) {
     logger.error(`Could not save deployment for project ${lagoonProjectData.id}. Message: ${error}`);
   }
 
+  // append the routerpattern to the projects variables
+  // use a scope of `internal_system` which isn't available to the actual API to be added via mutations
+  // this way variables or new functionality can be passed into lagoon builds using the existing variables mechanism
+  // avoiding the needs to hardcode them into the spec to then be consumed by the build-deploy controller
+  lagoonProjectData.envVariables.push({"name":"LAGOON_SYSTEM_ROUTER_PATTERN", "value":routerPattern, "scope":"internal_system"})
+
   // encode some values so they get sent to the controllers nicely
   const sshKeyBase64 = new Buffer(deployPrivateKey.replace(/\\n/g, "\n")).toString('base64')
   const envVars = new Buffer(JSON.stringify(environment.addOrUpdateEnvironment.envVariables)).toString('base64')
@@ -500,7 +506,7 @@ export const getControllerBuildData = async function(deployData: any) {
         productionEnvironment: projectProductionEnvironment,
         standbyEnvironment: projectStandbyEnvironment,
         subfolder: subfolder,
-        routerPattern: routerPattern,
+        routerPattern: routerPattern, // @DEPRECATE: send this still for backwards compatability, but eventually this can be removed once LAGOON_SYSTEM_ROUTER_PATTERN is adopted wider
         deployTarget: deployTargetName,
         projectSecret: projectSecret,
         key: sshKeyBase64,
