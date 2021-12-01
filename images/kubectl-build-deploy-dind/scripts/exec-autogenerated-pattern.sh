@@ -68,6 +68,15 @@ function generateShortUrl {
     PROJECT=${3}
     ENVIRONMENT=${4}
 
+    HAS_SERVICE_PATTERN=false
+
+    re='(.*)\$\{service\}(.*)'
+    if [[ $ROUTER_URL =~ $re ]]; then
+        HAS_SERVICE_PATTERN=true
+        ROUTER_URL2=${BASH_REMATCH[1]}${SERVICE}
+        ROUTER_URL=${ROUTER_URL2}${BASH_REMATCH[2]}
+    fi
+
     re='(.*)\$\{project\}(.*)'
     if [[ $ROUTER_URL =~ $re ]]; then
         SHA256_B32_PROJECT=$(echo -e "import sys\nimport base64\nimport hashlib\nprint(base64.b32encode(bytearray(hashlib.sha256(sys.argv[1].encode()).digest())).decode('utf-8'))" | python3 -  "${PROJECT}" | tr '[:upper:]' '[:lower:]' | cut -c -8)
@@ -76,13 +85,17 @@ function generateShortUrl {
     fi
 
     re='(.*)\$\{environment\}(.*)'
-    SUFFIX=""
     if [[ $ROUTER_URL =~ $re ]]; then
         SHA256_B32_ENVIRONMENT=$(echo -e "import sys\nimport base64\nimport hashlib\nprint(base64.b32encode(bytearray(hashlib.sha256(sys.argv[1].encode()).digest())).decode('utf-8'))" | python3 -  "${ENVIRONMENT}" | tr '[:upper:]' '[:lower:]' | cut -c -8)
         ROUTER_URL2=${BASH_REMATCH[1]}${SHA256_B32_ENVIRONMENT}
         ROUTER_URL=${ROUTER_URL2}${BASH_REMATCH[2]}
-        SUFFIX=${BASH_REMATCH[2]}
     fi
 
-    echo ${SERVICE}.${SHA256_B32_PROJECT}-${SHA256_B32_ENVIRONMENT}${SUFFIX}
+    # fallback to the default behaviour which adds the service with a dot
+    # if the pattern doesn't have a service pattern defined in it
+    if [ $HAS_SERVICE_PATTERN == "false" ]; then
+        ROUTER_URL=${SERVICE}.${ROUTER_URL}
+    fi
+
+    echo $ROUTER_URL
 }
