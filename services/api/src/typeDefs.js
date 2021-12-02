@@ -930,7 +930,7 @@ const typeDefs = gql`
 
   type EventType {
     name: String
-    type: String
+    types: [String]
   }
 
   type DeployTargetConfig {

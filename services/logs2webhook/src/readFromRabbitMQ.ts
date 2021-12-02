@@ -28,25 +28,20 @@ export async function readFromRabbitMQ(
 
   const eventTypes = GetTypeEventMap();
 
-  switch (eventTypes.get(event)) {
-    case 'deployFinished':
-    case 'removeFinished':
-    case 'deployError':
-      let payload = {
-        type: 'DEPLOYMENT',
-        event: event.split(':').pop(),
-        project,
-        environment: ''
-      };
-      if (meta && meta.environmentId) {
-        const environmentDetails = await getEnvironmentById(meta.environmentId);
-        payload.environment = environmentDetails.environmentById.name;
-      }
-      sendToWebhook(event, project, payload, channelWrapperLogs, msg);
-      break;
-    default:
-      return channelWrapperLogs.ack(msg);
-    break;
+  if(eventTypes.isEventOneOfType(event, ['deployFinished', 'removeFinished', 'deployError'])) {
+    let payload = {
+      type: 'DEPLOYMENT',
+      event: event.split(':').pop(),
+      project,
+      environment: '',
+    };
+    if (meta && meta.environmentId) {
+      const environmentDetails = await getEnvironmentById(meta.environmentId);
+      payload.environment = environmentDetails.environmentById.name;
+    }
+    sendToWebhook(event, project, payload, channelWrapperLogs, msg);
+  } else {
+    return channelWrapperLogs.ack(msg);
   }
 }
 

@@ -8,8 +8,10 @@ export const getLagoonVersion: ResolverFn = async () =>
 
 export const getRegisteredLagoonEventTypes = async () => {
   const ret = [];
-  for (let[key, value] of GetTypeEventMap()) {
-    ret.push({name:key, type:value});
+  const eventTypeMap = GetTypeEventMap().getEventsToTypes().entries();
+
+  for (let[key, value] of eventTypeMap) {
+     ret.push({name:key, types:value});
   }
   return ret;
 }
