@@ -10,7 +10,7 @@ description: >-
 
 * Kubernetes 1.18+
 * Familiarity with [Helm](https://helm.sh) and [Helm Charts](https://helm.sh/docs/topics/charts/#helm), and [kubectl](https://kubernetes.io/docs/tasks/tools/).
-* Ingress controller (ingress-nginx)
+* [Ingress controller (ingress-nginx)](#logging-nginx-ingress-controller)
 * Cert manager (for TLS) - We highly recommend using letsencrypt
 * RWO storage
 
@@ -504,7 +504,7 @@ Logs-concentrator collects the logs being sent by Lagoon clusters and augments t
 
 
 
-### Lagoon Logging
+### Lagoon-Logging
 
 Lagoon Logging collects the application, router and container logs from Lagoon projects, and sends them to the logs concentrator.  It needs to be installed onto each `lagoon-remote` instance.
 
@@ -520,8 +520,13 @@ Read more about Lagoon logging here: [https://github.com/uselagoon/lagoon-charts
     ``
 
     `helm upgrade --install --create-namespace --namespace lagoon-logging -f lagoon-logging-values.yaml lagoon-logging lagoon/lagoon-logging`
-3. If you'd like logs from `ingress-nginx` inside `lagoon-logging`:
-   1. Add the content of this gist to `ingress-nginx: `[https://gist.github.com/Schnitzel/bba1a8a437f52fbf123ead1cc0406bf1](https://gist.github.com/Schnitzel/bba1a8a437f52fbf123ead1cc0406bf1)
+
+#### Logging NGINX Ingress Controller
+
+If you'd like logs from `ingress-nginx` inside `lagoon-logging`:
+
+1. The ingress controller must be installed in the namespace `ingress-nginx`
+2. Add the content of this gist to `ingress-nginx: `[https://gist.github.com/Schnitzel/bba1a8a437f52fbf123ead1cc0406bf1](https://gist.github.com/Schnitzel/bba1a8a437f52fbf123ead1cc0406bf1)
 
 ## Lagoon Backups
 
