@@ -1,25 +1,66 @@
-export const newTaskRegistrationFromObject = (
-  payload: Partial<TaskRegistration>
-) => {
-  let obj = new TaskRegistration();
-  return { ...obj, ...payload };
-};
+// export const newTaskRegistrationFromObject = (
+//   payload: AdvancedTaskDefinitionInterface
+// ) => {
+//   return new TaskRegistration(payload);
+// };
 
-export class TaskRegistration {
-  static TYPE_STANDARD = "COMMAND"
-  static TYPE_ADVANCED = "IMAGE"
-  id: number;
+
+export interface AdvancedTaskDefinitionInterface {
+  id?: number;
   type: string;
   name: string;
-  description: string;
-  advanced_task_definition: number;
-  environment: number;
-  project: number;
-  groupName: string;
-  command: string;
-  service: string;
+  description?: string;
+  environment?: number;
+  project?: number;
+  groupName?: string;
   created: string;
   deleted: string;
-  image: string;
-  permission: string;
+  permission?: string;
+  command?: string;
+  service?: string;
+  image?: string;
 }
+
+
+export const AdvancedTaskDefinitionType = {
+  command: 'COMMAND',
+  image: 'IMAGE'
+};
+
+export const getAdvancedTaskDefinitionType = (taskDef:AdvancedTaskDefinitionInterface) => {
+    if(taskDef.type.toLowerCase() == AdvancedTaskDefinitionType.command.toLowerCase()) {
+      return AdvancedTaskDefinitionType.command;
+    }
+    return AdvancedTaskDefinitionType.image;
+  }
+
+export const isAdvancedTaskDefinitionSystemLevelTask = (taskDef:AdvancedTaskDefinitionInterface): boolean => {
+  return taskDef.project == null && taskDef.environment == null && taskDef.groupName == null;
+}
+
+export const doesAdvancedTaskDefinitionNeedAdminRights = (taskDef:AdvancedTaskDefinitionInterface): boolean => {
+  return isAdvancedTaskDefinitionSystemLevelTask(taskDef)
+  || getAdvancedTaskDefinitionType(taskDef) == AdvancedTaskDefinitionType.image
+  || taskDef.groupName != undefined;
+}
+
+//   /**
+//    * A system level task is attached to no env/proj/group
+//    *
+//    * @returns boolean
+//    */
+//   public isSystemLevelTask() {
+//     return this.data.project == null && this.data.environment == null && this.data.groupName == null;
+//   }
+
+//   public needsAdminRights() {
+//     return this.isSystemLevelTask() || this.getType() == TaskRegistration.TYPE_ADVANCED || this.data.groupName;
+//   }
+
+//   /**
+//    * Here we incorporate the
+//    */
+//   public validate() {
+
+//   }
+// }

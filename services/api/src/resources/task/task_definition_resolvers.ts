@@ -6,14 +6,13 @@ import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { Validators as envValidators } from '../environment/validators';
 import {
-  TaskRegistration,
-  newTaskRegistrationFromObject
+  AdvancedTaskDefinitionInterface,
+  AdvancedTaskDefinitionType,
+  isAdvancedTaskDefinitionSystemLevelTask,
+  getAdvancedTaskDefinitionType
 } from './models/taskRegistration';
 
-const AdvancedTaskDefinitionType = {
-  command: 'COMMAND',
-  image: 'IMAGE'
-};
+
 
 enum AdvancedTaskDefinitionTarget {
   Group,
@@ -164,80 +163,36 @@ export const advancedTaskDefinitionArgumentById = async (
 export const addAdvancedTaskDefinition = async (
   root,
   {
-    input: {
-      name,
-      description,
-      image = '',
-      type,
-      service,
-      command,
-      project,
-      groupName,
-      environment,
-      permission,
-      created
-    }
+    input
   },
   { sqlClientPool, hasPermission, models }
 ) => {
+  const {
+    name,
+    description,
+    image = '',
+    type,
+    service,
+    command,
+    project,
+    groupName,
+    environment,
+    permission,
+    created
+  } = input;
+
   let projectObj = await getProjectByEnvironmentIdOrProjectId(
     sqlClientPool,
     environment,
     project
   );
 
-  const systemLevelTask =
-    project == null && environment == null && groupName == null;
-  const advancedTaskWithImage = type == AdvancedTaskDefinitionType.image;
-  const needsAdminRightsToCreate =
-    systemLevelTask || advancedTaskWithImage || groupName;
 
-  if (systemLevelTask) {
-    //if they pass this, they can do basically anything
-    //In the first release, we're not actually supporting this
-    //TODO: add checks once images are officially supported - for now, throw an error
-    throw Error('Adding Images and System Wide Tasks are not yet supported');
-  } else if (advancedTaskWithImage) {
-    //We're only going to allow administrators to add these for now ...
-    await hasPermission('advanced_task','create:advanced');
-  } else if (groupName) {
-    const group = await models.GroupModel.loadGroupByIdOrName({
-      name: groupName
-    });
-    await hasPermission('group', 'update', {
-      group: group.id
-    });
-  } else if (projectObj) {
-    //does the user have permission to actually add to this?
-    //i.e. are they a maintainer?
-    await hasPermission('task', `add:production`, {
-      project: projectObj.id
-    });
-  }
+  await checkAdvancedTaskPermissions(input, hasPermission, models, projectObj);
 
   // There are two cases, either it's a command, in which case the command + service needs to be part of the definition
   // or it's a legit advanced task and we need an image.
-
-  switch (type) {
-    case AdvancedTaskDefinitionType.image:
-      if (!image || 0 === image.length) {
-        throw new Error(
-          'Unable to create image based task with no image supplied'
-        );
-      }
-      break;
-    case AdvancedTaskDefinitionType.command:
-      if (!command || 0 === command.length) {
-        throw new Error('Unable to create Advanced task definition');
-      }
-      break;
-    default:
-      throw new Error(
-        'Undefined Advanced Task Definition type passed at creation time: ' +
-          type
-      );
-      break;
-  }
+  validateAdvancedTaskDefinitionData(input, image, command, type);
 
   //let's see if there's already an advanced task definition with this name ...
   // Note: this will all be scoped to either System, group, project, or environment
@@ -349,7 +304,7 @@ export const invokeRegisteredTask = async (
   });
 
   switch (task.type) {
-    case TaskRegistration.TYPE_STANDARD:
+    case AdvancedTaskDefinitionType.command:
       const taskData = await Helpers(sqlClientPool).addTask({
         name: task.name,
         environment: environment,
@@ -359,7 +314,7 @@ export const invokeRegisteredTask = async (
       });
       return taskData;
       break;
-    case TaskRegistration.TYPE_ADVANCED:
+    case AdvancedTaskDefinitionType.image:
       // the return data here is basically what gets dropped into the DB.
       // what we can do
       const advancedTaskData = await Helpers(sqlClientPool).addAdvancedTask({
@@ -389,7 +344,7 @@ const getNamedAdvancedTaskForEnvironment = async (
   advancedTaskDefinition,
   environment,
   models
-) => {
+):Promise<AdvancedTaskDefinitionInterface> => {
   let rows = await resolveTasksForEnvironment(
     {},
     { environment },
@@ -402,7 +357,7 @@ const getNamedAdvancedTaskForEnvironment = async (
       `Task registration '${advancedTaskDefinition}' could not be found.`
     );
   }
-  return newTaskRegistrationFromObject(taskDef);
+  return <AdvancedTaskDefinitionInterface>taskDef;
 };
 
 export const deleteAdvancedTaskDefinition = async (
@@ -501,3 +456,53 @@ const advancedTaskFunctions = sqlClientPool => {
     }
   };
 };
+
+
+function validateAdvancedTaskDefinitionData(input: any, image: any, command: any, type: any) {
+  switch (getAdvancedTaskDefinitionType(<AdvancedTaskDefinitionInterface>input)) {
+    case AdvancedTaskDefinitionType.image:
+      if (!image || 0 === image.length) {
+        throw new Error(
+          'Unable to create image based task with no image supplied'
+        );
+      }
+      break;
+    case AdvancedTaskDefinitionType.command:
+      if (!command || 0 === command.length) {
+        throw new Error('Unable to create Advanced task definition');
+      }
+      break;
+    default:
+      throw new Error(
+        'Undefined Advanced Task Definition type passed at creation time: ' +
+        type
+      );
+      break;
+  }
+}
+
+async function checkAdvancedTaskPermissions(input:AdvancedTaskDefinitionInterface, hasPermission: any, models: any, projectObj: any) {
+  if (isAdvancedTaskDefinitionSystemLevelTask(input)) {
+    //if they pass this, they can do basically anything
+    //In the first release, we're not actually supporting this
+    //TODO: add checks once images are officially supported - for now, throw an error
+    throw Error('Adding Images and System Wide Tasks are not yet supported');
+  } else if (getAdvancedTaskDefinitionType(input) == AdvancedTaskDefinitionType.image) {
+    //We're only going to allow administrators to add these for now ...
+    await hasPermission('advanced_task', 'create:advanced');
+  } else if (input.groupName) {
+    const group = await models.GroupModel.loadGroupByIdOrName({
+      name: input.groupName
+    });
+    await hasPermission('group', 'update', {
+      group: group.id
+    });
+  } else if (projectObj) {
+    //does the user have permission to actually add to this?
+    //i.e. are they a maintainer?
+    await hasPermission('task', `add:production`, {
+      project: projectObj.id
+    });
+  }
+}
+
