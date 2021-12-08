@@ -108,17 +108,37 @@ pipeline {
         stage ('2: run second test suite') {
           steps {
             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                sh script: "make -j$NPROC kind/retest TESTS=[drupal-php80,drupal-postgres,drush,gitlab,github,bitbucket,python,node-mongodb,elasticsearch] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running second test suite on kind cluster"
+                sh script: "make -j$NPROC kind/retest TESTS=[gitlab,github,bitbucket,python,node-mongodb,elasticsearch,image-cache] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running second test suite on kind cluster"
             }
             sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-2 log after test completion"
           }
         }
         stage ('collect logs') {
           steps {
-            timeout(time: 45, unit: 'MINUTES') {
+            timeout(time: 30, unit: 'MINUTES') {
               sh script: "./local-dev/stern --kubeconfig ./kubeconfig.kind.${CI_BUILD_TAG} --all-namespaces '^[a-z]' --since 1s -t > test-suite-2.txt || true", label: "Collecting test-suite-2 logs"
             }
             sh script: "cat test-suite-2.txt", label: "View ${NODE_NAME}:${WORKSPACE}/test-suite-2.txt"
+          }
+        }
+      }
+    }
+    stage ('run third test suite') {
+      parallel {
+        stage ('3: run third test suite') {
+          steps {
+            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                sh script: "make -j$NPROC kind/retest TESTS=[drupal-php80,drupal-postgres,drush] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running third test suite on kind cluster"
+            }
+            sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-3 log after test completion"
+          }
+        }
+        stage ('collect logs') {
+          steps {
+            timeout(time: 30, unit: 'MINUTES') {
+              sh script: "./local-dev/stern --kubeconfig ./kubeconfig.kind.${CI_BUILD_TAG} --all-namespaces '^[a-z]' --since 1s -t > test-suite-3.txt || true", label: "Collecting test-suite-3 logs"
+            }
+            sh script: "cat test-suite-3.txt", label: "View ${NODE_NAME}:${WORKSPACE}/test-suite-3.txt"
           }
         }
       }

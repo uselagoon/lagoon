@@ -45,7 +45,8 @@ RUN mkdir -m 700 /git/.ssh && \
 	git --bare init /git/active-standby.git && \
 	git --bare init /git/python.git && \
 	git --bare init /git/node-mongodb.git && \
-	git --bare init /git/tasks.git
+	git --bare init /git/tasks.git && \
+	git --bare init /git/image-cache.git
 
 USER root
 
