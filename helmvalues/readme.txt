@@ -1,8 +1,8 @@
 # Install the prerequisites
-helm upgrade --install --create-namespace --namespace ingress-nginx --wait --timeout 30m --version 3.31.0 ingress-nginx ingress-nginx/ingress-nginx -f helmcharts/ingress.yaml
-helm upgrade --install --create-namespace --namespace registry --wait --timeout 30m --version 1.5.5 registry harbor/harbor -f helmcharts/registry.yaml
-helm upgrade --install --create-namespace --namespace nfs-server-provisioner --wait --timeout 30m --version 1.1.3 nfs-server-provisioner stable/nfs-server-provisioner -f helmcharts/nfs-server-provisioner.yaml
-helm upgrade --install --create-namespace --namespace minio --wait --timeout 30m --version 8.1.9 minio bitnami/minio -f helmcharts/minio.yaml
+helm upgrade --install --create-namespace --namespace ingress-nginx --wait --timeout 30m --version 3.31.0 ingress-nginx ingress-nginx/ingress-nginx -f helmvalues/ingress.yaml
+helm upgrade --install --create-namespace --namespace registry --wait --timeout 30m --version 1.5.5 registry harbor/harbor -f helmvalues/registry.yaml
+helm upgrade --install --create-namespace --namespace nfs-server-provisioner --wait --timeout 30m --version 1.1.3 nfs-server-provisioner stable/nfs-server-provisioner -f helmvalues/nfs-server-provisioner.yaml
+helm upgrade --install --create-namespace --namespace minio --wait --timeout 30m --version 8.1.9 minio bitnami/minio -f helmvalues/minio.yaml
 
 # Install the DBaaS databases as required
 helm upgrade --install --create-namespace --namespace mariadb --wait --timeout 30m $(kubectl get ns mariadb > /dev/null 2>&1 && echo --set auth.rootPassword=$(kubectl get secret --namespace mariadb mariadb -o json | jq -r '.data."mariadb-root-password" | @base64d')) --version=9.3.13 mariadb bitnami/mariadb
@@ -10,12 +10,12 @@ helm upgrade --install --create-namespace --namespace postgresql --wait --timeou
 helm upgrade --install --create-namespace --namespace mongodb --wait --timeout 30m $(kubectl get ns mongodb > /dev/null 2>&1 && echo --set auth.rootPassword=$(kubectl get secret --namespace mongodb mongodb -o json | jq -r '.data."mongodb-root-password" | @base64d')) --version=10.16.4 mongodb bitnami/mongodb
 
 # Install the Lagoon components
-helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 30m lagoon-core lagoon/lagoon-core -f helmcharts/lagoon-core.yaml -f helmcharts/local.yaml
-helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 30m lagoon-build-deploy lagoon/lagoon-build-deploy -f helmcharts/lagoon-build-deploy.yaml -f helmcharts/local.yaml
-helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 30m lagoon-remote lagoon/lagoon-remote -f helmcharts/lagoon-remote.yaml -f helmcharts/local.yaml
+helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 30m lagoon-core lagoon/lagoon-core -f helmvalues/lagoon-core.yaml -f helmvalues/local.yaml
+helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 30m lagoon-build-deploy lagoon/lagoon-build-deploy -f helmvalues/lagoon-build-deploy.yaml -f helmvalues/local.yaml
+helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 30m lagoon-remote lagoon/lagoon-remote -f helmvalues/lagoon-remote.yaml -f helmvalues/local.yaml
 
 # Install the testing components and run the tests - if you change the tests, you need to run both helm commands
-helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 30m lagoon-test lagoon/lagoon-test -f helmcharts/lagoon-test.yaml -f helmcharts/local.yaml
+helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 30m lagoon-test lagoon/lagoon-test -f helmvalues/lagoon-test.yaml -f helmvalues/local.yaml
 helm test lagoon-test --namespace lagoon
 
 

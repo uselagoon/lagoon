@@ -1,9 +1,9 @@
 #lagoon-core
-api:
-  replicaCount: 1
-  image:
-    repository: registry.192.168.224.2.nip.io:32080/library/lagoon/api
-    tag: latest
+# api:
+#   replicaCount: 1
+#   image:
+#     repository: registry.192.168.224.2.nip.io:32080/library/lagoon/api
+#     tag: latest
 
 # broker:
 #   image:
@@ -29,15 +29,15 @@ lagoon-build-deploy:
 #     tag: latest
 
 #lagoon-test
-# localGit:
-#   image:
-#     repository: registry.192.168.224.2.nip.io:32080/library/lagoon/local-git
-#     tag: latest
+
+localGit:
+  image:
+    repository: registry.192.168.224.2.nip.io:32080/library/lagoon/local-git
+    tag: latest
 
 tests:
   image:
     repository: registry.192.168.224.2.nip.io:32080/library/lagoon/tests
     tag: latest
   tests:
-    - features-kubernetes-2
     - api

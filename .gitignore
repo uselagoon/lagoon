@@ -30,3 +30,5 @@ kubeconfig.*
 kindconfig.*
 kind
 lagoon-charts.*
+tests/files/generic/*
+!tests/files/generic/GENERIC_FILES.md
