@@ -266,59 +266,7 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
-CREATE OR REPLACE PROCEDURE
-  CreateOpenshift
-  (
-    IN id                int,
-    IN name              varchar(50),
-    IN console_url       varchar(300),
-    IN token             varchar(2000),
-    IN router_pattern    varchar(300),
-    IN project_user      varchar(100),
-    IN ssh_host          varchar(300),
-    IN ssh_port          varchar(50),
-    IN monitoring_config varchar(2048)
-  )
-  BEGIN
-    DECLARE new_oid int;
-
-    IF (id IS NULL) THEN
-      SET id = 0;
-    END IF;
-
-    INSERT INTO openshift (
-      id,
-      name,
-      console_url,
-      token,
-      router_pattern,
-      project_user,
-      ssh_host,
-      ssh_port,
-      monitoring_config
-    ) VALUES (
-      id,
-      name,
-      console_url,
-      token,
-      router_pattern,
-      project_user,
-      ssh_host,
-      ssh_port,
-      monitoring_config
-    );
-
-    IF (id = 0) THEN
-      SET new_oid = LAST_INSERT_ID();
-    ELSE
-      SET new_oid = id;
-    END IF;
-
-    SELECT
-      o.*
-    FROM openshift o
-    WHERE o.id = new_oid;
-  END;
+DROP PROCEDURE IF EXISTS CreateOpenshift;
 $$
 
 CREATE OR REPLACE PROCEDURE

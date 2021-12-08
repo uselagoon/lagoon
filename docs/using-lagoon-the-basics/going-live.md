@@ -6,9 +6,9 @@ Congratulations, you're _this_ close to going live with your website on Lagoon! 
 
 ### Routes / SSL
 
-Check to be sure that all routes have been set up in your `.lagoon.yml`. Be aware that if you don't point the domains towards Lagoon, you should disable Let's Encrypt \(LE\) certificate creation, as it will lead to issues. Domains not pointing towards Lagoon will be disabled after a while in order to not exceed the Let's Encrypt quotas.
+Check to be sure that all routes have been set up in your `.lagoon.yml`. Be aware that if you don't point the domains towards Lagoon, you should disable Let's Encrypt (LE) certificate creation, as it will lead to issues. Domains not pointing towards Lagoon will be disabled after a while in order to not exceed the Let's Encrypt quotas.
 
-If you use Certificate Authority \(CA\) signed certificates, you can set `tls-acme` to `false` , but leave the `insecure` flag set to `Allow` or `Redirect`. In the case of CA certificates, let your Lagoon administrator know the routes and the SSL certificate that needs to be put in place.
+If you use Certificate Authority (CA) signed certificates, you can set `tls-acme` to `false` , but leave the `insecure` flag set to `Allow` or `Redirect`. In the case of CA certificates, let your Lagoon administrator know the routes and the SSL certificate that needs to be put in place.
 
 {% tabs %}
 {% tab title=".lagoon.yml" %}
@@ -64,14 +64,14 @@ To make it as smooth as possible for you to get your site pointing to our server
 
 **Example on amazee.io :** `<region-identifier>.amazee.io`
 
-Before you switch over your domain to Lagoon, make sure you lower the Time-to-Live \(TTL\) before you go live. This will ensure that the switch from the old to the new servers will go quickly. We usually advise a TTL of 300-600 seconds prior to the DNS switch. [More information about TTL](https://en.wikipedia.org/wiki/Time_to_live#DNS_records).
+Before you switch over your domain to Lagoon, make sure you lower the Time-to-Live (TTL) before you go live. This will ensure that the switch from the old to the new servers will go quickly. We usually advise a TTL of 300-600 seconds prior to the DNS switch. [More information about TTL](https://en.wikipedia.org/wiki/Time\_to\_live#DNS\_records).
 
 ### Recommended settings for Fastly:
 
-CNAME: [cdn.amazee.io](http://cdn.amazee.io/)  
-A 151.101.2.191  
-A 151.101.66.191  
-A 151.101.130.191  
+CNAME: [cdn.amazee.io](http://cdn.amazee.io)\
+A 151.101.2.191\
+A 151.101.66.191\
+A 151.101.130.191\
 A 151.101.194.191
 
 {% hint style="info" %}
@@ -80,13 +80,13 @@ We do not suggest configuring any static IP addresses in your DNS zones. The Lag
 
 ### Root Domains
 
-Configuring the root domain \(e.g. example.com\) can be a bit tricky because the DNS specification does not allow the root domain to point to a CNAME entry. Depending on your DNS provider, the record name is different:
+Configuring the root domain (e.g. example.com) can be a bit tricky because the DNS specification does not allow the root domain to point to a CNAME entry. Depending on your DNS provider, the record name is different:
 
-* ALIAS at [DNSimple](https://dnsimple.com/)
-* ANAME at [DNS Made Easy](http://www.dnsmadeeasy.com/)
-* ANAME at [easyDNS](https://www.easydns.com/)
-* ALIAS at [PointDNS](https://pointhq.com/)
-* CNAME at [CloudFlare](https://www.cloudflare.com/)
+* ALIAS at [DNSimple](https://dnsimple.com)
+* ANAME at [DNS Made Easy](http://www.dnsmadeeasy.com)
+* ANAME at [easyDNS](https://www.easydns.com)
+* ALIAS at [PointDNS](https://pointhq.com)
+* CNAME at [CloudFlare](https://www.cloudflare.com)
 * CNAME at [NS1](http://ns1.com)
 
 If your DNS provider needs an IP address for the root domain, get in touch with your Lagoon administrator to give you the load balancer IP addresses.
@@ -99,5 +99,4 @@ Lagoon understands the concept of development and production environments. Devel
 
 During project setup, the production environment should already be defined. If that's omitted, your environment will run in development mode. You can check if the environment is set as production environment in the Lagoon user interface. If the production environment is not set, let your Lagoon administrator know, and they will configure the system accordingly.
 
-![The production environment is labelled in green on the left. ](../.gitbook/assets/lagoon-ui-production%20%282%29%20%282%29%20%283%29%20%284%29%20%284%29%20%284%29%20%284%29.png)
-
+![The production environment is labelled in green on the left.](<../.gitbook/assets/lagoon-ui-production (2) (2) (3) (4) (4) (4) (4) (5).png>)

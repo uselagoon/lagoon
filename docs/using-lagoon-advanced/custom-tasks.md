@@ -20,13 +20,13 @@ For instance, in a NodeJS application, you may be interested in running a `yarn 
 
 We have to define where this task will be run -- this means two things, first, which project or environment we'll be running the task in, and, second, which service.
 
-Let's say that we'd like for our `yarn audit` task to be available to run in any environment in a specific project \(let's say the project's ID is 42 for this example\). We will therefore specify the project's id when we create our task definition, as we will describe below.
+Let's say that we'd like for our `yarn audit` task to be available to run in any environment in a specific project (let's say the project's ID is 42 for this example). We will therefore specify the project's id when we create our task definition, as we will describe below.
 
 The second question regards which environment we want to target with our task. When you set up your project, you specify several services in your [docker-compose.yml](../using-lagoon-the-basics/docker-compose-yml.md). We use this service name to determine where the command is actually executed.
 
 ### Who can run this task?
 
-There are three levels of permissions to the task system corresponding to project roles. Guest, Developer, and Maintainer -- from most restrictive to least restrictive, with each role being able to invoke the tasks defined for the lower role \(Developer can see Guest tasks, Maintainers can see all tasks\).
+There are three levels of permissions to the task system corresponding to project roles. Guest, Developer, and Maintainer -- from most restrictive to least restrictive, with each role being able to invoke the tasks defined for the lower role (Developer can see Guest tasks, Maintainers can see all tasks).
 
 ## Defining a task
 
@@ -34,7 +34,7 @@ Tasks are defined by calling the "addAdvancedTaskDefinition" mutation. Important
 
 Schematically, the call looks like this
 
-```text
+```
 mutation addAdvancedTask {
     addAdvancedTaskDefinition(input:{
     name: string,
@@ -68,7 +68,7 @@ Fields `name` and `description` are straightforward. They're simply the name and
 
 The `type` field needs some explanation - for now, only platform admins are able to define `IMAGE` type commands - these allow for the running of specifically created task images as tasks, rather than targeting existing services. Most tasks, though, will be `COMMAND` types.
 
-The `[project|environment]` set of fields will attach the task to either the `project` or `environment` \(depending on the key you use\), with the value being the id. In the case we're considering for our `yarn audit` we will specify we're targeting a `project` with an id of `42`.
+The `[project|environment]` set of fields will attach the task to either the `project` or `environment` (depending on the key you use), with the value being the id. In the case we're considering for our `yarn audit` we will specify we're targeting a `project` with an id of `42`.
 
 We put the service we'd like to target with our task in the `service` field, and `command` is the actual command that we'd like to run.
 
@@ -78,7 +78,7 @@ With the task now defined, the task should now show up in the tasks dropdown in 
 
 We are also able to invoke it via the GraphQL api by using the `invokeTask` mutation.
 
-```text
+```
 mutation invokeTask {
   invokeRegisteredTask(advancedTaskDefinition: int, environment: int) {
     status
@@ -92,7 +92,7 @@ Note that `invokeTask` will always invoke a task on a _specific environment_.
 
 Let's now setup our `yarn audit` example.
 
-```text
+```
 mutation runYarnAudit {
  addAdvancedTaskDefinition(input:{
     name:"Run yarn audit",
@@ -108,9 +108,8 @@ mutation runYarnAudit {
 }
 ```
 
-This, then, will define our task for our project \(42\). When we run this, we will get the id of the task definition back \(for argument's sake, let's say it's `9`\)
+This, then, will define our task for our project (42). When we run this, we will get the id of the task definition back (for argument's sake, let's say it's `9`)
 
 This task will now be available to run from the UI for anyone with the `DEVELOPER` or `MAINTAINER` role.
 
-![Task List](../.gitbook/assets/task-yarn-audit.png)
-
+![Task List](<../.gitbook/assets/task-yarn-audit (1).png>)

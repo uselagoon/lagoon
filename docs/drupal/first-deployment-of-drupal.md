@@ -10,7 +10,7 @@ description: >-
 
 ## 1. Make sure you are all set
 
-In order to make your first deployment a successful one, please make sure that your [Drupal Project is Lagoonized](../using-lagoon-the-basics/setup_project.md) and you have set up the project in Lagoon. If not, don't worry! Follow the [Step-by-Step Guide](step-by-step-getting-drupal-ready-to-run-on-lagoon.md) which show you how this works.
+In order to make your first deployment a successful one, please make sure that your [Drupal Project is Lagoonized](../using-lagoon-the-basics/setup\_project.md) and you have set up the project in Lagoon. If not, don't worry! Follow the [Step-by-Step Guide](step-by-step-getting-drupal-ready-to-run-on-lagoon.md) which show you how this works.
 
 ## 2. Push!
 
@@ -25,13 +25,13 @@ git push
 
 This will trigger a push, and the Git hosting will inform Lagoon about this push via the configured webhook.
 
-If all is correct, you will see a notification in your configured chat system \(this is configured by your friendly Lagoon administrator\):
+If all is correct, you will see a notification in your configured chat system (this is configured by your friendly Lagoon administrator):
 
-![Slack notification of a deployment starting.](../.gitbook/assets/first_deployment_slack_start%20%282%29%20%282%29%20%283%29%20%285%29%20%285%29%20%285%29%20%285%29.jpg)
+![Slack notification of a deployment starting.](<../.gitbook/assets/first\_deployment\_slack\_start (2) (2) (3) (5) (5) (5) (5) (6).jpg>)
 
 This tells you that Lagoon has just started to deploy your code. Depending on the size of the codebase and amount of containers, this will take a couple of seconds. Just relax. If you'd like to know what's happening now, check out the [Build and Deploy Process of Lagoon](../using-lagoon-the-basics/build-and-deploy-process.md).
 
-You can also check your Lagoon UI to see the progress of any deployment \(your Lagoon administrator has the info\).
+You can also check your Lagoon UI to see the progress of any deployment (your Lagoon administrator has the info).
 
 ## 3. A fail
 
@@ -53,7 +53,7 @@ First let's make sure that you can see the Drush site aliases:
 drush sa
 ```
 
-This should return your just deployed environment \(let's assume you just pushed into `develop`\):
+This should return your just deployed environment (let's assume you just pushed into `develop`):
 
 ```bash
 [drupal-example]cli-drupal:/app$ drush sa
@@ -62,7 +62,7 @@ This should return your just deployed environment \(let's assume you just pushed
 default
 ```
 
-With this we can now synchronize the local database \(which is represented in Drush via the site alias `@self`\) with the remote one \(`@develop`\):
+With this we can now synchronize the local database (which is represented in Drush via the site alias `@self`) with the remote one (`@develop`):
 
 ```bash
 drush sql-sync @self @develop
@@ -92,7 +92,7 @@ git push
 
 This time all should be green:
 
-![Deployment Success!](../.gitbook/assets/first_deployment_slack_success%20%282%29%20%282%29%20%282%29%20%282%29%20%282%29%20%282%29%20%282%29%20%282%29.jpg)
+![Deployment Success!](<../.gitbook/assets/first\_deployment\_slack\_success (2) (2) (2) (2) (2) (2) (2) (2) (1).jpg>)
 
 Click on the links in the notification, and you should see your Drupal site loaded in all its beauty! It will probably not have images yet, which we will handle in [Step 6](first-deployment-of-drupal.md#6-synchronize-local-files-to-the-remote-lagoon-environment).
 
@@ -108,7 +108,7 @@ drush rsync @self:%files @develop:%files
 
 It should show you something like:
 
-```text
+```
 [drupal-example]cli-drupal:/app$ drush rsync @self:%files @develop:%files
 You will delete files in drupal-example-develop@ssh.lagoon.amazeeio.cloud:/app/web/sites/default/files and replace with data from /app/web/sites/default/files/
 Do you really want to continue? (y/n): y
@@ -116,26 +116,26 @@ Do you really want to continue? (y/n): y
 
 In some cases, though, it might not look correct, like here:
 
-```text
+```
 [drupal-example]cli-drupal:/app$ drush rsync @self:%files @develop:%files
 You will delete files in drupal-example-develop@ssh.lagoon.amazeeio.cloud:'/app/web/%files' and replace with data from '/app/web/%files'/
 Do you really want to continue? (y/n):
 ```
 
-The reason for that is that the Drupal cannot resolve the path of the files directory. This most probably has to do that the Drupal is not fully configured or has a missing database. For a workaround you can use `drush rsync @self:sites/default/files @develop:sites/default/files`, but we suggest that you actually check your local and remote Drupal \(you can test with `drush status` to see if the files directory is correctly configured\).
+The reason for that is that the Drupal cannot resolve the path of the files directory. This most probably has to do that the Drupal is not fully configured or has a missing database. For a workaround you can use `drush rsync @self:sites/default/files @develop:sites/default/files`, but we suggest that you actually check your local and remote Drupal (you can test with `drush status` to see if the files directory is correctly configured).
 
 ## 6. It's done!
 
 As soon as Lagoon is done building and deploying it will send a second notification to the chat system, like so:
 
-![Slack notification of complete deployment.](../.gitbook/assets/first_deployment_slack_2nd_success.jpg)
+![Slack notification of complete deployment.](<../.gitbook/assets/first\_deployment\_slack\_2nd\_success (1).jpg>)
 
 This tells you:
 
 * Which project has been deployed.
 * Which branch and Git SHA has been deployed.
 * A link to the full logs of the build and deployment.
-* Links to all routes \(URLs\) where the environment can be reached.
+* Links to all routes (URLs) where the environment can be reached.
 
 That's it! We hope that wasn't too hard - making devOps accessible is what we are striving for.
 
@@ -149,4 +149,3 @@ Did the deployment fail? Oh no! But we're here to help:
 
 1. Click on the `logs` link in the error notification. It will tell you where in the deployment process the failure happened.
 2. If you can't figure it out, ask your Lagoon administrator, they are here to help!
-
