@@ -4,5 +4,5 @@ if ! docker -H ${DOCKER_HOST} info &> /dev/null; then
     echo "could not connect to ${DOCKER_HOST}"; exit 1
 fi
 
-# prune all images older than 7 days
-docker image prune -af --filter "until=168h"
+# prune all images older than 7 days or what is specified in the environment variable
+docker image prune -af --filter "until=${PRUNE_IMAGES_UNTIL:-168h}"
