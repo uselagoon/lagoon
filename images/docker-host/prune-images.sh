@@ -6,3 +6,5 @@ fi
 
 # prune all images older than 7 days
 docker image prune -af --filter "until=168h"
+# after old images are pruned, clean up dangling images
+docker image prune -f
