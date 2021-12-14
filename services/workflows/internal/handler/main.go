@@ -109,47 +109,50 @@ func (h *Messaging) Consumer() {
 		action := &Action{}
 		json.Unmarshal(message.Body(), action)
 		switch action.Type {
+
+		// TODO: all this code below will be replaced
 		// check if this a `deployEnvironmentLatest` type of action
 		// and perform the steps to run the mutation against the lagoon api
-		case "deployEnvironmentLatest":
-			// marshal unmarshal the data into the input we need to use when talking to the lagoon api
-			data, _ := json.Marshal(action.Data)
-			deploy := &schema.DeployEnvironmentLatestInput{}
-			json.Unmarshal(data, deploy)
-			token, err := jwt.OneMinuteAdminToken(h.LagoonAPI.TokenSigningKey, h.LagoonAPI.JWTAudience, h.LagoonAPI.JWTSubject, h.LagoonAPI.JWTIssuer)
-			if err != nil {
-				// the token wasn't generated
-				if h.EnableDebug {
-					log.Println(err)
-				}
-				break
-			}
-			l := lclient.New(h.LagoonAPI.Endpoint, token, "actions-handler", false)
-			deployment, err := lagoon.DeployLatest(ctx, deploy, l)
-			if err != nil {
-				// send the log to the lagoon-logs exchange to be processed
-				h.toLagoonLogs(messageQueue, map[string]interface{}{
-					"severity": "error",
-					"event":    fmt.Sprintf("actions-handler:%s:failed", action.EventType),
-					"meta":     deploy,
-					"message":  err.Error(),
-				})
-				if h.EnableDebug {
-					log.Println(err)
-				}
-				break
-			}
-			// send the log to the lagoon-logs exchange to be processed
-			h.toLagoonLogs(messageQueue, map[string]interface{}{
-				"severity": "info",
-				"event":    fmt.Sprintf("actions-handler:%s:started", action.EventType),
-				"meta":     deploy,
-				"message":  fmt.Sprintf("started build: %s", deployment.DeployEnvironmentLatest),
-			})
-			if h.EnableDebug {
-				log.Println(deployment.DeployEnvironmentLatest)
-			}
-		}
+		//case "deployEnvironmentLatest":
+		//	// marshal unmarshal the data into the input we need to use when talking to the lagoon api
+		//	data, _ := json.Marshal(action.Data)
+		//	deploy := &schema.DeployEnvironmentLatestInput{}
+		//	json.Unmarshal(data, deploy)
+		//	token, err := jwt.OneMinuteAdminToken(h.LagoonAPI.TokenSigningKey, h.LagoonAPI.JWTAudience, h.LagoonAPI.JWTSubject, h.LagoonAPI.JWTIssuer)
+		//	if err != nil {
+		//		// the token wasn't generated
+		//		if h.EnableDebug {
+		//			log.Println(err)
+		//		}
+		//		break
+		//	}
+		//	l := lclient.New(h.LagoonAPI.Endpoint, token, "actions-handler", false)
+		//	deployment, err := lagoon.DeployLatest(ctx, deploy, l)
+		//	if err != nil {
+		//		// send the log to the lagoon-logs exchange to be processed
+		//		h.toLagoonLogs(messageQueue, map[string]interface{}{
+		//			"severity": "error",
+		//			"event":    fmt.Sprintf("actions-handler:%s:failed", action.EventType),
+		//			"meta":     deploy,
+		//			"message":  err.Error(),
+		//		})
+		//		if h.EnableDebug {
+		//			log.Println(err)
+		//		}
+		//		break
+		//	}
+		//	// send the log to the lagoon-logs exchange to be processed
+		//	h.toLagoonLogs(messageQueue, map[string]interface{}{
+		//		"severity": "info",
+		//		"event":    fmt.Sprintf("actions-handler:%s:started", action.EventType),
+		//		"meta":     deploy,
+		//		"message":  fmt.Sprintf("started build: %s", deployment.DeployEnvironmentLatest),
+		//	})
+		//	if h.EnableDebug {
+		//		log.Println(deployment.DeployEnvironmentLatest)
+		//	}
+		//}
+		default:
 		message.Ack(false) // ack to remove from queue
 	})
 	if err != nil {

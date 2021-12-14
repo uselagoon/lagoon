@@ -26,8 +26,8 @@ var (
 	lagoonAppID                  string
 	jwtTokenSigningKey           string
 	jwtAudience                  string
-	actionsQueueName             string
-	actionsExchange              string
+	workflowsQueueName           string
+	workflowsExchange            string
 	jwtSubject                   string
 	jwtIssuer                    string
 )
@@ -61,9 +61,9 @@ func main() {
 		"The jwt audience.")
 	flag.StringVar(&jwtIssuer, "jwt-issuer", "actions-handler",
 		"The jwt audience.")
-	flag.StringVar(&actionsQueueName, "actions-queue-name", "lagoon-actions:items",
+	flag.StringVar(&workflowsQueueName, "workflows-queue-name", "lagoon-logs:workflows",
 		"The name of the queue in rabbitmq to use.")
-	flag.StringVar(&actionsExchange, "actions-exchange", "lagoon-actions",
+	flag.StringVar(&workflowsExchange, "workflows-exchange", "lagoon-logs",
 		"The name of the exchange in rabbitmq to use.")
 	flag.Parse()
 
@@ -77,8 +77,8 @@ func main() {
 	jwtAudience = getEnv("JWT_AUDIENCE", jwtAudience)
 	jwtSubject = getEnv("JWT_SUBJECT", jwtSubject)
 	jwtIssuer = getEnv("JWT_ISSUER", jwtIssuer)
-	actionsQueueName = getEnv("ACTIONS_QUEUE_NAME", actionsQueueName)
-	actionsExchange = getEnv("ACTIONS_EXCHANGE", actionsExchange)
+	workflowsQueueName = getEnv("WORKFLOWS_QUEUE_NAME", workflowsQueueName)
+	workflowsExchange = getEnv("WORKFLOWS_EXCHANGE", workflowsExchange)
 
 	enableDebug := true
 
@@ -87,8 +87,8 @@ func main() {
 		Hostname:     fmt.Sprintf("%s:%s", mqHost, mqPort),
 		Username:     mqUser,
 		Password:     mqPass,
-		QueueName:    actionsQueueName,
-		ExchangeName: actionsExchange,
+		QueueName:    workflowsQueueName,
+		ExchangeName: workflowsExchange,
 	}
 	graphQLConfig := handler.LagoonAPI{
 		Endpoint:        lagoonAPIHost,
