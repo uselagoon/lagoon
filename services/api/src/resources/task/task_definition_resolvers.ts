@@ -9,6 +9,8 @@ import {
   TaskRegistration,
   newTaskRegistrationFromObject
 } from './models/taskRegistration';
+import * as advancedTaskArgument from './models/advancedTaskDefinitionArgument'
+import sql from '../user/sql';
 
 const AdvancedTaskDefinitionType = {
   command: 'COMMAND',
@@ -119,8 +121,29 @@ export const resolveTasksForEnvironment = async (
   //@ts-ignore
   rows = R.filter(e => currentUsersPermissionForProject.includes(e.permission), rows);
 
+
+
+  let typeValidatorFactory = advancedTaskArgument.advancedTaskDefinitionTypeFactory(sqlClientPool, null, environment);
+  // TODO: this needs to be somehow refactored into all lookups.
+  // we might need a "load task" function or something.
+  for(let i = 0; i < rows.length; i++ ) {
+    //@ts-ignore
+    let argsForTask = await advancedTaskFunctions(sqlClientPool).advancedTaskDefinitionArguments(rows[i].id);
+    let processedArgs = [];
+    for(let i = 0; i < argsForTask.length; i++) {
+      let processing = argsForTask[i];
+      let validator: advancedTaskArgument.ArgumentBase = typeValidatorFactory(processing.type);
+      processing.range = await validator.getArgumentRange();
+      processedArgs.push(processing);
+    }
+
+    //@ts-ignore
+    rows[i].advancedTaskDefinitionArguments = processedArgs;
+  }
+
   return rows;
 };
+
 
 const currentUsersAdvancedTaskRBACRolesForProject = async (
   hasPermission,
@@ -164,22 +187,27 @@ export const advancedTaskDefinitionArgumentById = async (
 export const addAdvancedTaskDefinition = async (
   root,
   {
-    input: {
-      name,
-      description,
-      image = '',
-      type,
-      service,
-      command,
-      project,
-      groupName,
-      environment,
-      permission,
-      created
-    }
+    input
   },
   { sqlClientPool, hasPermission, models }
 ) => {
+
+
+  let {
+    name,
+    description,
+    image = '',
+    type,
+    service,
+    command,
+    project,
+    groupName,
+    environment,
+    permission,
+    advancedTaskDefinitionArguments,
+    created
+  } = input;
+
   let projectObj = await getProjectByEnvironmentIdOrProjectId(
     sqlClientPool,
     environment,
@@ -304,6 +332,21 @@ export const addAdvancedTaskDefinition = async (
     })
   );
 
+  //now attach arguments
+  if(advancedTaskDefinitionArguments) {
+    for(let i = 0; i < advancedTaskDefinitionArguments.length; i++) {
+      await query(
+        sqlClientPool,
+        Sql.insertAdvancedTaskDefinitionArgument({
+          id: null,
+          advanced_task_definition: insertId,
+          name: advancedTaskDefinitionArguments[i].name,
+          type: advancedTaskDefinitionArguments[i].type
+        })
+      );
+    }
+  }
+
   return await advancedTaskFunctions(sqlClientPool).advancedTaskDefinitionById(
     insertId
   );
@@ -327,7 +370,7 @@ const getProjectByEnvironmentIdOrProjectId = async (
 
 export const invokeRegisteredTask = async (
   root,
-  { advancedTaskDefinition, environment },
+  { advancedTaskDefinition, environment, argumentValues },
   { sqlClientPool, hasPermission, models }
 ) => {
   await envValidators(sqlClientPool).environmentExists(environment);
@@ -340,6 +383,34 @@ export const invokeRegisteredTask = async (
     models
   );
 
+
+  //here we want to validate the incoming arguments
+  let taskArgs = await advancedTaskFunctions(sqlClientPool).advancedTaskDefinitionArguments(task.id);
+
+  //let's grab something that'll be able to tell us whether our arguments
+  //are valid
+  const typeValidatorFactory = advancedTaskArgument.advancedTaskDefinitionTypeFactory(sqlClientPool, task, environment);
+
+  if(argumentValues) {
+    for(let i = 0; i < argumentValues.length; i++) {
+      //grab the type for this one
+      let {advancedTaskDefinitionArgumentName, value} = argumentValues[i];
+      let taskArgDef = R.find(R.propEq('name', advancedTaskDefinitionArgumentName))(taskArgs);
+      if(!taskArgDef) {
+        throw new Error(`Cannot find argument type named ${advancedTaskDefinitionArgumentName}`);
+      }
+
+      //@ts-ignore
+      let validator: advancedTaskArgument.ArgumentBase = typeValidatorFactory(taskArgDef.type);
+
+      if(!(await validator.validateInput(value))) {
+        //@ts-ignore
+        throw new Error(`Invalid input "${value}" for type "${taskArgDef.type}" given for argument "${advancedTaskDefinitionArgumentName}"`);
+      }
+    };
+  }
+
+
   const environmentDetails = await environmentHelpers(
     sqlClientPool
   ).getEnvironmentById(environment);
@@ -350,18 +421,41 @@ export const invokeRegisteredTask = async (
 
   switch (task.type) {
     case TaskRegistration.TYPE_STANDARD:
+
+      let taskCommandEnvs = '';
+
+      if(argumentValues) {
+        taskCommandEnvs = R.reduce((acc, val) => {
+          //@ts-ignore
+          return `${acc} ${val.advancedTaskDefinitionArgumentName}="${val.value}"`
+        }, taskCommandEnvs, argumentValues);
+      }
+
+
+      let taskCommand = `${taskCommandEnvs}; ${task.command}`;
+
       const taskData = await Helpers(sqlClientPool).addTask({
         name: task.name,
         environment: environment,
         service: task.service,
-        command: task.command,
+        command: taskCommand,
         execute: true
       });
       return taskData;
       break;
     case TaskRegistration.TYPE_ADVANCED:
       // the return data here is basically what gets dropped into the DB.
-      // what we can do
+
+      // get any arguments ready for payload
+      let payload = {};
+      if(argumentValues) {
+        for(let i = 0; i < argumentValues.length; i++) {
+          //@ts-ignore
+          payload[argumentValues[i].advancedTaskDefinitionArgumentName] = argumentValues[i].value;
+        }
+      }
+
+
       const advancedTaskData = await Helpers(sqlClientPool).addAdvancedTask({
         name: task.name,
         created: undefined,
@@ -370,7 +464,7 @@ export const invokeRegisteredTask = async (
         environment,
         service: task.service || 'cli',
         image: task.image, //the return data here is basically what gets dropped into the DB.
-        payload: [],
+        payload: payload,
         remoteId: undefined,
         execute: true
       });
@@ -455,6 +549,11 @@ export const deleteAdvancedTaskDefinition = async (
   await hasPermission('task', 'delete', {
     project: R.path(['0', 'pid'], rows)
   });
+
+  await query(
+    sqlClientPool,
+    Sql.deleteAdvancedTaskDefinitionArgumentsForTask(advancedTaskDefinition)
+  );
 
   await query(
     sqlClientPool,
