@@ -1348,6 +1348,25 @@ const typeDefs = gql`
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgumentInput]
   }
 
+  input UpdateAdvancedTaskDefinitionInput {
+    id: Int!
+    patch: UpdateAdvancedTaskDefinitionPatchInput!
+  }
+
+  input UpdateAdvancedTaskDefinitionPatchInput {
+    name: String
+    description: String
+    image: String
+    type: AdvancedTaskDefinitionTypes
+    service: String
+    command: String
+    environment: Int
+    project: Int
+    groupName: String
+    permission: TaskPermission
+    advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgumentInput]
+  }
+
   input DeleteTaskInput {
     id: Int!
   }
@@ -1963,6 +1982,7 @@ const typeDefs = gql`
     deleteEnvVariable(input: DeleteEnvVariableInput!): String
     addTask(input: TaskInput!): Task
     addAdvancedTaskDefinition(input: AdvancedTaskDefinitionInput!): AdvancedTaskDefinition
+    updateAdvancedTaskDefinition(input: UpdateAdvancedTaskDefinitionInput!): AdvancedTaskDefinition
     invokeRegisteredTask(advancedTaskDefinition: Int!, environment: Int!, argumentValues: [AdvancedTaskDefinitionArgumentValueInput]): Task
     deleteAdvancedTaskDefinition(advancedTaskDefinition: Int!): String
     taskDrushArchiveDump(environment: Int!): Task

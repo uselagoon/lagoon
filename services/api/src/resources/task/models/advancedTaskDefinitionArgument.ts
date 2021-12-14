@@ -1,14 +1,4 @@
-
-
-// class AdvancedTaskDefinitionArgument {
-//     constructor
-
-import { sqlClientPool } from "../../../clients/sqlClient";
-import { advancedTaskDefinitionArgumentById } from "../task_definition_resolvers";
-import { Helpers as environmentHelpers } from '../../environment/helpers';
-import { Helpers as projectHelpers } from '../../project/helpers';
-import { Helpers } from "../../project/helpers";
-import { isPatchEmpty, query, knex } from '../../../util/db';
+import { query } from '../../../util/db';
 import * as R from 'ramda';
 
 export class ArgumentBase {
