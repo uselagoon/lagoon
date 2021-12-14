@@ -188,7 +188,7 @@ export const addAdvancedTaskDefinition = async (
   {
     input
   },
-  { sqlClientPool, hasPermission, models }
+  { sqlClientPool, hasPermission, models, userActivityLogger }
 ) => {
 
   const {
@@ -295,6 +295,14 @@ export const addAdvancedTaskDefinition = async (
     }
   }
 
+  userActivityLogger(`User added advanced task definition '${name}'`, {
+      project: project,
+      event: 'api:updateTaskDefinition',
+      payload: {
+        taskDef: insertId
+      }
+    });
+
   return await advancedTaskFunctions(sqlClientPool).advancedTaskDefinitionById(
     insertId
   );
@@ -382,6 +390,14 @@ export const updateAdvancedTaskDefinition = async (
         );
       }
     }
+
+    userActivityLogger(`User updated advanced task definition '${id}'`, {
+      project: project,
+      event: 'api:updateTaskDefinition',
+      payload: {
+        taskDef: id
+      }
+    });
 
     return await advancedTaskFunctions(sqlClientPool).advancedTaskDefinitionById(id);
   } catch (error) {
