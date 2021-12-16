@@ -1,6 +1,7 @@
-import { WorkflowInterface } from "../../models/workflows"
+import { WorkflowInterface, WorkflowInputInterface } from "../../models/workflows";
 import Sql from "./sql";
-import { query } from '../../util/db';
+import { query, isPatchEmpty } from '../../util/db';
+import { ResolverFn } from '../';
 import { Helpers as projectHelpers } from '../project/helpers';
 
 // Here we abstract permissions in case we want to change the underlying functionality later
@@ -17,6 +18,9 @@ class WorkflowPermissionHandler {
   async canViewWorkflowForProject(projectId: number) {
     return true;
   }
+  async canDeleteWorkflow() {
+    return await this.hasPermissions('advanced_task', 'delete:advanced');
+  }
 }
 
 
@@ -28,27 +32,127 @@ extras
   return await resolveWorkflowsForEnvironment({}, {environment: id}, extras);
 }
 
-export const addWorkflow = async (
+export const addWorkflow: ResolverFn = async (
     root,
     { input },
-    { sqlClientPool, hasPermission, models }
+    { sqlClientPool, hasPermission, models, userActivityLogger }
 ) => {
   const perms = new WorkflowPermissionHandler(hasPermission);
 
   perms.canCreateWorkflow();
 
   const { insertId } = await query(
-        sqlClientPool,
-        Sql.insertWorkflow(input)
-      );
+    sqlClientPool,
+    Sql.insertWorkflow(input)
+  );
 
-    let workflowObj = await query(
-        sqlClientPool,
-        Sql.selectWorkflowById(insertId)
-    );
-    return workflowObj[0];
+  let workflowObj = await query(
+    sqlClientPool,
+    Sql.selectWorkflowById(insertId)
+  );
+
+  userActivityLogger(`User added a workflow '${insertId}'`, {
+    project: input.project || '',
+    event: 'api:addWorkflow',
+    payload: {
+      data: {
+        name: input.name,
+        event: input.event,
+        project: input.project,
+        advanced_task_definition: input.advancedTaskDefinition
+      }
+    }
+  });
+
+  return workflowObj[0];
 }
 
+export const updateWorkflow: ResolverFn = async (
+  root,
+  {
+    input: {
+      id,
+      patch,
+      patch: {
+        name,
+        event,
+        project,
+        advanced_task_definition: advancedTaskDefinition,
+      }
+    }
+  }: { input: { id: number, patch: WorkflowInputInterface } },
+  { sqlClientPool, hasPermission, models, userActivityLogger }
+) => {
+  if (isPatchEmpty({ patch })) {
+    throw new Error('Input patch requires at least 1 attribute');
+  }
+
+  const perms = new WorkflowPermissionHandler(hasPermission);
+  perms.canCreateWorkflow();
+
+  await query(
+    sqlClientPool,
+    Sql.updateWorkflow({
+      id,
+      patch: {
+        name,
+        event,
+        project,
+        advanced_task_definition: advancedTaskDefinition,
+      }
+    })
+  );
+
+  let workflowObj = await query(
+      sqlClientPool,
+      Sql.selectWorkflowById(id)
+  );
+
+  userActivityLogger(`User updated a workflow '${id}'`, {
+    project: project || '',
+    event: 'api:updateWorkflow',
+    payload: {
+      id: id,
+      patch: {
+        name,
+        event,
+        project,
+        advanced_task_definition: advancedTaskDefinition
+      }
+    }
+  });
+
+  return workflowObj[0];
+}
+
+export const deleteWorkflow: ResolverFn = async (
+  root,
+  { input: { id } },
+  { sqlClientPool, hasPermission, models, userActivityLogger }
+) => {
+  const perms = new WorkflowPermissionHandler(hasPermission);
+  perms.canDeleteWorkflow();
+
+  let workflowObj = await query(
+      sqlClientPool,
+      Sql.selectWorkflowById(id)
+  );
+
+  if (workflowObj[0] == "undefined" || workflowObj[0] == null) {
+    throw new Error('Workflow not found');
+  }
+
+  try {
+    await query(
+      sqlClientPool,
+      Sql.deleteWorkflow(id)
+    );
+
+    return `successfully deleted workflow ${id}`;
+  } catch (error) {
+    return `failed to delete workflow: ${error}`;
+  }
+}
 
 export const resolveAdvancedTaskDefinitionsForWorkflow = async(root, parameters, meta) => {
   const { id: workflowId } = root;
@@ -74,17 +178,3 @@ export const resolveWorkflowsForEnvironment = async (
 
     return workflowObjs;
   }
-
-
-const saveWorkflow = (workflow: WorkflowInterface) => {
-    //Save the workflow itself
-
-    //Save each of the jobs
-
-}
-
-const deleteWorkflow = () => {
-
-
-
-}

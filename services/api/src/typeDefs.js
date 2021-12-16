@@ -192,16 +192,35 @@ const typeDefs = gql`
 
   type Workflow {
     id: Int
+    name: String
     event: String
     project: Int
     advancedTaskDefinition: AdvancedTaskDefinition
   }
 
   input AddWorkflowInput {
+    name: String
     event: String
     project: Int
     advancedTaskDefinition: Int
   }
+
+  input DeleteWorkflowInput {
+    id: Int!
+  }
+
+  input UpdateWorkflowPatchInput {
+    name: String
+    event: String
+    project: Int
+    advancedTaskDefinition: Int
+  }
+
+  input UpdateWorkflowInput {
+    id: Int!
+    patch: UpdateWorkflowPatchInput!
+  }
+
 
   type Problem {
     id: Int
@@ -2007,6 +2026,8 @@ const typeDefs = gql`
     invokeRegisteredTask(advancedTaskDefinition: Int!, environment: Int!, argumentValues: [AdvancedTaskDefinitionArgumentValueInput]): Task
     deleteAdvancedTaskDefinition(advancedTaskDefinition: Int!): String
     addWorkflow(input: AddWorkflowInput!): Workflow
+    updateWorkflow(input: UpdateWorkflowInput): Workflow
+    deleteWorkflow(input: DeleteWorkflowInput!): String
     taskDrushArchiveDump(environment: Int!): Task
     taskDrushSqlDump(environment: Int!): Task
     taskDrushCacheClear(environment: Int!): Task
