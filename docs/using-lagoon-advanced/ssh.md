@@ -1,7 +1,3 @@
----
-description: A handy guide to using SSH with Lagoon
----
-
 # SSH
 
 Lagoon allows you to connect to your running containers via SSH. The containers themselves don't actually have an SSH server installed, but instead you connect via SSH to Lagoon, which then itself creates a remote shell connection via the Kubernetes API for you.
@@ -14,15 +10,15 @@ It is recommended to generate a separate SSH key for each device as opposed to s
 
 **OSX (Mac)**
 
-{% embed url="https://www.makeuseof.com/ssh-keygen-mac" %}
+[Mac](https://www.makeuseof.com/ssh-keygen-mac){ .md-button }
 
 #### Linux (Ubuntu)
 
-{% embed url="https://help.ubuntu.com/community/SSH/OpenSSH/Keys" %}
+[Linux](https://help.ubuntu.com/community/SSH/OpenSSH/Keys){ .md-button }
 
 #### Windows
 
-{% embed url="https://docs.microsoft.com/en-us/windows-server/administration/openssh/openssh_keymanagement" %}
+[Windows](https://docs.microsoft.com/en-us/windows-server/administration/openssh/openssh_keymanagement){ .md-button }
 
 ### SSH Agent
 
@@ -46,15 +42,15 @@ You can upload your SSH key(s) through the UI. Login as you normally would.&#x20
 
 In the upper right hand corner, click on Settings:
 
-![Click "Settings" in the upper right hand corner](<../.gitbook/assets/drupal-example  Project 2021-11-18 19-03-22.png>)
+![Click "Settings" in the upper right hand corner](./drupal-example project 2021-11-18 19-03-22.png)
 
 You will then see a page where you can upload your SSH key(s), and it will show any uploaded keys. Paste your key into the text box, give it a name, and click "Add." That's it! Add additional keys as needed.
 
-![Paste your key into the text box. ](<../.gitbook/assets/Settings 2021-11-18 19-03-48.png>)
+![Paste your key into the text box.](./settings 2021-11-18 19-03-48.png)
 
 ### Via Command Line
 
-A general example of using the Lagoon API via GraphQL to add an SSH key to a user can be found here: [https://docs.lagoon.sh/lagoon/administering-lagoon/graphql-queries#allowing-access-to-the-project](https://docs.lagoon.sh/lagoon/administering-lagoon/graphql-queries#allowing-access-to-the-project)
+A general example of using the Lagoon API via GraphQL to add an SSH key to a user can be found [here](../administering-lagoon/graphql-queries.md#allowing-access-to-the-project)
 
 ## SSH into a pod
 

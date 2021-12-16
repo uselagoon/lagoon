@@ -10,22 +10,16 @@ description: MariaDB is the open source successor to MySQL.
 
 For improved reliability, MariaDB can be used in a cluster for production sites. This example, when placed in `.lagoon.yml` will enable Galera on the `production` branch.
 
-{% tabs %}
-{% tab title=".lagoon.yml" %}
-```yaml
+```yaml title=".lagoon.yml"
 environments:
   production:
     types:
       mariadb: mariadb-galera
 ```
-{% endtab %}
-{% endtabs %}
 
 Also, you will need to change your service definition in your `docker-compose.yml`
 
-{% tabs %}
-{% tab title="docker-compose.yml" %}
-```yaml
+```yaml title="docker-compose.yml"
   mariadb:
     image: amazeeio/mariadb-galera-drupal
     labels:
@@ -35,8 +29,6 @@ Also, you will need to change your service definition in your `docker-compose.ym
     environment:
       << : *default-environment
 ```
-{% endtab %}
-{% endtabs %}
 
 It is recommended that you configure the environment _before_ the initial deploy of the production site, otherwise manual intervention may be needed from your Lagoon administrator.
 
@@ -70,26 +62,21 @@ $ docker-compose port mariab 3306
 0.0.0.0:32797
 ```
 
-## Setting a static port \(not recommended\)
+## Setting a static port (not recommended)
 
 During development, if you are using an external database tool, it may become cumbersome to continually check and set the MySQL connection port.
 
 To set a static port, edit your service definition in your `docker-compose.yml`.
 
-{% tabs %}
-{% tab title="docker-compose.yml" %}
-```yaml
+```yaml title="docker-compose.yml"
   mariadb:
     ...
     ports:
       - "33772:3306" # Exposes port 3306 with a 33772 on the host port. Note by doing this you are responsible for managing port collisions`.
 ```
-{% endtab %}
-{% endtabs %}
 
-{% hint style="warning" %}
-By setting a static port you become responsible for managing port collisions.
-{% endhint %}
+!!! warning "Warning:"
+    By setting a static port you become responsible for managing port collisions.
 
 ### Connect to MySQL
 
@@ -102,4 +89,3 @@ Now you can use these details to connect to whatever database management tool yo
 | Username | `drupal` | `drupal` |
 | Password | `drupal` | `drupal` |
 | Database | `drupal` | `drupal` |
-

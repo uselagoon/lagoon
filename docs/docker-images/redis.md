@@ -10,16 +10,19 @@ This Dockerfile is intended to be used to set up a standalone Redis _ephemeral_ 
 * 6 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/redis/6.Dockerfile) - `uselagoon/redis-6` or `uselagoon/redis-6-persistent`
 
 ## Usage
-There are 2 different Flavours of Redis Images. **Ephemeral** and **Persistent**.
+
+There are 2 different flavors of Redis Images. **Ephemeral** and **Persistent**.
 
 ### Ephemeral
+
 The ephemeral image is intended to be used as an in-memory cache for applications and will not retain data across container restarts.
 If used as in-memory cache the first thing you might want to tune if you are having big caches is to adapt the `MAXMEMORY` variable to bump the allowed memory usage to a value your application is working well.
 If used as in-memory cache the first thing you might want to tune if you are having big caches is to adapt the `MAXMEMORY` variable to bump the allowed memory usage to a value your application is working well.
 
 ### Persistent
-The persistent Redis image will persist data across container restarts and can be used for Queues or application data that will need persistence.
-We don't suggest to use the persistent image for in-memory cache scenarios as this might have side-effects on your application while a redis container is restarting or persisting data to disk.
+
+The persistent Redis image will persist data across container restarts and can be used for queues or application data that will need persistence.
+We don't suggest to use the persistent image for in-memory cache scenarios as this might have side-effects on your application while a Redis container is restarting or persisting data to disk.
 
 ## Lagoon adaptions
 
@@ -30,7 +33,7 @@ This image is prepared to be used on Lagoon. There are therefore some things alr
 
 ## Included `redis.conf` configuration file
 
-The image ships a _default_ Redis configuration file, optimized to work on Lagoon. Some options are configurable via environments variables \(see [Environment Variables](../../using-lagoon-advanced/environment-variables.md)\).
+The image ships a _default_ Redis configuration file, optimized to work on Lagoon. Some options are configurable via environments variables \(see [Environment Variables](../using-lagoon-advanced/environment-variables.md)\).
 
 ## Environment Variables
 
@@ -43,10 +46,8 @@ Environment variables defined in Redis base image. See also [https://raw.githubu
 | `MAXMEMORY`          | 100mb    | Maximum amount of memory                                                                  |
 | `REDIS_PASSWORD`     | disabled | Enables [authentication feature](https://redis.io/topics/security#authentication-feature) |
 
-
-# Redis-persistent
+## Redis-persistent
 
 The [Lagoon `redis-persistent` Docker image](https://github.com/uselagoon/lagoon-images/blob/main/images/redis-persistent/5.Dockerfile). Based on the [Lagoon `redis` image](./), it is intended for use if the Redis service must be in `persistent` mode \(ie. with a persistent volume where transactions will be saved\).
 
-It differs from `redis` only for `FLAVOR` environment variable which will use the [respective redis configurations](https://github.com/uselagoon/lagoon-images/tree/main/images/redis/conf).
-
+It differs from `redis` only for `FLAVOR` environment variable which will use the [respective Redis configurations](https://github.com/uselagoon/lagoon-images/tree/main/images/redis/conf).
