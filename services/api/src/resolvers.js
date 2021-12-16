@@ -251,6 +251,8 @@ const {
 
 const {
   addWorkflow,
+  updateWorkflow,
+  deleteWorkflow,
   resolveWorkflowsForEnvironment,
   getWorkflowsByEnvironmentId,
   resolveAdvancedTaskDefinitionsForWorkflow,
@@ -586,6 +588,8 @@ const resolvers = {
     deleteBillingModifier,
     deleteAllBillingModifiersByBillingGroup,
     addWorkflow,
+    updateWorkflow,
+    deleteWorkflow,
     addDeployTargetConfig,
     deleteDeployTargetConfig,
     updateDeployTargetConfig,

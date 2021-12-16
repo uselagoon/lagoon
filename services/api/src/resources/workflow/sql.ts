@@ -1,14 +1,26 @@
-import { WorkflowInterface } from '../../models/workflows';
+import { WorkflowInterface, WorkflowInputInterface } from '../../models/workflows';
 import { knex } from '../../util/db';
 
 export default {
     insertWorkflow: (workflow: WorkflowInterface): string => {
         return knex("workflow").insert({
+            name: workflow.name,
             event: workflow.event,
             advanced_task_definition: workflow.advancedTaskDefinition,
             project: workflow.project
         }).toString();
     },
+    updateWorkflow: ({ id, patch }: { id: number; patch: WorkflowInputInterface }): string => {
+      return knex("workflow")
+        .where('id', id)
+        .update(patch)
+        .toString();
+    },
+    deleteWorkflow: (id: number) =>
+      knex('workflow')
+        .where('id', id)
+        .del()
+        .toString(),
     saveWorkflowJobs: (workflow: WorkflowInterface) => {
 
     },
