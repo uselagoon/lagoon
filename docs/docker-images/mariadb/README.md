@@ -2,7 +2,7 @@
 
 MariaDB is the open source successor to MySQL.
 
-The [Lagoon `MariaDB` image Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/Dockerfile). Based on the official packages `mariadb` and `mariadb-client` provided by the `alpine:3.8` image.
+The [Lagoon `MariaDB` image Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.5.Dockerfile). Based on the official packages `mariadb` and `mariadb-client` provided by the `alpine:3.8` image.
 
 This Dockerfile is intended to be used to set up a standalone MariaDB database server.
 
@@ -46,4 +46,3 @@ Environment variables defined in MariaDB base image:
 | `MARIADB_COPY_DATA_DIR_SOURCE` | unset | Path which the entrypoint script of mariadb will use to copy into the defined `MARIADB_DATA_DIR`, this can be used for prepopulating the MariaDB with a database. The scripts expects actual MariaDB data files and not a sql file! Plus it only copies data if the destination does not already have a mysql datadir in it. |
 
 If the `LAGOON_ENVIRONMENT_TYPE` variable is set to `production`, performances are set accordingly by using `MARIADB_INNODB_BUFFER_POOL_SIZE=1024` and `MARIADB_INNODB_LOG_FILE_SIZE=256`.
-

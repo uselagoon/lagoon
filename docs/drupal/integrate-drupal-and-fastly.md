@@ -193,4 +193,3 @@ $settings['reverse_proxy_header'] = 'HTTP_TRUE_CLIENT_IP';
 ```text
 $conf['reverse_proxy_header'] = 'HTTP_TRUE_CLIENT_IP';
 ```
-
