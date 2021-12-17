@@ -6,18 +6,18 @@ Containers \(or pods\) started from `cli` images are responsible for building co
 
 The image also contains database `cli`s for both MariaDB and PostgreSQL.
 
-{% hint style="info" %}
-This Dockerfile is intended to be used as a base for any `cli` needs within Lagoon.
-{% endhint %}
+!!! Note "Note:"
+    This Dockerfile is intended to be used as a base for any `cli` needs within Lagoon.
 
 ## Supported versions
 
 * 5.6 \(available for compatibility, no longer officially supported\)
 * 7.0 \(available for compatibility, no longer officially supported\)
 * 7.2 \(available for compatibility, no longer officially supported\)
-* 7.3 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/7.3.Dockerfile) - `uselagoon/php-7.3-cli`
+* 7.3 \(available for compatibility, no longer officially supported\)
 * 7.4 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/7.4.Dockerfile) - `uselagoon/php-7.4-cli`
 * 8.0 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/8.0.Dockerfile) - `uselagoon/php-8.0-cli`
+* 8.0 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/8.1.Dockerfile) - `uselagoon/php-8.1-cli`
 
 All PHP versions use their own Dockerfiles.
 
@@ -67,4 +67,3 @@ service:
     environment:
     << : *default-environment
 ```
-

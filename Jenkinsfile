@@ -108,7 +108,7 @@ pipeline {
         stage ('2: run second test suite') {
           steps {
             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                sh script: "make -j$NPROC kind/retest TESTS=[dbaas,gitlab,github,bitbucket,node] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running second test suite on kind cluster"
+                sh script: "make -j$NPROC kind/retest TESTS=[gitlab,github,bitbucket,python,node-mongodb,elasticsearch,image-cache] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running second test suite on kind cluster"
             }
             sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-2 log after test completion"
           }
@@ -128,7 +128,7 @@ pipeline {
         stage ('3: run third test suite') {
           steps {
             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                sh script: "make -j$NPROC kind/retest TESTS=[drush,node-various,python] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running third test suite on kind cluster"
+                sh script: "make -j$NPROC kind/retest TESTS=[drupal-php80,drupal-postgres,drush] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running third test suite on kind cluster"
             }
             sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-3 log after test completion"
           }

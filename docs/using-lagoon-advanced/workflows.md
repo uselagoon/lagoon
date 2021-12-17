@@ -48,9 +48,7 @@ Automatic pull request environments are a fantastic thing. But it would also be 
 
 The following example will sync the staging database on the first rollout of the pull request environment:
 
-{% tabs %}
-{% tab title=".lagoon.yml" %}
-```yaml
+```yaml title=".lagoon.yml"
 tasks:
   post-rollout:
     - run:
@@ -62,8 +60,6 @@ tasks:
         service: cli
         shell: bash
 ```
-{% endtab %}
-{% endtabs %}
 
 ## Promotion
 

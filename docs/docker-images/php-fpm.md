@@ -8,24 +8,23 @@ The [Lagoon `php-fpm` Docker image](https://github.com/uselagoon/lagoon-images/b
 >
 > FastCGI is a way of having server scripts execute time-consuming code just once instead of every time the script is loaded, reducing overhead.
 
-{% hint style="info" %}
-This Dockerfile is intended to be used as a base for any `PHP` needs within Lagoon. This image itself does not create a web server, rather a `php-fpm` fastcgi listener. You may need to adapt the `php-fpm` pool config.
-{% endhint %}
+!!! Note "Note:"
+    This Dockerfile is intended to be used as a base for any `PHP` needs within Lagoon. This image itself does not create a web server, rather a `php-fpm` fastcgi listener. You may need to adapt the `php-fpm` pool config.
 
 ## Supported versions
 
 * 5.6 \(available for compatibility, no longer officially supported\)
 * 7.0 \(available for compatibility, no longer officially supported\)
 * 7.2 \(available for compatibility, no longer officially supported\)
-* 7.3 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/7.3.Dockerfile) (End of Life 6 December 2020)
-* 7.4 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/7.4.Dockerfile) (End of Life 28 November 2021)  - `uselagoon/php-7.4-fpm`
-* 8.0 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/8.0.Dockerfile) - `uselagoon/php-8.0-fpm`
+* 7.3 \(available for compatibility, no longer officially supported\)
+* 7.4 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/7.4.Dockerfile) (Security Support until 28 November 2022) - `uselagoon/php-7.4-fpm`
+* 8.0 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/8.0.Dockerfile) (Security Support until 26 November 2023) - `uselagoon/php-8.0-fpm`
+* 8.1 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/8.1.Dockerfile) (Security Support until 25 November 2024) - `uselagoon/php-8.1-fpm`
 
 All PHP versions use their own Dockerfiles.
 
-{% hint style="info" %}
-We stop updating End of Life \(EOL\) PHP images usually with the Lagoon release that comes after the officially communicated EOL date: [https://www.php.net/supported-versions.php](https://www.php.net/supported-versions.php).
-{% endhint %}
+!!! Note "Note:"
+    We stop updating End of Life \(EOL\) PHP images usually with the Lagoon release that comes after the officially communicated EOL date: [https://www.php.net/supported-versions.php](https://www.php.net/supported-versions.php).
 
 ## Lagoon adaptions
 
@@ -36,7 +35,7 @@ This image is prepared to be used on Lagoon. There are therefore some things are
 * See the [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/7.4.Dockerfile) for installed `PHP` extensions.
 * To install further extensions, extend your Dockerfile from this image. Install extensions according to the docs, under the heading [How to install more PHP extensions.](https://github.com/docker-library/docs/blob/master/php/README.md#how-to-install-more-php-extensions)
 
-## Included PHP config.
+## Included PHP config
 
 The included `PHP` config contains sensible values that will make the creation of `PHP` pools config easier. Here is a list of some of these. Check `/usr/local/etc/php.ini`, `/usr/local/etc/php-fpm.conf` for all of them:
 
@@ -87,8 +86,8 @@ Environment variables are meant to contain common information for the PHP contai
 | `NEWRELIC_ENABLED` | `false` | Enable NewRelic performance monitoring, needs `NEWRELIC_LICENSE` be configured. |
 | `NEWRELIC_LICENSE` | \(not set\) | NewRelic license to be used, Important: `NEWRELIC_ENABLED` needs to be set to`true` in order for NewRelic to be enabled. |
 | `NEWRELIC_BROWSER_MONITORING_ENABLED` | `true` | This enables auto-insertion of the JavaScript fragments for NewRelic browser monitoring, Important: `NEWRELIC_ENABLED` needs to be set to`true` in order for NewRelic to be enabled. |
-| `PHP_APC_ENABLED` | `1` | Can be set to 0 to disable APC. [See php.net](http://php.net/manual/en/apc.configuration.php#ini.apc.enabled). |
-| `PHP_APC_SHM_SIZE` | `32m` | The size of each shared memory segment given. [See php.net](http://php.net/manual/en/apc.configuration.php#ini.apc.shm-size). |
+| `PHP_APC_ENABLED` | `1` | Can be set to 0 to disable APC. [See php.net](https://www.php.net/manual/en/apcu.configuration.php#ini.apcu.enabled). |
+| `PHP_APC_SHM_SIZE` | `32m` | The size of each shared memory segment given. [See php.net](https://www.php.net/manual/en/apcu.configuration.php#ini.apcu.shm-size). |
 | `PHP_DISPLAY_ERRORS` | `Off` | This determines whether errors should be printed to the screen as part of the output or if they should be hidden from the user. [See php.net](http://php.net/display-errors). |
 | `PHP_DISPLAY_STARTUP_ERRORS` | `Off` | Even when `PHP_DISPLAY_ERRORS` is on, errors that occur during PHP's startup sequence are not displayed. It's strongly recommended to keep it off, except for debugging. [See php.net](http://php.net/display-startup-errors). |
 | `PHP_ERROR_REPORTING` | Production: `E_ALL & ~E_DEPRECATED & ~E_STRICT` Development: `E_ALL & ~E_DEPRECATED & ~E_STRICT & ~E_NOTICE` | The desired logging level you'd like PHP to use. [See php.net](https://www.php.net/manual/en/function.error-reporting.php). |
@@ -102,5 +101,4 @@ Environment variables are meant to contain common information for the PHP contai
 | `PHP_MAX_FILE_UPLOADS` | `20` | The maximum number of files allowed to be uploaded simultaneously. [See php.net](http://php.net/manual/en/ini.core.php#ini.max-file-uploads). |
 | `PHP_MAX_INPUT_VARS` | `2000` | How many input variables will be accepted. [See php.net](http://php.net/manual/en/info.configuration.php#ini.max-input-vars). |
 | `PHP_MEMORY_LIMIT` | `400M` | Maximum amount of memory a script may consume. [See php.net](http://php.net/memory-limit). |
-| `XDEBUG_ENABLE` | \(not set\) | Used to enable `xdebug` extension. [See php.net](http://php.net/manual/en/apc.configuration.php#ini.apc.enabled). |
-
+| `XDEBUG_ENABLE` | \(not set\) | Used to enable `xdebug` extension. |

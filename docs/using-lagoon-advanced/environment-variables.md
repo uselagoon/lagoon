@@ -139,15 +139,11 @@ If you have environment variables that can safely be saved within a Git reposito
 
 The syntax in the environment files is as following:
 
-{% tabs %}
-{% tab title="myenvironment.env" %}
-```bash
+```bash title="myenvironment.env"
 MYVARIABLENAME="MyVariableValue"
 MVARIABLENUMBER=4242
 DB_USER=$DB_USERNAME # Redefine DB_USER with the value of DB_USERNAME e.g. if your application expects another variable name for the Lagoon-provided variables.
 ```
-{% endtab %}
-{% endtabs %}
 
 ### `.lagoon.env.$BRANCHNAME`
 
@@ -222,4 +218,3 @@ An example custom setting would be: `AAAAAAAAAAAA12345`
 Specify the secret key Lagoon should use to access the custom restore bucket.
 
 An example custom setting would be: `12345AAAAAAAAAAAA`
-

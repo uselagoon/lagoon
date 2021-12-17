@@ -17,7 +17,7 @@ mutation {
     }
   ) {
     name
-    # TODO: Make a note of the openshift ID that comes back in the response
+    # TODO: Make a note of the Kubernetes ID that comes back in the response
     id
   }
 }
@@ -33,7 +33,7 @@ mutation {
       # This is the private key for a project, which is used to access the git code.  If no private key is added, Lagoon will create a private key, which can later be accessed by loading the project.
       privateKey: ""
       # TODO: Fill in the openshift field
-      # This is the id of the OpenShift to assign to the project
+      # This is the id of the OpenShift or Kubernetes to assign to the project
       openshift: 0
       # TODO: Fill in the name field
       # This is the project name

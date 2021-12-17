@@ -34,4 +34,3 @@ Each Lagoon user account has their own login and will see the logs only for the 
 Each Lagoon user account also has their own **Kibana Tenant**, which means no saved searches or visualizations are shared with another account.
 
 If you would like to know more about how to use Kibana: [https://www.elastic.co/webinars/getting-started-kibana](https://www.elastic.co/webinars/getting-started-kibana).
-
