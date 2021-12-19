@@ -339,13 +339,13 @@ for YAML_ROUTE in "${LAGOON_YML_ROUTES[@]}"; do
     }
     if containsElement "$(_jq '.domain')" "${MERGE_ROUTES_ARR[@]}" > /dev/null; then
         # merge the domain over the existing one
-        echo "Merging route $(_jq '.domain') from LAGOON_ROUTES_JSON on top of the `.lagoon.yml`, adding to processing list"
+        echo "Merging route $(_jq '.domain') from LAGOON_ROUTES_JSON on top of the '.lagoon.yml', adding to processing list"
         MERGED_JSON=$(jq -s '.[0] * .[1]' <(_jq) <(containsElement "$(_jq '.domain')" "${MERGE_ROUTES_ARR[@]}" | base64 -d | jq -r))
         FINAL_ROUTES_JSON=$(echo $FINAL_ROUTES_JSON | jq -r --argjson LAGOON_ROUTE_JSON "$(echo ${MERGED_JSON})" '.routes |= . + [$LAGOON_ROUTE_JSON]')
     fi
     if ! containsElement "$(_jq '.domain')" "${MERGE_ROUTES_ARR[@]}" > /dev/null; then
         # add the domain to the new routes format
-        echo "Adding route $(_jq '.domain') from `.lagoon.yml` to processing list"
+        echo "Adding route $(_jq '.domain') from '.lagoon.yml' to processing list"
         FINAL_ROUTES_JSON=$(echo $FINAL_ROUTES_JSON | jq -r --argjson LAGOON_ROUTE_JSON "$(echo $(_jq))" '.routes |= . + [$LAGOON_ROUTE_JSON]')
     fi
 done
