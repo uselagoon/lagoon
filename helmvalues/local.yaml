@@ -17,27 +17,71 @@
 #     tag: latest
 
 #lagoon-build-deploy
-overrideBuildDeployImage: registry.192.168.224.2.nip.io:32080/library/lagoon/kubectl-build-deploy-dind:latest
+# overrideBuildDeployImage: registry.192.168.224.2.nip.io:32080/library/lagoon/kubectl-build-deploy-dind:latest
+
+# This sets the same password in the lagoon-core-broker and lagoon-build-deploy to allow them to communicate
+rabbitMQPassword: xogie5lae8IoshugahcoeThakiequo3I
+# This sets the same authserver client secret in lagoon-core and lagoon-test
+keycloakAuthServerClientSecret: 2da72b5c-f97f-4d6a-93cf-2a8996ee50d4
+
+# DBaaS Passwords
+auth:
+  rootPassword: ba7ees3aiy0eiNai
+postgresqlPassword: ba7ees3aiy0eiNai
 
 #lagoon-remote
 lagoon-build-deploy:
   enabled: false
+
+dbaas-operator:
+  mariadbProviders:
+    development:
+      password: ba7ees3aiy0eiNai
+  postgresqlProviders:
+    development:
+      password: ba7ees3aiy0eiNai
+  mongodbProviders:
+    development:
+      password: ba7ees3aiy0eiNai
 
 # dockerHost:
 #   image:
 #     repository: registry.192.168.224.2.nip.io:32080/library/lagoon/docker-host
 #     tag: latest
 
-#lagoon-test
+# lagoon-test uses this
+token: eyJhbGciOiJSUzI1NiIsImtpZCI6IkZRdVZJY0ZVT3JRbFRjeEFEb2J1dWs4YmVJcEd5NVoyRlFaWmJYcmdqdFUifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJsYWdvb24iLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlY3JldC5uYW1lIjoibGFnb29uLWJ1aWxkLWRlcGxveS10b2tlbi03eHA1MiIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50Lm5hbWUiOiJsYWdvb24tYnVpbGQtZGVwbG95Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQudWlkIjoiNDQwYzViMjAtNTZmZC00YjljLTg1MzctNDVjOTVkZDA0NWYxIiwic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50OmxhZ29vbjpsYWdvb24tYnVpbGQtZGVwbG95In0.UNWJoq7eNvm4ihh8llkCjy7FgzmkrzOzyf0eOUF4Iw27VhPrtYRnS_KThsHXt2y1SIk0qvhOTPwM8HBXBMVUPBtEcmzjlhdJtOQlBdwrYh2-V6ay4NrksEPuBE-vtO9ncoEcUybqYE00_AO8aYffl_ynWtjGa9Yuuqk0yCNz4npOaLCLKTqqGMFtancKMGJUHcB23nzPAxEFKHCVb6opqJjM289dQ76QZ7FBXCsvc5iJvqOs93kMKA67kisqxOtzy49h05c9LmIz_kjjg0dR8KJnyaP1KR82vk9IN0OGgMtTPXvpTDSkISKhlCMIW2JU62YZriVjUJEU9xIlrbzi5w
 
 localGit:
   image:
-    repository: registry.192.168.224.2.nip.io:32080/library/lagoon/local-git
-    tag: latest
+    repository: testlagoon/local-git
+    tag: main
 
 tests:
   image:
-    repository: registry.192.168.224.2.nip.io:32080/library/lagoon/tests
-    tag: latest
+    repository: testlagoon/tests
+    tag: main
   tests:
+    # - active-standby-kubernetes
     - api
+    # - bitbucket
+    # - dbaas
+    # - deploytarget
+    # - drupal-php74
+    - drupal-php80
+    # - drupal-postgres
+    # - drush
+    # - elasticsearch
+    # - features-api-variables
+    # - features-kubernetes-2
+    # - features-kubernetes
+    # - generic
+    # - github
+    # - gitlab
+    # - image-cache
+    # - nginx
+    # - node-mongodb
+    # - node-various
+    # - node
+    # - python
+    # - tasks

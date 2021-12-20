@@ -31,21 +31,21 @@ dbaas-operator:
     development:
       environment: development
       hostname: mariadb.mariadb.svc.cluster.local
-      password: wdHQJYzN6Q
+      password: set-in-localyaml
       port: 3306
       user: root
   postgresqlProviders:
     development:
       environment: development
       hostname: postgresql.postgresql.svc.cluster.local
-      password: Q6pnDN27fU
+      password: set-in-localyaml
       port: 5432
       user: postgres
   mongodbProviders:
     development:
       environment: development
       hostname: mongodb.mongodb.svc.cluster.local
-      password: cDbT4oqSPd
+      password: set-in-localyaml
       port: 27017
       user: root
       auth:

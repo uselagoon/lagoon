@@ -21,6 +21,9 @@ s3BAASSecretAccessKey: baas123 #sets s3BAASSecretAccessKey in api.secret for cus
 lagoonUIURL: http://lagoon-ui.192.168.224.2.nip.io:32080 #sets UI_URL in api.deployment
 lagoonWebhookURL: http://lagoon-webhook.192.168.224.2.nip.io:32080 #sets WEBHOOK_URL in api.deployment
 
+rabbitMQPassword: set-in-localyaml
+keycloakAuthServerClientSecret: set-in-localyaml
+
 overwriteKubectlBuildDeployDindImage:
 
 # used in ui

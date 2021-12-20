@@ -1,5 +1,5 @@
 rabbitMQUsername: lagoon
-rabbitMQPassword: kYabjpKQYdsGdMiDlvannWHwMnsQdrlg
+rabbitMQPassword: set-in-localyaml
 rabbitMQHostname: lagoon-core-broker
 lagoonTargetName: ci-local-control-k8s
 taskSSHHost: lagoon-core-ssh.lagoon.svc
