@@ -8,9 +8,9 @@ Logging Overview: [**https://lucid.app/lucidchart/b1da011f-2b91-4798-9518-4164b1
 
 See also: [Logging](../logging/logging.md).
 
-Read more about Lagoon logging here: [https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-logging](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-logging)&#x20;
+Read more about Lagoon logging here: [https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-logging](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-logging)
 
-1. Create` lagoon-logging-values.yaml` . Here's an example gist: [https://gist.github.com/Schnitzel/57b6706dc32ddf9dd00e61c56d98f5cc](https://gist.github.com/Schnitzel/57b6706dc32ddf9dd00e61c56d98f5cc)&#x20;
+1. Create` lagoon-logging-values.yaml` . Here's an example gist: [https://gist.github.com/Schnitzel/57b6706dc32ddf9dd00e61c56d98f5cc](https://gist.github.com/Schnitzel/57b6706dc32ddf9dd00e61c56d98f5cc)
 2. Install `lagoon-logging`:
 
     `helm repo add banzaicloud-stable https://kubernetes-charts.banzaicloud.com`
