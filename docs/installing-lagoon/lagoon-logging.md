@@ -16,5 +16,9 @@ Read more about Lagoon logging here: [https://github.com/uselagoon/lagoon-charts
     `helm repo add banzaicloud-stable https://kubernetes-charts.banzaicloud.com`
 
     `helm upgrade --install --create-namespace --namespace lagoon-logging -f lagoon-logging-values.yaml lagoon-logging lagoon/lagoon-logging`
-3. If you'd like logs from `ingress-nginx` inside `lagoon-logging`:
-   1. Add the content of this gist to `ingress-nginx: `[https://gist.github.com/Schnitzel/bba1a8a437f52fbf123ead1cc0406bf1](https://gist.github.com/Schnitzel/bba1a8a437f52fbf123ead1cc0406bf1)
+## Logging NGINX Ingress Controller
+
+If you'd like logs from `ingress-nginx` inside `lagoon-logging`:
+
+1. The ingress controller must be installed in the namespace `ingress-nginx`
+2. Add the content of this gist to `ingress-nginx: `[https://gist.github.com/Schnitzel/bba1a8a437f52fbf123ead1cc0406bf1](https://gist.github.com/Schnitzel/bba1a8a437f52fbf123ead1cc0406bf1)
