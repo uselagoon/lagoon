@@ -114,7 +114,22 @@ export const getOpenshiftByEnvironmentId: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission }
 ) => {
-  await hasPermission('openshift', 'viewAll');
+  // get the project id for the environment
+  const projectrows = await query(
+    sqlClientPool,
+    `SELECT e.project
+    FROM environment e
+    WHERE e.id = :eid
+    `,
+    {
+      eid
+    }
+  );
+
+  // check permissions on the project
+  await hasPermission('openshift', 'view', {
+    project: projectrows[0].project
+  });
 
   const rows = await query(
     sqlClientPool,
