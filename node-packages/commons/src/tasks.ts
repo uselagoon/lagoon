@@ -321,17 +321,6 @@ export const getControllerBuildData = async function(deployData: any) {
   var alertContactSA = ""
   var uptimeRobotStatusPageIds = []
 
-  var alertContact = ""
-  if (alertContactHA != undefined && alertContactSA != undefined){
-    if (availability == "HIGH") {
-      alertContact = alertContactHA
-    } else {
-      alertContact = alertContactSA
-    }
-  } else {
-    alertContact = "unconfigured"
-  }
-
   const billingGroup = projectBillingGroup.groups.find(i => i.type == "billing" ) || ""
   if (billingGroup.uptimeRobotStatusPageId && billingGroup.uptimeRobotStatusPageId != "null" && !R.isEmpty(billingGroup.uptimeRobotStatusPageId)){
     uptimeRobotStatusPageIds.push(billingGroup.uptimeRobotStatusPageId)
@@ -428,6 +417,17 @@ export const getControllerBuildData = async function(deployData: any) {
     if (monitoringConfig.uptimerobot.statusPageId) {
       uptimeRobotStatusPageIds.push(monitoringConfig.uptimerobot.statusPageId)
     }
+  }
+
+  var alertContact = ""
+  if (alertContactHA != undefined && alertContactSA != undefined){
+    if (availability == "HIGH") {
+      alertContact = alertContactHA
+    } else {
+      alertContact = alertContactSA
+    }
+  } else {
+    alertContact = "unconfigured"
   }
 
   var availability = lagoonProjectData.availability || "STANDARD"
