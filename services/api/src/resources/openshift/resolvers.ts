@@ -1,6 +1,7 @@
 import * as R from 'ramda';
 import { ResolverFn } from '../';
 import { query, isPatchEmpty } from '../../util/db';
+import { Helpers as projectHelpers } from '../project/helpers';
 import { Sql } from './sql';
 
 const attrFilter = async (hasPermission, entity) => {
@@ -115,20 +116,12 @@ export const getOpenshiftByEnvironmentId: ResolverFn = async (
   { sqlClientPool, hasPermission }
 ) => {
   // get the project id for the environment
-  const projectrows = await query(
-    sqlClientPool,
-    `SELECT e.project
-    FROM environment e
-    WHERE e.id = :eid
-    `,
-    {
-      eid
-    }
-  );
-
+  const { id: projectId } = await projectHelpers(
+    sqlClientPool
+  ).getProjectByEnvironmentId(eid);
   // check permissions on the project
   await hasPermission('openshift', 'view', {
-    project: projectrows[0].project
+    project: projectId
   });
 
   const rows = await query(
