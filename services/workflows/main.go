@@ -113,21 +113,11 @@ func main() {
 					"content_type":  "",
 				},
 			},
-			{
-				Name: "lagoon-actions",
-				Type: "direct",
-				Options: mq.Options{
-					"durable":       true,
-					"delivery_mode": "2",
-					"headers":       "",
-					"content_type":  "",
-				},
-			},
 		},
 		Consumers: mq.Consumers{
 			{
 				Name:    "items-queue",
-				Queue:   "lagoon-actions:items",
+				Queue:   "lagoon-logs:items",
 				Workers: mqWorkers,
 				Options: mq.Options{
 					"durable":       true,
@@ -139,8 +129,8 @@ func main() {
 		},
 		Queues: mq.Queues{
 			{
-				Name:     "lagoon-actions:items",
-				Exchange: "lagoon-actions",
+				Name:     "lagoon-logs:items",
+				Exchange: "lagoon-logs",
 				Options: mq.Options{
 					"durable":       true,
 					"delivery_mode": "2",
@@ -149,28 +139,28 @@ func main() {
 				},
 			},
 		},
-		Producers: mq.Producers{
-			{
-				Name:     "lagoon-actions",
-				Exchange: "lagoon-actions",
-				Options: mq.Options{
-					"app_id":        lagoonAppID,
-					"delivery_mode": "2",
-					"headers":       "",
-					"content_type":  "",
-				},
-			},
-			{
-				Name:     "lagoon-logs",
-				Exchange: "lagoon-logs",
-				Options: mq.Options{
-					"app_id":        lagoonAppID,
-					"delivery_mode": "2",
-					"headers":       "",
-					"content_type":  "",
-				},
-			},
-		},
+		//Producers: mq.Producers{
+		//	{
+		//		Name:     "lagoon-actions",
+		//		Exchange: "lagoon-actions",
+		//		Options: mq.Options{
+		//			"app_id":        lagoonAppID,
+		//			"delivery_mode": "2",
+		//			"headers":       "",
+		//			"content_type":  "",
+		//		},
+		//	},
+		//	{
+		//		Name:     "lagoon-logs",
+		//		Exchange: "lagoon-logs",
+		//		Options: mq.Options{
+		//			"app_id":        lagoonAppID,
+		//			"delivery_mode": "2",
+		//			"headers":       "",
+		//			"content_type":  "",
+		//		},
+		//	},
+		//},
 		DSN: fmt.Sprintf("amqp://%s:%s@%s/", broker.Username, broker.Password, broker.Hostname),
 	}
 

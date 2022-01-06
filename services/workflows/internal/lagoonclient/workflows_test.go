@@ -3,6 +3,7 @@ package lagoonclient
 import (
 	"context"
 	"github.com/Khan/genqlient/graphql"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -11,34 +12,18 @@ import (
 
 func TestGetEnvironmentWorkflows(t *testing.T) {
 
+	testResponse, err := ioutil.ReadFile("./testassets/TestGetEnvironmentWorkflows.response.json")
+	if err != nil {
+		t.Fatalf("Could not open file" )
+	}
+
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		if r.URL.Path != "/" {
 			t.Errorf("Expected to request '/fixedvalue', got: %s", r.URL.Path)
 		}
-		//if r.Header.Get("Accept") != "application/json" {
-		//	t.Errorf("Expected Accept: application/json header, got: %s", r.Header.Get("Accept"))
-		//}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{
-  "data": {
-    "environmentByName": {
-      "id": 3,
-      "name": "Master",
-      "workflows": [
-        {
-          "id": 1,
-          "event": "testevent",
-          "advancedTaskDefinition": {
-            "id": 1,
-            "command": "env | sort",
-			"__typename": "AdvancedTaskDefinitionCommand"
-          }
-        }
-      ]
-    }
-  }
-}`))
+		w.Write(testResponse)
 	}))
 	defer server.Close()
 
@@ -56,6 +41,39 @@ func TestGetEnvironmentWorkflows(t *testing.T) {
 	}
 
 }
+
+
+func TestInvokeWorkflowOnEnvironment(t *testing.T) {
+	testResponse, err := ioutil.ReadFile("./testassets/TestInvokeWorkflowOnEnvironment.response.json")
+	if err != nil {
+		t.Fatalf("Could not open file" )
+	}
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		if r.URL.Path != "/" {
+			t.Errorf("Expected to request '/fixedvalue', got: %s", r.URL.Path)
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write(testResponse)
+	}))
+	defer server.Close()
+
+	client := graphql.NewClient(server.URL, http.DefaultClient)
+	status, err := InvokeWorkflowOnEnvironment(context.TODO(), client, 1, 1)
+
+	if err != nil {
+		t.Errorf("GetEnvironmentWorkflows() error = %v", err)
+		return
+	}
+
+	if status == "" {
+		t.Errorf("InvokeWorkflowOnEnvironment not returning status")
+		return
+	}
+
+}
+
 
 //type HeaderRoundTripper struct {
 //	next http.RoundTripper

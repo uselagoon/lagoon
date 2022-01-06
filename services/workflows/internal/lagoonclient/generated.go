@@ -16,6 +16,12 @@ type __getEnvironmentWorkflowsInput struct {
 	Name    string `json:"name"`
 }
 
+// __invokeCustomTaskInput is used internally by genqlient
+type __invokeCustomTaskInput struct {
+	EnvironmentId            int `json:"environmentId"`
+	AdvancedTaskDefinitionId int `json:"advancedTaskDefinitionId"`
+}
+
 // getEnvironmentWorkflowsEnvironmentByNameEnvironment includes the requested fields of the GraphQL type Environment.
 // The GraphQL type's documentation follows.
 //
@@ -207,6 +213,17 @@ type getEnvironmentWorkflowsResponse struct {
 	EnvironmentByName getEnvironmentWorkflowsEnvironmentByNameEnvironment `json:"environmentByName"`
 }
 
+// invokeCustomTaskInvokeRegisteredTask includes the requested fields of the GraphQL type Task.
+type invokeCustomTaskInvokeRegisteredTask struct {
+	Id     int    `json:"id"`
+	Status string `json:"status"`
+}
+
+// invokeCustomTaskResponse is returned by invokeCustomTask on success.
+type invokeCustomTaskResponse struct {
+	InvokeRegisteredTask invokeCustomTaskInvokeRegisteredTask `json:"invokeRegisteredTask"`
+}
+
 func getEnvironmentWorkflows(
 	ctx context.Context,
 	client graphql.Client,
@@ -243,6 +260,36 @@ query getEnvironmentWorkflows ($project: Int!, $name: String!) {
 				}
 			}
 		}
+	}
+}
+`,
+		&retval,
+		&__input,
+	)
+	return &retval, err
+}
+
+func invokeCustomTask(
+	ctx context.Context,
+	client graphql.Client,
+	environmentId int,
+	advancedTaskDefinitionId int,
+) (*invokeCustomTaskResponse, error) {
+	__input := __invokeCustomTaskInput{
+		EnvironmentId:            environmentId,
+		AdvancedTaskDefinitionId: advancedTaskDefinitionId,
+	}
+	var err error
+
+	var retval invokeCustomTaskResponse
+	err = client.MakeRequest(
+		ctx,
+		"invokeCustomTask",
+		`
+mutation invokeCustomTask ($environmentId: Int!, $advancedTaskDefinitionId: Int!) {
+	invokeRegisteredTask(environment: $environmentId, advancedTaskDefinition: $advancedTaskDefinitionId) {
+		id
+		status
 	}
 }
 `,

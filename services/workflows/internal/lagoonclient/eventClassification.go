@@ -62,16 +62,15 @@ var Events = map[string][]string {
 		"bitbucket:repo:push:CannotDeleteProductionEnvironment",
 		"gitlab:push:CannotDeleteProductionEnvironment",
 	},
+	"testing": []string{
+		"testing",
+	},
 }
 
-type EventClassificationInterface struct {
-	name string
-}
-
-func (e *EventClassificationInterface) isEventOfType(eventType string) bool {
+func IsEventOfType(eventName string, eventType string) bool {
 	if eventTypes, ok := Events[eventType]; ok {
 		for _, a := range eventTypes {
-			if a == e.name {
+			if a == eventName {
 				return true
 			}
 		}

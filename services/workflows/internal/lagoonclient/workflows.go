@@ -11,6 +11,14 @@ type Workflow struct {
 	AdvancedTaskDetails string
 }
 
+func InvokeWorkflowOnEnvironment(ctx context.Context, client graphql.Client, environmentId int, advancedTaskDefinition int) (string, error) {
+	resp, err := invokeCustomTask(ctx, client, environmentId, advancedTaskDefinition)
+	if err != nil {
+		return "", err
+	}
+	return resp.InvokeRegisteredTask.Status, nil
+}
+
 func GetEnvironmentWorkflows(ctx context.Context, client graphql.Client, projectId int, environmentName string) ([]Workflow, error) {
 	var ret []Workflow
 	resp, err := getEnvironmentWorkflows(ctx, client, projectId, environmentName)

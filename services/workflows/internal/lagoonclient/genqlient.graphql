@@ -18,3 +18,10 @@ query getEnvironmentWorkflows($project: Int!, $name: String!) {
       }
     }
 }
+
+mutation invokeCustomTask($environmentId: Int!, $advancedTaskDefinitionId: Int!) {
+  invokeRegisteredTask(environment: $environmentId, advancedTaskDefinition: $advancedTaskDefinitionId) {
+    id
+    status
+  }
+}

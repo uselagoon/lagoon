@@ -2,43 +2,37 @@ package lagoonclient
 
 import "testing"
 
-func TestEventClassificationInterface_isEventOfType(t *testing.T) {
-	type fields struct {
-		name string
-	}
+func TestIsEventOfType(t *testing.T) {
 	type args struct {
+		eventName string
 		eventType string
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   bool
+		name string
+		args args
+		want bool
 	}{
 		{
-			name: "Should find event type",
-			fields: fields{name: "github:push:CannotDeleteProductionEnvironment"},
+			name: "Event does match",
 			args: args{
+				eventName: "github:pull_request:closed:CannotDeleteProductionEnvironment",
 				eventType: "notDeleted",
 			},
 			want: true,
 		},
 		{
-			name: "Should NOT find event type",
-			fields: fields{name: "github:push:CannotDeleteProductionEnvironment"},
+			name: "Event does not match",
 			args: args{
-				eventType: "deployError",
+				eventName: "github:pull_request:closed:CannotDeleteProductionEnvironment",
+				eventType: "deployEnvironment",
 			},
 			want: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			e := &EventClassificationInterface{
-				name: tt.fields.name,
-			}
-			if got := e.isEventOfType(tt.args.eventType); got != tt.want {
-				t.Errorf("isEventOfType() = %v, want %v", got, tt.want)
+			if got := IsEventOfType(tt.args.eventName, tt.args.eventType); got != tt.want {
+				t.Errorf("IsEventOfType() = %v, want %v", got, tt.want)
 			}
 		})
 	}
