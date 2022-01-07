@@ -7,7 +7,7 @@ metadata:
   labels:
     {{- include "python-persistent.labels" $ | nindent 4 }}
   annotations:
-    {{- include "python-persistent.annotations" . | nindent 4 }}
+    {{- include "python-persistent.annotations" $ | nindent 4 }}
 spec:
   schedule: {{ $cronjobConfig.schedule | quote }}
   concurrencyPolicy: Forbid
@@ -33,10 +33,18 @@ spec:
           imagePullSecrets:
             {{- toYaml . | nindent 12 }}
         {{- end }}
-          priorityClassName: {{ include "python-persistent.lagoonPriority" . }}
+          priorityClassName: {{ include "python-persistent.lagoonPriority" $ }}
           enableServiceLinks: false
           securityContext:
             {{- toYaml $.Values.podSecurityContext | nindent 12 }}
+          volumes:
+            - name: lagoon-sshkey
+              secret:
+                defaultMode: 420
+                secretName: lagoon-sshkey
+            - name: {{ $.Values.persistentStorage.name }}
+              persistentVolumeClaim:
+                claimName: {{ $.Values.persistentStorage.name }}
           containers:
             - image: {{ $.Values.image | quote }}
               name: cronjob-{{ $.Release.Name }}-{{ $cronjobName }}
@@ -56,9 +64,15 @@ spec:
                     name: lagoon-env
               resources:
                 {{- toYaml $.Values.resources | nindent 16 }}
+              volumeMounts:
+                - mountPath: /var/run/secrets/lagoon/sshkey/
+                  name: lagoon-sshkey
+                  readOnly: true
+                - name: {{ $.Values.persistentStorage.name }}
+                  mountPath: {{ $.Values.persistentStorage.path | quote }}
           restartPolicy: Never
-          {{- with $.Values.nodeSelector }}
-          nodeSelector:
+          {{- with $.Values.pythonSelector }}
+          pythonSelector:
             {{- toYaml $ | nindent 12 }}
           {{- end }}
         {{- with $.Values.affinity }}
