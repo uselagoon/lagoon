@@ -4,12 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/uselagoon/lagoon/services/actions-handler/internal/lagoonclient"
-	"log"
-	"time"
-
+	"github.com/Khan/genqlient/graphql"
 	"github.com/cheshir/go-mq"
 	"github.com/matryer/try"
+	"github.com/uselagoon/lagoon/services/actions-handler/internal/lagoon/jwt"
+	"github.com/uselagoon/lagoon/services/actions-handler/internal/lagoonclient"
+	"log"
+	"net/http"
+	"time"
 
 	//"github.com/uselagoon/lagoon/services/actions-handler/internal/lagoon"
 	//lclient "github.com/uselagoon/lagoon/services/actions-handler/internal/lagoon/client"
@@ -44,27 +46,27 @@ type Action struct {
 }
 
 type LagoonLogMeta struct {
-	BranchName     string          `json:"branchName,omitempty"`
-	BuildName      string          `json:"buildName,omitempty"`
-	BuildPhase     string          `json:"buildPhase,omitempty"`
-	EndTime        string          `json:"endTime,omitempty"`
-	Environment    string          `json:"environment,omitempty"`
-	EnvironmentID  *uint           `json:"environmentId,omitempty"`
-	JobName        string          `json:"jobName,omitempty"`
-	JobStatus      string          `json:"jobStatus,omitempty"`
-	LogLink        string          `json:"logLink,omitempty"`
-	MonitoringURLs []string        `json:"monitoringUrls,omitempty"`
-	Project        string          `json:"project,omitempty"`
-	ProjectID      *uint           `json:"projectId,omitempty"`
-	ProjectName    string          `json:"projectName,omitempty"`
-	RemoteID       string          `json:"remoteId,omitempty"`
-	Route          string          `json:"route,omitempty"`
-	Routes         []string        `json:"routes,omitempty"`
-	StartTime      string          `json:"startTime,omitempty"`
-	Services       []string        `json:"services,omitempty"`
-	Key            string          `json:"key,omitempty"`
-	AdvancedData   string          `json:"advancedData,omitempty"`
-	Cluster        string          `json:"clusterName,omitempty"`
+	BranchName     string   `json:"branchName,omitempty"`
+	BuildName      string   `json:"buildName,omitempty"`
+	BuildPhase     string   `json:"buildPhase,omitempty"`
+	EndTime        string   `json:"endTime,omitempty"`
+	Environment    string   `json:"environment,omitempty"`
+	EnvironmentID  *uint    `json:"environmentId,omitempty"`
+	JobName        string   `json:"jobName,omitempty"`
+	JobStatus      string   `json:"jobStatus,omitempty"`
+	LogLink        string   `json:"logLink,omitempty"`
+	MonitoringURLs []string `json:"monitoringUrls,omitempty"`
+	Project        string   `json:"project,omitempty"`
+	ProjectID      *uint    `json:"projectId,omitempty"`
+	ProjectName    string   `json:"projectName,omitempty"`
+	RemoteID       string   `json:"remoteId,omitempty"`
+	Route          string   `json:"route,omitempty"`
+	Routes         []string `json:"routes,omitempty"`
+	StartTime      string   `json:"startTime,omitempty"`
+	Services       []string `json:"services,omitempty"`
+	Key            string   `json:"key,omitempty"`
+	AdvancedData   string   `json:"advancedData,omitempty"`
+	Cluster        string   `json:"clusterName,omitempty"`
 }
 
 type LagoonLog struct {
@@ -139,84 +141,65 @@ func (h *Messaging) Consumer() {
 
 	// Handle any tasks that go to the queue
 	log.Println("Listening for messages in queue lagoon-actions:items")
-	err = messageQueue.SetConsumerHandler("items-queue", processingIncomingMessageQueue)
+	err = messageQueue.SetConsumerHandler("items-queue", processingIncomingMessageQueueFactory(h))
 	if err != nil {
 		log.Println(fmt.Sprintf("Failed to set handler to consumer `%s`: %v", "items-queue", err))
 	}
 	<-forever
 }
 
-func processingIncomingMessageQueue(message mq.Message) {
+type authedTransport struct {
+	wrapped http.RoundTripper
+	h       *Messaging
+}
 
-	incoming := &LagoonLog{}
-	json.Unmarshal(message.Body(), incoming)
-	fmt.Println(incoming.Event)
+func (t *authedTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	//grab events for project
+	token, err := jwt.OneMinuteAdminToken(t.h.LagoonAPI.TokenSigningKey, t.h.LagoonAPI.JWTAudience, t.h.LagoonAPI.JWTSubject, t.h.LagoonAPI.JWTIssuer)
+	if err != nil {
+		// the token wasn't generated
+		if t.h.EnableDebug {
+			log.Println(err)
+		}
+		return nil, err
+	}
+	req.Header.Set("Authorization", "bearer "+token)
+	return t.wrapped.RoundTrip(req)
+}
 
-	if lagoonclient.IsEventOfType(incoming.Event, "testing") {
-		fmt.Println("We're dealing with a testing event here ... does that mean anything?")
-	} else {
+func processingIncomingMessageQueueFactory(h *Messaging) func(mq.Message) {
+	return func(message mq.Message) {
 
-		if incoming.Meta.ProjectID != nil && incoming.Meta.EnvironmentID != nil {
-			//grab events for project
-			environmentWorkflows, err := lagoonclient.GetEnvironmentWorkflows(context.TODO(), )
+		incoming := &LagoonLog{}
+		json.Unmarshal(message.Body(), incoming)
+
+		environmentName := incoming.Meta.Environment
+		if incoming.Meta.ProjectID != nil && environmentName != "" {
+
+			client := graphql.NewClient(h.LagoonAPI.Endpoint,
+				&http.Client{Transport: &authedTransport{wrapped: http.DefaultTransport, h: h}})
+			projectId := int(*incoming.Meta.ProjectID)
+			environmentWorkflows, err := lagoonclient.GetEnvironmentWorkflows(context.TODO(), client, projectId, environmentName)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			for _, wf := range environmentWorkflows {
+				if lagoonclient.IsEventOfType(incoming.Event, wf.AdvancedTaskDetails) {
+					//let's invoke this puppy ...
+					result, err := lagoonclient.InvokeWorkflowOnEnvironment(context.TODO(), client, wf.EnvironmentId, wf.AdvancedTaskId)
+					if err != nil {
+						log.Println(err)
+						return
+					}
+					fmt.Println(result)
+				}
+
+			}
 		}
 
-
-
-		//check if type matches
-
-		//if so, trigger event ...
+		message.Ack(false) // ack to remove from queue
 	}
-	//switch incoming.Event {
-
-	// TODO: all this code below will be replaced
-	// check if this a `deployEnvironmentLatest` type of action
-	// and perform the steps to run the mutation against the lagoon api
-	//case "deployEnvironmentLatest":
-	//	// marshal unmarshal the data into the input we need to use when talking to the lagoon api
-	//	data, _ := json.Marshal(action.Data)
-	//	deploy := &schema.DeployEnvironmentLatestInput{}
-	//	json.Unmarshal(data, deploy)
-	//	token, err := jwt.OneMinuteAdminToken(h.LagoonAPI.TokenSigningKey, h.LagoonAPI.JWTAudience, h.LagoonAPI.JWTSubject, h.LagoonAPI.JWTIssuer)
-	//	if err != nil {
-	//		// the token wasn't generated
-	//		if h.EnableDebug {
-	//			log.Println(err)
-	//		}
-	//		break
-	//	}
-	//	l := lclient.New(h.LagoonAPI.Endpoint, token, "actions-handler", false)
-	//	deployment, err := lagoon.DeployLatest(ctx, deploy, l)
-	//	if err != nil {
-	//		// send the log to the lagoon-logs exchange to be processed
-	//		h.toLagoonLogs(messageQueue, map[string]interface{}{
-	//			"severity": "error",
-	//			"event":    fmt.Sprintf("actions-handler:%s:failed", action.EventType),
-	//			"meta":     deploy,
-	//			"message":  err.Error(),
-	//		})
-	//		if h.EnableDebug {
-	//			log.Println(err)
-	//		}
-	//		break
-	//	}
-	//	// send the log to the lagoon-logs exchange to be processed
-	//	h.toLagoonLogs(messageQueue, map[string]interface{}{
-	//		"severity": "info",
-	//		"event":    fmt.Sprintf("actions-handler:%s:started", action.EventType),
-	//		"meta":     deploy,
-	//		"message":  fmt.Sprintf("started build: %s", deployment.DeployEnvironmentLatest),
-	//	})
-	//	if h.EnableDebug {
-	//		log.Println(deployment.DeployEnvironmentLatest)
-	//	}
-	//}
-
-	message.Ack(false) // ack to remove from queue
-
-	//if err != nil {
-	//	log.Println(fmt.Sprintf("Failed to set handler to consumer `%s`: %v", "items-queue", err))
-	//}
 }
 
 // toLagoonLogs sends logs to the lagoon-logs message queue
