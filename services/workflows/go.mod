@@ -3,6 +3,7 @@ module github.com/uselagoon/lagoon/services/actions-handler
 go 1.14
 
 require (
+	github.com/Khan/genqlient v0.3.0 // indirect
 	github.com/cheekybits/is v0.0.0-20150225183255-68e9c0620927 // indirect
 	github.com/cheshir/go-mq v1.0.2
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
