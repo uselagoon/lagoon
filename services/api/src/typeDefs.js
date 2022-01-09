@@ -136,6 +136,7 @@ const typeDefs = gql`
     id: Int
     name: String
     type: String
+    range: [String]
     advancedTaskDefinition: AdvancedTaskDefinition
   }
 
@@ -166,6 +167,7 @@ const typeDefs = gql`
     environment: Int
     project: Int
     permission: TaskPermission
+    advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgument]
     created: String
     deleted: String
   }
@@ -190,16 +192,35 @@ const typeDefs = gql`
 
   type Workflow {
     id: Int
+    name: String
     event: String
     project: Int
     advancedTaskDefinition: AdvancedTaskDefinition
   }
 
   input AddWorkflowInput {
+    name: String
     event: String
     project: Int
     advancedTaskDefinition: Int
   }
+
+  input DeleteWorkflowInput {
+    id: Int!
+  }
+
+  input UpdateWorkflowPatchInput {
+    name: String
+    event: String
+    project: Int
+    advancedTaskDefinition: Int
+  }
+
+  input UpdateWorkflowInput {
+    id: Int!
+    patch: UpdateWorkflowPatchInput!
+  }
+
 
   type Problem {
     id: Int
@@ -1335,11 +1356,17 @@ const typeDefs = gql`
   enum AdvancedTaskDefinitionArgumentTypes {
     NUMERIC
     STRING
+    ENVIRONMENT_SOURCE_NAME
   }
 
   input AdvancedTaskDefinitionArgumentInput {
     name: String
     type: AdvancedTaskDefinitionArgumentTypes
+  }
+
+  input AdvancedTaskDefinitionArgumentValueInput {
+    advancedTaskDefinitionArgumentName: String
+    value: String
   }
 
   enum AdvancedTaskDefinitionTypes {
@@ -1348,6 +1375,25 @@ const typeDefs = gql`
   }
 
   input AdvancedTaskDefinitionInput {
+    name: String
+    description: String
+    image: String
+    type: AdvancedTaskDefinitionTypes
+    service: String
+    command: String
+    environment: Int
+    project: Int
+    groupName: String
+    permission: TaskPermission
+    advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgumentInput]
+  }
+
+  input UpdateAdvancedTaskDefinitionInput {
+    id: Int!
+    patch: UpdateAdvancedTaskDefinitionPatchInput!
+  }
+
+  input UpdateAdvancedTaskDefinitionPatchInput {
     name: String
     description: String
     image: String
@@ -1976,9 +2022,12 @@ const typeDefs = gql`
     deleteEnvVariable(input: DeleteEnvVariableInput!): String
     addTask(input: TaskInput!): Task
     addAdvancedTaskDefinition(input: AdvancedTaskDefinitionInput!): AdvancedTaskDefinition
-    invokeRegisteredTask(advancedTaskDefinition: Int!, environment: Int!): Task
+    updateAdvancedTaskDefinition(input: UpdateAdvancedTaskDefinitionInput!): AdvancedTaskDefinition
+    invokeRegisteredTask(advancedTaskDefinition: Int!, environment: Int!, argumentValues: [AdvancedTaskDefinitionArgumentValueInput]): Task
     deleteAdvancedTaskDefinition(advancedTaskDefinition: Int!): String
     addWorkflow(input: AddWorkflowInput!): Workflow
+    updateWorkflow(input: UpdateWorkflowInput): Workflow
+    deleteWorkflow(input: DeleteWorkflowInput!): String
     taskDrushArchiveDump(environment: Int!): Task
     taskDrushSqlDump(environment: Int!): Task
     taskDrushCacheClear(environment: Int!): Task

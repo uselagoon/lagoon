@@ -74,6 +74,7 @@ const {
 
 const {
   addAdvancedTaskDefinition,
+  updateAdvancedTaskDefinition,
   advancedTaskDefinitionById,
   resolveTasksForEnvironment,
   getRegisteredTasksByEnvironmentId,
@@ -250,6 +251,8 @@ const {
 
 const {
   addWorkflow,
+  updateWorkflow,
+  deleteWorkflow,
   resolveWorkflowsForEnvironment,
   getWorkflowsByEnvironmentId,
   resolveAdvancedTaskDefinitionsForWorkflow,
@@ -546,6 +549,7 @@ const resolvers = {
     deleteEnvVariable,
     addTask,
     addAdvancedTaskDefinition,
+    updateAdvancedTaskDefinition,
     deleteAdvancedTaskDefinition,
     invokeRegisteredTask,
     taskDrushArchiveDump,
@@ -584,6 +588,8 @@ const resolvers = {
     deleteBillingModifier,
     deleteAllBillingModifiersByBillingGroup,
     addWorkflow,
+    updateWorkflow,
+    deleteWorkflow,
     addDeployTargetConfig,
     deleteDeployTargetConfig,
     updateDeployTargetConfig,
