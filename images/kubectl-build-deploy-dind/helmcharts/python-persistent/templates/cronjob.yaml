@@ -71,8 +71,8 @@ spec:
                 - name: {{ $.Values.persistentStorage.name }}
                   mountPath: {{ $.Values.persistentStorage.path | quote }}
           restartPolicy: Never
-          {{- with $.Values.pythonSelector }}
-          pythonSelector:
+          {{- with $.Values.nodeSelector }}
+          nodeSelector:
             {{- toYaml $ | nindent 12 }}
           {{- end }}
         {{- with $.Values.affinity }}
