@@ -384,7 +384,7 @@ export const addOrUpdateEnvironment: ResolverFn = async (
   );
 
   userActivityLogger(`User updated environment`, {
-    project: input.name || '',
+    project: projectOpenshift.name || '',
     event: 'api:addOrUpdateEnvironment',
     payload: {
       ...input

@@ -4,7 +4,7 @@
 
 Direct API interactions in Lagoon are done via [GraphQL](graphql-queries.md).
 
-In order to authenticate with the API, we need a JWT (JSON Web Token) that allows us to use the GraphQL API as admin. To generate this token, open the terminal of the `auto-idler` pod via the OpenShift UI and run the following command:
+In order to authenticate with the API, we need a JWT \(JSON Web Token\) that allows us to use the GraphQL API as admin. To generate this token, open the terminal of the `auto-idler` pod via the OpenShift UI and run the following command:
 
 ```bash
 ./create_jwt.sh
@@ -25,11 +25,11 @@ To compose and send GraphQL queries, we recommend [GraphiQL.app](https://github.
 Under "GraphQL Endpoint", enter the API endpoint URL with `/graphql` on the end. Then click on "Edit HTTP Headers" and add a new header:
 
 * "Header name": `Authorization`
-* "Header value": `Bearer [JWT token]` (make sure that the JWT token has no spaces, as this would not work)
+* "Header value": `Bearer [JWT token]` \(make sure that the JWT token has no spaces, as this would not work\)
 
 Press ESC to close the HTTP header overlay and now we are ready to send the first GraphQL request!
 
-![Editing HTTP Headers in GraphiQL.](<../.gitbook/assets/graphiql-2020-01-29-18-05-54 (5) (5) (7) (1) (4) (1).png>)
+![Editing HTTP Headers in GraphiQL.](./graphiql-2020-01-29-18-05-54.png)
 
 Enter this in the left panel
 
@@ -41,24 +41,24 @@ query allProjects{
 }
 ```
 
-![Running a query in GraphiQL.](<../.gitbook/assets/graphiql-2020-01-29-20-10-32 (1).png>)
+![Running a query in GraphiQL.](./graphiql-2020-01-29-20-10-32.png)
 
-And press the ▶️ button (or press CTRL+ENTER).
+And press the ▶️ button \(or press CTRL+ENTER\).
 
 If all went well, your first GraphQL response should appear shortly afterwards in the right pane.
 
 ## Creating the first project
 
-Let's create the first project for Lagoon to deploy! For this we'll use the queries from the GraphQL query template in [`create-project.gql`](create-project.gql).
+Let's create the first project for Lagoon to deploy! For this we'll use the queries from the GraphQL query template in [`create-project.gql`](https://github.com/uselagoon/lagoon/blob/main/docs/administering-lagoon/create-project.gql).
 
-For each of the queries (the blocks starting with `mutation {`), fill in all of the empty fields marked by TODO comments and run the queries in GraphiQL.app. This will create one of each of the following two objects:
+For each of the queries \(the blocks starting with `mutation {`\), fill in all of the empty fields marked by TODO comments and run the queries in GraphiQL.app. This will create one of each of the following two objects:
 
-1. `openshift` : The OpenShift cluster to which Lagoon should deploy. Lagoon is not only capable of deploying to its own OpenShift, but also to any OpenShift anywhere in the world.
+1. `openshift` : The OpenShift or Kubernetes cluster to which Lagoon should deploy. Lagoon is not only capable of deploying to its own Kubernetes cluster, but also to any Kubernetes cluster anywhere in the world.
 2. `project` : The Lagoon project to be deployed, which is a Git repository with a `.lagoon.yml` configuration file committed in the root.
 
 ## Allowing access to the project
 
-In Lagoon, each developer authenticates via their SSH key(s). This determines their access to:
+In Lagoon, each developer authenticates via their SSH key\(s\). This determines their access to:
 
 1. The Lagoon API, where they can see and edit projects they have access to.
 2. Remote shell access to containers that are running in projects they have access to.
@@ -219,9 +219,8 @@ Now for every deployment you will receive messages in your defined channel.
 
 ### Adding a new OpenShift target
 
-{% hint style="info" %}
-In Lagoon 1.x `addOpenshift` is used for both OpenShift and Kubernetes targets. In Lagoon 2.x this will change.
-{% endhint %}
+!!! Note "Note:"
+    In Lagoon 1.x `addOpenshift` is used for both OpenShift and Kubernetes targets. In Lagoon 2.x this will change.
 
 The OpenShift cluster to which Lagoon should deploy. Lagoon is not only capable of deploying to its own OpenShift, but also to any OpenShift anywhere in the world.
 
@@ -288,7 +287,7 @@ mutation {
       # This is the private key for a project, which is used to access the Git code.
       privateKey: ""
       # TODO: Fill in the OpenShift field.
-      # This is the id of the OpenShift to assign to the project.
+      # This is the id of the OpenShift or Kubernetes to assign to the project.
       openshift: 0
       # TODO: Fill in the name field.
       # This is the project name.
@@ -412,9 +411,8 @@ mutation {
 
 Update the production environment within a project:
 
-{% hint style="warning" %}
-This requires a redeploy in order for the changes to be reflected in the containers.
-{% endhint %}
+!!! warning "Warning:"
+    This requires a redeploy in order for the changes to be reflected in the containers.
 
 ```graphql
  mutation {
@@ -524,7 +522,7 @@ mutation {
 
 ### Query for projects by metadata
 
-Queries may be by `key` only (e.g return all projects where a specific key exists) or both `key` and `value` where both key and value must match.
+Queries may be by `key` only \(e.g return all projects where a specific key exists\) or both `key` and `value` where both key and value must match.
 
 All projects that have the `version` tag:
 

@@ -1,7 +1,7 @@
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
 FROM ${UPSTREAM_REPO:-uselagoon}/commons:${UPSTREAM_TAG:-latest} as commons
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 
 ARG LAGOON_VERSION
 ENV LAGOON_VERSION=$LAGOON_VERSION
@@ -24,11 +24,14 @@ ENV TMPDIR=/tmp \
     # When Bash is invoked as non-interactive (like `bash -c command`) it sources a file that is given in `BASH_ENV`
     BASH_ENV=/home/.bashrc
 
+ARG DEBIAN_FRONTEND=noninteractive
+
 ENV LAGOON=ssh \
     OC_VERSION=v3.11.0 \
     OC_HASH=0cbc58b \
     OC_SHA256=4b0f07428ba854174c58d2e38287e5402964c9a9355f6c359d1242efd0990da3 \
-    KUBECTL_VERSION=v1.20.0
+    KUBECTL_VERSION=v1.20.0 \
+    TZ=UTC
 
 COPY services/ssh/libnss-mysql-1.5.tar.gz /tmp/libnss-mysql-1.5.tar.gz
 

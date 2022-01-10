@@ -1,4 +1,4 @@
-FROM alpine:3.13.5
+FROM alpine:3.14.3
 
 RUN apk add --no-cache \
       bash \
@@ -12,9 +12,9 @@ RUN apk add --no-cache \
 COPY service/fcgiwrap.sh /etc/service/fcgiwrap/run
 COPY service/nginx.sh /etc/service/nginx/run
 COPY service/sshd.sh /etc/service/sshd/run
-COPY nginx/git /etc/nginx/conf.d/git.conf
+COPY nginx/git /etc/nginx/http.d/git.conf
 
-RUN rm /etc/nginx/conf.d/default.conf && mkdir /run/nginx \
+RUN rm /etc/nginx/http.d/default.conf && mkdir -p /run/nginx \
       && adduser --disabled-password --home /git git \
       && ssh-keygen -A \
       && sed -E -i.bak -e 's/[# ]+UsePAM.*/UsePAM yes/g' /etc/ssh/sshd_config

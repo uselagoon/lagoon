@@ -1,8 +1,8 @@
 # build the binary
-ARG GO_VERSION
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
-FROM golang:${GO_VERSION:-1.13.8} AS builder
+FROM golang:1.15 AS builder
+
 # bring in all the packages
 # COPY main.go /go/src/github.com/uselagoon/lagoon/services/backup-handler/
 # COPY go.mod /go/src/github.com/uselagoon/lagoon/services/backup-handler/

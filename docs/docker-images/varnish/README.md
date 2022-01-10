@@ -1,6 +1,6 @@
 # Varnish
 
-The [Lagoon `Varnish` image Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/varnish/Dockerfile). Based on the [official `varnish` package](https://hub.docker.com/_/varnish) provided by `alpine:3.7` image.
+The [Lagoon `Varnish` image Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/varnish/6.Dockerfile). Based on the [official `varnish` package](https://hub.docker.com/_/varnish) provided by `alpine:3.7` image.
 
 By default, `vmod-dynamic` and `vmod-bodyaccess` modules are installed.
 
@@ -37,4 +37,3 @@ Environment variables defined in Varnish base image
 | `CACHE_SIZE` | 100M | Cache size. |
 | `LISTEN` | 8080 | Default backend server port. |
 | `MANAGEMENT_LISTEN` | 6082 | Default management listening port. |
-
