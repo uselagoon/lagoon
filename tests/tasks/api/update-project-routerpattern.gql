@@ -1,0 +1,12 @@
+mutation updateProject {
+  updateProject(
+    input: {
+      id: {{ project_id }}
+      patch: {
+          routerPattern: "{{ routerpattern }}"
+      }
+    }
+  ) {
+    id
+  }
+}

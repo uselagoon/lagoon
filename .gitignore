@@ -11,6 +11,7 @@ local-dev/minishift
 local-dev/minikube
 local-dev/k3d
 local-dev/jq
+local-dev/stern
 k3d
 local-dev/kubectl
 **/v8-*

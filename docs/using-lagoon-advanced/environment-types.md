@@ -15,4 +15,3 @@ There are a couple of things that will use this information:
 * Our default Drupal `settings.php` files load additional settings files for `development.settings.php` and `production.settings.php` so you can define settings and configurations different per environment type.
 * If you try to delete an environment that is defined as the production environment \(either via webhooks or REST\), Lagoon will politely refuse to delete the production environment, as it tries to prevent you from making a mistake. In order to delete a production environment, you can either change the `productionEnvironment` in the API or use the secret `forceDeleteProductionEnvironment: true` POST payload for the REST API.
 * The Lagoon administrator might use the production environment information for some additional things. For example, at amazee.io we're calculating only the hits of the production environments to calculate the price of the hosting.
-
