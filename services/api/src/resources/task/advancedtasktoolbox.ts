@@ -10,9 +10,15 @@ import {
   newTaskRegistrationFromObject
 } from './models/taskRegistration';
 import convertDateToMYSQLDateTimeFormat from '../../util/convertDateToMYSQLDateTimeFormat';
+import { sqlClientPool } from '../../clients/sqlClient';
+
 
 
 export const advancedTaskFunctions = (sqlClientPool, hasPermission = null) => {
+    return advancedTaskFunctionFactory(sqlClientPool, hasPermission, Sql, environmentHelpers, projectHelpers);
+}
+
+export const advancedTaskFunctionFactory = (sqlClientPool, hasPermission = null, Sql, environmentHelpers, projectHelpers) => {
     return {
       advancedTaskDefinitionById: async function(id) {
         const rows = await query(
@@ -37,22 +43,25 @@ export const advancedTaskFunctions = (sqlClientPool, hasPermission = null) => {
 
         //either project, environment, or group will be - we have to run different checks for each possibility
         if(advancedTaskDefinition.environment !== null) {
+
           let env = await environmentHelpers(sqlClientPool).getEnvironmentById(advancedTaskDefinition.environment);
-          console.log(env);
           // let project = await projectHelpers(sqlClientPool).getProjectById(advancedTaskDefinition.project);
+
+
           await hasPermission('task', 'view', {
             project: env.project
           });
 
+          return true;
         } else if (advancedTaskDefinition.project !== null) {
-          // let project = await projectHelpers(sqlClientPool).getProjectById(advancedTaskDefinition.project);
-          // console.log(project);
           await hasPermission('task', 'view', {
             project: advancedTaskDefinition.project
           });
-
+          return true;
         } else if (advancedTaskDefinition.groupName !== null) {
+
         }
+        return false;
       }
     };
   };

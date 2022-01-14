@@ -37,8 +37,23 @@ const PermissionsToRBAC = (permission: string) => {
   return `invoke:${permission.toLowerCase()}`;
 };
 
-// All query resolvers
+export const allAdvancedTaskDefinitions = async (root, args, {sqlClientPool, hasPermission}) => {
+  //is the user a system admin?
+  await hasPermission('advanced_task','create:advanced');
 
+  let adTaskDefs = await query(
+    sqlClientPool,
+    Sql.selectAdvancedTaskDefinitions()
+  );
+
+  const atf = advancedTaskToolbox.advancedTaskFunctions(sqlClientPool, hasPermission);
+
+  for(let i = 0; i < adTaskDefs.length; i++) {
+    adTaskDefs[i].advancedTaskDefinitionArguments = await atf.advancedTaskDefinitionArguments(adTaskDefs[i].id);
+  }
+
+  return adTaskDefs;
+}
 
 export const advancedTaskDefinitionById = async (
   root,
@@ -53,6 +68,7 @@ export const advancedTaskDefinitionById = async (
   );
 
   await atf.canUserSeeTaskDefinition(advancedTaskDef);
+
   return advancedTaskDef;
 
 };

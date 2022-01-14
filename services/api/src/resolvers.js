@@ -80,6 +80,7 @@ const {
   advancedTaskDefinitionArgumentById,
   invokeRegisteredTask,
   deleteAdvancedTaskDefinition,
+  allAdvancedTaskDefinitions,
 } = require('./resources/task/task_definition_resolvers');
 
 const {
@@ -438,6 +439,7 @@ const resolvers = {
     taskById: getTaskById,
     advancedTaskDefinitionById,
     advancedTasksForEnvironment: resolveTasksForEnvironment,
+    allAdvancedTaskDefinitions,
     advancedTaskDefinitionArgumentById,
     allProjects: getAllProjects,
     allOpenshifts: getAllOpenshifts,
