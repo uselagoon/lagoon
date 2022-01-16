@@ -474,9 +474,7 @@ export const deleteAdvancedTaskDefinition = async (
     sqlClientPool,
     Sql.selectPermsForTask(advancedTaskDefinition)
   );
-  await hasPermission('task', 'delete', {
-    project: R.path(['0', 'pid'], rows)
-  });
+
 
   await query(
     sqlClientPool,
