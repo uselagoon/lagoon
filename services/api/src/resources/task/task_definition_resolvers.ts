@@ -37,7 +37,7 @@ const PermissionsToRBAC = (permission: string) => {
   return `invoke:${permission.toLowerCase()}`;
 };
 
-export const allAdvancedTaskDefinitions = async (root, args, {sqlClientPool, hasPermission}) => {
+export const allAdvancedTaskDefinitions = async (root, args, {sqlClientPool, hasPermission, models}) => {
   //is the user a system admin?
   await hasPermission('advanced_task','create:advanced');
 
@@ -46,7 +46,7 @@ export const allAdvancedTaskDefinitions = async (root, args, {sqlClientPool, has
     Sql.selectAdvancedTaskDefinitions()
   );
 
-  const atf = advancedTaskToolbox.advancedTaskFunctions(sqlClientPool, hasPermission);
+  const atf = advancedTaskToolbox.advancedTaskFunctions(sqlClientPool, models, hasPermission);
 
   for(let i = 0; i < adTaskDefs.length; i++) {
     adTaskDefs[i].advancedTaskDefinitionArguments = await atf.advancedTaskDefinitionArguments(adTaskDefs[i].id);
@@ -58,19 +58,20 @@ export const allAdvancedTaskDefinitions = async (root, args, {sqlClientPool, has
 export const advancedTaskDefinitionById = async (
   root,
   { id },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, models }
 ) => {
 
-  const atf = advancedTaskToolbox.advancedTaskFunctions(sqlClientPool, hasPermission);
+  const atf = advancedTaskToolbox.advancedTaskFunctions(sqlClientPool, models, hasPermission);
   await hasPermission('task', 'view', {});
   const advancedTaskDef = await atf.advancedTaskDefinitionById(
     id
   );
 
-  await atf.canUserSeeTaskDefinition(advancedTaskDef);
+  if(await atf.permissions.canUserSeeTaskDefinition(advancedTaskDef) == false) {
+    throw new Error("You do not have permission");
+  }
 
   return advancedTaskDef;
-
 };
 
 
@@ -202,6 +203,11 @@ export const addAdvancedTaskDefinition = async (
   },
   { sqlClientPool, hasPermission, models }
 ) => {
+
+  const atb = advancedTaskToolbox.advancedTaskFunctions(
+    sqlClientPool, models, hasPermission
+  );
+
   let projectObj = await getProjectByEnvironmentIdOrProjectId(
     sqlClientPool,
     environment,
@@ -326,7 +332,7 @@ export const addAdvancedTaskDefinition = async (
     })
   );
 
-  return await advancedTaskToolbox.advancedTaskFunctions(sqlClientPool).advancedTaskDefinitionById(
+  return await atb.advancedTaskDefinitionById(
     insertId
   );
 };
@@ -433,9 +439,10 @@ export const deleteAdvancedTaskDefinition = async (
   { sqlClientPool, hasPermission, models }
 ) => {
   //load up advanced task definition ...
-  const adTaskDef = await advancedTaskToolbox.advancedTaskFunctions(
-    sqlClientPool
-  ).advancedTaskDefinitionById(advancedTaskDefinition);
+  const atb = advancedTaskToolbox.advancedTaskFunctions(
+    sqlClientPool, models, hasPermission
+  );
+  const adTaskDef = await atb.advancedTaskDefinitionById(advancedTaskDefinition);
 
   if (!adTaskDef) {
     throw new Error(

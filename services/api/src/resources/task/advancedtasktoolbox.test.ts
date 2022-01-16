@@ -12,11 +12,11 @@ interface IPermissionsMockItem {
 }
 
 const areIKeycloakAuthAttributesEqual = (a: IKeycloakAuthAttributes, b: IKeycloakAuthAttributes) => {
-    return (a.users && b.users && R.symmetricDifference(a.users, b.users).length == 0)
-           && (a.group && b.group && a.group == b.group) && (a.project && b.project && a.project == b.project);
+    const userSort = R.partial(R.sort, [(a, b) => { return a - b;}]);
+    return R.equals(a.project, b.project) && R.equals(a.group, b.group) &&
+    R.equals(userSort(a.users || []), userSort(b.users || []));
 }
 
-//TODO: can we leverage Jest to actually do this?
 //Mock out the hasPermissions function
 // requires sets of `resource, scope, attributes: IKeycloakAuthAttributes = {}` to define permissions
 const mockHasPermission = (permissions: Array<IPermissionsMockItem>) => {
@@ -24,9 +24,12 @@ const mockHasPermission = (permissions: Array<IPermissionsMockItem>) => {
         let match = false;
         permissions.forEach(element => {
             if(element.resource == resource &&
-                scope == element.scope
-                // && areIKeycloakAuthAttributesEqual(element.attributes, attributes)
+                scope == element.scope &&
+                areIKeycloakAuthAttributesEqual(element.attributes, attributes)
                 ) {
+                    console.log("match");
+                    console.log({resource, scope, attributes});
+                    console.log(element);
                 match = true;
             }
         });
@@ -41,20 +44,26 @@ describe('advancedtasktoolbox', () => {
     describe('canUserSeeTaskDefinition', () => {
 
         let environmentById = jest.fn((id: number) => {
-            return {project: 1};
+            if(id == 1) {
+                return {project: 1};
+            }
+            return {project: 2};
         });
 
         let environmentHelpers = {
             getEnvironmentById: environmentById,
         };
 
-
         //This user has permission to view tasks on
         let hasPermissions = mockHasPermission([{resource: 'task', scope: 'view', attributes: {project: 1}}])
-        let ath = advancedTaskFunctionFactory({}, hasPermissions, {}, environmentHelpers, {});
+        let ath = advancedTaskFunctionFactory({}, hasPermissions, {}, {}, environmentHelpers, {});
 
         test('test user is granted permission when invoking a project she has access to', () => {
-            return expect(ath.canUserSeeTaskDefinition({environment: 1})).resolves.toBe(true);
+            return expect(ath.permissions.canUserSeeTaskDefinition({environment: 1})).resolves.toBe(true);
+        });
+
+        test('test user is denied permission to a project she doesnt have access to', () => {
+            return expect(ath.permissions.canUserSeeTaskDefinition({environment: 2})).resolves.toBe(false);
         });
     });
 });
