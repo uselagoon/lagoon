@@ -44,11 +44,10 @@ describe('advancedtasktoolbox', () => {
             return {project: 1};
         });
 
-        let environmentHelpers = (sqlClientPool) => {
-            return {
-                getEnvironmentById: environmentById,
-            }
-        }
+        let environmentHelpers = {
+            getEnvironmentById: environmentById,
+        };
+
 
         //This user has permission to view tasks on
         let hasPermissions = mockHasPermission([{resource: 'task', scope: 'view', attributes: {project: 1}}])
