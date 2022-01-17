@@ -10,7 +10,7 @@ This Dockerfile is intended to be used to set up a standalone MariaDB database s
 
 This image is prepared to be used on Lagoon. There are therefore some things already done:
 
-* Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/sclorg/s2i-base-container/blob/master/core/root/usr/bin/fix-permissions), so this image will work with a random user.
+* Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions), so this image will work with a random user.
 * `readiness-probe.sh` script to check when MariaDB container is ready.
 
 ## Included tools
