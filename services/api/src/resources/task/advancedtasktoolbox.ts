@@ -79,6 +79,6 @@ export const advancedTaskFunctionFactory = (queryRunner, hasPermission = null, m
           }
           return false;
         },
-      }
+      },
     };
   };
