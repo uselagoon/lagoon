@@ -717,6 +717,39 @@ if [ "$(featureFlag ROOTLESS_WORKLOAD)" = enabled ]; then
 	yq3 merge -ix -- /kubectl-build-deploy/values.yaml /kubectl-build-deploy/rootless.values.yaml
 fi
 
+# add hint to prefer placing prod and dev workloads on separate nodes
+if [[ $ENVIRONMENT_TYPE == production ]]; then
+	ENVIRONMENT_OTHER_TYPE=development
+else
+	ENVIRONMENT_OTHER_TYPE=production
+fi
+cat << EOF >> /kubectl-build-deploy/values.yaml
+
+affinity:
+  podAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: lagoon.sh/environmentType
+            operator: In
+            values:
+            - "$ENVIRONMENT_TYPE"
+        topologyKey: kubernetes.io/hostname
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: lagoon.sh/environmentType
+            operator: In
+            values:
+            - "$ENVIRONMENT_OTHER_TYPE"
+        topologyKey: kubernetes.io/hostname
+
+EOF
 
 echo -e "\
 imagePullSecrets:\n\
