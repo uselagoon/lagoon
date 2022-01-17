@@ -10,12 +10,13 @@ To run a Lagoon Project, your system must meet the requirements to run Docker. W
 
 TL;DR: install and start `pygmy`:
 
-```text
-gem install pygmy
+```bash
+brew tap pygmystack/pygmy;
+brew install pygmy;
 pygmy up
 ```
 
-[Pygmy](https://github.com/amazeeio/pygmy/) is an amazee.io flavored local development system.
+[Pygmy](https://github.com/pygmystack/pygmy/) is a container stack for local development, developed collaboratively with the Lagoon team.
 
 Learn more about Lagoon, pygmy, and [Local Development Environments](local-development-environments.md)
 

@@ -93,3 +93,13 @@ For example, to connect to the `php` container within the `nginx` pod:
 ```bash
 ssh -p 32222 -t drupal-example-main@ssh.lagoon.amazeeio.cloud service=nginx container=php
 ```
+
+## SCP
+
+### Copying a local file into a pod
+
+To copy a file from your local machine to a pod running on Lagoon, use the following syntax:
+
+```bash
+ssh -t -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" -p 32222 [project_name]-[environment_name]@ssh.lagoon.amazeeio.cloud service=[name_of_service] pod=[name_of_pod] sh -c "cat > /tmp/[name_of_file]" < [name_of_file]
+```
