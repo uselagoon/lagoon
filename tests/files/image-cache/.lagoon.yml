@@ -1,0 +1,11 @@
+docker-compose-yaml: docker-compose.yml
+
+environment_variables:
+  git_sha: 'true'
+
+environments:
+  tasks:
+    routes:
+    - node:
+      - customdomain-will-be-main-domain.com
+      - customdomain-will-be-not-be-main-domain.com

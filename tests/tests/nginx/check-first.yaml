@@ -1,3 +1,13 @@
+- name: "{{ testname }} - check if custom domain 'test1.example.com' is not added from the environment variables"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "https://nginx-basic-auth.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix_https }}"
+    host: "test1.example.com"
+    expected_returncode: "{{ del_status_code }}"
+  tasks:
+  - include: ../../checks/check-url-returncode-host.yaml
+
 - name: "{{ testname }} - check if {{ project }} is deployed with searching for 'Hello World!'"
   hosts: localhost
   serial: 1

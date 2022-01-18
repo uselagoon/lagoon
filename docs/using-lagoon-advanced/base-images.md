@@ -16,9 +16,8 @@ Further, the derived image includes a call to the script `/build/pre_composer`, 
 
 ## Anatomy of a base image
 
-{% hint style="info" %}
-**Note**: this document will talk about Drupal and Laravel base images as examples, as it was originally written for a client who uses those technologies in their Lagoon projects. It will be expanded to cover the contents of other base images, but none of the processes differ, no matter what the content of your base image.
-{% endhint %}
+!!! Note "Note:"
+    **Note**: this document will talk about Drupal and Laravel base images as examples, as it was originally written for a client who uses those technologies in their Lagoon projects. It will be expanded to cover the contents of other base images, but none of the processes differ, no matter what the content of your base image.
 
 Base images are managed with [Composer](https://getcomposer.org/) and hosted in [Bitbucket](https://bitbucket.org/), [Github](https://github.com/), or [GitLab](https://gitlab.com/) \(whatever your team is using\). Each base image has its own repository.
 
@@ -28,15 +27,11 @@ The metapackage is a Composer package that wraps several other components. These
 
 Here’s an example from the `composer.json` in a Laravel base image:
 
-{% tabs %}
-{% tab title="composer.json" %}
-```text
+```text title="composer.json"
 "require": {
     "amazeelabs/algm_laravel_baseimage": "*"
 },
 ```
-{% endtab %}
-{% endtabs %}
 
 We only require this metapackage, which points to a GitHub repository.
 
@@ -89,7 +84,7 @@ If your project makes use of [queues](https://laravel.com/docs/5.8/queues), you 
 
 ## Understanding the process of building a base image
 
-There are several parts to the process of building a base image. All of the major steps are represented in the Makefile. The Jenkinsfile contains a more stripped-down view. Taking a look at both files will give you a good understanding of what happens during this process. Most steps can be tested locally \(this is important when building new versions of the base image\). After you’ve created and tested everything locally and pushed it up, the actual base image is built by [Jenkins](https://jenkins.io/) and pushed to [Harbor](../administering-lagoon/using_harbor/).
+There are several parts to the process of building a base image. All of the major steps are represented in the Makefile. The Jenkinsfile contains a more stripped-down view. Taking a look at both files will give you a good understanding of what happens during this process. Most steps can be tested locally \(this is important when building new versions of the base image\). After you’ve created and tested everything locally and pushed it up, the actual base image is built by [Jenkins](https://jenkins.io/) and pushed to [Harbor](../administering-lagoon/using-harbor/).
 
 ### Makefile and build assumptions
 
@@ -102,7 +97,7 @@ Variables injected into the base image build process and where to find them.
 * `BUILD_NUMBER` - This is injected by Jenkins automatically.
 * `GIT_BRANCH` - This is provided by the Jenkins build process itself. Depends on the branch being built at the time \(develop, main, etc.\).
 * `DOCKER_REPO`/`DOCKER_HUB` - This is defined inside the Jenkinsfile itself. It points to the Docker project and hub into which the resulting images will be pushed.
-* `DOCKER_USERNAME`/`DOCKER_PASSWORD` - These are used to actually log into the Docker repository early in the build. These variables are stored inside of the Jenkins credentials with an id that will be provided to you by amazee.io. These are used in the Jenkinsfile itself and are not part of the Makefile. This means that if you’re building base images outside of Jenkins \(i.e. locally, to test, etc.\) you have to run a `docker login` manually before running any of the make steps.
+* `DOCKER_USERNAME`/`DOCKER_PASSWORD` - These are used to actually log into the Docker repository early in the build. These variables are stored inside of the Jenkins credentials. These are used in the Jenkinsfile itself and are not part of the Makefile. This means that if you’re building base images outside of Jenkins \(i.e. locally, to test, etc.\) you have to run a `docker login` manually before running any of the make steps.
 
 In practice, this means that if you're running any of the `make` targets on your local machine, you'll want to ensure that these are available in the environment - even if this is just setting them when running make from the command line, as an example:
 
@@ -136,11 +131,7 @@ There are several steps to the build process. Most of these are shared among the
 
 There are many reasons to release a new version of a base image. On Drupal or Laravel, Node.js, etc images, it may be in order to upgrade or install a module/package for features or security. It may be about the underlying software that comes bundled in the container, such as updating the version of PHP or Node.js. It may be about updating the actual underlying _images_ on which the base images are built.
 
-The images that your project's base images are built on are the managed images maintained by amazee.io. We periodically release updates to these underlying images. When these are updated, you need to build new versions of your own base images in order to incorporate the changes and upgrades bundled in the amazee.io images.
-
-{% hint style="info" %}
-**Note**: if you are using amazee.io's hosting service, your service agreement may dictate that amazee.io updates your base images, or that you do - it can be done by either party.
-{% endhint %}
+The images that your project's base images are built on are the managed images maintained by the Lagoon team. We release updates to these underlying images on a monthly (or more fequent) basus. When these are updated, you need to build new versions of your own base images in order to incorporate the changes and upgrades bundled in the upstream images.
 
 In this section we will demonstrate the process of updating and tagging a new release of the Drupal 8 base image. We will add a new module \([ClamAV](https://www.drupal.org/project/clamav)\) to the base. We’re demonstrating on Drupal because it has the most complex setup of the base images. The steps that are common to every base image are noted below.
 
@@ -152,13 +143,12 @@ This is just pulling down the Git repository locally. In the case of the Drupal 
 git clone ssh://git@bitbucket.biscrum.com:7999/webpro/drupal8_base_image.git
 ```
 
-![Running \`git clone\` on the base image repository.](../.gitbook/assets/0.gif)
+![Running \`git clone\` on the base image repository.](../0.gif)
 
 #### Step 2 - Make the changes to the repository
 
-{% hint style="info" %}
-**Note:** What is demonstrated here is specific to the Drupal 8 base image. However, any changes \(adding files, changing base Docker images, etc.\) will be done in this step for all of the base images.
-{% endhint %}
+!!! Note "Note:"
+    **Note:** What is demonstrated here is specific to the Drupal 8 base image. However, any changes \(adding files, changing base Docker images, etc.\) will be done in this step for all of the base images.
 
 In our example, we are adding the ClamAV module to the Drupal 8 base image. This involves a few steps. The first is requiring the package so that it gets added to our `composer.json` file. This is done by running a `composer require`.
 
@@ -168,13 +158,13 @@ Here we run:
 composer require drupal/clamav
 ```
 
-![Running \`composer require drupal/clamav\`](../.gitbook/assets/step2_require.gif)
+![Running \`composer require drupal/clamav\`](../step2_require.gif)
 
 When the composer require process completes, the package should then appear in the `composer.json` file.
 
 Here we open the `composer.json` file and take a look at the list of required packages, and check that the ClamAV package is listed, and see that it is there:
 
-![Opening composer.json to check that ClamAV is now required.](../.gitbook/assets/2.gif)
+![Opening composer.json to check that ClamAV is now required.](../2.gif)
 
 #### Step 2.2 - Ensure that the required Drupal module is enabled in template-based derived images.
 
@@ -182,7 +172,7 @@ For any modules now added to the base image, we need to ensure that they’re en
 
 Here we open `web/modules/contrib/lagoon/lagoon_bundle/lagoon_bundle.info.yml` and add `clamav:clamav` as a dependency:
 
-![Adding ClamAV as a dependency of Lagoon Bundle.](../.gitbook/assets/3%20%282%29%20%282%29%20%283%29%20%284%29%20%284%29%20%284%29%20%284%29.png)
+![Adding ClamAV as a dependency of Lagoon Bundle.](../3.png)
 
 Adding a dependency to this will ensure that whenever the Lagoon Bundle module is enabled on the derived image, its dependencies \(in this case, the just-added ClamAV module\) will also be enabled. This is enforced by a post-rollout script which enables `lagoon_bundle` on the derived images when they are rolled out.
 
@@ -192,7 +182,7 @@ This will depend on what you’re testing. In the case of adding the ClamAV modu
 
 Here we check that the module is downloaded to `/app/web/modules/contrib`:
 
-![Checking /app/web/modules/contrib to make sure ClamAV is downloaded. ](../.gitbook/assets/4%20%282%29%20%282%29%20%283%29%20%285%29%20%285%29%20%281%29%20%281%29%20%283%29.gif)
+![Checking /app/web/modules/contrib to make sure ClamAV is downloaded. ](../4.gif)
 
 And then we check that when we enable the `lagoon_bundle` module, it enables `clamav` by running:
 
@@ -200,11 +190,10 @@ And then we check that when we enable the `lagoon_bundle` module, it enables `cl
 drush pm-enable lagoon_bundle -y
 ```
 
-![Running \`drush pm-enable lagoon\_bundle -y\` and seeing that it also enables ClamAV](../.gitbook/assets/5%20%282%29%20%282%29%20%283%29%20%285%29%20%285%29%20%282%29%20%281%29%20%284%29.gif)
+![Running \`drush pm-enable lagoon\_bundle -y\` and seeing that it also enables ClamAV](../5.gif)
 
-{% hint style="warning" %}
-**Note:** You’ll see that there is a JWT error in the container above. You can safely ignore this in the demonstration above - but, for background, you will see this error when there is no Lagoon environment for the site you’re working on.
-{% endhint %}
+!!! warning "Warning:"
+    **Note:** You’ll see that there is a JWT error in the container above. You can safely ignore this in the demonstration above - but, for background, you will see this error when there is no Lagoon environment for the site you’re working on.
 
 With our testing done, we can now tag and build the images.
 
@@ -225,17 +214,15 @@ We check that we have committed \(but not pushed\) our changes, just as you woul
 4. Next, we push our tags with `git push --tags`.
 5. And finally, push all of our changes with `git push`.
 
-{% hint style="danger" %}
-**Note:** The tags must be pushed explicitly in their own step!
-{% endhint %}
+!!! Danger "Danger:"
+    **Note:** The tags must be pushed explicitly in their own step!
 
-![Demonstrating how to tag and push a base image.](../.gitbook/assets/6%20%282%29%20%282%29%20%283%29%20%285%29%20%285%29%20%283%29%20%281%29.gif)
+![Demonstrating how to tag and push a base image.](../6.gif)
 
 #### How Git tags map to image tags
 
-{% hint style="danger" %}
-**Important note:** Depending on the build workflow, you will almost certainly push the changes via the **develop** branch before merging it into the **main** branch.
-{% endhint %}
+!!! Danger "Danger:"
+    **Important note:** Depending on the build workflow, you will almost certainly push the changes via the **develop** branch before merging it into the **main** branch.
 
 An important point to remember here is that the Jenkins base image build process will tag _images_ based on the _most recent commit’s tag_.
 
@@ -246,18 +233,17 @@ Images are tagged using the following rules, and images will be built for each o
 3. If the commit being built is _tagged_ then that branch will be built with that commit’s tag.
    1. This is how we release a new version as we demonstrated above. It can also be used to make ad hoc builds with fairly arbitrary tags - be reasonable with the tag names, it has only been tested with _semver_ tags.
 
-#### Step 4 - Building the new base images.
+#### Step 4 - Building the new base images
 
-{% hint style="info" %}
-**Note:** Generally you will have a trigger strategy set up here for automatic builds, but as that will differ based on your needs and setup, this explains how to build manually.
-{% endhint %}
+!!! Note "Note:"
+    **Note:** Generally you will have a trigger strategy set up here for automatic builds, but as that will differ based on your needs and setup, this explains how to build manually.
 
 1. Visit your Lagoon Jenkins instance.
 2. Select the project you are working on \(in this case, AIOBI Drupal 8 Base\).
 3. Click the branch you would like to build.
 4. Click “Build Now.”
 
-![Showing how to build a base image in the Jenkins UI.](../.gitbook/assets/7%20%282%29%20%282%29%20%282%29%20%282%29%20%282%29%20%282%29%20%282%29%20%282%29.gif)
+![Showing how to build a base image in the Jenkins UI.](../7.gif)
 
 This will kick off the build process which, if successful, will push up the new images to Harbor.
 
@@ -265,9 +251,8 @@ If the build is not successful, you can click into the build itself and read the
 
 As shown in the screenshot below from Harbor, the image we’ve just built in Jenkins has been uploaded and tagged in Harbor, where it will now be scanned for any vulnerabilities. Since it was tagged as v0.0.9, an image with that tag is present, and because we built the **main** branch, the “latest” image has also been built. At this stage, the v0.0.9 and “latest” images are identical.
 
-![Screenshot from Harbor showing uploaded and tagged images.](../.gitbook/assets/8%20%282%29%20%282%29%20%283%29%20%284%29%20%284%29%20%284%29%20%284%29%20%281%29.png)
+![Screenshot from Harbor showing uploaded and tagged images.](../8.png)
 
 ## Acknowledgement
 
-The base image structure draws heavily \(and, in fact, is a fork of\) [Denpal](https://github.com/dennisarslan/denpal). It is based on the original [Drupal Composer Template](https://github.com/drupal-composer/drupal-project), but includes everything necessary to run on amazee.io \(either the local development environment or on amazee.io servers\).
-
+The base image structure draws heavily \(and, in fact, is a fork of\) [Denpal](https://github.com/dennisarslan/denpal). It is based on the original [Drupal Composer Template](https://github.com/drupal-composer/drupal-project), but includes everything necessary to run on Lagoon \(either the local development environment or on hosted Lagoon\).

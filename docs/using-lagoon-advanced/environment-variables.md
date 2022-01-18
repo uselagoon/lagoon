@@ -14,7 +14,7 @@ As there can be environment variables defined in either the Dockerfile or during
 6. Environment variables defined in `.env`.
 7. Environment variables defined in `.env.defaults`.
 
-`.lagoon.env.$BRANCHNAME`, `.lagoon.env.$BRANCHNAME`, `.env`, and `.env.defaults` are all sourced by the individual containers themselves as part of running their entrypoint scripts. They are not read by Lagoon, but by the containers themselves.
+`.lagoon.env.$BRANCHNAME`, `.lagoon.env.$BRANCHNAME`, `.env`, and `.env.defaults` are all sourced by the individual containers themselves as part of running their entrypoint scripts. They are not read by Lagoon, but by the containers `ENTRYPOINT` scripts, which look for them in the containers working directory. If environment variables don't appear as expected, check if your container has a `WORKDIR` setting that points to somewhere else.
 
 ## Environment Variables \(Lagoon API\)
 
@@ -139,15 +139,11 @@ If you have environment variables that can safely be saved within a Git reposito
 
 The syntax in the environment files is as following:
 
-{% tabs %}
-{% tab title="myenvironment.env" %}
-```bash
+```bash title="myenvironment.env"
 MYVARIABLENAME="MyVariableValue"
 MVARIABLENUMBER=4242
 DB_USER=$DB_USERNAME # Redefine DB_USER with the value of DB_USERNAME e.g. if your application expects another variable name for the Lagoon-provided variables.
 ```
-{% endtab %}
-{% endtabs %}
 
 ### `.lagoon.env.$BRANCHNAME`
 
@@ -222,4 +218,3 @@ An example custom setting would be: `AAAAAAAAAAAA12345`
 Specify the secret key Lagoon should use to access the custom restore bucket.
 
 An example custom setting would be: `12345AAAAAAAAAAAA`
-

@@ -17,13 +17,18 @@ export const getEnvironmentByName: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission }
 ) => {
+
+  if (args.includeDeleted == undefined) {
+    args.includeDeleted = true
+  }
   const rows = await query(
     sqlClientPool,
     `SELECT *
     FROM environment
     WHERE name = :name AND
-    project = :project`,
-    args
+    project = :project
+    ${args.includeDeleted ? '' : 'AND deleted = "0000-00-00 00:00:00"'}`,
+    args,
   );
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   const environment = withK8s[0];
@@ -379,7 +384,7 @@ export const addOrUpdateEnvironment: ResolverFn = async (
   );
 
   userActivityLogger(`User updated environment`, {
-    project: input.name || '',
+    project: projectOpenshift.name || '',
     event: 'api:addOrUpdateEnvironment',
     payload: {
       ...input
@@ -605,7 +610,8 @@ export const updateEnvironment: ResolverFn = async (
         route: input.patch.route,
         routes: input.patch.routes,
         monitoringUrls: input.patch.monitoringUrls,
-        autoIdle: input.patch.autoIdle
+        autoIdle: input.patch.autoIdle,
+        created: input.patch.created
       }
     })
   );
@@ -631,6 +637,7 @@ export const updateEnvironment: ResolverFn = async (
         routes: input.patch.routes,
         monitoringUrls: input.patch.monitoringUrls,
         autoIdle: input.patch.autoIdle,
+        created: input.patch.created
       },
       data: withK8s
     }

@@ -1,9 +1,3 @@
----
-description: >-
-  The customizability of Lagoon allows you to run Drupal within a subfolder of
-  another application.
----
-
 # Subfolders
 
 An example could be: `www.example.com` points to one Drupal site, while `www.example.com/blog` loads a blog built in another Drupal.
@@ -18,9 +12,7 @@ The root application \(in this example, the Drupal site for `www.example.com`\),
 
 Create a file called `location_prepend.conf` in the root of your Drupal installation:
 
-{% tabs %}
-{% tab title="location\_prepend.conf" %}
-```text
+```text title="location_prepend.conf"
 resolver 8.8.8.8 valid=30s;
 
 location ~ ^/subfolder {
@@ -49,8 +41,6 @@ location ~ ^/subfolder {
 
   expires off; # make sure we honor cache headers from the proxy and not overwrite them
 ```
-{% endtab %}
-{% endtabs %}
 
 Replace the following strings:
 
@@ -62,14 +52,10 @@ Replace the following strings:
 
 Add the following to your NGINX Dockerfile \(`nginx.dockerfile` or `Dockerfile.nginx`\):
 
-{% tabs %}
-{% tab title="nginx.dockerfile" %}
-```text
+```text title="nginx.dockerfile"
 COPY location_prepend.conf /etc/nginx/conf.d/drupal/location_prepend.conf
 RUN fix-permissions /etc/nginx/conf.d/drupal/*
 ```
-{% endtab %}
-{% endtabs %}
 
 ## Modifications of subfolder application
 
@@ -79,9 +65,7 @@ Like the root application, we also need to teach the subfolder application \(in 
 
 Create a file called `location_drupal_append_subfolder.conf` in the root of your subfolder Drupal installation:
 
-{% tabs %}
-{% tab title="location\_drupal\_append\_subfolder.conf" %}
-```text
+```text title="location_drupal_append_subfolder.conf"
 # When injecting a script name that is prefixed with `subfolder`, Drupal will
 # render all URLs with `subfolder` prefixed
 fastcgi_param  SCRIPT_NAME        /subfolder/index.php;
@@ -95,8 +79,6 @@ fastcgi_param  HTTP_HOST          $http_host;
 # Then we overwrite it with `X-Lagoon-Forwarded-Host` if it exists.
 fastcgi_param  HTTP_HOST          $http_x_lagoon_forwarded_host if_not_empty;
 ```
-{% endtab %}
-{% endtabs %}
 
 Replace `/subfolder` with the name of the subfolder you want to use. For example, `/blog`.
 
@@ -104,9 +86,7 @@ Replace `/subfolder` with the name of the subfolder you want to use. For example
 
 Create a file called `server_prepend_subfolder.conf` in the root of your subfolder Drupal installation:
 
-{% tabs %}
-{% tab title="server\_prepend\_subfolder.conf" %}
-```text
+```text title="server_prepend_subfolder.conf"
 # Check for redirects before we do the internal Nginx rewrites.
 # This is done because the internal Nginx rewrites uses `last`,
 # which instructs Nginx to not check for rewrites anymore (and
@@ -133,8 +113,6 @@ rewrite ^/subfolder               /subfolder/     permanent;
 # Any other request we prefix 301 redirect with `/subfolder/`
 rewrite ^\/(.*)                   /subfolder/$1   permanent;
 ```
-{% endtab %}
-{% endtabs %}
 
 Replace `/subfolder` with the name of the subfolder you want to use. For example, `/blog`.
 
@@ -144,13 +122,8 @@ We also need to modify the NGINX Dockerfile.
 
 Add the following to your NGINX Dockerfile \(`nginx.dockerfile` or `Dockerfile.nginx`\):
 
-{% tabs %}
-{% tab title="nginx.dockerfile" %}
-```text
+```text title="nginx.dockerfile"
 COPY location_drupal_append_subfolder.conf /etc/nginx/conf.d/drupal/location_drupal_append_subfolder.conf
 COPY server_prepend_subfolder.conf /etc/nginx/conf.d/drupal/server_prepend_subfolder.conf
 RUN fix-permissions /etc/nginx/conf.d/drupal/*
 ```
-{% endtab %}
-{% endtabs %}
-
