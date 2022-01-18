@@ -1,0 +1,21 @@
+query getEnvironmentFromId($environment: Int!) {
+    environmentById(id: $environment) {
+        id
+        name
+    }
+}
+
+mutation addFacts($facts: [AddFactInput]!) {
+    addFacts(input: {
+        facts: $facts
+    }) {
+        id
+    }
+}
+
+mutation deleteFactsFromSource($environment: Int!, $source: String!) {
+    deleteFactsFromSource(input: {
+        environment: $environment,
+        source: $source
+    })
+}

@@ -1,0 +1,49 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.3",
+  "serialNumber": "urn:uuid:db9b54af-f4ea-4043-9f53-b0f1b4485d4d",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2022-01-12T10:16:55Z",
+    "tools": [
+      {
+        "vendor": "anchore",
+        "name": "syft",
+        "version": "0.35.1"
+      }
+    ],
+    "component": {
+      "type": "container",
+      "name": "uselagoon/php-8.1-cli-drupal",
+      "version": "sha256:b364c41e9c6bf5dea414e3a382f8088883265a7ad48bfecc83c6ff2f75998d10"
+    }
+  },
+  "components": [
+    {
+      "type": "library",
+      "name": "@npmcli/arborist",
+      "version": "2.6.2",
+      "licenses": [
+        {
+          "license": {
+            "name": "ISC"
+          }
+        }
+      ],
+      "purl": "pkg:npm/@npmcli%2Farborist@2.6.2"
+    },
+    {
+      "type": "library",
+      "name": "@npmcli/ci-detect",
+      "version": "1.3.0",
+      "licenses": [
+        {
+          "license": {
+            "name": "ISC"
+          }
+        }
+      ],
+      "purl": "pkg:npm/@npmcli%2Fci-detect@1.3.0"
+    }
+  ]
+}

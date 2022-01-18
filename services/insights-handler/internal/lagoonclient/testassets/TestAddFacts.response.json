@@ -1,0 +1,22 @@
+{
+  "data": {
+    "addFacts": [
+      {
+        "id": 1,
+        "name": "test-fact-name",
+        "value": "test-fact-value",
+        "source": "test-source",
+        "description": "test-description",
+        "type": "STRING"
+      },
+      {
+        "id": 2,
+        "name": "test-fact-name-2",
+        "value": "test-fact-value-2",
+        "source": "test-source-2",
+        "description": "test-description-2",
+        "type": "STRING"
+      }
+    ]
+  }
+}

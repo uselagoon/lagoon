@@ -221,6 +221,7 @@ services :=	api \
 			broker-single \
 			controllerhandler \
 			drush-alias \
+			insights-handler \
 			keycloak \
 			keycloak-db \
 			logs-concentrator \
@@ -257,6 +258,7 @@ build/auto-idler: build/oc
 build/broker-single: services/broker/Dockerfile
 build/broker: build/broker-single
 build/drush-alias: services/drush-alias/Dockerfile
+build/inights-handler: services/insights-handler/Dockerfile
 build/keycloak-db: services/keycloak-db/Dockerfile
 build/keycloak: services/keycloak/Dockerfile
 build/logs-concentrator: services/logs-concentrator/Dockerfile
@@ -1056,7 +1058,7 @@ ifeq ($(ARCH), darwin)
       tcp-listen:32080,fork,reuseaddr tcp-connect:target:32080
 endif
 
-KIND_SERVICES = api api-db api-redis auth-server broker controllerhandler docker-host drush-alias keycloak keycloak-db logs2s3 webhook-handler webhooks2tasks kubectl-build-deploy-dind local-api-data-watcher-pusher local-git ssh tests ui
+KIND_SERVICES = api api-db api-redis auth-server broker controllerhandler docker-host drush-alias keycloak keycloak-db logs2s3 webhook-handler webhooks2tasks kubectl-build-deploy-dind local-api-data-watcher-pusher local-git ssh tests ui insights-handler
 KIND_TESTS = local-api-data-watcher-pusher local-git tests
 KIND_TOOLS = kind helm kubectl jq stern
 
@@ -1089,7 +1091,7 @@ kind/test: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addpr
 			"quay.io/helmpack/chart-testing:$(CHART_TESTING_VERSION)" \
 			ct install
 
-LOCAL_DEV_SERVICES = api auth-server controllerhandler logs2email logs2microsoftteams logs2rocketchat logs2slack logs2s3 logs2webhook ui webhook-handler webhooks2tasks
+LOCAL_DEV_SERVICES = api auth-server controllerhandler logs2email logs2microsoftteams logs2rocketchat logs2slack logs2s3 logs2webhook ui webhook-handler webhooks2tasks insights-handler
 
 # install lagoon charts in a Kind cluster
 .PHONY: kind/setup
