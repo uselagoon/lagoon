@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -44,28 +45,29 @@ type Action struct {
 }
 
 type LagoonLogMeta struct {
-	ProjectName    string   `json:"projectName,omitempty"`
-	BranchName     string   `json:"branchName,omitempty"`
-	BuildName      string   `json:"buildName,omitempty"`
-	BuildPhase     string   `json:"buildPhase,omitempty"`
-	EndTime        string   `json:"endTime,omitempty"`
-	Environment    string   `json:"environment,omitempty"`
-	EnvironmentID  *uint    `json:"environmentId,omitempty"`
-	JobName        string   `json:"jobName,omitempty"`
-	JobStatus      string   `json:"jobStatus,omitempty"`
-	LogLink        string   `json:"logLink,omitempty"`
-	MonitoringURLs []string `json:"monitoringUrls,omitempty"`
-	Project        string   `json:"project,omitempty"`
-	ProjectID      *uint    `json:"projectId,omitempty"`
-	RemoteID       string   `json:"remoteId,omitempty"`
-	Route          string   `json:"route,omitempty"`
-	Routes         []string `json:"routes,omitempty"`
-	StartTime      string   `json:"startTime,omitempty"`
-	Services       []string `json:"services,omitempty"`
-	Key            string   `json:"key,omitempty"`
-	AdvancedData   string   `json:"advancedData,omitempty"`
-	Cluster        string   `json:"clusterName,omitempty"`
-	SBOMUrl        string   `json:"sbomurl,omitempty"`
+	ProjectName    string                  `json:"projectName,omitempty"`
+	BranchName     string                  `json:"branchName,omitempty"`
+	BuildName      string                  `json:"buildName,omitempty"`
+	BuildPhase     string                  `json:"buildPhase,omitempty"`
+	EndTime        string                  `json:"endTime,omitempty"`
+	Environment    string                  `json:"environment,omitempty"`
+	EnvironmentID  *uint                   `json:"environmentId,omitempty"`
+	JobName        string                  `json:"jobName,omitempty"`
+	JobStatus      string                  `json:"jobStatus,omitempty"`
+	LogLink        string                  `json:"logLink,omitempty"`
+	MonitoringURLs []string                `json:"monitoringUrls,omitempty"`
+	Project        string                  `json:"project,omitempty"`
+	ProjectID      *uint                   `json:"projectId,omitempty"`
+	RemoteID       string                  `json:"remoteId,omitempty"`
+	Route          string                  `json:"route,omitempty"`
+	Routes         []string                `json:"routes,omitempty"`
+	StartTime      string                  `json:"startTime,omitempty"`
+	Services       []string                `json:"services,omitempty"`
+	Key            string                  `json:"key,omitempty"`
+	AdvancedData   string                  `json:"advancedData,omitempty"`
+	Cluster        string                  `json:"clusterName,omitempty"`
+	SBOM           *map[string]interface{} `json:"sbom,omitempty"`
+	SBOMUrl        string                  `json:"sbomUrl,omitempty"`
 }
 
 type LagoonLog struct {
@@ -172,6 +174,20 @@ func processingIncomingMessageQueueFactory(h *Messaging) func(mq.Message) {
 		json.Unmarshal(message.Body(), incoming)
 		bom := new(cdx.BOM)
 
+		// SBOM passed as json in message payload
+		if incoming.Meta != nil && incoming.Meta.SBOM != nil {
+			sbomData := incoming.Meta.SBOM
+			sbomJson, err := json.MarshalIndent(sbomData, "", " ")
+			if err != nil {
+				log.Fatalf(err.Error())
+			}
+
+			decoder := cdx.NewBOMDecoder(bytes.NewReader(sbomJson), cdx.BOMFileFormatJSON)
+			if err = decoder.Decode(bom); err != nil {
+				panic(err)
+			}
+		}
+
 		// Download SBOM from url
 		if incoming.Meta != nil && incoming.Meta.SBOMUrl != "" {
 			res, err := downloadSBOM(incoming.Meta.SBOMUrl)
@@ -235,7 +251,7 @@ func downloadSBOM(sbomURL string) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-// 	defer res.Body.Close()
+	// 	defer res.Body.Close()
 
 	return res, nil
 }

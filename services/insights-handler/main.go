@@ -98,7 +98,7 @@ func main() {
 		JWTIssuer:       jwtIssuer,
 	}
 
-	log.Println("insights-handler running...")
+	log.Println("insights-handler running")
 
 	config := mq.Config{
 		ReconnectDelay: time.Duration(rabbitReconnectRetryInterval) * time.Second,
