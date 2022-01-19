@@ -235,7 +235,7 @@ func downloadSBOM(sbomURL string) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer res.Body.Close()
+// 	defer res.Body.Close()
 
 	return res, nil
 }

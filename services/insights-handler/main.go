@@ -26,14 +26,14 @@ var (
 	lagoonAppID                  string
 	jwtTokenSigningKey           string
 	jwtAudience                  string
-	workflowsQueueName           string
-	workflowsExchange            string
+	insightsQueueName           string
+	insightsExchange            string
 	jwtSubject                   string
 	jwtIssuer                    string
 )
 
 func main() {
-	flag.StringVar(&lagoonAppID, "lagoon-app-id", "actions-handler",
+	flag.StringVar(&lagoonAppID, "lagoon-app-id", "insights-handler",
 		"The appID to use that will be sent with messages.")
 	flag.StringVar(&mqUser, "rabbitmq-username", "guest",
 		"The username of the rabbitmq user.")
@@ -61,9 +61,9 @@ func main() {
 		"The jwt audience.")
 	flag.StringVar(&jwtIssuer, "jwt-issuer", "actions-handler",
 		"The jwt audience.")
-	flag.StringVar(&workflowsQueueName, "workflows-queue-name", "lagoon-logs:workflows",
+	flag.StringVar(&insightsQueueName, "insights-queue-name", "lagoon-logs:insights",
 		"The name of the queue in rabbitmq to use.")
-	flag.StringVar(&workflowsExchange, "workflows-exchange", "lagoon-logs",
+	flag.StringVar(&insightsExchange, "insights-exchange", "lagoon-logs",
 		"The name of the exchange in rabbitmq to use.")
 	flag.Parse()
 
@@ -77,8 +77,8 @@ func main() {
 	jwtAudience = getEnv("JWT_AUDIENCE", jwtAudience)
 	jwtSubject = getEnv("JWT_SUBJECT", jwtSubject)
 	jwtIssuer = getEnv("JWT_ISSUER", jwtIssuer)
-	workflowsQueueName = getEnv("WORKFLOWS_QUEUE_NAME", workflowsQueueName)
-	workflowsExchange = getEnv("WORKFLOWS_EXCHANGE", workflowsExchange)
+	insightsQueueName = getEnv("INSIGHTS_QUEUE_NAME", insightsQueueName)
+	insightsExchange = getEnv("INSIGHTS_EXCHANGE", insightsExchange)
 
 	enableDebug := true
 
@@ -87,8 +87,8 @@ func main() {
 		Hostname:     fmt.Sprintf("%s:%s", mqHost, mqPort),
 		Username:     mqUser,
 		Password:     mqPass,
-		QueueName:    workflowsQueueName,
-		ExchangeName: workflowsExchange,
+		QueueName:    insightsQueueName,
+		ExchangeName: insightsExchange,
 	}
 	graphQLConfig := handler.LagoonAPI{
 		Endpoint:        lagoonAPIHost,
