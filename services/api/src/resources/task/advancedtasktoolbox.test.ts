@@ -27,9 +27,6 @@ const mockHasPermission = (permissions: Array<IPermissionsMockItem>) => {
                 scope == element.scope &&
                 areIKeycloakAuthAttributesEqual(element.attributes, attributes)
                 ) {
-                    console.log("match");
-                    console.log({resource, scope, attributes});
-                    console.log(element);
                 match = true;
             }
         });
