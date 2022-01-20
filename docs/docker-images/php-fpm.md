@@ -105,4 +105,4 @@ Environment variables are meant to contain common information for the PHP contai
 | `BLACKFIRE_ENABLED` | \(not set\) | Used to enable `blackfire` extension with setting variable to `TRUE` or `true` |
 | `BLACKFIRE_SERVER_ID` | \(not set\) | Set to Blackfire Server ID provided by Blackfire.io. Needs `BLACKFIRE_ENABLED` set to `true` |
 | `BLACKFIRE_SERVER_TOKEN` | \(not set\) | Set to Blackfire Server Token provided by Blackfire.io. Needs `BLACKFIRE_ENABLED` set to `true` |
-
+| `BLACKFIRE_LOG_LEVEL` | `3` | Change the log level of the blackfire agent. By default set to `3`, available values: `log verbosity level (4: debug, 3: info, 2: warning, 1: error)` [See blackfire.io](https://blackfire.io/docs/up-and-running/configuration/agent). |
