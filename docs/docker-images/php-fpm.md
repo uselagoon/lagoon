@@ -102,3 +102,7 @@ Environment variables are meant to contain common information for the PHP contai
 | `PHP_MAX_INPUT_VARS` | `2000` | How many input variables will be accepted. [See php.net](http://php.net/manual/en/info.configuration.php#ini.max-input-vars). |
 | `PHP_MEMORY_LIMIT` | `400M` | Maximum amount of memory a script may consume. [See php.net](http://php.net/memory-limit). |
 | `XDEBUG_ENABLE` | \(not set\) | Used to enable `xdebug` extension. |
+| `BLACKFIRE_ENABLED` | \(not set\) | Used to enable `blackfire` extension with setting variable to `TRUE` or `true` |
+| `BLACKFIRE_SERVER_ID` | \(not set\) | Set to Blackfire Server ID provided by Blackfire.io. Needs `BLACKFIRE_ENABLED` set to `true` |
+| `BLACKFIRE_SERVER_TOKEN` | \(not set\) | Set to Blackfire Server Token provided by Blackfire.io. Needs `BLACKFIRE_ENABLED` set to `true` |
+
