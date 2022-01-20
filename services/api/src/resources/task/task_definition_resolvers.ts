@@ -11,6 +11,7 @@ import {
 } from './models/taskRegistration';
 import convertDateToMYSQLDateTimeFormat from '../../util/convertDateToMYSQLDateTimeFormat';
 import * as advancedTaskToolbox from './advancedtasktoolbox';
+import { IKeycloakAuthAttributes, KeycloakUnauthorizedError } from '../../util/auth';
 
 const AdvancedTaskDefinitionType = {
   command: 'COMMAND',
@@ -39,7 +40,11 @@ const PermissionsToRBAC = (permission: string) => {
 
 export const allAdvancedTaskDefinitions = async (root, args, {sqlClientPool, hasPermission, models}) => {
   //is the user a system admin?
-  await hasPermission('advanced_task','create:advanced');
+  try {
+    await hasPermission('advanced_task','create:advanced');
+  } catch(e) {
+    throw new KeycloakUnauthorizedError("Only system admins have access to view all advanced task definitions");
+  }
 
   let adTaskDefs = await query(
     sqlClientPool,
@@ -238,7 +243,8 @@ export const addAdvancedTaskDefinition = async (
   } else if (projectObj) {
     //does the user have permission to actually add to this?
     //i.e. are they a maintainer?
-    await hasPermission('task', `add:production`, {
+
+    await hasPermission('task', `add:development`, {
       project: projectObj.id
     });
   }
@@ -343,9 +349,10 @@ const getProjectByEnvironmentIdOrProjectId = async (
   project
 ) => {
   if (environment) {
-    return await projectHelpers(sqlClientPool).getProjectByEnvironmentId(
+    let projByEnv = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(
       environment
     );
+    return await projectHelpers(sqlClientPool).getProjectById(projByEnv.project);
   }
   if (project) {
     return await projectHelpers(sqlClientPool).getProjectById(project);
@@ -504,3 +511,4 @@ const getAdvancedTaskTarget = advancedTask => {
     // return AdvancedTaskDefinitionTarget.Environment
   }
 };
+
