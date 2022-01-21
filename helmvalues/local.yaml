@@ -79,8 +79,8 @@ tests:
     # - generic
     # - github
     # - gitlab
-    # - image-cache
-    - nginx
+    - image-cache
+    # - nginx
     # - node-mongodb
     # - node-various
     # - node
