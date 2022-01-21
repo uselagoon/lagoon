@@ -35,14 +35,18 @@ jobs:
       run: |
         docker network create kind || true && docker run --rm --network kind alpine ip -o addr show eth0 | sed -nE 's/.* ([0-9.]{7,})\/.*/\1/p'
         echo "kind_ip=$(docker network create kind || true && docker run --rm --network kind alpine ip -o addr show eth0 | sed -nE 's/.* ([0-9.]{7,})\/.*/\1/p')" >> $GITHUB_ENV
-    - name: Show Kind IP
-      run: |
-        echo "${{ env.kind_ip }}"
+        echo "Kind cluster is at ${{ env.kind_ip }}"
+    - name: Find and Replace
+      uses: jacobtomlinson/gha-find-replace@v2
+      with:
+        find: "192.168.224.2"
+        replace: ${{ env.kind_ip }}
+        include: "helmvalues/*.yaml"
     - name: Create kind cluster
       uses: helm/kind-action@v1.2.0
       with:
+        config: helmvalues/kind-config.yaml
         node_image: kindest/node:${{ matrix.kindest_node_version }}
-        # config: test-resources/kind-config.yaml
     - name: Test
       run: |
         kubectl cluster-info
