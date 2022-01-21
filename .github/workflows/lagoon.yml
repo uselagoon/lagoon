@@ -78,6 +78,14 @@ jobs:
         helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 30m lagoon-core lagoon/lagoon-core -f helmvalues/lagoon-core.yaml -f helmvalues/local.yaml
         helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 30m lagoon-build-deploy lagoon/lagoon-build-deploy -f helmvalues/lagoon-build-deploy.yaml -f helmvalues/local.yaml
         helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 30m lagoon-remote lagoon/lagoon-remote -f helmvalues/lagoon-remote.yaml -f helmvalues/local.yaml
+    - name: Update build-deploy-token in lagoon-test and install tests
+      run: |
+        kubectl -n lagoon get secret -o json | jq -r '.items[] | select(.metadata.name | match("lagoon-build-deploy-token")) | .data.token | @base64d' | xargs -I ARGS yq -i eval '.token = "ARGS"' helmvalues/local.yaml
+        helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 30m lagoon-test lagoon/lagoon-test -f helmvalues/lagoon-test.yaml -f helmvalues/local.yaml
+    - name: Update build-deploy-token in lagoon-test and run tests
+      run: |
+        helm test lagoon-test --namespace lagoon --timeout 10m
+#        timeout 10m kubectl logs -f -l app.kubernetes.io/instance=lagoon-test -n lagoon
     - name: Test
       run: |
         kubectl cluster-info

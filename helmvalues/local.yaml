@@ -64,7 +64,7 @@ tests:
   #   tag: main
   tests:
     # - active-standby-kubernetes
-    - api
+    # - api
     # - bitbucket
     # - dbaas
     # - deploytarget
