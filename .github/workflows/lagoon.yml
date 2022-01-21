@@ -25,12 +25,18 @@ jobs:
       uses: actions/checkout@v2
       with:
         fetch-depth: "0"
-    - name: Setup correct Go version
-      uses: actions/setup-go@v2
-      with:
-        go-version: '1.16'
+    # - name: Setup correct Go version
+    #   uses: actions/setup-go@v2
+    #   with:
+    #     go-version: '1.16'
     # - name: Run Kubernetes tools
     #   uses: stefanprodan/kube-tools@v1
+    - name: Get Kind IP
+      run: |
+        echo "kind_ip=$(docker network create kind || true && docker run --rm --network kind alpine ip -o addr show eth0 | sed -nE 's/.* ([0-9.]{7,})\/.*/\1/p')" >> $GITHUB_ENV
+    - name: Show Kind IP
+      run: |
+        echo "${{ env.kind_ip }}"
     - name: Create kind cluster
       uses: helm/kind-action@v1.2.0
       with:
@@ -39,4 +45,4 @@ jobs:
     - name: Test
       run: |
         kubectl cluster-info
-        kubectl get pods
+        kubectl get pods -A
