@@ -33,6 +33,7 @@ jobs:
     #   uses: stefanprodan/kube-tools@v1
     - name: Get Kind IP
       run: |
+        docker network create kind || true && docker run --rm --network kind alpine ip -o addr show eth0 | sed -nE 's/.* ([0-9.]{7,})\/.*/\1/p'
         echo "kind_ip=$(docker network create kind || true && docker run --rm --network kind alpine ip -o addr show eth0 | sed -nE 's/.* ([0-9.]{7,})\/.*/\1/p')" >> $GITHUB_ENV
     - name: Show Kind IP
       run: |
