@@ -64,7 +64,7 @@ tests:
   #   tag: main
   tests:
     # - active-standby-kubernetes
-    # - api
+    - api
     # - bitbucket
     # - dbaas
     # - deploytarget
@@ -79,7 +79,7 @@ tests:
     # - generic
     # - github
     # - gitlab
-    - image-cache
+    # - image-cache
     # - nginx
     # - node-mongodb
     # - node-various
