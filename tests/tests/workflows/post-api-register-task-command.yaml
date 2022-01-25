@@ -1,0 +1,28 @@
+- name: 'Wait until success'
+  block:
+  - include: ../../tasks/api/admin-token.yaml
+  - name: Set the retry count
+    set_fact:
+      retry_count: "{{ 0 if retry_count is undefined else retry_count|int + 1 }}"
+  - name: "{{ testname }} - POST api register task definition to {{ graphql_url }}"
+    uri:
+      url: "{{ graphql_url }}"
+      method: POST
+      headers:
+        Authorization: "Bearer {{ admin_token }}"
+      body_format: json
+      body: '{ "query": "mutation($environmentId: Int!, $taskName: String!, $description: String!, $service: String!, $command: String!, $varname: String!) {addAdvancedTaskDefinition(input: {environment:$environmentId, name:$taskName, type:COMMAND, description: $description, service: $service, advancedTaskDefinitionArguments: [{name: $varname, type:STRING}], command: $command}){... on AdvancedTaskDefinitionCommand {id}}}", "variables": {"environmentId": {{ environmentByOSProjectNameApiResponse.json.data.environmentByOpenshiftProjectName.id }}, "taskName":"testing-echo","description":"echos to file", "service":"node", "command":"echo $ENV_VAR_TEXT_STRING > /app/files/testoutput.txt", "varname": "ENV_VAR_TEXT_STRING"}}'
+    register: taskCreateApiResponse
+  rescue:
+    - debug:
+        msg: "{{ taskCreateApiResponse }}"
+    - fail:
+        msg: Ended after 3 retries
+      when: retry_count|int == 3
+    - name: Pause for retry
+      pause:
+        seconds: 10
+    - debug:
+        msg: "Failed to connect - Retrying..."
+
+    - include_tasks: ./post-api-register-task-command.yaml
