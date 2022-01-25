@@ -32,7 +32,7 @@ We have provided a number of routines in the [Makefile](https://github.com/usela
 ### Build images
 
 1. Here `-j8` tells **make** to run 8 tasks in parallel to speed the build up. Adjust as necessary.
-2. We have set `SCAN_IAMGES=false` as a default to not scan the built images for vulnerabilities. If set to true, a `scan.txt` file will be created in the project root with the scan output.
+2. We have set `SCAN_IMAGES=false` as a default to not scan the built images for vulnerabilities. If set to true, a `scan.txt` file will be created in the project root with the scan output.
 
 ```bash
 make -j8 build

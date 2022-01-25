@@ -6,7 +6,7 @@ The [Lagoon `nginx-drupal` Docker image](https://github.com/uselagoon/lagoon-ima
 
 This image is prepared to be used on Lagoon. There are therefore some things already done:
 
-* Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/sclorg/s2i-base-container/blob/master/core/root/usr/bin/fix-permissions), so this image will work with a random user.
+* Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions), so this image will work with a random user.
 * To keep `drupal.conf` 's configuration file as clean and customizable as possible, we added `include` directives in the main sections of the file:`server`, `location /`, `location @drupal` and `location @php`.
 * Further information in the section [`Drupal.conf` customization](nginx-drupal.md#drupal-conf-customization).
 
@@ -63,7 +63,7 @@ RUN fix-permissions /etc/nginx/conf.d/drupal/location_drupal_prepend.conf
 
 ## Drupal Core Statistics Module Configuration
 
-If you're using the core Statistics module, you may run into an issue that needs a quick configuration change. 
+If you're using the core Statistics module, you may run into an issue that needs a quick configuration change.
 
 With the default NGINX configuration, the request to the tracking endpoint `/core/modules/statistics/statistics.php` is denied \(404\).
 
