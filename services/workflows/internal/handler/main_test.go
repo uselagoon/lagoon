@@ -29,13 +29,6 @@ func (f MqMessageFake) Nack(Multiple bool, request bool) error  {
 	return nil
 }
 
-//func (f MqMessageFake) Ack(Multiple bool) error  {
-//	return nil
-//}func (f MqMessageFake) Ack(Multiple bool) error  {
-//	return nil
-//}
-
-
 func Test_processingIncomingMessageQueue(t *testing.T) {
 	type args struct {
 		message mq.Message

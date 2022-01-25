@@ -7,7 +7,6 @@ FROM golang:${GO_VERSION:-1.13.8} AS builder
 COPY . /go/src/github.com/uselagoon/lagoon/services/workflows/
 WORKDIR /go/src/github.com/uselagoon/lagoon/services/workflows/
 
-# tests currently don't work because mocking rabbit is interesting
 RUN GO111MODULE=on go test ./...
 # compile
 RUN CGO_ENABLED=0  GOOS=linux GOARCH=amd64 go build -a -o workflows .

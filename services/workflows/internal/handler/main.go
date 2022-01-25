@@ -186,10 +186,11 @@ func processingIncomingMessageQueueFactory(h *Messaging) func(mq.Message) {
 			}
 			for _, wf := range environmentWorkflows {
 				if lagoonclient.IsEventOfType(incoming.Event, wf.AdvancedTaskDetails) {
-					//let's invoke this puppy ...
 					result, err := lagoonclient.InvokeWorkflowOnEnvironment(context.TODO(), client, wf.EnvironmentId, wf.AdvancedTaskId)
 					if err != nil {
 						log.Println(err)
+						//TODO: do we need some kind of retry logic here?
+						message.Ack(false) // ack to remove from queue
 						return
 					}
 					fmt.Println(result)
@@ -197,7 +198,6 @@ func processingIncomingMessageQueueFactory(h *Messaging) func(mq.Message) {
 
 			}
 		}
-
 		message.Ack(false) // ack to remove from queue
 	}
 }
