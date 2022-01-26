@@ -1236,25 +1236,6 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
-  add_min_max_to_billing_modifier()
-
-  BEGIN
-    IF NOT EXISTS (
-      SELECT NULL
-      FROM INFORMATION_SCHEMA.COLUMNS
-      WHERE
-        table_name = 'billing_modifier'
-        AND table_schema = 'infrastructure'
-        AND column_name = 'min'
-    ) THEN
-      ALTER TABLE `billing_modifier`
-      ADD `min` FLOAT DEFAULT 0,
-      ADD `max` FLOAT DEFAULT 0;
-    END IF;
-  END;
-$$
-
-CREATE OR REPLACE PROCEDURE
   convert_project_production_routes_to_text()
 
   BEGIN
@@ -1479,6 +1460,14 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  drop_billing_data()
+
+  BEGIN
+    DROP TABLE IF EXISTS billing_modifier;
+  END;
+$$
+
 DELIMITER ;
 
 -- If adding new procedures, add them to the bottom of this list
@@ -1537,7 +1526,6 @@ CALL add_fact_type_to_environment_fact();
 CALL add_fact_category_to_environment_fact();
 CALL add_fact_key_to_environment_fact();
 CALL add_metadata_to_project();
-CALL add_min_max_to_billing_modifier();
 CALL add_content_type_to_project_notification();
 CALL convert_project_production_routes_to_text();
 CALL convert_project_standby_routes_to_text();
@@ -1551,6 +1539,7 @@ CALL add_openshift_project_pattern_to_environment();
 CALL add_deployments_disabled_to_project();
 CALL update_openshift_varchar_length();
 CALL migrate_project_openshift_to_environment();
+CALL drop_billing_data();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;

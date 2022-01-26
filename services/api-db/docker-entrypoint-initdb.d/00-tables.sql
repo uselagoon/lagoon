@@ -101,22 +101,6 @@ CREATE TABLE IF NOT EXISTS project (
   private_key                      varchar(5000)
 );
 
-CREATE TABLE IF NOT EXISTS billing_modifier (
-  id                              int NOT NULL auto_increment PRIMARY KEY,
-  group_id                        varchar(36),
-  weight                          int NOT NULL DEFAULT 0,
-  start_date                      datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  end_date                        datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  discount_fixed                  DECIMAL NULL DEFAULT 0,
-  discount_percentage             FLOAT NULL DEFAULT 0,
-  extra_fixed                     DECIMAL NULL DEFAULT 0,
-  extra_percentage                FLOAT NULL DEFAULT 0,
-  min                             FLOAT NULL DEFAULT 0,
-  max                             FLOAT NULL DEFAULT 0,
-  customer_comments               text,
-  admin_comments                  text
-);
-
 CREATE TABLE IF NOT EXISTS environment (
   id                        int NOT NULL auto_increment PRIMARY KEY,
   name                      varchar(100),
