@@ -289,10 +289,9 @@ do
     response_found=$(echo ${response_json} | jq -r '.result.found')
     response_error=$(echo ${response_json} | jq -r '.error')
     if [ "${response_error}" == "null" ]; then
-      echo $response_found
       return 0
     else
-      echo $response_error
+      echo $response_error 1>&2
       return 1
     fi
   }
