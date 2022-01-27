@@ -38,6 +38,11 @@ CREATE TABLE IF NOT EXISTS openshift (
   ssh_host          varchar(300),
   ssh_port          varchar(50),
   monitoring_config varchar(2048),
+  friendly_name     varchar(300),
+  maintenance_zone  varchar(100),
+  support_region    varchar(100),
+  cloud_provider    varchar(100),
+  cloud_region      varchar(100),
   created           timestamp DEFAULT CURRENT_TIMESTAMP
 );
 
