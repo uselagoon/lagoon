@@ -1481,11 +1481,11 @@ CREATE OR REPLACE PROCEDURE
         AND column_name = 'friendly_name'
     ) THEN
       ALTER TABLE `openshift`
-      ADD `friendly_name`     varchar(300),
-      ADD `maintenance_zone`  varchar(100),
-      ADD `support_region`    varchar(100),
-      ADD `cloud_provider`    varchar(100),
-      ADD `cloud_region`      varchar(100);
+      ADD `friendly_name`       varchar(300),
+      ADD `maintenance_region`  varchar(100),
+      ADD `support_region`      varchar(100),
+      ADD `cloud_provider`      varchar(100),
+      ADD `cloud_region`        varchar(100);
     END IF;
   END;
 $$
