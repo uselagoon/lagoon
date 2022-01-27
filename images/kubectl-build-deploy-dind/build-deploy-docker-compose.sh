@@ -315,7 +315,7 @@ do
         fi
       done
     fi
-    return dbaas_environment
+    return $dbaas_environment
   }
   ####
 
