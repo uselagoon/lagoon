@@ -5,7 +5,7 @@ import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
 import { createRemoveTask } from '@lagoon/commons/dist/tasks';
 import { ResolverFn } from '../';
 import { isPatchEmpty, query, knex } from '../../util/db';
-import convertDateToMYSQLDateTimeFormat from '../../util/convertDateToMYSQLDateTimeFormat';
+import { convertDateToMYSQLDateFormat } from '../../util/convertDateToMYSQLDateTimeFormat';
 import { Helpers } from './helpers';
 import { Sql } from './sql';
 import { Sql as projectSql } from '../project/sql';
@@ -355,7 +355,6 @@ export const addOrUpdateEnvironment: ResolverFn = async (
     openshiftProjectPattern = projectOpenshift.openshiftProjectPattern
   }
 
-  //TODO: replace
 
   const inputDefaults = {
     deployHeadRef: null,
@@ -372,7 +371,7 @@ export const addOrUpdateEnvironment: ResolverFn = async (
     updated: knex.fn.now()
   } ;
 
-  // const timestamp = Date.now();
+
   const createOrUpdateSql = knex('environment')
     .insert({
       ...inputDefaults,
@@ -419,20 +418,32 @@ export const addOrUpdateEnvironmentStorage: ResolverFn = async (
     ...unformattedInput,
     updated: unformattedInput.updated
       ? unformattedInput.updated
-      : convertDateToMYSQLDateTimeFormat(new Date().toISOString())
+      : convertDateToMYSQLDateFormat(new Date().toISOString())
   };
 
-  const rows = await query(
+  let updatedDate = knex.fn.now();
+
+  const createOrUpdateSql = knex('environment_storage')
+    .insert(input)
+    .onConflict('id')
+    .merge({
+      bytesUsed: input.bytesUsed
+    }).toString();
+
+  const { insertId } = await query(
     sqlClientPool,
-    `CALL CreateOrUpdateEnvironmentStorage(
-      :environment,
-      :persistent_storage_claim,
-      :bytes_used,
-      :updated
-    );`,
-    input
+    createOrUpdateSql
   );
-  const environment = R.path([0, 0], rows);
+
+  const rows = await query(sqlClientPool,
+    knex("environment_storage")
+      .where("persistent_storage_claim", input.persistentStorageClaim)
+      .andWhere("environment", input.environment)
+      .andWhere("updated", input.updated)
+      .toString()
+    );
+
+  const environment = R.path([0], rows);
   const { name: projectName } = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environment['environment']);
 
   userActivityLogger(`User updated environment storage on project '${projectName}'`, {

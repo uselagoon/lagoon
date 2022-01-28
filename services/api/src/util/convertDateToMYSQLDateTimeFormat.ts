@@ -7,4 +7,12 @@ const convertDateToMYSQLDateTimeFormat = (date: string) => {
     .toString();
 };
 
+export const convertDateToMYSQLDateFormat = (date: string) => {
+  const DATE_FORMAT = 'YYYY-MM-DD';
+  return moment(new Date(date).toISOString())
+    .format(DATE_FORMAT)
+    .toString();
+};
+
+
 export default convertDateToMYSQLDateTimeFormat;
