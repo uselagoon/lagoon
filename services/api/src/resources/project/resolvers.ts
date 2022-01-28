@@ -323,20 +323,6 @@ export const addProject = async (
     throw Error(`Openshift ID: "${openshift}" does not exist"`);
   }
 
-  console.log("*************** OS ROWS ********************");
-  console.log(input);
-  console.log("*************** OS ROWS ********************");
-
-  console.log("*************** Create Project ********************");
-  console.log(Sql.createProject(    {
-    ...input,
-    openshift,
-    openshiftProjectPattern,
-    privateKey: keyPair.private
-  }));
-  console.log("*************** Create Project ********************");
-
-
   const { insertId } = await query(
     sqlClientPool,
     Sql.createProject({
