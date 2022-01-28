@@ -497,10 +497,13 @@ export const deleteEnvironment: ResolverFn = async (
         project: projectId
       });
 
-      await query(sqlClientPool, 'CALL DeleteEnvironment(:name, :project)', {
-        name,
-        project: projectId
-      });
+      await query(sqlClientPool,
+        knex('environment')
+        .where('name', name)
+        .andWhere('project', projectId)
+        .andWhere('deleted', '0000-00-00 00:00:00')
+        .update({deleted: knex.fn.now()}).toString()
+        );
 
       return 'success';
     } catch (err) {
