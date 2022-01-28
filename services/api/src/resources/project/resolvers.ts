@@ -350,9 +350,7 @@ export const addProject = async (
     sqlClientPool, Sql.selectProject(insertId)
   );
 
-  const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s([
-    R.path([0, 0], rows)
-  ]);
+  const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   const project = withK8s[0];
 
   // Create a default group for this project
