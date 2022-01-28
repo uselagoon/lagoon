@@ -220,7 +220,8 @@ export const deleteSshKeyById: ResolverFn = async (
     users: userIds
   });
 
-  await query(sqlClientPool, 'CALL DeleteSshKeyById(:id)', { id });
+  let res = await query(sqlClientPool, knex('user_ssh_key').where('skid', id).delete().toString());
+  res = await query(sqlClientPool, knex('ssh_key').where('id', id).delete().toString());
 
   // TODO: Check rows for success
 
