@@ -1,6 +1,6 @@
 import * as R from 'ramda';
 import { ResolverFn } from '../';
-import { query, isPatchEmpty } from '../../util/db';
+import { query, isPatchEmpty, knex } from '../../util/db';
 import { validateSshKey, getSshKeyFingerprint } from '.';
 import { Sql } from './sql';
 
@@ -174,9 +174,11 @@ export const deleteSshKey: ResolverFn = async (
     throw new Error(`Not found: '${name}'`);
   }
 
+  const skid = R.path(['0', 'id'], skidResult) as number;
+
   const perms = await query(
     sqlClientPool,
-    Sql.selectUserIdsBySshKeyId(R.path(['0', 'id'], skidResult))
+    Sql.selectUserIdsBySshKeyId(skid)
   );
   const userIds = R.map(R.prop('usid'), perms);
 
@@ -184,7 +186,9 @@ export const deleteSshKey: ResolverFn = async (
     users: userIds
   });
 
-  await query(sqlClientPool, 'CALL DeleteSshKey(:name)', { name });
+  let res = await query(sqlClientPool, knex('user_ssh_key').where('skid', skid).delete().toString());
+  //{ affectedRows: 1, insertId: 0, warningStatus: 0 }
+  res = await query(sqlClientPool, knex('ssh_key').where('id', skid).delete().toString());
 
   userActivityLogger(`User deleted ssh key '${name}'`, {
     project: '',
@@ -195,7 +199,7 @@ export const deleteSshKey: ResolverFn = async (
       },
       data: {
         ssh_key_name: name,
-        ssh_key_id: R.path(['0', 'id'], skidResult),
+        ssh_key_id: skid,
         user: userIds
       }
     }
