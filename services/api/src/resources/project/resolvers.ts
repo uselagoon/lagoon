@@ -312,12 +312,6 @@ export const addProject = async (
     }
   }
 
-  //TODO:
-  // 1 - check openshift exists, if not, bail
-  // message `'Openshift ID: "', openshift, '" does not exist'`
-  // We also need, here, to pull the openshift id to pass to the create script
-  // That's what it's doing in the background
-
   const osRows = await query(sqlClientPool, OS.Sql.selectOpenshift(openshift));
   if(osRows.length == 0) {
     throw Error(`Openshift ID: "${openshift}" does not exist"`);
