@@ -47,11 +47,7 @@ export const addNotificationRocketChat: ResolverFn = async (
 ) => {
   await hasPermission('notification', 'add');
 
-  const rows = await addNotificationGeneric(sqlClientPool, 'notification_rocketchat', input);
-
-  const rocketchat = R.path([0], rows);
-
-  return rocketchat;
+  return R.path([0], await addNotificationGeneric(sqlClientPool, 'notification_rocketchat', input));
 };
 
 export const addNotificationSlack: ResolverFn = async (
@@ -61,19 +57,13 @@ export const addNotificationSlack: ResolverFn = async (
 ) => {
   await hasPermission('notification', 'add');
 
-  const rows = await addNotificationGeneric(sqlClientPool, 'notification_slack', input);
-  const slack = R.path([0], rows);
-
-  return slack;
+  return R.path([0], await addNotificationGeneric(sqlClientPool, 'notification_slack', input));
 };
 
 export const addNotificationWebhook: ResolverFn = async (root, { input }, { sqlClientPool, hasPermission }) => {
   await hasPermission('notification', 'add');
 
-  const rows = await addNotificationGeneric(sqlClientPool, 'notification_webhook', input);
-  const webhooks = R.path([0], rows);
-
-  return webhooks;
+  return R.path([0], await addNotificationGeneric(sqlClientPool, 'notification_webhook', input));
 };
 
 
