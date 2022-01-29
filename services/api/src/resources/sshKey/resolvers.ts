@@ -187,7 +187,6 @@ export const deleteSshKey: ResolverFn = async (
   });
 
   let res = await query(sqlClientPool, knex('user_ssh_key').where('skid', skid).delete().toString());
-  //{ affectedRows: 1, insertId: 0, warningStatus: 0 }
   res = await query(sqlClientPool, knex('ssh_key').where('id', skid).delete().toString());
 
   userActivityLogger(`User deleted ssh key '${name}'`, {
