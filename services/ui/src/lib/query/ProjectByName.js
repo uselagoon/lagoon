@@ -21,8 +21,6 @@ export default gql`
           id
           name
           friendlyName
-          maintenanceRegion
-          supportRegion
           cloudProvider
           cloudRegion
         }
@@ -37,8 +35,6 @@ export default gql`
         openshiftProjectName
         openshift {
           friendlyName
-          maintenanceRegion
-          supportRegion
           cloudProvider
           cloudRegion
         }

@@ -426,8 +426,6 @@ const typeDefs = gql`
     created: String
     monitoringConfig: JSON
     friendlyName: String
-    maintenanceRegion: String
-    supportRegion: String
     cloudProvider: String
     cloudRegion: String
   }
@@ -444,8 +442,6 @@ const typeDefs = gql`
     created: String
     monitoringConfig: JSON
     friendlyName: String
-    maintenanceRegion: String
-    supportRegion: String
     cloudProvider: String
     cloudRegion: String
   }
@@ -1332,8 +1328,6 @@ const typeDefs = gql`
     sshPort: String
     monitoringConfig: JSON
     friendlyName: String
-    maintenanceRegion: String
-    supportRegion: String
     cloudProvider: String
     cloudRegion: String
   }
@@ -1349,8 +1343,6 @@ const typeDefs = gql`
     sshPort: String
     monitoringConfig: JSON
     friendlyName: String
-    maintenanceRegion: String
-    supportRegion: String
     cloudProvider: String
     cloudRegion: String
   }
@@ -1498,8 +1490,6 @@ const typeDefs = gql`
     sshPort: String
     monitoringConfig: JSON
     friendlyName: String
-    maintenanceRegion: String
-    supportRegion: String
     cloudProvider: String
     cloudRegion: String
   }
@@ -1519,8 +1509,6 @@ const typeDefs = gql`
     sshPort: String
     monitoringConfig: JSON
     friendlyName: String
-    maintenanceRegion: String
-    supportRegion: String
     cloudProvider: String
     cloudRegion: String
   }

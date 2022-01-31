@@ -15,8 +15,6 @@ export default gql`
       openshiftProjectName
       openshift {
         friendlyName
-        maintenanceRegion
-        supportRegion
         cloudProvider
         cloudRegion
       }

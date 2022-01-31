@@ -12,8 +12,6 @@ export const Sql = {
     sshPort,
     monitoringConfig,
     friendlyName,
-    maintenanceRegion,
-    supportRegion,
     cloudProvider,
     cloudRegion
   }: {
@@ -27,8 +25,6 @@ export const Sql = {
     sshPort?: string;
     monitoringConfig?: JSON;
     friendlyName?: string;
-    maintenanceRegion?: string;
-    supportRegion?: string;
     cloudProvider?: string;
     cloudRegion?: string;
   }) =>
@@ -44,8 +40,6 @@ export const Sql = {
         sshPort,
         monitoringConfig,
         friendlyName,
-        maintenanceRegion,
-        supportRegion,
         cloudProvider,
         cloudRegion
       })
