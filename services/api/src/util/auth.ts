@@ -16,7 +16,7 @@ interface ILegacyToken {
   role: string,
 }
 
-interface IKeycloakAuthAttributes {
+export interface IKeycloakAuthAttributes {
   project?: number;
   group?: string;
   users?: number[];
