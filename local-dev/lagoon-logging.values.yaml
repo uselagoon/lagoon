@@ -2,6 +2,9 @@ logsDispatcher:
   serviceMonitor:
     enabled: false
   replicaCount: 1
+  image:
+    repository: testlagoon/logs-dispatcher
+    tag: pr-3009
 
 fluentdReplicaCount: 1
 
