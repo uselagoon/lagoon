@@ -190,7 +190,7 @@ pipeline {
     stage ('scan built images') {
       when {
         anyOf {
-          branch 'testing-scans'
+          branch 'testing/scans'
           buildingTag()
         }
       }
