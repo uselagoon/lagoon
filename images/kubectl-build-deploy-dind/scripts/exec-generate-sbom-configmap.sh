@@ -2,7 +2,7 @@
 
 # Image config
 IMAGE_TAG="${IMAGE_TAG:-latest}"
-REGISTRY_IMAGE_FULL=${REGISTRY}:${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG}
+REGISTRY_IMAGE_FULL="docker:${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG}"
 
 # SBOM config
 TMP_DIR="${TMP_DIR:-/tmp}"
@@ -21,7 +21,6 @@ SBOM_OUTPUT="cyclonedx-json"
 set -x
 # Run sbom and dump to file
 echo "Running sbom scan using syft"
-#echo ${REGISTRY}:${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG:-latest}
 echo "Image being scanned: ${REGISTRY_IMAGE_FULL}"
 set +x
 
