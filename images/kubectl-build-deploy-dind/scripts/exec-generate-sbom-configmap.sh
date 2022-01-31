@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# Image config
+IMAGE_TAG="${IMAGE_TAG:-latest}"
+REGISTRY_IMAGE_FULL=${REGISTRY}:${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG}
+
+# SBOM config
+TMP_DIR="${TMP_DIR:-/tmp}"
+SBOM_OUTPUT="cyclonedx-json"
+
+
+#echo "Installing syft"
+# Install jq
+#JQ=/usr/bin/jq
+#curl -LSs https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 -o $JQ && chmod 755 $JQ
+
+# Install syft / grype
+#curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin > /dev/null 2>&1
+#curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin > /dev/null 2>&1
+
+set -x
+# Run sbom and dump to file
+echo "Running sbom scan using syft"
+#echo ${REGISTRY}:${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG:-latest}
+echo "Image being scanned: ${REGISTRY_IMAGE_FULL}"
+set +x
+
+if SBOM_IMAGE_RESULTS=$(syft -q packages ${REGISTRY_IMAGE_FULL} -o ${SBOM_OUTPUT} > ${TMP_DIR}/${REPO}-${IMAGE_NAME}.cyclonedx.json); then
+    echo "Successfully generated SBOM for ${REGISTRY_IMAGE_FULL}"
+
+    SBOM_CONFIGMAP=${REPO}-${IMAGE_NAME}-sbom.config
+
+    set -x
+    # If sbom configmap already exists then we need to update, else create new
+    if KUBECONFIG=./kubeconfig.kind.lagoon kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap $SBOM_CONFIGMAP &> /dev/null; then
+        KUBECONFIG=./kubeconfig.kind.lagoon kubectl --insecure-skip-tls-verify \
+            -n ${NAMESPACE} \
+            create configmap $SBOM_CONFIGMAP \
+            --from-file=${TMP_DIR}/${REPO}-${IMAGE_NAME}.cyclonedx.json \
+            -o json \
+            --dry-run=client | KUBECONFIG=./kubeconfig.kind.lagoon kubectl replace -f -
+        KUBECONFIG=./kubeconfig.kind.lagoon kubectl --insecure-skip-tls-verify \
+            -n ${NAMESPACE} \
+            label configmap ${REPO}-${IMAGE_NAME}-sbom.config \
+            lagoon.sh=insights-sbom
+    else
+        # Create configmap and add label (#have to add label separately: https://github.com/kubernetes/kubernetes/issues/60295)
+        KUBECONFIG=./kubeconfig.kind.lagoon kubectl --insecure-skip-tls-verify \
+            -n ${NAMESPACE} \
+            create configmap ${REPO}-${IMAGE_NAME}-sbom.config \
+            --from-file=${TMP_DIR}/${REPO}-${IMAGE_NAME}.cyclonedx.json
+        KUBECONFIG=./kubeconfig.kind.lagoon kubectl --insecure-skip-tls-verify \
+            -n ${NAMESPACE} \
+            label configmap ${REPO}-${IMAGE_NAME}-sbom.config \
+            lagoon.sh=insights-sbom
+    fi
+    set +x
+else
+    echo "Failed to generate SBOM for ${REGISTRY_IMAGE_FULL}"
+fi

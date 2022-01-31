@@ -1669,3 +1669,18 @@ currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
 patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "deployCompleted" "Build and Deploy"
 previousStepEnd=${currentStepEnd}
 set -x
+
+##############################################
+### RUN sbom genearation and store in configmap
+##############################################
+
+set +x
+currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
+patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "sbomCompleted" "SBOM Gathering"
+previousStepEnd=${currentStepEnd}
+set -x
+
+for IMAGE_NAME in "${!IMAGES_BUILD[@]}"
+do
+  . /kubectl-build-deploy/scripts/exec-generate-sbom-configmap.sh
+done
