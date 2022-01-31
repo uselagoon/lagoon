@@ -80,7 +80,7 @@ const Environments = ({ environments = [] }) => {
                   </div>
                 )}
                 <label>
-                  {environment.deployType === 'pullrequest'
+                  Type: {environment.deployType === 'pullrequest'
                     ? 'PR'
                     : environment.deployType}
                 </label>
@@ -94,7 +94,7 @@ const Environments = ({ environments = [] }) => {
                   <br></br>
                 )}
                 {environment.openshift.cloudRegion != null && (
-                <label className="clusterLabel">
+                <label className="regionLabel">
                 Region: {environment.openshift.cloudRegion}
                 </label>
                 )}
@@ -247,8 +247,7 @@ const Environments = ({ environments = [] }) => {
 
         .clusterLabel {
           ${fontSize(10)};
-          background-color: ${color.lightBlue};
-          color: ${color.white};
+          background-color: ${color.lightestGrey};
           border-bottom-right-radius: 15px;
           border-top-right-radius: 15px;
           margin-left: -25px;
@@ -257,8 +256,7 @@ const Environments = ({ environments = [] }) => {
 
         .regionLabel {
           ${fontSize(10)};
-          background-color: ${color.almostWhite};
-          color: ${color.white};
+          background-color: ${color.lightestGrey};
           border-bottom-right-radius: 15px;
           border-top-right-radius: 15px;
           margin-left: -25px;

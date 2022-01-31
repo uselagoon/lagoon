@@ -101,7 +101,9 @@ const Project = ({ project }) => {
         {project.deployTargetConfigs.map(depTarget => (
           <div>
             <div>
-              <label className="field1">{depTarget.deployTarget.friendlyName}</label>
+              <label className="field1">{depTarget.deployTarget.friendlyName != null
+                    ? depTarget.deployTarget.friendlyName
+                    : depTarget.deployTarget.name}{}</label>
             </div>
             <label className="field2">Branches enabled</label>
             <div className="field2">{depTarget.branches}</div>
