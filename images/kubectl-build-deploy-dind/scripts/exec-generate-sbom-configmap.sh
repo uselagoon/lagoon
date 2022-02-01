@@ -19,6 +19,9 @@ echo "Running sbom scan using syft"
 echo "Image being scanned: ${IMAGE_FULL}"
 set +x
 
+SYFT_REGISTRY_INSECURE_USE_HTTP=true syft -vvv packages ${IMAGE_FULL} -o ${SBOM_OUTPUT}
+
+
 if SBOM_IMAGE_RESULTS=$(syft -q packages ${IMAGE_FULL} -o ${SBOM_OUTPUT} > ${TMP_DIR}/${REPO}-${IMAGE_NAME}.cyclonedx.json); then
     echo "Successfully generated SBOM for ${IMAGE_FULL}"
 
