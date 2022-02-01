@@ -1,7 +1,7 @@
 {
   "name": "ui",
   "version": "0.0.1",
-  "description": "lagoon ui",
+  "description": "Lagoon UI",
   "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
   "main": "src/index.js",
   "license": "MIT",

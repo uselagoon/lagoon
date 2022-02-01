@@ -29,13 +29,9 @@ const {
   getEnvironmentsByFactSearch,
 } = require('./resources/fact/resolvers');
 
-const {
-  SeverityScoreType
-} = require('./resources/problem/types');
+const { SeverityScoreType } = require('./resources/problem/types');
 
-const {
-  getLagoonVersion,
-} = require('./resources/lagoon/resolvers');
+const { getLagoonVersion } = require('./resources/lagoon/resolvers');
 
 const {
   getDeploymentsByEnvironmentId,
@@ -80,6 +76,7 @@ const {
   advancedTaskDefinitionArgumentById,
   invokeRegisteredTask,
   deleteAdvancedTaskDefinition,
+  allAdvancedTaskDefinitions,
 } = require('./resources/task/task_definition_resolvers');
 
 const {
@@ -202,14 +199,7 @@ const {
   getGroupsByUserId,
   getGroupByName,
   addGroup,
-  addBillingGroup,
-  updateBillingGroup,
-  addProjectToBillingGroup,
-  updateProjectBillingGroup,
-  removeProjectFromBillingGroup,
   getAllProjectsInGroup,
-  getBillingGroupCost,
-  getAllBillingGroupsCost,
   getAllProjectsByGroupId,
   updateGroup,
   deleteGroup,
@@ -219,15 +209,6 @@ const {
   addGroupsToProject,
   removeGroupsFromProject,
 } = require('./resources/group/resolvers');
-
-const {
-  addBillingModifier,
-  updateBillingModifier,
-  deleteBillingModifier,
-  deleteAllBillingModifiersByBillingGroup,
-  getBillingModifiers,
-  getAllModifiersByGroupId
-} = require('./resources/billing/resolvers');
 
 const {
   addBackup,
@@ -326,20 +307,11 @@ const resolvers = {
   },
   GroupInterface: {
     __resolveType(group) {
-      switch (group.type) {
-        case 'billing':
-          return 'BillingGroup';
-        default:
-          return 'Group';
-      }
+      return 'Group';
     },
   },
   Group: {
-    projects: getAllProjectsByGroupId,
-  },
-  BillingGroup: {
-    projects: getAllProjectsByGroupId,
-    modifiers: getAllModifiersByGroupId,
+    projects: getAllProjectsByGroupId
   },
   DeployTargetConfig: {
     project: getProjectById,
@@ -394,7 +366,7 @@ const resolvers = {
         default:
           return null;
       }
-    },
+    }
   },
   AdvancedTaskDefinition: {
     __resolveType (obj) {
@@ -438,6 +410,7 @@ const resolvers = {
     taskById: getTaskById,
     advancedTaskDefinitionById,
     advancedTasksForEnvironment: resolveTasksForEnvironment,
+    allAdvancedTaskDefinitions,
     advancedTaskDefinitionArgumentById,
     allProjects: getAllProjects,
     allOpenshifts: getAllOpenshifts,
@@ -446,9 +419,6 @@ const resolvers = {
     allProblems: getAllProblems,
     allGroups: getAllGroups,
     allProjectsInGroup: getAllProjectsInGroup,
-    billingGroupCost: getBillingGroupCost,
-    allBillingGroupsCost: getAllBillingGroupsCost,
-    allBillingModifiers: getBillingModifiers,
     allProblemHarborScanMatchers: getProblemHarborScanMatches,
     projectsByMetadata: getProjectsByMetadata,
     projectsByFactSearch: getProjectsByFactSearch,
@@ -554,12 +524,6 @@ const resolvers = {
     deployEnvironmentPromote,
     switchActiveStandby,
     addGroup,
-    addBillingGroup,
-    updateBillingGroup,
-    deleteBillingGroup: deleteGroup,
-    addProjectToBillingGroup,
-    updateProjectBillingGroup,
-    removeProjectFromBillingGroup,
     updateGroup,
     deleteGroup,
     deleteAllGroups,
@@ -567,10 +531,6 @@ const resolvers = {
     removeUserFromGroup,
     addGroupsToProject,
     removeGroupsFromProject,
-    addBillingModifier,
-    updateBillingModifier,
-    deleteBillingModifier,
-    deleteAllBillingModifiersByBillingGroup,
     addDeployTargetConfig,
     deleteDeployTargetConfig,
     updateDeployTargetConfig,
