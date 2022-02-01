@@ -1,17 +1,8 @@
 #!/bin/bash
 
-# Image config
-IMAGE_TAG="${IMAGE_TAG:-latest}"
-IMAGE_FULL="docker:${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG}"
-
-# Test vars
-IMAGE_HASH=$(docker inspect ${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG:-latest} --format '{{json .RepoDigests}}' | "${JQ_QUERY[@]}")
-DOCKER_IMAGES=$(docker images)
-
 # SBOM config
 TMP_DIR="${TMP_DIR:-/tmp}"
 SBOM_OUTPUT="cyclonedx-json"
-
 
 #echo "Installing syft"
 # Install jq
@@ -27,7 +18,6 @@ set -x
 echo "Running sbom scan using syft"
 echo "Image being scanned: ${IMAGE_FULL}"
 set +x
-
 
 if SBOM_IMAGE_RESULTS=$(syft -q packages ${IMAGE_FULL} -o ${SBOM_OUTPUT} > ${TMP_DIR}/${REPO}-${IMAGE_NAME}.cyclonedx.json); then
     echo "Successfully generated SBOM for ${IMAGE_FULL}"
