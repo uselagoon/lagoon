@@ -4,6 +4,8 @@ node_modules
 #artifacts
 .next
 build
+
+#storybook
 storybook-static
 build-storybook.log
 
