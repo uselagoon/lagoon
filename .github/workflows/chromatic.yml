@@ -18,7 +18,7 @@ jobs:
         with:
           node-version: '16'
       - name: Install dependencies
-        run: yarn && yarn --cwd services/api install && yarn --cwd services/api build
+        run: yarn && yarn --cwd services/api install && yarn --cwd services/api build && yarn --cwd services/ui install && yarn --cwd services/ui build
       - name: Build storybook
         run: yarn workspace ui run build-storybook --loglevel silly
       - name: Publish to Chromatic
