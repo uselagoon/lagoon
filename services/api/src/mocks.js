@@ -146,7 +146,7 @@ mocks.Group = (parent, args = {}, context, info) => {
   return group;
 };
 
-mocks.Group = mocks.GroupInterface;
+//mocks.Group = mocks.GroupInterface;
 
 mocks.Me = () => ({
   id: faker.random.number(),
