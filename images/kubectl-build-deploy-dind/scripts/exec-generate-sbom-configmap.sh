@@ -2,7 +2,11 @@
 
 # Image config
 IMAGE_TAG="${IMAGE_TAG:-latest}"
-IMAGE_FULL="docker:${REGISTRY}/${PROJECT}/${IMAGE_NAME}:${IMAGE_TAG}"
+IMAGE_FULL="docker:${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG}"
+
+# Test vars
+IMAGE_HASH=$(docker inspect ${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG:-latest} --format '{{json .RepoDigests}}' | "${JQ_QUERY[@]}")
+DOCKER_IMAGES=$(docker images)
 
 # SBOM config
 TMP_DIR="${TMP_DIR:-/tmp}"
@@ -24,9 +28,6 @@ echo "Running sbom scan using syft"
 echo "Image being scanned: ${IMAGE_FULL}"
 set +x
 
-# Test vars
-IMAGE_HASH=$(docker inspect ${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG:-latest} --format '{{json .RepoDigests}}' | "${JQ_QUERY[@]}")
-DOCKER_IMAGES=$(docker images)
 
 if SBOM_IMAGE_RESULTS=$(syft -q packages ${IMAGE_FULL} -o ${SBOM_OUTPUT} > ${TMP_DIR}/${REPO}-${IMAGE_NAME}.cyclonedx.json); then
     echo "Successfully generated SBOM for ${IMAGE_FULL}"
