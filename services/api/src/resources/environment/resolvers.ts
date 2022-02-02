@@ -421,8 +421,6 @@ export const addOrUpdateEnvironmentStorage: ResolverFn = async (
       : convertDateToMYSQLDateFormat(new Date().toISOString())
   };
 
-  let updatedDate = knex.fn.now();
-
   const createOrUpdateSql = knex('environment_storage')
     .insert(input)
     .onConflict('id')
