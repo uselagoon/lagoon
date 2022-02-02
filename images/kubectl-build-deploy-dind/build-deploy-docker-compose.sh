@@ -1671,20 +1671,19 @@ previousStepEnd=${currentStepEnd}
 set -x
 
 ##############################################
-### RUN sbom genearation and store in configmap
+### RUN sbom generation and store in configmap
 ##############################################
+
+for IMAGE_NAME in "${!IMAGES_BUILD[@]}"
+do
+
+  IMAGE_TAG="${IMAGE_TAG:-latest}"
+  IMAGE_FULL="${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG}"
+  . /kubectl-build-deploy/scripts/exec-generate-sbom-configmap.sh
+done
 
 set +x
 currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
 patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "sbomCompleted" "SBOM Gathering"
 previousStepEnd=${currentStepEnd}
 set -x
-
-for IMAGE_NAME in "${!IMAGES_BUILD[@]}"
-do
-
-  IMAGE_TAG="${IMAGE_TAG:-latest}"
-  IMAGE_FULL="docker:${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG}"
-
-  . /kubectl-build-deploy/scripts/exec-generate-sbom-configmap.sh
-done
