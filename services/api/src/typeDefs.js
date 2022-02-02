@@ -425,6 +425,9 @@ const typeDefs = gql`
     sshPort: String
     created: String
     monitoringConfig: JSON
+    friendlyName: String
+    cloudProvider: String
+    cloudRegion: String
   }
 
   type Kubernetes {
@@ -438,6 +441,9 @@ const typeDefs = gql`
     sshPort: String
     created: String
     monitoringConfig: JSON
+    friendlyName: String
+    cloudProvider: String
+    cloudRegion: String
   }
 
   type NotificationMicrosoftTeams {
@@ -1321,6 +1327,9 @@ const typeDefs = gql`
     sshHost: String
     sshPort: String
     monitoringConfig: JSON
+    friendlyName: String
+    cloudProvider: String
+    cloudRegion: String
   }
 
   input AddKubernetesInput {
@@ -1333,6 +1342,9 @@ const typeDefs = gql`
     sshHost: String
     sshPort: String
     monitoringConfig: JSON
+    friendlyName: String
+    cloudProvider: String
+    cloudRegion: String
   }
 
   input DeleteOpenshiftInput {
@@ -1477,6 +1489,9 @@ const typeDefs = gql`
     sshHost: String
     sshPort: String
     monitoringConfig: JSON
+    friendlyName: String
+    cloudProvider: String
+    cloudRegion: String
   }
 
   input UpdateOpenshiftInput {
@@ -1493,6 +1508,9 @@ const typeDefs = gql`
     sshHost: String
     sshPort: String
     monitoringConfig: JSON
+    friendlyName: String
+    cloudProvider: String
+    cloudRegion: String
   }
 
   input UpdateKubernetesInput {
