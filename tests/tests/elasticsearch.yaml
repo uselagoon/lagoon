@@ -1,23 +1,34 @@
 ---
+- include: features/random-wait.yaml
 
 - include: features/api-token.yaml
   vars:
     testname: "API TOKEN"
 
-- include: elasticsearch/elasticsearch.yaml
+- include: api/add-project.yaml
   vars:
-    testname: "ELASTICSEARCH SINGLE NODE {{ lookup('env','CLUSTER_TYPE')|upper }}"
+    project: ci-elasticsearch-{{ cluster_type }}
     git_repo_name: elasticsearch.git
-    project: ci-elasticsearch-{{ lookup('env','CLUSTER_TYPE') }}
-    branch: elasticsearch
-    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}/_cluster/health"
-    node_count: 1
+    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
 
 - include: elasticsearch/elasticsearch.yaml
   vars:
-    testname: "ELASTICSEARCH CLUSTER {{ lookup('env','CLUSTER_TYPE')|upper }}"
+    testname: "ELASTICSEARCH SINGLE NODE {{ cluster_type|upper }}"
     git_repo_name: elasticsearch.git
-    project: ci-elasticsearch-{{ lookup('env','CLUSTER_TYPE') }}
-    branch: elasticsearch-cluster
-    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}/_cluster/health"
-    node_count: 3
+    project: ci-elasticsearch-{{ cluster_type }}
+    branch: elasticsearch
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/_cluster/health"
+    node_count: 1
+
+# - include: elasticsearch/elasticsearch.yaml
+#   vars:
+#     testname: "ELASTICSEARCH CLUSTER {{ cluster_type|upper }}"
+#     git_repo_name: elasticsearch.git
+#     project: ci-elasticsearch-{{ cluster_type }}
+#     branch: elasticsearch-cluster
+#     url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/_cluster/health"
+#     node_count: 3
+
+- include: api/delete-project.yaml
+  vars:
+    project: ci-elasticsearch-{{ cluster_type }}

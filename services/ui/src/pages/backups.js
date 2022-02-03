@@ -2,6 +2,7 @@ import React from 'react';
 import * as R from 'ramda';
 import { withRouter } from 'next/router';
 import Head from 'next/head';
+import getConfig from 'next/config';
 import { Query } from 'react-apollo';
 import MainLayout from 'layouts/MainLayout';
 import EnvironmentWithBackupsQuery from 'lib/query/EnvironmentWithBackups';
@@ -11,10 +12,28 @@ import ProjectBreadcrumb from 'components/Breadcrumbs/Project';
 import EnvironmentBreadcrumb from 'components/Breadcrumbs/Environment';
 import NavTabs from 'components/NavTabs';
 import Backups from 'components/Backups';
+import ResultsLimited from 'components/ResultsLimited';
 import withQueryLoading from 'lib/withQueryLoading';
 import withQueryError from 'lib/withQueryError';
 import { withEnvironmentRequired } from 'lib/withDataRequired';
 import { bp, color } from 'lib/variables';
+
+const { publicRuntimeConfig } = getConfig();
+const envLimit = parseInt(publicRuntimeConfig.LAGOON_UI_BACKUPS_LIMIT, 10);
+const customMessage = publicRuntimeConfig.LAGOON_UI_BACKUPS_LIMIT_MESSAGE;
+
+let urlResultLimit = envLimit;
+if (typeof window !== "undefined") {
+  let search = window.location.search;
+  let params = new URLSearchParams(search);
+  let limit = params.get('limit');
+  if (limit) {
+    if (parseInt(limit.trim(), 10)) {
+      urlResultLimit = parseInt(limit.trim(), 10);
+    }
+  }
+}
+const resultLimit = urlResultLimit === -1 ? null : urlResultLimit;
 
 /**
  * Displays the backups page, given the name of an openshift project.
@@ -26,7 +45,10 @@ export const PageBackups = ({ router }) => (
     </Head>
     <Query
       query={EnvironmentWithBackupsQuery}
-      variables={{ openshiftProjectName: router.query.openshiftProjectName }}
+      variables={{
+        openshiftProjectName: router.query.openshiftProjectName,
+        limit: resultLimit
+      }}
     >
       {R.compose(
         withQueryLoading,
@@ -38,8 +60,7 @@ export const PageBackups = ({ router }) => (
           variables: { environment: environment.id },
           updateQuery: (prevStore, { subscriptionData }) => {
             if (!subscriptionData.data) return prevStore;
-            const prevBackups =
-              prevStore.environment.backups;
+            const prevBackups = prevStore.environment.backups;
             const incomingBackup = subscriptionData.data.backupChanged;
             const existingIndex = prevBackups.findIndex(
               prevBackup => prevBackup.id === incomingBackup.id
@@ -99,6 +120,11 @@ export const PageBackups = ({ router }) => (
                   section!
                 </div>
                 <Backups backups={environment.backups} />
+                <ResultsLimited
+                  limit={resultLimit}
+                  results={environment.backups.length}
+                  message={(!customMessage && "") || (customMessage && customMessage.replace(/['"]+/g, ''))}
+                />
               </div>
             </div>
             <style jsx>{`

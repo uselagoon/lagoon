@@ -1,24 +1,29 @@
----
-description: >-
-  Lagoon differentiates between three backup categories: short-, mid- and
-  long-term backups.
----
-
 # Backups
 
-## Short-Term Backups
+Lagoon makes use of the [k8up operator](https://github.com/vshn/k8up) to provide backup functionality for both database data as well as containers' persistent storage volumes. This operator utilizes [Restic](https://github.com/restic/restic) to catalog these backups, which is typically connected to an AWS S3 bucket to provide secure, off-site storage for the generated backups.
 
-These backups are provided by Lagoon itself, and are implemented for databases **only**. Lagoon will automatically instruct the `MariaDB` and `Postgres` [services types](service-types.md) to set up a cron job which creates backups once a day \(see example [backup script](https://github.com/amazeeio/lagoon/blob/docs/images/mariadb/mysql-backup.sh) for MariaDB\). These backups are kept for four days and automatically cleaned up after that.
+## Production Environments
 
-These backups are accessible for developers directly by connecting via the [remote shell](remote-shell.md) to the corresponding container \(like `mariadb`\) and checking the [folder](https://github.com/amazeeio/lagoon/blob/docs/images/mariadb/mysql-backup.sh#L24) where the backups are stored\). They can then be downloaded, extracted, or used in any other way.
+Backups of databases and containers' persistent storage volumes happens nightly within production environments. Production environment backups will be held according to the following schedule by default:
 
-## Mid-Term Backups
+* Daily: 7
+* Weekly: 6
+* Monthly: 1
+* Hourly: 0
 
-Mid-term backups are not automatically provided by Lagoon and depend heavily on the underlying infrastructure where Kubernetes and OpenShift are running. Check with your Lagoon administrator what backups are created on your infrastructure.
+If a different retention period for production backups is required, this can be specified at a project level via setting the "Backup Retention" variables in the project's [.lagoon.yml](../using-lagoon-the-basics/lagoon-yml.md#backup-retention) file.
 
-**For amazee.io infrastructure**: All persistent storage and Docker images are backed up daily for a week, and weekly for a month. If you need access to such a backup, check with the support team, they will help you.
+### Retrieving Backups
 
-## Long-Term Backups
+Backups stored in Restic will be tracked within Lagoon, and can be recovered via the "Backup" tab for each environment in the Lagoon UI.
 
-Long-term backups refer to backups that are kept for multiple months and years. [AWS Glacier](https://aws.amazon.com/glacier/) is often used to store these backups. These types of backups also depend heavily on the underlying infrastructure. Check with your Lagoon administrator to find out what backups are created on your infrastructure.
+## Development Environments
 
+Backups of development environments are attempted nightly and are strictly a best effort service.
+
+## Custom Backup and/or Restore Locations
+
+Lagoon supports custom backup and restore locations via the use of the "[Custom Backup Settings](https://github.com/uselagoon/lagoon/blob/main/docs/using-lagoon-advanced/environment-variables.md#custom-backup-settings)" and/or "[Custom Restore Settings](https://github.com/uselagoon/lagoon/blob/main/docs/using-lagoon-advanced/environment-variables.md#custom-restore-settings)" variables stored in the Lagoon API for each project.
+
+!!! danger
+    Proceed with caution: Setting these variables will override backup/restore storage locations that may be configured at a cluster level. Any misconfiguration will cause backup/restore failures.

@@ -26,6 +26,7 @@ interface ProjectPatch {
   name?: string;
   gitUrl?: string;
   subfolder?: string;
+  routerPattern?: string;
   activesystemsdeploy?: string;
   activesystemsremove?: string;
   branches?: string;
@@ -164,6 +165,7 @@ fragment on Project {
   name
   gitUrl
   privateKey
+  problemsUi
 }
 `);
 
@@ -634,6 +636,23 @@ export async function getProjectByName(project: string): Promise<any> {
   return result.project;
 }
 
+export const allProjectsInGroup = (groupInput: {
+  id?: string;
+  name?: string;
+}): Promise<any[]> =>
+  graphqlapi.query(
+    `
+    query($groupInput: GroupInput!) {
+      allProjectsInGroup(input: $groupInput) {
+        ...${projectFragment}
+      }
+    }
+  `,
+    {
+      groupInput
+    }
+  );
+
 export async function getMicrosoftTeamsInfoForProject(
   project: string, contentType = 'DEPLOYMENT'
 ): Promise<any[]> {
@@ -726,6 +745,37 @@ export async function getSlackinfoForProject(
   return result.project.slacks;
 }
 
+export async function getWebhookNotificationInfoForProject(
+  project: string, contentType = 'DEPLOYMENT'
+): Promise<any[]> {
+  const notificationsFragment = graphqlapi.createFragment(`
+    fragment on NotificationWebhook {
+      webhook
+      contentType
+      notificationSeverityThreshold
+    }
+  `);
+
+  const result = await graphqlapi.query(`
+    {
+      project:projectByName(name: "${project}") {
+        webhook: notifications(type: WEBHOOK, contentType: ${contentType}) {
+          ...${notificationsFragment}
+        }
+      }
+    }
+  `);
+
+  if (!result || !result.project || !result.project.webhook) {
+    throw new ProjectNotFound(
+      `Cannot find Webhook Notification information for project ${project}`
+    );
+  }
+
+  return result.project.webhook;
+}
+
+
 export async function getEmailInfoForProject(
   project: string, contentType = 'DEPLOYMENT'
 ): Promise<any[]> {
@@ -757,6 +807,7 @@ export async function getEmailInfoForProject(
 }
 
 interface GetActiveSystemForProjectResult {
+  id: number;
   branches: string;
   pullrequests: string;
   activeSystemsDeploy: string;
@@ -774,6 +825,7 @@ export async function getActiveSystemForProject(
   const result = await graphqlapi.query(`
     {
       project:projectByName(name: "${project}"){
+        id
         activeSystemsDeploy
         activeSystemsPromote
         activeSystemsRemove
@@ -802,11 +854,12 @@ export async function getActiveSystemForProject(
 
 export async function getEnvironmentByName(
   name: string,
-  projectId: number
+  projectId: number,
+  includeDeleted: boolean = true
 ): Promise<any> {
   const result = await graphqlapi.query(`
     {
-      environmentByName(name: "${name}", project:${projectId}) {
+      environmentByName(name: "${name}", project:${projectId}, includeDeleted:${includeDeleted}) {
         id,
         name,
         route,
@@ -824,6 +877,36 @@ export async function getEnvironmentByName(
   if (!result || !result.environmentByName) {
     throw new EnvironmentNotFound(
       `Cannot find environment for projectId ${projectId}, name ${name}\n${result.environmentByName}`
+    );
+  }
+
+  return result;
+}
+
+
+export async function getEnvironmentById(
+  id: number
+): Promise<any> {
+  const result = await graphqlapi.query(`
+    {
+      environmentById(id: ${id}) {
+        id,
+        name,
+        route,
+        routes,
+        deployType,
+        environmentType,
+        openshiftProjectName,
+        updated,
+        created,
+        deleted,
+      }
+    }
+  `);
+
+  if (!result || !result.environmentById) {
+    throw new EnvironmentNotFound(
+      `Cannot find environment for id ${id}\n${result.environmentById}`
     );
   }
 
@@ -895,21 +978,25 @@ export const addOrUpdateEnvironment = (
   deployBaseRef: string,
   environmentType: string,
   openshiftProjectName: string,
+  openshift: number,
+  openshiftProjectPattern: string,
   deployHeadRef: string = null,
   deployTitle: string = null
 ): Promise<any> =>
   graphqlapi.mutate(
     `
-($name: String!, $project: Int!, $deployType: DeployType!, $deployBaseRef: String!, $deployHeadRef: String, $deployTitle: String, $environmentType: EnvType!, $openshiftProjectName: String!) {
+($name: String!, $project: Int!, $openshift: Int, $openshiftProjectPattern: String, $deployType: DeployType!, $deployBaseRef: String!, $deployHeadRef: String, $deployTitle: String, $environmentType: EnvType!, $openshiftProjectName: String!) {
   addOrUpdateEnvironment(input: {
     name: $name,
     project: $project,
+    openshift: $openshift,
     deployType: $deployType,
     deployBaseRef: $deployBaseRef,
     deployHeadRef: $deployHeadRef,
     deployTitle: $deployTitle,
     environmentType: $environmentType,
     openshiftProjectName: $openshiftProjectName
+    openshiftProjectPattern: $openshiftProjectPattern
   }) {
     id
     name
@@ -919,6 +1006,7 @@ export const addOrUpdateEnvironment = (
     deployType
     environmentType
     openshiftProjectName
+    openshiftProjectPattern
     envVariables {
       name
       value
@@ -935,7 +1023,9 @@ export const addOrUpdateEnvironment = (
       deployHeadRef,
       deployTitle,
       environmentType,
-      openshiftProjectName
+      openshiftProjectName,
+      openshift,
+      openshiftProjectPattern
     }
   );
 
@@ -984,6 +1074,7 @@ export const getOpenShiftInfoForProject = (project: string): Promise<any> =>
       project:projectByName(name: "${project}"){
         id
         openshift  {
+          id
           name
           consoleUrl
           token
@@ -991,10 +1082,13 @@ export const getOpenShiftInfoForProject = (project: string): Promise<any> =>
           routerPattern
           monitoringConfig
         }
+        branches
+        pullrequests
         availability
         gitUrl
         privateKey
         subfolder
+        routerPattern
         openshiftProjectPattern
         productionEnvironment
         productionRoutes
@@ -1011,14 +1105,50 @@ export const getOpenShiftInfoForProject = (project: string): Promise<any> =>
     }
 `);
 
-export const getBillingGroupForProject = (project: string): Promise<any> =>
+export const getDeployTargetConfigsForProject = (project: number): Promise<any> =>
   graphqlapi.query(`
     {
-      project:projectByName(name: "${project}"){
-        groups {
-          ... on BillingGroup {
-            type
-            uptimeRobotStatusPageId
+      targets:deployTargetConfigsByProjectId(project: ${project}){
+        id
+        weight
+        branches
+        pullrequests
+        weight
+        deployTargetProjectPattern
+        deployTarget{
+          id
+          name
+          consoleUrl
+          token
+          projectUser
+          routerPattern
+          monitoringConfig
+        }
+      }
+    }
+`);
+
+export const getOpenShiftInfoForEnvironment = (environment: number): Promise<any> =>
+  graphqlapi.query(`
+    {
+      environment:environmentById(id: ${environment}){
+        id
+        name
+        openshiftProjectPattern
+        openshift  {
+          id
+          name
+          consoleUrl
+          token
+          projectUser
+          routerPattern
+          monitoringConfig
+        }
+        project {
+          envVariables {
+            name
+            value
+            scope
           }
         }
       }
@@ -1027,10 +1157,14 @@ export const getBillingGroupForProject = (project: string): Promise<any> =>
 
 interface GetEnvironentsForProjectEnvironmentResult {
   name: string;
+  id: number;
   environmentType: EnvType;
+  openshiftProjectPattern: string;
+  openshift: any;
 }
 
 interface GetEnvironentsForProjectProjectResult {
+  id: number;
   developmentEnvironmentsLimit: number;
   productionEnvironment: string;
   standbyProductionEnvironment: string;
@@ -1047,9 +1181,20 @@ export const getEnvironmentsForProject = (
   graphqlapi.query(`
   {
     project:projectByName(name: "${project}"){
+      id
       developmentEnvironmentsLimit
       productionEnvironment
-      environments(includeDeleted:false) { name, environmentType }
+      standbyProductionEnvironment
+      environments(includeDeleted:false) {
+        name
+        id
+        environmentType
+        openshiftProjectPattern
+        openshift{
+          id
+          name
+        }
+      }
     }
   }
 `);

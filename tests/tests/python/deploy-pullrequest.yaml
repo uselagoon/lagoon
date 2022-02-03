@@ -1,0 +1,126 @@
+
+- name: "{{ testname }} - init git, add files, commit, git push"
+  hosts: localhost
+  serial: 1
+  vars:
+    git_files: "python{{ python_version }}/"
+    branch: "pullrequest_base"
+  tasks:
+  - include: ../../tasks/git-init.yaml
+  - include: ../../tasks/git-add-commit-push.yaml
+
+- name: "{{ testname }} - save base branch commit"
+  hosts: localhost
+  serial: 1
+  tasks:
+  - set_fact:
+      base_commit_hash: "{{ current_head }}"
+
+- name: "{{ testname }} - git commit "
+  hosts: localhost
+  serial: 1
+  vars:
+    branch: "pullrequest_pr"
+  tasks:
+  - include: ../../tasks/git-empty-commit-push.yaml
+
+- name: "{{ testname }} - save pr branch commit"
+  hosts: localhost
+  serial: 1
+  tasks:
+  - set_fact:
+      pr_commit_hash: "{{ current_head }}"
+
+- name: "{{ testname }} - api deployEnvironmentPullrequest"
+  hosts: localhost
+  serial: 1
+  vars:
+    git_base_branch: "pullrequest_base"
+    git_base_commit_hash: "{{ base_commit_hash }}"
+    git_pr_branch: "pullrequest_pr"
+    git_pr_commit_hash: "{{ pr_commit_hash }}"
+    git_pr_number: "1"
+    git_pr_title: "PR Title"
+  tasks:
+  - include: ../../tasks/api/deploy-pullrequest.yaml
+
+
+- include: ../../checks/check-branch-sha.yaml
+  vars:
+    expected_head: "{{ pr_commit_hash }}"
+    expected_branch: "pr-1"
+    project: "{{ project }}"
+    url: "{{ check_url }}"
+
+- include: ../../checks/check-pullrequest.yaml
+  vars:
+    url: "{{ check_url }}"
+    expected_build_type: "pullrequest"
+    expected_pr_base_branch: "pullrequest_base"
+    expected_pr_base_sha: "{{ base_commit_hash }}"
+    expected_pr_head_branch: "pullrequest_pr"
+    expected_pr_head_sha: "{{ pr_commit_hash }}"
+    expected_pr_title: "PR Title"
+
+- name: "{{ testname }} - git commit a second time into pull request branch"
+  hosts: localhost
+  serial: 1
+  vars:
+    branch: "pullrequest_pr"
+  tasks:
+  - include: ../../tasks/git-empty-commit-push.yaml
+
+- name: "{{ testname }} - save pr branch commit"
+  hosts: localhost
+  serial: 1
+  tasks:
+  - set_fact:
+      pr_2nd_commit_hash: "{{ current_head }}"
+
+- name: "{{ testname }} - api deployEnvironmentPullrequest"
+  hosts: localhost
+  serial: 1
+  vars:
+    git_base_branch: "pullrequest_base"
+    git_base_commit_hash: "{{ base_commit_hash }}"
+    git_pr_branch: "pullrequest_pr"
+    git_pr_commit_hash: "{{ pr_2nd_commit_hash }}"
+    git_pr_number: "1"
+    git_pr_title: "PR Title - UPDATE"
+  tasks:
+  - include: ../../tasks/api/deploy-pullrequest.yaml
+
+- include: ../../checks/check-branch-sha.yaml
+  vars:
+    expected_head: "{{ pr_2nd_commit_hash }}"
+    expected_branch: "pr-1"
+    project: "{{ project }}"
+    url: "{{ check_url }}"
+
+- include: ../../checks/check-pullrequest.yaml
+  vars:
+    url: "{{ check_url }}"
+    expected_build_type: "pullrequest"
+    expected_pr_base_branch: "pullrequest_base"
+    expected_pr_base_sha: "{{ base_commit_hash }}"
+    expected_pr_head_branch: "pullrequest_pr"
+    expected_pr_head_sha: "{{ pr_2nd_commit_hash }}"
+    expected_pr_title: "PR Title - UPDATE"
+
+- name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ project }}"
+    branch: "pr-1"
+  tasks:
+  - include: ../../tasks/api/delete-environment.yaml
+
+- name: "{{ testname }} - check if site for project does not exist anymore"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "{{ check_url }}"
+    expected_returncode: "{{ del_status_code }}"
+  tasks:
+  - include: ../../checks/check-url-returncode.yaml

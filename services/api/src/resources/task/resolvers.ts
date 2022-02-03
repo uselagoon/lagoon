@@ -1,130 +1,174 @@
 import * as R from 'ramda';
-import getFieldNames from 'graphql-list-fields';
 import { ResolverFn } from '../';
 import {
   pubSub,
-  createEnvironmentFilteredSubscriber,
+  createEnvironmentFilteredSubscriber
 } from '../../clients/pubSub';
-import {
-  knex,
-  prepare,
-  query,
-  isPatchEmpty,
-} from '../../util/db';
+import { knex, query, isPatchEmpty } from '../../util/db';
 import { Sql } from './sql';
-import EVENTS from './events';
+import { EVENTS } from './events';
 import { Helpers } from './helpers';
 import { Helpers as environmentHelpers } from '../environment/helpers';
+import { Helpers as projectHelpers } from '../project/helpers';
 import { Validators as envValidators } from '../environment/validators';
+import S3 from 'aws-sdk/clients/s3';
+import sha1 from 'sha1';
 
-const taskStatusTypeToString = R.cond([
-  [R.equals('ACTIVE'), R.toLower],
-  [R.equals('SUCCEEDED'), R.toLower],
-  [R.equals('FAILED'), R.toLower],
-  [R.T, R.identity],
-]);
+const accessKeyId =  process.env.S3_FILES_ACCESS_KEY_ID || 'minio'
+const secretAccessKey =  process.env.S3_FILES_SECRET_ACCESS_KEY || 'minio123'
+const bucket = process.env.S3_FILES_BUCKET || 'lagoon-files'
+const region = process.env.S3_FILES_REGION
+const s3Origin = process.env.S3_FILES_HOST || 'http://docker.for.mac.localhost:9000'
+
+const config = {
+  origin: s3Origin,
+  accessKeyId: accessKeyId,
+  secretAccessKey: secretAccessKey,
+  region: region,
+  bucket: bucket
+};
+
+const s3Client = new S3({
+  endpoint: config.origin,
+  accessKeyId: config.accessKeyId,
+  secretAccessKey: config.secretAccessKey,
+  region: config.region,
+  params: {
+    Bucket: config.bucket
+  },
+  s3ForcePathStyle: true,
+  signatureVersion: 'v4'
+});
+
+export const getTaskLog: ResolverFn = async (
+  { remoteId, environment, id, status },
+  _args,
+  { sqlClientPool }
+) => {
+  if (!remoteId) {
+    return null;
+  }
+
+  const environmentData = await environmentHelpers(
+    sqlClientPool
+  ).getEnvironmentById(parseInt(environment));
+  const projectData = await projectHelpers(sqlClientPool).getProjectById(
+    environmentData.project
+  );
+
+  // we need to get the safename of the environment from when it was created
+  const makeSafe = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
+  var environmentName = makeSafe(environmentData.name)
+  var overlength = 58 - projectData.name.length;
+  if ( environmentName.length > overlength ) {
+    var hash = sha1(environmentName).substring(0,4)
+    environmentName = environmentName.substring(0, overlength-5)
+    environmentName = environmentName.concat('-' + hash)
+  }
+
+
+  try {
+    // where it should be, check `tasklogs/projectName/environmentName/taskId-remoteId.txt`
+  let taskLog = 'tasklogs/'+projectData.name+'/'+environmentName+'/'+id+'-'+remoteId+'.txt'
+    const data = await s3Client.getObject({Bucket: bucket, Key: taskLog}).promise();
+
+    if (!data) {
+      return null;
+    }
+    let logMsg = new Buffer(JSON.parse(JSON.stringify(data.Body)).data).toString('ascii');
+    return logMsg;
+  } catch (e) {
+    // if it isn't where it should be, check the fallback location which will be `tasklogs/projectName/taskId-remoteId.txt`
+    try {
+      let taskLog = 'tasklogs/'+projectData.name+'/'+id+'-'+remoteId+'.txt'
+      const data = await s3Client.getObject({Bucket: bucket, Key: taskLog}).promise();
+
+      if (!data) {
+        return null;
+      }
+      let logMsg = new Buffer(JSON.parse(JSON.stringify(data.Body)).data).toString('ascii');
+      return logMsg;
+    } catch (e) {
+      // otherwise there is no log to show the user
+      return `There was an error loading the logs: ${e.message}\nIf this error persists, contact your Lagoon support team.`;
+    }
+  }
+};
 
 export const getTasksByEnvironmentId: ResolverFn = async (
   { id: eid },
-  { id: filterId },
-  {
-    sqlClient,
-    hasPermission,
-  },
-  info,
+  { id: filterId, limit },
+  { sqlClientPool, hasPermission }
 ) => {
-  const environment = await environmentHelpers(sqlClient).getEnvironmentById(eid);
+  const environment = await environmentHelpers(
+    sqlClientPool
+  ).getEnvironmentById(eid);
   await hasPermission('task', 'view', {
-    project: environment.project,
+    project: environment.project
   });
 
-  const prep = prepare(
-    sqlClient,
-    `SELECT
-        t.*, e.project
-      FROM environment e
-      JOIN task t on e.id = t.environment
-      WHERE e.id = :eid
-    `,
-  );
+  let queryBuilder = knex('task')
+    .where('environment', eid)
+    .orderBy('created', 'desc')
+    .orderBy('id', 'desc');
 
-  const rows = await query(sqlClient, prep({ eid }));
-  const newestFirst = R.sort(R.descend(R.prop('created')), rows);
+  if (filterId) {
+    queryBuilder = queryBuilder.andWhere('id', filterId);
+  }
 
-  const requestedFields = getFieldNames(info);
+  if (limit) {
+    queryBuilder = queryBuilder.limit(limit);
+  }
 
-  return newestFirst
-    .filter((row: any) => {
-      if (R.isNil(filterId) || R.isEmpty(filterId)) {
-        return true;
-      }
-
-      return row.id === String(filterId);
-    })
-    .map((row: any) => {
-      if (R.contains('logs', requestedFields)) {
-        return Helpers(sqlClient).injectLogs(row);
-      }
-
-      return {
-        ...row,
-        logs: null,
-      };
-    });
+  return query(sqlClientPool, queryBuilder.toString());
 };
 
 export const getTaskByRemoteId: ResolverFn = async (
   root,
   { id },
-  {
-    sqlClient,
-    hasPermission,
-  },
+  { sqlClientPool, hasPermission }
 ) => {
   const queryString = knex('task')
     .where('remote_id', '=', id)
     .toString();
 
-  const rows = await query(sqlClient, queryString);
+  const rows = await query(sqlClientPool, queryString);
   const task = R.prop(0, rows);
 
   if (!task) {
     return null;
   }
 
-  const rowsPerms = await query(sqlClient, Sql.selectPermsForTask(task.id));
+  const rowsPerms = await query(sqlClientPool, Sql.selectPermsForTask(task.id));
   await hasPermission('task', 'view', {
-    project: R.path(['0', 'pid'], rowsPerms),
+    project: R.path(['0', 'pid'], rowsPerms)
   });
 
-  return Helpers(sqlClient).injectLogs(task);
+  return task;
 };
 
 export const getTaskById: ResolverFn = async (
   root,
   { id },
-  {
-    sqlClient,
-    hasPermission,
-  },
+  { sqlClientPool, hasPermission }
 ) => {
   const queryString = knex('task')
     .where('id', '=', id)
     .toString();
 
-  const rows = await query(sqlClient, queryString);
+  const rows = await query(sqlClientPool, queryString);
   const task = R.prop(0, rows);
 
   if (!task) {
     return null;
   }
 
-  const rowsPerms = await query(sqlClient, Sql.selectPermsForTask(task.id));
+  const rowsPerms = await query(sqlClientPool, Sql.selectPermsForTask(task.id));
   await hasPermission('task', 'view', {
-    project: R.path(['0', 'pid'], rowsPerms),
+    project: R.path(['0', 'pid'], rowsPerms)
   });
 
-  return Helpers(sqlClient).injectLogs(task);
+  return task;
 };
 
 export const addTask: ResolverFn = async (
@@ -133,7 +177,7 @@ export const addTask: ResolverFn = async (
     input: {
       id,
       name,
-      status: unformattedStatus,
+      status,
       created,
       started,
       completed,
@@ -141,30 +185,50 @@ export const addTask: ResolverFn = async (
       service,
       command,
       remoteId,
-      execute: executeRequest,
-    },
+      execute: executeRequest
+    }
   },
-  { sqlClient, hasPermission },
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
-  const status = taskStatusTypeToString(unformattedStatus);
-
-  await envValidators(sqlClient).environmentExists(environment);
-  const envPerm = await environmentHelpers(sqlClient).getEnvironmentById(environment);
+  await envValidators(sqlClientPool).environmentExists(environment);
+  const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(
+    environment
+  );
   await hasPermission('task', `add:${envPerm.environmentType}`, {
-    project: envPerm.project,
+    project: envPerm.project
   });
 
   let execute;
   try {
     await hasPermission('task', 'addNoExec', {
-      project: envPerm.project,
+      project: envPerm.project
     });
     execute = executeRequest;
   } catch (err) {
     execute = true;
   }
 
-  const taskData = await Helpers(sqlClient).addTask({
+  userActivityLogger(`User added task '${name}'`, {
+    project: '',
+    event: 'api:addTask',
+    payload: {
+      input: {
+        id,
+        name,
+        status,
+        created,
+        started,
+        completed,
+        environment,
+        service,
+        command,
+        remoteId,
+        execute: executeRequest
+      }
+    }
+  });
+
+  const taskData = await Helpers(sqlClientPool).addTask({
     id,
     name,
     status,
@@ -175,7 +239,7 @@ export const addTask: ResolverFn = async (
     service,
     command,
     remoteId,
-    execute,
+    execute
   });
 
   return taskData;
@@ -184,17 +248,24 @@ export const addTask: ResolverFn = async (
 export const deleteTask: ResolverFn = async (
   root,
   { input: { id } },
-  {
-    sqlClient,
-    hasPermission,
-  },
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
-  const rows = await query(sqlClient, Sql.selectPermsForTask(id));
+  const rows = await query(sqlClientPool, Sql.selectPermsForTask(id));
   await hasPermission('task', 'delete', {
-    project: R.path(['0', 'pid'], rows),
+    project: R.path(['0', 'pid'], rows)
   });
 
-  await query(sqlClient, Sql.deleteTask(id));
+  await query(sqlClientPool, Sql.deleteTask(id));
+
+  userActivityLogger(`User deleted task '${id}'`, {
+    project: '',
+    event: 'api:deleteTask',
+    payload: {
+      input: {
+        id
+      }
+    }
+  });
 
   return 'success';
 };
@@ -207,35 +278,32 @@ export const updateTask: ResolverFn = async (
       patch,
       patch: {
         name,
-        status: unformattedStatus,
+        status,
         created,
         started,
         completed,
         environment,
         service,
         command,
-        remoteId,
-      },
-    },
+        remoteId
+      }
+    }
   },
-  {
-    sqlClient,
-    hasPermission,
-  },
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
-  const status = taskStatusTypeToString(unformattedStatus);
-
   // Check access to modify task as it currently stands
-  const curPerms = await query(sqlClient, Sql.selectPermsForTask(id));
+  const curPerms = await query(sqlClientPool, Sql.selectPermsForTask(id));
   await hasPermission('task', 'update', {
-    project: R.path(['0', 'pid'], curPerms),
+    project: R.path(['0', 'pid'], curPerms)
   });
 
   if (environment) {
     // Check access to modify task as it will be updated
-    const envPerm = await environmentHelpers(sqlClient).getEnvironmentById(environment);
+    const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(
+      environment
+    );
     await hasPermission('task', 'update', {
-      project: envPerm.project,
+      project: envPerm.project
     });
   }
 
@@ -244,7 +312,7 @@ export const updateTask: ResolverFn = async (
   }
 
   await query(
-    sqlClient,
+    sqlClientPool,
     Sql.updateTask({
       id,
       patch: {
@@ -256,15 +324,33 @@ export const updateTask: ResolverFn = async (
         environment,
         service,
         command,
-        remoteId,
-      },
-    }),
+        remoteId
+      }
+    })
   );
 
-  const rows = await query(sqlClient, Sql.selectTask(id));
-  const taskData = await Helpers(sqlClient).injectLogs(R.prop(0, rows));
+  const rows = await query(sqlClientPool, Sql.selectTask(id));
+  const taskData = R.prop(0, rows);
 
   pubSub.publish(EVENTS.TASK.UPDATED, taskData);
+
+  userActivityLogger(`User updated task '${id}'`, {
+    project: '',
+    event: 'api:updateTask',
+    payload: {
+      patch: {
+        name,
+        status,
+        created,
+        started,
+        completed,
+        environment,
+        service,
+        command,
+        remoteId
+      }
+    }
+  });
 
   return taskData;
 };
@@ -272,16 +358,21 @@ export const updateTask: ResolverFn = async (
 export const taskDrushArchiveDump: ResolverFn = async (
   root,
   { environment: environmentId },
-  { sqlClient, hasPermission },
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
-  await envValidators(sqlClient).environmentExists(environmentId);
-  await envValidators(sqlClient).environmentHasService(environmentId, 'cli');
-  const envPerm = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+  await envValidators(sqlClientPool).environmentExists(environmentId);
+  await envValidators(sqlClientPool).environmentHasService(
+    environmentId,
+    'cli'
+  );
+  const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(
+    environmentId
+  );
   await hasPermission('task', `drushArchiveDump:${envPerm.environmentType}`, {
-    project: envPerm.project,
+    project: envPerm.project
   });
 
-  const command = String.raw`file="/tmp/$LAGOON_SAFE_PROJECT-$LAGOON_GIT_SAFE_BRANCH-$(date --iso-8601=seconds).tar" && drush ard --destination=$file && \
+  const command = String.raw`file="/tmp/$LAGOON_PROJECT-$LAGOON_GIT_SAFE_BRANCH-$(date --iso-8601=seconds).tar" && drush ard --destination=$file && \
 TOKEN="$(ssh -p $TASK_SSH_PORT -t lagoon@$TASK_SSH_HOST token)" && curl -sS "$TASK_API_HOST"/graphql \
 -H "Authorization: Bearer $TOKEN" \
 -F operations='{ "query": "mutation ($task: Int!, $files: [Upload!]!) { uploadFilesForTask(input:{task:$task, files:$files}) { id files { filename } } }", "variables": { "task": '"$TASK_DATA_ID"', "files": [null] } }' \
@@ -289,12 +380,23 @@ TOKEN="$(ssh -p $TASK_SSH_PORT -t lagoon@$TASK_SSH_HOST token)" && curl -sS "$TA
 -F 0=@$file; rm -rf $file;
 `;
 
-  const taskData = await Helpers(sqlClient).addTask({
+  userActivityLogger(
+    `User triggered a Drush Archive Dump task on environment '${environmentId}'`,
+    {
+      project: '',
+      event: 'api:taskDrushArchiveDump',
+      payload: {
+        environment: environmentId
+      }
+    }
+  );
+
+  const taskData = await Helpers(sqlClientPool).addTask({
     name: 'Drush archive-dump',
     environment: environmentId,
     service: 'cli',
     command,
-    execute: true,
+    execute: true
   });
 
   return taskData;
@@ -303,16 +405,22 @@ TOKEN="$(ssh -p $TASK_SSH_PORT -t lagoon@$TASK_SSH_HOST token)" && curl -sS "$TA
 export const taskDrushSqlDump: ResolverFn = async (
   root,
   { environment: environmentId },
-  { sqlClient, hasPermission },
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
-  await envValidators(sqlClient).environmentExists(environmentId);
-  await envValidators(sqlClient).environmentHasService(environmentId, 'cli');
-  const envPerm = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+  await envValidators(sqlClientPool).environmentExists(environmentId);
+  await envValidators(sqlClientPool).environmentHasService(
+    environmentId,
+    'cli'
+  );
+  const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(
+    environmentId
+  );
   await hasPermission('task', `drushSqlDump:${envPerm.environmentType}`, {
-    project: envPerm.project,
+    project: envPerm.project
   });
 
-  const command = String.raw`file="/tmp/$LAGOON_SAFE_PROJECT-$LAGOON_GIT_SAFE_BRANCH-$(date --iso-8601=seconds).sql" && drush sql-dump --result-file=$file --gzip && \
+  const command = String.raw`file="/tmp/$LAGOON_PROJECT-$LAGOON_GIT_SAFE_BRANCH-$(date --iso-8601=seconds).sql" && DRUSH_MAJOR_VERSION=$(drush status --fields=drush-version | awk '{ print $4 }' | grep -oE '^s*[0-9]+') && \
+if [[ $DRUSH_MAJOR_VERSION -ge 9 ]]; then drush sql-dump --extra-dump=--no-tablespaces --result-file=$file --gzip; else drush sql-dump --extra=--no-tablespaces --result-file=$file --gzip; fi && \
 TOKEN="$(ssh -p $TASK_SSH_PORT -t lagoon@$TASK_SSH_HOST token)" && curl -sS "$TASK_API_HOST"/graphql \
 -H "Authorization: Bearer $TOKEN" \
 -F operations='{ "query": "mutation ($task: Int!, $files: [Upload!]!) { uploadFilesForTask(input:{task:$task, files:$files}) { id files { filename } } }", "variables": { "task": '"$TASK_DATA_ID"', "files": [null] } }' \
@@ -320,12 +428,23 @@ TOKEN="$(ssh -p $TASK_SSH_PORT -t lagoon@$TASK_SSH_HOST token)" && curl -sS "$TA
 -F 0=@$file.gz; rm -rf $file.gz
 `;
 
-  const taskData = await Helpers(sqlClient).addTask({
+  userActivityLogger(
+    `User triggered a Drush SQL Dump task on environment '${environmentId}'`,
+    {
+      project: '',
+      event: 'api:taskDrushSqlDump',
+      payload: {
+        environment: environmentId
+      }
+    }
+  );
+
+  const taskData = await Helpers(sqlClientPool).addTask({
     name: 'Drush sql-dump',
     environment: environmentId,
     service: 'cli',
     command,
-    execute: true,
+    execute: true
   });
 
   return taskData;
@@ -334,32 +453,48 @@ TOKEN="$(ssh -p $TASK_SSH_PORT -t lagoon@$TASK_SSH_HOST token)" && curl -sS "$TA
 export const taskDrushCacheClear: ResolverFn = async (
   root,
   { environment: environmentId },
-  { sqlClient, hasPermission },
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
-  await envValidators(sqlClient).environmentExists(environmentId);
-  await envValidators(sqlClient).environmentHasService(environmentId, 'cli');
-  const envPerm = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+  await envValidators(sqlClientPool).environmentExists(environmentId);
+  await envValidators(sqlClientPool).environmentHasService(
+    environmentId,
+    'cli'
+  );
+  const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(
+    environmentId
+  );
   await hasPermission('task', `drushCacheClear:${envPerm.environmentType}`, {
-    project: envPerm.project,
+    project: envPerm.project
   });
 
   const command =
     'drupal_version=$(drush status drupal-version --format=list) && \
-  if [ ${drupal_version%.*.*} == "8" ]; then \
-    drush cr; \
-  elif [ ${drupal_version%.*} == "7" ]; then \
+  if [ ${drupal_version%.*} == "7" ]; then \
     drush cc all; \
+  elif [ ${drupal_version%.*.*} -ge "8" ] ; then \
+    drush cr; \
   else \
     echo "could not clear cache for found Drupal Version ${drupal_version}"; \
     exit 1; \
   fi';
 
-  const taskData = await Helpers(sqlClient).addTask({
+  userActivityLogger(
+    `User triggered a Drush cache clear task on environment '${environmentId}'`,
+    {
+      project: '',
+      event: 'api:taskDrushCacheClear',
+      payload: {
+        environment: environmentId
+      }
+    }
+  );
+
+  const taskData = await Helpers(sqlClientPool).addTask({
     name: 'Drush cache-clear',
     environment: environmentId,
     service: 'cli',
     command,
-    execute: true,
+    execute: true
   });
 
   return taskData;
@@ -368,21 +503,37 @@ export const taskDrushCacheClear: ResolverFn = async (
 export const taskDrushCron: ResolverFn = async (
   root,
   { environment: environmentId },
-  { sqlClient, hasPermission },
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
-  await envValidators(sqlClient).environmentExists(environmentId);
-  await envValidators(sqlClient).environmentHasService(environmentId, 'cli');
-  const envPerm = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+  await envValidators(sqlClientPool).environmentExists(environmentId);
+  await envValidators(sqlClientPool).environmentHasService(
+    environmentId,
+    'cli'
+  );
+  const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(
+    environmentId
+  );
   await hasPermission('task', `drushCron:${envPerm.environmentType}`, {
-    project: envPerm.project,
+    project: envPerm.project
   });
 
-  const taskData = await Helpers(sqlClient).addTask({
+  userActivityLogger(
+    `User triggered a Drush cron task on environment '${environmentId}'`,
+    {
+      project: '',
+      event: 'api:taskDrushCron',
+      payload: {
+        environment: environmentId
+      }
+    }
+  );
+
+  const taskData = await Helpers(sqlClientPool).addTask({
     name: 'Drush cron',
     environment: environmentId,
     service: 'cli',
     command: `drush cron`,
-    execute: true,
+    execute: true
   });
 
   return taskData;
@@ -392,41 +543,68 @@ export const taskDrushSqlSync: ResolverFn = async (
   root,
   {
     sourceEnvironment: sourceEnvironmentId,
-    destinationEnvironment: destinationEnvironmentId,
+    destinationEnvironment: destinationEnvironmentId
   },
-  { sqlClient, hasPermission },
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
-  await envValidators(sqlClient).environmentExists(sourceEnvironmentId);
-  await envValidators(sqlClient).environmentExists(destinationEnvironmentId);
-  await envValidators(sqlClient).environmentsHaveSameProject([
+  await envValidators(sqlClientPool).environmentExists(sourceEnvironmentId);
+  await envValidators(sqlClientPool).environmentExists(
+    destinationEnvironmentId
+  );
+  await envValidators(sqlClientPool).environmentsHaveSameProject([
     sourceEnvironmentId,
-    destinationEnvironmentId,
+    destinationEnvironmentId
   ]);
-  await envValidators(sqlClient).environmentHasService(
+  await envValidators(sqlClientPool).environmentHasService(
     sourceEnvironmentId,
-    'cli',
+    'cli'
   );
 
   const sourceEnvironment = await environmentHelpers(
-    sqlClient,
+    sqlClientPool
   ).getEnvironmentById(sourceEnvironmentId);
   const destinationEnvironment = await environmentHelpers(
-    sqlClient,
+    sqlClientPool
   ).getEnvironmentById(destinationEnvironmentId);
 
-  await hasPermission('task', `drushSqlSync:source:${sourceEnvironment.environmentType}`, {
-    project: sourceEnvironment.project,
-  });
-  await hasPermission('task', `drushSqlSync:destination:${destinationEnvironment.environmentType}`, {
-    project: destinationEnvironment.project,
-  });
+  await hasPermission(
+    'task',
+    `drushSqlSync:source:${sourceEnvironment.environmentType}`,
+    {
+      project: sourceEnvironment.project
+    }
+  );
+  await hasPermission(
+    'task',
+    `drushSqlSync:destination:${destinationEnvironment.environmentType}`,
+    {
+      project: destinationEnvironment.project
+    }
+  );
 
-  const taskData = await Helpers(sqlClient).addTask({
+  userActivityLogger(
+    `User triggered a Drush SQL sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`,
+    {
+      project: '',
+      event: 'api:taskDrushSqlSync',
+      payload: {
+        sourceEnvironment: sourceEnvironmentId,
+        destinationEnvironment: destinationEnvironmentId
+      }
+    }
+  );
+
+  const command =
+  `LAGOON_ALIAS_PREFIX="" && \
+  if [[ ! "" = "$(drush | grep 'lagoon:aliases')" ]]; then LAGOON_ALIAS_PREFIX="lagoon.\${LAGOON_PROJECT}-"; fi && \
+  drush -y sql-sync @\${LAGOON_ALIAS_PREFIX}${sourceEnvironment.name} @self`;
+
+  const taskData = await Helpers(sqlClientPool).addTask({
     name: `Sync DB ${sourceEnvironment.name} -> ${destinationEnvironment.name}`,
     environment: destinationEnvironmentId,
     service: 'cli',
-    command: `drush -y sql-sync @${sourceEnvironment.name} @self`,
-    execute: true,
+    command: command,
+    execute: true
   });
 
   return taskData;
@@ -436,43 +614,68 @@ export const taskDrushRsyncFiles: ResolverFn = async (
   root,
   {
     sourceEnvironment: sourceEnvironmentId,
-    destinationEnvironment: destinationEnvironmentId,
+    destinationEnvironment: destinationEnvironmentId
   },
-  { sqlClient, hasPermission },
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
-  await envValidators(sqlClient).environmentExists(sourceEnvironmentId);
-  await envValidators(sqlClient).environmentExists(destinationEnvironmentId);
-  await envValidators(sqlClient).environmentsHaveSameProject([
+  await envValidators(sqlClientPool).environmentExists(sourceEnvironmentId);
+  await envValidators(sqlClientPool).environmentExists(
+    destinationEnvironmentId
+  );
+  await envValidators(sqlClientPool).environmentsHaveSameProject([
     sourceEnvironmentId,
-    destinationEnvironmentId,
+    destinationEnvironmentId
   ]);
-  await envValidators(sqlClient).environmentHasService(
+  await envValidators(sqlClientPool).environmentHasService(
     sourceEnvironmentId,
-    'cli',
+    'cli'
   );
 
   const sourceEnvironment = await environmentHelpers(
-    sqlClient,
+    sqlClientPool
   ).getEnvironmentById(sourceEnvironmentId);
   const destinationEnvironment = await environmentHelpers(
-    sqlClient,
+    sqlClientPool
   ).getEnvironmentById(destinationEnvironmentId);
 
-  await hasPermission('task', `drushRsync:source:${sourceEnvironment.environmentType}`, {
-    project: sourceEnvironment.project,
-  });
-  await hasPermission('task', `drushRsync:destination:${destinationEnvironment.environmentType}`, {
-    project: destinationEnvironment.project,
-  });
+  await hasPermission(
+    'task',
+    `drushRsync:source:${sourceEnvironment.environmentType}`,
+    {
+      project: sourceEnvironment.project
+    }
+  );
+  await hasPermission(
+    'task',
+    `drushRsync:destination:${destinationEnvironment.environmentType}`,
+    {
+      project: destinationEnvironment.project
+    }
+  );
 
-  const taskData = await Helpers(sqlClient).addTask({
-    name: `Sync files ${sourceEnvironment.name} -> ${
-      destinationEnvironment.name
-    }`,
+  userActivityLogger(
+    `User triggered an rsync sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`,
+    {
+      project: '',
+      event: 'api:taskDrushRsyncFiles',
+      payload: {
+        sourceEnvironment: sourceEnvironmentId,
+        destinationEnvironment: destinationEnvironmentId
+      }
+    }
+  );
+
+  const command =
+  `LAGOON_ALIAS_PREFIX="" && \
+  if [[ ! "" = "$(drush | grep 'lagoon:aliases')" ]]; then LAGOON_ALIAS_PREFIX="lagoon.\${LAGOON_PROJECT}-"; fi && \
+  drush -y rsync @\${LAGOON_ALIAS_PREFIX}${sourceEnvironment.name}:%files @self:%files`;
+
+  const taskData = await Helpers(sqlClientPool).addTask({
+    name: `Sync files ${sourceEnvironment.name} -> ${destinationEnvironment.name}`,
     environment: destinationEnvironmentId,
     service: 'cli',
-    command: `drush -y rsync @${sourceEnvironment.name}:%files @self:%files`,
-    execute: true,
+    command: command,
+    execute: true
   });
 
   return taskData;
@@ -481,21 +684,37 @@ export const taskDrushRsyncFiles: ResolverFn = async (
 export const taskDrushUserLogin: ResolverFn = async (
   root,
   { environment: environmentId },
-  { sqlClient, hasPermission },
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
-  await envValidators(sqlClient).environmentExists(environmentId);
-  await envValidators(sqlClient).environmentHasService(environmentId, 'cli');
-  const envPerm = await environmentHelpers(sqlClient).getEnvironmentById(environmentId);
+  await envValidators(sqlClientPool).environmentExists(environmentId);
+  await envValidators(sqlClientPool).environmentHasService(
+    environmentId,
+    'cli'
+  );
+  const envPerm = await environmentHelpers(sqlClientPool).getEnvironmentById(
+    environmentId
+  );
   await hasPermission('task', `drushUserLogin:${envPerm.environmentType}`, {
-    project: envPerm.project,
+    project: envPerm.project
   });
 
-  const taskData = await Helpers(sqlClient).addTask({
+  userActivityLogger(
+    `User triggered a Drush user login task on '${environmentId}'`,
+    {
+      project: '',
+      event: 'api:taskDrushUserLogin',
+      payload: {
+        environment: environmentId
+      }
+    }
+  );
+
+  const taskData = await Helpers(sqlClientPool).addTask({
     name: 'Drush uli',
     environment: environmentId,
     service: 'cli',
     command: `drush uli`,
-    execute: true,
+    execute: true
   });
 
   return taskData;
@@ -503,5 +722,5 @@ export const taskDrushUserLogin: ResolverFn = async (
 
 export const taskSubscriber = createEnvironmentFilteredSubscriber([
   EVENTS.TASK.ADDED,
-  EVENTS.TASK.UPDATED,
+  EVENTS.TASK.UPDATED
 ]);

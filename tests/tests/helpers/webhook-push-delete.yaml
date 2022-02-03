@@ -2,7 +2,7 @@
   hosts: localhost
   serial: 1
   vars:
-    git_repo_ssh_url: "{{ lookup('env','WEBHOOK_REPO_PREFIX') }}{{ git_repo_name }}"
+    git_repo_ssh_url: "{{ localgit_url }}/{{ git_repo_name }}"
   tasks:
   - include: ../../tasks/webhook-github/push-delete.yaml
   - include: ../../tasks/webhook-gitlab/push-delete.yaml

@@ -1,4 +1,5 @@
 {{- range $cronjobName, $cronjobConfig := .Values.nativeCronjobs }}
+---
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
@@ -12,6 +13,7 @@ spec:
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 0
   failedJobsHistoryLimit: 1
+  startingDeadlineSeconds: 240
   jobTemplate:
     metadata:
       labels:

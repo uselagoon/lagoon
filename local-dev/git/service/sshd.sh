@@ -1,3 +1,3 @@
 #!/bin/sh
 
-exec /usr/sbin/sshd -D
+exec /usr/sbin/sshd.pam -D

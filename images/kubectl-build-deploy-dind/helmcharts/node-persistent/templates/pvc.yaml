@@ -5,11 +5,12 @@ metadata:
   labels:
     {{- include "node-persistent.labels" . | nindent 4 }}
   annotations:
-    appuio.ch/backup: "true"
+    k8up.syn.tools/backup: "true"
     {{- include "node-persistent.annotations" . | nindent 4 }}
 spec:
   accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany
+  storageClassName: bulk
   resources:
     requests:
       storage: {{ .Values.persistentStorage.size | quote }}

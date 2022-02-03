@@ -1,20 +1,27 @@
 import * as R from 'ramda';
 import redis, { ClientOpts } from 'redis';
 import { promisify } from 'util';
+import { toNumber } from '../util/func';
+import { getConfigFromEnv, envHasConfig } from '../util/config';
 
-const { REDIS_HOST, REDIS_PASSWORD, REDIS_PORT } = process.env;
-
-let clientOptions: ClientOpts = {
-  host: REDIS_HOST || 'api-redis',
-  port: parseInt(REDIS_PORT, 10) || 6379,
-  enable_offline_queue: false
+export const config: {
+  hostname: string;
+  port: number;
+  pass?: string;
+} = {
+  hostname: getConfigFromEnv('REDIS_HOST', 'api-redis'),
+  port: toNumber(getConfigFromEnv('REDIS_PORT', '6379')),
+  pass: envHasConfig('REDIS_PASSWORD')
+    ? getConfigFromEnv('REDIS_PASSWORD')
+    : undefined
 };
 
-if (typeof REDIS_PASSWORD !== undefined) {
-  clientOptions.password = REDIS_PASSWORD;
-}
-
-const redisClient = redis.createClient(clientOptions);
+const redisClient = redis.createClient({
+  host: config.hostname,
+  port: config.port,
+  password: config.pass,
+  enable_offline_queue: false
+});
 
 redisClient.on('error', function(error) {
   console.error(error);
@@ -40,9 +47,7 @@ const hashKey = ({ resource, project, group, scope }: IUserResourceScope) =>
   }${scope}`;
 
 export const getRedisCache = async (resourceScope: IUserResourceScope) => {
-  const redisHash = await hgetall(
-    `cache:authz:${resourceScope.currentUserId}`
-  );
+  const redisHash = await hgetall(`cache:authz:${resourceScope.currentUserId}`);
   const key = hashKey(resourceScope);
 
   return R.prop(key, redisHash);

@@ -2,6 +2,9 @@ ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
 FROM ${UPSTREAM_REPO:-uselagoon}/logstash-7:${UPSTREAM_TAG:-latest}
 
+ARG LAGOON_VERSION
+ENV LAGOON_VERSION=$LAGOON_VERSION
+
 RUN bin/logstash-plugin install logstash-input-lumberjack
 
 # Remove default shipped pipeline

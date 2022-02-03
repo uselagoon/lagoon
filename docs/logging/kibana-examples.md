@@ -4,16 +4,15 @@ Have you seen [the Kibana getting started video](https://www.elastic.co/webinars
 
 Ready to get started? Good!
 
-{% hint style="info" %}
-Make sure that you have selected your tenant before starting! You can do that by on the `Tenant` icon on the left-hand menu. Once you have selected your tenant, click on the `Discover` icon again to get started.
-{% endhint %}
+!!! Note "Note:"
+    Make sure that you have selected your tenant before starting! You can do that by on the `Tenant` icon on the left-hand menu. Once you have selected your tenant, click on the `Discover` icon again to get started.
 
 ## Router Logs
 
 Below you'll find examples for two common log requests:
 
 * Viewing the total number of hits/requests to your site.
-* Viewing the number of hits/requests from a specific IP address. 
+* Viewing the number of hits/requests from a specific IP address.
 
 ### Total Number of hits/requests to your site
 
@@ -30,7 +29,7 @@ Below you'll find examples for two common log requests:
 * You can add any of those fields to the window by hovering over them and clicking add on the left hand side \(\#6\).
 * You can also further filter your results by using the search bar.
 
-![How to get the total number of hits/requests to your site in Kibana.](../.gitbook/assets/kibana_example1.png)
+![How to get the total number of hits/requests to your site in Kibana.](./kibana_example1.png)
 
 ### Number of hits/requests from a specific IP address
 
@@ -41,14 +40,14 @@ We are going to start off with the same query as above, but we are going to add 
 * First, add the following fields: `client_ip` and `http_request`.
 * This will show you a list of all IP addresses and the page they requested. Here is what we see for the Amazee.io page:
 
-![All IP addresses and the page they requested.](../.gitbook/assets/kibana_example2.png)
+![All IP addresses and the page they requested.](./kibana_example2.png)
 
 That looks good, but what if we wanted to just show requests from a specific IP address? You can filter for the address by adding it to your search criteria.
 
 * We are going to add: `AND client_ip: "IP address"`.
 * That will filter the results to just show you hits from that specific IP address, and the page they were requesting. Here is what it looks like for our Amazee.io website:
 
-![Hits from a specific IP address.](../.gitbook/assets/kibana_example3.png)
+![Hits from a specific IP address.](./kibana_example3.png)
 
 ## Container Logs
 
@@ -66,7 +65,7 @@ Want to see the logs for a specific container \(php, nginx, etc\)? This section 
 * Let's add the message field and the level field to the view. You can do that by clicking on "Add" on the left hand side \(\#5\).
 * You can change the time frame in the upper right hand corner of the screen \(\#6\), in the example below I'm looking at logs for the last 4 hours.
 
-![](../.gitbook/assets/kibana_example4.png)
+![](./kibana_example4.png)
 
 ### Specific errors in logs
 
@@ -87,17 +86,15 @@ Kibana will also give you the option to create visualizations or graphs. We are 
 5. Click on X-Axis under Buckets and select Date Histogram, with the interval set to daily
 6. Success!! You should now see a nice bar graph showing your daily traffic.
 
-{% hint style="info" %}
-Make sure that you select an appropriate time frame for the data in the upper right hand corner.
-{% endhint %}
+!!! Note "Note:"
+    Make sure that you select an appropriate time frame for the data in the upper right hand corner.
 
 Here is an example of a daily hits visualization chart:
 
-![Daily hits visualization chart.](../.gitbook/assets/kibana_example5.png)
+![Daily hits visualization chart.](./kibana_example5.png)
 
 Also note that you can save your visualizations \(and searches\)! That will make it even faster to access them in the future. And because each account has their own Kibana Tenant, no searches or visualizations are shared with another account.
 
 ## Troubleshooting
 
-{% embed url="https://www.youtube.com/watch?v=hyUMRlQTXEA" caption="How do I fix an internal server error in Kibana?" %}
-
+<iframe width="560" height="315" src="https://www.youtube.com/embed/BuQo5J0Qc2c" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>

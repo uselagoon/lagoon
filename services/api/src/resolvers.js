@@ -1,5 +1,6 @@
 const GraphQLDate = require('graphql-iso-date');
 const GraphQLJSON = require('graphql-type-json');
+const { GraphQLUpload } = require('graphql-upload');
 
 const {
   getAllProblems,
@@ -20,15 +21,17 @@ const {
   addFacts,
   deleteFact,
   deleteFactsFromSource,
+  addFactReference,
+  deleteFactReference,
+  deleteAllFactReferencesByFactId,
+  getFactReferencesByFactId,
+  getProjectsByFactSearch,
+  getEnvironmentsByFactSearch,
 } = require('./resources/fact/resolvers');
 
-const {
-  SeverityScoreType
-} = require('./resources/problem/types');
+const { SeverityScoreType } = require('./resources/problem/types');
 
-const {
-  getLagoonVersion,
-} = require('./resources/lagoon/resolvers');
+const { getLagoonVersion } = require('./resources/lagoon/resolvers');
 
 const {
   getDeploymentsByEnvironmentId,
@@ -43,7 +46,8 @@ const {
   deployEnvironmentPromote,
   switchActiveStandby,
   deploymentSubscriber,
-  getDeploymentUrl
+  getDeploymentUrl,
+  getBuildLog,
 } = require('./resources/deployment/resolvers');
 
 const {
@@ -61,12 +65,25 @@ const {
   taskDrushRsyncFiles,
   taskDrushUserLogin,
   taskSubscriber,
+  getTaskLog,
 } = require('./resources/task/resolvers');
+
+const {
+  addAdvancedTaskDefinition,
+  advancedTaskDefinitionById,
+  resolveTasksForEnvironment,
+  getRegisteredTasksByEnvironmentId,
+  advancedTaskDefinitionArgumentById,
+  invokeRegisteredTask,
+  deleteAdvancedTaskDefinition,
+  allAdvancedTaskDefinitions,
+} = require('./resources/task/task_definition_resolvers');
 
 const {
   getFilesByTaskId,
   uploadFilesForTask,
   deleteFilesForTask,
+  getDownloadLink,
 } = require('./resources/file/resolvers');
 
 const {
@@ -91,22 +108,34 @@ const {
   getAllEnvironments,
   deleteAllEnvironments,
   userCanSshToEnvironment,
-  getEnvironmentUrl
+  getEnvironmentUrl,
 } = require('./resources/environment/resolvers');
+
+const {
+  getDeployTargetConfigById,
+  getDeployTargetConfigsByProjectId,
+  getDeployTargetConfigsByDeployTarget,
+  addDeployTargetConfig,
+  deleteDeployTargetConfig,
+  updateDeployTargetConfig,
+} = require('./resources/deploytargetconfig/resolvers');
 
 const {
   addNotificationMicrosoftTeams,
   addNotificationRocketChat,
   addNotificationSlack,
+  addNotificationWebhook,
   addNotificationToProject,
   deleteNotificationMicrosoftTeams,
   deleteNotificationRocketChat,
   deleteNotificationSlack,
+  deleteNotificationWebhook,
   getNotificationsByProjectId,
   removeNotificationFromProject,
   updateNotificationMicrosoftTeams,
   updateNotificationRocketChat,
   updateNotificationSlack,
+  updateNotificationWebhook,
   addNotificationEmail,
   updateNotificationEmail,
   deleteNotificationEmail,
@@ -114,6 +143,7 @@ const {
   deleteAllNotificationSlacks,
   deleteAllNotificationMicrosoftTeams,
   deleteAllNotificationRocketChats,
+  deleteAllNotificationWebhook,
   removeAllNotificationsFromAllProjects,
 } = require('./resources/notification/resolvers');
 
@@ -122,6 +152,8 @@ const {
   deleteOpenshift,
   getAllOpenshifts,
   getOpenshiftByProjectId,
+  getOpenshiftByDeployTargetId,
+  getOpenshiftByEnvironmentId,
   updateOpenshift,
   deleteAllOpenshifts,
 } = require('./resources/openshift/resolvers');
@@ -130,6 +162,7 @@ const {
   deleteProject,
   addProject,
   getProjectByName,
+  getProjectById,
   getProjectByGitUrl,
   getProjectByEnvironmentId,
   getProjectsByMetadata,
@@ -166,14 +199,7 @@ const {
   getGroupsByUserId,
   getGroupByName,
   addGroup,
-  addBillingGroup,
-  updateBillingGroup,
-  addProjectToBillingGroup,
-  updateProjectBillingGroup,
-  removeProjectFromBillingGroup,
   getAllProjectsInGroup,
-  getBillingGroupCost,
-  getAllBillingGroupsCost,
   getAllProjectsByGroupId,
   updateGroup,
   deleteGroup,
@@ -185,15 +211,6 @@ const {
 } = require('./resources/group/resolvers');
 
 const {
-  addBillingModifier,
-  updateBillingModifier,
-  deleteBillingModifier,
-  deleteAllBillingModifiersByBillingGroup,
-  getBillingModifiers,
-  getAllModifiersByGroupId
-} = require('./resources/billing/resolvers');
-
-const {
   addBackup,
   getBackupsByEnvironmentId,
   deleteBackup,
@@ -202,6 +219,7 @@ const {
   getRestoreByBackupId,
   updateRestore,
   backupSubscriber,
+  getRestoreLocation,
 } = require('./resources/backup/resolvers');
 
 const {
@@ -212,6 +230,7 @@ const {
 } = require('./resources/env-variables/resolvers');
 
 const resolvers = {
+  Upload: GraphQLUpload,
   GroupRole: {
     GUEST: 'guest',
     REPORTER: 'reporter',
@@ -219,35 +238,90 @@ const resolvers = {
     MAINTAINER: 'maintainer',
     OWNER: 'owner',
   },
+  ProjectOrderType: {
+    NAME: 'name',
+    CREATED: 'created',
+  },
+  EnvOrderType: {
+    NAME: 'name',
+    UPDATED: 'updated',
+  },
+  DeployType: {
+    BRANCH: 'branch',
+    PULLREQUEST: 'pullrequest',
+    PROMOTE: 'promote',
+  },
+  EnvType: {
+    PRODUCTION: 'production',
+    DEVELOPMENT: 'development',
+  },
+  EnvVariableType: {
+    PROJECT: 'project',
+    ENVIRONMENT: 'environment',
+  },
+  EnvVariableScope: {
+    BUILD: 'build',
+    RUNTIME: 'runtime',
+    GLOBAL: 'global',
+    CONTAINER_REGISTRY: 'container_registry',
+    INTERNAL_CONTAINER_REGISTRY: 'internal_container_registry',
+  },
+  RestoreStatusType: {
+    PENDING: 'pending',
+    SUCCESSFUL: 'successful',
+    FAILED: 'failed',
+  },
+  DeploymentStatusType: {
+    NEW: 'new',
+    PENDING: 'pending',
+    RUNNING: 'running',
+    CANCELLED: 'cancelled',
+    ERROR: 'error',
+    FAILED: 'failed',
+    COMPLETE: 'complete',
+  },
+  NotificationType: {
+    SLACK: 'slack',
+    ROCKETCHAT: 'rocketchat',
+    MICROSOFTTEAMS: 'microsoftteams',
+    EMAIL: 'email',
+    WEBHOOK: 'webhook',
+  },
+  NotificationContentType: {
+    DEPLOYMENT: 'deployment',
+    PROBLEM: 'problem',
+  },
+  TaskStatusType: {
+    ACTIVE: 'active',
+    SUCCEEDED: 'succeeded',
+    FAILED: 'failed',
+  },
   Project: {
     notifications: getNotificationsByProjectId,
     openshift: getOpenshiftByProjectId,
     kubernetes: getOpenshiftByProjectId,
     environments: getEnvironmentsByProjectId,
+    deployTargetConfigs: getDeployTargetConfigsByProjectId,
     envVariables: getEnvVarsByProjectId,
     groups: getGroupsByProjectId,
   },
   GroupInterface: {
     __resolveType(group) {
-      switch (group.type) {
-        case 'billing':
-          return 'BillingGroup';
-        default:
-          return 'Group';
-      }
+      return 'Group';
     },
   },
   Group: {
-    projects: getAllProjectsByGroupId,
+    projects: getAllProjectsByGroupId
   },
-  BillingGroup: {
-    projects: getAllProjectsByGroupId,
-    modifiers: getAllModifiersByGroupId,
+  DeployTargetConfig: {
+    project: getProjectById,
+    deployTarget: getOpenshiftByDeployTargetId,
   },
   Environment: {
     project: getProjectByEnvironmentId,
     deployments: getDeploymentsByEnvironmentId,
     tasks: getTasksByEnvironmentId,
+    advancedTasks: getRegisteredTasksByEnvironmentId,
     hoursMonth: getEnvironmentHoursMonthByEnvironmentId,
     storages: getEnvironmentStorageByEnvironmentId,
     storageMonth: getEnvironmentStorageMonthByEnvironmentId,
@@ -257,14 +331,24 @@ const resolvers = {
     services: getEnvironmentServicesByEnvironmentId,
     problems: getProblemsByEnvironmentId,
     facts: getFactsByEnvironmentId,
+    openshift: getOpenshiftByEnvironmentId,
+    kubernetes: getOpenshiftByEnvironmentId,
+  },
+  Fact: {
+    references: getFactReferencesByFactId,
   },
   Deployment: {
     environment: getEnvironmentByDeploymentId,
     uiLink: getDeploymentUrl,
+    buildLog: getBuildLog,
   },
   Task: {
     environment: getEnvironmentByTaskId,
     files: getFilesByTaskId,
+    logs: getTaskLog
+  },
+  File: {
+    download: getDownloadLink
   },
   Notification: {
     __resolveType(obj) {
@@ -277,6 +361,20 @@ const resolvers = {
           return 'NotificationMicrosoftTeams';
         case 'email':
           return 'NotificationEmail';
+        case 'webhook':
+          return 'NotificationWebhook';
+        default:
+          return null;
+      }
+    }
+  },
+  AdvancedTaskDefinition: {
+    __resolveType (obj) {
+      switch(obj.type) {
+        case 'IMAGE':
+          return 'AdvancedTaskDefinitionImage';
+        case 'COMMAND':
+          return 'AdvancedTaskDefinitionCommand';
         default:
           return null;
       }
@@ -290,6 +388,9 @@ const resolvers = {
     restore: getRestoreByBackupId,
     environment: getEnvironmentByBackupId,
   },
+  Restore: {
+    restoreLocation: getRestoreLocation,
+  },
   Query: {
     me: getMe,
     lagoonVersion: getLagoonVersion,
@@ -302,10 +403,15 @@ const resolvers = {
     environmentById: getEnvironmentById,
     environmentByOpenshiftProjectName: getEnvironmentByOpenshiftProjectName,
     environmentByKubernetesNamespaceName: getEnvironmentByKubernetesNamespaceName,
+    environmentsByFactSearch: getEnvironmentsByFactSearch,
     userCanSshToEnvironment,
     deploymentByRemoteId: getDeploymentByRemoteId,
     taskByRemoteId: getTaskByRemoteId,
     taskById: getTaskById,
+    advancedTaskDefinitionById,
+    advancedTasksForEnvironment: resolveTasksForEnvironment,
+    allAdvancedTaskDefinitions,
+    advancedTaskDefinitionArgumentById,
     allProjects: getAllProjects,
     allOpenshifts: getAllOpenshifts,
     allKubernetes: getAllOpenshifts,
@@ -313,11 +419,12 @@ const resolvers = {
     allProblems: getAllProblems,
     allGroups: getAllGroups,
     allProjectsInGroup: getAllProjectsInGroup,
-    billingGroupCost: getBillingGroupCost,
-    allBillingGroupsCost: getAllBillingGroupsCost,
-    allBillingModifiers: getBillingModifiers,
     allProblemHarborScanMatchers: getProblemHarborScanMatches,
-    projectsByMetadata: getProjectsByMetadata
+    projectsByMetadata: getProjectsByMetadata,
+    projectsByFactSearch: getProjectsByFactSearch,
+    deployTargetConfigById: getDeployTargetConfigById,
+    deployTargetConfigsByProjectId: getDeployTargetConfigsByProjectId,
+    deployTargetConfigsByDeployTarget: getDeployTargetConfigsByDeployTarget,
   },
   Mutation: {
     addProblem,
@@ -329,6 +436,9 @@ const resolvers = {
     addFacts,
     deleteFact,
     deleteFactsFromSource,
+    addFactReference,
+    deleteFactReference,
+    deleteAllFactReferencesByFactId,
     addOrUpdateEnvironment,
     updateEnvironment,
     deleteEnvironment,
@@ -337,7 +447,11 @@ const resolvers = {
     addNotificationSlack,
     updateNotificationSlack,
     deleteNotificationSlack,
+    addNotificationWebhook,
+    updateNotificationWebhook,
+    deleteNotificationWebhook,
     deleteAllNotificationSlacks,
+    deleteAllNotificationWebhook,
     addNotificationRocketChat,
     updateNotificationRocketChat,
     deleteNotificationRocketChat,
@@ -389,6 +503,9 @@ const resolvers = {
     addEnvVariable,
     deleteEnvVariable,
     addTask,
+    addAdvancedTaskDefinition,
+    deleteAdvancedTaskDefinition,
+    invokeRegisteredTask,
     taskDrushArchiveDump,
     taskDrushSqlDump,
     taskDrushCacheClear,
@@ -407,12 +524,6 @@ const resolvers = {
     deployEnvironmentPromote,
     switchActiveStandby,
     addGroup,
-    addBillingGroup,
-    updateBillingGroup,
-    deleteBillingGroup: deleteGroup,
-    addProjectToBillingGroup,
-    updateProjectBillingGroup,
-    removeProjectFromBillingGroup,
     updateGroup,
     deleteGroup,
     deleteAllGroups,
@@ -420,10 +531,9 @@ const resolvers = {
     removeUserFromGroup,
     addGroupsToProject,
     removeGroupsFromProject,
-    addBillingModifier,
-    updateBillingModifier,
-    deleteBillingModifier,
-    deleteAllBillingModifiersByBillingGroup,
+    addDeployTargetConfig,
+    deleteDeployTargetConfig,
+    updateDeployTargetConfig,
   },
   Subscription: {
     backupChanged: backupSubscriber,

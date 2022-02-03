@@ -1,11 +1,11 @@
 ---
-- name: "{{ testname }} - Check if API Request to {{url}} returns {{expected_content}}"
+- name: "{{ testname }} - Check if API Request to {{ url }} returns {{ expected_content }}"
   uri:
     url: "{{ url }}"
     return_content: yes
     headers:
-      Authorization: "Bearer {{bearer_token}}"
+      Authorization: "Bearer {{ bearer_token }}"
   register: result
-  until: result.content | match(expected_content)
+  until: result.content is match(expected_content)
   retries: 1
   delay: 0

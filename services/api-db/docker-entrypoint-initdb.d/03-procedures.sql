@@ -5,7 +5,6 @@ USE infrastructure;
 -- Since these proved to be awkward to work with and
 -- prone to errors, we will write any further queries
 -- in the API service using knex.
--- Example using knex: https://github.com/amazeeio/lagoon/blob/3c5da25fe9caa442a4443c73b1dc00eb4afb411e/services/api/src/dao/project.js#L14-L24
 
 DELIMITER $$
 
@@ -18,6 +17,7 @@ CREATE OR REPLACE PROCEDURE
     IN availability                      varchar(50),
     IN private_key                     varchar(5000),
     IN subfolder                       varchar(300),
+    IN router_pattern                  varchar(300),
     IN openshift                       int,
     IN openshift_project_pattern       varchar(300),
     IN active_systems_deploy           varchar(300),
@@ -37,6 +37,7 @@ CREATE OR REPLACE PROCEDURE
     IN storage_calc                    int(1),
     IN problems_ui                     int(1),
     IN facts_ui                        int(1),
+    IN deployments_disabled            int(1),
     IN development_environments_limit  int
   )
   BEGIN
@@ -62,6 +63,7 @@ CREATE OR REPLACE PROCEDURE
         availability,
         private_key,
         subfolder,
+        router_pattern,
         active_systems_deploy,
         active_systems_promote,
         active_systems_remove,
@@ -77,6 +79,7 @@ CREATE OR REPLACE PROCEDURE
         auto_idle,
         problems_ui,
         facts_ui,
+        deployments_disabled,
         storage_calc,
         pullrequests,
         openshift,
@@ -90,6 +93,7 @@ CREATE OR REPLACE PROCEDURE
         availability,
         private_key,
         subfolder,
+        router_pattern,
         active_systems_deploy,
         active_systems_promote,
         active_systems_remove,
@@ -105,6 +109,7 @@ CREATE OR REPLACE PROCEDURE
         auto_idle,
         problems_ui,
         facts_ui,
+        deployments_disabled,
         storage_calc,
         pullrequests,
         os.id,
@@ -131,34 +136,23 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
-CREATE OR REPLACE PROCEDURE
-  DeleteProject
-  (
-    IN name varchar(50)
-  )
-  BEGIN
-    DECLARE v_pid int;
-
-    SELECT id INTO v_pid FROM project WHERE project.name = name;
-
-    DELETE FROM project_user WHERE pid = v_pid;
-    DELETE FROM project_notification WHERE pid = v_pid;
-    DELETE FROM project WHERE id = v_pid;
-  END;
+DROP PROCEDURE IF EXISTS DeleteProject;
 $$
 
 CREATE OR REPLACE PROCEDURE
   CreateOrUpdateEnvironment
   (
-    IN id                     int,
-    IN name                   varchar(100),
-    IN pid                    int,
-    IN deploy_type            ENUM('branch', 'pullrequest', 'promote'),
-    IN deploy_base_ref        varchar(100),
-    IN deploy_head_ref        varchar(100),
-    IN deploy_title           varchar(300),
-    IN environment_type       ENUM('production', 'development'),
-    IN openshift_project_name varchar(100)
+    IN id                         int,
+    IN name                       varchar(100),
+    IN pid                        int,
+    IN deploy_type                ENUM('branch', 'pullrequest', 'promote'),
+    IN deploy_base_ref            varchar(100),
+    IN deploy_head_ref            varchar(100),
+    IN deploy_title               varchar(300),
+    IN environment_type           ENUM('production', 'development'),
+    IN openshift_project_name     varchar(100),
+    IN openshift                  int,
+    IN openshift_project_pattern  varchar(300)
   )
   BEGIN
     INSERT INTO environment (
@@ -171,6 +165,8 @@ CREATE OR REPLACE PROCEDURE
         deploy_title,
         environment_type,
         openshift_project_name,
+        openshift,
+        openshift_project_pattern,
         deleted
     )
     SELECT
@@ -183,6 +179,8 @@ CREATE OR REPLACE PROCEDURE
         deploy_title,
         environment_type,
         openshift_project_name,
+        openshift,
+        openshift_project_pattern,
         '0000-00-00 00:00:00'
     FROM
         project AS p
@@ -212,7 +210,8 @@ CREATE OR REPLACE PROCEDURE
   (
     IN environment              int,
     IN persistent_storage_claim varchar(100),
-    IN bytes_used               bigint
+    IN bytes_used               bigint,
+    IN updated                  date
   )
   BEGIN
     INSERT INTO environment_storage (
@@ -224,7 +223,7 @@ CREATE OR REPLACE PROCEDURE
         environment,
         persistent_storage_claim,
         bytes_used,
-        DATE(NOW())
+        updated
     )
     ON DUPLICATE KEY UPDATE
         bytes_used=bytes_used;
@@ -234,7 +233,7 @@ CREATE OR REPLACE PROCEDURE
     FROM environment_storage es
     WHERE es.environment = environment AND
           es.persistent_storage_claim = persistent_storage_claim AND
-          es.updated = DATE(NOW());
+          es.updated = updated;
   END;
 $$
 
@@ -285,59 +284,7 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
-CREATE OR REPLACE PROCEDURE
-  CreateOpenshift
-  (
-    IN id                int,
-    IN name              varchar(50),
-    IN console_url       varchar(300),
-    IN token             varchar(2000),
-    IN router_pattern    varchar(300),
-    IN project_user      varchar(100),
-    IN ssh_host          varchar(300),
-    IN ssh_port          varchar(50),
-    IN monitoring_config varchar(2048)
-  )
-  BEGIN
-    DECLARE new_oid int;
-
-    IF (id IS NULL) THEN
-      SET id = 0;
-    END IF;
-
-    INSERT INTO openshift (
-      id,
-      name,
-      console_url,
-      token,
-      router_pattern,
-      project_user,
-      ssh_host,
-      ssh_port,
-      monitoring_config
-    ) VALUES (
-      id,
-      name,
-      console_url,
-      token,
-      router_pattern,
-      project_user,
-      ssh_host,
-      ssh_port,
-      monitoring_config
-    );
-
-    IF (id = 0) THEN
-      SET new_oid = LAST_INSERT_ID();
-    ELSE
-      SET new_oid = id;
-    END IF;
-
-    SELECT
-      o.*
-    FROM openshift o
-    WHERE o.id = new_oid;
-  END;
+DROP PROCEDURE IF EXISTS CreateOpenshift;
 $$
 
 CREATE OR REPLACE PROCEDURE
@@ -354,7 +301,7 @@ CREATE OR REPLACE PROCEDURE
       WHERE o.name = o_name;
 
     IF count > 0 THEN
-      SET @message_text = concat('Openshift: "', name, '" still in use, can not delete');
+      SET @message_text = concat('Openshift: "', o_name, '" still in use, can not delete');
       SIGNAL SQLSTATE '02000'
       SET MESSAGE_TEXT = @message_text;
     END IF;
@@ -544,6 +491,50 @@ CREATE OR REPLACE PROCEDURE
 
     DELETE FROM notification_email WHERE id = nsid;
     DELETE FROM project_notification WHERE nid = nsid AND type = 'email';
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  CreateNotificationWebhook
+  (
+    IN name        varchar(50),
+    IN webhook     varchar(300)
+  )
+  BEGIN
+    DECLARE new_whid int;
+
+    INSERT INTO notification_webhook (
+      name,
+      webhook
+    )
+    VALUES (
+      name,
+      webhook
+    );
+
+    SET new_whid = LAST_INSERT_ID();
+
+    SELECT
+      id,
+      name,
+      webhook
+    FROM notification_webhook
+    WHERE id = new_whid;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  DeleteNotificationWebhook
+  (
+    IN name varchar(50)
+  )
+  BEGIN
+    DECLARE whid int;
+
+    SELECT id INTO whid FROM notification_webhook ns WHERE ns.name = name;
+
+    DELETE FROM notification_webhook WHERE id = whid;
+    DELETE FROM project_notification WHERE nid = whid AND type = 'webhook';
   END;
 $$
 

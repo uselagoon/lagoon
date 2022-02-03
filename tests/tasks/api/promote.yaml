@@ -1,15 +1,17 @@
-- name: "{{ testname }} - POST api deployEnvironmentPromote with source environment {{ source_environment }}, target environment {{ promote_environment }} and project {{ project }} to {{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+- name: "{{ testname }} - POST api deployEnvironmentPromote with source environment {{ source_environment }}, target environment {{ promote_environment }} and project {{ project }} to {{ graphql_url }}"
   block:
     - include: refresh-token.yaml
-    - name: "{{ testname }} - POST api deployEnvironmentPromote with source environment {{ source_environment }}, target environment {{ promote_environment }} and project {{ project }} to {{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+    - name: "{{ testname }} - POST api deployEnvironmentPromote with source environment {{ source_environment }}, target environment {{ promote_environment }} and project {{ project }} to {{ graphql_url }}"
       uri:
-        url: "{{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+        url: "{{ graphql_url }}"
         method: POST
         headers:
           Authorization: "Bearer {{ token }}"
         body_format: json
-        body: '{ "query": "mutation($destinationEnvironment: String!, $projectName: String!, $sourceEnvironmentName: String!) {deployEnvironmentPromote(input:{destinationEnvironment:$destinationEnvironment,project:{name:$projectName},sourceEnvironment:{name:$sourceEnvironmentName,project:{name:$projectName}}})}", "variables": {"destinationEnvironment":"{{ promote_environment }}","sourceEnvironmentName":"{{ source_environment }}","projectName":"{{ project }}"}}'
+        body:
+          query: '{{ lookup("template", "./promote.gql") }}'
+#        body: '{ "query": "mutation($destinationEnvironment: String!, $projectName: String!, $sourceEnvironmentName: String!) {deployEnvironmentPromote(input:{destinationEnvironment:$destinationEnvironment,project:{name:$projectName},sourceEnvironment:{name:$sourceEnvironmentName,project:{name:$projectName}}})}", "variables": {"destinationEnvironment":"{{ promote_environment }}","sourceEnvironmentName":"{{ source_environment }}","projectName":"{{ project }}"}}'
       register: apiresponse
-    - name: "{{ testname }} - POST api deployEnvironmentPromote with source environment {{ source_environment }}, target environment {{ promote_environment }} and project {{ project }} to {{ lookup('env','API_PROTOCOL') }}://{{ lookup('env','API_HOST') }}:{{ lookup('env','API_PORT') }}/graphql"
+    - name: "{{ testname }} - POST api deployEnvironmentPromote with source environment {{ source_environment }}, target environment {{ promote_environment }} and project {{ project }} to {{ graphql_url }}"
       debug:
         msg: "api response: {{ apiresponse.json }}"

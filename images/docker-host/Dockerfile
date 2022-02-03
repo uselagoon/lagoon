@@ -1,7 +1,7 @@
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
 FROM ${UPSTREAM_REPO:-uselagoon}/commons:${UPSTREAM_TAG:-latest} as commons
-FROM docker:19.03.10-dind
+FROM docker:20.10.11-dind
 
 LABEL maintainer="amazee.io"
 ENV LAGOON=docker-host
@@ -34,6 +34,7 @@ ENV DOCKER_HOST=docker-host \
 RUN fix-permissions /home
 
 COPY update-push-images.sh /update-push-images.sh
+COPY update-images.sh /update-images.sh
 COPY prune-images.sh /prune-images.sh
 COPY remove-exited.sh /remove-exited.sh
 

@@ -1,10 +1,14 @@
-FROM fluent/fluentd:v1.11-1
+FROM fluent/fluentd:v1.13-1
 LABEL maintainer="support@amazee.io"
+
+ARG LAGOON_VERSION
+ENV LAGOON_VERSION=$LAGOON_VERSION
 
 USER root
 
 RUN apk add --no-cache --update --virtual .build-deps \
       build-base ruby-dev \
+      && gem install elasticsearch -v '< 7.14' \
       && gem install fluent-plugin-elasticsearch \
       && gem install fluent-plugin-prometheus \
       && gem sources --clear-all \

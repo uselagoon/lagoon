@@ -14,7 +14,7 @@ As there can be environment variables defined in either the Dockerfile or during
 6. Environment variables defined in `.env`.
 7. Environment variables defined in `.env.defaults`.
 
-`.lagoon.env.$BRANCHNAME`, `.lagoon.env.$BRANCHNAME`, `.env`, and `.env.defaults` are all sourced by the individual containers themselves as part of running their entrypoint scripts. They are not read by Lagoon, but by the containers themselves.
+`.lagoon.env.$BRANCHNAME`, `.lagoon.env.$BRANCHNAME`, `.env`, and `.env.defaults` are all sourced by the individual containers themselves as part of running their entrypoint scripts. They are not read by Lagoon, but by the containers `ENTRYPOINT` scripts, which look for them in the containers working directory. If environment variables don't appear as expected, check if your container has a `WORKDIR` setting that points to somewhere else.
 
 ## Environment Variables \(Lagoon API\)
 
@@ -139,19 +139,15 @@ If you have environment variables that can safely be saved within a Git reposito
 
 The syntax in the environment files is as following:
 
-{% tabs %}
-{% tab title="myenvironment.env" %}
-```bash
+```bash title="myenvironment.env"
 MYVARIABLENAME="MyVariableValue"
 MVARIABLENUMBER=4242
 DB_USER=$DB_USERNAME # Redefine DB_USER with the value of DB_USERNAME e.g. if your application expects another variable name for the Lagoon-provided variables.
 ```
-{% endtab %}
-{% endtabs %}
 
 ### `.lagoon.env.$BRANCHNAME`
 
-If you want to define environment variables different per environment you can create a `.lagoon.env.$BRANCHNAME` e.g. for the master branch `.lagoon.env.master`. This helps you keeping environment variables apart between environments.
+If you want to define environment variables different per environment you can create a `.lagoon.env.$BRANCHNAME` e.g. for the main branch `.lagoon.env.main`. This helps you keeping environment variables apart between environments.
 
 ### `.env` and `.env.defaults`
 
@@ -167,3 +163,58 @@ On production environments, this value defaults to `E_ALL & ~E_DEPRECATED & ~E_S
 
 On development environments, this value defaults to `E_ALL & ~E_DEPRECATED & ~E_STRICT`.
 
+### Custom Backup Settings
+
+Lagoon can support custom backup locations and credentials for any project when all four of the following variables are set as `BUILD` type variables. Please note that any use of these variables means that all environment and db backups created and managed by Lagoon will be stored using these credentials, meaning that any interruption of these credentials' may lead to failed or inaccessible backups.
+
+#### `LAGOON_BAAS_CUSTOM_BACKUP_ENDPOINT`
+
+Specify the S3 compatible endpoint where any Lagoon initiated backups should be stored.
+
+An example custom setting would be: `http://10.144.1.224:9000`
+
+#### `LAGOON_BAAS_CUSTOM_BACKUP_BUCKET`
+
+Specify the bucket name where any Lagoon initiated backups should be stored.
+
+An example custom setting would be: `example-restore-bucket`
+
+#### `LAGOON_BAAS_CUSTOM_BACKUP_ACCESS_KEY`
+
+Specify the access key Lagoon should use to access the custom backup bucket.
+
+An example custom setting would be: `AAAAAAAAAAAA12345`
+
+#### `LAGOON_BAAS_CUSTOM_BACKUP_SECRET_KEY`
+
+Specify the secret key Lagoon should use to access the custom backup bucket.
+
+An example custom setting would be: `12345AAAAAAAAAAAA`
+
+### Custom Restore Location
+
+Lagoon can support custom restore locations and credentials for any project when all four of the following variables are set as `BUILD` type variables. Please note that any use of these variables means that all environment and db backups restored by Lagoon will be stored using these credentials, meaning that any interruption of these credentials' access may lead to failed or inaccessible restored files.
+
+#### `LAGOON_BAAS_CUSTOM_RESTORE_ENDPOINT`
+
+Specify the S3 compatible endpoint where any Lagoon initiated restores should be stored.
+
+An example custom setting would be: `http://10.144.1.224:9000`
+
+#### `LAGOON_BAAS_CUSTOM_RESTORE_BUCKET`
+
+Specify the bucket name where any Lagoon initiated restores should be stored.
+
+An example custom setting would be: `example-restore-bucket`
+
+#### `LAGOON_BAAS_CUSTOM_RESTORE_ACCESS_KEY`
+
+Specify the access key Lagoon should use to access the custom restore bucket.
+
+An example custom setting would be: `AAAAAAAAAAAA12345`
+
+#### `LAGOON_BAAS_CUSTOM_RESTORE_SECRET_KEY`
+
+Specify the secret key Lagoon should use to access the custom restore bucket.
+
+An example custom setting would be: `12345AAAAAAAAAAAA`

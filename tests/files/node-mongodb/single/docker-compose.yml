@@ -1,0 +1,39 @@
+version: '3'
+services:
+  node:
+    networks:
+      - amazeeio-network
+      - default
+    build:
+      context: .
+      dockerfile: Dockerfile
+    labels:
+      lagoon.type: node
+    ports:
+      - "3020:3000"
+    depends_on:
+      - mongodb
+    environment:
+      - AMAZEEIO_URL=node-mongo.docker.amazee.io
+      - MONGODB_USERNAME=mongouser
+      - MONGODB_PASSWORD=password
+      - MONGODB_HOST=mongodb
+      - MONGODB_PORT=27017
+      - MONGODB_DATABASE=admin
+      - MONGODB_AUTHSOURCE=admin
+      - MONGODB_AUTHTLS=True
+  mongodb:
+    build:
+      context: .
+      dockerfile: Dockerfile.mongo
+    labels:
+      lagoon.type: mongodb-single
+    # ports:
+    #   - "27027:27017"
+    # networks:
+    #   - amazeeio-network
+    #   - default
+
+networks:
+  amazeeio-network:
+    external: true

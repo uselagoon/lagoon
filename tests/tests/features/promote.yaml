@@ -37,7 +37,7 @@
 - include: ../../checks/check-branch-sha.yaml
   vars:
     expected_head: "{{ current_head }}"
-    expected_branch: "{{ promote_environment }}"
+    expected_branch: ""
     expected_branch_buildtime: "{{ source_environment }}"
     project: "{{ project }}"
     url: "{{ check_url_promote }}"
@@ -49,7 +49,7 @@
     project: "{{ project }}"
     branch: "{{ promote_environment }}"
   tasks:
-  - include: ../../tasks/api/remove.yaml
+  - include: ../../tasks/api/delete-environment.yaml
 
 - name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
   hosts: localhost
@@ -58,14 +58,14 @@
     project: "{{ project }}"
     branch: "{{ source_environment }}"
   tasks:
-  - include: ../../tasks/api/remove.yaml
+  - include: ../../tasks/api/delete-environment.yaml
 
 - name: "{{ testname }} - check if site for {{ project }} does not exist anymore"
   hosts: localhost
   serial: 1
   vars:
     url: "{{ check_url_promote }}"
-    expected_returncode: "{{ lookup('env','DELETED_STATUS_CODE') }}"
+    expected_returncode: "{{ del_status_code }}"
   tasks:
   - include: ../../checks/check-url-returncode.yaml
 
@@ -74,6 +74,6 @@
   serial: 1
   vars:
     url: "{{ check_url_source }}"
-    expected_returncode: "{{ lookup('env','DELETED_STATUS_CODE') }}"
+    expected_returncode: "{{ del_status_code }}"
   tasks:
   - include: ../../checks/check-url-returncode.yaml

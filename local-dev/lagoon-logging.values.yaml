@@ -1,0 +1,52 @@
+logsDispatcher:
+  serviceMonitor:
+    enabled: false
+  replicaCount: 1
+
+fluentdReplicaCount: 1
+
+clusterName: kind-test0
+forward:
+  username: kind
+  password: kind
+  host: lagoon-logs-concentrator.lagoon-logs-concentrator.svc.cluster.local
+  selfHostname: "logs-dispatcher.cluster2.example.com"
+  tlsVerifyHostname: false
+  sharedKey: foo
+logging-operator:
+  monitoring:
+    serviceMonitor:
+      enabled: false
+tls:
+  caCert: |
+    -----BEGIN CERTIFICATE-----
+    MIIBkTCCATigAwIBAgIUUZ1NBrHhNsLLLfja6LMP23b3PjswCgYIKoZIzj0EAwIw
+    JzElMCMGA1UEAxMcbG9ncy1jYS5jbHVzdGVyMS5leGFtcGxlLmNvbTAeFw0yMTAz
+    MjIxMzM5MDBaFw0zMTAzMjAxMzM5MDBaMCcxJTAjBgNVBAMTHGxvZ3MtY2EuY2x1
+    c3RlcjEuZXhhbXBsZS5jb20wWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAASxEj+o
+    uTro+oD5OfvXqIwlcDJM6ox5eHPjA28H002eEUrkYr7hbh472+79VCXKWF//0CON
+    5g9IKWH90C8a7VE5o0IwQDAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/BAUwAwEB
+    /zAdBgNVHQ4EFgQUL3L2Nlc6vogXMU4JROTPZ1ShYn0wCgYIKoZIzj0EAwIDRwAw
+    RAIgAt499vwxT3DrGnn6/NORb2o1s9766seDrWrBCn5rfxACIHhA10zfER/sJ5Bn
+    I6himFVDQA+1NCKZLmZ/l8PG7gXa
+    -----END CERTIFICATE-----
+  clientCert: |
+    -----BEGIN CERTIFICATE-----
+    MIICATCCAaagAwIBAgIUZjP0sU3lEUErWbeWWfjYcQlqFpAwCgYIKoZIzj0EAwIw
+    JzElMCMGA1UEAxMcbG9ncy1jYS5jbHVzdGVyMS5leGFtcGxlLmNvbTAeFw0yMTAz
+    MjIxMzQyMDBaFw0zMTAzMjAxMzQyMDBaMC8xLTArBgNVBAMTJGxvZ3MtZGlzcGF0
+    Y2hlci5jbHVzdGVyMi5leGFtcGxlLmNvbTBZMBMGByqGSM49AgEGCCqGSM49AwEH
+    A0IABGoviDyQjV+niK2ZbUMlkJVhFNwqtHt85vGbOuQ3tYqOox+B0vvZ4X3rIPS/
+    4M4vZQ/Qu1m+GXSW4cYvdEuw5cmjgacwgaQwDgYDVR0PAQH/BAQDAgWgMBMGA1Ud
+    JQQMMAoGCCsGAQUFBwMCMAwGA1UdEwEB/wQCMAAwHQYDVR0OBBYEFHlU1oXfjQmX
+    kifjSxNeJOn3PSJeMB8GA1UdIwQYMBaAFC9y9jZXOr6IFzFOCUTkz2dUoWJ9MC8G
+    A1UdEQQoMCaCJGxvZ3MtZGlzcGF0Y2hlci5jbHVzdGVyMi5leGFtcGxlLmNvbTAK
+    BggqhkjOPQQDAgNJADBGAiEAxRumI9Gu52a1YG7TiUCqyVyap36VzSTYV/LcWc3D
+    uaACIQCinWzQQpuaVtACzkNnSM1iLDkrD/pmJ6O3rjfHGbAN+A==
+    -----END CERTIFICATE-----
+  clientKey: |
+    -----BEGIN EC PRIVATE KEY-----
+    MHcCAQEEIE5x98eeAnzSWz9VMtN4p+Br6DZhMlgNoDJDY1nib/xXoAoGCCqGSM49
+    AwEHoUQDQgAEai+IPJCNX6eIrZltQyWQlWEU3Cq0e3zm8Zs65De1io6jH4HS+9nh
+    fesg9L/gzi9lD9C7Wb4ZdJbhxi90S7DlyQ==
+    -----END EC PRIVATE KEY-----

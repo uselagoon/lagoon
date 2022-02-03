@@ -9,6 +9,10 @@ environments:
     - node:
       - customdomain-will-be-main-domain.com
       - customdomain-will-be-not-be-main-domain.com
+  fastly-annotations:
+    routes:
+    - node:
+      - annotations.com
   ingress-annotations:
     routes:
     - node:
@@ -42,6 +46,10 @@ environments:
     - name: echo /files/cron.txt single
       schedule: "* * * * *"
       command: printf '%s_%s' "CRONJOB" "SINGLE" >> /files/cron.txt
+      service: node
+    - name: echo /files/cron.txt pwd
+      schedule: "* * * * *"
+      command: printf '%s_%s_%s' "CRONJOB" "PWD" "$(pwd)" >> /files/cron.txt
       service: node
     - name: test H/1
       schedule: "H/1 * * * *"

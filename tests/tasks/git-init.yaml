@@ -1,22 +1,22 @@
 ---
 
-- name: "{{ testname }} - ensure empty repo folder /{{git_repo_name}} exists"
+- name: "{{ testname }} - ensure empty repo folder /{{ git_repo_name }} exists"
   file:
     state: "{{ item }}"
-    path: /{{git_repo_name}}
+    path: /{{ git_repo_name }}
   loop:
     - absent
     - directory
 
 - name: >-
     {{ testname }} - init and add remote
-    {{ lookup('env','GIT_REPO_PREFIX') }}{{git_repo_name}} to git repo in
-    {{git_repo_name}}
+    {{ lookup('env','GIT_REPO_PREFIX') }}{{ git_repo_name }} to git repo in
+    {{ git_repo_name }}
   command: "{{ item }}"
   args:
-    chdir: /{{git_repo_name}}
+    chdir: /{{ git_repo_name }}
   loop:
     - git init
     - >-
       git remote add origin
-      {{ lookup('env','GIT_REPO_PREFIX') }}{{git_repo_name}}
+      {{ lookup('env','GIT_REPO_PREFIX') }}{{ git_repo_name }}

@@ -1,0 +1,11 @@
+---
+webhook_url: "$WEBHOOK_PROTOCOL://$WEBHOOK_HOST:$WEBHOOK_PORT"
+graphql_url: "$API_PROTOCOL://$API_HOST:$API_PORT/graphql"
+localgit_url: "ssh://git@$GIT_HOST:$GIT_PORT/git"
+ssh_host: "$SSH_HOST"
+ssh_auth_port: "$SSH_PORT"
+cluster_type: "$CLUSTER_TYPE"
+route_suffix: "$ROUTE_SUFFIX_HTTP:$ROUTE_SUFFIX_HTTP_PORT"
+route_suffix_https: "$ROUTE_SUFFIX_HTTPS:$ROUTE_SUFFIX_HTTPS_PORT"
+route_suffix_wo_port: "$ROUTE_SUFFIX_HTTP"
+del_status_code: "$DELETED_STATUS_CODE"

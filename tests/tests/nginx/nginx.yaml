@@ -8,6 +8,34 @@
   - include: ../../tasks/git-init.yaml
   - include: ../../tasks/git-add-commit-push.yaml
 
+# delete the LAGOON_ROUTES_JSON envvar if it exists already
+- name: "{{ testname }} - api delete envVariable on {{ project }}"
+  hosts: localhost
+  serial: 1
+  vars:
+    envName: "LAGOON_ROUTES_JSON"
+    project: "{{ project }}"
+    branch: "{{ branch }}"
+  tasks:
+  - include: ../../tasks/api/delete-environment-variable.yaml
+
+- name: "{{ testname }} - delete test1.example.com ingress if exists"
+  hosts: localhost
+  serial: 1
+  vars:
+    ingress: "test1.example.com"
+  tasks:
+  - include: ../../tasks/delete-ingress.yaml
+
+- name: "{{ testname }} - api update {{ project }} router pattern to empty"
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ project }}"
+    routerpattern: ""
+  tasks:
+  - include: ../../tasks/api/update-project-routerpattern.yaml
+
 - name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}, which should deploy the first commit"
   hosts: localhost
   serial: 1
@@ -46,6 +74,68 @@
     expected_branch: "{{ branch }}"
     project: "{{ project }}"
 
+- name: "{{ testname }} - api add envVariable on {{ project }} environment {{ branch }}"
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ project }}"
+    branch: "{{ branch }}"
+    envName: "LAGOON_ROUTES_JSON"
+    envValue: "eyJyb3V0ZXMiOlt7ImRvbWFpbiI6InRlc3QxLmV4YW1wbGUuY29tIiwic2VydmljZSI6Im5naW54IiwidGxzLWFjbWUiOmZhbHNlLCJtb25pdG9yaW5nLXBhdGgiOiIvYnlwYXNzLWNhY2hlIn1dfQo="
+    envScope: "BUILD"
+  tasks:
+  - include: ../../tasks/api/add-environment-variable.yaml
+
+- name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}, which should deploy the second commit again but with the LAGOON_ROUTES_JSON override"
+  hosts: localhost
+  serial: 1
+  vars:
+    branch: "{{ branch }}"
+    project: "{{ project }}"
+  tasks:
+  - include: ../../tasks/api/deploy-no-sha.yaml
+
+- include: check-third.yaml
+  vars:
+    expected_head: "{{ current_head }}"
+    expected_branch: "{{ branch }}"
+    project: "{{ project }}"
+
+# delete the LAGOON_ROUTES_JSON envvar if it exists already
+- name: "{{ testname }} - api delete envVariable on {{ project }}"
+  hosts: localhost
+  serial: 1
+  vars:
+    envName: "LAGOON_ROUTES_JSON"
+    project: "{{ project }}"
+    branch: "{{ branch }}"
+  tasks:
+  - include: ../../tasks/api/delete-environment-variable.yaml
+
+- name: "{{ testname }} - api update {{ project }} router pattern"
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ project }}"
+    routerpattern: "${service}-${project}-${environment}.{{ route_suffix_wo_port }}"
+  tasks:
+  - include: ../../tasks/api/update-project-routerpattern.yaml
+
+- name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}, which should deploy the second commit again but with the LAGOON_ROUTES_JSON override"
+  hosts: localhost
+  serial: 1
+  vars:
+    branch: "{{ branch }}"
+    project: "{{ project }}"
+  tasks:
+  - include: ../../tasks/api/deploy-no-sha.yaml
+
+- include: check-fourth.yaml
+  vars:
+    expected_head: "{{ current_head }}"
+    expected_branch: "{{ branch }}"
+    project: "{{ project }}"
+
 - name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
   hosts: localhost
   serial: 1
@@ -53,13 +143,31 @@
     project: "{{ project }}"
     branch: "{{ branch }}"
   tasks:
-  - include: ../../tasks/api/remove.yaml
+  - include: ../../tasks/api/delete-environment.yaml
 
-- name: "{{ testname }} - check if site for {{ project }} does not exist anymore"
+- name: "{{ testname }} - api update {{ project }} router pattern to empty"
   hosts: localhost
   serial: 1
   vars:
-    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
-    expected_returncode: "{{ lookup('env', 'DELETED_STATUS_CODE') }}"
+    project: "{{ project }}"
+    routerpattern: ""
+  tasks:
+  - include: ../../tasks/api/update-project-routerpattern.yaml
+
+- name: "{{ testname }} - check if site for ${service}. {{ project }} does not exist anymore"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+    expected_returncode: "{{ del_status_code }}"
+  tasks:
+  - include: ../../checks/check-url-returncode.yaml
+
+- name: "{{ testname }} - check if site with ${service}- for {{ project }} does not exist anymore"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://nginx-{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+    expected_returncode: "{{ del_status_code }}"
   tasks:
   - include: ../../checks/check-url-returncode.yaml

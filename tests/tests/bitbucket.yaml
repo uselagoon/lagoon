@@ -1,30 +1,47 @@
 ---
+- include: features/random-wait.yaml
+
+- include: api/add-project.yaml
+  vars:
+    project: ci-bitbucket-{{ cluster_type }}
+    git_repo_name: bitbucket.git
+    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
+
 - include: bitbucket/branch.yaml
   vars:
-    testname: "BITBUCKET {{ lookup('env','CLUSTER_TYPE')|upper }} - slash branch"
-    node_version: 10
+    testname: "BITBUCKET {{ cluster_type|upper }} - slash branch"
+    node_version: 16
     git_repo_name: bitbucket.git
-    git_repo_url: https://lagoon-test-local-git.lagoon.svc.cluster.local:22/git/bitbucket
     git_repo_full_name: git/bitbucket
-    project: ci-bitbucket-{{ lookup('env','CLUSTER_TYPE') }}
+    git_repo_url: "http://{{ lookup('env','GIT_HOST') }}:{{ lookup('env','GIT_PORT') }}/git/bitbucket"
+    bitbucket_git_repo: "http://{{ lookup('env','GIT_HOST') }}:{{ lookup('env','GIT_PORT') }}/2.0/repositories/git/bitbucket"
+    project: ci-bitbucket-{{ cluster_type }}
     branch: bitbucket/slash/branch
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
 - include: github/skip-deployment.yaml
   vars:
-    testname: "BITBUCKET {{ lookup('env','CLUSTER_TYPE')|upper }} - skip deployment"
-    node_version: 10
+    testname: "BITBUCKET {{ cluster_type|upper }} - skip deployment"
+    node_version: 16
     git_repo_name: bitbucket.git
-    git_repo_url: https://lagoon-test-local-git.lagoon.svc.cluster.local:22/git/bitbucket
     git_repo_full_name: git/bitbucket
-    project: ci-bitbucket-{{ lookup('env','CLUSTER_TYPE') }}
+    git_repo_url: "http://{{ lookup('env','GIT_HOST') }}:{{ lookup('env','GIT_PORT') }}/git/bitbucket"
+    bitbucket_git_repo: "http://{{ lookup('env','GIT_HOST') }}:{{ lookup('env','GIT_PORT') }}/2.0/repositories/git/bitbucket"
+    project: ci-bitbucket-{{ cluster_type }}
     branch: skip
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.skip.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.skip.{{ route_suffix }}"
 
 - include: bitbucket/pullrequest.yaml
   vars:
-    testname: "BITBUCKET {{ lookup('env','CLUSTER_TYPE')|upper }} - PULLREQUEST"
-    node_version: 10
+    testname: "BITBUCKET {{ cluster_type|upper }} - PULLREQUEST"
+    node_version: 16
     git_repo_name: bitbucket.git
-    project: ci-bitbucket-{{ lookup('env','CLUSTER_TYPE') }}
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.pr-2.{{ lookup('env','ROUTE_SUFFIX_HTTP') }}:{{ lookup('env','ROUTE_SUFFIX_HTTP_PORT') }}"
+    git_repo_full_name: git/bitbucket
+    git_repo_url: "http://{{ lookup('env','GIT_HOST') }}:{{ lookup('env','GIT_PORT') }}/git/bitbucket"
+    bitbucket_git_repo: "http://{{ lookup('env','GIT_HOST') }}:{{ lookup('env','GIT_PORT') }}/2.0/repositories/git/bitbucket"
+    project: ci-bitbucket-{{ cluster_type }}
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.pr-2.{{ route_suffix }}"
+
+- include: api/delete-project.yaml
+  vars:
+    project: ci-bitbucket-{{ cluster_type }}

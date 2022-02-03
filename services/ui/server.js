@@ -22,9 +22,13 @@ app
     })
 
     // Handle favicon requests that ignore our HTML meta tags.
-    server.get('/favicon.ico', (req, res) => (
-      res.status(200).sendFile('favicon.ico', {root: __dirname + '/src/static/images/favicons/'})
-    ));
+    server.get('/favicon.ico', (req, res) =>
+      res
+        .status(200)
+        .sendFile('favicon.ico', {
+          root: __dirname + '/src/static/images/favicons/'
+        })
+    );
 
     server.get('/projects', (req, res) => {
       app.render(req, res, '/projects');
@@ -32,22 +36,6 @@ app
 
     server.get('/projects/:projectSlug', (req, res) => {
       app.render(req, res, '/project', { projectName: req.params.projectSlug });
-    });
-
-    server.get('/admin/billing/:billingGroupSlug', (req, res) => {
-      app.render(req, res, '/admin/billing', { billingGroupName: req.params.billingGroupSlug });
-    });
-
-    server.get('/admin/billing/:billingGroupSlug/:lang', (req, res) => {
-      app.render(req, res, '/admin/billing', { billingGroupName: req.params.billingGroupSlug, lang: req.params.lang });
-    });
-
-    server.get('/admin/billing/:billingGroupSlug/:yearSlug/:monthSlug', (req, res) => {
-      app.render(req, res, '/admin/billing', { billingGroupName: req.params.billingGroupSlug, year: req.params.yearSlug, month: req.params.monthSlug });
-    });
-
-    server.get('/admin/billing/:billingGroupSlug/:yearSlug/:monthSlug/:lang', (req, res) => {
-      app.render(req, res, '/admin/billing', { billingGroupName: req.params.billingGroupSlug, year: req.params.yearSlug, month: req.params.monthSlug, lang: req.params.lang });
     });
 
     server.get('/projects/:projectSlug/:environmentSlug', (req, res) => {
@@ -109,36 +97,23 @@ app
       }
     );
 
-    server.get(
-      '/problems/project',
-      (req, res) => {
-          app.render(req, res, '/problems-dashboard-by-project');
-      }
-    );
+    server.get('/problems/project', (req, res) => {
+      app.render(req, res, '/problems-dashboard-by-project');
+    });
 
-    server.get(
-      '/problems',
-      (req, res) => {
-          app.render(req, res, '/problems-dashboard-by-project-hex');
-      }
-    );
+    server.get('/problems', (req, res) => {
+      app.render(req, res, '/problems-dashboard-by-project-hex');
+    });
 
-    server.get(
-      '/problems/identifier',
-      (req, res) => {
-          app.render(req, res, '/problems-dashboard');
-      }
-    );
+    server.get('/problems/identifier', (req, res) => {
+      app.render(req, res, '/problems-dashboard');
+    });
 
-    server.get(
-      '/projects/:projectSlug/:environmentSlug/facts',
-      (req, res) => {
-          app.render(req, res, '/facts', {
-              openshiftProjectName: req.params.environmentSlug
-          });
-        }
-    );
-
+    server.get('/projects/:projectSlug/:environmentSlug/facts', (req, res) => {
+      app.render(req, res, '/facts', {
+        openshiftProjectName: req.params.environmentSlug
+      });
+    });
 
     server.get('*', (req, res) => {
       return handle(req, res);

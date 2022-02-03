@@ -43,7 +43,8 @@ export async function sendToLagoonLogs(
   uuid: string,
   event: string,
   meta: any,
-  message: string
+  message: string,
+  level?: string
 ): Promise<void> {
   const payload = {
     severity,
@@ -51,7 +52,8 @@ export async function sendToLagoonLogs(
     uuid,
     event,
     meta,
-    message
+    message,
+    level
   };
 
   try {

@@ -42,8 +42,10 @@ echo "$ALL_ENVIRONMENTS" > $TMP_DATA
 # loop through the data and run `openshift-services` against each openshift 1by1
 echo "$ALL_ENVIRONMENTS" | jq -r -c '.data.environments[] | select((.environments|length)>=1) | .openshift.consoleUrl' | sort | uniq  | while read openshift
 do
-  # run the idler against a particular openshift only  # run the idler against a particular openshift only
-  prefixwith $openshift ./openshift-clis.sh $openshift $TMP_DATA &
+  if [[ $openshift =~ $OPENSHIFT_REGEX ]]; then
+    # run the idler against a particular openshift only  # run the idler against a particular openshift only
+    prefixwith $openshift ./openshift-clis.sh $openshift $TMP_DATA &
+  fi
 done
 sleep 5
 # clean up the tmp file

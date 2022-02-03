@@ -32,6 +32,7 @@ const typeDefs = gql`
     ROCKETCHAT
     MICROSOFTTEAMS
     EMAIL
+    WEBHOOK
   }
 
   enum NotificationContentType {
@@ -98,15 +99,6 @@ const typeDefs = gql`
     OWNER
   }
 
-  enum Currency {
-    AUD
-    EUR
-    GBP
-    USD
-    CHF
-    ZAR
-  }
-
   enum ProblemSeverityRating {
     NONE
     UNKNOWN
@@ -117,7 +109,74 @@ const typeDefs = gql`
     CRITICAL
   }
 
+  enum FactType {
+    TEXT
+    URL
+    SEMVER
+  }
+
+  enum TaskPermission {
+    MAINTAINER
+    DEVELOPER
+    GUEST
+  }
+
   scalar SeverityScore
+
+  type AdvancedTaskDefinitionArgument {
+    id: Int
+    name: String
+    type: String
+    advancedTaskDefinition: AdvancedTaskDefinition
+  }
+
+  type AdvancedTaskDefinitionImage {
+    id: Int
+    name: String
+    description: String
+    type: AdvancedTaskDefinitionTypes
+    image: String
+    service: String
+    groupName: String
+    environment: Int
+    project: Int
+    permission: TaskPermission
+    advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgument]
+    created: String
+    deleted: String
+  }
+
+  type AdvancedTaskDefinitionCommand {
+    id: Int
+    name: String
+    description: String
+    type: AdvancedTaskDefinitionTypes
+    service: String
+    command: String
+    groupName: String
+    environment: Int
+    project: Int
+    permission: TaskPermission
+    created: String
+    deleted: String
+  }
+
+  union AdvancedTaskDefinition = AdvancedTaskDefinitionImage | AdvancedTaskDefinitionCommand
+
+  type TaskRegistration {
+    id: Int
+    type: String
+    name: String
+    description: String
+    groupName: String
+    environment: Int
+    project: Int
+    command: String
+    service: String
+    permission: TaskPermission
+    created: String
+    deleted: String
+  }
 
   type Problem {
     id: Int
@@ -202,6 +261,10 @@ const typeDefs = gql`
     value: String
     source: String
     description: String
+    keyFact: Boolean
+    type: FactType
+    category: String
+    references: [FactReference]
   }
 
   input AddFactInput {
@@ -211,6 +274,9 @@ const typeDefs = gql`
     value: String!
     source: String!
     description: String!
+    keyFact: Boolean
+    type: FactType
+    category: String
   }
 
   input AddFactsInput {
@@ -223,6 +289,9 @@ const typeDefs = gql`
     value: String!
     source: String!
     description: String
+    keyFact: Boolean
+    type: FactType
+    category: String
   }
 
   input UpdateFactInput {
@@ -238,6 +307,61 @@ const typeDefs = gql`
   input DeleteFactsFromSourceInput {
     environment: Int!
     source: String!
+  }
+
+  type FactReference {
+    id: Int
+    fid: Int
+    name: String
+  }
+
+  input AddFactReferenceInput {
+    fid: Int!
+    name: String!
+  }
+
+  input UpdateFactReferenceInputValue {
+    fid: Int!
+    name: String
+  }
+
+  input UpdateFactReferenceInput {
+    fid: Int!
+    patch: UpdateFactReferenceInputValue!
+  }
+
+  input DeleteFactReferenceInput {
+    factName: String!
+    referenceName: String!
+    eid: Int!
+  }
+
+  input DeleteFactReferencesByFactIdInput {
+    fid: Int!
+  }
+
+  enum FactFilterConnective {
+    OR
+    AND
+  }
+
+  enum FactFilterLHSTarget {
+    FACT
+    ENVIRONMENT
+    PROJECT
+  }
+
+  input FactFilterAtom {
+    lhsTarget: FactFilterLHSTarget
+    name: String!
+    contains: String!
+  }
+  input FactFilterInput {
+    filterConnective: FactFilterConnective
+    filters: [FactFilterAtom]
+    skip: Int
+    take: Int
+    orderBy: String
   }
 
   type File {
@@ -290,19 +414,6 @@ const typeDefs = gql`
     projects: [Project]
   }
 
-  type BillingGroup implements GroupInterface {
-    id: String
-    name: String
-    type: String
-    groups: [GroupInterface]
-    members: [GroupMembership]
-    projects: [Project]
-    currency: String
-    billingSoftware: String
-    modifiers: [BillingModifier]
-    uptimeRobotStatusPageId: String
-  }
-
   type Openshift {
     id: Int
     name: String
@@ -314,6 +425,9 @@ const typeDefs = gql`
     sshPort: String
     created: String
     monitoringConfig: JSON
+    friendlyName: String
+    cloudProvider: String
+    cloudRegion: String
   }
 
   type Kubernetes {
@@ -327,6 +441,9 @@ const typeDefs = gql`
     sshPort: String
     created: String
     monitoringConfig: JSON
+    friendlyName: String
+    cloudProvider: String
+    cloudRegion: String
   }
 
   type NotificationMicrosoftTeams {
@@ -363,6 +480,14 @@ const typeDefs = gql`
     notificationSeverityThreshold: ProblemSeverityRating
   }
 
+  type NotificationWebhook {
+    id: Int
+    name: String
+    webhook: String
+    contentType: String
+    notificationSeverityThreshold: ProblemSeverityRating
+  }
+
   type UnassignedNotification {
     id: Int
     name: String
@@ -371,7 +496,7 @@ const typeDefs = gql`
     notificationSeverityThreshold: ProblemSeverityRating
   }
 
-  union Notification = NotificationRocketChat | NotificationSlack | NotificationMicrosoftTeams | NotificationEmail
+  union Notification = NotificationRocketChat | NotificationSlack | NotificationMicrosoftTeams | NotificationEmail | NotificationWebhook
 
   """
   Lagoon Project (like a git repository)
@@ -410,39 +535,43 @@ const typeDefs = gql`
     """
     subfolder: String
     """
+    Set if the project should use a routerPattern that is different from the deploy target default
+    """
+    routerPattern: String
+    """
     Notifications that should be sent for this project
     """
     notifications(type: NotificationType, contentType: NotificationContentType, notificationSeverityThreshold: ProblemSeverityRating): [Notification]
     """
     Which internal Lagoon System is responsible for deploying
-    Currently only 'lagoon_openshiftBuildDeploy' exists
+    Currently only 'lagoon_controllerBuildDeploy' exists
     """
     activeSystemsDeploy: String
     """
     Which internal Lagoon System is responsible for promoting
-    Currently only 'lagoon_openshiftBuildDeploy' exists
+    Currently only 'lagoon_controllerBuildDeploy' exists
     """
     activeSystemsPromote: String
     """
     Which internal Lagoon System is responsible for promoting
-    Currently only 'lagoon_openshiftRemove' exists
+    Currently only 'lagoon_controllerRemove' exists
     """
     activeSystemsRemove: String
     """
     Which internal Lagoon System is responsible for tasks
-    'lagoon_openshiftJob' or 'lagoon_kubernetesJob'
+    Currently only 'lagoon_controllerJob' exists
     """
     activeSystemsTask: String
     """
     Which internal Lagoon System is responsible for miscellaneous tasks
-    'lagoon_openshiftMisc' or 'lagoon_kubernetesMisc'
+    Currently only 'lagoon_controllerMisc' exists
     """
     activeSystemsMisc: String
     """
     Which branches should be deployed, can be one of:
     - \`true\` - all branches are deployed
     - \`false\` - no branches are deployed
-    - REGEX - regex of all branches that should be deployed, example: \`^(master|staging)$\`
+    - REGEX - regex of all branches that should be deployed, example: \`^(main|staging)$\`
     """
     branches: String
     """
@@ -497,6 +626,10 @@ const typeDefs = gql`
     """
     factsUi: Int
     """
+    Should the ability to deploy environments be disabled for this Project (\`1\` or \`0\`)
+    """
+    deploymentsDisabled: Int
+    """
     Reference to OpenShift Object this Project should be deployed to
     """
     openshift: Openshift
@@ -532,6 +665,10 @@ const typeDefs = gql`
       Include deleted Environments (by default deleted environment are hidden)
       """
       includeDeleted: Boolean
+      """
+      Filter environments by fact matching
+      """
+      factFilter: FactFilterInput
     ): [Environment]
     """
     Creation Timestamp of Project
@@ -549,6 +686,10 @@ const typeDefs = gql`
     Metadata key/values stored against a project
     """
     metadata: JSON
+    """
+    DeployTargetConfigs are a way to define which deploy targets are used for a project\n
+    """
+    deployTargetConfigs: [DeployTargetConfig] @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
   }
 
   """
@@ -634,12 +775,17 @@ const typeDefs = gql`
     route: String
     routes: String
     monitoringUrls: String
-    deployments(name: String): [Deployment]
-    backups(includeDeleted: Boolean): [Backup]
-    tasks(id: Int): [Task]
+    deployments(name: String, limit: Int): [Deployment]
+    backups(includeDeleted: Boolean, limit: Int): [Backup]
+    tasks(id: Int, limit: Int): [Task]
+    advancedTasks: [AdvancedTaskDefinition]
     services: [EnvironmentService]
     problems(severity: [ProblemSeverityRating], source: [String]): [Problem]
-    facts: [Fact]
+    facts(keyFacts: Boolean, limit: Int): [Fact]
+    openshift: Openshift
+    openshiftProjectPattern: String
+    kubernetes: Kubernetes
+    kubernetesNamespacePattern: String
   }
 
   type EnvironmentHitsMonth {
@@ -725,20 +871,68 @@ const typeDefs = gql`
     files: [File]
   }
 
-  type BillingModifier {
+  type AdvancedTask {
     id: Int
-    group: BillingGroup
-    startDate: String
-    endDate: String
-    discountFixed: Float
-    discountPercentage: Float
-    extraFixed: Float
-    extraPercentage: Float
-    min: Float
-    max: Float
-    customerComments: String
-    adminComments: String
+    name: String
+    status: String
+    created: String
+    started: String
+    completed: String
+    environment: Environment
+    service: String
+    advancedTask: String
+    remoteId: String
+    logs: String
+    files: [File]
+  }
+
+  type ProjectFactSearchResults {
+    count: Int
+    projects: [Project]
+  }
+
+  type EnvironmentFactSearchResults {
+    count: Int
+    environments: [Environment]
+  }
+
+  type DeployTargetConfig {
+    id: Int
+    project: Project
     weight: Int
+    branches: String
+    pullrequests: String
+    deployTarget: Openshift
+    deployTargetProjectPattern: String
+  }
+
+  input AddDeployTargetConfigInput {
+    id: Int
+    project: Int!
+    weight: Int
+    branches: String
+    pullrequests: String
+    deployTarget: Int
+    deployTargetProjectPattern: String
+  }
+
+  input UpdateDeployTargetConfigPatchInput {
+    weight: Int
+    branches: String
+    pullrequests: String
+    deployTarget: Int
+    deployTargetProjectPattern: String
+  }
+
+  input UpdateDeployTargetConfigInput {
+    id: Int!
+    patch: UpdateDeployTargetConfigPatchInput
+  }
+
+  input DeleteDeployTargetConfigInput {
+    id: Int!
+    project: Int!
+    execute: Boolean
   }
 
   input DeleteEnvironmentInput {
@@ -784,7 +978,7 @@ const typeDefs = gql`
     Returns Project Object by a given gitUrl (only the first one if there are multiple)
     """
     projectByGitUrl(gitUrl: String!): Project
-    environmentByName(name: String!, project: Int!): Environment
+    environmentByName(name: String!, project: Int!, includeDeleted: Boolean): Environment
     environmentById(id: Int!): Environment
     """
     Returns Environment Object by a given openshiftProjectName
@@ -798,6 +992,19 @@ const typeDefs = gql`
     environmentByKubernetesNamespaceName(
       kubernetesNamespaceName: String!
     ): Environment
+    """
+    Return projects from a fact-based search
+    """
+    projectsByFactSearch(
+      input: FactFilterInput
+    ): ProjectFactSearchResults
+
+    """
+    Return environments from a fact-based search
+    """
+    environmentsByFactSearch(
+      input: FactFilterInput
+    ): EnvironmentFactSearchResults
     userCanSshToEnvironment(
       openshiftProjectName: String
       kubernetesNamespaceName: String
@@ -839,18 +1046,6 @@ const typeDefs = gql`
     """
     allProjectsInGroup(input: GroupInput): [Project]
     """
-    Returns the costs for a given billing group
-    """
-    billingGroupCost(input: GroupInput, month: String!): JSON
-    """
-    Returns the costs for all billing groups
-    """
-    allBillingGroupsCost(month: String!): JSON
-    """
-    Returns the Billing Group Modifiers for a given Billing Group (all modifiers for the Billing Group will be returned if the month is not provided)
-    """
-    allBillingModifiers(input: GroupInput!, month: String): [BillingModifier]
-    """
     Returns LAGOON_VERSION
     """
     lagoonVersion: JSON
@@ -858,6 +1053,35 @@ const typeDefs = gql`
     Returns all ProblemHarborScanMatchers
     """
     allProblemHarborScanMatchers: [ProblemHarborScanMatch]
+    """
+    Returns all AdvancedTaskDefinitions
+    """
+    allAdvancedTaskDefinitions: [AdvancedTaskDefinition]
+    """
+    Returns a single AdvancedTaskDefinition given an id
+    """
+    advancedTaskDefinitionById(id: Int!) : AdvancedTaskDefinition
+    """
+    Returns a AdvancedTaskDefinitions applicable for an environment
+    """
+    advancedTasksForEnvironment(environment: Int!) : [AdvancedTaskDefinition]
+    """
+    Returns a AdvancedTaskDefinitionArgument by Id
+    """
+    advancedTaskDefinitionArgumentById(id: Int!) : [AdvancedTaskDefinitionArgument]
+    """
+    Returns the DeployTargetConfig by a deployTargetConfig Id
+    """
+    deployTargetConfigById(id: Int!) : DeployTargetConfig  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    """
+    Returns all DeployTargetConfig by a project Id
+    """
+    deployTargetConfigsByProjectId(project: Int!) : [DeployTargetConfig]  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    """
+    Returns all DeployTargetConfig by a deployTarget Id (aka: Openshift Id)
+    """
+    deployTargetConfigsByDeployTarget(deployTarget: Int!) : [DeployTargetConfig]  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    allDeployTargetConfigs: [DeployTargetConfig]  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
   }
 
   # Must provide id OR name
@@ -901,6 +1125,7 @@ const typeDefs = gql`
     name: String!
     gitUrl: String!
     subfolder: String
+    routerPattern: String
     openshift: Int
     openshiftProjectPattern: String
     kubernetes: Int
@@ -925,6 +1150,7 @@ const typeDefs = gql`
     privateKey: String
     problemsUi: Int
     factsUi: Int
+    deploymentsDisabled: Int
   }
 
   input AddEnvironmentInput {
@@ -938,12 +1164,20 @@ const typeDefs = gql`
     environmentType: EnvType!
     openshiftProjectName: String
     kubernetesNamespaceName: String
+    openshift: Int
+    openshiftProjectPattern: String
+    kubernetes: Int
+    kubernetesNamespacePattern: String
   }
 
   input AddOrUpdateEnvironmentStorageInput {
     environment: Int!
     persistentStorageClaim: String!
     bytesUsed: Int!
+    """
+    Date in format 'YYYY-MM-DD'
+    """
+    updated: String
   }
 
   input AddBackupInput {
@@ -1027,6 +1261,41 @@ const typeDefs = gql`
     execute: Boolean
   }
 
+
+  input AdvancedTaskArgumentInput {
+    name: String
+    value: String
+  }
+
+  enum AdvancedTaskDefinitionArgumentTypes {
+    NUMERIC
+    STRING
+  }
+
+  input AdvancedTaskDefinitionArgumentInput {
+    name: String
+    type: AdvancedTaskDefinitionArgumentTypes
+  }
+
+  enum AdvancedTaskDefinitionTypes {
+    COMMAND
+    IMAGE
+  }
+
+  input AdvancedTaskDefinitionInput {
+    name: String
+    description: String
+    image: String
+    type: AdvancedTaskDefinitionTypes
+    service: String
+    command: String
+    environment: Int
+    project: Int
+    groupName: String
+    permission: TaskPermission
+    advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgumentInput]
+  }
+
   input DeleteTaskInput {
     id: Int!
   }
@@ -1058,6 +1327,9 @@ const typeDefs = gql`
     sshHost: String
     sshPort: String
     monitoringConfig: JSON
+    friendlyName: String
+    cloudProvider: String
+    cloudRegion: String
   }
 
   input AddKubernetesInput {
@@ -1070,6 +1342,9 @@ const typeDefs = gql`
     sshHost: String
     sshPort: String
     monitoringConfig: JSON
+    friendlyName: String
+    cloudProvider: String
+    cloudRegion: String
   }
 
   input DeleteOpenshiftInput {
@@ -1095,6 +1370,11 @@ const typeDefs = gql`
     channel: String!
   }
 
+  input AddNotificationWebhookInput {
+    name: String!
+    webhook: String!
+  }
+
   input AddNotificationSlackInput {
     name: String!
     webhook: String!
@@ -1113,6 +1393,10 @@ const typeDefs = gql`
   }
 
   input DeleteNotificationSlackInput {
+    name: String!
+  }
+
+  input DeleteNotificationWebhookInput {
     name: String!
   }
 
@@ -1165,10 +1449,12 @@ const typeDefs = gql`
     availability: ProjectAvailability
     privateKey: String
     subfolder: String
+    routerPattern: String
     activeSystemsDeploy: String
     activeSystemsRemove: String
     activeSystemsTask: String
     activeSystemsMisc: String
+    activeSystemsPromote: String
     branches: String
     productionEnvironment: String
     productionRoutes: String
@@ -1186,6 +1472,7 @@ const typeDefs = gql`
     developmentEnvironmentsLimit: Int
     problemsUi: Int
     factsUi: Int
+    deploymentsDisabled: Int
   }
 
   input UpdateProjectInput {
@@ -1202,6 +1489,9 @@ const typeDefs = gql`
     sshHost: String
     sshPort: String
     monitoringConfig: JSON
+    friendlyName: String
+    cloudProvider: String
+    cloudRegion: String
   }
 
   input UpdateOpenshiftInput {
@@ -1218,6 +1508,9 @@ const typeDefs = gql`
     sshHost: String
     sshPort: String
     monitoringConfig: JSON
+    friendlyName: String
+    cloudProvider: String
+    cloudRegion: String
   }
 
   input UpdateKubernetesInput {
@@ -1247,6 +1540,11 @@ const typeDefs = gql`
     channel: String
   }
 
+  input UpdateNotificationWebhookPatchInput {
+    name: String
+    webhook: String
+  }
+
   input UpdateNotificationMicrosoftTeamsInput {
     name: String!
     patch: UpdateNotificationMicrosoftTeamsPatchInput
@@ -1264,6 +1562,11 @@ const typeDefs = gql`
   input UpdateNotificationSlackInput {
     name: String!
     patch: UpdateNotificationSlackPatchInput
+  }
+
+  input UpdateNotificationWebhookInput {
+    name: String!
+    patch: UpdateNotificationWebhookPatchInput
   }
 
   input UpdateSshKeyPatchInput {
@@ -1290,6 +1593,14 @@ const typeDefs = gql`
     routes: String
     monitoringUrls: String
     autoIdle: Int
+    openshift: Int
+    openshiftProjectPattern: String
+    kubernetes: Int
+    kubernetesNamespacePattern: String
+    """
+    Timestamp in format 'YYYY-MM-DD hh:mm:ss'
+    """
+    created: String
   }
 
   input UpdateEnvironmentInput {
@@ -1364,81 +1675,6 @@ const typeDefs = gql`
     parentGroup: GroupInput
   }
 
-  input AddBillingModifierInput {
-    """
-    The existing billing group for this modifier
-    """
-    group: GroupInput!
-    """
-    The date this modifier should start to be applied - Format: YYYY-MM-DD
-    """
-    startDate: String!
-    """
-    The date this modifer will expire - Format: YYYY-MM-DD
-    """
-    endDate: String!
-    """
-    The amount that the total monthly bill should be discounted - Format (Float)
-    """
-    discountFixed: Float
-    """
-    The percentage the total monthly bill should be discounted - Format (0-100)
-    """
-    discountPercentage: Float
-    """
-    The amount of exta cost that should be added to the total- Format (Float)
-    """
-    extraFixed: Float
-    """
-    The percentage the total monthly bill should be added - Format (0-100)
-    """
-    extraPercentage: Float
-    """
-    The minimum amount of the invoice applied to the total- Format (Float)
-    """
-    min: Float
-    """
-    The maximum amount of the invoice applied to the total- Format (Float)
-    """
-    max: Float
-    """
-    Customer comments are visible to the customer
-    """
-    customerComments: String
-    """
-    Admin comments will not be visible to the customer.
-    """
-    adminComments: String!
-    """
-    The order this modifer should be applied
-    """
-    weight: Int
-  }
-
-  input BillingModifierPatchInput {
-    group: GroupInput
-    startDate: String
-    endDate: String
-    discountFixed: Float
-    discountPercentage: Float
-    extraFixed: Float
-    extraPercentage: Float
-    min: Float
-    max: Float
-    customerComments: String
-    adminComments: String
-    weight: Int
-  }
-
-  input UpdateBillingModifierInput {
-    id: Int!
-    patch: BillingModifierPatchInput!
-  }
-
-  input DeleteBillingModifierInput {
-    id: Int!
-  }
-
   input UpdateGroupPatchInput {
     name: String
   }
@@ -1471,30 +1707,6 @@ const typeDefs = gql`
   input ProjectGroupsInput {
     project: ProjectInput!
     groups: [GroupInput!]!
-  }
-
-  input BillingGroupInput {
-    name: String!
-    currency: Currency!
-    billingSoftware: String
-    uptimeRobotStatusPageId: String
-  }
-
-  input ProjectBillingGroupInput {
-    group: GroupInput!
-    project: ProjectInput!
-  }
-
-  input UpdateBillingGroupPatchInput {
-    name: String!
-    currency: Currency
-    billingSoftware: String
-    uptimeRobotStatusPageId: String
-  }
-
-  input UpdateBillingGroupInput {
-    group: GroupInput!
-    patch: UpdateBillingGroupPatchInput!
   }
 
   type Mutation {
@@ -1537,6 +1749,16 @@ const typeDefs = gql`
       input: DeleteNotificationMicrosoftTeamsInput!
     ): String
     deleteAllNotificationMicrosoftTeams: String
+    addNotificationWebhook(
+      input: AddNotificationWebhookInput!
+    ): NotificationWebhook
+    updateNotificationWebhook(
+      input: UpdateNotificationWebhookInput!
+    ): NotificationWebhook
+    deleteNotificationWebhook(
+      input: DeleteNotificationWebhookInput!
+    ): String
+    deleteAllNotificationWebhook: String
     addNotificationEmail(
       input: AddNotificationEmailInput!
     ): NotificationEmail
@@ -1591,6 +1813,9 @@ const typeDefs = gql`
     addFacts(input: AddFactsInput!): [Fact]
     deleteFact(input: DeleteFactInput!): String
     deleteFactsFromSource(input: DeleteFactsFromSourceInput!): String
+    addFactReference(input: AddFactReferenceInput!): FactReference
+    deleteFactReference(input: DeleteFactReferenceInput!): String
+    deleteAllFactReferencesByFactId(input: DeleteFactReferencesByFactIdInput!): String
     deleteBackup(input: DeleteBackupInput!): String
     deleteAllBackups: String
     addRestore(input: AddRestoreInput!): Restore
@@ -1598,6 +1823,9 @@ const typeDefs = gql`
     addEnvVariable(input: EnvVariableInput!): EnvKeyValue
     deleteEnvVariable(input: DeleteEnvVariableInput!): String
     addTask(input: TaskInput!): Task
+    addAdvancedTaskDefinition(input: AdvancedTaskDefinitionInput!): AdvancedTaskDefinition
+    invokeRegisteredTask(advancedTaskDefinition: Int!, environment: Int!): Task
+    deleteAdvancedTaskDefinition(advancedTaskDefinition: Int!): String
     taskDrushArchiveDump(environment: Int!): Task
     taskDrushSqlDump(environment: Int!): Task
     taskDrushCacheClear(environment: Int!): Task
@@ -1628,19 +1856,13 @@ const typeDefs = gql`
     addUserToGroup(input: UserGroupRoleInput!): GroupInterface
     removeUserFromGroup(input: UserGroupInput!): GroupInterface
     addGroupsToProject(input: ProjectGroupsInput): Project
-    addBillingGroup(input: BillingGroupInput!): BillingGroup
-    updateBillingGroup(input: UpdateBillingGroupInput!): BillingGroup
-    deleteBillingGroup(input: DeleteGroupInput!): String
-    addProjectToBillingGroup(input: ProjectBillingGroupInput): Project
-    updateProjectBillingGroup(input: ProjectBillingGroupInput): Project
-    removeProjectFromBillingGroup(input: ProjectBillingGroupInput): Project
     removeGroupsFromProject(input: ProjectGroupsInput!): Project
     updateProjectMetadata(input: UpdateMetadataInput!): Project
     removeProjectMetadataByKey(input: RemoveMetadataInput!): Project
-    addBillingModifier(input: AddBillingModifierInput!): BillingModifier
-    updateBillingModifier(input: UpdateBillingModifierInput!): BillingModifier
-    deleteBillingModifier(input: DeleteBillingModifierInput!): String
-    deleteAllBillingModifiersByBillingGroup(input: GroupInput!): String
+    addDeployTargetConfig(input: AddDeployTargetConfigInput!): DeployTargetConfig  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    updateDeployTargetConfig(input: UpdateDeployTargetConfigInput!): DeployTargetConfig  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    deleteDeployTargetConfig(input: DeleteDeployTargetConfigInput!): String  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    deleteAllDeployTargetConfigs: String  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
   }
 
   type Subscription {

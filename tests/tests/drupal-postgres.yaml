@@ -1,15 +1,37 @@
 ---
+- include: features/random-wait.yaml
 
 - include: features/api-token.yaml
   vars:
     testname: "API TOKEN"
 
+- include: api/add-project.yaml
+  vars:
+    project: ci-drupal-pg-{{ cluster_type }}
+    git_repo_name: drupal-postgres.git
+    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
+
 - include: drupal/drupal.yaml
   vars:
-    testname: "Drupal 8 composer PHP 7.2 - POSTGRES {{ lookup('env','CLUSTER_TYPE')|upper }}"
-    drupal_version: 8
+    testname: "Drupal 9 composer PHP 8.0 - POSTGRES DBAAS {{ cluster_type|upper }}"
+    drupal_version: 9
     db: postgres
-    php_version: 7.2
+    php_version: 8.0
     git_repo_name: drupal-postgres.git
-    project: ci-drupal-postgres-{{ lookup('env','CLUSTER_TYPE') }}
-    branch: drupal8-composer-72-postgres
+    project: ci-drupal-pg-{{ cluster_type }}
+    branch: drupal9-php80-postgres-dbaas
+
+- include: drupal/drupal.yaml
+  vars:
+    testname: "Drupal 9 composer PHP 8.0 - POSTGRES SINGLE {{ cluster_type|upper }}"
+    drupal_version: 9
+    db: postgres
+    php_version: 8.0
+    overwrite_docker_compose: docker-compose.single.yml
+    git_repo_name: drupal-postgres.git
+    project: ci-drupal-pg-{{ cluster_type }}
+    branch: drupal9-php80-postgres-single
+
+- include: api/delete-project.yaml
+  vars:
+    project: ci-drupal-pg-{{ cluster_type }}

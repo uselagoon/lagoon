@@ -1,4 +1,4 @@
-const { knex } = require('../../util/db');
+import { knex } from '../../util/db';
 
 export const Sql = {
   selectDeployment: (id: number) =>
@@ -53,9 +53,8 @@ export const Sql = {
       .toString(),
   selectPermsForDeployment: (id: number) =>
     knex('deployment')
-      .select({ pid: 'project.id' })
+      .select({ pid: 'environment.project' })
       .join('environment', 'deployment.environment', '=', 'environment.id')
-      .join('project', 'environment.project', '=', 'project.id')
       .where('deployment.id', id)
       .toString()
 };

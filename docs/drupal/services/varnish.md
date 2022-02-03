@@ -1,6 +1,6 @@
 # Varnish
 
-We suggest using Drupal with a Varnish reverse proxy. Lagoon provides a `varnish-drupal` Docker image that has Varnish already configured with a [Drupal Varnish config](https://github.com/amazeeio/lagoon/blob/master/images/varnish-drupal/drupal.vcl).
+We suggest using Drupal with a Varnish reverse proxy. Lagoon provides a `varnish-drupal` Docker image that has Varnish already configured with a [Drupal Varnish config](https://github.com/uselagoon/lagoon-images/blob/main/images/varnish-drupal/drupal.vcl).
 
 This Varnish config does the following:
 
@@ -8,11 +8,13 @@ This Varnish config does the following:
 * It automatically caches any assets \(images, css, js, etc.\) for one month, and also sends this header to the browser, so browser cache the assets as well. This happens for authenticated and non-authenticated requests.
 * It has support for `BAN` and `URIBAN` which is used by the Drupal 8 purge module.
 * It removes `utm_` and `gclid` from the URL parameter to prevent Google Analytics links from creating multiple cache objects.
-* Many other good things - just check out the [drupal.vcl](https://github.com/amazeeio/lagoon/blob/master/images/varnish-drupal/drupal.vcl).
+* Many other good things - just check out the [drupal.vcl](https://github.com/uselagoon/lagoon-images/blob/main/images/varnish-drupal/drupal.vcl).
 
 ## Usage with Drupal 8
 
-TL;DR: Check out the [Drupal 8 Example](https://github.com/amazeeio/drupal-example), it ships with the needed modules and needed Drupal configuration.
+**TL;DR**: [Check out the drupal8-advanced example in our examples repo](https://github.com/uselagoon/lagoon-examples), it ships with the needed modules and needed Drupal configuration.
+
+**Note**: many of these examples are on the same `drupal-example-simple` repo, but different branches/hashes. Be sure to get the exact branch from the examples list!
 
 ### Install Purge and Varnish Purge modules
 
@@ -86,7 +88,7 @@ To test Varnish locally, change the following in `docker-compose.yml`:
 * Run `docker-compose up -d` , which restarts all services with the new environment variables.
 
 Now you should be able to test Varnish!
-
+<!-- markdown-link-check-disable -->
 Here is a short example assuming there is a node with the ID `1` and has the URL `drupal-example.docker.amazee.io/node/1`
 
 1. Run `curl -I drupal-example.docker.amazee.io/node/1` and look for these headers:
@@ -100,7 +102,7 @@ Here is a short example assuming there is a node with the ID `1` and has the URL
 4. Run `curl -I drupal-example.docker.amazee.io/node/1` , and the headers should the same as very first request:
    * `Age:0`
    * `X-Varnish-Cache: MISS`
-
+<!-- markdown-link-check-enable -->
 ### Varnish on Drupal behind the scenes
 
 If you come from other Drupal hosts or have done a Drupal 8 & Varnish tutorial before, you might have realized that there are a couple of changes in the Lagoon Drupal Varnish tutorial. Let's address them:
@@ -122,9 +124,9 @@ Our Varnish configurations have full support for `Ban Lurker`. Ban Lurker helps 
 ### Troubleshooting
 
 Varnish doesn't cache? Or something else not working? Here a couple of ways to debug:
-
+<!-- markdown-link-check-disable -->
 * Run `drush p-debug-en` to enable debug logging of the purge module. This should show you debugging in the Drupal log under `admin/reports/dblog`.
 * Make sure that Drupal sends proper cache headers. To best test this, use the URL that Lagoon generates for bypassing the Varnish cache, \(locally in our Drupal example this is [http://nginx-drupal-example.docker.amazee.io](http://nginx-drupal-example.docker.amazee.io)\). Check for the `Cache-Control: max-age=900, public` header, where the `900` is what you configured in `$config['system.performance']['cache']['page']['max_age']`.
 * Make sure that the environment variable `VARNISH_BYPASS` is **not** set to `true` \(see `docker-compose.yml` and run `docker-compose up -d varnish` to make sure the environment variable is configured correctly\).
 * If all fails, and before you flip your table \(╯°□°）╯︵ ┻━┻, talk to the Lagoon team, we're happy to help.
-
+<!-- markdown-link-check-enable -->

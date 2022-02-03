@@ -1,0 +1,32 @@
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for 'Home'"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+    expected_content: "Home"
+  tasks:
+  - include: ../../checks/check-url-content.yaml
+  - name: "{{ testname }} - Post data to URL http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/list/additem returns"
+    shell: curl -s -i -k -X POST -d name=TESTDATA -d character=TESTDATA http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/list/additem
+  #   uri:
+  #     url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/list/additem"
+  #     status_code: 302
+  #     validate_certs: no
+  #     method: POST
+  #     body_format: form-urlencoded
+  #     body:
+  #       name: TESTDATA
+  #       character: TESTDATA
+  #   register: result
+  #   until: result.status is defined and result.status == 302
+  # - name: "{{ testname }} - Check if URL http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/list/additem returns with return code 302"
+  #   debug: msg="Success!!!"
+
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for 'TESTDATA'"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/list/getlist"
+    expected_content: "TESTDATA"
+  tasks:
+  - include: ../../checks/check-url-content.yaml

@@ -1,20 +1,31 @@
 # PHP-CLI
 
-The [Lagoon `php-cli` Docker image](https://github.com/amazeeio/lagoon/blob/master/images/php/cli/Dockerfile). Based on [Lagoon `php-fpm` image](../php-fpm.md), it has all the needed command line tools for daily operations.
+The [Lagoon `php-cli` Docker image](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli). Based on [Lagoon `php-fpm` image](../php-fpm.md), it has all the needed command line tools for daily operations.
 
 Containers \(or pods\) started from `cli` images are responsible for building code for Composer or Node.js based projects.
 
 The image also contains database `cli`s for both MariaDB and PostgreSQL.
 
-{% hint style="info" %}
-This Dockerfile is intended to be used as a base for any `cli` needs within Lagoon.
-{% endhint %}
+!!! Note "Note:"
+    This Dockerfile is intended to be used as a base for any `cli` needs within Lagoon.
+
+## Supported versions
+
+* 5.6 \(available for compatibility, no longer officially supported\)
+* 7.0 \(available for compatibility, no longer officially supported\)
+* 7.2 \(available for compatibility, no longer officially supported\)
+* 7.3 \(available for compatibility, no longer officially supported\)
+* 7.4 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/7.4.Dockerfile) - `uselagoon/php-7.4-cli`
+* 8.0 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/8.0.Dockerfile) - `uselagoon/php-8.0-cli`
+* 8.0 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/8.1.Dockerfile) - `uselagoon/php-8.1-cli`
+
+All PHP versions use their own Dockerfiles.
 
 ## Lagoon adaptions
 
 This image is prepared to be used on Lagoon. There are therefore some things already done:
 
-* Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/sclorg/s2i-base-container/blob/master/core/root/usr/bin/fix-permissions), so this image will work with a random user.
+* Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions), so this image will work with a random user.
 * `COMPOSER_ALLOW_SUPERUSER=1` removes warning about use of Composer as root.
 * `80-shell-timeout.sh` script checks if containers are running in a Kubernetes environment and then set a 10 minutes timeout to idle `cli` pods.
 * `cli` containers use an SSH key injected by Lagoon or defined into `SSH_PRIVATE_KEY`environment variable.
@@ -56,4 +67,3 @@ service:
     environment:
     << : *default-environment
 ```
-

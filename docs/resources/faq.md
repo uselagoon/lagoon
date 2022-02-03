@@ -1,7 +1,3 @@
----
-description: Frequently asked questions about Lagoon!
----
-
 # FAQ
 
 ## How do I contact my Lagoon administrator?
@@ -10,11 +6,11 @@ You should have either a private RocketChat or Slack channel that was set up for
 
 ## I found a bug! 🐞
 
-If you've found a bug or security issue, please send your findings to [support@amazee.io](mailto:support@amazee.io). Please **DO NOT** file a GitHub issue for them.
+If you've found a bug or security issue, please send your findings to [support@amazee.io](mailto:support@amazee.io). Please DO NOT file a GitHub issue for them.
 
 ## I'm interested in amazee.io's hosting services with Lagoon!
 
-That's great news! You can contact us via email at [inquiries@amazee.io](mailto:inquiries@amazee.io).
+That's great news! You can contact them via email at [inquiries@amazee.io](mailto:inquiries@amazee.io).
 
 ## How can I restore a backup?
 
@@ -26,9 +22,7 @@ If you ever need to recover or restore a backup feel free to submit a ticket or 
 
 ## How can I download a database dump?
 
-{% embed url="https://www.youtube.com/watch?v=vnr3EITlQys&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=3" %}
-
-
+<iframe width="560" height="315" src="https://www.youtube.com/embed/bluTyxKqLbw" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 ## I'm getting an invalid SSL certificate error
 
@@ -53,16 +47,14 @@ The command could not be executed successfully (returned: Array [error]
 [default] =>
 )
 , code: 0)
-Error: no database record could be found for source @master [error]
+Error: no database record could be found for source @main [error]
 ```
 
 Upgrading Drush should fix that for you. We strongly suggest that you use version 8.3 or newer. Once Drush is upgraded the command should work!
 
 ## I'm seeing an Internal Server Error when trying to access my Kibana logs!
 
-{% embed url="https://www.youtube.com/watch?v=is-mt6oBQs8&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=5" %}
-
-
+<iframe width="560" height="315" src="https://www.youtube.com/embed/BuQo5J0Qc2c" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 No need to panic! This usually happens when a tenant has not been selected. To fix this, follow these steps:
 
@@ -73,23 +65,35 @@ No need to panic! This usually happens when a tenant has not been selected. To f
 
 You should now be able to see your logs.
 
-## I'm unable to SSH into any environment!
+## I'm unable to SSH into any environment
 
-I'm unable to SSH into any environment. I'm getting the following message: `Permission denied (publickey)`.
+I'm unable to SSH into any environment. I'm getting the following message: `Permission denied (publickey)`. When I run `drush sa` no aliases are returned.
 
-## How can I check the status of a build?
+This typically indicates an issue with Pygmy. You can find our troubleshooting docs for Pygmy here: [https://pygmy.readthedocs.io/en/master/troubleshooting/](https://pygmy.readthedocs.io/en/master/troubleshooting/)
 
-{% embed url="https://www.youtube.com/watch?v=UM6lM12ACK4&list=PLOM3iGqJj\_UdTtl4eVDszI9VgGW9Dcefd&index=1" %}
+## How can I check the status of a build
 
+<iframe width="560" height="315" src="https://www.youtube.com/embed/PyrlZqTjf68" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
+## How do I add a cron job?
 
-## **When I run `pygmy status`, no keys are loaded:**
+<iframe width="560" height="315" src="https://www.youtube.com/embed/Yd_JfDyfbR0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
-You'll need to load your SSH key into pygmy. Here's how: [https://pygmy.readthedocs.io/en/master/troubleshooting/](https://pygmy.readthedocs.io/en/master/troubleshooting/)
+## How do I add a new route?
 
-## **When I run `drush sa` no aliases are returned:**
+<iframe width="560" height="315" src="https://www.youtube.com/embed/vQxh87F3fW4" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
-This typically indicates an issue with Pygmy. You can find our troubleshooting docs for Pygmy here: [https://pygmy.readthedocs.io/en/master/troubleshooting/](https://pygmy.readthedocs.io/en/master/troubleshooting/).
+## How do I remove a route?
+
+You will need to contact your helpful Lagoon administrator should you need to remove a route. You can use either the private RocketChat or Slack channel that was set up for you to communicate - if not, you can always reach us at support@amazee.io.
+
+## When I run `pygmy status`, no keys are loaded
+
+You'll need to load your SSH key into pygmy. Here's how: [https://pygmy.readthedocs.io/en/master/ssh_agent](https://pygmy.readthedocs.io/en/master/ssh_agent)
+
+## When I run `drush sa` no aliases are returned
+
+This typically indicates an issue with Pygmy. You can find our troubleshooting docs for Pygmy here: [https://pygmy.readthedocs.io/en/master/troubleshooting](https://pygmy.readthedocs.io/en/master/troubleshooting)
 
 ## My deployments fail with a message saying: "drush needs a more functional environment"
 
@@ -111,6 +115,10 @@ That should list everything running on port 80. Kill the process running on port
 
 You can make that change using the Lagoon API! You can find the documentation for this change [in our GraphQL documentation](../administering-lagoon/graphql-queries.md#updating-objects).
 
+## How do I add a redirect?
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/vQxh87F3fW4" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
 ## How can I add new users \(and SSH keys\) to my project/group?
 
 This can be done via the Lagoon API. You can find the steps documentation for this change [in our GraphQL documentation](../administering-lagoon/graphql-queries.md#allowing-access-to-the-project).
@@ -129,11 +137,13 @@ Once you've added a runtime environment variable to your production environment 
 
 For cloud hosting customers, you can SFTP to your Lagoon environment by using the following information:
 
-* **Server Hostname**: `ssh.lagoon.amazeeio.cloud`
-* **Port**: 32222
-* **Username**: &lt;Project-Environment-Name&gt;
+* Server Hostname: `ssh.lagoon.amazeeio.cloud`
+* Port: 32222
+* Username: &lt;Project-Environment-Name&gt;
 
-Your username is going to be the name of the environment you are connecting to, most commonly in the pattern _**`PROJECTNAME-ENVIRONMENT`**_.
+Your username is going to be the name of the environment you are connecting to, most commonly in the pattern _`PROJECTNAME-ENVIRONMENT`_.
+
+You may also be interested in checking out our new Lagoon Sync tool, which you can read about here: [https://github.com/uselagoon/lagoon-sync](https://github.com/uselagoon/lagoon-sync)
 
 Authentication also happens automatically via SSH Public & Private Key Authentication.
 
@@ -155,32 +165,12 @@ A developer can handle this by installing the necessary packages into the contai
 
 ## Is there a way to stop a Lagoon build?
 
-If you have a build that has been running for a long time, and want to stop it, you will need to reach out to support. Currently, builds can only be stopped by amazee.io support.
-
-## I’m launching my production environment in \(CH\US\AU\), to which records should I point my DNS?
-
-For amazee.io cloud customers:
-
-* US
-  * [lagoon.us.amazee.io](http://lagoon.us.amazee.io/)
-  * 34.237.122.21
-* CH
-  * [lagoon.ch.amazee.io](http://lagoon.ch.amazee.io/)
-  * 5.102.151.21
-  * 5.102.151.53
-* AU
-  * [lagoon.au.amazee.io](http://lagoon.au.amazee.io/)
-  * 13.55.153.74
+If you have a build that has been running for a long time, and want to stop it, you will need to reach out to support. Currently, builds can only be stopped by users with admin access to the cluster.
 
 ## We installed the Elasticsearch\Solr service on our website. How can we get access to the UI \(port 9200/8983\) from a browser?
-
+<!-- markdown-link-check-disable-next-line -->
 We suggest only exposing web services \(NGINX/Varnish/Node.js\) in your deployed environments. Locally, you can get the ports mapped for these services by checking `docker-compose ps`, and then load [`http://localhost`](http://localhost/)`:<port>` in your browser.
 
-## Where can I find the amazee.io Status Page?
+## I have a question that isn't answered here
 
-You can find and subscribe to the amazee.io StatusPage here: [https://status.amazee.io/](https://status.amazee.io/).
-
-## I have a question that isn't answered here.
-
-You can reach out to us via [RocketChat](https://amazeeio.rocket.chat/home) or email at [support@amazee.io](mailto:support@amazee.io).
-
+You can reach out to the team via [RocketChat](https://amazeeio.rocket.chat/home) or email at [uselagoon@amazee.io](mailto:uselagoon@amazee.io).

@@ -3,9 +3,9 @@ import sshpk from 'sshpk';
 import bodyParser from 'body-parser';
 import { Request, Response } from 'express';
 import { RequestWithAuthData } from '../authMiddleware';
-import logger from '../logger';
+import { logger } from '../loggers/logger';
 import { knex, query } from '../util/db';
-import { getSqlClient } from '../clients/sqlClient';
+import { sqlClientPool } from '../clients/sqlClient';
 
 const toFingerprint = sshKey => {
   try {
@@ -32,17 +32,13 @@ const keysRoute = async (
 
   logger.debug(`Accessing keys with fingerprint: ${fingerprint}`);
 
-  const sqlClient = getSqlClient();
-
   const rows = await query(
-    sqlClient,
+    sqlClientPool,
     knex('ssh_key AS sk')
       .select(knex.raw("CONCAT(sk.key_type, ' ', sk.key_value) as sshKey"))
       .toString(),
   );
   const keys = R.map(R.prop('sshKey'), rows);
-
-  sqlClient.end();
 
   // Object of fingerprints mapping to SSH keys
   // Ex. { <fingerprint>: <key> }

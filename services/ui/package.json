@@ -1,7 +1,7 @@
 {
   "name": "ui",
   "version": "0.0.1",
-  "description": "lagoon ui",
+  "description": "Lagoon UI",
   "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
   "main": "src/index.js",
   "license": "MIT",
@@ -69,6 +69,7 @@
     "apollo-link-schema": "^1.2.4",
     "babel-loader": "^8.0.6",
     "babel-plugin-macros": "^2.7.1",
+    "chromatic": "^5.6.2",
     "faker": "^4.1.0",
     "prop-types": "^15.7.2",
     "react-is": "^16.12.0",

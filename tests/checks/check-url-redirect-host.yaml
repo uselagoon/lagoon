@@ -1,15 +1,16 @@
 ---
-- name: "{{ testname }} - Check if URL {{url}} with sending Host: {{ host }} redirects to the location {{expected_redirect_location}}"
+- name: "{{ testname }} - Check if URL {{ url }} with sending Host: {{ host }} redirects to the location {{ expected_redirect_location }}"
   uri:
     url: "{{ url }}"
     follow_redirects: none
     status_code: "301,302,308"
-    HEADER_Host: "{{ host }}"
+    headers:
+      Host: "{{ host }}"
     validate_certs: no
   register: result
   until: result.location | default('') | regex_search(expected_redirect_location)
-  retries: 20
-  delay: 10
-- name: "{{ testname }} - Check if URL {{url}} with sending Host: {{ host }} redirects to the location {{expected_redirect_location}}"
+  retries: 90
+  delay: 20
+- name: "{{ testname }} - Check if URL {{ url }} with sending Host: {{ host }} redirects to the location {{ expected_redirect_location }}"
   debug: msg="Success!!!"
 

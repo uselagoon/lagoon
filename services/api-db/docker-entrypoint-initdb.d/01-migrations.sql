@@ -13,6 +13,7 @@ CREATE OR REPLACE PROCEDURE
     IN availability                      varchar(50),
     IN private_key                     varchar(5000),
     IN subfolder                       varchar(300),
+    IN router_pattern                  varchar(300),
     IN openshift                       int,
     IN openshift_project_pattern       varchar(300),
     IN active_systems_deploy           varchar(300),
@@ -61,6 +62,7 @@ CREATE OR REPLACE PROCEDURE
         availability,
         private_key,
         subfolder,
+        router_pattern,
         active_systems_deploy,
         active_systems_promote,
         active_systems_remove,
@@ -89,6 +91,7 @@ CREATE OR REPLACE PROCEDURE
         availability,
         private_key,
         subfolder,
+        router_pattern,
         active_systems_deploy,
         active_systems_promote,
         active_systems_remove,
@@ -314,7 +317,7 @@ CREATE OR REPLACE PROCEDURE
       ALTER TABLE `project`
       ADD `active_systems_promote` varchar(300);
       UPDATE project
-      SET active_systems_promote = 'lagoon_openshiftBuildDeploy';
+      SET active_systems_promote = 'lagoon_controllerBuildDeploy';
     END IF;
   END;
 $$
@@ -1149,6 +1152,42 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
+  add_fact_category_to_environment_fact()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'environment_fact'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'category'
+    ) THEN
+        ALTER TABLE `environment_fact`
+        ADD `category` TEXT NULL DEFAULT '';
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_fact_key_to_environment_fact()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'environment_fact'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'key_fact'
+    ) THEN
+        ALTER TABLE `environment_fact`
+        ADD `key_fact` TINYINT(1) NOT NULL DEFAULT(0);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
   update_user_password()
 
   BEGIN
@@ -1161,10 +1200,19 @@ CREATE OR REPLACE PROCEDURE
   add_metadata_to_project()
 
   BEGIN
-    ALTER TABLE project
-    ADD metadata JSON DEFAULT '{}' CHECK (JSON_VALID(metadata));
-    UPDATE project
-    SET metadata = '{}';
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'metadata'
+    ) THEN
+      ALTER TABLE project
+      ADD metadata JSON DEFAULT '{}' CHECK (JSON_VALID(metadata));
+      UPDATE project
+      SET metadata = '{}';
+    END IF;
   END;
 $$
 
@@ -1183,25 +1231,6 @@ CREATE OR REPLACE PROCEDURE
       ALTER TABLE `project_notification`
       ADD `content_type` ENUM('deployment', 'problem') NOT NULL DEFAULT 'deployment',
       ADD `notification_severity_threshold` int NOT NULL default 0;
-    END IF;
-  END;
-$$
-
-CREATE OR REPLACE PROCEDURE
-  add_min_max_to_billing_modifier()
-
-  BEGIN
-    IF NOT EXISTS (
-      SELECT NULL
-      FROM INFORMATION_SCHEMA.COLUMNS
-      WHERE
-        table_name = 'billing_modifier'
-        AND table_schema = 'infrastructure'
-        AND column_name = 'min'
-    ) THEN
-      ALTER TABLE `billing_modifier`
-      ADD `min` FLOAT DEFAULT 0,
-      ADD `max` FLOAT DEFAULT 0;
     END IF;
   END;
 $$
@@ -1242,6 +1271,219 @@ CREATE OR REPLACE PROCEDURE
     IF (column_type = 'varchar') THEN
       ALTER TABLE project
       MODIFY standby_routes text;
+    END IF;
+  END;
+$$
+
+
+CREATE OR REPLACE PROCEDURE
+  add_advanced_task_details_to_task_table()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'task'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'type'
+    ) THEN
+      ALTER TABLE `task`
+      ADD `type` ENUM('standard', 'advanced') default 'standard',
+      ADD `advanced_image` varchar(2000),
+      ADD advanced_payload text;
+    END IF;
+  END;
+
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_fact_type_to_environment_fact()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'environment_fact'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'type'
+    ) THEN
+        ALTER TABLE `environment_fact`
+        ADD `type` ENUM('TEXT', 'URL') NOT NULL DEFAULT 'TEXT';
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_enum_webhook_to_type_in_project_notification()
+
+  BEGIN
+    DECLARE column_type_project_notification_type varchar(74);
+
+    SELECT COLUMN_TYPE INTO column_type_project_notification_type
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      table_name = 'project_notification'
+      AND table_schema = 'infrastructure'
+      AND column_name = 'type';
+
+    IF (
+      column_type_project_notification_type = "enum('slack','rocketchat','microsoftteams','email')"
+    ) THEN
+      ALTER TABLE project_notification
+      MODIFY type ENUM('slack','rocketchat','microsoftteams','email', 'webhook');
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_index_for_deployment_environment()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.STATISTICS
+      WHERE
+        table_name = 'deployment'
+        AND table_schema = 'infrastructure'
+        AND index_name='deployment_environment'
+    ) THEN
+      ALTER TABLE `deployment`
+      ADD INDEX `deployment_environment` (`environment`);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_index_for_task_environment()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.STATISTICS
+      WHERE
+        table_name = 'task'
+        AND table_schema = 'infrastructure'
+        AND index_name='task_environment'
+    ) THEN
+      ALTER TABLE `task`
+      ADD INDEX `task_environment` (`environment`);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_router_pattern_to_project()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'router_pattern'
+    ) THEN
+      ALTER TABLE `project`
+      ADD `router_pattern` varchar(300);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_openshift_to_environment()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'environment'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'openshift'
+    ) THEN
+      ALTER TABLE `environment`
+      ADD `openshift` int;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_openshift_project_pattern_to_environment()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'environment'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'openshift_project_pattern'
+    ) THEN
+      ALTER TABLE `environment`
+      ADD `openshift_project_pattern` varchar(300);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_deployments_disabled_to_project()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'deployments_disabled'
+    ) THEN
+      ALTER TABLE `project`
+      ADD `deployments_disabled` int(1) NOT NULL default '0';
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  migrate_project_openshift_to_environment()
+
+  BEGIN
+    UPDATE environment e
+    LEFT JOIN project p ON
+      e.project = p.id
+    SET
+      e.openshift = p.openshift,
+      e.openshift_project_pattern = p.openshift_project_pattern
+    WHERE
+      e.openshift IS NULL;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_billing_data()
+
+  BEGIN
+    DROP TABLE IF EXISTS billing_modifier;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_metadata_to_openshift()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'openshift'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'friendly_name'
+    ) THEN
+      ALTER TABLE `openshift`
+      ADD `friendly_name`       varchar(100),
+      ADD `cloud_provider`      varchar(100),
+      ADD `cloud_region`        varchar(100);
     END IF;
   END;
 $$
@@ -1300,11 +1542,25 @@ CALL update_user_password();
 CALL add_problems_ui_to_project();
 CALL add_facts_ui_to_project();
 CALL add_fact_source_and_description_to_environment_fact();
+CALL add_fact_type_to_environment_fact();
+CALL add_fact_category_to_environment_fact();
+CALL add_fact_key_to_environment_fact();
 CALL add_metadata_to_project();
-CALL add_min_max_to_billing_modifier();
 CALL add_content_type_to_project_notification();
 CALL convert_project_production_routes_to_text();
 CALL convert_project_standby_routes_to_text();
+CALL add_advanced_task_details_to_task_table();
+CALL add_enum_webhook_to_type_in_project_notification();
+CALL add_index_for_deployment_environment();
+CALL add_index_for_task_environment();
+CALL add_router_pattern_to_project();
+CALL add_openshift_to_environment();
+CALL add_openshift_project_pattern_to_environment();
+CALL add_deployments_disabled_to_project();
+CALL update_openshift_varchar_length();
+CALL migrate_project_openshift_to_environment();
+CALL drop_billing_data();
+CALL add_metadata_to_openshift();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;
