@@ -1,16 +1,20 @@
 
+# These steps assume you have tools like helm, kubectl etc all installed.
+
 # Find the IP address for the KinD network - replace this in all the helmvalues files (should be 172.17.0.2 or similar)
 docker network create kind || true && docker run --rm --network kind alpine ip -o addr show eth0 | sed -nE 's/.* ([0-9.]{7,})\/.*/\1/p'
 
+# e.g. sample replace command - use the output from above in the second half of the sed command below
 find ./helmvalues -type f | xargs sed -i "s/172.17.0.2/172.17.0.2/g"
 
 # Create the cluster
 kind create cluster --wait=120s --config=helmvalues/kind-config.yaml
 
-# Set up kubectx and kubens (or similar)
+# Optional Set up kubectx and kubens (or similar) - if you have these tools
 kubectx kind-lagoon-local && kubens default
 
 # Install/Update all necessary Helm repositories
+helm plugin install https://github.com/aslafy-z/helm-git
 helm repo add harbor https://helm.goharbor.io
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm repo add stable https://charts.helm.sh/stable
@@ -20,8 +24,7 @@ helm repo add amazeeio https://amazeeio.github.io/charts/
 helm repo add lagoon https://uselagoon.github.io/lagoon-charts/
 helm repo update
 
-
-# Install the prerequisites
+# Install the cluster prerequisites (currently version pinned)
 helm upgrade --install --create-namespace --namespace ingress-nginx --wait --timeout 30m --version 3.40.0 ingress-nginx ingress-nginx/ingress-nginx -f helmvalues/ingress-nginx.yaml
 helm upgrade --install --create-namespace --namespace registry --wait --timeout 30m --version 1.5.6 registry harbor/harbor -f helmvalues/registry.yaml
 helm upgrade --install --create-namespace --namespace nfs-server-provisioner --wait --timeout 30m --version 1.1.3 nfs-server-provisioner stable/nfs-server-provisioner -f helmvalues/nfs-server-provisioner.yaml
@@ -37,17 +40,14 @@ helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 30
 helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 30m lagoon-build-deploy lagoon/lagoon-build-deploy -f helmvalues/lagoon-build-deploy.yaml -f helmvalues/local.yaml
 helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 30m lagoon-remote lagoon/lagoon-remote -f helmvalues/lagoon-remote.yaml -f helmvalues/local.yaml
 
-# Need a token
-# kubectl -n lagoon get secret lagoon-core-keycloak -o json | jq -r '.data.KEYCLOAK_AUTH_SERVER_CLIENT_SECRET | @base64d'
-# kubectl -n lagoon get secret -o json | jq -r '.items[] | select(.metadata.name | match("lagoon-build-deploy-token")) | .data.token | @base64d'
+# Need a token installed into the tests charts to allow it to talk to core
 kubectl -n lagoon get secret -o json | jq -r '.items[] | select(.metadata.name | match("lagoon-build-deploy-token")) | .data.token | @base64d' | xargs -I ARGS yq -i eval '.token = "ARGS"' helmvalues/local.yaml
-
 
 # Install the testing components and run the tests (default is nginx tests) - if you change the tests, you need to run both helm commands
 helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 30m lagoon-test lagoon/lagoon-test -f helmvalues/lagoon-test.yaml -f helmvalues/local.yaml
 helm test lagoon-test --namespace lagoon
 
-# Use these to get hte admin passwords
+# Use these to get the admin passwords
 docker run \
     -e JWTSECRET="$$(kubectl get secret -n lagoon lagoon-core-secrets -o jsonpath="{.data.JWTSECRET}" | base64 --decode)" \
     -e JWTAUDIENCE=api.dev \
@@ -68,6 +68,5 @@ kubectl get MongoDBProvider -A | awk '{printf "kubectl -n %s patch MongoDBProvid
 kubectl get PostgreSQLConsumer -A | awk '{printf "kubectl -n %s patch PostgreSQLConsumer %s -p \047{\"metadata\":{\"finalizers\":null}}\047 --type=merge\n", $1, $2}' | bash
 kubectl get PostgreSQLProvider -A | awk '{printf "kubectl -n %s patch PostgreSQLProvider %s -p \047{\"metadata\":{\"finalizers\":null}}\047 --type=merge\n", $1, $2}' | bash
 
-
-
-DOCKER_SCAN_SUGGEST=false docker buildx build --quiet --build-arg LAGOON_VERSION=development --build-arg IMAGE_REPO=lagoon  --build-arg UPSTREAM_REPO=uselagoon --build-arg UPSTREAM_TAG=latest --output=type=image,push=true,registry.insecure=true -t registry.172.27.0.2.nip.io:32080/library/lagoon/tests:latest -f tests/Dockerfile tests
+# Use build-and-push from the root dir to wrap around make build and push the resulting image up to the harbor
+./helmvalues/build-and-push.sh kubectl-build-deploy-dind
