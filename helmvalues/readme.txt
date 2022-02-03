@@ -1,12 +1,14 @@
 
-# Find the IP address for the KinD network - replace this in all the helmvalues files (should be 192.168.224.2 or similar)
+# Find the IP address for the KinD network - replace this in all the helmvalues files (should be 172.17.0.2 or similar)
 docker network create kind || true && docker run --rm --network kind alpine ip -o addr show eth0 | sed -nE 's/.* ([0-9.]{7,})\/.*/\1/p'
+
+find ./helmvalues -type f | xargs sed -i "s/172.17.0.2/172.17.0.2/g"
 
 # Create the cluster
 kind create cluster --wait=120s --config=helmvalues/kind-config.yaml
 
 # Set up kubectx and kubens (or similar)
-kubectx kind-lagoon && kubens default
+kubectx kind-lagoon-local && kubens default
 
 # Install/Update all necessary Helm repositories
 helm repo add harbor https://helm.goharbor.io
@@ -36,11 +38,36 @@ helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 30
 helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 30m lagoon-remote lagoon/lagoon-remote -f helmvalues/lagoon-remote.yaml -f helmvalues/local.yaml
 
 # Need a token
-kubectl -n lagoon get secret -o json | jq -r '.items[] | select(.metadata.name | match("lagoon-build-deploy-token")) | .data.token | @base64d'
-kubectl -n lagoon get secret lagoon-core-keycloak -o json | jq -r '.data.KEYCLOAK_AUTH_SERVER_CLIENT_SECRET | @base64d'
+# kubectl -n lagoon get secret lagoon-core-keycloak -o json | jq -r '.data.KEYCLOAK_AUTH_SERVER_CLIENT_SECRET | @base64d'
+# kubectl -n lagoon get secret -o json | jq -r '.items[] | select(.metadata.name | match("lagoon-build-deploy-token")) | .data.token | @base64d'
+kubectl -n lagoon get secret -o json | jq -r '.items[] | select(.metadata.name | match("lagoon-build-deploy-token")) | .data.token | @base64d' | xargs -I ARGS yq -i eval '.token = "ARGS"' helmvalues/local.yaml
+
 
 # Install the testing components and run the tests (default is nginx tests) - if you change the tests, you need to run both helm commands
 helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 30m lagoon-test lagoon/lagoon-test -f helmvalues/lagoon-test.yaml -f helmvalues/local.yaml
 helm test lagoon-test --namespace lagoon
 
-DOCKER_SCAN_SUGGEST=false docker buildx build --quiet --build-arg LAGOON_VERSION=development --build-arg IMAGE_REPO=lagoon  --build-arg UPSTREAM_REPO=uselagoon --build-arg UPSTREAM_TAG=latest --output=type=image,push=true,registry.insecure=true -t registry.192.168.224.2.nip.io:32080/library/lagoon/tests:latest -f tests/Dockerfile tests
+# Use these to get hte admin passwords
+docker run \
+    -e JWTSECRET="$$(kubectl get secret -n lagoon lagoon-core-secrets -o jsonpath="{.data.JWTSECRET}" | base64 --decode)" \
+    -e JWTAUDIENCE=api.dev \
+    -e JWTUSER=localadmin \
+    uselagoon/tests \
+    python3 /ansible/tasks/api/admin_token.py
+echo $(kubectl get secret -n lagoon lagoon-core-keycloak -o jsonpath="{.data.KEYCLOAK_ADMIN_PASSWORD}" | base64 --decode)
+echo $(kubectl get secret -n lagoon lagoon-core-keycloak -o jsonpath="{.data.KEYCLOAK_LAGOON_ADMIN_PASSWORD}" | base64 --decode)
+
+# Use these to delete CRDs from namespaces if they're holding up deletions
+kubectl get LagoonTasks -A | awk '{printf "kubectl -n %s patch LagoonTasks %s -p \047{\"metadata\":{\"finalizers\":null}}\047 --type=merge\n", $1, $2}' | bash
+kubectl get LagoonBuilds -A | awk '{printf "kubectl -n %s patch LagoonBuilds %s -p \047{\"metadata\":{\"finalizers\":null}}\047 --type=merge\n", $1, $2}' | bash
+kubectl get HostMigrations -A | awk '{printf "kubectl -n %s patch HostMigrations %s -p \047{\"metadata\":{\"finalizers\":null}}\047 --type=merge\n", $1, $2}' | bash
+kubectl get MariaDBConsumer -A | awk '{printf "kubectl -n %s patch MariaDBConsumer %s -p \047{\"metadata\":{\"finalizers\":null}}\047 --type=merge\n", $1, $2}' | bash
+kubectl get MariaDBProvider -A | awk '{printf "kubectl -n %s patch MariaDBProvider %s -p \047{\"metadata\":{\"finalizers\":null}}\047 --type=merge\n", $1, $2}' | bash
+kubectl get MongoDBConsumer -A | awk '{printf "kubectl -n %s patch MongoDBConsumer %s -p \047{\"metadata\":{\"finalizers\":null}}\047 --type=merge\n", $1, $2}' | bash
+kubectl get MongoDBProvider -A | awk '{printf "kubectl -n %s patch MongoDBProvider %s -p \047{\"metadata\":{\"finalizers\":null}}\047 --type=merge\n", $1, $2}' | bash
+kubectl get PostgreSQLConsumer -A | awk '{printf "kubectl -n %s patch PostgreSQLConsumer %s -p \047{\"metadata\":{\"finalizers\":null}}\047 --type=merge\n", $1, $2}' | bash
+kubectl get PostgreSQLProvider -A | awk '{printf "kubectl -n %s patch PostgreSQLProvider %s -p \047{\"metadata\":{\"finalizers\":null}}\047 --type=merge\n", $1, $2}' | bash
+
+
+
+DOCKER_SCAN_SUGGEST=false docker buildx build --quiet --build-arg LAGOON_VERSION=development --build-arg IMAGE_REPO=lagoon  --build-arg UPSTREAM_REPO=uselagoon --build-arg UPSTREAM_TAG=latest --output=type=image,push=true,registry.insecure=true -t registry.172.27.0.2.nip.io:32080/library/lagoon/tests:latest -f tests/Dockerfile tests

@@ -9,7 +9,7 @@ lagoon-build-deploy:
   taskAPIHost: http://lagoon-core-api.lagoon.svc:80
 
 dockerHost:
-  registry: registry.192.168.224.2.nip.io:32080
+  registry: registry.172.17.0.2.nip.io:32080
   image:
     repository: uselagoon/docker-host
   storage:

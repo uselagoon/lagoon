@@ -5,9 +5,9 @@ secretKey:
 defaultBuckets: lagoon-files
 ingress:
   enabled: true
-  hostname: minio.192.168.224.2.nip.io
+  hostname: minio.172.17.0.2.nip.io
   path: /
 apiIngress:
   enabled: true
-  hostname: minio-api.192.168.224.2.nip.io
+  hostname: minio-api.172.17.0.2.nip.io
   path: /

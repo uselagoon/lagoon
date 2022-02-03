@@ -2,9 +2,9 @@
 
 # used in api
 
-harborURL: http://registry.192.168.224.2.nip.io:32080
+harborURL: http://registry.172.17.0.2.nip.io:32080
 harborAdminPassword: Harbor12345
-registry: registry.192.168.224.2.nip.io:32080
+registry: registry.172.17.0.2.nip.io:32080
 
 elasticsearchURL: http://opendistro-es-client-service.opendistro-es.svc.cluster.local:9200
 kibanaURL: http://opendistro-es-kibana-svc.opendistro-es.svc.cluster.local:443
@@ -13,13 +13,13 @@ logsDBAdminPassword: admin
 s3FilesAccessKeyID: lagoonFilesAccessKey
 s3FilesSecretAccessKey: lagoonFilesSecretKey
 s3FilesBucket: lagoon-files
-s3FilesHost: http://minio-api.192.168.224.2.nip.io:32080
+s3FilesHost: http://minio-api.172.17.0.2.nip.io:32080
 
 s3BAASAccessKeyID: baas #sets S3_BAAS_ACCESS_KEY_ID in api.secret for custom restores
 s3BAASSecretAccessKey: baas123 #sets s3BAASSecretAccessKey in api.secret for custom restores
 
-lagoonUIURL: http://lagoon-ui.192.168.224.2.nip.io:32080 #sets UI_URL in api.deployment
-lagoonWebhookURL: http://lagoon-webhook.192.168.224.2.nip.io:32080 #sets WEBHOOK_URL in api.deployment
+lagoonUIURL: http://lagoon-ui.172.17.0.2.nip.io:32080 #sets UI_URL in api.deployment
+lagoonWebhookURL: http://lagoon-webhook.172.17.0.2.nip.io:32080 #sets WEBHOOK_URL in api.deployment
 
 rabbitMQPassword: set-in-localyaml
 keycloakAuthServerClientSecret: set-in-localyaml
@@ -27,8 +27,8 @@ keycloakAuthServerClientSecret: set-in-localyaml
 overwriteKubectlBuildDeployDindImage:
 
 # used in ui
-lagoonAPIURL: http://lagoon-api.192.168.224.2.nip.io:32080/graphql
-keycloakAPIURL: http://lagoon-keycloak.192.168.224.2.nip.io:32080/auth
+lagoonAPIURL: http://lagoon-api.172.17.0.2.nip.io:32080/graphql
+keycloakAPIURL: http://lagoon-keycloak.172.17.0.2.nip.io:32080/auth
 
 api:
   replicaCount: 1
@@ -37,7 +37,7 @@ api:
   ingress:
     enabled: true
     hosts:
-    - host: lagoon-api.192.168.224.2.nip.io
+    - host: lagoon-api.172.17.0.2.nip.io
       paths:
       - /
 
@@ -78,7 +78,7 @@ broker:
   ingress:
     enabled: true
     hosts:
-    - host: lagoon-broker.192.168.224.2.nip.io
+    - host: lagoon-broker.172.17.0.2.nip.io
       paths:
       - /
 
@@ -99,7 +99,7 @@ keycloak:
   ingress:
     enabled: true
     hosts:
-    - host: lagoon-keycloak.192.168.224.2.nip.io
+    - host: lagoon-keycloak.172.17.0.2.nip.io
       paths:
       - /
 
@@ -150,7 +150,7 @@ ssh:
   ingress:
     enabled: true
     hosts:
-    - host: lagoon-ssh.192.168.224.2.nip.io
+    - host: lagoon-ssh.172.17.0.2.nip.io
       paths:
       - /
 
@@ -167,7 +167,7 @@ ui:
   ingress:
     enabled: true
     hosts:
-    - host: lagoon-ui.192.168.224.2.nip.io
+    - host: lagoon-ui.172.17.0.2.nip.io
       paths:
       - /
 
@@ -178,7 +178,7 @@ webhookHandler:
   ingress:
     enabled: true
     hosts:
-    - host: lagoon-webhook.192.168.224.2.nip.io
+    - host: lagoon-webhook.172.17.0.2.nip.io
       paths:
       - /
 
