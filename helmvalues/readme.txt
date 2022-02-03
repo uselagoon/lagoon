@@ -70,3 +70,10 @@ kubectl get PostgreSQLProvider -A | awk '{printf "kubectl -n %s patch PostgreSQL
 
 # Use build-and-push from the root dir to wrap around make build and push the resulting image up to the harbor
 ./helmvalues/build-and-push.sh kubectl-build-deploy-dind
+
+
+# Note: If you are using mac and the registry is timing out, then make sure you have added the external harbor address to your list of insecure registries on Docker for Mac (under Preferences > Docker Engine). For example:
+
+"insecure-registries": [
+  "registry.172.17.0.3.nip.io:32080"
+],
