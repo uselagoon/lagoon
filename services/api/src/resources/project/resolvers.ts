@@ -12,8 +12,6 @@ import { generatePrivateKey, getSshKeyFingerprint } from '../sshKey';
 import { Sql as sshKeySql } from '../sshKey/sql';
 import { createHarborOperations } from './harborSetup';
 
-const removePrivateKey = R.assoc('privateKey', null);
-
 const isAdminCheck = async (hasPermission) => {
   try {
     // check user is admin
@@ -28,6 +26,22 @@ const isValidGitUrl = value =>
   /(?:git|ssh|https?|git@[-\w.]+):(\/\/)?(.*?)(\.git)(\/?|\#[-\d\w._]+?)$/.test(
     value
   );
+
+export const getPrivateKey: ResolverFn = async (
+  project,
+  _args,
+  { hasPermission }
+) => {
+  try {
+    await hasPermission('project', 'viewPrivateKey', {
+      project: project.id
+    });
+
+    return project.privateKey;
+  } catch (err) {
+    return null;
+  }
+};
 
 export const getAllProjects: ResolverFn = async (
   root,
@@ -103,15 +117,7 @@ export const getProjectByEnvironmentId: ResolverFn = async (
     project: project.id
   });
 
-  try {
-    await hasPermission('project', 'viewPrivateKey', {
-      project: project.id
-    });
-
-    return project;
-  } catch (err) {
-    return removePrivateKey(project);
-  }
+  return project;
 };
 
 export const getProjectById: ResolverFn = async (
@@ -135,15 +141,7 @@ export const getProjectById: ResolverFn = async (
     project: project.id
   });
 
-  try {
-    await hasPermission('project', 'viewPrivateKey', {
-      project: project.id
-    });
-
-    return project;
-  } catch (err) {
-    return removePrivateKey(project);
-  }
+  return project;
 };
 
 export const getProjectByGitUrl: ResolverFn = async (
@@ -167,15 +165,7 @@ export const getProjectByGitUrl: ResolverFn = async (
     project: project.id
   });
 
-  try {
-    await hasPermission('project', 'viewPrivateKey', {
-      project: project.id
-    });
-
-    return project;
-  } catch (err) {
-    return removePrivateKey(project);
-  }
+  return project;
 };
 
 export const getProjectByName: ResolverFn = async (
@@ -201,15 +191,7 @@ export const getProjectByName: ResolverFn = async (
     project: project.id
   });
 
-  try {
-    await hasPermission('project', 'viewPrivateKey', {
-      project: project.id
-    });
-
-    return project;
-  } catch (err) {
-    return removePrivateKey(project);
-  }
+  return project;
 };
 
 export const getProjectsByMetadata: ResolverFn = async (
