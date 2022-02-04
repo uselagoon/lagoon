@@ -171,7 +171,8 @@ const {
   deleteAllProjects,
   getProjectUrl,
   updateProjectMetadata,
-  removeProjectMetadataByKey
+  removeProjectMetadataByKey,
+  getPrivateKey,
 } = require('./resources/project/resolvers');
 
 const {
@@ -304,6 +305,7 @@ const resolvers = {
     deployTargetConfigs: getDeployTargetConfigsByProjectId,
     envVariables: getEnvVarsByProjectId,
     groups: getGroupsByProjectId,
+    privateKey: getPrivateKey,
   },
   GroupInterface: {
     __resolveType(group) {
