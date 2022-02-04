@@ -8,9 +8,11 @@ import { Helpers } from './helpers';
 import { KeycloakOperations } from './keycloak';
 import { OpendistroSecurityOperations } from '../group/opendistroSecurity';
 import { Sql } from './sql';
+import * as OS from '../openshift/sql';
 import { generatePrivateKey, getSshKeyFingerprint } from '../sshKey';
 import { Sql as sshKeySql } from '../sshKey/sql';
 import { createHarborOperations } from './harborSetup';
+import sql from '../user/sql';
 
 const removePrivateKey = R.assoc('privateKey', null);
 
@@ -310,76 +312,25 @@ export const addProject = async (
     }
   }
 
-  const rows = await query(
+  const osRows = await query(sqlClientPool, OS.Sql.selectOpenshift(openshift));
+  if(osRows.length == 0) {
+    throw Error(`Openshift ID: "${openshift}" does not exist"`);
+  }
+
+  const { insertId } = await query(
     sqlClientPool,
-    `CALL CreateProject(
-      ${input.id ? ':id' : 'NULL'},
-      :name,
-      :git_url,
-      ${input.availability ? ':availability' : '"STANDARD"'},
-      :private_key,
-      ${input.subfolder ? ':subfolder' : 'NULL'},
-      ${input.routerPattern ? ':router_pattern' : 'NULL'},
-      :openshift,
-      ${openshiftProjectPattern ? ':openshift_project_pattern' : 'NULL'},
-      ${
-        input.activeSystemsDeploy
-          ? ':active_systems_deploy'
-          : '"lagoon_controllerBuildDeploy"'
-      },
-      ${
-        input.activeSystemsPromote
-          ? ':active_systems_promote'
-          : '"lagoon_controllerBuildDeploy"'
-      },
-      ${
-        input.activeSystemsRemove
-          ? ':active_systems_remove'
-          : '"lagoon_controllerRemove"'
-      },
-      ${
-        input.activeSystemsTask
-          ? ':active_systems_task'
-          : '"lagoon_controllerJob"'
-      },
-      ${
-        input.activeSystemsMisc
-          ? ':active_systems_misc'
-          : '"lagoon_controllerMisc"'
-      },
-      ${input.branches ? ':branches' : '"true"'},
-      ${input.pullrequests ? ':pullrequests' : '"true"'},
-      :production_environment,
-      ${input.productionRoutes ? ':production_routes' : 'NULL'},
-      ${input.productionAlias ? ':production_alias' : '"lagoon-production"'},
-      ${
-        input.standbyProductionEnvironment
-          ? ':standby_production_environment'
-          : 'NULL'
-      },
-      ${input.standbyRoutes ? ':standby_routes' : 'NULL'},
-      ${input.standbyAlias ? ':standby_alias' : '"lagoon-standby"'},
-      ${input.autoIdle ? ':auto_idle' : '1'},
-      ${input.storageCalc ? ':storage_calc' : '1'},
-      ${input.factsUi ? ':facts_ui' : '0'},
-      ${input.problemsUi ? ':problems_ui' : '0'},
-      ${deploymentsDisabled ? ':deployments_disabled' : '0'},
-      ${
-        input.developmentEnvironmentsLimit
-          ? ':development_environments_limit'
-          : '5'
-      }
-    );`,
-    {
-      ...input,
-      openshift,
-      openshiftProjectPattern,
-      privateKey: keyPair.private
-    }
+    Sql.createProject({
+    ...input,
+    openshift,
+    openshiftProjectPattern,
+    privateKey: keyPair.private
+  }));
+
+  const rows = await query(
+    sqlClientPool, Sql.selectProject(insertId)
   );
-  const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s([
-    R.path([0, 0], rows)
-  ]);
+
+  const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   const project = withK8s[0];
 
   // Create a default group for this project
