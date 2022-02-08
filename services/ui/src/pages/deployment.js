@@ -22,30 +22,37 @@ import { bp } from 'lib/variables';
  * Displays a deployment page, given the openshift project and deployment name.
  */
 export const PageDeployment = ({ router }) => {
+  const logsContent = useRef(null);
   const logsTopRef = useRef(null);
   const logsEndRef = useRef(null);
-  const [bottom, setBottom] = useState(true);
-  const [top, setTop] = useState(false);
+  const [showBottom, setShowBottom] = useState(true);
+  const [showTop, setShowTop] = useState(false);
+  const [hidden, setHidden] = useState("");
 
   const scrollToTop = () => {
     logsTopRef.current.scrollIntoView({ behavior: "smooth" });
-    setTop(false);
-    setBottom(true);
+    setShowTop(!!showTop);
+    setShowBottom(!!showBottom);
   };
 
   const scrollToBottom = () => {
     logsEndRef.current.scrollIntoView({ behavior: "smooth" });
+    setShowTop(!!showTop);
+    setShowBottom(!!showBottom);
   };
 
   const onScroll = () => {
-    const pageBottom = document.body.scrollHeight - document.documentElement.scrollTop === document.documentElement.clientHeight;
-    if (pageBottom) {
-       setTop(true);
-       setBottom(false);
+    const pageTop = document.documentElement.scrollTop <= 300;
+    const pageBottom = (document.body.scrollHeight - document.documentElement.scrollTop) - 100 <= document.documentElement.clientHeight;
+
+    if (hidden == "hidden") return;
+    if (pageTop) {
+      setShowTop(false);
+      setShowBottom(true);
     }
-    else {
-       setTop(!!top);
-       setBottom(!!bottom);
+    if (pageBottom) {
+      setShowTop(true);
+      setShowBottom(false);
     }
   }
 
@@ -72,13 +79,11 @@ export const PageDeployment = ({ router }) => {
             useEffect(() => {
               window.addEventListener("scroll", onScroll);
 
-              if (deployment.status !== "complete") {
-                scrollToBottom();
+              if (logsContent && logsContent.current.clientHeight < document.documentElement.clientHeight) {
+                setHidden("hidden");
               }
 
-              return () => {
-                window.removeEventListener("scroll", onScroll);
-              }
+              return () => window.removeEventListener("scroll", onScroll);
             }, [deployment]);
 
           return (
@@ -93,17 +98,16 @@ export const PageDeployment = ({ router }) => {
               </Breadcrumbs>
               <div className="content-wrapper">
                 <NavTabs activeTab="deployments" environment={environment} />
-                <div className="content">
+                <div ref={logsContent} className="content">
                   <Deployment deployment={deployment} />
                 </div>
               </div>
               <div ref={logsEndRef} />
               <div className="scroll-wrapper">
-                {!bottom &&
-                <button className="scroll" onClick={() => scrollToTop()}>↑</button>
-                }
-                {!top &&
-                <button className="scroll" onClick={() => scrollToBottom()}>↓</button>
+                {!hidden &&
+                  <button className={`scroll ${!showBottom ? "top" : "bottom"}`} onClick={() => !showBottom ? scrollToTop() : scrollToBottom()}>
+                    {!showBottom ? "↑" : "↓"}
+                  </button>
                 }
               </div>
               <style jsx>{`
@@ -133,6 +137,20 @@ export const PageDeployment = ({ router }) => {
                   cursor: pointer;
                   line-height: 2rem;
                   font-size: 2rem;
+                  opacity: 0;
+
+                  -webkit-transition: opacity 2s ease-in;
+                  -moz-transition: opacity 2s ease-in;
+                  -ms-transition: opacity 2s ease-in;
+                  -o-transition: opacity 2s ease-in;
+                  transition: opacity 2s ease-in;
+
+                  &.hidden {
+                    opacity: 0;
+                  }
+                  &.top, &.bottom {
+                    opacity: 1;
+                  }
                 }
               `}</style>
             </MainLayout>
