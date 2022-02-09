@@ -198,4 +198,8 @@ export const Sql = {
   .where('id', id)
   .del()
   .toString(),
+  deleteAdvancedTaskDefinitionArgumentsForTask:(taskId: number) => knex('advanced_task_definition_argument')
+  .where('advanced_task_definition', taskId)
+  .del()
+  .toString()
 };
