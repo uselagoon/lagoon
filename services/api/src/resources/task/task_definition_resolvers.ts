@@ -149,14 +149,14 @@ export const resolveTasksForEnvironment = async (
   //@ts-ignore
   rows = R.filter(e => currentUsersPermissionForProject.includes(e.permission), rows);
 
-
+  const atf = advancedTaskToolbox.advancedTaskFunctions(sqlClientPool, models, hasPermission);
 
   let typeValidatorFactory = advancedTaskArgument.advancedTaskDefinitionTypeFactory(sqlClientPool, null, environment);
   // TODO: this needs to be somehow refactored into all lookups.
   // we might need a "load task" function or something.
   for(let i = 0; i < rows.length; i++ ) {
     //@ts-ignore
-    let argsForTask = await advancedTaskFunctions(sqlClientPool).advancedTaskDefinitionArguments(rows[i].id);
+    let argsForTask = await atf.advancedTaskDefinitionArguments(rows[i].id);
     let processedArgs = [];
     for(let i = 0; i < argsForTask.length; i++) {
       let processing = argsForTask[i];
