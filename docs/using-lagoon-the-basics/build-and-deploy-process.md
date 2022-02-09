@@ -4,7 +4,7 @@ This document describes what actually happens during a Lagoon build and deployme
 
 Watch the video below for a walk-through of the deployment process.
 
-{% embed url="https://www.youtube.com/watch?v=XiaH7gqUXWc" caption="Lagoon Deployment Demo Video" %}
+<iframe width="560" height="315" src="https://www.youtube.com/embed/XiaH7gqUXWc" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 ## 1. Set up OpenShift Project/Kubernetes Namespace for Environment
 
@@ -80,7 +80,7 @@ Lagoon will now create persistent storage \(PVC\) for each service that needs an
 
 ## 7. Cron jobs
 
-For each service that requests a cron job \(like MariaDB\), plus for each custom cron job defined in `.lagoon.yml,` Lagoon will now generate the cron job environment variables which are later injected into the [Deployment](https://docs.openshift.com/container-platform/4.4/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are).
+For each service that requests a cron job \(like MariaDB\), plus for each custom cron job defined in `.lagoon.yml,` Lagoon will now generate the cron job environment variables which are later injected into the [Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/).
 
 ## 8. Run defined pre-rollout tasks
 
@@ -90,7 +90,7 @@ If any of them fail, Lagoon will immediately stop and notify you, and the rollou
 
 ## 9. DeploymentConfigs, Statefulsets, Daemonsets
 
-This is probably the most important step. Based on the defined service type, Lagoon will create the [Deployment](https://docs.openshift.com/container-platform/4.4/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are), [Statefulset](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/) or [Daemonsets](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/) for the service. \(Note that Deployments are analogous DeploymentConfigs in OpenShift\)
+This is probably the most important step. Based on the defined service type, Lagoon will create the [Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/), [Statefulset](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/) or [Daemonsets](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/) for the service. \(Note that Deployments are analogous to [DeploymentConfigs](https://docs.openshift.com/container-platform/latest/applications/deployments/what-deployments-are.html) in OpenShift\)
 
 It will include all previously gathered information like the cron jobs, the location of persistent storage, the pushed images and so on.
 
@@ -111,6 +111,3 @@ If any of them fail, Lagoon will immediately stop and notify you.
 ## 12. Success
 
 If all went well and nothing threw any errors, Lagoon will mark this build as successful and inform you via defined notifications. ✅
-
-
-

@@ -21,6 +21,8 @@ COPY helmcharts  /kubectl-build-deploy/helmcharts
 
 ENV IMAGECACHE_REGISTRY=imagecache.amazeeio.cloud
 
+ENV DBAAS_OPERATOR_HTTP=dbaas.lagoon.svc:5000
+
 RUN curl -sSL https://github.com/uselagoon/lagoon-linter/releases/download/v0.5.0/lagoon-linter_0.5.0_linux_amd64.tar.gz \
     | tar -xz -C /usr/local/bin lagoon-linter
 

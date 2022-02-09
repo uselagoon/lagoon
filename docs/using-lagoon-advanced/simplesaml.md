@@ -45,9 +45,7 @@ Alter other settings to your liking:
 
 Add authsources \(IdPs\) to `authsources.php`, see example:
 
-{% tabs %}
-{% tab title="authsources.php" %}
-```text
+```text title="authsources.php"
   'default-sp' => [
     'saml:SP',
 
@@ -89,13 +87,9 @@ Add authsources \(IdPs\) to `authsources.php`, see example:
     ],
   ],
 ```
-{% endtab %}
-{% endtabs %}
 
 Add IdP metadata to `saml20-idp-remote.php`, see example:
 
-{% tabs %}
-{% tab title="Plain Text" %}
 ```text
 <?php
 /**
@@ -120,8 +114,7 @@ $metadata['https://YOUR_IDP_DOMAIN.TLD'] = [
 
 ];
 ```
-{% endtab %}
-{% endtabs %}
+
 
 In your build process, copy config files to SimpleSAMLphp:
 
@@ -133,9 +126,7 @@ In your build process, copy config files to SimpleSAMLphp:
 
 Create file  `lagoon/nginx/location_prepend_simplesamlphp.conf`:
 
-{% tabs %}
-{% tab title="location\_prepend\_simplesamlphp.conf" %}
-```text
+```text title="location\_prepend\_simplesamlphp.conf" 
 location ^~ /simplesaml {
     alias /app/vendor/simplesamlphp/simplesamlphp/www;
 
@@ -149,8 +140,6 @@ location ^~ /simplesaml {
     }
 }
 ```
-{% endtab %}
-{% endtabs %}
 
 This will route `/simplesaml` URLs to SimpleSAMLphp in vendor.
 
@@ -158,9 +147,7 @@ This will route `/simplesaml` URLs to SimpleSAMLphp in vendor.
 
 Modify `nginx.dockerfile` and add `location_prepend_simplesamlphp.conf` to the image:
 
-{% tabs %}
-{% tab title="nginx.dockerfile" %}
-```text
+```text title="nginx.dockerfile"
 ARG CLI_IMAGE
 FROM ${CLI_IMAGE} as cli
 
@@ -174,6 +161,3 @@ RUN fix-permissions /etc/nginx/conf.d/drupal/location_prepend_simplesamlphp.conf
 # Define where the Drupal Root is located
 ENV WEBROOT=public
 ```
-{% endtab %}
-{% endtabs %}
-

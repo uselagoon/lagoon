@@ -124,7 +124,8 @@ docker_publish_uselagoon = docker tag $(CI_BUILD_TAG)/$(1) uselagoon/$(2) && doc
 
 .PHONY: docker_pull
 docker_pull:
-	docker images --format "{{.Repository}}:{{.Tag}}" | grep -E '$(UPSTREAM_REPO)' | grep -E '$(UPSTREAM_TAG)' | xargs -L1 docker pull;
+	docker images --format "{{.Repository}}:{{.Tag}}" | grep -E '$(UPSTREAM_REPO)' | grep -E '$(UPSTREAM_TAG)' | xargs -tn1 -P8 docker pull -q || true;
+	grep -Eh 'FROM' $$(find . -type f -name *Dockerfile) | grep -Ev '_REPO|_VERSION|_CACHE' | awk '{print $$2}' | sort --unique | xargs -tn1 -P8 docker pull -q
 
 #######
 ####### Base Images
@@ -610,6 +611,18 @@ $(publish-uselagoon-taskimages):
 clean:
 	rm -rf build/*
 
+# Conduct post-release scans on images
+.PHONY: scan-images
+scan-images:
+	mkdir -p ./scans
+	rm -f ./scans/*.txt
+	@for tag in $(foreach image,$(base-images) $(service-images) $(task-images),$(image)); do \
+			docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(HOME)/Library/Caches:/root/.cache/ aquasec/trivy image --timeout 5m0s $(CI_BUILD_TAG)/$$tag > ./scans/$$tag.trivy.txt ; \
+			docker run --rm -v /var/run/docker.sock:/var/run/docker.sock anchore/syft $(CI_BUILD_TAG)/$$tag > ./scans/$$tag.syft.txt ; \
+			docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(HOME)/Library/Caches:/var/lib/grype/db anchore/grype $(CI_BUILD_TAG)/$$tag > ./scans/$$tag.grype.txt ; \
+			echo $$tag ; \
+	done
+
 # Show Lagoon Service Logs
 logs:
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility logs --tail=10 -f $(service)
@@ -960,7 +973,7 @@ GOJQ_VERSION = v0.12.5
 STERN_VERSION = 2.1.17
 CHART_TESTING_VERSION = v3.4.0
 KIND_IMAGE = kindest/node:v1.21.1@sha256:69860bda5563ac81e3c0057d654b5253219618a22ec3a346306239bba8cfa1a6
-TESTS = [api,features-kubernetes,features-kubernetes-2,features-api-variables,active-standby-kubernetes,nginx,drupal-php73,drupal-php74,drupal-postgres,python,gitlab,github,bitbucket,node-mongodb,elasticsearch,tasks]
+TESTS = [nginx,api,features-kubernetes,features-kubernetes-2,features-api-variables,active-standby-kubernetes,tasks,drush,drupal-php80,drupal-postgres,python,gitlab,github,bitbucket,node-mongodb,elasticsearch]
 CHARTS_TREEISH = main
 
 local-dev/kind:

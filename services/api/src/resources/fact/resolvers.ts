@@ -386,7 +386,7 @@ export const getFactFilteredEnvironmentIds = async (filterDetails: any, projectI
 
 const getFactFilteredProjects = async (filterDetails: any, projectIdSubset: number[], sqlClientPool, isAdmin: boolean) => {
   let factQuery = knex('project').distinct('project.*').innerJoin('environment', 'environment.project', 'project.id');
-  factQuery = buildContitionsForFactSearchQuery(filterDetails, factQuery, projectIdSubset, isAdmin);
+  factQuery = buildConditionsForFactSearchQuery(filterDetails, factQuery, projectIdSubset, isAdmin);
   factQuery = setQueryLimit(filterDetails, factQuery);
   factQuery = factQuery.orderBy('project.name', 'asc');
 
@@ -396,7 +396,7 @@ const getFactFilteredProjects = async (filterDetails: any, projectIdSubset: numb
 
 const getFactFilteredProjectsCount = async (filterDetails: any, projectIdSubset: number[], sqlClientPool, isAdmin: boolean) => {
   let factQuery = knex('project').countDistinct({ count: 'project.id'}).innerJoin('environment', 'environment.project', 'project.id');
-  factQuery = buildContitionsForFactSearchQuery(filterDetails, factQuery, projectIdSubset, isAdmin);
+  factQuery = buildConditionsForFactSearchQuery(filterDetails, factQuery, projectIdSubset, isAdmin);
 
   const rows = await query(sqlClientPool, factQuery.toString());
   return rows[0].count;
@@ -405,7 +405,7 @@ const getFactFilteredProjectsCount = async (filterDetails: any, projectIdSubset:
 
 const getFactFilteredEnvironments = async (filterDetails: any, projectIdSubset: number[], sqlClientPool, isAdmin: boolean) => {
   let factQuery = knex('environment').distinct('environment.*').innerJoin('project', 'environment.project', 'project.id');
-  factQuery = buildContitionsForFactSearchQuery(filterDetails, factQuery, projectIdSubset, isAdmin);
+  factQuery = buildConditionsForFactSearchQuery(filterDetails, factQuery, projectIdSubset, isAdmin);
   factQuery = setQueryLimit(filterDetails, factQuery);
   factQuery = factQuery.orderBy('project.name', 'asc');
 
@@ -415,13 +415,13 @@ const getFactFilteredEnvironments = async (filterDetails: any, projectIdSubset: 
 
 const getFactFilteredEnvironmentsCount = async (filterDetails: any, projectIdSubset: number[], sqlClientPool, isAdmin: boolean) => {
   let factQuery = knex('environment').countDistinct({ count: 'environment.id'}).innerJoin('project', 'environment.project', 'project.id');
-  factQuery = buildContitionsForFactSearchQuery(filterDetails, factQuery, projectIdSubset, isAdmin);
+  factQuery = buildConditionsForFactSearchQuery(filterDetails, factQuery, projectIdSubset, isAdmin);
 
   const rows = await query(sqlClientPool, factQuery.toString());
   return rows[0].count;
 }
 
-const buildContitionsForFactSearchQuery = (filterDetails: any, factQuery: any, projectIdSubset: number[], isAdmin: boolean = false, byPassLimits: boolean = false) => {
+const buildConditionsForFactSearchQuery = (filterDetails: any, factQuery: any, projectIdSubset: number[], isAdmin: boolean = false, byPassLimits: boolean = false) => {
   if (filterDetails.filters && filterDetails.filters.length > 0) {
     filterDetails.filters.forEach((filter, i) => {
 

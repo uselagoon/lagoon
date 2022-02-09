@@ -1,7 +1,3 @@
----
-description: How to debug Lagoon in VSCode.
----
-
 # API Debugging
 
 1 . Ensure the `dev` script at `services/api/package.json` includes the following:
@@ -60,4 +56,3 @@ rm build/api && make build/api && docker-compose restart api
 ```
 
 5 . Restart VScode.
-

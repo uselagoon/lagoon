@@ -9,8 +9,10 @@ export const config = {
 export const kibanaClient = got.extend({
   baseUrl: `${config.origin}/api/`,
   auth: `${esClientConfig.user}:${esClientConfig.pass}`,
+  rejectUnauthorized: false,
   json: true,
   headers: {
-    'kbn-xsrf': 'true'
+    'kbn-xsrf': 'true',
+    'osd-xsrf': 'true'
   }
 });

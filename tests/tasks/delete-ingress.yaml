@@ -1,0 +1,5 @@
+---
+- name: "{{ testname }} - Delete ingress {{ ingress }} in {{ project }} namespace"
+  shell: |
+    kubectl -n {{ project }}-{{ branch }} delete ingress {{ingress}}
+  ignore_errors: yes

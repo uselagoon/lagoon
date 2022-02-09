@@ -12,7 +12,6 @@ import {
   getOpenShiftInfoForProject,
   getOpenShiftInfoForEnvironment,
   getDeployTargetConfigsForProject,
-  getBillingGroupForProject,
   addOrUpdateEnvironment,
   getEnvironmentByName,
   addDeployment
@@ -281,8 +280,6 @@ export const getControllerBuildData = async function(deployData: any) {
 
   const result = await getOpenShiftInfoForProject(projectName);
   const lagoonProjectData = result.project
-  const billingGroupResult = await getBillingGroupForProject(projectName);
-  const projectBillingGroup = billingGroupResult.project
 
   var overlength = 58 - projectName.length;
   if ( environmentName.length > overlength ) {
@@ -332,10 +329,6 @@ export const getControllerBuildData = async function(deployData: any) {
     alertContact = "unconfigured"
   }
 
-  const billingGroup = projectBillingGroup.groups.find(i => i.type == "billing" ) || ""
-  if (billingGroup.uptimeRobotStatusPageId && billingGroup.uptimeRobotStatusPageId != "null" && !R.isEmpty(billingGroup.uptimeRobotStatusPageId)){
-    uptimeRobotStatusPageIds.push(billingGroup.uptimeRobotStatusPageId)
-  }
   var uptimeRobotStatusPageId = uptimeRobotStatusPageIds.join('-')
 
   var pullrequestData: any = {};
@@ -402,10 +395,17 @@ export const getControllerBuildData = async function(deployData: any) {
 
   var openshiftProject = openshiftProjectPattern ? openshiftProjectPattern.replace('${environment}',environmentName).replace('${project}', projectName) : `${projectName}-${environmentName}`
 
+  // set routerpattern to the routerpattern of what is defined in the project scope openshift
   var routerPattern = lagoonProjectData.openshift.routerPattern
   if (typeof deployTarget.openshift.routerPattern !== 'undefined') {
-    // null is a valid value for routerPatterns...
+    // if deploytargets are being provided, then use what is defined in the deploytarget
+    // null is a valid value for routerPatterns here...
     routerPattern = deployTarget.openshift.routerPattern
+  }
+  // but if the project itself has a routerpattern defined, then this should be used
+  if (lagoonProjectData.routerPattern) {
+    // if a project has a routerpattern defined, use it. `null` is not valid here
+    routerPattern = lagoonProjectData.routerPattern
   }
   var deployTargetName = deployTarget.openshift.name
   var monitoringConfig: any = {};
@@ -421,6 +421,17 @@ export const getControllerBuildData = async function(deployData: any) {
     if (monitoringConfig.uptimerobot.statusPageId) {
       uptimeRobotStatusPageIds.push(monitoringConfig.uptimerobot.statusPageId)
     }
+  }
+
+  var alertContact = ""
+  if (alertContactHA != undefined && alertContactSA != undefined){
+    if (availability == "HIGH") {
+      alertContact = alertContactHA
+    } else {
+      alertContact = alertContactSA
+    }
+  } else {
+    alertContact = "unconfigured"
   }
 
   var availability = lagoonProjectData.availability || "STANDARD"
@@ -459,6 +470,12 @@ export const getControllerBuildData = async function(deployData: any) {
     logger.error(`Could not save deployment for project ${lagoonProjectData.id}. Message: ${error}`);
   }
 
+  // append the routerpattern to the projects variables
+  // use a scope of `internal_system` which isn't available to the actual API to be added via mutations
+  // this way variables or new functionality can be passed into lagoon builds using the existing variables mechanism
+  // avoiding the needs to hardcode them into the spec to then be consumed by the build-deploy controller
+  lagoonProjectData.envVariables.push({"name":"LAGOON_SYSTEM_ROUTER_PATTERN", "value":routerPattern, "scope":"internal_system"})
+
   // encode some values so they get sent to the controllers nicely
   const sshKeyBase64 = new Buffer(deployPrivateKey.replace(/\\n/g, "\n")).toString('base64')
   const envVars = new Buffer(JSON.stringify(environment.addOrUpdateEnvironment.envVariables)).toString('base64')
@@ -490,10 +507,12 @@ export const getControllerBuildData = async function(deployData: any) {
         environment: environmentName,
         environmentType: environmentType,
         environmentId: environmentId,
+        environmentIdling: environment.autoIdle,
+        projectIdling: lagoonProjectData.autoIdle,
         productionEnvironment: projectProductionEnvironment,
         standbyEnvironment: projectStandbyEnvironment,
         subfolder: subfolder,
-        routerPattern: routerPattern,
+        routerPattern: routerPattern, // @DEPRECATE: send this still for backwards compatability, but eventually this can be removed once LAGOON_SYSTEM_ROUTER_PATTERN is adopted wider
         deployTarget: deployTargetName,
         projectSecret: projectSecret,
         key: sshKeyBase64,
