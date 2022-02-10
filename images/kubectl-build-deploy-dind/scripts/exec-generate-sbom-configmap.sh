@@ -30,7 +30,7 @@ if [ -f "${SBOM_OUTPUT_FILE}" ]; then
         kubectl --insecure-skip-tls-verify \
             -n ${NAMESPACE} \
             label configmap ${SBOM_CONFIGMAP} \
-            lagoon.sh/insights=sbom \
+            lagoon.sh/insightsType=sbom \
             lagoon.sh/project=${PROJECT} \
             lagoon.sh/environment=${ENVIRONMENT} \
             lagoon.sh/service=${IMAGE_NAME}
@@ -44,7 +44,7 @@ if [ -f "${SBOM_OUTPUT_FILE}" ]; then
         kubectl --insecure-skip-tls-verify \
             -n ${NAMESPACE} \
             label configmap ${SBOM_CONFIGMAP} \
-            lagoon.sh/insights=sbom \
+            lagoon.sh/insightsType=sbom \
             lagoon.sh/project=${PROJECT} \
             lagoon.sh/environment=${ENVIRONMENT} \
             lagoon.sh/service=${IMAGE_NAME}
