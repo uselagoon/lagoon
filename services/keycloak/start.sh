@@ -1266,72 +1266,6 @@ EOF
     # {"type":"scope","logic":"POSITIVE","decisionStrategy":"UNANIMOUS","name":"Backup View","resources":["2ebb5852-6624-4dc6-8374-e1e54a7fd9c5"],"scopes":["8e78b877-f930-43ff-995f-c907af64f69f"],"policies":["d4fae4e2-ddc7-462c-b712-d68aaeb269e1"]}
 }
 
-function add_billing_modifier {
-  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
-  billing_modifier=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Delete+All+Billing+Group+Modifiers --config $CONFIG_PATH)
-
-  if [ "$billing_modifier" != "[ ]" ]; then
-      echo "billing_modifier:add|update|delete|deleteAll already configured"
-      return 0
-  fi
-
-  echo Creating resource billing_modifier
-
-  # Add Scopes to Resource
-  echo '{"name":"billing_modifier","displayName":"billing_modifier","scopes":[{"name":"add"},{"name":"update"},{"name":"delete"},{"name":"deleteAll"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
-
-
-  # Create new permission
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
-{
-  "name": "Add Billing Modifier",
-  "type": "scope",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "resources": ["billing_modifier"],
-  "scopes": ["add"],
-  "policies": ["Users role for realm is Platform Owner"]
-}
-EOF
-
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
-{
-  "name": "Update Billing Modifier",
-  "type": "scope",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "resources": ["billing_modifier"],
-  "scopes": ["update"],
-  "policies": ["Users role for realm is Platform Owner"]
-}
-EOF
-
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
-{
-  "name": "Delete Billing Modifier",
-  "type": "scope",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "resources": ["billing_modifier"],
-  "scopes": ["delete"],
-  "policies": ["Users role for realm is Platform Owner"]
-}
-EOF
-
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
-{
-  "name": "Delete All Billing Group Modifiers",
-  "type": "scope",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "resources": ["billing_modifier"],
-  "scopes": ["deleteAll"],
-  "policies": ["Users role for realm is Platform Owner"]
-}
-EOF
-
-}
-
 function add_group_viewall {
   CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
   view_all_groups=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+All+Groups --config $CONFIG_PATH)
@@ -1719,7 +1653,25 @@ EOF
 
 }
 
+function remove_billing_modifier {
+  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
+  billing_modifier=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Delete+All+Billing+Group+Modifiers --config $CONFIG_PATH)
 
+  if [ "$billing_modifier" == "[ ]" ]; then
+      return 0
+  fi
+
+  echo Removing billing_modifier authz
+
+  permissions=$(/opt/jboss/keycloak/bin/kcadm.sh get clients/$CLIENT_ID/authz/resource-server/permission?resource=billing_modifier --fields id --format csv --noquotes --config $CONFIG_PATH -r lagoon)
+  for permission in $permissions
+  do
+    /opt/jboss/keycloak/bin/kcadm.sh delete clients/$CLIENT_ID/authz/resource-server/permission/$permission --config $CONFIG_PATH -r lagoon
+  done
+
+  billing_modifier_resource_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=billing_modifier --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["_id"]')
+  /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/resource/$billing_modifier_resource_id --config $CONFIG_PATH
+}
 
 function configure_keycloak {
     until is_keycloak_running; do
@@ -1740,12 +1692,12 @@ function configure_keycloak {
     add_group_viewall
     add_deployment_cancel
     configure_task_cron
-    add_billing_modifier
     configure_task_uli
     configure_problems_system
     configure_facts_system
     configure_harbor_scan_system
     configure_advanced_task_system
+    remove_billing_modifier
 
     echo "Config of Keycloak done. Log in via admin user '$KEYCLOAK_ADMIN_USER' and password '$KEYCLOAK_ADMIN_PASSWORD'"
 }

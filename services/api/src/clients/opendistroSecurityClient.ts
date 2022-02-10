@@ -9,5 +9,6 @@ export const config = {
 export const opendistroSecurityClient = got.extend({
   baseUrl: `${config.origin}/_opendistro/_security/api/`,
   auth: `${esClientConfig.user}:${esClientConfig.pass}`,
+  rejectUnauthorized: false,
   json: true
 });

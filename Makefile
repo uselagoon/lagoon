@@ -611,6 +611,18 @@ $(publish-uselagoon-taskimages):
 clean:
 	rm -rf build/*
 
+# Conduct post-release scans on images
+.PHONY: scan-images
+scan-images:
+	mkdir -p ./scans
+	rm -f ./scans/*.txt
+	@for tag in $(foreach image,$(base-images) $(service-images) $(task-images),$(image)); do \
+			docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(HOME)/Library/Caches:/root/.cache/ aquasec/trivy image --timeout 5m0s $(CI_BUILD_TAG)/$$tag > ./scans/$$tag.trivy.txt ; \
+			docker run --rm -v /var/run/docker.sock:/var/run/docker.sock anchore/syft $(CI_BUILD_TAG)/$$tag > ./scans/$$tag.syft.txt ; \
+			docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(HOME)/Library/Caches:/var/lib/grype/db anchore/grype $(CI_BUILD_TAG)/$$tag > ./scans/$$tag.grype.txt ; \
+			echo $$tag ; \
+	done
+
 # Show Lagoon Service Logs
 logs:
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility logs --tail=10 -f $(service)
