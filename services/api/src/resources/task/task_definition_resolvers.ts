@@ -461,15 +461,18 @@ export const invokeRegisteredTask = async (
 
       let taskCommandEnvs = '';
 
-      if(argumentValues) {
+      let taskCommand = "";
+
+      if(argumentValues && argumentValues.length > 0) {
         taskCommandEnvs = R.reduce((acc, val) => {
           //@ts-ignore
           return `${acc} ${val.advancedTaskDefinitionArgumentName}="${val.value}"`
         }, taskCommandEnvs, argumentValues);
+
+        taskCommand += `${taskCommandEnvs}; `;
       }
 
-
-      let taskCommand = `${taskCommandEnvs}; ${task.command}`;
+      taskCommand += `${task.command}`;
 
       const taskData = await Helpers(sqlClientPool).addTask({
         name: task.name,
