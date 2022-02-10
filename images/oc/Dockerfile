@@ -22,7 +22,7 @@ COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/
 COPY --from=commons /sbin/tini /sbin/
 COPY --from=commons /home /home
 
-COPY svcat /usr/bin/svcat
+COPY svcat-0.2.3 /usr/bin/svcat
 
 RUN chmod g+w /etc/passwd \
     && mkdir -p /home
