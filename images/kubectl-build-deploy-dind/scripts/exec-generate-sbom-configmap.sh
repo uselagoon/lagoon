@@ -31,6 +31,7 @@ if [ -f "${SBOM_OUTPUT_FILE}" ]; then
             -n ${NAMESPACE} \
             label configmap ${SBOM_CONFIGMAP} \
             lagoon.sh/insightsType=sbom \
+            lagoon.sh/buildName=${LAGOON_BUILD_NAME} \
             lagoon.sh/project=${PROJECT} \
             lagoon.sh/environment=${ENVIRONMENT} \
             lagoon.sh/service=${IMAGE_NAME}
@@ -45,6 +46,7 @@ if [ -f "${SBOM_OUTPUT_FILE}" ]; then
             -n ${NAMESPACE} \
             label configmap ${SBOM_CONFIGMAP} \
             lagoon.sh/insightsType=sbom \
+            lagoon.sh/buildName=${LAGOON_BUILD_NAME} \
             lagoon.sh/project=${PROJECT} \
             lagoon.sh/environment=${ENVIRONMENT} \
             lagoon.sh/service=${IMAGE_NAME}
