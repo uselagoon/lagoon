@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/cheshir/go-mq"
@@ -26,10 +25,17 @@ var (
 	lagoonAppID                  string
 	jwtTokenSigningKey           string
 	jwtAudience                  string
-	insightsQueueName           string
-	insightsExchange            string
+	insightsQueueName            string
+	insightsExchange             string
 	jwtSubject                   string
 	jwtIssuer                    string
+	secretAccessKey              string
+	s3Origin                     string
+	accessKeyID                  string
+	bucket                       string
+	region                       string
+	useSSL                       bool
+	enableDebug                  bool
 )
 
 func main() {
@@ -61,10 +67,20 @@ func main() {
 		"The jwt audience.")
 	flag.StringVar(&jwtIssuer, "jwt-issuer", "actions-handler",
 		"The jwt audience.")
-	flag.StringVar(&insightsQueueName, "insights-queue-name", "lagoon-logs:insights",
+	flag.StringVar(&insightsQueueName, "insights-queue-name", "lagoon-insights:items",
 		"The name of the queue in rabbitmq to use.")
-	flag.StringVar(&insightsExchange, "insights-exchange", "lagoon-logs",
+	flag.StringVar(&insightsExchange, "insights-exchange", "lagoon-insights",
 		"The name of the exchange in rabbitmq to use.")
+	flag.StringVar(&secretAccessKey, "secret-access-key", "minio123",
+		"s3 secret access key to use.")
+	flag.StringVar(&s3Origin, "s3-host", "localhost:9000",
+		"The s3 host/origin to use.")
+	flag.StringVar(&accessKeyID, "access-key-id", "minio",
+		"The name of the bucket to use.")
+	flag.StringVar(&bucket, "s3-bucket", "lagoon-sboms",
+		"The s3 aws region.")
+	flag.StringVar(&region, "s3-region", "",
+		"The s3 region.")
 	flag.Parse()
 
 	// get overrides from environment variables
@@ -79,7 +95,12 @@ func main() {
 	jwtIssuer = getEnv("JWT_ISSUER", jwtIssuer)
 	insightsQueueName = getEnv("INSIGHTS_QUEUE_NAME", insightsQueueName)
 	insightsExchange = getEnv("INSIGHTS_EXCHANGE", insightsExchange)
-
+	secretAccessKey = getEnv("S3_FILES_SECRET_ACCESS_KEY", secretAccessKey)
+	s3Origin = getEnv("S3_FILES_HOST", s3Origin)
+	accessKeyID = getEnv("S3_FILES_ACCESS_KEY_ID", accessKeyID)
+	bucket = getEnv("S3_FILES_BUCKET", bucket)
+	region = getEnv("S3_FILES_REGION", region)
+	useSSL := false
 	enableDebug := true
 
 	// configure the backup handler settings
@@ -97,6 +118,14 @@ func main() {
 		JWTSubject:      jwtSubject,
 		JWTIssuer:       jwtIssuer,
 	}
+	s3Config := handler.S3{
+		SecretAccessKey: secretAccessKey,
+		S3Origin:        s3Origin,
+		AccessKeyId:     accessKeyID,
+		Bucket:          bucket,
+		Region:          region,
+		UseSSL:          useSSL,
+	}
 
 	log.Println("insights-handler running")
 
@@ -104,7 +133,7 @@ func main() {
 		ReconnectDelay: time.Duration(rabbitReconnectRetryInterval) * time.Second,
 		Exchanges: mq.Exchanges{
 			{
-				Name: "lagoon-logs",
+				Name: "lagoon-insights",
 				Type: "direct",
 				Options: mq.Options{
 					"durable":       true,
@@ -117,7 +146,7 @@ func main() {
 		Consumers: mq.Consumers{
 			{
 				Name:    "items-queue",
-				Queue:   "lagoon-logs:items",
+				Queue:   "lagoon-insights:items",
 				Workers: mqWorkers,
 				Options: mq.Options{
 					"durable":       true,
@@ -129,8 +158,8 @@ func main() {
 		},
 		Queues: mq.Queues{
 			{
-				Name:     "lagoon-logs:items",
-				Exchange: "lagoon-logs",
+				Name:     "lagoon-insights:items",
+				Exchange: "lagoon-insights",
 				Options: mq.Options{
 					"durable":       true,
 					"delivery_mode": "2",
@@ -144,6 +173,7 @@ func main() {
 
 	messaging := handler.NewMessaging(config,
 		graphQLConfig,
+		s3Config,
 		startupConnectionAttempts,
 		startupConnectionInterval,
 		enableDebug,
@@ -160,12 +190,4 @@ func getEnv(key, fallback string) string {
 	return fallback
 }
 
-// accepts fallback values 1, t, T, TRUE, true, True, 0, f, F, FALSE, false, False
-// anything else is false.
-func getEnvBool(key string, fallback bool) bool {
-	if value, ok := os.LookupEnv(key); ok {
-		rVal, _ := strconv.ParseBool(value)
-		return rVal
-	}
-	return fallback
-}
+//go:generate go run github.com/Khan/genqlient internal/lagoonclient/genqlient.yaml

@@ -39,9 +39,20 @@ type __deleteFactsFromSourceInput struct {
 	Source      string `json:"source"`
 }
 
+// __getEnvironmentByNameInput is used internally by genqlient
+type __getEnvironmentByNameInput struct {
+	Name    string `json:"name"`
+	Project int    `json:"project"`
+}
+
 // __getEnvironmentFromIdInput is used internally by genqlient
 type __getEnvironmentFromIdInput struct {
 	Environment int `json:"environment"`
+}
+
+// __getProjectByNameInput is used internally by genqlient
+type __getProjectByNameInput struct {
+	Project string `json:"project"`
 }
 
 // addFactsAddFactsFact includes the requested fields of the GraphQL type Fact.
@@ -59,6 +70,22 @@ type deleteFactsFromSourceResponse struct {
 	DeleteFactsFromSource string `json:"deleteFactsFromSource"`
 }
 
+// getEnvironmentByNameEnvironmentByNameEnvironment includes the requested fields of the GraphQL type Environment.
+// The GraphQL type's documentation follows.
+//
+// Lagoon Environment (for each branch, pullrequest there is an individual environment)
+type getEnvironmentByNameEnvironmentByNameEnvironment struct {
+	// Internal ID of this Environment
+	Id int `json:"id"`
+	// Name of this Environment
+	Name string `json:"name"`
+}
+
+// getEnvironmentByNameResponse is returned by getEnvironmentByName on success.
+type getEnvironmentByNameResponse struct {
+	EnvironmentByName getEnvironmentByNameEnvironmentByNameEnvironment `json:"environmentByName"`
+}
+
 // getEnvironmentFromIdEnvironmentByIdEnvironment includes the requested fields of the GraphQL type Environment.
 // The GraphQL type's documentation follows.
 //
@@ -73,6 +100,81 @@ type getEnvironmentFromIdEnvironmentByIdEnvironment struct {
 // getEnvironmentFromIdResponse is returned by getEnvironmentFromId on success.
 type getEnvironmentFromIdResponse struct {
 	EnvironmentById getEnvironmentFromIdEnvironmentByIdEnvironment `json:"environmentById"`
+}
+
+// getProjectByNameProjectByNameProject includes the requested fields of the GraphQL type Project.
+// The GraphQL type's documentation follows.
+//
+// Lagoon Project (like a git repository)
+type getProjectByNameProjectByNameProject struct {
+	// ID of project
+	Id int `json:"id"`
+	// Name of project
+	Name string `json:"name"`
+}
+
+// getProjectByNameResponse is returned by getProjectByName on success.
+type getProjectByNameResponse struct {
+	// Returns Project Object by a given name
+	ProjectByName getProjectByNameProjectByNameProject `json:"projectByName"`
+}
+
+func getProjectByName(
+	ctx context.Context,
+	client graphql.Client,
+	project string,
+) (*getProjectByNameResponse, error) {
+	__input := __getProjectByNameInput{
+		Project: project,
+	}
+	var err error
+
+	var retval getProjectByNameResponse
+	err = client.MakeRequest(
+		ctx,
+		"getProjectByName",
+		`
+query getProjectByName ($project: String!) {
+	projectByName(name: $project) {
+		id
+		name
+	}
+}
+`,
+		&retval,
+		&__input,
+	)
+	return &retval, err
+}
+
+func getEnvironmentByName(
+	ctx context.Context,
+	client graphql.Client,
+	name string,
+	project int,
+) (*getEnvironmentByNameResponse, error) {
+	__input := __getEnvironmentByNameInput{
+		Name:    name,
+		Project: project,
+	}
+	var err error
+
+	var retval getEnvironmentByNameResponse
+	err = client.MakeRequest(
+		ctx,
+		"getEnvironmentByName",
+		`
+query getEnvironmentByName ($name: String!, $project: Int!) {
+	environmentByName(name: $name, project: $project) {
+		id
+		name
+	}
+}
+`,
+		&retval,
+		&__input,
+	)
+	return &retval, err
 }
 
 func getEnvironmentFromId(
@@ -127,7 +229,6 @@ mutation addFacts ($facts: [AddFactInput]!) {
 		&retval,
 		&__input,
 	)
-
 	return &retval, err
 }
 

@@ -1,3 +1,20 @@
+query getProjectByName($project: String!) {
+    projectByName(name: $project) {
+        id
+        name
+    }
+}
+
+query getEnvironmentByName($name: String!, $project: Int!) {
+    environmentByName(
+        name: $name
+        project: $project
+    ) {
+        id
+        name
+    }
+}
+
 query getEnvironmentFromId($environment: Int!) {
     environmentById(id: $environment) {
         id

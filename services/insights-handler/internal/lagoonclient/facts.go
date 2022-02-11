@@ -6,6 +6,16 @@ import (
 	"github.com/Khan/genqlient/graphql"
 )
 
+type Project struct {
+	Id   int
+	Name string
+}
+
+type Environment struct {
+	Id   int
+	Name string
+}
+
 type Fact struct {
 	Id          int      `json:"id"`
 	Environment int      `json:"environment"`
@@ -20,15 +30,38 @@ type Fact struct {
 
 type Facts []Fact
 
-type Environment struct {
-	Id   int
-	Name string
+func GetProjectByName(ctx context.Context, client graphql.Client, projectName string) (Project, error) {
+	var ret Project
+
+	resp, err := getProjectByName(ctx, client, projectName)
+	if err != nil {
+		return ret, err
+	}
+
+	return Project{
+		Id:   resp.ProjectByName.Id,
+		Name: resp.ProjectByName.Name,
+	}, nil
 }
 
-func GetEnvironmentFromId(ctx context.Context, client graphql.Client, environmentId int) (Environment, error) {
+func GetEnvironmentFromName(ctx context.Context, client graphql.Client, environmentName string, projectID int) (Environment, error) {
 	var ret Environment
 
-	resp, err := getEnvironmentFromId(ctx, client, environmentId)
+	resp, err := getEnvironmentByName(ctx, client, environmentName, projectID)
+	if err != nil {
+		return ret, err
+	}
+
+	return Environment{
+		Id:   resp.EnvironmentByName.Id,
+		Name: resp.EnvironmentByName.Name,
+	}, nil
+}
+
+func GetEnvironmentFromID(ctx context.Context, client graphql.Client, environmentID int) (Environment, error) {
+	var ret Environment
+
+	resp, err := getEnvironmentFromId(ctx, client, environmentID)
 	if err != nil {
 		return ret, err
 	}
@@ -48,8 +81,8 @@ func AddFacts(ctx context.Context, client graphql.Client, facts []AddFactInput) 
 	return fmt.Sprintf("Added %d facts", len(resp.AddFacts)), nil
 }
 
-func DeleteFactsFromSource(ctx context.Context, client graphql.Client, environmentId int, source string) (string, error) {
-	resp, err := deleteFactsFromSource(ctx, client, environmentId, source)
+func DeleteFactsFromSource(ctx context.Context, client graphql.Client, environmentID int, source string) (string, error) {
+	resp, err := deleteFactsFromSource(ctx, client, environmentID, source)
 	if err != nil {
 		return "", err
 	}
