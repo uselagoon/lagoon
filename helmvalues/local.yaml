@@ -33,7 +33,8 @@ imageTag: v2.3.0
 
 
 # lagoon-build-deploy
-overrideBuildDeployImage: registry.172.17.0.2.nip.io:32080/library/lagoon/kubectl-build-deploy-dind:latest
+overrideBuildDeployImage: uselagoon/kubectl-build-deploy-dind:latest
+# overrideBuildDeployImage: registry.172.17.0.2.nip.io:32080/library/lagoon/kubectl-build-deploy-dind:latest
 
 # This sets the same password in the lagoon-core-broker and lagoon-build-deploy to allow them to communicate
 rabbitMQPassword: xogie5lae8IoshugahcoeThakiequo3I

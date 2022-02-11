@@ -6,9 +6,9 @@ taskSSHHost: lagoon-core-ssh.lagoon.svc
 taskSSHPort: 2020
 taskAPIHost: http://lagoon-core-api.lagoon.svc:80
 
-image:
-  repository: amazeeio/lagoon-builddeploy
-  tag: v0.1.15
+# image:
+#   repository: uselagoon/remote-controller
+#   tag: v0.2.1
 
 overrideBuildDeployImage: uselagoon/kubectl-build-deploy-dind:latest
 
