@@ -33,7 +33,7 @@ export const Sql = {
         { type: type, content_type: contentType }
       )
       .where('nt.name', '=', name)
-      .select('nt.*', 'pn.*', knex.raw('? as type', [type]))
+      .select('nt.*', 'pn.*', knex.raw('? as orig_type', [type]))
       .toString();
   },
   deleteProjectNotification: input => {

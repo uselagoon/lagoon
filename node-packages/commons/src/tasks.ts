@@ -423,6 +423,17 @@ export const getControllerBuildData = async function(deployData: any) {
     }
   }
 
+  var alertContact = ""
+  if (alertContactHA != undefined && alertContactSA != undefined){
+    if (availability == "HIGH") {
+      alertContact = alertContactHA
+    } else {
+      alertContact = alertContactSA
+    }
+  } else {
+    alertContact = "unconfigured"
+  }
+
   var availability = lagoonProjectData.availability || "STANDARD"
 
   // @TODO: openshiftProject here can't be generated on the cluster side (it should be) but the addOrUpdate mutation doesn't allow for openshiftProject to be optional

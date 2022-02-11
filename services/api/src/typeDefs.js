@@ -127,6 +127,7 @@ const typeDefs = gql`
     id: Int
     name: String
     type: String
+    range: [String]
     advancedTaskDefinition: AdvancedTaskDefinition
   }
 
@@ -157,6 +158,7 @@ const typeDefs = gql`
     environment: Int
     project: Int
     permission: TaskPermission
+    advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgument]
     created: String
     deleted: String
   }
@@ -425,6 +427,9 @@ const typeDefs = gql`
     sshPort: String
     created: String
     monitoringConfig: JSON
+    friendlyName: String
+    cloudProvider: String
+    cloudRegion: String
   }
 
   type Kubernetes {
@@ -438,6 +443,9 @@ const typeDefs = gql`
     sshPort: String
     created: String
     monitoringConfig: JSON
+    friendlyName: String
+    cloudProvider: String
+    cloudRegion: String
   }
 
   type NotificationMicrosoftTeams {
@@ -1264,11 +1272,17 @@ const typeDefs = gql`
   enum AdvancedTaskDefinitionArgumentTypes {
     NUMERIC
     STRING
+    ENVIRONMENT_SOURCE_NAME
   }
 
   input AdvancedTaskDefinitionArgumentInput {
     name: String
     type: AdvancedTaskDefinitionArgumentTypes
+  }
+
+  input AdvancedTaskDefinitionArgumentValueInput {
+    advancedTaskDefinitionArgumentName: String
+    value: String
   }
 
   enum AdvancedTaskDefinitionTypes {
@@ -1321,6 +1335,9 @@ const typeDefs = gql`
     sshHost: String
     sshPort: String
     monitoringConfig: JSON
+    friendlyName: String
+    cloudProvider: String
+    cloudRegion: String
   }
 
   input AddKubernetesInput {
@@ -1333,6 +1350,9 @@ const typeDefs = gql`
     sshHost: String
     sshPort: String
     monitoringConfig: JSON
+    friendlyName: String
+    cloudProvider: String
+    cloudRegion: String
   }
 
   input DeleteOpenshiftInput {
@@ -1477,6 +1497,9 @@ const typeDefs = gql`
     sshHost: String
     sshPort: String
     monitoringConfig: JSON
+    friendlyName: String
+    cloudProvider: String
+    cloudRegion: String
   }
 
   input UpdateOpenshiftInput {
@@ -1493,6 +1516,9 @@ const typeDefs = gql`
     sshHost: String
     sshPort: String
     monitoringConfig: JSON
+    friendlyName: String
+    cloudProvider: String
+    cloudRegion: String
   }
 
   input UpdateKubernetesInput {
@@ -1806,7 +1832,7 @@ const typeDefs = gql`
     deleteEnvVariable(input: DeleteEnvVariableInput!): String
     addTask(input: TaskInput!): Task
     addAdvancedTaskDefinition(input: AdvancedTaskDefinitionInput!): AdvancedTaskDefinition
-    invokeRegisteredTask(advancedTaskDefinition: Int!, environment: Int!): Task
+    invokeRegisteredTask(advancedTaskDefinition: Int!, environment: Int!, argumentValues: [AdvancedTaskDefinitionArgumentValueInput]): Task
     deleteAdvancedTaskDefinition(advancedTaskDefinition: Int!): String
     taskDrushArchiveDump(environment: Int!): Task
     taskDrushSqlDump(environment: Int!): Task

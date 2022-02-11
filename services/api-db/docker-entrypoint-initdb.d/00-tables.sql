@@ -29,16 +29,19 @@ CREATE TABLE IF NOT EXISTS customer (
 );
 
 CREATE TABLE IF NOT EXISTS openshift (
-  id                int NOT NULL auto_increment PRIMARY KEY,
-  name              varchar(50) UNIQUE,
-  console_url       varchar(300),
-  token             varchar(2000),
-  router_pattern    varchar(300),
-  project_user      varchar(100),
-  ssh_host          varchar(300),
-  ssh_port          varchar(50),
-  monitoring_config varchar(2048),
-  created           timestamp DEFAULT CURRENT_TIMESTAMP
+  id                  int NOT NULL auto_increment PRIMARY KEY,
+  name                varchar(50) UNIQUE,
+  console_url         varchar(300),
+  token               varchar(2000),
+  router_pattern      varchar(300),
+  project_user        varchar(100),
+  ssh_host            varchar(300),
+  ssh_port            varchar(50),
+  monitoring_config   varchar(2048),
+  friendly_name       varchar(100),
+  cloud_provider      varchar(100),
+  cloud_region        varchar(100),
+  created             timestamp DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS notification_microsoftteams (
@@ -321,7 +324,7 @@ CREATE TABLE IF NOT EXISTS advanced_task_definition_argument (
   id                                int NOT NULL auto_increment PRIMARY KEY,
   advanced_task_definition          int REFERENCES advanved_task_definition(id),
   name                              varchar(300) NOT NULL UNIQUE,
-  type                              ENUM('NUMERIC', 'STRING')
+  type                              ENUM('NUMERIC', 'STRING', 'ENVIRONMENT_SOURCE_NAME')
 );
 
 CREATE TABLE IF NOT EXISTS notification_webhook (

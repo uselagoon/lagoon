@@ -76,6 +76,7 @@ const {
   advancedTaskDefinitionArgumentById,
   invokeRegisteredTask,
   deleteAdvancedTaskDefinition,
+  allAdvancedTaskDefinitions,
 } = require('./resources/task/task_definition_resolvers');
 
 const {
@@ -170,7 +171,8 @@ const {
   deleteAllProjects,
   getProjectUrl,
   updateProjectMetadata,
-  removeProjectMetadataByKey
+  removeProjectMetadataByKey,
+  getPrivateKey,
 } = require('./resources/project/resolvers');
 
 const {
@@ -303,6 +305,7 @@ const resolvers = {
     deployTargetConfigs: getDeployTargetConfigsByProjectId,
     envVariables: getEnvVarsByProjectId,
     groups: getGroupsByProjectId,
+    privateKey: getPrivateKey,
   },
   GroupInterface: {
     __resolveType(group) {
@@ -409,6 +412,7 @@ const resolvers = {
     taskById: getTaskById,
     advancedTaskDefinitionById,
     advancedTasksForEnvironment: resolveTasksForEnvironment,
+    allAdvancedTaskDefinitions,
     advancedTaskDefinitionArgumentById,
     allProjects: getAllProjects,
     allOpenshifts: getAllOpenshifts,
