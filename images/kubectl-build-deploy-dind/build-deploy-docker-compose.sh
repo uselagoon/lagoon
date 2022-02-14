@@ -331,7 +331,7 @@ do
     # mariadb-single deployed (probably from the past where there was no mariadb-shared yet, or mariadb-dbaas) and use that one
     if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get service "$SERVICE_NAME" &> /dev/null; then
       SERVICE_TYPE="mariadb-single"
-    elif [[ checkDBaaSHealth ]]; then
+    elif checkDBaaSHealth; then
       # check if the dbaas operator responds to a health check
       # if it does, then check if the dbaas operator has a provider matching the provider type that is expected
       if checkDBaaSProvider mariadb $(getDBaaSEnvironment mariadb-dbaas); then
