@@ -369,7 +369,7 @@ do
     # postgres-single deployed (probably from the past where there was no postgres-shared yet, or postgres-dbaas) and use that one
     if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get service "$SERVICE_NAME" &> /dev/null; then
       SERVICE_TYPE="postgres-single"
-    elif [[ checkDBaaSHealth ]]; then
+    elif checkDBaaSHealth; then
       # check if the dbaas operator responds to a health check
       # if it does, then check if the dbaas operator has a provider matching the provider type that is expected
       if checkDBaaSProvider postgres $(getDBaaSEnvironment postgres-dbaas); then
@@ -407,7 +407,7 @@ do
     # mongodb-single deployed (probably from the past where there was no mongodb-shared yet, or mongodb-dbaas) and use that one
     if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get service "$SERVICE_NAME" &> /dev/null; then
       SERVICE_TYPE="mongodb-single"
-    elif [[ checkDBaaSHealth ]]; then
+    elif checkDBaaSHealth; then
       # check if the dbaas operator responds to a health check
       # if it does, then check if the dbaas operator has a provider matching the provider type that is expected
       if checkDBaaSProvider postgres $(getDBaaSEnvironment mongodb-dbaas); then
