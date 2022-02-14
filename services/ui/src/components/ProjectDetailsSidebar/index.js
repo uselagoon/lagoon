@@ -69,18 +69,22 @@ const Project = ({ project }) => {
           </CopyToClipboard>
         </div>
       </div>
+      {project.deployTargetConfigs.length === 0 && (
       <div className="field-wrapper branches">
         <div>
           <label>Branches enabled</label>
           <div className="field">{project.branches}</div>
         </div>
       </div>
+      )}
+      {project.deployTargetConfigs.length === 0 && (
       <div className="field-wrapper prs">
         <div>
           <label>Pull requests enabled</label>
           <div className="field">{project.pullrequests}</div>
         </div>
       </div>
+      )}
       <div className="field-wrapper envlimit">
         <div>
           <label>Development environments in use</label>
@@ -90,6 +94,26 @@ const Project = ({ project }) => {
           </div>
         </div>
       </div>
+      {project.deployTargetConfigs.length > 0 && (
+      <div className="field-wrapper target">
+        <div>
+        <label>Deploy Targets</label>
+        {project.deployTargetConfigs.map(depTarget => (
+          <div>
+            <div>
+              <label className="field1">{depTarget.deployTarget.friendlyName != null
+                    ? depTarget.deployTarget.friendlyName
+                    : depTarget.deployTarget.name}{}</label>
+            </div>
+            <label className="field2">Branches enabled</label>
+            <div className="field2">{depTarget.branches}</div>
+            <label className="field2">Pull requests enabled</label>
+            <div className="field2">{depTarget.pullrequests}</div>
+          </div>
+        ))}
+        </div>
+      </div>
+      )}
 
       <style jsx>{`
         .details {
@@ -201,7 +225,7 @@ const Project = ({ project }) => {
               &::before {
                 background-image: url('/static/images/branches.svg');
               }
-              
+
               .field {
                 white-space: break-spaces;
               }
@@ -216,6 +240,24 @@ const Project = ({ project }) => {
             &.envlimit {
               &::before {
                 background-image: url('/static/images/environments-in-use.svg');
+              }
+            }
+
+            &.target {
+              &::before {
+                background-image: url('/static/images/target.svg');
+              }
+
+              .field1 {
+                margin-left: 10px;
+                max-width: 100%;
+                white-space: break-spaces;
+              }
+
+              .field2 {
+                margin-left: 20px;
+                max-width: 100%;
+                white-space: break-spaces;
               }
             }
 

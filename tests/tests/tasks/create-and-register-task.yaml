@@ -31,7 +31,7 @@
         headers:
           Authorization: "Bearer {{ token }}"
         body_format: json
-        body: '{ "query": "mutation($environment: Int!, $advancedTaskDefinition: Int!) {invokeRegisteredTask(environment:$environment, advancedTaskDefinition: $advancedTaskDefinition) {id}}", "variables": {"environment":{{ environmentByOSProjectNameApiResponse.json.data.environmentByOpenshiftProjectName.id }}, "advancedTaskDefinition":{{ taskCreateApiResponse.json.data.addAdvancedTaskDefinition.id }}}}'
+        body: '{ "query": "mutation($environment: Int!, $advancedTaskDefinition: Int!, $argname: String!, $argval: String!) {invokeRegisteredTask(environment:$environment, advancedTaskDefinition: $advancedTaskDefinition, argumentValues:[ {advancedTaskDefinitionArgumentName: $argname, value: $argval}]) {id}}", "variables": {"environment":{{ environmentByOSProjectNameApiResponse.json.data.environmentByOpenshiftProjectName.id }}, "advancedTaskDefinition":{{ taskCreateApiResponse.json.data.addAdvancedTaskDefinition.id }}, "argname": "ENV_VAR_TEXT_STRING","argval":"REPLACED BY TASK"}}'
       register: invokeRegisteredTaskApiResponse
       until:
     - name: "{{ testname }} - POST api invokeRegisteredTask to {{ graphql_url }}"

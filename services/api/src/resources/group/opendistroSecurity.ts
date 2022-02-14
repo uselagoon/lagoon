@@ -45,7 +45,7 @@ export const OpendistroSecurityOperations = (
         index_permissions: [
           {
             index_patterns: [],
-            allowed_actions: ['read']
+            allowed_actions: ['read','indices:monitor/settings/get']
           }
         ],
         tenant_permissions: [

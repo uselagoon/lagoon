@@ -99,15 +99,6 @@ const typeDefs = gql`
     OWNER
   }
 
-  enum Currency {
-    AUD
-    EUR
-    GBP
-    USD
-    CHF
-    ZAR
-  }
-
   enum ProblemSeverityRating {
     NONE
     UNKNOWN
@@ -136,6 +127,7 @@ const typeDefs = gql`
     id: Int
     name: String
     type: String
+    range: [String]
     advancedTaskDefinition: AdvancedTaskDefinition
   }
 
@@ -166,6 +158,7 @@ const typeDefs = gql`
     environment: Int
     project: Int
     permission: TaskPermission
+    advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgument]
     created: String
     deleted: String
   }
@@ -423,19 +416,6 @@ const typeDefs = gql`
     projects: [Project]
   }
 
-  type BillingGroup implements GroupInterface {
-    id: String
-    name: String
-    type: String
-    groups: [GroupInterface]
-    members: [GroupMembership]
-    projects: [Project]
-    currency: String
-    billingSoftware: String
-    modifiers: [BillingModifier]
-    uptimeRobotStatusPageId: String
-  }
-
   type Openshift {
     id: Int
     name: String
@@ -447,6 +427,9 @@ const typeDefs = gql`
     sshPort: String
     created: String
     monitoringConfig: JSON
+    friendlyName: String
+    cloudProvider: String
+    cloudRegion: String
   }
 
   type Kubernetes {
@@ -460,6 +443,9 @@ const typeDefs = gql`
     sshPort: String
     created: String
     monitoringConfig: JSON
+    friendlyName: String
+    cloudProvider: String
+    cloudRegion: String
   }
 
   type NotificationMicrosoftTeams {
@@ -902,22 +888,6 @@ const typeDefs = gql`
     files: [File]
   }
 
-  type BillingModifier {
-    id: Int
-    group: BillingGroup
-    startDate: String
-    endDate: String
-    discountFixed: Float
-    discountPercentage: Float
-    extraFixed: Float
-    extraPercentage: Float
-    min: Float
-    max: Float
-    customerComments: String
-    adminComments: String
-    weight: Int
-  }
-
   type ProjectFactSearchResults {
     count: Int
     projects: [Project]
@@ -1077,18 +1047,6 @@ const typeDefs = gql`
     Returns all projects in a given group
     """
     allProjectsInGroup(input: GroupInput): [Project]
-    """
-    Returns the costs for a given billing group
-    """
-    billingGroupCost(input: GroupInput, month: String!): JSON
-    """
-    Returns the costs for all billing groups
-    """
-    allBillingGroupsCost(month: String!): JSON
-    """
-    Returns the Billing Group Modifiers for a given Billing Group (all modifiers for the Billing Group will be returned if the month is not provided)
-    """
-    allBillingModifiers(input: GroupInput!, month: String): [BillingModifier]
     """
     Returns LAGOON_VERSION
     """
@@ -1314,11 +1272,17 @@ const typeDefs = gql`
   enum AdvancedTaskDefinitionArgumentTypes {
     NUMERIC
     STRING
+    ENVIRONMENT_SOURCE_NAME
   }
 
   input AdvancedTaskDefinitionArgumentInput {
     name: String
     type: AdvancedTaskDefinitionArgumentTypes
+  }
+
+  input AdvancedTaskDefinitionArgumentValueInput {
+    advancedTaskDefinitionArgumentName: String
+    value: String
   }
 
   enum AdvancedTaskDefinitionTypes {
@@ -1371,6 +1335,9 @@ const typeDefs = gql`
     sshHost: String
     sshPort: String
     monitoringConfig: JSON
+    friendlyName: String
+    cloudProvider: String
+    cloudRegion: String
   }
 
   input AddKubernetesInput {
@@ -1383,6 +1350,9 @@ const typeDefs = gql`
     sshHost: String
     sshPort: String
     monitoringConfig: JSON
+    friendlyName: String
+    cloudProvider: String
+    cloudRegion: String
   }
 
   input DeleteOpenshiftInput {
@@ -1527,6 +1497,9 @@ const typeDefs = gql`
     sshHost: String
     sshPort: String
     monitoringConfig: JSON
+    friendlyName: String
+    cloudProvider: String
+    cloudRegion: String
   }
 
   input UpdateOpenshiftInput {
@@ -1543,6 +1516,9 @@ const typeDefs = gql`
     sshHost: String
     sshPort: String
     monitoringConfig: JSON
+    friendlyName: String
+    cloudProvider: String
+    cloudRegion: String
   }
 
   input UpdateKubernetesInput {
@@ -1707,81 +1683,6 @@ const typeDefs = gql`
     parentGroup: GroupInput
   }
 
-  input AddBillingModifierInput {
-    """
-    The existing billing group for this modifier
-    """
-    group: GroupInput!
-    """
-    The date this modifier should start to be applied - Format: YYYY-MM-DD
-    """
-    startDate: String!
-    """
-    The date this modifer will expire - Format: YYYY-MM-DD
-    """
-    endDate: String!
-    """
-    The amount that the total monthly bill should be discounted - Format (Float)
-    """
-    discountFixed: Float
-    """
-    The percentage the total monthly bill should be discounted - Format (0-100)
-    """
-    discountPercentage: Float
-    """
-    The amount of exta cost that should be added to the total- Format (Float)
-    """
-    extraFixed: Float
-    """
-    The percentage the total monthly bill should be added - Format (0-100)
-    """
-    extraPercentage: Float
-    """
-    The minimum amount of the invoice applied to the total- Format (Float)
-    """
-    min: Float
-    """
-    The maximum amount of the invoice applied to the total- Format (Float)
-    """
-    max: Float
-    """
-    Customer comments are visible to the customer
-    """
-    customerComments: String
-    """
-    Admin comments will not be visible to the customer.
-    """
-    adminComments: String!
-    """
-    The order this modifer should be applied
-    """
-    weight: Int
-  }
-
-  input BillingModifierPatchInput {
-    group: GroupInput
-    startDate: String
-    endDate: String
-    discountFixed: Float
-    discountPercentage: Float
-    extraFixed: Float
-    extraPercentage: Float
-    min: Float
-    max: Float
-    customerComments: String
-    adminComments: String
-    weight: Int
-  }
-
-  input UpdateBillingModifierInput {
-    id: Int!
-    patch: BillingModifierPatchInput!
-  }
-
-  input DeleteBillingModifierInput {
-    id: Int!
-  }
-
   input UpdateGroupPatchInput {
     name: String
   }
@@ -1814,30 +1715,6 @@ const typeDefs = gql`
   input ProjectGroupsInput {
     project: ProjectInput!
     groups: [GroupInput!]!
-  }
-
-  input BillingGroupInput {
-    name: String!
-    currency: Currency!
-    billingSoftware: String
-    uptimeRobotStatusPageId: String
-  }
-
-  input ProjectBillingGroupInput {
-    group: GroupInput!
-    project: ProjectInput!
-  }
-
-  input UpdateBillingGroupPatchInput {
-    name: String!
-    currency: Currency
-    billingSoftware: String
-    uptimeRobotStatusPageId: String
-  }
-
-  input UpdateBillingGroupInput {
-    group: GroupInput!
-    patch: UpdateBillingGroupPatchInput!
   }
 
   type Mutation {
@@ -1955,7 +1832,7 @@ const typeDefs = gql`
     deleteEnvVariable(input: DeleteEnvVariableInput!): String
     addTask(input: TaskInput!): Task
     addAdvancedTaskDefinition(input: AdvancedTaskDefinitionInput!): AdvancedTaskDefinition
-    invokeRegisteredTask(advancedTaskDefinition: Int!, environment: Int!): Task
+    invokeRegisteredTask(advancedTaskDefinition: Int!, environment: Int!, argumentValues: [AdvancedTaskDefinitionArgumentValueInput]): Task
     deleteAdvancedTaskDefinition(advancedTaskDefinition: Int!): String
     taskDrushArchiveDump(environment: Int!): Task
     taskDrushSqlDump(environment: Int!): Task
@@ -1987,19 +1864,9 @@ const typeDefs = gql`
     addUserToGroup(input: UserGroupRoleInput!): GroupInterface
     removeUserFromGroup(input: UserGroupInput!): GroupInterface
     addGroupsToProject(input: ProjectGroupsInput): Project
-    addBillingGroup(input: BillingGroupInput!): BillingGroup
-    updateBillingGroup(input: UpdateBillingGroupInput!): BillingGroup
-    deleteBillingGroup(input: DeleteGroupInput!): String
-    addProjectToBillingGroup(input: ProjectBillingGroupInput): Project
-    updateProjectBillingGroup(input: ProjectBillingGroupInput): Project
-    removeProjectFromBillingGroup(input: ProjectBillingGroupInput): Project
     removeGroupsFromProject(input: ProjectGroupsInput!): Project
     updateProjectMetadata(input: UpdateMetadataInput!): Project
     removeProjectMetadataByKey(input: RemoveMetadataInput!): Project
-    addBillingModifier(input: AddBillingModifierInput!): BillingModifier
-    updateBillingModifier(input: UpdateBillingModifierInput!): BillingModifier
-    deleteBillingModifier(input: DeleteBillingModifierInput!): String
-    deleteAllBillingModifiersByBillingGroup(input: GroupInput!): String
     addDeployTargetConfig(input: AddDeployTargetConfigInput!): DeployTargetConfig  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
     updateDeployTargetConfig(input: UpdateDeployTargetConfigInput!): DeployTargetConfig  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
     deleteDeployTargetConfig(input: DeleteDeployTargetConfigInput!): String  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")

@@ -17,7 +17,7 @@ The image also contains database `cli`s for both MariaDB and PostgreSQL.
 * 7.3 \(available for compatibility, no longer officially supported\)
 * 7.4 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/7.4.Dockerfile) - `uselagoon/php-7.4-cli`
 * 8.0 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/8.0.Dockerfile) - `uselagoon/php-8.0-cli`
-* 8.0 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/8.1.Dockerfile) - `uselagoon/php-8.1-cli`
+* 8.1 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/8.1.Dockerfile) - `uselagoon/php-8.1-cli`
 
 All PHP versions use their own Dockerfiles.
 

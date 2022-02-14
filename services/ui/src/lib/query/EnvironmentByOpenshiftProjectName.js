@@ -13,6 +13,11 @@ export default gql`
       environmentType
       routes
       openshiftProjectName
+      openshift {
+        friendlyName
+        cloudProvider
+        cloudRegion
+      }
       project {
         name
         gitUrl

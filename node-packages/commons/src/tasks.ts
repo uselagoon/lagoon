@@ -12,7 +12,6 @@ import {
   getOpenShiftInfoForProject,
   getOpenShiftInfoForEnvironment,
   getDeployTargetConfigsForProject,
-  getBillingGroupForProject,
   addOrUpdateEnvironment,
   getEnvironmentByName,
   addDeployment
@@ -281,8 +280,6 @@ export const getControllerBuildData = async function(deployData: any) {
 
   const result = await getOpenShiftInfoForProject(projectName);
   const lagoonProjectData = result.project
-  const billingGroupResult = await getBillingGroupForProject(projectName);
-  const projectBillingGroup = billingGroupResult.project
 
   var overlength = 58 - projectName.length;
   if ( environmentName.length > overlength ) {
@@ -332,10 +329,6 @@ export const getControllerBuildData = async function(deployData: any) {
     alertContact = "unconfigured"
   }
 
-  const billingGroup = projectBillingGroup.groups.find(i => i.type == "billing" ) || ""
-  if (billingGroup.uptimeRobotStatusPageId && billingGroup.uptimeRobotStatusPageId != "null" && !R.isEmpty(billingGroup.uptimeRobotStatusPageId)){
-    uptimeRobotStatusPageIds.push(billingGroup.uptimeRobotStatusPageId)
-  }
   var uptimeRobotStatusPageId = uptimeRobotStatusPageIds.join('-')
 
   var pullrequestData: any = {};
@@ -428,6 +421,17 @@ export const getControllerBuildData = async function(deployData: any) {
     if (monitoringConfig.uptimerobot.statusPageId) {
       uptimeRobotStatusPageIds.push(monitoringConfig.uptimerobot.statusPageId)
     }
+  }
+
+  var alertContact = ""
+  if (alertContactHA != undefined && alertContactSA != undefined){
+    if (availability == "HIGH") {
+      alertContact = alertContactHA
+    } else {
+      alertContact = alertContactSA
+    }
+  } else {
+    alertContact = "unconfigured"
   }
 
   var availability = lagoonProjectData.availability || "STANDARD"

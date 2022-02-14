@@ -273,6 +273,51 @@ do
     done
   fi
 
+  # functions used to check dbaas providers
+  ####
+  function checkDBaaSHealth() {
+    response_code=$(curl --write-out "%{http_code}\n" --silent --output /dev/null "${DBAAS_OPERATOR_HTTP}/healthz")
+    if [ "$response_code" == "200" ]; then
+      return 0
+    else
+      return 1
+    fi
+  }
+
+  function checkDBaaSProvider() {
+    response_json=$(curl --silent "${DBAAS_OPERATOR_HTTP}/$1/$2")
+    response_found=$(echo ${response_json} | jq -r '.result.found')
+    response_error=$(echo ${response_json} | jq -r '.error')
+    if [ "${response_error}" == "null" ]; then
+      return 0
+    else
+      echo $response_error 1>&2
+      return 1
+    fi
+  }
+
+  function getDBaaSEnvironment() {
+    dbaas_environment=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.$1\\.environment "${ENVIRONMENT_TYPE}")
+    # Allow the dbaas shared servicebroker plan to be overriden by environment in .lagoon.yml
+    environment_dbaas_override=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.overrides.$SERVICE_NAME.$1\\.environment false)
+    if [ ! $environment_dbaas_override == "false" ]; then
+      dbaas_environment=$environment_dbaas_override
+    fi
+    # If we have a dbaas environment type override in the api, consume it here
+    if [ ! -z "$LAGOON_DBAAS_ENVIRONMENT_TYPES" ]; then
+      IFS=',' read -ra LAGOON_DBAAS_ENVIRONMENT_TYPES_SPLIT <<< "$LAGOON_DBAAS_ENVIRONMENT_TYPES"
+      for LAGOON_DBAAS_ENVIRONMENT_TYPE in "${LAGOON_DBAAS_ENVIRONMENT_TYPES_SPLIT[@]}"
+      do
+        IFS=':' read -ra LAGOON_DBAAS_ENVIRONMENT_TYPE_SPLIT <<< "$LAGOON_DBAAS_ENVIRONMENT_TYPE"
+        if [ "${LAGOON_DBAAS_ENVIRONMENT_TYPE_SPLIT[0]}" == "$SERVICE_NAME" ]; then
+          dbaas_environment=${LAGOON_DBAAS_ENVIRONMENT_TYPE_SPLIT[1]}
+        fi
+      done
+    fi
+    echo $dbaas_environment
+  }
+  ####
+
   # Previous versions of Lagoon used "python-ckandatapusher", this should be mapped to "python"
   if [[ "$SERVICE_TYPE" == "python-ckandatapusher" ]]; then
     SERVICE_TYPE="python"
@@ -286,9 +331,17 @@ do
     # mariadb-single deployed (probably from the past where there was no mariadb-shared yet, or mariadb-dbaas) and use that one
     if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get service "$SERVICE_NAME" &> /dev/null; then
       SERVICE_TYPE="mariadb-single"
-    # check if this cluster supports the default one, if not we assume that this cluster is not capable of shared mariadbs and we use a mariadb-single
-    # real basic check to see if the mariadbconsumer exists as a kind
-    elif [[ "${CAPABILITIES[@]}" =~ "mariadb.amazee.io/v1/MariaDBConsumer" ]]; then
+    elif [[ checkDBaaSHealth ]]; then
+      # check if the dbaas operator responds to a health check
+      # if it does, then check if the dbaas operator has a provider matching the provider type that is expected
+      if checkDBaaSProvider mariadb $(getDBaaSEnvironment mariadb-dbaas); then
+        SERVICE_TYPE="mariadb-dbaas"
+      else
+        SERVICE_TYPE="mariadb-single"
+      fi
+    elif [[ "${CAPABILITIES[@]}" =~ "mariadb.amazee.io/v1/MariaDBConsumer" ]] && [[ ! checkDBaaSHealth ]]; then
+      # check if this cluster supports the default one, if not we assume that this cluster is not capable of shared mariadbs and we use a mariadb-single
+      # real basic check to see if the mariadbconsumer exists as a kind
       SERVICE_TYPE="mariadb-dbaas"
     else
       SERVICE_TYPE="mariadb-single"
@@ -303,25 +356,7 @@ do
 
   if [[ "$SERVICE_TYPE" == "mariadb-dbaas" ]]; then
     # Default plan is the enviroment type
-    DBAAS_ENVIRONMENT=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mariadb-dbaas\\.environment "${ENVIRONMENT_TYPE}")
-
-    # Allow the dbaas shared servicebroker plan to be overriden by environment in .lagoon.yml
-    ENVIRONMENT_DBAAS_ENVIRONMENT_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.overrides.$SERVICE_NAME.mariadb-dbaas\\.environment false)
-    if [ ! $DBAAS_ENVIRONMENT_OVERRIDE == "false" ]; then
-      DBAAS_ENVIRONMENT=$ENVIRONMENT_DBAAS_ENVIRONMENT_OVERRIDE
-    fi
-
-    # If we have a dbaas environment type override in the api, consume it here
-    if [ ! -z "$LAGOON_DBAAS_ENVIRONMENT_TYPES" ]; then
-      IFS=',' read -ra LAGOON_DBAAS_ENVIRONMENT_TYPES_SPLIT <<< "$LAGOON_DBAAS_ENVIRONMENT_TYPES"
-      for LAGOON_DBAAS_ENVIRONMENT_TYPE in "${LAGOON_DBAAS_ENVIRONMENT_TYPES_SPLIT[@]}"
-      do
-        IFS=':' read -ra LAGOON_DBAAS_ENVIRONMENT_TYPE_SPLIT <<< "$LAGOON_DBAAS_ENVIRONMENT_TYPE"
-        if [ "${LAGOON_DBAAS_ENVIRONMENT_TYPE_SPLIT[0]}" == "$SERVICE_NAME" ]; then
-          DBAAS_ENVIRONMENT=${LAGOON_DBAAS_ENVIRONMENT_TYPE_SPLIT[1]}
-        fi
-      done
-    fi
+    DBAAS_ENVIRONMENT=$(getDBaaSEnvironment mariadb-dbaas)
 
     MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]="${DBAAS_ENVIRONMENT}"
   fi
@@ -334,6 +369,14 @@ do
     # postgres-single deployed (probably from the past where there was no postgres-shared yet, or postgres-dbaas) and use that one
     if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get service "$SERVICE_NAME" &> /dev/null; then
       SERVICE_TYPE="postgres-single"
+    elif [[ checkDBaaSHealth ]]; then
+      # check if the dbaas operator responds to a health check
+      # if it does, then check if the dbaas operator has a provider matching the provider type that is expected
+      if checkDBaaSProvider postgres $(getDBaaSEnvironment postgres-dbaas); then
+        SERVICE_TYPE="postgres-dbaas"
+      else
+        SERVICE_TYPE="postgres-single"
+      fi
     # heck if this cluster supports the default one, if not we assume that this cluster is not capable of shared PostgreSQL and we use a postgres-single
     # real basic check to see if the postgreSQLConsumer exists as a kind
     elif [[ "${CAPABILITIES[@]}" =~ "postgres.amazee.io/v1/PostgreSQLConsumer" ]]; then
@@ -351,13 +394,7 @@ do
 
   if [[ "$SERVICE_TYPE" == "postgres-dbaas" ]]; then
     # Default plan is the enviroment type
-    DBAAS_ENVIRONMENT=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.postgres-dbaas\\.environment "${ENVIRONMENT_TYPE}")
-
-    # Allow the dbaas shared servicebroker plan to be overriden by environment in .lagoon.yml
-    ENVIRONMENT_DBAAS_ENVIRONMENT_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.overrides.$SERVICE_NAME.postgres-dbaas\\.environment false)
-    if [ ! $DBAAS_ENVIRONMENT_OVERRIDE == "false" ]; then
-      DBAAS_ENVIRONMENT=$ENVIRONMENT_DBAAS_ENVIRONMENT_OVERRIDE
-    fi
+    DBAAS_ENVIRONMENT=$(getDBaaSEnvironment postgres-dbaas)
 
     MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]="${DBAAS_ENVIRONMENT}"
   fi
@@ -370,6 +407,14 @@ do
     # mongodb-single deployed (probably from the past where there was no mongodb-shared yet, or mongodb-dbaas) and use that one
     if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get service "$SERVICE_NAME" &> /dev/null; then
       SERVICE_TYPE="mongodb-single"
+    elif [[ checkDBaaSHealth ]]; then
+      # check if the dbaas operator responds to a health check
+      # if it does, then check if the dbaas operator has a provider matching the provider type that is expected
+      if checkDBaaSProvider postgres $(getDBaaSEnvironment mongodb-dbaas); then
+        SERVICE_TYPE="mongodb-dbaas"
+      else
+        SERVICE_TYPE="mongodb-single"
+      fi
     # heck if this cluster supports the default one, if not we assume that this cluster is not capable of shared MongoDB and we use a mongodb-single
     # real basic check to see if the MongoDBConsumer exists as a kind
     elif [[ "${CAPABILITIES[@]}" =~ "mongodb.amazee.io/v1/MongoDBConsumer" ]]; then
@@ -386,26 +431,7 @@ do
   fi
 
   if [[ "$SERVICE_TYPE" == "mongodb-dbaas" ]]; then
-    # Default plan is the enviroment type
-    DBAAS_ENVIRONMENT=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.mongodb-dbaas\\.environment "${ENVIRONMENT_TYPE}")
-
-    # Allow the dbaas shared servicebroker plan to be overriden by environment in .lagoon.yml
-    ENVIRONMENT_DBAAS_ENVIRONMENT_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.overrides.$SERVICE_NAME.mongodb-dbaas\\.environment false)
-    if [ ! $DBAAS_ENVIRONMENT_OVERRIDE == "false" ]; then
-      DBAAS_ENVIRONMENT=$ENVIRONMENT_DBAAS_ENVIRONMENT_OVERRIDE
-    fi
-
-    # If we have a dbaas environment type override in the api, consume it here
-    if [ ! -z "$LAGOON_DBAAS_ENVIRONMENT_TYPES" ]; then
-      IFS=',' read -ra LAGOON_DBAAS_ENVIRONMENT_TYPES_SPLIT <<< "$LAGOON_DBAAS_ENVIRONMENT_TYPES"
-      for LAGOON_DBAAS_ENVIRONMENT_TYPE in "${LAGOON_DBAAS_ENVIRONMENT_TYPES_SPLIT[@]}"
-      do
-        IFS=':' read -ra LAGOON_DBAAS_ENVIRONMENT_TYPE_SPLIT <<< "$LAGOON_DBAAS_ENVIRONMENT_TYPE"
-        if [ "${LAGOON_DBAAS_ENVIRONMENT_TYPE_SPLIT[0]}" == "$SERVICE_NAME" ]; then
-          DBAAS_ENVIRONMENT=${LAGOON_DBAAS_ENVIRONMENT_TYPE_SPLIT[1]}
-        fi
-      done
-    fi
+    DBAAS_ENVIRONMENT=$(getDBaaSEnvironment mongodb-dbaas)
 
     MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]="${DBAAS_ENVIRONMENT}"
   fi
@@ -1667,5 +1693,23 @@ set -x
 set +x
 currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
 patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "deployCompleted" "Build and Deploy"
+previousStepEnd=${currentStepEnd}
+set -x
+
+##############################################
+### RUN sbom generation and store in configmap
+##############################################
+
+for IMAGE_NAME in "${!IMAGES_BUILD[@]}"
+do
+
+  IMAGE_TAG="${IMAGE_TAG:-latest}"
+  IMAGE_FULL="${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG}"
+  . /kubectl-build-deploy/scripts/exec-generate-sbom-configmap.sh
+done
+
+set +x
+currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
+patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "sbomCompleted" "SBOM Gathering"
 previousStepEnd=${currentStepEnd}
 set -x
