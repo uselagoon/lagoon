@@ -1696,7 +1696,7 @@ patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${N
 previousStepEnd=${currentStepEnd}
 set -x
 
-if [ "$(featureFlag INSIGHTS_SBOM)" = enabled ]; then
+if [ "$(featureFlag INSIGHTS)" = enabled ]; then
   ##############################################
   ### RUN sbom generation and store in configmap
   ##############################################
