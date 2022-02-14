@@ -339,7 +339,7 @@ do
       else
         SERVICE_TYPE="mariadb-single"
       fi
-    elif [[ "${CAPABILITIES[@]}" =~ "mariadb.amazee.io/v1/MariaDBConsumer" ]] && [[ ! checkDBaaSHealth ]]; then
+    elif [[ "${CAPABILITIES[@]}" =~ "mariadb.amazee.io/v1/MariaDBConsumer" ]] && ! checkDBaaSHealth ; then
       # check if this cluster supports the default one, if not we assume that this cluster is not capable of shared mariadbs and we use a mariadb-single
       # real basic check to see if the mariadbconsumer exists as a kind
       SERVICE_TYPE="mariadb-dbaas"
@@ -379,7 +379,7 @@ do
       fi
     # heck if this cluster supports the default one, if not we assume that this cluster is not capable of shared PostgreSQL and we use a postgres-single
     # real basic check to see if the postgreSQLConsumer exists as a kind
-    elif [[ "${CAPABILITIES[@]}" =~ "postgres.amazee.io/v1/PostgreSQLConsumer" ]]; then
+    elif [[ "${CAPABILITIES[@]}" =~ "postgres.amazee.io/v1/PostgreSQLConsumer" ]] && ! checkDBaaSHealth; then
       SERVICE_TYPE="postgres-dbaas"
     else
       SERVICE_TYPE="postgres-single"
@@ -417,7 +417,7 @@ do
       fi
     # heck if this cluster supports the default one, if not we assume that this cluster is not capable of shared MongoDB and we use a mongodb-single
     # real basic check to see if the MongoDBConsumer exists as a kind
-    elif [[ "${CAPABILITIES[@]}" =~ "mongodb.amazee.io/v1/MongoDBConsumer" ]]; then
+    elif [[ "${CAPABILITIES[@]}" =~ "mongodb.amazee.io/v1/MongoDBConsumer" ]] && ! checkDBaaSHealth; then
       SERVICE_TYPE="mongodb-dbaas"
     else
       SERVICE_TYPE="mongodb-single"
