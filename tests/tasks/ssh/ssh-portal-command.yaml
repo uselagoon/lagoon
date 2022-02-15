@@ -1,0 +1,6 @@
+- name: "{{ testname }} - running {{ command }} on {{ username }}@{{ ssh_portal_host }} on port {{ ssh_portal_port }}, searching for '{{ expected_content }}'"
+  shell: ssh {{ username }}@{{ ssh_portal_host }} -p {{ ssh_portal_port }} {{ command }}
+  register: result
+  until: result.stdout is search(expected_content)
+  retries: 30
+  delay: 10
