@@ -13,9 +13,6 @@ set +x
 
 DOCKER_HOST=docker-host.lagoon.svc docker run --rm -v /var/run/docker.sock:/var/run/docker.sock imagecache.amazeeio.cloud/anchore/syft packages ${IMAGE_FULL} -o ${SBOM_OUTPUT} | gzip > ${SBOM_OUTPUT_FILE}
 
-IMAGE_FULL="/Users/tim.clifford/playground/fleet-portal.ch/fleet-portal-ch.gz"
-SBOM_OUTPUT_FILE="/Users/tim.clifford/playground/fleet-portal.ch/fleet-portal-ch.gz"
-
 FILESIZE=$(stat -f%z "$IMAGE_FULL")
 # FILESIZE=$(stat -c%s "$SBOM_OUTPUT_FILE")
 echo "Size of ${SBOM_OUTPUT_FILE} = $FILESIZE bytes."
