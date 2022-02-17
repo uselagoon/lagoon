@@ -36,6 +36,7 @@ processDockerInspect() {
   kubectl --insecure-skip-tls-verify \
       -n ${NAMESPACE} \
       label configmap ${DOCKER_INSPECT_CONFIGMAP} \
+      lagoon.sh/insightsProcessed- \
       lagoon.sh/insightsType=docker-inspect-gz \
       lagoon.sh/buildName=${LAGOON_BUILD_NAME} \
       lagoon.sh/project=${PROJECT} \
@@ -83,6 +84,7 @@ processSbom() {
     kubectl --insecure-skip-tls-verify \
         -n ${NAMESPACE} \
         label configmap ${SBOM_CONFIGMAP} \
+        lagoon.sh/insightsProcessed- \
         lagoon.sh/insightsType=sbom-gz \
         lagoon.sh/buildName=${LAGOON_BUILD_NAME} \
         lagoon.sh/project=${PROJECT} \
