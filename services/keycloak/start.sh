@@ -765,7 +765,7 @@ EOF
   "decisionStrategy": "UNANIMOUS",
   "resources": ["openshift"],
   "scopes": ["view"],
-  "policies": ["User has access to project","Users role for project is Maintainer"]
+  "policies": ["User has access to project","Users role for project is Guest"]
 }
 EOF
 
@@ -1673,6 +1673,24 @@ function remove_billing_modifier {
   /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/resource/$billing_modifier_resource_id --config $CONFIG_PATH
 }
 
+function update_openshift_view_permission {
+  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
+  echo Reconfiguring View Openshift
+  VIEW_OPENSHIFT_PERMISSION_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Openshift --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
+  /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$VIEW_OPENSHIFT_PERMISSION_ID --config $CONFIG_PATH
+  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View Openshift",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["openshift"],
+  "scopes": ["view"],
+  "policies": ["User has access to project","Users role for project is Guest"]
+}
+EOF
+}
+
 function configure_keycloak {
     until is_keycloak_running; do
         echo Keycloak still not running, waiting 5 seconds
@@ -1698,6 +1716,7 @@ function configure_keycloak {
     configure_harbor_scan_system
     configure_advanced_task_system
     remove_billing_modifier
+    update_openshift_view_permission
 
     echo "Config of Keycloak done. Log in via admin user '$KEYCLOAK_ADMIN_USER' and password '$KEYCLOAK_ADMIN_PASSWORD'"
 }
