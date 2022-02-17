@@ -3,12 +3,16 @@ package handler
 import (
 	"bufio"
 	"bytes"
+	"compress/gzip"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"github.com/Khan/genqlient/graphql"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -40,6 +44,7 @@ type LagoonAPI struct {
 	TokenSigningKey string `json:"tokenSigningKey"`
 	JWTSubject      string `json:"subject"`
 	JWTIssuer       string `json:"issuer"`
+	Disabled        bool   `json:"disableApiIntegration"`
 }
 
 // S3 Config .
@@ -50,12 +55,14 @@ type S3 struct {
 	Bucket          string `json:"bucket"`
 	Region          string `json:"region"`
 	UseSSL          bool   `json:"useSSL"`
+	Disabled        bool   `json:"disableS3upload"`
 }
 
 type InsightsMessage struct {
-	Payload     map[string]string `json:"payload"`
-	Annotations map[string]string `json:"annotations"`
-	Labels      map[string]string `json:"labels"`
+	Payload       map[string]string `json:"payload"`
+	BinaryPayload map[string]string `json:"binaryPayload""`
+	Annotations   map[string]string `json:"annotations"`
+	Labels        map[string]string `json:"labels"`
 }
 
 type InsightsData struct {
@@ -69,6 +76,7 @@ type LagoonType int64
 const (
 	Facts = iota
 	KeyFacts
+	DockerInspect
 	Problems
 )
 
@@ -78,6 +86,8 @@ func (t LagoonType) String() string {
 		return "FACTS"
 	case KeyFacts:
 		return "KEY_FACTS"
+	case DockerInspect:
+		return "DOCKER_INSPECT"
 	case Problems:
 		return "PROBLEMS"
 	}
@@ -191,6 +201,11 @@ func processingIncomingMessageQueueFactory(h *Messaging) func(mq.Message) {
 						InputType: "sbom",
 					}
 				}
+				if key == "lagoon.sh/insights" && value == "sbom-gz" {
+					insights = InsightsData{
+						InputType: "sbom-gz",
+					}
+				}
 				if key == "lagoon.sh/insightsProject" {
 					resource.Project = value
 				}
@@ -206,22 +221,26 @@ func processingIncomingMessageQueueFactory(h *Messaging) func(mq.Message) {
 			}
 		}
 
-		if incoming.Payload == nil {
-			log.Fatalf("No payload was found")
+		if incoming.Payload == nil && incoming.BinaryPayload == nil {
+			log.Printf("no payload was found")
 		}
 
 		// If we are dealing with an sbom data type, push sbom to s3 and api
-		if insights.InputType == "sbom" {
+		if insights.InputType == "sbom" || insights.InputType == "sbom-gz" {
 			// Process s3 upload
-			err := h.sendToLagoonS3(incoming, resource)
-			if err != nil {
-				log.Fatalf(err.Error())
+			if !h.S3Config.Disabled {
+				err := h.sendToLagoonS3(incoming, resource)
+				if err != nil {
+					log.Printf("Unable to send to S3: %s", err.Error())
+				}
 			}
 
-			// Process push to Lagoon API
-			err = h.sendToLagoonAPI(incoming, resource, insights)
-			if err != nil {
-				log.Fatalf(err.Error())
+			// Process Lagoon API integration
+			if !h.LagoonAPI.Disabled {
+				err := h.sendToLagoonAPI(incoming, resource, insights)
+				if err != nil {
+					log.Printf("Unable to send to the api: %s", err.Error())
+				}
 			}
 		}
 
@@ -233,15 +252,14 @@ func processingIncomingMessageQueueFactory(h *Messaging) func(mq.Message) {
 func (h *Messaging) sendToLagoonAPI(incoming *InsightsMessage, resource ResourceDestination, insights InsightsData) (err error) {
 	// Facts
 	if insights.LagoonType == LagoonType(Facts) || insights.LagoonType == LagoonType(KeyFacts) {
-		bom := new(cdx.BOM)
-
 		if resource.Project == "" && resource.Environment == "" {
 			log.Println("no resource definition labels could be found in payload (i.e. lagoon.sh/insightsProject or lagoon.sh/insightsEnvironment)")
 		}
 
 		if incoming.Payload != nil {
-
 			for _, v := range incoming.Payload {
+				bom := new(cdx.BOM)
+
 				b := []byte(v)
 				if err != nil {
 					log.Fatalf(err.Error())
@@ -251,56 +269,39 @@ func (h *Messaging) sendToLagoonAPI(incoming *InsightsMessage, resource Resource
 				if err = decoder.Decode(bom); err != nil {
 					panic(err)
 				}
+
+				err = h.pushToLagoonApi(bom, resource)
+				if err != nil {
+					log.Fatalf(err.Error())
+				}
 			}
+		}
 
-			// Push to API
-			apiClient := graphql.NewClient(h.LagoonAPI.Endpoint, &http.Client{Transport: &authedTransport{wrapped: http.DefaultTransport, h: h}})
+		if incoming.BinaryPayload != nil {
+			for _, v := range incoming.BinaryPayload {
+				bom := new(cdx.BOM)
 
-			// Get project data (we need the project ID to be able to utilise the environmentByName query)
-			project, err := lagoonclient.GetProjectByName(context.TODO(), apiClient, resource.Project)
-			if err != nil {
-				return err
+				result, err := decodeSbomString(v)
+				if err != nil {
+					fmt.Errorf(err.Error())
+				}
+				sbomJson, err := json.MarshalIndent(result, "", " ")
+				if err != nil {
+					log.Fatalf(err.Error())
+				}
+
+				decoder := cdx.NewBOMDecoder(bytes.NewReader(sbomJson), cdx.BOMFileFormatJSON)
+				if err = decoder.Decode(bom); err != nil {
+					panic(err)
+				}
+
+				err = h.pushToLagoonApi(bom, resource)
+				if err != nil {
+					log.Fatalf(err.Error())
+				}
 			}
-
-			if project.Id == 0 || project.Name == "" {
-				return fmt.Errorf("error: unable to determine resource destination (does %s:%s exist?)", resource.Project, resource.Environment)
-			}
-
-			environment, err := lagoonclient.GetEnvironmentFromName(context.TODO(), apiClient, resource.Environment, project.Id)
-			if err != nil {
-				return err
-			}
-
-			source := fmt.Sprintf("%s:%s", (*bom.Metadata.Component).Name, resource.Service)
-
-			// Remove existing facts from source first
-			_, err = lagoonclient.DeleteFactsFromSource(context.TODO(), apiClient, environment.Id, source)
-			if err != nil {
-				return err
-			}
-
-			log.Printf("Previous facts deleted for '%s:%s' and source '%s'", project.Name, environment.Name, source)
-			log.Println("--------------------")
-			log.Printf("Successfully decoded SBOM of image %s\n", bom.Metadata.Component.Name)
-			log.Printf("- Generated: %s with %s\n", bom.Metadata.Timestamp, (*bom.Metadata.Tools)[0].Name)
-			log.Printf("- Packages found: %d\n", len(*bom.Components))
-
-			// Process SBOM into facts
-			facts := processFactsFromSBOM(bom.Components, environment.Id, source)
-			log.Println("--------------------")
-			log.Printf("Attempting to add %d facts...", len(facts))
-			log.Println("--------------------")
-
-			result, err := lagoonclient.AddFacts(context.TODO(), apiClient, facts)
-			if err != nil {
-				return err
-			}
-
-			log.Println(result)
 		}
 	}
-
-	// Problems
 
 	return nil
 }
@@ -326,29 +327,128 @@ func (h *Messaging) sendToLagoonS3(incoming *InsightsMessage, resource ResourceD
 		log.Printf("Successfully created %s\n", h.S3Config.Bucket)
 	}
 
-	// Create sbom file
-	sbomBytes, err := json.Marshal(incoming)
+	if incoming.Payload != nil {
+		// Create sbom file
+		sbomBytes, err := json.Marshal(incoming)
+		if err != nil {
+			return err
+		}
+
+		// Upload the sbom file
+		objectName := strings.ToLower(fmt.Sprintf("%s-%s-%s-sbom.json", resource.Project, resource.Environment, resource.Service))
+		sbomReader := bytes.NewReader(sbomBytes)
+		info, putObjErr := minioClient.PutObject(ctx, h.S3Config.Bucket, objectName, sbomReader, sbomReader.Size(), minio.PutObjectOptions{})
+		if putObjErr != nil {
+			return putObjErr
+		}
+
+		log.Printf("Successfully uploaded %s of size %d\n", objectName, info.Size)
+	}
+
+	if incoming.BinaryPayload != nil {
+		for _, p := range incoming.BinaryPayload {
+			result, err := decodeSbomString(p)
+			if err != nil {
+				fmt.Errorf(err.Error())
+			}
+			sbomJson, _ := json.MarshalIndent(result, "", " ")
+
+			objectName := strings.ToLower(fmt.Sprintf("%s-%s-%s-sbom.json.gz", resource.Project, resource.Environment, resource.Service))
+			tempSBOMfilePath := fmt.Sprintf("/tmp/%s", objectName)
+			contentType := "application/gzip"
+
+			var buf bytes.Buffer
+			gz := gzip.NewWriter(&buf)
+			gz.Write(sbomJson)
+			gz.Close()
+			err = ioutil.WriteFile(tempSBOMfilePath, buf.Bytes(), 0644)
+			if err != nil {
+				fmt.Errorf(err.Error())
+			}
+
+			// Upload the sbom gzip with FPutObject
+			info, err := minioClient.FPutObject(ctx, h.S3Config.Bucket, objectName, tempSBOMfilePath, minio.PutObjectOptions{ContentType: contentType})
+			if err != nil {
+				fmt.Errorf(err.Error())
+			}
+			log.Printf("Successfully uploaded %s of size %d\n", objectName, info.Size)
+
+			// clean up
+			//err = os.Remove(tempSBOMfilePath)
+			//if err != nil {
+			//	fmt.Errorf(err.Error())
+			//}
+		}
+	}
+
+	return nil
+}
+
+func (h *Messaging) pushToLagoonApi(bom *cdx.BOM, resource ResourceDestination) error {
+	// Push to API
+	apiClient := graphql.NewClient(h.LagoonAPI.Endpoint, &http.Client{Transport: &authedTransport{wrapped: http.DefaultTransport, h: h}})
+
+	// Get project data (we need the project ID to be able to utilise the environmentByName query)
+	project, err := lagoonclient.GetProjectByName(context.TODO(), apiClient, resource.Project)
 	if err != nil {
 		return err
 	}
 
-	// Upload the sbom file
-	objectName := fmt.Sprintf("%s-%s-%s-sbom.json", resource.Project, resource.Environment, resource.Service)
-	sbomReader := bytes.NewReader(sbomBytes)
-	info, putObjErr := minioClient.PutObject(ctx, h.S3Config.Bucket, objectName, sbomReader, sbomReader.Size(), minio.PutObjectOptions{})
-	if putObjErr != nil {
-		return putObjErr
+	if project.Id == 0 || project.Name == "" {
+		return fmt.Errorf("error: unable to determine resource destination (does %s:%s exist?)", resource.Project, resource.Environment)
 	}
 
-	// Upload the sbom file with FPutObject
-	//info, err := minioClient.FPutObject(ctx, h.S3Config.Bucket, objectName, filePath, minio.PutObjectOptions{ContentType: contentType})
-	//if err != nil {
-	//	log.Fatalln(err)
-	//}
+	environment, err := lagoonclient.GetEnvironmentFromName(context.TODO(), apiClient, resource.Environment, project.Id)
+	if err != nil {
+		return err
+	}
 
-	log.Printf("Successfully uploaded %s of size %d\n", objectName, info.Size)
+	source := fmt.Sprintf("%s:%s", (*bom.Metadata.Component).Name, resource.Service)
 
+	// Remove existing facts from source first
+	_, err = lagoonclient.DeleteFactsFromSource(context.TODO(), apiClient, environment.Id, source)
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Previous facts deleted for '%s:%s' and source '%s'", project.Name, environment.Name, source)
+	log.Println("--------------------")
+	log.Printf("Successfully decoded SBOM of image %s\n", bom.Metadata.Component.Name)
+	log.Printf("- Generated: %s with %s\n", bom.Metadata.Timestamp, (*bom.Metadata.Tools)[0].Name)
+	log.Printf("- Packages found: %d\n", len(*bom.Components))
+
+	// Process SBOM into facts
+	facts := processFactsFromSBOM(bom.Components, environment.Id, source)
+	log.Println("--------------------")
+	log.Printf("Attempting to add %d facts...", len(facts))
+	log.Println("--------------------")
+
+	result, err := lagoonclient.AddFacts(context.TODO(), apiClient, facts)
+	if err != nil {
+		return err
+	}
+
+	log.Println(result)
 	return nil
+}
+
+func decodeSbomString(encodedSbom string) (result interface{}, err error) {
+	// base64 decode it
+	base64Decoder := base64.NewDecoder(base64.StdEncoding, strings.NewReader(encodedSbom))
+	decodedGzipReader, err := gzip.NewReader(base64Decoder)
+	if err != nil {
+		return "", err
+	}
+
+	// Decode json from reader
+	var data interface{}
+	jsonDecoder := json.NewDecoder(decodedGzipReader)
+	err = jsonDecoder.Decode(&data)
+	if err != nil && err != io.EOF {
+		return "", err
+	}
+
+	return data, nil
 }
 
 func downloadSBOM(sbomURL string) (*http.Response, error) {
@@ -398,6 +498,7 @@ func processFactsFromSBOM(facts *[]cdx.Component, environmentId int, source stri
 			Value:       f.Version,
 			Source:      source,
 			Description: f.PackageURL,
+			KeyFact:     true,
 			Type:        lagoonclient.FactTypeText,
 		})
 	}

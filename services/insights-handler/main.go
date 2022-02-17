@@ -35,52 +35,35 @@ var (
 	bucket                       string
 	region                       string
 	useSSL                       bool
+	disableS3Upload              bool
+	disableApiIntegration        bool
 	enableDebug                  bool
 )
 
 func main() {
-	flag.StringVar(&lagoonAppID, "lagoon-app-id", "insights-handler",
-		"The appID to use that will be sent with messages.")
-	flag.StringVar(&mqUser, "rabbitmq-username", "guest",
-		"The username of the rabbitmq user.")
-	flag.StringVar(&mqPass, "rabbitmq-password", "guest",
-		"The password for the rabbitmq user.")
-	flag.StringVar(&mqHost, "rabbitmq-hostname", "localhost",
-		"The hostname for the rabbitmq host.")
-	flag.StringVar(&mqPort, "rabbitmq-port", "5672",
-		"The port for the rabbitmq host.")
-	flag.IntVar(&mqWorkers, "rabbitmq-queue-workers", 1,
-		"The number of workers to start with.")
-	flag.IntVar(&rabbitReconnectRetryInterval, "rabbitmq-reconnect-retry-interval", 30,
-		"The retry interval for rabbitmq.")
-	flag.IntVar(&startupConnectionAttempts, "startup-connection-attempts", 10,
-		"The number of startup attempts before exiting.")
-	flag.IntVar(&startupConnectionInterval, "startup-connection-interval-seconds", 30,
-		"The duration between startup attempts.")
-	flag.StringVar(&lagoonAPIHost, "lagoon-api-host", "http://localhost:3000/graphql",
-		"The host for the lagoon api.")
-	flag.StringVar(&jwtTokenSigningKey, "jwt-token-signing-key", "super-secret-string",
-		"The jwt signing token key or secret.")
-	flag.StringVar(&jwtAudience, "jwt-audience", "api.dev",
-		"The jwt audience.")
-	flag.StringVar(&jwtSubject, "jwt-subject", "actions-handler",
-		"The jwt audience.")
-	flag.StringVar(&jwtIssuer, "jwt-issuer", "actions-handler",
-		"The jwt audience.")
-	flag.StringVar(&insightsQueueName, "insights-queue-name", "lagoon-insights:items",
-		"The name of the queue in rabbitmq to use.")
-	flag.StringVar(&insightsExchange, "insights-exchange", "lagoon-insights",
-		"The name of the exchange in rabbitmq to use.")
-	flag.StringVar(&secretAccessKey, "secret-access-key", "minio123",
-		"s3 secret access key to use.")
-	flag.StringVar(&s3Origin, "s3-host", "localhost:9000",
-		"The s3 host/origin to use.")
-	flag.StringVar(&accessKeyID, "access-key-id", "minio",
-		"The name of the bucket to use.")
-	flag.StringVar(&bucket, "s3-bucket", "lagoon-sboms",
-		"The s3 aws region.")
-	flag.StringVar(&region, "s3-region", "",
-		"The s3 region.")
+	flag.StringVar(&lagoonAppID, "lagoon-app-id", "insights-handler", "The appID to use that will be sent with messages.")
+	flag.StringVar(&mqUser, "rabbitmq-username", "guest", "The username of the rabbitmq user.")
+	flag.StringVar(&mqPass, "rabbitmq-password", "guest", "The password for the rabbitmq user.")
+	flag.StringVar(&mqHost, "rabbitmq-hostname", "localhost", "The hostname for the rabbitmq host.")
+	flag.StringVar(&mqPort, "rabbitmq-port", "5672", "The port for the rabbitmq host.")
+	flag.IntVar(&mqWorkers, "rabbitmq-queue-workers", 1, "The number of workers to start with.")
+	flag.IntVar(&rabbitReconnectRetryInterval, "rabbitmq-reconnect-retry-interval", 30, "The retry interval for rabbitmq.")
+	flag.IntVar(&startupConnectionAttempts, "startup-connection-attempts", 10, "The number of startup attempts before exiting.")
+	flag.IntVar(&startupConnectionInterval, "startup-connection-interval-seconds", 30, "The duration between startup attempts.")
+	flag.StringVar(&lagoonAPIHost, "lagoon-api-host", "http://localhost:3000/graphql", "The host for the lagoon api.")
+	flag.StringVar(&jwtTokenSigningKey, "jwt-token-signing-key", "super-secret-string", "The jwt signing token key or secret.")
+	flag.StringVar(&jwtAudience, "jwt-audience", "api.dev", "The jwt audience.")
+	flag.StringVar(&jwtSubject, "jwt-subject", "actions-handler", "The jwt audience.")
+	flag.StringVar(&jwtIssuer, "jwt-issuer", "actions-handler", "The jwt audience.")
+	flag.StringVar(&insightsQueueName, "insights-queue-name", "lagoon-insights:items", "The name of the queue in rabbitmq to use.")
+	flag.StringVar(&insightsExchange, "insights-exchange", "lagoon-insights", "The name of the exchange in rabbitmq to use.")
+	flag.StringVar(&secretAccessKey, "secret-access-key", "minio123", "s3 secret access key to use.")
+	flag.StringVar(&s3Origin, "s3-host", "localhost:9000", "The s3 host/origin to use.")
+	flag.StringVar(&accessKeyID, "access-key-id", "minio", "The name of the bucket to use.")
+	flag.StringVar(&bucket, "s3-bucket", "lagoon-sboms", "The s3 aws region.")
+	flag.StringVar(&region, "s3-region", "", "The s3 region.")
+	flag.BoolVar(&disableS3Upload, "disable-s3-upload", false, "Disable uploading insights data to an s3 bucket")
+	flag.BoolVar(&disableApiIntegration, "disable-api-integration", false, "Disable insights data integration for the Lagoon API")
 	flag.Parse()
 
 	// get overrides from environment variables
@@ -117,6 +100,7 @@ func main() {
 		JWTAudience:     jwtAudience,
 		JWTSubject:      jwtSubject,
 		JWTIssuer:       jwtIssuer,
+		Disabled:        disableApiIntegration,
 	}
 	s3Config := handler.S3{
 		SecretAccessKey: secretAccessKey,
@@ -125,9 +109,10 @@ func main() {
 		Bucket:          bucket,
 		Region:          region,
 		UseSSL:          useSSL,
+		Disabled:        disableS3Upload,
 	}
 
-	log.Println("insights-handler running")
+	log.Println("insights-handler running...")
 
 	config := mq.Config{
 		ReconnectDelay: time.Duration(rabbitReconnectRetryInterval) * time.Second,
