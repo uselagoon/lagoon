@@ -409,7 +409,7 @@ do
     elif checkDBaaSHealth; then
       # check if the dbaas operator responds to a health check
       # if it does, then check if the dbaas operator has a provider matching the provider type that is expected
-      if checkDBaaSProvider postgres $(getDBaaSEnvironment mongodb-dbaas); then
+      if checkDBaaSProvider mongodb $(getDBaaSEnvironment mongodb-dbaas); then
         SERVICE_TYPE="mongodb-dbaas"
       else
         SERVICE_TYPE="mongodb-single"
