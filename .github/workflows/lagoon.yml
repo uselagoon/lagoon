@@ -78,10 +78,6 @@ jobs:
         helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 10m lagoon-core lagoon/lagoon-core -f helmvalues/lagoon-core.yaml -f helmvalues/local.yaml
         helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 10m lagoon-build-deploy lagoon/lagoon-build-deploy -f helmvalues/lagoon-build-deploy.yaml -f helmvalues/local.yaml
         helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 10m --debug lagoon-remote lagoon/lagoon-remote -f helmvalues/lagoon-remote.yaml -f helmvalues/local.yaml
-    - name: Update build-deploy-token in lagoon-test and install tests
-      run: |
-        kubectl -n lagoon get secret -o json | jq -r '.items[] | select(.metadata.name | match("lagoon-build-deploy-token")) | .data.token | @base64d' | xargs -I ARGS yq -i eval '.token = "ARGS"' helmvalues/local.yaml
-        helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 30m lagoon-test lagoon/lagoon-test -f helmvalues/lagoon-test.yaml -f helmvalues/local.yaml
     - name: Check that keycloak is ready
       uses: nick-fields/retry@v2
       with:
@@ -90,6 +86,10 @@ jobs:
         retry_wait_seconds: 30
         retry_on: error
         command: kubectl logs -l app.kubernetes.io/component=lagoon-core-keycloak -n lagoon --tail=-1 | grep "Config of Keycloak done"
+    - name: Update build-deploy-token in lagoon-test and install tests
+      run: |
+        kubectl -n lagoon get secret -o json | jq -r '.items[] | select(.metadata.name | match("lagoon-build-deploy-token")) | .data.token | @base64d' | xargs -I ARGS yq -i eval '.token = "ARGS"' helmvalues/local.yaml
+        helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 10m lagoon-test lagoon/lagoon-test -f helmvalues/lagoon-test.yaml -f helmvalues/local.yaml
     - name: Run tests
       run: |
         helm test lagoon-test --namespace lagoon --logs --timeout 30m
@@ -98,17 +98,22 @@ jobs:
       if: failure()
       run: |
         kubectl describe pods --namespace=lagoon --selector=app.kubernetes.io/name=lagoon-remote
-        kubectl logs --tail=80 --namespace=lagoon --prefix --timestamps --all-containers --selector=app.kubernetes.io/name=lagoon-remote
+        kubectl logs --tail=-1 --namespace=lagoon --prefix --timestamps --all-containers --selector=app.kubernetes.io/name=lagoon-remote
     - name: Inspect lagoon-core pods if failed
       if: failure()
       run: |
         kubectl describe pods --namespace=lagoon --selector=app.kubernetes.io/name=lagoon-core
-        kubectl logs --tail=80 --namespace=lagoon --prefix --timestamps --all-containers --selector=app.kubernetes.io/name=lagoon-core
+        kubectl logs --tail=-1 --namespace=lagoon --prefix --timestamps --all-containers --selector=app.kubernetes.io/name=lagoon-core
     - name: Inspect lagoon-build-deploy pods if failed
       if: failure()
       run: |
         kubectl describe pods --namespace=lagoon --selector=app.kubernetes.io/name=lagoon-build-deploy
-        kubectl logs --tail=80 --namespace=lagoon --prefix --timestamps --all-containers --selector=app.kubernetes.io/name=lagoon-build-deploy
+        kubectl logs --tail=-1 --namespace=lagoon --prefix --timestamps --all-containers --selector=app.kubernetes.io/name=lagoon-build-deploy
+    - name: Inspect lagoon-test pods if failed
+      if: failure()
+      run: |
+        kubectl describe pods --namespace=lagoon --selector=app.kubernetes.io/name=lagoon-test
+        kubectl logs --tail=-1 --namespace=lagoon --prefix --timestamps --all-containers --selector=app.kubernetes.io/name=test
     - name: Get cluster info
       run: |
         kubectl cluster-info
