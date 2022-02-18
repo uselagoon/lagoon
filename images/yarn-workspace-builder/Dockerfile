@@ -20,7 +20,6 @@ COPY services/logs2slack/package.json /app/services/logs2slack/
 COPY services/logs2s3/package.json /app/services/logs2s3/
 COPY services/logs2webhook/package.json /app/services/logs2webhook/
 COPY services/controllerhandler/package.json /app/services/controllerhandler/
-COPY services/kubernetesbuilddeploy/package.json /app/services/kubernetesbuilddeploy/
 COPY services/rest2tasks/package.json /app/services/rest2tasks/
 COPY services/webhook-handler/package.json /app/services/webhook-handler/
 COPY services/webhooks2tasks/package.json /app/services/webhooks2tasks/
