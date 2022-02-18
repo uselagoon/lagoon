@@ -33,12 +33,16 @@ imageTag: v2.4.1
 
 
 # lagoon-build-deploy
-overrideBuildDeployImage: registry.172.17.0.2.nip.io:32080/library/lagoon/kubectl-build-deploy-dind:latest
+overrideBuildDeployImage: uselagoon/kubectl-build-deploy-dind:v2.4.1
 
 # This sets the same password in the lagoon-core-broker and lagoon-build-deploy to allow them to communicate
 rabbitMQPassword: xogie5lae8IoshugahcoeThakiequo3I
 # This sets the same authserver client secret in lagoon-core and lagoon-test
 keycloakAuthServerClientSecret: 2da72b5c-f97f-4d6a-93cf-2a8996ee50d4
+
+elasticsearchURL: http://odfe-node1:9200
+kibanaURL: http://odfe-kibana:5601
+
 # DBaaS Passwords
 auth:
   rootPassword: ba7ees3aiy0eiNai
