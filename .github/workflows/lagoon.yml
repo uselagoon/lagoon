@@ -82,6 +82,14 @@ jobs:
       run: |
         kubectl -n lagoon get secret -o json | jq -r '.items[] | select(.metadata.name | match("lagoon-build-deploy-token")) | .data.token | @base64d' | xargs -I ARGS yq -i eval '.token = "ARGS"' helmvalues/local.yaml
         helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 30m lagoon-test lagoon/lagoon-test -f helmvalues/lagoon-test.yaml -f helmvalues/local.yaml
+    - name: Check that keycloak is ready
+      uses: nick-fields/retry@v2
+      with:
+        timeout_seconds: 5
+        max_attempts: 10
+        retry_wait_seconds: 30
+        retry_on: error
+        command: kubectl logs -l app.kubernetes.io/component=lagoon-core-keycloak -n lagoon --tail=-1 | grep "Config of Keycloak done"
     - name: Run tests
       run: |
         helm test lagoon-test --namespace lagoon --logs --timeout 30m
