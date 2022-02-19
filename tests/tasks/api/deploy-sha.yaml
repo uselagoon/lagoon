@@ -22,6 +22,41 @@
     - fail:
         msg: "unsuccessful deploy"
       when: apiresponse.json.data.deployEnvironmentBranch != "success"
+    - name: Get the build pod name
+      kubernetes.core.k8s_info:
+        kind: Pod
+        wait: yes
+        namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
+        label_selectors:
+          - lagoon.sh/jobType = build
+        field_selectors:
+          - status.phase=Running
+        wait_sleep: 1
+        wait_timeout: 60
+      register: build_pod
+    - name: Print build_pod
+      ansible.builtin.debug:
+        msg: "build_pod: {{ build_pod.resources[0].metadata.name }} {{ build_pod.resources[0].status.phase }}"
+    - name: Wait until the build pod is completed
+      kubernetes.core.k8s_info:
+        kind: Pod
+        wait: yes
+        name: "{{ build_pod.resources[0].metadata.name }}"
+        namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
+        label_selectors:
+          - lagoon.sh/jobType = build
+        field_selectors:
+          - status.phase=Succeeded
+        wait_condition:
+          type: Ready
+          reason: PodCompleted
+          status: "False"
+        wait_sleep: 10
+        wait_timeout: 600
+      register: build_complete
+    - name: Print build_complete
+      ansible.builtin.debug:
+        msg: "build_complete: {{ build_complete.resources[0].metadata.name }} {{ build_complete.resources[0].status.phase }}"
     - name: "Set the retry count back to 0 when successful"
       set_fact:
         retry_count: 0
