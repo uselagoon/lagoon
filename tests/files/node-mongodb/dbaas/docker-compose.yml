@@ -27,7 +27,7 @@ services:
       context: .
       dockerfile: Dockerfile.mongo
     labels:
-      lagoon.type: mongodb
+      lagoon.type: mongodb-dbaas
     # ports:
     #   - "27027:27017"
     # networks:
