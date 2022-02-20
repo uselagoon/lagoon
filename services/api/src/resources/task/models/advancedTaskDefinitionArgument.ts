@@ -90,8 +90,6 @@ export class NumberArgument {
 
 
 /**
- * This function will match a
- *
  * @param name The name of the advancedTaskDefinition type (stored in field)
  */
 export const advancedTaskDefinitionTypeFactory = (sqlClientPool, task, environment) => (name) => {

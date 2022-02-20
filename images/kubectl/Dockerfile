@@ -49,8 +49,6 @@ RUN apk add -U --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing au
     && chmod +x /usr/bin/yq3 \
     && curl -Lo /usr/bin/yq https://github.com/mikefarah/yq/releases/download/v4.15.1/yq_linux_amd64 \
     && chmod +x /usr/bin/yq \
-    && curl -Lo /usr/bin/svcat https://download.svcat.sh/cli/latest-v0.2/linux/amd64/svcat \
-    && chmod +x /usr/bin/svcat \
     && curl -Lo /tmp/helm.tar.gz https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz \
     && echo "${HELM_SHA256}  /tmp/helm.tar.gz" | sha256sum -c -  \
     && mkdir /tmp/helm \

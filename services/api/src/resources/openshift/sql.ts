@@ -10,7 +10,10 @@ export const Sql = {
     projectUser,
     sshHost,
     sshPort,
-    monitoringConfig
+    monitoringConfig,
+    friendlyName,
+    cloudProvider,
+    cloudRegion
   }: {
     id?: number;
     name: string;
@@ -21,6 +24,9 @@ export const Sql = {
     sshHost?: string;
     sshPort?: string;
     monitoringConfig?: JSON;
+    friendlyName?: string;
+    cloudProvider?: string;
+    cloudRegion?: string;
   }) =>
     knex('openshift')
       .insert({
@@ -32,7 +38,10 @@ export const Sql = {
         projectUser,
         sshHost,
         sshPort,
-        monitoringConfig
+        monitoringConfig,
+        friendlyName,
+        cloudProvider,
+        cloudRegion
       })
       .toString(),
   updateOpenshift: ({
