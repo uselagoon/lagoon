@@ -105,7 +105,6 @@ func NewMessaging(config mq.Config, lagoonAPI LagoonAPI, startupAttempts int, st
 
 // Consumer handles consuming messages sent to the queue that this action handler is connected to and processes them accordingly
 func (h *Messaging) Consumer() {
-	//ctx := context.TODO()
 
 	var messageQueue mq.MQ
 	// if no mq is found when the goroutine starts, retry a few times before exiting
@@ -140,7 +139,7 @@ func (h *Messaging) Consumer() {
 	forever := make(chan bool)
 
 	// Handle any tasks that go to the queue
-	log.Println("Listening for messages in queue lagoon-actions:items")
+	log.Println("Listening for messages in queue lagoon-logs:items")
 	err = messageQueue.SetConsumerHandler("items-queue", processingIncomingMessageQueueFactory(h))
 	if err != nil {
 		log.Println(fmt.Sprintf("Failed to set handler to consumer `%s`: %v", "items-queue", err))
@@ -186,6 +185,8 @@ func processingIncomingMessageQueueFactory(h *Messaging) func(mq.Message) {
 			}
 			for _, wf := range environmentWorkflows {
 				if lagoonclient.IsEventOfType(incoming.Event, wf.AdvancedTaskDetails) {
+					log.Printf("Found event of type %v for project:%v and environment %v - invoking.\n",
+						incoming.Event, projectId, environmentName)
 					result, err := lagoonclient.InvokeWorkflowOnEnvironment(context.TODO(), client, wf.EnvironmentId, wf.AdvancedTaskId)
 					if err != nil {
 						log.Println(err)
@@ -193,7 +194,8 @@ func processingIncomingMessageQueueFactory(h *Messaging) func(mq.Message) {
 						message.Ack(false) // ack to remove from queue
 						return
 					}
-					fmt.Println(result)
+					log.Printf("Invocation result of %v for project:%v and environment %v - %v.\n",
+						incoming.Event, projectId, environmentName, result)
 				}
 
 			}
