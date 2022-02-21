@@ -1,33 +1,26 @@
-####################################
-## Drupal
-####################################
-[dD]rupal*.*
-php-version
+##########################
+## Environment variables
+##########################
+PHP_VERSION
+DRUSH_VERSION
+LAGOON_VERSION
+NEWRELIC_VERSION
+BLACKFIRE_VERSION
+COMPOSER_VERSION
+##########################
+## Packages
+##########################
+drupal/core
 drush/drush
-####################################
-## Node
-####################################
-npm
-nodejs
-node
-####################################
-## Wordpress
-####################################
-[wW]ordpress*.*
-####################################
-## Laravel
-####################################
-[lL]aravel*.*
-laravel
-####################################
-## Symfony
-####################################
-symfony
-####################################
-## Other
-####################################
-nginx
-solr
-python
-go
-####################################
+#amazeeio/drupal_integrations
+#[dD]rupal/*.*
+#npm
+#nodejs
+#node
+#[wW]ordpress*.*
+#[lL]aravel*.*
+#symfony
+#nginx
+#solr
+#python
+#go
