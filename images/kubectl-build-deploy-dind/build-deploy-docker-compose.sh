@@ -76,7 +76,9 @@ function featureFlag() {
 	echo "${!defaultFlagVar}"
 }
 
+set +x
 SCC_CHECK=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get pod ${LAGOON_BUILD_NAME} -o json | jq -r '.metadata.annotations."openshift.io/scc" // false')
+set -x
 
 function patchBuildStep() {
   [ "$1" ] || return #total start time
