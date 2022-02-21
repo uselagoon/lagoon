@@ -26,7 +26,7 @@
       kubernetes.core.k8s_info:
         kind: Pod
         wait: yes
-        namespace: "{{ project | regex_replace('_', '-') }}-pr-{{ git_pr_number }}"
+        namespace: "{{ namespace }}"
         label_selectors:
           - lagoon.sh/jobType = build
         field_selectors:
@@ -42,7 +42,7 @@
         kind: Pod
         wait: yes
         name: "{{ build_pod.resources[0].metadata.name }}"
-        namespace: "{{ project | regex_replace('_', '-') }}-pr-{{ git_pr_number }}"
+        namespace: "{{ namespace }}"
         label_selectors:
           - lagoon.sh/jobType = build
         field_selectors:

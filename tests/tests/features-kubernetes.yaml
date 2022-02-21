@@ -35,17 +35,16 @@
     branch: ingress-annotations
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
-# TODO - undisable once we have a way to acquire the namespace via the API to feed to kubectl for lagoon-build checks
-# - include: features/short-router-url.yaml
-#   vars:
-#     testname: "SHORT ROUTER URL {{ cluster_type|upper }}"
-#     git_repo_name: features.git
-#     project: ci-features-{{ cluster_type }}
-#     branch: short-router-url-from-a-very-long-environment-name-like-this
-#     # lagoon_environment is truncated for very long branches.
-#     # See commons/src/tasks.ts
-#     lagoon_environment: short-router-url-from-a-very-l-ebe8
-#     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+- include: features/short-router-url.yaml
+  vars:
+    testname: "SHORT ROUTER URL {{ cluster_type|upper }}"
+    git_repo_name: features.git
+    project: ci-features-{{ cluster_type }}
+    branch: short-router-url-from-a-very-long-environment-name-like-this
+    # lagoon_environment is truncated for very long branches.
+    # See commons/src/tasks.ts
+    lagoon_environment: short-router-url-from-a-very-l-ebe8
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
 - include: features/namespace-labels.yaml
   vars:
