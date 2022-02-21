@@ -7,6 +7,8 @@ LAGOON_VERSION
 NEWRELIC_VERSION
 BLACKFIRE_VERSION
 COMPOSER_VERSION
+VARNISH_VERSION
+VARNISH_SIZE
 ##########################
 ## Packages
 ##########################
