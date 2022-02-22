@@ -1,0 +1,44 @@
+---
+- include: features/random-wait.yaml
+
+- include: features/api-token.yaml
+  vars:
+    testname: "API TOKEN"
+
+- include: api/add-project.yaml
+  vars:
+    project: ci-drush-la-{{ cluster_type }}
+    git_repo_name: drush.git
+    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
+
+- include: drupal/drush-la.yaml
+  vars:
+    testname: "DRUSH integration {{ cluster_type|upper }}"
+    drupal_version: 9
+    db: mariadb
+    php_version: 8.0
+    git_repo_name: drush.git
+    project: ci-drush-la-{{ cluster_type }}
+
+- include: api/delete-project.yaml
+  vars:
+    project: ci-drush-la-{{ cluster_type }}
+
+- include: api/add-project.yaml
+  vars:
+    project: ci-drush-sa-{{ cluster_type }}
+    git_repo_name: drush-sa.git
+    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
+
+- include: drupal/drush-sa.yaml
+  vars:
+    testname: "DRUSH legacy {{ cluster_type|upper }}"
+    drupal_version: 8
+    db: mariadb-single
+    php_version: 7.4
+    git_repo_name: drush-sa.git
+    project: ci-drush-sa-{{ cluster_type }}
+
+- include: api/delete-project.yaml
+  vars:
+    project: ci-drush-sa-{{ cluster_type }}

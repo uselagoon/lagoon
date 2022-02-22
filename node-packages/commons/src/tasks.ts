@@ -12,7 +12,6 @@ import {
   getOpenShiftInfoForProject,
   getOpenShiftInfoForEnvironment,
   getDeployTargetConfigsForProject,
-  getBillingGroupForProject,
   addOrUpdateEnvironment,
   getEnvironmentByName,
   addDeployment
@@ -281,8 +280,6 @@ export const getControllerBuildData = async function(deployData: any) {
 
   const result = await getOpenShiftInfoForProject(projectName);
   const lagoonProjectData = result.project
-  const billingGroupResult = await getBillingGroupForProject(projectName);
-  const projectBillingGroup = billingGroupResult.project
 
   var overlength = 58 - projectName.length;
   if ( environmentName.length > overlength ) {
@@ -332,10 +329,6 @@ export const getControllerBuildData = async function(deployData: any) {
     alertContact = "unconfigured"
   }
 
-  const billingGroup = projectBillingGroup.groups.find(i => i.type == "billing" ) || ""
-  if (billingGroup.uptimeRobotStatusPageId && billingGroup.uptimeRobotStatusPageId != "null" && !R.isEmpty(billingGroup.uptimeRobotStatusPageId)){
-    uptimeRobotStatusPageIds.push(billingGroup.uptimeRobotStatusPageId)
-  }
   var uptimeRobotStatusPageId = uptimeRobotStatusPageIds.join('-')
 
   var pullrequestData: any = {};
@@ -389,7 +382,7 @@ export const getControllerBuildData = async function(deployData: any) {
   // check if this environment already exists in the API so we can get the openshift target it is using
   // this is even valid for promotes if it isn't the first time time it is being deployed
   try {
-    const apiEnvironment = await getEnvironmentByName(branchName, lagoonProjectData.id);
+    const apiEnvironment = await getEnvironmentByName(branchName, lagoonProjectData.id, false);
     let envId = apiEnvironment.environmentByName.id
     const environmentOpenshift = await getOpenShiftInfoForEnvironment(envId);
     deployTarget.openshift = environmentOpenshift.environment.openshift
@@ -402,7 +395,18 @@ export const getControllerBuildData = async function(deployData: any) {
 
   var openshiftProject = openshiftProjectPattern ? openshiftProjectPattern.replace('${environment}',environmentName).replace('${project}', projectName) : `${projectName}-${environmentName}`
 
-  var routerPattern = lagoonProjectData.openshift.routerPattern || deployTarget.openshift.routerPattern
+  // set routerpattern to the routerpattern of what is defined in the project scope openshift
+  var routerPattern = lagoonProjectData.openshift.routerPattern
+  if (typeof deployTarget.openshift.routerPattern !== 'undefined') {
+    // if deploytargets are being provided, then use what is defined in the deploytarget
+    // null is a valid value for routerPatterns here...
+    routerPattern = deployTarget.openshift.routerPattern
+  }
+  // but if the project itself has a routerpattern defined, then this should be used
+  if (lagoonProjectData.routerPattern) {
+    // if a project has a routerpattern defined, use it. `null` is not valid here
+    routerPattern = lagoonProjectData.routerPattern
+  }
   var deployTargetName = deployTarget.openshift.name
   var monitoringConfig: any = {};
   try {
@@ -417,6 +421,17 @@ export const getControllerBuildData = async function(deployData: any) {
     if (monitoringConfig.uptimerobot.statusPageId) {
       uptimeRobotStatusPageIds.push(monitoringConfig.uptimerobot.statusPageId)
     }
+  }
+
+  var alertContact = ""
+  if (alertContactHA != undefined && alertContactSA != undefined){
+    if (availability == "HIGH") {
+      alertContact = alertContactHA
+    } else {
+      alertContact = alertContactSA
+    }
+  } else {
+    alertContact = "unconfigured"
   }
 
   var availability = lagoonProjectData.availability || "STANDARD"
@@ -448,12 +463,18 @@ export const getControllerBuildData = async function(deployData: any) {
   let environmentId;
   try {
     const now = moment.utc();
-    const apiEnvironment = await getEnvironmentByName(branchName, lagoonProjectData.id);
+    const apiEnvironment = await getEnvironmentByName(branchName, lagoonProjectData.id, false);
     environmentId = apiEnvironment.environmentByName.id
     deployment = await addDeployment(buildName, "NEW", now.format('YYYY-MM-DDTHH:mm:ss'), apiEnvironment.environmentByName.id);
   } catch (error) {
     logger.error(`Could not save deployment for project ${lagoonProjectData.id}. Message: ${error}`);
   }
+
+  // append the routerpattern to the projects variables
+  // use a scope of `internal_system` which isn't available to the actual API to be added via mutations
+  // this way variables or new functionality can be passed into lagoon builds using the existing variables mechanism
+  // avoiding the needs to hardcode them into the spec to then be consumed by the build-deploy controller
+  lagoonProjectData.envVariables.push({"name":"LAGOON_SYSTEM_ROUTER_PATTERN", "value":routerPattern, "scope":"internal_system"})
 
   // encode some values so they get sent to the controllers nicely
   const sshKeyBase64 = new Buffer(deployPrivateKey.replace(/\\n/g, "\n")).toString('base64')
@@ -486,10 +507,12 @@ export const getControllerBuildData = async function(deployData: any) {
         environment: environmentName,
         environmentType: environmentType,
         environmentId: environmentId,
+        environmentIdling: environment.autoIdle,
+        projectIdling: lagoonProjectData.autoIdle,
         productionEnvironment: projectProductionEnvironment,
         standbyEnvironment: projectStandbyEnvironment,
         subfolder: subfolder,
-        routerPattern: routerPattern,
+        routerPattern: routerPattern, // @DEPRECATE: send this still for backwards compatability, but eventually this can be removed once LAGOON_SYSTEM_ROUTER_PATTERN is adopted wider
         deployTarget: deployTargetName,
         projectSecret: projectSecret,
         key: sshKeyBase64,
@@ -552,8 +575,7 @@ export const createDeployTask = async function(deployData: any) {
           .filter(e => e.environmentType === 'production')
           .map(e => e.name);
         logger.debug(
-          `projectName: ${projectName}, branchName: ${branchName}, existing environments are `,
-          prod_environments
+          `projectName: ${projectName}, branchName: ${branchName}, existing environments are ${prod_environments}`
         );
 
         if (prod_environments.length >= productionEnvironmentsLimit) {
@@ -573,8 +595,7 @@ export const createDeployTask = async function(deployData: any) {
           .filter(e => e.environmentType === 'development')
           .map(e => e.name);
         logger.debug(
-          `projectName: ${projectName}, branchName: ${branchName}, existing environments are `,
-          dev_environments
+          `projectName: ${projectName}, branchName: ${branchName}, existing environments are ${dev_environments}`
         );
 
         if (
@@ -795,7 +816,7 @@ export const createRemoveTask = async function(removeData: any) {
 }
 
 // creates the restore job configuration for use in the misc task
-const restoreConfig = (name, backupId, safeProjectName, baasBucketName, backupS3Config, restoreS3Config) => {
+const restoreConfig = (name, backupId, backupS3Config, restoreS3Config) => {
   let config = {
     apiVersion: 'backup.appuio.ch/v1alpha1',
     kind: 'Restore',
@@ -808,9 +829,7 @@ const restoreConfig = (name, backupId, safeProjectName, baasBucketName, backupS3
         s3: restoreS3Config ? restoreS3Config : {},
       },
       backend: {
-        s3: backupS3Config ? backupS3Config : {
-          bucket: baasBucketName ? baasBucketName : `baas-${safeProjectName}`
-        },
+        s3: backupS3Config,
         repoPasswordSecretRef: {
           key: 'repo-pw',
           name: 'baas-repo-pw'
@@ -910,7 +929,7 @@ export const createMiscTask = async function(taskData: any) {
           const randRestoreId = Math.random().toString(36).substring(7);
           const restoreName = `restore-${R.slice(0, 7, taskData.data.backup.backupId)}-${randRestoreId}`;
           // Parse out the baasBucketName for any migrated projects
-          let baasBucketName = result.project.envVariables.find(obj => {
+          let baasBucketName = result.environment.project.envVariables.find(obj => {
             return obj.name === "LAGOON_BAAS_BUCKET_NAME"
           })
           if (baasBucketName) {
@@ -918,25 +937,25 @@ export const createMiscTask = async function(taskData: any) {
           }
 
           // Handle custom backup configurations
-          let lagoonBaasCustomBackupEndpoint = result.project.envVariables.find(obj => {
+          let lagoonBaasCustomBackupEndpoint = result.environment.project.envVariables.find(obj => {
             return obj.name === "LAGOON_BAAS_CUSTOM_BACKUP_ENDPOINT"
           })
           if (lagoonBaasCustomBackupEndpoint) {
             lagoonBaasCustomBackupEndpoint = lagoonBaasCustomBackupEndpoint.value
           }
-          let lagoonBaasCustomBackupBucket = result.project.envVariables.find(obj => {
+          let lagoonBaasCustomBackupBucket = result.environment.project.envVariables.find(obj => {
             return obj.name === "LAGOON_BAAS_CUSTOM_BACKUP_BUCKET"
           })
           if (lagoonBaasCustomBackupBucket) {
             lagoonBaasCustomBackupBucket = lagoonBaasCustomBackupBucket.value
           }
-          let lagoonBaasCustomBackupAccessKey = result.project.envVariables.find(obj => {
+          let lagoonBaasCustomBackupAccessKey = result.environment.project.envVariables.find(obj => {
             return obj.name === "LAGOON_BAAS_CUSTOM_BACKUP_ACCESS_KEY"
           })
           if (lagoonBaasCustomBackupAccessKey) {
             lagoonBaasCustomBackupAccessKey = lagoonBaasCustomBackupAccessKey.value
           }
-          let lagoonBaasCustomBackupSecretKey = result.project.envVariables.find(obj => {
+          let lagoonBaasCustomBackupSecretKey = result.environment.project.envVariables.find(obj => {
             return obj.name === "LAGOON_BAAS_CUSTOM_BACKUP_SECRET_KEY"
           })
           if (lagoonBaasCustomBackupSecretKey) {
@@ -957,28 +976,32 @@ export const createMiscTask = async function(taskData: any) {
                 key: "secret-key"
               }
             }
+          } else {
+            backupS3Config = {
+              bucket: baasBucketName ? baasBucketName : `baas-${makeSafe(taskData.data.project.name)}`
+            }
           }
 
           // Handle custom restore configurations
-          let lagoonBaasCustomRestoreEndpoint = result.project.envVariables.find(obj => {
+          let lagoonBaasCustomRestoreEndpoint = result.environment.project.envVariables.find(obj => {
             return obj.name === "LAGOON_BAAS_CUSTOM_RESTORE_ENDPOINT"
           })
           if (lagoonBaasCustomRestoreEndpoint) {
             lagoonBaasCustomRestoreEndpoint = lagoonBaasCustomRestoreEndpoint.value
           }
-          let lagoonBaasCustomRestoreBucket = result.project.envVariables.find(obj => {
+          let lagoonBaasCustomRestoreBucket = result.environment.project.envVariables.find(obj => {
             return obj.name === "LAGOON_BAAS_CUSTOM_RESTORE_BUCKET"
           })
           if (lagoonBaasCustomRestoreBucket) {
             lagoonBaasCustomRestoreBucket = lagoonBaasCustomRestoreBucket.value
           }
-          let lagoonBaasCustomRestoreAccessKey = result.project.envVariables.find(obj => {
+          let lagoonBaasCustomRestoreAccessKey = result.environment.project.envVariables.find(obj => {
             return obj.name === "LAGOON_BAAS_CUSTOM_RESTORE_ACCESS_KEY"
           })
           if (lagoonBaasCustomRestoreAccessKey) {
             lagoonBaasCustomRestoreAccessKey = lagoonBaasCustomRestoreAccessKey.value
           }
-          let lagoonBaasCustomRestoreSecretKey = result.project.envVariables.find(obj => {
+          let lagoonBaasCustomRestoreSecretKey = result.environment.project.envVariables.find(obj => {
             return obj.name === "LAGOON_BAAS_CUSTOM_RESTORE_SECRET_KEY"
           })
           if (lagoonBaasCustomRestoreSecretKey) {
@@ -1002,7 +1025,7 @@ export const createMiscTask = async function(taskData: any) {
           }
 
           // generate the restore CRD
-          const restoreConf = restoreConfig(restoreName, taskData.data.backup.backupId, makeSafe(taskData.data.project.name), baasBucketName, backupS3Config, restoreS3Config)
+          const restoreConf = restoreConfig(restoreName, taskData.data.backup.backupId, backupS3Config, restoreS3Config)
           //logger.info(restoreConf)
           // base64 encode it
           const restoreBytes = new Buffer(JSON.stringify(restoreConf).replace(/\\n/g, "\n")).toString('base64')

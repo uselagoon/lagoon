@@ -13,6 +13,12 @@ export default gql`
         service
         created
         deleted
+        advancedTaskDefinitionArguments {
+          id
+          name
+          type
+          range
+        }
       }
       ... on AdvancedTaskDefinitionCommand {
         id
@@ -24,6 +30,12 @@ export default gql`
         service
         created
         deleted
+        advancedTaskDefinitionArguments {
+          id
+          name
+          type
+          range
+        }
       }
     }
   }

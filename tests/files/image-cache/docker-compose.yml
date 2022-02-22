@@ -1,0 +1,19 @@
+version: '2'
+services:
+  node:
+    networks:
+      - amazeeio-network
+      - default
+    build:
+      context: .
+      dockerfile: Dockerfile
+    labels:
+      lagoon.type: node-persistent
+      lagoon.persistent: /app/files/
+    ports:
+      - "3000:3000"
+    environment:
+      - AMAZEEIO_URL=node.docker.amazee.io
+networks:
+  amazeeio-network:
+    external: true

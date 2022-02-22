@@ -1236,25 +1236,6 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
-  add_min_max_to_billing_modifier()
-
-  BEGIN
-    IF NOT EXISTS (
-      SELECT NULL
-      FROM INFORMATION_SCHEMA.COLUMNS
-      WHERE
-        table_name = 'billing_modifier'
-        AND table_schema = 'infrastructure'
-        AND column_name = 'min'
-    ) THEN
-      ALTER TABLE `billing_modifier`
-      ADD `min` FLOAT DEFAULT 0,
-      ADD `max` FLOAT DEFAULT 0;
-    END IF;
-  END;
-$$
-
-CREATE OR REPLACE PROCEDURE
   convert_project_production_routes_to_text()
 
   BEGIN
@@ -1410,6 +1391,29 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+
+CREATE OR REPLACE PROCEDURE
+  add_environment_type_to_advanced_task_argument()
+
+  BEGIN
+    DECLARE column_type_argument_type varchar(74);
+
+    SELECT COLUMN_TYPE INTO column_type_argument_type
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      table_name = 'advanced_task_definition_argument'
+      AND table_schema = 'infrastructure'
+      AND column_name = 'type';
+
+    IF (
+      column_type_argument_type = "enum('NUMERIC','STRING')"
+    ) THEN
+      ALTER TABLE advanced_task_definition_argument
+      MODIFY type ENUM('NUMERIC', 'STRING', 'ENVIRONMENT_SOURCE_NAME');
+    END IF;
+  END;
+$$
+
 CREATE OR REPLACE PROCEDURE
   add_openshift_to_environment()
 
@@ -1479,6 +1483,34 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  drop_billing_data()
+
+  BEGIN
+    DROP TABLE IF EXISTS billing_modifier;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_metadata_to_openshift()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'openshift'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'friendly_name'
+    ) THEN
+      ALTER TABLE `openshift`
+      ADD `friendly_name`       varchar(100),
+      ADD `cloud_provider`      varchar(100),
+      ADD `cloud_region`        varchar(100);
+    END IF;
+  END;
+$$
+
 DELIMITER ;
 
 -- If adding new procedures, add them to the bottom of this list
@@ -1537,7 +1569,6 @@ CALL add_fact_type_to_environment_fact();
 CALL add_fact_category_to_environment_fact();
 CALL add_fact_key_to_environment_fact();
 CALL add_metadata_to_project();
-CALL add_min_max_to_billing_modifier();
 CALL add_content_type_to_project_notification();
 CALL convert_project_production_routes_to_text();
 CALL convert_project_standby_routes_to_text();
@@ -1546,11 +1577,14 @@ CALL add_enum_webhook_to_type_in_project_notification();
 CALL add_index_for_deployment_environment();
 CALL add_index_for_task_environment();
 CALL add_router_pattern_to_project();
+CALL add_environment_type_to_advanced_task_argument();
 CALL add_openshift_to_environment();
 CALL add_openshift_project_pattern_to_environment();
 CALL add_deployments_disabled_to_project();
 CALL update_openshift_varchar_length();
 CALL migrate_project_openshift_to_environment();
+CALL drop_billing_data();
+CALL add_metadata_to_openshift();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;

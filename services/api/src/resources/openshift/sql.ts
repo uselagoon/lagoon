@@ -1,7 +1,56 @@
 import { knex } from '../../util/db';
 
 export const Sql = {
-  updateOpenshift: ({ id, patch }: { id: number; patch: { [key: string]: any } }) =>
+  insertOpenshift: ({
+    id,
+    name,
+    consoleUrl,
+    token,
+    routerPattern,
+    projectUser,
+    sshHost,
+    sshPort,
+    monitoringConfig,
+    friendlyName,
+    cloudProvider,
+    cloudRegion
+  }: {
+    id?: number;
+    name: string;
+    consoleUrl: string;
+    token?: string;
+    routerPattern?: string;
+    projectUser?: string;
+    sshHost?: string;
+    sshPort?: string;
+    monitoringConfig?: JSON;
+    friendlyName?: string;
+    cloudProvider?: string;
+    cloudRegion?: string;
+  }) =>
+    knex('openshift')
+      .insert({
+        id,
+        name,
+        consoleUrl,
+        token,
+        routerPattern,
+        projectUser,
+        sshHost,
+        sshPort,
+        monitoringConfig,
+        friendlyName,
+        cloudProvider,
+        cloudRegion
+      })
+      .toString(),
+  updateOpenshift: ({
+    id,
+    patch
+  }: {
+    id: number;
+    patch: { [key: string]: any };
+  }) =>
     knex('openshift')
       .where('id', '=', id)
       .update(patch)

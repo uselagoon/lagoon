@@ -1,0 +1,9 @@
+### Lagoon Drupal 8 redis unavailable services.
+#
+# This file will be added to the container in the event that redis is not
+# available for a request.
+#
+
+services:
+    cache.backend.null:
+      class: Drupal\Core\Cache\NullBackendFactory

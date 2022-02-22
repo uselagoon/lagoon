@@ -854,11 +854,12 @@ export async function getActiveSystemForProject(
 
 export async function getEnvironmentByName(
   name: string,
-  projectId: number
+  projectId: number,
+  includeDeleted: boolean = true
 ): Promise<any> {
   const result = await graphqlapi.query(`
     {
-      environmentByName(name: "${name}", project:${projectId}) {
+      environmentByName(name: "${name}", project:${projectId}, includeDeleted:${includeDeleted}) {
         id,
         name,
         route,
@@ -1143,18 +1144,11 @@ export const getOpenShiftInfoForEnvironment = (environment: number): Promise<any
           routerPattern
           monitoringConfig
         }
-      }
-    }
-`);
-
-export const getBillingGroupForProject = (project: string): Promise<any> =>
-  graphqlapi.query(`
-    {
-      project:projectByName(name: "${project}"){
-        groups {
-          ... on BillingGroup {
-            type
-            uptimeRobotStatusPageId
+        project {
+          envVariables {
+            name
+            value
+            scope
           }
         }
       }

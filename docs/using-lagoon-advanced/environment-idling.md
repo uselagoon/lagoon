@@ -1,6 +1,6 @@
 # Environment Idling
 
-### What is the Environment Idler?
+## What is the Environment Idler?
 
 Lagoon automatically idles environments if they have been unused for a couple of hours. This is done in order to reduce the load on the Kubernetes clusters and improve the overall performance of production environments and development environments that are actually in use.
 
@@ -26,6 +26,3 @@ Yes, there is a field `autoIdle` on the project \(impacts all environments\) and
 The default is always `1`\(idling is enabled\).
 
 Talk to your Lagoon administrator if you are unsure how to set these project/environment fields.
-
-
-

@@ -1,7 +1,3 @@
----
-description: Lagoon allows for the definition of custom tasks
----
-
 # Custom Tasks
 
 Lagoon allows for the definition of custom tasks at environment, project, and group levels. This is presently accomplished through the GraphQL API and exposed in the UI.
@@ -112,5 +108,4 @@ This, then, will define our task for our project \(42\). When we run this, we wi
 
 This task will now be available to run from the UI for anyone with the `DEVELOPER` or `MAINTAINER` role.
 
-![Task List](../.gitbook/assets/task-yarn-audit.png)
-
+![Task List](./task-yarn-audit.png)

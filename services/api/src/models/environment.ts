@@ -38,9 +38,7 @@ type projectEnvWithDataType = (
   month: string
 ) => Promise<EnvironmentData[]>;
 
-export const EnvironmentModel = (clients: {
-  sqlClientPool: Pool;
-}) => {
+export const EnvironmentModel = (clients: { sqlClientPool: Pool }) => {
   const { sqlClientPool } = clients;
 
   /**
@@ -76,87 +74,6 @@ export const EnvironmentModel = (clients: {
         : `err undefined`;
     logger.error(`${msg}: ${errMsg}`);
     return { ...responseObj };
-  };
-
-  /**
-   * Get billing data for an environment.
-   *
-   * @param {number} eid the environment id
-   * @param {string} month The billing month we want to get data for.
-   * @param {string} openshiftProjectName The openshiftProjectName - used for hits.
-   *
-   * @return {object} An object that includes hits, storage, hours
-   */
-  const environmentData = async (
-    eid: number,
-    month: string,
-    project: string,
-    openshiftProjectName: string
-  ) => {
-    const hits = await environmentHitsMonthByEnvironmentId(
-      project,
-      openshiftProjectName,
-      month
-    ).catch(
-      errorCatcherFn(
-        `getHits - openShiftProjectName: ${openshiftProjectName} month: ${month}`,
-        { total: 0 }
-      )
-    );
-
-    const storage = await environmentStorageMonthByEnvironmentId(
-      eid,
-      month
-    ).catch(errorCatcherFn('getStorage', { bytesUsed: 0 }));
-
-    const hours = await environmentHoursMonthByEnvironmentId(eid, month).catch(
-      errorCatcherFn('getHours', { hours: 0 })
-    );
-
-    return { hits, storage, hours };
-  };
-
-  /**
-   * Get all environments and billing data for a project.
-   *
-   * @param {string} pid The project id.
-   * @param {string} month The month we're interested in
-   *
-   * @return {Promise<[Environments ]>} An array of all project environments with data
-   */
-  const projectEnvironmentsWithData: projectEnvWithDataType = async (
-    pid,
-    projectName,
-    month
-  ) => {
-    const environments = await projectEnvironments(pid, null, true);
-
-    const environmentDataFn = async ({
-      id: eid,
-      environmentType: type,
-      openshiftProjectName: openshift
-    }: Environment) => ({
-      eid,
-      type,
-      data: {
-        ...(await environmentData(eid, month, projectName, openshift))
-      }
-    });
-    const data = await Promise.all(environments.map(environmentDataFn));
-
-    const environmentDataReducerFn = (obj, item) => ({
-      ...obj,
-      [item.eid]: { ...item.data }
-    });
-    const keyedData = data.reduce(environmentDataReducerFn, {});
-
-    const environmentsMapFn = ({ id, name, environmentType: type }) => ({
-      id,
-      name,
-      type,
-      ...keyedData[id]
-    });
-    return environments.map(environmentsMapFn);
   };
 
   const environmentStorageMonthByEnvironmentId = async (eid, month) => {
@@ -451,7 +368,11 @@ export const EnvironmentModel = (clients: {
 
       return { newResult, legacyResult };
     } catch (e) {
-      logger.error(`Elastic Search Query Error: ${JSON.stringify(e) != '{}' ? JSON.stringify(e) : e}`);
+      logger.error(
+        `Elastic Search Query Error: ${
+          JSON.stringify(e) != '{}' ? JSON.stringify(e) : e
+        }`
+      );
       // const noHits = { total: 0 };
 
       // if(e.body === "Open Distro Security not initialized."){
@@ -613,9 +534,7 @@ export const EnvironmentModel = (clients: {
 
   return {
     projectEnvironments,
-    projectEnvironmentsWithData,
     environmentsByProjectId,
-    environmentData,
     environmentStorageMonthByEnvironmentId,
     environmentHoursMonthByEnvironmentId,
     environmentHitsMonthByEnvironmentId,

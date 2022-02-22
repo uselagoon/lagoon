@@ -11,9 +11,10 @@ The [Lagoon `php-cli-drupal` Docker image](https://github.com/uselagoon/lagoon-i
 * 5.6 \(available for compatibility, no longer officially supported\)
 * 7.0 \(available for compatibility, no longer officially supported\)
 * 7.2 \(available for compatibility, no longer officially supported\)
-* 7.3 [\[Dockerfile\]](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli-drupal/7.3.Dockerfile)
-* 7.4 [\[Dockerfile\]](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli-drupal/7.4.Dockerfile)
-* 8.0 [\[Dockerfile\]](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli-drupal/8.0.Dockerfile)
+* 7.3 \(available for compatibility, no longer officially supported\)
+* 7.4 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli-drupal/7.4.Dockerfile) - `uselagoon/php-7.4-cli-drupal`
+* 8.0 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli-drupal/8.0.Dockerfile) - `uselagoon/php-8.0-cli-drupal`
+* 8.1 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli-drupal/8.1.Dockerfile) - `uselagoon/php-8.1-cli-drupal`
 
 All PHP versions use their own Dockerfiles.
 
@@ -21,5 +22,4 @@ All PHP versions use their own Dockerfiles.
 
 This image is prepared to be used on Lagoon. There are therefore some things already done:
 
-* Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/sclorg/s2i-base-container/blob/master/core/root/usr/bin/fix-permissions), so this image will work with a random user.
-
+* Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions), so this image will work with a random user.

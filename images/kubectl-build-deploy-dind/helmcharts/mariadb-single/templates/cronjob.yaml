@@ -13,6 +13,7 @@ spec:
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 0
   failedJobsHistoryLimit: 1
+  startingDeadlineSeconds: 240
   jobTemplate:
     metadata:
       labels:
@@ -35,7 +36,7 @@ spec:
           priorityClassName: {{ include "mariadb-single.lagoonPriority" $ }}
           enableServiceLinks: false
           securityContext:
-            {{- toYaml $.Values.podSecurityContext | nindent 12 }}
+            {{- toYaml .Values.podSecurityContext | nindent 12 }}
           volumes:
             - name: {{ include "mariadb-single.fullname" $ }}
               persistentVolumeClaim:
