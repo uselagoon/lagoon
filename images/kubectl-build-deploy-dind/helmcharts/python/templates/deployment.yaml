@@ -16,7 +16,7 @@ spec:
       labels:
         {{- include "python.labels" . | nindent 8 }}
       annotations:
-        {{- include "python-persistent.annotations" . | nindent 8 }}
+        {{- include "python.annotations" . | nindent 8 }}
         lagoon.sh/configMapSha: {{ .Values.configMapSha | quote }}
     spec:
     {{- with .Values.imagePullSecrets }}
