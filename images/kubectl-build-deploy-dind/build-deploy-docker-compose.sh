@@ -76,6 +76,10 @@ function featureFlag() {
 	echo "${!defaultFlagVar}"
 }
 
+set +x
+SCC_CHECK=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get pod ${LAGOON_BUILD_NAME} -o json | jq -r '.metadata.annotations."openshift.io/scc" // false')
+set -x
+
 function patchBuildStep() {
   [ "$1" ] || return #total start time
   [ "$2" ] || return #step start time
@@ -99,11 +103,13 @@ function patchBuildStep() {
   echo "##############################################"
 
   # patch the buildpod with the buildstep
-  kubectl patch --insecure-skip-tls-verify -n ${4} pod ${LAGOON_BUILD_NAME} \
-    -p "{\"metadata\":{\"labels\":{\"lagoon.sh/buildStep\":\"${5}\"}}}"
+  if [ "${SCC_CHECK}" == false ]; then
+    kubectl patch --insecure-skip-tls-verify -n ${4} pod ${LAGOON_BUILD_NAME} \
+      -p "{\"metadata\":{\"labels\":{\"lagoon.sh/buildStep\":\"${5}\"}}}"
 
-  # tiny sleep to allow patch to complete before logs roll again
-  sleep 0.5s
+    # tiny sleep to allow patch to complete before logs roll again
+    sleep 0.5s
+  fi
 }
 
 ##############################################
