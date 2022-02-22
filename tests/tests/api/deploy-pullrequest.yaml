@@ -41,6 +41,7 @@
     git_pr_commit_hash: "{{ pr_commit_hash }}"
     git_pr_number: 1
     git_pr_title: "PR Title"
+    namespace: "{{ project | regex_replace('_', '-') }}-pr-1"
   tasks:
   - include: ../../tasks/api/deploy-pullrequest.yaml
 
@@ -80,6 +81,7 @@
     git_pr_commit_hash: "{{ pr_2nd_commit_hash }}"
     git_pr_number: 1
     git_pr_title: "PR Title - UPDATE"
+    namespace: "{{ project | regex_replace('_', '-') }}-pr-1"
   tasks:
   - include: ../../tasks/api/deploy-pullrequest.yaml
 

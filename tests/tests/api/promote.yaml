@@ -14,6 +14,7 @@
   vars:
     branch: "{{ source_environment }}"
     project: "{{ project }}"
+    namespace:  "{{ project }}-{{ source_environment }}"
   tasks:
   - include: ../../tasks/api/deploy-no-sha.yaml
 
