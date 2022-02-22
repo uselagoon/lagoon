@@ -4,7 +4,6 @@ TMP_DIR="${TMP_DIR:-/tmp}"
 SBOM_OUTPUT="cyclonedx-json"
 SBOM_OUTPUT_FILE="${TMP_DIR}/${IMAGE_NAME}.cyclonedx.json.gz"
 SBOM_CONFIGMAP="lagoon-insights-sbom-${IMAGE_NAME}"
-
 IMAGE_INSPECT_CONFIGMAP="lagoon-insights-image-inpsect-${IMAGE_NAME}"
 IMAGE_INSPECT_OUTPUT_FILE="${TMP_DIR}/${IMAGE_NAME}.image-inspect.json.gz"
 
@@ -13,7 +12,6 @@ echo "Running image inspect on: ${IMAGE_FULL}"
 set +x
 
 skopeo inspect --retry-times 5 docker://${IMAGE_FULL} --tls-verify=false | gzip > ${IMAGE_INSPECT_OUTPUT_FILE}
-#DOCKER_HOST=docker-host.lagoon.svc docker run --rm -v /var/run/docker.sock:/var/run/docker.sock docker inspect ${IMAGE_FULL} | gzip > ${IMAGE_INSPECT_OUTPUT_FILE}
 
 processImageInspect() {
   echo "Successfully generated image inspection data for ${IMAGE_FULL}"
@@ -48,7 +46,6 @@ processImageInspect() {
 processImageInspect
 
 set -x
-# Run sbom and dump to file
 echo "Running sbom scan using syft"
 echo "Image being scanned: ${IMAGE_FULL}"
 set +x
