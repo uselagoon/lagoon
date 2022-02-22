@@ -5,39 +5,39 @@ SBOM_OUTPUT="cyclonedx-json"
 SBOM_OUTPUT_FILE="${TMP_DIR}/${IMAGE_NAME}.cyclonedx.json.gz"
 SBOM_CONFIGMAP="lagoon-insights-sbom-${IMAGE_NAME}"
 
-DOCKER_INSPECT_CONFIGMAP="lagoon-insights-docker-inpsect-${IMAGE_NAME}"
-DOCKER_INSPECT_OUTPUT_FILE="${TMP_DIR}/${IMAGE_NAME}.docker-inspect.json.gz"
+IMAGE_INSPECT_CONFIGMAP="lagoon-insights-image-inpsect-${IMAGE_NAME}"
+IMAGE_INSPECT_OUTPUT_FILE="${TMP_DIR}/${IMAGE_NAME}.image-inspect.json.gz"
 
 set -x
-# Run docker inspect scan on image
-echo "Running docker inspect on: ${IMAGE_FULL}"
+echo "Running image inspect on: ${IMAGE_FULL}"
 set +x
 
-DOCKER_HOST=docker-host.lagoon.svc docker run --rm -v /var/run/docker.sock:/var/run/docker.sock docker inspect ${IMAGE_FULL} | gzip > ${DOCKER_INSPECT_OUTPUT_FILE}
+skopeo inspect --retry-times 5 docker://${IMAGE_FULL} --tls-verify=false | gzip > ${IMAGE_INSPECT_OUTPUT_FILE}
+#DOCKER_HOST=docker-host.lagoon.svc docker run --rm -v /var/run/docker.sock:/var/run/docker.sock docker inspect ${IMAGE_FULL} | gzip > ${IMAGE_INSPECT_OUTPUT_FILE}
 
-processDockerInspect() {
+processImageInspect() {
   echo "Successfully generated image inspection data for ${IMAGE_FULL}"
 
   set -x
-  # If docker-inspect configmap already exists then we need to update, else create new
-  if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap $DOCKER_INSPECT_CONFIGMAP &> /dev/null; then
+  # If lagoon-insights-image-inpsect-[IMAGE] configmap already exists then we need to update, else create new
+  if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap $IMAGE_INSPECT_CONFIGMAP &> /dev/null; then
       kubectl --insecure-skip-tls-verify \
           -n ${NAMESPACE} \
-          create configmap $DOCKER_INSPECT_CONFIGMAP \
-          --from-file=${DOCKER_INSPECT_OUTPUT_FILE} \
+          create configmap $IMAGE_INSPECT_CONFIGMAP \
+          --from-file=${IMAGE_INSPECT_OUTPUT_FILE} \
           -o json \
           --dry-run=client | kubectl replace -f -
   else
       kubectl --insecure-skip-tls-verify \
           -n ${NAMESPACE} \
-          create configmap ${DOCKER_INSPECT_CONFIGMAP} \
-          --from-file=${DOCKER_INSPECT_OUTPUT_FILE}
+          create configmap ${IMAGE_INSPECT_CONFIGMAP} \
+          --from-file=${IMAGE_INSPECT_OUTPUT_FILE}
   fi
   kubectl --insecure-skip-tls-verify \
       -n ${NAMESPACE} \
-      label configmap ${DOCKER_INSPECT_CONFIGMAP} \
+      label configmap ${IMAGE_INSPECT_CONFIGMAP} \
       lagoon.sh/insightsProcessed- \
-      lagoon.sh/insightsType=docker-inspect-gz \
+      lagoon.sh/insightsType=image-inspect-gz \
       lagoon.sh/buildName=${LAGOON_BUILD_NAME} \
       lagoon.sh/project=${PROJECT} \
       lagoon.sh/environment=${ENVIRONMENT} \
@@ -45,7 +45,7 @@ processDockerInspect() {
   set +x
 }
 
-processDockerInspect
+processImageInspect
 
 set -x
 # Run sbom and dump to file
@@ -66,7 +66,7 @@ processSbom() {
     echo "Successfully generated SBOM for ${IMAGE_FULL}"
 
     set -x
-    # If sbom configmap already exists then we need to update, else create new
+    # If lagoon-insights-sbom-[IMAGE] configmap already exists then we need to update, else create new
     if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap $SBOM_CONFIGMAP &> /dev/null; then
         kubectl --insecure-skip-tls-verify \
             -n ${NAMESPACE} \
