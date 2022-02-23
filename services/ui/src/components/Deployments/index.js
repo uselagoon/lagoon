@@ -2,7 +2,7 @@ import React from 'react';
 import moment from 'moment';
 import DeploymentLink from 'components/link/Deployment';
 import { getDeploymentDuration } from 'components/Deployment';
-import { bp, color } from 'lib/variables';
+import { bp, color, fontSize } from 'lib/variables';
 
 /**
  * Displays a list of deployments.
@@ -25,7 +25,7 @@ const Deployments = ({ deployments, environmentSlug, projectSlug }) => (
           key={deployment.id}
         >
           <div className="data-row" deployment={deployment.id}>
-            <div className="name">{deployment.name}</div>
+            <div className="name">{deployment.name}{deployment.bulkId && <label className="bulk">bulk</label>}</div>
             <div className="started">
               {moment
                 .utc(deployment.created)
@@ -65,6 +65,16 @@ const Deployments = ({ deployments, environmentSlug, projectSlug }) => (
             display: block;
           }
         }
+      }
+
+      .bulk {
+        background-color: ${color.brightBlue};
+        color: ${color.white};
+        ${fontSize(10)};
+        margin-left: 10px;
+        padding: 0px 5px 0px 5px;
+        border-radius: 3px;
+        box-shadow: 0px 4px 8px 0px rgba(0, 0, 0, 0.03);
       }
 
       .data-table {

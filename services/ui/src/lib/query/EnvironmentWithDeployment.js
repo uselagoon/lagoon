@@ -19,6 +19,8 @@ export default gql`
         started
         completed
         buildLog
+        bulkId
+        priority
       }
     }
   }

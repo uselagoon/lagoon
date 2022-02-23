@@ -23,6 +23,8 @@ export default gql`
         created
         started
         completed
+        bulkId
+        priority
       }
     }
   }
