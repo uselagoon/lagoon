@@ -39,7 +39,7 @@ jobs:
     - name: Find and Replace
       uses: jacobtomlinson/gha-find-replace@v2
       with:
-        find: "192.168.224.2"
+        find: "172.17.0.2"
         replace: ${{ env.kind_ip }}
         include: "helmvalues/*.yaml"
     - name: Check config
@@ -64,28 +64,56 @@ jobs:
         helm repo update
     - name: Install cluster pre-requisites
       run: |
-        helm upgrade --install --create-namespace --namespace ingress-nginx --wait --timeout 30m --version 3.40.0 ingress-nginx ingress-nginx/ingress-nginx -f helmvalues/ingress-nginx.yaml
-        helm upgrade --install --create-namespace --namespace registry --wait --timeout 30m --version 1.5.6 registry harbor/harbor -f helmvalues/registry.yaml
-        helm upgrade --install --create-namespace --namespace nfs-server-provisioner --wait --timeout 30m --version 1.1.3 nfs-server-provisioner stable/nfs-server-provisioner -f helmvalues/nfs-server-provisioner.yaml
-        helm upgrade --install --create-namespace --namespace minio --wait --timeout 30m --version 8.1.11 minio bitnami/minio -f helmvalues/minio.yaml
+        helm upgrade --install --create-namespace --namespace ingress-nginx --wait --timeout 10m --version 3.40.0 ingress-nginx ingress-nginx/ingress-nginx -f helmvalues/ingress-nginx.yaml
+        helm upgrade --install --create-namespace --namespace registry --wait --timeout 10m --version 1.5.6 registry harbor/harbor -f helmvalues/registry.yaml
+        helm upgrade --install --create-namespace --namespace nfs-server-provisioner --wait --timeout 10m --version 1.1.3 nfs-server-provisioner stable/nfs-server-provisioner -f helmvalues/nfs-server-provisioner.yaml
+        helm upgrade --install --create-namespace --namespace minio --wait --timeout 10m --version 8.1.11 minio bitnami/minio -f helmvalues/minio.yaml
     - name: Install DBaaS pre-requisites
       run: |
-        helm upgrade --install --create-namespace --namespace mariadb --wait --timeout 30m --version=10.1.1 mariadb bitnami/mariadb -f helmvalues/local.yaml
-        helm upgrade --install --create-namespace --namespace postgresql --wait --timeout 30m --version=10.13.14 postgresql bitnami/postgresql -f helmvalues/local.yaml
-        helm upgrade --install --create-namespace --namespace mongodb --wait --timeout 30m --version=10.30.6 mongodb bitnami/mongodb -f helmvalues/local.yaml
+        helm upgrade --install --create-namespace --namespace mariadb --wait --timeout 10m --version=10.1.1 mariadb bitnami/mariadb -f helmvalues/local.yaml
+        helm upgrade --install --create-namespace --namespace postgresql --wait --timeout 10m --version=10.13.14 postgresql bitnami/postgresql -f helmvalues/local.yaml
+        helm upgrade --install --create-namespace --namespace mongodb --wait --timeout 10m --version=10.30.6 mongodb bitnami/mongodb -f helmvalues/local.yaml
     - name: Install Lagoon
       run: |
-        helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 30m lagoon-core lagoon/lagoon-core -f helmvalues/lagoon-core.yaml -f helmvalues/local.yaml
-        helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 30m lagoon-build-deploy lagoon/lagoon-build-deploy -f helmvalues/lagoon-build-deploy.yaml -f helmvalues/local.yaml
-        helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 30m lagoon-remote lagoon/lagoon-remote -f helmvalues/lagoon-remote.yaml -f helmvalues/local.yaml
+        helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 10m lagoon-core lagoon/lagoon-core -f helmvalues/lagoon-core.yaml -f helmvalues/local.yaml
+        helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 10m lagoon-build-deploy lagoon/lagoon-build-deploy -f helmvalues/lagoon-build-deploy.yaml -f helmvalues/local.yaml
+        helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 10m --debug lagoon-remote lagoon/lagoon-remote -f helmvalues/lagoon-remote.yaml -f helmvalues/local.yaml
+    - name: Check that keycloak is ready
+      uses: nick-fields/retry@v2
+      with:
+        timeout_seconds: 5
+        max_attempts: 10
+        retry_wait_seconds: 30
+        retry_on: error
+        command: kubectl logs -l app.kubernetes.io/component=lagoon-core-keycloak -n lagoon --tail=-1 | grep "Config of Keycloak done"
     - name: Update build-deploy-token in lagoon-test and install tests
       run: |
         kubectl -n lagoon get secret -o json | jq -r '.items[] | select(.metadata.name | match("lagoon-build-deploy-token")) | .data.token | @base64d' | xargs -I ARGS yq -i eval '.token = "ARGS"' helmvalues/local.yaml
-        helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 30m lagoon-test lagoon/lagoon-test -f helmvalues/lagoon-test.yaml -f helmvalues/local.yaml
+        helm upgrade --install --create-namespace --namespace lagoon --wait --timeout 10m lagoon-test lagoon/lagoon-test -f helmvalues/lagoon-test.yaml -f helmvalues/local.yaml
     - name: Run tests
       run: |
         helm test lagoon-test --namespace lagoon --logs --timeout 30m
 #        timeout 10m kubectl logs -f -l app.kubernetes.io/instance=lagoon-test -n lagoon
+    - name: Inspect lagoon-remote pods if failed
+      if: failure()
+      run: |
+        kubectl describe pods --namespace=lagoon --selector=app.kubernetes.io/name=lagoon-remote
+        kubectl logs --tail=-1 --namespace=lagoon --prefix --timestamps --all-containers --selector=app.kubernetes.io/name=lagoon-remote
+    - name: Inspect lagoon-core pods if failed
+      if: failure()
+      run: |
+        kubectl describe pods --namespace=lagoon --selector=app.kubernetes.io/name=lagoon-core
+        kubectl logs --tail=-1 --namespace=lagoon --prefix --timestamps --all-containers --selector=app.kubernetes.io/name=lagoon-core
+    - name: Inspect lagoon-build-deploy pods if failed
+      if: failure()
+      run: |
+        kubectl describe pods --namespace=lagoon --selector=app.kubernetes.io/name=lagoon-build-deploy
+        kubectl logs --tail=-1 --namespace=lagoon --prefix --timestamps --all-containers --selector=app.kubernetes.io/name=lagoon-build-deploy
+    - name: Inspect lagoon-test pods if failed
+      if: failure()
+      run: |
+        kubectl describe pods --namespace=lagoon --selector=app.kubernetes.io/name=lagoon-test
+        kubectl logs --tail=-1 --namespace=lagoon --prefix --timestamps --all-containers --selector=app.kubernetes.io/name=test
     - name: Get cluster info
       run: |
         kubectl cluster-info

@@ -1,5 +1,5 @@
 #lagoon-core
-imageTag: v2.3.0
+imageTag: v2.4.1
 # api:
 #   image:
 #     repository: registry.172.17.0.2.nip.io:32080/library/lagoon/api

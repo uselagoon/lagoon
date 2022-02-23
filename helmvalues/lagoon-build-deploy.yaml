@@ -8,7 +8,7 @@ taskAPIHost: http://lagoon-core-api.lagoon.svc:80
 
 # image:
 #   repository: uselagoon/remote-controller
-#   tag: v0.2.1
+#   tag: v0.2.2
 
 overrideBuildDeployImage: uselagoon/kubectl-build-deploy-dind:latest
 
