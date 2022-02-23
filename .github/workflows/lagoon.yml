@@ -82,7 +82,7 @@ jobs:
       uses: nick-fields/retry@v2
       with:
         timeout_seconds: 5
-        max_attempts: 10
+        max_attempts: 15
         retry_wait_seconds: 30
         retry_on: error
         command: kubectl logs -l app.kubernetes.io/component=lagoon-core-keycloak -n lagoon --tail=-1 | grep "Config of Keycloak done"
