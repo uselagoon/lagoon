@@ -343,20 +343,3 @@ CREATE TABLE IF NOT EXISTS workflow (
   created                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   deleted                  timestamp NOT NULL DEFAULT '0000-00-00 00:00:00'
 );
-
--- CREATE TABLE IF NOT EXISTS workflow_target (
---   id                       int NOT NULL auto_increment PRIMARY KEY,
---   workflow                 int NOT NULL REFERENCES workflow(id),
---   type                     ENUM('PROJECT', 'GROUP', 'ENVIRONMENT'),
---   target_name              varchar(500),
---   target_id                int,
---   created                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
---   deleted                  timestamp NOT NULL DEFAULT '0000-00-00 00:00:00'
--- );
-
--- CREATE TABLE IF NOT EXISTS workflow_job (
---   id                       int NOT NULL auto_increment PRIMARY KEY,
---   workflow                 int NOT NULL REFERENCES workflow(id),
---   created                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
---   deleted                  timestamp NOT NULL DEFAULT '0000-00-00 00:00:00'
--- );
