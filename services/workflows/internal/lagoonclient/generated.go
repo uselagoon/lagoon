@@ -10,6 +10,11 @@ import (
 	"github.com/Khan/genqlient/graphql"
 )
 
+// __getEnvironmentByIdWorkflowsInput is used internally by genqlient
+type __getEnvironmentByIdWorkflowsInput struct {
+	EnvironmentId int `json:"environmentId"`
+}
+
 // __getEnvironmentWorkflowsInput is used internally by genqlient
 type __getEnvironmentWorkflowsInput struct {
 	Project int    `json:"project"`
@@ -20,6 +25,197 @@ type __getEnvironmentWorkflowsInput struct {
 type __invokeCustomTaskInput struct {
 	EnvironmentId            int `json:"environmentId"`
 	AdvancedTaskDefinitionId int `json:"advancedTaskDefinitionId"`
+}
+
+// getEnvironmentByIdWorkflowsEnvironmentByIdEnvironment includes the requested fields of the GraphQL type Environment.
+// The GraphQL type's documentation follows.
+//
+// Lagoon Environment (for each branch, pullrequest there is an individual environment)
+type getEnvironmentByIdWorkflowsEnvironmentByIdEnvironment struct {
+	// Internal ID of this Environment
+	Id int `json:"id"`
+	// Name of this Environment
+	Name      string                                                                   `json:"name"`
+	Workflows []getEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflow `json:"workflows"`
+}
+
+// getEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflow includes the requested fields of the GraphQL type Workflow.
+type getEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflow struct {
+	Id                     int                                                                                          `json:"id"`
+	Event                  string                                                                                       `json:"event"`
+	AdvancedTaskDefinition getEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflowAdvancedTaskDefinition `json:"-"`
+}
+
+func (v *getEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflow) UnmarshalJSON(b []byte) error {
+
+	if string(b) == "null" {
+		return nil
+	}
+
+	var firstPass struct {
+		*getEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflow
+		AdvancedTaskDefinition json.RawMessage `json:"advancedTaskDefinition"`
+		graphql.NoUnmarshalJSON
+	}
+	firstPass.getEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflow = v
+
+	err := json.Unmarshal(b, &firstPass)
+	if err != nil {
+		return err
+	}
+
+	{
+		dst := &v.AdvancedTaskDefinition
+		src := firstPass.AdvancedTaskDefinition
+		if len(src) != 0 && string(src) != "null" {
+			err = __unmarshalgetEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflowAdvancedTaskDefinition(
+				src, dst)
+			if err != nil {
+				return fmt.Errorf(
+					"Unable to unmarshal getEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflow.AdvancedTaskDefinition: %w", err)
+			}
+		}
+	}
+	return nil
+}
+
+type __premarshalgetEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflow struct {
+	Id int `json:"id"`
+
+	Event string `json:"event"`
+
+	AdvancedTaskDefinition json.RawMessage `json:"advancedTaskDefinition"`
+}
+
+func (v *getEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflow) MarshalJSON() ([]byte, error) {
+	premarshaled, err := v.__premarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(premarshaled)
+}
+
+func (v *getEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflow) __premarshalJSON() (*__premarshalgetEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflow, error) {
+	var retval __premarshalgetEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflow
+
+	retval.Id = v.Id
+	retval.Event = v.Event
+	{
+
+		dst := &retval.AdvancedTaskDefinition
+		src := v.AdvancedTaskDefinition
+		var err error
+		*dst, err = __marshalgetEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflowAdvancedTaskDefinition(
+			&src)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"Unable to marshal getEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflow.AdvancedTaskDefinition: %w", err)
+		}
+	}
+	return &retval, nil
+}
+
+// getEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflowAdvancedTaskDefinition includes the requested fields of the GraphQL interface AdvancedTaskDefinition.
+//
+// getEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflowAdvancedTaskDefinition is implemented by the following types:
+// getEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflowAdvancedTaskDefinitionAdvancedTaskDefinitionImage
+// getEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflowAdvancedTaskDefinitionAdvancedTaskDefinitionCommand
+type getEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflowAdvancedTaskDefinition interface {
+	implementsGraphQLInterfacegetEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflowAdvancedTaskDefinition()
+	// GetTypename returns the receiver's concrete GraphQL type-name (see interface doc for possible values).
+	GetTypename() string
+}
+
+func (v *getEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflowAdvancedTaskDefinitionAdvancedTaskDefinitionImage) implementsGraphQLInterfacegetEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflowAdvancedTaskDefinition() {
+}
+
+// GetTypename is a part of, and documented with, the interface getEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflowAdvancedTaskDefinition.
+func (v *getEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflowAdvancedTaskDefinitionAdvancedTaskDefinitionImage) GetTypename() string {
+	return v.Typename
+}
+
+func (v *getEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflowAdvancedTaskDefinitionAdvancedTaskDefinitionCommand) implementsGraphQLInterfacegetEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflowAdvancedTaskDefinition() {
+}
+
+// GetTypename is a part of, and documented with, the interface getEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflowAdvancedTaskDefinition.
+func (v *getEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflowAdvancedTaskDefinitionAdvancedTaskDefinitionCommand) GetTypename() string {
+	return v.Typename
+}
+
+func __unmarshalgetEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflowAdvancedTaskDefinition(b []byte, v *getEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflowAdvancedTaskDefinition) error {
+	if string(b) == "null" {
+		return nil
+	}
+
+	var tn struct {
+		TypeName string `json:"__typename"`
+	}
+	err := json.Unmarshal(b, &tn)
+	if err != nil {
+		return err
+	}
+
+	switch tn.TypeName {
+	case "AdvancedTaskDefinitionImage":
+		*v = new(getEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflowAdvancedTaskDefinitionAdvancedTaskDefinitionImage)
+		return json.Unmarshal(b, *v)
+	case "AdvancedTaskDefinitionCommand":
+		*v = new(getEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflowAdvancedTaskDefinitionAdvancedTaskDefinitionCommand)
+		return json.Unmarshal(b, *v)
+	case "":
+		return fmt.Errorf(
+			"Response was missing AdvancedTaskDefinition.__typename")
+	default:
+		return fmt.Errorf(
+			`Unexpected concrete type for getEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflowAdvancedTaskDefinition: "%v"`, tn.TypeName)
+	}
+}
+
+func __marshalgetEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflowAdvancedTaskDefinition(v *getEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflowAdvancedTaskDefinition) ([]byte, error) {
+
+	var typename string
+	switch v := (*v).(type) {
+	case *getEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflowAdvancedTaskDefinitionAdvancedTaskDefinitionImage:
+		typename = "AdvancedTaskDefinitionImage"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*getEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflowAdvancedTaskDefinitionAdvancedTaskDefinitionImage
+		}{typename, v}
+		return json.Marshal(result)
+	case *getEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflowAdvancedTaskDefinitionAdvancedTaskDefinitionCommand:
+		typename = "AdvancedTaskDefinitionCommand"
+
+		result := struct {
+			TypeName string `json:"__typename"`
+			*getEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflowAdvancedTaskDefinitionAdvancedTaskDefinitionCommand
+		}{typename, v}
+		return json.Marshal(result)
+	case nil:
+		return []byte("null"), nil
+	default:
+		return nil, fmt.Errorf(
+			`Unexpected concrete type for getEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflowAdvancedTaskDefinition: "%T"`, v)
+	}
+}
+
+// getEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflowAdvancedTaskDefinitionAdvancedTaskDefinitionCommand includes the requested fields of the GraphQL type AdvancedTaskDefinitionCommand.
+type getEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflowAdvancedTaskDefinitionAdvancedTaskDefinitionCommand struct {
+	Typename string `json:"__typename"`
+	Id       int    `json:"id"`
+	Command  string `json:"command"`
+}
+
+// getEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflowAdvancedTaskDefinitionAdvancedTaskDefinitionImage includes the requested fields of the GraphQL type AdvancedTaskDefinitionImage.
+type getEnvironmentByIdWorkflowsEnvironmentByIdEnvironmentWorkflowsWorkflowAdvancedTaskDefinitionAdvancedTaskDefinitionImage struct {
+	Typename string `json:"__typename"`
+	Id       int    `json:"id"`
+	Image    string `json:"image"`
+}
+
+// getEnvironmentByIdWorkflowsResponse is returned by getEnvironmentByIdWorkflows on success.
+type getEnvironmentByIdWorkflowsResponse struct {
+	EnvironmentById getEnvironmentByIdWorkflowsEnvironmentByIdEnvironment `json:"environmentById"`
 }
 
 // getEnvironmentWorkflowsEnvironmentByNameEnvironment includes the requested fields of the GraphQL type Environment.
@@ -243,6 +439,49 @@ func getEnvironmentWorkflows(
 		`
 query getEnvironmentWorkflows ($project: Int!, $name: String!) {
 	environmentByName(project: $project, name: $name) {
+		id
+		name
+		workflows {
+			id
+			event
+			advancedTaskDefinition {
+				__typename
+				... on AdvancedTaskDefinitionCommand {
+					id
+					command
+				}
+				... on AdvancedTaskDefinitionImage {
+					id
+					image
+				}
+			}
+		}
+	}
+}
+`,
+		&retval,
+		&__input,
+	)
+	return &retval, err
+}
+
+func getEnvironmentByIdWorkflows(
+	ctx context.Context,
+	client graphql.Client,
+	environmentId int,
+) (*getEnvironmentByIdWorkflowsResponse, error) {
+	__input := __getEnvironmentByIdWorkflowsInput{
+		EnvironmentId: environmentId,
+	}
+	var err error
+
+	var retval getEnvironmentByIdWorkflowsResponse
+	err = client.MakeRequest(
+		ctx,
+		"getEnvironmentByIdWorkflows",
+		`
+query getEnvironmentByIdWorkflows ($environmentId: Int!) {
+	environmentById(id: $environmentId) {
 		id
 		name
 		workflows {

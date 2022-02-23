@@ -19,6 +19,27 @@ query getEnvironmentWorkflows($project: Int!, $name: String!) {
     }
 }
 
+query getEnvironmentByIdWorkflows($environmentId: Int!) {
+  environmentById(id: $environmentId) {
+      id
+      name
+       workflows {
+         id
+         event
+         advancedTaskDefinition {
+           ... on AdvancedTaskDefinitionCommand {
+             id
+             command
+           }
+           ... on AdvancedTaskDefinitionImage {
+             id
+             image
+           }
+         }
+       }
+    }
+}
+
 mutation invokeCustomTask($environmentId: Int!, $advancedTaskDefinitionId: Int!) {
   invokeRegisteredTask(environment: $environmentId, advancedTaskDefinition: $advancedTaskDefinitionId) {
     id

@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 	"time"
@@ -70,10 +69,10 @@ func main() {
 	// get overrides from environment variables
 	mqUser = getEnv("RABBITMQ_USERNAME", mqUser)
 	mqPass = getEnv("RABBITMQ_PASSWORD", mqPass)
-	mqHost = getEnv("RABBITMQ_ADDRESS", mqHost)
+	mqHost = getEnv("RABBITMQ_HOST", mqHost)
 	mqPort = getEnv("RABBITMQ_PORT", mqPort)
-	lagoonAPIHost = getEnv("GRAPHQL_ENDPOINT", lagoonAPIHost)
-	jwtTokenSigningKey = getEnv("JWT_SECRET", jwtTokenSigningKey)
+	lagoonAPIHost = getEnv("API_HOST", lagoonAPIHost)
+	jwtTokenSigningKey = getEnv("JWTSECRET", jwtTokenSigningKey)
 	jwtAudience = getEnv("JWT_AUDIENCE", jwtAudience)
 	jwtSubject = getEnv("JWT_SUBJECT", jwtSubject)
 	jwtIssuer = getEnv("JWT_ISSUER", jwtIssuer)
@@ -98,8 +97,6 @@ func main() {
 		JWTIssuer:       jwtIssuer,
 	}
 
-	log.Println("workflows running")
-
 	config := mq.Config{
 		ReconnectDelay: time.Duration(rabbitReconnectRetryInterval) * time.Second,
 		Exchanges: mq.Exchanges{
@@ -117,7 +114,7 @@ func main() {
 		Consumers: mq.Consumers{
 			{
 				Name:    "items-queue",
-				Queue:   "lagoon-logs:items",
+				Queue:   "lagoon-logs:workflows",
 				Workers: mqWorkers,
 				Options: mq.Options{
 					"durable":       true,
@@ -129,7 +126,7 @@ func main() {
 		},
 		Queues: mq.Queues{
 			{
-				Name:     "lagoon-logs:items",
+				Name:     "lagoon-logs:workflows",
 				Exchange: "lagoon-logs",
 				Options: mq.Options{
 					"durable":       true,

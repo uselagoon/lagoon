@@ -139,7 +139,7 @@ func (h *Messaging) Consumer() {
 	forever := make(chan bool)
 
 	// Handle any tasks that go to the queue
-	log.Println("Listening for messages in queue lagoon-logs:items")
+	log.Println("Listening for messages in queue lagoon-logs:workflows")
 	err = messageQueue.SetConsumerHandler("items-queue", processingIncomingMessageQueueFactory(h))
 	if err != nil {
 		log.Println(fmt.Sprintf("Failed to set handler to consumer `%s`: %v", "items-queue", err))
@@ -158,6 +158,7 @@ func (t *authedTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	if err != nil {
 		// the token wasn't generated
 		if t.h.EnableDebug {
+			log.Println("Could not get bearer token")
 			log.Println(err)
 		}
 		return nil, err
@@ -168,17 +169,21 @@ func (t *authedTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 
 func processingIncomingMessageQueueFactory(h *Messaging) func(mq.Message) {
 	return func(message mq.Message) {
-
 		incoming := &LagoonLog{}
-		json.Unmarshal(message.Body(), incoming)
+		err := json.Unmarshal(message.Body(), incoming)
+		if err != nil {
+			fmt.Println("could not unmarshall")
+		}
 
+
+		//Ahhh, the issue is that there is no environment name passed thought ...
 		environmentName := incoming.Meta.Environment
-		if incoming.Meta.ProjectID != nil && environmentName != "" {
-
+		if incoming.Meta.ProjectID != nil && incoming.Meta.EnvironmentID != nil {
+			fmt.Println("Connecting to " + h.LagoonAPI.Endpoint)
 			client := graphql.NewClient(h.LagoonAPI.Endpoint,
 				&http.Client{Transport: &authedTransport{wrapped: http.DefaultTransport, h: h}})
 			projectId := int(*incoming.Meta.ProjectID)
-			environmentWorkflows, err := lagoonclient.GetEnvironmentWorkflows(context.TODO(), client, projectId, environmentName)
+			environmentWorkflows, err := lagoonclient.GetEnvironmentWorkflowsByEnvironmentId(context.TODO(), client, int(*incoming.Meta.EnvironmentID))
 			if err != nil {
 				log.Println(err)
 				return

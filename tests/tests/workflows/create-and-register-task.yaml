@@ -4,6 +4,9 @@
     - name: "{{ testname }} - print openshift variable debug inside subtask"
       debug:
         msg: "openshift id {{ openshift_project_name }}"
+    - name: "DEBUGGING POST GET ENV"
+      debug:
+        msg: '{ "query": "query($openshiftProjectName: String!) {environmentByOpenshiftProjectName(openshiftProjectName:$openshiftProjectName){ id }}", "variables": {"openshiftProjectName":"{{ openshift_project_name }}"}}'
     - name: "{{ testname }} - POST Get environment id for {{ openshift_project_name }} to {{ graphql_url }}"
       uri:
         url: "{{ graphql_url }}"
@@ -17,36 +20,27 @@
     - name: "{{ testname }} - environmentByOSProjectNameApiResponse"
       debug:
         msg: "api response: {{ environmentByOSProjectNameApiResponse }}"
-    # - include: ./post-api-register-task-command.yaml
-    # - name: "{{ testname }} - DEBUG taskCreateApiResponse"
-    #   debug:
-    #     msg: "api response: {{ taskCreateApiResponse }}"
-    # - name: "{{ testname }} - POST api addAdvancedTaskDefinition to {{ graphql_url }}"
-    #   debug:
-    #     msg: "api response: {{ taskCreateApiResponse.json.data.addAdvancedTaskDefinition.id }}"
-    # - name: "{{ testname }} - POST Get project id for {{ openshift_project_name }} to {{ graphql_url }}"
-    #   uri:
-    #     url: "{{ graphql_url }}"
-    #     method: POST
-    #     headers:
-    #       Authorization: "Bearer {{ token }}"
-    #     body_format: json
-    #     body: '{ "query": "query($projectName: String!) {projectByName(name:$projectName) {id}}", "variables": {"projectName":"{{ project }}"}}'
-    #   register: projectByNameResponse
-    #   until:
-    # - name: "{{ testname }} - projectByNameResponse"
-    #   debug:
-    #     msg: "api response: {{ projectByNameResponse.json.data.projectByName.id }}"
-    - name: "{{ testname }} - POST api invoke task for environment {{ openshift_project_name }} to {{ graphql_url }}"
+    - include: ./post-api-register-task-command.yaml
+    - name: "{{ testname }} - DEBUG taskCreateApiResponse"
+      debug:
+        msg: "api response: {{ taskCreateApiResponse }}"
+    - name: "{{ testname }} - POST api addAdvancedTaskDefinition to {{ graphql_url }}"
+      debug:
+        msg: "api response: {{ taskCreateApiResponse.json.data.addAdvancedTaskDefinition.id }}"
+    - name: "{{ testname }} - POST Get project id for {{ openshift_project_name }} to {{ graphql_url }}"
       uri:
         url: "{{ graphql_url }}"
         method: POST
         headers:
           Authorization: "Bearer {{ token }}"
         body_format: json
-        body: '{ "query": "mutation($environment: Int!, $advancedTaskDefinition: Int!, $argname: String!, $argval: String!) {invokeRegisteredTask(environment:$environment, advancedTaskDefinition: $advancedTaskDefinition, argumentValues:[ {advancedTaskDefinitionArgumentName: $argname, value: $argval}]) {id}}", "variables": {"environment":{{ environmentByOSProjectNameApiResponse.json.data.environmentByOpenshiftProjectName.id }}, "advancedTaskDefinition":{{ taskCreateApiResponse.json.data.addAdvancedTaskDefinition.id }}, "argname": "ENV_VAR_TEXT_STRING","argval":"REPLACED BY TASK"}}'
-      register: invokeRegisteredTaskApiResponse
+        body: '{ "query": "query($projectName: String!) {projectByName(name:$projectName) {id}}", "variables": {"projectName":"{{ project }}"}}'
+      register: projectByNameResponse
       until:
-    - name: "{{ testname }} - POST api invokeRegisteredTask to {{ graphql_url }}"
+    - name: "{{ testname }} - projectByNameResponse"
       debug:
-        msg: "api response: {{ invokeRegisteredTaskApiResponse.json }}"
+        msg: "api response: {{ projectByNameResponse.json.data.projectByName.id }}"
+    - include: ./post-api-register-workflow.yaml
+    - name: "{{ testname }} - DEBUG taskCreateApiResponse"
+      debug:
+        msg: "api response: {{ taskCreateApiResponse }}"

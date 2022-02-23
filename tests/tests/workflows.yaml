@@ -16,7 +16,7 @@
     testname: "WORKFLOWS {{ cluster_type|upper }}"
     git_repo_name: tasks.git
     project: ci-workflows-{{ cluster_type }}
-    branch: tasks
+    branch: workflows
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
     openshift_project_name: ci-workflows-{{ cluster_type }}-workflows
 
