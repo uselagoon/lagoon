@@ -1681,6 +1681,7 @@ const typeDefs = gql`
     branchRef: String
     priority: Int
     bulkId: String
+    buildVariables: [EnvKeyValueInput]
     returnData: Boolean
   }
 
@@ -1694,6 +1695,7 @@ const typeDefs = gql`
     headBranchRef: String!
     priority: Int
     bulkId: String
+    buildVariables: [EnvKeyValueInput]
     returnData: Boolean
   }
 
@@ -1703,6 +1705,7 @@ const typeDefs = gql`
     destinationEnvironment: String!
     priority: Int
     bulkId: String
+    buildVariables: [EnvKeyValueInput]
     returnData: Boolean
   }
 
@@ -1754,7 +1757,7 @@ const typeDefs = gql`
     groups: [GroupInput!]!
   }
 
-  input BulkDeploymentInput {
+  input BulkDeploymentLatestInput {
     buildVariables: [EnvKeyValueInput]
     environments: [DeployEnvironmentLatestInput!]!
   }
@@ -1850,7 +1853,7 @@ const typeDefs = gql`
     deleteUser(input: DeleteUserInput!): String
     deleteAllUsers: String
     addDeployment(input: AddDeploymentInput!): Deployment
-    bulkDeployEnvironmentLatest(input: BulkDeploymentInput!): String
+    bulkDeployEnvironmentLatest(input: BulkDeploymentLatestInput!): String
     deleteDeployment(input: DeleteDeploymentInput!): String
     updateDeployment(input: UpdateDeploymentInput): Deployment
     cancelDeployment(input: CancelDeploymentInput!): String

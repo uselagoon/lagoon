@@ -439,7 +439,14 @@ export const cancelDeployment: ResolverFn = async (
 
 export const deployEnvironmentLatest: ResolverFn = async (
   root,
-  { input: { environment: environmentInput, returnData, priority, bulkId, buildVariables } },
+  { input: {
+    environment: environmentInput,
+    priority,
+    bulkId,
+    buildVariables,
+    returnData
+    }
+  },
   { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
 
@@ -627,7 +634,16 @@ export const deployEnvironmentLatest: ResolverFn = async (
 
 export const deployEnvironmentBranch: ResolverFn = async (
   root,
-  { input: { project: projectInput, branchName, branchRef, returnData } },
+  { input: {
+    project: projectInput,
+    branchName,
+    branchRef,
+    priority,
+    bulkId,
+    buildVariables,
+    returnData
+    }
+  },
   { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const project = await projectHelpers(sqlClientPool).getProjectByProjectInput(
@@ -651,7 +667,10 @@ export const deployEnvironmentBranch: ResolverFn = async (
     projectName: project.name,
     branchName,
     sha: branchRef,
-    buildName: buildName
+    buildName: buildName,
+    buildPriority: priority,
+    bulkId: bulkId,
+    buildVariables: buildVariables,
   };
 
   const meta = {
@@ -725,6 +744,9 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
       baseBranchRef,
       headBranchName,
       headBranchRef,
+      priority,
+      bulkId,
+      buildVariables,
       returnData
     }
   },
@@ -757,7 +779,10 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
     baseBranchName,
     baseSha: baseBranchRef,
     branchName,
-    buildName: buildName
+    buildName: buildName,
+    buildPriority: priority,
+    bulkId: bulkId,
+    buildVariables: buildVariables,
   };
 
   const meta = {
@@ -826,6 +851,9 @@ export const deployEnvironmentPromote: ResolverFn = async (
       sourceEnvironment: sourceEnvironmentInput,
       project: projectInput,
       destinationEnvironment,
+      priority,
+      bulkId,
+      buildVariables,
       returnData
     }
   },
@@ -872,7 +900,10 @@ export const deployEnvironmentPromote: ResolverFn = async (
     projectName: destProject.name,
     branchName: destinationEnvironment,
     promoteSourceEnvironment: sourceEnvironment.name,
-    buildName: buildName
+    buildName: buildName,
+    buildPriority: priority,
+    bulkId: bulkId,
+    buildVariables: buildVariables,
   };
 
   const meta = {
@@ -1079,7 +1110,6 @@ export const bulkDeployEnvironmentLatest: ResolverFn = async (
     userProjectIds = await models.UserModel.getAllProjectsIdsForUser({
       id: keycloakGrant.access_token.content.sub
     });
-    logger.info(`userProjectIds ${userProjectIds}`);
   }
 
   let bulkId = uuid4();
