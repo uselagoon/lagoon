@@ -13,9 +13,9 @@ const BulkDeployments = ({ deployments }) => (
       <label>Project</label>
       <label>Environment</label>
       <label>Name</label>
+      <label className="priority">Priority</label>
       <label>Created</label>
       <label>Status</label>
-      <label className="priority">Priority</label>
       <label>Duration</label>
     </div>
     <div className="data-table">
@@ -31,6 +31,7 @@ const BulkDeployments = ({ deployments }) => (
             <div className="project">{deployment.environment.project.name}</div>
             <div className="project">{deployment.environment.name}</div>
             <div className="name">{deployment.name}</div>
+            <div className="priority">{deployment.priority}</div>
             <div className="started">
               {moment
                 .utc(deployment.created)
@@ -41,7 +42,6 @@ const BulkDeployments = ({ deployments }) => (
               {deployment.status.charAt(0).toUpperCase() +
                 deployment.status.slice(1)}
             </div>
-            <div className="priority">{deployment.priority}</div>
             <div className="duration">{getDeploymentDuration(deployment)}</div>
           </div>
         </DeploymentLink>
@@ -71,6 +71,10 @@ const BulkDeployments = ({ deployments }) => (
             display: block;
           }
         }
+
+        .priority {
+          width: 10%;
+        }
       }
 
       .bulk {
@@ -81,10 +85,6 @@ const BulkDeployments = ({ deployments }) => (
         padding: 0px 5px 0px 5px;
         border-radius: 3px;
         box-shadow: 0px 4px 8px 0px rgba(0, 0, 0, 0.03);
-      }
-
-      .priority {
-        width: 5%;
       }
 
       .data-table {
@@ -137,6 +137,10 @@ const BulkDeployments = ({ deployments }) => (
           &:last-child {
             border-bottom-left-radius: 3px;
             border-bottom-right-radius: 3px;
+          }
+
+          .priority {
+            width: 10%;
           }
 
           .status {
