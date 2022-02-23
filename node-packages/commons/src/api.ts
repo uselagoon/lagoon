@@ -1096,6 +1096,8 @@ export const getOpenShiftInfoForProject = (project: string): Promise<any> =>
         standbyProductionEnvironment
         standbyRoutes
         standbyAlias
+        productionBuildPriority
+        developmentBuildPriority
         envVariables {
           name
           value
@@ -1254,11 +1256,13 @@ export const addDeployment = (
   remoteId: string = null,
   id: number = null,
   started: string = null,
-  completed: string = null
+  completed: string = null,
+  priority: number = null,
+  bulkId: string = null
 ): Promise<any> =>
   graphqlapi.mutate(
     `
-  ($name: String!, $status: DeploymentStatusType!, $created: String!, $environment: Int!, $id: Int, $remoteId: String, $started: String, $completed: String) {
+  ($name: String!, $status: DeploymentStatusType!, $created: String!, $environment: Int!, $id: Int, $remoteId: String, $started: String, $completed: String, $priority: Int, $bulkId: String) {
     addDeployment(input: {
         name: $name
         status: $status
@@ -1268,6 +1272,8 @@ export const addDeployment = (
         remoteId: $remoteId
         started: $started
         completed: $completed
+        priority: $priority
+        bulkId: $bulkId
     }) {
       ...${deploymentFragment}
     }
@@ -1281,7 +1287,9 @@ export const addDeployment = (
       id,
       remoteId,
       started,
-      completed
+      completed,
+      priority,
+      bulkId
     }
   );
 
@@ -1572,3 +1580,33 @@ export const getProblemHarborScanMatches = () => graphqlapi.query(
       }
     }`
 );
+
+const bulkDeploymentFragment = graphqlapi.createFragment(`
+fragment on Deployment {
+  id
+  name
+  status
+  created
+  started
+  completed
+  remoteId
+  uiLink
+  environment {
+    name
+  }
+  priority
+  bulkId
+}
+`);
+
+export const getDeploymentsByBulkId = (id: string): Promise<any[]> =>
+  graphqlapi.query(
+    `
+  query deploymentsByBulkId($id: String!) {
+    deploymentsByBulkId(id: $id) {
+      ...${bulkDeploymentFragment}
+    }
+  }
+`,
+    { id }
+  );

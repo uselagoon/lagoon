@@ -91,6 +91,8 @@ export const Sql = {
       storageCalc = 1,
       problemsUi = 0,
       factsUi = 0,
+      productionBuildPriority = 5,
+      developmentBuildPriority = 6,
       deploymentsDisabled = 0,
       developmentEnvironmentsLimit = 5
     } = input;
@@ -118,6 +120,8 @@ export const Sql = {
     autoIdle,
     problemsUi,
     factsUi,
+    productionBuildPriority,
+    developmentBuildPriority,
     deploymentsDisabled,
     storageCalc,
     pullrequests,

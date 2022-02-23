@@ -520,6 +520,8 @@ export const updateProject: ResolverFn = async (
         storageCalc,
         problemsUi,
         factsUi,
+        productionBuildPriority,
+        developmentBuildPriority,
         deploymentsDisabled,
         pullrequests,
         developmentEnvironmentsLimit
@@ -619,6 +621,8 @@ export const updateProject: ResolverFn = async (
         storageCalc,
         problemsUi,
         factsUi,
+        productionBuildPriority,
+        developmentBuildPriority,
         deploymentsDisabled,
         pullrequests,
         openshift,
@@ -719,6 +723,8 @@ export const updateProject: ResolverFn = async (
         storageCalc,
         problemsUi,
         factsUi,
+        productionBuildPriority,
+        developmentBuildPriority,
         deploymentsDisabled,
         pullrequests,
         developmentEnvironmentsLimit
