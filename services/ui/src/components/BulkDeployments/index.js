@@ -1,19 +1,21 @@
 import React from 'react';
 import moment from 'moment';
 import DeploymentLink from 'components/link/Deployment';
-import BulkDeploymentLink from 'components/link/BulkDeployment';
 import { getDeploymentDuration } from 'components/Deployment';
 import { bp, color, fontSize } from 'lib/variables';
 
 /**
  * Displays a list of deployments.
  */
-const Deployments = ({ deployments, environmentSlug, projectSlug }) => (
+const BulkDeployments = ({ deployments }) => (
   <div className="deployments">
     <div className="header">
+      <label>Project</label>
+      <label>Environment</label>
       <label>Name</label>
       <label>Created</label>
       <label>Status</label>
+      <label className="priority">Priority</label>
       <label>Duration</label>
     </div>
     <div className="data-table">
@@ -21,18 +23,14 @@ const Deployments = ({ deployments, environmentSlug, projectSlug }) => (
       {deployments.map(deployment => (
         <DeploymentLink
           deploymentSlug={deployment.name}
-          environmentSlug={environmentSlug}
-          projectSlug={projectSlug}
+          environmentSlug={deployment.environment.openshiftProjectName}
+          projectSlug={deployment.environment.project.name}
           key={deployment.id}
         >
           <div className="data-row" deployment={deployment.id}>
-            <div className="name">{deployment.name}{deployment.bulkId && <label className="bulk-label">
-              <BulkDeploymentLink
-                bulkIdSlug={deployment.bulkId}
-              >
-                bulk
-              </BulkDeploymentLink></label>}
-            </div>
+            <div className="project">{deployment.environment.project.name}</div>
+            <div className="project">{deployment.environment.name}</div>
+            <div className="name">{deployment.name}</div>
             <div className="started">
               {moment
                 .utc(deployment.created)
@@ -43,6 +41,7 @@ const Deployments = ({ deployments, environmentSlug, projectSlug }) => (
               {deployment.status.charAt(0).toUpperCase() +
                 deployment.status.slice(1)}
             </div>
+            <div className="priority">{deployment.priority}</div>
             <div className="duration">{getDeploymentDuration(deployment)}</div>
           </div>
         </DeploymentLink>
@@ -74,16 +73,18 @@ const Deployments = ({ deployments, environmentSlug, projectSlug }) => (
         }
       }
 
-      .bulk-label {
-        background-color: ${color.lightBlue};
-        ${fontSize(12)};
+      .bulk {
+        background-color: ${color.brightBlue};
+        color: ${color.white};
+        ${fontSize(10)};
         margin-left: 10px;
         padding: 0px 5px 0px 5px;
         border-radius: 3px;
         box-shadow: 0px 4px 8px 0px rgba(0, 0, 0, 0.03);
-        &:hover {
-          background-color: ${color.blue};
-        }
+      }
+
+      .priority {
+        width: 5%;
       }
 
       .data-table {
@@ -180,4 +181,4 @@ const Deployments = ({ deployments, environmentSlug, projectSlug }) => (
   </div>
 );
 
-export default Deployments;
+export default BulkDeployments;

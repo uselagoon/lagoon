@@ -2,8 +2,9 @@ import React from 'react';
 import moment from 'moment';
 import momentDurationFormatSetup from 'moment-duration-format';
 import CancelDeployment from 'components/CancelDeployment';
+import BulkDeploymentLink from 'components/link/BulkDeployment';
 import LogViewer from 'components/LogViewer';
-import { bp, color } from 'lib/variables';
+import { bp, color, fontSize } from 'lib/variables';
 
 export const getDeploymentDuration = deployment => {
   const deploymentStart = deployment.started || deployment.created;
@@ -52,9 +53,13 @@ const Deployment = ({ deployment }) => (
       </div>
       {deployment.bulkId &&<div className="field-wrapper bulk">
         <div>
-          <label>Bulk ID</label>
+          <label>Bulk Deployment</label>
           <div className="field">
-            {deployment.bulkId}
+          <BulkDeploymentLink
+            bulkIdSlug={deployment.bulkId}
+          >
+            View bulk deployment
+          </BulkDeploymentLink>
           </div>
         </div>
       </div>}

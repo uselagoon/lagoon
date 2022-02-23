@@ -34,6 +34,10 @@ app
       app.render(req, res, '/projects');
     });
 
+    server.get('/bulkdeployment/:bulkIdSlug', (req, res) => {
+      app.render(req, res, '/bulkdeployments', { bulkId: req.params.bulkIdSlug });
+    });
+
     server.get('/projects/:projectSlug', (req, res) => {
       app.render(req, res, '/project', { projectName: req.params.projectSlug });
     });
