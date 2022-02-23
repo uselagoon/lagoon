@@ -70,3 +70,28 @@ kubectl get PostgreSQLProvider -A | awk '{printf "kubectl -n %s patch PostgreSQL
 
 # Use build-and-push from the root dir to wrap around make build and push the resulting image up to the harbor
 ./helmvalues/build-and-push.sh kubectl-build-deploy-dind
+
+# Lagoon Logging
+docker-compose -f local-dev/odfe-docker-compose.yml -p odfe up -d
+helm upgrade --install --create-namespace --namespace lagoon-logs-concentrator --wait --timeout 15m lagoon-logs-concentrator lagoon/lagoon-logs-concentrator --values ./local-dev/lagoon-logs-concentrator.values.yaml
+helm upgrade --install --create-namespace --namespace lagoon-logging --wait --timeout 15m lagoon-logging lagoon/lagoon-logging --values ./local-dev/lagoon-logging.values.yaml
+
+# microk8s
+
+# Install microk8s and enable addons
+sudo snap install microk8s --classic --channel=1.20/stable
+microk8s enable dns helm3 storage
+
+# get the IP for the microk8s node
+microk8s kubectl get nodes -o custom-columns=IP:.status.addresses
+
+# Use this IP to add the config to the TOML file - instructions at https://microk8s.io/docs/registry-private
+# Update and copy these sections from the bottom of microk8s-containerd-template.toml to your local configuration - note that indentation matters!
+# [plugins."io.containerd.grpc.v1.cri".registry.mirrors ...
+# [plugins."io.containerd.grpc.v1.cri".registry.configs ...
+sudo microk8s stop && sudo microk8s start
+
+# Replace storageclass with bulk and standard storageclasses - you don't need the nfs-server-provisioner helm chart on microk8s
+microk8s kubectl apply -f helmvalues/microk8s-storageclass.yaml
+
+Rest of it should be pretty straightforward.

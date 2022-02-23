@@ -22,11 +22,15 @@ lagoon-gatekeeper:
 
 mxoutHost: mxout1.example.com
 
+dbaasHTTPEndpoint: lagoon-remote-dbaas-operator-http.lagoon.svc.cluster.local
 dbaas-operator:
   enabled: true
-  image:
-    repository: amazeeio/dbaas-operator
-    tag: v0.1.6
+  # image:
+  #   repository: amazeeio/dbaas-operator
+  #   tag: v0.1.6
+  enableMariaDBProviders: true
+  enableMongoDBProviders: true
+  enablePostreSQLProviders: true
   mariadbProviders:
     development:
       environment: development

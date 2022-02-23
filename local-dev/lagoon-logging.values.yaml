@@ -1,3 +1,11 @@
+imageTag: v2.4.0
+
+lagoonLogs:
+  enabled: true
+  rabbitMQUser: lagoon
+  rabbitMQPassword: xogie5lae8IoshugahcoeThakiequo3I
+  rabbitMQHost: lagoon-core-broker.lagoon.svc.cluster.local
+
 logsDispatcher:
   serviceMonitor:
     enabled: false

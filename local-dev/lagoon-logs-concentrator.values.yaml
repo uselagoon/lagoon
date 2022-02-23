@@ -3,6 +3,7 @@ elasticsearchAdminPassword: admin
 elasticsearchHost: odfe-node1
 elasticsearchScheme: https
 elasticsearchTLSVerify: false
+imageTag: v2.4.0
 users:
 - username: kind
   password: kind

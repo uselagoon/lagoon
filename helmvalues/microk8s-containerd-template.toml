@@ -1,0 +1,85 @@
+# Use config version 2 to enable new configuration fields.
+version = 2
+oom_score = 0
+
+[grpc]
+  uid = 0
+  gid = 0
+  max_recv_message_size = 16777216
+  max_send_message_size = 16777216
+
+[debug]
+  address = ""
+  uid = 0
+  gid = 0
+
+[metrics]
+  address = "127.0.0.1:1338"
+  grpc_histogram = false
+
+[cgroup]
+  path = ""
+
+
+# The 'plugins."io.containerd.grpc.v1.cri"' table contains all of the server options.
+[plugins."io.containerd.grpc.v1.cri"]
+
+  stream_server_address = "127.0.0.1"
+  stream_server_port = "0"
+  enable_selinux = false
+  sandbox_image = "k8s.gcr.io/pause:3.1"
+  stats_collect_period = 10
+  enable_tls_streaming = false
+  max_container_log_line_size = 16384
+
+  # 'plugins."io.containerd.grpc.v1.cri".containerd' contains config related to containerd
+  [plugins."io.containerd.grpc.v1.cri".containerd]
+
+    # snapshotter is the snapshotter used by containerd.
+    snapshotter = "${SNAPSHOTTER}"
+
+    # no_pivot disables pivot-root (linux only), required when running a container in a RamDisk with runc.
+    # This only works for runtime type "io.containerd.runtime.v1.linux".
+    no_pivot = false
+
+    # default_runtime_name is the default runtime name to use.
+    default_runtime_name = "${RUNTIME}"
+
+    # 'plugins."io.containerd.grpc.v1.cri".containerd.runtimes' is a map from CRI RuntimeHandler strings, which specify types
+    # of runtime configurations, to the matching configurations.
+    # In this example, 'runc' is the RuntimeHandler string to match.
+    [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
+      # runtime_type is the runtime type to use in containerd e.g. io.containerd.runtime.v1.linux
+      runtime_type = "io.containerd.runc.v1"
+
+    [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.nvidia-container-runtime]
+      # runtime_type is the runtime type to use in containerd e.g. io.containerd.runtime.v1.linux
+      runtime_type = "io.containerd.runc.v1"
+
+      [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.nvidia-container-runtime.options]
+        BinaryName = "nvidia-container-runtime"
+
+  # 'plugins."io.containerd.grpc.v1.cri".cni' contains config related to cni
+  [plugins."io.containerd.grpc.v1.cri".cni]
+    # bin_dir is the directory in which the binaries for the plugin is kept.
+    bin_dir = "${SNAP_DATA}/opt/cni/bin"
+
+    # conf_dir is the directory in which the admin places a CNI conf.
+    conf_dir = "${SNAP_DATA}/args/cni-network"
+
+  # 'plugins."io.containerd.grpc.v1.cri".registry' contains config related to the registry
+  [plugins."io.containerd.grpc.v1.cri".registry]
+    config_path = "${SNAP_DATA}/args/certs.d"
+
+    # 'plugins."io.containerd.grpc.v1.cri".registry.mirrors' are namespace to mirror mapping for all namespaces.
+    [plugins."io.containerd.grpc.v1.cri".registry.mirrors]
+      [plugins."io.containerd.grpc.v1.cri".registry.mirrors."docker.io"]
+        endpoint = ["https://imagecache.amazeeio.cloud", "https://index.docker.io/v1/"]
+      [plugins."io.containerd.grpc.v1.cri".registry.mirrors."registry.192.168.1.51.nip.io:32080"]
+          endpoint = ["http://registry.192.168.1.51.nip.io:32080"]
+      [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:32000"]
+        endpoint = ["http://localhost:32000"]
+
+    # 'plugins."io.containerd.grpc.v1.cri".registry.configs' are registry configs.
+      [plugins."io.containerd.grpc.v1.cri".registry.configs."registry.192.168.1.51.nip.io:32443".tls]
+          insecure_skip_verify = true
