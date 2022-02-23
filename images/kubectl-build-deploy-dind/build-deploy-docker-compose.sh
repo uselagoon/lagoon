@@ -1566,18 +1566,23 @@ set -x
 ### APPLY RESOURCES
 ##############################################
 
+set +x
 if [ "$(ls -A $YAML_FOLDER/)" ]; then
-
   if [ "$CI" == "true" ]; then
     # During CI tests of Lagoon itself we only have a single compute node, so we change podAntiAffinity to podAffinity
     find $YAML_FOLDER -type f  -print0 | xargs -0 sed -i s/podAntiAffinity/podAffinity/g
     # During CI tests of Lagoon itself we only have a single compute node, so we change ReadWriteMany to ReadWriteOnce
     find $YAML_FOLDER -type f  -print0 | xargs -0 sed -i s/ReadWriteMany/ReadWriteOnce/g
   fi
+  if [ "$(featureFlag RWX_TO_RWO)" = enabled ]; then
+    # If there is only a single compute node, this can be used to change RWX to RWO
+    find $YAML_FOLDER -type f  -print0 | xargs -0 sed -i s/ReadWriteMany/ReadWriteOnce/g
+  fi
 
   find $YAML_FOLDER -type f -exec cat {} \;
   kubectl apply --insecure-skip-tls-verify -n ${NAMESPACE} -f $YAML_FOLDER/
 fi
+set -x
 
 ##############################################
 ### WAIT FOR POST-ROLLOUT TO BE FINISHED
