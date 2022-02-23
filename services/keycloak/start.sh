@@ -1700,6 +1700,9 @@ function configure_keycloak {
     remove_billing_modifier
 
     echo "Config of Keycloak done. Log in via admin user '$KEYCLOAK_ADMIN_USER' and password '$KEYCLOAK_ADMIN_PASSWORD'"
+
+    # signal config complete
+    touch /tmp/keycloak-config-complete
 }
 
 /opt/jboss/keycloak/bin/add-user-keycloak.sh --user $KEYCLOAK_ADMIN_USER --password $KEYCLOAK_ADMIN_PASSWORD

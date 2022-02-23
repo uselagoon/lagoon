@@ -76,6 +76,10 @@ function featureFlag() {
 	echo "${!defaultFlagVar}"
 }
 
+set +x
+SCC_CHECK=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get pod ${LAGOON_BUILD_NAME} -o json | jq -r '.metadata.annotations."openshift.io/scc" // false')
+set -x
+
 function patchBuildStep() {
   [ "$1" ] || return #total start time
   [ "$2" ] || return #step start time
@@ -99,11 +103,13 @@ function patchBuildStep() {
   echo "##############################################"
 
   # patch the buildpod with the buildstep
-  kubectl patch --insecure-skip-tls-verify -n ${4} pod ${LAGOON_BUILD_NAME} \
-    -p "{\"metadata\":{\"labels\":{\"lagoon.sh/buildStep\":\"${5}\"}}}"
+  if [ "${SCC_CHECK}" == false ]; then
+    kubectl patch --insecure-skip-tls-verify -n ${4} pod ${LAGOON_BUILD_NAME} \
+      -p "{\"metadata\":{\"labels\":{\"lagoon.sh/buildStep\":\"${5}\"}}}"
 
-  # tiny sleep to allow patch to complete before logs roll again
-  sleep 0.5s
+    # tiny sleep to allow patch to complete before logs roll again
+    sleep 0.5s
+  fi
 }
 
 ##############################################
@@ -187,7 +193,6 @@ HELM_ARGUMENTS=()
 for CAPABILITIES in "${CAPABILITIES[@]}"; do
   HELM_ARGUMENTS+=(-a "${CAPABILITIES}")
 done
-set -x
 
 # Implement global default values for backup retention periods
 if [ -z "$MONTHLY_BACKUP_DEFAULT_RETENTION" ]
@@ -331,7 +336,7 @@ do
     # mariadb-single deployed (probably from the past where there was no mariadb-shared yet, or mariadb-dbaas) and use that one
     if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get service "$SERVICE_NAME" &> /dev/null; then
       SERVICE_TYPE="mariadb-single"
-    elif [[ checkDBaaSHealth ]]; then
+    elif checkDBaaSHealth; then
       # check if the dbaas operator responds to a health check
       # if it does, then check if the dbaas operator has a provider matching the provider type that is expected
       if checkDBaaSProvider mariadb $(getDBaaSEnvironment mariadb-dbaas); then
@@ -339,7 +344,7 @@ do
       else
         SERVICE_TYPE="mariadb-single"
       fi
-    elif [[ "${CAPABILITIES[@]}" =~ "mariadb.amazee.io/v1/MariaDBConsumer" ]] && [[ ! checkDBaaSHealth ]]; then
+    elif [[ "${CAPABILITIES[@]}" =~ "mariadb.amazee.io/v1/MariaDBConsumer" ]] && ! checkDBaaSHealth ; then
       # check if this cluster supports the default one, if not we assume that this cluster is not capable of shared mariadbs and we use a mariadb-single
       # real basic check to see if the mariadbconsumer exists as a kind
       SERVICE_TYPE="mariadb-dbaas"
@@ -369,7 +374,7 @@ do
     # postgres-single deployed (probably from the past where there was no postgres-shared yet, or postgres-dbaas) and use that one
     if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get service "$SERVICE_NAME" &> /dev/null; then
       SERVICE_TYPE="postgres-single"
-    elif [[ checkDBaaSHealth ]]; then
+    elif checkDBaaSHealth; then
       # check if the dbaas operator responds to a health check
       # if it does, then check if the dbaas operator has a provider matching the provider type that is expected
       if checkDBaaSProvider postgres $(getDBaaSEnvironment postgres-dbaas); then
@@ -379,7 +384,7 @@ do
       fi
     # heck if this cluster supports the default one, if not we assume that this cluster is not capable of shared PostgreSQL and we use a postgres-single
     # real basic check to see if the postgreSQLConsumer exists as a kind
-    elif [[ "${CAPABILITIES[@]}" =~ "postgres.amazee.io/v1/PostgreSQLConsumer" ]]; then
+    elif [[ "${CAPABILITIES[@]}" =~ "postgres.amazee.io/v1/PostgreSQLConsumer" ]] && ! checkDBaaSHealth; then
       SERVICE_TYPE="postgres-dbaas"
     else
       SERVICE_TYPE="postgres-single"
@@ -407,17 +412,17 @@ do
     # mongodb-single deployed (probably from the past where there was no mongodb-shared yet, or mongodb-dbaas) and use that one
     if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get service "$SERVICE_NAME" &> /dev/null; then
       SERVICE_TYPE="mongodb-single"
-    elif [[ checkDBaaSHealth ]]; then
+    elif checkDBaaSHealth; then
       # check if the dbaas operator responds to a health check
       # if it does, then check if the dbaas operator has a provider matching the provider type that is expected
-      if checkDBaaSProvider postgres $(getDBaaSEnvironment mongodb-dbaas); then
+      if checkDBaaSProvider mongodb $(getDBaaSEnvironment mongodb-dbaas); then
         SERVICE_TYPE="mongodb-dbaas"
       else
         SERVICE_TYPE="mongodb-single"
       fi
     # heck if this cluster supports the default one, if not we assume that this cluster is not capable of shared MongoDB and we use a mongodb-single
     # real basic check to see if the MongoDBConsumer exists as a kind
-    elif [[ "${CAPABILITIES[@]}" =~ "mongodb.amazee.io/v1/MongoDBConsumer" ]]; then
+    elif [[ "${CAPABILITIES[@]}" =~ "mongodb.amazee.io/v1/MongoDBConsumer" ]] && ! checkDBaaSHealth; then
       SERVICE_TYPE="mongodb-dbaas"
     else
       SERVICE_TYPE="mongodb-single"
@@ -739,9 +744,12 @@ for i in $ROUTES_AUTOGENERATE_PREFIXES; do yq3 write -i -- /kubectl-build-deploy
 yq3 write -i -- /kubectl-build-deploy/values.yaml 'kubernetes' $KUBERNETES
 yq3 write -i -- /kubectl-build-deploy/values.yaml 'lagoonVersion' $LAGOON_VERSION
 # check for ROOTLESS_WORKLOAD feature flag, disabled by default
+
+set +x
 if [ "$(featureFlag ROOTLESS_WORKLOAD)" = enabled ]; then
 	yq3 merge -ix -- /kubectl-build-deploy/values.yaml /kubectl-build-deploy/rootless.values.yaml
 fi
+set -x
 
 
 echo -e "\
@@ -1220,12 +1228,14 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
 fi
 
 # check for ISOLATION_NETWORK_POLICY feature flag, disabled by default
+set +x
 if [ "$(featureFlag ISOLATION_NETWORK_POLICY)" = enabled ]; then
 	# add namespace isolation network policy to deployment
 	helm template isolation-network-policy /kubectl-build-deploy/helmcharts/isolation-network-policy \
 		-f /kubectl-build-deploy/values.yaml \
 		> $YAML_FOLDER/isolation-network-policy.yaml
 fi
+set -x
 
 if [ "$(ls -A $YAML_FOLDER/)" ]; then
   find $YAML_FOLDER -type f -exec cat {} \;
@@ -1556,18 +1566,23 @@ set -x
 ### APPLY RESOURCES
 ##############################################
 
+set +x
 if [ "$(ls -A $YAML_FOLDER/)" ]; then
-
   if [ "$CI" == "true" ]; then
     # During CI tests of Lagoon itself we only have a single compute node, so we change podAntiAffinity to podAffinity
     find $YAML_FOLDER -type f  -print0 | xargs -0 sed -i s/podAntiAffinity/podAffinity/g
     # During CI tests of Lagoon itself we only have a single compute node, so we change ReadWriteMany to ReadWriteOnce
     find $YAML_FOLDER -type f  -print0 | xargs -0 sed -i s/ReadWriteMany/ReadWriteOnce/g
   fi
+  if [ "$(featureFlag RWX_TO_RWO)" = enabled ]; then
+    # If there is only a single compute node, this can be used to change RWX to RWO
+    find $YAML_FOLDER -type f  -print0 | xargs -0 sed -i s/ReadWriteMany/ReadWriteOnce/g
+  fi
 
   find $YAML_FOLDER -type f -exec cat {} \;
   kubectl apply --insecure-skip-tls-verify -n ${NAMESPACE} -f $YAML_FOLDER/
 fi
+set -x
 
 ##############################################
 ### WAIT FOR POST-ROLLOUT TO BE FINISHED
@@ -1696,20 +1711,22 @@ patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${N
 previousStepEnd=${currentStepEnd}
 set -x
 
-##############################################
-### RUN sbom generation and store in configmap
-##############################################
-
-for IMAGE_NAME in "${!IMAGES_BUILD[@]}"
-do
-
-  IMAGE_TAG="${IMAGE_TAG:-latest}"
-  IMAGE_FULL="${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG}"
-  . /kubectl-build-deploy/scripts/exec-generate-sbom-configmap.sh
-done
-
 set +x
-currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
-patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "sbomCompleted" "SBOM Gathering"
-previousStepEnd=${currentStepEnd}
+if [ "$(featureFlag INSIGHTS)" = enabled ]; then
+  ##############################################
+  ### RUN sbom generation and store in configmap
+  ##############################################
+
+  for IMAGE_NAME in "${!IMAGES_BUILD[@]}"
+  do
+
+    IMAGE_TAG="${IMAGE_TAG:-latest}"
+    IMAGE_FULL="${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG}"
+    . /kubectl-build-deploy/scripts/exec-generate-sbom-configmap.sh
+  done
+
+  currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
+  patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "sbomCompleted" "SBOM Gathering"
+  previousStepEnd=${currentStepEnd}
+fi
 set -x
