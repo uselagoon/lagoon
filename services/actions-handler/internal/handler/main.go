@@ -113,9 +113,7 @@ func (h *Messaging) Consumer() {
 		// and perform the steps to run the mutation against the lagoon api
 		case "deployEnvironmentLatest":
 			// marshal unmarshal the data into the input we need to use when talking to the lagoon api
-			log.Println(action.Data)
 			data, _ := json.Marshal(action.Data)
-			log.Println(string(data))
 			deploy := &schema.DeployEnvironmentLatestInput{}
 			json.Unmarshal(data, deploy)
 			token, err := jwt.OneMinuteAdminToken(h.LagoonAPI.TokenSigningKey, h.LagoonAPI.JWTAudience, h.LagoonAPI.JWTSubject, h.LagoonAPI.JWTIssuer)
@@ -126,7 +124,6 @@ func (h *Messaging) Consumer() {
 				}
 				break
 			}
-			log.Println(deploy)
 			l := lclient.New(h.LagoonAPI.Endpoint, token, "actions-handler", false)
 			deployment, err := lagoon.DeployLatest(ctx, deploy, l)
 			if err != nil {
