@@ -567,7 +567,7 @@ export const getControllerBuildData = async function(deployData: any) {
   // avoiding the needs to hardcode them into the spec to then be consumed by the build-deploy controller
   lagoonProjectData.envVariables.push({"name":"LAGOON_SYSTEM_ROUTER_PATTERN", "value":routerPattern, "scope":"internal_system"})
 
-  let lagoonEnvironmentVariables = []
+  let lagoonEnvironmentVariables = environment.addOrUpdateEnvironment.envVariables || []
   if (buildVariables != null ) {
     // add the build `scope` to all the incoming build variables for a specific build
     const scopedBuildVariables = buildVariables.map(v => ({...v, scope: 'build'}))
