@@ -1,6 +1,9 @@
 import React from 'react';
 import moment from 'moment';
+import ProjectLink from 'components/link/Project';
+import DeploymentsLink from 'components/link/Deployments';
 import DeploymentLink from 'components/link/Deployment';
+import CancelDeployment from 'components/CancelDeployment';
 import { getDeploymentDuration } from 'components/Deployment';
 import { bp, color, fontSize } from 'lib/variables';
 
@@ -17,20 +20,35 @@ const BulkDeployments = ({ deployments }) => (
       <label>Created</label>
       <label>Status</label>
       <label>Duration</label>
+      <label></label>
     </div>
     <div className="data-table">
       {!deployments.length && <div className="data-none">No Deployments</div>}
       {deployments.map(deployment => (
-        <DeploymentLink
-          deploymentSlug={deployment.name}
-          environmentSlug={deployment.environment.openshiftProjectName}
-          projectSlug={deployment.environment.project.name}
-          key={deployment.id}
-        >
           <div className="data-row" deployment={deployment.id}>
-            <div className="project">{deployment.environment.project.name}</div>
-            <div className="project">{deployment.environment.name}</div>
-            <div className="name">{deployment.name}</div>
+            <div className="project">
+              <ProjectLink
+                projectSlug={deployment.environment.project.name}
+              >{deployment.environment.project.name}
+              </ProjectLink>
+            </div>
+            <div className="environment">
+              <DeploymentsLink
+                environmentSlug={deployment.environment.openshiftProjectName}
+                projectSlug={deployment.environment.project.name}
+              >{deployment.environment.name}
+              </DeploymentsLink>
+            </div>
+            <div className="name">
+              <DeploymentLink
+                deploymentSlug={deployment.name}
+                environmentSlug={deployment.environment.openshiftProjectName}
+                projectSlug={deployment.environment.project.name}
+                key={deployment.id}
+              >
+              {deployment.name}
+              </DeploymentLink>
+            </div>
             <div className="priority">{deployment.priority}</div>
             <div className="started">
               {moment
@@ -43,8 +61,12 @@ const BulkDeployments = ({ deployments }) => (
                 deployment.status.slice(1)}
             </div>
             <div className="duration">{getDeploymentDuration(deployment)}</div>
-          </div>
-        </DeploymentLink>
+            <div>
+              {['new', 'pending', 'running'].includes(deployment.status) && (
+                <CancelDeployment deployment={deployment} afterText="cancelled" beforeText="cancel" />
+              )}
+            </div>
+      </div>
       ))}
     </div>
     <style jsx>{`
@@ -75,16 +97,6 @@ const BulkDeployments = ({ deployments }) => (
         .priority {
           width: 10%;
         }
-      }
-
-      .bulk {
-        background-color: ${color.brightBlue};
-        color: ${color.white};
-        ${fontSize(10)};
-        margin-left: 10px;
-        padding: 0px 5px 0px 5px;
-        border-radius: 3px;
-        box-shadow: 0px 4px 8px 0px rgba(0, 0, 0, 0.03);
       }
 
       .data-table {
@@ -132,6 +144,14 @@ const BulkDeployments = ({ deployments }) => (
           &:first-child {
             border-top-left-radius: 3px;
             border-top-right-radius: 3px;
+          }
+
+          &:nth-child(odd) {
+            background-color: ${color.white};
+          }
+
+          &:nth-child(even) {
+            background-color: ${color.lightestGrey};
           }
 
           &:last-child {
