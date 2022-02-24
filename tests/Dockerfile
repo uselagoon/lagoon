@@ -1,6 +1,6 @@
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
-FROM ${UPSTREAM_REPO:-uselagoon}/python-3.8:${UPSTREAM_TAG:-latest}
+FROM ${UPSTREAM_REPO:-uselagoon}/python-3.9:${UPSTREAM_TAG:-latest}
 
 RUN apk add --no-cache \
       bash \
