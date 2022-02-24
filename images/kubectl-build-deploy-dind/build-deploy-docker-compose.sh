@@ -76,6 +76,10 @@ function featureFlag() {
 	echo "${!defaultFlagVar}"
 }
 
+set +x
+SCC_CHECK=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get pod ${LAGOON_BUILD_NAME} -o json | jq -r '.metadata.annotations."openshift.io/scc" // false')
+set -x
+
 function patchBuildStep() {
   [ "$1" ] || return #total start time
   [ "$2" ] || return #step start time
@@ -99,11 +103,13 @@ function patchBuildStep() {
   echo "##############################################"
 
   # patch the buildpod with the buildstep
-  kubectl patch --insecure-skip-tls-verify -n ${4} pod ${LAGOON_BUILD_NAME} \
-    -p "{\"metadata\":{\"labels\":{\"lagoon.sh/buildStep\":\"${5}\"}}}"
+  if [ "${SCC_CHECK}" == false ]; then
+    kubectl patch --insecure-skip-tls-verify -n ${4} pod ${LAGOON_BUILD_NAME} \
+      -p "{\"metadata\":{\"labels\":{\"lagoon.sh/buildStep\":\"${5}\"}}}"
 
-  # tiny sleep to allow patch to complete before logs roll again
-  sleep 0.5s
+    # tiny sleep to allow patch to complete before logs roll again
+    sleep 0.5s
+  fi
 }
 
 ##############################################
@@ -187,7 +193,6 @@ HELM_ARGUMENTS=()
 for CAPABILITIES in "${CAPABILITIES[@]}"; do
   HELM_ARGUMENTS+=(-a "${CAPABILITIES}")
 done
-set -x
 
 # Implement global default values for backup retention periods
 if [ -z "$MONTHLY_BACKUP_DEFAULT_RETENTION" ]
@@ -739,9 +744,12 @@ for i in $ROUTES_AUTOGENERATE_PREFIXES; do yq3 write -i -- /kubectl-build-deploy
 yq3 write -i -- /kubectl-build-deploy/values.yaml 'kubernetes' $KUBERNETES
 yq3 write -i -- /kubectl-build-deploy/values.yaml 'lagoonVersion' $LAGOON_VERSION
 # check for ROOTLESS_WORKLOAD feature flag, disabled by default
+
+set +x
 if [ "$(featureFlag ROOTLESS_WORKLOAD)" = enabled ]; then
 	yq3 merge -ix -- /kubectl-build-deploy/values.yaml /kubectl-build-deploy/rootless.values.yaml
 fi
+set -x
 
 
 echo -e "\
@@ -1220,12 +1228,14 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
 fi
 
 # check for ISOLATION_NETWORK_POLICY feature flag, disabled by default
+set +x
 if [ "$(featureFlag ISOLATION_NETWORK_POLICY)" = enabled ]; then
 	# add namespace isolation network policy to deployment
 	helm template isolation-network-policy /kubectl-build-deploy/helmcharts/isolation-network-policy \
 		-f /kubectl-build-deploy/values.yaml \
 		> $YAML_FOLDER/isolation-network-policy.yaml
 fi
+set -x
 
 if [ "$(ls -A $YAML_FOLDER/)" ]; then
   find $YAML_FOLDER -type f -exec cat {} \;
@@ -1556,18 +1566,23 @@ set -x
 ### APPLY RESOURCES
 ##############################################
 
+set +x
 if [ "$(ls -A $YAML_FOLDER/)" ]; then
-
   if [ "$CI" == "true" ]; then
     # During CI tests of Lagoon itself we only have a single compute node, so we change podAntiAffinity to podAffinity
     find $YAML_FOLDER -type f  -print0 | xargs -0 sed -i s/podAntiAffinity/podAffinity/g
     # During CI tests of Lagoon itself we only have a single compute node, so we change ReadWriteMany to ReadWriteOnce
     find $YAML_FOLDER -type f  -print0 | xargs -0 sed -i s/ReadWriteMany/ReadWriteOnce/g
   fi
+  if [ "$(featureFlag RWX_TO_RWO)" = enabled ]; then
+    # If there is only a single compute node, this can be used to change RWX to RWO
+    find $YAML_FOLDER -type f  -print0 | xargs -0 sed -i s/ReadWriteMany/ReadWriteOnce/g
+  fi
 
   find $YAML_FOLDER -type f -exec cat {} \;
   kubectl apply --insecure-skip-tls-verify -n ${NAMESPACE} -f $YAML_FOLDER/
 fi
+set -x
 
 ##############################################
 ### WAIT FOR POST-ROLLOUT TO BE FINISHED
@@ -1696,6 +1711,7 @@ patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${N
 previousStepEnd=${currentStepEnd}
 set -x
 
+set +x
 if [ "$(featureFlag INSIGHTS)" = enabled ]; then
   ##############################################
   ### RUN sbom generation and store in configmap
@@ -1709,9 +1725,8 @@ if [ "$(featureFlag INSIGHTS)" = enabled ]; then
     . /kubectl-build-deploy/scripts/exec-generate-sbom-configmap.sh
   done
 
-  set +x
   currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
   patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "sbomCompleted" "SBOM Gathering"
   previousStepEnd=${currentStepEnd}
-  set -x
 fi
+set -x

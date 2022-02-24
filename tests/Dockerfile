@@ -23,9 +23,10 @@ RUN apk add --no-cache --virtual .build-deps \
       PyJWT==2.3.* \
       requests==2.26.* \
       jmespath==0.10.* \
+      kubernetes==21.7.* \
     && apk del .build-deps
 
-RUN ansible-galaxy collection install ansible.posix community.general
+RUN ansible-galaxy collection install ansible.posix community.general kubernetes.core
 
 # download, extract and install kubectl binary
 # https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.20.md#downloads-for-v1204
