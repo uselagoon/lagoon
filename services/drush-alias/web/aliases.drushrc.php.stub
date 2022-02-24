@@ -38,7 +38,7 @@ $lagoonyml_path = $lagoonyml = FALSE;
 
 drush_log('Finding Drupal Root');
 
-if ( DRUSH_VERSION >= 9 ) {
+if ( (int)DRUSH_VERSION >= 9 ) {
   $_d = new \Drush\Drush();
   $path = $_d->getContainer()->get('bootstrap.manager')->getRoot();
   // _drush_shift_path_up() was part of D8, we define it for D9, borrowed from DrupalFinder->shiftPathUp()
