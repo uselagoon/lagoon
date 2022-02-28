@@ -266,6 +266,11 @@ func processingIncomingMessageQueueFactory(h *Messaging) func(mq.Message) {
 
 		if incoming.Payload == nil && incoming.BinaryPayload == nil {
 			log.Printf("no payload was found")
+			err := message.Reject(false)
+			if err != nil {
+				fmt.Errorf("%s", err.Error())
+			}
+			return
 		}
 
 		// Process s3 upload
@@ -284,7 +289,10 @@ func processingIncomingMessageQueueFactory(h *Messaging) func(mq.Message) {
 			}
 		}
 
-		message.Ack(false) // ack to remove from queue
+		err := message.Ack(false)
+		if err != nil {
+			fmt.Errorf("%s", err.Error())
+		} // ack to remove from queue
 	}
 }
 
@@ -363,16 +371,16 @@ func (h *Messaging) processSbomInsightsData(insights InsightsData, v string, api
 	}
 	source := fmt.Sprintf("%s:%s", (*bom.Metadata.Component).Name, resource.Service)
 
-	apiErr = h.deleteExistingFactsBySource(apiClient, environment, source, project)
-	if apiErr != nil {
-		return apiErr
-	}
-
 	// Process SBOM into facts
 	facts := processFactsFromSBOM(bom.Components, environment.Id, source)
 	log.Printf("Successfully decoded SBOM of image %s\n", bom.Metadata.Component.Name)
 	log.Printf("- Generated: %s with %s\n", bom.Metadata.Timestamp, (*bom.Metadata.Tools)[0].Name)
 	log.Printf("- Packages found: %d\n", len(*bom.Components))
+
+	apiErr = h.deleteExistingFactsBySource(apiClient, environment, source, project)
+	if apiErr != nil {
+		return apiErr
+	}
 
 	apiErr = h.pushFactsToLagoonApi(facts, resource)
 	if apiErr != nil {
@@ -393,10 +401,6 @@ func (h *Messaging) processImageInspectInsightsData(insights InsightsData, v str
 			return apiErr
 		}
 		source := fmt.Sprintf("image-inspect:%s", resource.Service)
-		apiErr = h.deleteExistingFactsBySource(apiClient, environment, source, project)
-		if apiErr != nil {
-			return apiErr
-		}
 
 		marshallDecoded, err := json.Marshal(decoded)
 		var imageInspect ImageInspectData
@@ -410,6 +414,11 @@ func (h *Messaging) processImageInspectInsightsData(insights InsightsData, v str
 			return err
 		}
 		log.Printf("Successfully decoded image-inspect")
+
+		apiErr = h.deleteExistingFactsBySource(apiClient, environment, source, project)
+		if apiErr != nil {
+			return apiErr
+		}
 
 		apiErr = h.pushFactsToLagoonApi(facts, resource)
 		if apiErr != nil {
@@ -608,7 +617,7 @@ func processFactsFromSBOM(facts *[]cdx.Component, environmentId int, source stri
 	for _, f := range filteredFacts {
 		factsInput = append(factsInput, lagoonclient.AddFactInput{
 			Environment: environmentId,
-			Name:        fmt.Sprintf("%s:%s", f.Name, f.Version),
+			Name:        f.Name,
 			Value:       f.Version,
 			Source:      source,
 			Description: f.PackageURL,

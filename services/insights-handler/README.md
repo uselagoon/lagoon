@@ -1,18 +1,19 @@
 # Lagoon Insights Handler
 
-This service will listen for deployment events and handle the requirements of the payload.
+This service will listen for messages and handle the requirements of the payload.
 
 ## Facts
-Currently, the main purpose is to consume Software Bill of Materials (SBOM) facts from the Lagoon logs queue, process
-and push to the api.
+Currently, the main purpose is to consume a Software Bill of Materials (SBOM) of facts from the logs queue, process
+and push to the api and s3 bucket.
 
 
-## Testing locally
+## Local development
 
     go run main.go \
         -rabbitmq-username guest \
         -rabbitmq-password guest \
-        -lagoon-api-host http://localhost:3000/graphql \
+        -lagoon-api-host http://localhost:7070/graphql \
+        --jwt-token-signing-key secret  \
         --access-key-id minio \
         --secret-access-key minio123
 
