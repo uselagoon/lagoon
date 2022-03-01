@@ -11,15 +11,15 @@
     git_repo_name: drupal-postgres.git
     git_url: "{{ localgit_url }}/{{ git_repo_name }}"
 
-- include: drupal/drupal.yaml
-  vars:
-    testname: "Drupal 9 composer PHP 8.0 - POSTGRES DBAAS {{ cluster_type|upper }}"
-    drupal_version: 9
-    db: postgres
-    php_version: 8.0
-    git_repo_name: drupal-postgres.git
-    project: ci-drupal-pg-{{ cluster_type }}
-    branch: drupal9-php80-postgres-dbaas
+# - include: drupal/drupal.yaml
+#   vars:
+#     testname: "Drupal 9 composer PHP 8.0 - POSTGRES DBAAS {{ cluster_type|upper }}"
+#     drupal_version: 9
+#     db: postgres
+#     php_version: 8.0
+#     git_repo_name: drupal-postgres.git
+#     project: ci-drupal-pg-{{ cluster_type }}
+#     branch: drupal9-php80-postgres-dbaas
 
 - include: drupal/drupal.yaml
   vars:

@@ -18,6 +18,7 @@
     db: mariadb
     php_version: 8.0
     git_repo_name: drupal-80.git
+    overwrite_docker_compose: docker-compose.dbaas.yml
     project: ci-drupal-80-{{ cluster_type }}
     branch: drupal9-php80-mariadb-dbaas
 
@@ -38,6 +39,7 @@
     db: postgres
     php_version: 8.0
     git_repo_name: drupal-postgres.git
+    overwrite_docker_compose: docker-compose.dbaas.yml
     project: ci-drupal-pg-{{ cluster_type }}
     branch: drupal9-php80-postgres-dbaas
 
