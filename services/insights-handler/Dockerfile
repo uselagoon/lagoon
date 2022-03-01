@@ -23,6 +23,8 @@ WORKDIR /app/
 # bring the insights-handler binary from the builder
 COPY --from=builder /go/src/github.com/uselagoon/lagoon/services/insights-handler/insights-handler .
 
+COPY key_facts.txt /app/key_facts.txt
+
 ENV LAGOON=insights-handler
 # set defaults
 ENV JWT_SECRET=super-secret-string \
