@@ -15,6 +15,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 	"strings"
@@ -466,6 +467,12 @@ func determineResourceFromLagoonAPI(apiClient graphql.Client, resource ResourceD
 }
 
 func (h *Messaging) sendToLagoonS3(incoming *InsightsMessage, insights InsightsData, resource ResourceDestination) (err error) {
+	// strip http/s protocol from origin
+	u, _ := url.Parse(h.S3Config.S3Origin)
+	if u.Scheme == "http" || u.Scheme == "https" {
+		h.S3Config.S3Origin = u.Host
+	}
+
 	// Push to s3 bucket
 	minioClient, err := minio.New(h.S3Config.S3Origin, &minio.Options{
 		Creds:  credentials.NewStaticV4(h.S3Config.AccessKeyId, h.S3Config.SecretAccessKey, ""),
@@ -494,6 +501,7 @@ func (h *Messaging) sendToLagoonS3(incoming *InsightsMessage, insights InsightsD
 
 		objectName := strings.ToLower(fmt.Sprintf("%s-%s-%s-%s.json", insights.InputType, resource.Project, resource.Environment, resource.Service))
 		reader := bytes.NewReader(b)
+
 		info, putObjErr := minioClient.PutObject(ctx, h.S3Config.Bucket, objectName, reader, reader.Size(), minio.PutObjectOptions{})
 		if putObjErr != nil {
 			return putObjErr
