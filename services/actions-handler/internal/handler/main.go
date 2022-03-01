@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/cheshir/go-mq"
-	"github.com/matryer/try"
+	"gopkg.in/matryer/try.v1"
 
 	"github.com/uselagoon/lagoon/services/actions-handler/internal/lagoon"
 	lclient "github.com/uselagoon/lagoon/services/actions-handler/internal/lagoon/client"

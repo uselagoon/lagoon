@@ -1,6 +1,6 @@
 module github.com/uselagoon/lagoon/services/actions-handler
 
-go 1.14
+go 1.16
 
 require (
 	github.com/cheekybits/is v0.0.0-20150225183255-68e9c0620927 // indirect
@@ -9,9 +9,9 @@ require (
 	github.com/fsouza/go-dockerclient v1.7.3 // indirect
 	github.com/machinebox/graphql v0.2.3-0.20181106130121-3a9253180225
 	github.com/matryer/is v1.4.0 // indirect
-	github.com/matryer/try v0.0.0-20161228173917-9ac251b645a2
+	github.com/matryer/try v0.0.0-20161228173917-9ac251b645a2 // indirect
 	github.com/tiago4orion/conjure v0.0.0-20150908101743-93cb30b9d218 // indirect
-	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
+	gopkg.in/matryer/try.v1 v1.0.0-20150601225556-312d2599e12e
 )
 
 // Fixes for AppID
