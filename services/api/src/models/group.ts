@@ -614,7 +614,8 @@ export const Group = (clients: {
         {
           attributes: {
             ...group.attributes,
-            'lagoon-projects': [newGroupProjects]
+            'lagoon-projects': [newGroupProjects],
+            'group-lagoon-project-ids': [`{${JSON.stringify(group.name)}:[${newGroupProjects}]}`]
           }
         }
       );
@@ -664,7 +665,8 @@ export const Group = (clients: {
         {
           attributes: {
             ...group.attributes,
-            'lagoon-projects': [newGroupProjects]
+            'lagoon-projects': [newGroupProjects],
+            'group-lagoon-project-ids': [`{${JSON.stringify(group.name)}:[${newGroupProjects}]}`]
           }
         }
       );
