@@ -29,14 +29,14 @@ var (
 	insightsExchange             string
 	jwtSubject                   string
 	jwtIssuer                    string
-	secretAccessKey              string
+	s3SecretAccessKey            string
 	s3Origin                     string
-	accessKeyID                  string
-	bucket                       string
-	region                       string
+	s3Bucket                     string
+	s3Region                     string
+	s3AccessKeyID                string
 	useSSL                       bool
 	disableS3Upload              bool
-	disableApiIntegration        bool
+	disableAPIIntegration        bool
 	enableDebug                  bool
 )
 
@@ -57,13 +57,13 @@ func main() {
 	flag.StringVar(&jwtIssuer, "jwt-issuer", "actions-handler", "The jwt audience.")
 	flag.StringVar(&insightsQueueName, "insights-queue-name", "lagoon-insights:items", "The name of the queue in rabbitmq to use.")
 	flag.StringVar(&insightsExchange, "insights-exchange", "lagoon-insights", "The name of the exchange in rabbitmq to use.")
-	flag.StringVar(&secretAccessKey, "secret-access-key", "minio123", "s3 secret access key to use.")
+	flag.StringVar(&s3SecretAccessKey, "secret-access-key", "minio123", "s3 secret access key to use.")
 	flag.StringVar(&s3Origin, "s3-host", "localhost:9000", "The s3 host/origin to use.")
-	flag.StringVar(&accessKeyID, "access-key-id", "minio", "The name of the bucket to use.")
-	flag.StringVar(&bucket, "s3-bucket", "lagoon-sboms", "The s3 aws region.")
-	flag.StringVar(&region, "s3-region", "", "The s3 region.")
-	flag.BoolVar(&disableS3Upload, "disable-s3-upload", false, "Disable uploading insights data to an s3 bucket")
-	flag.BoolVar(&disableApiIntegration, "disable-api-integration", false, "Disable insights data integration for the Lagoon API")
+	flag.StringVar(&s3AccessKeyID, "access-key-id", "minio", "The name of the s3Bucket to use.")
+	flag.StringVar(&s3Bucket, "s3-s3Bucket", "lagoon-sboms", "The s3 aws s3Region.")
+	flag.StringVar(&s3Region, "s3-s3Region", "", "The s3 s3Region.")
+	flag.BoolVar(&disableS3Upload, "disable-s3-upload", false, "Disable uploading insights data to an s3 s3Bucket")
+	flag.BoolVar(&disableAPIIntegration, "disable-api-integration", false, "Disable insights data integration for the Lagoon API")
 	flag.Parse()
 
 	// get overrides from environment variables
@@ -78,11 +78,11 @@ func main() {
 	jwtIssuer = getEnv("JWT_ISSUER", jwtIssuer)
 	insightsQueueName = getEnv("INSIGHTS_QUEUE_NAME", insightsQueueName)
 	insightsExchange = getEnv("INSIGHTS_EXCHANGE", insightsExchange)
-	secretAccessKey = getEnv("S3_FILES_SECRET_ACCESS_KEY", secretAccessKey)
 	s3Origin = getEnv("S3_FILES_HOST", s3Origin)
-	accessKeyID = getEnv("S3_FILES_ACCESS_KEY_ID", accessKeyID)
-	bucket = getEnv("S3_FILES_BUCKET", bucket)
-	region = getEnv("S3_FILES_REGION", region)
+	s3AccessKeyID = getEnv("S3_FILES_ACCESS_KEY_ID", s3AccessKeyID)
+	s3SecretAccessKey = getEnv("S3_FILES_SECRET_ACCESS_KEY", s3SecretAccessKey)
+	s3Bucket = getEnv("S3_FILES_BUCKET", s3Bucket)
+	s3Region = getEnv("S3_FILES_REGION", s3Region)
 	useSSL := false
 	enableDebug := true
 
@@ -100,14 +100,14 @@ func main() {
 		JWTAudience:     jwtAudience,
 		JWTSubject:      jwtSubject,
 		JWTIssuer:       jwtIssuer,
-		Disabled:        disableApiIntegration,
+		Disabled:        disableAPIIntegration,
 	}
 	s3Config := handler.S3{
-		SecretAccessKey: secretAccessKey,
+		SecretAccessKey: s3SecretAccessKey,
 		S3Origin:        s3Origin,
-		AccessKeyId:     accessKeyID,
-		Bucket:          bucket,
-		Region:          region,
+		AccessKeyId:     s3AccessKeyID,
+		Bucket:          s3Bucket,
+		Region:          s3Region,
 		UseSSL:          useSSL,
 		Disabled:        disableS3Upload,
 	}
