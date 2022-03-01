@@ -67,9 +67,9 @@ type InsightsMessage struct {
 }
 
 type InsightsData struct {
-	InputType  InputType
-	LagoonType LagoonType
-	Format     string
+	InputType      InputType
+	LagoonType     LagoonType
+	S3OutputFormat []string
 }
 
 type InputType int64
@@ -85,9 +85,9 @@ func (i InputType) String() string {
 	case Sbom:
 		return "SBOM"
 	case SbomGz:
-		return "SBOM_GZ"
+		return "SBOM-GZ"
 	case ImageInspectGz:
-		return "IMAGE_INSPECT_GZ"
+		return "IMAGE-INSPECT-GZ"
 	}
 	return "UNKNOWN"
 }
@@ -105,7 +105,7 @@ func (t LagoonType) String() string {
 	case Facts:
 		return "FACTS"
 	case ImageInspectFacts:
-		return "IMAGE_INSPECT"
+		return "IMAGE-INSPECT"
 	case Problems:
 		return "PROBLEMS"
 	}
@@ -234,20 +234,23 @@ func processingIncomingMessageQueueFactory(h *Messaging) func(mq.Message) {
 			for key, value := range incoming.Labels {
 				if key == "lagoon.sh/insightsType" && value == "sbom" {
 					insights = InsightsData{
-						InputType:  Sbom,
-						LagoonType: Facts,
+						InputType:      Sbom,
+						LagoonType:     Facts,
+						S3OutputFormat: append([]string{"json"}),
 					}
 				}
 				if key == "lagoon.sh/insightsType" && value == "sbom-gz" {
 					insights = InsightsData{
-						InputType:  SbomGz,
-						LagoonType: Facts,
+						InputType:      SbomGz,
+						LagoonType:     Facts,
+						S3OutputFormat: append([]string{"json", "json.gz"}),
 					}
 				}
 				if key == "lagoon.sh/insightsType" && value == "image-inspect-gz" {
 					insights = InsightsData{
-						InputType:  ImageInspectGz,
-						LagoonType: ImageInspectFacts,
+						InputType:      ImageInspectGz,
+						LagoonType:     ImageInspectFacts,
+						S3OutputFormat: append([]string{"json", "json.gz"}),
 					}
 				}
 				if key == "lagoon.sh/project" {
@@ -502,7 +505,9 @@ func (h *Messaging) sendToLagoonS3(incoming *InsightsMessage, insights InsightsD
 		objectName := strings.ToLower(fmt.Sprintf("%s-%s-%s-%s.json", insights.InputType, resource.Project, resource.Environment, resource.Service))
 		reader := bytes.NewReader(b)
 
-		info, putObjErr := minioClient.PutObject(ctx, h.S3Config.Bucket, objectName, reader, reader.Size(), minio.PutObjectOptions{})
+		info, putObjErr := minioClient.PutObject(ctx, h.S3Config.Bucket, objectName, reader, reader.Size(), minio.PutObjectOptions{
+			ContentEncoding: "application/json",
+		})
 		if putObjErr != nil {
 			return putObjErr
 		}
@@ -518,29 +523,43 @@ func (h *Messaging) sendToLagoonS3(incoming *InsightsMessage, insights InsightsD
 			}
 			resultJson, _ := json.MarshalIndent(result, "", " ")
 
-			objectName := strings.ToLower(fmt.Sprintf("%s-%s-%s-%s.json.gz", insights.InputType, resource.Project, resource.Environment, resource.Service))
-			tempFilePath := fmt.Sprintf("/tmp/%s", objectName)
-			contentType := "application/gzip"
+			var objectName string
+			for _, f := range insights.S3OutputFormat {
+				objectName = strings.ToLower(fmt.Sprintf("%s-%s-%s-%s-%s.%s", insights.LagoonType, strings.Replace(f, ".", "-", -1), resource.Project, resource.Environment, resource.Service, f))
 
-			var buf bytes.Buffer
-			gz := gzip.NewWriter(&buf)
-			gz.Write(resultJson)
-			gz.Close()
-			err = ioutil.WriteFile(tempFilePath, buf.Bytes(), 0644)
-			if err != nil {
-				fmt.Errorf(err.Error())
+				tempFilePath := fmt.Sprintf("/tmp/%s", objectName)
+				contentType := fmt.Sprintf("application/%s", strings.Replace(f, ".", "-", -1))
+
+				if f == "json" {
+					err = ioutil.WriteFile(tempFilePath, resultJson, 0644)
+					if err != nil {
+						fmt.Errorf(err.Error())
+					}
+				}
+				if f == "json.gz" {
+					var buf bytes.Buffer
+					gz := gzip.NewWriter(&buf)
+					gz.Write(resultJson)
+					gz.Close()
+					err = ioutil.WriteFile(tempFilePath, buf.Bytes(), 0644)
+					if err != nil {
+						fmt.Errorf(err.Error())
+					}
+				}
+
+				s3FilePath := strings.ToLower(fmt.Sprintf("%s/%s/%s/%s/%s", insights.InputType, resource.Project, resource.Environment, resource.Service, objectName))
+				info, err := minioClient.FPutObject(ctx, h.S3Config.Bucket, s3FilePath, tempFilePath, minio.PutObjectOptions{ContentType: contentType})
+				if err != nil {
+					fmt.Errorf(err.Error())
+				}
+				log.Printf("Successfully uploaded %s of size %d\n", s3FilePath, info.Size)
+
+				err = os.Remove(tempFilePath)
+				if err != nil {
+					fmt.Errorf(err.Error())
+				}
 			}
 
-			info, err := minioClient.FPutObject(ctx, h.S3Config.Bucket, objectName, tempFilePath, minio.PutObjectOptions{ContentType: contentType})
-			if err != nil {
-				fmt.Errorf(err.Error())
-			}
-			log.Printf("Successfully uploaded %s of size %d\n", objectName, info.Size)
-
-			err = os.Remove(tempFilePath)
-			if err != nil {
-				fmt.Errorf(err.Error())
-			}
 		}
 	}
 
