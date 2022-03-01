@@ -249,13 +249,13 @@ func processingIncomingMessageQueueFactory(h *Messaging) func(mq.Message) {
 						LagoonType: ImageInspectFacts,
 					}
 				}
-				if key == "lagoon.sh/insightsProject" {
+				if key == "lagoon.sh/project" {
 					resource.Project = value
 				}
-				if key == "lagoon.sh/insightsEnvironment" {
+				if key == "lagoon.sh/environment" {
 					resource.Environment = value
 				}
-				if key == "lagoon.sh/insightsService" {
+				if key == "lagoon.sh/service" {
 					resource.Service = value
 				}
 				if key == "lagoon.sh/insightsFormat" {
@@ -302,7 +302,7 @@ func (h *Messaging) sendToLagoonAPI(incoming *InsightsMessage, resource Resource
 
 	// Facts
 	if resource.Project == "" && resource.Environment == "" {
-		log.Println("no resource definition labels could be found in payload (i.e. lagoon.sh/insightsProject or lagoon.sh/insightsEnvironment)")
+		log.Println("no resource definition labels could be found in payload (i.e. lagoon.sh/project or lagoon.sh/environment)")
 	}
 
 	//@todo replace this by checking if incoming.Payload and converting to gzip, or vise-versa, so we don't repeat here
