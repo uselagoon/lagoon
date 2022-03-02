@@ -4,7 +4,7 @@ TMP_DIR="${TMP_DIR:-/tmp}"
 SBOM_OUTPUT="cyclonedx-json"
 SBOM_OUTPUT_FILE="${TMP_DIR}/${IMAGE_NAME}.cyclonedx.json.gz"
 SBOM_CONFIGMAP="lagoon-insights-sbom-${IMAGE_NAME}"
-IMAGE_INSPECT_CONFIGMAP="lagoon-insights-image-inpsect-${IMAGE_NAME}"
+IMAGE_INSPECT_CONFIGMAP="lagoon-insights-image-${IMAGE_NAME}"
 IMAGE_INSPECT_OUTPUT_FILE="${TMP_DIR}/${IMAGE_NAME}.image-inspect.json.gz"
 
 set -x
@@ -35,7 +35,7 @@ processImageInspect() {
       -n ${NAMESPACE} \
       label configmap ${IMAGE_INSPECT_CONFIGMAP} \
       lagoon.sh/insightsProcessed- \
-      lagoon.sh/insightsType=image-inspect-gz \
+      lagoon.sh/insightsType=image-gz \
       lagoon.sh/buildName=${LAGOON_BUILD_NAME} \
       lagoon.sh/project=${PROJECT} \
       lagoon.sh/environment=${ENVIRONMENT} \
