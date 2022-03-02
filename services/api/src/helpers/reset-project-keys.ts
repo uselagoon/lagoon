@@ -3,18 +3,18 @@ import { parsePrivateKey } from 'sshpk';
 import { logger } from '@lagoon/commons/dist/local-logging';
 import * as api from '@lagoon/commons/dist/api';
 import * as gitlabApi from '@lagoon/commons/dist/gitlabApi';
-import { getKeycloakAdminClient } from '../../clients/keycloak-admin';
-import { sqlClientPool } from '../../clients/sqlClient';
-import { esClient } from '../../clients/esClient';
-import redisClient from '../../clients/redisClient';
-import { query } from '../../util/db';
-import { Group } from '../../models/group';
-import { User } from '../../models/user';
+import { getKeycloakAdminClient } from '../clients/keycloak-admin';
+import { sqlClientPool } from '../clients/sqlClient';
+import { esClient } from '../clients/esClient';
+import redisClient from '../clients/redisClient';
+import { query } from '../util/db';
+import { Group } from '../models/group';
+import { User } from '../models/user';
 import {
   generatePrivateKey,
   getSshKeyFingerprint
-} from '../../resources/sshKey';
-import { Sql as sshKeySql } from '../../resources/sshKey/sql';
+} from '../resources/sshKey';
+import { Sql as sshKeySql } from '../resources/sshKey/sql';
 
 interface GitlabProject {
   id: number;

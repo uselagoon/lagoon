@@ -422,7 +422,7 @@ const typeDefs = gql`
     consoleUrl: String
     token: String
     routerPattern: String
-    projectUser: String
+    projectUser: String @deprecated(reason: "Not used with RBAC permissions")
     sshHost: String
     sshPort: String
     created: String
@@ -438,7 +438,7 @@ const typeDefs = gql`
     consoleUrl: String
     token: String
     routerPattern: String
-    projectUser: String
+    projectUser: String @deprecated(reason: "Not used with RBAC permissions")
     sshHost: String
     sshPort: String
     created: String
@@ -1331,6 +1331,9 @@ const typeDefs = gql`
     consoleUrl: String!
     token: String
     routerPattern: String
+    """
+    @deprecated(reason: "Not used with RBAC permissions")
+    """
     projectUser: String
     sshHost: String
     sshPort: String
@@ -1346,6 +1349,9 @@ const typeDefs = gql`
     consoleUrl: String!
     token: String
     routerPattern: String
+    """
+    @deprecated(reason: "Not used with RBAC permissions")
+    """
     projectUser: String
     sshHost: String
     sshPort: String
@@ -1493,6 +1499,9 @@ const typeDefs = gql`
     consoleUrl: String
     token: String
     routerPattern: String
+    """
+    @deprecated(reason: "Not used with RBAC permissions")
+    """
     projectUser: String
     sshHost: String
     sshPort: String
@@ -1512,6 +1521,9 @@ const typeDefs = gql`
     consoleUrl: String
     token: String
     routerPattern: String
+    """
+    @deprecated(reason: "Not used with RBAC permissions")
+    """
     projectUser: String
     sshHost: String
     sshPort: String

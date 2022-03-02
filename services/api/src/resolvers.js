@@ -154,6 +154,7 @@ const {
   getOpenshiftByProjectId,
   getOpenshiftByDeployTargetId,
   getOpenshiftByEnvironmentId,
+  getProjectUser,
   updateOpenshift,
   deleteAllOpenshifts,
 } = require('./resources/openshift/resolvers');
@@ -296,6 +297,12 @@ const resolvers = {
     ACTIVE: 'active',
     SUCCEEDED: 'succeeded',
     FAILED: 'failed',
+  },
+  Openshift: {
+    projectUser: getProjectUser,
+  },
+  Kubernetes: {
+    projectUser: getProjectUser,
   },
   Project: {
     notifications: getNotificationsByProjectId,

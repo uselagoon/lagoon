@@ -11,30 +11,12 @@ CREATE TABLE IF NOT EXISTS ssh_key (
   created          timestamp DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS user (
-  id            int NOT NULL auto_increment PRIMARY KEY,
-  email         varchar(100) UNIQUE,
-  first_name    varchar(50),
-  last_name     varchar(50),
-  comment       text,
-  gitlab_id     int
-);
-
-CREATE TABLE IF NOT EXISTS customer (
-  id             int NOT NULL auto_increment PRIMARY KEY,
-  name           varchar(50) UNIQUE,
-  comment        text,
-  private_key    varchar(5000),
-  created        timestamp DEFAULT CURRENT_TIMESTAMP
-);
-
 CREATE TABLE IF NOT EXISTS openshift (
   id                  int NOT NULL auto_increment PRIMARY KEY,
   name                varchar(50) UNIQUE,
   console_url         varchar(300),
   token               varchar(2000),
   router_pattern      varchar(300),
-  project_user        varchar(100),
   ssh_host            varchar(300),
   ssh_port            varchar(50),
   monitoring_config   varchar(2048),
@@ -74,7 +56,6 @@ CREATE TABLE IF NOT EXISTS notification_email (
 CREATE TABLE IF NOT EXISTS project (
   id                               int NOT NULL auto_increment PRIMARY KEY,
   name                             varchar(100) UNIQUE,
-  customer                         int REFERENCES customer (id),
   git_url                          varchar(300),
   availability                     varchar(50) NOT NULL DEFAULT 'STANDARD',
   subfolder                        varchar(300),
@@ -262,18 +243,6 @@ CREATE TABLE IF NOT EXISTS user_ssh_key (
   usid int REFERENCES user (id),
   skid int REFERENCES ssh_key (id),
   CONSTRAINT user_ssh_key_pkey PRIMARY KEY (usid, skid)
-);
-
-CREATE TABLE IF NOT EXISTS customer_user (
-  cid  int REFERENCES customer (id),
-  usid int REFERENCES user (id),
-  CONSTRAINT customer_user_pkey PRIMARY KEY (cid, usid)
-);
-
-CREATE TABLE IF NOT EXISTS project_user (
-  pid int REFERENCES project (id),
-  usid int REFERENCES user (id),
-  CONSTRAINT project_user_pkey PRIMARY KEY (pid, usid)
 );
 
 CREATE TABLE IF NOT EXISTS task_file (
