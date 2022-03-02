@@ -18,6 +18,8 @@ import (
 	"net/url"
 	"os"
 	"regexp"
+	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -61,35 +63,17 @@ type S3 struct {
 
 type InsightsMessage struct {
 	Payload       map[string]string `json:"payload"`
-	BinaryPayload map[string]string `json:"binaryPayload""`
+	BinaryPayload map[string]string `json:"binaryPayload"`
 	Annotations   map[string]string `json:"annotations"`
 	Labels        map[string]string `json:"labels"`
 }
 
 type InsightsData struct {
-	InputType      InputType
-	LagoonType     LagoonType
-	S3OutputFormat []string
-}
-
-type InputType int64
-
-const (
-	Sbom = iota
-	SbomGz
-	ImageInspectGz
-)
-
-func (i InputType) String() string {
-	switch i {
-	case Sbom:
-		return "SBOM"
-	case SbomGz:
-		return "SBOM-GZ"
-	case ImageInspectGz:
-		return "IMAGE-INSPECT-GZ"
-	}
-	return "UNKNOWN"
+	InputType          string
+	LagoonType         LagoonType
+	OutputFileExt      string
+	OutputFileMIMEType string
+	OutputCompressed   bool
 }
 
 type LagoonType int64
@@ -229,42 +213,49 @@ func processingIncomingMessageQueueFactory(h *Messaging) func(mq.Message) {
 		incoming := &InsightsMessage{}
 		json.Unmarshal(message.Body(), incoming)
 
-		// Check labels for sbom data from message
+		// Check labels for insights data from message
 		if incoming.Labels != nil {
-			for key, value := range incoming.Labels {
-				if key == "lagoon.sh/insightsType" && value == "sbom" {
-					insights = InsightsData{
-						InputType:      Sbom,
-						LagoonType:     Facts,
-						S3OutputFormat: append([]string{"json"}),
-					}
+			labelKeys := make([]string, 0, len(incoming.Labels))
+			for k := range incoming.Labels {
+				labelKeys = append(labelKeys, k)
+			}
+			sort.Strings(labelKeys)
+
+			// Set some insight data defaults
+			insights = InsightsData{
+				LagoonType:         Facts,
+				OutputFileExt:      "json",
+				OutputFileMIMEType: "application/json",
+			}
+
+			for _, label := range labelKeys {
+				if label == "lagoon.sh/project" {
+					resource.Project = incoming.Labels["lagoon.sh/project"]
 				}
-				if key == "lagoon.sh/insightsType" && value == "sbom-gz" {
-					insights = InsightsData{
-						InputType:      SbomGz,
-						LagoonType:     Facts,
-						S3OutputFormat: append([]string{"json", "json.gz"}),
-					}
+				if label == "lagoon.sh/environment" {
+					resource.Environment = incoming.Labels["lagoon.sh/environment"]
 				}
-				if key == "lagoon.sh/insightsType" && value == "image-inspect-gz" {
-					insights = InsightsData{
-						InputType:      ImageInspectGz,
-						LagoonType:     ImageInspectFacts,
-						S3OutputFormat: append([]string{"json", "json.gz"}),
-					}
+				if label == "lagoon.sh/service" {
+					resource.Service = incoming.Labels["lagoon.sh/service"]
 				}
-				if key == "lagoon.sh/project" {
-					resource.Project = value
+
+				if label == "lagoon.sh/insightsType" {
+					insights.InputType = incoming.Labels["lagoon.sh/insightsType"]
 				}
-				if key == "lagoon.sh/environment" {
-					resource.Environment = value
+				if incoming.Labels["lagoon.sh/insightsType"] == "image-inspect" || incoming.Labels["lagoon.sh/insightsType"] == "image-inspect-gz" {
+					insights.LagoonType = ImageInspectFacts
 				}
-				if key == "lagoon.sh/service" {
-					resource.Service = value
+				if label == "lagoon.sh/insightsOutputCompressed" {
+					compressed, _ := strconv.ParseBool(incoming.Labels["lagoon.sh/insightsOutputCompressed"])
+					insights.OutputCompressed = compressed
 				}
-				if key == "lagoon.sh/insightsFormat" {
-					resource.Format = value
+				if label == "lagoon.sh/insightsOutputFileMIMEType" {
+					insights.OutputFileMIMEType = incoming.Labels["lagoon.sh/insightsOutputFileMIMEType"]
 				}
+				if label == "lagoon.sh/insightsOutputFileExt" {
+					insights.OutputFileExt = incoming.Labels["lagoon.sh/insightsOutputFileExt"]
+				}
+
 			}
 		}
 
@@ -287,10 +278,15 @@ func processingIncomingMessageQueueFactory(h *Messaging) func(mq.Message) {
 
 		// Process Lagoon API integration
 		if !h.LagoonAPI.Disabled {
-			err := h.sendToLagoonAPI(incoming, resource, insights)
-			if err != nil {
-				log.Printf("Unable to send to the api: %s", err.Error())
+			if insights.InputType != "sbom" && insights.InputType != "sbom-gz" && insights.InputType != "image-inspect" && insights.InputType != "image-inspect-gz" {
+				log.Println("only 'sbom' and 'image-inspect' types are currently supported for api processing")
+			} else {
+				err := h.sendToLagoonAPI(incoming, resource, insights)
+				if err != nil {
+					log.Printf("Unable to send to the api: %s", err.Error())
+				}
 			}
+
 		}
 
 		err := message.Ack(false)
@@ -304,15 +300,13 @@ func processingIncomingMessageQueueFactory(h *Messaging) func(mq.Message) {
 func (h *Messaging) sendToLagoonAPI(incoming *InsightsMessage, resource ResourceDestination, insights InsightsData) (err error) {
 	apiClient := h.getApiClient()
 
-	// Facts
 	if resource.Project == "" && resource.Environment == "" {
 		log.Println("no resource definition labels could be found in payload (i.e. lagoon.sh/project or lagoon.sh/environment)")
 	}
 
-	//@todo replace this by checking if incoming.Payload and converting to gzip, or vise-versa, so we don't repeat here
 	if incoming.Payload != nil {
 		for _, v := range incoming.Payload {
-			if insights.InputType == Sbom {
+			if insights.InputType == "sbom" {
 				err := h.processSbomInsightsData(insights, v, apiClient, resource)
 				if err != nil {
 					log.Println(fmt.Errorf(err.Error()))
@@ -323,17 +317,17 @@ func (h *Messaging) sendToLagoonAPI(incoming *InsightsMessage, resource Resource
 
 	if incoming.BinaryPayload != nil {
 		for _, v := range incoming.BinaryPayload {
-			if insights.InputType == SbomGz {
+			if insights.InputType == "sbom-gz" {
 				err := h.processSbomInsightsData(insights, v, apiClient, resource)
 				if err != nil {
-					log.Println(fmt.Errorf(err.Error()))
+					log.Println("warning: unable to process sbom: ", fmt.Errorf(err.Error()))
 				}
 			}
 
-			if insights.InputType == ImageInspectGz {
+			if insights.InputType == "image-inspect-gz" {
 				err = h.processImageInspectInsightsData(insights, v, apiClient, resource)
 				if err != nil {
-					log.Println(fmt.Errorf(err.Error()))
+					log.Println("warning: unable to process inspect image data: ", fmt.Errorf(err.Error()))
 				}
 			}
 		}
@@ -345,7 +339,7 @@ func (h *Messaging) sendToLagoonAPI(incoming *InsightsMessage, resource Resource
 func (h *Messaging) processSbomInsightsData(insights InsightsData, v string, apiClient graphql.Client, resource ResourceDestination) error {
 	bom := new(cdx.BOM)
 
-	if insights.InputType == Sbom {
+	if insights.InputType == "sbom" {
 		b := []byte(v)
 		decoder := cdx.NewBOMDecoder(bytes.NewReader(b), cdx.BOMFileFormatJSON)
 		if err := decoder.Decode(bom); err != nil {
@@ -353,8 +347,8 @@ func (h *Messaging) processSbomInsightsData(insights InsightsData, v string, api
 		}
 	}
 
-	if insights.InputType == SbomGz {
-		result, err := decodeString(v)
+	if insights.InputType == "sbom-gz" {
+		result, err := decodeGzipString(v)
 		if err != nil {
 			return err
 		}
@@ -377,6 +371,10 @@ func (h *Messaging) processSbomInsightsData(insights InsightsData, v string, api
 
 	// Process SBOM into facts
 	facts := processFactsFromSBOM(bom.Components, environment.Id, source)
+	if len(facts) == 0 {
+		return fmt.Errorf("no facts to process")
+	}
+
 	log.Printf("Successfully decoded SBOM of image %s\n", bom.Metadata.Component.Name)
 	log.Printf("- Generated: %s with %s\n", bom.Metadata.Timestamp, (*bom.Metadata.Tools)[0].Name)
 	log.Printf("- Packages found: %d\n", len(*bom.Components))
@@ -394,8 +392,8 @@ func (h *Messaging) processSbomInsightsData(insights InsightsData, v string, api
 }
 
 func (h *Messaging) processImageInspectInsightsData(insights InsightsData, v string, apiClient graphql.Client, resource ResourceDestination) error {
-	if insights.InputType == ImageInspectGz {
-		decoded, err := decodeString(v)
+	if insights.InputType == "image-inspect-gz" {
+		decoded, err := decodeGzipString(v)
 		if err != nil {
 			fmt.Errorf(err.Error())
 		}
@@ -418,6 +416,10 @@ func (h *Messaging) processImageInspectInsightsData(insights InsightsData, v str
 			return err
 		}
 		log.Printf("Successfully decoded image-inspect")
+
+		if len(facts) == 0 {
+			return fmt.Errorf("no facts to process")
+		}
 
 		apiErr = h.deleteExistingFactsBySource(apiClient, environment, source, project)
 		if apiErr != nil {
@@ -517,49 +519,53 @@ func (h *Messaging) sendToLagoonS3(incoming *InsightsMessage, insights InsightsD
 
 	if incoming.BinaryPayload != nil {
 		for _, p := range incoming.BinaryPayload {
-			result, err := decodeString(p)
+			result, err := decodeGzipString(p)
 			if err != nil {
 				fmt.Errorf(err.Error())
 			}
 			resultJson, _ := json.MarshalIndent(result, "", " ")
 
-			var objectName string
-			for _, f := range insights.S3OutputFormat {
-				objectName = strings.ToLower(fmt.Sprintf("%s-%s-%s-%s-%s.%s", insights.LagoonType, strings.Replace(f, ".", "-", -1), resource.Project, resource.Environment, resource.Service, f))
+			fileExt := insights.OutputFileExt
+			contentType := insights.OutputFileMIMEType
+			var contentEncoding string
+			if insights.OutputCompressed == true {
+				fileExt = fmt.Sprintf("%s.gz", insights.OutputFileExt)
+				contentEncoding = "gzip"
+			}
 
-				tempFilePath := fmt.Sprintf("/tmp/%s", objectName)
-				contentType := fmt.Sprintf("application/%s", strings.Replace(f, ".", "-", -1))
+			objectName := strings.ToLower(fmt.Sprintf("%s-%s-%s-%s.%s", insights.InputType, resource.Project, resource.Environment, resource.Service, fileExt))
+			tempFilePath := fmt.Sprintf("/tmp/%s", objectName)
 
-				if f == "json" {
-					err = ioutil.WriteFile(tempFilePath, resultJson, 0644)
-					if err != nil {
-						fmt.Errorf(err.Error())
-					}
-				}
-				if f == "json.gz" {
-					var buf bytes.Buffer
-					gz := gzip.NewWriter(&buf)
-					gz.Write(resultJson)
-					gz.Close()
-					err = ioutil.WriteFile(tempFilePath, buf.Bytes(), 0644)
-					if err != nil {
-						fmt.Errorf(err.Error())
-					}
-				}
-
-				s3FilePath := strings.ToLower(fmt.Sprintf("%s/%s/%s/%s/%s", insights.InputType, resource.Project, resource.Environment, resource.Service, objectName))
-				info, err := minioClient.FPutObject(ctx, h.S3Config.Bucket, s3FilePath, tempFilePath, minio.PutObjectOptions{ContentType: contentType})
+			if insights.OutputCompressed != true {
+				err = ioutil.WriteFile(tempFilePath, resultJson, 0644)
 				if err != nil {
 					fmt.Errorf(err.Error())
 				}
-				log.Printf("Successfully uploaded %s of size %d\n", s3FilePath, info.Size)
-
-				err = os.Remove(tempFilePath)
+			} else {
+				var buf bytes.Buffer
+				gz := gzip.NewWriter(&buf)
+				gz.Write(resultJson)
+				gz.Close()
+				err = ioutil.WriteFile(tempFilePath, buf.Bytes(), 0644)
 				if err != nil {
 					fmt.Errorf(err.Error())
 				}
 			}
 
+			s3FilePath := strings.ToLower(fmt.Sprintf("insights/%s/%s/%s", resource.Project, resource.Environment, objectName))
+			info, err := minioClient.FPutObject(ctx, h.S3Config.Bucket, s3FilePath, tempFilePath, minio.PutObjectOptions{
+				ContentType:     contentType,
+				ContentEncoding: contentEncoding,
+			})
+			if err != nil {
+				fmt.Errorf(err.Error())
+			}
+			log.Printf("Successfully uploaded %s of size %d\n", s3FilePath, info.Size)
+
+			err = os.Remove(tempFilePath)
+			if err != nil {
+				fmt.Errorf(err.Error())
+			}
 		}
 	}
 
@@ -582,7 +588,7 @@ func (h *Messaging) pushFactsToLagoonApi(facts []lagoonclient.AddFactInput, reso
 	return nil
 }
 
-func decodeString(encodedString string) (result interface{}, err error) {
+func decodeGzipString(encodedString string) (result interface{}, err error) {
 	// base64 decode it
 	base64Decoder := base64.NewDecoder(base64.StdEncoding, strings.NewReader(encodedString))
 	decodedGzipReader, err := gzip.NewReader(base64Decoder)
@@ -599,15 +605,6 @@ func decodeString(encodedString string) (result interface{}, err error) {
 	}
 
 	return data, nil
-}
-
-func downloadSBOM(sbomURL string) (*http.Response, error) {
-	res, err := http.Get(sbomURL)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
 }
 
 func processFactsFromSBOM(facts *[]cdx.Component, environmentId int, source string) []lagoonclient.AddFactInput {
