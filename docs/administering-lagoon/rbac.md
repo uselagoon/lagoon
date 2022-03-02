@@ -109,7 +109,7 @@ Here is a table that lists the roles and the access they have:
 | deleteOpenshift | openshift | delete |  | Yes | Yes | No | No | No | No | No |  |
 | deleteAllOpenshifts | openshift | deleteAll |  | Yes | Yes | No | No | No | No | No |  |
 | getAllOpenshifts | openshift | viewAll |  | Yes | No | No | No | No | No | No |  |
-| getOpenshiftByProjectId | openshift | view | projectID | Yes | Yes | Yes | Yes | No | No | No |  |
+| getOpenshiftByProjectId | openshift | view | projectID | Yes | Yes | Yes | Yes | Yes | Yes | Yes |  |
 | addNotificationToProject | project | addNotification | projectID | Yes | Yes | Yes | Yes | No | No | No |  |
 | removeNotificationFromProject | project | removeNotification | projectID | Yes | Yes | Yes | Yes | No | No | No |  |
 | addProject | project | add |  | Yes | Yes | Yes | Yes | Yes | Yes | Yes |  |

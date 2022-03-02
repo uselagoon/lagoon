@@ -76,6 +76,10 @@ function featureFlag() {
 	echo "${!defaultFlagVar}"
 }
 
+set +x
+SCC_CHECK=$(kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get pod ${LAGOON_BUILD_NAME} -o json | jq -r '.metadata.annotations."openshift.io/scc" // false')
+set -x
+
 function patchBuildStep() {
   [ "$1" ] || return #total start time
   [ "$2" ] || return #step start time
@@ -99,11 +103,13 @@ function patchBuildStep() {
   echo "##############################################"
 
   # patch the buildpod with the buildstep
-  kubectl patch --insecure-skip-tls-verify -n ${4} pod ${LAGOON_BUILD_NAME} \
-    -p "{\"metadata\":{\"labels\":{\"lagoon.sh/buildStep\":\"${5}\"}}}"
+  if [ "${SCC_CHECK}" == false ]; then
+    kubectl patch --insecure-skip-tls-verify -n ${4} pod ${LAGOON_BUILD_NAME} \
+      -p "{\"metadata\":{\"labels\":{\"lagoon.sh/buildStep\":\"${5}\"}}}"
 
-  # tiny sleep to allow patch to complete before logs roll again
-  sleep 0.5s
+    # tiny sleep to allow patch to complete before logs roll again
+    sleep 0.5s
+  fi
 }
 
 ##############################################
@@ -1560,18 +1566,23 @@ set -x
 ### APPLY RESOURCES
 ##############################################
 
+set +x
 if [ "$(ls -A $YAML_FOLDER/)" ]; then
-
   if [ "$CI" == "true" ]; then
     # During CI tests of Lagoon itself we only have a single compute node, so we change podAntiAffinity to podAffinity
     find $YAML_FOLDER -type f  -print0 | xargs -0 sed -i s/podAntiAffinity/podAffinity/g
     # During CI tests of Lagoon itself we only have a single compute node, so we change ReadWriteMany to ReadWriteOnce
     find $YAML_FOLDER -type f  -print0 | xargs -0 sed -i s/ReadWriteMany/ReadWriteOnce/g
   fi
+  if [ "$(featureFlag RWX_TO_RWO)" = enabled ]; then
+    # If there is only a single compute node, this can be used to change RWX to RWO
+    find $YAML_FOLDER -type f  -print0 | xargs -0 sed -i s/ReadWriteMany/ReadWriteOnce/g
+  fi
 
   find $YAML_FOLDER -type f -exec cat {} \;
   kubectl apply --insecure-skip-tls-verify -n ${NAMESPACE} -f $YAML_FOLDER/
 fi
+set -x
 
 ##############################################
 ### WAIT FOR POST-ROLLOUT TO BE FINISHED

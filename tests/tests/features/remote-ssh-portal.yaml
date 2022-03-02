@@ -1,9 +1,8 @@
-
 - name: "{{ testname }} - init git, add files, commit, git push"
   hosts: localhost
   serial: 1
   vars:
-    git_files: "tasks/"
+    git_files: "node{{ node_version }}/"
   tasks:
   - include: ../../tasks/git-init.yaml
   - include: ../../tasks/git-add-commit-push.yaml
@@ -18,37 +17,45 @@
   tasks:
   - include: ../../tasks/api/deploy-no-sha.yaml
 
-- name: "{{ testname }} - check if {{ project }} is deployed with searching for 'TO BE REPLACED' which is added by hand"
+- name: "{{ testname }} - check if we can connect via oc project user"
   hosts: localhost
   serial: 1
   vars:
-    url: "{{ check_url }}"
-    expected_content: "TO BE REPLACED"
+    username: "{{ project }}-remoteshell"
+    command: service=node env
+    expected_content: "LAGOON_PROJECT={{ project }}"
   tasks:
-  - include: ../../checks/check-url-content.yaml
+  - include: ../../tasks/ssh/ssh-portal-command.yaml
 
-- name: "{{ testname }} - POST api Add task to {{ project }} via {{ graphql_url }}"
-  hosts: localhost
-  serial: 1
-  tasks:
-    - include: ../../tasks/api/refresh-token.yaml
-    - include: ./create-and-register-task.yaml
-
-- name: "{{ testname }} - check if {{ project }} is deployed with searching for 'REPLACED BY TASK' which is added by the task"
+- name: "{{ testname }} - check if we can connect via oc project user and defining the container"
   hosts: localhost
   serial: 1
   vars:
-    url: "{{ check_url }}"
-    expected_content: "REPLACED BY TASK"
+    username: "{{ project }}-remoteshell"
+    command: service=node container=node env
+    expected_content: "LAGOON_PROJECT={{ project }}"
   tasks:
-  - include: ../../checks/check-url-content.yaml
+  - include: ../../tasks/ssh/ssh-portal-command.yaml
 
-# - name: "{{ testname }} - POST api Add Image task to {{ project }} via {{ graphql_url }}"
-#   hosts: localhost
-#   serial: 1
-#   tasks:
-#     - include: ../../tasks/api/refresh-token.yaml
-#     - include: ./create-register-and-test-image-task.yaml
+- name: "{{ testname }} - check if we are on the right git hash via oc project user"
+  hosts: localhost
+  serial: 1
+  vars:
+    username: "{{ project }}-remoteshell"
+    command: service=node env
+    expected_content: "LAGOON_GIT_SHA={{ current_head }}"
+  tasks:
+  - include: ../../tasks/ssh/ssh-portal-command.yaml
+
+- name: "{{ testname }} - check if we are on the right git branch via oc project user"
+  hosts: localhost
+  serial: 1
+  vars:
+    username: "{{ project }}-remoteshell"
+    command: service=node env
+    expected_content: "LAGOON_GIT_BRANCH={{ branch }}"
+  tasks:
+  - include: ../../tasks/ssh/ssh-portal-command.yaml
 
 - name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
   hosts: localhost

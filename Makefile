@@ -512,8 +512,8 @@ GOJQ_VERSION = v0.12.5
 STERN_VERSION = 2.1.17
 CHART_TESTING_VERSION = v3.4.0
 KIND_IMAGE = kindest/node:v1.21.1@sha256:69860bda5563ac81e3c0057d654b5253219618a22ec3a346306239bba8cfa1a6
-TESTS = [nginx,api,features-kubernetes,features-kubernetes-2,features-api-variables,active-standby-kubernetes,tasks,drush,drupal-php80,drupal-postgres,python,gitlab,github,bitbucket,node-mongodb,elasticsearch]
-CHARTS_TREEISH = main
+TESTS = [nginx,api,features-kubernetes,ssh-portal,features-kubernetes-2,features-api-variables,active-standby-kubernetes,tasks,drush,drupal-php80,drupal-postgres,python,gitlab,github,bitbucket,node-mongodb,elasticsearch]
+CHARTS_TREEISH = ssh-portal
 
 # Symlink the installed kubectl client if the correct version is already
 # installed, otherwise downloads it.
@@ -586,6 +586,7 @@ helm/repos: local-dev/helm
 	./local-dev/helm repo add amazeeio https://amazeeio.github.io/charts/
 	./local-dev/helm repo add lagoon https://uselagoon.github.io/lagoon-charts/
 	./local-dev/helm repo add minio https://helm.min.io/
+	./local-dev/helm repo add nats https://nats-io.github.io/k8s/helm/charts/
 	./local-dev/helm repo update
 
 # stand up a kind cluster configured appropriately for lagoon testing

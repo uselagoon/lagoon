@@ -14,6 +14,8 @@
   vars:
     branch: "{{ branch }}"
     project: "{{ project }}"
+    lagoon_environment: "{{ lagoon_environment }}"
+    namespace: "{{ project | regex_replace('_', '-') }}-{{ lagoon_environment }}"
   tasks:
   - include: ../../tasks/api/deploy-no-sha.yaml
 
