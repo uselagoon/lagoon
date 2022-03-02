@@ -11,6 +11,7 @@ export default gql`
             completed
             buildLog
             bulkId
+            bulkName
             priority
             environment{
                 name

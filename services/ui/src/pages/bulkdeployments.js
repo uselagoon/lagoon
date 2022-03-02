@@ -30,7 +30,7 @@ const BulkDeploymentsPage = ({ router }) => (
       )(({ data }) => (
         <MainLayout>
         <Breadcrumbs>
-          <BulkDeploymentBreadcrumb bulkIdSlug={ router.query.bulkId } />
+          <BulkDeploymentBreadcrumb bulkIdSlug={ data.deploymentsByBulkId[0].bulkName || router.query.bulkId } />
         </Breadcrumbs>
           <div className="content-wrapper">
             <div className="content">

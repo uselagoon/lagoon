@@ -159,7 +159,8 @@ CREATE TABLE IF NOT EXISTS deployment (
   environment  int NOT NULL REFERENCES environment (id),
   remote_id    varchar(50) NULL,
   priority     int NULL,
-  bulk_id      varchar(50) NULL
+  bulk_id      varchar(50) NULL,
+  bulk_name    varchar(100) NULL
 );
 
 CREATE TABLE IF NOT EXISTS environment_backup (

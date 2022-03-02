@@ -234,7 +234,8 @@ export const addDeployment: ResolverFn = async (
       environment: environmentId,
       remoteId,
       priority,
-      bulkId
+      bulkId,
+      bulkName
     }
   },
   { sqlClientPool, hasPermission, userActivityLogger }
@@ -258,7 +259,8 @@ export const addDeployment: ResolverFn = async (
       environment: environmentId,
       remoteId,
       priority,
-      bulkId
+      bulkId,
+      bulkName
     })
   );
 
@@ -308,7 +310,8 @@ export const updateDeployment: ResolverFn = async (
         environment,
         remoteId,
         priority,
-        bulkId
+        bulkId,
+        bulkName
       }
     }
   },
@@ -351,7 +354,8 @@ export const updateDeployment: ResolverFn = async (
         environment,
         remoteId,
         priority,
-        bulkId
+        bulkId,
+        bulkName
       }
     })
   );
@@ -376,7 +380,8 @@ export const updateDeployment: ResolverFn = async (
         environment,
         remoteId,
         priority,
-        bulkId
+        bulkId,
+        bulkName
       }
     }
   });
@@ -443,6 +448,7 @@ export const deployEnvironmentLatest: ResolverFn = async (
     environment: environmentInput,
     priority,
     bulkId,
+    bulkName,
     buildVariables,
     returnData
     }
@@ -521,6 +527,7 @@ export const deployEnvironmentLatest: ResolverFn = async (
     buildName: buildName,
     buildPriority: priority,
     bulkId: bulkId,
+    bulkName: bulkName,
     buildVariables: buildVariables,
   };
   let meta: {
@@ -640,6 +647,7 @@ export const deployEnvironmentBranch: ResolverFn = async (
     branchRef,
     priority,
     bulkId,
+    bulkName,
     buildVariables,
     returnData
     }
@@ -670,6 +678,7 @@ export const deployEnvironmentBranch: ResolverFn = async (
     buildName: buildName,
     buildPriority: priority,
     bulkId: bulkId,
+    bulkName: bulkName,
     buildVariables: buildVariables,
   };
 
@@ -746,6 +755,7 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
       headBranchRef,
       priority,
       bulkId,
+      bulkName,
       buildVariables,
       returnData
     }
@@ -782,6 +792,7 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
     buildName: buildName,
     buildPriority: priority,
     bulkId: bulkId,
+    bulkName: bulkName,
     buildVariables: buildVariables,
   };
 
@@ -853,6 +864,7 @@ export const deployEnvironmentPromote: ResolverFn = async (
       destinationEnvironment,
       priority,
       bulkId,
+      bulkName,
       buildVariables,
       returnData
     }
@@ -903,6 +915,7 @@ export const deployEnvironmentPromote: ResolverFn = async (
     buildName: buildName,
     buildPriority: priority,
     bulkId: bulkId,
+    bulkName: bulkName,
     buildVariables: buildVariables,
   };
 
@@ -1086,7 +1099,7 @@ export const switchActiveStandby: ResolverFn = async (
 
 export const bulkDeployEnvironmentLatest: ResolverFn = async (
   _root,
-  { input: { environments: environmentsInput, buildVariables } },
+  { input: { environments: environmentsInput, buildVariables, name: bulkName } },
   { keycloakGrant, models, sqlClientPool, hasPermission, userActivityLogger }
 ) => {
 
@@ -1151,8 +1164,16 @@ export const bulkDeployEnvironmentLatest: ResolverFn = async (
     }
   }
 
+  // add the priority field if it doesn't exist
+  let envs = environmentsInput.map(x => ({ priority: 3, ...x}))
+
+  // sort the environments
+  envs.sort(function(a, b) {
+    return b.priority - a.priority;
+  });
+
   // otherwise if all the access is fine, then send the action to the actions-handler to be processed
-  for (const envInput of environmentsInput) {
+  for (const envInput of envs) {
     // the `data` part of the actionData for a deployEnvironmentLatest is the same as what is in `DeployEnvironmentLatestInput`
     // this is for a 1:1 translation when consuming this in the actions-handler
     let buildPriority = 3;
@@ -1177,6 +1198,7 @@ export const bulkDeployEnvironmentLatest: ResolverFn = async (
       data: {
         ...envInput,
         bulkId: bulkId,
+        bulkName: bulkName,
         priority: buildPriority,
         buildVariables: newBuildVariables
       }
@@ -1186,7 +1208,8 @@ export const bulkDeployEnvironmentLatest: ResolverFn = async (
 
   userActivityLogger(`User performed a bulk deployment`, {
     payload: {
-      bulkId: bulkId
+      bulkId: bulkId,
+      bulkName: bulkName
     }
   });
 

@@ -4,6 +4,7 @@ package schema
 type DeployEnvironmentLatestInput struct {
 	Environment    EnvironmentInput   `json:"environment"`
 	BulkID         string             `json:"bulkId"`
+	BulkName       string             `json:"bulkName"`
 	Priority       int                `json:"priority"`
 	BuildVariables []EnvKeyValueInput `json:"buildVariables"`
 }

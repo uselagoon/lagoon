@@ -1584,7 +1584,8 @@ CREATE OR REPLACE PROCEDURE
         AND column_name = 'bulk_id'
     ) THEN
       ALTER TABLE `deployment`
-      ADD `bulk_id` varchar(50) NULL;
+      ADD `bulk_id` varchar(50) NULL,
+      ADD `bulk_name` varchar(100) NULL;
     END IF;
   END;
 $$

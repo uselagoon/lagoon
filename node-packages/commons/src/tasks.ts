@@ -351,6 +351,7 @@ export const getControllerBuildData = async function(deployData: any) {
     buildName, // buildname now comes from where the deployments are created, this is so it can be returned to the user when it is triggered
     buildPriority,
     bulkId,
+    bulkName,
     buildVariables
   } = deployData;
 
@@ -555,7 +556,8 @@ export const getControllerBuildData = async function(deployData: any) {
       apiEnvironment.environmentByName.id,
       null, null, null, null,
       buildPriority,
-      bulkId
+      bulkId,
+      bulkName
     );
   } catch (error) {
     logger.error(`Could not save deployment for project ${lagoonProjectData.id}. Message: ${error}`);

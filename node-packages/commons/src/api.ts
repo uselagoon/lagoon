@@ -1258,11 +1258,12 @@ export const addDeployment = (
   started: string = null,
   completed: string = null,
   priority: number = null,
-  bulkId: string = null
+  bulkId: string = null,
+  bulkName: string = null
 ): Promise<any> =>
   graphqlapi.mutate(
     `
-  ($name: String!, $status: DeploymentStatusType!, $created: String!, $environment: Int!, $id: Int, $remoteId: String, $started: String, $completed: String, $priority: Int, $bulkId: String) {
+  ($name: String!, $status: DeploymentStatusType!, $created: String!, $environment: Int!, $id: Int, $remoteId: String, $started: String, $completed: String, $priority: Int, $bulkId: String, $bulkName: String) {
     addDeployment(input: {
         name: $name
         status: $status
@@ -1274,6 +1275,7 @@ export const addDeployment = (
         completed: $completed
         priority: $priority
         bulkId: $bulkId
+        bulkName: $bulkName
     }) {
       ...${deploymentFragment}
     }
@@ -1289,7 +1291,8 @@ export const addDeployment = (
       started,
       completed,
       priority,
-      bulkId
+      bulkId,
+      bulkName
     }
   );
 

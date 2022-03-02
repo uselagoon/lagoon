@@ -21,6 +21,7 @@ export const Sql = {
     remoteId,
     priority,
     bulkId,
+    bulkName,
   }: {
     id: number,
     name: string,
@@ -32,6 +33,7 @@ export const Sql = {
     remoteId: number,
     priority: number,
     bulkId: string,
+    bulkName: string,
   }) =>
     knex('deployment')
       .insert({
@@ -45,6 +47,7 @@ export const Sql = {
         remoteId,
         priority,
         bulkId,
+        bulkName,
       })
       .toString(),
   deleteDeployment: (id: number) =>

@@ -1,12 +1,14 @@
 mutation (
   $environment: EnvironmentInput!
   $bulkId: String
+  $bulkName: String
   $priority: Int
   $buildVariables: [EnvKeyValueInput]
   ) {
     deployEnvironmentLatest(input: {
       environment: $environment
       bulkId: $bulkId
+      bulkName: $bulkName
       priority: $priority
       buildVariables: $buildVariables
       returnData: true

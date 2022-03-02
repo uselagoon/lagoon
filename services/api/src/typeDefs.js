@@ -859,6 +859,7 @@ const typeDefs = gql`
     uiLink: String
     priority: Int
     bulkId: String
+    bulkName: String
   }
 
   type EnvKeyValue {
@@ -1239,6 +1240,7 @@ const typeDefs = gql`
     remoteId: String
     priority: Int
     bulkId: String
+    bulkName: String
   }
 
   input DeleteDeploymentInput {
@@ -1255,6 +1257,7 @@ const typeDefs = gql`
     remoteId: String
     priority: Int
     bulkId: String
+    bulkName: String
   }
 
   input UpdateDeploymentInput {
@@ -1671,6 +1674,7 @@ const typeDefs = gql`
     environment: EnvironmentInput!
     priority: Int
     bulkId: String
+    bulkName: String
     buildVariables: [EnvKeyValueInput]
     returnData: Boolean
   }
@@ -1681,6 +1685,7 @@ const typeDefs = gql`
     branchRef: String
     priority: Int
     bulkId: String
+    bulkName: String
     buildVariables: [EnvKeyValueInput]
     returnData: Boolean
   }
@@ -1695,6 +1700,7 @@ const typeDefs = gql`
     headBranchRef: String!
     priority: Int
     bulkId: String
+    bulkName: String
     buildVariables: [EnvKeyValueInput]
     returnData: Boolean
   }
@@ -1705,6 +1711,7 @@ const typeDefs = gql`
     destinationEnvironment: String!
     priority: Int
     bulkId: String
+    bulkName: String
     buildVariables: [EnvKeyValueInput]
     returnData: Boolean
   }
@@ -1760,6 +1767,7 @@ const typeDefs = gql`
   input BulkDeploymentLatestInput {
     buildVariables: [EnvKeyValueInput]
     environments: [DeployEnvironmentLatestInput!]!
+    name: String
   }
 
   type Mutation {
