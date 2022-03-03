@@ -27,12 +27,12 @@ func Test_processingIncomingMessageQueue(t *testing.T) {
 
 func Test_processFactsFromSBOM(t *testing.T) {
 	type args struct {
-		bom           cdx.BOM
+		bom           *[]cdx.Component
 		environmentId int
 		source        string
 	}
 
-	testResponse, err := ioutil.ReadFile("./testassets/testSBOM.cyclonedx.json")
+	testResponse, err := ioutil.ReadFile("./testassets/testSbomPayload.json")
 	if err != nil {
 		t.Fatalf("Could not open file")
 	}
@@ -63,7 +63,7 @@ func Test_processFactsFromSBOM(t *testing.T) {
 		{
 			name: "sbom.cdx.json",
 			args: args{
-				bom:           *bom,
+				bom:           bom.Components,
 				environmentId: 3,
 				source:        "syft",
 			},
