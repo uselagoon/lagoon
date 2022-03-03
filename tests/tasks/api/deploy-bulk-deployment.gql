@@ -1,0 +1,6 @@
+mutation bulkDeployEnvironmentLatest {
+  bulkDeployEnvironmentLatest(input:{
+    name: "{{ testname }}"
+    environments: {{ environments }}
+  })
+}
