@@ -1,13 +1,51 @@
 #!/bin/bash
 
-# SBOM config
 TMP_DIR="${TMP_DIR:-/tmp}"
 SBOM_OUTPUT="cyclonedx-json"
 SBOM_OUTPUT_FILE="${TMP_DIR}/${IMAGE_NAME}.cyclonedx.json.gz"
-SBOM_CONFIGMAP="lagoon-sbom-${IMAGE_NAME}"
+SBOM_CONFIGMAP="lagoon-insights-sbom-${IMAGE_NAME}"
+IMAGE_INSPECT_CONFIGMAP="lagoon-insights-image-${IMAGE_NAME}"
+IMAGE_INSPECT_OUTPUT_FILE="${TMP_DIR}/${IMAGE_NAME}.image-inspect.json.gz"
 
 set -x
-# Run sbom and dump to file
+echo "Running image inspect on: ${IMAGE_FULL}"
+set +x
+
+skopeo inspect --retry-times 5 docker://${IMAGE_FULL} --tls-verify=false | gzip > ${IMAGE_INSPECT_OUTPUT_FILE}
+
+processImageInspect() {
+  echo "Successfully generated image inspection data for ${IMAGE_FULL}"
+
+  set -x
+  # If lagoon-insights-image-inpsect-[IMAGE] configmap already exists then we need to update, else create new
+  if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap $IMAGE_INSPECT_CONFIGMAP &> /dev/null; then
+      kubectl --insecure-skip-tls-verify \
+          -n ${NAMESPACE} \
+          create configmap $IMAGE_INSPECT_CONFIGMAP \
+          --from-file=${IMAGE_INSPECT_OUTPUT_FILE} \
+          -o json \
+          --dry-run=client | kubectl replace -f -
+  else
+      kubectl --insecure-skip-tls-verify \
+          -n ${NAMESPACE} \
+          create configmap ${IMAGE_INSPECT_CONFIGMAP} \
+          --from-file=${IMAGE_INSPECT_OUTPUT_FILE}
+  fi
+  kubectl --insecure-skip-tls-verify \
+      -n ${NAMESPACE} \
+      label configmap ${IMAGE_INSPECT_CONFIGMAP} \
+      lagoon.sh/insightsProcessed- \
+      lagoon.sh/insightsType=image-gz \
+      lagoon.sh/buildName=${LAGOON_BUILD_NAME} \
+      lagoon.sh/project=${PROJECT} \
+      lagoon.sh/environment=${ENVIRONMENT} \
+      lagoon.sh/service=${IMAGE_NAME}
+  set +x
+}
+
+processImageInspect
+
+set -x
 echo "Running sbom scan using syft"
 echo "Image being scanned: ${IMAGE_FULL}"
 set +x
@@ -25,7 +63,7 @@ processSbom() {
     echo "Successfully generated SBOM for ${IMAGE_FULL}"
 
     set -x
-    # If sbom configmap already exists then we need to update, else create new
+    # If lagoon-insights-sbom-[IMAGE] configmap already exists then we need to update, else create new
     if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap $SBOM_CONFIGMAP &> /dev/null; then
         kubectl --insecure-skip-tls-verify \
             -n ${NAMESPACE} \
@@ -43,6 +81,7 @@ processSbom() {
     kubectl --insecure-skip-tls-verify \
         -n ${NAMESPACE} \
         label configmap ${SBOM_CONFIGMAP} \
+        lagoon.sh/insightsProcessed- \
         lagoon.sh/insightsType=sbom-gz \
         lagoon.sh/buildName=${LAGOON_BUILD_NAME} \
         lagoon.sh/project=${PROJECT} \
