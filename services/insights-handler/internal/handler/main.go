@@ -319,13 +319,18 @@ func processingIncomingMessageQueueFactory(h *Messaging) func(mq.Message) {
 				fmt.Errorf("%s", err.Error())
 			}
 			return
-		} else {
-			if len(incoming.Payload) != 0 {
-				insights.InputPayload = Payload
-			}
-			if len(incoming.BinaryPayload) != 0 {
-				insights.InputPayload = BinaryPayload
-			}
+		}
+		if len(incoming.Payload) != 0 {
+			insights.InputPayload = Payload
+		}
+		if len(incoming.BinaryPayload) != 0 {
+			insights.InputPayload = BinaryPayload
+		}
+
+		// Debug
+		if h.EnableDebug {
+			log.Println("[DEBUG] insights:", insights)
+			log.Println("[DEBUG] target:", resource)
 		}
 
 		// Process s3 upload
@@ -338,10 +343,6 @@ func processingIncomingMessageQueueFactory(h *Messaging) func(mq.Message) {
 
 		// Process Lagoon API integration
 		if !h.LagoonAPI.Disabled {
-			log.Println(insights)
-			log.Println(insights.InsightsType)
-			log.Println(insights.InputType)
-
 			if insights.InsightsType != Sbom && insights.InsightsType != ImageInspect {
 				log.Println("only 'sbom' and 'image-inspect' types are currently supported for api processing")
 			} else {
@@ -350,13 +351,13 @@ func processingIncomingMessageQueueFactory(h *Messaging) func(mq.Message) {
 					log.Printf("Unable to send to the api: %s", err.Error())
 				}
 			}
-
 		}
 
+		// Ack to remove from queue
 		err := message.Ack(false)
 		if err != nil {
 			fmt.Errorf("%s", err.Error())
-		} // ack to remove from queue
+		}
 	}
 }
 
@@ -466,44 +467,42 @@ func (h *Messaging) processSbomInsightsData(insights InsightsData, v string, api
 }
 
 func (h *Messaging) processImageInspectInsightsData(insights InsightsData, v string, apiClient graphql.Client, resource ResourceDestination) error {
-	if insights.OutputCompressed {
-		decoded, err := decodeGzipString(v)
-		if err != nil {
-			fmt.Errorf(err.Error())
-		}
+	decoded, err := decodeGzipString(v)
+	if err != nil {
+		fmt.Errorf(err.Error())
+	}
 
-		project, environment, apiErr := determineResourceFromLagoonAPI(apiClient, resource)
-		if apiErr != nil {
-			return apiErr
-		}
-		source := fmt.Sprintf("image-inspect:%s", resource.Service)
+	project, environment, apiErr := determineResourceFromLagoonAPI(apiClient, resource)
+	if apiErr != nil {
+		return apiErr
+	}
+	source := fmt.Sprintf("image-inspect:%s", resource.Service)
 
-		marshallDecoded, err := json.Marshal(decoded)
-		var imageInspect ImageInspectData
-		err = json.Unmarshal(marshallDecoded, &imageInspect)
-		if err != nil {
-			return err
-		}
+	marshallDecoded, err := json.Marshal(decoded)
+	var imageInspect ImageInspectData
+	err = json.Unmarshal(marshallDecoded, &imageInspect)
+	if err != nil {
+		return err
+	}
 
-		facts, err := processFactsFromImageInspect(imageInspect, environment.Id, source)
-		if err != nil {
-			return err
-		}
-		log.Printf("Successfully decoded image-inspect")
+	facts, err := processFactsFromImageInspect(imageInspect, environment.Id, source)
+	if err != nil {
+		return err
+	}
+	log.Printf("Successfully decoded image-inspect")
 
-		if len(facts) == 0 {
-			return fmt.Errorf("no facts to process")
-		}
+	if len(facts) == 0 {
+		return fmt.Errorf("no facts to process")
+	}
 
-		apiErr = h.deleteExistingFactsBySource(apiClient, environment, source, project)
-		if apiErr != nil {
-			return apiErr
-		}
+	apiErr = h.deleteExistingFactsBySource(apiClient, environment, source, project)
+	if apiErr != nil {
+		return apiErr
+	}
 
-		apiErr = h.pushFactsToLagoonApi(facts, resource)
-		if apiErr != nil {
-			return apiErr
-		}
+	apiErr = h.pushFactsToLagoonApi(facts, resource)
+	if apiErr != nil {
+		return apiErr
 	}
 
 	return nil
@@ -572,7 +571,7 @@ func (h *Messaging) sendToLagoonS3(incoming *InsightsMessage, insights InsightsD
 		log.Printf("Successfully created %s\n", h.S3Config.Bucket)
 	}
 
-	if incoming.Payload != nil {
+	if len(incoming.Payload) != 0 {
 		b, err := json.Marshal(incoming)
 		if err != nil {
 			return err
@@ -588,10 +587,12 @@ func (h *Messaging) sendToLagoonS3(incoming *InsightsMessage, insights InsightsD
 			return putObjErr
 		}
 
+		log.Println("--------------------")
 		log.Printf("Successfully uploaded %s of size %d\n", objectName, info.Size)
+		log.Println("--------------------")
 	}
 
-	if incoming.BinaryPayload != nil {
+	if len(incoming.BinaryPayload) != 0 {
 		for _, p := range incoming.BinaryPayload {
 			result, err := decodeGzipString(p)
 			if err != nil {
@@ -650,12 +651,18 @@ func (h *Messaging) pushFactsToLagoonApi(facts []lagoonclient.AddFactInput, reso
 	apiClient := graphql.NewClient(h.LagoonAPI.Endpoint, &http.Client{Transport: &authedTransport{wrapped: http.DefaultTransport, h: h}})
 
 	log.Println("--------------------")
-	log.Printf("Attempting to add %d facts...", len(facts))
+	log.Printf("Attempting to add %d fact/s...", len(facts))
 	log.Println("--------------------")
 
 	result, err := lagoonclient.AddFacts(context.TODO(), apiClient, facts)
 	if err != nil {
 		return err
+	}
+
+	if h.EnableDebug {
+		for _, fact := range facts {
+			log.Println("[DEBUG]...", fact.Name, ":", fact.Value)
+		}
 	}
 
 	log.Println(result)

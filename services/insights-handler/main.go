@@ -64,6 +64,7 @@ func main() {
 	flag.StringVar(&s3Region, "s3-region", "", "The s3 region.")
 	flag.BoolVar(&disableS3Upload, "disable-s3-upload", false, "Disable uploading insights data to an s3 s3Bucket")
 	flag.BoolVar(&disableAPIIntegration, "disable-api-integration", false, "Disable insights data integration for the Lagoon API")
+	flag.BoolVar(&enableDebug, "debug", false, "Enable debugging output")
 	flag.Parse()
 
 	// get overrides from environment variables
@@ -84,7 +85,6 @@ func main() {
 	s3Bucket = getEnv("S3_FILES_BUCKET", s3Bucket)
 	s3Region = getEnv("S3_FILES_REGION", s3Region)
 	useSSL := false
-	enableDebug := true
 
 	// configure the backup handler settings
 	broker := handler.RabbitBroker{

@@ -12,8 +12,8 @@ VARNISH_SIZE
 ##########################
 ## Packages
 ##########################
-drupal/core
-drush/drush
+(?i)drupal/core\b
+(?i)drush/drush\b
 #amazeeio/drupal_integrations
 #[dD]rupal/*.*
 #npm
