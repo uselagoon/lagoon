@@ -865,6 +865,7 @@ export async function getEnvironmentByName(
         route,
         routes,
         deployType,
+        autoIdle,
         environmentType,
         openshiftProjectName,
         updated,
@@ -895,6 +896,7 @@ export async function getEnvironmentById(
         route,
         routes,
         deployType,
+        autoIdle,
         environmentType,
         openshiftProjectName,
         updated,
@@ -1003,6 +1005,7 @@ export const addOrUpdateEnvironment = (
     project {
       name
     }
+    autoIdle
     deployType
     environmentType
     openshiftProjectName
@@ -1082,6 +1085,7 @@ export const getOpenShiftInfoForProject = (project: string): Promise<any> =>
           routerPattern
           monitoringConfig
         }
+        autoIdle
         branches
         pullrequests
         availability
@@ -1189,6 +1193,7 @@ export const getEnvironmentsForProject = (
         name
         id
         environmentType
+        autoIdle
         openshiftProjectPattern
         openshift{
           id
