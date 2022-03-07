@@ -1,0 +1,15 @@
+query deploymentsByBulkId {
+  deploymentsByBulkId(
+    bulkId: "{{ bulk_deploy_id }}"
+  ){
+    id
+    name
+    status
+    bulkId
+    bulkName
+    priority
+    started
+    created
+    completed
+  }
+}

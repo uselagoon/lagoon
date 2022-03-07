@@ -33,6 +33,8 @@ CREATE OR REPLACE PROCEDURE
     IN storage_calc                    int(1),
     IN problems_ui                     int(1),
     IN facts_ui                        int(1),
+    IN production_build_priority       int,
+    IN development_build_priority      int,
     IN development_environments_limit  int
   )
   BEGIN
@@ -79,6 +81,8 @@ CREATE OR REPLACE PROCEDURE
         storage_calc,
         problems_ui,
         facts_ui,
+        production_build_priority,
+        development_build_priority,
         pullrequests,
         openshift,
         openshift_project_pattern,
@@ -108,6 +112,8 @@ CREATE OR REPLACE PROCEDURE
         storage_calc,
         problems_ui,
         facts_ui,
+        production_build_priority,
+        development_build_priority,
         pullrequests,
         os.id,
         openshift_project_pattern,
@@ -1413,6 +1419,79 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
+  add_production_build_priority_to_project()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'production_build_priority'
+    ) THEN
+      ALTER TABLE `project`
+      ADD `production_build_priority` int NOT NULL default '6';
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_development_build_priority_to_project()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'development_build_priority'
+    ) THEN
+      ALTER TABLE `project`
+      ADD `development_build_priority` int NOT NULL default '6';
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_priority_to_deployment()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'deployment'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'priority'
+    ) THEN
+      ALTER TABLE `deployment`
+      ADD `priority` int NULL;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_bulk_id_to_deployment()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'deployment'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'bulk_id'
+    ) THEN
+      ALTER TABLE `deployment`
+      ADD `bulk_id` varchar(50) NULL,
+      ADD `bulk_name` varchar(100) NULL;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
   drop_legacy_permissions()
 
   BEGIN
@@ -1523,6 +1602,10 @@ CALL update_openshift_varchar_length();
 CALL migrate_project_openshift_to_environment();
 CALL drop_billing_data();
 CALL add_metadata_to_openshift();
+CALL add_production_build_priority_to_project();
+CALL add_development_build_priority_to_project();
+CALL add_priority_to_deployment();
+CALL add_bulk_id_to_deployment();
 CALL drop_legacy_permissions();
 
 -- Drop legacy SSH key procedures

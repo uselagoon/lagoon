@@ -78,6 +78,8 @@ CREATE TABLE IF NOT EXISTS project (
   problems_ui                      int(1) NOT NULL default 0,
   facts_ui                         int(1) NOT NULL default 0,
   deployments_disabled             int(1) NOT NULL default 0,
+  production_build_priority        int NOT NULL default 6,
+  development_build_priority       int NOT NULL default 5,
   openshift                        int REFERENCES openshift (id),
   openshift_project_pattern        varchar(300),
   development_environments_limit   int DEFAULT NULL,
@@ -136,7 +138,10 @@ CREATE TABLE IF NOT EXISTS deployment (
   started      datetime NULL,
   completed    datetime NULL,
   environment  int NOT NULL REFERENCES environment (id),
-  remote_id    varchar(50) NULL
+  remote_id    varchar(50) NULL,
+  priority     int NULL,
+  bulk_id      varchar(50) NULL,
+  bulk_name    varchar(100) NULL
 );
 
 CREATE TABLE IF NOT EXISTS environment_backup (
