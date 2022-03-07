@@ -13,7 +13,7 @@ In order to authenticate with the API, we need a JWT \(JSON Web Token\) that all
 This can also be done with the `oc` command:
 
 ```bash
-oc -n lagoon-master rsh dc/auto-idler ./create_jwt.sh
+oc -n lagoon-main rsh dc/auto-idler ./create_jwt.sh
 ```
 
 This will return a long string which is the JWT token. Make a note of this, as we will need it to send queries.
@@ -29,7 +29,7 @@ Under "GraphQL Endpoint", enter the API endpoint URL with `/graphql` on the end.
 
 Press ESC to close the HTTP header overlay and now we are ready to send the first GraphQL request!
 
-![Editing HTTP Headers in GraphiQL.](../.gitbook/assets/graphiql-2020-01-29-18-05-54%20%281%29.png)
+![Editing HTTP Headers in GraphiQL.](./graphiql-2020-01-29-18-05-54.png)
 
 Enter this in the left panel
 
@@ -41,7 +41,7 @@ query allProjects{
 }
 ```
 
-![Running a query in GraphiQL.](../.gitbook/assets/graphiql-2020-01-29-20-10-32%20%281%29%20%281%29.png)
+![Running a query in GraphiQL.](./graphiql-2020-01-29-20-10-32.png)
 
 And press the ▶️ button \(or press CTRL+ENTER\).
 
@@ -49,11 +49,11 @@ If all went well, your first GraphQL response should appear shortly afterwards i
 
 ## Creating the first project
 
-Let's create the first project for Lagoon to deploy! For this we'll use the queries from the GraphQL query template in [`create-project.gql`](https://github.com/amazeeio/lagoon/blob/master/docs/administering_lagoon/create-project.gql).
+Let's create the first project for Lagoon to deploy! For this we'll use the queries from the GraphQL query template in [`create-project.gql`](https://github.com/uselagoon/lagoon/blob/main/docs/administering-lagoon/create-project.gql).
 
 For each of the queries \(the blocks starting with `mutation {`\), fill in all of the empty fields marked by TODO comments and run the queries in GraphiQL.app. This will create one of each of the following two objects:
 
-1. `openshift` : The OpenShift cluster to which Lagoon should deploy. Lagoon is not only capable of deploying to its own OpenShift, but also to any OpenShift anywhere in the world.
+1. `openshift` : The OpenShift or Kubernetes cluster to which Lagoon should deploy. Lagoon is not only capable of deploying to its own Kubernetes cluster, but also to any Kubernetes cluster anywhere in the world.
 2. `project` : The Lagoon project to be deployed, which is a Git repository with a `.lagoon.yml` configuration file committed in the root.
 
 ## Allowing access to the project
@@ -219,9 +219,8 @@ Now for every deployment you will receive messages in your defined channel.
 
 ### Adding a new OpenShift target
 
-{% hint style="info" %}
-In Lagoon 1.x `addOpenshift` is used for both OpenShift and Kubernetes targets. In Lagoon 2.x this will change.
-{% endhint %}
+!!! Note "Note:"
+    In Lagoon 1.x `addOpenshift` is used for both OpenShift and Kubernetes targets. In Lagoon 2.x this will change.
 
 The OpenShift cluster to which Lagoon should deploy. Lagoon is not only capable of deploying to its own OpenShift, but also to any OpenShift anywhere in the world.
 
@@ -252,21 +251,20 @@ This query will add a group to a project. Users of that group will be able to ac
 
 ```graphql
 mutation {
-  mutation {
-    addGroupsToProject (
-      input: {
-        project: {
-          #TODO: Enter the name of the project.
-          name: ""
-        }
-        groups: {
-          #TODO: Enter the name of the group that will be added to the project.
-          name: ""
-        }
+  addGroupsToProject (
+    input: {
+      project: {
+        #TODO: Enter the name of the project.
+        name: ""
       }
-    ) {
-      id
+      groups: {
+        #TODO: Enter the name of the group that will be added to the project.
+        name: ""
+      }
     }
+  ) {
+    id
+  }
 }
 ```
 
@@ -289,7 +287,7 @@ mutation {
       # This is the private key for a project, which is used to access the Git code.
       privateKey: ""
       # TODO: Fill in the OpenShift field.
-      # This is the id of the OpenShift to assign to the project.
+      # This is the id of the OpenShift or Kubernetes to assign to the project.
       openshift: 0
       # TODO: Fill in the name field.
       # This is the project name.
@@ -413,14 +411,13 @@ mutation {
 
 Update the production environment within a project:
 
-{% hint style="warning" %}
-This requires a redeploy in order for the changes to be reflected in the containers.
-{% endhint %}
+!!! warning "Warning:"
+    This requires a redeploy in order for the changes to be reflected in the containers.
 
 ```graphql
  mutation {
    updateProject(
-    input: { id: 109, patch: { productionEnvironment: "master" } }
+    input: { id: 109, patch: { productionEnvironment: "main" } }
   ) {
     id
   }
@@ -435,7 +432,7 @@ mutation {
     input: {
       id: 109
       patch: {
-        productionEnvironment: "master"
+        productionEnvironment: "main"
         branches: "^(prod|stage|dev|update)$"
       }
     }
@@ -563,4 +560,3 @@ mutation {
   }
 }
 ```
-

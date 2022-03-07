@@ -14,6 +14,7 @@
   vars:
     branch: "{{ branch }}"
     project: "{{ project }}"
+    namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
   tasks:
   - include: ../../tasks/api/deploy-no-sha.yaml
 
@@ -45,6 +46,7 @@
     branch: "{{ branch }}"
     project: "{{ project }}"
     sha: "{{ second_commit_hash }}"
+    namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
   tasks:
   - include: ../../tasks/api/deploy-sha.yaml
 
@@ -62,6 +64,7 @@
   vars:
     branch: "{{ branch }}"
     project: "{{ project }}"
+    namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
   tasks:
   - include: ../../tasks/api/deploy-no-sha.yaml
 
@@ -79,6 +82,7 @@
     branch: "{{ branch }}"
     project: "{{ project }}"
     sha: "{{ second_commit_hash }}"
+    namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
   tasks:
   - include: ../../tasks/api/deploy-sha.yaml
 
@@ -96,7 +100,7 @@
     project: "{{ project }}"
     branch: "{{ branch }}"
   tasks:
-  - include: ../../tasks/api/remove.yaml
+  - include: ../../tasks/api/delete-environment.yaml
 
 - name: "{{ testname }} - check if site for {{ project }} does not exist anymore"
   hosts: localhost

@@ -12,13 +12,27 @@ spec:
       key: repo-pw
       name: baas-repo-pw
     s3:
-      bucket: '{{ .Values.baasBucketName }}'
+      {{- if .Values.s3.endpoint }}
+      endpoint: '{{ .Values.s3.endpoint }}'
+      {{- end }}
+      {{- if .Values.s3.bucket }}
+      bucket: '{{ .Values.s3.bucket }}'
+      {{- end }}
+      {{- if .Values.s3.secretName }}
+      accessKeyIDSecretRef:
+        name: '{{ .Values.s3.secretName }}'
+        key: access-key
+      secretAccessKeySecretRef:
+        name: '{{ .Values.s3.secretName }}'
+        key: secret-key
+      {{- end }}
   backup:
     schedule: '{{ .Values.backup.schedule }}'
   check:
     schedule: '{{ .Values.check.schedule }}'
   prune:
     retention:
+      keepHourly: {{ .Values.prune.retention.keepHourly }}
       keepDaily: {{ .Values.prune.retention.keepDaily }}
       keepWeekly: {{ .Values.prune.retention.keepWeekly }}
       keepMonthly: {{ .Values.prune.retention.keepMonthly }}

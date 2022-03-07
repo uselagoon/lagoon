@@ -7,102 +7,121 @@ const {
 const NodeCache = require('node-cache');
 const gql = require('graphql-tag');
 const newrelic = require('newrelic');
+const { getConfigFromEnv } = require('./util/config');
 const {
   getCredentialsForLegacyToken,
   getGrantForKeycloakToken,
   legacyHasPermission,
   keycloakHasPermission
 } = require('./util/auth');
-const { getSqlClient } = require('./clients/sqlClient');
+const { sqlClientPool } = require('./clients/sqlClient');
 const esClient = require('./clients/esClient');
 const redisClient = require('./clients/redisClient');
 const { getKeycloakAdminClient } = require('./clients/keycloak-admin');
-const logger = require('./logger');
+const { logger } = require('./loggers/logger');
+const { userActivityLogger } = require('./loggers/userActivityLogger');
 const typeDefs = require('./typeDefs');
 const resolvers = require('./resolvers');
 
 const User = require('./models/user');
 const Group = require('./models/group');
-const BillingModel = require('./models/billing');
 const ProjectModel = require('./models/project');
 const EnvironmentModel = require('./models/environment');
 
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 
+const getGrantOrLegacyCredsFromToken = async token => {
+  let grant, legacyCredentials;
+
+  try {
+    grant = await getGrantForKeycloakToken(token);
+
+    if (grant.access_token) {
+      const {
+        azp: source,
+        preferred_username,
+        email
+      } = grant.access_token.content;
+      const username = preferred_username ? preferred_username : 'unknown';
+
+      userActivityLogger.user_auth(
+        `Authentication granted for '${username} (${email ? email : 'unknown'})' from '${source}'`,
+        { user: grant ? grant.access_token.content : null }
+      );
+    }
+  } catch (e) {
+    // It might be a legacy token, so continue on.
+    logger.debug(`Keycloak token auth failed: ${e.message}`);
+  }
+
+  try {
+    if (!grant) {
+      legacyCredentials = await getCredentialsForLegacyToken(token);
+
+      const { sub, iss } = legacyCredentials;
+      const username = sub ? sub : 'unknown';
+      const source = iss ? iss : 'unknown';
+      userActivityLogger.user_auth(
+        `Authentication granted for '${username}' from '${source}'`, { user: legacyCredentials }
+      );
+    }
+  } catch (e) {
+    logger.debug(`Keycloak legacy auth failed: ${e.message}`);
+    throw new AuthenticationError(e.message);
+  }
+
+  return {
+    grant: grant ? grant : null,
+    legacyCredentials: legacyCredentials ? legacyCredentials : null
+  };
+};
+
 const apolloServer = new ApolloServer({
   schema,
-  debug: process.env.NODE_ENV === 'development',
+  debug: getConfigFromEnv('NODE_ENV') === 'development',
   introspection: true,
+  uploads: false, // Disable built in support for file uploads and configure it manually
   subscriptions: {
     onConnect: async (connectionParams, webSocket) => {
       const token = R.prop('authToken', connectionParams);
-      let grant;
-      let legacyCredentials;
 
       if (!token) {
         throw new AuthenticationError('Auth token missing.');
       }
 
-      const sqlClientKeycloak = getSqlClient();
-      try {
-        grant = await getGrantForKeycloakToken(sqlClientKeycloak, token);
-        sqlClientKeycloak.end();
-      } catch (e) {
-        sqlClientKeycloak.end();
-        // It might be a legacy token, so continue on.
-        logger.debug(`Keycloak token auth failed: ${e.message}`);
-      }
-
-      const sqlClientLegacy = getSqlClient();
-      try {
-        if (!grant) {
-          legacyCredentials = await getCredentialsForLegacyToken(
-            sqlClientLegacy,
-            token
-          );
-          sqlClientLegacy.end();
-        }
-      } catch (e) {
-        sqlClientLegacy.end();
-        throw new AuthenticationError(e.message);
-      }
-
+      const { grant, legacyCredentials } = await getGrantOrLegacyCredsFromToken(
+        token
+      );
       const keycloakAdminClient = await getKeycloakAdminClient();
       const requestCache = new NodeCache({
         stdTTL: 0,
         checkperiod: 0
       });
 
-      const sqlClient = getSqlClient();
+      const modelClients = {
+        sqlClientPool,
+        keycloakAdminClient,
+        esClient,
+        redisClient
+      };
 
       return {
         keycloakAdminClient,
-        sqlClient,
+        sqlClientPool,
         hasPermission: grant
-          ? keycloakHasPermission(grant, requestCache, keycloakAdminClient)
+          ? keycloakHasPermission(grant, requestCache, modelClients)
           : legacyHasPermission(legacyCredentials),
         keycloakGrant: grant,
         requestCache,
         models: {
-          UserModel: User.User({ keycloakAdminClient, redisClient }),
-          GroupModel: Group.Group({ keycloakAdminClient, sqlClient, redisClient, esClient }),
-          BillingModel: BillingModel.BillingModel({
-            keycloakAdminClient,
-            sqlClient,
-            esClient
-          }),
-          ProjectModel: ProjectModel.ProjectModel({
-            keycloakAdminClient,
-            sqlClient
-          }),
-          EnvironmentModel: EnvironmentModel.EnvironmentModel({ sqlClient, esClient })
+          UserModel: User.User(modelClients),
+          GroupModel: Group.Group(modelClients),
+          ProjectModel: ProjectModel.ProjectModel(modelClients),
+          EnvironmentModel: EnvironmentModel.EnvironmentModel(modelClients)
         }
       };
     },
     onDisconnect: (websocket, context) => {
-      if (context.sqlClient) {
-        context.sqlClient.end();
-      }
       if (context.requestCache) {
         context.requestCache.flushAll();
       }
@@ -125,37 +144,37 @@ const apolloServer = new ApolloServer({
         checkperiod: 0
       });
 
-      const sqlClient = getSqlClient();
+      const modelClients = {
+        sqlClientPool,
+        keycloakAdminClient,
+        esClient,
+        redisClient
+      };
 
       return {
         keycloakAdminClient,
-        sqlClient,
+        sqlClientPool,
         hasPermission: req.kauth
-          ? keycloakHasPermission(
-              req.kauth.grant,
-              requestCache,
-              keycloakAdminClient
-            )
+          ? keycloakHasPermission(req.kauth.grant, requestCache, modelClients)
           : legacyHasPermission(req.legacyCredentials),
         keycloakGrant: req.kauth ? req.kauth.grant : null,
         requestCache,
+        userActivityLogger: (message, meta) => {
+          let defaultMeta = {
+            user: req.kauth
+              ? req.kauth.grant
+              : req.legacyCredentials
+              ? req.legacyCredentials
+              : null,
+            headers: req.headers
+          }
+          return userActivityLogger.user_action(message, { ...defaultMeta, ...meta });
+        },
         models: {
-          UserModel: User.User({ keycloakAdminClient, redisClient }),
-          GroupModel: Group.Group({ keycloakAdminClient, sqlClient, redisClient, esClient }),
-          BillingModel: BillingModel.BillingModel({
-            keycloakAdminClient,
-            sqlClient,
-            esClient
-          }),
-          ProjectModel: ProjectModel.ProjectModel({
-            keycloakAdminClient,
-            sqlClient
-          }),
-          EnvironmentModel: EnvironmentModel.EnvironmentModel({
-            keycloakAdminClient,
-            sqlClient,
-            esClient
-          })
+          UserModel: User.User(modelClients),
+          GroupModel: Group.Group(modelClients),
+          ProjectModel: ProjectModel.ProjectModel(modelClients),
+          EnvironmentModel: EnvironmentModel.EnvironmentModel(modelClients)
         }
       };
     }
@@ -166,19 +185,15 @@ const apolloServer = new ApolloServer({
       message: error.message,
       locations: error.locations,
       path: error.path,
-      ...(process.env.NODE_ENV === 'development'
+      ...(getConfigFromEnv('NODE_ENV') === 'development'
         ? { extensions: error.extensions }
         : {})
     };
   },
   plugins: [
-    // mariasql client closer plugin
     {
       requestDidStart: () => ({
         willSendResponse: response => {
-          if (response.context.sqlClient) {
-            response.context.sqlClient.end();
-          }
           if (response.context.requestCache) {
             response.context.requestCache.flushAll();
           }

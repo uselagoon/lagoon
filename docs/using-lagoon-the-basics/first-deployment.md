@@ -8,13 +8,12 @@ description: >-
 
 ![excited](https://i.giphy.com/media/7kVRZwYRwF1ok/giphy-downsized.gif)
 
-{% hint style="info" %}
-If you are deploying a Drupal Project, skip this and read the [Drupal-specific first deployment documentation](../drupal/first-deployment-of-drupal.md).
-{% endhint %}
+!!! Note "Note:"
+    If you are deploying a Drupal Project, skip this and read the [Drupal-specific first deployment documentation](../drupal/first-deployment-of-drupal.md).
 
 ## 1. Make sure you are ready
 
-In order to make your first deployment a successful one, please make sure that your project is Lagoonized and that you have set up the project in Lagoon. If not, or you're not sure, or that doesn't sound familiar, don't worry, go back and follow the [Step-by-Step Guides](setup_project.md) which show you how this works, and then come back and deploy!
+In order to make your first deployment a successful one, please make sure that your project is Lagoonized and that you have set up the project in Lagoon. If not, or you're not sure, or that doesn't sound familiar, don't worry, go back and follow the [Step-by-Step Guides](setup-project.md) which show you how this works, and then come back and deploy!
 
 ## 2. Push!
 
@@ -31,7 +30,7 @@ This will trigger a push, and your Git hosting will inform Lagoon about this pus
 
 If all is correct, you should see a notification in your configured chat system \(this has been configured by your friendly Lagoon administrator\):
 
-![Slack notification that a push has been made in a Lagoonized repository.](../.gitbook/assets/first_deployment_slack_start.jpg)
+![Slack notification that a push has been made in a Lagoonized repository.](./first_deployment_slack_start.jpg)
 
 This informs you that Lagoon has just started to deploy your code. Depending on the size of the code and amount of containers, this will take a couple of seconds. Just relax. If you want to know what's happening now, check out the [Build and Deploy Process of Lagoon](build-and-deploy-process.md).
 
@@ -41,7 +40,7 @@ You can also check your Lagoon UI to see the progress of any deployment \(your L
 
 As soon as Lagoon is done building and deploying it will send a second notification to the chat system, here an example:
 
-![Slack notification of a successful Lagoon build and deployment.](../.gitbook/assets/first_deployment_slack_2nd_success.jpg)
+![Slack notification of a successful Lagoon build and deployment.](./first_deployment_slack_2nd_success.jpg)
 
 It tells you:
 

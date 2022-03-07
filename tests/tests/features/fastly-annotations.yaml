@@ -56,6 +56,7 @@
 #   vars:
 #     branch: "{{ branch }}"
 #     project: "{{ project }}"
+#     namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
 #   tasks:
 #   - include: ../../tasks/api/deploy-no-sha.yaml
 
@@ -84,12 +85,13 @@
   tasks:
   - include: ../../tasks/api/add-project-variable.yaml
 
-- name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}"
+- name: "{{ testname }} - api deployEnvironmentBranch {{ branch }} on {{ project }}"
   hosts: localhost
   serial: 1
   vars:
     branch: "{{ branch }}"
     project: "{{ project }}"
+    namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
   tasks:
   - include: ../../tasks/api/deploy-no-sha.yaml
 
@@ -136,6 +138,7 @@
   vars:
     branch: "{{ branch }}"
     project: "{{ project }}"
+    namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
   tasks:
   - include: ../../tasks/api/deploy-no-sha.yaml
 
@@ -160,7 +163,7 @@
     project: "{{ project }}"
     branch: "{{ branch }}"
   tasks:
-  - include: ../../tasks/api/remove.yaml
+  - include: ../../tasks/api/delete-environment.yaml
 
 - name: "{{ testname }} - check if site for {{ project }} does not exist anymore"
   hosts: localhost

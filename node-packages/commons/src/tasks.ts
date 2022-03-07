@@ -10,14 +10,22 @@ import {
   getActiveSystemForProject,
   getEnvironmentsForProject,
   getOpenShiftInfoForProject,
-  getBillingGroupForProject,
+  getOpenShiftInfoForEnvironment,
+  getDeployTargetConfigsForProject,
   addOrUpdateEnvironment,
   getEnvironmentByName,
   addDeployment
 } from './api';
+import {
+  deployTargetBranches,
+  deployTargetPullrequest,
+  deployTargetPromote
+} from './deploy-tasks';
 import sha1 from 'sha1';
 import crypto from 'crypto';
 import moment from 'moment';
+
+import { jsonMerge } from './util'
 
 interface MessageConsumer {
   (msg: ConsumeMessage): Promise<void>;
@@ -45,6 +53,14 @@ export let sendToLagoonTasks = function(
 };
 
 export let sendToLagoonTasksMonitor = function sendToLagoonTasksMonitor(
+  task: string,
+  payload?: any
+) {
+  // TODO: Actually do something here?
+  return payload && undefined;
+};
+
+export let sendToLagoonActions = function(
   task: string,
   payload?: any
 ) {
@@ -103,7 +119,8 @@ const lagoonEnvironmentType = process.env.LAGOON_ENVIRONMENT_TYPE || "developmen
 const overwriteOCBuildDeployDindImage = process.env.OVERWRITE_OC_BUILD_DEPLOY_DIND_IMAGE
 const overwriteKubectlBuildDeployDindImage = process.env.OVERWRITE_KUBECTL_BUILD_DEPLOY_DIND_IMAGE
 const overwriteActiveStandbyTaskImage = process.env.OVERWRITE_ACTIVESTANDBY_TASK_IMAGE
-const jwtSecret = process.env.JWTSECRET || "super-secret-string"
+const jwtSecretString = process.env.JWTSECRET || "super-secret-string"
+const projectSeedString = process.env.PROJECTSEED || "super-secret-string"
 
 class UnknownActiveSystem extends Error {
   constructor(message) {
@@ -112,10 +129,10 @@ class UnknownActiveSystem extends Error {
   }
 }
 
-class NoNeedToDeployBranch extends Error {
+class CannotDeployWithDeployTargetConfigs extends Error {
   constructor(message) {
     super(message);
-    this.name = 'NoNeedToDeployBranch';
+    this.name = 'CannotDeployWithDeployTargetConfigs';
   }
 }
 
@@ -138,6 +155,70 @@ class EnvironmentLimit extends Error {
     super(message);
     this.name = 'EnvironmentLimit';
   }
+}
+
+// add the lagoon actions queue publisher functions
+export const initSendToLagoonActions = function() {
+  connection = connect(
+    [`amqp://${rabbitmqUsername}:${rabbitmqPassword}@${rabbitmqHost}`],
+    // @ts-ignore
+    { json: true }
+  );
+
+  connection.on('connect', ({ url }) =>
+    logger.verbose('lagoon-actions: Connected to %s', url, {
+      action: 'connected',
+      url
+    })
+  );
+  connection.on('disconnect', params =>
+    // @ts-ignore
+    logger.error('lagoon-actions: Not connected, error: %s', params.err.code, {
+      action: 'disconnected',
+      reason: params
+    })
+  );
+
+  const channelWrapperTasks: ChannelWrapper = connection.createChannel({
+    setup(channel: ConfirmChannel) {
+      return Promise.all([
+        // Our main Exchange for all lagoon-actions
+        channel.assertExchange('lagoon-actions', 'direct', { durable: true }),
+
+        channel.assertExchange('lagoon-actions-delay', 'x-delayed-message', {
+          durable: true,
+          arguments: { 'x-delayed-type': 'fanout' }
+        }),
+        channel.bindExchange('lagoon-actions', 'lagoon-actions-delay', ''),
+      ]);
+    }
+  });
+
+  sendToLagoonActions = async (
+    task: string,
+    payload: any
+  ): Promise<string> => {
+    try {
+      const buffer = Buffer.from(JSON.stringify(payload));
+      await channelWrapperTasks.publish('lagoon-actions', '', buffer, {
+        persistent: true,
+        appId: task
+      });
+      logger.debug(
+        `lagoon-actions: Successfully created action '${task}'`,
+        payload
+      );
+      return `lagoon-actions: Successfully created action '${task}': ${JSON.stringify(
+        payload
+      )}`;
+    } catch (error) {
+      logger.error('lagoon-actions: Error send to lagoon-actions exchange', {
+        payload,
+        error
+      });
+      throw error;
+    }
+  };
 }
 
 export const initSendToLagoonTasks = function() {
@@ -254,7 +335,7 @@ export const createTaskMonitor = async function(task: string, payload: any) {
 const makeSafe = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
 
 // @TODO: make sure if it fails, it does so properly
-const getControllerBuildData = async function(deployData: any) {
+export const getControllerBuildData = async function(deployData: any) {
   const {
     projectName,
     branchName,
@@ -265,18 +346,19 @@ const getControllerBuildData = async function(deployData: any) {
     headSha,
     baseBranchName: baseBranch,
     baseSha,
-    promoteSourceEnvironment
+    promoteSourceEnvironment,
+    deployTarget,
+    buildName, // buildname now comes from where the deployments are created, this is so it can be returned to the user when it is triggered
+    buildPriority,
+    bulkId,
+    bulkName,
+    buildVariables
   } = deployData;
-
-  const project = await getActiveSystemForProject(projectName, 'Deploy');
-  // const environments = await getEnvironmentsForProject(projectName);
 
   var environmentName = makeSafe(branchName)
 
   const result = await getOpenShiftInfoForProject(projectName);
-  const projectOpenShift = result.project
-  const billingGroupResult = await getBillingGroupForProject(projectName);
-  const projectBillingGroup = billingGroupResult.project
+  const lagoonProjectData = result.project
 
   var overlength = 58 - projectName.length;
   if ( environmentName.length > overlength ) {
@@ -287,20 +369,27 @@ const getControllerBuildData = async function(deployData: any) {
 
   var environmentType = 'development'
   if (
-    projectOpenShift.productionEnvironment === environmentName
-    || projectOpenShift.standbyProductionEnvironment === environmentName
+    lagoonProjectData.productionEnvironment === environmentName
+    || lagoonProjectData.standbyProductionEnvironment === environmentName
   ) {
     environmentType = 'production'
   }
+  var priority = buildPriority // set the priority to one provided from the build
+  // if no build priority is provided, then try and source the one from the project
+  // or default to 5 or 6
+  if ( priority == null ) {
+    priority = lagoonProjectData.developmentBuildPriority || 5
+    if (environmentType == 'production') {
+      priority = lagoonProjectData.productionBuildPriority || 6
+    }
+  }
   var gitSha = sha as string
-  var projectTargetName = projectOpenShift.openshift.name
-  var openshiftProject = projectOpenShift.openshiftProjectPattern ? projectOpenShift.openshiftProjectPattern.replace('${environment}',environmentName).replace('${project}', projectName) : `${projectName}-${environmentName}`
-  var deployPrivateKey = projectOpenShift.privateKey
-  var gitUrl = projectOpenShift.gitUrl
-  var projectProductionEnvironment = projectOpenShift.productionEnvironment
-  var projectStandbyEnvironment = projectOpenShift.standbyProductionEnvironment
-  var subfolder = projectOpenShift.subfolder || ""
-  var routerPattern = projectOpenShift.openshift.routerPattern
+
+  var deployPrivateKey = lagoonProjectData.privateKey
+  var gitUrl = lagoonProjectData.gitUrl
+  var projectProductionEnvironment = lagoonProjectData.productionEnvironment
+  var projectStandbyEnvironment = lagoonProjectData.standbyProductionEnvironment
+  var subfolder = lagoonProjectData.subfolder || ""
   var prHeadBranch = headBranch || ""
   var prHeadSha = headSha || ""
   var prBaseBranch = baseBranch || ""
@@ -310,26 +399,12 @@ const getControllerBuildData = async function(deployData: any) {
   var graphqlEnvironmentType = environmentType.toUpperCase()
   var graphqlGitType = type.toUpperCase()
   var openshiftPromoteSourceProject = promoteSourceEnvironment ? `${projectName}-${makeSafe(promoteSourceEnvironment)}` : ""
-  // A secret which is the same across all Environments of this Lagoon Project
-  var projectSecret = crypto.createHash('sha256').update(`${projectName}-${jwtSecret}`).digest('hex');
+  // A secret seed which is the same across all Environments of this Lagoon Project
+  var projectSeedVal = projectSeedString || jwtSecretString
+  var projectSecret = crypto.createHash('sha256').update(`${projectName}-${projectSeedVal}`).digest('hex');
   var alertContactHA = ""
   var alertContactSA = ""
   var uptimeRobotStatusPageIds = []
-  var monitoringConfig: any = {};
-  try {
-    monitoringConfig = JSON.parse(projectOpenShift.openshift.monitoringConfig) || "invalid"
-  } catch (e) {
-    logger.error('Error parsing openshift.monitoringConfig from openshift: %s, continuing with "invalid"', projectOpenShift.openshift.name, { error: e })
-    monitoringConfig = "invalid"
-  }
-  if (monitoringConfig != "invalid"){
-    alertContactHA = monitoringConfig.uptimerobot.alertContactHA || ""
-    alertContactSA = monitoringConfig.uptimerobot.alertContactSA || ""
-    if (monitoringConfig.uptimerobot.statusPageId) {
-      uptimeRobotStatusPageIds.push(monitoringConfig.uptimerobot.statusPageId)
-    }
-  }
-  var availability = projectOpenShift.availability || "STANDARD"
 
   var alertContact = ""
   if (alertContactHA != undefined && alertContactSA != undefined){
@@ -342,10 +417,6 @@ const getControllerBuildData = async function(deployData: any) {
     alertContact = "unconfigured"
   }
 
-  const billingGroup = projectBillingGroup.groups.find(i => i.type == "billing" ) || ""
-  if (billingGroup.uptimeRobotStatusPageId && billingGroup.uptimeRobotStatusPageId != "null" && !R.isEmpty(billingGroup.uptimeRobotStatusPageId)){
-    uptimeRobotStatusPageIds.push(billingGroup.uptimeRobotStatusPageId)
-  }
   var uptimeRobotStatusPageId = uptimeRobotStatusPageIds.join('-')
 
   var pullrequestData: any = {};
@@ -391,33 +462,127 @@ const getControllerBuildData = async function(deployData: any) {
       break;
   }
 
+  // Get the target information
+  // get the projectpattern and id from the target
+  // this is only used on the initial deployment
+
+  var openshiftProjectPattern = deployTarget.openshiftProjectPattern;
+  // check if this environment already exists in the API so we can get the openshift target it is using
+  // this is even valid for promotes if it isn't the first time time it is being deployed
+  try {
+    const apiEnvironment = await getEnvironmentByName(branchName, lagoonProjectData.id, false);
+    let envId = apiEnvironment.environmentByName.id
+    const environmentOpenshift = await getOpenShiftInfoForEnvironment(envId);
+    deployTarget.openshift = environmentOpenshift.environment.openshift
+    openshiftProjectPattern = environmentOpenshift.environment.openshiftProjectPattern
+  } catch (err) {
+    //do nothing
+  }
+  // end working out the target information
+  let openshiftId = deployTarget.openshift.id;
+
+  var openshiftProject = openshiftProjectPattern ? openshiftProjectPattern.replace('${environment}',environmentName).replace('${project}', projectName) : `${projectName}-${environmentName}`
+
+  // set routerpattern to the routerpattern of what is defined in the project scope openshift
+  var routerPattern = lagoonProjectData.openshift.routerPattern
+  if (typeof deployTarget.openshift.routerPattern !== 'undefined') {
+    // if deploytargets are being provided, then use what is defined in the deploytarget
+    // null is a valid value for routerPatterns here...
+    routerPattern = deployTarget.openshift.routerPattern
+  }
+  // but if the project itself has a routerpattern defined, then this should be used
+  if (lagoonProjectData.routerPattern) {
+    // if a project has a routerpattern defined, use it. `null` is not valid here
+    routerPattern = lagoonProjectData.routerPattern
+  }
+  var deployTargetName = deployTarget.openshift.name
+  var monitoringConfig: any = {};
+  try {
+    monitoringConfig = JSON.parse(deployTarget.openshift.monitoringConfig) || "invalid"
+  } catch (e) {
+    logger.error('Error parsing openshift.monitoringConfig from openshift: %s, continuing with "invalid"', deployTarget.openshift.name, { error: e })
+    monitoringConfig = "invalid"
+  }
+  if (monitoringConfig != "invalid"){
+    alertContactHA = monitoringConfig.uptimerobot.alertContactHA || ""
+    alertContactSA = monitoringConfig.uptimerobot.alertContactSA || ""
+    if (monitoringConfig.uptimerobot.statusPageId) {
+      uptimeRobotStatusPageIds.push(monitoringConfig.uptimerobot.statusPageId)
+    }
+  }
+
+  var alertContact = ""
+  if (alertContactHA != undefined && alertContactSA != undefined){
+    if (availability == "HIGH") {
+      alertContact = alertContactHA
+    } else {
+      alertContact = alertContactSA
+    }
+  } else {
+    alertContact = "unconfigured"
+  }
+
+  var availability = lagoonProjectData.availability || "STANDARD"
+
   // @TODO: openshiftProject here can't be generated on the cluster side (it should be) but the addOrUpdate mutation doesn't allow for openshiftProject to be optional
   // maybe need to have this generate a random uid initially?
   let environment;
   try {
-    environment = await addOrUpdateEnvironment(branchName, projectOpenShift.id, graphqlGitType, deployBaseRef, graphqlEnvironmentType, openshiftProject, deployHeadRef, deployTitle)
+    environment = await addOrUpdateEnvironment(branchName,
+      lagoonProjectData.id,
+      graphqlGitType,
+      deployBaseRef,
+      graphqlEnvironmentType,
+      openshiftProject,
+      openshiftId,
+      openshiftProjectPattern,
+      deployHeadRef,
+      deployTitle)
     logger.info(`${openshiftProject}: Created/Updated Environment in API`)
   } catch (err) {
     logger.error(err)
     throw new Error
   }
 
-  const randBuildId = Math.random().toString(36).substring(7);
-  const buildName = `lagoon-build-${randBuildId}`;
-
   let deployment;
+  let environmentId;
   try {
     const now = moment.utc();
-    const apiEnvironment = await getEnvironmentByName(branchName, projectOpenShift.id);
-    deployment = await addDeployment(buildName, "NEW", now.format('YYYY-MM-DDTHH:mm:ss'), apiEnvironment.environmentByName.id);
+    const apiEnvironment = await getEnvironmentByName(branchName, lagoonProjectData.id, false);
+    environmentId = apiEnvironment.environmentByName.id
+    deployment = await addDeployment(buildName,
+      "NEW",
+      now.format('YYYY-MM-DDTHH:mm:ss'),
+      apiEnvironment.environmentByName.id,
+      null, null, null, null,
+      buildPriority,
+      bulkId,
+      bulkName
+    );
   } catch (error) {
-    logger.error(`Could not save deployment for project ${projectOpenShift.id}. Message: ${error}`);
+    logger.error(`Could not save deployment for project ${lagoonProjectData.id}. Message: ${error}`);
+  }
+
+  // append the routerpattern to the projects variables
+  // use a scope of `internal_system` which isn't available to the actual API to be added via mutations
+  // this way variables or new functionality can be passed into lagoon builds using the existing variables mechanism
+  // avoiding the needs to hardcode them into the spec to then be consumed by the build-deploy controller
+  lagoonProjectData.envVariables.push({"name":"LAGOON_SYSTEM_ROUTER_PATTERN", "value":routerPattern, "scope":"internal_system"})
+
+  let lagoonEnvironmentVariables = environment.addOrUpdateEnvironment.envVariables || []
+  if (buildVariables != null ) {
+    // add the build `scope` to all the incoming build variables for a specific build
+    const scopedBuildVariables = buildVariables.map(v => ({...v, scope: 'build'}))
+    // check for buildvariables being passed in
+    // these need to be merged on top of environment level variables
+    // handle that here
+    lagoonEnvironmentVariables = jsonMerge(environment.addOrUpdateEnvironment.envVariables, scopedBuildVariables, "name")
   }
 
   // encode some values so they get sent to the controllers nicely
   const sshKeyBase64 = new Buffer(deployPrivateKey.replace(/\\n/g, "\n")).toString('base64')
-  const envVars = new Buffer(JSON.stringify(environment.addOrUpdateEnvironment.envVariables)).toString('base64')
-  const projectVars = new Buffer(JSON.stringify(projectOpenShift.envVariables)).toString('base64')
+  const envVars = new Buffer(JSON.stringify(lagoonEnvironmentVariables)).toString('base64')
+  const projectVars = new Buffer(JSON.stringify(lagoonProjectData.envVariables)).toString('base64')
 
   // this is what will be returned and sent to the controllers via message queue, it is the lagoonbuild controller spec
   var buildDeployData: any = {
@@ -430,6 +595,8 @@ const getControllerBuildData = async function(deployData: any) {
         type: type,
         image: {}, // the controller will know which image to use
         ci: CI,
+        priority: priority, // add the build priority
+        bulkId: bulkId, // add the bulk id if present
       },
       branch: {
         name: branchName,
@@ -438,16 +605,20 @@ const getControllerBuildData = async function(deployData: any) {
       ...promoteData,
       gitReference: gitRef,
       project: {
+        id: lagoonProjectData.id,
         name: projectName,
         gitUrl: gitUrl,
         uiLink: deployment.addDeployment.uiLink,
         environment: environmentName,
         environmentType: environmentType,
+        environmentId: environmentId,
+        environmentIdling: environment.addOrUpdateEnvironment.autoIdle,
+        projectIdling: lagoonProjectData.autoIdle,
         productionEnvironment: projectProductionEnvironment,
         standbyEnvironment: projectStandbyEnvironment,
         subfolder: subfolder,
-        routerPattern: routerPattern,
-        deployTarget: projectTargetName,
+        routerPattern: routerPattern, // @DEPRECATE: send this still for backwards compatability, but eventually this can be removed once LAGOON_SYSTEM_ROUTER_PATTERN is adopted wider
+        deployTarget: deployTargetName,
         projectSecret: projectSecret,
         key: sshKeyBase64,
         registry: registry,
@@ -465,6 +636,11 @@ const getControllerBuildData = async function(deployData: any) {
   return buildDeployData;
 }
 
+/*
+  This `createDeployTask` is the primary entrypoint after the
+  API resolvers to handling a deployment creation
+  and the associated environment creation.
+*/
 export const createDeployTask = async function(deployData: any) {
   const {
     projectName,
@@ -504,8 +680,7 @@ export const createDeployTask = async function(deployData: any) {
           .filter(e => e.environmentType === 'production')
           .map(e => e.name);
         logger.debug(
-          `projectName: ${projectName}, branchName: ${branchName}, existing environments are `,
-          prod_environments
+          `projectName: ${projectName}, branchName: ${branchName}, existing environments are ${prod_environments}`
         );
 
         if (prod_environments.length >= productionEnvironmentsLimit) {
@@ -525,8 +700,7 @@ export const createDeployTask = async function(deployData: any) {
           .filter(e => e.environmentType === 'development')
           .map(e => e.name);
         logger.debug(
-          `projectName: ${projectName}, branchName: ${branchName}, existing environments are `,
-          dev_environments
+          `projectName: ${projectName}, branchName: ${branchName}, existing environments are ${dev_environments}`
         );
 
         if (
@@ -547,140 +721,26 @@ export const createDeployTask = async function(deployData: any) {
       }
 
       if (type === 'branch') {
-        switch (project.branches) {
-          case undefined:
-          case null:
-            logger.debug(
-              `projectName: ${projectName}, branchName: ${branchName}, no branches defined in active system, assuming we want all of them`
-            );
-            switch (project.activeSystemsDeploy) {
-              case 'lagoon_controllerBuildDeploy':
-                // controllers uses a different message than the other services, so we need to source it here
-                const buildDeployData = await getControllerBuildData(deployData);
-                return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
-              default:
-                throw new UnknownActiveSystem(
-                  `Unknown active system '${project.activeSystemsDeploy}' for task 'deploy' in for project ${projectName}`
-                );
-            }
-          case 'true':
-            logger.debug(
-              `projectName: ${projectName}, branchName: ${branchName}, all branches active, therefore deploying`
-            );
-            switch (project.activeSystemsDeploy) {
-              case 'lagoon_controllerBuildDeploy':
-                // controllers uses a different message than the other services, so we need to source it here
-                const buildDeployData = await getControllerBuildData(deployData);
-                return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
-              default:
-                throw new UnknownActiveSystem(
-                  `Unknown active system '${project.activeSystemsDeploy}' for task 'deploy' in for project ${projectName}`
-                );
-            }
-          case 'false':
-            logger.debug(
-              `projectName: ${projectName}, branchName: ${branchName}, branch deployments disabled`
-            );
-            throw new NoNeedToDeployBranch('Branch deployments disabled');
-          default: {
-            logger.debug(
-              `projectName: ${projectName}, branchName: ${branchName}, regex ${project.branches}, testing if it matches`
-            );
-            const branchRegex = new RegExp(project.branches);
-            if (branchRegex.test(branchName)) {
-              logger.debug(
-                `projectName: ${projectName}, branchName: ${branchName}, regex ${project.branches} matched branchname, starting deploy`
-              );
-              switch (project.activeSystemsDeploy) {
-                case 'lagoon_controllerBuildDeploy':
-                  // controllers uses a different message than the other services, so we need to source it here
-                  const buildDeployData = await getControllerBuildData(deployData);
-                  return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
-                default:
-                  throw new UnknownActiveSystem(
-                    `Unknown active system '${project.activeSystemsDeploy}' for task 'deploy' in for project ${projectName}`
-                  );
-              }
-            }
-            logger.debug(
-              `projectName: ${projectName}, branchName: ${branchName}, regex ${project.branches} did not match branchname, not deploying`
-            );
-            throw new NoNeedToDeployBranch(
-              `configured regex '${project.branches}' does not match branchname '${branchName}'`
-            );
-          }
+        // use deployTargetBranches function to handle
+        let lagoonData = {
+          projectId: environments.project.id,
+          projectName,
+          branchName,
+          project,
+          deployData
         }
+        return deployTargetBranches(lagoonData)
       } else if (type === 'pullrequest') {
-        switch (project.pullrequests) {
-          case undefined:
-          case null:
-            logger.debug(
-              `projectName: ${projectName}, pullrequest: ${branchName}, no pullrequest defined in active system, assuming we want all of them`
-            );
-            switch (project.activeSystemsDeploy) {
-              case 'lagoon_controllerBuildDeploy':
-                // controllers uses a different message than the other services, so we need to source it here
-                const buildDeployData = await getControllerBuildData(deployData);
-                return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
-              default:
-                throw new UnknownActiveSystem(
-                  `Unknown active system '${
-                    project.activeSystemsDeploy
-                  }' for task 'deploy' in for project ${projectName}`,
-                );
-            }
-          case 'true':
-            logger.debug(
-              `projectName: ${projectName}, pullrequest: ${branchName}, all pullrequest active, therefore deploying`
-            );
-            switch (project.activeSystemsDeploy) {
-              case 'lagoon_controllerBuildDeploy':
-                // controllers uses a different message than the other services, so we need to source it here
-                const buildDeployData = await getControllerBuildData(deployData);
-                return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
-              default:
-                throw new UnknownActiveSystem(
-                  `Unknown active system '${
-                    project.activeSystemsDeploy
-                  }' for task 'deploy' in for project ${projectName}`,
-                );
-            }
-          case 'false':
-            logger.debug(
-              `projectName: ${projectName}, pullrequest: ${branchName}, pullrequest deployments disabled`
-            );
-            throw new NoNeedToDeployBranch('PullRequest deployments disabled');
-          default: {
-            logger.debug(
-              `projectName: ${projectName}, pullrequest: ${branchName}, regex ${project.pullrequests}, testing if it matches PR Title '${pullrequestTitle}'`
-            );
-
-            const branchRegex = new RegExp(project.pullrequests);
-            if (branchRegex.test(pullrequestTitle)) {
-              logger.debug(
-                `projectName: ${projectName}, pullrequest: ${branchName}, regex ${project.pullrequests} matched PR Title '${pullrequestTitle}', starting deploy`
-              );
-              switch (project.activeSystemsDeploy) {
-                case 'lagoon_controllerBuildDeploy':
-                  // controllers uses a different message than the other services, so we need to source it here
-                  const buildDeployData = await getControllerBuildData(deployData);
-                  return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
-                default:
-                  throw new UnknownActiveSystem(
-                    `Unknown active system '${
-                      project.activeSystemsDeploy
-                    }' for task 'deploy' in for project ${projectName}`,
-                  );
-              }
-            }
-            logger.debug(
-              `projectName: ${projectName}, branchName: ${branchName}, regex ${project.pullrequests} did not match PR Title, not deploying`
-            );
-            throw new NoNeedToDeployBranch(
-              `configured regex '${project.pullrequests}' does not match PR Title '${pullrequestTitle}'`
-            );
-          }
+        // use deployTargetPullrequest function to handle
+        let lagoonData = {
+          projectId: environments.project.id,
+          projectName,
+          branchName,
+          project,
+          pullrequestTitle,
+          deployData
         }
+        return deployTargetPullrequest(lagoonData)
       }
       break;
     default:
@@ -708,8 +768,12 @@ export const createPromoteTask = async function(promoteData: any) {
 
   switch (project.activeSystemsPromote) {
     case 'lagoon_controllerBuildDeploy':
-        const buildDeployData = await getControllerBuildData(promoteData);
-        return sendToLagoonTasks(buildDeployData.spec.project.deployTarget+':builddeploy', buildDeployData);
+        // use deployTargetPromote function to handle
+        let lagoonData = {
+          projectId: project.id,
+          promoteData
+        }
+        return deployTargetPromote(lagoonData)
     default:
       throw new UnknownActiveSystem(
         `Unknown active system '${project.activeSystemsPromote}' for task 'deploy' in for project ${projectName}`
@@ -754,131 +818,11 @@ export const createRemoveTask = async function(removeData: any) {
   }
 
   switch (project.activeSystemsRemove) {
-    case 'lagoon_openshiftRemove':
-      if (type === 'branch') {
-        // Check to ensure the environment actually exists.
-        let foundEnvironment = false;
-        allEnvironments.project.environments.forEach(function(
-          environment,
-          index
-        ) {
-          if (environment.name === branch) {
-            foundEnvironment = true;
-          }
-        });
-
-        if (!foundEnvironment) {
-          logger.debug(
-            `projectName: ${projectName}, branchName: ${branch}, no environment found.`
-          );
-          throw new NoNeedToRemoveBranch(
-            'Branch environment does not exist, no need to remove anything.'
-          );
-        }
-
-        logger.debug(
-          `projectName: ${projectName}, branchName: ${branchName}. Removing branch environment.`
-        );
-        return sendToLagoonTasks('remove-openshift', removeData);
-      } else if (type === 'pullrequest') {
-        // Work out the branch name from the PR number.
-        let branchName = 'pr-' + pullrequestNumber;
-        removeData.branchName = 'pr-' + pullrequestNumber;
-
-        // Check to ensure the environment actually exists.
-        let foundEnvironment = false;
-        allEnvironments.project.environments.forEach(function(
-          environment,
-          index
-        ) {
-          if (environment.name === branchName) {
-            foundEnvironment = true;
-          }
-        });
-
-        if (!foundEnvironment) {
-          logger.debug(
-            `projectName: ${projectName}, pullrequest: ${branchName}, no pullrequest found.`
-          );
-          throw new NoNeedToRemoveBranch(
-            'Pull Request environment does not exist, no need to remove anything.'
-          );
-        }
-
-        logger.debug(
-          `projectName: ${projectName}, pullrequest: ${branchName}. Removing pullrequest environment.`
-        );
-        return sendToLagoonTasks('remove-openshift', removeData);
-      } else if (type === 'promote') {
-        return sendToLagoonTasks('remove-openshift', removeData);
-      }
-      break;
-
-    case 'lagoon_kubernetesRemove':
-      if (type === 'branch') {
-        // Check to ensure the environment actually exists.
-        let foundEnvironment = false;
-        allEnvironments.project.environments.forEach(function(
-          environment,
-          index
-        ) {
-          if (environment.name === branch) {
-            foundEnvironment = true;
-          }
-        });
-
-        if (!foundEnvironment) {
-          logger.debug(
-            `projectName: ${projectName}, branchName: ${branch}, no environment found.`
-          );
-          throw new NoNeedToRemoveBranch(
-            'Branch environment does not exist, no need to remove anything.'
-          );
-        }
-
-        logger.debug(
-          `projectName: ${projectName}, branchName: ${branchName}. Removing branch environment.`
-        );
-        return sendToLagoonTasks('remove-kubernetes', removeData);
-      } else if (type === 'pullrequest') {
-        // Work out the branch name from the PR number.
-        let branchName = 'pr-' + pullrequestNumber;
-        removeData.branchName = 'pr-' + pullrequestNumber;
-
-        // Check to ensure the environment actually exists.
-        let foundEnvironment = false;
-        allEnvironments.project.environments.forEach(function(
-          environment,
-          index
-        ) {
-          if (environment.name === branchName) {
-            foundEnvironment = true;
-          }
-        });
-
-        if (!foundEnvironment) {
-          logger.debug(
-            `projectName: ${projectName}, pullrequest: ${branchName}, no pullrequest found.`
-          );
-          throw new NoNeedToRemoveBranch(
-            'Pull Request environment does not exist, no need to remove anything.'
-          );
-        }
-
-        logger.debug(
-          `projectName: ${projectName}, pullrequest: ${branchName}. Removing pullrequest environment.`
-        );
-        return sendToLagoonTasks('remove-kubernetes', removeData);
-      } else if (type === 'promote') {
-        return sendToLagoonTasks('remove-kubernetes', removeData);
-      }
-      break;
-
+    // removed `openshift` and `kubernetes` remove functionality, these services no longer exist in Lagoon
     // handle removals using the controllers, send the message to our specific target cluster queue
     case 'lagoon_controllerRemove':
-      const result = await getOpenShiftInfoForProject(projectName);
-      const deployTarget = result.project.openshift.name
       if (type === 'branch') {
+        let environmentId = 0;
         // Check to ensure the environment actually exists.
         let foundEnvironment = false;
         allEnvironments.project.environments.forEach(function(
@@ -887,6 +831,7 @@ export const createRemoveTask = async function(removeData: any) {
         ) {
           if (environment.name === branch) {
             foundEnvironment = true;
+            environmentId = environment.id;
           }
         });
 
@@ -898,7 +843,9 @@ export const createRemoveTask = async function(removeData: any) {
             'Branch environment does not exist, no need to remove anything.'
           );
         }
-
+        // consume the deploytarget from the environment now
+        const result = await getOpenShiftInfoForEnvironment(environmentId);
+        const deployTarget = result.environment.openshift.name
         logger.debug(
           `projectName: ${projectName}, branchName: ${branchName}. Removing branch environment.`
         );
@@ -909,6 +856,7 @@ export const createRemoveTask = async function(removeData: any) {
         let branchName = 'pr-' + pullrequestNumber;
         removeData.branchName = 'pr-' + pullrequestNumber;
 
+        let environmentId = 0;
         // Check to ensure the environment actually exists.
         let foundEnvironment = false;
         allEnvironments.project.environments.forEach(function(
@@ -917,6 +865,7 @@ export const createRemoveTask = async function(removeData: any) {
         ) {
           if (environment.name === branchName) {
             foundEnvironment = true;
+            environmentId = environment.id;
           }
         });
 
@@ -928,12 +877,38 @@ export const createRemoveTask = async function(removeData: any) {
             'Pull Request environment does not exist, no need to remove anything.'
           );
         }
-
+        // consume the deploytarget from the environment now
+        const result = await getOpenShiftInfoForEnvironment(environmentId);
+        const deployTarget = result.environment.openshift.name
         logger.debug(
           `projectName: ${projectName}, pullrequest: ${branchName}. Removing pullrequest environment.`
         );
         return sendToLagoonTasks(deployTarget+":remove", removeData);
       } else if (type === 'promote') {
+        let environmentId = 0;
+        // Check to ensure the environment actually exists.
+        let foundEnvironment = false;
+        allEnvironments.project.environments.forEach(function(
+          environment,
+          index
+        ) {
+          if (environment.name === branch) {
+            foundEnvironment = true;
+            environmentId = environment.id;
+          }
+        });
+
+        if (!foundEnvironment) {
+          logger.debug(
+            `projectName: ${projectName}, branchName: ${branch}, no environment found.`
+          );
+          throw new NoNeedToRemoveBranch(
+            'Branch environment does not exist, no need to remove anything.'
+          );
+        }
+        // consume the deploytarget from the environment now
+        const result = await getOpenShiftInfoForEnvironment(environmentId);
+        const deployTarget = result.environment.openshift.name
         return sendToLagoonTasks(deployTarget+":remove", removeData);
       }
       break;
@@ -946,7 +921,7 @@ export const createRemoveTask = async function(removeData: any) {
 }
 
 // creates the restore job configuration for use in the misc task
-const restoreConfig = (name, backupId, safeProjectName, baasBucketName) => {
+const restoreConfig = (name, backupId, backupS3Config, restoreS3Config) => {
   let config = {
     apiVersion: 'backup.appuio.ch/v1alpha1',
     kind: 'Restore',
@@ -956,12 +931,10 @@ const restoreConfig = (name, backupId, safeProjectName, baasBucketName) => {
     spec: {
       snapshot: backupId,
       restoreMethod: {
-        s3: {},
+        s3: restoreS3Config ? restoreS3Config : {},
       },
       backend: {
-        s3: {
-          bucket: baasBucketName ? baasBucketName : `baas-${safeProjectName}`
-        },
+        s3: backupS3Config,
         repoPasswordSecretRef: {
           key: 'repo-pw',
           name: 'baas-repo-pw'
@@ -1009,9 +982,9 @@ export const createTaskTask = async function(taskData: any) {
   switch (projectSystem.activeSystemsTask) {
     case 'lagoon_controllerJob':
       // since controllers queues are named, we have to send it to the right tasks queue
-      // do that here
-      const result = await getOpenShiftInfoForProject(project.name);
-      const deployTarget = result.project.openshift.name
+      // do that here by querying which deploytarget the environment uses
+      const result = await getOpenShiftInfoForEnvironment(taskData.environment.id);
+      const deployTarget = result.environment.openshift.name
       return sendToLagoonTasks(deployTarget+":jobs", taskData);
 
     default:
@@ -1037,9 +1010,9 @@ export const createMiscTask = async function(taskData: any) {
       updatedKey = `kubernetes:${key}`;
       taskId = 'misc-kubernetes';
       // determine the deploy target (openshift/kubernetes) for the task to go to
-      const result = await getOpenShiftInfoForProject(project.name);
-      const projectOpenShift = result.project
-      var deployTarget = projectOpenShift.openshift.name
+      // we get this from the environment
+      const result = await getOpenShiftInfoForEnvironment(taskData.data.environment.id);
+      const deployTarget = result.environment.openshift.name
       // this is the json structure for sending a misc task to the controller
       // there are some additional bits that can be adjusted, and these are done in the switch below on `updatedKey`
       var miscTaskData: any = {
@@ -1058,16 +1031,107 @@ export const createMiscTask = async function(taskData: any) {
       switch (updatedKey) {
         case 'kubernetes:restic:backup:restore':
           // Handle setting up the configuration for a restic restoration task
-          const restoreName = `restore-${R.slice(0, 7, taskData.data.backup.backupId)}`;
+          const randRestoreId = Math.random().toString(36).substring(7);
+          const restoreName = `restore-${R.slice(0, 7, taskData.data.backup.backupId)}-${randRestoreId}`;
           // Parse out the baasBucketName for any migrated projects
-          let baasBucketName = result.project.envVariables.find(obj => {
+          let baasBucketName = result.environment.project.envVariables.find(obj => {
             return obj.name === "LAGOON_BAAS_BUCKET_NAME"
           })
           if (baasBucketName) {
             baasBucketName = baasBucketName.value
           }
+
+          // Handle custom backup configurations
+          let lagoonBaasCustomBackupEndpoint = result.environment.project.envVariables.find(obj => {
+            return obj.name === "LAGOON_BAAS_CUSTOM_BACKUP_ENDPOINT"
+          })
+          if (lagoonBaasCustomBackupEndpoint) {
+            lagoonBaasCustomBackupEndpoint = lagoonBaasCustomBackupEndpoint.value
+          }
+          let lagoonBaasCustomBackupBucket = result.environment.project.envVariables.find(obj => {
+            return obj.name === "LAGOON_BAAS_CUSTOM_BACKUP_BUCKET"
+          })
+          if (lagoonBaasCustomBackupBucket) {
+            lagoonBaasCustomBackupBucket = lagoonBaasCustomBackupBucket.value
+          }
+          let lagoonBaasCustomBackupAccessKey = result.environment.project.envVariables.find(obj => {
+            return obj.name === "LAGOON_BAAS_CUSTOM_BACKUP_ACCESS_KEY"
+          })
+          if (lagoonBaasCustomBackupAccessKey) {
+            lagoonBaasCustomBackupAccessKey = lagoonBaasCustomBackupAccessKey.value
+          }
+          let lagoonBaasCustomBackupSecretKey = result.environment.project.envVariables.find(obj => {
+            return obj.name === "LAGOON_BAAS_CUSTOM_BACKUP_SECRET_KEY"
+          })
+          if (lagoonBaasCustomBackupSecretKey) {
+            lagoonBaasCustomBackupSecretKey = lagoonBaasCustomBackupSecretKey.value
+          }
+
+          let backupS3Config = {}
+          if (lagoonBaasCustomBackupEndpoint && lagoonBaasCustomBackupBucket && lagoonBaasCustomBackupAccessKey && lagoonBaasCustomBackupSecretKey) {
+            backupS3Config = {
+              endpoint: lagoonBaasCustomBackupEndpoint,
+              bucket: lagoonBaasCustomBackupBucket,
+              accessKeyIDSecretRef: {
+                name: "lagoon-baas-custom-backup-credentials",
+                key: "access-key"
+              },
+              secretAccessKeySecretRef: {
+                name: "lagoon-baas-custom-backup-credentials",
+                key: "secret-key"
+              }
+            }
+          } else {
+            backupS3Config = {
+              bucket: baasBucketName ? baasBucketName : `baas-${makeSafe(taskData.data.project.name)}`
+            }
+          }
+
+          // Handle custom restore configurations
+          let lagoonBaasCustomRestoreEndpoint = result.environment.project.envVariables.find(obj => {
+            return obj.name === "LAGOON_BAAS_CUSTOM_RESTORE_ENDPOINT"
+          })
+          if (lagoonBaasCustomRestoreEndpoint) {
+            lagoonBaasCustomRestoreEndpoint = lagoonBaasCustomRestoreEndpoint.value
+          }
+          let lagoonBaasCustomRestoreBucket = result.environment.project.envVariables.find(obj => {
+            return obj.name === "LAGOON_BAAS_CUSTOM_RESTORE_BUCKET"
+          })
+          if (lagoonBaasCustomRestoreBucket) {
+            lagoonBaasCustomRestoreBucket = lagoonBaasCustomRestoreBucket.value
+          }
+          let lagoonBaasCustomRestoreAccessKey = result.environment.project.envVariables.find(obj => {
+            return obj.name === "LAGOON_BAAS_CUSTOM_RESTORE_ACCESS_KEY"
+          })
+          if (lagoonBaasCustomRestoreAccessKey) {
+            lagoonBaasCustomRestoreAccessKey = lagoonBaasCustomRestoreAccessKey.value
+          }
+          let lagoonBaasCustomRestoreSecretKey = result.environment.project.envVariables.find(obj => {
+            return obj.name === "LAGOON_BAAS_CUSTOM_RESTORE_SECRET_KEY"
+          })
+          if (lagoonBaasCustomRestoreSecretKey) {
+            lagoonBaasCustomRestoreSecretKey = lagoonBaasCustomRestoreSecretKey.value
+          }
+
+          let restoreS3Config = {}
+          if (lagoonBaasCustomRestoreEndpoint && lagoonBaasCustomRestoreBucket && lagoonBaasCustomRestoreAccessKey && lagoonBaasCustomRestoreSecretKey) {
+            restoreS3Config = {
+              endpoint: lagoonBaasCustomRestoreEndpoint,
+              bucket: lagoonBaasCustomRestoreBucket,
+              accessKeyIDSecretRef: {
+                name: "lagoon-baas-custom-restore-credentials",
+                key: "access-key"
+              },
+              secretAccessKeySecretRef: {
+                name: "lagoon-baas-custom-restore-credentials",
+                key: "secret-key"
+              }
+            }
+          }
+
           // generate the restore CRD
-          const restoreConf = restoreConfig(restoreName, taskData.data.backup.backupId, makeSafe(taskData.data.project.name), baasBucketName)
+          const restoreConf = restoreConfig(restoreName, taskData.data.backup.backupId, backupS3Config, restoreS3Config)
+          //logger.info(restoreConf)
           // base64 encode it
           const restoreBytes = new Buffer(JSON.stringify(restoreConf).replace(/\\n/g, "\n")).toString('base64')
           miscTaskData.misc.miscResource = restoreBytes
@@ -1105,6 +1169,9 @@ export const createMiscTask = async function(taskData: any) {
           }
           miscTaskData.advancedTask.runnerImage = taskImage
           // miscTaskData.advancedTask.runnerImage = "shreddedbacon/runner:latest"
+          break;
+        case 'kubernetes:task:advanced':
+          miscTaskData.advancedTask = taskData.data.advancedTask
           break;
         case 'kubernetes:build:cancel':
           // build cancellation is just a standard unmodified message

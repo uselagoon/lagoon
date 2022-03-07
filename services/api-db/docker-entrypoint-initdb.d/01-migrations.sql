@@ -13,6 +13,7 @@ CREATE OR REPLACE PROCEDURE
     IN availability                      varchar(50),
     IN private_key                     varchar(5000),
     IN subfolder                       varchar(300),
+    IN router_pattern                  varchar(300),
     IN openshift                       int,
     IN openshift_project_pattern       varchar(300),
     IN active_systems_deploy           varchar(300),
@@ -32,6 +33,8 @@ CREATE OR REPLACE PROCEDURE
     IN storage_calc                    int(1),
     IN problems_ui                     int(1),
     IN facts_ui                        int(1),
+    IN production_build_priority       int,
+    IN development_build_priority      int,
     IN development_environments_limit  int
   )
   BEGIN
@@ -61,6 +64,7 @@ CREATE OR REPLACE PROCEDURE
         availability,
         private_key,
         subfolder,
+        router_pattern,
         active_systems_deploy,
         active_systems_promote,
         active_systems_remove,
@@ -77,6 +81,8 @@ CREATE OR REPLACE PROCEDURE
         storage_calc,
         problems_ui,
         facts_ui,
+        production_build_priority,
+        development_build_priority,
         pullrequests,
         openshift,
         openshift_project_pattern,
@@ -89,6 +95,7 @@ CREATE OR REPLACE PROCEDURE
         availability,
         private_key,
         subfolder,
+        router_pattern,
         active_systems_deploy,
         active_systems_promote,
         active_systems_remove,
@@ -105,6 +112,8 @@ CREATE OR REPLACE PROCEDURE
         storage_calc,
         problems_ui,
         facts_ui,
+        production_build_priority,
+        development_build_priority,
         pullrequests,
         os.id,
         openshift_project_pattern,
@@ -612,105 +621,6 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
-  create_users_for_orphaned_ssh_keys()
-
-  BEGIN
-    DECLARE ssh_key_id INT;
-    DECLARE ssh_key_name VARCHAR(100);
-    DECLARE user_comment TEXT;
-    DECLARE user_email VARCHAR(500);
-    DECLARE user_id INT;
-    DECLARE loop_done INTEGER DEFAULT 0;
-
-    -- Declare cursor to iterate over orphaned SSH keys (SSH keys which
-    -- have no matching entry in user_ssh_key junction table)
-    DECLARE orphaned_ssh_keys CURSOR FOR
-      SELECT ssh_key.id, ssh_key.name
-      FROM ssh_key
-      WHERE ssh_key.id NOT IN (
-        SELECT skid FROM user_ssh_key
-      );
-
-    -- When the next result is not found, stop the loop by setting loop_done variable
-    DECLARE CONTINUE HANDLER
-      FOR NOT FOUND SET loop_done = 1;
-
-    OPEN orphaned_ssh_keys;
-
-    insert_users_and_user_ssh_keys: LOOP
-      -- Fetch the current SSH key ID and name into variables
-      FETCH orphaned_ssh_keys INTO ssh_key_id, ssh_key_name;
-
-      IF loop_done = 1 THEN
-        LEAVE insert_users_and_user_ssh_keys;
-      END IF;
-
-      SET user_comment = CONCAT(
-        'User automatically migrated from SSH key with name "',
-        ssh_key_id,
-        '-',
-        ssh_key_name,
-        '".'
-      );
-
-      SET user_email = CONCAT(
-        ssh_key_id,
-        '-',
-        ssh_key_name
-      );
-
-      -- Create a user
-      INSERT INTO user(
-        email,
-        first_name,
-        last_name,
-        comment
-      )
-      VALUES (
-        user_email,
-        'auto-migrated-user',
-        'auto-migrated-user',
-        user_comment
-      );
-
-      -- Select the id of that user and then create a row in the user_ssh_key junction table
-      SELECT id INTO user_id FROM user WHERE comment = user_comment;
-      INSERT INTO user_ssh_key(usid, skid) VALUES(user_id, ssh_key_id);
-
-      -- Copy SSH key customer permissions to new customer_user junction table
-      IF EXISTS (
-        SELECT NULL
-        FROM INFORMATION_SCHEMA.TABLES
-        WHERE
-          table_name = 'customer_ssh_key'
-          AND table_schema = 'infrastructure'
-      ) THEN
-        INSERT INTO customer_user(cid, usid)
-        SELECT customer_ssh_key.cid, user_id
-        FROM customer_ssh_key
-        WHERE customer_ssh_key.skid = ssh_key_id;
-      END IF;
-
-      -- Copy SSH key project permissions to new project_user junction table
-      IF EXISTS (
-        SELECT NULL
-        FROM INFORMATION_SCHEMA.TABLES
-        WHERE
-          table_name = 'project_ssh_key'
-          AND table_schema = 'infrastructure'
-      ) THEN
-        INSERT INTO project_user(pid, usid)
-        SELECT project_ssh_key.pid, user_id
-        FROM project_ssh_key
-        WHERE project_ssh_key.skid = ssh_key_id;
-      END IF;
-    END LOOP insert_users_and_user_ssh_keys;
-
-    CLOSE orphaned_ssh_keys;
-  END;
-$$
-
-CREATE OR REPLACE PROCEDURE
   drop_legacy_customer_ssh_key_junction_table()
 
   BEGIN
@@ -1149,6 +1059,42 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
+  add_fact_category_to_environment_fact()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'environment_fact'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'category'
+    ) THEN
+        ALTER TABLE `environment_fact`
+        ADD `category` TEXT NULL DEFAULT '';
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_fact_key_to_environment_fact()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'environment_fact'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'key_fact'
+    ) THEN
+        ALTER TABLE `environment_fact`
+        ADD `key_fact` TINYINT(1) NOT NULL DEFAULT(0);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
   update_user_password()
 
   BEGIN
@@ -1197,25 +1143,6 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
-  add_min_max_to_billing_modifier()
-
-  BEGIN
-    IF NOT EXISTS (
-      SELECT NULL
-      FROM INFORMATION_SCHEMA.COLUMNS
-      WHERE
-        table_name = 'billing_modifier'
-        AND table_schema = 'infrastructure'
-        AND column_name = 'min'
-    ) THEN
-      ALTER TABLE `billing_modifier`
-      ADD `min` FLOAT DEFAULT 0,
-      ADD `max` FLOAT DEFAULT 0;
-    END IF;
-  END;
-$$
-
-CREATE OR REPLACE PROCEDURE
   convert_project_production_routes_to_text()
 
   BEGIN
@@ -1255,6 +1182,353 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+
+CREATE OR REPLACE PROCEDURE
+  add_advanced_task_details_to_task_table()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'task'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'type'
+    ) THEN
+      ALTER TABLE `task`
+      ADD `type` ENUM('standard', 'advanced') default 'standard',
+      ADD `advanced_image` varchar(2000),
+      ADD advanced_payload text;
+    END IF;
+  END;
+
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_fact_type_to_environment_fact()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'environment_fact'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'type'
+    ) THEN
+        ALTER TABLE `environment_fact`
+        ADD `type` ENUM('TEXT', 'URL') NOT NULL DEFAULT 'TEXT';
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_enum_webhook_to_type_in_project_notification()
+
+  BEGIN
+    DECLARE column_type_project_notification_type varchar(74);
+
+    SELECT COLUMN_TYPE INTO column_type_project_notification_type
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      table_name = 'project_notification'
+      AND table_schema = 'infrastructure'
+      AND column_name = 'type';
+
+    IF (
+      column_type_project_notification_type = "enum('slack','rocketchat','microsoftteams','email')"
+    ) THEN
+      ALTER TABLE project_notification
+      MODIFY type ENUM('slack','rocketchat','microsoftteams','email', 'webhook');
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_index_for_deployment_environment()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.STATISTICS
+      WHERE
+        table_name = 'deployment'
+        AND table_schema = 'infrastructure'
+        AND index_name='deployment_environment'
+    ) THEN
+      ALTER TABLE `deployment`
+      ADD INDEX `deployment_environment` (`environment`);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_index_for_task_environment()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.STATISTICS
+      WHERE
+        table_name = 'task'
+        AND table_schema = 'infrastructure'
+        AND index_name='task_environment'
+    ) THEN
+      ALTER TABLE `task`
+      ADD INDEX `task_environment` (`environment`);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_router_pattern_to_project()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'router_pattern'
+    ) THEN
+      ALTER TABLE `project`
+      ADD `router_pattern` varchar(300);
+    END IF;
+  END;
+$$
+
+
+CREATE OR REPLACE PROCEDURE
+  add_environment_type_to_advanced_task_argument()
+
+  BEGIN
+    DECLARE column_type_argument_type varchar(74);
+
+    SELECT COLUMN_TYPE INTO column_type_argument_type
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      table_name = 'advanced_task_definition_argument'
+      AND table_schema = 'infrastructure'
+      AND column_name = 'type';
+
+    IF (
+      column_type_argument_type = "enum('NUMERIC','STRING')"
+    ) THEN
+      ALTER TABLE advanced_task_definition_argument
+      MODIFY type ENUM('NUMERIC', 'STRING', 'ENVIRONMENT_SOURCE_NAME');
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_openshift_to_environment()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'environment'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'openshift'
+    ) THEN
+      ALTER TABLE `environment`
+      ADD `openshift` int;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_openshift_project_pattern_to_environment()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'environment'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'openshift_project_pattern'
+    ) THEN
+      ALTER TABLE `environment`
+      ADD `openshift_project_pattern` varchar(300);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_deployments_disabled_to_project()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'deployments_disabled'
+    ) THEN
+      ALTER TABLE `project`
+      ADD `deployments_disabled` int(1) NOT NULL default '0';
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  migrate_project_openshift_to_environment()
+
+  BEGIN
+    UPDATE environment e
+    LEFT JOIN project p ON
+      e.project = p.id
+    SET
+      e.openshift = p.openshift,
+      e.openshift_project_pattern = p.openshift_project_pattern
+    WHERE
+      e.openshift IS NULL;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_billing_data()
+
+  BEGIN
+    DROP TABLE IF EXISTS billing_modifier;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_metadata_to_openshift()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'openshift'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'friendly_name'
+    ) THEN
+      ALTER TABLE `openshift`
+      ADD `friendly_name`       varchar(100),
+      ADD `cloud_provider`      varchar(100),
+      ADD `cloud_region`        varchar(100);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_production_build_priority_to_project()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'production_build_priority'
+    ) THEN
+      ALTER TABLE `project`
+      ADD `production_build_priority` int NOT NULL default '6';
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_development_build_priority_to_project()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'development_build_priority'
+    ) THEN
+      ALTER TABLE `project`
+      ADD `development_build_priority` int NOT NULL default '6';
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_priority_to_deployment()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'deployment'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'priority'
+    ) THEN
+      ALTER TABLE `deployment`
+      ADD `priority` int NULL;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_bulk_id_to_deployment()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'deployment'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'bulk_id'
+    ) THEN
+      ALTER TABLE `deployment`
+      ADD `bulk_id` varchar(50) NULL,
+      ADD `bulk_name` varchar(100) NULL;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_legacy_permissions()
+
+  BEGIN
+    DROP VIEW IF EXISTS pid_usid;
+    DROP VIEW IF EXISTS permission;
+
+    DROP TABLE IF EXISTS customer;
+    DROP TABLE IF EXISTS user;
+    DROP TABLE IF EXISTS customer_user;
+    DROP TABLE IF EXISTS project_user;
+
+    IF EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'openshift'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'project_user'
+    ) THEN
+      ALTER TABLE `openshift`
+      DROP COLUMN `project_user`;
+    END IF;
+
+    IF EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'customer'
+    ) THEN
+      ALTER TABLE `project`
+      DROP COLUMN `customer`;
+    END IF;
+  END;
+$$
+
 DELIMITER ;
 
 -- If adding new procedures, add them to the bottom of this list
@@ -1279,7 +1553,6 @@ CALL rename_openshift_projectname_in_environment();
 CALL add_routes_monitoring_urls_to_environments();
 CALL add_environment_limit_to_project();
 CALL drop_legacy_pid_skid_view();
-CALL create_users_for_orphaned_ssh_keys();
 CALL drop_legacy_customer_ssh_key_junction_table();
 CALL drop_legacy_project_ssh_key_junction_table();
 CALL add_active_systems_task_to_project();
@@ -1309,11 +1582,31 @@ CALL update_user_password();
 CALL add_problems_ui_to_project();
 CALL add_facts_ui_to_project();
 CALL add_fact_source_and_description_to_environment_fact();
+CALL add_fact_type_to_environment_fact();
+CALL add_fact_category_to_environment_fact();
+CALL add_fact_key_to_environment_fact();
 CALL add_metadata_to_project();
-CALL add_min_max_to_billing_modifier();
 CALL add_content_type_to_project_notification();
 CALL convert_project_production_routes_to_text();
 CALL convert_project_standby_routes_to_text();
+CALL add_advanced_task_details_to_task_table();
+CALL add_enum_webhook_to_type_in_project_notification();
+CALL add_index_for_deployment_environment();
+CALL add_index_for_task_environment();
+CALL add_router_pattern_to_project();
+CALL add_environment_type_to_advanced_task_argument();
+CALL add_openshift_to_environment();
+CALL add_openshift_project_pattern_to_environment();
+CALL add_deployments_disabled_to_project();
+CALL update_openshift_varchar_length();
+CALL migrate_project_openshift_to_environment();
+CALL drop_billing_data();
+CALL add_metadata_to_openshift();
+CALL add_production_build_priority_to_project();
+CALL add_development_build_priority_to_project();
+CALL add_priority_to_deployment();
+CALL add_bulk_id_to_deployment();
+CALL drop_legacy_permissions();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;
@@ -1321,3 +1614,7 @@ DROP PROCEDURE IF EXISTS DeleteProjectSshKey;
 DROP PROCEDURE IF EXISTS CreateCustomerSshKey;
 DROP PROCEDURE IF EXISTS DeleteCustomerSshKey;
 DROP PROCEDURE IF EXISTS CreateSshKey;
+-- Drop legacy permissions tables
+DROP PROCEDURE IF EXISTS CreateCustomer;
+DROP PROCEDURE IF EXISTS DeleteCustomer;
+DROP PROCEDURE IF EXISTS create_users_for_orphaned_ssh_keys;

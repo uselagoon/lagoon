@@ -45,6 +45,18 @@ services:
     volumes:
       - ./services/logs2slack/src:/app/services/logs2slack/src
       - ./node-packages:/app/node-packages:delegated
+  logs2webhook:
+    image: ${IMAGE_REPO:-lagoon}/logs2webhook
+    command: yarn run dev
+    volumes:
+      - ./services/logs2webhook/src:/app/services/logs2webhook/src
+      - ./node-packages:/app/node-packages:delegated
+  logs2s3:
+    image: ${IMAGE_REPO:-lagoon}/logs2s3
+    command: yarn run dev
+    volumes:
+      - ./services/logs2s3/src:/app/services/logs2s3/src
+      - ./node-packages:/app/node-packages:delegated
   logs2microsoftteams:
     image: ${IMAGE_REPO:-lagoon}/logs2microsoftteams
     command: yarn run dev
@@ -73,12 +85,13 @@ services:
       - ./node-packages:/app/node-packages:delegated
   api:
     image: ${IMAGE_REPO:-lagoon}/api
-    command: yarn run dev
+    command: ./node_modules/.bin/tsc-watch --build --incremental --onSuccess "node -r dotenv-extended/config dist/index"
     volumes:
       - ./services/api/src:/app/services/api/src
       - ./node-packages:/app/node-packages:delegated
       - /app/node-packages/commons/dist
     environment:
+      - NODE_ENV=development
       - CI=${CI:-true}
       - REGISTRY=harbor.172.17.0.1.nip.io:18080 # Docker network bridge and forwarded port for harbor-nginx
     depends_on:
@@ -102,8 +115,15 @@ services:
       - ./services/ui/.env.defaults:/app/services/ui/.env.defaults
       - ./services/ui/.env.schema:/app/services/ui/.env.schema
       - ./services/ui/package.json:/app/services/ui/package.json
+    environment:
+      - NODE_ENV=development
     ports:
-      - '8888:3000'
+      - '8888:3003'
+  actions-handler:
+    image: ${IMAGE_REPO:-lagoon}/actions-handler
+    restart: on-failure
+    depends_on:
+      - broker
   ssh:
     image: ${IMAGE_REPO:-lagoon}/ssh
     depends_on:
@@ -235,9 +255,10 @@ services:
   local-minio:
     image: minio/minio
     entrypoint: sh
-    command: -c 'mkdir -p /export/lagoon-files && mkdir -p /export/harbor-images && /usr/bin/minio server /export'
+    command: -c 'mkdir -p /export/lagoon-files && mkdir -p /export/harbor-images && minio server /export --console-address ":9001" '
     ports:
       - '9000:9000'
+      - '9001:9001'
     environment:
       - MINIO_ACCESS_KEY=minio
       - MINIO_SECRET_KEY=minio123

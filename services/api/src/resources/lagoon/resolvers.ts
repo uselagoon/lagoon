@@ -1,6 +1,5 @@
+import { getConfigFromEnv } from '../../util/config';
 import { ResolverFn } from '../';
 
-export const getLagoonVersion: ResolverFn = async (_root, args, { models, keycloakGrant: grant }) => {
-  let lagoonVersion = process.env.LAGOON_VERSION
-  return lagoonVersion;
-}
+export const getLagoonVersion: ResolverFn = async () =>
+  getConfigFromEnv('LAGOON_VERSION', 'unknown');

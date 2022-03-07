@@ -90,7 +90,7 @@ function configure_opendistro_security_client {
     echo '{"clientId": "lagoon-opendistro-security", "webOrigins": ["*"], "redirectUris": ["*"]}' | /opt/jboss/keycloak/bin/kcadm.sh create clients --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating mapper for lagoon-opendistro-security "groups"
     CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=lagoon-opendistro-security --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
-    echo '{"protocol":"openid-connect","config":{"script":"var ArrayList = Java.type(\"java.util.ArrayList\");\nvar groupsAndRoles = new ArrayList();\nvar forEach = Array.prototype.forEach;\n\n// add all groups the user is part of\nforEach.call(user.getGroups().toArray(), function(group) {\n  // remove the group role suffixes\n  var groupName = group.getName().replace(/-owner|-maintainer|-developer|-reporter|-guest/gi,\"\");\n  groupsAndRoles.add(groupName);\n});\n\n// add all roles the user is part of\nforEach.call(user.getRoleMappings().toArray(), function(role) {\n   var roleName = role.getName();\n   groupsAndRoles.add(roleName);\n});\n\nexports = groupsAndRoles;","id.token.claim":"true","access.token.claim":"true","userinfo.token.claim":"true","multivalued":"true","claim.name":"groups","jsonType.label":"String"},"name":"groups","protocolMapper":"oidc-script-based-protocol-mapper"}' | /opt/jboss/keycloak/bin/kcadm.sh create -r ${KEYCLOAK_REALM:-master} clients/$CLIENT_ID/protocol-mappers/models --config $CONFIG_PATH -f -
+    echo '{"protocol":"openid-connect","config":{"script":"var ArrayList = Java.type(\"java.util.ArrayList\");\nvar groupsAndRoles = new ArrayList();\nvar forEach = Array.prototype.forEach;\n\n\/\/ add all groups the user is part of\nforEach.call(user.getGroups().toArray(), function(group) {\n  \/\/ remove the group role suffixes\n  \/\/lets check if the group has a parent if this is a child\n  if(group.getFirstAttribute(\"type\") == \"role-subgroup\") {\n    var parent = group.getParent();\n    if(parent.getFirstAttribute(\"type\") == \"project-default-group\") {\n        var projectIds = parent.getFirstAttribute(\"lagoon-projects\");\n        if(projectIds !== null) {\n            forEach.call(projectIds.split(\",\"), function(g) {\n              groupsAndRoles.add(\"p\" + g);  \n            });\n            return;\n        }\n    }\n  }\n \n  var groupName = group.getName().replace(\/-owner|-maintainer|-developer|-reporter|-guest\/gi,\"\");\n  groupsAndRoles.add(groupName);\n  return;\n});\n\n\/\/ add all roles the user is part of\nforEach.call(user.getRoleMappings().toArray(), function(role) {\n   var roleName = role.getName();\n   groupsAndRoles.add(roleName);\n});\n\nexports = groupsAndRoles;","id.token.claim":"true","access.token.claim":"true","userinfo.token.claim":"true","multivalued":"true","claim.name":"groups","jsonType.label":"String"},"name":"groups","protocolMapper":"oidc-script-based-protocol-mapper"}' | /opt/jboss/keycloak/bin/kcadm.sh create -r ${KEYCLOAK_REALM:-master} clients/$CLIENT_ID/protocol-mappers/models --config $CONFIG_PATH -f -
 
 }
 
@@ -153,7 +153,7 @@ function configure_api_client {
     PLATFORM_OWNER_ROLE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon roles/platform-owner --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)["id"]')
 
     # Resource Scopes
-    resource_scope_names=(add add:development add:production addGroup addNoExec addNotification addOrUpdate:development addOrUpdate:production addUser delete delete:development delete:production deleteAll deleteNoExec deploy:development deploy:production drushArchiveDump:development drushArchiveDump:production drushCacheClear:development drushCacheClear:production drushRsync:destination:development drushRsync:destination:production drushRsync:source:development drushRsync:source:production drushSqlDump:development drushSqlDump:production drushSqlSync:destination:development drushSqlSync:destination:production drushSqlSync:source:development drushSqlSync:source:production environment:add:development environment:add:production environment:view:development environment:view:production getBySshKey project:add project:view removeAll removeGroup removeNotification removeUser ssh:development ssh:production storage update update:development update:production view view:token view:user viewAll viewPrivateKey)
+    resource_scope_names=(add add:development add:production addGroup addNoExec addNotification addOrUpdate:development addOrUpdate:production addUser delete delete:development delete:production deleteAll deleteNoExec deploy:development deploy:production drushArchiveDump:development drushArchiveDump:production drushCacheClear:development drushCacheClear:production drushRsync:destination:development drushRsync:destination:production drushRsync:source:development drushRsync:source:production drushSqlDump:development drushSqlDump:production drushSqlSync:destination:development drushSqlSync:destination:production drushSqlSync:source:development drushSqlSync:source:production environment:add:development environment:add:production environment:view:development environment:view:production getBySshKey invoke:guest invoke:developer invoke:maintainer create:advanced project:add project:view removeAll removeGroup removeNotification removeUser ssh:development ssh:production storage update update:development update:production view view:token view:user viewAll viewPrivateKey)
     for rsn_key in ${!resource_scope_names[@]}; do
         echo Creating resource scope ${resource_scope_names[$rsn_key]}
         /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/scope --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s name=${resource_scope_names[$rsn_key]}
@@ -765,7 +765,7 @@ EOF
   "decisionStrategy": "UNANIMOUS",
   "resources": ["openshift"],
   "scopes": ["view"],
-  "policies": ["User has access to project","Users role for project is Maintainer"]
+  "policies": ["User has access to project","Users role for project is Guest"]
 }
 EOF
 
@@ -1266,72 +1266,6 @@ EOF
     # {"type":"scope","logic":"POSITIVE","decisionStrategy":"UNANIMOUS","name":"Backup View","resources":["2ebb5852-6624-4dc6-8374-e1e54a7fd9c5"],"scopes":["8e78b877-f930-43ff-995f-c907af64f69f"],"policies":["d4fae4e2-ddc7-462c-b712-d68aaeb269e1"]}
 }
 
-function add_billing_modifier {
-  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
-  billing_modifier=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Delete+All+Billing+Group+Modifiers --config $CONFIG_PATH)
-
-  if [ "$billing_modifier" != "[ ]" ]; then
-      echo "billing_modifier:add|update|delete|deleteAll already configured"
-      return 0
-  fi
-
-  echo Creating resource billing_modifier
-
-  # Add Scopes to Resource
-  echo '{"name":"billing_modifier","displayName":"billing_modifier","scopes":[{"name":"add"},{"name":"update"},{"name":"delete"},{"name":"deleteAll"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
-
-
-  # Create new permission
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
-{
-  "name": "Add Billing Modifier",
-  "type": "scope",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "resources": ["billing_modifier"],
-  "scopes": ["add"],
-  "policies": ["Users role for realm is Platform Owner"]
-}
-EOF
-
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
-{
-  "name": "Update Billing Modifier",
-  "type": "scope",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "resources": ["billing_modifier"],
-  "scopes": ["update"],
-  "policies": ["Users role for realm is Platform Owner"]
-}
-EOF
-
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
-{
-  "name": "Delete Billing Modifier",
-  "type": "scope",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "resources": ["billing_modifier"],
-  "scopes": ["delete"],
-  "policies": ["Users role for realm is Platform Owner"]
-}
-EOF
-
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
-{
-  "name": "Delete All Billing Group Modifiers",
-  "type": "scope",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "resources": ["billing_modifier"],
-  "scopes": ["deleteAll"],
-  "policies": ["Users role for realm is Platform Owner"]
-}
-EOF
-
-}
-
 function add_group_viewall {
   CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
   view_all_groups=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+All+Groups --config $CONFIG_PATH)
@@ -1404,7 +1338,7 @@ function configure_task_cron {
 
   # Add new scopes to resources
   TASK_RESOURCE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=task --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["_id"]')
-  /opt/jboss/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$TASK_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"view"},{"name":"update"},{"name":"delete"},{"name":"add:production"},{"name":"add:development"},{"name":"addNoExec"},{"name":"drushArchiveDump:development"},{"name":"drushArchiveDump:production"},{"name":"drushSqlDump:development"},{"name":"drushSqlDump:production"},{"name":"drushCacheClear:development"},{"name":"drushCacheClear:production"},{"name":"drushCron:development"},{"name":"drushCron:production"},{"name":"drushSqlSync:source:development"},{"name":"drushSqlSync:source:production"},{"name":"drushSqlSync:destination:development"},{"name":"drushSqlSync:destination:production"},{"name":"drushRsync:source:development"},{"name":"drushRsync:source:production"},{"name":"drushRsync:destination:development"},{"name":"drushRsync:destination:production"}]'
+  /opt/jboss/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$TASK_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"view"},{"name":"update"},{"name":"delete"},{"name":"invoke"},{"name":"add:production"},{"name":"add:development"},{"name":"addNoExec"},{"name":"drushArchiveDump:development"},{"name":"drushArchiveDump:production"},{"name":"drushSqlDump:development"},{"name":"drushSqlDump:production"},{"name":"drushCacheClear:development"},{"name":"drushCacheClear:production"},{"name":"drushCron:development"},{"name":"drushCron:production"},{"name":"drushSqlSync:source:development"},{"name":"drushSqlSync:source:production"},{"name":"drushSqlSync:destination:development"},{"name":"drushSqlSync:destination:production"},{"name":"drushRsync:source:development"},{"name":"drushRsync:source:production"},{"name":"drushRsync:destination:development"},{"name":"drushRsync:destination:production"}]'
 
 
   # Create new permission
@@ -1649,6 +1583,159 @@ EOF
 }
 
 
+function configure_advanced_task_system {
+
+  echo "configure_advanced_task_system running"
+
+  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
+  facts_system=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Invoke+Task+Guest --config $CONFIG_PATH)
+  echo Checking advanced_task invoke:guest
+
+  if [ "$facts_system" != "[ ]" ]; then
+    echo "Advanced Task Permissions already configured"
+    return 0
+  fi
+
+  echo Configuring Advanced Task Permissions
+
+  echo Creating resource fact
+
+  echo '{"name":"advanced_task","displayName":"advanced_task","scopes":[{"name":"invoke:guest"}, {"name":"invoke:developer"},{"name":"invoke:maintainer"}, {"name":"create:advanced"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+
+  # Create new permissions
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Invoke Task Guest",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["advanced_task"],
+  "scopes": ["invoke:guest"],
+  "policies": ["User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Invoke Task Maintainer",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["advanced_task"],
+  "scopes": ["invoke:maintainer"],
+  "policies": ["Users role for project is Maintainer","User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Invoke Task Developer",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["advanced_task"],
+  "scopes": ["invoke:developer"],
+  "policies": ["Users role for project is Developer","User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Create Image Based Task",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["advanced_task"],
+  "scopes": ["create:advanced"],
+  "policies": ["Users role for realm is Admin"]
+}
+EOF
+
+}
+
+function remove_billing_modifier {
+  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
+  billing_modifier=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Delete+All+Billing+Group+Modifiers --config $CONFIG_PATH)
+
+  if [ "$billing_modifier" == "[ ]" ]; then
+      return 0
+  fi
+
+  echo Removing billing_modifier authz
+
+  permissions=$(/opt/jboss/keycloak/bin/kcadm.sh get clients/$CLIENT_ID/authz/resource-server/permission?resource=billing_modifier --fields id --format csv --noquotes --config $CONFIG_PATH -r lagoon)
+  for permission in $permissions
+  do
+    /opt/jboss/keycloak/bin/kcadm.sh delete clients/$CLIENT_ID/authz/resource-server/permission/$permission --config $CONFIG_PATH -r lagoon
+  done
+
+  billing_modifier_resource_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=billing_modifier --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["_id"]')
+  /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/resource/$billing_modifier_resource_id --config $CONFIG_PATH
+}
+
+function update_openshift_view_permission {
+  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
+  echo Reconfiguring View Openshift
+  VIEW_OPENSHIFT_PERMISSION_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Openshift --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
+  /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$VIEW_OPENSHIFT_PERMISSION_ID --config $CONFIG_PATH
+  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View Openshift",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["openshift"],
+  "scopes": ["view"],
+  "policies": ["User has access to project","Users role for project is Guest"]
+}
+EOF
+}
+
+function configure_service_api_client {
+    service_api_client_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=service-api --config $CONFIG_PATH)
+    if [ "$service_api_client_id" != "[ ]" ]; then
+        echo "Client service-api is already created, skipping basic setup"
+        return 0
+    fi
+    echo Creating client service-api
+    echo '{"clientId": "service-api", "publicClient": false, "standardFlowEnabled": false, "serviceAccountsEnabled": true, "secret": "'$KEYCLOAK_SERVICE_API_CLIENT_SECRET'"}' | /opt/jboss/keycloak/bin/kcadm.sh create clients --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+    SERVICE_API_CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=service-api --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
+    REALM_MANAGEMENT_CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=realm-management --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
+    echo Enable fine grained permissions
+    # 2 Enable fine grained admin permissions for client
+    /opt/jboss/keycloak/bin/kcadm.sh update clients/$SERVICE_API_CLIENT_ID/management/permissions --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s enabled=true
+
+    CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=service-api --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
+    echo Creating groups mapper for service-api
+    echo '{"protocol":"openid-connect","config":{"full.path":"true","id.token.claim":"false","access.token.claim":"true","userinfo.token.claim":"false","claim.name":"group_membership"},"name":"Group Membership","protocolMapper":"oidc-group-membership-mapper"}' | /opt/jboss/keycloak/bin/kcadm.sh create -r ${KEYCLOAK_REALM:-master} clients/$CLIENT_ID/protocol-mappers/models --config $CONFIG_PATH -f -
+    echo Creating realm roles mapper for service-api
+    echo '{"protocol":"openid-connect","config":{"multivalued":"true","id.token.claim":"false","access.token.claim":"true","userinfo.token.claim":"false","claim.name":"realm_roles"},"name":"User Realm Roles","protocolMapper":"oidc-usermodel-realm-role-mapper"}' | /opt/jboss/keycloak/bin/kcadm.sh create -r ${KEYCLOAK_REALM:-master} clients/$CLIENT_ID/protocol-mappers/models --config $CONFIG_PATH -f -
+    echo Creating group lagoon project IDs mapper for service-api
+    echo '{"protocol":"openid-connect","config":{"id.token.claim":"false","access.token.claim":"true","userinfo.token.claim":"false","multivalued":"true","aggregate.attrs":"true","user.attribute":"group-lagoon-project-ids","claim.name":"group_lagoon_project_ids","jsonType.label":"String"},"name":"Group Lagoon Project IDs","protocolMapper":"oidc-usermodel-attribute-mapper"}' | /opt/jboss/keycloak/bin/kcadm.sh create -r ${KEYCLOAK_REALM:-master} clients/$CLIENT_ID/protocol-mappers/models --config $CONFIG_PATH -f -
+}
+
+function configure_token_exchange {
+    REALM_MANAGEMENT_CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=realm-management --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
+    IMPERSONATE_PERMISSION_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$REALM_MANAGEMENT_CLIENT_ID/authz/resource-server/permission?name=admin-impersonating.permission.users --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
+    # check if policies already exist
+    service_api_client_policy_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$REALM_MANAGEMENT_CLIENT_ID/authz/resource-server/policy?name=Client+service-api+Policy --config $CONFIG_PATH)
+    if [ "$service_api_client_policy_id" != "[ ]" ]; then
+        echo "Client service-api policies are already created, skipping policy setup"
+        return 0
+    fi
+
+    # create client service-api policy
+    SERVICE_API_CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=service-api --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
+    echo '{"type":"client","logic":"POSITIVE","decisionStrategy":"UNANIMOUS","name":"Client service-api Policy","clients":["'$SERVICE_API_CLIENT_ID'"]}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$REALM_MANAGEMENT_CLIENT_ID/authz/resource-server/policy/client --config $CONFIG_PATH -r lagoon -f -
+    SERVICE_API_CLIENT_POLICY_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$REALM_MANAGEMENT_CLIENT_ID/authz/resource-server/policy?name=Client+service-api+Policy --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
+
+    echo Enable token exchange for auth-server and service-api
+    # get auth-server client ID configured in configure_api_client
+    AUTH_SERVER_CLIENT_POLICY_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$REALM_MANAGEMENT_CLIENT_ID/authz/resource-server/policy?name=Client+auth-server+Policy --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
+    # The decision strategy is affirmative since only one policy has to pass.
+    /opt/jboss/keycloak/bin/kcadm.sh update clients/$REALM_MANAGEMENT_CLIENT_ID/authz/resource-server/permission/scope/$IMPERSONATE_PERMISSION_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'policies=["'$AUTH_SERVER_CLIENT_POLICY_ID'","'$SERVICE_API_CLIENT_POLICY_ID'"]' -s 'decisionStrategy="AFFIRMATIVE"'
+}
+
 function configure_keycloak {
     until is_keycloak_running; do
         echo Keycloak still not running, waiting 5 seconds
@@ -1668,13 +1755,20 @@ function configure_keycloak {
     add_group_viewall
     add_deployment_cancel
     configure_task_cron
-    add_billing_modifier
     configure_task_uli
     configure_problems_system
     configure_facts_system
     configure_harbor_scan_system
+    configure_advanced_task_system
+    remove_billing_modifier
+    update_openshift_view_permission
+    configure_service_api_client
+    configure_token_exchange
 
     echo "Config of Keycloak done. Log in via admin user '$KEYCLOAK_ADMIN_USER' and password '$KEYCLOAK_ADMIN_PASSWORD'"
+
+    # signal config complete
+    touch /tmp/keycloak-config-complete
 }
 
 /opt/jboss/keycloak/bin/add-user-keycloak.sh --user $KEYCLOAK_ADMIN_USER --password $KEYCLOAK_ADMIN_PASSWORD

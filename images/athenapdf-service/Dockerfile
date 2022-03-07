@@ -1,7 +1,7 @@
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
 FROM ${UPSTREAM_REPO:-uselagoon}/commons:${UPSTREAM_TAG:-latest} as commons
-FROM arachnysdocker/athenapdf-service:2.13.0
+FROM arachnysdocker/athenapdf-service:2.16.0
 
 LABEL maintainer="amazee.io"
 ENV LAGOON=athenapdf-service

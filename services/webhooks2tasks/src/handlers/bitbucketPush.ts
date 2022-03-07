@@ -1,5 +1,6 @@
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
 import { createDeployTask } from '@lagoon/commons/dist/tasks';
+import { generateBuildId } from '@lagoon/commons/dist/util';
 
 import { WebhookRequestData, deployData, Project } from '../types';
 
@@ -18,7 +19,7 @@ export async function bitbucketPush(webhook: WebhookRequestData, project: Projec
     var skip_deploy = false
 
     if (body.push.commits) {
-      skip_deploy = body.push.commits[0].message.match(/\[skip deploy\]|\[deploy skip\]/i)
+      skip_deploy = body.push.changes[0].commits[0].message.match(/\[skip deploy\]|\[deploy skip\]/i)
     }
 
     const meta = {
@@ -32,11 +33,14 @@ export async function bitbucketPush(webhook: WebhookRequestData, project: Projec
       shortSha: sha.substring(0, 7),
     }
 
+    let buildName = generateBuildId();
+
     const data: deployData = {
       projectName: project.name,
       type: 'branch',
       branchName: branchName,
       sha: sha,
+      buildName: buildName
     }
 
     let logMessage = `\`<${body.push.changes[0].new.links.html.href}>\``

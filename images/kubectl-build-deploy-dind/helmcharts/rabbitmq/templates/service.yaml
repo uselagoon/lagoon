@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "rabbitmq.fullname" . }}
+  labels:
+    {{- include "rabbitmq.labels" . | nindent 4 }}
+  annotations:
+    {{- include "rabbitmq.annotations" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: 5672
+      protocol: TCP
+      name: tcp-5672
+    - port: 15672
+      targetPort: 15672
+      protocol: TCP
+      name: tcp-15672
+  selector:
+    {{- include "rabbitmq.selectorLabels" . | nindent 4 }}

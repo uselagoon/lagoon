@@ -14,6 +14,7 @@
   vars:
     branch: "{{ branch }}"
     project: "{{ project1 }}"
+    namespace: "{{ project1 }}-{{ branch }}"
   tasks:
   - include: ../../tasks/api/deploy-no-sha.yaml
 
@@ -23,6 +24,7 @@
   vars:
     branch: "{{ branch }}"
     project: "{{ project2 }}"
+    namespace: "{{ project2 }}-{{ branch }}"
   tasks:
   - include: ../../tasks/api/deploy-no-sha.yaml
 
@@ -67,7 +69,7 @@
     project: "{{ project1 }}"
     branch: "{{ branch }}"
   tasks:
-  - include: ../../tasks/api/remove.yaml
+  - include: ../../tasks/api/delete-environment.yaml
 
 - name: "{{ testname }} - api deleteEnvironment on {{ project2 }}, which should remove all resources"
   hosts: localhost
@@ -76,7 +78,7 @@
     project: "{{ project2 }}"
     branch: "{{ branch }}"
   tasks:
-  - include: ../../tasks/api/remove.yaml
+  - include: ../../tasks/api/delete-environment.yaml
 
 - name: "{{ testname }} - check if site for {{ project1 }} does not exist anymore"
   hosts: localhost

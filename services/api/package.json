@@ -3,17 +3,12 @@
   "version": "3.0.0",
   "description": "Lagoon GraphQL API",
   "main": "dist/index.js",
-  "engines": {
-    "node": ">=10.16.3"
-  },
   "scripts": {
     "format": "prettier-eslint --write '**/*.js'",
     "lint": "../../node-packages/eslint-config-lagoon-node/node_modules/.bin/eslint .",
     "test": "jest --forceExit --detectOpenHandles --maxWorkers=10",
     "test:watch": "jest --forceExit --detectOpenHandles --maxWorkers=10 --watch",
     "build": "tsc --build",
-    "start": "node -r dotenv-extended/config dist/index",
-    "dev": "NODE_ENV=development nodemon",
     "sync:gitlab:users": "node dist/gitlab-sync/users",
     "sync:gitlab:groups": "node dist/gitlab-sync/groups",
     "sync:gitlab:projects": "node dist/gitlab-sync/projects",
@@ -22,23 +17,12 @@
     "sync:bitbucket:repo-permissions": "node dist/bitbucket-sync/repo-permissions",
     "sync:harbor:projects": "node dist/migrations/2-harbor/harborSync.js"
   },
-  "nodemonConfig": {
-    "ignore": [
-      "*.test.js",
-      "../../node-packages/commons/dist/"
-    ],
-    "watch": [
-      "src",
-      "../../node-packages/"
-    ],
-    "ext": "js,ts,json",
-    "exec": "yarn build --incremental && yarn start --inspect=0.0.0.0:9229"
-  },
   "keywords": [],
   "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
   "license": "MIT",
   "dependencies": {
     "@lagoon/commons": "4.0.0",
+    "@supercharge/request-ip": "^1.1.2",
     "@types/redis": "^2.8.22",
     "apollo-server-express": "^2.14.2",
     "aws-sdk": "^2.378.0",
@@ -60,35 +44,37 @@
     "graphql-subscriptions": "^1.0.0",
     "graphql-tools": "^4.0.6",
     "graphql-type-json": "^0.3.0",
+    "graphql-upload": "^12.0.0",
     "jsonwebtoken": "^8.0.1",
     "keycloak-admin": "https://github.com/amazeeio/keycloak-admin.git#bd015d2e34634f262c0827f00620657427e3c252",
     "keycloak-connect": "^5.0.0",
-    "knex": "^0.20.2",
-    "mariasql": "^0.2.6",
+    "knex": "^v0.95",
+    "mariadb": "^2.5.2",
     "moment": "^2.24.0",
     "morgan": "^1.9.0",
     "newrelic": "^6.9.0",
     "node-cache": "^4.2.1",
+    "rabbit-chatter": "^2.0.0",
     "ramda": "^0.25.0",
     "redis": "^3.0.2",
     "snakecase-keys": "^1.2.0",
     "sshpk": "^1.14.2",
     "validator": "^10.8.0",
-    "winston": "^2.4.0"
+    "winston": "^3",
+    "winston-transport": "^4.4.0"
   },
   "devDependencies": {
     "@types/express": "^4.17.6",
     "@types/faker": "^4.1.5",
     "@types/jest": "^24.0.18",
-    "@types/mariasql": "^0.1.30",
     "@types/ramda": "types/npm-ramda#dist",
     "axios": "^0.19.0",
     "faker": "^4.1.0",
     "jest": "^24.9.0",
-    "nodemon": "^1.12.1",
     "prettier": "^1.14.2",
     "prettier-eslint-cli": "^4.7.1",
     "ts-jest": "^24.0.2",
+    "tsc-watch": "^4.4.0",
     "typescript": "^3.4.4"
   }
 }

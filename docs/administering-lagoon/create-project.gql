@@ -1,0 +1,58 @@
+# See the docs for a detailed explanation about this file:
+# https://lagoon.readthedocs.io/en/latest/administering_lagoon/graphql_api/#create-first-project
+
+# 1. Create an OpenShift
+mutation {
+  addOpenshift(
+    input: {
+      # TODO: Fill in the name field
+      # This is the unique identifier of the OpenShift
+      name: ""
+      # TODO: Fill in consoleUrl field
+      # This is the URL of the OpenShift console (without any `/console` suffix)
+      consoleUrl: ""
+      # TODO: Fill in the token field
+      # This is the token of the `lagoon` service account created in this OpenShift (this is the same token that we also used during installation of Lagoon)
+      token: ""
+    }
+  ) {
+    name
+    # TODO: Make a note of the Kubernetes ID that comes back in the response
+    id
+  }
+}
+
+# 2. Create a project and assign it the OpenShift
+mutation {
+  addProject(
+    input: {
+      # TODO: Fill in the name field
+      # This is the project name
+      name: ""
+      # TODO: Fill in the private key field (replace newlines with '\n')
+      # This is the private key for a project, which is used to access the git code.  If no private key is added, Lagoon will create a private key, which can later be accessed by loading the project.
+      privateKey: ""
+      # TODO: Fill in the openshift field
+      # This is the id of the OpenShift or Kubernetes to assign to the project
+      openshift: 0
+      # TODO: Fill in the name field
+      # This is the project name
+      gitUrl: ""
+      # TODO: Fill in the branches to be deployed
+      branches: ""
+      # TODO: Define the production environment
+      productionEnvironment: ""
+    }
+  ) {
+    name
+    openshift {
+      name
+      id
+    }
+    gitUrl
+    activeSystemsDeploy
+    activeSystemsRemove
+    branches
+    pullrequests
+  }
+}

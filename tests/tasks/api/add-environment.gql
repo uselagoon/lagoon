@@ -1,0 +1,15 @@
+mutation addOrUpdateEnvironment {
+  addOrUpdateEnvironment: addOrUpdateEnvironment(
+    input: {
+      name: "{{ name }}"
+      project: {{ project_id }}
+      deployType: {{ deployType }}
+      deployBaseRef: "{{ deployBaseRef }}"
+      environmentType: {{ environmentType }},
+      openshiftProjectName: "{{ project }}-{{ name }}"
+    }
+  ) {
+    id,
+    name
+  }
+}

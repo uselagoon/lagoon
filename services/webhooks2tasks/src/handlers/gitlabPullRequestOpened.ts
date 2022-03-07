@@ -1,6 +1,7 @@
 import R from 'ramda';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
 import { createDeployTask } from '@lagoon/commons/dist/tasks';
+import { generateBuildId } from '@lagoon/commons/dist/util';
 
 import { WebhookRequestData, deployData, Project } from '../types';
 
@@ -38,6 +39,7 @@ export async function gitlabPullRequestOpened(webhook: WebhookRequestData, proje
       return;
     }
 
+    let buildName = generateBuildId();
 
     const data: deployData = {
       repoUrl: body.object_attributes.target.web_url,
@@ -52,6 +54,7 @@ export async function gitlabPullRequestOpened(webhook: WebhookRequestData, proje
       baseBranchName: baseBranchName,
       baseSha: baseSha,
       branchName: `pr-${body.object_attributes.id}`,
+      buildName: buildName
     }
 
     try {

@@ -1,0 +1,19 @@
+- name: "Delete project {{ project }} from openshift {{ openshift }}"
+  block:
+    - include: admin-token.yaml
+    - name: "Delete project {{ project }} from openshift {{ openshift }}"
+      uri:
+        url: "{{ graphql_url }}"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ admin_token }}"
+        body_format: json
+        body:
+          query: '{{ lookup("template", "./delete-project.gql") }}'
+      register: apiresponse
+    - name: "Delete project {{ project }} from openshift {{ openshift }}"
+      debug:
+        msg: "api response: {{ apiresponse.json }}"
+      until: apiresponse.json.data.CiDeleteProject == "success"
+      retries: 10
+      delay: 30

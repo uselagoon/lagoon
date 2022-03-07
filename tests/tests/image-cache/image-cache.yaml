@@ -1,0 +1,65 @@
+
+- name: "{{ testname }} - init git, add files, commit, git push"
+  hosts: localhost
+  serial: 1
+  vars:
+    git_files: "image-cache/"
+  tasks:
+  - include: ../../tasks/git-init.yaml
+  - include: ../../tasks/git-add-commit-push.yaml
+
+- name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}, which should deploy the first commit"
+  hosts: localhost
+  serial: 1
+  vars:
+    branch: "{{ branch }}"
+    project: "{{ project }}"
+    namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
+  tasks:
+  - include: ../../tasks/api/deploy-no-sha.yaml
+
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for 'TO BE REPLACED' which is added by hand"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "{{ check_url }}"
+    expected_content: "TO BE REPLACED"
+  tasks:
+  - include: ../../checks/check-url-content.yaml
+
+- name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}, which should redeploy"
+  hosts: localhost
+  serial: 1
+  vars:
+    branch: "{{ branch }}"
+    project: "{{ project }}"
+    namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
+  tasks:
+  - include: ../../tasks/api/deploy-no-sha.yaml
+
+- name: "{{ testname }} - check if {{ project }} is deployed with cache value 'REPLACED BY CACHE'"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "{{ check_url }}"
+    expected_content: "REPLACED BY CACHE"
+  tasks:
+  - include: ../../checks/check-url-content.yaml
+
+- name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ project }}"
+    branch: "{{ branch }}"
+  tasks:
+  - include: ../../tasks/api/delete-environment.yaml
+
+- name: "{{ testname }} - check if site for {{ project }} does not exist anymore"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "{{ check_url }}"
+    expected_returncode: "{{ del_status_code }}"
+  tasks:
+  - include: ../../checks/check-url-returncode.yaml

@@ -1,0 +1,33 @@
+---
+metadata:
+  annotations:
+    kubernetes.io/change-cause: "Add local-dev volume mounts"
+spec:
+  template:
+    spec:
+      securityContext:
+        runAsUser: 1000
+      containers:
+      - name: webhook-handler
+        command: ["yarn"]
+        args: ["run", "dev"]
+        volumeMounts:
+        - mountPath: "/app/services/webhook-handler/src"
+          name: webhook-handler-src
+        - mountPath: "/app/services/webhook-handler/dist"
+          name: webhook-handler-dist
+        - mountPath: "/app/node-packages"
+          name: node-packages
+      volumes:
+      - name: webhook-handler-src
+        hostPath:
+          path: "/lagoon/services/webhook-handler/src"
+          type: Directory
+      - name: webhook-handler-dist
+        hostPath:
+          path: "/lagoon/services/webhook-handler/dist"
+          type: Directory
+      - name: node-packages
+        hostPath:
+          path: "/lagoon/node-packages"
+          type: Directory

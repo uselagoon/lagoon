@@ -19,7 +19,7 @@ spec:
         {{- include "mariadb-single.labels" . | nindent 8 }}
       annotations:
         {{- include "mariadb-single.annotations" . | nindent 8 }}
-        k8up.syn.tools/backupcommand: /bin/sh -c "mysqldump --max-allowed-packet=500M --events --routines --quick --add-locks --no-autocommit --single-transaction --all-databases"
+        k8up.syn.tools/backupcommand: /bin/sh -c 'mysqldump --max-allowed-packet=500M --events --routines --quick --add-locks --no-autocommit --single-transaction --all-databases'
         k8up.syn.tools/file-extension: .{{ include "mariadb-single.fullname" . }}.sql
         lagoon.sh/configMapSha: {{ .Values.configMapSha | quote }}
     spec:
@@ -32,11 +32,11 @@ spec:
           persistentVolumeClaim:
             claimName: {{ include "mariadb-single.fullname" . }}
       securityContext:
-        fsGroup: 0
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
-            runAsGroup: 0
+            {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image }}"
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           env:

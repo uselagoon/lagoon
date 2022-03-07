@@ -1,18 +1,27 @@
 import * as R from 'ramda';
 import { logger } from '@lagoon/commons/dist/local-logging';
-import { getSqlClient } from '../clients/sqlClient';
+import { sqlClientPool } from '../clients/sqlClient';
+import { esClient } from '../clients/esClient';
+import redisClient from '../clients/redisClient';
 import { Group } from '../models/group';
 import { OpendistroSecurityOperations } from '../resources/group/opendistroSecurity';
 import { getKeycloakAdminClient } from '../clients/keycloak-admin';
 
 (async () => {
   const keycloakAdminClient = await getKeycloakAdminClient();
-  const sqlClient = getSqlClient();
-  const GroupModel = Group({ keycloakAdminClient });
+  const GroupModel = Group({
+    sqlClientPool,
+    keycloakAdminClient,
+    esClient,
+    redisClient
+  });
 
-  const groupRegex = process.env.GROUP_REGEX ? new RegExp(process.env.GROUP_REGEX) : /.*/;
+  const groupRegex = process.env.GROUP_REGEX
+    ? new RegExp(process.env.GROUP_REGEX)
+    : /.*/;
 
   const allGroups = await GroupModel.loadAllGroups();
+
   let groupsQueue = (allGroups as Group[]).map(group => ({
     group,
     retries: 0
@@ -30,21 +39,34 @@ import { getKeycloakAdminClient } from '../clients/keycloak-admin';
 
     try {
       logger.debug(`Processing ${group.name}`);
-      const projectIdsArray = await GroupModel.getProjectsFromGroupAndSubgroups(group)
-      const projectIds = R.join(',')(projectIdsArray)
-      await OpendistroSecurityOperations(sqlClient, GroupModel).syncGroup(group.name, projectIds);
+      const projectIdsArray = await GroupModel.getProjectsFromGroupAndSubgroups(
+        group
+      );
+      const projectIds = R.join(',')(projectIdsArray);
+
+      let roleName = group.name;
+      if (group.type && group.type == 'project-default-group') {
+        roleName = 'p' + projectIds;
+      }
+
+      let tenantName = group.name;
+      if (group.type && group.type == 'project-default-group') {
+        tenantName = 'global_tenant';
+      }
+
+      await OpendistroSecurityOperations(
+        sqlClientPool,
+        GroupModel
+      ).syncGroupWithSpecificTenant(roleName, tenantName, projectIds);
     } catch (err) {
       if (retries < 3) {
         logger.warn(`Error syncing, adding to end of queue: ${err.message}`);
         groupsQueue.push({ group, retries: retries + 1 });
-      }
-      else {
+      } else {
         logger.error(`Sync failed: ${err.message}`);
       }
     }
   }
 
   logger.info('Sync completed');
-
-  sqlClient.destroy();
 })();

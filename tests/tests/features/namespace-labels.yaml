@@ -13,6 +13,7 @@
   vars:
     branch: "{{ branch }}"
     project: "{{ project }}"
+    namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
   tasks:
   - include: ../../tasks/api/deploy-no-sha.yaml
 
@@ -37,4 +38,4 @@
     project: "{{ project }}"
     branch: "{{ branch }}"
   tasks:
-  - include: ../../tasks/api/remove.yaml
+  - include: ../../tasks/api/delete-environment.yaml

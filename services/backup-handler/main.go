@@ -12,7 +12,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/amazeeio/lagoon/services/backup-handler/internal/handler"
+	"github.com/uselagoon/lagoon/services/backup-handler/internal/handler"
 )
 
 var (

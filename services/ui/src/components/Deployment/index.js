@@ -2,8 +2,9 @@ import React from 'react';
 import moment from 'moment';
 import momentDurationFormatSetup from 'moment-duration-format';
 import CancelDeployment from 'components/CancelDeployment';
+import BulkDeploymentLink from 'components/link/BulkDeployment';
 import LogViewer from 'components/LogViewer';
-import { bp } from 'lib/variables';
+import { bp, color, fontSize } from 'lib/variables';
 
 export const getDeploymentDuration = deployment => {
   const deploymentStart = deployment.started || deployment.created;
@@ -24,7 +25,6 @@ export const getDeploymentDuration = deployment => {
 const Deployment = ({ deployment }) => (
   <div className="deployment">
     <div className="details">
-      <h3>{deployment.name}</h3>
       <div className="field-wrapper created">
         <div>
           <label>Created</label>
@@ -51,12 +51,44 @@ const Deployment = ({ deployment }) => (
           <div className="field">{getDeploymentDuration(deployment)}</div>
         </div>
       </div>
+      {deployment.bulkId &&<div className="field-wrapper bulk">
+        <div>
+          <label>Bulk Deployment</label>
+          <div className="field">
+          <BulkDeploymentLink
+            bulkIdSlug={deployment.bulkId}
+          >
+            View bulk deployment
+          </BulkDeploymentLink>
+          </div>
+        </div>
+      </div>}
+    </div>
+    <div className="button-row">
       {['new', 'pending', 'running'].includes(deployment.status) && (
         <CancelDeployment deployment={deployment} />
       )}
     </div>
     <LogViewer logs={deployment.buildLog} />
     <style jsx>{`
+      .button-row {
+        padding: 0px calc(100vw / 16) 20px;
+        width: 100%;
+        @media ${bp.xs_smallUp} {
+          display: flex;
+          flex-wrap: wrap;
+          min-width: 100%;
+          padding-left: calc(((100vw / 16) * 1.5) + 28px);
+          position: relative;
+          width: 100%;
+        }
+        @media ${bp.tabletUp} {
+          padding: 0 calc(100vw / 16) 20px calc(((100vw / 16) * 1.5) + 28px);
+        }
+        @media ${bp.extraWideUp} {
+          padding-left: calc(100vw / 16);
+        }
+      }
       .details {
         padding: 104px calc(100vw / 16) 20px;
         width: 100%;
@@ -173,6 +205,13 @@ const Deployment = ({ deployment }) => (
               &::before {
                 background-image: url('/static/images/successful.svg');
               }
+            }
+          }
+
+          &.bulk {
+            &::before {
+              background-image: url('/static/images/tasks-dark.svg');
+              background-size: 14px;
             }
           }
 

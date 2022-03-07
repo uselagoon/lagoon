@@ -8,17 +8,14 @@ The `docker-compose.yml` file is used by Lagoon to:
 
 Docker-compose \(the tool\) is very strict in validating the content of the YAML file, so we can only do configuration within `labels` of a service definition.
 
-{% hint style="warning" %}
-Lagoon only reads the labels, service names, image names and build definitions from a `docker-compose.yml` file. Definitions like: ports, environment variables, volumes, networks, links, users, etc. are IGNORED.
+!!! warning "Warning:"
+    Lagoon only reads the labels, service names, image names and build definitions from a `docker-compose.yml` file. Definitions like: ports, environment variables, volumes, networks, links, users, etc. are IGNORED.
 
 This is intentional as the `docker-compose` file is there to define your local environment configuration. Lagoon learns from the `lagoon.type` the type of service you are deploying and from that knows about ports, networks and any additional configuration that this service might need.
-{% endhint %}
 
 Here a straightforward example of a `docker-compose.yml` file for Drupal:
 
-{% tabs %}
-{% tab title="docker-compose.yml" %}
-```yaml
+```yaml title="docker-compose.yml"
 version: '2.3'
 
 x-lagoon-project:
@@ -70,8 +67,6 @@ services:
     labels:
       lagoon.type: mariadb
 ```
-{% endtab %}
-{% endtabs %}
 
 ## Basic settings
 
@@ -112,9 +107,8 @@ If you want Lagoon to build a Dockerfile for your service during every deploymen
 * `dockerfile:`
   * Location and name of the Dockerfile that should be built.
 
-{% hint style="warning" %}
-Lagoon does NOT support the short version of `build: <Dockerfile>` and will fail if it finds such a definition.
-{% endhint %}
+!!! warning "Warning:"
+    Lagoon does NOT support the short version of `build: <Dockerfile>` and will fail if it finds such a definition.
 
 #### `image`
 
@@ -154,9 +148,7 @@ Lagoon still needs to understand which of the two services is the actual individ
 
 An example:
 
-{% tabs %}
-{% tab title="docker-compose.yml" %}
-```yaml
+```yaml title="docker-compose.yml"
 nginx:
     build:
       context: .
@@ -176,8 +168,6 @@ php:
       lagoon.name: nginx # We want this service be part of the nginx pod in Lagoon.
       lagoon.deployment.servicetype: php
 ```
-{% endtab %}
-{% endtabs %}
 
 In the example above, the services are named `nginx` and `php` \(but you can call them whatever you want\). The `lagoon.name` tells Lagoon which services go together - all of the services with the same name go together.
 
@@ -189,19 +179,18 @@ OpenShift defines templates as follows:
 
 > A template describes a set of objects that can be parameterized and processed to produce a list of objects for creation by OpenShift Container Platform. A template can be processed to create anything you have permission to create within a project, for example services, build configurations, and DeploymentConfigs. A template may also define a set of labels to apply to every object defined in the template.
 
-Lagoon comes with a variety of pre-defined templates, which set all kinds of needed configuration in YAML files. Check out the shipped templates from the [templates folder of `oc-build-deploy-dind`](https://github.com/amazeeio/lagoon/tree/master/images/oc-build-deploy-dind/openshift-templates).
+Lagoon comes with a variety of pre-defined templates, which set all kinds of needed configuration in YAML files. Check out the shipped templates from the [templates folder of `oc-build-deploy-dind`](https://github.com/uselagoon/lagoon/tree/main/images/oc-build-deploy-dind/openshift-templates).
 
 If you need to make changes to the OpenShift templates, you can define your own template via `lagoon.template`.
 
-{% hint style="info" %}
-The template is called with `oc process`, so you should define the same parameters as seen in the default templates.
-{% endhint %}
+!!! Note "Note:"
+    The template is called with `oc process`, so you should define the same parameters as seen in the default templates.
 
 You can also overwrite the templates for a specific environment. This is done in [`.lagoon.yml`](lagoon-yml.md#environmentsnametypes)
 
 ## Helm Templates \(Kubernetes only\)
 
-Lagoon uses [Helm](https://helm.sh/) for templating on Kubernetes. To do this, a series of [Charts](https://github.com/amazeeio/lagoon/tree/master/images/kubectl-build-deploy-dind/helmcharts) are included with the `kubectl-build-deploy-dind` service.
+Lagoon uses [Helm](https://helm.sh/) for templating on Kubernetes. To do this, a series of [Charts](https://github.com/uselagoon/lagoon/tree/main/images/kubectl-build-deploy-dind/helmcharts) are included with the `kubectl-build-deploy-dind` service.
 
 ## **Custom Rollout Monitor Types**
 
@@ -213,18 +202,4 @@ By default , Lagoon expects that services from custom templates are rolled out v
 * `false` - Will not monitor any rollouts, and will just be happy if the template applies and does not throw any errors.
 
 You can also overwrite the rollout for just one specific environment. This is done in [`.lagoon.yml`](lagoon-yml.md#environments-name-rollouts).
-
-## **Custom Type**
-
-Feeling adventurous and want to do something completely customized? Welcome to the Danger Zone!
-
-![Welcome to the Danger Zone](../.gitbook/assets/topgun.gif)
-
-When defining a service as `lagoon.type: custom`, you can tell Lagoon to not use any pre-defined service type templates and pass your full own custom YAML file.
-
-This also expects the label `lagoon.template` to be defined with the path to the YAML file where you define all the needed Kubernetes objects to be executed. In here you can define your own OpenShift templates like the ones in the [templates folder of `oc-build-deploy-dind`](https://github.com/amazeeio/lagoon/tree/master/images/oc-build-deploy-dind/openshift-templates).
-
-{% hint style="info" %}
-The template is called with `oc process`, so you should define the same parameters as in the default templates.
-{% endhint %}
 

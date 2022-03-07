@@ -1,0 +1,52 @@
+- name: "{{ testname }} - Trigger a bulk deployment for environments to {{ graphql_url }}"
+  block:
+    - include: admin-token.yaml
+    - debug:
+        msg: "{{ bulk_deploy_id }}"
+    - name: "{{ testname }} - POST api trigger bulk deployment for environments to {{ graphql_url }}"
+      uri:
+        url: "{{ graphql_url }}"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ admin_token }}"
+        body_format: json
+        body:
+          query: '{{ lookup("template", "./get-bulk-deployment.gql") }}'
+      register: apiresponse
+      until: apiresponse.json.data.deploymentsByBulkId[5].status is defined and apiresponse.json.data.deploymentsByBulkId[5].status == "new"
+      retries: 30
+      delay: 10
+
+    - include: admin-token.yaml
+    - name: "{{ testname }} - POST api trigger bulk deployment for environments to {{ graphql_url }}"
+      uri:
+        url: "{{ graphql_url }}"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ admin_token }}"
+        body_format: json
+        body:
+          query: '{{ lookup("template", "./get-bulk-deployment.gql") }}'
+      register: apiresponse
+      until: apiresponse.json.data.deploymentsByBulkId[5].status is defined and apiresponse.json.data.deploymentsByBulkId[5].status == "running"
+      retries: 30
+      delay: 10
+
+    - include: admin-token.yaml
+    - name: "{{ testname }} - POST api trigger bulk deployment for environments to {{ graphql_url }}"
+      uri:
+        url: "{{ graphql_url }}"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ admin_token }}"
+        body_format: json
+        body:
+          query: '{{ lookup("template", "./get-bulk-deployment.gql") }}'
+      register: apiresponse
+      until: apiresponse.json.data.deploymentsByBulkId[5].status is defined and apiresponse.json.data.deploymentsByBulkId[5].status == "complete"
+      retries: 30
+      delay: 10
+
+    - name: "{{ testname }} - POST api trigger bulk deployment for environments to {{ graphql_url }}"
+      debug:
+        msg: "api response: {{ apiresponse.json }}"

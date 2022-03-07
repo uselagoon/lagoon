@@ -4,7 +4,9 @@
 
 In order for Drupal to work with Lagoon, we need to teach Drupal about Lagoon and Lagoon about Drupal. This happens by copying specific YAML and PHP files into your Git repository.
 
-You can find [these files in our GitHub repository](https://github.com/amazeeio/lagoon/tree/master/docs/using_lagoon/drupal). The best way to get them is to [download these files as a ZIP file](https://minhaskamal.github.io/DownGit/#/home?url=https://github.com/amazeeio/lagoon/tree/master/docs/using_lagoon/drupal) and copy them into your Git repository. For each Drupal version and database type you will find an individual folder. A short overview of what they are:
+If you're working on a Drupal project, you can check out one of the various Drupal example projects [in our examples repository](https://github.com/uselagoon/lagoon-examples). We have Drupal 8 and 9 and some variants of each depending on your needs, such as database types. Clone the repo that best suits your needs to get started!
+
+Here is a summary of the Lagoon- and Drupal-specific files you will find:
 
 * `.lagoon.yml` - The main file that will be used by Lagoon to understand what should be deployed and many more things. This file has some sensible Drupal defaults. If you would like to edit or modify, please check the [documentation for `.lagoon.yml`](../using-lagoon-the-basics/lagoon-yml.md).
 * `docker-compose.yml`, `.dockerignore`, and `*.dockerfile` \(or `Dockerfile`\) - These files are used to run your local Drupal development environment, they tell Docker which services to start and how to build them. They contain sensible defaults and many commented lines. We hope that it's well-commented enough to be self-describing. If you would like to find out more, see [documentation for `docker-compose.yml`](../using-lagoon-the-basics/docker-compose-yml.md).
@@ -22,7 +24,7 @@ Drupal is shipped with `sites/*/settings*.php` and `sites/*/services*.yml` in `.
 
 Unfortunately the Drupal community has not decided on a standardized `WEBROOT` folder name. Some projects put Drupal within `web`, and others within `docroot` or somewhere else. The Lagoon Drupal settings files assume that your Drupal is within `web`, but if this is different for your Drupal, please adapt the files accordingly.
 
-### Note about composer.json 
+### Note about composer.json
 
 If you installed Drupal via composer, please check your `composer.json` and make sure that the `name` is NOT `drupal/drupal`, as this could confuse Drush and other tools of the Drupal universe, just rename it to something like `myproject/drupal`
 
@@ -30,17 +32,13 @@ If you installed Drupal via composer, please check your `composer.json` and make
 
 Don't forget to customize the values in `lagoon-project` & `LAGOON_ROUTE` with your site-specific name & the URL you'd like to access the site with. Here's an example:
 
-{% tabs %}
-{% tab title="docker-compose.yml" %}
-```yaml
+```yaml title="docker-compose.yml"
 x-environment:
   &default-environment
     LAGOON_PROJECT: *lagoon-project
     # Route that should be used locally. If you are using pygmy, this route *must* end with .docker.amazee.io.
     LAGOON_ROUTE: http://drupal-example.docker.amazee.io
 ```
-{% endtab %}
-{% endtabs %}
 
 ## 3. Build Images
 
@@ -115,11 +113,10 @@ Drupal root          :  /app/web
 Site path            :  sites/default
 ```
 
-{% hint style="warning" %}
-You may have to tell pygmy about your public key before the next step.
+!!! warning "Warning:"
+    You may have to tell pygmy about your public key before the next step.
 
-If you get an error like `Permission denied (publickey)`, check out the documentation here: [pygmy - adding ssh keys](https://docs.lagoon.sh/pygmy/ssh-agent)
-{% endhint %}
+If you get an error like `Permission denied (publickey)`, check out the documentation here: [pygmy - adding ssh keys](https://pygmy.readthedocs.io/en/master/ssh_agent)
 
 Now it is time to install Drupal \(if instead you would like to import an existing SQL file, please [skip to step 7](step-by-step-getting-drupal-ready-to-run-on-lagoon.md#7-import-existing-database-dump), but we suggest you start with a clean Drupal installation in the beginning to be sure everything works\).
 
@@ -176,7 +173,6 @@ Verify that everything works with visiting the URL of your project. You should h
 
 A Drupal site also needs the files directory. As the whole folder is mounted into the Docker containers, add the files into the correct folder \(probably `web/sites/default/files`, `sites/default/files` or something similar\). Remember what you've set as your `WEBROOT` - [it may not be the same for all projects](step-by-step-getting-drupal-ready-to-run-on-lagoon.md#note-about-webroot-in-drupal-8).
 
-## 9. Done!
+## 9. Done
 
 You are done with your local setup. The Lagoon team wishes happy Drupaling!
-

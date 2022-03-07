@@ -8,9 +8,6 @@
     "Michael Schmid <michael@amazee.io> (https://amazee.io)"
   ],
   "main": "dist/index.js",
-  "engines": {
-    "node": ">=10.16.3"
-  },
   "scripts": {
     "clean": "rimraf dist && rimraf logs",
     "build": "tsc",
@@ -33,7 +30,7 @@
     "nano": "^6.4.3",
     "ramda": "^0.25.0",
     "sshpk": "^1.14.1",
-    "winston": "^2.4.1"
+    "winston": "^3"
   },
   "devDependencies": {
     "nodemon": "^1.12.1",

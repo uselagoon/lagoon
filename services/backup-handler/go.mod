@@ -1,6 +1,6 @@
-module github.com/amazeeio/lagoon/services/backup-handler
+module github.com/uselagoon/lagoon/services/backup-handler
 
-go 1.14
+go 1.16
 
 require (
 	github.com/amazeeio/lagoon-cli v0.0.0-20200309230012-d971a4d07053

@@ -1,13 +1,14 @@
 import React from 'react';
 import moment from 'moment';
 import DeploymentLink from 'components/link/Deployment';
+import BulkDeploymentLink from 'components/link/BulkDeployment';
 import { getDeploymentDuration } from 'components/Deployment';
-import { bp, color } from 'lib/variables';
+import { bp, color, fontSize } from 'lib/variables';
 
 /**
  * Displays a list of deployments.
  */
-const Deployments = ({ deployments }) => (
+const Deployments = ({ deployments, environmentSlug, projectSlug }) => (
   <div className="deployments">
     <div className="header">
       <label>Name</label>
@@ -20,12 +21,18 @@ const Deployments = ({ deployments }) => (
       {deployments.map(deployment => (
         <DeploymentLink
           deploymentSlug={deployment.name}
-          environmentSlug={deployment.environment.openshiftProjectName}
-          projectSlug={deployment.environment.project.name}
+          environmentSlug={environmentSlug}
+          projectSlug={projectSlug}
           key={deployment.id}
         >
           <div className="data-row" deployment={deployment.id}>
-            <div className="name">{deployment.name}</div>
+            <div className="name">{deployment.name}{deployment.bulkId && <label className="bulk-label">
+              <BulkDeploymentLink
+                bulkIdSlug={deployment.bulkId}
+              >
+                bulk
+              </BulkDeploymentLink></label>}
+            </div>
             <div className="started">
               {moment
                 .utc(deployment.created)
@@ -64,6 +71,18 @@ const Deployments = ({ deployments }) => (
           @media ${bp.tinyUp} {
             display: block;
           }
+        }
+      }
+
+      .bulk-label {
+        background-color: ${color.lightBlue};
+        ${fontSize(12)};
+        margin-left: 10px;
+        padding: 0px 5px 0px 5px;
+        border-radius: 3px;
+        box-shadow: 0px 4px 8px 0px rgba(0, 0, 0, 0.03);
+        &:hover {
+          background-color: ${color.blue};
         }
       }
 

@@ -1,12 +1,12 @@
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
 FROM ${UPSTREAM_REPO:-uselagoon}/commons:${UPSTREAM_TAG:-latest} as commons
-FROM golang:1.13-alpine3.12 as golang
+FROM golang:1.16-alpine3.15 as golang
 
 RUN apk add --no-cache git
 RUN go get github.com/a8m/envsubst/cmd/envsubst
 
-FROM docker:19.03.14
+FROM docker:20.10.12
 
 LABEL maintainer="amazee.io"
 ENV LAGOON=oc
@@ -45,10 +45,10 @@ RUN apk add -U --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing au
     && pip install shyaml yq \
     && curl -Lo /usr/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl \
     && chmod +x /usr/bin/kubectl \
-    && curl -Lo /usr/bin/yq https://github.com/mikefarah/yq/releases/download/3.3.2/yq_linux_amd64 \
+    && curl -Lo /usr/bin/yq3 https://github.com/mikefarah/yq/releases/download/3.3.2/yq_linux_amd64 \
+    && chmod +x /usr/bin/yq3 \
+    && curl -Lo /usr/bin/yq https://github.com/mikefarah/yq/releases/download/v4.15.1/yq_linux_amd64 \
     && chmod +x /usr/bin/yq \
-    && curl -Lo /usr/bin/svcat https://download.svcat.sh/cli/latest-v0.2/linux/amd64/svcat \
-    && chmod +x /usr/bin/svcat \
     && curl -Lo /tmp/helm.tar.gz https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz \
     && echo "${HELM_SHA256}  /tmp/helm.tar.gz" | sha256sum -c -  \
     && mkdir /tmp/helm \

@@ -1,25 +1,26 @@
 ---
+- include: features/random-wait.yaml
 
 - include: features/api-token.yaml
   vars:
     testname: "API TOKEN"
 
-- include: drupal/drupal.yaml
+- include: api/add-project.yaml
   vars:
-    testname: "Drupal 8 composer PHP 7.4 - MARIADB DBAAS {{ cluster_type|upper }}"
-    drupal_version: 8
-    db: mariadb
-    php_version: 7.4
-    git_repo_name: drupal.git
-    project: ci-drupal-{{ cluster_type }}
-    branch: drupal8-composer-74-mariadb-dbaas
+    project: ci-drupal-74-{{ cluster_type }}
+    git_repo_name: drupal-74.git
+    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
 
 - include: drupal/drupal.yaml
   vars:
-    testname: "Drupal 9 composer PHP 7.4 - MARIADB DBAAS {{ cluster_type|upper }}"
-    drupal_version: 9
-    db: mariadb
+    testname: "Drupal 8 composer PHP 7.4 - MARIADB SINGLE {{ cluster_type|upper }}"
+    drupal_version: 8
+    db: mariadb-single
     php_version: 7.4
-    git_repo_name: drupal.git
-    project: ci-drupal-{{ cluster_type }}
-    branch: drupal9-composer-74-mariadb-dbaas
+    git_repo_name: drupal-74.git
+    project: ci-drupal-74-{{ cluster_type }}
+    branch: drupal8-php74-mariadb-single
+
+- include: api/delete-project.yaml
+  vars:
+    project: ci-drupal-74-{{ cluster_type }}

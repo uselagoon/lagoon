@@ -1,0 +1,47 @@
+{
+    "type": "scanningCompleted",
+    "occur_at": 1584740734,
+    "operator": "auto",
+    "event_data": {
+      "resources": [
+        {
+          "digest": "sha256:f841a2abd0422364ec94bb633a56707a38c330179f2bbccebd95f9aff4a36808",
+          "tag": "latest",
+          "resource_url": "harbor-nginx-lagoon-master.ch.amazee.io/library/java:latest",
+          "scan_overview": {
+            "application/vnd.scanner.adapter.vuln.report.harbor+json; version=1.0": {
+              "report_id": "1ef6cf2d-6af4-11ea-a899-0a580a01197a",
+              "scan_status": "Success",
+              "severity": "Critical",
+              "duration": 3,
+              "summary": {
+                "total": 639,
+                "fixable": 398,
+                "summary": {
+                  "Critical": 16,
+                  "High": 65,
+                  "Low": 127,
+                  "Medium": 268,
+                  "Negligible": 155,
+                  "Unknown": 8
+                }
+              },
+              "start_time": "2020-03-20T21:45:31.227732Z",
+              "end_time": "2020-03-20T21:45:34.863487Z",
+              "scanner": {
+                "name": "Clair",
+                "vendor": "CoreOS",
+                "version": "2.x"
+              }
+            }
+          }
+        }
+      ],
+      "repository": {
+        "name": "environmentname-here/servicename-here",
+        "namespace": "projectname-here",
+        "repo_full_name": "projectname-here/environmentname-here/servicename-here",
+        "repo_type": "public"
+      }
+    }
+  }

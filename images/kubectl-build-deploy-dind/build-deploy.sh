@@ -8,11 +8,13 @@ NAMESPACE=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
 REGISTRY_REPOSITORY=$NAMESPACE
 LAGOON_VERSION=$(cat /lagoon/version)
 
+set +x # reduce noise in build logs
 if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
   INTERNAL_REGISTRY_URL=$(jq --argjson data "$LAGOON_PROJECT_VARIABLES" -n -r '$data | .[] | select(.scope == "internal_container_registry") | select(.name == "INTERNAL_REGISTRY_URL") | .value' | sed -e 's#^http://##' | sed -e 's#^https://##')
   INTERNAL_REGISTRY_USERNAME=$(jq --argjson data "$LAGOON_PROJECT_VARIABLES" -n -r '$data | .[] | select(.scope == "internal_container_registry") | select(.name == "INTERNAL_REGISTRY_USERNAME") | .value')
   INTERNAL_REGISTRY_PASSWORD=$(jq --argjson data "$LAGOON_PROJECT_VARIABLES" -n -r '$data | .[] | select(.scope == "internal_container_registry") | select(.name == "INTERNAL_REGISTRY_PASSWORD") | .value')
 fi
+set -x
 
 if [ "$CI" == "true" ]; then
   CI_OVERRIDE_IMAGE_REPO=172.17.0.1:5000/lagoon
@@ -48,8 +50,7 @@ PRIVATE_REGISTRY_URLS=()
 PRIVATE_DOCKER_HUB_REGISTRY=0
 PRIVATE_EXTERNAL_REGISTRY=0
 
-set +x
-
+set +x # reduce noise in build logs
 DEPLOYER_TOKEN=$(cat /var/run/secrets/lagoon/deployer/token)
 
 kubectl config set-credentials lagoon/kubernetes.default.svc --token="${DEPLOYER_TOKEN}"
@@ -59,7 +60,10 @@ kubectl config use-context default/lagoon/kubernetes.default.svc
 
 if [ ! -z ${INTERNAL_REGISTRY_URL} ] && [ ! -z ${INTERNAL_REGISTRY_USERNAME} ] && [ ! -z ${INTERNAL_REGISTRY_PASSWORD} ] ; then
   echo "docker login -u '${INTERNAL_REGISTRY_USERNAME}' -p '${INTERNAL_REGISTRY_PASSWORD}' ${INTERNAL_REGISTRY_URL}" | /bin/bash
-  kubectl create secret docker-registry lagoon-internal-registry-secret --docker-server=${INTERNAL_REGISTRY_URL} --docker-username=${INTERNAL_REGISTRY_USERNAME} --docker-password=${INTERNAL_REGISTRY_PASSWORD} --dry-run -o yaml | kubectl apply -f -
+  # create lagoon-internal-registry-secret if it does not exist yet
+  if ! kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get secret lagoon-internal-registry-secret &> /dev/null; then
+    kubectl create secret docker-registry lagoon-internal-registry-secret --docker-server=${INTERNAL_REGISTRY_URL} --docker-username=${INTERNAL_REGISTRY_USERNAME} --docker-password=${INTERNAL_REGISTRY_PASSWORD} --dry-run -o yaml | kubectl apply -f -
+  fi
   REGISTRY_SECRETS+=("lagoon-internal-registry-secret")
   REGISTRY=$INTERNAL_REGISTRY_URL # This will handle pointing Lagoon at the correct registry for non local builds
 fi
@@ -126,7 +130,6 @@ do
     fi
   fi
 done
-
 set -x
 
 .  /kubectl-build-deploy/build-deploy-docker-compose.sh

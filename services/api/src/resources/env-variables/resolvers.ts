@@ -1,43 +1,28 @@
 import * as R from 'ramda';
 import { ResolverFn } from '../';
-import {
-  prepare, query,
-} from '../../util/db';
+import { query } from '../../util/db';
 import { Sql } from './sql';
 import { Helpers as environmentHelpers } from '../environment/helpers';
+import { Helpers as projectHelpers } from '../project/helpers';
 
-const envVarScopeToString = R.cond([
-  [R.equals('GLOBAL'), R.toLower],
-  [R.equals('BUILD'), R.toLower],
-  [R.equals('RUNTIME'), R.toLower],
-  [R.equals('CONTAINER_REGISTRY'), R.toLower],
-  [R.equals('INTERNAL_CONTAINER_REGISTRY'), R.toLower],
-  [R.T, R.identity],
-]);
 
 export const getEnvVarsByProjectId: ResolverFn = async (
   { id: pid },
   args,
-  {
-    sqlClient,
-    hasPermission,
-  },
+  { sqlClientPool, hasPermission }
 ) => {
   await hasPermission('env_var', 'project:view', {
-    project: pid,
+    project: pid
   });
 
-  const prep = prepare(
-    sqlClient,
-    `SELECT
-        ev.*
-      FROM env_vars ev
-      JOIN project p ON ev.project = p.id
-      WHERE ev.project = :pid
-    `,
+  const rows = await query(
+    sqlClientPool,
+    `SELECT ev.*
+    FROM env_vars ev
+    JOIN project p ON ev.project = p.id
+    WHERE ev.project = :pid`,
+    { pid }
   );
-
-  const rows = await query(sqlClient, prep({ pid }));
 
   return rows;
 };
@@ -45,115 +30,124 @@ export const getEnvVarsByProjectId: ResolverFn = async (
 export const getEnvVarsByEnvironmentId: ResolverFn = async (
   { id: eid },
   args,
-  {
-    sqlClient,
-    hasPermission,
-  },
+  { sqlClientPool, hasPermission }
 ) => {
-  const environment = await environmentHelpers(sqlClient).getEnvironmentById(eid);
+  const environment = await environmentHelpers(
+    sqlClientPool
+  ).getEnvironmentById(eid);
 
-  await hasPermission('env_var', `environment:view:${environment.environmentType}`, {
-    project: environment.project,
-  });
-
-  const prep = prepare(
-    sqlClient,
-    `SELECT
-        ev.*
-      FROM env_vars ev
-      JOIN environment e on ev.environment = e.id
-      JOIN project p ON e.project = p.id
-      WHERE ev.environment = :eid
-    `,
+  await hasPermission(
+    'env_var',
+    `environment:view:${environment.environmentType}`,
+    {
+      project: environment.project
+    }
   );
 
-  const rows = await query(sqlClient, prep({ eid }));
+  const rows = await query(
+    sqlClientPool,
+    `SELECT ev.*
+    FROM env_vars ev
+    JOIN environment e on ev.environment = e.id
+    JOIN project p ON e.project = p.id
+    WHERE ev.environment = :eid`,
+    { eid }
+  );
 
   return rows;
 };
 
 export const addEnvVariable: ResolverFn = async (obj, args, context) => {
   const {
-    input: { type },
+    input: { type }
   } = args;
 
-  if (type.toLowerCase() === 'project') {
+  if (type === 'project') {
     return addEnvVariableToProject(obj, args, context);
-  } else if (type.toLowerCase() === 'environment') {
+  } else if (type === 'environment') {
     return addEnvVariableToEnvironment(obj, args, context);
   }
 };
 
 const addEnvVariableToProject = async (
   root,
-  {
-    input: {
-      id, type, typeId, name, value, scope: unformattedScope,
-    },
-  },
-  {
-    sqlClient,
-    hasPermission,
-  },
+  { input: { id, typeId, name, value, scope } },
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   await hasPermission('env_var', 'project:add', {
-    project: `${typeId}`,
+    project: `${typeId}`
   });
 
-  const scope = envVarScopeToString(unformattedScope);
-
-  const {
-    info: { insertId },
-  } = await query(
-    sqlClient,
+  const { insertId } = await query(
+    sqlClientPool,
     Sql.insertEnvVariable({
       id,
       name,
       value,
       scope,
-      project: typeId,
-    }),
+      project: typeId
+    })
   );
 
-  const rows = await query(sqlClient, Sql.selectEnvVariable(insertId));
+  const rows = await query(sqlClientPool, Sql.selectEnvVariable(insertId));
+
+  userActivityLogger(`User added environment variable to project '${typeId}'`, {
+    project: '',
+    event: 'api:addEnvVariableToProject',
+    payload: {
+      id,
+      name,
+      value,
+      scope,
+      typeId
+    }
+  });
 
   return R.prop(0, rows);
 };
 
 const addEnvVariableToEnvironment = async (
   root,
-  {
-    input: {
-      id, type, typeId, name, value, scope: unformattedScope,
-    },
-  },
-  {
-    sqlClient,
-    hasPermission,
-  },
+  { input: { id, typeId, name, value, scope } },
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
-  const environment = await environmentHelpers(sqlClient).getEnvironmentById(typeId);
+  const environment = await environmentHelpers(
+    sqlClientPool
+  ).getEnvironmentById(typeId);
 
-  await hasPermission('env_var', `environment:add:${environment.environmentType}`, {
-    project: environment.project,
-  });
+  await hasPermission(
+    'env_var',
+    `environment:add:${environment.environmentType}`,
+    {
+      project: environment.project
+    }
+  );
 
-  const scope = envVarScopeToString(unformattedScope);
-
-  const {
-    info: { insertId },
-  } = await query(
-    sqlClient,
+  const { insertId } = await query(
+    sqlClientPool,
     Sql.insertEnvVariable({
       id,
       name,
       value,
       scope,
-      environment: typeId,
-    }),
+      environment: typeId
+    })
   );
 
-  const rows = await query(sqlClient, Sql.selectEnvVariable(insertId));
+  const rows = await query(sqlClientPool, Sql.selectEnvVariable(insertId));
+
+  userActivityLogger(`User added environment variable to environment '${environment.name}' on '${environment.project}'`, {
+    project: '',
+    event: 'api:addEnvVariableToEnvironment',
+    payload: {
+      id,
+      name,
+      value,
+      scope,
+      typeId,
+      environment
+    }
+  });
 
   return R.prop(0, rows);
 };
@@ -161,18 +155,23 @@ const addEnvVariableToEnvironment = async (
 export const deleteEnvVariable: ResolverFn = async (
   root,
   { input: { id } },
-  {
-    sqlClient,
-    hasPermission,
-  },
+  { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
-  const perms = await query(sqlClient, Sql.selectPermsForEnvVariable(id));
+  const perms = await query(sqlClientPool, Sql.selectPermsForEnvVariable(id));
 
   await hasPermission('env_var', 'delete', {
-    project: R.path(['0', 'pid'], perms),
+    project: R.path(['0', 'pid'], perms)
   });
 
-  await query(sqlClient, Sql.deleteEnvVariable(id));
+  await query(sqlClientPool, Sql.deleteEnvVariable(id));
+
+  userActivityLogger(`User deleted environment variable`, {
+    project: '',
+    event: 'api:deleteEnvVariable',
+    payload: {
+      id
+    }
+  });
 
   return 'success';
 };
