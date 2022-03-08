@@ -834,6 +834,7 @@ const typeDefs = gql`
     routes: String
     monitoringUrls: String
     deployments(name: String, limit: Int): [Deployment]
+    insights(type: String, limit: Int): [Insight]
     backups(includeDeleted: Boolean, limit: Int): [Backup]
     tasks(id: Int, taskName: String, limit: Int): [Task]
     advancedTasks: [AdvancedTaskDefinition]
@@ -909,6 +910,17 @@ const typeDefs = gql`
     priority: Int
     bulkId: String
     bulkName: String
+  }
+
+  type Insight {
+    id: Int
+    type: String
+    created: String
+    fileId: String
+    data: String
+    file: String!
+    environment: Environment!
+    downloadUrl: String
   }
 
   type EnvKeyValue {

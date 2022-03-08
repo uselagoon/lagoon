@@ -49,4 +49,33 @@ export const Sql = {
         's3_file.deleted': knex.fn.now(),
       })
       .toString(),
+  selectInsightFiles: (iid: number) =>
+    knex('insight_file')
+      .join('s3_file', 'insight_file.fid', '=', 's3_file.id')
+      .where('insight_file.iid', iid)
+      .andWhere('s3_file.deleted', '0000-00-00 00:00:00')
+      .orderBy('s3_file.created', 'desc')
+      .toString(),
+  insertFileInsight: ({
+    iid,
+    fid,
+  }: {
+    iid: number,
+    fid: number,
+  }) =>
+    knex('insight_file')
+      .insert({
+        iid,
+        fid,
+      })
+      .toString(),
+  deleteFileInsight: (id: number) =>
+    knex('s3_file')
+      .join('insight_file', 's3_file.id', '=', 'insight_file.fid')
+      .where('insight_file.iid', id)
+      .andWhere('s3_file.deleted', '0000-00-00 00:00:00')
+      .update({
+        's3_file.deleted': knex.fn.now(),
+      })
+      .toString(),
 };

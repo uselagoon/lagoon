@@ -257,6 +257,12 @@ CREATE TABLE IF NOT EXISTS task_file (
   CONSTRAINT task_file_pkey PRIMARY KEY (tid, fid)
 );
 
+CREATE TABLE IF NOT EXISTS insight_file (
+  iid int REFERENCES insight_id (id),
+  fid int REFERENCES file_id (id),
+  CONSTRAINT insight_file_pkey PRIMARY KEY (iid, fid)
+);
+
 CREATE TABLE IF NOT EXISTS environment_fact (
   id                       int NOT NULL auto_increment PRIMARY KEY,
   environment              int REFERENCES environment (id),
