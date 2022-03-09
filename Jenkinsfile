@@ -77,7 +77,7 @@ pipeline {
         stage ('collect logs') {
           steps {
             sh script: "while [ ! -f ./kubeconfig.kind.${CI_BUILD_TAG} ]; do sleep 1; done", label: "Check for kubeconfig created"
-            timeout(time: 30, unit: 'MINUTES') {
+            timeout(time: 45, unit: 'MINUTES') {
               sh script: "./local-dev/stern --kubeconfig ./kubeconfig.kind.${CI_BUILD_TAG} --all-namespaces '^[a-z]' -t > test-suite-0.txt || true", label: "Collecting test-suite-0 logs"
             }
             sh script: "cat test-suite-0.txt", label: "View ${NODE_NAME}:${WORKSPACE}/test-suite-0.txt"
