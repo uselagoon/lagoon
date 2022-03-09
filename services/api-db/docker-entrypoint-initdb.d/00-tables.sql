@@ -169,14 +169,14 @@ CREATE TABLE IF NOT EXISTS env_vars (
   value       text NOT NULL,
   scope       ENUM('global', 'build', 'runtime', 'container_registry', 'internal_container_registry') NOT NULL DEFAULT 'global',
   project     int NULL REFERENCES project (id),
-  environment int NULL REFERENCES environent (id),
+  environment int NULL REFERENCES environment (id),
   UNIQUE KEY `name_project` (`name`,`project`),
   UNIQUE KEY `name_environment` (`name`,`environment`)
 );
 
 CREATE TABLE IF NOT EXISTS environment_service (
   id          int NOT NULL auto_increment PRIMARY KEY,
-  environment int NOT NULL REFERENCES environmnet (id),
+  environment int NOT NULL REFERENCES environment (id),
   name        varchar(100) NOT NULL
 );
 
@@ -245,14 +245,16 @@ CREATE TABLE IF NOT EXISTS project_notification (
 );
 
 CREATE TABLE IF NOT EXISTS user_ssh_key (
-  usid int REFERENCES user (id),
+  -- usid int REFERENCES user (id),
+  usid char(36),
   skid int REFERENCES ssh_key (id),
   CONSTRAINT user_ssh_key_pkey PRIMARY KEY (usid, skid)
 );
 
 CREATE TABLE IF NOT EXISTS task_file (
   tid int REFERENCES task (id),
-  fid int REFERENCES file (id),
+  -- fid int REFERENCES file (id),
+  fid int,
   CONSTRAINT task_file_pkey PRIMARY KEY (tid, fid)
 );
 
@@ -296,7 +298,7 @@ CREATE TABLE IF NOT EXISTS advanced_task_definition (
 
 CREATE TABLE IF NOT EXISTS advanced_task_definition_argument (
   id                                int NOT NULL auto_increment PRIMARY KEY,
-  advanced_task_definition          int REFERENCES advanved_task_definition(id),
+  advanced_task_definition          int REFERENCES advanced_task_definition(id),
   name                              varchar(300) NOT NULL UNIQUE,
   type                              ENUM('NUMERIC', 'STRING', 'ENVIRONMENT_SOURCE_NAME')
 );
