@@ -513,7 +513,7 @@ STERN_VERSION = 2.1.17
 CHART_TESTING_VERSION = v3.4.0
 KIND_IMAGE = kindest/node:v1.21.10@sha256:84709f09756ba4f863769bdcabe5edafc2ada72d3c8c44d6515fc581b66b029c
 TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-api-variables,active-standby-kubernetes,tasks,drush,drupal-php80,drupal-postgres,python,gitlab,github,bitbucket,node-mongodb,elasticsearch]
-CHARTS_TREEISH = main
+CHARTS_TREEISH = image_tag
 
 # Symlink the installed kubectl client if the correct version is already
 # installed, otherwise downloads it.
