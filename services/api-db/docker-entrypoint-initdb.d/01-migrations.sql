@@ -1217,7 +1217,7 @@ CREATE OR REPLACE PROCEDURE
         AND column_name = 'type'
     ) THEN
         ALTER TABLE `environment_fact`
-        ADD `type` ENUM('TEXT', 'URL') NOT NULL DEFAULT 'TEXT';
+        ADD `type` ENUM('TEXT', 'URL', 'SEMVER') NOT NULL DEFAULT 'TEXT';
     END IF;
   END;
 $$
@@ -1449,7 +1449,7 @@ CREATE OR REPLACE PROCEDURE
         AND column_name = 'development_build_priority'
     ) THEN
       ALTER TABLE `project`
-      ADD `development_build_priority` int NOT NULL default '6';
+      ADD `development_build_priority` int NOT NULL default '5';
     END IF;
   END;
 $$
