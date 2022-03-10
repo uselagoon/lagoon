@@ -80,7 +80,8 @@ CREATE TABLE IF NOT EXISTS project (
   deployments_disabled             int(1) NOT NULL default 0,
   production_build_priority        int NOT NULL default 6,
   development_build_priority       int NOT NULL default 5,
-  openshift                        int REFERENCES openshift (id),
+  -- openshift                        int REFERENCES openshift (id),
+  openshift                        int(11),
   openshift_project_pattern        varchar(300),
   development_environments_limit   int DEFAULT NULL,
   created                          timestamp DEFAULT CURRENT_TIMESTAMP,
@@ -90,7 +91,8 @@ CREATE TABLE IF NOT EXISTS project (
 CREATE TABLE IF NOT EXISTS environment (
   id                        int NOT NULL auto_increment PRIMARY KEY,
   name                      varchar(100),
-  project                   int REFERENCES project (id),
+  -- project                   int REFERENCES project (id),
+  project                   int(11),
   deploy_type               ENUM('branch', 'pullrequest', 'promote') NOT NULL,
   deploy_base_ref           varchar(100),
   deploy_head_ref           varchar(100),
@@ -101,7 +103,8 @@ CREATE TABLE IF NOT EXISTS environment (
   route                     varchar(300),
   routes                    text,
   monitoring_urls           text,
-  openshift                 int REFERENCES openshift (id),
+  -- openshift                 int REFERENCES openshift (id),
+  openshift                 int(11),
   openshift_project_pattern varchar(300),
   updated                   timestamp DEFAULT CURRENT_TIMESTAMP,
   created                   timestamp DEFAULT CURRENT_TIMESTAMP,
@@ -112,18 +115,21 @@ CREATE TABLE IF NOT EXISTS environment (
 -- add table for holding deploy_target configurations
 -- these are used in replacement of the default project openshift target
 CREATE TABLE IF NOT EXISTS deploy_target_config (
-  id                            int NOT NULL auto_increment PRIMARY KEY,
-  project                       int REFERENCES project (id),
-  weight                        int NOT NULL DEFAULT 0,
-  branches                      varchar(300),
-  pullrequests                  varchar(300),
-  deploy_target                  int REFERENCES openshift (id),
-  deploy_target_project_pattern  varchar(300)
+  id                              int NOT NULL auto_increment PRIMARY KEY,
+  -- project                         int REFERENCES project (id),
+  project                         int(11),
+  weight                          int NOT NULL DEFAULT 0,
+  branches                        varchar(300),
+pullrequests                      varchar(300),
+  -- deploy_target                   int REFERENCES openshift (id),
+  deploy_target                   int(11),
+  deploy_target_project_pattern   varchar(300)
 );
 
 CREATE TABLE IF NOT EXISTS environment_storage (
   id                       int NOT NULL auto_increment PRIMARY KEY,
-  environment              int REFERENCES environment (id),
+  -- environment              int REFERENCES environment (id),
+  environment              int(11),
   persistent_storage_claim varchar(100),
   bytes_used               bigint,
   updated                  date,
@@ -137,7 +143,8 @@ CREATE TABLE IF NOT EXISTS deployment (
   created      datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   started      datetime NULL,
   completed    datetime NULL,
-  environment  int NOT NULL REFERENCES environment (id),
+  -- environment  int REFERENCES environment (id),
+  environment  int(11),
   remote_id    varchar(50) NULL,
   priority     int NULL,
   bulk_id      varchar(50) NULL,
@@ -146,7 +153,8 @@ CREATE TABLE IF NOT EXISTS deployment (
 
 CREATE TABLE IF NOT EXISTS environment_backup (
   id                       int NOT NULL auto_increment PRIMARY KEY,
-  environment              int REFERENCES environment (id),
+  -- environment              int REFERENCES environment (id),
+  environment              int(11),
   source                   varchar(300),
   backup_id                varchar(300),
   created                  timestamp,
@@ -168,22 +176,26 @@ CREATE TABLE IF NOT EXISTS env_vars (
   name        varchar(300) NOT NULL,
   value       text NOT NULL,
   scope       ENUM('global', 'build', 'runtime', 'container_registry', 'internal_container_registry') NOT NULL DEFAULT 'global',
-  project     int NULL REFERENCES project (id),
-  environment int NULL REFERENCES environment (id),
+  -- project     int NULL REFERENCES project (id),
+  project     int(11),
+  -- environment int NULL REFERENCES environment (id),
+  environment int(11),
   UNIQUE KEY `name_project` (`name`,`project`),
   UNIQUE KEY `name_environment` (`name`,`environment`)
 );
 
 CREATE TABLE IF NOT EXISTS environment_service (
   id          int NOT NULL auto_increment PRIMARY KEY,
-  environment int NOT NULL REFERENCES environment (id),
+  -- environment int NOT NULL REFERENCES environment (id),
+  environment int(11) NOT NULL,
   name        varchar(100) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS task (
   id                        int NOT NULL auto_increment PRIMARY KEY,
   name                      varchar(100) NOT NULL,
-  environment               int NOT NULL REFERENCES environment (id),
+  -- environment               int NOT NULL REFERENCES environment (id),
+  environment               int(11) NOT NULL,
   service                   varchar(100) NOT NULL,
   command                   varchar(300) NOT NULL,
   status                    ENUM('active', 'succeeded', 'failed') NOT NULL,
@@ -206,7 +218,8 @@ CREATE TABLE IF NOT EXISTS s3_file (
 
 CREATE TABLE IF NOT EXISTS environment_problem (
   id                       int NOT NULL auto_increment PRIMARY KEY,
-  environment              int REFERENCES environment (id),
+  -- environment              int REFERENCES environment (id),
+  environment              int(11),
   severity                 varchar(300) DEFAULT '',
   severity_score           DECIMAL(1,1) DEFAULT 0.0,
   identifier               varchar(300) NOT NULL,
@@ -237,7 +250,8 @@ CREATE TABLE IF NOT EXISTS problem_harbor_scan_matcher (
 
 CREATE TABLE IF NOT EXISTS project_notification (
   nid      int,
-  pid      int REFERENCES project (id),
+  -- pid      int REFERENCES project (id),
+  pid      int(11),
   type     ENUM('slack','rocketchat','microsoftteams','email', 'webhook') NOT NULL,
   content_type ENUM('deployment', 'problem') NOT NULL,
   notification_severity_threshold int NOT NULL default 0,
@@ -247,20 +261,23 @@ CREATE TABLE IF NOT EXISTS project_notification (
 CREATE TABLE IF NOT EXISTS user_ssh_key (
   -- usid int REFERENCES user (id),
   usid char(36),
-  skid int REFERENCES ssh_key (id),
+  -- skid int REFERENCES ssh_key (id),
+  skid int(11),
   CONSTRAINT user_ssh_key_pkey PRIMARY KEY (usid, skid)
 );
 
 CREATE TABLE IF NOT EXISTS task_file (
-  tid int REFERENCES task (id),
+  -- tid int REFERENCES task (id),
+  tid int(11),
   -- fid int REFERENCES file (id),
-  fid int,
+  fid int(11),
   CONSTRAINT task_file_pkey PRIMARY KEY (tid, fid)
 );
 
 CREATE TABLE IF NOT EXISTS environment_fact (
   id                       int NOT NULL auto_increment PRIMARY KEY,
-  environment              int REFERENCES environment (id),
+  -- environment              int REFERENCES environment (id),
+  environment              int,
   name                     varchar(300) NOT NULL,
   value                    varchar(300) NOT NULL,
   type                     ENUM('TEXT', 'URL', 'SEMVER') DEFAULT 'TEXT',
@@ -274,7 +291,8 @@ CREATE TABLE IF NOT EXISTS environment_fact (
 
 CREATE TABLE IF NOT EXISTS environment_fact_reference (
   id      int NOT NULL auto_increment PRIMARY KEY,
-  fid     int NOT NULL REFERENCES environment_fact (id),
+  -- fid     int NOT NULL REFERENCES environment_fact (id),
+  fid     int NOT NULL,
   name    varchar(300) NOT NULL,
   UNIQUE(fid, name)
 );
@@ -286,8 +304,10 @@ CREATE TABLE IF NOT EXISTS advanced_task_definition (
   image                    varchar(2000) DEFAULT '',
   service                  varchar(100),
   type                     varchar(100) NOT NULL,
-  environment              int NULL REFERENCES environment(id),
-  project                  int NULL REFERENCES project(id),
+  -- environment              int NULL REFERENCES environment(id),
+  environment              int,
+  -- project                  int NULL REFERENCES project(id),
+  project                  int,
   group_name               varchar(2000) NULL,
   permission               ENUM('GUEST', 'DEVELOPER', 'MAINTAINER') DEFAULT 'GUEST',
   command                  text DEFAULT '',
@@ -298,7 +318,8 @@ CREATE TABLE IF NOT EXISTS advanced_task_definition (
 
 CREATE TABLE IF NOT EXISTS advanced_task_definition_argument (
   id                                int NOT NULL auto_increment PRIMARY KEY,
-  advanced_task_definition          int REFERENCES advanced_task_definition(id),
+  -- advanced_task_definition          int REFERENCES advanced_task_definition(id),
+  advanced_task_definition          int,
   name                              varchar(300) NOT NULL UNIQUE,
   type                              ENUM('NUMERIC', 'STRING', 'ENVIRONMENT_SOURCE_NAME')
 );
