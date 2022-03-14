@@ -1098,16 +1098,13 @@ CREATE OR REPLACE PROCEDURE
   update_unique_environment_fact()
 
   BEGIN
-    IF NOT EXISTS(
-      SELECT NULL
-      FROM INFORMATION_SCHEMA.COLUMNS
-      WHERE
-        table_name = 'environment_fact'
-        AND table_schema = 'infrastructure'
+    IF EXISTS(
+      SELECT null FROM INFORMATION_SCHEMA.STATISTICS WHERE
+      TABLE_NAME = 'environment_fact' and INDEX_NAME = 'environment'
     ) THEN
         ALTER TABLE `environment_fact`
-        DROP INDEX `PRIMARY`
-        ADD UNIQUE (environment, name, source)
+        DROP INDEX `environment`;
+        ALTER TABLE `environment_fact` ADD CONSTRAINT environment_fact_unique UNIQUE(environment, name, source);
     END IF;
   END;
 $$
@@ -1603,7 +1600,7 @@ CALL add_fact_source_and_description_to_environment_fact();
 CALL add_fact_type_to_environment_fact();
 CALL add_fact_category_to_environment_fact();
 CALL add_fact_key_to_environment_fact();
-CALL update_unique_environment_fact();
+-- CALL update_unique_environment_fact();
 CALL add_metadata_to_project();
 CALL add_content_type_to_project_notification();
 CALL convert_project_production_routes_to_text();
