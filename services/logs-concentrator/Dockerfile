@@ -1,4 +1,4 @@
-FROM fluent/fluentd:v1.13-1
+FROM fluent/fluentd:v1.14-1
 LABEL maintainer="support@amazee.io"
 
 ARG LAGOON_VERSION

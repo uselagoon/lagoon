@@ -1,5 +1,6 @@
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
 import { createDeployTask } from '@lagoon/commons/dist/tasks';
+import { generateBuildId } from '@lagoon/commons/dist/util';
 
 import { WebhookRequestData, deployData, Project } from '../types';
 
@@ -32,11 +33,14 @@ export async function bitbucketPush(webhook: WebhookRequestData, project: Projec
       shortSha: sha.substring(0, 7),
     }
 
+    let buildName = generateBuildId();
+
     const data: deployData = {
       projectName: project.name,
       type: 'branch',
       branchName: branchName,
       sha: sha,
+      buildName: buildName
     }
 
     let logMessage = `\`<${body.push.changes[0].new.links.html.href}>\``

@@ -455,7 +455,7 @@ const typeDefs = gql`
     consoleUrl: String
     token: String
     routerPattern: String
-    projectUser: String
+    projectUser: String @deprecated(reason: "Not used with RBAC permissions")
     sshHost: String
     sshPort: String
     created: String
@@ -471,7 +471,7 @@ const typeDefs = gql`
     consoleUrl: String
     token: String
     routerPattern: String
-    projectUser: String
+    projectUser: String @deprecated(reason: "Not used with RBAC permissions")
     sshHost: String
     sshPort: String
     created: String
@@ -644,6 +644,14 @@ const typeDefs = gql`
     *Important:* This is mainly used for drupal, but could be used for other services potentially
     """
     standbyAlias: String
+    """
+    What the production environment build priority should be (\`0 through 10\`)
+    """
+    productionBuildPriority: Int
+    """
+    What the development environment build priority should be (\`0 through 10\`)
+    """
+    developmentBuildPriority: Int
     """
     Should this project have auto idling enabled (\`1\` or \`0\`)
     """
@@ -883,6 +891,9 @@ const typeDefs = gql`
     The Lagoon URL
     """
     uiLink: String
+    priority: Int
+    bulkId: String
+    bulkName: String
   }
 
   type EnvKeyValue {
@@ -1046,6 +1057,7 @@ const typeDefs = gql`
       kubernetesNamespaceName: String
     ): Environment
     deploymentByRemoteId(id: String): Deployment
+    deploymentsByBulkId(bulkId: String): [Deployment]
     taskByRemoteId(id: String): Task
     taskById(id: Int): Task
     """
@@ -1192,6 +1204,8 @@ const typeDefs = gql`
     privateKey: String
     problemsUi: Int
     factsUi: Int
+    productionBuildPriority: Int
+    developmentBuildPriority: Int
     deploymentsDisabled: Int
   }
 
@@ -1264,6 +1278,9 @@ const typeDefs = gql`
     completed: String
     environment: Int!
     remoteId: String
+    priority: Int
+    bulkId: String
+    bulkName: String
   }
 
   input DeleteDeploymentInput {
@@ -1278,6 +1295,9 @@ const typeDefs = gql`
     completed: String
     environment: Int
     remoteId: String
+    priority: Int
+    bulkId: String
+    bulkName: String
   }
 
   input UpdateDeploymentInput {
@@ -1390,6 +1410,9 @@ const typeDefs = gql`
     consoleUrl: String!
     token: String
     routerPattern: String
+    """
+    @deprecated(reason: "Not used with RBAC permissions")
+    """
     projectUser: String
     sshHost: String
     sshPort: String
@@ -1405,6 +1428,9 @@ const typeDefs = gql`
     consoleUrl: String!
     token: String
     routerPattern: String
+    """
+    @deprecated(reason: "Not used with RBAC permissions")
+    """
     projectUser: String
     sshHost: String
     sshPort: String
@@ -1539,6 +1565,8 @@ const typeDefs = gql`
     developmentEnvironmentsLimit: Int
     problemsUi: Int
     factsUi: Int
+    productionBuildPriority: Int
+    developmentBuildPriority: Int
     deploymentsDisabled: Int
   }
 
@@ -1552,6 +1580,9 @@ const typeDefs = gql`
     consoleUrl: String
     token: String
     routerPattern: String
+    """
+    @deprecated(reason: "Not used with RBAC permissions")
+    """
     projectUser: String
     sshHost: String
     sshPort: String
@@ -1571,6 +1602,9 @@ const typeDefs = gql`
     consoleUrl: String
     token: String
     routerPattern: String
+    """
+    @deprecated(reason: "Not used with RBAC permissions")
+    """
     projectUser: String
     sshHost: String
     sshPort: String
@@ -1702,14 +1736,29 @@ const typeDefs = gql`
     id: Int!
   }
 
+  input EnvKeyValueInput {
+    name: String
+    value: String
+  }
+
   input DeployEnvironmentLatestInput {
     environment: EnvironmentInput!
+    priority: Int
+    bulkId: String
+    bulkName: String
+    buildVariables: [EnvKeyValueInput]
+    returnData: Boolean
   }
 
   input DeployEnvironmentBranchInput {
     project: ProjectInput!
     branchName: String!
     branchRef: String
+    priority: Int
+    bulkId: String
+    bulkName: String
+    buildVariables: [EnvKeyValueInput]
+    returnData: Boolean
   }
 
   input DeployEnvironmentPullrequestInput {
@@ -1720,12 +1769,22 @@ const typeDefs = gql`
     baseBranchRef: String!
     headBranchName: String!
     headBranchRef: String!
+    priority: Int
+    bulkId: String
+    bulkName: String
+    buildVariables: [EnvKeyValueInput]
+    returnData: Boolean
   }
 
   input DeployEnvironmentPromoteInput {
     sourceEnvironment: EnvironmentInput!
     project: ProjectInput!
     destinationEnvironment: String!
+    priority: Int
+    bulkId: String
+    bulkName: String
+    buildVariables: [EnvKeyValueInput]
+    returnData: Boolean
   }
 
   input switchActiveStandbyInput {
@@ -1774,6 +1833,12 @@ const typeDefs = gql`
   input ProjectGroupsInput {
     project: ProjectInput!
     groups: [GroupInput!]!
+  }
+
+  input BulkDeploymentLatestInput {
+    buildVariables: [EnvKeyValueInput]
+    environments: [DeployEnvironmentLatestInput!]!
+    name: String
   }
 
   type Mutation {
@@ -1867,6 +1932,7 @@ const typeDefs = gql`
     deleteUser(input: DeleteUserInput!): String
     deleteAllUsers: String
     addDeployment(input: AddDeploymentInput!): Deployment
+    bulkDeployEnvironmentLatest(input: BulkDeploymentLatestInput!): String
     deleteDeployment(input: DeleteDeploymentInput!): String
     updateDeployment(input: UpdateDeploymentInput): Deployment
     cancelDeployment(input: CancelDeploymentInput!): String

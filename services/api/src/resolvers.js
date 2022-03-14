@@ -36,10 +36,12 @@ const { getLagoonVersion } = require('./resources/lagoon/resolvers');
 const {
   getDeploymentsByEnvironmentId,
   getDeploymentByRemoteId,
+  getDeploymentsByBulkId,
   addDeployment,
   deleteDeployment,
   updateDeployment,
   cancelDeployment,
+  bulkDeployEnvironmentLatest,
   deployEnvironmentLatest,
   deployEnvironmentBranch,
   deployEnvironmentPullrequest,
@@ -155,6 +157,7 @@ const {
   getOpenshiftByProjectId,
   getOpenshiftByDeployTargetId,
   getOpenshiftByEnvironmentId,
+  getProjectUser,
   updateOpenshift,
   deleteAllOpenshifts,
 } = require('./resources/openshift/resolvers');
@@ -307,6 +310,12 @@ const resolvers = {
     SUCCEEDED: 'succeeded',
     FAILED: 'failed',
   },
+  Openshift: {
+    projectUser: getProjectUser,
+  },
+  Kubernetes: {
+    projectUser: getProjectUser,
+  },
   Project: {
     notifications: getNotificationsByProjectId,
     openshift: getOpenshiftByProjectId,
@@ -422,6 +431,7 @@ const resolvers = {
     environmentsByFactSearch: getEnvironmentsByFactSearch,
     userCanSshToEnvironment,
     deploymentByRemoteId: getDeploymentByRemoteId,
+    deploymentsByBulkId: getDeploymentsByBulkId,
     taskByRemoteId: getTaskByRemoteId,
     taskById: getTaskById,
     advancedTaskDefinitionById,
@@ -512,6 +522,7 @@ const resolvers = {
     deleteDeployment,
     updateDeployment,
     cancelDeployment,
+    bulkDeployEnvironmentLatest,
     addBackup,
     deleteBackup,
     deleteAllBackups,

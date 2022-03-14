@@ -33,6 +33,8 @@ CREATE OR REPLACE PROCEDURE
     IN storage_calc                    int(1),
     IN problems_ui                     int(1),
     IN facts_ui                        int(1),
+    IN production_build_priority       int,
+    IN development_build_priority      int,
     IN development_environments_limit  int
   )
   BEGIN
@@ -79,6 +81,8 @@ CREATE OR REPLACE PROCEDURE
         storage_calc,
         problems_ui,
         facts_ui,
+        production_build_priority,
+        development_build_priority,
         pullrequests,
         openshift,
         openshift_project_pattern,
@@ -108,6 +112,8 @@ CREATE OR REPLACE PROCEDURE
         storage_calc,
         problems_ui,
         facts_ui,
+        production_build_priority,
+        development_build_priority,
         pullrequests,
         os.id,
         openshift_project_pattern,
@@ -611,105 +617,6 @@ CREATE OR REPLACE PROCEDURE
 
   BEGIN
     DROP VIEW IF EXISTS pid_skid;
-  END;
-$$
-
-CREATE OR REPLACE PROCEDURE
-  create_users_for_orphaned_ssh_keys()
-
-  BEGIN
-    DECLARE ssh_key_id INT;
-    DECLARE ssh_key_name VARCHAR(100);
-    DECLARE user_comment TEXT;
-    DECLARE user_email VARCHAR(500);
-    DECLARE user_id INT;
-    DECLARE loop_done INTEGER DEFAULT 0;
-
-    -- Declare cursor to iterate over orphaned SSH keys (SSH keys which
-    -- have no matching entry in user_ssh_key junction table)
-    DECLARE orphaned_ssh_keys CURSOR FOR
-      SELECT ssh_key.id, ssh_key.name
-      FROM ssh_key
-      WHERE ssh_key.id NOT IN (
-        SELECT skid FROM user_ssh_key
-      );
-
-    -- When the next result is not found, stop the loop by setting loop_done variable
-    DECLARE CONTINUE HANDLER
-      FOR NOT FOUND SET loop_done = 1;
-
-    OPEN orphaned_ssh_keys;
-
-    insert_users_and_user_ssh_keys: LOOP
-      -- Fetch the current SSH key ID and name into variables
-      FETCH orphaned_ssh_keys INTO ssh_key_id, ssh_key_name;
-
-      IF loop_done = 1 THEN
-        LEAVE insert_users_and_user_ssh_keys;
-      END IF;
-
-      SET user_comment = CONCAT(
-        'User automatically migrated from SSH key with name "',
-        ssh_key_id,
-        '-',
-        ssh_key_name,
-        '".'
-      );
-
-      SET user_email = CONCAT(
-        ssh_key_id,
-        '-',
-        ssh_key_name
-      );
-
-      -- Create a user
-      INSERT INTO user(
-        email,
-        first_name,
-        last_name,
-        comment
-      )
-      VALUES (
-        user_email,
-        'auto-migrated-user',
-        'auto-migrated-user',
-        user_comment
-      );
-
-      -- Select the id of that user and then create a row in the user_ssh_key junction table
-      SELECT id INTO user_id FROM user WHERE comment = user_comment;
-      INSERT INTO user_ssh_key(usid, skid) VALUES(user_id, ssh_key_id);
-
-      -- Copy SSH key customer permissions to new customer_user junction table
-      IF EXISTS (
-        SELECT NULL
-        FROM INFORMATION_SCHEMA.TABLES
-        WHERE
-          table_name = 'customer_ssh_key'
-          AND table_schema = 'infrastructure'
-      ) THEN
-        INSERT INTO customer_user(cid, usid)
-        SELECT customer_ssh_key.cid, user_id
-        FROM customer_ssh_key
-        WHERE customer_ssh_key.skid = ssh_key_id;
-      END IF;
-
-      -- Copy SSH key project permissions to new project_user junction table
-      IF EXISTS (
-        SELECT NULL
-        FROM INFORMATION_SCHEMA.TABLES
-        WHERE
-          table_name = 'project_ssh_key'
-          AND table_schema = 'infrastructure'
-      ) THEN
-        INSERT INTO project_user(pid, usid)
-        SELECT project_ssh_key.pid, user_id
-        FROM project_ssh_key
-        WHERE project_ssh_key.skid = ssh_key_id;
-      END IF;
-    END LOOP insert_users_and_user_ssh_keys;
-
-    CLOSE orphaned_ssh_keys;
   END;
 $$
 
@@ -1511,6 +1418,117 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  add_production_build_priority_to_project()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'production_build_priority'
+    ) THEN
+      ALTER TABLE `project`
+      ADD `production_build_priority` int NOT NULL default '6';
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_development_build_priority_to_project()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'development_build_priority'
+    ) THEN
+      ALTER TABLE `project`
+      ADD `development_build_priority` int NOT NULL default '6';
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_priority_to_deployment()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'deployment'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'priority'
+    ) THEN
+      ALTER TABLE `deployment`
+      ADD `priority` int NULL;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_bulk_id_to_deployment()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'deployment'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'bulk_id'
+    ) THEN
+      ALTER TABLE `deployment`
+      ADD `bulk_id` varchar(50) NULL,
+      ADD `bulk_name` varchar(100) NULL;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_legacy_permissions()
+
+  BEGIN
+    DROP VIEW IF EXISTS pid_usid;
+    DROP VIEW IF EXISTS permission;
+
+    DROP TABLE IF EXISTS customer;
+    DROP TABLE IF EXISTS user;
+    DROP TABLE IF EXISTS customer_user;
+    DROP TABLE IF EXISTS project_user;
+
+    IF EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'openshift'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'project_user'
+    ) THEN
+      ALTER TABLE `openshift`
+      DROP COLUMN `project_user`;
+    END IF;
+
+    IF EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'customer'
+    ) THEN
+      ALTER TABLE `project`
+      DROP COLUMN `customer`;
+    END IF;
+  END;
+$$
+
 DELIMITER ;
 
 -- If adding new procedures, add them to the bottom of this list
@@ -1535,7 +1553,6 @@ CALL rename_openshift_projectname_in_environment();
 CALL add_routes_monitoring_urls_to_environments();
 CALL add_environment_limit_to_project();
 CALL drop_legacy_pid_skid_view();
-CALL create_users_for_orphaned_ssh_keys();
 CALL drop_legacy_customer_ssh_key_junction_table();
 CALL drop_legacy_project_ssh_key_junction_table();
 CALL add_active_systems_task_to_project();
@@ -1585,6 +1602,11 @@ CALL update_openshift_varchar_length();
 CALL migrate_project_openshift_to_environment();
 CALL drop_billing_data();
 CALL add_metadata_to_openshift();
+CALL add_production_build_priority_to_project();
+CALL add_development_build_priority_to_project();
+CALL add_priority_to_deployment();
+CALL add_bulk_id_to_deployment();
+CALL drop_legacy_permissions();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;
@@ -1592,3 +1614,7 @@ DROP PROCEDURE IF EXISTS DeleteProjectSshKey;
 DROP PROCEDURE IF EXISTS CreateCustomerSshKey;
 DROP PROCEDURE IF EXISTS DeleteCustomerSshKey;
 DROP PROCEDURE IF EXISTS CreateSshKey;
+-- Drop legacy permissions tables
+DROP PROCEDURE IF EXISTS CreateCustomer;
+DROP PROCEDURE IF EXISTS DeleteCustomer;
+DROP PROCEDURE IF EXISTS create_users_for_orphaned_ssh_keys;

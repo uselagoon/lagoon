@@ -10,9 +10,11 @@ const attrFilter = async (hasPermission, entity) => {
     await hasPermission('openshift', 'view:token');
     return entity;
   } catch (err) {
-    return R.omit(['token'], entity);
+    return R.omit(['token','consoleUrl','monitoringConfig'], entity);
   }
 };
+
+export const getProjectUser: ResolverFn = async () => null;
 
 export const addOpenshift: ResolverFn = async (
   args,
@@ -126,12 +128,13 @@ export const getOpenshiftByEnvironmentId: ResolverFn = async (
   { sqlClientPool, hasPermission }
 ) => {
   // get the project id for the environment
-  const { id: projectId } = await projectHelpers(
+  const project = await projectHelpers(
     sqlClientPool
   ).getProjectByEnvironmentId(eid);
+
   // check permissions on the project
   await hasPermission('openshift', 'view', {
-    project: projectId
+    project: project.project
   });
 
   const rows = await query(
