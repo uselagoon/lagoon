@@ -1110,6 +1110,24 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
+  add_service_to_environment_fact()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'environment_fact'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'service'
+    ) THEN
+        ALTER TABLE `environment_fact`
+        ADD `service` varchar(300) NULL;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
   update_user_password()
 
   BEGIN
@@ -1601,6 +1619,7 @@ CALL add_fact_type_to_environment_fact();
 CALL add_fact_category_to_environment_fact();
 CALL add_fact_key_to_environment_fact();
 CALL update_unique_environment_fact();
+CALL add_service_to_environment_fact();
 CALL add_metadata_to_project();
 CALL add_content_type_to_project_notification();
 CALL convert_project_production_routes_to_text();
