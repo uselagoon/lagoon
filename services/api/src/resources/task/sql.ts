@@ -129,6 +129,11 @@ export const Sql = {
           type
         })
       .toString(),
+    updateAdvancedTaskDefinition: ({ id, patch }: { id: number; patch: { [key: string]: any } }) =>
+     knex('advanced_task_definition')
+       .where('id', id)
+       .update(patch)
+       .toString(),
     selectAdvancedTaskDefinitionEnvironmentLinkById: (id: number) =>
           knex('task_registration')
             .where('task_registration.id', '=', id)
@@ -159,6 +164,11 @@ export const Sql = {
     selectAdvancedTaskDefinitionArgumentById:(id: number) =>
       knex('advanced_task_definition_argument')
         .where('advanced_task_definition_argument.id', '=', id)
+        .toString(),
+    deleteAdvancedTaskDefinitionArgumentByTaskDef:(advanced_task_definition: number) =>
+      knex('advanced_task_definition_argument')
+        .where('advanced_task_definition_argument.advanced_task_definition', '=', advanced_task_definition)
+        .del()
         .toString(),
     selectAdvancedTaskDefinitionByName:(name: string) =>
       knex('advanced_task_definition')
@@ -194,12 +204,12 @@ export const Sql = {
     .where('group_name', 'in', groups)
     .toString(),
   deleteAdvancedTaskDefinition:(id: number) =>
-  knex('advanced_task_definition')
-  .where('id', id)
-  .del()
-  .toString(),
+    knex('advanced_task_definition')
+    .where('id', id)
+    .del()
+    .toString(),
   deleteAdvancedTaskDefinitionArgumentsForTask:(taskId: number) => knex('advanced_task_definition_argument')
-  .where('advanced_task_definition', taskId)
-  .del()
-  .toString()
+    .where('advanced_task_definition', taskId)
+    .del()
+    .toString(),
 };

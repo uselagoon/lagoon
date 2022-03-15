@@ -307,3 +307,14 @@ CREATE TABLE IF NOT EXISTS notification_webhook (
   name        varchar(50) UNIQUE,
   webhook     varchar(2000)
 );
+
+
+CREATE TABLE IF NOT EXISTS workflow (
+  id                       int NOT NULL auto_increment PRIMARY KEY,
+  name                     varchar(50) NOT NULL,
+  event                    varchar(300) NOT NULL,
+  project                  int NOT NULL REFERENCES project(id),
+  advanced_task_definition int NOT NULL REFERENCES advanced_task_definition(id),
+  created                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  deleted                  timestamp NOT NULL DEFAULT '0000-00-00 00:00:00'
+);
