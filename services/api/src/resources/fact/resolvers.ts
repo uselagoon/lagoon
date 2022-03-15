@@ -183,7 +183,7 @@ export const getEnvironmentsByFactSearch: ResolverFn = async (
 
 export const addFact: ResolverFn = async (
   root,
-  { input: { id, environment: environmentId, name, value, source, description, type, category, keyFact } },
+  { input: { id, environment: environmentId, name, value, source, description, type, category, keyFact, service } },
   { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const environment = await environmentHelpers(
@@ -204,7 +204,8 @@ export const addFact: ResolverFn = async (
       description,
       type,
       keyFact,
-      category
+      category,
+      service
     }),
   );
 
@@ -222,7 +223,8 @@ export const addFact: ResolverFn = async (
         name,
         value,
         source,
-        description
+        description,
+        service
       }
       }
   });
@@ -255,7 +257,7 @@ export const addFacts: ResolverFn = async (
 
   const returnFacts = [];
   for (let i = 0; i < facts.length; i++) {
-    const { environment, name, value, source, description, type, category, keyFact } = facts[i];
+    const { environment, name, value, source, description, type, category, keyFact, service } = facts[i];
     const {
       insertId
     } = await query(
@@ -268,7 +270,8 @@ export const addFacts: ResolverFn = async (
         description,
         type,
         keyFact,
-        category
+        category,
+        service
       }),
     );
 
