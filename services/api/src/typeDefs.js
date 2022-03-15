@@ -267,6 +267,7 @@ const typeDefs = gql`
     type: FactType
     category: String
     references: [FactReference]
+    service: String
   }
 
   input AddFactInput {
@@ -279,6 +280,7 @@ const typeDefs = gql`
     keyFact: Boolean
     type: FactType
     category: String
+    service: String
   }
 
   input AddFactsInput {
@@ -294,6 +296,7 @@ const typeDefs = gql`
     keyFact: Boolean
     type: FactType
     category: String
+    service: String
   }
 
   input UpdateFactInput {
