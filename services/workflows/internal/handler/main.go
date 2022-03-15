@@ -12,7 +12,6 @@ import (
 	"log"
 	"net/http"
 	"time"
-
 	//"github.com/uselagoon/lagoon/services/actions-handler/internal/lagoon"
 	//lclient "github.com/uselagoon/lagoon/services/actions-handler/internal/lagoon/client"
 	//"github.com/uselagoon/lagoon/services/actions-handler/internal/lagoon/jwt"
@@ -172,14 +171,15 @@ func processingIncomingMessageQueueFactory(h *Messaging) func(mq.Message) {
 		incoming := &LagoonLog{}
 		err := json.Unmarshal(message.Body(), incoming)
 		if err != nil {
-			fmt.Println("could not unmarshall")
+			log.Println("could not unmarshall")
+			message.Ack(false)
+			return
 		}
-
 
 		//Ahhh, the issue is that there is no environment name passed thought ...
 		environmentName := incoming.Meta.Environment
 		if incoming.Meta.ProjectID != nil && incoming.Meta.EnvironmentID != nil {
-			fmt.Println("Connecting to " + h.LagoonAPI.Endpoint)
+			log.Println("Connecting to " + h.LagoonAPI.Endpoint)
 			client := graphql.NewClient(h.LagoonAPI.Endpoint,
 				&http.Client{Transport: &authedTransport{wrapped: http.DefaultTransport, h: h}})
 			projectId := int(*incoming.Meta.ProjectID)
@@ -194,15 +194,12 @@ func processingIncomingMessageQueueFactory(h *Messaging) func(mq.Message) {
 						incoming.Event, projectId, environmentName)
 					result, err := lagoonclient.InvokeWorkflowOnEnvironment(context.TODO(), client, wf.EnvironmentId, wf.AdvancedTaskId)
 					if err != nil {
-						log.Println(err)
-						//TODO: do we need some kind of retry logic here?
-						message.Ack(false) // ack to remove from queue
-						return
+						log.Println(fmt.Sprintf("Invocation error of %v for project:%v and environment %v - %v.\n", incoming.Event, projectId, environmentName, err))
+					} else {
+						log.Printf("Invocation result of %v for project:%v and environment %v - %v.\n",
+							incoming.Event, projectId, environmentName, result)
 					}
-					log.Printf("Invocation result of %v for project:%v and environment %v - %v.\n",
-						incoming.Event, projectId, environmentName, result)
 				}
-
 			}
 		}
 		message.Ack(false) // ack to remove from queue
