@@ -177,7 +177,11 @@ func processingIncomingMessageQueueFactory(h *Messaging) func(mq.Message) {
 		}
 
 		//Ahhh, the issue is that there is no environment name passed thought ...
-		environmentName := incoming.Meta.Environment
+		environmentIdentifier := fmt.Sprintf("%v", incoming.Meta.EnvironmentID)
+		if incoming.Meta.Environment != "" {
+			environmentIdentifier = fmt.Sprintf("%v:%v", incoming.Meta.Environment, incoming.Meta.EnvironmentID)
+		}
+
 		if incoming.Meta.ProjectID != nil && incoming.Meta.EnvironmentID != nil {
 			log.Println("Connecting to " + h.LagoonAPI.Endpoint)
 			client := graphql.NewClient(h.LagoonAPI.Endpoint,
@@ -191,13 +195,13 @@ func processingIncomingMessageQueueFactory(h *Messaging) func(mq.Message) {
 			for _, wf := range environmentWorkflows {
 				if lagoonclient.IsEventOfType(incoming.Event, wf.AdvancedTaskDetails) {
 					log.Printf("Found event of type %v for project:%v and environment %v - invoking.\n",
-						incoming.Event, projectId, environmentName)
+						incoming.Event, projectId, environmentIdentifier)
 					result, err := lagoonclient.InvokeWorkflowOnEnvironment(context.TODO(), client, wf.EnvironmentId, wf.AdvancedTaskId)
 					if err != nil {
-						log.Println(fmt.Sprintf("Invocation error of %v for project:%v and environment %v - %v.\n", incoming.Event, projectId, environmentName, err))
+						log.Println(fmt.Sprintf("Invocation error of %v for project:%v and environment %v - %v.\n", incoming.Event, projectId, environmentIdentifier, err))
 					} else {
 						log.Printf("Invocation result of %v for project:%v and environment %v - %v.\n",
-							incoming.Event, projectId, environmentName, result)
+							incoming.Event, projectId, environmentIdentifier, result)
 					}
 				}
 			}
