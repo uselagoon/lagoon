@@ -1355,6 +1355,20 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
+  change_name_index_for_advanced_task_argument()
+  BEGIN
+    IF EXISTS(
+      SELECT null FROM INFORMATION_SCHEMA.STATISTICS WHERE
+      TABLE_NAME = 'advanced_task_definition_argument' and INDEX_NAME = 'name'
+    ) THEN
+        ALTER TABLE `advanced_task_definition_argument`
+        DROP INDEX `name`;
+        ALTER TABLE `advanced_task_definition_argument` ADD CONSTRAINT advanced_task_definition_argument_unique UNIQUE(advanced_task_definition, name);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
   add_openshift_to_environment()
 
   BEGIN
@@ -1642,6 +1656,7 @@ CALL add_development_build_priority_to_project();
 CALL add_priority_to_deployment();
 CALL add_bulk_id_to_deployment();
 CALL drop_legacy_permissions();
+CALL change_name_index_for_advanced_task_argument();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;
