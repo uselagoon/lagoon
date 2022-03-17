@@ -16,7 +16,7 @@ export async function gitlabPullRequestClosed(webhook: WebhookRequestData, proje
 
     const meta: { [key: string]: any } = {
       projectName: project.name,
-      pullrequestNumber: body.object_attributes.id,
+      pullrequestNumber: body.object_attributes.iid,
       pullrequestTitle: body.object_attributes.title,
       pullrequestUrl: body.object_attributes.url,
       repoName: body.object_attributes.target.name,
@@ -29,7 +29,7 @@ export async function gitlabPullRequestClosed(webhook: WebhookRequestData, proje
     const ocsafety = string =>
     string.toLocaleLowerCase().replace(/[^0-9a-z-]/g, '-');
 
-    let branchName = `pr-${body.object_attributes.id}`
+    let branchName = `pr-${body.object_attributes.iid}`
     let openshiftProjectName = projectOpenShift.openshiftProjectPattern
     ? projectOpenShift.openshiftProjectPattern
         .replace('${branch}', ocsafety(branchName))
@@ -38,7 +38,7 @@ export async function gitlabPullRequestClosed(webhook: WebhookRequestData, proje
 
     const data: removeData = {
       projectName: project.name,
-      pullrequestNumber: body.object_attributes.id,
+      pullrequestNumber: body.object_attributes.iid,
       pullrequestTitle: body.object_attributes.title,
       branch: branchName,
       openshiftProjectName: openshiftProjectName,
@@ -48,7 +48,7 @@ export async function gitlabPullRequestClosed(webhook: WebhookRequestData, proje
     try {
       await createRemoveTask(data);
       sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:closed:handled`, meta,
-        `*[${project.name}]* PR <${body.object_attributes.url}|#${body.object_attributes.id} (${body.object_attributes.title})> closed in <${body.object_attributes.target.web_url}|${body.object_attributes.target.name}>`
+        `*[${project.name}]* PR <${body.object_attributes.url}|#${body.object_attributes.iid} (${body.object_attributes.title})> closed in <${body.object_attributes.target.web_url}|${body.object_attributes.target.name}>`
       )
       return;
     } catch (error) {
@@ -58,7 +58,7 @@ export async function gitlabPullRequestClosed(webhook: WebhookRequestData, proje
         case "UnknownActiveSystem":
           // These are not real errors and also they will happen many times. We just log them locally but not throw an error
           sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
-            `*[${project.name}]* PR ${body.object_attributes.id} closed. No remove task created, reason: ${error}`
+            `*[${project.name}]* PR ${body.object_attributes.iid} closed. No remove task created, reason: ${error}`
           )
           return;
 

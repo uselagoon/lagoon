@@ -12,11 +12,11 @@ stream_logs_deployment() {
   # this runs in a loop forever (until killed)
   while [ 1 ]
   do
-    # Gatter all pods and their containers for the current rollout and stream their logs into files
+    # Gather all pods and their containers for the current rollout and stream their logs into files
     kubectl -n ${NAMESPACE} get --insecure-skip-tls-verify pods -l pod-template-hash=${LATEST_POD_TEMPLATE_HASH} -o json | jq -r '.items[] | .metadata.name + " " + .spec.containers[].name' |
     {
       while read -r POD CONTAINER ; do
-          kubectl -n ${NAMESPACE} logs --insecure-skip-tls-verify --timestamps -f $POD -c $CONTAINER $SINCE_TIME 2> /dev/null > /tmp/oc-build-deploy/logs/container/${SERVICE_NAME}/$POD-$CONTAINER.log &
+          kubectl -n ${NAMESPACE} logs --insecure-skip-tls-verify --timestamps -f $POD -c $CONTAINER $SINCE_TIME 2> /dev/null > /tmp/kubectl-build-deploy/logs/container/${SERVICE_NAME}/$POD-$CONTAINER.log &
       done
 
       # this will wait for all log streaming we started to finish
@@ -45,6 +45,15 @@ if [[ $ret -ne 0 ]]; then
     echo "Rollout for ${SERVICE_NAME} failed, tried to gather some startup logs of the containers, hope this helps debugging:"
     find /tmp/kubectl-build-deploy/logs/container/${SERVICE_NAME}/ -type f -print0 2>/dev/null | xargs -0 -I % sh -c 'echo ======== % =========; cat %; echo'
   fi
+  # dump the pods of this service and the status/condition message from kubernetes into a table for debugging
+  # Example:
+  #
+  # POD/SERVICE NAME	STATUS	CONDITION	MESSAGE
+  # solr-abcd12345-abcde	Pending	PodScheduled	0/3 nodes are available: 3 Too many pods.
+  #
+  echo "If there is any additional information about the status of pods, it will be available here"
+  kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get pods -l lagoon.sh/service=${SERVICE_NAME} -o json | \
+    jq -r '["POD/SERVICE NAME","STATUS","CONDITION","MESSAGE"], (.items[] | . as $pod | .status.conditions[] | [ $pod.metadata.name, $pod.status.phase, .type, .message]) | @tsv'
 
   exit 1
 fi

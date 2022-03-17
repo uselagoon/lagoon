@@ -1,4 +1,4 @@
-FROM alpine:3.14.3
+FROM alpine:3.15.0
 
 RUN apk add --no-cache \
       bash \
@@ -46,7 +46,9 @@ RUN mkdir -m 700 /git/.ssh && \
 	git --bare init /git/python.git && \
 	git --bare init /git/node-mongodb.git && \
 	git --bare init /git/tasks.git && \
-	git --bare init /git/image-cache.git
+	git --bare init /git/image-cache.git && \
+	git --bare init /git/generic.git && \
+	git --bare init /git/bulk.git
 
 USER root
 

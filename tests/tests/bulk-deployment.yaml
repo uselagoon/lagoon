@@ -1,0 +1,24 @@
+---
+- include: features/random-wait.yaml
+
+- include: features/api-token.yaml
+  vars:
+    testname: "API TOKEN"
+
+- include: api/add-project.yaml
+  vars:
+    testname: "BULKDEPLOYMENT {{ cluster_type|upper }}"
+    project: ci-bulk-{{ cluster_type }}
+    git_repo_name: bulk.git
+    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
+
+- include: bulk-deployment/bulk-deployment.yaml
+  vars:
+    testname: "BULKDEPLOYMENT {{ cluster_type|upper }}"
+    git_repo_name: bulk.git
+    project: ci-bulk-{{ cluster_type }}
+
+- include: api/delete-project.yaml
+  vars:
+    testname: "BULKDEPLOYMENT {{ cluster_type|upper }}"
+    project: ci-bulk-{{ cluster_type }}

@@ -1,0 +1,65 @@
+---
+- include: features/random-wait.yaml
+
+- include: features/api-token.yaml
+  vars:
+    testname: "API TOKEN"
+
+- include: api/add-project.yaml
+  vars:
+    project: ci-drupal-80-{{ cluster_type }}
+    git_repo_name: drupal-80.git
+    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
+
+- include: drupal/drupal.yaml
+  vars:
+    testname: "Drupal 9 composer PHP 8.0 - MARIADB DBAAS {{ cluster_type|upper }}"
+    drupal_version: 9
+    db: mariadb
+    php_version: 8.0
+    git_repo_name: drupal-80.git
+    project: ci-drupal-80-{{ cluster_type }}
+    branch: drupal9-php80-mariadb-dbaas
+
+- include: api/delete-project.yaml
+  vars:
+    project: ci-drupal-80-{{ cluster_type }}
+
+- include: api/add-project.yaml
+  vars:
+    project: ci-drupal-pg-{{ cluster_type }}
+    git_repo_name: drupal-postgres.git
+    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
+
+- include: drupal/drupal.yaml
+  vars:
+    testname: "Drupal 9 composer PHP 8.0 - POSTGRES DBAAS {{ cluster_type|upper }}"
+    drupal_version: 9
+    db: postgres
+    php_version: 8.0
+    git_repo_name: drupal-postgres.git
+    project: ci-drupal-pg-{{ cluster_type }}
+    branch: drupal9-php80-postgres-dbaas
+
+- include: api/delete-project.yaml
+  vars:
+    project: ci-drupal-pg-{{ cluster_type }}
+
+- include: api/add-project.yaml
+  vars:
+    project: ci-node-mongodb-{{ cluster_type }}
+    git_repo_name: node-mongodb.git
+    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
+
+- include: node-mongodb/node-mongodb.yaml
+  vars:
+    testname: "Node 16 - MONGODB DBAAS {{ cluster_type|upper }}"
+    node_version: 16
+    db: mongodb
+    git_repo_name: node-mongodb.git
+    project: ci-node-mongodb-{{ cluster_type }}
+    branch: node-mongodb-dbaas
+
+- include: api/delete-project.yaml
+  vars:
+    project: ci-node-mongodb-{{ cluster_type }}

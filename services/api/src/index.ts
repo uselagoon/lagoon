@@ -2,7 +2,7 @@ import 'newrelic';
 import { Server } from 'http';
 import { promisify } from 'util';
 import { initSendToLagoonLogs } from '@lagoon/commons/dist/logs';
-import { initSendToLagoonTasks } from '@lagoon/commons/dist/tasks';
+import { initSendToLagoonTasks, initSendToLagoonActions } from '@lagoon/commons/dist/tasks';
 import { waitForKeycloak } from './util/waitForKeycloak';
 import { envHasConfig } from './util/config';
 import { logger } from './loggers/logger';
@@ -10,6 +10,7 @@ import { createServer } from './server';
 
 initSendToLagoonLogs();
 initSendToLagoonTasks();
+initSendToLagoonActions();
 
 const makeGracefulShutdown = (server: Server) => {
   return async (signal: NodeJS.Signals) => {

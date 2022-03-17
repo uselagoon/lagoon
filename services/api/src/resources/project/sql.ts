@@ -61,5 +61,73 @@ export const Sql = {
   truncateProject: () =>
     knex('project')
       .truncate()
-      .toString()
+      .toString(),
+  createProject: (input) => {
+
+    const {
+      id,
+      name,
+      gitUrl,
+      availability = "STANDARD",
+      privateKey,
+      subfolder,
+      routerPattern,
+      openshift,
+      openshiftProjectPattern,
+      activeSystemsDeploy = "lagoon_controllerBuildDeploy",
+      activeSystemsPromote = "lagoon_controllerBuildDeploy",
+      activeSystemsRemove = "lagoon_controllerRemove",
+      activeSystemsTask = "lagoon_controllerJob",
+      activeSystemsMisc = "lagoon_controllerMisc",
+      branches = "true",
+      pullrequests = "true",
+      productionEnvironment,
+      productionRoutes,
+      productionAlias = "lagoon-production",
+      standbyProductionEnvironment,
+      standbyRoutes,
+      standbyAlias = "lagoon-standby",
+      autoIdle = 1,
+      storageCalc = 1,
+      problemsUi = 0,
+      factsUi = 0,
+      productionBuildPriority = 5,
+      developmentBuildPriority = 6,
+      deploymentsDisabled = 0,
+      developmentEnvironmentsLimit = 5
+    } = input;
+
+    return knex('project').insert({
+    id,
+    name,
+    gitUrl,
+    availability,
+    privateKey,
+    subfolder,
+    routerPattern,
+    activeSystemsDeploy,
+    activeSystemsPromote,
+    activeSystemsRemove,
+    activeSystemsTask,
+    activeSystemsMisc,
+    branches,
+    productionEnvironment,
+    productionRoutes,
+    productionAlias,
+    standbyProductionEnvironment,
+    standbyRoutes,
+    standbyAlias,
+    autoIdle,
+    problemsUi,
+    factsUi,
+    productionBuildPriority,
+    developmentBuildPriority,
+    deploymentsDisabled,
+    storageCalc,
+    pullrequests,
+    openshift,
+    openshiftProjectPattern,
+    developmentEnvironmentsLimit
+  }).toString();
+ }
 };

@@ -29,21 +29,19 @@ const {
   getEnvironmentsByFactSearch,
 } = require('./resources/fact/resolvers');
 
-const {
-  SeverityScoreType
-} = require('./resources/problem/types');
+const { SeverityScoreType } = require('./resources/problem/types');
 
-const {
-  getLagoonVersion,
-} = require('./resources/lagoon/resolvers');
+const { getLagoonVersion } = require('./resources/lagoon/resolvers');
 
 const {
   getDeploymentsByEnvironmentId,
   getDeploymentByRemoteId,
+  getDeploymentsByBulkId,
   addDeployment,
   deleteDeployment,
   updateDeployment,
   cancelDeployment,
+  bulkDeployEnvironmentLatest,
   deployEnvironmentLatest,
   deployEnvironmentBranch,
   deployEnvironmentPullrequest,
@@ -74,12 +72,14 @@ const {
 
 const {
   addAdvancedTaskDefinition,
+  updateAdvancedTaskDefinition,
   advancedTaskDefinitionById,
   resolveTasksForEnvironment,
   getRegisteredTasksByEnvironmentId,
   advancedTaskDefinitionArgumentById,
   invokeRegisteredTask,
   deleteAdvancedTaskDefinition,
+  allAdvancedTaskDefinitions,
 } = require('./resources/task/task_definition_resolvers');
 
 const {
@@ -157,6 +157,7 @@ const {
   getOpenshiftByProjectId,
   getOpenshiftByDeployTargetId,
   getOpenshiftByEnvironmentId,
+  getProjectUser,
   updateOpenshift,
   deleteAllOpenshifts,
 } = require('./resources/openshift/resolvers');
@@ -174,7 +175,8 @@ const {
   deleteAllProjects,
   getProjectUrl,
   updateProjectMetadata,
-  removeProjectMetadataByKey
+  removeProjectMetadataByKey,
+  getPrivateKey,
 } = require('./resources/project/resolvers');
 
 const {
@@ -202,14 +204,7 @@ const {
   getGroupsByUserId,
   getGroupByName,
   addGroup,
-  addBillingGroup,
-  updateBillingGroup,
-  addProjectToBillingGroup,
-  updateProjectBillingGroup,
-  removeProjectFromBillingGroup,
   getAllProjectsInGroup,
-  getBillingGroupCost,
-  getAllBillingGroupsCost,
   getAllProjectsByGroupId,
   updateGroup,
   deleteGroup,
@@ -219,15 +214,6 @@ const {
   addGroupsToProject,
   removeGroupsFromProject,
 } = require('./resources/group/resolvers');
-
-const {
-  addBillingModifier,
-  updateBillingModifier,
-  deleteBillingModifier,
-  deleteAllBillingModifiersByBillingGroup,
-  getBillingModifiers,
-  getAllModifiersByGroupId
-} = require('./resources/billing/resolvers');
 
 const {
   addBackup,
@@ -247,6 +233,15 @@ const {
   addEnvVariable,
   deleteEnvVariable,
 } = require('./resources/env-variables/resolvers');
+
+const {
+  addWorkflow,
+  updateWorkflow,
+  deleteWorkflow,
+  resolveWorkflowsForEnvironment,
+  getWorkflowsByEnvironmentId,
+  resolveAdvancedTaskDefinitionsForWorkflow,
+} = require("./resources/workflow/resolvers");
 
 const resolvers = {
   Upload: GraphQLUpload,
@@ -315,6 +310,12 @@ const resolvers = {
     SUCCEEDED: 'succeeded',
     FAILED: 'failed',
   },
+  Openshift: {
+    projectUser: getProjectUser,
+  },
+  Kubernetes: {
+    projectUser: getProjectUser,
+  },
   Project: {
     notifications: getNotificationsByProjectId,
     openshift: getOpenshiftByProjectId,
@@ -323,23 +324,15 @@ const resolvers = {
     deployTargetConfigs: getDeployTargetConfigsByProjectId,
     envVariables: getEnvVarsByProjectId,
     groups: getGroupsByProjectId,
+    privateKey: getPrivateKey,
   },
   GroupInterface: {
     __resolveType(group) {
-      switch (group.type) {
-        case 'billing':
-          return 'BillingGroup';
-        default:
-          return 'Group';
-      }
+      return 'Group';
     },
   },
   Group: {
-    projects: getAllProjectsByGroupId,
-  },
-  BillingGroup: {
-    projects: getAllProjectsByGroupId,
-    modifiers: getAllModifiersByGroupId,
+    projects: getAllProjectsByGroupId
   },
   DeployTargetConfig: {
     project: getProjectById,
@@ -361,6 +354,7 @@ const resolvers = {
     facts: getFactsByEnvironmentId,
     openshift: getOpenshiftByEnvironmentId,
     kubernetes: getOpenshiftByEnvironmentId,
+    workflows: getWorkflowsByEnvironmentId,
   },
   Fact: {
     references: getFactReferencesByFactId,
@@ -394,7 +388,7 @@ const resolvers = {
         default:
           return null;
       }
-    },
+    }
   },
   AdvancedTaskDefinition: {
     __resolveType (obj) {
@@ -419,6 +413,9 @@ const resolvers = {
   Restore: {
     restoreLocation: getRestoreLocation,
   },
+  Workflow: {
+    advancedTaskDefinition: resolveAdvancedTaskDefinitionsForWorkflow,
+  },
   Query: {
     me: getMe,
     lagoonVersion: getLagoonVersion,
@@ -434,10 +431,12 @@ const resolvers = {
     environmentsByFactSearch: getEnvironmentsByFactSearch,
     userCanSshToEnvironment,
     deploymentByRemoteId: getDeploymentByRemoteId,
+    deploymentsByBulkId: getDeploymentsByBulkId,
     taskByRemoteId: getTaskByRemoteId,
     taskById: getTaskById,
     advancedTaskDefinitionById,
     advancedTasksForEnvironment: resolveTasksForEnvironment,
+    allAdvancedTaskDefinitions,
     advancedTaskDefinitionArgumentById,
     allProjects: getAllProjects,
     allOpenshifts: getAllOpenshifts,
@@ -446,12 +445,10 @@ const resolvers = {
     allProblems: getAllProblems,
     allGroups: getAllGroups,
     allProjectsInGroup: getAllProjectsInGroup,
-    billingGroupCost: getBillingGroupCost,
-    allBillingGroupsCost: getAllBillingGroupsCost,
-    allBillingModifiers: getBillingModifiers,
     allProblemHarborScanMatchers: getProblemHarborScanMatches,
     projectsByMetadata: getProjectsByMetadata,
     projectsByFactSearch: getProjectsByFactSearch,
+    workflowsForEnvironment: resolveWorkflowsForEnvironment,
     deployTargetConfigById: getDeployTargetConfigById,
     deployTargetConfigsByProjectId: getDeployTargetConfigsByProjectId,
     deployTargetConfigsByDeployTarget: getDeployTargetConfigsByDeployTarget,
@@ -525,6 +522,7 @@ const resolvers = {
     deleteDeployment,
     updateDeployment,
     cancelDeployment,
+    bulkDeployEnvironmentLatest,
     addBackup,
     deleteBackup,
     deleteAllBackups,
@@ -534,6 +532,7 @@ const resolvers = {
     deleteEnvVariable,
     addTask,
     addAdvancedTaskDefinition,
+    updateAdvancedTaskDefinition,
     deleteAdvancedTaskDefinition,
     invokeRegisteredTask,
     taskDrushArchiveDump,
@@ -554,12 +553,6 @@ const resolvers = {
     deployEnvironmentPromote,
     switchActiveStandby,
     addGroup,
-    addBillingGroup,
-    updateBillingGroup,
-    deleteBillingGroup: deleteGroup,
-    addProjectToBillingGroup,
-    updateProjectBillingGroup,
-    removeProjectFromBillingGroup,
     updateGroup,
     deleteGroup,
     deleteAllGroups,
@@ -567,10 +560,9 @@ const resolvers = {
     removeUserFromGroup,
     addGroupsToProject,
     removeGroupsFromProject,
-    addBillingModifier,
-    updateBillingModifier,
-    deleteBillingModifier,
-    deleteAllBillingModifiersByBillingGroup,
+    addWorkflow,
+    updateWorkflow,
+    deleteWorkflow,
     addDeployTargetConfig,
     deleteDeployTargetConfig,
     updateDeployTargetConfig,

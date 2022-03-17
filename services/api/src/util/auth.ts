@@ -16,7 +16,7 @@ interface ILegacyToken {
   role: string,
 }
 
-interface IKeycloakAuthAttributes {
+export interface IKeycloakAuthAttributes {
   project?: number;
   group?: string;
   users?: number[];
@@ -130,7 +130,9 @@ export const keycloakHasPermission = (grant, requestCache, modelClients) => {
       userActivityLogger.user_info(`User does not have permission to '${scope}' on '${resource}'`, {
         user: grant ? grant.access_token.content : null
       });
-      throw new KeycloakUnauthorizedError(`Unauthorized: You don't have permission to "${scope}" on "${resource}".`);
+      throw new KeycloakUnauthorizedError(`Unauthorized: You don't have permission to "${scope}" on "${resource}": ${JSON.stringify(
+        attributes
+      )}`);
     }
 
     // Check the redis cache before doing a full keycloak lookup.
@@ -150,7 +152,9 @@ export const keycloakHasPermission = (grant, requestCache, modelClients) => {
       userActivityLogger.user_info(`User does not have permission to '${scope}' on '${resource}'`, {
         user: grant.access_token.content
       });
-      throw new KeycloakUnauthorizedError(`Unauthorized: You don't have permission to "${scope}" on "${resource}".`);
+      throw new KeycloakUnauthorizedError(`Unauthorized: You don't have permission to "${scope}" on "${resource}": ${JSON.stringify(
+        attributes
+      )}`);
     }
 
     const currentUser = await UserModel.loadUserById(currentUserId);
@@ -328,6 +332,8 @@ export const keycloakHasPermission = (grant, requestCache, modelClients) => {
     userActivityLogger.user_info(`User does not have permission to '${scope}' on '${resource}'`, {
       user: grant.access_token.content
     });
-    throw new KeycloakUnauthorizedError(`Unauthorized: You don't have permission to "${scope}" on "${resource}".`);
+    throw new KeycloakUnauthorizedError(`Unauthorized: You don't have permission to "${scope}" on "${resource}": ${JSON.stringify(
+      attributes
+    )}`);
   };
 };

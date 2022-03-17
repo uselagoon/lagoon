@@ -2,7 +2,7 @@
 
 ## Requirements
 
-* Kubernetes 1.18+
+* Kubernetes 1.19+ (Kubernetes 1.22+ is not yet supported, see https://github.com/uselagoon/lagoon/issues/2816 for progress)
 * Familiarity with [Helm](https://helm.sh) and [Helm Charts](https://helm.sh/docs/topics/charts/#helm), and [kubectl](https://kubernetes.io/docs/tasks/tools/).
 * Ingress controller, we recommend [ingress-nginx](https://github.com/kubernetes/ingress-nginx), installed into ingress-nginx namespace
 * Cert manager (for TLS) - We highly recommend using letsencrypt

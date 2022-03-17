@@ -12,7 +12,6 @@ import {
   getOpenShiftInfoForProject,
   getOpenShiftInfoForEnvironment,
   getDeployTargetConfigsForProject,
-  getBillingGroupForProject,
   addOrUpdateEnvironment,
   getEnvironmentByName,
   addDeployment
@@ -25,6 +24,8 @@ import {
 import sha1 from 'sha1';
 import crypto from 'crypto';
 import moment from 'moment';
+
+import { jsonMerge } from './util'
 
 interface MessageConsumer {
   (msg: ConsumeMessage): Promise<void>;
@@ -52,6 +53,14 @@ export let sendToLagoonTasks = function(
 };
 
 export let sendToLagoonTasksMonitor = function sendToLagoonTasksMonitor(
+  task: string,
+  payload?: any
+) {
+  // TODO: Actually do something here?
+  return payload && undefined;
+};
+
+export let sendToLagoonActions = function(
   task: string,
   payload?: any
 ) {
@@ -146,6 +155,70 @@ class EnvironmentLimit extends Error {
     super(message);
     this.name = 'EnvironmentLimit';
   }
+}
+
+// add the lagoon actions queue publisher functions
+export const initSendToLagoonActions = function() {
+  connection = connect(
+    [`amqp://${rabbitmqUsername}:${rabbitmqPassword}@${rabbitmqHost}`],
+    // @ts-ignore
+    { json: true }
+  );
+
+  connection.on('connect', ({ url }) =>
+    logger.verbose('lagoon-actions: Connected to %s', url, {
+      action: 'connected',
+      url
+    })
+  );
+  connection.on('disconnect', params =>
+    // @ts-ignore
+    logger.error('lagoon-actions: Not connected, error: %s', params.err.code, {
+      action: 'disconnected',
+      reason: params
+    })
+  );
+
+  const channelWrapperTasks: ChannelWrapper = connection.createChannel({
+    setup(channel: ConfirmChannel) {
+      return Promise.all([
+        // Our main Exchange for all lagoon-actions
+        channel.assertExchange('lagoon-actions', 'direct', { durable: true }),
+
+        channel.assertExchange('lagoon-actions-delay', 'x-delayed-message', {
+          durable: true,
+          arguments: { 'x-delayed-type': 'fanout' }
+        }),
+        channel.bindExchange('lagoon-actions', 'lagoon-actions-delay', ''),
+      ]);
+    }
+  });
+
+  sendToLagoonActions = async (
+    task: string,
+    payload: any
+  ): Promise<string> => {
+    try {
+      const buffer = Buffer.from(JSON.stringify(payload));
+      await channelWrapperTasks.publish('lagoon-actions', '', buffer, {
+        persistent: true,
+        appId: task
+      });
+      logger.debug(
+        `lagoon-actions: Successfully created action '${task}'`,
+        payload
+      );
+      return `lagoon-actions: Successfully created action '${task}': ${JSON.stringify(
+        payload
+      )}`;
+    } catch (error) {
+      logger.error('lagoon-actions: Error send to lagoon-actions exchange', {
+        payload,
+        error
+      });
+      throw error;
+    }
+  };
 }
 
 export const initSendToLagoonTasks = function() {
@@ -274,15 +347,18 @@ export const getControllerBuildData = async function(deployData: any) {
     baseBranchName: baseBranch,
     baseSha,
     promoteSourceEnvironment,
-    deployTarget
+    deployTarget,
+    buildName, // buildname now comes from where the deployments are created, this is so it can be returned to the user when it is triggered
+    buildPriority,
+    bulkId,
+    bulkName,
+    buildVariables
   } = deployData;
 
   var environmentName = makeSafe(branchName)
 
   const result = await getOpenShiftInfoForProject(projectName);
   const lagoonProjectData = result.project
-  const billingGroupResult = await getBillingGroupForProject(projectName);
-  const projectBillingGroup = billingGroupResult.project
 
   var overlength = 58 - projectName.length;
   if ( environmentName.length > overlength ) {
@@ -297,6 +373,15 @@ export const getControllerBuildData = async function(deployData: any) {
     || lagoonProjectData.standbyProductionEnvironment === environmentName
   ) {
     environmentType = 'production'
+  }
+  var priority = buildPriority // set the priority to one provided from the build
+  // if no build priority is provided, then try and source the one from the project
+  // or default to 5 or 6
+  if ( priority == null ) {
+    priority = lagoonProjectData.developmentBuildPriority || 5
+    if (environmentType == 'production') {
+      priority = lagoonProjectData.productionBuildPriority || 6
+    }
   }
   var gitSha = sha as string
 
@@ -332,10 +417,6 @@ export const getControllerBuildData = async function(deployData: any) {
     alertContact = "unconfigured"
   }
 
-  const billingGroup = projectBillingGroup.groups.find(i => i.type == "billing" ) || ""
-  if (billingGroup.uptimeRobotStatusPageId && billingGroup.uptimeRobotStatusPageId != "null" && !R.isEmpty(billingGroup.uptimeRobotStatusPageId)){
-    uptimeRobotStatusPageIds.push(billingGroup.uptimeRobotStatusPageId)
-  }
   var uptimeRobotStatusPageId = uptimeRobotStatusPageIds.join('-')
 
   var pullrequestData: any = {};
@@ -430,6 +511,17 @@ export const getControllerBuildData = async function(deployData: any) {
     }
   }
 
+  var alertContact = ""
+  if (alertContactHA != undefined && alertContactSA != undefined){
+    if (availability == "HIGH") {
+      alertContact = alertContactHA
+    } else {
+      alertContact = alertContactSA
+    }
+  } else {
+    alertContact = "unconfigured"
+  }
+
   var availability = lagoonProjectData.availability || "STANDARD"
 
   // @TODO: openshiftProject here can't be generated on the cluster side (it should be) but the addOrUpdate mutation doesn't allow for openshiftProject to be optional
@@ -452,16 +544,21 @@ export const getControllerBuildData = async function(deployData: any) {
     throw new Error
   }
 
-  const randBuildId = Math.random().toString(36).substring(7);
-  const buildName = `lagoon-build-${randBuildId}`;
-
   let deployment;
   let environmentId;
   try {
     const now = moment.utc();
     const apiEnvironment = await getEnvironmentByName(branchName, lagoonProjectData.id, false);
     environmentId = apiEnvironment.environmentByName.id
-    deployment = await addDeployment(buildName, "NEW", now.format('YYYY-MM-DDTHH:mm:ss'), apiEnvironment.environmentByName.id);
+    deployment = await addDeployment(buildName,
+      "NEW",
+      now.format('YYYY-MM-DDTHH:mm:ss'),
+      apiEnvironment.environmentByName.id,
+      null, null, null, null,
+      buildPriority,
+      bulkId,
+      bulkName
+    );
   } catch (error) {
     logger.error(`Could not save deployment for project ${lagoonProjectData.id}. Message: ${error}`);
   }
@@ -472,9 +569,19 @@ export const getControllerBuildData = async function(deployData: any) {
   // avoiding the needs to hardcode them into the spec to then be consumed by the build-deploy controller
   lagoonProjectData.envVariables.push({"name":"LAGOON_SYSTEM_ROUTER_PATTERN", "value":routerPattern, "scope":"internal_system"})
 
+  let lagoonEnvironmentVariables = environment.addOrUpdateEnvironment.envVariables || []
+  if (buildVariables != null ) {
+    // add the build `scope` to all the incoming build variables for a specific build
+    const scopedBuildVariables = buildVariables.map(v => ({...v, scope: 'build'}))
+    // check for buildvariables being passed in
+    // these need to be merged on top of environment level variables
+    // handle that here
+    lagoonEnvironmentVariables = jsonMerge(environment.addOrUpdateEnvironment.envVariables, scopedBuildVariables, "name")
+  }
+
   // encode some values so they get sent to the controllers nicely
   const sshKeyBase64 = new Buffer(deployPrivateKey.replace(/\\n/g, "\n")).toString('base64')
-  const envVars = new Buffer(JSON.stringify(environment.addOrUpdateEnvironment.envVariables)).toString('base64')
+  const envVars = new Buffer(JSON.stringify(lagoonEnvironmentVariables)).toString('base64')
   const projectVars = new Buffer(JSON.stringify(lagoonProjectData.envVariables)).toString('base64')
 
   // this is what will be returned and sent to the controllers via message queue, it is the lagoonbuild controller spec
@@ -488,6 +595,8 @@ export const getControllerBuildData = async function(deployData: any) {
         type: type,
         image: {}, // the controller will know which image to use
         ci: CI,
+        priority: priority, // add the build priority
+        bulkId: bulkId, // add the bulk id if present
       },
       branch: {
         name: branchName,
@@ -503,7 +612,7 @@ export const getControllerBuildData = async function(deployData: any) {
         environment: environmentName,
         environmentType: environmentType,
         environmentId: environmentId,
-        environmentIdling: environment.autoIdle,
+        environmentIdling: environment.addOrUpdateEnvironment.autoIdle,
         projectIdling: lagoonProjectData.autoIdle,
         productionEnvironment: projectProductionEnvironment,
         standbyEnvironment: projectStandbyEnvironment,

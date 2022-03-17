@@ -13,11 +13,13 @@ export const CancelDeploymentButton = ({
   action,
   success,
   loading,
-  error
+  error,
+  beforeText,
+  afterText
 }) => (
   <>
     <Button action={action} disabled={loading || success}>
-      {success ? 'Cancellation requested' : 'Cancel deployment'}
+      {success ? afterText || 'Cancellation requested' : beforeText || 'Cancel deployment'}
     </Button>
 
     {error && (
@@ -29,7 +31,7 @@ export const CancelDeploymentButton = ({
   </>
 );
 
-const CancelDeployment = ({ deployment }) => (
+const CancelDeployment = ({ deployment, beforeText, afterText }) => (
   <Mutation
     mutation={CANCEL_DEPLOYMENT_MUTATION}
     variables={{
@@ -42,6 +44,8 @@ const CancelDeployment = ({ deployment }) => (
         success={data && data.cancelDeployment === 'success'}
         loading={loading}
         error={error}
+        beforeText={beforeText}
+        afterText={afterText}
       />
     )}
   </Mutation>

@@ -22,17 +22,12 @@ import { getKeycloakAdminClient } from '../clients/keycloak-admin';
 
   const allGroups = await GroupModel.loadAllGroups();
 
-  // This filters out Billing Groups that we don't need to create in Opendistro/Kibana
-  const userGroups = allGroups.filter(
-    ({ type }) => type !== 'billing' && type !== 'billing-poly'
-  );
-
-  let groupsQueue = (userGroups as Group[]).map(group => ({
+  let groupsQueue = (allGroups as Group[]).map(group => ({
     group,
     retries: 0
   }));
 
-  logger.info(`Syncing ${userGroups.length} groups`);
+  logger.info(`Syncing ${allGroups.length} groups`);
 
   while (groupsQueue.length > 0) {
     const { group, retries } = groupsQueue.shift();
@@ -50,20 +45,19 @@ import { getKeycloakAdminClient } from '../clients/keycloak-admin';
       const projectIds = R.join(',')(projectIdsArray);
 
       let roleName = group.name;
-      if(group.type && group.type == 'project-default-group') {
-        roleName = "p" + projectIds;
+      if (group.type && group.type == 'project-default-group') {
+        roleName = 'p' + projectIds;
       }
 
       let tenantName = group.name;
-      if(group.type && group.type == 'project-default-group') {
+      if (group.type && group.type == 'project-default-group') {
         tenantName = 'global_tenant';
       }
 
-      await OpendistroSecurityOperations(sqlClientPool, GroupModel).syncGroupWithSpecificTenant(
-        roleName,
-        tenantName,
-        projectIds
-      );
+      await OpendistroSecurityOperations(
+        sqlClientPool,
+        GroupModel
+      ).syncGroupWithSpecificTenant(roleName, tenantName, projectIds);
     } catch (err) {
       if (retries < 3) {
         logger.warn(`Error syncing, adding to end of queue: ${err.message}`);

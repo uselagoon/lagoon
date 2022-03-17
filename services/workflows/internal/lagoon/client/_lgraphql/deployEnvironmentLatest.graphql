@@ -1,0 +1,13 @@
+mutation (
+  $environment: EnvironmentInput!
+  $bulkId: String
+  $priority: Int
+  ) {
+    deployEnvironmentLatest(input: {
+      environment: $environment
+      bulkId: $bulkId
+      priority: $priority
+      returnData: true
+    }
+  )
+}

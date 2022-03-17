@@ -99,15 +99,6 @@ const typeDefs = gql`
     OWNER
   }
 
-  enum Currency {
-    AUD
-    EUR
-    GBP
-    USD
-    CHF
-    ZAR
-  }
-
   enum ProblemSeverityRating {
     NONE
     UNKNOWN
@@ -136,6 +127,7 @@ const typeDefs = gql`
     id: Int
     name: String
     type: String
+    range: [String]
     advancedTaskDefinition: AdvancedTaskDefinition
   }
 
@@ -166,6 +158,7 @@ const typeDefs = gql`
     environment: Int
     project: Int
     permission: TaskPermission
+    advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgument]
     created: String
     deleted: String
   }
@@ -186,6 +179,39 @@ const typeDefs = gql`
     created: String
     deleted: String
   }
+
+
+  type Workflow {
+    id: Int
+    name: String
+    event: String
+    project: Int
+    advancedTaskDefinition: AdvancedTaskDefinition
+  }
+
+  input AddWorkflowInput {
+    name: String
+    event: String
+    project: Int
+    advancedTaskDefinition: Int
+  }
+
+  input DeleteWorkflowInput {
+    id: Int!
+  }
+
+  input UpdateWorkflowPatchInput {
+    name: String
+    event: String
+    project: Int
+    advancedTaskDefinition: Int
+  }
+
+  input UpdateWorkflowInput {
+    id: Int!
+    patch: UpdateWorkflowPatchInput!
+  }
+
 
   type Problem {
     id: Int
@@ -274,6 +300,7 @@ const typeDefs = gql`
     type: FactType
     category: String
     references: [FactReference]
+    service: String
   }
 
   input AddFactInput {
@@ -286,6 +313,7 @@ const typeDefs = gql`
     keyFact: Boolean
     type: FactType
     category: String
+    service: String
   }
 
   input AddFactsInput {
@@ -301,6 +329,7 @@ const typeDefs = gql`
     keyFact: Boolean
     type: FactType
     category: String
+    service: String
   }
 
   input UpdateFactInput {
@@ -423,30 +452,20 @@ const typeDefs = gql`
     projects: [Project]
   }
 
-  type BillingGroup implements GroupInterface {
-    id: String
-    name: String
-    type: String
-    groups: [GroupInterface]
-    members: [GroupMembership]
-    projects: [Project]
-    currency: String
-    billingSoftware: String
-    modifiers: [BillingModifier]
-    uptimeRobotStatusPageId: String
-  }
-
   type Openshift {
     id: Int
     name: String
     consoleUrl: String
     token: String
     routerPattern: String
-    projectUser: String
+    projectUser: String @deprecated(reason: "Not used with RBAC permissions")
     sshHost: String
     sshPort: String
     created: String
     monitoringConfig: JSON
+    friendlyName: String
+    cloudProvider: String
+    cloudRegion: String
   }
 
   type Kubernetes {
@@ -455,11 +474,14 @@ const typeDefs = gql`
     consoleUrl: String
     token: String
     routerPattern: String
-    projectUser: String
+    projectUser: String @deprecated(reason: "Not used with RBAC permissions")
     sshHost: String
     sshPort: String
     created: String
     monitoringConfig: JSON
+    friendlyName: String
+    cloudProvider: String
+    cloudRegion: String
   }
 
   type NotificationMicrosoftTeams {
@@ -625,6 +647,14 @@ const typeDefs = gql`
     *Important:* This is mainly used for drupal, but could be used for other services potentially
     """
     standbyAlias: String
+    """
+    What the production environment build priority should be (\`0 through 10\`)
+    """
+    productionBuildPriority: Int
+    """
+    What the development environment build priority should be (\`0 through 10\`)
+    """
+    developmentBuildPriority: Int
     """
     Should this project have auto idling enabled (\`1\` or \`0\`)
     """
@@ -797,11 +827,12 @@ const typeDefs = gql`
     advancedTasks: [AdvancedTaskDefinition]
     services: [EnvironmentService]
     problems(severity: [ProblemSeverityRating], source: [String]): [Problem]
-    facts(keyFacts: Boolean, limit: Int): [Fact]
+    facts(keyFacts: Boolean, limit: Int, summary: Boolean): [Fact]
     openshift: Openshift
     openshiftProjectPattern: String
     kubernetes: Kubernetes
     kubernetesNamespacePattern: String
+    workflows: [Workflow]
   }
 
   type EnvironmentHitsMonth {
@@ -863,6 +894,9 @@ const typeDefs = gql`
     The Lagoon URL
     """
     uiLink: String
+    priority: Int
+    bulkId: String
+    bulkName: String
   }
 
   type EnvKeyValue {
@@ -900,22 +934,6 @@ const typeDefs = gql`
     remoteId: String
     logs: String
     files: [File]
-  }
-
-  type BillingModifier {
-    id: Int
-    group: BillingGroup
-    startDate: String
-    endDate: String
-    discountFixed: Float
-    discountPercentage: Float
-    extraFixed: Float
-    extraPercentage: Float
-    min: Float
-    max: Float
-    customerComments: String
-    adminComments: String
-    weight: Int
   }
 
   type ProjectFactSearchResults {
@@ -1042,6 +1060,7 @@ const typeDefs = gql`
       kubernetesNamespaceName: String
     ): Environment
     deploymentByRemoteId(id: String): Deployment
+    deploymentsByBulkId(bulkId: String): [Deployment]
     taskByRemoteId(id: String): Task
     taskById(id: Int): Task
     """
@@ -1078,18 +1097,6 @@ const typeDefs = gql`
     """
     allProjectsInGroup(input: GroupInput): [Project]
     """
-    Returns the costs for a given billing group
-    """
-    billingGroupCost(input: GroupInput, month: String!): JSON
-    """
-    Returns the costs for all billing groups
-    """
-    allBillingGroupsCost(month: String!): JSON
-    """
-    Returns the Billing Group Modifiers for a given Billing Group (all modifiers for the Billing Group will be returned if the month is not provided)
-    """
-    allBillingModifiers(input: GroupInput!, month: String): [BillingModifier]
-    """
     Returns LAGOON_VERSION
     """
     lagoonVersion: JSON
@@ -1113,6 +1120,12 @@ const typeDefs = gql`
     Returns a AdvancedTaskDefinitionArgument by Id
     """
     advancedTaskDefinitionArgumentById(id: Int!) : [AdvancedTaskDefinitionArgument]
+
+    """
+    Returns all Workflows for an environment
+    """
+    workflowsForEnvironment(environment: Int!) : [Workflow]
+
     """
     Returns the DeployTargetConfig by a deployTargetConfig Id
     """
@@ -1194,6 +1207,8 @@ const typeDefs = gql`
     privateKey: String
     problemsUi: Int
     factsUi: Int
+    productionBuildPriority: Int
+    developmentBuildPriority: Int
     deploymentsDisabled: Int
   }
 
@@ -1266,6 +1281,9 @@ const typeDefs = gql`
     completed: String
     environment: Int!
     remoteId: String
+    priority: Int
+    bulkId: String
+    bulkName: String
   }
 
   input DeleteDeploymentInput {
@@ -1280,6 +1298,9 @@ const typeDefs = gql`
     completed: String
     environment: Int
     remoteId: String
+    priority: Int
+    bulkId: String
+    bulkName: String
   }
 
   input UpdateDeploymentInput {
@@ -1314,11 +1335,17 @@ const typeDefs = gql`
   enum AdvancedTaskDefinitionArgumentTypes {
     NUMERIC
     STRING
+    ENVIRONMENT_SOURCE_NAME
   }
 
   input AdvancedTaskDefinitionArgumentInput {
     name: String
     type: AdvancedTaskDefinitionArgumentTypes
+  }
+
+  input AdvancedTaskDefinitionArgumentValueInput {
+    advancedTaskDefinitionArgumentName: String
+    value: String
   }
 
   enum AdvancedTaskDefinitionTypes {
@@ -1327,6 +1354,25 @@ const typeDefs = gql`
   }
 
   input AdvancedTaskDefinitionInput {
+    name: String
+    description: String
+    image: String
+    type: AdvancedTaskDefinitionTypes
+    service: String
+    command: String
+    environment: Int
+    project: Int
+    groupName: String
+    permission: TaskPermission
+    advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgumentInput]
+  }
+
+  input UpdateAdvancedTaskDefinitionInput {
+    id: Int!
+    patch: UpdateAdvancedTaskDefinitionPatchInput!
+  }
+
+  input UpdateAdvancedTaskDefinitionPatchInput {
     name: String
     description: String
     image: String
@@ -1367,10 +1413,16 @@ const typeDefs = gql`
     consoleUrl: String!
     token: String
     routerPattern: String
+    """
+    @deprecated(reason: "Not used with RBAC permissions")
+    """
     projectUser: String
     sshHost: String
     sshPort: String
     monitoringConfig: JSON
+    friendlyName: String
+    cloudProvider: String
+    cloudRegion: String
   }
 
   input AddKubernetesInput {
@@ -1379,10 +1431,16 @@ const typeDefs = gql`
     consoleUrl: String!
     token: String
     routerPattern: String
+    """
+    @deprecated(reason: "Not used with RBAC permissions")
+    """
     projectUser: String
     sshHost: String
     sshPort: String
     monitoringConfig: JSON
+    friendlyName: String
+    cloudProvider: String
+    cloudRegion: String
   }
 
   input DeleteOpenshiftInput {
@@ -1510,6 +1568,8 @@ const typeDefs = gql`
     developmentEnvironmentsLimit: Int
     problemsUi: Int
     factsUi: Int
+    productionBuildPriority: Int
+    developmentBuildPriority: Int
     deploymentsDisabled: Int
   }
 
@@ -1523,10 +1583,16 @@ const typeDefs = gql`
     consoleUrl: String
     token: String
     routerPattern: String
+    """
+    @deprecated(reason: "Not used with RBAC permissions")
+    """
     projectUser: String
     sshHost: String
     sshPort: String
     monitoringConfig: JSON
+    friendlyName: String
+    cloudProvider: String
+    cloudRegion: String
   }
 
   input UpdateOpenshiftInput {
@@ -1539,10 +1605,16 @@ const typeDefs = gql`
     consoleUrl: String
     token: String
     routerPattern: String
+    """
+    @deprecated(reason: "Not used with RBAC permissions")
+    """
     projectUser: String
     sshHost: String
     sshPort: String
     monitoringConfig: JSON
+    friendlyName: String
+    cloudProvider: String
+    cloudRegion: String
   }
 
   input UpdateKubernetesInput {
@@ -1667,14 +1739,29 @@ const typeDefs = gql`
     id: Int!
   }
 
+  input EnvKeyValueInput {
+    name: String
+    value: String
+  }
+
   input DeployEnvironmentLatestInput {
     environment: EnvironmentInput!
+    priority: Int
+    bulkId: String
+    bulkName: String
+    buildVariables: [EnvKeyValueInput]
+    returnData: Boolean
   }
 
   input DeployEnvironmentBranchInput {
     project: ProjectInput!
     branchName: String!
     branchRef: String
+    priority: Int
+    bulkId: String
+    bulkName: String
+    buildVariables: [EnvKeyValueInput]
+    returnData: Boolean
   }
 
   input DeployEnvironmentPullrequestInput {
@@ -1685,12 +1772,22 @@ const typeDefs = gql`
     baseBranchRef: String!
     headBranchName: String!
     headBranchRef: String!
+    priority: Int
+    bulkId: String
+    bulkName: String
+    buildVariables: [EnvKeyValueInput]
+    returnData: Boolean
   }
 
   input DeployEnvironmentPromoteInput {
     sourceEnvironment: EnvironmentInput!
     project: ProjectInput!
     destinationEnvironment: String!
+    priority: Int
+    bulkId: String
+    bulkName: String
+    buildVariables: [EnvKeyValueInput]
+    returnData: Boolean
   }
 
   input switchActiveStandbyInput {
@@ -1705,81 +1802,6 @@ const typeDefs = gql`
   input AddGroupInput {
     name: String!
     parentGroup: GroupInput
-  }
-
-  input AddBillingModifierInput {
-    """
-    The existing billing group for this modifier
-    """
-    group: GroupInput!
-    """
-    The date this modifier should start to be applied - Format: YYYY-MM-DD
-    """
-    startDate: String!
-    """
-    The date this modifer will expire - Format: YYYY-MM-DD
-    """
-    endDate: String!
-    """
-    The amount that the total monthly bill should be discounted - Format (Float)
-    """
-    discountFixed: Float
-    """
-    The percentage the total monthly bill should be discounted - Format (0-100)
-    """
-    discountPercentage: Float
-    """
-    The amount of exta cost that should be added to the total- Format (Float)
-    """
-    extraFixed: Float
-    """
-    The percentage the total monthly bill should be added - Format (0-100)
-    """
-    extraPercentage: Float
-    """
-    The minimum amount of the invoice applied to the total- Format (Float)
-    """
-    min: Float
-    """
-    The maximum amount of the invoice applied to the total- Format (Float)
-    """
-    max: Float
-    """
-    Customer comments are visible to the customer
-    """
-    customerComments: String
-    """
-    Admin comments will not be visible to the customer.
-    """
-    adminComments: String!
-    """
-    The order this modifer should be applied
-    """
-    weight: Int
-  }
-
-  input BillingModifierPatchInput {
-    group: GroupInput
-    startDate: String
-    endDate: String
-    discountFixed: Float
-    discountPercentage: Float
-    extraFixed: Float
-    extraPercentage: Float
-    min: Float
-    max: Float
-    customerComments: String
-    adminComments: String
-    weight: Int
-  }
-
-  input UpdateBillingModifierInput {
-    id: Int!
-    patch: BillingModifierPatchInput!
-  }
-
-  input DeleteBillingModifierInput {
-    id: Int!
   }
 
   input UpdateGroupPatchInput {
@@ -1816,28 +1838,10 @@ const typeDefs = gql`
     groups: [GroupInput!]!
   }
 
-  input BillingGroupInput {
-    name: String!
-    currency: Currency!
-    billingSoftware: String
-    uptimeRobotStatusPageId: String
-  }
-
-  input ProjectBillingGroupInput {
-    group: GroupInput!
-    project: ProjectInput!
-  }
-
-  input UpdateBillingGroupPatchInput {
-    name: String!
-    currency: Currency
-    billingSoftware: String
-    uptimeRobotStatusPageId: String
-  }
-
-  input UpdateBillingGroupInput {
-    group: GroupInput!
-    patch: UpdateBillingGroupPatchInput!
+  input BulkDeploymentLatestInput {
+    buildVariables: [EnvKeyValueInput]
+    environments: [DeployEnvironmentLatestInput!]!
+    name: String
   }
 
   type Mutation {
@@ -1931,6 +1935,7 @@ const typeDefs = gql`
     deleteUser(input: DeleteUserInput!): String
     deleteAllUsers: String
     addDeployment(input: AddDeploymentInput!): Deployment
+    bulkDeployEnvironmentLatest(input: BulkDeploymentLatestInput!): String
     deleteDeployment(input: DeleteDeploymentInput!): String
     updateDeployment(input: UpdateDeploymentInput): Deployment
     cancelDeployment(input: CancelDeploymentInput!): String
@@ -1955,8 +1960,12 @@ const typeDefs = gql`
     deleteEnvVariable(input: DeleteEnvVariableInput!): String
     addTask(input: TaskInput!): Task
     addAdvancedTaskDefinition(input: AdvancedTaskDefinitionInput!): AdvancedTaskDefinition
-    invokeRegisteredTask(advancedTaskDefinition: Int!, environment: Int!): Task
+    updateAdvancedTaskDefinition(input: UpdateAdvancedTaskDefinitionInput!): AdvancedTaskDefinition
+    invokeRegisteredTask(advancedTaskDefinition: Int!, environment: Int!, argumentValues: [AdvancedTaskDefinitionArgumentValueInput]): Task
     deleteAdvancedTaskDefinition(advancedTaskDefinition: Int!): String
+    addWorkflow(input: AddWorkflowInput!): Workflow
+    updateWorkflow(input: UpdateWorkflowInput): Workflow
+    deleteWorkflow(input: DeleteWorkflowInput!): String
     taskDrushArchiveDump(environment: Int!): Task
     taskDrushSqlDump(environment: Int!): Task
     taskDrushCacheClear(environment: Int!): Task
@@ -1987,19 +1996,9 @@ const typeDefs = gql`
     addUserToGroup(input: UserGroupRoleInput!): GroupInterface
     removeUserFromGroup(input: UserGroupInput!): GroupInterface
     addGroupsToProject(input: ProjectGroupsInput): Project
-    addBillingGroup(input: BillingGroupInput!): BillingGroup
-    updateBillingGroup(input: UpdateBillingGroupInput!): BillingGroup
-    deleteBillingGroup(input: DeleteGroupInput!): String
-    addProjectToBillingGroup(input: ProjectBillingGroupInput): Project
-    updateProjectBillingGroup(input: ProjectBillingGroupInput): Project
-    removeProjectFromBillingGroup(input: ProjectBillingGroupInput): Project
     removeGroupsFromProject(input: ProjectGroupsInput!): Project
     updateProjectMetadata(input: UpdateMetadataInput!): Project
     removeProjectMetadataByKey(input: RemoveMetadataInput!): Project
-    addBillingModifier(input: AddBillingModifierInput!): BillingModifier
-    updateBillingModifier(input: UpdateBillingModifierInput!): BillingModifier
-    deleteBillingModifier(input: DeleteBillingModifierInput!): String
-    deleteAllBillingModifiersByBillingGroup(input: GroupInput!): String
     addDeployTargetConfig(input: AddDeployTargetConfigInput!): DeployTargetConfig  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
     updateDeployTargetConfig(input: UpdateDeployTargetConfigInput!): DeployTargetConfig  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
     deleteDeployTargetConfig(input: DeleteDeployTargetConfigInput!): String  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")

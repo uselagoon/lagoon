@@ -55,7 +55,7 @@ const AddTask = ({
               placeholder="Select a task..."
               name="task"
               value={options.find(o => o.value === selectedTask)}
-              onChange={selectedOption => setSelectedTask({id: selectedOption.id, value: selectedOption.value})}
+              onChange={selectedOption => setSelectedTask(selectedOption)}
               options={options}
               required
             />

@@ -1,7 +1,8 @@
 import * as R from 'ramda';
 import { ResolverFn } from '../';
-import { query, isPatchEmpty } from '../../util/db';
+import { query, isPatchEmpty, knex } from '../../util/db';
 import { Helpers as projectHelpers } from '../project/helpers';
+import sql from '../user/sql';
 import { Sql } from './sql';
 
 const attrFilter = async (hasPermission, entity) => {
@@ -9,9 +10,11 @@ const attrFilter = async (hasPermission, entity) => {
     await hasPermission('openshift', 'view:token');
     return entity;
   } catch (err) {
-    return R.omit(['token'], entity);
+    return R.omit(['token','consoleUrl','monitoringConfig'], entity);
   }
 };
+
+export const getProjectUser: ResolverFn = async () => null;
 
 export const addOpenshift: ResolverFn = async (
   args,
@@ -33,7 +36,16 @@ export const deleteOpenshift: ResolverFn = async (
 ) => {
   await hasPermission('openshift', 'delete');
 
-  await query(sqlClientPool, 'CALL deleteOpenshift(:name)', input);
+  let res = await query(sqlClientPool, knex('project')
+  .join('openshift', 'project.openshift', '=', 'openshift.id')
+  .where('openshift.name', input.name).count('project.id', {as: 'numactive'}).toString());
+
+  const numberActiveOs = R.path(['0', 'numactive'], res);
+  if(numberActiveOs > 0) {
+    throw new Error(`Openshift "${input.name} still in use, can not delete`);
+  }
+
+  res = await query(sqlClientPool, knex('openshift').where('name', input.name).delete().toString());
 
   // TODO: maybe check rows for changed result
   return 'success';
@@ -116,12 +128,13 @@ export const getOpenshiftByEnvironmentId: ResolverFn = async (
   { sqlClientPool, hasPermission }
 ) => {
   // get the project id for the environment
-  const { id: projectId } = await projectHelpers(
+  const project = await projectHelpers(
     sqlClientPool
   ).getProjectByEnvironmentId(eid);
+
   // check permissions on the project
   await hasPermission('openshift', 'view', {
-    project: projectId
+    project: project.project
   });
 
   const rows = await query(

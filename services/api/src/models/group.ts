@@ -6,17 +6,6 @@ import { logger } from '../loggers/logger';
 import GroupRepresentation from 'keycloak-admin/lib/defs/groupRepresentation';
 import { User } from './user';
 
-import {
-  getProjectsData,
-  extractMonthYear
-} from '../resources/billing/helpers';
-
-import { getProjectsCosts } from '../resources/billing/billingCalculations';
-
-import ProjectModel, { Project } from './project';
-import BillingModel from './billing';
-import EnvironmentModel from './environment';
-
 interface IGroupAttributes {
   'lagoon-projects'?: [string];
   comment?: [string];
@@ -31,18 +20,11 @@ export interface Group {
   path?: string;
   parentGroupId?: string;
   // Only groups that aren't role subgroups.
-  groups?: Group[] | BillingGroup[];
+  groups?: Group[];
   members?: GroupMembership[];
   // All subgroups according to keycloak.
   subGroups?: GroupRepresentation[];
   attributes?: IGroupAttributes;
-}
-
-export interface BillingGroup extends Group {
-  currency?: string;
-  billingSoftware?: string;
-  type?: string;
-  uptimeRobotStatusPageId?: string;
 }
 
 interface GroupMembership {
@@ -117,24 +99,18 @@ export const Group = (clients: {
 
   const transformKeycloakGroups = async (
     keycloakGroups: GroupRepresentation[]
-  ): Promise<Group[] | BillingGroup[]> => {
+  ): Promise<Group[]> => {
     // Map from keycloak object to group object
-    const groups = keycloakGroups.map((keycloakGroup: GroupRepresentation):
-      | Group
-      | BillingGroup => ({
-      id: keycloakGroup.id,
-      name: keycloakGroup.name,
-      type: attributeKVOrNull('type', keycloakGroup),
-      currency: attributeKVOrNull('currency', keycloakGroup),
-      billingSoftware: attributeKVOrNull('billingSoftware', keycloakGroup),
-      uptimeRobotStatusPageId: attributeKVOrNull(
-        'uptimeRobotStatusPageId',
-        keycloakGroup
-      ),
-      path: keycloakGroup.path,
-      attributes: keycloakGroup.attributes,
-      subGroups: keycloakGroup.subGroups
-    }));
+    const groups = keycloakGroups.map(
+      (keycloakGroup: GroupRepresentation): Group => ({
+        id: keycloakGroup.id,
+        name: keycloakGroup.name,
+        type: attributeKVOrNull('type', keycloakGroup),
+        path: keycloakGroup.path,
+        attributes: keycloakGroup.attributes,
+        subGroups: keycloakGroup.subGroups
+      })
+    );
 
     let groupsWithGroupsAndMembers = [];
 
@@ -152,7 +128,7 @@ export const Group = (clients: {
     return groupsWithGroupsAndMembers;
   };
 
-  const loadGroupById = async (id: string): Promise<Group | BillingGroup> => {
+  const loadGroupById = async (id: string): Promise<Group> => {
     const keycloakGroup = await keycloakAdminClient.groups.findOne({
       id
     });
@@ -166,9 +142,7 @@ export const Group = (clients: {
     return groups[0];
   };
 
-  const loadGroupByName = async (
-    name: string
-  ): Promise<Group | BillingGroup> => {
+  const loadGroupByName = async (name: string): Promise<Group> => {
     const keycloakGroups = await keycloakAdminClient.groups.find({
       search: name
     });
@@ -200,7 +174,7 @@ export const Group = (clients: {
 
   const loadGroupByIdOrName = async (
     groupInput: GroupInput
-  ): Promise<Group | BillingGroup> => {
+  ): Promise<Group> => {
     if (R.prop('id', groupInput)) {
       return loadGroupById(R.prop('id', groupInput));
     }
@@ -212,10 +186,10 @@ export const Group = (clients: {
     throw new Error('You must provide a group id or name');
   };
 
-  const loadAllGroups = async (): Promise<Group[] | BillingGroup[]> => {
+  const loadAllGroups = async (): Promise<Group[]> => {
     const keycloakGroups = await keycloakAdminClient.groups.find();
 
-    let fullGroups: Group[] | BillingGroup[] = [];
+    let fullGroups: Group[] = [];
     for (const group of keycloakGroups) {
       const fullGroup = await loadGroupById(group.id);
 
@@ -225,9 +199,7 @@ export const Group = (clients: {
     return fullGroups;
   };
 
-  const loadParentGroup = async (
-    groupInput: Group
-  ): Promise<Group | BillingGroup> =>
+  const loadParentGroup = async (groupInput: Group): Promise<Group> =>
     asyncPipe(
       R.prop('path'),
       R.split('/'),
@@ -236,9 +208,9 @@ export const Group = (clients: {
     )(groupInput);
 
   const filterGroupsByAttribute = (
-    groups: Group[] | BillingGroup[],
+    groups: Group[],
     filterFn: AttributeFilterFn
-  ): Group[] | BillingGroup[] =>
+  ): Group[] =>
     R.filter((group: Group) =>
       R.pipe(
         R.toPairs,
@@ -257,10 +229,10 @@ export const Group = (clients: {
 
   const loadGroupsByAttribute = async (
     filterFn: AttributeFilterFn
-  ): Promise<Group[] | BillingGroup[]> => {
+  ): Promise<Group[]> => {
     const keycloakGroups = await keycloakAdminClient.groups.find();
 
-    let fullGroups: Group[] | BillingGroup[] = [];
+    let fullGroups: Group[] = [];
     for (const group of keycloakGroups) {
       const fullGroup = await keycloakAdminClient.groups.findOne({
         id: group.id
@@ -276,9 +248,7 @@ export const Group = (clients: {
     return groups;
   };
 
-  const loadGroupsByProjectId = async (
-    projectId: number
-  ): Promise<Group[] | BillingGroup[]> => {
+  const loadGroupsByProjectId = async (projectId: number): Promise<Group[]> => {
     const filterFn = attribute => {
       if (attribute.name === 'lagoon-projects') {
         const value = R.is(Array, attribute.value)
@@ -410,7 +380,7 @@ export const Group = (clients: {
     return membership;
   };
 
-  const addGroup = async (groupInput: Group): Promise<Group | BillingGroup> => {
+  const addGroup = async (groupInput: Group): Promise<Group> => {
     // Don't allow duplicate subgroup names
     try {
       const existingGroup = await loadGroupByName(groupInput.name);
@@ -478,9 +448,7 @@ export const Group = (clients: {
     return group;
   };
 
-  const updateGroup = async (
-    groupInput: GroupEdit
-  ): Promise<Group | BillingGroup> => {
+  const updateGroup = async (groupInput: GroupEdit): Promise<Group> => {
     const oldGroup = await loadGroupById(groupInput.id);
 
     try {
@@ -549,7 +517,7 @@ export const Group = (clients: {
     user: User,
     groupInput: Group,
     roleName: string
-  ): Promise<Group | BillingGroup> => {
+  ): Promise<Group> => {
     const group = await loadGroupById(groupInput.id);
     // Load or create the role subgroup.
     let roleSubgroup: Group;
@@ -596,7 +564,7 @@ export const Group = (clients: {
   const removeUserFromGroup = async (
     user: User,
     group: Group
-  ): Promise<Group | BillingGroup> => {
+  ): Promise<Group> => {
     const members = await getGroupMembership(group);
     const userMembership = R.find(R.pathEq(['user', 'id'], user.id))(members);
 
@@ -646,7 +614,8 @@ export const Group = (clients: {
         {
           attributes: {
             ...group.attributes,
-            'lagoon-projects': [newGroupProjects]
+            'lagoon-projects': [newGroupProjects],
+            'group-lagoon-project-ids': [`{${JSON.stringify(group.name)}:[${newGroupProjects}]}`]
           }
         }
       );
@@ -696,7 +665,8 @@ export const Group = (clients: {
         {
           attributes: {
             ...group.attributes,
-            'lagoon-projects': [newGroupProjects]
+            'lagoon-projects': [newGroupProjects],
+            'group-lagoon-project-ids': [`{${JSON.stringify(group.name)}:[${newGroupProjects}]}`]
           }
         }
       );
@@ -724,116 +694,6 @@ export const Group = (clients: {
     }
   };
 
-  type availabilityProjectCostsType = {
-    hitCost: number;
-    storageCost: number;
-    environmentCost: {
-      prod: number;
-      dev: number;
-    };
-    projects: [Project];
-  };
-
-  const billingGroupCost = async (groupInput, yearMonth) => {
-    const group = (await loadGroupByIdOrName(groupInput)) as BillingGroup;
-    const { id, currency, name } = group;
-    const { month, year } = extractMonthYear(yearMonth);
-
-    // Get all projects in the group
-    const groupProjects = await ProjectModel(clients).projectsByGroup(group);
-
-    // Map a subset of project fields to the initial projects array
-    const initialProjects: [
-      {
-        id: string;
-        name: string;
-        availability: string;
-        month: string;
-        year: string;
-      }
-    ] = groupProjects.map(({ id, name, availability }) => ({
-      id,
-      name,
-      availability,
-      month,
-      year
-    }));
-
-    const availability = initialProjects[0].availability;
-
-    // Check that all projects have availability set
-    const availabilityCheck = initialProjects.reduce(
-      (acc, project) => [
-        ...acc,
-        ...(project.availability === '' && project.availability == availability
-          ? [project.name]
-          : [])
-      ],
-      []
-    );
-    if (availabilityCheck.length > 0) {
-      throw new Error(
-        `Project(s): [${availabilityCheck.join(
-          ', '
-        )}] must all have availability set and be the same in a billing group.`
-      );
-    }
-
-    const environment = EnvironmentModel(clients);
-
-    // Get the hit, storage, environment data for each project and month
-    const projects = await getProjectsData(
-      initialProjects,
-      yearMonth,
-      environment
-    );
-
-    // Get any modifiers for the month
-    const modifiers = await BillingModel(clients).getBillingModifiers(
-      groupInput,
-      yearMonth
-    );
-    const costs = getProjectsCosts(currency, projects, modifiers);
-
-    getProjectsCosts(currency, projects, modifiers);
-
-    // Return the JSON
-    return { id, name, yearMonth, currency, availability, ...costs };
-  };
-
-  const allBillingGroupCosts = async yearMonth => {
-    const allGroups: Group[] = await loadAllGroups();
-    const billingGroups = allGroups.filter(
-      ({ type }) => type === 'billing' || type === 'billing-poly'
-    );
-    const billingGroupCosts = [];
-    for (let i = 0; i < billingGroups.length; i++) {
-      const costs = await billingGroupCost(
-        { id: billingGroups[i].id },
-        yearMonth
-      );
-      billingGroupCosts.push(costs);
-    }
-
-    return billingGroupCosts
-      .map(billingGroup => {
-        if (billingGroup.availability === 'STANDARD' && billingGroup.projects) {
-          billingGroup.projects.map(project => {
-            project.environments = undefined;
-          });
-        }
-
-        if (billingGroup.availability === 'HIGH' && billingGroup.projects) {
-          billingGroup.projects.map(project => {
-            project.environments = undefined;
-          });
-        }
-
-        return billingGroup;
-      })
-      .sort((a, b) => a.currency.localeCompare(b.currency));
-  };
-
   return {
     loadAllGroups,
     loadGroupById,
@@ -850,8 +710,6 @@ export const Group = (clients: {
     addUserToGroup,
     removeUserFromGroup,
     addProjectToGroup,
-    removeProjectFromGroup,
-    billingGroupCost,
-    allBillingGroupCosts
+    removeProjectFromGroup
   };
 };

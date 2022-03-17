@@ -15,6 +15,7 @@
   vars:
     branch: "{{ branch }}"
     project: "{{ project }}"
+    namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
   tasks:
   - include: ../../tasks/api/deploy-no-sha.yaml
 
@@ -38,6 +39,7 @@
   vars:
     branch: "{{ branch }}"
     project: "{{ project }}"
+    namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
   tasks:
   - include: ../../tasks/api/deploy-no-sha.yaml
 

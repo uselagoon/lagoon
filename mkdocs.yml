@@ -70,6 +70,7 @@ nav:
   - Environment Idling: using-lagoon-advanced/environment-idling.md
   - Custom Tasks: using-lagoon-advanced/custom-tasks.md
   - DeployTarget Configs: using-lagoon-advanced/deploytarget-configs.md
+  - Blackfire: using-lagoon-advanced/blackfire.md  
 - Installing Lagoon:
   - Requirements: installing-lagoon/requirements.md
   - Install Lagoon Core: installing-lagoon/lagoon-core.md
