@@ -13,3 +13,4 @@ jobs:
       with:
         use-quiet-mode: 'yes'
         folder-path: 'docs'
+        config-file: 'docs/markdown-link-check.config.json'

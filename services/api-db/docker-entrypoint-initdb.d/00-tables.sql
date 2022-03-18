@@ -11,30 +11,12 @@ CREATE TABLE IF NOT EXISTS ssh_key (
   created          timestamp DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS user (
-  id            int NOT NULL auto_increment PRIMARY KEY,
-  email         varchar(100) UNIQUE,
-  first_name    varchar(50),
-  last_name     varchar(50),
-  comment       text,
-  gitlab_id     int
-);
-
-CREATE TABLE IF NOT EXISTS customer (
-  id             int NOT NULL auto_increment PRIMARY KEY,
-  name           varchar(50) UNIQUE,
-  comment        text,
-  private_key    varchar(5000),
-  created        timestamp DEFAULT CURRENT_TIMESTAMP
-);
-
 CREATE TABLE IF NOT EXISTS openshift (
   id                  int NOT NULL auto_increment PRIMARY KEY,
   name                varchar(50) UNIQUE,
   console_url         varchar(300),
   token               varchar(2000),
   router_pattern      varchar(300),
-  project_user        varchar(100),
   ssh_host            varchar(300),
   ssh_port            varchar(50),
   monitoring_config   varchar(2048),
@@ -74,7 +56,6 @@ CREATE TABLE IF NOT EXISTS notification_email (
 CREATE TABLE IF NOT EXISTS project (
   id                               int NOT NULL auto_increment PRIMARY KEY,
   name                             varchar(100) UNIQUE,
-  customer                         int REFERENCES customer (id),
   git_url                          varchar(300),
   availability                     varchar(50) NOT NULL DEFAULT 'STANDARD',
   subfolder                        varchar(300),
@@ -97,6 +78,8 @@ CREATE TABLE IF NOT EXISTS project (
   problems_ui                      int(1) NOT NULL default 0,
   facts_ui                         int(1) NOT NULL default 0,
   deployments_disabled             int(1) NOT NULL default 0,
+  production_build_priority        int NOT NULL default 6,
+  development_build_priority       int NOT NULL default 5,
   openshift                        int REFERENCES openshift (id),
   openshift_project_pattern        varchar(300),
   development_environments_limit   int DEFAULT NULL,
@@ -155,7 +138,10 @@ CREATE TABLE IF NOT EXISTS deployment (
   started      datetime NULL,
   completed    datetime NULL,
   environment  int NOT NULL REFERENCES environment (id),
-  remote_id    varchar(50) NULL
+  remote_id    varchar(50) NULL,
+  priority     int NULL,
+  bulk_id      varchar(50) NULL,
+  bulk_name    varchar(100) NULL
 );
 
 CREATE TABLE IF NOT EXISTS environment_backup (
@@ -264,18 +250,6 @@ CREATE TABLE IF NOT EXISTS user_ssh_key (
   CONSTRAINT user_ssh_key_pkey PRIMARY KEY (usid, skid)
 );
 
-CREATE TABLE IF NOT EXISTS customer_user (
-  cid  int REFERENCES customer (id),
-  usid int REFERENCES user (id),
-  CONSTRAINT customer_user_pkey PRIMARY KEY (cid, usid)
-);
-
-CREATE TABLE IF NOT EXISTS project_user (
-  pid int REFERENCES project (id),
-  usid int REFERENCES user (id),
-  CONSTRAINT project_user_pkey PRIMARY KEY (pid, usid)
-);
-
 CREATE TABLE IF NOT EXISTS task_file (
   tid int REFERENCES task (id),
   fid int REFERENCES file (id),
@@ -285,6 +259,7 @@ CREATE TABLE IF NOT EXISTS task_file (
 CREATE TABLE IF NOT EXISTS environment_fact (
   id                       int NOT NULL auto_increment PRIMARY KEY,
   environment              int REFERENCES environment (id),
+  service                  varchar(300) NULL,
   name                     varchar(300) NOT NULL,
   value                    varchar(300) NOT NULL,
   type                     ENUM('TEXT', 'URL', 'SEMVER') DEFAULT 'TEXT',
@@ -293,7 +268,7 @@ CREATE TABLE IF NOT EXISTS environment_fact (
   created                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   category                 TEXT NULL    DEFAULT '',
   key_fact                 TINYINT(1) NOT NULL DEFAULT(0),
-  UNIQUE(environment, name)
+  CONSTRAINT environment_fact UNIQUE(environment, name, source)
 );
 
 CREATE TABLE IF NOT EXISTS environment_fact_reference (
@@ -331,4 +306,15 @@ CREATE TABLE IF NOT EXISTS notification_webhook (
   id          int NOT NULL auto_increment PRIMARY KEY,
   name        varchar(50) UNIQUE,
   webhook     varchar(2000)
+);
+
+
+CREATE TABLE IF NOT EXISTS workflow (
+  id                       int NOT NULL auto_increment PRIMARY KEY,
+  name                     varchar(50) NOT NULL,
+  event                    varchar(300) NOT NULL,
+  project                  int NOT NULL REFERENCES project(id),
+  advanced_task_definition int NOT NULL REFERENCES advanced_task_definition(id),
+  created                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  deleted                  timestamp NOT NULL DEFAULT '0000-00-00 00:00:00'
 );

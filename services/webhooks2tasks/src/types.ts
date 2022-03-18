@@ -28,6 +28,10 @@ export interface deployData {
   headSha?: string,
   baseBranchName?: string,
   baseSha?: string,
+  buildName?: string,
+  buildPriority?: string,
+  bulkId?: string,
+  buildVariables?: any,
 };
 
 export interface WebhookRequestData {

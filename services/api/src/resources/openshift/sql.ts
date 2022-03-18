@@ -7,7 +7,6 @@ export const Sql = {
     consoleUrl,
     token,
     routerPattern,
-    projectUser,
     sshHost,
     sshPort,
     monitoringConfig,
@@ -20,7 +19,6 @@ export const Sql = {
     consoleUrl: string;
     token?: string;
     routerPattern?: string;
-    projectUser?: string;
     sshHost?: string;
     sshPort?: string;
     monitoringConfig?: JSON;
@@ -35,7 +33,6 @@ export const Sql = {
         consoleUrl,
         token,
         routerPattern,
-        projectUser,
         sshHost,
         sshPort,
         monitoringConfig,

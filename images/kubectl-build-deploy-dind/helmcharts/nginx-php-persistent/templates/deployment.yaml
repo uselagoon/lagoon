@@ -46,9 +46,9 @@ spec:
               set -e
               SENTINEL="/storage/.lagoon-rootless-migration-complete"
               if ! [ -f "$SENTINEL" ]; then
-                find /storage -mindepth 1 -exec chgrp $(stat -c "%g" /storage) {} +
-                find /storage -mindepth 1 -exec chmod g+rw {} +
-                find /storage -mindepth 1 -type d -exec chmod g+x {} +
+                find /storage -exec chown {{ .Values.podSecurityContext.runAsUser }}:0 {} +
+                find /storage -exec chmod a+r,u+w {} +
+                find /storage -type d -exec chmod a+x {} +
                 touch "$SENTINEL"
               fi
           image: busybox:musl

@@ -77,7 +77,7 @@ pipeline {
         stage ('collect logs') {
           steps {
             sh script: "while [ ! -f ./kubeconfig.kind.${CI_BUILD_TAG} ]; do sleep 1; done", label: "Check for kubeconfig created"
-            timeout(time: 30, unit: 'MINUTES') {
+            timeout(time: 45, unit: 'MINUTES') {
               sh script: "./local-dev/stern --kubeconfig ./kubeconfig.kind.${CI_BUILD_TAG} --all-namespaces '^[a-z]' -t > test-suite-0.txt || true", label: "Collecting test-suite-0 logs"
             }
             sh script: "cat test-suite-0.txt", label: "View ${NODE_NAME}:${WORKSPACE}/test-suite-0.txt"
@@ -89,7 +89,7 @@ pipeline {
       parallel {
         stage ('1: run first test suite') {
           steps {
-            sh script: "make -j$NPROC kind/retest TESTS=[api,deploytarget,active-standby-kubernetes,features-kubernetes,features-kubernetes-2,features-api-variables,tasks,ssh-portal] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running first test suite on kind cluster"
+            sh script: "make -j$NPROC kind/retest TESTS=[api,deploytarget,active-standby-kubernetes,features-kubernetes,features-kubernetes-2,features-api-variables,tasks] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running first test suite on kind cluster"
             sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-1 log after test completion"
           }
         }
@@ -108,7 +108,7 @@ pipeline {
         stage ('2: run second test suite') {
           steps {
             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                sh script: "make -j$NPROC kind/retest TESTS=[gitlab,github,bitbucket,python,node-various,dbaas,image-cache] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running second test suite on kind cluster"
+                sh script: "make -j$NPROC kind/retest TESTS=[bulk-deployment,gitlab,github,bitbucket,python,node-various,dbaas,image-cache,workflows] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running second test suite on kind cluster"
             }
             sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-2 log after test completion"
           }

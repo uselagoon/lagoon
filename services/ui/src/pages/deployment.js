@@ -8,6 +8,7 @@ import EnvironmentWithDeploymentQuery from 'lib/query/EnvironmentWithDeployment'
 import Breadcrumbs from 'components/Breadcrumbs';
 import ProjectBreadcrumb from 'components/Breadcrumbs/Project';
 import EnvironmentBreadcrumb from 'components/Breadcrumbs/Environment';
+import DeploymentBreadcrumb from 'components/Breadcrumbs/Deployment';
 import NavTabs from 'components/NavTabs';
 import Deployment from 'components/Deployment';
 import withQueryLoading from 'lib/withQueryLoading';
@@ -95,6 +96,11 @@ export const PageDeployment = ({ router }) => {
                   environmentSlug={environment.openshiftProjectName}
                   projectSlug={environment.project.name}
                 />
+                <DeploymentBreadcrumb
+                  deploymentSlug={deployment.name}
+                  environmentSlug={environment.openshiftProjectName}
+                  projectSlug={environment.project.name}
+                  />
               </Breadcrumbs>
               <div className="content-wrapper">
                 <NavTabs activeTab="deployments" environment={environment} />

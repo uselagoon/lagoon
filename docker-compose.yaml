@@ -115,8 +115,15 @@ services:
       - ./services/ui/.env.defaults:/app/services/ui/.env.defaults
       - ./services/ui/.env.schema:/app/services/ui/.env.schema
       - ./services/ui/package.json:/app/services/ui/package.json
+    environment:
+      - NODE_ENV=development
     ports:
-      - '8888:3000'
+      - '8888:3003'
+  actions-handler:
+    image: ${IMAGE_REPO:-lagoon}/actions-handler
+    restart: on-failure
+    depends_on:
+      - broker
   ssh:
     image: ${IMAGE_REPO:-lagoon}/ssh
     depends_on:

@@ -1,6 +1,7 @@
 import R from 'ramda';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
 import { createDeployTask } from '@lagoon/commons/dist/tasks';
+import { generateBuildId } from '@lagoon/commons/dist/util';
 
 import { WebhookRequestData, deployData, Project } from '../types';
 
@@ -56,6 +57,8 @@ export async function githubPullRequestSynchronize(webhook: WebhookRequestData, 
       return;
     }
 
+    let buildName = generateBuildId();
+
     const data: deployData = {
       repoName: body.repository.full_name,
       repoUrl: body.repository.html_url,
@@ -69,6 +72,7 @@ export async function githubPullRequestSynchronize(webhook: WebhookRequestData, 
       baseBranchName: baseBranchName,
       baseSha: baseSha,
       branchName: `pr-${body.number}`,
+      buildName: buildName
     }
 
     try {

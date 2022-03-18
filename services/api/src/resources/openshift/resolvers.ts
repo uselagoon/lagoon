@@ -14,6 +14,8 @@ const attrFilter = async (hasPermission, entity) => {
   }
 };
 
+export const getProjectUser: ResolverFn = async () => null;
+
 export const addOpenshift: ResolverFn = async (
   args,
   { input },

@@ -66,6 +66,11 @@ const GlobalStyles = ({ children }) => (
         }
       }
 
+      .bulk-label a:link { color: ${color.white}; }
+      .bulk-label a:visited { color: ${color.white}; }
+      .bulk-label a:hover { color: ${color.white}; }
+      .bulk-label a:active { color: ${color.white}; }
+
       p {
         margin: 0 0 1.25rem;
       }

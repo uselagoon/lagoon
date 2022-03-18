@@ -182,6 +182,7 @@ services :=	api \
 			api-redis \
 			auth-server \
 			auto-idler \
+			actions-handler \
 			backup-handler \
 			broker \
 			broker-single \
@@ -201,7 +202,8 @@ services :=	api \
 			storage-calculator \
 			ui \
 			webhook-handler \
-			webhooks2tasks
+			webhooks2tasks \
+			workflows
 
 
 service-images += $(services)
@@ -219,6 +221,7 @@ $(build-services):
 build/auth-server build/logs2email build/logs2slack build/logs2rocketchat build/logs2s3 build/logs2webhook build/logs2microsoftteams build/backup-handler build/controllerhandler build/webhook-handler build/webhooks2tasks build/api build/ui: build/yarn-workspace-builder
 build/api-db: services/api-db/Dockerfile
 build/api-redis: services/api-redis/Dockerfile
+build/actions-handler: services/actions-handler/Dockerfile
 build/auto-idler: build/oc
 build/broker-single: services/broker/Dockerfile
 build/broker: build/broker-single
@@ -244,6 +247,7 @@ build/local-api-data-watcher-pusher: local-dev/api-data-watcher-pusher/Dockerfil
 build/local-registry: local-dev/registry/Dockerfile
 build/local-dbaas-provider: local-dev/dbaas-provider/Dockerfile
 build/local-mongodb-dbaas-provider: local-dev/mongodb-dbaas-provider/Dockerfile
+build/workflows: services/workflows/Dockerfile
 
 # Images for local helpers that exist in another folder than the service images
 localdevimages := local-git \
@@ -294,7 +298,7 @@ wait-for-keycloak:
 	grep -m 1 "Config of Keycloak done." <(docker-compose -p $(CI_BUILD_TAG) --compatibility logs -f keycloak 2>&1)
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
-main-test-services = broker logs2email logs2slack logs2rocketchat logs2microsoftteams logs2s3 logs2webhook api api-db api-redis keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher local-minio
+main-test-services = actions-handler broker logs2email logs2slack logs2rocketchat logs2microsoftteams logs2s3 logs2webhook api api-db api-redis keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher local-minio
 
 # List of Lagoon Services needed for webhook endpoint testing
 webhooks-test-services = webhook-handler webhooks2tasks backup-handler
@@ -498,20 +502,20 @@ api-development: build/api build/api-db build/local-api-data-watcher-pusher buil
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db local-api-data-watcher-pusher keycloak keycloak-db broker api-redis
 
 .PHONY: ui-logs-development
-ui-logs-development: build/api build/api-db build/local-api-data-watcher-pusher build/ui build/keycloak build/keycloak-db build/broker-single build/api-redis build/logs2s3 build/local-minio
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis logs2s3 local-minio
+ui-logs-development: build/actions-handler build/api build/api-db build/local-api-data-watcher-pusher build/ui build/keycloak build/keycloak-db build/broker-single build/api-redis build/logs2s3 build/local-minio
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db actions-handler local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis logs2s3 local-minio
 
 ## CI targets
 
 KUBECTL_VERSION := v1.21.1
 HELM_VERSION := v3.6.0
-KIND_VERSION = v0.11.1
+KIND_VERSION = v0.12.0
 GOJQ_VERSION = v0.12.5
 STERN_VERSION = 2.1.17
 CHART_TESTING_VERSION = v3.4.0
 KIND_IMAGE = kindest/node:v1.21.1@sha256:69860bda5563ac81e3c0057d654b5253219618a22ec3a346306239bba8cfa1a6
-TESTS = [nginx,api,features-kubernetes,ssh-portal,features-kubernetes-2,features-api-variables,active-standby-kubernetes,tasks,drush,dbaas,drupal-php80,drupal-postgres,python,gitlab,github,bitbucket,node-various]
-CHARTS_TREEISH = ssh-portal
+TESTS = [nginx,api,features-kubernetes,bulk-deployment,ssh-portal,features-kubernetes-2,features-api-variables,active-standby-kubernetes,tasks,drush,dbaas,drupal-php80,drupal-postgres,python,gitlab,github,bitbucket,node-various,workflows]
+CHARTS_TREEISH = "main"
 
 # Symlink the installed kubectl client if the correct version is already
 # installed, otherwise downloads it.
@@ -630,7 +634,7 @@ ifeq ($(ARCH), darwin)
       tcp-listen:32080,fork,reuseaddr tcp-connect:target:32080
 endif
 
-KIND_SERVICES = api api-db api-redis auth-server broker controllerhandler docker-host drush-alias keycloak keycloak-db logs2s3 webhook-handler webhooks2tasks kubectl-build-deploy-dind local-api-data-watcher-pusher local-git ssh tests ui
+KIND_SERVICES = api api-db api-redis auth-server actions-handler broker controllerhandler docker-host drush-alias keycloak keycloak-db logs2s3 webhook-handler webhooks2tasks kubectl-build-deploy-dind local-api-data-watcher-pusher local-git ssh tests ui workflows
 KIND_TESTS = local-api-data-watcher-pusher local-git tests
 KIND_TOOLS = kind helm kubectl jq stern
 
@@ -771,8 +775,8 @@ kind/retest:
 		&& export IMAGE_REGISTRY="registry.$$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
 		&& cd lagoon-charts.kind.lagoon \
 		&& $(MAKE) fill-test-ci-values TESTS=$(TESTS) IMAGE_TAG=$(SAFE_BRANCH_NAME) \
-			HELM=$$(cd .. && realpath ./local-dev/helm) KUBECTL=$$(cd .. && realpath ./local-dev/kubectl) \
-			JQ=$$(cd .. && realpath ./local-dev/jq) \
+			HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
+			JQ=$$(realpath ../local-dev/jq) \
 			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=$$IMAGE_REGISTRY/kubectl-build-deploy-dind:$(SAFE_BRANCH_NAME) \
 			IMAGE_REGISTRY=$$IMAGE_REGISTRY \
 			SKIP_ALL_DEPS=true \
@@ -782,7 +786,7 @@ kind/retest:
 		&& docker run --rm --network host --name ct-$(CI_BUILD_TAG) \
 			--volume "$$(pwd)/test-suite-run.ct.yaml:/etc/ct/ct.yaml" \
 			--volume "$$(pwd):/workdir" \
-			--volume "$$(cd .. && realpath ./kubeconfig.kind.$(CI_BUILD_TAG)):/root/.kube/config" \
+			--volume "$$(realpath ../kubeconfig.kind.$(CI_BUILD_TAG)):/root/.kube/config" \
 			--workdir /workdir \
 			"quay.io/helmpack/chart-testing:$(CHART_TESTING_VERSION)" \
 			ct install

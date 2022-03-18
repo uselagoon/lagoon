@@ -5,7 +5,6 @@ import { Helpers } from '../resources/project/helpers';
 export interface Project {
   id: Number; // int(11) NOT NULL AUTO_INCREMENT,
   name: String; // varchar(100) COLLATE utf8_bin DEFAULT NULL,
-  customer: Number; // int(11) DEFAULT NULL,
   git_url: String; // varchar(300) COLLATE utf8_bin DEFAULT NULL,
   active_systems_deploy: String; // varchar(300) COLLATE utf8_bin DEFAULT NULL,
   active_systems_remove: String; // varchar(300) COLLATE utf8_bin DEFAULT NULL,
