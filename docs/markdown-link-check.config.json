@@ -2,6 +2,9 @@
     "ignorePatterns": [
       {
         "pattern": "^https://www.drupal.org"
+      },
+      {
+        "pattern": "^https://www.php.net"
       }
     ]
   }
