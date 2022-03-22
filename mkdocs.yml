@@ -81,7 +81,6 @@ nav:
   - Querying with GraphQL: installing-lagoon/querying-graphql.md
   - Create Lagoon User: installing-lagoon/create-user.md
   - Add a Project: installing-lagoon/add-project.md
-  - Add Deploy Key: installing-lagoon/add-deploy-key.md
   - Deploy Your Project: installing-lagoon/deploy-project.md
   - Add Group: installing-lagoon/add-group.md
   - Lagoon Logging: installing-lagoon/lagoon-logging.md
@@ -141,11 +140,14 @@ markdown_extensions:
   - toc:
       permalink: "#"
       baselevel: 1
+  - def_list
   - admonition
   - attr_list
   - tables
   - pymdownx.highlight
   - pymdownx.superfences
+  - pymdownx.tasklist:
+      custom_checkbox: true
 
 plugins:
   - search

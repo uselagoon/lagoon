@@ -4,7 +4,7 @@
 
 * Kubernetes 1.19+ (Kubernetes 1.22+ is not yet supported, see https://github.com/uselagoon/lagoon/issues/2816 for progress)
 * Familiarity with [Helm](https://helm.sh) and [Helm Charts](https://helm.sh/docs/topics/charts/#helm), and [kubectl](https://kubernetes.io/docs/tasks/tools/).
-* Ingress controller (ingress-nginx)
+* Ingress controller, we recommend [ingress-nginx](https://github.com/kubernetes/ingress-nginx), installed into ingress-nginx namespace
 * Cert manager (for TLS) - We highly recommend using letsencrypt
 * RWO storage
 
@@ -34,3 +34,9 @@ Other configurations may be possible, but have not been tested
 Only Harbor <2.2 is currently supported - the method of retrieving robot accounts was changed in 2.2, and we are working on a fix
 
 This means you should install Harbor [2.1.6](https://github.com/goharbor/harbor/releases/tag/v2.1.6) with helm chart [1.5.6](https://github.com/goharbor/harbor-helm/releases/tag/1.5.6)
+
+## How much Kubernetes experience/knowledge is required?
+
+Lagoon uses some very involved Kubernetes and Cloud Native concepts, and whilst full familiarity may not be necessary to install and configure Lagoon, diagnosing issues and contributing may prove difficult without a good level of familiarity.
+
+As an indicator, comfort with the curriculum for the [Certified Kubernetes Administrator](https://www.cncf.io/certification/cka/) would be suggested as a minimum.

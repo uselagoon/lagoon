@@ -21,4 +21,4 @@
 
     ```
 
-3\. Install EFS Provisioner:`helm upgrade --install --create-namespace --namespace efs-provisioner -f efs-provisioner-values.yaml  efs-provisioner stable/efs-provisioner`
+3. Install EFS Provisioner:`helm upgrade --install --create-namespace --namespace efs-provisioner -f efs-provisioner-values.yaml  efs-provisioner stable/efs-provisioner`
