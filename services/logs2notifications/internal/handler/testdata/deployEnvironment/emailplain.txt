@@ -1,0 +1,1 @@
+[ci-github-openshift] Deployment triggered on branch lagoon-type-override

@@ -1,0 +1,83 @@
+package handler
+
+import (
+	"bytes"
+	"fmt"
+	"log"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/uselagoon/lagoon/services/logs2notifications/internal/helpers"
+)
+
+// MessageType .
+type MessageType string
+
+const (
+	buildMessageType MessageType = "build"
+	taskMessageType  MessageType = "task"
+)
+
+// SendToS3 .
+func (h *Messaging) SendToS3(notification *Notification, msgType MessageType) {
+	if msgType == buildMessageType {
+		h.uploadFileS3(
+			notification.Message,
+			fmt.Sprintf("buildlogs/%s/%s/%s-%s.txt",
+				notification.Project,
+				notification.Meta.BranchName,
+				notification.Meta.JobName,
+				notification.Meta.RemoteID,
+			),
+		)
+	} else if msgType == taskMessageType {
+		filePath := fmt.Sprintf("tasklogs/%s/%d-%s.txt",
+			notification.Project,
+			notification.Meta.Task.ID,
+			notification.Meta.RemoteID,
+		)
+		if notification.Meta.Environment != "" {
+			filePath = fmt.Sprintf("tasklogs/%s/%s/%d-%s.txt",
+				notification.Project,
+				helpers.ShortenEnvironment(notification.Project, helpers.MakeSafe(notification.Meta.Environment)),
+				notification.Meta.Task.ID,
+				notification.Meta.RemoteID,
+			)
+
+		}
+		h.uploadFileS3(
+			notification.Message,
+			filePath,
+		)
+	}
+}
+
+// UploadFileS3
+func (h *Messaging) uploadFileS3(message, fileName string) {
+	var forcePath bool
+	forcePath = true
+	session, err := session.NewSession(&aws.Config{
+		Region:           aws.String(h.S3FilesRegion),
+		Endpoint:         aws.String(h.S3FilesOrigin),
+		Credentials:      credentials.NewStaticCredentials(h.S3FilesAccessKeyID, h.S3FilesSecretAccessKey, ""),
+		S3ForcePathStyle: &forcePath,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = s3.New(session).PutObject(&s3.PutObjectInput{
+		Bucket:      aws.String(h.S3FilesBucket),
+		Key:         aws.String(fileName),
+		ACL:         aws.String("private"),
+		Body:        bytes.NewReader([]byte(message)),
+		ContentType: aws.String("text/plain"),
+	})
+	if err != nil {
+		log.Println(err)
+	}
+	log.Println(fmt.Sprintf("Uploaded file %s", fileName))
+	return
+}
