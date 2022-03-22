@@ -12,6 +12,16 @@ import {
   Project
 } from '../types';
 
+// NOTE: Here we are going through the process of deprecating the Trivy integration
+const enableHarborIntegration = (() => {
+	if(process.env.ENABLE_DEPRECATED_TRIVY_INTEGRATION && process.env.ENABLE_DEPRECATED_TRIVY_INTEGRATION == "true") {
+    console.log("enabling trivy");
+		return true;
+	}
+  console.log("Trivy is not enabled");
+	return false;
+})();
+
 export async function processProblems(
     rabbitMsg,
     channelWrapperWebhooks
@@ -24,10 +34,21 @@ export async function processProblems(
 
     switch(webhook.event) {
       case 'harbor:scanningcompleted' :
-        await handle(harborScanningCompleted, webhook, `${webhooktype}:${event}`, channelWrapperWebhooks);
+        if(enableHarborIntegration == true) {
+          console.log("NOTE: Harbor integration for Problems is deprecated and will be removed from Lagoon in an upcoming release");
+          await handle(harborScanningCompleted, webhook, `${webhooktype}:${event}`, channelWrapperWebhooks);
+        } else {
+          console.log("NOTE: Harbor scan recieved but not processed because Harbor/Problems integration is disabled");
+        }
+
         break
       case 'harbor:scanningresultfetched' :
-        await handle(processHarborVulnerabilityList, webhook, `${webhooktype}:${event}`, channelWrapperWebhooks);
+        if(enableHarborIntegration == true) {
+          console.log("NOTE: Harbor integration for Problems is deprecated and will be removed from Lagoon in an upcoming release");
+          await handle(processHarborVulnerabilityList, webhook, `${webhooktype}:${event}`, channelWrapperWebhooks);
+        } else {
+          console.log("NOTE: Harbor scan recieved but not processed because Harbor/Problems integration is disabled");
+        }
       break;
       case 'drutiny:resultset' :
         await handle(processDrutinyResultset, webhook, `${webhooktype}:${event}`, channelWrapperWebhooks);
