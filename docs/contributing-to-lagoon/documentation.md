@@ -14,6 +14,7 @@ From the root of this repo, just run:
 docker run --rm -it -p 127.0.0.1:8000:8000 -v ${PWD}:/docs squidfunk/mkdocs-material
 ```
 
+<!-- markdown-link-check-disable-next-line -->
 This will start a development server on [http://127.0.0.1:8000](http://127.0.0.1:8000), configured to live-reload on any updates.
 The Docker image contains all the necessary extensions.
 
