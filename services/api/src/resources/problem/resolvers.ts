@@ -258,14 +258,7 @@ export const getProblemHarborScanMatches: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission }
 ) => {
-  await hasPermission('harbor_scan_match', 'view', {});
-
-  const rows = await query(
-    sqlClientPool,
-    Sql.selectAllProblemHarborScanMatches()
-  );
-
-  return rows;
+  throw new Error('Harbor-Trivy integration with core removed in Lagoon 2')
 };
 
 export const addProblemHarborScanMatch: ResolverFn = async (
@@ -282,42 +275,7 @@ export const addProblemHarborScanMatch: ResolverFn = async (
   },
   { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
-  await hasPermission('harbor_scan_match', 'add', {});
-
-  const { insertId } = await query(
-    sqlClientPool,
-    Sql.insertProblemHarborScanMatch({
-      id: null,
-      name,
-      description,
-      default_lagoon_project: defaultLagoonProject,
-      default_lagoon_environment: defaultLagoonEnvironment,
-      default_lagoon_service_name: defaultLagoonService,
-      regex
-    })
-  );
-
-  const rows = await query(
-    sqlClientPool,
-    Sql.selectAllProblemHarborScanMatchByDatabaseId(insertId)
-  );
-
-  userActivityLogger(`User added harbor scan regex matcher`, {
-    project: defaultLagoonProject || '',
-    event: 'api:addProblemHarborScanMatch',
-    payload: {
-      input: {
-        name,
-        description,
-        defaultLagoonProject,
-        defaultLagoonEnvironment,
-        defaultLagoonService,
-        regex
-      }
-    }
-  });
-
-  return R.prop(0, rows);
+  throw new Error('Harbor-Trivy integration with core removed in Lagoon 2')
 };
 
 export const deleteProblemHarborScanMatch: ResolverFn = async (
@@ -325,17 +283,5 @@ export const deleteProblemHarborScanMatch: ResolverFn = async (
   { input: { id } },
   { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
-  await hasPermission('harbor_scan_match', 'delete', {});
-
-  await query(sqlClientPool, Sql.deleteProblemHarborScanMatch(id));
-
-  userActivityLogger(`User deleted harbor scan regex matcher`, {
-    project: '',
-    event: 'api:deleteProblemHarborScanMatch',
-    payload: {
-      input: { id }
-    }
-  });
-
-  return 'success';
+  throw new Error('Harbor-Trivy integration with core removed in Lagoon 2')
 };

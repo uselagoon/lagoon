@@ -1576,6 +1576,15 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  drop_problem_harbor_scan_matcher()
+
+  BEGIN
+    DROP TABLE IF EXISTS problem_harbor_scan_matcher;
+  END;
+$$
+
+
 DELIMITER ;
 
 -- If adding new procedures, add them to the bottom of this list
@@ -1657,6 +1666,7 @@ CALL add_priority_to_deployment();
 CALL add_bulk_id_to_deployment();
 CALL drop_legacy_permissions();
 CALL change_name_index_for_advanced_task_argument();
+CALL drop_problem_harbor_scan_matcher();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;
