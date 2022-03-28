@@ -27,6 +27,7 @@ stream_logs_deployment() {
   done
 }
 
+set +x # reduce noise in build logs
 # start background logs streaming
 stream_logs_deployment &
 STREAM_LOGS_PID=$!
@@ -36,6 +37,10 @@ kubectl rollout --insecure-skip-tls-verify -n ${NAMESPACE} status deployment ${S
 
 if [[ $ret -ne 0 ]]; then
   # stop all running stream logs
+  echo "##############################################"
+  echo "STEP Applying Deployments: Failed at $(date +"%Y-%m-%d %H:%M:%S") ($(date +"%Z"))"
+  echo "The information below could be useful in helping debug what went wrong"
+  echo "##############################################"
   pkill -P $STREAM_LOGS_PID || true
 
   # shows all logs we collected for the new containers
@@ -45,6 +50,7 @@ if [[ $ret -ne 0 ]]; then
     echo "Rollout for ${SERVICE_NAME} failed, tried to gather some startup logs of the containers, hope this helps debugging:"
     find /tmp/kubectl-build-deploy/logs/container/${SERVICE_NAME}/ -type f -print0 2>/dev/null | xargs -0 -I % sh -c 'echo ======== % =========; cat %; echo'
   fi
+  echo "##############################################"
   # dump the pods of this service and the status/condition message from kubernetes into a table for debugging
   # Example:
   #
@@ -60,3 +66,4 @@ fi
 
 # stop all running stream logs
 pkill -P $STREAM_LOGS_PID || true
+set -x
