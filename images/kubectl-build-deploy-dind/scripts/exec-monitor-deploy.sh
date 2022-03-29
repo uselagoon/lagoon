@@ -32,7 +32,10 @@ stream_logs_deployment &
 STREAM_LOGS_PID=$!
 
 ret=0
-kubectl rollout --insecure-skip-tls-verify -n ${NAMESPACE} status deployment ${SERVICE_NAME} --watch || ret=$?
+# default progressDeadlineSeconds is 600, doubling that here for a timeout on the status check for 1200s (20m) as a fallback for exceeding the progressdeadline
+# when there may be another issue with the rollout failing, the progresdeadline doesn't always work
+# (eg, existing pod in previous replicaset fails to terminate properly)
+kubectl rollout --insecure-skip-tls-verify -n ${NAMESPACE} status deployment ${SERVICE_NAME} --watch --timeout=1200s || ret=$?
 
 if [[ $ret -ne 0 ]]; then
   # stop all running stream logs
