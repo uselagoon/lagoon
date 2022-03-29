@@ -156,6 +156,9 @@ const deployPullrequest = async function(data: any) {
                     );
             }
         case 'false':
+            logger.debug(
+                `projectName: ${projectName}, pullrequest: ${branchName}, pullrequest deployments disabled`
+            );
             throw new NoNeedToDeployBranch('PullRequest deployments disabled');
         default: {
             logger.debug(
