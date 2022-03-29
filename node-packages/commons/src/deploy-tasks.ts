@@ -75,7 +75,7 @@ const deployBranch = async function(data: any) {
             logger.debug(
                 `projectName: ${projectName}, branchName: ${branchName}, branch deployments disabled`
             );
-            return false
+            throw new NoNeedToDeployBranch('Branch deployments disabled');
         default: {
             logger.debug(
                 `projectName: ${projectName}, branchName: ${branchName}, regex ${branchesRegex}, testing if it matches`
@@ -101,7 +101,9 @@ const deployBranch = async function(data: any) {
             logger.debug(
                 `projectName: ${projectName}, branchName: ${branchName}, regex ${branchesRegex} did not match branchname, not deploying`
             );
-            return false
+            throw new NoNeedToDeployBranch(
+              `configured regex '${branchesRegex}' does not match branchname '${branchName}'`
+            );
         }
     }
 }
@@ -154,10 +156,7 @@ const deployPullrequest = async function(data: any) {
                     );
             }
         case 'false':
-            logger.debug(
-                `projectName: ${projectName}, pullrequest: ${branchName}, pullrequest deployments disabled`
-            );
-            return false
+            throw new NoNeedToDeployBranch('PullRequest deployments disabled');
         default: {
             logger.debug(
                 `projectName: ${projectName}, pullrequest: ${branchName}, regex ${pullrequestRegex}, testing if it matches PR title '${pullrequestTitle}'`
@@ -183,7 +182,9 @@ const deployPullrequest = async function(data: any) {
             logger.debug(
                 `projectName: ${projectName}, branchName: ${branchName}, regex ${pullrequestRegex} did not match PR title, not deploying`
             );
-            return false
+            throw new NoNeedToDeployBranch(
+              `configured regex '${pullrequestRegex}' does not match PR Title '${pullrequestTitle}'`
+            );
         }
     }
 }
@@ -263,11 +264,6 @@ export const deployTargetBranches = async function(data: any) {
                 // if the deploy is successful, then return
                 return deploy
             }
-        }
-        if (deploy == false) {
-            throw new NoNeedToDeployBranch(
-                `configured regex for all deploytargets does not match branchname '${branchName}'`
-            );
         }
     } else {
         // deploy the project using the projects default target
@@ -355,11 +351,6 @@ export const deployTargetPullrequest = async function(data: any) {
                 // if the deploy is successful, then return
                 return deploy
             }
-        }
-        if (deploy == false) {
-            throw new NoNeedToDeployBranch(
-                `configured regex for all deploytargets does not match pullrequest '${branchName}'`
-            );
         }
     } else {
         // deploy the project using the projects default target
