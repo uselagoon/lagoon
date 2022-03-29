@@ -353,12 +353,12 @@ done
 ### Add the merged or to be created routes into a configmap
 echo "${FINAL_ROUTES_JSON}" | jq -r > /kubectl-build-deploy/routes.json
 echo "Updating lagoon-routes configmap with the newly generated routes JSON"
-if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap lagoon-routes &> /dev/null; then
+if kubectl -n ${NAMESPACE} get configmap lagoon-routes &> /dev/null; then
     # if the key does exist, then nuke it and put the new key
-    kubectl --insecure-skip-tls-verify -n ${NAMESPACE} create configmap lagoon-routes --from-file=lagoon-routes=/kubectl-build-deploy/routes.json -o yaml --dry-run=client | kubectl replace -f -
+    kubectl -n ${NAMESPACE} create configmap lagoon-routes --from-file=lagoon-routes=/kubectl-build-deploy/routes.json -o yaml --dry-run=client | kubectl replace -f -
 else
     # create it
-    kubectl --insecure-skip-tls-verify -n ${NAMESPACE} create configmap lagoon-routes --from-file=lagoon-routes=/kubectl-build-deploy/routes.json
+    kubectl -n ${NAMESPACE} create configmap lagoon-routes --from-file=lagoon-routes=/kubectl-build-deploy/routes.json
 fi
 
 ### Run the generation function to create all the kubernetes resources etc

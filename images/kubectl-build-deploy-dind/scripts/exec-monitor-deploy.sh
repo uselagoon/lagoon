@@ -13,10 +13,10 @@ stream_logs_deployment() {
   while [ 1 ]
   do
     # Gather all pods and their containers for the current rollout and stream their logs into files
-    kubectl -n ${NAMESPACE} get --insecure-skip-tls-verify pods -l pod-template-hash=${LATEST_POD_TEMPLATE_HASH} -o json | jq -r '.items[] | .metadata.name + " " + .spec.containers[].name' |
+    kubectl -n ${NAMESPACE} get pods -l pod-template-hash=${LATEST_POD_TEMPLATE_HASH} -o json | jq -r '.items[] | .metadata.name + " " + .spec.containers[].name' |
     {
       while read -r POD CONTAINER ; do
-          kubectl -n ${NAMESPACE} logs --insecure-skip-tls-verify --timestamps -f $POD -c $CONTAINER $SINCE_TIME 2> /dev/null > /tmp/kubectl-build-deploy/logs/container/${SERVICE_NAME}/$POD-$CONTAINER.log &
+          kubectl -n ${NAMESPACE} logs --timestamps -f $POD -c $CONTAINER $SINCE_TIME 2> /dev/null > /tmp/kubectl-build-deploy/logs/container/${SERVICE_NAME}/$POD-$CONTAINER.log &
       done
 
       # this will wait for all log streaming we started to finish
@@ -35,7 +35,7 @@ ret=0
 # default progressDeadlineSeconds is 600, doubling that here for a timeout on the status check for 1200s (20m) as a fallback for exceeding the progressdeadline
 # when there may be another issue with the rollout failing, the progresdeadline doesn't always work
 # (eg, existing pod in previous replicaset fails to terminate properly)
-kubectl rollout --insecure-skip-tls-verify -n ${NAMESPACE} status deployment ${SERVICE_NAME} --watch --timeout=1200s || ret=$?
+kubectl rollout -n ${NAMESPACE} status deployment ${SERVICE_NAME} --watch --timeout=1200s || ret=$?
 
 if [[ $ret -ne 0 ]]; then
   # stop all running stream logs
@@ -55,7 +55,7 @@ if [[ $ret -ne 0 ]]; then
   # solr-abcd12345-abcde	Pending	PodScheduled	0/3 nodes are available: 3 Too many pods.
   #
   echo "If there is any additional information about the status of pods, it will be available here"
-  kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get pods -l lagoon.sh/service=${SERVICE_NAME} -o json | \
+  kubectl -n ${NAMESPACE} get pods -l lagoon.sh/service=${SERVICE_NAME} -o json | \
     jq -r '["POD/SERVICE NAME","STATUS","CONDITION","MESSAGE"], (.items[] | . as $pod | .status.conditions[] | [ $pod.metadata.name, $pod.status.phase, .type, .message]) | @tsv'
 
   exit 1
