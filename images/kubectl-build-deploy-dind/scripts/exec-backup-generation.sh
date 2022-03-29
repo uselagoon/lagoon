@@ -21,6 +21,8 @@ set +x
 
 # check if a specific override has been defined in the api
 case "$BUILD_TYPE" in
+    promote)
+        ;;
     branch)
         if [ "${ENVIRONMENT_TYPE}" == "development" ]; then
             # check if the API defined variable LAGOON_BACKUP_DEV_RETENTION contains what is needed
@@ -97,6 +99,8 @@ fi
 
 # check if a specific override has been defined in the api
 case "$BUILD_TYPE" in
+    promote)
+        ;;
     branch)
         if [ "${ENVIRONMENT_TYPE}" == "development" ]; then
             # check if the API defined variable LAGOON_BACKUP_DEV_SCHEDULE contains what is needed
