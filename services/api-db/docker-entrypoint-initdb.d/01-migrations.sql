@@ -1576,6 +1576,23 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  add_confirmation_text_to_advanced_task_def()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'advanced_task_definition'
+        AND column_name = 'confirmation_text'
+    ) THEN
+      ALTER TABLE `advanced_task_definition`
+      ADD `confirmation_text` varchar(2000) NULL;
+    END IF;
+  END;
+$$
+
 DELIMITER ;
 
 -- If adding new procedures, add them to the bottom of this list
@@ -1657,6 +1674,7 @@ CALL add_priority_to_deployment();
 CALL add_bulk_id_to_deployment();
 CALL drop_legacy_permissions();
 CALL change_name_index_for_advanced_task_argument();
+CALL add_confirmation_text_to_advanced_task_def();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;

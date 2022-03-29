@@ -290,6 +290,7 @@ CREATE TABLE IF NOT EXISTS advanced_task_definition (
   group_name               varchar(2000) NULL,
   permission               ENUM('GUEST', 'DEVELOPER', 'MAINTAINER') DEFAULT 'GUEST',
   command                  text DEFAULT '',
+  confirmation_text        varchar(2000) NULL,
   created                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   deleted                  timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   UNIQUE(name, environment, project, group_name)
