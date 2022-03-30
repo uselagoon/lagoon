@@ -10,7 +10,8 @@ const standardFactReturn = {
     description: 'description',
     type: 'type',
     category: 'category',
-    keyFact: 'keyFact'
+    keyFact: 'keyFact',
+    service: 'service',
 };
 
 export const Sql = {
@@ -37,8 +38,8 @@ export const Sql = {
 
     return q.orderBy('f.id', 'asc').toString()
   },
-  insertFact: ({ environment, name, value, source, description, type, category, keyFact }) =>
-    knex('environment_fact').insert({ environment, name, value, source, description, type, category, keyFact }).toString(),
+  insertFact: ({ environment, name, value, source, description, type, category, keyFact, service }) =>
+    knex('environment_fact').insert({ environment, name, value, source, description, type, category, keyFact, service }).toString(),
   deleteFact: (environment, name) =>
     knex('environment_fact')
       .where({

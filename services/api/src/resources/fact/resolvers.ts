@@ -5,10 +5,12 @@ import { Sql } from './sql';
 import { ResolverFn } from '../index';
 import { knex } from '../../util/db';
 import { logger } from '../../loggers/logger';
+import crypto from 'crypto';
+import { Service } from 'aws-sdk';
 
 export const getFactsByEnvironmentId: ResolverFn = async (
   { id: environmentId, environmentAuthz },
-  { keyFacts, limit },
+  { keyFacts, limit, summary },
   { sqlClientPool, hasPermission }
 ) => {
   const environment = await environmentHelpers(
@@ -21,17 +23,71 @@ export const getFactsByEnvironmentId: ResolverFn = async (
     });
   }
 
-  const rows = await query(
-    sqlClientPool,
-    Sql.selectFactsByEnvironmentId({
-      environmentId,
-      keyFacts,
-      limit
-    })
-  );
 
-  return R.sort(R.descend(R.prop('created')), rows);
+  var rows = [];
+  // If we're summarizing facts, we actually can't pass back fact ids, or limit
+  if(summary) {
+    rows = await query(
+      sqlClientPool,
+      Sql.selectFactsByEnvironmentId({
+        environmentId,
+        keyFacts,
+        limit: false
+      })
+    );
+
+    rows = summarizeFacts(rows);
+
+    return R.sort(R.ascend(R.prop('name')), rows);
+
+  } else {
+    rows = await query(
+      sqlClientPool,
+      Sql.selectFactsByEnvironmentId({
+        environmentId,
+        keyFacts,
+        limit
+      })
+    );
+
+    return R.sort(R.descend(R.prop('created')), rows);
+  }
+
 };
+
+const summarizeFacts = (rows) => {
+  const factSummary = new Map<string, object>();
+  rows.forEach(element => {
+    var summaryKey = crypto.createHash('md5')
+    .update(element['name'])
+    .update(element['value'])
+    .update(element['description'])
+    .digest('hex');
+
+    //clear identifying marks ...
+    element['id'] = null;
+    element['created'] = null;
+
+    const summaryConcat = (head, tail) => {
+      if(head.length > 0) {
+        return `${head}, ${tail}`
+      }
+      return tail;
+    }
+
+    if(factSummary.has(summaryKey)) {
+      var f = factSummary.get(summaryKey);
+      f['source'] = summaryConcat(f['source'], element['source']);
+      //TODO : after adding service, we need to add csv of the service names here ...
+      // f['service'] = summaryConcat(f['service'], element['service']);
+      factSummary.set(summaryKey, f);
+    } else {
+      factSummary.set(summaryKey, element);
+    }
+  });
+  return Array.from(factSummary.values());
+};
+
 
 export const getFactReferencesByFactId: ResolverFn = async (
   { id: fid },
@@ -127,7 +183,7 @@ export const getEnvironmentsByFactSearch: ResolverFn = async (
 
 export const addFact: ResolverFn = async (
   root,
-  { input: { id, environment: environmentId, name, value, source, description, type, category, keyFact } },
+  { input: { id, environment: environmentId, name, value, source, description, type, category, keyFact, service } },
   { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
   const environment = await environmentHelpers(
@@ -148,7 +204,8 @@ export const addFact: ResolverFn = async (
       description,
       type,
       keyFact,
-      category
+      category,
+      service
     }),
   );
 
@@ -166,7 +223,8 @@ export const addFact: ResolverFn = async (
         name,
         value,
         source,
-        description
+        description,
+        service
       }
       }
   });
@@ -199,7 +257,7 @@ export const addFacts: ResolverFn = async (
 
   const returnFacts = [];
   for (let i = 0; i < facts.length; i++) {
-    const { environment, name, value, source, description, type, category, keyFact } = facts[i];
+    const { environment, name, value, source, description, type, category, keyFact, service } = facts[i];
     const {
       insertId
     } = await query(
@@ -212,7 +270,8 @@ export const addFacts: ResolverFn = async (
         description,
         type,
         keyFact,
-        category
+        category,
+        service
       }),
     );
 

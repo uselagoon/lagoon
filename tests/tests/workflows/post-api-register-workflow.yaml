@@ -1,0 +1,34 @@
+- name: 'Wait until success'
+  block:
+  - include: ../../tasks/api/admin-token.yaml
+  - name: Set the retry count
+    set_fact:
+      retry_count: "{{ 0 if retry_count is undefined else retry_count|int + 1 }}"
+  - name: Set
+    set_fact:
+      create_workflow_graphql: '{ "query": "mutation createWorkflow ($adtaskdef: Int!, $projId: Int, $taskName: String!, $eventType: String!) {addWorkflow(input: {name: $taskName, event: $eventType, advancedTaskDefinition:$adtaskdef, project: $projId}) { id }}", "variables": {"adtaskdef": {{ taskCreateApiResponse.json.data.addAdvancedTaskDefinition.id }}, "projId": {{ projectByNameResponse.json.data.projectByName.id }}, "taskName": "testTask", "eventType": "deployFinished" }}'
+  - debug:
+      msg: "{{ create_workflow_graphql }}"
+
+  - name: "{{ testname }} - POST api register workflow definition to {{ graphql_url }}"
+    uri:
+      url: "{{ graphql_url }}"
+      method: POST
+      headers:
+        Authorization: "Bearer {{ admin_token }}"
+      body_format: json
+      body: "{{ create_workflow_graphql }}"
+    register: workflowCreateApiResponse
+  rescue:
+    - debug:
+        msg: "{{ workflowCreateApiResponse }}"
+    - fail:
+        msg: Ended after 3 retries
+      when: retry_count|int == 3
+    - name: Pause for retry
+      pause:
+        seconds: 10
+    - debug:
+        msg: "Failed to connect - Retrying..."
+
+    - include_tasks: ./post-api-register-workflow.yaml

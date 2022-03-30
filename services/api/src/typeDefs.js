@@ -180,6 +180,39 @@ const typeDefs = gql`
     deleted: String
   }
 
+
+  type Workflow {
+    id: Int
+    name: String
+    event: String
+    project: Int
+    advancedTaskDefinition: AdvancedTaskDefinition
+  }
+
+  input AddWorkflowInput {
+    name: String
+    event: String
+    project: Int
+    advancedTaskDefinition: Int
+  }
+
+  input DeleteWorkflowInput {
+    id: Int!
+  }
+
+  input UpdateWorkflowPatchInput {
+    name: String
+    event: String
+    project: Int
+    advancedTaskDefinition: Int
+  }
+
+  input UpdateWorkflowInput {
+    id: Int!
+    patch: UpdateWorkflowPatchInput!
+  }
+
+
   type Problem {
     id: Int
     environment: Environment
@@ -267,6 +300,7 @@ const typeDefs = gql`
     type: FactType
     category: String
     references: [FactReference]
+    service: String
   }
 
   input AddFactInput {
@@ -279,6 +313,7 @@ const typeDefs = gql`
     keyFact: Boolean
     type: FactType
     category: String
+    service: String
   }
 
   input AddFactsInput {
@@ -294,6 +329,7 @@ const typeDefs = gql`
     keyFact: Boolean
     type: FactType
     category: String
+    service: String
   }
 
   input UpdateFactInput {
@@ -791,11 +827,12 @@ const typeDefs = gql`
     advancedTasks: [AdvancedTaskDefinition]
     services: [EnvironmentService]
     problems(severity: [ProblemSeverityRating], source: [String]): [Problem]
-    facts(keyFacts: Boolean, limit: Int): [Fact]
+    facts(keyFacts: Boolean, limit: Int, summary: Boolean): [Fact]
     openshift: Openshift
     openshiftProjectPattern: String
     kubernetes: Kubernetes
     kubernetesNamespacePattern: String
+    workflows: [Workflow]
   }
 
   type EnvironmentHitsMonth {
@@ -1083,6 +1120,12 @@ const typeDefs = gql`
     Returns a AdvancedTaskDefinitionArgument by Id
     """
     advancedTaskDefinitionArgumentById(id: Int!) : [AdvancedTaskDefinitionArgument]
+
+    """
+    Returns all Workflows for an environment
+    """
+    workflowsForEnvironment(environment: Int!) : [Workflow]
+
     """
     Returns the DeployTargetConfig by a deployTargetConfig Id
     """
@@ -1311,6 +1354,25 @@ const typeDefs = gql`
   }
 
   input AdvancedTaskDefinitionInput {
+    name: String
+    description: String
+    image: String
+    type: AdvancedTaskDefinitionTypes
+    service: String
+    command: String
+    environment: Int
+    project: Int
+    groupName: String
+    permission: TaskPermission
+    advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgumentInput]
+  }
+
+  input UpdateAdvancedTaskDefinitionInput {
+    id: Int!
+    patch: UpdateAdvancedTaskDefinitionPatchInput!
+  }
+
+  input UpdateAdvancedTaskDefinitionPatchInput {
     name: String
     description: String
     image: String
@@ -1898,8 +1960,12 @@ const typeDefs = gql`
     deleteEnvVariable(input: DeleteEnvVariableInput!): String
     addTask(input: TaskInput!): Task
     addAdvancedTaskDefinition(input: AdvancedTaskDefinitionInput!): AdvancedTaskDefinition
+    updateAdvancedTaskDefinition(input: UpdateAdvancedTaskDefinitionInput!): AdvancedTaskDefinition
     invokeRegisteredTask(advancedTaskDefinition: Int!, environment: Int!, argumentValues: [AdvancedTaskDefinitionArgumentValueInput]): Task
     deleteAdvancedTaskDefinition(advancedTaskDefinition: Int!): String
+    addWorkflow(input: AddWorkflowInput!): Workflow
+    updateWorkflow(input: UpdateWorkflowInput): Workflow
+    deleteWorkflow(input: DeleteWorkflowInput!): String
     taskDrushArchiveDump(environment: Int!): Task
     taskDrushSqlDump(environment: Int!): Task
     taskDrushCacheClear(environment: Int!): Task

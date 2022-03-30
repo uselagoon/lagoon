@@ -72,6 +72,7 @@ const {
 
 const {
   addAdvancedTaskDefinition,
+  updateAdvancedTaskDefinition,
   advancedTaskDefinitionById,
   resolveTasksForEnvironment,
   getRegisteredTasksByEnvironmentId,
@@ -233,6 +234,15 @@ const {
   deleteEnvVariable,
 } = require('./resources/env-variables/resolvers');
 
+const {
+  addWorkflow,
+  updateWorkflow,
+  deleteWorkflow,
+  resolveWorkflowsForEnvironment,
+  getWorkflowsByEnvironmentId,
+  resolveAdvancedTaskDefinitionsForWorkflow,
+} = require("./resources/workflow/resolvers");
+
 const resolvers = {
   Upload: GraphQLUpload,
   GroupRole: {
@@ -344,6 +354,7 @@ const resolvers = {
     facts: getFactsByEnvironmentId,
     openshift: getOpenshiftByEnvironmentId,
     kubernetes: getOpenshiftByEnvironmentId,
+    workflows: getWorkflowsByEnvironmentId,
   },
   Fact: {
     references: getFactReferencesByFactId,
@@ -402,6 +413,9 @@ const resolvers = {
   Restore: {
     restoreLocation: getRestoreLocation,
   },
+  Workflow: {
+    advancedTaskDefinition: resolveAdvancedTaskDefinitionsForWorkflow,
+  },
   Query: {
     me: getMe,
     lagoonVersion: getLagoonVersion,
@@ -434,6 +448,7 @@ const resolvers = {
     allProblemHarborScanMatchers: getProblemHarborScanMatches,
     projectsByMetadata: getProjectsByMetadata,
     projectsByFactSearch: getProjectsByFactSearch,
+    workflowsForEnvironment: resolveWorkflowsForEnvironment,
     deployTargetConfigById: getDeployTargetConfigById,
     deployTargetConfigsByProjectId: getDeployTargetConfigsByProjectId,
     deployTargetConfigsByDeployTarget: getDeployTargetConfigsByDeployTarget,
@@ -517,6 +532,7 @@ const resolvers = {
     deleteEnvVariable,
     addTask,
     addAdvancedTaskDefinition,
+    updateAdvancedTaskDefinition,
     deleteAdvancedTaskDefinition,
     invokeRegisteredTask,
     taskDrushArchiveDump,
@@ -544,6 +560,9 @@ const resolvers = {
     removeUserFromGroup,
     addGroupsToProject,
     removeGroupsFromProject,
+    addWorkflow,
+    updateWorkflow,
+    deleteWorkflow,
     addDeployTargetConfig,
     deleteDeployTargetConfig,
     updateDeployTargetConfig,

@@ -259,6 +259,7 @@ CREATE TABLE IF NOT EXISTS task_file (
 CREATE TABLE IF NOT EXISTS environment_fact (
   id                       int NOT NULL auto_increment PRIMARY KEY,
   environment              int REFERENCES environment (id),
+  service                  varchar(300) NULL,
   name                     varchar(300) NOT NULL,
   value                    varchar(300) NOT NULL,
   type                     ENUM('TEXT', 'URL', 'SEMVER') DEFAULT 'TEXT',
@@ -267,7 +268,7 @@ CREATE TABLE IF NOT EXISTS environment_fact (
   created                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   category                 TEXT NULL    DEFAULT '',
   key_fact                 TINYINT(1) NOT NULL DEFAULT(0),
-  UNIQUE(environment, name)
+  CONSTRAINT environment_fact UNIQUE(environment, name, source)
 );
 
 CREATE TABLE IF NOT EXISTS environment_fact_reference (
@@ -305,4 +306,15 @@ CREATE TABLE IF NOT EXISTS notification_webhook (
   id          int NOT NULL auto_increment PRIMARY KEY,
   name        varchar(50) UNIQUE,
   webhook     varchar(2000)
+);
+
+
+CREATE TABLE IF NOT EXISTS workflow (
+  id                       int NOT NULL auto_increment PRIMARY KEY,
+  name                     varchar(50) NOT NULL,
+  event                    varchar(300) NOT NULL,
+  project                  int NOT NULL REFERENCES project(id),
+  advanced_task_definition int NOT NULL REFERENCES advanced_task_definition(id),
+  created                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  deleted                  timestamp NOT NULL DEFAULT '0000-00-00 00:00:00'
 );

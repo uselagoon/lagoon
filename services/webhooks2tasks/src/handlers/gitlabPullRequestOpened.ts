@@ -17,7 +17,7 @@ export async function gitlabPullRequestOpened(webhook: WebhookRequestData, proje
 
     const meta = {
       projectName: project.name,
-      pullrequestNumber: body.object_attributes.id,
+      pullrequestNumber: body.object_attributes.iid,
       pullrequestTitle: body.object_attributes.title,
       pullrequestUrl: body.object_attributes.url,
       repoName: body.object_attributes.target.name,
@@ -46,21 +46,21 @@ export async function gitlabPullRequestOpened(webhook: WebhookRequestData, proje
       repoName: body.object_attributes.target.name,
       pullrequestUrl: body.object_attributes.url,
       pullrequestTitle: body.object_attributes.title,
-      pullrequestNumber: body.object_attributes.id,
+      pullrequestNumber: body.object_attributes.iid,
       projectName: project.name,
       type: 'pullrequest',
       headBranchName: headBranchName,
       headSha: headSha,
       baseBranchName: baseBranchName,
       baseSha: baseSha,
-      branchName: `pr-${body.object_attributes.id}`,
+      branchName: `pr-${body.object_attributes.iid}`,
       buildName: buildName
     }
 
     try {
       await createDeployTask(data);
       sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:opened:handled`, data,
-        `*[${project.name}]* PR <${body.object_attributes.url}|#${body.object_attributes.id} (${body.object_attributes.title})> opened in <${body.object_attributes.target.web_url}|${body.object_attributes.target.name}>`
+        `*[${project.name}]* PR <${body.object_attributes.url}|#${body.object_attributes.iid} (${body.object_attributes.title})> opened in <${body.object_attributes.target.web_url}|${body.object_attributes.target.name}>`
       )
       return;
     } catch (error) {
@@ -70,7 +70,7 @@ export async function gitlabPullRequestOpened(webhook: WebhookRequestData, proje
         case "UnknownActiveSystem":
           // These are not real errors and also they will happen many times. We just log them locally but not throw an error
           sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
-            `*[${project.name}]* PR ${body.object_attributes.id} opened. No deploy task created, reason: ${error}`
+            `*[${project.name}]* PR ${body.object_attributes.iid} opened. No deploy task created, reason: ${error}`
           )
           return;
 

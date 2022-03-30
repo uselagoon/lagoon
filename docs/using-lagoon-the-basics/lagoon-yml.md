@@ -552,14 +552,20 @@ environments:
     rollouts:
       mariadb: statefulset
     cronjobs:
-     - name: drush cron
-       schedule: "M * * * *" # This will run the cron once per hour.
-       command: drush cron
-       service: cli
+      - name: drush cron
+        schedule: "M * * * *" # This will run the cron once per hour.
+        command: drush cron
+        service: cli
   staging:
-    cronjobs:
-     - name: drush cron
-       schedule: "M * * * *" # This will run the cron once per hour.
-       command: drush cron
-       service: cli
+      cronjobs:
+      - name: drush cron
+        schedule: "M * * * *" # This will run the cron once per hour.
+        command: drush cron
+        service: cli
+  feature/feature-branch:
+      cronjobs:
+      - name: drush cron
+        schedule: "H * * * *" # This will run the cron once per hour.
+        command: drush cron
+        service: cli
 ```

@@ -38,7 +38,7 @@ SSH key support in Windows has improved markedly as of recently, and is now supp
 
 ### Via the UI
 
-You can upload your SSH key(s) through the UI. Login as you normally would.&#x20;
+You can upload your SSH key(s) through the UI. Login as you normally would.
 
 In the upper right hand corner, click on Settings:
 

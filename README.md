@@ -4,6 +4,18 @@
 
 # Lagoon - the developer-focused application delivery platform for Kubernetes
 
+## Table of Contents
+1. Project Description
+2. Usage
+3. Architecture
+4. Testing
+5. Other Lagoon Components
+6. Contribution
+7. History
+8. Connect
+
+## Project Description
+
 Lagoon solves what developers are dreaming about: A system that allows developers to locally develop their code and their services with Docker and run the exact same system in production. The same container images, the same service configurations and the same code.
 
 > Lagoon is an application delivery **platform**. Its primary focus is as a cloud-native tool for the deployment, management, security and operation of many applications. Lagoon greatly reduces the requirement on developers of those applications to have cloud-native experience or knowledge.
@@ -12,7 +24,8 @@ Lagoon has been designed to handle workloads that have been traditionally more c
 
 Lagoon is fully open-source, built on open-source tools, built collaboratively with our users.
 
-## Installing Lagoon
+## Usage
+### Installation
 
 *Note that is not necessary to install Lagoon on to your local machine if you are looking to maintain websites hosted on Lagoon.*
 
@@ -25,7 +38,7 @@ For more information on developing or contributing to Lagoon, head to https://do
 
 For more information on installing and administering Lagoon, head to https://docs.lagoon.sh/administering-lagoon
 
-## Lagoon architecture
+### Architecture
 
 Lagoon comprises two main components: **Lagoon Core** and **Lagoon Remote**. It's also built on several other third-party services, Operators and Controllers. In a full production setting, we recommend installing Lagoon Core and Remote into different Kubernetes Clusters. A single Lagoon Core installation is capable of serving multiple Remotes, but they can also be installed into the same cluster if preferred.
 
@@ -35,7 +48,7 @@ Lagoon services are mostly built in Node.js. More recent development occurs in G
 
 ### Lagoon Core
 
-All the services that handle the API, authentication and external communication are installed here. Installation is via a [Helm Chart](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-core)
+All the services that handle the API, authentication and external communication are installed here. Installation is via a [Helm Chart].(https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-core)
 - API
   - [api](https://github.com/uselagoon/lagoon/tree/main/services/api) (the GraphQL API that powers Lagoon)
   - [api-db](https://github.com/uselagoon/lagoon/tree/main/services/api-db) (the MariaDB storage for the API)
@@ -102,7 +115,7 @@ These services are usually installed alongside either Lagoon Core or Lagoon Remo
   - [k8up](https://k8up.io/) (provides a scheduled backup and prune service to environment namespaces)
 
 
-### Testing
+## Testing
 
 Lagoon has a comprehensive [test suite](https://github.com/uselagoon/lagoon/tree/main/tests/tests), designed to cover most end-user scenarios. The testing is automated in Ansible, and runs in Jenkins, but can also be run locally in a self-contained cluster. The testing provisions a standalone Lagoon cluster, running on Kind (Kubernetes in Docker). This cluster is made of Lagoon Core, Lagoon Remote, an image registry and a set of managed databases. It runs test deployments and scenarios for a range of Node.js, Drupal, Python and NGINX projects, all built using the latest Lagoon images.
 
@@ -135,7 +148,7 @@ To add the repository `helm repo add lagoon https://amazeeio.github.io/charts/`
 
 
 
-## Contribute
+## Contribution
 
 Do you want to contribute to Lagoon? Fabulous! [See our Documentation](https://docs.lagoon.sh/contributing/) on how to get started.
 

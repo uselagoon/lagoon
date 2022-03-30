@@ -2,6 +2,7 @@ import { ChannelWrapper } from 'amqp-connection-manager';
 import { ConsumeMessage } from 'amqplib';
 import { logger } from '@lagoon/commons/dist/local-logging';
 import S3 from 'aws-sdk/clients/s3';
+import sha1 from 'sha1';
 
 const accessKeyId =  process.env.S3_FILES_ACCESS_KEY_ID || 'minio'
 const secretAccessKey =  process.env.S3_FILES_SECRET_ACCESS_KEY || 'minio123'
@@ -28,6 +29,8 @@ const s3Client = new S3({
   s3ForcePathStyle: true,
   signatureVersion: 'v4'
 });
+
+const makeSafe = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
 
 export async function readFromRabbitMQ(
   msg: ConsumeMessage,
@@ -57,13 +60,22 @@ export async function readFromRabbitMQ(
     case String(event.match(/^build-logs:job-kubernetes:.*/)):
     case String(event.match(/^task-logs:job-kubernetes:.*/)):
       if (meta.environment) {
+        // this value comes back as the actual environment/branch name
+        // it needs to be made safe just in case
+        var environmentName = makeSafe(meta.environment)
+        var overlength = 58 - project.length;
+        if ( environmentName.length > overlength ) {
+          var hash = sha1(environmentName).substring(0,4)
+          environmentName = environmentName.substring(0, overlength-5)
+          environmentName = environmentName.concat('-' + hash)
+        }
         // if the environment is in the data, then save the log to the environments directory
         // some versions of the controller don't send this value in the log meta
         // the resolver in the api also knows to check in both locations when trying to load logs
-        logger.verbose(`received ${event} for project ${project} environment ${meta.environment} - id:${meta.task.id}, remoteId:${meta.remoteId}`);
+        logger.verbose(`received ${event} for project ${project} environment ${environmentName} - id:${meta.task.id}, remoteId:${meta.remoteId}`);
         await s3Client.putObject({
           Bucket: bucket,
-          Key: 'tasklogs/'+project+'/'+meta.environment+'/'+meta.task.id+'-'+meta.remoteId+'.txt',
+          Key: 'tasklogs/'+project+'/'+environmentName+'/'+meta.task.id+'-'+meta.remoteId+'.txt',
           ContentType: 'text/plain',
           Body: Buffer.from(message, 'binary')
         }).promise();
