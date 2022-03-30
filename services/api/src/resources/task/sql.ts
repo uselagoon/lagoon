@@ -80,6 +80,7 @@ export const Sql = {
     group_name,
     environment,
     permission,
+    confirmation_text,
     }: {
       id: number,
       name: string,
@@ -93,6 +94,7 @@ export const Sql = {
       group_name: string,
       environment: number,
       permission: string,
+      confirmation_text: string
     }) =>
     knex('advanced_task_definition')
       .insert({
@@ -108,6 +110,7 @@ export const Sql = {
         group_name,
         environment,
         permission,
+        confirmation_text,
       })
     .toString(),
     insertAdvancedTaskDefinitionArgument: ({

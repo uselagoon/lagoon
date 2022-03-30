@@ -13,6 +13,7 @@ export default gql`
         service
         created
         deleted
+        confirmationText
         advancedTaskDefinitionArguments {
           id
           name
@@ -30,6 +31,7 @@ export default gql`
         service
         created
         deleted
+        confirmationText
         advancedTaskDefinitionArguments {
           id
           name

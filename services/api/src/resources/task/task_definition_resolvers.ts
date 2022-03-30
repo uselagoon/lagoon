@@ -18,6 +18,7 @@ import sql from '../user/sql';
 import convertDateToMYSQLDateTimeFormat from '../../util/convertDateToMYSQLDateTimeFormat';
 import * as advancedTaskToolbox from './advancedtasktoolbox';
 import { IKeycloakAuthAttributes, KeycloakUnauthorizedError } from '../../util/auth';
+import { Environment } from '../../resolvers';
 
 enum AdvancedTaskDefinitionTarget {
   Group,
@@ -231,7 +232,8 @@ export const addAdvancedTaskDefinition = async (
     environment,
     permission,
     advancedTaskDefinitionArguments,
-    created
+    created,
+    confirmationText,
   } = input;
 
   const atb = advancedTaskToolbox.advancedTaskFunctions(
@@ -308,7 +310,8 @@ export const addAdvancedTaskDefinition = async (
       project,
       environment,
       group_name: groupName,
-      permission
+      permission,
+      confirmation_text: confirmationText,
     })
   );
 
@@ -353,13 +356,9 @@ export const updateAdvancedTaskDefinition = async (
         type,
         service,
         command,
-        project,
-        groupName,
-        environment,
         permission,
         advancedTaskDefinitionArguments,
-        created,
-        deleted
+        confirmationText
       }
     }
   },
@@ -369,17 +368,27 @@ export const updateAdvancedTaskDefinition = async (
     throw new Error('Input patch requires at least 1 attribute');
   }
 
+  const atb = advancedTaskToolbox.advancedTaskFunctions(
+    sqlClientPool, models, hasPermission
+  );
+
+  console.log(`ID is : ${id}`);
+
+  let task = await atb.advancedTaskDefinitionById(id);
+  console.log("hot here");
+
   let projectObj = await getProjectByEnvironmentIdOrProjectId(
     sqlClientPool,
-    environment,
-    project
+    task.environment,
+    task.project
   );
 
 
-  await checkAdvancedTaskPermissions(patch, hasPermission, models, projectObj);
+  await checkAdvancedTaskPermissions(task, hasPermission, models, projectObj);
 
   validateAdvancedTaskDefinitionData(patch, image, command, type);
 
+  //We actually don't want them to be able to update group, project, environment - so those aren't
   await query(
     sqlClientPool,
     Sql.updateAdvancedTaskDefinition({
@@ -389,14 +398,9 @@ export const updateAdvancedTaskDefinition = async (
         description,
         image,
         command,
-        created,
-        deleted,
-        type,
         service,
-        project,
-        environment,
-        group_name: groupName,
         permission,
+        confirmation_text: confirmationText
       }
     })
   );
@@ -424,7 +428,7 @@ export const updateAdvancedTaskDefinition = async (
     }
 
     userActivityLogger(`User updated advanced task definition '${id}'`, {
-      project: project,
+      project: task.project,
       event: 'api:updateTaskDefinition',
       payload: {
         taskDef: id

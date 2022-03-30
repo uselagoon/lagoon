@@ -42,6 +42,10 @@ const InvokeRegisteredTask = ({ pageEnvironment, selectedTask, advancedTaskArgum
     {(mutationInvokeRegisteredTask, { loading, called, error, data }) => {
       return (
         <React.Fragment>
+          { selectedTask.confirmationText && <div className="warning">
+              {selectedTask.confirmationText}
+            </div>
+          }
           <div className="taskArguments">
           {selectedTask.arguments && selectedTask.arguments.map( d => {
             switch(d.type) {
@@ -103,6 +107,11 @@ const InvokeRegisteredTask = ({ pageEnvironment, selectedTask, advancedTaskArgum
               border-radius: 4px;
               border-style: solid;
               border-width: 1px;
+            }
+            .warning {
+              background-color: red;
+              color: white;
+              padding: 10px;
             }
           `}</style>
         </React.Fragment>
