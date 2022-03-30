@@ -372,10 +372,7 @@ export const updateAdvancedTaskDefinition = async (
     sqlClientPool, models, hasPermission
   );
 
-  console.log(`ID is : ${id}`);
-
   let task = await atb.advancedTaskDefinitionById(id);
-  console.log("hot here");
 
   let projectObj = await getProjectByEnvironmentIdOrProjectId(
     sqlClientPool,
