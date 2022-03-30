@@ -10,9 +10,9 @@
    1. In the Lagoon UI (the URL is in `values.yml` if you forget), go to **Settings**.
    2. Add your public SSH key.
    3. You need to set the default Lagoon to _your_ Lagoon so that it doesn’t try to use the amazee.io defaults:
-      1. &#x20;`lagoon config default --lagoon <YOUR-LAGOON-NAME>`
+      1. `lagoon config default --lagoon <YOUR-LAGOON-NAME>`
 4. Now run `lagoon login`
-   1. How the system works:&#x20;
+   1. How the system works:
       1. Lagoon talks to SSH and authenticates against your public/private key pair, and gets a token for your username.
    2. Verify via `lagoon whoami` that you are logged in.
 

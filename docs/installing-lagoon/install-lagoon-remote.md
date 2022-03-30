@@ -1,8 +1,8 @@
 # Install Lagoon Remote
 
-Now we will install Lagoon Remote into the Lagoon namespace. The [RabbitMQ](../docker-images/rabbitmq.md) service is the broker.&#x20;
+Now we will install Lagoon Remote into the Lagoon namespace. The [RabbitMQ](../docker-images/rabbitmq.md) service is the broker.
 
-1. Create `remote-values.yml` in your config directory as you did the previous two files, and update the values.&#x20;
+1. Create `remote-values.yml` in your config directory as you did the previous two files, and update the values.
    1. rabbitMQPassword: `kubectl -n lagoon-core get secret lagoon-core-broker -o jsonpath="{.data.RABBITMQ_PASSWORD}" | base64 --decode`
    2. rabbitMQHostname: `lagoon-core-broker.lagoon-core.svc.local`
    3. taskSSHHost: `kubectl get service lagoon-core-broker-amqp-ext -o custom-columns="NAME:.metadata.name,IP ADDRESS:.status.loadBalancer.ingress[*].ip,HOSTNAME:.status.loadBalancer.ingress[*].hostname"`

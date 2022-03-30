@@ -176,7 +176,6 @@ func processingIncomingMessageQueueFactory(h *Messaging) func(mq.Message) {
 			return
 		}
 
-		//Ahhh, the issue is that there is no environment name passed thought ...
 		environmentIdentifier := fmt.Sprintf("%v", incoming.Meta.EnvironmentID)
 		if incoming.Meta.Environment != "" {
 			environmentIdentifier = fmt.Sprintf("%v:%v", incoming.Meta.Environment, incoming.Meta.EnvironmentID)
@@ -190,6 +189,7 @@ func processingIncomingMessageQueueFactory(h *Messaging) func(mq.Message) {
 			environmentWorkflows, err := lagoonclient.GetEnvironmentWorkflowsByEnvironmentId(context.TODO(), client, int(*incoming.Meta.EnvironmentID))
 			if err != nil {
 				log.Println(err)
+				message.Ack(false)
 				return
 			}
 			for _, wf := range environmentWorkflows {

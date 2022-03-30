@@ -38,5 +38,5 @@ registry:
    1. Username: admin
    2. Password:
        `kubectl -n harbor get secret harbor-harbor-core -o jsonpath="{.data.HARBOR_ADMIN_PASSWORD}" | base64 --decode`
-3. Add the above Harbor credentials to the Lagoon Core `values.yml` that you created at the beginning of the process, as well as `harbor-values.yml`.&#x20;
+3. Add the above Harbor credentials to the Lagoon Core `values.yml` that you created at the beginning of the process, as well as `harbor-values.yml`.
 4. Upgrade lagoon-core release with the updated `values.yml` file: `helm upgrade --namespace lagoon-core -f values.yaml lagoon-core lagoon/lagoon-core`
