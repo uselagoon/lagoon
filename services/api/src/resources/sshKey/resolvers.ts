@@ -12,7 +12,7 @@ const sshKeyTypeToString = R.cond([
   [R.equals('SSH_ED25519'), R.always('ssh-ed25519')],
   [R.equals('ECDSA-SHA2-NISTP256'), R.always('ecdsa-sha2-nistp256')],
   [R.equals('ECDSA-SHA2-NISTP384'), R.always('ecdsa-sha2-nistp384')],
-  [R.equals('ECDSA-SHA2-NISTP521'), R.always('ecdsa-sha2-nistp521')]
+  [R.equals('ECDSA-SHA2-NISTP521'), R.always('ecdsa-sha2-nistp521')],
   [R.T, R.identity]
 ]);
 
