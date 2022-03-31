@@ -4,6 +4,7 @@ import { s3Client } from '../../clients/aws';
 import { query } from '../../util/db';
 import { Sql } from './sql';
 import { Sql as taskSql } from '../task/sql';
+import { getConfigFromEnv } from '../../util/config';
 
 export const getDownloadLink: ResolverFn = async ({ s3Key }) =>
   s3Client.getSignedUrl('getObject', {
@@ -36,8 +37,7 @@ export const uploadFilesForTask: ResolverFn = async (
     const s3_key = `tasks/${task}/${newFile.filename}`;
     const params = {
       Key: s3_key,
-      Body: newFile.createReadStream(),
-      ACL: 'private'
+      Body: newFile.createReadStream()
     };
     // @ts-ignore
     await s3Client.upload(params).promise();
