@@ -552,7 +552,7 @@ CREATE OR REPLACE PROCEDURE
         AND column_name = 'key_type'
     ) THEN
       ALTER TABLE `ssh_key`
-      CHANGE `keyType` `key_type` ENUM('ssh-rsa', 'ssh-ed25519','ecdsa-sha2-nistp256','ecdsa-sha2-nistp384','ecdsa-sha2-nistp521','sk-ecdsa-sha2-nistp256@openssh.com','sk-ssh-ed25519@openssh.com') NOT NULL DEFAULT 'ssh-rsa';
+      CHANGE `keyType` `key_type` ENUM('ssh-rsa', 'ssh-ed25519','ecdsa-sha2-nistp256','ecdsa-sha2-nistp384','ecdsa-sha2-nistp521') NOT NULL DEFAULT 'ssh-rsa';
     END IF;
   END;
 $$

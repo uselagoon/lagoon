@@ -14,6 +14,9 @@ const typeDefs = gql`
   enum SshKeyType {
     SSH_RSA
     SSH_ED25519
+    ECDSA_SHA2_NISTP256
+    ECDSA_SHA2_NISTP384
+    ECDSA_SHA2_NISTP521
   }
 
   enum DeployType {

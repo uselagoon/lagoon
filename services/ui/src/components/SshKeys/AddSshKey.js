@@ -22,12 +22,10 @@ const AddSshKey = ({me: { id, email }}) => {
     values.sshKey.trim().startsWith('ssh-ed25519') ||
     values.sshKey.trim().startsWith('ecdsa-sha2-nistp256') ||
     values.sshKey.trim().startsWith('ecdsa-sha2-nistp384') ||
-    values.sshKey.trim().startsWith('ecdsa-sha2-nistp521') ||
-    values.sshKey.trim().startsWith('sk-ecdsa-sha2-nistp256@openssh.com') ||
-    values.sshKey.trim().startsWith('sk-ssh-ed25519@openssh.com')
+    values.sshKey.trim().startsWith('ecdsa-sha2-nistp521')
   );
 
-  const regex = /\s*(ssh-rsa|ssh-ed25519|ecdsa-sha2-nistp256|ecdsa-sha2-nistp384|ecdsa-sha2-nistp521|sk-ecdsa-sha2-nistp256@openssh.com|sk-ssh-ed25519@openssh.com)\s+(\S+).*/
+  const regex = /\s*(ssh-rsa|ssh-ed25519|ecdsa-sha2-nistp256|ecdsa-sha2-nistp384|ecdsa-sha2-nistp521)\s+(\S+).*/
   // First capture group is the type of the ssh key
   // Second capture group is the actual ssh key
   // Whitespace and comments are ignored
