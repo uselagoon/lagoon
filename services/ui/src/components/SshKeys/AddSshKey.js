@@ -83,7 +83,7 @@ const AddSshKey = ({me: { id, email }}) => {
                   type="text"
                   onChange={handleChange}
                   value={values.sshKey}
-                  placeholder="Begins with 'ssh-rsa', 'ssh-ed25519', 'ecdsa-sha2-nistp256', 'ecdsa-sha2-nistp384', 'ecdsa-sha2-nistp521', 'sk-ecdsa-sha2-nistp256@openssh.com', 'sk-ssh-ed25519@openssh.com'"/>
+                  placeholder="Begins with 'ssh-rsa', 'ssh-ed25519', 'ecdsa-sha2-nistp256', 'ecdsa-sha2-nistp384', 'ecdsa-sha2-nistp521'"/>
               </div>
 
               <Button disabled={!isFormValid} action={addSshKeyHandler}>Add</Button>
