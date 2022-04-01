@@ -4,7 +4,6 @@ import { s3Client } from '../../clients/aws';
 import { query } from '../../util/db';
 import { Sql } from './sql';
 import { Sql as taskSql } from '../task/sql';
-import { getConfigFromEnv } from '../../util/config';
 
 export const getDownloadLink: ResolverFn = async ({ s3Key }) =>
   s3Client.getSignedUrl('getObject', {
