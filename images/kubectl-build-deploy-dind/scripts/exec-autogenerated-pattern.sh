@@ -34,7 +34,7 @@ function routerPattern2DomainGenerator {
     # fallback to the default behaviour which adds the service with a dot
     # if the pattern doesn't have a service pattern defined in it
     if [ $HAS_SERVICE_PATTERN == "false" ]; then
-        DOMAIN_PARTS2=${SERVICE}.${DOMAIN_PARTS2}
+        DOMAIN_PARTS=${SERVICE}.${DOMAIN_PARTS}
     fi
 
 
