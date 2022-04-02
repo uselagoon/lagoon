@@ -42,7 +42,7 @@ const AddSshKey = ({me: { id, email }}) => {
                 input: {
                   name: values.sshKeyName,
                   keyValue: values.sshKey.match(regex)[2],
-                  keyType: values.sshKey.match(regex)[1].replace('-', '_').toUpperCase(),
+                  keyType: values.sshKey.match(regex)[1].replace(/-/g, '_').toUpperCase(),
                   user: {
                     id,
                     email
