@@ -1580,7 +1580,7 @@ CREATE OR REPLACE PROCEDURE
   add_ecdsa_ssh_key_types()
 
   BEGIN
-    DECLARE column_type_argument_type varchar(74);
+    DECLARE column_type_argument_type varchar(100);
 
     SELECT COLUMN_TYPE INTO column_type_argument_type
     FROM INFORMATION_SCHEMA.COLUMNS
