@@ -52,7 +52,7 @@ const DrushArchiveDump = ({ pageEnvironment, onCompleted, onError }) => (
               required
             />
           </div>
-          <Button action={taskDrushArchiveDump}>Add task</Button>
+          <Button action={taskDrushArchiveDump}>Run task</Button>
           <style jsx>{`
             .envSelect {
               margin: 10px 0;

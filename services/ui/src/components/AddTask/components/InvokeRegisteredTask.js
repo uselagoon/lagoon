@@ -5,6 +5,7 @@ import ReactSelect from 'react-select';
 import Button from 'components/Button';
 import withState from 'recompose/withState';
 import * as R from "ramda";
+import { CustomTaskConfirm } from './CustomTaskConfirm';
 
 const mutationInvokeRegisteredTask = gql`
   mutation invokeRegisteredTask($environment: Int!, $taskRegistration: Int!, $argumentValues: [AdvancedTaskDefinitionArgumentValueInput]) {
@@ -22,7 +23,8 @@ const mutationInvokeRegisteredTask = gql`
   }
 `;
 
-const InvokeRegisteredTask = ({ pageEnvironment, selectedTask, advancedTaskArguments, setAdvancedTaskArguments,  onCompleted, onError }) => {
+const InvokeRegisteredTask = ({ pageEnvironment, selectedTask, advancedTaskArguments, setAdvancedTaskArguments,  onCompleted, onError, isConfirmOpen, setIsConfirmOpen }) => {
+
   return <Mutation
     mutation={mutationInvokeRegisteredTask}
     onCompleted={onCompleted}
@@ -42,10 +44,6 @@ const InvokeRegisteredTask = ({ pageEnvironment, selectedTask, advancedTaskArgum
     {(mutationInvokeRegisteredTask, { loading, called, error, data }) => {
       return (
         <React.Fragment>
-          { selectedTask.confirmationText && <div className="warning">
-              {selectedTask.confirmationText}
-            </div>
-          }
           <div className="taskArguments">
           {selectedTask.arguments && selectedTask.arguments.map( d => {
             switch(d.type) {
@@ -87,7 +85,14 @@ const InvokeRegisteredTask = ({ pageEnvironment, selectedTask, advancedTaskArgum
             return null;
           })}
           </div>
-          <Button action={mutationInvokeRegisteredTask}>Add task</Button>
+          { selectedTask.confirmationText && <CustomTaskConfirm
+            taskText={selectedTask.confirmationText}
+            onProceed={mutationInvokeRegisteredTask}
+            open={isConfirmOpen}
+            openModal={()=>{setIsConfirmOpen(true);}}
+            closeModal={()=>{setIsConfirmOpen(false);}}
+          /> || <Button action={mutationInvokeRegisteredTask}>Run task</Button>
+          }
           <style jsx>{`
             .envSelect {
               margin: 10px 0;
@@ -123,5 +128,6 @@ const InvokeRegisteredTask = ({ pageEnvironment, selectedTask, advancedTaskArgum
 
 //here we attempt to deal with dynamic options
 const withAdtaskArgs = withState('advancedTaskArguments', 'setAdvancedTaskArguments', {});
+const withIsConfirmOpen = withState('isConfirmOpen', 'setIsConfirmOpen', false);
 
-export default withAdtaskArgs(InvokeRegisteredTask);
+export default withIsConfirmOpen(withAdtaskArgs(InvokeRegisteredTask));
