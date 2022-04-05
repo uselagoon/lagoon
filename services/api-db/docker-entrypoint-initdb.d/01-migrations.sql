@@ -1593,6 +1593,22 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  add_display_name_to_advanced_task_argument()
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'advanced_task_definition_argument'
+        AND column_name = 'display_name'
+    ) THEN
+      ALTER TABLE `advanced_task_definition`
+      ADD `display_name` varchar(500) NULL;
+    END IF;
+  END;
+$$
+
 DELIMITER ;
 
 -- If adding new procedures, add them to the bottom of this list
@@ -1675,6 +1691,7 @@ CALL add_bulk_id_to_deployment();
 CALL drop_legacy_permissions();
 CALL change_name_index_for_advanced_task_argument();
 CALL add_confirmation_text_to_advanced_task_def();
+CALL add_display_name_to_advanced_task_argument();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;

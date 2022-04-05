@@ -300,6 +300,7 @@ CREATE TABLE IF NOT EXISTS advanced_task_definition_argument (
   id                                int NOT NULL auto_increment PRIMARY KEY,
   advanced_task_definition          int REFERENCES advanved_task_definition(id),
   name                              varchar(300) NOT NULL UNIQUE,
+  display_name                      varchar(500) NULL,
   type                              ENUM('NUMERIC', 'STRING', 'ENVIRONMENT_SOURCE_NAME')
 );
 
