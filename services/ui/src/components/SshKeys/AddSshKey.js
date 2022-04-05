@@ -18,11 +18,14 @@ const AddSshKey = ({me: { id, email }}) => {
 
   const isFormValid = values.sshKeyName !== '' && !values.sshKey.includes('\n') &&
   (
-    values.sshKey.trim().startsWith('ssh-rsa') || 
-    values.sshKey.trim().startsWith('ssh-ed25519')
+    values.sshKey.trim().startsWith('ssh-rsa') ||
+    values.sshKey.trim().startsWith('ssh-ed25519') ||
+    values.sshKey.trim().startsWith('ecdsa-sha2-nistp256') ||
+    values.sshKey.trim().startsWith('ecdsa-sha2-nistp384') ||
+    values.sshKey.trim().startsWith('ecdsa-sha2-nistp521')
   );
 
-  const regex = /\s*(ssh-\S+)\s+(\S+).*/
+  const regex = /\s*(ssh-rsa|ssh-ed25519|ecdsa-sha2-nistp256|ecdsa-sha2-nistp384|ecdsa-sha2-nistp521)\s+(\S+).*/
   // First capture group is the type of the ssh key
   // Second capture group is the actual ssh key
   // Whitespace and comments are ignored
@@ -33,13 +36,13 @@ const AddSshKey = ({me: { id, email }}) => {
       <Mutation mutation={AddSshKeyMutation} refetchQueries={[{ query: Me }]}>
         {(addSshKey, { loading, called, error, data }) => {
 
-          const addSshKeyHandler = () => { 
+          const addSshKeyHandler = () => {
             addSshKey({
               variables: {
                 input: {
                   name: values.sshKeyName,
                   keyValue: values.sshKey.match(regex)[2],
-                  keyType: values.sshKey.match(regex)[1].replace('-', '_').toUpperCase(),
+                  keyType: values.sshKey.match(regex)[1].replace(/-/g, '_').toUpperCase(),
                   user: {
                     id,
                     email
@@ -57,7 +60,7 @@ const AddSshKey = ({me: { id, email }}) => {
           return (
             <div className="addNew">
 
-              { error ? <div className="error">{error.message.replace('GraphQL error:', '').trim()}</div> : "" } 
+              { error ? <div className="error">{error.message.replace('GraphQL error:', '').trim()}</div> : "" }
 
               <div>
                 <label htmlFor="sshKeyName">SSH Key Name</label>
@@ -80,7 +83,7 @@ const AddSshKey = ({me: { id, email }}) => {
                   type="text"
                   onChange={handleChange}
                   value={values.sshKey}
-                  placeholder="Begins with 'ssh-rsa', 'ssh-ed25519'"/>
+                  placeholder="Begins with 'ssh-rsa', 'ssh-ed25519', 'ecdsa-sha2-nistp256', 'ecdsa-sha2-nistp384', 'ecdsa-sha2-nistp521'"/>
               </div>
 
               <Button disabled={!isFormValid} action={addSshKeyHandler}>Add</Button>

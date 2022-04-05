@@ -53,7 +53,7 @@ export const generator = (schema, min = 1, max) => {
 const mocks = {
   Date: () => faker.date.between('2018-11-01T00:00:00', '2019-10-31T23:59:59').toISOString(),
   JSON: () => ({ id: faker.random.number(), currency: 'usd' }),
-  SshKeyType: () => faker.random.arrayElement(['ssh_rsa', 'ssh_ed25519']),
+  SshKeyType: () => faker.random.arrayElement(['ssh_rsa', 'ssh_ed25519','ecdsa_sha2_nistp256','ecdsa_sha2_nistp384','ecdsa_sha2_nistp521']),
   DeployType: () => faker.random.arrayElement(['branch', 'pullrequest', 'promote']),
   EnvType: () => faker.random.arrayElement(['production', 'development']),
   NotificationType: () => faker.random.arrayElement(['slack', 'rocketchat', 'microsoftteams', 'email']),
@@ -157,14 +157,14 @@ mocks.Me = () => ({
   sshKeys: [{
     id: faker.random.number(),
     name: faker.random.arrayElement(['key-1', 'key-2', 'key-3']),
-    keyType: faker.random.arrayElement(['SSH_RSA', 'SSH_ED25519']),
+    keyType: faker.random.arrayElement(['SSH_RSA', 'SSH_ED25519', 'ECDSA_SHA2_NISTP256', 'ECDSA_SHA2_NISTP384', 'ECDSA_SHA2_NISTP521']),
     created: mocks.Date(),
     keyFingerprint: faker.random.uuid()
   },
   {
     id: faker.random.number(),
     name: faker.random.arrayElement(['key-1', 'key-2', 'key-3']),
-    keyType: faker.random.arrayElement(['SSH_RSA', 'SSH_ED25519']),
+    keyType: faker.random.arrayElement(['SSH_RSA', 'SSH_ED25519', 'ECDSA_SHA2_NISTP256', 'ECDSA_SHA2_NISTP384', 'ECDSA_SHA2_NISTP521']),
     created: mocks.Date(),
     keyFingerprint: faker.random.uuid()
   }]

@@ -1576,6 +1576,28 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  add_ecdsa_ssh_key_types()
+
+  BEGIN
+    DECLARE column_type_argument_type varchar(100);
+
+    SELECT COLUMN_TYPE INTO column_type_argument_type
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      table_name = 'ssh_key'
+      AND table_schema = 'infrastructure'
+      AND column_name = 'key_type';
+
+    IF (
+      column_type_argument_type = "enum('ssh-rsa', 'ssh-ed25519')"
+    ) THEN
+      ALTER TABLE ssh_key
+      MODIFY type ENUM('ssh-rsa', 'ssh-ed25519','ecdsa-sha2-nistp256','ecdsa-sha2-nistp384','ecdsa-sha2-nistp521');
+    END IF;
+  END;
+$$
+
 DELIMITER ;
 
 -- If adding new procedures, add them to the bottom of this list
@@ -1657,6 +1679,7 @@ CALL add_priority_to_deployment();
 CALL add_bulk_id_to_deployment();
 CALL drop_legacy_permissions();
 CALL change_name_index_for_advanced_task_argument();
+CALL add_ecdsa_ssh_key_types();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;
