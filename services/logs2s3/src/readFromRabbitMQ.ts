@@ -9,6 +9,8 @@ const secretAccessKey =  process.env.S3_FILES_SECRET_ACCESS_KEY || 'minio123'
 const bucket = process.env.S3_FILES_BUCKET || 'lagoon-files'
 const region = process.env.S3_FILES_REGION
 const s3Origin = process.env.S3_FILES_HOST || 'http://docker.for.mac.localhost:9000'
+// if this is google cloud storage or not
+const isGCS = process.env.S3_FILES_GCS || 'false'
 
 const config = {
   origin: s3Origin,
@@ -40,18 +42,18 @@ export async function readFromRabbitMQ(
 
   const { severity, project, uuid, event, meta, message } = logMessage;
 
-
   switch (event) {
     // handle builddeploy build logs from lagoon builds
     case String(event.match(/^build-logs:builddeploy-kubernetes:.*/)):
       logger.verbose(`received ${event} for project ${project} environment ${meta.branchName} - name:${meta.jobName}, remoteId:${meta.remoteId}`);
-      await s3Client.putObject({
+      const putParams = {
         Bucket: bucket,
-        Key: 'buildlogs/'+project+'/'+meta.branchName+'/'+meta.jobName+'-'+meta.remoteId+'.txt',
         ContentType: 'text/plain',
-        Body: Buffer.from(message, 'binary')
-      }).promise();
-
+        Body: Buffer.from(message, 'binary'),
+        Key: 'buildlogs/'+project+'/'+meta.branchName+'/'+meta.jobName+'-'+meta.remoteId+'.txt',
+        ...(isGCS == 'false' && {ACL: 'private'}),
+      }
+      await s3Client.putObject(putParams).promise();
       channelWrapperLogs.ack(msg);
       break;
     // handle tasks events for tasks logs
@@ -73,20 +75,24 @@ export async function readFromRabbitMQ(
         // some versions of the controller don't send this value in the log meta
         // the resolver in the api also knows to check in both locations when trying to load logs
         logger.verbose(`received ${event} for project ${project} environment ${environmentName} - id:${meta.task.id}, remoteId:${meta.remoteId}`);
-        await s3Client.putObject({
+        const putParams = {
           Bucket: bucket,
-          Key: 'tasklogs/'+project+'/'+environmentName+'/'+meta.task.id+'-'+meta.remoteId+'.txt',
           ContentType: 'text/plain',
-          Body: Buffer.from(message, 'binary')
-        }).promise();
+          Body: Buffer.from(message, 'binary'),
+          Key: 'tasklogs/'+project+'/'+environmentName+'/'+meta.task.id+'-'+meta.remoteId+'.txt',
+          ...(isGCS == 'false' && {ACL: 'private'}),
+        }
+        await s3Client.putObject(putParams).promise();
       } else {
         logger.verbose(`received ${event} for project ${project} - id:${meta.task.id}, remoteId:${meta.remoteId}`);
-        await s3Client.putObject({
+        const putParams = {
           Bucket: bucket,
-          Key: 'tasklogs/'+project+'/'+meta.task.id+'-'+meta.remoteId+'.txt',
           ContentType: 'text/plain',
-          Body: Buffer.from(message, 'binary')
-        }).promise();
+          Body: Buffer.from(message, 'binary'),
+          Key: 'tasklogs/'+project+'/'+meta.task.id+'-'+meta.remoteId+'.txt',
+          ...(isGCS == 'false' && {ACL: 'private'}),
+        }
+        await s3Client.putObject(putParams).promise();
       }
       channelWrapperLogs.ack(msg);
       break;
