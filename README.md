@@ -3,6 +3,8 @@
 </p>
 
 # Lagoon - the developer-focused application delivery platform for Kubernetes
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fuselagoon%2Flagoon.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fuselagoon%2Flagoon?ref=badge_shield)
+
 
 ## Table of Contents
 1. Project Description
@@ -171,3 +173,7 @@ In our documentation - https://docs.lagoon.sh
 In our blog - https://dev.to/uselagoon
 
 Via our socials - https://twitter.com/uselagoon
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fuselagoon%2Flagoon.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fuselagoon%2Flagoon?ref=badge_large)
