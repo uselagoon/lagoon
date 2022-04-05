@@ -96,6 +96,24 @@ export const getRestoreLocation: ResolverFn = async (
       region: awsS3Parts ? R.prop(1, awsS3Parts) : ''
     });
 
+    try {
+      // before generating the signed url, check the object exists
+      s3Client.headObject({
+        Bucket: R.prop(2, s3Parts),
+        Key: R.prop(3, s3Parts)
+      });
+    } catch (error) {
+      // delete the restore from the database if the head check fails
+      await query(
+        sqlClientPool,
+        Sql.deleteRestore({
+          backupId
+        })
+      );
+      // return an error?
+      throw new Error('The requested restore is no longer available, try retrieve the backup again');
+    }
+
     return s3Client.getSignedUrl('getObject', {
       Bucket: R.prop(2, s3Parts),
       Key: R.prop(3, s3Parts),
