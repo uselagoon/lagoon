@@ -37,7 +37,7 @@ export const uploadFilesForTask: ResolverFn = async (
   const resolvedFiles = await Promise.all(files);
   const uploadAndTrackFiles = resolvedFiles.map(async (newFile: any) => {
     const s3_key = `tasks/${task}/${newFile.filename}`;
-    let params = {
+    const params = {
       Key: s3_key,
       Body: newFile.createReadStream(),
       ...(isGCS == 'false' && {ACL: 'private'}),
