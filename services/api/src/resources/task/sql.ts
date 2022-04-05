@@ -117,19 +117,22 @@ export const Sql = {
       id,
       advanced_task_definition,
       name,
-      type
+      type,
+      displayName,
       }: {
         id: number,
         advanced_task_definition: number,
         name: string,
         type: string,
+        displayName: string,
       }) =>
       knex('advanced_task_definition_argument')
         .insert({
           id,
           advanced_task_definition,
           name,
-          type
+          type,
+          display_name: displayName
         })
       .toString(),
     updateAdvancedTaskDefinition: ({ id, patch }: { id: number; patch: { [key: string]: any } }) =>

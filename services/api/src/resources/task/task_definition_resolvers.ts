@@ -324,7 +324,8 @@ export const addAdvancedTaskDefinition = async (
           id: null,
           advanced_task_definition: insertId,
           name: advancedTaskDefinitionArguments[i].name,
-          type: advancedTaskDefinitionArguments[i].type
+          type: advancedTaskDefinitionArguments[i].type,
+          displayName: advancedTaskDefinitionArguments[i].displayName,
         })
       );
     }
@@ -418,6 +419,7 @@ export const updateAdvancedTaskDefinition = async (
             id: null,
             advanced_task_definition: id,
             name: advancedTaskDefinitionArguments[i].name,
+            displayName: advancedTaskDefinitionArguments[i].displayName,
             type: advancedTaskDefinitionArguments[i].type
           })
         );
