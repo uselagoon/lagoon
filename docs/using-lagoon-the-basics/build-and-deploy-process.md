@@ -100,7 +100,7 @@ Creation of these objects will also automatically cause OpenShift/Kubernetes to 
 
 Now Lagoon waits! It waits for all of the just-triggered deployments of the new pods to be finished, as well as for their health checks to be successful.
 
-If any of the deployments or health checks fail, the deployment will be stopped here, and you will be informed via the defined notification systems \(like Slack\) that the deployment has failed.
+If any of the deployments or health checks fail, the deployment will be stopped here, and you will be informed via the [defined notification systems](/administering-lagoon/graphql-queries/#adding-notifications-to-the-project) \(like Slack\) that the deployment has failed.
 
 ## 11. Run defined post-rollout tasks
 
