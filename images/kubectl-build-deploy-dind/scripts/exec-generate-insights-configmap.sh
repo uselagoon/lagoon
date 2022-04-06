@@ -18,20 +18,20 @@ processImageInspect() {
 
   set -x
   # If lagoon-insights-image-inpsect-[IMAGE] configmap already exists then we need to update, else create new
-  if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap $IMAGE_INSPECT_CONFIGMAP &> /dev/null; then
-      kubectl --insecure-skip-tls-verify \
+  if kubectl -n ${NAMESPACE} get configmap $IMAGE_INSPECT_CONFIGMAP &> /dev/null; then
+      kubectl \
           -n ${NAMESPACE} \
           create configmap $IMAGE_INSPECT_CONFIGMAP \
           --from-file=${IMAGE_INSPECT_OUTPUT_FILE} \
           -o json \
           --dry-run=client | kubectl replace -f -
   else
-      kubectl --insecure-skip-tls-verify \
+      kubectl \
           -n ${NAMESPACE} \
           create configmap ${IMAGE_INSPECT_CONFIGMAP} \
           --from-file=${IMAGE_INSPECT_OUTPUT_FILE}
   fi
-  kubectl --insecure-skip-tls-verify \
+  kubectl \
       -n ${NAMESPACE} \
       label configmap ${IMAGE_INSPECT_CONFIGMAP} \
       lagoon.sh/insightsProcessed- \
@@ -64,8 +64,8 @@ processSbom() {
 
     set -x
     # If lagoon-insights-sbom-[IMAGE] configmap already exists then we need to update, else create new
-    if kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get configmap $SBOM_CONFIGMAP &> /dev/null; then
-        kubectl --insecure-skip-tls-verify \
+    if kubectl -n ${NAMESPACE} get configmap $SBOM_CONFIGMAP &> /dev/null; then
+        kubectl \
             -n ${NAMESPACE} \
             create configmap $SBOM_CONFIGMAP \
             --from-file=${SBOM_OUTPUT_FILE} \
@@ -73,12 +73,12 @@ processSbom() {
             --dry-run=client | kubectl replace -f -
     else
         # Create configmap and add label (#have to add label separately: https://github.com/kubernetes/kubernetes/issues/60295)
-        kubectl --insecure-skip-tls-verify \
+        kubectl \
             -n ${NAMESPACE} \
             create configmap ${SBOM_CONFIGMAP} \
             --from-file=${SBOM_OUTPUT_FILE}
     fi
-    kubectl --insecure-skip-tls-verify \
+    kubectl \
         -n ${NAMESPACE} \
         label configmap ${SBOM_CONFIGMAP} \
         lagoon.sh/insightsProcessed- \
