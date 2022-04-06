@@ -7,7 +7,7 @@ Now we will install Lagoon Remote into the Lagoon namespace. The [RabbitMQ](../d
     * **rabbitMQHostname** `lagoon-core-broker.lagoon-core.svc.local`
     * **taskSSHHost** `kubectl get service lagoon-core-broker-amqp-ext -o custom-columns="NAME:.metadata.name,IP ADDRESS:.status.loadBalancer.ingress[*].ip,HOSTNAME:.status.loadBalancer.ingress[*].hostname"`
     * **harbor-password** `kubectl -n harbor get secret harbor-harbor-core -o jsonpath="{.data.HARBOR_ADMIN_PASSWORD}" | base64 --decode`
-2. Add the harbor configuration from the previous step
+2. Add the Harbor configuration from the previous step.
 3. Run `helm upgrade --install --create-namespace --namespace lagoon -f remote-values.yaml  lagoon-remote lagoon/lagoon-remote`
 
     ```yaml title="lagoon-remote-values.yml"
