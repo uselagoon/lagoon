@@ -5,7 +5,7 @@
 ### Given a router pattern, it will create the required domains
 ##############################################
 function routerPattern2DomainGenerator {
-    ROUTER_URL=${1}
+    DOMAIN_PARTS=${1}
     SERVICE=${2}
     PROJECT=${3}
     ENVIRONMENT=${4}
@@ -13,49 +13,48 @@ function routerPattern2DomainGenerator {
     HAS_SERVICE_PATTERN=false
 
     re='(.*)\$\{service\}(.*)'
-    if [[ $ROUTER_URL =~ $re ]]; then
+    if [[ $DOMAIN_PARTS =~ $re ]]; then
         HAS_SERVICE_PATTERN=true
-        ROUTER_URL2=${BASH_REMATCH[1]}${SERVICE}
-        ROUTER_URL=${ROUTER_URL2}${BASH_REMATCH[2]}
+        DOMAIN_PARTS2=${BASH_REMATCH[1]}${SERVICE}
+        DOMAIN_PARTS=${DOMAIN_PARTS2}${BASH_REMATCH[2]}
     fi
 
     re='(.*)\$\{project\}(.*)'
-    if [[ $ROUTER_URL =~ $re ]]; then
-        ROUTER_URL2=${BASH_REMATCH[1]}${PROJECT}
-        ROUTER_URL=${ROUTER_URL2}${BASH_REMATCH[2]}
+    if [[ $DOMAIN_PARTS =~ $re ]]; then
+        DOMAIN_PARTS2=${BASH_REMATCH[1]}${PROJECT}
+        DOMAIN_PARTS=${DOMAIN_PARTS2}${BASH_REMATCH[2]}
     fi
 
     re='(.*)\$\{environment\}(.*)'
-    SUFFIX=""
-    if [[ $ROUTER_URL =~ $re ]]; then
-        ROUTER_URL2=${BASH_REMATCH[1]}${ENVIRONMENT}
-        ROUTER_URL=${ROUTER_URL2}${BASH_REMATCH[2]}
-        SUFFIX=${BASH_REMATCH[2]}
+    if [[ $DOMAIN_PARTS =~ $re ]]; then
+        DOMAIN_PARTS2=${BASH_REMATCH[1]}${ENVIRONMENT}
+        DOMAIN_PARTS=${DOMAIN_PARTS2}${BASH_REMATCH[2]}
     fi
 
     # fallback to the default behaviour which adds the service with a dot
     # if the pattern doesn't have a service pattern defined in it
     if [ $HAS_SERVICE_PATTERN == "false" ]; then
-        ROUTER_URL2=${SERVICE}.${ROUTER_URL2}
+        DOMAIN_PARTS=${SERVICE}.${DOMAIN_PARTS}
     fi
 
-    SUFFIX_HASH=$(echo $ROUTER_URL2 | sha256sum | awk '{print $1}' | cut -c -8)
-    re='(.*)([.])(.*)'
-    if [[ $ROUTER_URL2 =~ $re ]]; then
-        if [ ${#BASH_REMATCH[3]} -gt 63 ]; then
 
-            ROUTER_URL2=$(echo ${BASH_REMATCH[3]} | cut -c -55 | sed -e 's/-$//')-${SUFFIX_HASH}
-            ROUTER_URL2=${BASH_REMATCH[1]}.${ROUTER_URL2}
-            echo $ROUTER_URL2$SUFFIX
-            return
+    # once all the parts of the router pattern have been
+    DOMAIN_HASH=$(echo $DOMAIN_PARTS | sha256sum | awk '{print $1}' | cut -c -8)
+    FINAL_DOMAIN=""
+    # split the domain up by the dot and iterate over each part to check its length
+    IFS='.' read -ra DOMAIN_PARTS_SPLIT <<< "$DOMAIN_PARTS"
+    for DOMAIN_PART in ${DOMAIN_PARTS_SPLIT[@]}
+    do
+        if [ ${#DOMAIN_PART} -gt 63 ]; then
+            # if the part of the domain is greater than 63, then keep 54 characters and add the domain hash (8) and a dash (1)
+            # to the remaining domain part (54+1+8=63)
+            DOMAIN_PART=$(echo ${DOMAIN_PART} | cut -c -54 | sed -e 's/-$//')-${DOMAIN_HASH}
         fi
-        echo $ROUTER_URL2$SUFFIX
-    else
-        if [ ${#ROUTER_URL2} -gt 63 ]; then
-            ROUTER_URL2=$(echo $ROUTER_URL2 | cut -c -55 | sed -e 's/-$//')-${SUFFIX_HASH}
-        fi
-        echo $ROUTER_URL2$SUFFIX
-    fi
+        # combine the parts
+        FINAL_DOMAIN=${FINAL_DOMAIN}${DOMAIN_PART}.
+    done
+    # strip the trailing dot from the domain
+    echo "$(echo ${FINAL_DOMAIN} | rev | cut -c 2- | rev)"
 }
 
 ##############################################
@@ -63,7 +62,7 @@ function routerPattern2DomainGenerator {
 ### Performs the same function that the build-deploy controller currently does
 ##############################################
 function generateShortUrl {
-    ROUTER_URL=${1}
+    DOMAIN_PARTS=${1}
     SERVICE=${2}
     PROJECT=${3}
     ENVIRONMENT=${4}
@@ -71,31 +70,30 @@ function generateShortUrl {
     HAS_SERVICE_PATTERN=false
 
     re='(.*)\$\{service\}(.*)'
-    if [[ $ROUTER_URL =~ $re ]]; then
+    if [[ $DOMAIN_PARTS =~ $re ]]; then
         HAS_SERVICE_PATTERN=true
-        ROUTER_URL2=${BASH_REMATCH[1]}${SERVICE}
-        ROUTER_URL=${ROUTER_URL2}${BASH_REMATCH[2]}
+        DOMAIN_PARTS2=${BASH_REMATCH[1]}${SERVICE}
+        DOMAIN_PARTS=${DOMAIN_PARTS2}${BASH_REMATCH[2]}
     fi
 
     re='(.*)\$\{project\}(.*)'
-    if [[ $ROUTER_URL =~ $re ]]; then
+    if [[ $DOMAIN_PARTS =~ $re ]]; then
         SHA256_B32_PROJECT=$(echo -e "import sys\nimport base64\nimport hashlib\nprint(base64.b32encode(bytearray(hashlib.sha256(sys.argv[1].encode()).digest())).decode('utf-8'))" | python3 -  "${PROJECT}" | tr '[:upper:]' '[:lower:]' | cut -c -8)
-        ROUTER_URL2=${BASH_REMATCH[1]}${SHA256_B32_PROJECT}
-        ROUTER_URL=${ROUTER_URL2}${BASH_REMATCH[2]}
+        DOMAIN_PARTS2=${BASH_REMATCH[1]}${SHA256_B32_PROJECT}
+        DOMAIN_PARTS=${DOMAIN_PARTS2}${BASH_REMATCH[2]}
     fi
 
     re='(.*)\$\{environment\}(.*)'
-    if [[ $ROUTER_URL =~ $re ]]; then
+    if [[ $DOMAIN_PARTS =~ $re ]]; then
         SHA256_B32_ENVIRONMENT=$(echo -e "import sys\nimport base64\nimport hashlib\nprint(base64.b32encode(bytearray(hashlib.sha256(sys.argv[1].encode()).digest())).decode('utf-8'))" | python3 -  "${ENVIRONMENT}" | tr '[:upper:]' '[:lower:]' | cut -c -8)
-        ROUTER_URL2=${BASH_REMATCH[1]}${SHA256_B32_ENVIRONMENT}
-        ROUTER_URL=${ROUTER_URL2}${BASH_REMATCH[2]}
+        DOMAIN_PARTS2=${BASH_REMATCH[1]}${SHA256_B32_ENVIRONMENT}
+        DOMAIN_PARTS=${DOMAIN_PARTS2}${BASH_REMATCH[2]}
     fi
 
     # fallback to the default behaviour which adds the service with a dot
     # if the pattern doesn't have a service pattern defined in it
     if [ $HAS_SERVICE_PATTERN == "false" ]; then
-        ROUTER_URL=${SERVICE}.${ROUTER_URL}
+        DOMAIN_PARTS=${SERVICE}.${DOMAIN_PARTS}
     fi
-
-    echo $ROUTER_URL
+    echo $DOMAIN_PARTS
 }

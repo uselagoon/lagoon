@@ -1,12 +1,10 @@
 ARG IMAGE_REPO
 FROM ${IMAGE_REPO:-lagoon}/kubectl
 
-# the kubectl image comes with an HOME=/home which is needed to run as unpriviledged, but kubectl-build-deploy-dind will run as root
-RUN rm -rf /root && ln -s /home /root
 ENV LAGOON=kubectl-build-deploy-dind
 
-RUN  mkdir -p /kubectl-build-deploy/git
-RUN  mkdir -p /kubectl-build-deploy/lagoon
+RUN mkdir -p /kubectl-build-deploy/git
+RUN mkdir -p /kubectl-build-deploy/lagoon
 
 WORKDIR /kubectl-build-deploy/git
 
@@ -28,5 +26,8 @@ RUN curl -sSL https://github.com/uselagoon/lagoon-linter/releases/download/v0.5.
 
 RUN curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin > /dev/null 2>&1
 #curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin > /dev/null 2>&1
+
+# enable running unprivileged
+RUN fix-permissions /home && fix-permissions /kubectl-build-deploy
 
 CMD ["/kubectl-build-deploy/build-deploy.sh"]

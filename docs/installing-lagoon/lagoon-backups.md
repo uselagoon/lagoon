@@ -12,6 +12,7 @@ Lagoon uses the k8up backup operator: [https://k8up.io](https://k8up.io). Lagoon
     `kubectl apply -f https://github.com/vshn/k8up/releases/download/v1.1.0/k8up-crd.yaml`
 
     `helm upgrade --install --create-namespace --namespace k8up -f k8up-values.yaml k8up appuio/k8up`
+
 4. Update `lagoon-core-values.yaml`:
 
       ```yaml title="lagoon-core-values.yaml"

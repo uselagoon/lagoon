@@ -729,7 +729,12 @@ export const createDeployTask = async function(deployData: any) {
           project,
           deployData
         }
-        return deployTargetBranches(lagoonData)
+        try {
+          let result = deployTargetBranches(lagoonData)
+          return result
+        } catch (error) {
+          throw error
+        }
       } else if (type === 'pullrequest') {
         // use deployTargetPullrequest function to handle
         let lagoonData = {
@@ -740,7 +745,12 @@ export const createDeployTask = async function(deployData: any) {
           pullrequestTitle,
           deployData
         }
-        return deployTargetPullrequest(lagoonData)
+        try {
+          let result = deployTargetPullrequest(lagoonData)
+          return result
+        } catch (error) {
+          throw error
+        }
       }
       break;
     default:
