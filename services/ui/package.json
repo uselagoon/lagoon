@@ -44,7 +44,7 @@
     "react-dom": "^16.8.4",
     "react-hexgrid": "^1.0.3",
     "react-highlight-words": "^0.14.0",
-    "react-markdown": "^8.0.2",
+    "react-markdown": "^6.0.0",
     "react-modal": "^3.8.1",
     "react-nice-dates": "^1.0.2",
     "react-select": "^3.0.0",
