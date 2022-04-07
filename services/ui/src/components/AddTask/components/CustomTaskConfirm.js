@@ -5,18 +5,19 @@ import { bp, color } from 'lib/variables';
 
 
 /**
- * Confirms the deletion of the specified name and type.
+ * Confirm custom task
  */
  export const CustomTaskConfirm = ({
     taskText,
     onProceed,
     open,
     openModal,
-    closeModal
+    closeModal,
+    disabled,
   }) => {
     return (
       <React.Fragment>
-        <div className="margins"><Button action={openModal}>
+        <div className="margins"><Button disabled={disabled} action={openModal}>
           Confirm Task
         </Button></div>
         <Modal
@@ -25,7 +26,7 @@ import { bp, color } from 'lib/variables';
           contentLabel={`Confirm`}
         >
           <React.Fragment>
-              <h2>Run Task Confirmation</h2>
+              <h3>Run Task</h3>
             <p>
                 {taskText}
             </p>

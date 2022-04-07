@@ -25,6 +25,24 @@ const mutationInvokeRegisteredTask = gql`
 
 const InvokeRegisteredTask = ({ pageEnvironment, selectedTask, advancedTaskArguments, setAdvancedTaskArguments,  onCompleted, onError, isConfirmOpen, setIsConfirmOpen }) => {
 
+
+  let taskArgumentsExist = false;
+  let argumentVariablesHaveValues = true;
+
+  if(selectedTask.arguments) {
+    taskArgumentsExist = true;
+    argumentVariablesHaveValues = selectedTask.arguments.reduce((p, c) => {
+      let hasArg = advancedTaskArguments[c['name']];
+      return hasArg && p;
+    }, true);
+  }
+
+  const openOnlyIfThereAreArguments = () => {
+    if(argumentVariablesHaveValues) {
+      setIsConfirmOpen(true);
+    }
+  };
+
   return <Mutation
     mutation={mutationInvokeRegisteredTask}
     onCompleted={onCompleted}
@@ -86,12 +104,13 @@ const InvokeRegisteredTask = ({ pageEnvironment, selectedTask, advancedTaskArgum
           })}
           </div>
           { selectedTask.confirmationText && <CustomTaskConfirm
+            disabled={!argumentVariablesHaveValues}
             taskText={selectedTask.confirmationText}
             onProceed={mutationInvokeRegisteredTask}
             open={isConfirmOpen}
             openModal={()=>{setIsConfirmOpen(true);}}
             closeModal={()=>{setIsConfirmOpen(false);}}
-          /> || <Button action={mutationInvokeRegisteredTask}>Run task</Button>
+          /> || <Button disabled={taskArgumentsExist && !argumentVariablesHaveValues} action={mutationInvokeRegisteredTask}>Run task</Button>
           }
           <style jsx>{`
             .envSelect {

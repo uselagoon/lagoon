@@ -31,6 +31,7 @@ export default gql`
           advancedTaskDefinitionArguments {
             id
             name
+            displayName
             type
             range
           }
@@ -49,6 +50,7 @@ export default gql`
           advancedTaskDefinitionArguments {
             id
             name
+            displayName
             type
             range
           }
