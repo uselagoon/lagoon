@@ -126,6 +126,7 @@ const typeDefs = gql`
   type AdvancedTaskDefinitionArgument {
     id: Int
     name: String
+    displayName: String
     type: String
     range: [String]
     advancedTaskDefinition: AdvancedTaskDefinition
@@ -1343,6 +1344,7 @@ const typeDefs = gql`
   input AdvancedTaskDefinitionArgumentInput {
     name: String
     type: AdvancedTaskDefinitionArgumentTypes
+    displayName: String
   }
 
   input AdvancedTaskDefinitionArgumentValueInput {
