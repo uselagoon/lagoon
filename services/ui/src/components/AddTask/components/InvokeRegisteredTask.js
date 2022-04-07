@@ -69,7 +69,7 @@ const InvokeRegisteredTask = ({ pageEnvironment, selectedTask, advancedTaskArgum
             case("ENVIRONMENT_SOURCE_NAME"):
             return (
               <div className="envSelect">
-              <label id="source-env">{d.name} :</label>
+              <label id="source-env">{d.displayName || d.name} :</label>
             <ReactSelect
             aria-labelledby="{d.name}"
             name="{d.name}"
@@ -89,7 +89,7 @@ const InvokeRegisteredTask = ({ pageEnvironment, selectedTask, advancedTaskArgum
             default:
               return (
                 <div className="envText">
-                <label id="source-env">{d.name} :</label>
+                <label id="source-env">{d.displayName || d.name} :</label>
               <input type="text" name="{d.name}"
                 value={R.prop(d.name, advancedTaskArguments)}
                 onChange={event => {
