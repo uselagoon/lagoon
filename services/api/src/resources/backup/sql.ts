@@ -92,6 +92,17 @@ export const Sql = {
         created
       })
       .toString(),
+  deleteRestore: ({
+    backupId
+  }: {
+    backupId: string;
+  }) =>
+    knex('backup_restore')
+      .where({
+        backupId: backupId
+      })
+      .delete()
+      .toString(),
   updateRestore: ({
     backupId,
     patch

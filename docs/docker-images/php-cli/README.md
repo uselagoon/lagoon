@@ -35,7 +35,7 @@ This image is prepared to be used on Lagoon. There are therefore some things alr
 The included cli tools are:
 
 * [`composer` version 1.9.0](https://getcomposer.org/) \(changeable via `COMPOSER_VERSION` and `COMPOSER_HASH_SHA256`\)
-* [`node.js` verison 12](https://nodejs.org/en/) \(as of Jan 2020\)
+* [`node.js` verison 17](https://nodejs.org/en/) \(as of Mar 2022\)
 * [`npm`](https://www.npmjs.com/)
 * [`yarn`](https://yarnpkg.com/lang/en/)
 * `mariadb-client`
@@ -43,7 +43,12 @@ The included cli tools are:
 
 ### Change Node.js Version
 
-By default this image ships with the current Node.js Version \(v12 as of Jan 2020\). If you need another version you can remove the current version and install the one of your choice.
+By default this image ships with the `nodejs-current` package \(v17 as of Mar 2022\). If you need another version you can remove the current version and install the one of your choice. For example, to install Node.js 16, modify your dockerfile to include:
+
+```
+RUN apk del nodejs-current \
+    && apk add --no-cache nodejs=~16
+```
 
 ## Environment variables
 

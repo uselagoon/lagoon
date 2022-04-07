@@ -111,7 +111,7 @@ mutation {
       # This is the actual SSH public key (without the type at the beginning and without the comment at the end, ex. `AAAAB3NzaC1yc2EAAAADAQ...3QjzIOtdQERGZuMsi0p`).
       keyValue: ""
       # TODO: Fill in the keyType field.
-      # Valid values are either SSH_RSA or SSH_ED25519.
+      # Valid values are either SSH_RSA, SSH_ED25519, ECDSA_SHA2_NISTP256/384/521
       keyType: SSH_RSA
       user: {
         # TODO: Fill in the userId field.
