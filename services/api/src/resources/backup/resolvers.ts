@@ -96,10 +96,29 @@ export const getRestoreLocation: ResolverFn = async (
       region: awsS3Parts ? R.prop(1, awsS3Parts) : ''
     });
 
-    return s3Client.getSignedUrl('getObject', {
+
+    // before generating the signed url, check the object exists
+    await s3Client.headObject({
       Bucket: R.prop(2, s3Parts),
-      Key: R.prop(3, s3Parts),
-      Expires: 300 // 5 minutes
+      Key: R.prop(3, s3Parts)
+    }, async function(err, data) {
+      if (err) {
+        // if there is an error, then delete the restore from the database
+        await query(
+          sqlClientPool,
+          Sql.deleteRestore({
+            backupId
+          })
+        );
+        return ""
+      } else {
+        // otherwise return the signed url
+        return s3Client.getSignedUrl('getObject', {
+          Bucket: R.prop(2, s3Parts),
+          Key: R.prop(3, s3Parts),
+          Expires: 300 // 5 minutes
+        });
+      }
     });
   }
 
