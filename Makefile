@@ -100,7 +100,6 @@ docker_pull:
 
 images :=     oc \
 							kubectl \
-							oc-build-deploy-dind \
 							kubectl-build-deploy-dind \
 							athenapdf-service \
 							docker-host
@@ -132,10 +131,8 @@ $(build-images):
 build/docker-host: images/docker-host/Dockerfile
 build/oc: images/oc/Dockerfile
 build/kubectl: images/kubectl/Dockerfile
-build/oc-build-deploy-dind: build/oc images/oc-build-deploy-dind
 build/athenapdf-service:images/athenapdf-service/Dockerfile
 build/kubectl-build-deploy-dind: build/kubectl images/kubectl-build-deploy-dind
-
 
 #######
 ####### Service Images

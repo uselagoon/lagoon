@@ -1,2 +1,0 @@
-# just an empty file which tells build-deploy-docker-compose.sh that
-# for this service type the servicebroker should be used
