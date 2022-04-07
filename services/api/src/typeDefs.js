@@ -129,6 +129,7 @@ const typeDefs = gql`
   type AdvancedTaskDefinitionArgument {
     id: Int
     name: String
+    displayName: String
     type: String
     range: [String]
     advancedTaskDefinition: AdvancedTaskDefinition
@@ -138,6 +139,7 @@ const typeDefs = gql`
     id: Int
     name: String
     description: String
+    confirmationText: String
     type: AdvancedTaskDefinitionTypes
     image: String
     service: String
@@ -154,6 +156,7 @@ const typeDefs = gql`
     id: Int
     name: String
     description: String
+    confirmationText: String
     type: AdvancedTaskDefinitionTypes
     service: String
     command: String
@@ -1344,6 +1347,7 @@ const typeDefs = gql`
   input AdvancedTaskDefinitionArgumentInput {
     name: String
     type: AdvancedTaskDefinitionArgumentTypes
+    displayName: String
   }
 
   input AdvancedTaskDefinitionArgumentValueInput {
@@ -1368,6 +1372,7 @@ const typeDefs = gql`
     groupName: String
     permission: TaskPermission
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgumentInput]
+    confirmationText: String
   }
 
   input UpdateAdvancedTaskDefinitionInput {
@@ -1387,6 +1392,7 @@ const typeDefs = gql`
     groupName: String
     permission: TaskPermission
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgumentInput]
+    confirmationText: String
   }
 
   input DeleteTaskInput {

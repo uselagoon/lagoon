@@ -1577,6 +1577,39 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
+  add_confirmation_text_to_advanced_task_def()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'advanced_task_definition'
+        AND column_name = 'confirmation_text'
+    ) THEN
+      ALTER TABLE `advanced_task_definition`
+      ADD `confirmation_text` varchar(2000) NULL;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_display_name_to_advanced_task_argument()
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'advanced_task_definition_argument'
+        AND column_name = 'display_name'
+    ) THEN
+      ALTER TABLE `advanced_task_definition`
+      ADD `display_name` varchar(500) NULL;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
   add_ecdsa_ssh_key_types()
 
   BEGIN
@@ -1679,6 +1712,8 @@ CALL add_priority_to_deployment();
 CALL add_bulk_id_to_deployment();
 CALL drop_legacy_permissions();
 CALL change_name_index_for_advanced_task_argument();
+CALL add_confirmation_text_to_advanced_task_def();
+CALL add_display_name_to_advanced_task_argument();
 CALL add_ecdsa_ssh_key_types();
 
 -- Drop legacy SSH key procedures

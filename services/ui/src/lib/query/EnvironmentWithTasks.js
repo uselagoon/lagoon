@@ -27,9 +27,11 @@ export default gql`
           service
           created
           deleted
+          confirmationText
           advancedTaskDefinitionArguments {
             id
             name
+            displayName
             type
             range
           }
@@ -44,9 +46,11 @@ export default gql`
           service
           created
           deleted
+          confirmationText
           advancedTaskDefinitionArguments {
             id
             name
+            displayName
             type
             range
           }

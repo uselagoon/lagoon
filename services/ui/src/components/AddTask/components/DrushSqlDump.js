@@ -52,7 +52,7 @@ const DrushSqlDump = ({ pageEnvironment, onCompleted, onError }) => (
               required
             />
           </div>
-          <Button action={taskDrushSqlDump}>Add task</Button>
+          <Button action={taskDrushSqlDump}>Run task</Button>
           <style jsx>{`
             .envSelect {
               margin: 10px 0;
