@@ -63,41 +63,42 @@ const InvokeRegisteredTask = ({ pageEnvironment, selectedTask, advancedTaskArgum
       return (
         <React.Fragment>
           <div className="taskArguments">
-          {selectedTask.arguments && selectedTask.arguments.map( d => {
+          {selectedTask.arguments && selectedTask.arguments.map((d, index) => {
             switch(d.type) {
 
-            case("ENVIRONMENT_SOURCE_NAME"):
-            return (
-              <div className="envSelect">
-              <label id="source-env">{d.displayName || d.name} :</label>
-            <ReactSelect
-            aria-labelledby="{d.name}"
-            name="{d.name}"
-            placeholder="Select environment..."
-            value={{
-              label: R.prop(d.name, advancedTaskArguments),
-              value: R.prop(d.name, advancedTaskArguments)}}
-            onChange={selectedOption => {
-              setAdvancedTaskArguments({ ... advancedTaskArguments, [d.name]: selectedOption.value})
-            }
-            }
-            options={ d.range.map(opt => ({label: opt, value: opt}))}
-          />
-          </div>
-          )
-            break;
-            default:
-              return (
-                <div className="envText">
-                <label id="source-env">{d.displayName || d.name} :</label>
-              <input type="text" name="{d.name}"
-                value={R.prop(d.name, advancedTaskArguments)}
-                onChange={event => {
-                  setAdvancedTaskArguments({ ... advancedTaskArguments, [d.name]: event.target.value})
-                }
-                }
-              /></div>)
+              case("ENVIRONMENT_SOURCE_NAME"):
+                return (
+                  <div key={`env-text-${index}`} className="envSelect">
+                    <label id="source-env">{d.displayName || d.name} :</label>
+                    <ReactSelect
+                      aria-labelledby="{d.name}"
+                      name="{d.name}"
+                      placeholder="Select environment..."
+                      value={{
+                        label: R.prop(d.name, advancedTaskArguments),
+                        value: R.prop(d.name, advancedTaskArguments)
+                      }}
+                      onChange={selectedOption => {
+                        setAdvancedTaskArguments({ ... advancedTaskArguments, [d.name]: selectedOption.value})
+                      }}
+                      options={d.range.map(opt => ({label: opt, value: opt}))}
+                    />
+                  </div>
+                )
+              break;
 
+              default:
+                return (
+                  <div key={`env-text-${index}`} className="envText">
+                    <label id="source-env">{d.displayName || d.name} :</label>
+                    <input type="text" name="{d.name}"
+                      value={R.prop(d.name, advancedTaskArguments)}
+                      onChange={event => {
+                        setAdvancedTaskArguments({ ... advancedTaskArguments, [d.name]: event.target.value})
+                      }}
+                    />
+                  </div>
+                )
                 break;
             }
             return null;
