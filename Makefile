@@ -100,7 +100,6 @@ docker_pull:
 
 images :=     oc \
 							kubectl \
-							oc-build-deploy-dind \
 							kubectl-build-deploy-dind \
 							athenapdf-service \
 							docker-host
@@ -132,10 +131,8 @@ $(build-images):
 build/docker-host: images/docker-host/Dockerfile
 build/oc: images/oc/Dockerfile
 build/kubectl: images/kubectl/Dockerfile
-build/oc-build-deploy-dind: build/oc images/oc-build-deploy-dind
 build/athenapdf-service:images/athenapdf-service/Dockerfile
 build/kubectl-build-deploy-dind: build/kubectl images/kubectl-build-deploy-dind
-
 
 #######
 ####### Service Images
@@ -338,12 +335,6 @@ local-registry-up: build/local-registry
 .PHONY: broker-up
 broker-up: build/broker-single
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d broker
-
-lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build/$(image))
-	IMAGE_REPO=$(CI_BUILD_TAG) CI=false docker-compose -p $(CI_BUILD_TAG) --compatibility up -d $(deployment-test-services-rest)
-	sleep 90
-	curl -X POST -H "Content-Type: application/json" --data 'mutation { deployEnvironmentBranch(input: { project: { name: "lagoon" }, branchName: "master" } )}' http://localhost:3000/graphql
-	make logs
 
 #######
 ####### Publishing Images

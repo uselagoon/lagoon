@@ -173,21 +173,6 @@ In the example above, the services are named `nginx` and `php` \(but you can cal
 
 In order for Lagoon to realize which one is the `nginx` and which one is the `php` service, we define it via `lagoon.deployment.servicetype: nginx` and `lagoon.deployment.servicetype: php`.
 
-## **Custom Templates \(Openshift only\)**
-
-OpenShift defines templates as follows:
-
-> A template describes a set of objects that can be parameterized and processed to produce a list of objects for creation by OpenShift Container Platform. A template can be processed to create anything you have permission to create within a project, for example services, build configurations, and DeploymentConfigs. A template may also define a set of labels to apply to every object defined in the template.
-
-Lagoon comes with a variety of pre-defined templates, which set all kinds of needed configuration in YAML files. Check out the shipped templates from the [templates folder of `oc-build-deploy-dind`](https://github.com/uselagoon/lagoon/tree/main/images/oc-build-deploy-dind/openshift-templates).
-
-If you need to make changes to the OpenShift templates, you can define your own template via `lagoon.template`.
-
-!!! Note "Note:"
-    The template is called with `oc process`, so you should define the same parameters as seen in the default templates.
-
-You can also overwrite the templates for a specific environment. This is done in [`.lagoon.yml`](lagoon-yml.md#environmentsnametypes)
-
 ## Helm Templates \(Kubernetes only\)
 
 Lagoon uses [Helm](https://helm.sh/) for templating on Kubernetes. To do this, a series of [Charts](https://github.com/uselagoon/lagoon/tree/main/images/kubectl-build-deploy-dind/helmcharts) are included with the `kubectl-build-deploy-dind` service.
