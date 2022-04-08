@@ -34,11 +34,19 @@ Schematically, the call looks like this
 mutation addAdvancedTask {
     addAdvancedTaskDefinition(input:{
     name: string,
+    confirmationText: string,
     type: [COMMAND|IMAGE],
     [project|environment]: int,
     description: string,
     service: string,
-    command: string
+    command: string,
+    advancedTaskDefinitionArguments: [
+      {
+        name: "ENVIROMENT_VARIABLE_NAME",
+        displayName: "Friendly Name For Variable",
+        type: [STRING | ENVIRONMENT_SOURCE_NAME]
+      }
+    ]
   }) {
     ... on AdvancedTaskDefinitionImage {
       id
@@ -46,6 +54,13 @@ mutation addAdvancedTask {
       description
       service
       image
+      confirmationText
+      advancedTaskDefinitionArguments {
+        type
+        range
+        name
+        displayName
+      }
       ...
     }
     ... on AdvancedTaskDefinitionCommand {
@@ -54,6 +69,12 @@ mutation addAdvancedTask {
       description
       service
       command
+      advancedTaskDefinitionArguments {
+        type
+        range
+        name
+        displayName
+      }
       ...
     }
   }
@@ -67,6 +88,45 @@ The `type` field needs some explanation - for now, only platform admins are able
 The `[project|environment]` set of fields will attach the task to either the `project` or `environment` \(depending on the key you use\), with the value being the id. In the case we're considering for our `yarn audit` we will specify we're targeting a `project` with an id of `42`.
 
 We put the service we'd like to target with our task in the `service` field, and `command` is the actual command that we'd like to run.
+
+### Arguments passed to tasks
+
+In order to give more flexibility to the users invoking the tasks via the Lagoon UI, we support defining task arguments. These arguments are displayed as text boxes or drop downs and are required for the task to be invoked.
+
+Here is an example of how we might set up two arguments.
+
+```
+advancedTaskDefinitionArguments: [
+      {
+        name: "ENV_VAR_NAME_SOURCE",
+        displayName: "Environment source",
+        type: ENVIRONMENT_SOURCE_NAME
+
+      },
+      {
+        name: "ENV_VAR_NAME_STRING",
+        displayName: "Echo value",
+        type: STRING
+        }
+    ]
+  })
+```
+
+This fragment shows both types of arguments the system currently supports.
+The first, `ENV_VAR_NAME_SOURCE` is an example of type `ENVIRONMENT_SOURCE_NAME`, which will present the user of the UI a dropdown of the different environments inside of a project.
+The second `ENV_VAR_NAME_STRING` is of type `STRING` and will present the user with a textbox to fill in.
+
+The values that the user selects will be available as environment variables in the `COMMAND` type tasks when the task is run.
+
+
+![Task Arguments](./custom-task-arguments.png)
+
+
+### Confirmation
+
+When the `confirmationText` field has text, it will be displayed with a confirmation modal in the UI before the user is able to run the task.
+
+![Task Confirmation](./custom-task-confirm.png)
 
 ## Invoking the task
 
