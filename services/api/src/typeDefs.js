@@ -70,6 +70,12 @@ const typeDefs = gql`
     ACTIVE
     SUCCEEDED
     FAILED
+    NEW
+    PENDING
+    RUNNING
+    CANCELLED
+    ERROR
+    COMPLETE
   }
 
   enum RestoreStatusType {
@@ -829,7 +835,7 @@ const typeDefs = gql`
     monitoringUrls: String
     deployments(name: String, limit: Int): [Deployment]
     backups(includeDeleted: Boolean, limit: Int): [Backup]
-    tasks(id: Int, limit: Int): [Task]
+    tasks(id: Int, taskName: String, limit: Int): [Task]
     advancedTasks: [AdvancedTaskDefinition]
     services: [EnvironmentService]
     problems(severity: [ProblemSeverityRating], source: [String]): [Problem]
@@ -915,6 +921,7 @@ const typeDefs = gql`
   type Task {
     id: Int
     name: String
+    taskName: String
     status: String
     created: String
     started: String
@@ -930,6 +937,7 @@ const typeDefs = gql`
   type AdvancedTask {
     id: Int
     name: String
+    taskName: String
     status: String
     created: String
     started: String
@@ -1067,6 +1075,7 @@ const typeDefs = gql`
     ): Environment
     deploymentByRemoteId(id: String): Deployment
     deploymentsByBulkId(bulkId: String): [Deployment]
+    taskByTaskName(taskName: String): Task
     taskByRemoteId(id: String): Task
     taskById(id: Int): Task
     """
@@ -1401,6 +1410,7 @@ const typeDefs = gql`
 
   input UpdateTaskPatchInput {
     name: String
+    taskName: String
     status: TaskStatusType
     created: String
     started: String

@@ -1631,6 +1631,97 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  add_task_name_to_tasks()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'task'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'task_name'
+    ) THEN
+      ALTER TABLE `task`
+      ADD `task_name` varchar(100) NULL;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_new_task_status_types()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'task'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'status'
+        AND column_type like '%''cancelled%'
+    ) THEN
+      ALTER TABLE `task`
+      MODIFY status ENUM('new', 'pending', 'running', 'cancelled', 'error', 'failed', 'complete', 'active', 'succeeded') NOT NULL;
+    END IF;
+  END;
+$$
+
+-- update any active or succeeded statuses to be running or complete
+CREATE OR REPLACE PROCEDURE
+  update_active_succeeded_tasks()
+
+  BEGIN
+    UPDATE task t
+    SET
+      t.status = 'running'
+    WHERE
+      t.task_name = 'active';
+    UPDATE task t
+    SET
+      t.status = 'complete'
+    WHERE
+      t.task_name = 'succeeded';
+  END;
+$$
+
+-- generate a taskname for tasks missing one
+CREATE OR REPLACE PROCEDURE
+  update_missing_tasknames()
+
+  BEGIN
+    UPDATE task t
+    SET
+      t.task_name = CONCAT('lagoon-task-', (SELECT LEFT(UUID(), 6)))
+    WHERE
+      t.task_name IS NULL;
+END WHILE;
+
+
+  END;
+$$
+
+-- TODO: Eventually the `active/succeeded` values should go away once `remote-controller` is updated to send the correct values
+-- CREATE OR REPLACE PROCEDURE
+--   remove_active_succeeded_task_types()
+
+--   BEGIN
+--     IF NOT EXISTS (
+--       SELECT NULL
+--       FROM INFORMATION_SCHEMA.COLUMNS
+--       WHERE
+--         table_name = 'task'
+--         AND table_schema = 'infrastructure'
+--         AND column_name = 'status'
+--         AND column_type like '%''cancelled%'
+--     ) THEN
+--       ALTER TABLE `task`
+--       MODIFY status ENUM('new', 'pending', 'running', 'cancelled', 'error', 'failed', 'complete') NOT NULL;
+--     END IF;
+--   END;
+-- $$
+
 DELIMITER ;
 
 -- If adding new procedures, add them to the bottom of this list
@@ -1715,6 +1806,9 @@ CALL change_name_index_for_advanced_task_argument();
 CALL add_confirmation_text_to_advanced_task_def();
 CALL add_display_name_to_advanced_task_argument();
 CALL add_ecdsa_ssh_key_types();
+CALL add_new_task_status_types();
+CALL update_active_succeeded_tasks();
+CALL update_missing_tasknames();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;
