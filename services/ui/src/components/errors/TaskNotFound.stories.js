@@ -9,7 +9,7 @@ export default {
 export const Default = () => (
   <TaskNotFound
     variables={{
-      taskId: 42,
+      taskName: 'lagoon-task-abcdef',
     }}
   />
 );
