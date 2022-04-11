@@ -38,30 +38,14 @@ const updateLagoonTask = async (meta) => {
     const dateOrNull = R.unless(R.isNil, convertDateFormat) as any;
     let completedDate = dateOrNull(meta.endTime) as any;
 
-    if (meta.jobStatus === 'failed') {
+    if (meta.jobStatus.toUpperCase() === 'FAILED' || meta.jobStatus.toUpperCase() === 'CANCELLED') {
       completedDate = dateOrNull(meta.endTime);
     }
 
-    // transform the jobstatus into one the API knows about
-    let jobStatus = 'active';
-    switch (meta.jobStatus) {
-      case 'pending':
-        jobStatus = 'active'
-        break;
-      case 'running':
-        jobStatus = 'active'
-        break;
-      case 'complete':
-        jobStatus = 'succeeded'
-        break;
-      default:
-        jobStatus = meta.jobStatus
-        break;
-    }
     // update the actual task now
     await updateTask(Number(meta.task.id), {
       remoteId: meta.remoteId,
-      status: jobStatus.toUpperCase(),
+      status: meta.jobStatus.toUpperCase(),
       started: dateOrNull(meta.startTime),
       completed: completedDate
     });
