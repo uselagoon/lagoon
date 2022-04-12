@@ -1696,9 +1696,6 @@ CREATE OR REPLACE PROCEDURE
       t.task_name = CONCAT('lagoon-task-', (SELECT LEFT(UUID(), 6)))
     WHERE
       t.task_name IS NULL;
-END WHILE;
-
-
   END;
 $$
 
