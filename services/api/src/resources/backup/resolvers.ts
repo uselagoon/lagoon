@@ -98,28 +98,36 @@ export const getRestoreLocation: ResolverFn = async (
 
 
     // before generating the signed url, check the object exists
-    await s3Client.headObject({
+    let exists = false
+    const restoreLoc = await s3Client.headObject({
       Bucket: R.prop(2, s3Parts),
       Key: R.prop(3, s3Parts)
-    }, async function(err, data) {
-      if (err) {
-        // if there is an error, then delete the restore from the database
-        await query(
-          sqlClientPool,
-          Sql.deleteRestore({
-            backupId
-          })
-        );
-        return ""
-      } else {
-        // otherwise return the signed url
-        return s3Client.getSignedUrl('getObject', {
-          Bucket: R.prop(2, s3Parts),
-          Key: R.prop(3, s3Parts),
-          Expires: 300 // 5 minutes
-        });
-      }
     });
+    try {
+      await Promise.all([restoreLoc.promise()]).then(data => {
+        // the file exists
+      }).catch(err => {
+        if (err) throw err;
+      });
+      exists = true
+    } catch(err) {
+      exists = false
+    }
+    if (exists) {
+      return s3Client.getSignedUrl('getObject', {
+        Bucket: R.prop(2, s3Parts),
+        Key: R.prop(3, s3Parts),
+        Expires: 300 // 5 minutes
+      });
+    } else {
+      await query(
+        sqlClientPool,
+        Sql.deleteRestore({
+          backupId
+        })
+      );
+      return ""
+    }
   }
 
   return restoreLocation;
