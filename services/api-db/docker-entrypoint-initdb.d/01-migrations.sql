@@ -1623,7 +1623,7 @@ CREATE OR REPLACE PROCEDURE
       AND column_name = 'key_type';
 
     IF (
-      column_type_argument_type = "enum('ssh-rsa', 'ssh-ed25519')"
+      column_type_argument_type = "enum('ssh-rsa','ssh-ed25519')"
     ) THEN
       ALTER TABLE ssh_key
       MODIFY type ENUM('ssh-rsa', 'ssh-ed25519','ecdsa-sha2-nistp256','ecdsa-sha2-nistp384','ecdsa-sha2-nistp521');
