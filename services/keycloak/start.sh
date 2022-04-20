@@ -1825,10 +1825,6 @@ if echo "$@" | egrep -v -- '-c |-c=|--server-config |--server-config='; then
     SYS_PROPS+=" -c=standalone-ha.xml"
 fi
 
-# in 7.0.1+ script uploads are disabled by default. Enable them here.
-# https://www.keycloak.org/docs/latest/release_notes/index.html#keycloak-7-0-1-final
-SYS_PROPS+=" -Dkeycloak.profile.feature.upload_scripts=enabled"
-
 ##################
 # Start Keycloak #
 ##################
