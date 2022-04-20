@@ -158,6 +158,9 @@ services:
       - keycloak-db
     ports:
       - '8088:8080'
+    volumes:
+      - "./services/keycloak/start.sh:/opt/jboss/tools/start.sh"
+      - "./services/keycloak/profile.properties:/opt/jboss/keycloak/standalone/configuration/profile.properties"
   keycloak-db:
     image: ${IMAGE_REPO:-lagoon}/keycloak-db
     ports:
