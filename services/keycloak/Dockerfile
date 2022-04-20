@@ -45,6 +45,7 @@ ENV TMPDIR=/tmp \
     KEYCLOAK_ADMIN_PASSWORD=admin \
     KEYCLOAK_REALM=lagoon \
     KEYCLOAK_REALM_ROLES=admin \
+    DB_VENDOR=mariadb \
     DB_ADDR=keycloak-db \
     DB_USER=keycloak \
     DB_PASSWORD=keycloak \
@@ -59,9 +60,10 @@ ENV TMPDIR=/tmp \
 
 VOLUME /opt/jboss/keycloak/standalone/data
 
-COPY start.sh /opt/jboss/tools/start.sh
-COPY wait-for-mariadb.sh /lagoon/entrypoints/99-wait-for-mariadb.sh
+COPY entrypoints/wait-for-mariadb.sh /lagoon/entrypoints/98-wait-for-mariadb.sh
+COPY entrypoints/default-keycloak-entrypoint.sh /lagoon/entrypoints/99-default-keycloak-entrypoint.sh
+COPY startup-scripts /opt/jboss/startup-scripts
 COPY profile.properties /opt/jboss/keycloak/standalone/configuration/profile.properties
 
 ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.bash"]
-CMD ["/opt/jboss/tools/start.sh"]
+CMD ["-b", "0.0.0.0"]

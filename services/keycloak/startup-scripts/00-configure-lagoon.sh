@@ -1782,7 +1782,7 @@ function configure_keycloak {
 
     echo Keycloak is running, proceeding with configuration
 
-    /opt/jboss/keycloak/bin/kcadm.sh config credentials --config $CONFIG_PATH --server http://$(hostname -i):8080/auth --user $KEYCLOAK_ADMIN_USER --password $KEYCLOAK_ADMIN_PASSWORD --realm master
+    /opt/jboss/keycloak/bin/kcadm.sh config credentials --config $CONFIG_PATH --server http://$(hostname -i):8080/auth --user $KEYCLOAK_USER --password $KEYCLOAK_PASSWORD --realm master
 
     configure_lagoon_realm
     configure_opendistro_security_client
@@ -1802,33 +1802,10 @@ function configure_keycloak {
     regen_client_secrets
     update_add_env_var_to_project
 
-    echo "Config of Keycloak done. Log in via admin user '$KEYCLOAK_ADMIN_USER' and password '$KEYCLOAK_ADMIN_PASSWORD'"
+    echo "Config of Keycloak done. Log in via admin user '$KEYCLOAK_USER' and password '$KEYCLOAK_PASSWORD'"
 
     # signal config complete
     touch /tmp/keycloak-config-complete
 }
 
-/opt/jboss/keycloak/bin/add-user-keycloak.sh --user $KEYCLOAK_ADMIN_USER --password $KEYCLOAK_ADMIN_PASSWORD
 configure_keycloak &
-
-/bin/sh /opt/jboss/tools/databases/change-database.sh mariadb
-
-BIND=$(hostname --all-ip-addresses | cut -d' ' -f1)
-BIND_OPTS=" -Djboss.bind.address=0.0.0.0"
-BIND_OPTS+=" -Djboss.bind.address.private=0.0.0.0"
-BIND_OPTS+=" -Djgroups.bind_addr=$BIND"
-
-SYS_PROPS+=" $BIND_OPTS"
-
-# If the server configuration parameter is not present, append the HA profile.
-if echo "$@" | egrep -v -- '-c |-c=|--server-config |--server-config='; then
-    SYS_PROPS+=" -c=standalone-ha.xml"
-fi
-
-##################
-# Start Keycloak #
-##################
-
-/opt/jboss/tools/jgroups.sh
-
-exec /opt/jboss/keycloak/bin/standalone.sh $SYS_PROPS
