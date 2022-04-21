@@ -59,6 +59,7 @@ export default gql`
       tasks(limit: $limit) {
         id
         name
+        taskName
         status
         created
         service
