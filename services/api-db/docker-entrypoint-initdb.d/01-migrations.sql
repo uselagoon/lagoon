@@ -1603,7 +1603,7 @@ CREATE OR REPLACE PROCEDURE
         table_name = 'advanced_task_definition_argument'
         AND column_name = 'display_name'
     ) THEN
-      ALTER TABLE `advanced_task_definition`
+      ALTER TABLE `advanced_task_definition_argument`
       ADD `display_name` varchar(500) NULL;
     END IF;
   END;
@@ -1626,7 +1626,7 @@ CREATE OR REPLACE PROCEDURE
       column_type_argument_type = "enum('ssh-rsa','ssh-ed25519')"
     ) THEN
       ALTER TABLE ssh_key
-      MODIFY type ENUM('ssh-rsa', 'ssh-ed25519','ecdsa-sha2-nistp256','ecdsa-sha2-nistp384','ecdsa-sha2-nistp521');
+      MODIFY type ENUM('ssh-rsa','ssh-ed25519','ecdsa-sha2-nistp256','ecdsa-sha2-nistp384','ecdsa-sha2-nistp521');
     END IF;
   END;
 $$
