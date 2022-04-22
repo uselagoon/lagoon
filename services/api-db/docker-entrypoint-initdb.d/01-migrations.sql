@@ -1603,7 +1603,7 @@ CREATE OR REPLACE PROCEDURE
         table_name = 'advanced_task_definition_argument'
         AND column_name = 'display_name'
     ) THEN
-      ALTER TABLE `advanced_task_definition`
+      ALTER TABLE `advanced_task_definition_argument`
       ADD `display_name` varchar(500) NULL;
     END IF;
   END;
@@ -1626,7 +1626,7 @@ CREATE OR REPLACE PROCEDURE
       column_type_argument_type = "enum('ssh-rsa','ssh-ed25519')"
     ) THEN
       ALTER TABLE ssh_key
-      MODIFY type ENUM('ssh-rsa', 'ssh-ed25519','ecdsa-sha2-nistp256','ecdsa-sha2-nistp384','ecdsa-sha2-nistp521');
+      MODIFY key_type ENUM('ssh-rsa', 'ssh-ed25519','ecdsa-sha2-nistp256','ecdsa-sha2-nistp384','ecdsa-sha2-nistp521') NOT NULL DEFAULT 'ssh-rsa';
     END IF;
   END;
 $$
@@ -1803,6 +1803,7 @@ CALL change_name_index_for_advanced_task_argument();
 CALL add_confirmation_text_to_advanced_task_def();
 CALL add_display_name_to_advanced_task_argument();
 CALL add_ecdsa_ssh_key_types();
+CALL add_task_name_to_tasks();
 CALL add_new_task_status_types();
 CALL update_active_succeeded_tasks();
 CALL update_missing_tasknames();
