@@ -1803,6 +1803,7 @@ CALL change_name_index_for_advanced_task_argument();
 CALL add_confirmation_text_to_advanced_task_def();
 CALL add_display_name_to_advanced_task_argument();
 CALL add_ecdsa_ssh_key_types();
+CALL add_task_name_to_tasks();
 CALL add_new_task_status_types();
 CALL update_active_succeeded_tasks();
 CALL update_missing_tasknames();
