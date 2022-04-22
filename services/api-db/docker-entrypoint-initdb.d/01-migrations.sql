@@ -1626,7 +1626,7 @@ CREATE OR REPLACE PROCEDURE
       column_type_argument_type = "enum('ssh-rsa','ssh-ed25519')"
     ) THEN
       ALTER TABLE ssh_key
-      MODIFY key_type ENUM('ssh-rsa','ssh-ed25519','ecdsa-sha2-nistp256','ecdsa-sha2-nistp384','ecdsa-sha2-nistp521');
+      MODIFY key_type ENUM('ssh-rsa', 'ssh-ed25519','ecdsa-sha2-nistp256','ecdsa-sha2-nistp384','ecdsa-sha2-nistp521') NOT NULL DEFAULT 'ssh-rsa';
     END IF;
   END;
 $$
