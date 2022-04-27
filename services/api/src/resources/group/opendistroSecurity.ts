@@ -43,9 +43,7 @@ export const OpendistroSecurityOperations = (
     const groupProjectPermissions = {
       body: {
         cluster_permissions: [
-          {
-            allowed_actions: ['cluster:admin/opendistro/reports/menu/download']
-          }
+          'cluster:admin/opendistro/reports/menu/download'
         ],
         index_permissions: [
           {
