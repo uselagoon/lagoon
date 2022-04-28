@@ -1,0 +1,49 @@
+
+- name: "{{ testname }} - init git, add files, commit, git push"
+  hosts: localhost
+  serial: 1
+  vars:
+    git_files: "{{ branch }}/"
+  tasks:
+  - include: ../../tasks/git-init.yaml
+  - include: ../../tasks/git-add-commit-push.yaml
+
+- name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}, which should deploy the first commit"
+  hosts: localhost
+  serial: 1
+  vars:
+    branch: "{{ branch }}"
+    project: "{{ project }}"
+    expected_key: "number_of_nodes"
+    expected_value: "{{ node_count }}"
+    namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
+  tasks:
+  - include: ../../tasks/api/deploy-no-sha.yaml
+
+- name: "{{ testname }} - check if {{ project }} is deployed by testing for cluster status"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "{{ url }}"
+    expected_key: "number_of_nodes"
+    expected_value: "{{ node_count }}"
+  tasks:
+  - include: ../../checks/check-json-content.yaml
+
+- name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ project }}"
+    branch: "{{ branch }}"
+  tasks:
+  - include: ../../tasks/api/delete-environment.yaml
+
+- name: "{{ testname }} - check if site for {{ project }} does not exist anymore"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+    expected_returncode: "{{ del_status_code }}"
+  tasks:
+  - include: ../../checks/check-url-returncode.yaml

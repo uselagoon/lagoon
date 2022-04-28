@@ -45,6 +45,25 @@
 
 - include: api/add-project.yaml
   vars:
+    project: ci-opensearch-{{ cluster_type }}
+    git_repo_name: opensearch.git
+    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
+
+- include: opensearch/opensearch.yaml
+  vars:
+    testname: "OPENSEARCH SINGLE NODE {{ cluster_type|upper }}"
+    git_repo_name: opensearch.git
+    project: ci-opensearch-{{ cluster_type }}
+    branch: opensearch
+    url: "http://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/_cluster/health"
+    node_count: 1
+
+- include: api/delete-project.yaml
+  vars:
+    project: ci-opensearch-{{ cluster_type }}
+
+- include: api/add-project.yaml
+  vars:
     project: ci-image-cache-{{ cluster_type }}
     git_repo_name: image-cache.git
     git_url: "{{ localgit_url }}/{{ git_repo_name }}"

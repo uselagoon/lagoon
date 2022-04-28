@@ -48,7 +48,8 @@ RUN mkdir -m 700 /git/.ssh && \
 	git --bare init /git/tasks.git && \
 	git --bare init /git/image-cache.git && \
 	git --bare init /git/generic.git && \
-	git --bare init /git/bulk.git
+	git --bare init /git/bulk.git && \
+	git --bare init /git/opensearch.git
 
 USER root
 
