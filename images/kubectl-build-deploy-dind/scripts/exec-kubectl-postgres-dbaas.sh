@@ -8,7 +8,7 @@ OPERATOR_TIMEOUT=180
 until kubectl -n ${NAMESPACE} get postgresqlconsumer/${SERVICE_NAME} -o yaml | shyaml get-value spec.consumer.database
 do
 if [ $OPERATOR_COUNTER -lt $OPERATOR_TIMEOUT ]; then
-    let SERVICE_BROKER_COUNTER=SERVICE_BROKER_COUNTER+1
+    let OPERATOR_COUNTER=OPERATOR_COUNTER+1
     echo "Service for ${SERVICE_NAME} not available yet, waiting for 5 secs"
     sleep 5
 else
