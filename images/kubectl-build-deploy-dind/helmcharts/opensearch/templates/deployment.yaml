@@ -50,6 +50,8 @@ spec:
         - image: {{ .Values.image | quote }}
           name: {{ .Chart.Name }}
           imagePullPolicy: {{ .Values.imagePullPolicy }}
+          securityContext:
+            runAsUser: 1000
           ports:
             - containerPort: 9200
               protocol: TCP
