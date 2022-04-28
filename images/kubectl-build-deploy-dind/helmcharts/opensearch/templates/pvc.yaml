@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "opensearch.persistentStorageName" . }}
+  labels:
+    {{- include "opensearch.labels" . | nindent 4 }}
+  annotations:
+    k8up.syn.tools/backup: "false"
+    {{- include "opensearch.annotations" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.persistentStorage.size | quote }}

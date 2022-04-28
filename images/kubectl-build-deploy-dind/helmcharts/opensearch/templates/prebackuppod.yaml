@@ -1,0 +1,48 @@
+{{ if .Capabilities.APIVersions.Has "backup.appuio.ch/v1alpha1/PreBackupPod" }}
+apiVersion: backup.appuio.ch/v1alpha1
+kind: PreBackupPod
+metadata:
+  name: {{ include "opensearch.fullname" . }}-prebackuppod
+  labels:
+    {{- include "opensearch.labels" . | nindent 4 }}
+  annotations:
+    {{- include "opensearch.annotations" . | nindent 4 }}
+spec:
+  backupCommand: /bin/sh -c "tar -cf - -C {{ .Values.persistentStorage.path }} ."
+  fileExtension: .{{ include "opensearch.fullname" . }}.tar
+  pod:
+    metadata:
+      labels:
+        prebackuppod: {{ include "opensearch.fullname" . }}
+        {{- include "opensearch.labels" . | nindent 8 }}
+    spec:
+      affinity:
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: lagoon.sh/service
+                      operator: In
+                      values:
+                        - {{ include "opensearch.fullname" . }}
+                topologyKey: kubernetes.io/hostname
+              weight: 100
+      containers:
+        - args:
+            - sleep
+            - infinity
+          envFrom:
+            - configMapRef:
+                name: lagoon-env
+          image: imagecache.amazeeio.cloud/library/alpine
+          imagePullPolicy: Always
+          name: {{ include "opensearch.fullname" . }}-prebackuppod
+          volumeMounts:
+            - name: {{ include "opensearch.persistentStorageName" . }}
+              mountPath: {{ .Values.persistentStorage.path | quote }}
+      volumes:
+        - name: {{ include "opensearch.persistentStorageName" . }}
+          persistentVolumeClaim:
+            claimName: {{ include "opensearch.persistentStorageName" . }}
+{{ end }}
