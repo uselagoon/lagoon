@@ -76,6 +76,23 @@ function featureFlag() {
 	echo "${!defaultFlagVar}"
 }
 
+function projectEnvironmentVariableCheck() {
+	# check for argument
+	[ "$1" ] || return
+
+	local flagVar
+
+	flagVar="$1"
+	# check Lagoon environment variables
+	flagValue=$(jq -r '.[] | select(.name == "'"$flagVar"'") | .value' <<<"$LAGOON_ENVIRONMENT_VARIABLES")
+	[ "$flagValue" ] && echo "$flagValue" && return
+	# check Lagoon project variables
+	flagValue=$(jq -r '.[] | select(.name == "'"$flagVar"'") | .value' <<<"$LAGOON_PROJECT_VARIABLES")
+	[ "$flagValue" ] && echo "$flagValue" && return
+
+	echo "$2"
+}
+
 set +x
 SCC_CHECK=$(kubectl -n ${NAMESPACE} get pod ${LAGOON_BUILD_NAME} -o json | jq -r '.metadata.annotations."openshift.io/scc" // false')
 set -x
@@ -193,30 +210,6 @@ HELM_ARGUMENTS=()
 for CAPABILITIES in "${CAPABILITIES[@]}"; do
   HELM_ARGUMENTS+=(-a "${CAPABILITIES}")
 done
-
-# Implement global default values for backup retention periods
-if [ -z "$MONTHLY_BACKUP_DEFAULT_RETENTION" ]
-then
-  MONTHLY_BACKUP_DEFAULT_RETENTION=1
-fi
-if [ -z "$WEEKLY_BACKUP_DEFAULT_RETENTION" ]
-then
-  WEEKLY_BACKUP_DEFAULT_RETENTION=6
-fi
-if [ -z "$DAILY_BACKUP_DEFAULT_RETENTION" ]
-then
-  DAILY_BACKUP_DEFAULT_RETENTION=7
-fi
-if [ -z "$HOURLY_BACKUP_DEFAULT_RETENTION" ]
-then
-  HOURLY_BACKUP_DEFAULT_RETENTION=0
-fi
-
-# Implement global default value for backup schedule
-if [ -z "$DEFAULT_BACKUP_SCHEDULE" ]
-then
-  DEFAULT_BACKUP_SCHEDULE="M H(22-2) * * *"
-fi
 set -x
 
 set +x # reduce noise in build logs
@@ -1083,154 +1076,9 @@ patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${N
 previousStepEnd=${currentStepEnd}
 set -x
 
-##############################################
-### Backup Settings
-##############################################
 
-# If k8up is supported by this cluster we create the schedule definition
-if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
-
-  # Parse out custom baas backup location variables
-  if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
-    BAAS_CUSTOM_BACKUP_ENDPOINT=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_BAAS_CUSTOM_BACKUP_ENDPOINT") | "\(.value)"'))
-    BAAS_CUSTOM_BACKUP_BUCKET=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_BAAS_CUSTOM_BACKUP_BUCKET") | "\(.value)"'))
-    BAAS_CUSTOM_BACKUP_ACCESS_KEY=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_BAAS_CUSTOM_BACKUP_ACCESS_KEY") | "\(.value)"'))
-    BAAS_CUSTOM_BACKUP_SECRET_KEY=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_BAAS_CUSTOM_BACKUP_SECRET_KEY") | "\(.value)"'))
-
-    if [ ! -z $BAAS_CUSTOM_BACKUP_ENDPOINT ] && [ ! -z $BAAS_CUSTOM_BACKUP_BUCKET ] && [ ! -z $BAAS_CUSTOM_BACKUP_ACCESS_KEY ] && [ ! -z $BAAS_CUSTOM_BACKUP_SECRET_KEY ]; then
-      CUSTOM_BAAS_BACKUP_ENABLED=1
-
-      HELM_CUSTOM_BAAS_BACKUP_ACCESS_KEY=${BAAS_CUSTOM_BACKUP_ACCESS_KEY}
-      HELM_CUSTOM_BAAS_BACKUP_SECRET_KEY=${BAAS_CUSTOM_BACKUP_SECRET_KEY}
-    else
-      set +x
-      kubectl -n ${NAMESPACE} delete secret baas-custom-backup-credentials --ignore-not-found
-      set -x
-    fi
-  fi
-
-  # Parse out custom baas restore location variables
-  if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
-    BAAS_CUSTOM_RESTORE_ENDPOINT=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_BAAS_CUSTOM_RESTORE_ENDPOINT") | "\(.value)"'))
-    BAAS_CUSTOM_RESTORE_BUCKET=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_BAAS_CUSTOM_RESTORE_BUCKET") | "\(.value)"'))
-    BAAS_CUSTOM_RESTORE_ACCESS_KEY=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_BAAS_CUSTOM_RESTORE_ACCESS_KEY") | "\(.value)"'))
-    BAAS_CUSTOM_RESTORE_SECRET_KEY=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_BAAS_CUSTOM_RESTORE_SECRET_KEY") | "\(.value)"'))
-
-    if [ ! -z $BAAS_CUSTOM_RESTORE_ENDPOINT ] && [ ! -z $BAAS_CUSTOM_RESTORE_BUCKET ] && [ ! -z $BAAS_CUSTOM_RESTORE_ACCESS_KEY ] && [ ! -z $BAAS_CUSTOM_RESTORE_SECRET_KEY ]; then
-      HELM_CUSTOM_BAAS_RESTORE_ACCESS_KEY=${BAAS_CUSTOM_RESTORE_ACCESS_KEY}
-      HELM_CUSTOM_BAAS_RESTORE_SECRET_KEY=${BAAS_CUSTOM_RESTORE_SECRET_KEY}
-    else
-      set +x
-      kubectl -n ${NAMESPACE} delete secret baas-custom-restore-credentials --ignore-not-found
-      set -x
-    fi
-  fi
-
-  if ! kubectl -n ${NAMESPACE} get secret baas-repo-pw &> /dev/null; then
-    # Create baas-repo-pw secret based on the project secret
-    set +x
-    kubectl -n ${NAMESPACE} create secret generic baas-repo-pw --from-literal=repo-pw=$(echo -n "$PROJECT_SECRET-BAAS-REPO-PW" | sha256sum | cut -d " " -f 1)
-    set -x
-  fi
-
-  TEMPLATE_PARAMETERS=()
-
-  set +x # reduce noise in build logs
-  # Check for custom baas bucket name
-  if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
-    BAAS_BUCKET_NAME=$(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_BAAS_BUCKET_NAME") | "\(.value)"')
-  fi
-  if [ -z $BAAS_BUCKET_NAME ]; then
-    BAAS_BUCKET_NAME=baas-${PROJECT}
-  fi
-  set -x
-
-  # Pull in .lagoon.yml variables
-  PRODUCTION_MONTHLY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml get-value backup-retention.production.monthly "")
-  PRODUCTION_WEEKLY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml get-value backup-retention.production.weekly "")
-  PRODUCTION_DAILY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml get-value backup-retention.production.daily "")
-  PRODUCTION_HOURLY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml get-value backup-retention.production.hourly "")
-
-  # Set template parameters for retention values (prefer .lagoon.yml values over supplied defaults after ensuring they are valid integers via "-eq" comparison)
-  if [[ ! -z $PRODUCTION_MONTHLY_BACKUP_RETENTION ]] && [[ "$PRODUCTION_MONTHLY_BACKUP_RETENTION" -eq "$PRODUCTION_MONTHLY_BACKUP_RETENTION" ]] && [[ $ENVIRONMENT_TYPE = 'production' ]]; then
-    MONTHLY_BACKUP_RETENTION=${PRODUCTION_MONTHLY_BACKUP_RETENTION}
-  else
-    MONTHLY_BACKUP_RETENTION=${MONTHLY_BACKUP_DEFAULT_RETENTION}
-  fi
-  if [[ ! -z $PRODUCTION_WEEKLY_BACKUP_RETENTION ]] && [[ "$PRODUCTION_WEEKLY_BACKUP_RETENTION" -eq "$PRODUCTION_WEEKLY_BACKUP_RETENTION" ]] && [[ $ENVIRONMENT_TYPE = 'production' ]]; then
-    WEEKLY_BACKUP_RETENTION=${PRODUCTION_WEEKLY_BACKUP_RETENTION}
-  else
-    WEEKLY_BACKUP_RETENTION=${WEEKLY_BACKUP_DEFAULT_RETENTION}
-  fi
-  if [[ ! -z $PRODUCTION_DAILY_BACKUP_RETENTION ]] && [[ "$PRODUCTION_DAILY_BACKUP_RETENTION" -eq "$PRODUCTION_DAILY_BACKUP_RETENTION" ]] && [[ $ENVIRONMENT_TYPE = 'production' ]]; then
-    DAILY_BACKUP_RETENTION=${PRODUCTION_DAILY_BACKUP_RETENTION}
-  else
-    DAILY_BACKUP_RETENTION=${DAILY_BACKUP_DEFAULT_RETENTION}
-  fi
-  if [[ ! -z $PRODUCTION_HOURLY_BACKUP_RETENTION ]] && [[ "$PRODUCTION_HOURLY_BACKUP_RETENTION" -eq "$PRODUCTION_HOURLY_BACKUP_RETENTION" ]] && [[ $ENVIRONMENT_TYPE = 'production' ]]; then
-    HOURLY_BACKUP_RETENTION=${PRODUCTION_HOURLY_BACKUP_RETENTION}
-  else
-    HOURLY_BACKUP_RETENTION=${HOURLY_BACKUP_DEFAULT_RETENTION}
-  fi
-
-  # Set template parameters for backup schedule value (prefer .lagoon.yml values over supplied defaults after ensuring they are valid)
-  PRODUCTION_BACKUP_SCHEDULE=$(cat .lagoon.yml | shyaml get-value backup-schedule.production "")
-
-  if [[ ! -z $PRODUCTION_BACKUP_SCHEDULE ]] && [[ $ENVIRONMENT_TYPE = 'production' ]]; then
-    if [[ "$PRODUCTION_BACKUP_SCHEDULE" =~ ^M\  ]]; then
-      BACKUP_SCHEDULE=$( /kubectl-build-deploy/scripts/convert-crontab.sh "${NAMESPACE}" "${PRODUCTION_BACKUP_SCHEDULE}")
-    else
-      echo "Error parsing custom backup schedule: '$PRODUCTION_BACKUP_SCHEDULE'"; exit 1
-    fi
-  else
-    BACKUP_SCHEDULE=$( /kubectl-build-deploy/scripts/convert-crontab.sh "${NAMESPACE}" "${DEFAULT_BACKUP_SCHEDULE}")
-  fi
-
-  if [ ! -z $K8UP_WEEKLY_RANDOM_FEATURE_FLAG ] && [ $K8UP_WEEKLY_RANDOM_FEATURE_FLAG = 'enabled' ]; then
-    # Let the controller deduplicate checks (will run weekly at a random time throughout the week)
-    CHECK_SCHEDULE="@weekly-random"
-  else
-    # Run Checks on Sunday at 0300-0600
-    CHECK_SCHEDULE=$( /kubectl-build-deploy/scripts/convert-crontab.sh "${NAMESPACE}" "M H(3-6) * * 0")
-  fi
-
-  if [ ! -z $K8UP_WEEKLY_RANDOM_FEATURE_FLAG ] && [ $K8UP_WEEKLY_RANDOM_FEATURE_FLAG = 'enabled' ]; then
-    # Let the controller deduplicate prunes (will run weekly at a random time throughout the week)
-    PRUNE_SCHEDULE="@weekly-random"
-  else
-    # Run Prune on Saturday at 0300-0600
-    PRUNE_SCHEDULE=$( /kubectl-build-deploy/scripts/convert-crontab.sh "${NAMESPACE}" "M H(3-6) * * 6")
-  fi
-
-  # Set the S3 variables which should be passed to the helm chart
-  if [ ! -z $CUSTOM_BAAS_BACKUP_ENABLED ]; then
-    BAAS_BACKUP_ENDPOINT=${BAAS_CUSTOM_BACKUP_ENDPOINT}
-    BAAS_BACKUP_BUCKET=${BAAS_CUSTOM_BACKUP_BUCKET}
-    BAAS_BACKUP_SECRET_NAME='lagoon-baas-custom-backup-credentials'
-  else
-    BAAS_BACKUP_ENDPOINT=''
-    BAAS_BACKUP_BUCKET=${BAAS_BUCKET_NAME}
-    BAAS_BACKUP_SECRET_NAME=''
-  fi
-
-  OPENSHIFT_TEMPLATE="/kubectl-build-deploy/openshift-templates/backup-schedule.yml"
-  helm template k8up-lagoon-backup-schedule /kubectl-build-deploy/helmcharts/k8up-schedule \
-    -f /kubectl-build-deploy/values.yaml \
-    --set backup.schedule="${BACKUP_SCHEDULE}" \
-    --set check.schedule="${CHECK_SCHEDULE}" \
-    --set prune.schedule="${PRUNE_SCHEDULE}" \
-    --set prune.retention.keepMonthly=${MONTHLY_BACKUP_RETENTION} \
-    --set prune.retention.keepWeekly=${WEEKLY_BACKUP_RETENTION} \
-    --set prune.retention.keepDaily=${DAILY_BACKUP_RETENTION} \
-    --set prune.retention.keepHourly=${HOURLY_BACKUP_RETENTION} \
-    --set s3.endpoint="${BAAS_BACKUP_ENDPOINT}" \
-    --set s3.bucket="${BAAS_BACKUP_BUCKET}" \
-    --set s3.secretName="${BAAS_BACKUP_SECRET_NAME}" \
-    --set customRestoreLocation.accessKey="${BAAS_CUSTOM_RESTORE_ACCESS_KEY}" \
-    --set customRestoreLocation.secretKey="${BAAS_CUSTOM_RESTORE_SECRET_KEY}" \
-    --set customBackupLocation.accessKey="${BAAS_CUSTOM_BACKUP_ACCESS_KEY}" \
-    --set customBackupLocation.secretKey="${BAAS_CUSTOM_BACKUP_SECRET_KEY}" "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/k8up-lagoon-backup-schedule.yaml
-fi
+# Run the backup generation script
+. /kubectl-build-deploy/scripts/exec-backup-generation.sh
 
 # check for ISOLATION_NETWORK_POLICY feature flag, disabled by default
 set +x

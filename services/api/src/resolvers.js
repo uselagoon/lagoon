@@ -54,6 +54,7 @@ const {
 
 const {
   getTasksByEnvironmentId,
+  getTaskByTaskName,
   getTaskByRemoteId,
   getTaskById,
   addTask,
@@ -306,6 +307,12 @@ const resolvers = {
     PROBLEM: 'problem',
   },
   TaskStatusType: {
+    NEW: 'new',
+    PENDING: 'pending',
+    RUNNING: 'running',
+    CANCELLED: 'cancelled',
+    ERROR: 'error',
+    COMPLETE: 'complete',
     ACTIVE: 'active',
     SUCCEEDED: 'succeeded',
     FAILED: 'failed',
@@ -432,6 +439,7 @@ const resolvers = {
     userCanSshToEnvironment,
     deploymentByRemoteId: getDeploymentByRemoteId,
     deploymentsByBulkId: getDeploymentsByBulkId,
+    taskByTaskName: getTaskByTaskName,
     taskByRemoteId: getTaskByRemoteId,
     taskById: getTaskById,
     advancedTaskDefinitionById,

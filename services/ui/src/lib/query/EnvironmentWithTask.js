@@ -1,7 +1,7 @@
 import gql from 'graphql-tag';
 
 export default gql`
-  query getEnvironment($openshiftProjectName: String!, $taskId: Int!) {
+  query getEnvironment($openshiftProjectName: String!, $taskName: String!) {
     environment: environmentByOpenshiftProjectName(
       openshiftProjectName: $openshiftProjectName
     ) {
@@ -13,8 +13,9 @@ export default gql`
         problemsUi
         factsUi
       }
-      tasks(id: $taskId) {
+      tasks(taskName: $taskName) {
         name
+        taskName
         status
         created
         service

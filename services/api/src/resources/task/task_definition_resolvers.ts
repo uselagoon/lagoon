@@ -19,6 +19,7 @@ import convertDateToMYSQLDateTimeFormat from '../../util/convertDateToMYSQLDateT
 import * as advancedTaskToolbox from './advancedtasktoolbox';
 import { IKeycloakAuthAttributes, KeycloakUnauthorizedError } from '../../util/auth';
 import { Environment } from '../../resolvers';
+import { generateTaskName } from '@lagoon/commons/dist/util';
 
 enum AdvancedTaskDefinitionTarget {
   Group,
@@ -532,6 +533,7 @@ export const invokeRegisteredTask = async (
 
         const taskData = await Helpers(sqlClientPool).addTask({
           name: task.name,
+          taskName: generateTaskName(),
           environment: environment,
           service: task.service,
           command: taskCommand,
@@ -554,6 +556,7 @@ export const invokeRegisteredTask = async (
 
         const advancedTaskData = await Helpers(sqlClientPool).addAdvancedTask({
           name: task.name,
+          taskName: generateTaskName(),
           created: undefined,
           started: undefined,
           completed: undefined,

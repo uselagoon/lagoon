@@ -8,6 +8,7 @@ export const Sql = {
   insertTask: ({
     id,
     name,
+    taskName,
     status,
     created,
     started,
@@ -22,6 +23,7 @@ export const Sql = {
   }: {
     id: number;
     name: string;
+    taskName: string,
     status: string;
     created: string;
     started: string;
@@ -38,6 +40,7 @@ export const Sql = {
       .insert({
         id,
         name,
+        taskName,
         status,
         created,
         started,
