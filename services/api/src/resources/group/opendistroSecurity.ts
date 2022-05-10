@@ -69,7 +69,7 @@ export const OpendistroSecurityOperations = (
       // inject project permissions into permission array
       groupProjectNames.forEach(projectName =>
         groupProjectPermissions.body.index_permissions[0].index_patterns.push(
-          `*-${projectName}-*`
+          `/^(application|container|lagoon|router)-logs-${projectName}-_-.+/`
         )
       );
     }
