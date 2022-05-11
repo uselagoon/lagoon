@@ -1068,7 +1068,8 @@ TEMPLATE_PARAMETERS=()
 ##############################################
 
 # Run the route generation process
-build-deploy-tool template routes
+build-deploy-tool template ingress
+MAIN_CUSTOM_ROUTE=$(build-deploy-tool identify primary-ingress)
 
 set +x
 currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"

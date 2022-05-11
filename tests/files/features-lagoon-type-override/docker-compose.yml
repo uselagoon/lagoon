@@ -10,6 +10,7 @@ services:
     labels:
       lagoon.type: none
       lagoon.persistent: /files
+      lagoon.persistent.size: 500Mi
     volumes:
       - ./index.js:/app/index.js:delegated
     expose:
