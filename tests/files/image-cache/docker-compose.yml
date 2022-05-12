@@ -10,6 +10,7 @@ services:
     labels:
       lagoon.type: node-persistent
       lagoon.persistent: /app/files/
+      lagoon.persistent.size: 500Mi
     ports:
       - "3000:3000"
     environment:
