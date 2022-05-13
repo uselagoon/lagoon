@@ -95,7 +95,7 @@ const DrushSqlSync = ({
             }
             disabled={!selectedSourceEnv}
           >
-            Add task
+            Run task
           </Button>
           <style jsx>{`
             .warning {

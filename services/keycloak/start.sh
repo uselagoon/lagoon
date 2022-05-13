@@ -1748,6 +1748,11 @@ function configure_token_exchange {
     /opt/jboss/keycloak/bin/kcadm.sh update clients/$REALM_MANAGEMENT_CLIENT_ID/authz/resource-server/permission/scope/$IMPERSONATE_PERMISSION_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'policies=["'$AUTH_SERVER_CLIENT_POLICY_ID'","'$SERVICE_API_CLIENT_POLICY_ID'"]' -s 'decisionStrategy="AFFIRMATIVE"'
 }
 
+function regen_client_secrets {
+  SERVICE_API_CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r ${KEYCLOAK_REALM:-master} clients?clientId=service-api --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
+  /opt/jboss/keycloak/bin/kcadm.sh create clients/$SERVICE_API_CLIENT_ID/client-secret --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master}
+}
+
 function update_add_env_var_to_project {
   CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
   echo Reconfiguring Add Environment Variable to Project
@@ -1794,6 +1799,7 @@ function configure_keycloak {
     update_openshift_view_permission
     configure_service_api_client
     configure_token_exchange
+    regen_client_secrets
     update_add_env_var_to_project
 
     echo "Config of Keycloak done. Log in via admin user '$KEYCLOAK_ADMIN_USER' and password '$KEYCLOAK_ADMIN_PASSWORD'"

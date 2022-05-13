@@ -49,7 +49,7 @@ If all went well, your first GraphQL response should appear shortly afterwards i
 
 ## Creating the first project
 
-Let's create the first project for Lagoon to deploy! For this we'll use the queries from the GraphQL query template in [`create-project.gql`](https://github.com/uselagoon/lagoon/blob/main/docs/administering-lagoon/create-project.gql).
+Let's create the first project for Lagoon to deploy! For this we'll use the queries from the GraphQL query template in [`create-project.gql`](../administering-lagoon/create-project.gql).
 
 For each of the queries \(the blocks starting with `mutation {`\), fill in all of the empty fields marked by TODO comments and run the queries in GraphiQL.app. This will create one of each of the following two objects:
 
@@ -111,7 +111,7 @@ mutation {
       # This is the actual SSH public key (without the type at the beginning and without the comment at the end, ex. `AAAAB3NzaC1yc2EAAAADAQ...3QjzIOtdQERGZuMsi0p`).
       keyValue: ""
       # TODO: Fill in the keyType field.
-      # Valid values are either SSH_RSA or SSH_ED25519.
+      # Valid values are either SSH_RSA, SSH_ED25519, ECDSA_SHA2_NISTP256/384/521
       keyType: SSH_RSA
       user: {
         # TODO: Fill in the userId field.
