@@ -7,16 +7,14 @@ SBOM_CONFIGMAP="lagoon-insights-sbom-${IMAGE_NAME}"
 IMAGE_INSPECT_CONFIGMAP="lagoon-insights-image-${IMAGE_NAME}"
 IMAGE_INSPECT_OUTPUT_FILE="${TMP_DIR}/${IMAGE_NAME}.image-inspect.json.gz"
 
-set -x
-echo "Running image inspect on: ${IMAGE_FULL}"
 set +x
+echo "Running image inspect on: ${IMAGE_FULL}"
 
 skopeo inspect --retry-times 5 docker://${IMAGE_FULL} --tls-verify=false | gzip > ${IMAGE_INSPECT_OUTPUT_FILE}
 
 processImageInspect() {
   echo "Successfully generated image inspection data for ${IMAGE_FULL}"
 
-  set -x
   # If lagoon-insights-image-inpsect-[IMAGE] configmap already exists then we need to update, else create new
   if kubectl -n ${NAMESPACE} get configmap $IMAGE_INSPECT_CONFIGMAP &> /dev/null; then
       kubectl \
@@ -40,17 +38,14 @@ processImageInspect() {
       lagoon.sh/project=${PROJECT} \
       lagoon.sh/environment=${ENVIRONMENT} \
       lagoon.sh/service=${IMAGE_NAME}
-  set +x
 }
 
 processImageInspect
 
-set -x
 echo "Running sbom scan using syft"
 echo "Image being scanned: ${IMAGE_FULL}"
-set +x
 
-DOCKER_HOST=docker-host.lagoon.svc docker run --rm -v /var/run/docker.sock:/var/run/docker.sock imagecache.amazeeio.cloud/anchore/syft packages ${IMAGE_FULL} -o ${SBOM_OUTPUT} | gzip > ${SBOM_OUTPUT_FILE}
+DOCKER_HOST=docker-host.lagoon.svc docker run --rm -v /var/run/docker.sock:/var/run/docker.sock imagecache.amazeeio.cloud/anchore/syft packages ${IMAGE_FULL} --quiet -o ${SBOM_OUTPUT} | gzip > ${SBOM_OUTPUT_FILE}
 
 FILESIZE=$(stat -c%s "$SBOM_OUTPUT_FILE")
 echo "Size of ${SBOM_OUTPUT_FILE} = $FILESIZE bytes."
@@ -62,7 +57,6 @@ processSbom() {
   else
     echo "Successfully generated SBOM for ${IMAGE_FULL}"
 
-    set -x
     # If lagoon-insights-sbom-[IMAGE] configmap already exists then we need to update, else create new
     if kubectl -n ${NAMESPACE} get configmap $SBOM_CONFIGMAP &> /dev/null; then
         kubectl \
@@ -87,7 +81,6 @@ processSbom() {
         lagoon.sh/project=${PROJECT} \
         lagoon.sh/environment=${ENVIRONMENT} \
         lagoon.sh/service=${IMAGE_NAME}
-    set +x
   fi
 }
 
