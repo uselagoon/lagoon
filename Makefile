@@ -178,7 +178,6 @@ services :=	api \
 			api-db \
 			api-redis \
 			auth-server \
-			auto-idler \
 			actions-handler \
 			backup-handler \
 			broker \
@@ -219,7 +218,6 @@ build/auth-server build/logs2email build/logs2slack build/logs2rocketchat build/
 build/api-db: services/api-db/Dockerfile
 build/api-redis: services/api-redis/Dockerfile
 build/actions-handler: services/actions-handler/Dockerfile
-build/auto-idler: build/oc
 build/broker-single: services/broker/Dockerfile
 build/broker: build/broker-single
 build/drush-alias: services/drush-alias/Dockerfile
