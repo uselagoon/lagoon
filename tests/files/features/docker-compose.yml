@@ -10,6 +10,7 @@ services:
     labels:
       lagoon.type: node-persistent
       lagoon.persistent: /files
+      lagoon.persistent.size: 100Mi
       lagoon.template: .lagoon.node.yml
     volumes:
       - ./index.js:/app/index.js:delegated

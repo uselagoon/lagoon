@@ -10,6 +10,7 @@ services:
     labels:
       lagoon.type: node-persistent
       lagoon.persistent: /files
+      lagoon.persistent.size: 100Mi
     volumes:
       - ./subfolder3/index.js:/app/index.js:delegated
     expose:
