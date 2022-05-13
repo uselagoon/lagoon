@@ -729,7 +729,7 @@ EOF
   "decisionStrategy": "UNANIMOUS",
   "resources": ["env_var"],
   "scopes": ["project:add"],
-  "policies": ["Users role for project is Owner","User has access to project"]
+  "policies": ["Users role for project is Maintainer","User has access to project"]
 }
 EOF
 
@@ -1753,6 +1753,24 @@ function regen_client_secrets {
   /opt/jboss/keycloak/bin/kcadm.sh create clients/$SERVICE_API_CLIENT_ID/client-secret --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master}
 }
 
+function update_add_env_var_to_project {
+  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
+  echo Reconfiguring Add Environment Variable to Project
+  ADD_PROJECT_ENV_VAR_PERMISSION_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Add+Environment+Variable+to+Project --config $CONFIG_PATH | python -c 'import sys, json; print json.load(sys.stdin)[0]["id"]')
+  /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$CLIENT_ID/authz/resource-server/permission/$ADD_PROJECT_ENV_VAR_PERMISSION_ID --config $CONFIG_PATH
+  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Add Environment Variable to Project",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["env_var"],
+  "scopes": ["project:add"],
+  "policies": ["Users role for project is Maintainer","User has access to project"]
+}
+EOF
+}
+
 function configure_keycloak {
     until is_keycloak_running; do
         echo Keycloak still not running, waiting 5 seconds
@@ -1782,6 +1800,7 @@ function configure_keycloak {
     configure_service_api_client
     configure_token_exchange
     regen_client_secrets
+    update_add_env_var_to_project
 
     echo "Config of Keycloak done. Log in via admin user '$KEYCLOAK_ADMIN_USER' and password '$KEYCLOAK_ADMIN_PASSWORD'"
 
