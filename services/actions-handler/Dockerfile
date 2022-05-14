@@ -21,7 +21,7 @@ ENV LAGOON_VERSION=$LAGOON_VERSION
 
 WORKDIR /app/
 
-# bring the auto-idler binary from the builder
+# bring the actions-handler binary from the builder
 COPY --from=builder /go/src/github.com/uselagoon/lagoon/services/actions-handler/actions-handler .
 
 ENV LAGOON=actions-handler

@@ -25,7 +25,7 @@ ENV LAGOON_VERSION=$LAGOON_VERSION
 
 WORKDIR /app/
 
-# bring the auto-idler binary from the builder
+# bring the backup-handler binary from the builder
 COPY --from=builder /go/src/github.com/uselagoon/lagoon/services/backup-handler/backup-handler .
 
 ENV LAGOON=backup-handler
