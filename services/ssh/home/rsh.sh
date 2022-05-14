@@ -130,7 +130,7 @@ IS_KUBERNETES=false
 # If there is a deployment for the given service searching for lagoon.sh labels
 if [[ $($KUBECTL get deployment -l "lagoon.sh/service=${SERVICE}" 2> /dev/null) ]]; then
   IS_KUBERNETES=true
-  # get any other deployments that may have been idled by the idler and unidle them if required
+  # get any other deployments that may have been idled and unidle them if required
   # this only needs to be done for kubernetes
   # we do this first to give the services a bit of time to unidle before starting the one that was requested
   DEPLOYMENTS=$($KUBECTL get deployments -l "idling.amazee.io/watch=true" -o name)

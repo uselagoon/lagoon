@@ -20,7 +20,7 @@ ENV LAGOON_VERSION=$LAGOON_VERSION
 
 WORKDIR /app/
 
-# bring the auto-idler binary from the builder
+# bring the workflows binary from the builder
 COPY --from=builder /go/src/github.com/uselagoon/lagoon/services/workflows/workflows .
 
 ENV LAGOON=workflows
