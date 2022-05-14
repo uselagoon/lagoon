@@ -257,6 +257,8 @@ If your `.lagoon.yml` contains one of these annotations it will cause a build fa
 | `nginx.ingress.kubernetes.io/configuration-snippet` | Restricted to `rewrite`, `add_header`, `set_real_ip`, and `more_set_headers` directives. |
 | `nginx.ingress.kubernetes.io/modsecurity-snippet`   | Disallowed                                                                               |
 | `nginx.ingress.kubernetes.io/server-snippet`        | Restricted to `rewrite`, `add_header`, `set_real_ip`, and `more_set_headers` directives. |
+| `nginx.ingress.kubernetes.io/stream-snippet`        | Disallowed                                                                               |
+| `nginx.ingress.kubernetes.io/use-regex`             | Disallowed                                                                               |
 
 #### **Ingress annotations redirects**
 
