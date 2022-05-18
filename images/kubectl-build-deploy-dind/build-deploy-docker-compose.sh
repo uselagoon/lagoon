@@ -999,7 +999,10 @@ set -x
 # step overwriting the previous so only 1 ingress is returned
 # previous check looked for `spec.tls` which always exists in our kubernetes templates
 # so just add https...
-ROUTE=https://$(build-deploy-tool identify primary-ingress)
+ROUTE=$(build-deploy-tool identify primary-ingress)
+if [ ! -z "${ROUTE}" ]; then
+  ROUTE=https://${ROUTE}
+fi
 
 # Load all routes with correct schema and comma separated
 ROUTES=$(kubectl -n ${NAMESPACE} get ingress --sort-by='{.metadata.name}' -l "acme.openshift.io/exposer!=true" -o=go-template --template='{{range $indexItems, $ingress := .items}}{{if $indexItems}},{{end}}{{$tls := .spec.tls}}{{range $indexRule, $rule := .spec.rules}}{{if $indexRule}},{{end}}{{if $tls}}https://{{else}}http://{{end}}{{.host}}{{end}}{{end}}')
