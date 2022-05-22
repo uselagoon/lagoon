@@ -661,26 +661,7 @@ set -x
 ##############################################
 
 if [ "${LAGOON_PREROLLOUT_DISABLED}" != "true" ]; then
-  COUNTER=0
-  while [ -n "$(cat .lagoon.yml | shyaml keys tasks.pre-rollout.$COUNTER 2> /dev/null)" ]
-  do
-    TASK_TYPE=$(cat .lagoon.yml | shyaml keys tasks.pre-rollout.$COUNTER)
-    echo $TASK_TYPE
-    case "$TASK_TYPE" in
-      run)
-          COMMAND=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.command)
-          SERVICE_NAME=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.service)
-          CONTAINER=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.container false)
-          SHELL=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.shell sh)
-          . /kubectl-build-deploy/scripts/exec-pre-tasks-run.sh
-          ;;
-      *)
-          echo "Task Type ${TASK_TYPE} not implemented"; exit 1;
-
-    esac
-
-    let COUNTER=COUNTER+1
-  done
+    build-deploy-tool tasks pre-rollout
 else
   echo "pre-rollout tasks are currently disabled LAGOON_PREROLLOUT_DISABLED is set to true"
 fi
@@ -1508,26 +1489,7 @@ set -x
 
 # if we have LAGOON_POSTROLLOUT_DISABLED set, don't try to run any pre-rollout tasks
 if [ "${LAGOON_POSTROLLOUT_DISABLED}" != "true" ]; then
-  COUNTER=0
-  while [ -n "$(cat .lagoon.yml | shyaml keys tasks.post-rollout.$COUNTER 2> /dev/null)" ]
-  do
-    TASK_TYPE=$(cat .lagoon.yml | shyaml keys tasks.post-rollout.$COUNTER)
-    echo $TASK_TYPE
-    case "$TASK_TYPE" in
-      run)
-          COMMAND=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.command)
-          SERVICE_NAME=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.service)
-          CONTAINER=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.container false)
-          SHELL=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.shell sh)
-          . /kubectl-build-deploy/scripts/exec-tasks-run.sh
-          ;;
-      *)
-          echo "Task Type ${TASK_TYPE} not implemented"; exit 1;
-
-    esac
-
-    let COUNTER=COUNTER+1
-  done
+  build-deploy-tool tasks post-rollout
 else
   echo "post-rollout tasks are currently disabled LAGOON_POSTROLLOUT_DISABLED is set to true"
 fi
