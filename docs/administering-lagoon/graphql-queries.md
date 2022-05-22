@@ -4,21 +4,15 @@
 
 Direct API interactions in Lagoon are done via [GraphQL](graphql-queries.md).
 
-In order to authenticate with the API, we need a JWT \(JSON Web Token\) that allows us to use the GraphQL API as admin. To generate this token, open the terminal of the `auto-idler` pod via the OpenShift UI and run the following command:
+In order to authenticate with the API, we need a JWT \(JSON Web Token\) that allows us to use the GraphQL API as admin. To generate this token, open the terminal of the `storage-calculator` pod via your Kubernetes UI, or via kubectl and run the following command:
 
 ```bash
 ./create_jwt.sh
 ```
 
-This can also be done with the `oc` command:
-
-```bash
-oc -n lagoon-main rsh dc/auto-idler ./create_jwt.sh
-```
-
 This will return a long string which is the JWT token. Make a note of this, as we will need it to send queries.
 
-We also need the URL of the API endpoint, which can be found under "Routes" in the OpenShift UI or `oc get route api` on the command line. Make a note of this endpoint URL, which we will also need.
+We also need the URL of the API endpoint, which can be found under "Ingresses" in your Kubernetes UI or via kubectl on the command line. Make a note of this endpoint URL, which we will also need.
 
 To compose and send GraphQL queries, we recommend [GraphiQL.app](https://github.com/skevy/graphiql-app), a desktop GraphQL client with features such as autocomplete. To continue with the next steps, install and start the app.
 

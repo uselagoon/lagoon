@@ -274,15 +274,6 @@ services:
       - '8087:8080'
     labels:
       version: '2'
-  auto-idler:
-    image: ${IMAGE_REPO:-lagoon}/auto-idler
-    user: '111111111'
-    volumes:
-      - './services/auto-idler/idle-services.sh:/idle-services.sh'
-      - './services/auto-idler/idle-clis.sh:/idle-clis.sh'
-      - './services/auto-idler/openshift-services.sh:/openshift-services.sh'
-      - './services/auto-idler/openshift-clis.sh:/openshift-clis.sh'
-      - './services/auto-idler/create_jwt.py:/create_jwt.py'
   storage-calculator:
     image: ${IMAGE_REPO:-lagoon}/storage-calculator
     user: '111111111'
