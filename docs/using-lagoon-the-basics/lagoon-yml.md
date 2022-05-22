@@ -80,7 +80,7 @@ Different tasks based on branch name:
         command: |
             ### Runs if current branch is not 'production'
         service: cli
-        when: LAGOON_GIT_BRANCH != "production
+        when: LAGOON_GIT_BRANCH != "production"
 ```
 
 Run shell script:
