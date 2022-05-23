@@ -6,7 +6,7 @@
 * Familiarity with [Helm](https://helm.sh) and [Helm Charts](https://helm.sh/docs/topics/charts/#helm), and [kubectl](https://kubernetes.io/docs/tasks/tools/).
 * Ingress controller, we recommend [ingress-nginx](https://github.com/kubernetes/ingress-nginx), installed into ingress-nginx namespace
 * Cert manager (for TLS) - We highly recommend using letsencrypt
-* RWO storage
+* StorageClasses (RWO as default, RWM for persistent types)
 
 !!! Note "Note:"
     We acknowledge that this is a lot of steps, and our roadmap for the immediate future includes reducing the number of steps in this process.
@@ -34,6 +34,14 @@ Other configurations may be possible, but have not been tested.
 Only Harbor <2.2 is currently supported - the method of retrieving robot accounts was changed in 2.2, and we are working on a fix.
 
 This means you should install Harbor [2.1.6](https://github.com/goharbor/harbor/releases/tag/v2.1.6) with Helm chart [1.5.6](https://github.com/goharbor/harbor-helm/releases/tag/1.5.6).
+
+### Storage provisioners
+
+Lagoon utilises a default 'standard' StorageClass for most workloads, and the internal provisioner for most Kubernetes platforms will suffice. This should be configured to be dynamic provisioning and expandable where possible.
+
+Lagoon also requires a storageClass called 'bulk' to be available to support persistant pod replicas (across nodes). This storageClass should support ReadWriteMany access mode and should be configured to be dynamic provisioning and expandable where possible. See https://kubernetes.io/docs/concepts/storage/persistent-volumes/#access-modes for more information.
+
+We have curently only included the instructions for (the now deprecated) [EFS Provisioner](./efs-provisioner.md), but most CSI drivers should also work, as will configurations with an NFS-compatible server and provisioner.
 
 ## How much Kubernetes experience/knowledge is required?
 
