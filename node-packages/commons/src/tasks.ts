@@ -568,11 +568,16 @@ export const getControllerBuildData = async function(deployData: any) {
   // this way variables or new functionality can be passed into lagoon builds using the existing variables mechanism
   // avoiding the needs to hardcode them into the spec to then be consumed by the build-deploy controller
   lagoonProjectData.envVariables.push({"name":"LAGOON_SYSTEM_ROUTER_PATTERN", "value":routerPattern, "scope":"internal_system"})
-  if (bulkName != "" && bulkId != "") {
+  if (bulkId != "") {
     // if this is a bulk deploy, add the associated bulk deploy build scope variables
     lagoonProjectData.envVariables.push({"name":"LAGOON_BULK_DEPLOY", "value":"true", "scope":"build"})
     lagoonProjectData.envVariables.push({"name":"LAGOON_BULK_DEPLOY_ID", "value":bulkId, "scope":"build"})
+  }
+  if (bulkName != "" ) {
     lagoonProjectData.envVariables.push({"name":"LAGOON_BULK_DEPLOY_NAME", "value":bulkName, "scope":"build"})
+  }
+  if (buildPriority != null ) {
+    lagoonProjectData.envVariables.push({"name":"LAGOON_BUILD_PRIORITY", "value":buildPriority.toString(), "scope":"build"})
   }
 
   let lagoonEnvironmentVariables = environment.addOrUpdateEnvironment.envVariables || []
