@@ -573,10 +573,10 @@ export const getControllerBuildData = async function(deployData: any) {
     lagoonProjectData.envVariables.push({"name":"LAGOON_BULK_DEPLOY", "value":"true", "scope":"build"})
     lagoonProjectData.envVariables.push({"name":"LAGOON_BULK_DEPLOY_ID", "value":bulkId, "scope":"build"})
   }
-  if (bulkName != "" ) {
+  if (bulkName != "") {
     lagoonProjectData.envVariables.push({"name":"LAGOON_BULK_DEPLOY_NAME", "value":bulkName, "scope":"build"})
   }
-  if (buildPriority != null ) {
+  if (buildPriority != null) {
     lagoonProjectData.envVariables.push({"name":"LAGOON_BUILD_PRIORITY", "value":buildPriority.toString(), "scope":"build"})
   }
 
