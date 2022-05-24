@@ -104,7 +104,7 @@ Drupal & Drush 9: Sync database & files from master environment:
               drush rsync @lagoon.master:%files @self:%files -- --omit-dir-times --no-perms --no-group --no-owner --chmod=ugo=rwX
           fi
         service: cli
-        when: LAGOON_GIT_BRANCH != "master"
+        when: LAGOON_ENVIRONMENT_TYPE != "production"
 ```
 
 ## Backup Retention
