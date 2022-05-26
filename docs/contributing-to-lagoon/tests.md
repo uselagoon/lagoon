@@ -55,7 +55,7 @@ This will build all images, start an OpenShift and run all tests.
 
 The tests can be found here:
 
-<!-- markdown-link-check-disable-next-line -->
+<!-- markdown-link-check-disable -->
 * `develop` branch: [https://lagoon-ci.amazeeio.cloud/blue/organizations/jenkins/lagoon/activity/?branch=develop](https://lagoon-ci.amazeeio.cloud/blue/organizations/jenkins/lagoon/activity/?branch=develop)
-<!-- markdown-link-check-disable-next-line -->
 * `main` branch: [https://lagoon-ci.amazeeio.cloud/blue/organizations/jenkins/lagoon/activity/?branch=main](https://lagoon-ci.amazeeio.cloud/blue/organizations/jenkins/lagoon/activity/?branch=main)
+<!-- markdown-link-check-enable -->
