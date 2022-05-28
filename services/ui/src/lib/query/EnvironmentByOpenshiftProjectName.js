@@ -15,7 +15,6 @@ export default gql`
       openshiftProjectName
       openshift {
         friendlyName
-        cloudProvider
         cloudRegion
       }
       project {

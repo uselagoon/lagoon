@@ -12,39 +12,25 @@ export default gql`
       productionEnvironment
       standbyProductionEnvironment
       developmentEnvironmentsLimit
-      deployTargetConfigs{
+      deployTargetConfigs {
         id
         branches
         pullrequests
-        weight
-        deployTarget{
+        deployTarget {
           id
           name
           friendlyName
-          cloudProvider
-          cloudRegion
         }
       }
       environments {
         id
         name
-        created
-        updated
         deployType
         environmentType
         openshiftProjectName
         openshift {
           friendlyName
-          cloudProvider
           cloudRegion
-        }
-        project {
-          id
-          name
-          productionEnvironment
-          standbyProductionEnvironment
-          problemsUi
-          factsUi
         }
       }
     }
