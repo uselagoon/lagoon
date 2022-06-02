@@ -28,8 +28,7 @@ export default (App, initialAuth) => {
       };
 
       await keycloak.init({
-        checkLoginIframe: false,
-        promiseType: 'native',
+        checkLoginIframe: false
       });
 
       if (!keycloak.authenticated) {
@@ -51,8 +50,10 @@ export default (App, initialAuth) => {
           provider: 'keycloak',
           providerData: keycloak,
           user: {
-            username: keycloak.tokenParsed ? keycloak.tokenParsed.preferred_username : 'unauthenticated',
-          },
+            username: keycloak.tokenParsed
+              ? keycloak.tokenParsed.preferred_username
+              : 'unauthenticated'
+          }
         }
       });
     }
