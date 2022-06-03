@@ -6,7 +6,6 @@ metadata:
     {{- include "nginx-php-persistent.labels" . | nindent 4 }}
   annotations:
     {{- include "nginx-php-persistent.annotations" . | nindent 4 }}
-  annotations:
     k8up.syn.tools/backup: "true"
 spec:
   accessModes:
