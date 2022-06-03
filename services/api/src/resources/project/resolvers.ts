@@ -322,7 +322,8 @@ export const addProject = async (
       name: `project-${project.name}`,
       attributes: {
         type: ['project-default-group'],
-        'lagoon-projects': [project.id]
+        'lagoon-projects': [project.id],
+        'group-lagoon-project-ids': [`{${JSON.stringify(`project-${project.name}`)}:[${project.id}]}`]
       }
     });
   } catch (err) {
