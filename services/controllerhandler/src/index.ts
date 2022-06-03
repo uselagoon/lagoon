@@ -241,6 +241,7 @@ const messageConsumer = async function(msg) {
         // that we get back from the controllers
         case "kubernetes:route:migrate":
           switch (meta.jobStatus) {
+            case "complete":
             case "succeeded":
               try {
                 // since the advanceddata contains a base64 encoded value, we have to decode it first
