@@ -7,7 +7,7 @@ metadata:
   labels:
     {{- include "solr.labels" $ | nindent 4 }}
   annotations:
-    {{- include "solr.annotations" . | nindent 4 }}
+    {{- include "solr.annotations" $ | nindent 4 }}
 spec:
   schedule: {{ $cronjobConfig.schedule | quote }}
   concurrencyPolicy: Forbid
@@ -36,7 +36,7 @@ spec:
           priorityClassName: {{ include "solr.lagoonPriority" $ }}
           enableServiceLinks: false
           securityContext:
-            {{- toYaml .Values.podSecurityContext | nindent 12 }}
+            {{- toYaml $.Values.podSecurityContext | nindent 12 }}
           containers:
             - image: {{ $.Values.image | quote }}
               name: cronjob-{{ $.Release.Name }}-{{ $cronjobName }}
