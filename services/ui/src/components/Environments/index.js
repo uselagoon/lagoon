@@ -34,7 +34,7 @@ const { className: boxClassName, styles: boxStyles } = css.resolve`
   }
 `;
 
-const Environments = ({ environments = [] }) => {
+const Environments = ({ environments = [], project }) => {
   if (environments.length === 0) {
     return null;
   }
@@ -61,7 +61,7 @@ const Environments = ({ environments = [] }) => {
           <div className="environment" key={environment.id}>
             <EnvironmentLink
               environmentSlug={environment.openshiftProjectName}
-              projectSlug={environment.project.name}
+              projectSlug={project.name}
             >
               <Box className={`${boxClassName} ${bgClassName}`}>
                 {environment.environmentType == 'production' && (
@@ -69,12 +69,12 @@ const Environments = ({ environments = [] }) => {
                     <span>Production</span>
                   </div>
                 )}
-                {environment.project.productionEnvironment && environment.project.standbyProductionEnvironment && environment.project.productionEnvironment == environment.name && (
+                {project.productionEnvironment && project.standbyProductionEnvironment && project.productionEnvironment == environment.name && (
                   <div className="activeLabel">
                     <span>Active</span>
                   </div>
                 )}
-                {environment.project.productionEnvironment && environment.project.standbyProductionEnvironment && environment.project.standbyProductionEnvironment == environment.name && (
+                {project.productionEnvironment && project.standbyProductionEnvironment && project.standbyProductionEnvironment == environment.name && (
                   <div className="standbyLabel">
                     <span>Standby</span>
                   </div>
