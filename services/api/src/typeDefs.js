@@ -561,6 +561,10 @@ const typeDefs = gql`
     """
     name: String
     """
+    ID of organization
+    """
+    organization: Int
+    """
     Git URL, needs to be SSH Git URL in one of these two formats
     - git@172.17.0.1/project1.git
     - ssh://git@172.17.0.1:2222/project1.git
@@ -960,6 +964,35 @@ const typeDefs = gql`
     environments: [Environment]
   }
 
+  type Organization {
+    id: Int
+    name: String
+    description: String
+    quotaProject: Int
+    deployTargets: [Openshift]
+    projects: [Project]
+    groups: [GroupInterface]
+    owners: [User]
+  }
+
+  input AddOrganizationInput {
+    id: Int
+    name: String!
+    description: String
+    quotaProject: Int
+  }
+
+  input UpdateOrganizationPatchInput {
+    name: String
+    description: String
+    quotaProject: Int
+  }
+
+  input UpdateOrganizationInput {
+    id: Int!
+    patch: UpdateOrganizationPatchInput!
+  }
+
   type DeployTargetConfig {
     id: Int
     project: Project
@@ -1154,6 +1187,8 @@ const typeDefs = gql`
     """
     deployTargetConfigsByDeployTarget(deployTarget: Int!) : [DeployTargetConfig]  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
     allDeployTargetConfigs: [DeployTargetConfig]  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    allOrganizations: [Organization] @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    organizationById(organization: Int!): Organization
   }
 
   # Must provide id OR name
@@ -1554,6 +1589,11 @@ const typeDefs = gql`
     user: UserInput!
   }
 
+  input addUserToOrganizationInput {
+    user: UserInput!
+    organization: Int!
+  }
+
   input DeleteProjectInput {
     project: String!
   }
@@ -1590,6 +1630,7 @@ const typeDefs = gql`
     productionBuildPriority: Int
     developmentBuildPriority: Int
     deploymentsDisabled: Int
+    organization: Int
   }
 
   input UpdateProjectInput {
@@ -1821,6 +1862,7 @@ const typeDefs = gql`
   input AddGroupInput {
     name: String!
     parentGroup: GroupInput
+    organization: Int
   }
 
   input UpdateGroupPatchInput {
@@ -1951,6 +1993,7 @@ const typeDefs = gql`
     removeAllSshKeysFromAllUsers: String
     addUser(input: AddUserInput!): User
     updateUser(input: UpdateUserInput!): User
+    addUserToOrganization(input: addUserToOrganizationInput!): User
     deleteUser(input: DeleteUserInput!): String
     deleteAllUsers: String
     addDeployment(input: AddDeploymentInput!): Deployment
@@ -2022,6 +2065,8 @@ const typeDefs = gql`
     updateDeployTargetConfig(input: UpdateDeployTargetConfigInput!): DeployTargetConfig  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
     deleteDeployTargetConfig(input: DeleteDeployTargetConfigInput!): String  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
     deleteAllDeployTargetConfigs: String  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    addOrganization(input: AddOrganizationInput!): Organization  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    updateOrganization(input: UpdateOrganizationInput!): Organization  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
   }
 
   type Subscription {

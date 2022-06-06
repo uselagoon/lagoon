@@ -1,9 +1,12 @@
+// @ts-ignore
 import * as R from 'ramda';
 import { getRedisCache, saveRedisCache } from '../clients/redisClient';
+// @ts-ignore
 import { verify } from 'jsonwebtoken';
 import { logger } from '../loggers/logger';
 import { getConfigFromEnv } from '../util/config';
 import { keycloakGrantManager } from '../clients/keycloakClient';
+// @ts-ignore
 const { userActivityLogger } = require('../loggers/userActivityLogger');
 import { User } from '../models/user';
 import { Group } from '../models/group';
@@ -167,6 +170,8 @@ export const keycloakHasPermission = (grant, requestCache, modelClients) => {
       userProjects?: [string];
       userProjectRole?: [string];
       userGroupRole?: [string];
+      organizationQuery?: [string];
+      userOrganizations?: [string];
     } = {
       currentUser: [currentUserId]
     };
@@ -182,6 +187,21 @@ export const keycloakHasPermission = (grant, requestCache, modelClients) => {
           )(attributes)
         ],
         currentUser: [currentUserId]
+      };
+    }
+
+    // check organization attributes
+    if (R.prop('lagoon-organizations', currentUser.attributes)) {
+      claims = {
+        ...claims,
+        userOrganizations: [`${R.prop('lagoon-organizations', currentUser.attributes)}`]
+      };
+    }
+    if (R.prop('organization', attributes)) {
+      const organizationId = parseInt(R.prop('organization', attributes), 10);
+      claims = {
+        ...claims,
+        organizationQuery: [`${organizationId}`]
       };
     }
 
@@ -288,6 +308,7 @@ export const keycloakHasPermission = (grant, requestCache, modelClients) => {
       authzRequest = {
         ...authzRequest,
         claim_token_format: 'urn:ietf:params:oauth:token-type:jwt',
+        // @ts-ignore
         claim_token: Buffer.from(JSON.stringify(claims)).toString('base64')
       };
     }

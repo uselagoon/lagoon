@@ -1,13 +1,18 @@
+// @ts-ignore
 import * as R from 'ramda';
+// @ts-ignore
 import { Pool } from 'mariadb';
+// @ts-ignore
 import { asyncPipe } from '@lagoon/commons/dist/util';
 import pickNonNil from '../util/pickNonNil';
 import { logger } from '../loggers/logger';
+// @ts-ignore
 import GroupRepresentation from 'keycloak-admin/lib/defs/groupRepresentation';
 import { User } from './user';
 
 interface IGroupAttributes {
   'lagoon-projects'?: [string];
+  'lagoon-organization'?: [string];
   comment?: [string];
   [propName: string]: any;
 }
@@ -19,6 +24,7 @@ export interface Group {
   currency?: string;
   path?: string;
   parentGroupId?: string;
+  organization?: number;
   // Only groups that aren't role subgroups.
   groups?: Group[];
   members?: GroupMembership[];
@@ -36,6 +42,7 @@ interface GroupMembership {
 export interface GroupInput {
   id?: string;
   name?: string;
+  organization?: number;
 }
 
 interface GroupEdit {
@@ -64,6 +71,7 @@ export class GroupNotFoundError extends Error {
 
 const attrLens = R.lensPath(['attributes']);
 const lagoonProjectsLens = R.lensPath(['lagoon-projects']);
+const lagoonOrganizationLens = R.lensPath(['lagoon-organization']);
 
 const attrLagoonProjectsLens = R.compose(
   // @ts-ignore
@@ -72,9 +80,25 @@ const attrLagoonProjectsLens = R.compose(
   R.lensPath([0])
 );
 
+const attrLagoonOrganizationLens = R.compose(
+  // @ts-ignore
+  attrLens,
+  lagoonOrganizationLens,
+  R.lensPath([0])
+);
+
 const getProjectIdsFromGroup = R.pipe(
   // @ts-ignore
   R.view(attrLagoonProjectsLens),
+  R.defaultTo(''),
+  R.split(','),
+  R.reject(R.isEmpty),
+  R.map(id => parseInt(id, 10))
+);
+
+const getOrganizationIdFromGroup = R.pipe(
+  // @ts-ignore
+  R.view(attrLagoonOrganizationLens),
   R.defaultTo(''),
   R.split(','),
   R.reject(R.isEmpty),
@@ -299,6 +323,68 @@ export const Group = (clients: {
     return groups;
   };
 
+  // used by organization resolver to list all groups attached to the organization
+  const loadGroupsByOrganizationId = async (organizationId: number): Promise<Group[]> => {
+    const filterFn = attribute => {
+      if (attribute.name === 'lagoon-organization') {
+        const value = R.is(Array, attribute.value)
+          ? R.path(['value', 0], attribute)
+          : attribute.value;
+        return R.test(new RegExp(`\\b${organizationId}\\b`), value);
+      }
+
+      return false;
+    };
+
+    let groupIds = [];
+
+    // This function is called often and is expensive to compute so prefer
+    // performance over DRY
+    try {
+      groupIds = await redisClient.getOrganizationGroupsCache(organizationId);
+    } catch (err) {
+      logger.warn(`Error loading project groups from cache: ${err.message}`);
+      groupIds = [];
+    }
+
+    if (R.isEmpty(groupIds)) {
+      const keycloakGroups = await keycloakAdminClient.groups.find();
+      // @ts-ignore
+      groupIds = R.pluck('id', keycloakGroups);
+    }
+
+    let fullGroups = [];
+    for (const id of groupIds) {
+      try {
+        const fullGroup = await keycloakAdminClient.groups.findOne({
+          id
+        });
+        fullGroups = [...fullGroups, fullGroup];
+      } catch (err) {
+        //
+      }
+    }
+
+    try {
+      const filteredGroups = filterGroupsByAttribute(fullGroups, filterFn);
+      try {
+        const filteredGroupIds = R.pluck('id', filteredGroups);
+        await redisClient.saveOrganizationGroupsCache(organizationId, filteredGroupIds);
+      } catch (err) {
+        logger.warn(`Error saving organization groups to cache: ${err.message}`);
+      }
+      const groups = await transformKeycloakGroups(filteredGroups);
+      return groups;
+    } catch (err) {
+      // if the groups don't exist, then purge this organizations redis cache
+      // this would be better handled in the `deleteGroup` function, but promises and stuff don't seem to work properly
+      // TODO: SEARCH AND SEE -> DELETEGROUPORGCACHE
+      await redisClient.deleteOrganizationGroupsCache(organizationId);
+      return null
+    }
+
+  };
+
   // Recursive function to load membership "up" the group chain
   const getMembersFromGroupAndParents = async (
     group: Group
@@ -446,6 +532,15 @@ export const Group = (clients: {
       }
     }
 
+    try {
+      // when adding a group, if this is an organization based group, purge the cache so the groups are updated
+      // in the api
+      const organizationId = getOrganizationIdFromGroup(group);
+      await redisClient.deleteOrganizationGroupsCache(organizationId);
+    } catch (err) {
+      logger.warn(`Error deleting organization groups cache: ${err.message}`);
+    }
+
     return group;
   };
 
@@ -512,6 +607,10 @@ export const Group = (clients: {
         logger.warn(`Error deleting project groups cache: ${err.message}`);
       }
     }
+
+    // @TODO: this doesn't seem to work with promises?? DELETEGROUPORGCACHE
+    const organizationId = getOrganizationIdFromGroup(group);
+    await redisClient.deleteOrganizationGroupsCache(organizationId);
   };
 
   const addUserToGroup = async (
@@ -705,6 +804,7 @@ export const Group = (clients: {
     loadParentGroup,
     loadGroupsByAttribute,
     loadGroupsByProjectId,
+    loadGroupsByOrganizationId,
     getProjectsFromGroupAndParents,
     getProjectsFromGroupAndSubgroups,
     addGroup,

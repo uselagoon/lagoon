@@ -1,5 +1,8 @@
+// @ts-ignore
 import * as R from 'ramda';
+// @ts-ignore
 import validator from 'validator';
+// @ts-ignore
 import sshpk from 'sshpk';
 import { ResolverFn } from '../';
 import { logger } from '../../loggers/logger';
@@ -238,6 +241,32 @@ export const getProjectsByMetadata: ResolverFn = async (
 
   const rows = await query(sqlClientPool, queryBuilder.toString(), queryArgs);
   return Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
+};
+
+// get projects by organization id, used by organization resolver to list projects
+export const getProjectsByOrganizationId: ResolverFn = async (
+  { id: oid },
+  args,
+  { sqlClientPool, hasPermission }
+) => {
+  const rows = await query(
+    sqlClientPool,
+    `SELECT p.*
+    FROM project p
+    WHERE p.organization = :oid
+    LIMIT 1`,
+    { oid }
+  );
+  const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
+
+  // @TODO: FIX PERMISSION CHECK FOR ORGANIZATION PROJECTS
+  // const project = withK8s[0];
+
+  // await hasPermission('project', 'view', {
+  //   project: project.id
+  // });
+
+  return withK8s;
 };
 
 export const addProject = async (
@@ -525,7 +554,8 @@ export const updateProject: ResolverFn = async (
         developmentBuildPriority,
         deploymentsDisabled,
         pullrequests,
-        developmentEnvironmentsLimit
+        developmentEnvironmentsLimit,
+        organization
       }
     }
   },
@@ -628,7 +658,8 @@ export const updateProject: ResolverFn = async (
         pullrequests,
         openshift,
         openshiftProjectPattern,
-        developmentEnvironmentsLimit
+        developmentEnvironmentsLimit,
+        organization
       }
     })
   );
@@ -728,7 +759,8 @@ export const updateProject: ResolverFn = async (
         developmentBuildPriority,
         deploymentsDisabled,
         pullrequests,
-        developmentEnvironmentsLimit
+        developmentEnvironmentsLimit,
+        organization
       }
     }
   });

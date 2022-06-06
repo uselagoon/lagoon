@@ -35,7 +35,8 @@ CREATE OR REPLACE PROCEDURE
     IN facts_ui                        int(1),
     IN production_build_priority       int,
     IN development_build_priority      int,
-    IN development_environments_limit  int
+    IN development_environments_limit  int,
+    IN organization                    int
   )
   BEGIN
     DECLARE new_pid int;
@@ -86,7 +87,8 @@ CREATE OR REPLACE PROCEDURE
         pullrequests,
         openshift,
         openshift_project_pattern,
-        development_environments_limit
+        development_environments_limit,
+        organization
     )
     SELECT
         id,
@@ -117,7 +119,8 @@ CREATE OR REPLACE PROCEDURE
         pullrequests,
         os.id,
         openshift_project_pattern,
-        development_environments_limit
+        development_environments_limit,
+        organization
     FROM
         openshift AS os
     WHERE
@@ -1502,6 +1505,24 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
+  add_organization_to_project()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'organization'
+    ) THEN
+      ALTER TABLE `project`
+      ADD `organization` int REFERENCES organization (id);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
   add_priority_to_deployment()
 
   BEGIN
@@ -1807,6 +1828,7 @@ CALL add_task_name_to_tasks();
 CALL add_new_task_status_types();
 CALL update_active_succeeded_tasks();
 CALL update_missing_tasknames();
+CALL add_organization_to_project();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;

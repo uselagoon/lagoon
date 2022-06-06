@@ -1,9 +1,15 @@
+// @ts-ignore
 import * as R from 'ramda';
 import pickNonNil from '../util/pickNonNil';
 import { logger } from '../loggers/logger';
+// @ts-ignore
 import UserRepresentation from 'keycloak-admin/lib/defs/userRepresentation';
 import { Group, isRoleSubgroup } from './group';
 
+interface IUserAttributes {
+  comment?: [string];
+  [propName: string]: any;
+}
 export interface User {
   email: string;
   username: string;
@@ -12,6 +18,7 @@ export interface User {
   lastName?: string;
   comment?: string;
   gitlabId?: string;
+  attributes?: IUserAttributes;
 }
 
 interface UserEdit {
@@ -29,6 +36,7 @@ interface UserModel {
   loadUserById: (id: string) => Promise<User>;
   loadUserByUsername: (username: string) => Promise<User>;
   loadUserByIdOrUsername: (userInput: UserEdit) => Promise<User>;
+  loadUsersByOrganizationId: (organizationId: number) => Promise<User[]>;
   getAllGroupsForUser: (userInput: User) => Promise<Group[]>;
   getAllProjectsIdsForUser: (userInput: User) => Promise<number[]>;
   getUserRolesForProject: (
@@ -38,6 +46,10 @@ interface UserModel {
   addUser: (userInput: User) => Promise<User>;
   updateUser: (userInput: UserEdit) => Promise<User>;
   deleteUser: (id: string) => Promise<void>;
+}
+
+interface AttributeFilterFn {
+  (attribute: { name: string; value: string[] }): boolean;
 }
 
 export class UsernameExistsError extends Error {
@@ -57,6 +69,15 @@ export class UserNotFoundError extends Error {
 const attrLens = R.lensPath(['attributes']);
 const commentLens = R.lensPath(['comment']);
 
+const lagoonOrganizationsLens = R.lensPath(['lagoon-organizations']);
+
+const attrLagoonProjectsLens = R.compose(
+  // @ts-ignore
+  attrLens,
+  lagoonOrganizationsLens,
+  R.lensPath([0])
+);
+
 const attrCommentLens = R.compose(
   // @ts-ignore
   attrLens,
@@ -71,6 +92,27 @@ export const User = (clients: {
   esClient: any;
 }): UserModel => {
   const { keycloakAdminClient, redisClient } = clients;
+
+  // filter for user attributes like `lagoon-organizations`
+  const filterUsersByAttribute = (
+    users: User[],
+    filterFn: AttributeFilterFn
+  ): User[] =>
+    R.filter((user: User) =>
+      R.pipe(
+        R.toPairs,
+        R.reduce((isMatch: boolean, attribute: [string, string[]]): boolean => {
+          if (!isMatch) {
+            return filterFn({
+              name: attribute[0],
+              value: attribute[1]
+            });
+          }
+
+          return isMatch;
+        }, false)
+      )(user.attributes)
+    )(users);
 
   const fetchGitlabId = async (user: User): Promise<string> => {
     const identities = await keycloakAdminClient.users.listFederatedIdentities({
@@ -94,7 +136,7 @@ export const User = (clients: {
       (keycloakUser: UserRepresentation): User =>
         // @ts-ignore
         R.pipe(
-          R.pick(['id', 'email', 'username', 'firstName', 'lastName']),
+          R.pick(['id', 'email', 'username', 'firstName', 'lastName', 'attributes']),
           // @ts-ignore
           R.set(commentLens, R.view(attrCommentLens, keycloakUser))
         )(keycloakUser)
@@ -198,6 +240,58 @@ export const User = (clients: {
     }
 
     throw new Error('You must provide a user id or username');
+  };
+
+  // used to list onwers of organizations
+  const loadUsersByOrganizationId = async (organizationId: number): Promise<User[]> => {
+    const filterFn = attribute => {
+      if (attribute.name === 'lagoon-organizations') {
+        const value = R.is(Array, attribute.value)
+          ? R.path(['value', 0], attribute)
+          : attribute.value;
+        return R.test(new RegExp(`\\b${organizationId}\\b`), value);
+      }
+
+      return false;
+    };
+
+    let userIds = [];
+
+    // This function is called often and is expensive to compute so prefer
+    // performance over DRY
+    try {
+      userIds = await redisClient.getUsersOrganizationCache(organizationId);
+    } catch (err) {
+      logger.warn(`Error loading organization users from cache: ${err.message}`);
+      userIds = [];
+    }
+
+    if (R.isEmpty(userIds)) {
+      const keycloakUsers = await keycloakAdminClient.users.find();
+      // @ts-ignore
+      userIds = R.pluck('id', keycloakUsers);
+    }
+
+    let fullUsers = [];
+    for (const id of userIds) {
+      const fullUser = await keycloakAdminClient.users.findOne({
+        id
+      });
+
+      fullUsers = [...fullUsers, fullUser];
+    }
+
+    const filteredUsers = filterUsersByAttribute(fullUsers, filterFn);
+    try {
+      const filteredUsersIds = R.pluck('id', filteredUsers);
+      await redisClient.saveUsersOrganizationCache(organizationId, filteredUsersIds);
+    } catch (err) {
+      logger.warn(`Error saving organization users to cache: ${err.message}`);
+    }
+
+    const users = await transformKeycloakUsers(filteredUsers);
+
+    return users;
   };
 
   const loadAllUsers = async (): Promise<User[]> => {
@@ -318,7 +412,38 @@ export const User = (clients: {
   };
 
   const updateUser = async (userInput: UserEdit): Promise<User> => {
+    // comments used to be removed when updating a user, now they aren't
+    let organizations = null;
+    let comment = null;
+    // update a users organization if required, hooks into the existing update user function, but is used by the addusertoorganization resolver
     try {
+      // collect users existing attributes
+      const user = await loadUserById(userInput.id);
+      // set the comment if provided
+      if (R.prop('comment', userInput)) {
+        comment = {comment: R.prop('comment', userInput)}
+      }
+      // set the organization if provided
+      if (R.prop('organization', userInput)) {
+        const newOrganizations = R.pipe(
+          // @ts-ignore
+          R.view(attrLagoonProjectsLens),
+          R.defaultTo(`${R.prop('organization', userInput)}`),
+          R.split(','),
+          R.append(`${R.prop('organization', userInput)}`),
+          R.uniq,
+          R.join(',')
+        )(user);
+        organizations = {'lagoon-organizations': [newOrganizations]}
+        try {
+          // when adding a user to organizations, if this is an organization based user, purge the cache so the users are updated
+          // in the api
+          await redisClient.deleteUsersOrganizationCache(R.prop('organization', userInput));
+        } catch (err) {
+          logger.warn(`Error deleting organization groups cache: ${err.message}`);
+        }
+      }
+
       await keycloakAdminClient.users.update(
         {
           id: userInput.id
@@ -329,7 +454,9 @@ export const User = (clients: {
             userInput
           ),
           attributes: {
-            comment: [R.defaultTo('', R.prop('comment', userInput))]
+            ...user.attributes,
+            ...organizations,
+            ...comment
           }
         }
       );
@@ -377,6 +504,7 @@ export const User = (clients: {
     loadUserById,
     loadUserByUsername,
     loadUserByIdOrUsername,
+    loadUsersByOrganizationId,
     getAllGroupsForUser,
     getAllProjectsIdsForUser,
     getUserRolesForProject,

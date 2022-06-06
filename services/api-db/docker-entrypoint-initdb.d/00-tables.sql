@@ -52,6 +52,12 @@ CREATE TABLE IF NOT EXISTS notification_email (
   email_address varchar(300)
 );
 
+CREATE TABLE IF NOT EXISTS organization (
+  id                            int NOT NULL auto_increment PRIMARY KEY,
+  name                          varchar(300) UNIQUE,
+  description                   TEXT NULL    DEFAULT '',
+  quota_project                 int NOT NULL DEFAULT 1
+);
 
 CREATE TABLE IF NOT EXISTS project (
   id                               int NOT NULL auto_increment PRIMARY KEY,
@@ -84,7 +90,8 @@ CREATE TABLE IF NOT EXISTS project (
   openshift_project_pattern        varchar(300),
   development_environments_limit   int DEFAULT NULL,
   created                          timestamp DEFAULT CURRENT_TIMESTAMP,
-  private_key                      varchar(5000)
+  private_key                      varchar(5000),
+  organization                     int REFERENCES organization (id)
 );
 
 CREATE TABLE IF NOT EXISTS environment (
@@ -320,4 +327,10 @@ CREATE TABLE IF NOT EXISTS workflow (
   advanced_task_definition int NOT NULL REFERENCES advanced_task_definition(id),
   created                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   deleted                  timestamp NOT NULL DEFAULT '0000-00-00 00:00:00'
+);
+
+CREATE TABLE IF NOT EXISTS organization_deploy_target (
+  orgid int REFERENCES organization (id),
+  dtid int REFERENCES openshift (id),
+  CONSTRAINT organization_deploy_target_pkey PRIMARY KEY (orgid, dtid)
 );

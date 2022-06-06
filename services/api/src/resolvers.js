@@ -178,6 +178,7 @@ const {
   updateProjectMetadata,
   removeProjectMetadataByKey,
   getPrivateKey,
+  getProjectsByOrganizationId,
 } = require('./resources/project/resolvers');
 
 const {
@@ -195,8 +196,10 @@ const {
   getUserBySshKey,
   addUser,
   updateUser,
+  addUserToOrganization,
   deleteUser,
   deleteAllUsers,
+  getUsersByOrganizationId,
 } = require('./resources/user/resolvers');
 
 const {
@@ -214,7 +217,15 @@ const {
   removeUserFromGroup,
   addGroupsToProject,
   removeGroupsFromProject,
+  getGroupsByOrganizationId,
 } = require('./resources/group/resolvers');
+
+const {
+  addOrganization,
+  getAllOrganizations,
+  updateOrganization,
+  getOrganizationById,
+} = require('./resources/organization/resolvers');
 
 const {
   addBackup,
@@ -363,6 +374,11 @@ const resolvers = {
     kubernetes: getOpenshiftByEnvironmentId,
     workflows: getWorkflowsByEnvironmentId,
   },
+  Organization: {
+    groups: getGroupsByOrganizationId,
+    projects: getProjectsByOrganizationId,
+    owners: getUsersByOrganizationId,
+  },
   Fact: {
     references: getFactReferencesByFactId,
   },
@@ -460,6 +476,8 @@ const resolvers = {
     deployTargetConfigById: getDeployTargetConfigById,
     deployTargetConfigsByProjectId: getDeployTargetConfigsByProjectId,
     deployTargetConfigsByDeployTarget: getDeployTargetConfigsByDeployTarget,
+    allOrganizations: getAllOrganizations,
+    organizationById: getOrganizationById,
   },
   Mutation: {
     addProblem,
@@ -524,6 +542,7 @@ const resolvers = {
     removeAllSshKeysFromAllUsers,
     addUser,
     updateUser,
+    addUserToOrganization,
     deleteUser,
     deleteAllUsers,
     addDeployment,
@@ -574,6 +593,8 @@ const resolvers = {
     addDeployTargetConfig,
     deleteDeployTargetConfig,
     updateDeployTargetConfig,
+    addOrganization,
+    updateOrganization,
   },
   Subscription: {
     backupChanged: backupSubscriber,

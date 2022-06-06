@@ -1,7 +1,10 @@
+// @ts-ignore
 import * as R from 'ramda';
 import { ResolverFn } from '../';
 import { query, isPatchEmpty } from '../../util/db';
 import Sql from './sql';
+import { logger } from '../../loggers/logger';
+import { Helpers as organizationHelpers } from '../organization/helpers';
 
 export const getMe: ResolverFn = async (_root, args, { models, keycloakGrant: grant }) => {
   const currentUserId: string = grant.access_token.content.sub;
@@ -100,6 +103,63 @@ export const deleteUser: ResolverFn = async (
   // TODO remove user ssh keys
 
   return 'success';
+};
+
+// addUserToOrganization adds a user as an organization owner
+export const addUserToOrganization: ResolverFn = async (
+  _root,
+  { input: { user: userInput, organization: organization } },
+  { sqlClientPool, models, hasPermission },
+) => {
+
+  const organizationData = await organizationHelpers(sqlClientPool).getOrganizationById(organization);
+  if (organizationData === undefined) {
+    throw new Error(`Organization does not exist`)
+  }
+
+  const user = await models.UserModel.loadUserByIdOrUsername({
+    id: R.prop('id', userInput),
+    username: R.prop('email', userInput),
+  });
+
+  await hasPermission('organization', 'addUser');
+
+  const updatedUser = await models.UserModel.updateUser({
+    id: user.id,
+    organization: organization,
+  });
+
+  return updatedUser;
+};
+
+// gets users in an organization by id
+export const getUsersByOrganizationId: ResolverFn = async (
+  { id: oid },
+  _input,
+  { hasPermission, models, keycloakGrant }
+) => {
+  const projectGroups = await models.UserModel.loadUsersByOrganizationId(oid);
+
+  try {
+    await hasPermission('organization', 'view', {
+      organization: oid,
+    });
+
+    return projectGroups;
+  } catch (err) {
+    if (!keycloakGrant) {
+      logger.warn('No grant available for getUsersByOrganizationId');
+      return [];
+    }
+
+    const user = await models.UserModel.loadUserById(
+      keycloakGrant.access_token.content.sub
+    );
+    const userGroups = await models.UserModel.getAllGroupsForUser(user);
+    const userProjectGroups = R.intersection(projectGroups, userGroups);
+
+    return userProjectGroups;
+  }
 };
 
 export const deleteAllUsers: ResolverFn = async (
