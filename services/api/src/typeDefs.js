@@ -1187,7 +1187,13 @@ const typeDefs = gql`
     """
     deployTargetConfigsByDeployTarget(deployTarget: Int!) : [DeployTargetConfig]  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
     allDeployTargetConfigs: [DeployTargetConfig]  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    """
+    List all organizations
+    """
     allOrganizations: [Organization] @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    """
+    Get an organization by its ID
+    """
     organizationById(organization: Int!): Organization
   }
 
@@ -1589,7 +1595,7 @@ const typeDefs = gql`
     user: UserInput!
   }
 
-  input addUserToOrganizationInput {
+  input addOwnerToOrganizationInput {
     user: UserInput!
     organization: Int!
   }
@@ -1993,7 +1999,10 @@ const typeDefs = gql`
     removeAllSshKeysFromAllUsers: String
     addUser(input: AddUserInput!): User
     updateUser(input: UpdateUserInput!): User
-    addUserToOrganization(input: addUserToOrganizationInput!): User
+    """
+    Add a user to an organization as an owner of the organization
+    """
+    addOwnerToOrganization(input: addOwnerToOrganizationInput!): User
     deleteUser(input: DeleteUserInput!): String
     deleteAllUsers: String
     addDeployment(input: AddDeploymentInput!): Deployment
@@ -2065,7 +2074,13 @@ const typeDefs = gql`
     updateDeployTargetConfig(input: UpdateDeployTargetConfigInput!): DeployTargetConfig  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
     deleteDeployTargetConfig(input: DeleteDeployTargetConfigInput!): String  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
     deleteAllDeployTargetConfigs: String  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    """
+    Add an organization
+    """
     addOrganization(input: AddOrganizationInput!): Organization  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    """
+    Update an organization
+    """
     updateOrganization(input: UpdateOrganizationInput!): Organization  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
   }
 

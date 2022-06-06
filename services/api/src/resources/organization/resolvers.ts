@@ -73,6 +73,8 @@ export const getAllOrganizations: ResolverFn = async (
     args,
     { sqlClientPool, hasPermission }
 ) => {
+    // TODO: update this with permission check for organization owners to list all orgs
+    // they may be in
     await hasPermission('organization', 'viewAll');
 
     return query(sqlClientPool, 'SELECT * FROM organization');

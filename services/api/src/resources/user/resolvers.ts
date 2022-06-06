@@ -105,8 +105,8 @@ export const deleteUser: ResolverFn = async (
   return 'success';
 };
 
-// addUserToOrganization adds a user as an organization owner
-export const addUserToOrganization: ResolverFn = async (
+// addOwnerToOrganization adds a user as an organization owner
+export const addOwnerToOrganization: ResolverFn = async (
   _root,
   { input: { user: userInput, organization: organization } },
   { sqlClientPool, models, hasPermission },
