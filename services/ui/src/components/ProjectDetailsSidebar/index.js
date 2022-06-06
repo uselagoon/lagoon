@@ -6,10 +6,6 @@ import giturlparse from 'git-url-parse';
 import Environments from 'components/Environments';
 import { bp, color, fontSize } from 'lib/variables';
 
-import { Mutation } from 'react-apollo';
-
-import ProjectByNameQuery from 'lib/query/ProjectByName';
-
 const Project = ({ project }) => {
   const [copied, setCopied] = useState(false);
   const gitUrlParsed = giturlparse(project.gitUrl);
@@ -18,6 +14,7 @@ const Project = ({ project }) => {
     project.environments
   );
   const developEnvironmentCount = R.propOr(0, 'development', environmentCount);
+  const projectUsesDeployTargets = project.deployTargetConfigs.length > 0;
 
   return (
     <div className="details">
@@ -69,7 +66,7 @@ const Project = ({ project }) => {
           </CopyToClipboard>
         </div>
       </div>
-      {project.deployTargetConfigs.length === 0 && (
+      {!projectUsesDeployTargets && (
       <div className="field-wrapper branches">
         <div>
           <label>Branches enabled</label>
@@ -77,7 +74,7 @@ const Project = ({ project }) => {
         </div>
       </div>
       )}
-      {project.deployTargetConfigs.length === 0 && (
+      {!projectUsesDeployTargets === 0 && (
       <div className="field-wrapper prs">
         <div>
           <label>Pull requests enabled</label>
@@ -94,16 +91,16 @@ const Project = ({ project }) => {
           </div>
         </div>
       </div>
-      {project.deployTargetConfigs.length > 0 && (
+      {projectUsesDeployTargets && (
       <div className="field-wrapper target">
         <div>
         <label>Deploy Targets</label>
         {project.deployTargetConfigs.map(depTarget => (
-          <div>
+          <div key={depTarget.id}>
             <div>
               <label className="field1">{depTarget.deployTarget.friendlyName != null
                     ? depTarget.deployTarget.friendlyName
-                    : depTarget.deployTarget.name}{}</label>
+                    : depTarget.deployTarget.name}</label>
             </div>
             <label className="field2">Branches enabled</label>
             <div className="field2">{depTarget.branches}</div>

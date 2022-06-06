@@ -52,7 +52,7 @@ export const PageProject = ({ router }) => (
               <div className="environments-wrapper">
                 <h3>Environments</h3>
                 {!environments.length && <p>No Environments</p>}
-                <Environments environments={environments} />
+                <Environments environments={environments} project={project} />
               </div>
             </div>
             <style jsx>{`
