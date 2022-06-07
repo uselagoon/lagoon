@@ -21,7 +21,7 @@ When being used as an in-memory (RAM) cache, the first thing you might want to t
 ### Persistent
 
 The persistent Redis image will persist data across container restarts and can be used for queues or application data that will need persistence.
-We don't typically suggest using a persistent redis for in-memory cache scenarios as this might have unintended side-effects on your application while a Redis container is restarting or writing data to disk.
+We don't typically suggest using a persistent redis for in-memory cache scenarios as this might have unintended side-effects on your application while a Redis container is restarting and loading data from disk.
 
 ## Lagoon adaptions
 
@@ -68,9 +68,11 @@ More information on redis' maxmemory policies can be found in redis' [official d
     Proceed with caution: Chaging this setting can lead to redis becoming completely full and cause outages as a result.
 
 
-### Tuning redis maxmemory value
+### Tuning redis' maxmemory value
 
-Finding the optimal amount of memory to give redis can be quite the difficult task. There are a few high level things you can look at, though:
+Finding the optimal amount of memory to give redis can be quite the difficult task. Before attempting to tune your redis cache's memory size, it is prudent to let it run normally for as long as practical, with at least a day of typical usage being the ideal minimum timeframe.
+
+There are a few high level things you can look at when tuning these memory values:
 
 * The first thing to check is the percentage of memory in use by redis currently.
   * If this percentage is less than `50%`, you might consider lowering the `maxmemory` value by 25%.
