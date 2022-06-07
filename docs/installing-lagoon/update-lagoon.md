@@ -27,6 +27,12 @@
         sh -c /rerun_initdb.sh
     ```
 
+5. If upgrading Lagoon Core, and you have enabled groups/user syncing for OpenSearch, you may additionally need to run the `sync:opendistro-security` script to update the groups in OpenSearch. This command can also be prefixed with a `GROUP_REGEX=<group-to-sync` to sync a single group at a time, as syncing the entire group structure may take a long time. 
+
+    ```
+    kubectl --namespace lagoon-core exec -it deploy/lagoon-core-api -- \
+        sh -c yarn sync:opendistro-security
+    ```
 Check [https://github.com/uselagoon/lagoon/releases](https://github.com/uselagoon/lagoon/releases) for additional upgrades.
 
 ## Database Backups
