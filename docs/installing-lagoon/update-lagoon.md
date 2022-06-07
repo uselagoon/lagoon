@@ -36,7 +36,7 @@ You can delete them afterwards.
 
 ### API DB
 ```
-kubectl --lagoon-core exec -it lagoon-core-api-db-0 -- \
+kubectl --namespace lagoon-core exec -it lagoon-core-api-db-0 -- \
     sh -c 'mysqldump --max-allowed-packet=500M --events \
     --routines --quick --add-locks --no-autocommit \
     --single-transaction infrastructure | gzip -9 > \
@@ -45,7 +45,7 @@ kubectl --lagoon-core exec -it lagoon-core-api-db-0 -- \
 
 ### Keycloak DB
 ```
-kubectl --lagoon-core exec -it lagoon-core-keycloak-db-0 -- \
+kubectl --namespace lagoon-core exec -it lagoon-core-keycloak-db-0 -- \
     sh -c 'mysqldump --max-allowed-packet=500M --events \
     --routines --quick --add-locks --no-autocommit \
     --single-transaction keycloak | gzip -9 > \
