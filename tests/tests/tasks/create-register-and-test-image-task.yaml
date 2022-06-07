@@ -46,6 +46,6 @@
         body_format: json
         body: '{ "query": "query($taskId: Int!) {taskById(id:$taskId){status}}", "variables": {"taskId": {{ invokeRegisteredTaskApiResponse.json.data.invokeRegisteredTask.id }}}}'
       register: result
-      until: result.json.data.taskById.status == "succeeded"
+      until: (result.json.data.taskById.status == "complete" or result.json.data.taskById.status == "succeeded")
       retries: 90
       delay: 20
