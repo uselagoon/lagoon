@@ -191,6 +191,26 @@ const apolloServer = new ApolloServer({
     };
   },
   plugins: [
+    // Debug plugin for logging resolver execution order
+    // {
+    //   requestDidStart(initialRequestContext) {
+    //     return {
+    //       executionDidStart(executionRequestContext) {
+    //         return {
+    //           willResolveField({source, args, context, info}) {
+    //             console.log(`Resolving ${info.parentType.name}.${info.fieldName}`);
+    //             const start = process.hrtime.bigint();
+    //             return (error, result) => {
+    //               const end = process.hrtime.bigint();
+    //               // Uncomment to log resolver execution time
+    //               // console.log(`Field ${info.parentType.name}.${info.fieldName} took ${end - start}ns`);
+    //             };
+    //           }
+    //         }
+    //       }
+    //     }
+    //   }
+    // },
     {
       requestDidStart: () => ({
         willSendResponse: response => {
