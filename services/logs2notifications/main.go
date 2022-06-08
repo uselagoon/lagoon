@@ -238,6 +238,7 @@ func main() {
 		s3FilesBucket,
 		s3FilesRegion,
 		s3FilesOrigin,
+		s3isGCS,
 	)
 
 	// start the consumer
