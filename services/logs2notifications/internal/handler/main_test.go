@@ -52,6 +52,7 @@ func TestProcessing(t *testing.T) {
 		"s3FilesBucket",
 		"s3FilesRegion",
 		"s3FilesOrigin",
+		false,
 	)
 	var testCases = map[string]struct {
 		input       string
