@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"regexp"
 	"time"
 
 	"github.com/cheshir/go-mq"
@@ -12,6 +13,7 @@ import (
 	"github.com/uselagoon/lagoon/services/logs2notifications/internal/lagoon"
 	lclient "github.com/uselagoon/lagoon/services/logs2notifications/internal/lagoon/client"
 	"github.com/uselagoon/lagoon/services/logs2notifications/internal/lagoon/jwt"
+	"github.com/uselagoon/lagoon/services/logs2notifications/internal/schema"
 )
 
 // RabbitBroker .
@@ -57,6 +59,16 @@ type Messaging struct {
 	DisableEmail            bool
 	DisableWebhooks         bool
 	DisableS3               bool
+	EmailSender             string
+	EmailSenderPassword     string
+	EmailHost               string
+	EmailPort               string
+	EmailInsecureSkipVerify bool
+	S3FilesAccessKeyID      string
+	S3FilesSecretAccessKey  string
+	S3FilesBucket           string
+	S3FilesRegion           string
+	S3FilesOrigin           string
 }
 
 // Notification .
@@ -91,6 +103,9 @@ type Notification struct {
 		Environment              string   `json:"environment"`
 		EnvironmentID            string   `json:"environmentId"`
 		EnvironmentName          string   `json:"environmentName"`
+		ServiceName              string   `json:"serviceName"`
+		Severity                 string   `json:"severity"`
+		Description              string   `json:"description"`
 		Error                    string   `json:"error"`
 		JobName                  string   `json:"jobName"`
 		LogLink                  string   `json:"logLink"`
@@ -106,7 +121,9 @@ type Notification struct {
 		RepoURL                  string   `json:"repoUrl"`
 		Route                    string   `json:"route"`
 		Routes                   []string `json:"routes"`
-		Task                     string   `json:"task"`
+		Task                     struct {
+			ID int `json:"id"`
+		} `json:"task"`
 	} `json:"meta"`
 	Message string `json:"message"`
 }
@@ -119,7 +136,15 @@ type EventMap struct {
 }
 
 // NewMessaging returns a messaging with config
-func NewMessaging(config mq.Config, lagoonAPI LagoonAPI, startupAttempts int, startupInterval int, enableDebug bool, appID string, disableSlack, disableRocketChat, disableMicrosoftTeams, disableEmail, disableWebhooks, disableS3 bool) *Messaging {
+func NewMessaging(config mq.Config,
+	lagoonAPI LagoonAPI,
+	startupAttempts int,
+	startupInterval int,
+	enableDebug bool,
+	appID string,
+	disableSlack, disableRocketChat, disableMicrosoftTeams, disableEmail, disableWebhooks, disableS3 bool,
+	emailSender, emailSenderPassword, emailHost, emailPort string, emailInsecureSkipVerify bool,
+	s3FilesAccessKeyID, s3FilesSecretAccessKey, s3FilesBucket, s3FilesRegion, s3FilesOrigin string) *Messaging {
 	return &Messaging{
 		Config:                  config,
 		LagoonAPI:               lagoonAPI,
@@ -133,12 +158,21 @@ func NewMessaging(config mq.Config, lagoonAPI LagoonAPI, startupAttempts int, st
 		DisableEmail:            disableEmail,
 		DisableWebhooks:         disableWebhooks,
 		DisableS3:               disableS3,
+		EmailSender:             emailSender,
+		EmailSenderPassword:     emailSenderPassword,
+		EmailHost:               emailHost,
+		EmailPort:               emailPort,
+		EmailInsecureSkipVerify: emailInsecureSkipVerify,
+		S3FilesAccessKeyID:      s3FilesAccessKeyID,
+		S3FilesSecretAccessKey:  s3FilesSecretAccessKey,
+		S3FilesBucket:           s3FilesBucket,
+		S3FilesRegion:           s3FilesRegion,
+		S3FilesOrigin:           s3FilesOrigin,
 	}
 }
 
 // Consumer handles consuming messages sent to the queue that this action handler is connected to and processes them accordingly
 func (h *Messaging) Consumer() {
-	ctx := context.TODO()
 
 	var messageQueue mq.MQ
 	// if no mq is found when the goroutine starts, retry a few times before exiting
@@ -175,55 +209,7 @@ func (h *Messaging) Consumer() {
 	// Handle any tasks that go to the queue
 	log.Println("Listening for messages in queue lagoon-logs:notifications")
 	err = messageQueue.SetConsumerHandler("notifications-queue", func(message mq.Message) {
-		notification := &Notification{}
-		json.Unmarshal(message.Body(), notification)
-		switch notification.Event {
-		// check if this a `deployEnvironmentLatest` type of action
-		// and perform the steps to run the mutation against the lagoon api
-		case "api:unknownEvent":
-		default:
-			// marshal unmarshal the data into the input we need to use when talking to the lagoon api
-			token, err := jwt.OneMinuteAdminToken(h.LagoonAPI.TokenSigningKey, h.LagoonAPI.JWTAudience, h.LagoonAPI.JWTSubject, h.LagoonAPI.JWTIssuer)
-			if err != nil {
-				// the token wasn't generated
-				if h.EnableDebug {
-					log.Println(err)
-				}
-				break
-			}
-			// get all notifications for said project
-			l := lclient.New(h.LagoonAPI.Endpoint, token, "logs2notifications", false)
-			projectNotifications, err := lagoon.NotificationsForProject(ctx, notification.Project, l)
-			if err != nil {
-				log.Println(err)
-				break
-			}
-			if projectNotifications.Notifications != nil {
-				if len(projectNotifications.Notifications.Slack) > 0 && !h.DisableSlack {
-					for _, slack := range projectNotifications.Notifications.Slack {
-						SendToSlack(notification, slack.Channel, slack.Webhook, message.AppId())
-					}
-				}
-				if len(projectNotifications.Notifications.RocketChat) > 0 && !h.DisableRocketChat {
-					for _, rc := range projectNotifications.Notifications.RocketChat {
-						SendToRocketChat(notification, rc.Channel, rc.Webhook, message.AppId())
-					}
-				}
-				if len(projectNotifications.Notifications.Email) > 0 && !h.DisableEmail {
-					for _, email := range projectNotifications.Notifications.Email {
-						SendToEmail(notification, email.EmailAddress, message.AppId())
-					}
-				}
-				if len(projectNotifications.Notifications.MicrosoftTeams) > 0 && !h.DisableMicrosoftTeams {
-					for _, teams := range projectNotifications.Notifications.MicrosoftTeams {
-						SendToMicrosoftTeams(notification, teams.Webhook, message.AppId())
-					}
-				}
-				// if len(projectNotifications.Notifications.Webhook) > 0 {
-				// 	fmt.Println(projectNotifications.Notifications.Webhook)
-				// }
-			}
-		}
+		h.processMessage(message.Body(), message.AppId())
 		message.Ack(false) // ack to remove from queue
 	})
 	if err != nil {
@@ -232,18 +218,79 @@ func (h *Messaging) Consumer() {
 	<-forever
 }
 
-// toLagoonLogs sends logs to the lagoon-logs message queue
-func (h *Messaging) toLagoonLogs(messageQueue mq.MQ, message map[string]interface{}) {
-	msgBytes, err := json.Marshal(message)
-	if err != nil {
-		if h.EnableDebug {
-			log.Println(err, "Unable to encode message as JSON")
+func (h *Messaging) processMessage(message []byte, applicationID string) {
+	ctx := context.Background()
+	notification := &Notification{}
+	json.Unmarshal(message, notification)
+
+	var buildLogs = regexp.MustCompile(`^build-logs:builddeploy-kubernetes:.*`)
+	var taskLogs = regexp.MustCompile(`^(build|task)-logs:job-kubernetes:.*`)
+	switch notification.Event {
+	case buildLogs.FindString(notification.Event):
+		// if this is a build logs message handle it accordingly
+		if !h.DisableS3 {
+			h.SendToS3(notification, buildMessageType)
+		}
+	case taskLogs.FindString(notification.Event):
+		// if this is a task logs message handle it accordingly
+		if !h.DisableS3 {
+			h.SendToS3(notification, taskMessageType)
+		}
+	default:
+		// all other events are notifications, so do notification handling with them
+		if notification.Project != "" {
+			// marshal unmarshal the data into the input we need to use when talking to the lagoon api
+			projectNotifications, err := h.getProjectNotifictions(ctx, notification.Project)
+			if err != nil {
+				log.Println(err)
+				break
+			}
+			if projectNotifications.Notifications != nil {
+				if len(projectNotifications.Notifications.Slack) > 0 && !h.DisableSlack {
+					for _, slack := range projectNotifications.Notifications.Slack {
+						h.SendToSlack(notification, slack.Channel, slack.Webhook, applicationID)
+					}
+				}
+				if len(projectNotifications.Notifications.RocketChat) > 0 && !h.DisableRocketChat {
+					for _, rc := range projectNotifications.Notifications.RocketChat {
+						h.SendToRocketChat(notification, rc.Channel, rc.Webhook, applicationID)
+					}
+				}
+				if len(projectNotifications.Notifications.Email) > 0 && !h.DisableEmail {
+					for _, email := range projectNotifications.Notifications.Email {
+						h.SendToEmail(notification, email.EmailAddress)
+					}
+				}
+				if len(projectNotifications.Notifications.MicrosoftTeams) > 0 && !h.DisableMicrosoftTeams {
+					for _, teams := range projectNotifications.Notifications.MicrosoftTeams {
+						h.SendToMicrosoftTeams(notification, teams.Webhook)
+					}
+				}
+				// if len(projectNotifications.Notifications.Webhook) > 0 && !h.DisableWebhooks {
+				// 	for _, hook := range projectNotifications.Notifications.Webhook {
+				// 		h.SendToWebhook(notification, hook.Webhook)
+				// 	}
+				// }
+			}
 		}
 	}
-	producer, err := messageQueue.AsyncProducer("lagoon-logs")
+}
+
+func (h *Messaging) getProjectNotifictions(ctx context.Context, projectName string) (*schema.Project, error) {
+	token, err := jwt.OneMinuteAdminToken(h.LagoonAPI.TokenSigningKey, h.LagoonAPI.JWTAudience, h.LagoonAPI.JWTSubject, h.LagoonAPI.JWTIssuer)
 	if err != nil {
-		log.Println(fmt.Sprintf("Failed to get async producer: %v", err))
-		return
+		// the token wasn't generated
+		if h.EnableDebug {
+			log.Println(err)
+		}
+		return nil, err
 	}
-	producer.Produce(msgBytes)
+	// get all notifications for said project
+	l := lclient.New(h.LagoonAPI.Endpoint, token, "logs2notifications", false)
+	projectNotifications, err := lagoon.NotificationsForProject(ctx, projectName, l)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	return projectNotifications, nil
 }

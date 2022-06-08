@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
+	"text/template"
 )
 
 // RocketChatData .
@@ -29,177 +31,79 @@ type RocketChatAttachmentField struct {
 }
 
 // SendToRocketChat .
-func SendToRocketChat(notification *Notification, channel, webhook, appID string) {
-
-	emoji, color, template, err := getRocketChatEvent(notification.Event)
+func (h *Messaging) SendToRocketChat(notification *Notification, channel, webhook, appID string) {
+	emoji, color, message, err := h.processRocketChatTemplate(notification)
 	if err != nil {
 		return
 	}
+	h.sendRocketChatMessage(emoji, color, appID, channel, webhook, notification.Event, message)
+}
 
-	var text string
-	switch template {
-	case "mergeRequestOpened":
-		text = fmt.Sprintf("*[%s]* PR [#%s (%s)](%s) opened in [%s](%s)",
-			notification.Meta.ProjectName,
-			notification.Meta.PullrequestNumber,
-			notification.Meta.PullrequestTitle,
-			notification.Meta.PullrequestURL,
-			notification.Meta.RepoName,
-			notification.Meta.RepoURL,
-		)
-	case "mergeRequestUpdated":
-		text = fmt.Sprintf("*[%s]* PR [#%s (%s)](%s) updated in [%s](%s)",
-			notification.Meta.ProjectName,
-			notification.Meta.PullrequestNumber,
-			notification.Meta.PullrequestTitle,
-			notification.Meta.PullrequestURL,
-			notification.Meta.RepoName,
-			notification.Meta.RepoURL,
-		)
-	case "mergeRequestClosed":
-		text = fmt.Sprintf("*[%s]* PR [#%s (%s)](%s) closed in [%s](%s)",
-			notification.Meta.ProjectName,
-			notification.Meta.PullrequestNumber,
-			notification.Meta.PullrequestTitle,
-			notification.Meta.PullrequestURL,
-			notification.Meta.RepoName,
-			notification.Meta.RepoURL,
-		)
-	case "deleteEnvironment":
-		text = fmt.Sprintf("*[%s]* Deleting environment `%s`",
-			notification.Meta.ProjectName,
-			notification.Meta.EnvironmentName,
-		)
-	case "repoPushHandled":
-		text = fmt.Sprintf("*[%s]* [%s](%s/tree/%s)",
-			notification.Meta.ProjectName,
-			notification.Meta.BranchName,
-			notification.Meta.RepoURL,
-			notification.Meta.BranchName,
-		)
-		if notification.Meta.ShortSha != "" {
-			text = fmt.Sprintf("%s ([%s](%s))",
-				text,
-				notification.Meta.ShortSha,
-				notification.Meta.CommitURL,
-			)
+// SendToRocketChat .
+func (h *Messaging) processRocketChatTemplate(notification *Notification) (string, string, string, error) {
+	emoji, color, tpl, err := getRocketChatEvent(notification.Event)
+	if err != nil {
+		eventSplit := strings.Split(notification.Event, ":")
+		if eventSplit[0] != "problem" {
+			return "", "", "", fmt.Errorf("no matching event")
 		}
-		text = fmt.Sprintf("%s pushed in [%s](%s)",
-			text,
-			notification.Meta.RepoFullName,
-			notification.Meta.RepoURL,
-		)
-	case "repoPushSkipped":
-		text = fmt.Sprintf("*[%s]* [%s](%s/tree/%s)",
-			notification.Meta.ProjectName,
-			notification.Meta.BranchName,
-			notification.Meta.RepoURL,
-			notification.Meta.BranchName,
-		)
-		if notification.Meta.ShortSha != "" {
-			text = fmt.Sprintf("%s ([%s](%s))",
-				text,
-				notification.Meta.ShortSha,
-				notification.Meta.CommitURL,
-			)
+		if eventSplit[1] == "insert" {
+			tpl = "problemNotification"
 		}
-		text = fmt.Sprintf("%s pushed in [%s](%s) *deployment skipped*",
-			text,
-			notification.Meta.RepoFullName,
-			notification.Meta.RepoURL,
-		)
-	case "deployEnvironment":
-		text = fmt.Sprintf("*[%s]* Deployment triggered `%s`",
-			notification.Meta.ProjectName,
-			notification.Meta.BranchName,
-		)
-		if notification.Meta.ShortSha != "" {
-			text = fmt.Sprintf("%s (%s)",
-				text,
-				notification.Meta.ShortSha,
-			)
-		}
-	case "removeFinished":
-		text = fmt.Sprintf("*[%s]* Removed `%s`",
-			notification.Meta.ProjectName,
-			notification.Meta.OpenshiftProject,
-		)
-	case "removeRetry":
-		text = fmt.Sprintf("*[%s]* Removed `%s`",
-			notification.Meta.ProjectName,
-			notification.Meta.OpenshiftProject,
-		)
-	case "notDeleted":
-		text = fmt.Sprintf("*[%s]* `%s` not deleted. %s",
-			notification.Meta.ProjectName,
-			notification.Meta.BranchName,
-			notification.Meta.Error,
-		)
-	case "deployError":
-		text = fmt.Sprintf("*[%s]*",
-			notification.Meta.ProjectName,
-		)
-		if notification.Meta.ShortSha != "" {
-			text += fmt.Sprintf(" `%s` %s",
-				notification.Meta.BranchName,
-				notification.Meta.ShortSha,
-			)
-		} else {
-			text += fmt.Sprintf(" `%s`",
-				notification.Meta.BranchName,
-			)
-		}
-		text += fmt.Sprintf(" Build `%s` Failed.",
-			notification.Meta.BuildName,
-		)
-		if notification.Meta.LogLink != "" {
-			text += fmt.Sprintf(" [Logs](%s) \r",
-				notification.Meta.LogLink,
-			)
-		}
-	case "deployFinished":
-		text = fmt.Sprintf("*[%s]*",
-			notification.Meta.ProjectName,
-		)
-		if notification.Meta.ShortSha != "" {
-			text += fmt.Sprintf(" `%s` %s",
-				notification.Meta.BranchName,
-				notification.Meta.ShortSha,
-			)
-		} else {
-			text += fmt.Sprintf(" `%s`",
-				notification.Meta.BranchName,
-			)
-		}
-		text += fmt.Sprintf(" Build `%s` Succeeded.",
-			notification.Meta.BuildName,
-		)
-		if notification.Meta.LogLink != "" {
-			text += fmt.Sprintf(" [Logs](%s) \r",
-				notification.Meta.LogLink,
-			)
-		}
-		text += fmt.Sprintf("* %s \n",
-			notification.Meta.Route,
-		)
-		if len(notification.Meta.Routes) != 0 {
-			for _, r := range notification.Meta.Routes {
-				if r != notification.Meta.Route {
-					text += fmt.Sprintf("* %s \n", r)
-				}
-			}
-		}
-	default:
-		// do nothing
-		return
 	}
 
+	var rcTpl string
+	switch tpl {
+	case "mergeRequestOpened":
+		rcTpl = `*[{{.ProjectName}}]* PR [#{{.PullrequestNumber}} ({{.PullrequestTitle}})]({{.PullrequestURL}}) opened in [{{.RepoName}}]({{.RepoURL}})`
+	case "mergeRequestUpdated":
+		rcTpl = `*[{{.ProjectName}}]* PR [#{{.PullrequestNumber}} ({{.PullrequestTitle}})]({{.PullrequestURL}}) updated in [{{.RepoName}}]({{.RepoURL}})`
+	case "mergeRequestClosed":
+		rcTpl = `*[{{.ProjectName}}]* PR [#{{.PullrequestNumber}} ({{.PullrequestTitle}})]({{.PullrequestURL}}) closed in [{{.RepoName}}]({{.RepoURL}})`
+	case "deleteEnvironment":
+		rcTpl = `*[{{.ProjectName}}]* Deleting environment ` + "`{{.EnvironmentName}}`"
+	case "repoPushHandled":
+		rcTpl = `*[{{.ProjectName}}]* [{{.BranchName}}]({{.RepoURL}}/tree/{{.BranchName}}){{ if ne .ShortSha "" }} ([{{.ShortSha}}]({{.CommitURL}})){{end}} pushed in [{{.RepoFullName}}]({{.RepoURL}})`
+	case "repoPushSkipped":
+		rcTpl = `*[{{.ProjectName}}]* [{{.BranchName}}]({{.RepoURL}}/tree/{{.BranchName}}){{ if ne .ShortSha "" }} ([{{.ShortSha}}]({{.CommitURL}})){{end}} pushed in [{{.RepoFullName}}]({{.RepoURL}}) *deployment skipped*`
+	case "deployEnvironment":
+		rcTpl = `*[{{.ProjectName}}]* Deployment triggered ` + "`{{.BranchName}}`" + `{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}}`
+	case "removeFinished":
+		rcTpl = `*[{{.ProjectName}}]* Removed ` + "`{{.OpenshiftProject}}`" + ``
+	case "removeRetry":
+		rcTpl = `*[{{.ProjectName}}]* Removed ` + "`{{.OpenshiftProject}}`" + ``
+	case "notDeleted":
+		rcTpl = `*[{{.ProjectName}}]* ` + "`{{.BranchName}}`" + ` not deleted. {{.Error}}`
+	case "deployError":
+		rcTpl = `*[{{.ProjectName}}]* ` + "`{{.BranchName}}`" + `{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}} Build ` + "`{{.BuildName}}`" + ` Failed. {{if ne .LogLink ""}} [Logs]({{.LogLink}}){{end}}`
+	case "deployFinished":
+		rcTpl = `*[{{.ProjectName}}]* ` + "`{{.BranchName}}`" + `{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}} Build ` + "`{{.BuildName}}`" + ` Succeeded. {{if ne .LogLink ""}} [Logs]({{.LogLink}}){{end}}
+* {{.Route}}{{range .Routes}}{{if ne . $.Route}}* {{.}}{{end}}
+{{end}}`
+	case "problemNotification":
+		eventSplit := strings.Split(notification.Event, ":")
+		if eventSplit[0] != "problem" && eventSplit[1] == "insert" {
+			return "", "", "", fmt.Errorf("no matching event")
+		}
+		rcTpl = `*[{{.ProjectName}}]* New problem found for ` + "`{{.EnvironmentName}}`" + `
+* Service: ` + "`{{.ServiceName}}`" + `{{ if ne .Severity "" }}
+* Severity: {{.Severity}}{{end}}{{ if ne .Description "" }}
+* Description: {{.Description}}{{end}}`
+	default:
+		return "", "", "", fmt.Errorf("no matching event")
+	}
+	var rcMsg bytes.Buffer
+	t, _ := template.New("rocketchat").Parse(rcTpl)
+	t.Execute(&rcMsg, notification.Meta)
+	return emoji, color, rcMsg.String(), nil
+}
+
+func (h *Messaging) sendRocketChatMessage(emoji, color, appID, channel, webhook, event, message string) {
 	data := RocketChatData{
 		Channel: channel,
 		Attachments: []RocketChatAttachment{
 			{
-				// Text:  fmt.Sprintf("%s %s", emoji, notification.Message),
-				Text:  fmt.Sprintf("%s %s", emoji, text),
+				Text:  fmt.Sprintf("%s %s", emoji, message),
 				Color: color,
 				Fields: []RocketChatAttachmentField{
 					{
@@ -211,7 +115,6 @@ func SendToRocketChat(notification *Notification, channel, webhook, appID string
 			},
 		},
 	}
-
 	jsonBytes, _ := json.Marshal(data)
 	req, err := http.NewRequest("POST", webhook, bytes.NewBuffer(jsonBytes))
 	req.Header.Set("Content-Type", "application/json")
@@ -224,7 +127,7 @@ func SendToRocketChat(notification *Notification, channel, webhook, appID string
 		return
 	}
 	defer resp.Body.Close()
-	log.Println(fmt.Sprintf("Sent %s message to rocketchat", notification.Event))
+	log.Println(fmt.Sprintf("Sent %s message to rocketchat", event))
 }
 
 func getRocketChatEvent(msgEvent string) (string, string, string, error) {
@@ -235,70 +138,70 @@ func getRocketChatEvent(msgEvent string) (string, string, string, error) {
 }
 
 var rocketChatEventTypeMap = map[string]EventMap{
-	"github:pull_request:opened:handled":           {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestOpened"},
-	"gitlab:merge_request:opened:handled":          {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestOpened"},
-	"bitbucket:pullrequest:created:opened:handled": {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestOpened"}, //not in slack
-	"bitbucket:pullrequest:created:handled":        {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestOpened"}, //not in teams
+	"github:pull_request:opened:handled":           {Emoji: "ℹ️", Color: "#E8E8E8", Template: "mergeRequestOpened"},
+	"gitlab:merge_request:opened:handled":          {Emoji: "ℹ️", Color: "#E8E8E8", Template: "mergeRequestOpened"},
+	"bitbucket:pullrequest:created:opened:handled": {Emoji: "ℹ️", Color: "#E8E8E8", Template: "mergeRequestOpened"}, //not in slack
+	"bitbucket:pullrequest:created:handled":        {Emoji: "ℹ️", Color: "#E8E8E8", Template: "mergeRequestOpened"}, //not in teams
 
-	"github:pull_request:synchronize:handled":      {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestUpdated"},
-	"gitlab:merge_request:updated:handled":         {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestUpdated"},
-	"bitbucket:pullrequest:updated:opened:handled": {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestUpdated"}, //not in slack
-	"bitbucket:pullrequest:updated:handled":        {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestUpdated"}, //not in teams
+	"github:pull_request:synchronize:handled":      {Emoji: "ℹ️", Color: "#E8E8E8", Template: "mergeRequestUpdated"},
+	"gitlab:merge_request:updated:handled":         {Emoji: "ℹ️", Color: "#E8E8E8", Template: "mergeRequestUpdated"},
+	"bitbucket:pullrequest:updated:opened:handled": {Emoji: "ℹ️", Color: "#E8E8E8", Template: "mergeRequestUpdated"}, //not in slack
+	"bitbucket:pullrequest:updated:handled":        {Emoji: "ℹ️", Color: "#E8E8E8", Template: "mergeRequestUpdated"}, //not in teams
 
-	"github:pull_request:closed:handled":      {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestClosed"},
-	"bitbucket:pullrequest:fulfilled:handled": {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestClosed"},
-	"bitbucket:pullrequest:rejected:handled":  {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestClosed"},
-	"gitlab:merge_request:closed:handled":     {Emoji: ":information_source:", Color: "#E8E8E8", Template: "mergeRequestClosed"},
+	"github:pull_request:closed:handled":      {Emoji: "ℹ️", Color: "#E8E8E8", Template: "mergeRequestClosed"},
+	"bitbucket:pullrequest:fulfilled:handled": {Emoji: "ℹ️", Color: "#E8E8E8", Template: "mergeRequestClosed"},
+	"bitbucket:pullrequest:rejected:handled":  {Emoji: "ℹ️", Color: "#E8E8E8", Template: "mergeRequestClosed"},
+	"gitlab:merge_request:closed:handled":     {Emoji: "ℹ️", Color: "#E8E8E8", Template: "mergeRequestClosed"},
 
-	"github:delete:handled":    {Emoji: ":information_source:", Color: "#E8E8E8", Template: "deleteEnvironment"},
-	"gitlab:remove:handled":    {Emoji: ":information_source:", Color: "#E8E8E8", Template: "deleteEnvironment"}, //not in slack
-	"bitbucket:delete:handled": {Emoji: ":information_source:", Color: "#E8E8E8", Template: "deleteEnvironment"}, //not in slack
-	"api:deleteEnvironment":    {Emoji: ":information_source:", Color: "#E8E8E8", Template: "deleteEnvironment"}, //not in teams
+	"github:delete:handled":    {Emoji: "ℹ️", Color: "#E8E8E8", Template: "deleteEnvironment"},
+	"gitlab:remove:handled":    {Emoji: "ℹ️", Color: "#E8E8E8", Template: "deleteEnvironment"}, //not in slack
+	"bitbucket:delete:handled": {Emoji: "ℹ️", Color: "#E8E8E8", Template: "deleteEnvironment"}, //not in slack
+	"api:deleteEnvironment":    {Emoji: "ℹ️", Color: "#E8E8E8", Template: "deleteEnvironment"}, //not in teams
 
-	"github:push:handled":         {Emoji: ":information_source:", Color: "#E8E8E8", Template: "repoPushHandled"},
-	"bitbucket:repo:push:handled": {Emoji: ":information_source:", Color: "#E8E8E8", Template: "repoPushHandled"},
-	"gitlab:push:handled":         {Emoji: ":information_source:", Color: "#E8E8E8", Template: "repoPushHandled"},
+	"github:push:handled":         {Emoji: "ℹ️", Color: "#E8E8E8", Template: "repoPushHandled"},
+	"bitbucket:repo:push:handled": {Emoji: "ℹ️", Color: "#E8E8E8", Template: "repoPushHandled"},
+	"gitlab:push:handled":         {Emoji: "ℹ️", Color: "#E8E8E8", Template: "repoPushHandled"},
 
-	"github:push:skipped":    {Emoji: ":information_source:", Color: "#E8E8E8", Template: "repoPushSkipped"},
-	"gitlab:push:skipped":    {Emoji: ":information_source:", Color: "#E8E8E8", Template: "repoPushSkipped"},
-	"bitbucket:push:skipped": {Emoji: ":information_source:", Color: "#E8E8E8", Template: "repoPushSkipped"},
+	"github:push:skipped":    {Emoji: "ℹ️", Color: "#E8E8E8", Template: "repoPushSkipped"},
+	"gitlab:push:skipped":    {Emoji: "ℹ️", Color: "#E8E8E8", Template: "repoPushSkipped"},
+	"bitbucket:push:skipped": {Emoji: "ℹ️", Color: "#E8E8E8", Template: "repoPushSkipped"},
 
-	"api:deployEnvironmentLatest": {Emoji: ":information_source:", Color: "#E8E8E8", Template: "deployEnvironment"},
-	"api:deployEnvironmentBranch": {Emoji: ":information_source:", Color: "#E8E8E8", Template: "deployEnvironment"},
+	"api:deployEnvironmentLatest": {Emoji: "ℹ️", Color: "#E8E8E8", Template: "deployEnvironment"},
+	"api:deployEnvironmentBranch": {Emoji: "ℹ️", Color: "#E8E8E8", Template: "deployEnvironment"},
 
-	"task:deploy-openshift:finished":           {Emoji: ":white_check_mark:", Color: "lawngreen", Template: "deployFinished"},
-	"task:remove-openshift-resources:finished": {Emoji: ":white_check_mark:", Color: "lawngreen", Template: "deployFinished"},
-	"task:builddeploy-openshift:complete":      {Emoji: ":white_check_mark:", Color: "lawngreen", Template: "deployFinished"},
-	"task:builddeploy-kubernetes:complete":     {Emoji: ":white_check_mark:", Color: "lawngreen", Template: "deployFinished"}, //not in teams
+	"task:deploy-openshift:finished":           {Emoji: "✅", Color: "lawngreen", Template: "deployFinished"},
+	"task:remove-openshift-resources:finished": {Emoji: "✅", Color: "lawngreen", Template: "deployFinished"},
+	"task:builddeploy-openshift:complete":      {Emoji: "✅", Color: "lawngreen", Template: "deployFinished"},
+	"task:builddeploy-kubernetes:complete":     {Emoji: "✅", Color: "lawngreen", Template: "deployFinished"}, //not in teams
 
-	"task:remove-openshift:finished":  {Emoji: ":white_check_mark:", Color: "lawngreen", Template: "removeFinished"},
-	"task:remove-kubernetes:finished": {Emoji: ":white_check_mark:", Color: "lawngreen", Template: "removeFinished"},
+	"task:remove-openshift:finished":  {Emoji: "✅", Color: "lawngreen", Template: "removeFinished"},
+	"task:remove-kubernetes:finished": {Emoji: "✅", Color: "lawngreen", Template: "removeFinished"},
 
-	"task:remove-openshift:error":        {Emoji: ":bangbang:", Color: "red", Template: "deployError"},
-	"task:remove-kubernetes:error":       {Emoji: ":bangbang:", Color: "red", Template: "deployError"},
-	"task:builddeploy-kubernetes:failed": {Emoji: ":bangbang:", Color: "red", Template: "deployError"}, //not in teams
-	"task:builddeploy-openshift:failed":  {Emoji: ":bangbang:", Color: "red", Template: "deployError"},
+	"task:remove-openshift:error":        {Emoji: "🛑", Color: "red", Template: "deployError"},
+	"task:remove-kubernetes:error":       {Emoji: "🛑", Color: "red", Template: "deployError"},
+	"task:builddeploy-kubernetes:failed": {Emoji: "🛑", Color: "red", Template: "deployError"}, //not in teams
+	"task:builddeploy-openshift:failed":  {Emoji: "🛑", Color: "red", Template: "deployError"},
 
-	"github:pull_request:closed:CannotDeleteProductionEnvironment": {Emoji: ":warning:", Color: "gold", Template: "notDeleted"},
-	"github:push:CannotDeleteProductionEnvironment":                {Emoji: ":warning:", Color: "gold", Template: "notDeleted"},
-	"bitbucket:repo:push:CannotDeleteProductionEnvironment":        {Emoji: ":warning:", Color: "gold", Template: "notDeleted"},
-	"gitlab:push:CannotDeleteProductionEnvironment":                {Emoji: ":warning:", Color: "gold", Template: "notDeleted"},
-
-	// deprecated
-	// "rest:remove:CannotDeleteProductionEnvironment": {Emoji: ":warning:", Color: "gold"},
-	// "rest:deploy:receive":                           {Emoji: ":information_source:", Color: "#E8E8E8"},
-	// "rest:remove:receive":                           {Emoji: ":information_source:", Color: "#E8E8E8"},
-	// "rest:promote:receive":                          {Emoji: ":information_source:", Color: "#E8E8E8"},
-	// "rest:pullrequest:deploy":                       {Emoji: ":information_source:", Color: "#E8E8E8"},
-	// "rest:pullrequest:remove":                       {Emoji: ":information_source:", Color: "#E8E8E8"},
+	"github:pull_request:closed:CannotDeleteProductionEnvironment": {Emoji: "⚠️", Color: "gold", Template: "notDeleted"},
+	"github:push:CannotDeleteProductionEnvironment":                {Emoji: "⚠️", Color: "gold", Template: "notDeleted"},
+	"bitbucket:repo:push:CannotDeleteProductionEnvironment":        {Emoji: "⚠️", Color: "gold", Template: "notDeleted"},
+	"gitlab:push:CannotDeleteProductionEnvironment":                {Emoji: "⚠️", Color: "gold", Template: "notDeleted"},
 
 	// deprecated
-	// "task:deploy-openshift:error":           {Emoji: ":bangbang:", Color: "red", Template: "deployError"},
-	// "task:remove-openshift-resources:error": {Emoji: ":bangbang:", Color: "red", Template: "deployError"},
+	// "rest:remove:CannotDeleteProductionEnvironment": {Emoji: "⚠️", Color: "gold"},
+	// "rest:deploy:receive":                           {Emoji: "ℹ️", Color: "#E8E8E8"},
+	// "rest:remove:receive":                           {Emoji: "ℹ️", Color: "#E8E8E8"},
+	// "rest:promote:receive":                          {Emoji: "ℹ️", Color: "#E8E8E8"},
+	// "rest:pullrequest:deploy":                       {Emoji: "ℹ️", Color: "#E8E8E8"},
+	// "rest:pullrequest:remove":                       {Emoji: "ℹ️", Color: "#E8E8E8"},
 
 	// deprecated
-	// "task:deploy-openshift:retry":           {Emoji: ":warning:", Color: "gold", Template: "removeRetry"},
-	// "task:remove-openshift:retry":           {Emoji: ":warning:", Color: "gold", Template: "removeRetry"},
-	// "task:remove-kubernetes:retry":          {Emoji: ":warning:", Color: "gold", Template: "removeRetry"},
-	// "task:remove-openshift-resources:retry": {Emoji: ":warning:", Color: "gold", Template: "removeRetry"},
+	// "task:deploy-openshift:error":           {Emoji: "🛑", Color: "red", Template: "deployError"},
+	// "task:remove-openshift-resources:error": {Emoji: "🛑", Color: "red", Template: "deployError"},
+
+	// deprecated
+	// "task:deploy-openshift:retry":           {Emoji: "⚠️", Color: "gold", Template: "removeRetry"},
+	// "task:remove-openshift:retry":           {Emoji: "⚠️", Color: "gold", Template: "removeRetry"},
+	// "task:remove-kubernetes:retry":          {Emoji: "⚠️", Color: "gold", Template: "removeRetry"},
+	// "task:remove-openshift-resources:retry": {Emoji: "⚠️", Color: "gold", Template: "removeRetry"},
 }

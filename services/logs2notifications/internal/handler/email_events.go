@@ -2,10 +2,14 @@ package handler
 
 import (
 	"bytes"
+	"crypto/tls"
 	"fmt"
 	"log"
-	"net/smtp"
+	"strconv"
+	"strings"
 	"text/template"
+
+	gomail "gopkg.in/mail.v2"
 )
 
 var htmlTemplate = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -37,311 +41,171 @@ var htmlTemplate = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//E
 	    {{.MainHTML}}
 	</p>
   </div>
-  <div>
-	<p>
-        {{.Additional}}
-	</p>
-  </div>
 </body>
 </html>`
 
 // SendToEmail .
-func SendToEmail(notification *Notification, emailAddress, appID string) {
+func (h *Messaging) SendToEmail(notification *Notification, emailAddress string) {
 
-	emoji, color, tpl, err := getEmailEvent(notification.Event)
+	emoji, color, subject, mainHTML, plainText, err := h.processEmailTemplates(notification)
 	if err != nil {
 		return
 	}
-	var mainHTML, plainText, subject, additional string
+	h.sendEmailMessage(emoji, color, subject, notification.Event, notification.Meta.ProjectName, emailAddress, mainHTML, plainText)
+}
+
+// SendToEmail .
+func (h *Messaging) processEmailTemplates(notification *Notification) (string, string, string, string, string, error) {
+
+	emoji, color, tpl, err := getEmailEvent(notification.Event)
+	if err != nil {
+		eventSplit := strings.Split(notification.Event, ":")
+		fmt.Println(eventSplit[0])
+		if eventSplit[0] != "problem" {
+			return "", "", "", "", "", nil
+		}
+		if eventSplit[1] == "insert" {
+			tpl = "problemNotification"
+		}
+	}
+	var mainHTML, plainText, subject, plainTextTpl, mainHTMLTpl string
 	switch tpl {
 	case "mergeRequestOpened":
-		mainHTML += fmt.Sprintf(`PR <a href="%s">#%s (%s</a> opened in <a href="%s">%s</a>`,
-			notification.Meta.PullrequestNumber,
-			notification.Meta.PullrequestTitle,
-			notification.Meta.PullrequestURL,
-			notification.Meta.RepoURL,
-			notification.Meta.RepoName,
-		)
-		plainText += fmt.Sprintf(`[%s] PR #%s - %s opened in %s`,
-			notification.Meta.ProjectName,
-			notification.Meta.PullrequestNumber,
-			notification.Meta.PullrequestTitle,
-			notification.Meta.RepoName,
-		)
-		subject += plainText
+		mainHTMLTpl = `PR <a href="{{.PullrequestNumber}}">#{{.PullrequestNumber}} ({{.PullrequestTitle}})</a> opened in <a href="{{.RepoURL}}">{{.RepoName}}</a>`
+		plainTextTpl = `[{{.ProjectName}}] PR #{{.PullrequestNumber}} - {{.PullrequestTitle}} opened in {{.RepoName}}`
 	case "mergeRequestUpdated":
-		mainHTML += fmt.Sprintf(`PR <a href="%s">#%s (%s</a> updated in <a href="%s">%s</a>`,
-			notification.Meta.PullrequestNumber,
-			notification.Meta.PullrequestTitle,
-			notification.Meta.PullrequestURL,
-			notification.Meta.RepoURL,
-			notification.Meta.RepoName,
-		)
-		plainText += fmt.Sprintf(`[%s] PR #%s - %s updated in %s`,
-			notification.Meta.ProjectName,
-			notification.Meta.PullrequestNumber,
-			notification.Meta.PullrequestTitle,
-			notification.Meta.RepoName,
-		)
-		subject += plainText
+		mainHTMLTpl = `PR <a href="{{.PullrequestNumber}}">#{{.PullrequestNumber}} ({{.PullrequestTitle}})</a> updated in <a href="{{.RepoURL}}">{{.RepoName}}</a>`
+		plainTextTpl = `[{{.ProjectName}}] PR #{{.PullrequestNumber}} - {{.PullrequestTitle}} updated in {{.RepoName}}`
 	case "mergeRequestClosed":
-		mainHTML += fmt.Sprintf(`PR <a href="%s">#%s (%s</a> closed in <a href="%s">%s</a>`,
-			notification.Meta.PullrequestNumber,
-			notification.Meta.PullrequestTitle,
-			notification.Meta.PullrequestURL,
-			notification.Meta.RepoURL,
-			notification.Meta.RepoName,
-		)
-		plainText += fmt.Sprintf(`[%s] PR #%s - %s closed in %s`,
-			notification.Meta.ProjectName,
-			notification.Meta.PullrequestNumber,
-			notification.Meta.PullrequestTitle,
-			notification.Meta.RepoName,
-		)
-		subject += plainText
+		mainHTMLTpl = `PR <a href="{{.PullrequestNumber}}">#{{.PullrequestNumber}} ({{.PullrequestTitle}})</a> closed in <a href="{{.RepoURL}}">{{.RepoName}}</a>`
+		plainTextTpl = `[{{.ProjectName}}] PR #{{.PullrequestNumber}} - {{.PullrequestTitle}} closed in {{.RepoName}}`
 	case "deleteEnvironment":
-		mainHTML += fmt.Sprintf("Deleted environment <code>%s</code>",
-			notification.Meta.BranchName,
-		)
-		plainText += fmt.Sprintf("[%s] deleted environment %s",
-			notification.Meta.ProjectName,
-			notification.Meta.BranchName,
-		)
-		subject += plainText
+		mainHTMLTpl = `Deleted environment <code>{{.EnvironmentName}}</code>`
+		plainTextTpl = `[{{.ProjectName}}] deleted environment {{.EnvironmentName}}`
 	case "repoPushHandled":
-		mainHTML += fmt.Sprintf(`<a href="%s/tree/%s">%s</a>`,
-			notification.Meta.RepoURL,
-			notification.Meta.BranchName,
-			notification.Meta.BranchName,
-		)
-		plainText += fmt.Sprintf(`[%s] %s`,
-			notification.Meta.ProjectName,
-			notification.Meta.BranchName,
-		)
-		if notification.Meta.ShortSha != "" {
-			mainHTML += fmt.Sprintf(`%s <a href="%s">%s</a>`,
-				mainHTML,
-				notification.Meta.CommitURL,
-				notification.Meta.ShortSha,
-			)
-			plainText += fmt.Sprintf(`%s (%s)`,
-				plainText,
-				notification.Meta.ShortSha,
-			)
-		}
-		mainHTML += fmt.Sprintf(`%s pushed in <a href="%s">%s</a>`,
-			mainHTML,
-			notification.Meta.RepoURL,
-			notification.Meta.RepoFullName,
-		)
-		plainText += fmt.Sprintf(`%s pushed in %s`,
-			plainText,
-			notification.Meta.RepoFullName,
-		)
-		subject += plainText
+		mainHTMLTpl = `<a href="{{.RepoURL}}/tree/{{.BranchName}}">{{.BranchName}}</a>{{ if ne .ShortSha "" }} <a href="{{.CommitURL}}">{{.ShortSha}}</a>{{end}} pushed in <a href="{{.RepoURL}}">{{.RepoFullName}}</a>`
+		plainTextTpl = `[{{.ProjectName}}] {{.BranchName}}{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}} pushed in {{.RepoFullName}}`
 	case "repoPushSkipped":
-		mainHTML += fmt.Sprintf(`<a href="%s/tree/%s">%s</a>`,
-			notification.Meta.RepoURL,
-			notification.Meta.BranchName,
-			notification.Meta.BranchName,
-		)
-		plainText += fmt.Sprintf(`[%s] %s`,
-			notification.Meta.ProjectName,
-			notification.Meta.BranchName,
-		)
-		if notification.Meta.ShortSha != "" {
-			mainHTML += fmt.Sprintf(`%s <a href="%s">%s</a>`,
-				mainHTML,
-				notification.Meta.CommitURL,
-				notification.Meta.ShortSha,
-			)
-			plainText += fmt.Sprintf(`%s (%s)`,
-				plainText,
-				notification.Meta.ShortSha,
-			)
-		}
-		mainHTML += fmt.Sprintf(`%s pushed in <a href="%s">%s</a> <strong>deployment skipped</strong>`,
-			mainHTML,
-			notification.Meta.RepoURL,
-			notification.Meta.RepoFullName,
-		)
-		plainText += fmt.Sprintf(`%s pushed in %s *deployment skipped*`,
-			plainText,
-			notification.Meta.RepoFullName,
-		)
-		subject += plainText
+		mainHTMLTpl = `<a href="{{.RepoURL}}/tree/{{.BranchName}}">{{.BranchName}}</a>{{ if ne .ShortSha "" }} <a href="{{.CommitURL}}">{{.ShortSha}}</a>{{end}} pushed in <a href="{{.RepoURL}}">{{.RepoFullName}}</a> <strong>deployment skipped</strong>`
+		plainTextTpl = `[{{.ProjectName}}] {{.BranchName}}{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}} pushed in {{.RepoFullName}} *deployment skipped*`
 	case "deployEnvironment":
-		mainHTML += fmt.Sprintf("Deployment triggered <code>%s</code>",
-			notification.Meta.BranchName,
-		)
-		plainText += fmt.Sprintf("[%s] Deployment triggered on branch %s",
-			notification.Meta.ProjectName,
-			notification.Meta.BranchName,
-		)
-		if notification.Meta.ShortSha != "" {
-			mainHTML += fmt.Sprintf(`%s (%s)`,
-				mainHTML,
-				notification.Meta.ShortSha,
-			)
-			plainText += fmt.Sprintf(`%s (%s)`,
-				plainText,
-				notification.Meta.ShortSha,
-			)
-		}
-		subject += plainText
+		mainHTMLTpl = `Deployment triggered <code>{{.BranchName}}</code>{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}}`
+		plainTextTpl = `[{{.ProjectName}}] Deployment triggered on branch {{.BranchName}}{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}}`
 	case "removeFinished":
-		mainHTML += fmt.Sprintf("Remove <code>%s</code>", notification.Meta.OpenshiftProject)
-		plainText += fmt.Sprintf("[%s] remove %s", notification.Meta.ProjectName, notification.Meta.OpenshiftProject)
-		subject += plainText
+		mainHTMLTpl = `Remove <code>{{.OpenshiftProject}}</code>`
+		plainTextTpl = `[{{.ProjectName}] remove {{.OpenshiftProject}}`
 	case "notDeleted":
-		mainHTML += fmt.Sprintf("<code>%s</code> not deleted.",
-			notification.Meta.OpenshiftProject,
-		)
-		plainText += fmt.Sprintf("[%s] %s not deleted.",
-			notification.Meta.ProjectName,
-			notification.Meta.OpenshiftProject,
-		)
-		subject += plainText
-		plainText += fmt.Sprintf("%s", notification.Meta.Error)
+		mainHTMLTpl = `<code>{{.OpenshiftProject}}</code> not deleted.`
+		plainTextTpl = `[{{.ProjectName}] {{.OpenshiftProject}} not deleted. {{.Error}}`
 	case "deployError":
-		mainHTML += fmt.Sprintf("[%s]",
+		mainHTMLTpl = `[{{.ProjectName}}] <code>{{.BranchName}}</code>{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}} Build <code>{{.BuildName}}</code> error.
+{{if ne .LogLink ""}} <a href="{{.LogLink}}">Logs</a>{{end}}`
+		plainTextTpl = `[{{.ProjectName}}] {{.BranchName}}{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}} Build {{.BuildName}} error.
+{{if ne .LogLink ""}} [Logs]({{.LogLink}}){{end}}`
+		subject += fmt.Sprintf("[%s] %s Build %s error.",
 			notification.Meta.ProjectName,
-		)
-		plainText += fmt.Sprintf("[%s]",
-			notification.Meta.ProjectName,
-		)
-		if notification.Meta.ShortSha != "" {
-			mainHTML += fmt.Sprintf(` <code>%s</code> (%s)`,
-				notification.Meta.BranchName,
-				notification.Meta.ShortSha,
-			)
-			plainText += fmt.Sprintf(` %s (%s)`,
-				notification.Meta.BranchName,
-				notification.Meta.ShortSha,
-			)
-		} else {
-			mainHTML += fmt.Sprintf(` <code>%s</code>`,
-				notification.Meta.BranchName,
-			)
-			plainText += fmt.Sprintf(` %s`,
-				notification.Meta.BranchName,
-			)
-		}
-		mainHTML += fmt.Sprintf(` Build <code>%s</code> error.`,
+			notification.Meta.BranchName,
 			notification.Meta.BuildName,
 		)
-		plainText += fmt.Sprintf(` Build %s error.`,
-			notification.Meta.BuildName,
-		)
-		subject += plainText
-		if notification.Meta.LogLink != "" {
-			mainHTML += fmt.Sprintf(` <a href="%s">Logs</a>`,
-				notification.Meta.LogLink,
-			)
-			plainText += fmt.Sprintf(` [Logs](%s)`,
-				notification.Meta.LogLink,
-			)
-		}
 	case "deployFinished":
-		mainHTML += fmt.Sprintf("[%s]",
+		mainHTMLTpl = `[{{.ProjectName}}] <code>{{.BranchName}}</code>{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}} Build <code>{{.BuildName}}</code> complete. {{if ne .LogLink ""}}<a href="{{.LogLink}}">Logs</a>{{end}}
+</p>
+</div>
+<div>
+<p>
+<ul>
+<li><a href="{{.Route}}">{{.Route}}</a></li>
+{{range .Routes}}{{if ne . $.Route}}<li><a href="{{.}}">{{.}}</a></li>
+{{end}}{{end}}</ul>`
+		plainTextTpl = `[{{.ProjectName}}] {{.BranchName}}{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}} Build {{.BuildName}} complete. {{if ne .LogLink ""}}[Logs]({{.LogLink}}){{end}}
+{{.Route}}
+{{range .Routes}}{{if ne . $.Route}}{{.}}
+{{end}}{{end}}`
+		subject += fmt.Sprintf("[%s] %s Build %s complete.",
 			notification.Meta.ProjectName,
-		)
-		plainText += fmt.Sprintf("[%s]",
-			notification.Meta.ProjectName,
-		)
-		if notification.Meta.ShortSha != "" {
-			mainHTML += fmt.Sprintf(` <code>%s</code> (%s)`,
-				notification.Meta.BranchName,
-				notification.Meta.ShortSha,
-			)
-			plainText += fmt.Sprintf(` %s (%s)`,
-				notification.Meta.BranchName,
-				notification.Meta.ShortSha,
-			)
-		} else {
-			mainHTML += fmt.Sprintf(` <code>%s</code>`,
-				notification.Meta.BranchName,
-			)
-			plainText += fmt.Sprintf(` %s`,
-				notification.Meta.BranchName,
-			)
-		}
-		mainHTML += fmt.Sprintf(` Build <code>%s</code> complete.`,
+			notification.Meta.BranchName,
 			notification.Meta.BuildName,
 		)
-		plainText += fmt.Sprintf(` Build %s complete.`,
-			notification.Meta.BuildName,
-		)
-		subject += plainText
-		if notification.Meta.LogLink != "" {
-			mainHTML += fmt.Sprintf(` <a href="%s">Logs</a>`,
-				notification.Meta.LogLink,
-			)
-			plainText += fmt.Sprintf(` [Logs](%s)`,
-				notification.Meta.LogLink,
-			)
+	case "problemNotification":
+		eventSplit := strings.Split(notification.Event, ":")
+		if eventSplit[0] != "problem" && eventSplit[1] == "insert" {
+			return "", "", "", "", "", nil
 		}
-		additional += fmt.Sprintf(` <ul><li><a href="%s">%s</a></li>`,
-			notification.Meta.Route,
-			notification.Meta.Route,
+		mainHTMLTpl = `[{{.ProjectName}}] New problem found for <code>{{.EnvironmentName}}</code>
+		<ul><li>* Service: {{.ServiceName}}</li>{{ if ne .Severity "" }}
+		<li>* Severity: {{.Severity}}{{end}}</li>{{ if ne .Description "" }}
+		<li>* Description: {{.Description}}</li>{{end}}</ul>`
+		plainTextTpl = `[{{.ProjectName}}] New problem found for ` + "`{{.EnvironmentName}}`" + `
+* Service: ` + "`{{.ServiceName}}`" + `{{ if ne .Severity "" }}
+* Severity: {{.Severity}}{{end}}{{ if ne .Description "" }}
+* Description: {{.Description}}{{end}}`
+		subject += fmt.Sprintf("[%s] New problem found for environment %s",
+			notification.Meta.ProjectName,
+			notification.Meta.EnvironmentName,
 		)
-		plainText += fmt.Sprintf("%s %s\n",
-			plainText,
-			notification.Meta.Route,
-		)
-		if len(notification.Meta.Routes) != 0 {
-			for _, r := range notification.Meta.Routes {
-				if r != notification.Meta.Route {
-					additional += fmt.Sprintf(` <li><a href="%s">%s</a></li>`,
-						r,
-						r,
-					)
-					plainText += fmt.Sprintf(" %s\n",
-						r,
-					)
-				}
-			}
-		}
-		mainHTML += fmt.Sprintf(` </ul>`)
+	default:
+		return "", "", "", "", "", nil
 	}
 
-	t, _ := template.New("email").Parse(htmlTemplate)
+	var body bytes.Buffer
+	t, _ := template.New("email").Parse(mainHTMLTpl)
+	t.Execute(&body, notification.Meta)
+	mainHTML += body.String()
+
+	var plainTextBuffer bytes.Buffer
+	t, _ = template.New("email").Parse(plainTextTpl)
+	t.Execute(&plainTextBuffer, notification.Meta)
+	plainText += plainTextBuffer.String()
+	if subject == "" {
+		subject = plainText
+	}
+	return emoji, color, subject, mainHTML, plainText, nil
+}
+
+func (h *Messaging) sendEmailMessage(emoji, color, subject, event, project, emailAddress, mainHTML, plainText string) {
 	var body bytes.Buffer
 
-	mimeHeaders := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
-	body.Write([]byte(fmt.Sprintf("From: Lagoon Notifications\nSubject: %s \n%s\n\n", subject, mimeHeaders)))
+	// mimeHeaders := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
+	// body.Write([]byte(fmt.Sprintf("From: Lagoon Notifications<%s>\nSubject: %s \n%s\n\n", h.EmailSender, subject, mimeHeaders)))
 
+	t, _ := template.New("email").Parse(htmlTemplate)
 	t.Execute(&body, struct {
 		Color       string
 		Emoji       string
 		Title       string
 		ProjectName string
 		MainHTML    string
-		Additional  string
 	}{
 		Title:       plainText,
 		Color:       color,
 		Emoji:       emoji,
-		ProjectName: notification.Meta.ProjectName,
+		ProjectName: project,
 		MainHTML:    mainHTML,
-		Additional:  additional,
 	})
-	// Configuration
-	from := "notifications@lagoon.sh"
-	password := ""
-	to := []string{emailAddress}
-	smtpHost := "localhost"
-	smtpPort := "1025"
 
-	// Create authentication
-	auth := smtp.PlainAuth("", from, password, smtpHost)
-	// Send actual message
-	err = smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, body.Bytes())
-	if err != nil {
-		log.Printf("Error sending message to email: %v", err)
-		return
+	m := gomail.NewMessage()
+	m.SetHeader("From", h.EmailSender)
+	m.SetHeader("To", emailAddress)
+	m.SetHeader("Subject", subject)
+	m.SetBody("text/plain", plainText)
+	m.AddAlternative("text/html", body.String())
+	sPort, _ := strconv.Atoi(h.EmailPort)
+	d := gomail.NewDialer(h.EmailHost, sPort, h.EmailSender, "")
+	d.TLSConfig = &tls.Config{InsecureSkipVerify: h.EmailInsecureSkipVerify}
+	if err := d.DialAndSend(m); err != nil {
+		fmt.Println(err)
+		panic(err)
 	}
-	log.Println(fmt.Sprintf("Sent %s message to email", notification.Event))
+
+	// // Create authentication
+	// auth := smtp.PlainAuth("", sender, password, smtpHost)
+	// // Send actual message
+	// err := smtp.SendMail(smtpHost+":"+smtpPort, auth, sender, to, body.Bytes())
+	// if err != nil {
+	// 	log.Printf("Error sending message to email: %v", err)
+	// 	return
+	// }
+	log.Println(fmt.Sprintf("Sent %s message to email", event))
 }
 
 func getEmailEvent(msgEvent string) (string, string, string, error) {

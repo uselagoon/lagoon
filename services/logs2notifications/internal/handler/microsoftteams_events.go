@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
+	"text/template"
 )
 
 // MicrosoftTeamsData .
@@ -25,181 +27,101 @@ type MicrosoftTeamsSection struct {
 }
 
 // SendToMicrosoftTeams .
-func SendToMicrosoftTeams(notification *Notification, webhook, appID string) {
-
-	emoji, color, template, err := getMicrosoftTeamsEvent(notification.Event)
+func (h *Messaging) SendToMicrosoftTeams(notification *Notification, webhook string) {
+	emoji, color, message, err := h.processMicrosoftTeamsTemplate(notification)
 	if err != nil {
 		return
 	}
+	h.sendMicrosoftTeamsMessage(emoji, color, webhook, notification.Event, notification.Meta.ProjectName, message)
+}
 
-	var text string
-	switch template {
-	case "mergeRequestOpened":
-		text = fmt.Sprintf("PR [#%s (%s)](%s) opened in [%s](%s)",
-			notification.Meta.PullrequestNumber,
-			notification.Meta.PullrequestTitle,
-			notification.Meta.PullrequestURL,
-			notification.Meta.RepoName,
-			notification.Meta.RepoURL,
-		)
-	case "mergeRequestUpdated":
-		text = fmt.Sprintf("PR [#%s (%s)](%s) updated in [%s](%s)",
-			notification.Meta.PullrequestNumber,
-			notification.Meta.PullrequestTitle,
-			notification.Meta.PullrequestURL,
-			notification.Meta.RepoName,
-			notification.Meta.RepoURL,
-		)
-	case "mergeRequestClosed":
-		text = fmt.Sprintf("PR [#%s (%s)](%s) closed in [%s](%s)",
-			notification.Meta.PullrequestNumber,
-			notification.Meta.PullrequestTitle,
-			notification.Meta.PullrequestURL,
-			notification.Meta.RepoName,
-			notification.Meta.RepoURL,
-		)
-	case "deleteEnvironment":
-		text = fmt.Sprintf("Deleting environment `%s`",
-			notification.Meta.EnvironmentName,
-		)
-	case "repoPushHandled":
-		text = fmt.Sprintf("[%s](%s/tree/%s)",
-			notification.Meta.BranchName,
-			notification.Meta.RepoURL,
-			notification.Meta.BranchName,
-		)
-		if notification.Meta.ShortSha != "" {
-			text = fmt.Sprintf("%s ([%s](%s))",
-				text,
-				notification.Meta.ShortSha,
-				notification.Meta.CommitURL,
-			)
+// processMicrosoftTeamsTemplate .
+func (h *Messaging) processMicrosoftTeamsTemplate(notification *Notification) (string, string, string, error) {
+	emoji, color, tpl, err := getMicrosoftTeamsEvent(notification.Event)
+	if err != nil {
+		eventSplit := strings.Split(notification.Event, ":")
+		if eventSplit[0] != "problem" {
+			return "", "", "", fmt.Errorf("no matching event")
 		}
-		text = fmt.Sprintf("%s pushed in [%s](%s)",
-			text,
-			notification.Meta.RepoFullName,
-			notification.Meta.RepoURL,
-		)
-	case "repoPushSkipped":
-		text = fmt.Sprintf("[%s](%s/tree/%s)",
-			notification.Meta.BranchName,
-			notification.Meta.RepoURL,
-			notification.Meta.BranchName,
-		)
-		if notification.Meta.ShortSha != "" {
-			text = fmt.Sprintf("%s ([%s](%s))",
-				text,
-				notification.Meta.ShortSha,
-				notification.Meta.CommitURL,
-			)
+		if eventSplit[1] == "insert" {
+			tpl = "problemNotification"
 		}
-		text = fmt.Sprintf("%s pushed in [%s](%s) *deployment skipped*",
-			text,
-			notification.Meta.RepoFullName,
-			notification.Meta.RepoURL,
-		)
-	case "deployEnvironment":
-		text = fmt.Sprintf("Deployment triggered `%s`",
-			notification.Meta.BranchName,
-		)
-		if notification.Meta.ShortSha != "" {
-			text = fmt.Sprintf("%s (%s)",
-				text,
-				notification.Meta.ShortSha,
-			)
-		}
-	case "removeFinished":
-		text = fmt.Sprintf("Removed `%s`",
-			notification.Meta.OpenshiftProject,
-		)
-	case "removeRetry":
-		text = fmt.Sprintf("Removed `%s`",
-			notification.Meta.OpenshiftProject,
-		)
-	case "notDeleted":
-		text = fmt.Sprintf("`%s` not deleted. %s",
-			notification.Meta.BranchName,
-			notification.Meta.Error,
-		)
-	case "deployError":
-		if notification.Meta.ShortSha != "" {
-			text += fmt.Sprintf("`%s` %s",
-				notification.Meta.BranchName,
-				notification.Meta.ShortSha,
-			)
-		} else {
-			text += fmt.Sprintf(" `%s`",
-				notification.Meta.BranchName,
-			)
-		}
-		text += fmt.Sprintf(" Build `%s` Failed.",
-			notification.Meta.BuildName,
-		)
-		if notification.Meta.LogLink != "" {
-			text += fmt.Sprintf(" [Logs](%s) \r",
-				notification.Meta.LogLink,
-			)
-		}
-	case "deployFinished":
-		if notification.Meta.ShortSha != "" {
-			text += fmt.Sprintf("`%s` %s",
-				notification.Meta.BranchName,
-				notification.Meta.ShortSha,
-			)
-		} else {
-			text += fmt.Sprintf("`%s`",
-				notification.Meta.BranchName,
-			)
-		}
-		text += fmt.Sprintf(" Build `%s` Succeeded.",
-			notification.Meta.BuildName,
-		)
-		if notification.Meta.LogLink != "" {
-			text += fmt.Sprintf(" [Logs](%s) \r",
-				notification.Meta.LogLink,
-			)
-		}
-		text += fmt.Sprintf("* %s \n",
-			notification.Meta.Route,
-		)
-		if len(notification.Meta.Routes) != 0 {
-			for _, r := range notification.Meta.Routes {
-				if r != notification.Meta.Route {
-					text += fmt.Sprintf("* %s \n", r)
-				}
-			}
-		}
-	default:
-		// do nothing
-		return
 	}
 
-	data := MicrosoftTeamsData{
+	var teamsTpl string
+	switch tpl {
+	case "mergeRequestOpened":
+		teamsTpl = `PR [#{{.PullrequestNumber}} ({{.PullrequestTitle}})]({{.PullrequestURL}}) opened in [{{.RepoName}}]({{.RepoURL}})`
+	case "mergeRequestUpdated":
+		teamsTpl = `PR [#{{.PullrequestNumber}} ({{.PullrequestTitle}})]({{.PullrequestURL}}) updated in [{{.RepoName}}]({{.RepoURL}})`
+	case "mergeRequestClosed":
+		teamsTpl = `PR [#{{.PullrequestNumber}} ({{.PullrequestTitle}})]({{.PullrequestURL}}) closed in [{{.RepoName}}]({{.RepoURL}})`
+	case "deleteEnvironment":
+		teamsTpl = `Deleting environment ` + "`{{.EnvironmentName}}`"
+	case "repoPushHandled":
+		teamsTpl = `[{{.BranchName}}]({{.RepoURL}}/tree/{{.BranchName}}){{ if ne .ShortSha "" }} ([{{.ShortSha}}]({{.CommitURL}})){{end}} pushed in [{{.RepoFullName}}]({{.RepoURL}})`
+	case "repoPushSkipped":
+		teamsTpl = `[{{.BranchName}}]({{.RepoURL}}/tree/{{.BranchName}}){{ if ne .ShortSha "" }} ([{{.ShortSha}}]({{.CommitURL}})){{end}} pushed in [{{.RepoFullName}}]({{.RepoURL}}) *deployment skipped*`
+	case "deployEnvironment":
+		teamsTpl = `Deployment triggered ` + "`{{.BranchName}}`" + `{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}}`
+	case "removeFinished":
+		teamsTpl = `Removed ` + "`{{.OpenshiftProject}}`" + ``
+	case "removeRetry":
+		teamsTpl = `Removed ` + "`{{.OpenshiftProject}}`" + ``
+	case "notDeleted":
+		teamsTpl = "`{{.BranchName}}`" + ` not deleted. {{.Error}}`
+	case "deployError":
+		teamsTpl = "`{{.BranchName}}`" + `{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}} Build ` + "`{{.BuildName}}`" + ` Failed. {{if ne .LogLink ""}} [Logs]({{.LogLink}}){{end}}`
+	case "deployFinished":
+		teamsTpl = "`{{.BranchName}}`" + `{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}} Build ` + "`{{.BuildName}}`" + ` Succeeded. {{if ne .LogLink ""}} [Logs]({{.LogLink}}){{end}}
+* {{.Route}}{{range .Routes}}{{if ne . $.Route}}* {{.}}{{end}}
+{{end}}`
+	case "problemNotification":
+		eventSplit := strings.Split(notification.Event, ":")
+		if eventSplit[0] != "problem" && eventSplit[1] == "insert" {
+			return "", "", "", fmt.Errorf("no matching event")
+		}
+		teamsTpl = `*[{{.ProjectName}}]* New problem found for ` + "`{{.EnvironmentName}}`" + `
+* Service: ` + "`{{.ServiceName}}`" + `{{ if ne .Severity "" }}
+* Severity: {{.Severity}}{{end}}{{ if ne .Description "" }}
+* Description: {{.Description}}{{end}}`
+	default:
+		return "", "", "", fmt.Errorf("no matching event")
+	}
+
+	var teamsMsg bytes.Buffer
+	t, _ := template.New("microsoftteams").Parse(teamsTpl)
+	t.Execute(&teamsMsg, notification.Meta)
+	return emoji, color, teamsMsg.String(), nil
+}
+
+func (h *Messaging) sendMicrosoftTeamsMessage(emoji, color, webhook, event, project, message string) {
+	teamsPayload := MicrosoftTeamsData{
 		Type:       "MessageCard",
 		Context:    "http://schema.org/extensions",
-		Summary:    text,
-		Title:      notification.Meta.ProjectName,
+		Summary:    message,
+		Title:      project,
 		ThemeColor: color,
 		Sections: []MicrosoftTeamsSection{
 			{
-				ActivityText:  text,
+				ActivityText:  message,
 				ActivityImage: emoji,
 			},
 		},
 	}
 
-	jsonBytes, _ := json.Marshal(data)
-	req, err := http.NewRequest("POST", webhook, bytes.NewBuffer(jsonBytes))
+	teamsPayloadBytes, _ := json.Marshal(teamsPayload)
+	req, err := http.NewRequest("POST", webhook, bytes.NewBuffer(teamsPayloadBytes))
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Printf("Error sending message to rocketchat: %v", err)
+		log.Printf("Error sending message to microsoft teams: %v", err)
 		return
 	}
 	defer resp.Body.Close()
-	log.Println(fmt.Sprintf("Sent %s message to rocketchat", notification.Event))
+	log.Println(fmt.Sprintf("Sent %s message to microsoft teams", event))
 }
 
 func getMicrosoftTeamsEvent(msgEvent string) (string, string, string, error) {

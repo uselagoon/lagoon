@@ -3,65 +3,80 @@ package handler
 import (
 	"bytes"
 	"fmt"
-	"net/http"
-	"os"
+	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
-var (
-	AWS_S3_REGION = ""
-	AWS_S3_BUCKET = ""
+// MessageType .
+type MessageType string
+
+const (
+	buildMessageType MessageType = "build"
+	taskMessageType  MessageType = "task"
 )
 
-func getS3Event(msgEvent string) (string, string, string, error) {
-	if val, ok := s3Event[msgEvent]; ok {
-		return val.Emoji, val.Color, val.Template, nil
+// SendToS3 .
+func (h *Messaging) SendToS3(notification *Notification, msgType MessageType) {
+	if msgType == buildMessageType {
+		h.uploadFileS3(
+			notification.Message,
+			fmt.Sprintf("buildlogs/%s/%s/%s-%s.txt",
+				notification.Project,
+				notification.Meta.BranchName,
+				notification.Meta.JobName,
+				notification.Meta.RemoteID,
+			),
+		)
+	} else if msgType == taskMessageType {
+		filePath := fmt.Sprintf("tasklogs/%s/%d-%s.txt",
+			notification.Project,
+			notification.Meta.Task.ID,
+			notification.Meta.RemoteID,
+		)
+		if notification.Meta.Environment != "" {
+			filePath = fmt.Sprintf("tasklogs/%s/%s/%d-%s.txt",
+				notification.Project,
+				notification.Meta.Environment,
+				notification.Meta.Task.ID,
+				notification.Meta.RemoteID,
+			)
+
+		}
+		h.uploadFileS3(
+			notification.Message,
+			filePath,
+		)
 	}
-	return "", "", "", fmt.Errorf("no matching event source")
 }
 
-var s3Event = map[string]EventMap{
-	"github:pull_request:closed:handled": {Emoji: ":information_source:", Color: "#E8E8E8"},
-}
-
-// func main() {
-//     session, err := session.NewSession(&aws.Config{Region: aws.String(AWS_S3_REGION)})
-//     if err != nil {
-//         log.Fatal(err)
-//     }
-
-//     // Upload Files
-//     err = uploadFile(session, "test.png")
-//     if err != nil {
-//         log.Fatal(err)
-//     }
-// }
-
-func uploadFile(session *session.Session, uploadFileDir string) error {
-
-	upFile, err := os.Open(uploadFileDir)
+// UploadFileS3
+func (h *Messaging) uploadFileS3(message, fileName string) {
+	var forcePath bool
+	forcePath = true
+	session, err := session.NewSession(&aws.Config{
+		Region:           aws.String(h.S3FilesRegion),
+		Endpoint:         aws.String(h.S3FilesOrigin),
+		Credentials:      credentials.NewStaticCredentials(h.S3FilesAccessKeyID, h.S3FilesSecretAccessKey, ""),
+		S3ForcePathStyle: &forcePath,
+	})
 	if err != nil {
-		return err
+		log.Fatal(err)
 	}
-	defer upFile.Close()
-
-	upFileInfo, _ := upFile.Stat()
-	var fileSize int64 = upFileInfo.Size()
-	fileBuffer := make([]byte, fileSize)
-	upFile.Read(fileBuffer)
 
 	_, err = s3.New(session).PutObject(&s3.PutObjectInput{
-		Bucket:               aws.String(AWS_S3_BUCKET),
-		Key:                  aws.String(uploadFileDir),
-		ACL:                  aws.String("private"),
-		Body:                 bytes.NewReader(fileBuffer),
-		ContentLength:        aws.Int64(fileSize),
-		ContentType:          aws.String(http.DetectContentType(fileBuffer)),
-		ContentDisposition:   aws.String("attachment"),
-		ServerSideEncryption: aws.String("AES256"),
+		Bucket:      aws.String(h.S3FilesBucket),
+		Key:         aws.String(fileName),
+		ACL:         aws.String("private"),
+		Body:        bytes.NewReader([]byte(message)),
+		ContentType: aws.String("text/plain"),
 	})
-	return err
+	if err != nil {
+		log.Println(err)
+	}
+	log.Println(fmt.Sprintf("Uploaded file %s", fileName))
+	return
 }

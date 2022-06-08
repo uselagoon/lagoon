@@ -1,0 +1,1 @@
+*[ci-github-openshift]* `lagoon-type-override` Build `lagoon-build-1234` Failed.  <https://logs|Logs>

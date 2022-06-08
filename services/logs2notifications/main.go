@@ -28,17 +28,25 @@ var (
 	jwtAudience                  string
 	jwtSubject                   string
 	jwtIssuer                    string
-	s3FilesAccessKeyID           string
-	s3FilesSecretAccessKey       string
-	s3FilesBucket                string
-	s3FilesRegion                string
-	s3FilesOrigin                string
-	disableSlack                 bool
-	disableRocketChat            bool
-	disableMicrosoftTeams        bool
-	disableEmail                 bool
-	disableWebhooks              bool
-	disableS3                    bool
+
+	s3FilesAccessKeyID     string
+	s3FilesSecretAccessKey string
+	s3FilesBucket          string
+	s3FilesRegion          string
+	s3FilesOrigin          string
+
+	disableSlack          bool
+	disableRocketChat     bool
+	disableMicrosoftTeams bool
+	disableEmail          bool
+	disableWebhooks       bool
+	disableS3             bool
+
+	emailSender             string
+	emailSenderPassword     string
+	emailHost               string
+	emailPort               string
+	emailInsecureSkipVerify bool
 )
 
 func main() {
@@ -70,28 +78,44 @@ func main() {
 		"The jwt audience.")
 	flag.StringVar(&jwtIssuer, "jwt-issuer", "logs2notifications",
 		"The jwt audience.")
-	flag.StringVar(&s3FilesAccessKeyID, "s3-files-access-key", "minio",
-		"The jwt audience.")
-	flag.StringVar(&s3FilesSecretAccessKey, "s3-files-secret-access-key", "minio123",
-		"The jwt audience.")
-	flag.StringVar(&s3FilesBucket, "s3-files-bucket", "lagoon-files",
-		"The jwt audience.")
-	flag.StringVar(&s3FilesRegion, "s3-files-region", "",
-		"The jwt audience.")
-	flag.StringVar(&s3FilesOrigin, "s3-files-origin", "http://docker.for.mac.localhost:9000",
-		"The jwt audience.")
+
+	// Other notifications configuration
 	flag.BoolVar(&disableSlack, "disable-slack", false,
 		"Disable the logs2slack feature.")
 	flag.BoolVar(&disableRocketChat, "disable-rocketchat", false,
 		"Disable the logs2rocketchat feature.")
 	flag.BoolVar(&disableMicrosoftTeams, "disable-microsoft-teams", false,
 		"Disable the logs2microsoftteams feature.")
-	flag.BoolVar(&disableEmail, "disable-email", false,
-		"Disable the logs2email feature.")
 	flag.BoolVar(&disableWebhooks, "disable-webhooks", false,
 		"Disable the logs2webhooks feature.")
+
+	// S3 configuration
 	flag.BoolVar(&disableS3, "disable-s3", false,
 		"Disable the logs2s3 feature.")
+	flag.StringVar(&s3FilesAccessKeyID, "s3-files-access-key", "minio",
+		"The jwt audience.")
+	flag.StringVar(&s3FilesSecretAccessKey, "s3-files-secret-access-key", "minio123",
+		"The jwt audience.")
+	flag.StringVar(&s3FilesBucket, "s3-files-bucket", "lagoon-files",
+		"The jwt audience.")
+	flag.StringVar(&s3FilesRegion, "s3-files-region", "auto",
+		"The jwt audience.")
+	flag.StringVar(&s3FilesOrigin, "s3-files-origin", "http://minio.127.0.0.1.nip.io:9000",
+		"The jwt audience.")
+
+	// Email sending configuration
+	flag.BoolVar(&disableEmail, "disable-email", false,
+		"Disable the logs2email feature.")
+	flag.StringVar(&emailSender, "email-sender-address", "notifications@lagoon.sh",
+		"The email address to send notifications as.")
+	flag.StringVar(&emailSenderPassword, "email-sender-password", "",
+		"The password (if required) for the sending email address.")
+	flag.StringVar(&emailHost, "email-host", "localhost",
+		"The host name or address for the email server.")
+	flag.StringVar(&emailPort, "email-port", "1025",
+		"The port for the email server.")
+	flag.BoolVar(&emailInsecureSkipVerify, "email-tls-insecure-skip-verify", true,
+		"Use TLS verification when talking to the email server.")
 	flag.Parse()
 
 	// get overrides from environment variables
@@ -110,6 +134,11 @@ func main() {
 	s3FilesBucket = getEnv("S3_FILES_BUCKET", s3FilesBucket)
 	s3FilesRegion = getEnv("S3_FILES_REGION", s3FilesRegion)
 	s3FilesOrigin = getEnv("S3_FILES_HOST", s3FilesOrigin)
+
+	emailSender = getEnv("EMAIL_SENDER_ADDRESS", emailSender)
+	emailSenderPassword = getEnv("EMAIL_SENDER_PASSWORD", emailSenderPassword)
+	emailHost = getEnv("EMAIL_HOST", emailHost)
+	emailPort = getEnv("EMAIL_PORT", emailPort)
 
 	enableDebug := true
 
@@ -195,6 +224,16 @@ func main() {
 		disableEmail,
 		disableWebhooks,
 		disableS3,
+		emailSender,
+		emailSenderPassword,
+		emailHost,
+		emailPort,
+		emailInsecureSkipVerify,
+		s3FilesAccessKeyID,
+		s3FilesSecretAccessKey,
+		s3FilesBucket,
+		s3FilesRegion,
+		s3FilesOrigin,
 	)
 
 	// start the consumer
