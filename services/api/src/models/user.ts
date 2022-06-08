@@ -37,6 +37,7 @@ interface UserModel {
   loadUserByUsername: (username: string) => Promise<User>;
   loadUserByIdOrUsername: (userInput: UserEdit) => Promise<User>;
   loadUsersByOrganizationId: (organizationId: number) => Promise<User[]>;
+  getAllOrganizationIdsForUser: (userInput: User) => Promise<number[]>;
   getAllGroupsForUser: (userInput: User) => Promise<Group[]>;
   getAllProjectsIdsForUser: (userInput: User) => Promise<number[]>;
   getUserRolesForProject: (
@@ -499,12 +500,29 @@ export const User = (clients: {
     }
   };
 
+  const getAllOrganizationIdsForUser = async (
+    userInput: User
+  ): Promise<number[]> => {
+    const GroupModel = Group(clients);
+    let organizations = [];
+
+    const usersOrgs = userInput.attributes['lagoon-organizations'].toString()
+    if (usersOrgs != "" ) {
+      const usersOrgsArr = usersOrgs.split(',');
+      for (const userOrg of usersOrgsArr) {
+        organizations = [...organizations, userOrg]
+      }
+    }
+    return R.uniq(organizations);
+  };
+
   return {
     loadAllUsers,
     loadUserById,
     loadUserByUsername,
     loadUserByIdOrUsername,
     loadUsersByOrganizationId,
+    getAllOrganizationIdsForUser,
     getAllGroupsForUser,
     getAllProjectsIdsForUser,
     getUserRolesForProject,

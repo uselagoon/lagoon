@@ -71,11 +71,27 @@ export const getOrganizationById: ResolverFn = async (
 export const getAllOrganizations: ResolverFn = async (
     root,
     args,
-    { sqlClientPool, hasPermission }
+    { sqlClientPool, models, hasPermission, keycloakGrant }
 ) => {
-    // TODO: update this with permission check for organization owners to list all orgs
-    // they may be in
-    await hasPermission('organization', 'viewAll');
+    let userOrganizationIds: number[];
 
-    return query(sqlClientPool, 'SELECT * FROM organization');
+    try {
+      await hasPermission('organization', 'viewAll');
+    } catch (err) {
+      if (!keycloakGrant) {
+        logger.warn('No grant available for getAllProjects');
+        return [];
+      }
+
+      userOrganizationIds = await models.UserModel.getAllOrganizationIdsForUser({
+        id: keycloakGrant.access_token.content.sub
+      });
+    }
+    let queryBuilder = knex('organization');
+
+    if (userOrganizationIds) {
+      queryBuilder = queryBuilder.whereIn('id', userOrganizationIds);
+    }
+    const rows = await query(sqlClientPool, queryBuilder.toString());
+    return rows;
 };
