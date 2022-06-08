@@ -496,13 +496,13 @@ ui-logs-development: build/actions-handler build/api build/api-db build/local-ap
 
 ## CI targets
 
-KUBECTL_VERSION := v1.21.1
-HELM_VERSION := v3.6.0
-KIND_VERSION = v0.12.0
-GOJQ_VERSION = v0.12.5
-STERN_VERSION = 2.1.17
-CHART_TESTING_VERSION = v3.4.0
-KIND_IMAGE = kindest/node:v1.21.1@sha256:69860bda5563ac81e3c0057d654b5253219618a22ec3a346306239bba8cfa1a6
+KUBECTL_VERSION := v1.23.7
+HELM_VERSION := v3.9.0
+KIND_VERSION = v0.14.0
+GOJQ_VERSION = v0.12.8
+STERN_VERSION = 2.1.20
+CHART_TESTING_VERSION = v3.6.0
+KIND_IMAGE = kindest/node:v1.23.6@sha256:b1fa224cc6c7ff32455e0b1fd9cbfd3d3bc87ecaa8fcb06961ed1afb3db0f9ae
 TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-api-variables,active-standby-kubernetes,tasks,drush,drupal-php80,drupal-postgres,python,gitlab,github,bitbucket,node-mongodb,elasticsearch,workflows]
 CHARTS_TREEISH = "main"
 
