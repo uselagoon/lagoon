@@ -2,15 +2,47 @@ import * as R from 'ramda';
 import { ResolverFn } from '../';
 import { query, isPatchEmpty, knex } from '../../util/db';
 import { Helpers as projectHelpers } from '../project/helpers';
-import sql from '../user/sql';
 import { Sql } from './sql';
 
-const attrFilter = async (hasPermission, entity) => {
+export const getToken: ResolverFn = async (
+  kubernetes,
+  _args,
+  { hasPermission }
+) => {
   try {
     await hasPermission('openshift', 'view:token');
-    return entity;
+
+    return kubernetes.token;
   } catch (err) {
-    return R.omit(['token','consoleUrl','monitoringConfig'], entity);
+    return null;
+  }
+};
+
+export const getConsoleUrl: ResolverFn = async (
+  kubernetes,
+  _args,
+  { hasPermission }
+) => {
+  try {
+    await hasPermission('openshift', 'view:token');
+
+    return kubernetes.consoleUrl;
+  } catch (err) {
+    return null;
+  }
+};
+
+export const getMonitoringConfig: ResolverFn = async (
+  kubernetes,
+  _args,
+  { hasPermission }
+) => {
+  try {
+    await hasPermission('openshift', 'view:token');
+
+    return kubernetes.monitoringConfig;
+  } catch (err) {
+    return null;
   }
 };
 
@@ -82,7 +114,7 @@ export const getOpenshiftByProjectId: ResolverFn = async (
     }
   );
 
-  return rows ? attrFilter(hasPermission, rows[0]) : null;
+  return rows ? rows[0] : null;
 };
 
 export const getOpenshiftByDeployTargetId: ResolverFn = async (
@@ -119,7 +151,7 @@ export const getOpenshiftByDeployTargetId: ResolverFn = async (
     }
   );
 
-  return rows ? attrFilter(hasPermission, rows[0]) : null;
+  return rows ? rows[0] : null;
 };
 
 export const getOpenshiftByEnvironmentId: ResolverFn = async (
@@ -149,7 +181,7 @@ export const getOpenshiftByEnvironmentId: ResolverFn = async (
     }
   );
 
-  return rows ? attrFilter(hasPermission, rows[0]) : null;
+  return rows ? rows[0] : null;
 };
 
 export const updateOpenshift: ResolverFn = async (

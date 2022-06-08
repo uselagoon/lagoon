@@ -161,6 +161,9 @@ const {
   getProjectUser,
   updateOpenshift,
   deleteAllOpenshifts,
+  getToken,
+  getConsoleUrl,
+  getMonitoringConfig,
 } = require('./resources/openshift/resolvers');
 
 const {
@@ -319,9 +322,15 @@ const resolvers = {
   },
   Openshift: {
     projectUser: getProjectUser,
+    token: getToken,
+    consoleUrl: getConsoleUrl,
+    monitoringConfig: getMonitoringConfig,
   },
   Kubernetes: {
     projectUser: getProjectUser,
+    token: getToken,
+    consoleUrl: getConsoleUrl,
+    monitoringConfig: getMonitoringConfig,
   },
   Project: {
     notifications: getNotificationsByProjectId,
