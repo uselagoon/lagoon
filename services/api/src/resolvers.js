@@ -34,7 +34,6 @@ const { SeverityScoreType } = require('./resources/problem/types');
 const { getLagoonVersion } = require('./resources/lagoon/resolvers');
 
 const {
-  getInsightsFile,
   getInsightsFileData,
   getInsightsFilesByEnvironmentId,
   getInsightsDownloadUrl,
@@ -380,7 +379,6 @@ const resolvers = {
     buildLog: getBuildLog,
   },
   Insight: {
-    file: getInsightsFile,
     data: getInsightsFileData,
     downloadUrl: getInsightsDownloadUrl,
   },

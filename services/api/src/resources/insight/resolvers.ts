@@ -7,16 +7,13 @@ import {
 } from '../../clients/pubSub';
 import { getConfigFromEnv, getLagoonRouteFromEnv } from '../../util/config';
 
-import { knex, query, isPatchEmpty } from '../../util/db';
-import { Sql } from '../file/sql';
-import { Helpers } from './helpers';
+import { getEnvironmentName, convertBytesToHumanFileSize } from './helpers';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
 
 import S3 from 'aws-sdk/clients/s3';
-import sha1 from 'sha1';
 
-
+// s3 config
 const accessKeyId =  process.env.S3_FILES_ACCESS_KEY_ID || 'minio'
 const secretAccessKey =  process.env.S3_FILES_SECRET_ACCESS_KEY || 'minio123'
 const bucket = process.env.S3_INSIGHTS_BUCKET || 'lagoon-insights'
@@ -45,41 +42,35 @@ const s3Client = new S3({
 
 const convertDateFormat = R.init;
 
-const getEnvironmentName = (
-  environmentData,
-  projectData
-) => {
-  // we need to get the safename of the environment from when it was created
-  const makeSafe = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
-  var environmentName = makeSafe(environmentData.name)
-  var overlength = 58 - projectData.name.length;
-  if ( environmentName.length > overlength ) {
-    var hash = sha1(environmentName).substring(0,4)
-    environmentName = environmentName.substring(0, overlength-5)
-    environmentName = environmentName.concat('-' + hash)
-  }
 
-  return environmentName ? environmentName : ""
-}
-
-//let insightsFile = projectData.name+'/'+environmentName+'/'+file
-
-export const getInsightsDownloadUrl: ResolverFn = async ({ s3Key }) => {
+// Get insights files directly from the bucket
+export const getInsightsBucketFiles = async ({ prefix }) => {
 	try {
-    return s3Client.getSignedUrl('getObject', {Bucket: bucket, Key: s3Key, Expires: 600});
-	} catch (e) {
-   return `Error while creating download link - ${e.Error}`
+    const data = await s3Client.listObjects({ Bucket: bucket, Prefix: prefix }, function(err, data) {
+      if (err) {
+        console.log("Failed to get items: ", err);
+      } else {
+
+         return data;
+      }
+    }).promise();
+
+    if (!data) {
+      return null;
+    }
+
+    return await JSON.parse(JSON.stringify(data.Contents));
+	}
+  catch (e) {
+    throw new Error(`Error retrieving bucket items - ${e.Error}`)
 	}
 }
 
-export const getInsightsFile: ResolverFn = async (
+export const getInsightsDownloadUrl: ResolverFn = async (
   { fileId, environment, file },
   _args,
   { sqlClientPool }
 ) => {
-  if (!fileId) {
-    return null;
-  }
 
   const environmentData = await environmentHelpers(
     sqlClientPool
@@ -88,8 +79,15 @@ export const getInsightsFile: ResolverFn = async (
     environmentData.project
   );
 
-  let environmentName = getEnvironmentName(environmentData, projectData)
-  return projectData.name+'/'+environmentName+'/'+file
+  let environmentName = getEnvironmentName(environmentData, projectData);
+
+	try {
+    const s3Key = `insights/${projectData.name}/${environmentName}/${file}`;
+
+    return s3Client.getSignedUrl('getObject', {Bucket: bucket, Key: s3Key, Expires: 600});
+	} catch (e) {
+   return `Error while creating download link - ${e.Error}`
+	}
 }
 
 export const getInsightsFileData: ResolverFn = async (
@@ -108,11 +106,10 @@ export const getInsightsFileData: ResolverFn = async (
     environmentData.project
   );
 
-  let environmentName = getEnvironmentName(environmentData, projectData)
+  let environmentName = getEnvironmentName(environmentData, projectData);
 
   try {
-    // let insightsFile = 'insights/'+projectData.name+'/'+environmentName+'/'+file
-    let insightsFile = projectData.name+'/'+environmentName+'/'+file
+    let insightsFile = 'insights/'+projectData.name+'/'+environmentName+'/'+file
     const data = await s3Client.getObject({Bucket: bucket, Key: insightsFile}).promise();
 
     if (!data) {
@@ -122,50 +119,10 @@ export const getInsightsFileData: ResolverFn = async (
     if (data.ContentEncoding == 'gzip') {
       return "Compressed file"
     }
-    return new Buffer(JSON.parse(JSON.stringify(data.Body)).data).toString('ascii');;
+    return JSON.parse(JSON.stringify(data.Body));
   } catch (e) {
     return `There was an error loading insights data: ${e.message}\nIf this error persists, contact your Lagoon support team.`;
   }
-};
-
-export const getFilesByInsightId: ResolverFn = async (
-  { id: iid },
-  _args,
-  { sqlClientPool }
-) => query(sqlClientPool, Sql.selectInsightFiles(iid));
-
-export const deleteFilesForInsight: ResolverFn = async (
-  root,
-  { input: { id, eid } },
-  { sqlClientPool, hasPermission, userActivityLogger }
-) => {
-
-  await hasPermission('environent', 'delete', {
-    project: eid
-  });
-
-  const rows = await query(sqlClientPool, Sql.selectInsightFiles(id));
-  const deleteObjects = R.map((file: any) => ({ Key: file.s3Key }), rows);
-
-  const params = {
-    Delete: {
-      Objects: deleteObjects,
-      Quiet: false
-    }
-  };
-  // @ts-ignore
-  await s3Client.deleteObjects(params).promise();
-  await query(sqlClientPool, Sql.deleteFileInsight(id));
-
-  userActivityLogger(`User deleted files for insight '${id}'`, {
-    project: '',
-    event: 'api:deleteFilesForInsight',
-    data: {
-      id
-    }
-  });
-
-  return 'success';
 };
 
 export const getInsightsFilesByEnvironmentId: ResolverFn = async (
@@ -173,28 +130,40 @@ export const getInsightsFilesByEnvironmentId: ResolverFn = async (
   { name, limit },
   { sqlClientPool, hasPermission }
 ) => {
-  const environment = await environmentHelpers(
+
+  if (!eid) {
+    throw "No Environment ID given.";
+  }
+
+  const environmentData = await environmentHelpers(
     sqlClientPool
-  ).getEnvironmentById(eid);
+  ).getEnvironmentById(parseInt(eid));
 
   if (!environmentAuthz) {
     await hasPermission('environment', 'view', {
-      project: environment.project
+      project: environmentData.project
     });
   }
 
-  let queryBuilder = knex('insight')
-    .where('environment', eid)
-    .orderBy('created', 'desc')
-    .orderBy('id', 'desc');
+  const projectData = await projectHelpers(sqlClientPool).getProjectById(
+    environmentData.project
+  );
+  const environmentName = getEnvironmentName(environmentData, projectData);
 
-  if (name) {
-    queryBuilder = queryBuilder.andWhere('name', name);
-  }
+  const insightsItems = await getInsightsBucketFiles({ prefix: 'insights/'+projectData.name+'/'+environmentName+'/'});
+  const files = await Promise.all(insightsItems.map(async (file, index) => {
 
-  if (limit) {
-    queryBuilder = queryBuilder.limit(limit);
-  }
+    const fileName = file.Key.split("/").pop();
+    return {
+      id: index+1,
+      fileId: file.Owner.ID,
+      file: fileName,
+      size: convertBytesToHumanFileSize(file.Size),
+      created: file.LastModified,
+      type: fileName.split('-')[0],
+      environment: eid,
+    }
+  }));
 
-  return query(sqlClientPool, queryBuilder.toString());
+  return files;
 };

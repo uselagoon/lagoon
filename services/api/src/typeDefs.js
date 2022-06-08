@@ -919,6 +919,7 @@ const typeDefs = gql`
     fileId: String
     data: String
     file: String!
+    size: String
     environment: Environment!
     downloadUrl: String
   }
