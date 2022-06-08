@@ -69,6 +69,7 @@ type Messaging struct {
 	S3FilesBucket           string
 	S3FilesRegion           string
 	S3FilesOrigin           string
+	S3IsGCS                 bool
 }
 
 // Notification .
@@ -238,7 +239,8 @@ func (h *Messaging) processMessage(message []byte, applicationID string) {
 		}
 	default:
 		// all other events are notifications, so do notification handling with them
-		if notification.Project != "" {
+		// and as long as the event is not a `user_action` (activity logger)
+		if notification.Project != "" && notification.Meta.Level != "user_action" {
 			// marshal unmarshal the data into the input we need to use when talking to the lagoon api
 			projectNotifications, err := h.getProjectNotifictions(ctx, notification.Project)
 			if err != nil {
@@ -266,11 +268,11 @@ func (h *Messaging) processMessage(message []byte, applicationID string) {
 						h.SendToMicrosoftTeams(notification, teams.Webhook)
 					}
 				}
-				// if len(projectNotifications.Notifications.Webhook) > 0 && !h.DisableWebhooks {
-				// 	for _, hook := range projectNotifications.Notifications.Webhook {
-				// 		h.SendToWebhook(notification, hook.Webhook)
-				// 	}
-				// }
+				if len(projectNotifications.Notifications.Webhook) > 0 && !h.DisableWebhooks {
+					for _, hook := range projectNotifications.Notifications.Webhook {
+						h.SendToWebhook(notification, hook)
+					}
+				}
 			}
 		}
 	}

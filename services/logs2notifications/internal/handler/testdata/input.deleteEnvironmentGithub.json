@@ -1,8 +1,8 @@
 {
-    "project":"ci-github-openshift",
-    "event":"github:delete:handled",
-    "meta":{
-      "projectName":"ci-github-openshift",
-      "environmentName":"lagoon-type-override"
-    }
+  "project":"ci-github-openshift",
+  "event":"github:delete:handled",
+  "meta":{
+    "projectName":"ci-github-openshift",
+    "environmentName":"lagoon-type-override"
   }
+}

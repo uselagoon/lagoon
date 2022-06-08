@@ -33,44 +33,8 @@ services:
     volumes:
       - ./services/controllerhandler/src:/app/services/controllerhandler/src
       - ./node-packages:/app/node-packages:delegated
-  logs2rocketchat:
-    image: ${IMAGE_REPO:-lagoon}/logs2rocketchat
-    command: yarn run dev
-    volumes:
-      - ./services/logs2rocketchat/src:/app/services/logs2rocketchat/src
-      - ./node-packages:/app/node-packages:delegated
-  logs2slack:
-    image: ${IMAGE_REPO:-lagoon}/logs2slack
-    command: yarn run dev
-    volumes:
-      - ./services/logs2slack/src:/app/services/logs2slack/src
-      - ./node-packages:/app/node-packages:delegated
-  logs2webhook:
-    image: ${IMAGE_REPO:-lagoon}/logs2webhook
-    command: yarn run dev
-    volumes:
-      - ./services/logs2webhook/src:/app/services/logs2webhook/src
-      - ./node-packages:/app/node-packages:delegated
-  logs2s3:
-    image: ${IMAGE_REPO:-lagoon}/logs2s3
-    command: yarn run dev
-    volumes:
-      - ./services/logs2s3/src:/app/services/logs2s3/src
-      - ./node-packages:/app/node-packages:delegated
-  logs2microsoftteams:
-    image: ${IMAGE_REPO:-lagoon}/logs2microsoftteams
-    command: yarn run dev
-    volumes:
-      - ./services/logs2microsoftteams/src:/app/services/logs2microsoftteams/src
-      - ./node-packages:/app/node-packages:delegated
-  logs2email:
-    image: ${IMAGE_REPO:-lagoon}/logs2email
-    command: yarn run dev
-    volumes:
-      - ./services/logs2email/src:/app/services/logs2email/src
-      - ./node-packages:/app/node-packages:delegated
-    depends_on:
-      - mailhog
+  logs2notifications:
+    image: ${IMAGE_REPO:-lagoon}/logs2notifications
   mailhog:
     image: mailhog/mailhog
     ports:

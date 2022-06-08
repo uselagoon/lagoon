@@ -46,7 +46,6 @@ var htmlTemplate = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//E
 
 // SendToEmail .
 func (h *Messaging) SendToEmail(notification *Notification, emailAddress string) {
-
 	emoji, color, subject, mainHTML, plainText, err := h.processEmailTemplates(notification)
 	if err != nil {
 		return

@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/uselagoon/lagoon/services/logs2notifications/internal/helpers"
 )
 
 // MessageType .
@@ -40,7 +41,7 @@ func (h *Messaging) SendToS3(notification *Notification, msgType MessageType) {
 		if notification.Meta.Environment != "" {
 			filePath = fmt.Sprintf("tasklogs/%s/%s/%d-%s.txt",
 				notification.Project,
-				notification.Meta.Environment,
+				helpers.ShortenEnvironment(notification.Project, helpers.MakeSafe(notification.Meta.Environment)),
 				notification.Meta.Task.ID,
 				notification.Meta.RemoteID,
 			)
@@ -67,13 +68,16 @@ func (h *Messaging) uploadFileS3(message, fileName string) {
 		log.Fatal(err)
 	}
 
-	_, err = s3.New(session).PutObject(&s3.PutObjectInput{
+	object := s3.PutObjectInput{
 		Bucket:      aws.String(h.S3FilesBucket),
 		Key:         aws.String(fileName),
-		ACL:         aws.String("private"),
 		Body:        bytes.NewReader([]byte(message)),
 		ContentType: aws.String("text/plain"),
-	})
+	}
+	if !h.S3IsGCS {
+		object.ACL = aws.String("private")
+	}
+	_, err = s3.New(session).PutObject(&object)
 	if err != nil {
 		log.Println(err)
 	}
