@@ -9,6 +9,10 @@ export const Sql = {
     knex('environment_backup')
       .where('backup_id', '=', backupId)
       .toString(),
+  selectEnvVariablesByProjectsById: (projectId: number) =>
+    knex('env_vars')
+      .where('project', projectId)
+      .toString(),
   selectBackupsByEnvironmentId: ({
     environmentId,
     includeDeleted
@@ -87,6 +91,17 @@ export const Sql = {
         restoreLocation,
         created
       })
+      .toString(),
+  deleteRestore: ({
+    backupId
+  }: {
+    backupId: string;
+  }) =>
+    knex('backup_restore')
+      .where({
+        backupId: backupId
+      })
+      .delete()
       .toString(),
   updateRestore: ({
     backupId,

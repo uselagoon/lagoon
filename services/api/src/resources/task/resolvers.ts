@@ -12,6 +12,8 @@ import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { Validators as envValidators } from '../environment/validators';
 import S3 from 'aws-sdk/clients/s3';
+import sha1 from 'sha1';
+import { generateTaskName } from '@lagoon/commons/dist/util';
 
 const accessKeyId =  process.env.S3_FILES_ACCESS_KEY_ID || 'minio'
 const secretAccessKey =  process.env.S3_FILES_SECRET_ACCESS_KEY || 'minio123'
@@ -55,9 +57,21 @@ export const getTaskLog: ResolverFn = async (
     environmentData.project
   );
 
+  // we need to get the safename of the environment from when it was created
+  const makeSafe = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
+  var environmentName = makeSafe(environmentData.name)
+  var overlength = 58 - projectData.name.length;
+  if ( environmentName.length > overlength ) {
+    var hash = sha1(environmentName).substring(0,4)
+    environmentName = environmentName.substring(0, overlength-5)
+    environmentName = environmentName.concat('-' + hash)
+  }
+
+
   try {
     // where it should be, check `tasklogs/projectName/environmentName/taskId-remoteId.txt`
-    const data = await s3Client.getObject({Bucket: bucket, Key: 'tasklogs/'+projectData.name+'/'+environmentData.name+'/'+id+'-'+remoteId+'.txt'}).promise();
+  let taskLog = 'tasklogs/'+projectData.name+'/'+environmentName+'/'+id+'-'+remoteId+'.txt'
+    const data = await s3Client.getObject({Bucket: bucket, Key: taskLog}).promise();
 
     if (!data) {
       return null;
@@ -67,7 +81,8 @@ export const getTaskLog: ResolverFn = async (
   } catch (e) {
     // if it isn't where it should be, check the fallback location which will be `tasklogs/projectName/taskId-remoteId.txt`
     try {
-      const data = await s3Client.getObject({Bucket: bucket, Key: 'tasklogs/'+projectData.name+'/'+id+'-'+remoteId+'.txt'}).promise();
+      let taskLog = 'tasklogs/'+projectData.name+'/'+id+'-'+remoteId+'.txt'
+      const data = await s3Client.getObject({Bucket: bucket, Key: taskLog}).promise();
 
       if (!data) {
         return null;
@@ -83,7 +98,7 @@ export const getTaskLog: ResolverFn = async (
 
 export const getTasksByEnvironmentId: ResolverFn = async (
   { id: eid },
-  { id: filterId, limit },
+  { id: filterId, taskName: taskName, limit },
   { sqlClientPool, hasPermission }
 ) => {
   const environment = await environmentHelpers(
@@ -102,11 +117,39 @@ export const getTasksByEnvironmentId: ResolverFn = async (
     queryBuilder = queryBuilder.andWhere('id', filterId);
   }
 
+  if (taskName) {
+    queryBuilder = queryBuilder.andWhere('task_name', taskName);
+  }
+
   if (limit) {
     queryBuilder = queryBuilder.limit(limit);
   }
 
   return query(sqlClientPool, queryBuilder.toString());
+};
+
+export const getTaskByTaskName: ResolverFn = async (
+  root,
+  { taskName },
+  { sqlClientPool, hasPermission }
+) => {
+  const queryString = knex('task')
+    .where('task_name', '=', taskName)
+    .toString();
+
+  const rows = await query(sqlClientPool, queryString);
+  const task = R.prop(0, rows);
+
+  if (!task) {
+    return null;
+  }
+
+  const rowsPerms = await query(sqlClientPool, Sql.selectPermsForTask(task.id));
+  await hasPermission('task', 'view', {
+    project: R.path(['0', 'pid'], rowsPerms)
+  });
+
+  return task;
 };
 
 export const getTaskByRemoteId: ResolverFn = async (
@@ -194,6 +237,8 @@ export const addTask: ResolverFn = async (
     execute = true;
   }
 
+  let taskName = generateTaskName()
+
   userActivityLogger(`User added task '${name}'`, {
     project: '',
     event: 'api:addTask',
@@ -201,6 +246,7 @@ export const addTask: ResolverFn = async (
       input: {
         id,
         name,
+        taskName,
         status,
         created,
         started,
@@ -217,6 +263,7 @@ export const addTask: ResolverFn = async (
   const taskData = await Helpers(sqlClientPool).addTask({
     id,
     name,
+    taskName,
     status,
     created,
     started,
@@ -379,6 +426,7 @@ TOKEN="$(ssh -p $TASK_SSH_PORT -t lagoon@$TASK_SSH_HOST token)" && curl -sS "$TA
 
   const taskData = await Helpers(sqlClientPool).addTask({
     name: 'Drush archive-dump',
+    taskName: generateTaskName(),
     environment: environmentId,
     service: 'cli',
     command,
@@ -405,7 +453,8 @@ export const taskDrushSqlDump: ResolverFn = async (
     project: envPerm.project
   });
 
-  const command = String.raw`file="/tmp/$LAGOON_PROJECT-$LAGOON_GIT_SAFE_BRANCH-$(date --iso-8601=seconds).sql" && drush sql-dump --result-file=$file --gzip && \
+  const command = String.raw`file="/tmp/$LAGOON_PROJECT-$LAGOON_GIT_SAFE_BRANCH-$(date --iso-8601=seconds).sql" && DRUSH_MAJOR_VERSION=$(drush status --fields=drush-version | awk '{ print $4 }' | grep -oE '^s*[0-9]+') && \
+if [[ $DRUSH_MAJOR_VERSION -ge 9 ]]; then drush sql-dump --extra-dump=--no-tablespaces --result-file=$file --gzip; else drush sql-dump --extra=--no-tablespaces --result-file=$file --gzip; fi && \
 TOKEN="$(ssh -p $TASK_SSH_PORT -t lagoon@$TASK_SSH_HOST token)" && curl -sS "$TASK_API_HOST"/graphql \
 -H "Authorization: Bearer $TOKEN" \
 -F operations='{ "query": "mutation ($task: Int!, $files: [Upload!]!) { uploadFilesForTask(input:{task:$task, files:$files}) { id files { filename } } }", "variables": { "task": '"$TASK_DATA_ID"', "files": [null] } }' \
@@ -426,6 +475,7 @@ TOKEN="$(ssh -p $TASK_SSH_PORT -t lagoon@$TASK_SSH_HOST token)" && curl -sS "$TA
 
   const taskData = await Helpers(sqlClientPool).addTask({
     name: 'Drush sql-dump',
+    taskName: generateTaskName(),
     environment: environmentId,
     service: 'cli',
     command,
@@ -476,6 +526,7 @@ export const taskDrushCacheClear: ResolverFn = async (
 
   const taskData = await Helpers(sqlClientPool).addTask({
     name: 'Drush cache-clear',
+    taskName: generateTaskName(),
     environment: environmentId,
     service: 'cli',
     command,
@@ -515,6 +566,7 @@ export const taskDrushCron: ResolverFn = async (
 
   const taskData = await Helpers(sqlClientPool).addTask({
     name: 'Drush cron',
+    taskName: generateTaskName(),
     environment: environmentId,
     service: 'cli',
     command: `drush cron`,
@@ -579,11 +631,17 @@ export const taskDrushSqlSync: ResolverFn = async (
     }
   );
 
+  const command =
+  `LAGOON_ALIAS_PREFIX="" && \
+  if [[ ! "" = "$(drush | grep 'lagoon:aliases')" ]]; then LAGOON_ALIAS_PREFIX="lagoon.\${LAGOON_PROJECT}-"; fi && \
+  drush -y sql-sync @\${LAGOON_ALIAS_PREFIX}${sourceEnvironment.name} @self`;
+
   const taskData = await Helpers(sqlClientPool).addTask({
     name: `Sync DB ${sourceEnvironment.name} -> ${destinationEnvironment.name}`,
+    taskName: generateTaskName(),
     environment: destinationEnvironmentId,
     service: 'cli',
-    command: `drush -y sql-sync @${sourceEnvironment.name} @self`,
+    command: command,
     execute: true
   });
 
@@ -645,11 +703,17 @@ export const taskDrushRsyncFiles: ResolverFn = async (
     }
   );
 
+  const command =
+  `LAGOON_ALIAS_PREFIX="" && \
+  if [[ ! "" = "$(drush | grep 'lagoon:aliases')" ]]; then LAGOON_ALIAS_PREFIX="lagoon.\${LAGOON_PROJECT}-"; fi && \
+  drush -y rsync @\${LAGOON_ALIAS_PREFIX}${sourceEnvironment.name}:%files @self:%files -- --omit-dir-times --no-perms --no-group --no-owner --chmod=ugo=rwX`;
+
   const taskData = await Helpers(sqlClientPool).addTask({
     name: `Sync files ${sourceEnvironment.name} -> ${destinationEnvironment.name}`,
+    taskName: generateTaskName(),
     environment: destinationEnvironmentId,
     service: 'cli',
-    command: `drush -y rsync @${sourceEnvironment.name}:%files @self:%files`,
+    command: command,
     execute: true
   });
 
@@ -686,6 +750,7 @@ export const taskDrushUserLogin: ResolverFn = async (
 
   const taskData = await Helpers(sqlClientPool).addTask({
     name: 'Drush uli',
+    taskName: generateTaskName(),
     environment: environmentId,
     service: 'cli',
     command: `drush uli`,

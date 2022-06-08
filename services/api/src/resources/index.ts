@@ -15,8 +15,7 @@ export interface ResolverFn {
       userActivityLogger: any | null,
       models: {
         UserModel,
-        GroupModel
-        BillingModel,
+        GroupModel,
         ProjectModel,
         EnvironmentModel,
       },

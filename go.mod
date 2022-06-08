@@ -1,3 +1,3 @@
-module github.com/amazeeio/lagoon
+module github.com/uselagoon/lagoon
 
-go 1.14
+go 1.16

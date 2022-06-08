@@ -14,6 +14,13 @@ app
   .then(() => {
     const server = express();
 
+    server.use((req, res, next) => {
+      // Express middleware to add security headers to the responses.
+      res.header('X-Content-Type-Options', 'nosniff');
+      res.header('X-Frame-Options', 'SameOrigin');
+      next()
+    })
+
     // Handle favicon requests that ignore our HTML meta tags.
     server.get('/favicon.ico', (req, res) =>
       res
@@ -25,6 +32,10 @@ app
 
     server.get('/projects', (req, res) => {
       app.render(req, res, '/projects');
+    });
+
+    server.get('/bulkdeployment/:bulkIdSlug', (req, res) => {
+      app.render(req, res, '/bulkdeployments', { bulkId: req.params.bulkIdSlug });
     });
 
     server.get('/projects/:projectSlug', (req, res) => {
@@ -76,7 +87,7 @@ app
       (req, res) => {
         app.render(req, res, '/task', {
           openshiftProjectName: req.params.environmentSlug,
-          taskId: req.params.taskSlug
+          taskName: req.params.taskSlug
         });
       }
     );

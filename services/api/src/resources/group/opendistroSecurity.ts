@@ -42,10 +42,13 @@ export const OpendistroSecurityOperations = (
 
     const groupProjectPermissions = {
       body: {
+        cluster_permissions: [
+          'cluster:admin/opendistro/reports/menu/download'
+        ],
         index_permissions: [
           {
             index_patterns: [],
-            allowed_actions: ['read']
+            allowed_actions: ['read','indices:monitor/settings/get']
           }
         ],
         tenant_permissions: [
@@ -66,7 +69,7 @@ export const OpendistroSecurityOperations = (
       // inject project permissions into permission array
       groupProjectNames.forEach(projectName =>
         groupProjectPermissions.body.index_permissions[0].index_patterns.push(
-          `*-${projectName}-*`
+          `/^(application|container|lagoon|router)-logs-${projectName}-_-.+/`
         )
       );
     }
@@ -91,6 +94,14 @@ export const OpendistroSecurityOperations = (
         logger.debug(`${groupName}: Created Tenant "${tenantName}"`);
       } catch (err) {
         logger.error(`Opendistro-Security create tenant error: ${err}`);
+      };
+
+      try {
+        // Create a new RoleMapping for this Group
+        await opendistroSecurityClient.put(`rolesmapping/${tenantName}`, { body: { backend_roles: [`${tenantName}`] } });
+        logger.debug(`${groupName}: Created RoleMapping "${tenantName}"`);
+      } catch (err) {
+        logger.error(`Opendistro-Security create rolemapping error: ${err}`);
       }
     }
 

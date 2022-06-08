@@ -4,7 +4,7 @@
   serial: 1
   vars:
     git_files: "drupal{{ drupal_version }}-{{ db }}/"
-    docker_files: "drupal{{ drupal_version }}-dockerfiles/php{{ php_version }}/"
+    docker_files: "drupal-dockerfiles/php{{ php_version }}/"
   tasks:
   - include: ../../tasks/git-init.yaml
   - include: ../../tasks/git-add-commit-push.yaml
@@ -15,6 +15,7 @@
   vars:
     branch: "{{ branch }}"
     project: "{{ project }}"
+    namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
   tasks:
   - include: ../../tasks/api/deploy-no-sha.yaml
 
@@ -38,6 +39,7 @@
   vars:
     branch: "{{ branch }}"
     project: "{{ project }}"
+    namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
   tasks:
   - include: ../../tasks/api/deploy-no-sha.yaml
 

@@ -1,6 +1,7 @@
 import R from 'ramda';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
 import { createDeployTask } from '@lagoon/commons/dist/tasks';
+import { generateBuildId } from '@lagoon/commons/dist/util';
 
 import { WebhookRequestData, deployData, Project } from '../types';
 
@@ -38,6 +39,8 @@ export async function bitbucketPullRequestUpdated(webhook: WebhookRequestData, p
       return;
     }
 
+    let buildName = generateBuildId();
+
     const data: deployData = {
       repoName: body.repository.full_name,
       repoUrl: body.repository.links.html.href,
@@ -51,6 +54,7 @@ export async function bitbucketPullRequestUpdated(webhook: WebhookRequestData, p
       baseBranchName: baseBranchName,
       baseSha: baseSha,
       branchName: `pr-${body.pullrequest.id}`,
+      buildName: buildName
     }
 
     try {

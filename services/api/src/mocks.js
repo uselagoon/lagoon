@@ -53,7 +53,7 @@ export const generator = (schema, min = 1, max) => {
 const mocks = {
   Date: () => faker.date.between('2018-11-01T00:00:00', '2019-10-31T23:59:59').toISOString(),
   JSON: () => ({ id: faker.random.number(), currency: 'usd' }),
-  SshKeyType: () => faker.random.arrayElement(['ssh_rsa', 'ssh_ed25519']),
+  SshKeyType: () => faker.random.arrayElement(['ssh_rsa', 'ssh_ed25519','ecdsa_sha2_nistp256','ecdsa_sha2_nistp384','ecdsa_sha2_nistp521']),
   DeployType: () => faker.random.arrayElement(['branch', 'pullrequest', 'promote']),
   EnvType: () => faker.random.arrayElement(['production', 'development']),
   NotificationType: () => faker.random.arrayElement(['slack', 'rocketchat', 'microsoftteams', 'email']),
@@ -146,13 +146,7 @@ mocks.Group = (parent, args = {}, context, info) => {
   return group;
 };
 
-mocks.Group = mocks.GroupInterface;
-
-mocks.BillingGroup = (parent, args = {}, context, info) => ({
-  ...mocks.Group(parent, args, context, info),
-  currency: mocks.Currency(),
-  billingSoftware: faker.random.arrayElement(['Xero', 'Bexio', 'Clay tablets']),
-});
+//mocks.Group = mocks.GroupInterface;
 
 mocks.Me = () => ({
   id: faker.random.number(),
@@ -163,14 +157,14 @@ mocks.Me = () => ({
   sshKeys: [{
     id: faker.random.number(),
     name: faker.random.arrayElement(['key-1', 'key-2', 'key-3']),
-    keyType: faker.random.arrayElement(['SSH_RSA', 'SSH_ED25519']),
+    keyType: faker.random.arrayElement(['SSH_RSA', 'SSH_ED25519', 'ECDSA_SHA2_NISTP256', 'ECDSA_SHA2_NISTP384', 'ECDSA_SHA2_NISTP521']),
     created: mocks.Date(),
     keyFingerprint: faker.random.uuid()
   },
   {
     id: faker.random.number(),
     name: faker.random.arrayElement(['key-1', 'key-2', 'key-3']),
-    keyType: faker.random.arrayElement(['SSH_RSA', 'SSH_ED25519']),
+    keyType: faker.random.arrayElement(['SSH_RSA', 'SSH_ED25519', 'ECDSA_SHA2_NISTP256', 'ECDSA_SHA2_NISTP384', 'ECDSA_SHA2_NISTP521']),
     created: mocks.Date(),
     keyFingerprint: faker.random.uuid()
   }]
@@ -643,75 +637,7 @@ mocks.Query = () => ({
   },
   allGroups: () => new MockList(9),
   allProjectsInGroup: () => new MockList(5),
-  billingGroupCost: mockCost,
-  allBillingGroupsCost: mockCost,
-  allBillingModifiers: mockModifier
 });
-
-const mockModifier = () => {
-  return [
-    {
-      "id": 18,
-      "group": {
-        "id": "6bd89c43-abdd-47e6-bda0-d2c598792d4c",
-        "name": "Lorem Ipsum",
-        "__typename": "BillingGroup"
-      },
-      "startDate": "2020-03-01 00:00:00",
-      "endDate": "2999-03-02 00:00:00",
-      "discountFixed": 0,
-      "discountPercentage": 0,
-      "extraFixed": 540,
-      "extraPercentage": 0,
-      "min": 0,
-      "max": 0,
-      "customerComments": "Rocket Chat",
-      "adminComments": "Rocket Chat",
-      "weight": 0,
-      "__typename": "BillingModifier"
-    },
-    {
-      "id": 25,
-      "group": {
-        "id": "6bd89c43-abdd-47e6-bda0-d2c598792d4c",
-        "name": "Accruent",
-        "__typename": "BillingGroup"
-      },
-      "startDate": "2020-04-01 00:00:00",
-      "endDate": "2020-04-30 00:00:00",
-      "discountFixed": 0,
-      "discountPercentage": 0,
-      "extraFixed": 1517,
-      "extraPercentage": 0,
-      "min": 0,
-      "max": 0,
-      "customerComments": "Per email with Alex and Jennifer, correction for Jan/Feb/Mar hits calculation",
-      "adminComments": "Back-billing for incorrect hits calculation",
-      "weight": 0,
-      "__typename": "BillingModifier"
-    }
-  ]
-}
-
-const mockCost = () => {
-  const availability = mocks.ProjectAvailability();
-  return {
-    currency: mocks.Currency(),
-    availability: {
-      [availability]: {
-        hitCost: 200,
-        storageCost: 0,
-        environmentCost: {
-          environmentCost: {
-            prod: 0,
-            dev: 0,
-          },
-        },
-        projects: [mocks.Project(null, { environments: [] })],
-      },
-    },
-  };
-};
 
 //
 // Mutation 'type' mock from typeDefs.
@@ -795,12 +721,6 @@ mocks.Mutation = () => ({
   addUserToGroup: () => mocks.Group(),
   removeUserFromGroup: () => mocks.Group(),
   addGroupsToProject: () => mocks.Project(),
-  addBillingGroup: () => mocks.BillingGroup(),
-  updateBillingGroup: () => mocks.BillingGroup(),
-  deleteBillingGroup: () => 'success',
-  addProjectToBillingGroup: () => mocks.Project(),
-  updateProjectBillingGroup: () => mocks.Project(),
-  removeProjectFromBillingGroup: () => mocks.Project(),
   removeGroupsFromProject: () => mocks.Project(),
 });
 

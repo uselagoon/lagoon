@@ -14,6 +14,7 @@ export const Helpers = (sqlClientPool: Pool) => ({
   addTask: async ({
     id,
     name,
+    taskName,
     status,
     created,
     started,
@@ -26,6 +27,7 @@ export const Helpers = (sqlClientPool: Pool) => ({
   }: {
     id?: number;
     name: string;
+    taskName: string;
     status?: string;
     created?: string;
     started?: string;
@@ -41,6 +43,7 @@ export const Helpers = (sqlClientPool: Pool) => ({
       Sql.insertTask({
         id,
         name,
+        taskName,
         status,
         created,
         started,
@@ -99,6 +102,7 @@ export const Helpers = (sqlClientPool: Pool) => ({
     {
       id,
       name,
+      taskName,
       status,
       created,
       started,
@@ -112,6 +116,7 @@ export const Helpers = (sqlClientPool: Pool) => ({
     }: {
       id?: number,
       name: string,
+      taskName: string,
       status?: string,
       created?: string,
       started?: string,
@@ -142,6 +147,7 @@ export const Helpers = (sqlClientPool: Pool) => ({
       Sql.insertTask({
         id,
         name,
+        taskName,
         status,
         created,
         started,

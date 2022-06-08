@@ -1,6 +1,6 @@
 import * as R from 'ramda';
 import { ResolverFn } from '../';
-import { query, isPatchEmpty } from '../../util/db';
+import { query, isPatchEmpty, knex } from '../../util/db';
 import { validateSshKey, getSshKeyFingerprint } from '.';
 import { Sql } from './sql';
 
@@ -10,6 +10,9 @@ const formatSshKey = ({ keyType, keyValue }) => `${keyType} ${keyValue}`;
 const sshKeyTypeToString = R.cond([
   [R.equals('SSH_RSA'), R.always('ssh-rsa')],
   [R.equals('SSH_ED25519'), R.always('ssh-ed25519')],
+  [R.equals('ECDSA_SHA2_NISTP256'), R.always('ecdsa-sha2-nistp256')],
+  [R.equals('ECDSA_SHA2_NISTP384'), R.always('ecdsa-sha2-nistp384')],
+  [R.equals('ECDSA_SHA2_NISTP521'), R.always('ecdsa-sha2-nistp521')],
   [R.T, R.identity]
 ]);
 
@@ -174,9 +177,11 @@ export const deleteSshKey: ResolverFn = async (
     throw new Error(`Not found: '${name}'`);
   }
 
+  const skid = R.path(['0', 'id'], skidResult) as number;
+
   const perms = await query(
     sqlClientPool,
-    Sql.selectUserIdsBySshKeyId(R.path(['0', 'id'], skidResult))
+    Sql.selectUserIdsBySshKeyId(skid)
   );
   const userIds = R.map(R.prop('usid'), perms);
 
@@ -184,7 +189,8 @@ export const deleteSshKey: ResolverFn = async (
     users: userIds
   });
 
-  await query(sqlClientPool, 'CALL DeleteSshKey(:name)', { name });
+  let res = await query(sqlClientPool, knex('user_ssh_key').where('skid', skid).delete().toString());
+  res = await query(sqlClientPool, knex('ssh_key').where('id', skid).delete().toString());
 
   userActivityLogger(`User deleted ssh key '${name}'`, {
     project: '',
@@ -195,7 +201,7 @@ export const deleteSshKey: ResolverFn = async (
       },
       data: {
         ssh_key_name: name,
-        ssh_key_id: R.path(['0', 'id'], skidResult),
+        ssh_key_id: skid,
         user: userIds
       }
     }
@@ -216,7 +222,8 @@ export const deleteSshKeyById: ResolverFn = async (
     users: userIds
   });
 
-  await query(sqlClientPool, 'CALL DeleteSshKeyById(:id)', { id });
+  let res = await query(sqlClientPool, knex('user_ssh_key').where('skid', id).delete().toString());
+  res = await query(sqlClientPool, knex('ssh_key').where('id', id).delete().toString());
 
   // TODO: Check rows for success
 

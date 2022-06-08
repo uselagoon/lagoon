@@ -6,18 +6,18 @@ Containers \(or pods\) started from `cli` images are responsible for building co
 
 The image also contains database `cli`s for both MariaDB and PostgreSQL.
 
-{% hint style="info" %}
-This Dockerfile is intended to be used as a base for any `cli` needs within Lagoon.
-{% endhint %}
+!!! Note "Note:"
+    This Dockerfile is intended to be used as a base for any `cli` needs within Lagoon.
 
 ## Supported versions
 
 * 5.6 \(available for compatibility, no longer officially supported\)
 * 7.0 \(available for compatibility, no longer officially supported\)
 * 7.2 \(available for compatibility, no longer officially supported\)
-* 7.3 [\[Dockerfile\]](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/7.3.Dockerfile)
-* 7.4 [\[Dockerfile\]](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/7.4.Dockerfile)
-* 8.0 [\[Dockerfile\]](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/8.0.Dockerfile)
+* 7.3 \(available for compatibility, no longer officially supported\)
+* 7.4 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/7.4.Dockerfile) - `uselagoon/php-7.4-cli`
+* 8.0 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/8.0.Dockerfile) - `uselagoon/php-8.0-cli`
+* 8.1 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-cli/8.1.Dockerfile) - `uselagoon/php-8.1-cli`
 
 All PHP versions use their own Dockerfiles.
 
@@ -25,7 +25,7 @@ All PHP versions use their own Dockerfiles.
 
 This image is prepared to be used on Lagoon. There are therefore some things already done:
 
-* Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/sclorg/s2i-base-container/blob/master/core/root/usr/bin/fix-permissions), so this image will work with a random user.
+* Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions), so this image will work with a random user.
 * `COMPOSER_ALLOW_SUPERUSER=1` removes warning about use of Composer as root.
 * `80-shell-timeout.sh` script checks if containers are running in a Kubernetes environment and then set a 10 minutes timeout to idle `cli` pods.
 * `cli` containers use an SSH key injected by Lagoon or defined into `SSH_PRIVATE_KEY`environment variable.
@@ -35,7 +35,7 @@ This image is prepared to be used on Lagoon. There are therefore some things alr
 The included cli tools are:
 
 * [`composer` version 1.9.0](https://getcomposer.org/) \(changeable via `COMPOSER_VERSION` and `COMPOSER_HASH_SHA256`\)
-* [`node.js` verison 12](https://nodejs.org/en/) \(as of Jan 2020\)
+* [`node.js` verison 17](https://nodejs.org/en/) \(as of Mar 2022\)
 * [`npm`](https://www.npmjs.com/)
 * [`yarn`](https://yarnpkg.com/lang/en/)
 * `mariadb-client`
@@ -43,7 +43,12 @@ The included cli tools are:
 
 ### Change Node.js Version
 
-By default this image ships with the current Node.js Version \(v12 as of Jan 2020\). If you need another version you can remove the current version and install the one of your choice.
+By default this image ships with the `nodejs-current` package \(v17 as of Mar 2022\). If you need another version you can remove the current version and install the one of your choice. For example, to install Node.js 16, modify your dockerfile to include:
+
+```
+RUN apk del nodejs-current \
+    && apk add --no-cache nodejs=~16
+```
 
 ## Environment variables
 
@@ -67,4 +72,3 @@ service:
     environment:
     << : *default-environment
 ```
-

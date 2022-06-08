@@ -22,18 +22,17 @@ Running a Lagoon, Kubernetes, or Docker cluster on your local machine consumes a
 
 ## Build Lagoon Locally
 
-{% hint style="warning" %}
-Only consider building Lagoon this way if you intend to develop features or functionality for it, or want to debug internal processes. We will also be providing instruction to install Lagoon without building it \(i.e. by using the published releases\).
+!!! warning "Warning:"
+    Only consider building Lagoon this way if you intend to develop features or functionality for it, or want to debug internal processes. We will also be providing instruction to install Lagoon without building it \(i.e. by using the published releases\).
 
 We're using `make` \(see the [Makefile](https://github.com/uselagoon/lagoon/blob/main/Makefile)\) in order to build the needed Docker images, configure Kubernetes and run tests.
-{% endhint %}
 
 We have provided a number of routines in the [Makefile](https://github.com/uselagoon/lagoon/blob/main/Makefile) to cover most local development scenarios. Here we will run through a complete process.
 
 ### Build images
 
 1. Here `-j8` tells **make** to run 8 tasks in parallel to speed the build up. Adjust as necessary.
-2. We have set `SCAN_IAMGES=false` as a default to not scan the built images for vulnerabilities. If set to true, a `scan.txt` file will be created in the project root with the scan output.
+2. We have set `SCAN_IMAGES=false` as a default to not scan the built images for vulnerabilities. If set to true, a `scan.txt` file will be created in the project root with the scan output.
 
 ```bash
 make -j8 build
@@ -45,9 +44,8 @@ make -j8 build
 make kind/test
 ```
 
-{% hint style="warning" %}
-There are a lot of tests configured to run by default - please consider only testing locally the minimum that you need to ensure functionality. This can be done by specifying or removing tests from the `TESTS` variable in the Makefile.
-{% endhint %}
+!!! warning "Warning:"
+    There are a lot of tests configured to run by default - please consider only testing locally the minimum that you need to ensure functionality. This can be done by specifying or removing tests from the `TESTS` variable in the Makefile.
 
 This process will:
 
@@ -186,7 +184,7 @@ The services not only share many Node.js packages, but also share actual custom 
 
 ## Troubleshooting
 
-#### ⚠ **I can't build a docker image for any Node.js based service**
+#### ⚠I can't build a docker image for any Node.js based service
 
 Rebuild the images via:
 
@@ -195,11 +193,11 @@ make clean
 make build
 ```
 
-#### ⚠ **I get errors about missing `node_modules` content when I try to build / run a Node.js based image**
+#### ⚠ I get errors about missing `node_modules` content when I try to build / run a Node.js based image
 
 Make sure to run `yarn` in Lagoon's root directory, since some services have common dependencies managed by `yarn` workspaces.
 
-#### ⚠ **I get an error resolving the `nip.io` domains**
+#### ⚠ I get an error resolving the `nip.io` domains
 
 ```text
 Error response from daemon: Get https://registry.172.18.0.2.nip.io:32080/v2/: dial tcp: lookup registry.172.18.0.2.nip.io: no such host
@@ -215,7 +213,7 @@ Here are some development scenarios and useful workflows for getting things done
 
 This example shows a workflow for editing the Lagoon deploy logic.
 
-#### Edit `kubectl-build-deploy-dind`
+### Edit `kubectl-build-deploy-dind`
 
 In this example we want to add some functionality to the Lagoon deploy logic in the `kubectl-build-deploy-dind` image.
 
@@ -290,4 +288,3 @@ make kind/push-images IMAGES=tests
 ```bash
 make kind/retest TESTS='[features-api-variables]'
 ```
-

@@ -36,7 +36,7 @@ make logs service=webhook-handler
 ```
 
 Sometimes you will want to see what is happening inside of [Jenkins](https://jenkins.io/doc/). Your Jenkins instance can be found here:
-
+<!-- markdown-link-check-disable-next-line -->
 [http://localhost:8888/](http://localhost:8888/) \(`admin`:`admin`\)
 
 Sometimes you just want to create another push webhook without having to wait for the Git repository to be initialized and pushed.
@@ -55,6 +55,7 @@ This will build all images, start an OpenShift and run all tests.
 
 The tests can be found here:
 
+<!-- markdown-link-check-disable -->
 * `develop` branch: [https://lagoon-ci.amazeeio.cloud/blue/organizations/jenkins/lagoon/activity/?branch=develop](https://lagoon-ci.amazeeio.cloud/blue/organizations/jenkins/lagoon/activity/?branch=develop)
 * `main` branch: [https://lagoon-ci.amazeeio.cloud/blue/organizations/jenkins/lagoon/activity/?branch=main](https://lagoon-ci.amazeeio.cloud/blue/organizations/jenkins/lagoon/activity/?branch=main)
-
+<!-- markdown-link-check-enable -->

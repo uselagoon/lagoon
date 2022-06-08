@@ -7,12 +7,13 @@ metadata:
   labels:
     {{- include "python.labels" $ | nindent 4 }}
   annotations:
-    {{- include "python.annotations" . | nindent 4 }}
+    {{- include "python.annotations" $ | nindent 4 }}
 spec:
   schedule: {{ $cronjobConfig.schedule | quote }}
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 0
   failedJobsHistoryLimit: 1
+  startingDeadlineSeconds: 240
   jobTemplate:
     metadata:
       labels:
@@ -32,7 +33,8 @@ spec:
           imagePullSecrets:
             {{- toYaml . | nindent 12 }}
         {{- end }}
-          priorityClassName: {{ include "python.lagoonPriority" . }}
+          priorityClassName:
+            {{- include "python.lagoonPriority" $ | nindent 12 }}
           enableServiceLinks: false
           securityContext:
             {{- toYaml $.Values.podSecurityContext | nindent 12 }}

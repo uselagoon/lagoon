@@ -7,12 +7,13 @@ metadata:
   labels:
     {{- include "node.labels" $ | nindent 4 }}
   annotations:
-    {{- include "node.annotations" . | nindent 4 }}
+    {{- include "node.annotations" $ | nindent 4 }}
 spec:
   schedule: {{ $cronjobConfig.schedule | quote }}
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 0
   failedJobsHistoryLimit: 1
+  startingDeadlineSeconds: 240
   jobTemplate:
     metadata:
       labels:

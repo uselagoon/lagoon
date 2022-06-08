@@ -32,17 +32,13 @@ If you installed Drupal via composer, please check your `composer.json` and make
 
 Don't forget to customize the values in `lagoon-project` & `LAGOON_ROUTE` with your site-specific name & the URL you'd like to access the site with. Here's an example:
 
-{% tabs %}
-{% tab title="docker-compose.yml" %}
-```yaml
+```yaml title="docker-compose.yml"
 x-environment:
   &default-environment
     LAGOON_PROJECT: *lagoon-project
     # Route that should be used locally. If you are using pygmy, this route *must* end with .docker.amazee.io.
     LAGOON_ROUTE: http://drupal-example.docker.amazee.io
 ```
-{% endtab %}
-{% endtabs %}
 
 ## 3. Build Images
 
@@ -117,11 +113,10 @@ Drupal root          :  /app/web
 Site path            :  sites/default
 ```
 
-{% hint style="warning" %}
-You may have to tell pygmy about your public key before the next step.
+!!! warning "Warning:"
+    You may have to tell pygmy about your public key before the next step.
 
-If you get an error like `Permission denied (publickey)`, check out the documentation here: [pygmy - adding ssh keys](https://docs.lagoon.sh/pygmy/ssh-agent)
-{% endhint %}
+If you get an error like `Permission denied (publickey)`, check out the documentation here: [pygmy - adding ssh keys](https://pygmy.readthedocs.io/en/master/ssh_agent)
 
 Now it is time to install Drupal \(if instead you would like to import an existing SQL file, please [skip to step 7](step-by-step-getting-drupal-ready-to-run-on-lagoon.md#7-import-existing-database-dump), but we suggest you start with a clean Drupal installation in the beginning to be sure everything works\).
 
@@ -178,7 +173,6 @@ Verify that everything works with visiting the URL of your project. You should h
 
 A Drupal site also needs the files directory. As the whole folder is mounted into the Docker containers, add the files into the correct folder \(probably `web/sites/default/files`, `sites/default/files` or something similar\). Remember what you've set as your `WEBROOT` - [it may not be the same for all projects](step-by-step-getting-drupal-ready-to-run-on-lagoon.md#note-about-webroot-in-drupal-8).
 
-## 9. Done!
+## 9. Done
 
 You are done with your local setup. The Lagoon team wishes happy Drupaling!
-

@@ -6,7 +6,6 @@ metadata:
     {{- include "mariadb-single.labels" . | nindent 4 }}
   annotations:
     {{- include "mariadb-single.annotations" . | nindent 4 }}
-  annotations:
     k8up.syn.tools/backup: "false"
 spec:
   accessModes:

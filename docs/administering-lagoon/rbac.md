@@ -30,9 +30,8 @@ The maintainer role can do everything within a group and its associated projects
 
 The developer role has SSH access only to development environments. This role cannot access, update or delete the production environment. They can run a sync task with the production environment as a source, but not as the destination. Cannot manage users of a group.
 
-{% hint style="danger" %}
-IMPORTANT: This role does not prevent the deployment of the production environment as a deployment is triggered via a Git push! You need to make sure that your Git server prevents these users from pushing into the branch defined as production environment.
-{% endhint %}
+!!! Danger "Danger:"
+    IMPORTANT: This role does not prevent the deployment of the production environment as a deployment is triggered via a Git push! You need to make sure that your Git server prevents these users from pushing into the branch defined as production environment.
 
 #### Reporter
 
@@ -55,7 +54,7 @@ Here is a table that lists the roles and the access they have:
 | deleteAllBackups | backup | deleteAll |  | Yes | No | No | No | No | No | No |  |
 | getBackupsByEnvironmentId | backup | view | projectID | Yes | Yes | Yes | Yes | Yes | No | No |  |
 |  | deployment | view | projectID | Yes | Yes | Yes | Yes | Yes | Yes | Yes |  |
-| addEnvVariable \(to Project\) | env\_var | project:add | projectID | Yes | Yes | Yes | No | No | No | No |  |
+| addEnvVariable \(to Project\) | env\_var | project:add | projectID | Yes | Yes | Yes | Yes | No | No | No |  |
 | addEnvVariable \(to Environment\) | env\_var | environment:add:development | projectID | Yes | Yes | Yes | Yes | Yes | No | No |  |
 | addEnvVariable \(to Environment\) | env\_var | environment:add:production | projectID | Yes | Yes | Yes | Yes | No | No | No |  |
 | deleteEnvVariable | env\_var | delete | projectID | Yes | Yes | Yes | Yes | No | No | No |  |
@@ -110,7 +109,7 @@ Here is a table that lists the roles and the access they have:
 | deleteOpenshift | openshift | delete |  | Yes | Yes | No | No | No | No | No |  |
 | deleteAllOpenshifts | openshift | deleteAll |  | Yes | Yes | No | No | No | No | No |  |
 | getAllOpenshifts | openshift | viewAll |  | Yes | No | No | No | No | No | No |  |
-| getOpenshiftByProjectId | openshift | view | projectID | Yes | Yes | Yes | Yes | No | No | No |  |
+| getOpenshiftByProjectId | openshift | view | projectID | Yes | Yes | Yes | Yes | Yes | Yes | Yes |  |
 | addNotificationToProject | project | addNotification | projectID | Yes | Yes | Yes | Yes | No | No | No |  |
 | removeNotificationFromProject | project | removeNotification | projectID | Yes | Yes | Yes | Yes | No | No | No |  |
 | addProject | project | add |  | Yes | Yes | Yes | Yes | Yes | Yes | Yes |  |
