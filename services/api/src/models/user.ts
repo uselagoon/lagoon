@@ -506,7 +506,9 @@ export const User = (clients: {
     const GroupModel = Group(clients);
     let organizations = [];
 
-    const usersOrgs = userInput.attributes['lagoon-organizations'].toString()
+    const user = await loadUserById(userInput.id);
+    const usersOrgs = R.defaultTo('', R.prop('lagoon-organizations',  user.attributes)).toString()
+
     if (usersOrgs != "" ) {
       const usersOrgsArr = usersOrgs.split(',');
       for (const userOrg of usersOrgsArr) {
