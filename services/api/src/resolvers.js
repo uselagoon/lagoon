@@ -54,6 +54,7 @@ const {
 
 const {
   getTasksByEnvironmentId,
+  getTaskByTaskName,
   getTaskByRemoteId,
   getTaskById,
   addTask,
@@ -160,6 +161,9 @@ const {
   getProjectUser,
   updateOpenshift,
   deleteAllOpenshifts,
+  getToken,
+  getConsoleUrl,
+  getMonitoringConfig,
 } = require('./resources/openshift/resolvers');
 
 const {
@@ -306,15 +310,27 @@ const resolvers = {
     PROBLEM: 'problem',
   },
   TaskStatusType: {
+    NEW: 'new',
+    PENDING: 'pending',
+    RUNNING: 'running',
+    CANCELLED: 'cancelled',
+    ERROR: 'error',
+    COMPLETE: 'complete',
     ACTIVE: 'active',
     SUCCEEDED: 'succeeded',
     FAILED: 'failed',
   },
   Openshift: {
     projectUser: getProjectUser,
+    token: getToken,
+    consoleUrl: getConsoleUrl,
+    monitoringConfig: getMonitoringConfig,
   },
   Kubernetes: {
     projectUser: getProjectUser,
+    token: getToken,
+    consoleUrl: getConsoleUrl,
+    monitoringConfig: getMonitoringConfig,
   },
   Project: {
     notifications: getNotificationsByProjectId,
@@ -432,6 +448,7 @@ const resolvers = {
     userCanSshToEnvironment,
     deploymentByRemoteId: getDeploymentByRemoteId,
     deploymentsByBulkId: getDeploymentsByBulkId,
+    taskByTaskName: getTaskByTaskName,
     taskByRemoteId: getTaskByRemoteId,
     taskById: getTaskById,
     advancedTaskDefinitionById,

@@ -2,7 +2,7 @@
 ARG GO_VERSION
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
-FROM golang:${GO_VERSION:-1.13.8} AS builder
+FROM golang:${GO_VERSION:-1.16.4} AS builder
 # bring in all the packages
 COPY . /go/src/github.com/uselagoon/lagoon/services/workflows/
 WORKDIR /go/src/github.com/uselagoon/lagoon/services/workflows/
@@ -20,7 +20,7 @@ ENV LAGOON_VERSION=$LAGOON_VERSION
 
 WORKDIR /app/
 
-# bring the auto-idler binary from the builder
+# bring the workflows binary from the builder
 COPY --from=builder /go/src/github.com/uselagoon/lagoon/services/workflows/workflows .
 
 ENV LAGOON=workflows

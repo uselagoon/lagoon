@@ -26,7 +26,19 @@ There are different type of tasks you can define, and they differ in when exactl
 
 ### Pre-Rollout Tasks - `pre_rollout.[i].run`
 
-The tasks defined as `pre_rollout` tasks will run against your project _after_ the new images have been built successfully, and _before_ the project gets altered in any way. This feature enables you, for example, to create a database dump before the rollout is running. This will make it easier to roll back in case of an issue with the rollout.
+Here you can specify tasks which will run against your project _after_ all images have been successfully built, but _before_:
+
+* Any running containers are updated with the newly built images.
+* Any other changes are made to your existing environment.
+
+This feature enables you to, for example, create a database dump before updating your application.
+This can make it easier to roll back in case of a problem with the deploy.
+
+!!! Note "Note:"
+    The pre-rollout tasks run in the _existing pods before they are updated_, which means:
+
+    * Changes made to your `Dockerfile` since the last deploy will not be visible when pre-rollout tasks run.
+    * If there are no existing containers (e.g. on the initial deployment of a new environment), pre-rollout tasks are skipped.
 
 ### Post-Rollout Tasks - `post_rollout.[i].run`
 
@@ -46,11 +58,14 @@ Common uses for post-rollout tasks include running `drush updb`, `drush cim`, or
   * The service which to run the task in. If following our Drupal example, this will be the CLI container, as it has all your site code, files, and a connection to the database. Typically you do not need to change this.
 * `shell`
   * Which shell should be used to run the task in. By default `sh` is used, but if the container also has other shells \(like `bash`, you can define it here\). This is useful if you want to run some small if/else bash scripts within the post-rollouts. \(see the example above how to write a script with multiple lines\).
+* `when`
+  * The "when" clause allows for the conditional running of tasks. It expects an expression that will evaluate to a true/false value which determines whether the task should be run.
 
-Note: If you would like to temporarily disable pre/post-rollout tasks during a deployment, you can set either of the following environment variables in the API at the project or environment level \(see how on [Environment Variables](https://github.com/uselagoon/lagoon/blob/main/docs/using-lagoon-advanced/environment-variables.md)\).
+Note: If you would like to temporarily disable pre/post-rollout tasks during a deployment, you can set either of the following environment variables in the API at the project or environment level \(see how on [Environment Variables](../using-lagoon-advanced/environment-variables.md)\).
 
 * `LAGOON_PREROLLOUT_DISABLED=true`
 * `LAGOON_POSTROLLOUT_DISABLED=true`
+
 
 #### Example post-rollout tasks
 
@@ -75,12 +90,9 @@ Different tasks based on branch name:
     - run:
         name: Different tasks based on Branch Name
         command: |
-          if [[ "$LAGOON_GIT_BRANCH" != "production" ]]; then
             ### Runs if current branch is not 'production'
-          else
-            ### Runs if current branch is 'production'
-          fi
         service: cli
+        when: LAGOON_GIT_BRANCH != "production"
 ```
 
 Run shell script:
@@ -98,14 +110,13 @@ Drupal & Drush 9: Sync database & files from master environment:
     - run:
         name: Sync DB and Files from master if we are not on master
         command: |
-          if [[ "$LAGOON_GIT_BRANCH" != "master" ]]; then
-            # Only if we don't have a database yet
-            if tables=$(drush sqlq 'show tables;') && [ -z "$tables" ]; then
-                drush sql-sync @lagoon.master @self
-                drush rsync @lagoon.master:%files @self:%files -- --omit-dir-times --no-perms --no-group --no-owner --chmod=ugo=rwX
-            fi
+          # Only if we don't have a database yet
+          if tables=$(drush sqlq 'show tables;') && [ -z "$tables" ]; then
+              drush sql-sync @lagoon.master @self
+              drush rsync @lagoon.master:%files @self:%files -- --omit-dir-times --no-perms --no-group --no-owner --chmod=ugo=rwX
           fi
         service: cli
+        when: LAGOON_ENVIRONMENT_TYPE != "production"
 ```
 
 ## Backup Retention
@@ -257,6 +268,8 @@ If your `.lagoon.yml` contains one of these annotations it will cause a build fa
 | `nginx.ingress.kubernetes.io/configuration-snippet` | Restricted to `rewrite`, `add_header`, `set_real_ip`, and `more_set_headers` directives. |
 | `nginx.ingress.kubernetes.io/modsecurity-snippet`   | Disallowed                                                                               |
 | `nginx.ingress.kubernetes.io/server-snippet`        | Restricted to `rewrite`, `add_header`, `set_real_ip`, and `more_set_headers` directives. |
+| `nginx.ingress.kubernetes.io/stream-snippet`        | Disallowed                                                                               |
+| `nginx.ingress.kubernetes.io/use-regex`             | Disallowed                                                                               |
 
 #### **Ingress annotations redirects**
 
@@ -461,16 +474,22 @@ The `container-registries` block allows you to define your own private container
 
 There are 2 ways to define the password used for your registry user.
 
-* Create an environment variable in the Lagoon API \(see more on [Environment Variables](../using-lagoon-advanced/environment-variables.md)\). The name of the variable you create can then be set as the password:
-* Define it directly in the `.lagoon.yml` file in plain text:
+Create an environment variable in the Lagoon API with the type `container_registry`:
+
+* `lagoon add variable -p <project_name> -N <registry_password_variable_name> -V <password_goes_here> -S container_registry`
+* \(see more on [Environment Variables](../using-lagoon-advanced/environment-variables.md)\)
+
+The name of the variable you create can then be set as the password:
 
 ```yaml
 container-registries:
   my-custom-registry:
     username: myownregistryuser
-    password: MY_OWN_REGISTRY_PASSWORD
+    password: <registry_password_variable_name>
     url: my.own.registry.com
 ```
+
+You can also define the password directly in the `.lagoon.yml` file in plain text:
 
 ```yaml title=".lagoon.yml"
 container-registries:
@@ -552,14 +571,20 @@ environments:
     rollouts:
       mariadb: statefulset
     cronjobs:
-     - name: drush cron
-       schedule: "M * * * *" # This will run the cron once per hour.
-       command: drush cron
-       service: cli
+      - name: drush cron
+        schedule: "M * * * *" # This will run the cron once per hour.
+        command: drush cron
+        service: cli
   staging:
-    cronjobs:
-     - name: drush cron
-       schedule: "M * * * *" # This will run the cron once per hour.
-       command: drush cron
-       service: cli
+      cronjobs:
+      - name: drush cron
+        schedule: "M * * * *" # This will run the cron once per hour.
+        command: drush cron
+        service: cli
+  feature/feature-branch:
+      cronjobs:
+      - name: drush cron
+        schedule: "H * * * *" # This will run the cron once per hour.
+        command: drush cron
+        service: cli
 ```

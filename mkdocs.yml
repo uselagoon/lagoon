@@ -70,19 +70,18 @@ nav:
   - Environment Idling: using-lagoon-advanced/environment-idling.md
   - Custom Tasks: using-lagoon-advanced/custom-tasks.md
   - DeployTarget Configs: using-lagoon-advanced/deploytarget-configs.md
-  - Blackfire: using-lagoon-advanced/blackfire.md  
+  - Blackfire: using-lagoon-advanced/blackfire.md
 - Installing Lagoon:
   - Requirements: installing-lagoon/requirements.md
-  - Install Lagoon Core: installing-lagoon/lagoon-core.md
-  - Install the Lagoon CLI: installing-lagoon/lagoon-cli.md
-  - Create Lagoon User: installing-lagoon/create-user.md
-  - Install Harbor: installing-lagoon/install-harbor.md
-  - Install Lagoon Remote: installing-lagoon/install-lagoon-remote.md
-  - Querying with GraphQL: installing-lagoon/querying-graphql.md
-  - Add a Project: installing-lagoon/add-project.md
-  - Add Deploy Key: installing-lagoon/add-deploy-key.md
-  - Deploy Your Project: installing-lagoon/deploy-project.md
   - EFS Provisioner: installing-lagoon/efs-provisioner.md
+  - Install Harbor: installing-lagoon/install-harbor.md
+  - Install Lagoon Core: installing-lagoon/lagoon-core.md
+  - Install Lagoon Remote: installing-lagoon/install-lagoon-remote.md
+  - Install the Lagoon CLI: installing-lagoon/lagoon-cli.md
+  - Querying with GraphQL: installing-lagoon/querying-graphql.md
+  - Create Lagoon User: installing-lagoon/create-user.md
+  - Add a Project: installing-lagoon/add-project.md
+  - Deploy Your Project: installing-lagoon/deploy-project.md
   - Add Group: installing-lagoon/add-group.md
   - Lagoon Logging: installing-lagoon/lagoon-logging.md
   - OpenDistro: installing-lagoon/opendistro.md
@@ -141,11 +140,14 @@ markdown_extensions:
   - toc:
       permalink: "#"
       baselevel: 1
+  - def_list
   - admonition
   - attr_list
   - tables
   - pymdownx.highlight
   - pymdownx.superfences
+  - pymdownx.tasklist:
+      custom_checkbox: true
 
 plugins:
   - search

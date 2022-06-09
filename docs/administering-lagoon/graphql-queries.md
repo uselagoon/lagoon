@@ -4,21 +4,15 @@
 
 Direct API interactions in Lagoon are done via [GraphQL](graphql-queries.md).
 
-In order to authenticate with the API, we need a JWT \(JSON Web Token\) that allows us to use the GraphQL API as admin. To generate this token, open the terminal of the `auto-idler` pod via the OpenShift UI and run the following command:
+In order to authenticate with the API, we need a JWT \(JSON Web Token\) that allows us to use the GraphQL API as admin. To generate this token, open the terminal of the `storage-calculator` pod via your Kubernetes UI, or via kubectl and run the following command:
 
 ```bash
 ./create_jwt.sh
 ```
 
-This can also be done with the `oc` command:
-
-```bash
-oc -n lagoon-main rsh dc/auto-idler ./create_jwt.sh
-```
-
 This will return a long string which is the JWT token. Make a note of this, as we will need it to send queries.
 
-We also need the URL of the API endpoint, which can be found under "Routes" in the OpenShift UI or `oc get route api` on the command line. Make a note of this endpoint URL, which we will also need.
+We also need the URL of the API endpoint, which can be found under "Ingresses" in your Kubernetes UI or via kubectl on the command line. Make a note of this endpoint URL, which we will also need.
 
 To compose and send GraphQL queries, we recommend [GraphiQL.app](https://github.com/skevy/graphiql-app), a desktop GraphQL client with features such as autocomplete. To continue with the next steps, install and start the app.
 
@@ -49,7 +43,7 @@ If all went well, your first GraphQL response should appear shortly afterwards i
 
 ## Creating the first project
 
-Let's create the first project for Lagoon to deploy! For this we'll use the queries from the GraphQL query template in [`create-project.gql`](https://github.com/uselagoon/lagoon/blob/main/docs/administering-lagoon/create-project.gql).
+Let's create the first project for Lagoon to deploy! For this we'll use the queries from the GraphQL query template in [`create-project.gql`](../administering-lagoon/create-project.gql).
 
 For each of the queries \(the blocks starting with `mutation {`\), fill in all of the empty fields marked by TODO comments and run the queries in GraphiQL.app. This will create one of each of the following two objects:
 
@@ -111,7 +105,7 @@ mutation {
       # This is the actual SSH public key (without the type at the beginning and without the comment at the end, ex. `AAAAB3NzaC1yc2EAAAADAQ...3QjzIOtdQERGZuMsi0p`).
       keyValue: ""
       # TODO: Fill in the keyType field.
-      # Valid values are either SSH_RSA or SSH_ED25519.
+      # Valid values are either SSH_RSA, SSH_ED25519, ECDSA_SHA2_NISTP256/384/521
       keyType: SSH_RSA
       user: {
         # TODO: Fill in the userId field.

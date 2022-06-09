@@ -2,9 +2,9 @@
 
 To install an OpenDistro cluster, you will need to configure TLS and secrets so that Lagoon can talk to it securely. You're going to have to create a handful of JSON files - put these in the same directory as the values files you've been creating throughout this installation process.
 
-1. Install OpenDistro Helm, according to [https://opendistro.github.io/for-elasticsearch-docs/docs/install/helm/](https://opendistro.github.io/for-elasticsearch-docs/docs/install/helm/)&#x20;
+1. Install OpenDistro Helm, according to [https://opendistro.github.io/for-elasticsearch-docs/docs/install/helm/](https://opendistro.github.io/for-elasticsearch-docs/docs/install/helm/)
 2. Generate certificates
-   1.  Install CFSSL:  [https://github.com/cloudflare/cfssl](https://github.com/cloudflare/cfssl)&#x20;
+   1.  Install CFSSL:  [https://github.com/cloudflare/cfssl](https://github.com/cloudflare/cfssl)
 
        _CFSSL is CloudFlare's PKI/TLS swiss army knife. It is both a command line tool and an HTTP API server for signing, verifying, and bundling TLS certificates. It requires Go 1.12+ to build._
    2. Generate CA. You'll need the following file:
@@ -129,8 +129,8 @@ Next, we'll convert the key to the format supported by Java with the following c
    1. `helm repo add incubator https://charts.helm.sh/incubator`
 
        `helm upgrade --namespace elasticsearch --create-namespace --install elasticsearch-secrets incubator/raw --values elasticsearch-secrets-values.yaml `
-4. You'll need to create `elasticsearch-values.yaml`.  See this gist as an example: (fill all <\<Placeholders>> with values) [https://gist.github.com/Schnitzel/1e386654b6abf75bf4d66a544db4aa6a](https://gist.github.com/Schnitzel/1e386654b6abf75bf4d66a544db4aa6a)&#x20;
-5. Install Elasticsearch:&#x20;
+4. You'll need to create `elasticsearch-values.yaml`.  See this gist as an example: (fill all <\<Placeholders>> with values) [https://gist.github.com/Schnitzel/1e386654b6abf75bf4d66a544db4aa6a](https://gist.github.com/Schnitzel/1e386654b6abf75bf4d66a544db4aa6a)
+5. Install Elasticsearch:
 
     `helm upgrade --namespace elasticsearch --create-namespace --install elasticsearch opendistro-es-X.Y.Z.tgz`
 

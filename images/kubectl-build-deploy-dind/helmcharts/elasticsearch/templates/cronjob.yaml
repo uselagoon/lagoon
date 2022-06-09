@@ -7,7 +7,7 @@ metadata:
   labels:
     {{- include "elasticsearch.labels" $ | nindent 4 }}
   annotations:
-    {{- include "elasticsearch.annotations" . | nindent 4 }}
+    {{- include "elasticsearch.annotations" $ | nindent 4 }}
 spec:
   schedule: {{ $cronjobConfig.schedule | quote }}
   concurrencyPolicy: Forbid

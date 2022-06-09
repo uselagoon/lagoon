@@ -6,7 +6,7 @@ FROM golang:1.16-alpine3.15 as golang
 RUN apk add --no-cache git
 RUN go get github.com/a8m/envsubst/cmd/envsubst
 
-FROM docker:20.10.12
+FROM docker:20.10.14
 
 LABEL maintainer="amazee.io"
 ENV LAGOON=oc

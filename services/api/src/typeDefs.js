@@ -14,6 +14,9 @@ const typeDefs = gql`
   enum SshKeyType {
     SSH_RSA
     SSH_ED25519
+    ECDSA_SHA2_NISTP256
+    ECDSA_SHA2_NISTP384
+    ECDSA_SHA2_NISTP521
   }
 
   enum DeployType {
@@ -67,6 +70,12 @@ const typeDefs = gql`
     ACTIVE
     SUCCEEDED
     FAILED
+    NEW
+    PENDING
+    RUNNING
+    CANCELLED
+    ERROR
+    COMPLETE
   }
 
   enum RestoreStatusType {
@@ -126,6 +135,7 @@ const typeDefs = gql`
   type AdvancedTaskDefinitionArgument {
     id: Int
     name: String
+    displayName: String
     type: String
     range: [String]
     advancedTaskDefinition: AdvancedTaskDefinition
@@ -135,6 +145,7 @@ const typeDefs = gql`
     id: Int
     name: String
     description: String
+    confirmationText: String
     type: AdvancedTaskDefinitionTypes
     image: String
     service: String
@@ -151,6 +162,7 @@ const typeDefs = gql`
     id: Int
     name: String
     description: String
+    confirmationText: String
     type: AdvancedTaskDefinitionTypes
     service: String
     command: String
@@ -823,7 +835,7 @@ const typeDefs = gql`
     monitoringUrls: String
     deployments(name: String, limit: Int): [Deployment]
     backups(includeDeleted: Boolean, limit: Int): [Backup]
-    tasks(id: Int, limit: Int): [Task]
+    tasks(id: Int, taskName: String, limit: Int): [Task]
     advancedTasks: [AdvancedTaskDefinition]
     services: [EnvironmentService]
     problems(severity: [ProblemSeverityRating], source: [String]): [Problem]
@@ -909,6 +921,7 @@ const typeDefs = gql`
   type Task {
     id: Int
     name: String
+    taskName: String
     status: String
     created: String
     started: String
@@ -924,6 +937,7 @@ const typeDefs = gql`
   type AdvancedTask {
     id: Int
     name: String
+    taskName: String
     status: String
     created: String
     started: String
@@ -1061,6 +1075,7 @@ const typeDefs = gql`
     ): Environment
     deploymentByRemoteId(id: String): Deployment
     deploymentsByBulkId(bulkId: String): [Deployment]
+    taskByTaskName(taskName: String): Task
     taskByRemoteId(id: String): Task
     taskById(id: Int): Task
     """
@@ -1341,6 +1356,7 @@ const typeDefs = gql`
   input AdvancedTaskDefinitionArgumentInput {
     name: String
     type: AdvancedTaskDefinitionArgumentTypes
+    displayName: String
   }
 
   input AdvancedTaskDefinitionArgumentValueInput {
@@ -1365,6 +1381,7 @@ const typeDefs = gql`
     groupName: String
     permission: TaskPermission
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgumentInput]
+    confirmationText: String
   }
 
   input UpdateAdvancedTaskDefinitionInput {
@@ -1384,6 +1401,7 @@ const typeDefs = gql`
     groupName: String
     permission: TaskPermission
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgumentInput]
+    confirmationText: String
   }
 
   input DeleteTaskInput {
@@ -1392,6 +1410,7 @@ const typeDefs = gql`
 
   input UpdateTaskPatchInput {
     name: String
+    taskName: String
     status: TaskStatusType
     created: String
     started: String

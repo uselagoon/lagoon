@@ -8,6 +8,7 @@ export const Sql = {
   insertTask: ({
     id,
     name,
+    taskName,
     status,
     created,
     started,
@@ -22,6 +23,7 @@ export const Sql = {
   }: {
     id: number;
     name: string;
+    taskName: string,
     status: string;
     created: string;
     started: string;
@@ -38,6 +40,7 @@ export const Sql = {
       .insert({
         id,
         name,
+        taskName,
         status,
         created,
         started,
@@ -80,6 +83,7 @@ export const Sql = {
     group_name,
     environment,
     permission,
+    confirmation_text,
     }: {
       id: number,
       name: string,
@@ -93,6 +97,7 @@ export const Sql = {
       group_name: string,
       environment: number,
       permission: string,
+      confirmation_text: string
     }) =>
     knex('advanced_task_definition')
       .insert({
@@ -108,25 +113,29 @@ export const Sql = {
         group_name,
         environment,
         permission,
+        confirmation_text,
       })
     .toString(),
     insertAdvancedTaskDefinitionArgument: ({
       id,
       advanced_task_definition,
       name,
-      type
+      type,
+      displayName,
       }: {
         id: number,
         advanced_task_definition: number,
         name: string,
         type: string,
+        displayName: string,
       }) =>
       knex('advanced_task_definition_argument')
         .insert({
           id,
           advanced_task_definition,
           name,
-          type
+          type,
+          display_name: displayName
         })
       .toString(),
     updateAdvancedTaskDefinition: ({ id, patch }: { id: number; patch: { [key: string]: any } }) =>
