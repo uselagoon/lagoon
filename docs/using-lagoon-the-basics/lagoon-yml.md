@@ -26,7 +26,19 @@ There are different type of tasks you can define, and they differ in when exactl
 
 ### Pre-Rollout Tasks - `pre_rollout.[i].run`
 
-The tasks defined as `pre_rollout` tasks will run against your project _after_ the new images have been built successfully, and _before_ the project gets altered in any way. This feature enables you, for example, to create a database dump before the rollout is running. This will make it easier to roll back in case of an issue with the rollout.
+Here you can specify tasks which will run against your project _after_ all images have been successfully built, but _before_:
+
+* Any running containers are updated with the newly built images.
+* Any other changes are made to your existing environment.
+
+This feature enables you to, for example, create a database dump before updating your application.
+This can make it easier to roll back in case of a problem with the deploy.
+
+!!! Note "Note:"
+    The pre-rollout tasks run in the _existing pods before they are updated_, which means:
+
+    * Changes made to your `Dockerfile` since the last deploy will not be visible when pre-rollout tasks run.
+    * If there are no existing containers (e.g. on the initial deployment of a new environment), pre-rollout tasks are skipped.
 
 ### Post-Rollout Tasks - `post_rollout.[i].run`
 
