@@ -8,6 +8,7 @@ import { Helpers } from './helpers';
 import { Sql } from './sql';
 import { deployTargetBranches } from '@lagoon/commons/src/deploy-tasks';
 import { Sql as EnvironmentSql } from '../environment/sql'
+import { Helpers as projectHelpers } from '../project/helpers';
 
 
 export const getDeployTargetConfigById = async (
@@ -145,6 +146,18 @@ export const updateEnvironmentDeployTarget: ResolverFn = async (
       }
     })
   );
+
+  const projectObj = await projectHelpers(
+    sqlClientPool
+  ).getProjectByEnvironmentId(environment);
+
+  userActivityLogger(`User changed DeployTarget for environment`, {
+    project: projectObj.name,
+    event: 'api:updateEnvironmentDeployTarget',
+    payload: {
+      ...input
+    }
+  });
 
   return await environmentHelpers(
     sqlClientPool
