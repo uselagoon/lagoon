@@ -145,6 +145,10 @@ export const updateEnvironmentDeployTarget: ResolverFn = async (
       }
     })
   );
+
+  return await environmentHelpers(
+    sqlClientPool
+  ).getEnvironmentById(parseInt(environment));
 }
 
 
