@@ -2,7 +2,7 @@
 
 Lagoon uses the k8up backup operator: [https://k8up.io](https://k8up.io). Lagoon isn’t tightly integrated with k8up, it’s more that Lagoon can create its resources in a way that k8up can automatically discover and backup.
 
-Lagoon has been extensively tested with k8up 1.x, but not 2.x yet. To be on the safe side, we recommend using the 1.1.0 chart version (App version v1.2.0)
+Lagoon has been extensively tested with k8up 1.x, but is not compatible with 2.x yet. We recommend using the 1.1.0 chart version (App version v1.2.0)
 
 1. Create new AWS User with policies:
     ```json title="example K8up IAM user"
