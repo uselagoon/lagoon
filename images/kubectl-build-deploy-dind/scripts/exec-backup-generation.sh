@@ -20,51 +20,52 @@ set +x
 ##############################################
 
 # check if a specific override has been defined in the api
-case "$BUILD_TYPE" in
-    promote)
-        ;;
-    branch)
-        if [ "${ENVIRONMENT_TYPE}" == "development" ]; then
-            # check if the API defined variable LAGOON_BACKUP_DEV_RETENTION contains what is needed
-            # if one in the API is not defined, fall back to what could be injected by the controller LAGOON_FEATURE_BACKUP_DEV_RETENTION
-            BACKUP_RETENTION=$(projectEnvironmentVariableCheck LAGOON_BACKUP_DEV_RETENTION "${LAGOON_FEATURE_BACKUP_DEV_RETENTION}")
-            if [ ! -z "$BACKUP_RETENTION" ]; then
-                IFS=':' read -ra BACKUP_RETENTION_SPLIT <<< "$BACKUP_RETENTION"
-                HOURLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[0]}
-                DAILY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[1]}
-                WEEKLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[2]}
-                MONTHLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[3]}
-            fi
-        fi
-        ;;
-    pullrequest)
-        # check if the API defined variable LAGOON_BACKUP_PR_RETENTION contains what is needed
-        # if one in the API is not defined, fall back to what could be injected by the controller LAGOON_FEATURE_BACKUP_PR_RETENTION
-        BACKUP_RETENTION=$(projectEnvironmentVariableCheck LAGOON_BACKUP_PR_RETENTION "${LAGOON_FEATURE_BACKUP_PR_RETENTION}")
-        if [ ! -z "$BACKUP_RETENTION" ]; then
-            IFS=':' read -ra BACKUP_RETENTION_SPLIT <<< "$BACKUP_RETENTION"
-            HOURLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[0]}
-            DAILY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[1]}
-            WEEKLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[2]}
-            MONTHLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[3]}
-        fi
-        if [ -z "$BACKUP_RETENTION" ];then
-            ## fall back to dev retention if no pr retention is defined
-            # check if the API defined variable LAGOON_BACKUP_DEV_RETENTION contains what is needed
-            # if one in the API is not defined, fall back to what could be injected by the controller LAGOON_FEATURE_BACKUP_DEV_RETENTION
-            BACKUP_RETENTION=$(projectEnvironmentVariableCheck LAGOON_BACKUP_DEV_RETENTION "${LAGOON_FEATURE_BACKUP_DEV_RETENTION}")
-            if [ ! -z "$BACKUP_RETENTION" ]; then
-                IFS=':' read -ra BACKUP_RETENTION_SPLIT <<< "$BACKUP_RETENTION"
-                HOURLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[0]}
-                DAILY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[1]}
-                WEEKLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[2]}
-                MONTHLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[3]}
-            fi
-        fi
-        ;;
-    *)
-        echo "${BUILD_TYPE} not implemented"; exit 1;
-esac
+# DISABLE CUSTOM RETENTION FOR DEVELOPMENT ENVIRONMENTS
+# case "$BUILD_TYPE" in
+#     promote)
+#         ;;
+#     branch)
+#         if [ "${ENVIRONMENT_TYPE}" == "development" ]; then
+#             # check if the API defined variable LAGOON_BACKUP_DEV_RETENTION contains what is needed
+#             # if one in the API is not defined, fall back to what could be injected by the controller LAGOON_FEATURE_BACKUP_DEV_RETENTION
+#             BACKUP_RETENTION=$(projectEnvironmentVariableCheck LAGOON_BACKUP_DEV_RETENTION "${LAGOON_FEATURE_BACKUP_DEV_RETENTION}")
+#             if [ ! -z "$BACKUP_RETENTION" ]; then
+#                 IFS=':' read -ra BACKUP_RETENTION_SPLIT <<< "$BACKUP_RETENTION"
+#                 HOURLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[0]}
+#                 DAILY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[1]}
+#                 WEEKLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[2]}
+#                 MONTHLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[3]}
+#             fi
+#         fi
+#         ;;
+#     pullrequest)
+#         # check if the API defined variable LAGOON_BACKUP_PR_RETENTION contains what is needed
+#         # if one in the API is not defined, fall back to what could be injected by the controller LAGOON_FEATURE_BACKUP_PR_RETENTION
+#         BACKUP_RETENTION=$(projectEnvironmentVariableCheck LAGOON_BACKUP_PR_RETENTION "${LAGOON_FEATURE_BACKUP_PR_RETENTION}")
+#         if [ ! -z "$BACKUP_RETENTION" ]; then
+#             IFS=':' read -ra BACKUP_RETENTION_SPLIT <<< "$BACKUP_RETENTION"
+#             HOURLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[0]}
+#             DAILY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[1]}
+#             WEEKLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[2]}
+#             MONTHLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[3]}
+#         fi
+#         if [ -z "$BACKUP_RETENTION" ];then
+#             ## fall back to dev retention if no pr retention is defined
+#             # check if the API defined variable LAGOON_BACKUP_DEV_RETENTION contains what is needed
+#             # if one in the API is not defined, fall back to what could be injected by the controller LAGOON_FEATURE_BACKUP_DEV_RETENTION
+#             BACKUP_RETENTION=$(projectEnvironmentVariableCheck LAGOON_BACKUP_DEV_RETENTION "${LAGOON_FEATURE_BACKUP_DEV_RETENTION}")
+#             if [ ! -z "$BACKUP_RETENTION" ]; then
+#                 IFS=':' read -ra BACKUP_RETENTION_SPLIT <<< "$BACKUP_RETENTION"
+#                 HOURLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[0]}
+#                 DAILY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[1]}
+#                 WEEKLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[2]}
+#                 MONTHLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[3]}
+#             fi
+#         fi
+#         ;;
+#     *)
+#         echo "${BUILD_TYPE} not implemented"; exit 1;
+# esac
 
 # Implement global default value for backup retentions
 if [ -z "$MONTHLY_BACKUP_DEFAULT_RETENTION" ]
