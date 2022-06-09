@@ -416,15 +416,27 @@ As most of the time it is not desirable to run the same cron jobs across all env
 
 In Lagoon, the same Git repository can be added to multiple projects, creating what is called a polysite. This allows you to run the same codebase, but allow for different, isolated, databases and persistent files. In `.lagoon.yml` , we currently only support specifying custom routes for a polysite project. The key difference from a standard project is that the `environments` becomes the second-level element, and the project name the top level.
 
+To utilise this, you will need to:
+
+1. Create two (or more) projects in Lagoon, each configured with the same gitUrl and production branch, **named as per the .lagoon.yml** (i.e `poly-project1` and `poly-project2` below)
+2. Add the deploy keys from each project to the git repo
+3. Configure the webhook for the repo (if required) - you can then push/deploy. Note that a push to the repo will simultaneously deploy all projects/branches for that gitUrl
+
 **Example:**
 
 ```yaml title=".lagoon.yml"
-example-project-name:
+poly-project1:
   environments:
     main:
       routes:
         - nginx:
-          - example.com
+          - project1.com
+poly-project2:
+  environments:
+    main:
+      routes:
+        - nginx:
+          - project2.com
 ```
 
 ## Specials

@@ -1,8 +1,8 @@
 # Install the Lagoon CLI
 
 1. Install the Lagoon CLI on your local machine:
-   1. Check [https://github.com/amazeeio/lagoon-cli#install](https://github.com/amazeeio/lagoon-cli#install) on how to install for your operating system. For macOS, you can use Homebrew:
-      1. `brew tap amazeeio/lagoon-cli`
+   1. Check [https://github.com/uselagoon/lagoon-cli#install](https://github.com/uselagoon/lagoon-cli#install) on how to install for your operating system. For macOS, you can use Homebrew:
+      1. `brew tap uselagoon/lagoon-cli`
       2. `brew install lagoon`
 2. The CLI needs to know how to communicate with Lagoon, so run the following command:
     `lagoon config add --graphql https://<YOUR-API-URL>/graphql --ui https://YOUR-UI-URL --hostname <YOUR.SSH.IP> --lagoon <YOUR-LAGOON-NAME> --port 22`
