@@ -235,6 +235,8 @@ export const addAdvancedTaskDefinition = async (
     advancedTaskDefinitionArguments,
     created,
     confirmationText,
+    showUi,
+    adminTask,
   } = input;
 
   const atb = advancedTaskToolbox.advancedTaskFunctions(
@@ -313,6 +315,8 @@ export const addAdvancedTaskDefinition = async (
       group_name: groupName,
       permission,
       confirmation_text: confirmationText,
+      show_ui: showUi,
+      admin_task: adminTask,
     })
   );
 
@@ -360,7 +364,8 @@ export const updateAdvancedTaskDefinition = async (
         command,
         permission,
         advancedTaskDefinitionArguments,
-        confirmationText
+        confirmationText,
+        showUi,
       }
     }
   },
@@ -399,7 +404,8 @@ export const updateAdvancedTaskDefinition = async (
         command,
         service,
         permission,
-        confirmation_text: confirmationText
+        confirmation_text: confirmationText,
+        show_ui: showUi
       }
     })
   );
@@ -730,7 +736,7 @@ async function checkAdvancedTaskPermissions(input:AdvancedTaskDefinitionInterfac
     //In the first release, we're not actually supporting this
     //TODO: add checks once images are officially supported - for now, throw an error
     throw Error('Adding Images and System Wide Tasks are not yet supported');
-  } else if (getAdvancedTaskDefinitionType(input) == AdvancedTaskDefinitionType.image) {
+  } else if (getAdvancedTaskDefinitionType(input) == AdvancedTaskDefinitionType.image || input.adminTask != 0) {
     //We're only going to allow administrators to add these for now ...
     await hasPermission('advanced_task', 'create:advanced');
   } else if (input.groupName) {

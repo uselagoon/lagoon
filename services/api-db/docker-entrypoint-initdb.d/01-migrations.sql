@@ -1699,6 +1699,25 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  add_no_ui_and_admin_task_to_advanced_task_def()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'advanced_task_definition'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'show_ui'
+    ) THEN
+      ALTER TABLE `advanced_task_definition`
+      ADD  `show_ui`    int(1) NOT NULL default 1,
+      ADD  `admin_task` int(1) NOT NULL default 0;
+    END IF;
+  END;
+$$
+
 -- TODO: Eventually the `active/succeeded` values should go away once `remote-controller` is updated to send the correct values
 -- CREATE OR REPLACE PROCEDURE
 --   remove_active_succeeded_task_types()
@@ -1807,6 +1826,7 @@ CALL add_task_name_to_tasks();
 CALL add_new_task_status_types();
 CALL update_active_succeeded_tasks();
 CALL update_missing_tasknames();
+CALL add_no_ui_and_admin_task_to_advanced_task_def();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;

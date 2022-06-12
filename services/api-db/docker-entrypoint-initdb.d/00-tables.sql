@@ -292,6 +292,8 @@ CREATE TABLE IF NOT EXISTS advanced_task_definition (
   permission               ENUM('GUEST', 'DEVELOPER', 'MAINTAINER') DEFAULT 'GUEST',
   command                  text DEFAULT '',
   confirmation_text        varchar(2000) NULL,
+  show_ui                  int(1) NOT NULL default 1,
+  admin_task               int(1) NOT NULL default 0,
   created                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   deleted                  timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   UNIQUE(name, environment, project, group_name)

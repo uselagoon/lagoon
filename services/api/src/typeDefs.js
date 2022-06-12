@@ -1382,6 +1382,8 @@ const typeDefs = gql`
     permission: TaskPermission
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgumentInput]
     confirmationText: String
+    showUi: Int
+    adminTask: Int
   }
 
   input UpdateAdvancedTaskDefinitionInput {
@@ -1402,6 +1404,7 @@ const typeDefs = gql`
     permission: TaskPermission
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgumentInput]
     confirmationText: String
+    showUi: Int
   }
 
   input DeleteTaskInput {
