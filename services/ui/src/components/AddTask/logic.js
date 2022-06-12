@@ -44,7 +44,7 @@ const withOptions = withProps(({ pageEnvironment }) => {
   ];
 
   // Add Advanced Task Definitions
-  let advancedTasks = pageEnvironment.advancedTasks.map(task => {
+  let advancedTasks = pageEnvironment.advancedTasks.filter(e => { return e.showUi == 1;}).map(task => {
     let commandstring = task.command ? `[${task.command}]` : '';
     let label = task.description ? `${task.description} ${commandstring}` :'';
     return {
