@@ -1431,3 +1431,29 @@ if [ "$(featureFlag INSIGHTS)" = enabled ]; then
   previousStepEnd=${currentStepEnd}
 fi
 set -x
+
+set +x
+##############################################
+### RUN docker compose config check against the provided docker-compose file
+### use the `build-deploy-tool` built in validater to run over the provided docker-compose file
+##############################################
+dcc=$(bash -c 'build-deploy-tool validate docker-compose --docker-compose '${DOCKER_COMPOSE_YAML}' --ignore-non-string-key-errors=false; exit $?' 2>&1)
+dccExit=$?
+if [ "${dcc}" != "0" ]; then
+  echo "
+##############################################
+Warning!
+There are issues with your docker compose file that lagoon uses that should be fixed.
+This does not currently prevent builds from proceeding, but future versions of Lagoon *will* be more strict on issues shown here.
+The following is output from \`build-deploy-tool validate docker-compose --docker-compose '${DOCKER_COMPOSE_YAML}' --ignore-non-string-key-errors=false\` which you can run locally to verify and fix.
+##############################################
+"
+  echo ${dockerComposeConfig}
+  echo "
+##############################################"
+  currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
+  patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "dockerComposeValidation" "Docker Compose Validation"
+  previousStepEnd=${currentStepEnd}
+fi
+
+set -x
