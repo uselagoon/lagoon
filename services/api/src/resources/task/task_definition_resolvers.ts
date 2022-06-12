@@ -480,6 +480,7 @@ export const invokeRegisteredTask = async (
     environment,
     models
   );
+  console.log(task);
 
   const atb = advancedTaskToolbox.advancedTaskFunctions(
     sqlClientPool, models, hasPermission
@@ -570,6 +571,7 @@ export const invokeRegisteredTask = async (
           service: task.service || 'cli',
           image: task.image, //the return data here is basically what gets dropped into the DB.
           payload: payload,
+          adminTask: task.adminTask == 1,
           remoteId: undefined,
           execute: true
         });
