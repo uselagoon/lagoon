@@ -48,9 +48,8 @@ export const getInsightsBucketFiles = async ({ prefix }) => {
 	try {
     const data = await s3Client.listObjects({ Bucket: bucket, Prefix: prefix }, function(err, data) {
       if (err) {
-        console.log("Failed to get items: ", err);
+        throw new Error(`Failed to get items: ${err}`);
       } else {
-
          return data;
       }
     }).promise();
