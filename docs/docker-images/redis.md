@@ -28,15 +28,15 @@ We don't typically suggest using a persistent redis for in-memory cache scenario
 This image is prepared to be used on Lagoon. There are therefore some things already done:
 
 * Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions)so this image will work with a random user.
-* The files within `/etc/redis/*` are parsed through [`envplate`](https://github.com/kreuzwerker/envplate)with a container-entrypoint.
+* The files within `/etc/redis/*` are templated using [`envplate`](https://github.com/kreuzwerker/envplate) via a container-entrypoint.
 
 ## Included `redis.conf` configuration file
 
-The image ships a _default_ Redis configuration file, optimized to work on Lagoon. Some options are configurable via environment variables \(see [Environment Variables](../using-lagoon-advanced/environment-variables.md)\).
+The image ships a _default_ Redis configuration file, optimized to work on Lagoon.
 
-## Environment Variables
+### Environment Variables
 
-Environment variables to change redis' options can be defined in the Redis base image. See also [https://raw.githubusercontent.com/antirez/redis/4.0/redis.conf](https://raw.githubusercontent.com/antirez/redis/4.0/redis.conf) for further config.
+Some options in this default configuration are configurable via [runtime environment variables](../using-lagoon-advanced/environment-variables.md#runtime-environment-variables-lagoon-api).
 
 | Environment Variable | Default     |                                        Description                                        |
 | :------------------- | :---------- | :---------------------------------------------------------------------------------------- |
@@ -45,6 +45,11 @@ Environment variables to change redis' options can be defined in the Redis base 
 | `MAXMEMORY`          | 100mb       | Maximum amount of memory                                                                  |
 | `MAXMEMORYPOLICY`    | allkeys-lru | The policy to use when evicting keys if redis reaches its maximum memory usage            |
 | `REDIS_PASSWORD`     | disabled    | Enables [authentication feature](https://redis.io/topics/security#authentication-feature) |
+
+## Custom configuration
+
+By building on the base image you can include custom configuration.
+See [https://raw.githubusercontent.com/antirez/redis/4.0/redis.conf](https://raw.githubusercontent.com/antirez/redis/4.0/redis.conf) for full documentation of the redis configuration file.
 
 ## Redis-persistent
 
