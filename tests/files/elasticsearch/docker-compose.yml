@@ -21,3 +21,6 @@ services:
       dockerfile: nginx.dockerfile
     labels:
       lagoon.type: nginx
+networks:
+  amazeeio-network:
+    external: true

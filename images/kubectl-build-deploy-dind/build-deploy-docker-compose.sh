@@ -143,6 +143,10 @@ set -x
 ##############################################
 
 set +x
+
+# Load path of docker-compose that should be used
+DOCKER_COMPOSE_YAML=($(cat .lagoon.yml | shyaml get-value docker-compose-yaml))
+
 echo "Updating lagoon-yaml configmap with a pre-deploy version of the .lagoon.yml file"
 if kubectl -n ${NAMESPACE} get configmap lagoon-yaml &> /dev/null; then
   # replace it
@@ -160,6 +164,23 @@ if kubectl -n ${NAMESPACE} get configmap lagoon-yaml &> /dev/null; then
   # create it
   kubectl -n ${NAMESPACE} create configmap lagoon-yaml --from-file=pre-deploy=.lagoon.yml
 fi
+echo "Updating docker-compose-yaml configmap with a pre-deploy version of the docker-compose.yml file"
+if kubectl -n ${NAMESPACE} get configmap docker-compose-yaml &> /dev/null; then
+  # replace it
+  # if the environment has already been deployed with an existing configmap that had the file in the key `docker-compose.yml`
+  # just nuke the entire configmap and replace it with our new key and file
+  LAGOON_YML_CM=$(kubectl -n ${NAMESPACE} get configmap docker-compose-yaml -o json)
+  if [ "$(echo ${LAGOON_YML_CM} | jq -r '.data."docker-compose.yml" // false')" == "false" ]; then
+    # if the key doesn't exist, then just update the pre-deploy yaml only
+    kubectl -n ${NAMESPACE} get configmap docker-compose-yaml -o json | jq --arg add "`cat ${DOCKER_COMPOSE_YAML}`" '.data."pre-deploy" = $add' | kubectl apply -f -
+  else
+    # if the key does exist, then nuke it and put the new key
+    kubectl -n ${NAMESPACE} create configmap docker-compose-yaml --from-file=pre-deploy=${DOCKER_COMPOSE_YAML} -o yaml --dry-run=client | kubectl replace -f -
+  fi
+ else
+  # create it
+  kubectl -n ${NAMESPACE} create configmap docker-compose-yaml --from-file=pre-deploy=${DOCKER_COMPOSE_YAML}
+fi
 set -x
 
 # validate .lagoon.yml
@@ -176,9 +197,6 @@ currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
 patchBuildStep "${buildStartTime}" "${buildStartTime}" "${currentStepEnd}" "${NAMESPACE}" "initialSetup" "Initial Environment Setup"
 previousStepEnd=${currentStepEnd}
 set -x
-
-# Load path of docker-compose that should be used
-DOCKER_COMPOSE_YAML=($(cat .lagoon.yml | shyaml get-value docker-compose-yaml))
 
 DEPLOY_TYPE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.deploy-type default)
 
@@ -1442,6 +1460,14 @@ if kubectl -n ${NAMESPACE} get configmap lagoon-yaml &> /dev/null; then
   # create it
   kubectl -n ${NAMESPACE} create configmap lagoon-yaml --from-file=post-deploy=.lagoon.yml
 fi
+echo "Updating docker-compose-yaml configmap with a post-deploy version of the docker-compose.yml file"
+if kubectl -n ${NAMESPACE} get configmap docker-compose-yaml &> /dev/null; then
+  # replace it, no need to check if the key is different, as that will happen in the pre-deploy phase
+  kubectl -n ${NAMESPACE} get configmap docker-compose-yaml -o json | jq --arg add "`cat ${DOCKER_COMPOSE_YAML}`" '.data."post-deploy" = $add' | kubectl apply -f -
+ else
+  # create it
+  kubectl -n ${NAMESPACE} create configmap docker-compose-yaml --from-file=post-deploy=${DOCKER_COMPOSE_YAML}
+fi
 set -x
 
 set +x
@@ -1468,4 +1494,30 @@ if [ "$(featureFlag INSIGHTS)" = enabled ]; then
   patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "insightsCompleted" "Insights Gathering"
   previousStepEnd=${currentStepEnd}
 fi
+set -x
+
+set +x
+##############################################
+### RUN docker compose config check against the provided docker-compose file
+### use the `build-deploy-tool` built in validater to run over the provided docker-compose file
+##############################################
+dccOutput=$(bash -c 'build-deploy-tool validate docker-compose --docker-compose '${DOCKER_COMPOSE_YAML}' --ignore-non-string-key-errors=false; exit $?' 2>&1)
+dccExit=$?
+if [ "${dccExit}" != "0" ]; then
+  echo "
+##############################################
+Warning!
+There are issues with your docker compose file that lagoon uses that should be fixed.
+This does not currently prevent builds from proceeding, but future versions of Lagoon *will* be more strict on issues shown here.
+The following is output from \`build-deploy-tool validate docker-compose --docker-compose '${DOCKER_COMPOSE_YAML}' --ignore-non-string-key-errors=false\` which you can run locally to verify and fix.
+##############################################
+"
+  echo ${dccOutput}
+  echo "
+##############################################"
+  currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
+  patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "dockerComposeValidation" "Docker Compose Validation"
+  previousStepEnd=${currentStepEnd}
+fi
+
 set -x
