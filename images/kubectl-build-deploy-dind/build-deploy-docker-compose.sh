@@ -1019,7 +1019,7 @@ set -x
 # so just add https...
 ROUTE=$(build-deploy-tool identify primary-ingress)
 if [ ! -z "${ROUTE}" ]; then
-  ROUTE=https://${ROUTE}
+  ROUTE=${ROUTE}
 fi
 
 # Load all routes with correct schema and comma separated
