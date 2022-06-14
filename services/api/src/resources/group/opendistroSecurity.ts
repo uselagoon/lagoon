@@ -86,22 +86,32 @@ export const OpendistroSecurityOperations = (
     } catch (err) {
       logger.error(`OpendistroSecurity create role error: ${err}`);
     }
+    
+    try {
+      // Create a new RoleMapping for this Role
+      await opendistroSecurityClient.put(
+        `rolesmapping/${groupName}`,
+        { body: { backend_roles: [`${groupName}`] } }
+      );
+      logger.debug(
+        `${groupName}: Created RoleMapping "${groupName}"`
+      );
+    } catch (err) {
+      logger.error(`Opendistro-Security create rolemapping error: ${err}`);
+    }
 
     if (tenantName != 'global_tenant') {
       try {
         // Create a new Tenant for this Group
-        await opendistroSecurityClient.put(`tenants/${tenantName}`, { body: { description: `${tenantName}` } });
-        logger.debug(`${groupName}: Created Tenant "${tenantName}"`);
+        await opendistroSecurityClient.put(
+          `tenants/${tenantName}`,
+          { body: { description: `${tenantName}` } }
+        );
+        logger.debug(
+          `${groupName}: Created Tenant "${tenantName}"`
+        );
       } catch (err) {
         logger.error(`Opendistro-Security create tenant error: ${err}`);
-      };
-
-      try {
-        // Create a new RoleMapping for this Group
-        await opendistroSecurityClient.put(`rolesmapping/${tenantName}`, { body: { backend_roles: [`${tenantName}`] } });
-        logger.debug(`${groupName}: Created RoleMapping "${tenantName}"`);
-      } catch (err) {
-        logger.error(`Opendistro-Security create rolemapping error: ${err}`);
       }
     }
 
