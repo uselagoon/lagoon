@@ -147,6 +147,9 @@ For these cases, it is possible to tell Lagoon which services should stay togeth
 
 This will cause Lagoon to realize that the `nginx` and `php` containers are combined in a pod that will be called `nginx`.
 
+!!! warning "Warning:"
+    Once you have set the `lagooon.name` of a service, do NOT rename it. This will cause all kind of havoc in your containers and break things.
+
 Lagoon still needs to understand which of the two services is the actual individual service type \(`nginx` and `php` in this case\). It does this by searching for service names with the same name that are given by the type, so `nginx-php-persistent` expects one service with the name `nginx` and one with `php` in the `docker-compose.yml.` If for any reason you want to use different names for the services, or you need for than one pod with the type `nginx-php-persistent` there is an additional label `lagoon.deployment.servicetype` which can be used to define the actual service type.
 
 An example:

@@ -2,6 +2,9 @@
 
 Development of Lagoon locally can now be performed on a local Kubernetes cluster, or via Docker Compose \(as a fallback\).
 
+!!! Note "Note:"
+    The full Lagoon stack relies on a range of upstream projects which are currently incompatible with ARM-based architectures, such as the the M1/M2 Apple Silicon-based machines. For this reason, running or developing `lagoon-core` or `lagoon-remote` locally on these architectures is not currently supported. See https://github.com/uselagoon/lagoon/issues/3189 for more information.
+
 ## Docker
 
 Docker must be installed to build and run Lagoon locally.
