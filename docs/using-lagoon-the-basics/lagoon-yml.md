@@ -88,7 +88,7 @@ Different tasks based on branch name:
 
 ```yaml title=".lagoon.yml"
     - run:
-        name: Different tasks based on Branch Name
+        name: Different tasks based on branch Name
         command: |
             ### Runs if current branch is not 'production'
         service: cli
