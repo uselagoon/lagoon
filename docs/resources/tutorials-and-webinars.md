@@ -6,6 +6,14 @@
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/GS4b5mbjbzM" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
+## Advance Lando-ing with Lagoon
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/au4F2KKwyOM" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+## Webinar - Lagoon Insights
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/eiIaKPWxbpM" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
 ## Lagoon Deployment Demo
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/XiaH7gqUXWc" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
