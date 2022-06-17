@@ -34,7 +34,7 @@ As this is a Docker Image that is built once and then executed multiple times fo
 | `OPENSHIFT_TOKEN` | API Token of an OpenShift ServiceAccount that will be used to connect to the Console |
 | `APPUIO_TOKEN` | Special case for appuio.ch (needed when is `OPENSHIFT_CONSOLE` is `https://console.appuio.ch`), the API Token that should be used to create projects with |
 | `NAMESPACE` | Name of the OpenShift Project that should be used, will be created if not existing |
-| `NAMESPACE_USER` | OpenShift Username that should be given access to the project |
+| `NAMESPACE_USER` | OpenShift Username that should be given access to the project (useful if the User behind `OPENSHIFT_TOKEN` is different one that will be used to access the OpenShift UI |
 | `PROJECT` | Name of the Project in which this Deployment is part of |
 | `BRANCH` | Branch Name in which this Deployment is part of (even though `GIT_REF` can also be a Git Hash, we still need to know which Branch do we actually deploy) |
 
