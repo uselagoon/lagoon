@@ -181,6 +181,20 @@ if kubectl -n ${NAMESPACE} get configmap docker-compose-yaml &> /dev/null; then
   # create it
   kubectl -n ${NAMESPACE} create configmap docker-compose-yaml --from-file=pre-deploy=${DOCKER_COMPOSE_YAML}
 fi
+
+##############################################
+### RUN docker compose config check against the provided docker-compose file
+### use the `build-validate` built in validater to run over the provided docker-compose file
+##############################################
+dccOutput=$(bash -c 'build-validate validate docker-compose --docker-compose '${DOCKER_COMPOSE_YAML}' --ignore-non-string-key-errors=false; exit $?' 2>&1)
+dccExit=$?
+if [ "${dccExit}" != "0" ]; then
+  currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
+  patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "dockerComposeValidationError" "Docker Compose Validation Error"
+  previousStepEnd=${currentStepEnd}
+  # the warning message is displayed at the end of the build
+fi
+
 set -x
 
 # validate .lagoon.yml
@@ -1602,5 +1616,20 @@ if [ "$(featureFlag INSIGHTS)" = enabled ]; then
   currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
   patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "insightsCompleted" "Insights Gathering"
   previousStepEnd=${currentStepEnd}
+fi
+
+if [ "${dccExit}" != "0" ]; then
+  # if the docker-compose validation step fails, this warning is show
+  echo "
+##############################################
+Warning!
+There are issues with your docker compose file that lagoon uses that should be fixed.
+This does not currently prevent builds from proceeding, but future versions of Lagoon *will* be more strict on issues shown here.
+You can run `docker compose config` locally to check that your docker-compose file is valid.
+##############################################
+"
+  echo ${dccOutput}
+  echo "
+##############################################"
 fi
 set -x
