@@ -94,6 +94,9 @@ This defines all the services you want to deploy. _Unfortunately,_ `docker-compo
 
 The name of the service \(`nginx`, `php`, and `mariadb` in the example above\) is used by Lagoon as the name of the Kubernetes pod \(yet another term - again, we'll be calling them services\) that is generated, plus also any additional Kubernetes objects that are created based on the defined `lagoon.type`, which could be things like services, routes, persistent storage, etc.
 
+!!! warning "Warning:"
+    Once you have set the name of a service, do NOT rename it. This will cause all kind of havoc in your containers and break things.
+
 ### Docker Images
 
 #### **`build`**
@@ -143,6 +146,9 @@ For these cases, it is possible to tell Lagoon which services should stay togeth
 2. Link the second service with the first one, defining the label `lagoon.name` of the second one with the first one. \(in the example this is done with defining `lagoon.name: nginx`\).
 
 This will cause Lagoon to realize that the `nginx` and `php` containers are combined in a pod that will be called `nginx`.
+
+!!! warning "Warning:"
+    Once you have set the `lagooon.name` of a service, do NOT rename it. This will cause all kind of havoc in your containers and break things.
 
 Lagoon still needs to understand which of the two services is the actual individual service type \(`nginx` and `php` in this case\). It does this by searching for service names with the same name that are given by the type, so `nginx-php-persistent` expects one service with the name `nginx` and one with `php` in the `docker-compose.yml.` If for any reason you want to use different names for the services, or you need for than one pod with the type `nginx-php-persistent` there is an additional label `lagoon.deployment.servicetype` which can be used to define the actual service type.
 
