@@ -25,7 +25,8 @@ RUN curl -sSL https://github.com/uselagoon/lagoon-linter/releases/download/v0.7.
     | tar -xz -C /usr/local/bin lagoon-linter
 
 RUN curl -sSL https://github.com/uselagoon/build-deploy-tool/releases/download/v0.12.0/build-deploy-tool_0.12.0_linux_amd64.tar.gz \
-    | tar -xz -C /usr/local/bin build-validate
+    | tar -xz -C /usr/local/bin build-deploy-tool \
+    && mv /usr/local/bin/build-deploy-tool /usr/local/bin/build-validate
 
 RUN curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin > /dev/null 2>&1
 #curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin > /dev/null 2>&1
