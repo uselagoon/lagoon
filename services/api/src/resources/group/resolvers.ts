@@ -103,6 +103,28 @@ export const getGroupsByProjectId: ResolverFn = async (
   }
 };
 
+export const getProjectGroupOrganizationAssociation: ResolverFn = async (
+  _root,
+  { input },
+  { sqlClientPool, models, hasPermission }
+) => {
+  let pid = input.project;
+  let oid = input.organization;
+
+  // platform admin only as it potentially reveals information about projects/orgs/groups
+  await hasPermission('organization', 'add');
+
+  const projectGroups = await models.GroupModel.loadGroupsByProjectId(pid);
+  for (const group of projectGroups) {
+    logger.info(`PROJECT GROUP: ${JSON.stringify(group.attributes)}`)
+  }
+  const organizationGroups = await models.GroupModel.loadGroupsByOrganizationId(oid);
+  for (const group of organizationGroups) {
+    logger.info(`ORG GROUP: ${JSON.stringify(group.attributes)}`)
+  }
+  return "success";
+};
+
 export const getGroupsByUserId: ResolverFn = async (
   { id: uid },
   _input,
@@ -272,6 +294,181 @@ export const addGroup: ResolverFn = async (
   });
 
   return group;
+};
+
+
+// check an existing group to see if it can be added to an organization
+export const getGroupProjectOrganizationAssociation: ResolverFn = async (
+  _root,
+  { input },
+  { models, sqlClientPool, hasPermission, userActivityLogger }
+) => {
+  // platform admin only as it potentially reveals information about projects/orgs/groups
+  await hasPermission('organization', 'add');
+
+  // check the organization exists
+  const organizationData = await organizationHelpers(sqlClientPool).getOrganizationById(input.organization);
+  if (organizationData === undefined) {
+    throw new Error(`Organization does not exist`)
+  }
+
+  // check the requested group exists
+  const group = await models.GroupModel.loadGroupByIdOrName(input);
+  if (group === undefined) {
+    throw new Error(`Group does not exist`)
+  }
+
+  // check the organization for projects currently attached to it
+  const projectsByOrg = await projectHelpers(sqlClientPool).getProjectByOrganizationId(input.organization);
+  const projectIdsByOrg = []
+  for (const project of projectsByOrg) {
+    projectIdsByOrg.push(project.id)
+  }
+
+  // get the project ids
+  const groupProjectIds = []
+  if (R.prop('lagoon-projects', group.attributes)) {
+    const groupProjects = R.prop('lagoon-projects', group.attributes).toString().split(',')
+    for (const project of groupProjects) {
+      groupProjectIds.push(project)
+    }
+  }
+  // logger.info(`GPIO/PIO: ${groupProjectIds} / ${projectIdsByOrg}`)
+
+  function arr_diff (a1, a2) {
+    var a = [], diff = [];
+    for (var i = 0; i < a1.length; i++) {
+        a[a1[i]] = true;
+    }
+    for (var i = 0; i < a2.length; i++) {
+        if (a[a2[i]]) {
+            delete a[a2[i]];
+        }
+    }
+    for (var k in a) {
+        diff.push(k);
+    }
+    return diff;
+  }
+  // logger.info(`ARDIF2: ${arr_diff(groupProjectIds, projectIdsByOrg)}`)
+  // logger.info(`ARDIF2: ${arr_diff(projectIdsByOrg, groupProjectIds)}`)
+
+  if (projectIdsByOrg.length > 0 && groupProjectIds.length > 0) {
+    if (projectIdsByOrg.length == 0) {
+      let filters = arr_diff(groupProjectIds, projectIdsByOrg)
+      //let filters2 = arr_diff(projectIdsByOrg, groupProjectIds)
+      throw new Error(`This organization has no projects associated to it, the following projects that are not part of the requested organization: [${filters}]`)
+    } else {
+      if (groupProjectIds.length > 0) {
+        let filters = arr_diff(groupProjectIds, projectIdsByOrg)
+        //let filters2 = arr_diff(projectIdsByOrg, groupProjectIds)
+        if (filters.length > 0) {
+          throw new Error(`This group has the following projects that are not part of the requested organization: [${filters}]`)
+        }
+      }
+    }
+  }
+
+  return "success"
+
+};
+
+// add an existing group to an organization
+export const addGroupToOrganization: ResolverFn = async (
+  _root,
+  { input },
+  { models, sqlClientPool, hasPermission, userActivityLogger }
+) => {
+  // platform admin only as it potentially reveals information about projects/orgs/groups
+  await hasPermission('organization', 'add');
+
+  // check the organization exists
+  const organizationData = await organizationHelpers(sqlClientPool).getOrganizationById(input.organization);
+  if (organizationData === undefined) {
+    throw new Error(`Organization does not exist`)
+  }
+
+  // check the requested group exists
+  const group = await models.GroupModel.loadGroupByIdOrName(input);
+  if (group === undefined) {
+    throw new Error(`Group does not exist`)
+  }
+
+
+  // check the organization for projects currently attached to it
+  const projectsByOrg = await projectHelpers(sqlClientPool).getProjectByOrganizationId(input.organization);
+  const projectIdsByOrg = []
+  for (const project of projectsByOrg) {
+    projectIdsByOrg.push(project.id)
+  }
+
+  // get the project ids
+  const groupProjectIds = []
+  if (R.prop('lagoon-projects', group.attributes)) {
+    const groupProjects = R.prop('lagoon-projects', group.attributes).toString().split(',')
+    for (const project of groupProjects) {
+      groupProjectIds.push(project)
+    }
+  }
+  // logger.info(`GPIO/PIO: ${groupProjectIds} / ${projectIdsByOrg}`)
+
+  function arr_diff (a1, a2) {
+    var a = [], diff = [];
+    for (var i = 0; i < a1.length; i++) {
+        a[a1[i]] = true;
+    }
+    for (var i = 0; i < a2.length; i++) {
+        if (a[a2[i]]) {
+            delete a[a2[i]];
+        }
+    }
+    for (var k in a) {
+        diff.push(k);
+    }
+    return diff;
+  }
+  // logger.info(`ARDIF2: ${arr_diff(groupProjectIds, projectIdsByOrg)}`)
+  // logger.info(`ARDIF2: ${arr_diff(projectIdsByOrg, groupProjectIds)}`)
+
+  if (projectIdsByOrg.length > 0 && groupProjectIds.length > 0) {
+    if (projectIdsByOrg.length == 0) {
+      let filters = arr_diff(groupProjectIds, projectIdsByOrg)
+      //let filters2 = arr_diff(projectIdsByOrg, groupProjectIds)
+      throw new Error(`This organization has no projects associated to it, the following projects that are not part of the requested organization: [${filters}]`)
+    } else {
+      if (groupProjectIds.length > 0) {
+        let filters = arr_diff(groupProjectIds, projectIdsByOrg)
+        //let filters2 = arr_diff(projectIdsByOrg, groupProjectIds)
+        if (filters.length > 0) {
+          throw new Error(`This group has the following projects that are not part of the requested organization: [${filters}]`)
+        }
+      }
+    }
+  }
+
+  // update the group to be in the organization
+  const updatedGroup = await models.GroupModel.updateGroup({
+    id: group.id,
+    name: group.name,
+    attributes: {
+      ...group.attributes,
+      "lagoon-organization": [input.organization]
+    }
+  });
+
+  // log this activity
+  userActivityLogger(`User added a group to organization`, {
+    project: '',
+    organization: input.organization,
+    event: 'api:updateOrganizationGroup',
+    payload: {
+      data: {
+        updatedGroup
+      }
+    }
+  });
+
+  return "success"
 };
 
 export const updateGroup: ResolverFn = async (

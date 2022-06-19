@@ -1053,6 +1053,11 @@ const typeDefs = gql`
     key: String!
   }
 
+  input ProjectOrgGroupsInput {
+    project: Int!
+    organization: Int!
+  }
+
 
   type Query {
     """
@@ -1195,6 +1200,8 @@ const typeDefs = gql`
     Get an organization by its ID
     """
     organizationById(organization: Int!): Organization
+    getGroupProjectOrganizationAssociation(input: AddGroupInput!): String
+    getProjectGroupOrganizationAssociation(input: ProjectOrgGroupsInput!): String
   }
 
   # Must provide id OR name
@@ -2067,6 +2074,7 @@ const typeDefs = gql`
     addUserToGroup(input: UserGroupRoleInput!): GroupInterface
     removeUserFromGroup(input: UserGroupInput!): GroupInterface
     addGroupsToProject(input: ProjectGroupsInput): Project
+    addGroupToOrganization(input: AddGroupInput!): String
     removeGroupsFromProject(input: ProjectGroupsInput!): Project
     updateProjectMetadata(input: UpdateMetadataInput!): Project
     removeProjectMetadataByKey(input: RemoveMetadataInput!): Project

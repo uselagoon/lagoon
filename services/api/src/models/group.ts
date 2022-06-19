@@ -340,12 +340,12 @@ export const Group = (clients: {
 
     // This function is called often and is expensive to compute so prefer
     // performance over DRY
-    try {
-      groupIds = await redisClient.getOrganizationGroupsCache(organizationId);
-    } catch (err) {
-      logger.warn(`Error loading project groups from cache: ${err.message}`);
-      groupIds = [];
-    }
+    // try {
+    //   groupIds = await redisClient.getOrganizationGroupsCache(organizationId);
+    // } catch (err) {
+    //   logger.warn(`Error loading project groups from cache: ${err.message}`);
+    //   groupIds = [];
+    // }
 
     if (R.isEmpty(groupIds)) {
       const keycloakGroups = await keycloakAdminClient.groups.find();
@@ -369,7 +369,7 @@ export const Group = (clients: {
       const filteredGroups = filterGroupsByAttribute(fullGroups, filterFn);
       try {
         const filteredGroupIds = R.pluck('id', filteredGroups);
-        await redisClient.saveOrganizationGroupsCache(organizationId, filteredGroupIds);
+        // await redisClient.saveOrganizationGroupsCache(organizationId, filteredGroupIds);
       } catch (err) {
         logger.warn(`Error saving organization groups to cache: ${err.message}`);
       }
@@ -379,7 +379,7 @@ export const Group = (clients: {
       // if the groups don't exist, then purge this organizations redis cache
       // this would be better handled in the `deleteGroup` function, but promises and stuff don't seem to work properly
       // TODO: SEARCH AND SEE -> DELETEGROUPORGCACHE
-      await redisClient.deleteOrganizationGroupsCache(organizationId);
+      // await redisClient.deleteOrganizationGroupsCache(organizationId);
       return null
     }
 
@@ -536,7 +536,7 @@ export const Group = (clients: {
       // when adding a group, if this is an organization based group, purge the cache so the groups are updated
       // in the api
       const organizationId = getOrganizationIdFromGroup(group);
-      await redisClient.deleteOrganizationGroupsCache(organizationId);
+      // await redisClient.deleteOrganizationGroupsCache(organizationId);
     } catch (err) {
       logger.warn(`Error deleting organization groups cache: ${err.message}`);
     }
@@ -609,8 +609,8 @@ export const Group = (clients: {
     }
 
     // @TODO: this doesn't seem to work with promises?? DELETEGROUPORGCACHE
-    const organizationId = getOrganizationIdFromGroup(group);
-    await redisClient.deleteOrganizationGroupsCache(organizationId);
+    // const organizationId = getOrganizationIdFromGroup(group);
+    // await redisClient.deleteOrganizationGroupsCache(organizationId);
   };
 
   const addUserToGroup = async (

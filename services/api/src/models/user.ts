@@ -260,12 +260,12 @@ export const User = (clients: {
 
     // This function is called often and is expensive to compute so prefer
     // performance over DRY
-    try {
-      userIds = await redisClient.getUsersOrganizationCache(organizationId);
-    } catch (err) {
-      logger.warn(`Error loading organization users from cache: ${err.message}`);
-      userIds = [];
-    }
+    // try {
+    //   userIds = await redisClient.getUsersOrganizationCache(organizationId);
+    // } catch (err) {
+    //   logger.warn(`Error loading organization users from cache: ${err.message}`);
+    //   userIds = [];
+    // }
 
     if (R.isEmpty(userIds)) {
       const keycloakUsers = await keycloakAdminClient.users.find();
@@ -285,7 +285,7 @@ export const User = (clients: {
     const filteredUsers = filterUsersByAttribute(fullUsers, filterFn);
     try {
       const filteredUsersIds = R.pluck('id', filteredUsers);
-      await redisClient.saveUsersOrganizationCache(organizationId, filteredUsersIds);
+      // await redisClient.saveUsersOrganizationCache(organizationId, filteredUsersIds);
     } catch (err) {
       logger.warn(`Error saving organization users to cache: ${err.message}`);
     }
@@ -439,7 +439,7 @@ export const User = (clients: {
         try {
           // when adding a user to organizations, if this is an organization based user, purge the cache so the users are updated
           // in the api
-          await redisClient.deleteUsersOrganizationCache(R.prop('organization', userInput));
+          // await redisClient.deleteUsersOrganizationCache(R.prop('organization', userInput));
         } catch (err) {
           logger.warn(`Error deleting organization groups cache: ${err.message}`);
         }

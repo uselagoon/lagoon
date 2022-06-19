@@ -253,20 +253,16 @@ export const getProjectsByOrganizationId: ResolverFn = async (
     sqlClientPool,
     `SELECT p.*
     FROM project p
-    WHERE p.organization = :oid
-    LIMIT 1`,
+    WHERE p.organization = :oid`,
     { oid }
   );
-  const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
-
   // @TODO: FIX PERMISSION CHECK FOR ORGANIZATION PROJECTS
-  // const project = withK8s[0];
 
   // await hasPermission('project', 'view', {
   //   project: project.id
   // });
 
-  return withK8s;
+  return rows;
 };
 
 export const addProject = async (
@@ -291,6 +287,8 @@ export const addProject = async (
   if (!openshift) {
     throw new Error('Must provide keycloak or openshift field');
   }
+
+  //@TODO: permission check that project can be created in organization
 
   let keyPair: any = {};
   try {

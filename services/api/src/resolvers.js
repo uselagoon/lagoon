@@ -221,6 +221,9 @@ const {
   addGroupsToProject,
   removeGroupsFromProject,
   getGroupsByOrganizationId,
+  addGroupToOrganization,
+  getGroupProjectOrganizationAssociation,
+  getProjectGroupOrganizationAssociation,
 } = require('./resources/group/resolvers');
 
 const {
@@ -487,6 +490,8 @@ const resolvers = {
     deployTargetConfigsByDeployTarget: getDeployTargetConfigsByDeployTarget,
     allOrganizations: getAllOrganizations,
     organizationById: getOrganizationById,
+    getGroupProjectOrganizationAssociation,
+    getProjectGroupOrganizationAssociation,
   },
   Mutation: {
     addProblem,
@@ -604,6 +609,7 @@ const resolvers = {
     updateDeployTargetConfig,
     addOrganization,
     updateOrganization,
+    addGroupToOrganization,
   },
   Subscription: {
     backupChanged: backupSubscriber,

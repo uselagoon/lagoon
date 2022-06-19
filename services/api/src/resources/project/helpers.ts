@@ -37,6 +37,16 @@ export const Helpers = (sqlClientPool: Pool) => {
     return R.prop(0, rows);
   };
 
+  const getProjectByOrganizationId = async (
+    organizationId: number
+  ) => {
+    const rows = await query(
+      sqlClientPool,
+      Sql.selectProjectsByOrganizationIds(organizationId)
+    );
+    return rows;
+  };
+
   const getProjectsByIds = (projectIds: number[]) =>
     query(sqlClientPool, Sql.selectProjectsByIds(projectIds));
 
@@ -45,6 +55,7 @@ export const Helpers = (sqlClientPool: Pool) => {
     getProjectById,
     getProjectsByIds,
     getProjectByEnvironmentId,
+    getProjectByOrganizationId,
     getProjectIdByName: async (name: string): Promise<number> => {
       const pidResult = await query(
         sqlClientPool,

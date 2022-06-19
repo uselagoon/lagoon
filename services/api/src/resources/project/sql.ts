@@ -29,6 +29,10 @@ export const Sql = {
     knex('project as p')
       .whereIn('p.id', projectIds)
       .toString(),
+  selectProjectsByOrganizationIds: (organizationId: number) =>
+    knex('project as p')
+      .where('p.organization', organizationId)
+      .toString(),
   selectProjectByEnvironmentId: (environmentId, environmentType = []) => {
     let q = knex('environment as e')
       .select(
