@@ -26,7 +26,9 @@ Lagoon gives developers what they dream about. It's a system that allows develop
 
 Questions? Ideas? Meet the maintainers and contributors.
 
-Head to `#lagoon` in the amazee.io RocketChat: [https://amazeeio.rocket.chat](https://amazeeio.rocket.chat/)
+Chat with us on the Lagoon Discord: [https://discord.gg/te5hHe95JE
+](https://discord.gg/te5hHe95JE
+)
 
 ## A couple of things about Lagoon
 

@@ -28,7 +28,7 @@ Bonus points for anyone that helps contribute to tests for any of these examples
 
 Help us to document our other examples better – we’re not expecting a full manuscript, but tidy-ups, links to helpful resources and clarifying statements are all super-awesome.
 
-If you have any questions, reach out to us on RocketChat!
+If you have any questions, reach out to us on [Discord](https://discord.gg/te5hHe95JE)!
 
 ## I found a security issue 🔓
 
