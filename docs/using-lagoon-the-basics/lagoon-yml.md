@@ -457,7 +457,7 @@ With the key `ssh` you can define another SSH endpoint that should be used by th
 
 ### `additional-yaml`
 
-The `additional-yaml` has some super powers. Basically, it allows you to define any arbitrary YAML configuration file to be inserted before the build step \(it still needs to be valid Kubernetes/OpenShift YAML, though ☺\).
+The `additional-yaml` has some super powers. Basically, it allows you to define any arbitrary YAML configuration file to be inserted before the build step \(it still needs to be valid Kubernetes YAML, though ☺\).
 
 Example:
 
