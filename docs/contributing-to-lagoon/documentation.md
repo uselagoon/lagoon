@@ -2,7 +2,7 @@
 
 We really value anything that you can offer us!
 
-We've made building and viewing the documentation really easy, and the team is always ready to help out with reviews or pointers.
+We've made building and viewing the documentation really straightforward, and the team is always ready to help out with reviews or pointers.
 
 We use [mkdocs](https://www.mkdocs.org/) with the excellent [Material](https://squidfunk.github.io/mkdocs-material/) theme.
 
