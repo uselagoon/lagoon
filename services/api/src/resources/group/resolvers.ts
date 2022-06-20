@@ -9,6 +9,7 @@ import { GroupNotFoundError } from '../../models/group';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { OpendistroSecurityOperations } from './opendistroSecurity';
 import { KeycloakUnauthorizedError } from '../../util/auth';
+import { arrayDiff } from '../../util/func';
 import { Helpers as organizationHelpers } from '../organization/helpers';
 
 export const getAllGroups: ResolverFn = async (
@@ -103,6 +104,8 @@ export const getGroupsByProjectId: ResolverFn = async (
   }
 };
 
+// check an existing project and the associated groups can be added to an organization
+// this will return errors if there are projects or groups that are part of different organizations
 export const getProjectGroupOrganizationAssociation: ResolverFn = async (
   _root,
   { input },
@@ -114,14 +117,48 @@ export const getProjectGroupOrganizationAssociation: ResolverFn = async (
   // platform admin only as it potentially reveals information about projects/orgs/groups
   await hasPermission('organization', 'add');
 
+  const groupProjectIds = []
+  const projectInOtherOrgs = []
+  const projectGroupNames = []
+
+  // get all the groups the requested project is in
   const projectGroups = await models.GroupModel.loadGroupsByProjectId(pid);
   for (const group of projectGroups) {
-    logger.info(`PROJECT GROUP: ${JSON.stringify(group.attributes)}`)
+    // for each group the project is in, check if it has an organization
+    if (R.prop('lagoon-organization', group.attributes)) {
+      // if it has an organization that is not the requested organization, add it to a list
+      if (R.prop('lagoon-organization', group.attributes) != oid) {
+        projectGroupNames.push({group: group.name, organization: R.prop('lagoon-organization', group.attributes).toString()})
+      }
+    }
+    // for each group the project is in, get the list of projects that are also in this group
+    if (R.prop('lagoon-projects', group.attributes)) {
+      const groupProjects = R.prop('lagoon-projects', group.attributes).toString().split(',')
+      for (const project of groupProjects) {
+        groupProjectIds.push({group: group.name, project: project})
+      }
+    }
   }
-  const organizationGroups = await models.GroupModel.loadGroupsByOrganizationId(oid);
-  for (const group of organizationGroups) {
-    logger.info(`ORG GROUP: ${JSON.stringify(group.attributes)}`)
+
+  if (groupProjectIds.length > 0) {
+    // for all the groups->projects associations
+    for (const pGroup of groupProjectIds) {
+      const project = await projectHelpers(sqlClientPool).getProjectById(pGroup.project)
+      // check if the projects are in an organization, and if so, add it to a list if it is in one not in the requested organization
+      if (project.organization != oid && project.organization != null) {
+        projectInOtherOrgs.push({group: pGroup.group, project: project.name, organization: project.organization})
+      }
+    }
   }
+
+  // report errors here
+  if (projectInOtherOrgs.length > 0) {
+    throw new Error(`This project has groups that have projects in other organizations: [${JSON.stringify(projectInOtherOrgs)}]`)
+  }
+  if (projectGroupNames.length > 0) {
+    throw new Error(`This project has groups that are in other organizations: [${JSON.stringify(projectGroupNames)}]`)
+  }
+
   return "success";
 };
 
@@ -298,6 +335,8 @@ export const addGroup: ResolverFn = async (
 
 
 // check an existing group to see if it can be added to an organization
+// this function will return errors if there are projects in the group that are not in the organization
+// if there are no projects in the organization, and no projects in the group then it will succeed
 export const getGroupProjectOrganizationAssociation: ResolverFn = async (
   _root,
   { input },
@@ -333,35 +372,16 @@ export const getGroupProjectOrganizationAssociation: ResolverFn = async (
       groupProjectIds.push(project)
     }
   }
-  // logger.info(`GPIO/PIO: ${groupProjectIds} / ${projectIdsByOrg}`)
-
-  function arr_diff (a1, a2) {
-    var a = [], diff = [];
-    for (var i = 0; i < a1.length; i++) {
-        a[a1[i]] = true;
-    }
-    for (var i = 0; i < a2.length; i++) {
-        if (a[a2[i]]) {
-            delete a[a2[i]];
-        }
-    }
-    for (var k in a) {
-        diff.push(k);
-    }
-    return diff;
-  }
-  // logger.info(`ARDIF2: ${arr_diff(groupProjectIds, projectIdsByOrg)}`)
-  // logger.info(`ARDIF2: ${arr_diff(projectIdsByOrg, groupProjectIds)}`)
 
   if (projectIdsByOrg.length > 0 && groupProjectIds.length > 0) {
     if (projectIdsByOrg.length == 0) {
-      let filters = arr_diff(groupProjectIds, projectIdsByOrg)
-      //let filters2 = arr_diff(projectIdsByOrg, groupProjectIds)
+      let filters = arrayDiff(groupProjectIds, projectIdsByOrg)
+      //let filters2 = arrayDiff(projectIdsByOrg, groupProjectIds)
       throw new Error(`This organization has no projects associated to it, the following projects that are not part of the requested organization: [${filters}]`)
     } else {
       if (groupProjectIds.length > 0) {
-        let filters = arr_diff(groupProjectIds, projectIdsByOrg)
-        //let filters2 = arr_diff(projectIdsByOrg, groupProjectIds)
+        let filters = arrayDiff(groupProjectIds, projectIdsByOrg)
+        //let filters2 = arrayDiff(projectIdsByOrg, groupProjectIds)
         if (filters.length > 0) {
           throw new Error(`This group has the following projects that are not part of the requested organization: [${filters}]`)
         }
@@ -374,6 +394,8 @@ export const getGroupProjectOrganizationAssociation: ResolverFn = async (
 };
 
 // add an existing group to an organization
+// this function will return errors if there are projects in the group that are not in the organization
+// if there are no projects in the organization, and no projects in the group then it will succeed
 export const addGroupToOrganization: ResolverFn = async (
   _root,
   { input },
@@ -410,35 +432,16 @@ export const addGroupToOrganization: ResolverFn = async (
       groupProjectIds.push(project)
     }
   }
-  // logger.info(`GPIO/PIO: ${groupProjectIds} / ${projectIdsByOrg}`)
-
-  function arr_diff (a1, a2) {
-    var a = [], diff = [];
-    for (var i = 0; i < a1.length; i++) {
-        a[a1[i]] = true;
-    }
-    for (var i = 0; i < a2.length; i++) {
-        if (a[a2[i]]) {
-            delete a[a2[i]];
-        }
-    }
-    for (var k in a) {
-        diff.push(k);
-    }
-    return diff;
-  }
-  // logger.info(`ARDIF2: ${arr_diff(groupProjectIds, projectIdsByOrg)}`)
-  // logger.info(`ARDIF2: ${arr_diff(projectIdsByOrg, groupProjectIds)}`)
 
   if (projectIdsByOrg.length > 0 && groupProjectIds.length > 0) {
     if (projectIdsByOrg.length == 0) {
-      let filters = arr_diff(groupProjectIds, projectIdsByOrg)
-      //let filters2 = arr_diff(projectIdsByOrg, groupProjectIds)
+      let filters = arrayDiff(groupProjectIds, projectIdsByOrg)
+      //let filters2 = arrayDiff(projectIdsByOrg, groupProjectIds)
       throw new Error(`This organization has no projects associated to it, the following projects that are not part of the requested organization: [${filters}]`)
     } else {
       if (groupProjectIds.length > 0) {
-        let filters = arr_diff(groupProjectIds, projectIdsByOrg)
-        //let filters2 = arr_diff(projectIdsByOrg, groupProjectIds)
+        let filters = arrayDiff(groupProjectIds, projectIdsByOrg)
+        //let filters2 = arrayDiff(projectIdsByOrg, groupProjectIds)
         if (filters.length > 0) {
           throw new Error(`This group has the following projects that are not part of the requested organization: [${filters}]`)
         }
