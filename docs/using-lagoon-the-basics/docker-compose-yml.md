@@ -119,7 +119,7 @@ If you don't need to build a Dockerfile and just want to use an existing Dockerf
 
 ### Types
 
-Lagoon needs to know what type of service you are deploying in order to configure the correct Kubernetes and OpenShift objects.
+Lagoon needs to know what type of service you are deploying in order to configure the correct Kubernetes or OpenShift objects.
 
 This is done via the `lagoon.type` label. There are many different types to choose from. Check [Service Types](../using-lagoon-advanced/service-types.md) to see all of them and their additional configuration possibilities.
 
@@ -185,7 +185,7 @@ Lagoon uses [Helm](https://helm.sh/) for templating on Kubernetes. To do this, a
 
 ## **Custom Rollout Monitor Types**
 
-By default , Lagoon expects that services from custom templates are rolled out via a [`DeploymentConfig`](https://docs.openshift.com/container-platform/4.4/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are) object within Openshift/Kubernetes. It monitors the rollout based on this object. In some cases, the services that are defined via custom deployment need a different way of monitoring. This can be defined via `lagoon.rollout`:
+By default , Lagoon expects that services from custom templates are rolled out via a [`DeploymentConfig`](https://docs.openshift.com/container-platform/4.4/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are) object within Kubernetes or Openshift. It monitors the rollout based on this object. In some cases, the services that are defined via custom deployment need a different way of monitoring. This can be defined via `lagoon.rollout`:
 
 * `deploymentconfig` - This is the default. Expects a [`DeploymentConfig`](https://docs.openshift.com/container-platform/4.4/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are) object in the template for the service.
 * `statefulset` - Expects a [`Statefulset`](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/) object in the template for the service.

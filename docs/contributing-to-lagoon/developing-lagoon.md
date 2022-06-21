@@ -173,8 +173,6 @@ The individual routines relevant to Kubernetes are:
 * `nginx`, `node` and `python` run basic tests against those project types.
 * `node-mongodb` runs a single-pod MongoDB test and a MongoDB DBaaS test against a Node.js app.
 
-There are a few other legacy Openshift-specific tests in there that may or may not work with Openshift-based clients.
-
 ## Local Development
 
 Most services are written in [Node.js](https://nodejs.org/en/docs/). As many of these services share similar Node.js code and Node.js packages, we're using a feature of [Yarn](https://yarnpkg.com/en/docs), called [Yarn workspaces](https://yarnpkg.com/en/docs/workspaces). Yarn workspaces need a `package.json` in the project's root directory that defines the workspaces.

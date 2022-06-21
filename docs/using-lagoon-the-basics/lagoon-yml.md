@@ -241,7 +241,7 @@ In the `"www.example.com"` example repeated below, we see two more options \(als
 
 ### **Monitoring a specific path**
 
-When [UptimeRobot](https://uptimerobot.com/) is configured for your cluster \(OpenShift or Kubernetes\), Lagoon will inject annotations to each route/ingress for use by the `stakater/IngressControllerMonitor`. The default action is to monitor the homepage of the route. If you have a specific route to be monitored, this can be overridden by adding a `monitoring-path` to your route specification. A common use is to set up a path for monitoring which bypasses caching to give a more real-time monitoring of your site.
+When [UptimeRobot](https://uptimerobot.com/) is configured for your cluster \(Kubernetes or OpenShift\), Lagoon will inject annotations to each route/ingress for use by the `stakater/IngressControllerMonitor`. The default action is to monitor the homepage of the route. If you have a specific route to be monitored, this can be overridden by adding a `monitoring-path` to your route specification. A common use is to set up a path for monitoring which bypasses caching to give a more real-time monitoring of your site.
 
 ```yaml title=".lagoon.yml"
      - "www.example.com":
@@ -454,31 +454,6 @@ With the key `api` you can define another URL that should be used by the Lagoon 
     If you run directly on amazee.io hosted Lagoon you will not need this key set.
 
 With the key `ssh` you can define another SSH endpoint that should be used by the Lagoon CLI and `drush` to connect to the Lagoon remote shell service. This needs to be a hostname and a port separated by a colon, like: `localhost:2020` This usually does not need to be changed, but there might be situations where your Lagoon administrator tells you to do so.
-
-### `additional-yaml`
-
-The `additional-yaml` has some super powers. Basically, it allows you to define any arbitrary YAML configuration file to be inserted before the build step \(it still needs to be valid Kubernetes/OpenShift YAML, though ☺\).
-
-Example:
-
-```yaml title=".lagoon.yml"
-additional-yaml:
-  secrets:
-    path: .lagoon.secrets.yml
-    command: create
-    ignore_error: true
-
-  logs-db-secrets:
-    path: .lagoon.logs-db-secrets.yml
-    command: create
-    ignore_error: true
-```
-
-Each definition is keyed by a unique name \(`secrets` and `logs-db-secrets` in the example above\), and takes these keys:
-
-* `path` - the path to the YAML file.
-* `command` - can either be `create` or `apply`, depending on whether you want to run. `kubectl create -f [yamlfile]` or `kubectl apply -f [yamlfile]`.
-* `ignore_error` - either `true` or `false` \(default\).  This allows you to instruct the Lagoon build script to ignore any errors that might be returned during running the command. \(This can be useful to handle the case where you want to run `create` during every build, so that new configurations are created, but don't fail if they already exist\).
 
 ### `container-registries`
 
