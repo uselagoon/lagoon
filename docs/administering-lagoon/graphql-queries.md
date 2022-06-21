@@ -214,7 +214,7 @@ Now for every deployment you will receive messages in your defined channel.
 ### Adding a new Kubernetes target
 
 !!! Note "Note:"
-    In Lagoon, both `addOpenshift` and `addKubernetes` can be used for both OpenShift and Kubernetes targets - either will work interchangeably.
+    In Lagoon, both `addKubernetes` and `addOpenshift` can be used for both Kubernetes and OpenShift targets - either will work interchangeably.
 
 The cluster to which Lagoon should deploy.
 

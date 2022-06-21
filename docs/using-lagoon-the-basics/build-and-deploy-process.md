@@ -56,9 +56,9 @@ Also, if this is a pull request build:
 
 Additionally, for each already built image, its name is also injected. If your `docker-compose.yml` is configured to first build the `cli` image and then the `nginx` image, the name of the `nginx` image is injected as `NGINX_IMAGE`.
 
-## 4. Configure OpenShift/Kubernetes Services and Routes
+## 4. Configure Kubernetes or Openshift Services and Routes
 
-Next, Lagoon will configure OpenShift/Kubernetes with all services and routes that are defined from the service types, plus possible additional custom routes that you have defined in `.lagoon.yml`.
+Next, Lagoon will configure Kubernetes or Openshift with all services and routes that are defined from the service types, plus possible additional custom routes that you have defined in `.lagoon.yml`.
 
 In this step it will expose all defined routes in the `LAGOON_ROUTES` as comma separated URLs. It will also define one route as the "main" route, in this order:
 
@@ -94,7 +94,7 @@ This is probably the most important step. Based on the defined service type, Lag
 
 It will include all previously gathered information like the cron jobs, the location of persistent storage, the pushed images and so on.
 
-Creation of these objects will also automatically cause OpenShift/Kubernetes to trigger new deployments of the pods if necessary, like when an environment variable has changed or an image has changed. But if there is no change, there will be no deployment! This means if you only update the PHP code in your application, the Varnish, Solr, MariaDB, Redis and any other service that is defined but does not include your code will not be deployed. This makes everything much much faster.
+Creation of these objects will also automatically cause Kubernetes or Openshift to trigger new deployments of the pods if necessary, like when an environment variable has changed or an image has changed. But if there is no change, there will be no deployment! This means if you only update the PHP code in your application, the Varnish, Solr, MariaDB, Redis and any other service that is defined but does not include your code will not be deployed. This makes everything much much faster.
 
 ## 10. Wait for all rollouts to be done
 
