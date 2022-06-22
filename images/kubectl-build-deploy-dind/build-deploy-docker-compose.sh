@@ -565,6 +565,7 @@ if [[ "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ]]; then
   BUILD_ARGS+=(--build-arg LAGOON_ENVIRONMENT_TYPE="${ENVIRONMENT_TYPE}")
   BUILD_ARGS+=(--build-arg LAGOON_BUILD_TYPE="${BUILD_TYPE}")
   BUILD_ARGS+=(--build-arg LAGOON_GIT_SOURCE_REPOSITORY="${SOURCE_REPOSITORY}")
+  BUILD_ARGS+=(--build-arg LAGOON_KUBERNETES="${KUBERNETES}")
 
   # Add in the cache args
   for value in "${LAGOON_CACHE_BUILD_ARGS[@]}"
