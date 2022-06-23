@@ -173,4 +173,4 @@ We suggest only exposing web services \(NGINX/Varnish/Node.js\) in your deployed
 
 ## I have a question that isn't answered here
 
-You can reach out to the team via [RocketChat](https://amazeeio.rocket.chat/home) or email at [uselagoon@amazee.io](mailto:uselagoon@amazee.io).
+You can reach out to the team via [Discord](https://discord.gg/te5hHe95JE) or email at [uselagoon@amazee.io](mailto:uselagoon@amazee.io).

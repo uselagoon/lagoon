@@ -2,13 +2,13 @@
 
 We really value anything that you can offer us!
 
-We've made building and viewing the documentation really easy, and the team is always ready to help out with reviews or pointers.
+We've made building and viewing the documentation really straightforward, and the team is always ready to help out with reviews or pointers.
 
 We use [mkdocs](https://www.mkdocs.org/) with the excellent [Material](https://squidfunk.github.io/mkdocs-material/) theme.
 
 ## Viewing and updating docs locally
 
-From the root of the Lagoon repo, (you'll need Docker) run:
+From the root of the Lagoon repo (you'll need Docker), run:
 
 ```bash
 docker run --rm -it -p 127.0.0.1:8000:8000 -v ${PWD}:/docs squidfunk/mkdocs-material
