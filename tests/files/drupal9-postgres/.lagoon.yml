@@ -13,6 +13,10 @@ tasks:
         command: env
         service: cli
     - run:
+        name: Configure PostgreSQL with pg_trgm extension
+        command: |
+            drush sqlq 'CREATE EXTENSION pg_trgm;'
+    - run:
         name: IF no Drupal installed, install drupal
         command: |
             cd web

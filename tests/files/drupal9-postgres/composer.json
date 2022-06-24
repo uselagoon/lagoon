@@ -19,15 +19,12 @@
         "amazeeio/drupal_integrations": "~0.3",
         "composer/installers": "~2.0",
         "cweagans/composer-patches": "~1.7",
-        "drupal/core-project-message": "~9.2",
-        "drupal/core-recommended": "~9.2",
-        "drupal/lagoon_logs": "~1.0",
+        "drupal/core-project-message": "~9.4",
+        "drupal/core-recommended": "~9.4",
+        "drupal/lagoon_logs": "~2",
         "drupal/redis": "~1.0",
-        "drush/drush": "~10.0",
+        "drush/drush": "~11",
         "zaporylie/composer-drupal-optimizations": "~1.2"
-    },
-    "require-dev": {
-        "drupal/core-dev-pinned": "~9.2"
     },
     "conflict": {
         "drupal/drupal": "*"
@@ -35,7 +32,15 @@
     "minimum-stability": "dev",
     "prefer-stable": true,
     "config":{
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "composer/installers": true,
+            "drupal/core-composer-scaffold": true,
+            "cweagans/composer-patches": true,
+            "drupal/core-project-message": true,
+            "zaporylie/composer-drupal-optimizations": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
     },
     "extra": {
         "installer-paths": {
@@ -61,5 +66,8 @@
                 "web-root": "web/"
             }
         }
+    },
+    "require-dev": {
+        "drupal/core-dev-pinned": "~9.4"
     }
 }
