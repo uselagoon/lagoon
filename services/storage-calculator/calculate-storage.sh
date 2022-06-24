@@ -155,6 +155,11 @@ echo "$ALL_ENVIRONMENTS" | jq -c '.data.environments[] | select((.environments |
 
     if mariadb_size=$(${KUBECTL} exec ${POD} -- sh -c "if [ \"\$MARIADB_HOST\" ]; then mysql -N -s -h \$MARIADB_HOST -u\$MARIADB_USERNAME -p\$MARIADB_PASSWORD -P\$MARIADB_PORT -e 'SELECT ROUND(SUM(data_length + index_length) / 1024, 0) FROM information_schema.tables'; else exit 1; fi") && [ "$mariadb_size" ]; then
       echo "$CONSOLE_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: Database uses ${mariadb_size} kilobytes"
+      apiQuery "mutation {
+        addOrUpdateEnvironmentStorage(input:{environment:${ENVIRONMENT_ID}, persistentStorageClaim:\"mariadb\", bytesUsed:${mariadb_size}}) {
+          id
+        }
+      }"
       # Update namespace labels.
       if [ ! -z "$LAGOON_STORAGE_LABEL_NAMESPACE" ] ; then
         ${KUBECTL} label namespace $ENVIRONMENT_NAMESPACE lagoon/storage-mariadb=${mariadb_size} --overwrite
