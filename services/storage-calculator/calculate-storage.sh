@@ -85,8 +85,9 @@ echo "$ALL_ENVIRONMENTS" | jq -c '.data.environments[] | select((.environments |
 
     echo "$CONSOLE_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: creating storage-calc pod"
     # Start storage-calc deployment.
-    deployment=$(${KUBECTL} create --dry-run=client -o yaml deployment storage-calc --image imagecache.amazeeio.cloud/amazeeio/alpine-mysql-client)
-    deployment=$(echo "$deployment_template" | yq '.spec.template.spec.containers[0].command = ["sh", "-c", "while sleep 3600; do :; done"]')
+    TMPFILE=`mktemp -q /tmp/${ENVIRONMENT_NAMESPACE}.XXXXXX`
+    ${KUBECTL} create --dry-run=client -o yaml deployment storage-calc --image imagecache.amazeeio.cloud/amazeeio/alpine-mysql-client > $TMPFILE
+    yq -i e '.spec.template.spec.containers[0].command = ["sh", "-c", "while sleep 3600; do :; done"]' $TMPFILE
     # Loop through all PVCs, deployment attempt to attach them, so long as they are not in the ignore list.
     PVCS=($(${KUBECTL} get pvc -o name | sed 's/persistentvolumeclaim\///'))
     pvccount=0
@@ -99,15 +100,15 @@ echo "$ALL_ENVIRONMENTS" | jq -c '.data.environments[] | select((.environments |
       fi
 
       echo "> PVC: ${PVC} [mounting ${PVC} into storage-calc]"
-      deployment=$(echo "$deployment" | yq '.spec.template.spec.containers[0].volumeMounts['$pvccount'].name = "'${PVC}'"')
-      deployment=$(echo "$deployment" | yq '.spec.template.spec.containers[0].volumeMounts['$pvccount'].mountPath = "/storage/'${PVC}'"')
-      deployment=$(echo "$deployment" | yq '.spec.template.spec.volumes['$pvccount'].name = "'${PVC}'"')
-      deployment=$(echo "$deployment" | yq '.spec.template.spec.volumes['$pvccount'].persistentVolumeClaim.claimName = "'${PVC}'"')
+      yq -i e '.spec.template.spec.containers[0].volumeMounts['$pvccount'].name = "'${PVC}'"' $TMPFILE
+      yq -i e '.spec.template.spec.containers[0].volumeMounts['$pvccount'].mountPath = "/storage/'${PVC}'"' $TMPFILE
+      yq -i e '.spec.template.spec.volumes['$pvccount'].name = "'${PVC}'"' $TMPFILE
+      yq -i e '.spec.template.spec.volumes['$pvccount'].persistentVolumeClaim.claimName = "'${PVC}'"' $TMPFILE
       pvccount=$((pvccount+1))
     done
     # Copy environment variable from lagoon-env configmap.
-    deployment=$(echo "$deployment" | yq '.spec.template.spec.containers[0].envFrom[0].configMapRef.name = "lagoon-env"')
-    echo "$deployment" | ${KUBECTL} create -f -
+    yq -i e '.spec.template.spec.containers[0].envFrom[0].configMapRef.name = "lagoon-env"' $TMPFILE
+    ${KUBECTL} create -f $TMPFILE
 
     echo "$CONSOLE_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: rewaiting for storage-calc pod to start"
     ${KUBECTL} rollout status deployment/storage-calc --watch --request-timeout=30s
@@ -167,6 +168,7 @@ echo "$ALL_ENVIRONMENTS" | jq -c '.data.environments[] | select((.environments |
     fi
 
     ${KUBECTL} delete deployment/storage-calc  --ignore-not-found=true
+    rm ${TMPFILE}
 
   done
 done
