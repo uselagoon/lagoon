@@ -490,13 +490,11 @@ const buildConditionsForFactSearchQuery = (filterDetails: any, factQuery: any, p
       if (lhsTarget == "project") {
         switch (name) {
           case ("id"):
-            break;
           case ("name"):
-            break;
           default:
             throw Error(`lhsTarget "${name}" unsupported`);
         }
-      } else {
+      } else if(lhsTarget == "FACT") {
         if (filterDetails.filterConnective == 'AND') {
           factQuery = factQuery.innerJoin(`environment_fact as ${tabName}`, 'environment.id', `${tabName}.environment`);
         } else {
@@ -508,7 +506,9 @@ const buildConditionsForFactSearchQuery = (filterDetails: any, factQuery: any, p
     const builderFactory = (filter, i) => (builder) => {
       let { lhsTarget, name, contains } = filter;
       if (lhsTarget == "PROJECT") {
-        builder = builder.andWhere(`project.${name}`, 'like', `${predicateRHSProcess('CONTAINS', contains)}`);
+          builder = builder.andWhere(`project.${name}`, 'like', `${predicateRHSProcess('CONTAINS', contains)}`);
+      } else if (lhsTarget == "PROJECT_METADATA") {
+        builder = builder.whereRaw('JSON_CONTAINS(project.metadata, ?, ?)', [`"${contains}"`, `$.${name}`]);
       } else {
         let tabName = `env${i}`;
         builder = builder.andWhere(`${tabName}.name`, '=', `${name}`);
@@ -525,6 +525,7 @@ const buildConditionsForFactSearchQuery = (filterDetails: any, factQuery: any, p
           innerBuilder = innerBuilder.orWhere(builderFactory(filter, i));
         }
       });
+      console.log(innerBuilder.toString());
       return innerBuilder;
     })
   }
