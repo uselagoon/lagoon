@@ -527,7 +527,6 @@ const buildConditionsForFactSearchQuery = (filterDetails: any, factQuery: any, p
           innerBuilder = innerBuilder.orWhere(builderFactory(filter, i));
         }
       });
-      console.log(innerBuilder.toString());
       return innerBuilder;
     })
   }
