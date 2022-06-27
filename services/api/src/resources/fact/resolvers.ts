@@ -509,6 +509,8 @@ const buildConditionsForFactSearchQuery = (filterDetails: any, factQuery: any, p
           builder = builder.andWhere(`project.${name}`, 'like', `${predicateRHSProcess('CONTAINS', contains)}`);
       } else if (lhsTarget == "PROJECT_METADATA") {
         builder = builder.whereRaw('JSON_CONTAINS(project.metadata, ?, ?)', [`"${contains}"`, `$.${name}`]);
+      } else if (lhsTarget == "ENVIRONMENT") {
+        builder = builder.andWhere(`environment.${name}`, 'like', `${predicateRHSProcess('CONTAINS', contains)}`);
       } else {
         let tabName = `env${i}`;
         builder = builder.andWhere(`${tabName}.name`, '=', `${name}`);
