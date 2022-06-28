@@ -132,36 +132,6 @@ export const addOwnerToOrganization: ResolverFn = async (
   return updatedUser;
 };
 
-// gets users in an organization by id
-export const getUsersByOrganizationId: ResolverFn = async (
-  { id: oid },
-  _input,
-  { hasPermission, models, keycloakGrant }
-) => {
-  const projectGroups = await models.UserModel.loadUsersByOrganizationId(oid);
-
-  try {
-    await hasPermission('organization', 'view', {
-      organization: oid,
-    });
-
-    return projectGroups;
-  } catch (err) {
-    if (!keycloakGrant) {
-      logger.warn('No grant available for getUsersByOrganizationId');
-      return [];
-    }
-
-    const user = await models.UserModel.loadUserById(
-      keycloakGrant.access_token.content.sub
-    );
-    const userGroups = await models.UserModel.getAllGroupsForUser(user);
-    const userProjectGroups = R.intersection(projectGroups, userGroups);
-
-    return userProjectGroups;
-  }
-};
-
 export const deleteAllUsers: ResolverFn = async (
   _root,
   _args,

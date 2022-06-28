@@ -20,6 +20,30 @@ export const Sql = {
         quotaProject
       })
       .toString(),
+  updateProjectOrganization: ({
+    pid,
+    patch,
+  }: {
+    pid: number;
+    patch: { [key: string]: any };
+  }) =>
+    knex('project')
+      .where('id', '=', pid)
+      .update(patch)
+      .toString(),
+  addDeployTarget: ({
+    orgid,
+    dtid
+  }: {
+    orgid?: number;
+    dtid?: number;
+  }) =>
+    knex('organization_deploy_target')
+      .insert({
+        orgid,
+        dtid,
+      })
+      .toString(),
   updateOrganization: ({
     id,
     patch

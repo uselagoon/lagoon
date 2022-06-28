@@ -192,9 +192,19 @@ export const getProjectByName: ResolverFn = async (
     return null;
   }
 
-  await hasPermission('project', 'view', {
-    project: project.id
-  });
+  try {
+    await hasPermission('project', 'view', {
+      project: project.id
+    });
+  } catch (err) {
+    // if the user hasn't got permission to view the project, but the project is in the organization
+    // allow the user to get the project
+    if (project.organization != null) {
+      await hasPermission('organization', 'addProject', {
+        organization: project.organization
+      });
+    }
+  }
 
   return project;
 };
@@ -243,34 +253,18 @@ export const getProjectsByMetadata: ResolverFn = async (
   return Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 };
 
-// get projects by organization id, used by organization resolver to list projects
-export const getProjectsByOrganizationId: ResolverFn = async (
-  { id: oid },
-  args,
-  { sqlClientPool, hasPermission }
-) => {
-  const rows = await query(
-    sqlClientPool,
-    `SELECT p.*
-    FROM project p
-    WHERE p.organization = :oid`,
-    { oid }
-  );
-  // @TODO: FIX PERMISSION CHECK FOR ORGANIZATION PROJECTS
-
-  // await hasPermission('project', 'view', {
-  //   project: project.id
-  // });
-
-  return rows;
-};
-
 export const addProject = async (
   root,
   { input },
   { hasPermission, sqlClientPool, models, keycloakGrant, userActivityLogger }
 ) => {
-  await hasPermission('project', 'add');
+  if (input.organization != null) {
+    await hasPermission('organization', 'addProject', {
+      organization: input.organization
+    });
+  } else {
+    await hasPermission('project', 'add');
+  }
 
   if (validator.matches(input.name, /[^0-9a-z-]/)) {
     throw new Error(
@@ -344,14 +338,19 @@ export const addProject = async (
 
   // Create a default group for this project
   let group;
+  let attributes = {
+    type: ['project-default-group'],
+    'lagoon-projects': [project.id],
+    'group-lagoon-project-ids': [`{${JSON.stringify(`project-${project.name}`)}:[${project.id}]}`]
+  };
+  // add the organization attribute if this exists
+  if (input.organization != null) {
+    attributes['lagoon-organization'] = [input.organization];
+  }
   try {
     group = await models.GroupModel.addGroup({
       name: `project-${project.name}`,
-      attributes: {
-        type: ['project-default-group'],
-        'lagoon-projects': [project.id],
-        'group-lagoon-project-ids': [`{${JSON.stringify(`project-${project.name}`)}:[${project.id}]}`]
-      }
+      attributes: attributes
     });
   } catch (err) {
     logger.error(
@@ -392,7 +391,7 @@ export const addProject = async (
         sqlClientPool,
         sshKeySql.insertSshKey({
           id: null,
-          name: 'auto-add via api',
+          name: `default-user@${project.name}`,
           keyValue: keyParts[1],
           keyType: keyParts[0],
           keyFingerprint: getSshKeyFingerprint(keyPair.public)

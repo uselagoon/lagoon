@@ -9,7 +9,6 @@ import { GroupNotFoundError } from '../../models/group';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { OpendistroSecurityOperations } from './opendistroSecurity';
 import { KeycloakUnauthorizedError } from '../../util/auth';
-import { arrayDiff } from '../../util/func';
 import { Helpers as organizationHelpers } from '../organization/helpers';
 
 export const getAllGroups: ResolverFn = async (
@@ -104,64 +103,6 @@ export const getGroupsByProjectId: ResolverFn = async (
   }
 };
 
-// check an existing project and the associated groups can be added to an organization
-// this will return errors if there are projects or groups that are part of different organizations
-export const getProjectGroupOrganizationAssociation: ResolverFn = async (
-  _root,
-  { input },
-  { sqlClientPool, models, hasPermission }
-) => {
-  let pid = input.project;
-  let oid = input.organization;
-
-  // platform admin only as it potentially reveals information about projects/orgs/groups
-  await hasPermission('organization', 'add');
-
-  const groupProjectIds = []
-  const projectInOtherOrgs = []
-  const projectGroupNames = []
-
-  // get all the groups the requested project is in
-  const projectGroups = await models.GroupModel.loadGroupsByProjectId(pid);
-  for (const group of projectGroups) {
-    // for each group the project is in, check if it has an organization
-    if (R.prop('lagoon-organization', group.attributes)) {
-      // if it has an organization that is not the requested organization, add it to a list
-      if (R.prop('lagoon-organization', group.attributes) != oid) {
-        projectGroupNames.push({group: group.name, organization: R.prop('lagoon-organization', group.attributes).toString()})
-      }
-    }
-    // for each group the project is in, get the list of projects that are also in this group
-    if (R.prop('lagoon-projects', group.attributes)) {
-      const groupProjects = R.prop('lagoon-projects', group.attributes).toString().split(',')
-      for (const project of groupProjects) {
-        groupProjectIds.push({group: group.name, project: project})
-      }
-    }
-  }
-
-  if (groupProjectIds.length > 0) {
-    // for all the groups->projects associations
-    for (const pGroup of groupProjectIds) {
-      const project = await projectHelpers(sqlClientPool).getProjectById(pGroup.project)
-      // check if the projects are in an organization, and if so, add it to a list if it is in one not in the requested organization
-      if (project.organization != oid && project.organization != null) {
-        projectInOtherOrgs.push({group: pGroup.group, project: project.name, organization: project.organization})
-      }
-    }
-  }
-
-  // report errors here
-  if (projectInOtherOrgs.length > 0) {
-    throw new Error(`This project has groups that have projects in other organizations: [${JSON.stringify(projectInOtherOrgs)}]`)
-  }
-  if (projectGroupNames.length > 0) {
-    throw new Error(`This project has groups that are in other organizations: [${JSON.stringify(projectGroupNames)}]`)
-  }
-
-  return "success";
-};
-
 export const getGroupsByUserId: ResolverFn = async (
   { id: uid },
   _input,
@@ -229,36 +170,6 @@ export const getGroupByName: ResolverFn = async (
 
     logger.warn(`getGroupByName failed unexpectedly: ${err.message}`);
     throw err;
-  }
-};
-
-// list all groups by organization id
-export const getGroupsByOrganizationId: ResolverFn = async (
-  { id: oid },
-  _input,
-  { hasPermission, models, keycloakGrant }
-) => {
-  const projectGroups = await models.GroupModel.loadGroupsByOrganizationId(oid);
-
-  try {
-    await hasPermission('organization', 'view', {
-      organization: oid,
-    });
-
-    return projectGroups;
-  } catch (err) {
-    if (!keycloakGrant) {
-      logger.warn('No grant available for getGroupsByOrganizationId');
-      return [];
-    }
-
-    const user = await models.UserModel.loadUserById(
-      keycloakGrant.access_token.content.sub
-    );
-    const userGroups = await models.UserModel.getAllGroupsForUser(user);
-    const userProjectGroups = R.intersection(projectGroups, userGroups);
-
-    return userProjectGroups;
   }
 };
 
@@ -334,145 +245,6 @@ export const addGroup: ResolverFn = async (
 };
 
 
-// check an existing group to see if it can be added to an organization
-// this function will return errors if there are projects in the group that are not in the organization
-// if there are no projects in the organization, and no projects in the group then it will succeed
-export const getGroupProjectOrganizationAssociation: ResolverFn = async (
-  _root,
-  { input },
-  { models, sqlClientPool, hasPermission, userActivityLogger }
-) => {
-  // platform admin only as it potentially reveals information about projects/orgs/groups
-  await hasPermission('organization', 'add');
-
-  // check the organization exists
-  const organizationData = await organizationHelpers(sqlClientPool).getOrganizationById(input.organization);
-  if (organizationData === undefined) {
-    throw new Error(`Organization does not exist`)
-  }
-
-  // check the requested group exists
-  const group = await models.GroupModel.loadGroupByIdOrName(input);
-  if (group === undefined) {
-    throw new Error(`Group does not exist`)
-  }
-
-  // check the organization for projects currently attached to it
-  const projectsByOrg = await projectHelpers(sqlClientPool).getProjectByOrganizationId(input.organization);
-  const projectIdsByOrg = []
-  for (const project of projectsByOrg) {
-    projectIdsByOrg.push(project.id)
-  }
-
-  // get the project ids
-  const groupProjectIds = []
-  if (R.prop('lagoon-projects', group.attributes)) {
-    const groupProjects = R.prop('lagoon-projects', group.attributes).toString().split(',')
-    for (const project of groupProjects) {
-      groupProjectIds.push(project)
-    }
-  }
-
-  if (projectIdsByOrg.length > 0 && groupProjectIds.length > 0) {
-    if (projectIdsByOrg.length == 0) {
-      let filters = arrayDiff(groupProjectIds, projectIdsByOrg)
-      //let filters2 = arrayDiff(projectIdsByOrg, groupProjectIds)
-      throw new Error(`This organization has no projects associated to it, the following projects that are not part of the requested organization: [${filters}]`)
-    } else {
-      if (groupProjectIds.length > 0) {
-        let filters = arrayDiff(groupProjectIds, projectIdsByOrg)
-        //let filters2 = arrayDiff(projectIdsByOrg, groupProjectIds)
-        if (filters.length > 0) {
-          throw new Error(`This group has the following projects that are not part of the requested organization: [${filters}]`)
-        }
-      }
-    }
-  }
-
-  return "success"
-
-};
-
-// add an existing group to an organization
-// this function will return errors if there are projects in the group that are not in the organization
-// if there are no projects in the organization, and no projects in the group then it will succeed
-export const addGroupToOrganization: ResolverFn = async (
-  _root,
-  { input },
-  { models, sqlClientPool, hasPermission, userActivityLogger }
-) => {
-  // platform admin only as it potentially reveals information about projects/orgs/groups
-  await hasPermission('organization', 'add');
-
-  // check the organization exists
-  const organizationData = await organizationHelpers(sqlClientPool).getOrganizationById(input.organization);
-  if (organizationData === undefined) {
-    throw new Error(`Organization does not exist`)
-  }
-
-  // check the requested group exists
-  const group = await models.GroupModel.loadGroupByIdOrName(input);
-  if (group === undefined) {
-    throw new Error(`Group does not exist`)
-  }
-
-
-  // check the organization for projects currently attached to it
-  const projectsByOrg = await projectHelpers(sqlClientPool).getProjectByOrganizationId(input.organization);
-  const projectIdsByOrg = []
-  for (const project of projectsByOrg) {
-    projectIdsByOrg.push(project.id)
-  }
-
-  // get the project ids
-  const groupProjectIds = []
-  if (R.prop('lagoon-projects', group.attributes)) {
-    const groupProjects = R.prop('lagoon-projects', group.attributes).toString().split(',')
-    for (const project of groupProjects) {
-      groupProjectIds.push(project)
-    }
-  }
-
-  if (projectIdsByOrg.length > 0 && groupProjectIds.length > 0) {
-    if (projectIdsByOrg.length == 0) {
-      let filters = arrayDiff(groupProjectIds, projectIdsByOrg)
-      //let filters2 = arrayDiff(projectIdsByOrg, groupProjectIds)
-      throw new Error(`This organization has no projects associated to it, the following projects that are not part of the requested organization: [${filters}]`)
-    } else {
-      if (groupProjectIds.length > 0) {
-        let filters = arrayDiff(groupProjectIds, projectIdsByOrg)
-        //let filters2 = arrayDiff(projectIdsByOrg, groupProjectIds)
-        if (filters.length > 0) {
-          throw new Error(`This group has the following projects that are not part of the requested organization: [${filters}]`)
-        }
-      }
-    }
-  }
-
-  // update the group to be in the organization
-  const updatedGroup = await models.GroupModel.updateGroup({
-    id: group.id,
-    name: group.name,
-    attributes: {
-      ...group.attributes,
-      "lagoon-organization": [input.organization]
-    }
-  });
-
-  // log this activity
-  userActivityLogger(`User added a group to organization`, {
-    project: '',
-    organization: input.organization,
-    event: 'api:updateOrganizationGroup',
-    payload: {
-      data: {
-        updatedGroup
-      }
-    }
-  });
-
-  return "success"
-};
 
 export const updateGroup: ResolverFn = async (
   _root,
@@ -801,12 +573,23 @@ export const getAllProjectsInGroup: ResolverFn = async (
     return [];
   } else {
     const group = await loadGroupByIdOrName(groupInput);
-
     const user = await models.UserModel.loadUserById(
       keycloakGrant.access_token.content.sub
     );
+    let newProjectGroups = []
+    const usersOrgs = user.attributes['lagoon-organizations'].toString()
+    if (usersOrgs != "" ) {
+      const usersOrgsArr = usersOrgs.split(',');
+      for (const userOrg of usersOrgsArr) {
+        newProjectGroups = await models.GroupModel.loadGroupsByOrganizationId(userOrg);
+      }
+    }
     const userGroups = await models.UserModel.getAllGroupsForUser(user);
-
+    if (newProjectGroups != []) {
+      for (const pGroup of newProjectGroups) {
+        userGroups.push(pGroup)
+      }
+    }
     // @ts-ignore
     if (!R.contains(group.name, R.pluck('name', userGroups))) {
       logger.warn(
@@ -831,9 +614,23 @@ export const removeGroupsFromProject: ResolverFn = async (
     projectInput
   );
 
-  await hasPermission('project', 'removeGroup', {
-    project: project.id
-  });
+  // check if this is a group being removed by an organization
+  // if so, check the user removing the group has permission to do so, and that the organization exists
+  if (project.organization != null) {
+    const organizationData = await organizationHelpers(sqlClientPool).getOrganizationById(project.organization);
+    if (organizationData === undefined) {
+      throw new Error(`Organization does not exist`)
+    }
+
+    await hasPermission('organization', 'removeGroup', {
+      organization: project.organization
+    });
+  } else {
+    // otherwise fall back
+    await hasPermission('project', 'removeGroup', {
+      project: project.id
+    });
+  }
 
   if (R.isEmpty(groupsInput)) {
     throw new Error('You must provide groups');
