@@ -970,7 +970,7 @@ const typeDefs = gql`
     description: String
     quotaProject: Int
     deployTargets: [Openshift]
-    projects: [Project]
+    projects: [OrgProject]
     groups: [GroupInterface]
     owners: [User]
   }
@@ -991,6 +991,13 @@ const typeDefs = gql`
   input UpdateOrganizationInput {
     id: Int!
     patch: UpdateOrganizationPatchInput!
+  }
+
+  type OrgProject {
+    id: Int
+    name: String
+    organization: Int
+    groups: [GroupInterface]
   }
 
   type DeployTargetConfig {
@@ -1076,6 +1083,7 @@ const typeDefs = gql`
     Returns Group Object by a given name
     """
     groupByName(name: String!): GroupInterface
+    groupByNameAndOrganization(name: String!, organization: Int!): GroupInterface
     """
     Returns Project Object by a given gitUrl (only the first one if there are multiple)
     """
@@ -1273,6 +1281,7 @@ const typeDefs = gql`
     productionBuildPriority: Int
     developmentBuildPriority: Int
     deploymentsDisabled: Int
+    organization: Int
   }
 
   input AddEnvironmentInput {
@@ -1649,6 +1658,16 @@ const typeDefs = gql`
   input UpdateProjectInput {
     id: Int!
     patch: UpdateProjectPatchInput!
+  }
+
+  input AddProjectToOrganizationInput {
+    project: Int!
+    organization: Int!
+  }
+
+  input AddDeployTargetToOrganizationInput {
+    deployTarget: Int!
+    organization: Int!
   }
 
   input UpdateOpenshiftPatchInput {
@@ -2075,6 +2094,8 @@ const typeDefs = gql`
     removeUserFromGroup(input: UserGroupInput!): GroupInterface
     addGroupsToProject(input: ProjectGroupsInput): Project
     addGroupToOrganization(input: AddGroupInput!): String
+    addProjectToOrganization(input: AddProjectToOrganizationInput): Project
+    addDeployTargetToOrganization(input: AddDeployTargetToOrganizationInput): String
     removeGroupsFromProject(input: ProjectGroupsInput!): Project
     updateProjectMetadata(input: UpdateMetadataInput!): Project
     removeProjectMetadataByKey(input: RemoveMetadataInput!): Project

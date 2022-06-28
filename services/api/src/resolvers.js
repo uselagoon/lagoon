@@ -181,7 +181,6 @@ const {
   updateProjectMetadata,
   removeProjectMetadataByKey,
   getPrivateKey,
-  getProjectsByOrganizationId,
 } = require('./resources/project/resolvers');
 
 const {
@@ -202,7 +201,6 @@ const {
   addOwnerToOrganization,
   deleteUser,
   deleteAllUsers,
-  getUsersByOrganizationId,
 } = require('./resources/user/resolvers');
 
 const {
@@ -220,10 +218,6 @@ const {
   removeUserFromGroup,
   addGroupsToProject,
   removeGroupsFromProject,
-  getGroupsByOrganizationId,
-  addGroupToOrganization,
-  getGroupProjectOrganizationAssociation,
-  getProjectGroupOrganizationAssociation,
 } = require('./resources/group/resolvers');
 
 const {
@@ -231,6 +225,17 @@ const {
   getAllOrganizations,
   updateOrganization,
   getOrganizationById,
+  addDeployTargetToOrganization,
+  getDeployTargetsByOrganizationId,
+  getGroupsByOrganizationId,
+  getGroupsByNameAndOrganizationId,
+  getOwnersByOrganizationId,
+  getProjectsByOrganizationId,
+  addProjectToOrganization,
+  addGroupToOrganization,
+  getGroupsByOrganizationsProject,
+  getProjectGroupOrganizationAssociation, // WIP resolver
+  getGroupProjectOrganizationAssociation, // WIP resolver
 } = require('./resources/organization/resolvers');
 
 const {
@@ -389,7 +394,11 @@ const resolvers = {
   Organization: {
     groups: getGroupsByOrganizationId,
     projects: getProjectsByOrganizationId,
-    owners: getUsersByOrganizationId,
+    owners: getOwnersByOrganizationId,
+    deployTargets: getDeployTargetsByOrganizationId,
+  },
+  OrgProject: {
+    groups: getGroupsByOrganizationsProject,
   },
   Fact: {
     references: getFactReferencesByFactId,
@@ -458,6 +467,7 @@ const resolvers = {
     projectByGitUrl: getProjectByGitUrl,
     projectByName: getProjectByName,
     groupByName: getGroupByName,
+    groupByNameAndOrganization: getGroupsByNameAndOrganizationId,
     problemSources: getProblemSources,
     environmentByName: getEnvironmentByName,
     environmentById: getEnvironmentById,
@@ -610,6 +620,8 @@ const resolvers = {
     addOrganization,
     updateOrganization,
     addGroupToOrganization,
+    addProjectToOrganization,
+    addDeployTargetToOrganization,
   },
   Subscription: {
     backupChanged: backupSubscriber,
