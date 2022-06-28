@@ -1020,6 +1020,10 @@ const typeDefs = gql`
     key: String!
   }
 
+  input EnvVariableByProjectEnvironmentNameInput {
+    environment: String
+    project: String!
+  }
 
   type Query {
     """
@@ -1154,6 +1158,7 @@ const typeDefs = gql`
     """
     deployTargetConfigsByDeployTarget(deployTarget: Int!) : [DeployTargetConfig]  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
     allDeployTargetConfigs: [DeployTargetConfig]  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    getEnvVariablesByProjectEnvironmentName(input: EnvVariableByProjectEnvironmentNameInput!): [EnvKeyValue]
   }
 
   # Must provide id OR name
@@ -1744,6 +1749,20 @@ const typeDefs = gql`
     id: Int!
   }
 
+  input DeleteEnvVariableByNameInput {
+    environment: String
+    project: String!
+    name: String!
+  }
+
+  input EnvVariableByNameInput {
+    environment: String
+    project: String!
+    scope: EnvVariableScope
+    name: String!
+    value: String!
+  }
+
   input SetEnvironmentServicesInput {
     environment: Int!
     services: [String]!
@@ -1977,6 +1996,8 @@ const typeDefs = gql`
     updateRestore(input: UpdateRestoreInput!): Restore
     addEnvVariable(input: EnvVariableInput!): EnvKeyValue
     deleteEnvVariable(input: DeleteEnvVariableInput!): String
+    addOrUpdateEnvVariableByName(input: EnvVariableByNameInput!): EnvKeyValue
+    deleteEnvVariableByName(input: DeleteEnvVariableByNameInput!): String
     addTask(input: TaskInput!): Task
     addAdvancedTaskDefinition(input: AdvancedTaskDefinitionInput!): AdvancedTaskDefinition
     updateAdvancedTaskDefinition(input: UpdateAdvancedTaskDefinitionInput!): AdvancedTaskDefinition
