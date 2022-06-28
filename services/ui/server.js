@@ -30,6 +30,46 @@ app
         })
     );
 
+    server.get('/organizations', (req, res) => {
+      app.render(req, res, '/organizations');
+    });
+
+    server.get('/organizations/:organizationSlug', (req, res) => {
+      app.render(req, res, '/organizations', {
+        organizationId: req.params.organizationSlug
+      });
+    });
+
+    server.get('/organizations/:organizationSlug/groups', (req, res) => {
+      app.render(req, res, '/org-groups', {
+        organizationId: req.params.organizationSlug
+      });
+    });
+
+    server.get('/organizations/:organizationSlug/groups/:groupSlug', (req, res) => {
+      app.render(req, res, '/org-group', {
+        groupName: req.params.groupSlug
+      });
+    });
+
+    server.get('/organizations/:organizationSlug/projects', (req, res) => {
+      app.render(req, res, '/org-projects', {
+        organizationId: req.params.organizationSlug
+      });
+    });
+
+    server.get('/organizations/:organizationSlug/newproject', (req, res) => {
+      app.render(req, res, '/org-newproject', {
+        organizationId: req.params.organizationSlug
+      });
+    });
+
+    server.get('/organizations/:organizationSlug/projects/:projectGroupSlug', (req, res) => {
+      app.render(req, res, '/org-project', {
+        projectName: req.params.projectGroupSlug
+      });
+    });
+
     server.get('/projects', (req, res) => {
       app.render(req, res, '/projects');
     });

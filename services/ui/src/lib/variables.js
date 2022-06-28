@@ -15,7 +15,7 @@ export const color = {
   midGrey: '#ebecf0',
   grey: '#a8b4bc',
   darkGrey: '#5f6f7a',
-  green: '#4fda9d',
+  lightGreen: '#4fda9d',
   lightestBlue: '#6fb3ff',
   linkBlue: '#497ffa',
   lightBlue: '#4c84ff',
@@ -23,6 +23,8 @@ export const color = {
   brightBlue: '#2bc0d8',
   lightRed: '#dc3545',
   red: '#c82333',
+  green: '#28a745',
+  teal: '#008080',
 };
 
 export const bp = {
