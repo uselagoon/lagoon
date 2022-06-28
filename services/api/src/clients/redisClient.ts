@@ -41,14 +41,17 @@ interface IUserResourceScope {
   scope: string;
   currentUserId: string;
   project?: number;
+  organization?: number;
   group?: string;
   users?: number[];
 }
 
-const hashKey = ({ resource, project, group, scope }: IUserResourceScope) =>
-  `${resource}:${project ? `${project}:` : ''}${
-    group ? `${group}:` : ''
-  }${scope}`;
+const hashKey = ({ resource, project, organization, group, scope }: IUserResourceScope) =>
+  `${resource}:
+  ${project ? `${project}:` : ''}
+  ${group ? `${group}:` : ''}
+  ${organization ? `${organization}:` : ''}
+  ${scope}`;
 
 export const getRedisCache = async (resourceScope: IUserResourceScope) => {
   const redisHash = await hgetall(`cache:authz:${resourceScope.currentUserId}`);
