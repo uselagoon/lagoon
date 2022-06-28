@@ -329,8 +329,6 @@ export const getEnvVariablesByProjectEnvironmentName: ResolverFn = async (
     projectName
   );
 
-  let envVarType = "project"
-  let envVarTypeName = projectName
   if (environmentName) {
     // is environment
     const environmentRows = await query(
