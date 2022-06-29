@@ -1994,8 +1994,8 @@ const typeDefs = gql`
     deleteAllBackups: String
     addRestore(input: AddRestoreInput!): Restore
     updateRestore(input: UpdateRestoreInput!): Restore
-    addEnvVariable(input: EnvVariableInput!): EnvKeyValue
-    deleteEnvVariable(input: DeleteEnvVariableInput!): String
+    addEnvVariable(input: EnvVariableInput!): EnvKeyValue  @deprecated(reason: "Use addOrUpdateEnvVariableByName instead")
+    deleteEnvVariable(input: DeleteEnvVariableInput!): String  @deprecated(reason: "Use deleteEnvVariableByName instead")
     addOrUpdateEnvVariableByName(input: EnvVariableByNameInput!): EnvKeyValue
     deleteEnvVariableByName(input: DeleteEnvVariableByNameInput!): String
     addTask(input: TaskInput!): Task

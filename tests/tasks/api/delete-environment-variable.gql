@@ -1,0 +1,7 @@
+mutation deleteEnvVariable {
+  deleteEnvVariableByName(input:{
+    project: "{{ project }}"
+    environment: "{{ branch }}"
+    name: "{{ envName }}"
+  })
+}

@@ -199,30 +199,53 @@ export const deleteEnvVariableByName: ResolverFn = async (
       Sql.selectEnvironmentByNameAndProject(environmentName, projectId)
     );
     const environment = environmentRows[0];
-    const environmentVariable = await query(
-      sqlClientPool,
-      Sql.selectEnvVarByNameAndEnvironmentId(name, environment.id)
+    if (environment) {
+      const environmentVariable = await query(
+        sqlClientPool,
+        Sql.selectEnvVarByNameAndEnvironmentId(name, environment.id)
       );
-    const perms = environmentVariable[0];
+      await hasPermission(
+        'env_var',
+        `environment:delete:${environment.environmentType}`,
+        {
+          project: projectId
+        }
+      );
 
-    await hasPermission('env_var', 'delete', {
-      project: R.path(['0', 'pid'], perms)
-    });
-    envVarType = "environment"
-    envVarTypeName = environmentName
-    await query(sqlClientPool, Sql.deleteEnvVariable(perms.id));
+      if (environmentVariable[0]) {
+        envVarType = "environment"
+        envVarTypeName = environmentName
+        await query(sqlClientPool, Sql.deleteEnvVariable(environmentVariable[0].id));
+      } else {
+        // variable doesn't exist, just return success
+        return "success"
+      }
+    } else {
+      // if the environment doesn't exist, check the user has permission to delete on the project
+      // before throwing an error that the environment doesn't exist
+      await hasPermission('project', 'view', {
+        project: projectId
+      });
+      throw new Error(
+        `environment ${environmentName} doesn't exist`
+      );
+    }
   } else {
     // is project
     const projectVariable = await query(
       sqlClientPool,
       Sql.selectEnvVarByNameAndProjectId(name, projectId)
       );
-    const perms = projectVariable[0];
 
-    await hasPermission('env_var', 'delete', {
-      project: R.path(['0', 'pid'], perms)
+    await hasPermission('env_var', 'project:delete', {
+      project: projectId
     });
-    await query(sqlClientPool, Sql.deleteEnvVariable(perms.id));
+    if (projectVariable[0]) {
+      await query(sqlClientPool, Sql.deleteEnvVariable(projectVariable[0].id));
+    } else {
+      // variable doesn't exist, just return success
+      return "success"
+    }
   }
 
   userActivityLogger(`User deleted environment variable`, {
@@ -266,7 +289,7 @@ export const addOrUpdateEnvVariableByName: ResolverFn = async (
       'env_var',
       `environment:add:${environment.environmentType}`,
       {
-        project: project.id
+        project: projectId
       }
     );
     updateData = {
@@ -280,7 +303,7 @@ export const addOrUpdateEnvVariableByName: ResolverFn = async (
   } else {
     // this is a project
     await hasPermission('env_var', 'project:add', {
-      project: `${project.id}`
+      project: projectId
     });
     updateData = {
       name,
@@ -341,7 +364,7 @@ export const getEnvVariablesByProjectEnvironmentName: ResolverFn = async (
       'env_var',
       `environment:view:${environment.environmentType}`,
       {
-        project: environment.project
+        project: projectId
       }
     );
 
