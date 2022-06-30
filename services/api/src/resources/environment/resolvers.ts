@@ -605,7 +605,7 @@ export const updateEnvironment: ResolverFn = async (
   });
 
   const newType = R.pathOr(
-    curEnv.environment_type,
+    curEnv.environmentType,
     ['patch', 'environmentType'],
     input
   );
