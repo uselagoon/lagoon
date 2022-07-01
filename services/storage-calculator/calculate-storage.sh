@@ -77,7 +77,12 @@ echo "$ALL_ENVIRONMENTS" | jq -c '.data.environments[] | select((.environments |
       echo " > $CONSOLE_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: no valid namespace found"
       continue
     fi
-
+    # Skip if configamp doesn't exist.
+    NAMESPACE=$(${KUBECTL} get configmap lagoon-env --ignore-not-found=true);
+    if ! [[ "$NAMESPACE" ]] ; then
+      echo " > $CONSOLE_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: no lagoon-env configmap found"
+      continue
+    fi
 
     # Cleanup any existing storage-calc deployments.
     echo "$CONSOLE_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: delete any existing storage-calc deployments"
@@ -104,6 +109,8 @@ echo "$ALL_ENVIRONMENTS" | jq -c '.data.environments[] | select((.environments |
       yq -i e '.spec.template.spec.containers[0].volumeMounts['$pvccount'].mountPath = "/storage/'${PVC}'"' $TMPFILE
       yq -i e '.spec.template.spec.volumes['$pvccount'].name = "'${PVC}'"' $TMPFILE
       yq -i e '.spec.template.spec.volumes['$pvccount'].persistentVolumeClaim.claimName = "'${PVC}'"' $TMPFILE
+      yq -i e '.spec.template.spec.volumes['$pvccount'].persistentVolumeClaim.readOnly = true' $TMPFILE
+      yq -i e '.spec.progressDeadlineSeconds = '${PROGRESS_DEADLINE:-90}'' $TMPFILE
       pvccount=$((pvccount+1))
     done
     # Copy environment variable from lagoon-env configmap.
