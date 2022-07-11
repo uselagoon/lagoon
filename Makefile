@@ -505,6 +505,7 @@ CHART_TESTING_VERSION = v3.6.0
 KIND_IMAGE = kindest/node:v1.23.6@sha256:b1fa224cc6c7ff32455e0b1fd9cbfd3d3bc87ecaa8fcb06961ed1afb3db0f9ae
 TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-api-variables,active-standby-kubernetes,tasks,drush,drupal-php80,drupal-postgres,python,gitlab,github,bitbucket,node-mongodb,elasticsearch,workflows]
 CHARTS_TREEISH = "active-standby-image"
+TASK_IMAGES = task-activestandby
 
 # Symlink the installed kubectl client if the correct version is already
 # installed, otherwise downloads it.
@@ -732,7 +733,7 @@ kind/dev: $(addprefix build/,$(KIND_SERVICES))
 			IMAGE_REGISTRY=$$IMAGE_REGISTRY
 
 # kind/push-images pushes locally build images into the kind cluster registry.
-IMAGES = $(KIND_SERVICES) $(LOCAL_DEV_SERVICES)
+IMAGES = $(KIND_SERVICES) $(LOCAL_DEV_SERVICES) $(TASK_IMAGES)
 .PHONY: kind/push-images
 kind/push-images:
 	export KUBECONFIG="$$(pwd)/kubeconfig.kind.$(CI_BUILD_TAG)" && \
