@@ -1182,11 +1182,8 @@ export const createMiscTask = async function(taskData: any) {
           } else if (overwriteActiveStandbyTaskImage) {
             // allow to overwrite the image we use via OVERWRITE_ACTIVESTANDBY_TASK_IMAGE env variable
             taskImage = overwriteActiveStandbyTaskImage
-          } else if (lagoonEnvironmentType == 'production') {
-            taskImage = `amazeeio/task-activestandby:${lagoonVersion}`
           } else {
-            // we are a development enviornment, use the amazeeiolagoon image with the same branch name
-            taskImage = `amazeeiolagoon/task-activestandby:${lagoonGitSafeBranch}`
+            taskImage = `uselagoon/task-activestandby:${lagoonVersion}`
           }
           miscTaskData.advancedTask.runnerImage = taskImage
           // miscTaskData.advancedTask.runnerImage = "shreddedbacon/runner:latest"
