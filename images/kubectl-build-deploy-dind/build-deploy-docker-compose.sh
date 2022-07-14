@@ -186,7 +186,7 @@ set +ex
 ### RUN docker compose config check against the provided docker-compose file
 ### use the `build-validate` built in validater to run over the provided docker-compose file
 ##############################################
-dccOutput=$(bash -c 'build-validate validate docker-compose --docker-compose '${DOCKER_COMPOSE_YAML}'; exit $?' 2>&1)
+dccOutput=$(bash -c 'build-deploy-tool validate docker-compose --docker-compose '${DOCKER_COMPOSE_YAML}'; exit $?' 2>&1)
 dccExit=$?
 echo "docker-compose validate exit code ${dccExit}: ${dccOutput}"
 
