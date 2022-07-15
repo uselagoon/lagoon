@@ -1071,15 +1071,15 @@ export const switchActiveStandby: ResolverFn = async (
           environmentProdId = parseInt(environmentProd.id);
         }
         if (makeSafe(envForProject.name) == project.standbyProductionEnvironment) {
-          // const environmentRows = await query(
-          //   sqlClientPool,
-          //   environmentSql.selectEnvironmentByNameAndProject(
-          //     envForProject.name,
-          //     project.id
-          //   )
-          // );
-          // environmentStandby = environmentRows[0];
-          // environmentStandbyId = parseInt(environmentStandby.id);
+          const environmentRows = await query(
+            sqlClientPool,
+            environmentSql.selectEnvironmentByNameAndProject(
+              envForProject.name,
+              project.id
+            )
+          );
+          environmentStandby = environmentRows[0];
+          environmentStandbyId = parseInt(environmentStandby.id);
         }
       }
     } catch (err) {
