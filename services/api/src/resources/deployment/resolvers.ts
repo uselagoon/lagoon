@@ -1028,63 +1028,41 @@ export const switchActiveStandby: ResolverFn = async (
   var environmentStandby
   // we want the task to show in the standby environment, as this is where the task will be initiated.
   try {
-    const environmentRows = await query(
+    // maybe the environments have slashes in their names
+    // get all the environments for this project
+    const environmentsForProject = await query(
       sqlClientPool,
-      environmentSql.selectEnvironmentByNameAndProject(
-        project.standbyProductionEnvironment,
+      environmentSql.selectEnvironmentsByProjectID(
         project.id
       )
     );
-    environmentStandby = environmentRows[0];
-    environmentStandbyId = parseInt(environmentStandby.id);
-    // we need to pass some additional information about the production environment
-    const environmentRowsProd = await query(
-      sqlClientPool,
-      environmentSql.selectEnvironmentByNameAndProject(
-        project.productionEnvironment,
-        project.id
-      )
-    );
-    environmentProd = environmentRowsProd[0];
-    environmentProdId = parseInt(environmentProd.id);
-  } catch (err) {
-    try {
-      // maybe the environments have slashes in their names
-      // get all the environments for this project
-      const environmentsForProject = await query(
-        sqlClientPool,
-        environmentSql.selectEnvironmentsByProjectID(
-          project.id
-        )
-      );
-      for (const envForProject of environmentsForProject) {
-        // check the environments to see if their name when made "safe" matches what is defined in the `production` or `standbyProduction` environment
-        if (makeSafe(envForProject.name) == project.productionEnvironment) {
-          const environmentRowsProd = await query(
-            sqlClientPool,
-            environmentSql.selectEnvironmentByNameAndProject(
-              envForProject.name,
-              project.id
-            )
-          );
-          environmentProd = environmentRowsProd[0];
-          environmentProdId = parseInt(environmentProd.id);
-        }
-        if (makeSafe(envForProject.name) == project.standbyProductionEnvironment) {
-          const environmentRows = await query(
-            sqlClientPool,
-            environmentSql.selectEnvironmentByNameAndProject(
-              envForProject.name,
-              project.id
-            )
-          );
-          environmentStandby = environmentRows[0];
-          environmentStandbyId = parseInt(environmentStandby.id);
-        }
+    for (const envForProject of environmentsForProject) {
+      // check the environments to see if their name when made "safe" matches what is defined in the `production` or `standbyProduction` environment
+      if (makeSafe(envForProject.name) == project.productionEnvironment) {
+        const environmentRowsProd = await query(
+          sqlClientPool,
+          environmentSql.selectEnvironmentByNameAndProject(
+            envForProject.name,
+            project.id
+          )
+        );
+        environmentProd = environmentRowsProd[0];
+        environmentProdId = parseInt(environmentProd.id);
       }
-    } catch (err) {
-      throw new Error(`Unable to determine active standby environments: ${err}`);
+      if (makeSafe(envForProject.name) == project.standbyProductionEnvironment) {
+        const environmentRows = await query(
+          sqlClientPool,
+          environmentSql.selectEnvironmentByNameAndProject(
+            envForProject.name,
+            project.id
+          )
+        );
+        environmentStandby = environmentRows[0];
+        environmentStandbyId = parseInt(environmentStandby.id);
+      }
     }
+  } catch (err) {
+    throw new Error(`Unable to determine active standby environments: ${err}`);
   }
 
   if (environmentStandbyId === undefined || environmentProdId === undefined) {
