@@ -40,9 +40,6 @@ const s3Client = new S3({
   signatureVersion: 'v4'
 });
 
-const convertDateFormat = R.init;
-
-
 // Get insights files directly from the bucket
 export const getInsightsBucketFiles = async ({ prefix }) => {
 	try {
@@ -115,9 +112,6 @@ export const getInsightsFileData: ResolverFn = async (
       return null;
     }
 
-    if (data.ContentEncoding == 'gzip') {
-      return "Compressed file"
-    }
     return JSON.parse(JSON.stringify(data.Body));
   } catch (e) {
     return `There was an error loading insights data: ${e.message}\nIf this error persists, contact your Lagoon support team.`;
