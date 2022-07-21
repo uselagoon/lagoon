@@ -36,6 +36,7 @@ nav:
   - Varnish: docker-images/varnish/README.md
   - Varnish-Drupal: docker-images/varnish/varnish-drupal.md
 - Configuring Applications:
+  - Overview: applications/index.md
   - Drupal:
     - Services: drupal/services/README.md
     - MariaDB: drupal/services/mariadb.md
@@ -48,6 +49,18 @@ nav:
     - Subfolders: drupal/subfolders.md
     - Integrate Drupal & Fastly: drupal/integrate-drupal-and-fastly.md
     - PHPUnit and PhpStorm: drupal/phpunit-and-phpstorm.md
+  - WordPress:
+    - Services: applications/wordpress/services.md
+  - Node.JS-based:
+    - Overview: applications/node.md
+  - PHP-based:
+    - Overview: applications/php.md
+  - Python-based:
+    - Overview: applications/python.md
+  - Ruby-based:
+    - Overview: applications/ruby.md
+  - Other:
+    - Overview: applications/other.md
 - Understanding Logs:
   - Logging: logging/logging.md
   - Kibana Examples: logging/kibana-examples.md
