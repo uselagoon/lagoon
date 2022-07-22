@@ -34,14 +34,17 @@ nav:
   - Varnish: docker-images/varnish.md
 - Configuring Applications:
   - Overview: applications/index.md
+  - Options: applications/options.md
   - Drupal:
-    - Services: drupal/services/README.md
-    - MariaDB: drupal/services/mariadb.md
-    - NGINX: drupal/services/nginx.md
-    - PHP-cli: drupal/services/php-cli.md
-    - Redis: drupal/services/redis.md
-    - Solr: drupal/services/solr.md
-    - Varnish: drupal/services/varnish.md
+    - Overview: drupal/index.md
+    - Services:
+      - Overview: drupal/services/README.md
+      - MariaDB: drupal/services/mariadb.md
+      - NGINX: drupal/services/nginx.md
+      - PHP-cli: drupal/services/php-cli.md
+      - Redis: drupal/services/redis.md
+      - Solr: drupal/services/solr.md
+      - Varnish: drupal/services/varnish.md
     - Step by Step - Getting Drupal ready to run on Lagoon: drupal/step-by-step-getting-drupal-ready-to-run-on-lagoon.md
     - First Deployment of Drupal: drupal/first-deployment-of-drupal.md
     - Drush 9: drupal/drush-9.md
@@ -49,7 +52,7 @@ nav:
     - Integrate Drupal & Fastly: drupal/integrate-drupal-and-fastly.md
     - PHPUnit and PhpStorm: drupal/phpunit-and-phpstorm.md
   - WordPress:
-    - Services: applications/wordpress/services.md
+    - Overview: applications/wordpress/wordpress.md
   - Node.JS-based:
     - Overview: applications/node.md
   - PHP-based:
