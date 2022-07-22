@@ -2,17 +2,43 @@
 
 MariaDB is the open source successor to MySQL.
 
-The [Lagoon `MariaDB` image Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.5.Dockerfile). Based on the official packages `mariadb` and `mariadb-client` provided by the `alpine:3.8` image.
+The [Lagoon `MariaDB` image Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.5.Dockerfile). Based on the official packages [`mariadb`](https://pkgs.alpinelinux.org/packages?name=mariadb&branch=edge) and [`mariadb-client`](https://pkgs.alpinelinux.org/packages?name=mariadb-client&branch=edge) provided by the the upstream Alpine image.
 
 This Dockerfile is intended to be used to set up a standalone MariaDB database server.
 
+* 10.4 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.4.Dockerfile) (Alpine 3.12 Support until May 2022) - `uselagoon/mariadb-10.4`
+* 10.5 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.5.Dockerfile) (Alpine 3.14 Support until May 2023) - `uselagoon/mariadb-10.5`
+* 10.6 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb/10.6.Dockerfile) (Alpine 3.16 Support until May 2024) - `uselagoon/mariadb-10.6`
+
+!!! Note "Note:"
+    As these images are not built from the upstream MariaDB images, their support follows a different cycle - and will only receive updates as long as the underlying Alpine images receive support - see [https://alpinelinux.org/releases/](https://alpinelinux.org/releases/) for more information. In practice, most MariaDB users will only be running these containers locally - the production instances will use the Managed Cloud Databases provided by the DBaaS Operator
+
 ## Lagoon adaptions
+
+The default exposed port of mariadb containers is port `3306`.
+
+To allow Lagoon to select the best way to run the mariadb container, use `lagoon.type: mariadb` - this allows DBaaS operator to provision a cloud database if available in the cluster. Use `lagoon.type: mariadb-single` to specifically request mariadb in a container. Persistent storage is always provisioned for mariadb containers at /var/lib/mysql.
 
 This image is prepared to be used on Lagoon. There are therefore some things already done:
 
 * Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions), so this image will work with a random user.
 * `readiness-probe.sh` script to check when MariaDB container is ready.
 
+## docker-compose.yml snippet
+
+    ```yaml title="docker-compose.yml snippet"
+		mariadb:
+			image: uselagoon/mariadb-10.6-drupal:latest
+			labels:
+				# tells Lagoon this is a mariadb database
+				lagoon.type: mariadb
+			ports:
+				# exposes the port 3306 with a random local port, find it with `docker-compose port mariadb 3306`
+				- "3306"
+			volumes:
+				# mounts a named volume at the default path for mariadb
+				- db:/var/lib/mysql
+    ```
 ## Included tools
 
 * [`mysqltuner.pl`](https://github.com/major/MySQLTuner-perl) - Perl script useful for database parameter tuning.
@@ -21,7 +47,7 @@ This image is prepared to be used on Lagoon. There are therefore some things alr
 
 ## Included `my.cnf` configuration file
 
-The image ships a _default_ MariaDB configuration file, optimized to work on Lagoon. Some options are configurable via environments variables \(see [Environment Variables](../../using-lagoon-advanced/environment-variables.md)\).
+The image ships a _default_ MariaDB configuration file, optimized to work on Lagoon. Some options are configurable via environments variables \(see [Environment Variables](../using-lagoon-advanced/environment-variables.md)\).
 
 ## Environment Variables
 
