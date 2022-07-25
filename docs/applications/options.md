@@ -2,7 +2,7 @@
 description: Configuring Applications for use on Lagoon
 ---
 
-#  Configuring Applications for use on Lagoon
+# Configuring Applications for use on Lagoon
 
 ## `lagoon.yml`
 
