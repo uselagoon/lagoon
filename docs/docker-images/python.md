@@ -1,4 +1,4 @@
-# Node.js
+# Python
 
 The [Lagoon `python` Docker image](https://github.com/uselagoon/lagoon-images/tree/main/images/python). Based on [the official Python Alpine images](https://hub.docker.com/_/python/).
 
