@@ -34,6 +34,7 @@ var (
 	s3FilesBucket          string
 	s3FilesRegion          string
 	s3FilesOrigin          string
+	s3isGCS                bool
 
 	disableSlack          bool
 	disableRocketChat     bool
@@ -102,6 +103,8 @@ func main() {
 		"The jwt audience.")
 	flag.StringVar(&s3FilesOrigin, "s3-files-origin", "http://minio.127.0.0.1.nip.io:9000",
 		"The jwt audience.")
+	flag.BoolVar(&s3isGCS, "s3-google-cloud", false,
+		"If the storage backend is google cloud.")
 
 	// Email sending configuration
 	flag.BoolVar(&disableEmail, "disable-email", false,
@@ -134,6 +137,7 @@ func main() {
 	s3FilesBucket = getEnv("S3_FILES_BUCKET", s3FilesBucket)
 	s3FilesRegion = getEnv("S3_FILES_REGION", s3FilesRegion)
 	s3FilesOrigin = getEnv("S3_FILES_HOST", s3FilesOrigin)
+	s3isGCS = getEnvBool("S3_FILES_GCS", s3isGCS)
 
 	emailSender = getEnv("EMAIL_SENDER_ADDRESS", emailSender)
 	emailSenderPassword = getEnv("EMAIL_SENDER_PASSWORD", emailSenderPassword)
@@ -234,6 +238,7 @@ func main() {
 		s3FilesBucket,
 		s3FilesRegion,
 		s3FilesOrigin,
+		s3isGCS,
 	)
 
 	// start the consumer

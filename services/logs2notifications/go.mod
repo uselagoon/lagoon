@@ -14,8 +14,7 @@ require (
 	github.com/slack-go/slack v0.9.5
 	github.com/tiago4orion/conjure v0.0.0-20150908101743-93cb30b9d218 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
-	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
-	gopkg.in/mail.v2 v2.3.1 // indirect
+	gopkg.in/mail.v2 v2.3.1
 )
 
 // Fixes for AppID

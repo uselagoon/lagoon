@@ -68,13 +68,16 @@ func (h *Messaging) uploadFileS3(message, fileName string) {
 		log.Fatal(err)
 	}
 
-	_, err = s3.New(session).PutObject(&s3.PutObjectInput{
+	object := s3.PutObjectInput{
 		Bucket:      aws.String(h.S3FilesBucket),
 		Key:         aws.String(fileName),
-		ACL:         aws.String("private"),
 		Body:        bytes.NewReader([]byte(message)),
 		ContentType: aws.String("text/plain"),
-	})
+	}
+	if !h.S3IsGCS {
+		object.ACL = aws.String("private")
+	}
+	_, err = s3.New(session).PutObject(&object)
 	if err != nil {
 		log.Println(err)
 	}

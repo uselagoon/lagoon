@@ -69,6 +69,7 @@ type Messaging struct {
 	S3FilesBucket           string
 	S3FilesRegion           string
 	S3FilesOrigin           string
+	S3IsGCS                 bool
 }
 
 // Notification .
@@ -144,7 +145,7 @@ func NewMessaging(config mq.Config,
 	appID string,
 	disableSlack, disableRocketChat, disableMicrosoftTeams, disableEmail, disableWebhooks, disableS3 bool,
 	emailSender, emailSenderPassword, emailHost, emailPort string, emailInsecureSkipVerify bool,
-	s3FilesAccessKeyID, s3FilesSecretAccessKey, s3FilesBucket, s3FilesRegion, s3FilesOrigin string) *Messaging {
+	s3FilesAccessKeyID, s3FilesSecretAccessKey, s3FilesBucket, s3FilesRegion, s3FilesOrigin string, s3isGCS bool) *Messaging {
 	return &Messaging{
 		Config:                  config,
 		LagoonAPI:               lagoonAPI,
@@ -168,6 +169,7 @@ func NewMessaging(config mq.Config,
 		S3FilesBucket:           s3FilesBucket,
 		S3FilesRegion:           s3FilesRegion,
 		S3FilesOrigin:           s3FilesOrigin,
+		S3IsGCS:                 s3isGCS,
 	}
 }
 
