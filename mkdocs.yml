@@ -52,8 +52,8 @@ nav:
     - Integrate Drupal & Fastly: drupal/integrate-drupal-and-fastly.md
     - PHPUnit and PhpStorm: drupal/phpunit-and-phpstorm.md
   - WordPress:
-    - Overview: applications/wordpress/wordpress.md
-  - Node.JS-based:
+    - Overview: applications/wordpress.md
+  - Node.js-based:
     - Overview: applications/node.md
   - PHP-based:
     - Overview: applications/php.md
