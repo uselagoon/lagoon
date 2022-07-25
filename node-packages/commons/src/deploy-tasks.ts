@@ -239,7 +239,7 @@ export const deployTargetBranches = async function(data: any) {
     if (deployTarget) {
         data.deployTarget = deployTarget
         let deploy = await deployBranch(data)
-        // EXISTING DEPLOY VIA ENVIRONMENT OPENSHIFT
+        // EXISTING DEPLOY VIA ENVIRONMENT KUBERNETES
         return deploy
     }
 
@@ -257,7 +257,7 @@ export const deployTargetBranches = async function(data: any) {
                 openshift: deployTargetConfigs.targets[i].deployTarget
             }
             data.deployTarget = deployTarget
-            // NEW DEPLOY VIA DEPLOYTARGETCONFIG OPENSHIFT
+            // NEW DEPLOY VIA DEPLOYTARGETCONFIG KUBERNETES
             deploy = await deployBranch(data)
             if (deploy) {
                 // if the deploy is successful, then return
@@ -284,8 +284,16 @@ export const deployTargetBranches = async function(data: any) {
         }
         data.deployTarget = deployTarget
         let deploy = await deployBranch(data)
-        // NEW DEPLOY VIA PROJECT OPENSHIFT
-        return deploy
+        // NEW DEPLOY VIA PROJECT KUBERNETES
+        if (deploy) {
+            // if the deploy is successful, then return
+            return deploy
+        }
+        if (deploy == false) {
+            throw new NoNeedToDeployBranch(
+                `configured regex for project does not match branchname '${branchName}'`
+            );
+        }
     }
     throw new NoNeedToDeployBranch(
         `no deploy targets configured`
@@ -331,7 +339,7 @@ export const deployTargetPullrequest = async function(data: any) {
     if (deployTarget) {
         data.deployTarget = deployTarget
         let deploy = await deployPullrequest(data)
-        // EXISTING DEPLOY VIA ENVIRONMENT OPENSHIFT
+        // EXISTING DEPLOY VIA ENVIRONMENT KUBERNETES
         return deploy
     }
 
@@ -349,7 +357,7 @@ export const deployTargetPullrequest = async function(data: any) {
                 openshift: deployTargetConfigs.targets[i].deployTarget
             }
             data.deployTarget = deployTarget
-            // NEW DEPLOY VIA DEPLOYTARGETCONFIG OPENSHIFT
+            // NEW DEPLOY VIA DEPLOYTARGETCONFIG KUBERNETES
             deploy = await deployPullrequest(data)
             if (deploy) {
                 // if the deploy is successful, then return
@@ -376,8 +384,16 @@ export const deployTargetPullrequest = async function(data: any) {
         }
         data.deployTarget = deployTarget
         let deploy = await deployPullrequest(data)
-        // NEW DEPLOY VIA PROJECT OPENSHIFT
-        return deploy
+        // NEW DEPLOY VIA PROJECT KUBERNETES
+        if (deploy) {
+            // if the deploy is successful, then return
+            return deploy
+        }
+        if (deploy == false) {
+            throw new NoNeedToDeployBranch(
+                `configured regex for all project does not match pullrequest '${branchName}'`
+            );
+        }
     }
     throw new NoNeedToDeployBranch(
         `no deploy targets configured`

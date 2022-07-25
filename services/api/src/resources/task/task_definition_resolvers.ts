@@ -18,6 +18,8 @@ import sql from '../user/sql';
 import convertDateToMYSQLDateTimeFormat from '../../util/convertDateToMYSQLDateTimeFormat';
 import * as advancedTaskToolbox from './advancedtasktoolbox';
 import { IKeycloakAuthAttributes, KeycloakUnauthorizedError } from '../../util/auth';
+import { Environment } from '../../resolvers';
+import { generateTaskName } from '@lagoon/commons/dist/util';
 
 enum AdvancedTaskDefinitionTarget {
   Group,
@@ -231,7 +233,8 @@ export const addAdvancedTaskDefinition = async (
     environment,
     permission,
     advancedTaskDefinitionArguments,
-    created
+    created,
+    confirmationText,
   } = input;
 
   const atb = advancedTaskToolbox.advancedTaskFunctions(
@@ -308,7 +311,8 @@ export const addAdvancedTaskDefinition = async (
       project,
       environment,
       group_name: groupName,
-      permission
+      permission,
+      confirmation_text: confirmationText,
     })
   );
 
@@ -321,7 +325,8 @@ export const addAdvancedTaskDefinition = async (
           id: null,
           advanced_task_definition: insertId,
           name: advancedTaskDefinitionArguments[i].name,
-          type: advancedTaskDefinitionArguments[i].type
+          type: advancedTaskDefinitionArguments[i].type,
+          displayName: advancedTaskDefinitionArguments[i].displayName,
         })
       );
     }
@@ -353,13 +358,9 @@ export const updateAdvancedTaskDefinition = async (
         type,
         service,
         command,
-        project,
-        groupName,
-        environment,
         permission,
         advancedTaskDefinitionArguments,
-        created,
-        deleted
+        confirmationText
       }
     }
   },
@@ -369,17 +370,24 @@ export const updateAdvancedTaskDefinition = async (
     throw new Error('Input patch requires at least 1 attribute');
   }
 
+  const atb = advancedTaskToolbox.advancedTaskFunctions(
+    sqlClientPool, models, hasPermission
+  );
+
+  let task = await atb.advancedTaskDefinitionById(id);
+
   let projectObj = await getProjectByEnvironmentIdOrProjectId(
     sqlClientPool,
-    environment,
-    project
+    task.environment,
+    task.project
   );
 
 
-  await checkAdvancedTaskPermissions(patch, hasPermission, models, projectObj);
+  await checkAdvancedTaskPermissions(task, hasPermission, models, projectObj);
 
   validateAdvancedTaskDefinitionData(patch, image, command, type);
 
+  //We actually don't want them to be able to update group, project, environment - so those aren't
   await query(
     sqlClientPool,
     Sql.updateAdvancedTaskDefinition({
@@ -389,14 +397,9 @@ export const updateAdvancedTaskDefinition = async (
         description,
         image,
         command,
-        created,
-        deleted,
-        type,
         service,
-        project,
-        environment,
-        group_name: groupName,
         permission,
+        confirmation_text: confirmationText
       }
     })
   );
@@ -417,6 +420,7 @@ export const updateAdvancedTaskDefinition = async (
             id: null,
             advanced_task_definition: id,
             name: advancedTaskDefinitionArguments[i].name,
+            displayName: advancedTaskDefinitionArguments[i].displayName,
             type: advancedTaskDefinitionArguments[i].type
           })
         );
@@ -424,7 +428,7 @@ export const updateAdvancedTaskDefinition = async (
     }
 
     userActivityLogger(`User updated advanced task definition '${id}'`, {
-      project: project,
+      project: task.project,
       event: 'api:updateTaskDefinition',
       payload: {
         taskDef: id
@@ -529,6 +533,7 @@ export const invokeRegisteredTask = async (
 
         const taskData = await Helpers(sqlClientPool).addTask({
           name: task.name,
+          taskName: generateTaskName(),
           environment: environment,
           service: task.service,
           command: taskCommand,
@@ -551,6 +556,7 @@ export const invokeRegisteredTask = async (
 
         const advancedTaskData = await Helpers(sqlClientPool).addAdvancedTask({
           name: task.name,
+          taskName: generateTaskName(),
           created: undefined,
           started: undefined,
           completed: undefined,

@@ -52,7 +52,7 @@ const DrushCacheClear = ({ pageEnvironment, onCompleted, onError }) => (
               required
             />
           </div>
-          <Button action={taskDrushCacheClear}>Add task</Button>
+          <Button action={taskDrushCacheClear}>Run task</Button>
           <style jsx>{`
             .envSelect {
               margin: 10px 0;

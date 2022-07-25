@@ -38,7 +38,7 @@ SSH key support in Windows has improved markedly as of recently, and is now supp
 
 ### Via the UI
 
-You can upload your SSH key(s) through the UI. Login as you normally would.&#x20;
+You can upload your SSH key(s) through the UI. Login as you normally would.
 
 In the upper right hand corner, click on Settings:
 
@@ -94,12 +94,37 @@ For example, to connect to the `php` container within the `nginx` pod:
 ssh -p 32222 -t drupal-example-main@ssh.lagoon.amazeeio.cloud service=nginx container=php
 ```
 
-## SCP
+## Copying files
 
-### Copying a local file into a pod
+The common case of copying a file into your `cli` pod can be acheived with the usual SSH-compatible tools.
 
-To copy a file from your local machine to a pod running on Lagoon, use the following syntax:
+### scp
 
 ```bash
-ssh -t -o "UserKnownHostsFile=/dev/null" -o "StrictHostKeyChecking=no" -p 32222 [project_name]-[environment_name]@ssh.lagoon.amazeeio.cloud service=[name_of_service] pod=[name_of_pod] sh -c "cat > /tmp/[name_of_file]" < [name_of_file]
+scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -P 32222 [local_path] [project_name]-[environment_name]@ssh.lagoon.amazeeio.cloud:[remote_path]
 ```
+
+### rsync
+
+```bash
+rsync --rsh='ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p 32222' [local_path] [project_name]-[environment_name]@ssh.lagoon.amazeeio.cloud:[remote_path]
+```
+
+### Specifying non-CLI pod/service
+
+In the rare case that you need to specify a non-CLI service this can be acheived with `rsync` using a `ssh` wrapper script to reorder the arguments in the manner required by Lagoon's SSH service:
+
+```bash
+#!/usr/bin/env sh
+svc=$1 user=$3 host=$4
+shift 4
+exec ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p 32222 -l "$user" "$host" "$svc" "$@"
+```
+
+Put that in an executable shell script `rsh.sh` and specify the `service=...` in the `rsync` command:
+
+```bash
+rsync --rsh="/path/to/rsh.sh service=cli" /tmp/foo [project_name]-[environment_name]@ssh.lagoon.amazeeio.cloud:/tmp/foo
+```
+
+The script could also be adjusted to also handle a `container=...` argument.

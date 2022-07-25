@@ -54,7 +54,7 @@ Here is a table that lists the roles and the access they have:
 | deleteAllBackups | backup | deleteAll |  | Yes | No | No | No | No | No | No |  |
 | getBackupsByEnvironmentId | backup | view | projectID | Yes | Yes | Yes | Yes | Yes | No | No |  |
 |  | deployment | view | projectID | Yes | Yes | Yes | Yes | Yes | Yes | Yes |  |
-| addEnvVariable \(to Project\) | env\_var | project:add | projectID | Yes | Yes | Yes | No | No | No | No |  |
+| addEnvVariable \(to Project\) | env\_var | project:add | projectID | Yes | Yes | Yes | Yes | No | No | No |  |
 | addEnvVariable \(to Environment\) | env\_var | environment:add:development | projectID | Yes | Yes | Yes | Yes | Yes | No | No |  |
 | addEnvVariable \(to Environment\) | env\_var | environment:add:production | projectID | Yes | Yes | Yes | Yes | No | No | No |  |
 | deleteEnvVariable | env\_var | delete | projectID | Yes | Yes | Yes | Yes | No | No | No |  |

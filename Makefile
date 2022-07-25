@@ -100,7 +100,6 @@ docker_pull:
 
 images :=     oc \
 							kubectl \
-							oc-build-deploy-dind \
 							kubectl-build-deploy-dind \
 							athenapdf-service \
 							docker-host
@@ -132,10 +131,8 @@ $(build-images):
 build/docker-host: images/docker-host/Dockerfile
 build/oc: images/oc/Dockerfile
 build/kubectl: images/kubectl/Dockerfile
-build/oc-build-deploy-dind: build/oc images/oc-build-deploy-dind
 build/athenapdf-service:images/athenapdf-service/Dockerfile
 build/kubectl-build-deploy-dind: build/kubectl images/kubectl-build-deploy-dind
-
 
 #######
 ####### Service Images
@@ -181,7 +178,6 @@ services :=	api \
 			api-db \
 			api-redis \
 			auth-server \
-			auto-idler \
 			actions-handler \
 			backup-handler \
 			broker \
@@ -217,7 +213,6 @@ build/auth-server build/logs2notifications build/backup-handler build/controller
 build/api-db: services/api-db/Dockerfile
 build/api-redis: services/api-redis/Dockerfile
 build/actions-handler: services/actions-handler/Dockerfile
-build/auto-idler: build/oc
 build/broker-single: services/broker/Dockerfile
 build/broker: build/broker-single
 build/drush-alias: services/drush-alias/Dockerfile
@@ -333,12 +328,6 @@ local-registry-up: build/local-registry
 .PHONY: broker-up
 broker-up: build/broker-single
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d broker
-
-lagoon-kickstart: $(foreach image,$(deployment-test-services-rest),build/$(image))
-	IMAGE_REPO=$(CI_BUILD_TAG) CI=false docker-compose -p $(CI_BUILD_TAG) --compatibility up -d $(deployment-test-services-rest)
-	sleep 90
-	curl -X POST -H "Content-Type: application/json" --data 'mutation { deployEnvironmentBranch(input: { project: { name: "lagoon" }, branchName: "master" } )}' http://localhost:3000/graphql
-	make logs
 
 #######
 ####### Publishing Images
@@ -502,15 +491,16 @@ ui-logs-development: build/actions-handler build/api build/api-db build/local-ap
 
 ## CI targets
 
-KUBECTL_VERSION := v1.21.1
-HELM_VERSION := v3.6.0
-KIND_VERSION = v0.12.0
-GOJQ_VERSION = v0.12.5
-STERN_VERSION = 2.1.17
-CHART_TESTING_VERSION = v3.4.0
-KIND_IMAGE = kindest/node:v1.21.1@sha256:69860bda5563ac81e3c0057d654b5253219618a22ec3a346306239bba8cfa1a6
+KUBECTL_VERSION := v1.23.7
+HELM_VERSION := v3.9.0
+KIND_VERSION = v0.14.0
+GOJQ_VERSION = v0.12.8
+STERN_VERSION = 2.1.20
+CHART_TESTING_VERSION = v3.6.0
+KIND_IMAGE = kindest/node:v1.23.6@sha256:b1fa224cc6c7ff32455e0b1fd9cbfd3d3bc87ecaa8fcb06961ed1afb3db0f9ae
 TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-api-variables,active-standby-kubernetes,tasks,drush,drupal-php80,drupal-postgres,python,gitlab,github,bitbucket,node-mongodb,elasticsearch,workflows]
 CHARTS_TREEISH = "logs2notifications"
+TASK_IMAGES = task-activestandby
 
 # Symlink the installed kubectl client if the correct version is already
 # installed, otherwise downloads it.
@@ -629,7 +619,7 @@ ifeq ($(ARCH), darwin)
       tcp-listen:32080,fork,reuseaddr tcp-connect:target:32080
 endif
 
-KIND_SERVICES = api api-db api-redis auth-server actions-handler broker controllerhandler docker-host drush-alias keycloak keycloak-db logs2notifications webhook-handler webhooks2tasks kubectl-build-deploy-dind local-api-data-watcher-pusher local-git ssh tests ui workflows
+KIND_SERVICES = api api-db api-redis auth-server actions-handler broker controllerhandler docker-host drush-alias keycloak keycloak-db logs2notifications webhook-handler webhooks2tasks kubectl-build-deploy-dind local-api-data-watcher-pusher local-git ssh tests ui workflows $(TASK_IMAGES)
 KIND_TESTS = local-api-data-watcher-pusher local-git tests
 KIND_TOOLS = kind helm kubectl jq stern
 
@@ -649,6 +639,7 @@ kind/test: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addpr
 			HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
 			JQ=$$(realpath ../local-dev/jq) \
 			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=$$IMAGE_REGISTRY/kubectl-build-deploy-dind:$(SAFE_BRANCH_NAME) \
+			OVERRIDE_ACTIVE_STANDBY_TASK_IMAGE=$$IMAGE_REGISTRY/task-activestandby:$(SAFE_BRANCH_NAME) \
 			IMAGE_REGISTRY=$$IMAGE_REGISTRY \
 			SKIP_INSTALL_REGISTRY=true \
 			LAGOON_FEATURE_FLAG_DEFAULT_ISOLATION_NETWORK_POLICY=enabled \
@@ -680,6 +671,7 @@ kind/setup: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addp
 			HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
 			JQ=$$(realpath ../local-dev/jq) \
 			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=$$IMAGE_REGISTRY/kubectl-build-deploy-dind:$(SAFE_BRANCH_NAME) \
+			OVERRIDE_ACTIVE_STANDBY_TASK_IMAGE=$$IMAGE_REGISTRY/task-activestandby:$(SAFE_BRANCH_NAME) \
 			IMAGE_REGISTRY=$$IMAGE_REGISTRY
 
 # kind/local-dev-patch will build the services in LOCAL_DEV_SERVICES on your machine, and then use kubectl patch to mount the folders into Kubernetes
@@ -732,10 +724,11 @@ kind/dev: $(addprefix build/,$(KIND_SERVICES))
 			HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
 			JQ=$$(realpath ../local-dev/jq) \
 			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=$$IMAGE_REGISTRY/kubectl-build-deploy-dind:$(SAFE_BRANCH_NAME) \
+			OVERRIDE_ACTIVE_STANDBY_TASK_IMAGE=$$IMAGE_REGISTRY/task-activestandby:$(SAFE_BRANCH_NAME) \
 			IMAGE_REGISTRY=$$IMAGE_REGISTRY
 
 # kind/push-images pushes locally build images into the kind cluster registry.
-IMAGES = $(KIND_SERVICES) $(LOCAL_DEV_SERVICES)
+IMAGES = $(KIND_SERVICES) $(LOCAL_DEV_SERVICES) $(TASK_IMAGES)
 .PHONY: kind/push-images
 kind/push-images:
 	export KUBECONFIG="$$(pwd)/kubeconfig.kind.$(CI_BUILD_TAG)" && \
@@ -773,6 +766,7 @@ kind/retest:
 			HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
 			JQ=$$(realpath ../local-dev/jq) \
 			OVERRIDE_BUILD_DEPLOY_DIND_IMAGE=$$IMAGE_REGISTRY/kubectl-build-deploy-dind:$(SAFE_BRANCH_NAME) \
+			OVERRIDE_ACTIVE_STANDBY_TASK_IMAGE=$$IMAGE_REGISTRY/task-activestandby:$(SAFE_BRANCH_NAME) \
 			IMAGE_REGISTRY=$$IMAGE_REGISTRY \
 			SKIP_ALL_DEPS=true \
 			LAGOON_FEATURE_FLAG_DEFAULT_ISOLATION_NETWORK_POLICY=enabled \

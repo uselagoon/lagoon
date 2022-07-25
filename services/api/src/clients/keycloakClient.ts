@@ -5,7 +5,7 @@ import { getConfigFromEnv, getLagoonRouteFromEnv } from '../util/config';
 
 export const config = {
   origin: getConfigFromEnv('KEYCLOAK_URL', 'http://keycloak:8080'),
-  user: 'admin',
+  user: getConfigFromEnv('KEYCLOAK_ADMIN_USER', 'admin'),
   pass: getConfigFromEnv('KEYCLOAK_ADMIN_PASSWORD', '<password not set>'),
   realm: 'lagoon',
   apiClientSecret: getConfigFromEnv(
