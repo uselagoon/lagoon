@@ -104,10 +104,10 @@ Here is a table that lists the roles and the access they have:
 | deleteAllNotificationRocketChats | notification | deleteAll |  | Yes | No | No | No | No | No | No |  |
 | removeAllNotificationsFromAllProjects | notification | removeAll |  | Yes | No | No | No | No | No | No |  |
 | getNotificationsByProjectId | notification | view | projectID | Yes | Yes | Yes | Yes | Yes | No | No |  |
-| addOpenshift | openshift | add |  | Yes | Yes | No | No | No | No | No |  |
-| updateOpenshift | openshift | update |  | Yes | Yes | No | No | No | No | No |  |
-| deleteOpenshift | openshift | delete |  | Yes | Yes | No | No | No | No | No |  |
-| deleteAllOpenshifts | openshift | deleteAll |  | Yes | Yes | No | No | No | No | No |  |
+| addKubernetes | kubernetes | add |  | Yes | Yes | No | No | No | No | No |  |
+| updateKubernetes | kubernetes | update |  | Yes | Yes | No | No | No | No | No |  |
+| deleteKubernetes | kubernetes | delete |  | Yes | Yes | No | No | No | No | No |  |
+| deleteAllKubernetes| kubernetes | deleteAll |  | Yes | Yes | No | No | No | No | No |  |
 | getAllOpenshifts | openshift | viewAll |  | Yes | No | No | No | No | No | No |  |
 | getOpenshiftByProjectId | openshift | view | projectID | Yes | Yes | Yes | Yes | Yes | Yes | Yes |  |
 | addNotificationToProject | project | addNotification | projectID | Yes | Yes | Yes | Yes | No | No | No |  |

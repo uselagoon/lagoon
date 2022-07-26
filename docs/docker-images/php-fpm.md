@@ -13,10 +13,7 @@ The [Lagoon `php-fpm` Docker image](https://github.com/uselagoon/lagoon-images/b
 
 ## Supported versions
 
-* 5.6 \(available for compatibility, no longer officially supported\)
-* 7.0 \(available for compatibility, no longer officially supported\)
-* 7.2 \(available for compatibility, no longer officially supported\)
-* 7.3 \(available for compatibility, no longer officially supported\)
+* 7.3 \(available for compatibility, no longer officially supported\) - `uselagoon/php-7.3-fpm`
 * 7.4 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/7.4.Dockerfile) (Security Support until 28 November 2022) - `uselagoon/php-7.4-fpm`
 * 8.0 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/8.0.Dockerfile) (Security Support until 26 November 2023) - `uselagoon/php-8.0-fpm`
 * 8.1 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/8.1.Dockerfile) (Security Support until 25 November 2024) - `uselagoon/php-8.1-fpm`
@@ -24,7 +21,7 @@ The [Lagoon `php-fpm` Docker image](https://github.com/uselagoon/lagoon-images/b
 All PHP versions use their own Dockerfiles.
 
 !!! Note "Note:"
-    We stop updating End of Life \(EOL\) PHP images usually with the Lagoon release that comes after the officially communicated EOL date: [https://www.php.net/supported-versions.php](https://www.php.net/supported-versions.php).
+    We stop updating End of Life \(EOL\) PHP images usually with the Lagoon release that comes after the officially communicated EOL date: [https://www.php.net/supported-versions.php](https://www.php.net/supported-versions.php). Previous published versions will remain available.
 
 ## Lagoon adaptions
 
@@ -32,7 +29,7 @@ This image is prepared to be used on Lagoon. There are therefore some things are
 
 * Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions), so this image will work with a random user.
 * The `/usr/local/etc/php/php.ini` and `/usr/local/etc/php-fpm.conf`, plus all files within `/usr/local/etc/php-fpm.d/` , are parsed through [`envplate`](https://github.com/kreuzwerker/envplate) with a container-entrypoint.
-* See the [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/7.4.Dockerfile) for installed `PHP` extensions.
+* See the [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/8.0.Dockerfile) for installed `PHP` extensions.
 * To install further extensions, extend your Dockerfile from this image. Install extensions according to the docs, under the heading [How to install more PHP extensions.](https://github.com/docker-library/docs/blob/master/php/README.md#how-to-install-more-php-extensions)
 
 ## Included PHP config

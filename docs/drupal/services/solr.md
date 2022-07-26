@@ -1,4 +1,4 @@
-# Solr
+# Solr-Drupal
 
 ## Standard use
 
