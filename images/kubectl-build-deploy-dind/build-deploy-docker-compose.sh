@@ -752,7 +752,9 @@ fi
 if [ "${SCC_CHECK}" != "false" ]; then
   # openshift permissions are different, this is to unset any podsecuritycontext values
   # that other templates set
-	yq3 merge -ix -- /kubectl-build-deploy/values.yaml /kubectl-build-deploy/openshift.values.yaml
+  OPENSHIFT_SUPPLEMENTAL_GROUP=$(kubectl get namespace ${NAMESPACE} -o json | jq -r '.metadata.annotations."openshift.io/sa.scc.supplemental-groups"' | cut -c -10)
+  yq3 write -i -- /kubectl-build-deploy/values.yaml 'podSecurityContext.fsGroup' $OPENSHIFT_SUPPLEMENTAL_GROUP
+	# yq3 merge -ix -- /kubectl-build-deploy/values.yaml /kubectl-build-deploy/openshift.values.yaml
 fi
 set -x
 
