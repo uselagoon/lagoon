@@ -748,6 +748,12 @@ set +x
 if [ "$(featureFlag ROOTLESS_WORKLOAD)" = enabled ]; then
 	yq3 merge -ix -- /kubectl-build-deploy/values.yaml /kubectl-build-deploy/rootless.values.yaml
 fi
+
+if [ "${SCC_CHECK}" != "false" ]; then
+  # openshift permissions are different, this is to unset any podsecuritycontext values
+  # that other templates set
+	yq3 merge -ix -- /kubectl-build-deploy/values.yaml /kubectl-build-deploy/openshift.values.yaml
+fi
 set -x
 
 

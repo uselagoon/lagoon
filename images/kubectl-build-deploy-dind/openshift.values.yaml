@@ -1,0 +1,5 @@
+# This is used in build-deploy-docker-compose.sh to specify the
+# podSecurityContext for Lagoon helmcharts used in openshift
+# since openshift workloads are already rootless, some of our template values default a set podSecurityContext with
+# `fsGroup: 0` which causes problems in openshift
+podSecurityContext: {}
