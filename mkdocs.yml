@@ -18,6 +18,7 @@ nav:
   - Build and Deploy Process: using-lagoon-the-basics/build-and-deploy-process.md
   - Going Live: using-lagoon-the-basics/going-live.md
 - Docker Images:
+  - Commons: docker-images/commons.md
   - Elasticsearch: docker-images/elasticsearch.md
   - MariaDB: docker-images/mariadb.md
   - MongoDB: docker-images/mongodb.md
