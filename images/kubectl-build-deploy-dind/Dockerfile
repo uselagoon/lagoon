@@ -12,6 +12,7 @@ COPY docker-entrypoint.sh /lagoon/entrypoints/100-docker-entrypoint.sh
 COPY build-deploy.sh /kubectl-build-deploy/build-deploy.sh
 COPY build-deploy-docker-compose.sh /kubectl-build-deploy/build-deploy-docker-compose.sh
 COPY rootless.values.yaml /kubectl-build-deploy/rootless.values.yaml
+COPY openshift.values.yaml /kubectl-build-deploy/openshift.values.yaml
 
 COPY scripts /kubectl-build-deploy/scripts
 
