@@ -2,19 +2,18 @@
 description: Applications that can be run on Lagoon
 ---
 
-# Applications that can be run on Lagoon
+### A wide range of Applications, Frameworks and Languages are supported by Lagoon
 
-Lagoon can support a wide range of applications.
+Lagoon broadly classifies three levels in the application stack:
+- **Languages** - The core building blocks of any Lagoon project, these are usually provided by Lagoon-specific images.
+- **Frameworks** - These take those base images, and add in the necessary logic, tools and packages needed to serve a website, or drive an application.
+- **Applications** - Usually built on top of Frameworks, this is the layer that content editors or developers will interact with to shape the finished product.
 
-We have (broadly) three levels of support for an application type:
 
-1. Tier 1 - Lagoon has maintained and tested templates, ready for use, built-in configuration.
-2. Tier 2 - There are maintained and tested examples available, for use as a guideline.
-3. Tier 3 - There are demos available, suitable for use as a guideline.
+When we reference any repositories for use on Lagoon, we usually refer to them in three ways:
+- **Templates** - These are fully-functional, cloneable starter repositories, maintained and updated regularly, ready to be extended and used with little customization.
+- **Examples** - These are fully functional repositories, maintained and updated regularly, but may require some effort to make work for your individual project.
+- **Demos** - These are repositories that have been built as a demonstration, and are usable for some of the concepts within, but aren't routinely maintained or updated.
 
-Of course, we haven't (yet) covered every single application, framework or language.
-
-The complete range of Lagoon templates, examples and demos can be found at [https://github.com/lagoon-examples](https://github.com/lagoon-examples).
-
-Lagoon has a couple of Tier 1 applications - Drupal and WordPress.
+For a more complete list, checkout out our GitHub repository: [https://www.github.com/lagoon-examples](https://www.github.com/lagoon-examples) and our website [https://lagoon.sh/applications](https://lagoon.sh/applications)
 
