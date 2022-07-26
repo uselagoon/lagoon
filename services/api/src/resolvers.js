@@ -248,6 +248,10 @@ const {
   resolveAdvancedTaskDefinitionsForWorkflow,
 } = require("./resources/workflow/resolvers");
 
+const {
+  getUIProjects
+} = require("./resources/ui/resolvers");
+
 const resolvers = {
   Upload: GraphQLUpload,
   GroupRole: {
@@ -470,6 +474,7 @@ const resolvers = {
     deployTargetConfigById: getDeployTargetConfigById,
     deployTargetConfigsByProjectId: getDeployTargetConfigsByProjectId,
     deployTargetConfigsByDeployTarget: getDeployTargetConfigsByDeployTarget,
+    uiProjects: getUIProjects,
   },
   Mutation: {
     addProblem,

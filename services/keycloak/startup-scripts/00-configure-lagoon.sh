@@ -52,6 +52,9 @@ function configure_lagoon_realm {
     CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=lagoon-ui --config $CONFIG_PATH | jq -r '.[0]["id"]')
     echo '{"protocol":"openid-connect","config":{"id.token.claim":"true","access.token.claim":"true","userinfo.token.claim":"true","user.attribute":"lagoon-uid","claim.name":"lagoon.user_id","jsonType.label":"int","multivalued":""},"name":"Lagoon User ID","protocolMapper":"oidc-usermodel-attribute-mapper"}' | /opt/jboss/keycloak/bin/kcadm.sh create -r ${KEYCLOAK_REALM:-master} clients/$CLIENT_ID/protocol-mappers/models --config $CONFIG_PATH -f -
 
+    echo Creating projectIds mapper for lagoon-ui "projects"
+    echo '{"protocol":"openid-connect","config":{"script":"var ArrayList = Java.type(\"java.util.ArrayList\");\nvar projects = new ArrayList();\nvar forEach = Array.prototype.forEach;\n\nforEach.call(user.getGroups().toArray(), function(group) {\n if(group.getFirstAttribute(\"type\") == \"role-subgroup\") {\n var parent = group.getParent();\n if(parent.getFirstAttribute(\"type\") == \"project-default-group\") {\n var projectIds = parent.getFirstAttribute(\"lagoon-projects\");\n if(projectIds !== null) {\n forEach.call(projectIds.split(\",\"), function(g) {\n projects.add(g); \n });\n return;\n }\n }\n }\n \n return;\n});\n\nexports = projects;","id.token.claim":"true","access.token.claim":"true","userinfo.token.claim":"true","multivalued":"true","claim.name":"projects","jsonType.label":"String"},"name":"projects","protocolMapper":"oidc-script-based-protocol-mapper"}' | /opt/jboss/keycloak/bin/kcadm.sh create -r ${KEYCLOAK_REALM:-master} clients/$CLIENT_ID/protocol-mappers/models --config $CONFIG_PATH -f -
+
     if [ "$KEYCLOAK_REALM_SETTINGS" ]; then
         echo Applying extra Realm settings
         echo $KEYCLOAK_REALM_SETTINGS | /opt/jboss/keycloak/bin/kcadm.sh update realms/${KEYCLOAK_REALM:-master} --config $CONFIG_PATH -f -
