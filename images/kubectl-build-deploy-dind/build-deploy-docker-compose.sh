@@ -695,6 +695,24 @@ if [[ "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ]]; then
 fi
 
 set +x
+# print information about built image sizes
+function printBytes {
+    local -i bytes=$1;
+    echo "$(( (bytes + 1000000)/1000000 ))MB"
+}
+if [[ "${IMAGES_BUILD[@]}" ]]; then
+  echo "##############################################"
+  echo "Built image sizes:"
+  echo "##############################################"
+fi
+for IMAGE_NAME in "${!IMAGES_BUILD[@]}"
+do
+  TEMPORARY_IMAGE_NAME="${IMAGES_BUILD[${IMAGE_NAME}]}"
+  echo -e "Image ${TEMPORARY_IMAGE_NAME}\t\t$(printBytes $(docker inspect ${TEMPORARY_IMAGE_NAME} | jq -r '.[0].Size'))"
+done
+set -x
+
+set +x
 currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
 patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "imageBuildComplete" "Image Builds"
 previousStepEnd=${currentStepEnd}
