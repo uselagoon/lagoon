@@ -1,0 +1,51 @@
+# Default values for worker-persistent.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+environmentType: production
+
+gitSha: ""
+
+image: ""
+
+persistentStorage:
+  name: ""
+
+imagePullPolicy: Always
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+resources:
+  limits:
+    cpu: 2
+    memory: 8Gi
+  requests:
+    cpu: 10m
+    memory: 10Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+inPodCronjobs: ""
+
+nativeinPodCronjobs: ""
+
+configMapSha: ""

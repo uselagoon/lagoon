@@ -1286,6 +1286,21 @@ do
     fi
   fi
 
+  # all our templates appear to support this if they have a service defined in them, but only `basic` properly supports this
+  # as all services will get re-written in the future into build-deploy-tool, just handle basic only for now and don't
+  # support it in other templates (yet)
+  if  [[ "$SERVICE_TYPE" == "basic" ]] ||
+      [[ "$SERVICE_TYPE" == "basic-persistent" ]]; then
+    SERVICE_PORT_NUMBER=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.service\\.port false)
+    if [ ! $SERVICE_PORT_NUMBER == "false" ]; then
+      # check if the port provided is actually a number
+      if ! [[ $SERVICE_PORT_NUMBER =~ ^[0-9]+$ ]] ; then
+        echo "Provided service port is not a number"; exit 1;
+      fi
+      HELM_SET_VALUES+=(--set "service.port=${SERVICE_PORT_NUMBER}")
+    fi
+  fi
+
 # TODO: we don't need this anymore
   # DEPLOYMENT_STRATEGY=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.deployment\\.strategy false)
   # if [ ! $DEPLOYMENT_STRATEGY == "false" ]; then
