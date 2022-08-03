@@ -1811,6 +1811,14 @@ function configure_keycloak {
     configure_token_exchange
     update_add_env_var_to_project
 
+    # Here we source in any extra configuration
+    echo "Checking for any custom startup scripts"
+    for FILE in /opt/jboss/startup-scripts/extra/*.sh; do
+      echo "Found $FILE - executing in current shell"
+      source $FILE;
+    done
+
+
     # always run last
     sync_client_secrets
 

@@ -1,0 +1,15 @@
+#!/bin/bash
+
+ADD_PROJECT_PERMISSION_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Add+Project --config $CONFIG_PATH | jq -r '.[0]["id"]')
+
+/opt/jboss/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/permission/scope/$ADD_PROJECT_PERMISSION_ID --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Add Project",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["project"],
+  "scopes": ["add"],
+  "policies": ["Users role for realm is Admin"]
+}
+EOF
