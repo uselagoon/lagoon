@@ -1,7 +1,13 @@
 #!/bin/bash
 
+# Here we demonstrate how we can use extra permission scripts to edit the default Lagoon permissions
+
+# First, we find the keycloak ID of the permission we're interested in updating.
 ADD_PROJECT_PERMISSION_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Add+Project --config $CONFIG_PATH | jq -r '.[0]["id"]')
 
+
+# Then, we use the keycloak cli admin tool to update the resource with our new definition.
+# Here's we're updating the "Add Project"
 /opt/jboss/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/permission/scope/$ADD_PROJECT_PERMISSION_ID --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Add Project",
