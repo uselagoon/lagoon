@@ -5,9 +5,9 @@ kind: CronJob
 metadata:
   name: cronjob-{{ $.Release.Name }}-{{ $cronjobName }}
   labels:
-    {{- include "solr.labels" $ | nindent 4 }}
+    {{- include "basic-persistent.labels" $ | nindent 4 }}
   annotations:
-    {{- include "solr.annotations" $ | nindent 4 }}
+    {{- include "basic-persistent.annotations" $ | nindent 4 }}
 spec:
   schedule: {{ $cronjobConfig.schedule | quote }}
   concurrencyPolicy: Forbid
@@ -17,26 +17,30 @@ spec:
   jobTemplate:
     metadata:
       labels:
-        {{- include "solr.labels" $ | nindent 8 }}
+        {{- include "basic-persistent.labels" $ | nindent 8 }}
       annotations:
-        {{- include "solr.annotations" $ | nindent 8 }}
+        {{- include "basic-persistent.annotations" $ | nindent 8 }}
     spec:
       backoffLimit: 0
       template:
         metadata:
           labels:
-            {{- include "solr.labels" $ | nindent 12 }}
+            {{- include "basic-persistent.labels" $ | nindent 12 }}
           annotations:
-            {{- include "solr.annotations" $ | nindent 12 }}
+            {{- include "basic-persistent.annotations" $ | nindent 12 }}
         spec:
         {{- with $.Values.imagePullSecrets }}
           imagePullSecrets:
             {{- toYaml . | nindent 12 }}
         {{- end }}
-          priorityClassName: {{ include "solr.lagoonPriority" $ }}
+          priorityClassName: {{ include "basic-persistent.lagoonPriority" $ }}
           enableServiceLinks: false
           securityContext:
             {{- toYaml $.Values.podSecurityContext | nindent 12 }}
+          volumes:
+            - name: {{ $.Values.persistentStorage.name }}
+              persistentVolumeClaim:
+                claimName: {{ $.Values.persistentStorage.name }}
           containers:
             - image: {{ $.Values.image | quote }}
               name: cronjob-{{ $.Release.Name }}-{{ $cronjobName }}
@@ -56,9 +60,12 @@ spec:
                     name: lagoon-env
               resources:
                 {{- toYaml $.Values.resources | nindent 16 }}
+              volumeMounts:
+                - name: {{ $.Values.persistentStorage.name }}
+                  mountPath: {{ $.Values.persistentStorage.path | quote }}
           restartPolicy: Never
-          {{- with $.Values.nodeSelector }}
-          nodeSelector:
+          {{- with $.Values.basicSelector }}
+          basicSelector:
             {{- toYaml $ | nindent 12 }}
           {{- end }}
         {{- with $.Values.affinity }}

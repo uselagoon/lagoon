@@ -2,6 +2,24 @@
 
 The below lists all service types that can be defined via `lagoon.type` within a [`docker-compose.yml` file](../using-lagoon-the-basics/docker-compose-yml.md).
 
+!!! Note "Note:"
+    Once a `lagoon.type` is defined and the environment is deployed, changing it to a different type is not supported and could result in a broken environment.
+
+## **`basic`**
+Basic container, good to use for most applications that don't have an existing template. No persistent storage. The port can be changed using a label
+
+| Healthcheck | Exposed Ports | Auto Generated Routes | Storage | Additional customization parameter |
+| :--- | :--- | :--- | :--- | :--- |
+| TCP connection on `3000` | `3000` | Yes | No | `lagoon.service.port` |
+
+## **`basic-persistent`**
+
+Like `basic`. Will generate persistent storage, defines mount location via `lagoon.persistent`.
+
+| Healthcheck | Exposed Ports | Auto Generated Routes | Storage | Additional customization parameter |
+| :--- | :--- | :--- | :--- | :--- |
+| TCP connection on `3000` | `3000` | Yes | Yes |  `lagoon.service.port`,`lagoon.persistent`, `lagoon.persistent.name`, `lagoon.persistent.size`, `lagoon.persistent.class` |
+
 ## **`cli`**
 Use for any kind of CLI container \(like PHP, Node.js, etc.\). Automatically gets the customer SSH private key that is mounted in `/var/run/secrets/lagoon/sshkey/ssh-privatekey`.
 
@@ -217,3 +235,18 @@ Varnish container with auto-generated persistent storage mounted under `/var/cac
 | Healthcheck | Exposed Ports | Auto Generated Routes | Storage | Additional customization parameter |
 | :--- | :--- | :--- | :--- | :--- |
 | HTTP request `localhost:8080/varnish_status` | `8080` | Yes | Yes | `lagoon.persistent.size` |
+
+## **`worker`**
+Use for any kind of worker container \(like queue workers, etc.\) where there is no exposed service port.
+
+| Healthcheck | Exposed Ports | Auto Generated Routes | Storage | Additional customization parameter |
+| :--- | :--- | :--- | :--- | :--- |
+| - | No | No | No | - |
+
+## **`worker-persistent`**
+
+Like `worker`, expects `lagoon.persistent.name` to be given the name of a service that has persistent storage, which will be mounted under defined `lagoon.persistent` label. Does NOT generate its own persistent storage, only used to mount another service's persistent storage.
+
+| Healthcheck | Exposed Ports | Auto Generated Routes | Storage | Additional customization parameter |
+| :--- | :--- | :--- | :--- | :--- |
+| - | No | No | Yes | `lagoon.persistent.name`, `lagoon.persistent` |
