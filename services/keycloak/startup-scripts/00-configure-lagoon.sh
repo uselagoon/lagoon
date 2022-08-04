@@ -1813,11 +1813,12 @@ function configure_keycloak {
 
     # Here we source in any extra configuration
     echo "Checking for any custom startup scripts"
-    for FILE in /opt/jboss/startup-scripts/extra/*.sh; do
-      echo "Found $FILE - executing in current shell"
-      source $FILE;
-    done
-
+    if ls /opt/jboss/startup-scripts/extra/*.sh 1> /dev/null 2>&1; then
+      for FILE in /opt/jboss/startup-scripts/extra/*.sh; do
+        echo "Found $FILE - executing in current shell"
+        source $FILE;
+      done
+    fi
 
     # always run last
     sync_client_secrets
