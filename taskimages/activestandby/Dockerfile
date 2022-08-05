@@ -1,5 +1,5 @@
 # Build the binary
-FROM golang:${GO_VERSION:-1.16.4} AS builder
+FROM golang:1.18-alpine AS builder
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
