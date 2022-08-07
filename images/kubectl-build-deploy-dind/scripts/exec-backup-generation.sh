@@ -1,6 +1,5 @@
 #!/bin/bash
 
-set +x
 ##############################################
 #   it is possible to override the retention using a variable defined in the api
 #
@@ -129,7 +128,6 @@ if [ -z "$DEFAULT_BACKUP_SCHEDULE" ]
 then
   DEFAULT_BACKUP_SCHEDULE="M H(22-2) * * *"
 fi
-set -x
 
 ##############################################
 ### Backup Settings
@@ -151,9 +149,7 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
       HELM_CUSTOM_BAAS_BACKUP_ACCESS_KEY=${BAAS_CUSTOM_BACKUP_ACCESS_KEY}
       HELM_CUSTOM_BAAS_BACKUP_SECRET_KEY=${BAAS_CUSTOM_BACKUP_SECRET_KEY}
     else
-      set +x
       kubectl --insecure-skip-tls-verify -n ${NAMESPACE} delete secret baas-custom-backup-credentials --ignore-not-found
-      set -x
     fi
   fi
 
@@ -168,22 +164,17 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
       HELM_CUSTOM_BAAS_RESTORE_ACCESS_KEY=${BAAS_CUSTOM_RESTORE_ACCESS_KEY}
       HELM_CUSTOM_BAAS_RESTORE_SECRET_KEY=${BAAS_CUSTOM_RESTORE_SECRET_KEY}
     else
-      set +x
       kubectl --insecure-skip-tls-verify -n ${NAMESPACE} delete secret baas-custom-restore-credentials --ignore-not-found
-      set -x
     fi
   fi
 
   if ! kubectl --insecure-skip-tls-verify -n ${NAMESPACE} get secret baas-repo-pw &> /dev/null; then
     # Create baas-repo-pw secret based on the project secret
-    set +x
     kubectl --insecure-skip-tls-verify -n ${NAMESPACE} create secret generic baas-repo-pw --from-literal=repo-pw=$(echo -n "$PROJECT_SECRET-BAAS-REPO-PW" | sha256sum | cut -d " " -f 1)
-    set -x
   fi
 
   TEMPLATE_PARAMETERS=()
 
-  set +x # reduce noise in build logs
   # Check for custom baas bucket name
   if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
     BAAS_BUCKET_NAME=$(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_BAAS_BUCKET_NAME") | "\(.value)"')
@@ -191,7 +182,6 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
   if [ -z $BAAS_BUCKET_NAME ]; then
     BAAS_BUCKET_NAME=baas-${PROJECT}
   fi
-  set -x
 
   # Pull in .lagoon.yml variables
   PRODUCTION_MONTHLY_BACKUP_RETENTION=$(cat .lagoon.yml | shyaml get-value backup-retention.production.monthly "")

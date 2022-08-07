@@ -16,7 +16,7 @@ else
     exit 1
 fi
 done
-set +x
+
 # Grab the details from the consumer spec
 DB_HOST=$(kubectl -n ${NAMESPACE} get mongodbconsumer/${SERVICE_NAME} -o yaml | shyaml get-value spec.consumer.services.primary)
 DB_USER=$(kubectl -n ${NAMESPACE} get mongodbconsumer/${SERVICE_NAME} -o yaml | shyaml get-value spec.consumer.username)
@@ -32,5 +32,3 @@ kubectl patch \
     -n ${NAMESPACE} \
     configmap lagoon-env \
     -p "{\"data\":{\"${SERVICE_NAME_UPPERCASE}_HOST\":\"${DB_HOST}\", \"${SERVICE_NAME_UPPERCASE}_USERNAME\":\"${DB_USER}\", \"${SERVICE_NAME_UPPERCASE}_PASSWORD\":\"${DB_PASSWORD}\", \"${SERVICE_NAME_UPPERCASE}_DATABASE\":\"${DB_NAME}\", \"${SERVICE_NAME_UPPERCASE}_PORT\":\"${DB_PORT}\", \"${SERVICE_NAME_UPPERCASE}_AUTHSOURCE\":\"${DB_AUTHSOURCE}\", \"${SERVICE_NAME_UPPERCASE}_AUTHMECHANISM\":\"${DB_AUTHMECHANISM}\", \"${SERVICE_NAME_UPPERCASE}_AUTHTLS\":\"${DB_AUTHTLS}\" }}"
-
-set -x

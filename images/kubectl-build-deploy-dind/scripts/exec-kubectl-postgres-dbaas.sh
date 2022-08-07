@@ -16,7 +16,7 @@ else
     exit 1
 fi
 done
-set +x
+
 # Grab the details from the consumer spec
 DB_HOST=$(kubectl -n ${NAMESPACE} get postgresqlconsumer/${SERVICE_NAME} -o yaml | shyaml get-value spec.consumer.services.primary)
 DB_USER=$(kubectl -n ${NAMESPACE} get postgresqlconsumer/${SERVICE_NAME} -o yaml | shyaml get-value spec.consumer.username)
@@ -39,5 +39,3 @@ if DB_READREPLICA_HOSTS=$(kubectl -n ${NAMESPACE} get postgresqlconsumer/${SERVI
         configmap lagoon-env \
         -p "{\"data\":{\"${SERVICE_NAME_UPPERCASE}_READREPLICA_HOSTS\":\"${DB_READREPLICA_HOSTS}\"}}"
 fi
-
-set -x

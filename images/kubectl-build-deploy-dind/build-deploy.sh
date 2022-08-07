@@ -3,6 +3,8 @@ set -x
 set -eo pipefail
 set -o noglob
 
+set +x # reduce noise in build logs
+
 # print out the build-deploy-tool version information
 echo "##############################################"
 build-deploy-tool version
@@ -14,13 +16,11 @@ NAMESPACE=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
 REGISTRY_REPOSITORY=$NAMESPACE
 LAGOON_VERSION=$(cat /lagoon/version)
 
-set +x # reduce noise in build logs
 if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
   INTERNAL_REGISTRY_URL=$(jq --argjson data "$LAGOON_PROJECT_VARIABLES" -n -r '$data | .[] | select(.scope == "internal_container_registry") | select(.name == "INTERNAL_REGISTRY_URL") | .value' | sed -e 's#^http://##' | sed -e 's#^https://##')
   INTERNAL_REGISTRY_USERNAME=$(jq --argjson data "$LAGOON_PROJECT_VARIABLES" -n -r '$data | .[] | select(.scope == "internal_container_registry") | select(.name == "INTERNAL_REGISTRY_USERNAME") | .value')
   INTERNAL_REGISTRY_PASSWORD=$(jq --argjson data "$LAGOON_PROJECT_VARIABLES" -n -r '$data | .[] | select(.scope == "internal_container_registry") | select(.name == "INTERNAL_REGISTRY_PASSWORD") | .value')
 fi
-set -x
 
 if [ "$CI" == "true" ]; then
   CI_OVERRIDE_IMAGE_REPO=172.17.0.1:5000/lagoon
@@ -56,7 +56,6 @@ PRIVATE_REGISTRY_URLS=()
 PRIVATE_DOCKER_HUB_REGISTRY=0
 PRIVATE_EXTERNAL_REGISTRY=0
 
-set +x # reduce noise in build logs
 DEPLOYER_TOKEN=$(cat /var/run/secrets/lagoon/deployer/token)
 
 kubectl config set-credentials lagoon/kubernetes.default.svc --token="${DEPLOYER_TOKEN}"
@@ -147,6 +146,6 @@ do
     fi
   fi
 done
-set -x
 
 .  /kubectl-build-deploy/build-deploy-docker-compose.sh
+set -x

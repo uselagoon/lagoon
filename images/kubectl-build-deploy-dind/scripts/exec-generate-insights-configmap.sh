@@ -7,7 +7,6 @@ SBOM_CONFIGMAP="lagoon-insights-sbom-${IMAGE_NAME}"
 IMAGE_INSPECT_CONFIGMAP="lagoon-insights-image-${IMAGE_NAME}"
 IMAGE_INSPECT_OUTPUT_FILE="${TMP_DIR}/${IMAGE_NAME}.image-inspect.json.gz"
 
-set +x
 echo "Running image inspect on: ${IMAGE_FULL}"
 
 skopeo inspect --retry-times 5 docker://${IMAGE_FULL} --tls-verify=false | gzip > ${IMAGE_INSPECT_OUTPUT_FILE}

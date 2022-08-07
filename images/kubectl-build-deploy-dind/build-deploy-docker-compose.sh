@@ -93,9 +93,7 @@ function projectEnvironmentVariableCheck() {
 	echo "$2"
 }
 
-set +x
 SCC_CHECK=$(kubectl -n ${NAMESPACE} get pod ${LAGOON_BUILD_NAME} -o json | jq -r '.metadata.annotations."openshift.io/scc" // false')
-set -x
 
 function patchBuildStep() {
   [ "$1" ] || return #total start time
@@ -122,7 +120,7 @@ function patchBuildStep() {
   # patch the buildpod with the buildstep
   if [ "${SCC_CHECK}" == false ]; then
     kubectl patch -n ${4} pod ${LAGOON_BUILD_NAME} \
-      -p "{\"metadata\":{\"labels\":{\"lagoon.sh/buildStep\":\"${5}\"}}}"
+      -p "{\"metadata\":{\"labels\":{\"lagoon.sh/buildStep\":\"${5}\"}}}" &> /dev/null
 
     # tiny sleep to allow patch to complete before logs roll again
     sleep 0.5s
@@ -133,16 +131,12 @@ function patchBuildStep() {
 ### PREPARATION
 ##############################################
 
-set +x
 buildStartTime="$(date +"%Y-%m-%d %H:%M:%S")"
 echo "STEP: Preparation started ${buildStartTime}"
-set -x
 
 ##############################################
 ### PUSH the latest .lagoon.yml into lagoon-yaml configmap as a pre-deploy field
 ##############################################
-
-set +x
 
 # Load path of docker-compose that should be used
 DOCKER_COMPOSE_YAML=($(cat .lagoon.yml | shyaml get-value docker-compose-yaml))
@@ -181,7 +175,7 @@ if kubectl -n ${NAMESPACE} get configmap docker-compose-yaml &> /dev/null; then
   # create it
   kubectl -n ${NAMESPACE} create configmap docker-compose-yaml --from-file=pre-deploy=${DOCKER_COMPOSE_YAML}
 fi
-set +ex
+set +e
 ##############################################
 ### RUN docker compose config check against the provided docker-compose file
 ### use the `build-validate` built in validater to run over the provided docker-compose file
@@ -194,19 +188,17 @@ if [ "${dccExit}" != "0" ]; then
   currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
   patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "dockerComposeValidationError" "Docker Compose Validation Error"
   previousStepEnd=${currentStepEnd}
-  echo "
-##############################################
+  echo "##############################################
 Warning!
 There are issues with your docker compose file that lagoon uses that should be fixed.
 You can run docker compose config locally to check that your docker-compose file is valid.
 ##############################################
 "
   echo ${dccOutput}
-  echo "
-##############################################"
+  echo "##############################################"
   exit 1
 fi
-set -ex
+set -e
 
 # validate .lagoon.yml
 if ! lagoon-linter; then
@@ -217,20 +209,14 @@ else
 	echo "lagoon-linter found no issues with the .lagoon.yml file"
 fi
 
-set +x
 currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
 patchBuildStep "${buildStartTime}" "${buildStartTime}" "${currentStepEnd}" "${NAMESPACE}" "initialSetup" "Initial Environment Setup"
 previousStepEnd=${currentStepEnd}
-set -x
 
 DEPLOY_TYPE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.deploy-type default)
 
 # Load all Services that are defined
 COMPOSE_SERVICES=($(cat $DOCKER_COMPOSE_YAML | shyaml keys services))
-
-# Default shared mariadb service broker
-MARIADB_SHARED_DEFAULT_CLASS="lagoon-dbaas-mariadb-apb"
-MONGODB_SHARED_DEFAULT_CLASS="lagoon-maas-mongodb-apb"
 
 # Figure out which services should we handle
 SERVICE_TYPES=()
@@ -247,15 +233,12 @@ declare -A IMAGES_PULL
 declare -A IMAGES_BUILD
 declare -A IMAGE_HASHES
 
-set +x
 HELM_ARGUMENTS=()
 . /kubectl-build-deploy/scripts/kubectl-get-cluster-capabilities.sh
 for CAPABILITIES in "${CAPABILITIES[@]}"; do
   HELM_ARGUMENTS+=(-a "${CAPABILITIES}")
 done
-set -x
 
-set +x # reduce noise in build logs
 # Allow the servicetype be overridden by the lagoon API
 # This accepts colon separated values like so `SERVICE_NAME:SERVICE_TYPE_OVERRIDE`, and multiple overrides
 # separated by commas
@@ -284,7 +267,9 @@ if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
     LAGOON_DBAAS_ENVIRONMENT_TYPES=$TEMP_LAGOON_DBAAS_ENVIRONMENT_TYPES
   fi
 fi
-set -x
+
+echo "##############################################"
+echo "STEP Configure service variables"
 
 for COMPOSE_SERVICE in "${COMPOSE_SERVICES[@]}"
 do
@@ -292,15 +277,19 @@ do
   SERVICE_NAME=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.name default)
   if [ "$SERVICE_NAME" == "default" ]; then
     SERVICE_NAME=$COMPOSE_SERVICE
+    echo "${COMPOSE_SERVICE} => Setting service name to docker compose service name: ${COMPOSE_SERVICE}"
+  else
+    echo "${COMPOSE_SERVICE} => Setting service name to one from .lagoon.yml: ${SERVICE_NAME}"
   fi
 
   # Load the servicetype. If it's "none" we will not care about this service at all
   SERVICE_TYPE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.type custom)
-
+  echo "${COMPOSE_SERVICE} => Setting service type to one from .lagoon.yml: ${SERVICE_TYPE}"
   # Allow the servicetype to be overriden by environment in .lagoon.yml
   ENVIRONMENT_SERVICE_TYPE_OVERRIDE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.types.$SERVICE_NAME false)
   if [ ! $ENVIRONMENT_SERVICE_TYPE_OVERRIDE == "false" ]; then
     SERVICE_TYPE=$ENVIRONMENT_SERVICE_TYPE_OVERRIDE
+    echo "${COMPOSE_SERVICE} => Setting service type to override from .lagoon.yml: ${SERVICE_TYPE}"
   fi
 
   if [ ! -z "$LAGOON_SERVICE_TYPES" ]; then
@@ -310,6 +299,7 @@ do
       IFS=':' read -ra LAGOON_SERVICE_TYPE_SPLIT <<< "$LAGOON_SERVICE_TYPE"
       if [ "${LAGOON_SERVICE_TYPE_SPLIT[0]}" == "$SERVICE_NAME" ]; then
         SERVICE_TYPE=${LAGOON_SERVICE_TYPE_SPLIT[1]}
+        echo "${COMPOSE_SERVICE} => Setting service type to one from LAGOON_SERVICE_TYPES variable: ${SERVICE_TYPE}"
       fi
     done
   fi
@@ -362,6 +352,7 @@ do
   # Previous versions of Lagoon used "python-ckandatapusher", this should be mapped to "python"
   if [[ "$SERVICE_TYPE" == "python-ckandatapusher" ]]; then
     SERVICE_TYPE="python"
+    echo "${COMPOSE_SERVICE} => python-ckandatapusher template no longer exists, using standard template: ${SERVICE_TYPE}"
   fi
 
   # "mariadb" is a meta service, which allows lagoon to decide itself which of the services to use:
@@ -372,20 +363,25 @@ do
     # mariadb-single deployed (probably from the past where there was no mariadb-shared yet, or mariadb-dbaas) and use that one
     if kubectl -n ${NAMESPACE} get service "$SERVICE_NAME" &> /dev/null; then
       SERVICE_TYPE="mariadb-single"
+      echo "${COMPOSE_SERVICE} => Existing mariadb-single service detected, changing service type: ${SERVICE_TYPE}"
     elif checkDBaaSHealth; then
       # check if the dbaas operator responds to a health check
       # if it does, then check if the dbaas operator has a provider matching the provider type that is expected
       if checkDBaaSProvider mariadb $(getDBaaSEnvironment mariadb-dbaas); then
         SERVICE_TYPE="mariadb-dbaas"
+        echo "${COMPOSE_SERVICE} => Cluster supports DBaaS, using service type: ${SERVICE_TYPE}"
       else
         SERVICE_TYPE="mariadb-single"
+        echo "${COMPOSE_SERVICE} => Cluster does not support DBaaS, using service type: ${SERVICE_TYPE}"
       fi
     elif [[ "${CAPABILITIES[@]}" =~ "mariadb.amazee.io/v1/MariaDBConsumer" ]] && ! checkDBaaSHealth ; then
       # check if this cluster supports the default one, if not we assume that this cluster is not capable of shared mariadbs and we use a mariadb-single
       # real basic check to see if the mariadbconsumer exists as a kind
       SERVICE_TYPE="mariadb-dbaas"
+      echo "${COMPOSE_SERVICE} => Cluster supports DBaaS, using service type: ${SERVICE_TYPE}"
     else
       SERVICE_TYPE="mariadb-single"
+      echo "${COMPOSE_SERVICE} => Cluster does not support DBaaS, using service type: ${SERVICE_TYPE}"
     fi
 
   fi
@@ -393,11 +389,13 @@ do
   # Previous versions of Lagoon supported "mariadb-shared", this has been superseeded by "mariadb-dbaas"
   if [[ "$SERVICE_TYPE" == "mariadb-shared" ]]; then
     SERVICE_TYPE="mariadb-dbaas"
+    echo "${COMPOSE_SERVICE} => mariadb-shared no longer exists, using: ${SERVICE_TYPE}"
   fi
 
   if [[ "$SERVICE_TYPE" == "mariadb-dbaas" ]]; then
     # Default plan is the enviroment type
     DBAAS_ENVIRONMENT=$(getDBaaSEnvironment mariadb-dbaas)
+    echo "${COMPOSE_SERVICE} => Setting DBaaS environment to: ${DBAAS_ENVIRONMENT}"
 
     MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]="${DBAAS_ENVIRONMENT}"
   fi
@@ -410,20 +408,25 @@ do
     # postgres-single deployed (probably from the past where there was no postgres-shared yet, or postgres-dbaas) and use that one
     if kubectl -n ${NAMESPACE} get service "$SERVICE_NAME" &> /dev/null; then
       SERVICE_TYPE="postgres-single"
+      echo "${COMPOSE_SERVICE} => Existing postgres-single service detected, changing service type: ${SERVICE_TYPE}"
     elif checkDBaaSHealth; then
       # check if the dbaas operator responds to a health check
       # if it does, then check if the dbaas operator has a provider matching the provider type that is expected
       if checkDBaaSProvider postgres $(getDBaaSEnvironment postgres-dbaas); then
         SERVICE_TYPE="postgres-dbaas"
+        echo "${COMPOSE_SERVICE} => Cluster supports DBaaS, using service type: ${SERVICE_TYPE}"
       else
         SERVICE_TYPE="postgres-single"
+        echo "${COMPOSE_SERVICE} => Cluster does not support DBaaS, using service type: ${SERVICE_TYPE}"
       fi
     # heck if this cluster supports the default one, if not we assume that this cluster is not capable of shared PostgreSQL and we use a postgres-single
     # real basic check to see if the postgreSQLConsumer exists as a kind
     elif [[ "${CAPABILITIES[@]}" =~ "postgres.amazee.io/v1/PostgreSQLConsumer" ]] && ! checkDBaaSHealth; then
       SERVICE_TYPE="postgres-dbaas"
+      echo "${COMPOSE_SERVICE} => Cluster supports DBaaS, using service type: ${SERVICE_TYPE}"
     else
       SERVICE_TYPE="postgres-single"
+      echo "${COMPOSE_SERVICE} => Cluster does not support DBaaS, using service type: ${SERVICE_TYPE}"
     fi
 
   fi
@@ -431,11 +434,13 @@ do
   # Previous versions of Lagoon supported "postgres-shared", this has been superseeded by "postgres-dbaas"
   if [[ "$SERVICE_TYPE" == "postgres-shared" ]]; then
     SERVICE_TYPE="postgres-dbaas"
+    echo "${COMPOSE_SERVICE} => postgres-shared no longer exists, using: ${SERVICE_TYPE}"
   fi
 
   if [[ "$SERVICE_TYPE" == "postgres-dbaas" ]]; then
     # Default plan is the enviroment type
     DBAAS_ENVIRONMENT=$(getDBaaSEnvironment postgres-dbaas)
+    echo "${COMPOSE_SERVICE} => Setting DBaaS environment to: ${DBAAS_ENVIRONMENT}"
 
     MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]="${DBAAS_ENVIRONMENT}"
   fi
@@ -448,20 +453,25 @@ do
     # mongodb-single deployed (probably from the past where there was no mongodb-shared yet, or mongodb-dbaas) and use that one
     if kubectl -n ${NAMESPACE} get service "$SERVICE_NAME" &> /dev/null; then
       SERVICE_TYPE="mongodb-single"
+      echo "${COMPOSE_SERVICE} => Existing mongodb-single service detected, changing service type: ${SERVICE_TYPE}"
     elif checkDBaaSHealth; then
       # check if the dbaas operator responds to a health check
       # if it does, then check if the dbaas operator has a provider matching the provider type that is expected
       if checkDBaaSProvider mongodb $(getDBaaSEnvironment mongodb-dbaas); then
         SERVICE_TYPE="mongodb-dbaas"
+        echo "${COMPOSE_SERVICE} => Cluster supports DBaaS, using service type: ${SERVICE_TYPE}"
       else
         SERVICE_TYPE="mongodb-single"
+        echo "${COMPOSE_SERVICE} => Cluster does not support DBaaS, using service type: ${SERVICE_TYPE}"
       fi
     # heck if this cluster supports the default one, if not we assume that this cluster is not capable of shared MongoDB and we use a mongodb-single
     # real basic check to see if the MongoDBConsumer exists as a kind
     elif [[ "${CAPABILITIES[@]}" =~ "mongodb.amazee.io/v1/MongoDBConsumer" ]] && ! checkDBaaSHealth; then
       SERVICE_TYPE="mongodb-dbaas"
+      echo "${COMPOSE_SERVICE} => Cluster supports DBaaS, using service type: ${SERVICE_TYPE}"
     else
       SERVICE_TYPE="mongodb-single"
+      echo "${COMPOSE_SERVICE} => Cluster does not support DBaaS, using service type: ${SERVICE_TYPE}"
     fi
 
   fi
@@ -469,15 +479,18 @@ do
   # Previous versions of Lagoon supported "mongo-shared", this has been superseeded by "mongodb-dbaas"
   if [[ "$SERVICE_TYPE" == "mongo-shared" ]]; then
     SERVICE_TYPE="mongodb-dbaas"
+    echo "${COMPOSE_SERVICE} => mongo-shared no longer exists, using: ${SERVICE_TYPE}"
   fi
 
   if [[ "$SERVICE_TYPE" == "mongodb-dbaas" ]]; then
     DBAAS_ENVIRONMENT=$(getDBaaSEnvironment mongodb-dbaas)
+    echo "${COMPOSE_SERVICE} => Setting DBaaS environment to: ${DBAAS_ENVIRONMENT}"
 
     MAP_SERVICE_NAME_TO_DBAAS_ENVIRONMENT["${SERVICE_NAME}"]="${DBAAS_ENVIRONMENT}"
   fi
 
   if [ "$SERVICE_TYPE" == "none" ]; then
+    echo "${COMPOSE_SERVICE} => Service is not configured for use in Lagoon"
     continue
   fi
 
@@ -524,11 +537,9 @@ do
 
 done
 
-set +x
 currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
 patchBuildStep "${buildStartTime}" "${buildStartTime}" "${currentStepEnd}" "${NAMESPACE}" "configureVars" "Configured Variables"
 previousStepEnd=${currentStepEnd}
-set -x
 
 ##############################################
 ### CACHE IMAGE LIST GENERATION
@@ -537,18 +548,14 @@ set -x
 LAGOON_CACHE_BUILD_ARGS=()
 readarray LAGOON_CACHE_BUILD_ARGS < <(kubectl -n ${NAMESPACE} get deployments -o yaml -l 'lagoon.sh/service' | yq e '.items[].spec.template.spec.containers[].image | capture("^(?P<image>.+\/.+\/.+\/(?P<name>.+)\@.*)$") | "LAGOON_CACHE_" + .name + "=" + .image' -)
 
-
-
-##############################################
-### BUILD IMAGES
-##############################################
+echo "##############################################"
+echo "STEP Build images"
 
 # we only need to build images for pullrequests and branches
 if [[ "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ]]; then
 
   BUILD_ARGS=()
 
-  set +x # reduce noise in build logs
   # Get the pre-rollout and post-rollout vars
     if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
       LAGOON_PREROLLOUT_DISABLED=($(echo $LAGOON_PROJECT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_PREROLLOUT_DISABLED") | "\(.value)"'))
@@ -558,9 +565,6 @@ if [[ "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ]]; then
       LAGOON_PREROLLOUT_DISABLED=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_PREROLLOUT_DISABLED") | "\(.value)"'))
       LAGOON_POSTROLLOUT_DISABLED=($(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.name == "LAGOON_POSTROLLOUT_DISABLED") | "\(.value)"'))
     fi
-  set -x
-
-  set +x # reduce noise in build logs
   # Add environment variables from lagoon API as build args
   if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
     echo "LAGOON_PROJECT_VARIABLES are available from the API"
@@ -582,7 +586,6 @@ if [[ "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ]]; then
       BUILD_ARGS+=(--build-arg $(echo $LAGOON_ENV_VAR)="$(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r '.[] | select(.scope == "build" or .scope == "global") | select(.name == "'$LAGOON_ENV_VAR'") | "\(.value)"')")
     done
   fi
-  set -x
 
   BUILD_ARGS+=(--build-arg IMAGE_REPO="${CI_OVERRIDE_IMAGE_REPO}")
   BUILD_ARGS+=(--build-arg LAGOON_PROJECT="${PROJECT}")
@@ -598,9 +601,7 @@ if [[ "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ]]; then
         BUILD_ARGS+=(--build-arg $value)
   done
 
-  set +x
   BUILD_ARGS+=(--build-arg LAGOON_SSH_PRIVATE_KEY="${SSH_PRIVATE_KEY}")
-  set -x
 
   if [ "$BUILD_TYPE" == "branch" ]; then
     BUILD_ARGS+=(--build-arg LAGOON_GIT_SHA="${LAGOON_GIT_SHA}")
@@ -680,8 +681,10 @@ if [[ "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ]]; then
       if [ ! -f $BUILD_CONTEXT/$DOCKERFILE ]; then
         echo "defined Dockerfile $DOCKERFILE for service $IMAGE_NAME not found"; exit 1;
       fi
-
+      echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+      echo "${IMAGE_NAME} => building image"
       . /kubectl-build-deploy/scripts/exec-build.sh
+      echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
 
       # Keep a list of the images we have built, as we need to push them to the OpenShift Registry later
       IMAGES_BUILD["${IMAGE_NAME}"]="${TEMPORARY_IMAGE_NAME}"
@@ -691,10 +694,8 @@ if [[ "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ]]; then
     fi
 
   done
-
 fi
 
-set +x
 # print information about built image sizes
 function printBytes {
     local -i bytes=$1;
@@ -710,17 +711,13 @@ do
   TEMPORARY_IMAGE_NAME="${IMAGES_BUILD[${IMAGE_NAME}]}"
   echo -e "Image ${TEMPORARY_IMAGE_NAME}\t\t$(printBytes $(docker inspect ${TEMPORARY_IMAGE_NAME} | jq -r '.[0].Size'))"
 done
-set -x
 
-set +x
 currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
 patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "imageBuildComplete" "Image Builds"
 previousStepEnd=${currentStepEnd}
-set -x
 
-##############################################
-### RUN PRE-ROLLOUT tasks defined in .lagoon.yml
-##############################################
+echo "##############################################"
+echo "STEP Run PRE-ROLLOUT tasks defined in .lagoon.yml"
 
 if [ "${LAGOON_PREROLLOUT_DISABLED}" != "true" ]; then
     build-deploy-tool tasks pre-rollout
@@ -728,16 +725,12 @@ else
   echo "pre-rollout tasks are currently disabled LAGOON_PREROLLOUT_DISABLED is set to true"
 fi
 
-set +x
 currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
 patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "preRolloutsCompleted" "Pre-Rollout Tasks"
 previousStepEnd=${currentStepEnd}
-set -x
 
-
-##############################################
-### CONFIGURE SERVICES, AUTOGENERATED ROUTES AND DBAAS CONFIG
-##############################################
+echo "##############################################"
+echo "STEP Configure services, autogenerated routes, and DBaaS configuration"
 
 YAML_FOLDER="/kubectl-build-deploy/lagoon/services-routes"
 mkdir -p $YAML_FOLDER
@@ -762,7 +755,6 @@ yq3 write -i -- /kubectl-build-deploy/values.yaml 'kubernetes' $KUBERNETES
 yq3 write -i -- /kubectl-build-deploy/values.yaml 'lagoonVersion' $LAGOON_VERSION
 # check for ROOTLESS_WORKLOAD feature flag, disabled by default
 
-set +x
 if [ "$(featureFlag ROOTLESS_WORKLOAD)" = enabled ]; then
 	yq3 merge -ix -- /kubectl-build-deploy/values.yaml /kubectl-build-deploy/rootless.values.yaml
 fi
@@ -774,7 +766,6 @@ if [ "${SCC_CHECK}" != "false" ]; then
   echo "Setting openshift fsGroup to ${OPENSHIFT_SUPPLEMENTAL_GROUP}"
   yq3 write -i -- /kubectl-build-deploy/values.yaml 'podSecurityContext.fsGroup' $OPENSHIFT_SUPPLEMENTAL_GROUP
 fi
-set -x
 
 
 echo -e "\
@@ -825,11 +816,9 @@ LAGOON_PR_NUMBER=${PR_NUMBER}\n\
 " >> /kubectl-build-deploy/values.env
 fi
 
-set +x
 currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
 patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "serviceConfigurationComplete" "Service Configuration Phase 1"
 previousStepEnd=${currentStepEnd}
-set -x
 
 ##############################################
 ### CUSTOM FASTLY API SECRETS .lagoon.yml
@@ -856,7 +845,6 @@ FASTLY_API_SECRET_PREFIX="fastly-api-"
 
 FASTLY_API_SECRETS_COUNTER=0
 FASTLY_API_SECRETS=()
-set +x # reduce noise in build logs
 if [ -n "$(cat .lagoon.yml | shyaml keys fastly.api-secrets.$FASTLY_API_SECRETS_COUNTER 2> /dev/null)" ]; then
   while [ -n "$(cat .lagoon.yml | shyaml get-value fastly.api-secrets.$FASTLY_API_SECRETS_COUNTER 2> /dev/null)" ]; do
     FASTLY_API_SECRET_NAME=$FASTLY_API_SECRET_PREFIX$(cat .lagoon.yml | shyaml get-value fastly.api-secrets.$FASTLY_API_SECRETS_COUNTER.name 2> /dev/null)
@@ -898,9 +886,7 @@ if [ -n "$(cat .lagoon.yml | shyaml keys fastly.api-secrets.$FASTLY_API_SECRETS_
     let FASTLY_API_SECRETS_COUNTER=FASTLY_API_SECRETS_COUNTER+1
   done
 fi
-set -x
 
-set +x # reduce noise in build logs
 # FASTLY API SECRETS FROM LAGOON API VARIABLE
 # Allow for defining fastly api secrets using lagoon api variables
 # This accepts colon separated values like so `SECRET_NAME:FASTLY_API_TOKEN:FASTLY_PLATFORMTLS_CONFIGURATION_ID`, and multiple overrides
@@ -936,9 +922,7 @@ if [ ! -z "$LAGOON_FASTLY_API_SECRETS" ]; then
     . /kubectl-build-deploy/scripts/exec-fastly-api-secrets.sh
   done
 fi
-set -x
 
-set +x # reduce noise in build logs
 # FASTLY SERVICE ID PER INGRESS OVERRIDE FROM LAGOON API VARIABLE
 # Allow the fastly serviceid for specific ingress to be overridden by the lagoon API
 # This accepts colon separated values like so `INGRESS_DOMAIN:FASTLY_SERVICE_ID:WATCH_STATUS:SECRET_NAME(OPTIONAL)`, and multiple overrides
@@ -959,17 +943,14 @@ if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
     LAGOON_FASTLY_SERVICE_IDS=$TEMP_LAGOON_FASTLY_SERVICE_IDS
   fi
 fi
-set -x
 
-##############################################
-### CREATE SERVICES, AUTOGENERATED ROUTES AND DBAAS CONFIG
-##############################################
+echo "##############################################"
+echo "STEP Create services, autogenerated routes, and DBaaS configuration templates"
 
 build-deploy-tool template autogenerated-ingress
 
 for SERVICE_TYPES_ENTRY in "${SERVICE_TYPES[@]}"
 do
-  echo "=== BEGIN route processing for service ${SERVICE_TYPES_ENTRY} ==="
   IFS=':' read -ra SERVICE_TYPES_ENTRY_SPLIT <<< "$SERVICE_TYPES_ENTRY"
 
   TEMPLATE_PARAMETERS=()
@@ -981,7 +962,7 @@ do
 
   HELM_SERVICE_TEMPLATE="templates/service.yaml"
   if [ -f /kubectl-build-deploy/helmcharts/${SERVICE_TYPE}/$HELM_SERVICE_TEMPLATE ]; then
-    cat /kubectl-build-deploy/values.yaml
+    # cat /kubectl-build-deploy/values.yaml
     helm template ${SERVICE_NAME} /kubectl-build-deploy/helmcharts/${SERVICE_TYPE} -s $HELM_SERVICE_TEMPLATE -f /kubectl-build-deploy/values.yaml "${HELM_ARGUMENTS[@]}" > $YAML_FOLDER/service-${SERVICE_NAME}.yaml
   fi
 
@@ -995,51 +976,44 @@ do
   fi
 done
 
-set +x
 currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
 patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "serviceConfiguration2Complete" "Service Configuration Phase 2"
 previousStepEnd=${currentStepEnd}
-set -x
 
 TEMPLATE_PARAMETERS=()
 
-##############################################
-### CUSTOM ROUTES
-##############################################
+echo "##############################################"
+echo "STEP Generate any custom route/ingress"
 
 # Run the route generation process
 build-deploy-tool template ingress
 
-set +x
 currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
 patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "routeConfigurationComplete" "Route/Ingress Configuration"
 previousStepEnd=${currentStepEnd}
-set -x
 
 
 # Run the backup generation script
 . /kubectl-build-deploy/scripts/exec-backup-generation.sh
 
 # check for ISOLATION_NETWORK_POLICY feature flag, disabled by default
-set +x
 if [ "$(featureFlag ISOLATION_NETWORK_POLICY)" = enabled ]; then
 	# add namespace isolation network policy to deployment
 	helm template isolation-network-policy /kubectl-build-deploy/helmcharts/isolation-network-policy \
 		-f /kubectl-build-deploy/values.yaml \
 		> $YAML_FOLDER/isolation-network-policy.yaml
 fi
-set -x
 
 if [ "$(ls -A $YAML_FOLDER/)" ]; then
-  find $YAML_FOLDER -type f -exec cat {} \;
+  if [ "$(featureFlag BUILD_VERBOSITY)" = enabled ]; then
+    find $YAML_FOLDER -type f -exec cat {} \;
+  fi
   kubectl apply -n ${NAMESPACE} -f $YAML_FOLDER/
 fi
 
-set +x
 currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
 patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "backupConfigurationComplete" "Backup Configuration"
 previousStepEnd=${currentStepEnd}
-set -x
 
 ##############################################
 ### PROJECT WIDE ENV VARIABLES
@@ -1082,7 +1056,6 @@ LAGOON_AUTOGENERATED_ROUTES=${AUTOGENERATED_ROUTES}\n\
 # Generate a Config Map with project wide env variables
 kubectl -n ${NAMESPACE} create configmap lagoon-env -o yaml --dry-run=client --from-env-file=/kubectl-build-deploy/values.env | kubectl apply -n ${NAMESPACE} -f -
 
-set +x # reduce noise in build logs
 # Add environment variables from lagoon API
 if [ ! -z "$LAGOON_PROJECT_VARIABLES" ]; then
   HAS_PROJECT_RUNTIME_VARS=$(echo $LAGOON_PROJECT_VARIABLES | jq -r 'map( select(.scope == "runtime" or .scope == "global") )')
@@ -1104,7 +1077,6 @@ if [ ! -z "$LAGOON_ENVIRONMENT_VARIABLES" ]; then
       -p "{\"data\":$(echo $LAGOON_ENVIRONMENT_VARIABLES | jq -r 'map( select(.scope == "runtime" or .scope == "global") ) | map( { (.name) : .value } ) | add | tostring')}"
   fi
 fi
-set -x
 
 if [ "$BUILD_TYPE" == "pullrequest" ]; then
   kubectl patch \
@@ -1152,17 +1124,16 @@ CONFIG_MAP_SHA=$(kubectl -n ${NAMESPACE} get configmap lagoon-env -o yaml | shya
 # which will cause a change in the deployment and trigger a rollout if only the configmap has changed
 yq3 write -i -- /kubectl-build-deploy/values.yaml 'configMapSha' $CONFIG_MAP_SHA
 
-##############################################
-### PUSH IMAGES TO OPENSHIFT REGISTRY
-##############################################
+echo "##############################################"
+echo "STEP Push images to registry"
 
 if [ "$BUILD_TYPE" == "pullrequest" ] || [ "$BUILD_TYPE" == "branch" ]; then
-
   # All images that should be pulled are copied to the harbor registry
   for IMAGE_NAME in "${!IMAGES_PULL[@]}"
   do
     PULL_IMAGE="${IMAGES_PULL[${IMAGE_NAME}]}"
 
+    echo "${IMAGE_NAME}: => Pushing image to ${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG:-latest}"
     # Try to handle private registries first
     if [ $PRIVATE_REGISTRY_COUNTER -gt 0 ]; then
       if [ $PRIVATE_EXTERNAL_REGISTRY ]; then
@@ -1196,7 +1167,6 @@ if [ "$BUILD_TYPE" == "pullrequest" ] || [ "$BUILD_TYPE" == "branch" ]; then
         skopeo copy --retry-times 5 --dest-tls-verify=false docker://${PULL_IMAGE} docker://${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG:-latest}
       fi
     # If no private registries, use the imagecache
-    else
       skopeo copy --retry-times 5 --dest-tls-verify=false docker://${IMAGECACHE_REGISTRY}/${PULL_IMAGE} docker://${REGISTRY}/${PROJECT}/${ENVIRONMENT}/${IMAGE_NAME}:${IMAGE_TAG:-latest}
     fi
 
@@ -1234,15 +1204,13 @@ elif [ "$BUILD_TYPE" == "promote" ]; then
 
 fi
 
-set +x
 currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
 patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "imagePushComplete" "Image Push to Registry"
 previousStepEnd=${currentStepEnd}
-set -x
 
-##############################################
-### CREATE PVC, DEPLOYMENTS AND CRONJOBS
-##############################################
+
+echo "##############################################"
+echo "STEP Create PVC, deployments, and cronjobs"
 
 YAML_FOLDER="/kubectl-build-deploy/lagoon/deploymentconfigs-pvcs-cronjobs-backups"
 mkdir -p $YAML_FOLDER
@@ -1253,9 +1221,11 @@ do
 
   SERVICE_NAME=${SERVICE_TYPES_ENTRY_SPLIT[0]}
   SERVICE_TYPE=${SERVICE_TYPES_ENTRY_SPLIT[1]}
+  echo "${SERVICE_NAME}: => Type: ${SERVICE_TYPE}"
 
   SERVICE_NAME_IMAGE="${MAP_SERVICE_NAME_TO_IMAGENAME[${SERVICE_NAME}]}"
   SERVICE_NAME_IMAGE_HASH="${IMAGE_HASHES[${SERVICE_NAME_IMAGE}]}"
+  echo "${SERVICE_NAME}: => Image: ${SERVICE_NAME_IMAGE_HASH}"
 
   SERVICE_NAME_UPPERCASE=$(echo "$SERVICE_NAME" | tr '[:lower:]' '[:upper:]')
 
@@ -1272,17 +1242,21 @@ do
   PERSISTENT_STORAGE_SIZE=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.persistent\\.size false)
   if [ ! $PERSISTENT_STORAGE_SIZE == "false" ]; then
     HELM_SET_VALUES+=(--set "persistentStorage.size=${PERSISTENT_STORAGE_SIZE}")
+    echo "${SERVICE_NAME}: => Persistent storage size: ${PERSISTENT_STORAGE_SIZE}"
   fi
 
   PERSISTENT_STORAGE_PATH=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.persistent false)
   if [ ! $PERSISTENT_STORAGE_PATH == "false" ]; then
     HELM_SET_VALUES+=(--set "persistentStorage.path=${PERSISTENT_STORAGE_PATH}")
+    echo "${SERVICE_NAME}: => Persistent storage path: ${PERSISTENT_STORAGE_PATH}"
 
     PERSISTENT_STORAGE_NAME=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.persistent\\.name false)
     if [ ! $PERSISTENT_STORAGE_NAME == "false" ]; then
       HELM_SET_VALUES+=(--set "persistentStorage.name=${PERSISTENT_STORAGE_NAME}")
+      echo "${SERVICE_NAME}: => Persistent storage name: ${PERSISTENT_STORAGE_NAME}"
     else
       HELM_SET_VALUES+=(--set "persistentStorage.name=${SERVICE_NAME}")
+      echo "${SERVICE_NAME}: => Persistent storage name: ${SERVICE_NAME}"
     fi
   fi
 
@@ -1298,6 +1272,7 @@ do
         echo "Provided service port is not a number"; exit 1;
       fi
       HELM_SET_VALUES+=(--set "service.port=${SERVICE_PORT_NUMBER}")
+      echo "${SERVICE_NAME}: => Service port: ${SERVICE_PORT_NUMBER}"
     fi
   fi
 
@@ -1318,16 +1293,20 @@ do
     if [ $CRONJOB_SERVICE == $SERVICE_NAME ]; then
 
       CRONJOB_NAME=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.name | sed "s/[^[:alnum:]-]/-/g" | sed "s/^-//g")
+      echo "${SERVICE_NAME}: => Cronjob: ${CRONJOB_NAME}"
 
       CRONJOB_SCHEDULE_RAW=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.schedule)
 
       # Convert the Cronjob Schedule for additional features and better spread
       CRONJOB_SCHEDULE=$( /kubectl-build-deploy/scripts/convert-crontab.sh "${NAMESPACE}" "$CRONJOB_SCHEDULE_RAW")
+      echo "${SERVICE_NAME}: => Cronjob: ${CRONJOB_NAME} schedule: ${CRONJOB_SCHEDULE}"
       CRONJOB_COMMAND=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.cronjobs.$CRONJOB_COUNTER.command)
+      echo "${SERVICE_NAME}: => Cronjob: ${CRONJOB_NAME} command: ${CRONJOB_COMMAND}"
 
       if cronScheduleMoreOftenThan30Minutes "$CRONJOB_SCHEDULE_RAW" ; then
         # If this cronjob is more often than 30 minutes, we run the cronjob inside the pod itself
         CRONJOBS_ARRAY_INSIDE_POD+=("${CRONJOB_SCHEDULE} ${CRONJOB_COMMAND}")
+        echo "${SERVICE_NAME}: => Cronjob: ${CRONJOB_NAME} created to run inside pod"
       else
         # This cronjob runs less ofen than every 30 minutes, we create a kubernetes native cronjob for it.
 
@@ -1341,6 +1320,7 @@ do
 
         yq3 write -i -- /kubectl-build-deploy/${SERVICE_NAME}-values.yaml "nativeCronjobs.${CRONJOB_NAME,,}.schedule" "$CRONJOB_SCHEDULE"
         yq3 write -i -- /kubectl-build-deploy/${SERVICE_NAME}-values.yaml "nativeCronjobs.${CRONJOB_NAME,,}.command" "$CRONJOB_COMMAND"
+        echo "${SERVICE_NAME}: => Cronjob ${CRONJOB_NAME} created to run as native kubernetes cronjob"
 
         # fi
       fi
@@ -1361,17 +1341,13 @@ do
 
 done
 
-set +x
 currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
 patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "deploymentTemplatingComplete" "Deployment Templating"
 previousStepEnd=${currentStepEnd}
-set -x
 
-##############################################
-### APPLY RESOURCES
-##############################################
+echo "##############################################"
+echo "STEP Apply resources to Kubernetes"
 
-set +x
 if [ "$(ls -A $YAML_FOLDER/)" ]; then
   if [ "$CI" == "true" ]; then
     # During CI tests of Lagoon itself we only have a single compute node, so we change podAntiAffinity to podAffinity
@@ -1384,14 +1360,14 @@ if [ "$(ls -A $YAML_FOLDER/)" ]; then
     find $YAML_FOLDER -type f  -print0 | xargs -0 sed -i s/ReadWriteMany/ReadWriteOnce/g
   fi
 
-  find $YAML_FOLDER -type f -exec cat {} \;
+  if [ "$(featureFlag BUILD_VERBOSITY)" = enabled ]; then
+    find $YAML_FOLDER -type f -exec cat {} \;
+  fi
   kubectl apply -n ${NAMESPACE} -f $YAML_FOLDER/
 fi
-set -x
 
-##############################################
-### WAIT FOR POST-ROLLOUT TO BE FINISHED
-##############################################
+echo "##############################################"
+echo "STEP Wait for service rollouts to complete"
 
 for SERVICE_TYPES_ENTRY in "${SERVICE_TYPES[@]}"
 do
@@ -1422,19 +1398,17 @@ do
     echo "nothing to monitor for $SERVICE_TYPE"
 
   elif [ ! $SERVICE_ROLLOUT_TYPE == "false" ]; then
+    echo "${SERVICE_NAME}: => Checking service rollout"
     . /kubectl-build-deploy/scripts/exec-monitor-deploy.sh
   fi
 done
 
-set +x
 currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
 patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "deploymentApplyComplete" "Applying Deployments"
 previousStepEnd=${currentStepEnd}
-set -x
 
-##############################################
-### CLEANUP NATIVE CRONJOBS which have been removed from .lagoon.yml or modified to run more frequently than every 15 minutes
-##############################################
+echo "##############################################"
+echo "STEP Clenup native cronjobs which have been removed from .lagoon.yml or modified to run more frequently than every 15 minutes"
 
 CURRENT_CRONJOBS=$(kubectl -n ${NAMESPACE} get cronjobs --no-headers | cut -d " " -f 1 | xargs)
 
@@ -1449,19 +1423,17 @@ do
     continue
   else
     #echo "Single cron missing: ${SINGLE_NATIVE_CRONJOB}"
+    echo "${SERVICE_NAME}: => Deleting native kubernetes cronjob: ${SINGLE_NATIVE_CRONJOB}"
     kubectl -n ${NAMESPACE} delete cronjob ${SINGLE_NATIVE_CRONJOB}
   fi
 done
 
-set +x
 currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
 patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "cronjobCleanupComplete" "Cronjob Cleanup"
 previousStepEnd=${currentStepEnd}
-set -x
 
-##############################################
-### RUN POST-ROLLOUT tasks defined in .lagoon.yml
-##############################################
+echo "##############################################"
+echo "STEP Run POST-ROLLOUT tasks defined in .lagoon.yml"
 
 # if we have LAGOON_POSTROLLOUT_DISABLED set, don't try to run any pre-rollout tasks
 if [ "${LAGOON_POSTROLLOUT_DISABLED}" != "true" ]; then
@@ -1470,17 +1442,14 @@ else
   echo "post-rollout tasks are currently disabled LAGOON_POSTROLLOUT_DISABLED is set to true"
 fi
 
-set +x
 currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
 patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "postRolloutsCompleted" "Post-Rollout Tasks"
 previousStepEnd=${currentStepEnd}
-set -x
 
 ##############################################
 ### PUSH the latest .lagoon.yml into lagoon-yaml configmap
 ##############################################
 
-set +x
 echo "Updating lagoon-yaml configmap with a post-deploy version of the .lagoon.yml file"
 if kubectl -n ${NAMESPACE} get configmap lagoon-yaml &> /dev/null; then
   # replace it, no need to check if the key is different, as that will happen in the pre-deploy phase
@@ -1497,19 +1466,14 @@ if kubectl -n ${NAMESPACE} get configmap docker-compose-yaml &> /dev/null; then
   # create it
   kubectl -n ${NAMESPACE} create configmap docker-compose-yaml --from-file=post-deploy=${DOCKER_COMPOSE_YAML}
 fi
-set -x
 
-set +x
 currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
 patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "deployCompleted" "Build and Deploy"
 previousStepEnd=${currentStepEnd}
-set -x
 
-set +x
 if [ "$(featureFlag INSIGHTS)" = enabled ]; then
-  ##############################################
-  ### RUN insights gathering and store in configmap
-  ##############################################
+echo "##############################################"
+echo "STEP Run insights gathering and store in configmap"
 
   for IMAGE_NAME in "${!IMAGES_BUILD[@]}"
   do
@@ -1523,4 +1487,3 @@ if [ "$(featureFlag INSIGHTS)" = enabled ]; then
   patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "insightsCompleted" "Insights Gathering"
   previousStepEnd=${currentStepEnd}
 fi
-set -x
