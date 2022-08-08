@@ -511,6 +511,13 @@ export const getControllerBuildData = async function(deployData: any) {
     }
   }
 
+  let buildImage = ""
+  // work out the build image from the deploytarget if defined
+  if (deployTarget.openshift.buildImage != null) {
+    // set the build image here if one is defined in the api
+    buildImage = deployTarget.openshift.buildImage
+  }
+
   var alertContact = ""
   if (alertContactHA != undefined && alertContactSA != undefined){
     if (availability == "HIGH") {
@@ -604,7 +611,7 @@ export const getControllerBuildData = async function(deployData: any) {
     spec: {
       build: {
         type: type,
-        image: {}, // the controller will know which image to use
+        image: buildImage, // the controller will know which image to use
         ci: CI,
         priority: priority, // add the build priority
         bulkId: bulkId, // add the bulk id if present
