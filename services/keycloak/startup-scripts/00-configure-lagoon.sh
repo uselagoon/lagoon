@@ -1813,8 +1813,8 @@ function configure_keycloak {
 
     # Here we source in any extra configuration
     echo "Checking for any custom startup scripts"
-    if ls /opt/jboss/startup-scripts/extra/*.sh 1> /dev/null 2>&1; then
-      for FILE in /opt/jboss/startup-scripts/extra/*.sh; do
+    if ls /configure-lagoon-extra/*.sh 1> /dev/null 2>&1; then
+      for FILE in /configure-lagoon-extra/*.sh; do
         echo "Found $FILE - executing in current shell"
         source $FILE;
       done

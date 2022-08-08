@@ -63,6 +63,7 @@ VOLUME /opt/jboss/keycloak/standalone/data
 COPY entrypoints/wait-for-mariadb.sh /lagoon/entrypoints/98-wait-for-mariadb.sh
 COPY entrypoints/default-keycloak-entrypoint.sh /lagoon/entrypoints/99-default-keycloak-entrypoint.sh
 COPY startup-scripts /opt/jboss/startup-scripts
+COPY configure-lagoon-extra /configure-lagoon-extra
 COPY profile.properties /opt/jboss/keycloak/standalone/configuration/profile.properties
 
 ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.bash"]
