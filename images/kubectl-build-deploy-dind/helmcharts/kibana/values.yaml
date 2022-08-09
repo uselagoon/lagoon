@@ -77,3 +77,7 @@ tls_acme: false
 routesAutogenerateInsecure: Allow
 
 configMapSha: ""
+
+useSpot: false
+
+cronjobUseSpot: false

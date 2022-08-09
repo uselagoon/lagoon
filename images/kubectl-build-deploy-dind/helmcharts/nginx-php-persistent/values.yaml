@@ -67,3 +67,7 @@ affinity: {}
 inPodCronjobs: ""
 
 configMapSha: ""
+
+useSpot: false
+
+cronjobUseSpot: false

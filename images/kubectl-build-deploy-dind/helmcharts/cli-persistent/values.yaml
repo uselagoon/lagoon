@@ -51,3 +51,7 @@ inPodCronjobs: ""
 nativeinPodCronjobs: ""
 
 configMapSha: ""
+
+useSpot: false
+
+cronjobUseSpot: false
