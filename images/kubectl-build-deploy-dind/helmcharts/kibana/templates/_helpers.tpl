@@ -65,6 +65,9 @@ lagoon.sh/project: {{ .Values.project }}
 lagoon.sh/environment: {{ .Values.environment }}
 lagoon.sh/environmentType: {{ .Values.environmentType }}
 lagoon.sh/buildType: {{ .Values.buildType }}
+{{- if .Values.useSpot }}
+lagoon.sh/spot: {{ .Values.useSpot | quote }}
+{{- end }}
 {{- end -}}
 
 {{/*
