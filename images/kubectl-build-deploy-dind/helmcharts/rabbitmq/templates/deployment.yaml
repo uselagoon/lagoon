@@ -4,6 +4,9 @@ metadata:
   name: {{ include "rabbitmq.fullname" . }}
   labels:
     {{- include "rabbitmq.labels" . | nindent 4 }}
+    {{- if .Values.useSpot }}
+    lagoon.sh/spot: {{ .Values.useSpot | quote }}
+    {{- end }}
   annotations:
     {{- include "rabbitmq.annotations" . | nindent 4 }}
 spec:
@@ -18,6 +21,9 @@ spec:
       labels:
         {{- include "rabbitmq.labels" . | nindent 8 }}
         {{- include "rabbitmq.datadogLabels" . | nindent 8 }}
+        {{- if .Values.useSpot }}
+        lagoon.sh/spot: {{ .Values.useSpot | quote }}
+        {{- end }}
       annotations:
         {{- include "rabbitmq.annotations" . | nindent 8 }}
         k8up.syn.tools/backupcommand: /bin/sh -c 'tar -cf - -C {{ .Values.persistentStorage.path | quote }} --exclude="lost\+found" . || [ $? -eq 1 ]'

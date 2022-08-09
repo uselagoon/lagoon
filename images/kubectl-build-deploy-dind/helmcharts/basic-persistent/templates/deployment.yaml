@@ -4,6 +4,9 @@ metadata:
   name: {{ include "basic-persistent.fullname" . }}
   labels:
     {{- include "basic-persistent.labels" . | nindent 4 }}
+    {{- if .Values.useSpot }}
+    lagoon.sh/spot: {{ .Values.useSpot | quote }}
+    {{- end }}
   annotations:
     {{- include "basic-persistent.annotations" . | nindent 4 }}
 spec:
@@ -16,6 +19,9 @@ spec:
       labels:
         {{- include "basic-persistent.labels" . | nindent 8 }}
         {{- include "basic-persistent.datadogLabels" . | nindent 8 }}
+        {{- if .Values.useSpot }}
+        lagoon.sh/spot: {{ .Values.useSpot | quote }}
+        {{- end }}
       annotations:
         {{- include "basic-persistent.annotations" . | nindent 8 }}
         lagoon.sh/configMapSha: {{ .Values.configMapSha | quote }}

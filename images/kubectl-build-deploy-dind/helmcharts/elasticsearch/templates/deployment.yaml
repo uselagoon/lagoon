@@ -4,6 +4,9 @@ metadata:
   name: {{ include "elasticsearch.fullname" . }}
   labels:
     {{- include "elasticsearch.labels" . | nindent 4 }}
+    {{- if .Values.useSpot }}
+    lagoon.sh/spot: {{ .Values.useSpot | quote }}
+    {{- end }}
   annotations:
     {{- include "elasticsearch.annotations" . | nindent 4 }}
 spec:
@@ -18,6 +21,9 @@ spec:
       labels:
         {{- include "elasticsearch.labels" . | nindent 8 }}
         {{- include "elasticsearch.datadogLabels" . | nindent 8 }}
+        {{- if .Values.useSpot }}
+        lagoon.sh/spot: {{ .Values.useSpot | quote }}
+        {{- end }}
       annotations:
         {{- include "elasticsearch.annotations" . | nindent 8 }}
         lagoon.sh/configMapSha: {{ .Values.configMapSha | quote }}

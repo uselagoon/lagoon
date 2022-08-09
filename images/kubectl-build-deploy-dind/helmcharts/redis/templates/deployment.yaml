@@ -4,6 +4,9 @@ metadata:
   name: {{ include "redis.fullname" . }}
   labels:
     {{- include "redis.labels" . | nindent 4 }}
+    {{- if .Values.useSpot }}
+    lagoon.sh/spot: {{ .Values.useSpot | quote }}
+    {{- end }}
   annotations:
     {{- include "redis.annotations" . | nindent 4 }}
 spec:
@@ -18,6 +21,9 @@ spec:
       labels:
         {{- include "redis.labels" . | nindent 8 }}
         {{- include "redis.datadogLabels" . | nindent 8 }}
+        {{- if .Values.useSpot }}
+        lagoon.sh/spot: {{ .Values.useSpot | quote }}
+        {{- end }}
       annotations:
         {{- include "redis.annotations" . | nindent 8 }}
         lagoon.sh/configMapSha: {{ .Values.configMapSha | quote }}

@@ -6,6 +6,9 @@ metadata:
   name: cronjob-{{ $.Release.Name }}-{{ $cronjobName }}
   labels:
     {{- include "kibana.labels" $ | nindent 4 }}
+    {{- if .Values.cronjobUseSpot }}
+    lagoon.sh/spot: {{ .Values.cronjobUseSpot | quote }}
+    {{- end }}
   annotations:
     {{- include "kibana.annotations" $ | nindent 4 }}
 spec:
@@ -18,6 +21,9 @@ spec:
     metadata:
       labels:
         {{- include "kibana.labels" $ | nindent 8 }}
+        {{- if .Values.cronjobUseSpot }}
+        lagoon.sh/spot: {{ .Values.cronjobUseSpot | quote }}
+        {{- end }}
       annotations:
         {{- include "kibana.annotations" $ | nindent 8 }}
     spec:
@@ -26,6 +32,9 @@ spec:
         metadata:
           labels:
             {{- include "kibana.labels" $ | nindent 12 }}
+            {{- if .Values.cronjobUseSpot }}
+            lagoon.sh/spot: {{ .Values.cronjobUseSpot | quote }}
+            {{- end }}
           annotations:
             {{- include "kibana.annotations" $ | nindent 12 }}
         spec:
@@ -74,14 +83,14 @@ spec:
           affinity:
             {{- toYaml $ | nindent 12 }}
         {{- end }}
-          tolerations:
+          cronjobTolerations:
             - effect: NoSchedule
               key: lagoon/build
               operator: Exists
             - effect: NoSchedule
               key: lagoon.sh/build
               operator: Exists
-            {{- toYaml $.Values.tolerations | nindent 12 }}
+            {{- toYaml $.Values.cronjobTolerations | nindent 12 }}
           dnsConfig:
             options:
               - name: timeout

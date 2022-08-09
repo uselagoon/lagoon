@@ -4,6 +4,9 @@ metadata:
   name: {{ include "logstash.fullname" . }}
   labels:
     {{- include "logstash.labels" . | nindent 4 }}
+    {{- if .Values.useSpot }}
+    lagoon.sh/spot: {{ .Values.useSpot | quote }}
+    {{- end }}
   annotations:
     {{- include "logstash.annotations" . | nindent 4 }}
 spec:
@@ -15,6 +18,9 @@ spec:
     metadata:
       labels:
         {{- include "logstash.labels" . | nindent 8 }}
+        {{- if .Values.useSpot }}
+        lagoon.sh/spot: {{ .Values.useSpot | quote }}
+        {{- end }}
       annotations:
         {{- include "logstash.annotations" . | nindent 4 }}
         lagoon.sh/configMapSha: {{ .Values.configMapSha | quote }}

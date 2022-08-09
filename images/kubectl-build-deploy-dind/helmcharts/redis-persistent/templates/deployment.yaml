@@ -4,6 +4,9 @@ metadata:
   name: {{ include "redis-persistent.fullname" . }}
   labels:
     {{- include "redis-persistent.labels" . | nindent 4 }}
+    {{- if .Values.useSpot }}
+    lagoon.sh/spot: {{ .Values.useSpot | quote }}
+    {{- end }}
   annotations:
     {{- include "redis-persistent.annotations" . | nindent 4 }}
 spec:
@@ -18,6 +21,9 @@ spec:
       labels:
         {{- include "redis-persistent.labels" . | nindent 8 }}
         {{- include "redis-persistent.datadogLabels" . | nindent 8 }}
+        {{- if .Values.useSpot }}
+        lagoon.sh/spot: {{ .Values.useSpot | quote }}
+        {{- end }}
       annotations:
         {{- include "redis-persistent.annotations" . | nindent 8 }}
         k8up.syn.tools/backupcommand: /bin/sh -c "/bin/busybox tar -cf - -C {{ .Values.persistentStorage.path }} ."

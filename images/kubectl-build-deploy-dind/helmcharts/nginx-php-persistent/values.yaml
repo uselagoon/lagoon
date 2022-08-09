@@ -60,6 +60,8 @@ nodeSelector: {}
 
 tolerations: []
 
+cronjobTolerations: []
+
 affinity: {}
 
 inPodCronjobs: ""
