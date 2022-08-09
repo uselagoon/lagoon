@@ -1813,12 +1813,11 @@ function configure_keycloak {
 
     # Here we source in any extra configuration
     echo "Checking for any custom startup scripts"
-    if ls /configure-lagoon-extra/*.sh 1> /dev/null 2>&1; then
-      for FILE in /configure-lagoon-extra/*.sh; do
-        echo "Found $FILE - executing in current shell"
-        source $FILE;
-      done
-    fi
+    for FILE in /configure-lagoon-extra/*.sh; do
+      [ -r "$FILE" ] || continue
+      echo "Found $FILE - executing in current shell"
+      source "$FILE";
+    done
 
     # always run last
     sync_client_secrets
