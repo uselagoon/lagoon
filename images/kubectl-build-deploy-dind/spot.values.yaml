@@ -1,0 +1,5 @@
+tolerations:
+- key: lagoon.sh/spot
+  effect: NoSchedule
+  operator: Equal
+  value: "true"
