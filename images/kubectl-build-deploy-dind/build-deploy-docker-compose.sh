@@ -1301,6 +1301,36 @@ do
     fi
   fi
 
+  # spot instance configuration
+  # some service types can properly support multiple replicas under spot, this list defines them
+  SPOT_REPLICA_TYPES=nginx,nginx-persistent,nginx-php,nginx-php-persistent
+  SPOT_SERVICE_TYPES=""
+  if [[ "$(featureFlag SPOT_INSTANCE_PRODUCTION)" = enabled && "${ENVIRONMENT_TYPE}" == "production" ]] ||
+    [[ "$(featureFlag SPOT_INSTANCE_DEVELOPMENT)" = enabled && "${ENVIRONMENT_TYPE}" == "development" ]]; then
+    if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
+      # production environments can support different spot instance types than development environments
+      SPOT_INSTANCE_PRODUCTION_TYPES="$(featureFlag SPOT_INSTANCE_PRODUCTION_TYPES)"
+      if [ ! -z "${SPOT_INSTANCE_PRODUCTION_TYPES}" ]; then
+        SPOT_SERVICE_TYPES="${SPOT_INSTANCE_PRODUCTION_TYPES}"
+      fi
+    else
+      SPOT_INSTANCE_DEVELOPMENT_TYPES="$(featureFlag SPOT_INSTANCE_DEVELOPMENT_TYPES)"
+      if [ ! -z "${SPOT_INSTANCE_DEVELOPMENT_TYPES}" ]; then
+        SPOT_SERVICE_TYPES="${SPOT_INSTANCE_PRODUCTION_TYPES}"
+      fi
+    fi
+    if [[ ${SPOT_SERVICE_TYPES} =~ (^|,)"${SERVICE_TYPE}"(,|$) ]]; then
+        HELM_SET_VALUES+=(--set "useSpot=true")
+        # spot on production gets 2 replicas if the service type is in the supported SPOT_REPLICA_TYPES list
+        if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
+          if [[ ${SPOT_REPLICA_TYPES} =~ (^|,)"${SERVICE_TYPE}"(,|$) ]]; then
+            HELM_SET_VALUES+=(--set "replicaCount=2")
+          fi
+        fi
+        yq3 merge -ix -- /kubectl-build-deploy/${SERVICE_NAME}-values.yaml /kubectl-build-deploy/spot.values.yaml
+    fi
+  fi
+
 # TODO: we don't need this anymore
   # DEPLOYMENT_STRATEGY=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.deployment\\.strategy false)
   # if [ ! $DEPLOYMENT_STRATEGY == "false" ]; then
