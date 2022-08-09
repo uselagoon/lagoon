@@ -6,8 +6,8 @@ metadata:
   name: cronjob-{{ $.Release.Name }}-{{ $cronjobName }}
   labels:
     {{- include "kibana.labels" $ | nindent 4 }}
-    {{- if .Values.cronjobUseSpot }}
-    lagoon.sh/spot: {{ .Values.cronjobUseSpot | quote }}
+    {{- if $.Values.cronjobUseSpot }}
+    lagoon.sh/spot: {{ $.Values.cronjobUseSpot | quote }}
     {{- end }}
   annotations:
     {{- include "kibana.annotations" $ | nindent 4 }}
@@ -21,8 +21,8 @@ spec:
     metadata:
       labels:
         {{- include "kibana.labels" $ | nindent 8 }}
-        {{- if .Values.cronjobUseSpot }}
-        lagoon.sh/spot: {{ .Values.cronjobUseSpot | quote }}
+        {{- if $.Values.cronjobUseSpot }}
+        lagoon.sh/spot: {{ $.Values.cronjobUseSpot | quote }}
         {{- end }}
       annotations:
         {{- include "kibana.annotations" $ | nindent 8 }}
@@ -32,8 +32,8 @@ spec:
         metadata:
           labels:
             {{- include "kibana.labels" $ | nindent 12 }}
-            {{- if .Values.cronjobUseSpot }}
-            lagoon.sh/spot: {{ .Values.cronjobUseSpot | quote }}
+            {{- if $.Values.cronjobUseSpot }}
+            lagoon.sh/spot: {{ $.Values.cronjobUseSpot | quote }}
             {{- end }}
           annotations:
             {{- include "kibana.annotations" $ | nindent 12 }}

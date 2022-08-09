@@ -6,8 +6,8 @@ metadata:
   name: cronjob-{{ $.Release.Name }}-{{ $cronjobName }}
   labels:
     {{- include "rabbitmq.labels" $ | nindent 4 }}
-    {{- if .Values.cronjobUseSpot }}
-    lagoon.sh/spot: {{ .Values.cronjobUseSpot | quote }}
+    {{- if $.Values.cronjobUseSpot }}
+    lagoon.sh/spot: {{ $.Values.cronjobUseSpot | quote }}
     {{- end }}
   annotations:
     {{- include "rabbitmq.annotations" $ | nindent 4 }}
@@ -21,8 +21,8 @@ spec:
     metadata:
       labels:
         {{- include "rabbitmq.labels" $ | nindent 8 }}
-        {{- if .Values.cronjobUseSpot }}
-        lagoon.sh/spot: {{ .Values.cronjobUseSpot | quote }}
+        {{- if $.Values.cronjobUseSpot }}
+        lagoon.sh/spot: {{ $.Values.cronjobUseSpot | quote }}
         {{- end }}
       annotations:
         {{- include "rabbitmq.annotations" $ | nindent 8 }}
@@ -32,8 +32,8 @@ spec:
         metadata:
           labels:
             {{- include "rabbitmq.labels" $ | nindent 12 }}
-            {{- if .Values.cronjobUseSpot }}
-            lagoon.sh/spot: {{ .Values.cronjobUseSpot | quote }}
+            {{- if $.Values.cronjobUseSpot }}
+            lagoon.sh/spot: {{ $.Values.cronjobUseSpot | quote }}
             {{- end }}
           annotations:
             {{- include "rabbitmq.annotations" $ | nindent 12 }}

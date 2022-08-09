@@ -51,11 +51,6 @@ tolerations:
     if [[ ${SPOT_SERVICE_CRONJOB_TYPES} =~ (^|,)"${SERVICE_TYPE}"(,|$) ]]; then
         HELM_SET_VALUES+=(--set "cronjobUseSpot=true")
         # spot on production gets 2 replicas if the service type is in the supported SPOT_REPLICA_TYPES list
-        if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
-            if [[ ${SPOT_REPLICA_TYPES} =~ (^|,)"${SERVICE_TYPE}"(,|$) ]]; then
-                HELM_SET_VALUES+=(--set "replicaCount=2")
-            fi
-        fi
         echo -e "\
 cronjobTolerations:
 - key: lagoon.sh/spot
