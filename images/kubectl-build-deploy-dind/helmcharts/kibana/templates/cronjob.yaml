@@ -83,7 +83,7 @@ spec:
           affinity:
             {{- toYaml $ | nindent 12 }}
         {{- end }}
-          cronjobTolerations:
+          tolerations:
             - effect: NoSchedule
               key: lagoon/build
               operator: Exists
