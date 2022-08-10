@@ -95,6 +95,7 @@ services:
       - CI=${CI:-true}
       - REGISTRY=harbor.172.17.0.1.nip.io:18080 # Docker network bridge and forwarded port for harbor-nginx
       - ELASTICSEARCH_URL=https://opensearch:9200
+      - KEYCLOAK_ADMIN_PASSWORD=foobar
     depends_on:
       - api-db
       - keycloak
@@ -162,6 +163,8 @@ services:
     volumes:
       - "./services/keycloak/profile.properties:/opt/jboss/keycloak/standalone/configuration/profile.properties"
       - "./services/keycloak/startup-scripts:/opt/jboss/startup-scripts"
+    environment:
+      - KEYCLOAK_ADMIN_PASSWORD=foobar
   keycloak-db:
     image: ${IMAGE_REPO:-lagoon}/keycloak-db
     ports:

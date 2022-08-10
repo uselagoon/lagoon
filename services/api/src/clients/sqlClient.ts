@@ -8,7 +8,7 @@ export const config = {
   user: getConfigFromEnv('API_DB_USER', 'api'),
   password: getConfigFromEnv('API_DB_PASSWORD', 'api'),
   database: getConfigFromEnv('API_DB_DATABASE', 'infrastructure'),
-  connectionLimit: toNumber(getConfigFromEnv('API_DB_CONN_LIMIT', '80'))
+  connectionLimit: toNumber(getConfigFromEnv('API_DB_CONN_LIMIT', '10'))
 };
 
 export const sqlClientPool = mariadb.createPool(config);

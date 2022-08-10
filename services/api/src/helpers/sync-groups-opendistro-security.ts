@@ -1,13 +1,18 @@
+require('util').inspect.defaultOptions.depth = null;
+
 import * as R from 'ramda';
-import { logger } from '@lagoon/commons/dist/local-logging';
+import { logger } from '../loggers/logger';
+import { getConfigFromEnv } from '../util/config';
 import { sqlClientPool } from '../clients/sqlClient';
 import { esClient } from '../clients/esClient';
 import redisClient from '../clients/redisClient';
+import { getKeycloakAdminClient } from '../clients/keycloak-admin';
 import { Group } from '../models/group';
 import { OpendistroSecurityOperations } from '../resources/group/opendistroSecurity';
-import { getKeycloakAdminClient } from '../clients/keycloak-admin';
 
 (async () => {
+  logger.trace(`Begin`);
+
   const keycloakAdminClient = await getKeycloakAdminClient();
   const GroupModel = Group({
     sqlClientPool,
@@ -16,41 +21,35 @@ import { getKeycloakAdminClient } from '../clients/keycloak-admin';
     redisClient
   });
 
-  const groupRegex = process.env.GROUP_REGEX
-    ? new RegExp(process.env.GROUP_REGEX)
-    : /.*/;
-
+  logger.trace('Loading all groups');
   const allGroups = await GroupModel.loadAllGroups();
 
-  let groupsQueue = (allGroups as Group[]).map(group => ({
-    group,
-    retries: 0
-  }));
+  const groupRegex = getConfigFromEnv('GROUP_REGEX', '.*');
+  let groupsQueue = (allGroups as Group[])
+    .filter(group => R.test(new RegExp(groupRegex), group.name))
+    .map(group => ({
+      group,
+      retries: 0
+    }));
 
-  logger.info(`Syncing ${allGroups.length} groups`);
+  logger.info(
+    `Syncing ${groupsQueue.length} groups that match /${groupRegex}/`
+  );
 
   while (groupsQueue.length > 0) {
     const { group, retries } = groupsQueue.shift();
 
-    if (!R.test(groupRegex, group.name)) {
-      logger.info(`Skipping ${group.name}`);
-      continue;
-    }
-
     try {
-      logger.debug(`Processing ${group.name}`);
+      logger.debug(`Processing (${group.name})`);
       const projectIdsArray = await GroupModel.getProjectsFromGroupAndSubgroups(
         group
       );
-      const projectIds = R.join(',')(projectIdsArray);
+      const projectIds = R.join(',', projectIdsArray);
 
-      let roleName = group.name;
-      if (group.type && group.type == 'project-default-group') {
+      let roleName: string;
+      let tenantName = roleName = group.name;
+      if (R.propEq('type', 'project-default-group', group)) {
         roleName = 'p' + projectIds;
-      }
-
-      let tenantName = group.name;
-      if (group.type && group.type == 'project-default-group') {
         tenantName = 'global_tenant';
       }
 
@@ -60,13 +59,14 @@ import { getKeycloakAdminClient } from '../clients/keycloak-admin';
       ).syncGroupWithSpecificTenant(roleName, tenantName, projectIds);
     } catch (err) {
       if (retries < 3) {
-        logger.warn(`Error syncing, adding to end of queue: ${err.message}`);
+        logger.warn(`Error syncing (${group.name}), adding to end of queue: ${err.message}`);
         groupsQueue.push({ group, retries: retries + 1 });
       } else {
-        logger.error(`Sync failed: ${err.message}`);
+        logger.error(`Sync failed for (${group.name}): ${err.message}`);
       }
     }
   }
 
   logger.info('Sync completed');
+  process.exit();
 })();
