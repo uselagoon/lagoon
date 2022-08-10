@@ -16,7 +16,6 @@ export interface ResolverFn {
       models: {
         UserModel,
         GroupModel,
-        ProjectModel,
         EnvironmentModel,
       },
     },

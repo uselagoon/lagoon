@@ -94,6 +94,7 @@ services:
       - NODE_ENV=development
       - CI=${CI:-true}
       - REGISTRY=harbor.172.17.0.1.nip.io:18080 # Docker network bridge and forwarded port for harbor-nginx
+      - ELASTICSEARCH_URL=https://opensearch:9200
     depends_on:
       - api-db
       - keycloak
@@ -284,3 +285,18 @@ services:
       - './services/storage-calculator/calculate-storage.sh:/calculate-storage.sh'
   api-redis:
     image: ${IMAGE_REPO:-lagoon}/api-redis
+  opensearch:
+    image: opensearchproject/opensearch:1.3.2
+    container_name: opensearch
+    environment:
+      - discovery.type=single-node
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - 9200:9200
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:1.3.2
+    container_name: opensearch-dashboards
+    ports:
+      - 5601:5601
+    environment:
+      OPENSEARCH_HOSTS: '["https://opensearch:9200"]'

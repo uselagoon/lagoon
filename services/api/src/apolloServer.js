@@ -25,7 +25,6 @@ const resolvers = require('./resolvers');
 
 const User = require('./models/user');
 const Group = require('./models/group');
-const ProjectModel = require('./models/project');
 const EnvironmentModel = require('./models/environment');
 
 const schema = makeExecutableSchema({ typeDefs, resolvers });
@@ -116,7 +115,6 @@ const apolloServer = new ApolloServer({
         models: {
           UserModel: User.User(modelClients),
           GroupModel: Group.Group(modelClients),
-          ProjectModel: ProjectModel.ProjectModel(modelClients),
           EnvironmentModel: EnvironmentModel.EnvironmentModel(modelClients)
         }
       };
@@ -173,7 +171,6 @@ const apolloServer = new ApolloServer({
         models: {
           UserModel: User.User(modelClients),
           GroupModel: Group.Group(modelClients),
-          ProjectModel: ProjectModel.ProjectModel(modelClients),
           EnvironmentModel: EnvironmentModel.EnvironmentModel(modelClients)
         }
       };
