@@ -3,7 +3,7 @@ package client
 import (
 	"context"
 
-	"github.com/uselagoon/lagoon/services/actions-handler/internal/schema"
+	"github.com/uselagoon/lagoon/services/workflows/internal/schema"
 )
 
 // DeployEnvironmentLatest deploys a latest environment.
