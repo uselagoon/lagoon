@@ -1,6 +1,4 @@
-import * as R from 'ramda';
 import { Pool } from 'mariadb';
-import { asyncPipe } from '@lagoon/commons/dist/util';
 import { query } from '../../util/db';
 import { Sql } from './sql';
 

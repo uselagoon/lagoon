@@ -8,7 +8,7 @@ export const getUIProjects: ResolverFn = async (
   { limit, skip },
   { sqlClientPool, hasPermission, models, keycloakGrant }
 ) => {
-  let userProjectIds: number[];
+  let userProjectIds, groupProjectIds;
 
   try {
     await hasPermission('project', 'viewAll');
@@ -18,18 +18,35 @@ export const getUIProjects: ResolverFn = async (
       return [];
     }
 
-    // get project ids from access_token attribute
-    if (keycloakGrant.access_token.content.projects.length > 0) {
-      userProjectIds = keycloakGrant.access_token.content.projects
+    if (keycloakGrant.access_token.content.group_lagoon_project_ids.length > 0) {
+      groupProjectIds = keycloakGrant.access_token.content.group_lagoon_project_ids
     }
   }
 
-  const projects = await Helpers(sqlClientPool)
-    .getProjectsByIds(
-      userProjectIds,
-      limit,
-      skip
-    );
+  if (groupProjectIds) {
+    userProjectIds = [...new Set(groupProjectIds.map((groups) => {
+      const groupsJson = JSON.parse(groups)
+
+      let projectIds;
+      for (const k in groupsJson) {
+        projectIds = [...groupsJson[k]]
+      }
+      for (const k in projectIds) {
+        projectIds = projectIds[k]
+      }
+      return projectIds;
+    }))];
+  }
+
+  let projects = [];
+  if (userProjectIds) {
+    projects = await Helpers(sqlClientPool)
+      .getProjectsByIds(
+        userProjectIds,
+        limit,
+        skip
+      );
+  }
 
   return projects;
 };

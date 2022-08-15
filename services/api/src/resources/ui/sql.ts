@@ -5,6 +5,7 @@ import { knex } from '../../util/db';
 const uiProjectReturn = {
     id: 'p.id',
     name: 'p.name',
+    gitUrl: 'p.gitUrl',
 };
 
 export const Sql = {
@@ -14,7 +15,8 @@ export const Sql = {
     skip: number = 0,
   ) => {
     let q =  knex('project as p')
-      .distinct(uiProjectReturn)
+      .whereIn('p.id', projectIds)
+      .select(uiProjectReturn)
 
     if (limit) {
       q.limit(limit);
