@@ -36,7 +36,7 @@ const LogViewer = ({ logs }) => (
 );
 
 
-const logPreprocessor = (logs):String => {
+const logPreprocessor = (logs) => {
   try {
     let tokens = logPreprocessorTokenize(logs);
     let AST = logPreprocessorProcessParse(tokens);
@@ -67,7 +67,7 @@ const logPreprocessorRenderLogNode = (node) => {
   return <div></div>;
 };
 
-const logPreprocessorProcessASTToReact = (ast) {
+const logPreprocessorProcessASTToReact = (ast) => {
   if(ast.type != "root") {
     throw "Expecting root node to be of type 'root'";
   }
@@ -113,7 +113,7 @@ const logPreprocessorProcessParse = (tokens) => {
   return root;
 }
 
-const logPreprocessorTokenize = (logs:string) => {
+const logPreprocessorTokenize = (logs) => {
   // tokenize
   const regexp = /\<\<\<\<\< (SECTION):(.*) \<\<\<\<\</;
 
