@@ -39,6 +39,8 @@ const LogViewer = ({ logs }) => (
 const logPreprocessor = (logs):String => {
   try {
     let tokens = logPreprocessorTokenize(logs);
+    let AST = logPreprocessorProcessParse(tokens);
+    return logPreprocessorProcessParse(AST);
   } catch (e) {
     // if there are any errors parsing and transforming, we just return the logs as is.
     return logs;
