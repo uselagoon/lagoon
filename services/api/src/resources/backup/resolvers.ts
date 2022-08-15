@@ -87,12 +87,14 @@ export const getRestoreLocation: ResolverFn = async (
 
     // We have to generate a new client every time because the endpoint is parsed
     // from the s3 url.
+    const URL = require('url').URL;
+    const restoreLocationURL = new URL(restoreLocation);
     const s3Client = new S3({
       accessKeyId,
       secretAccessKey,
       s3ForcePathStyle: true,
       signatureVersion: 'v4',
-      endpoint: `https://${R.prop(1, s3Parts)}`,
+      endpoint: `${restoreLocationURL.protocol}//${R.prop(1, s3Parts)}`,
       region: awsS3Parts ? R.prop(1, awsS3Parts) : ''
     });
 
