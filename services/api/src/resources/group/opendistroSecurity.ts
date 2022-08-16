@@ -13,6 +13,7 @@ export const OpendistroSecurityOperations = (
     return this.syncGroupWithSpecificTenant(groupName, groupName, groupProjectIDs);
   },
   syncGroupWithSpecificTenant: async (groupName, tenantName, groupProjectIDs) => {
+    return
     const groupProjectNames = [];
     // groupProjectIDs is a comma separated string of IDs, split it up and remove any entries with `''`
     const groupProjectIDsArray = groupProjectIDs
@@ -86,7 +87,7 @@ export const OpendistroSecurityOperations = (
     } catch (err) {
       logger.error(`OpendistroSecurity create role error: ${err}`);
     }
-    
+
     try {
       // Create a new RoleMapping for this Role
       await opendistroSecurityClient.put(
