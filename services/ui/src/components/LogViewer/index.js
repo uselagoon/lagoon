@@ -1,6 +1,6 @@
 import React from 'react';
 import { bp } from 'lib/variables';
-import Accordion from 'components/Accordion';
+import LogAccordion from 'components/LogViewer/LogAccordion';
 
 const LogViewer = ({ logs }) => (
   <React.Fragment>
@@ -27,7 +27,7 @@ const LogViewer = ({ logs }) => (
         }
       }
     `}</style>
-    <style jsx global>{`
+    {/* <style jsx global>{`
         .accordion-heading {
           color: black;
           border-color: lightgrey !important;
@@ -35,7 +35,7 @@ const LogViewer = ({ logs }) => (
         .log-text {
           padding: 30px;
         }
-    `}</style>
+    `}</style> */}
   </React.Fragment>
 );
 
@@ -60,13 +60,13 @@ const logPreprocessorRenderLogNode = (node) => {
   }
   if (node.type === "section") {
     return (
-      <Accordion key={node.key} minified={true} columns={{sectionName:node.details}} className="data-row row-heading">
+      <LogAccordion key={node.key} minified={true} header={node.details} className="data-row row-heading">
         <div key={node.key + "section"} className="section-details">
           {node.nodes.map((element) => {
             return logPreprocessorRenderLogNode(element);
           })}
         </div>
-      </Accordion>
+      </LogAccordion>
     );
   }
   return <div></div>;
