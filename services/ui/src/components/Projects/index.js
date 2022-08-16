@@ -52,7 +52,7 @@ const Projects = ({ projects = [] }) => {
           className="searchInput"
           type="text"
           value={searchInput}
-          onChange={e => setSearchInput(e.target.value.replace(/[^0-9a-zA-Z-]/g,''))}
+          onChange={e => setSearchInput(e.target.value.replace(/[^0-9a-zA-Z.-]/g,''))}
           placeholder="Type to search"
           disabled={projects.length === 0}
         />
