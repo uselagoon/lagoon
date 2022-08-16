@@ -1,10 +1,11 @@
 import React from 'react';
 import { bp } from 'lib/variables';
+import Accordion from 'components/Accordion';
 
 const LogViewer = ({ logs }) => (
   <React.Fragment>
     <div className="logs">
-      <div className="log-viewer">{logs || 'Logs are not available.'}</div>
+      <div className="log-viewer">{logPreprocessor(logs) || 'Logs are not available.'}</div>
     </div>
     <style jsx>{`
       .logs {
@@ -40,9 +41,10 @@ const logPreprocessor = (logs) => {
   try {
     let tokens = logPreprocessorTokenize(logs);
     let AST = logPreprocessorProcessParse(tokens);
-    return logPreprocessorProcessParse(AST);
+    return logPreprocessorProcessASTToReact(AST);
   } catch (e) {
     // if there are any errors parsing and transforming, we just return the logs as is.
+    console.log("Error processing logs for display: " + e);
     return logs;
   }
 }
@@ -50,18 +52,17 @@ const logPreprocessor = (logs) => {
 
 const logPreprocessorRenderLogNode = (node) => {
   if (node.type === "logText") {
-    return <div className="logText">{node.text}</div>;
+    return <div key={node.key} className="logText">{node.text}</div>;
   }
   if (node.type === "section") {
     return (
-      <div className="section">
-        <div className="sectionDetails">{node.details}</div>
-        <div className="sectionDetails">
+      <Accordion key={node.key} minified={true} columns={{sectionName:node.details}} className="data-row row-heading">
+        <div key={node.key + "section"} className="sectionDetails">
           {node.nodes.map((element) => {
-            return renderLogNode(element);
+            return logPreprocessorRenderLogNode(element);
           })}
         </div>
-      </div>
+      </Accordion>
     );
   }
   return <div></div>;
@@ -90,7 +91,7 @@ const logPreprocessorProcessParse = (tokens) => {
       break;
       case("sectionOpener"):
         //two cases here - either the next token is a logText and then a sectionCloser, or it's a sectionCloser
-        let node = {type:"section", details: tokens[i].details, nodes: []};
+        let node = {type:"section", key: tokens[i].key, details: tokens[i].details, nodes: []};
         if(tokens[i + 1].type == "logText") {
           node.nodes.push(tokens[i+1]);
           i++; //increment `i` so that we're dealing with the _next_ token
@@ -115,7 +116,7 @@ const logPreprocessorProcessParse = (tokens) => {
 
 const logPreprocessorTokenize = (logs) => {
   // tokenize
-  const regexp = /\<\<\<\<\< (SECTION):(.*) \<\<\<\<\</;
+  const regexp = /<<<<< (SECTION):([\w\-\s]+)<<<<</;
 
   // The regex above will split the logs into three separate token types
   // 1. standard blocks of text
@@ -134,14 +135,14 @@ const logPreprocessorTokenize = (logs) => {
         tokenizedLogs.push({type:"sectionCloser"});
       }
       // let sectionOpening = `<div class="logsection"><div class="logsection-details>${sectionDetails}</div><pre>`;
-      tokenizedLogs.push({type:"sectionOpener", details:sectionDetails})
+      tokenizedLogs.push({type:"sectionOpener", key:i, details:sectionDetails})
       // tokenizedLogs.push(sectionCloser + sectionOpening);
       sectionIsOpen = true;
 
       //we also need to _skip_ the next token, since we've already used it, and continue on
       i++; continue;
     }
-    tokenizedLogs.push({type:"logText", text: tokens[i].trim()});
+    tokenizedLogs.push({type:"logText", text: tokens[i].trim(), key: i});
   }
 
   // We need to close up any outstanding sections
