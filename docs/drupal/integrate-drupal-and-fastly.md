@@ -119,7 +119,7 @@ function curlf() { curl -sLIXGET -H 'Fastly-Debug:1' "$@" | grep -iE 'X-Cache|Ca
 ```
 
 ```text
-$ curlf https://www.tierwelt.ch/
+$ curlf https://www.example-site-fastly.com
 cache-control: max-age=601, public, s-maxage=2764800
 surrogate-control: max-age=2764800, public, stale-while-revalidate=3600, stale-if-error=3600
 fastly-debug-path: (D cache-wlg10427-WLG 1612906144) (F cache-wlg10426-WLG 1612906141) (D cache-fra19179-FRA 1612906141) (F cache-fra19122-FRA 1612906141)

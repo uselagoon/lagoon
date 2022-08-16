@@ -54,6 +54,7 @@ const {
 
 const {
   getTasksByEnvironmentId,
+  getTaskByTaskName,
   getTaskByRemoteId,
   getTaskById,
   addTask,
@@ -72,6 +73,7 @@ const {
 
 const {
   addAdvancedTaskDefinition,
+  updateAdvancedTaskDefinition,
   advancedTaskDefinitionById,
   resolveTasksForEnvironment,
   getRegisteredTasksByEnvironmentId,
@@ -120,6 +122,7 @@ const {
   addDeployTargetConfig,
   deleteDeployTargetConfig,
   updateDeployTargetConfig,
+  updateEnvironmentDeployTarget,
 } = require('./resources/deploytargetconfig/resolvers');
 
 const {
@@ -159,6 +162,9 @@ const {
   getProjectUser,
   updateOpenshift,
   deleteAllOpenshifts,
+  getToken,
+  getConsoleUrl,
+  getMonitoringConfig,
 } = require('./resources/openshift/resolvers');
 
 const {
@@ -233,6 +239,15 @@ const {
   deleteEnvVariable,
 } = require('./resources/env-variables/resolvers');
 
+const {
+  addWorkflow,
+  updateWorkflow,
+  deleteWorkflow,
+  resolveWorkflowsForEnvironment,
+  getWorkflowsByEnvironmentId,
+  resolveAdvancedTaskDefinitionsForWorkflow,
+} = require("./resources/workflow/resolvers");
+
 const resolvers = {
   Upload: GraphQLUpload,
   GroupRole: {
@@ -296,15 +311,27 @@ const resolvers = {
     PROBLEM: 'problem',
   },
   TaskStatusType: {
+    NEW: 'new',
+    PENDING: 'pending',
+    RUNNING: 'running',
+    CANCELLED: 'cancelled',
+    ERROR: 'error',
+    COMPLETE: 'complete',
     ACTIVE: 'active',
     SUCCEEDED: 'succeeded',
     FAILED: 'failed',
   },
   Openshift: {
     projectUser: getProjectUser,
+    token: getToken,
+    consoleUrl: getConsoleUrl,
+    monitoringConfig: getMonitoringConfig,
   },
   Kubernetes: {
     projectUser: getProjectUser,
+    token: getToken,
+    consoleUrl: getConsoleUrl,
+    monitoringConfig: getMonitoringConfig,
   },
   Project: {
     notifications: getNotificationsByProjectId,
@@ -344,6 +371,7 @@ const resolvers = {
     facts: getFactsByEnvironmentId,
     openshift: getOpenshiftByEnvironmentId,
     kubernetes: getOpenshiftByEnvironmentId,
+    workflows: getWorkflowsByEnvironmentId,
   },
   Fact: {
     references: getFactReferencesByFactId,
@@ -402,6 +430,9 @@ const resolvers = {
   Restore: {
     restoreLocation: getRestoreLocation,
   },
+  Workflow: {
+    advancedTaskDefinition: resolveAdvancedTaskDefinitionsForWorkflow,
+  },
   Query: {
     me: getMe,
     lagoonVersion: getLagoonVersion,
@@ -418,6 +449,7 @@ const resolvers = {
     userCanSshToEnvironment,
     deploymentByRemoteId: getDeploymentByRemoteId,
     deploymentsByBulkId: getDeploymentsByBulkId,
+    taskByTaskName: getTaskByTaskName,
     taskByRemoteId: getTaskByRemoteId,
     taskById: getTaskById,
     advancedTaskDefinitionById,
@@ -434,6 +466,7 @@ const resolvers = {
     allProblemHarborScanMatchers: getProblemHarborScanMatches,
     projectsByMetadata: getProjectsByMetadata,
     projectsByFactSearch: getProjectsByFactSearch,
+    workflowsForEnvironment: resolveWorkflowsForEnvironment,
     deployTargetConfigById: getDeployTargetConfigById,
     deployTargetConfigsByProjectId: getDeployTargetConfigsByProjectId,
     deployTargetConfigsByDeployTarget: getDeployTargetConfigsByDeployTarget,
@@ -517,6 +550,7 @@ const resolvers = {
     deleteEnvVariable,
     addTask,
     addAdvancedTaskDefinition,
+    updateAdvancedTaskDefinition,
     deleteAdvancedTaskDefinition,
     invokeRegisteredTask,
     taskDrushArchiveDump,
@@ -544,9 +578,13 @@ const resolvers = {
     removeUserFromGroup,
     addGroupsToProject,
     removeGroupsFromProject,
+    addWorkflow,
+    updateWorkflow,
+    deleteWorkflow,
     addDeployTargetConfig,
     deleteDeployTargetConfig,
     updateDeployTargetConfig,
+    updateEnvironmentDeployTarget,
   },
   Subscription: {
     backupChanged: backupSubscriber,

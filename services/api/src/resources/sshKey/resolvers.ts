@@ -10,6 +10,9 @@ const formatSshKey = ({ keyType, keyValue }) => `${keyType} ${keyValue}`;
 const sshKeyTypeToString = R.cond([
   [R.equals('SSH_RSA'), R.always('ssh-rsa')],
   [R.equals('SSH_ED25519'), R.always('ssh-ed25519')],
+  [R.equals('ECDSA_SHA2_NISTP256'), R.always('ecdsa-sha2-nistp256')],
+  [R.equals('ECDSA_SHA2_NISTP384'), R.always('ecdsa-sha2-nistp384')],
+  [R.equals('ECDSA_SHA2_NISTP521'), R.always('ecdsa-sha2-nistp521')],
   [R.T, R.identity]
 ]);
 

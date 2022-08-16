@@ -14,6 +14,9 @@ const typeDefs = gql`
   enum SshKeyType {
     SSH_RSA
     SSH_ED25519
+    ECDSA_SHA2_NISTP256
+    ECDSA_SHA2_NISTP384
+    ECDSA_SHA2_NISTP521
   }
 
   enum DeployType {
@@ -67,6 +70,12 @@ const typeDefs = gql`
     ACTIVE
     SUCCEEDED
     FAILED
+    NEW
+    PENDING
+    RUNNING
+    CANCELLED
+    ERROR
+    COMPLETE
   }
 
   enum RestoreStatusType {
@@ -126,6 +135,7 @@ const typeDefs = gql`
   type AdvancedTaskDefinitionArgument {
     id: Int
     name: String
+    displayName: String
     type: String
     range: [String]
     advancedTaskDefinition: AdvancedTaskDefinition
@@ -135,6 +145,7 @@ const typeDefs = gql`
     id: Int
     name: String
     description: String
+    confirmationText: String
     type: AdvancedTaskDefinitionTypes
     image: String
     service: String
@@ -151,6 +162,7 @@ const typeDefs = gql`
     id: Int
     name: String
     description: String
+    confirmationText: String
     type: AdvancedTaskDefinitionTypes
     service: String
     command: String
@@ -179,6 +191,39 @@ const typeDefs = gql`
     created: String
     deleted: String
   }
+
+
+  type Workflow {
+    id: Int
+    name: String
+    event: String
+    project: Int
+    advancedTaskDefinition: AdvancedTaskDefinition
+  }
+
+  input AddWorkflowInput {
+    name: String
+    event: String
+    project: Int
+    advancedTaskDefinition: Int
+  }
+
+  input DeleteWorkflowInput {
+    id: Int!
+  }
+
+  input UpdateWorkflowPatchInput {
+    name: String
+    event: String
+    project: Int
+    advancedTaskDefinition: Int
+  }
+
+  input UpdateWorkflowInput {
+    id: Int!
+    patch: UpdateWorkflowPatchInput!
+  }
+
 
   type Problem {
     id: Int
@@ -267,6 +312,7 @@ const typeDefs = gql`
     type: FactType
     category: String
     references: [FactReference]
+    service: String
   }
 
   input AddFactInput {
@@ -279,6 +325,7 @@ const typeDefs = gql`
     keyFact: Boolean
     type: FactType
     category: String
+    service: String
   }
 
   input AddFactsInput {
@@ -294,6 +341,7 @@ const typeDefs = gql`
     keyFact: Boolean
     type: FactType
     category: String
+    service: String
   }
 
   input UpdateFactInput {
@@ -787,15 +835,16 @@ const typeDefs = gql`
     monitoringUrls: String
     deployments(name: String, limit: Int): [Deployment]
     backups(includeDeleted: Boolean, limit: Int): [Backup]
-    tasks(id: Int, limit: Int): [Task]
+    tasks(id: Int, taskName: String, limit: Int): [Task]
     advancedTasks: [AdvancedTaskDefinition]
     services: [EnvironmentService]
     problems(severity: [ProblemSeverityRating], source: [String]): [Problem]
-    facts(keyFacts: Boolean, limit: Int): [Fact]
+    facts(keyFacts: Boolean, limit: Int, summary: Boolean): [Fact]
     openshift: Openshift
     openshiftProjectPattern: String
     kubernetes: Kubernetes
     kubernetesNamespacePattern: String
+    workflows: [Workflow]
   }
 
   type EnvironmentHitsMonth {
@@ -872,6 +921,7 @@ const typeDefs = gql`
   type Task {
     id: Int
     name: String
+    taskName: String
     status: String
     created: String
     started: String
@@ -887,6 +937,7 @@ const typeDefs = gql`
   type AdvancedTask {
     id: Int
     name: String
+    taskName: String
     status: String
     created: String
     started: String
@@ -1024,6 +1075,7 @@ const typeDefs = gql`
     ): Environment
     deploymentByRemoteId(id: String): Deployment
     deploymentsByBulkId(bulkId: String): [Deployment]
+    taskByTaskName(taskName: String): Task
     taskByRemoteId(id: String): Task
     taskById(id: Int): Task
     """
@@ -1083,6 +1135,12 @@ const typeDefs = gql`
     Returns a AdvancedTaskDefinitionArgument by Id
     """
     advancedTaskDefinitionArgumentById(id: Int!) : [AdvancedTaskDefinitionArgument]
+
+    """
+    Returns all Workflows for an environment
+    """
+    workflowsForEnvironment(environment: Int!) : [Workflow]
+
     """
     Returns the DeployTargetConfig by a deployTargetConfig Id
     """
@@ -1298,6 +1356,7 @@ const typeDefs = gql`
   input AdvancedTaskDefinitionArgumentInput {
     name: String
     type: AdvancedTaskDefinitionArgumentTypes
+    displayName: String
   }
 
   input AdvancedTaskDefinitionArgumentValueInput {
@@ -1322,6 +1381,27 @@ const typeDefs = gql`
     groupName: String
     permission: TaskPermission
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgumentInput]
+    confirmationText: String
+  }
+
+  input UpdateAdvancedTaskDefinitionInput {
+    id: Int!
+    patch: UpdateAdvancedTaskDefinitionPatchInput!
+  }
+
+  input UpdateAdvancedTaskDefinitionPatchInput {
+    name: String
+    description: String
+    image: String
+    type: AdvancedTaskDefinitionTypes
+    service: String
+    command: String
+    environment: Int
+    project: Int
+    groupName: String
+    permission: TaskPermission
+    advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgumentInput]
+    confirmationText: String
   }
 
   input DeleteTaskInput {
@@ -1330,6 +1410,7 @@ const typeDefs = gql`
 
   input UpdateTaskPatchInput {
     name: String
+    taskName: String
     status: TaskStatusType
     created: String
     started: String
@@ -1898,8 +1979,12 @@ const typeDefs = gql`
     deleteEnvVariable(input: DeleteEnvVariableInput!): String
     addTask(input: TaskInput!): Task
     addAdvancedTaskDefinition(input: AdvancedTaskDefinitionInput!): AdvancedTaskDefinition
+    updateAdvancedTaskDefinition(input: UpdateAdvancedTaskDefinitionInput!): AdvancedTaskDefinition
     invokeRegisteredTask(advancedTaskDefinition: Int!, environment: Int!, argumentValues: [AdvancedTaskDefinitionArgumentValueInput]): Task
     deleteAdvancedTaskDefinition(advancedTaskDefinition: Int!): String
+    addWorkflow(input: AddWorkflowInput!): Workflow
+    updateWorkflow(input: UpdateWorkflowInput): Workflow
+    deleteWorkflow(input: DeleteWorkflowInput!): String
     taskDrushArchiveDump(environment: Int!): Task
     taskDrushSqlDump(environment: Int!): Task
     taskDrushCacheClear(environment: Int!): Task
@@ -1937,6 +2022,7 @@ const typeDefs = gql`
     updateDeployTargetConfig(input: UpdateDeployTargetConfigInput!): DeployTargetConfig  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
     deleteDeployTargetConfig(input: DeleteDeployTargetConfigInput!): String  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
     deleteAllDeployTargetConfigs: String  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    updateEnvironmentDeployTarget(environment: Int!, deployTarget: Int!): Environment
   }
 
   type Subscription {

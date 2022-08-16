@@ -1,0 +1,23 @@
+---
+- include: features/api-token.yaml
+  vars:
+    testname: "API TOKEN"
+
+- include: api/add-project.yaml
+  vars:
+    project: ci-workflows-{{ cluster_type }}
+    git_repo_name: tasks.git
+    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
+
+- include: workflows/workflows.yaml
+  vars:
+    testname: "WORKFLOWS {{ cluster_type|upper }}"
+    git_repo_name: tasks.git
+    project: ci-workflows-{{ cluster_type }}
+    branch: workflows
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+    openshift_project_name: ci-workflows-{{ cluster_type }}-workflows
+
+- include: api/delete-project.yaml
+  vars:
+    project: ci-workflows-{{ cluster_type }}

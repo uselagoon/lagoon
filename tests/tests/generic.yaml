@@ -1,6 +1,4 @@
 ---
-# - include: features/random-wait.yaml
-
 - include: features/api-token.yaml
   vars:
     testname: "API TOKEN"

@@ -38,7 +38,7 @@ description: >-
 | k8s | Numeronym for Kubernetes \(K + 8 letters + s\) |
 | Kibana | An open-source data visualization plugin for Elasticsearch. It provides visualization capabilities on top of the content indexed on an Elasticsearch cluster. |
 | Kubernetes | An open-source system for automating deployment, scaling, and management of containerized applications. |
-| Lagoon | An open-source continuous delivery system for OpenShift and Kubernetes. |
+| Lagoon | An open-source application delivery platform for Kubernetes. |
 | Laravel | A free, open-source PHP web framework, following the model–view–controller \(MVC\) architectural pattern and based on Symfony. |
 | MariaDB | A community-developed, commercially supported fork of the MySQL relational database management system, intended to remain free and open-source software under the GNU General Public License. |
 | Master node | A single node in the cluster on which a collection of processes which manage the cluster state are running. |

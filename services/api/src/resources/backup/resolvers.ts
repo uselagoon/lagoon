@@ -87,20 +87,49 @@ export const getRestoreLocation: ResolverFn = async (
 
     // We have to generate a new client every time because the endpoint is parsed
     // from the s3 url.
+    const URL = require('url').URL;
+    const restoreLocationURL = new URL(restoreLocation);
     const s3Client = new S3({
       accessKeyId,
       secretAccessKey,
       s3ForcePathStyle: true,
       signatureVersion: 'v4',
-      endpoint: `https://${R.prop(1, s3Parts)}`,
+      endpoint: `${restoreLocationURL.protocol}//${R.prop(1, s3Parts)}`,
       region: awsS3Parts ? R.prop(1, awsS3Parts) : ''
     });
 
-    return s3Client.getSignedUrl('getObject', {
+
+    // before generating the signed url, check the object exists
+    let exists = false
+    const restoreLoc = await s3Client.headObject({
       Bucket: R.prop(2, s3Parts),
-      Key: R.prop(3, s3Parts),
-      Expires: 300 // 5 minutes
+      Key: R.prop(3, s3Parts)
     });
+    try {
+      await Promise.all([restoreLoc.promise()]).then(data => {
+        // the file exists
+      }).catch(err => {
+        if (err) throw err;
+      });
+      exists = true
+    } catch(err) {
+      exists = false
+    }
+    if (exists) {
+      return s3Client.getSignedUrl('getObject', {
+        Bucket: R.prop(2, s3Parts),
+        Key: R.prop(3, s3Parts),
+        Expires: 300 // 5 minutes
+      });
+    } else {
+      await query(
+        sqlClientPool,
+        Sql.deleteRestore({
+          backupId
+        })
+      );
+      return ""
+    }
   }
 
   return restoreLocation;

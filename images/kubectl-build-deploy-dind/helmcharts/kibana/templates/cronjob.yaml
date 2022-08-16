@@ -7,7 +7,7 @@ metadata:
   labels:
     {{- include "kibana.labels" $ | nindent 4 }}
   annotations:
-    {{- include "kibana.annotations" . | nindent 4 }}
+    {{- include "kibana.annotations" $ | nindent 4 }}
 spec:
   schedule: {{ $cronjobConfig.schedule | quote }}
   concurrencyPolicy: Forbid
@@ -82,4 +82,10 @@ spec:
               key: lagoon.sh/build
               operator: Exists
             {{- toYaml $.Values.tolerations | nindent 12 }}
+          dnsConfig:
+            options:
+              - name: timeout
+                value: "60"
+              - name: attempts
+                value: "10"
 {{- end }}

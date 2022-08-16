@@ -22,6 +22,6 @@ while IFS='/' read -ra VERSION; do # api groups and versions are separated by `/
     else
       CAPABILITIES+=("${API_GROUP}/${API_VERSION}/${RESOURCE}")
     fi
-  done < <(kubectl --insecure-skip-tls-verify api-resources --no-headers --cached  --namespaced=true --api-group="${API_GROUP}" | awk '{print $NF}' )
+  done < <(kubectl api-resources --no-headers --cached  --namespaced=true --api-group="${API_GROUP}" | awk '{print $NF}' )
 
-done < <(kubectl --insecure-skip-tls-verify api-versions)
+done < <(kubectl api-versions)

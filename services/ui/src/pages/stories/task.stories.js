@@ -11,7 +11,7 @@ export const Default = () => (
     router={{
       query: {
         openshiftProjectName: 'Example',
-        taskId: 42,
+        taskName: 'lagoon-task-abcdef',
       },
     }}
   />

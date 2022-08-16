@@ -19,35 +19,50 @@ nav:
   - Going Live: using-lagoon-the-basics/going-live.md
 - Docker Images:
   - Elasticsearch: docker-images/elasticsearch.md
-  - MariaDB: docker-images/mariadb/README.md
-  - MariaDB-Drupal: docker-images/mariadb/mariadb-drupal.md
+  - MariaDB: docker-images/mariadb.md
   - MongoDB: docker-images/mongodb.md
   - Node.js: docker-images/nodejs.md
-  - NGINX: docker-images/nginx/README.md
-  - NGINX-Drupal: docker-images/nginx/nginx-drupal.md
-  - PHP-CLI: docker-images/php-cli/README.md
-  - PHP-CLI-Drupal: docker-images/php-cli/php-cli-drupal.md
+  - NGINX: docker-images/nginx.md
+  - PHP-CLI: docker-images/php-cli.md
   - PHP-FPM: docker-images/php-fpm.md
+  - Python: docker-images/python.md
   - PostgreSQL: docker-images/postgres.md
   - RabbitMQ: docker-images/rabbitmq.md
-  - Solr: docker-images/solr/README.md
-  - Solr-Drupal: docker-images/solr/solr-drupal.md
+  - Ruby: docker-images/ruby.md
+  - Solr: docker-images/solr.md
   - Redis: docker-images/redis.md
-  - Varnish: docker-images/varnish/README.md
-  - Varnish-Drupal: docker-images/varnish/varnish-drupal.md
+  - Varnish: docker-images/varnish.md
 - Configuring Applications:
+  - Overview: applications/index.md
+  - Options: applications/options.md
   - Drupal:
-    - Services: drupal/services/README.md
-    - MariaDB: drupal/services/mariadb.md
-    - Redis: drupal/services/redis.md
-    - Solr: drupal/services/solr.md
-    - Varnish: drupal/services/varnish.md
+    - Overview: drupal/index.md
+    - Services:
+      - Overview: drupal/services/README.md
+      - MariaDB: drupal/services/mariadb.md
+      - NGINX: drupal/services/nginx.md
+      - PHP-cli: drupal/services/php-cli.md
+      - Redis: drupal/services/redis.md
+      - Solr: drupal/services/solr.md
+      - Varnish: drupal/services/varnish.md
     - Step by Step - Getting Drupal ready to run on Lagoon: drupal/step-by-step-getting-drupal-ready-to-run-on-lagoon.md
     - First Deployment of Drupal: drupal/first-deployment-of-drupal.md
     - Drush 9: drupal/drush-9.md
     - Subfolders: drupal/subfolders.md
     - Integrate Drupal & Fastly: drupal/integrate-drupal-and-fastly.md
     - PHPUnit and PhpStorm: drupal/phpunit-and-phpstorm.md
+  - WordPress:
+    - Overview: applications/wordpress.md
+  - Node.js-based:
+    - Overview: applications/node.md
+  - PHP-based:
+    - Overview: applications/php.md
+  - Python-based:
+    - Overview: applications/python.md
+  - Ruby-based:
+    - Overview: applications/ruby.md
+  - Other:
+    - Overview: applications/other.md
 - Understanding Logs:
   - Logging: logging/logging.md
   - Kibana Examples: logging/kibana-examples.md
@@ -70,19 +85,18 @@ nav:
   - Environment Idling: using-lagoon-advanced/environment-idling.md
   - Custom Tasks: using-lagoon-advanced/custom-tasks.md
   - DeployTarget Configs: using-lagoon-advanced/deploytarget-configs.md
-  - Blackfire: using-lagoon-advanced/blackfire.md  
+  - Blackfire: using-lagoon-advanced/blackfire.md
 - Installing Lagoon:
   - Requirements: installing-lagoon/requirements.md
-  - Install Lagoon Core: installing-lagoon/lagoon-core.md
-  - Install the Lagoon CLI: installing-lagoon/lagoon-cli.md
-  - Create Lagoon User: installing-lagoon/create-user.md
-  - Install Harbor: installing-lagoon/install-harbor.md
-  - Install Lagoon Remote: installing-lagoon/install-lagoon-remote.md
-  - Querying with GraphQL: installing-lagoon/querying-graphql.md
-  - Add a Project: installing-lagoon/add-project.md
-  - Add Deploy Key: installing-lagoon/add-deploy-key.md
-  - Deploy Your Project: installing-lagoon/deploy-project.md
   - EFS Provisioner: installing-lagoon/efs-provisioner.md
+  - Install Harbor: installing-lagoon/install-harbor.md
+  - Install Lagoon Core: installing-lagoon/lagoon-core.md
+  - Install Lagoon Remote: installing-lagoon/install-lagoon-remote.md
+  - Install the Lagoon CLI: installing-lagoon/lagoon-cli.md
+  - Querying with GraphQL: installing-lagoon/querying-graphql.md
+  - Create Lagoon User: installing-lagoon/create-user.md
+  - Add a Project: installing-lagoon/add-project.md
+  - Deploy Your Project: installing-lagoon/deploy-project.md
   - Add Group: installing-lagoon/add-group.md
   - Lagoon Logging: installing-lagoon/lagoon-logging.md
   - OpenDistro: installing-lagoon/opendistro.md
@@ -141,11 +155,14 @@ markdown_extensions:
   - toc:
       permalink: "#"
       baselevel: 1
+  - def_list
   - admonition
   - attr_list
   - tables
   - pymdownx.highlight
   - pymdownx.superfences
+  - pymdownx.tasklist:
+      custom_checkbox: true
 
 plugins:
   - search
@@ -172,23 +189,23 @@ plugins:
         'lagoon/contributing-to-lagoon/developing-lagoon.md': 'contributing-to-lagoon/developing-lagoon.md'
         'lagoon/contributing-to-lagoon/tests.md': 'contributing-to-lagoon/tests.md'
         'lagoon/docker-images/elasticsearch.md': 'docker-images/elasticsearch.md'
-        'lagoon/docker-images/mariadb/mariadb-drupal.md': 'docker-images/mariadb/mariadb-drupal.md'
-        'lagoon/docker-images/mariadb/README.md': 'docker-images/mariadb/README.md'
+        'lagoon/docker-images/mariadb/mariadb-drupal.md': 'drupal/services/mariadb.md'
+        'lagoon/docker-images/mariadb/README.md': 'docker-images/mariadb.md'
         'lagoon/docker-images/mongodb.md': 'docker-images/mongodb.md'
-        'lagoon/docker-images/nginx/nginx-drupal.md': 'docker-images/nginx/nginx-drupal.md'
-        'lagoon/docker-images/nginx/README.md': 'docker-images/nginx/README.md'
+        'lagoon/docker-images/nginx/nginx-drupal.md': 'drupal/services/nginx.md'
+        'lagoon/docker-images/nginx/README.md': 'docker-images/nginx.md'
         'lagoon/docker-images/nodejs.md': 'docker-images/nodejs.md'
-        'lagoon/docker-images/php-cli/php-cli-drupal.md': 'docker-images/php-cli/php-cli-drupal.md'
-        'lagoon/docker-images/php-cli/README.md': 'docker-images/php-cli/README.md'
+        'lagoon/docker-images/php-cli/php-cli-drupal.md': 'drupal/services/php-cli.md'
+        'lagoon/docker-images/php-cli/README.md': 'docker-images/php-cli.md'
         'lagoon/docker-images/php-fpm.md': 'docker-images/php-fpm.md'
         'lagoon/docker-images/postgres.md': 'docker-images/postgres.md'
         'lagoon/docker-images/rabbitmq.md': 'docker-images/rabbitmq.md'
         'lagoon/docker-images/redis/README.md': 'docker-images/redis.md'
         'lagoon/docker-images/redis/redis-persistent.md': 'docker-images/redis.md'
-        'lagoon/docker-images/solr/README.md': 'docker-images/solr/README.md'
-        'lagoon/docker-images/solr/solr-drupal.md': 'docker-images/solr/solr-drupal.md'
-        'lagoon/docker-images/varnish/README.md': 'docker-images/varnish/README.md'
-        'lagoon/docker-images/varnish/varnish-drupal.md': 'docker-images/varnish/varnish-drupal.md'
+        'lagoon/docker-images/solr/README.md': 'docker-images/solr.md'
+        'lagoon/docker-images/solr/solr-drupal.md': 'drupal/services/solr.md'
+        'lagoon/docker-images/varnish/README.md': 'docker-images/varnish.md'
+        'lagoon/docker-images/varnish/varnish-drupal.md': 'drupal/services/varnish.md'
         'lagoon/drupal/drush-9.md': 'drupal/drush-9.md'
         'lagoon/drupal/first-deployment-of-drupal.md': 'drupal/first-deployment-of-drupal.md'
         'lagoon/drupal/integrate-drupal-and-fastly.md': 'drupal/integrate-drupal-and-fastly.md'
@@ -233,3 +250,8 @@ plugins:
         'lagoon/using-lagoon-the-basics/lagoon-yml.md': 'using-lagoon-the-basics/lagoon-yml.md'
         'lagoon/using-lagoon-the-basics/local-development-environments.md': 'using-lagoon-the-basics/local-development-environments.md'
         'lagoon/using-lagoon-the-basics/setup_project.md': 'using-lagoon-the-basics/setup-project.md'
+        'docker-images/mariadb/mariadb-drupal.md': 'drupal/services/mariadb.md'
+        'docker-images/nginx/nginx-drupal.md': 'drupal/services/nginx.md'
+        'docker-images/php-cli/php-cli-drupal.md': 'drupal/services/php-cli.md'
+        'docker-images/solr/solr-drupal.md': 'drupal/services/solr.md'
+        'docker-images/varnish/varnish-drupal.md': 'drupal/services/varnish.md'

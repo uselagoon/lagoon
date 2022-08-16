@@ -1095,6 +1095,39 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
+  update_unique_environment_fact()
+
+  BEGIN
+    IF EXISTS(
+      SELECT null FROM INFORMATION_SCHEMA.STATISTICS WHERE
+      TABLE_NAME = 'environment_fact' and INDEX_NAME = 'environment'
+    ) THEN
+        ALTER TABLE `environment_fact`
+        DROP INDEX `environment`;
+        ALTER TABLE `environment_fact` ADD CONSTRAINT environment_fact_unique UNIQUE(environment, name, source);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_service_to_environment_fact()
+
+  BEGIN
+    IF NOT EXISTS(
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'environment_fact'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'service'
+    ) THEN
+        ALTER TABLE `environment_fact`
+        ADD `service` varchar(300) NULL;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
   update_user_password()
 
   BEGIN
@@ -1322,6 +1355,20 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
+  change_name_index_for_advanced_task_argument()
+  BEGIN
+    IF EXISTS(
+      SELECT null FROM INFORMATION_SCHEMA.STATISTICS WHERE
+      TABLE_NAME = 'advanced_task_definition_argument' and INDEX_NAME = 'name'
+    ) THEN
+        ALTER TABLE `advanced_task_definition_argument`
+        DROP INDEX `name`;
+        ALTER TABLE `advanced_task_definition_argument` ADD CONSTRAINT advanced_task_definition_argument_unique UNIQUE(advanced_task_definition, name);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
   add_openshift_to_environment()
 
   BEGIN
@@ -1529,6 +1576,149 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  add_confirmation_text_to_advanced_task_def()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'advanced_task_definition'
+        AND column_name = 'confirmation_text'
+    ) THEN
+      ALTER TABLE `advanced_task_definition`
+      ADD `confirmation_text` varchar(2000) NULL;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_display_name_to_advanced_task_argument()
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'advanced_task_definition_argument'
+        AND column_name = 'display_name'
+    ) THEN
+      ALTER TABLE `advanced_task_definition_argument`
+      ADD `display_name` varchar(500) NULL;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_ecdsa_ssh_key_types()
+
+  BEGIN
+    DECLARE column_type_argument_type varchar(100);
+
+    SELECT COLUMN_TYPE INTO column_type_argument_type
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      table_name = 'ssh_key'
+      AND table_schema = 'infrastructure'
+      AND column_name = 'key_type';
+
+    IF (
+      column_type_argument_type = "enum('ssh-rsa','ssh-ed25519')"
+    ) THEN
+      ALTER TABLE ssh_key
+      MODIFY key_type ENUM('ssh-rsa', 'ssh-ed25519','ecdsa-sha2-nistp256','ecdsa-sha2-nistp384','ecdsa-sha2-nistp521') NOT NULL DEFAULT 'ssh-rsa';
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_task_name_to_tasks()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'task'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'task_name'
+    ) THEN
+      ALTER TABLE `task`
+      ADD `task_name` varchar(100) NULL;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_new_task_status_types()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'task'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'status'
+        AND column_type like '%''cancelled%'
+    ) THEN
+      ALTER TABLE `task`
+      MODIFY status ENUM('new', 'pending', 'running', 'cancelled', 'error', 'failed', 'complete', 'active', 'succeeded') NOT NULL;
+    END IF;
+  END;
+$$
+
+-- update any active or succeeded statuses to be running or complete
+CREATE OR REPLACE PROCEDURE
+  update_active_succeeded_tasks()
+
+  BEGIN
+    UPDATE task t
+    SET
+      t.status = 'running'
+    WHERE
+      t.task_name = 'active';
+    UPDATE task t
+    SET
+      t.status = 'complete'
+    WHERE
+      t.task_name = 'succeeded';
+  END;
+$$
+
+-- generate a taskname for tasks missing one
+CREATE OR REPLACE PROCEDURE
+  update_missing_tasknames()
+
+  BEGIN
+    UPDATE task t
+    SET
+      t.task_name = CONCAT('lagoon-task-', (SELECT LEFT(UUID(), 6)))
+    WHERE
+      t.task_name IS NULL;
+  END;
+$$
+
+-- TODO: Eventually the `active/succeeded` values should go away once `remote-controller` is updated to send the correct values
+-- CREATE OR REPLACE PROCEDURE
+--   remove_active_succeeded_task_types()
+
+--   BEGIN
+--     IF NOT EXISTS (
+--       SELECT NULL
+--       FROM INFORMATION_SCHEMA.COLUMNS
+--       WHERE
+--         table_name = 'task'
+--         AND table_schema = 'infrastructure'
+--         AND column_name = 'status'
+--         AND column_type like '%''cancelled%'
+--     ) THEN
+--       ALTER TABLE `task`
+--       MODIFY status ENUM('new', 'pending', 'running', 'cancelled', 'error', 'failed', 'complete') NOT NULL;
+--     END IF;
+--   END;
+-- $$
+
 DELIMITER ;
 
 -- If adding new procedures, add them to the bottom of this list
@@ -1585,6 +1775,8 @@ CALL add_fact_source_and_description_to_environment_fact();
 CALL add_fact_type_to_environment_fact();
 CALL add_fact_category_to_environment_fact();
 CALL add_fact_key_to_environment_fact();
+CALL update_unique_environment_fact();
+CALL add_service_to_environment_fact();
 CALL add_metadata_to_project();
 CALL add_content_type_to_project_notification();
 CALL convert_project_production_routes_to_text();
@@ -1607,6 +1799,14 @@ CALL add_development_build_priority_to_project();
 CALL add_priority_to_deployment();
 CALL add_bulk_id_to_deployment();
 CALL drop_legacy_permissions();
+CALL change_name_index_for_advanced_task_argument();
+CALL add_confirmation_text_to_advanced_task_def();
+CALL add_display_name_to_advanced_task_argument();
+CALL add_ecdsa_ssh_key_types();
+CALL add_task_name_to_tasks();
+CALL add_new_task_status_types();
+CALL update_active_succeeded_tasks();
+CALL update_missing_tasknames();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;

@@ -4,21 +4,15 @@
 
 Direct API interactions in Lagoon are done via [GraphQL](graphql-queries.md).
 
-In order to authenticate with the API, we need a JWT \(JSON Web Token\) that allows us to use the GraphQL API as admin. To generate this token, open the terminal of the `auto-idler` pod via the OpenShift UI and run the following command:
+In order to authenticate with the API, we need a JWT \(JSON Web Token\) that allows us to use the GraphQL API as admin. To generate this token, open the terminal of the `storage-calculator` pod via your Kubernetes UI, or via kubectl and run the following command:
 
 ```bash
 ./create_jwt.sh
 ```
 
-This can also be done with the `oc` command:
-
-```bash
-oc -n lagoon-main rsh dc/auto-idler ./create_jwt.sh
-```
-
 This will return a long string which is the JWT token. Make a note of this, as we will need it to send queries.
 
-We also need the URL of the API endpoint, which can be found under "Routes" in the OpenShift UI or `oc get route api` on the command line. Make a note of this endpoint URL, which we will also need.
+We also need the URL of the API endpoint, which can be found under "Ingresses" in your Kubernetes UI or via kubectl on the command line. Make a note of this endpoint URL, which we will also need.
 
 To compose and send GraphQL queries, we recommend [GraphiQL.app](https://github.com/skevy/graphiql-app), a desktop GraphQL client with features such as autocomplete. To continue with the next steps, install and start the app.
 
@@ -49,11 +43,11 @@ If all went well, your first GraphQL response should appear shortly afterwards i
 
 ## Creating the first project
 
-Let's create the first project for Lagoon to deploy! For this we'll use the queries from the GraphQL query template in [`create-project.gql`](https://github.com/uselagoon/lagoon/blob/main/docs/administering-lagoon/create-project.gql).
+Let's create the first project for Lagoon to deploy! For this we'll use the queries from the GraphQL query template in [`create-project.gql`](../administering-lagoon/create-project.gql).
 
 For each of the queries \(the blocks starting with `mutation {`\), fill in all of the empty fields marked by TODO comments and run the queries in GraphiQL.app. This will create one of each of the following two objects:
 
-1. `openshift` : The OpenShift or Kubernetes cluster to which Lagoon should deploy. Lagoon is not only capable of deploying to its own Kubernetes cluster, but also to any Kubernetes cluster anywhere in the world.
+1. `kubernetes` : The Kubernetes (or Openshift) cluster to which Lagoon should deploy. Lagoon is not only capable of deploying to its own Kubernetes cluster, but also to any Kubernetes cluster anywhere in the world.
 2. `project` : The Lagoon project to be deployed, which is a Git repository with a `.lagoon.yml` configuration file committed in the root.
 
 ## Allowing access to the project
@@ -111,7 +105,7 @@ mutation {
       # This is the actual SSH public key (without the type at the beginning and without the comment at the end, ex. `AAAAB3NzaC1yc2EAAAADAQ...3QjzIOtdQERGZuMsi0p`).
       keyValue: ""
       # TODO: Fill in the keyType field.
-      # Valid values are either SSH_RSA or SSH_ED25519.
+      # Valid values are either SSH_RSA, SSH_ED25519, ECDSA_SHA2_NISTP256/384/521
       keyType: SSH_RSA
       user: {
         # TODO: Fill in the userId field.
@@ -217,25 +211,25 @@ Now for every deployment you will receive messages in your defined channel.
 
 ## Example GraphQL queries
 
-### Adding a new OpenShift target
+### Adding a new Kubernetes target
 
 !!! Note "Note:"
-    In Lagoon 1.x `addOpenshift` is used for both OpenShift and Kubernetes targets. In Lagoon 2.x this will change.
+    In Lagoon, both `addKubernetes` and `addOpenshift` can be used for both Kubernetes and OpenShift targets - either will work interchangeably.
 
-The OpenShift cluster to which Lagoon should deploy. Lagoon is not only capable of deploying to its own OpenShift, but also to any OpenShift anywhere in the world.
+The cluster to which Lagoon should deploy.
 
 ```graphql
 mutation {
-  addOpenshift(
+  addKubernetes(
     input: {
       # TODO: Fill in the name field.
-      # This is the unique identifier of the OpenShift.
+      # This is the unique identifier of the cluster.
       name: ""
       # TODO: Fill in consoleUrl field.
-      # This is the URL of the OpenShift console (without any `/console` suffix).
+      # This is the URL of the Kubernetes cluster
       consoleUrl: ""
       # TODO: Fill in the token field.
-      # This is the token of the `lagoon` service account created in this OpenShift (this is the same token that we also used during installation of Lagoon).
+      # This is the token of the `lagoon` service account created in this cluster (this is the same token that we also used during installation of Lagoon).
       token: ""
     }
   ) {
@@ -286,9 +280,9 @@ mutation {
       # TODO: Fill in the private key field (replace newlines with '\n').
       # This is the private key for a project, which is used to access the Git code.
       privateKey: ""
-      # TODO: Fill in the OpenShift field.
-      # This is the id of the OpenShift or Kubernetes to assign to the project.
-      openshift: 0
+      # TODO: Fill in the Kubernetes field.
+      # This is the id of the Kubernetes or Openshift to assign to the project.
+      kubernetes: 0
       # TODO: Fill in the name field.
       # This is the project name.
       gitUrl: ""
@@ -299,7 +293,7 @@ mutation {
     }
   ) {
     name
-    openshift {
+    kubernetes {
       name
       id
     }
@@ -314,7 +308,7 @@ mutation {
 
 ### List projects and groups
 
-This is a good query to see an overview of all projects, OpenShifts and groups that exist within our Lagoon.
+This is a good query to see an overview of all projects, clusters and groups that exist within our Lagoon.
 
 ```graphql
 query {
@@ -322,7 +316,7 @@ query {
     name
     gitUrl
   }
-  allOpenshifts {
+  allKubernetes {
     name
     id
   }
@@ -374,7 +368,7 @@ query {
       deployType
       environmentType
     }
-    openshift {
+    kubernetes {
       id
     }
   }
@@ -477,7 +471,7 @@ query search{
     productionEnvironment,
     pullrequests,
     gitUrl,
-    openshift {
+    kubernetes {
       id
     },
      groups{

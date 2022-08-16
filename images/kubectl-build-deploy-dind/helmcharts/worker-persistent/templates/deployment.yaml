@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "worker-persistent.fullname" . }}
+  labels:
+    {{- include "worker-persistent.labels" . | nindent 4 }}
+  annotations:
+    {{- include "worker-persistent.annotations" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "worker-persistent.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "worker-persistent.labels" . | nindent 8 }}
+        {{- include "worker-persistent.datadogLabels" . | nindent 8 }}
+      annotations:
+        {{- include "worker-persistent.annotations" . | nindent 8 }}
+        lagoon.sh/configMapSha: {{ .Values.configMapSha | quote }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      volumes:
+        - name: {{ .Values.persistentStorage.name }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistentStorage.name }}
+        - name: {{ include "worker-persistent.twig-storage.name" . | quote }}
+          emptyDir: {}
+      priorityClassName: {{ include "worker-persistent.lagoonPriority" . }}
+      enableServiceLinks: false
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - image: {{ .Values.image | quote }}
+          name: {{ include "worker-persistent.fullname" . }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          env:
+            - name: CRONJOBS
+              value: {{ .Values.inPodCronjobs | quote }}
+            ## LAGOON_GIT_SHA is injected directly and not loaded via `lagoon-env` config
+            ## This will cause the pod to redeploy on every deployment, even the files have not changed
+            - name: LAGOON_GIT_SHA
+              value: {{ .Values.gitSha | quote }}
+            - name: SERVICE_NAME
+              value: {{ .Release.Name | quote }}
+          envFrom:
+            - configMapRef:
+                name: lagoon-env
+          volumeMounts:
+            - name: {{ .Values.persistentStorage.name }}
+              mountPath: {{ .Values.persistentStorage.path | quote }}
+            - name: {{ include "worker-persistent.twig-storage.name" . | quote }}
+              mountPath: {{ include "worker-persistent.twig-storage.path" . | quote }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          readinessProbe:
+            initialDelaySeconds: 5
+            periodSeconds: 2
+            failureThreshold: 3
+            exec:
+              command:
+              - "/bin/sh"
+              - "-c"
+              - >
+                if [ -x /bin/entrypoint-readiness ]; then
+                  /bin/entrypoint-readiness;
+                fi
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

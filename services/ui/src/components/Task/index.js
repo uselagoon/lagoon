@@ -9,7 +9,6 @@ import { bp } from 'lib/variables';
 const Task = ({ task }) => (
   <div className="task">
     <div className="details">
-      <h3>{task.name}</h3>
       <div className="field-wrapper created">
         <div>
           <label>Created</label>
@@ -138,13 +137,43 @@ const Task = ({ task }) => (
               }
             }
 
+            &.new {
+              &::before {
+                background-image: url('/static/images/in-progress.svg');
+              }
+            }
+
+            &.pending {
+              &::before {
+                background-image: url('/static/images/in-progress.svg');
+              }
+            }
+
+            &.running {
+              &::before {
+                background-image: url('/static/images/in-progress.svg');
+              }
+            }
+
             &.failed {
               &::before {
                 background-image: url('/static/images/failed.svg');
               }
             }
 
+            &.cancelled {
+              &::before {
+                background-image: url('/static/images/failed.svg');
+              }
+            }
+
             &.succeeded {
+              &::before {
+                background-image: url('/static/images/successful.svg');
+              }
+            }
+
+            &.complete {
               &::before {
                 background-image: url('/static/images/successful.svg');
               }

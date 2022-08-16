@@ -43,7 +43,7 @@ environments:
 
 ### Redirects
 
-If you need non-www to www redirects, make sure you have them set up in the `redirects-map.conf` - [see Documentation](../docker-images/nginx/#redirects-mapconf).
+If you need non-www to www redirects, make sure you have them set up in the `redirects-map.conf` - [see Documentation](../../docker-images/nginx/#redirects-mapconf).
 
 ### Cron jobs
 
@@ -57,13 +57,20 @@ To make it as smooth as possible for you to get your site pointing to our server
 
 Before you switch over your domain to Lagoon, make sure you lower the Time-to-Live \(TTL\) before you go live. This will ensure that the switch from the old to the new servers will go quickly. We usually advise a TTL of 300-600 seconds prior to the DNS switch. [More information about TTL](https://en.wikipedia.org/wiki/Time_to_live#DNS_records).
 
-### Recommended settings for Fastly:
+### Recommended settings for Fastly (CNAME record):
+
+The recommended method of pointing your domain's DNS records at Lagoon is via a CNAME record as shown below:
 <!-- markdown-link-check-disable-next-line -->
-CNAME: [cdn.amazee.io](http://cdn.amazee.io/)
-A 151.101.2.191
-A 151.101.66.191
-A 151.101.130.191
-A 151.101.194.191
+`CNAME`: `cdn.amazee.io`
+
+### Alternate Settings for Fastly (A records):
+
+If your DNS provider does not support the use of CNAME records, you can use these A records instead. Please ensure you set up individual records for each IP listed below:
+
+`A`: `151.101.2.191`
+`A`: `151.101.66.191`
+`A`: `151.101.130.191`
+`A`: `151.101.194.191`
 
 !!! Note "Note:"
     We do not suggest configuring any static IP addresses in your DNS zones. The Lagoon load balancer infrastructure may change over time which can have impact on your site availability if you configure a static IP address.

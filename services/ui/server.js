@@ -87,7 +87,7 @@ app
       (req, res) => {
         app.render(req, res, '/task', {
           openshiftProjectName: req.params.environmentSlug,
-          taskId: req.params.taskSlug
+          taskName: req.params.taskSlug
         });
       }
     );

@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS ssh_key (
   id               int NOT NULL auto_increment PRIMARY KEY,
   name             varchar(100) NOT NULL,
   key_value        varchar(5000) NOT NULL,
-  key_type         ENUM('ssh-rsa', 'ssh-ed25519') NOT NULL DEFAULT 'ssh-rsa',
+  key_type         ENUM('ssh-rsa', 'ssh-ed25519','ecdsa-sha2-nistp256','ecdsa-sha2-nistp384','ecdsa-sha2-nistp521') NOT NULL DEFAULT 'ssh-rsa',
   key_fingerprint  char(51) NULL UNIQUE,
   created          timestamp DEFAULT CURRENT_TIMESTAMP
 );
@@ -194,11 +194,12 @@ CREATE TABLE IF NOT EXISTS environment_service (
 CREATE TABLE IF NOT EXISTS task (
   id                        int NOT NULL auto_increment PRIMARY KEY,
   name                      varchar(100) NOT NULL,
+  task_name                 varchar(100) NULL,
   -- environment               int NOT NULL REFERENCES environment (id),
   environment               int(11) NOT NULL,
   service                   varchar(100) NOT NULL,
   command                   varchar(300) NOT NULL,
-  status                    ENUM('active', 'succeeded', 'failed') NOT NULL,
+  status                    ENUM('new', 'pending', 'running', 'cancelled', 'error', 'failed', 'complete', 'active', 'succeeded') NOT NULL,
   created                   datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   started                   datetime NULL,
   completed                 datetime NULL,
@@ -277,6 +278,7 @@ CREATE TABLE IF NOT EXISTS task_file (
 CREATE TABLE IF NOT EXISTS environment_fact (
   id                       int NOT NULL auto_increment PRIMARY KEY,
   -- environment              int REFERENCES environment (id),
+  service                  varchar(300) NULL,
   environment              int,
   name                     varchar(300) NOT NULL,
   value                    varchar(300) NOT NULL,
@@ -286,7 +288,7 @@ CREATE TABLE IF NOT EXISTS environment_fact (
   created                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   category                 TEXT NULL    DEFAULT '',
   key_fact                 TINYINT(1) NOT NULL DEFAULT(0),
-  UNIQUE(environment, name)
+  CONSTRAINT environment_fact UNIQUE(environment, name, source)
 );
 
 CREATE TABLE IF NOT EXISTS environment_fact_reference (
@@ -311,6 +313,7 @@ CREATE TABLE IF NOT EXISTS advanced_task_definition (
   group_name               varchar(2000) NULL,
   permission               ENUM('GUEST', 'DEVELOPER', 'MAINTAINER') DEFAULT 'GUEST',
   command                  text DEFAULT '',
+  confirmation_text        varchar(2000) NULL,
   created                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   deleted                  timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   UNIQUE(name, environment, project, group_name)
@@ -321,6 +324,7 @@ CREATE TABLE IF NOT EXISTS advanced_task_definition_argument (
   -- advanced_task_definition          int REFERENCES advanced_task_definition(id),
   advanced_task_definition          int,
   name                              varchar(300) NOT NULL UNIQUE,
+  display_name                      varchar(500) NULL,
   type                              ENUM('NUMERIC', 'STRING', 'ENVIRONMENT_SOURCE_NAME')
 );
 
@@ -328,4 +332,15 @@ CREATE TABLE IF NOT EXISTS notification_webhook (
   id          int NOT NULL auto_increment PRIMARY KEY,
   name        varchar(50) UNIQUE,
   webhook     varchar(2000)
+);
+
+
+CREATE TABLE IF NOT EXISTS workflow (
+  id                       int NOT NULL auto_increment PRIMARY KEY,
+  name                     varchar(50) NOT NULL,
+  event                    varchar(300) NOT NULL,
+  project                  int NOT NULL REFERENCES project(id),
+  advanced_task_definition int NOT NULL REFERENCES advanced_task_definition(id),
+  created                  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  deleted                  timestamp NOT NULL DEFAULT '0000-00-00 00:00:00'
 );

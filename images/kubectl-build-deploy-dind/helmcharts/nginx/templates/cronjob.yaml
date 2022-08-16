@@ -7,7 +7,7 @@ metadata:
   labels:
     {{- include "nginx.labels" $ | nindent 4 }}
   annotations:
-    {{- include "nginx.annotations" . | nindent 4 }}
+    {{- include "nginx.annotations" $ | nindent 4 }}
 spec:
   schedule: {{ $cronjobConfig.schedule | quote }}
   concurrencyPolicy: Forbid
@@ -78,4 +78,10 @@ spec:
           tolerations:
             {{- toYaml $ | nindent 12 }}
         {{- end }}
+          dnsConfig:
+            options:
+              - name: timeout
+                value: "60"
+              - name: attempts
+                value: "10"
 {{- end }}

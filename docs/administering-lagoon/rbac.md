@@ -54,7 +54,7 @@ Here is a table that lists the roles and the access they have:
 | deleteAllBackups | backup | deleteAll |  | Yes | No | No | No | No | No | No |  |
 | getBackupsByEnvironmentId | backup | view | projectID | Yes | Yes | Yes | Yes | Yes | No | No |  |
 |  | deployment | view | projectID | Yes | Yes | Yes | Yes | Yes | Yes | Yes |  |
-| addEnvVariable \(to Project\) | env\_var | project:add | projectID | Yes | Yes | Yes | No | No | No | No |  |
+| addEnvVariable \(to Project\) | env\_var | project:add | projectID | Yes | Yes | Yes | Yes | No | No | No |  |
 | addEnvVariable \(to Environment\) | env\_var | environment:add:development | projectID | Yes | Yes | Yes | Yes | Yes | No | No |  |
 | addEnvVariable \(to Environment\) | env\_var | environment:add:production | projectID | Yes | Yes | Yes | Yes | No | No | No |  |
 | deleteEnvVariable | env\_var | delete | projectID | Yes | Yes | Yes | Yes | No | No | No |  |
@@ -104,10 +104,10 @@ Here is a table that lists the roles and the access they have:
 | deleteAllNotificationRocketChats | notification | deleteAll |  | Yes | No | No | No | No | No | No |  |
 | removeAllNotificationsFromAllProjects | notification | removeAll |  | Yes | No | No | No | No | No | No |  |
 | getNotificationsByProjectId | notification | view | projectID | Yes | Yes | Yes | Yes | Yes | No | No |  |
-| addOpenshift | openshift | add |  | Yes | Yes | No | No | No | No | No |  |
-| updateOpenshift | openshift | update |  | Yes | Yes | No | No | No | No | No |  |
-| deleteOpenshift | openshift | delete |  | Yes | Yes | No | No | No | No | No |  |
-| deleteAllOpenshifts | openshift | deleteAll |  | Yes | Yes | No | No | No | No | No |  |
+| addKubernetes | kubernetes | add |  | Yes | Yes | No | No | No | No | No |  |
+| updateKubernetes | kubernetes | update |  | Yes | Yes | No | No | No | No | No |  |
+| deleteKubernetes | kubernetes | delete |  | Yes | Yes | No | No | No | No | No |  |
+| deleteAllKubernetes| kubernetes | deleteAll |  | Yes | Yes | No | No | No | No | No |  |
 | getAllOpenshifts | openshift | viewAll |  | Yes | No | No | No | No | No | No |  |
 | getOpenshiftByProjectId | openshift | view | projectID | Yes | Yes | Yes | Yes | Yes | Yes | Yes |  |
 | addNotificationToProject | project | addNotification | projectID | Yes | Yes | Yes | Yes | No | No | No |  |

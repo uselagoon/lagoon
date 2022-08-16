@@ -568,6 +568,17 @@ export const getControllerBuildData = async function(deployData: any) {
   // this way variables or new functionality can be passed into lagoon builds using the existing variables mechanism
   // avoiding the needs to hardcode them into the spec to then be consumed by the build-deploy controller
   lagoonProjectData.envVariables.push({"name":"LAGOON_SYSTEM_ROUTER_PATTERN", "value":routerPattern, "scope":"internal_system"})
+  if (bulkId != "") {
+    // if this is a bulk deploy, add the associated bulk deploy build scope variables
+    lagoonProjectData.envVariables.push({"name":"LAGOON_BULK_DEPLOY", "value":"true", "scope":"build"})
+    lagoonProjectData.envVariables.push({"name":"LAGOON_BULK_DEPLOY_ID", "value":bulkId, "scope":"build"})
+  }
+  if (bulkName != "") {
+    lagoonProjectData.envVariables.push({"name":"LAGOON_BULK_DEPLOY_NAME", "value":bulkName, "scope":"build"})
+  }
+  if (buildPriority != null) {
+    lagoonProjectData.envVariables.push({"name":"LAGOON_BUILD_PRIORITY", "value":buildPriority.toString(), "scope":"build"})
+  }
 
   let lagoonEnvironmentVariables = environment.addOrUpdateEnvironment.envVariables || []
   if (buildVariables != null ) {
@@ -729,7 +740,12 @@ export const createDeployTask = async function(deployData: any) {
           project,
           deployData
         }
-        return deployTargetBranches(lagoonData)
+        try {
+          let result = deployTargetBranches(lagoonData)
+          return result
+        } catch (error) {
+          throw error
+        }
       } else if (type === 'pullrequest') {
         // use deployTargetPullrequest function to handle
         let lagoonData = {
@@ -740,7 +756,12 @@ export const createDeployTask = async function(deployData: any) {
           pullrequestTitle,
           deployData
         }
-        return deployTargetPullrequest(lagoonData)
+        try {
+          let result = deployTargetPullrequest(lagoonData)
+          return result
+        } catch (error) {
+          throw error
+        }
       }
       break;
     default:
@@ -1161,11 +1182,8 @@ export const createMiscTask = async function(taskData: any) {
           } else if (overwriteActiveStandbyTaskImage) {
             // allow to overwrite the image we use via OVERWRITE_ACTIVESTANDBY_TASK_IMAGE env variable
             taskImage = overwriteActiveStandbyTaskImage
-          } else if (lagoonEnvironmentType == 'production') {
-            taskImage = `amazeeio/task-activestandby:${lagoonVersion}`
           } else {
-            // we are a development enviornment, use the amazeeiolagoon image with the same branch name
-            taskImage = `amazeeiolagoon/task-activestandby:${lagoonGitSafeBranch}`
+            taskImage = `uselagoon/task-activestandby:${lagoonVersion}`
           }
           miscTaskData.advancedTask.runnerImage = taskImage
           // miscTaskData.advancedTask.runnerImage = "shreddedbacon/runner:latest"

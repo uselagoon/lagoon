@@ -52,6 +52,7 @@ const withOptions = withProps(({ pageEnvironment }) => {
       label: label,
       value: 'InvokeRegisteredTask',
       arguments: task.advancedTaskDefinitionArguments,
+      confirmationText: task.confirmationText,
     }
   });
   options = [...options, ...advancedTasks];
