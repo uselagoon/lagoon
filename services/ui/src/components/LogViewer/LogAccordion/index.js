@@ -61,6 +61,15 @@ const LogAccordion = ({ children, defaultValue = false, header, className = "", 
                     padding: 0;
                   }
                 }
+                .data-row.log-error-state {
+                  .accordion-heading {
+                    .log-header {
+                      ::before {
+                        background-color: red;
+                      }
+                    }
+                  }
+                }
             `}</style>
             <style jsx global>{`
                 .log-text {

@@ -69,7 +69,7 @@ const Deployment = ({ deployment }) => (
         <CancelDeployment deployment={deployment} />
       )}
     </div>
-    <LogViewer logs={deployment.buildLog} />
+    <LogViewer logs={deployment.buildLog} status={deployment.status} />
     <style jsx>{`
       .button-row {
         padding: 0px calc(100vw / 16) 20px;

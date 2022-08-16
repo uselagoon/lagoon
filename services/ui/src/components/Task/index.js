@@ -49,7 +49,7 @@ const Task = ({ task }) => (
           </div>
         </div>}
     </div>
-    <LogViewer logs={task.logs} />
+    <LogViewer logs={task.logs} status={task.status} />
     <style jsx>{`
       .details {
         padding: 104px calc(100vw / 16) 20px;

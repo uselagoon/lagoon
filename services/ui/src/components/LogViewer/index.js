@@ -2,10 +2,10 @@ import React from 'react';
 import { bp } from 'lib/variables';
 import LogAccordion from 'components/LogViewer/LogAccordion';
 
-const LogViewer = ({ logs }) => (
+const LogViewer = ({ logs, status = "NA" }) => (
   <React.Fragment>
     <div className="logs">
-      <div className="log-viewer">{logPreprocessor(logs) || 'Logs are not available.'}</div>
+      <div className="log-viewer">{ logs !== null ? logPreprocessor(logs, status) : 'Logs are not available.'}</div>
     </div>
     <style jsx>{`
       .logs {
@@ -27,25 +27,37 @@ const LogViewer = ({ logs }) => (
         }
       }
     `}</style>
-    {/* <style jsx global>{`
-        .accordion-heading {
-          color: black;
-          border-color: lightgrey !important;
-        }
-        .log-text {
-          padding: 30px;
-        }
-    `}</style> */}
   </React.Fragment>
 );
 
 
-const logPreprocessor = (logs) => {
+const shouldLastSectionBeOpen = (status) => {
+  const openstates = ["RUNNING", "ERROR", "FAILED"];
+  return openstates.includes(status.toUpperCase());
+}
+
+const isLogStateBad = (status) => {
+  const badstates = ["ERROR", "FAILED"];
+  return badstates.includes(status.toUpperCase());
+}
+
+/**
+ *
+ * @param {*} logs the actual logs we're processing
+ * @param {*} status a status for the build - if not complete, we open the very last item
+ * @returns
+ */
+const logPreprocessor = (logs, status) => {
   let ret = null;
+  console.log(logs);
+  console.log(status);
+  let statusBad = isLogStateBad(status);
+  let openLastSection = shouldLastSectionBeOpen(status);
+
   try {
     let tokens = logPreprocessorTokenize(logs);
     let AST = logPreprocessorProcessParse(tokens);
-    return logPreprocessorProcessASTToReact(AST);
+    return logPreprocessorProcessASTToReact(AST, openLastSection, statusBad );
   } catch (e) {
     // if there are any errors parsing and transforming, we just return the logs as is.
     console.log("Error processing logs for display: " + e);
@@ -54,13 +66,17 @@ const logPreprocessor = (logs) => {
 }
 
 
-const logPreprocessorRenderLogNode = (node) => {
+const logPreprocessorRenderLogNode = (node, visible = false, errorState = false) => {
   if (node.type === "log-text") {
     return <div key={node.key} className="log-text">{node.text}</div>;
   }
   if (node.type === "section") {
+    let classes = ["data-row","row-heading"];
+    if (errorState) {
+      classes.push("log-error-state");
+    }
     return (
-      <LogAccordion key={node.key} minified={true} header={node.details} className="data-row row-heading">
+      <LogAccordion key={node.key} minified={true} header={node.details} className={classes.join(" ")} defaultValue={visible}>
         <div key={node.key + "section"} className="section-details">
           {node.nodes.map((element) => {
             return logPreprocessorRenderLogNode(element);
@@ -72,14 +88,18 @@ const logPreprocessorRenderLogNode = (node) => {
   return <div></div>;
 };
 
-const logPreprocessorProcessASTToReact = (ast) => {
+const logPreprocessorProcessASTToReact = (ast, lastOpen, errorState) => {
   if(ast.type != "root") {
     throw "Expecting root node to be of type 'root'";
   }
-
+  let lastElement = ast.nodes.length - 1;
   return (<div className="processed-logs">
-  {ast.nodes.map((element) => {
-    return logPreprocessorRenderLogNode(element);
+  {ast.nodes.map((element, i) => {
+    if (i != lastElement) {
+      return logPreprocessorRenderLogNode(element);
+    } else {
+      return logPreprocessorRenderLogNode(element, lastOpen, errorState);
+    }
   })}
   </div>);
 }
@@ -109,9 +129,13 @@ const logPreprocessorProcessParse = (tokens) => {
   return root;
 }
 
+// ##############################################
+// STEP Route/Ingress Configuration: Completed at 2022-08-16 18:59:55 (UTC) Duration 00:00:00 Elapsed 00:00:23
+// ##############################################
+
 const logPreprocessorTokenize = (logs) => {
   // tokenize
-  const regexp = /<<<<< (SECTION):([\w\-\s]+)<<<<</;
+  const regexp = /##############################################\n(STEP) (.+)\n##############################################/;
   const beginningSectionDefaultDetails = "Logs begin";
 
   // The regex above will split the logs into three separate token types
@@ -129,7 +153,7 @@ const logPreprocessorTokenize = (logs) => {
   let tokenizedLogs = [];
   let sectionIsOpen = false;
   for(let i = 0; i < tokens.length; i++) {
-    if(tokens[i] == "SECTION") {
+    if(tokens[i] == "STEP") {
       let sectionDetails = tokens[i + 1]; //we're guaranteed to have this given the match criteria
 
       // let sectionOpening = `<div class="logsection"><div class="logsection-details>${sectionDetails}</div><pre>`;
