@@ -49,8 +49,6 @@ const isLogStateBad = (status) => {
  */
 const logPreprocessor = (logs, status) => {
   let ret = null;
-  console.log(logs);
-  console.log(status);
   let statusBad = isLogStateBad(status);
   let openLastSection = shouldLastSectionBeOpen(status);
 
@@ -128,10 +126,6 @@ const logPreprocessorProcessParse = (tokens) => {
   }
   return root;
 }
-
-// ##############################################
-// STEP Route/Ingress Configuration: Completed at 2022-08-16 18:59:55 (UTC) Duration 00:00:00 Elapsed 00:00:23
-// ##############################################
 
 const logPreprocessorTokenize = (logs) => {
   // tokenize
