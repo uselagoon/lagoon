@@ -1,5 +1,4 @@
 import { Helpers } from './helpers';
-import { Sql } from './sql';
 import { ResolverFn } from '../index';
 import { logger } from '../../loggers/logger';
 

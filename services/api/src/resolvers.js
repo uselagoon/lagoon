@@ -249,7 +249,7 @@ const {
 } = require("./resources/workflow/resolvers");
 
 const {
-  getUIProjects
+  getUIProjects,
 } = require("./resources/ui/resolvers");
 
 const resolvers = {
@@ -439,6 +439,7 @@ const resolvers = {
   },
   Query: {
     me: getMe,
+    ui: getUIProjects,
     lagoonVersion: getLagoonVersion,
     userBySshKey: getUserBySshKey,
     projectByGitUrl: getProjectByGitUrl,
@@ -474,7 +475,6 @@ const resolvers = {
     deployTargetConfigById: getDeployTargetConfigById,
     deployTargetConfigsByProjectId: getDeployTargetConfigsByProjectId,
     deployTargetConfigsByDeployTarget: getDeployTargetConfigsByDeployTarget,
-    uiProjects: getUIProjects,
   },
   Mutation: {
     addProblem,

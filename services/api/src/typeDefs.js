@@ -1021,11 +1021,20 @@ const typeDefs = gql`
   }
 
 
+  type Ui {
+    projects(limit: Int, skip: Int): [Project]
+  }
+
   type Query {
     """
     Returns the current user
     """
     me: User
+    """
+    UI-only queries
+    """
+    # ui(limit: Int, skip: Int): [Project]
+    ui: Ui
     """
     Returns User Object by a given sshKey
     """
@@ -1154,10 +1163,6 @@ const typeDefs = gql`
     """
     deployTargetConfigsByDeployTarget(deployTarget: Int!) : [DeployTargetConfig]  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
     allDeployTargetConfigs: [DeployTargetConfig]  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
-    """
-    Returns all user Projects for associated user
-    """
-    uiProjects(limit: Int, skip: Int): [Project]
   }
 
   # Must provide id OR name
