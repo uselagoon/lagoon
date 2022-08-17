@@ -116,8 +116,8 @@ const registry = process.env.REGISTRY || "registry.lagoon.svc:5000"
 const lagoonGitSafeBranch = process.env.LAGOON_GIT_SAFE_BRANCH || "master"
 const lagoonVersion = process.env.LAGOON_VERSION
 const lagoonEnvironmentType = process.env.LAGOON_ENVIRONMENT_TYPE || "development"
-const overwriteOCBuildDeployDindImage = process.env.OVERWRITE_OC_BUILD_DEPLOY_DIND_IMAGE
-const overwriteKubectlBuildDeployDindImage = process.env.OVERWRITE_KUBECTL_BUILD_DEPLOY_DIND_IMAGE
+const defaultBuildDeployImage = process.env.DEFAULT_BUILD_DEPLOY_IMAGE
+const edgeBuildDeployImage = process.env.EDGE_BUILD_DEPLOY_IMAGE
 const overwriteActiveStandbyTaskImage = process.env.OVERWRITE_ACTIVESTANDBY_TASK_IMAGE
 const jwtSecretString = process.env.JWTSECRET || "super-secret-string"
 const projectSeedString = process.env.PROJECTSEED || "super-secret-string"
@@ -512,11 +512,22 @@ export const getControllerBuildData = async function(deployData: any) {
   }
 
   let buildImage = ""
-  // work out the build image from the deploytarget if defined
+  // if a default build image is defined by `DEFAULT_BUILD_DEPLOY_IMAGE` in api and webhooks2tasks, use it
+  if (defaultBuildDeployImage) {
+    buildImage = defaultBuildDeployImage
+  }
+  if (edgeBuildDeployImage) {
+    // if an edge build image is defined by `EDGE_BUILD_DEPLOY_IMAGE` in api and webhooks2tasks, use it
+    buildImage = edgeBuildDeployImage
+  }
+  // otherwise work out the build image from the deploytarget if defined
   if (deployTarget.openshift.buildImage != null) {
     // set the build image here if one is defined in the api
     buildImage = deployTarget.openshift.buildImage
   }
+  // if no build image is determined, the `remote-controller` defined default image will be used
+  // once it reaches the remote cluster.
+
 
   var alertContact = ""
   if (alertContactHA != undefined && alertContactSA != undefined){
