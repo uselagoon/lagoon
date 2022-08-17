@@ -11,7 +11,6 @@ import { Sql } from './sql';
 import * as OS from '../openshift/sql';
 import { generatePrivateKey, getSshKeyFingerprint } from '../sshKey';
 import { Sql as sshKeySql } from '../sshKey/sql';
-import { createHarborOperations } from './harborSetup';
 import sql from '../user/sql';
 
 const isAdminCheck = async (hasPermission) => {
@@ -416,10 +415,6 @@ export const addProject = async (
     }
   }
 
-  const harborOperations = createHarborOperations(sqlClientPool);
-
-  await harborOperations.addProject(project.name, project.id);
-
   userActivityLogger(`User added a project '${project.name}'`, {
     project: project.name,
     event: 'api:addProject',
@@ -473,11 +468,6 @@ export const deleteProject: ResolverFn = async (
       `Could not delete default user for project ${project.name}: ${err.message}`
     );
   }
-
-  // @TODO discuss if we want to delete projects in harbor or not
-  //const harborOperations = createHarborOperations(sqlClientPool);
-
-  //const harborResults = await harborOperations.deleteProject(project.name)
 
   userActivityLogger(`User deleted a project '${project.name}'`, {
     project: project.name,
