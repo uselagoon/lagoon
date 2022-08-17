@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { bp } from 'lib/variables';
 import LogAccordion from 'components/LogViewer/LogAccordion';
 
@@ -65,8 +65,10 @@ const logPreprocessor = (logs, status) => {
 
 
 const logPreprocessorRenderLogNode = (node, visible = false, errorState = false) => {
+  const logsContentRef = useRef(null);
+
   if (node.type === "log-text") {
-    return <div key={node.key} className="log-text">{node.text}</div>;
+    return <div key={node.key} ref={logsContentRef} className="log-text">{node.text}</div>;
   }
   if (node.type === "section") {
     let classes = ["data-row","row-heading"];
@@ -74,7 +76,14 @@ const logPreprocessorRenderLogNode = (node, visible = false, errorState = false)
       classes.push("log-error-state");
     }
     return (
-      <LogAccordion key={node.key} minified={true} header={node.details} className={classes.join(" ")} defaultValue={visible}>
+      <LogAccordion
+        key={node.key}
+        ref={logsContentRef}
+        minified={true}
+        header={node.details}
+        className={classes.join(" ")}
+        defaultValue={visible}
+      >
         <div key={node.key + "section"} className="section-details">
           {node.nodes.map((element) => {
             return logPreprocessorRenderLogNode(element);

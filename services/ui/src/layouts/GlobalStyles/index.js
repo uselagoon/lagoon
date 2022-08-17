@@ -12,6 +12,10 @@ const GlobalStyles = ({ children }) => (
         box-sizing: border-box;
       }
 
+      html, body {
+        scroll-behavior: smooth;
+      }
+
       body {
         color: ${color.black};
         font-family: 'source-sans-pro', sans-serif;

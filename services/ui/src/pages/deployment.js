@@ -109,13 +109,13 @@ export const PageDeployment = ({ router }) => {
                 </div>
               </div>
               <div ref={logsEndRef} />
-              <div className="scroll-wrapper">
+              {/* <div className="scroll-wrapper">
                 {!hidden &&
                   <button className={`scroll ${!showBottom ? "top" : "bottom"}`} onClick={() => !showBottom ? scrollToTop() : scrollToBottom()}>
                     {!showBottom ? "↑" : "↓"}
                   </button>
                 }
-              </div>
+              </div> */}
               <style jsx>{`
                 .content-wrapper {
                   @media ${bp.tabletUp} {
