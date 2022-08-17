@@ -416,9 +416,9 @@ export const addProject = async (
     }
   }
 
-  const harborOperations = createHarborOperations(sqlClientPool);
+  // const harborOperations = createHarborOperations(sqlClientPool);
 
-  await harborOperations.addProject(project.name, project.id);
+  // await harborOperations.addProject(project.name, project.id);
 
   userActivityLogger(`User added a project '${project.name}'`, {
     project: project.name,
