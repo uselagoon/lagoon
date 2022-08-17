@@ -28,13 +28,13 @@ const Projects = ({ projects = [] }) => {
   const filteredProjects = projects.filter(key => {
     const sortByName = key.name
       .toLowerCase()
-      .includes(searchInput.toLowerCase());
+      .includes(searchInput.trim().toLowerCase());
     let sortByUrl = '';
     if (key.environments[0] !== void 0) {
       if (key.environments[0].route !== null) {
         sortByUrl = key.environments[0].route
           .toLowerCase()
-          .includes(searchInput.toLowerCase());
+          .includes(searchInput.trim().toLowerCase());
       }
     }
     return ['name', 'environments', '__typename'].includes(key)
@@ -52,7 +52,7 @@ const Projects = ({ projects = [] }) => {
           className="searchInput"
           type="text"
           value={searchInput}
-          onChange={e => setSearchInput(e.target.value.replace(/[^0-9a-zA-Z.-]/g,''))}
+          onChange={e => setSearchInput(e.target.value)}
           placeholder="Type to search"
           disabled={projects.length === 0}
         />
@@ -77,7 +77,7 @@ const Projects = ({ projects = [] }) => {
             <div className="project">
               <h4>
                 <Highlighter
-                  searchWords={[searchInput]}
+                  searchWords={[searchInput.trim()]}
                   autoEscape={true}
                   textToHighlight={project.name}
                 />
@@ -86,7 +86,7 @@ const Projects = ({ projects = [] }) => {
                 {project.environments.map((environment, index) => (
                   <Highlighter
                     key={index}
-                    searchWords={[searchInput]}
+                    searchWords={[searchInput.trim()]}
                     autoEscape={true}
                     textToHighlight={
                       environment.route
