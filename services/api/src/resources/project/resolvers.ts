@@ -12,14 +12,11 @@ import { Sql as SshKeySql} from '../sshKey/sql';
 import * as OS from '../openshift/sql';
 import { generatePrivateKey, getSshKeyFingerprint } from '../sshKey';
 import { Sql as sshKeySql } from '../sshKey/sql';
-import { createHarborOperations } from './harborSetup';
 import { Helpers as organizationHelpers } from '../organization/helpers';
 import { Helpers as notificationHelpers } from '../notification/helpers';
 import { Helpers as groupHelpers } from '../group/helpers';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
 import GitUrlParse from 'git-url-parse';
-
-const DISABLE_CORE_HARBOR = process.env.DISABLE_CORE_HARBOR || "false"
 
 const DISABLE_NON_ORGANIZATION_PROJECT_CREATION = process.env.DISABLE_NON_ORGANIZATION_PROJECT_CREATION || "false"
 
@@ -481,11 +478,6 @@ export const addProject = async (
     }
   }
 
-  if (DISABLE_CORE_HARBOR == "false") {
-    const harborOperations = createHarborOperations(sqlClientPool);
-    await harborOperations.addProject(project.name, project.id);
-  }
-
   userActivityLogger(`User added a project '${project.name}'`, {
     project: '',
     event: 'api:addProject',
@@ -593,12 +585,6 @@ export const deleteProject: ResolverFn = async (
       `Could not delete default user for project ${project.name}: ${err.message}`
     );
   }
-
-  // @TODO discuss if we want to delete projects in harbor or not
-  // if (DISABLE_CORE_HARBOR == "false") {
-  //   const harborOperations = createHarborOperations(sqlClientPool);
-  //   const harborResults = await harborOperations.deleteProject(project.name)
-  // }
 
   userActivityLogger(`User deleted a project '${project.name}'`, {
     project: '',
