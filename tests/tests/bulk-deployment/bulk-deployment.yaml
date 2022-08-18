@@ -1,0 +1,219 @@
+
+- name: "{{ testname }} - init git, add files, commit, git push"
+  hosts: localhost
+  serial: 1
+  vars:
+    git_files: "bulk/bulk1/"
+    branch: "bulk1"
+  tasks:
+  - include: ../../tasks/git-init.yaml
+  - include: ../../tasks/git-add-commit-push.yaml
+
+- name: "{{ testname }} - init git, add files, commit, git push"
+  hosts: localhost
+  serial: 1
+  vars:
+    git_files: "bulk/bulk2/"
+    branch: "bulk2"
+  tasks:
+  - include: ../../tasks/git-init.yaml
+  - include: ../../tasks/git-add-commit-push.yaml
+
+- name: "{{ testname }} - init git, add files, commit, git push"
+  hosts: localhost
+  serial: 1
+  vars:
+    git_files: "bulk/bulk3/"
+    branch: "bulk3"
+  tasks:
+  - include: ../../tasks/git-init.yaml
+  - include: ../../tasks/git-add-commit-push.yaml
+
+- name: "{{ testname }} - init git, add files, commit, git push"
+  hosts: localhost
+  serial: 1
+  vars:
+    git_files: "bulk/bulk4/"
+    branch: "bulk4"
+  tasks:
+  - include: ../../tasks/git-init.yaml
+  - include: ../../tasks/git-add-commit-push.yaml
+
+- name: "{{ testname }} - init git, add files, commit, git push"
+  hosts: localhost
+  serial: 1
+  vars:
+    git_files: "bulk/bulk5/"
+    branch: "bulk5"
+  tasks:
+  - include: ../../tasks/git-init.yaml
+  - include: ../../tasks/git-add-commit-push.yaml
+
+- name: "{{ testname }} - init git, add files, commit, git push"
+  hosts: localhost
+  serial: 1
+  vars:
+    git_files: "bulk/bulk6/"
+    branch: "bulk6"
+  tasks:
+  - include: ../../tasks/git-init.yaml
+  - include: ../../tasks/git-add-commit-push.yaml
+
+- name: "{{ testname }} - Add environment bulk1 to project {{ project }}"
+  hosts: localhost
+  serial: 1
+  vars:
+    name: "bulk1"
+    project: "{{ project }}"
+    deployType: BRANCH
+    deployBaseRef: "bulk1"
+    environmentType: DEVELOPMENT
+  tasks:
+  - include: ../../tasks/api/add-environment.yaml
+
+- name: "{{ testname }} - Add environment bulk2 to project {{ project }}"
+  hosts: localhost
+  serial: 1
+  vars:
+    name: "bulk2"
+    project: "{{ project }}"
+    deployType: BRANCH
+    deployBaseRef: "bulk2"
+    environmentType: DEVELOPMENT
+  tasks:
+  - include: ../../tasks/api/add-environment.yaml
+
+- name: "{{ testname }} - Add environment bulk3 to project {{ project }}"
+  hosts: localhost
+  serial: 1
+  vars:
+    name: "bulk3"
+    project: "{{ project }}"
+    deployType: BRANCH
+    deployBaseRef: "bulk3"
+    environmentType: DEVELOPMENT
+  tasks:
+  - include: ../../tasks/api/add-environment.yaml
+
+- name: "{{ testname }} - Add environment bulk4 to project {{ project }}"
+  hosts: localhost
+  serial: 1
+  vars:
+    name: "bulk4"
+    project: "{{ project }}"
+    deployType: BRANCH
+    deployBaseRef: "bulk4"
+    environmentType: DEVELOPMENT
+  tasks:
+  - include: ../../tasks/api/add-environment.yaml
+
+- name: "{{ testname }} - Add environment bulk5 to project {{ project }}"
+  hosts: localhost
+  serial: 1
+  vars:
+    name: "bulk5"
+    project: "{{ project }}"
+    deployType: BRANCH
+    deployBaseRef: "bulk5"
+    environmentType: DEVELOPMENT
+  tasks:
+  - include: ../../tasks/api/add-environment.yaml
+
+- name: "{{ testname }} - Add environment bulk6 to project {{ project }}"
+  hosts: localhost
+  serial: 1
+  vars:
+    name: "bulk6"
+    project: "{{ project }}"
+    deployType: BRANCH
+    deployBaseRef: "bulk6"
+    environmentType: DEVELOPMENT
+  tasks:
+  - include: ../../tasks/api/add-environment.yaml
+
+- name: "{{ testname }} - Trigger bulk deployment"
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ project }}"
+    branches:
+      - bulk1
+      - bulk2
+      - bulk3
+      - bulk4
+      - bulk5
+      - bulk6
+  tasks:
+  - include: ../../tasks/api/deploy-bulk-deployment.yaml
+
+- name: "{{ testname }} - Get bulk deployment, wait until builds complete"
+  hosts: localhost
+  serial: 1
+  vars:
+    name: "{{ item }}"
+    project: "{{ project }}"
+  tasks:
+  - include: ../../tasks/api/get-bulk-deployment.yaml
+
+- name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ project }}"
+    branch: "bulk1"
+  tasks:
+  - include: ../../tasks/api/delete-environment.yaml
+
+- name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ project }}"
+    branch: "bulk2"
+  tasks:
+  - include: ../../tasks/api/delete-environment.yaml
+
+- name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ project }}"
+    branch: "bulk2"
+  tasks:
+  - include: ../../tasks/api/delete-environment.yaml
+
+- name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ project }}"
+    branch: "bulk3"
+  tasks:
+  - include: ../../tasks/api/delete-environment.yaml
+
+- name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ project }}"
+    branch: "bulk4"
+  tasks:
+  - include: ../../tasks/api/delete-environment.yaml
+
+- name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ project }}"
+    branch: "bulk5"
+  tasks:
+  - include: ../../tasks/api/delete-environment.yaml
+
+- name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ project }}"
+    branch: "bulk6"
+  tasks:
+  - include: ../../tasks/api/delete-environment.yaml

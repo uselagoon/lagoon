@@ -1,0 +1,257 @@
+site_name: Lagoon Documentation
+site_url: https://docs.lagoon.sh/
+repo_url: https://github.com/uselagoon/lagoon/
+repo_name: uselagoon/lagoon
+edit_uri: edit/main/docs
+site_author: The Lagoon Authors
+
+nav:
+- Home: README.md
+- Using Lagoon - The Basics:
+  - Overview: using-lagoon-the-basics/index.md
+  - Local Development Environments: using-lagoon-the-basics/local-development-environments.md
+  - Set Up a New Project: using-lagoon-the-basics/setup-project.md
+  - Configure Webhooks: using-lagoon-the-basics/configure-webhooks.md
+  - First Deployment: using-lagoon-the-basics/first-deployment.md
+  - .lagoon.yml: using-lagoon-the-basics/lagoon-yml.md
+  - docker-compose.yml: using-lagoon-the-basics/docker-compose-yml.md
+  - Build and Deploy Process: using-lagoon-the-basics/build-and-deploy-process.md
+  - Going Live: using-lagoon-the-basics/going-live.md
+- Docker Images:
+  - Elasticsearch: docker-images/elasticsearch.md
+  - MariaDB: docker-images/mariadb.md
+  - MongoDB: docker-images/mongodb.md
+  - Node.js: docker-images/nodejs.md
+  - NGINX: docker-images/nginx.md
+  - PHP-CLI: docker-images/php-cli.md
+  - PHP-FPM: docker-images/php-fpm.md
+  - Python: docker-images/python.md
+  - PostgreSQL: docker-images/postgres.md
+  - RabbitMQ: docker-images/rabbitmq.md
+  - Ruby: docker-images/ruby.md
+  - Solr: docker-images/solr.md
+  - Redis: docker-images/redis.md
+  - Varnish: docker-images/varnish.md
+- Configuring Applications:
+  - Overview: applications/index.md
+  - Options: applications/options.md
+  - Drupal:
+    - Overview: drupal/index.md
+    - Services:
+      - Overview: drupal/services/README.md
+      - MariaDB: drupal/services/mariadb.md
+      - NGINX: drupal/services/nginx.md
+      - PHP-cli: drupal/services/php-cli.md
+      - Redis: drupal/services/redis.md
+      - Solr: drupal/services/solr.md
+      - Varnish: drupal/services/varnish.md
+    - Step by Step - Getting Drupal ready to run on Lagoon: drupal/step-by-step-getting-drupal-ready-to-run-on-lagoon.md
+    - First Deployment of Drupal: drupal/first-deployment-of-drupal.md
+    - Drush 9: drupal/drush-9.md
+    - Subfolders: drupal/subfolders.md
+    - Integrate Drupal & Fastly: drupal/integrate-drupal-and-fastly.md
+    - PHPUnit and PhpStorm: drupal/phpunit-and-phpstorm.md
+  - WordPress:
+    - Overview: applications/wordpress.md
+  - Node.js-based:
+    - Overview: applications/node.md
+  - PHP-based:
+    - Overview: applications/php.md
+  - Python-based:
+    - Overview: applications/python.md
+  - Ruby-based:
+    - Overview: applications/ruby.md
+  - Other:
+    - Overview: applications/other.md
+- Understanding Logs:
+  - Logging: logging/logging.md
+  - Kibana Examples: logging/kibana-examples.md
+- Using Lagoon - Advanced:
+  - Service Types: using-lagoon-advanced/service-types.md
+  - Environment Types: using-lagoon-advanced/environment-types.md
+  - Environment Variables: using-lagoon-advanced/environment-variables.md
+  - Base Images: using-lagoon-advanced/base-images.md
+  - Workflows: using-lagoon-advanced/workflows.md
+  - Active/Standby: using-lagoon-advanced/active-standby.md
+  - Triggering Deployments: using-lagoon-advanced/triggering-deployments.md
+  - Backups: using-lagoon-advanced/backups.md
+  - GraphQL: using-lagoon-advanced/graphql.md
+  - Private Repositories: using-lagoon-advanced/private-repositories.md
+  - SimpleSAML: using-lagoon-advanced/simplesaml.md
+  - SSH: using-lagoon-advanced/ssh.md
+  - Project Default Users and SSH Keys: using-lagoon-advanced/project-default-users-keys.md
+  - Node.js Graceful Shutdown: using-lagoon-advanced/nodejs.md
+  - Setting up Xdebug with Lagoon: using-lagoon-advanced/setting-up-xdebug-with-lagoon.md
+  - Environment Idling: using-lagoon-advanced/environment-idling.md
+  - Custom Tasks: using-lagoon-advanced/custom-tasks.md
+  - DeployTarget Configs: using-lagoon-advanced/deploytarget-configs.md
+  - Blackfire: using-lagoon-advanced/blackfire.md
+- Installing Lagoon:
+  - Requirements: installing-lagoon/requirements.md
+  - EFS Provisioner: installing-lagoon/efs-provisioner.md
+  - Install Harbor: installing-lagoon/install-harbor.md
+  - Install Lagoon Core: installing-lagoon/lagoon-core.md
+  - Install Lagoon Remote: installing-lagoon/install-lagoon-remote.md
+  - Install the Lagoon CLI: installing-lagoon/lagoon-cli.md
+  - Querying with GraphQL: installing-lagoon/querying-graphql.md
+  - Create Lagoon User: installing-lagoon/create-user.md
+  - Add a Project: installing-lagoon/add-project.md
+  - Deploy Your Project: installing-lagoon/deploy-project.md
+  - Add Group: installing-lagoon/add-group.md
+  - Lagoon Logging: installing-lagoon/lagoon-logging.md
+  - OpenDistro: installing-lagoon/opendistro.md
+  - Logs Concentrator: installing-lagoon/logs-concentrator.md
+  - Lagoon Backups: installing-lagoon/lagoon-backups.md
+  - Lagoon Files: installing-lagoon/lagoon-files.md
+  - GitLab: installing-lagoon/gitlab.md
+  - Updating: installing-lagoon/update-lagoon.md
+- Administering Lagoon:
+  - GraphQL API: administering-lagoon/graphql-queries.md
+  - Role-Based Access Control (RBAC): administering-lagoon/rbac.md
+  - Feature Flags: administering-lagoon/feature-flags.md
+  - SSL Ciphers: administering-lagoon/ssl-ciphers.md
+  - Harbor:
+    - Using Harbor: administering-lagoon/using-harbor/README.md
+    - Security Scanning: administering-lagoon/using-harbor/security-scanning.md
+    - Harbor Settings: administering-lagoon/using-harbor/harbor-settings/README.md
+    - Harbor-Core: administering-lagoon/using-harbor/harbor-settings/harbor-core.md
+    - Harbor-Database: administering-lagoon/using-harbor/harbor-settings/harbor-database.md
+    - Harbor-Jobservice: administering-lagoon/using-harbor/harbor-settings/harbor-jobservice.md
+    - Harbor-Trivy: administering-lagoon/using-harbor/harbor-settings/harbor-trivy.md
+    - HarborRegistry: administering-lagoon/using-harbor/harbor-settings/harborregistry.md
+    - HarborRegistryCtl: administering-lagoon/using-harbor/harbor-settings/harborregistryctl.md
+- Contributing to Lagoon:
+  - Contributing: contributing.md
+  - Developing Lagoon: contributing-to-lagoon/developing-lagoon.md
+  - Code of Conduct: contributing-to-lagoon/code-of-conduct.md
+  - Documentation: contributing-to-lagoon/documentation.md
+  - Tests: contributing-to-lagoon/tests.md
+  - API Debugging: contributing-to-lagoon/api-debugging.md
+- Resources:
+  - Code of Conduct: code-of-conduct.md
+  - FAQ: resources/faq.md
+  - Glossary: resources/glossary.md
+  - Tutorials, Webinars, and Videos: resources/tutorials-and-webinars.md
+  - Lagoon Examples: https://github.com/uselagoon/lagoon-examples
+- Other Tools:
+  - Lagoon CLI: https://new-docs.lagoon.sh/lagoon-cli/
+
+theme:
+  name: 'material'
+  palette:
+    primary: 'blue'
+    accent: 'light blue'
+  favicon: images/lagoon-icon.png
+  logo: images/lagoon-icon-bw.png
+  icon:
+    repo: fontawesome/brands/github
+
+extra:
+  analytics:
+    provider: google
+    property: G-W1SJFEVFDB
+
+markdown_extensions:
+  - toc:
+      permalink: "#"
+      baselevel: 1
+  - def_list
+  - admonition
+  - attr_list
+  - tables
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+plugins:
+  - search
+  - redirects:
+      redirect_maps:
+        'lagoon/README.md': 'README.md'
+        'lagoon/getting-started/README.md': 'README.md'
+        'lagoon/using-lagoon-advanced/deploytarget_configs.md': 'using-lagoon-advanced/deploytarget-configs.md'
+        'lagoon/administering-lagoon/feature-flags.md': 'administering-lagoon/feature-flags.md'
+        'lagoon/administering-lagoon/graphql-queries.md': 'administering-lagoon/graphql-queries.md'
+        'lagoon/administering-lagoon/rbac.md': 'administering-lagoon/rbac.md'
+        'lagoon/administering-lagoon/using_harbor/harbor-settings/harbor-core.md': 'administering-lagoon/using-harbor/harbor-settings/harbor-core.md'
+        'lagoon/administering-lagoon/using_harbor/harbor-settings/harbor-database.md': 'administering-lagoon/using-harbor/harbor-settings/harbor-database.md'
+        'lagoon/administering-lagoon/using_harbor/harbor-settings/harbor-jobservice.md': 'administering-lagoon/using-harbor/harbor-settings/harbor-jobservice.md'
+        'lagoon/administering-lagoon/using_harbor/harbor-settings/harbor-trivy.md': 'administering-lagoon/using-harbor/harbor-settings/harbor-trivy.md'
+        'lagoon/administering-lagoon/using_harbor/harbor-settings/harborregistry.md': 'administering-lagoon/using-harbor/harbor-settings/harborregistry.md'
+        'lagoon/administering-lagoon/using_harbor/harbor-settings/harborregistryctl.md': 'administering-lagoon/using-harbor/harbor-settings/harborregistryctl.md'
+        'lagoon/administering-lagoon/using_harbor/harbor-settings/README.md': 'administering-lagoon/using-harbor/harbor-settings/README.md'
+        'lagoon/administering-lagoon/using_harbor/README.md': 'administering-lagoon/using-harbor/README.md'
+        'lagoon/administering-lagoon/using_harbor/security_scanning.md': 'administering-lagoon/using-harbor/security-scanning.md'
+        'lagoon/contributing-to-lagoon/api-debugging.md': 'contributing-to-lagoon/api-debugging.md'
+        'lagoon/contributing-to-lagoon/code-of-conduct.md': 'contributing-to-lagoon/code-of-conduct.md'
+        'lagoon/contributing-to-lagoon/contributing.md': 'contributing.md'
+        'lagoon/contributing-to-lagoon/developing-lagoon.md': 'contributing-to-lagoon/developing-lagoon.md'
+        'lagoon/contributing-to-lagoon/tests.md': 'contributing-to-lagoon/tests.md'
+        'lagoon/docker-images/elasticsearch.md': 'docker-images/elasticsearch.md'
+        'lagoon/docker-images/mariadb/mariadb-drupal.md': 'drupal/services/mariadb.md'
+        'lagoon/docker-images/mariadb/README.md': 'docker-images/mariadb.md'
+        'lagoon/docker-images/mongodb.md': 'docker-images/mongodb.md'
+        'lagoon/docker-images/nginx/nginx-drupal.md': 'drupal/services/nginx.md'
+        'lagoon/docker-images/nginx/README.md': 'docker-images/nginx.md'
+        'lagoon/docker-images/nodejs.md': 'docker-images/nodejs.md'
+        'lagoon/docker-images/php-cli/php-cli-drupal.md': 'drupal/services/php-cli.md'
+        'lagoon/docker-images/php-cli/README.md': 'docker-images/php-cli.md'
+        'lagoon/docker-images/php-fpm.md': 'docker-images/php-fpm.md'
+        'lagoon/docker-images/postgres.md': 'docker-images/postgres.md'
+        'lagoon/docker-images/rabbitmq.md': 'docker-images/rabbitmq.md'
+        'lagoon/docker-images/redis/README.md': 'docker-images/redis.md'
+        'lagoon/docker-images/redis/redis-persistent.md': 'docker-images/redis.md'
+        'lagoon/docker-images/solr/README.md': 'docker-images/solr.md'
+        'lagoon/docker-images/solr/solr-drupal.md': 'drupal/services/solr.md'
+        'lagoon/docker-images/varnish/README.md': 'docker-images/varnish.md'
+        'lagoon/docker-images/varnish/varnish-drupal.md': 'drupal/services/varnish.md'
+        'lagoon/drupal/drush-9.md': 'drupal/drush-9.md'
+        'lagoon/drupal/first-deployment-of-drupal.md': 'drupal/first-deployment-of-drupal.md'
+        'lagoon/drupal/integrate-drupal-and-fastly.md': 'drupal/integrate-drupal-and-fastly.md'
+        'lagoon/drupal/phpunit-and-phpstorm.md': 'drupal/phpunit-and-phpstorm.md'
+        'lagoon/drupal/services/mariadb.md': 'drupal/services/mariadb.md'
+        'lagoon/drupal/services/README.md': 'drupal/services/README.md'
+        'lagoon/drupal/services/redis.md': 'drupal/services/redis.md'
+        'lagoon/drupal/services/solr.md': 'drupal/services/solr.md'
+        'lagoon/drupal/services/untitled.md': 'drupal/services/README.md'
+        'lagoon/drupal/services/varnish.md': 'drupal/services/varnish.md'
+        'lagoon/drupal/step-by-step-getting-drupal-ready-to-run-on-lagoon.md': 'drupal/step-by-step-getting-drupal-ready-to-run-on-lagoon.md'
+        'lagoon/drupal/subfolders.md': 'drupal/subfolders.md'
+        'lagoon/logging/kibana-examples.md': 'logging/kibana-examples.md'
+        'lagoon/logging/logging.md': 'logging/logging.md'
+        'lagoon/resources/faq.md': 'resources/faq.md'
+        'lagoon/resources/glossary.md': 'resources/glossary.md'
+        'lagoon/resources/tutorials-and-webinars.md': 'resources/tutorials-and-webinars.md'
+        'lagoon/using-lagoon-advanced/active_standby.md': 'using-lagoon-advanced/active-standby.md'
+        'lagoon/using-lagoon-advanced/backups.md': 'using-lagoon-advanced/backups.md'
+        'lagoon/using-lagoon-advanced/base-images.md': 'using-lagoon-advanced/base-images.md'
+        'lagoon/using-lagoon-advanced/custom-tasks.md': 'using-lagoon-advanced/custom-tasks.md'
+        'lagoon/using-lagoon-advanced/environment-idling.md': 'using-lagoon-advanced/environment-idling.md'
+        'lagoon/using-lagoon-advanced/environment-types.md': 'using-lagoon-advanced/environment-types.md'
+        'lagoon/using-lagoon-advanced/environment-variables.md': 'using-lagoon-advanced/environment-variables.md'
+        'lagoon/using-lagoon-advanced/graphql.md': 'using-lagoon-advanced/graphql.md'
+        'lagoon/using-lagoon-advanced/installing-lagoon-into-existing-kubernetes-cluster.md': 'installing-lagoon/requirements.md'
+        'lagoon/using-lagoon-advanced/nodejs.md': 'using-lagoon-advanced/nodejs.md'
+        'lagoon/using-lagoon-advanced/private-repositories.md': 'using-lagoon-advanced/private-repositories.md'
+        'lagoon/using-lagoon-advanced/project-default-users-keys.md': 'using-lagoon-advanced/project-default-users-keys.md'
+        'lagoon/using-lagoon-advanced/service-types.md': 'using-lagoon-advanced/service-types.md'
+        'lagoon/using-lagoon-advanced/setting-up-xdebug-with-lagoon.md': 'using-lagoon-advanced/setting-up-xdebug-with-lagoon.md'
+        'lagoon/using-lagoon-advanced/simplesaml.md': 'using-lagoon-advanced/simplesaml.md'
+        'lagoon/using-lagoon-advanced/ssh.md': 'using-lagoon-advanced/ssh.md'
+        'lagoon/using-lagoon-advanced/triggering-deployments.md': 'using-lagoon-advanced/triggering-deployments.md'
+        'lagoon/using-lagoon-advanced/workflows.md': 'using-lagoon-advanced/workflows.md'
+        'lagoon/using-lagoon-the-basics/build-and-deploy-process.md': 'using-lagoon-the-basics/build-and-deploy-process.md'
+        'lagoon/using-lagoon-the-basics/configure-webhooks.md': 'using-lagoon-the-basics/configure-webhooks.md'
+        'lagoon/using-lagoon-the-basics/docker-compose-yml.md': 'using-lagoon-the-basics/docker-compose-yml.md'
+        'lagoon/using-lagoon-the-basics/first-deployment.md': 'using-lagoon-the-basics/first-deployment.md'
+        'lagoon/using-lagoon-the-basics/going-live.md': 'using-lagoon-the-basics/going-live.md'
+        'lagoon/using-lagoon-the-basics/index.md': 'using-lagoon-the-basics/index.md'
+        'lagoon/using-lagoon-the-basics/lagoon-yml.md': 'using-lagoon-the-basics/lagoon-yml.md'
+        'lagoon/using-lagoon-the-basics/local-development-environments.md': 'using-lagoon-the-basics/local-development-environments.md'
+        'lagoon/using-lagoon-the-basics/setup_project.md': 'using-lagoon-the-basics/setup-project.md'
+        'docker-images/mariadb/mariadb-drupal.md': 'drupal/services/mariadb.md'
+        'docker-images/nginx/nginx-drupal.md': 'drupal/services/nginx.md'
+        'docker-images/php-cli/php-cli-drupal.md': 'drupal/services/php-cli.md'
+        'docker-images/solr/solr-drupal.md': 'drupal/services/solr.md'
+        'docker-images/varnish/varnish-drupal.md': 'drupal/services/varnish.md'

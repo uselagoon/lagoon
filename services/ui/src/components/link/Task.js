@@ -5,7 +5,7 @@ export const getLinkData = (taskSlug, environmentSlug, projectSlug) => ({
     pathname: '/task',
     query: {
       openshiftProjectName: environmentSlug,
-      taskId: taskSlug
+      taskName: taskSlug
     }
   },
   asPath: `/projects/${projectSlug}/${environmentSlug}/tasks/${taskSlug}`

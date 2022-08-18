@@ -115,8 +115,15 @@ services:
       - ./services/ui/.env.defaults:/app/services/ui/.env.defaults
       - ./services/ui/.env.schema:/app/services/ui/.env.schema
       - ./services/ui/package.json:/app/services/ui/package.json
+    environment:
+      - NODE_ENV=development
     ports:
-      - '8888:3000'
+      - '8888:3003'
+  actions-handler:
+    image: ${IMAGE_REPO:-lagoon}/actions-handler
+    restart: on-failure
+    depends_on:
+      - broker
   ssh:
     image: ${IMAGE_REPO:-lagoon}/ssh
     depends_on:
@@ -151,6 +158,9 @@ services:
       - keycloak-db
     ports:
       - '8088:8080'
+    volumes:
+      - "./services/keycloak/profile.properties:/opt/jboss/keycloak/standalone/configuration/profile.properties"
+      - "./services/keycloak/startup-scripts:/opt/jboss/startup-scripts"
   keycloak-db:
     image: ${IMAGE_REPO:-lagoon}/keycloak-db
     ports:
@@ -267,15 +277,6 @@ services:
       - '8087:8080'
     labels:
       version: '2'
-  auto-idler:
-    image: ${IMAGE_REPO:-lagoon}/auto-idler
-    user: '111111111'
-    volumes:
-      - './services/auto-idler/idle-services.sh:/idle-services.sh'
-      - './services/auto-idler/idle-clis.sh:/idle-clis.sh'
-      - './services/auto-idler/openshift-services.sh:/openshift-services.sh'
-      - './services/auto-idler/openshift-clis.sh:/openshift-clis.sh'
-      - './services/auto-idler/create_jwt.py:/create_jwt.py'
   storage-calculator:
     image: ${IMAGE_REPO:-lagoon}/storage-calculator
     user: '111111111'

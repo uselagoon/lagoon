@@ -52,7 +52,7 @@ const DrushUserLogin = ({ pageEnvironment, onCompleted, onError }) => (
               required
             />
           </div>
-          <Button action={taskDrushUserLogin}>Add task</Button>
+          <Button action={taskDrushUserLogin}>Run task</Button>
           <style jsx>{`
             .envSelect {
               margin: 10px 0;

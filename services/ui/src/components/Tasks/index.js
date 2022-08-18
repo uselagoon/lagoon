@@ -18,12 +18,12 @@ const Tasks = ({ tasks, environmentSlug, projectSlug }) => (
       {!tasks.length && <div className="data-none">No Tasks</div>}
       {tasks.map(task => (
         <TaskLink
-          taskSlug={task.id}
+          taskSlug={task.taskName}
           environmentSlug={environmentSlug}
           projectSlug={projectSlug}
-          key={task.id}
+          key={task.taskName}
         >
-          <div className="data-row" task={task.id}>
+          <div className="data-row" task={task.taskName}>
             <div className="name">{task.name}</div>
             <div className="started">
               {moment
@@ -148,11 +148,31 @@ const Tasks = ({ tasks, environmentSlug, projectSlug }) => (
               background-image: url('/static/images/in-progress.svg');
             }
 
+            &.new {
+              background-image: url('/static/images/in-progress.svg');
+            }
+
+            &.pending {
+              background-image: url('/static/images/in-progress.svg');
+            }
+
+            &.running {
+              background-image: url('/static/images/in-progress.svg');
+            }
+
             &.failed {
               background-image: url('/static/images/failed.svg');
             }
 
+            &.cancelled {
+              background-image: url('/static/images/failed.svg');
+            }
+
             &.succeeded {
+              background-image: url('/static/images/successful.svg');
+            }
+
+            &.complete {
               background-image: url('/static/images/successful.svg');
             }
 

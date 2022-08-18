@@ -1,16 +1,52 @@
 import * as R from 'ramda';
 import { ResolverFn } from '../';
-import { query, isPatchEmpty } from '../../util/db';
+import { query, isPatchEmpty, knex } from '../../util/db';
+import { Helpers as projectHelpers } from '../project/helpers';
 import { Sql } from './sql';
 
-const attrFilter = async (hasPermission, entity) => {
+export const getToken: ResolverFn = async (
+  kubernetes,
+  _args,
+  { hasPermission }
+) => {
   try {
     await hasPermission('openshift', 'view:token');
-    return entity;
+
+    return kubernetes.token;
   } catch (err) {
-    return R.omit(['token'], entity);
+    return null;
   }
 };
+
+export const getConsoleUrl: ResolverFn = async (
+  kubernetes,
+  _args,
+  { hasPermission }
+) => {
+  try {
+    await hasPermission('openshift', 'view:token');
+
+    return kubernetes.consoleUrl;
+  } catch (err) {
+    return null;
+  }
+};
+
+export const getMonitoringConfig: ResolverFn = async (
+  kubernetes,
+  _args,
+  { hasPermission }
+) => {
+  try {
+    await hasPermission('openshift', 'view:token');
+
+    return kubernetes.monitoringConfig;
+  } catch (err) {
+    return null;
+  }
+};
+
+export const getProjectUser: ResolverFn = async () => null;
 
 export const addOpenshift: ResolverFn = async (
   args,
@@ -32,7 +68,16 @@ export const deleteOpenshift: ResolverFn = async (
 ) => {
   await hasPermission('openshift', 'delete');
 
-  await query(sqlClientPool, 'CALL deleteOpenshift(:name)', input);
+  let res = await query(sqlClientPool, knex('project')
+  .join('openshift', 'project.openshift', '=', 'openshift.id')
+  .where('openshift.name', input.name).count('project.id', {as: 'numactive'}).toString());
+
+  const numberActiveOs = R.path(['0', 'numactive'], res);
+  if(numberActiveOs > 0) {
+    throw new Error(`Openshift "${input.name} still in use, can not delete`);
+  }
+
+  res = await query(sqlClientPool, knex('openshift').where('name', input.name).delete().toString());
 
   // TODO: maybe check rows for changed result
   return 'success';
@@ -69,7 +114,7 @@ export const getOpenshiftByProjectId: ResolverFn = async (
     }
   );
 
-  return rows ? attrFilter(hasPermission, rows[0]) : null;
+  return rows ? rows[0] : null;
 };
 
 export const getOpenshiftByDeployTargetId: ResolverFn = async (
@@ -106,7 +151,7 @@ export const getOpenshiftByDeployTargetId: ResolverFn = async (
     }
   );
 
-  return rows ? attrFilter(hasPermission, rows[0]) : null;
+  return rows ? rows[0] : null;
 };
 
 export const getOpenshiftByEnvironmentId: ResolverFn = async (
@@ -114,7 +159,15 @@ export const getOpenshiftByEnvironmentId: ResolverFn = async (
   args,
   { sqlClientPool, hasPermission }
 ) => {
-  await hasPermission('openshift', 'viewAll');
+  // get the project id for the environment
+  const project = await projectHelpers(
+    sqlClientPool
+  ).getProjectByEnvironmentId(eid);
+
+  // check permissions on the project
+  await hasPermission('openshift', 'view', {
+    project: project.project
+  });
 
   const rows = await query(
     sqlClientPool,
@@ -128,7 +181,7 @@ export const getOpenshiftByEnvironmentId: ResolverFn = async (
     }
   );
 
-  return rows ? attrFilter(hasPermission, rows[0]) : null;
+  return rows ? rows[0] : null;
 };
 
 export const updateOpenshift: ResolverFn = async (

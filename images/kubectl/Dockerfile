@@ -1,12 +1,12 @@
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
 FROM ${UPSTREAM_REPO:-uselagoon}/commons:${UPSTREAM_TAG:-latest} as commons
-FROM golang:1.16-alpine3.13 as golang
+FROM golang:1.16-alpine3.15 as golang
 
 RUN apk add --no-cache git
 RUN go get github.com/a8m/envsubst/cmd/envsubst
 
-FROM docker:20.10.7
+FROM docker:20.10.14
 
 LABEL maintainer="amazee.io"
 ENV LAGOON=oc
@@ -49,8 +49,6 @@ RUN apk add -U --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing au
     && chmod +x /usr/bin/yq3 \
     && curl -Lo /usr/bin/yq https://github.com/mikefarah/yq/releases/download/v4.15.1/yq_linux_amd64 \
     && chmod +x /usr/bin/yq \
-    && curl -Lo /usr/bin/svcat https://download.svcat.sh/cli/latest-v0.2/linux/amd64/svcat \
-    && chmod +x /usr/bin/svcat \
     && curl -Lo /tmp/helm.tar.gz https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz \
     && echo "${HELM_SHA256}  /tmp/helm.tar.gz" | sha256sum -c -  \
     && mkdir /tmp/helm \

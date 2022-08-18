@@ -1,6 +1,7 @@
 import R from 'ramda';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
 import { createDeployTask } from '@lagoon/commons/dist/tasks';
+import { generateBuildId } from '@lagoon/commons/dist/util';
 
 import { WebhookRequestData, deployData, Project } from '../types';
 
@@ -33,11 +34,14 @@ export async function gitlabPush(webhook: WebhookRequestData, project: Project) 
       event: event,
     }
 
+    let buildName = generateBuildId();
+
     const data: deployData = {
       projectName: project.name,
       type: 'branch',
       branchName: branchName,
       sha: sha,
+      buildName: buildName
     }
 
     let logMessage = `\`<${body.project.http_url}/tree/${meta.branch}|${meta.branch}>\``

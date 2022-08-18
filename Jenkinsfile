@@ -44,7 +44,7 @@ pipeline {
     }
     stage ('build images') {
       steps {
-        sh script: "make -O -j$NPROC build SCAN_IMAGES=true", label: "Building images"
+        sh script: "make -O -j$NPROC build", label: "Building images"
       }
     }
     stage ('show trivy scan results') {
@@ -77,7 +77,7 @@ pipeline {
         stage ('collect logs') {
           steps {
             sh script: "while [ ! -f ./kubeconfig.kind.${CI_BUILD_TAG} ]; do sleep 1; done", label: "Check for kubeconfig created"
-            timeout(time: 30, unit: 'MINUTES') {
+            timeout(time: 45, unit: 'MINUTES') {
               sh script: "./local-dev/stern --kubeconfig ./kubeconfig.kind.${CI_BUILD_TAG} --all-namespaces '^[a-z]' -t > test-suite-0.txt || true", label: "Collecting test-suite-0 logs"
             }
             sh script: "cat test-suite-0.txt", label: "View ${NODE_NAME}:${WORKSPACE}/test-suite-0.txt"
@@ -108,7 +108,7 @@ pipeline {
         stage ('2: run second test suite') {
           steps {
             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                sh script: "make -j$NPROC kind/retest TESTS=[gitlab,github,bitbucket,python,node-mongodb,elasticsearch,image-cache] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running second test suite on kind cluster"
+                sh script: "make -j$NPROC kind/retest TESTS=[bulk-deployment,gitlab,github,bitbucket,python,node-mongodb,elasticsearch,image-cache,workflows] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running second test suite on kind cluster"
             }
             sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-2 log after test completion"
           }
@@ -185,6 +185,20 @@ pipeline {
       steps {
         sh script: 'docker login -u amazeeiojenkins -p $PASSWORD', label: "Docker login"
         sh script: "make -O -j$NPROC publish-uselagoon-baseimages publish-uselagoon-serviceimages publish-uselagoon-taskimages", label: "Publishing built images to uselagoon"
+      }
+    }
+    stage ('scan built images') {
+      when {
+        anyOf {
+          branch 'testing/scans'
+          buildingTag()
+        }
+      }
+      steps {
+        sh script: 'make scan-images', label: "perform scan routines"
+        sh script:  'find ./scans/*trivy* -type f | xargs tail -n +1', label: "Show Trivy vulnerability scan results"
+        sh script:  'find ./scans/*grype* -type f | xargs tail -n +1', label: "Show Grype vulnerability scan results"
+        sh script:  'find ./scans/*syft* -type f | xargs tail -n +1', label: "Show Syft SBOM results"
       }
     }
   }

@@ -1,12 +1,11 @@
 ---
-- include: features/random-wait.yaml
-
 - include: features/api-token.yaml
   vars:
     testname: "API TOKEN"
 
 - include: api/add-project.yaml
   vars:
+    testname: "NGINX {{ cluster_type|upper }}"
     project: ci-nginx-{{ cluster_type }}
     git_repo_name: nginx.git
     git_url: "{{ localgit_url }}/{{ git_repo_name }}"
@@ -20,4 +19,5 @@
 
 - include: api/delete-project.yaml
   vars:
+    testname: "NGINX {{ cluster_type|upper }}"
     project: ci-nginx-{{ cluster_type }}

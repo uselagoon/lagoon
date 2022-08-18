@@ -1,6 +1,9 @@
 # Developing Lagoon
 
-Development of Lagoon locally can now be performed on a local Kubernetes cluster, or via Docker Compose (as a fallback).
+Development of Lagoon locally can now be performed on a local Kubernetes cluster, or via Docker Compose \(as a fallback\).
+
+!!! Note "Note:"
+    The full Lagoon stack relies on a range of upstream projects which are currently incompatible with ARM-based architectures, such as the the M1/M2 Apple Silicon-based machines. For this reason, running or developing `lagoon-core` or `lagoon-remote` locally on these architectures is not currently supported. See https://github.com/uselagoon/lagoon/issues/3189 for more information.
 
 ## Docker
 
@@ -22,47 +25,45 @@ Running a Lagoon, Kubernetes, or Docker cluster on your local machine consumes a
 
 ## Build Lagoon Locally
 
-{% hint style="warning" %}
-Only consider building Lagoon this way if you intend to develop features or functionality for it, or want to debug internal processes. We will also be providing instruction to install Lagoon without building it (i.e. by using the published releases).
+!!! warning "Warning:"
+    Only consider building Lagoon this way if you intend to develop features or functionality for it, or want to debug internal processes. We will also be providing instruction to install Lagoon without building it \(i.e. by using the published releases\).
 
-We're using `make` (see the [Makefile](../../Makefile/)) in order to build the needed Docker images, configure Kubernetes and run tests.
-{% endhint %}
+We're using `make` \(see the [Makefile](https://github.com/uselagoon/lagoon/blob/main/Makefile)\) in order to build the needed Docker images, configure Kubernetes and run tests.
 
-We have provided a number of routines in the [Makefile](../../Makefile/) to cover most local development scenarios. Here we will run through a complete process.
+We have provided a number of routines in the [Makefile](https://github.com/uselagoon/lagoon/blob/main/Makefile) to cover most local development scenarios. Here we will run through a complete process.
 
 ### Build images
 
 1. Here `-j8` tells **make** to run 8 tasks in parallel to speed the build up. Adjust as necessary.
-2. We have set `SCAN_IAMGES=false` as a default to not scan the built images for vulnerabilities. If set to true, a `scan.txt` file will be created in the project root with the scan output.
+2. We have set `SCAN_IMAGES=false` as a default to not scan the built images for vulnerabilities. If set to true, a `scan.txt` file will be created in the project root with the scan output.
 
 ```bash
 make -j8 build
 ```
 
-1. Start Lagoon test routine using the defaults in the Makefile (all tests).
+1. Start Lagoon test routine using the defaults in the Makefile \(all tests\).
 
 ```bash
 make kind/test
 ```
 
-{% hint style="warning" %}
-There are a lot of tests configured to run by default - please consider only testing locally the minimum that you need to ensure functionality. This can be done by specifying or removing tests from the `TESTS` variable in the Makefile.
-{% endhint %}
+!!! warning "Warning:"
+    There are a lot of tests configured to run by default - please consider only testing locally the minimum that you need to ensure functionality. This can be done by specifying or removing tests from the `TESTS` variable in the Makefile.
 
 This process will:
 
 1. Download the correct versions of the local development tools if not installed - `kind`, `kubectl`, `helm`, `jq`.
 2. Update the necessary Helm repositories for Lagoon to function.
 3. Ensure all of the correct images have been built in the previous step.
-4. Create a local [KinD](https://kind.sigs.k8s.io) cluster, which provisions an entire running Kubernetes cluster in a local Docker container. This cluster has been configured to talk to a provisioned image registry that we will be pushing the built Lagoon images to. It has also been configured to allow access to the host filesystem for local development.
-5. Clone Lagoon from [https://github.com/uselagoon/lagoon-charts](https://github.com/uselagoon/lagoon-charts) (use the `CHARTS_TREEISH` variable in the Makefile to control which branch if needed).
+4. Create a local [KinD](https://kind.sigs.k8s.io/) cluster, which provisions an entire running Kubernetes cluster in a local Docker container. This cluster has been configured to talk to a provisioned image registry that we will be pushing the built Lagoon images to. It has also been configured to allow access to the host filesystem for local development.
+5. Clone Lagoon from [https://github.com/uselagoon/lagoon-charts](https://github.com/uselagoon/lagoon-charts) \(use the `CHARTS_TREEISH` variable in the Makefile to control which branch if needed\).
 6. Install the Harbor Image registry into the KinD cluster and configure its ingress and access properly.
 7. Docker will push the built images for Lagoon into the Harbor image registry.
 8. It then uses the [Makefile from lagoon-charts](https://github.com/uselagoon/lagoon-charts/blob/main/Makefile) to perform the rest of the setup steps.
 9. A suitable ingress controller is installed - we use the [NGINX Ingress Controller](https://kubernetes.github.io/ingress-nginx/).
-10. A local NFS server provisioner is installed to handle specific volume requests - we use one that handles Read-Write-Many operations (RWX).
+10. A local NFS server provisioner is installed to handle specific volume requests - we use one that handles Read-Write-Many operations \(RWX\).
 11. Lagoon Core is then installed, using the locally built images pushed to the cluster-local Image Registry, and using the default configuration, which may exclude some services not needed for local testing. The installation will wait for the API and Keycloak to come online.
-12. The DBaaS providers are installed - MariaDB, PostgreSQL and MongoDB. This step provisions standalone databases to be used by projects running locally, and emulates the managed services available via cloud providers (e.g. Cloud SQL, RDS or Azure Database).
+12. The DBaaS providers are installed - MariaDB, PostgreSQL and MongoDB. This step provisions standalone databases to be used by projects running locally, and emulates the managed services available via cloud providers \(e.g. Cloud SQL, RDS or Azure Database\).
 13. Lagoon Remote is then installed, and configured to talk to the Lagoon Core, databases and local storage. The installation will wait for this to complete before continuing.
 14. To provision the tests, the Lagoon Test chart is then installed, which provisions a local Git server to host the test repositories, and pre-configures the Lagoon API database with the default test users, accounts and configuration. It then performs readiness checks before starting tests.
 15. Lagoon will run all the tests specified in the TESTS variable in the Makefile. Each test creates its own project & environments, performs the tests, and then removes the environments & projects. The test runs are output to the console log in the `lagoon-test-suite-*` pod, and can be accessed one test per container.
@@ -71,7 +72,7 @@ Ideally, all of the tests pass and it's all done!
 
 ### View the test progress and your local cluster
 
-The test routine creates a local Kubeconfig file (called `kubeconfig.kind.lagoon` in the root of the project, that can be used with a Kubernetes dashboard, viewer or CLI tool to access the local cluster. We use tools like [Lens](https://k8slens.dev), [Octant](https://octant.dev), [kubectl](https://kubernetes.io/docs/reference/kubectl/cheatsheet/) or [Portainer](https://www.portainer.io) in our workflows. Lagoon Core, Remote and Tests all build in the `Lagoon` namespace, and each environment creates its own namespace to run, so make sure to use the correct context when inspecting.
+The test routine creates a local Kubeconfig file \(called `kubeconfig.kind.lagoon` in the root of the project, that can be used with a Kubernetes dashboard, viewer or CLI tool to access the local cluster. We use tools like [Lens](https://k8slens.dev/), [Octant](https://octant.dev/), [kubectl](https://kubernetes.io/docs/reference/kubectl/cheatsheet/) or [Portainer](https://www.portainer.io/) in our workflows. Lagoon Core, Remote and Tests all build in the `Lagoon` namespace, and each environment creates its own namespace to run, so make sure to use the correct context when inspecting.
 
 In order to use kubectl with the local cluster, you will need to use the correct Kubeconfig. This can be done for every command or it can be added to your preferred tool:
 
@@ -89,7 +90,7 @@ The Makefile includes a few simple routines that will make interacting with the 
 make kind/port-forwards
 ```
 
-This will create local ports to expose the UI (6060), API (7070) and Keycloak (8080). Note that this logs to `stdout`, so it should be performed in a secondary terminal/window.
+This will create local ports to expose the UI \(6060\), API \(7070\) and Keycloak \(8080\). Note that this logs to `stdout`, so it should be performed in a secondary terminal/window.
 
 ```bash
 make kind/get-admin-creds
@@ -111,7 +112,7 @@ This will re-push the images listed in `KIND_SERVICES` with the correct tag, and
 make kind/local-dev-patch
 ```
 
-This will build the typescript services, using your locally installed Node.js (it should be >16.0). It will then:
+This will build the typescript services, using your locally installed Node.js \(it should be &gt;16.0\). It will then:
 
 * Mount the "dist" folders from the Lagoon services into the correct lagoon-core pods in Kubernetes
 * Redeploy the lagoon-core chart with the services running with `nodemon`watching the code for changes
@@ -122,7 +123,7 @@ This will build the typescript services, using your locally installed Node.js (i
 make kind/local-dev-logging
 ```
 
-This will create a standalone OpenDistro for Elasticsearch cluster in your local Docker, and configure Lagoon to dispatch all logs (Lagoon and project) to it, using the configuration in [lagoon-logging](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-logging).
+This will create a standalone OpenDistro for Elasticsearch cluster in your local Docker, and configure Lagoon to dispatch all logs \(Lagoon and project\) to it, using the configuration in [lagoon-logging](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-logging).
 
 ```bash
 make kind/retest
@@ -130,7 +131,7 @@ make kind/retest
 make kind/retest TESTS='[features-kubernetes]'
 ```
 
-This will re-run a suite of tests (defined in the `TESTS` variable) against the existing cluster. It will re-push the images needed for tests (tests, local-git, and the data-watcher-pusher). You can specify tests to run by passing the TESTS variable inline.
+This will re-run a suite of tests \(defined in the `TESTS` variable\) against the existing cluster. It will re-push the images needed for tests \(tests, local-git, and the data-watcher-pusher\). You can specify tests to run by passing the TESTS variable inline.
 
 If updating a test configuration, the tests image will need to be rebuilt and pushed, e.g `rm build/tests && make build/tests && make kind/push-images IMAGES='tests' && make kind/retest TESTS='[api]'`
 
@@ -154,16 +155,16 @@ The Lagoon test uses Ansible to run the test suite. Each range of tests for a sp
 
 The configuration for these tests is held in three services:
 
-* `tests` is the Ansible test services themselves. The local testing routine runs each individual test as a separate container within a test-suite pod. These are listed below.
-* `local-git` is a Git server hosted in the cluster that holds the source files for the tests. Ansible pulls and pushes to this repository throughout the tests
-* `api-data-watcher-pusher` is a set of GraphQL mutations that pre-populates local Lagoon with the necessary Kubernetes configuration, test user accounts and SSH keys, and the necessary groups and notifications. **Note that this will wipe local projects and environments on each run.**
+* `tests` is the Ansible test services themselves.  The local testing routine runs each individual test as a separate container within a test-suite pod.  These are listed below.
+* `local-git` is a Git server hosted in the cluster that holds the source files for the tests.  Ansible pulls and pushes to this repository throughout the tests
+* `api-data-watcher-pusher` is a set of GraphQL mutations that pre-populates local Lagoon with the necessary Kubernetes configuration, test user accounts and SSH keys, and the necessary groups and notifications.  **Note that this will wipe local projects and environments on each run.**
 
 The individual routines relevant to Kubernetes are:
 
 * `active-standby-kubernetes` runs tests to check active/standby in Kubernetes.
 * `api` runs tests for the API - branch/PR deployment, promotion.
 * `bitbucket`, `gitlab` and `github` run tests for the specific SCM providers.
-* `drupal-php74` runs a single-pod MariaDB, MariaDB DBaaS and a Drush-specific test for a Drupal 8/9 project (`drupal-php73` doesn't do the Drush test).
+* `drupal-php74` runs a single-pod MariaDB, MariaDB DBaaS and a Drush-specific test for a Drupal 8/9 project \(`drupal-php73` doesn't do the Drush test\).
 * `drupal-postgres` runs a single-pod PostgreSQL and a PostgreSQL DBaaS test for a Drupal 8 project.
 * `elasticsearch` runs a simple NGINX proxy to an Elasticsearch single-pod.
 * `features-api-variables` runs tests that utilize variables in Lagoon.
@@ -172,13 +173,11 @@ The individual routines relevant to Kubernetes are:
 * `nginx`, `node` and `python` run basic tests against those project types.
 * `node-mongodb` runs a single-pod MongoDB test and a MongoDB DBaaS test against a Node.js app.
 
-There are a few other legacy Openshift-specific tests in there that may or may not work with Openshift-based clients.
-
 ## Local Development
 
 Most services are written in [Node.js](https://nodejs.org/en/docs/). As many of these services share similar Node.js code and Node.js packages, we're using a feature of [Yarn](https://yarnpkg.com/en/docs), called [Yarn workspaces](https://yarnpkg.com/en/docs/workspaces). Yarn workspaces need a `package.json` in the project's root directory that defines the workspaces.
 
-The development of the services can happen directly within Docker. Each container for each service is set up in a way that its source code is mounted into the running container ([see `docker-compose.yml`](../using-lagoon-the-basics/docker-compose-yml.md)). Node.js itself is watching the code via `nodemon` , and restarts the Node.js process automatically on a change.
+The development of the services can happen directly within Docker. Each container for each service is set up in a way that its source code is mounted into the running container \([see `docker-compose.yml`](../using-lagoon-the-basics/docker-compose-yml.md)\). Node.js itself is watching the code via `nodemon` , and restarts the Node.js process automatically on a change.
 
 ### lagoon-commons
 
@@ -186,7 +185,7 @@ The services not only share many Node.js packages, but also share actual custom 
 
 ## Troubleshooting
 
-#### ⚠ **I can't build a docker image for any Node.js based service**
+#### ⚠I can't build a docker image for any Node.js based service
 
 Rebuild the images via:
 
@@ -195,13 +194,13 @@ make clean
 make build
 ```
 
-#### ⚠ **I get errors about missing `node_modules` content when I try to build / run a Node.js based image**
+#### ⚠ I get errors about missing `node_modules` content when I try to build / run a Node.js based image
 
 Make sure to run `yarn` in Lagoon's root directory, since some services have common dependencies managed by `yarn` workspaces.
 
-#### ⚠ **I get an error resolving the `nip.io` domains**
+#### ⚠ I get an error resolving the `nip.io` domains
 
-```
+```text
 Error response from daemon: Get https://registry.172.18.0.2.nip.io:32080/v2/: dial tcp: lookup registry.172.18.0.2.nip.io: no such host
 ```
 
@@ -215,7 +214,7 @@ Here are some development scenarios and useful workflows for getting things done
 
 This example shows a workflow for editing the Lagoon deploy logic.
 
-#### Edit `kubectl-build-deploy-dind`
+### Edit `kubectl-build-deploy-dind`
 
 In this example we want to add some functionality to the Lagoon deploy logic in the `kubectl-build-deploy-dind` image.
 

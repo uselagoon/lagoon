@@ -8,6 +8,7 @@ import EnvironmentWithTaskQuery from 'lib/query/EnvironmentWithTask';
 import Breadcrumbs from 'components/Breadcrumbs';
 import ProjectBreadcrumb from 'components/Breadcrumbs/Project';
 import EnvironmentBreadcrumb from 'components/Breadcrumbs/Environment';
+import TaskBreadcrumb from 'components/Breadcrumbs/Task';
 import NavTabs from 'components/NavTabs';
 import Task from 'components/Task';
 import withQueryLoading from 'lib/withQueryLoading';
@@ -24,13 +25,13 @@ import { bp } from 'lib/variables';
 export const PageTask = ({ router }) => (
   <>
     <Head>
-      <title>{`${router.query.taskId} | Task`}</title>
+      <title>{`${router.query.taskName} | Task`}</title>
     </Head>
     <Query
       query={EnvironmentWithTaskQuery}
       variables={{
         openshiftProjectName: router.query.openshiftProjectName,
-        taskId: parseInt(router.query.taskId, 10)
+        taskName: router.query.taskName
       }}
     >
       {R.compose(
@@ -45,6 +46,12 @@ export const PageTask = ({ router }) => (
             <EnvironmentBreadcrumb
               environmentSlug={environment.openshiftProjectName}
               projectSlug={environment.project.name}
+            />
+            <TaskBreadcrumb
+              environmentSlug={environment.openshiftProjectName}
+              projectSlug={environment.project.name}
+              taskSlug={environment.tasks[0].taskName}
+              taskName={environment.tasks[0].name}
             />
           </Breadcrumbs>
           <div className="content-wrapper">

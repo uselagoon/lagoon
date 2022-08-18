@@ -52,7 +52,7 @@ const DrushCron = ({ pageEnvironment, onCompleted, onError }) => (
               required
             />
           </div>
-          <Button action={taskDrushCron}>Add task</Button>
+          <Button action={taskDrushCron}>Run task</Button>
           <style jsx>{`
             .envSelect {
               margin: 10px 0;

@@ -17,6 +17,7 @@
   vars:
     branch: "drush-first"
     project: "{{ project }}"
+    namespace: "{{ project | regex_replace('_', '-') }}-drush-first"
   tasks:
   - include: ../../tasks/api/deploy-no-sha.yaml
 
@@ -39,6 +40,7 @@
   vars:
     branch: "drush-second"
     project: "{{ project }}"
+    namespace: "{{ project | regex_replace('_', '-') }}-drush-second"
   tasks:
   - include: ../../tasks/api/deploy-no-sha.yaml
 
@@ -211,6 +213,7 @@
   vars:
     branch: "foo/bar"
     project: "{{ project }}"
+    namespace: "{{ project | regex_replace('_', '-') }}-foo-bar"
   tasks:
   - include: ../../tasks/api/deploy-no-sha.yaml
 

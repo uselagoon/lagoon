@@ -13,6 +13,7 @@ spec:
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 0
   failedJobsHistoryLimit: 1
+  startingDeadlineSeconds: 240
   jobTemplate:
     metadata:
       labels:
@@ -78,4 +79,10 @@ spec:
           tolerations:
             {{- toYaml $ | nindent 12 }}
         {{- end }}
+          dnsConfig:
+            options:
+              - name: timeout
+                value: "60"
+              - name: attempts
+                value: "10"
 {{- end }}

@@ -1,6 +1,4 @@
 ---
-- include: features/random-wait.yaml
-
 - include: features/api-token.yaml
   vars:
     testname: "API TOKEN"
@@ -17,6 +15,7 @@
     drupal_version: 9
     db: mariadb
     php_version: 8.0
+    overwrite_docker_compose: docker-compose.single.yml
     git_repo_name: drush.git
     project: ci-drush-la-{{ cluster_type }}
 

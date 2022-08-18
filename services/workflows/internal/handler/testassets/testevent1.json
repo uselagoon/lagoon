@@ -1,0 +1,8 @@
+{
+  "event": "task:builddeploy-kubernetes:complete",
+  "Meta": {
+    "ProjectId": 18,
+    "EnvironmentId": "1",
+    "Environment": "Master"
+  }
+}

@@ -4,7 +4,7 @@ This document describes what actually happens during a Lagoon build and deployme
 
 Watch the video below for a walk-through of the deployment process.
 
-{% embed url="https://www.youtube.com/watch?v=XiaH7gqUXWc" caption="Lagoon Deployment Demo Video" %}
+<iframe width="560" height="315" src="https://www.youtube.com/embed/XiaH7gqUXWc" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 ## 1. Set up OpenShift Project/Kubernetes Namespace for Environment
 
@@ -56,9 +56,9 @@ Also, if this is a pull request build:
 
 Additionally, for each already built image, its name is also injected. If your `docker-compose.yml` is configured to first build the `cli` image and then the `nginx` image, the name of the `nginx` image is injected as `NGINX_IMAGE`.
 
-## 4. Configure OpenShift/Kubernetes Services and Routes
+## 4. Configure Kubernetes or Openshift Services and Routes
 
-Next, Lagoon will configure OpenShift/Kubernetes with all services and routes that are defined from the service types, plus possible additional custom routes that you have defined in `.lagoon.yml`.
+Next, Lagoon will configure Kubernetes or Openshift with all services and routes that are defined from the service types, plus possible additional custom routes that you have defined in `.lagoon.yml`.
 
 In this step it will expose all defined routes in the `LAGOON_ROUTES` as comma separated URLs. It will also define one route as the "main" route, in this order:
 
@@ -80,7 +80,7 @@ Lagoon will now create persistent storage \(PVC\) for each service that needs an
 
 ## 7. Cron jobs
 
-For each service that requests a cron job \(like MariaDB\), plus for each custom cron job defined in `.lagoon.yml,` Lagoon will now generate the cron job environment variables which are later injected into the [Deployment](https://docs.openshift.com/container-platform/4.4/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are).
+For each service that requests a cron job \(like MariaDB\), plus for each custom cron job defined in `.lagoon.yml,` Lagoon will now generate the cron job environment variables which are later injected into the [Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/).
 
 ## 8. Run defined pre-rollout tasks
 
@@ -90,17 +90,17 @@ If any of them fail, Lagoon will immediately stop and notify you, and the rollou
 
 ## 9. DeploymentConfigs, Statefulsets, Daemonsets
 
-This is probably the most important step. Based on the defined service type, Lagoon will create the [Deployment](https://docs.openshift.com/container-platform/4.4/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are), [Statefulset](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/) or [Daemonsets](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/) for the service. \(Note that Deployments are analogous DeploymentConfigs in OpenShift\)
+This is probably the most important step. Based on the defined service type, Lagoon will create the [Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/), [Statefulset](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/) or [Daemonsets](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/) for the service. \(Note that Deployments are analogous to [DeploymentConfigs](https://docs.openshift.com/container-platform/latest/applications/deployments/what-deployments-are.html) in OpenShift\)
 
 It will include all previously gathered information like the cron jobs, the location of persistent storage, the pushed images and so on.
 
-Creation of these objects will also automatically cause OpenShift/Kubernetes to trigger new deployments of the pods if necessary, like when an environment variable has changed or an image has changed. But if there is no change, there will be no deployment! This means if you only update the PHP code in your application, the Varnish, Solr, MariaDB, Redis and any other service that is defined but does not include your code will not be deployed. This makes everything much much faster.
+Creation of these objects will also automatically cause Kubernetes or Openshift to trigger new deployments of the pods if necessary, like when an environment variable has changed or an image has changed. But if there is no change, there will be no deployment! This means if you only update the PHP code in your application, the Varnish, Solr, MariaDB, Redis and any other service that is defined but does not include your code will not be deployed. This makes everything much much faster.
 
 ## 10. Wait for all rollouts to be done
 
 Now Lagoon waits! It waits for all of the just-triggered deployments of the new pods to be finished, as well as for their health checks to be successful.
 
-If any of the deployments or health checks fail, the deployment will be stopped here, and you will be informed via the defined notification systems \(like Slack\) that the deployment has failed.
+If any of the deployments or health checks fail, the deployment will be stopped here, and you will be informed via the [defined notification systems](/administering-lagoon/graphql-queries/#adding-notifications-to-the-project) \(like Slack\) that the deployment has failed.
 
 ## 11. Run defined post-rollout tasks
 
@@ -111,6 +111,3 @@ If any of them fail, Lagoon will immediately stop and notify you.
 ## 12. Success
 
 If all went well and nothing threw any errors, Lagoon will mark this build as successful and inform you via defined notifications. ✅
-
-
-

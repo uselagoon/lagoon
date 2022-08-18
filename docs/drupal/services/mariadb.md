@@ -2,43 +2,17 @@
 description: MariaDB is the open source successor to MySQL.
 ---
 
-# MariaDB
+# MariaDB-Drupal
 
-## Galera
+The Lagoon `mariadb-drupal` Docker image [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mariadb-drupal/10.5.Dockerfile) is a customized [`mariadb`](../../docker-images/mariadb.md) image to use within Drupal projects in Lagoon. It differs from the `mariadb` image only for initial database setup, made by some environment variables:
 
-[MariaDB Galera Cluster](https://mariadb.com/kb/en/galera-cluster/) is a synchronous multi-master cluster for MariaDB.
+| Environment Variable | Default | Description |
+| :--- | :--- | :--- |
+| `MARIADB_DATABASE` | drupal | Drupal database created at startup. |
+| `MARIADB_USER` | drupal | Default user created at startup. |
+| `MARIADB_PASSWORD` | drupal | Password of default user created at startup. |
 
-For improved reliability, MariaDB can be used in a cluster for production sites. This example, when placed in `.lagoon.yml` will enable Galera on the `production` branch.
-
-{% tabs %}
-{% tab title=".lagoon.yml" %}
-```yaml
-environments:
-  production:
-    types:
-      mariadb: mariadb-galera
-```
-{% endtab %}
-{% endtabs %}
-
-Also, you will need to change your service definition in your `docker-compose.yml`
-
-{% tabs %}
-{% tab title="docker-compose.yml" %}
-```yaml
-  mariadb:
-    image: amazeeio/mariadb-galera-drupal
-    labels:
-      lagoon.type: mariadb
-    ports:
-      - "3306" # Exposes the port 3306 with a random local port, find it with `docker-compose port mariadb 3306`.
-    environment:
-      << : *default-environment
-```
-{% endtab %}
-{% endtabs %}
-
-It is recommended that you configure the environment _before_ the initial deploy of the production site, otherwise manual intervention may be needed from your Lagoon administrator.
+If the `LAGOON_ENVIRONMENT_TYPE` variable is set to `production`, performances are set accordingly by using `MARIADB_INNODB_BUFFER_POOL_SIZE=1024` and `MARIADB_INNODB_LOG_FILE_SIZE=256`.
 
 ## Additional MariaDB [Logging](../../logging/logging.md)
 
@@ -70,26 +44,21 @@ $ docker-compose port mariab 3306
 0.0.0.0:32797
 ```
 
-## Setting a static port \(not recommended\)
+## Setting a static port (not recommended)
 
 During development, if you are using an external database tool, it may become cumbersome to continually check and set the MySQL connection port.
 
 To set a static port, edit your service definition in your `docker-compose.yml`.
 
-{% tabs %}
-{% tab title="docker-compose.yml" %}
-```yaml
+```yaml title="docker-compose.yml"
   mariadb:
     ...
     ports:
       - "33772:3306" # Exposes port 3306 with a 33772 on the host port. Note by doing this you are responsible for managing port collisions`.
 ```
-{% endtab %}
-{% endtabs %}
 
-{% hint style="warning" %}
-By setting a static port you become responsible for managing port collisions.
-{% endhint %}
+!!! warning "Warning:"
+    By setting a static port you become responsible for managing port collisions.
 
 ### Connect to MySQL
 
@@ -102,4 +71,3 @@ Now you can use these details to connect to whatever database management tool yo
 | Username | `drupal` | `drupal` |
 | Password | `drupal` | `drupal` |
 | Database | `drupal` | `drupal` |
-

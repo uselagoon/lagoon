@@ -25,7 +25,6 @@ const resolvers = require('./resolvers');
 
 const User = require('./models/user');
 const Group = require('./models/group');
-const BillingModel = require('./models/billing');
 const ProjectModel = require('./models/project');
 const EnvironmentModel = require('./models/environment');
 
@@ -117,7 +116,6 @@ const apolloServer = new ApolloServer({
         models: {
           UserModel: User.User(modelClients),
           GroupModel: Group.Group(modelClients),
-          BillingModel: BillingModel.BillingModel(modelClients),
           ProjectModel: ProjectModel.ProjectModel(modelClients),
           EnvironmentModel: EnvironmentModel.EnvironmentModel(modelClients)
         }
@@ -175,7 +173,6 @@ const apolloServer = new ApolloServer({
         models: {
           UserModel: User.User(modelClients),
           GroupModel: Group.Group(modelClients),
-          BillingModel: BillingModel.BillingModel(modelClients),
           ProjectModel: ProjectModel.ProjectModel(modelClients),
           EnvironmentModel: EnvironmentModel.EnvironmentModel(modelClients)
         }
@@ -194,6 +191,26 @@ const apolloServer = new ApolloServer({
     };
   },
   plugins: [
+    // Debug plugin for logging resolver execution order
+    // {
+    //   requestDidStart(initialRequestContext) {
+    //     return {
+    //       executionDidStart(executionRequestContext) {
+    //         return {
+    //           willResolveField({source, args, context, info}) {
+    //             console.log(`Resolving ${info.parentType.name}.${info.fieldName}`);
+    //             const start = process.hrtime.bigint();
+    //             return (error, result) => {
+    //               const end = process.hrtime.bigint();
+    //               // Uncomment to log resolver execution time
+    //               // console.log(`Field ${info.parentType.name}.${info.fieldName} took ${end - start}ns`);
+    //             };
+    //           }
+    //         }
+    //       }
+    //     }
+    //   }
+    // },
     {
       requestDidStart: () => ({
         willSendResponse: response => {

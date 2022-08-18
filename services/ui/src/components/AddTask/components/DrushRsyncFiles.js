@@ -95,7 +95,7 @@ const DrushRsyncFiles = ({
             }
             disabled={!selectedSourceEnv}
           >
-            Add task
+            Run task
           </Button>
           <style jsx>{`
             .warning {

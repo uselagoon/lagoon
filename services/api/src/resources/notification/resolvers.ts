@@ -1,6 +1,6 @@
 import * as R from 'ramda';
 import { ResolverFn } from '../';
-import { query, isPatchEmpty } from '../../util/db';
+import { query, isPatchEmpty, knex } from '../../util/db';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { Helpers } from './helpers';
 import { Sql } from './sql';
@@ -13,6 +13,13 @@ import {
   notificationIntToContentType,
   notificationContentTypeToInt
 } from '@lagoon/commons/dist/notificationCommons';
+import { sqlClientPool } from '../../clients/sqlClient';
+
+const addNotificationGeneric = async (sqlClientPool, notificationTable, input) => {
+  const createSql = knex(notificationTable).insert(input).toString();
+  let { insertId } = await query(sqlClientPool, createSql);
+  return await query(sqlClientPool, knex(notificationTable).where('id', insertId).toString());
+}
 
 export const addNotificationMicrosoftTeams: ResolverFn = async (
   root,
@@ -20,15 +27,7 @@ export const addNotificationMicrosoftTeams: ResolverFn = async (
   { sqlClientPool, hasPermission }
 ) => {
   await hasPermission('notification', 'add');
-
-  const rows = await query(
-    sqlClientPool,
-    'CALL CreateNotificationMicrosoftTeams(:name, :webhook)',
-    input
-  );
-  const microsoftTeams = R.path([0, 0], rows);
-
-  return microsoftTeams;
+  return R.path([0], await addNotificationGeneric(sqlClientPool, 'notification_microsoftteams', input));
 };
 
 export const addNotificationEmail: ResolverFn = async (
@@ -38,14 +37,7 @@ export const addNotificationEmail: ResolverFn = async (
 ) => {
   await hasPermission('notification', 'add');
 
-  const rows = await query(
-    sqlClientPool,
-    'CALL CreateNotificationEmail(:name, :email_address)',
-    input
-  );
-  const email = R.path([0, 0], rows);
-
-  return email;
+  return R.path([0], await addNotificationGeneric(sqlClientPool, 'notification_email', input));
 };
 
 export const addNotificationRocketChat: ResolverFn = async (
@@ -55,14 +47,7 @@ export const addNotificationRocketChat: ResolverFn = async (
 ) => {
   await hasPermission('notification', 'add');
 
-  const rows = await query(
-    sqlClientPool,
-    'CALL CreateNotificationRocketChat(:name, :webhook, :channel)',
-    input
-  );
-  const rocketchat = R.path([0, 0], rows);
-
-  return rocketchat;
+  return R.path([0], await addNotificationGeneric(sqlClientPool, 'notification_rocketchat', input));
 };
 
 export const addNotificationSlack: ResolverFn = async (
@@ -72,27 +57,13 @@ export const addNotificationSlack: ResolverFn = async (
 ) => {
   await hasPermission('notification', 'add');
 
-  const rows = await query(
-    sqlClientPool,
-    'CALL CreateNotificationSlack(:name, :webhook, :channel)',
-    input
-  );
-  const slack = R.path([0, 0], rows);
-
-  return slack;
+  return R.path([0], await addNotificationGeneric(sqlClientPool, 'notification_slack', input));
 };
 
 export const addNotificationWebhook: ResolverFn = async (root, { input }, { sqlClientPool, hasPermission }) => {
   await hasPermission('notification', 'add');
 
-  const rows = await query(
-    sqlClientPool,
-    'CALL CreateNotificationWebhook(:name, :webhook)',
-    input
-  );
-  const slack = R.path([0, 0], rows);
-
-  return slack;
+  return R.path([0], await addNotificationGeneric(sqlClientPool, 'notification_webhook', input));
 };
 
 
@@ -156,6 +127,16 @@ export const addNotificationToProject: ResolverFn = async (
   return project;
 };
 
+const deleteNotificationGeneric = async (sqlClientPool, notificationTableName, typename, name) => {
+  let res = await query(sqlClientPool, knex(notificationTableName).where('name', name).toString());
+  let nsid = R.path([0, "id"], res);
+  if(!nsid) {
+    throw Error(`Notification of name ${name} not found`);
+  }
+  await query(sqlClientPool, knex('project_notification').where('nid', nsid).andWhere('type', typename).delete().toString());
+  await query(sqlClientPool, knex(notificationTableName).where('name', name).delete().toString());
+}
+
 export const deleteNotificationMicrosoftTeams: ResolverFn = async (
   root,
   { input },
@@ -167,18 +148,14 @@ export const deleteNotificationMicrosoftTeams: ResolverFn = async (
 
   const nids = await Helpers(sqlClientPool).getAssignedNotificationIds({
     name,
-    type: 'microsoftTeams'
+    type: 'microsoftteams'
   });
 
   if (R.length(nids) > 0) {
     throw new Error("Can't delete notification linked to projects");
   }
 
-  await query(
-    sqlClientPool,
-    'CALL DeleteNotificationMicrosoftTeams(:name)',
-    input
-  );
+  await deleteNotificationGeneric(sqlClientPool, 'notification_microsoftteams', 'microsoftteams', name);
 
   // TODO: maybe check rows for changed result
   return 'success';
@@ -202,7 +179,7 @@ export const deleteNotificationEmail: ResolverFn = async (
     throw new Error("Can't delete notification linked to projects");
   }
 
-  await query(sqlClientPool, 'CALL DeleteNotificationEmail(:name)', input);
+  await deleteNotificationGeneric(sqlClientPool, 'notification_email', 'email', name);
 
   // TODO: maybe check rows for changed result
   return 'success';
@@ -226,11 +203,7 @@ export const deleteNotificationRocketChat: ResolverFn = async (
     throw new Error("Can't delete notification linked to projects");
   }
 
-  await query(
-    sqlClientPool,
-    'CALL DeleteNotificationRocketChat(:name)',
-    input
-  );
+  await deleteNotificationGeneric(sqlClientPool, "notification_rocketchat", "rocketchat", name);
 
   // TODO: maybe check rows for changed result
   return 'success';
@@ -254,7 +227,7 @@ export const deleteNotificationSlack: ResolverFn = async (
     throw new Error("Can't delete notification linked to projects");
   }
 
-  await query(sqlClientPool, 'CALL DeleteNotificationSlack(:name)', input);
+  await deleteNotificationGeneric(sqlClientPool, "notification_slack", "slack", name);
 
   // TODO: maybe check rows for changed result
   return 'success';
@@ -282,7 +255,7 @@ export const deleteNotificationWebhook: ResolverFn = async (
     throw new Error("Can't delete notification linked to projects");
   }
 
-  await query(sqlClientPool, 'CALL DeleteNotificationWebhook(:name)', input);
+  await deleteNotificationGeneric(sqlClientPool, "notification_webhook", "webhook", name);
 
   // TODO: maybe check rows for changed result
   return 'success';

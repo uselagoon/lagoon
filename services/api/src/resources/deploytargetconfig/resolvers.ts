@@ -1,8 +1,14 @@
 import * as R from 'ramda';
 import { ResolverFn } from '../';
+import { Environment } from '../../resolvers';
+import { Helpers as environmentHelpers } from '../environment/helpers';
 import { isPatchEmpty, query, knex } from '../../util/db';
+import { getProjectByEnvironmentId } from '../project/resolvers';
 import { Helpers } from './helpers';
 import { Sql } from './sql';
+import { deployTargetBranches } from '@lagoon/commons/src/deploy-tasks';
+import { Sql as EnvironmentSql } from '../environment/sql'
+import { Helpers as projectHelpers } from '../project/helpers';
 
 
 export const getDeployTargetConfigById = async (
@@ -78,6 +84,85 @@ export const getDeployTargetConfigsByDeployTarget: ResolverFn = async (
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   return withK8s;
 };
+
+export const updateEnvironmentDeployTarget: ResolverFn = async (
+  root,
+  input,
+  utils
+) => {
+
+  const { environment, deployTarget } = input;
+  const { sqlClientPool, hasPermission, userActivityLogger } = utils;
+  let environmentObj =  await environmentHelpers(
+    sqlClientPool
+  ).getEnvironmentById(parseInt(environment));
+
+
+  await hasPermission('project', 'update', {
+    project: environmentObj.project
+  });
+
+  const deployTargets = await getDeployTargetConfigsByProjectId(null, {project: environmentObj.project}, utils);
+
+  let matchesRule = false;
+  let ruleMatch = null;
+  if(deployTargets.length > 0) {
+    let endLoop = false;
+    for(let i = 0; i < deployTargets.length && !endLoop; i++) {
+      let branchTarget = deployTargets[i].branches;
+      switch(branchTarget) {
+        case(undefined):
+        case(null):
+        case(true):
+        case(false):
+          // if any of these before a match, we're actually done
+          // because we don't have a _specific_ rule
+          endLoop = true;
+          continue;
+        break;
+        default:
+          let branchRegex = new RegExp(branchTarget);
+          if(branchRegex.test(branchTarget)) {
+            matchesRule = deployTargets[i].deployTarget == deployTarget;
+            endLoop = true;
+          }
+          //if there's no match for this first target,
+          //we continue on since there may be one at lighter weights
+          continue;
+      }
+    }
+  }
+
+  if(matchesRule == false) {
+    throw new Error("Cannot change deploy target without matching Deploy Target rule");
+  }
+
+  await query(
+    sqlClientPool,
+    EnvironmentSql.updateEnvironment({
+      id: environment,
+      patch: {
+        openshift: deployTarget,
+      }
+    })
+  );
+
+  const projectObj = await projectHelpers(
+    sqlClientPool
+  ).getProjectByEnvironmentId(environment);
+
+  userActivityLogger(`User changed DeployTarget for environment`, {
+    project: projectObj.name,
+    event: 'api:updateEnvironmentDeployTarget',
+    payload: {
+      ...input
+    }
+  });
+
+  return await environmentHelpers(
+    sqlClientPool
+  ).getEnvironmentById(parseInt(environment));
+}
 
 
 export const addDeployTargetConfig: ResolverFn = async (

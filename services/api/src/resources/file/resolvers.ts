@@ -5,6 +5,9 @@ import { query } from '../../util/db';
 import { Sql } from './sql';
 import { Sql as taskSql } from '../task/sql';
 
+// if this is google cloud storage or not
+const isGCS = process.env.S3_FILES_GCS || 'false'
+
 export const getDownloadLink: ResolverFn = async ({ s3Key }) =>
   s3Client.getSignedUrl('getObject', {
     Key: s3Key,
@@ -37,7 +40,7 @@ export const uploadFilesForTask: ResolverFn = async (
     const params = {
       Key: s3_key,
       Body: newFile.createReadStream(),
-      ACL: 'private'
+      ...(isGCS == 'false' && {ACL: 'private'}),
     };
     // @ts-ignore
     await s3Client.upload(params).promise();

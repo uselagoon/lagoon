@@ -1,7 +1,3 @@
----
-description: A handy guide to using SSH with Lagoon
----
-
 # SSH
 
 Lagoon allows you to connect to your running containers via SSH. The containers themselves don't actually have an SSH server installed, but instead you connect via SSH to Lagoon, which then itself creates a remote shell connection via the Kubernetes API for you.
@@ -14,15 +10,15 @@ It is recommended to generate a separate SSH key for each device as opposed to s
 
 **OSX (Mac)**
 
-{% embed url="https://www.makeuseof.com/ssh-keygen-mac" %}
+[Mac](https://www.makeuseof.com/ssh-keygen-mac){ .md-button }
 
 #### Linux (Ubuntu)
 
-{% embed url="https://help.ubuntu.com/community/SSH/OpenSSH/Keys" %}
+[Linux](https://help.ubuntu.com/community/SSH/OpenSSH/Keys){ .md-button }
 
 #### Windows
 
-{% embed url="https://docs.microsoft.com/en-us/windows-server/administration/openssh/openssh_keymanagement" %}
+[Windows](https://docs.microsoft.com/en-us/windows-server/administration/openssh/openssh_keymanagement){ .md-button }
 
 ### SSH Agent
 
@@ -42,19 +38,19 @@ SSH key support in Windows has improved markedly as of recently, and is now supp
 
 ### Via the UI
 
-You can upload your SSH key(s) through the UI. Login as you normally would.&#x20;
+You can upload your SSH key(s) through the UI. Login as you normally would.
 
 In the upper right hand corner, click on Settings:
 
-![Click "Settings" in the upper right hand corner](<../.gitbook/assets/drupal-example  Project 2021-11-18 19-03-22.png>)
+![Click "Settings" in the upper right hand corner](./drupal-example project 2021-11-18 19-03-22.png)
 
 You will then see a page where you can upload your SSH key(s), and it will show any uploaded keys. Paste your key into the text box, give it a name, and click "Add." That's it! Add additional keys as needed.
 
-![Paste your key into the text box. ](<../.gitbook/assets/Settings 2021-11-18 19-03-48.png>)
+![Paste your key into the text box.](./settings 2021-11-18 19-03-48.png)
 
 ### Via Command Line
 
-A general example of using the Lagoon API via GraphQL to add an SSH key to a user can be found here: [https://docs.lagoon.sh/lagoon/administering-lagoon/graphql-queries#allowing-access-to-the-project](https://docs.lagoon.sh/lagoon/administering-lagoon/graphql-queries#allowing-access-to-the-project)
+A general example of using the Lagoon API via GraphQL to add an SSH key to a user can be found [here](../administering-lagoon/graphql-queries.md#allowing-access-to-the-project)
 
 ## SSH into a pod
 
@@ -97,3 +93,38 @@ For example, to connect to the `php` container within the `nginx` pod:
 ```bash
 ssh -p 32222 -t drupal-example-main@ssh.lagoon.amazeeio.cloud service=nginx container=php
 ```
+
+## Copying files
+
+The common case of copying a file into your `cli` pod can be acheived with the usual SSH-compatible tools.
+
+### scp
+
+```bash
+scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -P 32222 [local_path] [project_name]-[environment_name]@ssh.lagoon.amazeeio.cloud:[remote_path]
+```
+
+### rsync
+
+```bash
+rsync --rsh='ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p 32222' [local_path] [project_name]-[environment_name]@ssh.lagoon.amazeeio.cloud:[remote_path]
+```
+
+### Specifying non-CLI pod/service
+
+In the rare case that you need to specify a non-CLI service this can be acheived with `rsync` using a `ssh` wrapper script to reorder the arguments in the manner required by Lagoon's SSH service:
+
+```bash
+#!/usr/bin/env sh
+svc=$1 user=$3 host=$4
+shift 4
+exec ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -p 32222 -l "$user" "$host" "$svc" "$@"
+```
+
+Put that in an executable shell script `rsh.sh` and specify the `service=...` in the `rsync` command:
+
+```bash
+rsync --rsh="/path/to/rsh.sh service=cli" /tmp/foo [project_name]-[environment_name]@ssh.lagoon.amazeeio.cloud:/tmp/foo
+```
+
+The script could also be adjusted to also handle a `container=...` argument.

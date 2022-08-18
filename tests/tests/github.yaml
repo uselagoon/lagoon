@@ -1,6 +1,4 @@
 ---
-- include: features/random-wait.yaml
-
 - include: api/add-project.yaml
   vars:
     project: ci-github-{{ cluster_type }}

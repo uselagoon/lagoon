@@ -27,6 +27,14 @@ export default gql`
           service
           created
           deleted
+          confirmationText
+          advancedTaskDefinitionArguments {
+            id
+            name
+            displayName
+            type
+            range
+          }
         }
         ... on AdvancedTaskDefinitionImage {
           id
@@ -38,11 +46,20 @@ export default gql`
           service
           created
           deleted
+          confirmationText
+          advancedTaskDefinitionArguments {
+            id
+            name
+            displayName
+            type
+            range
+          }
         }
       }
       tasks(limit: $limit) {
         id
         name
+        taskName
         status
         created
         service
