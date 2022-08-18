@@ -41,7 +41,7 @@ export const Sql = {
       .toString(),
   deleteNotifications: (id: number) =>
     knex('project_notification')
-      .where('project', '=', id)
+      .where('pid', '=', id)
       .delete()
       .toString(),
   deleteProject: (id: number) =>
