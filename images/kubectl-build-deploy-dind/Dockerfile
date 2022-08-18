@@ -24,7 +24,7 @@ ENV DBAAS_OPERATOR_HTTP=dbaas.lagoon.svc:5000
 RUN curl -sSL https://github.com/uselagoon/lagoon-linter/releases/download/v0.7.0/lagoon-linter_0.7.0_linux_amd64.tar.gz \
     | tar -xz -C /usr/local/bin lagoon-linter
 
-RUN curl -sSL https://github.com/uselagoon/build-deploy-tool/releases/download/v0.15.0/build-deploy-tool_0.15.0_linux_amd64.tar.gz \
+RUN curl -sSL https://github.com/uselagoon/build-deploy-tool/releases/download/v0.15.2/build-deploy-tool_0.15.2_linux_amd64.tar.gz \
     | tar -xz -C /usr/local/bin build-deploy-tool
 
 RUN curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin > /dev/null 2>&1
