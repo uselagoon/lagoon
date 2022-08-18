@@ -494,7 +494,7 @@ export const deleteEnvironment: ResolverFn = async (
       await hasPermission('environment', 'deleteNoExec', {
         project: projectId
       });
-      await Helpers(sqlClientPool).deleteEnvironment(name, projectId);
+      await Helpers(sqlClientPool).deleteEnvironment(name, environment.id, projectId);
 
       return 'success';
     } catch (err) {

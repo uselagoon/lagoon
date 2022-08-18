@@ -29,6 +29,26 @@ export const Sql = {
     knex('project as p')
       .whereIn('p.id', projectIds)
       .toString(),
+  deleteEnvironmentVariables: (id: number) =>
+    knex('env_vars')
+      .where('project', '=', id)
+      .delete()
+      .toString(),
+  deleteDeployTargeTConfigs: (id: number) =>
+    knex('deploy_target_config')
+      .where('project', '=', id)
+      .delete()
+      .toString(),
+  deleteNotifications: (id: number) =>
+    knex('project_notification')
+      .where('project', '=', id)
+      .delete()
+      .toString(),
+  deleteProject: (id: number) =>
+    knex('project')
+      .where('id', '=', id)
+      .delete()
+      .toString(),
   selectProjectByEnvironmentId: (environmentId, environmentType = []) => {
     let q = knex('environment as e')
       .select(

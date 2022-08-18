@@ -112,24 +112,23 @@ export const Helpers = (sqlClientPool: Pool) => {
     deleteProjectById: async (id: number) => {
       await query(
         sqlClientPool,
-        'DELETE FROM `project_notification` WHERE `pid` = :id',
-        { id }
+        Sql.deleteNotifications(id)
       );
       // clean up environment variables for project
       await query(
         sqlClientPool,
-        'DELETE FROM `env_vars` WHERE `project` = :id',
-        { id }
+        Sql.deleteEnvironmentVariables(id)
       );
       // clean up deploytarget configurations
       await query(
         sqlClientPool,
-        'DELETE FROM `deploy_target_config` WHERE `project` = :id',
-        { id }
+        Sql.deleteDeployTargeTConfigs(id)
       );
-      await query(sqlClientPool, 'DELETE FROM `project` WHERE `id` = :id', {
-        id
-      });
+      // delete the project
+      await query(
+        sqlClientPool,
+        Sql.deleteProject(id)
+      );
     }
   };
 };
