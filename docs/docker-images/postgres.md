@@ -4,8 +4,35 @@ The [Lagoon PostgreSQL Docker image](https://github.com/uselagoon/lagoon-images/
 
 ## Supported versions
 
-* 11 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/11.Dockerfile) - `uselagoon/postgres-11`
-* 12 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/12.Dockerfile) - `uselagoon/postgres-12`
+* 11 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/11.Dockerfile) (Security Support until November 2023) - `uselagoon/postgres-11`
+* 12 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/12.Dockerfile) (Security Support until November 2024) - `uselagoon/postgres-12`
+* 13 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/13.Dockerfile) (Security Support until November 2025) - `uselagoon/postgres-13`
+* 14 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/postgres/14.Dockerfile) (Security Support until November 2026) - `uselagoon/postgres-14`
+
+!!! Note "Note:"
+    We stop updating EOL PostgreSQL images usually with the Lagoon release that comes after the officially communicated EOL date: [https://www.postgresql.org/support/versioning](https://www.postgresql.org/support/versioning/)
+
+## Lagoon adaptions
+
+The default exposed port of postgres containers is port `5432`.
+
+To allow Lagoon to select the best way to run the postgres container, use `lagoon.type: postgres` - this allows DBaaS operator to provision a cloud database if available in the cluster. Use `lagoon.type: postgres-single` to specifically request postgres in a container. Persistent storage is always provisioned for postgres containers at /var/lib/postgresql/data.
+
+## docker-compose.yml snippet
+
+    ```yaml title="docker-compose.yml snippet"
+		postgres:
+		  image: uselagoon/postgres-14-drupal:latest
+		  labels:
+		    # tells Lagoon this is a postgres database
+		    lagoon.type: postgres
+		  ports:
+		    # exposes the port 5432 with a random local port, find it with `docker-compose port postgres 5432`
+		    - "5432"
+		  volumes:
+		   	# mounts a named volume at the default path for postgres
+		    - db:/var/lib/postgresql/data
+    ```
 
 ## Tips & Tricks
 

@@ -79,4 +79,10 @@ spec:
           tolerations:
             {{- toYaml $ | nindent 12 }}
         {{- end }}
+          dnsConfig:
+            options:
+              - name: timeout
+                value: "60"
+              - name: attempts
+                value: "10"
 {{- end }}
