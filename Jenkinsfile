@@ -108,7 +108,7 @@ pipeline {
         stage ('2: run second test suite') {
           steps {
             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                sh script: "make -j$NPROC kind/retest TESTS=[features-kubernetes,features-kubernetes-2,features-api-variables,tasks,workflows] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running second test suite on kind cluster"
+                sh script: "make -j$NPROC kind/retest TESTS=[features-kubernetes,features-kubernetes-2,features-api-variables] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running second test suite on kind cluster"
             }
             sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-2 log after test completion"
           }
@@ -148,7 +148,7 @@ pipeline {
         stage ('4: run fourth test suite') {
           steps {
             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                sh script: "make -j$NPROC kind/retest TESTS=[gitlab,github,bitbucket,python,node-mongodb,elasticsearch] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running fourth test suite on kind cluster"
+                sh script: "make -j$NPROC kind/retest TESTS=[gitlab,github,bitbucket] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running fourth test suite on kind cluster"
             }
             sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-4 log after test completion"
           }
@@ -168,7 +168,7 @@ pipeline {
         stage ('5: run fifth test suite') {
           steps {
             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                sh script: "make -j$NPROC kind/retest TESTS=[drupal-php80,drupal-postgres,drush] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running fifth test suite on kind cluster"
+                sh script: "make -j$NPROC kind/retest TESTS=[python,node-mongodb,elasticsearch] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running fifth test suite on kind cluster"
             }
             sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-5 log after test completion"
           }
@@ -179,6 +179,26 @@ pipeline {
               sh script: "./local-dev/stern --kubeconfig ./kubeconfig.kind.${CI_BUILD_TAG} --all-namespaces '^[a-z]' --since 1s -t > test-suite-5.txt || true", label: "Collecting test-suite-5 logs"
             }
             sh script: "cat test-suite-5.txt", label: "View ${NODE_NAME}:${WORKSPACE}/test-suite-5.txt"
+          }
+        }
+      }
+    }
+    stage ('run sixth test suite') {
+      parallel {
+        stage ('6: run sixth test suite') {
+          steps {
+            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                sh script: "make -j$NPROC kind/retest TESTS=[drupal-php80,drupal-postgres,drush] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running sixth test suite on kind cluster"
+            }
+            sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-6 log after test completion"
+          }
+        }
+        stage ('collect logs') {
+          steps {
+            timeout(time: 30, unit: 'MINUTES') {
+              sh script: "./local-dev/stern --kubeconfig ./kubeconfig.kind.${CI_BUILD_TAG} --all-namespaces '^[a-z]' --since 1s -t > test-suite-6.txt || true", label: "Collecting test-suite-6 logs"
+            }
+            sh script: "cat test-suite-6.txt", label: "View ${NODE_NAME}:${WORKSPACE}/test-suite-6.txt"
           }
         }
       }
