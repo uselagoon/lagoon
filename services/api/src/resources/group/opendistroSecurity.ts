@@ -8,11 +8,42 @@ import { Helpers as projectHelpers } from '../project/helpers';
 export const OpendistroSecurityOperations = (
   sqlClientPool: Pool,
   GroupModel
-) => ({
-  syncGroup: async function(groupName, groupProjectIDs) {
-    return this.syncGroupWithSpecificTenant(groupName, groupName, groupProjectIDs);
-  },
-  syncGroupWithSpecificTenant: async (groupName, tenantName, groupProjectIDs) => {
+) => {
+
+  // In certain cases (some testing, local env), we want to disable the opensearch integration
+  // Setting OPENSEARCH_INTEGRATION_ENABLED to "false" will return an object that simply logs
+  // the requested operations, rather than performs them
+  const opensearchIntegrationEnabled = getConfigFromEnv('OPENSEARCH_INTEGRATION_ENABLED', 'true');
+
+  if (opensearchIntegrationEnabled == "false") {
+    logger.info("OPENSEARCH_INTEGRATION_ENABLED is 'false' - disabling and returning log only object");
+    return {
+      syncGroup: async function(groupName, groupProjectIDs) {
+        logger.info("[OpendistroSecurityOperations].syncGroup called");
+      },
+      syncGroupWithSpecificTenant: async (groupName, tenantName, groupProjectIDs) => {
+        logger.info("[OpendistroSecurityOperations].syncGroupWithSpecificTenant called");
+      },
+      deleteTenant: async tenantName => {
+        logger.info("[OpendistroSecurityOperations].deleteTenant called");
+      },
+      deleteGroup: async function(groupName) {
+        logger.info("[OpendistroSecurityOperations].deleteGroup called");
+      },
+      deleteGroupWithSpecificTenant: async function(groupName, tenantName) {
+        logger.info("[OpendistroSecurityOperations].deleteGroupWithSpecificTenant called");
+      },
+    }
+  } else {
+    logger.info("OPENSEARCH_INTEGRATION_ENABLED is set to '" + opensearchIntegrationEnabled + '" - returning full integration');
+  }
+
+  // If enabled, we return the full bodied opensearch integration.
+  return {
+    syncGroup: async function(groupName, groupProjectIDs) {
+      return this.syncGroupWithSpecificTenant(groupName, groupName, groupProjectIDs);
+    },
+    syncGroupWithSpecificTenant: async (groupName, tenantName, groupProjectIDs) => {
     const groupProjectNames = [];
     // groupProjectIDs is a comma separated string of IDs, split it up and remove any entries with `''`
     const groupProjectIDsArray = groupProjectIDs
@@ -86,7 +117,7 @@ export const OpendistroSecurityOperations = (
     } catch (err) {
       logger.error(`OpendistroSecurity create role error: ${err}`);
     }
-    
+
     try {
       // Create a new RoleMapping for this Role
       await opendistroSecurityClient.put(
@@ -221,50 +252,51 @@ export const OpendistroSecurityOperations = (
       logger.error(`Kibana Error during config of default Index: ${err}`);
       // Don't fail if we have Kibana Errors, as they are "non-critical"
     }
-  },
-  deleteTenant: async tenantName => {
-    try {
-      // Delete the Tenant for this Group
-      await opendistroSecurityClient.delete(`tenants/${tenantName}`);
-      logger.debug(
-        `${tenantName}: Deleted Opendistro-Security Tenant "${tenantName}"`
-      );
-    } catch (err) {
-      // 404 Errors are expected and mean that the role does not exist
-      if (err.statusCode !== 404) {
-        logger.error(
-          `Opendistro-Security Error during deletion of tenant "${tenantName}": ${err}`
-        );
-      } else {
+    },
+    deleteTenant: async tenantName => {
+      try {
+        // Delete the Tenant for this Group
+        await opendistroSecurityClient.delete(`tenants/${tenantName}`);
         logger.debug(
-          `Opendistro-Security tenant "${tenantName}" did not exist, skipping deletion`
+          `${tenantName}: Deleted Opendistro-Security Tenant "${tenantName}"`
         );
+      } catch (err) {
+        // 404 Errors are expected and mean that the role does not exist
+        if (err.statusCode !== 404) {
+          logger.error(
+            `Opendistro-Security Error during deletion of tenant "${tenantName}": ${err}`
+          );
+        } else {
+          logger.debug(
+            `Opendistro-Security tenant "${tenantName}" did not exist, skipping deletion`
+          );
+        }
       }
-    }
-  },
-  deleteGroup: async function(groupName) {
+    },
+    deleteGroup: async function(groupName) {
     await this.deleteGroupWithSpecificTenant(groupName, groupName);
-  },
-  deleteGroupWithSpecificTenant: async function(groupName, tenantName) {
-    // delete groups that have no Projects assigned to them
-    try {
-      await opendistroSecurityClient.delete(`roles/${groupName}`);
-      logger.debug(
-        `${groupName}: OpendistroSecurity Role "${groupName}" deleted`
-      );
-    } catch (err) {
-      // 404 Errors are expected and mean that the role does not exist
-      if (err.statusCode !== 404) {
-        logger.error(
-          `OpendistroSecurity Error during deletion of role "${groupName}": ${err}`
-        );
-      } else {
+    },
+    deleteGroupWithSpecificTenant: async function(groupName, tenantName) {
+      // delete groups that have no Projects assigned to them
+      try {
+        await opendistroSecurityClient.delete(`roles/${groupName}`);
         logger.debug(
-          `OpendistroSecurity Role "${groupName}" did not exist, skipping deletion`
+          `${groupName}: OpendistroSecurity Role "${groupName}" deleted`
         );
+      } catch (err) {
+        // 404 Errors are expected and mean that the role does not exist
+        if (err.statusCode !== 404) {
+          logger.error(
+            `OpendistroSecurity Error during deletion of role "${groupName}": ${err}`
+          );
+        } else {
+          logger.debug(
+            `OpendistroSecurity Role "${groupName}" did not exist, skipping deletion`
+          );
+        }
       }
-    }
 
-    await this.deleteTenant(tenantName);
-  }
-});
+      await this.deleteTenant(tenantName);
+    }
+  };
+};
