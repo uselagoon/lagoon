@@ -1,0 +1,7 @@
+- name: "{{ testname }} - wait for >5 seconds to give an eventual running deployment time to run, after that check again if the first commit is still there"
+  hosts: localhost
+  serial: 1
+  vars:
+    seconds: "{{ 30 | random(start=5, step=5) }}"
+  tasks:
+  - include: ../../tasks/pause.yaml

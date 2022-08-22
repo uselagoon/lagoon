@@ -1,4 +1,6 @@
 ---
+- include: features/random-wait.yaml
+
 - include: api/add-project.yaml
   vars:
     project: ci-bitbucket-{{ cluster_type }}
