@@ -11,6 +11,9 @@
         body:
           query: '{{ lookup("template", "./add-project.gql") }}'
       register: apiresponse
+      until: api.response.status == 200
+      retries: 10
+      delay: "{{ 30 | random(start=15, step=5) }}"
     - name: "Add project {{ project }} to openshift {{ openshift }}"
       debug:
         msg: "api response: {{ apiresponse.json }}"
