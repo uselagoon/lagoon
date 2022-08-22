@@ -31,11 +31,6 @@ export const Helpers = (sqlClientPool: Pool) => {
       // clean up environment variables
       await query(
         sqlClientPool,
-        'DELETE FROM `env_vars` WHERE `environment` = :eid',
-        { eid }
-      );
-      await query(
-        sqlClientPool,
         Sql.deleteEnvironmentVariables(eid)
       );
       await query(
