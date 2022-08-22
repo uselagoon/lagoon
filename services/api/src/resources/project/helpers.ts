@@ -122,7 +122,7 @@ export const Helpers = (sqlClientPool: Pool) => {
       // clean up deploytarget configurations
       await query(
         sqlClientPool,
-        Sql.deleteDeployTargeTConfigs(id)
+        Sql.deleteDeployTargetConfigs(id)
       );
       // delete the project
       await query(

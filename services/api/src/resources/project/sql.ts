@@ -34,7 +34,7 @@ export const Sql = {
       .where('project', '=', id)
       .delete()
       .toString(),
-  deleteDeployTargeTConfigs: (id: number) =>
+  deleteDeployTargetConfigs: (id: number) =>
     knex('deploy_target_config')
       .where('project', '=', id)
       .delete()
