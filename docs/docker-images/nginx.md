@@ -6,6 +6,8 @@ This Dockerfile is intended to be used as a base for any web servers within Lago
 
 ## Lagoon adaptions
 
+The default exposed port of nginx containers is port `8080`.
+
 This image is prepared to be used on Lagoon. There are therefore some things already done:
 
 * Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions), so this image will work with a random user.
@@ -45,7 +47,7 @@ COPY redirects-map.conf /etc/nginx/redirects-map.conf
 
 ### Basic Authentication
 
-If you want to protect your site via basic authentication, you can do this by defining the environment variables `BASIC_AUTH_USERNAME` and `BASIC_AUTH_PASSWORD` within your `.lagoon.env.environment` files. For further explanation on how to set up Environment Variables on Lagoon, [check here](../../using-lagoon-advanced/environment-variables.md).
+If you want to protect your site via basic authentication, you can do this by defining the environment variables `BASIC_AUTH_USERNAME` and `BASIC_AUTH_PASSWORD` within your `.lagoon.env.environment` files. For further explanation on how to set up Environment Variables on Lagoon, [check here](../using-lagoon-advanced/environment-variables.md).
 
 ## Environment Variables
 

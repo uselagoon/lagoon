@@ -181,7 +181,32 @@ if kubectl -n ${NAMESPACE} get configmap docker-compose-yaml &> /dev/null; then
   # create it
   kubectl -n ${NAMESPACE} create configmap docker-compose-yaml --from-file=pre-deploy=${DOCKER_COMPOSE_YAML}
 fi
-set -x
+set +ex
+##############################################
+### RUN docker compose config check against the provided docker-compose file
+### use the `build-validate` built in validater to run over the provided docker-compose file
+##############################################
+dccOutput=$(bash -c 'build-deploy-tool validate docker-compose --docker-compose '${DOCKER_COMPOSE_YAML}'; exit $?' 2>&1)
+dccExit=$?
+echo "docker-compose validate exit code ${dccExit}: ${dccOutput}"
+
+if [ "${dccExit}" != "0" ]; then
+  currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
+  patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "dockerComposeValidationError" "Docker Compose Validation Error"
+  previousStepEnd=${currentStepEnd}
+  echo "
+##############################################
+Warning!
+There are issues with your docker compose file that lagoon uses that should be fixed.
+You can run docker compose config locally to check that your docker-compose file is valid.
+##############################################
+"
+  echo ${dccOutput}
+  echo "
+##############################################"
+  exit 1
+fi
+set -ex
 
 # validate .lagoon.yml
 if ! lagoon-linter; then
@@ -670,6 +695,24 @@ if [[ "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ]]; then
 fi
 
 set +x
+# print information about built image sizes
+function printBytes {
+    local -i bytes=$1;
+    echo "$(( (bytes + 1000000)/1000000 ))MB"
+}
+if [[ "${IMAGES_BUILD[@]}" ]]; then
+  echo "##############################################"
+  echo "Built image sizes:"
+  echo "##############################################"
+fi
+for IMAGE_NAME in "${!IMAGES_BUILD[@]}"
+do
+  TEMPORARY_IMAGE_NAME="${IMAGES_BUILD[${IMAGE_NAME}]}"
+  echo -e "Image ${TEMPORARY_IMAGE_NAME}\t\t$(printBytes $(docker inspect ${TEMPORARY_IMAGE_NAME} | jq -r '.[0].Size'))"
+done
+set -x
+
+set +x
 currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
 patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "imageBuildComplete" "Image Builds"
 previousStepEnd=${currentStepEnd}
@@ -722,6 +765,14 @@ yq3 write -i -- /kubectl-build-deploy/values.yaml 'lagoonVersion' $LAGOON_VERSIO
 set +x
 if [ "$(featureFlag ROOTLESS_WORKLOAD)" = enabled ]; then
 	yq3 merge -ix -- /kubectl-build-deploy/values.yaml /kubectl-build-deploy/rootless.values.yaml
+fi
+
+if [ "${SCC_CHECK}" != "false" ]; then
+  # openshift permissions are different, this is to set the fsgroup to the supplemental group from the openshift annotations
+  # this applies it to all deployments in this environment because we don't isolate by service type its applied to all
+  OPENSHIFT_SUPPLEMENTAL_GROUP=$(kubectl get namespace ${NAMESPACE} -o json | jq -r '.metadata.annotations."openshift.io/sa.scc.supplemental-groups"' | cut -c -10)
+  echo "Setting openshift fsGroup to ${OPENSHIFT_SUPPLEMENTAL_GROUP}"
+  yq3 write -i -- /kubectl-build-deploy/values.yaml 'podSecurityContext.fsGroup' $OPENSHIFT_SUPPLEMENTAL_GROUP
 fi
 set -x
 
@@ -1235,6 +1286,21 @@ do
     fi
   fi
 
+  # all our templates appear to support this if they have a service defined in them, but only `basic` properly supports this
+  # as all services will get re-written in the future into build-deploy-tool, just handle basic only for now and don't
+  # support it in other templates (yet)
+  if  [[ "$SERVICE_TYPE" == "basic" ]] ||
+      [[ "$SERVICE_TYPE" == "basic-persistent" ]]; then
+    SERVICE_PORT_NUMBER=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.service\\.port false)
+    if [ ! $SERVICE_PORT_NUMBER == "false" ]; then
+      # check if the port provided is actually a number
+      if ! [[ $SERVICE_PORT_NUMBER =~ ^[0-9]+$ ]] ; then
+        echo "Provided service port is not a number"; exit 1;
+      fi
+      HELM_SET_VALUES+=(--set "service.port=${SERVICE_PORT_NUMBER}")
+    fi
+  fi
+
 # TODO: we don't need this anymore
   # DEPLOYMENT_STRATEGY=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.deployment\\.strategy false)
   # if [ ! $DEPLOYMENT_STRATEGY == "false" ]; then
@@ -1457,30 +1523,4 @@ if [ "$(featureFlag INSIGHTS)" = enabled ]; then
   patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "insightsCompleted" "Insights Gathering"
   previousStepEnd=${currentStepEnd}
 fi
-set -x
-
-set +x
-##############################################
-### RUN docker compose config check against the provided docker-compose file
-### use the `build-deploy-tool` built in validater to run over the provided docker-compose file
-##############################################
-dccOutput=$(bash -c 'build-deploy-tool validate docker-compose --docker-compose '${DOCKER_COMPOSE_YAML}' --ignore-non-string-key-errors=false; exit $?' 2>&1)
-dccExit=$?
-if [ "${dccExit}" != "0" ]; then
-  echo "
-##############################################
-Warning!
-There are issues with your docker compose file that lagoon uses that should be fixed.
-This does not currently prevent builds from proceeding, but future versions of Lagoon *will* be more strict on issues shown here.
-The following is output from \`build-deploy-tool validate docker-compose --docker-compose '${DOCKER_COMPOSE_YAML}' --ignore-non-string-key-errors=false\` which you can run locally to verify and fix.
-##############################################
-"
-  echo ${dccOutput}
-  echo "
-##############################################"
-  currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
-  patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "dockerComposeValidation" "Docker Compose Validation"
-  previousStepEnd=${currentStepEnd}
-fi
-
 set -x

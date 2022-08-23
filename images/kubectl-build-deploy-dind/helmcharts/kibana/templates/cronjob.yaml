@@ -82,4 +82,10 @@ spec:
               key: lagoon.sh/build
               operator: Exists
             {{- toYaml $.Values.tolerations | nindent 12 }}
+          dnsConfig:
+            options:
+              - name: timeout
+                value: "60"
+              - name: attempts
+                value: "10"
 {{- end }}
