@@ -75,17 +75,17 @@ export const PageDeployment = ({ router }) => {
           withEnvironmentRequired,
           withDeploymentRequired
         )(({ data: { environment } }) => {
-            const deployment = environment && environment.deployments[0];
+          const deployment = environment && environment.deployments[0];
 
-            useEffect(() => {
-              window.addEventListener("scroll", onScroll);
+          useEffect(() => {
+            window.addEventListener("scroll", onScroll);
 
-              if (logsContent && logsContent.current.clientHeight < document.documentElement.clientHeight) {
-                setHidden("hidden");
-              }
+            if (logsContent && logsContent.current.clientHeight < document.documentElement.clientHeight) {
+              setHidden("hidden");
+            }
 
-              return () => window.removeEventListener("scroll", onScroll);
-            }, [deployment]);
+            return () => window.removeEventListener("scroll", onScroll);
+          }, [deployment]);
 
           return (
             <MainLayout>
