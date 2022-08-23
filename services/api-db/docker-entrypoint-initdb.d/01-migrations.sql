@@ -1719,6 +1719,24 @@ $$
 --   END;
 -- $$
 
+CREATE OR REPLACE PROCEDURE
+  add_build_image_to_openshift()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'openshift'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'build_image'
+    ) THEN
+      ALTER TABLE `openshift`
+      ADD `build_image`       varchar(2000);
+    END IF;
+  END;
+$$
+
 DELIMITER ;
 
 -- If adding new procedures, add them to the bottom of this list
@@ -1807,6 +1825,7 @@ CALL add_task_name_to_tasks();
 CALL add_new_task_status_types();
 CALL update_active_succeeded_tasks();
 CALL update_missing_tasknames();
+CALL add_build_image_to_openshift();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;
