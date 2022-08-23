@@ -1022,7 +1022,7 @@ const typeDefs = gql`
 
 
   type Ui {
-    projects(limit: Int, skip: Int): [Project]
+    uiProjects(limit: Int, skip: Int): [Project]
   }
 
   type Query {
@@ -1033,8 +1033,8 @@ const typeDefs = gql`
     """
     UI-only queries
     """
-    # ui(limit: Int, skip: Int): [Project]
-    ui: Ui
+    # ui: Ui
+    uiProjects(limit: Int, skip: Int): [Project]
     """
     Returns User Object by a given sshKey
     """

@@ -437,9 +437,12 @@ const resolvers = {
   Workflow: {
     advancedTaskDefinition: resolveAdvancedTaskDefinitionsForWorkflow,
   },
+  // Ui: {
+  //   uiProjects: getUIProjects,
+  // },
   Query: {
     me: getMe,
-    ui: getUIProjects,
+    uiProjects: getUIProjects,
     lagoonVersion: getLagoonVersion,
     userBySshKey: getUserBySshKey,
     projectByGitUrl: getProjectByGitUrl,

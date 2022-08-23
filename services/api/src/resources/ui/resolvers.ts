@@ -1,5 +1,6 @@
 import { Helpers } from './helpers';
 import { ResolverFn } from '../index';
+import { knex, query } from '../../util/db';
 import { logger } from '../../loggers/logger';
 
 export const getUIProjects: ResolverFn = async (
@@ -7,10 +8,15 @@ export const getUIProjects: ResolverFn = async (
   { limit, skip },
   { sqlClientPool, hasPermission, models, keycloakGrant }
 ) => {
-  let userProjectIds, groupProjectIds;
+  let userProjectIds, groupProjectIds, projects = [];
 
   try {
     await hasPermission('project', 'viewAll');
+
+    projects = await query(
+      sqlClientPool,
+      knex('project').toString()
+    );
   } catch (err) {
     if (!keycloakGrant) {
       logger.warn('No grant available for getAllProjects');
@@ -37,7 +43,6 @@ export const getUIProjects: ResolverFn = async (
     }))];
   }
 
-  let projects = [];
   if (userProjectIds) {
     projects = await Helpers(sqlClientPool)
       .getProjectsByIds(
