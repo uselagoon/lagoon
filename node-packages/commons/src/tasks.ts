@@ -568,6 +568,10 @@ export const getControllerBuildData = async function(deployData: any) {
   // this way variables or new functionality can be passed into lagoon builds using the existing variables mechanism
   // avoiding the needs to hardcode them into the spec to then be consumed by the build-deploy controller
   lagoonProjectData.envVariables.push({"name":"LAGOON_SYSTEM_ROUTER_PATTERN", "value":routerPattern, "scope":"internal_system"})
+  // append the `LAGOON_SYSTEM_CORE_VERSION` variable as an `internal_system` variable that can be consumed by builds and
+  // is not user configurable, this value will eventually be consumed by `build-deploy-tool` to be able to reject
+  // builds that are not of a supported version of lagoon
+  lagoonProjectData.envVariables.push({"name":"LAGOON_SYSTEM_CORE_VERSION", "value":lagoonVersion, "scope":"internal_system"})
   if (bulkId != "") {
     // if this is a bulk deploy, add the associated bulk deploy build scope variables
     lagoonProjectData.envVariables.push({"name":"LAGOON_BULK_DEPLOY", "value":"true", "scope":"build"})
