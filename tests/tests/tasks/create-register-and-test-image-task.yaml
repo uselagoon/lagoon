@@ -13,7 +13,6 @@
         body_format: json
         body: '{ "query": "query($openshiftProjectName: String!) {environmentByOpenshiftProjectName(openshiftProjectName:$openshiftProjectName) {id}}", "variables": {"openshiftProjectName":"{{ openshift_project_name }}"}}'
       register: environmentByOSProjectNameApiResponse
-      until:
     - name: "{{ testname }} - environmentByOSProjectNameApiResponse"
       debug:
         msg: "api response: {{ environmentByOSProjectNameApiResponse.json.data.environmentByOpenshiftProjectName.id }}"
@@ -33,7 +32,6 @@
         body_format: json
         body: '{ "query": "mutation($environment: Int!, $advancedTaskDefinition: Int!) {invokeRegisteredTask(environment:$environment, advancedTaskDefinition: $advancedTaskDefinition) {id}}", "variables": {"environment":{{ environmentByOSProjectNameApiResponse.json.data.environmentByOpenshiftProjectName.id }}, "advancedTaskDefinition":{{ taskCreateApiResponse.json.data.addAdvancedTaskDefinition.id }}}}'
       register: invokeRegisteredTaskApiResponse
-      until:
     - name: "{{ testname }} - POST api invokeRegisteredTask to {{ graphql_url }}"
       debug:
         msg: "api response: {{ invokeRegisteredTaskApiResponse.json }}"

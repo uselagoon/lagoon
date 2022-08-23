@@ -26,8 +26,9 @@
         body:
           query: '{{ lookup("template", "./update-project-routerpattern.gql") }}'
       register: apiresponse
+      until: apiresponse.status == 200
+      retries: 10
+      delay: "{{ 30 | random(start=15, step=5) }}"
     - name: "Update project routerpattern for {{ project }} to openshift {{ openshift }}"
       debug:
         msg: "api response: {{ apiresponse.json }}"
-      retries: 10
-      delay: 30
