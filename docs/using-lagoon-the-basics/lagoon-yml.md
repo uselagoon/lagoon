@@ -26,7 +26,19 @@ There are different type of tasks you can define, and they differ in when exactl
 
 ### Pre-Rollout Tasks - `pre_rollout.[i].run`
 
-The tasks defined as `pre_rollout` tasks will run against your project _after_ the new images have been built successfully, and _before_ the project gets altered in any way. This feature enables you, for example, to create a database dump before the rollout is running. This will make it easier to roll back in case of an issue with the rollout.
+Here you can specify tasks which will run against your project _after_ all images have been successfully built, but _before_:
+
+* Any running containers are updated with the newly built images.
+* Any other changes are made to your existing environment.
+
+This feature enables you to, for example, create a database dump before updating your application.
+This can make it easier to roll back in case of a problem with the deploy.
+
+!!! Note "Note:"
+    The pre-rollout tasks run in the _existing pods before they are updated_, which means:
+
+    * Changes made to your `Dockerfile` since the last deploy will not be visible when pre-rollout tasks run.
+    * If there are no existing containers (e.g. on the initial deployment of a new environment), pre-rollout tasks are skipped.
 
 ### Post-Rollout Tasks - `post_rollout.[i].run`
 
@@ -46,11 +58,14 @@ Common uses for post-rollout tasks include running `drush updb`, `drush cim`, or
   * The service which to run the task in. If following our Drupal example, this will be the CLI container, as it has all your site code, files, and a connection to the database. Typically you do not need to change this.
 * `shell`
   * Which shell should be used to run the task in. By default `sh` is used, but if the container also has other shells \(like `bash`, you can define it here\). This is useful if you want to run some small if/else bash scripts within the post-rollouts. \(see the example above how to write a script with multiple lines\).
+* `when`
+  * The "when" clause allows for the conditional running of tasks. It expects an expression that will evaluate to a true/false value which determines whether the task should be run.
 
 Note: If you would like to temporarily disable pre/post-rollout tasks during a deployment, you can set either of the following environment variables in the API at the project or environment level \(see how on [Environment Variables](../using-lagoon-advanced/environment-variables.md)\).
 
 * `LAGOON_PREROLLOUT_DISABLED=true`
 * `LAGOON_POSTROLLOUT_DISABLED=true`
+
 
 #### Example post-rollout tasks
 
@@ -73,14 +88,11 @@ Different tasks based on branch name:
 
 ```yaml title=".lagoon.yml"
     - run:
-        name: Different tasks based on Branch Name
+        name: Different tasks based on branch Name
         command: |
-          if [[ "$LAGOON_GIT_BRANCH" != "production" ]]; then
             ### Runs if current branch is not 'production'
-          else
-            ### Runs if current branch is 'production'
-          fi
         service: cli
+        when: LAGOON_GIT_BRANCH != "production"
 ```
 
 Run shell script:
@@ -98,14 +110,13 @@ Drupal & Drush 9: Sync database & files from master environment:
     - run:
         name: Sync DB and Files from master if we are not on master
         command: |
-          if [[ "$LAGOON_GIT_BRANCH" != "master" ]]; then
-            # Only if we don't have a database yet
-            if tables=$(drush sqlq 'show tables;') && [ -z "$tables" ]; then
-                drush sql-sync @lagoon.master @self
-                drush rsync @lagoon.master:%files @self:%files -- --omit-dir-times --no-perms --no-group --no-owner --chmod=ugo=rwX
-            fi
+          # Only if we don't have a database yet
+          if tables=$(drush sqlq 'show tables;') && [ -z "$tables" ]; then
+              drush sql-sync @lagoon.master @self
+              drush rsync @lagoon.master:%files @self:%files -- --omit-dir-times --no-perms --no-group --no-owner --chmod=ugo=rwX
           fi
         service: cli
+        when: LAGOON_ENVIRONMENT_TYPE != "production"
 ```
 
 ## Backup Retention
@@ -230,7 +241,7 @@ In the `"www.example.com"` example repeated below, we see two more options \(als
 
 ### **Monitoring a specific path**
 
-When [UptimeRobot](https://uptimerobot.com/) is configured for your cluster \(OpenShift or Kubernetes\), Lagoon will inject annotations to each route/ingress for use by the `stakater/IngressControllerMonitor`. The default action is to monitor the homepage of the route. If you have a specific route to be monitored, this can be overridden by adding a `monitoring-path` to your route specification. A common use is to set up a path for monitoring which bypasses caching to give a more real-time monitoring of your site.
+When [UptimeRobot](https://uptimerobot.com/) is configured for your cluster \(Kubernetes or OpenShift\), Lagoon will inject annotations to each route/ingress for use by the `stakater/IngressControllerMonitor`. The default action is to monitor the homepage of the route. If you have a specific route to be monitored, this can be overridden by adding a `monitoring-path` to your route specification. A common use is to set up a path for monitoring which bypasses caching to give a more real-time monitoring of your site.
 
 ```yaml title=".lagoon.yml"
      - "www.example.com":
@@ -405,15 +416,27 @@ As most of the time it is not desirable to run the same cron jobs across all env
 
 In Lagoon, the same Git repository can be added to multiple projects, creating what is called a polysite. This allows you to run the same codebase, but allow for different, isolated, databases and persistent files. In `.lagoon.yml` , we currently only support specifying custom routes for a polysite project. The key difference from a standard project is that the `environments` becomes the second-level element, and the project name the top level.
 
+To utilise this, you will need to:
+
+1. Create two (or more) projects in Lagoon, each configured with the same gitUrl and production branch, **named as per the .lagoon.yml** (i.e `poly-project1` and `poly-project2` below)
+2. Add the deploy keys from each project to the git repo
+3. Configure the webhook for the repo (if required) - you can then push/deploy. Note that a push to the repo will simultaneously deploy all projects/branches for that gitUrl
+
 **Example:**
 
 ```yaml title=".lagoon.yml"
-example-project-name:
+poly-project1:
   environments:
     main:
       routes:
         - nginx:
-          - example.com
+          - project1.com
+poly-project2:
+  environments:
+    main:
+      routes:
+        - nginx:
+          - project2.com
 ```
 
 ## Specials
@@ -432,47 +455,28 @@ With the key `api` you can define another URL that should be used by the Lagoon 
 
 With the key `ssh` you can define another SSH endpoint that should be used by the Lagoon CLI and `drush` to connect to the Lagoon remote shell service. This needs to be a hostname and a port separated by a colon, like: `localhost:2020` This usually does not need to be changed, but there might be situations where your Lagoon administrator tells you to do so.
 
-### `additional-yaml`
-
-The `additional-yaml` has some super powers. Basically, it allows you to define any arbitrary YAML configuration file to be inserted before the build step \(it still needs to be valid Kubernetes/OpenShift YAML, though ☺\).
-
-Example:
-
-```yaml title=".lagoon.yml"
-additional-yaml:
-  secrets:
-    path: .lagoon.secrets.yml
-    command: create
-    ignore_error: true
-
-  logs-db-secrets:
-    path: .lagoon.logs-db-secrets.yml
-    command: create
-    ignore_error: true
-```
-
-Each definition is keyed by a unique name \(`secrets` and `logs-db-secrets` in the example above\), and takes these keys:
-
-* `path` - the path to the YAML file.
-* `command` - can either be `create` or `apply`, depending on whether you want to run. `kubectl create -f [yamlfile]` or `kubectl apply -f [yamlfile]`.
-* `ignore_error` - either `true` or `false` \(default\).  This allows you to instruct the Lagoon build script to ignore any errors that might be returned during running the command. \(This can be useful to handle the case where you want to run `create` during every build, so that new configurations are created, but don't fail if they already exist\).
-
 ### `container-registries`
 
 The `container-registries` block allows you to define your own private container registries to pull custom or private images. To use a private container registry, you will need a `username`, `password`, and optionally the `url` for your registry. If you don't specify a `url` in your YAML, it will default to using Docker Hub.
 
 There are 2 ways to define the password used for your registry user.
 
-* Create an environment variable in the Lagoon API \(see more on [Environment Variables](../using-lagoon-advanced/environment-variables.md)\). The name of the variable you create can then be set as the password:
-* Define it directly in the `.lagoon.yml` file in plain text:
+Create an environment variable in the Lagoon API with the type `container_registry`:
+
+* `lagoon add variable -p <project_name> -N <registry_password_variable_name> -V <password_goes_here> -S container_registry`
+* \(see more on [Environment Variables](../using-lagoon-advanced/environment-variables.md)\)
+
+The name of the variable you create can then be set as the password:
 
 ```yaml
 container-registries:
   my-custom-registry:
     username: myownregistryuser
-    password: MY_OWN_REGISTRY_PASSWORD
+    password: <registry_password_variable_name>
     url: my.own.registry.com
 ```
+
+You can also define the password directly in the `.lagoon.yml` file in plain text:
 
 ```yaml title=".lagoon.yml"
 container-registries:

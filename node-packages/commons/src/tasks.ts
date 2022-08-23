@@ -116,8 +116,8 @@ const registry = process.env.REGISTRY || "registry.lagoon.svc:5000"
 const lagoonGitSafeBranch = process.env.LAGOON_GIT_SAFE_BRANCH || "master"
 const lagoonVersion = process.env.LAGOON_VERSION
 const lagoonEnvironmentType = process.env.LAGOON_ENVIRONMENT_TYPE || "development"
-const overwriteOCBuildDeployDindImage = process.env.OVERWRITE_OC_BUILD_DEPLOY_DIND_IMAGE
-const overwriteKubectlBuildDeployDindImage = process.env.OVERWRITE_KUBECTL_BUILD_DEPLOY_DIND_IMAGE
+const defaultBuildDeployImage = process.env.DEFAULT_BUILD_DEPLOY_IMAGE
+const edgeBuildDeployImage = process.env.EDGE_BUILD_DEPLOY_IMAGE
 const overwriteActiveStandbyTaskImage = process.env.OVERWRITE_ACTIVESTANDBY_TASK_IMAGE
 const jwtSecretString = process.env.JWTSECRET || "super-secret-string"
 const projectSeedString = process.env.PROJECTSEED || "super-secret-string"
@@ -511,6 +511,24 @@ export const getControllerBuildData = async function(deployData: any) {
     }
   }
 
+  let buildImage = ""
+  // if a default build image is defined by `DEFAULT_BUILD_DEPLOY_IMAGE` in api and webhooks2tasks, use it
+  if (defaultBuildDeployImage) {
+    buildImage = defaultBuildDeployImage
+  }
+  if (edgeBuildDeployImage) {
+    // if an edge build image is defined by `EDGE_BUILD_DEPLOY_IMAGE` in api and webhooks2tasks, use it
+    buildImage = edgeBuildDeployImage
+  }
+  // otherwise work out the build image from the deploytarget if defined
+  if (deployTarget.openshift.buildImage != null) {
+    // set the build image here if one is defined in the api
+    buildImage = deployTarget.openshift.buildImage
+  }
+  // if no build image is determined, the `remote-controller` defined default image will be used
+  // once it reaches the remote cluster.
+
+
   var alertContact = ""
   if (alertContactHA != undefined && alertContactSA != undefined){
     if (availability == "HIGH") {
@@ -568,6 +586,21 @@ export const getControllerBuildData = async function(deployData: any) {
   // this way variables or new functionality can be passed into lagoon builds using the existing variables mechanism
   // avoiding the needs to hardcode them into the spec to then be consumed by the build-deploy controller
   lagoonProjectData.envVariables.push({"name":"LAGOON_SYSTEM_ROUTER_PATTERN", "value":routerPattern, "scope":"internal_system"})
+  // append the `LAGOON_SYSTEM_CORE_VERSION` variable as an `internal_system` variable that can be consumed by builds and
+  // is not user configurable, this value will eventually be consumed by `build-deploy-tool` to be able to reject
+  // builds that are not of a supported version of lagoon
+  lagoonProjectData.envVariables.push({"name":"LAGOON_SYSTEM_CORE_VERSION", "value":lagoonVersion, "scope":"internal_system"})
+  if (bulkId != "") {
+    // if this is a bulk deploy, add the associated bulk deploy build scope variables
+    lagoonProjectData.envVariables.push({"name":"LAGOON_BULK_DEPLOY", "value":"true", "scope":"build"})
+    lagoonProjectData.envVariables.push({"name":"LAGOON_BULK_DEPLOY_ID", "value":bulkId, "scope":"build"})
+  }
+  if (bulkName != "") {
+    lagoonProjectData.envVariables.push({"name":"LAGOON_BULK_DEPLOY_NAME", "value":bulkName, "scope":"build"})
+  }
+  if (buildPriority != null) {
+    lagoonProjectData.envVariables.push({"name":"LAGOON_BUILD_PRIORITY", "value":buildPriority.toString(), "scope":"build"})
+  }
 
   let lagoonEnvironmentVariables = environment.addOrUpdateEnvironment.envVariables || []
   if (buildVariables != null ) {
@@ -593,7 +626,7 @@ export const getControllerBuildData = async function(deployData: any) {
     spec: {
       build: {
         type: type,
-        image: {}, // the controller will know which image to use
+        image: buildImage, // the controller will know which image to use
         ci: CI,
         priority: priority, // add the build priority
         bulkId: bulkId, // add the bulk id if present
@@ -1171,11 +1204,8 @@ export const createMiscTask = async function(taskData: any) {
           } else if (overwriteActiveStandbyTaskImage) {
             // allow to overwrite the image we use via OVERWRITE_ACTIVESTANDBY_TASK_IMAGE env variable
             taskImage = overwriteActiveStandbyTaskImage
-          } else if (lagoonEnvironmentType == 'production') {
-            taskImage = `amazeeio/task-activestandby:${lagoonVersion}`
           } else {
-            // we are a development enviornment, use the amazeeiolagoon image with the same branch name
-            taskImage = `amazeeiolagoon/task-activestandby:${lagoonGitSafeBranch}`
+            taskImage = `uselagoon/task-activestandby:${lagoonVersion}`
           }
           miscTaskData.advancedTask.runnerImage = taskImage
           // miscTaskData.advancedTask.runnerImage = "shreddedbacon/runner:latest"

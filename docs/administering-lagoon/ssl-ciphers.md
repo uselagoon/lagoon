@@ -22,7 +22,3 @@ In order to allow more relaxed settings, we also support an `old` config:
 ## Custom Cipher Suites
 
 If particular cipher settings are required, these can be provided via the environment vairable directly. TLS `1.0` and `SSLv3` will not be allowed no matter which cipher suites are requested.
-
-## Version Information
-
-Lagoon currently runs its router service based on OpenShift's `openshift3/ose-haproxy-router` image. This runs HAProxy version `1.8.1` and OpenSSL version `1.0.2k-fips`.

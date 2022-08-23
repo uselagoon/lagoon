@@ -4,6 +4,9 @@ set +x
 ##############################################
 #   it is possible to override the retention using a variable defined in the api
 #
+#   if you want to use a different retention period for production branches, you can use the following
+#   LAGOON_BACKUP_PROD_RETENTION="H:D:W:M"
+
 #   if you want to use a different retention period for development branches, you can use the following
 #   LAGOON_BACKUP_DEV_RETENTION="H:D:W:M"
 #
@@ -18,53 +21,6 @@ set +x
 #   1 Montly
 #
 ##############################################
-
-# check if a specific override has been defined in the api
-case "$BUILD_TYPE" in
-    promote)
-        ;;
-    branch)
-        if [ "${ENVIRONMENT_TYPE}" == "development" ]; then
-            # check if the API defined variable LAGOON_BACKUP_DEV_RETENTION contains what is needed
-            # if one in the API is not defined, fall back to what could be injected by the controller LAGOON_FEATURE_BACKUP_DEV_RETENTION
-            BACKUP_RETENTION=$(projectEnvironmentVariableCheck LAGOON_BACKUP_DEV_RETENTION "${LAGOON_FEATURE_BACKUP_DEV_RETENTION}")
-            if [ ! -z "$BACKUP_RETENTION" ]; then
-                IFS=':' read -ra BACKUP_RETENTION_SPLIT <<< "$BACKUP_RETENTION"
-                HOURLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[0]}
-                DAILY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[1]}
-                WEEKLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[2]}
-                MONTHLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[3]}
-            fi
-        fi
-        ;;
-    pullrequest)
-        # check if the API defined variable LAGOON_BACKUP_PR_RETENTION contains what is needed
-        # if one in the API is not defined, fall back to what could be injected by the controller LAGOON_FEATURE_BACKUP_PR_RETENTION
-        BACKUP_RETENTION=$(projectEnvironmentVariableCheck LAGOON_BACKUP_PR_RETENTION "${LAGOON_FEATURE_BACKUP_PR_RETENTION}")
-        if [ ! -z "$BACKUP_RETENTION" ]; then
-            IFS=':' read -ra BACKUP_RETENTION_SPLIT <<< "$BACKUP_RETENTION"
-            HOURLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[0]}
-            DAILY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[1]}
-            WEEKLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[2]}
-            MONTHLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[3]}
-        fi
-        if [ -z "$BACKUP_RETENTION" ];then
-            ## fall back to dev retention if no pr retention is defined
-            # check if the API defined variable LAGOON_BACKUP_DEV_RETENTION contains what is needed
-            # if one in the API is not defined, fall back to what could be injected by the controller LAGOON_FEATURE_BACKUP_DEV_RETENTION
-            BACKUP_RETENTION=$(projectEnvironmentVariableCheck LAGOON_BACKUP_DEV_RETENTION "${LAGOON_FEATURE_BACKUP_DEV_RETENTION}")
-            if [ ! -z "$BACKUP_RETENTION" ]; then
-                IFS=':' read -ra BACKUP_RETENTION_SPLIT <<< "$BACKUP_RETENTION"
-                HOURLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[0]}
-                DAILY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[1]}
-                WEEKLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[2]}
-                MONTHLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[3]}
-            fi
-        fi
-        ;;
-    *)
-        echo "${BUILD_TYPE} not implemented"; exit 1;
-esac
 
 # Implement global default value for backup retentions
 if [ -z "$MONTHLY_BACKUP_DEFAULT_RETENTION" ]
@@ -96,39 +52,6 @@ fi
 #   Where the value is a supported cronjob pattern for k8up
 ##############################################
 
-
-# check if a specific override has been defined in the api
-case "$BUILD_TYPE" in
-    promote)
-        ;;
-    branch)
-        if [ "${ENVIRONMENT_TYPE}" == "development" ]; then
-            # check if the API defined variable LAGOON_BACKUP_DEV_SCHEDULE contains what is needed
-            # if one in the API is not defined, fall back to what could be injected by the controller LAGOON_FEATURE_BACKUP_DEV_SCHEDULE
-            DEFAULT_BACKUP_SCHEDULE=$(projectEnvironmentVariableCheck LAGOON_BACKUP_DEV_SCHEDULE "${LAGOON_FEATURE_BACKUP_DEV_SCHEDULE}")
-        fi
-        ;;
-    pullrequest)
-        # check if the API defined variable LAGOON_BACKUP_PR_SCHEDULE contains what is needed
-        # if one in the API is not defined, fall back to what could be injected by the controller LAGOON_FEATURE_BACKUP_PR_SCHEDULE
-        DEFAULT_BACKUP_SCHEDULE=$(projectEnvironmentVariableCheck LAGOON_BACKUP_PR_SCHEDULE "${LAGOON_FEATURE_BACKUP_PR_SCHEDULE}")
-        if [ -z "$DEFAULT_BACKUP_SCHEDULE" ];then
-            ## fall back to dev schedule if no pr schedule is defined
-            # check if the API defined variable LAGOON_BACKUP_DEV_SCHEDULE contains what is needed
-            # if one in the API is not defined, fall back to what could be injected by the controller LAGOON_FEATURE_BACKUP_DEV_SCHEDULE
-            DEFAULT_BACKUP_SCHEDULE=$(projectEnvironmentVariableCheck LAGOON_BACKUP_DEV_SCHEDULE "${LAGOON_FEATURE_BACKUP_DEV_SCHEDULE}")
-        fi
-        ;;
-    *)
-        echo "${BUILD_TYPE} not implemented"; exit 1;
-esac
-
-# Implement global default value for backup schedule
-if [ -z "$DEFAULT_BACKUP_SCHEDULE" ]
-then
-  DEFAULT_BACKUP_SCHEDULE="M H(22-2) * * *"
-fi
-set -x
 
 ##############################################
 ### Backup Settings
@@ -200,38 +123,175 @@ if [[ "${CAPABILITIES[@]}" =~ "backup.appuio.ch/v1alpha1/Schedule" ]]; then
 
   # Set template parameters for retention values (prefer .lagoon.yml values over supplied defaults after ensuring they are valid integers via "-eq" comparison)
   if [[ ! -z $PRODUCTION_MONTHLY_BACKUP_RETENTION ]] && [[ "$PRODUCTION_MONTHLY_BACKUP_RETENTION" -eq "$PRODUCTION_MONTHLY_BACKUP_RETENTION" ]] && [[ $ENVIRONMENT_TYPE = 'production' ]]; then
-    MONTHLY_BACKUP_RETENTION=${PRODUCTION_MONTHLY_BACKUP_RETENTION}
+    MONTHLY_BACKUP_DEFAULT_RETENTION=${PRODUCTION_MONTHLY_BACKUP_RETENTION}
   else
     MONTHLY_BACKUP_RETENTION=${MONTHLY_BACKUP_DEFAULT_RETENTION}
   fi
   if [[ ! -z $PRODUCTION_WEEKLY_BACKUP_RETENTION ]] && [[ "$PRODUCTION_WEEKLY_BACKUP_RETENTION" -eq "$PRODUCTION_WEEKLY_BACKUP_RETENTION" ]] && [[ $ENVIRONMENT_TYPE = 'production' ]]; then
-    WEEKLY_BACKUP_RETENTION=${PRODUCTION_WEEKLY_BACKUP_RETENTION}
+    WEEKLY_BACKUP_DEFAULT_RETENTION=${PRODUCTION_WEEKLY_BACKUP_RETENTION}
   else
     WEEKLY_BACKUP_RETENTION=${WEEKLY_BACKUP_DEFAULT_RETENTION}
   fi
   if [[ ! -z $PRODUCTION_DAILY_BACKUP_RETENTION ]] && [[ "$PRODUCTION_DAILY_BACKUP_RETENTION" -eq "$PRODUCTION_DAILY_BACKUP_RETENTION" ]] && [[ $ENVIRONMENT_TYPE = 'production' ]]; then
-    DAILY_BACKUP_RETENTION=${PRODUCTION_DAILY_BACKUP_RETENTION}
+    DAILY_BACKUP_DEFAULT_RETENTION=${PRODUCTION_DAILY_BACKUP_RETENTION}
   else
     DAILY_BACKUP_RETENTION=${DAILY_BACKUP_DEFAULT_RETENTION}
   fi
   if [[ ! -z $PRODUCTION_HOURLY_BACKUP_RETENTION ]] && [[ "$PRODUCTION_HOURLY_BACKUP_RETENTION" -eq "$PRODUCTION_HOURLY_BACKUP_RETENTION" ]] && [[ $ENVIRONMENT_TYPE = 'production' ]]; then
-    HOURLY_BACKUP_RETENTION=${PRODUCTION_HOURLY_BACKUP_RETENTION}
+    HOURLY_BACKUP_DEFAULT_RETENTION=${PRODUCTION_HOURLY_BACKUP_RETENTION}
   else
     HOURLY_BACKUP_RETENTION=${HOURLY_BACKUP_DEFAULT_RETENTION}
   fi
+
+  set +x
+  ##############################################
+  # check if the feature for custom backup configuration is enabled LAGOON_FEATURE_FLAG(_FORCE|_DEFAULT)_CUSTOM_BACKUP_CONFIG=enabled
+  # this feature is experimental and may cause issues with your backups if incorrectly used, talk to your lagoon administrators before you use this
+  #      _
+  #   __| | __ _ _ __   __ _  ___ _ __
+  #  / _` |/ _` | '_ \ / _` |/ _ \ '__|
+  # | (_| | (_| | | | | (_| |  __/ |
+  #  \__,_|\__,_|_| |_|\__, |\___|_|
+  #                    |___/
+  ##############################################
+
+  if [ "$(featureFlag CUSTOM_BACKUP_CONFIG)" = enabled ]; then
+  # check if a specific override has been defined in the api
+    case "$BUILD_TYPE" in
+        promote)
+            if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
+                # check if the API defined variable LAGOON_BACKUP_PROD_RETENTION contains what is needed
+                # if one in the API is not defined, fall back to what could be injected by the controller LAGOON_BACKUP_PROD_RETENTION
+                BACKUP_RETENTION=$(projectEnvironmentVariableCheck LAGOON_BACKUP_PROD_RETENTION "${LAGOON_FEATURE_BACKUP_PROD_RETENTION}")
+                if [ ! -z "$BACKUP_RETENTION" ]; then
+                    IFS=':' read -ra BACKUP_RETENTION_SPLIT <<< "$BACKUP_RETENTION"
+                    HOURLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[0]}
+                    DAILY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[1]}
+                    WEEKLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[2]}
+                    MONTHLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[3]}
+                fi
+            fi
+            ;;
+        branch)
+            if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
+                # check if the API defined variable LAGOON_BACKUP_PROD_RETENTION contains what is needed
+                # if one in the API is not defined, fall back to what could be injected by the controller LAGOON_BACKUP_PROD_RETENTION
+                BACKUP_RETENTION=$(projectEnvironmentVariableCheck LAGOON_BACKUP_PROD_RETENTION "${LAGOON_FEATURE_BACKUP_PROD_RETENTION}")
+                if [ ! -z "$BACKUP_RETENTION" ]; then
+                    IFS=':' read -ra BACKUP_RETENTION_SPLIT <<< "$BACKUP_RETENTION"
+                    HOURLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[0]}
+                    DAILY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[1]}
+                    WEEKLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[2]}
+                    MONTHLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[3]}
+                fi
+            fi
+            if [ "${ENVIRONMENT_TYPE}" == "development" ]; then
+                # check if the API defined variable LAGOON_BACKUP_DEV_RETENTION contains what is needed
+                # if one in the API is not defined, fall back to what could be injected by the controller LAGOON_FEATURE_BACKUP_DEV_RETENTION
+                BACKUP_RETENTION=$(projectEnvironmentVariableCheck LAGOON_BACKUP_DEV_RETENTION "${LAGOON_FEATURE_BACKUP_DEV_RETENTION}")
+                if [ ! -z "$BACKUP_RETENTION" ]; then
+                    IFS=':' read -ra BACKUP_RETENTION_SPLIT <<< "$BACKUP_RETENTION"
+                    HOURLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[0]}
+                    DAILY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[1]}
+                    WEEKLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[2]}
+                    MONTHLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[3]}
+                fi
+            fi
+            ;;
+        pullrequest)
+            # check if the API defined variable LAGOON_BACKUP_PR_RETENTION contains what is needed
+            # if one in the API is not defined, fall back to what could be injected by the controller LAGOON_FEATURE_BACKUP_PR_RETENTION
+            BACKUP_RETENTION=$(projectEnvironmentVariableCheck LAGOON_BACKUP_PR_RETENTION "${LAGOON_FEATURE_BACKUP_PR_RETENTION}")
+            if [ ! -z "$BACKUP_RETENTION" ]; then
+                IFS=':' read -ra BACKUP_RETENTION_SPLIT <<< "$BACKUP_RETENTION"
+                HOURLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[0]}
+                DAILY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[1]}
+                WEEKLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[2]}
+                MONTHLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[3]}
+            fi
+            if [ -z "$BACKUP_RETENTION" ];then
+                ## fall back to dev retention if no pr retention is defined
+                # check if the API defined variable LAGOON_BACKUP_DEV_RETENTION contains what is needed
+                # if one in the API is not defined, fall back to what could be injected by the controller LAGOON_FEATURE_BACKUP_DEV_RETENTION
+                BACKUP_RETENTION=$(projectEnvironmentVariableCheck LAGOON_BACKUP_DEV_RETENTION "${LAGOON_FEATURE_BACKUP_DEV_RETENTION}")
+                if [ ! -z "$BACKUP_RETENTION" ]; then
+                    IFS=':' read -ra BACKUP_RETENTION_SPLIT <<< "$BACKUP_RETENTION"
+                    HOURLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[0]}
+                    DAILY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[1]}
+                    WEEKLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[2]}
+                    MONTHLY_BACKUP_DEFAULT_RETENTION=${BACKUP_RETENTION_SPLIT[3]}
+                fi
+            fi
+            ;;
+        *)
+            echo "${BUILD_TYPE} not implemented"; exit 1;
+    esac
+  fi
+  set -x
+
+  MONTHLY_BACKUP_RETENTION=${MONTHLY_BACKUP_DEFAULT_RETENTION}
+  WEEKLY_BACKUP_RETENTION=${WEEKLY_BACKUP_DEFAULT_RETENTION}
+  DAILY_BACKUP_RETENTION=${DAILY_BACKUP_DEFAULT_RETENTION}
+  HOURLY_BACKUP_RETENTION=${HOURLY_BACKUP_DEFAULT_RETENTION}
 
   # Set template parameters for backup schedule value (prefer .lagoon.yml values over supplied defaults after ensuring they are valid)
   PRODUCTION_BACKUP_SCHEDULE=$(cat .lagoon.yml | shyaml get-value backup-schedule.production "")
 
   if [[ ! -z $PRODUCTION_BACKUP_SCHEDULE ]] && [[ $ENVIRONMENT_TYPE = 'production' ]]; then
     if [[ "$PRODUCTION_BACKUP_SCHEDULE" =~ ^M\  ]]; then
-      BACKUP_SCHEDULE=$( /kubectl-build-deploy/scripts/convert-crontab.sh "${NAMESPACE}" "${PRODUCTION_BACKUP_SCHEDULE}")
+      DEFAULT_BACKUP_SCHEDULE=${PRODUCTION_BACKUP_SCHEDULE}
     else
       echo "Error parsing custom backup schedule: '$PRODUCTION_BACKUP_SCHEDULE'"; exit 1
     fi
-  else
-    BACKUP_SCHEDULE=$( /kubectl-build-deploy/scripts/convert-crontab.sh "${NAMESPACE}" "${DEFAULT_BACKUP_SCHEDULE}")
   fi
+
+  set +x
+  if [ "$(featureFlag CUSTOM_BACKUP_CONFIG)" = enabled ]; then
+  # check if a specific override has been defined in the api
+    case "$BUILD_TYPE" in
+        promote)
+            if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
+                # check if the API defined variable LAGOON_BACKUP_PROD_SCHEDULE contains what is needed
+                # if one in the API is not defined, fall back to what could be injected by the controller LAGOON_FEATURE_BACKUP_DEV_SCHEDULE
+                DEFAULT_BACKUP_SCHEDULE=$(projectEnvironmentVariableCheck LAGOON_BACKUP_PROD_SCHEDULE "${LAGOON_FEATURE_BACKUP_PROD_SCHEDULE}")
+            fi
+            ;;
+        branch)
+            if [ "${ENVIRONMENT_TYPE}" == "production" ]; then
+                # check if the API defined variable LAGOON_BACKUP_PROD_SCHEDULE contains what is needed
+                # if one in the API is not defined, fall back to what could be injected by the controller LAGOON_FEATURE_BACKUP_DEV_SCHEDULE
+                DEFAULT_BACKUP_SCHEDULE=$(projectEnvironmentVariableCheck LAGOON_BACKUP_PROD_SCHEDULE "${LAGOON_FEATURE_BACKUP_PROD_SCHEDULE}")
+            fi
+            if [ "${ENVIRONMENT_TYPE}" == "development" ]; then
+                # check if the API defined variable LAGOON_BACKUP_DEV_SCHEDULE contains what is needed
+                # if one in the API is not defined, fall back to what could be injected by the controller LAGOON_FEATURE_BACKUP_DEV_SCHEDULE
+                DEFAULT_BACKUP_SCHEDULE=$(projectEnvironmentVariableCheck LAGOON_BACKUP_DEV_SCHEDULE "${LAGOON_FEATURE_BACKUP_DEV_SCHEDULE}")
+            fi
+            ;;
+        pullrequest)
+            # check if the API defined variable LAGOON_BACKUP_PR_SCHEDULE contains what is needed
+            # if one in the API is not defined, fall back to what could be injected by the controller LAGOON_FEATURE_BACKUP_PR_SCHEDULE
+            DEFAULT_BACKUP_SCHEDULE=$(projectEnvironmentVariableCheck LAGOON_BACKUP_PR_SCHEDULE "${LAGOON_FEATURE_BACKUP_PR_SCHEDULE}")
+            if [ -z "$DEFAULT_BACKUP_SCHEDULE" ];then
+                ## fall back to dev schedule if no pr schedule is defined
+                # check if the API defined variable LAGOON_BACKUP_DEV_SCHEDULE contains what is needed
+                # if one in the API is not defined, fall back to what could be injected by the controller LAGOON_FEATURE_BACKUP_DEV_SCHEDULE
+                DEFAULT_BACKUP_SCHEDULE=$(projectEnvironmentVariableCheck LAGOON_BACKUP_DEV_SCHEDULE "${LAGOON_FEATURE_BACKUP_DEV_SCHEDULE}")
+            fi
+            ;;
+        *)
+            echo "${BUILD_TYPE} not implemented"; exit 1;
+    esac
+  fi
+  set -x
+
+  # Implement global default value for backup schedule
+  if [ -z "$DEFAULT_BACKUP_SCHEDULE" ]
+  then
+    DEFAULT_BACKUP_SCHEDULE="M H(22-2) * * *"
+  fi
+
+  BACKUP_SCHEDULE=$( /kubectl-build-deploy/scripts/convert-crontab.sh "${NAMESPACE}" "${DEFAULT_BACKUP_SCHEDULE}")
 
   if [ ! -z $K8UP_WEEKLY_RANDOM_FEATURE_FLAG ] && [ $K8UP_WEEKLY_RANDOM_FEATURE_FLAG = 'enabled' ]; then
     # Let the controller deduplicate checks (will run weekly at a random time throughout the week)

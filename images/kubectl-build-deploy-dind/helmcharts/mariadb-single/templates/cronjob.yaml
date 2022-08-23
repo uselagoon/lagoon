@@ -36,7 +36,7 @@ spec:
           priorityClassName: {{ include "mariadb-single.lagoonPriority" $ }}
           enableServiceLinks: false
           securityContext:
-            {{- toYaml .Values.podSecurityContext | nindent 12 }}
+            {{- toYaml $.Values.podSecurityContext | nindent 12 }}
           volumes:
             - name: {{ include "mariadb-single.fullname" $ }}
               persistentVolumeClaim:
@@ -76,4 +76,10 @@ spec:
           tolerations:
             {{- toYaml $ | nindent 12 }}
         {{- end }}
+          dnsConfig:
+            options:
+              - name: timeout
+                value: "60"
+              - name: attempts
+                value: "10"
 {{- end }}

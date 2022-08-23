@@ -14,6 +14,8 @@ import { Sql as sshKeySql } from '../sshKey/sql';
 import { createHarborOperations } from './harborSetup';
 import sql from '../user/sql';
 
+const DISABLE_CORE_HARBOR = process.env.DISABLE_CORE_HARBOR || "false"
+
 const isAdminCheck = async (hasPermission) => {
   try {
     // check user is admin
@@ -322,7 +324,8 @@ export const addProject = async (
       name: `project-${project.name}`,
       attributes: {
         type: ['project-default-group'],
-        'lagoon-projects': [project.id]
+        'lagoon-projects': [project.id],
+        'group-lagoon-project-ids': [`{${JSON.stringify(`project-${project.name}`)}:[${project.id}]}`]
       }
     });
   } catch (err) {
@@ -415,9 +418,10 @@ export const addProject = async (
     }
   }
 
-  const harborOperations = createHarborOperations(sqlClientPool);
-
-  await harborOperations.addProject(project.name, project.id);
+  if (DISABLE_CORE_HARBOR == "false") {
+    const harborOperations = createHarborOperations(sqlClientPool);
+    await harborOperations.addProject(project.name, project.id);
+  }
 
   userActivityLogger(`User added a project '${project.name}'`, {
     project: project.name,
@@ -474,9 +478,10 @@ export const deleteProject: ResolverFn = async (
   }
 
   // @TODO discuss if we want to delete projects in harbor or not
-  //const harborOperations = createHarborOperations(sqlClientPool);
-
-  //const harborResults = await harborOperations.deleteProject(project.name)
+  // if (DISABLE_CORE_HARBOR == "false") {
+  //   const harborOperations = createHarborOperations(sqlClientPool);
+  //   const harborResults = await harborOperations.deleteProject(project.name)
+  // }
 
   userActivityLogger(`User deleted a project '${project.name}'`, {
     project: project.name,

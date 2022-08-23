@@ -6,5 +6,13 @@
   ],
   "git.ignoreLimitWarning": true,
   "javascript.validate.enable": false,
-  "files.trimTrailingWhitespace": true
+  "files.trimTrailingWhitespace": true,
+  "[markdown]": {
+    "editor.tabSize": 2,
+    "editor.autoIndent": "advanced",
+    "editor.formatOnSave": true,
+    "editor.wordWrap": "on",
+    "editor.renderWhitespace": "all",
+    "editor.acceptSuggestionOnEnter": "off"
+  }
 }

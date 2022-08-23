@@ -3,6 +3,12 @@ set -x
 set -eo pipefail
 set -o noglob
 
+# print out the build-deploy-tool version information
+echo "##############################################"
+build-deploy-tool version
+echo "##############################################"
+
+
 REGISTRY=$REGISTRY
 NAMESPACE=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
 REGISTRY_REPOSITORY=$NAMESPACE
