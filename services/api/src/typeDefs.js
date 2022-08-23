@@ -976,9 +976,9 @@ const typeDefs = gql`
     id: Int
     project: Int!
     weight: Int
-    branches: String
-    pullrequests: String
-    deployTarget: Int
+    branches: String!
+    pullrequests: String!
+    deployTarget: Int!
     deployTargetProjectPattern: String
   }
 
