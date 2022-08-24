@@ -12,7 +12,7 @@ spec:
     /bin/sh -c "dump=$(mktemp)
     && mysqldump --max-allowed-packet=500M --events --routines --quick
     --add-locks --no-autocommit --single-transaction --no-create-db
-    --no-data
+    --no-data --no-tablespaces
     -h $BACKUP_DB_HOST
     -u $BACKUP_DB_USERNAME
     -p$BACKUP_DB_PASSWORD
@@ -21,7 +21,7 @@ spec:
     && mysqldump --max-allowed-packet=500M --events --routines --quick
     --add-locks --no-autocommit --single-transaction --no-create-db
     --ignore-table=$BACKUP_DB_DATABASE.watchdog
-    --no-create-info
+    --no-create-info --no-tablespaces
     -h $BACKUP_DB_HOST
     -u $BACKUP_DB_USERNAME
     -p$BACKUP_DB_PASSWORD
