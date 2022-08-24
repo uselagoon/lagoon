@@ -58,7 +58,7 @@ func (h *Messaging) processSlackTemplate(notification *Notification) (string, st
 		slackTpl = `*[{{.ProjectName}}]* ` + "`{{.BranchName}}`" + `{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}} Build ` + "`{{.BuildName}}`" + ` Failed. {{if ne .LogLink ""}} <{{.LogLink}}|Logs>{{end}}`
 	case "deployFinished":
 		slackTpl = `*[{{.ProjectName}}]* ` + "`{{.BranchName}}`" + `{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}} Build ` + "`{{.BuildName}}`" + ` Succeeded. {{if ne .LogLink ""}} <{{.LogLink}}|Logs>{{end}}
-* {{.Route}}{{range .Routes}}{{if ne . $.Route}}* {{.}}{{end}}
+{{.Route}}{{range .Routes}}{{if ne . $.Route}}{{.}}{{end}}
 {{end}}`
 	case "problemNotification":
 		eventSplit := strings.Split(notification.Event, ":")

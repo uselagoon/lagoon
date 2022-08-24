@@ -69,7 +69,7 @@ func main() {
 		"The number of startup attempts before exiting.")
 	flag.IntVar(&startupConnectionInterval, "startup-connection-interval-seconds", 30,
 		"The duration between startup attempts.")
-	flag.StringVar(&lagoonAPIHost, "lagoon-api-host", "http://localhost:3000/graphql",
+	flag.StringVar(&lagoonAPIHost, "lagoon-api-host", "http://localhost:3000",
 		"The host for the lagoon api.")
 	flag.StringVar(&jwtTokenSigningKey, "jwt-token-signing-key", "super-secret-string",
 		"The jwt signing token key or secret.")
@@ -124,10 +124,10 @@ func main() {
 	// get overrides from environment variables
 	mqUser = getEnv("RABBITMQ_USERNAME", mqUser)
 	mqPass = getEnv("RABBITMQ_PASSWORD", mqPass)
-	mqHost = getEnv("RABBITMQ_ADDRESS", mqHost)
+	mqHost = getEnv("RABBITMQ_HOST", mqHost)
 	mqPort = getEnv("RABBITMQ_PORT", mqPort)
 	lagoonAPIHost = getEnv("GRAPHQL_ENDPOINT", lagoonAPIHost)
-	jwtTokenSigningKey = getEnv("JWT_SECRET", jwtTokenSigningKey)
+	jwtTokenSigningKey = getEnv("JWTSECRET", jwtTokenSigningKey)
 	jwtAudience = getEnv("JWT_AUDIENCE", jwtAudience)
 	jwtSubject = getEnv("JWT_SUBJECT", jwtSubject)
 	jwtIssuer = getEnv("JWT_ISSUER", jwtIssuer)
@@ -153,7 +153,7 @@ func main() {
 		Password: mqPass,
 	}
 	graphQLConfig := handler.LagoonAPI{
-		Endpoint:        lagoonAPIHost,
+		Endpoint:        fmt.Sprintf("%s/graphql", lagoonAPIHost),
 		TokenSigningKey: jwtTokenSigningKey,
 		JWTAudience:     jwtAudience,
 		JWTSubject:      jwtSubject,
