@@ -25,10 +25,10 @@ func (h *Messaging) SendToWebhook(notification *Notification, webhook schema.Not
 	if err != nil {
 		return
 	}
-	h.sendWebhookMessage(*message, webhook)
+	h.sendWebhookMessage(notification.Meta.ProjectName, *message, webhook)
 }
 
-func (h *Messaging) sendWebhookMessage(data WebhookData, webhook schema.NotificationWebhook) {
+func (h *Messaging) sendWebhookMessage(project, data WebhookData, webhook schema.NotificationWebhook) {
 	message, _ := json.Marshal(data)
 	req, err := http.NewRequest("POST", webhook.Webhook, bytes.NewBuffer(message))
 	req.Header.Set("Content-Type", "application/json")
@@ -42,6 +42,12 @@ func (h *Messaging) sendWebhookMessage(data WebhookData, webhook schema.Notifica
 	}
 	defer resp.Body.Close()
 	log.Println(fmt.Sprintf("Sent %s message to webhook", data.Event))
+	if err != nil {
+		log.Printf("Error sending message to webhook for project %s: %v", project, err)
+		return
+	}
+	defer resp.Body.Close()
+	log.Println(fmt.Sprintf("Sent %s message to webhook for project %s", data.Event, project))
 }
 
 // processWebhookTemplate .

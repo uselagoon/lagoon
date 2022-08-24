@@ -36,7 +36,7 @@ func (h *Messaging) SendToRocketChat(notification *Notification, channel, webhoo
 	if err != nil {
 		return
 	}
-	h.sendRocketChatMessage(emoji, color, appID, channel, webhook, notification.Event, message)
+	h.sendRocketChatMessage(emoji, color, appID, channel, webhook, notification.Event, notification.Meta.ProjectName, message)
 }
 
 // SendToRocketChat .
@@ -98,7 +98,7 @@ func (h *Messaging) processRocketChatTemplate(notification *Notification) (strin
 	return emoji, color, rcMsg.String(), nil
 }
 
-func (h *Messaging) sendRocketChatMessage(emoji, color, appID, channel, webhook, event, message string) {
+func (h *Messaging) sendRocketChatMessage(emoji, color, appID, channel, webhook, event, project, message string) {
 	data := RocketChatData{
 		Channel: channel,
 		Attachments: []RocketChatAttachment{
@@ -123,11 +123,11 @@ func (h *Messaging) sendRocketChatMessage(emoji, color, appID, channel, webhook,
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Printf("Error sending message to rocketchat: %v", err)
+		log.Printf("Error sending message to rocketchat channel %s for project %s: %v", channel, project, err)
 		return
 	}
 	defer resp.Body.Close()
-	log.Println(fmt.Sprintf("Sent %s message to rocketchat", event))
+	log.Println(fmt.Sprintf("Sent %s message to rocketchat channel %s for project %s", event, channel, project))
 }
 
 func getRocketChatEvent(msgEvent string) (string, string, string, error) {

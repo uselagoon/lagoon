@@ -16,7 +16,7 @@ func (h *Messaging) SendToSlack(notification *Notification, channel, webhook, ap
 	if err != nil {
 		return
 	}
-	h.sendSlackMessage(emoji, color, appID, channel, webhook, notification.Event, message)
+	h.sendSlackMessage(emoji, color, appID, channel, webhook, notification.Event, notification.Meta.ProjectName, message)
 }
 
 // processSlackTemplate .
@@ -94,10 +94,11 @@ func (h *Messaging) sendSlackMessage(emoji, color, appID, channel, webhook, even
 	err := slack.PostWebhook(webhook, &postMsg)
 	if err != nil {
 		// just log any errors
-		log.Printf("Error sending message to slack: %v", err)
+		log.Printf("Error sending message to slack channel %s for project %s: %v", channel, project, err)
 		return
 	}
-	log.Println(fmt.Sprintf("Sent %s message to slack", event))
+	defer resp.Body.Close()
+	log.Println(fmt.Sprintf("Sent %s message to slack channel %s for project %s", event, channel, project))
 }
 
 func getSlackEvent(msgEvent string) (string, string, string, error) {

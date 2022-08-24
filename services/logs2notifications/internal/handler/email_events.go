@@ -204,7 +204,7 @@ func (h *Messaging) sendEmailMessage(emoji, color, subject, event, project, emai
 	// 	log.Printf("Error sending message to email: %v", err)
 	// 	return
 	// }
-	log.Println(fmt.Sprintf("Sent %s message to email", event))
+	log.Println(fmt.Sprintf("Sent %s message to email for project %s", event, project))
 }
 
 func getEmailEvent(msgEvent string) (string, string, string, error) {

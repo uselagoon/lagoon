@@ -117,11 +117,11 @@ func (h *Messaging) sendMicrosoftTeamsMessage(emoji, color, webhook, event, proj
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Printf("Error sending message to microsoft teams: %v", err)
+		log.Printf("Error sending message to microsoft teams for project %s: %v", project, err)
 		return
 	}
 	defer resp.Body.Close()
-	log.Println(fmt.Sprintf("Sent %s message to microsoft teams", event))
+	log.Println(fmt.Sprintf("Sent %s message to microsoft teams for project %s", event, project))
 }
 
 func getMicrosoftTeamsEvent(msgEvent string) (string, string, string, error) {

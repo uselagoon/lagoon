@@ -123,7 +123,7 @@ type Notification struct {
 		Route                    string   `json:"route"`
 		Routes                   []string `json:"routes"`
 		Task                     struct {
-			ID int `json:"id"`
+			ID string `json:"id"`
 		} `json:"task"`
 	} `json:"meta"`
 	Message string `json:"message"`
