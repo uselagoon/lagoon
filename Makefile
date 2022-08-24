@@ -99,8 +99,6 @@ docker_pull:
 ####### Base Images are the base for all other images and are also published for clients to use during local development
 
 images :=     oc \
-							kubectl \
-							kubectl-build-deploy-dind \
 							athenapdf-service \
 							docker-host
 
@@ -130,9 +128,7 @@ $(build-images):
 #    changed on the Dockerfiles
 build/docker-host: images/docker-host/Dockerfile
 build/oc: images/oc/Dockerfile
-build/kubectl: images/kubectl/Dockerfile
 build/athenapdf-service:images/athenapdf-service/Dockerfile
-build/kubectl-build-deploy-dind: build/kubectl images/kubectl-build-deploy-dind
 
 #######
 ####### Service Images
@@ -624,7 +620,7 @@ ifeq ($(ARCH), darwin)
       tcp-listen:32080,fork,reuseaddr tcp-connect:target:32080
 endif
 
-KIND_SERVICES = api api-db api-redis auth-server actions-handler broker controllerhandler docker-host drush-alias keycloak keycloak-db logs2s3 webhook-handler webhooks2tasks kubectl-build-deploy-dind local-api-data-watcher-pusher local-git ssh tests ui workflows $(TASK_IMAGES)
+KIND_SERVICES = api api-db api-redis auth-server actions-handler broker controllerhandler docker-host drush-alias keycloak keycloak-db logs2s3 webhook-handler webhooks2tasks local-api-data-watcher-pusher local-git ssh tests ui workflows $(TASK_IMAGES)
 KIND_TESTS = local-api-data-watcher-pusher local-git tests
 KIND_TOOLS = kind helm kubectl jq stern
 
