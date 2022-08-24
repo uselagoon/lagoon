@@ -55,13 +55,5 @@ export const logger = createLogger({
       timestamp: true,
       handleExceptions: true
     })
-    // new winston.transports.Logstash({
-    //   level: 'silly',
-    //   port: 28777,
-    //   host: 'logs2logs-db',
-    //   timeout_connect_retries: 1000, // if we loose connection to logstash, retry in 1 sec
-    //   max_connect_retries: 100000, // retry to connect to logstash for 100'000 times
-    //   node_name: packageName,
-    // }),
   ]
 });

@@ -5,7 +5,7 @@ package lagoon
 import (
 	"context"
 
-	"github.com/uselagoon/lagoon/services/actions-handler/internal/schema"
+	"github.com/uselagoon/lagoon/services/workflows/internal/schema"
 )
 
 // Deploy interface contains methods for deploying branches and environments in lagoon.

@@ -4,13 +4,13 @@
 
 [Learn about MariaDB with Drupal](mariadb.md)
 
-[Documentation on the MariaDB-Drupal image.](../../docker-images/mariadb/mariadb-drupal.md)
+[Documentation on the MariaDB-Drupal image.](./mariadb.md)
 
 [Documentation on the plain MariaDB image](../../docker-images/mariadb/) (the MariaDB-Drupal image is built on this).
 
 ## Redis is a fast, open-source, in-memory key-value data store for use as a database, cache, message broker, and queue
 
-[Learn about Redis with Drupal.](redis.md)
+[Learn about Redis with Drupal.](./redis.md)
 
 [Documentation on the Redis-persistent image.](../../docker-images/redis.md)
 
@@ -18,7 +18,7 @@
 
 [Learn about Solr with Drupal.](solr.md)
 
-[Documentation on the Solr-Drupal image.](../../docker-images/solr/solr-drupal.md)
+[Documentation on the Solr-Drupal image.](./solr.md)
 
 [Documentation on the plain Solr image](../../docker-images/solr/) \(the Solr-Drupal image is built on this\).
 
@@ -26,6 +26,6 @@
 
 [Learn about Varnish with Drupal](varnish.md)
 
-[Documentation on the Varnish-Drupal image.](../../docker-images/varnish/varnish-drupal.md)
+[Documentation on the Varnish-Drupal image.](./varnish.md)
 
 [Documentation on the plain Varnish image](../../docker-images/varnish/) \(the Varnish-Drupal image is built on this\).
