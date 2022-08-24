@@ -28,7 +28,7 @@ func (h *Messaging) SendToWebhook(notification *Notification, webhook schema.Not
 	h.sendWebhookMessage(notification.Meta.ProjectName, *message, webhook)
 }
 
-func (h *Messaging) sendWebhookMessage(project, data WebhookData, webhook schema.NotificationWebhook) {
+func (h *Messaging) sendWebhookMessage(project string, data WebhookData, webhook schema.NotificationWebhook) {
 	message, _ := json.Marshal(data)
 	req, err := http.NewRequest("POST", webhook.Webhook, bytes.NewBuffer(message))
 	req.Header.Set("Content-Type", "application/json")

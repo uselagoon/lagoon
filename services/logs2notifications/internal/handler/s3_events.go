@@ -33,13 +33,13 @@ func (h *Messaging) SendToS3(notification *Notification, msgType MessageType) {
 			),
 		)
 	} else if msgType == taskMessageType {
-		filePath := fmt.Sprintf("tasklogs/%s/%d-%s.txt",
+		filePath := fmt.Sprintf("tasklogs/%s/%s-%s.txt",
 			notification.Project,
 			notification.Meta.Task.ID,
 			notification.Meta.RemoteID,
 		)
 		if notification.Meta.Environment != "" {
-			filePath = fmt.Sprintf("tasklogs/%s/%s/%d-%s.txt",
+			filePath = fmt.Sprintf("tasklogs/%s/%s/%s-%s.txt",
 				notification.Project,
 				helpers.ShortenEnvironment(notification.Project, helpers.MakeSafe(notification.Meta.Environment)),
 				notification.Meta.Task.ID,

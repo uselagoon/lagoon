@@ -79,7 +79,7 @@ func (h *Messaging) processSlackTemplate(notification *Notification) (string, st
 	return emoji, color, slackMsg.String(), nil
 }
 
-func (h *Messaging) sendSlackMessage(emoji, color, appID, channel, webhook, event, message string) {
+func (h *Messaging) sendSlackMessage(emoji, color, appID, channel, webhook, event, project, message string) {
 	attachment := slack.Attachment{
 		Text:       fmt.Sprintf("%s %s", emoji, message),
 		Color:      color,
@@ -97,7 +97,6 @@ func (h *Messaging) sendSlackMessage(emoji, color, appID, channel, webhook, even
 		log.Printf("Error sending message to slack channel %s for project %s: %v", channel, project, err)
 		return
 	}
-	defer resp.Body.Close()
 	log.Println(fmt.Sprintf("Sent %s message to slack channel %s for project %s", event, channel, project))
 }
 
