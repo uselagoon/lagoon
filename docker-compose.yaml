@@ -35,6 +35,8 @@ services:
       - ./node-packages:/app/node-packages:delegated
   logs2notifications:
     image: ${IMAGE_REPO:-lagoon}/logs2notifications
+    environment:
+      - S3_FILES_HOST=http://172.17.0.1:9000
   mailhog:
     image: mailhog/mailhog
     ports:
@@ -58,6 +60,7 @@ services:
       - NODE_ENV=development
       - CI=${CI:-true}
       - REGISTRY=harbor.172.17.0.1.nip.io:18080 # Docker network bridge and forwarded port for harbor-nginx
+      - S3_FILES_HOST=http://172.17.0.1:9000
     depends_on:
       - api-db
       - keycloak

@@ -12,7 +12,8 @@ export const Sql = {
     monitoringConfig,
     friendlyName,
     cloudProvider,
-    cloudRegion
+    cloudRegion,
+    buildImage
   }: {
     id?: number;
     name: string;
@@ -25,6 +26,7 @@ export const Sql = {
     friendlyName?: string;
     cloudProvider?: string;
     cloudRegion?: string;
+    buildImage?: string;
   }) =>
     knex('openshift')
       .insert({
@@ -38,7 +40,8 @@ export const Sql = {
         monitoringConfig,
         friendlyName,
         cloudProvider,
-        cloudRegion
+        cloudRegion,
+        buildImage
       })
       .toString(),
   updateOpenshift: ({
