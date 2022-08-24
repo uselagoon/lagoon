@@ -47,7 +47,10 @@ export const Sql = {
   deleteProject: (id: number) =>
     knex('project')
       .where('id', '=', id)
-      .delete()
+      .delete(),
+  selectEnvironmentsByProjectId: (id: number) =>
+    knex('environment as e')
+      .where('e.project', id)
       .toString(),
   selectProjectByEnvironmentId: (environmentId, environmentType = []) => {
     let q = knex('environment as e')

@@ -448,6 +448,18 @@ export const deleteProject: ResolverFn = async (
     project: pid
   });
 
+  // check for existing environments
+  const rows = await query(
+    sqlClientPool, Sql.selectEnvironmentsByProjectId(pid)
+  );
+
+  if (rows.length > 0) {
+    // throw error if there are any existing environments
+    throw new Error(
+      'Unable to delete project, there are existing environments that need to be removed first'
+    );
+  }
+
   await Helpers(sqlClientPool).deleteProjectById(pid);
 
   // Remove the default group and user

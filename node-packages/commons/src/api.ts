@@ -1084,6 +1084,7 @@ export const getOpenShiftInfoForProject = (project: string): Promise<any> =>
           projectUser
           routerPattern
           monitoringConfig
+          buildImage
         }
         autoIdle
         branches
@@ -1129,6 +1130,7 @@ export const getDeployTargetConfigsForProject = (project: number): Promise<any> 
           projectUser
           routerPattern
           monitoringConfig
+          buildImage
         }
       }
     }
@@ -1149,6 +1151,7 @@ export const getOpenShiftInfoForEnvironment = (environment: number): Promise<any
           projectUser
           routerPattern
           monitoringConfig
+          buildImage
         }
         project {
           envVariables {

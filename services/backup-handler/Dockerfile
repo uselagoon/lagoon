@@ -1,18 +1,12 @@
 # build the binary
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
-FROM golang:${GO_VERSION:-1.16.4} AS builder
+FROM golang:1.18-alpine3.16 AS builder
 
 # bring in all the packages
-# COPY main.go /go/src/github.com/uselagoon/lagoon/services/backup-handler/
-# COPY go.mod /go/src/github.com/uselagoon/lagoon/services/backup-handler/
-# COPY go.sum /go/src/github.com/uselagoon/lagoon/services/backup-handler/
-# COPY internal /go/src/github.com/uselagoon/lagoon/services/backup-handler/internal/
 COPY . /go/src/github.com/uselagoon/lagoon/services/backup-handler/
 WORKDIR /go/src/github.com/uselagoon/lagoon/services/backup-handler/
 
-# tests currently don't work because mocking rabbit is interesting
-RUN GO111MODULE=on go test ./...
 # compile
 RUN CGO_ENABLED=0  GOOS=linux GOARCH=amd64 go build -a -o backup-handler .
 
