@@ -53,7 +53,7 @@ UPSTREAM_TAG ?= latest
 # BUILD_DEPLOY_IMAGE_TAG is the docker tag from uselagoon/build-deploy-image to use -
 # latest is the most current release
 # edge is the most current merged change
-BUILD_DEPLOY_IMAGE_TAG ?= pr-95
+BUILD_DEPLOY_IMAGE_TAG ?= latest
 
 # Local environment
 ARCH := $(shell uname | tr '[:upper:]' '[:lower:]')
