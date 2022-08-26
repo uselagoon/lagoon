@@ -103,8 +103,7 @@ docker_pull:
 #######
 ####### Base Images are the base for all other images and are also published for clients to use during local development
 
-images :=     oc \
-							athenapdf-service \
+images :=     athenapdf-service \
 							docker-host
 
 # base-images is a variable that will be constantly filled with all base image there are
@@ -132,7 +131,6 @@ $(build-images):
 # 2. Dockerfiles of the Images itself, will cause make to rebuild the images if something has
 #    changed on the Dockerfiles
 build/docker-host: images/docker-host/Dockerfile
-build/oc: images/oc/Dockerfile
 build/athenapdf-service:images/athenapdf-service/Dockerfile
 
 #######
