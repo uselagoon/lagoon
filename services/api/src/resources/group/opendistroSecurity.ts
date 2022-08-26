@@ -16,22 +16,22 @@ export const OpendistroSecurityOperations = (
   const opensearchIntegrationEnabled = getConfigFromEnv('OPENSEARCH_INTEGRATION_ENABLED', 'true');
 
   if (opensearchIntegrationEnabled == "false") {
-    logger.info("OPENSEARCH_INTEGRATION_ENABLED is 'false' - disabling and returning log only object");
+    logger.debug("OPENSEARCH_INTEGRATION_ENABLED is 'false' - disabling and returning log only object");
     return {
       syncGroup: async function(groupName, groupProjectIDs) {
-        logger.info("[OpendistroSecurityOperations].syncGroup called");
+        logger.debug("[OpendistroSecurityOperations].syncGroup called");
       },
       syncGroupWithSpecificTenant: async (groupName, tenantName, groupProjectIDs) => {
-        logger.info("[OpendistroSecurityOperations].syncGroupWithSpecificTenant called");
+        logger.debug("[OpendistroSecurityOperations].syncGroupWithSpecificTenant called");
       },
       deleteTenant: async tenantName => {
-        logger.info("[OpendistroSecurityOperations].deleteTenant called");
+        logger.debug("[OpendistroSecurityOperations].deleteTenant called");
       },
       deleteGroup: async function(groupName) {
-        logger.info("[OpendistroSecurityOperations].deleteGroup called");
+        logger.debug("[OpendistroSecurityOperations].deleteGroup called");
       },
       deleteGroupWithSpecificTenant: async function(groupName, tenantName) {
-        logger.info("[OpendistroSecurityOperations].deleteGroupWithSpecificTenant called");
+        logger.debug("[OpendistroSecurityOperations].deleteGroupWithSpecificTenant called");
       },
     }
   } else {
