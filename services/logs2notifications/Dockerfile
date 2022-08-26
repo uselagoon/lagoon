@@ -1,8 +1,7 @@
 # build the binary
-ARG GO_VERSION
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
-FROM golang:${GO_VERSION:-1.16.4} AS builder
+FROM golang:1.18-alpine3.16 AS builder
 # bring in all the packages
 COPY . /go/src/github.com/uselagoon/lagoon/services/logs2notifications/
 WORKDIR /go/src/github.com/uselagoon/lagoon/services/logs2notifications/
@@ -26,10 +25,10 @@ COPY --from=builder /go/src/github.com/uselagoon/lagoon/services/logs2notificati
 
 ENV LAGOON=logs2notifications
 # set defaults
-ENV JWT_SECRET=super-secret-string \
+ENV JWTSECRET=super-secret-string \
     JWT_AUDIENCE=api.dev \
     GRAPHQL_ENDPOINT="http://api:3000/graphql" \
-    RABBITMQ_ADDRESS=broker \
+    RABBITMQ_HOST=broker \
     RABBITMQ_PORT=5672 \
     RABBITMQ_USERNAME=guest \
     RABBITMQ_PASSWORD=guest
