@@ -6,8 +6,6 @@ FROM golang:1.18-alpine3.16 AS builder
 COPY . /go/src/github.com/uselagoon/lagoon/services/logs2notifications/
 WORKDIR /go/src/github.com/uselagoon/lagoon/services/logs2notifications/
 
-# tests currently don't work because mocking rabbit is interesting
-RUN GO111MODULE=on go test ./...
 # compile
 RUN CGO_ENABLED=0  GOOS=linux GOARCH=amd64 go build -a -o logs2notifications .
 
