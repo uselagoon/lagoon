@@ -94,6 +94,7 @@ services:
       - /app/node-packages/commons/dist
     environment:
       - NODE_ENV=development
+      - OPENSEARCH_INTEGRATION_ENABLED=false
       - CI=${CI:-true}
       - REGISTRY=harbor.172.17.0.1.nip.io:18080 # Docker network bridge and forwarded port for harbor-nginx
       - S3_FILES_HOST=http://172.17.0.1:9000
