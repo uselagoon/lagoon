@@ -227,7 +227,7 @@ build/keycloak: services/keycloak/Dockerfile
 build/logs-concentrator: services/logs-concentrator/Dockerfile
 build/logs-dispatcher: services/logs-dispatcher/Dockerfile
 build/logs-tee: services/logs-tee/Dockerfile
-build/storage-calculator: build/oc
+build/storage-calculator: services/storage-calculator/Dockerfile
 build/tests: tests/Dockerfile
 build/local-minio:
 # Auth SSH needs the context of the root folder, so we have it individually
