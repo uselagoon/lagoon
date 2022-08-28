@@ -13,7 +13,7 @@ const meData =
     email: 'heyyo@me.com',
     sshKeys: [
       {"id":10,"name":"auto-add via api","keyType":"ssh-rsa","created":"1978-01-14 14:25:01","keyFingerprint": "SHA256:iLa2YGy/igmtxjM6C3ywV65umECdET/nIhaCeFlrWNs"},
-      {"id":12,"name":"My Personal Key","keyType":"ssh-ed25519","created":"2018-01-14 14:25:01","keyFingerprint": "SHA256:iLa2YGy/igmtxjM6C3ywV65umECdET/nIhaCeFlrWNs"}
+      {"id":12,"name":"My Personal Key","keyType":"ssh-ed25519","created":"2018-01-14 14:25:01","keyFingerprint": "SHA256:iLa2YGy/igmtxjM6C3ywV65umECdET/nIhaCeFlrWNs"},
       {"id":14,"name":"My Other Key","keyType":"ecdsa-sha2-nistp521","created":"2022-04-01 14:25:01","keyFingerprint": "SHA256:RBRWA2mJFPK/8DtsxVoVzoSShFiuRAzlUBws7cXkwG0"}
     ]
 };
