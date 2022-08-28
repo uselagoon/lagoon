@@ -144,7 +144,7 @@ const LogAccordion = forwardRef(({
                   .accordion-heading {
                     .log-header {
                       ::before {
-                        background-color: red;
+                        background-color: #e94a4a;
                       }
                     }
                   }
