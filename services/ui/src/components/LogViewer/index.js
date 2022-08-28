@@ -138,7 +138,7 @@ const logPreprocessorProcessParse = (tokens) => {
 
 const logPreprocessorTokenize = (logs) => {
   // tokenize
-  const regexp = /##############################################\n(STEP) (.+)\n##############################################/;
+  const regexp = /##############################################\n(BEGIN) (.+)\n##############################################/;
   const beginningSectionDefaultDetails = "Logs begin";
 
   // The regex above will split the logs into three separate token types
@@ -156,7 +156,7 @@ const logPreprocessorTokenize = (logs) => {
   let tokenizedLogs = [];
   let sectionIsOpen = false;
   for(let i = 0; i < tokens.length; i++) {
-    if(tokens[i] == "STEP") {
+    if(tokens[i] == "BEGIN") {
       let sectionDetails = tokens[i + 1]; //we're guaranteed to have this given the match criteria
 
       // let sectionOpening = `<div class="logsection"><div class="logsection-details>${sectionDetails}</div><pre>`;
