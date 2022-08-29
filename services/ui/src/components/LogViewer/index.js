@@ -150,14 +150,20 @@ const logPreprocessorExtractSectionEndDetails = (logs) => {
   let ret = new Map();
   // STEP Initial Environment Setup: Completed at 2022-08-29 08:00:07 (UTC) Duration 00:00:02 Elapsed 00:00:02
   const regexp = /##############################################\n(STEP) (.+): (.+)\n##############################################/;
+  const durationRegexp = /.* Duration (\d\d:\d\d:\d\d) .*/;
   let tokens = logs.split(regexp);
   for(let i = 0; i < tokens.length; i++) {
     if(tokens[i] == 'STEP') {
       // ret.set(tokens[])
       i++; let stepName = tokens[i].trim();
       i++; let stepDetails = tokens[i].trim();
+
       if(stepName != "" && stepDetails != "") {
-        ret.set(stepName, stepDetails);
+
+        let durationArray = stepDetails.match(durationRegexp)
+        if(durationArray.length == 2) {
+          ret.set(stepName, `Duration: ${durationArray[1]}`);
+        }
       }
     }
   }
