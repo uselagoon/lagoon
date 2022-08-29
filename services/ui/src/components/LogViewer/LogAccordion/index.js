@@ -8,6 +8,7 @@ const LogAccordion = forwardRef(({
   header,
   className = "",
   defaultValue = false,
+  metadata = "",
 }, ref) => {
     const logsTopRef = useRef(null);
     const logsEndRef = useRef(null);
@@ -36,7 +37,7 @@ const LogAccordion = forwardRef(({
                 setVisibility(!visibility);
                 if (onToggle) onToggle(!visibility);
             }}>
-              <div key="1" className={ "log-header" + (visibility ? " visible" : "")} >{header}</div>
+              <div key="1" className={ "log-header" + (visibility ? " visible" : "")} >{header} {metadata.length > 0 ? "(" + metadata + ")" : ""}</div>
             </div>
             <div ref={logsTopRef} />
             {visibility ?

@@ -54,7 +54,8 @@ const logPreprocessor = (logs, status) => {
 
   try {
     let tokens = logPreprocessorTokenize(logs);
-    let AST = logPreprocessorProcessParse(tokens);
+    let sectionMetadata = logPreprocessorExtractSectionEndDetails(logs);
+    let AST = logPreprocessorProcessParse(tokens, sectionMetadata);
     return logPreprocessorProcessASTToReact(AST, openLastSection, statusBad );
   } catch (e) {
     // if there are any errors parsing and transforming, we just return the logs as is.
@@ -81,6 +82,7 @@ const logPreprocessorRenderLogNode = (node, visible = false, errorState = false)
         ref={logsContentRef}
         minified={true}
         header={node.details}
+        metadata={node.metadata}
         className={classes.join(" ")}
         defaultValue={visible}
       >
@@ -112,7 +114,7 @@ const logPreprocessorProcessASTToReact = (ast, lastOpen, errorState) => {
 }
 
 // Produce relatively flat AST from tokens
-const logPreprocessorProcessParse = (tokens) => {
+const logPreprocessorProcessParse = (tokens, sectionMetadata) => {
   let root = {type: "root", nodes: []};
 
   for(let i = 0; i < tokens.length; i++) {
@@ -121,7 +123,12 @@ const logPreprocessorProcessParse = (tokens) => {
         root.nodes.push(tokens[i]);
       break;
       case("section-opener"):
-        let node = {type:"section", key: tokens[i].key, details: tokens[i].details, nodes: []};
+        let metadataForSection = sectionMetadata.get(tokens[i].details.trim());
+        if(metadataForSection == undefined) {
+          metadataForSection = "";
+        }
+
+        let node = {type:"section", key: tokens[i].key, details: tokens[i].details, metadata: metadataForSection, nodes: []};
         if(tokens[i + 1].type == "log-text") {
           node.nodes.push(tokens[i+1]);
           i++; //increment `i` so that we're dealing with the _next_ token
@@ -134,6 +141,27 @@ const logPreprocessorProcessParse = (tokens) => {
     }
   }
   return root;
+}
+
+
+// Rather than parsing section end details into their own tokens, we'll simply extract the metadata
+// from the logs as a whole, and use it to enhance the 'section' type
+const logPreprocessorExtractSectionEndDetails = (logs) => {
+  let ret = new Map();
+  // STEP Initial Environment Setup: Completed at 2022-08-29 08:00:07 (UTC) Duration 00:00:02 Elapsed 00:00:02
+  const regexp = /##############################################\n(STEP) (.+): (.+)\n##############################################/;
+  let tokens = logs.split(regexp);
+  for(let i = 0; i < tokens.length; i++) {
+    if(tokens[i] == 'STEP') {
+      // ret.set(tokens[])
+      i++; let stepName = tokens[i].trim();
+      i++; let stepDetails = tokens[i].trim();
+      if(stepName != "" && stepDetails != "") {
+        ret.set(stepName, stepDetails);
+      }
+    }
+  }
+  return ret;
 }
 
 const logPreprocessorTokenize = (logs) => {
