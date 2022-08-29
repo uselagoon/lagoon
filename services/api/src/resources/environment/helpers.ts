@@ -4,6 +4,7 @@ import { asyncPipe } from '@lagoon/commons/dist/util';
 import { query } from '../../util/db';
 import { Sql } from './sql';
 import { Helpers as projectHelpers } from '../project/helpers';
+// import { logger } from '../../loggers/logger';
 
 export const Helpers = (sqlClientPool: Pool) => {
   const aliasOpenshiftToK8s = (environments: any[]) => {
@@ -29,10 +30,20 @@ export const Helpers = (sqlClientPool: Pool) => {
     getEnvironmentById,
     deleteEnvironment: async (name: string, eid: number, pid: number) => {
       // clean up environment variables
+      // logger.debug(`deleting environment ${name}/id:${eid}/project:${pid} environment variables`)
       await query(
         sqlClientPool,
         Sql.deleteEnvironmentVariables(eid)
       );
+      // clean up servies
+      // logger.debug(`deleting environment ${name}/id:${eid}/project:${pid} environment services`)
+      await query(
+        sqlClientPool,
+        Sql.deleteServices(eid)
+      );
+      // @TODO: environment_storage, deployment, environment_backup, task, environment_problem, environment_fact
+      // delete the environment
+      // logger.debug(`deleting environment ${name}/id:${eid}/project:${pid}`)
       await query(
         sqlClientPool,
         Sql.deleteEnvironment(name, pid)

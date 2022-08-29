@@ -1742,9 +1742,11 @@ CREATE OR REPLACE PROCEDURE
 
   BEGIN
     DELETE FROM env_vars WHERE project NOT IN (SELECT id FROM project);
-    DELETE FROM env_vars WHERE environment not in (SELECT id FROM environment WHERE deleted = '0000-00-00 00:00:00');
     DELETE FROM project_notification WHERE pid NOT IN (SELECT id FROM project);
     DELETE FROM deploy_target_config WHERE project NOT IN (SELECT id FROM project);
+    DELETE FROM env_vars WHERE environment not in (SELECT id FROM environment WHERE deleted = '0000-00-00 00:00:00');
+    DELETE FROM environment_service WHERE environment not in (SELECT id FROM environment WHERE deleted = '0000-00-00 00:00:00');
+    -- @TODO: environment_storage, deployment, environment_backup, task, environment_problem, environment_fact
   END;
 $$
 

@@ -3,6 +3,7 @@ import { Pool } from 'mariadb';
 import { asyncPipe } from '@lagoon/commons/dist/util';
 import { query } from '../../util/db';
 import { Sql } from './sql';
+// import { logger } from '../../loggers/logger';
 
 export const Helpers = (sqlClientPool: Pool) => {
   const aliasOpenshiftToK8s = (projects: any[]) => {
@@ -110,20 +111,24 @@ export const Helpers = (sqlClientPool: Pool) => {
         await query(sqlClientPool, Sql.selectAllProjectNames())
       ),
     deleteProjectById: async (id: number) => {
+      // logger.debug(`deleting project ${id} notifications`)
       await query(
         sqlClientPool,
         Sql.deleteNotifications(id)
       );
+      // logger.debug(`deleting project ${id} environment variables`)
       // clean up environment variables for project
       await query(
         sqlClientPool,
         Sql.deleteEnvironmentVariables(id)
       );
+      // logger.debug(`deleting project ${id} deploytarget configurations`)
       // clean up deploytarget configurations
       await query(
         sqlClientPool,
         Sql.deleteDeployTargetConfigs(id)
       );
+      // logger.debug(`deleting project ${id}`)
       // delete the project
       await query(
         sqlClientPool,
