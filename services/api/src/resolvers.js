@@ -122,6 +122,7 @@ const {
   addDeployTargetConfig,
   deleteDeployTargetConfig,
   updateDeployTargetConfig,
+  updateEnvironmentDeployTarget,
 } = require('./resources/deploytargetconfig/resolvers');
 
 const {
@@ -622,6 +623,7 @@ const resolvers = {
     addGroupToOrganization,
     addProjectToOrganization,
     addDeployTargetToOrganization,
+    updateEnvironmentDeployTarget,
   },
   Subscription: {
     backupChanged: backupSubscriber,

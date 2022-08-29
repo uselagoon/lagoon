@@ -171,3 +171,5 @@ In our documentation - https://docs.lagoon.sh
 In our blog - https://dev.to/uselagoon
 
 Via our socials - https://twitter.com/uselagoon
+
+On Discord -  https://discord.gg/te5hHe95JE

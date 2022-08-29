@@ -47,7 +47,7 @@ Let's create the first project for Lagoon to deploy! For this we'll use the quer
 
 For each of the queries \(the blocks starting with `mutation {`\), fill in all of the empty fields marked by TODO comments and run the queries in GraphiQL.app. This will create one of each of the following two objects:
 
-1. `openshift` : The OpenShift or Kubernetes cluster to which Lagoon should deploy. Lagoon is not only capable of deploying to its own Kubernetes cluster, but also to any Kubernetes cluster anywhere in the world.
+1. `kubernetes` : The Kubernetes (or Openshift) cluster to which Lagoon should deploy. Lagoon is not only capable of deploying to its own Kubernetes cluster, but also to any Kubernetes cluster anywhere in the world.
 2. `project` : The Lagoon project to be deployed, which is a Git repository with a `.lagoon.yml` configuration file committed in the root.
 
 ## Allowing access to the project
@@ -211,25 +211,25 @@ Now for every deployment you will receive messages in your defined channel.
 
 ## Example GraphQL queries
 
-### Adding a new OpenShift target
+### Adding a new Kubernetes target
 
 !!! Note "Note:"
-    In Lagoon 1.x `addOpenshift` is used for both OpenShift and Kubernetes targets. In Lagoon 2.x this will change.
+    In Lagoon, both `addKubernetes` and `addOpenshift` can be used for both Kubernetes and OpenShift targets - either will work interchangeably.
 
-The OpenShift cluster to which Lagoon should deploy. Lagoon is not only capable of deploying to its own OpenShift, but also to any OpenShift anywhere in the world.
+The cluster to which Lagoon should deploy.
 
 ```graphql
 mutation {
-  addOpenshift(
+  addKubernetes(
     input: {
       # TODO: Fill in the name field.
-      # This is the unique identifier of the OpenShift.
+      # This is the unique identifier of the cluster.
       name: ""
       # TODO: Fill in consoleUrl field.
-      # This is the URL of the OpenShift console (without any `/console` suffix).
+      # This is the URL of the Kubernetes cluster
       consoleUrl: ""
       # TODO: Fill in the token field.
-      # This is the token of the `lagoon` service account created in this OpenShift (this is the same token that we also used during installation of Lagoon).
+      # This is the token of the `lagoon` service account created in this cluster (this is the same token that we also used during installation of Lagoon).
       token: ""
     }
   ) {
@@ -280,9 +280,9 @@ mutation {
       # TODO: Fill in the private key field (replace newlines with '\n').
       # This is the private key for a project, which is used to access the Git code.
       privateKey: ""
-      # TODO: Fill in the OpenShift field.
-      # This is the id of the OpenShift or Kubernetes to assign to the project.
-      openshift: 0
+      # TODO: Fill in the Kubernetes field.
+      # This is the id of the Kubernetes or Openshift to assign to the project.
+      kubernetes: 0
       # TODO: Fill in the name field.
       # This is the project name.
       gitUrl: ""
@@ -293,7 +293,7 @@ mutation {
     }
   ) {
     name
-    openshift {
+    kubernetes {
       name
       id
     }
@@ -308,7 +308,7 @@ mutation {
 
 ### List projects and groups
 
-This is a good query to see an overview of all projects, OpenShifts and groups that exist within our Lagoon.
+This is a good query to see an overview of all projects, clusters and groups that exist within our Lagoon.
 
 ```graphql
 query {
@@ -316,7 +316,7 @@ query {
     name
     gitUrl
   }
-  allOpenshifts {
+  allKubernetes {
     name
     id
   }
@@ -368,7 +368,7 @@ query {
       deployType
       environmentType
     }
-    openshift {
+    kubernetes {
       id
     }
   }
@@ -471,7 +471,7 @@ query search{
     productionEnvironment,
     pullrequests,
     gitUrl,
-    openshift {
+    kubernetes {
       id
     },
      groups{

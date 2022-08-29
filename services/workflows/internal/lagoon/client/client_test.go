@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/uselagoon/lagoon/services/actions-handler/internal/lagoon/client"
+	"github.com/uselagoon/lagoon/services/workflows/internal/lagoon/client"
 )
 
 type testStruct0 struct {

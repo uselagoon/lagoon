@@ -11,7 +11,7 @@ import (
 	"os"
 
 	"github.com/machinebox/graphql"
-	"github.com/uselagoon/lagoon/services/actions-handler/internal/lagoon/client/lgraphql"
+	"github.com/uselagoon/lagoon/services/workflows/internal/lagoon/client/lgraphql"
 )
 
 // Client implements the lagoon package interfaces for the Lagoon GraphQL API.

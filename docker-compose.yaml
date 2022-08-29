@@ -57,6 +57,8 @@ services:
     volumes:
       - ./services/logs2s3/src:/app/services/logs2s3/src
       - ./node-packages:/app/node-packages:delegated
+    environment:
+      - S3_FILES_HOST=http://172.17.0.1:9000
   logs2microsoftteams:
     image: ${IMAGE_REPO:-lagoon}/logs2microsoftteams
     command: yarn run dev
@@ -92,8 +94,10 @@ services:
       - /app/node-packages/commons/dist
     environment:
       - NODE_ENV=development
+      - OPENSEARCH_INTEGRATION_ENABLED=false
       - CI=${CI:-true}
       - REGISTRY=harbor.172.17.0.1.nip.io:18080 # Docker network bridge and forwarded port for harbor-nginx
+      - S3_FILES_HOST=http://172.17.0.1:9000
     depends_on:
       - api-db
       - keycloak

@@ -33,6 +33,11 @@ export const Sql = {
     knex('project as p')
       .where('p.organization', organizationId)
       .toString(),
+  selectEnvironmentsByProjectId: (id: number) =>
+    knex('environment as e')
+      .where('e.project', id)
+      .andWhere('e.deleted', '=', '0000-00-00 00:00:00')
+      .toString(),
   selectProjectByEnvironmentId: (environmentId, environmentType = []) => {
     let q = knex('environment as e')
       .select(

@@ -143,6 +143,10 @@ set -x
 ##############################################
 
 set +x
+
+# Load path of docker-compose that should be used
+DOCKER_COMPOSE_YAML=($(cat .lagoon.yml | shyaml get-value docker-compose-yaml))
+
 echo "Updating lagoon-yaml configmap with a pre-deploy version of the .lagoon.yml file"
 if kubectl -n ${NAMESPACE} get configmap lagoon-yaml &> /dev/null; then
   # replace it
@@ -160,7 +164,49 @@ if kubectl -n ${NAMESPACE} get configmap lagoon-yaml &> /dev/null; then
   # create it
   kubectl -n ${NAMESPACE} create configmap lagoon-yaml --from-file=pre-deploy=.lagoon.yml
 fi
-set -x
+echo "Updating docker-compose-yaml configmap with a pre-deploy version of the docker-compose.yml file"
+if kubectl -n ${NAMESPACE} get configmap docker-compose-yaml &> /dev/null; then
+  # replace it
+  # if the environment has already been deployed with an existing configmap that had the file in the key `docker-compose.yml`
+  # just nuke the entire configmap and replace it with our new key and file
+  LAGOON_YML_CM=$(kubectl -n ${NAMESPACE} get configmap docker-compose-yaml -o json)
+  if [ "$(echo ${LAGOON_YML_CM} | jq -r '.data."docker-compose.yml" // false')" == "false" ]; then
+    # if the key doesn't exist, then just update the pre-deploy yaml only
+    kubectl -n ${NAMESPACE} get configmap docker-compose-yaml -o json | jq --arg add "`cat ${DOCKER_COMPOSE_YAML}`" '.data."pre-deploy" = $add' | kubectl apply -f -
+  else
+    # if the key does exist, then nuke it and put the new key
+    kubectl -n ${NAMESPACE} create configmap docker-compose-yaml --from-file=pre-deploy=${DOCKER_COMPOSE_YAML} -o yaml --dry-run=client | kubectl replace -f -
+  fi
+ else
+  # create it
+  kubectl -n ${NAMESPACE} create configmap docker-compose-yaml --from-file=pre-deploy=${DOCKER_COMPOSE_YAML}
+fi
+set +ex
+##############################################
+### RUN docker compose config check against the provided docker-compose file
+### use the `build-validate` built in validater to run over the provided docker-compose file
+##############################################
+dccOutput=$(bash -c 'build-deploy-tool validate docker-compose --docker-compose '${DOCKER_COMPOSE_YAML}'; exit $?' 2>&1)
+dccExit=$?
+echo "docker-compose validate exit code ${dccExit}: ${dccOutput}"
+
+if [ "${dccExit}" != "0" ]; then
+  currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
+  patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "dockerComposeValidationError" "Docker Compose Validation Error"
+  previousStepEnd=${currentStepEnd}
+  echo "
+##############################################
+Warning!
+There are issues with your docker compose file that lagoon uses that should be fixed.
+You can run docker compose config locally to check that your docker-compose file is valid.
+##############################################
+"
+  echo ${dccOutput}
+  echo "
+##############################################"
+  exit 1
+fi
+set -ex
 
 # validate .lagoon.yml
 if ! lagoon-linter; then
@@ -176,9 +222,6 @@ currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
 patchBuildStep "${buildStartTime}" "${buildStartTime}" "${currentStepEnd}" "${NAMESPACE}" "initialSetup" "Initial Environment Setup"
 previousStepEnd=${currentStepEnd}
 set -x
-
-# Load path of docker-compose that should be used
-DOCKER_COMPOSE_YAML=($(cat .lagoon.yml | shyaml get-value docker-compose-yaml))
 
 DEPLOY_TYPE=$(cat .lagoon.yml | shyaml get-value environments.${BRANCH//./\\.}.deploy-type default)
 
@@ -547,6 +590,7 @@ if [[ "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ]]; then
   BUILD_ARGS+=(--build-arg LAGOON_ENVIRONMENT_TYPE="${ENVIRONMENT_TYPE}")
   BUILD_ARGS+=(--build-arg LAGOON_BUILD_TYPE="${BUILD_TYPE}")
   BUILD_ARGS+=(--build-arg LAGOON_GIT_SOURCE_REPOSITORY="${SOURCE_REPOSITORY}")
+  BUILD_ARGS+=(--build-arg LAGOON_KUBERNETES="${KUBERNETES}")
 
   # Add in the cache args
   for value in "${LAGOON_CACHE_BUILD_ARGS[@]}"
@@ -651,6 +695,24 @@ if [[ "$BUILD_TYPE" == "pullrequest"  ||  "$BUILD_TYPE" == "branch" ]]; then
 fi
 
 set +x
+# print information about built image sizes
+function printBytes {
+    local -i bytes=$1;
+    echo "$(( (bytes + 1000000)/1000000 ))MB"
+}
+if [[ "${IMAGES_BUILD[@]}" ]]; then
+  echo "##############################################"
+  echo "Built image sizes:"
+  echo "##############################################"
+fi
+for IMAGE_NAME in "${!IMAGES_BUILD[@]}"
+do
+  TEMPORARY_IMAGE_NAME="${IMAGES_BUILD[${IMAGE_NAME}]}"
+  echo -e "Image ${TEMPORARY_IMAGE_NAME}\t\t$(printBytes $(docker inspect ${TEMPORARY_IMAGE_NAME} | jq -r '.[0].Size'))"
+done
+set -x
+
+set +x
 currentStepEnd="$(date +"%Y-%m-%d %H:%M:%S")"
 patchBuildStep "${buildStartTime}" "${previousStepEnd}" "${currentStepEnd}" "${NAMESPACE}" "imageBuildComplete" "Image Builds"
 previousStepEnd=${currentStepEnd}
@@ -661,26 +723,7 @@ set -x
 ##############################################
 
 if [ "${LAGOON_PREROLLOUT_DISABLED}" != "true" ]; then
-  COUNTER=0
-  while [ -n "$(cat .lagoon.yml | shyaml keys tasks.pre-rollout.$COUNTER 2> /dev/null)" ]
-  do
-    TASK_TYPE=$(cat .lagoon.yml | shyaml keys tasks.pre-rollout.$COUNTER)
-    echo $TASK_TYPE
-    case "$TASK_TYPE" in
-      run)
-          COMMAND=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.command)
-          SERVICE_NAME=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.service)
-          CONTAINER=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.container false)
-          SHELL=$(cat .lagoon.yml | shyaml get-value tasks.pre-rollout.$COUNTER.$TASK_TYPE.shell sh)
-          . /kubectl-build-deploy/scripts/exec-pre-tasks-run.sh
-          ;;
-      *)
-          echo "Task Type ${TASK_TYPE} not implemented"; exit 1;
-
-    esac
-
-    let COUNTER=COUNTER+1
-  done
+    build-deploy-tool tasks pre-rollout
 else
   echo "pre-rollout tasks are currently disabled LAGOON_PREROLLOUT_DISABLED is set to true"
 fi
@@ -722,6 +765,14 @@ yq3 write -i -- /kubectl-build-deploy/values.yaml 'lagoonVersion' $LAGOON_VERSIO
 set +x
 if [ "$(featureFlag ROOTLESS_WORKLOAD)" = enabled ]; then
 	yq3 merge -ix -- /kubectl-build-deploy/values.yaml /kubectl-build-deploy/rootless.values.yaml
+fi
+
+if [ "${SCC_CHECK}" != "false" ]; then
+  # openshift permissions are different, this is to set the fsgroup to the supplemental group from the openshift annotations
+  # this applies it to all deployments in this environment because we don't isolate by service type its applied to all
+  OPENSHIFT_SUPPLEMENTAL_GROUP=$(kubectl get namespace ${NAMESPACE} -o json | jq -r '.metadata.annotations."openshift.io/sa.scc.supplemental-groups"' | cut -c -10)
+  echo "Setting openshift fsGroup to ${OPENSHIFT_SUPPLEMENTAL_GROUP}"
+  yq3 write -i -- /kubectl-build-deploy/values.yaml 'podSecurityContext.fsGroup' $OPENSHIFT_SUPPLEMENTAL_GROUP
 fi
 set -x
 
@@ -1001,7 +1052,7 @@ set -x
 # so just add https...
 ROUTE=$(build-deploy-tool identify primary-ingress)
 if [ ! -z "${ROUTE}" ]; then
-  ROUTE=https://${ROUTE}
+  ROUTE=${ROUTE}
 fi
 
 # Load all routes with correct schema and comma separated
@@ -1235,6 +1286,21 @@ do
     fi
   fi
 
+  # all our templates appear to support this if they have a service defined in them, but only `basic` properly supports this
+  # as all services will get re-written in the future into build-deploy-tool, just handle basic only for now and don't
+  # support it in other templates (yet)
+  if  [[ "$SERVICE_TYPE" == "basic" ]] ||
+      [[ "$SERVICE_TYPE" == "basic-persistent" ]]; then
+    SERVICE_PORT_NUMBER=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.service\\.port false)
+    if [ ! $SERVICE_PORT_NUMBER == "false" ]; then
+      # check if the port provided is actually a number
+      if ! [[ $SERVICE_PORT_NUMBER =~ ^[0-9]+$ ]] ; then
+        echo "Provided service port is not a number"; exit 1;
+      fi
+      HELM_SET_VALUES+=(--set "service.port=${SERVICE_PORT_NUMBER}")
+    fi
+  fi
+
 # TODO: we don't need this anymore
   # DEPLOYMENT_STRATEGY=$(cat $DOCKER_COMPOSE_YAML | shyaml get-value services.$COMPOSE_SERVICE.labels.lagoon\\.deployment\\.strategy false)
   # if [ ! $DEPLOYMENT_STRATEGY == "false" ]; then
@@ -1399,26 +1465,7 @@ set -x
 
 # if we have LAGOON_POSTROLLOUT_DISABLED set, don't try to run any pre-rollout tasks
 if [ "${LAGOON_POSTROLLOUT_DISABLED}" != "true" ]; then
-  COUNTER=0
-  while [ -n "$(cat .lagoon.yml | shyaml keys tasks.post-rollout.$COUNTER 2> /dev/null)" ]
-  do
-    TASK_TYPE=$(cat .lagoon.yml | shyaml keys tasks.post-rollout.$COUNTER)
-    echo $TASK_TYPE
-    case "$TASK_TYPE" in
-      run)
-          COMMAND=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.command)
-          SERVICE_NAME=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.service)
-          CONTAINER=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.container false)
-          SHELL=$(cat .lagoon.yml | shyaml get-value tasks.post-rollout.$COUNTER.$TASK_TYPE.shell sh)
-          . /kubectl-build-deploy/scripts/exec-tasks-run.sh
-          ;;
-      *)
-          echo "Task Type ${TASK_TYPE} not implemented"; exit 1;
-
-    esac
-
-    let COUNTER=COUNTER+1
-  done
+  build-deploy-tool tasks post-rollout
 else
   echo "post-rollout tasks are currently disabled LAGOON_POSTROLLOUT_DISABLED is set to true"
 fi
@@ -1441,6 +1488,14 @@ if kubectl -n ${NAMESPACE} get configmap lagoon-yaml &> /dev/null; then
  else
   # create it
   kubectl -n ${NAMESPACE} create configmap lagoon-yaml --from-file=post-deploy=.lagoon.yml
+fi
+echo "Updating docker-compose-yaml configmap with a post-deploy version of the docker-compose.yml file"
+if kubectl -n ${NAMESPACE} get configmap docker-compose-yaml &> /dev/null; then
+  # replace it, no need to check if the key is different, as that will happen in the pre-deploy phase
+  kubectl -n ${NAMESPACE} get configmap docker-compose-yaml -o json | jq --arg add "`cat ${DOCKER_COMPOSE_YAML}`" '.data."post-deploy" = $add' | kubectl apply -f -
+ else
+  # create it
+  kubectl -n ${NAMESPACE} create configmap docker-compose-yaml --from-file=post-deploy=${DOCKER_COMPOSE_YAML}
 fi
 set -x
 

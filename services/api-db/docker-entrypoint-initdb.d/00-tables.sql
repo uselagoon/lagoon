@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS openshift (
   friendly_name       varchar(100),
   cloud_provider      varchar(100),
   cloud_region        varchar(100),
+  build_image         varchar(2000),
   created             timestamp DEFAULT CURRENT_TIMESTAMP
 );
 

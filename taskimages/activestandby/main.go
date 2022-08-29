@@ -100,8 +100,8 @@ func main() {
 	}
 
 	// check the status of the crd until we have the status conditions.
-	// otherwise give up after 10 minutes. 60 retries, 10 seconds apart.
-	try.MaxRetries = 60
+	// otherwise give up after 30 minutes. 180 retries, 10 seconds apart.
+	try.MaxRetries = 180
 	err = try.Do(func(attempt int) (bool, error) {
 		var err error
 		if err := c.Get(context.Background(), types.NamespacedName{
@@ -189,7 +189,7 @@ Provide a copy of this entire log to the team.`, err)
 									},
 								})
 								// update the pod with the annotation
-								if err := c.Patch(context.Background(), &pod, client.ConstantPatch(types.MergePatchType, mergePatch)); err != nil {
+								if err := c.Patch(context.Background(), &pod, client.RawPatch(types.MergePatchType, mergePatch)); err != nil {
 									fmt.Printf(`========================================
 Task failed to update pod with return information, error was: %v
 ========================================
@@ -211,16 +211,17 @@ Provide a copy of this entire log to the team.`, err)
 						fmt.Printf("Task failed, error was: no spec found in resource")
 						os.Exit(1)
 					}
+					fmt.Printf("Task current status is %s, retrying check", mapval["type"].(string))
 				}
 			}
 		}
-		// sleep for 5 seconds up to a maximum of 60 times (5 minutes) before finally giving up
+		// sleep for 10 seconds up to a maximum of 180 times (30 minutes) before finally giving up
 		time.Sleep(10 * time.Second)
 		err = fmt.Errorf("status condition not met yet")
-		return attempt < 60, err
+		return attempt < 180, err
 	})
 	if err != nil {
-		fmt.Printf("Task failed, timed out after 10 minutes waiting for the job to start: %v", err)
+		fmt.Printf("Task failed, timed out after 30 minutes waiting for the job to start: %v", err)
 		os.Exit(1)
 	}
 }

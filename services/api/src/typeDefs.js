@@ -478,6 +478,7 @@ const typeDefs = gql`
     friendlyName: String
     cloudProvider: String
     cloudRegion: String
+    buildImage: String
   }
 
   type Kubernetes {
@@ -494,6 +495,7 @@ const typeDefs = gql`
     friendlyName: String
     cloudProvider: String
     cloudRegion: String
+    buildImage: String
   }
 
   type NotificationMicrosoftTeams {
@@ -1014,9 +1016,9 @@ const typeDefs = gql`
     id: Int
     project: Int!
     weight: Int
-    branches: String
-    pullrequests: String
-    deployTarget: Int
+    branches: String!
+    pullrequests: String!
+    deployTarget: Int!
     deployTargetProjectPattern: String
   }
 
@@ -1499,6 +1501,7 @@ const typeDefs = gql`
     friendlyName: String
     cloudProvider: String
     cloudRegion: String
+    buildImage: String
   }
 
   input AddKubernetesInput {
@@ -1517,6 +1520,7 @@ const typeDefs = gql`
     friendlyName: String
     cloudProvider: String
     cloudRegion: String
+    buildImage: String
   }
 
   input DeleteOpenshiftInput {
@@ -1685,6 +1689,7 @@ const typeDefs = gql`
     friendlyName: String
     cloudProvider: String
     cloudRegion: String
+    buildImage: String
   }
 
   input UpdateOpenshiftInput {
@@ -1707,6 +1712,7 @@ const typeDefs = gql`
     friendlyName: String
     cloudProvider: String
     cloudRegion: String
+    buildImage: String
   }
 
   input UpdateKubernetesInput {
@@ -2111,6 +2117,7 @@ const typeDefs = gql`
     Update an organization
     """
     updateOrganization(input: UpdateOrganizationInput!): Organization  @deprecated(reason: "Unstable API, subject to breaking changes in any release. Use at your own risk")
+    updateEnvironmentDeployTarget(environment: Int!, deployTarget: Int!): Environment
   }
 
   type Subscription {
