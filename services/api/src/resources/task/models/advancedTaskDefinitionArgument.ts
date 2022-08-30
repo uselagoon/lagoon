@@ -56,6 +56,48 @@ export class EnvironmentSourceArgument extends ArgumentBase {
     }
 }
 
+
+export class OtherEnvironmentSourceNamesArgument extends ArgumentBase {
+
+    protected sqlClientPool;
+    protected environmentId;
+    protected environmentNameList = [];
+
+    constructor(sqlClientPool, environmentId) {
+        super();
+        this.sqlClientPool = sqlClientPool;
+        this.environmentId = environmentId;
+    }
+
+    public static typeName() {
+        return "ENVIRONMENT_SOURCE_NAME_EXCLUDE_SELF";
+    }
+
+    public async getArgumentRange() {
+        await this.loadEnvNames();
+        return this.environmentNameList;
+    }
+
+    protected async loadEnvNames() {
+        const rows = await query(
+            this.sqlClientPool,
+            `select e.name as name from environment as e inner join environment as p on e.project = p.project where p.id = ${this.environmentId} and e.id != ${this.environmentId}`
+          );
+        this.environmentNameList = R.pluck('name')(rows);
+    }
+
+    /**
+     *
+     * @param input Environment name
+     * @returns boolean
+     */
+    async validateInput(input): Promise<boolean>  {
+        await this.loadEnvNames();
+        return this.environmentNameList.includes(input);
+    }
+}
+
+
 export class StringArgument extends ArgumentBase {
 
     public static typeName() {
@@ -102,6 +144,9 @@ export const advancedTaskDefinitionTypeFactory = (sqlClientPool, task, environme
         break;
         case(NumberArgument.typeName()):
             return new NumberArgument();
+        break;
+        case(OtherEnvironmentSourceNamesArgument.typeName()):
+            return new OtherEnvironmentSourceNamesArgument(sqlClientPool, environment);
         break;
         default:
             throw new Error(`Unable to find AdvancedTaskDefinitionType ${name}`);

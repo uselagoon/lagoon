@@ -1355,6 +1355,28 @@ CREATE OR REPLACE PROCEDURE
 $$
 
 CREATE OR REPLACE PROCEDURE
+  add_environment_exclude_self_type_to_advanced_task_argument()
+
+  BEGIN
+    DECLARE column_type_argument_type varchar(74);
+
+    SELECT COLUMN_TYPE INTO column_type_argument_type
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      table_name = 'advanced_task_definition_argument'
+      AND table_schema = 'infrastructure'
+      AND column_name = 'type';
+
+    IF (
+      column_type_argument_type = "enum('NUMERIC','STRING','ENVIRONMENT_SOURCE_NAME')"
+    ) THEN
+      ALTER TABLE advanced_task_definition_argument
+      MODIFY type ENUM('NUMERIC', 'STRING', 'ENVIRONMENT_SOURCE_NAME', 'ENVIRONMENT_SOURCE_NAME_EXCLUDE_SELF');
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
   change_name_index_for_advanced_task_argument()
   BEGIN
     IF EXISTS(
@@ -1826,6 +1848,7 @@ CALL add_new_task_status_types();
 CALL update_active_succeeded_tasks();
 CALL update_missing_tasknames();
 CALL add_build_image_to_openshift();
+CALL add_environment_exclude_self_type_to_advanced_task_argument();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;
