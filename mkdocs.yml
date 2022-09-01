@@ -134,7 +134,7 @@ nav:
   - Tutorials, Webinars, and Videos: resources/tutorials-and-webinars.md
   - Lagoon Examples: https://github.com/uselagoon/lagoon-examples
 - Other Tools:
-  - Lagoon CLI: https://new-docs.lagoon.sh/lagoon-cli/
+  - Lagoon CLI: https://uselagoon.github.io/lagoon-cli/
 
 theme:
   name: 'material'
