@@ -1,6 +1,0 @@
-# This is used in build-deploy-docker-compose.sh to specify the rootless
-# podSecurityContext for Lagoon helmcharts.
-podSecurityContext:
-  fsGroup: 10001
-  runAsGroup: 0
-  runAsUser: 10000
