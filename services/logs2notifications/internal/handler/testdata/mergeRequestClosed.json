@@ -1,0 +1,11 @@
+{
+  "project":"ci-github-openshift",
+  "event":"api:deployEnvironmentBranch",
+  "meta":{
+    "projectName":"ci-github-openshift",
+    "pullrequestNumber":"",
+    "pullrequestTitle":"",
+    "repoURL":"",
+    "repoName": ""
+  }
+}
