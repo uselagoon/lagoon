@@ -83,7 +83,7 @@ All the services that handle the API, authentication and external communication 
 All the services that are used to provision, deploy and maintain sites hosted by Lagoon on Kubernetes live here. These services are mostly comprised of third-party tools, developed external to Lagoon itself. Installation is via a [Helm Chart](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-remote)
 
 - [Remote Controller](https://github.com/uselagoon/remote-controller) (the controllers that handle building and deploying sites onto Lagoon)
-- [kubectl-build-deploy](https://github.com/uselagoon/lagoon/tree/main/images/kubectl-build-deploy-dind) (the service that computes which services, configuration and settings to provision for Kubernetes)
+- [build-deploy-image](https://github.com/uselagoon/build-deploy-tool) (the service that computes which services, configuration and settings to provision for Kubernetes)
 - [docker-host](https://github.com/uselagoon/lagoon/tree/main/images/docker-host) (the service that stores and caches upstream docker images for use in builds)
 - [lagoon-idler](https://github.com/amazeeio/lagoon-idler) (an optional operator that can idle non-production sites not currently in use to conserve resources)
 - [Dioscuri](https://github.com/amazeeio/dioscuri) (an optional operator that provides Active/Standby functionality to Lagoon)
