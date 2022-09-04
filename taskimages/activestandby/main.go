@@ -189,7 +189,7 @@ Provide a copy of this entire log to the team.`, err)
 									},
 								})
 								// update the pod with the annotation
-								if err := c.Patch(context.Background(), &pod, client.ConstantPatch(types.MergePatchType, mergePatch)); err != nil {
+								if err := c.Patch(context.Background(), &pod, client.RawPatch(types.MergePatchType, mergePatch)); err != nil {
 									fmt.Printf(`========================================
 Task failed to update pod with return information, error was: %v
 ========================================

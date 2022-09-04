@@ -1,0 +1,11 @@
+{
+  "project":"ci-github-openshift",
+  "event":"task:builddeploy-kubernetes:failed",
+  "meta":{
+    "projectName":"ci-github-openshift",
+    "branchName":"lagoon-type-override",
+    "project":"ci-github-openshift",
+    "buildName":"lagoon-build-1234",
+    "logLink":"https://logs"
+  }
+}
