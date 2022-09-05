@@ -18,6 +18,7 @@ nav:
   - Build and Deploy Process: using-lagoon-the-basics/build-and-deploy-process.md
   - Going Live: using-lagoon-the-basics/going-live.md
 - Docker Images:
+  - Commons: docker-images/commons.md
   - Elasticsearch: docker-images/elasticsearch.md
   - MariaDB: docker-images/mariadb.md
   - MongoDB: docker-images/mongodb.md
@@ -134,7 +135,7 @@ nav:
   - Tutorials, Webinars, and Videos: resources/tutorials-and-webinars.md
   - Lagoon Examples: https://github.com/uselagoon/lagoon-examples
 - Other Tools:
-  - Lagoon CLI: https://new-docs.lagoon.sh/lagoon-cli/
+  - Lagoon CLI: https://uselagoon.github.io/lagoon-cli/
 
 theme:
   name: 'material'

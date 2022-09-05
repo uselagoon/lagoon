@@ -1,0 +1,1 @@
+*[ci-github-openshift]* Deployment triggered `lagoon-type-override`

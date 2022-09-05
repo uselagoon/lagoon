@@ -1,0 +1,12 @@
+{
+  "project":"ci-github-openshift",
+  "event":"problem:insert:source_name:summary:severity",
+  "meta":{
+    "projectName":"ci-github-openshift",
+    "environmentName":"lagoon-type-override",
+    "serviceName":"nginx",
+    "severity":"danger",
+    "description":"this is bad"
+  },
+  "message":"sagsdgasdgsdg"
+}

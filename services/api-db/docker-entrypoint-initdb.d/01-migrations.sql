@@ -1737,6 +1737,19 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  clean_stale_project_data()
+
+  BEGIN
+    DELETE FROM env_vars WHERE project NOT IN (SELECT id FROM project);
+    DELETE FROM project_notification WHERE pid NOT IN (SELECT id FROM project);
+    DELETE FROM deploy_target_config WHERE project NOT IN (SELECT id FROM project);
+    DELETE FROM env_vars WHERE environment not in (SELECT id FROM environment WHERE deleted = '0000-00-00 00:00:00');
+    DELETE FROM environment_service WHERE environment not in (SELECT id FROM environment WHERE deleted = '0000-00-00 00:00:00');
+    -- @TODO: environment_storage, deployment, environment_backup, task, environment_problem, environment_fact
+  END;
+$$
+
 DELIMITER ;
 
 -- If adding new procedures, add them to the bottom of this list
@@ -1826,6 +1839,7 @@ CALL add_new_task_status_types();
 CALL update_active_succeeded_tasks();
 CALL update_missing_tasknames();
 CALL add_build_image_to_openshift();
+CALL clean_stale_project_data();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;

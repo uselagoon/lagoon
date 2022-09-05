@@ -1,0 +1,12 @@
+{
+    "severity":"info",
+    "project":"ci-github-openshift",
+    "uuid":"",
+    "event":"github:push:handled",
+    "meta":{
+        "projectName":"ci-github-openshift",
+        "branchName":"lagoon-type-override",
+        "repoFullName":"owner/repository",
+        "repoURL":"github.com/owner/repository"
+    }
+}

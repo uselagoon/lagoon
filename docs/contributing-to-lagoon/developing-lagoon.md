@@ -210,63 +210,6 @@ This can happen if your local resolver filters private IPs from results. You can
 
 Here are some development scenarios and useful workflows for getting things done.
 
-### Editing `kubectl-build-deploy-dind`
-
-This example shows a workflow for editing the Lagoon deploy logic.
-
-### Edit `kubectl-build-deploy-dind`
-
-In this example we want to add some functionality to the Lagoon deploy logic in the `kubectl-build-deploy-dind` image.
-
-1. Start a local KinD cluster with Lagoon installed from locally built images, and smoke-test it by running a single test suite:
-
-```bash
-make -j8 kind/test TESTS='[features-api-variables]'
-```
-
-1. Edit `images/kubectl-build-deploy-dind/build-deploy-docker-compose.sh`.
-
-```diff
---- a/images/kubectl-build-deploy-dind/build-deploy-docker-compose.sh
-+++ b/images/kubectl-build-deploy-dind/build-deploy-docker-compose.sh
-@@ -1,5 +1,7 @@
- #!/bin/bash
-
-+echo HELLO WORLD
-+
- function cronScheduleMoreOftenThan30Minutes() {
-   #takes a unexpanded cron schedule, returns 0 if it's more often that 30 minutes
-   MINUTE=$(echo $1 | (read -a ARRAY; echo ${ARRAY[0]}) )
-```
-
-1. Now rebuild the `kubectl-build-deploy-dind` image with the edits included.
-
-```bash
-rm build/kubectl-build-deploy-dind
-make -j8 build/kubectl-build-deploy-dind
-```
-
-1. Push the newly built image into the cluster registry. It will now be used for future deploys.
-
-```bash
-make kind/push-images IMAGES=kubectl-build-deploy-dind
-```
-
-1. Rerun the tests.
-
-```bash
-make kind/retest TESTS='[features-api-variables]'
-```
-
-1. See the edits have been applied.
-
-```bash
-$ kubectl -n ci-features-api-variables-control-k8s-lagoon-api-variables logs lagoon-build-lat2b | grep -A2 build-deploy-docker-compose.sh
-+ . /kubectl-build-deploy/build-deploy-docker-compose.sh
-++ echo HELLO WORLD
-HELLO WORLD
-```
-
 #### Add tests
 
 1. Repeat the first step above.
