@@ -55,6 +55,9 @@ export const getInsightsBucketFiles = async ({ prefix }) => {
       return null;
     }
 
+console.log('sbom data: ', data);
+
+
     return await JSON.parse(JSON.stringify(data.Contents));
 	}
   catch (e) {
@@ -145,6 +148,10 @@ export const getInsightsFilesByEnvironmentId: ResolverFn = async (
 
   const insightsItems = await getInsightsBucketFiles({ prefix: 'insights/'+projectData.name+'/'+environmentName+'/'});
   const files = await Promise.all(insightsItems.map(async (file, index) => {
+
+
+console.log('file data: ', file);
+
 
     const fileName = file.Key.split("/").pop();
     return {
