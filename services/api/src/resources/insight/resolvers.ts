@@ -55,9 +55,6 @@ export const getInsightsBucketFiles = async ({ prefix }) => {
       return null;
     }
 
-console.log('sbom data: ', data);
-
-
     return await JSON.parse(JSON.stringify(data.Contents));
 	}
   catch (e) {
@@ -149,18 +146,13 @@ export const getInsightsFilesByEnvironmentId: ResolverFn = async (
   const insightsItems = await getInsightsBucketFiles({ prefix: 'insights/'+projectData.name+'/'+environmentName+'/'});
   const files = await Promise.all(insightsItems.map(async (file, index) => {
 
-
-console.log('file data: ', file);
-
-
-    const fileName = file.Key.split("/").pop();
+  const fileName = file.Key ? file.Key.split("/").pop() : "";
     return {
       id: index+1,
-      fileId: file.Owner.ID,
       file: fileName,
-      size: convertBytesToHumanFileSize(file.Size),
-      created: file.LastModified,
-      type: fileName.split('-')[0],
+      size: file.Size && convertBytesToHumanFileSize(file.Size),
+      created: file.LastModified && file.LastModified,
+      type: fileName && fileName.split('-')[0],
       environment: eid,
     }
   }));
