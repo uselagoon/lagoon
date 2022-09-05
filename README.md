@@ -62,32 +62,31 @@ All the services that handle the API, authentication and external communication 
   - [broker](https://github.com/uselagoon/lagoon/tree/main/services/broker) (the RabbitMQ message service used to communicate with Lagoon Remote)
   - [webhooks2tasks](https://github.com/uselagoon/lagoon/tree/main/services/webhooks2tasks) (the service that converts incoming webhooks to API updates)
   - [controllerhandler](https://github.com/uselagoon/lagoon/tree/main/services/controllerhandler) (the service that relays build progress from the controllers)
-  - [logs2s3](https://github.com/uselagoon/lagoon/tree/main/services/logs2s3) (the service that collects build logs and sends them to an S3-compatible back end)
+  - [actions-handler](https://github.com/uselagoon/lagoon/tree/main/services/actions-handler) (the service that to manage bulk action processing for builds and tasks)
 - Webhooks
   - [webhook-handler](https://github.com/uselagoon/lagoon/tree/main/services/webhook-handler) (the external service that Git Repositories and Registries communicate with)
   - [backup-handler](https://github.com/uselagoon/lagoon/tree/main/services/backup-handler) (the service used to collect and collate information on backups)
 - Notifications
-  - [logs2email](https://github.com/uselagoon/lagoon/tree/main/services/logs2email) (the service that pushes build notifications to a nominated email address)
-  - [logs2slack](https://github.com/uselagoon/lagoon/tree/main/services/logs2slack) (the service that pushes build notifications to a nominated Slack (or Discord) channel)
-  - [logs2rocketchat](https://github.com/uselagoon/lagoon/tree/main/services/logs2rocketchat) (the service that pushes build notifications to a nominated Rocket Chat channel)
-  - [logs2microsoftteams](https://github.com/uselagoon/lagoon/tree/main/services/logs2microsoftteams) (the service that pushes build notifications to a nominated Microsoft Teams channel)
-  - [logs2webhook](https://github.com/uselagoon/lagoon/tree/main/services/logs2webhook) (the service that pushes build notifications to a nominated webhook endpoint)
-- Other Services
-  - [ui](https://github.com/uselagoon/lagoon/tree/main/services/ui) (the main user interface and dashboard for Lagoon)
-  - [lagoon-cli](https://github.com/uselagoon/lagoon-cli) (the command-line interface for managing sites on Lagoon)
-  - [lagoon-sync](https://github.com/uselagoon/lagoon-sync) (a command-line interface for syncing databases or file assets between Lagoon environments)
-  - [drush-alias](https://github.com/uselagoon/lagoon/tree/main/services/drush-alias) (provides Drupal developers with an automated alias service for Drush)
+  - [logs2notifications](https://github.com/uselagoon/lagoon/tree/main/services/logs2notifications) (the service that pushes build notifications to a configured notification types)
 
 ### Lagoon Remote
 
 All the services that are used to provision, deploy and maintain sites hosted by Lagoon on Kubernetes live here. These services are mostly comprised of third-party tools, developed external to Lagoon itself. Installation is via a [Helm Chart](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-remote)
 
 - [Remote Controller](https://github.com/uselagoon/remote-controller) (the controllers that handle building and deploying sites onto Lagoon)
-- [build-deploy-image](https://github.com/uselagoon/build-deploy-tool) (the service that computes which services, configuration and settings to provision for Kubernetes)
+- [build-deploy-tool](https://github.com/uselagoon/build-deploy-tool) (the service that computes which services, configuration and settings to provision for Kubernetes)
 - [docker-host](https://github.com/uselagoon/lagoon/tree/main/images/docker-host) (the service that stores and caches upstream docker images for use in builds)
-- [lagoon-idler](https://github.com/amazeeio/lagoon-idler) (an optional operator that can idle non-production sites not currently in use to conserve resources)
+- [Aergia](https://github.com/amazeeio/aergia-controller) (an optional controller that can idle non-production sites not currently in use to conserve resources)
 - [Dioscuri](https://github.com/amazeeio/dioscuri) (an optional operator that provides Active/Standby functionality to Lagoon)
 - [dbaas-operator](https://github.com/amazeeio/dbaas-operator) (an optional operator that provisions databases from an underlying managed database)
+
+### Lagoon UI
+  - [ui](https://github.com/uselagoon/lagoon-ui) (the main user interface and dashboard for Lagoon, usually installed in lagoon-core, but can also be installed anywhere as a Lagoon project)
+
+### Lagoon Tools
+  - [lagoon-cli](https://github.com/uselagoon/lagoon-cli) (the command-line interface for managing sites on Lagoon)
+  - [lagoon-sync](https://github.com/uselagoon/lagoon-sync) (a command-line interface for syncing databases or file assets between Lagoon environments)
+  - [drush-alias](https://github.com/uselagoon/lagoon/tree/main/services/drush-alias) (provides Drupal developers with an automated alias service for Drush)
 
 ### Additional Services
 
@@ -95,24 +94,22 @@ These services are usually installed alongside either Lagoon Core or Lagoon Remo
 
 - Registry (required)
   - [Harbor](https://goharbor.io/) (provides image registry services to Lagoon projects)
-  - [Trivy](https://github.com/aquasecurity/trivy) (scans images for vulnerability, and can report to Lagoon)
+- Backups (optional)
+    - [k8up](https://k8up.io/) (provides a scheduled backup and prune service to environment namespaces)
 - Lagoon Logging (optional)
   - [lagoon-logging](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-logging) (utilizes [banzaicloud/logging-operator](https://github.com/banzaicloud/logging-operator) to collect and augment container&router logs from all sites, and sends them to a logs-dispatcher)
   - [logs-dispatcher](https://github.com/uselagoon/lagoon/tree/main/services/logs-dispatcher) (collects application logs from sites, as well as container&router logs from lagoon-logging, enriches them with additional metadata and sends them to a central log concentrator)
   - [lagoon-logs-concentrator](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-logs-concentrator) (collects logs from remote logs-dispatchers and sends them to Elasticsearch)
-- Open Policy Agent (optional)
-
-  - [lagoon-gatekeeper](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-gatekeeper) (centralized policy library for Lagoon)
 - Elasticsearch or Opensearch (optional)
-  - [Open Distro for Elasticsearch](https://opendistro.github.io/for-elasticsearch/) (provides centralized log storage, search and analysis)
+  - [OpenSearch](https://opensearch.org/docs/latest/opensearch/index//) (provides centralized log storage, search and analysis)
   - [Kibana](https://opendistro.github.io/for-elasticsearch-docs/docs/kibana/) (the default user interface for Elasticsearch searching and visualization)
 - Managed databases, for use with DBaaS operator (optional)
   - MariaDB (self managed or via [Amazon RDS for MariaDB](https://aws.amazon.com/rds/mariadb/), [Azure Database for MariaDB](https://azure.microsoft.com/en-au/services/mariadb/)
   - MySQL (self managed or via [Amazon RDS for MySQL](https://aws.amazon.com/rds/mysql/), [Amazon Aurora MySQL](https://aws.amazon.com/rds/aurora/mysql-features/), [Azure Database for MySQL](https://azure.microsoft.com/en-au/services/mysql), [Cloud SQL for MySQL](https://cloud.google.com/sql/docs/mysql))
   - PostgreSQL (self managed or via [Amazon RDS for PostgreSQL](https://aws.amazon.com/rds/postgresql/), [Amazon Aurora PostgreSQL](https://aws.amazon.com/rds/aurora/postgresql-features/), [Azure Database for PostgreSQL](https://docs.microsoft.com/en-us/azure/postgresql), [Cloud SQL for PostgreSQL](https://cloud.google.com/sql/docs/postgres) )
   - MongoDB (self managed, or via [Amazon DocumentDB](https://aws.amazon.com/documentdb/), [Azure Cosmos DB](https://azure.microsoft.com/en-au/services/cosmos-db/) )
-- Backups (optional)
-  - [k8up](https://k8up.io/) (provides a scheduled backup and prune service to environment namespaces)
+- Open Policy Agent (optional)
+  - [lagoon-gatekeeper](https://github.com/uselagoon/lagoon-charts/tree/main/charts/lagoon-gatekeeper) (centralized policy library for Lagoon)
 
 
 ## Testing
