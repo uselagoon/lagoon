@@ -181,7 +181,7 @@ In order for Lagoon to realize which one is the `nginx` and which one is the `ph
 
 ## Helm Templates \(Kubernetes only\)
 
-Lagoon uses [Helm](https://helm.sh/) for templating on Kubernetes. To do this, a series of [Charts](https://github.com/uselagoon/lagoon/tree/main/images/kubectl-build-deploy-dind/helmcharts) are included with the `kubectl-build-deploy-dind` service.
+Lagoon uses [Helm](https://helm.sh/) for templating on Kubernetes. To do this, a series of [Charts](https://github.com/uselagoon/build-deploy-tool/tree/main/legacy/helmcharts) are included with the `build-deploy-tool` image.
 
 ## **Custom Rollout Monitor Types**
 

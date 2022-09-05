@@ -12,7 +12,7 @@
         annotations:
           kubernetes.io/tls-acme: "true"
         hosts:
-        core: harbor.lagoon.example.com
+          core: harbor.lagoon.example.com
       tls:
         enabled: true
         certSource: secret
@@ -39,13 +39,13 @@
     ```
     helm upgrade --install --create-namespace \
       --namespace harbor --wait \
-      -f harbor-values.yaml \
+      -f harbor-values.yml \
       harbor harbor/harbor
     ```
 2. Visit Harbor at the URL you set in `harbor.yml`.
    1. Username: admin
    2. Password:
        ```
-       kubectl -n harbor get secret harbor-harbor-core -o jsonpath="{.data.HARBOR_ADMIN_PASSWORD}" | base64 --decode
+       kubectl -n harbor get secret harbor-core -o jsonpath="{.data.HARBOR_ADMIN_PASSWORD}" | base64 --decode
        ```
 3. You will need to add the above Harbor credentials to the Lagoon Remote `values.yml` in the next step, as well as `harbor-values.yml`.

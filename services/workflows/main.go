@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/cheshir/go-mq"
-	"github.com/uselagoon/lagoon/services/actions-handler/internal/handler"
+	"github.com/uselagoon/lagoon/services/workflows/internal/handler"
 )
 
 var (
@@ -32,7 +32,7 @@ var (
 )
 
 func main() {
-	flag.StringVar(&lagoonAppID, "lagoon-app-id", "actions-handler",
+	flag.StringVar(&lagoonAppID, "lagoon-app-id", "workflows",
 		"The appID to use that will be sent with messages.")
 	flag.StringVar(&mqUser, "rabbitmq-username", "guest",
 		"The username of the rabbitmq user.")
@@ -56,9 +56,9 @@ func main() {
 		"The jwt signing token key or secret.")
 	flag.StringVar(&jwtAudience, "jwt-audience", "api.dev",
 		"The jwt audience.")
-	flag.StringVar(&jwtSubject, "jwt-subject", "actions-handler",
+	flag.StringVar(&jwtSubject, "jwt-subject", "workflows",
 		"The jwt audience.")
-	flag.StringVar(&jwtIssuer, "jwt-issuer", "actions-handler",
+	flag.StringVar(&jwtIssuer, "jwt-issuer", "workflows",
 		"The jwt audience.")
 	flag.StringVar(&workflowsQueueName, "workflows-queue-name", "lagoon-logs:workflows",
 		"The name of the queue in rabbitmq to use.")

@@ -4,18 +4,19 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/Khan/genqlient/graphql"
-	"github.com/cheshir/go-mq"
-	"github.com/matryer/try"
-	"github.com/uselagoon/lagoon/services/actions-handler/internal/lagoon/jwt"
-	"github.com/uselagoon/lagoon/services/actions-handler/internal/lagoonclient"
 	"log"
 	"net/http"
 	"time"
-	//"github.com/uselagoon/lagoon/services/actions-handler/internal/lagoon"
-	//lclient "github.com/uselagoon/lagoon/services/actions-handler/internal/lagoon/client"
-	//"github.com/uselagoon/lagoon/services/actions-handler/internal/lagoon/jwt"
-	//"github.com/uselagoon/lagoon/services/actions-handler/internal/schema"
+
+	"github.com/Khan/genqlient/graphql"
+	"github.com/cheshir/go-mq"
+	"github.com/matryer/try"
+	"github.com/uselagoon/lagoon/services/workflows/internal/lagoon/jwt"
+	"github.com/uselagoon/lagoon/services/workflows/internal/lagoonclient"
+	//"github.com/uselagoon/lagoon/services/workflows/internal/lagoon"
+	//lclient "github.com/uselagoon/lagoon/services/workflows/internal/lagoon/client"
+	//"github.com/uselagoon/lagoon/services/workflows/internal/lagoon/jwt"
+	//"github.com/uselagoon/lagoon/services/workflows/internal/schema"
 )
 
 // RabbitBroker .
