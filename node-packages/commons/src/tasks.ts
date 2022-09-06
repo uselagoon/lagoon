@@ -332,7 +332,7 @@ export const createTaskMonitor = async function(task: string, payload: any) {
 }
 
 // makes strings "safe" if it is to be used in something dns related
-const makeSafe = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
+export const makeSafe = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
 
 // @TODO: make sure if it fails, it does so properly
 export const getControllerBuildData = async function(deployData: any) {

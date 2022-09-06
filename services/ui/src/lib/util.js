@@ -7,3 +7,5 @@ export const queryStringToObject = R.pipe(
   R.map(R.split('=')),
   R.fromPairs
 );
+
+export const makeSafe = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
