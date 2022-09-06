@@ -303,7 +303,7 @@ CREATE TABLE IF NOT EXISTS advanced_task_definition_argument (
   advanced_task_definition          int REFERENCES advanved_task_definition(id),
   name                              varchar(300) NOT NULL UNIQUE,
   display_name                      varchar(500) NULL,
-  type                              ENUM('NUMERIC', 'STRING', 'ENVIRONMENT_SOURCE_NAME')
+  type                              ENUM('NUMERIC', 'STRING', 'ENVIRONMENT_SOURCE_NAME', 'ENVIRONMENT_SOURCE_NAME_EXCLUDE_SELF')
 );
 
 CREATE TABLE IF NOT EXISTS notification_webhook (
