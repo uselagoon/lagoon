@@ -49,6 +49,18 @@ services:
     volumes:
       - ./services/webhooks2tasks/src:/app/services/webhooks2tasks/src
       - ./node-packages:/app/node-packages:delegated
+
+  api-init:
+    image: ${IMAGE_REPO:-lagoon}/api
+    command: ./node_modules/.bin/knex migrate:latest --cwd /app/services/api/database
+    volumes:
+      - ./services/api/src:/app/services/api/src
+      - ./node-packages:/app/node-packages:delegated
+      - /app/node-packages/commons/dist
+    depends_on:
+      - api-db
+      - keycloak
+
   api:
     image: ${IMAGE_REPO:-lagoon}/api
     command: ./node_modules/.bin/tsc-watch --build --incremental --onSuccess "node -r dotenv-extended/config dist/index"
@@ -64,7 +76,7 @@ services:
       - REGISTRY=harbor.172.17.0.1.nip.io:18080 # Docker network bridge and forwarded port for harbor-nginx
       - S3_FILES_HOST=http://172.17.0.1:9000
     depends_on:
-      - api-db
+      - api-init
       - keycloak
     ports:
       - '3000:3000'
