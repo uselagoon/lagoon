@@ -1358,7 +1358,7 @@ CREATE OR REPLACE PROCEDURE
   add_environment_exclude_self_type_to_advanced_task_argument()
 
   BEGIN
-    DECLARE column_type_argument_type varchar(74);
+    DECLARE column_type_argument_type varchar(120);
 
     SELECT COLUMN_TYPE INTO column_type_argument_type
     FROM INFORMATION_SCHEMA.COLUMNS
