@@ -143,6 +143,59 @@ export const getDeploymentsByBulkId: ResolverFn = async (
   return withK8s;
 };
 
+export const getDeploymentsByFilter: ResolverFn = async (
+  root,
+  input,
+  { sqlClientPool, hasPermission, models, keycloakGrant }
+) => {
+
+  const { openshifts, deploymentStatus = ["NEW", "PENDING", "RUNNING"] } = input;
+
+  /*
+    use the same mechanism for viewing all projects
+    bulk deployments can span multiple projects, and anyone with access to a project
+    will have the same rbac as `deployment:view` which covers all possible roles for a user
+    otherwise it will only return all the projects they have access to
+    and the listed deployments are sourced accordingly to which project
+    the user has access to
+  */
+  let userProjectIds: number[];
+  try {
+    await hasPermission('project', 'viewAll');
+  } catch (err) {
+    if (!keycloakGrant) {
+      logger.warn('No grant available for getAllProjects');
+      return [];
+    }
+
+    userProjectIds = await models.UserModel.getAllProjectsIdsForUser({
+      id: keycloakGrant.access_token.content.sub
+    });
+  }
+
+  let queryBuilder = knex.select("deployment.*").from('deployment').
+      join('environment', 'deployment.environment', '=', 'environment.id').
+      join('project', 'environment.project', '=', 'project.id');
+
+  if(openshifts) {
+    queryBuilder = queryBuilder.whereIn('deployment.remote_id', openshifts);
+  }
+
+
+  queryBuilder = queryBuilder.whereIn('deployment.status', deploymentStatus);
+
+
+  if (userProjectIds) {
+    queryBuilder = queryBuilder.whereIn('project.id', userProjectIds);
+  }
+
+  const queryBuilderString = queryBuilder.toString();
+
+  const rows = await query(sqlClientPool, queryBuilderString);
+  const withK8s = projectHelpers(sqlClientPool).aliasOpenshiftToK8s(rows);
+  return withK8s;
+};
+
 export const getDeploymentsByEnvironmentId: ResolverFn = async (
   { id: eid, environmentAuthz },
   { name, limit },
