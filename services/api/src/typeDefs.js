@@ -1366,6 +1366,7 @@ const typeDefs = gql`
     NUMERIC
     STRING
     ENVIRONMENT_SOURCE_NAME
+    ENVIRONMENT_SOURCE_NAME_EXCLUDE_SELF
   }
 
   input AdvancedTaskDefinitionArgumentInput {

@@ -9,6 +9,7 @@ import { bp, color } from 'lib/variables';
 import Router from 'next/router';
 import ActiveStandbyConfirm from 'components/ActiveStandbyConfirm';
 import SwitchActiveStandbyMutation from 'lib/mutation/SwitchActiveStandby';
+import { makeSafe } from 'lib/util';
 
 /**
  * Displays the environment information.
@@ -26,8 +27,8 @@ const Environment = ({ environment }) => {
           <label>Environment Type</label>
           <div className="field">
           {environment.environmentType}
-          {environment.project.productionEnvironment && environment.project.standbyProductionEnvironment && environment.environmentType == 'production' && environment.project.productionEnvironment == environment.name &&
-          (" (active)")}{environment.project.productionEnvironment && environment.project.standbyProductionEnvironment && environment.environmentType == 'production' && environment.project.standbyProductionEnvironment == environment.name && (" (standby)")}
+          {environment.project.productionEnvironment && environment.project.standbyProductionEnvironment && environment.environmentType == 'production' && environment.project.productionEnvironment == makeSafe(environment.name) &&
+          (" (active)")}{environment.project.productionEnvironment && environment.project.standbyProductionEnvironment && environment.environmentType == 'production' && environment.project.standbyProductionEnvironment == makeSafe(environment.name) && (" (standby)")}
           </div>
         </div>
       </div>
@@ -74,7 +75,7 @@ const Environment = ({ environment }) => {
         </div>
       </div>
       <div className="field-wrapper routes">
-        {environment.project.productionEnvironment && environment.project.standbyProductionEnvironment && environment.environmentType == 'production' && environment.project.productionEnvironment == environment.name && (
+        {environment.project.productionEnvironment && environment.project.standbyProductionEnvironment && environment.environmentType == 'production' && environment.project.productionEnvironment == makeSafe(environment.name) && (
         <div>
           <label>Active Environment Routes</label>
           <div className="field">
@@ -89,7 +90,7 @@ const Environment = ({ environment }) => {
               : ''}
           </div>
         </div>)}
-        {environment.project.productionEnvironment && environment.project.standbyProductionEnvironment && environment.environmentType == 'production' && environment.project.standbyProductionEnvironment == environment.name && (
+        {environment.project.productionEnvironment && environment.project.standbyProductionEnvironment && environment.environmentType == 'production' && environment.project.standbyProductionEnvironment == makeSafe(environment.name) && (
         <div>
           <label>Standby Environment Routes</label>
           <div className="field">
@@ -119,7 +120,7 @@ const Environment = ({ environment }) => {
           </div>
         </div>
       </div>
-      {environment.project.productionEnvironment && environment.project.standbyProductionEnvironment && environment.environmentType == 'production' && environment.project.standbyProductionEnvironment == environment.name && (
+      {environment.project.productionEnvironment && environment.project.standbyProductionEnvironment && environment.environmentType == 'production' && environment.project.standbyProductionEnvironment == makeSafe(environment.name) && (
       <Mutation mutation={SwitchActiveStandbyMutation}>
         {(switchActiveStandby, { loading, called, error, data }) => {
           const switchActiveBranch = () => {

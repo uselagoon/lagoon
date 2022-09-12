@@ -21,6 +21,11 @@ export const Sql = {
       .where('name', '=', name)
       .andWhere('project', '=', projectId)
       .toString(),
+  selectEnvironmentsByProjectID: (projectId: number) =>
+    knex('environment')
+      .select('id', 'name')
+      .where('project', '=', projectId)
+      .toString(),
   truncateEnvironment: () =>
     knex('environment')
       .truncate()

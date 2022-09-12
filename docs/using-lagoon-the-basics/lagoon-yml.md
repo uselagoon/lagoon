@@ -220,7 +220,7 @@ The simplest route is the `example.com` example in our sample `.lagoon.yml` abov
 
 In the `"www.example.com"` example repeated below, we see two more options \(also notice the `:` at the end of the route and that the route is wrapped in `"`, that's important!\):
 
-### **SSL Configuration - `tls-acme`**
+### SSL Configuration `tls-acme`
 
 * `tls-acme: 'true'` tells Lagoon to issue a Let's Encrypt certificate for that route. This is the default. If you don't want a Let's Encrypt, set this to `tls-acme: 'false'`
 * `insecure` can be set to `None`, `Allow` or `Redirect`.

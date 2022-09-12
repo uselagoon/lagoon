@@ -44,7 +44,7 @@ mutation addAdvancedTask {
       {
         name: "ENVIROMENT_VARIABLE_NAME",
         displayName: "Friendly Name For Variable",
-        type: [STRING | ENVIRONMENT_SOURCE_NAME]
+        type: [STRING | ENVIRONMENT_SOURCE_NAME | ENVIRONMENT_SOURCE_NAME_EXCLUDE_SELF]
       }
     ]
   }) {
@@ -113,7 +113,7 @@ advancedTaskDefinitionArguments: [
 ```
 
 This fragment shows both types of arguments the system currently supports.
-The first, `ENV_VAR_NAME_SOURCE` is an example of type `ENVIRONMENT_SOURCE_NAME`, which will present the user of the UI a dropdown of the different environments inside of a project.
+The first, `ENV_VAR_NAME_SOURCE` is an example of type `ENVIRONMENT_SOURCE_NAME`, which will present the user of the UI a dropdown of the different environments inside of a project. If we don't want to allow the task to be run on the invoking environment (say, if we want to import a database from another environment), we can restrict the environment list by using `ENVIRONMENT_SOURCE_NAME_EXCLUDE_SELF`.
 The second `ENV_VAR_NAME_STRING` is of type `STRING` and will present the user with a textbox to fill in.
 
 The values that the user selects will be available as environment variables in the `COMMAND` type tasks when the task is run.
