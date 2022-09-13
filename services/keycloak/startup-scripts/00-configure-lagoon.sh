@@ -182,7 +182,7 @@ function configure_api_client {
     echo Creating resource deployment
     echo '{"name":"deployment","displayName":"deployment","scopes":[{"name":"view"},{"name":"update"},{"name":"delete"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating resource env_var
-    echo '{"name":"env_var","displayName":"env_var","scopes":[{"name":"project:view"},{"name":"project:add"},{"name":"project:delete"},{"name":"environment:view:production"},{"name":"environment:view:development"},{"name":"environment:add:production"},{"name":"environment:add:development"},{"name":"environment:delete:production"},{"name":"environment:delete:development"},{"name":"delete"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+    echo '{"name":"env_var","displayName":"env_var","scopes":[{"name":"project:view"},{"name":"project:add"},{"name":"environment:view:production"},{"name":"environment:view:development"},{"name":"environment:add:production"},{"name":"environment:add:development"},{"name":"delete"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating resource task
     echo '{"name":"task","displayName":"task","scopes":[{"name":"view"},{"name":"update"},{"name":"delete"},{"name":"add:production"},{"name":"add:development"},{"name":"addNoExec"},{"name":"drushArchiveDump:development"},{"name":"drushArchiveDump:production"},{"name":"drushSqlDump:development"},{"name":"drushSqlDump:production"},{"name":"drushCacheClear:development"},{"name":"drushCacheClear:production"},{"name":"drushSqlSync:source:development"},{"name":"drushSqlSync:source:production"},{"name":"drushSqlSync:destination:development"},{"name":"drushSqlSync:destination:production"},{"name":"drushRsync:source:development"},{"name":"drushRsync:source:production"},{"name":"drushRsync:destination:development"},{"name":"drushRsync:destination:production"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating resource openshift
@@ -1276,42 +1276,6 @@ EOF
   "policies": ["Users role for project is Maintainer","User has access to project"]
 }
 
-EOF
-
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
-{
-  "name": "Delete Environment Variable from Project",
-  "type": "scope",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "resources": ["env_var"],
-  "scopes": ["project:delete"],
-  "policies": ["Users role for project is Maintainer","User has access to project"]
-}
-EOF
-
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
-{
-  "name": "Delete Environment Variable from Development Environment",
-  "type": "scope",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "resources": ["env_var"],
-  "scopes": ["environment:delete:development"],
-  "policies": ["Users role for project is Developer","User has access to project"]
-}
-EOF
-
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
-{
-  "name": "Delete Environment Variable from Production Environment",
-  "type": "scope",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "resources": ["env_var"],
-  "scopes": ["environment:delete:production"],
-  "policies": ["Users role for project is Maintainer","User has access to project"]
-}
 EOF
 
     # http://localhost:8088/auth/admin/realms/lagoon/clients/1329f641-a440-44a7-996f-ed1c560e2edd/authz/resource-server/permission/scope
