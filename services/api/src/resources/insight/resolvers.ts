@@ -145,14 +145,17 @@ export const getInsightsFilesByEnvironmentId: ResolverFn = async (
 
   const insightsItems = await getInsightsBucketFiles({ prefix: 'insights/'+projectData.name+'/'+environmentName+'/'});
   const files = await Promise.all(insightsItems.map(async (file, index) => {
+    const fileName = file.Key ? file.Key.split("/").pop() : "";
+    const type = fileName ? fileName.split('-')[0] : "";
+    const service = fileName ? fileName.split('-').at('-1').split('.')[0] : "";
 
-  const fileName = file.Key ? file.Key.split("/").pop() : "";
     return {
       id: index+1,
       file: fileName,
       size: file.Size && convertBytesToHumanFileSize(file.Size),
       created: file.LastModified && file.LastModified,
-      type: fileName && fileName.split('-')[0],
+      service: service,
+      type: type,
       environment: eid,
     }
   }));

@@ -917,6 +917,7 @@ const typeDefs = gql`
   type Insight {
     id: Int
     type: String
+    service: String
     created: String
     fileId: String
     data: String
