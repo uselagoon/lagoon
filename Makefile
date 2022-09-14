@@ -190,11 +190,9 @@ services :=	api \
 			logs-tee \
 			logs2notifications \
 			storage-calculator \
-			ui \
 			webhook-handler \
 			webhooks2tasks \
 			workflows
-
 
 service-images += $(services)
 
@@ -208,7 +206,7 @@ $(build-services):
 	touch $@
 
 # Dependencies of Service Images
-build/auth-server build/logs2notifications build/backup-handler build/controllerhandler build/webhook-handler build/webhooks2tasks build/api build/ui: build/yarn-workspace-builder
+build/auth-server build/logs2notifications build/backup-handler build/controllerhandler build/webhook-handler build/webhooks2tasks build/api: build/yarn-workspace-builder
 build/api-db: services/api-db/Dockerfile
 build/api-redis: services/api-redis/Dockerfile
 build/actions-handler: services/actions-handler/Dockerfile
@@ -477,7 +475,7 @@ kill:
 	docker ps --format "{{.Names}}" | grep lagoon | xargs -t -r -n1 docker rm -f -v
 
 .PHONY: ui-development
-ui-development: build/api build/api-db build/local-api-data-watcher-pusher build/ui build/keycloak build/keycloak-db build/broker-single build/api-redis
+ui-development: build/api build/api-db build/local-api-data-watcher-pusher build/keycloak build/keycloak-db build/broker-single build/api-redis
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis
 
 .PHONY: api-development
@@ -485,7 +483,7 @@ api-development: build/api build/api-db build/local-api-data-watcher-pusher buil
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db local-api-data-watcher-pusher keycloak keycloak-db broker api-redis
 
 .PHONY: ui-logs-development
-ui-logs-development: build/actions-handler build/api build/api-db build/local-api-data-watcher-pusher build/ui build/keycloak build/keycloak-db build/broker-single build/api-redis build/logs2notifications build/local-minio
+ui-logs-development: build/actions-handler build/api build/api-db build/local-api-data-watcher-pusher build/keycloak build/keycloak-db build/broker-single build/api-redis build/logs2notifications build/local-minio
 	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db actions-handler local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis logs2notifications local-minio
 
 ## CI targets
@@ -498,7 +496,7 @@ STERN_VERSION = 2.1.20
 CHART_TESTING_VERSION = v3.6.0
 KIND_IMAGE = kindest/node:v1.23.6@sha256:b1fa224cc6c7ff32455e0b1fd9cbfd3d3bc87ecaa8fcb06961ed1afb3db0f9ae
 TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-api-variables,active-standby-kubernetes,tasks,drush,drupal-php80,drupal-postgres,python,gitlab,github,bitbucket,node-mongodb,elasticsearch,workflows]
-CHARTS_TREEISH = main
+CHARTS_TREEISH = ui_bdi_services
 TASK_IMAGES = task-activestandby
 
 # Symlink the installed kubectl client if the correct version is already
@@ -618,7 +616,7 @@ ifeq ($(ARCH), darwin)
       tcp-listen:32080,fork,reuseaddr tcp-connect:target:32080
 endif
 
-KIND_SERVICES = api api-db api-redis auth-server actions-handler broker controllerhandler docker-host drush-alias keycloak keycloak-db logs2notifications webhook-handler webhooks2tasks local-api-data-watcher-pusher local-git ssh tests ui workflows $(TASK_IMAGES)
+KIND_SERVICES = api api-db api-redis auth-server actions-handler broker controllerhandler docker-host drush-alias keycloak keycloak-db logs2notifications webhook-handler webhooks2tasks local-api-data-watcher-pusher local-git ssh tests workflows $(TASK_IMAGES)
 KIND_TESTS = local-api-data-watcher-pusher local-git tests
 KIND_TOOLS = kind helm kubectl jq stern
 
@@ -652,7 +650,7 @@ kind/test: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addpr
 			"quay.io/helmpack/chart-testing:$(CHART_TESTING_VERSION)" \
 			ct install
 
-LOCAL_DEV_SERVICES = api auth-server controllerhandler logs2notifications ui webhook-handler webhooks2tasks
+LOCAL_DEV_SERVICES = api auth-server controllerhandler logs2notifications webhook-handler webhooks2tasks
 
 # install lagoon charts in a Kind cluster
 .PHONY: kind/setup
