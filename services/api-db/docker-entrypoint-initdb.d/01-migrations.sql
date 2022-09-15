@@ -1772,6 +1772,456 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_from_project()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'openshift'
+    ) THEN
+      ALTER TABLE `project`
+      MODIFY openshift int;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_project_from_environment()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'environment'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'project'
+    ) THEN
+      ALTER TABLE `environment`
+      MODIFY project int;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_openshift_from_environment()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'environment'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'openshift'
+    ) THEN
+      ALTER TABLE `environment`
+      MODIFY openshift int;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_project_from_deploy_target_config()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'deploy_target_config'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'project'
+    ) THEN
+      ALTER TABLE `deploy_target_config`
+      MODIFY project int;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_deploy_target_from_deploy_target_config()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'deploy_target_config'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'deploy_target'
+    ) THEN
+      ALTER TABLE `deploy_target_config`
+      MODIFY deploy_target int;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_from_environment_storage()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'environment_storage'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'environment'
+    ) THEN
+      ALTER TABLE `environment_storage`
+        MODIFY environment int;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_from_deployment()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'deployment'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'environment'
+    ) THEN
+      ALTER TABLE `deployment`
+      MODIFY environment int NOT NULL;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_from_environment_backup()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'environment_backup'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'environment'
+    ) THEN
+      ALTER TABLE `environment_backup`
+        MODIFY environment int;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_environment_from_env_vars()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'env_vars'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'environment'
+    ) THEN
+      ALTER TABLE `env_vars`
+        MODIFY environment int NULL;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_project_from_env_vars()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'env_vars'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'project'
+    ) THEN
+      ALTER TABLE `env_vars`
+        MODIFY project int NULL;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_from_environment_service()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'environment_service'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'environment'
+    ) THEN
+      ALTER TABLE `environment_service`
+        MODIFY environment int NOT NULL;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_from_task()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'task'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'environment'
+    ) THEN
+      ALTER TABLE `task`
+        MODIFY environment int NOT NULL;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_from_environment_problem()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'environment_problem'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'environment'
+    ) THEN
+      ALTER TABLE `environment_problem`
+        MODIFY environment int;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_from_project_notification()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'project_notification'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'pid'
+    ) THEN
+      ALTER TABLE `project_notification`
+        MODIFY pid int;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_usid_from_user_ssh_key()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'user_ssh_key'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'usid'
+    ) THEN
+      ALTER TABLE `user_ssh_key`
+        MODIFY usid int;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_skid_from_user_ssh_key()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'user_ssh_key'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'skid'
+    ) THEN
+      ALTER TABLE `user_ssh_key`
+        MODIFY skid int;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_tid_from_task_file()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'task_file'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'tid'
+    ) THEN
+      ALTER TABLE `task_file`
+        MODIFY tid int;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_fid_from_task_file()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'task_file'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'fid'
+    ) THEN
+      ALTER TABLE `task_file`
+        MODIFY fid int;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_from_environment_fact()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'environment_fact'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'environment'
+    ) THEN
+      ALTER TABLE `environment_fact`
+        MODIFY environment int;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_fid_from_environment_fact_reference()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'environment_fact_reference'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'fid'
+    ) THEN
+      ALTER TABLE `environment_fact_reference`
+        MODIFY fid int NOT NULL;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_environment_from_advanced_task_definition()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'advanced_task_definition'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'environment'
+    ) THEN
+      ALTER TABLE `advanced_task_definition`
+      MODIFY environment int NULL;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_project_from_advanced_task_definition()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'advanced_task_definition'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'project'
+    ) THEN
+      ALTER TABLE `advanced_task_definition`
+      MODIFY project int NULL;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_from_advanced_task_definition_argument()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'advanced_task_definition_argument'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'advanced_task_definition'
+    ) THEN
+      ALTER TABLE `advanced_task_definition_argument`
+      MODIFY advanced_task_definition int;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_project_from_workflow()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'workflow'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'project'
+    ) THEN
+      ALTER TABLE `workflow`
+      MODIFY project int NOT NULL;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_advanced_task_definition_from_workflow()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'workflow'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'advanced_task_definition'
+    ) THEN
+      ALTER TABLE `workflow`
+      MODIFY advanced_task_definition int NOT NULL;
+    END IF;
+  END;
+$$
+
 DELIMITER ;
 
 -- If adding new procedures, add them to the bottom of this list
@@ -1863,6 +2313,31 @@ CALL update_missing_tasknames();
 CALL add_build_image_to_openshift();
 CALL clean_stale_project_data();
 CALL add_environment_exclude_self_type_to_advanced_task_argument();
+CALL drop_foreign_key_from_project();
+CALL drop_foreign_key_project_from_environment();
+CALL drop_foreign_key_openshift_from_environment();
+CALL drop_foreign_key_project_from_deploy_target_config();
+CALL drop_foreign_key_deploy_target_from_deploy_target_config();
+CALL drop_foreign_key_from_environment_storage();
+CALL drop_foreign_key_from_deployment();
+CALL drop_foreign_key_from_environment_backup();
+CALL drop_foreign_key_environment_from_env_vars();
+CALL drop_foreign_key_project_from_env_vars();
+CALL drop_foreign_key_from_environment_service();
+CALL drop_foreign_key_from_task();
+CALL drop_foreign_key_from_environment_problem();
+CALL drop_foreign_key_from_project_notification();
+CALL drop_foreign_key_usid_from_user_ssh_key();
+CALL drop_foreign_key_skid_from_user_ssh_key();
+CALL drop_foreign_key_tid_from_task_file();
+CALL drop_foreign_key_fid_from_task_file();
+CALL drop_foreign_key_from_environment_fact();
+CALL drop_foreign_key_fid_from_environment_fact_reference();
+CALL drop_foreign_key_environment_from_advanced_task_definition();
+CALL drop_foreign_key_project_from_advanced_task_definition();
+CALL drop_foreign_key_from_advanced_task_definition_argument();
+CALL drop_foreign_key_project_from_workflow();
+CALL drop_foreign_key_advanced_task_definition_from_workflow();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;
