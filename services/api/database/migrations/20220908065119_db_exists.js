@@ -16,19 +16,20 @@
                 table.integer('environment');
                 table.integer('project');
                 table.string('group_name', 2000);
-                table.enu('permission', ['GUEST', 'DEVELOPER', 'MAINTAINER']).defaultTo('GUEST'); // Knex adding not null
+                table.enu('permission', ['GUEST', 'DEVELOPER', 'MAINTAINER']).defaultTo('GUEST');
                 table.specificType('command', 'text').defaultTo('');
                 table.string('confirmation_text', 2000); // Need to confirm if these rows are still required
                 table.timestamp('created').notNullable().defaultTo(knex.fn.now());
-                table.timestamp('deleted').notNullable().defaultTo('0000-00-00 00:00:00'); // 00 invalid Knex
+                table.timestamp('deleted').notNullable().defaultTo('0000-00-00 00:00:00');
                 table.unique(['name', 'environment', 'project', 'group_name'], {indexName: 'name', storageEngineIndexType: 'hash'});
             })
             .createTable('advanced_task_definition_argument', function (table) {
                 table.increments('id').notNullable().primary();
                 table.integer('advanced_task_definition');
-                table.string('name', 300).notNullable(); //TODO: this is currently unique in the existing setup - that's wrong
+                table.string('name', 300).notNullable(); //TODO: this is currently unique in the existing setup - that's incorrect
                 table.string('display_name', 500);
                 table.enu('type', ['NUMERIC', 'STRING', 'ENVIRONMENT_SOURCE_NAME']);
+                // table.enu('type', ['NUMERIC', 'STRING', 'ENVIRONMENT_SOURCE_NAME', 'ENVIRONMENT_SOURCE_NAME_EXCLUDE_SELF']); // Pending Lagoon 2.10
             })
             .createTable('backup_restore', function (table) {
                 table.increments('id').notNullable().primary();
@@ -150,7 +151,7 @@
                 table.unique(['environment', 'persistent_storage_claim', 'updated'], {indexName: 'environment_persistent_storage_claim_updated'});
             })
             // .createTable('lagoon_version', function (table) {
-            //     table.increments('id').notNullable().primary();
+            //     table.increments('id').notNullable().primary(); // Todo?
             //     table.integer('version').notNullable();
             // })
             .createTable('notification_email', function (table) {
