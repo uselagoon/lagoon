@@ -109,6 +109,53 @@ func (h *Messaging) Consumer() {
 		action := &Action{}
 		json.Unmarshal(message.Body(), action)
 		switch action.Type {
+		// check if this a `updateEnvironmentStorage` type of action
+		// and perform the steps to run the mutation against the lagoon api
+		case "updateEnvironmentStorage":
+			data, _ := json.Marshal(action.Data)
+			storageClaims := Storage{}
+			json.Unmarshal(data, &storageClaims)
+			token, err := jwt.OneMinuteAdminToken(h.LagoonAPI.TokenSigningKey, h.LagoonAPI.JWTAudience, h.LagoonAPI.JWTSubject, h.LagoonAPI.JWTIssuer)
+			if err != nil {
+				// the token wasn't generated
+				if h.EnableDebug {
+					log.Println(err)
+				}
+				break
+			}
+			// the action data can contain multiple storage claims, so iterate over them here
+			for _, sc := range storageClaims.Claims {
+				sci := schema.UpdateEnvironmentStorageInput{}
+				scdata, _ := json.Marshal(sc)
+				json.Unmarshal(scdata, &sci)
+				l := lclient.New(h.LagoonAPI.Endpoint, token, "actions-handler", false)
+				environment, err := lagoon.UpdateStorage(ctx, &sci, l)
+				if err != nil {
+					// send the log to the lagoon-logs exchange to be processed
+					h.toLagoonLogs(messageQueue, map[string]interface{}{
+						"severity": "error",
+						"event":    fmt.Sprintf("actions-handler:%s:error", action.EventType),
+						"meta":     sci,
+						"message":  err.Error(),
+					})
+					if h.EnableDebug {
+						log.Println(err)
+					}
+					// try and update the next storage claim if there is one
+					continue
+				}
+				// send the log to the lagoon-logs exchange to be processed
+				h.toLagoonLogs(messageQueue, map[string]interface{}{
+					"severity": "info",
+					"event":    fmt.Sprintf("actions-handler:%s:updated", action.EventType),
+					"meta":     sci,
+					"message":  fmt.Sprintf("updated environment: %v, storage claim: %s, id: %v", sci.Environment, sci.PersisteStorageClaim, environment.ID),
+				})
+				if h.EnableDebug {
+					log.Println(fmt.Sprintf("updated environment: %v, storage claim: %s, id: %v", sci.Environment, sci.PersisteStorageClaim, environment.ID))
+				}
+
+			}
 		// check if this a `deployEnvironmentLatest` type of action
 		// and perform the steps to run the mutation against the lagoon api
 		case "deployEnvironmentLatest":
