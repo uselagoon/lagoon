@@ -178,7 +178,7 @@ export const getDeploymentsByFilter: ResolverFn = async (
       join('project', 'environment.project', '=', 'project.id');
 
   if(openshifts) {
-    queryBuilder = queryBuilder.whereIn('deployment.remote_id', openshifts);
+    queryBuilder = queryBuilder.whereIn('environment.openshift', openshifts);
   }
 
 
