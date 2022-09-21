@@ -1225,11 +1225,13 @@ export const bulkDeployEnvironmentLatest: ResolverFn = async (
     // these need to be merged on top of ones that come through at the bulk deploy level
     // handle that here
     let newBuildVariables = buildVariables || [];
+
     if (envInput.buildVariables != null && buildVariables != null) {
       newBuildVariables = jsonMerge(buildVariables, envInput.buildVariables, "name")
-    } else {
+    } else if (envInput.buildVariables != null) {
       newBuildVariables = envInput.buildVariables
     }
+
     const actionData = {
       type: "deployEnvironmentLatest",
       eventType: "bulkDeployment",
