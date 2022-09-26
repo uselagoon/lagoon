@@ -2177,7 +2177,7 @@ CREATE OR REPLACE PROCEDURE
         AND CONSTRAINT_NAME = 'user_ssh_key_ibfk_1'
     ) THEN
       ALTER TABLE `user_ssh_key`
-      MODIFY usid int, DROP FOREIGN KEY user_ssh_key_ibfk_1;
+      MODIFY usid char(36), DROP FOREIGN KEY user_ssh_key_ibfk_1;
     ELSEIF EXISTS (
     	SELECT NULL
 		  FROM INFORMATION_SCHEMA.COLUMNS
@@ -2187,7 +2187,7 @@ CREATE OR REPLACE PROCEDURE
         AND column_name = 'usid'
     ) THEN
       ALTER TABLE `user_ssh_key`
-      MODIFY usid int;
+      MODIFY usid char(36);
     END IF;
   END;
 $$
