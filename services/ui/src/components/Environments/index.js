@@ -4,6 +4,7 @@ import css from 'styled-jsx/css';
 import EnvironmentLink from 'components/link/Environment';
 import Box from 'components/Box';
 import { bp, color, fontSize } from 'lib/variables';
+import { makeSafe } from 'lib/util';
 
 const bgImages = {
   branch: {
@@ -69,12 +70,12 @@ const Environments = ({ environments = [], project }) => {
                     <span>Production</span>
                   </div>
                 )}
-                {project.productionEnvironment && project.standbyProductionEnvironment && project.productionEnvironment == environment.name && (
+                {project.productionEnvironment && project.standbyProductionEnvironment && project.productionEnvironment == makeSafe(environment.name) && (
                   <div className="activeLabel">
                     <span>Active</span>
                   </div>
                 )}
-                {project.productionEnvironment && project.standbyProductionEnvironment && project.standbyProductionEnvironment == environment.name && (
+                {project.productionEnvironment && project.standbyProductionEnvironment && project.standbyProductionEnvironment == makeSafe(environment.name) && (
                   <div className="standbyLabel">
                     <span>Standby</span>
                   </div>
