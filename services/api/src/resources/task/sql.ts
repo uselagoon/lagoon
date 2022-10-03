@@ -183,6 +183,12 @@ export const Sql = {
       knex('advanced_task_definition')
         .where('advanced_task_definition.name', '=', name)
         .toString(),
+    selectSystemwideAdvancedTaskDefinition: () =>
+      knex('advanced_task_definition')
+        .whereNull('advanced_task_definition.environment')
+        .whereNull('advanced_task_definition.project')
+        .whereNull('advanced_task_definition.group_name')
+        .toString(),
     selectAdvancedTaskDefinitionByNameProjectEnvironmentAndGroup:(name: string, project: number, environment: number, group: string) => {
       let query = knex('advanced_task_definition')
         .where('advanced_task_definition.name', '=', name);

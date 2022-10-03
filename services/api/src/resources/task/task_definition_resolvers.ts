@@ -113,6 +113,11 @@ export const resolveTasksForEnvironment = async (
     project: environmentDetails.project
   });
 
+  let systemWideRows = await query(
+    sqlClientPool,
+    Sql.selectSystemwideAdvancedTaskDefinition()
+  )
+
   let environmentRows = await query(
     sqlClientPool,
     Sql.selectAdvancedTaskDefinitionsForEnvironment(environment)
@@ -139,7 +144,7 @@ export const resolveTasksForEnvironment = async (
   );
 
   //@ts-ignore
-  let rows = R.uniqBy(o => o.name, R.concat(R.concat(environmentRows, projectRows), groupRows));
+  let rows = R.uniqBy(o => o.name, R.concat(R.concat(R.concat(environmentRows, projectRows), groupRows), systemWideRows));
 
   //now we filter the permissions
   const currentUsersPermissionForProject = await currentUsersAdvancedTaskRBACRolesForProject(
@@ -640,6 +645,10 @@ export const deleteAdvancedTaskDefinition = async (
         group: group.id
       });
       break;
+    case AdvancedTaskDefinitionTarget.SystemWide:
+      // Only admins can do this
+      await hasPermission('advanced_task', 'create:advanced');
+      break;
     default:
       throw Error('Images and System Wide Tasks are not yet supported');
   }
@@ -671,9 +680,7 @@ const getAdvancedTaskTarget = advancedTask => {
   } else if (advancedTask.groupName != null) {
     return AdvancedTaskDefinitionTarget.Group;
   } else {
-    //Currently, we don't support environment level tasks
-    throw Error('Images and System Wide Tasks are not yet supported');
-    // return AdvancedTaskDefinitionTarget.Environment
+    return AdvancedTaskDefinitionTarget.SystemWide;
   }
 };
 
@@ -726,10 +733,9 @@ function validateAdvancedTaskDefinitionData(input: any, image: any, command: any
 
 async function checkAdvancedTaskPermissions(input:AdvancedTaskDefinitionInterface, hasPermission: any, models: any, projectObj: any) {
   if (isAdvancedTaskDefinitionSystemLevelTask(input)) {
-    //if they pass this, they can do basically anything
-    //In the first release, we're not actually supporting this
-    //TODO: add checks once images are officially supported - for now, throw an error
-    throw Error('Adding Images and System Wide Tasks are not yet supported');
+    // This is a global task, only system administrators should be allowed to create this
+    await hasPermission('advanced_task', 'create:advanced');
+
   } else if (getAdvancedTaskDefinitionType(input) == AdvancedTaskDefinitionType.image) {
     //We're only going to allow administrators to add these for now ...
     await hasPermission('advanced_task', 'create:advanced');
