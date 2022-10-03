@@ -390,7 +390,7 @@ CREATE OR REPLACE PROCEDURE
   add_enum_rocketchat_to_type_in_project_notification()
 
   BEGIN
-    DECLARE column_type_project_notification_type varchar(74);
+    DECLARE column_type_project_notification_type varchar(200);
 
     SELECT COLUMN_TYPE INTO column_type_project_notification_type
     FROM INFORMATION_SCHEMA.COLUMNS
@@ -892,7 +892,7 @@ CREATE OR REPLACE PROCEDURE
   add_enum_email_microsoftteams_to_type_in_project_notification()
 
   BEGIN
-    DECLARE column_type_project_notification_type varchar(74);
+    DECLARE column_type_project_notification_type varchar(200);
 
     SELECT COLUMN_TYPE INTO column_type_project_notification_type
     FROM INFORMATION_SCHEMA.COLUMNS
@@ -1259,7 +1259,7 @@ CREATE OR REPLACE PROCEDURE
   add_enum_webhook_to_type_in_project_notification()
 
   BEGIN
-    DECLARE column_type_project_notification_type varchar(74);
+    DECLARE column_type_project_notification_type varchar(200);
 
     SELECT COLUMN_TYPE INTO column_type_project_notification_type
     FROM INFORMATION_SCHEMA.COLUMNS
@@ -1336,7 +1336,7 @@ CREATE OR REPLACE PROCEDURE
   add_environment_type_to_advanced_task_argument()
 
   BEGIN
-    DECLARE column_type_argument_type varchar(74);
+    DECLARE column_type_argument_type varchar(200);
 
     SELECT COLUMN_TYPE INTO column_type_argument_type
     FROM INFORMATION_SCHEMA.COLUMNS

@@ -7,7 +7,7 @@ Direct API interactions in Lagoon are done via [GraphQL](graphql-queries.md).
 In order to authenticate with the API, we need a JWT \(JSON Web Token\) that allows us to use the GraphQL API as admin. To generate this token, open the terminal of the `storage-calculator` pod via your Kubernetes UI, or via kubectl and run the following command:
 
 ```bash
-./create_jwt.sh
+./create_jwt.py
 ```
 
 This will return a long string which is the JWT token. Make a note of this, as we will need it to send queries.
