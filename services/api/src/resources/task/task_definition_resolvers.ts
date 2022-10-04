@@ -333,12 +333,13 @@ export const addAdvancedTaskDefinition = async (
   }
 
   userActivityLogger(`User added advanced task definition '${name}'`, {
+    project: '',
+    event: 'api:addTaskDefinition',
+    payload: {
       project: project,
-      event: 'api:updateTaskDefinition',
-      payload: {
-        taskDef: insertId
-      }
-    });
+      taskDef: insertId
+    }
+  });
 
   return await atb.advancedTaskDefinitionById(
     insertId
@@ -428,9 +429,10 @@ export const updateAdvancedTaskDefinition = async (
     }
 
     userActivityLogger(`User updated advanced task definition '${id}'`, {
-      project: task.project,
+      project: '',
       event: 'api:updateTaskDefinition',
       payload: {
+        project: task.project,
         taskDef: id
       }
     });

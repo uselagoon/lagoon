@@ -91,13 +91,12 @@ const addEnvVariableToProject = async (
 
   const rows = await query(sqlClientPool, Sql.selectEnvVariable(insertId));
 
-  userActivityLogger(`User added environment variable to project '${typeId}'`, {
+  userActivityLogger(`User added environment variable '${name}' with scope '${scope}' to project '${typeId}'`, {
     project: '',
     event: 'api:addEnvVariableToProject',
     payload: {
       id,
       name,
-      value,
       scope,
       typeId
     }
@@ -136,13 +135,12 @@ const addEnvVariableToEnvironment = async (
 
   const rows = await query(sqlClientPool, Sql.selectEnvVariable(insertId));
 
-  userActivityLogger(`User added environment variable to environment '${environment.name}' on '${environment.project}'`, {
+  userActivityLogger(`User added environment variable '${name}' with scope '${scope}' to environment '${environment.name}' on '${environment.project}'`, {
     project: '',
     event: 'api:addEnvVariableToEnvironment',
     payload: {
       id,
       name,
-      value,
       scope,
       typeId,
       environment
@@ -165,7 +163,7 @@ export const deleteEnvVariable: ResolverFn = async (
 
   await query(sqlClientPool, Sql.deleteEnvVariable(id));
 
-  userActivityLogger(`User deleted environment variable`, {
+  userActivityLogger(`User deleted environment variable '${name}' with scope '${scope}'`, {
     project: '',
     event: 'api:deleteEnvVariable',
     payload: {
