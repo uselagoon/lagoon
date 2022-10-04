@@ -163,7 +163,7 @@ export const deleteEnvVariable: ResolverFn = async (
 
   await query(sqlClientPool, Sql.deleteEnvVariable(id));
 
-  userActivityLogger(`User deleted environment variable '${name}' with scope '${scope}'`, {
+  userActivityLogger(`User deleted environment variable`, {
     project: '',
     event: 'api:deleteEnvVariable',
     payload: {
