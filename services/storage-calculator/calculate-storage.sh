@@ -62,10 +62,10 @@ echo "$ALL_ENVIRONMENTS" | jq -c '.data.environments[] | select((.environments |
     KUBECTL="kubectl --insecure-skip-tls-verify --token=$CONSOLE_TOKEN --server=$CONSOLE_URL -n $ENVIRONMENT_NAMESPACE"
 
     # add label to namespaces to indicate the storagecalculator status
-    if [[ $STORAGE_CALC != "1" ]] ; then
-      ${KUBECTL} label namespace $ENVIRONMENT_NAMESPACE lagoon.sh/storageCalculatorDisabled="true" --overwrite
+    if [[ $STORAGE_CALC == "1" ]] ; then
+      ${KUBECTL} label namespace $ENVIRONMENT_NAMESPACE lagoon.sh/storageCalculatorEnabled="true" --overwrite
     else
-      ${KUBECTL} label namespace $ENVIRONMENT_NAMESPACE lagoon.sh/storageCalculatorDisabled="false" --overwrite
+      ${KUBECTL} label namespace $ENVIRONMENT_NAMESPACE lagoon.sh/storageCalculatorEnabled="false" --overwrite
     fi
 
     if [[ $STORAGE_CALC != "1" ]] ; then
