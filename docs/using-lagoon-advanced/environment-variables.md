@@ -165,56 +165,67 @@ On development environments, this value defaults to `E_ALL & ~E_DEPRECATED & ~E_
 
 ### Custom Backup Settings
 
-Lagoon can support custom backup locations and credentials for any project when all four of the following variables are set as `BUILD` type variables. Please note that any use of these variables means that all environment and db backups created and managed by Lagoon will be stored using these credentials, meaning that any interruption of these credentials' may lead to failed or inaccessible backups.
+Lagoon supports custom backup locations and credentials for any project when all four of the following variables are set as `BUILD` type variables. The environment variables need to be set at the project level (not per environment), and requires a Lagoon deployment after setting them (for every environment).
 
-#### `LAGOON_BAAS_CUSTOM_BACKUP_ENDPOINT`
+Please note that any use of these variables means that all environment and db backups created and managed by Lagoon will be stored using these credentials, meaning that any interruption of these credentials' may lead to failed or inaccessible backups.
 
-Specify the S3 compatible endpoint where any Lagoon initiated backups should be stored.
+| Environment variable name              | Purpose                                                                                                                                                               |
+|:---------------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `LAGOON_BAAS_CUSTOM_BACKUP_ENDPOINT`   | Specify the S3 compatible endpoint where any Lagoon initiated backups should be stored. An example for S3 Sydney would be: `https://s3.ap-southeast-2.amazonaws.com`. |
+| `LAGOON_BAAS_CUSTOM_BACKUP_BUCKET`     | Specify the bucket name where any Lagoon initiated backups should be stored.An example custom setting would be: `example-restore-bucket`.                             |
+| `LAGOON_BAAS_CUSTOM_BACKUP_ACCESS_KEY` | Specify the access key Lagoon should use to access the custom backup bucket. An example custom setting would be: `AKIAIOSFODNN7EXAMPLE`.                              |
+| `LAGOON_BAAS_CUSTOM_BACKUP_SECRET_KEY` | Specify the secret key Lagoon should use to access the custom backup bucket. An example custom setting would be: `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY`.          |
 
-An example custom setting would be: `http://10.144.1.224:9000`
+No public access is needed on the S3 bucket and can be made entirely private.
 
-#### `LAGOON_BAAS_CUSTOM_BACKUP_BUCKET`
-
-Specify the bucket name where any Lagoon initiated backups should be stored.
-
-An example custom setting would be: `example-restore-bucket`
-
-#### `LAGOON_BAAS_CUSTOM_BACKUP_ACCESS_KEY`
-
-Specify the access key Lagoon should use to access the custom backup bucket.
-
-An example custom setting would be: `AAAAAAAAAAAA12345`
-
-#### `LAGOON_BAAS_CUSTOM_BACKUP_SECRET_KEY`
-
-Specify the secret key Lagoon should use to access the custom backup bucket.
-
-An example custom setting would be: `12345AAAAAAAAAAAA`
+Lagoon will automatically prune the files in these S3 buckets, so no object retention policy is needed at the bucket level.
 
 ### Custom Restore Location
 
-Lagoon can support custom restore locations and credentials for any project when all four of the following variables are set as `BUILD` type variables. Please note that any use of these variables means that all environment and db backups restored by Lagoon will be stored using these credentials, meaning that any interruption of these credentials' access may lead to failed or inaccessible restored files.
+Lagoon supports custom restore locations and credentials for any project when all four of the following variables are set as `BUILD` type environment variables. The environment variables need to be set at the project level (not per environment), and requires a Lagoon deployment after setting them (for every environment).
 
-#### `LAGOON_BAAS_CUSTOM_RESTORE_ENDPOINT`
+Please note that any use of these variables means that all environment and db snapshots restored by Lagoon will be stored using these credentials. This means that any interruption of these credentials' access may lead to failed or inaccessible restored files.
 
-Specify the S3 compatible endpoint where any Lagoon initiated restores should be stored.
+| Environment variable name               | Purpose                                                                                                                                                                |
+|:----------------------------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `LAGOON_BAAS_CUSTOM_RESTORE_ENDPOINT`   | Specify the S3 compatible endpoint where any Lagoon initiated restores should be stored. An example for S3 Sydney would be: `https://s3.ap-southeast-2.amazonaws.com`. |
+| `LAGOON_BAAS_CUSTOM_RESTORE_BUCKET`     | Specify the bucket name where any Lagoon initiated restores should be stored.An example custom setting would be: `example-restore-bucket`.                             |
+| `LAGOON_BAAS_CUSTOM_RESTORE_ACCESS_KEY` | Specify the access key Lagoon should use to access the custom restore bucket. An example custom setting would be: `AKIAIOSFODNN7EXAMPLE`.                              |
+| `LAGOON_BAAS_CUSTOM_RESTORE_SECRET_KEY` | Specify the secret key Lagoon should use to access the custom restore bucket. An example custom setting would be: `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY`.          |
 
-An example custom setting would be: `http://10.144.1.224:9000`
+The S3 bucket must have public access enabled, as Lagoon will create [presigned URLs](https://docs.aws.amazon.com/AmazonS3/latest/userguide/ShareObjectPreSignedURL.html) for the objects inside the bucket as needed.
 
-#### `LAGOON_BAAS_CUSTOM_RESTORE_BUCKET`
+An example AWS IAM policy that you can create to allow access to just the S3 bucket `example-restore-bucket` is:
 
-Specify the bucket name where any Lagoon initiated restores should be stored.
+```json title="aws_iam_restore_policy.json"
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetBucketLocation",
+        "s3:ListBucket"
+      ],
+      "Resource": [
+        "arn:aws:s3:::example-restore-bucket"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:GetObjectVersion",
+        "s3:GetBucketLocation",
+        "s3:PutObjectAcl"
+      ],
+      "Resource": [
+         "arn:aws:s3:::example-restore-bucket/*"
+      ]
+    }
+  ]
+}
+```
 
-An example custom setting would be: `example-restore-bucket`
-
-#### `LAGOON_BAAS_CUSTOM_RESTORE_ACCESS_KEY`
-
-Specify the access key Lagoon should use to access the custom restore bucket.
-
-An example custom setting would be: `AAAAAAAAAAAA12345`
-
-#### `LAGOON_BAAS_CUSTOM_RESTORE_SECRET_KEY`
-
-Specify the secret key Lagoon should use to access the custom restore bucket.
-
-An example custom setting would be: `12345AAAAAAAAAAAA`
+For increased security and reduced storage costs you can opt into [removing restored backups after a set lifetime](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lifecycle-mgmt.html) (e.g. 7 days). Lagoon caters for this scenario gracefully and will re-create any restored snapshots as needed.
