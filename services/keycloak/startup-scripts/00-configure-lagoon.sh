@@ -1781,6 +1781,93 @@ function update_add_env_var_to_project {
 EOF
 }
 
+function migrate_to_js_provider {
+    # Check if mapper is "upload_script" based
+    local opendistro_security_client_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=lagoon-opendistro-security --config $CONFIG_PATH | jq -r '.[0]["id"]')
+    local lagoon_opendistro_security_mappers=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$opendistro_security_client_id/protocol-mappers/models --config $CONFIG_PATH)
+    local lagoon_opendistro_security_mapper_groups=$(echo $lagoon_opendistro_security_mappers | jq -r '.[] | select(.name=="groups") | .protocolMapper')
+    if [ "$lagoon_opendistro_security_mapper_groups" != "oidc-script-based-protocol-mapper" ]; then
+        echo "upload_scripts already migrated"
+        return 0
+    fi
+
+    echo Migrating "upload_scripts" to javascript provider
+
+    ################
+    # Update Mappers
+    ################
+
+    local old_mapper_id=$(echo $lagoon_opendistro_security_mappers | jq -r '.[] | select(.name=="groups") | .id')
+    /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$opendistro_security_client_id/protocol-mappers/models/$old_mapper_id --config $CONFIG_PATH
+    echo '{"name":"groups","protocolMapper":"script-mappers/groups-and-roles.js","protocol":"openid-connect","config":{"id.token.claim":"true","access.token.claim":"true","userinfo.token.claim":"true","multivalued":"true","claim.name":"groups","jsonType.label":"String"}}' | /opt/jboss/keycloak/bin/kcadm.sh create -r ${KEYCLOAK_REALM:-master} clients/$opendistro_security_client_id/protocol-mappers/models --config $CONFIG_PATH -f -
+
+    ###############################
+    # Update Authorization Policies
+    ###############################
+    local api_client_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+
+    # Build a JSON string of current authz permissions and policies. Looks like:
+    # [
+    #   {
+    #     "id": "2be3447d-6d68-4eb6-b3ed-b1fb0475432e",
+    #     "name": "Add Backup",
+    #     "associatedPolicies": [
+    #       {
+    #         "id": "750b94fa-4faf-4eb6-8889-80b2b3eb92bf",
+    #         "name": "User has access to project"
+    #       },
+    #       {
+    #         "id": "2e529d09-43b1-4cc7-8c5e-47c9ebc5e2e1",
+    #         "name": "Users role for project is Developer"
+    #       }
+    #     ]
+    #   },
+    #   ...
+    # ]
+    local perms=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$api_client_id/authz/resource-server/permission --config $CONFIG_PATH | jq -r 'map({id,name})')
+    local pid
+    for pid in $(echo $perms | jq -r '.[].id')
+    do
+      local associated_policies=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$api_client_id/authz/resource-server/policy/$pid/associatedPolicies --config $CONFIG_PATH | jq -c 'map({id,name})')
+      perms=$(echo $perms | jq -r --arg pid "$pid" --argjson ap "$associated_policies" '(.[] | select(.id == $pid) | .associatedPolicies) |= $ap')
+    done
+
+    # List of all policies that need migrating
+    local policies='User has access to own data;User has access to project;Users role for group is Owner;Users role for group is Maintainer;Users role for group is Developer;Users role for group is Reporter;Users role for group is Guest;Users role for project is Owner;Users role for project is Maintainer;Users role for project is Developer;Users role for project is Reporter;Users role for project is Guest;Users role for realm is Admin;Users role for realm is Platform Owner'
+
+    OLDIFS=$IFS;IFS=";";
+    local p_name
+    for p_name in $policies
+    do
+      # Add the new script based policy to the api client
+      local script_name="[Lagoon] $p_name"
+      local script_type="script-policies/$(echo $p_name | sed -e 's/.*/\L&/' -e 's/ /-/g').js"
+      echo '{"name":"'$script_name'","type":"'$script_type'"}' | /opt/jboss/keycloak/bin/kcadm.sh create -r lagoon clients/$api_client_id/authz/resource-server/policy/$(echo $script_type | sed -e 's/\//%2F/') --config $CONFIG_PATH -f -
+
+      # Do an in-place update of the permissions JSON to replace old JS policy references with new script policy
+      local script_policy=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$api_client_id/authz/resource-server/policy/?name=$(echo $script_name | sed -e 's/\[/%5B/' -e 's/\]/%5D/' -e 's/ /+/g') --config $CONFIG_PATH | jq -r '.[] | {id,name}')
+      perms=$(echo $perms | jq -r --arg name "$p_name" --argjson policy "$script_policy" '(.[].associatedPolicies[] | select(.name == $name)) |= $policy')
+    done
+    IFS=$OLDIFS
+
+    # Update the permissions in keycloak.
+    # Removes old policies and adds new ones all in one step.
+    for pid in $(echo $perms | jq -r '.[].id')
+    do
+      local new_policies=$(echo $perms | jq -c --arg pid "$pid" '.[] | select(.id == $pid) | .associatedPolicies | map(.id)')
+      /opt/jboss/keycloak/bin/kcadm.sh update clients/$api_client_id/authz/resource-server/permission/scope/$pid --config $CONFIG_PATH -r lagoon -s "policies=${new_policies}"
+    done
+
+    # Delete old JS policies
+    OLDIFS=$IFS;IFS=";";
+    for p_name in $policies
+    do
+      local js_policy_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$api_client_id/authz/resource-server/policy/?name=$(echo $p_name | sed -e 's/ /+/g') --config $CONFIG_PATH | jq -r --arg name $p_name '.[] | select(.name == $name) | .id')
+      /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$api_client_id/authz/resource-server/policy/js/$js_policy_id --config $CONFIG_PATH
+    done
+    IFS=$OLDIFS
+}
+
 function configure_keycloak {
     until is_keycloak_running; do
         echo Keycloak still not running, waiting 5 seconds
@@ -1810,6 +1897,7 @@ function configure_keycloak {
     configure_service_api_client
     configure_token_exchange
     update_add_env_var_to_project
+    migrate_to_js_provider
 
     # always run last
     sync_client_secrets
