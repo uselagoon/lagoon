@@ -220,9 +220,7 @@ services:
     ports:
       - '5000:5000'
   drush-alias:
-    image: ${IMAGE_REPO:-lagoon}/drush-alias
-    volumes:
-      - ./services/drush-alias/web/aliases.drushrc.php.stub:/app/aliases.drushrc.php.stub
+    image: uselagoon}drush-alias:latest
     ports:
       - '8087:8080'
     labels:

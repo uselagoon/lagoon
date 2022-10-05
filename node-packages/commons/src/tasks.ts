@@ -647,6 +647,7 @@ export const getControllerBuildData = async function(deployData: any) {
         environmentId: environmentId,
         environmentIdling: environment.addOrUpdateEnvironment.autoIdle,
         projectIdling: lagoonProjectData.autoIdle,
+        storageCalculator: lagoonProjectData.storageCalc,
         productionEnvironment: projectProductionEnvironment,
         standbyEnvironment: projectStandbyEnvironment,
         subfolder: subfolder,

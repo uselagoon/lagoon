@@ -59,6 +59,15 @@ echo "$ALL_ENVIRONMENTS" | jq -c '.data.environments[] | select((.environments |
 
     echo " > $CONSOLE_URL - $PROJECT_NAME: environment $ENVIRONMENT_NAME"
 
+    KUBECTL="kubectl --insecure-skip-tls-verify --token=$CONSOLE_TOKEN --server=$CONSOLE_URL -n $ENVIRONMENT_NAMESPACE"
+
+    # add label to namespaces to indicate the storagecalculator status
+    if [[ $STORAGE_CALC == "1" ]] ; then
+      ${KUBECTL} label namespace $ENVIRONMENT_NAMESPACE lagoon.sh/storageCalculatorEnabled="true" --overwrite
+    else
+      ${KUBECTL} label namespace $ENVIRONMENT_NAMESPACE lagoon.sh/storageCalculatorEnabled="false" --overwrite
+    fi
+
     if [[ $STORAGE_CALC != "1" ]] ; then
       echo " > $CONSOLE_URL - $PROJECT_NAME - $ENVIRONMENT_NAME: storage calculation disabled, skipping"
       apiQuery "mutation {
@@ -68,8 +77,6 @@ echo "$ALL_ENVIRONMENTS" | jq -c '.data.environments[] | select((.environments |
       }"
       continue
     fi
-
-    KUBECTL="kubectl --insecure-skip-tls-verify --token=$CONSOLE_TOKEN --server=$CONSOLE_URL -n $ENVIRONMENT_NAMESPACE"
 
     # Skip if namespace doesn't exist.
     NAMESPACE=$(${KUBECTL} get namespace ${ENVIRONMENT_NAMESPACE} --ignore-not-found=true);

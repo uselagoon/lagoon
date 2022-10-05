@@ -1,0 +1,14 @@
+mutation (
+  $environment: Int!
+  $persistentStorageClaim: String!
+  $bytesUsed: Int!
+  ) {
+    addOrUpdateEnvironmentStorage(input: {
+      environment: $environment
+      persistentStorageClaim: $persistentStorageClaim
+      bytesUsed: $bytesUsed
+    }
+  ){
+    id
+  }
+}
