@@ -3,7 +3,7 @@
   hosts: localhost
   serial: 1
   vars:
-    git_files: "features/"
+    git_files: "features-cronjobs/"
   tasks:
   - include: ../../tasks/git-init.yaml
   - include: ../../tasks/git-add-commit-push.yaml
