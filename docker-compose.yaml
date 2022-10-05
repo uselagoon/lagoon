@@ -41,8 +41,6 @@ services:
     image: mailhog/mailhog
     ports:
       - 8025
-    labels:
-      lagoon.type: none
   webhooks2tasks:
     image: ${IMAGE_REPO:-lagoon}/webhooks2tasks
     command: yarn run dev
@@ -72,18 +70,9 @@ services:
     # environment:
     #   - NEW_RELIC_LICENSE_KEY=
     #   - NEW_RELIC_APP_NAME=api-local
-    labels:
-      lagoon.type: custom
-      lagoon.template: services/api/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/api:v1-9-1
   ui:
-    image: ${IMAGE_REPO:-lagoon}/ui
+    image: uselagoon/ui:main
     command: yarn run dev
-    volumes:
-      - ./services/ui/src:/app/services/ui/src
-      - ./services/ui/.env.defaults:/app/services/ui/.env.defaults
-      - ./services/ui/.env.schema:/app/services/ui/.env.schema
-      - ./services/ui/package.json:/app/services/ui/package.json
     environment:
       - NODE_ENV=development
     ports:
@@ -134,10 +123,6 @@ services:
     image: ${IMAGE_REPO:-lagoon}/keycloak-db
     ports:
       - '3336:3306'
-    labels:
-      lagoon.type: custom
-      lagoon.template: services/keycloak-db/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/keycloak-db:v1-9-1
   tests-kubernetes:
     image: ${IMAGE_REPO:-lagoon}/tests
     environment:
@@ -208,8 +193,6 @@ services:
   local-dbaas-provider:
     image: ${IMAGE_REPO:-lagoon}/local-dbaas-provider
     restart: always
-    labels:
-      lagoon.type: none
     environment:
       MYSQL_DATABASE: 'db'
       MYSQL_USER: 'user'
@@ -220,8 +203,6 @@ services:
   local-mongodb-dbaas-provider:
     image: ${IMAGE_REPO:-lagoon}/local-mongodb-dbaas-provider
     restart: always
-    labels:
-      lagoon.type: none
     ports:
       - '27017:27017'
   local-minio:
