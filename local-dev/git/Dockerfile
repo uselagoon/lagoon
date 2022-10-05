@@ -41,6 +41,7 @@ RUN mkdir -m 700 /git/.ssh && \
 	git --bare init /git/features.git && \
 	git --bare init /git/features-cronjobs.git && \
 	git --bare init /git/features-subfolder.git && \
+	git --bare init /git/features-variables.git && \
 	git --bare init /git/elasticsearch.git && \
 	git --bare init /git/solr.git && \
 	git --bare init /git/active-standby.git && \
