@@ -16,7 +16,7 @@ import S3 from 'aws-sdk/clients/s3';
 // s3 config
 const accessKeyId =  process.env.S3_FILES_ACCESS_KEY_ID || 'minio'
 const secretAccessKey =  process.env.S3_FILES_SECRET_ACCESS_KEY || 'minio123'
-const bucket = process.env.S3_INSIGHTS_BUCKET || 'lagoon-insights'
+const bucket = process.env.S3_FILES_BUCKET || 'lagoon-files'
 const region = process.env.S3_FILES_REGION
 const s3Origin = process.env.S3_FILES_HOST || 'http://docker.for.mac.localhost:9000'
 
