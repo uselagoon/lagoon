@@ -558,7 +558,7 @@ export const getControllerBuildData = async function(deployData: any) {
       deployTitle)
     logger.info(`${openshiftProject}: Created/Updated Environment in API`)
   } catch (err) {
-    logger.error(err)
+    logger.error(`Couldn't addOrUpdateEnvironment: ${err.message}`)
     throw new Error
   }
 

@@ -209,7 +209,7 @@ const messageConsumer = async function(msg) {
         meta.openshiftProjectName = namespace
         meta.projectName = meta.project
         sendToLagoonLogs(
-          'success',
+          'info',
           meta.project,
           '',
           'task:remove-kubernetes:finished',

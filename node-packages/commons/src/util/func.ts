@@ -1,4 +1,4 @@
-import { unless, is, isNil, partialRight, complement } from 'ramda';
+import { unless, is, isNil, isEmpty, partialRight, complement } from 'ramda';
 
 export const isNumber = is(Number);
 export const isArray = is(Array);
@@ -8,6 +8,7 @@ export const toNumber = (input: string | number): number =>
 
 export const notArray = complement(isArray);
 export const isNotNil = complement(isNil);
+export const isNotEmpty = complement(isEmpty);
 
 export const asyncPipe = (...functions) => input =>
   functions.reduce((chain, func) => chain.then(func), Promise.resolve(input));

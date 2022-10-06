@@ -52,8 +52,7 @@ async function handle(handler, webhook: WebhookRequestData, fullEvent: string, c
   try {
     await handler(webhook, channelWrapperWebhooks);
   } catch (error) {
-    logger.error(`Error handling ${fullEvent}`);
-    logger.error(error);
+    logger.error(`Error handling ${fullEvent}: ${error.message}`);
   }
 }
 

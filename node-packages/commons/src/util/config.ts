@@ -1,5 +1,5 @@
-import { prop, propOr } from 'ramda';
-import { isNotNil } from './func';
+import { prop, propOr, both } from 'ramda';
+import { isNotNil, isNotEmpty } from './func';
 
 export const getConfigOr = (
   data: any,
@@ -11,4 +11,4 @@ export const getConfigFromEnv = (name: string, fallback: string = ''): string =>
   getConfigOr(process.env, name, fallback);
 
 export const envHasConfig = (name: string): boolean =>
-  isNotNil(prop(name, process.env));
+  both(isNotNil, isNotEmpty)(prop(name, process.env));

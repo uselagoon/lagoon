@@ -110,8 +110,7 @@ async function handle(handler, webhook: WebhookRequestData, fullEvent: string) {
   try {
     await handler(webhook);
   } catch (error) {
-    logger.error(`Error handling ${fullEvent}`);
-    logger.error(error);
+    logger.error(`Error handling ${fullEvent}: ${error.message}`);
   }
 }
 

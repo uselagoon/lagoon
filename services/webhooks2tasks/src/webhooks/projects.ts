@@ -374,8 +374,7 @@ async function handle(
   try {
     await handler(webhook, project);
   } catch (error) {
-    logger.error(`Error handling ${fullEvent} for project ${project.name}`);
-    logger.error(error);
+    logger.error(`Error handling ${fullEvent} for project ${project.name}: ${error.message}`);
   }
 }
 
