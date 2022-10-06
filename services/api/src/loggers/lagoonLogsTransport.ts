@@ -1,8 +1,8 @@
 import Transport = require('winston-transport');
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
-import { parseAndCleanMeta } from '../loggers/userActivityLogger';
+import { parseAndCleanMeta } from './userActivityLogger';
 
-export class RabbitMQTransport extends Transport {
+export class LagoonLogsTransport extends Transport {
     constructor(options) {
       super(options);
     }
@@ -20,7 +20,7 @@ export class RabbitMQTransport extends Transport {
         Object.entries(info).filter(([key]) => typeof key !== 'symbol')))
 
       return {
-        severity: 'info',
+        severity: info.level,
         project: info.project ? info.project : "",
         uuid: info.uuid ? info.uuid : "",
         event: info.event ? info.event : "api:unknownEvent",
