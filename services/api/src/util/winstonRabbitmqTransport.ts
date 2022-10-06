@@ -1,5 +1,5 @@
 import Transport = require('winston-transport');
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { parseAndCleanMeta } from '../loggers/userActivityLogger';
 
 export class RabbitMQTransport extends Transport {

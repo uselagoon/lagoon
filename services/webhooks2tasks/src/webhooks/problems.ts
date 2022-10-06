@@ -1,8 +1,8 @@
 // @flow
 
 import uuid4 from 'uuid4';
-import { logger } from '@lagoon/commons/dist/local-logging';
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { logger } from '@lagoon/commons/dist/logs/local-logger';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { harborScanningCompleted } from '../handlers/problems/harborScanningCompleted';
 import { processHarborVulnerabilityList } from '../handlers/problems/processHarborVulnerabilityList';
 import { processDrutinyResultset }  from '../handlers/problems/processDrutinyResults';

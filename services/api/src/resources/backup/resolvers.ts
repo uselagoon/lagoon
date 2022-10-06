@@ -1,5 +1,5 @@
 import * as R from 'ramda';
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { createMiscTask } from '@lagoon/commons/dist/tasks';
 import { ResolverFn } from '../';
 import { getConfigFromEnv } from '../../util/config';

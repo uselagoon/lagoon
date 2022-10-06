@@ -5,7 +5,7 @@ import {
   deleteProblemsFromSource,
   getProblemsforProjectEnvironment,
 } from'@lagoon/commons/dist/api';
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 const DRUTINY_VULNERABILITY_SOURCE_BASE = 'Drutiny';
 const DRUTINY_SERVICE_NAME = 'cli';
 const DRUTINY_PACKAGE_NAME = ''

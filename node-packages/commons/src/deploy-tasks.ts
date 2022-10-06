@@ -1,4 +1,4 @@
-import { logger } from './local-logging';
+import { logger } from './logs/local-logger';
 import {
     getOpenShiftInfoForProject,
     getOpenShiftInfoForEnvironment,

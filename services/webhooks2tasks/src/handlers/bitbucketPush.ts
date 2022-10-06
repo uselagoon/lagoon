@@ -1,4 +1,4 @@
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { createDeployTask } from '@lagoon/commons/dist/tasks';
 import { generateBuildId } from '@lagoon/commons/dist/util/lagoon';
 

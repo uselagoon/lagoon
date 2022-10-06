@@ -1,6 +1,6 @@
 import * as R from 'ramda';
 // @ts-ignore
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 // @ts-ignore
 import { createRemoveTask } from '@lagoon/commons/dist/tasks';
 import { ResolverFn } from '../';

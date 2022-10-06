@@ -5,7 +5,7 @@ import {
   ChannelWrapper
 } from 'amqp-connection-manager';
 import { ConfirmChannel, ConsumeMessage } from 'amqplib';
-import { logger } from './local-logging';
+import { logger } from './logs/local-logger';
 import {
   getActiveSystemForProject,
   getEnvironmentsForProject,

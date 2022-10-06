@@ -1,5 +1,5 @@
 import { connect } from 'amqp-connection-manager';
-import { logger } from './local-logging';
+import { logger } from './local-logger';
 
 const rabbitmqHost = process.env.RABBITMQ_HOST || 'broker';
 const rabbitmqUsername = process.env.RABBITMQ_USERNAME || 'guest';

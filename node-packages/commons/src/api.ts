@@ -2,7 +2,7 @@ import { Lokka } from 'lokka';
 import { Transport } from './lokka-transport-http-retry';
 import { propOr, replace, toUpper, pipe, toLower } from 'ramda';
 import { createJWTWithoutUserId } from './jwt';
-import { logger } from './local-logging';
+import { logger } from './logs/local-logger';
 
 interface Project {
   slack: any;

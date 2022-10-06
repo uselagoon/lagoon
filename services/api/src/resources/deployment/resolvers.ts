@@ -1,7 +1,7 @@
 // @ts-ignore
 import * as R from 'ramda';
 // @ts-ignore
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import {
   createDeployTask,
   createMiscTask,

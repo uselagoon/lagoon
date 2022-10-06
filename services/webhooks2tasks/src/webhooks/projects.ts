@@ -1,8 +1,8 @@
 import { ChannelWrapper } from 'amqp-connection-manager';
 import { ConsumeMessage } from 'amqplib';
-import { logger } from '@lagoon/commons/dist/local-logging';
+import { logger } from '@lagoon/commons/dist/logs/local-logger';
 import { getProjectsByGitUrl } from '@lagoon/commons/dist/api';
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { githubPullRequestClosed } from '../handlers/githubPullRequestClosed';
 import { githubPullRequestOpened } from '../handlers/githubPullRequestOpened';
 import { githubPullRequestSynchronize } from '../handlers/githubPullRequestSynchronize';
