@@ -313,7 +313,7 @@ export const getEnvironmentByKubernetesNamespaceName: ResolverFn = async (
   );
 
 export const addOrUpdateEnvironment: ResolverFn = async (
-  root,
+  _root,
   { input },
   { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
@@ -362,20 +362,32 @@ export const addOrUpdateEnvironment: ResolverFn = async (
     deleted: 0,
   };
 
-  const updateData = {
-    deployType: input.deployType,
-    deployBaseRef: input.deployBaseRef,
-    deployHeadRef: input.deployHeadRef,
-    deployTitle: input.deployTitle,
-    environmentType: input.environmentType,
-    updated: knex.fn.now()
-  } ;
+  const insertData = R.pick([
+    'deployBaseRef',
+    'deployHeadRef',
+    'deployTitle',
+    'deployType',
+    'environmentType',
+    'id',
+    'name',
+    'project',
+  ], input);
 
+  const updateData = R.pipe(
+    R.pick([
+      'deployBaseRef',
+      'deployHeadRef',
+      'deployTitle',
+      'deployType',
+      'environmentType',
+    ]),
+    R.mergeDeepRight({ updated: knex.fn.now() })
+  )(input);
 
   const createOrUpdateSql = knex('environment')
     .insert({
       ...inputDefaults,
-      ...input,
+      ...insertData,
       openshift,
       openshiftProjectName,
       openshiftProjectPattern
