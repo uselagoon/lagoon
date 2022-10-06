@@ -1,5 +1,4 @@
 const { addColors, createLogger, format, transports } = require('winston');
-require('winston-logstash');
 import { getConfigFromEnv } from '../util/config';
 import { levels, colors } from './';
 
