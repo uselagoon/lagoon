@@ -75,6 +75,8 @@ services:
     command: yarn run dev
     environment:
       - NODE_ENV=development
+      - KEYCLOAK_API=http://localhost:8088/auth
+      - GRAPHQL_API=http://localhost:3000/graphql
     ports:
       - '8888:3003'
   actions-handler:
@@ -220,7 +222,7 @@ services:
     ports:
       - '5000:5000'
   drush-alias:
-    image: uselagoon}drush-alias:latest
+    image: uselagoon/drush-alias:latest
     ports:
       - '8087:8080'
     labels:
