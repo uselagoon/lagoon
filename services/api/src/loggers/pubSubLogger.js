@@ -1,4 +1,5 @@
 const { addColors, createLogger, format, transports } = require('winston');
+import { getConfigFromEnv } from "../util/config";
 
 const config = {
   levels: {
@@ -39,7 +40,7 @@ const pubSubLogger = createLogger({
   ),
   transports: [
     new transports.Console({
-      level: 'debug',
+      level: getConfigFromEnv('CONSOLE_LOGGING_LEVEL', 'debug'),
       handleExceptions: true,
       json: false,
     }),

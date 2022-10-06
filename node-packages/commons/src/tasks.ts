@@ -25,7 +25,7 @@ import sha1 from 'sha1';
 import crypto from 'crypto';
 import moment from 'moment';
 
-import { jsonMerge } from './util'
+import { jsonMerge } from './util/func'
 
 interface MessageConsumer {
   (msg: ConsumeMessage): Promise<void>;

@@ -1,6 +1,5 @@
 import 'newrelic';
 import { Server } from 'http';
-import { promisify } from 'util';
 import { initSendToLagoonLogs } from '@lagoon/commons/dist/logs';
 import { initSendToLagoonTasks, initSendToLagoonActions } from '@lagoon/commons/dist/tasks';
 import { waitForKeycloak } from './util/waitForKeycloak';

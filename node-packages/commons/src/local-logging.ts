@@ -1,5 +1,6 @@
 const { addColors, createLogger, format, transports } = require('winston');
 require('winston-logstash');
+import { getConfigFromEnv } from "./util/config";
 
 export interface LogFn {
   (...args: any[]): void;
@@ -50,7 +51,7 @@ export const logger = createLogger({
   ),
   transports: [
     new transports.Console({
-      level: 'silly',
+      level: getConfigFromEnv('CONSOLE_LOGGING_LEVEL', 'silly'),
       colorize: true,
       timestamp: true,
       handleExceptions: true

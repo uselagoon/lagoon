@@ -30,7 +30,8 @@ import S3 from 'aws-sdk/clients/s3';
 // @ts-ignore
 import sha1 from 'sha1';
 // @ts-ignore
-import { generateBuildId, jsonMerge } from '@lagoon/commons/dist/util';
+import { generateBuildId } from '@lagoon/commons/dist/util/lagoon';
+import { jsonMerge } from '@lagoon/commons/dist/util/func';
 import { logger } from '../../loggers/logger';
 // @ts-ignore
 import uuid4 from 'uuid4';
