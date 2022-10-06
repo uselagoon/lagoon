@@ -17,7 +17,7 @@ export const logger = createLogger({
   ),
   transports: [
     new transports.Console({
-      level: getConfigFromEnv('CONSOLE_LOGGING_LEVEL', 'debug'),
+      level: getConfigFromEnv('CONSOLE_LOGGING_LEVEL', 'info'),
       handleExceptions: true,
       json: false,
       colorize: true
