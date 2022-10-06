@@ -1772,6 +1772,706 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_from_project()
+
+  BEGIN
+    IF EXISTS (
+      SELECT *
+      FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
+      WHERE
+        CONSTRAINT_SCHEMA = 'infrastructure'
+        AND REFERENCED_TABLE_NAME = 'openshift'
+        AND CONSTRAINT_NAME = 'project_ibfk_1'
+    ) THEN
+      ALTER TABLE `project`
+        MODIFY openshift int, DROP FOREIGN KEY project_ibfk_1;
+    ELSEIF EXISTS (
+    	SELECT NULL
+		  FROM INFORMATION_SCHEMA.COLUMNS
+		  WHERE
+        table_name = 'project'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'openshift'
+    ) THEN
+      ALTER TABLE `project`
+      MODIFY openshift int;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_project_from_environment()
+
+  BEGIN
+    IF EXISTS (
+      SELECT *
+      FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
+      WHERE
+        CONSTRAINT_SCHEMA = 'infrastructure'
+        AND REFERENCED_TABLE_NAME = 'project'
+        AND CONSTRAINT_NAME = 'environment_ibfk_1'
+    ) THEN
+      ALTER TABLE `environment`
+        MODIFY project int, DROP FOREIGN KEY environment_ibfk_1;
+    ELSEIF EXISTS (
+    	SELECT NULL
+		  FROM INFORMATION_SCHEMA.COLUMNS
+		  WHERE
+        table_name = 'environment'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'project'
+    ) THEN
+      ALTER TABLE `environment`
+      MODIFY project int;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_openshift_from_environment()
+
+  BEGIN
+    IF EXISTS (
+      SELECT *
+      FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
+      WHERE
+        CONSTRAINT_SCHEMA = 'infrastructure'
+        AND REFERENCED_TABLE_NAME = 'openshift'
+        AND CONSTRAINT_NAME = 'environment_ibfk_2'
+    ) THEN
+      ALTER TABLE `environment`
+        MODIFY openshift int, DROP FOREIGN KEY environment_ibfk_2;
+    ELSEIF EXISTS (
+    	SELECT NULL
+		  FROM INFORMATION_SCHEMA.COLUMNS
+		  WHERE
+        table_name = 'environment'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'openshift'
+    ) THEN
+      ALTER TABLE `environment`
+      MODIFY openshift int;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_project_from_deploy_target_config()
+
+  BEGIN
+    IF EXISTS (
+      SELECT *
+      FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
+      WHERE
+        CONSTRAINT_SCHEMA = 'infrastructure'
+        AND REFERENCED_TABLE_NAME = 'project'
+        AND CONSTRAINT_NAME = 'deploy_target_config_ibfk_1'
+    ) THEN
+      ALTER TABLE `deploy_target_config`
+        MODIFY project int, DROP FOREIGN KEY deploy_target_config_ibfk_1;
+    ELSEIF EXISTS (
+    	SELECT NULL
+		  FROM INFORMATION_SCHEMA.COLUMNS
+		  WHERE
+        table_name = 'deploy_target_config'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'project'
+    ) THEN
+      ALTER TABLE `deploy_target_config`
+      MODIFY project int;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_deploy_target_from_deploy_target_config()
+
+  BEGIN
+    IF EXISTS (
+      SELECT *
+      FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
+      WHERE
+        CONSTRAINT_SCHEMA = 'infrastructure'
+        AND REFERENCED_TABLE_NAME = 'openshift'
+        AND CONSTRAINT_NAME = 'deploy_target_config_ibfk_2'
+    ) THEN
+      ALTER TABLE `deploy_target_config`
+        MODIFY deploy_target int, DROP FOREIGN KEY deploy_target_config_ibfk_2;
+    ELSEIF EXISTS (
+    	SELECT NULL
+		  FROM INFORMATION_SCHEMA.COLUMNS
+		  WHERE
+        table_name = 'deploy_target_config'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'deploy_target'
+    ) THEN
+      ALTER TABLE `deploy_target_config`
+      MODIFY deploy_target int;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_from_environment_storage()
+
+  BEGIN
+    IF EXISTS (
+      SELECT *
+      FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
+      WHERE
+        CONSTRAINT_SCHEMA = 'infrastructure'
+        AND REFERENCED_TABLE_NAME = 'environment'
+        AND CONSTRAINT_NAME = 'environment_storage_ibfk_1'
+    ) THEN
+      ALTER TABLE `environment_storage`
+        MODIFY environment int, DROP FOREIGN KEY environment_storage_ibfk_1;
+    ELSEIF EXISTS (
+    	SELECT NULL
+		  FROM INFORMATION_SCHEMA.COLUMNS
+		  WHERE
+        table_name = 'environment_storage'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'environment'
+    ) THEN
+      ALTER TABLE `environment_storage`
+      MODIFY environment int;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_from_deployment()
+
+  BEGIN
+    IF EXISTS (
+      SELECT *
+      FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
+      WHERE
+        CONSTRAINT_SCHEMA = 'infrastructure'
+        AND REFERENCED_TABLE_NAME = 'environment'
+        AND CONSTRAINT_NAME = 'deployment_ibfk_1'
+    ) THEN
+      ALTER TABLE `deployment`
+        MODIFY environment int NOT NULL, DROP FOREIGN KEY deployment_ibfk_1;
+    ELSEIF EXISTS (
+    	SELECT NULL
+		  FROM INFORMATION_SCHEMA.COLUMNS
+		  WHERE
+        table_name = 'deployment'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'environment'
+    ) THEN
+      ALTER TABLE `deployment`
+      MODIFY environment int NOT NULL;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_from_environment_backup()
+
+  BEGIN
+    IF EXISTS (
+      SELECT *
+      FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
+      WHERE
+        CONSTRAINT_SCHEMA = 'infrastructure'
+        AND REFERENCED_TABLE_NAME = 'environment'
+        AND CONSTRAINT_NAME = 'environment_backup_ibfk_1'
+    ) THEN
+      ALTER TABLE `environment_backup`
+        MODIFY environment int, DROP FOREIGN KEY environment_backup_ibfk_1;
+    ELSEIF EXISTS (
+    	SELECT NULL
+		  FROM INFORMATION_SCHEMA.COLUMNS
+		  WHERE
+        table_name = 'environment_backup'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'environment'
+    ) THEN
+      ALTER TABLE `environment_backup`
+      MODIFY environment int;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_project_from_env_vars()
+
+  BEGIN
+    IF EXISTS (
+      SELECT *
+      FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
+      WHERE
+        CONSTRAINT_SCHEMA = 'infrastructure'
+        AND REFERENCED_TABLE_NAME = 'project'
+        AND CONSTRAINT_NAME = 'env_vars_ibfk_1'
+    ) THEN
+      ALTER TABLE `env_vars`
+        MODIFY project int NULL, DROP FOREIGN KEY env_vars_ibfk_1;
+    ELSEIF EXISTS (
+    	SELECT NULL
+		  FROM INFORMATION_SCHEMA.COLUMNS
+		  WHERE
+        table_name = 'env_vars'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'project'
+    ) THEN
+      ALTER TABLE `env_vars`
+      MODIFY project int NULL;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_environment_from_env_vars()
+
+  BEGIN
+    IF EXISTS (
+      SELECT *
+      FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
+      WHERE
+        CONSTRAINT_SCHEMA = 'infrastructure'
+        AND REFERENCED_TABLE_NAME = 'environment'
+        AND CONSTRAINT_NAME = 'env_vars_ibfk_2'
+    ) THEN
+      ALTER TABLE `env_vars`
+        MODIFY environment int NULL, DROP FOREIGN KEY env_vars_ibfk_2;
+    ELSEIF EXISTS (
+    	SELECT NULL
+		  FROM INFORMATION_SCHEMA.COLUMNS
+		  WHERE
+        table_name = 'env_vars'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'environment'
+    ) THEN
+      ALTER TABLE `env_vars`
+      MODIFY environment int NULL;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_from_environment_service()
+
+  BEGIN
+    IF EXISTS (
+      SELECT *
+      FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
+      WHERE
+        CONSTRAINT_SCHEMA = 'infrastructure'
+        AND REFERENCED_TABLE_NAME = 'environment'
+        AND CONSTRAINT_NAME = 'environment_service_ibfk_1'
+    ) THEN
+      ALTER TABLE `environment_service`
+      MODIFY environment int NOT NULL, DROP FOREIGN KEY environment_service_ibfk_1;
+    ELSEIF EXISTS (
+    	SELECT NULL
+		  FROM INFORMATION_SCHEMA.COLUMNS
+		  WHERE
+        table_name = 'environment_service'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'environment'
+    ) THEN
+      ALTER TABLE `environment_service`
+      MODIFY environment int NOT NULL;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_from_task()
+
+  BEGIN
+    IF EXISTS (
+      SELECT *
+      FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
+      WHERE
+        CONSTRAINT_SCHEMA = 'infrastructure'
+        AND REFERENCED_TABLE_NAME = 'environment'
+        AND CONSTRAINT_NAME = 'task_ibfk_1'
+    ) THEN
+      ALTER TABLE `task`
+        MODIFY environment int NOT NULL, DROP FOREIGN KEY task_ibfk_1;
+    ELSEIF EXISTS (
+    	SELECT NULL
+		  FROM INFORMATION_SCHEMA.COLUMNS
+		  WHERE
+        table_name = 'task'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'environment'
+    ) THEN
+      ALTER TABLE `task`
+      MODIFY environment int NOT NULL;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_from_environment_problem()
+
+  BEGIN
+    IF EXISTS (
+      SELECT *
+      FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
+      WHERE
+        CONSTRAINT_SCHEMA = 'infrastructure'
+        AND REFERENCED_TABLE_NAME = 'environment'
+        AND CONSTRAINT_NAME = 'environment_problem_ibfk_1'
+    ) THEN
+      ALTER TABLE `environment_problem`
+        MODIFY environment int, DROP FOREIGN KEY environment_problem_ibfk_1;
+    ELSEIF EXISTS (
+    	SELECT NULL
+		  FROM INFORMATION_SCHEMA.COLUMNS
+		  WHERE
+        table_name = 'environment_problem'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'environment'
+    ) THEN
+      ALTER TABLE `environment_problem`
+      MODIFY environment int;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_from_project_notification()
+
+  BEGIN
+    IF EXISTS (
+      SELECT *
+      FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
+      WHERE
+        CONSTRAINT_SCHEMA = 'infrastructure'
+        AND REFERENCED_TABLE_NAME = 'project'
+        AND CONSTRAINT_NAME = 'project_notification_ibfk_1'
+    ) THEN
+      ALTER TABLE `project_notification`
+      MODIFY pid int, DROP FOREIGN KEY project_notification_ibfk_1;
+    ELSEIF EXISTS (
+    	SELECT NULL
+		  FROM INFORMATION_SCHEMA.COLUMNS
+		  WHERE
+        table_name = 'project_notification'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'pid'
+    ) THEN
+      ALTER TABLE `project_notification`
+      MODIFY pid int;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_usid_from_user_ssh_key()
+
+  BEGIN
+    IF EXISTS (
+      SELECT *
+      FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
+      WHERE
+        CONSTRAINT_SCHEMA = 'infrastructure'
+        AND REFERENCED_TABLE_NAME = 'user'
+        AND CONSTRAINT_NAME = 'user_ssh_key_ibfk_1'
+    ) THEN
+      ALTER TABLE `user_ssh_key`
+      MODIFY usid char(36), DROP FOREIGN KEY user_ssh_key_ibfk_1;
+    ELSEIF EXISTS (
+    	SELECT NULL
+		  FROM INFORMATION_SCHEMA.COLUMNS
+		  WHERE
+        table_name = 'user_ssh_key'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'usid'
+    ) THEN
+      ALTER TABLE `user_ssh_key`
+      MODIFY usid char(36);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_skid_from_user_ssh_key()
+
+  BEGIN
+    IF EXISTS (
+      SELECT *
+      FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
+      WHERE
+        CONSTRAINT_SCHEMA = 'infrastructure'
+        AND REFERENCED_TABLE_NAME = 'ssh_key'
+        AND CONSTRAINT_NAME = 'user_ssh_key_ibfk_1'
+    ) THEN
+      ALTER TABLE `user_ssh_key`
+      MODIFY skid int, DROP FOREIGN KEY user_ssh_key_ibfk_1;
+    ELSEIF EXISTS (
+    	SELECT NULL
+		  FROM INFORMATION_SCHEMA.COLUMNS
+		  WHERE
+        table_name = 'user_ssh_key'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'skid'
+    ) THEN
+      ALTER TABLE `user_ssh_key`
+      MODIFY skid int;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_tid_from_task_file()
+
+  BEGIN
+    IF EXISTS (
+      SELECT *
+      FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
+      WHERE
+        CONSTRAINT_SCHEMA = 'infrastructure'
+        AND REFERENCED_TABLE_NAME = 'task'
+        AND CONSTRAINT_NAME = 'task_file_ibfk_1'
+    ) THEN
+      ALTER TABLE `task_file`
+      MODIFY tid int, DROP FOREIGN KEY task_file_ibfk_1;
+    ELSEIF EXISTS (
+    	SELECT NULL
+		  FROM INFORMATION_SCHEMA.COLUMNS
+		  WHERE
+        table_name = 'task_file'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'tid'
+    ) THEN
+      ALTER TABLE `task_file`
+      MODIFY tid int;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_fid_from_task_file()
+
+  BEGIN
+    IF EXISTS (
+      SELECT *
+      FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
+      WHERE
+        CONSTRAINT_SCHEMA = 'infrastructure'
+        AND REFERENCED_TABLE_NAME = 'file'
+        AND CONSTRAINT_NAME = 'task_file_ibfk_1'
+    ) THEN
+      ALTER TABLE `task_file`
+      MODIFY fid int, DROP FOREIGN KEY task_file_ibfk_1;
+    ELSEIF EXISTS (
+    	SELECT NULL
+		  FROM INFORMATION_SCHEMA.COLUMNS
+		  WHERE
+        table_name = 'task_file'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'fid'
+    ) THEN
+      ALTER TABLE `task_file`
+      MODIFY fid int;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_from_environment_fact()
+
+  BEGIN
+    IF EXISTS (
+      SELECT *
+      FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
+      WHERE
+        CONSTRAINT_SCHEMA = 'infrastructure'
+        AND REFERENCED_TABLE_NAME = 'environment'
+        AND CONSTRAINT_NAME = 'environment_fact_ibfk_1'
+    ) THEN
+      ALTER TABLE `environment_fact`
+      MODIFY environment int, DROP FOREIGN KEY environment_fact_ibfk_1;
+    ELSEIF EXISTS (
+    	SELECT NULL
+		  FROM INFORMATION_SCHEMA.COLUMNS
+		  WHERE
+        table_name = 'environment_fact'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'environment'
+    ) THEN
+      ALTER TABLE `environment_fact`
+      MODIFY environment int;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_fid_from_environment_fact_reference()
+
+  BEGIN
+    IF EXISTS (
+      SELECT *
+      FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
+      WHERE
+        CONSTRAINT_SCHEMA = 'infrastructure'
+        AND REFERENCED_TABLE_NAME = 'environment_fact'
+        AND CONSTRAINT_NAME = 'environment_fact_reference_ibfk_1'
+    ) THEN
+      ALTER TABLE `environment_fact_reference`
+      MODIFY fid int NOT NULL, DROP FOREIGN KEY environment_fact_reference_ibfk_1;
+    ELSEIF EXISTS (
+    	SELECT NULL
+		  FROM INFORMATION_SCHEMA.COLUMNS
+		  WHERE
+        table_name = 'environment_fact_reference'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'fid'
+    ) THEN
+      ALTER TABLE `environment_fact_reference`
+      MODIFY fid int NOT NULL;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_environment_from_advanced_task_definition()
+
+  BEGIN
+    IF EXISTS (
+      SELECT *
+      FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
+      WHERE
+        CONSTRAINT_SCHEMA = 'infrastructure'
+        AND REFERENCED_TABLE_NAME = 'environment'
+        AND CONSTRAINT_NAME = 'advanced_task_definition_ibfk_1'
+    ) THEN
+      ALTER TABLE `advanced_task_definition`
+      MODIFY environment int NULL, DROP FOREIGN KEY advanced_task_definition_ibfk_1;
+    ELSEIF EXISTS (
+    	SELECT NULL
+		  FROM INFORMATION_SCHEMA.COLUMNS
+		  WHERE
+        table_name = 'advanced_task_definition'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'environment'
+    ) THEN
+      ALTER TABLE `advanced_task_definition`
+      MODIFY environment int NULL;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_project_from_advanced_task_definition()
+
+  BEGIN
+    IF EXISTS (
+      SELECT *
+      FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
+      WHERE
+        CONSTRAINT_SCHEMA = 'infrastructure'
+        AND REFERENCED_TABLE_NAME = 'project'
+        AND CONSTRAINT_NAME = 'advanced_task_definition_ibfk_2'
+    ) THEN
+      ALTER TABLE `advanced_task_definition`
+      MODIFY project int NULL, DROP FOREIGN KEY advanced_task_definition_ibfk_2;
+    ELSEIF EXISTS (
+    	SELECT NULL
+		  FROM INFORMATION_SCHEMA.COLUMNS
+		  WHERE
+        table_name = 'advanced_task_definition'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'project'
+    ) THEN
+      ALTER TABLE `advanced_task_definition`
+      MODIFY project int NULL;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_from_advanced_task_definition_argument()
+
+  BEGIN
+    IF EXISTS (
+      SELECT *
+      FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
+      WHERE
+        CONSTRAINT_SCHEMA = 'infrastructure'
+        AND REFERENCED_TABLE_NAME = 'advanced_task_definition'
+        AND CONSTRAINT_NAME = 'advanced_task_definition_argument_ibfk_1'
+    ) THEN
+      ALTER TABLE `advanced_task_definition_argument`
+      MODIFY advanced_task_definition int, DROP FOREIGN KEY advanced_task_definition_argument_ibfk_1;
+    ELSEIF EXISTS (
+    	SELECT NULL
+		  FROM INFORMATION_SCHEMA.COLUMNS
+		  WHERE
+        table_name = 'advanced_task_definition_argument'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'advanced_task_definition'
+    ) THEN
+      ALTER TABLE `advanced_task_definition_argument`
+      MODIFY advanced_task_definition int;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_project_from_workflow()
+
+  BEGIN
+    IF EXISTS (
+		  SELECT *
+		  FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
+		  WHERE
+        CONSTRAINT_SCHEMA = 'infrastructure'
+		    AND REFERENCED_TABLE_NAME = 'project'
+        AND CONSTRAINT_NAME = 'workflow_ibfk_1'
+    ) THEN
+      ALTER TABLE `workflow`
+      MODIFY project int NOT NULL, DROP FOREIGN KEY workflow_ibfk_1;
+    ELSEIF EXISTS (
+    	SELECT NULL
+		  FROM INFORMATION_SCHEMA.COLUMNS
+		  WHERE
+        table_name = 'workflow'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'project'
+    ) THEN
+      ALTER TABLE `workflow`
+      MODIFY project int NOT NULL;
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  drop_foreign_key_advanced_task_definition_from_workflow()
+
+  BEGIN
+    IF EXISTS (
+		  SELECT *
+		  FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
+		  WHERE
+        CONSTRAINT_SCHEMA = 'infrastructure'
+		    AND REFERENCED_TABLE_NAME = 'advanced_task_definition'
+		    AND CONSTRAINT_NAME = 'workflow_ibfk_2'
+    ) THEN
+      ALTER TABLE `workflow`
+      MODIFY advanced_task_definition int NOT NULL, DROP FOREIGN KEY workflow_ibfk_2;
+    ELSEIF EXISTS (
+    	SELECT NULL
+		  FROM INFORMATION_SCHEMA.COLUMNS
+		  WHERE
+        table_name = 'workflow'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'advanced_task_definition'
+    ) THEN
+      ALTER TABLE `workflow`
+      MODIFY advanced_task_definition int NOT NULL;
+   END IF;
+  END;
+$$
+
 DELIMITER ;
 
 -- If adding new procedures, add them to the bottom of this list
@@ -1863,6 +2563,31 @@ CALL update_missing_tasknames();
 CALL add_build_image_to_openshift();
 CALL clean_stale_project_data();
 CALL add_environment_exclude_self_type_to_advanced_task_argument();
+CALL drop_foreign_key_from_project();
+CALL drop_foreign_key_project_from_environment();
+CALL drop_foreign_key_openshift_from_environment();
+CALL drop_foreign_key_project_from_deploy_target_config();
+CALL drop_foreign_key_deploy_target_from_deploy_target_config();
+CALL drop_foreign_key_from_environment_storage();
+CALL drop_foreign_key_from_deployment();
+CALL drop_foreign_key_from_environment_backup();
+CALL drop_foreign_key_environment_from_env_vars();
+CALL drop_foreign_key_project_from_env_vars();
+CALL drop_foreign_key_from_environment_service();
+CALL drop_foreign_key_from_task();
+CALL drop_foreign_key_from_environment_problem();
+CALL drop_foreign_key_from_project_notification();
+CALL drop_foreign_key_usid_from_user_ssh_key();
+CALL drop_foreign_key_skid_from_user_ssh_key();
+CALL drop_foreign_key_tid_from_task_file();
+CALL drop_foreign_key_fid_from_task_file();
+CALL drop_foreign_key_from_environment_fact();
+CALL drop_foreign_key_fid_from_environment_fact_reference();
+CALL drop_foreign_key_environment_from_advanced_task_definition();
+CALL drop_foreign_key_project_from_advanced_task_definition();
+CALL drop_foreign_key_from_advanced_task_definition_argument();
+CALL drop_foreign_key_project_from_workflow();
+CALL drop_foreign_key_advanced_task_definition_from_workflow();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;
