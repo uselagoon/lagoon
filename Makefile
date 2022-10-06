@@ -98,40 +98,6 @@ docker_pull:
 	docker images --format "{{.Repository}}:{{.Tag}}" | grep -E '$(UPSTREAM_REPO)' | grep -E '$(UPSTREAM_TAG)' | xargs -tn1 -P8 docker pull -q || true;
 	grep -Eh 'FROM' $$(find . -type f -name *Dockerfile) | grep -Ev '_REPO|_VERSION|_CACHE' | awk '{print $$2}' | sort --unique | xargs -tn1 -P8 docker pull -q
 
-#######
-####### Base Images
-#######
-####### Base Images are the base for all other images and are also published for clients to use during local development
-
-images :=     athenapdf-service \
-							docker-host
-
-# base-images is a variable that will be constantly filled with all base image there are
-base-images += $(images)
-s3-images += $(images)
-
-# List with all images prefixed with `build/`. Which are the commands to actually build images
-build-images = $(foreach image,$(images),build/$(image))
-
-# Define the make recipe for all base images
-$(build-images):
-#	Generate variable image without the prefix `build/`
-	$(eval image = $(subst build/,,$@))
-# Call the docker build
-	$(call docker_build,$(image),images/$(image)/Dockerfile,images/$(image))
-#scan created image with Trivy
-	$(call scan_image,$(image),)
-# Touch an empty file which make itself is using to understand when the image has been last build
-	touch $@
-
-# Define dependencies of Base Images so that make can build them in the right order. There are two
-# types of Dependencies
-# 1. Parent Images, like `build/centos7-node6` is based on `build/centos7` and need to be rebuild
-#    if the parent has been built
-# 2. Dockerfiles of the Images itself, will cause make to rebuild the images if something has
-#    changed on the Dockerfiles
-build/docker-host: images/docker-host/Dockerfile
-build/athenapdf-service:images/athenapdf-service/Dockerfile
 
 #######
 ####### Service Images
@@ -142,9 +108,9 @@ build/athenapdf-service:images/athenapdf-service/Dockerfile
 # Yarn Workspace Image which builds the Yarn Workspace within a single image. This image will be
 # used by all microservices based on Node.js to not build similar node packages again
 build-images += yarn-workspace-builder
-build/yarn-workspace-builder: images/yarn-workspace-builder/Dockerfile
+build/yarn-workspace-builder: yarn-workspace-builder/Dockerfile
 	$(eval image = $(subst build/,,$@))
-	$(call docker_build,$(image),images/$(image)/Dockerfile,.)
+	$(call docker_build,$(image),$(image)/Dockerfile,.)
 	$(call scan_image,$(image),)
 	touch $@
 
@@ -182,12 +148,8 @@ services :=	api \
 			broker \
 			broker-single \
 			controllerhandler \
-			drush-alias \
 			keycloak \
 			keycloak-db \
-			logs-concentrator \
-			logs-dispatcher \
-			logs-tee \
 			logs2notifications \
 			storage-calculator \
 			webhook-handler \
@@ -212,12 +174,8 @@ build/api-redis: services/api-redis/Dockerfile
 build/actions-handler: services/actions-handler/Dockerfile
 build/broker-single: services/broker/Dockerfile
 build/broker: build/broker-single
-build/drush-alias: services/drush-alias/Dockerfile
 build/keycloak-db: services/keycloak-db/Dockerfile
 build/keycloak: services/keycloak/Dockerfile
-build/logs-concentrator: services/logs-concentrator/Dockerfile
-build/logs-dispatcher: services/logs-dispatcher/Dockerfile
-build/logs-tee: services/logs-tee/Dockerfile
 build/storage-calculator: services/storage-calculator/Dockerfile
 build/tests: tests/Dockerfile
 build/local-minio:
@@ -289,9 +247,6 @@ main-test-services = actions-handler broker logs2notifications api api-db api-re
 
 # List of Lagoon Services needed for webhook endpoint testing
 webhooks-test-services = webhook-handler webhooks2tasks backup-handler
-
-# List of Lagoon Services needed for drupal testing
-drupal-test-services = drush-alias
 
 # All tests that use Webhook endpoints
 webhook-tests = github gitlab bitbucket
@@ -495,7 +450,7 @@ GOJQ_VERSION = v0.12.8
 STERN_VERSION = 2.1.20
 CHART_TESTING_VERSION = v3.6.0
 KIND_IMAGE = kindest/node:v1.23.6@sha256:b1fa224cc6c7ff32455e0b1fd9cbfd3d3bc87ecaa8fcb06961ed1afb3db0f9ae
-TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-api-variables,active-standby-kubernetes,tasks,drush,drupal-php80,drupal-postgres,python,gitlab,github,bitbucket,node-mongodb,elasticsearch,workflows]
+TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,drupal-php80,drupal-postgres,python,gitlab,github,bitbucket,node-mongodb,elasticsearch,workflows]
 CHARTS_TREEISH = main
 TASK_IMAGES = task-activestandby
 
@@ -616,7 +571,7 @@ ifeq ($(ARCH), darwin)
       tcp-listen:32080,fork,reuseaddr tcp-connect:target:32080
 endif
 
-KIND_SERVICES = api api-db api-redis auth-server actions-handler broker controllerhandler docker-host drush-alias keycloak keycloak-db logs2notifications webhook-handler webhooks2tasks local-api-data-watcher-pusher local-git ssh tests workflows $(TASK_IMAGES)
+KIND_SERVICES = api api-db api-redis auth-server actions-handler broker controllerhandler keycloak keycloak-db logs2notifications webhook-handler webhooks2tasks local-api-data-watcher-pusher local-git ssh tests workflows $(TASK_IMAGES)
 KIND_TESTS = local-api-data-watcher-pusher local-git tests
 KIND_TOOLS = kind helm kubectl jq stern
 

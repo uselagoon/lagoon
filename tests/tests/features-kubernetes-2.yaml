@@ -53,3 +53,21 @@
 - include: api/delete-project.yaml
   vars:
     project: ci-features-subfolder-{{ cluster_type }}
+
+- include: api/add-project.yaml
+  vars:
+    project: ci-features-cronjobs-{{ cluster_type }}
+    git_repo_name: features-cronjobs.git
+    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
+
+- include: features/cronjobs.yaml
+  vars:
+    testname: "CRONJOBS {{ cluster_type|upper }}"
+    git_repo_name: features-cronjobs.git
+    project: ci-features-cronjobs-{{ cluster_type }}
+    branch: branch/cronjob
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+
+- include: api/delete-project.yaml
+  vars:
+    project: ci-features-cronjobs-{{ cluster_type }}

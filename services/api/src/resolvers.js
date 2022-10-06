@@ -34,6 +34,12 @@ const { SeverityScoreType } = require('./resources/problem/types');
 const { getLagoonVersion } = require('./resources/lagoon/resolvers');
 
 const {
+  getInsightsFileData,
+  getInsightsFilesByEnvironmentId,
+  getInsightsDownloadUrl,
+} = require('./resources/insight/resolvers');
+
+const {
   getDeploymentsByEnvironmentId,
   getDeploymentByRemoteId,
   getDeploymentsByBulkId,
@@ -359,6 +365,7 @@ const resolvers = {
   Environment: {
     project: getProjectByEnvironmentId,
     deployments: getDeploymentsByEnvironmentId,
+    insights: getInsightsFilesByEnvironmentId,
     tasks: getTasksByEnvironmentId,
     advancedTasks: getRegisteredTasksByEnvironmentId,
     hoursMonth: getEnvironmentHoursMonthByEnvironmentId,
@@ -381,6 +388,10 @@ const resolvers = {
     environment: getEnvironmentByDeploymentId,
     uiLink: getDeploymentUrl,
     buildLog: getBuildLog,
+  },
+  Insight: {
+    data: getInsightsFileData,
+    downloadUrl: getInsightsDownloadUrl,
   },
   Task: {
     environment: getEnvironmentByTaskId,

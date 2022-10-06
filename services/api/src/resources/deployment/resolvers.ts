@@ -190,7 +190,8 @@ export const getDeploymentsByFilter: ResolverFn = async (
 
   let queryBuilder = knex.select("deployment.*").from('deployment').
       join('environment', 'deployment.environment', '=', 'environment.id').
-      join('project', 'environment.project', '=', 'project.id');
+      join('project', 'environment.project', '=', 'project.id').
+      where('environment.deleted', '=', '0000-00-00 00:00:00');
 
   if(openshifts) {
     queryBuilder = queryBuilder.whereIn('environment.openshift', openshifts);
