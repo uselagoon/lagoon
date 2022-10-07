@@ -77,7 +77,7 @@ export async function giteaPullRequestSynchronize(webhook: WebhookRequestData, p
 
     try {
       await createDeployTask(data);
-      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:synchronize:handled`, data,
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:synchronize:handled`, meta,
         `*[${project.name}]* PR <${body.pull_request.html_url}|#${body.number} (${body.pull_request.title})> updated in <${body.repository.html_url}|${body.repository.full_name}>`
       )
       return;

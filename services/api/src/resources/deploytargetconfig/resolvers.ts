@@ -152,7 +152,7 @@ export const updateEnvironmentDeployTarget: ResolverFn = async (
   ).getProjectByEnvironmentId(environment);
 
   userActivityLogger(`User changed DeployTarget for environment`, {
-    project: projectObj.name,
+    project: '',
     event: 'api:updateEnvironmentDeployTarget',
     payload: {
       ...input
@@ -212,7 +212,7 @@ export const addDeployTargetConfig: ResolverFn = async (
   const rows = await query(sqlClientPool, Sql.selectDeployTargetConfigById(insertId));
 
   userActivityLogger(`User added DeployTargetConfig`, {
-    project: input.name || '',
+    project: '',
     event: 'api:addDeployTargetConfig',
     payload: {
       ...input
@@ -248,8 +248,8 @@ export const deleteDeployTargetConfig: ResolverFn = async (
   }
 
   userActivityLogger(`User deleted DeployTargetConfig'`, {
-    project: project || '',
-    event: 'api:deleteEnvironment',
+    project: '',
+    event: 'api:deleteDeployTargetConfig',
     payload: {
       id,
       project,
