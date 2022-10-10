@@ -205,15 +205,6 @@ func (h *Messaging) sendEmailMessage(emoji, color, subject, event, project, emai
 		}
 
 	}
-
-	// // Create authentication
-	// auth := smtp.PlainAuth("", sender, password, smtpHost)
-	// // Send actual message
-	// err := smtp.SendMail(smtpHost+":"+smtpPort, auth, sender, to, body.Bytes())
-	// if err != nil {
-	// 	log.Printf("Error sending message to email: %v", err)
-	// 	return
-	// }
 	log.Println(fmt.Sprintf("Sent %s message to email for project %s", event, project))
 }
 
