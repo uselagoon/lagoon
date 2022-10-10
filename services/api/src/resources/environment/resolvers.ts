@@ -392,7 +392,7 @@ export const addOrUpdateEnvironment: ResolverFn = async (
   const rows = await query(sqlClientPool, Sql.selectEnvironmentById(insertId));
 
   userActivityLogger(`User updated environment`, {
-    project: projectOpenshift.name || '',
+    project: '',
     event: 'api:addOrUpdateEnvironment',
     payload: {
       ...input
@@ -445,7 +445,7 @@ export const addOrUpdateEnvironmentStorage: ResolverFn = async (
   const { name: projectName } = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environment['environment']);
 
   userActivityLogger(`User updated environment storage on project '${projectName}'`, {
-    project: projectName || '',
+    project: '',
     event: 'api:addOrUpdateEnvironmentStorage',
     payload: {
       projectName,
@@ -557,7 +557,7 @@ export const deleteEnvironment: ResolverFn = async (
   }
 
   userActivityLogger(`User deleted environment '${environment.name}' on project '${projectName}'`, {
-    project: data.projectName || '',
+    project: '',
     event: 'api:deleteEnvironment',
     payload: {
       projectName,
@@ -634,7 +634,7 @@ export const updateEnvironment: ResolverFn = async (
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
   userActivityLogger(`User updated environment '${curEnv.name}' on project '${curEnv.project}'`, {
-    project: curEnv.project || '',
+    project: '',
     event: 'api:updateEnvironment',
     payload: {
       openshiftProjectName,

@@ -483,17 +483,14 @@ export const cancelDeployment: ResolverFn = async (
     project
   };
 
-  userActivityLogger(
-    `User cancelled deployment for '${deployment.environment}'`,
-    {
-      project: '',
-      event: 'api:cancelDeployment',
-      payload: {
-        deploymentInput,
-        data: data.build
-      }
+  userActivityLogger(`User cancelled deployment for '${deployment.environment}'`, {
+    project: '',
+    event: 'api:cancelDeployment',
+    payload: {
+      deploymentInput,
+      data: data.build
     }
-  );
+  });
 
   try {
     await createMiscTask({ key: 'build:cancel', data });
@@ -654,16 +651,13 @@ export const deployEnvironmentLatest: ResolverFn = async (
       return `Error: Unknown deploy type ${environment.deployType}`;
   }
 
-  userActivityLogger(
-    `User triggered a deployment on '${deployData.projectName}' for '${environment.name}'`,
-    {
-      project: deployData.projectName || '',
-      event: 'api:deployEnvironmentLatest',
-      payload: {
-        deployData
-      }
+  userActivityLogger(`User triggered a deployment on '${deployData.projectName}' for '${environment.name}'`, {
+    project: '',
+    event: 'api:deployEnvironmentLatest',
+    payload: {
+      deployData
     }
-  );
+  });
 
   try {
     await taskFunction(deployData);
@@ -756,16 +750,13 @@ export const deployEnvironmentBranch: ResolverFn = async (
     branchName: deployData.branchName
   };
 
-  userActivityLogger(
-    `User triggered a deployment on '${deployData.projectName}' for '${deployData.branchName}'`,
-    {
-      project: deployData.projectName || '',
-      event: 'api:deployEnvironmentBranch',
-      payload: {
-        deployData
-      }
+  userActivityLogger(`User triggered a deployment on '${deployData.projectName}' for '${deployData.branchName}'`, {
+    project: '',
+    event: 'api:deployEnvironmentBranch',
+    payload: {
+      deployData
     }
-  );
+  });
 
   try {
     await createDeployTask(deployData);
@@ -869,16 +860,13 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
     pullrequestTitle: deployData.pullrequestTitle
   };
 
-  userActivityLogger(
-    `User triggered a pull-request deployment on '${deployData.projectName}' for '${deployData.branchName}'`,
-    {
-      project: deployData.projectName || '',
-      event: 'api:deployEnvironmentPullrequest',
-      payload: {
-        deployData
-      }
+  userActivityLogger(`User triggered a pull-request deployment on '${deployData.projectName}' for '${deployData.branchName}'`, {
+    project: '',
+    event: 'api:deployEnvironmentPullrequest',
+    payload: {
+      deployData
     }
-  );
+  });
 
   try {
     await createDeployTask(deployData);
@@ -993,16 +981,14 @@ export const deployEnvironmentPromote: ResolverFn = async (
     promoteSourceEnvironment: deployData.promoteSourceEnvironment
   };
 
-  userActivityLogger(
-    `User promoted the environment on '${deployData.projectName}' from '${deployData.promoteSourceEnvironment}' to '${deployData.branchName}'`,
-    {
-      project: deployData.projectName || '',
-      event: 'api:deployEnvironmentPromote',
-      payload: {
-        deployData
-      }
+  userActivityLogger(`User promoted the environment on '${deployData.projectName}'
+    from '${deployData.promoteSourceEnvironment}' to '${deployData.branchName}'`, {
+    project: '',
+    event: 'api:deployEnvironmentPromote',
+    payload: {
+      deployData
     }
-  );
+  });
 
   try {
     await createPromoteTask(deployData);
