@@ -1,1 +1,1 @@
-*[ci-github-openshift]* <github.com/owner/repository/tree/lagoon-type-override|lagoon-type-override> pushed in <github.com/owner/repository|>
+*[ci-github-openshift]* <github.com/owner/repository/tree/lagoon-type-override|lagoon-type-override> pushed in <github.com/owner/repository|owner/repository>

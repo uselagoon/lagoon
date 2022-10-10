@@ -121,6 +121,33 @@ func TestProcessing(t *testing.T) {
 			teams:       "testdata/deployFinished/teams.txt",
 			webhook:     "testdata/deployFinished/webhook.txt",
 		},
+		"mergeRequestClosed": {
+			description: "test github repo push handled events",
+			input:       "testdata/input.mergeRequestClosed.json",
+			slack:       "testdata/mergeRequestClosed/slack.txt",
+			rocketchat:  "testdata/mergeRequestClosed/rocketchat.txt",
+			emailhtml:   "testdata/mergeRequestClosed/emailhtml.txt",
+			emailplain:  "testdata/mergeRequestClosed/emailplain.txt",
+			teams:       "testdata/mergeRequestClosed/teams.txt",
+		},
+		"mergeRequestOpened": {
+			description: "test github repo push handled events",
+			input:       "testdata/input.mergeRequestOpened.json",
+			slack:       "testdata/mergeRequestOpened/slack.txt",
+			rocketchat:  "testdata/mergeRequestOpened/rocketchat.txt",
+			emailhtml:   "testdata/mergeRequestOpened/emailhtml.txt",
+			emailplain:  "testdata/mergeRequestOpened/emailplain.txt",
+			teams:       "testdata/mergeRequestOpened/teams.txt",
+		},
+		"mergeRequestUpdated": {
+			description: "test github repo push handled events",
+			input:       "testdata/input.mergeRequestUpdated.json",
+			slack:       "testdata/mergeRequestUpdated/slack.txt",
+			rocketchat:  "testdata/mergeRequestUpdated/rocketchat.txt",
+			emailhtml:   "testdata/mergeRequestUpdated/emailhtml.txt",
+			emailplain:  "testdata/mergeRequestUpdated/emailplain.txt",
+			teams:       "testdata/mergeRequestUpdated/teams.txt",
+		},
 	}
 	for name, tc := range testCases {
 		t.Run(name, func(tt *testing.T) {

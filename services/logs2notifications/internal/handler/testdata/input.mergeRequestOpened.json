@@ -1,0 +1,15 @@
+{
+    "severity":"info",
+    "project":"ci-github-openshift",
+    "uuid":"",
+    "event":"github:pull_request:opened:handled",
+    "meta":{
+        "projectName":"ci-github-openshift",
+        "branchName":"lagoon-type-override",
+        "repoName":"owner/repository",
+        "repoURL":"github.com/owner/repository",
+        "pullrequestURL": "github.com/owner/repository/pull/123",
+        "pullrequestNumber":"123",
+        "pullrequestTitle":"My PR"
+    }
+}
