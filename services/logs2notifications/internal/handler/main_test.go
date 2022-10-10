@@ -47,6 +47,7 @@ func TestProcessing(t *testing.T) {
 		"emailHost",
 		"emailPort",
 		true,
+		true,
 		"s3FilesAccessKeyID",
 		"s3FilesSecretAccessKey",
 		"s3FilesBucket",

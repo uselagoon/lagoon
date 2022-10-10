@@ -63,6 +63,7 @@ type Messaging struct {
 	EmailSenderPassword     string
 	EmailHost               string
 	EmailPort               string
+	EmailSSL                bool
 	EmailInsecureSkipVerify bool
 	S3FilesAccessKeyID      string
 	S3FilesSecretAccessKey  string
@@ -144,7 +145,7 @@ func NewMessaging(config mq.Config,
 	enableDebug bool,
 	appID string,
 	disableSlack, disableRocketChat, disableMicrosoftTeams, disableEmail, disableWebhooks, disableS3 bool,
-	emailSender, emailSenderPassword, emailHost, emailPort string, emailInsecureSkipVerify bool,
+	emailSender, emailSenderPassword, emailHost, emailPort string, emailSSL, emailInsecureSkipVerify bool,
 	s3FilesAccessKeyID, s3FilesSecretAccessKey, s3FilesBucket, s3FilesRegion, s3FilesOrigin string, s3isGCS bool) *Messaging {
 	return &Messaging{
 		Config:                  config,
@@ -163,6 +164,7 @@ func NewMessaging(config mq.Config,
 		EmailSenderPassword:     emailSenderPassword,
 		EmailHost:               emailHost,
 		EmailPort:               emailPort,
+		EmailSSL:                emailSSL,
 		EmailInsecureSkipVerify: emailInsecureSkipVerify,
 		S3FilesAccessKeyID:      s3FilesAccessKeyID,
 		S3FilesSecretAccessKey:  s3FilesSecretAccessKey,

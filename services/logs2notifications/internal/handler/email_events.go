@@ -59,7 +59,6 @@ func (h *Messaging) processEmailTemplates(notification *Notification) (string, s
 	emoji, color, tpl, err := getEmailEvent(notification.Event)
 	if err != nil {
 		eventSplit := strings.Split(notification.Event, ":")
-		fmt.Println(eventSplit[0])
 		if eventSplit[0] != "problem" {
 			return "", "", "", "", "", nil
 		}
@@ -197,7 +196,7 @@ func (h *Messaging) sendEmailMessage(emoji, color, subject, event, project, emai
 			return
 		}
 	} else {
-		d := gomail.Dialer{Host: h.EmailHost, Port: sPort}
+		d := gomail.Dialer{Host: h.EmailHost, Port: sPort, SSL: h.EmailSSL}
 		d.TLSConfig = &tls.Config{InsecureSkipVerify: h.EmailInsecureSkipVerify}
 		if err := d.DialAndSend(m); err != nil {
 			log.Printf("Error sending email for project %s: %v", project, err)
