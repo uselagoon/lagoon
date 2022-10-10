@@ -189,11 +189,21 @@ func (h *Messaging) sendEmailMessage(emoji, color, subject, event, project, emai
 	m.SetBody("text/plain", plainText)
 	m.AddAlternative("text/html", body.String())
 	sPort, _ := strconv.Atoi(h.EmailPort)
-	d := gomail.NewDialer(h.EmailHost, sPort, h.EmailSender, "")
-	d.TLSConfig = &tls.Config{InsecureSkipVerify: h.EmailInsecureSkipVerify}
-	if err := d.DialAndSend(m); err != nil {
-		fmt.Println(err)
-		panic(err)
+	if h.EmailSenderPassword != "" {
+		d := gomail.NewDialer(h.EmailHost, sPort, h.EmailSender, "")
+		d.TLSConfig = &tls.Config{InsecureSkipVerify: h.EmailInsecureSkipVerify}
+		if err := d.DialAndSend(m); err != nil {
+			log.Printf("Error sending email for project %s: %v", project, err)
+			return
+		}
+	} else {
+		d := gomail.Dialer{Host: h.EmailHost, Port: sPort}
+		d.TLSConfig = &tls.Config{InsecureSkipVerify: h.EmailInsecureSkipVerify}
+		if err := d.DialAndSend(m); err != nil {
+			log.Printf("Error sending email for project %s: %v", project, err)
+			return
+		}
+
 	}
 
 	// // Create authentication
