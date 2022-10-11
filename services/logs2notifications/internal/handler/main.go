@@ -114,7 +114,7 @@ type Notification struct {
 		Name                     string   `json:"name"`
 		OpenshiftProject         string   `json:"openshiftProject"`
 		PromoteSourceEnvironment string   `json:"promoteSourceEnvironment"`
-		PullrequestNumber        string   `json:"pullrequestNumber"`
+		PullrequestNumber        int      `json:"pullrequestNumber"`
 		PullrequestTitle         string   `json:"pullrequestTitle"`
 		PullrequestURL           string   `json:"pullrequestUrl"`
 		RemoteID                 string   `json:"remoteId"`
