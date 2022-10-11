@@ -628,7 +628,13 @@ export const deployEnvironmentLatest: ResolverFn = async (
       };
       meta = {
         ...meta,
-        pullrequestTitle: deployData.pullrequestTitle
+        pullrequestTitle: deployData.pullrequestTitle,
+        pullrequestNumber: environment.name.replace('pr-', ''),
+        headBranchName: environment.deployHeadRef,
+        headSha: `origin/${environment.deployHeadRef}`,
+        baseBranchName: environment.deployBaseRef,
+        baseSha: `origin/${environment.deployBaseRef}`,
+        branchName: environment.name
       };
       taskFunction = createDeployTask;
       break;
