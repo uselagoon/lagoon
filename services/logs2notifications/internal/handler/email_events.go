@@ -147,12 +147,18 @@ func (h *Messaging) processEmailTemplates(notification *Notification) (string, s
 
 	var body bytes.Buffer
 	t, _ := template.New("email").Parse(mainHTMLTpl)
-	t.Execute(&body, notification.Meta)
+	err = t.Execute(&body, notification.Meta)
+	if err != nil {
+		return "", "", "", "", "", fmt.Errorf("error generating html email template for event %s and project %s: %v", notification.Event, notification.Meta.ProjectName, err)
+	}
 	mainHTML += body.String()
 
 	var plainTextBuffer bytes.Buffer
 	t, _ = template.New("email").Parse(plainTextTpl)
-	t.Execute(&plainTextBuffer, notification.Meta)
+	err = t.Execute(&plainTextBuffer, notification.Meta)
+	if err != nil {
+		return "", "", "", "", "", fmt.Errorf("error generating plaintext email template for event %s and project %s: %v", notification.Event, notification.Meta.ProjectName, err)
+	}
 	plainText += plainTextBuffer.String()
 	if subject == "" {
 		subject = plainText

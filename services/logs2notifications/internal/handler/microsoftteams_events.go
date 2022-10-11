@@ -91,7 +91,10 @@ func (h *Messaging) processMicrosoftTeamsTemplate(notification *Notification) (s
 
 	var teamsMsg bytes.Buffer
 	t, _ := template.New("microsoftteams").Parse(teamsTpl)
-	t.Execute(&teamsMsg, notification.Meta)
+	err = t.Execute(&teamsMsg, notification.Meta)
+	if err != nil {
+		return "", "", "", fmt.Errorf("error generating notifcation template for event %s and project %s: %v", notification.Event, notification.Meta.ProjectName, err)
+	}
 	return emoji, color, teamsMsg.String(), nil
 }
 

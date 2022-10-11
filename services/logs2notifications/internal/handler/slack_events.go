@@ -75,7 +75,10 @@ func (h *Messaging) processSlackTemplate(notification *Notification) (string, st
 
 	var slackMsg bytes.Buffer
 	t, _ := template.New("slack").Parse(slackTpl)
-	t.Execute(&slackMsg, notification.Meta)
+	err = t.Execute(&slackMsg, notification.Meta)
+	if err != nil {
+		return "", "", "", fmt.Errorf("error generating notifcation template for event %s and project %s: %v", notification.Event, notification.Meta.ProjectName, err)
+	}
 	return emoji, color, slackMsg.String(), nil
 }
 

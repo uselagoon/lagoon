@@ -94,7 +94,10 @@ func (h *Messaging) processRocketChatTemplate(notification *Notification) (strin
 	}
 	var rcMsg bytes.Buffer
 	t, _ := template.New("rocketchat").Parse(rcTpl)
-	t.Execute(&rcMsg, notification.Meta)
+	err = t.Execute(&rcMsg, notification.Meta)
+	if err != nil {
+		return "", "", "", fmt.Errorf("error generating notifcation template for event %s and project %s: %v", notification.Event, notification.Meta.ProjectName, err)
+	}
 	return emoji, color, rcMsg.String(), nil
 }
 
