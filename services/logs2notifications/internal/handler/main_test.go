@@ -148,6 +148,15 @@ func TestProcessing(t *testing.T) {
 			emailplain:  "testdata/mergeRequestUpdated/emailplain.txt",
 			teams:       "testdata/mergeRequestUpdated/teams.txt",
 		},
+		"removeFinished": {
+			description: "test removefinished events",
+			input:       "testdata/input.removeFinished.json",
+			slack:       "testdata/removeFinished/slack.txt",
+			rocketchat:  "testdata/removeFinished/rocketchat.txt",
+			emailhtml:   "testdata/removeFinished/emailhtml.txt",
+			emailplain:  "testdata/removeFinished/emailplain.txt",
+			teams:       "testdata/removeFinished/teams.txt",
+		},
 	}
 	for name, tc := range testCases {
 		t.Run(name, func(tt *testing.T) {

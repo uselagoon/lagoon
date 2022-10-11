@@ -91,10 +91,10 @@ func (h *Messaging) processEmailTemplates(notification *Notification) (string, s
 		plainTextTpl = `[{{.ProjectName}}] Deployment triggered on branch {{.BranchName}}{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}}`
 	case "removeFinished":
 		mainHTMLTpl = `Remove <code>{{.OpenshiftProject}}</code>`
-		plainTextTpl = `[{{.ProjectName}] remove {{.OpenshiftProject}}`
+		plainTextTpl = `[{{.ProjectName}}] remove {{.OpenshiftProject}}`
 	case "notDeleted":
 		mainHTMLTpl = `<code>{{.OpenshiftProject}}</code> not deleted.`
-		plainTextTpl = `[{{.ProjectName}] {{.OpenshiftProject}} not deleted. {{.Error}}`
+		plainTextTpl = `[{{.ProjectName}}] {{.OpenshiftProject}} not deleted. {{.Error}}`
 	case "deployError":
 		mainHTMLTpl = `[{{.ProjectName}}] <code>{{.BranchName}}</code>{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}} Build <code>{{.BuildName}}</code> error.
 {{if ne .LogLink ""}} <a href="{{.LogLink}}">Logs</a>{{end}}`
