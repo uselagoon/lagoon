@@ -148,41 +148,35 @@ const messageConsumer = async function(msg) {
         break;
       }
 
+      let environmentUpdateData = {
+        kubernetesNamespaceName: namespace,
+        project: project.id
+      }
+
+      // Update GraphQL API if the Environment has completed or failed
+      if (meta.buildPhase == 'complete') {
+        environmentUpdateData = {
+          ...environmentUpdateData,
+          route: meta.route,
+          routes: meta.routes,
+          monitoringUrls: meta.monitoringUrls,
+        }
+
+        try {
+          // update the environment with the services available
+          await setEnvironmentServices(environment.id, meta.services);
+        } catch (err) {
+          logger.warn(`${namespace} ${meta.buildName}: Error while updating services in API, Error: ${err}. Continuing without update`)
+        }
+      }
+
       try {
         await updateEnvironment(
           environment.id,
-          `{
-            openshiftProjectName: "${namespace}",
-          }`
+          environmentUpdateData
         );
       } catch (err) {
-        logger.warn(`${namespace} ${meta.buildName}: Error while updating openshiftProjectName in API, Error: ${err}. Continuing without update`)
-      }
-      // Update GraphQL API if the Environment has completed or failed
-      switch (meta.buildPhase) {
-        case 'complete':
-        case 'failed':
-        case 'cancelled':
-          try {
-            // update the environment with the routes etc
-            await updateEnvironment(
-              environment.id,
-              `{
-                route: "${meta.route}",
-                routes: "${meta.routes}",
-                monitoringUrls: "${meta.monitoringUrls}",
-                project: ${project.id}
-              }`
-            );
-          } catch (err) {
-            logger.warn(`${namespace} ${meta.buildName}: Error while updating routes in API, Error: ${err}. Continuing without update`)
-          }
-          try {
-            // update the environment with the services available
-            await setEnvironmentServices(environment.id, meta.services);
-          } catch (err) {
-            logger.warn(`${namespace} ${meta.buildName}: Error while updating services in API, Error: ${err}. Continuing without update`)
-          }
+        logger.warn(`${namespace} ${meta.buildName}: Error while updating environment in API, Error: ${err}. Continuing without update`)
       }
       break;
     case 'remove':

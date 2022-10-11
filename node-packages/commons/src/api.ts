@@ -68,9 +68,32 @@ interface RestorePatch {
   restoreLocation?: string;
 }
 
+interface EnvironmnetPatch {
+  autoIdle?: number;
+  created?: string;
+  deployBaseRef?: string;
+  deployHeadRef?: string;
+  deployTitle?: string;
+  deployType?: DeployType
+  environmentType?: EnvType
+  kubernetes?: number;
+  kubernetesNamespaceName?: string;
+  kubernetesNamespacePattern?: string;
+  monitoringUrls?: string;
+  project?: number;
+  route?: string;
+  routes?: string;
+}
+
 enum EnvType {
   PRODUCTION = 'production',
   DEVELOPMENT = 'development'
+}
+
+enum DeployType {
+  BRANCH = 'branch',
+  PULLREQUEST = 'pullrequest',
+  PROMOTE = 'promote'
 }
 
 const { JWTSECRET, JWTAUDIENCE } = process.env;
@@ -1033,20 +1056,23 @@ export const addOrUpdateEnvironment = (
   );
 
 export const updateEnvironment = (
-  environmentId: number,
-  patch: string
+  id: number,
+  patch: EnvironmnetPatch
 ): Promise<any> =>
-  graphqlapi.query(`
-    mutation {
-      updateEnvironment(input: {
-        id: ${environmentId},
-        patch: ${patch}
-      }) {
-        id
-        name
-      }
+  graphqlapi.mutate(
+    `
+  ($id: Int!, $patch: UpdateEnvironmentPatchInput!) {
+    updateEnvironment(input: {
+      id: $id
+      patch: $patch
+    }) {
+      id
+      name
     }
-  `);
+  }
+`,
+    { id, patch }
+  );
 
 export async function deleteEnvironment(
   name: string,
