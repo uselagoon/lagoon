@@ -1,0 +1,9 @@
+{
+  "project":"ci-github-openshift",
+  "event":"api:deployEnvironmentLatest",
+  "meta":{
+    "projectName":"ci-github-openshift",
+    "project":"ci-github-openshift",
+    "pullrequestTitle":"My PR"
+  }
+}

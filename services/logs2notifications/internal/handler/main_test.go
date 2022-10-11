@@ -101,6 +101,15 @@ func TestProcessing(t *testing.T) {
 			emailplain:  "testdata/deployEnvironment/emailplain.txt",
 			teams:       "testdata/deployEnvironment/teams.txt",
 		},
+		"deployEnvironmentPR": {
+			description: "test github repo push deleted events",
+			input:       "testdata/input.deployEnvironmentPR.json",
+			slack:       "testdata/deployEnvironmentPR/slack.txt",
+			rocketchat:  "testdata/deployEnvironmentPR/rocketchat.txt",
+			emailhtml:   "testdata/deployEnvironmentPR/emailhtml.txt",
+			emailplain:  "testdata/deployEnvironmentPR/emailplain.txt",
+			teams:       "testdata/deployEnvironmentPR/teams.txt",
+		},
 		"deployError": {
 			description: "test github repo push deleted events",
 			input:       "testdata/input.deployError.json",

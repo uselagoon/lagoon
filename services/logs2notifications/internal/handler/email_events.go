@@ -87,8 +87,8 @@ func (h *Messaging) processEmailTemplates(notification *Notification) (string, s
 		mainHTMLTpl = `<a href="{{.RepoURL}}/tree/{{.BranchName}}">{{.BranchName}}</a>{{ if ne .ShortSha "" }} <a href="{{.CommitURL}}">{{.ShortSha}}</a>{{end}} pushed in <a href="{{.RepoURL}}">{{.RepoFullName}}</a> <strong>deployment skipped</strong>`
 		plainTextTpl = `[{{.ProjectName}}] {{.BranchName}}{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}} pushed in {{.RepoFullName}} *deployment skipped*`
 	case "deployEnvironment":
-		mainHTMLTpl = `Deployment triggered <code>{{.BranchName}}</code>{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}}`
-		plainTextTpl = `[{{.ProjectName}}] Deployment triggered on branch {{.BranchName}}{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}}`
+		mainHTMLTpl = `Deployment triggered <code>{{ if ne .PullrequestTitle "" }}{{.PullrequestTitle}}{{end}}{{ if ne .BranchName "" }}{{.BranchName}}{{end}}</code>{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}}`
+		plainTextTpl = `[{{.ProjectName}}] Deployment triggered on branch {{ if ne .PullrequestTitle "" }}{{.PullrequestTitle}}{{end}}{{ if ne .BranchName "" }}{{.BranchName}}{{end}}{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}}`
 	case "removeFinished":
 		mainHTMLTpl = `Remove <code>{{.OpenshiftProject}}</code>`
 		plainTextTpl = `[{{.ProjectName}}] remove {{.OpenshiftProject}}`
