@@ -67,7 +67,7 @@ func (h *Messaging) processRocketChatTemplate(notification *Notification) (strin
 	case "repoPushSkipped":
 		rcTpl = `*[{{.ProjectName}}]* [{{.BranchName}}]({{.RepoURL}}/tree/{{.BranchName}}){{ if ne .ShortSha "" }} ([{{.ShortSha}}]({{.CommitURL}})){{end}} pushed in [{{.RepoFullName}}]({{.RepoURL}}) *deployment skipped*`
 	case "deployEnvironment":
-		rcTpl = `*[{{.ProjectName}}]* Deployment triggered {{ if ne .PullrequestTitle "" }}` + "`{{.PullrequestTitle}}`" + `{{end}}{{ if ne .BranchName "" }}` + "`{{.BranchName}}`" + `{{end}}{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}}`
+		rcTpl = `*[{{.ProjectName}}]* Deployment triggered {{ if ne .BranchName "" }}` + "`{{.BranchName}}`" + `{{else if ne .PullrequestTitle "" }}` + "`{{.PullrequestTitle}}`" + `{{end}}{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}}`
 	case "removeFinished":
 		rcTpl = `*[{{.ProjectName}}]* Removed ` + "`{{.OpenshiftProject}}`" + ``
 	case "removeRetry":

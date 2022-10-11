@@ -47,7 +47,7 @@ func (h *Messaging) processSlackTemplate(notification *Notification) (string, st
 	case "repoPushSkipped":
 		slackTpl = `*[{{.ProjectName}}]* <{{.RepoURL}}/tree/{{.BranchName}}|{{.BranchName}}>{{ if ne .ShortSha "" }} (<{{.CommitURL}}|{{.ShortSha}}>){{end}} pushed in <{{.RepoURL}}|{{.RepoFullName}}> *deployment skipped*`
 	case "deployEnvironment":
-		slackTpl = `*[{{.ProjectName}}]* Deployment triggered {{ if ne .PullrequestTitle "" }}` + "`{{.PullrequestTitle}}`" + `{{end}}{{ if ne .BranchName "" }}` + "`{{.BranchName}}`" + `{{end}}{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}}`
+		slackTpl = `*[{{.ProjectName}}]* Deployment triggered {{ if ne .BranchName "" }}` + "`{{.BranchName}}`" + `{{else if ne .PullrequestTitle "" }}` + "`{{.PullrequestTitle}}`" + `{{end}}{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}}`
 	case "removeFinished":
 		slackTpl = `*[{{.ProjectName}}]* Removed ` + "`{{.OpenshiftProject}}`" + ``
 	case "removeRetry":

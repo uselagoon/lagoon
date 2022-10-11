@@ -63,7 +63,7 @@ func (h *Messaging) processMicrosoftTeamsTemplate(notification *Notification) (s
 	case "repoPushSkipped":
 		teamsTpl = `[{{.BranchName}}]({{.RepoURL}}/tree/{{.BranchName}}){{ if ne .ShortSha "" }} ([{{.ShortSha}}]({{.CommitURL}})){{end}} pushed in [{{.RepoFullName}}]({{.RepoURL}}) *deployment skipped*`
 	case "deployEnvironment":
-		teamsTpl = `Deployment triggered {{ if ne .PullrequestTitle "" }}` + "`{{.PullrequestTitle}}`" + `{{end}}{{ if ne .BranchName "" }}` + "`{{.BranchName}}`" + `{{end}}{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}}`
+		teamsTpl = `Deployment triggered {{ if ne .BranchName "" }}` + "`{{.BranchName}}`" + `{{else if ne .PullrequestTitle "" }}` + "`{{.PullrequestTitle}}`" + `{{end}}{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}}`
 	case "removeFinished":
 		teamsTpl = `Removed ` + "`{{.OpenshiftProject}}`" + ``
 	case "removeRetry":
