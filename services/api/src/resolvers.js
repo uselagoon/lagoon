@@ -136,6 +136,7 @@ const {
   deleteNotificationSlack,
   deleteNotificationWebhook,
   getNotificationsByProjectId,
+  getNotificationsByOrganizationId,
   removeNotificationFromProject,
   updateNotificationMicrosoftTeams,
   updateNotificationRocketChat,
@@ -397,6 +398,7 @@ const resolvers = {
     projects: getProjectsByOrganizationId,
     owners: getOwnersByOrganizationId,
     deployTargets: getDeployTargetsByOrganizationId,
+    notifications: getNotificationsByOrganizationId
   },
   OrgProject: {
     groups: getGroupsByOrganizationsProject,

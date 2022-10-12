@@ -15,6 +15,7 @@ import * as OS from '../openshift/sql';
 import { generatePrivateKey, getSshKeyFingerprint } from '../sshKey';
 import { Sql as sshKeySql } from '../sshKey/sql';
 import { createHarborOperations } from './harborSetup';
+import { Helpers as organizationHelpers } from '../organization/helpers';
 import sql from '../user/sql';
 
 const DISABLE_CORE_HARBOR = process.env.DISABLE_CORE_HARBOR || "false"
@@ -264,6 +265,27 @@ export const addProject = async (
     await hasPermission('organization', 'addProject', {
       organization: input.organization
     });
+    // check the project quota before adding the project
+    const organization = await organizationHelpers(sqlClientPool).getOrganizationById(input.organization);
+    const projects = await organizationHelpers(sqlClientPool).getProjectsByOrganizationId(input.organization);
+    if (organization.quotaProject == projects.length) {
+      throw new Error(
+        `This would exceed this organizations project quota; ${projects.length}/${organization.quotaProject}`
+      );
+    }
+    const deploytarget = input.kubernetes || input.openshift;
+    if (deploytarget) {
+      const deploytargets = await organizationHelpers(sqlClientPool).getDeployTargetsByOrganizationId(input.organization);
+      let validDeployTarget = false
+      for (const dt of deploytargets) {
+        if (dt.dtid == deploytarget) {
+          validDeployTarget = true
+        }
+      }
+      if (!validDeployTarget) {
+        throw new Error('The provided deploytarget is not valid for this organization');
+      }
+    }
   } else {
     await hasPermission('project', 'add');
   }
@@ -281,7 +303,7 @@ export const addProject = async (
   }
   const openshift = input.kubernetes || input.openshift;
   if (!openshift) {
-    throw new Error('Must provide keycloak or openshift field');
+    throw new Error('Must provide kubernetes or openshift field');
   }
 
   //@TODO: permission check that project can be created in organization

@@ -975,6 +975,7 @@ const typeDefs = gql`
     projects: [OrgProject]
     groups: [GroupInterface]
     owners: [User]
+    notifications(type: NotificationType): [Notification]
   }
 
   input AddOrganizationInput {
@@ -1534,27 +1535,32 @@ const typeDefs = gql`
   input AddNotificationMicrosoftTeamsInput {
     name: String!
     webhook: String!
+    organization: Int
   }
   input AddNotificationEmailInput {
     name: String!
     emailAddress: String!
+    organization: Int
   }
 
   input AddNotificationRocketChatInput {
     name: String!
     webhook: String!
     channel: String!
+    organization: Int
   }
 
   input AddNotificationWebhookInput {
     name: String!
     webhook: String!
+    organization: Int
   }
 
   input AddNotificationSlackInput {
     name: String!
     webhook: String!
     channel: String!
+    organization: Int
   }
 
   input DeleteNotificationMicrosoftTeamsInput {

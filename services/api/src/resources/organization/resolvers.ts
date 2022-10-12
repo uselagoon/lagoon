@@ -155,10 +155,7 @@ export const getProjectsByOrganizationId: ResolverFn = async (
 ) => {
   const rows = await query(
     sqlClientPool,
-    `SELECT p.*
-    FROM project p
-    WHERE p.organization = :oid`,
-    { oid }
+    Sql.selectOrganizationProjects(oid)
   );
   // @TODO: FIX PERMISSION CHECK FOR ORGANIZATION PROJECTS
 

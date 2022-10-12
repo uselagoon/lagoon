@@ -9,6 +9,7 @@ import { Sql } from './sql';
 import { deployTargetBranches } from '@lagoon/commons/src/deploy-tasks';
 import { Sql as EnvironmentSql } from '../environment/sql'
 import { Helpers as projectHelpers } from '../project/helpers';
+import { Helpers as organizationHelpers } from '../organization/helpers';
 
 
 export const getDeployTargetConfigById = async (
@@ -102,6 +103,21 @@ export const updateEnvironmentDeployTarget: ResolverFn = async (
     project: environmentObj.project
   });
 
+  // check the project has an organization id, if it does, check that the organization supports the requested deploytarget
+  const projectdata = await projectHelpers(sqlClientPool).getProjectById(environmentObj.project)
+  if (projectdata.organization != null) {
+    const deploytargets = await organizationHelpers(sqlClientPool).getDeployTargetsByOrganizationId(projectdata.organization);
+    let validDeployTarget = false
+    for (const dt of deploytargets) {
+      if (dt.dtid == deployTarget) {
+        validDeployTarget = true
+      }
+    }
+    if (!validDeployTarget) {
+      throw new Error('The provided deploytarget is not valid for this organization');
+    }
+  }
+
   const deployTargets = await getDeployTargetConfigsByProjectId(null, {project: environmentObj.project}, utils);
 
   let matchesRule = false;
@@ -190,6 +206,21 @@ export const addDeployTargetConfig: ResolverFn = async (
   await hasPermission('project', 'update', {
     project: project
   });
+
+  // check the project has an organization id, if it does, check that the organization supports the requested deploytarget
+  const projectdata = await projectHelpers(sqlClientPool).getProjectById(project)
+  if (projectdata.organization != null) {
+    const deploytargets = await organizationHelpers(sqlClientPool).getDeployTargetsByOrganizationId(projectdata.organization);
+    let validDeployTarget = false
+    for (const dt of deploytargets) {
+      if (dt.dtid == deployTarget) {
+        validDeployTarget = true
+      }
+    }
+    if (!validDeployTarget) {
+      throw new Error('The provided deploytarget is not valid for this organization');
+    }
+  }
 
   const { insertId } = await query(
     sqlClientPool,
@@ -283,6 +314,21 @@ export const updateDeployTargetConfig: ResolverFn = async (
   await hasPermission('project', 'update', {
     project: deployTargetConfig.project
   });
+
+  // check the project has an organization id, if it does, check that the organization supports the requested deploytarget
+  const projectdata = await projectHelpers(sqlClientPool).getProjectById(deployTargetConfig.project)
+  if (projectdata.organization != null) {
+    const deploytargets = await organizationHelpers(sqlClientPool).getDeployTargetsByOrganizationId(projectdata.organization);
+    let validDeployTarget = false
+    for (const dt of deploytargets) {
+      if (dt.dtid == deployTarget) {
+        validDeployTarget = true
+      }
+    }
+    if (!validDeployTarget) {
+      throw new Error('The provided deploytarget is not valid for this organization');
+    }
+  }
 
   await query(
     sqlClientPool,

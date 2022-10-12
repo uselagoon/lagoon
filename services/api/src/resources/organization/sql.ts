@@ -58,5 +58,13 @@ export const Sql = {
   selectOrganization: (id: number) =>
     knex('organization')
       .where('id', '=', id)
+      .toString(),
+  selectOrganizationProjects: (id: number) =>
+    knex('project')
+      .where('organization', '=', id)
+      .toString(),
+  selectOrganizationDeployTargets: (id: number) =>
+    knex('organization_deploy_target')
+      .where('orgid', '=', id)
       .toString()
 };

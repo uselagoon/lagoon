@@ -1,3 +1,4 @@
+import { logger } from '../../loggers/logger';
 import { knex } from '../../util/db';
 import {
   NOTIFICATION_CONTENT_TYPE,
@@ -147,6 +148,23 @@ export const Sql = {
         'pn.type',
         'pn.content_type as contentType',
         'pn.notification_severity_threshold as notificationSeverityThreshold'
+      )
+      .toString();
+  },
+  selectNotificationsByTypeByOrganizationId: (input) => {
+    const {
+      type,
+      oid,
+      contentType = NOTIFICATION_CONTENT_TYPE,
+      notificationSeverityThreshold = NOTIFICATION_SEVERITY_THRESHOLD
+    } = input;
+    let selectQuery = knex(`notification_${type} as nt`);
+
+    return selectQuery
+      .where('nt.organization', '=', oid)
+      .select(
+        'nt.*',
+        knex.raw(`'${type}' as type`)
       )
       .toString();
   },
