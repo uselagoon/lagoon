@@ -20,9 +20,6 @@ import { bp } from 'lib/variables';
  */
 export const PageGroups = ({ router }) => (
   <>
-    <Head>
-      <title>{`${router.query.organizationName} | Organization`}</title>
-    </Head>
     <Query
       query={OrganizationByIDQuery}
       variables={{ id: parseInt(router.query.organizationSlug, 10) }}
@@ -33,6 +30,10 @@ export const PageGroups = ({ router }) => (
         withOrganizationRequired
       )(({ data: { organization } }) => {
         return (
+          <>
+            <Head>
+              <title>{`${organization.name} | Organization`}</title>
+            </Head>
             <MainLayout>
               <Breadcrumbs>
                 <OrganizationBreadcrumb organizationSlug={organization.id} organizationName={organization.name} />
@@ -60,6 +61,7 @@ export const PageGroups = ({ router }) => (
                 }
               `}</style>
             </MainLayout>
+          </>
         );
       })}
     </Query>

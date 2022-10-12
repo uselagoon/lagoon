@@ -44,11 +44,11 @@ export const PageGroupProject = ({ router }) => (
         withQueryLoading,
         withQueryError,
         withOrganizationRequired
-      )(({ data: { organization, } }) => (
+      )(({ data: { organization } }) => (
         <MainLayout>
           <Breadcrumbs>
-            <OrganizationBreadcrumb organizationSlug={router.query.organizationSlug} organizationName={router.query.organizationName} />
-            <OrgProjectBreadcrumb projectSlug={router.query.projectName} organizationSlug={router.query.organizationSlug} organizationName={router.query.organizationName} />
+            <OrganizationBreadcrumb organizationSlug={router.query.organizationSlug} organizationName={organization.name} />
+            <OrgProjectBreadcrumb projectSlug={router.query.projectName} organizationSlug={router.query.organizationSlug} organizationName={organization.name} />
           </Breadcrumbs>
           <div className="content-wrapper">
           {organization.projects.map(project => (
@@ -58,7 +58,7 @@ export const PageGroupProject = ({ router }) => (
                 <ProjectGroupsSideBar projectName={project.name} options={organization.groups.map(group => {return {label: group.name, value: group.name} })} />
               </div>
               <div className="projects-wrapper">
-                <ProjectGroupMembers key={project.name} projectName={project.name} groups={project.groups || []} />
+                <ProjectGroupMembers projectName={project.name} groups={project.groups || []} />
               </div>
             </>
           )))}

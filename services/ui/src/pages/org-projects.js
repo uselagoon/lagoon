@@ -22,9 +22,6 @@ import OrgProjects from '../components/OrgProjects';
  */
 export const PageOrgProjects = ({ router }) => (
   <>
-    <Head>
-      <title>{`${router.query.organizationName} | Organization`}</title>
-    </Head>
     <Query
       query={OrganizationByIDQuery}
       variables={{ id: parseInt(router.query.organizationSlug, 10) }}
@@ -35,6 +32,10 @@ export const PageOrgProjects = ({ router }) => (
         withOrganizationRequired
       )(({ data: { organization } }) => {
         return (
+          <>
+            <Head>
+              <title>{`${organization.name} | Organization`}</title>
+            </Head>
             <MainLayout>
               <Breadcrumbs>
                 <OrganizationBreadcrumb organizationSlug={organization.id} organizationName={organization.name} />
@@ -62,6 +63,7 @@ export const PageOrgProjects = ({ router }) => (
                 }
               `}</style>
             </MainLayout>
+          </>
         );
       })}
     </Query>

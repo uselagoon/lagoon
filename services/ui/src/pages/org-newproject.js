@@ -24,9 +24,6 @@ import OrgNewProject from '../components/OrgNewProject';
  */
 export const PageOrgNewProject = ({ router }) => (
   <>
-    <Head>
-      <title>{`${router.query.organizationName} | Organization`}</title>
-    </Head>
     <Query
       query={OrganizationByIDQuery}
       variables={{ id: parseInt(router.query.organizationSlug, 10) }}
@@ -37,6 +34,10 @@ export const PageOrgNewProject = ({ router }) => (
         withOrganizationRequired
       )(({ data: { organization }, inputValueEmail, setInputValue, selectedRole }) => {
         return (
+          <>
+            <Head>
+              <title>{`${organization.name} | Organization`}</title>
+            </Head>
             <MainLayout>
               <Breadcrumbs>
                 <OrganizationBreadcrumb organizationSlug={organization.id} organizationName={organization.name} />
@@ -97,6 +98,7 @@ export const PageOrgNewProject = ({ router }) => (
                 }
               `}</style>
             </MainLayout>
+          </>
         );
       })}
     </Query>

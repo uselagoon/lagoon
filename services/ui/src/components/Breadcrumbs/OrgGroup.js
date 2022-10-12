@@ -1,5 +1,5 @@
 import React from 'react';
-import { getLinkData } from 'components/link/Group';
+import { getLinkData } from 'components/link/OrgGroup';
 import Breadcrumb from 'components/Breadcrumbs/Breadcrumb';
 
 const GroupBreadcrumb = ({ groupSlug, organizationSlug, organizationName }) => {

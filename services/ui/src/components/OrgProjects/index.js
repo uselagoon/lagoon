@@ -63,7 +63,7 @@ const OrgProjects = ({ projects = [], organizationId, organizationName }) => {
         organizationSlug={organizationId}
         organizationName={organizationName}
         key={project.id}>
-        <div key={project.id} className="data-row" project={project.name}>
+        <div className="data-row" project={project.name}>
             <div className="project">{project.name}
             </div>
             <div className="customer">

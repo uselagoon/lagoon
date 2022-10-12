@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import css from 'styled-jsx/css';
 import Highlighter from 'react-highlight-words';
-import GroupLink from 'components/link/Group';
+import OrgGroupsLink from 'components/link/OrgGroup';
 import Box from 'components/Box';
 import { bp, color, fontSize } from 'lib/variables';
 import { Mutation } from 'react-apollo';
@@ -105,7 +105,7 @@ const Groups = ({ groups = [], organizationId, organizationName, setInputValue, 
         <div className="data-none">No groups matching "{searchInput}"</div>
       )}
       {filteredGroups.map(group => (
-        <GroupLink groupSlug={group.name}
+        <OrgGroupsLink groupSlug={group.name}
           organizationSlug={organizationId}
           organizationName={organizationName}
           key={group.id}>
@@ -121,7 +121,7 @@ const Groups = ({ groups = [], organizationId, organizationName, setInputValue, 
               Projects: {group.projects.length}
             </div> */}
           </div>
-        </GroupLink>
+        </OrgGroupsLink>
       ))}
       </div>
     </div>

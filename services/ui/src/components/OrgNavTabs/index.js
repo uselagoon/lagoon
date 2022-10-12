@@ -2,7 +2,7 @@ import React from 'react';
 import css from 'styled-jsx/css';
 import EnvironmentLink from 'components/link/Environment';
 import BackupsLink from 'components/link/Backups';
-import GroupsLink from 'components/link/Groups';
+import OrgGroupsLink from 'components/link/OrgGroups';
 import OrgProjectsLink from 'components/link/OrgProjects';
 import ProblemsLink from 'components/link/Problems';
 import FactsLink from 'components/link/Facts';
@@ -10,6 +10,7 @@ import { bp, color } from 'lib/variables';
 import problems from '../../pages/problems';
 import OrganizationLink from '../link/Organization';
 import OrgNewProjectLink from '../link/OrgNewProject';
+import OrgNotificationsLink from '../link/OrgNotifications';
 
 const { className: aClassName, styles: aStyles } = css.resolve`
   a {
@@ -45,13 +46,13 @@ const OrgNavTabs = ({ activeTab, organization }) => (
         activeTab == 'groups' ? 'active' : ''
       } ${aClassName}`}
     >
-      <GroupsLink
+      <OrgGroupsLink
         organizationSlug={organization.id}
         organizationName={organization.name}
         className={aClassName}
       >
         Groups
-      </GroupsLink>
+      </OrgGroupsLink>
     </li>
     <li
       className={`projects ${
@@ -65,6 +66,19 @@ const OrgNavTabs = ({ activeTab, organization }) => (
       >
         Projects
       </OrgProjectsLink>
+    </li>
+    <li
+      className={`notifications ${
+        activeTab == 'notifications' ? 'active' : ''
+      } ${aClassName}`}
+    >
+      <OrgNotificationsLink
+        organizationSlug={organization.id}
+        organizationName={organization.name}
+        className={aClassName}
+      >
+        Notifications
+      </OrgNotificationsLink>
     </li>
     <li
       className={`newproject ${
@@ -163,6 +177,17 @@ const OrgNavTabs = ({ activeTab, organization }) => (
           }
 
           &.projects {
+            &::before {
+              background-image: url('/static/images/tasks.svg');
+              background-size: 21px 16px;
+            }
+
+            &.active::before {
+              background-image: url('/static/images/tasks-active.svg');
+            }
+          }
+
+          &.notifications {
             &::before {
               background-image: url('/static/images/tasks.svg');
               background-size: 21px 16px;

@@ -56,8 +56,8 @@ export const PageGroup = ({ router }) => (
       )(({ data: { group, organization } }) => (
         <MainLayout>
           <Breadcrumbs>
-            <OrganizationBreadcrumb organizationSlug={router.query.organizationSlug} organizationName={router.query.organizationName} />
-            <GroupBreadcrumb groupSlug={group.name} organizationSlug={router.query.organizationSlug} organizationName={router.query.organizationName} />
+            <OrganizationBreadcrumb organizationSlug={router.query.organizationSlug} organizationName={organization.name} />
+            <GroupBreadcrumb groupSlug={group.name} organizationSlug={router.query.organizationSlug} organizationName={organization.name} />
           </Breadcrumbs>
           <div className="content-wrapper">
               <div className="project-details-sidebar">

@@ -31,6 +31,7 @@ const Button = ({ action = null, href = null, disabled, children, variant }) => 
             color: ${color.white};
             cursor: pointer;
             padding: 10px 30px;
+            margin: auto;
             @media ${bp.tinyUp} {
               align-self: auto;
             }
@@ -53,6 +54,7 @@ const Button = ({ action = null, href = null, disabled, children, variant }) => 
             color: ${color.white};
             cursor: pointer;
             padding: 10px 30px;
+            margin: auto;
             @media ${bp.tinyUp} {
               align-self: auto;
             }
@@ -75,6 +77,7 @@ const Button = ({ action = null, href = null, disabled, children, variant }) => 
             color: ${color.white};
             cursor: pointer;
             padding: 10px 30px;
+            margin: auto;
             @media ${bp.tinyUp} {
               align-self: auto;
             }
