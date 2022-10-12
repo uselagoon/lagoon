@@ -1,10 +1,14 @@
+// @ts-ignore
 import * as R from 'ramda';
+// @ts-ignore
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
 import {
   createDeployTask,
   createMiscTask,
   createPromoteTask,
-  sendToLagoonActions
+  sendToLagoonActions,
+  makeSafe
+  // @ts-ignore
 } from '@lagoon/commons/dist/tasks';
 import { ResolverFn } from '../';
 import {
@@ -18,18 +22,28 @@ import { Helpers } from './helpers';
 import { EVENTS } from './events';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
+// @ts-ignore
 import { addTask } from '@lagoon/commons/dist/api';
 import { Sql as environmentSql } from '../environment/sql';
+// @ts-ignore
 import S3 from 'aws-sdk/clients/s3';
+// @ts-ignore
 import sha1 from 'sha1';
+// @ts-ignore
 import { generateBuildId, jsonMerge } from '@lagoon/commons/dist/util';
 import { logger } from '../../loggers/logger';
+// @ts-ignore
 import uuid4 from 'uuid4';
 
+// @ts-ignore
 const accessKeyId =  process.env.S3_FILES_ACCESS_KEY_ID || 'minio'
+// @ts-ignore
 const secretAccessKey =  process.env.S3_FILES_SECRET_ACCESS_KEY || 'minio123'
+// @ts-ignore
 const bucket = process.env.S3_FILES_BUCKET || 'lagoon-files'
+// @ts-ignore
 const region = process.env.S3_FILES_REGION
+// @ts-ignore
 const s3Origin = process.env.S3_FILES_HOST || 'http://docker.for.mac.localhost:9000'
 
 const config = {
@@ -88,6 +102,7 @@ export const getBuildLog: ResolverFn = async (
     if (!data) {
       return null;
     }
+    // @ts-ignore
     let logMsg = new Buffer(JSON.parse(JSON.stringify(data.Body)).data).toString('ascii');
     return logMsg;
   } catch (e) {
@@ -139,6 +154,60 @@ export const getDeploymentsByBulkId: ResolverFn = async (
   }
 
   const rows = await query(sqlClientPool, queryBuilder.toString());
+  const withK8s = projectHelpers(sqlClientPool).aliasOpenshiftToK8s(rows);
+  return withK8s;
+};
+
+export const getDeploymentsByFilter: ResolverFn = async (
+  root,
+  input,
+  { sqlClientPool, hasPermission, models, keycloakGrant }
+) => {
+
+  const { openshifts, deploymentStatus = ["NEW", "PENDING", "RUNNING"] } = input;
+
+  /*
+    use the same mechanism for viewing all projects
+    bulk deployments can span multiple projects, and anyone with access to a project
+    will have the same rbac as `deployment:view` which covers all possible roles for a user
+    otherwise it will only return all the projects they have access to
+    and the listed deployments are sourced accordingly to which project
+    the user has access to
+  */
+  let userProjectIds: number[];
+  try {
+    await hasPermission('project', 'viewAll');
+  } catch (err) {
+    if (!keycloakGrant) {
+      logger.warn('No grant available for getAllProjects');
+      return [];
+    }
+
+    userProjectIds = await models.UserModel.getAllProjectsIdsForUser({
+      id: keycloakGrant.access_token.content.sub
+    });
+  }
+
+  let queryBuilder = knex.select("deployment.*").from('deployment').
+      join('environment', 'deployment.environment', '=', 'environment.id').
+      join('project', 'environment.project', '=', 'project.id').
+      where('environment.deleted', '=', '0000-00-00 00:00:00');
+
+  if(openshifts) {
+    queryBuilder = queryBuilder.whereIn('environment.openshift', openshifts);
+  }
+
+
+  queryBuilder = queryBuilder.whereIn('deployment.status', deploymentStatus);
+
+
+  if (userProjectIds) {
+    queryBuilder = queryBuilder.whereIn('project.id', userProjectIds);
+  }
+
+  const queryBuilderString = queryBuilder.toString();
+
+  const rows = await query(sqlClientPool, queryBuilderString);
   const withK8s = projectHelpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   return withK8s;
 };
@@ -414,17 +483,14 @@ export const cancelDeployment: ResolverFn = async (
     project
   };
 
-  userActivityLogger(
-    `User cancelled deployment for '${deployment.environment}'`,
-    {
-      project: '',
-      event: 'api:cancelDeployment',
-      payload: {
-        deploymentInput,
-        data: data.build
-      }
+  userActivityLogger(`User cancelled deployment for '${deployment.environment}'`, {
+    project: '',
+    event: 'api:cancelDeployment',
+    payload: {
+      deploymentInput,
+      data: data.build
     }
-  );
+  });
 
   try {
     await createMiscTask({ key: 'build:cancel', data });
@@ -585,16 +651,13 @@ export const deployEnvironmentLatest: ResolverFn = async (
       return `Error: Unknown deploy type ${environment.deployType}`;
   }
 
-  userActivityLogger(
-    `User triggered a deployment on '${deployData.projectName}' for '${environment.name}'`,
-    {
-      project: deployData.projectName || '',
-      event: 'api:deployEnvironmentLatest',
-      payload: {
-        deployData
-      }
+  userActivityLogger(`User triggered a deployment on '${deployData.projectName}' for '${environment.name}'`, {
+    project: '',
+    event: 'api:deployEnvironmentLatest',
+    payload: {
+      deployData
     }
-  );
+  });
 
   try {
     await taskFunction(deployData);
@@ -687,16 +750,13 @@ export const deployEnvironmentBranch: ResolverFn = async (
     branchName: deployData.branchName
   };
 
-  userActivityLogger(
-    `User triggered a deployment on '${deployData.projectName}' for '${deployData.branchName}'`,
-    {
-      project: deployData.projectName || '',
-      event: 'api:deployEnvironmentBranch',
-      payload: {
-        deployData
-      }
+  userActivityLogger(`User triggered a deployment on '${deployData.projectName}' for '${deployData.branchName}'`, {
+    project: '',
+    event: 'api:deployEnvironmentBranch',
+    payload: {
+      deployData
     }
-  );
+  });
 
   try {
     await createDeployTask(deployData);
@@ -736,7 +796,6 @@ export const deployEnvironmentBranch: ResolverFn = async (
           meta,
           `*[${deployData.projectName}]* Error deploying \`${deployData.branchName}\`: ${error}`
         );
-        console.log(error);
         return `Error: ${error}`;
     }
   }
@@ -801,16 +860,13 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
     pullrequestTitle: deployData.pullrequestTitle
   };
 
-  userActivityLogger(
-    `User triggered a pull-request deployment on '${deployData.projectName}' for '${deployData.branchName}'`,
-    {
-      project: deployData.projectName || '',
-      event: 'api:deployEnvironmentPullrequest',
-      payload: {
-        deployData
-      }
+  userActivityLogger(`User triggered a pull-request deployment on '${deployData.projectName}' for '${deployData.branchName}'`, {
+    project: '',
+    event: 'api:deployEnvironmentPullrequest',
+    payload: {
+      deployData
     }
-  );
+  });
 
   try {
     await createDeployTask(deployData);
@@ -925,16 +981,14 @@ export const deployEnvironmentPromote: ResolverFn = async (
     promoteSourceEnvironment: deployData.promoteSourceEnvironment
   };
 
-  userActivityLogger(
-    `User promoted the environment on '${deployData.projectName}' from '${deployData.promoteSourceEnvironment}' to '${deployData.branchName}'`,
-    {
-      project: deployData.projectName || '',
-      event: 'api:deployEnvironmentPromote',
-      payload: {
-        deployData
-      }
+  userActivityLogger(`User promoted the environment on '${deployData.projectName}'
+    from '${deployData.promoteSourceEnvironment}' to '${deployData.branchName}'`, {
+    project: '',
+    event: 'api:deployEnvironmentPromote',
+    payload: {
+      deployData
     }
-  );
+  });
 
   try {
     await createPromoteTask(deployData);
@@ -1008,28 +1062,52 @@ export const switchActiveStandby: ResolverFn = async (
     );
     return `Error: no standbyProductionEnvironment configured`;
   }
-
+  var environmentStandbyId
+  var environmentProdId
+  var environmentProd
+  var environmentStandby
   // we want the task to show in the standby environment, as this is where the task will be initiated.
-  const environmentRows = await query(
-    sqlClientPool,
-    environmentSql.selectEnvironmentByNameAndProject(
-      project.standbyProductionEnvironment,
-      project.id
-    )
-  );
-  const environment = environmentRows[0];
-  var environmentId = parseInt(environment.id);
-  // we need to pass some additional information about the production environment
-  const environmentRowsProd = await query(
-    sqlClientPool,
-    environmentSql.selectEnvironmentByNameAndProject(
-      project.productionEnvironment,
-      project.id
-    )
-  );
-  const environmentProd = environmentRowsProd[0];
-  var environmentProdId = parseInt(environmentProd.id);
+  try {
+    // maybe the environments have slashes in their names
+    // get all the environments for this project
+    const environmentsForProject = await query(
+      sqlClientPool,
+      environmentSql.selectEnvironmentsByProjectID(
+        project.id
+      )
+    );
+    for (const envForProject of environmentsForProject) {
+      // check the environments to see if their name when made "safe" matches what is defined in the `production` or `standbyProduction` environment
+      if (makeSafe(envForProject.name) == project.productionEnvironment) {
+        const environmentRowsProd = await query(
+          sqlClientPool,
+          environmentSql.selectEnvironmentByNameAndProject(
+            envForProject.name,
+            project.id
+          )
+        );
+        environmentProd = environmentRowsProd[0];
+        environmentProdId = parseInt(environmentProd.id);
+      }
+      if (makeSafe(envForProject.name) == project.standbyProductionEnvironment) {
+        const environmentRows = await query(
+          sqlClientPool,
+          environmentSql.selectEnvironmentByNameAndProject(
+            envForProject.name,
+            project.id
+          )
+        );
+        environmentStandby = environmentRows[0];
+        environmentStandbyId = parseInt(environmentStandby.id);
+      }
+    }
+  } catch (err) {
+    throw new Error(`Unable to determine active standby environments: ${err}`);
+  }
 
+  if (environmentStandbyId === undefined || environmentProdId === undefined) {
+    throw new Error(`Unable to determine active standby environments`);
+  }
   // construct the data for the misc task
   // set up the task data payload
   const data = {
@@ -1045,9 +1123,9 @@ export const switchActiveStandby: ResolverFn = async (
       openshiftProjectName: environmentProd.openshiftProjectName
     },
     environment: {
-      id: environmentId,
-      name: environment.name,
-      openshiftProjectName: environment.openshiftProjectName
+      id: environmentStandbyId,
+      name: environmentStandby.name,
+      openshiftProjectName: environmentStandby.openshiftProjectName
     },
     task: {
       id: '0',
@@ -1064,7 +1142,7 @@ export const switchActiveStandby: ResolverFn = async (
       'Active/Standby Switch',
       'ACTIVE',
       created,
-      environmentId,
+      environmentStandbyId,
       null,
       null,
       null,
@@ -1081,7 +1159,7 @@ export const switchActiveStandby: ResolverFn = async (
     // return the task id and remote id
     var retData = {
       id: data.task.id,
-      environment: environmentId
+      environment: environmentStandbyId
     };
     return retData;
   } catch (error) {
@@ -1187,11 +1265,13 @@ export const bulkDeployEnvironmentLatest: ResolverFn = async (
     // these need to be merged on top of ones that come through at the bulk deploy level
     // handle that here
     let newBuildVariables = buildVariables || [];
+
     if (envInput.buildVariables != null && buildVariables != null) {
       newBuildVariables = jsonMerge(buildVariables, envInput.buildVariables, "name")
-    } else {
+    } else if (envInput.buildVariables != null) {
       newBuildVariables = envInput.buildVariables
     }
+
     const actionData = {
       type: "deployEnvironmentLatest",
       eventType: "bulkDeployment",

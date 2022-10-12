@@ -413,16 +413,13 @@ TOKEN="$(ssh -p $TASK_SSH_PORT -t lagoon@$TASK_SSH_HOST token)" && curl -sS "$TA
 -F 0=@$file; rm -rf $file;
 `;
 
-  userActivityLogger(
-    `User triggered a Drush Archive Dump task on environment '${environmentId}'`,
-    {
-      project: '',
-      event: 'api:taskDrushArchiveDump',
-      payload: {
-        environment: environmentId
-      }
+  userActivityLogger(`User triggered a Drush Archive Dump task on environment '${environmentId}'`, {
+    project: '',
+    event: 'api:taskDrushArchiveDump',
+    payload: {
+      environment: environmentId
     }
-  );
+  });
 
   const taskData = await Helpers(sqlClientPool).addTask({
     name: 'Drush archive-dump',
@@ -462,16 +459,13 @@ TOKEN="$(ssh -p $TASK_SSH_PORT -t lagoon@$TASK_SSH_HOST token)" && curl -sS "$TA
 -F 0=@$file.gz; rm -rf $file.gz
 `;
 
-  userActivityLogger(
-    `User triggered a Drush SQL Dump task on environment '${environmentId}'`,
-    {
-      project: '',
-      event: 'api:taskDrushSqlDump',
-      payload: {
-        environment: environmentId
-      }
+  userActivityLogger(`User triggered a Drush SQL Dump task on environment '${environmentId}'`, {
+    project: '',
+    event: 'api:taskDrushSqlDump',
+    payload: {
+      environment: environmentId
     }
-  );
+  });
 
   const taskData = await Helpers(sqlClientPool).addTask({
     name: 'Drush sql-dump',
@@ -513,16 +507,13 @@ export const taskDrushCacheClear: ResolverFn = async (
     exit 1; \
   fi';
 
-  userActivityLogger(
-    `User triggered a Drush cache clear task on environment '${environmentId}'`,
-    {
-      project: '',
-      event: 'api:taskDrushCacheClear',
-      payload: {
-        environment: environmentId
-      }
+  userActivityLogger(`User triggered a Drush cache clear task on environment '${environmentId}'`, {
+    project: '',
+    event: 'api:taskDrushCacheClear',
+    payload: {
+      environment: environmentId
     }
-  );
+  });
 
   const taskData = await Helpers(sqlClientPool).addTask({
     name: 'Drush cache-clear',
@@ -553,16 +544,13 @@ export const taskDrushCron: ResolverFn = async (
     project: envPerm.project
   });
 
-  userActivityLogger(
-    `User triggered a Drush cron task on environment '${environmentId}'`,
-    {
-      project: '',
-      event: 'api:taskDrushCron',
-      payload: {
-        environment: environmentId
-      }
+  userActivityLogger(`User triggered a Drush cron task on environment '${environmentId}'`, {
+    project: '',
+    event: 'api:taskDrushCron',
+    payload: {
+      environment: environmentId
     }
-  );
+  });
 
   const taskData = await Helpers(sqlClientPool).addTask({
     name: 'Drush cron',
@@ -619,17 +607,14 @@ export const taskDrushSqlSync: ResolverFn = async (
     }
   );
 
-  userActivityLogger(
-    `User triggered a Drush SQL sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`,
-    {
-      project: '',
-      event: 'api:taskDrushSqlSync',
-      payload: {
-        sourceEnvironment: sourceEnvironmentId,
-        destinationEnvironment: destinationEnvironmentId
-      }
+  userActivityLogger(`User triggered a Drush SQL sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`, {
+    project: '',
+    event: 'api:taskDrushSqlSync',
+    payload: {
+      sourceEnvironment: sourceEnvironmentId,
+      destinationEnvironment: destinationEnvironmentId
     }
-  );
+  });
 
   const command =
   `LAGOON_ALIAS_PREFIX="" && \
@@ -691,17 +676,14 @@ export const taskDrushRsyncFiles: ResolverFn = async (
     }
   );
 
-  userActivityLogger(
-    `User triggered an rsync sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`,
-    {
-      project: '',
-      event: 'api:taskDrushRsyncFiles',
-      payload: {
-        sourceEnvironment: sourceEnvironmentId,
-        destinationEnvironment: destinationEnvironmentId
-      }
+  userActivityLogger(`User triggered an rsync sync task from '${sourceEnvironmentId}' to '${destinationEnvironmentId}'`, {
+    project: '',
+    event: 'api:taskDrushRsyncFiles',
+    payload: {
+      sourceEnvironment: sourceEnvironmentId,
+      destinationEnvironment: destinationEnvironmentId
     }
-  );
+  });
 
   const command =
   `LAGOON_ALIAS_PREFIX="" && \
@@ -737,16 +719,13 @@ export const taskDrushUserLogin: ResolverFn = async (
     project: envPerm.project
   });
 
-  userActivityLogger(
-    `User triggered a Drush user login task on '${environmentId}'`,
-    {
-      project: '',
-      event: 'api:taskDrushUserLogin',
-      payload: {
-        environment: environmentId
-      }
+  userActivityLogger(`User triggered a Drush user login task on '${environmentId}'`, {
+    project: '',
+    event: 'api:taskDrushUserLogin',
+    payload: {
+      environment: environmentId
     }
-  );
+  });
 
   const taskData = await Helpers(sqlClientPool).addTask({
     name: 'Drush uli',

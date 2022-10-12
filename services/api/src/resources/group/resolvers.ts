@@ -520,7 +520,7 @@ export const addGroupsToProject: ResolverFn = async (
   }
 
   userActivityLogger(`User synced groups to a project`, {
-    project: project.name || '',
+    project: '',
     event: 'api:addGroupsToProject',
     payload: {
       input: {

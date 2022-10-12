@@ -840,6 +840,7 @@ const typeDefs = gql`
     routes: String
     monitoringUrls: String
     deployments(name: String, limit: Int): [Deployment]
+    insights(type: String, limit: Int): [Insight]
     backups(includeDeleted: Boolean, limit: Int): [Backup]
     tasks(id: Int, taskName: String, limit: Int): [Task]
     advancedTasks: [AdvancedTaskDefinition]
@@ -915,6 +916,19 @@ const typeDefs = gql`
     priority: Int
     bulkId: String
     bulkName: String
+  }
+
+  type Insight {
+    id: Int
+    type: String
+    service: String
+    created: String
+    fileId: String
+    data: String
+    file: String!
+    size: String
+    environment: Environment!
+    downloadUrl: String
   }
 
   type EnvKeyValue {
@@ -1124,6 +1138,7 @@ const typeDefs = gql`
     ): Environment
     deploymentByRemoteId(id: String): Deployment
     deploymentsByBulkId(bulkId: String): [Deployment]
+    deploymentsByFilter(openshifts: [Int], deploymentStatus: [DeploymentStatusType]): [Deployment]
     taskByTaskName(taskName: String): Task
     taskByRemoteId(id: String): Task
     taskById(id: Int): Task
@@ -1411,6 +1426,7 @@ const typeDefs = gql`
     NUMERIC
     STRING
     ENVIRONMENT_SOURCE_NAME
+    ENVIRONMENT_SOURCE_NAME_EXCLUDE_SELF
   }
 
   input AdvancedTaskDefinitionArgumentInput {

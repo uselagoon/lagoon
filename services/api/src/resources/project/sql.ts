@@ -31,11 +31,30 @@ export const Sql = {
       .toString(),
   selectProjectsByOrganizationIds: (organizationId: number) =>
     knex('project as p')
-      .where('p.organization', organizationId)
+      .where('p.organization', organizationId),
+  deleteEnvironmentVariables: (id: number) =>
+    knex('env_vars')
+      .where('project', '=', id)
+      .delete()
+      .toString(),
+  deleteDeployTargetConfigs: (id: number) =>
+    knex('deploy_target_config')
+      .where('project', '=', id)
+      .delete()
+      .toString(),
+  deleteNotifications: (id: number) =>
+    knex('project_notification')
+      .where('pid', '=', id)
+      .delete()
+      .toString(),
+  deleteProject: (id: number) =>
+    knex('project')
+      .where('id', '=', id)
+      .delete()
       .toString(),
   selectEnvironmentsByProjectId: (id: number) =>
     knex('environment as e')
-      .where('e.project', id)
+      .where('e.project', '=', id)
       .andWhere('e.deleted', '=', '0000-00-00 00:00:00')
       .toString(),
   selectProjectByEnvironmentId: (environmentId, environmentType = []) => {

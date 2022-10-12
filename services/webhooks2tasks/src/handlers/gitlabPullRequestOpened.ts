@@ -59,7 +59,7 @@ export async function gitlabPullRequestOpened(webhook: WebhookRequestData, proje
 
     try {
       await createDeployTask(data);
-      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:opened:handled`, data,
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:opened:handled`, meta,
         `*[${project.name}]* PR <${body.object_attributes.url}|#${body.object_attributes.iid} (${body.object_attributes.title})> opened in <${body.object_attributes.target.web_url}|${body.object_attributes.target.name}>`
       )
       return;

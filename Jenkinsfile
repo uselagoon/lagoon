@@ -70,6 +70,8 @@ pipeline {
       parallel {
         stage ('0: setup test cluster') {
           steps {
+            sh script: "make -j$NPROC local-dev/kind", label: "Configure kind"
+            sh script: "./local-dev/kind delete clusters --all", label: "Delete any remnant clusters"
             sh script: "make -j$NPROC kind/test TESTS=[nginx] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Setup cluster and run nginx smoketest"
             sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-0 log after test completion"
           }
@@ -89,7 +91,7 @@ pipeline {
       parallel {
         stage ('1: run first test suite') {
           steps {
-            sh script: "make -j$NPROC kind/retest TESTS=[api,deploytarget,active-standby-kubernetes,features-kubernetes,features-kubernetes-2,features-api-variables,tasks] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running first test suite on kind cluster"
+            sh script: "make -j$NPROC kind/retest TESTS=[api,deploytarget,active-standby-kubernetes,features-kubernetes,features-kubernetes-2,features-variables,tasks] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running first test suite on kind cluster"
             sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-1 log after test completion"
           }
         }

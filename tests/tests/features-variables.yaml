@@ -1,0 +1,88 @@
+---
+- include: features/api-token.yaml
+  vars:
+    testname: "API TOKEN"
+
+- include: api/add-project.yaml
+  vars:
+    project: ci-features-api-variables-{{ cluster_type }}
+    git_repo_name: features-variables.git
+    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
+
+- include: api/add-environment.yaml
+  vars:
+    name: lagoon-api-variables
+    project: ci-features-api-variables-{{ cluster_type }}
+    environmentType: PRODUCTION
+
+- include: api/add-project-variable.yaml
+  vars:
+    project: ci-features-api-variables-{{ cluster_type }}
+    envName: "LAGOON_API_VARIABLE_PROJECT"
+    envValue: "4A65DC68F2"
+    envScope: "GLOBAL"
+
+- include: api/add-project-variable.yaml
+  vars:
+    project: ci-features-api-variables-{{ cluster_type }}
+    envName: "LAGOON_API_VARIABLE_OVERRIDE"
+    envValue: "74B3E42B54"
+    envScope: "GLOBAL"
+
+- include: api/add-project-variable.yaml
+  vars:
+    project: ci-features-api-variables-{{ cluster_type }}
+    envName: "LAGOON_API_VARIABLE_BUILD"
+    envValue: "AEF177FCF4"
+    envScope: "BUILD"
+
+- include: api/add-project-variable.yaml
+  vars:
+    project: ci-features-api-variables-{{ cluster_type }}
+    envName: "LAGOON_API_VARIABLE_RUNTIME"
+    envValue: "90AEC657F8"
+    envScope: "RUNTIME"
+
+- include: features/lagoon-api-variables.yaml
+  vars:
+    testname: "LAGOON API VARIABLES {{ cluster_type|upper }}"
+    git_repo_name: features-variables.git
+    project: ci-features-api-variables-{{ cluster_type }}
+    branch: lagoon-api-variables
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+
+- include: api/delete-project.yaml
+  vars:
+    project: ci-features-api-variables-{{ cluster_type }}
+
+- include: features/api-token.yaml
+  vars:
+    testname: "API TOKEN"
+
+- include: api/add-project.yaml
+  vars:
+    project: ci-features-dotenv-variables-{{ cluster_type }}
+    git_repo_name: features-variables.git
+    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
+
+- include: features/dot-env.yaml
+  vars:
+    testname: "DOT-ENV VARIABLES {{ cluster_type|upper }}"
+    git_repo_name: features-variables.git
+    project: ci-features-dotenv-variables-{{ cluster_type }}
+    branch: slash/branch1
+    expected_dot_env: slash/branch1
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+
+- include: features/dot-env.yaml
+  vars:
+    testname: "DOT-ENV VARIABLES {{ cluster_type|upper }}"
+    git_repo_name: features-variables.git
+    project: ci-features-dotenv-variables-{{ cluster_type }}
+    branch: branch1
+    expected_dot_env: branch1
+    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+
+- include: api/delete-project.yaml
+  vars:
+    project: ci-features-dotenv-variables-{{ cluster_type }}

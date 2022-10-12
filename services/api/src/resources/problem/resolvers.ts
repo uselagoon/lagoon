@@ -303,7 +303,7 @@ export const addProblemHarborScanMatch: ResolverFn = async (
   );
 
   userActivityLogger(`User added harbor scan regex matcher`, {
-    project: defaultLagoonProject || '',
+    project: '',
     event: 'api:addProblemHarborScanMatch',
     payload: {
       input: {
