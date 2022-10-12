@@ -1720,6 +1720,96 @@ CREATE OR REPLACE PROCEDURE
   END;
 $$
 
+CREATE OR REPLACE PROCEDURE
+  add_organization_to_notification_slack()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'notification_slack'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'organization'
+    ) THEN
+      ALTER TABLE `notification_slack`
+      ADD `organization` int REFERENCES organization (id);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_organization_to_notification_rocketchat()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'notification_rocketchat'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'organization'
+    ) THEN
+      ALTER TABLE `notification_rocketchat`
+      ADD `organization` int REFERENCES organization (id);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_organization_to_notification_email()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'notification_email'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'organization'
+    ) THEN
+      ALTER TABLE `notification_email`
+      ADD `organization` int REFERENCES organization (id);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_organization_to_notification_microsoftteams()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'notification_microsoftteams'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'organization'
+    ) THEN
+      ALTER TABLE `notification_microsoftteams`
+      ADD `organization` int REFERENCES organization (id);
+    END IF;
+  END;
+$$
+
+CREATE OR REPLACE PROCEDURE
+  add_organization_to_notification_webhook()
+
+  BEGIN
+    IF NOT EXISTS (
+      SELECT NULL
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE
+        table_name = 'notification_webhook'
+        AND table_schema = 'infrastructure'
+        AND column_name = 'organization'
+    ) THEN
+      ALTER TABLE `notification_webhook`
+      ADD `organization` int REFERENCES organization (id);
+    END IF;
+  END;
+$$
+
 -- TODO: Eventually the `active/succeeded` values should go away once `remote-controller` is updated to send the correct values
 -- CREATE OR REPLACE PROCEDURE
 --   remove_active_succeeded_task_types()
@@ -1848,6 +1938,11 @@ CALL update_active_succeeded_tasks();
 CALL update_missing_tasknames();
 CALL add_organization_to_project();
 CALL add_build_image_to_openshift();
+CALL add_organization_to_notification_slack();
+CALL add_organization_to_notification_rocketchat();
+CALL add_organization_to_notification_email();
+CALL add_organization_to_notification_microsoftteams();
+CALL add_organization_to_notification_webhook();
 
 -- Drop legacy SSH key procedures
 DROP PROCEDURE IF EXISTS CreateProjectSshKey;

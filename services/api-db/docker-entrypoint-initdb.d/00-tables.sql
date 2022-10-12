@@ -28,29 +28,33 @@ CREATE TABLE IF NOT EXISTS openshift (
 );
 
 CREATE TABLE IF NOT EXISTS notification_microsoftteams (
-  id          int NOT NULL auto_increment PRIMARY KEY,
-  name        varchar(50) UNIQUE,
-  webhook     varchar(512)
+  id            int NOT NULL auto_increment PRIMARY KEY,
+  name          varchar(50) UNIQUE,
+  webhook       varchar(512),
+  organization  int REFERENCES organization (id)
 );
 
 CREATE TABLE IF NOT EXISTS notification_rocketchat (
-  id          int NOT NULL auto_increment PRIMARY KEY,
-  name        varchar(50) UNIQUE,
-  webhook     varchar(300),
-  channel     varchar(300)
+  id            int NOT NULL auto_increment PRIMARY KEY,
+  name          varchar(50) UNIQUE,
+  webhook       varchar(300),
+  channel       varchar(300),
+  organization  int REFERENCES organization (id)
 );
 
 CREATE TABLE IF NOT EXISTS notification_slack (
-  id          int NOT NULL auto_increment PRIMARY KEY,
-  name        varchar(50) UNIQUE,
-  webhook     varchar(300),
-  channel     varchar(300)
+  id            int NOT NULL auto_increment PRIMARY KEY,
+  name          varchar(50) UNIQUE,
+  webhook       varchar(300),
+  channel       varchar(300),
+  organization  int REFERENCES organization (id)
 );
 
 CREATE TABLE IF NOT EXISTS notification_email (
   id            int NOT NULL auto_increment PRIMARY KEY,
   name          varchar(50) UNIQUE,
-  email_address varchar(300)
+  email_address varchar(300),
+  organization  int REFERENCES organization (id)
 );
 
 CREATE TABLE IF NOT EXISTS organization (
@@ -314,9 +318,10 @@ CREATE TABLE IF NOT EXISTS advanced_task_definition_argument (
 );
 
 CREATE TABLE IF NOT EXISTS notification_webhook (
-  id          int NOT NULL auto_increment PRIMARY KEY,
-  name        varchar(50) UNIQUE,
-  webhook     varchar(2000)
+  id            int NOT NULL auto_increment PRIMARY KEY,
+  name          varchar(50) UNIQUE,
+  webhook       varchar(2000),
+  organization  int REFERENCES organization (id)
 );
 
 
