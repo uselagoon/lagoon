@@ -1,4 +1,4 @@
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { getSshKey } from '@lagoon/commons/dist/gitlabApi';
 import { addSshKey } from '@lagoon/commons/dist/api';
 

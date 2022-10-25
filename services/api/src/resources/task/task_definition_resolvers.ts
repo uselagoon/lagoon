@@ -19,7 +19,7 @@ import convertDateToMYSQLDateTimeFormat from '../../util/convertDateToMYSQLDateT
 import * as advancedTaskToolbox from './advancedtasktoolbox';
 import { IKeycloakAuthAttributes, KeycloakUnauthorizedError } from '../../util/auth';
 import { Environment } from '../../resolvers';
-import { generateTaskName } from '@lagoon/commons/dist/util';
+import { generateTaskName } from '@lagoon/commons/dist/util/lagoon';
 
 enum AdvancedTaskDefinitionTarget {
   Group,

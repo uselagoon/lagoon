@@ -15,6 +15,8 @@ services:
     volumes:
       - ./services/webhook-handler/src:/app/services/webhook-handler/src
       - ./node-packages:/app/node-packages:delegated
+    environment:
+      - CONSOLE_LOGGING_LEVEL=trace
   backup-handler:
     image: ${IMAGE_REPO:-lagoon}/backup-handler
     restart: on-failure
@@ -33,6 +35,8 @@ services:
     volumes:
       - ./services/controllerhandler/src:/app/services/controllerhandler/src
       - ./node-packages:/app/node-packages:delegated
+    environment:
+      - CONSOLE_LOGGING_LEVEL=trace
   logs2notifications:
     image: ${IMAGE_REPO:-lagoon}/logs2notifications
     environment:
@@ -47,6 +51,8 @@ services:
     volumes:
       - ./services/webhooks2tasks/src:/app/services/webhooks2tasks/src
       - ./node-packages:/app/node-packages:delegated
+    environment:
+      - CONSOLE_LOGGING_LEVEL=trace
   api:
     image: ${IMAGE_REPO:-lagoon}/api
     command: ./node_modules/.bin/tsc-watch --build --incremental --onSuccess "node -r dotenv-extended/config dist/index"
@@ -61,6 +67,7 @@ services:
       - CI=${CI:-true}
       - REGISTRY=harbor.172.17.0.1.nip.io:18080 # Docker network bridge and forwarded port for harbor-nginx
       - S3_FILES_HOST=http://172.17.0.1:9000
+      - CONSOLE_LOGGING_LEVEL=trace
     depends_on:
       - api-db
       - keycloak
@@ -107,6 +114,7 @@ services:
     environment:
       - JWTISSUER=auth-server.dev
       - JWTAUDIENCE=api.dev
+      - CONSOLE_LOGGING_LEVEL=trace
     volumes:
       - ./services/auth-server/src:/app/services/auth-server/src
     ports:

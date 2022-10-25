@@ -1,7 +1,7 @@
 import { ChannelWrapper } from 'amqp-connection-manager';
 import { ConsumeMessage } from 'amqplib';
-import { logger } from '@lagoon/commons/dist/local-logging';
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { logger } from '@lagoon/commons/dist/logs/local-logger';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { resticbackupSnapshotFinished } from '../handlers/resticbackupSnapshotFinished';
 import { resticbackupSnapshotSync } from '../handlers/resticbackupSnapshotSync';
 import { resticbackupRestoreFinished } from '../handlers/resticbackupRestoreFinished';
@@ -52,8 +52,7 @@ async function handle(handler, webhook: WebhookRequestData, fullEvent: string, c
   try {
     await handler(webhook, channelWrapperWebhooks);
   } catch (error) {
-    logger.error(`Error handling ${fullEvent}`);
-    logger.error(error);
+    logger.error(`Error handling ${fullEvent}: ${error.message}`);
   }
 }
 

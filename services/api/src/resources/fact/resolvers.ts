@@ -130,7 +130,7 @@ export const getProjectsByFactSearch: ResolverFn = async (
     isAdmin = true;
   } catch (err) {
     if (!keycloakGrant) {
-      logger.warn('No grant available for getAllProjects');
+      logger.debug('No grant available for getProjectsByFactSearch');
       return [];
     }
 
@@ -162,7 +162,7 @@ export const getEnvironmentsByFactSearch: ResolverFn = async (
     isAdmin = true;
   } catch (err) {
     if (!keycloakGrant) {
-      logger.warn('No grant available for getAllProjects');
+      logger.debug('No grant available for getEnvironmentsByFactSearch');
       return [];
     }
 

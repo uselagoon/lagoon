@@ -1,6 +1,6 @@
 // @flow
 
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import {
   getVulnerabilitiesPayloadFromHarbor,
 } from '@lagoon/commons/dist/harborApi';

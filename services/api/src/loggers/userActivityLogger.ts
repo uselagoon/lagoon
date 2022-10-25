@@ -1,6 +1,6 @@
 import winston, { Logger } from 'winston';
 const { addColors, createLogger, format, transports } = require('winston');
-import { RabbitMQTransport } from '../util/winstonRabbitmqTransport';
+import { LagoonLogsTransport } from './lagoonLogsTransport';
 
 export interface IUserActivityLogger extends winston.Logger {
   user_info: winston.LeveledLogMethod;
@@ -166,7 +166,7 @@ export const userActivityLogger: IUserActivityLogger = createLogger({
       handleExceptions: true,
       json: true
     }),
-    new RabbitMQTransport({
+    new LagoonLogsTransport({
       level: 'user_action',
       json: true
     })

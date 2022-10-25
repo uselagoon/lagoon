@@ -34,7 +34,7 @@ export const getAllProblems: ResolverFn = async (
     }
   } catch (err) {
     if (err) {
-      logger.warn(err);
+      logger.warn(`getAllProblems: ${err.message}`);
       return [];
     }
   }

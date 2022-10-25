@@ -1,4 +1,4 @@
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { removeUserFromGroup, sanitizeGroupName } from '@lagoon/commons/dist/api';
 import { getGroup } from '@lagoon/commons/dist/gitlabApi';
 
