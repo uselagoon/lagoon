@@ -262,7 +262,7 @@ export const addProject = async (
   }
   const openshift = input.kubernetes || input.openshift;
   if (!openshift) {
-    throw new Error('Must provide keycloak or openshift field');
+    throw new Error('Must provide kubernetes or openshift field');
   }
 
   let keyPair: any = {};
