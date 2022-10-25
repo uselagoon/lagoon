@@ -13,7 +13,7 @@
 
 import http from 'http';
 import amqp, { ChannelWrapper } from 'amqp-connection-manager';
-import { logger } from '@lagoon/commons/dist/local-logging';
+import { logger } from '@lagoon/commons/dist/logs/local-logger';
 import { createReqHandler } from './createReqHandler';
 
 const rabbitmqHost = process.env.RABBITMQ_HOST || "broker"

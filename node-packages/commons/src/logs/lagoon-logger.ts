@@ -1,5 +1,7 @@
+import { has } from 'ramda';
 import { connect } from 'amqp-connection-manager';
-import { logger } from './local-logging';
+import { logger } from './local-logger';
+import { levels } from './';
 
 const rabbitmqHost = process.env.RABBITMQ_HOST || 'broker';
 const rabbitmqUsername = process.env.RABBITMQ_USERNAME || 'guest';
@@ -65,7 +67,9 @@ export async function sendToLagoonLogs(
     };
     await channelWrapperLogs.publish('lagoon-logs', '', buffer, options);
 
-    logger.log(severity, `lagoon-logs: Send to lagoon-logs: ${message}`);
+    if (has(severity, levels)) {
+      logger.log(severity, `lagoon-logs: Send to lagoon-logs: ${message}`);
+    }
   } catch (error) {
     logger.error(
       `lagoon-logs: Error send to rabbitmq lagoon-logs exchange, error: ${error}`

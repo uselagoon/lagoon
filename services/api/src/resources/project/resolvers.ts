@@ -58,7 +58,7 @@ export const getAllProjects: ResolverFn = async (
     await hasPermission('project', 'viewAll');
   } catch (err) {
     if (!keycloakGrant) {
-      logger.warn('No grant available for getAllProjects');
+      logger.debug('No grant available for getAllProjects');
       return [];
     }
 
@@ -208,7 +208,7 @@ export const getProjectsByMetadata: ResolverFn = async (
     await hasPermission('project', 'viewAll');
   } catch (err) {
     if (!keycloakGrant) {
-      logger.warn('No grant available for getAllProjects');
+      logger.debug('No grant available for getProjectsByMetadata');
       return [];
     }
 
@@ -262,7 +262,7 @@ export const addProject = async (
   }
   const openshift = input.kubernetes || input.openshift;
   if (!openshift) {
-    throw new Error('Must provide keycloak or openshift field');
+    throw new Error('Must provide kubernetes or openshift field');
   }
 
   let keyPair: any = {};

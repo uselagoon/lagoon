@@ -1,7 +1,7 @@
 // @ts-ignore
 import * as R from 'ramda';
 // @ts-ignore
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import {
   createDeployTask,
   createMiscTask,
@@ -30,7 +30,8 @@ import S3 from 'aws-sdk/clients/s3';
 // @ts-ignore
 import sha1 from 'sha1';
 // @ts-ignore
-import { generateBuildId, jsonMerge } from '@lagoon/commons/dist/util';
+import { generateBuildId } from '@lagoon/commons/dist/util/lagoon';
+import { jsonMerge } from '@lagoon/commons/dist/util/func';
 import { logger } from '../../loggers/logger';
 // @ts-ignore
 import uuid4 from 'uuid4';
@@ -130,7 +131,7 @@ export const getDeploymentsByBulkId: ResolverFn = async (
     await hasPermission('project', 'viewAll');
   } catch (err) {
     if (!keycloakGrant) {
-      logger.warn('No grant available for getAllProjects');
+      logger.debug('No grant available for getDeploymentsByBulkId');
       return [];
     }
 
@@ -179,7 +180,7 @@ export const getDeploymentsByFilter: ResolverFn = async (
     await hasPermission('project', 'viewAll');
   } catch (err) {
     if (!keycloakGrant) {
-      logger.warn('No grant available for getAllProjects');
+      logger.debug('No grant available for getDeploymentsByFilter');
       return [];
     }
 
@@ -1194,7 +1195,7 @@ export const bulkDeployEnvironmentLatest: ResolverFn = async (
     await hasPermission('project', 'viewAll');
   } catch (err) {
     if (!keycloakGrant) {
-      logger.warn('No grant available for getAllProjects');
+      logger.debug('No grant available for bulkDeployEnvironmentLatest');
       return [];
     }
 

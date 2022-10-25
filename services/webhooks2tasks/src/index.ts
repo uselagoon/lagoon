@@ -1,6 +1,6 @@
 import amqp, { ChannelWrapper } from 'amqp-connection-manager';
-import { logger } from '@lagoon/commons/dist/local-logging';
-import { initSendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { logger } from '@lagoon/commons/dist/logs/local-logger';
+import { initSendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { initSendToLagoonTasks } from '@lagoon/commons/dist/tasks';
 import { processQueue } from './processQueue';
 

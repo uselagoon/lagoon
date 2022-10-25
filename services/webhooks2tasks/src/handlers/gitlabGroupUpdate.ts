@@ -1,4 +1,4 @@
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { getGroup } from '@lagoon/commons/dist/gitlabApi';
 import { updateGroup, sanitizeGroupName } from '@lagoon/commons/dist/api';
 

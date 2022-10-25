@@ -1,10 +1,10 @@
 const promisify = require('util').promisify;
 import R from 'ramda';
-import { logger } from '@lagoon/commons/dist/local-logging';
+import { logger } from '@lagoon/commons/dist/logs/local-logger';
 import {
   sendToLagoonLogs,
   initSendToLagoonLogs
-} from '@lagoon/commons/dist/logs';
+} from '@lagoon/commons/dist/logs/lagoon-logger';
 import {
   consumeTasks,
   initSendToLagoonTasks
@@ -209,7 +209,7 @@ const messageConsumer = async function(msg) {
         meta.openshiftProjectName = namespace
         meta.projectName = meta.project
         sendToLagoonLogs(
-          'success',
+          'info',
           meta.project,
           '',
           'task:remove-kubernetes:finished',

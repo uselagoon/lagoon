@@ -129,7 +129,9 @@ If you'd like Lagoon to ignore a service completely - for example, you need a co
 
 ### Persistent Storage
 
-Some containers need persistent storage. In many cases, Lagoon knows where that persistent storage needs to go. For example, for a MariaDB container, Lagoon knows that the persistent storage should be put into `/var/lib/mysql` , and puts it there automatically without any extra configuration to define that. For some situations, though, Lagoon needs your help to know where to put the persistent storage:
+Some containers need persistent storage. Lagoon allows for each container to have a maximum of one persistent storage volume attached to the container. You can configure the container to request its own persistent storage volume (which can then be mounted by other container), or you can tell the container to mount the persistent storage created by another container. 
+
+In many cases, Lagoon knows where that persistent storage needs to go. For example, for a MariaDB container, Lagoon knows that the persistent storage should be put into `/var/lib/mysql` , and puts it there automatically without any extra configuration to define that. For some situations, though, Lagoon needs your help to know where to put the persistent storage:
 
 * `lagoon.persistent` - The **absolute** path where the persistent storage should be mounted \(the above example uses `/app/web/sites/default/files/` which is where Drupal expects its persistent storage\).
 * `lagoon.persistent.name` - Tells Lagoon to not create a new persistent storage for that service, but instead mounts the persistent storage of another defined service into this service.

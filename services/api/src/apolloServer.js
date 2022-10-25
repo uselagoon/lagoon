@@ -7,8 +7,11 @@ const {
 const NodeCache = require('node-cache');
 const gql = require('graphql-tag');
 const newrelic = require('newrelic');
+const { decode } = require('jsonwebtoken');
 const { getConfigFromEnv } = require('./util/config');
 const {
+  isLegacyToken,
+  isKeycloakToken,
   getCredentialsForLegacyToken,
   getGrantForKeycloakToken,
   legacyHasPermission,
@@ -31,49 +34,61 @@ const EnvironmentModel = require('./models/environment');
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 
 const getGrantOrLegacyCredsFromToken = async token => {
-  let grant, legacyCredentials;
+  const decodedToken = decode(token, { json: true, complete: true });
 
-  try {
-    grant = await getGrantForKeycloakToken(token);
-
-    if (grant.access_token) {
-      const {
-        azp: source,
-        preferred_username,
-        email
-      } = grant.access_token.content;
-      const username = preferred_username ? preferred_username : 'unknown';
-
-      userActivityLogger.user_auth(
-        `Authentication granted for '${username} (${email ? email : 'unknown'})' from '${source}'`,
-        { user: grant ? grant.access_token.content : null }
-      );
-    }
-  } catch (e) {
-    // It might be a legacy token, so continue on.
-    logger.debug(`Keycloak token auth failed: ${e.message}`);
-  }
-
-  try {
-    if (!grant) {
-      legacyCredentials = await getCredentialsForLegacyToken(token);
+  if (isLegacyToken(decodedToken)) {
+    try {
+      const legacyCredentials = await getCredentialsForLegacyToken(token);
 
       const { sub, iss } = legacyCredentials;
       const username = sub ? sub : 'unknown';
       const source = iss ? iss : 'unknown';
       userActivityLogger.user_auth(
-        `Authentication granted for '${username}' from '${source}'`, { user: legacyCredentials }
+        `Authentication granted for '${username}' from '${source}'`,
+        { user: legacyCredentials }
       );
-    }
-  } catch (e) {
-    logger.debug(`Keycloak legacy auth failed: ${e.message}`);
-    throw new AuthenticationError(e.message);
-  }
 
-  return {
-    grant: grant ? grant : null,
-    legacyCredentials: legacyCredentials ? legacyCredentials : null
-  };
+      return {
+        grant: null,
+        legacyCredentials
+      };
+    } catch (e) {
+      throw new AuthenticationError(`Legacy token invalid: ${e.message}`);
+    }
+  } else if (isKeycloakToken(decodedToken)) {
+    try {
+      const grant = await getGrantForKeycloakToken(token);
+
+      if (grant.access_token) {
+        const {
+          azp: source,
+          preferred_username,
+          email
+        } = grant.access_token.content;
+        const username = preferred_username ? preferred_username : 'unknown';
+
+        userActivityLogger.user_auth(
+          `Authentication granted for '${username} (${
+            email ? email : 'unknown'
+          })' from '${source}'`,
+          { user: grant ? grant.access_token.content : null }
+        );
+      }
+
+      return {
+        grant,
+        legacyCredentials: null
+      };
+    } catch (e) {
+      throw new AuthenticationError(`Keycloak token invalid: ${e.message}`);
+    }
+  } else {
+    throw new AuthenticationError(`Bearer token unrecognized`);
+    return {
+      grant: null,
+      legacyCredentials: null
+    };
+  }
 };
 
 const apolloServer = new ApolloServer({
@@ -167,8 +182,11 @@ const apolloServer = new ApolloServer({
               ? req.legacyCredentials
               : null,
             headers: req.headers
-          }
-          return userActivityLogger.user_action(message, { ...defaultMeta, ...meta });
+          };
+          return userActivityLogger.user_action(message, {
+            ...defaultMeta,
+            ...meta
+          });
         },
         models: {
           UserModel: User.User(modelClients),
@@ -180,7 +198,7 @@ const apolloServer = new ApolloServer({
     }
   },
   formatError: error => {
-    logger.warn(error.message);
+    logger.error('GraphQL field error `' + error.path + '`: ' + error.message);
     return {
       message: error.message,
       locations: error.locations,

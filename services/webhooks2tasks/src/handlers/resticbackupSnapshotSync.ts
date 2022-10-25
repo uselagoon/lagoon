@@ -1,8 +1,8 @@
 import R from 'ramda';
 import uuid4 from 'uuid4';
 import { ChannelWrapper } from 'amqp-connection-manager';
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
-import { logger } from '@lagoon/commons/dist/local-logging';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
+import { logger } from '@lagoon/commons/dist/logs/local-logger';
 import { deleteBackup, getEnvironmentBackups } from '@lagoon/commons/dist/api';
 
 import { WebhookRequestData } from '../types';
