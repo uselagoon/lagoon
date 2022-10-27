@@ -59,7 +59,6 @@ func (h *Messaging) processEmailTemplates(notification *Notification) (string, s
 	emoji, color, tpl, err := getEmailEvent(notification.Event)
 	if err != nil {
 		eventSplit := strings.Split(notification.Event, ":")
-		fmt.Println(eventSplit[0])
 		if eventSplit[0] != "problem" {
 			return "", "", "", "", "", nil
 		}
@@ -88,14 +87,14 @@ func (h *Messaging) processEmailTemplates(notification *Notification) (string, s
 		mainHTMLTpl = `<a href="{{.RepoURL}}/tree/{{.BranchName}}">{{.BranchName}}</a>{{ if ne .ShortSha "" }} <a href="{{.CommitURL}}">{{.ShortSha}}</a>{{end}} pushed in <a href="{{.RepoURL}}">{{.RepoFullName}}</a> <strong>deployment skipped</strong>`
 		plainTextTpl = `[{{.ProjectName}}] {{.BranchName}}{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}} pushed in {{.RepoFullName}} *deployment skipped*`
 	case "deployEnvironment":
-		mainHTMLTpl = `Deployment triggered <code>{{.BranchName}}</code>{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}}`
-		plainTextTpl = `[{{.ProjectName}}] Deployment triggered on branch {{.BranchName}}{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}}`
+		mainHTMLTpl = `Deployment triggered <code>{{ if ne .BranchName "" }}{{.BranchName}}{{else if ne .PullrequestTitle "" }}{{.PullrequestTitle}}{{end}}</code>{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}}`
+		plainTextTpl = `[{{.ProjectName}}] Deployment triggered on branch {{ if ne .BranchName "" }}{{.BranchName}}{{else if ne .PullrequestTitle "" }}{{.PullrequestTitle}}{{end}}{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}}`
 	case "removeFinished":
 		mainHTMLTpl = `Remove <code>{{.OpenshiftProject}}</code>`
-		plainTextTpl = `[{{.ProjectName}] remove {{.OpenshiftProject}}`
+		plainTextTpl = `[{{.ProjectName}}] remove {{.OpenshiftProject}}`
 	case "notDeleted":
 		mainHTMLTpl = `<code>{{.OpenshiftProject}}</code> not deleted.`
-		plainTextTpl = `[{{.ProjectName}] {{.OpenshiftProject}} not deleted. {{.Error}}`
+		plainTextTpl = `[{{.ProjectName}}] {{.OpenshiftProject}} not deleted. {{.Error}}`
 	case "deployError":
 		mainHTMLTpl = `[{{.ProjectName}}] <code>{{.BranchName}}</code>{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}} Build <code>{{.BuildName}}</code> error.
 {{if ne .LogLink ""}} <a href="{{.LogLink}}">Logs</a>{{end}}`
@@ -148,12 +147,18 @@ func (h *Messaging) processEmailTemplates(notification *Notification) (string, s
 
 	var body bytes.Buffer
 	t, _ := template.New("email").Parse(mainHTMLTpl)
-	t.Execute(&body, notification.Meta)
+	err = t.Execute(&body, notification.Meta)
+	if err != nil {
+		return "", "", "", "", "", fmt.Errorf("error generating html email template for event %s and project %s: %v", notification.Event, notification.Meta.ProjectName, err)
+	}
 	mainHTML += body.String()
 
 	var plainTextBuffer bytes.Buffer
 	t, _ = template.New("email").Parse(plainTextTpl)
-	t.Execute(&plainTextBuffer, notification.Meta)
+	err = t.Execute(&plainTextBuffer, notification.Meta)
+	if err != nil {
+		return "", "", "", "", "", fmt.Errorf("error generating plaintext email template for event %s and project %s: %v", notification.Event, notification.Meta.ProjectName, err)
+	}
 	plainText += plainTextBuffer.String()
 	if subject == "" {
 		subject = plainText
@@ -189,21 +194,22 @@ func (h *Messaging) sendEmailMessage(emoji, color, subject, event, project, emai
 	m.SetBody("text/plain", plainText)
 	m.AddAlternative("text/html", body.String())
 	sPort, _ := strconv.Atoi(h.EmailPort)
-	d := gomail.NewDialer(h.EmailHost, sPort, h.EmailSender, "")
-	d.TLSConfig = &tls.Config{InsecureSkipVerify: h.EmailInsecureSkipVerify}
-	if err := d.DialAndSend(m); err != nil {
-		fmt.Println(err)
-		panic(err)
-	}
+	if h.EmailSenderPassword != "" {
+		d := gomail.NewDialer(h.EmailHost, sPort, h.EmailSender, h.EmailSenderPassword)
+		d.TLSConfig = &tls.Config{InsecureSkipVerify: h.EmailInsecureSkipVerify}
+		if err := d.DialAndSend(m); err != nil {
+			log.Printf("Error sending email for project %s: %v", project, err)
+			return
+		}
+	} else {
+		d := gomail.Dialer{Host: h.EmailHost, Port: sPort, SSL: h.EmailSSL}
+		d.TLSConfig = &tls.Config{InsecureSkipVerify: h.EmailInsecureSkipVerify}
+		if err := d.DialAndSend(m); err != nil {
+			log.Printf("Error sending email for project %s: %v", project, err)
+			return
+		}
 
-	// // Create authentication
-	// auth := smtp.PlainAuth("", sender, password, smtpHost)
-	// // Send actual message
-	// err := smtp.SendMail(smtpHost+":"+smtpPort, auth, sender, to, body.Bytes())
-	// if err != nil {
-	// 	log.Printf("Error sending message to email: %v", err)
-	// 	return
-	// }
+	}
 	log.Println(fmt.Sprintf("Sent %s message to email for project %s", event, project))
 }
 
