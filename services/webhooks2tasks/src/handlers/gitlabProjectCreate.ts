@@ -1,6 +1,6 @@
 import R from 'ramda';
 import sshpk from 'sshpk';
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { getProject, addDeployKeyToProject } from '@lagoon/commons/dist/gitlabApi';
 import { addProject, addGroupToProject, sanitizeGroupName } from '@lagoon/commons/dist/api';
 

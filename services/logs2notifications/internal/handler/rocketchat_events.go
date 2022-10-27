@@ -67,7 +67,7 @@ func (h *Messaging) processRocketChatTemplate(notification *Notification) (strin
 	case "repoPushSkipped":
 		rcTpl = `*[{{.ProjectName}}]* [{{.BranchName}}]({{.RepoURL}}/tree/{{.BranchName}}){{ if ne .ShortSha "" }} ([{{.ShortSha}}]({{.CommitURL}})){{end}} pushed in [{{.RepoFullName}}]({{.RepoURL}}) *deployment skipped*`
 	case "deployEnvironment":
-		rcTpl = `*[{{.ProjectName}}]* Deployment triggered ` + "`{{.BranchName}}`" + `{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}}`
+		rcTpl = `*[{{.ProjectName}}]* Deployment triggered {{ if ne .BranchName "" }}` + "`{{.BranchName}}`" + `{{else if ne .PullrequestTitle "" }}` + "`{{.PullrequestTitle}}`" + `{{end}}{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}}`
 	case "removeFinished":
 		rcTpl = `*[{{.ProjectName}}]* Removed ` + "`{{.OpenshiftProject}}`" + ``
 	case "removeRetry":
@@ -94,7 +94,10 @@ func (h *Messaging) processRocketChatTemplate(notification *Notification) (strin
 	}
 	var rcMsg bytes.Buffer
 	t, _ := template.New("rocketchat").Parse(rcTpl)
-	t.Execute(&rcMsg, notification.Meta)
+	err = t.Execute(&rcMsg, notification.Meta)
+	if err != nil {
+		return "", "", "", fmt.Errorf("error generating notifcation template for event %s and project %s: %v", notification.Event, notification.Meta.ProjectName, err)
+	}
 	return emoji, color, rcMsg.String(), nil
 }
 

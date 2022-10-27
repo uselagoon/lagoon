@@ -1,7 +1,7 @@
 import { ChannelWrapper } from 'amqp-connection-manager';
 import { ConsumeMessage } from 'amqplib';
-import { logger } from '@lagoon/commons/dist/local-logging';
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { logger } from '@lagoon/commons/dist/logs/local-logger';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { gitlabGroupCreate } from '../handlers/gitlabGroupCreate';
 import { gitlabGroupUpdate } from '../handlers/gitlabGroupUpdate';
 import { gitlabGroupDelete } from '../handlers/gitlabGroupDelete';
@@ -110,8 +110,7 @@ async function handle(handler, webhook: WebhookRequestData, fullEvent: string) {
   try {
     await handler(webhook);
   } catch (error) {
-    logger.error(`Error handling ${fullEvent}`);
-    logger.error(error);
+    logger.error(`Error handling ${fullEvent}: ${error.message}`);
   }
 }
 

@@ -5,6 +5,8 @@ export const waitForKeycloak = async () => {
   let keycloakReady = false;
   let keycloakAdminClient;
 
+  logger.info('Waiting until keycloak is ready...');
+
   do {
     try {
       keycloakAdminClient = await getKeycloakAdminClient();
@@ -22,7 +24,7 @@ export const waitForKeycloak = async () => {
 
       keycloakReady = true;
     } catch (err) {
-      logger.debug(`Waiting for Keycloak to start... (error was ${err})`);
+      logger.verbose(`Keycloak not ready: ${err})`);
       await new Promise(resolve => setTimeout(resolve, 5000));
     }
   } while (!keycloakReady);
@@ -31,5 +33,5 @@ export const waitForKeycloak = async () => {
     throw new Error('Keycloak client not initialized!');
   }
 
-  logger.debug('Connected to Keycloak');
+  logger.verbose('Connected to Keycloak');
 };

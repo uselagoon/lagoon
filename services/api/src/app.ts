@@ -30,8 +30,8 @@ app.use(
 // TODO: Restrict requests to lagoon domains?
 app.use(cors());
 
-app.use(authMiddleware);
 app.use(requestMiddleware);
+app.use(authMiddleware);
 
 // Add routes.
 app.use('/', createRouter());

@@ -1,7 +1,7 @@
 import R from 'ramda';
 import moment from 'moment';
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
-import { logger } from '@lagoon/commons/dist/local-logging';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
+import { logger } from '@lagoon/commons/dist/logs/local-logger';
 import { addBackup, getEnvironmentByOpenshiftProjectName } from '@lagoon/commons/dist/api';
 
 import { WebhookRequestData } from '../types';
