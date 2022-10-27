@@ -34,7 +34,7 @@ export const getAllProblems: ResolverFn = async (
     }
   } catch (err) {
     if (err) {
-      logger.warn(err);
+      logger.warn(`getAllProblems: ${err.message}`);
       return [];
     }
   }
@@ -303,7 +303,7 @@ export const addProblemHarborScanMatch: ResolverFn = async (
   );
 
   userActivityLogger(`User added harbor scan regex matcher`, {
-    project: defaultLagoonProject || '',
+    project: '',
     event: 'api:addProblemHarborScanMatch',
     payload: {
       input: {

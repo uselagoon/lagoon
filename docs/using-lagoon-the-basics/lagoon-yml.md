@@ -222,21 +222,24 @@ In the `"www.example.com"` example repeated below, we see two more options \(als
 
 ### SSL Configuration `tls-acme`
 
-* `tls-acme: 'true'` tells Lagoon to issue a Let's Encrypt certificate for that route. This is the default. If you don't want a Let's Encrypt, set this to `tls-acme: 'false'`
+* `tls-acme: true` tells Lagoon to issue a Let's Encrypt certificate for that route. This is the default. If you don't want a Let's Encrypt, set this to `tls-acme: false`
 * `insecure` can be set to `None`, `Allow` or `Redirect`.
-  * `Allow` simply sets up both routes for HTTP and HTTPS \(this is the default\).
-  * `Redirect` will redirect any HTTP requests to HTTPS.
-  * `None` will mean a route for HTTP will _not_ be created, and no redirect will take place.
-* `hsts` can be set to a value of `max-age=31536000;includeSubDomains;preload`. Ensure there are no spaces and no other parameters included. Only the `max-age` parameter is required. The required `max-age` parameter indicates the length of time, in seconds, the HSTS policy is in effect for.
+    * `Allow` simply sets up both routes for HTTP and HTTPS \(this is the default\).
+    * `Redirect` will redirect any HTTP requests to HTTPS.
+    * `None` will mean a route for HTTP will _not_ be created, and no redirect will take place.
+* `hstsEnabled` can be set to a value of `true|false`. Default is false, but if set to true then the only the `max-age=3153600` option is added to the HSTS header.
+* `hstsMaxAge` can be used to change the default max age of 3153600 to another value.
+* `hstsPreload` can be set to `true|false` and will add the `preload` option to the HSTS header.
+* `hstsIncludeSubdomains` can be set to `true|false` and will add the `includeSubDomains` option to the HSTS header.
 
 !!! Note "Note:"
     If you plan to switch from a SSL certificate signed by a Certificate Authority \(CA\) to a Let's Encrypt certificate, it's best to get in touch with your Lagoon administrator to oversee the transition. There are [known issues](https://github.com/tnozicka/openshift-acme/issues/68) during the transition. The workaround would be manually removing the CA certificate and then triggering the Let's Encrypt process.
 
 ```yaml title=".lagoon.yml"
      - "www.example.com":
-            tls-acme: 'true'
+            tls-acme: true
             insecure: Redirect
-            hsts: max-age=31536000
+            hstsEnabled: true
 ```
 
 ### **Monitoring a specific path**
@@ -544,7 +547,7 @@ environments:
         - example.com
         - example.net
         - "www.example.com":
-            tls-acme: 'true'
+            tls-acme: true
             insecure: Redirect
             hsts: max-age=31536000
         - "example.ch":

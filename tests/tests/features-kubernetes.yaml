@@ -70,14 +70,6 @@
 #     check_url_source: "https://node.{{ project | regex_replace('_', '-') }}.{{ source_environment | regex_replace('/', '-') }}.{{ route_suffix_https }}"
 #     check_url_promote: "https://node.{{ project | regex_replace('_', '-') }}.{{ promote_environment | regex_replace('/', '-') }}.{{ route_suffix_https }}"
 
-- include: features/cronjobs.yaml
-  vars:
-    testname: "CRONJOBS {{ cluster_type|upper }}"
-    git_repo_name: features.git
-    project: ci-features-{{ cluster_type }}
-    branch: branch/cronjob
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
-
 # - include: features/openshift-limit.yaml
 #   vars:
 #     testname: "openshift-character-limit {{ cluster_type|upper }}"
@@ -138,24 +130,6 @@
     git_repo_name: features.git
     project: ci-features-{{ cluster_type }}
     branch: autogen-routes-disabled
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
-
-- include: features/dot-env.yaml
-  vars:
-    testname: "DOT-ENV VARIABLES {{ cluster_type|upper }}"
-    git_repo_name: features.git
-    project: ci-features-{{ cluster_type }}
-    branch: slash/branch1
-    expected_dot_env: slash/branch1
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
-
-- include: features/dot-env.yaml
-  vars:
-    testname: "DOT-ENV VARIABLES {{ cluster_type|upper }}"
-    git_repo_name: features.git
-    project: ci-features-{{ cluster_type }}
-    branch: branch1
-    expected_dot_env: branch1
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
 # # @TODO: Enable again, see https://github.com/uselagoon/lagoon/issues/1099

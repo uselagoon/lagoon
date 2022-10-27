@@ -39,7 +39,7 @@ async function createHarborProject(harborClient, lagoonProjectName: string) {
   } catch (err) {
     if (err.statusCode == 409) {
       // 409 means project already exists
-      logger.info(
+      logger.debug(
         `Unable to create the harbor project "${lagoonProjectName}", as it already exists in harbor; continuing with existing project`
       );
     } else {
@@ -130,7 +130,7 @@ async function createRobot(
     // 409 means project already exists
     // 201 means project created successfully
     if (err.statusCode == 409) {
-      logger.warn(
+      logger.debug(
         `Unable to create a robot account for harbor project "${lagoonProjectName}", as a robot account of the same name already exists!`
       );
     } else {
@@ -171,7 +171,7 @@ async function removeHarborEnvVars(
       old_env_vars.push(env_vars[i]);
     }
   } catch (err) {
-    logger.info(
+    logger.error(
       `Unable to get current env vars for project: ${lagoonProjectName}`,
       err
     );
@@ -246,7 +246,7 @@ async function resetHarborWebhook(
       old_webhooks.push(res.body[i]);
     }
   } catch (err) {
-    logger.info(
+    logger.error(
       `Unable to retrieve list of current webhooks for Harbor Project: ${lagoonProjectName}`,
       err
     );
@@ -448,7 +448,7 @@ export const createHarborOperations = (sqlClientPool: Pool) => ({
       // 400 means the project id is invalid
       // 404 means project doesn't exist
       // 412 means project still contains repositories
-      logger.info(
+      logger.error(
         `Unable to delete the harbor project "${lagoonProjectName}", error: ${err}`
       );
     }

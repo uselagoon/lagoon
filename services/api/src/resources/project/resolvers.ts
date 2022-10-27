@@ -58,7 +58,7 @@ export const getAllProjects: ResolverFn = async (
     await hasPermission('project', 'viewAll');
   } catch (err) {
     if (!keycloakGrant) {
-      logger.warn('No grant available for getAllProjects');
+      logger.debug('No grant available for getAllProjects');
       return [];
     }
 
@@ -208,7 +208,7 @@ export const getProjectsByMetadata: ResolverFn = async (
     await hasPermission('project', 'viewAll');
   } catch (err) {
     if (!keycloakGrant) {
-      logger.warn('No grant available for getAllProjects');
+      logger.debug('No grant available for getProjectsByMetadata');
       return [];
     }
 
@@ -262,7 +262,7 @@ export const addProject = async (
   }
   const openshift = input.kubernetes || input.openshift;
   if (!openshift) {
-    throw new Error('Must provide keycloak or openshift field');
+    throw new Error('Must provide kubernetes or openshift field');
   }
 
   let keyPair: any = {};
@@ -424,7 +424,7 @@ export const addProject = async (
   }
 
   userActivityLogger(`User added a project '${project.name}'`, {
-    project: project.name,
+    project: '',
     event: 'api:addProject',
     payload: {
       input,
@@ -496,7 +496,7 @@ export const deleteProject: ResolverFn = async (
   // }
 
   userActivityLogger(`User deleted a project '${project.name}'`, {
-    project: project.name,
+    project: '',
     event: 'api:deleteProject',
     payload: {
       input: {
@@ -714,9 +714,10 @@ export const updateProject: ResolverFn = async (
   // }
 
   userActivityLogger(`User updated project '${oldProject.name}'`, {
-    project: oldProject.name,
+    project: '',
     event: 'api:updateProject',
     payload: {
+      project: oldProject.name,
       patch: {
         name,
         gitUrl,
