@@ -235,10 +235,5 @@ services:
       - '8087:8080'
     labels:
       version: '2'
-  storage-calculator:
-    image: ${IMAGE_REPO:-lagoon}/storage-calculator
-    user: '111111111'
-    volumes:
-      - './services/storage-calculator/calculate-storage.sh:/calculate-storage.sh'
   api-redis:
     image: ${IMAGE_REPO:-lagoon}/api-redis
