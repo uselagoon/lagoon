@@ -167,7 +167,7 @@ The individual routines relevant to Kubernetes are:
 * `drupal-php74` runs a single-pod MariaDB, MariaDB DBaaS and a Drush-specific test for a Drupal 8/9 project \(`drupal-php73` doesn't do the Drush test\).
 * `drupal-postgres` runs a single-pod PostgreSQL and a PostgreSQL DBaaS test for a Drupal 8 project.
 * `elasticsearch` runs a simple NGINX proxy to an Elasticsearch single-pod.
-* `features-api-variables` runs tests that utilize variables in Lagoon.
+* `features-variables` runs tests that utilize variables in Lagoon.
 * `features-kubernetes` runs a range of standard Lagoon tests, specific to Kubernetes.
 * `features-kubernetes-2` runs more advanced kubernetes-specific tests - covering multi-project and subfolder configurations.
 * `nginx`, `node` and `python` run basic tests against those project types.
@@ -213,7 +213,7 @@ Here are some development scenarios and useful workflows for getting things done
 #### Add tests
 
 1. Repeat the first step above.
-2. Edit `tests/tests/features-api-variables.yaml` and add a test case.
+2. Edit `tests/tests/features-variables.yaml` and add a test case.
 3. Rebuild the `tests` image.
 
 ```bash
@@ -230,5 +230,5 @@ make kind/push-images IMAGES=tests
 1. Rerun the tests.
 
 ```bash
-make kind/retest TESTS='[features-api-variables]'
+make kind/retest TESTS='[features-variables]'
 ```

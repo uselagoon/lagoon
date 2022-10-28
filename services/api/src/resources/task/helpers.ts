@@ -1,6 +1,6 @@
 import * as R from 'ramda';
 import { Pool } from 'mariadb';
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { createTaskTask, createMiscTask } from '@lagoon/commons/dist/tasks';
 import { query } from '../../util/db';
 import { pubSub } from '../../clients/pubSub';

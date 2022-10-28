@@ -1,7 +1,7 @@
 // @ts-ignore
 import * as R from 'ramda';
 // @ts-ignore
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import {
   createDeployTask,
   createMiscTask,
@@ -30,7 +30,8 @@ import S3 from 'aws-sdk/clients/s3';
 // @ts-ignore
 import sha1 from 'sha1';
 // @ts-ignore
-import { generateBuildId, jsonMerge } from '@lagoon/commons/dist/util';
+import { generateBuildId } from '@lagoon/commons/dist/util/lagoon';
+import { jsonMerge } from '@lagoon/commons/dist/util/func';
 import { logger } from '../../loggers/logger';
 // @ts-ignore
 import uuid4 from 'uuid4';
@@ -130,7 +131,7 @@ export const getDeploymentsByBulkId: ResolverFn = async (
     await hasPermission('project', 'viewAll');
   } catch (err) {
     if (!keycloakGrant) {
-      logger.warn('No grant available for getAllProjects');
+      logger.debug('No grant available for getDeploymentsByBulkId');
       return [];
     }
 
@@ -154,6 +155,60 @@ export const getDeploymentsByBulkId: ResolverFn = async (
   }
 
   const rows = await query(sqlClientPool, queryBuilder.toString());
+  const withK8s = projectHelpers(sqlClientPool).aliasOpenshiftToK8s(rows);
+  return withK8s;
+};
+
+export const getDeploymentsByFilter: ResolverFn = async (
+  root,
+  input,
+  { sqlClientPool, hasPermission, models, keycloakGrant }
+) => {
+
+  const { openshifts, deploymentStatus = ["NEW", "PENDING", "RUNNING"] } = input;
+
+  /*
+    use the same mechanism for viewing all projects
+    bulk deployments can span multiple projects, and anyone with access to a project
+    will have the same rbac as `deployment:view` which covers all possible roles for a user
+    otherwise it will only return all the projects they have access to
+    and the listed deployments are sourced accordingly to which project
+    the user has access to
+  */
+  let userProjectIds: number[];
+  try {
+    await hasPermission('project', 'viewAll');
+  } catch (err) {
+    if (!keycloakGrant) {
+      logger.debug('No grant available for getDeploymentsByFilter');
+      return [];
+    }
+
+    userProjectIds = await models.UserModel.getAllProjectsIdsForUser({
+      id: keycloakGrant.access_token.content.sub
+    });
+  }
+
+  let queryBuilder = knex.select("deployment.*").from('deployment').
+      join('environment', 'deployment.environment', '=', 'environment.id').
+      join('project', 'environment.project', '=', 'project.id').
+      where('environment.deleted', '=', '0000-00-00 00:00:00');
+
+  if(openshifts) {
+    queryBuilder = queryBuilder.whereIn('environment.openshift', openshifts);
+  }
+
+
+  queryBuilder = queryBuilder.whereIn('deployment.status', deploymentStatus);
+
+
+  if (userProjectIds) {
+    queryBuilder = queryBuilder.whereIn('project.id', userProjectIds);
+  }
+
+  const queryBuilderString = queryBuilder.toString();
+
+  const rows = await query(sqlClientPool, queryBuilderString);
   const withK8s = projectHelpers(sqlClientPool).aliasOpenshiftToK8s(rows);
   return withK8s;
 };
@@ -429,17 +484,14 @@ export const cancelDeployment: ResolverFn = async (
     project
   };
 
-  userActivityLogger(
-    `User cancelled deployment for '${deployment.environment}'`,
-    {
-      project: '',
-      event: 'api:cancelDeployment',
-      payload: {
-        deploymentInput,
-        data: data.build
-      }
+  userActivityLogger(`User cancelled deployment for '${deployment.environment}'`, {
+    project: '',
+    event: 'api:cancelDeployment',
+    payload: {
+      deploymentInput,
+      data: data.build
     }
-  );
+  });
 
   try {
     await createMiscTask({ key: 'build:cancel', data });
@@ -577,7 +629,13 @@ export const deployEnvironmentLatest: ResolverFn = async (
       };
       meta = {
         ...meta,
-        pullrequestTitle: deployData.pullrequestTitle
+        pullrequestTitle: deployData.pullrequestTitle,
+        pullrequestNumber: environment.name.replace('pr-', ''),
+        headBranchName: environment.deployHeadRef,
+        headSha: `origin/${environment.deployHeadRef}`,
+        baseBranchName: environment.deployBaseRef,
+        baseSha: `origin/${environment.deployBaseRef}`,
+        branchName: environment.name
       };
       taskFunction = createDeployTask;
       break;
@@ -600,16 +658,13 @@ export const deployEnvironmentLatest: ResolverFn = async (
       return `Error: Unknown deploy type ${environment.deployType}`;
   }
 
-  userActivityLogger(
-    `User triggered a deployment on '${deployData.projectName}' for '${environment.name}'`,
-    {
-      project: deployData.projectName || '',
-      event: 'api:deployEnvironmentLatest',
-      payload: {
-        deployData
-      }
+  userActivityLogger(`User triggered a deployment on '${deployData.projectName}' for '${environment.name}'`, {
+    project: '',
+    event: 'api:deployEnvironmentLatest',
+    payload: {
+      deployData
     }
-  );
+  });
 
   try {
     await taskFunction(deployData);
@@ -702,16 +757,13 @@ export const deployEnvironmentBranch: ResolverFn = async (
     branchName: deployData.branchName
   };
 
-  userActivityLogger(
-    `User triggered a deployment on '${deployData.projectName}' for '${deployData.branchName}'`,
-    {
-      project: deployData.projectName || '',
-      event: 'api:deployEnvironmentBranch',
-      payload: {
-        deployData
-      }
+  userActivityLogger(`User triggered a deployment on '${deployData.projectName}' for '${deployData.branchName}'`, {
+    project: '',
+    event: 'api:deployEnvironmentBranch',
+    payload: {
+      deployData
     }
-  );
+  });
 
   try {
     await createDeployTask(deployData);
@@ -815,16 +867,13 @@ export const deployEnvironmentPullrequest: ResolverFn = async (
     pullrequestTitle: deployData.pullrequestTitle
   };
 
-  userActivityLogger(
-    `User triggered a pull-request deployment on '${deployData.projectName}' for '${deployData.branchName}'`,
-    {
-      project: deployData.projectName || '',
-      event: 'api:deployEnvironmentPullrequest',
-      payload: {
-        deployData
-      }
+  userActivityLogger(`User triggered a pull-request deployment on '${deployData.projectName}' for '${deployData.branchName}'`, {
+    project: '',
+    event: 'api:deployEnvironmentPullrequest',
+    payload: {
+      deployData
     }
-  );
+  });
 
   try {
     await createDeployTask(deployData);
@@ -939,16 +988,14 @@ export const deployEnvironmentPromote: ResolverFn = async (
     promoteSourceEnvironment: deployData.promoteSourceEnvironment
   };
 
-  userActivityLogger(
-    `User promoted the environment on '${deployData.projectName}' from '${deployData.promoteSourceEnvironment}' to '${deployData.branchName}'`,
-    {
-      project: deployData.projectName || '',
-      event: 'api:deployEnvironmentPromote',
-      payload: {
-        deployData
-      }
+  userActivityLogger(`User promoted the environment on '${deployData.projectName}'
+    from '${deployData.promoteSourceEnvironment}' to '${deployData.branchName}'`, {
+    project: '',
+    event: 'api:deployEnvironmentPromote',
+    payload: {
+      deployData
     }
-  );
+  });
 
   try {
     await createPromoteTask(deployData);
@@ -1154,7 +1201,7 @@ export const bulkDeployEnvironmentLatest: ResolverFn = async (
     await hasPermission('project', 'viewAll');
   } catch (err) {
     if (!keycloakGrant) {
-      logger.warn('No grant available for getAllProjects');
+      logger.debug('No grant available for bulkDeployEnvironmentLatest');
       return [];
     }
 
@@ -1225,11 +1272,13 @@ export const bulkDeployEnvironmentLatest: ResolverFn = async (
     // these need to be merged on top of ones that come through at the bulk deploy level
     // handle that here
     let newBuildVariables = buildVariables || [];
+
     if (envInput.buildVariables != null && buildVariables != null) {
       newBuildVariables = jsonMerge(buildVariables, envInput.buildVariables, "name")
-    } else {
+    } else if (envInput.buildVariables != null) {
       newBuildVariables = envInput.buildVariables
     }
+
     const actionData = {
       type: "deployEnvironmentLatest",
       eventType: "bulkDeployment",

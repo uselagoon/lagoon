@@ -47,6 +47,7 @@ var (
 	emailSenderPassword     string
 	emailHost               string
 	emailPort               string
+	emailSSL                bool
 	emailInsecureSkipVerify bool
 )
 
@@ -143,6 +144,7 @@ func main() {
 	emailSenderPassword = getEnv("EMAIL_SENDER_PASSWORD", emailSenderPassword)
 	emailHost = getEnv("EMAIL_HOST", emailHost)
 	emailPort = getEnv("EMAIL_PORT", emailPort)
+	emailSSL = getEnvBool("EMAIL_SSL", emailSSL)
 
 	enableDebug := true
 
@@ -232,6 +234,7 @@ func main() {
 		emailSenderPassword,
 		emailHost,
 		emailPort,
+		emailSSL,
 		emailInsecureSkipVerify,
 		s3FilesAccessKeyID,
 		s3FilesSecretAccessKey,

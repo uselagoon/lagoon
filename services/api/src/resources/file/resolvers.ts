@@ -67,8 +67,8 @@ export const uploadFilesForTask: ResolverFn = async (
 
   const rows = await query(sqlClientPool, taskSql.selectTask(task));
 
-  userActivityLogger(
-    `User uploaded files for task '${task}' on project '${R.path(
+  userActivityLogger(`User uploaded files for task '${task}' on project
+      '${R.path(
       ['0', 'pid'],
       rowsPerms
     )}'`,

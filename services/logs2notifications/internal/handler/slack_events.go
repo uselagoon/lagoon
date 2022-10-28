@@ -35,19 +35,19 @@ func (h *Messaging) processSlackTemplate(notification *Notification) (string, st
 	var slackTpl string
 	switch tpl {
 	case "mergeRequestOpened":
-		slackTpl = `*[{{.ProjectName}}]* PR [#{{.PullrequestNumber}} ({{.PullrequestTitle}})]({{.PullrequestURL}}) opened in [{{.RepoName}}]({{.RepoURL}})`
+		slackTpl = `*[{{.ProjectName}}]* PR <{{.PullrequestURL}}|#{{.PullrequestNumber}} ({{.PullrequestTitle}})> opened in <{{.RepoURL}}|{{.RepoName}}>`
 	case "mergeRequestUpdated":
-		slackTpl = `*[{{.ProjectName}}]* PR [#{{.PullrequestNumber}} ({{.PullrequestTitle}})]({{.PullrequestURL}}) updated in [{{.RepoName}}]({{.RepoURL}})`
+		slackTpl = `*[{{.ProjectName}}]* PR <{{.PullrequestURL}}|#{{.PullrequestNumber}} ({{.PullrequestTitle}})> updated in <{{.RepoURL}}|{{.RepoName}}>`
 	case "mergeRequestClosed":
-		slackTpl = `*[{{.ProjectName}}]* PR [#{{.PullrequestNumber}} ({{.PullrequestTitle}})]({{.PullrequestURL}}) closed in [{{.RepoName}}]({{.RepoURL}})`
+		slackTpl = `*[{{.ProjectName}}]* PR <{{.PullrequestURL}}|#{{.PullrequestNumber}} ({{.PullrequestTitle}})> closed in <{{.RepoURL}}|{{.RepoName}}>`
 	case "deleteEnvironment":
 		slackTpl = `*[{{.ProjectName}}]* Deleting environment ` + "`{{.EnvironmentName}}`"
 	case "repoPushHandled":
-		slackTpl = `*[{{.ProjectName}}]* [{{.BranchName}}]({{.RepoURL}}/tree/{{.BranchName}}){{ if ne .ShortSha "" }} ([{{.ShortSha}}]({{.CommitURL}})){{end}} pushed in [{{.RepoFullName}}]({{.RepoURL}})`
+		slackTpl = `*[{{.ProjectName}}]* <{{.RepoURL}}/tree/{{.BranchName}}|{{.BranchName}}>{{ if ne .ShortSha "" }} (<{{.CommitURL}}|{{.ShortSha}}>){{end}} pushed in <{{.RepoURL}}|{{.RepoFullName}}>`
 	case "repoPushSkipped":
-		slackTpl = `*[{{.ProjectName}}]* [{{.BranchName}}]({{.RepoURL}}/tree/{{.BranchName}}){{ if ne .ShortSha "" }} ([{{.ShortSha}}]({{.CommitURL}})){{end}} pushed in [{{.RepoFullName}}]({{.RepoURL}}) *deployment skipped*`
+		slackTpl = `*[{{.ProjectName}}]* <{{.RepoURL}}/tree/{{.BranchName}}|{{.BranchName}}>{{ if ne .ShortSha "" }} (<{{.CommitURL}}|{{.ShortSha}}>){{end}} pushed in <{{.RepoURL}}|{{.RepoFullName}}> *deployment skipped*`
 	case "deployEnvironment":
-		slackTpl = `*[{{.ProjectName}}]* Deployment triggered ` + "`{{.BranchName}}`" + `{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}}`
+		slackTpl = `*[{{.ProjectName}}]* Deployment triggered {{ if ne .BranchName "" }}` + "`{{.BranchName}}`" + `{{else if ne .PullrequestTitle "" }}` + "`{{.PullrequestTitle}}`" + `{{end}}{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}}`
 	case "removeFinished":
 		slackTpl = `*[{{.ProjectName}}]* Removed ` + "`{{.OpenshiftProject}}`" + ``
 	case "removeRetry":
@@ -58,7 +58,8 @@ func (h *Messaging) processSlackTemplate(notification *Notification) (string, st
 		slackTpl = `*[{{.ProjectName}}]* ` + "`{{.BranchName}}`" + `{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}} Build ` + "`{{.BuildName}}`" + ` Failed. {{if ne .LogLink ""}} <{{.LogLink}}|Logs>{{end}}`
 	case "deployFinished":
 		slackTpl = `*[{{.ProjectName}}]* ` + "`{{.BranchName}}`" + `{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}} Build ` + "`{{.BuildName}}`" + ` Succeeded. {{if ne .LogLink ""}} <{{.LogLink}}|Logs>{{end}}
-{{.Route}}{{range .Routes}}{{if ne . $.Route}}{{.}}{{end}}
+{{.Route}}
+{{range .Routes}}{{if ne . $.Route}}{{.}}{{end}}
 {{end}}`
 	case "problemNotification":
 		eventSplit := strings.Split(notification.Event, ":")
@@ -75,7 +76,10 @@ func (h *Messaging) processSlackTemplate(notification *Notification) (string, st
 
 	var slackMsg bytes.Buffer
 	t, _ := template.New("slack").Parse(slackTpl)
-	t.Execute(&slackMsg, notification.Meta)
+	err = t.Execute(&slackMsg, notification.Meta)
+	if err != nil {
+		return "", "", "", fmt.Errorf("error generating notifcation template for event %s and project %s: %v", notification.Event, notification.Meta.ProjectName, err)
+	}
 	return emoji, color, slackMsg.String(), nil
 }
 

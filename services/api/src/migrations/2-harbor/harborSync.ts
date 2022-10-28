@@ -1,5 +1,5 @@
 import * as R from 'ramda';
-import { logger } from '@lagoon/commons/dist/local-logging';
+import { logger } from '@lagoon/commons/dist/logs/local-logger';
 import { sqlClientPool } from '../../clients/sqlClient';
 import { createHarborOperations } from '../../resources/project/harborSetup';
 import { Helpers as projectHelpers } from '../../resources/project/helpers';
