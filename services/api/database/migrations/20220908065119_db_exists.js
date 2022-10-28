@@ -18,7 +18,7 @@
                 table.string('group_name', 2000);
                 table.enu('permission', ['GUEST', 'DEVELOPER', 'MAINTAINER']).defaultTo('GUEST');
                 table.specificType('command', 'text').defaultTo('');
-                table.string('confirmation_text', 2000); // Need to confirm if these rows are still required
+                table.string('confirmation_text', 2000);
                 table.timestamp('created').notNullable().defaultTo(knex.fn.now());
                 table.timestamp('deleted').notNullable().defaultTo('0000-00-00 00:00:00');
                 table.unique(['name', 'environment', 'project', 'group_name'], {indexName: 'name', storageEngineIndexType: 'hash'});
@@ -26,10 +26,10 @@
             .createTable('advanced_task_definition_argument', function (table) {
                 table.increments('id').notNullable().primary();
                 table.integer('advanced_task_definition');
-                table.string('name', 300).notNullable(); //TODO: this is currently unique in the existing setup - that's incorrect
+                table.string('name', 300).notNullable();
                 table.string('display_name', 500);
-                table.enu('type', ['NUMERIC', 'STRING', 'ENVIRONMENT_SOURCE_NAME']);
-                // table.enu('type', ['NUMERIC', 'STRING', 'ENVIRONMENT_SOURCE_NAME', 'ENVIRONMENT_SOURCE_NAME_EXCLUDE_SELF']); // Pending Lagoon 2.10
+                table.enu('type', ['NUMERIC', 'STRING', 'ENVIRONMENT_SOURCE_NAME', 'ENVIRONMENT_SOURCE_NAME_EXCLUDE_SELF']);
+                table.unique(['advanced_task_definition', 'name'], {indexName: 'advanced_task_definition_argument_unique'});
             })
             .createTable('backup_restore', function (table) {
                 table.increments('id').notNullable().primary();
@@ -56,9 +56,10 @@
                 table.datetime('completed');
                 table.integer('environment').notNullable();
                 table.string('remote_id', 50);
-                table.integer('priority'); // Need to confirm if these rows are still required
-                table.string('bulk_id', 50); // Need to confirm if these rows are still required
-                table.string('bulk_name', 100); // Need to confirm if these rows are still required
+                table.integer('priority');
+                table.string('bulk_id', 50);
+                table.string('bulk_name', 100);
+                table.index('environment', 'deployment_environment');
             })
             .createTable('env_vars', function (table) {
                 table.increments('id').notNullable().primary();
@@ -66,7 +67,7 @@
                 table.text('value').notNullable();
                 table.enu('scope',['global', 'build', 'runtime', 'container_registry', 'internal_container_registry']).notNullable().defaultTo('global');
                 table.integer('project');
-                table.integer('environment'); //TODO: note that the def in the existing schema is wrong
+                table.integer('environment');
                 table.unique(['name', 'project'], {indexName: 'name_project'});
                 table.unique(['name', 'environment'], {indexName: 'name_environment'});
             })
@@ -79,7 +80,7 @@
                 table.string('deploy_head_ref', 100);
                 table.string('deploy_title', 300);
                 table.enu('environment_type', ['production', 'development']).notNullable();
-                table.boolean('auto_idle').notNullable().defaultTo(1);
+                table.integer('auto_idle', 1).notNullable().defaultTo(1);
                 table.string('openshift_project_name', 100);
                 table.string('route', 300);
                 table.text('routes');
@@ -88,7 +89,7 @@
                 table.string('openshift_project_pattern', 300);
                 table.timestamp('updated').notNullable().defaultTo(knex.fn.now());
                 table.timestamp('created').notNullable().defaultTo(knex.fn.now());
-                table.timestamp('deleted').notNullable().defaultTo('0000-00-00 00:00:00'); //TODO: check what this does
+                table.timestamp('deleted').notNullable().defaultTo('0000-00-00 00:00:00');
                 table.unique(['project', 'name', 'deleted'], {indexName: 'project_name_deleted'});
             })
             .createTable('environment_backup', function (table) {
@@ -97,7 +98,8 @@
                 table.string('source', 300);
                 table.string('backup_id', 300).unique({indexName:'backup_id'});
                 table.timestamp('created').notNullable().defaultTo(knex.raw('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'));
-                table.timestamp('deleted').notNullable().defaultTo('0000-00-00 00:00:00'); //TODO: check what this does
+                table.timestamp('deleted').notNullable().defaultTo('0000-00-00 00:00:00');
+                table.index('environment', 'backup_environment');
             })
             .createTable('environment_fact', function (table) {
                 table.increments('id').notNullable().primary();
@@ -150,10 +152,6 @@
                 table.date('updated');
                 table.unique(['environment', 'persistent_storage_claim', 'updated'], {indexName: 'environment_persistent_storage_claim_updated'});
             })
-            // .createTable('lagoon_version', function (table) {
-            //     table.increments('id').notNullable().primary(); // Todo?
-            //     table.integer('version').notNullable();
-            // })
             .createTable('notification_email', function (table) {
                 table.increments('id').notNullable().primary();
                 table.string('name', 50).unique({indexName: 'name'});
@@ -193,8 +191,8 @@
                 table.string('friendly_name', 100);
                 table.string('cloud_provider', 100);
                 table.string('cloud_region', 100);
-                // table.string('build_image', 2000); // Pending Lagoon 2.10
                 table.timestamp('created').notNullable().defaultTo(knex.fn.now());
+                table.string('build_image', 2000);
             })
             .createTable('problem_harbor_scan_matcher', function (table) {
                 table.increments('id').notNullable().primary();
@@ -225,13 +223,13 @@
                 table.string('standby_production_environment', 100);
                 table.text('standby_routes');
                 table.string('standby_alias', 100).notNullable().defaultTo('lagoon-standby')
-                table.boolean('auto_idle').notNullable().defaultTo(1);
-                table.boolean('storage_calc').notNullable().defaultTo(1);
-                table.boolean('problems_ui').notNullable().defaultTo(0);
-                table.boolean('facts_ui').notNullable().defaultTo(0);
-                table.boolean('deployments_disabled').notNullable().defaultTo(0);
-                table.boolean('production_build_priority').notNullable().defaultTo(6);
-                table.boolean('development_build_priority').notNullable().defaultTo(5);
+                table.integer('auto_idle', 1).notNullable().defaultTo(1);
+                table.integer('storage_calc', 1).notNullable().defaultTo(1);
+                table.integer('problems_ui', 1).notNullable().defaultTo(0);
+                table.integer('facts_ui', 1).notNullable().defaultTo(0);
+                table.integer('deployments_disabled', 1).notNullable().defaultTo(0);
+                table.integer('production_build_priority').notNullable().defaultTo(6);
+                table.integer('development_build_priority').notNullable().defaultTo(5);
                 table.integer('openshift');
                 table.string('openshift_project_pattern', 300);
                 table.integer('development_environments_limit');
@@ -253,7 +251,7 @@
                 table.string('filename', 100).notNullable();
                 table.text('s3_key').notNullable();
                 table.datetime('created').notNullable().defaultTo(knex.fn.now());
-                table.datetime('deleted').notNullable().defaultTo(knex.fn.now());
+                table.datetime('deleted').notNullable().defaultTo('0000-00-00 00:00:00');
             })
             .createTable('ssh_key', function (table) {
                table.increments('id').notNullable().primary();
@@ -278,6 +276,7 @@
                 table.enu('type', ['standard', 'advanced']).defaultTo('standard');
                 table.string('advanced_image', 2000);
                 table.text('advanced_payload');
+                table.index('environment', 'task_environment');
             })
             .createTable('task_file', function (table) {
                 table.integer('tid');
@@ -287,7 +286,7 @@
             .createTable('user_ssh_key', function (table) {
                 table.specificType('usid', 'CHAR(36)');
                 table.integer('skid');
-                table.primary(['skid', 'usid']);
+                table.primary(['usid', 'skid']);
             })
             .createTable('workflow', function (table) {
                 table.increments('id').notNullable().primary();
