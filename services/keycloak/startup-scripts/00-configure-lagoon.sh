@@ -1804,7 +1804,7 @@ function add_delete_env_var_permissions {
   "decisionStrategy": "UNANIMOUS",
   "resources": ["env_var"],
   "scopes": ["project:delete"],
-  "policies": ["Users role for project is Maintainer","User has access to project"]
+  "policies": ["[Lagoon] Users role for project is Maintainer","[Lagoon] User has access to project"]
 }
 EOF
 
@@ -1816,7 +1816,7 @@ EOF
   "decisionStrategy": "UNANIMOUS",
   "resources": ["env_var"],
   "scopes": ["environment:delete:development"],
-  "policies": ["Users role for project is Developer","User has access to project"]
+  "policies": ["[Lagoon] Users role for project is Developer","[Lagoon] User has access to project"]
 }
 EOF
 
@@ -1828,7 +1828,7 @@ EOF
   "decisionStrategy": "UNANIMOUS",
   "resources": ["env_var"],
   "scopes": ["environment:delete:production"],
-  "policies": ["Users role for project is Maintainer","User has access to project"]
+  "policies": ["[Lagoon] Users role for project is Maintainer","[Lagoon] User has access to project"]
 }
 EOF
 }
