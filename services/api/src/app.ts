@@ -21,8 +21,11 @@ app.use(json());
 // Add custom configured logger (morgan through winston).
 app.use(
   morgan('combined', {
+    skip: (req, res) => {
+      return req.originalUrl.startsWith('/status');
+    },
     stream: {
-      write: message => logger.info(message)
+      write: message => logger.info(message.trim())
     }
   })
 );
@@ -30,8 +33,8 @@ app.use(
 // TODO: Restrict requests to lagoon domains?
 app.use(cors());
 
-app.use(authMiddleware);
 app.use(requestMiddleware);
+app.use(authMiddleware);
 
 // Add routes.
 app.use('/', createRouter());

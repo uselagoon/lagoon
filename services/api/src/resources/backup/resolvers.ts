@@ -1,5 +1,5 @@
 import * as R from 'ramda';
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { createMiscTask } from '@lagoon/commons/dist/tasks';
 import { ResolverFn } from '../';
 import { getConfigFromEnv } from '../../util/config';
@@ -190,20 +190,18 @@ export const addBackup: ResolverFn = async (
 
   pubSub.publish(EVENTS.BACKUP.ADDED, backup);
 
-  userActivityLogger(
-    `User deployed backup '${backupId}' to '${environment.name}' on project '${environment.project}'`,
-    {
+  userActivityLogger(`User deployed backup '${backupId}' to '${environment.name}' on project '${environment.project}'`, {
+    project: '',
+    event: 'api:addBackup',
+    payload: {
+      id,
+      environment,
       project: environment.project,
-      event: 'api:addBackup',
-      payload: {
-        id,
-        environment,
-        source,
-        backupId,
-        created
-      }
+      source,
+      backupId,
+      created
     }
-  );
+  });
 
   return backup;
 };
@@ -310,18 +308,16 @@ export const addRestore: ResolverFn = async (
     project: projectData
   };
 
-  userActivityLogger(
-    `User restored a backup '${backupId}' for project ${projectData.name}`,
-    {
+  userActivityLogger(`User restored a backup '${backupId}' for project ${projectData.name}`, {
+    project: '',
+    event: 'api:addRestore',
+    payload: {
+      restoreId: restoreData.id,
       project: projectData.name,
-      event: 'api:addRestore',
-      payload: {
-        restoreId: restoreData.id,
-        backupId,
-        data
-      }
+      backupId,
+      data
     }
-  );
+  });
 
   try {
     await createMiscTask({ key: 'restic:backup:restore', data });

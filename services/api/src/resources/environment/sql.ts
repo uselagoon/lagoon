@@ -21,6 +21,11 @@ export const Sql = {
       .where('name', '=', name)
       .andWhere('project', '=', projectId)
       .toString(),
+  selectEnvironmentsByProjectID: (projectId: number) =>
+    knex('environment')
+      .select('id', 'name')
+      .where('project', '=', projectId)
+      .toString(),
   truncateEnvironment: () =>
     knex('environment')
       .truncate()
@@ -39,6 +44,17 @@ export const Sql = {
     knex('environment_service')
       .where('environment', '=', id)
       .toString(),
+  deleteEnvironmentVariables: (id: number) =>
+    knex('env_vars')
+      .where('environment', '=', id)
+      .delete()
+      .toString(),
+  deleteEnvironment: (name: string, projectId: number) =>
+    knex('environment')
+      .where('name', name)
+      .andWhere('project', projectId)
+      .andWhere('deleted', '0000-00-00 00:00:00')
+      .update({deleted: knex.fn.now()}).toString(),
   deleteServices: (id: number) =>
     knex('environment_service')
       .where('environment', '=', id)

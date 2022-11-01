@@ -1,6 +1,6 @@
 import * as R from 'ramda';
 // @ts-ignore
-import { sendToLagoonLogs } from '@lagoon/commons/dist/logs';
+import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 // @ts-ignore
 import { createRemoveTask } from '@lagoon/commons/dist/tasks';
 import { ResolverFn } from '../';
@@ -313,7 +313,7 @@ export const getEnvironmentByKubernetesNamespaceName: ResolverFn = async (
   );
 
 export const addOrUpdateEnvironment: ResolverFn = async (
-  root,
+  _root,
   { input },
   { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
@@ -362,20 +362,32 @@ export const addOrUpdateEnvironment: ResolverFn = async (
     deleted: 0,
   };
 
-  const updateData = {
-    deployType: input.deployType,
-    deployBaseRef: input.deployBaseRef,
-    deployHeadRef: input.deployHeadRef,
-    deployTitle: input.deployTitle,
-    environmentType: input.environmentType,
-    updated: knex.fn.now()
-  } ;
+  const insertData = R.pick([
+    'deployBaseRef',
+    'deployHeadRef',
+    'deployTitle',
+    'deployType',
+    'environmentType',
+    'id',
+    'name',
+    'project',
+  ], input);
 
+  const updateData = R.pipe(
+    R.pick([
+      'deployBaseRef',
+      'deployHeadRef',
+      'deployTitle',
+      'deployType',
+      'environmentType',
+    ]),
+    R.mergeDeepRight({ updated: knex.fn.now() })
+  )(input);
 
   const createOrUpdateSql = knex('environment')
     .insert({
       ...inputDefaults,
-      ...input,
+      ...insertData,
       openshift,
       openshiftProjectName,
       openshiftProjectPattern
@@ -392,7 +404,7 @@ export const addOrUpdateEnvironment: ResolverFn = async (
   const rows = await query(sqlClientPool, Sql.selectEnvironmentById(insertId));
 
   userActivityLogger(`User updated environment`, {
-    project: projectOpenshift.name || '',
+    project: '',
     event: 'api:addOrUpdateEnvironment',
     payload: {
       ...input
@@ -445,7 +457,7 @@ export const addOrUpdateEnvironmentStorage: ResolverFn = async (
   const { name: projectName } = await projectHelpers(sqlClientPool).getProjectByEnvironmentId(environment['environment']);
 
   userActivityLogger(`User updated environment storage on project '${projectName}'`, {
-    project: projectName || '',
+    project: '',
     event: 'api:addOrUpdateEnvironmentStorage',
     payload: {
       projectName,
@@ -494,14 +506,7 @@ export const deleteEnvironment: ResolverFn = async (
       await hasPermission('environment', 'deleteNoExec', {
         project: projectId
       });
-
-      await query(sqlClientPool,
-        knex('environment')
-        .where('name', name)
-        .andWhere('project', projectId)
-        .andWhere('deleted', '0000-00-00 00:00:00')
-        .update({deleted: knex.fn.now()}).toString()
-        );
+      await Helpers(sqlClientPool).deleteEnvironment(name, environment.id, projectId);
 
       return 'success';
     } catch (err) {
@@ -564,7 +569,7 @@ export const deleteEnvironment: ResolverFn = async (
   }
 
   userActivityLogger(`User deleted environment '${environment.name}' on project '${projectName}'`, {
-    project: data.projectName || '',
+    project: '',
     event: 'api:deleteEnvironment',
     payload: {
       projectName,
@@ -641,7 +646,7 @@ export const updateEnvironment: ResolverFn = async (
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
   userActivityLogger(`User updated environment '${curEnv.name}' on project '${curEnv.project}'`, {
-    project: curEnv.project || '',
+    project: '',
     event: 'api:updateEnvironment',
     payload: {
       openshiftProjectName,

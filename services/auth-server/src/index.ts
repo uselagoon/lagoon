@@ -21,8 +21,8 @@ const app = express();
 app.use(
   morgan('combined', {
     stream: {
-      write: message => logger.info(message),
-    },
+      write: message => logger.info(message.trim())
+    }
   }),
 );
 

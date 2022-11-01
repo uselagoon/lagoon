@@ -15,6 +15,8 @@ services:
     volumes:
       - ./services/webhook-handler/src:/app/services/webhook-handler/src
       - ./node-packages:/app/node-packages:delegated
+    environment:
+      - CONSOLE_LOGGING_LEVEL=trace
   backup-handler:
     image: ${IMAGE_REPO:-lagoon}/backup-handler
     restart: on-failure
@@ -33,56 +35,24 @@ services:
     volumes:
       - ./services/controllerhandler/src:/app/services/controllerhandler/src
       - ./node-packages:/app/node-packages:delegated
-  logs2rocketchat:
-    image: ${IMAGE_REPO:-lagoon}/logs2rocketchat
-    command: yarn run dev
-    volumes:
-      - ./services/logs2rocketchat/src:/app/services/logs2rocketchat/src
-      - ./node-packages:/app/node-packages:delegated
-  logs2slack:
-    image: ${IMAGE_REPO:-lagoon}/logs2slack
-    command: yarn run dev
-    volumes:
-      - ./services/logs2slack/src:/app/services/logs2slack/src
-      - ./node-packages:/app/node-packages:delegated
-  logs2webhook:
-    image: ${IMAGE_REPO:-lagoon}/logs2webhook
-    command: yarn run dev
-    volumes:
-      - ./services/logs2webhook/src:/app/services/logs2webhook/src
-      - ./node-packages:/app/node-packages:delegated
-  logs2s3:
-    image: ${IMAGE_REPO:-lagoon}/logs2s3
-    command: yarn run dev
-    volumes:
-      - ./services/logs2s3/src:/app/services/logs2s3/src
-      - ./node-packages:/app/node-packages:delegated
-  logs2microsoftteams:
-    image: ${IMAGE_REPO:-lagoon}/logs2microsoftteams
-    command: yarn run dev
-    volumes:
-      - ./services/logs2microsoftteams/src:/app/services/logs2microsoftteams/src
-      - ./node-packages:/app/node-packages:delegated
-  logs2email:
-    image: ${IMAGE_REPO:-lagoon}/logs2email
-    command: yarn run dev
-    volumes:
-      - ./services/logs2email/src:/app/services/logs2email/src
-      - ./node-packages:/app/node-packages:delegated
-    depends_on:
-      - mailhog
+    environment:
+      - CONSOLE_LOGGING_LEVEL=trace
+  logs2notifications:
+    image: ${IMAGE_REPO:-lagoon}/logs2notifications
+    environment:
+      - S3_FILES_HOST=http://172.17.0.1:9000
   mailhog:
     image: mailhog/mailhog
     ports:
       - 8025
-    labels:
-      lagoon.type: none
   webhooks2tasks:
     image: ${IMAGE_REPO:-lagoon}/webhooks2tasks
     command: yarn run dev
     volumes:
       - ./services/webhooks2tasks/src:/app/services/webhooks2tasks/src
       - ./node-packages:/app/node-packages:delegated
+    environment:
+      - CONSOLE_LOGGING_LEVEL=trace
   api:
     image: ${IMAGE_REPO:-lagoon}/api
     command: ./node_modules/.bin/tsc-watch --build --incremental --onSuccess "node -r dotenv-extended/config dist/index"
@@ -92,8 +62,12 @@ services:
       - /app/node-packages/commons/dist
     environment:
       - NODE_ENV=development
+      - OPENSEARCH_INTEGRATION_ENABLED=false
+      - DISABLE_CORE_HARBOR=true
       - CI=${CI:-true}
       - REGISTRY=harbor.172.17.0.1.nip.io:18080 # Docker network bridge and forwarded port for harbor-nginx
+      - S3_FILES_HOST=http://172.17.0.1:9000
+      - CONSOLE_LOGGING_LEVEL=trace
     depends_on:
       - api-db
       - keycloak
@@ -103,20 +77,13 @@ services:
     # environment:
     #   - NEW_RELIC_LICENSE_KEY=
     #   - NEW_RELIC_APP_NAME=api-local
-    labels:
-      lagoon.type: custom
-      lagoon.template: services/api/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/api:v1-9-1
   ui:
-    image: ${IMAGE_REPO:-lagoon}/ui
+    image: uselagoon/ui:main
     command: yarn run dev
-    volumes:
-      - ./services/ui/src:/app/services/ui/src
-      - ./services/ui/.env.defaults:/app/services/ui/.env.defaults
-      - ./services/ui/.env.schema:/app/services/ui/.env.schema
-      - ./services/ui/package.json:/app/services/ui/package.json
     environment:
       - NODE_ENV=development
+      - KEYCLOAK_API=http://localhost:8088/auth
+      - GRAPHQL_API=http://localhost:3000/graphql
     ports:
       - '8888:3003'
   actions-handler:
@@ -147,6 +114,7 @@ services:
     environment:
       - JWTISSUER=auth-server.dev
       - JWTAUDIENCE=api.dev
+      - CONSOLE_LOGGING_LEVEL=trace
     volumes:
       - ./services/auth-server/src:/app/services/auth-server/src
     ports:
@@ -165,10 +133,6 @@ services:
     image: ${IMAGE_REPO:-lagoon}/keycloak-db
     ports:
       - '3336:3306'
-    labels:
-      lagoon.type: custom
-      lagoon.template: services/keycloak-db/.lagoon.app.yml
-      lagoon.image: amazeeiolagoon/keycloak-db:v1-9-1
   tests-kubernetes:
     image: ${IMAGE_REPO:-lagoon}/tests
     environment:
@@ -239,8 +203,6 @@ services:
   local-dbaas-provider:
     image: ${IMAGE_REPO:-lagoon}/local-dbaas-provider
     restart: always
-    labels:
-      lagoon.type: none
     environment:
       MYSQL_DATABASE: 'db'
       MYSQL_USER: 'user'
@@ -251,8 +213,6 @@ services:
   local-mongodb-dbaas-provider:
     image: ${IMAGE_REPO:-lagoon}/local-mongodb-dbaas-provider
     restart: always
-    labels:
-      lagoon.type: none
     ports:
       - '27017:27017'
   local-minio:
@@ -270,9 +230,7 @@ services:
     ports:
       - '5000:5000'
   drush-alias:
-    image: ${IMAGE_REPO:-lagoon}/drush-alias
-    volumes:
-      - ./services/drush-alias/web/aliases.drushrc.php.stub:/app/aliases.drushrc.php.stub
+    image: uselagoon/drush-alias:latest
     ports:
       - '8087:8080'
     labels:

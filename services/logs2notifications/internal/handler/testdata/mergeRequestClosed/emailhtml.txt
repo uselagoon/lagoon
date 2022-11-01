@@ -1,0 +1,1 @@
+PR <a href="123">#123 (My PR)</a> closed in <a href="github.com/owner/repository">owner/repository</a>

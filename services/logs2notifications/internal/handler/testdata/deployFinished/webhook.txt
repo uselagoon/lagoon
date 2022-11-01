@@ -1,0 +1,1 @@
+{"type":"DEPLOYMENT","event":"task:deploy-openshift:finished","project":"ci-github-openshift","environment":"lagoon-type-override"}

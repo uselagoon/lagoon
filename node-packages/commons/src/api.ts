@@ -1,8 +1,9 @@
 import { Lokka } from 'lokka';
 import { Transport } from './lokka-transport-http-retry';
-import { propOr, replace, toUpper, pipe, toLower } from 'ramda';
+import { replace, pipe, toLower } from 'ramda';
 import { createJWTWithoutUserId } from './jwt';
-import { logger } from './local-logging';
+import { logger } from './logs/local-logger';
+import { envHasConfig, getConfigFromEnv } from './util/config';
 
 interface Project {
   slack: any;
@@ -73,38 +74,34 @@ enum EnvType {
   DEVELOPMENT = 'development'
 }
 
-const { JWTSECRET, JWTAUDIENCE } = process.env;
-const API_HOST = propOr('http://api:3000', 'API_HOST', process.env);
-
-if (JWTSECRET == null) {
-  logger.warn(
-    'No JWTSECRET env variable set... this will cause api requests to fail'
-  );
-}
-
-if (JWTAUDIENCE == null) {
-  logger.warn(
-    'No JWTAUDIENCE env variable set... this may cause api requests to fail'
-  );
-}
-
-const apiAdminToken = createJWTWithoutUserId({
-  payload: {
-    role: 'admin',
-    iss: 'lagoon-commons',
-    aud: JWTAUDIENCE || 'api.amazee.io'
-  },
-  jwtSecret: JWTSECRET || ''
-});
-
-const options = {
+let transportOptions: {
   headers: {
-    Authorization: `Bearer ${apiAdminToken}`
+    Authorization?: string
   },
+  timeout: number
+} = {
+  headers: {},
   timeout: 60000
 };
 
-const transport = new Transport(`${API_HOST}/graphql`, options);
+if (!envHasConfig('JWTSECRET') || !envHasConfig('JWTAUDIENCE')) {
+  logger.error(
+    'Unable to create api token due to missing `JWTSECRET`/`JWTAUDIENCE` environment variables'
+  );
+} else {
+  const apiAdminToken = createJWTWithoutUserId({
+    payload: {
+      role: 'admin',
+      iss: 'lagoon-commons',
+      aud: getConfigFromEnv('JWTAUDIENCE')
+    },
+    jwtSecret: getConfigFromEnv('JWTSECRET')
+  });
+
+  transportOptions.headers.Authorization = `Bearer ${apiAdminToken}`;
+}
+
+const transport = new Transport(`${getConfigFromEnv('API_HOST', 'http://api:3000')}/graphql`, transportOptions);
 
 export const graphqlapi = new Lokka({ transport });
 
@@ -1084,6 +1081,7 @@ export const getOpenShiftInfoForProject = (project: string): Promise<any> =>
           projectUser
           routerPattern
           monitoringConfig
+          buildImage
         }
         autoIdle
         branches
@@ -1129,6 +1127,7 @@ export const getDeployTargetConfigsForProject = (project: number): Promise<any> 
           projectUser
           routerPattern
           monitoringConfig
+          buildImage
         }
       }
     }
@@ -1149,6 +1148,7 @@ export const getOpenShiftInfoForEnvironment = (environment: number): Promise<any
           projectUser
           routerPattern
           monitoringConfig
+          buildImage
         }
         project {
           envVariables {

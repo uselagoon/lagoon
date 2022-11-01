@@ -478,6 +478,7 @@ const typeDefs = gql`
     friendlyName: String
     cloudProvider: String
     cloudRegion: String
+    buildImage: String
   }
 
   type Kubernetes {
@@ -494,6 +495,7 @@ const typeDefs = gql`
     friendlyName: String
     cloudProvider: String
     cloudRegion: String
+    buildImage: String
   }
 
   type NotificationMicrosoftTeams {
@@ -834,6 +836,7 @@ const typeDefs = gql`
     routes: String
     monitoringUrls: String
     deployments(name: String, limit: Int): [Deployment]
+    insights(type: String, limit: Int): [Insight]
     backups(includeDeleted: Boolean, limit: Int): [Backup]
     tasks(id: Int, taskName: String, limit: Int): [Task]
     advancedTasks: [AdvancedTaskDefinition]
@@ -911,6 +914,19 @@ const typeDefs = gql`
     bulkName: String
   }
 
+  type Insight {
+    id: Int
+    type: String
+    service: String
+    created: String
+    fileId: String
+    data: String
+    file: String!
+    size: String
+    environment: Environment!
+    downloadUrl: String
+  }
+
   type EnvKeyValue {
     id: Int
     scope: String
@@ -974,9 +990,9 @@ const typeDefs = gql`
     id: Int
     project: Int!
     weight: Int
-    branches: String
-    pullrequests: String
-    deployTarget: Int
+    branches: String!
+    pullrequests: String!
+    deployTarget: Int!
     deployTargetProjectPattern: String
   }
 
@@ -1079,6 +1095,7 @@ const typeDefs = gql`
     ): Environment
     deploymentByRemoteId(id: String): Deployment
     deploymentsByBulkId(bulkId: String): [Deployment]
+    deploymentsByFilter(openshifts: [Int], deploymentStatus: [DeploymentStatusType]): [Deployment]
     taskByTaskName(taskName: String): Task
     taskByRemoteId(id: String): Task
     taskById(id: Int): Task
@@ -1356,6 +1373,7 @@ const typeDefs = gql`
     NUMERIC
     STRING
     ENVIRONMENT_SOURCE_NAME
+    ENVIRONMENT_SOURCE_NAME_EXCLUDE_SELF
   }
 
   input AdvancedTaskDefinitionArgumentInput {
@@ -1447,6 +1465,7 @@ const typeDefs = gql`
     friendlyName: String
     cloudProvider: String
     cloudRegion: String
+    buildImage: String
   }
 
   input AddKubernetesInput {
@@ -1465,6 +1484,7 @@ const typeDefs = gql`
     friendlyName: String
     cloudProvider: String
     cloudRegion: String
+    buildImage: String
   }
 
   input DeleteOpenshiftInput {
@@ -1617,6 +1637,7 @@ const typeDefs = gql`
     friendlyName: String
     cloudProvider: String
     cloudRegion: String
+    buildImage: String
   }
 
   input UpdateOpenshiftInput {
@@ -1639,6 +1660,7 @@ const typeDefs = gql`
     friendlyName: String
     cloudProvider: String
     cloudRegion: String
+    buildImage: String
   }
 
   input UpdateKubernetesInput {
