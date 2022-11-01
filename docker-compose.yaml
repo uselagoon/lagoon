@@ -2,9 +2,6 @@ version: '3.2'
 services:
   api-db:
     image: ${IMAGE_REPO:-lagoon}/api-db
-    volumes:
-      - ./services/api-db/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
-      - ./services/api-db/rerun_initdb.sh:/rerun_initdb.sh
     ports:
       - '3366:3306'
   webhook-handler:
@@ -57,7 +54,7 @@ services:
     image: ${IMAGE_REPO:-lagoon}/api
     command: ./node_modules/.bin/knex migrate:latest --cwd /app/services/api/database
     volumes:
-      - ./services/api/src:/app/services/api/src
+      - ./services/api/database:/app/services/api/database
       - ./node-packages:/app/node-packages:delegated
       - /app/node-packages/commons/dist
     depends_on:
