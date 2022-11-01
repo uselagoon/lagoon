@@ -11,7 +11,7 @@ var forEach = Array.prototype.forEach;
 forEach.call(user.getGroups().toArray(), function(group) {
 	// remove the group role suffixes
 	// lets check if the group has a parent if this is a child
-	var groupName = group.getName().replace(/-owner|-maintainer|-developer|-reporter|-guest/gi,"");
+	var groupName = group.getName().replace(/-(owner|maintainer|developer|reporter|guest)$/,"");
 	if(group.getFirstAttribute("type") == "role-subgroup") {
 		var parent = group.getParent();
 		var projectIds = parent.getFirstAttribute("lagoon-projects");
