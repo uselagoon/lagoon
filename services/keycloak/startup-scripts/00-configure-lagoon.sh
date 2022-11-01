@@ -1785,57 +1785,6 @@ function update_add_env_var_to_project {
 EOF
 }
 
-function add_delete_env_var_permissions {
-  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  delete_env_var_from_production_environment=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Delete+Environment+Variable+from+Production+Environment --config $CONFIG_PATH)
-
-  if [ "$delete_env_var_from_production_environment" != "[ ]" ]; then
-      echo "project:delete and environment:delete:x on env_var already configured"
-      return 0
-  fi
-
-  echo Configuring Delete Environment Variable permissions
-
-  ENVVAR_RESOURCE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=env_var --config $CONFIG_PATH | jq -r '.[0]["_id"]')
-  /opt/jboss/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$ENVVAR_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"project:view"},{"name":"project:add"},{"name":"project:delete"},{"name":"environment:view:production"},{"name":"environment:view:development"},{"name":"environment:add:production"},{"name":"environment:add:development"},{"name":"environment:delete:production"},{"name":"environment:delete:development"},{"name":"delete"}]'
-
-  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
-{
-  "name": "Delete Environment Variable from Project",
-  "type": "scope",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "resources": ["env_var"],
-  "scopes": ["project:delete"],
-  "policies": ["[Lagoon] Users role for project is Maintainer","[Lagoon] User has access to project"]
-}
-EOF
-
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
-{
-  "name": "Delete Environment Variable from Development Environment",
-  "type": "scope",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "resources": ["env_var"],
-  "scopes": ["environment:delete:development"],
-  "policies": ["[Lagoon] Users role for project is Developer","[Lagoon] User has access to project"]
-}
-EOF
-
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
-{
-  "name": "Delete Environment Variable from Production Environment",
-  "type": "scope",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "resources": ["env_var"],
-  "scopes": ["environment:delete:production"],
-  "policies": ["[Lagoon] Users role for project is Maintainer","[Lagoon] User has access to project"]
-}
-EOF
-}
-
 function migrate_to_js_provider {
     # Check if mapper is "upload_script" based
     local opendistro_security_client_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=lagoon-opendistro-security --config $CONFIG_PATH | jq -r '.[0]["id"]')
@@ -1923,6 +1872,57 @@ function migrate_to_js_provider {
     IFS=$OLDIFS
 }
 
+function add_delete_env_var_permissions {
+  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  delete_env_var_from_production_environment=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Delete+Environment+Variable+from+Production+Environment --config $CONFIG_PATH)
+
+  if [ "$delete_env_var_from_production_environment" != "[ ]" ]; then
+      echo "project:delete and environment:delete:x on env_var already configured"
+      return 0
+  fi
+
+  echo Configuring Delete Environment Variable permissions
+
+  ENVVAR_RESOURCE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=env_var --config $CONFIG_PATH | jq -r '.[0]["_id"]')
+  /opt/jboss/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$ENVVAR_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"project:view"},{"name":"project:add"},{"name":"project:delete"},{"name":"environment:view:production"},{"name":"environment:view:development"},{"name":"environment:add:production"},{"name":"environment:add:development"},{"name":"environment:delete:production"},{"name":"environment:delete:development"},{"name":"delete"}]'
+
+  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Delete Environment Variable from Project",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["env_var"],
+  "scopes": ["project:delete"],
+  "policies": ["[Lagoon] Users role for project is Maintainer","[Lagoon] User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Delete Environment Variable from Development Environment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["env_var"],
+  "scopes": ["environment:delete:development"],
+  "policies": ["[Lagoon] Users role for project is Developer","[Lagoon] User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Delete Environment Variable from Production Environment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["env_var"],
+  "scopes": ["environment:delete:production"],
+  "policies": ["[Lagoon] Users role for project is Maintainer","[Lagoon] User has access to project"]
+}
+EOF
+}
+
 ##################
 # Initialization #
 ##################
@@ -1957,8 +1957,8 @@ function configure_keycloak {
     configure_service_api_client
     configure_token_exchange
     update_add_env_var_to_project
-    add_delete_env_var_permissions
     migrate_to_js_provider
+    add_delete_env_var_permissions
 
     # always run last
     sync_client_secrets
