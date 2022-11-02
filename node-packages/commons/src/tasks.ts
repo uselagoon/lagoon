@@ -820,9 +820,7 @@ export const createRemoveTask = async function(removeData: any) {
     // use the targetname as the routing key with the action
     const payload = {
       eventType: "lagoon:removal",
-      payload: {
-        removeData
-      }
+      payload: removeData
     }
     return sendToLagoonControllers(deployTarget, payload);
   } else if (type === 'pullrequest') {
@@ -859,9 +857,7 @@ export const createRemoveTask = async function(removeData: any) {
     );
     const payload = {
       eventType: "lagoon:removal",
-      payload: {
-        removeData
-      }
+      payload: removeData
     }
     return sendToLagoonControllers(deployTarget, payload);
   } else if (type === 'promote') {
@@ -891,9 +887,7 @@ export const createRemoveTask = async function(removeData: any) {
     const deployTarget = result.environment.openshift.name
     const payload = {
       eventType: "lagoon:removal",
-      payload: {
-        removeData
-      }
+      payload: removeData
     }
     return sendToLagoonControllers(deployTarget, payload);
   }
@@ -954,9 +948,7 @@ export const createTaskTask = async function(taskData: any) {
   const deployTarget = result.environment.openshift.name
   const payload = {
     eventType: "lagoon:task",
-    payload: {
-      taskData
-    }
+    payload: taskData
   }
   return sendToLagoonControllers(deployTarget, payload);
 }
@@ -1148,9 +1140,7 @@ export const createMiscTask = async function(taskData: any) {
   // send the task to the queue
   const payload = {
     eventType: "lagoon:misc",
-    payload: {
-      miscTaskData
-    }
+    payload: miscTaskData
   }
   return sendToLagoonControllers(deployTarget, payload);
 }

@@ -49,9 +49,7 @@ const deployBranch = async function(data: any) {
             const branchBuildDeployData = await getControllerBuildData(deployData);
             const branchPayload = {
                 eventType: "lagoon:build",
-                payload: {
-                    branchBuildDeployData
-                }
+                payload: branchBuildDeployData
             }
             const sendBranch = await sendToLagoonControllers(branchBuildDeployData.spec.project.deployTarget, branchPayload);
             return true
@@ -63,9 +61,7 @@ const deployBranch = async function(data: any) {
             const buildDeployData = await getControllerBuildData(deployData);
             const payload = {
                 eventType: "lagoon:build",
-                payload: {
-                    buildDeployData
-                }
+                payload: buildDeployData
             }
             const sendTasks = await sendToLagoonControllers(buildDeployData.spec.project.deployTarget, payload);
             return true
@@ -88,9 +84,7 @@ const deployBranch = async function(data: any) {
                 const buildDeployData = await getControllerBuildData(deployData);
                 const payload = {
                     eventType: "lagoon:build",
-                    payload: {
-                        buildDeployData
-                    }
+                    payload: buildDeployData
                 }
                 const sendTasks = await sendToLagoonControllers(buildDeployData.spec.project.deployTarget, payload);
                 return true
@@ -128,9 +122,7 @@ const deployPullrequest = async function(data: any) {
             const prBuildDeployData = await getControllerBuildData(deployData);
             const prPayload = {
                 eventType: "lagoon:build",
-                payload: {
-                    prBuildDeployData
-                }
+                payload: prBuildDeployData
             }
             const prSendTasks = await sendToLagoonControllers(prBuildDeployData.spec.project.deployTarget, prPayload);
             return true
@@ -142,9 +134,7 @@ const deployPullrequest = async function(data: any) {
             const buildDeployData = await getControllerBuildData(deployData);
             const payload = {
                 eventType: "lagoon:build",
-                payload: {
-                    buildDeployData
-                }
+                payload: buildDeployData
             }
             const sendTasks = await sendToLagoonControllers(buildDeployData.spec.project.deployTarget, payload);
             return true
@@ -167,9 +157,7 @@ const deployPullrequest = async function(data: any) {
                 const buildDeployData = await getControllerBuildData(deployData);
                 const payload = {
                     eventType: "lagoon:build",
-                    payload: {
-                        buildDeployData
-                    }
+                    payload: buildDeployData
                 }
                 const sendTasks = await sendToLagoonControllers(buildDeployData.spec.project.deployTarget, payload);
                 return true
@@ -429,9 +417,7 @@ export const deployTargetPromote = async function(data: any) {
     const buildDeployData = await getControllerBuildData(promoteData);
     const payload = {
         eventType: "lagoon:build",
-        payload: {
-            buildDeployData
-        }
+        payload: buildDeployData
     }
     const sendTasks = await sendToLagoonControllers(buildDeployData.spec.project.deployTarget, payload);
     return true
