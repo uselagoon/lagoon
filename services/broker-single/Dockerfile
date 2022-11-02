@@ -14,7 +14,8 @@ ENV RABBITMQ_DEFAULT_USER='guest' \
 COPY --from=commons /bin/ep /bin/fix-permissions /bin/
 
 ADD https://github.com/rabbitmq/rabbitmq-delayed-message-exchange/releases/download/3.9.0/rabbitmq_delayed_message_exchange-3.9.0.ez /plugins
-RUN rabbitmq-plugins enable --offline rabbitmq_delayed_message_exchange rabbitmq_prometheus;
+RUN chown rabbitmq:rabbitmq /plugins/rabbitmq_delayed_message_exchange-* \
+    && rabbitmq-plugins enable --offline rabbitmq_delayed_message_exchange rabbitmq_prometheus;
 
 # Copy startup schema with vhost, users, permissions and policies
 COPY definitions.json /etc/rabbitmq/definitions.json
