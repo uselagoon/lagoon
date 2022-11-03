@@ -20,11 +20,13 @@ export const Sql = {
     knex('environment')
       .where('name', '=', name)
       .andWhere('project', '=', projectId)
+      .andWhere('deleted', '0000-00-00 00:00:00')
       .toString(),
   selectEnvironmentsByProjectID: (projectId: number) =>
     knex('environment')
       .select('id', 'name')
       .where('project', '=', projectId)
+      .orderBy('id', 'desc')
       .toString(),
   truncateEnvironment: () =>
     knex('environment')
