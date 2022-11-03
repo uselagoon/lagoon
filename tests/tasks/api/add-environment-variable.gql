@@ -1,16 +1,16 @@
 mutation addEnvVariable {
-  addEnvVariable: addEnvVariable(
-    input:{
-      type: {{ envType }},
-      typeId: {{ project_id }},
+  addOrUpdateEnvVariableByName(
+    input: {
+      project: "{{ project }}"
+      environment: "{{ branch }}"
       scope: {{ envScope }},
       name: "{{ envName }}",
       value: "{{ envValue }}"
     }
   ) {
-    id,
-    name,
-    value,
+    id
     scope
+    name
+    value
   }
 }
