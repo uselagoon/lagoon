@@ -16,8 +16,13 @@ import (
 )
 
 func (m *Messenger) handleBuild(ctx context.Context, messageQueue mq.MQ, message *schema.LagoonMessage, messageID string) {
+	if message.Meta.BuildName == "" {
+		// there is no build name, so abandon this message
+		return
+	}
 	prefix := fmt.Sprintf("(messageid:%s) %s/%s: ", messageID, message.Namespace, message.Meta.BuildName)
-	log.Println(fmt.Sprintf("%sreceived deployment status update - %s", prefix, message.Meta.BuildStatus))
+	buildStatus := message.Meta.BuildPhase // eventually use message.Meta.BuildStatus
+	log.Println(fmt.Sprintf("%sreceived deployment status update - %s", prefix, buildStatus))
 	// generate a lagoon token with a expiry of 60 seconds from now
 	token, err := jwt.GenerateAdminToken(m.LagoonAPI.TokenSigningKey, m.LagoonAPI.JWTAudience, m.LagoonAPI.JWTSubject, m.LagoonAPI.JWTIssuer, time.Now().Unix(), 60)
 	if err != nil {
@@ -82,7 +87,7 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue mq.MQ, message
 	}
 
 	// prepare the deployment patch for later step
-	statusType := schema.StatusTypes(strings.ToUpper(message.Meta.BuildStatus))
+	statusType := schema.StatusTypes(strings.ToUpper(buildStatus))
 	updateDeploymentPatch := schema.UpdateDeploymentPatchInput{
 		RemoteID: &message.Meta.RemoteID,
 		Status:   &statusType,
@@ -113,7 +118,7 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue mq.MQ, message
 	updateEnvironmentPatch := schema.UpdateEnvironmentPatchInput{
 		OpenshiftProjectName: &message.Namespace,
 	}
-	switch message.Meta.BuildStatus {
+	switch buildStatus {
 	case "complete", "failed", "cancelled":
 		// set routes in the API
 		if message.Meta.Route != "" {
@@ -131,7 +136,7 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue mq.MQ, message
 	}
 	// only update the api with the status etc on pending, complete, failed, or cancelled
 	// reduce calls to the api
-	switch message.Meta.BuildStatus {
+	switch buildStatus {
 	case "pending", "complete", "failed", "cancelled":
 		updateEnvironment, err := lagoon.UpdateEnvironment(ctx, environmentID, updateEnvironmentPatch, l)
 		if err != nil {
