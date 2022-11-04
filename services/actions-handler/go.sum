@@ -129,6 +129,8 @@ github.com/tiago4orion/conjure v0.0.0-20150908101743-93cb30b9d218/go.mod h1:GQei
 github.com/urfave/cli v1.22.2/go.mod h1:Gos4lmkARVdJ6EkW0WaNv/tZAAMe9V7XWyB60NtXRu0=
 github.com/uselagoon/machinery v0.0.5 h1:p0KY9XpFazy/5u5VMUNRjdBYqLM/pPOhd6ErOwDs3zc=
 github.com/uselagoon/machinery v0.0.5/go.mod h1:dGAvkxWQkRu/eLQeWLrTl5HvNoFsiXlXInCptHUxzUw=
+github.com/uselagoon/machinery v0.0.6 h1:Fmos85ITxWQSa/0/cb7zo791qIlxMJ28EpAikuE8NN0=
+github.com/uselagoon/machinery v0.0.6/go.mod h1:dGAvkxWQkRu/eLQeWLrTl5HvNoFsiXlXInCptHUxzUw=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 go.opencensus.io v0.22.0 h1:C9hSCOW830chIVkdja34wa6Ky+IzWllkUinR+BtRZd4=
