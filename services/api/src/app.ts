@@ -21,8 +21,11 @@ app.use(json());
 // Add custom configured logger (morgan through winston).
 app.use(
   morgan('combined', {
+    skip: (req, res) => {
+      return req.originalUrl.startsWith('/status');
+    },
     stream: {
-      write: message => logger.info(message)
+      write: message => logger.info(message.trim())
     }
   })
 );

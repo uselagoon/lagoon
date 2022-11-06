@@ -26,14 +26,6 @@ services:
     ports:
       - '15672:15672'
       - '5672:5672'
-  controllerhandler:
-    image: ${IMAGE_REPO:-lagoon}/controllerhandler
-    command: yarn run dev
-    volumes:
-      - ./services/controllerhandler/src:/app/services/controllerhandler/src
-      - ./node-packages:/app/node-packages:delegated
-    environment:
-      - CONSOLE_LOGGING_LEVEL=trace
   logs2notifications:
     image: ${IMAGE_REPO:-lagoon}/logs2notifications
     environment:

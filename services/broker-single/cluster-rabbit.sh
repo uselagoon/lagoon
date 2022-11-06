@@ -1,5 +1,10 @@
 #!/bin/sh
 
+# set the correct permissions on the erlang cookie in case Kubernetes changed it
+if [ -e /var/lib/rabbitmq/.erlang.cookie ]; then
+  echo "setting .erlang.cookie permission correctly"
+	chmod 400 /var/lib/rabbitmq/.erlang.cookie
+fi
 
 # Replace ENV values in definitions.json
 if [ -e /etc/rabbitmq/definitions.json ]; then
