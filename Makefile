@@ -150,7 +150,6 @@ services :=	api \
 			keycloak \
 			keycloak-db \
 			logs2notifications \
-			storage-calculator \
 			webhook-handler \
 			webhooks2tasks \
 			workflows
@@ -175,7 +174,6 @@ build/broker-single: services/broker/Dockerfile
 build/broker: build/broker-single
 build/keycloak-db: services/keycloak-db/Dockerfile
 build/keycloak: services/keycloak/Dockerfile
-build/storage-calculator: services/storage-calculator/Dockerfile
 build/tests: tests/Dockerfile
 build/local-minio:
 # Auth SSH needs the context of the root folder, so we have it individually
