@@ -28,7 +28,7 @@ func (h *Messaging) SendToS3(notification *Notification, msgType MessageType) {
 			fmt.Sprintf("buildlogs/%s/%s/%s-%s.txt",
 				notification.Project,
 				notification.Meta.BranchName,
-				notification.Meta.JobName,
+				notification.Meta.BuildName,
 				notification.Meta.RemoteID,
 			),
 		)

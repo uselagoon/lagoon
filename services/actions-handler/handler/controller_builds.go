@@ -22,6 +22,10 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue mq.MQ, message
 	}
 	prefix := fmt.Sprintf("(messageid:%s) %s/%s: ", messageID, message.Namespace, message.Meta.BuildName)
 	buildStatus := message.Meta.BuildPhase // eventually use message.Meta.BuildStatus
+	if message.Meta.BuildStatus != "" {
+		// use BuildStatus so BuildPhase can be removed
+		buildStatus = message.Meta.BuildStatus
+	}
 	log.Println(fmt.Sprintf("%sreceived deployment status update - %s", prefix, buildStatus))
 	// generate a lagoon token with a expiry of 60 seconds from now
 	token, err := jwt.GenerateAdminToken(m.LagoonAPI.TokenSigningKey, m.LagoonAPI.JWTAudience, m.LagoonAPI.JWTSubject, m.LagoonAPI.JWTIssuer, time.Now().Unix(), 60)
