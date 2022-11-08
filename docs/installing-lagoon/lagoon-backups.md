@@ -72,9 +72,11 @@ Lagoon has been extensively tested with k8up 1.x, but is not compatible with 2.x
 
     ```
     helm repo add appuio https://charts.appuio.ch
-
+    ```
+    ```
     kubectl apply -f https://github.com/vshn/k8up/releases/download/v1.2.0/k8up-crd.yaml
-
+    ```
+    ```
     helm upgrade --install --create-namespace \
       --namespace k8up \
       -f k8up-values.yaml \
