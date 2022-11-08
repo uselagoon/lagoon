@@ -34,23 +34,27 @@ func main() {
 	podNamespace := os.Getenv("NAMESPACE")
 	// check that they aren't empty.
 	if JSONPayload == "" {
-		fmt.Printf("Task failed, error was: no payload provided")
+		fmt.Println("Task failed, error was: no payload provided")
 		os.Exit(1)
 	}
 	if podName == "" {
-		fmt.Printf("Task failed, error was: no podname provided")
+		fmt.Println("Task failed, error was: no podname provided")
 		os.Exit(1)
 	}
 	if podNamespace == "" {
-		fmt.Printf("Task failed, error was: no podnamespace provided")
+		fmt.Println("Task failed, error was: no podnamespace provided")
 		os.Exit(1)
 	}
 
 	// read the deployer token.
 	token, err := ioutil.ReadFile("/var/run/secrets/lagoon/deployer/token")
 	if err != nil {
-		fmt.Printf("Task failed to read the token, error was: %v", err)
-		os.Exit(1)
+		// read the deployer token.
+		token, err = ioutil.ReadFile("/var/run/secrets/kubernetes.io/serviceaccount/token")
+		if err != nil {
+			fmt.Println(fmt.Sprintf("Task failed to read the token, error was: %v", err))
+			os.Exit(1)
+		}
 	}
 	// generate the rest config for the client.
 	config := &rest.Config{
@@ -63,31 +67,31 @@ func main() {
 	// create the client using the rest config.
 	c, err := client.New(config, client.Options{})
 	if err != nil {
-		fmt.Printf("Task failed creating the client, error was: %v", err)
+		fmt.Println(fmt.Sprintf("Task failed creating the client, error was: %v", err))
 		os.Exit(1)
 	}
 
 	// decode the payload data and unmarshal it.
 	payloadBytes, err := base64.StdEncoding.DecodeString(JSONPayload)
 	if err != nil {
-		fmt.Printf("Task failed to decode the supplied payload data, error was: %v", err)
+		fmt.Println(fmt.Sprintf("Task failed to decode the supplied payload data, error was: %v", err))
 		os.Exit(1)
 	}
 	var payloadData map[string]interface{}
 	if err := json.Unmarshal(payloadBytes, &payloadData); err != nil {
-		fmt.Printf("Task failed to unsmarshal the given payload data, error was: %v", err)
+		fmt.Println(fmt.Sprintf("Task failed to unsmarshal the given payload data, error was: %v", err))
 		os.Exit(1)
 	}
 
 	// get the provided CRD from the payload data and unmarshal it to unstructured so we can create it in kubernetes.
 	crdBytes, err := json.Marshal(payloadData["crd"])
 	if err != nil {
-		fmt.Printf("Task failed to marshal the given payload data, error was: %v", err)
+		fmt.Println(fmt.Sprintf("Task failed to marshal the given payload data, error was: %v", err))
 		os.Exit(1)
 	}
 	crd := unstructured.Unstructured{}
 	if err := crd.UnmarshalJSON([]byte(crdBytes)); err != nil {
-		fmt.Printf("Task failed to unsmarshal the given payload data, error was: %v", err)
+		fmt.Println(fmt.Sprintf("Task failed to unsmarshal the given payload data, error was: %v", err))
 		os.Exit(1)
 	}
 	// set the namespace for the crd.
@@ -95,7 +99,7 @@ func main() {
 
 	// create the crd in kubernetes.
 	if err := c.Create(context.Background(), &crd); err != nil {
-		fmt.Printf("Task failed to create the object, error was: %v", err)
+		fmt.Println(fmt.Sprintf("Task failed to create the object, error was: %v", err))
 		os.Exit(1)
 	}
 
@@ -108,7 +112,7 @@ func main() {
 			Namespace: podNamespace,
 			Name:      crd.GetName(),
 		}, &crd); err != nil {
-			fmt.Printf("Task failed to get the object from kubernetes, error was: %v", err)
+			fmt.Println(fmt.Sprintf("Task failed to get the object from kubernetes, error was: %v", err))
 			os.Exit(1)
 		}
 		// check if the status exists, the job may not have started.
@@ -140,10 +144,10 @@ func main() {
 								// exit as the task failed
 								os.Exit(1)
 							}
-							fmt.Printf("Task failed, error was: no hosts found in resource")
+							fmt.Println("Task failed, error was: no hosts found in resource")
 							os.Exit(1)
 						}
-						fmt.Printf("Task failed, error was: no spec found in resource")
+						fmt.Println("Task failed, error was: no spec found in resource")
 						os.Exit(1)
 					}
 					// if the status is completed, then do some additional steps as there could still be a failure
@@ -172,12 +176,12 @@ func main() {
 									Namespace: podNamespace,
 									Name:      podName,
 								}, &pod); err != nil {
-									fmt.Printf(`========================================
+									fmt.Println(fmt.Sprintf(`========================================
 Task failed to get the pod to update, error was: %v
 ========================================
 The active standby switch completed, but Lagoon has not been updated to reflect the changes.
 Please contact your Lagoon administrator to make sure your project gets updated correctly.
-Provide a copy of this entire log to the team.`, err)
+Provide a copy of this entire log to the team.`, err))
 									os.Exit(1)
 								}
 								// the job data to send back to lagoon must be base64 encoded
@@ -190,12 +194,12 @@ Provide a copy of this entire log to the team.`, err)
 								})
 								// update the pod with the annotation
 								if err := c.Patch(context.Background(), &pod, client.RawPatch(types.MergePatchType, mergePatch)); err != nil {
-									fmt.Printf(`========================================
+									fmt.Println(fmt.Sprintf(`========================================
 Task failed to update pod with return information, error was: %v
 ========================================
 The active standby switch completed, but Lagoon has not been updated to reflect the changes.
 Please contact your Lagoon administrator to make sure your project gets updated correctly.
-Provide a copy of this entire log to the team.`, err)
+Provide a copy of this entire log to the team.`, err))
 									// if the update fails, exit 1
 									// if this update fails, it will not update the annotation on the pod
 									// and so the monitor controller won't know to send the response data to lagoon
@@ -205,13 +209,13 @@ Provide a copy of this entire log to the team.`, err)
 								}
 								os.Exit(0)
 							}
-							fmt.Printf("Task failed, error was: no hosts found in resource")
+							fmt.Println("Task failed, error was: no hosts found in resource")
 							os.Exit(1)
 						}
-						fmt.Printf("Task failed, error was: no spec found in resource")
+						fmt.Println("Task failed, error was: no spec found in resource")
 						os.Exit(1)
 					}
-					fmt.Printf("Task current status is %s, retrying check", mapval["type"].(string))
+					fmt.Println(fmt.Sprintf("Task current status is %s, retrying check", mapval["type"].(string)))
 				}
 			}
 		}
@@ -221,7 +225,7 @@ Provide a copy of this entire log to the team.`, err)
 		return attempt < 180, err
 	})
 	if err != nil {
-		fmt.Printf("Task failed, timed out after 30 minutes waiting for the job to start: %v", err)
+		fmt.Println(fmt.Sprintf("Task failed, timed out after 30 minutes waiting for the job to start: %v", err))
 		os.Exit(1)
 	}
 }

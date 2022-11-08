@@ -63,7 +63,7 @@ func (h *Messaging) processMicrosoftTeamsTemplate(notification *Notification) (s
 	case "repoPushSkipped":
 		teamsTpl = `[{{.BranchName}}]({{.RepoURL}}/tree/{{.BranchName}}){{ if ne .ShortSha "" }} ([{{.ShortSha}}]({{.CommitURL}})){{end}} pushed in [{{.RepoFullName}}]({{.RepoURL}}) *deployment skipped*`
 	case "deployEnvironment":
-		teamsTpl = `Deployment triggered ` + "`{{.BranchName}}`" + `{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}}`
+		teamsTpl = `Deployment triggered {{ if ne .BranchName "" }}` + "`{{.BranchName}}`" + `{{else if ne .PullrequestTitle "" }}` + "`{{.PullrequestTitle}}`" + `{{end}}{{ if ne .ShortSha "" }} ({{.ShortSha}}){{end}}`
 	case "removeFinished":
 		teamsTpl = `Removed ` + "`{{.OpenshiftProject}}`" + ``
 	case "removeRetry":
@@ -91,7 +91,10 @@ func (h *Messaging) processMicrosoftTeamsTemplate(notification *Notification) (s
 
 	var teamsMsg bytes.Buffer
 	t, _ := template.New("microsoftteams").Parse(teamsTpl)
-	t.Execute(&teamsMsg, notification.Meta)
+	err = t.Execute(&teamsMsg, notification.Meta)
+	if err != nil {
+		return "", "", "", fmt.Errorf("error generating notifcation template for event %s and project %s: %v", notification.Event, notification.Meta.ProjectName, err)
+	}
 	return emoji, color, teamsMsg.String(), nil
 }
 
