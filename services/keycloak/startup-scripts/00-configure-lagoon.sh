@@ -27,6 +27,11 @@ function sync_client_secrets {
 
   SERVICE_API_CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r ${KEYCLOAK_REALM:-master} clients?clientId=service-api --config $CONFIG_PATH | jq -r '.[0]["id"]')
   /opt/jboss/keycloak/bin/kcadm.sh update clients/$SERVICE_API_CLIENT_ID -s secret=$KEYCLOAK_SERVICE_API_CLIENT_SECRET --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master}
+
+  if [ "$KEYCLOAK_LAGOON_OPENSEARCH_SYNC_CLIENT_SECRET" ]; then
+    LAGOON_OPENSEARCH_SYNC_CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r "${KEYCLOAK_REALM:-master}" clients?clientId=lagoon-opensearch-sync --config "$CONFIG_PATH" | jq -r '.[0]["id"]')
+    /opt/jboss/keycloak/bin/kcadm.sh update "clients/$LAGOON_OPENSEARCH_SYNC_CLIENT_ID" -s "secret=$KEYCLOAK_LAGOON_OPENSEARCH_SYNC_CLIENT_SECRET" --config "$CONFIG_PATH" -r "${KEYCLOAK_REALM:-master}"
+  fi
 }
 
 ##############
@@ -1732,6 +1737,39 @@ function configure_service_api_client {
     echo '{"protocol":"openid-connect","config":{"id.token.claim":"false","access.token.claim":"true","userinfo.token.claim":"false","multivalued":"true","aggregate.attrs":"true","user.attribute":"group-lagoon-project-ids","claim.name":"group_lagoon_project_ids","jsonType.label":"String"},"name":"Group Lagoon Project IDs","protocolMapper":"oidc-usermodel-attribute-mapper"}' | /opt/jboss/keycloak/bin/kcadm.sh create -r ${KEYCLOAK_REALM:-master} clients/$CLIENT_ID/protocol-mappers/models --config $CONFIG_PATH -f -
 }
 
+function configure_lagoon_opensearch_sync_client {
+    local client
+    client=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=lagoon-opensearch-sync --config "$CONFIG_PATH")
+    if [ "$client" != "[ ]" ]; then
+        echo "Client lagoon-opensearch-sync is already created, skipping basic setup"
+        return 0
+    fi
+    echo Creating client lagoon-opensearch-sync
+    # create client
+    local clientID
+    clientID=$(/opt/jboss/keycloak/bin/kcadm.sh create clients --config "$CONFIG_PATH" -r "${KEYCLOAK_REALM:-master}" -i -f - <<EOF
+{
+    "clientId": "lagoon-opensearch-sync",
+    "directAccessGrantsEnabled": false,
+    "publicClient": false,
+    "serviceAccountsEnabled": true,
+    "standardFlowEnabled": false
+}
+EOF
+)
+    # generate secret
+    /opt/jboss/keycloak/bin/kcadm.sh \
+      create "clients/$clientID/client-secret" \
+      --config "$CONFIG_PATH" -r "${KEYCLOAK_REALM:-master}"
+    # add realm-management role to serviceaccount
+    /opt/jboss/keycloak/bin/kcadm.sh \
+      add-roles \
+      --uusername service-account-lagoon-opensearch-sync \
+      --cclientid realm-management \
+      --rolename query-groups \
+      --config "$CONFIG_PATH" -r "${KEYCLOAK_REALM:-master}"
+}
+
 function configure_token_exchange {
     REALM_MANAGEMENT_CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=realm-management --config $CONFIG_PATH | jq -r '.[0]["id"]')
     IMPERSONATE_PERMISSION_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$REALM_MANAGEMENT_CLIENT_ID/authz/resource-server/permission?name=admin-impersonating.permission.users --config $CONFIG_PATH | jq -r '.[0]["id"]')
@@ -1954,6 +1992,7 @@ function configure_keycloak {
     update_add_env_var_to_project
     migrate_to_js_provider
     add_delete_env_var_permissions
+    configure_lagoon_opensearch_sync_client
 
     # always run last
     sync_client_secrets
