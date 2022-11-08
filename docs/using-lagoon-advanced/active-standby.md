@@ -130,6 +130,32 @@ mutation updateProject {
 }
 ```
 
+## Disabling Active/Standby
+
+You need to decide which of these 2 branches are the one you want to go forward with as being the main environment and then ensure it is set as the active branch (e.g `production-branchb`).
+
+1. In your .lagoon.yml file in this (now active) branch, move the routes from the `production_routes.active.routes` section into the `environments.production-branchb` section. This will mean that they are then attached to the production-branchb environment only.
+2. Once you've done this, you can delete the entire production_routes section from the .lagoon.yml file and re-deploy the production-branchb environment.
+3. If you no longer need the other branch `production-brancha`, you can delete it.
+4. If you keep the branch in git, you should also remove the production_routes from that branch .lagoon.yml too, just to prevent any confusion. The branch will remain as `production` type unless you delete and redeploy it (wiping all storage and databases etc)
+5. Once you've got the project in a state where there is only the `production-branchb` production environment, and all the other environments are `development`, update the project to remove the standbyProductionEnvironment from the project so that the active/standby labels on the environments go away
+
+```graphql
+mutation updateProject {
+  updateProject(input:{
+    id:1234
+    patch:{
+      productionEnvironment:"production-branchb"
+      standbyProductionEnvironment:""
+    }
+  }){
+    standbyProductionEnvironment
+    name
+    productionEnvironment
+  }
+}
+```
+
 ## Notes
 
 When the active/standby trigger has been executed, the `productionEnvironment` and `standbyProductionEnvironments` will switch within the Lagoon API. Both environments are still classed as `production` environment types. We use the `productionEnvironment` to determine which one is labelled as `active`. For more information on the differences between environment types, read the [documentation for `environment types`](environment-types.md)

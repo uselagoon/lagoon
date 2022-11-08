@@ -14,7 +14,12 @@
 ## Specific requirements (as of March 2022)
 
 ### Kubernetes
-Lagoon supports Kubernetes versions 1.19 onwards. We actively test and develop against Kubernetes 1.23, also regularly testing against 1.21,1.22 and 1.24. The next round of breaking changes is in [Kubernetes 1.25](https://kubernetes.io/docs/reference/using-api/deprecation-guide/#v1-25), and we will endeavour to be across these in advance.
+Lagoon supports Kubernetes versions 1.19 onwards. We actively test and develop against Kubernetes 1.23, also regularly testing against 1.21,1.22 and 1.24.
+
+!!! Warning "Kubernetes 1.24:"
+    Lagoon does not currently support Kubernetes 1.24 due to a bug [here](https://github.com/uselagoon/remote-controller/issues/151)
+
+The next large round of breaking changes is in [Kubernetes 1.25](https://kubernetes.io/docs/reference/using-api/deprecation-guide/#v1-25), and we will endeavour to be across these in advance.
 
 ### ingress-nginx
 Lagoon is currently configured only for a single ingress-nginx controller, and therefore defining an IngressClass has not been necessary.
@@ -33,8 +38,11 @@ Versions 2.1 and 2.2+ of Harbor are currently supported - the method of retrievi
 
 We recommend installing a Harbor version greater than [2.5.0](https://github.com/goharbor/harbor/releases/tag/v2.5.0) with Helm chart [1.9.0](https://github.com/goharbor/harbor-helm/releases/tag/v1.9.0) or greater.
 
-### K8up for backups
-Lagoon has built in configuration for the [K8up](https://k8up.io/k8up/1.2/index.html) backup operator. Lagoon can configure prebackup pods, schedules and retentions, and manage backups and restores for K8up. Lagoon currently only supports the 1.x versions of K8up, owing to a namespace change in v2 onwards, but we are working on a fix.
+### k8up for backups
+Lagoon has built in configuration for the [k8up](https://k8up.io/k8up/1.2/index.html) backup operator. Lagoon can configure prebackup pods, schedules and retentions, and manage backups and restores for K8up. Lagoon currently only supports the 1.x versions of k8up, owing to a namespace change in v2 onwards, but we are working on a fix.
+
+!!! Warning "k8up v2:"
+    Lagoon does not currently support k8up v2 onwards due to a namespace change [here](https://github.com/uselagoon/build-deploy-tool/issues/121)
 
 We recommend installing K8up version [1.2.0](https://github.com/k8up-io/k8up/releases/tag/v1.2.0) with helm chart [1.1.0](https://github.com/appuio/charts/releases/tag/k8up-1.1.0)
 
