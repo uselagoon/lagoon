@@ -5,7 +5,7 @@ import {
   ChannelWrapper
 } from 'amqp-connection-manager';
 import { ConfirmChannel, ConsumeMessage } from 'amqplib';
-import { logger } from './local-logging';
+import { logger } from './logs/local-logger';
 import {
   getActiveSystemForProject,
   getEnvironmentsForProject,
@@ -25,7 +25,7 @@ import sha1 from 'sha1';
 import crypto from 'crypto';
 import moment from 'moment';
 
-import { jsonMerge } from './util'
+import { jsonMerge } from './util/func'
 
 interface MessageConsumer {
   (msg: ConsumeMessage): Promise<void>;
@@ -558,7 +558,7 @@ export const getControllerBuildData = async function(deployData: any) {
       deployTitle)
     logger.info(`${openshiftProject}: Created/Updated Environment in API`)
   } catch (err) {
-    logger.error(err)
+    logger.error(`Couldn't addOrUpdateEnvironment: ${err.message}`)
     throw new Error
   }
 

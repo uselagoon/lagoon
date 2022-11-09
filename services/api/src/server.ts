@@ -7,7 +7,7 @@ import { app } from './app';
 import apolloServer from './apolloServer';
 
 export const createServer = async () => {
-  logger.debug('Starting to boot the server.');
+  logger.verbose('Starting the api...');
 
   const port = toNumber(getConfigFromEnv('PORT', '3000'));
   const server = http.createServer(app);
@@ -18,9 +18,7 @@ export const createServer = async () => {
   const listen = util.promisify(server.listen).bind(server);
   await listen(port);
 
-  logger.debug(
-    `Finished booting the server. The server is reachable at port ${port.toString()}.`
-  );
+  logger.info(`API is ready on port ${port.toString()}`);
 
   return server;
 };

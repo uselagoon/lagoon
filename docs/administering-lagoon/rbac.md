@@ -58,6 +58,9 @@ Here is a table that lists the roles and the access they have:
 | addEnvVariable \(to Environment\) | env\_var | environment:add:development | projectID | Yes | Yes | Yes | Yes | Yes | No | No |  |
 | addEnvVariable \(to Environment\) | env\_var | environment:add:production | projectID | Yes | Yes | Yes | Yes | No | No | No |  |
 | deleteEnvVariable | env\_var | delete | projectID | Yes | Yes | Yes | Yes | No | No | No |  |
+| deleteEnvVariable \(from Project\) | env\_var | project:delete | projectID | Yes | Yes | Yes | Yes | No | No | No |  |
+| deleteEnvVariable \(from Environment\) | env\_var | environment:delete:development | projectID | Yes | Yes | Yes | Yes | Yes | No | No |  |
+| deleteEnvVariable \(from Environment\) | env\_var | environment:delete:production | projectID | Yes | Yes | Yes | Yes | No | No | No |  |
 | getEnvVarsByProjectId | env\_var | project:view | projectID | Yes | Yes | Yes | Yes | No | No | No |  |
 | getEnvVarsByEnvironmentId | env\_var | environment:view:development | projectID | Yes | Yes | Yes | Yes | Yes | No | No |  |
 | getEnvVarsByEnvironmentId | env\_var | environment:view:production | projectID | Yes | Yes | Yes | Yes | No | No | No |  |

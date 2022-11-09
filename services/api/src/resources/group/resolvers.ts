@@ -36,7 +36,7 @@ export const getAllGroups: ResolverFn = async (
 
     if (err instanceof KeycloakUnauthorizedError) {
       if (!keycloakGrant) {
-        logger.warn('Access denied to user for getAllGroups');
+        logger.debug('No grant available for getAllGroups');
         return [];
       } else {
         const user = await models.UserModel.loadUserById(
@@ -70,7 +70,7 @@ export const getGroupsByProjectId: ResolverFn = async (
     return projectGroups;
   } catch (err) {
     if (!keycloakGrant) {
-      logger.warn('No grant available for getGroupsByProjectId');
+      logger.debug('No grant available for getGroupsByProjectId');
       return [];
     }
 
@@ -117,7 +117,7 @@ export const getGroupsByUserId: ResolverFn = async (
     return queryUserGroups;
   } catch (err) {
     if (!keycloakGrant) {
-      logger.warn('No grant available for getGroupsByUserId');
+      logger.debug('No grant available for getGroupsByUserId');
       return [];
     }
 
@@ -150,7 +150,7 @@ export const getGroupByName: ResolverFn = async (
 
     if (err instanceof KeycloakUnauthorizedError) {
       if (!keycloakGrant) {
-        logger.warn('Access denied to user for getGroupByName');
+        logger.debug('No grant available for getGroupByName');
         throw new GroupNotFoundError(`Group not found: ${name}`);
       } else {
         const user = await models.UserModel.loadUserById(
@@ -567,9 +567,7 @@ export const getAllProjectsInGroup: ResolverFn = async (
   }
 
   if (!keycloakGrant) {
-    logger.warn(
-      'Access denied to user for getAllProjectsInGroup: no keycloakGrant'
-    );
+    logger.debug('No grant available for getAllProjectsInGroup');
     return [];
   } else {
     const group = await loadGroupByIdOrName(groupInput);
@@ -592,9 +590,7 @@ export const getAllProjectsInGroup: ResolverFn = async (
     }
     // @ts-ignore
     if (!R.contains(group.name, R.pluck('name', userGroups))) {
-      logger.warn(
-        'Access denied to user for getAllProjectsInGroup: user not in group'
-      );
+      logger.debug('No grant available for getAllProjectsInGroup');
       return [];
     }
 

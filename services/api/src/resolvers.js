@@ -264,6 +264,9 @@ const {
   getEnvVarsByEnvironmentId,
   addEnvVariable,
   deleteEnvVariable,
+  addOrUpdateEnvVariableByName,
+  deleteEnvVariableByName,
+  getEnvVariablesByProjectEnvironmentName,
 } = require('./resources/env-variables/resolvers');
 
 const {
@@ -518,6 +521,7 @@ const resolvers = {
     organizationById: getOrganizationById,
     getGroupProjectOrganizationAssociation,
     getProjectGroupOrganizationAssociation,
+    getEnvVariablesByProjectEnvironmentName,
   },
   Mutation: {
     addProblem,
@@ -597,6 +601,8 @@ const resolvers = {
     updateRestore,
     addEnvVariable,
     deleteEnvVariable,
+    addOrUpdateEnvVariableByName,
+    deleteEnvVariableByName,
     addTask,
     addAdvancedTaskDefinition,
     updateAdvancedTaskDefinition,

@@ -1,10 +1,4 @@
 #!/bin/bash
 
-for f in `ls /docker-entrypoint-initdb.d/*`; do
-  case "$f" in
-    *.sh)     echo "$0: running $f"; . "$f" ;;
-    *.sql)    echo "$0: running $f"; cat $f| envsubst | tee | mysql --verbose; echo ;;
-    *)        echo "$0: ignoring $f" ;;
-  esac
-echo
-done
+echo "This command is no longer used to update the api-db"
+echo "Please run /legacy_rerun_initdb.sh for the final v2.10 update"

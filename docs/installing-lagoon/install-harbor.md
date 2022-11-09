@@ -1,7 +1,7 @@
 # Install Harbor
 
 1. Add Helm repo:
-    ```
+    ```bash
     helm repo add harbor https://helm.goharbor.io
     ```
 2. Create the file `harbor-values.yml` inside of your config directory:
@@ -36,7 +36,7 @@
     ```
 
 1. Install Harbor, checking the [requirements](./requirements.md#harbor) for the currently supported Harbor versions.:
-    ```
+    ```bash
     helm upgrade --install --create-namespace \
       --namespace harbor --wait \
       -f harbor-values.yml \
@@ -45,7 +45,7 @@
 2. Visit Harbor at the URL you set in `harbor.yml`.
    1. Username: admin
    2. Password:
-       ```
+       ```bash
        kubectl -n harbor get secret harbor-core -o jsonpath="{.data.HARBOR_ADMIN_PASSWORD}" | base64 --decode
        ```
 3. You will need to add the above Harbor credentials to the Lagoon Remote `values.yml` in the next step, as well as `harbor-values.yml`.

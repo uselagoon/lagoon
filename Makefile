@@ -147,11 +147,9 @@ services :=	api \
 			backup-handler \
 			broker \
 			broker-single \
-			controllerhandler \
 			keycloak \
 			keycloak-db \
 			logs2notifications \
-			storage-calculator \
 			webhook-handler \
 			webhooks2tasks \
 			workflows
@@ -168,7 +166,7 @@ $(build-services):
 	touch $@
 
 # Dependencies of Service Images
-build/auth-server build/logs2notifications build/backup-handler build/controllerhandler build/webhook-handler build/webhooks2tasks build/api: build/yarn-workspace-builder
+build/auth-server build/logs2notifications build/backup-handler build/webhook-handler build/webhooks2tasks build/api: build/yarn-workspace-builder
 build/api-db: services/api-db/Dockerfile
 build/api-redis: services/api-redis/Dockerfile
 build/actions-handler: services/actions-handler/Dockerfile
@@ -176,7 +174,6 @@ build/broker-single: services/broker/Dockerfile
 build/broker: build/broker-single
 build/keycloak-db: services/keycloak-db/Dockerfile
 build/keycloak: services/keycloak/Dockerfile
-build/storage-calculator: services/storage-calculator/Dockerfile
 build/tests: tests/Dockerfile
 build/local-minio:
 # Auth SSH needs the context of the root folder, so we have it individually
@@ -451,7 +448,7 @@ STERN_VERSION = 2.1.20
 CHART_TESTING_VERSION = v3.6.0
 KIND_IMAGE = kindest/node:v1.23.6@sha256:b1fa224cc6c7ff32455e0b1fd9cbfd3d3bc87ecaa8fcb06961ed1afb3db0f9ae
 TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,drupal-php80,drupal-postgres,python,gitlab,github,bitbucket,node-mongodb,elasticsearch,workflows]
-CHARTS_TREEISH = main
+CHARTS_TREEISH = lagoon_v211
 TASK_IMAGES = task-activestandby
 
 # Symlink the installed kubectl client if the correct version is already
@@ -571,7 +568,7 @@ ifeq ($(ARCH), darwin)
       tcp-listen:32080,fork,reuseaddr tcp-connect:target:32080
 endif
 
-KIND_SERVICES = api api-db api-redis auth-server actions-handler broker controllerhandler keycloak keycloak-db logs2notifications webhook-handler webhooks2tasks local-api-data-watcher-pusher local-git ssh tests workflows $(TASK_IMAGES)
+KIND_SERVICES = api api-db api-redis auth-server actions-handler broker keycloak keycloak-db logs2notifications webhook-handler webhooks2tasks local-api-data-watcher-pusher local-git ssh tests workflows $(TASK_IMAGES)
 KIND_TESTS = local-api-data-watcher-pusher local-git tests
 KIND_TOOLS = kind helm kubectl jq stern
 
@@ -605,7 +602,7 @@ kind/test: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addpr
 			"quay.io/helmpack/chart-testing:$(CHART_TESTING_VERSION)" \
 			ct install
 
-LOCAL_DEV_SERVICES = api auth-server controllerhandler logs2notifications webhook-handler webhooks2tasks
+LOCAL_DEV_SERVICES = api auth-server actions-handler logs2notifications webhook-handler webhooks2tasks
 
 # install lagoon charts in a Kind cluster
 .PHONY: kind/setup

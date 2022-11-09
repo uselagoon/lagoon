@@ -1,22 +1,6 @@
 - name: "{{ testname }} - POST api add envVariable with target project {{ project }} to {{ graphql_url }}"
   block:
     - include: admin-token.yaml
-    - name: "{{ testname }} - POST api get project by name with target project {{ project }} to {{ graphql_url }}"
-      uri:
-        url: "{{ graphql_url }}"
-        method: POST
-        headers:
-          Authorization: "Bearer {{ admin_token }}"
-        body_format: json
-        body: '{ "query": "query($project: String!) {projectByName(name:$project){id,name}}", "variables": {"project":"{{ project }}"}}'
-      register: apiresponse
-    - name: "{{ testname }} - POST api get project by name with target project {{ project }} and sha {{ sha }} to {{ graphql_url }}"
-      debug:
-        msg: "api response: {{ apiresponse.json }}"
-    - name: "{{ testname }} - save project id as fact"
-      set_fact:
-        project_id: "{{ apiresponse.json.data.projectByName.id }}"
-        envType: PROJECT
     - name: "{{ testname }} - POST api add envVariable with target project {{ project }} to {{ graphql_url }}"
       uri:
         url: "{{ graphql_url }}"
@@ -25,8 +9,11 @@
           Authorization: "Bearer {{ admin_token }}"
         body_format: json
         body:
-          query: '{{ lookup("template", "./add-variable.gql") }}'
+          query: '{{ lookup("template", "./add-project-variable.gql") }}'
       register: apiresponse
     - name: "{{ testname }} - POST api add envVariable with target project {{ project }} to {{ graphql_url }}"
       debug:
         msg: "api response: {{ apiresponse.json }}"
+    - fail:
+        msg: "error adding environment variable"
+      when: apiresponse.json.data.addOrUpdateEnvVariableByName.name is not defined

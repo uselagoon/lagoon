@@ -1082,6 +1082,10 @@ const typeDefs = gql`
     organization: Int!
   }
 
+  input EnvVariableByProjectEnvironmentNameInput {
+    environment: String
+    project: String!
+  }
 
   type Query {
     """
@@ -1228,6 +1232,7 @@ const typeDefs = gql`
     organizationById(organization: Int!): Organization
     getGroupProjectOrganizationAssociation(input: AddGroupInput!): String
     getProjectGroupOrganizationAssociation(input: ProjectOrgGroupsInput!): String
+    getEnvVariablesByProjectEnvironmentName(input: EnvVariableByProjectEnvironmentNameInput!): [EnvKeyValue]
   }
 
   # Must provide id OR name
@@ -1845,6 +1850,20 @@ const typeDefs = gql`
     id: Int!
   }
 
+  input DeleteEnvVariableByNameInput {
+    environment: String
+    project: String!
+    name: String!
+  }
+
+  input EnvVariableByNameInput {
+    environment: String
+    project: String!
+    scope: EnvVariableScope
+    name: String!
+    value: String!
+  }
+
   input SetEnvironmentServicesInput {
     environment: Int!
     services: [String]!
@@ -2081,8 +2100,10 @@ const typeDefs = gql`
     deleteAllBackups: String
     addRestore(input: AddRestoreInput!): Restore
     updateRestore(input: UpdateRestoreInput!): Restore
-    addEnvVariable(input: EnvVariableInput!): EnvKeyValue
-    deleteEnvVariable(input: DeleteEnvVariableInput!): String
+    addEnvVariable(input: EnvVariableInput!): EnvKeyValue  @deprecated(reason: "Use addOrUpdateEnvVariableByName instead")
+    deleteEnvVariable(input: DeleteEnvVariableInput!): String  @deprecated(reason: "Use deleteEnvVariableByName instead")
+    addOrUpdateEnvVariableByName(input: EnvVariableByNameInput!): EnvKeyValue
+    deleteEnvVariableByName(input: DeleteEnvVariableByNameInput!): String
     addTask(input: TaskInput!): Task
     addAdvancedTaskDefinition(input: AdvancedTaskDefinitionInput!): AdvancedTaskDefinition
     updateAdvancedTaskDefinition(input: UpdateAdvancedTaskDefinitionInput!): AdvancedTaskDefinition

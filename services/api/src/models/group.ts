@@ -3,7 +3,7 @@ import * as R from 'ramda';
 // @ts-ignore
 import { Pool } from 'mariadb';
 // @ts-ignore
-import { asyncPipe } from '@lagoon/commons/dist/util';
+import { asyncPipe } from '@lagoon/commons/dist/util/func';
 import pickNonNil from '../util/pickNonNil';
 import { logger } from '../loggers/logger';
 // @ts-ignore

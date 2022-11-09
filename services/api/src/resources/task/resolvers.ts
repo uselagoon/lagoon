@@ -13,7 +13,7 @@ import { Helpers as projectHelpers } from '../project/helpers';
 import { Validators as envValidators } from '../environment/validators';
 import S3 from 'aws-sdk/clients/s3';
 import sha1 from 'sha1';
-import { generateTaskName } from '@lagoon/commons/dist/util';
+import { generateTaskName } from '@lagoon/commons/dist/util/lagoon';
 
 const accessKeyId =  process.env.S3_FILES_ACCESS_KEY_ID || 'minio'
 const secretAccessKey =  process.env.S3_FILES_SECRET_ACCESS_KEY || 'minio123'
