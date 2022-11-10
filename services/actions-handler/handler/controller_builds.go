@@ -52,7 +52,14 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue mq.MQ, message
 		}
 		return
 	}
-
+	switch strings.ToLower(deployment.Status) {
+	case "complete", "failed", "cancelled":
+		// the build/deployment is already in a finished state, don't process any additional messages for this deployment
+		if m.EnableDebug {
+			log.Println(fmt.Sprintf("%sWARNING:deployment is already %s doing nothing - %v", prefix, strings.ToLower(deployment.Status), err))
+		}
+		return
+	}
 	var environmentID uint
 	// determine the environment id from the message
 	if message.Meta.ProjectID == nil && message.Meta.EnvironmentID == nil {
