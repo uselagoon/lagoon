@@ -3,6 +3,7 @@ import * as R from 'ramda';
 import { ResolverFn } from '../';
 import { query, knex } from '../../util/db';
 import { Sql } from './sql';
+import { Helpers, validateEnvVariables } from './helpers';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { Sql as projectSql } from '../project/sql';
@@ -261,9 +262,15 @@ export const deleteEnvVariableByName: ResolverFn = async (
 
 export const addOrUpdateEnvVariableByName: ResolverFn = async (
   root,
-  { input: { project: projectName, environment: environmentName, name, scope, value } },
+  { input: args },
   { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
+
+  const { project: projectName, environment: environmentName, name, scope, value } = args;
+
+  // run through env var validation.
+  await validateEnvVariables(args)
+
   const projectId = await projectHelpers(sqlClientPool).getProjectIdByName(
     projectName
   );
