@@ -1,0 +1,18 @@
+{
+	"type": "task",
+	"namespace": "example-project-main",
+	"meta": {
+		"environment": "main",
+		"environmentId": 1,
+		"jobName": "lagoon-task-abcdefg",
+		"jobStatus": "pending",
+		"project": "example-project",
+		"projectId": 1,
+		"remoteId": "b1d53406-48d6-4a28-87d2-bada0b602d87",
+		"task": {
+			"id": "1",
+			"name": "run task"
+		},
+		"clusterName": "cluster-01"
+	}
+}

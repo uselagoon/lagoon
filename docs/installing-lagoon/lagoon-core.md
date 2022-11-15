@@ -8,7 +8,7 @@
     ```
 2. Create a directory for the configuration files we will create, and make sure that it’s version controlled. Ensure that you reference this path in commands referencing your `values.yml` files.
 3. Create `values.yml` in the directory you’ve just created. Update the endpoint URLs (change them from api.lagoon.example.com to your values).
-   Example: [https://gist.github.com/Schnitzel/58e390bf1b6f93117a37a3eb02e8bae3](https://gist.github.com/Schnitzel/58e390bf1b6f93117a37a3eb02e8bae3)
+   Example: [https://github.com/uselagoon/lagoon-charts/blob/main/charts/lagoon-core/ci/linter-values.yaml](https://github.com/uselagoon/lagoon-charts/blob/main/charts/lagoon-core/ci/linter-values.yaml)
 4. Now run `helm upgrade --install` command, pointing to `values.yml`, like so:
     ```bash
     helm upgrade --install --create-namespace --namespace lagoon-core -f values.yml lagoon-core lagoon/lagoon-core`

@@ -27,6 +27,11 @@ function sync_client_secrets {
 
   SERVICE_API_CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r ${KEYCLOAK_REALM:-master} clients?clientId=service-api --config $CONFIG_PATH | jq -r '.[0]["id"]')
   /opt/jboss/keycloak/bin/kcadm.sh update clients/$SERVICE_API_CLIENT_ID -s secret=$KEYCLOAK_SERVICE_API_CLIENT_SECRET --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master}
+
+  if [ "$KEYCLOAK_LAGOON_OPENSEARCH_SYNC_CLIENT_SECRET" ]; then
+    LAGOON_OPENSEARCH_SYNC_CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r "${KEYCLOAK_REALM:-master}" clients?clientId=lagoon-opensearch-sync --config "$CONFIG_PATH" | jq -r '.[0]["id"]')
+    /opt/jboss/keycloak/bin/kcadm.sh update "clients/$LAGOON_OPENSEARCH_SYNC_CLIENT_ID" -s "secret=$KEYCLOAK_LAGOON_OPENSEARCH_SYNC_CLIENT_SECRET" --config "$CONFIG_PATH" -r "${KEYCLOAK_REALM:-master}"
+  fi
 }
 
 ##############
@@ -82,11 +87,6 @@ function configure_lagoon_realm {
 
         /opt/jboss/keycloak/bin/kcadm.sh add-roles --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} --uid ${user_id} --rolename admin
         echo "Gave user '$KEYCLOAK_LAGOON_ADMIN_USERNAME' the role 'admin'"
-
-        local group_name="lagoonadmin"
-        local group_id=$(/opt/jboss/keycloak/bin/kcadm.sh create groups --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s name=${group_name} 2>&1 | sed -e 's/Created new group with id //g' -e "s/'//g")
-        /opt/jboss/keycloak/bin/kcadm.sh update users/${user_id}/groups/${group_id} --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master}
-        echo "Created group '$group_name' and made user '$KEYCLOAK_LAGOON_ADMIN_USERNAME' member of it"
     fi
 }
 
@@ -1289,6 +1289,7 @@ EOF
   "scopes": ["ssh:production"],
   "policies": ["Users role for project is Maintainer","User has access to project"]
 }
+
 EOF
 
     # http://localhost:8088/auth/admin/realms/lagoon/clients/1329f641-a440-44a7-996f-ed1c560e2edd/authz/resource-server/permission/scope
@@ -1736,6 +1737,39 @@ function configure_service_api_client {
     echo '{"protocol":"openid-connect","config":{"id.token.claim":"false","access.token.claim":"true","userinfo.token.claim":"false","multivalued":"true","aggregate.attrs":"true","user.attribute":"group-lagoon-project-ids","claim.name":"group_lagoon_project_ids","jsonType.label":"String"},"name":"Group Lagoon Project IDs","protocolMapper":"oidc-usermodel-attribute-mapper"}' | /opt/jboss/keycloak/bin/kcadm.sh create -r ${KEYCLOAK_REALM:-master} clients/$CLIENT_ID/protocol-mappers/models --config $CONFIG_PATH -f -
 }
 
+function configure_lagoon_opensearch_sync_client {
+    local client
+    client=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=lagoon-opensearch-sync --config "$CONFIG_PATH")
+    if [ "$client" != "[ ]" ]; then
+        echo "Client lagoon-opensearch-sync is already created, skipping basic setup"
+        return 0
+    fi
+    echo Creating client lagoon-opensearch-sync
+    # create client
+    local clientID
+    clientID=$(/opt/jboss/keycloak/bin/kcadm.sh create clients --config "$CONFIG_PATH" -r "${KEYCLOAK_REALM:-master}" -i -f - <<EOF
+{
+    "clientId": "lagoon-opensearch-sync",
+    "directAccessGrantsEnabled": false,
+    "publicClient": false,
+    "serviceAccountsEnabled": true,
+    "standardFlowEnabled": false
+}
+EOF
+)
+    # generate secret
+    /opt/jboss/keycloak/bin/kcadm.sh \
+      create "clients/$clientID/client-secret" \
+      --config "$CONFIG_PATH" -r "${KEYCLOAK_REALM:-master}"
+    # add realm-management role to serviceaccount
+    /opt/jboss/keycloak/bin/kcadm.sh \
+      add-roles \
+      --uusername service-account-lagoon-opensearch-sync \
+      --cclientid realm-management \
+      --rolename query-groups \
+      --config "$CONFIG_PATH" -r "${KEYCLOAK_REALM:-master}"
+}
+
 function configure_token_exchange {
     REALM_MANAGEMENT_CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get  -r lagoon clients?clientId=realm-management --config $CONFIG_PATH | jq -r '.[0]["id"]')
     IMPERSONATE_PERMISSION_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$REALM_MANAGEMENT_CLIENT_ID/authz/resource-server/permission?name=admin-impersonating.permission.users --config $CONFIG_PATH | jq -r '.[0]["id"]')
@@ -1871,6 +1905,57 @@ function migrate_to_js_provider {
     IFS=$OLDIFS
 }
 
+function add_delete_env_var_permissions {
+  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  delete_env_var_from_production_environment=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Delete+Environment+Variable+from+Production+Environment --config $CONFIG_PATH)
+
+  if [ "$delete_env_var_from_production_environment" != "[ ]" ]; then
+      echo "project:delete and environment:delete:x on env_var already configured"
+      return 0
+  fi
+
+  echo Configuring Delete Environment Variable permissions
+
+  ENVVAR_RESOURCE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=env_var --config $CONFIG_PATH | jq -r '.[0]["_id"]')
+  /opt/jboss/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$ENVVAR_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"project:view"},{"name":"project:add"},{"name":"project:delete"},{"name":"environment:view:production"},{"name":"environment:view:development"},{"name":"environment:add:production"},{"name":"environment:add:development"},{"name":"environment:delete:production"},{"name":"environment:delete:development"},{"name":"delete"}]'
+
+  /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Delete Environment Variable from Project",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["env_var"],
+  "scopes": ["project:delete"],
+  "policies": ["[Lagoon] Users role for project is Maintainer","[Lagoon] User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Delete Environment Variable from Development Environment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["env_var"],
+  "scopes": ["environment:delete:development"],
+  "policies": ["[Lagoon] Users role for project is Developer","[Lagoon] User has access to project"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Delete Environment Variable from Production Environment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["env_var"],
+  "scopes": ["environment:delete:production"],
+  "policies": ["[Lagoon] Users role for project is Maintainer","[Lagoon] User has access to project"]
+}
+EOF
+}
+
 ##################
 # Initialization #
 ##################
@@ -1906,6 +1991,8 @@ function configure_keycloak {
     configure_token_exchange
     update_add_env_var_to_project
     migrate_to_js_provider
+    add_delete_env_var_permissions
+    configure_lagoon_opensearch_sync_client
 
     # always run last
     sync_client_secrets

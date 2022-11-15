@@ -12,9 +12,9 @@
 # Changing one sql file after initial load will sync the sql scripts.
 
 rerun-initdb:
-		docker-compose exec -u root api-db bash /rerun_initdb.sh
+		docker-compose exec -u root api-db bash /legacy_rerun_initdb.sh
 
 watch:
-		watchman-make -p 'docker-entrypoint-initdb.d/*.sql' 'Makefile' -t rerun-initdb
+		watchman-make -p '/legacy-migration-scripts/*.sql' 'Makefile' -t -legacy-rerun-initdb
 
 .PHONY: reinitdb watch

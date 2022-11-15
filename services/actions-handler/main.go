@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 	"time"
 
-	"github.com/cheshir/go-mq"
-	"github.com/uselagoon/lagoon/services/actions-handler/internal/handler"
+	mq "github.com/cheshir/go-mq"
+	"github.com/uselagoon/lagoon/services/actions-handler/handler"
+	"github.com/uselagoon/machinery/utils/variables"
 )
 
 var (
@@ -28,13 +28,13 @@ var (
 	jwtAudience                  string
 	actionsQueueName             string
 	actionsExchange              string
+	controllerQueueName          string
+	controllerExchange           string
 	jwtSubject                   string
 	jwtIssuer                    string
 )
 
 func main() {
-	flag.StringVar(&lagoonAppID, "lagoon-app-id", "actions-handler",
-		"The appID to use that will be sent with messages.")
 	flag.StringVar(&mqUser, "rabbitmq-username", "guest",
 		"The username of the rabbitmq user.")
 	flag.StringVar(&mqPass, "rabbitmq-password", "guest",
@@ -43,7 +43,7 @@ func main() {
 		"The hostname for the rabbitmq host.")
 	flag.StringVar(&mqPort, "rabbitmq-port", "5672",
 		"The port for the rabbitmq host.")
-	flag.IntVar(&mqWorkers, "rabbitmq-queue-workers", 1,
+	flag.IntVar(&mqWorkers, "rabbitmq-queue-workers", 2,
 		"The number of workers to start with.")
 	flag.IntVar(&rabbitReconnectRetryInterval, "rabbitmq-reconnect-retry-interval", 30,
 		"The retry interval for rabbitmq.")
@@ -65,31 +65,30 @@ func main() {
 		"The name of the queue in rabbitmq to use.")
 	flag.StringVar(&actionsExchange, "actions-exchange", "lagoon-actions",
 		"The name of the exchange in rabbitmq to use.")
+	flag.StringVar(&controllerQueueName, "controller-queue-name", "lagoon-tasks:controller",
+		"The name of the queue in rabbitmq to use.")
+	flag.StringVar(&controllerExchange, "controller-exchange", "lagoon-tasks",
+		"The name of the exchange in rabbitmq to use.")
 	flag.Parse()
 
 	// get overrides from environment variables
-	mqUser = getEnv("RABBITMQ_USERNAME", mqUser)
-	mqPass = getEnv("RABBITMQ_PASSWORD", mqPass)
-	mqHost = getEnv("RABBITMQ_ADDRESS", mqHost)
-	mqPort = getEnv("RABBITMQ_PORT", mqPort)
-	lagoonAPIHost = getEnv("GRAPHQL_ENDPOINT", lagoonAPIHost)
-	jwtTokenSigningKey = getEnv("JWT_SECRET", jwtTokenSigningKey)
-	jwtAudience = getEnv("JWT_AUDIENCE", jwtAudience)
-	jwtSubject = getEnv("JWT_SUBJECT", jwtSubject)
-	jwtIssuer = getEnv("JWT_ISSUER", jwtIssuer)
-	actionsQueueName = getEnv("ACTIONS_QUEUE_NAME", actionsQueueName)
-	actionsExchange = getEnv("ACTIONS_EXCHANGE", actionsExchange)
+	mqUser = variables.GetEnv("RABBITMQ_USERNAME", mqUser)
+	mqPass = variables.GetEnv("RABBITMQ_PASSWORD", mqPass)
+	mqHost = variables.GetEnv("RABBITMQ_ADDRESS", mqHost)
+	mqPort = variables.GetEnv("RABBITMQ_PORT", mqPort)
+	mqWorkers = variables.GetEnvInt("RABBITMQ_WORKERS", mqWorkers)
+	lagoonAPIHost = variables.GetEnv("GRAPHQL_ENDPOINT", lagoonAPIHost)
+	jwtTokenSigningKey = variables.GetEnv("JWT_SECRET", jwtTokenSigningKey)
+	jwtAudience = variables.GetEnv("JWT_AUDIENCE", jwtAudience)
+	jwtSubject = variables.GetEnv("JWT_SUBJECT", jwtSubject)
+	jwtIssuer = variables.GetEnv("JWT_ISSUER", jwtIssuer)
+	actionsQueueName = variables.GetEnv("ACTIONS_QUEUE_NAME", actionsQueueName)
+	actionsExchange = variables.GetEnv("ACTIONS_EXCHANGE", actionsExchange)
+	controllerQueueName = variables.GetEnv("CONTROLLER_QUEUE_NAME", controllerQueueName)
+	controllerExchange = variables.GetEnv("CONTROLLER_EXCHANGE", controllerExchange)
 
 	enableDebug := true
 
-	// configure the backup handler settings
-	broker := handler.RabbitBroker{
-		Hostname:     fmt.Sprintf("%s:%s", mqHost, mqPort),
-		Username:     mqUser,
-		Password:     mqPass,
-		QueueName:    actionsQueueName,
-		ExchangeName: actionsExchange,
-	}
 	graphQLConfig := handler.LagoonAPI{
 		Endpoint:        lagoonAPIHost,
 		TokenSigningKey: jwtTokenSigningKey,
@@ -103,7 +102,7 @@ func main() {
 	config := mq.Config{
 		ReconnectDelay: time.Duration(rabbitReconnectRetryInterval) * time.Second,
 		Exchanges: mq.Exchanges{
-			{
+			mq.ExchangeConfig{
 				Name: "lagoon-logs",
 				Type: "direct",
 				Options: mq.Options{
@@ -113,8 +112,18 @@ func main() {
 					"content_type":  "",
 				},
 			},
-			{
-				Name: "lagoon-actions",
+			mq.ExchangeConfig{
+				Name: actionsExchange,
+				Type: "direct",
+				Options: mq.Options{
+					"durable":       true,
+					"delivery_mode": "2",
+					"headers":       "",
+					"content_type":  "",
+				},
+			},
+			mq.ExchangeConfig{
+				Name: controllerExchange,
 				Type: "direct",
 				Options: mq.Options{
 					"durable":       true,
@@ -125,9 +134,20 @@ func main() {
 			},
 		},
 		Consumers: mq.Consumers{
-			{
-				Name:    "items-queue",
-				Queue:   "lagoon-actions:items",
+			mq.ConsumerConfig{
+				Name:    actionsQueueName,
+				Queue:   actionsQueueName,
+				Workers: mqWorkers,
+				Options: mq.Options{
+					"durable":       true,
+					"delivery_mode": "2",
+					"headers":       "",
+					"content_type":  "",
+				},
+			},
+			mq.ConsumerConfig{
+				Name:    controllerQueueName,
+				Queue:   controllerQueueName,
 				Workers: mqWorkers,
 				Options: mq.Options{
 					"durable":       true,
@@ -138,9 +158,20 @@ func main() {
 			},
 		},
 		Queues: mq.Queues{
-			{
-				Name:     "lagoon-actions:items",
-				Exchange: "lagoon-actions",
+			mq.QueueConfig{
+				Name:     actionsQueueName,
+				Exchange: actionsExchange,
+				Options: mq.Options{
+					"durable":       true,
+					"delivery_mode": "2",
+					"headers":       "",
+					"content_type":  "",
+				},
+			},
+			mq.QueueConfig{
+				Name:       controllerQueueName,
+				Exchange:   controllerExchange,
+				RoutingKey: "controller",
 				Options: mq.Options{
 					"durable":       true,
 					"delivery_mode": "2",
@@ -150,55 +181,38 @@ func main() {
 			},
 		},
 		Producers: mq.Producers{
-			{
-				Name:     "lagoon-actions",
-				Exchange: "lagoon-actions",
+			mq.ProducerConfig{
+				Name:     actionsExchange,
+				Exchange: actionsExchange,
 				Options: mq.Options{
-					"app_id":        lagoonAppID,
 					"delivery_mode": "2",
 					"headers":       "",
 					"content_type":  "",
 				},
 			},
-			{
+			mq.ProducerConfig{
 				Name:     "lagoon-logs",
 				Exchange: "lagoon-logs",
 				Options: mq.Options{
-					"app_id":        lagoonAppID,
 					"delivery_mode": "2",
 					"headers":       "",
 					"content_type":  "",
 				},
 			},
 		},
-		DSN: fmt.Sprintf("amqp://%s:%s@%s/", broker.Username, broker.Password, broker.Hostname),
+		DSN: fmt.Sprintf("amqp://%s:%s@%s/", mqUser, mqPass, fmt.Sprintf("%s:%s", mqHost, mqPort)),
 	}
 
-	messaging := handler.NewMessaging(config,
+	messenger := handler.New(config,
 		graphQLConfig,
 		startupConnectionAttempts,
 		startupConnectionInterval,
+		actionsQueueName,
+		controllerQueueName,
 		enableDebug,
 	)
 
 	// start the consumer
-	messaging.Consumer()
+	messenger.Consumer()
 
-}
-
-func getEnv(key, fallback string) string {
-	if value, ok := os.LookupEnv(key); ok {
-		return value
-	}
-	return fallback
-}
-
-// accepts fallback values 1, t, T, TRUE, true, True, 0, f, F, FALSE, false, False
-// anything else is false.
-func getEnvBool(key string, fallback bool) bool {
-	if value, ok := os.LookupEnv(key); ok {
-		rVal, _ := strconv.ParseBool(value)
-		return rVal
-	}
-	return fallback
 }

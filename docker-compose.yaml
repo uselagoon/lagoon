@@ -2,9 +2,6 @@ version: '3.2'
 services:
   api-db:
     image: ${IMAGE_REPO:-lagoon}/api-db
-    volumes:
-      - ./services/api-db/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
-      - ./services/api-db/rerun_initdb.sh:/rerun_initdb.sh
     ports:
       - '3366:3306'
   webhook-handler:
@@ -29,14 +26,6 @@ services:
     ports:
       - '15672:15672'
       - '5672:5672'
-  controllerhandler:
-    image: ${IMAGE_REPO:-lagoon}/controllerhandler
-    command: yarn run dev
-    volumes:
-      - ./services/controllerhandler/src:/app/services/controllerhandler/src
-      - ./node-packages:/app/node-packages:delegated
-    environment:
-      - CONSOLE_LOGGING_LEVEL=trace
   logs2notifications:
     image: ${IMAGE_REPO:-lagoon}/logs2notifications
     environment:
@@ -53,6 +42,16 @@ services:
       - ./node-packages:/app/node-packages:delegated
     environment:
       - CONSOLE_LOGGING_LEVEL=trace
+  api-init:
+    image: ${IMAGE_REPO:-lagoon}/api
+    command: ./node_modules/.bin/knex migrate:latest --cwd /app/services/api/database
+    volumes:
+      - ./services/api/database:/app/services/api/database
+      - ./node-packages:/app/node-packages:delegated
+      - /app/node-packages/commons/dist
+    depends_on:
+      - api-db
+      - keycloak
   api:
     image: ${IMAGE_REPO:-lagoon}/api
     command: ./node_modules/.bin/tsc-watch --build --incremental --onSuccess "node -r dotenv-extended/config dist/index"
@@ -69,7 +68,7 @@ services:
       - S3_FILES_HOST=http://172.17.0.1:9000
       - CONSOLE_LOGGING_LEVEL=trace
     depends_on:
-      - api-db
+      - api-init
       - keycloak
     ports:
       - '3000:3000'
@@ -235,10 +234,5 @@ services:
       - '8087:8080'
     labels:
       version: '2'
-  storage-calculator:
-    image: ${IMAGE_REPO:-lagoon}/storage-calculator
-    user: '111111111'
-    volumes:
-      - './services/storage-calculator/calculate-storage.sh:/calculate-storage.sh'
   api-redis:
     image: ${IMAGE_REPO:-lagoon}/api-redis
