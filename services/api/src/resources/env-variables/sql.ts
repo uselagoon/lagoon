@@ -40,6 +40,7 @@ export const Sql = {
     knex('environment')
       .where('name', '=', name)
       .andWhere('project', '=', projectId)
+      .andWhere('deleted', '0000-00-00 00:00:00')
       .toString(),
   selectEnvVarByNameAndProjectId: (name: string, projectId: number) =>
     knex('env_vars')
