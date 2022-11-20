@@ -420,7 +420,7 @@ mutation PopulateApi {
     input: {
       backupId: "e2e1d31b4a7dfc1687f469b6673f6bf2c0aabee0cc6b3f1bdbde710a9bc6280f"
       status: SUCCESSFUL
-      restoreLocation: "/restore/e2e1d31b4a7dfc1687f469b6673f6bf2c0aabee0cc6b3f1bdbde710a9bc6280f/files.gz"
+      restoreLocation: "http://172.17.0.1:9000/restores/high-cotton-master-files.tar.gz"
       execute: false
     }
   ) {
