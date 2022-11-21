@@ -8,6 +8,14 @@ export const getMe: ResolverFn = async (_root, args, { models, keycloakGrant: gr
   return models.UserModel.loadUserById(currentUserId);
 }
 
+class SearchInputError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'SearchInputError';
+  }
+}
+
+
 export const getUserBySshKey: ResolverFn = async (
   _root,
   { sshKey },
@@ -20,6 +28,10 @@ export const getUserBySshKey: ResolverFn = async (
     R.defaultTo(''),
     // @ts-ignore
   )(sshKey);
+
+  if(!keyType || !keyValue) {
+    throw new SearchInputError("Malformed ssh key provided. Should begin with key-type (eg. ssh-rsa|ssh-ed25519|etc.), then a space, then the key's value");
+  }
 
   const rows = await query(
     sqlClientPool,
