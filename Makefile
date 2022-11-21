@@ -240,7 +240,7 @@ wait-for-keycloak:
 	grep -m 1 "Config of Keycloak done." <(docker-compose -p $(CI_BUILD_TAG) --compatibility logs -f keycloak 2>&1)
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
-main-test-services = actions-handler broker logs2notifications api api-db api-redis keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher local-minio
+main-test-services = actions-handler broker logs2notifications api api-db api-redis keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher local-minio local-minio-upload
 
 # List of Lagoon Services needed for webhook endpoint testing
 webhooks-test-services = webhook-handler webhooks2tasks backup-handler
@@ -436,7 +436,7 @@ api-development: build/api build/api-db build/local-api-data-watcher-pusher buil
 
 .PHONY: ui-logs-development
 ui-logs-development: build/actions-handler build/api build/api-db build/local-api-data-watcher-pusher build/keycloak build/keycloak-db build/broker-single build/api-redis build/logs2notifications build/local-minio
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db actions-handler local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis logs2notifications local-minio
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db actions-handler local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis logs2notifications local-minio local-minio-upload
 
 ## CI targets
 
