@@ -124,12 +124,16 @@ nav:
 - Contributing to Lagoon:
   - Contributing: contributing.md
   - Developing Lagoon: contributing-to-lagoon/developing-lagoon.md
-  - Code of Conduct: contributing-to-lagoon/code-of-conduct.md
+  - Code of Conduct: code-of-conduct.md
   - Documentation: contributing-to-lagoon/documentation.md
   - Tests: contributing-to-lagoon/tests.md
   - API Debugging: contributing-to-lagoon/api-debugging.md
-- Resources:
+- Community:
   - Code of Conduct: code-of-conduct.md
+  - Discord: community/discord.md
+  - Participation Guidelines: community/participation.md
+  - Moderation Guidelines: community/moderation.md
+- Resources:
   - FAQ: resources/faq.md
   - Glossary: resources/glossary.md
   - Tutorials, Webinars, and Videos: resources/tutorials-and-webinars.md
