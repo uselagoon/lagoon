@@ -44,7 +44,7 @@
       2. token:
         ```
         kubectl -n lagoon describe secret \
-          $(kubectl -n lagoon get secret | grep kubernetes-build-deploy | awk '{print $1}') | grep token: | awk '{print $2}'
+          $(kubectl -n lagoon get secret | grep lagoon-build-deploy | awk '{print $1}') | grep token: | awk '{print $2}'
         ```
 
 !!! Note "Note:"
