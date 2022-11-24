@@ -50,7 +50,7 @@ We recommend installing K8up version [1.2.0](https://github.com/k8up-io/k8up/rel
 
 Lagoon utilises a default 'standard' StorageClass for most workloads, and the internal provisioner for most Kubernetes platforms will suffice. This should be configured to be dynamic provisioning and expandable where possible.
 
-Lagoon also requires a storageClass called 'bulk' to be available to support persistant pod replicas (across nodes). This storageClass should support ReadWriteMany access mode and should be configured to be dynamic provisioning and expandable where possible. See https://kubernetes.io/docs/concepts/storage/persistent-volumes/#access-modes for more information.
+Lagoon also requires a storageClass called 'bulk' to be available to support persistant pod replicas (across nodes). This storageClass should support ReadWriteMany access mode and should be configured to be dynamic provisioning and expandable where possible. See https://kubernetes.io/docs/concepts/storage/persistent-volumes/#access-modes for more information, and the [production drivers list](https://kubernetes-csi.github.io/docs/drivers.html) for a complete list of compatible drivers.
 
 We have curently only included the instructions for (the now deprecated) [EFS Provisioner](./efs-provisioner.md) - as the Production [EFS CSI driver](https://github.com/kubernetes-sigs/aws-efs-csi-driver) has issues with provisioning more than 120 PVCs that we are awaiting upstream possible fixes for - [here](https://github.com/kubernetes-sigs/aws-efs-csi-driver/pull/761) and [here](https://github.com/kubernetes-sigs/aws-efs-csi-driver/pull/732) - but most other providers CSI drivers should also work, as will configurations with an NFS-compatible server and provisioner.
 
