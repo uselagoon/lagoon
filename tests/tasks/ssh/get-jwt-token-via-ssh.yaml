@@ -1,3 +1,3 @@
-- name: "{{ testname }} - getting a new login token from ssh-auth on {{ ssh_host }} on port {{ ssh_auth_port }}"
-  command: ssh lagoon@{{ ssh_host }} -p {{ ssh_auth_port }} token
+- name: "{{ testname }} - getting a new login token from ssh-auth on {{ ssh_token_host }} on port {{ ssh_token_port }}"
+  command: ssh lagoon@{{ ssh_token_host }} -p {{ ssh_token_port }} token
   register: token

@@ -1,6 +1,6 @@
-- name: "{{ testname }} - getting a new keycloak grant from ssh-auth on {{ ssh_host }} on port {{ ssh_auth_port }}"
+- name: "{{ testname }} - getting a new keycloak grant from ssh-auth on {{ ssh_token_host }} on port {{ ssh_token_port }}"
   block:
-    - command: ssh lagoon@{{ ssh_host }} -p {{ ssh_auth_port }} grant
+    - command: ssh lagoon@{{ ssh_token_host }} -p {{ ssh_token_port }} grant
       register: grant
     - set_fact:
         token: "{{ (grant.stdout | from_json).access_token }}"
