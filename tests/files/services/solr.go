@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 	"net/http"
@@ -25,15 +24,14 @@ func convertSolrDoc(d []solr.Document) string {
 	solrDoctoString := fmt.Sprintf("%s", d)
 	results := strings.Fields(solrDoctoString)
 	var replaced []string
-	r := regexp.MustCompile(`[map\[\]']+`)
+	r := regexp.MustCompile(`[\[\]']+`)
 	for _, str := range results {
 		replaced = append(replaced, r.ReplaceAllString(str, ""))
 	}
-	b := new(bytes.Buffer)
-	for _, doc := range replaced {
-		fmt.Fprintf(b, "\"%s\"\n", doc)
-	}
-	solrOutput := solrService + "\n" + b.String()
+	keyVals := connectorKeyValues(replaced)
+	cleanSolrString := strings.ReplaceAll(keyVals, "map", "")
+	solrHost := fmt.Sprintf(`"Service_Host=%s"`, solrService)
+	solrOutput := solrHost + "\n" + cleanSolrString
 	return solrOutput
 }
 

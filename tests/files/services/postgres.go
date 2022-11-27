@@ -23,7 +23,7 @@ var (
 )
 
 func postgresHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, createKeyValuePairs(postgresDBConnector(), postgresHost))
+	fmt.Fprintf(w, dbConnectorPairs(postgresDBConnector(), postgresHost))
 }
 
 func postgresDBConnector() map[string]string {

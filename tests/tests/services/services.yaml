@@ -22,8 +22,8 @@
   hosts: localhost
   serial: 1
   vars:
-    url: "http://web.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/maria"
-    expected_content: "LAGOON_GIT_SHA={{ expected_head }}"
+    url: "http://web.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/mariadb"
+    expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
   tasks:
   - include: ../../checks/check-url-content.yaml
 
@@ -32,7 +32,7 @@
   serial: 1
   vars:
     url: "http://web.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/postgres"
-    expected_content: "LAGOON_GIT_SHA={{ expected_head }}"
+    expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
   tasks:
   - include: ../../checks/check-url-content.yaml
 
@@ -41,7 +41,7 @@
   serial: 1
   vars:
     url: "http://web.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/mongo"
-    expected_content: "LAGOON_GIT_SHA={{ expected_head }}"
+    expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
   tasks:
   - include: ../../checks/check-url-content.yaml
 
@@ -50,7 +50,7 @@
   serial: 1
   vars:
     url: "http://web.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/solr"
-    expected_content: "LAGOON_GIT_SHA={{ expected_head }}"
+    expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
   tasks:
   - include: ../../checks/check-url-content.yaml
 
@@ -59,7 +59,7 @@
   serial: 1
   vars:
     url: "http://web.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/redis"
-    expected_content: "LAGOON_GIT_SHA={{ expected_head }}"
+    expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
   tasks:
   - include: ../../checks/check-url-content.yaml
 
@@ -68,7 +68,7 @@
   serial: 1
   vars:
     url: "http://web.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/opensearch"
-    expected_content: "LAGOON_GIT_SHA={{ expected_head }}"
+    expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
   tasks:
   - include: ../../checks/check-url-content.yaml
 

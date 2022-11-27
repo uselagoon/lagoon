@@ -20,7 +20,7 @@ services:
     environment:
       - LAGOON_TEST_VAR=test
       - LAGOON_GIT_SHA=SHA256
-      - LAGOON_ENV=Dev
+      - LAGOON_ENV=Prod
 
   mariadb:
     image: uselagoon/mariadb-10.6
@@ -55,13 +55,13 @@ services:
     ports:
       - '6379'
 
-  opensearch-node:
+  opensearch:
     image: uselagoon/opensearch-2:latest
     environment:
     - cluster.name=opensearch-cluster
-    - node.name=opensearch-node
-    - discovery.seed_hosts=opensearch-node
-    - cluster.initial_cluster_manager_nodes=opensearch-node
+    - node.name=opensearch
+    - discovery.seed_hosts=opensearch
+    - cluster.initial_cluster_manager_nodes=opensearch
     - bootstrap.memory_lock=true
     - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
     ulimits:
@@ -78,8 +78,8 @@ services:
     ports:
       - '9200'
 
-  mongodb:
-    image: testlagoon/mongo-4:pr-120
+  mongo:
+    image: uselagoon/mongo:latest
     labels:
       lagoon.type: mongo
     ports:

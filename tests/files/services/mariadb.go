@@ -12,20 +12,20 @@ import (
 )
 
 var (
-	mariaUser          = os.Getenv("MARIADB_USERNAME")
-	mariaPassword      = os.Getenv("MARIADB_PASSWORD")
-	mariaDB            = os.Getenv("MARIADB_DATABASE")
-	mariaHost          = os.Getenv("MARIADB_HOST")
-	mariaPort          = 3306
-	mariaConnectionStr = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", mariaUser, mariaPassword, mariaHost, mariaPort, mariaDB)
+	mariadbUser          = os.Getenv("MARIADB_USERNAME")
+	mariadbPassword      = os.Getenv("MARIADB_PASSWORD")
+	mariadb              = os.Getenv("MARIADB_DATABASE")
+	mariadbHost          = os.Getenv("MARIADB_HOST")
+	mariadbPort          = 3306
+	mariadbConnectionStr = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", mariadbUser, mariadbPassword, mariadbHost, mariadbPort, mariadb)
 )
 
-func mariaHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, createKeyValuePairs(mariaDBConnector(), mariaHost))
+func mariadbHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, dbConnectorPairs(mariadbConnector(), mariadbHost))
 }
 
-func mariaDBConnector() map[string]string {
-	db, err := sql.Open("mysql", mariaConnectionStr)
+func mariadbConnector() map[string]string {
+	db, err := sql.Open("mysql", mariadbConnectionStr)
 	if err != nil {
 		log.Print(err)
 	}

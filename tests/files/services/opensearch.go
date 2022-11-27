@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"crypto/tls"
 	"encoding/json"
@@ -47,11 +46,9 @@ func cleanOpensearchOutput(sr *opensearchapi.Response) string {
 		matches = r.FindAllString(str, -1)
 	}
 
-	b := new(bytes.Buffer)
-	for _, value := range matches {
-		fmt.Fprintf(b, "\"%s\"\n", value)
-	}
-	opensearchOutput := opensearchHost + "\n" + b.String()
+	keyVals := connectorKeyValues(matches)
+	host := fmt.Sprintf(`"Service_Host=%s"`, opensearchHost)
+	opensearchOutput := host + "\n" + keyVals
 	return opensearchOutput
 }
 

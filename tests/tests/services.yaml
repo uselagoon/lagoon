@@ -20,4 +20,4 @@
 
 - include: api/delete-project.yaml
   vars:
-    project: ci-sercvices-{{ cluster_type }}
+    project: ci-services-{{ cluster_type }}

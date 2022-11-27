@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 )
 
 type funcType func() map[string]string
@@ -12,14 +13,14 @@ type funcType func() map[string]string
 func main() {
 
 	handler := http.HandlerFunc(handleReq)
-	mariaHandler := http.HandlerFunc(mariaHandler)
+	mariadbHandler := http.HandlerFunc(mariadbHandler)
 	postgresHandler := http.HandlerFunc(postgresHandler)
 	solrHandler := http.HandlerFunc(solrHandler)
 	redisHandler := http.HandlerFunc(redisHandler)
 	opensearchHandler := http.HandlerFunc(opensearchHandler)
 	mongoHandler := http.HandlerFunc(mongoHandler)
 	http.Handle("/", handler)
-	http.Handle("/maria", mariaHandler)
+	http.Handle("/mariadb", mariadbHandler)
 	http.Handle("/postgres", postgresHandler)
 	http.Handle("/solr", solrHandler)
 	http.Handle("/redis", redisHandler)
@@ -32,15 +33,25 @@ func main() {
 func handleReq(w http.ResponseWriter, r *http.Request) {
 	var funcToCall []funcType
 	for _, conFunc := range funcToCall {
-		fmt.Fprintf(w, createKeyValuePairs(conFunc(), ""))
+		fmt.Fprintf(w, dbConnectorPairs(conFunc(), ""))
 	}
 }
 
-func createKeyValuePairs(f map[string]string, connectorHost string) string {
+func dbConnectorPairs(m map[string]string, connectorHost string) string {
 	b := new(bytes.Buffer)
-	for key, value := range f {
+	for key, value := range m {
 		fmt.Fprintf(b, "\"%s=%s\"\n", key, value)
 	}
-	connectorOutput := connectorHost + "\n" + b.String()
+	host := fmt.Sprintf(`"Service_Host=%s"`, connectorHost)
+	connectorOutput := host + "\n" + b.String()
 	return connectorOutput
+}
+
+func connectorKeyValues(values []string) string {
+	b := new(bytes.Buffer)
+	for _, value := range values {
+		v := strings.SplitN(value, ":", 2)
+		fmt.Fprintf(b, "\"%s=%s\"\n", v[0], v[1])
+	}
+	return b.String()
 }

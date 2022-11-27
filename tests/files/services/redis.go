@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"net/http"
@@ -46,18 +45,15 @@ func redisConnector() string {
 	var cursor uint64
 	results, _, _ := client.Scan(ctx, cursor, "LAGOON_*", 100).Result()
 
-	var keyVals []string
+	var values []string
 	for _, res := range results {
 		redisKeyVals := client.Get(ctx, res)
 		redisVals := cleanRedisOutput(redisKeyVals)
-		keyVals = append(keyVals, redisVals)
+		values = append(values, redisVals)
 	}
 
-	b := new(bytes.Buffer)
-	for _, value := range keyVals {
-		fmt.Fprintf(b, "\"%s\"\n", value)
-	}
-
-	redisData := redisHost + "\n" + b.String()
+	keyVals := connectorKeyValues(values)
+	host := fmt.Sprintf(`"Service_Host=%s"`, redisHost)
+	redisData := host + "\n" + keyVals
 	return redisData
 }
