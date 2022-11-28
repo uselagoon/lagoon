@@ -24,6 +24,7 @@ nav:
   - MongoDB: docker-images/mongodb.md
   - Node.js: docker-images/nodejs.md
   - NGINX: docker-images/nginx.md
+  - OpenSearch: docker-images/opensearch.md
   - PHP-CLI: docker-images/php-cli.md
   - PHP-FPM: docker-images/php-fpm.md
   - Python: docker-images/python.md
@@ -188,7 +189,7 @@ plugins:
         'lagoon/administering-lagoon/using_harbor/README.md': 'administering-lagoon/using-harbor/README.md'
         'lagoon/administering-lagoon/using_harbor/security_scanning.md': 'administering-lagoon/using-harbor/security-scanning.md'
         'lagoon/contributing-to-lagoon/api-debugging.md': 'contributing-to-lagoon/api-debugging.md'
-        'lagoon/contributing-to-lagoon/code-of-conduct.md': 'contributing-to-lagoon/code-of-conduct.md'
+        'lagoon/contributing-to-lagoon/code-of-conduct.md': 'code-of-conduct.md'
         'lagoon/contributing-to-lagoon/contributing.md': 'contributing.md'
         'lagoon/contributing-to-lagoon/developing-lagoon.md': 'contributing-to-lagoon/developing-lagoon.md'
         'lagoon/contributing-to-lagoon/tests.md': 'contributing-to-lagoon/tests.md'
