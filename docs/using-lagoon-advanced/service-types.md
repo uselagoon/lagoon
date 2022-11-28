@@ -156,6 +156,14 @@ Instructs Lagoon to completely ignore this service.
 | :--- | :--- | :--- | :--- | :--- |
 | - | - | - | - | - |
 
+## **`opensearch`**
+
+OpenSearch container, will auto-generate persistent storage under `/usr/share/opensearch/data`.
+
+| Healthcheck | Exposed Ports | Auto Generated Routes | Storage | Additional customization parameter |
+| :--- | :--- | :--- | :--- | :--- |
+| HTTP on `localhost:9200/_cluster/health?local=true` | 9200 | No | Yes | `lagoon.persistent.size` |
+
 ## **`postgres`**
 
 A meta-service which will tell Lagoon to automatically decide between `postgres-single` and `postgres-dbaas`.
