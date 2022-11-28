@@ -7,6 +7,8 @@ import { knex } from '../../util/db';
 import { logger } from '../../loggers/logger';
 import crypto from 'crypto';
 import { Service } from 'aws-sdk';
+import * as api from '@lagoon/commons/dist/api';
+import { getEnvironmentsByProjectId } from '../environment/resolvers';
 
 export const getFactsByEnvironmentId: ResolverFn = async (
   { id: environmentId, environmentAuthz },
@@ -186,6 +188,11 @@ export const addFact: ResolverFn = async (
   { input: { id, environment: environmentId, name, value, source, description, type, category, keyFact, service } },
   { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
+  if (environmentId == undefined) {
+    logger.error(`No environment ID given for fact: ${name}`)
+    throw new Error(`No environment ID given for fact: ${name}`)
+  }
+
   const environment = await environmentHelpers(
     sqlClientPool
   ).getEnvironmentById(environmentId);
@@ -234,9 +241,36 @@ export const addFact: ResolverFn = async (
 
 export const addFacts: ResolverFn = async (
   root,
-  { input: { facts } },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { input: { project, environment, facts } },
+  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, models }
 ) => {
+  if (project && environment) {
+    let lagoonProject = await api.getProjectByName(project);
+    let environments = await getEnvironmentsByProjectId(lagoonProject, {}, { sqlClientPool, hasPermission, keycloakGrant, userActivityLogger, models })
+
+    let envId;
+    if (environments) {
+      for (let i = 0; i < environments.length; i++) {
+        if (environments[i].name === environment) {
+          envId = environments[i].id
+        }
+      }
+    }
+
+    if (envId) {
+      for (let i = 0; i < facts.length; i++) {
+        facts[i].environment = envId;
+      }
+    }
+  }
+
+  for (let i = 0; i < facts.length; i++) {
+    let fact = facts[i];
+    if (fact.environment == undefined) {
+      logger.error(`No environment ID given for fact: ${fact.name}`)
+      throw new Error(`No environment ID given for fact: ${fact.name}`)
+    }
+  }
 
   const environments = facts.reduce((environmentList, fact) => {
     let { environment } = fact;

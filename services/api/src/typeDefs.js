@@ -317,7 +317,7 @@ const typeDefs = gql`
 
   input AddFactInput {
     id: Int
-    environment: Int!
+    environment: Int
     name: String!
     value: String!
     source: String!
@@ -329,6 +329,8 @@ const typeDefs = gql`
   }
 
   input AddFactsInput {
+    project: String
+    environment: String
     facts: [AddFactInput]!
   }
 
