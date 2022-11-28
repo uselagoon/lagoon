@@ -5,21 +5,19 @@
 
 - include: api/add-project.yaml
   vars:
-    project: ci-ssh-portal-{{ cluster_type }}
+    project: ci-ssh-legacy-{{ cluster_type }}
     git_repo_name: features.git
     git_url: "{{ localgit_url }}/{{ git_repo_name }}"
 
-- include: features/remote-ssh-portal.yaml
+- include: features/remote-ssh-legacy.yaml
   vars:
-    testname: "REMOTE SSH PORTAL {{ cluster_type|upper }}"
+    testname: "REMOTE SSH LEGACY {{ cluster_type|upper }}"
     node_version: 16
     git_repo_name: features.git
-    project: ci-ssh-portal-{{ cluster_type }}
+    project: ci-ssh-legacy-{{ cluster_type }}
     branch: remoteshell
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
-    ssh_host: "{{ ssh_portal_host }}"
-    ssh_auth_port: "{{ ssh_portal_port }}"
 
 - include: api/delete-project.yaml
   vars:
-    project: ci-ssh-portal-{{ cluster_type }}
+    project: ci-ssh-legacy-{{ cluster_type }}
