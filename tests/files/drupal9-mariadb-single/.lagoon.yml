@@ -1,6 +1,6 @@
 docker-compose-yaml: docker-compose.yml
 
-ssh: lagoon-core-ssh.lagoon.svc:2020
+ssh: lagoon-core-ssh-token.lagoon.svc.cluster.local:2223
 api: http://lagoon-core-api.lagoon.svc:80/graphql
 
 environment_variables:
