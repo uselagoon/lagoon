@@ -68,14 +68,12 @@ const typeDefs = gql`
   }
 
   enum TaskStatusType {
-    ACTIVE
-    SUCCEEDED
-    FAILED
     NEW
     PENDING
     RUNNING
     CANCELLED
     ERROR
+    FAILED
     COMPLETE
     QUEUED
   }
