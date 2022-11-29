@@ -245,15 +245,6 @@ main-test-services = actions-handler broker logs2notifications api api-db api-re
 # List of Lagoon Services needed for webhook endpoint testing
 webhooks-test-services = webhook-handler webhooks2tasks backup-handler
 
-# All tests that use Webhook endpoints
-webhook-tests = github gitlab bitbucket
-
-# All Tests that use API endpoints
-api-tests = node features-kubernetes nginx elasticsearch active-standby-kubernetes node-mongodb
-
-# All drupal tests
-drupal-tests = drupal-php72 drupal-php73 drupal-php74 drupal-postgres
-
 # These targets are used as dependencies to bring up containers in the right order.
 .PHONY: main-test-services-up
 main-test-services-up: $(foreach image,$(main-test-services),build/$(image))
