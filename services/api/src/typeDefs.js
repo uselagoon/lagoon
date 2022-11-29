@@ -51,6 +51,7 @@ const typeDefs = gql`
     ERROR
     FAILED
     COMPLETE
+    QUEUED
   }
 
   enum EnvVariableType {
@@ -76,6 +77,7 @@ const typeDefs = gql`
     CANCELLED
     ERROR
     COMPLETE
+    QUEUED
   }
 
   enum RestoreStatusType {
