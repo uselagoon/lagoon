@@ -571,6 +571,16 @@ export const updateProject: ResolverFn = async (
     }
   }
 
+  // if the name is provided in a patch, check that the user trying to rename the project is an admin.
+  // renaming projects is prohibited because lagoon uses the project name for quite a few things
+  // which if changed can have unintended consequences for any existing environments
+  if (patch.name) {
+    const canUpdateName = await isAdminCheck(hasPermission);
+    if (!canUpdateName) {
+      throw new Error('Project renaming is only available to administrators.');
+    }
+  }
+
   if (gitUrl !== undefined && !isValidGitUrl(gitUrl)) {
     throw new Error('The provided gitUrl is invalid.');
   }

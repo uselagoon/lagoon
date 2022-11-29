@@ -129,7 +129,7 @@ If you'd like Lagoon to ignore a service completely - for example, you need a co
 
 ### Persistent Storage
 
-Some containers need persistent storage. Lagoon allows for each container to have a maximum of one persistent storage volume attached to the container. You can configure the container to request its own persistent storage volume (which can then be mounted by other container), or you can tell the container to mount the persistent storage created by another container. 
+Some containers need persistent storage. Lagoon allows for each container to have a maximum of one persistent storage volume attached to the container. You can configure the container to request its own persistent storage volume (which can then be mounted by other container), or you can tell the container to mount the persistent storage created by another container.
 
 In many cases, Lagoon knows where that persistent storage needs to go. For example, for a MariaDB container, Lagoon knows that the persistent storage should be put into `/var/lib/mysql` , and puts it there automatically without any extra configuration to define that. For some situations, though, Lagoon needs your help to know where to put the persistent storage:
 
@@ -203,3 +203,12 @@ By default , Lagoon expects that services from custom templates are rolled out v
 
 You can also overwrite the rollout for just one specific environment. This is done in [`.lagoon.yml`](lagoon-yml.md#environments-name-rollouts).
 
+## BuildKit and Docker Compose v2
+
+BuildKit is a toolkit for converting source code to build artifacts in an efficient, expressive and repeatable manner.
+
+With the release of Lagoon v2.11.0, Lagoon now provides support for BuildKit-based docker-compose builds. To enable BuildKit for your Project or Environment, add `DOCKER_BUILDKIT=1` as a build-time variable.
+
+Note that whilst using BuildKit locally, you may experience some known issues:
+* `Failed to solve with frontend dockerfile.v0: failed to create LLB definition: pull access denied, repository does not exist or may require authorization`: This message means that your build has tried to access a docker image that hasn't been built yet - as BuildKit builds in parallel, if you have a docker image that inherits another one (as we do in Drupal with the CLI). You can use the [target](https://docs.docker.com/compose/compose-file/build/#target) field inside the build to reconfigure as a multi-stage build
+* issues with `volumes_from` in Docker Compose v2 - this service (that provides SSH access into locally running containers) has been deprecated by Docker Compose. The section can be removed from your docker-compose.yaml file if you don't require ssh access from inside your local environment, or can be worked around on a project-by-project basis - see https://github.com/pygmystack/pygmy/issues/333#issuecomment-1274091375 for more information

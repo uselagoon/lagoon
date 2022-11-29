@@ -6,6 +6,10 @@ This Dockerfile is intended to be used to set up a standalone RabbitMQ queue bro
 
 By default, the RabbitMQ broker is started as single node. If you want to start a cluster, you need to use the [`rabbitmq-cluster`](https://github.com/uselagoon/lagoon-images/blob/main/images/rabbitmq-cluster/Dockerfile) Docker image, based on `rabbitmq` image plus the `rabbitmq_peer_discovery_k8s` plugin.
 
+## Supported versions
+
+* 3.9 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/rabbitmq/Dockerfile) - `uselagoon/rabbitmq`
+
 ## Lagoon adaptions
 
 This image is prepared to be used on Lagoon. There are therefore some things already done:
