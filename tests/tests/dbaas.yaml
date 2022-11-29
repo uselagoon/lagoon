@@ -5,19 +5,59 @@
 
 - include: api/add-project.yaml
   vars:
-    project: ci-services-{{ cluster_type }}
-    git_repo_name: services.git
+    project: ci-drupal-80-{{ cluster_type }}
+    git_repo_name: drupal-80.git
     git_url: "{{ localgit_url }}/{{ git_repo_name }}"
 
-- include: services/dbaas-services.yaml
+- include: drupal/drupal.yaml
   vars:
-    testname: "SERVICES {{ cluster_type|upper }}"
-    git_repo_name: services.git
-    project: ci-services-{{ cluster_type }}
-    branch: services
-    check_url: "http://web.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
-    openshift_project_name: ci-services-{{ cluster_type }}-services
+    testname: "Drupal 9 composer PHP 8.0 - MARIADB DBAAS {{ cluster_type|upper }}"
+    drupal_version: 9
+    db: mariadb
+    php_version: 8.0
+    git_repo_name: drupal-80.git
+    project: ci-drupal-80-{{ cluster_type }}
+    branch: drupal9-php80-mariadb-dbaas
 
 - include: api/delete-project.yaml
   vars:
-    project: ci-services-{{ cluster_type }}
+    project: ci-drupal-80-{{ cluster_type }}
+
+- include: api/add-project.yaml
+  vars:
+    project: ci-drupal-pg-{{ cluster_type }}
+    git_repo_name: drupal-postgres.git
+    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
+
+- include: drupal/drupal.yaml
+  vars:
+    testname: "Drupal 9 composer PHP 8.0 - POSTGRES DBAAS {{ cluster_type|upper }}"
+    drupal_version: 9
+    db: postgres
+    php_version: 8.0
+    git_repo_name: drupal-postgres.git
+    project: ci-drupal-pg-{{ cluster_type }}
+    branch: drupal9-php80-postgres-dbaas
+
+- include: api/delete-project.yaml
+  vars:
+    project: ci-drupal-pg-{{ cluster_type }}
+
+- include: api/add-project.yaml
+  vars:
+    project: ci-node-mongodb-{{ cluster_type }}
+    git_repo_name: node-mongodb.git
+    git_url: "{{ localgit_url }}/{{ git_repo_name }}"
+
+- include: node-mongodb/node-mongodb.yaml
+  vars:
+    testname: "Node 16 - MONGODB DBAAS {{ cluster_type|upper }}"
+    node_version: 16
+    db: mongodb
+    git_repo_name: node-mongodb.git
+    project: ci-node-mongodb-{{ cluster_type }}
+    branch: node-mongodb-dbaas
+
+- include: api/delete-project.yaml
+  vars:
+    project: ci-node-mongodb-{{ cluster_type }}
