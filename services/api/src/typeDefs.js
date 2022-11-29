@@ -329,6 +329,10 @@ const typeDefs = gql`
   }
 
   input AddFactsInput {
+    facts: [AddFactInput]!
+  }
+
+  input AddFactsByNameInput {
     project: String
     environment: String
     facts: [AddFactInput]!
@@ -2008,7 +2012,8 @@ const typeDefs = gql`
     deleteProblemsFromSource(input: DeleteProblemsFromSourceInput!): String
     deleteProblemHarborScanMatch(input: DeleteProblemHarborScanMatchInput!): String
     addFact(input: AddFactInput!): Fact
-    addFacts(input: AddFactsInput!): [Fact]
+    addFacts(input: AddFactsInput!): [Fact] @deprecated(reason: "Use addFactsByName instead")
+    addFactsByName(input: AddFactsByNameInput!): [Fact]
     deleteFact(input: DeleteFactInput!): String
     deleteFactsFromSource(input: DeleteFactsFromSourceInput!): String
     addFactReference(input: AddFactReferenceInput!): FactReference
