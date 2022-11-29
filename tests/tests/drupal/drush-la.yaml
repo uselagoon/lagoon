@@ -64,16 +64,6 @@
 #   tasks:
 #   - include: ../../tasks/pause.yaml
 
-- name: "{{ testname }} - check if we can connect via lagoon user and no service"
-  hosts: localhost
-  serial: 1
-  vars:
-    username: lagoon
-    command: rsh {{ project }}-drush-first env
-    expected_content: LAGOON_PROJECT=ci-drush
-  tasks:
-  - include: ../../tasks/ssh/ssh-command.yaml
-
 - name: "{{ testname }} - check if we can connect via oc project user and no service"
   hosts: localhost
   serial: 1
