@@ -9,6 +9,7 @@ interface Project {
   slack: any;
   name: string;
   openshift: any;
+  deploymentsDisabled: number;
 }
 
 interface GroupPatch {
