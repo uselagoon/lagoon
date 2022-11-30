@@ -100,9 +100,9 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue mq.MQ, message
 	// prepare the deployment patch for later step
 	statusType := schema.StatusTypes(strings.ToUpper(buildStatus))
 	updateDeploymentPatch := schema.UpdateDeploymentPatchInput{
-		RemoteID: &message.Meta.RemoteID,
-		Status:   &statusType,
-		// TODO: eventually can handle `message.Meta.BuildStep` here too with API support
+		RemoteID:  &message.Meta.RemoteID,
+		Status:    &statusType,
+		BuildStep: &message.Meta.BuildStep,
 	}
 	if message.Meta.StartTime != "" {
 		updateDeploymentPatch.Started = &message.Meta.StartTime

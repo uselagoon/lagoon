@@ -308,6 +308,7 @@ const resolvers = {
     ERROR: 'error',
     FAILED: 'failed',
     COMPLETE: 'complete',
+    QUEUED: 'queued',
   },
   NotificationType: {
     SLACK: 'slack',
@@ -326,10 +327,9 @@ const resolvers = {
     RUNNING: 'running',
     CANCELLED: 'cancelled',
     ERROR: 'error',
-    COMPLETE: 'complete',
-    ACTIVE: 'active',
-    SUCCEEDED: 'succeeded',
     FAILED: 'failed',
+    COMPLETE: 'complete',
+    QUEUED: 'queued',
   },
   Openshift: {
     projectUser: getProjectUser,

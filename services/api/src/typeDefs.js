@@ -912,6 +912,7 @@ const typeDefs = gql`
     priority: Int
     bulkId: String
     bulkName: String
+    buildStep: String
   }
 
   type Insight {
@@ -1321,6 +1322,7 @@ const typeDefs = gql`
     priority: Int
     bulkId: String
     bulkName: String
+    buildStep: String
   }
 
   input DeleteDeploymentInput {
@@ -1338,6 +1340,7 @@ const typeDefs = gql`
     priority: Int
     bulkId: String
     bulkName: String
+    buildStep: String
   }
 
   input UpdateDeploymentInput {

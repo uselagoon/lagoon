@@ -15,6 +15,7 @@ import {
   pubSub,
   createEnvironmentFilteredSubscriber
 } from '../../clients/pubSub';
+// @ts-ignore
 import { getConfigFromEnv, getLagoonRouteFromEnv } from '../../util/config';
 import { knex, query, isPatchEmpty } from '../../util/db';
 import { Sql } from './sql';
@@ -31,6 +32,7 @@ import S3 from 'aws-sdk/clients/s3';
 import sha1 from 'sha1';
 // @ts-ignore
 import { generateBuildId } from '@lagoon/commons/dist/util/lagoon';
+// @ts-ignore
 import { jsonMerge } from '@lagoon/commons/dist/util/func';
 import { logger } from '../../loggers/logger';
 // @ts-ignore
@@ -305,7 +307,8 @@ export const addDeployment: ResolverFn = async (
       remoteId,
       priority,
       bulkId,
-      bulkName
+      bulkName,
+      buildStep
     }
   },
   { sqlClientPool, hasPermission, userActivityLogger }
@@ -330,7 +333,8 @@ export const addDeployment: ResolverFn = async (
       remoteId,
       priority,
       bulkId,
-      bulkName
+      bulkName,
+      buildStep
     })
   );
 
@@ -381,7 +385,8 @@ export const updateDeployment: ResolverFn = async (
         remoteId,
         priority,
         bulkId,
-        bulkName
+        bulkName,
+        buildStep
       }
     }
   },
@@ -425,7 +430,8 @@ export const updateDeployment: ResolverFn = async (
         remoteId,
         priority,
         bulkId,
-        bulkName
+        bulkName,
+        buildStep
       }
     })
   );
@@ -451,7 +457,8 @@ export const updateDeployment: ResolverFn = async (
         remoteId,
         priority,
         bulkId,
-        bulkName
+        bulkName,
+        buildStep
       }
     }
   });
