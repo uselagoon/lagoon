@@ -600,6 +600,7 @@ export async function getProjectsByGitUrl(gitUrl: string): Promise<Project[]> {
       allProjects(gitUrl: "${gitUrl}") {
         name
         productionEnvironment
+        deploymentsDisabled
         openshift {
           consoleUrl
           token

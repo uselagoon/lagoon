@@ -25,6 +25,13 @@ export async function giteaPullRequestClosed(webhook: WebhookRequestData, projec
       repoUrl: body.repository.html_url,
     }
 
+    if (project.deploymentsDisabled == 1) {
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
+        `*[${project.name}]* No deploy task created, reason: deployments are disabled`
+      )
+      return;
+    }
+
     const result = await getOpenShiftInfoForProject(project.name);
     const projectOpenShift = result.project;
 
