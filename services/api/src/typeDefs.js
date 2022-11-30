@@ -76,6 +76,8 @@ const typeDefs = gql`
     FAILED
     COMPLETE
     QUEUED
+    ACTIVE
+    SUCCEEDED
   }
 
   enum RestoreStatusType {
