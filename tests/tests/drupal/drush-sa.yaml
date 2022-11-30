@@ -3,7 +3,6 @@
   serial: 1
   vars:
     git_files: "drupal{{ drupal_version }}-{{ db }}/"
-    docker_files: "drupal-dockerfiles/php{{ php_version }}/"
     branch: "drush-first"
   tasks:
   - include: ../../tasks/git-init.yaml
@@ -26,7 +25,6 @@
   serial: 1
   vars:
     git_files: "drupal{{ drupal_version }}-{{ db }}/"
-    docker_files: "drupal-dockerfiles/php{{ php_version }}/"
     branch: "drush-second"
   tasks:
   - include: ../../tasks/git-init.yaml
@@ -199,7 +197,6 @@
   serial: 1
   vars:
     git_files: "drupal{{ drupal_version }}-{{ db }}/"
-    docker_files: "drupal-dockerfiles/php{{ php_version }}/"
     branch: "foo/bar"
   tasks:
   - include: ../../tasks/git-init.yaml

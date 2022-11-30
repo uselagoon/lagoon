@@ -15,7 +15,7 @@
     python_version: 3.9
     git_repo_name: python.git
     project: ci-python-{{ cluster_type }}
-    branch: python37
+    branch: python39
     check_url: "http://python.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
 - include: api/delete-project.yaml

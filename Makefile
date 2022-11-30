@@ -245,15 +245,6 @@ main-test-services = actions-handler broker logs2notifications api api-db api-re
 # List of Lagoon Services needed for webhook endpoint testing
 webhooks-test-services = webhook-handler webhooks2tasks backup-handler
 
-# All tests that use Webhook endpoints
-webhook-tests = github gitlab bitbucket
-
-# All Tests that use API endpoints
-api-tests = node features-kubernetes nginx elasticsearch active-standby-kubernetes node-mongodb
-
-# All drupal tests
-drupal-tests = drupal-php72 drupal-php73 drupal-php74 drupal-postgres
-
 # These targets are used as dependencies to bring up containers in the right order.
 .PHONY: main-test-services-up
 main-test-services-up: $(foreach image,$(main-test-services),build/$(image))
@@ -447,7 +438,7 @@ GOJQ_VERSION = v0.12.8
 STERN_VERSION = 2.1.20
 CHART_TESTING_VERSION = v3.6.0
 KIND_IMAGE = kindest/node:v1.23.6@sha256:b1fa224cc6c7ff32455e0b1fd9cbfd3d3bc87ecaa8fcb06961ed1afb3db0f9ae
-TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,drupal-php80,drupal-postgres,python,gitlab,github,bitbucket,node-mongodb,elasticsearch,workflows]
+TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services,workflows]
 CHARTS_TREEISH = main
 TASK_IMAGES = task-activestandby
 
