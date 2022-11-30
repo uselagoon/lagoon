@@ -1154,7 +1154,7 @@ export const switchActiveStandby: ResolverFn = async (
     var created = convertDateFormat(date.toISOString());
     const sourceTaskData = await addTask(
       'Active/Standby Switch',
-      'ACTIVE',
+      'NEW',
       created,
       environmentStandbyId,
       null,
