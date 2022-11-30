@@ -330,6 +330,8 @@ const resolvers = {
     FAILED: 'failed',
     COMPLETE: 'complete',
     QUEUED: 'queued',
+    ACTIVE: 'active',
+    SUCCEEDED: 'succeeded',
   },
   Openshift: {
     projectUser: getProjectUser,
