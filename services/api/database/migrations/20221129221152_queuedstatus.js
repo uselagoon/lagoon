@@ -8,18 +8,12 @@
     if (!buildStep) {
         return knex.schema
         .alterTable('deployment', (table) => {
-            table.dropColumn('status');
             table.string('build_step');
         })
-        .alterTable('task', (table) => {
-            table.dropColumn('status');
-        })
-        .alterTable('deployment', function (table) {
-            table.enu('status', ['new', 'pending', 'running', 'cancelled', 'error', 'failed', 'complete', 'queued']).notNullable();
-        })
-        .alterTable('task', function (table) {
-            table.enu('status', ['new', 'pending', 'running', 'cancelled', 'error', 'failed', 'complete', 'queued']).notNullable();
-        })
+        .raw(`ALTER TABLE task
+        MODIFY status ENUM("new", "pending", "running", "cancelled", "error", "failed", "complete", "active", "succeeded", "queued") NOT NULL;`)
+        .raw(`ALTER TABLE deployment
+        MODIFY status ENUM("new", "pending", "running", "cancelled", "error", "failed", "complete", "queued") NOT NULL;`)
     }
     else {
         return knex.schema
@@ -34,16 +28,10 @@ exports.down = async function(knex) {
     // cant alter enums in place, so drop the column first :D
     return knex.schema
     .alterTable('deployment', (table) => {
-        table.dropColumn('status');
         table.dropColumn('build_step');
     })
-    .alterTable('task', (table) => {
-        table.dropColumn('status');
-    })
-    .alterTable('deployment', function (table) {
-        table.enu('status', ['new', 'pending', 'running', 'cancelled', 'error', 'failed', 'complete']).notNullable();
-    })
-    .alterTable('task', function (table) {
-        table.enu('status', ['new', 'pending', 'running', 'cancelled', 'error', 'failed', 'complete', 'active', 'succeeded']).notNullable();
-    })
+    .raw(`ALTER TABLE task
+    MODIFY status ENUM("new", "pending", "running", "cancelled", "error", "failed", "complete", "active", "succeeded", "queued") NOT NULL;`)
+    .raw(`ALTER TABLE deployment
+    MODIFY status ENUM("new", "pending", "running", "cancelled", "error", "failed", "complete", "queued") NOT NULL;`)
 };
