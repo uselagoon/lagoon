@@ -1,6 +1,6 @@
 ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
-FROM ${UPSTREAM_REPO:-testlagoon}/php-8.0-cli-drupal:${UPSTREAM_TAG:-latest}
+FROM ${UPSTREAM_REPO:-testlagoon}/php-8.1-cli-drupal:${UPSTREAM_TAG:-latest}
 
 COPY composer.* /app/
 COPY assets /app/assets
