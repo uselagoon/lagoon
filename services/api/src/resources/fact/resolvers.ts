@@ -7,6 +7,8 @@ import { knex } from '../../util/db';
 import { logger } from '../../loggers/logger';
 import crypto from 'crypto';
 import { Service } from 'aws-sdk';
+import * as api from '@lagoon/commons/dist/api';
+import { getEnvironmentsByProjectId } from '../environment/resolvers';
 
 export const getFactsByEnvironmentId: ResolverFn = async (
   { id: environmentId, environmentAuthz },
@@ -181,11 +183,65 @@ export const getEnvironmentsByFactSearch: ResolverFn = async (
   return { environments: rowsWithEnvironmentAuthz, count };
 }
 
+export const processAddFacts = async (facts, sqlClientPool, hasPermission) => {
+  const environments = facts.reduce((environmentList, fact) => {
+    if (fact.environment == undefined) {
+      logger.error(`No environment ID given for fact: ${fact.name}`);
+      throw new Error(`No environment ID given for fact: ${fact.name}`);
+    }
+
+    let { environment } = fact;
+    if (!environmentList.includes(environment)) {
+      environmentList.push(environment);
+    }
+    return environmentList;
+  }, []);
+
+  for (let i = 0; i < environments.length; i++) {
+    const env = await environmentHelpers(sqlClientPool).getEnvironmentById(
+      environments[i]
+    );
+    await hasPermission('fact', 'add', {
+      project: env.project
+    });
+  };
+
+  const returnFacts = [];
+  for (let i = 0; i < facts.length; i++) {
+    const { environment, name, value, source, description, type, category, keyFact, service } = facts[i];
+    const {
+      insertId
+    } = await query(
+      sqlClientPool,
+      Sql.insertFact({
+        environment,
+        name,
+        value,
+        source,
+        description,
+        type,
+        keyFact,
+        category,
+        service
+      })
+    );
+
+    const rows = await query(sqlClientPool, Sql.selectFactByDatabaseId(insertId));
+    returnFacts.push(R.prop(0, rows));
+  }
+  return returnFacts;
+}
+
 export const addFact: ResolverFn = async (
   root,
   { input: { id, environment: environmentId, name, value, source, description, type, category, keyFact, service } },
   { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
+  if (environmentId == undefined) {
+    logger.error(`No environment ID given for fact: ${name}`)
+    throw new Error(`No environment ID given for fact: ${name}`)
+  }
+
   const environment = await environmentHelpers(
     sqlClientPool
   ).getEnvironmentById(environmentId);
@@ -237,51 +293,52 @@ export const addFacts: ResolverFn = async (
   { input: { facts } },
   { sqlClientPool, hasPermission, userActivityLogger }
 ) => {
+  const returnFacts = await processAddFacts(facts, sqlClientPool, hasPermission);
 
-  const environments = facts.reduce((environmentList, fact) => {
-    let { environment } = fact;
-    if (!environmentList.includes(environment)) {
-      environmentList.push(environment);
-    }
-    return environmentList;
-  }, []);
-
-  for (let i = 0; i < environments.length; i++) {
-    const env = await environmentHelpers(sqlClientPool).getEnvironmentById(
-      environments[i]
-    );
-    await hasPermission('fact', 'add', {
-      project: env.project
-    });
-  };
-
-  const returnFacts = [];
-  for (let i = 0; i < facts.length; i++) {
-    const { environment, name, value, source, description, type, category, keyFact, service } = facts[i];
-    const {
-      insertId
-    } = await query(
-      sqlClientPool,
-      Sql.insertFact({
-        environment,
-        name,
-        value,
-        source,
-        description,
-        type,
-        keyFact,
-        category,
-        service
-      }),
-    );
-
-    const rows =  await query(sqlClientPool, Sql.selectFactByDatabaseId(insertId));
-    returnFacts.push(R.prop(0, rows));
-  }
-
-  userActivityLogger(`User added facts to environments'`, {
+  userActivityLogger(`User added facts to environment'`, {
     project: '',
     event: 'api:addFacts',
+    payload: {
+      data: {
+        returnFacts
+      }
+    }
+  });
+
+  return returnFacts;
+};
+
+export const addFactsByName: ResolverFn = async (
+  root,
+  { input: { project, environment, facts } },
+  { sqlClientPool, hasPermission, userActivityLogger, keycloakGrant, models }
+) => {
+  if (project && environment) {
+    let lagoonProject = await api.getProjectByName(project);
+    let environments = await getEnvironmentsByProjectId(lagoonProject, {}, { sqlClientPool, hasPermission, keycloakGrant, userActivityLogger, models })
+
+    let envId;
+    if (environments) {
+      for (let i = 0; i < environments.length; i++) {
+        if (environments[i].name === environment) {
+          envId = environments[i].id
+        }
+      }
+    }
+
+    if (envId) {
+      for (let i = 0; i < facts.length; i++) {
+        facts[i].environment = envId;
+      }
+    }
+  }
+
+  const returnFacts = await processAddFacts(facts, sqlClientPool, hasPermission);
+
+  userActivityLogger(`User added facts to '${project}:${environment}'`, {
+    project: project,
+    environment: environment,
+    event: 'api:addFactsByName',
     payload: {
       data: {
         returnFacts
