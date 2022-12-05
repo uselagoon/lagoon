@@ -1051,7 +1051,7 @@ export const createMiscTask = async function(taskData: any) {
   switch (data.activeSystemsMisc) {
     case 'lagoon_controllerMisc':
       // handle any controller based misc tasks
-      updatedKey = `kubernetes:${key}`;
+      updatedKey = `deploytarget:${key}`;
       taskId = 'misc-kubernetes';
       // determine the deploy target (openshift/kubernetes) for the task to go to
       // we get this from the environment
@@ -1073,7 +1073,7 @@ export const createMiscTask = async function(taskData: any) {
         advancedTask: {}
       }
       switch (updatedKey) {
-        case 'kubernetes:restic:backup:restore':
+        case 'deploytarget:restic:backup:restore':
           // Handle setting up the configuration for a restic restoration task
           const randRestoreId = Math.random().toString(36).substring(7);
           const restoreName = `restore-${R.slice(0, 7, taskData.data.backup.backupId)}-${randRestoreId}`;
@@ -1180,7 +1180,7 @@ export const createMiscTask = async function(taskData: any) {
           const restoreBytes = new Buffer(JSON.stringify(restoreConf).replace(/\\n/g, "\n")).toString('base64')
           miscTaskData.misc.miscResource = restoreBytes
           break;
-        case 'kubernetes:route:migrate':
+        case 'deploytarget:route:migrate':
           // handle setting up the task configuration for running the active/standby switch
           // this uses the `advanced task` system in the controllers
           // first generate the migration CRD
@@ -1211,10 +1211,10 @@ export const createMiscTask = async function(taskData: any) {
           miscTaskData.advancedTask.runnerImage = taskImage
           // miscTaskData.advancedTask.runnerImage = "shreddedbacon/runner:latest"
           break;
-        case 'kubernetes:task:advanced':
+        case 'deploytarget:task:advanced':
           miscTaskData.advancedTask = taskData.data.advancedTask
           break;
-        case 'kubernetes:build:cancel':
+        case 'deploytarget:build:cancel':
           // build cancellation is just a standard unmodified message
           miscTaskData.misc = taskData.data.build
           break;
