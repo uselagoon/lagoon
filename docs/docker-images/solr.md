@@ -8,7 +8,7 @@ This Dockerfile is intended to be used to set up a standalone Solr server with a
 
 * 5.5 \(available for compatibility, no longer officially supported\)
 * 6.6 \(available for compatibility, no longer officially supported\)
-* 7.7 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/solr/7.7.Dockerfile) (no longer actively supported upstream) - `uselagoon/solr-7.7`
+* 7.7 \(available for compatibility, no longer officially supported\)
 * 7 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/solr/7.Dockerfile) - `uselagoon/solr-7`
 * 8 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/solr/8.Dockerfile) - `uselagoon/solr-8`
 
