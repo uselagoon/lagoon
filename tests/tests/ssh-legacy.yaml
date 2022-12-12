@@ -1,5 +1,5 @@
 ---
-- include: features/api-token.yaml
+- include: features/api-token-legacy.yaml
   vars:
     testname: "API TOKEN"
 
