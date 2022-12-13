@@ -8,19 +8,9 @@ RUN go get github.com/joho/godotenv
 
 RUN go build && chmod +x ./go-dbaas
 
-ENV MARIADB_PASSWORD=lagoon \
-MARIADB_USERNAME=lagoon \
-MARIADB_DATABASE=lagoon \
-MARIADB_HOST=mariadb \
-POSTGRES_USERNAME=lagoon \
-POSTGRES_PASSWORD=lagoon \
-POSTGRES_DATABASE=lagoon \
-POSTGRES_HOST=postgres \
-SOLR_HOST=solr \
-REDIS_HOST=redis \
-OPENSEARCH_HOST=opensearch \
-MONGO_HOST=mongo \
-MONGO_DATABASE=lagoon
+ENV SOLR_HOST=solr \
+    REDIS_HOST=redis \
+    OPENSEARCH_HOST=opensearch-2
 
 EXPOSE 3000
 

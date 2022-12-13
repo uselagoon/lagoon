@@ -11,32 +11,30 @@ import (
 	"github.com/vanng822/go-solr/solr"
 )
 
-var (
-	solrService       = os.Getenv("SOLR_HOST")
-	solrConnectionStr = fmt.Sprintf("http://%s:8983/solr", solrService)
-)
-
 func solrHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, convertSolrDoc(solrConnector()))
+	solrPath := r.URL.Path
+	solrRoute := strings.ReplaceAll(solrPath, "/", "")
+	solrConnectionStr := fmt.Sprintf("http://%s:8983/solr", solrRoute)
+	fmt.Fprintf(w, convertSolrDoc(solrConnector(solrConnectionStr), solrRoute))
 }
 
-func convertSolrDoc(d []solr.Document) string {
+func convertSolrDoc(d []solr.Document, version string) string {
 	solrDoctoString := fmt.Sprintf("%s", d)
 	results := strings.Fields(solrDoctoString)
 	var replaced []string
 	r := regexp.MustCompile(`[\[\]']+`)
 	for _, str := range results {
-		replaced = append(replaced, r.ReplaceAllString(str, ""))
+		cleanSolrString := strings.ReplaceAll(str, "map", "")
+		replaced = append(replaced, r.ReplaceAllString(cleanSolrString, ""))
 	}
 	keyVals := connectorKeyValues(replaced)
-	cleanSolrString := strings.ReplaceAll(keyVals, "map", "")
-	solrHost := fmt.Sprintf(`"Service_Host=%s"`, solrService)
-	solrOutput := solrHost + "\n" + cleanSolrString
+	solrHost := fmt.Sprintf(`"SERVICE_HOST=%s"`, version)
+	solrOutput := solrHost + "\n" + keyVals
 	return solrOutput
 }
 
-func solrConnector() []solr.Document {
-	si, err := solr.NewSolrInterface(solrConnectionStr, "mycore")
+func solrConnector(connectionString string) []solr.Document {
+	si, err := solr.NewSolrInterface(connectionString, "mycore")
 	if err != nil {
 		log.Print(err)
 	}
@@ -46,7 +44,7 @@ func solrConnector() []solr.Document {
 		pair := strings.SplitN(e, "=", 2)
 		d.Set(pair[0], pair[1])
 		if err != nil {
-			panic(err.Error())
+			log.Print(err)
 		}
 	}
 	documents := []solr.Document{}

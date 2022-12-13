@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -11,13 +12,14 @@ import (
 )
 
 var (
-	ctx                = context.Background()
-	redisHost          = os.Getenv("REDIS_HOST")
-	redisConnectionStr = fmt.Sprintf("%s:6379", redisHost)
+	ctx = context.Background()
 )
 
 func redisHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, redisConnector())
+	redisPath := r.URL.Path
+	redisRoute := strings.ReplaceAll(redisPath, "/", "")
+	redisConnectionStr := fmt.Sprintf("%s:6379", redisRoute)
+	fmt.Fprintf(w, redisConnector(redisConnectionStr, redisRoute))
 }
 
 func cleanRedisOutput(r *redis.StringCmd) string {
@@ -27,9 +29,9 @@ func cleanRedisOutput(r *redis.StringCmd) string {
 	return redisVals
 }
 
-func redisConnector() string {
+func redisConnector(connectionString string, version string) string {
 	client := redis.NewClient(&redis.Options{
-		Addr:     redisConnectionStr,
+		Addr:     connectionString,
 		Password: "",
 		DB:       0,
 	})
@@ -38,7 +40,7 @@ func redisConnector() string {
 		pair := strings.SplitN(e, "=", 2)
 		err := client.Set(ctx, pair[0], pair[1], 0).Err()
 		if err != nil {
-			panic(err)
+			log.Print(err)
 		}
 	}
 
@@ -53,7 +55,7 @@ func redisConnector() string {
 	}
 
 	keyVals := connectorKeyValues(values)
-	host := fmt.Sprintf(`"Service_Host=%s"`, redisHost)
+	host := fmt.Sprintf(`"SERVICE_HOST=%s"`, version)
 	redisData := host + "\n" + keyVals
 	return redisData
 }

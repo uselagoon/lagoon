@@ -47,7 +47,7 @@ func cleanOpensearchOutput(sr *opensearchapi.Response) string {
 	}
 
 	keyVals := connectorKeyValues(matches)
-	host := fmt.Sprintf(`"Service_Host=%s"`, opensearchHost)
+	host := fmt.Sprintf(`"SERVICE_HOST=%s"`, opensearchHost)
 	opensearchOutput := host + "\n" + keyVals
 	return opensearchOutput
 }

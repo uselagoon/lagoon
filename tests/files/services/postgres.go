@@ -12,22 +12,28 @@ import (
 )
 
 var (
-	postgresUser          = os.Getenv("POSTGRES_USERNAME")
-	postgresPassword      = os.Getenv("POSTGRES_PASSWORD")
-	postgresDB            = os.Getenv("POSTGRES_DATABASE")
-	postgresHost          = os.Getenv("POSTGRES_HOST")
 	postgresSSL           = "disable"
-	postgresConnectionStr = fmt.Sprintf(
-		"user=%s password=%s dbname=%s sslmode=%s host=%s",
-		postgresUser, postgresPassword, postgresDB, postgresSSL, postgresHost)
+	postgresVersion       string
+	postgresConnectionStr string
 )
 
 func postgresHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, dbConnectorPairs(postgresDBConnector(), postgresHost))
+	postgresPath := r.URL.Path
+	localService, lagoonService := cleanRoute(postgresPath)
+	postgresUser := getEnv(fmt.Sprintf("%s_USERNAME", lagoonService), "lagoon")
+	postgresPassword := getEnv(fmt.Sprintf("%s_PASSWORD", lagoonService), "lagoon")
+	postgresHost := getEnv(fmt.Sprintf("%s_HOST", lagoonService), localService)
+	postgresPort := getEnv(fmt.Sprintf("%s_PORT", lagoonService), "5432")
+	postgresDatabase := getEnv(fmt.Sprintf("%s_DATABASE", lagoonService), "lagoon")
+
+	postgresConnectionStr = fmt.Sprintf("user=%s password=%s dbname=%s sslmode=%s host=%s port=%s", postgresUser, postgresPassword, postgresDatabase, postgresSSL, postgresHost, postgresPort)
+	log.Print(fmt.Sprintf("Using %s as the connstring", postgresConnectionStr))
+
+	fmt.Fprintf(w, dbConnectorPairs(postgresDBConnector(postgresConnectionStr), postgresVersion))
 }
 
-func postgresDBConnector() map[string]string {
-	db, err := sql.Open("postgres", postgresConnectionStr)
+func postgresDBConnector(connectionString string) map[string]string {
+	db, err := sql.Open("postgres", connectionString)
 	if err != nil {
 		log.Print(err)
 	}
@@ -37,7 +43,7 @@ func postgresDBConnector() map[string]string {
 	createTable := "CREATE TABLE IF NOT EXISTS env(env_key text, env_value text)"
 	_, err = db.Exec(createTable)
 	if err != nil {
-		panic(err.Error())
+		log.Print(err)
 	}
 
 	query := "INSERT INTO env(env_key, env_value) VALUES ($1, $2)"
@@ -46,7 +52,7 @@ func postgresDBConnector() map[string]string {
 		pair := strings.SplitN(e, "=", 2)
 		_, err := db.Exec(query, pair[0], pair[1])
 		if err != nil {
-			panic(err.Error())
+			log.Print(err)
 		}
 	}
 
@@ -55,6 +61,8 @@ func postgresDBConnector() map[string]string {
 	if err != nil {
 		log.Print(err)
 	}
+
+	db.QueryRow("SELECT VERSION()").Scan(&postgresVersion)
 
 	defer rows.Close()
 	results := make(map[string]string)
