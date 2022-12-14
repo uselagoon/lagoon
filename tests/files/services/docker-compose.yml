@@ -1,32 +1,6 @@
-version: '2'
-
-volumes:
-  solrData:
-  solrData7:
-  opensearch-data1:
+version: "2"
 
 services:
-  web:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    labels:
-      lagoon.type: basic
-    ports:
-      - '3000:3000'
-    container_name: go-web
-    environment:
-      - LAGOON_TEST_VAR=test
-      - LAGOON_GIT_SHA=SHA256
-      - LAGOON_ENVIRONMENT_TYPE=development
-
-  mariadb-10-4:
-    image: uselagoon/mariadb-10.4
-    labels:
-      lagoon.type: mariadb-single
-    ports:
-      - '3306'
-
   mariadb-10-5:
     image: uselagoon/mariadb-10.5
     labels:
@@ -64,26 +38,10 @@ services:
       nofile:
         soft: 65536
         hard: 65536
-    volumes:
-      - opensearch-data1:/usr/share/opensearch/data
     labels:
       lagoon.type: opensearch
     ports:
       - '9200'
-
-  postgres-11:
-    image: uselagoon/postgres-11
-    labels:
-      lagoon.type: postgres-single
-    ports:
-      - '5432'
-
-  postgres-12:
-    image: uselagoon/postgres-12
-    labels:
-      lagoon.type: postgres-single
-    ports:
-      - '5432'
 
   postgres-13:
     image: uselagoon/postgres-13
@@ -99,13 +57,6 @@ services:
     ports:
       - '5432'
 
-  redis-5:
-    image: uselagoon/redis-5
-    labels:
-      lagoon.type: redis
-    ports:
-      - '6379'
-
   redis-6:
     image: uselagoon/redis-6
     labels:
@@ -113,27 +64,19 @@ services:
     ports:
       - '6379'
 
-  solr-7:
-    image: uselagoon/solr-7
-    labels:
-      lagoon.type: solr
-    ports:
-     - "8983"
-    volumes:
-      - solrData7:/var/solr
-    command:
-      - solr-precreate
-      - mycore
-
   solr-8:
     image: uselagoon/solr-8
     labels:
       lagoon.type: solr
     ports:
      - "8983"
-    volumes:
-      - solrData:/var/solr
     command:
       - solr-precreate
       - mycore
 
+  internal-services-test:
+    image: uselagoon/internal-services-test:main
+    labels:
+      lagoon.type: basic
+    ports:
+      - "3000"
