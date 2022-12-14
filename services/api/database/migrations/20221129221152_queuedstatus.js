@@ -24,7 +24,7 @@ exports.down = async function(knex) {
         table.dropColumn('build_step');
     })
     .raw(`ALTER TABLE task
-    MODIFY status ENUM("new", "pending", "running", "cancelled", "error", "failed", "complete", "active", "succeeded", "queued") NOT NULL;`)
+    MODIFY status ENUM("new", "pending", "running", "cancelled", "error", "failed", "complete", "active", "succeeded") NOT NULL;`)
     .raw(`ALTER TABLE deployment
-    MODIFY status ENUM("new", "pending", "running", "cancelled", "error", "failed", "complete", "queued") NOT NULL;`)
+    MODIFY status ENUM("new", "pending", "running", "cancelled", "error", "failed", "complete") NOT NULL;`)
 };
