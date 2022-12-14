@@ -1,0 +1,73 @@
+{
+    "name": "amazeeio/drupal-project",
+    "description": "Project template for Drupal 8 projects with composer hosted on amazee.io",
+    "type": "project",
+    "license": "GPL-2.0+",
+    "authors": [
+        {
+            "name": "Michael Schmid michael@amazee.io",
+            "role": "CTO"
+        }
+    ],
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://packages.drupal.org/8"
+        }
+    ],
+    "require": {
+        "amazeeio/drupal_integrations": "~0.3",
+        "composer/installers": "~2.0",
+        "cweagans/composer-patches": "~1.7",
+        "drupal/core-project-message": "~9.4",
+        "drupal/core-recommended": "~9.4",
+        "drupal/lagoon_logs": "~1.0",
+        "drupal/redis": "~1.0",
+        "drush/drush": "~11.0",
+        "zaporylie/composer-drupal-optimizations": "~1.2"
+    },
+    "require-dev": {
+        "drupal/core-dev-pinned": "~9.2"
+    },
+    "conflict": {
+        "drupal/drupal": "*"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config":{
+        "sort-packages": true,
+        "allow-plugins": {
+            "drupal/core-composer-scaffold": true,
+            "composer/installers": true,
+            "cweagans/composer-patches": true,
+            "drupal/core-project-message": true,
+            "zaporylie/composer-drupal-optimizations": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    },
+    "extra": {
+        "installer-paths": {
+            "web/core": ["type:drupal-core"],
+            "web/libraries/{$name}": ["type:drupal-library"],
+            "web/modules/contrib/{$name}": ["type:drupal-module"],
+            "web/profiles/contrib/{$name}": ["type:drupal-profile"],
+            "web/themes/contrib/{$name}": ["type:drupal-theme"],
+            "drush/Commands/contrib/{$name}": ["type:drupal-drush"],
+            "web/modules/custom/{$name}": ["type:drupal-custom-module"],
+            "web/themes/custom/{$name}": ["type:drupal-custom-theme"]
+        },
+        "drupal-scaffold": {
+            "allowed-packages": [
+                "amazeeio/drupal_integrations"
+            ],
+            "file-mapping": {
+                "[web-root]/sites/default/all.settings.php": "assets/all.settings.php",
+                "[web-root]/sites/default/redis-unavailable.services.yml": "assets/redis-unavailable.services.yml",
+                "[project-root]/drush/sites/lagoon.site.yml": "assets/lagoon.site.yml"
+            },
+            "locations": {
+                "web-root": "web/"
+            }
+        }
+    }
+}

@@ -9,6 +9,7 @@ interface Project {
   slack: any;
   name: string;
   openshift: any;
+  deploymentsDisabled: number;
 }
 
 interface GroupPatch {
@@ -600,6 +601,7 @@ export async function getProjectsByGitUrl(gitUrl: string): Promise<Project[]> {
       allProjects(gitUrl: "${gitUrl}") {
         name
         productionEnvironment
+        deploymentsDisabled
         openshift {
           consoleUrl
           token

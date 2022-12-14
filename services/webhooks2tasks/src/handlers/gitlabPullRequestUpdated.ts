@@ -24,6 +24,13 @@ export async function gitlabPullRequestUpdated(webhook: WebhookRequestData, proj
       repoUrl: body.object_attributes.target.web_url,
     }
 
+    if (project.deploymentsDisabled == 1) {
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
+        `*[${project.name}]* No deploy task created, reason: deployments are disabled`
+      )
+      return;
+    }
+
     const headRepoId = body.object_attributes.source.git_ssh_url
     const headBranchName = body.object_attributes.source_branch
     const headSha = body.object_attributes.last_commit.id

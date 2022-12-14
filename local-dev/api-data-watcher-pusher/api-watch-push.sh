@@ -65,7 +65,8 @@ watch_apidatafolder() {
                 echo "**** ERROR while re-populating $populate_kubernetes_gql_file_path, will try again."
             fi
 
-
+            # notify intial push completed
+            touch /tmp/api-data-pushed
         fi
 
         sleep 2

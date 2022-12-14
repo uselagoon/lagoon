@@ -33,6 +33,13 @@ export async function bitbucketPush(webhook: WebhookRequestData, project: Projec
       shortSha: sha.substring(0, 7),
     }
 
+    if (project.deploymentsDisabled == 1) {
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
+        `*[${project.name}]* No deploy task created, reason: deployments are disabled`
+      )
+      return;
+    }
+
     let buildName = generateBuildId();
 
     const data: deployData = {
