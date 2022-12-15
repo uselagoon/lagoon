@@ -108,4 +108,29 @@ mutation PopulateApi {
   ) {
     id
   }
+
+  UIOrganizationProjectEnvironment1: addOrUpdateEnvironment(
+    input: {
+      id: 30
+      name: "main"
+      project: 180
+      deployType: BRANCH
+      deployBaseRef: "main"
+      environmentType: PRODUCTION
+      openshiftProjectName: "organization-cotton-main"
+    }
+  ) {
+    id
+  }
+  UIOrganizationProjectEnvironment1Update: updateEnvironment(
+    input: {
+      id: 30
+      patch: {
+        route: "http://cotton.example.org"
+        routes: "http://cotton.example.org,https://varnish-organization-cotton-main.cluster.example.com,https://nginx-organization-cotton-main.cluster.example.com"
+      }
+    }
+  ) {
+    id
+  }
 }
