@@ -1,0 +1,109 @@
+
+- name: "{{ testname }} - init git, add files, commit, git push"
+  hosts: localhost
+  serial: 1
+  vars:
+    git_files: "{{ branch }}/"
+  tasks:
+  - include: ../../tasks/git-init.yaml
+  - include: ../../tasks/git-add-commit-push.yaml
+
+- name: "{{ testname }} - api deployEnvironmentBranch on {{ project }}, which should deploy the first commit"
+  hosts: localhost
+  serial: 1
+  vars:
+    branch: "{{ branch }}"
+    project: "{{ project }}"
+    namespace: "{{ project | regex_replace('_', '-') }}-{{ branch | regex_replace('/', '-') }}"
+  tasks:
+  - include: ../../tasks/api/deploy-no-sha.yaml
+
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, mariadb 10.5 service"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/mariadb-10.5"
+    expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
+  tasks:
+  - include: ../../checks/check-url-content.yaml
+
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, mariadb 10.6 service"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/mariadb-10.6"
+    expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
+  tasks:
+  - include: ../../checks/check-url-content.yaml
+
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, postgres-13 service"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/postgres-13"
+    expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
+  tasks:
+  - include: ../../checks/check-url-content.yaml
+
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, postgres-14 service"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/postgres-14"
+    expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
+  tasks:
+  - include: ../../checks/check-url-content.yaml
+
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, mongo-4 service"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/mongo-4"
+    expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
+  tasks:
+  - include: ../../checks/check-url-content.yaml
+
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, solr-8 service"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/solr-8"
+    expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
+  tasks:
+  - include: ../../checks/check-url-content.yaml
+
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, redis-6 service"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/redis-6"
+    expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
+  tasks:
+  - include: ../../checks/check-url-content.yaml
+
+- name: "{{ testname }} - check if {{ project }} is deployed with searching for the hash, opensearch-2 service"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}/opensearch-2"
+    expected_content: "LAGOON_GIT_SAFE_BRANCH={{ branch }}"
+  tasks:
+  - include: ../../checks/check-url-content.yaml
+
+- name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
+  hosts: localhost
+  serial: 1
+  vars:
+    project: "{{ project }}"
+    branch: "{{ branch }}"
+  tasks:
+  - include: ../../tasks/api/delete-environment.yaml
+
+- name: "{{ testname }} - check if site for {{ project }} does not exist anymore"
+  hosts: localhost
+  serial: 1
+  vars:
+    url: "http://internal-services-test.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
+    expected_returncode: "{{ del_status_code }}"
+  tasks:
+  - include: ../../checks/check-url-returncode.yaml

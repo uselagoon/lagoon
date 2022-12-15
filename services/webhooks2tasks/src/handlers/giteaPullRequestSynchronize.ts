@@ -41,6 +41,13 @@ export async function giteaPullRequestSynchronize(webhook: WebhookRequestData, p
       repoUrl: body.repository.html_url,
     }
 
+    if (project.deploymentsDisabled == 1) {
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
+        `*[${project.name}]* No deploy task created, reason: deployments are disabled`
+      )
+      return;
+    }
+
     // Don't trigger deploy if only the PR body was edited.
     if (skipRedeploy(body)) {
       sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,

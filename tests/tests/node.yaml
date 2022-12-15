@@ -27,11 +27,6 @@
     branch: node14
     check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"
 
-- include: api/deploy-branch.yaml
+- include: api/delete-project.yaml
   vars:
-    testname: "NODE 12 {{ cluster_type|upper }}"
-    node_version: 12
-    git_repo_name: node.git
     project: ci-node-{{ cluster_type }}
-    branch: node12
-    check_url: "http://node.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix }}"

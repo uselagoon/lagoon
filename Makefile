@@ -240,19 +240,10 @@ wait-for-keycloak:
 	grep -m 1 "Config of Keycloak done." <(docker-compose -p $(CI_BUILD_TAG) --compatibility logs -f keycloak 2>&1)
 
 # Define a list of which Lagoon Services are needed for running any deployment testing
-main-test-services = actions-handler broker logs2notifications api api-db api-redis keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher local-minio
+main-test-services = actions-handler broker logs2notifications api api-db api-redis keycloak keycloak-db ssh auth-server local-git local-api-data-watcher-pusher local-minio local-minio-upload
 
 # List of Lagoon Services needed for webhook endpoint testing
 webhooks-test-services = webhook-handler webhooks2tasks backup-handler
-
-# All tests that use Webhook endpoints
-webhook-tests = github gitlab bitbucket
-
-# All Tests that use API endpoints
-api-tests = node features-kubernetes nginx elasticsearch active-standby-kubernetes node-mongodb
-
-# All drupal tests
-drupal-tests = drupal-php72 drupal-php73 drupal-php74 drupal-postgres
 
 # These targets are used as dependencies to bring up containers in the right order.
 .PHONY: main-test-services-up
@@ -436,7 +427,7 @@ api-development: build/api build/api-db build/local-api-data-watcher-pusher buil
 
 .PHONY: ui-logs-development
 ui-logs-development: build/actions-handler build/api build/api-db build/local-api-data-watcher-pusher build/keycloak build/keycloak-db build/broker-single build/api-redis build/logs2notifications build/local-minio
-	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db actions-handler local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis logs2notifications local-minio
+	IMAGE_REPO=$(CI_BUILD_TAG) docker-compose -p $(CI_BUILD_TAG) --compatibility up -d api api-db actions-handler local-api-data-watcher-pusher ui keycloak keycloak-db broker api-redis logs2notifications local-minio local-minio-upload
 
 ## CI targets
 
@@ -447,8 +438,8 @@ GOJQ_VERSION = v0.12.8
 STERN_VERSION = 2.1.20
 CHART_TESTING_VERSION = v3.6.0
 KIND_IMAGE = kindest/node:v1.23.6@sha256:b1fa224cc6c7ff32455e0b1fd9cbfd3d3bc87ecaa8fcb06961ed1afb3db0f9ae
-TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,drupal-php80,drupal-postgres,python,gitlab,github,bitbucket,node-mongodb,elasticsearch,workflows]
-CHARTS_TREEISH = lagoon_v211
+TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services,workflows]
+CHARTS_TREEISH = main
 TASK_IMAGES = task-activestandby
 
 # Symlink the installed kubectl client if the correct version is already

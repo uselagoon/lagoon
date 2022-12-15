@@ -127,10 +127,8 @@ github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81P
 github.com/tiago4orion/conjure v0.0.0-20150908101743-93cb30b9d218 h1:tOESt7J50fPC9NqR0VdU1Zxk2zo5QYH70ap5TsU1bt4=
 github.com/tiago4orion/conjure v0.0.0-20150908101743-93cb30b9d218/go.mod h1:GQei++1WClbEC7AN1B9ipY1jCjzllM/7UNg0okAh/Z4=
 github.com/urfave/cli v1.22.2/go.mod h1:Gos4lmkARVdJ6EkW0WaNv/tZAAMe9V7XWyB60NtXRu0=
-github.com/uselagoon/machinery v0.0.5 h1:p0KY9XpFazy/5u5VMUNRjdBYqLM/pPOhd6ErOwDs3zc=
-github.com/uselagoon/machinery v0.0.5/go.mod h1:dGAvkxWQkRu/eLQeWLrTl5HvNoFsiXlXInCptHUxzUw=
-github.com/uselagoon/machinery v0.0.6 h1:Fmos85ITxWQSa/0/cb7zo791qIlxMJ28EpAikuE8NN0=
-github.com/uselagoon/machinery v0.0.6/go.mod h1:dGAvkxWQkRu/eLQeWLrTl5HvNoFsiXlXInCptHUxzUw=
+github.com/uselagoon/machinery v0.0.7 h1:fBIURDQRVnaB/Gime1Lfp6kgQYmuQpa0gmdfPwo7dkc=
+github.com/uselagoon/machinery v0.0.7/go.mod h1:dGAvkxWQkRu/eLQeWLrTl5HvNoFsiXlXInCptHUxzUw=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 go.opencensus.io v0.22.0 h1:C9hSCOW830chIVkdja34wa6Ky+IzWllkUinR+BtRZd4=

@@ -47,6 +47,7 @@ export interface WebhookRequestData {
 export interface Project {
   slack: any,
   name: string,
+  deploymentsDisabled: number,
   openshift: any,
   productionEnvironment?: string
 };
