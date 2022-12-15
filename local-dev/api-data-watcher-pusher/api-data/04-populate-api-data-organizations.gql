@@ -1,0 +1,111 @@
+mutation PopulateApi {
+
+  # Organizations
+  UIOrganization1: addOrganization(input: {
+    id: 1
+    name: "Test Organization"
+    description: "An organization for testing"
+    quotaProject: 30
+  }) {
+    id
+    name
+    quotaProject
+  }
+
+  UIOrganizationUser: addUser(
+    input: {
+      email: "testuser@example.com"
+      comment: "test user that will be in a group in an organization"
+    }
+  ) {
+    id
+  }
+  UIOrganizationOwner: addUser(
+    input: {
+      email: "orgowner@example.com"
+      comment: "user that will be an organization owner"
+    }
+  ) {
+    id
+  }
+
+  UIOrganizationGroup: addGroup(
+    input: { name: "organization-group1", organization: 1}
+  ) {
+    id
+  }
+
+  UIOrganizationUserToGroup: addUserToGroup(
+    input: {
+      user: {
+        email:"testuser@example.com"
+      }
+      group: {
+        name: "organization-group1"
+      }
+      role: MAINTAINER
+    }
+  ) {
+    name
+  }
+
+  UIOrganizationAddOwner: addOwnerToOrganization(input: {user: {email: "orgowner@example.com"}, organization: 1}) {
+    id
+  }
+
+  UIOrganizationNotificationSlack: addNotificationSlack(input: {organization: 1, name: "slack-test", channel: "lobby", webhook: "http://slack.example.com/hooks/abcdefg"}) {
+    id
+  }
+
+  UIOrganizationNotificationRocketChat: addNotificationRocketChat(input: {organization: 1, name: "rocketchat-test", channel: "lobby", webhook: "http://rocketchat.example.com/hooks/abcdefg"}) {
+    id
+  }
+
+  UIOrganizationNotificationEmail: addNotificationEmail(input: {organization: 1, name: "email-test", emailAddress: "fake@example.com"}) {
+    id
+  }
+
+  UIOrganizationNotificationWebhook: addNotificationWebhook(input: {organization: 1, name: "webhook-test", webhook: "http://webhook.example.com"}) {
+    id
+  }
+
+  UIOrganizationNotificationTeams: addNotificationMicrosoftTeams(input: {organization: 1, name: "teams-test", webhook: "http://teams.example.com/hooks/sdgsgsgs"}) {
+    id
+  }
+  UILocalKubernetesOrganization: addDeployTargetToOrganization(input:{
+      deployTarget: 2001
+      organization: 1
+    })
+
+  UIProject1: addProject(
+    input: {
+      id: 180
+      organization: 1
+      name: "organization-cotton"
+      availability: HIGH
+      openshift: 2001
+      gitUrl: "ssh://git@172.17.0.1:2222/git/project180.git"
+      productionEnvironment: "master"
+      problemsUi: 1
+      factsUi: 1
+    }
+  ) {
+    id
+  }
+
+
+  UIOrganizationProjectGroup: addGroupsToProject(
+    input: {
+      project: {
+        name: "organization-cotton"
+      }
+      groups: [
+        {
+          name: "organization-group1"
+        }
+      ]
+    }
+  ) {
+    id
+  }
+}
