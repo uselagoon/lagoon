@@ -294,6 +294,7 @@ export const getGroupsByOrganizationsProject: ResolverFn = async (
 
 // check an existing project and the associated groups can be added to an organization
 // this will return errors if there are projects or groups that are part of different organizations
+// this is a helper function that is a WIP, not fully flushed out
 export const getProjectGroupOrganizationAssociation: ResolverFn = async (
   _root,
   { input },
@@ -496,6 +497,7 @@ export const addProjectToOrganization: ResolverFn = async (
 // check an existing group to see if it can be added to an organization
 // this function will return errors if there are projects in the group that are not in the organization
 // if there are no projects in the organization, and no projects in the group then it will succeed
+// this is a helper function that is a WIP, not fully flushed out
 export const getGroupProjectOrganizationAssociation: ResolverFn = async (
   _root,
   { input },
