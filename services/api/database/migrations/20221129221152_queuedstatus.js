@@ -23,6 +23,8 @@ exports.down = async function(knex) {
     .alterTable('deployment', (table) => {
         table.dropColumn('build_step');
     })
+    .raw(`UPDATE task SET status="pending" WHERE status="queued";`)
+    .raw(`UPDATE deployment SET status="pending" WHERE status="queued";`)
     .raw(`ALTER TABLE task
     MODIFY status ENUM("new", "pending", "running", "cancelled", "error", "failed", "complete", "active", "succeeded") NOT NULL;`)
     .raw(`ALTER TABLE deployment
