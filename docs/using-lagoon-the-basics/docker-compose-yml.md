@@ -94,6 +94,12 @@ This defines all the services you want to deploy. _Unfortunately,_ `docker-compo
 
 The name of the service \(`nginx`, `php`, and `mariadb` in the example above\) is used by Lagoon as the name of the Kubernetes pod \(yet another term - again, we'll be calling them services\) that is generated, plus also any additional Kubernetes objects that are created based on the defined `lagoon.type`, which could be things like services, routes, persistent storage, etc.
 
+Please note that service names adhere to the [RFC 1035](https://tools.ietf.org/html/rfc1035) DNS label standard. Service names must:
+* contain at most 63 characters
+* contain only lowercase alphanumeric characters or '-'
+* start with an alphabetic character
+* end with an alphanumeric character
+
 !!! warning "Warning:"
     Once you have set the name of a service, do NOT rename it. This will cause all kind of havoc in your containers and break things.
 

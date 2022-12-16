@@ -51,6 +51,7 @@ const typeDefs = gql`
     ERROR
     FAILED
     COMPLETE
+    QUEUED
   }
 
   enum EnvVariableType {
@@ -67,15 +68,16 @@ const typeDefs = gql`
   }
 
   enum TaskStatusType {
-    ACTIVE
-    SUCCEEDED
-    FAILED
     NEW
     PENDING
     RUNNING
     CANCELLED
     ERROR
+    FAILED
     COMPLETE
+    QUEUED
+    ACTIVE
+    SUCCEEDED
   }
 
   enum RestoreStatusType {
@@ -918,6 +920,7 @@ const typeDefs = gql`
     priority: Int
     bulkId: String
     bulkName: String
+    buildStep: String
   }
 
   type Insight {
@@ -1327,6 +1330,7 @@ const typeDefs = gql`
     priority: Int
     bulkId: String
     bulkName: String
+    buildStep: String
   }
 
   input DeleteDeploymentInput {
@@ -1344,6 +1348,7 @@ const typeDefs = gql`
     priority: Int
     bulkId: String
     bulkName: String
+    buildStep: String
   }
 
   input UpdateDeploymentInput {
