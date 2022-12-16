@@ -25,7 +25,7 @@
     command: service=node env
     expected_content: "LAGOON_PROJECT={{ project }}"
   tasks:
-  - include: ../../tasks/ssh/ssh-portal-command.yaml
+  - include: ../../tasks/ssh/ssh-legacy-command.yaml
 
 - name: "{{ testname }} - check if we can connect via oc project user and defining the container"
   hosts: localhost
@@ -35,7 +35,7 @@
     command: service=node container=node env
     expected_content: "LAGOON_PROJECT={{ project }}"
   tasks:
-  - include: ../../tasks/ssh/ssh-portal-command.yaml
+  - include: ../../tasks/ssh/ssh-legacy-command.yaml
 
 - name: "{{ testname }} - check if we are on the right git hash via oc project user"
   hosts: localhost
@@ -45,7 +45,7 @@
     command: service=node env
     expected_content: "LAGOON_GIT_SHA={{ current_head }}"
   tasks:
-  - include: ../../tasks/ssh/ssh-portal-command.yaml
+  - include: ../../tasks/ssh/ssh-legacy-command.yaml
 
 - name: "{{ testname }} - check if we are on the right git branch via oc project user"
   hosts: localhost
@@ -55,7 +55,7 @@
     command: service=node env
     expected_content: "LAGOON_GIT_BRANCH={{ branch }}"
   tasks:
-  - include: ../../tasks/ssh/ssh-portal-command.yaml
+  - include: ../../tasks/ssh/ssh-legacy-command.yaml
 
 - name: "{{ testname }} - api deleteEnvironment on {{ project }}, which should remove all resources"
   hosts: localhost
