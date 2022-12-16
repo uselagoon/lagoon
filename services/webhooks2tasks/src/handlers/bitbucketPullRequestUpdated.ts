@@ -24,6 +24,13 @@ export async function bitbucketPullRequestUpdated(webhook: WebhookRequestData, p
       repoUrl: body.repository.links.html.href,
     }
 
+    if (project.deploymentsDisabled == 1) {
+      sendToLagoonLogs('info', project.name, uuid, `${webhooktype}:${event}:handledButNoTask`, meta,
+        `*[${project.name}]* No deploy task created, reason: deployments are disabled`
+      )
+      return;
+    }
+
     const headRepoId = body.pullrequest.source.repository.uuid;
     const headBranchName = body.pullrequest.source.branch.name
     const headSha = body.pullrequest.source.commit.hash
