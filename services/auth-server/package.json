@@ -2,6 +2,7 @@
   "name": "auth-server",
   "version": "1.0.0",
   "author": "amazee.io <hello@amazee.io> (http://www.amazee.io)",
+  "license": "MIT",
   "contributors": [
     "Patrick Stapfer <patrick@amazee.io>",
     "Karl Horky <karl.horky@gmail.com>",
@@ -17,7 +18,9 @@
     "lint": "../../node-packages/eslint-config-lagoon-node/node_modules/.bin/eslint ."
   },
   "nodemonConfig": {
-    "watch": ["src"],
+    "watch": [
+      "src"
+    ],
     "ext": "js,ts,json",
     "exec": "yarn build && yarn start --inspect=0.0.0.0:9229"
   },
@@ -33,7 +36,7 @@
     "winston": "^3"
   },
   "devDependencies": {
-    "nodemon": "^1.12.1",
+    "nodemon": "^2.0.20",
     "prettier": "^1.14.2",
     "prettier-eslint-cli": "^4.7.1",
     "typescript": "^3.9.3"
