@@ -439,7 +439,7 @@ STERN_VERSION = 2.1.20
 CHART_TESTING_VERSION = v3.7.1
 KIND_IMAGE = kindest/node:v1.24.7@sha256:577c630ce8e509131eab1aea12c022190978dd2f745aac5eb1fe65c0807eb315
 TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services,workflows]
-CHARTS_TREEISH = mongodb_update
+CHARTS_TREEISH = lagoon_v211_k8s_124
 TASK_IMAGES = task-activestandby
 
 # Symlink the installed kubectl client if the correct version is already
