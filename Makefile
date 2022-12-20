@@ -431,9 +431,9 @@ ui-logs-development: build/actions-handler build/api build/api-db build/local-ap
 
 ## CI targets
 
-KUBECTL_VERSION := v1.24.7
+KUBECTL_VERSION := v1.25.4
 HELM_VERSION := v3.10.2
-KIND_VERSION = v0.17.0
+KIND_VERSION = v0.16.0
 GOJQ_VERSION = v0.12.9
 STERN_VERSION = 2.1.20
 CHART_TESTING_VERSION = v3.7.1
