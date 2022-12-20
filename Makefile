@@ -431,13 +431,13 @@ ui-logs-development: build/actions-handler build/api build/api-db build/local-ap
 
 ## CI targets
 
-KUBECTL_VERSION := v1.23.7
-HELM_VERSION := v3.9.0
-KIND_VERSION = v0.14.0
-GOJQ_VERSION = v0.12.8
+KUBECTL_VERSION := v1.24.7
+HELM_VERSION := v3.10.2
+KIND_VERSION = v0.17.0
+GOJQ_VERSION = v0.12.9
 STERN_VERSION = 2.1.20
-CHART_TESTING_VERSION = v3.6.0
-KIND_IMAGE = kindest/node:v1.23.6@sha256:b1fa224cc6c7ff32455e0b1fd9cbfd3d3bc87ecaa8fcb06961ed1afb3db0f9ae
+CHART_TESTING_VERSION = v3.7.1
+KIND_IMAGE = kindest/node:v1.24.7@sha256:577c630ce8e509131eab1aea12c022190978dd2f745aac5eb1fe65c0807eb315
 TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services,workflows]
 CHARTS_TREEISH = mongodb_update
 TASK_IMAGES = task-activestandby
