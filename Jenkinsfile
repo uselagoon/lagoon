@@ -1,5 +1,5 @@
 pipeline {
-  agent { label 'lagoon' }
+  agent { label 'lagoon-125' }
   environment {
     // configure build params
     CI_BUILD_TAG = env.BUILD_TAG.replaceAll('%2f','').replaceAll('[^A-Za-z0-9]+', '').toLowerCase()
