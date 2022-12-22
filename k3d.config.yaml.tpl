@@ -13,11 +13,11 @@ registries:
       docker.io:
         endpoint:
         - "https://imagecache.amazeeio.cloud"
-      "registry.${K3D_NODE_IP}.nip.io:32082":
+      "registry.${K3D_NODE_IP}.nip.io:32080":
         endpoint:
-          - http://registry.${K3D_NODE_IP}.nip.io:32082
+          - http://registry.${K3D_NODE_IP}.nip.io:32080
     configs:
-        "registry.${K3D_NODE_IP}.nip.io:32082":
+        "registry.${K3D_NODE_IP}.nip.io:32080":
             tls:
             insecure_skip_verify: true
 options:
@@ -26,9 +26,9 @@ options:
       - arg: --disable=traefik
         nodeFilters:
           - server:*
-      - arg: --flannel-backend=none
-        nodeFilters:
-          - server:*
+#      - arg: --flannel-backend=none
+#        nodeFilters:
+#          - server:*
       - arg: --disable-network-policy
         nodeFilters:
           - server:*
