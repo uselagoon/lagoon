@@ -71,7 +71,7 @@ pipeline {
         stage ('0: setup test cluster') {
           steps {
             sh script: "make -j$NPROC local-dev/k3d", label: "Configure k3d"
-            sh script: "./local-dev/k3d delete clusters --all", label: "Delete any remnant clusters"
+            sh script: "./local-dev/k3d cluster delete --all", label: "Delete any remnant clusters"
             sh script: "make -j$NPROC k3d/test TESTS=[nginx] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Setup cluster and run nginx smoketest"
             sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-0 log after test completion"
           }
