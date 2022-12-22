@@ -1,6 +1,6 @@
 docker-compose-yaml: docker-compose.yml
 
-endpoint: lagoon-core-ssh.lagoon.svc.cluster.local:2020
+endpoint: lagoon-core-ssh-token.lagoon.svc.cluster.local:2223
 api: lagoon-core-api.lagoon.svc.cluster.local:80
 
 environment_variables:

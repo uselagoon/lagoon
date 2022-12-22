@@ -498,7 +498,7 @@ mutation PopulateApi {
   UIProject1Environment1addTask1: addTask(
     input: {
       name: "Site Status"
-      status: ACTIVE
+      status: PENDING
       environment: 3
       service: "cli"
       command: "drush status"
@@ -513,7 +513,7 @@ mutation PopulateApi {
   UIProject1Environment1addTask2: addTask(
     input: {
       name: "Drupal Archive"
-      status: SUCCEEDED
+      status: COMPLETE
       environment: 3
       service: "cli"
       command: "drush archive-dump"
