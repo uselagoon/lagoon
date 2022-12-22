@@ -438,7 +438,7 @@ GOJQ_VERSION = v0.12.9
 STERN_VERSION = 2.1.20
 CHART_TESTING_VERSION = v3.7.1
 K3D_IMAGE = docker.io/rancher/k3s:v1.24.7-k3s1
-TESTS = [services]
+TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services,workflows]
 CHARTS_TREEISH = lagoon_v211_k8s_124
 TASK_IMAGES = task-activestandby
 
