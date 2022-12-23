@@ -431,13 +431,13 @@ ui-logs-development: build/actions-handler build/api build/api-db build/local-ap
 
 ## CI targets
 
-KUBECTL_VERSION := v1.24.7
+KUBECTL_VERSION := v1.24.9
 HELM_VERSION := v3.10.2
 K3D_VERSION = v5.4.6
 GOJQ_VERSION = v0.12.9
 STERN_VERSION = 2.1.20
 CHART_TESTING_VERSION = v3.7.1
-K3D_IMAGE = docker.io/rancher/k3s:v1.24.7-k3s1
+K3D_IMAGE = docker.io/rancher/k3s:v1.24.9-k3s1
 TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services,workflows]
 CHARTS_TREEISH = lagoon_v211_k8s_124
 TASK_IMAGES = task-activestandby
@@ -568,7 +568,7 @@ k3d/test: k3d/cluster helm/repos $(addprefix local-dev/,$(K3D_TOOLS)) $(addprefi
 			IMAGE_REGISTRY=$$IMAGE_REGISTRY \
 			SKIP_INSTALL_REGISTRY=true \
 			LAGOON_FEATURE_FLAG_DEFAULT_ISOLATION_NETWORK_POLICY=enabled \
-			USE_CALICO_CNI=true \
+			USE_CALICO_CNI=false \
 			LAGOON_FEATURE_FLAG_DEFAULT_ROOTLESS_WORKLOAD=enabled \
 		&& docker run --rm --network host --name ct-$(CI_BUILD_TAG) \
 			--volume "$$(pwd)/test-suite-run.ct.yaml:/etc/ct/ct.yaml" \
