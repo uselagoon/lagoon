@@ -1,0 +1,4 @@
+ansible-core==2.11.12
+jmespath==0.10.0
+kubernetes==21.7.0
+PyJWT==2.3.0
