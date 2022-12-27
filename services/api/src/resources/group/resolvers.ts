@@ -92,7 +92,7 @@ export const getGroupsByProjectId: ResolverFn = async (
       }
     }
     const userGroups = await models.UserModel.getAllGroupsForUser(user);
-    if (newProjectGroups != []) {
+    if (newProjectGroups.length > 0) {
       for (const pGroup of newProjectGroups) {
         userGroups.push(pGroup)
       }
