@@ -113,16 +113,29 @@ export const addNotificationToProject: ResolverFn = async (
   const pid = await projectHelpers(sqlClientPool).getProjectIdByName(
     input.project
   );
-  await hasPermission('project', 'addNotification', {
-    project: pid
-  });
 
   const rows = await query(
     sqlClientPool,
     Sql.selectProjectNotification(input)
   );
   const projectNotification = R.path([0], rows) as any;
+  let noproject = false
   if (!projectNotification) {
+    noproject = true
+  }
+
+  // if this project has an organization, only organization owners can add notifications to it
+  // otherwise fall back to the default behaviour of checking the users permission
+  if (projectNotification.oid != null) {
+    await hasPermission('organization', 'addProject', {
+      organization: projectNotification.oid
+    });
+  } else {
+    await hasPermission('project', 'addNotification', {
+      project: pid
+    });
+  }
+  if (noproject) {
     throw new Error(
       `Could not find notification '${input.notificationName}' of type '${input.notificationType}'`
     );
@@ -346,9 +359,17 @@ export const removeNotificationFromProject: ResolverFn = async (
   );
   const project = R.path([0], select) as any;
 
-  await hasPermission('project', 'removeNotification', {
-    project: project.id
-  });
+  // if this project has an organization, only organization owners can add notifications to it
+  // otherwise fall back to the default behaviour of checking the users permission
+  if (project.organization != null) {
+    await hasPermission('organization', 'addProject', {
+      organization: project.organization
+    });
+  } else {
+    await hasPermission('project', 'removeNotification', {
+      project: project.id
+    });
+  }
 
   await query(sqlClientPool, Sql.deleteProjectNotification(input));
 

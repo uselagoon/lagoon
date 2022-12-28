@@ -246,6 +246,7 @@ const {
   getGroupsByOrganizationsProject,
   getProjectGroupOrganizationAssociation, // WIP resolver
   getGroupProjectOrganizationAssociation, // WIP resolver
+  getNotificationsForOrganizationProjectId,
 } = require('./resources/organization/resolvers');
 
 const {
@@ -414,6 +415,7 @@ const resolvers = {
   },
   OrgProject: {
     groups: getGroupsByOrganizationsProject,
+    notifications: getNotificationsForOrganizationProjectId,
   },
   Fact: {
     references: getFactReferencesByFactId,

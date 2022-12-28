@@ -80,7 +80,7 @@ export const Sql = {
     let ret = knex({ p: 'project', nt: `notification_${notificationType}` })
     .where({ 'p.name': project })
     .andWhere({ 'nt.name': notificationName })
-    .select({ pid: 'p.id', nid: 'nt.id' })
+    .select({ pid: 'p.id', nid: 'nt.id', oid: 'p.organization' })
     .toString();
     return ret;
   },

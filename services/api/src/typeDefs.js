@@ -1021,6 +1021,12 @@ const typeDefs = gql`
     name: String
     organization: Int
     groups: [GroupInterface]
+    notifications: [OrganizationNotification]
+  }
+
+  type OrganizationNotification {
+    name: String
+    type: NotificationType
   }
 
   type DeployTargetConfig {

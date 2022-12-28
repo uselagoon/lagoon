@@ -148,6 +148,8 @@ export const getAllOrganizations: ResolverFn = async (
 };
 
 // get projects by organization id, used by organization resolver to list projects
+// this resolver is only ever called by an organization top resolver for projects, so the permission has already been checked at the organization level
+// no need to performpermission checks for this sub resolver
 export const getProjectsByOrganizationId: ResolverFn = async (
   { id: oid },
   args,
@@ -157,13 +159,56 @@ export const getProjectsByOrganizationId: ResolverFn = async (
     sqlClientPool,
     Sql.selectOrganizationProjects(oid)
   );
-  // @TODO: FIX PERMISSION CHECK FOR ORGANIZATION PROJECTS
-
-  // await hasPermission('project', 'view', {
-  //   project: project.id
-  // });
-
   return rows;
+};
+
+// get notifications by organization id and project id, used by organization resolver to list projects notifications
+// this resolver is only ever called by an organization top resolver for notifications, so the permission has already been checked at the organization level
+// no need to performpermission checks for this sub resolver
+export const getNotificationsForOrganizationProjectId: ResolverFn = async (
+  organization,
+  args,
+  { sqlClientPool, hasPermission }
+) => {
+  let oid = args.organization;
+  if (organization) {
+    oid = organization.organization;
+  }
+  let pid = args.organization;
+  if (organization) {
+    pid = organization.id;
+  }
+
+  let input = {oid: oid, pid: pid, type: "slack"}
+  // get all the notifications for the projects
+  const slacks = await query(
+    sqlClientPool,
+    Sql.selectNotificationsByTypeByProjectId(input)
+  );
+  input.type = "rocketchat"
+  const rcs = await query(
+    sqlClientPool,
+    Sql.selectNotificationsByTypeByProjectId(input)
+  );
+  input.type = "microsoftteams"
+  const teams = await query(
+    sqlClientPool,
+    Sql.selectNotificationsByTypeByProjectId(input)
+  );
+  input.type = "email"
+  const email = await query(
+    sqlClientPool,
+    Sql.selectNotificationsByTypeByProjectId(input)
+  );
+  input.type = "webhook"
+  const webhook = await query(
+    sqlClientPool,
+    Sql.selectNotificationsByTypeByProjectId(input)
+  );
+
+  let result = [...slacks, ...rcs, ...teams, ...email, ...webhook]
+
+  return result;
 };
 
 // gets owners of an organization by id

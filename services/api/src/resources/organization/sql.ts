@@ -63,6 +63,36 @@ export const Sql = {
     knex('project')
       .where('organization', '=', id)
       .toString(),
+
+  selectNotificationsByTypeByProjectId: (input) => {
+    const {
+      type,
+      pid,
+      oid,
+      contentType = 'deployment',
+      notificationSeverityThreshold = 0
+    } = input;
+    let selectQuery = knex('project_notification AS pn').join('project', 'project.id', 'pn.pid').joinRaw(
+      `JOIN notification_${type} AS nt ON pn.nid = nt.id AND pn.type = :type AND pn.content_type = :contentType`,
+      { type, contentType }
+    );
+
+    return selectQuery
+      .where('pn.pid', '=', pid)
+      .where(
+        'pn.notification_severity_threshold',
+        '>=',
+        notificationSeverityThreshold
+      )
+      .andWhere('project.organization', '=', oid)
+      .andWhere('project.id', '=', pid)
+      .select(
+        'nt.*',
+        'pn.type',
+      )
+      .toString();
+  },
+
   selectOrganizationDeployTargets: (id: number) =>
     knex('organization_deploy_target')
       .where('orgid', '=', id)
