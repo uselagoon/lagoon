@@ -5,7 +5,7 @@ mutation PopulateApi {
     id: 1
     name: "Test Organization"
     description: "An organization for testing"
-    quotaProject: 30
+    quotaProject: 5
   }) {
     id
     name
