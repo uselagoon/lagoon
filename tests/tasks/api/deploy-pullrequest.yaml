@@ -21,27 +21,27 @@
         msg: "api response: {{ apiresponse }}"
     - fail:
         msg: "unsuccessful deploy"
-      when: apiresponse.json.data.deployEnvironmentPullrequest != "success"
-    - name: Get the build pod name
-      kubernetes.core.k8s_info:
-        kind: Pod
-        wait: yes
-        namespace: "{{ namespace }}"
-        label_selectors:
-          - lagoon.sh/jobType = build
-        field_selectors:
-          - status.phase=Running
-        wait_sleep: 1
-        wait_timeout: 60
-      register: build_pod
-    - name: Print build_pod
-      ansible.builtin.debug:
-        msg: "build_pod: {{ build_pod.resources[0].metadata.name }} {{ build_pod.resources[0].status.phase }}"
+      when: apiresponse.json.data.deployEnvironmentPullrequest is not match("lagoon-build")
+    # - name: Get the build pod name
+    #   kubernetes.core.k8s_info:
+    #     kind: Pod
+    #     wait: yes
+    #     namespace: "{{ namespace }}"
+    #     label_selectors:
+    #       - lagoon.sh/jobType = build
+    #     field_selectors:
+    #       - status.phase=Running
+    #     wait_sleep: 1
+    #     wait_timeout: 60
+    #   register: build_pod
+    # - name: Print build_pod
+    #   ansible.builtin.debug:
+    #     msg: "build_pod: {{ build_pod.resources[0].metadata.name }} {{ build_pod.resources[0].status.phase }}"
     - name: Wait until the build pod is completed
       kubernetes.core.k8s_info:
         kind: Pod
         wait: yes
-        name: "{{ build_pod.resources[0].metadata.name }}"
+        name: "{{ apiresponse.json.data.deployEnvironmentPullrequest }}"
         namespace: "{{ namespace }}"
         label_selectors:
           - lagoon.sh/jobType = build
