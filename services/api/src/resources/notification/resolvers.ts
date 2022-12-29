@@ -124,16 +124,19 @@ export const addNotificationToProject: ResolverFn = async (
     noproject = true
   }
 
-  // if this project has an organization, only organization owners can add notifications to it
-  // otherwise fall back to the default behaviour of checking the users permission
-  if (projectNotification.oid != null) {
-    await hasPermission('organization', 'addProject', {
-      organization: projectNotification.oid
-    });
-  } else {
+  // if user has permission to add notification to project allow it
+  // otherwise check if the user has organizational permissions to add notifications
+  // to the project
+  try {
     await hasPermission('project', 'addNotification', {
       project: pid
     });
+  } catch (err) {
+    if (projectNotification.oid != null) {
+      await hasPermission('organization', 'addProject', {
+        organization: projectNotification.oid
+      });
+    }
   }
   if (noproject) {
     throw new Error(
@@ -359,16 +362,20 @@ export const removeNotificationFromProject: ResolverFn = async (
   );
   const project = R.path([0], select) as any;
 
-  // if this project has an organization, only organization owners can add notifications to it
-  // otherwise fall back to the default behaviour of checking the users permission
-  if (project.organization != null) {
-    await hasPermission('organization', 'addProject', {
-      organization: project.organization
-    });
-  } else {
-    await hasPermission('project', 'removeNotification', {
+
+  // if user has permission to remove notification from project allow it
+  // otherwise check if the user has organizational permissions to remove notifications
+  // from the project
+  try {
+    await hasPermission('project', 'addNotification', {
       project: project.id
     });
+  } catch (err) {
+    if (project.organization != null) {
+      await hasPermission('organization', 'addProject', {
+        organization: project.organization
+      });
+    }
   }
 
   await query(sqlClientPool, Sql.deleteProjectNotification(input));
