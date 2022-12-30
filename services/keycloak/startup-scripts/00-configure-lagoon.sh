@@ -214,7 +214,7 @@ function configure_api_client {
     echo Creating resource ssh_key
     echo '{"name":"ssh_key","displayName":"ssh_key","scopes":[{"name":"view:user"},{"name":"view:project"},{"name":"add"},{"name":"deleteAll"},{"name":"removeAll"},{"name":"update"},{"name":"delete"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
     echo Creating resource organization
-    echo '{"name":"organization","displayName":"organization","scopes":[{"name":"addProject"},{"name":"addUser"},{"name":"addGroup"},{"name":"removeGroup"},{"name":"add"},{"name":"delete"},{"name":"update"},{"name":"deleteAll"},{"name":"view"},{"name":"viewAll"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
+    echo '{"name":"organization","displayName":"organization","scopes":[{"name":"addProject"},{"name":"deleteProject"},{"name":"addUser"},{"name":"addGroup"},{"name":"removeGroup"},{"name":"add"},{"name":"delete"},{"name":"update"},{"name":"deleteAll"},{"name":"view"},{"name":"viewAll"}],"attributes":{},"uris":[],"ownerManagedAccess":""}' | /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/resource --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -f -
 
     # Authorization policies
     echo Creating api authz js policies
@@ -781,7 +781,7 @@ EOF
   "logic": "POSITIVE",
   "decisionStrategy": "AFFIRMATIVE",
   "resources": ["organization"],
-  "scopes": ["addProject", "addGroup","removeGroup","view"],
+  "scopes": ["addProject", "deleteProject", "addGroup","removeGroup","view"],
   "policies": ["Users role for realm is Platform Owner","User is owner of organization"]
 }
 EOF

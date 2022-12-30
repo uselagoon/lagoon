@@ -492,9 +492,19 @@ export const deleteProject: ResolverFn = async (
   const pid = await Helpers(sqlClientPool).getProjectIdByName(projectName);
   const project = await Helpers(sqlClientPool).getProjectById(pid);
 
-  await hasPermission('project', 'delete', {
-    project: pid
-  });
+  try {
+    await hasPermission('project', 'delete', {
+      project: pid
+    });
+  } catch (err) {
+    // if the user hasn't got permission to delete the project, but the project is in the organization
+    // allow the user to delete the project
+    if (project.organization != null) {
+      await hasPermission('organization', 'deleteProject', {
+        organization: project.organization
+      });
+    }
+  }
 
   // check for existing environments
   const rows = await query(
