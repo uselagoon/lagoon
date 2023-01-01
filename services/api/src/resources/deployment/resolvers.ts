@@ -13,13 +13,13 @@ import {
 import { ResolverFn } from '../';
 import {
   pubSub,
-  createEnvironmentFilteredSubscriber
+  createEnvironmentFilteredSubscriber,
+  EVENTS
 } from '../../clients/pubSub';
 import { getConfigFromEnv, getLagoonRouteFromEnv } from '../../util/config';
 import { knex, query, isPatchEmpty } from '../../util/db';
 import { Sql } from './sql';
 import { Helpers } from './helpers';
-import { EVENTS } from './events';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
 // @ts-ignore
@@ -342,7 +342,7 @@ export const addDeployment: ResolverFn = async (
   const rows = await query(sqlClientPool, Sql.selectDeployment(insertId));
   const deployment = R.prop(0, rows);
 
-  pubSub.publish(EVENTS.DEPLOYMENT.ADDED, deployment);
+  pubSub.publish(EVENTS.DEPLOYMENT, deployment);
   return deployment;
 };
 
@@ -440,7 +440,7 @@ export const updateDeployment: ResolverFn = async (
   const rows = await query(sqlClientPool, Sql.selectDeployment(id));
   const deployment = R.prop(0, rows);
 
-  pubSub.publish(EVENTS.DEPLOYMENT.UPDATED, deployment);
+  pubSub.publish(EVENTS.DEPLOYMENT, deployment);
 
   userActivityLogger(`User updated deployment '${id}'`, {
     project: '',
@@ -1360,6 +1360,5 @@ export const bulkDeployEnvironmentLatest: ResolverFn = async (
 };
 
 export const deploymentSubscriber = createEnvironmentFilteredSubscriber([
-  EVENTS.DEPLOYMENT.ADDED,
-  EVENTS.DEPLOYMENT.UPDATED
+  EVENTS.DEPLOYMENT
 ]);

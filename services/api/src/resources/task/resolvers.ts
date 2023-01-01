@@ -2,11 +2,11 @@ import * as R from 'ramda';
 import { ResolverFn } from '../';
 import {
   pubSub,
-  createEnvironmentFilteredSubscriber
+  createEnvironmentFilteredSubscriber,
+  EVENTS
 } from '../../clients/pubSub';
 import { knex, query, isPatchEmpty } from '../../util/db';
 import { Sql } from './sql';
-import { EVENTS } from './events';
 import { Helpers } from './helpers';
 import { Filters } from './filters';
 import { Helpers as environmentHelpers } from '../environment/helpers';
@@ -393,7 +393,7 @@ export const updateTask: ResolverFn = async (
   const rows = await query(sqlClientPool, Sql.selectTask(id));
   const taskData = R.prop(0, rows);
 
-  pubSub.publish(EVENTS.TASK.UPDATED, taskData);
+  pubSub.publish(EVENTS.TASK, taskData);
 
   userActivityLogger(`User updated task '${id}'`, {
     project: '',
@@ -790,6 +790,5 @@ export const taskDrushUserLogin: ResolverFn = async (
 };
 
 export const taskSubscriber = createEnvironmentFilteredSubscriber([
-  EVENTS.TASK.ADDED,
-  EVENTS.TASK.UPDATED
+  EVENTS.TASK
 ]);

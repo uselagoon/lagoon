@@ -3,9 +3,8 @@ import { Pool } from 'mariadb';
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
 import { createTaskTask, createMiscTask } from '@lagoon/commons/dist/tasks';
 import { query } from '../../util/db';
-import { pubSub } from '../../clients/pubSub';
+import { pubSub, EVENTS } from '../../clients/pubSub';
 import { Sql } from './sql';
-import { EVENTS } from './events';
 import { Sql as projectSql } from '../project/sql';
 import { Sql as environmentSql } from '../environment/sql';
 import convertDateToMYSQLDateTimeFormat from '../../util/convertDateToMYSQLDateTimeFormat';
@@ -67,7 +66,7 @@ export const Helpers = (sqlClientPool: Pool) => ({
     let rows = await query(sqlClientPool, Sql.selectTask(insertId));
     const taskData = R.prop(0, rows);
 
-    pubSub.publish(EVENTS.TASK.ADDED, taskData);
+    pubSub.publish(EVENTS.TASK, taskData);
 
     // Allow creating task data w/o executing the task
     if (execute === false) {
@@ -199,7 +198,7 @@ export const Helpers = (sqlClientPool: Pool) => ({
       }
     }
 
-    pubSub.publish(EVENTS.TASK.ADDED, jobSpec);
+    pubSub.publish(EVENTS.TASK, jobSpec);
 
     try {
       await createMiscTask(

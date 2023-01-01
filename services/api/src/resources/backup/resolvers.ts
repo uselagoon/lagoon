@@ -6,7 +6,8 @@ import { getConfigFromEnv } from '../../util/config';
 import { query, isPatchEmpty, knex } from '../../util/db';
 import {
   pubSub,
-  createEnvironmentFilteredSubscriber
+  createEnvironmentFilteredSubscriber,
+  EVENTS
 } from '../../clients/pubSub';
 import S3 from 'aws-sdk/clients/s3';
 import { Sql } from './sql';
@@ -15,7 +16,6 @@ import { Sql as environmentSql } from '../environment/sql';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { getEnvVarsByProjectId } from '../env-variables/resolvers';
-import { EVENTS } from './events';
 import { logger } from '../../loggers/logger';
 
 export const getRestoreLocation: ResolverFn = async (
@@ -191,7 +191,7 @@ export const addBackup: ResolverFn = async (
   const rows = await query(sqlClientPool, Sql.selectBackup(insertId));
   const backup = R.prop(0, rows);
 
-  pubSub.publish(EVENTS.BACKUP.ADDED, backup);
+  pubSub.publish(EVENTS.BACKUP, backup);
 
   userActivityLogger(`User deployed backup '${backupId}' to '${environment.name}' on project '${environment.project}'`, {
     project: '',
@@ -223,7 +223,7 @@ export const deleteBackup: ResolverFn = async (
   await query(sqlClientPool, Sql.deleteBackup(backupId));
 
   const rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
-  pubSub.publish(EVENTS.BACKUP.DELETED, R.prop(0, rows));
+  pubSub.publish(EVENTS.BACKUP, R.prop(0, rows));
 
   userActivityLogger(`User deleted backup '${backupId}'`, {
     project: '',
@@ -278,7 +278,7 @@ export const addRestore: ResolverFn = async (
   rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
   const backupData = R.prop(0, rows);
 
-  pubSub.publish(EVENTS.BACKUP.UPDATED, backupData);
+  pubSub.publish(EVENTS.BACKUP, backupData);
 
   // Allow creating restore data w/o executing the restore
   if (execute === false) {
@@ -389,7 +389,7 @@ export const updateRestore: ResolverFn = async (
   rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
   const backupData = R.prop(0, rows);
 
-  pubSub.publish(EVENTS.BACKUP.UPDATED, backupData);
+  pubSub.publish(EVENTS.BACKUP, backupData);
 
   userActivityLogger(`User updated restore '${backupId}'`, {
     project: '',
@@ -418,7 +418,5 @@ export const getRestoreByBackupId: ResolverFn = async (
 };
 
 export const backupSubscriber = createEnvironmentFilteredSubscriber([
-  EVENTS.BACKUP.ADDED,
-  EVENTS.BACKUP.UPDATED,
-  EVENTS.BACKUP.DELETED
+  EVENTS.BACKUP
 ]);
