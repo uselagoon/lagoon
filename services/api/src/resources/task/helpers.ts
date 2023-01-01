@@ -198,8 +198,6 @@ export const Helpers = (sqlClientPool: Pool) => ({
       }
     }
 
-    pubSub.publish(EVENTS.TASK, jobSpec);
-
     try {
       await createMiscTask(
         {
