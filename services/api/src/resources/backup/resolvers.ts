@@ -222,9 +222,6 @@ export const deleteBackup: ResolverFn = async (
 
   await query(sqlClientPool, Sql.deleteBackup(backupId));
 
-  const rows = await query(sqlClientPool, Sql.selectBackupByBackupId(backupId));
-  pubSub.publish(EVENTS.BACKUP, R.prop(0, rows));
-
   userActivityLogger(`User deleted backup '${backupId}'`, {
     project: '',
     event: 'api:deleteBackup',
