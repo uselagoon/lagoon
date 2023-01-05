@@ -1865,6 +1865,7 @@ function migrate_to_js_provider {
     local pid
     for pid in $(echo $perms | jq -r '.[].id')
     do
+      echo "Collecting policy ID '$pid' for migration"
       local associated_policies=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$api_client_id/authz/resource-server/policy/$pid/associatedPolicies --config $CONFIG_PATH | jq -c 'map({id,name})')
       perms=$(echo $perms | jq -r --arg pid "$pid" --argjson ap "$associated_policies" '(.[] | select(.id == $pid) | .associatedPolicies) |= $ap')
     done
@@ -1876,6 +1877,7 @@ function migrate_to_js_provider {
     local p_name
     for p_name in $policies
     do
+      echo "Migrating '$p_name' policy to [Lagoon] format"
       # Add the new script based policy to the api client
       local script_name="[Lagoon] $p_name"
       local script_type="script-policies/$(echo $p_name | sed -e 's/.*/\L&/' -e 's/ /-/g').js"
@@ -1899,6 +1901,7 @@ function migrate_to_js_provider {
     OLDIFS=$IFS;IFS=";";
     for p_name in $policies
     do
+      echo "Deleting previous '$p_name' policy"
       local js_policy_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$api_client_id/authz/resource-server/policy/?name=$(echo $p_name | sed -e 's/ /+/g') --config $CONFIG_PATH | jq -r --arg name $p_name '.[] | select(.name == $name) | .id')
       /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$api_client_id/authz/resource-server/policy/js/$js_policy_id --config $CONFIG_PATH
     done
