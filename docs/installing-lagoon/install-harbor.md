@@ -4,13 +4,15 @@
     ```bash
     helm repo add harbor https://helm.goharbor.io
     ```
-2. Create the file `harbor-values.yml` inside of your config directory:
+2. Create the file `harbor-values.yml` inside of your config directory. The proxy-buffering annotations help with large image pushes.:
 
     ```yaml title="harbor-values.yml"
     expose:
       ingress:
         annotations:
           kubernetes.io/tls-acme: "true"
+          nginx.ingress.kubernetes.io/proxy-buffering: "off"
+          nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
         hosts:
           core: harbor.lagoon.example.com
       tls:
