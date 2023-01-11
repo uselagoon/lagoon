@@ -645,6 +645,7 @@ enum DeploymentStatusType {
   ERROR
   FAILED
   COMPLETE
+  QUEUED
 }
 
 type DeployTargetConfig {
@@ -1860,9 +1861,14 @@ type TaskRegistration {
 }
 
 enum TaskStatusType {
-  ACTIVE
-  SUCCEEDED
+  NEW
+  PENDING
+  RUNNING
+  CANCELLED
+  ERROR
   FAILED
+  COMPLETE
+  QUEUED
 }
 
 type UnassignedNotification {

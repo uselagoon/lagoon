@@ -165,7 +165,7 @@ export const getDeploymentsByFilter: ResolverFn = async (
   { sqlClientPool, hasPermission, models, keycloakGrant }
 ) => {
 
-  const { openshifts, deploymentStatus = ["NEW", "PENDING", "RUNNING"] } = input;
+  const { openshifts, deploymentStatus = ["NEW", "PENDING", "RUNNING", "QUEUED"] } = input;
 
   /*
     use the same mechanism for viewing all projects
@@ -305,7 +305,8 @@ export const addDeployment: ResolverFn = async (
       remoteId,
       priority,
       bulkId,
-      bulkName
+      bulkName,
+      buildStep
     }
   },
   { sqlClientPool, hasPermission, userActivityLogger }
@@ -330,7 +331,8 @@ export const addDeployment: ResolverFn = async (
       remoteId,
       priority,
       bulkId,
-      bulkName
+      bulkName,
+      buildStep
     })
   );
 
@@ -381,7 +383,8 @@ export const updateDeployment: ResolverFn = async (
         remoteId,
         priority,
         bulkId,
-        bulkName
+        bulkName,
+        buildStep
       }
     }
   },
@@ -425,7 +428,8 @@ export const updateDeployment: ResolverFn = async (
         remoteId,
         priority,
         bulkId,
-        bulkName
+        bulkName,
+        buildStep
       }
     })
   );
@@ -451,7 +455,8 @@ export const updateDeployment: ResolverFn = async (
         remoteId,
         priority,
         bulkId,
-        bulkName
+        bulkName,
+        buildStep
       }
     }
   });
@@ -1147,7 +1152,7 @@ export const switchActiveStandby: ResolverFn = async (
     var created = convertDateFormat(date.toISOString());
     const sourceTaskData = await addTask(
       'Active/Standby Switch',
-      'ACTIVE',
+      'NEW',
       created,
       environmentStandbyId,
       null,

@@ -696,15 +696,13 @@ export const Group = (clients: {
     groupInput: any
   ): Promise<void> => {
     const group = await loadGroupById(groupInput.id);
+    const groupProjectIds = getProjectIdsFromGroup(group)
     const newGroupProjects = R.pipe(
-      // @ts-ignore
-      R.view(attrLagoonProjectsLens),
-      R.defaultTo(`${projectId}`),
-      R.split(','),
-      R.append(`${projectId}`),
+      R.append(projectId),
       R.uniq,
       R.join(',')
-    )(group);
+      // @ts-ignore
+    )(groupProjectIds);
 
     try {
       await keycloakAdminClient.groups.update(
@@ -748,15 +746,13 @@ export const Group = (clients: {
     projectId: number,
     group: Group
   ): Promise<void> => {
+    const groupProjectIds = getProjectIdsFromGroup(group)
     const newGroupProjects = R.pipe(
-      // @ts-ignore
-      R.view(attrLagoonProjectsLens),
-      R.defaultTo(''),
-      R.split(','),
-      R.without([`${projectId}`]),
+      R.without([projectId]),
       R.uniq,
       R.join(',')
-    )(group);
+      // @ts-ignore
+    )(groupProjectIds);
 
     try {
       await keycloakAdminClient.groups.update(

@@ -13,21 +13,27 @@
         -f values.yaml lagoon-core lagoon/lagoon-core
     ```
 
-3. Run the upgrade using helm
+3. [Backup](#database-backups) the Lagoon databases prior to any helm actions .
+   We suggest to also scale the API to a single pod, to aid the db migration scripts running in the initContainers.
+
+4. Run the upgrade using helm
 
     ```
     helm upgrade --install --create-namespace --namespace lagoon-core \
         -f values.yaml lagoon-core lagoon/lagoon-core
     ```
 
-4. If upgrading Lagoon Core, ensure you run the `rerun_initdb.sh` script to perform post upgrade migrations
+5. (Note that as of Lagoon v2.11.0, this step is no longer required.)
+    If upgrading Lagoon Core, ensure you run the `rerun_initdb.sh` script to perform post upgrade migrations.
 
     ```
     kubectl --namespace lagoon-core exec -it lagoon-core-api-db-0 -- \
         sh -c /rerun_initdb.sh
     ```
 
-5. If upgrading Lagoon Core, and you have enabled groups/user syncing for OpenSearch, you may additionally need to run the `sync:opendistro-security` script to update the groups in OpenSearch. This command can also be prefixed with a `GROUP_REGEX=<group-to-sync` to sync a single group at a time, as syncing the entire group structure may take a long time. 
+6. Re-scale the API pods back to their original level
+
+6. If upgrading Lagoon Core, and you have enabled groups/user syncing for OpenSearch, you may additionally need to run the `sync:opendistro-security` script to update the groups in OpenSearch. This command can also be prefixed with a `GROUP_REGEX=<group-to-sync` to sync a single group at a time, as syncing the entire group structure may take a long time.
 
     ```
     kubectl --namespace lagoon-core exec -it deploy/lagoon-core-api -- \

@@ -11,10 +11,10 @@
         body: '{ "query": "mutation($projectName: String!) {switchActiveStandby(input:{project:{name:$projectName}}){id}}", "variables": {"projectName":"{{ project }}"}}'
       register: apiresponse
       until:
-    - name: "{{ testname }} - POST api switchActiveStandby with target project {{ project }} (no sha) to {{ graphql_url }}"
+    - name: apiresponse debug
       debug:
         msg: "api response: {{ apiresponse.json }}"
-    - name: "{{ testname }} - POST api taskById with ID {{ apiresponse.json.data.switchActiveStandby.id }} for migration status to {{ graphql_url }}"
+    - name: "{{ testname }} - POST api taskById with ID {{ apiresponse.json.data.switchActiveStandby.id }} for task success to {{ graphql_url }}"
       uri:
         url: "{{ graphql_url }}"
         method: POST
@@ -23,12 +23,19 @@
         body_format: json
         body: '{ "query": "query($id: Int!) {taskById(id: $id){status}}", "variables": {"id":{{ apiresponse.json.data.switchActiveStandby.id }}}}'
       register: taskresult
-      until: taskresult.json.data is defined and (taskresult.json.data.taskById.status == "complete" or taskresult.json.data.taskById.status == "succeeded" or taskresult.json.data.taskById.status == "failed")
-      retries: 20
+      until:
+        - taskresult.json.data is defined
+        - taskresult.json.data.taskById is defined
+        - taskresult.json.data.taskById.status is defined
+        - taskresult.json.data.taskById.status == "complete" or taskresult.json.data.taskById.status == "succeeded" or taskresult.json.data.taskById.status == "failed"
+      retries: 30
       delay: 10
+    - name: taskresult debug
+      debug:
+        msg: "taskresult: {{ taskresult.json }}"
     - name: "{{ testname }} - fail if task fails"
       fail:
-        msg: "The route migration failed for some reason"
+        msg: "The route migration task failed for some reason"
       when: taskresult.json.data.taskById.status == "failed"
     - name: "{{ testname }} - POST api projectByName with project {{ project }} for final migration status to {{ graphql_url }}"
       uri:
@@ -40,5 +47,5 @@
         body: '{ "query": "query($projectName: String!) {projectByName(name:$projectName){productionEnvironment,standbyProductionEnvironment}}", "variables": {"projectName":"{{ project }}"}}'
       register: switchresult
       until: switchresult.json.data.projectByName.productionEnvironment == standby_branch or switchresult.json.data.projectByName.standbyProductionEnvironment == prod_branch
-      retries: 20
+      retries: 30
       delay: 10
