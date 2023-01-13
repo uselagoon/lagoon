@@ -137,7 +137,9 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue mq.MQ, message
 		}
 		if message.Meta.Routes != nil {
 			routes := strings.Join(message.Meta.Routes, ",")
-			updateEnvironmentPatch.Routes = &routes
+			if routes != "" {
+				updateEnvironmentPatch.Routes = &routes
+			}
 		}
 		if message.Meta.MonitoringURLs != nil {
 			monitoring := strings.Join(message.Meta.MonitoringURLs, ",")
