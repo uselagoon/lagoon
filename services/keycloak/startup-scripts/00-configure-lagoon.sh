@@ -740,52 +740,6 @@ EOF
 }
 EOF
 
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/policy/js --config $CONFIG_PATH -r lagoon -f - <<'EOF'
-{
-  "name": "User is owner of organization",
-  "description": "Checks that the user is owner of an organization via attribute",
-  "type": "js",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "code": "var realm = $evaluation.getRealm();\nvar ctx = $evaluation.getContext();\nvar ctxAttr = ctx.getAttributes();\n\n// Check organizations calculated by lagoon\nif (!ctxAttr.exists('organizationQuery') || !ctxAttr.exists('userOrganizations')) {\n    $evaluation.deny();\n} else {\n    var organization = ctxAttr.getValue('organizationQuery').asString(0);\n    var organizations = ctxAttr.getValue('userOrganizations').asString(0);\n    var organizationsArr = organizations.split(',');\n    var grant = false;\n\n    for (var i=0; i<organizationsArr.length; i++) {\n        if (organization == organizationsArr[i]) {\n            grant = true;\n            break;\n        }\n    }\n\n    if (grant) {\n        $evaluation.grant();\n    } else {\n        $evaluation.deny();\n    }\n}\n\n// Check admin access\nif (ctxAttr.exists('currentUser')) {\n    var currentUser = ctxAttr.getValue('currentUser').asString(0);\n\n    if (realm.isUserInRealmRole(currentUser, 'platform-owner')) {\n        $evaluation.grant();\n    }\n}"
-}
-EOF
-
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
-{
-  "name": "Platform Owner Manage Organizations and Owners",
-  "type": "scope",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "resources": ["organization"],
-  "scopes": ["add","update","addUser","delete","deleteAll"],
-  "policies": ["Users role for realm is Platform Owner"]
-}
-
-EOF    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
-{
-  "name": "View All Organizations",
-  "type": "scope",
-  "logic": "POSITIVE",
-  "decisionStrategy": "UNANIMOUS",
-  "resources": ["organization"],
-  "scopes": ["viewAll"],
-  "policies": ["Users role for realm is Platform Owner"]
-}
-EOF
-
-    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
-{
-  "name": "Manage or View Organization",
-  "type": "scope",
-  "logic": "POSITIVE",
-  "decisionStrategy": "AFFIRMATIVE",
-  "resources": ["organization"],
-  "scopes": ["addProject", "deleteProject", "addGroup","removeGroup","view"],
-  "policies": ["Users role for realm is Platform Owner","User is owner of organization"]
-}
-EOF
-
     /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "Delete SSH Key",
@@ -2007,6 +1961,65 @@ EOF
 EOF
 }
 
+
+
+function add_organization_permissions {
+  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  platform_manage_organization=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=Platform+Owner+Manage+Organizations+and+Owners --config $CONFIG_PATH)
+
+  if [ "$platform_manage_organization" != "[ ]" ]; then
+      echo "platform_manage_organization already configured"
+      return 0
+  fi
+
+  echo Configuring Organization permissions
+
+  ORGANIZATION_RESOURCE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=organization --config $CONFIG_PATH | jq -r '.[0]["_id"]')
+  /opt/jboss/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$ORGANIZATION_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"addProject"},{"name":"deleteProject"},{"name":"addUser"},{"name":"addGroup"},{"name":"removeGroup"},{"name":"add"},{"name":"delete"},{"name":"update"},{"name":"deleteAll"},{"name":"view"},{"name":"viewAll"}]'
+
+  echo Creating owner policy
+  local p_name="User is owner of organization"
+  local script_name="[Lagoon] $p_name"
+  local script_type="script-policies/$(echo $p_name | sed -e 's/.*/\L&/' -e 's/ /-/g').js"
+  echo '{"name":"'$script_name'","type":"'$script_type'"}' | /opt/jboss/keycloak/bin/kcadm.sh create -r lagoon clients/$CLIENT_ID/authz/resource-server/policy/$(echo $script_type | sed -e 's/\//%2F/') --config $CONFIG_PATH -f -
+
+  echo Creating permission scope
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Platform Owner Manage Organizations and Owners",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["organization"],
+  "scopes": ["add","update","addUser","delete","deleteAll"],
+  "policies": ["[Lagoon] Users role for realm is Platform Owner"]
+}
+
+EOF    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View All Organizations",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["organization"],
+  "scopes": ["viewAll"],
+  "policies": ["[Lagoon] Users role for realm is Platform Owner"]
+}
+EOF
+
+    /opt/jboss/keycloak/bin/kcadm.sh create clients/$CLIENT_ID/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "Manage or View Organization",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "AFFIRMATIVE",
+  "resources": ["organization"],
+  "scopes": ["addProject", "deleteProject", "addGroup","removeGroup","view"],
+  "policies": ["[Lagoon] Users role for realm is Platform Owner","[Lagoon] User is owner of organization"]
+}
+EOF
+}
+
 ##################
 # Initialization #
 ##################
@@ -2044,6 +2057,7 @@ function configure_keycloak {
     migrate_to_js_provider
     add_delete_env_var_permissions
     configure_lagoon_opensearch_sync_client
+    add_organization_permissions
 
     # always run last
     sync_client_secrets

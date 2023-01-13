@@ -76,6 +76,11 @@
       "name": "[Lagoon] Users role for project is Owner",
       "description": "Checks the users role for a project is Owner or higher",
       "fileName": "policies/users-role-for-project-is-owner.js"
+    },
+    {
+      "name": "[Lagoon] User is owner of organization",
+      "description": "Checks that the user is owner of an organization via attribute",
+      "fileName": "policies/user-is-owner-of-organization.js"
     }
   ]
 }
