@@ -55,6 +55,10 @@ UPSTREAM_TAG ?= latest
 # edge is the most current merged change
 BUILD_DEPLOY_IMAGE_TAG ?= latest
 
+# To build k3d with Calico instead of Flannel, set this to true. Note that the Calico install in lagoon-charts is always
+# disabled for use with k3d, as the cluster needs it on creation.
+USE_CALICO_CNI ?= false
+
 # Local environment
 ARCH := $(shell uname | tr '[:upper:]' '[:lower:]')
 LAGOON_VERSION := $(shell git describe --tags --exact-match 2>/dev/null || echo development)
@@ -525,7 +529,9 @@ k3d/cluster: local-dev/k3d
 		K3DCONFIG=$$(mktemp ./k3dconfig.XXX) \
 		K3D_NODE_IP=$$(docker run --rm --network k3d alpine ip -o addr show eth0 | sed -nE 's/.* ([0-9.]{7,})\/.*/\1/p') \
 		&& chmod 644 $$KUBECONFIG \
-		&& envsubst < ./k3d.config.yaml.tpl > $$K3DCONFIG \
+		$$([ $(USE_CALICO_CNI) != true ] && envsubst < ./k3d.config.yaml.tpl > $$K3DCONFIG) \
+		$$([ $(USE_CALICO_CNI) = true ] && envsubst < ./k3d-calico.config.yaml.tpl > $$K3DCONFIG) \
+		$$([ $(USE_CALICO_CNI) = true ] && wget -N https://k3d.io/$(K3D_VERSION)/usage/advanced/calico.yaml) \
 		&& ./local-dev/k3d cluster create $(CI_BUILD_TAG) --image $(K3D_IMAGE) --wait --timeout 120s --config=$$K3DCONFIG --kubeconfig-update-default --kubeconfig-switch-context \
 		&& cp $$KUBECONFIG "kubeconfig.k3d.$(CI_BUILD_TAG)" \
 		&& echo -e 'Interact with the cluster during the test run in Jenkins like so:\n' \
@@ -558,7 +564,7 @@ k3d/test: k3d/cluster helm/repos $(addprefix local-dev/,$(K3D_TOOLS)) $(addprefi
 		&& git checkout $(CHARTS_TREEISH) \
 		&& export KUBECONFIG="$$(realpath ../kubeconfig.k3d.$(CI_BUILD_TAG))" \
 		&& export IMAGE_REGISTRY="registry.$$(../local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
-		&& $(MAKE) install-registry HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
+		&& $(MAKE) install-registry HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) USE_CALICO_CNI=false \
 		&& cd .. && $(MAKE) k3d/push-images && cd "$$CHARTSDIR" \
 		&& $(MAKE) fill-test-ci-values TESTS=$(TESTS) IMAGE_TAG=$(SAFE_BRANCH_NAME) DISABLE_CORE_HARBOR=true \
 			HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
@@ -695,7 +701,7 @@ k3d/retest:
 			IMAGE_REGISTRY=$$IMAGE_REGISTRY \
 			SKIP_ALL_DEPS=true \
 			LAGOON_FEATURE_FLAG_DEFAULT_ISOLATION_NETWORK_POLICY=enabled \
-			USE_CALICO_CNI=true \
+			USE_CALICO_CNI=false \
 			LAGOON_FEATURE_FLAG_DEFAULT_ROOTLESS_WORKLOAD=enabled \
 		&& docker run --rm --network host --name ct-$(CI_BUILD_TAG) \
 			--volume "$$(pwd)/test-suite-run.ct.yaml:/etc/ct/ct.yaml" \
