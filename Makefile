@@ -53,7 +53,7 @@ UPSTREAM_TAG ?= latest
 # BUILD_DEPLOY_IMAGE_TAG is the docker tag from uselagoon/build-deploy-image to use -
 # latest is the most current release
 # edge is the most current merged change
-BUILD_DEPLOY_IMAGE_TAG ?= pr-164
+BUILD_DEPLOY_IMAGE_TAG ?=
 
 # Local environment
 ARCH := $(shell uname | tr '[:upper:]' '[:lower:]')
@@ -431,13 +431,13 @@ ui-logs-development: build/actions-handler build/api build/api-db build/local-ap
 
 ## CI targets
 
-KUBECTL_VERSION := v1.25.5
+KUBECTL_VERSION := v1.24.9
 HELM_VERSION := v3.10.2
 K3D_VERSION = v5.4.6
 GOJQ_VERSION = v0.12.9
 STERN_VERSION = 2.1.20
 CHART_TESTING_VERSION = v3.7.1
-K3D_IMAGE = docker.io/rancher/k3s:v1.25.5-k3s1
+K3D_IMAGE = docker.io/rancher/k3s:v1.24.9-k3s1
 TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services,workflows]
 CHARTS_TREEISH = lagoon_v211_k8s_124
 TASK_IMAGES = task-activestandby
