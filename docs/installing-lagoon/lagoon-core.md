@@ -47,6 +47,3 @@ You should now be able to visit the Lagoon UI at the URL you defined in the `val
    ```
    kubectl -n lagoon-core get secret lagoon-core-keycloak -o jsonpath="{.data.KEYCLOAK_LAGOON_ADMIN_PASSWORD}" | base64 --decode
    ```
-
-!!! Note "Note:"
-    Note: Currently Lagoon only supports one Lagoon per cluster - meaning you can’t currently split your dev/test/prod environments across separate clusters, but this is something we are looking to implement in the future.
