@@ -55,6 +55,10 @@ UPSTREAM_TAG ?= latest
 # edge is the most current merged change
 BUILD_DEPLOY_IMAGE_TAG ?= latest
 
+# To build k3d with Calico instead of Flannel, set this to true. Note that the Calico install in lagoon-charts is always
+# disabled for use with k3d, as the cluster needs it on creation.
+USE_CALICO_CNI ?= false
+
 # Local environment
 ARCH := $(shell uname | tr '[:upper:]' '[:lower:]')
 LAGOON_VERSION := $(shell git describe --tags --exact-match 2>/dev/null || echo development)
@@ -431,13 +435,13 @@ ui-logs-development: build/actions-handler build/api build/api-db build/local-ap
 
 ## CI targets
 
-KUBECTL_VERSION := v1.23.7
-HELM_VERSION := v3.9.0
-KIND_VERSION = v0.14.0
-GOJQ_VERSION = v0.12.8
+KUBECTL_VERSION := v1.24.9
+HELM_VERSION := v3.10.2
+K3D_VERSION = v5.4.6
+GOJQ_VERSION = v0.12.9
 STERN_VERSION = 2.1.20
-CHART_TESTING_VERSION = v3.6.0
-KIND_IMAGE = kindest/node:v1.23.6@sha256:b1fa224cc6c7ff32455e0b1fd9cbfd3d3bc87ecaa8fcb06961ed1afb3db0f9ae
+CHART_TESTING_VERSION = v3.7.1
+K3D_IMAGE = docker.io/rancher/k3s:v1.24.9-k3s1
 TESTS = [nginx,api,features-kubernetes,bulk-deployment,features-kubernetes-2,features-variables,active-standby-kubernetes,tasks,drush,python,gitlab,github,bitbucket,services,workflows]
 CHARTS_TREEISH = main
 TASK_IMAGES = task-activestandby
@@ -466,19 +470,19 @@ else
 	chmod a+x local-dev/helm
 endif
 
-local-dev/kind:
-ifeq ($(KIND_VERSION), $(shell kind version 2>/dev/null | sed -nE 's/kind (v[0-9.]+).*/\1/p'))
-	$(info linking local kind version $(KIND_VERSION))
-	ln -s $(shell command -v kind) ./local-dev/kind
+local-dev/k3d:
+ifeq ($(K3D_VERSION), $(shell k3d version 2>/dev/null | sed -nE 's/k3d version (v[0-9.]+).*/\1/p'))
+	$(info linking local k3d version $(K3D_VERSION))
+	ln -s $(shell command -v k3d) ./local-dev/k3d
 else
-	$(info downloading kind version $(KIND_VERSION) for $(ARCH))
-	curl -sSLo local-dev/kind https://github.com/kubernetes-sigs/kind/releases/download/$(KIND_VERSION)/kind-$(ARCH)-amd64
-	chmod a+x local-dev/kind
+	$(info downloading k3d version $(K3D_VERSION) for $(ARCH))
+	curl -sSLo local-dev/k3d https://github.com/k3d-io/k3d/releases/download/$(K3D_VERSION)/k3d-$(ARCH)-amd64
+	chmod a+x local-dev/k3d
 endif
 
 local-dev/jq:
 ifeq ($(GOJQ_VERSION), $(shell jq -v 2>/dev/null | sed -nE 's/gojq ([0-9.]+).*/v\1/p'))
-	$(info linking local jq version $(KIND_VERSION))
+	$(info linking local jq version $(GOJQ_VERSION))
 	ln -s $(shell command -v jq) ./local-dev/jq
 else
 	$(info downloading gojq version $(GOJQ_VERSION) for $(ARCH))
@@ -495,7 +499,7 @@ endif
 
 local-dev/stern:
 ifeq ($(STERN_VERSION), $(shell stern --version 2>/dev/null | sed -nE 's/stern version //p'))
-	$(info linking local stern version $(KIND_VERSION))
+	$(info linking local stern version $(STERN_VERSION))
 	ln -s $(shell command -v stern) ./local-dev/stern
 else
 	$(info downloading stern version $(STERN_VERSION) for $(ARCH))
@@ -516,65 +520,52 @@ helm/repos: local-dev/helm
 	./local-dev/helm repo add nats https://nats-io.github.io/k8s/helm/charts/
 	./local-dev/helm repo update
 
-# stand up a kind cluster configured appropriately for lagoon testing
-.PHONY: kind/cluster
-kind/cluster: local-dev/kind
-	./local-dev/kind get clusters | grep -q "$(CI_BUILD_TAG)" && exit; \
-		docker network create kind || true \
+# stand up a k3d cluster configured appropriately for lagoon testing
+.PHONY: k3d/cluster
+k3d/cluster: local-dev/k3d
+	./local-dev/k3d cluster list | grep -q "$(CI_BUILD_TAG)" && exit; \
+		docker network create k3d || true \
 		&& export KUBECONFIG=$$(mktemp) \
-		KINDCONFIG=$$(mktemp ./kindconfig.XXX) \
-		KIND_NODE_IP=$$(docker run --rm --network kind alpine ip -o addr show eth0 | sed -nE 's/.* ([0-9.]{7,})\/.*/\1/p') \
+		K3DCONFIG=$$(mktemp ./k3dconfig.XXX) \
+		K3D_NODE_IP=$$(docker run --rm --network k3d alpine ip -o addr show eth0 | sed -nE 's/.* ([0-9.]{7,})\/.*/\1/p') \
 		&& chmod 644 $$KUBECONFIG \
-		&& curl -sSLo $$KINDCONFIG.tpl https://raw.githubusercontent.com/uselagoon/lagoon-charts/$(CHARTS_TREEISH)/test-suite.kind-config.yaml.tpl \
-		&& envsubst < $$KINDCONFIG.tpl > $$KINDCONFIG \
-		&& echo '  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."docker.io"]'                >> $$KINDCONFIG \
-		&& echo '    endpoint = ["https://imagecache.amazeeio.cloud", "https://index.docker.io/v1/"]' >> $$KINDCONFIG \
-		&& echo 'nodes:'                                                                              >> $$KINDCONFIG \
-		&& echo '- role: control-plane'                                                               >> $$KINDCONFIG \
-		&& echo '  image: $(KIND_IMAGE)'                                                              >> $$KINDCONFIG \
-		&& echo '  extraMounts:'                                                                      >> $$KINDCONFIG \
-		&& echo '  - containerPath: /var/lib/kubelet/config.json'                                     >> $$KINDCONFIG \
-		&& echo '    hostPath: $(HOME)/.docker/config.json'                                           >> $$KINDCONFIG \
-		&& echo '  - containerPath: /lagoon/services'                                                 >> $$KINDCONFIG \
-		&& echo '    hostPath: ./services'                                                            >> $$KINDCONFIG \
-		&& echo '    readOnly: false'                                                                 >> $$KINDCONFIG \
-		&& echo '  - containerPath: /lagoon/node-packages'                                            >> $$KINDCONFIG \
-		&& echo '    hostPath: ./node-packages'                                                       >> $$KINDCONFIG \
-		&& echo '    readOnly: false'                                                                 >> $$KINDCONFIG \
-		&& KIND_CLUSTER_NAME="$(CI_BUILD_TAG)" ./local-dev/kind create cluster --wait=120s --config=$$KINDCONFIG \
-		&& cp $$KUBECONFIG "kubeconfig.kind.$(CI_BUILD_TAG)" \
+		$$([ $(USE_CALICO_CNI) != true ] && envsubst < ./k3d.config.yaml.tpl > $$K3DCONFIG) \
+		$$([ $(USE_CALICO_CNI) = true ] && envsubst < ./k3d-calico.config.yaml.tpl > $$K3DCONFIG) \
+		$$([ $(USE_CALICO_CNI) = true ] && wget -N https://k3d.io/$(K3D_VERSION)/usage/advanced/calico.yaml) \
+		&& ./local-dev/k3d cluster create $(CI_BUILD_TAG) --image $(K3D_IMAGE) --wait --timeout 120s --config=$$K3DCONFIG --kubeconfig-update-default --kubeconfig-switch-context \
+		&& cp $$KUBECONFIG "kubeconfig.k3d.$(CI_BUILD_TAG)" \
 		&& echo -e 'Interact with the cluster during the test run in Jenkins like so:\n' \
-		&& echo "export KUBECONFIG=\$$(mktemp) && scp $$NODE_NAME:$$KUBECONFIG \$$KUBECONFIG && KIND_PORT=\$$(sed -nE 's/.+server:.+:([0-9]+)/\1/p' \$$KUBECONFIG) && ssh -fNL \$$KIND_PORT:127.0.0.1:\$$KIND_PORT $$NODE_NAME" \
+		&& echo "export KUBECONFIG=\$$(mktemp) && scp $$NODE_NAME:$$KUBECONFIG \$$KUBECONFIG && K3D_PORT=\$$(sed -nE 's/.+server:.+:([0-9]+)/\1/p' \$$KUBECONFIG) && ssh -fNL \$$K3D_PORT:127.0.0.1:\$$K3D_PORT $$NODE_NAME" \
 		&& echo -e '\nOr running locally:\n' \
-		&& echo -e './local-dev/kind export kubeconfig --name "$(CI_BUILD_TAG)"\n' \
+		&& echo -e 'export KUBECONFIG=$$(./local-dev/k3d kubeconfig write $(CI_BUILD_TAG))\n' \
 		&& echo -e 'kubectl ...\n'
 ifeq ($(ARCH), darwin)
-	export KUBECONFIG="$$(pwd)/kubeconfig.kind.$(CI_BUILD_TAG)" && \
+	export KUBECONFIG="$$(pwd)/kubeconfig.k3d.$(CI_BUILD_TAG)" && \
 	if ! ifconfig lo0 | grep $$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}') -q; then sudo ifconfig lo0 alias $$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}'); fi
-	docker rm --force $(CI_BUILD_TAG)-kind-proxy-32080 || true
-	docker run -d --name $(CI_BUILD_TAG)-kind-proxy-32080 \
+	docker rm --force $(CI_BUILD_TAG)-k3d-proxy-32080 || true
+	docker run -d --name $(CI_BUILD_TAG)-k3d-proxy-32080 \
       --publish 32080:32080 \
-      --link $(CI_BUILD_TAG)-control-plane:target --network kind \
+      --link k3d-$(CI_BUILD_TAG)-server-0:target --network k3d \
       alpine/socat -dd \
       tcp-listen:32080,fork,reuseaddr tcp-connect:target:32080
 endif
 
-KIND_SERVICES = api api-db api-redis auth-server actions-handler broker keycloak keycloak-db logs2notifications webhook-handler webhooks2tasks local-api-data-watcher-pusher local-git ssh tests workflows $(TASK_IMAGES)
-KIND_TESTS = local-api-data-watcher-pusher local-git tests
-KIND_TOOLS = kind helm kubectl jq stern
+K3D_SERVICES = api api-db api-redis auth-server actions-handler broker keycloak keycloak-db logs2notifications webhook-handler webhooks2tasks local-api-data-watcher-pusher local-git ssh tests workflows $(TASK_IMAGES)
+K3D_TESTS = local-api-data-watcher-pusher local-git tests
+K3D_TOOLS = k3d helm kubectl jq stern
 
-# install lagoon charts and run lagoon test suites in a kind cluster
-.PHONY: kind/test
-kind/test: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addprefix build/,$(KIND_SERVICES))
+# install lagoon charts and run lagoon test suites in a k3d cluster
+.PHONY: k3d/test
+k3d/test: k3d/cluster helm/repos $(addprefix local-dev/,$(K3D_TOOLS)) $(addprefix build/,$(K3D_SERVICES))
 	export CHARTSDIR=$$(mktemp -d ./lagoon-charts.XXX) \
-		&& ln -sfn "$$CHARTSDIR" lagoon-charts.kind.lagoon \
+		&& ln -sfn "$$CHARTSDIR" lagoon-charts.k3d.lagoon \
 		&& git clone https://github.com/uselagoon/lagoon-charts.git "$$CHARTSDIR" \
 		&& cd "$$CHARTSDIR" \
 		&& git checkout $(CHARTS_TREEISH) \
-		&& export KUBECONFIG="$$(realpath ../kubeconfig.kind.$(CI_BUILD_TAG))" \
+		&& export KUBECONFIG="$$(realpath ../kubeconfig.k3d.$(CI_BUILD_TAG))" \
 		&& export IMAGE_REGISTRY="registry.$$(../local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
-		&& $(MAKE) install-registry HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
-		&& cd .. && $(MAKE) kind/push-images && cd "$$CHARTSDIR" \
+		&& $(MAKE) install-registry HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) USE_CALICO_CNI=false \
+		&& cd .. && $(MAKE) k3d/push-images && cd "$$CHARTSDIR" \
 		&& $(MAKE) fill-test-ci-values TESTS=$(TESTS) IMAGE_TAG=$(SAFE_BRANCH_NAME) DISABLE_CORE_HARBOR=true \
 			HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
 			JQ=$$(realpath ../local-dev/jq) \
@@ -583,12 +574,12 @@ kind/test: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addpr
 			IMAGE_REGISTRY=$$IMAGE_REGISTRY \
 			SKIP_INSTALL_REGISTRY=true \
 			LAGOON_FEATURE_FLAG_DEFAULT_ISOLATION_NETWORK_POLICY=enabled \
-			USE_CALICO_CNI=true \
+			USE_CALICO_CNI=false \
 			LAGOON_FEATURE_FLAG_DEFAULT_ROOTLESS_WORKLOAD=enabled \
 		&& docker run --rm --network host --name ct-$(CI_BUILD_TAG) \
 			--volume "$$(pwd)/test-suite-run.ct.yaml:/etc/ct/ct.yaml" \
 			--volume "$$(pwd):/workdir" \
-			--volume "$$(realpath ../kubeconfig.kind.$(CI_BUILD_TAG)):/root/.kube/config" \
+			--volume "$$(realpath ../kubeconfig.k3d.$(CI_BUILD_TAG)):/root/.kube/config" \
 			--workdir /workdir \
 			"quay.io/helmpack/chart-testing:$(CHART_TESTING_VERSION)" \
 			ct install
@@ -596,17 +587,17 @@ kind/test: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addpr
 LOCAL_DEV_SERVICES = api auth-server actions-handler logs2notifications webhook-handler webhooks2tasks
 
 # install lagoon charts in a Kind cluster
-.PHONY: kind/setup
-kind/setup: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addprefix build/,$(KIND_SERVICES))
+.PHONY: k3d/setup
+k3d/setup: k3d/cluster helm/repos $(addprefix local-dev/,$(K3D_TOOLS)) $(addprefix build/,$(K3D_SERVICES))
 	export CHARTSDIR=$$(mktemp -d ./lagoon-charts.XXX) \
-		&& ln -sfn "$$CHARTSDIR" lagoon-charts.kind.lagoon \
+		&& ln -sfn "$$CHARTSDIR" lagoon-charts.k3d.lagoon \
 		&& git clone https://github.com/uselagoon/lagoon-charts.git "$$CHARTSDIR" \
 		&& cd "$$CHARTSDIR" \
 		&& git checkout $(CHARTS_TREEISH) \
-		&& export KUBECONFIG="$$(realpath ../kubeconfig.kind.$(CI_BUILD_TAG))" \
+		&& export KUBECONFIG="$$(realpath ../kubeconfig.k3d.$(CI_BUILD_TAG))" \
 		&& export IMAGE_REGISTRY="registry.$$(../local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
 		&& $(MAKE) install-registry HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
-		&& cd .. && $(MAKE) -j6 kind/push-images && cd "$$CHARTSDIR" \
+		&& cd .. && $(MAKE) -j6 k3d/push-images && cd "$$CHARTSDIR" \
 		&& $(MAKE) fill-test-ci-values TESTS=$(TESTS) IMAGE_TAG=$(SAFE_BRANCH_NAME) DISABLE_CORE_HARBOR=true \
 			HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
 			JQ=$$(realpath ../local-dev/jq) \
@@ -614,13 +605,13 @@ kind/setup: kind/cluster helm/repos $(addprefix local-dev/,$(KIND_TOOLS)) $(addp
 			OVERRIDE_ACTIVE_STANDBY_TASK_IMAGE=$$IMAGE_REGISTRY/task-activestandby:$(SAFE_BRANCH_NAME) \
 			IMAGE_REGISTRY=$$IMAGE_REGISTRY
 
-# kind/local-dev-patch will build the services in LOCAL_DEV_SERVICES on your machine, and then use kubectl patch to mount the folders into Kubernetes
+# k3d/local-dev-patch will build the services in LOCAL_DEV_SERVICES on your machine, and then use kubectl patch to mount the folders into Kubernetes
 # the deployments should be restarted to trigger any updated code changes
 # `kubectl rollout undo deployment` can be used to rollback a deployment to before the annotated patch
 # ensure that the correct version of Node to build the services is set on your machine
-.PHONY: kind/local-dev-patch
-kind/local-dev-patch:
-	export KUBECONFIG="$$(pwd)/kubeconfig.kind.$(CI_BUILD_TAG)" && \
+.PHONY: k3d/local-dev-patch
+k3d/local-dev-patch:
+	export KUBECONFIG="$$(pwd)/kubeconfig.k3d.$(CI_BUILD_TAG)" && \
 		export IMAGE_REGISTRY="registry.$$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
 		&& for image in $(LOCAL_DEV_SERVICES); do \
 			echo "building $$image" \
@@ -633,33 +624,33 @@ kind/local-dev-patch:
 
 ## Use local-dev-logging to deploy an Elasticsearch/Kibana cluster into docker compose and forward
 ## container logs to it
-.PHONY: kind/local-dev-logging
-kind/local-dev-logging:
-	export KUBECONFIG="$$(pwd)/kubeconfig.kind.$(CI_BUILD_TAG)" \
+.PHONY: k3d/local-dev-logging
+k3d/local-dev-logging:
+	export KUBECONFIG="$$(pwd)/kubeconfig.k3d.$(CI_BUILD_TAG)" \
 		&& docker-compose -f local-dev/odfe-docker-compose.yml -p odfe up -d \
 		&& ./local-dev/helm upgrade --install --create-namespace \
 			--namespace lagoon-logs-concentrator \
 			--wait --timeout 15m \
 			--values ./local-dev/lagoon-logs-concentrator.values.yaml \
 			lagoon-logs-concentrator \
-			./lagoon-charts.kind.lagoon/charts/lagoon-logs-concentrator \
-		&& ./local-dev/helm dependency update ./lagoon-charts.kind.lagoon/charts/lagoon-logging \
+			./lagoon-charts.k3d.lagoon/charts/lagoon-logs-concentrator \
+		&& ./local-dev/helm dependency update ./lagoon-charts.k3d.lagoon/charts/lagoon-logging \
 		&& ./local-dev/helm upgrade --install --create-namespace --namespace lagoon-logging \
 			--wait --timeout 15m \
 			--values ./local-dev/lagoon-logging.values.yaml \
 			lagoon-logging \
-			./lagoon-charts.kind.lagoon/charts/lagoon-logging \
+			./lagoon-charts.k3d.lagoon/charts/lagoon-logging \
 		&& echo -e '\n\nInteract with the OpenDistro cluster at http://0.0.0.0:5601 using the default `admin/admin` credentials\n' \
 		&& echo -e 'You will need to create a default index at http://0.0.0.0:5601/app/management/kibana/indexPatterns/create \n' \
 		&& echo -e 'with a default `container-logs-*` pattern'
 
-# kind/dev can only be run once a cluster is up and running (run kind/test first) - it doesn't rebuild the cluster at all, just pushes the built images
+# k3d/dev can only be run once a cluster is up and running (run k3d/test first) - it doesn't rebuild the cluster at all, just pushes the built images
 # into the image registry and reinstalls the lagoon-core helm chart.
-.PHONY: kind/dev
-kind/dev: $(addprefix build/,$(KIND_SERVICES))
-	export KUBECONFIG="$$(realpath ./kubeconfig.kind.$(CI_BUILD_TAG))" \
+.PHONY: k3d/dev
+k3d/dev: $(addprefix build/,$(K3D_SERVICES))
+	export KUBECONFIG="$$(realpath ./kubeconfig.k3d.$(CI_BUILD_TAG))" \
 		&& export IMAGE_REGISTRY="registry.$$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
-		&& $(MAKE) kind/push-images && cd lagoon-charts.kind.lagoon \
+		&& $(MAKE) k3d/push-images && cd lagoon-charts.k3d.lagoon \
 		&& $(MAKE) install-lagoon-core IMAGE_TAG=$(SAFE_BRANCH_NAME) DISABLE_CORE_HARBOR=true \
 			HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
 			JQ=$$(realpath ../local-dev/jq) \
@@ -667,11 +658,11 @@ kind/dev: $(addprefix build/,$(KIND_SERVICES))
 			OVERRIDE_ACTIVE_STANDBY_TASK_IMAGE=$$IMAGE_REGISTRY/task-activestandby:$(SAFE_BRANCH_NAME) \
 			IMAGE_REGISTRY=$$IMAGE_REGISTRY
 
-# kind/push-images pushes locally build images into the kind cluster registry.
-IMAGES = $(KIND_SERVICES) $(LOCAL_DEV_SERVICES) $(TASK_IMAGES)
-.PHONY: kind/push-images
-kind/push-images:
-	export KUBECONFIG="$$(pwd)/kubeconfig.kind.$(CI_BUILD_TAG)" && \
+# k3d/push-images pushes locally build images into the k3d cluster registry.
+IMAGES = $(K3D_SERVICES) $(LOCAL_DEV_SERVICES) $(TASK_IMAGES)
+.PHONY: k3d/push-images
+k3d/push-images:
+	export KUBECONFIG="$$(pwd)/kubeconfig.k3d.$(CI_BUILD_TAG)" && \
 		export IMAGE_REGISTRY="registry.$$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
 		&& docker login -u admin -p Harbor12345 $$IMAGE_REGISTRY \
 		&& for image in $(IMAGES); do \
@@ -679,29 +670,29 @@ kind/push-images:
 			&& docker push $$IMAGE_REGISTRY/$$image:$(SAFE_BRANCH_NAME); \
 		done
 
-# Use kind/get-admin-creds to retrieve the admin JWT, Lagoon admin password, and the password for the lagoonadmin user.
+# Use k3d/get-admin-creds to retrieve the admin JWT, Lagoon admin password, and the password for the lagoonadmin user.
 # These credentials are re-created on every re-install of Lagoon Core.
-.PHONY: kind/get-admin-creds
-kind/get-admin-creds:
-	export KUBECONFIG="$$(realpath ./kubeconfig.kind.$(CI_BUILD_TAG))" \
-		&& cd lagoon-charts.kind.lagoon \
+.PHONY: k3d/get-admin-creds
+k3d/get-admin-creds:
+	export KUBECONFIG="$$(realpath ./kubeconfig.k3d.$(CI_BUILD_TAG))" \
+		&& cd lagoon-charts.k3d.lagoon \
 		&& $(MAKE) get-admin-creds
 
-# Use kind/port-forwards to create local ports for the UI (6060), API (7070) and Keycloak (8080). These ports will always
+# Use k3d/port-forwards to create local ports for the UI (6060), API (7070) and Keycloak (8080). These ports will always
 # log in the foreground, so perform this command in a separate window/terminal.
-.PHONY: kind/port-forwards
-kind/port-forwards:
-	export KUBECONFIG="$$(realpath ./kubeconfig.kind.$(CI_BUILD_TAG))" \
-		&& cd lagoon-charts.kind.lagoon \
+.PHONY: k3d/port-forwards
+k3d/port-forwards:
+	export KUBECONFIG="$$(realpath ./kubeconfig.k3d.$(CI_BUILD_TAG))" \
+		&& cd lagoon-charts.k3d.lagoon \
 		&& $(MAKE) port-forwards
 
-# kind/retest re-runs tests in the local cluster. It preserves the last build
+# k3d/retest re-runs tests in the local cluster. It preserves the last build
 # lagoon core & remote setup, reducing rebuild time.
-.PHONY: kind/retest
-kind/retest:
-	export KUBECONFIG="$$(pwd)/kubeconfig.kind.$(CI_BUILD_TAG)" \
+.PHONY: k3d/retest
+k3d/retest:
+	export KUBECONFIG="$$(pwd)/kubeconfig.k3d.$(CI_BUILD_TAG)" \
 		&& export IMAGE_REGISTRY="registry.$$(./local-dev/kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}').nip.io:32080/library" \
-		&& cd lagoon-charts.kind.lagoon \
+		&& cd lagoon-charts.k3d.lagoon \
 		&& $(MAKE) fill-test-ci-values TESTS=$(TESTS) IMAGE_TAG=$(SAFE_BRANCH_NAME) DISABLE_CORE_HARBOR=true \
 			HELM=$$(realpath ../local-dev/helm) KUBECTL=$$(realpath ../local-dev/kubectl) \
 			JQ=$$(realpath ../local-dev/jq) \
@@ -710,19 +701,16 @@ kind/retest:
 			IMAGE_REGISTRY=$$IMAGE_REGISTRY \
 			SKIP_ALL_DEPS=true \
 			LAGOON_FEATURE_FLAG_DEFAULT_ISOLATION_NETWORK_POLICY=enabled \
-			USE_CALICO_CNI=true \
+			USE_CALICO_CNI=false \
 			LAGOON_FEATURE_FLAG_DEFAULT_ROOTLESS_WORKLOAD=enabled \
 		&& docker run --rm --network host --name ct-$(CI_BUILD_TAG) \
 			--volume "$$(pwd)/test-suite-run.ct.yaml:/etc/ct/ct.yaml" \
 			--volume "$$(pwd):/workdir" \
-			--volume "$$(realpath ../kubeconfig.kind.$(CI_BUILD_TAG)):/root/.kube/config" \
+			--volume "$$(realpath ../kubeconfig.k3d.$(CI_BUILD_TAG)):/root/.kube/config" \
 			--workdir /workdir \
 			"quay.io/helmpack/chart-testing:$(CHART_TESTING_VERSION)" \
 			ct install
 
-.PHONY: kind/clean
-kind/clean: local-dev/kind
-	KIND_CLUSTER_NAME="$(CI_BUILD_TAG)" ./local-dev/kind delete cluster
-ifeq ($(ARCH), darwin)
-	docker rm --force $(CI_BUILD_TAG)-kind-proxy-32080
-endif
+.PHONY: k3d/clean
+k3d/clean: local-dev/k3d
+	./local-dev/k3d cluster delete $(CI_BUILD_TAG)
