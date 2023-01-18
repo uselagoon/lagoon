@@ -1,19 +1,23 @@
 # Varnish
 
-The [Lagoon `Varnish` image Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/varnish/6.Dockerfile). Based on the [official `varnish` package](https://hub.docker.com/_/varnish) provided by `alpine:3.7` image.
+The [Lagoon `Varnish` Docker images](https://github.com/uselagoon/lagoon-images/blob/main/images/varnish). Based on the [official `varnish` package](https://hub.docker.com/_/varnish)
 
-By default, `vmod-dynamic` and `vmod-bodyaccess` modules are installed.
+## Supported versions
+
+* 5 \(available for compatibility, no longer officially supported\) - `uselagoon/varnish-5`
+* 6 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/varnish/6.Dockerfile) - `uselagoon/varnish-6`
+* 7 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/varnish/7.Dockerfile) - `uselagoon/varnish-7`
+
+## Included varnish modules
+
+* [`vbox-dynamic`](https://github.com/nigoroll/libvmod-dynamic) - Dynamic backends from DNS lookups and service discovery from SRV records.
+* [`vbox-bodyaccess`](https://github.com/aondio/libvmod-bodyaccess) - Varnish `vmod` that lets you access the request body.
 
 ## Lagoon adaptions
 
 This image is prepared to be used on Lagoon. There are therefore some things already done:
 
 * Folder permissions are automatically adapted with [`fix-permissions`](https://github.com/uselagoon/lagoon-images/blob/main/images/commons/fix-permissions), so this image will work with a random user.
-
-## Included varnish modules
-
-* [`vbox-dynamic`](https://github.com/nigoroll/libvmod-dynamic) - Dynamic backends from DNS lookups and service discovery from SRV records.
-* [`vbox-bodyaccess`](https://github.com/aondio/libvmod-bodyaccess) - Varnish `vmod` that lets you access the request body.
 
 ## Included `default.vcl` configuration file
 
