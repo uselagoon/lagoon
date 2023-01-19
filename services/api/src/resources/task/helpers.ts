@@ -175,7 +175,9 @@ export const Helpers = (sqlClientPool: Pool) => ({
       environment: environmentData,
       advancedTask: {
         RunnerImage: image,
-        JSONPayload: new Buffer(JSON.stringify(payload).replace(/\\n/g, "\n")).toString('base64')
+        JSONPayload: new Buffer(JSON.stringify(payload).replace(/\\n/g, "\n")).toString('base64'),
+        deployerToken: adminTask, //an admintask will have a deployer token and ssh key injected into it
+        sshKey: adminTask,
       }
     }
 
