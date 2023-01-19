@@ -113,6 +113,7 @@ export const Helpers = (sqlClientPool: Pool) => ({
       payload = {},
       remoteId,
       execute,
+      adminTask,
     }: {
       id?: number,
       name: string,
@@ -127,6 +128,7 @@ export const Helpers = (sqlClientPool: Pool) => ({
       payload: object,
       remoteId?: string,
       execute: boolean,
+      adminTask: boolean,
     },
   ) => {
     let rows = await query(

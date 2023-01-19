@@ -406,7 +406,7 @@ export const updateAdvancedTaskDefinition = async (
         service,
         permission,
         confirmation_text: confirmationText,
-        show_ui: showUi
+        show_ui: showUi,
       }
     })
   );

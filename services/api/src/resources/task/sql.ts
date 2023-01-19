@@ -85,7 +85,7 @@ export const Sql = {
     permission,
     confirmation_text,
     show_ui,
-    admin_task
+    admin_task,
     }: {
       id: number,
       name: string,
@@ -102,7 +102,6 @@ export const Sql = {
       confirmation_text: string,
       show_ui: number,
       admin_task: number,
-
     }) =>
     knex('advanced_task_definition')
       .insert({
