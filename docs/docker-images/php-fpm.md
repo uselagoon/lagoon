@@ -13,15 +13,13 @@ The [Lagoon `php-fpm` Docker image](https://github.com/uselagoon/lagoon-images/b
 
 ## Supported versions
 
-* 7.3 \(available for compatibility, no longer officially supported\) - `uselagoon/php-7.3-fpm`
-* 7.4 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/7.4.Dockerfile) (Security Support until 28 November 2022) - `uselagoon/php-7.4-fpm`
 * 8.0 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/8.0.Dockerfile) (Security Support until 26 November 2023) - `uselagoon/php-8.0-fpm`
 * 8.1 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/php-fpm/8.1.Dockerfile) (Security Support until 25 November 2024) - `uselagoon/php-8.1-fpm`
 
 All PHP versions use their own Dockerfiles.
 
 !!! Note "Note:"
-    We stop updating End of Life \(EOL\) PHP images usually with the Lagoon release that comes after the officially communicated EOL date: [https://www.php.net/supported-versions.php](https://www.php.net/supported-versions.php). Previous published versions will remain available.
+    We stop updating End of Life (EOL) PHP images usually with the Lagoon release that comes after the officially communicated EOL date: [https://www.php.net/supported-versions.php](https://www.php.net/supported-versions.php). Previous published versions will remain available for compatibility reasons.
 
 ## Lagoon adaptions
 
