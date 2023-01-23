@@ -41,7 +41,7 @@ export function createReqHandler(options: Options): Handler {
       res.writeHead(400, { 'content-type': 'application/json' });
       res.end(JSON.stringify({ error: msg }));
 
-      logger.error('Error:', msg);
+      logger.error(`Error: ${msg}`);
     };
 
     req.pipe(bl((err, data) => {
