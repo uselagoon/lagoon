@@ -2,7 +2,7 @@ import uuid4 from 'uuid4';
 import url from 'url';
 import R from 'ramda';
 import { IncomingMessage } from 'http';
-import { secureGitlabSystemHooks } from '@lagoon/commons/dist/gitlabApi';
+import { secureGitlabSystemHooks } from '@lagoon/commons/dist/gitlab/api';
 
 import type { RawData, WebhookRequestData } from './types';
 
