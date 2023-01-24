@@ -168,10 +168,10 @@ pipeline {
         }
       }
       environment {
-        TOKEN = credentials('vshn-gitlab-helmfile-ci-trigger')
+        TOKEN = credentials('git-amazeeio-helmfile-ci-trigger')
       }
       steps {
-        sh script: "curl -X POST -F token=$TOKEN -F ref=master https://git.vshn.net/api/v4/projects/1263/trigger/pipeline", label: "Trigger lagoon-core helmfile sync on amazeeio-test6"
+        sh script: "curl -X POST -F token=$TOKEN -F ref=master https://git.amazeeio.cloud/api/v4/projects/86/trigger/pipeline", label: "Trigger lagoon-core helmfile sync on amazeeio-test6"
       }
     }
     stage ('push images to uselagoon/*') {
