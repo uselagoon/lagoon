@@ -1,5 +1,5 @@
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
-import { getSshKey } from '@lagoon/commons/dist/gitlabApi';
+import { getSshKey } from '@lagoon/commons/dist/gitlab/api';
 import { addSshKey } from '@lagoon/commons/dist/api';
 
 import { WebhookRequestData } from '../types';

@@ -1,7 +1,7 @@
 import R from 'ramda';
 import { ChannelWrapper } from 'amqp-connection-manager';
 import { ConsumeMessage } from 'amqplib';
-import { secureGitlabSystemHooks } from '@lagoon/commons/dist/gitlabApi';
+import { secureGitlabSystemHooks } from '@lagoon/commons/dist/gitlab/api';
 import { processProjects } from './webhooks/projects';
 import { processDataSync } from './webhooks/dataSync';
 import { processBackup } from './webhooks/backup';
