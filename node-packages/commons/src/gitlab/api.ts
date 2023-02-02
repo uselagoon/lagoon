@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { pathOr, propOr } from 'ramda';
+import { User, Key } from './types';
 
 const API_HOST = propOr('http://gitlab', 'GITLAB_API_HOST', process.env);
 const API_TOKEN = propOr(
@@ -102,7 +103,7 @@ const postRequest = async (url: string, body: any): Promise<any> => {
   }
 };
 
-const getAllPagesRequest = async (url: string): Promise<any> => {
+const getAllPagesRequest = async <Type>(url: string): Promise<Type[]> => {
   let page = 1;
   let moreResults = true;
   let results = [];
@@ -146,7 +147,7 @@ const getAllPagesRequest = async (url: string): Promise<any> => {
   return results;
 };
 
-export const getUserByUsername = async (username: string): Promise<any> => {
+export const getUserByUsername = async (username: string): Promise<User> => {
   try {
     const response = await gitlabapi.get('users', {
       params: {
@@ -191,10 +192,10 @@ export const getProject = async (projectId: number): Promise<any> =>
   getRequest(`projects/${projectId}`);
 export const getProjectMembers = async (projectId: number): Promise<any> =>
   getRequest(`projects/${projectId}/members`);
-export const getAllUsers = async () => getAllPagesRequest('users');
-export const getUser = async (userId: number): Promise<any> =>
+export const getAllUsers = async () => getAllPagesRequest<User>('users');
+export const getUser = async (userId: number): Promise<User> =>
   getRequest(`users/${userId}`);
-export const getSshKey = async (keyId: number): Promise<any> =>
+export const getSshKey = async (keyId: number): Promise<Key> =>
   getRequest(`keys/${keyId}`);
 
 export const addDeployKeyToProject = async (

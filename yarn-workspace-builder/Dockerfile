@@ -2,9 +2,6 @@ ARG UPSTREAM_REPO
 ARG UPSTREAM_TAG
 FROM ${UPSTREAM_REPO:-uselagoon}/node-16-builder:${UPSTREAM_TAG:-latest}
 
-RUN apk add --no-cache \
-        libexecinfo-dev
-
 COPY package.json yarn.lock .env.defaults tsconfig.json /app/
 COPY node-packages /app/node-packages
 
