@@ -304,7 +304,7 @@ mocks.Environment = (parent, args = {}, context, info) => {
     envVariables: [ mocks.EnvKeyValue() ],
     route: name === 'master' ? `https://${project.name}.org` : `https://${name}.${project.name}.org`,
     routes: `https://${project.name}.org,https://varnish-${project.name}-org-prod.us.amazee.io,https://nginx-${project.name}-org-prod.us.amazee.io`,
-    monitoringUrls: '',
+    monitoringUrls: null,
     deployments: [
       mocks.Deployment(null, {environment: { created: new Date(mocks.Date()) }}),
       mocks.Deployment(null, {environment: {}})

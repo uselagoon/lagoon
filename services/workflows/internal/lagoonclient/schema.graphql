@@ -765,7 +765,6 @@ type Environment {
   envVariables: [EnvKeyValue]
   route: String
   routes: String
-  monitoringUrls: String
   deployments(name: String, limit: Int): [Deployment]
   backups(includeDeleted: Boolean, limit: Int): [Backup]
   tasks(id: Int, limit: Int): [Task]
@@ -1940,7 +1939,6 @@ input UpdateEnvironmentPatchInput {
   kubernetesNamespaceName: String
   route: String
   routes: String
-  monitoringUrls: String
   autoIdle: Int
   openshift: Int
   openshiftProjectPattern: String

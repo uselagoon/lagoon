@@ -210,16 +210,6 @@ routes:
 
 Environment names match your deployed branches or pull requests. This allows for each environment to have a different config. In our example it will apply to the `main` and `staging` environment.
 
-### `environments.[name].monitoring_urls`
-
-!!! Danger "Danger:"
-    This feature will be removed in an upcoming release of Lagoon. Please use the newer `monitoring-path` method on your specific route.
-
-!!! Note "Note:"
-    Please note, Lagoon does not provide any direct integration to a monitoring service, this just adds the URLs to the API. On amazee.io, we take the `monitoring_urls` and add them to our StatusCake account.
-
-At the end of a deploy, Lagoon will check this field for any URLs which you have specified to add to the API for the purpose of monitoring. The default value for this field is the first route for a project. It is useful for adding specific paths of a project to the API, for consumption by a monitoring service.
-
 ### `environments.[name].routes`
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/vQxh87F3fW4" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
@@ -590,3 +580,9 @@ environments:
         command: drush cron
         service: cli
 ```
+
+## Deprecated
+
+These settings have been deprecated and should be removed from use in your `.lagoon.yml`.
+
+* `environments.[name].monitoring_urls`
