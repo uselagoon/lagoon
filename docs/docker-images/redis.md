@@ -6,8 +6,9 @@ This Dockerfile is intended to be used to set up a standalone Redis _ephemeral_ 
 
 ## Supported versions
 
-* 5 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/redis/5.Dockerfile) - `uselagoon/redis-5` or `uselagoon/redis-5-persistent`
+* 5 \(available for compatibility only, no longer officially supported\) - `uselagoon/redis-5` or `uselagoon/redis-5-persistent`
 * 6 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/redis/6.Dockerfile) - `uselagoon/redis-6` or `uselagoon/redis-6-persistent`
+* 7 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/redis/7.Dockerfile) - `uselagoon/redis-7` or `uselagoon/redis-7-persistent`
 
 ## Usage
 

@@ -6,7 +6,7 @@
 
 ## Supported Versions
 
-4.0 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mongo/Dockerfile) - `uselagoon/mongo-4`
+4.0 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/mongo/4.Dockerfile) - `uselagoon/mongo-4`
 
 This Dockerfile is intended to be used to set up a standalone MongoDB database server.
 
