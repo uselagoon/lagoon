@@ -41,7 +41,12 @@
       ```
 
       1. consoleUrl: API Endpoint of Kubernetes Cluster
-      2. token: use the lagoon-build-deploy token installed by lagoon-remote
+      2. token: create a token for the lagoon-build-deploy service account
+        ```
+        kubectl -n lagoon create token lagoon-build-deploy --duration 3h
+        ```
+!!! Warning "Prior to Kubernetes 1.21:"
+      use the lagoon-build-deploy token installed by lagoon-remote
         ```
         kubectl -n lagoon describe secret \
           $(kubectl -n lagoon get secret | grep lagoon-build-deploy | awk '{print $1}') | grep token: | awk '{print $2}'
