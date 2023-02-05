@@ -6,7 +6,7 @@
 
 ## Supported versions
 
-* 6 \(available for compatibility, no longer officially supported\) - `uselagoon/elasticsearch-6`
+* 6 \(available for compatibility only, no longer officially supported\) - `uselagoon/elasticsearch-6`
 * 7 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/elasticsearch/7.Dockerfile) - `uselagoon/elasticsearch-7`
 
 ## Environment Variables

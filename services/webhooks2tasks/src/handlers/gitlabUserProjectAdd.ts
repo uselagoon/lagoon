@@ -1,11 +1,15 @@
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
+import { getUser } from '@lagoon/commons/dist/gitlab/api';
 import { addUserToGroup } from '@lagoon/commons/dist/api';
 
 import { WebhookRequestData } from '../types';
 
 export async function gitlabUserProjectAdd(webhook: WebhookRequestData) {
   const { webhooktype, event, uuid, body } = webhook;
-  const { project_path: projectName, user_id: userId, user_email: userEmail, access_level: role } = body;
+  const { project_path: projectName, user_id: userId, access_level: role } = body;
+
+  const gitlabUser = await getUser(userId);
+  const { email: userEmail } = gitlabUser;
 
   try {
     const meta = {

@@ -150,6 +150,8 @@ theme:
   logo: images/lagoon-icon-bw.png
   icon:
     repo: fontawesome/brands/github
+  features:
+    - content.action.edit
 
 extra:
   analytics:

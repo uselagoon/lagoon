@@ -70,17 +70,17 @@ pipeline {
       parallel {
         stage ('0: setup test cluster') {
           steps {
-            sh script: "make -j$NPROC local-dev/kind", label: "Configure kind"
-            sh script: "./local-dev/kind delete clusters --all", label: "Delete any remnant clusters"
-            sh script: "make -j$NPROC kind/test TESTS=[nginx] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Setup cluster and run nginx smoketest"
+            sh script: "make -j$NPROC local-dev/k3d", label: "Configure k3d"
+            sh script: "./local-dev/k3d cluster delete --all", label: "Delete any remnant clusters"
+            sh script: "make -j$NPROC k3d/test TESTS=[nginx] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Setup cluster and run nginx smoketest"
             sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-0 log after test completion"
           }
         }
         stage ('collect logs') {
           steps {
-            sh script: "while [ ! -f ./kubeconfig.kind.${CI_BUILD_TAG} ]; do sleep 1; done", label: "Check for kubeconfig created"
+            sh script: "while [ ! -f ./kubeconfig.k3d.${CI_BUILD_TAG} ]; do sleep 1; done", label: "Check for kubeconfig created"
             timeout(time: 45, unit: 'MINUTES') {
-              sh script: "./local-dev/stern --kubeconfig ./kubeconfig.kind.${CI_BUILD_TAG} --all-namespaces '^[a-z]' -t > test-suite-0.txt || true", label: "Collecting test-suite-0 logs"
+              sh script: "./local-dev/stern --kubeconfig ./kubeconfig.k3d.${CI_BUILD_TAG} --all-namespaces '^[a-z]' -t > test-suite-0.txt || true", label: "Collecting test-suite-0 logs"
             }
             sh script: "cat test-suite-0.txt", label: "View ${NODE_NAME}:${WORKSPACE}/test-suite-0.txt"
           }
@@ -91,14 +91,14 @@ pipeline {
       parallel {
         stage ('1: run first test suite') {
           steps {
-            sh script: "make -j$NPROC kind/retest TESTS=[api,deploytarget,active-standby-kubernetes,features-kubernetes,features-kubernetes-2,features-variables,tasks] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running first test suite on kind cluster"
+            sh script: "make -j$NPROC k3d/retest TESTS=[api,deploytarget,active-standby-kubernetes,features-kubernetes,features-kubernetes-2,features-variables,tasks] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running first test suite on k3d cluster"
             sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-1 log after test completion"
           }
         }
         stage ('collect logs') {
           steps {
             timeout(time: 30, unit: 'MINUTES') {
-              sh script: "./local-dev/stern --kubeconfig ./kubeconfig.kind.${CI_BUILD_TAG} --all-namespaces '^[a-z]' --since 1s -t > test-suite-1.txt || true", label: "Collecting test-suite-1 logs"
+              sh script: "./local-dev/stern --kubeconfig ./kubeconfig.k3d.${CI_BUILD_TAG} --all-namespaces '^[a-z]' --since 1s -t > test-suite-1.txt || true", label: "Collecting test-suite-1 logs"
             }
             sh script: "cat test-suite-1.txt", label: "View ${NODE_NAME}:${WORKSPACE}/test-suite-1.txt"
           }
@@ -110,7 +110,7 @@ pipeline {
         stage ('2: run second test suite') {
           steps {
             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                sh script: "make -j$NPROC kind/retest TESTS=[bulk-deployment,gitlab,github,bitbucket,python,image-cache,workflows,ssh-legacy] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running second test suite on kind cluster"
+                sh script: "make -j$NPROC k3d/retest TESTS=[bulk-deployment,gitlab,github,bitbucket,python,image-cache,workflows,ssh-legacy] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running second test suite on k3d cluster"
             }
             sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-2 log after test completion"
           }
@@ -118,7 +118,7 @@ pipeline {
         stage ('collect logs') {
           steps {
             timeout(time: 30, unit: 'MINUTES') {
-              sh script: "./local-dev/stern --kubeconfig ./kubeconfig.kind.${CI_BUILD_TAG} --all-namespaces '^[a-z]' --since 1s -t > test-suite-2.txt || true", label: "Collecting test-suite-2 logs"
+              sh script: "./local-dev/stern --kubeconfig ./kubeconfig.k3d.${CI_BUILD_TAG} --all-namespaces '^[a-z]' --since 1s -t > test-suite-2.txt || true", label: "Collecting test-suite-2 logs"
             }
             sh script: "cat test-suite-2.txt", label: "View ${NODE_NAME}:${WORKSPACE}/test-suite-2.txt"
           }
@@ -130,7 +130,7 @@ pipeline {
         stage ('3: run third test suite') {
           steps {
             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                sh script: "make -j$NPROC kind/retest TESTS=[services,drush] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running third test suite on kind cluster"
+                sh script: "make -j$NPROC k3d/retest TESTS=[services,drush] BRANCH_NAME=${SAFEBRANCH_NAME}", label: "Running third test suite on k3d cluster"
             }
             sh script: "pkill -f './local-dev/stern'", label: "Closing off test-suite-3 log after test completion"
           }
@@ -138,7 +138,7 @@ pipeline {
         stage ('collect logs') {
           steps {
             timeout(time: 30, unit: 'MINUTES') {
-              sh script: "./local-dev/stern --kubeconfig ./kubeconfig.kind.${CI_BUILD_TAG} --all-namespaces '^[a-z]' --since 1s -t > test-suite-3.txt || true", label: "Collecting test-suite-3 logs"
+              sh script: "./local-dev/stern --kubeconfig ./kubeconfig.k3d.${CI_BUILD_TAG} --all-namespaces '^[a-z]' --since 1s -t > test-suite-3.txt || true", label: "Collecting test-suite-3 logs"
             }
             sh script: "cat test-suite-3.txt", label: "View ${NODE_NAME}:${WORKSPACE}/test-suite-3.txt"
           }
@@ -168,10 +168,10 @@ pipeline {
         }
       }
       environment {
-        TOKEN = credentials('vshn-gitlab-helmfile-ci-trigger')
+        TOKEN = credentials('git-amazeeio-helmfile-ci-trigger')
       }
       steps {
-        sh script: "curl -X POST -F token=$TOKEN -F ref=master https://git.vshn.net/api/v4/projects/1263/trigger/pipeline", label: "Trigger lagoon-core helmfile sync on amazeeio-test6"
+        sh script: "curl -X POST -F token=$TOKEN -F ref=master https://git.amazeeio.cloud/api/v4/projects/86/trigger/pipeline", label: "Trigger lagoon-core helmfile sync on amazeeio-test6"
       }
     }
     stage ('push images to uselagoon/*') {
@@ -207,7 +207,7 @@ pipeline {
 
   post {
     always {
-      sh "make clean kind/clean"
+      sh "make clean k3d/clean"
     }
     success {
       notifySlack('SUCCESS')
