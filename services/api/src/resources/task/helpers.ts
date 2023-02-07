@@ -23,6 +23,8 @@ export const Helpers = (sqlClientPool: Pool) => ({
     service,
     command,
     remoteId,
+    adminTask,
+    adminOnlyView,
     execute
   }: {
     id?: number;
@@ -36,6 +38,8 @@ export const Helpers = (sqlClientPool: Pool) => ({
     service: string;
     command: string;
     remoteId?: string;
+    adminTask: boolean;
+    adminOnlyView: boolean;
     execute: boolean;
   }) => {
     const { insertId } = await query(
@@ -51,6 +55,8 @@ export const Helpers = (sqlClientPool: Pool) => ({
         environment,
         service,
         command,
+        adminTask,
+        adminOnlyView,
         remoteId,
       }),
     );
@@ -114,6 +120,7 @@ export const Helpers = (sqlClientPool: Pool) => ({
       remoteId,
       execute,
       adminTask,
+      adminOnlyView,
     }: {
       id?: number,
       name: string,
@@ -129,6 +136,7 @@ export const Helpers = (sqlClientPool: Pool) => ({
       remoteId?: string,
       execute: boolean,
       adminTask: boolean,
+      adminOnlyView: boolean,
     },
   ) => {
     let rows = await query(
@@ -157,6 +165,8 @@ export const Helpers = (sqlClientPool: Pool) => ({
         environment,
         service,
         command: image,
+        adminTask,
+        adminOnlyView,
         remoteId,
         type: 'advanced',
         advanced_image: image,

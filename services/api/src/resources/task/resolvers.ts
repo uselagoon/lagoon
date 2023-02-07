@@ -14,6 +14,7 @@ import { Validators as envValidators } from '../environment/validators';
 import S3 from 'aws-sdk/clients/s3';
 import sha1 from 'sha1';
 import { generateTaskName } from '@lagoon/commons/dist/util/lagoon';
+import { logger } from '../../loggers/logger';
 
 const accessKeyId =  process.env.S3_FILES_ACCESS_KEY_ID || 'minio'
 const secretAccessKey =  process.env.S3_FILES_SECRET_ACCESS_KEY || 'minio123'
@@ -125,7 +126,33 @@ export const getTasksByEnvironmentId: ResolverFn = async (
     queryBuilder = queryBuilder.limit(limit);
   }
 
-  return query(sqlClientPool, queryBuilder.toString());
+  const rows = await query(sqlClientPool, queryBuilder.toString())
+
+  let adminTasks = false
+  // do a check of all returned tasks for any that are admin tasks
+  for (const row of rows) {
+    if (row.adminTask == true) {
+      adminTasks = true
+    }
+    if (row.adminOnlyView == true) {
+      adminTasks = true
+    }
+  }
+  // if any of the tasks are admin tasks, check the user has admin permission
+  if (adminTasks) {
+    // we do this so we only check admin permission once, instead of on all tasks
+    try {
+      await hasPermission('project', 'viewAll');
+    } catch (err) {
+      for (const row in rows) {
+        // then remove any admintasks from the result
+        if (rows.hasOwnProperty(row) && rows[row].adminTask == true) {
+            delete rows[row];
+        }
+      }
+    }
+  }
+  return rows;
 };
 
 export const getTaskByTaskName: ResolverFn = async (
@@ -145,9 +172,13 @@ export const getTaskByTaskName: ResolverFn = async (
   }
 
   const rowsPerms = await query(sqlClientPool, Sql.selectPermsForTask(task.id));
-  await hasPermission('task', 'view', {
-    project: R.path(['0', 'pid'], rowsPerms)
-  });
+  if (R.path(['0', 'admin_only_view'], rowsPerms) || R.path(['0', 'admin_task'], rowsPerms)) {
+    await hasPermission('project', 'viewAll');
+  } else {
+    await hasPermission('task', 'view', {
+      project: R.path(['0', 'pid'], rowsPerms)
+    });
+  }
 
   return task;
 };
@@ -169,9 +200,13 @@ export const getTaskByRemoteId: ResolverFn = async (
   }
 
   const rowsPerms = await query(sqlClientPool, Sql.selectPermsForTask(task.id));
-  await hasPermission('task', 'view', {
-    project: R.path(['0', 'pid'], rowsPerms)
-  });
+  if (R.path(['0', 'admin_only_view'], rowsPerms) || R.path(['0', 'admin_task'], rowsPerms)) {
+    await hasPermission('project', 'viewAll');
+  } else {
+    await hasPermission('task', 'view', {
+      project: R.path(['0', 'pid'], rowsPerms)
+    });
+  }
 
   return task;
 };
@@ -193,9 +228,13 @@ export const getTaskById: ResolverFn = async (
   }
 
   const rowsPerms = await query(sqlClientPool, Sql.selectPermsForTask(task.id));
-  await hasPermission('task', 'view', {
-    project: R.path(['0', 'pid'], rowsPerms)
-  });
+  if (R.path(['0', 'admin_only_view'], rowsPerms) || R.path(['0', 'admin_task'], rowsPerms)) {
+    await hasPermission('project', 'viewAll');
+  } else {
+    await hasPermission('task', 'view', {
+      project: R.path(['0', 'pid'], rowsPerms)
+    });
+  }
 
   return task;
 };
@@ -214,6 +253,8 @@ export const addTask: ResolverFn = async (
       service,
       command,
       remoteId,
+      adminTask,
+      adminOnlyView,
       execute: executeRequest
     }
   },
@@ -272,6 +313,8 @@ export const addTask: ResolverFn = async (
     service,
     command,
     remoteId,
+    adminTask,
+    adminOnlyView,
     execute
   });
 
@@ -318,6 +361,7 @@ export const updateTask: ResolverFn = async (
         environment,
         service,
         command,
+        adminTask,
         remoteId
       }
     }
@@ -357,6 +401,7 @@ export const updateTask: ResolverFn = async (
         environment,
         service,
         command,
+        adminTask,
         remoteId
       }
     })
@@ -380,6 +425,7 @@ export const updateTask: ResolverFn = async (
         environment,
         service,
         command,
+        adminTask,
         remoteId
       }
     }
@@ -427,6 +473,8 @@ TOKEN="$(ssh -p $TASK_SSH_PORT -t lagoon@$TASK_SSH_HOST token)" && curl -sS "$TA
     environment: environmentId,
     service: 'cli',
     command,
+    adminTask: false,
+    adminOnlyView: false,
     execute: true
   });
 
@@ -473,6 +521,8 @@ TOKEN="$(ssh -p $TASK_SSH_PORT -t lagoon@$TASK_SSH_HOST token)" && curl -sS "$TA
     environment: environmentId,
     service: 'cli',
     command,
+    adminTask: false,
+    adminOnlyView: false,
     execute: true
   });
 
@@ -521,6 +571,8 @@ export const taskDrushCacheClear: ResolverFn = async (
     environment: environmentId,
     service: 'cli',
     command,
+    adminTask: false,
+    adminOnlyView: false,
     execute: true
   });
 
@@ -558,6 +610,8 @@ export const taskDrushCron: ResolverFn = async (
     environment: environmentId,
     service: 'cli',
     command: `drush cron`,
+    adminTask: false,
+    adminOnlyView: false,
     execute: true
   });
 
@@ -627,6 +681,8 @@ export const taskDrushSqlSync: ResolverFn = async (
     environment: destinationEnvironmentId,
     service: 'cli',
     command: command,
+    adminTask: false,
+    adminOnlyView: false,
     execute: true
   });
 
@@ -696,6 +752,8 @@ export const taskDrushRsyncFiles: ResolverFn = async (
     environment: destinationEnvironmentId,
     service: 'cli',
     command: command,
+    adminTask: false,
+    adminOnlyView: false,
     execute: true
   });
 
@@ -733,6 +791,8 @@ export const taskDrushUserLogin: ResolverFn = async (
     environment: environmentId,
     service: 'cli',
     command: `drush uli`,
+    adminTask: false,
+    adminOnlyView: false,
     execute: true
   });
 

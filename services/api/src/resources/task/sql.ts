@@ -17,6 +17,8 @@ export const Sql = {
     service,
     command,
     remoteId,
+    adminTask,
+    adminOnlyView,
     type = null,
     advanced_image = null,
     advanced_payload = null,
@@ -32,6 +34,8 @@ export const Sql = {
     service: string;
     command: string;
     remoteId: string;
+    adminTask: boolean;
+    adminOnlyView: boolean;
     type?: string;
     advanced_image?: string;
     advanced_payload?: string;
@@ -48,6 +52,8 @@ export const Sql = {
         environment,
         service,
         command,
+        adminTask,
+        adminOnlyView,
         remoteId,
         type,
         advanced_image,
@@ -66,7 +72,7 @@ export const Sql = {
       .toString(),
   selectPermsForTask: (id: number) =>
     knex('task')
-      .select({ pid: 'environment.project' })
+      .select({ pid: 'environment.project', adminOnlyView: 'task.admin_only_view', adminTask: 'task.admin_task' })
       .join('environment', 'task.environment', '=', 'environment.id')
       .where('task.id', id)
       .toString(),
@@ -84,8 +90,8 @@ export const Sql = {
     environment,
     permission,
     confirmation_text,
-    show_ui,
     admin_task,
+    admin_only_view,
     }: {
       id: number,
       name: string,
@@ -100,8 +106,8 @@ export const Sql = {
       environment: number,
       permission: string,
       confirmation_text: string,
-      show_ui: number,
-      admin_task: number,
+      admin_task: boolean,
+      admin_only_view: boolean,
     }) =>
     knex('advanced_task_definition')
       .insert({
@@ -118,8 +124,8 @@ export const Sql = {
         environment,
         permission,
         confirmation_text,
-        show_ui,
         admin_task,
+        admin_only_view,
       })
     .toString(),
     insertAdvancedTaskDefinitionArgument: ({
@@ -170,6 +176,7 @@ export const Sql = {
         .toString(),
     selectAdvancedTaskDefinition:(id: number) =>
       knex('advanced_task_definition')
+        // .select(knex.raw(`*, true as "show_ui"`)) //synthetic true
         .where('advanced_task_definition.id', '=', id)
         .toString(),
     selectAdvancedTaskDefinitionArguments:(id: number) =>
@@ -187,6 +194,7 @@ export const Sql = {
         .toString(),
     selectAdvancedTaskDefinitionByName:(name: string) =>
       knex('advanced_task_definition')
+        // .select(knex.raw(`*, true as "show_ui"`))
         .where('advanced_task_definition.name', '=', name)
         .toString(),
     selectAdvancedTaskDefinitionByNameProjectEnvironmentAndGroup:(name: string, project: number, environment: number, group: string) => {
@@ -205,17 +213,21 @@ export const Sql = {
     },
   selectAdvancedTaskDefinitions:() =>
     knex('advanced_task_definition')
+    // .select(knex.raw(`*, true as "show_ui"`))
     .toString(),
   selectAdvancedTaskDefinitionsForEnvironment:(id: number) =>
     knex('advanced_task_definition')
+    // .select(knex.raw(`*, true as "show_ui"`))
     .where('environment', '=', id)
     .toString(),
   selectAdvancedTaskDefinitionsForProject:(id: number) =>
     knex('advanced_task_definition')
+    // .select(knex.raw(`*, true as "show_ui"`))
     .where('project', '=', id)
     .toString(),
   selectAdvancedTaskDefinitionsForGroups:(groups) =>
     knex('advanced_task_definition')
+    // .select(knex.raw(`*, true as "show_ui"`))
     .where('group_name', 'in', groups)
     .toString(),
   deleteAdvancedTaskDefinition:(id: number) =>

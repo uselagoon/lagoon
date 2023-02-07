@@ -155,8 +155,8 @@ const typeDefs = gql`
     environment: Int
     project: Int
     permission: TaskPermission
-    showUi: Int
-    adminTask: Int
+    adminTask: Boolean
+    adminOnlyView: Boolean
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgument]
     created: String
     deleted: String
@@ -174,8 +174,8 @@ const typeDefs = gql`
     environment: Int
     project: Int
     permission: TaskPermission
-    showUi: Int
-    adminTask: Int
+    adminTask: Boolean
+    adminOnlyView: Boolean
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgument]
     created: String
     deleted: String
@@ -958,6 +958,8 @@ const typeDefs = gql`
     environment: Environment
     service: String
     command: String
+    adminTask: Boolean
+    adminOnlyView: Boolean
     remoteId: String
     logs: String
     files: [File]
@@ -1420,8 +1422,8 @@ const typeDefs = gql`
     permission: TaskPermission
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgumentInput]
     confirmationText: String
-    showUi: Int
-    adminTask: Int
+    adminTask: Boolean
+    adminOnlyView: Boolean
   }
 
   input UpdateAdvancedTaskDefinitionInput {
@@ -1442,7 +1444,6 @@ const typeDefs = gql`
     permission: TaskPermission
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgumentInput]
     confirmationText: String
-    showUi: Int
   }
 
   input DeleteTaskInput {

@@ -38,8 +38,8 @@ export interface AdvancedTaskDefinitionInterface {
   command?: string;
   service?: string;
   image?: string;
-  showUi?: number;
-  adminTask?: number;
+  adminTask?: boolean;
+  adminOnlyView?: boolean;
   advancedTaskDefinitionArguments?: Partial<AdvancedTaskDefinitionArguments>;
 }
 

@@ -20,6 +20,7 @@ import * as advancedTaskToolbox from './advancedtasktoolbox';
 import { IKeycloakAuthAttributes, KeycloakUnauthorizedError } from '../../util/auth';
 import { Environment } from '../../resolvers';
 import { generateTaskName } from '@lagoon/commons/dist/util/lagoon';
+import { logger } from '../../loggers/logger';
 
 enum AdvancedTaskDefinitionTarget {
   Group,
@@ -235,8 +236,8 @@ export const addAdvancedTaskDefinition = async (
     advancedTaskDefinitionArguments,
     created,
     confirmationText,
-    showUi,
     adminTask,
+    adminOnlyView,
   } = input;
 
   const atb = advancedTaskToolbox.advancedTaskFunctions(
@@ -248,6 +249,13 @@ export const addAdvancedTaskDefinition = async (
     environment,
     project
   );
+
+  if (input.adminTask == undefined) {
+    input.adminTask = false
+  }
+  if (input.adminOnlyView == undefined) {
+    input.adminOnlyView = false
+  }
 
   await checkAdvancedTaskPermissions(input, hasPermission, models, projectObj);
 
@@ -315,8 +323,8 @@ export const addAdvancedTaskDefinition = async (
       group_name: groupName,
       permission,
       confirmation_text: confirmationText,
-      show_ui: showUi,
       admin_task: adminTask,
+      admin_only_view: adminOnlyView,
     })
   );
 
@@ -366,7 +374,6 @@ export const updateAdvancedTaskDefinition = async (
         permission,
         advancedTaskDefinitionArguments,
         confirmationText,
-        showUi,
       }
     }
   },
@@ -406,7 +413,6 @@ export const updateAdvancedTaskDefinition = async (
         service,
         permission,
         confirmation_text: confirmationText,
-        show_ui: showUi,
       }
     })
   );
@@ -545,6 +551,8 @@ export const invokeRegisteredTask = async (
           environment: environment,
           service: task.service,
           command: taskCommand,
+          adminTask: task.adminTask,
+          adminOnlyView: task.adminOnlyView,
           execute: true
         });
         return taskData;
@@ -572,7 +580,8 @@ export const invokeRegisteredTask = async (
           service: task.service || 'cli',
           image: task.image, //the return data here is basically what gets dropped into the DB.
           payload: payload,
-          adminTask: task.adminTask == 1,
+          adminTask: task.adminTask == true,
+          adminOnlyView: task.adminOnlyView == false,
           remoteId: undefined,
           execute: true
         });
@@ -739,7 +748,7 @@ async function checkAdvancedTaskPermissions(input:AdvancedTaskDefinitionInterfac
     //In the first release, we're not actually supporting this
     //TODO: add checks once images are officially supported - for now, throw an error
     throw Error('Adding Images and System Wide Tasks are not yet supported');
-  } else if (getAdvancedTaskDefinitionType(input) == AdvancedTaskDefinitionType.image || input.adminTask != 0) {
+  } else if (getAdvancedTaskDefinitionType(input) == AdvancedTaskDefinitionType.image || input.adminTask != false || input.adminOnlyView != false) {
     //We're only going to allow administrators to add these for now ...
     await hasPermission('advanced_task', 'create:advanced');
   } else if (input.groupName) {
