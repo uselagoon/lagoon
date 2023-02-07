@@ -23,7 +23,8 @@ export const Helpers = (sqlClientPool: Pool) => ({
     service,
     command,
     remoteId,
-    adminTask,
+    deployTokenInjection,
+    projectKeyInjection,
     adminOnlyView,
     execute
   }: {
@@ -38,7 +39,8 @@ export const Helpers = (sqlClientPool: Pool) => ({
     service: string;
     command: string;
     remoteId?: string;
-    adminTask: boolean;
+    deployTokenInjection: boolean;
+    projectKeyInjection: boolean;
     adminOnlyView: boolean;
     execute: boolean;
   }) => {
@@ -55,7 +57,8 @@ export const Helpers = (sqlClientPool: Pool) => ({
         environment,
         service,
         command,
-        adminTask,
+        deployTokenInjection,
+        projectKeyInjection,
         adminOnlyView,
         remoteId,
       }),
@@ -119,7 +122,8 @@ export const Helpers = (sqlClientPool: Pool) => ({
       payload = {},
       remoteId,
       execute,
-      adminTask,
+      deployTokenInjection,
+      projectKeyInjection,
       adminOnlyView,
     }: {
       id?: number,
@@ -135,7 +139,8 @@ export const Helpers = (sqlClientPool: Pool) => ({
       payload: object,
       remoteId?: string,
       execute: boolean,
-      adminTask: boolean,
+      deployTokenInjection: boolean,
+      projectKeyInjection: boolean,
       adminOnlyView: boolean,
     },
   ) => {
@@ -165,7 +170,8 @@ export const Helpers = (sqlClientPool: Pool) => ({
         environment,
         service,
         command: image,
-        adminTask,
+        deployTokenInjection,
+        projectKeyInjection,
         adminOnlyView,
         remoteId,
         type: 'advanced',
@@ -188,8 +194,8 @@ export const Helpers = (sqlClientPool: Pool) => ({
       advancedTask: {
         RunnerImage: image,
         JSONPayload: new Buffer(JSON.stringify(payload).replace(/\\n/g, "\n")).toString('base64'),
-        deployerToken: adminTask, //an admintask will have a deployer token and ssh key injected into it
-        sshKey: adminTask,
+        deployerToken: deployTokenInjection, //an admintask will have a deployer token and ssh key injected into it
+        sshKey: projectKeyInjection,
       }
     }
 

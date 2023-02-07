@@ -155,7 +155,8 @@ const typeDefs = gql`
     environment: Int
     project: Int
     permission: TaskPermission
-    adminTask: Boolean
+    deployTokenInjection: Boolean
+    projectKeyInjection: Boolean
     adminOnlyView: Boolean
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgument]
     created: String
@@ -174,7 +175,8 @@ const typeDefs = gql`
     environment: Int
     project: Int
     permission: TaskPermission
-    adminTask: Boolean
+    deployTokenInjection: Boolean
+    projectKeyInjection: Boolean
     adminOnlyView: Boolean
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgument]
     created: String
@@ -958,7 +960,8 @@ const typeDefs = gql`
     environment: Environment
     service: String
     command: String
-    adminTask: Boolean
+    deployTokenInjection: Boolean
+    projectKeyInjection: Boolean
     adminOnlyView: Boolean
     remoteId: String
     logs: String
@@ -1422,7 +1425,8 @@ const typeDefs = gql`
     permission: TaskPermission
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgumentInput]
     confirmationText: String
-    adminTask: Boolean
+    deployTokenInjection: Boolean
+    projectKeyInjection: Boolean
     adminOnlyView: Boolean
   }
 

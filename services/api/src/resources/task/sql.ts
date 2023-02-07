@@ -17,7 +17,8 @@ export const Sql = {
     service,
     command,
     remoteId,
-    adminTask,
+    deployTokenInjection,
+    projectKeyInjection,
     adminOnlyView,
     type = null,
     advanced_image = null,
@@ -34,7 +35,8 @@ export const Sql = {
     service: string;
     command: string;
     remoteId: string;
-    adminTask: boolean;
+    deployTokenInjection: boolean;
+    projectKeyInjection: boolean;
     adminOnlyView: boolean;
     type?: string;
     advanced_image?: string;
@@ -52,7 +54,8 @@ export const Sql = {
         environment,
         service,
         command,
-        adminTask,
+        deployTokenInjection,
+        projectKeyInjection,
         adminOnlyView,
         remoteId,
         type,
@@ -72,7 +75,7 @@ export const Sql = {
       .toString(),
   selectPermsForTask: (id: number) =>
     knex('task')
-      .select({ pid: 'environment.project', adminOnlyView: 'task.admin_only_view', adminTask: 'task.admin_task' })
+      .select({ pid: 'environment.project', adminOnlyView: 'task.admin_only_view', deployTokenInjection: 'task.deploy_token_injection', projectKeyInjection: 'task.project_key_injection' })
       .join('environment', 'task.environment', '=', 'environment.id')
       .where('task.id', id)
       .toString(),
@@ -90,7 +93,8 @@ export const Sql = {
     environment,
     permission,
     confirmation_text,
-    admin_task,
+    deploy_token_injection,
+    project_key_injection,
     admin_only_view,
     }: {
       id: number,
@@ -106,7 +110,8 @@ export const Sql = {
       environment: number,
       permission: string,
       confirmation_text: string,
-      admin_task: boolean,
+      deploy_token_injection: boolean,
+      project_key_injection: boolean,
       admin_only_view: boolean,
     }) =>
     knex('advanced_task_definition')
@@ -124,7 +129,8 @@ export const Sql = {
         environment,
         permission,
         confirmation_text,
-        admin_task,
+        deploy_token_injection,
+        project_key_injection,
         admin_only_view,
       })
     .toString(),

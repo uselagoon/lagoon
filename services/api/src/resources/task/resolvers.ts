@@ -131,9 +131,6 @@ export const getTasksByEnvironmentId: ResolverFn = async (
   let adminTasks = false
   // do a check of all returned tasks for any that are admin tasks
   for (const row of rows) {
-    if (row.adminTask == true) {
-      adminTasks = true
-    }
     if (row.adminOnlyView == true) {
       adminTasks = true
     }
@@ -146,7 +143,7 @@ export const getTasksByEnvironmentId: ResolverFn = async (
     } catch (err) {
       for (const row in rows) {
         // then remove any admintasks from the result
-        if (rows.hasOwnProperty(row) && rows[row].adminTask == true) {
+        if (rows.hasOwnProperty(row) && rows[row].adminOnlyView == true) {
             delete rows[row];
         }
       }
@@ -172,7 +169,7 @@ export const getTaskByTaskName: ResolverFn = async (
   }
 
   const rowsPerms = await query(sqlClientPool, Sql.selectPermsForTask(task.id));
-  if (R.path(['0', 'admin_only_view'], rowsPerms) || R.path(['0', 'admin_task'], rowsPerms)) {
+  if (R.path(['0', 'admin_only_view'], rowsPerms)) {
     await hasPermission('project', 'viewAll');
   } else {
     await hasPermission('task', 'view', {
@@ -200,7 +197,7 @@ export const getTaskByRemoteId: ResolverFn = async (
   }
 
   const rowsPerms = await query(sqlClientPool, Sql.selectPermsForTask(task.id));
-  if (R.path(['0', 'admin_only_view'], rowsPerms) || R.path(['0', 'admin_task'], rowsPerms)) {
+  if (R.path(['0', 'admin_only_view'], rowsPerms)) {
     await hasPermission('project', 'viewAll');
   } else {
     await hasPermission('task', 'view', {
@@ -228,7 +225,7 @@ export const getTaskById: ResolverFn = async (
   }
 
   const rowsPerms = await query(sqlClientPool, Sql.selectPermsForTask(task.id));
-  if (R.path(['0', 'admin_only_view'], rowsPerms) || R.path(['0', 'admin_task'], rowsPerms)) {
+  if (R.path(['0', 'admin_only_view'], rowsPerms)) {
     await hasPermission('project', 'viewAll');
   } else {
     await hasPermission('task', 'view', {
@@ -253,7 +250,8 @@ export const addTask: ResolverFn = async (
       service,
       command,
       remoteId,
-      adminTask,
+      deployTokenInjection,
+      projectKeyInjection,
       adminOnlyView,
       execute: executeRequest
     }
@@ -313,7 +311,8 @@ export const addTask: ResolverFn = async (
     service,
     command,
     remoteId,
-    adminTask,
+    deployTokenInjection,
+    projectKeyInjection,
     adminOnlyView,
     execute
   });
@@ -361,7 +360,7 @@ export const updateTask: ResolverFn = async (
         environment,
         service,
         command,
-        adminTask,
+        deployTokenInjection,
         remoteId
       }
     }
@@ -401,7 +400,7 @@ export const updateTask: ResolverFn = async (
         environment,
         service,
         command,
-        adminTask,
+        deployTokenInjection,
         remoteId
       }
     })
@@ -425,7 +424,7 @@ export const updateTask: ResolverFn = async (
         environment,
         service,
         command,
-        adminTask,
+        deployTokenInjection,
         remoteId
       }
     }
@@ -473,7 +472,8 @@ TOKEN="$(ssh -p $TASK_SSH_PORT -t lagoon@$TASK_SSH_HOST token)" && curl -sS "$TA
     environment: environmentId,
     service: 'cli',
     command,
-    adminTask: false,
+    deployTokenInjection: false,
+    projectKeyInjection: false,
     adminOnlyView: false,
     execute: true
   });
@@ -521,7 +521,8 @@ TOKEN="$(ssh -p $TASK_SSH_PORT -t lagoon@$TASK_SSH_HOST token)" && curl -sS "$TA
     environment: environmentId,
     service: 'cli',
     command,
-    adminTask: false,
+    deployTokenInjection: false,
+    projectKeyInjection: false,
     adminOnlyView: false,
     execute: true
   });
@@ -571,7 +572,8 @@ export const taskDrushCacheClear: ResolverFn = async (
     environment: environmentId,
     service: 'cli',
     command,
-    adminTask: false,
+    deployTokenInjection: false,
+    projectKeyInjection: false,
     adminOnlyView: false,
     execute: true
   });
@@ -610,7 +612,8 @@ export const taskDrushCron: ResolverFn = async (
     environment: environmentId,
     service: 'cli',
     command: `drush cron`,
-    adminTask: false,
+    deployTokenInjection: false,
+    projectKeyInjection: false,
     adminOnlyView: false,
     execute: true
   });
@@ -681,7 +684,8 @@ export const taskDrushSqlSync: ResolverFn = async (
     environment: destinationEnvironmentId,
     service: 'cli',
     command: command,
-    adminTask: false,
+    deployTokenInjection: false,
+    projectKeyInjection: false,
     adminOnlyView: false,
     execute: true
   });
@@ -752,7 +756,8 @@ export const taskDrushRsyncFiles: ResolverFn = async (
     environment: destinationEnvironmentId,
     service: 'cli',
     command: command,
-    adminTask: false,
+    deployTokenInjection: false,
+    projectKeyInjection: false,
     adminOnlyView: false,
     execute: true
   });
@@ -791,7 +796,8 @@ export const taskDrushUserLogin: ResolverFn = async (
     environment: environmentId,
     service: 'cli',
     command: `drush uli`,
-    adminTask: false,
+    deployTokenInjection: false,
+    projectKeyInjection: false,
     adminOnlyView: false,
     execute: true
   });
