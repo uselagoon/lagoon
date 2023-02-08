@@ -158,6 +158,8 @@ const typeDefs = gql`
     deployTokenInjection: Boolean
     projectKeyInjection: Boolean
     adminOnlyView: Boolean
+    showUi: Boolean @deprecated(reason: "Use adminOnlyView instead")
+    adminTask: Boolean @deprecated(reason: "Use deployTokenInjection and projectKeyInjection instead")
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgument]
     created: String
     deleted: String
@@ -178,6 +180,8 @@ const typeDefs = gql`
     deployTokenInjection: Boolean
     projectKeyInjection: Boolean
     adminOnlyView: Boolean
+    showUi: Boolean @deprecated(reason: "Use adminOnlyView instead")
+    adminTask: Boolean @deprecated(reason: "Use deployTokenInjection and projectKeyInjection instead")
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgument]
     created: String
     deleted: String
@@ -1448,6 +1452,9 @@ const typeDefs = gql`
     permission: TaskPermission
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgumentInput]
     confirmationText: String
+    deployTokenInjection: Boolean
+    projectKeyInjection: Boolean
+    adminOnlyView: Boolean
   }
 
   input DeleteTaskInput {

@@ -400,6 +400,9 @@ export const updateAdvancedTaskDefinition = async (
         permission,
         advancedTaskDefinitionArguments,
         confirmationText,
+        deployTokenInjection,
+        projectKeyInjection,
+        adminOnlyView,
       }
     }
   },
@@ -439,6 +442,9 @@ export const updateAdvancedTaskDefinition = async (
         service,
         permission,
         confirmation_text: confirmationText,
+        deploy_token_injection: deployTokenInjection,
+        project_key_injection: projectKeyInjection,
+        admin_only_view: adminOnlyView,
       }
     })
   );

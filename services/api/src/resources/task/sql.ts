@@ -171,7 +171,8 @@ export const Sql = {
         .toString(),
     selectTaskRegistrationsByEnvironmentId:(id: number) =>
       knex('advanced_task_definition')
-        .select('advanced_task_definition.*', 'task_registration.id')
+        // .select('advanced_task_definition.*', 'task_registration.id')
+        .select(knex.raw(`advanced_task_definition.*, task_registration.id, advanced_task_definition.admin_only_view XOR 1 as "advanced_task_definition.show_ui", advanced_task_definition.deploy_token_injection as "advanced_task_definition.admin_task"`)) //use admin_only_view as show_ui for backwards compatability
         .join('task_registration', 'task_registration.advanced_task_definition', '=', 'advanced_task_definition.id')
         .where('task_registration.environment', '=', id)
         .toString(),
@@ -182,7 +183,7 @@ export const Sql = {
         .toString(),
     selectAdvancedTaskDefinition:(id: number) =>
       knex('advanced_task_definition')
-        // .select(knex.raw(`*, true as "show_ui"`)) //synthetic true
+        .select(knex.raw(`*, advanced_task_definition.admin_only_view XOR 1 as "show_ui", advanced_task_definition.deploy_token_injection as "admin_task"`)) //use admin_only_view as show_ui for backwards compatability
         .where('advanced_task_definition.id', '=', id)
         .toString(),
     selectAdvancedTaskDefinitionArguments:(id: number) =>
@@ -200,7 +201,7 @@ export const Sql = {
         .toString(),
     selectAdvancedTaskDefinitionByName:(name: string) =>
       knex('advanced_task_definition')
-        // .select(knex.raw(`*, true as "show_ui"`))
+      .select(knex.raw(`*, advanced_task_definition.admin_only_view XOR 1 as "show_ui", advanced_task_definition.deploy_token_injection as "admin_task"`)) //use admin_only_view as show_ui for backwards compatability
         .where('advanced_task_definition.name', '=', name)
         .toString(),
     selectAdvancedTaskDefinitionByNameProjectEnvironmentAndGroup:(name: string, project: number, environment: number, group: string) => {
@@ -219,21 +220,21 @@ export const Sql = {
     },
   selectAdvancedTaskDefinitions:() =>
     knex('advanced_task_definition')
-    // .select(knex.raw(`*, true as "show_ui"`))
+    .select(knex.raw(`*, advanced_task_definition.admin_only_view XOR 1 as "show_ui", advanced_task_definition.deploy_token_injection as "admin_task"`)) //use admin_only_view as show_ui for backwards compatability
     .toString(),
   selectAdvancedTaskDefinitionsForEnvironment:(id: number) =>
     knex('advanced_task_definition')
-    // .select(knex.raw(`*, true as "show_ui"`))
+    .select(knex.raw(`*, advanced_task_definition.admin_only_view XOR 1 as "show_ui", advanced_task_definition.deploy_token_injection as "admin_task"`)) //use admin_only_view as show_ui for backwards compatability
     .where('environment', '=', id)
     .toString(),
   selectAdvancedTaskDefinitionsForProject:(id: number) =>
     knex('advanced_task_definition')
-    // .select(knex.raw(`*, true as "show_ui"`))
+    .select(knex.raw(`*, advanced_task_definition.admin_only_view XOR 1 as "show_ui", advanced_task_definition.deploy_token_injection as "admin_task"`)) //use admin_only_view as show_ui for backwards compatability
     .where('project', '=', id)
     .toString(),
   selectAdvancedTaskDefinitionsForGroups:(groups) =>
     knex('advanced_task_definition')
-    // .select(knex.raw(`*, true as "show_ui"`))
+    .select(knex.raw(`*, advanced_task_definition.admin_only_view XOR 1 as "show_ui", advanced_task_definition.deploy_token_injection as "admin_task"`)) //use admin_only_view as show_ui for backwards compatability
     .where('group_name', 'in', groups)
     .toString(),
   deleteAdvancedTaskDefinition:(id: number) =>
