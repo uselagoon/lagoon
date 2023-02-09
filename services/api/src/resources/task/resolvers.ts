@@ -8,6 +8,7 @@ import { knex, query, isPatchEmpty } from '../../util/db';
 import { Sql } from './sql';
 import { EVENTS } from './events';
 import { Helpers } from './helpers';
+import { Filters } from './filters';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { Validators as envValidators } from '../environment/validators';
@@ -126,29 +127,9 @@ export const getTasksByEnvironmentId: ResolverFn = async (
     queryBuilder = queryBuilder.limit(limit);
   }
 
-  const rows = await query(sqlClientPool, queryBuilder.toString())
+  let rows = await query(sqlClientPool, queryBuilder.toString())
+  rows = await Filters.filterAdminTasks(hasPermission, rows);
 
-  let adminTasks = false
-  // do a check of all returned tasks for any that are admin tasks
-  for (const row of rows) {
-    if (row.adminOnlyView == true) {
-      adminTasks = true
-    }
-  }
-  // if any of the tasks are admin tasks, check the user has admin permission
-  if (adminTasks) {
-    // we do this so we only check admin permission once, instead of on all tasks
-    try {
-      await hasPermission('project', 'viewAll');
-    } catch (err) {
-      for (const row in rows) {
-        // then remove any admintasks from the result
-        if (rows.hasOwnProperty(row) && rows[row].adminOnlyView == true) {
-            delete rows[row];
-        }
-      }
-    }
-  }
   return rows;
 };
 

@@ -2,6 +2,7 @@ import * as R from 'ramda';
 import { query, isPatchEmpty } from '../../util/db';
 import { Sql } from './sql';
 import { Helpers } from './helpers';
+import { Filters } from './filters';
 import { Helpers as environmentHelpers } from '../environment/helpers';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { Validators as envValidators } from '../environment/validators';
@@ -98,27 +99,7 @@ export const getRegisteredTasksByEnvironmentId = async (
       { sqlClientPool, hasPermission, models }
     );
 
-    let adminTasks = false
-    // do a check of all returned tasks for any that are admin tasks
-    for (const row of rows) {
-      if (row.adminOnlyView == true) {
-        adminTasks = true
-      }
-    }
-    // if any of the tasks are admin tasks, check the user has admin permission
-    if (adminTasks) {
-      // we do this so we only check admin permission once, instead of on all tasks
-      try {
-        await hasPermission('project', 'viewAll');
-      } catch (err) {
-        for (const row in rows) {
-          // then remove any admintasks from the result
-          if (rows.hasOwnProperty(row) && rows[row].adminOnlyView == true) {
-              delete rows[row];
-          }
-        }
-      }
-    }
+    rows = await Filters.filterAdminTasks(hasPermission, rows);
   }
 
   return rows;
@@ -272,15 +253,9 @@ export const addAdvancedTaskDefinition = async (
     project
   );
 
-  if (input.deployTokenInjection == undefined) {
-    input.deployTokenInjection = false
-  }
-  if (input.projectKeyInjection == undefined) {
-    input.projectKeyInjection = false
-  }
-  if (input.adminOnlyView == undefined) {
-    input.adminOnlyView = false
-  }
+  input.deployTokenInjection = input.deployTokenInjection || false;
+  input.projectKeyInjection = input.projectKeyInjection || false;
+  input.adminOnlyView = input.adminOnlyView || false;
 
   await checkAdvancedTaskPermissions(input, hasPermission, models, projectObj);
 
@@ -643,27 +618,7 @@ const getNamedAdvancedTaskForEnvironment = async (
     { sqlClientPool, hasPermission, models }
   );
 
-  let adminTasks = false
-  // do a check of all returned tasks for any that are admin tasks
-  for (const row of rows) {
-    if (row.adminOnlyView == true) {
-      adminTasks = true
-    }
-  }
-  // if any of the tasks are admin tasks, check the user has admin permission
-  if (adminTasks) {
-    // we do this so we only check admin permission once, instead of on all tasks
-    try {
-      await hasPermission('project', 'viewAll');
-    } catch (err) {
-      for (const row in rows) {
-        // then remove any admintasks from the result
-        if (rows.hasOwnProperty(row) && rows[row].adminOnlyView == true) {
-            delete rows[row];
-        }
-      }
-    }
-  }
+  rows = await Filters.filterAdminTasks(hasPermission, rows);
 
   //@ts-ignore
   const taskDef = R.find(o => o.id == advancedTaskDefinition, rows);
