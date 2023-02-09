@@ -424,6 +424,14 @@ As most of the time it is not desirable to run the same cron jobs across all env
       * In-pod cron jobs == timezone of the pod it is running in, which defaults to UTC but may be different if you have configured it.
 * `command:`
   * The command to execute. Like the tasks, this executes in the `WORKDIR` of the service. For Lagoon images, this is `/app`.
+
+    !!! warning
+
+        Cronjobs can run in-pod, via crontab, which [doesn't support multiline
+        commands](https://www.man7.org/linux/man-pages/man5/crontab.5.html). If
+        you need a complex or multiline cron command, you must put it in a
+        script that can be used as the command.
+
 * `service:`
   * Which service of your project to run the command in. For most projects, this is the `CLI` service.
 
