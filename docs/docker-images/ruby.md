@@ -6,6 +6,7 @@ The [Lagoon `ruby` Docker image](https://github.com/uselagoon/lagoon-images/tree
 
 * 3.0 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/ruby/3.0.Dockerfile) (Security Support until March 2024) - `uselagoon/ruby-3.0`
 * 3.1 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/ruby/3.1.Dockerfile) (Security Support until March 2025) - `uselagoon/ruby-3.1`
+* 3.2 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/ruby/3.2.Dockerfile) (Security Support until March 2026) - `uselagoon/ruby-3.2`
 
 !!! Note "Note:"
     We stop updating and publishing EOL Ruby images usually with the Lagoon release that comes after the officially communicated EOL date: [https://www.ruby-lang.org/en/downloads/releases/](hhttps://www.ruby-lang.org/en/downloads/releases/). Previous versions will remain available.

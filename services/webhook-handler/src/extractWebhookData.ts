@@ -2,7 +2,7 @@ import uuid4 from 'uuid4';
 import url from 'url';
 import R from 'ramda';
 import { IncomingMessage } from 'http';
-import { secureGitlabSystemHooks } from '@lagoon/commons/dist/gitlabApi';
+import { secureGitlabSystemHooks } from '@lagoon/commons/dist/gitlab/api';
 
 import type { RawData, WebhookRequestData } from './types';
 
@@ -47,14 +47,14 @@ export function extractWebhookData(req: IncomingMessage, body: string): WebhookR
     } else if ('x-gitlab-event' in req.headers) {
       webhooktype = 'gitlab';
       event = bodyObj.object_kind || bodyObj.event_name;
-      uuid = uuid4();
+      uuid = req.headers['x-gitlab-event-uuid'];
       giturl = R.path(['project', 'git_ssh_url'], bodyObj);
 
       // This is a system webhook
       if (R.contains(event, secureGitlabSystemHooks)) {
         // Ensure the system hook came from gitlab
         if (!('x-gitlab-token' in req.headers) || req.headers['x-gitlab-token'] !== process.env.GITLAB_SYSTEM_HOOK_TOKEN) {
-          throw new Error('Gitlab system hook secret verification failed');
+          throw new Error(`Gitlab system hook "${event}" secret verification failed`);
         }
       }
     } else if ('x-event-key' in req.headers) {

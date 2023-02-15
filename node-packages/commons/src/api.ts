@@ -404,7 +404,7 @@ export const updateUser = (email: string, patch: UserPatch): Promise<any> =>
 export const deleteUser = (email: string): Promise<any> =>
   graphqlapi.mutate(
     `
-  ($email: Int!) {
+  ($email: String!) {
     deleteUser(input: {
       user: {
         email: $email

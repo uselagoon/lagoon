@@ -56,6 +56,8 @@ Common uses for post-rollout tasks include running `drush updb`, `drush cim`, or
   * Here you specify what command should run. These are run in the WORKDIR of each container, for Lagoon images this is `/app`, keep this in mind if you need to `cd` into a specific location to run your task.
 * `service`
   * The service which to run the task in. If following our Drupal example, this will be the CLI container, as it has all your site code, files, and a connection to the database. Typically you do not need to change this.
+* `container`
+  * If the service has multiple containers (eg nginx-php), you will need to specify which container in the pod to connect to (e.g. the `php` container within the `nginx` pod)
 * `shell`
   * Which shell should be used to run the task in. By default `sh` is used, but if the container also has other shells \(like `bash`, you can define it here\). This is useful if you want to run some small if/else bash scripts within the post-rollouts. \(see the example above how to write a script with multiple lines\).
 * `when`
@@ -102,6 +104,16 @@ Run shell script:
         name: Run Script
         command: './scripts/script.sh'
         service: cli
+```
+
+Target specific container in pod:
+
+```yaml title=".lagoon.yml"
+    - run:
+        name: show php env variables
+        command: env
+        service: nginx
+        container: php
 ```
 
 Drupal & Drush 9: Sync database & files from master environment:
