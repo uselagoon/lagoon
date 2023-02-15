@@ -1959,6 +1959,29 @@ EOF
 EOF
 }
 
+function add_group_project_token_mapper {
+  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  ui_client_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=lagoon-ui --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  echo "AA $ui_client_id"
+  group_project_token_mappers=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$ui_client_id/protocol-mappers/models --config $CONFIG_PATH)
+  echo "AA $group_project_token_mappers"
+  old_mapper_id=$(echo $group_project_token_mappers | jq -r '.[] | select(.name=="group_project_role_ids") | .id')
+
+  echo "AA $old_mapper_id"
+  if [ "$old_mapper_id" != "" ]; then
+      echo "group_project_role_ids token mapper already configured"
+      return 0
+  fi
+  auth_server_client_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=auth-server --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  api_client_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+
+  echo Configuring Group and Project Role Token Mapper
+  echo '{"name":"group_project_role_ids","protocolMapper":"script-mappers/group-project-roles.js","protocol":"openid-connect","config":{"id.token.claim":"true","access.token.claim":"true","userinfo.token.claim":"true","multivalued":"true","claim.name":"project_group_roles","jsonType.label":"String"}}' | /opt/jboss/keycloak/bin/kcadm.sh create -r ${KEYCLOAK_REALM:-master} clients/$ui_client_id/protocol-mappers/models --config $CONFIG_PATH -f -
+  echo '{"name":"group_project_role_ids","protocolMapper":"script-mappers/group-project-roles.js","protocol":"openid-connect","config":{"id.token.claim":"true","access.token.claim":"true","userinfo.token.claim":"true","multivalued":"true","claim.name":"project_group_roles","jsonType.label":"String"}}' | /opt/jboss/keycloak/bin/kcadm.sh create -r ${KEYCLOAK_REALM:-master} clients/$auth_server_client_id/protocol-mappers/models --config $CONFIG_PATH -f -
+  echo '{"name":"group_project_role_ids","protocolMapper":"script-mappers/group-project-roles.js","protocol":"openid-connect","config":{"id.token.claim":"true","access.token.claim":"true","userinfo.token.claim":"true","multivalued":"true","claim.name":"project_group_roles","jsonType.label":"String"}}' | /opt/jboss/keycloak/bin/kcadm.sh create -r ${KEYCLOAK_REALM:-master} clients/$api_client_id/protocol-mappers/models --config $CONFIG_PATH -f -
+
+}
+
 ##################
 # Initialization #
 ##################
@@ -1996,6 +2019,7 @@ function configure_keycloak {
     migrate_to_js_provider
     add_delete_env_var_permissions
     configure_lagoon_opensearch_sync_client
+    add_group_project_token_mapper
 
     # always run last
     sync_client_secrets

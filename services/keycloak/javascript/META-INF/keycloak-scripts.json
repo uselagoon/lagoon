@@ -4,6 +4,11 @@
       "name": "[Lagoon] Groups and Roles",
       "description": "Gets a users groups and roles",
       "fileName": "mappers/groups-and-roles.js"
+    },
+    {
+      "name": "[Lagoon] Group and Project ID Roles",
+      "description": "Gets a users groups and project roles with IDs",
+      "fileName": "mappers/group-project-roles.js"
     }
   ],
   "policies": [
