@@ -54,6 +54,43 @@ export const getAllGroups: ResolverFn = async (
   }
 };
 
+export const getMembersByGroupId: ResolverFn = async (
+  { id },
+  _input,
+  { hasPermission, models, keycloakGrant }
+) => {
+  try {
+    await hasPermission('group', 'viewAll');
+    const group = await models.GroupModel.loadGroupById(id);
+    const members = await models.GroupModel.getGroupMembership(group);
+    return members;
+  } catch (err) {
+    if (err instanceof KeycloakUnauthorizedError) {
+      if (!keycloakGrant) {
+        logger.debug('No grant available for getGroupByName');
+        throw new GroupNotFoundError(`Group not found: ${id}`);
+      } else {
+        const user = await models.UserModel.loadUserById(
+          keycloakGrant.access_token.content.sub
+        );
+        const userGroups = await models.UserModel.getAllGroupsForUser(user);
+
+        const group = R.head(R.filter(R.propEq('id', id), userGroups));
+
+        if (R.isEmpty(group)) {
+          throw new GroupNotFoundError(`Group not found: ${id}`);
+        }
+        const members = await models.GroupModel.getGroupMembership(group);
+
+        return members;
+      }
+    }
+
+    logger.warn(`getGroupByName failed unexpectedly: ${err.message}`);
+    throw err;
+  }
+}
+
 export const getGroupsByProjectId: ResolverFn = async (
   { id: pid },
   _input,

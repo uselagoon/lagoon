@@ -12,6 +12,7 @@ import * as OS from '../openshift/sql';
 import { generatePrivateKey, getSshKeyFingerprint } from '../sshKey';
 import { Sql as sshKeySql } from '../sshKey/sql';
 import { createHarborOperations } from './harborSetup';
+import { getUserProjectIdsFromToken } from '../../util/auth';
 import sql from '../user/sql';
 
 const DISABLE_CORE_HARBOR = process.env.DISABLE_CORE_HARBOR || "false"
@@ -62,9 +63,10 @@ export const getAllProjects: ResolverFn = async (
       return [];
     }
 
-    userProjectIds = await models.UserModel.getAllProjectsIdsForUser({
-      id: keycloakGrant.access_token.content.sub
-    });
+    // pull the project ids from the token
+    // this can have a negative effect if the token is not refreshed after performing an operation like adding a project
+    // the user will probably have to refresh their token
+    userProjectIds = getUserProjectIdsFromToken(keycloakGrant);
   }
 
   let queryBuilder = knex('project');
@@ -211,10 +213,10 @@ export const getProjectsByMetadata: ResolverFn = async (
       logger.debug('No grant available for getProjectsByMetadata');
       return [];
     }
-
-    userProjectIds = await models.UserModel.getAllProjectsIdsForUser({
-      id: keycloakGrant.access_token.content.sub
-    });
+    // pull the project ids from the token
+    // this can have a negative effect if the token is not refreshed after performing an operation like adding a project
+    // the user will probably have to refresh their token
+    userProjectIds = getUserProjectIdsFromToken(keycloakGrant);
   }
 
   let queryBuilder = knex('project');

@@ -33,6 +33,7 @@ import sha1 from 'sha1';
 import { generateBuildId } from '@lagoon/commons/dist/util/lagoon';
 import { jsonMerge } from '@lagoon/commons/dist/util/func';
 import { logger } from '../../loggers/logger';
+import { getUserProjectIdsFromToken } from '../../util/auth';
 // @ts-ignore
 import uuid4 from 'uuid4';
 
@@ -135,9 +136,10 @@ export const getDeploymentsByBulkId: ResolverFn = async (
       return [];
     }
 
-    userProjectIds = await models.UserModel.getAllProjectsIdsForUser({
-      id: keycloakGrant.access_token.content.sub
-    });
+    // pull the project ids from the token
+    // this can have a negative effect if the token is not refreshed after performing an operation like adding a project
+    // the user will probably have to refresh their token
+    userProjectIds = getUserProjectIdsFromToken(keycloakGrant);
   }
 
   let queryBuilder = knex('deployment')
@@ -184,9 +186,10 @@ export const getDeploymentsByFilter: ResolverFn = async (
       return [];
     }
 
-    userProjectIds = await models.UserModel.getAllProjectsIdsForUser({
-      id: keycloakGrant.access_token.content.sub
-    });
+    // pull the project ids from the token
+    // this can have a negative effect if the token is not refreshed after performing an operation like adding a project
+    // the user will probably have to refresh their token
+    userProjectIds = getUserProjectIdsFromToken(keycloakGrant);
   }
 
   let queryBuilder = knex.select("deployment.*").from('deployment').
@@ -1210,9 +1213,10 @@ export const bulkDeployEnvironmentLatest: ResolverFn = async (
       return [];
     }
 
-    userProjectIds = await models.UserModel.getAllProjectsIdsForUser({
-      id: keycloakGrant.access_token.content.sub
-    });
+    // pull the project ids from the token
+    // this can have a negative effect if the token is not refreshed after performing an operation like adding a project
+    // the user will probably have to refresh their token
+    userProjectIds = getUserProjectIdsFromToken(keycloakGrant);
   }
 
   let bulkId = uuid4();

@@ -3,6 +3,7 @@ import pickNonNil from '../util/pickNonNil';
 import { logger } from '../loggers/logger';
 import UserRepresentation from 'keycloak-admin/lib/defs/userRepresentation';
 import { Group, isRoleSubgroup } from './group';
+import { GroupInterface } from '../resolvers';
 
 export interface User {
   email: string;
@@ -30,10 +31,11 @@ interface UserModel {
   loadUserByUsername: (username: string) => Promise<User>;
   loadUserByIdOrUsername: (userInput: UserEdit) => Promise<User>;
   getAllGroupsForUser: (userInput: User) => Promise<Group[]>;
-  getAllProjectsIdsForUser: (userInput: User) => Promise<number[]>;
+  getAllProjectsIdsForUser: (userInput: User) => Promise<[number[], Group[]]>;
   getUserRolesForProject: (
     userInput: User,
-    projectId: number
+    projectId: number,
+    userGroups: Group[]
   ) => Promise<string[]>;
   addUser: (userInput: User) => Promise<User>;
   updateUser: (userInput: UserEdit) => Promise<User>;
@@ -215,17 +217,15 @@ export const User = (clients: {
     let groups = [];
 
     const roleSubgroups = await keycloakAdminClient.users.listGroups({
-      id: userInput.id
+      id: userInput.id,
+      briefRepresentation: false
     });
 
     for (const roleSubgroup of roleSubgroups) {
-      const fullRoleSubgroup = await GroupModel.loadGroupById(roleSubgroup.id);
-      if (!isRoleSubgroup(fullRoleSubgroup)) {
-        continue;
-      }
-
-      const roleSubgroupParent = await GroupModel.loadParentGroup(
-        fullRoleSubgroup
+      // just look up the group with what we know the parent name to be with the regex of the role stripped
+      let regexp = /-(owner|maintainer|developer|reporter|guest)$/g;
+      const roleSubgroupParent = await GroupModel.loadGroupByName(
+        roleSubgroup.name.replace(regexp, "")
       );
 
       groups.push(roleSubgroupParent);
@@ -236,7 +236,7 @@ export const User = (clients: {
 
   const getAllProjectsIdsForUser = async (
     userInput: User
-  ): Promise<number[]> => {
+  ): Promise<[number[], Group[]]> => {
     const GroupModel = Group(clients);
     let projects = [];
 
@@ -249,16 +249,15 @@ export const User = (clients: {
       projects = [...projects, ...projectIds];
     }
 
-    return R.uniq(projects);
+    return [R.uniq(projects), userGroups];
   };
 
   const getUserRolesForProject = async (
     userInput: User,
-    projectId: number
+    projectId: number,
+    userGroups: Group[]
   ): Promise<string[]> => {
     const GroupModel = Group(clients);
-
-    const userGroups = await getAllGroupsForUser(userInput);
 
     let roles = [];
     for (const group of userGroups) {
@@ -365,11 +364,11 @@ export const User = (clients: {
         throw new Error(`Error deleting user ${id}: ${err}`);
       }
     }
-    try {
-      await redisClient.deleteRedisUserCache(id);
-    } catch (err) {
-      logger.error(`Error deleting user cache ${id}: ${err}`);
-    }
+    // try {
+    //   await redisClient.deleteRedisUserCache(id);
+    // } catch (err) {
+    //   logger.error(`Error deleting user cache ${id}: ${err}`);
+    // }
   };
 
   return {

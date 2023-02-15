@@ -9,6 +9,7 @@ import crypto from 'crypto';
 import { Service } from 'aws-sdk';
 import * as api from '@lagoon/commons/dist/api';
 import { getEnvironmentsByProjectId } from '../environment/resolvers';
+import { getUserProjectIdsFromToken } from '../../util/auth';
 
 export const getFactsByEnvironmentId: ResolverFn = async (
   { id: environmentId, environmentAuthz },
@@ -136,9 +137,10 @@ export const getProjectsByFactSearch: ResolverFn = async (
       return [];
     }
 
-    userProjectIds = await models.UserModel.getAllProjectsIdsForUser({
-      id: keycloakGrant.access_token.content.sub
-    });
+    // pull the project ids from the token
+    // this can have a negative effect if the token is not refreshed after performing an operation like adding a project
+    // the user will probably have to refresh their token
+    userProjectIds = getUserProjectIdsFromToken(keycloakGrant);
   }
 
   const count = await getFactFilteredProjectsCount(input, userProjectIds, sqlClientPool, isAdmin);
@@ -168,9 +170,10 @@ export const getEnvironmentsByFactSearch: ResolverFn = async (
       return [];
     }
 
-    userProjectIds = await models.UserModel.getAllProjectsIdsForUser({
-      id: keycloakGrant.access_token.content.sub
-    });
+    // pull the project ids from the token
+    // this can have a negative effect if the token is not refreshed after performing an operation like adding a project
+    // the user will probably have to refresh their token
+    userProjectIds = getUserProjectIdsFromToken(keycloakGrant);
   }
 
   const count = await getFactFilteredEnvironmentsCount(input, userProjectIds, sqlClientPool, isAdmin);
