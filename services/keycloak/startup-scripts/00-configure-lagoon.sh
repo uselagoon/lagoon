@@ -1962,12 +1962,9 @@ EOF
 function add_group_project_token_mapper {
   CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
   ui_client_id=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=lagoon-ui --config $CONFIG_PATH | jq -r '.[0]["id"]')
-  echo "AA $ui_client_id"
   group_project_token_mappers=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$ui_client_id/protocol-mappers/models --config $CONFIG_PATH)
-  echo "AA $group_project_token_mappers"
   old_mapper_id=$(echo $group_project_token_mappers | jq -r '.[] | select(.name=="group_project_role_ids") | .id')
 
-  echo "AA $old_mapper_id"
   if [ "$old_mapper_id" != "" ]; then
       echo "group_project_role_ids token mapper already configured"
       return 0

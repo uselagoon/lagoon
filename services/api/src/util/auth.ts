@@ -213,8 +213,6 @@ export const keycloakHasPermission = (grant, requestCache, modelClients) => {
     };
 
 
-    logger.info(`A ${JSON.stringify(grant.access_token.token)}`)
-
     const usersAttribute = R.prop('users', attributes);
     if (usersAttribute && usersAttribute.length) {
       claims = {
