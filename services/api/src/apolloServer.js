@@ -19,7 +19,9 @@ const {
 } = require('./util/auth');
 const { sqlClientPool } = require('./clients/sqlClient');
 const esClient = require('./clients/esClient');
+/* REDIS
 // const redisClient = require('./clients/redisClient');
+REDIS */
 const { getKeycloakAdminClient } = require('./clients/keycloak-admin');
 const { logger } = require('./loggers/logger');
 const { userActivityLogger } = require('./loggers/userActivityLogger');
@@ -117,7 +119,9 @@ const apolloServer = new ApolloServer({
         sqlClientPool,
         keycloakAdminClient,
         esClient,
+        /* REDIS
         // redisClient
+        REDIS */
       };
 
       return {
@@ -163,7 +167,9 @@ const apolloServer = new ApolloServer({
         sqlClientPool,
         keycloakAdminClient,
         esClient,
+        /* REDIS
         // redisClient
+        REDIS */
       };
 
       return {

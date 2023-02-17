@@ -44,6 +44,11 @@ const sortRolesByWeight = (a, b) => {
 export const getUserProjectIdsFromToken = (
   token
 ): number[] => {
+  // https://github.com/uselagoon/lagoon/pull/3358 references potential issue with the lagoon-projects attribute where there could be empty values
+  // the structure of this token payload is:
+  /*
+    {"guest":[13],"devloper":[20,14],"maintainer":[13,18,19,12]}
+  */
   const groupRoleIds = token.access_token.content.project_group_roles
   let upids = [];
   for (const r in groupRoleIds) {
@@ -151,6 +156,10 @@ export const keycloakHasPermission = (grant, requestCache, modelClients) => {
   return async (resource, scope, attributes: IKeycloakAuthAttributes = {}) => {
     const currentUserId: string = grant.access_token.content.sub;
 
+
+    logger.info(JSON.stringify(grant.access_token.content.project_group_roles))
+
+    /* REDIS
     // const cacheKey = `${currentUserId}:${resource}:${scope}:${JSON.stringify(
     //   attributes
     // )}`;
@@ -197,6 +206,7 @@ export const keycloakHasPermission = (grant, requestCache, modelClients) => {
     //     )}`
     //   );
     // }
+    REDIS */
 
     const currentUser = await UserModel.loadUserById(currentUserId);
     const serviceAccount = await keycloakGrantManager.obtainFromClientCredentials();
@@ -238,7 +248,9 @@ export const keycloakHasPermission = (grant, requestCache, modelClients) => {
           projectQuery: [`${projectId}`]
         };
 
-        const [highestRoleForProject, userProjects] = await getUserRoleForProjectFromToken(grant, R.prop('project', attributes))
+        // we pull the users role and project ids from the token here for the requested project, and we run the same functions that previously ran to pick out the highest role
+        // that the user has on the project
+        const [highestRoleForProject, userProjects] = await getUserRoleForProjectFromToken(grant, projectId)
 
         if (userProjects.length) {
           claims = {
@@ -256,9 +268,10 @@ export const keycloakHasPermission = (grant, requestCache, modelClients) => {
           // no project or role detected in the token, fall back to checking keycloak
           // this is a heavier operation for users that are in a lot of groups, use the token as often as possible
           // but with the way the api works, sometimes it isn't possible to use the token if it lacks something like a newly created project id
-
           // logger.debug(`There was no project or role determined for the requested project resource, falling back to checking keycloak the slow way`)
 
+          // this is the previous run function almost entirely unchanged, and will only be called if the user has requested a project id that is not within their token
+          // this would be hit if a user requests a project they've recently been added to with a token that hasn't refreshed yet
           const [userProjects, userGroups] = await UserModel.getAllProjectsIdsForUser(currentUser);
 
           if (userProjects.length) {
@@ -273,6 +286,7 @@ export const keycloakHasPermission = (grant, requestCache, modelClients) => {
             userGroups
           );
 
+          // getHighestRole just uses the previous highest role check now in a function for re-use elsewhere
           const highestRoleForProject = getHighestRole(roles);
 
           if (highestRoleForProject) {
@@ -363,12 +377,14 @@ export const keycloakHasPermission = (grant, requestCache, modelClients) => {
       );
 
       if (newGrant.access_token.hasPermission(resource, scope)) {
+        /* REDIS
         // requestCache.set(cacheKey, true);
         // try {
         //   await saveRedisCache(resourceScope, 1);
         // } catch (err) {
         //   logger.warn(`Couldn't save redis authz cache: ${err.message}`);
         // }
+        REDIS */
 
         return;
       }
@@ -383,6 +399,7 @@ export const keycloakHasPermission = (grant, requestCache, modelClients) => {
       );
     }
 
+    /* REDIS
     // requestCache.set(cacheKey, false);
     // TODO: Re-enable when we can distinguish between error and access denied
     // try {
@@ -390,6 +407,7 @@ export const keycloakHasPermission = (grant, requestCache, modelClients) => {
     // } catch (err) {
     //   logger.warn(`Couldn't save redis authz cache: ${err.message}`);
     // }
+    REDIS */
     userActivityLogger.user_info(
       `User does not have permission to '${scope}' on '${resource}'`,
       {

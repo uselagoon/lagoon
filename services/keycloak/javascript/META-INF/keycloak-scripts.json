@@ -7,7 +7,7 @@
     },
     {
       "name": "[Lagoon] Group and Project ID Roles",
-      "description": "Gets a users groups and project roles with IDs",
+      "description": "Gets a users roles for associted project IDs",
       "fileName": "mappers/group-project-roles.js"
     }
   ],

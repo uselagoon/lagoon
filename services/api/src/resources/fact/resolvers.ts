@@ -139,7 +139,7 @@ export const getProjectsByFactSearch: ResolverFn = async (
 
     // pull the project ids from the token
     // this can have a negative effect if the token is not refreshed after performing an operation like adding a project
-    // the user will probably have to refresh their token
+    // the user will probably have to refresh their token, with short token lifespans this should not be much of an issue
     userProjectIds = getUserProjectIdsFromToken(keycloakGrant);
   }
 
@@ -172,7 +172,7 @@ export const getEnvironmentsByFactSearch: ResolverFn = async (
 
     // pull the project ids from the token
     // this can have a negative effect if the token is not refreshed after performing an operation like adding a project
-    // the user will probably have to refresh their token
+    // the user will probably have to refresh their token, with short token lifespans this should not be much of an issue
     userProjectIds = getUserProjectIdsFromToken(keycloakGrant);
   }
 

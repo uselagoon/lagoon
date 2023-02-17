@@ -21,13 +21,19 @@ forEach.call(groups.toArray(), function(group) {
                 if(projectIds !== null) {
                     var splitIds = new ArrayList(projectIds.split(","))
                     forEach.call(splitIds, function(g) {
-                        projectIdList.add(parseInt(g))
+                        // https://github.com/uselagoon/lagoon/pull/3358 references potential issue with the lagoon-projects attribute where there could be empty values
+                        // check the parsed value is not nan here before adding it to the token payload
+                        if (!isNaN(parseInt(g))) {
+                            projectIdList.add(parseInt(g))
+                        }
                     });
                     if (groupProjectIds[rn]) {
                         if (groupProjectIds[rn].length > 0) {
                             for(var a=0; a < groupProjectIds[rn].length; a++){
                                 if (!splitIds.contains(groupProjectIds[rn][a])) {
-                                    projectIdList.add(parseInt(groupProjectIds[rn][a]))
+                                    if (!isNaN(parseInt(groupProjectIds[rn][a]))) {
+                                        projectIdList.add(parseInt(groupProjectIds[rn][a]))
+                                    }
                                 }
                             }
                         }

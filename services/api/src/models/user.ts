@@ -3,7 +3,6 @@ import pickNonNil from '../util/pickNonNil';
 import { logger } from '../loggers/logger';
 import UserRepresentation from 'keycloak-admin/lib/defs/userRepresentation';
 import { Group, isRoleSubgroup } from './group';
-import { GroupInterface } from '../resolvers';
 
 export interface User {
   email: string;
@@ -216,6 +215,8 @@ export const User = (clients: {
     const GroupModel = Group(clients);
     let groups = [];
 
+    // briefRepresentation pulls all the group information from keycloak including the attributes
+    // this means we don't need to iterate over all the groups one by one anymore to get the full group information
     const roleSubgroups = await keycloakAdminClient.users.listGroups({
       id: userInput.id,
       briefRepresentation: false
@@ -223,6 +224,7 @@ export const User = (clients: {
 
     for (const roleSubgroup of roleSubgroups) {
       // just look up the group with what we know the parent name to be with the regex of the role stripped
+      // eventually this logic will have to change when we support custom roles, but this applies to *everything* if that happens
       let regexp = /-(owner|maintainer|developer|reporter|guest)$/g;
       const roleSubgroupParent = await GroupModel.loadGroupByName(
         roleSubgroup.name.replace(regexp, "")
@@ -364,11 +366,13 @@ export const User = (clients: {
         throw new Error(`Error deleting user ${id}: ${err}`);
       }
     }
+    /* REDIS
     // try {
     //   await redisClient.deleteRedisUserCache(id);
     // } catch (err) {
     //   logger.error(`Error deleting user cache ${id}: ${err}`);
     // }
+    REDIS */
   };
 
   return {
