@@ -143,6 +143,13 @@ class NoNeedToRemoveBranch extends Error {
   }
 }
 
+class DeployTargetDisabled extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'DeployTargetDisabled';
+  }
+}
+
 class CannotDeleteProductionEnvironment extends Error {
   constructor(message) {
     super(message);
@@ -480,6 +487,11 @@ export const getControllerBuildData = async function(deployData: any) {
   }
   // end working out the target information
   let openshiftId = deployTarget.openshift.id;
+
+  if (deployTarget.openshift.disabled) {
+    logger.error(`Couldn't deploy environment, the selected deploytarget '${deployTarget.openshift.name}' is disabled`)
+    throw new DeployTargetDisabled(`Couldn't deploy environment, the selected deploytarget '${deployTarget.openshift.name}' is disabled`)
+  }
 
   var openshiftProject = openshiftProjectPattern ? openshiftProjectPattern.replace('${environment}',environmentName).replace('${project}', projectName) : `${projectName}-${environmentName}`
 
