@@ -527,7 +527,10 @@ k3d/cluster: local-dev/k3d
 		docker network create k3d || true \
 		&& export KUBECONFIG=$$(mktemp) \
 		K3DCONFIG=$$(mktemp ./k3dconfig.XXX) \
-		K3D_NODE_IP=$$(docker run --rm --network k3d alpine ip -o addr show eth0 | sed -nE 's/.* ([0-9.]{7,})\/.*/\1/p') \
+		K3D_NODE_IP=$$(docker run --rm --network k3d alpine ip -o addr show eth0 | sed -nE 's/.* ([0-9.]{7,})\/.*/\1/p') && \
+		if [[ $(ARCH) == darwin ]]; then \
+			K3D_NODE_IP=$$(echo $$K3D_NODE_IP | awk -F '.' '{$$4++;printf "%d.%d.%d.%d",$$1,$$2,$$3,$$4}'); \
+		fi \
 		&& chmod 644 $$KUBECONFIG \
 		$$([ $(USE_CALICO_CNI) != true ] && envsubst < ./k3d.config.yaml.tpl > $$K3DCONFIG) \
 		$$([ $(USE_CALICO_CNI) = true ] && envsubst < ./k3d-calico.config.yaml.tpl > $$K3DCONFIG) \
@@ -714,3 +717,6 @@ k3d/retest:
 .PHONY: k3d/clean
 k3d/clean: local-dev/k3d
 	./local-dev/k3d cluster delete $(CI_BUILD_TAG)
+ifeq ($(ARCH), darwin)
+	docker rm --force $(CI_BUILD_TAG)-k3d-proxy-32080 || true
+endif
