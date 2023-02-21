@@ -1050,6 +1050,37 @@ const typeDefs = gql`
     project: String!
   }
 
+  input CustomTaskTargetInput {
+    projectName: String!
+    environmentName: String
+  }
+
+  input CreateImageInput {
+    name: String!
+    description: String!
+    image: String!
+    permission: TaskPermission!
+    target: CustomTaskTargetInput!
+    advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgumentInput]
+    confirmationText: String
+  }
+
+  input CreateCommandInput {
+    name: String!
+    description: String!
+    service: String!
+    command: String!
+    permission: TaskPermission!
+    target: CustomTaskTargetInput!
+    advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgumentInput]
+    confirmationText: String
+  }
+
+  type CustomTaskMutations {
+    createImage(input: CreateImageInput!): AdvancedTaskDefinitionImage
+    createCommand(input: CreateCommandInput!): AdvancedTaskDefinitionCommand
+  }
+
   type Query {
     """
     Returns the current user
@@ -1916,6 +1947,7 @@ const typeDefs = gql`
   }
 
   type Mutation {
+    customTasks: CustomTaskMutations!
     """
     Add Environment or update if it is already existing
     """

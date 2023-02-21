@@ -213,6 +213,49 @@ export const advancedTaskDefinitionArgumentById = async (
   return R.prop(0, rows);
 };
 
+
+/**
+ *
+ */
+export const customTaskDefinitionResolver = {
+  image: async (parent, args, context, info) => {
+    // console.log(parent);
+    const { input } = args;
+    const { sqlClientPool, hasPermission, models, userActivityLogger } = context;
+    let target = await customTaskDefinitionResolver.resolveTarget(sqlClientPool, input.target.projectName, input.target.environmentName || null);
+    let customTask = { ... input, ... target, ...{advancedTaskDefinitionArguments: input.arguments, type: "IMAGE"}};
+    let ret = await addAdvancedTaskDefinition(parent, {input:customTask}, context);
+    return ret;
+  },
+  command: async (parent, args, context, info) => {
+    const { input } = args;
+    const { sqlClientPool, hasPermission, models, userActivityLogger } = context;
+    let target = await customTaskDefinitionResolver.resolveTarget(sqlClientPool, input.target.projectName, input.target.environmentName || null);
+    let customTask = { ... input, ... target, ...{advancedTaskDefinitionArguments: input.arguments, type: "COMMAND"}};
+    let ret = await addAdvancedTaskDefinition(parent, {input:customTask}, context);
+    return ret;
+    },
+    resolveTarget: async(sqlClientPool, projectName, environmentName = null) => {
+      let pid = await projectHelpers(sqlClientPool).getProjectIdByName(projectName);
+      if(pid == null) {
+        throw Error(`Unable to find project "${projectName}"`);
+      }
+
+      if(environmentName == null) {
+        // we're dealing with a project only, so we set up the target to return the projectID in the required form
+        return {project: pid};
+      }
+
+      // find the environment id
+      let environments = await environmentHelpers(sqlClientPool).getEnvironmentsByEnvironmentInput({name: environmentName, project: { id: pid }});
+      let environment = environments[0];
+      if(environment == null) {
+        throw Error(`Unable to find environment "${environmentName}" for project "${projectName}"`);
+      }
+      return {environment: environment.id};
+    }
+};
+
 export const addAdvancedTaskDefinition = async (
   root,
   {
