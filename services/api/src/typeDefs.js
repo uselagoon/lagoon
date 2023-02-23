@@ -491,6 +491,7 @@ const typeDefs = gql`
     cloudProvider: String
     cloudRegion: String
     buildImage: String
+    disabled: Boolean
   }
 
   type Kubernetes {
@@ -508,6 +509,7 @@ const typeDefs = gql`
     cloudProvider: String
     cloudRegion: String
     buildImage: String
+    disabled: Boolean
   }
 
   type NotificationMicrosoftTeams {
@@ -1494,6 +1496,7 @@ const typeDefs = gql`
     cloudProvider: String
     cloudRegion: String
     buildImage: String
+    disabled: Boolean
   }
 
   input AddKubernetesInput {
@@ -1513,6 +1516,7 @@ const typeDefs = gql`
     cloudProvider: String
     cloudRegion: String
     buildImage: String
+    disabled: Boolean
   }
 
   input DeleteOpenshiftInput {
@@ -1666,6 +1670,7 @@ const typeDefs = gql`
     cloudProvider: String
     cloudRegion: String
     buildImage: String
+    disabled: Boolean
   }
 
   input UpdateOpenshiftInput {
@@ -1689,6 +1694,7 @@ const typeDefs = gql`
     cloudProvider: String
     cloudRegion: String
     buildImage: String
+    disabled: Boolean
   }
 
   input UpdateKubernetesInput {

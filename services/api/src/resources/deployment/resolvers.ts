@@ -498,6 +498,53 @@ export const cancelDeployment: ResolverFn = async (
     }
   });
 
+  // check if the deploytarget for this environment is disabled
+  const deploytarget = await query(sqlClientPool, Sql.selectDeployTarget(environment.openshift));
+  if (deploytarget[0].disabled) {
+    // if it is, proceed to mark the build as cancelled
+    var date = new Date();
+    var completed = convertDateFormat(date.toISOString());
+    await query(
+      sqlClientPool,
+      Sql.updateDeployment({
+        id: deployment.id,
+        patch: {
+          status: "cancelled",
+          completed,
+          environment: environment.id,
+        }
+      })
+    );
+
+    // just normal lagoon environment name conversion to lowercase and safeing
+    const makeSafe = string => string.toLocaleLowerCase().replace(/[^0-9a-z-]/g,'-')
+    var environmentName = makeSafe(environment.name)
+    var overlength = 58 - project.name.length;
+    if ( environmentName.length > overlength ) {
+      var hash = sha1(environmentName).substring(0,4)
+      environmentName = environmentName.substring(0, overlength-5)
+      environmentName = environmentName.concat('-' + hash)
+    }
+    // then publish a message to the logs system with the build log
+    sendToLagoonLogs(
+      'info',
+      project.name,
+      '',
+      `build-logs:builddeploy-kubernetes:${deployment.name}`,
+      { branchName: environmentName,
+        buildName: deployment.name,
+        buildStatus: "cancelled",
+        buildPhase: "cancelled",
+        buildStep: "cancelled",
+        environmentId: environment.id,
+        projectId: project.id,
+        remoteId: deployment.remoteId,
+       },
+      `========================================\nCancelled build as deploytarget '${deploytarget[0].name}' is disabled\n========================================\n`
+    );
+    return 'success';
+  }
+
   try {
     await createMiscTask({ key: 'build:cancel', data });
     return 'success';
