@@ -9,7 +9,7 @@ import crypto from 'crypto';
 import { Service } from 'aws-sdk';
 import * as api from '@lagoon/commons/dist/api';
 import { getEnvironmentsByProjectId } from '../environment/resolvers';
-import { getUserProjectIdsFromToken } from '../../util/auth';
+import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
 
 export const getFactsByEnvironmentId: ResolverFn = async (
   { id: environmentId, environmentAuthz },
@@ -123,7 +123,7 @@ const getSqlPredicate = (predicate) => {
 export const getProjectsByFactSearch: ResolverFn = async (
   root,
   { input },
-  { sqlClientPool, hasPermission, keycloakGrant, models }
+  { sqlClientPool, hasPermission, keycloakGrant, models, keycloakUsersGroups }
 ) => {
 
   let isAdmin = false;
@@ -137,10 +137,10 @@ export const getProjectsByFactSearch: ResolverFn = async (
       return [];
     }
 
-    // pull the project ids from the token
-    // this can have a negative effect if the token is not refreshed after performing an operation like adding a project
-    // the user will probably have to refresh their token, with short token lifespans this should not be much of an issue
-    userProjectIds = getUserProjectIdsFromToken(keycloakGrant);
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
+      id: keycloakGrant.access_token.content.sub
+    }, keycloakUsersGroups);
+    userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
   const count = await getFactFilteredProjectsCount(input, userProjectIds, sqlClientPool, isAdmin);
@@ -156,7 +156,7 @@ export const getProjectsByFactSearch: ResolverFn = async (
 export const getEnvironmentsByFactSearch: ResolverFn = async (
   root,
   { input },
-  { sqlClientPool, hasPermission, keycloakGrant, models }
+  { sqlClientPool, hasPermission, keycloakGrant, models, keycloakUsersGroups }
 ) => {
 
   let isAdmin = false;
@@ -170,10 +170,10 @@ export const getEnvironmentsByFactSearch: ResolverFn = async (
       return [];
     }
 
-    // pull the project ids from the token
-    // this can have a negative effect if the token is not refreshed after performing an operation like adding a project
-    // the user will probably have to refresh their token, with short token lifespans this should not be much of an issue
-    userProjectIds = getUserProjectIdsFromToken(keycloakGrant);
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
+      id: keycloakGrant.access_token.content.sub
+    }, keycloakUsersGroups);
+    userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
   const count = await getFactFilteredEnvironmentsCount(input, userProjectIds, sqlClientPool, isAdmin);

@@ -11,6 +11,7 @@ import { Sql } from './sql';
 import { Sql as projectSql } from '../project/sql';
 import { Helpers as projectHelpers } from '../project/helpers';
 import { getFactFilteredEnvironmentIds } from '../fact/resolvers';
+import { logger } from '../../loggers/logger';
 
 export const getEnvironmentByName: ResolverFn = async (
   root,
@@ -75,6 +76,9 @@ export const getEnvironmentsByProjectId: ResolverFn = async (
   // @TODO: When this performance issue is fixed for real, remove this hack as
   // it hardcodes a "everyone can view environments" authz rule.
   if (!R.prop('environmentAuthz', project)) {
+    // when requesting a large number of projects outside of the `allProjects` resolver
+    // eg, allGroups, or any other resolver that can sub resolve projects and environments
+    // this can cause significant response slowness as this is a check against keycloak directly for every environment
     await hasPermission('environment', 'view', {
       project: pid
     });

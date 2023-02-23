@@ -12,7 +12,7 @@ import * as OS from '../openshift/sql';
 import { generatePrivateKey, getSshKeyFingerprint } from '../sshKey';
 import { Sql as sshKeySql } from '../sshKey/sql';
 import { createHarborOperations } from './harborSetup';
-import { getUserProjectIdsFromToken } from '../../util/auth';
+import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
 import sql from '../user/sql';
 
 const DISABLE_CORE_HARBOR = process.env.DISABLE_CORE_HARBOR || "false"
@@ -51,7 +51,7 @@ export const getPrivateKey: ResolverFn = async (
 export const getAllProjects: ResolverFn = async (
   root,
   { order, createdAfter, gitUrl },
-  { sqlClientPool, hasPermission, models, keycloakGrant }
+  { sqlClientPool, hasPermission, models, keycloakGrant, keycloakGroups, keycloakUsersGroups }
 ) => {
   let userProjectIds: number[];
 
@@ -63,10 +63,11 @@ export const getAllProjects: ResolverFn = async (
       return [];
     }
 
-    // pull the project ids from the token
-    // this can have a negative effect if the token is not refreshed after performing an operation like adding a project
-    // the user will probably have to refresh their token, with short token lifespans this should not be much of an issue
-    userProjectIds = getUserProjectIdsFromToken(keycloakGrant);
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
+      id: keycloakGrant.access_token.content.sub,
+
+    }, keycloakUsersGroups);
+    userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
   let queryBuilder = knex('project');
@@ -203,7 +204,7 @@ export const getProjectByName: ResolverFn = async (
 export const getProjectsByMetadata: ResolverFn = async (
   root,
   { metadata },
-  { sqlClientPool, hasPermission, keycloakGrant, models }
+  { sqlClientPool, hasPermission, keycloakGrant, models, keycloakUsersGroups }
 ) => {
   let userProjectIds: number[];
   try {
@@ -213,10 +214,11 @@ export const getProjectsByMetadata: ResolverFn = async (
       logger.debug('No grant available for getProjectsByMetadata');
       return [];
     }
-    // pull the project ids from the token
-    // this can have a negative effect if the token is not refreshed after performing an operation like adding a project
-    // the user will probably have to refresh their token, with short token lifespans this should not be much of an issue
-    userProjectIds = getUserProjectIdsFromToken(keycloakGrant);
+
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
+      id: keycloakGrant.access_token.content.sub
+    }, keycloakUsersGroups);
+    userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
   let queryBuilder = knex('project');

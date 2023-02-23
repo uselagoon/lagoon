@@ -33,7 +33,7 @@ import sha1 from 'sha1';
 import { generateBuildId } from '@lagoon/commons/dist/util/lagoon';
 import { jsonMerge } from '@lagoon/commons/dist/util/func';
 import { logger } from '../../loggers/logger';
-import { getUserProjectIdsFromToken } from '../../util/auth';
+import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
 // @ts-ignore
 import uuid4 from 'uuid4';
 
@@ -116,7 +116,7 @@ export const getBuildLog: ResolverFn = async (
 export const getDeploymentsByBulkId: ResolverFn = async (
   root,
   { bulkId },
-  { sqlClientPool, hasPermission, models, keycloakGrant }
+  { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups }
 ) => {
 
   /*
@@ -136,10 +136,10 @@ export const getDeploymentsByBulkId: ResolverFn = async (
       return [];
     }
 
-    // pull the project ids from the token
-    // this can have a negative effect if the token is not refreshed after performing an operation like adding a project
-    // the user will probably have to refresh their token, with short token lifespans this should not be much of an issue
-    userProjectIds = getUserProjectIdsFromToken(keycloakGrant);
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
+      id: keycloakGrant.access_token.content.sub
+    }, keycloakUsersGroups);
+    userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
   let queryBuilder = knex('deployment')
@@ -164,7 +164,7 @@ export const getDeploymentsByBulkId: ResolverFn = async (
 export const getDeploymentsByFilter: ResolverFn = async (
   root,
   input,
-  { sqlClientPool, hasPermission, models, keycloakGrant }
+  { sqlClientPool, hasPermission, models, keycloakGrant, keycloakUsersGroups }
 ) => {
 
   const { openshifts, deploymentStatus = ["NEW", "PENDING", "RUNNING", "QUEUED"] } = input;
@@ -186,10 +186,10 @@ export const getDeploymentsByFilter: ResolverFn = async (
       return [];
     }
 
-    // pull the project ids from the token
-    // this can have a negative effect if the token is not refreshed after performing an operation like adding a project
-    // the user will probably have to refresh their token, with short token lifespans this should not be much of an issue
-    userProjectIds = getUserProjectIdsFromToken(keycloakGrant);
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
+      id: keycloakGrant.access_token.content.sub
+    }, keycloakUsersGroups);
+    userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
   let queryBuilder = knex.select("deployment.*").from('deployment').
@@ -1193,7 +1193,7 @@ export const switchActiveStandby: ResolverFn = async (
 export const bulkDeployEnvironmentLatest: ResolverFn = async (
   _root,
   { input: { environments: environmentsInput, buildVariables, name: bulkName } },
-  { keycloakGrant, models, sqlClientPool, hasPermission, userActivityLogger }
+  { keycloakGrant, models, sqlClientPool, hasPermission, userActivityLogger, keycloakUsersGroups }
 ) => {
 
     /*
@@ -1213,10 +1213,10 @@ export const bulkDeployEnvironmentLatest: ResolverFn = async (
       return [];
     }
 
-    // pull the project ids from the token
-    // this can have a negative effect if the token is not refreshed after performing an operation like adding a project
-    // the user will probably have to refresh their token, with short token lifespans this should not be much of an issue
-    userProjectIds = getUserProjectIdsFromToken(keycloakGrant);
+    const userProjectRoles = await models.UserModel.getAllProjectsIdsForUser({
+      id: keycloakGrant.access_token.content.sub
+    }, keycloakUsersGroups);
+    userProjectIds = getUserProjectIdsFromRoleProjectIds(userProjectRoles);
   }
 
   let bulkId = uuid4();
