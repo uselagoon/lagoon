@@ -1054,6 +1054,12 @@ const typeDefs = gql`
     project: String!
   }
 
+  # Must provide id OR name
+  input KubernetesInput {
+    id: Int
+    name: String
+  }
+
   type Query {
     """
     Returns the current user
@@ -1067,6 +1073,10 @@ const typeDefs = gql`
     Returns Project Object by a given name
     """
     projectByName(name: String!): Project
+    """
+    Returns all Environment Objects for a specified Kubernetes
+    """
+    environmentsByKubernetes(kubernetes: KubernetesInput!, order: EnvOrderType, createdAfter: String): [Environment]
     """
     Returns Group Object by a given name
     """

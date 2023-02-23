@@ -12,7 +12,7 @@ const {
   getProblemSources,
   getProblemHarborScanMatches,
   addProblemHarborScanMatch,
-  deleteProblemHarborScanMatch,
+  deleteProblemHarborScanMatch
 } = require('./resources/problem/resolvers');
 
 const {
@@ -121,6 +121,7 @@ const {
   deleteAllEnvironments,
   userCanSshToEnvironment,
   getEnvironmentUrl,
+  getEnvironmentsByKubernetes,
 } = require('./resources/environment/resolvers');
 
 const {
@@ -199,7 +200,7 @@ const {
   deleteSshKey,
   deleteSshKeyById,
   deleteAllSshKeys,
-  removeAllSshKeysFromAllUsers,
+  removeAllSshKeysFromAllUsers
 } = require('./resources/sshKey/resolvers');
 
 const {
@@ -208,7 +209,7 @@ const {
   addUser,
   updateUser,
   deleteUser,
-  deleteAllUsers,
+  deleteAllUsers
 } = require('./resources/user/resolvers');
 
 const {
@@ -225,7 +226,7 @@ const {
   addUserToGroup,
   removeUserFromGroup,
   addGroupsToProject,
-  removeGroupsFromProject,
+  removeGroupsFromProject
 } = require('./resources/group/resolvers');
 
 const {
@@ -266,40 +267,40 @@ const resolvers = {
     REPORTER: 'reporter',
     DEVELOPER: 'developer',
     MAINTAINER: 'maintainer',
-    OWNER: 'owner',
+    OWNER: 'owner'
   },
   ProjectOrderType: {
     NAME: 'name',
-    CREATED: 'created',
+    CREATED: 'created'
   },
   EnvOrderType: {
     NAME: 'name',
-    UPDATED: 'updated',
+    UPDATED: 'updated'
   },
   DeployType: {
     BRANCH: 'branch',
     PULLREQUEST: 'pullrequest',
-    PROMOTE: 'promote',
+    PROMOTE: 'promote'
   },
   EnvType: {
     PRODUCTION: 'production',
-    DEVELOPMENT: 'development',
+    DEVELOPMENT: 'development'
   },
   EnvVariableType: {
     PROJECT: 'project',
-    ENVIRONMENT: 'environment',
+    ENVIRONMENT: 'environment'
   },
   EnvVariableScope: {
     BUILD: 'build',
     RUNTIME: 'runtime',
     GLOBAL: 'global',
     CONTAINER_REGISTRY: 'container_registry',
-    INTERNAL_CONTAINER_REGISTRY: 'internal_container_registry',
+    INTERNAL_CONTAINER_REGISTRY: 'internal_container_registry'
   },
   RestoreStatusType: {
     PENDING: 'pending',
     SUCCESSFUL: 'successful',
-    FAILED: 'failed',
+    FAILED: 'failed'
   },
   DeploymentStatusType: {
     NEW: 'new',
@@ -320,7 +321,7 @@ const resolvers = {
   },
   NotificationContentType: {
     DEPLOYMENT: 'deployment',
-    PROBLEM: 'problem',
+    PROBLEM: 'problem'
   },
   TaskStatusType: {
     NEW: 'new',
@@ -435,15 +436,15 @@ const resolvers = {
         default:
           return null;
       }
-    },
+    }
   },
   User: {
     sshKeys: getUserSshKeys,
-    groups: getGroupsByUserId,
+    groups: getGroupsByUserId
   },
   Backup: {
     restore: getRestoreByBackupId,
-    environment: getEnvironmentByBackupId,
+    environment: getEnvironmentByBackupId
   },
   Restore: {
     restoreLocation: getRestoreLocation,
@@ -457,6 +458,7 @@ const resolvers = {
     userBySshKey: getUserBySshKey,
     projectByGitUrl: getProjectByGitUrl,
     projectByName: getProjectByName,
+    environmentsByKubernetes: getEnvironmentsByKubernetes,
     groupByName: getGroupByName,
     problemSources: getProblemSources,
     environmentByName: getEnvironmentByName,
@@ -612,11 +614,11 @@ const resolvers = {
   Subscription: {
     backupChanged: backupSubscriber,
     deploymentChanged: deploymentSubscriber,
-    taskChanged: taskSubscriber,
+    taskChanged: taskSubscriber
   },
   Date: GraphQLDate,
   JSON: GraphQLJSON,
-  SeverityScore: SeverityScoreType,
+  SeverityScore: SeverityScoreType
 };
 
 module.exports = resolvers;

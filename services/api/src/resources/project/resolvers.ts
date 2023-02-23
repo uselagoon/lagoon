@@ -296,7 +296,7 @@ export const addProject = async (
     }
   }
 
-  const osRows = await query(sqlClientPool, OS.Sql.selectOpenshift(openshift));
+  const osRows = await query(sqlClientPool, OS.Sql.selectOpenshiftById(openshift));
   if(osRows.length == 0) {
     throw Error(`Openshift ID: "${openshift}" does not exist"`);
   }

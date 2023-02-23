@@ -57,7 +57,7 @@ export const addOpenshift: ResolverFn = async (
 
   const { insertId } = await query(sqlClientPool, Sql.insertOpenshift(input));
 
-  const rows = await query(sqlClientPool, Sql.selectOpenshift(insertId));
+  const rows = await query(sqlClientPool, Sql.selectOpenshiftById(insertId));
   return R.prop(0, rows);
 };
 
@@ -198,7 +198,7 @@ export const updateOpenshift: ResolverFn = async (
   }
 
   await query(sqlClientPool, Sql.updateOpenshift(input));
-  const rows = await query(sqlClientPool, Sql.selectOpenshift(oid));
+  const rows = await query(sqlClientPool, Sql.selectOpenshiftById(oid));
 
   return R.prop(0, rows);
 };
