@@ -1,5 +1,4 @@
 import * as R from 'ramda';
-import { getRedisCache, saveRedisCache } from '../clients/redisClient';
 import { verify } from 'jsonwebtoken';
 import { logger } from '../loggers/logger';
 import { getConfigFromEnv } from '../util/config';
@@ -41,34 +40,32 @@ const sortRolesByWeight = (a, b) => {
   return 0;
 };
 
-export const getUserProjectIdsFromToken = (
-  token
+export const getUserProjectIdsFromRoleProjectIds = (
+  roleProjectIds
 ): number[] => {
   // https://github.com/uselagoon/lagoon/pull/3358 references potential issue with the lagoon-projects attribute where there could be empty values
-  // the structure of this token payload is:
+  // the structure of this payload is:
   /*
     {"guest":[13],"devloper":[20,14],"maintainer":[13,18,19,12]}
   */
-  const groupRoleIds = token.access_token.content.project_group_roles
   let upids = [];
-  for (const r in groupRoleIds) {
-    for (const pid in groupRoleIds[r]) {
-      upids.indexOf(groupRoleIds[r][pid]) === -1 ? upids.push(groupRoleIds[r][pid]) : ""
+  for (const r in roleProjectIds) {
+    for (const pid in roleProjectIds[r]) {
+      upids.indexOf(roleProjectIds[r][pid]) === -1 ? upids.push(roleProjectIds[r][pid]) : ""
     }
   }
   return R.uniq(upids);
 };
 
-export const getUserRoleForProjectFromToken = (
-  token, projectId
+export const getUserRoleForProjectFromRoleProjectIds = (
+  roleProjectIds, projectId
 ): [string, number[]] => {
-  const groupRoleIds = token.access_token.content.project_group_roles
   let upids = [];
   let roles = [];
-  for (const r in groupRoleIds) {
-    for (const pid in groupRoleIds[r]) {
-      upids.indexOf(groupRoleIds[r][pid]) === -1 ? upids.push(groupRoleIds[r][pid]) : ""
-      if (projectId == groupRoleIds[r][pid]) {
+  for (const r in roleProjectIds) {
+    for (const pid in roleProjectIds[r]) {
+      upids.indexOf(roleProjectIds[r][pid]) === -1 ? upids.push(roleProjectIds[r][pid]) : ""
+      if (projectId == roleProjectIds[r][pid]) {
         roles.push(r)
       }
     }
@@ -149,64 +146,12 @@ export class KeycloakUnauthorizedError extends Error {
   }
 }
 
-export const keycloakHasPermission = (grant, requestCache, modelClients) => {
+export const keycloakHasPermission = (grant, requestCache, modelClients, keycloakUsersGroups) => {
   const UserModel = User(modelClients);
   const GroupModel = Group(modelClients);
 
   return async (resource, scope, attributes: IKeycloakAuthAttributes = {}) => {
     const currentUserId: string = grant.access_token.content.sub;
-
-
-    logger.info(JSON.stringify(grant.access_token.content.project_group_roles))
-
-    /* REDIS
-    // const cacheKey = `${currentUserId}:${resource}:${scope}:${JSON.stringify(
-    //   attributes
-    // )}`;
-    // const resourceScope = { resource, scope, currentUserId, ...attributes };
-
-    // const cachedPermissions = requestCache.get(cacheKey);
-    // if (cachedPermissions === true) {
-    //   return true;
-    // } else if (!cachedPermissions === false) {
-    //   userActivityLogger.user_info(
-    //     `User does not have permission to '${scope}' on '${resource}'`,
-    //     {
-    //       user: grant ? grant.access_token.content : null
-    //     }
-    //   );
-    //   throw new KeycloakUnauthorizedError(
-    //     `Unauthorized: You don't have permission to "${scope}" on "${resource}": ${JSON.stringify(
-    //       attributes
-    //     )}`
-    //   );
-    // }
-
-    // // Check the redis cache before doing a full keycloak lookup.
-    // let redisCacheResult: number;
-    // try {
-    //   const data = await getRedisCache(resourceScope);
-    //   redisCacheResult = parseInt(data, 10);
-    // } catch (err) {
-    //   logger.warn(`Couldn't check redis authz cache: ${err.message}`);
-    // }
-
-    // if (redisCacheResult === 1) {
-    //   return true;
-    // } else if (redisCacheResult === 0) {
-    //   userActivityLogger.user_info(
-    //     `User does not have permission to '${scope}' on '${resource}'`,
-    //     {
-    //       user: grant.access_token.content
-    //     }
-    //   );
-    //   throw new KeycloakUnauthorizedError(
-    //     `Unauthorized: You don't have permission to "${scope}" on "${resource}": ${JSON.stringify(
-    //       attributes
-    //     )}`
-    //   );
-    // }
-    REDIS */
 
     const currentUser = await UserModel.loadUserById(currentUserId);
     const serviceAccount = await keycloakGrantManager.obtainFromClientCredentials();
@@ -248,14 +193,12 @@ export const keycloakHasPermission = (grant, requestCache, modelClients) => {
           projectQuery: [`${projectId}`]
         };
 
-        // we pull the users role and project ids from the token here for the requested project, and we run the same functions that previously ran to pick out the highest role
-        // that the user has on the project
-        const [highestRoleForProject, userProjects] = await getUserRoleForProjectFromToken(grant, projectId)
-
-        if (userProjects.length) {
+        const groupRoleIds = await UserModel.getAllProjectsIdsForUser(currentUser, keycloakUsersGroups);
+        const [highestRoleForProject, upids] = getUserRoleForProjectFromRoleProjectIds(groupRoleIds, projectId)
+        if (upids.length) {
           claims = {
             ...claims,
-            userProjects: [userProjects.join('-')]
+            userProjects: [upids.join('-')]
           };
         }
 
@@ -264,37 +207,6 @@ export const keycloakHasPermission = (grant, requestCache, modelClients) => {
             ...claims,
             userProjectRole: [highestRoleForProject]
           };
-        } else {
-          // no project or role detected in the token, fall back to checking keycloak
-          // this is a heavier operation for users that are in a lot of groups, use the token as often as possible
-          // but with the way the api works, sometimes it isn't possible to use the token if it lacks something like a newly created project id
-          // logger.debug(`There was no project or role determined for the requested project resource, falling back to checking keycloak the slow way`)
-
-          // this is the previous run function almost entirely unchanged, and will only be called if the user has requested a project id that is not within their token
-          // this would be hit if a user requests a project they've recently been added to with a token that hasn't refreshed yet
-          const [userProjects, userGroups] = await UserModel.getAllProjectsIdsForUser(currentUser);
-
-          if (userProjects.length) {
-            claims = {
-              ...claims,
-              userProjects: [userProjects.join('-')]
-            };
-          }
-          const roles = await UserModel.getUserRolesForProject(
-            currentUser,
-            projectId,
-            userGroups
-          );
-
-          // getHighestRole just uses the previous highest role check now in a function for re-use elsewhere
-          const highestRoleForProject = getHighestRole(roles);
-
-          if (highestRoleForProject) {
-            claims = {
-              ...claims,
-              userProjectRole: [highestRoleForProject]
-            };
-          }
         }
       } catch (err) {
         logger.error(
@@ -377,15 +289,6 @@ export const keycloakHasPermission = (grant, requestCache, modelClients) => {
       );
 
       if (newGrant.access_token.hasPermission(resource, scope)) {
-        /* REDIS
-        // requestCache.set(cacheKey, true);
-        // try {
-        //   await saveRedisCache(resourceScope, 1);
-        // } catch (err) {
-        //   logger.warn(`Couldn't save redis authz cache: ${err.message}`);
-        // }
-        REDIS */
-
         return;
       }
     } catch (err) {
@@ -399,15 +302,6 @@ export const keycloakHasPermission = (grant, requestCache, modelClients) => {
       );
     }
 
-    /* REDIS
-    // requestCache.set(cacheKey, false);
-    // TODO: Re-enable when we can distinguish between error and access denied
-    // try {
-    //   await saveRedisCache(resourceScope, 0);
-    // } catch (err) {
-    //   logger.warn(`Couldn't save redis authz cache: ${err.message}`);
-    // }
-    REDIS */
     userActivityLogger.user_info(
       `User does not have permission to '${scope}' on '${resource}'`,
       {
