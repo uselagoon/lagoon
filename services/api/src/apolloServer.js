@@ -19,9 +19,6 @@ const {
 } = require('./util/auth');
 const { sqlClientPool } = require('./clients/sqlClient');
 const esClient = require('./clients/esClient');
-/* REDIS
-// const redisClient = require('./clients/redisClient');
-REDIS */
 const { getKeycloakAdminClient } = require('./clients/keycloak-admin');
 const { logger } = require('./loggers/logger');
 const { userActivityLogger } = require('./loggers/userActivityLogger');
@@ -119,10 +116,10 @@ const apolloServer = new ApolloServer({
         sqlClientPool,
         keycloakAdminClient,
         esClient,
-        /* REDIS
-        // redisClient
-        REDIS */
       };
+
+      let keycloakGroups = {}
+      let keycloakUsersGroups = []
 
       return {
         keycloakAdminClient,
@@ -137,7 +134,9 @@ const apolloServer = new ApolloServer({
           GroupModel: Group.Group(modelClients),
           ProjectModel: ProjectModel.ProjectModel(modelClients),
           EnvironmentModel: EnvironmentModel.EnvironmentModel(modelClients)
-        }
+        },
+        keycloakGroups,
+        keycloakUsersGroups,
       };
     },
     onDisconnect: (websocket, context) => {
@@ -167,17 +166,62 @@ const apolloServer = new ApolloServer({
         sqlClientPool,
         keycloakAdminClient,
         esClient,
-        /* REDIS
-        // redisClient
-        REDIS */
       };
+
+      // get all keycloak groups, do this early to reduce the number of times this is called otherwise
+      // would be good if this could be wrapped in a way so that only resolvers that need groups are called
+      // but doing this early and once is pretty cheap
+      let allGroups = await Group.Group(modelClients).loadAllGroups();
+      let keycloakGroups = await Group.Group(modelClients).transformKeycloakGroups(allGroups);
+
+      // if this is a user request, get the users keycloak groups too, do this one to reduce the number of times it is called elsewhere
+      let keycloakUsersGroups = []
+      let kcg = req.kauth ? req.kauth.grant : null
+      if (kcg) {
+        keycloakUsersGroups = await User.User(modelClients).getAllGroupsForUser(kcg.access_token.content.sub);
+      }
+
+      // do a permission check to see if the user is platform admin/owner, or has permission for `viewAll` on certain resources
+      // this reduces the number of `viewAll` permission look ups that could potentially occur during subfield resolvers for non admin users
+      // every `hasPermission` check adds a delay, and if you're a member of a group that has a lot of projects and environments, hasPermissions is costly when we perform
+      // the viewAll permission check, to then error out and follow through with the standard user permission check, effectively costing 2 hasPermission calls for every request
+      // this eliminates a huge number of these by making it available in the apollo context
+      let hasPermission = req.kauth
+          ? keycloakHasPermission(req.kauth.grant, requestCache, modelClients)
+          : legacyHasPermission(req.legacyCredentials)
+      let projectViewAll = false
+      let groupViewAll = false
+      let environmentViewAll = false
+      let deploytargetViewAll = false
+      try {
+        await hasPermission("project","viewAll")
+        projectViewAll = true
+      } catch(err) {
+        // do nothing
+      }
+      try {
+        await hasPermission("group","viewAll")
+        groupViewAll = true
+      } catch(err) {
+        // do nothing
+      }
+      try {
+        await hasPermission("environment","viewAll")
+        environmentViewAll = true
+      } catch(err) {
+        // do nothing
+      }
+      try {
+        await hasPermission("openshift","viewAll")
+        deploytargetViewAll = true
+      } catch(err) {
+        // do nothing
+      }
 
       return {
         keycloakAdminClient,
         sqlClientPool,
-        hasPermission: req.kauth
-          ? keycloakHasPermission(req.kauth.grant, requestCache, modelClients)
-          : legacyHasPermission(req.legacyCredentials),
+        hasPermission: hasPermission,
         keycloakGrant: req.kauth ? req.kauth.grant : null,
         requestCache,
         userActivityLogger: (message, meta) => {
@@ -199,7 +243,15 @@ const apolloServer = new ApolloServer({
           GroupModel: Group.Group(modelClients),
           ProjectModel: ProjectModel.ProjectModel(modelClients),
           EnvironmentModel: EnvironmentModel.EnvironmentModel(modelClients)
-        }
+        },
+        keycloakGroups,
+        keycloakUsersGroups,
+        adminScopes: {
+          projectViewAll: projectViewAll,
+          groupViewAll: groupViewAll,
+          environmentViewAll: environmentViewAll,
+          deploytargetViewAll: deploytargetViewAll,
+        },
       };
     }
   },
