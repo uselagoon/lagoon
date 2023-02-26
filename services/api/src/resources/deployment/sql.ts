@@ -63,6 +63,10 @@ export const Sql = {
       .where('id', id)
       .update(patch)
       .toString(),
+  selectDeployTarget: (id: number) =>
+    knex('openshift')
+      .where('id', '=', id)
+      .toString(),
   selectPermsForDeployment: (id: number) =>
     knex('deployment')
       .select({ pid: 'environment.project' })
