@@ -19,7 +19,7 @@ registries:
     configs:
         "registry.${K3D_NODE_IP}.nip.io:32080":
             tls:
-            insecure_skip_verify: true
+              insecure_skip_verify: true
 options:
   k3s: # options passed on to K3s itself
     extraArgs: # additional arguments passed to the `k3s server|agent` command; same as `--k3s-arg`

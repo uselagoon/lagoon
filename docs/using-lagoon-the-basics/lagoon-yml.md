@@ -396,36 +396,64 @@ environments:
     autogenerateRoutes: true
 ```
 
-### `Cron jobs - environments.[name].cronjobs`
+### `environments.[name].cronjobs`
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/Yd_JfDyfbR0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
-As most of the time it is not desirable to run the same cron jobs across all environments, you must explicitly define which jobs you want to run for each environment.
+Cron jobs must be defined explicitly for each environment, since it is typically
+not desirable to run the same ones for all environments. Depending on the
+defined schedule, cron jobs may run as a Kubernetes native `CronJob` or as an
+in-pod cron job via the crontab of the defined service.
 
 **Example:**
 
 ```yaml title=".lagoon.yml"
-    cronjobs:
-     - name: drush cron
-       schedule: "M * * * *" # This will run the cron once per hour.
-       command: drush cron
-       service: cli
+cronjobs:
+  - name: Hourly Drupal Cron
+    schedule: "M * * * *" # Once per hour, at a random minute.
+    command: drush cron
+    service: cli
+  - name: Nightly Drupal Cron
+    schedule: "M 0 * * *" # Once per day, at a random minute from 00:00 to 00:59.
+    command: drush cron
+    service: cli
 ```
 
-* `name:`
-  * Just a friendly name for identifying what the cron job will do.
-* `schedule:`
-  * The schedule for executing the cron job. This follows the standard convention of cron. If you're not sure about the syntax, [Crontab Generator](https://crontab.guru/) can help.
-  * You can specify `M` for the minute, and your cron job will run once per hour at a random minute \(the same minute each hour\), or `M/15` to run it every 15 mins, but with a random offset from the hour \(like `6,21,36,51`\). It is a good idea to spread out your cron jobs using this feature, rather than have them all fire off on minute `0`.
-  * You can specify `H` for the hour, and your cron job will run once per day at a random hour \(the same hour every day\), or `H(2-4)` to run it once per day within the hours of 2-4.
-    * Notes on timezones:
-      * The default timezone for cron jobs is UTC.
-      * Native cron jobs will run in timezone of the node, which is UTC.
-      * In-pod cron jobs == timezone of the pod it is running in, which defaults to UTC but may be different if you have configured it.
-* `command:`
-  * The command to execute. Like the tasks, this executes in the `WORKDIR` of the service. For Lagoon images, this is `/app`.
-* `service:`
-  * Which service of your project to run the command in. For most projects, this is the `CLI` service.
+* `name`: Any name that will identify the purpose and distinguish it from other
+  cron jobs.
+* `schedule`: The schedule for executing the cron job. Lagoon uses an extended
+  version of the crontab format. If you're not sure about the syntax, use a
+  [crontab generator](https://crontab.guru/).
+
+    * You can specify `M` for the minute, and your cron job will run once per
+      hour at a random minute (the same minute each hour), or `M/15` to run it
+      every 15 mins, but with a random offset from the hour (like
+      `6,21,36,51`). It is a good idea to spread out your cron jobs using this
+      feature, rather than have them all fire off on minute `0`.
+    * You can specify `H` for the hour, and your cron job will run once per day
+      at a random hour (the same hour every day), or `H(2-4)` to run it once
+      per day within the hours of 2-4.
+
+        !!! note "Timezones:"
+
+            * The default timezone for cron jobs is UTC.
+            * Native cron jobs use the timezone of the node, which is UTC.
+            * In-pod cron jobs use the timezone of the defined service, which
+              can be configured to something other than UTC.
+
+
+* `command`: The command to execute. This executes in the `WORKDIR` of the
+  service. For Lagoon images, this is `/app`.
+
+    !!! warning "Warning:"
+
+        Cronjobs may run in-pod, via crontab, which [doesn't support multiline
+        commands](https://www.man7.org/linux/man-pages/man5/crontab.5.html). If
+        you need a complex or multiline cron command, you must put it in a
+        script that can be used as the command.
+
+* `service`: Which service of your project to run the command in. For most
+  projects, this should be the `cli` service.
 
 ## Polysite
 
