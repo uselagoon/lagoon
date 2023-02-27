@@ -20,11 +20,7 @@ export const getEnvVarsByProjectId: ResolverFn = async (
 
   const rows = await query(
     sqlClientPool,
-    `SELECT ev.*
-    FROM env_vars ev
-    JOIN project p ON ev.project = p.id
-    WHERE ev.project = :pid`,
-    { pid }
+    Sql.selectEnvVarsByProjectId(pid)
   );
 
   return rows;
@@ -49,12 +45,7 @@ export const getEnvVarsByEnvironmentId: ResolverFn = async (
 
   const rows = await query(
     sqlClientPool,
-    `SELECT ev.*
-    FROM env_vars ev
-    JOIN environment e on ev.environment = e.id
-    JOIN project p ON e.project = p.id
-    WHERE ev.environment = :eid`,
-    { eid }
+    Sql.selectEnvVarsByEnvironmentId(eid)
   );
 
   return rows;
