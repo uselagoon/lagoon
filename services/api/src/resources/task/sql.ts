@@ -17,6 +17,9 @@ export const Sql = {
     service,
     command,
     remoteId,
+    deployTokenInjection,
+    projectKeyInjection,
+    adminOnlyView,
     type = null,
     advanced_image = null,
     advanced_payload = null,
@@ -32,6 +35,9 @@ export const Sql = {
     service: string;
     command: string;
     remoteId: string;
+    deployTokenInjection: boolean;
+    projectKeyInjection: boolean;
+    adminOnlyView: boolean;
     type?: string;
     advanced_image?: string;
     advanced_payload?: string;
@@ -48,6 +54,9 @@ export const Sql = {
         environment,
         service,
         command,
+        deployTokenInjection,
+        projectKeyInjection,
+        adminOnlyView,
         remoteId,
         type,
         advanced_image,
@@ -66,7 +75,7 @@ export const Sql = {
       .toString(),
   selectPermsForTask: (id: number) =>
     knex('task')
-      .select({ pid: 'environment.project' })
+      .select({ pid: 'environment.project', adminOnlyView: 'task.admin_only_view', deployTokenInjection: 'task.deploy_token_injection', projectKeyInjection: 'task.project_key_injection' })
       .join('environment', 'task.environment', '=', 'environment.id')
       .where('task.id', id)
       .toString(),
@@ -84,8 +93,9 @@ export const Sql = {
     environment,
     permission,
     confirmation_text,
-    show_ui,
-    admin_task,
+    deploy_token_injection,
+    project_key_injection,
+    admin_only_view,
     }: {
       id: number,
       name: string,
@@ -100,8 +110,9 @@ export const Sql = {
       environment: number,
       permission: string,
       confirmation_text: string,
-      show_ui: number,
-      admin_task: number,
+      deploy_token_injection: boolean,
+      project_key_injection: boolean,
+      admin_only_view: boolean,
     }) =>
     knex('advanced_task_definition')
       .insert({
@@ -118,8 +129,9 @@ export const Sql = {
         environment,
         permission,
         confirmation_text,
-        show_ui,
-        admin_task,
+        deploy_token_injection,
+        project_key_injection,
+        admin_only_view,
       })
     .toString(),
     insertAdvancedTaskDefinitionArgument: ({
@@ -159,7 +171,8 @@ export const Sql = {
         .toString(),
     selectTaskRegistrationsByEnvironmentId:(id: number) =>
       knex('advanced_task_definition')
-        .select('advanced_task_definition.*', 'task_registration.id')
+        // .select('advanced_task_definition.*', 'task_registration.id')
+        .select(knex.raw(`advanced_task_definition.*, task_registration.id, advanced_task_definition.admin_only_view XOR 1 as "advanced_task_definition.show_ui", advanced_task_definition.deploy_token_injection as "advanced_task_definition.admin_task"`)) //use admin_only_view as show_ui for backwards compatability
         .join('task_registration', 'task_registration.advanced_task_definition', '=', 'advanced_task_definition.id')
         .where('task_registration.environment', '=', id)
         .toString(),
@@ -170,6 +183,7 @@ export const Sql = {
         .toString(),
     selectAdvancedTaskDefinition:(id: number) =>
       knex('advanced_task_definition')
+        .select(knex.raw(`*, advanced_task_definition.admin_only_view XOR 1 as "show_ui", advanced_task_definition.deploy_token_injection as "admin_task"`)) //use admin_only_view as show_ui for backwards compatability
         .where('advanced_task_definition.id', '=', id)
         .toString(),
     selectAdvancedTaskDefinitionArguments:(id: number) =>
@@ -187,6 +201,7 @@ export const Sql = {
         .toString(),
     selectAdvancedTaskDefinitionByName:(name: string) =>
       knex('advanced_task_definition')
+      .select(knex.raw(`*, advanced_task_definition.admin_only_view XOR 1 as "show_ui", advanced_task_definition.deploy_token_injection as "admin_task"`)) //use admin_only_view as show_ui for backwards compatability
         .where('advanced_task_definition.name', '=', name)
         .toString(),
     selectAdvancedTaskDefinitionByNameProjectEnvironmentAndGroup:(name: string, project: number, environment: number, group: string) => {
@@ -205,17 +220,21 @@ export const Sql = {
     },
   selectAdvancedTaskDefinitions:() =>
     knex('advanced_task_definition')
+    .select(knex.raw(`*, advanced_task_definition.admin_only_view XOR 1 as "show_ui", advanced_task_definition.deploy_token_injection as "admin_task"`)) //use admin_only_view as show_ui for backwards compatability
     .toString(),
   selectAdvancedTaskDefinitionsForEnvironment:(id: number) =>
     knex('advanced_task_definition')
+    .select(knex.raw(`*, advanced_task_definition.admin_only_view XOR 1 as "show_ui", advanced_task_definition.deploy_token_injection as "admin_task"`)) //use admin_only_view as show_ui for backwards compatability
     .where('environment', '=', id)
     .toString(),
   selectAdvancedTaskDefinitionsForProject:(id: number) =>
     knex('advanced_task_definition')
+    .select(knex.raw(`*, advanced_task_definition.admin_only_view XOR 1 as "show_ui", advanced_task_definition.deploy_token_injection as "admin_task"`)) //use admin_only_view as show_ui for backwards compatability
     .where('project', '=', id)
     .toString(),
   selectAdvancedTaskDefinitionsForGroups:(groups) =>
     knex('advanced_task_definition')
+    .select(knex.raw(`*, advanced_task_definition.admin_only_view XOR 1 as "show_ui", advanced_task_definition.deploy_token_injection as "admin_task"`)) //use admin_only_view as show_ui for backwards compatability
     .where('group_name', 'in', groups)
     .toString(),
   deleteAdvancedTaskDefinition:(id: number) =>

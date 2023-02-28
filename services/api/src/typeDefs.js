@@ -155,8 +155,11 @@ const typeDefs = gql`
     environment: Int
     project: Int
     permission: TaskPermission
-    showUi: Int
-    adminTask: Int
+    deployTokenInjection: Boolean
+    projectKeyInjection: Boolean
+    adminOnlyView: Boolean
+    showUi: Boolean @deprecated(reason: "Use adminOnlyView instead")
+    adminTask: Boolean @deprecated(reason: "Use deployTokenInjection and projectKeyInjection instead")
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgument]
     created: String
     deleted: String
@@ -174,8 +177,11 @@ const typeDefs = gql`
     environment: Int
     project: Int
     permission: TaskPermission
-    showUi: Int
-    adminTask: Int
+    deployTokenInjection: Boolean
+    projectKeyInjection: Boolean
+    adminOnlyView: Boolean
+    showUi: Boolean @deprecated(reason: "Use adminOnlyView instead")
+    adminTask: Boolean @deprecated(reason: "Use deployTokenInjection and projectKeyInjection instead")
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgument]
     created: String
     deleted: String
@@ -960,6 +966,9 @@ const typeDefs = gql`
     environment: Environment
     service: String
     command: String
+    deployTokenInjection: Boolean
+    projectKeyInjection: Boolean
+    adminOnlyView: Boolean
     remoteId: String
     logs: String
     files: [File]
@@ -1422,8 +1431,9 @@ const typeDefs = gql`
     permission: TaskPermission
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgumentInput]
     confirmationText: String
-    showUi: Int
-    adminTask: Int
+    deployTokenInjection: Boolean
+    projectKeyInjection: Boolean
+    adminOnlyView: Boolean
   }
 
   input UpdateAdvancedTaskDefinitionInput {
@@ -1444,7 +1454,9 @@ const typeDefs = gql`
     permission: TaskPermission
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgumentInput]
     confirmationText: String
-    showUi: Int
+    deployTokenInjection: Boolean
+    projectKeyInjection: Boolean
+    adminOnlyView: Boolean
   }
 
   input DeleteTaskInput {
