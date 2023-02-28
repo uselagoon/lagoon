@@ -854,7 +854,7 @@ const typeDefs = gql`
     envVariables: [EnvKeyValue]
     route: String
     routes: String
-    monitoringUrls: String
+    monitoringUrls: String @deprecated(reason: "No longer in use")
     deployments(name: String, limit: Int): [Deployment]
     insights(type: String, limit: Int): [Insight]
     backups(includeDeleted: Boolean, limit: Int): [Backup]
