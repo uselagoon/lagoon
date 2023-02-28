@@ -101,7 +101,6 @@
 - name: "{{ testname }} - check if custom domain 'hsts-header.com' is created and has HSTS header set"
   hosts: localhost
   serial: 1
-  tags: skip-on-kubernetes
   vars:
     url: "https://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix_https }}"
     host: "hsts-header.com"
@@ -114,7 +113,6 @@
 - name: "{{ testname }} - check if custom domain 'hsts-header-null.com' is created and does not have HSTS header set"
   hosts: localhost
   serial: 1
-  tags: skip-on-kubernetes
   vars:
     url: "https://nginx.{{ project | regex_replace('_', '-') }}.{{ branch | regex_replace('/', '-') }}.{{ route_suffix_https }}"
     host: "hsts-header-null.com"
