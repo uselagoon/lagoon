@@ -261,6 +261,13 @@ export const addAdvancedTaskDefinition = async (
 
   validateAdvancedTaskDefinitionData(input, image, command, type);
 
+  // We need to validate the incoming data
+  // first, we actually only want either groupName, environment, or project
+  if(environment && groupName || environment && project || project && groupName) {
+    throw Error("Only one of `environment`, `project`, or `groupName` should be set when creating a custom task.");
+  }
+
+
   //let's see if there's already an advanced task definition with this name ...
   // Note: this will all be scoped to either System, group, project, or environment
   // hence the filters below.
@@ -402,7 +409,10 @@ export const updateAdvancedTaskDefinition = async (
 
   await checkAdvancedTaskPermissions(task, hasPermission, models, projectObj);
 
-  validateAdvancedTaskDefinitionData(patch, image, command, type);
+  // we will merge the patch into the advanced task to double check that the final data is still valid
+  task = {...task, ...patch};
+
+  validateAdvancedTaskDefinitionData(task, image, command, type);
 
   //We actually don't want them to be able to update group, project, environment - so those aren't
   await query(
@@ -709,29 +719,6 @@ const getAdvancedTaskTarget = advancedTask => {
   }
 };
 
-// const advancedTaskFunctions = sqlClientPool => {
-//   return {
-//     advancedTaskDefinitionById: async function(id) {
-//       const rows = await query(
-//         sqlClientPool,
-//         Sql.selectAdvancedTaskDefinition(id)
-//       );
-//       let taskDef = R.prop(0, rows);
-//       taskDef.advancedTaskDefinitionArguments = await this.advancedTaskDefinitionArguments(
-//         taskDef.id
-//       );
-//       return taskDef;
-//     },
-//     advancedTaskDefinitionArguments: async function(task_definition_id) {
-//       const rows = await query(
-//         sqlClientPool,
-//         Sql.selectAdvancedTaskDefinitionArguments(task_definition_id)
-//       );
-//       let taskDefArgs = rows;
-//       return taskDefArgs;
-//     }
-//   };
-// };
 
 function validateAdvancedTaskDefinitionData(input: any, image: any, command: any, type: any) {
   switch (getAdvancedTaskDefinitionType(<AdvancedTaskDefinitionInterface>input)) {
