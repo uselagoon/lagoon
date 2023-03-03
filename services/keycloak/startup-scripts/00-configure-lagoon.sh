@@ -1959,6 +1959,116 @@ EOF
 EOF
 }
 
+function update_env_var_view_permissions {
+  CLIENT_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients?clientId=api --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  view_value_env_var_dev_environment=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Environment+Variable+Value+for+Development+Environment --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  view_value_env_var_prod_environment=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Environment+Variable+Value+for+Production+Environment --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  view_value_env_var_project=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Environment+Variable+Value+for+Project --config $CONFIG_PATH | jq -r '.[0]["id"]')
+
+  if [ "$view_value_env_var_dev_environment" != "[ ]" ]; then
+      echo "environment:viewValue:development on env_var already configured"
+      return 0
+  elif [ "$view_value_env_var_prod_environment" != "[ ]" ]; then
+      echo "environment:viewValue:production on env_var already configured"
+      return 0
+  elif [ "$view_value_env_var_project" != "[ ]" ]; then
+      echo "project:viewValue on env_var already configured"
+      return 0
+  fi
+
+  echo Recreating \"View Environment Variable for Development Environment\" permissions
+  echo Recreating \"View Environment Variable for Production Environment\" permissions
+  echo Recreating \"View Environment Variable for Project\" permissions
+  echo Creating \"View Environment Variable Value for Development Environment\" permissions
+  echo Creating \"View Environment Variable Value for Production Environment\" permissions
+  echo Creating \"View Environment Variable Value for Project\" permissions
+
+  ENVVAR_RESOURCE_ID=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/resource?name=env_var --config $CONFIG_PATH | jq -r '.[0]["_id"]')
+  /opt/jboss/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/authz/resource-server/resource/$ENVVAR_RESOURCE_ID --config $CONFIG_PATH -r ${KEYCLOAK_REALM:-master} -s 'scopes=[{"name":"project:view"},{"name":"project:viewValue"},{"name":"project:add"},{"name":"project:delete"},{"name":"environment:view:production"},{"name":"environment:viewValue:production"},{"name":"environment:view:development"},{"name":"environment:viewValue:development"},{"name":"environment:add:production"},{"name":"environment:add:development"},{"name":"environment:delete:production"},{"name":"environment:delete:development"},{"name":"delete"}]'
+
+  view_env_var_dev_environment=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Environment+Variable+for+Development+Environment --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  view_env_var_prod_environment=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Environment+Variable+for+Production+Environment --config $CONFIG_PATH | jq -r '.[0]["id"]')
+  view_env_var_project=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Environment+Variable+for+Project --config $CONFIG_PATH | jq -r '.[0]["id"]')
+
+  #Delete Existing
+  /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$api_client_id/authz/resource-server/permission/$view_env_var_dev_environment --config $CONFIG_PATH
+  /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$api_client_id/authz/resource-server/permission/$view_env_var_prod_environment --config $CONFIG_PATH
+  /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$api_client_id/authz/resource-server/permission/$view_env_var_project --config $CONFIG_PATH
+
+  #Create new
+  /opt/jboss/keycloak/bin/kcadm.sh create clients/$api_client_id/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View Environment Variable for Development Environment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["env_var"],
+  "scopes": ["environment:view:development"],
+  "policies": ["User has access to project","Users role for project is Guest"]
+}
+EOF
+
+/opt/jboss/keycloak/bin/kcadm.sh create clients/$api_client_id/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View Environment Variable for Production Environment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["env_var"],
+  "scopes": ["environment:view:production"],
+  "policies": ["User has access to project","Users role for project is Guest"]
+}
+EOF
+
+/opt/jboss/keycloak/bin/kcadm.sh create clients/$api_client_id/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View Environment Variable for Project",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["env_var"],
+  "scopes": ["project:view"],
+  "policies": ["User has access to project","Users role for project is Guest"]
+}
+EOF
+
+/opt/jboss/keycloak/bin/kcadm.sh create clients/$api_client_id/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View Environment Variable Value for Development Environment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["env_var"],
+  "scopes": ["environment:viewValue:development"],
+  "policies": ["Users role for project is Developer","User has access to project"]
+}
+EOF
+
+/opt/jboss/keycloak/bin/kcadm.sh create clients/$api_client_id/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View Environment Variable Value for Production Environment",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["env_var"],
+  "scopes": ["environment:viewValue:production"],
+  "policies": ["Users role for project is Maintainer","User has access to project"]
+}
+EOF
+
+/opt/jboss/keycloak/bin/kcadm.sh create clients/$api_client_id/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
+{
+  "name": "View Environment Variable Value for Project",
+  "type": "scope",
+  "logic": "POSITIVE",
+  "decisionStrategy": "UNANIMOUS",
+  "resources": ["env_var"],
+  "scopes": ["project:viewValue"],
+  "policies": ["Users role for project is Maintainer","User has access to project"]
+}
+EOF
+}
+
 ##################
 # Initialization #
 ##################
