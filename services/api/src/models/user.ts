@@ -71,7 +71,7 @@ export const User = (clients: {
   sqlClientPool: any;
   esClient: any;
 }): UserModel => {
-  const { keycloakAdminClient, redisClient } = clients;
+  const { keycloakAdminClient } = clients;
 
   const fetchGitlabId = async (user: User): Promise<string> => {
     const identities = await keycloakAdminClient.users.listFederatedIdentities({

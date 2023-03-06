@@ -95,7 +95,7 @@ export const Group = (clients: {
   sqlClientPool: Pool;
   esClient: any;
 }) => {
-  const { keycloakAdminClient, redisClient } = clients;
+  const { keycloakAdminClient } = clients;
 
   const transformKeycloakGroups = async (
     keycloakGroups: GroupRepresentation[]
@@ -481,12 +481,6 @@ export const Group = (clients: {
   };
 
   const deleteGroup = async (id: string): Promise<void> => {
-    /* REDIS
-    // const group = loadGroupById(id);
-    // @ts-ignore
-    // const projectIds = getProjectIdsFromGroup(group);
-    REDIS */
-
     try {
       await keycloakAdminClient.groups.del({ id });
     } catch (err) {
