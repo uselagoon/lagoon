@@ -24,6 +24,7 @@ const { logger } = require('./loggers/logger');
 const { userActivityLogger } = require('./loggers/userActivityLogger');
 const typeDefs = require('./typeDefs');
 const resolvers = require('./resolvers');
+const { keycloakGrantManager } = require('./clients/keycloakClient');
 
 const User = require('./models/user');
 const Group = require('./models/group');
@@ -169,16 +170,22 @@ const apolloServer = new ApolloServer({
       };
 
       // get all keycloak groups, do this early to reduce the number of times this is called otherwise
-      // would be good if this could be wrapped in a way so that only resolvers that need groups are called
       // but doing this early and once is pretty cheap
       let allGroups = await Group.Group(modelClients).loadAllGroups();
       let keycloakGroups = await Group.Group(modelClients).transformKeycloakGroups(allGroups);
 
+      let currentUser = {};
+      let serviceAccount = {};
       // if this is a user request, get the users keycloak groups too, do this one to reduce the number of times it is called elsewhere
       let keycloakUsersGroups = []
-      let kcg = req.kauth ? req.kauth.grant : null
-      if (kcg) {
-        keycloakUsersGroups = await User.User(modelClients).getAllGroupsForUser(kcg.access_token.content.sub);
+      let groupRoleProjectIds = []
+      const keycloakGrant = req.kauth ? req.kauth.grant : null
+      if (keycloakGrant) {
+        keycloakUsersGroups = await User.User(modelClients).getAllGroupsForUser(keycloakGrant.access_token.content.sub);
+        serviceAccount = await keycloakGrantManager.obtainFromClientCredentials();
+        currentUser = await User.User(modelClients).loadUserById(keycloakGrant.access_token.content.sub);
+        // grab the users project ids and roles in the first request
+        groupRoleProjectIds = await User.User(modelClients).getAllProjectsIdsForUser(currentUser, keycloakUsersGroups);
       }
 
       // do a permission check to see if the user is platform admin/owner, or has permission for `viewAll` on certain resources
@@ -186,8 +193,8 @@ const apolloServer = new ApolloServer({
       // every `hasPermission` check adds a delay, and if you're a member of a group that has a lot of projects and environments, hasPermissions is costly when we perform
       // the viewAll permission check, to then error out and follow through with the standard user permission check, effectively costing 2 hasPermission calls for every request
       // this eliminates a huge number of these by making it available in the apollo context
-      let hasPermission = req.kauth
-          ? keycloakHasPermission(req.kauth.grant, requestCache, modelClients)
+      const hasPermission = req.kauth
+          ? keycloakHasPermission(req.kauth.grant, requestCache, modelClients, serviceAccount, currentUser, groupRoleProjectIds)
           : legacyHasPermission(req.legacyCredentials)
       let projectViewAll = false
       let groupViewAll = false
@@ -221,8 +228,8 @@ const apolloServer = new ApolloServer({
       return {
         keycloakAdminClient,
         sqlClientPool,
-        hasPermission: hasPermission,
-        keycloakGrant: req.kauth ? req.kauth.grant : null,
+        hasPermission,
+        keycloakGrant,
         requestCache,
         userActivityLogger: (message, meta) => {
           let defaultMeta = {

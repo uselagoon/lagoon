@@ -5,7 +5,6 @@ import { getConfigFromEnv } from '../util/config';
 import { isNotNil } from './func';
 import { keycloakGrantManager } from '../clients/keycloakClient';
 const { userActivityLogger } = require('../loggers/userActivityLogger');
-import { User } from '../models/user';
 import { Group } from '../models/group';
 
 interface ILegacyToken {
@@ -146,15 +145,10 @@ export class KeycloakUnauthorizedError extends Error {
   }
 }
 
-export const keycloakHasPermission = (grant, requestCache, modelClients, keycloakUsersGroups) => {
-  const UserModel = User(modelClients);
+export const keycloakHasPermission = (grant, requestCache, modelClients, serviceAccount, currentUser, groupRoleProjectIds) => {
   const GroupModel = Group(modelClients);
 
   return async (resource, scope, attributes: IKeycloakAuthAttributes = {}) => {
-    const currentUserId: string = grant.access_token.content.sub;
-
-    const currentUser = await UserModel.loadUserById(currentUserId);
-    const serviceAccount = await keycloakGrantManager.obtainFromClientCredentials();
 
     let claims: {
       currentUser: [string];
@@ -164,7 +158,7 @@ export const keycloakHasPermission = (grant, requestCache, modelClients, keycloa
       userProjectRole?: [string];
       userGroupRole?: [string];
     } = {
-      currentUser: [currentUserId]
+      currentUser: [currentUser.id]
     };
 
 
@@ -178,7 +172,7 @@ export const keycloakHasPermission = (grant, requestCache, modelClients, keycloa
             R.prop('users')
           )(attributes)
         ],
-        currentUser: [currentUserId]
+        currentUser: [currentUser.id]
       };
     }
 
@@ -193,8 +187,7 @@ export const keycloakHasPermission = (grant, requestCache, modelClients, keycloa
           projectQuery: [`${projectId}`]
         };
 
-        const groupRoleIds = await UserModel.getAllProjectsIdsForUser(currentUser, keycloakUsersGroups);
-        const [highestRoleForProject, upids] = getUserRoleForProjectFromRoleProjectIds(groupRoleIds, projectId)
+        const [highestRoleForProject, upids] = getUserRoleForProjectFromRoleProjectIds(groupRoleProjectIds, projectId)
         if (upids.length) {
           claims = {
             ...claims,
@@ -223,7 +216,7 @@ export const keycloakHasPermission = (grant, requestCache, modelClients, keycloa
 
         const groupRoles = R.pipe(
           R.filter(membership =>
-            R.pathEq(['user', 'id'], currentUserId, membership)
+            R.pathEq(['user', 'id'], currentUser.id, membership)
           ),
           R.pluck('role')
         )(group.members);
@@ -297,7 +290,7 @@ export const keycloakHasPermission = (grant, requestCache, modelClients, keycloa
       userActivityLogger.user_info(
         `User does not have permission to '${scope}' on '${resource}'`,
         {
-          user: currentUserId
+          user: currentUser.id
         }
       );
     }
