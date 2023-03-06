@@ -2106,6 +2106,7 @@ function configure_keycloak {
     migrate_to_js_provider
     add_delete_env_var_permissions
     configure_lagoon_opensearch_sync_client
+    update_env_var_view_permissions
 
     # always run last
     sync_client_secrets
