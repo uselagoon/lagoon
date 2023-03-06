@@ -98,15 +98,17 @@ export const getProblemSources: ResolverFn = async (
 export const getProblemsByEnvironmentId: ResolverFn = async (
   { id: environmentId },
   { severity, source },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, adminScopes }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
   ).getEnvironmentById(environmentId);
 
-  await hasPermission('problem', 'view', {
-    project: environment.project
-  });
+  if (!adminScopes.projectViewAll) {
+    await hasPermission('problem', 'view', {
+      project: environment.project
+    });
+  }
 
   const rows = await query(
     sqlClientPool,

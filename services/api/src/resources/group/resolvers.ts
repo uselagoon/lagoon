@@ -488,16 +488,6 @@ export const getAllProjectsInGroup: ResolverFn = async (
     GroupModel: { loadGroupByIdOrName, getProjectsFromGroupAndSubgroups }
   } = models;
 
-  // Since we've
-  // already authorized the user has access to the group, and thus the associated projects we are
-  // returning, AND all user roles are allowed to view all environments of a project, we can
-  // short-circuit the slow keycloak check in the getEnvironmentsByProjectId
-  // resolver.
-  //
-  // @TODO: When this performance issue is fixed for real, remove this hack as
-  // it hardcodes a "everyone can view environments" authz rule.
-  let environmentAuthz = true
-
   // use the admin scope check instead of `hasPermission` for speed
   if (adminScopes.groupViewAll) {
     try {
@@ -505,7 +495,7 @@ export const getAllProjectsInGroup: ResolverFn = async (
       const group = await getGroupFromGroups(groupInput.id, keycloakGroups)
       const projectIdsArray = await getProjectsFromGroupAndSubgroups(group);
       return projectIdsArray.map(async id =>
-        projectHelpers(sqlClientPool).getProjectByProjectInput({ id }, environmentAuthz)
+        projectHelpers(sqlClientPool).getProjectByProjectInput({ id })
       );
     } catch (err) {
       if (err instanceof GroupNotFoundError) {
@@ -536,7 +526,7 @@ export const getAllProjectsInGroup: ResolverFn = async (
     const projectIdsArray = await getProjectsFromGroupAndSubgroups(group);
 
     return projectIdsArray.map(async id =>
-      projectHelpers(sqlClientPool).getProjectByProjectInput({ id }, environmentAuthz)
+      projectHelpers(sqlClientPool).getProjectByProjectInput({ id })
     );
   }
 };

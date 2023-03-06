@@ -12,15 +12,15 @@ import { getEnvironmentsByProjectId } from '../environment/resolvers';
 import { getUserProjectIdsFromRoleProjectIds } from '../../util/auth';
 
 export const getFactsByEnvironmentId: ResolverFn = async (
-  { id: environmentId, environmentAuthz },
+  { id: environmentId },
   { keyFacts, limit, summary },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, adminScopes }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
   ).getEnvironmentById(environmentId);
 
-  if (!environmentAuthz) {
+  if (!adminScopes.projectViewAll) {
     await hasPermission('fact', 'view', {
       project: environment.project
     });
@@ -123,12 +123,15 @@ const getSqlPredicate = (predicate) => {
 export const getProjectsByFactSearch: ResolverFn = async (
   root,
   { input },
-  { sqlClientPool, hasPermission, keycloakGrant, models, keycloakUsersGroups }
+  { sqlClientPool, hasPermission, keycloakGrant, models, keycloakUsersGroups },
+  info
 ) => {
 
   let isAdmin = false;
   let userProjectIds: number[];
+
   try {
+    // admin check, if passed then pre-set authz
     await hasPermission('project', 'viewAll');
     isAdmin = true;
   } catch (err) {
@@ -146,11 +149,7 @@ export const getProjectsByFactSearch: ResolverFn = async (
   const count = await getFactFilteredProjectsCount(input, userProjectIds, sqlClientPool, isAdmin);
   const rows = await getFactFilteredProjects(input, userProjectIds, sqlClientPool, isAdmin);
 
-  // Just like the getAllProjects resolver, we can pass a 'environmentAuthz' prop to bypass extra
-  // keycloak checks at the environments level.
-  const rowsWithEnvironmentAuthz = rows && rows.map(row => ({ ...row, environmentAuthz: true }));
-
-  return { projects: rowsWithEnvironmentAuthz, count };
+  return { projects: rows, count };
 }
 
 export const getEnvironmentsByFactSearch: ResolverFn = async (
@@ -179,11 +178,7 @@ export const getEnvironmentsByFactSearch: ResolverFn = async (
   const count = await getFactFilteredEnvironmentsCount(input, userProjectIds, sqlClientPool, isAdmin);
   const rows = await getFactFilteredEnvironments(input, userProjectIds, sqlClientPool, isAdmin);
 
-  // Just like the getAllProjects resolver, we can pass a 'environmentAuthz' prop to bypass extra
-  // keycloak checks at the environments level.
-  const rowsWithEnvironmentAuthz = rows && rows.map(row => ({ ...row, environmentAuthz: true }));
-
-  return { environments: rowsWithEnvironmentAuthz, count };
+  return { environments: rows, count };
 }
 
 export const processAddFacts = async (facts, sqlClientPool, hasPermission) => {

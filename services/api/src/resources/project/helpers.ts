@@ -67,7 +67,7 @@ export const Helpers = (sqlClientPool: Pool) => {
 
       return parseInt(pid, 10);
     },
-    getProjectByProjectInput: async (projectInput, environmentAuthz?) => {
+    getProjectByProjectInput: async (projectInput) => {
       const notEmpty = R.complement(R.anyPass([R.isNil, R.isEmpty]));
       const hasId = R.both(R.has('id'), R.propSatisfies(notEmpty, 'id'));
       const hasName = R.both(R.has('name'), R.propSatisfies(notEmpty, 'name'));
@@ -75,11 +75,6 @@ export const Helpers = (sqlClientPool: Pool) => {
       const projectFromId = asyncPipe(R.prop('id'), getProjectById, project => {
         if (!project) {
           throw new Error('Unauthorized');
-        }
-        if (environmentAuthz) {
-          // @TODO: When this performance issue is fixed for real, remove this hack as
-          // it hardcodes a "everyone can view environments" authz rule.
-          project.environmentAuthz = true;
         }
 
         return project;
@@ -91,11 +86,6 @@ export const Helpers = (sqlClientPool: Pool) => {
 
         if (!project) {
           throw new Error('Unauthorized');
-        }
-        if (environmentAuthz) {
-          // @TODO: When this performance issue is fixed for real, remove this hack as
-          // it hardcodes a "everyone can view environments" authz rule.
-          project.environmentAuthz = true;
         }
 
         return project;

@@ -217,15 +217,15 @@ export const getDeploymentsByFilter: ResolverFn = async (
 };
 
 export const getDeploymentsByEnvironmentId: ResolverFn = async (
-  { id: eid, environmentAuthz },
+  { id: eid },
   { name, limit },
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, adminScopes }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
   ).getEnvironmentById(eid);
 
-  if (!environmentAuthz) {
+  if (!adminScopes.projectViewAll) {
     await hasPermission('deployment', 'view', {
       project: environment.project
     });

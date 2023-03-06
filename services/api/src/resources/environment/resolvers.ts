@@ -66,19 +66,11 @@ export const getEnvironmentById = async (
 export const getEnvironmentsByProjectId: ResolverFn = async (
   project,
   args,
-  { sqlClientPool, hasPermission, keycloakGrant, models }
+  { sqlClientPool, hasPermission, keycloakGrant, models, adminScopes }
 ) => {
   const { id: pid } = project;
 
-  // The getAllProjects resolver will authorize environment access already,
-  // so we can skip the request to keycloak.
-  //
-  // @TODO: When this performance issue is fixed for real, remove this hack as
-  // it hardcodes a "everyone can view environments" authz rule.
-  if (!R.prop('environmentAuthz', project)) {
-    // when requesting a large number of projects outside of the `allProjects` resolver
-    // eg, allGroups, or any other resolver that can sub resolve projects and environments
-    // this can cause significant response slowness as this is a check against keycloak directly for every environment
+  if (!adminScopes.projectViewAll) {
     await hasPermission('environment', 'view', {
       project: pid
     });
@@ -104,7 +96,7 @@ export const getEnvironmentsByProjectId: ResolverFn = async (
   );
   const withK8s = Helpers(sqlClientPool).aliasOpenshiftToK8s(rows);
 
-  return withK8s.map(row => ({ ...row, environmentAuthz: true }));
+  return withK8s;
 };
 
 export const getEnvironmentByDeploymentId: ResolverFn = async (

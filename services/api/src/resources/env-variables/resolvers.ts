@@ -12,11 +12,13 @@ import { logger } from '../../loggers/logger';
 export const getEnvVarsByProjectId: ResolverFn = async (
   { id: pid },
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, adminScopes }
 ) => {
-  await hasPermission('env_var', 'project:view', {
-    project: pid
-  });
+  if (!adminScopes.projectViewAll) {
+    await hasPermission('env_var', 'project:view', {
+      project: pid
+    });
+  }
 
   const rows = await query(
     sqlClientPool,
@@ -29,19 +31,21 @@ export const getEnvVarsByProjectId: ResolverFn = async (
 export const getEnvVarsByEnvironmentId: ResolverFn = async (
   { id: eid },
   args,
-  { sqlClientPool, hasPermission }
+  { sqlClientPool, hasPermission, adminScopes }
 ) => {
   const environment = await environmentHelpers(
     sqlClientPool
   ).getEnvironmentById(eid);
 
-  await hasPermission(
-    'env_var',
-    `environment:view:${environment.environmentType}`,
-    {
-      project: environment.project
-    }
-  );
+  if (!adminScopes.projectViewAll) {
+    await hasPermission(
+      'env_var',
+      `environment:view:${environment.environmentType}`,
+      {
+        project: environment.project
+      }
+    );
+  }
 
   const rows = await query(
     sqlClientPool,
@@ -335,7 +339,7 @@ export const addOrUpdateEnvVariableByName: ResolverFn = async (
 export const getEnvVariablesByProjectEnvironmentName: ResolverFn = async (
   root,
   { input: { project: projectName, environment: environmentName } },
-  { sqlClientPool, hasPermission, userActivityLogger }
+  { sqlClientPool, hasPermission, userActivityLogger, adminScopes }
 ) => {
   const projectId = await projectHelpers(sqlClientPool).getProjectIdByName(
     projectName
@@ -349,13 +353,15 @@ export const getEnvVariablesByProjectEnvironmentName: ResolverFn = async (
     );
     const environment = environmentRows[0];
 
-    await hasPermission(
-      'env_var',
-      `environment:view:${environment.environmentType}`,
-      {
-        project: projectId
-      }
-    );
+    if (!adminScopes.projectViewAll) {
+      await hasPermission(
+        'env_var',
+        `environment:view:${environment.environmentType}`,
+        {
+          project: projectId
+        }
+      );
+    }
 
     const environmentVariables = await query(
       sqlClientPool,
@@ -364,9 +370,11 @@ export const getEnvVariablesByProjectEnvironmentName: ResolverFn = async (
     return environmentVariables
   } else {
 
-    await hasPermission('env_var', 'project:view', {
-      project: projectId
-    });
+    if (!adminScopes.projectViewAll) {
+      await hasPermission('env_var', 'project:view', {
+        project: projectId
+      });
+    }
     // is project
     const projectVariables = await query(
       sqlClientPool,
