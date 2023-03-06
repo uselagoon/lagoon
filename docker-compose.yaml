@@ -79,7 +79,7 @@ services:
     #   - NEW_RELIC_LICENSE_KEY=
     #   - NEW_RELIC_APP_NAME=api-local
   ui:
-    image: uselagoon/ui:main
+    image: uselagoon/ui:pr-102
     command: yarn run dev
     environment:
       - NODE_ENV=development

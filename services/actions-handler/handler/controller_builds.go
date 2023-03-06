@@ -139,10 +139,6 @@ func (m *Messenger) handleBuild(ctx context.Context, messageQueue mq.MQ, message
 			routes := strings.Join(message.Meta.Routes, ",")
 			updateEnvironmentPatch.Routes = &routes
 		}
-		if message.Meta.MonitoringURLs != nil {
-			monitoring := strings.Join(message.Meta.MonitoringURLs, ",")
-			updateEnvironmentPatch.MonitoringURLs = &monitoring
-		}
 		updateEnvironmentPatch.ProjectID = message.Meta.ProjectID
 	}
 	// only update the api with the status etc on pending, complete, failed, or cancelled
