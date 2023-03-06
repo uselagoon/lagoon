@@ -126,7 +126,7 @@ export const User = (clients: {
     );
 
     // @ts-ignore
-    return R.defaultTo('', R.prop('userId', gitlabIdentity));
+    return R.defaultTo(undefined, R.prop('userId', gitlabIdentity));
   };
 
   const transformKeycloakUsers = async (

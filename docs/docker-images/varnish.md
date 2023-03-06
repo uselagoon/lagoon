@@ -4,7 +4,7 @@ The [Lagoon `Varnish` Docker images](https://github.com/uselagoon/lagoon-images/
 
 ## Supported versions
 
-* 5 \(available for compatibility, no longer officially supported\) - `uselagoon/varnish-5`
+* 5 \(available for compatibility only, no longer officially supported\) - `uselagoon/varnish-5`
 * 6 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/varnish/6.Dockerfile) - `uselagoon/varnish-6`
 * 7 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/varnish/7.Dockerfile) - `uselagoon/varnish-7`
 

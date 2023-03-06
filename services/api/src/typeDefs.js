@@ -155,6 +155,11 @@ const typeDefs = gql`
     environment: Int
     project: Int
     permission: TaskPermission
+    deployTokenInjection: Boolean
+    projectKeyInjection: Boolean
+    adminOnlyView: Boolean
+    showUi: Boolean @deprecated(reason: "Use adminOnlyView instead")
+    adminTask: Boolean @deprecated(reason: "Use deployTokenInjection and projectKeyInjection instead")
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgument]
     created: String
     deleted: String
@@ -172,6 +177,11 @@ const typeDefs = gql`
     environment: Int
     project: Int
     permission: TaskPermission
+    deployTokenInjection: Boolean
+    projectKeyInjection: Boolean
+    adminOnlyView: Boolean
+    showUi: Boolean @deprecated(reason: "Use adminOnlyView instead")
+    adminTask: Boolean @deprecated(reason: "Use deployTokenInjection and projectKeyInjection instead")
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgument]
     created: String
     deleted: String
@@ -487,6 +497,7 @@ const typeDefs = gql`
     cloudProvider: String
     cloudRegion: String
     buildImage: String
+    disabled: Boolean
   }
 
   type Kubernetes {
@@ -504,6 +515,7 @@ const typeDefs = gql`
     cloudProvider: String
     cloudRegion: String
     buildImage: String
+    disabled: Boolean
   }
 
   type NotificationMicrosoftTeams {
@@ -846,7 +858,7 @@ const typeDefs = gql`
     envVariables: [EnvKeyValue]
     route: String
     routes: String
-    monitoringUrls: String
+    monitoringUrls: String @deprecated(reason: "No longer in use")
     deployments(name: String, limit: Int): [Deployment]
     insights(type: String, limit: Int): [Insight]
     backups(includeDeleted: Boolean, limit: Int): [Backup]
@@ -958,6 +970,9 @@ const typeDefs = gql`
     environment: Environment
     service: String
     command: String
+    deployTokenInjection: Boolean
+    projectKeyInjection: Boolean
+    adminOnlyView: Boolean
     remoteId: String
     logs: String
     files: [File]
@@ -1480,6 +1495,9 @@ const typeDefs = gql`
     permission: TaskPermission
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgumentInput]
     confirmationText: String
+    deployTokenInjection: Boolean
+    projectKeyInjection: Boolean
+    adminOnlyView: Boolean
   }
 
   input UpdateAdvancedTaskDefinitionInput {
@@ -1500,6 +1518,9 @@ const typeDefs = gql`
     permission: TaskPermission
     advancedTaskDefinitionArguments: [AdvancedTaskDefinitionArgumentInput]
     confirmationText: String
+    deployTokenInjection: Boolean
+    projectKeyInjection: Boolean
+    adminOnlyView: Boolean
   }
 
   input DeleteTaskInput {
@@ -1541,6 +1562,7 @@ const typeDefs = gql`
     cloudProvider: String
     cloudRegion: String
     buildImage: String
+    disabled: Boolean
   }
 
   input AddKubernetesInput {
@@ -1560,6 +1582,7 @@ const typeDefs = gql`
     cloudProvider: String
     cloudRegion: String
     buildImage: String
+    disabled: Boolean
   }
 
   input DeleteOpenshiftInput {
@@ -1734,6 +1757,7 @@ const typeDefs = gql`
     cloudProvider: String
     cloudRegion: String
     buildImage: String
+    disabled: Boolean
   }
 
   input UpdateOpenshiftInput {
@@ -1757,6 +1781,7 @@ const typeDefs = gql`
     cloudProvider: String
     cloudRegion: String
     buildImage: String
+    disabled: Boolean
   }
 
   input UpdateKubernetesInput {

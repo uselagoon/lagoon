@@ -463,6 +463,7 @@ mutation PopulateApi {
     input: {
       name: "build-1"
       status: COMPLETE
+      remoteId: "86358316-a755-11ed-8206-032901f4c7e3"
       environment: 3
       created: "2018-10-07 23:02:41"
       started: "2018-10-07 23:03:41"
@@ -474,6 +475,7 @@ mutation PopulateApi {
   UIProject1Environment1addDeployment2: addDeployment(
     input: {
       name: "build-2"
+      remoteId: "85e36e3c-a755-11ed-abf6-df28d8a74109"
       status: FAILED
       environment: 3
       created: "2018-10-07 23:02:41"
@@ -486,6 +488,7 @@ mutation PopulateApi {
   UIProject1Environment1addDeployment3: addDeployment(
     input: {
       name: "build-3"
+      remoteId: "84e1dc8a-a755-11ed-a37d-770f36aa3d4e"
       status: RUNNING
       environment: 3
       created: "2018-10-07 23:02:41"
@@ -540,6 +543,69 @@ mutation PopulateApi {
     }
   ) {
     id
+  }
+
+  UIProjectAdvancedTask1: addAdvancedTaskDefinition(
+    input:{
+      name: "Admin only task"
+      description: "A task that only admins can see and run (logs also only visible to admin)"
+      type: COMMAND
+      service: "cli"
+      command: "env"
+      permission: MAINTAINER
+      project: 18
+      adminOnlyView: true
+      deployTokenInjection: true
+      projectKeyInjection: true
+    }
+  ){
+    ... on AdvancedTaskDefinitionCommand {
+      id
+      name
+      description
+      service
+      command
+    }
+  }
+
+  UIProjectAdvancedTask2: addAdvancedTaskDefinition(
+    input:{
+      name: "Mainter task"
+      description: "A task that maintainers can run"
+      type: COMMAND
+      service: "cli"
+      command: "env"
+      permission: MAINTAINER
+      project: 18
+    }
+  ){
+    ... on AdvancedTaskDefinitionCommand {
+      id
+      name
+      description
+      service
+      command
+    }
+  }
+
+  UIProjectAdvancedTask3: addAdvancedTaskDefinition(
+    input:{
+      name: "Developer task"
+      description: "A task that developers can run"
+      type: COMMAND
+      service: "cli"
+      command: "env"
+      permission: DEVELOPER
+      project: 18
+    }
+  ){
+    ... on AdvancedTaskDefinitionCommand {
+      id
+      name
+      description
+      service
+      command
+    }
   }
 
   UIProject1Environment1addServices: setEnvironmentServices(input:{environment:3, services:["cli", "nginx", "mariadb"]}) {

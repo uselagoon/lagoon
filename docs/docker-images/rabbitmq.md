@@ -8,7 +8,7 @@ By default, the RabbitMQ broker is started as single node. If you want to start 
 
 ## Supported versions
 
-* 3.9 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/rabbitmq/Dockerfile) - `uselagoon/rabbitmq`
+* 3.10 [Dockerfile](https://github.com/uselagoon/lagoon-images/blob/main/images/rabbitmq/Dockerfile) (Security Support until July 2023) - `uselagoon/rabbitmq`
 
 ## Lagoon adaptions
 

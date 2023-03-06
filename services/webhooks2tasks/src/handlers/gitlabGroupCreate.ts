@@ -1,5 +1,5 @@
 import { sendToLagoonLogs } from '@lagoon/commons/dist/logs/lagoon-logger';
-import { getGroup } from '@lagoon/commons/dist/gitlabApi';
+import { getGroup } from '@lagoon/commons/dist/gitlab/api';
 import { addGroup, addGroupWithParent, sanitizeGroupName } from '@lagoon/commons/dist/api';
 
 import { WebhookRequestData } from '../types';
