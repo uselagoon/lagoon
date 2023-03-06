@@ -411,7 +411,7 @@ export const getEnvVariablesByProjectEnvironmentName: ResolverFn = async (
         );
       return environmentVariables
     }
-  } else {
+  } else if (projectName) {
     // is project
     if (index != -1) {
         await hasPermission('env_var', 'project:viewValue', {

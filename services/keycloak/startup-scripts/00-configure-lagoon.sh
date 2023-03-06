@@ -1990,12 +1990,12 @@ function update_env_var_view_permissions {
   view_env_var_prod_environment=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Environment+Variable+for+Production+Environment --config $CONFIG_PATH | jq -r '.[0]["id"]')
   view_env_var_project=$(/opt/jboss/keycloak/bin/kcadm.sh get -r lagoon clients/$CLIENT_ID/authz/resource-server/permission?name=View+Environment+Variable+for+Project --config $CONFIG_PATH | jq -r '.[0]["id"]')
 
-  #Delete Existing
+  #Delete existing permissions
   /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$api_client_id/authz/resource-server/permission/$view_env_var_dev_environment --config $CONFIG_PATH
   /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$api_client_id/authz/resource-server/permission/$view_env_var_prod_environment --config $CONFIG_PATH
   /opt/jboss/keycloak/bin/kcadm.sh delete -r lagoon clients/$api_client_id/authz/resource-server/permission/$view_env_var_project --config $CONFIG_PATH
 
-  #Create new
+  #Create new permissions & re-create the existing with updated policies
   /opt/jboss/keycloak/bin/kcadm.sh create clients/$api_client_id/authz/resource-server/permission/scope --config $CONFIG_PATH -r lagoon -f - <<EOF
 {
   "name": "View Environment Variable for Development Environment",
