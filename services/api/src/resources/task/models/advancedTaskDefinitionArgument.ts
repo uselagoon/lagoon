@@ -117,11 +117,11 @@ export class StringArgument extends ArgumentBase {
 export class NumberArgument {
 
     public static typeName() {
-        return "NUMBER";
+        return "NUMERIC";
     }
 
     async validateInput(input): Promise<boolean>  {
-        return true;
+        return /^[0-9\.]+$/.test(input);
     }
 
     public async getArgumentRange() {
